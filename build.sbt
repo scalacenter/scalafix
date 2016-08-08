@@ -1,5 +1,6 @@
 lazy val buildSettings = Seq(
   organization := "ch.epfl.scala",
+  assemblyJarName in assembly := "scalafix.jar",
   // See core/src/main/scala/ch/epfl/scala/Versions.scala
   version :=  scalafix.Versions.nightly,
   scalaVersion :=  "2.11.8",
@@ -88,9 +89,11 @@ lazy val core = project
     libraryDependencies ++= Seq(
       "com.lihaoyi" %% "sourcecode" % "0.1.2",
       "org.scalameta" %% "scalameta" % "1.0.0",
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value,
 
       // Test dependencies
-      "org.scalatest" %% "scalatest" % "3.0.0" % "test"
+      "org.scalatest" %% "scalatest" % "3.0.0" % "test",
+      "com.googlecode.java-diff-utils" % "diffutils" % "1.3.0" % "test"
     )
   )
 
@@ -98,9 +101,10 @@ lazy val cli = project
     .settings(allSettings)
     .settings(
       moduleName := "scalafix-cli",
-      mainClass in assembly := Some("org.scalafmt.cli.Cli"),
+      mainClass in assembly := Some("scalafix.cli.Cli"),
       libraryDependencies ++= Seq(
-        "com.github.scopt" %% "scopt" % "3.5.0"
+        "com.github.scopt" %% "scopt" % "3.5.0",
+        "com.github.pathikrit" %% "better-files" % "2.16.0"
       )
     )
     .dependsOn(core % "compile->compile;test->test")

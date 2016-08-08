@@ -1,16 +1,17 @@
 package scalafix
 
 import scalafix.rewrite.ProcedureSyntax
+import scalafix.util.DiffAssertions
 
 import org.scalatest.FunSuite
 
-class ScalafixTest extends FunSuite {
+class ScalafixSuite extends FunSuite with DiffAssertions {
   val rewrites = Seq(ProcedureSyntax)
 
   def testInput(name: String, input: String, expected: String): Unit = {
     test(name) {
       val obtained = Scalafix.fix(input, rewrites)
-      assert(obtained.trim === expected.trim)
+      assertNoDiff(obtained.get, expected)
     }
   }
 
