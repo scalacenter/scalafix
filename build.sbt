@@ -78,9 +78,8 @@ lazy val root = project.in(file("."))
         |import scalafix._
       """.stripMargin
   )
-  .aggregate(core)
+  .aggregate(core, cli)
   .dependsOn(core)
-
 
 lazy val core = project
   .settings(allSettings)
@@ -94,4 +93,15 @@ lazy val core = project
       "org.scalatest" %% "scalatest" % "3.0.0" % "test"
     )
   )
+
+lazy val cli = project
+    .settings(allSettings)
+    .settings(
+      moduleName := "scalafix-cli",
+      mainClass in assembly := Some("org.scalafmt.cli.Cli"),
+      libraryDependencies ++= Seq(
+        "com.github.scopt" %% "scopt" % "3.5.0"
+      )
+    )
+    .dependsOn(core % "compile->compile;test->test")
 
