@@ -38,7 +38,11 @@ object Cli {
       .maxOccurs(10000)
       .action((files, c) => c.copy(files = c.files ++ files))
 
-    opt[Rewrite]("rewrites").text("which rewrites ")
+    opt[Seq[Rewrite]]("rewrites")
+      .minOccurs(1)
+      .maxOccurs(10000)
+      .text(
+          s"rewrite rules to run. Available: ${rewriteMap.keys.mkString(", ")} ")
 
     opt[Unit]('i', "in-place")
       .text("write fixes to file instead of printing to stdout")
@@ -48,10 +52,11 @@ object Cli {
     help("help").text("prints this usage text")
 
     note("""
-           |Example usages:
-           |
-           |  // Overwrite file with fixed contents.
-           |  scalafix -f fixme.scala -i
+           |Example usage:
+           |  // Write fixes to file in place.
+           |  scalafix -i -f fixme.scala
+           |  // Write fixes to all *.scala files in directory src/main/scala
+           |  scalafix -i -f src/main/scala
            |""".stripMargin)
   }
 
