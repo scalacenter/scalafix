@@ -8,6 +8,7 @@ import scalafix.util.FileOps
 import scalafix.util.LoggerOps._
 
 import java.io.File
+import java.io.OutputStream
 
 object Cli {
   case class Config(
@@ -15,9 +16,7 @@ object Cli {
       rewrites: Seq[Rewrite] = Rewrite.default,
       inPlace: Boolean = false,
       debug: Boolean = false
-  ) {
-    def paths: Set[String] = files.map(_.getAbsolutePath)
-  }
+  )
 
   def nameMap[T](t: sourcecode.Text[T]*): Map[String, T] = {
     t.map(x => x.source -> x.value).toMap
@@ -46,6 +45,14 @@ object Cli {
       .maxOccurs(1)
       .action((_, c) => c.copy(inPlace = true))
 
+    help("help").text("prints this usage text")
+
+    note("""
+           |Example usages:
+           |
+           |  // Overwrite file with fixed contents.
+           |  scalafix -f fixme.scala -i
+           |""".stripMargin)
   }
 
   def handleFile(file: File, config: Config): Unit = {
