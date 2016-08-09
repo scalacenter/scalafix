@@ -39,8 +39,8 @@ object Cli {
       .action((files, c) => c.copy(files = c.files ++ files))
 
     opt[Seq[Rewrite]]("rewrites")
-      .minOccurs(1)
       .maxOccurs(10000)
+      .action((rewrites, c) => c.copy(rewrites = c.rewrites ++ rewrites))
       .text(
           s"rewrite rules to run. Available: ${rewriteMap.keys.mkString(", ")} ")
 
