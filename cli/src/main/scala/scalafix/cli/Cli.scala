@@ -4,16 +4,14 @@ import scalafix.FixResult
 import scalafix.Scalafix
 import scalafix.rewrite.ProcedureSyntax
 import scalafix.rewrite.Rewrite
+import scalafix.util.FileOps
 import scalafix.util.LoggerOps._
 
-import java.io.{File => JFile}
-
-import better.files.File.OpenOptions
-import better.files._
+import java.io.File
 
 object Cli {
   case class Config(
-      files: Set[JFile] = Set.empty[JFile],
+      files: Set[File] = Set.empty[File],
       rewrites: Seq[Rewrite] = Rewrite.default,
       inPlace: Boolean = false,
       debug: Boolean = false
@@ -35,7 +33,7 @@ object Cli {
   val parser = new scopt.OptionParser[Config]("scalafix") {
     head("scalafix", scalafix.Versions.nightly)
 
-    opt[Seq[JFile]]('f', "files")
+    opt[Seq[File]]('f', "files")
       .text("files to fix, can be directory or file path")
       .minOccurs(1)
       .maxOccurs(10000)
@@ -51,10 +49,10 @@ object Cli {
   }
 
   def handleFile(file: File, config: Config): Unit = {
-    Scalafix.fix(file.contentAsString, config.rewrites) match {
+    Scalafix.fix(FileOps.readFile(file), config.rewrites) match {
       case FixResult.Success(code) =>
         if (config.inPlace) {
-          file.write(code.getBytes())(OpenOptions.default)
+          FileOps.writeFile(file, code)
         } else println(code)
       case FixResult.Error(e) => throw e
     }
@@ -63,11 +61,12 @@ object Cli {
   def runOn(config: Config): Unit = {
     config.files.foreach { path =>
       if (path.isDirectory) {
-        path.toScala.listRecursively
-          .withFilter(x => x.extension.contains("scala"))
-          .foreach(x => handleFile(x, config))
+        FileOps
+          .listFiles(path)
+          .withFilter(x => x.endsWith(".scala"))
+          .foreach(x => handleFile(new File(x), config))
       } else {
-        handleFile(path.toScala, config)
+        handleFile(path, config)
       }
     }
   }

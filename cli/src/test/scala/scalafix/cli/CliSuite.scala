@@ -1,11 +1,9 @@
 package scalafix.cli
 
 import scalafix.util.DiffAssertions
+import scalafix.util.FileOps
 
-import java.io.{File => JFile}
-
-import better.files.File.OpenOptions
-import better.files._
+import java.io.File
 
 import org.scalatest.FunSuite
 
@@ -13,7 +11,7 @@ class CliSuite extends FunSuite with DiffAssertions {
 
   test("testMain") {
     val expected = Cli.Config(
-        Set(new JFile("foo"), new JFile("bar"))
+        Set(new File("foo"), new File("bar"))
     )
     val obtained = Cli.parser.parse(Seq(
                                         "--files",
@@ -40,10 +38,10 @@ class CliSuite extends FunSuite with DiffAssertions {
                      |  }
                      |}
       """.stripMargin
-    val file = JFile.createTempFile("prefix", ".scala")
-    file.toScala.write(original.getBytes())(OpenOptions.default)
+    val file = File.createTempFile("prefix", ".scala")
+    FileOps.writeFile(file, original)
     Cli.runOn(Cli.Config(Set(file), inPlace = true))
 
-    assertNoDiff(file.toScala.contentAsString, expected)
+    assertNoDiff(FileOps.readFile(file), expected)
   }
 }
