@@ -27,6 +27,8 @@ lazy val compilerOptions = Seq(
 )
 
 lazy val commonSettings = Seq(
+  ScoverageSbtPlugin.ScoverageKeys.coverageExcludedPackages :=
+      ".*Versions;scalafix\\.(sbt|util)",
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
   scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
   testOptions in Test += Tests.Argument("-oD")
