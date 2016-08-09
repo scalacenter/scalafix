@@ -1,9 +1,13 @@
+import sbt.ScriptedPlugin
+import sbt.ScriptedPlugin._
+import scoverage.ScoverageSbtPlugin.ScoverageKeys._
+
 lazy val buildSettings = Seq(
   organization := "ch.epfl.scala",
   assemblyJarName in assembly := "scalafix.jar",
   // See core/src/main/scala/ch/epfl/scala/Versions.scala
   version :=  scalafix.Versions.nightly,
-  scalaVersion :=  "2.11.8",
+  scalaVersion :=  scalafix.Versions.scala,
   updateOptions := updateOptions.value.withCachedResolution(true)
 )
 
@@ -79,7 +83,7 @@ lazy val root = project.in(file("."))
         |import scalafix._
       """.stripMargin
   )
-  .aggregate(core, cli)
+  .aggregate(core, cli, sbtScalafix)
   .dependsOn(core)
 
 lazy val core = project
@@ -109,3 +113,20 @@ lazy val cli = project
     )
     .dependsOn(core % "compile->compile;test->test")
 
+lazy val sbtScalafix = project
+    .settings(allSettings)
+    .settings(ScriptedPlugin.scriptedSettings)
+    .settings(
+      sbtPlugin := true,
+      coverageHighlighting := false,
+      scalaVersion := "2.10.5",
+      moduleName := "sbt-scalafix",
+      sources in Compile +=
+          baseDirectory.value / "../core/src/main/scala/scalafix/Versions.scala",
+      scriptedLaunchOpts := Seq(
+        "-Dplugin.version=" + version.value,
+        // .jvmopts is ignored, simulate here
+        "-XX:MaxPermSize=256m", "-Xmx2g", "-Xss2m"
+      ),
+      scriptedBufferLog := false
+    )
