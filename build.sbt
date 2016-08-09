@@ -85,7 +85,12 @@ lazy val root = project.in(file("."))
         |import scalafix._
       """.stripMargin
   )
-  .aggregate(core, cli, sbtScalafix)
+  .aggregate(
+    core,
+    cli,
+    readme,
+    sbtScalafix
+  )
   .dependsOn(core)
 
 lazy val core = project
@@ -131,3 +136,22 @@ lazy val sbtScalafix = project
       ),
       scriptedBufferLog := false
     )
+
+
+lazy val readme = scalatex
+    .ScalatexReadme(
+      projectId = "readme",
+      wd = file(""),
+      url = "https://github.com/scalacenter/scalafix/tree/master",
+      source = "Readme")
+    .settings(allSettings)
+    .settings(noPublish)
+    .dependsOn(core)
+    .dependsOn(cli)
+    .settings(
+      libraryDependencies ++= Seq(
+        "com.twitter" %% "util-eval" % "6.34.0"
+      ),
+      dependencyOverrides += "com.lihaoyi" %% "scalaparse" % "0.3.1"
+    )
+

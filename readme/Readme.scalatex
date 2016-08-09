@@ -1,0 +1,9 @@
+@import Main._
+@import scalafix.Readme._
+
+@sect("scalafix - a Scala rewrite tool", scalafix.Versions.stable)
+
+  @h1
+    Hello world
+
+
