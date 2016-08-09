@@ -1,6 +1,4 @@
-# scalafix - rewrite your code to use new APIs
-
-There is nothing yet to see here.
+# scalafix [![codecov.io](https://codecov.io/github/scalacenter/scalafix/coverage.svg?branch=master)](https://codecov.io/github/scalacenter/scalafix?branch=master) [![Build Status](https://travis-ci.org/scalacenter/scalafix.svg?branch=master)](https://travis-ci.org/scalacenter/scalafix) [![Join the chat at https://gitter.im/scalacenter/scalafix](https://badges.gitter.im/scalacenter/scalafix.svg)](https://gitter.im/scalacenter/scalafix?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 The [first meeting of the Scala Center advisory board](http://scala-lang.org/blog/2016/05/30/scala-center-advisory-board.html#the-first-meeting)
 approved a proposal to define a migration path from Scala 2.x to Dotty.
