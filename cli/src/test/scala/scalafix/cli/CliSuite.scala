@@ -3,28 +3,23 @@ package scalafix.cli
 import scalafix.util.DiffAssertions
 import scalafix.util.FileOps
 
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.PrintStream
 
 import org.scalatest.FunSuite
 
 class CliSuite extends FunSuite with DiffAssertions {
 
+  println(Cli.helpMessage)
+
   test("testMain") {
-    val expected = Cli.Config(
-        files = Set(new File("foo"), new File("bar")),
+    val expected = ScalafixOptions(
+        files = List("foo", "bar"),
         inPlace = true
     )
-    val obtained = Cli.parser.parse(
-        Seq(
-            "--files",
-            "bar",
-            "--files",
-            "foo",
-            "-i"
-        ),
-        Cli.default
-    )
-    assert(obtained.get === expected)
+    val Right(obtained) = Cli.parse(Seq("-i", "foo", "bar"))
+    assertEqual(obtained, expected)
   }
 
   val original = """
@@ -45,15 +40,22 @@ class CliSuite extends FunSuite with DiffAssertions {
   test("write fix to file") {
     val file = File.createTempFile("prefix", ".scala")
     FileOps.writeFile(file, original)
-    Cli.runOn(Cli.Config(files = Set(file), inPlace = true))
+    Cli.runOn(
+        ScalafixOptions(files = List(file.getAbsolutePath), inPlace = true))
     assertNoDiff(FileOps.readFile(file), expected)
   }
 
   test("print to stdout does not write to file") {
     val file = File.createTempFile("prefix", ".scala")
     FileOps.writeFile(file, original)
-    Cli.runOn(Cli.Config(files = Set(file)))
+    val baos = new ByteArrayOutputStream()
+    Cli.runOn(
+        ScalafixOptions(
+            out = new PrintStream(baos),
+            files = List(file.getAbsolutePath)
+        ))
     assertNoDiff(FileOps.readFile(file), original)
+    assertNoDiff(new String(baos.toByteArray), expected)
   }
 
   test("write fix to directory") {
@@ -69,7 +71,8 @@ class CliSuite extends FunSuite with DiffAssertions {
     }
     val file1, file2 = createFile()
 
-    Cli.runOn(Cli.Config(files = Set(dir), inPlace = true))
+    Cli.runOn(
+        ScalafixOptions(files = List(dir.getAbsolutePath), inPlace = true))
     assertNoDiff(FileOps.readFile(file1), expected)
     assertNoDiff(FileOps.readFile(file2), expected)
   }

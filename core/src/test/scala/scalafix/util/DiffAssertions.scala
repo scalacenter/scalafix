@@ -7,10 +7,15 @@ import java.util.TimeZone
 
 import scalafix.util.LoggerOps._
 import org.scalatest.FunSuiteLike
+import org.scalatest.events.TestFailed
 import org.scalatest.exceptions.TestFailedException
 
 trait DiffAssertions extends FunSuiteLike {
   import LoggerOps._
+
+  def assertEqual[A](a: A, b: A): Unit = {
+    assert(a === b)
+  }
 
   case class DiffFailure(title: String,
                          expected: String,

@@ -17,7 +17,7 @@ abstract class Rewrite {
 }
 
 object Rewrite {
-  val default: Seq[Rewrite] = Seq(
+  val default: List[Rewrite] = List(
       ProcedureSyntax
   )
 }
