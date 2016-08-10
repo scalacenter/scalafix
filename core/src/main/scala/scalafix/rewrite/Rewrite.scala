@@ -5,9 +5,9 @@ import scalafix.FixResult
 
 abstract class Rewrite {
 
-  def rewrite(code: String): FixResult
+  def rewrite(code: Input): FixResult
 
-  protected def withParsed(code: String)(f: Tree => FixResult): FixResult = {
+  protected def withParsed(code: Input)(f: Tree => FixResult): FixResult = {
     code.parse[Source] match {
       case Parsed.Success(ast) => f(ast)
       case Parsed.Error(pos, msg, details) =>
@@ -17,7 +17,7 @@ abstract class Rewrite {
 }
 
 object Rewrite {
-  val default: Seq[Rewrite] = Seq(
+  val default: List[Rewrite] = List(
       ProcedureSyntax
   )
 }

@@ -11,6 +11,10 @@ lazy val buildSettings = Seq(
   updateOptions := updateOptions.value.withCachedResolution(true)
 )
 
+lazy val jvmOptions = Seq(
+  "-Xss4m"
+)
+
 lazy val compilerOptions = Seq(
   "-deprecation",
   "-encoding", "UTF-8",
@@ -110,11 +114,22 @@ lazy val core = project
 
 lazy val cli = project
     .settings(allSettings)
+    .settings(packSettings)
     .settings(
       moduleName := "scalafix-cli",
+      packJvmOpts := Map(
+        "scalafix" -> jvmOptions,
+        "scalafix_ng" -> jvmOptions
+      ),
       mainClass in assembly := Some("scalafix.cli.Cli"),
+      packMain := Map(
+        "scalafix" -> "scalafix.cli.Cli",
+        "scalafix_ng" -> "com.martiansoftware.nailgun.NGServer"
+      ),
       libraryDependencies ++= Seq(
-        "com.github.scopt" %% "scopt" % "3.5.0"
+        "com.github.scopt" %% "scopt" % "3.5.0",
+        "com.github.alexarchambault" %% "case-app" % "1.0.0-RC3",
+        "com.martiansoftware" % "nailgun-server" % "0.9.1"
       )
     )
     .dependsOn(core % "compile->compile;test->test")

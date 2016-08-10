@@ -4,14 +4,24 @@ import scala.meta._
 import scalafix.FixResult
 
 object ProcedureSyntax extends Rewrite {
-  override def rewrite(code: String): FixResult = {
+  override def rewrite(code: Input): FixResult = {
     withParsed(code) { ast =>
-      FixResult.Success {
-        ast.transform {
-          case t: Defn.Def if t.decltpe.exists(_.tokens.isEmpty) =>
-            q"..${t.mods} def ${t.name}[..${t.tparams}](...${t.paramss}): Unit = ${t.body}"
-        }.syntax
+      val toPrepend = ast.collect {
+        case t: Defn.Def if t.decltpe.exists(_.tokens.isEmpty) =>
+          t.body.tokens.head
+      }.toSet
+      val sb = new StringBuilder
+      ast.tokens.foreach { token =>
+        if (toPrepend.contains(token)) {
+          if (sb.lastOption.contains(' ')) {
+            sb.deleteCharAt(sb.length - 1)
+          }
+          sb.append(": Unit = ")
+        }
+        sb.append(token.syntax)
       }
+      val result = sb.toString()
+      FixResult.Success(result)
     }
   }
 }

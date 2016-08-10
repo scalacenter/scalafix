@@ -48,7 +48,7 @@
       Once installed, please refer to the @code{scalafix --help} page for
       usage instructions.
 
-      @hl.scala(scalafix.cli.Cli.parser.usage)
+      @hl.scala(scalafix.cli.Cli.helpMessage)
 
     @sect{SBT}
       @hl.scala
