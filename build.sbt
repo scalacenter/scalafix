@@ -11,6 +11,10 @@ lazy val buildSettings = Seq(
   updateOptions := updateOptions.value.withCachedResolution(true)
 )
 
+lazy val jvmOptions = Seq(
+  "-Xss4m"
+)
+
 lazy val compilerOptions = Seq(
   "-deprecation",
   "-encoding", "UTF-8",
@@ -113,6 +117,10 @@ lazy val cli = project
     .settings(packSettings)
     .settings(
       moduleName := "scalafix-cli",
+      packJvmOpts := Map(
+        "scalafix" -> jvmOptions,
+        "scalafix_ng" -> jvmOptions
+      ),
       mainClass in assembly := Some("scalafix.cli.Cli"),
       packMain := Map(
         "scalafix" -> "scalafix.cli.Cli",

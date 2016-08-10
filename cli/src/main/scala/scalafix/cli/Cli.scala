@@ -1,27 +1,32 @@
 package scalafix.cli
 
+import scala.collection.GenSeq
 import scalafix.FixResult
 import scalafix.Scalafix
 import scalafix.rewrite.ProcedureSyntax
 import scalafix.rewrite.Rewrite
 import scalafix.util.FileOps
+import scalafix.util.LoggerOps
 import scalafix.util.LoggerOps._
 
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
+import java.io.OutputStreamWriter
 import java.io.PrintStream
+import java.util.concurrent.atomic.AtomicInteger
 
 import com.martiansoftware.nailgun.NGContext
 
 object Cli {
   case class Config(
-      workingDirectory: File = new File(""),
+      workingDirectory: File = new File(System.getProperty("user.dir")),
       out: PrintStream = System.out,
       in: InputStream = System.in,
       err: PrintStream = System.err,
       files: Set[File] = Set.empty[File],
       rewrites: Seq[Rewrite] = Rewrite.default,
+      parallel: Boolean = true,
       inPlace: Boolean = false,
       debug: Boolean = false
   )
@@ -52,6 +57,11 @@ object Cli {
       .text(
           s"rewrite rules to run. Available: ${rewriteMap.keys.mkString(", ")} ")
 
+    opt[Boolean]("parallel")
+      .text("if true, runs in parallel. If false, run on single thread.")
+      .maxOccurs(1)
+      .action((b, c) => c.copy(parallel = b))
+
     opt[Unit]('i', "in-place")
       .text("write fixes to file instead of printing to stdout")
       .maxOccurs(1)
@@ -73,8 +83,14 @@ object Cli {
       case FixResult.Success(code) =>
         if (config.inPlace) {
           FileOps.writeFile(file, code)
-        } else println(code)
-      case FixResult.Error(e) => throw e
+        } else config.out.write(code.getBytes)
+      case FixResult.Failure(e) =>
+        config.err.write(s"Failed to fix $file. Cause: $e".getBytes)
+      case e: FixResult.ParseError =>
+        if (config.files.contains(file)) {
+          // Only log if user explicitly specified that file.
+          config.err.write(e.toString.getBytes())
+        }
     }
   }
 
@@ -84,11 +100,24 @@ object Cli {
         if (path.isAbsolute) path
         else new File(config.workingDirectory, path.getPath)
       if (realPath.isDirectory) {
-        FileOps
-          .listFiles(realPath)
-          .filter(x => x.endsWith(".scala"))
-          .par
-          .foreach(x => handleFile(new File(x), config))
+        val filesToFix: GenSeq[String] = {
+          val files =
+            FileOps.listFiles(realPath).filter(x => x.endsWith(".scala"))
+          if (config.parallel) files.par
+          else files
+        }
+        val logger = new TermDisplay(new OutputStreamWriter(System.out))
+        logger.init()
+        val msg = "Running scalafix..."
+        logger.downloadingArtifact(msg, config.workingDirectory)
+        logger.downloadLength(msg, filesToFix.length, 0)
+        val counter = new AtomicInteger()
+        filesToFix.foreach { x =>
+          handleFile(new File(x), config)
+          val progress = counter.incrementAndGet()
+          logger.downloadProgress(msg, progress)
+        }
+        logger.stop()
       } else {
         handleFile(realPath, config)
       }

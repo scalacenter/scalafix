@@ -4,7 +4,7 @@ import scala.meta._
 import scalafix.FixResult
 
 object ProcedureSyntax extends Rewrite {
-  override def rewrite(code: String): FixResult = {
+  override def rewrite(code: Input): FixResult = {
     withParsed(code) { ast =>
       val toPrepend = ast.collect {
         case t: Defn.Def if t.decltpe.exists(_.tokens.isEmpty) =>
