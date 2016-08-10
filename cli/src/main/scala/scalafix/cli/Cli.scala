@@ -86,7 +86,8 @@ object Cli {
       if (realPath.isDirectory) {
         FileOps
           .listFiles(realPath)
-          .withFilter(x => x.endsWith(".scala"))
+          .filter(x => x.endsWith(".scala"))
+          .par
           .foreach(x => handleFile(new File(x), config))
       } else {
         handleFile(realPath, config)
