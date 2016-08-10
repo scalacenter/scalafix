@@ -18,8 +18,10 @@ class ScalafixSuite extends FunSuite with DiffAssertions {
   testInput(
       "nested function",
       """
-        | import a.b.c
-        | import a.b.c
+        |import /* a */ a.b.c
+        |import a.b.c
+        |// This is a comment
+        |@annotation
         |object Main {
         |  def main(args: Seq[String]) {
         |  var number = 2
@@ -31,16 +33,18 @@ class ScalafixSuite extends FunSuite with DiffAssertions {
         |  }
         |}""".stripMargin,
       """
+        |import /* a */ a.b.c
         |import a.b.c
-        |import a.b.c
+        |// This is a comment
+        |@annotation
         |object Main {
         |  def main(args: Seq[String]): Unit = {
-        |    var number = 2
+        |  var number = 2
         |    def increment(n: Int): Unit = {
         |      number += n
         |    }
         |    increment(3)
-        |    args.foreach(println(number))
+        |      args.foreach(println(number))
         |  }
         |}""".stripMargin
   )
