@@ -11,7 +11,7 @@ class CliSuite extends FunSuite with DiffAssertions {
 
   test("testMain") {
     val expected = Cli.Config(
-        Set(new File("foo"), new File("bar")),
+        files = Set(new File("foo"), new File("bar")),
         inPlace = true
     )
     val obtained = Cli.parser.parse(
@@ -30,7 +30,7 @@ class CliSuite extends FunSuite with DiffAssertions {
   val original = """
                    |object Main {
                    |  def foo() {
-                   |   println(1)
+                   |    println(1)
                    |  }
                    |}
                  """.stripMargin
@@ -45,14 +45,14 @@ class CliSuite extends FunSuite with DiffAssertions {
   test("write fix to file") {
     val file = File.createTempFile("prefix", ".scala")
     FileOps.writeFile(file, original)
-    Cli.runOn(Cli.Config(Set(file), inPlace = true))
+    Cli.runOn(Cli.Config(files = Set(file), inPlace = true))
     assertNoDiff(FileOps.readFile(file), expected)
   }
 
   test("print to stdout does not write to file") {
     val file = File.createTempFile("prefix", ".scala")
     FileOps.writeFile(file, original)
-    Cli.runOn(Cli.Config(Set(file)))
+    Cli.runOn(Cli.Config(files = Set(file)))
     assertNoDiff(FileOps.readFile(file), original)
   }
 
@@ -69,7 +69,7 @@ class CliSuite extends FunSuite with DiffAssertions {
     }
     val file1, file2 = createFile()
 
-    Cli.runOn(Cli.Config(Set(dir), inPlace = true))
+    Cli.runOn(Cli.Config(files = Set(dir), inPlace = true))
     assertNoDiff(FileOps.readFile(file1), expected)
     assertNoDiff(FileOps.readFile(file2), expected)
   }

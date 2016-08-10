@@ -8,10 +8,18 @@ import scalafix.util.FileOps
 import scalafix.util.LoggerOps._
 
 import java.io.File
+import java.io.InputStream
 import java.io.OutputStream
+import java.io.PrintStream
+
+import com.martiansoftware.nailgun.NGContext
 
 object Cli {
   case class Config(
+      workingDirectory: File = new File(""),
+      out: PrintStream = System.out,
+      in: InputStream = System.in,
+      err: PrintStream = System.err,
       files: Set[File] = Set.empty[File],
       rewrites: Seq[Rewrite] = Rewrite.default,
       inPlace: Boolean = false,
@@ -72,21 +80,40 @@ object Cli {
 
   def runOn(config: Config): Unit = {
     config.files.foreach { path =>
-      if (path.isDirectory) {
+      val realPath: File =
+        if (path.isAbsolute) path
+        else new File(config.workingDirectory, path.getPath)
+      if (realPath.isDirectory) {
         FileOps
-          .listFiles(path)
+          .listFiles(realPath)
           .withFilter(x => x.endsWith(".scala"))
           .foreach(x => handleFile(new File(x), config))
       } else {
-        handleFile(path, config)
+        handleFile(realPath, config)
       }
     }
   }
 
-  def main(args: Array[String]): Unit = {
-    parser.parse(args, Config()) match {
+  def runMain(args: Seq[String], init: Config): Unit = {
+    parser.parse(args, init) match {
       case Some(config) => runOn(config)
       case None => System.exit(1)
     }
+  }
+
+  def nailMain(nGContext: NGContext): Unit = {
+    runMain(
+        nGContext.getArgs,
+        Config(
+            workingDirectory = new File(nGContext.getWorkingDirectory),
+            out = nGContext.out,
+            in = nGContext.in,
+            err = nGContext.err
+        )
+    )
+  }
+
+  def main(args: Array[String]): Unit = {
+    runMain(args, Config())
   }
 }

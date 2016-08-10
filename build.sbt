@@ -110,11 +110,17 @@ lazy val core = project
 
 lazy val cli = project
     .settings(allSettings)
+    .settings(packSettings)
     .settings(
       moduleName := "scalafix-cli",
       mainClass in assembly := Some("scalafix.cli.Cli"),
+      packMain := Map(
+        "scalafix" -> "scalafix.cli.Cli",
+        "scalafix_ng" -> "com.martiansoftware.nailgun.NGServer"
+      ),
       libraryDependencies ++= Seq(
-        "com.github.scopt" %% "scopt" % "3.5.0"
+        "com.github.scopt" %% "scopt" % "3.5.0",
+        "com.martiansoftware" % "nailgun-server" % "0.9.1"
       )
     )
     .dependsOn(core % "compile->compile;test->test")
