@@ -1,0 +1,6 @@
+build:
+  image: ensime/ensime:v2.x-cache
+  commands:
+    - pip install --user codecov
+    - ./bin/testAll.sh
+    - codecov
