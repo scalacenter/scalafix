@@ -1,6 +1,9 @@
+# Trigger build 8
 build:
-  image: ensime/ensime:v2.x-cache
+  image: olafurpg/scalafix:0.0.1
   commands:
     - pip install --user codecov
     - ./bin/testAll.sh
-    - codecov
+    # I can't be bothered to hide this token.
+    - $HOME/.local/bin/codecov -t 5f2117aa-0a01-4cf1-8bf7-631a62ccb47a
+
