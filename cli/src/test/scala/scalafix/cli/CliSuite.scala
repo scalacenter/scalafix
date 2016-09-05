@@ -9,19 +9,7 @@ import java.io.PrintStream
 
 import org.scalatest.FunSuite
 
-class CliSuite extends FunSuite with DiffAssertions {
-
-  println(Cli.helpMessage)
-
-  test("testMain") {
-    val expected = ScalafixOptions(
-      files = List("foo", "bar"),
-      inPlace = true
-    )
-    val Right(obtained) = Cli.parse(Seq("-i", "foo", "bar"))
-    assertEqual(obtained, expected)
-  }
-
+object BasicTest {
   val original = """|object Main {
                     |  def foo() {
                     |    println(1)
@@ -34,6 +22,23 @@ class CliSuite extends FunSuite with DiffAssertions {
                     |  }
                     |}
                  """.stripMargin
+
+}
+
+class CliSuite extends FunSuite with DiffAssertions {
+
+  println(Cli.helpMessage)
+
+  import BasicTest._
+
+  test("testMain") {
+    val expected = ScalafixOptions(
+      files = List("foo", "bar"),
+      inPlace = true
+    )
+    val Right(obtained) = Cli.parse(Seq("-i", "foo", "bar"))
+    assertEqual(obtained, expected)
+  }
 
   test("write fix to file") {
     val file = File.createTempFile("prefix", ".scala")
@@ -49,7 +54,9 @@ class CliSuite extends FunSuite with DiffAssertions {
     val baos = new ByteArrayOutputStream()
     Cli.runOn(
       ScalafixOptions(
-        out = new PrintStream(baos),
+        common = CommonOptions(
+          out = new PrintStream(baos)
+        ),
         files = List(file.getAbsolutePath)
       ))
     assertNoDiff(FileOps.readFile(file), original)

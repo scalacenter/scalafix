@@ -122,12 +122,12 @@ lazy val cli = project
     moduleName := "scalafix-cli",
     packJvmOpts := Map(
       "scalafix" -> jvmOptions,
-      "scalafix_ng" -> jvmOptions
+      "scalafix_ng_server" -> jvmOptions
     ),
     mainClass in assembly := Some("scalafix.cli.Cli"),
     packMain := Map(
       "scalafix" -> "scalafix.cli.Cli",
-      "scalafix_ng" -> "com.martiansoftware.nailgun.NGServer"
+      "scalafix_ng_server" -> "com.martiansoftware.nailgun.NGServer"
     ),
     libraryDependencies ++= Seq(
       "com.github.scopt"           %% "scopt"         % "3.5.0",

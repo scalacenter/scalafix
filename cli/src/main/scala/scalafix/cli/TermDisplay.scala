@@ -431,24 +431,10 @@ object TermDisplay {
 object Cache {
   trait Logger {
     def foundLocally(url: String, f: File): Unit = {}
-
-    def downloadingArtifact(url: String, file: File): Unit = {}
-
-    @deprecated("Use / override the variant with 3 arguments instead")
-    def downloadLength(url: String, length: Long): Unit = {}
-    def downloadLength(url: String,
-                       totalLength: Long,
-                       alreadyDownloaded: Long): Unit = {
-      downloadLength(url, totalLength)
-    }
-
-    def downloadProgress(url: String, downloaded: Long): Unit = {}
-
-    def downloadedArtifact(url: String, success: Boolean): Unit = {}
+    def startTask(url: String, file: File): Unit = {}
+    def taskProgress(url: String, downloaded: Long): Unit = {}
+    def completedTask(url: String, success: Boolean): Unit = {}
     def checkingUpdates(url: String, currentTimeOpt: Option[Long]): Unit = {}
-    def checkingUpdatesResult(url: String,
-                              currentTimeOpt: Option[Long],
-                              remoteTimeOpt: Option[Long]): Unit = {}
   }
 }
 
@@ -469,20 +455,20 @@ class TermDisplay(
     updateThread.end()
   }
 
-  override def downloadingArtifact(url: String, file: File): Unit =
+  override def startTask(msg: String, file: File): Unit =
     updateThread.newEntry(
-      url,
+      msg,
       DownloadInfo(0L,
                    0L,
                    None,
                    System.currentTimeMillis(),
                    updateCheck = false),
-      s"Downloading $url\n"
+      s"$msg\n"
     )
 
-  override def downloadLength(url: String,
-                              totalLength: Long,
-                              alreadyDownloaded: Long): Unit = {
+  def taskLength(url: String,
+                 totalLength: Long,
+                 alreadyDownloaded: Long): Unit = {
     val info = updateThread.infos.get(url)
     assert(info != null)
     val newInfo = info match {
@@ -496,7 +482,7 @@ class TermDisplay(
 
     updateThread.update()
   }
-  override def downloadProgress(url: String, downloaded: Long): Unit = {
+  override def taskProgress(url: String, downloaded: Long): Unit = {
     val info = updateThread.infos.get(url)
     assert(info != null)
     val newInfo = info match {
@@ -510,7 +496,7 @@ class TermDisplay(
     updateThread.update()
   }
 
-  override def downloadedArtifact(url: String, success: Boolean): Unit =
+  override def completedTask(url: String, success: Boolean): Unit =
     updateThread.removeEntry(url, success, s"Downloaded $url\n")(x => x)
 
   override def checkingUpdates(url: String,
@@ -520,26 +506,5 @@ class TermDisplay(
       CheckUpdateInfo(currentTimeOpt, None, isDone = false),
       s"Checking $url\n"
     )
-
-  override def checkingUpdatesResult(
-      url: String,
-      currentTimeOpt: Option[Long],
-      remoteTimeOpt: Option[Long]
-  ): Unit = {
-    // Not keeping a message on-screen if a download should happen next
-    // so that the corresponding URL doesn't appear twice
-    val newUpdate = remoteTimeOpt.exists { remoteTime =>
-      currentTimeOpt.forall { currentTime =>
-        currentTime < remoteTime
-      }
-    }
-
-    updateThread.removeEntry(url, !newUpdate, s"Checked $url\n") {
-      case info: CheckUpdateInfo =>
-        info.copy(remoteTimeOpt = remoteTimeOpt, isDone = true)
-      case _ =>
-        throw new Exception(s"Incoherent display state for $url")
-    }
-  }
 
 }
