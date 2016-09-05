@@ -51,7 +51,7 @@ class ScalafixSuite extends FunSuite with DiffAssertions {
 
   test("on parse error") {
     val obtained = Scalafix.fix("object A {")
-    assert(obtained.isInstanceOf[FixResult.ParseError])
+    assert(obtained.isInstanceOf[Fixed.ParseError])
   }
 
 }
