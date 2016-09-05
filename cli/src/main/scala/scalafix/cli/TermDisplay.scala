@@ -7,13 +7,14 @@
   */
 package scalafix.cli
 
-import java.io.{File, Writer}
-import java.sql.Timestamp
-import java.util.concurrent._
-
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
+
+import java.io.File
+import java.io.Writer
+import java.sql.Timestamp
+import java.util.concurrent._
 
 object Terminal {
 
@@ -29,10 +30,10 @@ object Terminal {
         def buffer[T](f: => T): T = f
       }
       Try(
-          Process(Seq("bash", "-c", s"$pathedTput $s 2> /dev/tty"))
-            .!!(nullLog)
-            .trim
-            .toInt).toOption
+        Process(Seq("bash", "-c", s"$pathedTput $s 2> /dev/tty"))
+          .!!(nullLog)
+          .trim
+          .toInt).toOption
     } else
       None
 
@@ -105,8 +106,8 @@ object TermDisplay {
       val currentTime = System.currentTimeMillis()
       if (currentTime > startTime)
         Some(
-            (downloaded - previouslyDownloaded).toDouble /
-              (System.currentTimeMillis() - startTime) * 1000.0)
+          (downloaded - previouslyDownloaded).toDouble /
+            (System.currentTimeMillis() - startTime) * 1000.0)
       else
         None
     }
@@ -133,8 +134,8 @@ object TermDisplay {
       assert(decile <= 10)
 
       fraction.fold(" " * 6)(p => f"${100.0 * p}%5.1f%%") +
-      " [" + ("#" * decile) + (" " * (10 - decile)) + "] " +
-      downloaded + " source files fixed"
+        " [" + ("#" * decile) + (" " * (10 - decile)) + "] " +
+        downloaded + " source files fixed"
     }
   }
 
@@ -158,7 +159,7 @@ object TermDisplay {
               s"No new update since ${formatTimestamp(current)}"
             else
               s"Warning: local copy newer than remote one (${formatTimestamp(
-                  current)} > ${formatTimestamp(remote)})"
+                current)} > ${formatTimestamp(remote)})"
           case (Some(_), None) =>
             // FIXME Likely a 404 Not found, that should be taken into account by the cache
             "No modified time in response"
@@ -284,8 +285,7 @@ object TermDisplay {
 
           val extra0 =
             if (extra.length > baseExtraWidth)
-              extra
-                .take((baseExtraWidth max (extra.length - overflow)) - 1) + "…"
+              extra.take((baseExtraWidth max (extra.length - overflow)) - 1) + "…"
             else
               extra
 
@@ -294,7 +294,7 @@ object TermDisplay {
 
           val url0 = if (total0 >= width)
             url.take(
-                ((width - baseExtraWidth - 1) max (url.length - overflow0)) - 1) + "…"
+              ((width - baseExtraWidth - 1) max (url.length - overflow0)) - 1) + "…"
           else
             url
 
@@ -431,24 +431,10 @@ object TermDisplay {
 object Cache {
   trait Logger {
     def foundLocally(url: String, f: File): Unit = {}
-
-    def downloadingArtifact(url: String, file: File): Unit = {}
-
-    @deprecated("Use / override the variant with 3 arguments instead")
-    def downloadLength(url: String, length: Long): Unit = {}
-    def downloadLength(url: String,
-                       totalLength: Long,
-                       alreadyDownloaded: Long): Unit = {
-      downloadLength(url, totalLength)
-    }
-
-    def downloadProgress(url: String, downloaded: Long): Unit = {}
-
-    def downloadedArtifact(url: String, success: Boolean): Unit = {}
+    def startTask(url: String, file: File): Unit = {}
+    def taskProgress(url: String, downloaded: Long): Unit = {}
+    def completedTask(url: String, success: Boolean): Unit = {}
     def checkingUpdates(url: String, currentTimeOpt: Option[Long]): Unit = {}
-    def checkingUpdatesResult(url: String,
-                              currentTimeOpt: Option[Long],
-                              remoteTimeOpt: Option[Long]): Unit = {}
   }
 }
 
@@ -469,20 +455,20 @@ class TermDisplay(
     updateThread.end()
   }
 
-  override def downloadingArtifact(url: String, file: File): Unit =
+  override def startTask(msg: String, file: File): Unit =
     updateThread.newEntry(
-        url,
-        DownloadInfo(0L,
-                     0L,
-                     None,
-                     System.currentTimeMillis(),
-                     updateCheck = false),
-        s"Downloading $url\n"
+      msg,
+      DownloadInfo(0L,
+                   0L,
+                   None,
+                   System.currentTimeMillis(),
+                   updateCheck = false),
+      s"$msg\n"
     )
 
-  override def downloadLength(url: String,
-                              totalLength: Long,
-                              alreadyDownloaded: Long): Unit = {
+  def taskLength(url: String,
+                 totalLength: Long,
+                 alreadyDownloaded: Long): Unit = {
     val info = updateThread.infos.get(url)
     assert(info != null)
     val newInfo = info match {
@@ -496,7 +482,7 @@ class TermDisplay(
 
     updateThread.update()
   }
-  override def downloadProgress(url: String, downloaded: Long): Unit = {
+  override def taskProgress(url: String, downloaded: Long): Unit = {
     val info = updateThread.infos.get(url)
     assert(info != null)
     val newInfo = info match {
@@ -510,36 +496,15 @@ class TermDisplay(
     updateThread.update()
   }
 
-  override def downloadedArtifact(url: String, success: Boolean): Unit =
+  override def completedTask(url: String, success: Boolean): Unit =
     updateThread.removeEntry(url, success, s"Downloaded $url\n")(x => x)
 
   override def checkingUpdates(url: String,
                                currentTimeOpt: Option[Long]): Unit =
     updateThread.newEntry(
-        url,
-        CheckUpdateInfo(currentTimeOpt, None, isDone = false),
-        s"Checking $url\n"
+      url,
+      CheckUpdateInfo(currentTimeOpt, None, isDone = false),
+      s"Checking $url\n"
     )
-
-  override def checkingUpdatesResult(
-      url: String,
-      currentTimeOpt: Option[Long],
-      remoteTimeOpt: Option[Long]
-  ): Unit = {
-    // Not keeping a message on-screen if a download should happen next
-    // so that the corresponding URL doesn't appear twice
-    val newUpdate = remoteTimeOpt.exists { remoteTime =>
-      currentTimeOpt.forall { currentTime =>
-        currentTime < remoteTime
-      }
-    }
-
-    updateThread.removeEntry(url, !newUpdate, s"Checked $url\n") {
-      case info: CheckUpdateInfo =>
-        info.copy(remoteTimeOpt = remoteTimeOpt, isDone = true)
-      case _ =>
-        throw new Exception(s"Incoherent display state for $url")
-    }
-  }
 
 }

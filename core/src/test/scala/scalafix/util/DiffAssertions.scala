@@ -5,13 +5,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.TimeZone
 
-import scalafix.util.LoggerOps._
 import org.scalatest.FunSuiteLike
-import org.scalatest.events.TestFailed
 import org.scalatest.exceptions.TestFailedException
 
 trait DiffAssertions extends FunSuiteLike {
-  import LoggerOps._
 
   def assertEqual[A](a: A, b: A): Unit = {
     assert(a === b)
@@ -22,19 +19,19 @@ trait DiffAssertions extends FunSuiteLike {
                          obtained: String,
                          diff: String)
       extends TestFailedException(
-          title + "\n" + error2message(obtained, expected),
-          1)
+        title + "\n" + error2message(obtained, expected),
+        1)
 
   def error2message(obtained: String, expected: String): String = {
     val sb = new StringBuilder
     if (obtained.length < 1000) {
       sb.append(s"""
-                   #${header("Obtained")}
+                   #${logger.header("Obtained")}
                    #${trailingSpace(obtained)}
          """.stripMargin('#'))
     }
     sb.append(s"""
-                 #${header("Diff")}
+                 #${logger.header("Diff")}
                  #${trailingSpace(compareContents(obtained, expected))}
          """.stripMargin('#'))
     sb.toString()
@@ -63,11 +60,11 @@ trait DiffAssertions extends FunSuiteLike {
     else
       difflib.DiffUtils
         .generateUnifiedDiff(
-            "original",
-            "revised",
-            original.asJava,
-            diff,
-            1
+          "original",
+          "revised",
+          original.asJava,
+          diff,
+          1
         )
         .asScala
         .drop(3)

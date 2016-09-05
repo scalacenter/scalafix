@@ -5,4 +5,3 @@ package object sbt {
     def fix(code: String, filename: String): String
   }
 }
-

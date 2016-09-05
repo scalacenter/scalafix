@@ -1,6 +1,5 @@
 package scalafix
 
-import scalatags.Text.TypedTag
 import scalatags.Text.all._
 
 object Readme {

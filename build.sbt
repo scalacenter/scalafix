@@ -2,12 +2,14 @@ import sbt.ScriptedPlugin
 import sbt.ScriptedPlugin._
 import scoverage.ScoverageSbtPlugin.ScoverageKeys._
 
+scalafmtConfig in ThisBuild := Some(file(".scalafmt"))
+
 lazy val buildSettings = Seq(
   organization := "ch.epfl.scala",
   assemblyJarName in assembly := "scalafix.jar",
   // See core/src/main/scala/ch/epfl/scala/Versions.scala
-  version :=  scalafix.Versions.nightly,
-  scalaVersion :=  scalafix.Versions.scala,
+  version := scalafix.Versions.nightly,
+  scalaVersion := scalafix.Versions.scala,
   updateOptions := updateOptions.value.withCachedResolution(true)
 )
 
@@ -17,7 +19,8 @@ lazy val jvmOptions = Seq(
 
 lazy val compilerOptions = Seq(
   "-deprecation",
-  "-encoding", "UTF-8",
+  "-encoding",
+  "UTF-8",
   "-feature",
   "-language:existentials",
   "-language:higherKinds",
@@ -32,7 +35,7 @@ lazy val compilerOptions = Seq(
 
 lazy val commonSettings = Seq(
   ScoverageSbtPlugin.ScoverageKeys.coverageExcludedPackages :=
-      ".*Versions;scalafix\\.(sbt|util)",
+    ".*Versions;scalafix\\.(sbt|util)",
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
   scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
   testOptions in Test += Tests.Argument("-oD")
@@ -47,10 +50,11 @@ lazy val publishSettings = Seq(
     if (isSnapshot.value)
       Some("snapshots" at nexus + "content/repositories/snapshots")
     else
-      Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+      Some("releases" at nexus + "service/local/staging/deploy/maven2")
   },
   publishArtifact in Test := false,
-  licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+  licenses := Seq(
+    "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
   homepage := Some(url("https://github.com/scalacenter/scalafix")),
   autoAPIMappings := true,
   apiURL := Some(url("https://scalacenter.github.io/scalafix/docs/")),
@@ -77,8 +81,8 @@ lazy val noPublish = Seq(
 
 lazy val allSettings = commonSettings ++ buildSettings ++ publishSettings
 
-
-lazy val root = project.in(file("."))
+lazy val root = project
+  .in(file("."))
   .settings(moduleName := "scalafix")
   .settings(allSettings)
   .settings(noPublish)
@@ -102,71 +106,69 @@ lazy val core = project
   .settings(
     moduleName := "scalafix-core",
     libraryDependencies ++= Seq(
-      "com.lihaoyi" %% "sourcecode" % "0.1.2",
-      "org.scalameta" %% "scalameta" % "1.0.0",
+      "com.lihaoyi"    %% "sourcecode"   % "0.1.2",
+      "org.scalameta"  %% "scalameta"    % "1.0.0",
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-
       // Test dependencies
-      "org.scalatest" %% "scalatest" % "3.0.0" % "test",
-      "com.googlecode.java-diff-utils" % "diffutils" % "1.3.0" % "test"
+      "org.scalatest"                  %% "scalatest" % "3.0.0" % "test",
+      "com.googlecode.java-diff-utils" % "diffutils"  % "1.3.0" % "test"
     )
   )
 
 lazy val cli = project
-    .settings(allSettings)
-    .settings(packSettings)
-    .settings(
-      moduleName := "scalafix-cli",
-      packJvmOpts := Map(
-        "scalafix" -> jvmOptions,
-        "scalafix_ng" -> jvmOptions
-      ),
-      mainClass in assembly := Some("scalafix.cli.Cli"),
-      packMain := Map(
-        "scalafix" -> "scalafix.cli.Cli",
-        "scalafix_ng" -> "com.martiansoftware.nailgun.NGServer"
-      ),
-      libraryDependencies ++= Seq(
-        "com.github.scopt" %% "scopt" % "3.5.0",
-        "com.github.alexarchambault" %% "case-app" % "1.0.0-RC3",
-        "com.martiansoftware" % "nailgun-server" % "0.9.1"
-      )
+  .settings(allSettings)
+  .settings(packSettings)
+  .settings(
+    moduleName := "scalafix-cli",
+    packJvmOpts := Map(
+      "scalafix" -> jvmOptions,
+      "scalafix_ng_server" -> jvmOptions
+    ),
+    mainClass in assembly := Some("scalafix.cli.Cli"),
+    packMain := Map(
+      "scalafix" -> "scalafix.cli.Cli",
+      "scalafix_ng_server" -> "com.martiansoftware.nailgun.NGServer"
+    ),
+    libraryDependencies ++= Seq(
+      "com.github.scopt"           %% "scopt"         % "3.5.0",
+      "com.github.alexarchambault" %% "case-app"      % "1.1.0-RC3",
+      "com.martiansoftware"        % "nailgun-server" % "0.9.1"
     )
-    .dependsOn(core % "compile->compile;test->test")
+  )
+  .dependsOn(core % "compile->compile;test->test")
 
 lazy val sbtScalafix = project
-    .settings(allSettings)
-    .settings(ScriptedPlugin.scriptedSettings)
-    .settings(
-      sbtPlugin := true,
-      coverageHighlighting := false,
-      scalaVersion := "2.10.5",
-      moduleName := "sbt-scalafix",
-      sources in Compile +=
-          baseDirectory.value / "../core/src/main/scala/scalafix/Versions.scala",
-      scriptedLaunchOpts := Seq(
-        "-Dplugin.version=" + version.value,
-        // .jvmopts is ignored, simulate here
-        "-XX:MaxPermSize=256m", "-Xmx2g", "-Xss2m"
-      ),
-      scriptedBufferLog := false
-    )
-
+  .settings(allSettings)
+  .settings(ScriptedPlugin.scriptedSettings)
+  .settings(
+    sbtPlugin := true,
+    coverageHighlighting := false,
+    scalaVersion := "2.10.5",
+    moduleName := "sbt-scalafix",
+    sources in Compile +=
+      baseDirectory.value / "../core/src/main/scala/scalafix/Versions.scala",
+    scriptedLaunchOpts := Seq(
+      "-Dplugin.version=" + version.value,
+      // .jvmopts is ignored, simulate here
+      "-XX:MaxPermSize=256m",
+      "-Xmx2g",
+      "-Xss2m"
+    ),
+    scriptedBufferLog := false
+  )
 
 lazy val readme = scalatex
-    .ScalatexReadme(
-      projectId = "readme",
-      wd = file(""),
-      url = "https://github.com/scalacenter/scalafix/tree/master",
-      source = "Readme")
-    .settings(allSettings)
-    .settings(noPublish)
-    .dependsOn(core)
-    .dependsOn(cli)
-    .settings(
-      libraryDependencies ++= Seq(
-        "com.twitter" %% "util-eval" % "6.34.0"
-      ),
-      dependencyOverrides += "com.lihaoyi" %% "scalaparse" % "0.3.1"
-    )
-
+  .ScalatexReadme(projectId = "readme",
+                  wd = file(""),
+                  url = "https://github.com/scalacenter/scalafix/tree/master",
+                  source = "Readme")
+  .settings(allSettings)
+  .settings(noPublish)
+  .dependsOn(core)
+  .dependsOn(cli)
+  .settings(
+    libraryDependencies ++= Seq(
+      "com.twitter" %% "util-eval" % "6.34.0"
+    ),
+    dependencyOverrides += "com.lihaoyi" %% "scalaparse" % "0.3.1"
+  )

@@ -1,1 +1,3 @@
 --assumeStandardLibraryStripMargin true
+--alignTokens %;Infix,%%;Infix,%%%;Infix
+

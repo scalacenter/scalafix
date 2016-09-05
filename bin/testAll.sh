@@ -2,6 +2,9 @@
 set -e
 
 sbt clean coverage test
-sbt "; publishLocal ; scripted"
+sbt "; publishLocal ; scripted ; cli/pack"
 sbt coverageAggregate
+
+# Integration tests
+./bin/nailgun_integration_test.sh
 

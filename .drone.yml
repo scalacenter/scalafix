@@ -2,6 +2,9 @@
 build:
   image: olafurpg/scalafix:0.0.1
   commands:
+    - apt-get install nailgun
+    - alias ng=ng-nailgun
+    - export PATH=$PATH:/root/local/bin
     - pip install --user codecov
     - ./bin/testAll.sh
     # I can't be bothered to hide this token.

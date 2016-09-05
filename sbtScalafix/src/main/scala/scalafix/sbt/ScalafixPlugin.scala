@@ -19,16 +19,16 @@ limitations under the License.
  */
 package scalafix.sbt
 
+import scala.collection.immutable.Seq
+import scala.util.Failure
+import scala.util.Success
+
 import java.net.URLClassLoader
 
 import sbt.Keys._
 import sbt._
 import sbt.plugins.JvmPlugin
 import sbt.{IntegrationTest => It}
-
-import scala.collection.immutable.Seq
-import scala.util.Failure
-import scala.util.Success
 
 object ScalafixPlugin extends AutoPlugin {
 
@@ -40,7 +40,7 @@ object ScalafixPlugin extends AutoPlugin {
       taskKey[Option[File]]("Configuration file for scalafix.")
 
     lazy val hasScalafix: TaskKey[HasScalafix] = taskKey[HasScalafix](
-        "Classloaded Scalafix210 instance to overcome 2.10 incompatibility issues.")
+      "Classloaded Scalafix210 instance to overcome 2.10 incompatibility issues.")
 
     def scalafixSettings: Seq[Setting[_]] =
       noConfigScalafixSettings ++
@@ -62,54 +62,53 @@ object ScalafixPlugin extends AutoPlugin {
 
   def noConfigScalafixSettings: Seq[Setting[_]] =
     List(
-        ivyConfigurations += config("scalafix").hide,
-        libraryDependencies ++= Seq(
-            "org.scala-lang" % "scala-library" % _root_.scalafix.Versions.scala % "scalafix",
-            "ch.epfl.scala" % "scalafix-cli_2.11" % _root_.scalafix.Versions.nightly % "scalafix"
-        )
+      ivyConfigurations += config("scalafix").hide,
+      libraryDependencies ++= Seq(
+        "org.scala-lang" % "scala-library"     % _root_.scalafix.Versions.scala   % "scalafix",
+        "ch.epfl.scala"  % "scalafix-cli_2.11" % _root_.scalafix.Versions.nightly % "scalafix"
+      )
     )
 
   def configScalafixSettings: Seq[Setting[_]] =
     List(
-        (sourceDirectories in hasScalafix) := unmanagedSourceDirectories.value,
-        includeFilter in Global in hasScalafix := "*.scala",
-        scalafixConfig in Global := None,
-        hasScalafix := {
-          val report = update.value
-          val jars = report.select(configurationFilter("scalafix"))
-          HasScalafix(getScalafixLike(
-                          new URLClassLoader(jars.map(_.toURI.toURL).toArray,
+      (sourceDirectories in hasScalafix) := unmanagedSourceDirectories.value,
+      includeFilter in Global in hasScalafix := "*.scala",
+      scalafixConfig in Global := None,
+      hasScalafix := {
+        val report = update.value
+        val jars = report.select(configurationFilter("scalafix"))
+        HasScalafix(
+          getScalafixLike(new URLClassLoader(jars.map(_.toURI.toURL).toArray,
                                              null),
                           streams.value),
-                      scalafixConfig.value,
-                      streams.value,
-                      (sourceDirectories in hasScalafix).value.toList,
-                      (includeFilter in hasScalafix).value,
-                      (excludeFilter in hasScalafix).value,
-                      thisProjectRef.value)
-        },
-        scalafix := hasScalafix.value.writeFormattedContentsToFiles()
+          scalafixConfig.value,
+          streams.value,
+          (sourceDirectories in hasScalafix).value.toList,
+          (includeFilter in hasScalafix).value,
+          (excludeFilter in hasScalafix).value,
+          thisProjectRef.value)
+      },
+      scalafix := hasScalafix.value.writeFormattedContentsToFiles()
     )
 
   private def getScalafixLike(classLoader: URLClassLoader,
                               streams: TaskStreams): ScalafixLike = {
     val loadedClass =
-      new ReflectiveDynamicAccess(classLoader).createInstanceFor[ScalafixLike](
-          "scalafix.cli.Scalafix210",
-          Seq.empty)
+      new ReflectiveDynamicAccess(classLoader)
+        .createInstanceFor[ScalafixLike]("scalafix.cli.Scalafix210", Seq.empty)
 
     loadedClass match {
       case Success(x) => x
       case Failure(e) =>
         streams.log.error(
-            s"""Unable to classload Scalafix, please file an issue:
-               |https://github.com/scalacenter/scalafix/issues
-               |
-               |URLs: ${classLoader.getURLs.mkString("\n")}
-               |Version: ${_root_.scalafix.Versions.nightly}
-               |Error: ${e.getClass}
-               |Message: ${e.getMessage}
-               |${e.getStackTrace.mkString("\n")}""".stripMargin)
+          s"""Unable to classload Scalafix, please file an issue:
+             |https://github.com/scalacenter/scalafix/issues
+             |
+             |URLs: ${classLoader.getURLs.mkString("\n")}
+             |Version: ${_root_.scalafix.Versions.nightly}
+             |Error: ${e.getClass}
+             |Message: ${e.getMessage}
+             |${e.getStackTrace.mkString("\n")}""".stripMargin)
         throw e
     }
   }

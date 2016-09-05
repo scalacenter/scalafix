@@ -18,6 +18,6 @@ abstract class Rewrite {
 
 object Rewrite {
   val default: List[Rewrite] = List(
-      ProcedureSyntax
+    ProcedureSyntax
   )
 }
