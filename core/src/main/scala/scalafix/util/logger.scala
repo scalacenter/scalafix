@@ -1,14 +1,14 @@
 package scalafix.util
 
+import scala.meta.Tree
+import scala.meta.prettyprinters.Structure
+
 import java.io.File
 
 /**
-  * Yet Another Logger.
-  *
-  * I rely heavily on logging for debugging and the standard Java logging
-  * doesn't work on Scala.js, which I hope to support one day.
+  * Debugging utility.
   */
-object PrintlnLogger {
+object logger {
 
   private def log[T](t: sourcecode.Text[T],
                      logLevel: LogLevel,
@@ -57,4 +57,26 @@ object PrintlnLogger {
                                       file: sourcecode.File,
                                       enclosing: sourcecode.Enclosing): Unit =
     log(t, LogLevel.error, line, file, enclosing, showSource = false)
+
+  def log(t: Tree, tokensOnly: Boolean = false): String = {
+    val tokens =
+      s"TOKENS: ${t.tokens.map(x => reveal(x.syntax)).mkString(",")}"
+    if (tokensOnly) tokens
+    else s"""TYPE: ${t.getClass.getName.stripPrefix("scala.meta.")}
+            |SOURCE: $t
+            |STRUCTURE: ${t.show[Structure]}
+            |$tokens
+            |""".stripMargin
+  }
+
+  def reveal(s: String): String = s.map {
+    case '\n' => '¶'
+    case ' ' => '∙'
+    case ch => ch
+  }
+
+  def header[T](t: T): String = {
+    val line = s"=" * (t.toString.length + 3)
+    s"$line\n=> $t\n$line"
+  }
 }

@@ -11,7 +11,7 @@ object Scalafix {
 
   def fix(code: Input, rewriters: Seq[Rewrite]): FixResult = {
     rewriters.foldLeft[FixResult](
-        FixResult.Success(String.copyValueOf(code.chars))) {
+      FixResult.Success(String.copyValueOf(code.chars))) {
       case (newCode: FixResult.Success, rewriter) =>
         try rewriter.rewrite(Input.String(newCode.code))
         catch {

@@ -21,12 +21,12 @@ package scalafix.sbt
 
 import scala.language.reflectiveCalls
 
+import scala.collection.immutable.Seq
+
 import sbt.File
 import sbt.FileFilter
 import sbt.Keys.TaskStreams
 import sbt.ProjectRef
-
-import scala.collection.immutable.Seq
 
 case class HasScalafix(reflective: ScalafixLike,
                        configFile: Option[File],
@@ -35,7 +35,8 @@ case class HasScalafix(reflective: ScalafixLike,
                        includeFilter: FileFilter,
                        excludeFilter: FileFilter,
                        ref: ProjectRef) {
-  import sbt.{Future => _, _}
+  import sbt.{Future => _}
+  import sbt._
 
   def log(label: String, logger: Logger)(message: String)(count: String) =
     logger.info(message.format(count, label))
@@ -46,7 +47,9 @@ case class HasScalafix(reflective: ScalafixLike,
     sourceDirectories.descendantsExcept(includeFilter, excludeFilter).get.toSet
 
   def writeFormattedContentsToFiles(): Unit = {
-    inc.Analysis.counted("Scala source", "", "s", files.size).foreach(logFun("Fixed %s %s ..."))
+    inc.Analysis
+      .counted("Scala source", "", "s", files.size)
+      .foreach(logFun("Fixed %s %s ..."))
     files.foreach(handleFile(writeFixed))
   }
 

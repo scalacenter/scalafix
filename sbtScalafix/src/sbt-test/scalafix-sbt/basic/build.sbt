@@ -1,12 +1,11 @@
 sbtPlugin := true
 
-
 TaskKey[Unit]("check") := {
   val obtained =
     scala.io.Source
       .fromFile("src/main/scala/Test.scala")
-        .getLines()
-        .mkString("\n")
+      .getLines()
+      .mkString("\n")
   val expected =
     """
       |object Main {
