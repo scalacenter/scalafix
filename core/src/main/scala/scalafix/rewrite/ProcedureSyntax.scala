@@ -1,10 +1,10 @@
 package scalafix.rewrite
 
 import scala.meta._
-import scalafix.FixResult
+import scalafix.Fixed
 
 object ProcedureSyntax extends Rewrite {
-  override def rewrite(code: Input): FixResult = {
+  override def rewrite(code: Input): Fixed = {
     withParsed(code) { ast =>
       val toPrepend = ast.collect {
         case t: Defn.Def if t.decltpe.exists(_.tokens.isEmpty) =>
@@ -21,7 +21,7 @@ object ProcedureSyntax extends Rewrite {
         sb.append(token.syntax)
       }
       val result = sb.toString()
-      FixResult.Success(result)
+      Fixed.Success(result)
     }
   }
 }

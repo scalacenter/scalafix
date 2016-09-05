@@ -1,7 +1,7 @@
 package scalafix.cli
 
 import scala.collection.GenSeq
-import scalafix.FixResult
+import scalafix.Fixed
 import scalafix.Scalafix
 import scalafix.cli.ArgParserImplicits._
 import scalafix.rewrite.Rewrite
@@ -30,7 +30,7 @@ case class CommonOptions(
 case class ScalafixOptions(
     @HelpMessage(
       s"Rules to run, one of: ${Rewrite.default.mkString(", ")}"
-    ) rewrites: List[Rewrite] = Rewrite.default,
+    ) rewrites: List[Rewrite] = Rewrite.default.toList,
     @Hidden @HelpMessage(
       "Files to fix. Runs on all *.scala files if given a directory."
     ) @ExtraName("f") files: List[String] = List.empty[String],
@@ -56,13 +56,13 @@ object Cli extends AppOf[ScalafixOptions] {
 
   def handleFile(file: File, config: ScalafixOptions): Unit = {
     Scalafix.fix(FileOps.readFile(file), config.rewrites) match {
-      case FixResult.Success(code) =>
+      case Fixed.Success(code) =>
         if (config.inPlace) {
           FileOps.writeFile(file, code)
         } else config.common.out.write(code.getBytes)
-      case FixResult.Failure(e) =>
+      case Fixed.Failure(e) =>
         config.common.err.write(s"Failed to fix $file. Cause: $e".getBytes)
-      case e: FixResult.ParseError =>
+      case e: Fixed.ParseError =>
         if (config.files.contains(file)) {
           // Only log if user explicitly specified that file.
           config.common.err.write(e.toString.getBytes())
