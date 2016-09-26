@@ -1,23 +1,24 @@
 package scalafix
 
+import scala.meta._
 import scala.meta.inputs.Input
-import scala.util.control.NonFatal
-import scalafix.rewrite.Rewrite
+import scalafix.rewrite.RewriteCtx
+import scalafix.util.Patch
+import scalafix.util.TokenList
 
 object Scalafix {
-  def fix(code: String, rewriters: Seq[Rewrite] = Rewrite.default): Fixed = {
-    fix(Input.String(code), rewriters)
+  def fix(code: String, config: ScalafixConfig = ScalafixConfig()): Fixed = {
+    fix(Input.String(code), config)
   }
 
-  def fix(code: Input, rewriters: Seq[Rewrite]): Fixed = {
-    rewriters.foldLeft[Fixed](
-      Fixed.Success(String.copyValueOf(code.chars))) {
-      case (newCode: Fixed.Success, rewriter) =>
-        try rewriter.rewrite(Input.String(newCode.code))
-        catch {
-          case NonFatal(e) => Fixed.Failure(e)
-        }
-      case (failure, _) => failure
+  def fix(code: Input, config: ScalafixConfig): Fixed = {
+    config.parser.apply(code, config.dialect) match {
+      case Parsed.Success(ast) =>
+        val ctx = RewriteCtx(config, new TokenList(ast.tokens))
+        val patches: Seq[Patch] = config.rewrites.flatMap(_.rewrite(ast, ctx))
+        Right(Patch.apply(ast.tokens, patches))
+      case Parsed.Error(pos, msg, e) =>
+        Left(Failure.ParseError(pos, msg, e))
     }
   }
 }

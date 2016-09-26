@@ -1,21 +1,11 @@
-package scalafix
+package scalafix.rewrite
 
-import scalafix.rewrite.ProcedureSyntax
-import scalafix.util.DiffAssertions
+import scalafix.Failure
+import scalafix.Scalafix
 
-import org.scalatest.FunSuite
+class ProcedureSyntaxSuite extends RewriteSuite(ProcedureSyntax) {
 
-class ScalafixSuite extends FunSuite with DiffAssertions {
-  val rewrites = Seq(ProcedureSyntax)
-
-  def testInput(name: String, input: String, expected: String): Unit = {
-    test(name) {
-      val obtained = Scalafix.fix(input, rewrites)
-      assertNoDiff(obtained.get, expected)
-    }
-  }
-
-  testInput(
+  check(
     "nested function",
     """
       |import /* a */ a.b.c
@@ -48,10 +38,40 @@ class ScalafixSuite extends FunSuite with DiffAssertions {
       |  }
       |}""".stripMargin
   )
+  check(
+    "no right paren",
+    """
+      |object a {
+      |def foo {
+      |  println(1)
+      |}
+      |}
+    """.stripMargin,
+    """
+      |object a {
+      |def foo: Unit = {
+      |  println(1)
+      |}
+      |}
+    """.stripMargin
+  )
 
+  check(
+    "pathological comment",
+    """
+      |object a {
+      |def main() /* unit */ {
+      |}}
+    """.stripMargin,
+    """
+      |object a {
+      |def main(): Unit = { /* unit */
+      |}}
+  """.stripMargin
+  )
   test("on parse error") {
-    val obtained = Scalafix.fix("object A {")
-    assert(obtained.isInstanceOf[Fixed.ParseError])
+    val Left(err) = Scalafix.fix("object A {")
+    assert(err.isInstanceOf[Failure.ParseError])
   }
 
 }

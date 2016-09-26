@@ -1,27 +1,34 @@
 package scalafix.rewrite
 
 import scala.meta._
-import scalafix.Fixed
+import scala.meta.tokens.Token.Comment
+import scala.meta.tokens.Token.LeftBrace
+import scala.meta.tokens.Token.RightBrace
+import scala.meta.tokens.Token.RightParen
+import scala.meta.tokens.Token.Space
+import scalafix.util.Patch
 
 object ProcedureSyntax extends Rewrite {
-  override def rewrite(code: Input): Fixed = {
-    withParsed(code) { ast =>
-      val toPrepend = ast.collect {
-        case t: Defn.Def if t.decltpe.exists(_.tokens.isEmpty) =>
-          t.body.tokens.head
-      }.toSet
-      val sb = new StringBuilder
-      ast.tokens.foreach { token =>
-        if (toPrepend.contains(token)) {
-          if (sb.lastOption.contains(' ')) {
-            sb.deleteCharAt(sb.length - 1)
-          }
-          sb.append(": Unit = ")
+  override def rewrite(ast: Tree, ctx: RewriteCtx): Seq[Patch] = {
+    import ctx.tokenList._
+    val patches: Seq[Patch] = ast.collect {
+      case t: Defn.Def
+          if t.decltpe.exists(_.tokens.isEmpty) &&
+            t.body.tokens.head.is[LeftBrace] =>
+        val bodyStart = t.body.tokens.head
+        val defEnd = (for {
+          lastParmList <- t.paramss.lastOption
+          lastParam <- lastParmList.lastOption
+        } yield lastParam.tokens.last).getOrElse(t.name.tokens.last)
+        val closingParen =
+          slice(defEnd, bodyStart).find(_.is[RightParen]).getOrElse(defEnd)
+        val comment: String = {
+          val between = slice(closingParen, bodyStart).mkString.trim
+          if (between.nonEmpty) " " + between
+          else ""
         }
-        sb.append(token.syntax)
-      }
-      val result = sb.toString()
-      Fixed.Success(result)
+        Patch(next(closingParen), bodyStart, s": Unit = {$comment")
     }
+    patches
   }
 }
