@@ -12,8 +12,9 @@ import java.io.InputStream
 import java.io.OutputStreamWriter
 import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicInteger
-
 import ArgParserImplicits._
+import scala.util.control.NonFatal
+
 import caseapp._
 import caseapp.core.Messages
 import com.martiansoftware.nailgun.NGContext
@@ -55,6 +56,14 @@ object Cli extends AppOf[ScalafixOptions] {
 
   val default = ScalafixOptions()
 
+  def safeHandleFile(file: File, config: ScalafixOptions): Unit = {
+    try handleFile(file, config) catch {
+      case NonFatal(e) =>
+        config.common.err.println(
+          s"""Unexpected error fixing file: $file
+             |Cause: $e""".stripMargin)
+    }
+  }
   def handleFile(file: File, config: ScalafixOptions): Unit = {
     Scalafix
       .fix(FileOps.readFile(file), ScalafixConfig(config.rewrites)) match {
@@ -93,13 +102,13 @@ object Cli extends AppOf[ScalafixOptions] {
         logger.taskLength(msg, filesToFix.length, 0)
         val counter = new AtomicInteger()
         filesToFix.foreach { x =>
-          handleFile(new File(x), config)
+          safeHandleFile(new File(x), config)
           val progress = counter.incrementAndGet()
           logger.taskProgress(msg, progress)
         }
         logger.stop()
       } else {
-        handleFile(realPath, config)
+        safeHandleFile(realPath, config)
       }
     }
   }
