@@ -1,8 +1,7 @@
 package scalafix.rewrite
 
 import scala.meta._
-import scalafix.Fixed
-import scalafix.util.logger
+import scalafix.util.Patch
 
 object VolatileLazyVal extends Rewrite {
   private object NonVolatileLazyVal {
@@ -15,20 +14,9 @@ object VolatileLazyVal extends Rewrite {
       }
     }.flatten
   }
-  override def rewrite(code: Input): Fixed = {
-    withParsed(code) { ast =>
-      val toPrepend: Seq[Token] = ast.collect {
-        case NonVolatileLazyVal(tok) => tok
-      }
-      val sb = new StringBuilder
-      ast.tokens.foreach { token =>
-        if (toPrepend.contains(token)) {
-          sb.append("@volatile ")
-        }
-        sb.append(token.syntax)
-      }
-      val result = sb.toString()
-      Fixed.Success(result)
+  override def rewrite(ast: Tree, ctx: RewriteCtx): Seq[Patch] = {
+    ast.collect {
+      case NonVolatileLazyVal(tok) => Patch(tok, tok, "@volatile lazy")
     }
   }
 }

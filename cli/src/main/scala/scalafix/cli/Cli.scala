@@ -1,9 +1,9 @@
 package scalafix.cli
 
 import scala.collection.GenSeq
-import scalafix.Fixed
+import scalafix.Failure
 import scalafix.Scalafix
-import scalafix.cli.ArgParserImplicits._
+import scalafix.ScalafixConfig
 import scalafix.rewrite.Rewrite
 import scalafix.util.FileOps
 
@@ -13,6 +13,7 @@ import java.io.OutputStreamWriter
 import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicInteger
 
+import ArgParserImplicits._
 import caseapp._
 import caseapp.core.Messages
 import com.martiansoftware.nailgun.NGContext
@@ -55,18 +56,19 @@ object Cli extends AppOf[ScalafixOptions] {
   val default = ScalafixOptions()
 
   def handleFile(file: File, config: ScalafixOptions): Unit = {
-    Scalafix.fix(FileOps.readFile(file), config.rewrites) match {
-      case Fixed.Success(code) =>
+    Scalafix
+      .fix(FileOps.readFile(file), ScalafixConfig(config.rewrites)) match {
+      case Right(code) =>
         if (config.inPlace) {
           FileOps.writeFile(file, code)
         } else config.common.out.write(code.getBytes)
-      case Fixed.Failure(e) =>
-        config.common.err.write(s"Failed to fix $file. Cause: $e".getBytes)
-      case e: Fixed.ParseError =>
-        if (config.files.contains(file)) {
+      case Left(e: Failure.ParseError) =>
+        if (config.files.contains(file.getPath)) {
           // Only log if user explicitly specified that file.
           config.common.err.write(e.toString.getBytes())
         }
+      case Left(e) =>
+        config.common.err.write(s"Failed to fix $file. Cause: $e".getBytes)
     }
   }
 
@@ -130,5 +132,10 @@ object Cli extends AppOf[ScalafixOptions] {
       )
     )
   }
+}
 
+object Cli210 {
+  def main(args: Array[String]): Unit = {
+    Cli.runMain(args, CommonOptions())
+  }
 }

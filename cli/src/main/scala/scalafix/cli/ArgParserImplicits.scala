@@ -1,7 +1,6 @@
 package scalafix.cli
 
 import scalafix.rewrite.Rewrite
-import scalafix.rewrite.VolatileLazyVal
 
 import java.io.InputStream
 import java.io.PrintStream

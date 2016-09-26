@@ -35,7 +35,6 @@ case class HasScalafix(reflective: ScalafixLike,
                        includeFilter: FileFilter,
                        excludeFilter: FileFilter,
                        ref: ProjectRef) {
-  import sbt.{Future => _}
   import sbt._
 
   def log(label: String, logger: Logger)(message: String)(count: String) =
@@ -50,22 +49,8 @@ case class HasScalafix(reflective: ScalafixLike,
     inc.Analysis
       .counted("Scala source", "", "s", files.size)
       .foreach(logFun("Fixed %s %s ..."))
-    files.foreach(handleFile(writeFixed))
+    val args: Seq[String] = Seq("-i") ++ files.toSeq.map(_.getPath)
+    reflective.main(args.toArray)
   }
 
-  private def writeFixed(result: ScalafixResult): Unit = {
-    if (result.fixedContents != result.originalContents) {
-      IO.write(result.file, result.fixedContents)
-    }
-  }
-
-  private final case class ScalafixResult(file: File,
-                                          originalContents: String,
-                                          fixedContents: String)
-
-  private def handleFile(callback: ScalafixResult => Unit)(file: File): Unit = {
-    val contents = IO.read(file)
-    val fixed = reflective.fix(contents, file.getPath)
-    callback(ScalafixResult(file, contents, fixed))
-  }
 }

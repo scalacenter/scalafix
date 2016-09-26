@@ -95,7 +95,7 @@ object ScalafixPlugin extends AutoPlugin {
                               streams: TaskStreams): ScalafixLike = {
     val loadedClass =
       new ReflectiveDynamicAccess(classLoader)
-        .createInstanceFor[ScalafixLike]("scalafix.cli.Scalafix210", Seq.empty)
+        .createInstanceFor[ScalafixLike]("scalafix.cli.Cli210$", Seq.empty)
 
     loadedClass match {
       case Success(x) => x
@@ -111,5 +111,4 @@ object ScalafixPlugin extends AutoPlugin {
              |${e.getStackTrace.mkString("\n")}""".stripMargin)
         throw e
     }
-  }
-}
+  }}

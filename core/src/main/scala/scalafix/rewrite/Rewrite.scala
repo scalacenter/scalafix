@@ -1,19 +1,12 @@
 package scalafix.rewrite
 
 import scala.meta._
-import scalafix.Fixed
+import scalafix.util.Patch
 
 abstract class Rewrite {
 
-  def rewrite(code: Input): Fixed
+  def rewrite(code: Tree, rewriteCtx: RewriteCtx): Seq[Patch]
 
-  protected def withParsed(code: Input)(f: Tree => Fixed): Fixed = {
-    code.parse[Source] match {
-      case Parsed.Success(ast) => f(ast)
-      case Parsed.Error(pos, msg, details) =>
-        Fixed.ParseError(pos, msg, details)
-    }
-  }
 }
 
 object Rewrite {
