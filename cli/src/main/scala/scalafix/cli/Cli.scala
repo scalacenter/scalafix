@@ -1,10 +1,12 @@
 package scalafix.cli
 
 import scala.collection.GenSeq
-import scalafix.FixResult
+import scalafix.Fixed
 import scalafix.Scalafix
+import scalafix.ScalafixConfig
 import scalafix.cli.ArgParserImplicits._
 import scalafix.rewrite.Rewrite
+import scalafix.Failure
 import scalafix.util.FileOps
 
 import java.io.File
@@ -30,7 +32,7 @@ case class CommonOptions(
 case class ScalafixOptions(
     @HelpMessage(
       s"Rules to run, one of: ${Rewrite.default.mkString(", ")}"
-    ) rewrites: List[Rewrite] = Rewrite.default,
+    ) rewrites: List[Rewrite] = Rewrite.default.toList,
     @Hidden @HelpMessage(
       "Files to fix. Runs on all *.scala files if given a directory."
     ) @ExtraName("f") files: List[String] = List.empty[String],
@@ -55,18 +57,19 @@ object Cli extends AppOf[ScalafixOptions] {
   val default = ScalafixOptions()
 
   def handleFile(file: File, config: ScalafixOptions): Unit = {
-    Scalafix.fix(FileOps.readFile(file), config.rewrites) match {
-      case FixResult.Success(code) =>
+    Scalafix
+      .fix(FileOps.readFile(file), ScalafixConfig(config.rewrites)) match {
+      case Right(code) =>
         if (config.inPlace) {
           FileOps.writeFile(file, code)
         } else config.common.out.write(code.getBytes)
-      case FixResult.Failure(e) =>
-        config.common.err.write(s"Failed to fix $file. Cause: $e".getBytes)
-      case e: FixResult.ParseError =>
-        if (config.files.contains(file)) {
+      case Left(e: Failure.ParseError) =>
+        if (config.files.contains(file.getPath)) {
           // Only log if user explicitly specified that file.
           config.common.err.write(e.toString.getBytes())
         }
+      case Left(e) =>
+        config.common.err.write(s"Failed to fix $file. Cause: $e".getBytes)
     }
   }
 
@@ -130,5 +133,10 @@ object Cli extends AppOf[ScalafixOptions] {
       )
     )
   }
+}
 
+object Cli210 {
+  def main(args: Array[String]): Unit = {
+    Cli.runMain(args, CommonOptions())
+  }
 }

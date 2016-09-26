@@ -105,6 +105,8 @@ lazy val core = project
   .settings(allSettings)
   .settings(
     moduleName := "scalafix-core",
+    addCompilerPlugin(
+      "org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
     libraryDependencies ++= Seq(
       "com.lihaoyi"    %% "sourcecode"   % "0.1.2",
       "org.scalameta"  %% "scalameta"    % "1.0.0",

@@ -2,6 +2,6 @@ package scalafix
 
 package object sbt {
   type ScalafixLike = {
-    def fix(code: String, filename: String): String
+    def main(args: Array[String]): Unit
   }
 }
