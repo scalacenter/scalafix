@@ -2,92 +2,10 @@
 @import scalafix.Readme._
 
 @sect("scalafix - a Scala rewrite tool", scalafix.Versions.stable)
-
-  @p
-    @raw
-      <a href="https://codecov.io/github/scalacenter/scalafix?branch=master"><img src="https://camo.githubusercontent.com/75d300982e3330c6b8eaaba63adad94fecd71287/68747470733a2f2f636f6465636f762e696f2f6769746875622f6f6c6166757270672f7363616c61666d742f636f7665726167652e7376673f6272616e63683d6d6173746572" alt="codecov.io" data-canonical-src="https://codecov.io/github/scalacenter/scalafix/coverage.svg?branch=master" style="max-width:100%;"></a>
-      <a href="https://travis-ci.org/scalacenter/scalafix"><img src="https://camo.githubusercontent.com/6b6e23e24c648ccd29152db1fbee32bf88eccb46/68747470733a2f2f7472617669732d63692e6f72672f6f6c6166757270672f7363616c61666d742e7376673f6272616e63683d6d6173746572" alt="Build Status" data-canonical-src="https://travis-ci.org/scalacenter/scalafix.svg?branch=master" style="max-width:100%;"></a>
-      <a href="https://gitter.im/scalacenter/scalafix?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://camo.githubusercontent.com/382ebf95f5b4df9275ac203229928db8c8fd5c50/68747470733a2f2f6261646765732e6769747465722e696d2f6f6c6166757270672f7363616c61666d742e737667" alt="Join the chat at https://gitter.im/scalacenter/scalafix" data-canonical-src="https://badges.gitter.im/scalacenter/scalafix.svg" style="max-width:100%;"></a>
-
-  @p
-    Scalafix is a new tool that hopes to reduce the required effort to migrate
-    existing Scala code.
-    Scalafix takes care of the easy, repetitive, tedious changes, so you
-    can focus on the important changes that require detailed attention.
-
-  @p
-    Scalafix is developed at the @lnk("Scala Center", "https://scala.epfl.ch/").
-    The goal is to use scalafix to provide a smooth a migration experience from
-    Scala 2.x code to @dotty().
-
-  @p
-    The name "scalafix" is inspired by @lnk("gofix", "https://golang.org/cmd/fix/"),
-    a similar tool used to migrate go code.
-
-  @sect{Installation}
-    @sect{Command line}
-      @p
-        There are several ways to install the command line interface.
-
-      @sect{scalafmt.jar}
-
-        @p
-          You can download a pre-compiled jar from the
-          @lnk("releases page", repo + "/releases").
-          Unzip the tar and run @code{bin/scalafix}.
-
-      @sect{Build from source}
-        @ol
-          @li
-            Clone the @lnk("repo", repo).
-          @li
-            Run @code("sbt cli/assembly"), master branch should pass tests.
-          @li
-            Run @code{bin/scalafix}.
-
-      Once installed, please refer to the @code{scalafix --help} page for
-      usage instructions.
-
-      @hl.scala(scalafix.cli.Cli.helpMessage)
-
-    @sect{SBT}
-      @hl.scala
-        addSbtPlugin("???" % "sbt-scalafix" % "@scalafix.Versions.stable")
-
-      @ul
-        @li
-          The command @code{sbt scalafix} runs all available @sect.ref{Rewrite rules}
-          and writes the fixes to the files.
-
-  @sect{Rewrite rules}
-
-    @p
-      Scalafix is a very new tool. Currently, it only supports one rewrite rule.
-
-    @sect{Procedure syntax}
-      "Procedure syntax" is not supported in @lnk("Dotty", "http://dotty.epfl.ch").
-      Methods that use procedure syntax must instead use regular method syntax.
-      For example,
-
-      @hl.scala
-        // before: procedure syntax
-        def main(args: Seq[String) {
-          println("Hello world!")
-        }
-        // after: regular syntax
-        def main(args: Seq[String): Unit = {
-          println("Hello world!")
-        }
-
-
-  @sect{Changelog}
-
-    @sect{0.1.0}
-      @ul
-        @li
-          New command line tool: @code{scalafix}. See @sect.ref{Command line}.
-        @li
-          New SBT plugin: @code{sbt-scalafix}. See @sect.ref{SBT}.
-        @li
-          New rewrite rule: @sect.ref{Procedure syntax}.
+  @scalatex.Intro()
+  @scalatex.Installation()
+  @scalatex.Configuration()
+  @scalatex.Rewrites()
+  @scalatex.Changelog()
+@scalatex.Footer()
 
