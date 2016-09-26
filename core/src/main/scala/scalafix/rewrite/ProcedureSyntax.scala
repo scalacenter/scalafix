@@ -8,7 +8,7 @@ import scala.meta.tokens.Token.RightParen
 import scala.meta.tokens.Token.Space
 import scalafix.util.Patch
 
-object ProcedureSyntax extends Rewrite {
+case object ProcedureSyntax extends Rewrite {
   override def rewrite(ast: Tree, ctx: RewriteCtx): Seq[Patch] = {
     import ctx.tokenList._
     val patches: Seq[Patch] = ast.collect {

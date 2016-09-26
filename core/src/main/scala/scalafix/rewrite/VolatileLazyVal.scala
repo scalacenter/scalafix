@@ -3,7 +3,7 @@ package scalafix.rewrite
 import scala.meta._
 import scalafix.util.Patch
 
-object VolatileLazyVal extends Rewrite {
+case object VolatileLazyVal extends Rewrite {
   private object NonVolatileLazyVal {
     def unapply(defn: Defn.Val): Option[Token] = {
       defn.mods.collectFirst {
