@@ -1,6 +1,8 @@
 *.class
 *.log
 
+gh-pages/
+
 # sbt specific
 .cache
 .history
