@@ -1,0 +1,14 @@
+@import Main._
+@import scalafix.Readme._
+@sect{Changelog}
+  @sect{0.1.0}
+    @ul
+      @li
+        New command line tool: @code{scalafix}. See @sect.ref{Command line}.
+      @li
+        New SBT plugin: @code{sbt-scalafix}. See @sect.ref{SBT}.
+      @li
+        Two rewrite rules:
+        @sect.ref{ProcedureSyntax}
+        and
+        @sect.ref{VolatileLazyVal}.
