@@ -4,7 +4,7 @@
 
 @sect{Rewrites}
   @p
-    Scalafix is a very new tool. Currently, it only supports one rewrite rule.
+    Scalafix is a very new tool, more rewrite rules will come in future releases.
 
   @sect(ProcedureSyntax.toString)
     "Procedure syntax" is not supported in Dotty.

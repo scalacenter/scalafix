@@ -8,18 +8,18 @@
     <a href="https://gitter.im/scalacenter/scalafix?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://camo.githubusercontent.com/382ebf95f5b4df9275ac203229928db8c8fd5c50/68747470733a2f2f6261646765732e6769747465722e696d2f6f6c6166757270672f7363616c61666d742e737667" alt="Join the chat at https://gitter.im/scalacenter/scalafix" data-canonical-src="https://badges.gitter.im/scalacenter/scalafix.svg" style="max-width:100%;"></a>
 
 @p
-  Scalafix is a new tool to help Scala 2.x code compile with @dotty(),
+  Scalafix is a new tool to help Scala 2.x compile with @dotty(),
   a next generation compiler for Scala.
 
 @p
-  The project is still in the early days of development, so there is not much
+  The project is still in early days of development, so there is not much
   to see here yet.
-  Currently, a lot of work on scalafix happens in
+  Currently, work on scalafix happens mostly in
   @lnk("scala.meta", "http://scalameta.org"),
   the metaprogramming toolkit that powers the scalafix @sect.ref{Rewrites}.
 
 @p
-  Fun fact. The name "scalafix" is inspired by
+  The name "scalafix" is inspired by
   @lnk("gofix", "https://golang.org/cmd/fix/"),
   a similar tool used to migrate go code.
 
