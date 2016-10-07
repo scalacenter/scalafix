@@ -32,6 +32,7 @@ case class HasScalafix(reflective: ScalafixLike,
                        configFile: Option[File],
                        streams: TaskStreams,
                        sourceDirectories: Seq[File],
+                       targetDirectory: Seq[File],
                        includeFilter: FileFilter,
                        excludeFilter: FileFilter,
                        ref: ProjectRef) {
@@ -49,7 +50,11 @@ case class HasScalafix(reflective: ScalafixLike,
     inc.Analysis
       .counted("Scala source", "", "s", files.size)
       .foreach(logFun("Fixed %s %s ..."))
-    val args: Seq[String] = Seq("-i") ++ files.toSeq.map(_.getPath)
+    val args: Seq[String] = Seq(
+        "--target",
+        targetDirectory.map(_.getAbsolutePath).mkString(","),
+        "-i"
+      ) ++ files.toSeq.map(_.getAbsolutePath)
     reflective.main(args.toArray)
   }
 

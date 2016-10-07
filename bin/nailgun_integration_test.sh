@@ -2,6 +2,7 @@
 set -e
 
 echo "Running nailgun integration test..."
+ng ng-stop || true
 
 cwd=$(pwd)
 cd cli/target/pack

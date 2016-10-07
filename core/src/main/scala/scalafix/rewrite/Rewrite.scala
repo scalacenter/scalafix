@@ -4,9 +4,7 @@ import scala.meta._
 import scalafix.util.Patch
 
 abstract class Rewrite {
-
   def rewrite(code: Tree, rewriteCtx: RewriteCtx): Seq[Patch]
-
 }
 
 object Rewrite {
@@ -15,6 +13,7 @@ object Rewrite {
   }
 
   val name2rewrite: Map[String, Rewrite] = nameMap[Rewrite](
+    ExplicitImplicit,
     ProcedureSyntax,
     VolatileLazyVal
   )

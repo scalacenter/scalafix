@@ -1,4 +1,4 @@
-sbtPlugin := true
+scalaVersion := "2.11.8" // 2.11.8 is required for "-Ybackend:GenBCode"
 
 TaskKey[Unit]("check") := {
   val obtained =
@@ -7,12 +7,19 @@ TaskKey[Unit]("check") := {
       .getLines()
       .mkString("\n")
   val expected =
-    """
-      |object Main {
-      |  def main(args: Array[String]): Unit = {
-      |    println("hello")
-      |  }
-      |}
+    """|package main
+       |
+       |object Main {
+       |  def main(args: String): Unit = {
+       |    println("hello")
+       |  }
+       |}
+       |
+       |class Y
+       |
+       |class X {
+       |  implicit val y: main.Y = new Y
+       |}t¬
     """.stripMargin
 
   if (obtained.trim != expected.trim) {

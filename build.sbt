@@ -3,13 +3,14 @@ import sbt.ScriptedPlugin._
 import scoverage.ScoverageSbtPlugin.ScoverageKeys._
 
 scalafmtConfig in ThisBuild := Some(file(".scalafmt"))
+val Versions = _root_.scalafix.Versions
 
 lazy val buildSettings = Seq(
   organization := "ch.epfl.scala",
   assemblyJarName in assembly := "scalafix.jar",
   // See core/src/main/scala/ch/epfl/scala/Versions.scala
-  version := scalafix.Versions.nightly,
-  scalaVersion := scalafix.Versions.scala,
+  version := Versions.nightly,
+  scalaVersion := Versions.scala,
   updateOptions := updateOptions.value.withCachedResolution(true)
 )
 
@@ -97,6 +98,7 @@ lazy val root = project
     core,
     cli,
     readme,
+    semanticCompile,
     sbtScalafix
   )
   .dependsOn(core)
@@ -105,11 +107,12 @@ lazy val core = project
   .settings(allSettings)
   .settings(
     moduleName := "scalafix-core",
+    fork := true,
     addCompilerPlugin(
       "org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
     libraryDependencies ++= Seq(
       "com.lihaoyi"    %% "sourcecode"   % "0.1.2",
-      "org.scalameta"  %% "scalameta"    % "1.0.0",
+      "com.geirsson"   %% "scalameta"    % "2.0.0-M7",
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
       // Test dependencies
       "org.scalatest"                  %% "scalatest" % "3.0.0" % "test",
@@ -158,6 +161,13 @@ lazy val sbtScalafix = project
     ),
     scriptedBufferLog := false
   )
+
+lazy val semanticCompile = project
+    .settings(
+      allSettings,
+      addCompilerPlugin(Versions.paradiseOrg % "paradise_2.11.8" % Versions.paradiseVersion),
+      scalacOptions += "-Ybackend:GenBCode"
+    )
 
 lazy val readme = scalatex
   .ScalatexReadme(projectId = "readme",

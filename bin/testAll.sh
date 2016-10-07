@@ -1,9 +1,12 @@
 #!/bin/bash
 set -e
 
-sbt clean coverage test
+
+sbt -Dpersist.enable clean semanticCompile/compile
+#sbt coverage test # coverage seems to break the semantic tests :/
+sbt test
 sbt "; publishLocal ; scripted ; cli/pack"
-sbt coverageAggregate
+#sbt coverageAggregate
 
 # Integration tests
 ./bin/nailgun_integration_test.sh
