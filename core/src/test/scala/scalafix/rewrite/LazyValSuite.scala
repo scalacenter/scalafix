@@ -10,6 +10,7 @@ class LazyValSuite extends RewriteSuite(VolatileLazyVal) {
        |
        |val foo = 1
        |
+       |  private lazy val x = 2
        |  lazy val x = 2
        |  @volatile lazy val dontChangeMe = 2
        |
@@ -24,6 +25,7 @@ class LazyValSuite extends RewriteSuite(VolatileLazyVal) {
        |
        |val foo = 1
        |
+       |  @volatile private lazy val x = 2
        |  @volatile lazy val x = 2
        |  @volatile lazy val dontChangeMe = 2
        |

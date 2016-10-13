@@ -3,7 +3,6 @@ package scalafix.cli
 import scala.collection.GenSeq
 import scalafix.Failure
 import scalafix.Scalafix
-import scalafix.ScalafixConfig
 import scalafix.rewrite.Rewrite
 import scalafix.util.FileOps
 
@@ -14,6 +13,8 @@ import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicInteger
 import ArgParserImplicits._
 import scala.util.control.NonFatal
+import scalafix.config.ProjectFiles
+import scalafix.config.ScalafixConfig
 
 import caseapp._
 import caseapp.core.Messages
@@ -35,7 +36,10 @@ case class ScalafixOptions(
     ) rewrites: List[Rewrite] = Rewrite.default.toList,
     @Hidden @HelpMessage(
       "Files to fix. Runs on all *.scala files if given a directory."
-    ) @ExtraName("f") files: List[String] = List.empty[String],
+    ) @ExtraName("f") files: List[String] = Nil,
+    @HelpMessage(
+      "Target directory with .class files that contain TASTY fields"
+    ) @ExtraName("f") target: List[String] = Nil,
     @HelpMessage(
       "If true, writes changes to files instead of printing to stdout."
     ) @ExtraName("i") inPlace: Boolean = false,
@@ -47,7 +51,12 @@ case class ScalafixOptions(
     ) debug: Boolean = false,
     @Recurse common: CommonOptions = CommonOptions()
 ) extends App {
-
+  def toConfig = ScalafixConfig(
+    rewrites = rewrites,
+    project = ProjectFiles(
+      targetFiles = target.map(new File(_))
+    )
+  )
   Cli.runOn(this)
 }
 
@@ -56,43 +65,48 @@ object Cli extends AppOf[ScalafixOptions] {
 
   val default = ScalafixOptions()
 
-  def safeHandleFile(file: File, config: ScalafixOptions): Unit = {
-    try handleFile(file, config) catch {
+  def safeHandleFile(file: File,
+                     options: ScalafixOptions,
+                     config: ScalafixConfig): Unit = {
+    try handleFile(file, options, config)
+    catch {
       case NonFatal(e) =>
-        config.common.err.println(
-          s"""Unexpected error fixing file: $file
-             |Cause: $e""".stripMargin)
+        options.common.err.println(s"""Unexpected error fixing file: $file
+                                      |Cause: $e""".stripMargin)
     }
   }
-  def handleFile(file: File, config: ScalafixOptions): Unit = {
-    Scalafix
-      .fix(FileOps.readFile(file), ScalafixConfig(config.rewrites)) match {
+  def handleFile(file: File,
+                 options: ScalafixOptions,
+                 config: ScalafixConfig): Unit = {
+    val fixed = Scalafix.fix(FileOps.readFile(file), options.toConfig)
+    fixed match {
       case Right(code) =>
-        if (config.inPlace) {
+        if (options.inPlace) {
           FileOps.writeFile(file, code)
-        } else config.common.out.write(code.getBytes)
+        } else options.common.out.write(code.getBytes)
       case Left(e: Failure.ParseError) =>
-        if (config.files.contains(file.getPath)) {
+        if (options.files.contains(file.getPath)) {
           // Only log if user explicitly specified that file.
-          config.common.err.write(e.toString.getBytes())
+          options.common.err.write(e.toString.getBytes())
         }
       case Left(e) =>
-        config.common.err.write(s"Failed to fix $file. Cause: $e".getBytes)
+        options.common.err.write(s"Failed to fix $file. Cause: $e".getBytes)
     }
   }
 
-  def runOn(config: ScalafixOptions): Unit = {
-    config.files.foreach { pathStr =>
+  def runOn(options: ScalafixOptions): Unit = {
+    val config = options.toConfig
+    options.files.foreach { pathStr =>
       val path = new File(pathStr)
-      val workingDirectory = new File(config.common.workingDirectory)
+      val workingDirectory = new File(options.common.workingDirectory)
       val realPath: File =
         if (path.isAbsolute) path
-        else new File(config.common.workingDirectory, path.getPath)
+        else new File(options.common.workingDirectory, path.getPath)
       if (realPath.isDirectory) {
         val filesToFix: GenSeq[String] = {
           val files =
             FileOps.listFiles(realPath).filter(x => x.endsWith(".scala"))
-          if (config.parallel) files.par
+          if (options.parallel) files.par
           else files
         }
         val logger = new TermDisplay(new OutputStreamWriter(System.out))
@@ -102,13 +116,13 @@ object Cli extends AppOf[ScalafixOptions] {
         logger.taskLength(msg, filesToFix.length, 0)
         val counter = new AtomicInteger()
         filesToFix.foreach { x =>
-          safeHandleFile(new File(x), config)
+          safeHandleFile(new File(x), options, config)
           val progress = counter.incrementAndGet()
           logger.taskProgress(msg, progress)
         }
         logger.stop()
       } else {
-        safeHandleFile(realPath, config)
+        safeHandleFile(realPath, options, config)
       }
     }
   }

@@ -1,7 +1,7 @@
 package scalafix.rewrite
 
 import scalafix.Scalafix
-import scalafix.ScalafixConfig
+import scalafix.config.ScalafixConfig
 import scalafix.util.DiffAssertions
 
 import org.scalatest.FunSuiteLike

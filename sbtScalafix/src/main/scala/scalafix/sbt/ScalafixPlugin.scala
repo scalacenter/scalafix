@@ -19,6 +19,7 @@ limitations under the License.
  */
 package scalafix.sbt
 
+import scala.collection.immutable
 import scala.collection.immutable.Seq
 import scala.util.Failure
 import scala.util.Success
@@ -31,6 +32,7 @@ import sbt.plugins.JvmPlugin
 import sbt.{IntegrationTest => It}
 
 object ScalafixPlugin extends AutoPlugin {
+  val Versions = _root_.scalafix.Versions
 
   object autoImport {
     lazy val scalafix: TaskKey[Unit] =
@@ -59,13 +61,21 @@ object ScalafixPlugin extends AutoPlugin {
   override def trigger = allRequirements
 
   override def requires = JvmPlugin
+  lazy val scalafixEnablePersist: TaskKey[Unit] =
+    taskKey[Unit]("adds property persist.enable")
+
+  lazy val scalafixDisablePersist: TaskKey[Unit] =
+    taskKey[Unit]("removes property persist.enable")
 
   def noConfigScalafixSettings: Seq[Setting[_]] =
     List(
+      addCompilerPlugin(
+        Versions.paradiseOrg % "paradise_2.11.8" % Versions.paradiseVersion),
+      scalacOptions += "-Ybackend:GenBCode",
       ivyConfigurations += config("scalafix").hide,
       libraryDependencies ++= Seq(
-        "org.scala-lang" % "scala-library"     % _root_.scalafix.Versions.scala   % "scalafix",
-        "ch.epfl.scala"  % "scalafix-cli_2.11" % _root_.scalafix.Versions.nightly % "scalafix"
+        "org.scala-lang" % "scala-library"     % Versions.scala   % "scalafix",
+        "ch.epfl.scala"  % "scalafix-cli_2.11" % Versions.nightly % "scalafix"
       )
     )
 
@@ -75,6 +85,10 @@ object ScalafixPlugin extends AutoPlugin {
       includeFilter in Global in hasScalafix := "*.scala",
       scalafixConfig in Global := None,
       hasScalafix := {
+        val outputDir = for {
+          compilation <- (compile in Compile).value.compilations.allCompilations
+          output  <- compilation.outputs().toSeq
+        } yield new File(output.outputDirectory())
         val report = update.value
         val jars = report.select(configurationFilter("scalafix"))
         HasScalafix(
@@ -84,13 +98,26 @@ object ScalafixPlugin extends AutoPlugin {
           scalafixConfig.value,
           streams.value,
           (sourceDirectories in hasScalafix).value.toList,
+          immutable.Seq(outputDir:_*),
           (includeFilter in hasScalafix).value,
           (excludeFilter in hasScalafix).value,
           thisProjectRef.value)
       },
-      scalafix := hasScalafix.value.writeFormattedContentsToFiles()
+      scalafixEnablePersist := {
+        val props = System.getProperties
+        props.setProperty("persist.enable", "")
+      },
+      scalafixDisablePersist := {
+        scalafixEnablePersist.map(_ => compile in Compile).value
+      },
+      scalafix := {
+        scalafixEnablePersist.value
+        (clean in Compile).value
+        (compile in Compile).value
+        hasScalafix.value.writeFormattedContentsToFiles()
+        System.getProperties.remove("persist.enable")
+      }
     )
-
   private def getScalafixLike(classLoader: URLClassLoader,
                               streams: TaskStreams): ScalafixLike = {
     val loadedClass =
@@ -111,4 +138,5 @@ object ScalafixPlugin extends AutoPlugin {
              |${e.getStackTrace.mkString("\n")}""".stripMargin)
         throw e
     }
-  }}
+  }
+}

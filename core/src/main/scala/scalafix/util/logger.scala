@@ -10,6 +10,16 @@ import java.io.File
   */
 object logger {
 
+  /** Pretty-prints deeply nested scala.meta structures using clang-format. */
+  def clangPrint(x: Any): String = {
+    import scala.sys.process._
+    import java.io.ByteArrayInputStream
+    val bais = new ByteArrayInputStream(x.toString.getBytes("UTF-8"))
+    val command = List("clang-format",
+                       "-style={ContinuationIndentWidth: 2, ColumnLimit: 120}")
+    (command #< bais).!!.trim
+  }
+
   private def log[T](t: sourcecode.Text[T],
                      logLevel: LogLevel,
                      line: sourcecode.Line,

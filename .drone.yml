@@ -1,6 +1,6 @@
 # Trigger build 8
 build:
-  image: olafurpg/scalafix:0.0.1
+  image: ensime/ensime:v2.x-cache
   commands:
     - apt-get install nailgun
     - alias ng=ng-nailgun
