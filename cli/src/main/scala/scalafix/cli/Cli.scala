@@ -14,6 +14,7 @@ import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicInteger
 import ArgParserImplicits._
 import scala.util.control.NonFatal
+import scalafix.cli.termdisplay.TermDisplay
 
 import caseapp._
 import caseapp.core.Messages

@@ -81,4 +81,9 @@ class CliSuite extends FunSuite with DiffAssertions {
     assertNoDiff(FileOps.readFile(file1), expected)
     assertNoDiff(FileOps.readFile(file2), expected)
   }
+
+  test("--rewrites") {
+    assert(Cli.parse(Seq("--rewrites", "VolatileLazyVal")).isRight)
+    assert(Cli.parse(Seq("--rewrites", "Foobar")).isLeft)
+  }
 }
