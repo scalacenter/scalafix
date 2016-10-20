@@ -10,13 +10,13 @@ case object VolatileLazyVal extends Rewrite {
         case x if x.syntax == "@volatile" =>
           None
         case x if x.syntax == "lazy" =>
-          Some(x.tokens.head)
+          Some(defn.mods.head.tokens.head)
       }
     }.flatten
   }
   override def rewrite(ast: Tree, ctx: RewriteCtx): Seq[Patch] = {
     ast.collect {
-      case NonVolatileLazyVal(tok) => Patch(tok, tok, "@volatile lazy")
+      case NonVolatileLazyVal(tok) => Patch(tok, tok, s"@volatile ${tok.syntax}")
     }
   }
 }
