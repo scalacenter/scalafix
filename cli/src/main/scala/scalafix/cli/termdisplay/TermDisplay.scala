@@ -5,7 +5,7 @@
   * which in turn was copy/pasted from (MIT licence)
   * https://github.com/lihaoyi/Ammonite/blob/10854e3b8b454a74198058ba258734a17af32023/terminal/src/main/scala/ammonite/terminal/Utils.scala
   */
-package scalafix.cli
+package scalafix.cli.termdisplay
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
