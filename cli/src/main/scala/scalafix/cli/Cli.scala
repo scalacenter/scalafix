@@ -48,8 +48,7 @@ case class ScalafixOptions(
     ) debug: Boolean = false,
     @Recurse common: CommonOptions = CommonOptions()
 ) extends App {
-
-  Cli.runOn(this)
+  Cli.runOn(this.copy(files = files ++ remainingArgs))
 }
 
 object Cli extends AppOf[ScalafixOptions] {

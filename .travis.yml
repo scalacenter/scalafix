@@ -1,7 +1,5 @@
 language: scala
-# Use container-based infrastructure
 sudo: false
-# These directories are cached to S3 at the end of the build
 cache:
   directories:
     - $HOME/.ivy2/cache
@@ -11,13 +9,12 @@ git:
 scala:
   - 2.11.8
 before_install:
-  - pip install --user codecov
+  - ./bin/setupCI.sh
 script:
   - ./bin/testAll.sh
 after_success:
   - codecov
 jdk:
-  - oraclejdk8
   - oraclejdk7
 notifications:
   email:

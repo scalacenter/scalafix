@@ -1,12 +1,11 @@
-# Trigger build 8
 build:
   image: olafurpg/scalafix:0.0.1
+  environment:
+    - COURSIER_CACHE=/drone/cache/coursier
   commands:
-    - apt-get install nailgun
-    - alias ng=ng-nailgun
     - export PATH=$PATH:/root/local/bin
-    - pip install --user codecov
+    - ./bin/setupCI.sh
     - ./bin/testAll.sh
-    # I can't be bothered to hide this token.
-    - $HOME/.local/bin/codecov -t 5f2117aa-0a01-4cf1-8bf7-631a62ccb47a
-
+cache:
+  mount:
+    - /drone/cache
