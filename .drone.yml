@@ -1,6 +1,11 @@
-# Trigger build 8
 build:
   image: olafurpg/scalafix:0.0.1
+  environment:
+    - COURSIER_CACHE=/drone/cache/coursier
   commands:
+    - export PATH=$PATH:/root/local/bin
     - ./bin/setupCI.sh
     - ./bin/testAll.sh
+cache:
+  mount:
+    - /drone/cache
