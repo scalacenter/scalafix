@@ -41,6 +41,6 @@
   @sect{Upcoming rewrites...}
     @ul
       @li
-        @code{XML}: see @issue(1).
+        @code{XML}: see @issue(10).
       @li
-        @code{ExplicitImplicit}: see @issue(2).
+        @code{ExplicitImplicit}: see @issue(11).
