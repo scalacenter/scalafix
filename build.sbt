@@ -2,8 +2,6 @@ import sbt.ScriptedPlugin
 import sbt.ScriptedPlugin._
 import scoverage.ScoverageSbtPlugin.ScoverageKeys._
 
-scalafmtConfig in ThisBuild := Some(file(".scalafmt"))
-
 lazy val buildSettings = Seq(
   organization := "ch.epfl.scala",
   assemblyJarName in assembly := "scalafix.jar",
@@ -109,7 +107,7 @@ lazy val core = project
       "org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
     libraryDependencies ++= Seq(
       "com.lihaoyi"    %% "sourcecode"   % "0.1.2",
-      "org.scalameta"  %% "scalameta"    % "1.0.0",
+      "org.scalameta"  %% "scalameta"    % Build.metaV,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
       // Test dependencies
       "org.scalatest"                  %% "scalatest" % "3.0.0" % "test",
@@ -118,7 +116,11 @@ lazy val core = project
   )
 
 lazy val `scalafix-compiler-plugin` = project.settings(
-  allSettings
+  allSettings,
+  libraryDependencies ++= Seq(
+    "org.scala-lang" % "scala-compiler" % scalaVersion.value,
+    "org.scalameta"  %% "scalameta"     % Build.metaV
+  )
 )
 
 lazy val cli = project
