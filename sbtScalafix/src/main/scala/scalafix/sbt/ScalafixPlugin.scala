@@ -111,4 +111,5 @@ object ScalafixPlugin extends AutoPlugin {
              |${e.getStackTrace.mkString("\n")}""".stripMargin)
         throw e
     }
-  }}
+  }
+}

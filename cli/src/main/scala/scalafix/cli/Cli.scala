@@ -57,11 +57,11 @@ object Cli extends AppOf[ScalafixOptions] {
   val default = ScalafixOptions()
 
   def safeHandleFile(file: File, config: ScalafixOptions): Unit = {
-    try handleFile(file, config) catch {
+    try handleFile(file, config)
+    catch {
       case NonFatal(e) =>
-        config.common.err.println(
-          s"""Unexpected error fixing file: $file
-             |Cause: $e""".stripMargin)
+        config.common.err.println(s"""Unexpected error fixing file: $file
+                                     |Cause: $e""".stripMargin)
     }
   }
   def handleFile(file: File, config: ScalafixOptions): Unit = {

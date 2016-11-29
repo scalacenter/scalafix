@@ -117,6 +117,10 @@ lazy val core = project
     )
   )
 
+lazy val `scalafix-compiler-plugin` = project.settings(
+  allSettings
+)
+
 lazy val cli = project
   .settings(allSettings)
   .settings(packSettings)

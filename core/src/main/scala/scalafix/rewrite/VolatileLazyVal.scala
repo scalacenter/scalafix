@@ -16,7 +16,8 @@ case object VolatileLazyVal extends Rewrite {
   }
   override def rewrite(ast: Tree, ctx: RewriteCtx): Seq[Patch] = {
     ast.collect {
-      case NonVolatileLazyVal(tok) => Patch(tok, tok, s"@volatile ${tok.syntax}")
+      case NonVolatileLazyVal(tok) =>
+        Patch(tok, tok, s"@volatile ${tok.syntax}")
     }
   }
 }
