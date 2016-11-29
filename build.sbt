@@ -1,3 +1,5 @@
+import java.io.Serializable
+
 import sbt.ScriptedPlugin
 import sbt.ScriptedPlugin._
 import scoverage.ScoverageSbtPlugin.ScoverageKeys._
@@ -92,6 +94,7 @@ lazy val root = project
       """.stripMargin
   )
   .aggregate(
+    `scalafix-compiler-plugin`,
     core,
     cli,
     readme,
@@ -110,8 +113,8 @@ lazy val core = project
       "org.scalameta"  %% "scalameta"    % Build.metaV,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
       // Test dependencies
-      "org.scalatest"                  %% "scalatest" % "3.0.0" % "test",
-      "com.googlecode.java-diff-utils" % "diffutils"  % "1.3.0" % "test"
+      "org.scalatest"                  %% "scalatest" % Build.testV % "test",
+      "com.googlecode.java-diff-utils" % "diffutils"  % "1.3.0"     % "test"
     )
   )
 
@@ -119,8 +122,10 @@ lazy val `scalafix-compiler-plugin` = project.settings(
   allSettings,
   libraryDependencies ++= Seq(
     "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-    "org.scalameta"  %% "scalameta"     % Build.metaV
-  )
+    "org.scalameta"  %% "scalameta"     % Build.metaV,
+    "org.scalatest"  %% "scalatest"     % Build.testV % Test
+  ),
+  exposePaths("compilerPlugin", Test)
 )
 
 lazy val cli = project
@@ -180,3 +185,35 @@ lazy val readme = scalatex
     ),
     dependencyOverrides += "com.lihaoyi" %% "scalaparse" % "0.3.1"
   )
+
+def exposePaths(projectName: String,
+                config: Configuration): Seq[Def.Setting[_]] = {
+  def uncapitalize(s: String) =
+    if (s.length == 0) ""
+    else {
+      val chars = s.toCharArray; chars(0) = chars(0).toLower; new String(chars)
+    }
+  val prefix = "sbt.paths." + projectName + "." + uncapitalize(config.name) + "."
+  Seq(
+    sourceDirectory in config := {
+      val defaultValue = (sourceDirectory in config).value
+      System.setProperty(prefix + "sources", defaultValue.getAbsolutePath)
+      defaultValue
+    },
+    resourceDirectory in config := {
+      val defaultValue = (resourceDirectory in config).value
+      System.setProperty(prefix + "resources", defaultValue.getAbsolutePath)
+      defaultValue
+    },
+    fullClasspath in config := {
+      val defaultValue = (fullClasspath in config).value
+      val classpath = defaultValue.files.map(_.getAbsolutePath)
+      val scalaLibrary =
+        classpath.map(_.toString).find(_.contains("scala-library")).get
+      System.setProperty("sbt.paths.scalalibrary.classes", scalaLibrary)
+      System.setProperty(prefix + "classes",
+                         classpath.mkString(java.io.File.pathSeparator))
+      defaultValue
+    }
+  )
+}

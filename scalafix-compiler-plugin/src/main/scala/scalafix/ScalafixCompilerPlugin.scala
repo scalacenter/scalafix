@@ -13,13 +13,10 @@ class ScalafixCompilerPlugin(val global: Global) extends Plugin {
 
 class ScalafixComponent(plugin: Plugin, val global: Global)
     extends PluginComponent {
-
   override val phaseName: String = "scalafix"
   override val runsAfter: List[String] = "typer" :: Nil
-
   override def newPhase(prev: Phase): Phase = new Phase(prev) {
     override def name: String = "scalafix"
-
     override def run(): Unit = {
       global.currentRun.units.foreach { unit =>
         println(unit)
