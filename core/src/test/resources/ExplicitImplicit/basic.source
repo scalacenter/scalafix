@@ -1,0 +1,27 @@
+// foo
+<<< list
+class A {
+  implicit val x = List(1)
+}
+>>>
+class A {
+  implicit val x: List[Int] = List(1)
+}
+<<< map
+class A {
+  implicit val x = Map(1 -> "STRING")
+}
+>>>
+class A {
+  implicit val x: scala.collection.immutable.Map[Int, String] =
+    Map(1 -> "STRING")
+}
+<<< ONLY def
+class A {
+  implicit val x = Map(1 -> "STRING")
+}
+>>>
+class A {
+  implicit val x: scala.collection.immutable.Map[Int, String] =
+    Map(1 -> "STRING")
+}

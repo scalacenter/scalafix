@@ -2,10 +2,10 @@ package scalafix
 
 import scala.collection.immutable.Seq
 import scala.tools.cmd.CommandLineParser
-import scala.tools.nsc.reporters.StoreReporter
 import scala.tools.nsc.CompilerCommand
 import scala.tools.nsc.Global
 import scala.tools.nsc.Settings
+import scala.tools.nsc.reporters.StoreReporter
 import scala.{meta => m}
 import scalafix.nsc.NscSemanticApi
 import scalafix.rewrite.ExplicitImplicit
@@ -13,9 +13,9 @@ import scalafix.rewrite.Rewrite
 
 import org.scalatest.FunSuite
 
-abstract class NscPluginSuite(rewrite: Rewrite,
-                              parseAsCompilationUnit: Boolean = false)
-    extends FunSuite {
+class SemanticTests extends FunSuite {
+  val rewrite: Rewrite = ExplicitImplicit
+  val parseAsCompilationUnit: Boolean = false
 
   private lazy val g: Global = {
     def fail(msg: String) =
@@ -37,8 +37,9 @@ abstract class NscPluginSuite(rewrite: Rewrite,
   }
 
   private object fixer extends NscSemanticApi {
-    lazy val global: NscPluginSuite.this.g.type = NscPluginSuite.this.g
-    def apply(unit: g.CompilationUnit): Fixed = fix(unit)
+    lazy val global: SemanticTests.this.g.type = SemanticTests.this.g
+    def apply(unit: g.CompilationUnit): Fixed =
+      fix(unit, ScalafixConfig(rewrites = List(rewrite)))
   }
 
   private def getParsedScalacTree(code: String): g.Tree = {
@@ -84,6 +85,7 @@ abstract class NscPluginSuite(rewrite: Rewrite,
   }
   var packageCount = 0 // hack to isolate each test case in its own package namespace.
   def wrap(code: String): String = {
+    packageCount += 1
     val packageName = s"p$packageCount"
     val packagedCode = s"package $packageName { $code }"
     packagedCode
@@ -120,25 +122,77 @@ abstract class NscPluginSuite(rewrite: Rewrite,
     val Fixed.Success(fixed) = fixer(getTypedCompilationUnit(code))
     fixed
   }
+  case class MismatchException(details: String) extends Exception
+  private def checkMismatchesModuloDesugarings(obtained: m.Tree,
+                                               expected: m.Tree): Unit = {
+    import scala.meta._
+    def loop(x: Any, y: Any): Boolean = {
+      val ok = (x, y) match {
+        case (x, y) if x == null || y == null =>
+          x == null && y == null
+        case (x: Some[_], y: Some[_]) =>
+          loop(x.get, y.get)
+        case (x: None.type, y: None.type) =>
+          true
+        case (xs: Seq[_], ys: Seq[_]) =>
+          xs.length == ys.length && xs.zip(ys).forall {
+            case (x, y) => loop(x, y)
+          }
+        case (x: Tree, y: Tree) =>
+          def sameStructure =
+            x.productPrefix == y.productPrefix &&
+              loop(x.productIterator.toList, y.productIterator.toList)
+          sameStructure
+        case _ =>
+          x == y
+      }
+      if (!ok) {
+        val structure = (x, y) match {
+          case (t1: Tree, t2: Tree) =>
+            s". Diff:\n${t1.structure}\n${t2.structure}\n"
+          case _ => ""
+        }
+        throw MismatchException(s"$x != $y$structure")
+      } else true
+    }
+    loop(obtained, expected)
+  }
 
-  def check(original: String, expected: String): Unit = {
-    test(original) {
-      val fixed = fix(original)
-      assert(fixed == expected)
+  private def parse(code: String): m.Tree = {
+    import scala.meta._
+    code.parse[Source].get match {
+      // unwraps injected package
+      case m.Source(Seq(Pkg(_, Seq(stat)))) => stat
+      case m.Source(Seq(stat)) => stat
+      case els => els
+    }
+  }
+
+  def check(original: String, expectedStr: String): Unit = {
+    val obtained = parse(fix(original))
+    val expected = parse(expectedStr)
+    try {
+      checkMismatchesModuloDesugarings(obtained, expected)
+    } catch {
+      case MismatchException(details) =>
+        val header = s"scala -> meta converter error\n$details"
+        val fullDetails =
+          s"""expected:
+             |${expected.structure}
+             |obtained:
+             |${obtained.syntax}
+             |${obtained.structure}""".stripMargin
+        fail(s"$header\n$fullDetails")
+    }
+  }
+
+  DiffTest.testsToRun.foreach { dt =>
+    if (dt.skip) {
+      ignore(dt.fullName) {}
+    } else {
+      test(dt.fullName) {
+        check(dt.original, dt.expected)
+      }
     }
   }
 }
-
-class ExplicitImplicitSuite extends NscPluginSuite(ExplicitImplicit) {
-  check(
-    """|class A {
-       |  implicit val x = List(1)
-       |}
-    """.stripMargin,
-    """|class A {
-       |  implicit val x: List[Int] = List(1)
-       |}
-    """.stripMargin
-  )
-}
-
