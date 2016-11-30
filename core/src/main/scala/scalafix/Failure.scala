@@ -2,10 +2,11 @@ package scalafix
 
 import scala.meta.inputs.Position
 
-class Failure(msg: String) extends Exception(msg)
+class Failure(e: Throwable) extends Exception(e.getMessage)
 
 object Failure {
 
   case class ParseError(pos: Position, message: String, exception: Throwable)
-      extends Failure(message)
+      extends Failure(exception)
+  case class Unexpected(e: Throwable) extends Failure(e)
 }

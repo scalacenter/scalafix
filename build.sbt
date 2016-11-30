@@ -2,7 +2,7 @@ import java.io.Serializable
 
 import sbt.ScriptedPlugin
 import sbt.ScriptedPlugin._
-import scoverage.ScoverageSbtPlugin.ScoverageKeys._
+//import scoverage.ScoverageSbtPlugin.ScoverageKeys._
 
 lazy val buildSettings = Seq(
   organization := "ch.epfl.scala",
@@ -34,8 +34,8 @@ lazy val compilerOptions = Seq(
 )
 
 lazy val commonSettings = Seq(
-  ScoverageSbtPlugin.ScoverageKeys.coverageExcludedPackages :=
-    ".*(Versions|termdisplay);scalafix\\.(sbt|util)",
+//  ScoverageSbtPlugin.ScoverageKeys.coverageExcludedPackages :=
+//    ".*(Versions|termdisplay);scalafix\\.(sbt|util)",
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
   scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
   testOptions in Test += Tests.Argument("-oD")
@@ -94,7 +94,7 @@ lazy val root = project
       """.stripMargin
   )
   .aggregate(
-    `scalafix-compiler-plugin`,
+    `scalafix-nsc`,
     core,
     cli,
     readme,
@@ -118,15 +118,18 @@ lazy val core = project
     )
   )
 
-lazy val `scalafix-compiler-plugin` = project.settings(
-  allSettings,
-  libraryDependencies ++= Seq(
-    "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-    "org.scalameta"  %% "scalameta"     % Build.metaV,
-    "org.scalatest"  %% "scalatest"     % Build.testV % Test
-  ),
-  exposePaths("compilerPlugin", Test)
-)
+lazy val `scalafix-nsc` = project
+  .settings(
+    allSettings,
+    libraryDependencies ++= Seq(
+      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
+      "org.scalameta"  %% "scalameta"     % Build.metaV,
+      "org.scalatest"  %% "scalatest"     % Build.testV % Test
+    ),
+//    testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-F"),
+    exposePaths("scalafixNsc", Test)
+  )
+  .dependsOn(core)
 
 lazy val cli = project
   .settings(allSettings)
@@ -155,7 +158,7 @@ lazy val sbtScalafix = project
   .settings(ScriptedPlugin.scriptedSettings)
   .settings(
     sbtPlugin := true,
-    coverageHighlighting := false,
+//    coverageHighlighting := false,
     scalaVersion := "2.10.5",
     moduleName := "sbt-scalafix",
     sources in Compile +=
@@ -217,3 +220,4 @@ def exposePaths(projectName: String,
     }
   )
 }
+

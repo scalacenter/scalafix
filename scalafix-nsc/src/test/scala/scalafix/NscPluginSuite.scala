@@ -1,21 +1,28 @@
 package scalafix
 
-import org.scalatest.FunSuiteLike
 import scala.collection.immutable.Seq
-import scala.{meta => m}
 import scala.tools.cmd.CommandLineParser
-import scala.tools.nsc.{CompilerCommand, Global, Settings}
 import scala.tools.nsc.reporters.StoreReporter
+import scala.tools.nsc.CompilerCommand
+import scala.tools.nsc.Global
+import scala.tools.nsc.Settings
+import scala.{meta => m}
+import scalafix.nsc.NscSemanticApi
+import scalafix.rewrite.ExplicitImplicit
+import scalafix.rewrite.Rewrite
 
-trait CompilerPluginSuite extends FunSuiteLike {
-  val parseAsCompilationUnit = false
+import org.scalatest.FunSuite
+
+abstract class NscPluginSuite(rewrite: Rewrite,
+                              parseAsCompilationUnit: Boolean = false)
+    extends FunSuite {
 
   private lazy val g: Global = {
     def fail(msg: String) =
       sys.error(s"ReflectToMeta initialization failed: $msg")
-    val classpath = System.getProperty("sbt.paths.testsConverter.test.classes")
+    val classpath = System.getProperty("sbt.paths.scalafixNsc.test.classes")
     val pluginpath = System.getProperty("sbt.paths.plugin.jar")
-    val options = "-cp " + classpath + " -Xplugin:" + pluginpath + ":" + classpath + " -Xplugin-require:macroparadise"
+    val options = "-cp " + classpath + " -Xplugin:" + pluginpath + ":" + classpath + " -Xplugin-require:scalafix"
     val args = CommandLineParser.tokenize(options)
     val emptySettings = new Settings(
       error => fail(s"couldn't apply settings because $error"))
@@ -27,6 +34,11 @@ trait CompilerPluginSuite extends FunSuiteLike {
     g.phase = run.parserPhase
     g.globalPhase = run.parserPhase
     g
+  }
+
+  private object fixer extends NscSemanticApi {
+    lazy val global: NscPluginSuite.this.g.type = NscPluginSuite.this.g
+    def apply(unit: g.CompilationUnit): Fixed = fix(unit)
   }
 
   private def getParsedScalacTree(code: String): g.Tree = {
@@ -104,8 +116,29 @@ trait CompilerPluginSuite extends FunSuiteLike {
     unit
   }
 
-  private def getTypedScalacTree(code: String): g.Tree = {
-    unwrap(unwrap(getTypedCompilationUnit(code).body))
+  def fix(code: String): String = {
+    val Fixed.Success(fixed) = fixer(getTypedCompilationUnit(code))
+    fixed
   }
 
+  def check(original: String, expected: String): Unit = {
+    test(original) {
+      val fixed = fix(original)
+      assert(fixed == expected)
+    }
+  }
 }
+
+class ExplicitImplicitSuite extends NscPluginSuite(ExplicitImplicit) {
+  check(
+    """|class A {
+       |  implicit val x = List(1)
+       |}
+    """.stripMargin,
+    """|class A {
+       |  implicit val x: List[Int] = List(1)
+       |}
+    """.stripMargin
+  )
+}
+
