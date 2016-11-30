@@ -24,4 +24,8 @@ object Scalafix {
   def fix(code: Input, config: ScalafixConfig): Fixed = {
     fix(code, config, None)
   }
+
+  def fix(code: String, config: ScalafixConfig = ScalafixConfig()): Fixed = {
+    fix(Input.String(code), config, None)
+  }
 }

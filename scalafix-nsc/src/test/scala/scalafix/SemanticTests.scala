@@ -83,10 +83,8 @@ class SemanticTests extends FunSuite {
       fail(s"scalac parse error: ${error.msg} at ${error.pos}"))
     tree
   }
-  var packageCount = 0 // hack to isolate each test case in its own package namespace.
-  def wrap(code: String): String = {
-    packageCount += 1
-    val packageName = s"p$packageCount"
+  def wrap(code: String, name: String): String = {
+    val packageName = name.replaceAll("[^a-zA-Z]", "")
     val packagedCode = s"package $packageName { $code }"
     packagedCode
   }
@@ -98,9 +96,7 @@ class SemanticTests extends FunSuite {
 
   private def getTypedCompilationUnit(code: String): g.CompilationUnit = {
     import g._
-    val packagedCode = wrap(code)
-    val unit = new CompilationUnit(
-      newSourceFile(packagedCode, "<ReflectToMeta>"))
+    val unit = new CompilationUnit(newSourceFile(code, "<ReflectToMeta>"))
 
     val run = g.currentRun
     val phases = List(run.parserPhase, run.namerPhase, run.typerPhase)
@@ -113,7 +109,9 @@ class SemanticTests extends FunSuite {
       phase.asInstanceOf[GlobalPhase].apply(unit)
       val errors = reporter.infos.filter(_.severity == reporter.ERROR)
       errors.foreach(error =>
-        fail(s"scalac ${phase.name} error: ${error.msg} at ${error.pos}"))
+        fail(
+          s"""scalac ${phase.name} error: ${error.msg} at ${error.pos}
+             |$code""".stripMargin))
     })
     unit
   }
@@ -149,7 +147,11 @@ class SemanticTests extends FunSuite {
       if (!ok) {
         val structure = (x, y) match {
           case (t1: Tree, t2: Tree) =>
-            s". Diff:\n${t1.structure}\n${t2.structure}\n"
+            s"""
+               |Diff:
+               |${t1.structure}
+               |${t2.structure}
+               |""".stripMargin
           case _ => ""
         }
         throw MismatchException(s"$x != $y$structure")
@@ -162,14 +164,13 @@ class SemanticTests extends FunSuite {
     import scala.meta._
     code.parse[Source].get match {
       // unwraps injected package
-      case m.Source(Seq(Pkg(_, Seq(stat)))) => stat
-      case m.Source(Seq(stat)) => stat
+      case m.Source(Seq(Pkg(_, stats))) => m.Source(stats)
       case els => els
     }
   }
 
-  def check(original: String, expectedStr: String): Unit = {
-    val obtained = parse(fix(original))
+  def check(original: String, expectedStr: String, diffTest: DiffTest): Unit = {
+    val obtained = parse(fix(wrap(original, diffTest.name)))
     val expected = parse(expectedStr)
     try {
       checkMismatchesModuloDesugarings(obtained, expected)
@@ -178,10 +179,9 @@ class SemanticTests extends FunSuite {
         val header = s"scala -> meta converter error\n$details"
         val fullDetails =
           s"""expected:
-             |${expected.structure}
+             |${expected.syntax}
              |obtained:
-             |${obtained.syntax}
-             |${obtained.structure}""".stripMargin
+             |${obtained.syntax}""".stripMargin
         fail(s"$header\n$fullDetails")
     }
   }
@@ -191,7 +191,7 @@ class SemanticTests extends FunSuite {
       ignore(dt.fullName) {}
     } else {
       test(dt.fullName) {
-        check(dt.original, dt.expected)
+        check(dt.original, dt.expected, dt)
       }
     }
   }

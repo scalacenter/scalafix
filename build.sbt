@@ -1,14 +1,11 @@
-import java.io.Serializable
-
 import sbt.ScriptedPlugin
 import sbt.ScriptedPlugin._
-//import scoverage.ScoverageSbtPlugin.ScoverageKeys._
+organization in ThisBuild := "ch.epfl.scala"
+version in ThisBuild := scalafix.Versions.nightly
 
 lazy val buildSettings = Seq(
-  organization := "ch.epfl.scala",
   assemblyJarName in assembly := "scalafix.jar",
   // See core/src/main/scala/ch/epfl/scala/Versions.scala
-  version := scalafix.Versions.nightly,
   scalaVersion := scalafix.Versions.scala,
   updateOptions := updateOptions.value.withCachedResolution(true)
 )
@@ -22,9 +19,6 @@ lazy val compilerOptions = Seq(
   "-encoding",
   "UTF-8",
   "-feature",
-  "-language:existentials",
-  "-language:higherKinds",
-  "-language:implicitConversions",
   "-unchecked",
   "-Yno-adapted-args",
   "-Ywarn-dead-code",
@@ -34,17 +28,13 @@ lazy val compilerOptions = Seq(
 )
 
 lazy val commonSettings = Seq(
-//  ScoverageSbtPlugin.ScoverageKeys.coverageExcludedPackages :=
-//    ".*(Versions|termdisplay);scalafix\\.(sbt|util)",
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
   scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
-  testOptions in Test += Tests.Argument("-oD")
+  testOptions in Test += Tests.Argument("-oFD")
 )
 
 lazy val publishSettings = Seq(
-  publishMavenStyle := true,
-  publishMavenStyle := true,
-  publishArtifact := true,
+  publishMavenStyle := false,
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
     if (isSnapshot.value)
@@ -98,9 +88,22 @@ lazy val root = project
     core,
     cli,
     readme,
-    sbtScalafix
+    `scalafix-sbt`
   )
   .dependsOn(core)
+
+lazy val useNscPluginSettings: Seq[Def.Setting[_]] = Seq(
+  scalacOptions in Compile ++= {
+    val jar = (Keys.`package` in (`scalafix-nsc`, Compile)).value
+    System.setProperty("sbt.paths.plugin.jar", jar.getAbsolutePath)
+    val addPlugin = "-Xplugin:" + jar.getAbsolutePath
+    // Thanks Jason for this cool idea (taken from https://github.com/retronym/boxer)
+    // add plugin timestamp to compiler options to trigger recompile of
+    // main after editing the plugin. (Otherwise a 'clean' is needed.)
+    val dummy = "-Jdummy=" + jar.lastModified
+    Seq(addPlugin, dummy)
+  }
+)
 
 lazy val core = project
   .settings(allSettings)
@@ -120,16 +123,41 @@ lazy val core = project
 
 lazy val `scalafix-nsc` = project
   .settings(
-    allSettings,
+    scalaVersion := "2.11.8",
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scalameta"  %% "scalameta"     % Build.metaV,
       "org.scalatest"  %% "scalatest"     % Build.testV % Test
     ),
-//    testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-F"),
+    publishArtifact in Compile := true,
+    assemblyJarName in assembly := name.value + "_" + scalaVersion.value + "-" + version.value + "-assembly.jar",
+    assemblyOption in assembly ~= { _.copy(includeScala = false) },
+    Keys.`package` in Compile := {
+      val slimJar = (Keys.`package` in Compile).value
+      val fatJar =
+        new File(crossTarget.value + "/" + (assemblyJarName in assembly).value)
+      val _ = assembly.value
+      IO.copy(List(fatJar -> slimJar), overwrite = true)
+      slimJar
+    },
+    packagedArtifact in Compile in packageBin := {
+      val temp = (packagedArtifact in Compile in packageBin).value
+      val (art, slimJar) = temp
+      val fatJar =
+        new File(crossTarget.value + "/" + (assemblyJarName in assembly).value)
+      val _ = assembly.value
+      IO.copy(List(fatJar -> slimJar), overwrite = true)
+      (art, slimJar)
+    },
     exposePaths("scalafixNsc", Test)
   )
   .dependsOn(core)
+
+lazy val `scalafix-nsc-tests` = project.settings(
+//  allSettings,
+  useNscPluginSettings,
+  scalacOptions += "-Xplugin:" + (packageBin in `scalafix-nsc` in Compile).value
+)
 
 lazy val cli = project
   .settings(allSettings)
@@ -153,25 +181,23 @@ lazy val cli = project
   )
   .dependsOn(core % "compile->compile;test->test")
 
-lazy val sbtScalafix = project
-  .settings(allSettings)
-  .settings(ScriptedPlugin.scriptedSettings)
-  .settings(
-    sbtPlugin := true,
-//    coverageHighlighting := false,
-    scalaVersion := "2.10.5",
-    moduleName := "sbt-scalafix",
-    sources in Compile +=
-      baseDirectory.value / "../core/src/main/scala/scalafix/Versions.scala",
-    scriptedLaunchOpts := Seq(
-      "-Dplugin.version=" + version.value,
-      // .jvmopts is ignored, simulate here
-      "-XX:MaxPermSize=256m",
-      "-Xmx2g",
-      "-Xss2m"
-    ),
-    scriptedBufferLog := false
-  )
+lazy val `scalafix-sbt` = project.settings(
+  allSettings,
+  ScriptedPlugin.scriptedSettings,
+  sbtPlugin := true,
+  scalaVersion := "2.10.5",
+//  sbtVersion := "0.13.13",
+  sources in Compile +=
+    baseDirectory.value / "../core/src/main/scala/scalafix/Versions.scala",
+  scriptedLaunchOpts := Seq(
+    "-Dplugin.version=" + version.value,
+    // .jvmopts is ignored, simulate here
+    "-XX:MaxPermSize=256m",
+    "-Xmx2g",
+    "-Xss2m"
+  ),
+  scriptedBufferLog := false
+)
 
 lazy val readme = scalatex
   .ScalatexReadme(projectId = "readme",
@@ -220,4 +246,5 @@ def exposePaths(projectName: String,
     }
   )
 }
+
 

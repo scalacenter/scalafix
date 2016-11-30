@@ -14,6 +14,7 @@ import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicInteger
 import ArgParserImplicits._
 import scala.util.control.NonFatal
+import scalafix.Fixed
 import scalafix.cli.termdisplay.TermDisplay
 
 import caseapp._
@@ -32,7 +33,7 @@ case class CommonOptions(
 @ProgName("scalafix")
 case class ScalafixOptions(
     @HelpMessage(
-      s"Rules to run, one of: ${Rewrite.default.mkString(", ")}"
+      s"Rules to run, one of: ${Rewrite.allRewrites.mkString(", ")}"
     ) rewrites: List[Rewrite] = Rewrite.default.toList,
     @Hidden @HelpMessage(
       "Files to fix. Runs on all *.scala files if given a directory."
@@ -65,18 +66,19 @@ object Cli extends AppOf[ScalafixOptions] {
     }
   }
   def handleFile(file: File, config: ScalafixOptions): Unit = {
-    Scalafix
-      .fix(FileOps.readFile(file), ScalafixConfig(config.rewrites)) match {
-      case Right(code) =>
+    val fixed =
+      Scalafix.fix(FileOps.readFile(file), ScalafixConfig(config.rewrites))
+    fixed match {
+      case Fixed.Success(code) =>
         if (config.inPlace) {
           FileOps.writeFile(file, code)
         } else config.common.out.write(code.getBytes)
-      case Left(e: Failure.ParseError) =>
+      case Fixed.Failed(e: Failure.ParseError) =>
         if (config.files.contains(file.getPath)) {
           // Only log if user explicitly specified that file.
           config.common.err.write(e.toString.getBytes())
         }
-      case Left(e) =>
+      case Fixed.Failed(e) =>
         config.common.err.write(s"Failed to fix $file. Cause: $e".getBytes)
     }
   }

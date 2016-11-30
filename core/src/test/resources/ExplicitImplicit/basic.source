@@ -16,12 +16,77 @@ class A {
   implicit val x: scala.collection.immutable.Map[Int, String] =
     Map(1 -> "STRING")
 }
-<<< ONLY def
+<<< def works
 class A {
-  implicit val x = Map(1 -> "STRING")
+  implicit def x = 2
 }
 >>>
 class A {
-  implicit val x: scala.collection.immutable.Map[Int, String] =
-    Map(1 -> "STRING")
+  implicit def x: Int = 2
+}
+<<< def param works
+class A {
+  implicit def x[T](e: T) = e
+}
+>>>
+class A {
+  implicit def x[T](e: T): T = e
+}
+<<< type param
+class A {
+  implicit def x = new Array[String](10)
+}
+>>>
+class A {
+  implicit def x: Array[String] = new Array[String](10)
+}
+<<< T.this
+class A {
+  class B { class C }
+  implicit val x = new B
+  implicit val y = new x.C
+}
+>>>
+class A {
+  class B { class C }
+  implicit val x: B = new B
+  implicit val y: x.C = new x.C
+}
+<<< two classes
+class A[T](e: T)
+class B {
+  implicit val x = new A(10)
+}
+>>>
+class A[T](e: T)
+class B {
+  implicit val x: A[Int] = new A(10)
+}
+<<< deeper package
+class A[T](e: T)
+package foo {
+  class B {
+    implicit val x = new A(10)
+  }
+}
+>>>
+class A[T](e: T)
+package foo {
+  class B {
+    implicit val x: deeperpackage.A[Int] = new A(10)
+  }
+}
+<<< shallow package
+package foo {
+  class A[T](e: T)
+}
+class B {
+  implicit val x = new foo.A(10)
+}
+>>>
+package foo {
+  class A[T](e: T)
+}
+class B {
+  implicit val x: foo.A[Int] = new foo.A(10)
 }
