@@ -19,17 +19,13 @@ class ScalafixNscComponent(plugin: Plugin, val global: Global)
   override def newPhase(prev: Phase): Phase = new Phase(prev) {
     override def name: String = "scalafix"
     override def run(): Unit = {
-      logger.info("HELLO FROM SCALAFIX-NSC")
       global.currentRun.units.foreach { unit =>
         if (unit.source.file.exists &&
             unit.source.file.file.isFile &&
             !unit.isJava) {
           // TODO(olafur) pull out rewrite rules from configuration flags.
           val rewrites = Rewrite.semanticRewrites
-          val fixed =
-            fix(unit, ScalafixConfig(rewrites = rewrites))
-//          logger.elem(fixed)
-          fixed match {
+          fix(unit, ScalafixConfig(rewrites = rewrites)) match {
             case Fixed.Success(fixed) =>
               FileOps.writeFile(unit.source.file.file, fixed)
             case Fixed.Failed(e) =>

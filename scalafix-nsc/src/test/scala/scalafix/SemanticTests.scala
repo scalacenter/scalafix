@@ -109,9 +109,8 @@ class SemanticTests extends FunSuite {
       phase.asInstanceOf[GlobalPhase].apply(unit)
       val errors = reporter.infos.filter(_.severity == reporter.ERROR)
       errors.foreach(error =>
-        fail(
-          s"""scalac ${phase.name} error: ${error.msg} at ${error.pos}
-             |$code""".stripMargin))
+        fail(s"""scalac ${phase.name} error: ${error.msg} at ${error.pos}
+                |$code""".stripMargin))
     })
     unit
   }

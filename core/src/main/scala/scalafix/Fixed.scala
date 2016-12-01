@@ -1,7 +1,5 @@
 package scalafix
 
-
-
 sealed abstract class Fixed {
   def toEither: Either[Failure, String] = this match {
     case Fixed.Failed(e) => Left(e)

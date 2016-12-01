@@ -33,7 +33,7 @@ TaskKey[Unit]("check") := {
       |object Main {
       |  implicit val x: Int = 23
       |  def main(args: Array[String]) {
-      |   println("hello")
+      |    println("hello")
       |  }
       |}
     """.stripMargin

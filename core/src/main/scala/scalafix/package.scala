@@ -1,2 +1,1 @@
-package object scalafix {
-}
+package object scalafix {}

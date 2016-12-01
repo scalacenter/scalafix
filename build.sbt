@@ -22,19 +22,20 @@ lazy val compilerOptions = Seq(
   "-unchecked",
   "-Yno-adapted-args",
   "-Ywarn-dead-code",
-  "-Ywarn-numeric-widen",
+  "-language:existentials",
+//  "-Ywarn-numeric-widen", // TODO(olafur) enable
   "-Xfuture",
   "-Xlint"
 )
 
 lazy val commonSettings = Seq(
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
+  scalacOptions := compilerOptions,
   scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
   testOptions in Test += Tests.Argument("-oFD")
 )
 
 lazy val publishSettings = Seq(
-  publishMavenStyle := false,
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
     if (isSnapshot.value)
@@ -92,19 +93,6 @@ lazy val root = project
   )
   .dependsOn(core)
 
-lazy val useNscPluginSettings: Seq[Def.Setting[_]] = Seq(
-  scalacOptions in Compile ++= {
-    val jar = (Keys.`package` in (`scalafix-nsc`, Compile)).value
-    System.setProperty("sbt.paths.plugin.jar", jar.getAbsolutePath)
-    val addPlugin = "-Xplugin:" + jar.getAbsolutePath
-    // Thanks Jason for this cool idea (taken from https://github.com/retronym/boxer)
-    // add plugin timestamp to compiler options to trigger recompile of
-    // main after editing the plugin. (Otherwise a 'clean' is needed.)
-    val dummy = "-Jdummy=" + jar.lastModified
-    Seq(addPlugin, dummy)
-  }
-)
-
 lazy val core = project
   .settings(allSettings)
   .settings(
@@ -129,8 +117,14 @@ lazy val `scalafix-nsc` = project
       "org.scalameta"  %% "scalameta"     % Build.metaV,
       "org.scalatest"  %% "scalatest"     % Build.testV % Test
     ),
+    // sbt does not fetch transitive dependencies of compiler plugins.
+    // to overcome this issue, all transitive dependencies are included
+    // in the published compiler plugin.
     publishArtifact in Compile := true,
-    assemblyJarName in assembly := name.value + "_" + scalaVersion.value + "-" + version.value + "-assembly.jar",
+    assemblyJarName in assembly :=
+      name.value + "_" +
+        scalaVersion.value + "-" +
+        version.value + "-assembly.jar",
     assemblyOption in assembly ~= { _.copy(includeScala = false) },
     Keys.`package` in Compile := {
       val slimJar = (Keys.`package` in Compile).value
@@ -152,12 +146,6 @@ lazy val `scalafix-nsc` = project
     exposePaths("scalafixNsc", Test)
   )
   .dependsOn(core)
-
-lazy val `scalafix-nsc-tests` = project.settings(
-//  allSettings,
-  useNscPluginSettings,
-  scalacOptions += "-Xplugin:" + (packageBin in `scalafix-nsc` in Compile).value
-)
 
 lazy val cli = project
   .settings(allSettings)
@@ -186,7 +174,7 @@ lazy val `scalafix-sbt` = project.settings(
   ScriptedPlugin.scriptedSettings,
   sbtPlugin := true,
   scalaVersion := "2.10.5",
-//  sbtVersion := "0.13.13",
+  scripted := scripted.dependsOn(publishLocal).evaluated,
   sources in Compile +=
     baseDirectory.value / "../core/src/main/scala/scalafix/Versions.scala",
   scriptedLaunchOpts := Seq(
@@ -215,6 +203,7 @@ lazy val readme = scalatex
     dependencyOverrides += "com.lihaoyi" %% "scalaparse" % "0.3.1"
   )
 
+// Injects necessary paths into system properties to build a scalac global in tests.
 def exposePaths(projectName: String,
                 config: Configuration): Seq[Def.Setting[_]] = {
   def uncapitalize(s: String) =
@@ -246,5 +235,3 @@ def exposePaths(projectName: String,
     }
   )
 }
-
-
