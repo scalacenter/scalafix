@@ -183,7 +183,7 @@ lazy val `scalafix-sbt` = project.settings(
     "-Xmx2g",
     "-Xss2m"
   ) ++ (
-    if (sys.env.contains("CI")) Seq("-Dsbt.ivy.home=/drone/cache/ivy2")
+    if (sys.env.contains("CI")) Seq("-Dsbt.ivy.home=/drone/.ivy2")
     else Nil
   ),
   scriptedBufferLog := false
