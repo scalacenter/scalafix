@@ -1,5 +1,5 @@
 build:
-  image: scalaplatform/scala:0.5
+  image: olafurpg/sbt:0.0.1
   environment:
     - COURSIER_CACHE=/drone/cache/coursier
   commands:
