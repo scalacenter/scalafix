@@ -1,10 +1,9 @@
 build:
-  image: olafurpg/scalafix:0.0.1
+  image: scalaplatform/scala:0.5
   environment:
     - COURSIER_CACHE=/drone/cache/coursier
   commands:
     - export PATH=$PATH:/root/local/bin
-    - ./bin/setupCI.sh
     - ./bin/testAll.sh
 cache:
   mount:
