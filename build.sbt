@@ -182,9 +182,6 @@ lazy val `scalafix-sbt` = project.settings(
     "-XX:MaxPermSize=256m",
     "-Xmx2g",
     "-Xss2m"
-  ) ++ (
-    if (sys.env.contains("CI")) Seq("-Dsbt.ivy.home=/drone/.ivy2")
-    else Nil
   ),
   scriptedBufferLog := false
 )
