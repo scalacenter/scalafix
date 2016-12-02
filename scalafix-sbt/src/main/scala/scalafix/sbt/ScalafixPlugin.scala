@@ -35,7 +35,6 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
       s"""libraryDependencies in ThisBuild +=
          |  compilerPlugin("ch.epfl.scala" %% "scalafix-nsc" % "$nightlyVersion")""".stripMargin
     s"set $addScalafixCompilerPluginSetting" ::
-      "show scalacOptions" ::
         "scalafixCompile" ::
           s"session clear" ::
             state
@@ -43,7 +42,7 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
 
   override def projectSettings: Seq[Def.Setting[_]] =
     Seq(
-      commands ++= Seq(scalafix),
+      commands += scalafix,
       scalafixConfigurations := Seq(Compile, Test),
       scalafixCompile := Def.taskDyn {
         val cleanCompileInAllConfigurations =

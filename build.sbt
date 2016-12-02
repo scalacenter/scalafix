@@ -32,7 +32,7 @@ lazy val commonSettings = Seq(
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
   scalacOptions := compilerOptions,
   scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
-  testOptions in Test += Tests.Argument("-oFD")
+  testOptions in Test += Tests.Argument("-oD")
 )
 
 lazy val publishSettings = Seq(

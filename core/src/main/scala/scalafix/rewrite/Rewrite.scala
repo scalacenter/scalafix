@@ -21,6 +21,4 @@ object Rewrite {
   val allRewrites: Seq[Rewrite] = syntaxRewrites ++ semanticRewrites
   val name2rewrite: Map[String, Rewrite] =
     allRewrites.map(x => x.toString -> x).toMap
-  // semantic rewrites are called from compiler plugin.
-  val default: Seq[Rewrite] = syntaxRewrites
 }

@@ -1,5 +1,6 @@
 package scalafix
 
+import scala.meta.parsers.Parsed
 import scala.meta._
 import scala.meta.inputs.Input
 import scalafix.rewrite.RewriteCtx

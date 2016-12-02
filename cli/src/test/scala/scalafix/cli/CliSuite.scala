@@ -37,7 +37,8 @@ class CliSuite extends FunSuite with DiffAssertions {
       files = List("foo", "bar"),
       inPlace = true
     )
-    val Right(WithHelp(false, false, obtained)) = Cli.parse(Seq("-i", "foo", "bar"))
+    val Right(WithHelp(false, false, obtained)) =
+      Cli.parse(Seq("-i", "foo", "bar"))
     assertEqual(obtained, expected)
   }
 

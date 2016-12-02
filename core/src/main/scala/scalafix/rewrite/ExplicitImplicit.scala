@@ -13,8 +13,10 @@ case object ExplicitImplicit extends Rewrite {
       for {
         start <- defn.tokens.headOption
         end <- body.tokens.headOption
-        sig = slice(start, end)
-        replace <- sig.reverseIterator.find(x =>
+        // Left-hand side tokens in definition.
+        // Example: `val x = ` from `val x = rhs.banana`
+        lhsTokens = slice(start, end)
+        replace <- lhsTokens.reverseIterator.find(x =>
           !x.is[Token.Equals] && !x.is[Whitespace])
         typ <- semantic.typeSignature(defn)
       } yield Patch(replace, replace, s"$replace: ${typ.syntax}")
