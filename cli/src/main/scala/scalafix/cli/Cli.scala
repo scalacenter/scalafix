@@ -14,10 +14,12 @@ import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicInteger
 import ArgParserImplicits._
 import scala.util.control.NonFatal
+import scalafix.Fixed
 import scalafix.cli.termdisplay.TermDisplay
 
 import caseapp._
 import caseapp.core.Messages
+import caseapp.core.WithHelp
 import com.martiansoftware.nailgun.NGContext
 
 case class CommonOptions(
@@ -32,8 +34,8 @@ case class CommonOptions(
 @ProgName("scalafix")
 case class ScalafixOptions(
     @HelpMessage(
-      s"Rules to run, one of: ${Rewrite.default.mkString(", ")}"
-    ) rewrites: List[Rewrite] = Rewrite.default.toList,
+      s"Rules to run, one of: ${Rewrite.allRewrites.mkString(", ")}"
+    ) rewrites: List[Rewrite] = Rewrite.syntaxRewrites.toList,
     @Hidden @HelpMessage(
       "Files to fix. Runs on all *.scala files if given a directory."
     ) @ExtraName("f") files: List[String] = List.empty[String],
@@ -47,41 +49,45 @@ case class ScalafixOptions(
       "If true, prints out debug information."
     ) debug: Boolean = false,
     @Recurse common: CommonOptions = CommonOptions()
-) extends App {
-  Cli.runOn(this.copy(files = files ++ remainingArgs))
-}
+)
 
-object Cli extends AppOf[ScalafixOptions] {
-  val helpMessage: String = Messages[ScalafixOptions].withHelp.helpMessage
-
+object Cli {
+  private val withHelp = Messages[ScalafixOptions].withHelp
+  val helpMessage: String = withHelp.helpMessage
+  val usageMessage: String = withHelp.usageMessage
   val default = ScalafixOptions()
+  // Run this at the end of the world, calls sys.exit.
+  def main(args: Array[String]): Unit = {
+    sys.exit(runMain(args, CommonOptions()))
+  }
 
   def safeHandleFile(file: File, config: ScalafixOptions): Unit = {
-    try handleFile(file, config) catch {
+    try handleFile(file, config)
+    catch {
       case NonFatal(e) =>
-        config.common.err.println(
-          s"""Unexpected error fixing file: $file
-             |Cause: $e""".stripMargin)
+        config.common.err.println(s"""Unexpected error fixing file: $file
+                                     |Cause: $e""".stripMargin)
     }
   }
   def handleFile(file: File, config: ScalafixOptions): Unit = {
-    Scalafix
-      .fix(FileOps.readFile(file), ScalafixConfig(config.rewrites)) match {
-      case Right(code) =>
+    val fixed =
+      Scalafix.fix(FileOps.readFile(file), ScalafixConfig(config.rewrites))
+    fixed match {
+      case Fixed.Success(code) =>
         if (config.inPlace) {
           FileOps.writeFile(file, code)
         } else config.common.out.write(code.getBytes)
-      case Left(e: Failure.ParseError) =>
+      case Fixed.Failed(e: Failure.ParseError) =>
         if (config.files.contains(file.getPath)) {
           // Only log if user explicitly specified that file.
           config.common.err.write(e.toString.getBytes())
         }
-      case Left(e) =>
+      case Fixed.Failed(e) =>
         config.common.err.write(s"Failed to fix $file. Cause: $e".getBytes)
     }
   }
 
-  def runOn(config: ScalafixOptions): Unit = {
+  def runOn(config: ScalafixOptions): Int = {
     config.files.foreach { pathStr =>
       val path = new File(pathStr)
       val workingDirectory = new File(config.common.workingDirectory)
@@ -111,22 +117,29 @@ object Cli extends AppOf[ScalafixOptions] {
         safeHandleFile(realPath, config)
       }
     }
+    0
   }
 
-  def parse(args: Seq[String]): Either[String, ScalafixOptions] =
-    CaseApp.parse[ScalafixOptions](args) match {
-      case Right((config, extraFiles)) =>
-        Right(config.copy(files = config.files ++ extraFiles))
+  def parse(args: Seq[String]): Either[String, WithHelp[ScalafixOptions]] =
+    Parser[ScalafixOptions].withHelp.detailedParse(args) match {
+      case Right((help, extraFiles, _)) =>
+        Right(help.map(_.copy(files = help.base.files ++ extraFiles)))
       case Left(x) => Left(x)
     }
 
-  def runMain(args: Seq[String], commonOptions: CommonOptions): Unit = {
+  def runMain(args: Seq[String], commonOptions: CommonOptions): Int = {
     parse(args) match {
-      case Right(options) =>
+      case Right(WithHelp(usage @ true, _, _)) =>
+        commonOptions.out.println(usageMessage)
+        0
+      case Right(WithHelp(_, help @ true, _)) =>
+        commonOptions.out.println(helpMessage)
+        0
+      case Right(WithHelp(_, _, options)) =>
         runOn(options.copy(common = commonOptions))
       case Left(error) =>
         commonOptions.err.println(error)
-        System.exit(1)
+        1
     }
   }
 
@@ -140,11 +153,5 @@ object Cli extends AppOf[ScalafixOptions] {
         err = nGContext.err
       )
     )
-  }
-}
-
-object Cli210 {
-  def main(args: Array[String]): Unit = {
-    Cli.runMain(args, CommonOptions())
   }
 }

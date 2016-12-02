@@ -7,6 +7,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.PrintStream
 
+import caseapp.core.WithHelp
 import org.scalatest.FunSuite
 
 object BasicTest {
@@ -36,7 +37,8 @@ class CliSuite extends FunSuite with DiffAssertions {
       files = List("foo", "bar"),
       inPlace = true
     )
-    val Right(obtained) = Cli.parse(Seq("-i", "foo", "bar"))
+    val Right(WithHelp(false, false, obtained)) =
+      Cli.parse(Seq("-i", "foo", "bar"))
     assertEqual(obtained, expected)
   }
 

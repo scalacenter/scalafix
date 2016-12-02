@@ -1,6 +1,7 @@
 package scalafix.rewrite
 
 import scalafix.Failure
+import scalafix.Fixed
 import scalafix.Scalafix
 
 class ProcedureSyntaxSuite extends RewriteSuite(ProcedureSyntax) {
@@ -69,9 +70,8 @@ class ProcedureSyntaxSuite extends RewriteSuite(ProcedureSyntax) {
       |}}
   """.stripMargin
   )
-  test("on parse error") {
-    val Left(err) = Scalafix.fix("object A {")
-    assert(err.isInstanceOf[Failure.ParseError])
-  }
 
+  test("on parse error") {
+    val Fixed.Failed(err: Failure.ParseError) = Scalafix.fix("object A {")
+  }
 }

@@ -1,5 +1,6 @@
 package scalafix.rewrite
 
+import scalafix.Fixed
 import scalafix.Scalafix
 import scalafix.ScalafixConfig
 import scalafix.util.DiffAssertions
@@ -11,12 +12,9 @@ class RewriteSuite(rewrite: Rewrite) extends FunSuiteLike with DiffAssertions {
   def check(name: String, original: String, expected: String): Unit = {
     test(name) {
       import scala.meta._
-      Scalafix.fix(original, ScalafixConfig(rewrites = Seq(rewrite))) match {
-        case Right(obtained) =>
-          assertNoDiff(obtained, expected)
-        case Left(e) =>
-          throw e
-      }
+      val obtained =
+        Scalafix.fix(original, ScalafixConfig(rewrites = Seq(rewrite))).get
+      assertNoDiff(obtained, expected)
     }
   }
 

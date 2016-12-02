@@ -1,14 +1,11 @@
 import sbt.ScriptedPlugin
 import sbt.ScriptedPlugin._
-import scoverage.ScoverageSbtPlugin.ScoverageKeys._
-
-scalafmtConfig in ThisBuild := Some(file(".scalafmt"))
+organization in ThisBuild := "ch.epfl.scala"
+version in ThisBuild := scalafix.Versions.nightly
 
 lazy val buildSettings = Seq(
-  organization := "ch.epfl.scala",
   assemblyJarName in assembly := "scalafix.jar",
   // See core/src/main/scala/ch/epfl/scala/Versions.scala
-  version := scalafix.Versions.nightly,
   scalaVersion := scalafix.Versions.scala,
   updateOptions := updateOptions.value.withCachedResolution(true)
 )
@@ -22,29 +19,23 @@ lazy val compilerOptions = Seq(
   "-encoding",
   "UTF-8",
   "-feature",
-  "-language:existentials",
-  "-language:higherKinds",
-  "-language:implicitConversions",
   "-unchecked",
   "-Yno-adapted-args",
   "-Ywarn-dead-code",
-  "-Ywarn-numeric-widen",
+  "-language:existentials",
+//  "-Ywarn-numeric-widen", // TODO(olafur) enable
   "-Xfuture",
   "-Xlint"
 )
 
 lazy val commonSettings = Seq(
-  ScoverageSbtPlugin.ScoverageKeys.coverageExcludedPackages :=
-    ".*(Versions|termdisplay);scalafix\\.(sbt|util)",
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
+  scalacOptions := compilerOptions,
   scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
   testOptions in Test += Tests.Argument("-oD")
 )
 
 lazy val publishSettings = Seq(
-  publishMavenStyle := true,
-  publishMavenStyle := true,
-  publishArtifact := true,
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
     if (isSnapshot.value)
@@ -94,10 +85,11 @@ lazy val root = project
       """.stripMargin
   )
   .aggregate(
+    `scalafix-nsc`,
     core,
     cli,
     readme,
-    sbtScalafix
+    `scalafix-sbt`
   )
   .dependsOn(core)
 
@@ -109,13 +101,51 @@ lazy val core = project
       "org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
     libraryDependencies ++= Seq(
       "com.lihaoyi"    %% "sourcecode"   % "0.1.2",
-      "org.scalameta"  %% "scalameta"    % "1.0.0",
+      "org.scalameta"  %% "scalameta"    % Build.metaV,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
       // Test dependencies
-      "org.scalatest"                  %% "scalatest" % "3.0.0" % "test",
-      "com.googlecode.java-diff-utils" % "diffutils"  % "1.3.0" % "test"
+      "org.scalatest"                  %% "scalatest" % Build.testV % "test",
+      "com.googlecode.java-diff-utils" % "diffutils"  % "1.3.0"     % "test"
     )
   )
+
+lazy val `scalafix-nsc` = project
+  .settings(
+    scalaVersion := "2.11.8",
+    libraryDependencies ++= Seq(
+      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
+      "org.scalameta"  %% "scalameta"     % Build.metaV,
+      "org.scalatest"  %% "scalatest"     % Build.testV % Test
+    ),
+    // sbt does not fetch transitive dependencies of compiler plugins.
+    // to overcome this issue, all transitive dependencies are included
+    // in the published compiler plugin.
+    publishArtifact in Compile := true,
+    assemblyJarName in assembly :=
+      name.value + "_" +
+        scalaVersion.value + "-" +
+        version.value + "-assembly.jar",
+    assemblyOption in assembly ~= { _.copy(includeScala = false) },
+    Keys.`package` in Compile := {
+      val slimJar = (Keys.`package` in Compile).value
+      val fatJar =
+        new File(crossTarget.value + "/" + (assemblyJarName in assembly).value)
+      val _ = assembly.value
+      IO.copy(List(fatJar -> slimJar), overwrite = true)
+      slimJar
+    },
+    packagedArtifact in Compile in packageBin := {
+      val temp = (packagedArtifact in Compile in packageBin).value
+      val (art, slimJar) = temp
+      val fatJar =
+        new File(crossTarget.value + "/" + (assemblyJarName in assembly).value)
+      val _ = assembly.value
+      IO.copy(List(fatJar -> slimJar), overwrite = true)
+      (art, slimJar)
+    },
+    exposePaths("scalafixNsc", Test)
+  )
+  .dependsOn(core)
 
 lazy val cli = project
   .settings(allSettings)
@@ -139,25 +169,22 @@ lazy val cli = project
   )
   .dependsOn(core % "compile->compile;test->test")
 
-lazy val sbtScalafix = project
-  .settings(allSettings)
-  .settings(ScriptedPlugin.scriptedSettings)
-  .settings(
-    sbtPlugin := true,
-    coverageHighlighting := false,
-    scalaVersion := "2.10.5",
-    moduleName := "sbt-scalafix",
-    sources in Compile +=
-      baseDirectory.value / "../core/src/main/scala/scalafix/Versions.scala",
-    scriptedLaunchOpts := Seq(
-      "-Dplugin.version=" + version.value,
-      // .jvmopts is ignored, simulate here
-      "-XX:MaxPermSize=256m",
-      "-Xmx2g",
-      "-Xss2m"
-    ),
-    scriptedBufferLog := false
-  )
+lazy val `scalafix-sbt` = project.settings(
+  allSettings,
+  ScriptedPlugin.scriptedSettings,
+  sbtPlugin := true,
+  scalaVersion := "2.10.5",
+  sources in Compile +=
+    baseDirectory.value / "../core/src/main/scala/scalafix/Versions.scala",
+  scriptedLaunchOpts := Seq(
+    "-Dplugin.version=" + version.value,
+    // .jvmopts is ignored, simulate here
+    "-XX:MaxPermSize=256m",
+    "-Xmx2g",
+    "-Xss2m"
+  ),
+  scriptedBufferLog := false
+)
 
 lazy val readme = scalatex
   .ScalatexReadme(projectId = "readme",
@@ -174,3 +201,36 @@ lazy val readme = scalatex
     ),
     dependencyOverrides += "com.lihaoyi" %% "scalaparse" % "0.3.1"
   )
+
+// Injects necessary paths into system properties to build a scalac global in tests.
+def exposePaths(projectName: String,
+                config: Configuration): Seq[Def.Setting[_]] = {
+  def uncapitalize(s: String) =
+    if (s.length == 0) ""
+    else {
+      val chars = s.toCharArray; chars(0) = chars(0).toLower; new String(chars)
+    }
+  val prefix = "sbt.paths." + projectName + "." + uncapitalize(config.name) + "."
+  Seq(
+    sourceDirectory in config := {
+      val defaultValue = (sourceDirectory in config).value
+      System.setProperty(prefix + "sources", defaultValue.getAbsolutePath)
+      defaultValue
+    },
+    resourceDirectory in config := {
+      val defaultValue = (resourceDirectory in config).value
+      System.setProperty(prefix + "resources", defaultValue.getAbsolutePath)
+      defaultValue
+    },
+    fullClasspath in config := {
+      val defaultValue = (fullClasspath in config).value
+      val classpath = defaultValue.files.map(_.getAbsolutePath)
+      val scalaLibrary =
+        classpath.map(_.toString).find(_.contains("scala-library")).get
+      System.setProperty("sbt.paths.scalalibrary.classes", scalaLibrary)
+      System.setProperty(prefix + "classes",
+                         classpath.mkString(java.io.File.pathSeparator))
+      defaultValue
+    }
+  )
+}

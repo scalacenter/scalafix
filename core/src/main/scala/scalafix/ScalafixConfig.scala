@@ -7,7 +7,7 @@ import scala.meta.parsers.Parse
 import scalafix.rewrite.Rewrite
 
 case class ScalafixConfig(
-    rewrites: Seq[Rewrite] = Rewrite.default,
+    rewrites: Seq[Rewrite] = Rewrite.syntaxRewrites,
     parser: Parse[_ <: Tree] = Parse.parseSource,
     dialect: Dialect = Scala211
 )
