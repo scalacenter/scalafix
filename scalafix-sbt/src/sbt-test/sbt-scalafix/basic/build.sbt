@@ -32,7 +32,8 @@ TaskKey[Unit]("check") := {
     """
       |object Main {
       |  implicit val x: Int = 23
-      |  def main(args: Array[String]) {
+      |  lazy val y = 2
+      |  def main(args: Array[String]): Unit = {
       |    println("hello")
       |  }
       |}
