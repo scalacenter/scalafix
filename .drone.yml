@@ -3,7 +3,6 @@ build:
   environment:
     - COURSIER_CACHE=/drone/cache/coursier
   commands:
-    - export PATH=$PATH:/root/local/bin
     - ./bin/testAll.sh
 cache:
   mount:

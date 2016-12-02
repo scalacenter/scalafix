@@ -174,7 +174,6 @@ lazy val `scalafix-sbt` = project.settings(
   ScriptedPlugin.scriptedSettings,
   sbtPlugin := true,
   scalaVersion := "2.10.5",
-  scripted := scripted.dependsOn(publishLocal).evaluated,
   sources in Compile +=
     baseDirectory.value / "../core/src/main/scala/scalafix/Versions.scala",
   scriptedLaunchOpts := Seq(
@@ -183,6 +182,9 @@ lazy val `scalafix-sbt` = project.settings(
     "-XX:MaxPermSize=256m",
     "-Xmx2g",
     "-Xss2m"
+  ) ++ (
+    if (sys.env.contains("CI")) Seq("-Dsbt.home.ivy=/drone/cache/ivy2")
+    else Nil
   ),
   scriptedBufferLog := false
 )

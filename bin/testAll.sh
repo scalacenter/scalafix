@@ -1,3 +1,3 @@
 #!/bin/bash
 set -e
-sbt clean test publishLocal scripted
+sbt -Dsbt.home.ivy=/drone/cache/ivy2 clean test publishLocal scripted
