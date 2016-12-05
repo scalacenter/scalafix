@@ -90,3 +90,13 @@ package foo {
 class B {
   implicit val x: foo.A[Int] = new foo.A(10)
 }
+<<< implicitly 2712 trick
+class A {
+  implicit val s = "string"
+  implicit val x = implicitly[String]
+}
+>>>
+class A {
+  implicit val s: String = "string"
+  implicit val x = implicitly[String]
+}
