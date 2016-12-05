@@ -27,10 +27,9 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
 
   val scalafix: Command = Command.command("scalafix") { state =>
     s"set scalafixEnabled in Global := true" ::
-      "clean" ::
-        "test:compile" ::
-          s"set scalafixEnabled in Global := false" ::
-            state
+      "test:compile" ::
+        s"set scalafixEnabled in Global := false" ::
+          state
   }
 
   override def projectSettings: Seq[Def.Setting[_]] =
