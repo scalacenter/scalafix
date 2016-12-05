@@ -86,6 +86,7 @@ lazy val root = project
   )
   .aggregate(
     `scalafix-nsc`,
+    `scalafix-tests`,
     core,
     cli,
     readme,
@@ -114,7 +115,7 @@ lazy val `scalafix-nsc` = project
     scalaVersion := "2.11.8",
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-      "org.scalameta"  %% "scalameta"     % Build.metaV,
+      "org.scalameta"  %% "scalameta"     % Build.metaV % "provided",
       "org.scalatest"  %% "scalatest"     % Build.testV % Test
     ),
     // sbt does not fetch transitive dependencies of compiler plugins.
@@ -169,14 +170,16 @@ lazy val cli = project
   )
   .dependsOn(core % "compile->compile;test->test")
 
+lazy val publishedArtifacts = Seq(
+  publishLocal in `scalafix-nsc`,
+  publishLocal in core
+)
+
 lazy val `scalafix-sbt` = project.settings(
   allSettings,
   ScriptedPlugin.scriptedSettings,
   sbtPlugin := true,
-  scripted := scripted.dependsOn(
-    publishLocal in `scalafix-nsc`,
-    publishLocal in core
-  ).evaluated,
+  scripted := scripted.dependsOn(publishedArtifacts: _*).evaluated,
   scalaVersion := "2.10.5",
   moduleName := "sbt-scalafix",
   sources in Compile +=
@@ -190,6 +193,19 @@ lazy val `scalafix-sbt` = project.settings(
   ),
   scriptedBufferLog := false
 )
+
+lazy val `scalafix-tests` = project
+  .settings(
+    allSettings,
+    noPublish,
+    test in Test := (test in Test).dependsOn(publishedArtifacts: _*).value,
+    parallelExecution in Test := true,
+    libraryDependencies ++= Seq(
+      "com.lihaoyi"   %% "ammonite-ops" % "0.8.0",
+      "org.scalatest" %% "scalatest"    % Build.testV % "test"
+    )
+  )
+  .dependsOn(core)
 
 lazy val readme = scalatex
   .ScalatexReadme(projectId = "readme",
@@ -239,4 +255,3 @@ def exposePaths(projectName: String,
     }
   )
 }
-

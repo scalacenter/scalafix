@@ -23,6 +23,7 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
   private val nightlyVersion = _root_.scalafix.Versions.nightly
   private val disabled = sys.props.contains("scalafix.disable")
   private val ScalafixPluginConfig = config("scalafix").hide
+
   override def requires = JvmPlugin
   override def trigger: PluginTrigger = AllRequirements
 
