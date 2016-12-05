@@ -5,55 +5,77 @@ import sbt._
 import sbt.plugins.JvmPlugin
 
 trait ScalafixKeys {
-  val scalafixCompile: TaskKey[Unit] =
-    taskKey[Unit](
-      "Fix Scala sources using scalafix. Note, this task runs clean.")
+  val scalafixRewrites: SettingKey[Seq[String]] =
+    settingKey[Seq[String]]("Which scalafix rules should run?")
+  val scalafixEnabled: SettingKey[Boolean] =
+    settingKey[Boolean]("Is scalafix enabled?")
+}
 
-  val scalafixConfigurations: SettingKey[Seq[Configuration]] =
-    settingKey[Seq[Configuration]](
-      "Which configurations should scalafix run in?" +
-        " Defaults to Compile and Test.")
+object rewrite {
+  // TODO(olafur) share these with scalafix-core.
+  val ProcedureSyntax = "ProcedureSyntax"
+  val ExplicitImplicit = "ExplicitImplicit"
+  val VolatileLazyVal = "VolatileLazyVal"
 }
 
 object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
+  object autoImport extends ScalafixKeys
+  private val nightlyVersion = _root_.scalafix.Versions.nightly
+  private val disabled = sys.props.contains("scalafix.disable")
+  private val ScalafixPluginConfig = config("scalafix").hide
   override def requires = JvmPlugin
   override def trigger: PluginTrigger = AllRequirements
-  val nightlyVersion: String = _root_.scalafix.Versions.nightly
-  val scalafix: Command = Command.command(
-    name = "scalafix",
-    briefHelp = "Run scalafix rewrite rules. Note, will clean the build.",
-    detail =
-      "Injects the scalafix compiler plugin into your sbt session " +
-        "and then clean compiles all source files. " +
-        "Scalafix rewrite rules are executed from within the compiler " +
-        "plugin during compilation. " +
-        "Once scalafix has completed, the session is clear."
-  ) { state =>
-    // TODO(olafur) Is there a cleaner way to accomplish the same?
-    // Requirements: the plugin must be enabled only during the scalafix task/command.
-    val addScalafixCompilerPluginSetting: String =
-      s"""libraryDependencies in ThisBuild +=
-         |  compilerPlugin("ch.epfl.scala" %% "scalafix-nsc" % "$nightlyVersion")""".stripMargin
-    s"set $addScalafixCompilerPluginSetting" ::
-        "scalafixCompile" ::
-          s"session clear" ::
+
+  val scalafix: Command = Command.command("scalafix") { state =>
+    s"set scalafixEnabled in Global := true" ::
+      "clean" ::
+        "test:compile" ::
+          s"set scalafixEnabled in Global := false" ::
             state
   }
 
   override def projectSettings: Seq[Def.Setting[_]] =
     Seq(
+      ivyConfigurations += ScalafixPluginConfig,
+      libraryDependencies ++= {
+        if (!scalafixEnabled.value) Nil
+        else {
+          Seq(
+            "ch.epfl.scala" %% "scalafix-nsc" % nightlyVersion % ScalafixPluginConfig
+          )
+        }
+      },
       commands += scalafix,
-      scalafixConfigurations := Seq(Compile, Test),
-      scalafixCompile := Def.taskDyn {
-        val cleanCompileInAllConfigurations =
-          scalafixConfigurations.value.map(x =>
-            (compile in x).dependsOn(clean in x))
-        Def
-          .task(())
-          .dependsOn(cleanCompileInAllConfigurations: _*)
-      }.value
+      scalafixRewrites := Seq(
+        rewrite.ExplicitImplicit,
+        rewrite.ProcedureSyntax
+      ),
+      scalafixEnabled in Global := false,
+      scalacOptions ++= {
+        // scalafix should not affect compilations outside of the scalafix task.
+        // The approach taken here is the same as scoverage uses, see:
+        // https://github.com/scoverage/sbt-scoverage/blob/45ac49583f5a32dfebdce23b94c5336da4906e59/src/main/scala/scoverage/ScoverageSbtPlugin.scala#L70-L83
+        if (!scalafixEnabled.value) Nil
+        else {
+          val scalafixNscPluginJar = update.value
+            .matching(configurationFilter(ScalafixPluginConfig.name))
+            .find(_.getAbsolutePath.matches(".*scalafix-nsc[^-]*.jar$"))
+            .getOrElse {
+              throw new IllegalStateException(
+                "Unable to find scalafix-nsc in library dependencies!")
+            }
+          val rewrites = scalafixRewrites.value
+          val config: Option[String] =
+            if (rewrites.isEmpty) None
+            else {
+              val prefixed = rewrites.map(x => s"scalafix:$x")
+              Some(s"-P:${prefixed.mkString(",")}")
+            }
+          Seq(
+            Some(s"-Xplugin:${scalafixNscPluginJar.getAbsolutePath}"),
+            config
+          ).flatten
+        }
+      }
     )
-
-  object autoImport extends ScalafixKeys
-
 }

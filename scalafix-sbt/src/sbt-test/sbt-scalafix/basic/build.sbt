@@ -1,4 +1,5 @@
 scalaVersion in ThisBuild := "2.11.8"
+
 lazy val root = project
   .in(file("."))
   .aggregate(p1)
@@ -32,7 +33,8 @@ TaskKey[Unit]("check") := {
     """
       |object Main {
       |  implicit val x: Int = 23
-      |  def main(args: Array[String]) {
+      |  lazy val y = 2
+      |  def main(args: Array[String]): Unit = {
       |    println("hello")
       |  }
       |}

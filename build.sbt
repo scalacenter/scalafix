@@ -173,7 +173,12 @@ lazy val `scalafix-sbt` = project.settings(
   allSettings,
   ScriptedPlugin.scriptedSettings,
   sbtPlugin := true,
+  scripted := scripted.dependsOn(
+    publishLocal in `scalafix-nsc`,
+    publishLocal in core
+  ).evaluated,
   scalaVersion := "2.10.5",
+  moduleName := "sbt-scalafix",
   sources in Compile +=
     baseDirectory.value / "../core/src/main/scala/scalafix/Versions.scala",
   scriptedLaunchOpts := Seq(
@@ -234,3 +239,4 @@ def exposePaths(projectName: String,
     }
   )
 }
+
