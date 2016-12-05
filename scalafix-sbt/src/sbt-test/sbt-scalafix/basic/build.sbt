@@ -1,5 +1,4 @@
 scalaVersion in ThisBuild := "2.11.8"
-scalacOptions in ThisBuild += "-Ydebug"
 
 lazy val root = project
   .in(file("."))
