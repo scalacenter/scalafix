@@ -8,6 +8,8 @@ import scalafix.Fixed
 import scalafix.ScalafixConfig
 import scalafix.util.FileOps
 
+import java.util
+
 class ScalafixNscComponent(plugin: Plugin,
                            val global: Global,
                            getConfig: () => ScalafixConfig)
@@ -25,7 +27,9 @@ class ScalafixNscComponent(plugin: Plugin,
             !unit.isJava) {
           fix(unit, getConfig()) match {
             case Fixed.Success(fixed) =>
-              FileOps.writeFile(unit.source.file.file, fixed)
+              if (fixed.nonEmpty && fixed != new String(unit.source.content)) {
+                FileOps.writeFile(unit.source.file.file, fixed)
+              }
             case Fixed.Failed(e) =>
               g.reporter.warning(unit.body.pos,
                                  "Failed to run scalafix. " + e.getMessage)

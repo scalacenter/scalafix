@@ -100,3 +100,75 @@ class A {
   implicit val s: String = "string"
   implicit val x = implicitly[String]
 }
+<<< shorten imported name
+import scala.collection.immutable.Map
+class A {
+  implicit val x = Map(1 -> "")
+}
+>>>
+import scala.collection.immutable.Map
+class A {
+  implicit val x: Map[Int, String] = Map(1 -> "")
+}
+<<< shorten imported name 2
+import scala.collection.immutable._
+class A {
+  implicit val x = Map(1 -> "")
+}
+>>>
+import scala.collection.immutable._
+class A {
+  implicit val x: Map[Int, String] = Map(1 -> "")
+}
+<<< enclosing package strip is last
+package b { class B }
+package a {
+  import b.B
+  class A {
+    implicit val x = new B
+  }
+}
+>>>
+package b { class B }
+package a {
+  import b.B
+  class A {
+    implicit val x: B = new B
+  }
+}
+<<< inner inner object
+object A {
+  object B {
+    class C
+    object C {
+      implicit val x = List(new C)
+    }
+  }
+}
+>>>
+object A {
+  object B {
+    class C
+    object C {
+      implicit val x: List[C] = List(new C)
+    }
+  }
+}
+<<< sibling classes
+object D {
+  class B
+}
+object A {
+  class C {
+      implicit val x = List(new D.B)
+  }
+}
+>>>
+object D {
+  class B
+}
+object A {
+  class C {
+      implicit val x: List[D.B] = List(new D.B)
+  }
+}

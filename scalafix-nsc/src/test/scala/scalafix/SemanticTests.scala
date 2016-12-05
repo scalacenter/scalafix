@@ -6,10 +6,12 @@ import scala.tools.nsc.CompilerCommand
 import scala.tools.nsc.Global
 import scala.tools.nsc.Settings
 import scala.tools.nsc.reporters.StoreReporter
+import scala.util.control.NonFatal
 import scala.{meta => m}
 import scalafix.nsc.NscSemanticApi
 import scalafix.rewrite.ExplicitImplicit
 import scalafix.rewrite.Rewrite
+import scalafix.util.logger
 
 import org.scalatest.FunSuite
 
@@ -84,7 +86,7 @@ class SemanticTests extends FunSuite {
     tree
   }
   def wrap(code: String, name: String): String = {
-    val packageName = name.replaceAll("[^a-zA-Z]", "")
+    val packageName = name.replaceAll("[^a-zA-Z0-9]", "")
     val packagedCode = s"package $packageName { $code }"
     packagedCode
   }
@@ -158,6 +160,13 @@ class SemanticTests extends FunSuite {
     }
     loop(obtained, expected)
   }
+  private def typeChecks(code: String): Unit = {
+    try {
+      getTypedCompilationUnit(code)
+    } catch {
+      case NonFatal(e) => fail("Fixed source code does not typecheck!", e)
+    }
+  }
 
   private def parse(code: String): m.Tree = {
     import scala.meta._
@@ -169,10 +178,12 @@ class SemanticTests extends FunSuite {
   }
 
   def check(original: String, expectedStr: String, diffTest: DiffTest): Unit = {
-    val obtained = parse(fix(wrap(original, diffTest.name)))
+    val fixed = fix(wrap(original, diffTest.name))
+    val obtained = parse(fixed)
     val expected = parse(expectedStr)
     try {
       checkMismatchesModuloDesugarings(obtained, expected)
+      typeChecks(wrap(fixed, diffTest.name))
     } catch {
       case MismatchException(details) =>
         val header = s"scala -> meta converter error\n$details"
