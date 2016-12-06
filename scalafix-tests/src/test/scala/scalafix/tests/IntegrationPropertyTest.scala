@@ -142,7 +142,8 @@ class Monix
         name = "monix",
         repo = "https://github.com/monix/monix.git",
         hash = "45c15b5989685668f5ad7ec886af6b74b881a7b4"
-      ))
+      )
+    )
 
 class ScalaJs
     extends IntegrationPropertyTest(

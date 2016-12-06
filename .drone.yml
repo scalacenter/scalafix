@@ -1,5 +1,5 @@
 build:
-  image: olafurpg/sbt:0.0.1
+  image: danieletorelli/sbt
   environment:
     - COURSIER_CACHE=/drone/cache/coursier
   commands:
