@@ -9,6 +9,8 @@ trait ScalafixKeys {
     settingKey[Seq[String]]("Which scalafix rules should run?")
   val scalafixEnabled: SettingKey[Boolean] =
     settingKey[Boolean]("Is scalafix enabled?")
+  val scalafixInternalJar: TaskKey[File] =
+    taskKey[File]("Path to scalafix-nsc compiler plugin jar.")
 }
 
 object rewrite {
@@ -22,7 +24,18 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
   object autoImport extends ScalafixKeys
   private val nightlyVersion = _root_.scalafix.Versions.nightly
   private val disabled = sys.props.contains("scalafix.disable")
-  private val ScalafixPluginConfig = config("scalafix").hide
+  private val scalafixStub =
+    Project(id = "scalafix-stub", base = file("project/scalafix")).settings(
+      description :=
+        """Serves as a caching layer for extracting the jar location of the
+          |scalafix-nsc compiler plugin. If the dependecy was added to all
+          |projects, the (slow) update task will be re-run for every project.""".stripMargin,
+      scalaVersion := "2.11.8", // TODO(olafur) 2.12 support
+      libraryDependencies +=
+        "ch.epfl.scala" %% "scalafix-nsc" % nightlyVersion % Compile
+    )
+
+  override def extraProjects: Seq[Project] = Seq(scalafixStub)
 
   override def requires = JvmPlugin
   override def trigger: PluginTrigger = AllRequirements
@@ -37,20 +50,20 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
 
   override def projectSettings: Seq[Def.Setting[_]] =
     Seq(
-      ivyConfigurations += ScalafixPluginConfig,
-      libraryDependencies ++= {
-        if (!scalafixEnabled.value) Nil
-        else {
-          Seq(
-            "ch.epfl.scala" %% "scalafix-nsc" % nightlyVersion % ScalafixPluginConfig
-          )
-        }
-      },
       commands += scalafix,
       scalafixRewrites := Seq(
         rewrite.ExplicitImplicit,
         rewrite.ProcedureSyntax
       ),
+      scalafixInternalJar in Global := {
+        // TODO(olafur) 2.12 support
+        (update in scalafixStub).value.allFiles
+          .find(_.getAbsolutePath.matches(".*scalafix-nsc[^-]*.jar$"))
+          .getOrElse {
+            throw new IllegalStateException(
+              "Unable to find scalafix-nsc in library dependencies!")
+          }
+      },
       scalafixEnabled in Global := false,
       scalacOptions ++= {
         // scalafix should not affect compilations outside of the scalafix task.
@@ -58,13 +71,6 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
         // https://github.com/scoverage/sbt-scoverage/blob/45ac49583f5a32dfebdce23b94c5336da4906e59/src/main/scala/scoverage/ScoverageSbtPlugin.scala#L70-L83
         if (!scalafixEnabled.value) Nil
         else {
-          val scalafixNscPluginJar = update.value
-            .matching(configurationFilter(ScalafixPluginConfig.name))
-            .find(_.getAbsolutePath.matches(".*scalafix-nsc[^-]*.jar$"))
-            .getOrElse {
-              throw new IllegalStateException(
-                "Unable to find scalafix-nsc in library dependencies!")
-            }
           val rewrites = scalafixRewrites.value
           val config: Option[String] =
             if (rewrites.isEmpty) None
@@ -72,8 +78,9 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
               val prefixed = rewrites.map(x => s"scalafix:$x")
               Some(s"-P:${prefixed.mkString(",")}")
             }
+          val jar = (scalafixInternalJar in Global).value.getAbsolutePath
           Seq(
-            Some(s"-Xplugin:${scalafixNscPluginJar.getAbsolutePath}"),
+            Some(s"-Xplugin:$jar"),
             config
           ).flatten
         }

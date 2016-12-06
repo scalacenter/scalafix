@@ -35,7 +35,6 @@ case class ItTest(name: String,
   def workingPath: Path = ItTest.root / name
   def workingDirectory: File = workingPath.toIO
   def parentDir: File = workingPath.toIO.getParentFile
-  def pluginPath: Path = workingPath / "project" / "plugins.sbt"
 }
 
 // Clones the repo, adds scalafix as a plugin and tests that the
@@ -64,11 +63,14 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
       %%("git", "checkout", "--", ".")(t.workingPath)
     }
     %%("git", "reset", "--hard", t.hash)(t.workingPath)
-    if (t.pluginPath.toIO.exists()) t.pluginPath.toIO.createNewFile()
     // TODO(olafur) better solution.
     rm(t.workingPath / ".jvmopts") // avoid jvm "Conflicting collector combinations"
+    write.over(
+      t.workingPath / "project" / "build.properties",
+      "sbt.version=0.13.13\n"
+    )
     write.append(
-      t.pluginPath,
+      t.workingPath / "project" / "plugins.sbt",
       s"""
          |addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "${scalafix.Versions.nightly}")
          |""".stripMargin
