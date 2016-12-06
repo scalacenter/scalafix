@@ -1,5 +1,6 @@
 package scalafix.tests
 
+import scala.util.matching.Regex
 import scalafix.util.logger
 
 import java.io.File
@@ -25,15 +26,21 @@ object Command {
     scalafixTask,
     testCompile
   )
+  val RepoName: Regex = ".*/([^/].*).git".r
 }
-case class Command(cmd: String, optional: Boolean)
+case class Command(cmd: String, optional: Boolean = false)
 
 case class ItTest(name: String,
                   repo: String,
                   hash: String,
                   cmds: Seq[Command] = Command.default) {
-  def workingPath: Path = ItTest.root / name
-  def workingDirectory: File = workingPath.toIO
+  def repoName: String = repo match {
+    case Command.RepoName(x) => x
+    case _ =>
+      throw new IllegalArgumentException(
+        s"Unable to parse repo name from repo: $repo")
+  }
+  def workingPath: Path = ItTest.root / repoName
   def parentDir: File = workingPath.toIO.getParentFile
 }
 
@@ -54,7 +61,7 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
   // Clones/cleans/checkouts
   def setup(t: ItTest): Unit = {
     t.parentDir.mkdirs()
-    if (!t.workingDirectory.exists()) {
+    if (!t.workingPath.toIO.exists()) {
       %%("git", "clone", t.repo)(ItTest.root)
     }
     if (hardClean) {
@@ -90,9 +97,7 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
     val testFun: () => Any = { () =>
       setup(t)
       try {
-        if (comprehensiveTest) sbt("test:compile")
-        sbt("scalafix")
-        if (comprehensiveTest) sbt("test:compile")
+        t.cmds.map(_.cmd).foreach(sbt)
       } catch {
         case FailOk(cmd, msg) =>
           logger.warn(s"Failed to run $cmd, error $msg")
@@ -135,6 +140,17 @@ class Monix
         name = "monix",
         repo = "https://github.com/monix/monix.git",
         hash = "45c15b5989685668f5ad7ec886af6b74b881a7b4"
+      ))
+
+class ScalaJs
+    extends IntegrationPropertyTest(
+      ItTest(
+        name = "Scala.js",
+        repo = "https://github.com/scala-js/scala-js.git",
+        hash = "8917b5a9bd8fb2175a112fc15c761050eeb4099f",
+        cmds = Seq(
+          Command("examples/test:compile")
+        )
       ))
 
 class ScalacheckShapeless

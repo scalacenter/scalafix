@@ -69,8 +69,9 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
         // scalafix should not affect compilations outside of the scalafix task.
         // The approach taken here is the same as scoverage uses, see:
         // https://github.com/scoverage/sbt-scoverage/blob/45ac49583f5a32dfebdce23b94c5336da4906e59/src/main/scala/scoverage/ScoverageSbtPlugin.scala#L70-L83
-        if (!scalafixEnabled.value) Nil
-        else {
+        if (!scalafixEnabled.value || scalaVersion.value.startsWith("2.10")) {
+          Nil
+        } else {
           val rewrites = scalafixRewrites.value
           val config: Option[String] =
             if (rewrites.isEmpty) None

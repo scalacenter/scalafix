@@ -1,26 +1,41 @@
-scalaVersion in ThisBuild := "2.11.8"
-
+val commonSettings: Seq[Def.Setting[String]] = Seq(
+  scalaVersion := "2.11.8"
+)
 lazy val root = project
   .in(file("."))
-  .aggregate(p1)
+  .settings(commonSettings)
+  .aggregate(
+    p1,
+    p2
+  )
 
-lazy val p1 = project
+lazy val p1 = project.settings(
+  commonSettings
+)
+lazy val p2 = project.settings(
+  scalaVersion := "2.10.5"
+)
 
 TaskKey[Unit]("check") := {
-  def assertContentMatches(file: String, expected: String): Unit = {
-    val obtained =
-      scala.io.Source
-        .fromFile(file)
-        .getLines()
-        .mkString("\n")
+  def assertContentMatches(file: String, expectedUntrimmed: String): Unit = {
+    val expected = expectedUntrimmed.trim
+    val obtained = new String(
+      java.nio.file.Files.readAllBytes(
+        java.nio.file.Paths.get(
+          new java.io.File(file).toURI
+        ))
+    ).trim
 
-    if (obtained.trim != expected.trim) {
+    if (obtained.diff(expected).nonEmpty) {
       val msg =
         s"""File: $file
            |Obtained output:
            |$obtained
            |Expected:
            |$expected
+           |Diff:
+           |${obtained.diff(expected)}
+           |${expected.diff(obtained)}
            |""".stripMargin
       streams.value.log.error(file)
       throw new Exception(msg)
@@ -28,34 +43,44 @@ TaskKey[Unit]("check") := {
       streams.value.log.success(file)
     }
   }
-  assertContentMatches(
-    "src/main/scala/Test.scala",
-    """
-      |object Main {
+  val expected =
+    """object Main {
       |  implicit val x: Int = 23
       |  lazy val y = 2
       |  def main(args: Array[String]): Unit = {
       |    println("hello")
       |  }
+      |}""".stripMargin
+  val testExpected = expected.replaceFirst("Main", "TestMain")
+  Seq("", "p1/").foreach { prefix =>
+    assertContentMatches(
+      prefix + "src/test/scala/Test.scala",
+      testExpected
+    )
+    assertContentMatches(
+      prefix + "src/main/scala/Test.scala",
+      expected
+    )
+  }
+  val unchanged =
+    """object Main {
+      |  implicit val x = 2
+      |  lazy val y = 2
+      |  def main(args: Array[String]) {
+      |    println("hello")
+      |  }
       |}
     """.stripMargin
-  )
 
-  val expected =
-    """
-      |object TestMain {
-      |  implicit val x: Int = 2
-      |}
-    """.stripMargin
+  val unchangedTest = unchanged.replaceFirst("Main", "TestMain")
 
+  // 2.10 projects are left unchanged.
   assertContentMatches(
-    "src/test/scala/Test.scala",
-    expected
+    "p2/src/main/scala/Test.scala",
+    unchanged
   )
-
   assertContentMatches(
-    "p1/src/test/scala/Test.scala",
-    expected
+    "p2/src/test/scala/Test.scala",
+    unchangedTest
   )
-
 }
