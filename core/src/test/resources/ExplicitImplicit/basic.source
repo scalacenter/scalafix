@@ -73,7 +73,7 @@ package foo {
 class A[T](e: T)
 package foo {
   class B {
-    implicit val x: deeperpackage.A[Int] = new A(10)
+    implicit val x: A[Int] = new A(10)
   }
 }
 <<< shallow package
@@ -181,4 +181,18 @@ object slick {
 object slick {
   case class Supplier(id: Int, name: String)
   implicit val supplierGetter: ((Int, String)) => slick.Supplier = (arg: (Int, String)) => Supplier(arg._1, arg._2)
+}
+<<< NOWRAP package import
+package scala.concurrent {
+  package banana {
+    object x {
+      implicit val f = Future.successful(1)
+    }
+  }
+}
+>>>
+package scala.concurrent
+package banana
+object x {
+  implicit val f: Future[Int] = Future.successful(1)
 }

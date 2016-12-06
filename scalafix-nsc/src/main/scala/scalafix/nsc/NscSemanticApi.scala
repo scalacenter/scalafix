@@ -25,6 +25,7 @@ trait NscSemanticApi extends ReflectToolkit {
     // productive with this hack.
     val builder = mutable.Map.empty[Int, m.Type]
     def add(gtree: g.Tree, ctx: SemanticContext): Unit = {
+
       /** Removes redudant Foo.this.ActualType prefix from a type */
       val stripRedundantThis: m.Type => m.Type = _.transform {
         case m.Term.Select(m.Term.This(m.Name.Indeterminate(_)), qual) =>
@@ -57,6 +58,12 @@ trait NscSemanticApi extends ReflectToolkit {
         case _ =>
       }
     }
+
+    def members(tpe: g.Type): Iterable[String] = tpe.members.collect {
+      case x if !x.fullName.contains("$") =>
+        x.fullName
+    }
+
     def evaluate(ctx: SemanticContext, gtree: g.Tree): SemanticContext = {
       gtree match {
         case g.ValDef(_, _, tpt, _) if tpt.nonEmpty => add(tpt, ctx)
@@ -65,7 +72,8 @@ trait NscSemanticApi extends ReflectToolkit {
       }
       gtree match {
         case g.PackageDef(pid, _) =>
-          val newCtx = ctx.copy(enclosingPackage = pid.symbol.fullName + ".")
+          val newCtx = ctx.copy(enclosingPackage = pid.symbol.fullName + ".",
+                                inScope = ctx.inScope ++ members(pid.tpe))
           gtree.children.foldLeft(newCtx)(evaluate)
           ctx // leaving pkg scope
         case t: g.Template =>
@@ -78,10 +86,7 @@ trait NscSemanticApi extends ReflectToolkit {
             case g.ImportSelector(from, _, to, _) if from == to =>
               Seq(s"${expr.symbol.fullName}.$from")
             case g.ImportSelector(_, _, null, _) =>
-              expr.tpe.members.collect {
-                case x if !x.fullName.contains("$") =>
-                  x.fullName
-              }
+              members(expr.tpe)
           }.flatten
           ctx.copy(inScope = ctx.inScope ++ newNames)
         case _ =>
