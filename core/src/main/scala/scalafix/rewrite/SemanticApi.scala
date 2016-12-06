@@ -15,6 +15,7 @@ import scala.meta.Type
   * See [[ExplicitImplicit]] for an example usage of this semantic api.
   */
 trait SemanticApi {
+
   /** Returns the type annotation for given val/def. */
   def typeSignature(defn: Defn): Option[Type]
 }

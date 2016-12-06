@@ -199,6 +199,10 @@ lazy val `scalafix-tests` = project
     allSettings,
     noPublish,
     parallelExecution in Test := true,
+    compileInputs in (Compile, compile) :=
+      (compileInputs in (Compile, compile))
+        .dependsOn(publishedArtifacts: _*)
+        .value,
     libraryDependencies ++= Seq(
       "com.lihaoyi"   %% "ammonite-ops" % "0.8.0",
       "org.scalatest" %% "scalatest"    % Build.testV % "test"

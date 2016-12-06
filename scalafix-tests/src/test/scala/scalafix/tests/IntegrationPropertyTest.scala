@@ -116,7 +116,9 @@ class Slick
         name = "slick",
         repo = "https://github.com/slick/slick.git",
         hash = "bd3c24be419ff2791c123067668c81e7de858915"
-      ))
+      ),
+      skip = true
+    )
 
 class Scalaz
     extends IntegrationPropertyTest(
@@ -149,9 +151,13 @@ class ScalaJs
         repo = "https://github.com/scala-js/scala-js.git",
         hash = "8917b5a9bd8fb2175a112fc15c761050eeb4099f",
         cmds = Seq(
+          Command("set scalafixEnabled in Global := true"),
+          Command("compiler/test:compile"),
           Command("examples/test:compile")
         )
-      ))
+      ),
+      skip = true // GenJsCode is hard: import renames + dependent types
+    )
 
 class ScalacheckShapeless
     extends IntegrationPropertyTest(
