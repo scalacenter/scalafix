@@ -1,2 +1,14 @@
 @import Main._
 @import scalafix.Readme._
+@sect{Configuration}
+  Scalafix reads configuration from a file using
+  @lnk("HOCON", "https://github.com/typesafehub/config")
+  syntax.
+  I recommend you put a file @code{.scalafix.conf} into the root directory of
+  your project. However, the file can be put anywhere you like.
+
+  @sect{rewrites}
+    Available options are listed in @sect.ref{Rewrites}.
+
+    @config
+      rewrites = [ExplicitImplicit] # No rewrites are run if empty.

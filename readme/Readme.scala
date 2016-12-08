@@ -12,5 +12,9 @@ object Readme {
   def issue(i: Int): Frag = a(href := s"$repo/issues/$i", s"#$i")
   def dotty = a(href := "http://dotty.epfl.ch/", "Dotty")
   def comment(frags: Frag*): TypedTag[String] = span("")
-
+  def config(str: String): TypedTag[String] = {
+    // assert that config listings in docs is free of typos.
+    val Right(_) = ScalafixConfig.fromString(str)
+    pre(code(str))
+  }
 }

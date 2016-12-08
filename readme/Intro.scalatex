@@ -13,18 +13,15 @@
   @lnk("Clarification of Scala to Dotty migration path", "http://scala-lang.org/blog/2016/05/30/scala-center-advisory-board.html#the-first-meeting").
 
 @p
-  Read the announcement of the 0.1.0 release
-  @lnk("here", "http://www.scala-lang.org/blog/2016/10/24/scalafix.html").
-
-@p
-  The project is still in early days of development, so there is not much
-  to see here yet.
-  Currently, work on scalafix happens mostly in
-  @lnk("scala.meta", "http://scalameta.org"),
-  the metaprogramming toolkit that powers the scalafix @sect.ref{Rewrites}.
-
-@p
   The name "scalafix" is inspired by
   @lnk("gofix", "https://golang.org/cmd/fix/"),
-  a similar tool used to migrate go code.
+  a similar tool used to migrate code written in the Go programming language.
+
+@sect{Links}
+
+  @ul
+    @li
+      October 24 2016: Read the v0.1 release announcement @br @lnk{http://www.scala-lang.org/blog/2016/10/24/scalafix.html}
+    @li
+      December 12 2016: See the talk about scalafix at Scala eXchange (requires login) @lnk{https://skillsmatter.com/skillscasts/9117-smooth-migrations-to-dotty-with-scalafix#video}
 

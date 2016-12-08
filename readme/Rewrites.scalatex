@@ -4,7 +4,7 @@
 
 @sect{Rewrites}
   @p
-    Scalafix is a very new tool, more rewrite rules will come in future releases.
+    Scalafix is a new tool, more rewrite rules are planned for future releases.
 
   @sect(ExplicitImplicit.toString)
     Dotty requires implicit @code{val}s and @code{def}s to explicitly annotate
@@ -20,6 +20,10 @@
       implicit val tt: TypedType[R] = liftedType
 
     @ul
+      @li
+        @note. This rewrite is new and may insert an ambiguous type name in rare cases.
+        For example, running ExplicitImplicit (as of v0.2.0) on the Scala.js repo
+        did introduce compilation errors.
       @li
         scalafix tries to minimize the inserted type signature, by using
         available variable names in scope.
@@ -63,5 +67,3 @@
     @ul
       @li
         @code{XML}: see @issue(10).
-      @li
-        @code{ExplicitImplicit}: see @issue(11).
