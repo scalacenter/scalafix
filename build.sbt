@@ -3,6 +3,8 @@ import sbt.ScriptedPlugin._
 organization in ThisBuild := "ch.epfl.scala"
 version in ThisBuild := scalafix.Versions.nightly
 
+lazy val crossVersions = Seq("2.11.8", "2.12.1")
+
 lazy val buildSettings = Seq(
   assemblyJarName in assembly := "scalafix.jar",
   // See core/src/main/scala/ch/epfl/scala/Versions.scala
@@ -95,8 +97,9 @@ lazy val root = project
   .dependsOn(core)
 
 lazy val core = project
-  .settings(allSettings)
   .settings(
+    allSettings,
+    crossScalaVersions := crossVersions,
     moduleName := "scalafix-core",
     addCompilerPlugin(
       "org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
@@ -114,6 +117,7 @@ lazy val `scalafix-nsc` = project
   .settings(
     allSettings,
     scalaVersion := "2.11.8",
+    crossScalaVersions := crossVersions,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scalameta"  %% "scalameta"     % Build.metaV % "provided",
