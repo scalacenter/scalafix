@@ -73,7 +73,7 @@ package foo {
 class A[T](e: T)
 package foo {
   class B {
-    implicit val x: deeperpackage.A[Int] = new A(10)
+    implicit val x: A[Int] = new A(10)
   }
 }
 <<< shallow package
@@ -89,4 +89,148 @@ package foo {
 }
 class B {
   implicit val x: foo.A[Int] = new foo.A(10)
+}
+<<< implicitly 2712 trick
+class A {
+  implicit val s = "string"
+  implicit val x = implicitly[String]
+}
+>>>
+class A {
+  implicit val s: String = "string"
+  implicit val x = implicitly[String]
+}
+<<< shorten imported name
+import scala.collection.immutable.Map
+class A {
+  implicit val x = Map(1 -> "")
+}
+>>>
+import scala.collection.immutable.Map
+class A {
+  implicit val x: Map[Int, String] = Map(1 -> "")
+}
+<<< shorten imported name 2
+import scala.collection.immutable._
+class A {
+  implicit val x = Map(1 -> "")
+}
+>>>
+import scala.collection.immutable._
+class A {
+  implicit val x: Map[Int, String] = Map(1 -> "")
+}
+<<< enclosing package strip is last
+package b { class B }
+package a {
+  import b.B
+  class A {
+    implicit val x = new B
+  }
+}
+>>>
+package b { class B }
+package a {
+  import b.B
+  class A {
+    implicit val x: B = new B
+  }
+}
+<<< inner inner object
+object A {
+  object B {
+    class C
+    object C {
+      implicit val x = List(new C)
+    }
+  }
+}
+>>>
+object A {
+  object B {
+    class C
+    object C {
+      implicit val x: List[C] = List(new C)
+    }
+  }
+}
+<<< sibling objects
+object D {
+  class B
+}
+object A {
+  class C {
+    implicit val x = List(new D.B)
+  }
+}
+>>>
+object D {
+  class B
+}
+object A {
+  class C {
+    implicit val x: List[D.B] = List(new D.B)
+  }
+}
+<<< SKIP slick tuple
+object slick {
+  case class Supplier(id: Int, name: String)
+  implicit val supplierGetter = (arg: (Int, String)) => Supplier(arg._1, arg._2)
+}
+>>>
+object slick {
+  case class Supplier(id: Int, name: String)
+  implicit val supplierGetter: ((Int, String)) => slick.Supplier = (arg: (Int, String)) => Supplier(arg._1, arg._2)
+}
+<<< NOWRAP package import
+package scala.concurrent {
+  package banana {
+    object x {
+      implicit val f = Future.successful(1)
+    }
+  }
+}
+>>>
+package scala.concurrent
+package banana
+object x {
+  implicit val f: Future[Int] = Future.successful(1)
+}
+<<< SKIP global
+class Global {
+  type Position = Int
+  class Symbol {
+    def pos: Position = ???
+  }
+}
+trait Compiler {
+  val g: Global
+  val s: g.Symbol
+}
+trait Foo { self: Compiler =>
+  val addons: Object {
+    val g: Foo.this.g.type
+  }
+  import g._
+  import addons._
+  implicit val x = s.pos
+}
+>>>
+class Global {
+  type Position = Int
+  class Symbol {
+    def pos: Position = ???
+  }
+}
+trait Compiler {
+  val g: Global
+  val s: g.Symbol
+}
+trait Foo { self: Compiler =>
+  val addons: Object {
+    val g: Foo.this.g.type
+  }
+  import g._
+  import addons._
+  implicit val x: Position = s.pos
 }

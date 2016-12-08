@@ -3,6 +3,7 @@ package scalafix
 import scala.collection.immutable.Seq
 import scalafix.rewrite.ExplicitImplicit
 import scalafix.util.FileOps
+import scalafix.util.logger
 
 import java.io.File
 
@@ -74,5 +75,7 @@ case class DiffTest(spec: String,
                     skip: Boolean,
                     only: Boolean,
                     config: ScalafixConfig) {
+  def noWrap: Boolean = name.startsWith("NOWRAP ")
+
   val fullName = s"$spec: $name"
 }

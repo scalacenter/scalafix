@@ -7,6 +7,7 @@ import scalafix.rewrite.RewriteCtx
 import scalafix.rewrite.SemanticApi
 import scalafix.util.Patch
 import scalafix.util.TokenList
+import scalafix.util.logger
 
 object Scalafix {
   def fix(code: Input,

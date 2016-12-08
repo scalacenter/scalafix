@@ -1,3 +1,4 @@
 #!/bin/bash
 set -e
-sbt clean test publishLocal scripted
+export SBT_OPTS="-Xmx24G -XX:MaxPermSize=4G -Xss4M"
+sbt clean test scripted

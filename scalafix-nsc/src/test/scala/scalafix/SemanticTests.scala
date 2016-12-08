@@ -6,10 +6,12 @@ import scala.tools.nsc.CompilerCommand
 import scala.tools.nsc.Global
 import scala.tools.nsc.Settings
 import scala.tools.nsc.reporters.StoreReporter
+import scala.util.control.NonFatal
 import scala.{meta => m}
 import scalafix.nsc.NscSemanticApi
 import scalafix.rewrite.ExplicitImplicit
 import scalafix.rewrite.Rewrite
+import scalafix.util.logger
 
 import org.scalatest.FunSuite
 
@@ -42,51 +44,13 @@ class SemanticTests extends FunSuite {
       fix(unit, ScalafixConfig(rewrites = List(rewrite)))
   }
 
-  private def getParsedScalacTree(code: String): g.Tree = {
-    import g._
-
-    val run = g.currentRun
-    g.phase = run.parserPhase
-    g.globalPhase = run.parserPhase
-    val reporter = new StoreReporter()
-    g.reporter = reporter
-
-    val tree = {
-      if (parseAsCompilationUnit) {
-        val cu = new CompilationUnit(newSourceFile(code))
-        val parser = new syntaxAnalyzer.UnitParser(cu, Nil)
-        parser.parse()
-      } else {
-        // NOTE: `parseStatsOrPackages` fails to parse abstract type defs without bounds,
-        // so we need to apply a workaround to ensure that we correctly process those.
-        def somewhatBrokenParse(code: String) =
-          gen.mkTreeOrBlock(
-            newUnitParser(code, "<toolbox>").parseStatsOrPackages())
-        val rxAbstractTypeNobounds = """^type (\w+)(\[[^=]*?\])?$""".r
-        code match {
-          case rxAbstractTypeNobounds(_ *) =>
-            val tdef @ TypeDef(mods, name, tparams, _) = somewhatBrokenParse(
-              code + " <: Dummy")
-            treeCopy.TypeDef(tdef,
-                             mods,
-                             name,
-                             tparams,
-                             TypeBoundsTree(EmptyTree, EmptyTree))
-          case _ =>
-            somewhatBrokenParse(code)
-        }
-      }
+  def wrap(code: String, diffTest: DiffTest): String = {
+    if (diffTest.noWrap) code
+    else {
+      val packageName = diffTest.name.replaceAll("[^a-zA-Z0-9]", "")
+      val packagedCode = s"package $packageName { $code }"
+      packagedCode
     }
-
-    val errors = reporter.infos.filter(_.severity == g.reporter.ERROR)
-    errors.foreach(error =>
-      fail(s"scalac parse error: ${error.msg} at ${error.pos}"))
-    tree
-  }
-  def wrap(code: String, name: String): String = {
-    val packageName = name.replaceAll("[^a-zA-Z]", "")
-    val packagedCode = s"package $packageName { $code }"
-    packagedCode
   }
 
   private def unwrap(gtree: g.Tree): g.Tree = gtree match {
@@ -158,6 +122,14 @@ class SemanticTests extends FunSuite {
     }
     loop(obtained, expected)
   }
+  private def typeChecks(code: String): Unit = {
+    try {
+      getTypedCompilationUnit(code)
+    } catch {
+      case NonFatal(e) =>
+        fail(s"Fixed source code does not typecheck! ${e.getMessage}", e)
+    }
+  }
 
   private def parse(code: String): m.Tree = {
     import scala.meta._
@@ -169,10 +141,12 @@ class SemanticTests extends FunSuite {
   }
 
   def check(original: String, expectedStr: String, diffTest: DiffTest): Unit = {
-    val obtained = parse(fix(wrap(original, diffTest.name)))
+    val fixed = fix(wrap(original, diffTest))
+    val obtained = parse(fixed)
     val expected = parse(expectedStr)
     try {
       checkMismatchesModuloDesugarings(obtained, expected)
+      if (!diffTest.noWrap) typeChecks(wrap(fixed, diffTest))
     } catch {
       case MismatchException(details) =>
         val header = s"scala -> meta converter error\n$details"
