@@ -19,6 +19,7 @@ build:
 
     - cp -a /root/.ivy2 /drone
     - cp -a /root/.sbt /drone
+    - sbt clean test scripted
 cache:
   mount:
     - /drone/.sbt

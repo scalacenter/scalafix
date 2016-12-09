@@ -1,6 +1,9 @@
 val commonSettings: Seq[Def.Setting[String]] = Seq(
   scalaVersion := "2.11.8"
 )
+
+scalafixConfig in ThisBuild := Some(baseDirectory.value / ".scalafix.conf")
+
 lazy val root = project
   .in(file("."))
   .settings(commonSettings)
@@ -31,17 +34,19 @@ TaskKey[Unit]("check") := {
         ))
     ).trim
 
-    if (obtained.diff(expected).nonEmpty) {
-      val msg =
-        s"""File: $file
-           |Obtained output:
-           |$obtained
-           |Expected:
-           |$expected
-           |Diff:
-           |${obtained.diff(expected)}
-           |${expected.diff(obtained)}
-           |""".stripMargin
+    val msg =
+      s"""File: $file
+         |Obtained output:
+         |$obtained
+         |Expected:
+         |$expected
+         |Diff:
+         |${obtained.diff(expected)}
+         |${expected.diff(obtained)}
+         |""".stripMargin
+    println(msg)
+    if (obtained.diff(expected).nonEmpty ||
+        expected.diff(obtained).nonEmpty) {
       streams.value.log.error(file)
       throw new Exception(msg)
     } else {

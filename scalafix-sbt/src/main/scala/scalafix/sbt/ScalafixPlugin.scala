@@ -5,8 +5,9 @@ import sbt._
 import sbt.plugins.JvmPlugin
 
 trait ScalafixKeys {
-  val scalafixRewrites: SettingKey[Seq[String]] =
-    settingKey[Seq[String]]("Which scalafix rules should run?")
+  val scalafixConfig: SettingKey[Option[File]] =
+    settingKey[Option[File]](
+      ".scalafix.conf file to specify which scalafix rules should run.")
   val scalafixEnabled: SettingKey[Boolean] =
     settingKey[Boolean]("Is scalafix enabled?")
   val scalafixInternalJar: TaskKey[Option[File]] =
@@ -22,7 +23,7 @@ object rewrite {
 
 object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
   object autoImport extends ScalafixKeys
-  private val Version = "2\\.(\\d\\d)\\.".r
+  private val Version = "2\\.(\\d\\d)\\..*".r
   private val nightlyVersion = _root_.scalafix.Versions.nightly
   private val disabled = sys.props.contains("scalafix.disable")
   private def jar(report: UpdateReport): Option[File] =
@@ -48,20 +49,17 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
   override def trigger: PluginTrigger = AllRequirements
 
   val scalafix: Command = Command.command("scalafix") { state =>
-    s"set scalafixEnabled := true" ::
+    s"set scalafixEnabled in Global := true" ::
       "clean" ::
         "test:compile" ::
-          s"set scalafixEnabled := false" ::
+          s"set scalafixEnabled in Global := false" ::
             state
   }
 
-  override def globalSettings: Seq[Def.Setting[_]] =
+  override def projectSettings: Seq[Def.Setting[_]] =
     Seq(
       commands += scalafix,
-      scalafixRewrites := Seq(
-        rewrite.ExplicitImplicit,
-        rewrite.ProcedureSyntax
-      ),
+      scalafixConfig := None,
       scalafixInternalJar :=
         Def
           .taskDyn[Option[File]] {
@@ -70,29 +68,27 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
                 Def.task(jar((update in scalafix211).value))
               case Version("12") =>
                 Def.task(jar((update in scalafix212).value))
-              case _ => Def.task(None)
+              case els =>
+                Def.task {
+                  println("ELS: " + els)
+                  None
+                }
             }
           }
           .value,
-      scalafixEnabled := false,
+      scalafixEnabled in Global := false,
       scalacOptions ++= {
         // scalafix should not affect compilations outside of the scalafix task.
         // The approach taken here is the same as scoverage uses, see:
         // https://github.com/scoverage/sbt-scoverage/blob/45ac49583f5a32dfebdce23b94c5336da4906e59/src/main/scala/scoverage/ScoverageSbtPlugin.scala#L70-L83
-        if (!scalafixEnabled.value || scalaVersion.value.startsWith("2.10")) {
+        if (!(scalafixEnabled in Global).value) {
           Nil
         } else {
-          val rewrites = scalafixRewrites.value
-          val config: Option[String] =
-            if (rewrites.isEmpty) None
-            else {
-              val prefixed = rewrites.map(x => s"scalafix:$x")
-              Some(s"-P:${prefixed.mkString(",")}")
-            }
-          (scalafixInternalJar).value.map { jar =>
+          scalafixInternalJar.value.map { jar =>
             Seq(
               Some(s"-Xplugin:${jar.getAbsolutePath}"),
-              config
+              scalafixConfig.value.map(x =>
+                s"-P:scalafix:${x.getAbsolutePath}")
             ).flatten
           }.getOrElse(Nil)
         }

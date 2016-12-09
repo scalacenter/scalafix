@@ -104,6 +104,7 @@ lazy val core = project
     addCompilerPlugin(
       "org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
     libraryDependencies ++= Seq(
+      "com.typesafe"   % "config"        % "1.3.1",
       "com.lihaoyi"    %% "sourcecode"   % "0.1.3",
       "org.scalameta"  %% "scalameta"    % Build.metaV,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
