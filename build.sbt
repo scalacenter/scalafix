@@ -112,6 +112,7 @@ lazy val core = project
 
 lazy val `scalafix-nsc` = project
   .settings(
+    allSettings,
     scalaVersion := "2.11.8",
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
