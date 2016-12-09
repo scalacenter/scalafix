@@ -1,14 +1,13 @@
 build:
-  image: danieletorelli/sbt
+  image: scalaplatform/scala:0.5
   environment:
     - COURSIER_CACHE=/drone/cache/coursier
   commands:
     - export SBT_OPTS="-Xmx24G -XX:MaxPermSize=4G -Xss4M"
-    - sbt ++$SCALA_VERSION clean test scripted
-matrix:
-  SCALA_VERSION:
-    - 2.11.8
-    - 2.12.1
+    - sbt clean test scripted
 cache:
   mount:
+    - /drone/.git
+    - /drone/.sbt
+    - /drone/.ivy2
     - /drone/cache

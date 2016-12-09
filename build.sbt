@@ -90,7 +90,7 @@ lazy val root = project
     `scalafix-nsc`,
     `scalafix-tests`,
     core,
-    cli,
+//    cli, // superseded by sbt plugin
     readme,
     `scalafix-sbt`
   )
@@ -104,7 +104,7 @@ lazy val core = project
     addCompilerPlugin(
       "org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
     libraryDependencies ++= Seq(
-      "com.lihaoyi"    %% "sourcecode"   % "0.1.2",
+      "com.lihaoyi"    %% "sourcecode"   % "0.1.3",
       "org.scalameta"  %% "scalameta"    % Build.metaV,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
       // Test dependencies

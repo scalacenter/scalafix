@@ -53,6 +53,7 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
     extends FunSuite
     with TimeLimits {
 
+  private val isCi = sys.props.contains("CI")
   private val maxTime = Span(20, Minutes) // just in case.
 
   val hardClean = false
@@ -165,5 +166,7 @@ class ScalacheckShapeless
       ItTest(
         name = "scalacheck-shapeless",
         repo = "https://github.com/alexarchambault/scalacheck-shapeless.git",
-        hash = "1027b07ea07fe4ca4b1171d55e995d71201b2e6f"
-      ))
+        hash = "bb25ecee23c42148f66d9b27920a89ba5cc189d2"
+      ),
+      skip = true // coursier can't resolve locally published snapshot on ci, sbt.ivy.home is not read.
+    )

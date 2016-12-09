@@ -9,8 +9,8 @@ trait ScalafixKeys {
     settingKey[Seq[String]]("Which scalafix rules should run?")
   val scalafixEnabled: SettingKey[Boolean] =
     settingKey[Boolean]("Is scalafix enabled?")
-  val scalafixInternalJar: TaskKey[File] =
-    taskKey[File]("Path to scalafix-nsc compiler plugin jar.")
+  val scalafixInternalJar: TaskKey[Option[File]] =
+    taskKey[Option[File]]("Path to scalafix-nsc compiler plugin jar.")
 }
 
 object rewrite {
@@ -22,49 +22,59 @@ object rewrite {
 
 object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
   object autoImport extends ScalafixKeys
+  private val Version = "2\\.(\\d\\d)\\.".r
   private val nightlyVersion = _root_.scalafix.Versions.nightly
   private val disabled = sys.props.contains("scalafix.disable")
-  private val scalafixStub =
+  private def jar(report: UpdateReport): Option[File] =
+    report.allFiles.find(
+      _.getAbsolutePath.matches(s".*scalafix-nsc_2.[12].jar$$"))
+  private def stub(version: String) =
     Project(id = "scalafix-stub", base = file("project/scalafix")).settings(
       description :=
         """Serves as a caching layer for extracting the jar location of the
           |scalafix-nsc compiler plugin. If the dependecy was added to all
           |projects, the (slow) update task will be re-run for every project.""".stripMargin,
-      scalaVersion := "2.11.8", // TODO(olafur) 2.12 support
-      libraryDependencies +=
-        "ch.epfl.scala" %% "scalafix-nsc" % nightlyVersion % Compile
+      scalaVersion := version,
+      libraryDependencies ++= Seq(
+        "ch.epfl.scala" %% "scalafix-nsc" % nightlyVersion
+      )
     )
+  private val scalafix211 = stub("2.11.8")
+  private val scalafix212 = stub("2.12.1")
 
-  override def extraProjects: Seq[Project] = Seq(scalafixStub)
+  override def extraProjects: Seq[Project] = Seq(scalafix211, scalafix212)
 
   override def requires = JvmPlugin
   override def trigger: PluginTrigger = AllRequirements
 
   val scalafix: Command = Command.command("scalafix") { state =>
-    s"set scalafixEnabled in Global := true" ::
+    s"set scalafixEnabled := true" ::
       "clean" ::
         "test:compile" ::
-          s"set scalafixEnabled in Global := false" ::
+          s"set scalafixEnabled := false" ::
             state
   }
 
-  override def projectSettings: Seq[Def.Setting[_]] =
+  override def globalSettings: Seq[Def.Setting[_]] =
     Seq(
       commands += scalafix,
       scalafixRewrites := Seq(
         rewrite.ExplicitImplicit,
         rewrite.ProcedureSyntax
       ),
-      scalafixInternalJar in Global := {
-        // TODO(olafur) 2.12 support
-        (update in scalafixStub).value.allFiles
-          .find(_.getAbsolutePath.matches(".*scalafix-nsc[^-]*.jar$"))
-          .getOrElse {
-            throw new IllegalStateException(
-              "Unable to find scalafix-nsc in library dependencies!")
+      scalafixInternalJar :=
+        Def
+          .taskDyn[Option[File]] {
+            scalaVersion.value match {
+              case Version("11") =>
+                Def.task(jar((update in scalafix211).value))
+              case Version("12") =>
+                Def.task(jar((update in scalafix212).value))
+              case _ => Def.task(None)
+            }
           }
-      },
-      scalafixEnabled in Global := false,
+          .value,
+      scalafixEnabled := false,
       scalacOptions ++= {
         // scalafix should not affect compilations outside of the scalafix task.
         // The approach taken here is the same as scoverage uses, see:
@@ -79,11 +89,12 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
               val prefixed = rewrites.map(x => s"scalafix:$x")
               Some(s"-P:${prefixed.mkString(",")}")
             }
-          val jar = (scalafixInternalJar in Global).value.getAbsolutePath
-          Seq(
-            Some(s"-Xplugin:$jar"),
-            config
-          ).flatten
+          (scalafixInternalJar).value.map { jar =>
+            Seq(
+              Some(s"-Xplugin:${jar.getAbsolutePath}"),
+              config
+            ).flatten
+          }.getOrElse(Nil)
         }
       }
     )
