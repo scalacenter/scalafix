@@ -6,6 +6,27 @@
   @p
     Scalafix is a very new tool, more rewrite rules will come in future releases.
 
+  @sect(ExplicitImplicit.toString)
+    Dotty requires implicit @code{val}s and @code{def}s to explicitly annotate
+    return types.
+    The @ExplicitImplicit.toString rewrite inserts the inferred type from the
+    compiler for implicit definitions that are missing an explicit return type.
+    For example,
+
+    @hl.scala
+      // before
+      implicit val tt = liftedType
+      // after
+      implicit val tt: TypedType[R] = liftedType
+
+    @ul
+      @li
+        scalafix tries to minimize the inserted type signature, by using
+        available variable names in scope.
+      @li
+        scalafix will insert the fully qualified type name if the type
+        is not in scope.
+
   @sect(ProcedureSyntax.toString)
     "Procedure syntax" is not supported in Dotty.
     Methods that use procedure syntax should use regular method syntax instead.

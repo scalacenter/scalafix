@@ -1,12 +1,21 @@
 @import Main._
 @import scalafix.Readme._
 @sect{Changelog}
+  @sect{0.2.0}
+    @ul
+      @li
+        First semantic rewrite! See @sect.ref{ExplicitImplicit}
+      @li
+        Removed command line interface in favor of compiler plugin.
+        Why? To run semantic rewrites, scalafix needs to compile source files.
+        The scalafix command line tool has no aspiration to become a build tool.
   @sect{0.1.0}
     @ul
       @li
-        New command line tool: @code{scalafix}. See @sect.ref{Command line}.
+        New command line tool: @code{scalafix}.
+        (EDIT: superseded by scalafix-nsc compiler plugin in v0.2)
       @li
-        New SBT plugin: @code{sbt-scalafix}. See @sect.ref{SBT}.
+        New SBT plugin: @code{sbt-scalafix}. See @sect.ref{sbt}.
       @li
         Two rewrite rules:
         @sect.ref{ProcedureSyntax}

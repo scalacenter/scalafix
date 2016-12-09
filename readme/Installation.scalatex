@@ -3,7 +3,8 @@
 @import scalafix.rewrite._
 
 @sect{Installation}
-  @sect{Command line}
+  @comment
+    {Command line}
     @p
       There are several ways to install the command line interface.
 
@@ -50,10 +51,30 @@
           to your @code{$PATH}. Feel free to name the script @code{scalafix} instead of @code{scalafix_ng}.
           The script will automatically start the nailgun server if the server is turned off.
 
-  @sect{SBT}
+  @sect{sbt}
     @hl.scala
       addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@scalafix.Versions.stable")
 
     @ul
       @li
-        The command @code{sbt scalafix} runs all available @sect.ref{Rewrites}.
+        @code{sbt scalafix} runs @sect.ref{Rewrites}.
+      @li
+        Use @code{scalafixRewrites := Seq[String]} to configure which rewrites to run.
+        Available options can be imported from @code{scalafix.sbt.rewrite._}
+
+  @sect{Other}
+    Scalafix can be used directly as a compiler plugin:
+    @hl.scala
+      // download
+      "ch.epfl.scala" %% "scalafix-nsc" % "@scalafix.Versions.stable"
+      // compile
+      scalac -Xplugin:/path/to/scalafix-nsc.jar mycode.scala
+
+    @ul
+      @li
+        Note, the compiler plugin writes fixes directly to source files during
+        compilation.
+      @li
+        To configure which rewrites to run:
+        @code{-P:scalafix:Rewrite1,scalafix:Rewrite2}.
+
