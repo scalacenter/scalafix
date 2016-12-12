@@ -3,6 +3,8 @@ import sbt.ScriptedPlugin._
 organization in ThisBuild := "ch.epfl.scala"
 version in ThisBuild := scalafix.Versions.nightly
 
+lazy val crossVersions = Seq("2.11.8", "2.12.1")
+
 lazy val buildSettings = Seq(
   assemblyJarName in assembly := "scalafix.jar",
   // See core/src/main/scala/ch/epfl/scala/Versions.scala
@@ -88,20 +90,21 @@ lazy val root = project
     `scalafix-nsc`,
     `scalafix-tests`,
     core,
-    cli,
+//    cli, // superseded by sbt plugin
     readme,
     `scalafix-sbt`
   )
   .dependsOn(core)
 
 lazy val core = project
-  .settings(allSettings)
   .settings(
+    allSettings,
+    crossScalaVersions := crossVersions,
     moduleName := "scalafix-core",
     addCompilerPlugin(
       "org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
     libraryDependencies ++= Seq(
-      "com.lihaoyi"    %% "sourcecode"   % "0.1.2",
+      "com.lihaoyi"    %% "sourcecode"   % "0.1.3",
       "org.scalameta"  %% "scalameta"    % Build.metaV,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
       // Test dependencies
@@ -114,6 +117,7 @@ lazy val `scalafix-nsc` = project
   .settings(
     allSettings,
     scalaVersion := "2.11.8",
+    crossScalaVersions := crossVersions,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scalameta"  %% "scalameta"     % Build.metaV % "provided",
@@ -185,7 +189,7 @@ lazy val `scalafix-sbt` = project.settings(
   moduleName := "sbt-scalafix",
   sources in Compile +=
     baseDirectory.value / "../core/src/main/scala/scalafix/Versions.scala",
-  scriptedLaunchOpts := Seq(
+  scriptedLaunchOpts ++= Seq(
     "-Dplugin.version=" + version.value,
     // .jvmopts is ignored, simulate here
     "-XX:MaxPermSize=256m",

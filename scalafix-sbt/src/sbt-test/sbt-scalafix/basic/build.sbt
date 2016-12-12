@@ -6,7 +6,8 @@ lazy val root = project
   .settings(commonSettings)
   .aggregate(
     p1,
-    p2
+    p2,
+    p3
   )
 
 lazy val p1 = project.settings(
@@ -14,6 +15,10 @@ lazy val p1 = project.settings(
 )
 lazy val p2 = project.settings(
   scalaVersion := "2.10.5"
+)
+
+lazy val p3 = project.settings(
+  scalaVersion := "2.12.1"
 )
 
 TaskKey[Unit]("check") := {
@@ -52,7 +57,7 @@ TaskKey[Unit]("check") := {
       |  }
       |}""".stripMargin
   val testExpected = expected.replaceFirst("Main", "TestMain")
-  Seq("", "p1/").foreach { prefix =>
+  Seq("", "p1/", "p3/").foreach { prefix =>
     assertContentMatches(
       prefix + "src/test/scala/Test.scala",
       testExpected
