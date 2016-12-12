@@ -189,7 +189,7 @@ lazy val `scalafix-sbt` = project.settings(
   moduleName := "sbt-scalafix",
   sources in Compile +=
     baseDirectory.value / "../core/src/main/scala/scalafix/Versions.scala",
-  scriptedLaunchOpts := Seq(
+  scriptedLaunchOpts ++= Seq(
     "-Dplugin.version=" + version.value,
     // .jvmopts is ignored, simulate here
     "-XX:MaxPermSize=256m",

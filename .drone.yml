@@ -1,13 +1,26 @@
 build:
-  image: scalaplatform/scala:0.5
+  image: danieletorelli/sbt
   environment:
     - COURSIER_CACHE=/drone/cache/coursier
   commands:
     - export SBT_OPTS="-Xmx24G -XX:MaxPermSize=4G -Xss4M"
+    # configuring ivy.home doesn't seem to work. Maybe related:
+    #   https://github.com/sbt/sbt/issues/1894
+    # After 10+ experiments I've given up on trying to use sbt.ivy.yhome and
+    # copy the files myself instead, as recommended here:
+    #   http://readme.drone.io/usage/caching/
+    - test -d /drone/.sbt && cp -a /drone/.sbt /root
+    - rm -rf /drone/.sbt
+
+    - test -d /drone/.ivy2 && cp -a /drone/.ivy2 /root
+    - rm -rf /drone/.ivy2
+
     - sbt clean test scripted
+
+    - cp -a /root/.ivy2 /drone
+    - cp -a /root/.sbt /drone
 cache:
   mount:
-    - /drone/.git
     - /drone/.sbt
     - /drone/.ivy2
     - /drone/cache
