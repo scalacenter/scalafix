@@ -30,7 +30,7 @@ case class CommonOptions(
 )
 
 @AppName("scalafix")
-@AppVersion(scalafix.Versions.nightly)
+@AppVersion(scalafix.Versions.version)
 @ProgName("scalafix")
 case class ScalafixOptions(
     @HelpMessage(

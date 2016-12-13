@@ -23,7 +23,10 @@ object DiffTest {
 
     val style: ScalafixConfig = {
       val firstLine = split.head
-      ScalafixConfig(rewrites = List(ExplicitImplicit))
+      ScalafixConfig.fromString(firstLine) match {
+        case Right(x) => x
+        case Left(e) => throw new IllegalArgumentException(e)
+      }
     }
 
     split.tail.map { t =>

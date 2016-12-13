@@ -15,10 +15,12 @@ build:
     - test -d /drone/.ivy2 && cp -a /drone/.ivy2 /root
     - rm -rf /drone/.ivy2
 
+    - sbt "very publishLocal" # necessary for 2.11/2.12 cross publish.
     - sbt clean test scripted
 
     - cp -a /root/.ivy2 /drone
     - cp -a /root/.sbt /drone
+    - sbt clean test scripted
 cache:
   mount:
     - /drone/.sbt

@@ -40,8 +40,8 @@ class SemanticTests extends FunSuite {
 
   private object fixer extends NscSemanticApi {
     lazy val global: SemanticTests.this.g.type = SemanticTests.this.g
-    def apply(unit: g.CompilationUnit): Fixed =
-      fix(unit, ScalafixConfig(rewrites = List(rewrite)))
+    def apply(unit: g.CompilationUnit, config: ScalafixConfig): Fixed =
+      fix(unit, config)
   }
 
   def wrap(code: String, diffTest: DiffTest): String = {
@@ -79,8 +79,8 @@ class SemanticTests extends FunSuite {
     unit
   }
 
-  def fix(code: String): String = {
-    val Fixed.Success(fixed) = fixer(getTypedCompilationUnit(code))
+  def fix(code: String, config: ScalafixConfig): String = {
+    val Fixed.Success(fixed) = fixer(getTypedCompilationUnit(code), config)
     fixed
   }
   case class MismatchException(details: String) extends Exception
@@ -141,7 +141,7 @@ class SemanticTests extends FunSuite {
   }
 
   def check(original: String, expectedStr: String, diffTest: DiffTest): Unit = {
-    val fixed = fix(wrap(original, diffTest))
+    val fixed = fix(wrap(original, diffTest), diffTest.config)
     val obtained = parse(fixed)
     val expected = parse(expectedStr)
     try {
