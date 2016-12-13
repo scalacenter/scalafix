@@ -24,22 +24,28 @@ object rewrite {
 object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
   object autoImport extends ScalafixKeys
   private val Version = "2\\.(\\d\\d)\\..*".r
-  private val nightlyVersion = _root_.scalafix.Versions.nightly
+  private val scalafixVersion = _root_.scalafix.Versions.version
   private val disabled = sys.props.contains("scalafix.disable")
   private def jar(report: UpdateReport): Option[File] =
-    report.allFiles.find(
-      _.getAbsolutePath.matches(s".*scalafix-nsc_2.[12].jar$$"))
-  private def stub(version: String) =
-    Project(id = "scalafix-stub", base = file("project/scalafix")).settings(
-      description :=
-        """Serves as a caching layer for extracting the jar location of the
-          |scalafix-nsc compiler plugin. If the dependecy was added to all
-          |projects, the (slow) update task will be re-run for every project.""".stripMargin,
-      scalaVersion := version,
-      libraryDependencies ++= Seq(
-        "ch.epfl.scala" %% "scalafix-nsc" % nightlyVersion
+    report.allFiles.find { x =>
+      println("X: " + x)
+      x.getAbsolutePath.matches(s".*scalafix-nsc_2.1[12].jar$$")
+    }
+
+  private def stub(version: String) = {
+    val Version(id) = version
+    Project(id = s"scalafix-$id", base = file(s"project/scalafix/$id"))
+      .settings(
+        description :=
+          """Serves as a caching layer for extracting the jar location of the
+            |scalafix-nsc compiler plugin. If the dependecy was added to all
+            |projects, the (slow) update task will be re-run for every project.""".stripMargin,
+        scalaVersion := version,
+        libraryDependencies ++= Seq(
+          "ch.epfl.scala" %% "scalafix-nsc" % scalafixVersion
+        )
       )
-    )
+  }
   private val scalafix211 = stub("2.11.8")
   private val scalafix212 = stub("2.12.1")
 

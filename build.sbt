@@ -1,14 +1,14 @@
 import sbt.ScriptedPlugin
 import sbt.ScriptedPlugin._
+import sbtbuildinfo.BuildInfoKey.Entry
 organization in ThisBuild := "ch.epfl.scala"
-version in ThisBuild := scalafix.Versions.nightly
+version in ThisBuild := "0.2.0-SNAPSHOT"
 
 lazy val crossVersions = Seq("2.11.8", "2.12.1")
 
 lazy val buildSettings = Seq(
   assemblyJarName in assembly := "scalafix.jar",
-  // See core/src/main/scala/ch/epfl/scala/Versions.scala
-  scalaVersion := scalafix.Versions.scala,
+  scalaVersion := "2.11.8",
   updateOptions := updateOptions.value.withCachedResolution(true)
 )
 
@@ -72,14 +72,28 @@ lazy val noPublish = Seq(
   publishLocal := {}
 )
 
-lazy val allSettings = commonSettings ++ buildSettings ++ publishSettings
+lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
+  buildInfoKeys := Seq[BuildInfoKey](
+    name,
+    version,
+    scalaVersion,
+    sbtVersion
+  ),
+  buildInfoPackage := "scalafix",
+  buildInfoObject := "Versions"
+)
 
-lazy val root = project
+lazy val allSettings =
+  commonSettings ++
+    buildSettings ++
+    publishSettings
+
+lazy val `scalafix-root` = project
   .in(file("."))
-  .settings(moduleName := "scalafix")
-  .settings(allSettings)
-  .settings(noPublish)
   .settings(
+    moduleName := "scalafix",
+    allSettings,
+    noPublish,
     initialCommands in console :=
       """
         |import scala.meta._
@@ -99,6 +113,7 @@ lazy val root = project
 lazy val core = project
   .settings(
     allSettings,
+    buildInfoSettings,
     crossScalaVersions := crossVersions,
     moduleName := "scalafix-core",
     addCompilerPlugin(
@@ -113,6 +128,7 @@ lazy val core = project
       "com.googlecode.java-diff-utils" % "diffutils"  % "1.3.0"     % "test"
     )
   )
+  .enablePlugins(BuildInfoPlugin)
 
 lazy val `scalafix-nsc` = project
   .settings(
@@ -181,24 +197,25 @@ lazy val publishedArtifacts = Seq(
   publishLocal in core
 )
 
-lazy val `scalafix-sbt` = project.settings(
-  allSettings,
-  ScriptedPlugin.scriptedSettings,
-  sbtPlugin := true,
-  scripted := scripted.dependsOn(publishedArtifacts: _*).evaluated,
-  scalaVersion := "2.10.5",
-  moduleName := "sbt-scalafix",
-  sources in Compile +=
-    baseDirectory.value / "../core/src/main/scala/scalafix/Versions.scala",
-  scriptedLaunchOpts ++= Seq(
-    "-Dplugin.version=" + version.value,
-    // .jvmopts is ignored, simulate here
-    "-XX:MaxPermSize=256m",
-    "-Xmx2g",
-    "-Xss2m"
-  ),
-  scriptedBufferLog := false
-)
+lazy val `scalafix-sbt` = project
+  .settings(
+    allSettings,
+    buildInfoSettings,
+    ScriptedPlugin.scriptedSettings,
+    sbtPlugin := true,
+    scripted := scripted.dependsOn(publishedArtifacts: _*).evaluated,
+    scalaVersion := "2.10.5",
+    moduleName := "sbt-scalafix",
+    scriptedLaunchOpts ++= Seq(
+      "-Dplugin.version=" + version.value,
+      // .jvmopts is ignored, simulate here
+      "-XX:MaxPermSize=256m",
+      "-Xmx2g",
+      "-Xss2m"
+    ),
+    scriptedBufferLog := false
+  )
+  .enablePlugins(BuildInfoPlugin)
 
 lazy val `scalafix-tests` = project
   .settings(
