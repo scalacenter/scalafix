@@ -30,6 +30,19 @@ lazy val compilerOptions = Seq(
   "-Xlint"
 )
 
+lazy val gitPushTag = taskKey[Unit]("Push to git tag")
+
+// Custom scalafix release command. Tried sbt-release but didn't play well with sbt-doge.
+lazy val release = Command.command("release") { s =>
+  "clean" ::
+    "scalafix-sbt/publishSigned" ::
+      "very core/publishSigned" ::
+        "very scalafix-nsc/publishSigned" ::
+          "sonatypeRelease" ::
+            "gitPushTag" ::
+              s
+}
+
 lazy val commonSettings = Seq(
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
   scalacOptions := compilerOptions,
@@ -94,6 +107,13 @@ lazy val `scalafix-root` = project
     moduleName := "scalafix",
     allSettings,
     noPublish,
+    gitPushTag := {
+      val tag = s"v${version.value}"
+      assert(!tag.endsWith("SNAPSHOT"))
+      import sys.process._
+      Seq("git", "tag", "-a", tag, "-m", tag).!!
+      Seq("git", "push", "--tags").!!
+    },
     initialCommands in console :=
       """
         |import scala.meta._
@@ -243,16 +263,15 @@ lazy val readme = scalatex
                   wd = file(""),
                   url = "https://github.com/scalacenter/scalafix/tree/master",
                   source = "Readme")
-  .settings(allSettings)
-  .settings(noPublish)
-  .dependsOn(core)
-  .dependsOn(cli)
   .settings(
+    allSettings,
+    noPublish,
     libraryDependencies ++= Seq(
       "com.twitter" %% "util-eval" % "6.34.0"
     ),
     dependencyOverrides += "com.lihaoyi" %% "scalaparse" % "0.3.1"
   )
+  .dependsOn(core, cli)
 
 // Injects necessary paths into system properties to build a scalac global in tests.
 def exposePaths(projectName: String,
