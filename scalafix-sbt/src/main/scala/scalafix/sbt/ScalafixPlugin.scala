@@ -28,7 +28,6 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
   private val disabled = sys.props.contains("scalafix.disable")
   private def jar(report: UpdateReport): Option[File] =
     report.allFiles.find { x =>
-      println("X: " + x)
       x.getAbsolutePath.matches(s".*scalafix-nsc_2.1[12].jar$$")
     }
 
@@ -62,10 +61,12 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
             state
   }
 
+  override def globalSettings: Seq[Def.Setting[_]] = Seq(
+    scalafixConfig := None
+  )
   override def projectSettings: Seq[Def.Setting[_]] =
     Seq(
       commands += scalafix,
-      scalafixConfig := None,
       scalafixInternalJar :=
         Def
           .taskDyn[Option[File]] {
@@ -74,11 +75,8 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
                 Def.task(jar((update in scalafix211).value))
               case Version("12") =>
                 Def.task(jar((update in scalafix212).value))
-              case els =>
-                Def.task {
-                  println("ELS: " + els)
-                  None
-                }
+              case _ =>
+                Def.task(None)
             }
           }
           .value,
@@ -90,11 +88,16 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
         if (!(scalafixEnabled in Global).value) {
           Nil
         } else {
+          val config =
+            scalafixConfig.value.map { x =>
+              if (!x.isFile) streams.value.log.warn(s"File does not exist: $x")
+              s"-P:scalafix:${x.getAbsolutePath}"
+            }
+          streams.value.log.info("CONFIG: " + config)
           scalafixInternalJar.value.map { jar =>
             Seq(
               Some(s"-Xplugin:${jar.getAbsolutePath}"),
-              scalafixConfig.value.map(x =>
-                s"-P:scalafix:${x.getAbsolutePath}")
+              config
             ).flatten
           }.getOrElse(Nil)
         }

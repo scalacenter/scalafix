@@ -80,7 +80,7 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
     write.append(
       t.workingPath / "project" / "plugins.sbt",
       s"""
-         |addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "${scalafix.Versions.nightly}")
+         |addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "${scalafix.Versions.version}")
          |""".stripMargin
     )
   }

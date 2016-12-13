@@ -203,8 +203,10 @@ lazy val `scalafix-sbt` = project
     buildInfoSettings,
     ScriptedPlugin.scriptedSettings,
     sbtPlugin := true,
-    scripted := scripted.dependsOn(publishedArtifacts: _*).evaluated,
+    // Doesn't work because we need to publish 2.11 and 2.12.
+//    scripted := scripted.dependsOn(publishedArtifacts: _*).evaluated,
     scalaVersion := "2.10.5",
+    crossScalaVersions := Seq(scalaVersion.value),
     moduleName := "sbt-scalafix",
     scriptedLaunchOpts ++= Seq(
       "-Dplugin.version=" + version.value,

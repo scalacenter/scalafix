@@ -6,7 +6,6 @@ import scala.meta.dialects.Scala211
 import scala.meta.parsers.Parse
 import scala.util.control.NonFatal
 import scalafix.rewrite.Rewrite
-import scalafix.util.logger
 
 import java.io.File
 
@@ -53,7 +52,6 @@ object ScalafixConfig {
               s"Valid rules are: ${Rewrite.name2rewrite.keys.mkString(",")}")
         } else {
           val rewrites = names.map(Rewrite.name2rewrite)
-          logger.elem(rewrites)
           Right(ScalafixConfig(rewrites = rewrites))
         }
     }

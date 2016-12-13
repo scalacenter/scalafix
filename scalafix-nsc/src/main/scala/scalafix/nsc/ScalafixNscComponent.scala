@@ -9,7 +9,6 @@ import scala.util.control.NonFatal
 import scalafix.Fixed
 import scalafix.ScalafixConfig
 import scalafix.util.FileOps
-import scalafix.util.logger
 
 class ScalafixNscComponent(plugin: Plugin,
                            val global: Global,
@@ -24,7 +23,6 @@ class ScalafixNscComponent(plugin: Plugin,
     if (unit.source.file.exists &&
         unit.source.file.file.isFile &&
         !unit.isJava) {
-      logger.elem(getConfig())
       fix(unit, getConfig()) match {
         case Fixed.Success(fixed) =>
           if (fixed.nonEmpty && fixed != new String(unit.source.content)) {
