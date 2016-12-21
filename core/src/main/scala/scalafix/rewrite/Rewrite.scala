@@ -19,6 +19,8 @@ object Rewrite {
   val syntaxRewrites: Seq[Rewrite] = Seq(ProcedureSyntax, VolatileLazyVal)
   val semanticRewrites: Seq[Rewrite] = Seq(ExplicitImplicit)
   val allRewrites: Seq[Rewrite] = syntaxRewrites ++ semanticRewrites
+  val defaultRewrites: Seq[Rewrite] =
+    allRewrites.filterNot(_ == VolatileLazyVal)
   val name2rewrite: Map[String, Rewrite] =
     allRewrites.map(x => x.toString -> x).toMap
 }

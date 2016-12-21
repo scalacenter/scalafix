@@ -37,7 +37,7 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
       .settings(
         description :=
           """Serves as a caching layer for extracting the jar location of the
-            |scalafix-nsc compiler plugin. If the dependecy was added to all
+            |scalafix-nsc compiler plugin. If the dependency was added to all
             |projects, the (slow) update task will be re-run for every project.""".stripMargin,
         scalaVersion := version,
         libraryDependencies ++= Seq(
@@ -62,7 +62,7 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
   }
 
   override def globalSettings: Seq[Def.Setting[_]] = Seq(
-    scalafixConfig := None
+    scalafixConfig := Option(file(".scalafix.conf")).filter(_.isFile)
   )
   override def projectSettings: Seq[Def.Setting[_]] =
     Seq(

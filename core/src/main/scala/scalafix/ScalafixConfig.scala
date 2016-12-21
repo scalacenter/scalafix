@@ -13,7 +13,7 @@ import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 
 case class ScalafixConfig(
-    rewrites: Seq[Rewrite] = Rewrite.allRewrites,
+    rewrites: Seq[Rewrite] = Rewrite.defaultRewrites,
     parser: Parse[_ <: Tree] = Parse.parseSource,
     dialect: Dialect = Scala211
 )

@@ -2,7 +2,7 @@ import sbt.ScriptedPlugin
 import sbt.ScriptedPlugin._
 import sbtbuildinfo.BuildInfoKey.Entry
 organization in ThisBuild := "ch.epfl.scala"
-version in ThisBuild := "0.2.0"
+version in ThisBuild := "0.2.1-SNAPSHOT"
 
 lazy val crossVersions = Seq("2.11.8", "2.12.1")
 
