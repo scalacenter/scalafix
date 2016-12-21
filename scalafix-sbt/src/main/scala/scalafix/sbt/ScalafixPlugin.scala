@@ -93,7 +93,6 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
               if (!x.isFile) streams.value.log.warn(s"File does not exist: $x")
               s"-P:scalafix:${x.getAbsolutePath}"
             }
-          streams.value.log.info("CONFIG: " + config)
           scalafixInternalJar.value.map { jar =>
             Seq(
               Some(s"-Xplugin:${jar.getAbsolutePath}"),
