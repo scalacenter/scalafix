@@ -1,6 +1,8 @@
 package scalafix.tests
 
 import scala.util.matching.Regex
+import scalafix.rewrite.ExplicitImplicit
+import scalafix.rewrite.Rewrite
 import scalafix.util.logger
 
 import java.io.File
@@ -20,11 +22,9 @@ object Command {
   val testCompile =
     Command("test:compile", optional = true)
   val scalafixTask =
-    Command("test:compile", optional = true)
+    Command("scalafix", optional = true)
   def default: Seq[Command] = Seq(
-    testCompile,
-    scalafixTask,
-    testCompile
+    scalafixTask
   )
   val RepoName: Regex = ".*/([^/].*).git".r
 }
@@ -33,7 +33,9 @@ case class Command(cmd: String, optional: Boolean = false)
 case class ItTest(name: String,
                   repo: String,
                   hash: String,
-                  cmds: Seq[Command] = Command.default) {
+                  cmds: Seq[Command] = Command.default,
+                  rewrites: Seq[Rewrite] = Rewrite.defaultRewrites,
+                  addCoursier: Boolean = true) {
   def repoName: String = repo match {
     case Command.RepoName(x) => x
     case _ =>
@@ -47,7 +49,7 @@ case class ItTest(name: String,
 // Clones the repo, adds scalafix as a plugin and tests that the
 // following commands success:
 // 1. test:compile
-// 2. test:compile
+// 2. scalafix
 // 3. test:compile
 abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
     extends FunSuite
@@ -76,6 +78,18 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
     write.over(
       t.workingPath / "project" / "build.properties",
       "sbt.version=0.13.13\n"
+    )
+    if (t.addCoursier) {
+      write.over(
+        t.workingPath / "project" / "plugin-coursier.sbt",
+        """addSbtPlugin("io.get-coursier" % "sbt-coursier" % "1.0.0-M15")
+        """.stripMargin
+      )
+    }
+    write.over(
+      t.workingPath / ".scalafix.conf",
+      s"""rewrites = [${t.rewrites.mkString(", ")}]
+         |""".stripMargin
     )
     write.append(
       t.workingPath / "project" / "plugins.sbt",
@@ -111,6 +125,17 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
   check()
 }
 
+class Circe
+    extends IntegrationPropertyTest(
+      ItTest(
+        name = "circe",
+        repo = "https://github.com/circe/circe.git",
+        hash = "717e1d7d5d146cbd0455770771261e334f419b14",
+        rewrites = Seq(ExplicitImplicit)
+      ),
+      skip = true
+    )
+
 class Slick
     extends IntegrationPropertyTest(
       ItTest(
@@ -127,7 +152,9 @@ class Scalaz
         name = "scalaz",
         repo = "https://github.com/scalaz/scalaz.git",
         hash = "cba156fb2f1f178dbaa32cbca21e95f8199d2f91"
-      ))
+      ),
+      skip = true // kind-projector causes problems.
+    )
 
 class Cats
     extends IntegrationPropertyTest(
@@ -143,7 +170,11 @@ class Monix
         name = "monix",
         repo = "https://github.com/monix/monix.git",
         hash = "45c15b5989685668f5ad7ec886af6b74b881a7b4"
-      )
+      ),
+      // monix fails on reporter info messages and scala.meta has a parser bug.
+      // Pipe.scala:32: error: identifier expected but ] found
+      // [error] extends ObservableLike[O, ({type ?[+?] = Pipe[I, ?]})#?] {
+      skip = true
     )
 
 class ScalaJs
@@ -166,7 +197,8 @@ class ScalacheckShapeless
       ItTest(
         name = "scalacheck-shapeless",
         repo = "https://github.com/alexarchambault/scalacheck-shapeless.git",
-        hash = "bb25ecee23c42148f66d9b27920a89ba5cc189d2"
+        hash = "bb25ecee23c42148f66d9b27920a89ba5cc189d2",
+        addCoursier = false
       ),
       skip = true // coursier can't resolve locally published snapshot on ci, sbt.ivy.home is not read.
     )

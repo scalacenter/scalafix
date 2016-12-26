@@ -44,9 +44,11 @@ class ScalafixNscComponent(plugin: Plugin,
           runOn(unit)
         } catch {
           case NonFatal(e) =>
-            global.reporter.warning(
+            global.reporter.info(
               NoPosition,
-              s"Failed to fix ${unit.source}. Error: ${e.getMessage}. $e")
+              s"Failed to fix ${unit.source}. Error: ${e.getMessage}. $e",
+              force = true
+            )
         }
       }
     }

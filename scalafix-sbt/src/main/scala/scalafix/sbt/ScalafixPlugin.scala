@@ -39,6 +39,10 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
           """Serves as a caching layer for extracting the jar location of the
             |scalafix-nsc compiler plugin. If the dependency was added to all
             |projects, the (slow) update task will be re-run for every project.""".stripMargin,
+        resolvers += Resolver.url(
+          "scalameta",
+          url("http://dl.bintray.com/scalameta/maven")
+        )(Resolver.ivyStylePatterns),
         scalaVersion := version,
         libraryDependencies ++= Seq(
           "ch.epfl.scala" %% "scalafix-nsc" % scalafixVersion
@@ -93,12 +97,14 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
               if (!x.isFile) streams.value.log.warn(s"File does not exist: $x")
               s"-P:scalafix:${x.getAbsolutePath}"
             }
-          scalafixInternalJar.value.map { jar =>
-            Seq(
-              Some(s"-Xplugin:${jar.getAbsolutePath}"),
-              config
-            ).flatten
-          }.getOrElse(Nil)
+          scalafixInternalJar.value
+            .map { jar =>
+              Seq(
+                Some(s"-Xplugin:${jar.getAbsolutePath}"),
+                config
+              ).flatten
+            }
+            .getOrElse(Nil)
         }
       }
     )

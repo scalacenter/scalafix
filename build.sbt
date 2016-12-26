@@ -4,7 +4,10 @@ import sbtbuildinfo.BuildInfoKey.Entry
 organization in ThisBuild := "ch.epfl.scala"
 version in ThisBuild := "0.2.1-SNAPSHOT"
 
-lazy val crossVersions = Seq("2.11.8", "2.12.1")
+lazy val crossVersions = Seq(
+  "2.11.8",
+  "2.12.1"
+)
 
 lazy val buildSettings = Seq(
   assemblyJarName in assembly := "scalafix.jar",
@@ -44,6 +47,7 @@ lazy val release = Command.command("release") { s =>
 }
 
 lazy val commonSettings = Seq(
+  resolvers += Resolver.bintrayIvyRepo("scalameta", "maven"),
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
   scalacOptions := compilerOptions,
   scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
