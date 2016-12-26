@@ -35,4 +35,24 @@ object Patch {
       .map(_.syntax)
       .mkString("")
   }
+
+  def replace(token: Token, replacement: String): Patch =
+    Patch(token, token, replacement)
+
+  def replace(tree: Tree, replacement: String): Patch =
+    Patch(tree.tokens.head, tree.tokens.last, replacement)
+
+  def insertBefore(token: Token, toPrepend: String) =
+    replace(token, s"$toPrepend${token.syntax}")
+
+  def insertBefore(tree: Tree, toPrepend: String): Patch =
+    replace(tree, s"$toPrepend${tree.syntax}")
+
+  def insertAfter(token: Token, toAppend: String) =
+    replace(token, s"$toAppend${token.syntax}")
+
+  def insertAfter(tree: Tree, toAppend: String): Patch =
+    replace(tree, s"${tree.syntax}$toAppend")
+
+  def delete(tree: Tree): Patch = replace(tree, "")
 }

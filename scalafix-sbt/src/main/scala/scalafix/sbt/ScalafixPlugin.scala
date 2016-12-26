@@ -19,6 +19,7 @@ object rewrite {
   val ProcedureSyntax = "ProcedureSyntax"
   val ExplicitImplicit = "ExplicitImplicit"
   val VolatileLazyVal = "VolatileLazyVal"
+  val Xor2Either = "Xor2Either"
 }
 
 object ScalafixPlugin extends AutoPlugin with ScalafixKeys {

@@ -111,6 +111,16 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
   check()
 }
 
+class Circe
+    extends IntegrationPropertyTest(
+      ItTest(
+        name = "circe",
+        repo = "https://github.com/circe/circe.git",
+        hash = "717e1d7d5d146cbd0455770771261e334f419b14"
+      ),
+      skip = false
+    )
+
 class Slick
     extends IntegrationPropertyTest(
       ItTest(

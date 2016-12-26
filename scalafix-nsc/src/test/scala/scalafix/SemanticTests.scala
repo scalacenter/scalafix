@@ -24,7 +24,11 @@ class SemanticTests extends FunSuite {
       sys.error(s"ReflectToMeta initialization failed: $msg")
     val classpath = System.getProperty("sbt.paths.scalafixNsc.test.classes")
     val pluginpath = System.getProperty("sbt.paths.plugin.jar")
-    val options = "-cp " + classpath + " -Xplugin:" + pluginpath + ":" + classpath + " -Xplugin-require:scalafix"
+    val scalacOptions = Seq[String](
+      "-Yrangepos" // necessary to match reflect positions with meta positions.
+    ).mkString(" ", " ", " ")
+    val options = "-cp " + classpath + " -Xplugin:" + pluginpath + ":" + classpath + " -Xplugin-require:scalafix" + scalacOptions
+
     val args = CommandLineParser.tokenize(options)
     val emptySettings = new Settings(
       error => fail(s"couldn't apply settings because $error"))
