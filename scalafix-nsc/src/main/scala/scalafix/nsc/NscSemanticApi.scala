@@ -2,7 +2,9 @@ package scalafix.nsc
 
 import scala.collection.mutable
 import scala.meta.Dialect
+import scala.meta.Tree
 import scala.meta.Type
+import scala.meta.parsers.Parse
 import scala.reflect.internal.util.SourceFile
 import scala.{meta => m}
 import scalafix.Fixed
@@ -14,6 +16,13 @@ import scalafix.util.logger
 case class SemanticContext(enclosingPackage: String, inScope: List[String])
 
 trait NscSemanticApi extends ReflectToolkit {
+  implicit class XtensionPosition(gpos: scala.reflect.internal.util.Position) {
+    def matches(mpos: m.Position): Boolean = {
+      gpos.isDefined &&
+      gpos.start == mpos.start.offset &&
+      gpos.end == mpos.end.offset
+    }
+  }
 
   /** Returns a map from byte offset to type name at that offset. */
   private def offsetToType(gtree: g.Tree,
@@ -97,6 +106,23 @@ trait NscSemanticApi extends ReflectToolkit {
     builder
   }
 
+  private def collect[T](gtree: g.Tree)(
+      pf: PartialFunction[g.Tree, T]): Seq[T] = {
+    val builder = Seq.newBuilder[T]
+    val f = pf.lift
+    def iter(gtree: g.Tree): Unit = {
+      f(gtree).foreach(builder += _)
+      gtree match {
+        case t @ g.TypeTree() if t.original != null && t.original.nonEmpty =>
+          iter(t.original)
+        case _ =>
+          gtree.children.foreach(iter)
+      }
+    }
+    iter(gtree)
+    builder.result()
+  }
+
   private def getSemanticApi(unit: g.CompilationUnit,
                              config: ScalafixConfig): SemanticApi = {
     val offsets = offsetToType(unit.body, config.dialect)
@@ -110,6 +136,21 @@ trait NscSemanticApi extends ReflectToolkit {
           case _ =>
             None
         }
+      }
+
+      override def desugared[T <: Tree](tree: T)(
+          implicit parse: Parse[T]): Option[T] = {
+        val result = collect[Option[T]](unit.body) {
+//          case t if { logger.elem(t.toString(), g.showRaw(t)); false } => None
+          case t if t.pos.matches(tree.pos) =>
+            import scala.meta._
+            parse(m.Input.String(t.toString()), config.dialect) match {
+              case m.parsers.Parsed.Success(x) => Some(x)
+              case _ => None
+            }
+        }.flatten
+//        logger.elem(result)
+        result.headOption
       }
     }
   }
