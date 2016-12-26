@@ -4,7 +4,10 @@ import sbtbuildinfo.BuildInfoKey.Entry
 organization in ThisBuild := "ch.epfl.scala"
 version in ThisBuild := "0.2.1-SNAPSHOT"
 
-lazy val crossVersions = Seq("2.11.8", "2.12.1")
+lazy val crossVersions = Seq(
+  "2.11.8"
+//  , "2.12.1" // disabled due to https://github.com/scalameta/scalameta/issues/561
+)
 
 lazy val buildSettings = Seq(
   assemblyJarName in assembly := "scalafix.jar",
