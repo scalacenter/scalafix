@@ -34,7 +34,8 @@ case class ItTest(name: String,
                   repo: String,
                   hash: String,
                   cmds: Seq[Command] = Command.default,
-                  rewrites: Seq[Rewrite] = Rewrite.defaultRewrites) {
+                  rewrites: Seq[Rewrite] = Rewrite.defaultRewrites,
+                  addCoursier: Boolean = true) {
   def repoName: String = repo match {
     case Command.RepoName(x) => x
     case _ =>
@@ -78,6 +79,13 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
       t.workingPath / "project" / "build.properties",
       "sbt.version=0.13.13\n"
     )
+    if (t.addCoursier) {
+      write.over(
+        t.workingPath / "project" / "plugin-coursier.sbt",
+        """addSbtPlugin("io.get-coursier" % "sbt-coursier" % "1.0.0-M15")
+        """.stripMargin
+      )
+    }
     write.over(
       t.workingPath / ".scalafix.conf",
       s"""rewrites = [${t.rewrites.mkString(", ")}]
@@ -144,7 +152,9 @@ class Scalaz
         name = "scalaz",
         repo = "https://github.com/scalaz/scalaz.git",
         hash = "cba156fb2f1f178dbaa32cbca21e95f8199d2f91"
-      ))
+      ),
+      skip = true // kind-projector causes problems.
+    )
 
 class Cats
     extends IntegrationPropertyTest(
@@ -160,7 +170,11 @@ class Monix
         name = "monix",
         repo = "https://github.com/monix/monix.git",
         hash = "45c15b5989685668f5ad7ec886af6b74b881a7b4"
-      )
+      ),
+      // monix fails on reporter info messages and scala.meta has a parser bug.
+      // Pipe.scala:32: error: identifier expected but ] found
+      // [error] extends ObservableLike[O, ({type ?[+?] = Pipe[I, ?]})#?] {
+      skip = true
     )
 
 class ScalaJs
@@ -183,7 +197,8 @@ class ScalacheckShapeless
       ItTest(
         name = "scalacheck-shapeless",
         repo = "https://github.com/alexarchambault/scalacheck-shapeless.git",
-        hash = "bb25ecee23c42148f66d9b27920a89ba5cc189d2"
+        hash = "bb25ecee23c42148f66d9b27920a89ba5cc189d2",
+        addCoursier = false
       ),
       skip = true // coursier can't resolve locally published snapshot on ci, sbt.ivy.home is not read.
     )
