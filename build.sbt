@@ -1,8 +1,8 @@
 import sbt.ScriptedPlugin
 import sbt.ScriptedPlugin._
-import sbtbuildinfo.BuildInfoKey.Entry
+
 organization in ThisBuild := "ch.epfl.scala"
-version in ThisBuild := "0.2.1-SNAPSHOT"
+version in ThisBuild := "0.2.1"
 
 lazy val crossVersions = Seq(
   "2.11.8",
@@ -55,6 +55,7 @@ lazy val commonSettings = Seq(
 )
 
 lazy val publishSettings = Seq(
+  commands += release,
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
     if (isSnapshot.value)
