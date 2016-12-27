@@ -1,6 +1,13 @@
 @import Main._
 @import scalafix.Readme._
 @sect{Changelog}
+  @sect{0.2.1}
+    @ul
+      @li
+        @code{sbt scalafix} runs @code{ExplicitImplicit} and @code{ProcedureSyntax}
+        by default when there is no @code{.scalafix.conf}.
+      @li
+        Upgraded scala.meta dependency to fix parsing + pretty-printer bugs.
   @sect{0.2.0}
     @ul
       @li
