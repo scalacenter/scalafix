@@ -26,10 +26,18 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
   private val Version = "2\\.(\\d\\d)\\..*".r
   private val scalafixVersion = _root_.scalafix.Versions.version
   private val disabled = sys.props.contains("scalafix.disable")
-  private def jar(report: UpdateReport): Option[File] =
-    report.allFiles.find { x =>
-      x.getAbsolutePath.matches(s".*scalafix-nsc_2.1[12].jar$$")
-    }
+  private def jar(report: UpdateReport): File =
+    report.allFiles
+      .find { x =>
+        x.getAbsolutePath.matches(
+          // The published
+          s".*scalafix-nsc_2.1[12](-$scalafixVersion)?.jar$$")
+      }
+      .getOrElse {
+        throw new IllegalStateException(
+          s"Unable to resolve scalafix-nsc compiler plugin. Report: $report"
+        )
+      }
 
   private def stub(version: String) = {
     val Version(id) = version
@@ -76,9 +84,9 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
           .taskDyn[Option[File]] {
             scalaVersion.value match {
               case Version("11") =>
-                Def.task(jar((update in scalafix211).value))
+                Def.task(Option(jar((update in scalafix211).value)))
               case Version("12") =>
-                Def.task(jar((update in scalafix212).value))
+                Def.task(Option(jar((update in scalafix212).value)))
               case _ =>
                 Def.task(None)
             }
