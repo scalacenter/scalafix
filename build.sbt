@@ -37,12 +37,10 @@ lazy val gitPushTag = taskKey[Unit]("Push to git tag")
 // Custom scalafix release command. Tried sbt-release but didn't play well with sbt-doge.
 lazy val release = Command.command("release") { s =>
   "clean" ::
-    "scalafix-sbt/publishSigned" ::
-      "very core/publishSigned" ::
-        "very scalafix-nsc/publishSigned" ::
-          "sonatypeRelease" ::
-            "gitPushTag" ::
-              s
+    "very publishSigned" ::
+      "sonatypeRelease" ::
+        "gitPushTag" ::
+          s
 }
 
 lazy val commonSettings = Seq(
