@@ -101,6 +101,11 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
 
   case class FailOk(cmd: String, msg: String) extends Exception(msg)
   def check(): Unit = {
+
+    def assertDiffIsNonEmpty(): Unit = {
+      %%("git", "diff", "--name-only")(t.workingPath).out.lines
+        .exists(_.endsWith(".scala"))
+    }
     def sbt(cmd: String): Unit = {
       val id = s"${t.name}/$cmd"
       logger.info(s"Running $id")
@@ -111,12 +116,8 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
     }
     val testFun: () => Any = { () =>
       setup(t)
-      try {
-        t.cmds.map(_.cmd).foreach(sbt)
-      } catch {
-        case FailOk(cmd, msg) =>
-          logger.warn(s"Failed to run $cmd, error $msg")
-      }
+      t.cmds.map(_.cmd).foreach(sbt)
+      assertDiffIsNonEmpty()
     }
 
     if (skip) ignore(t.name)(testFun())

@@ -2,7 +2,6 @@ import sbt.ScriptedPlugin
 import sbt.ScriptedPlugin._
 
 organization in ThisBuild := "ch.epfl.scala"
-version in ThisBuild := "0.2.1"
 
 lazy val crossVersions = Seq(
   "2.11.8",
@@ -68,7 +67,7 @@ lazy val publishSettings = Seq(
     "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
   homepage := Some(url("https://github.com/scalacenter/scalafix")),
   autoAPIMappings := true,
-  apiURL := Some(url("https://scalacenter.github.io/scalafix/docs/")),
+  apiURL := Some(url("https://scalacenter.github.io/scalafix/")),
   scmInfo := Some(
     ScmInfo(
       url("https://github.com/scalacenter/scalafix"),
@@ -86,6 +85,7 @@ lazy val publishSettings = Seq(
 )
 
 lazy val noPublish = Seq(
+  publishArtifact := false,
   publish := {},
   publishLocal := {}
 )
@@ -94,6 +94,7 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
   buildInfoKeys := Seq[BuildInfoKey](
     name,
     version,
+    "stableVersion" -> version.value, // TODO(olafur) customize.
     scalaVersion,
     sbtVersion
   ),
