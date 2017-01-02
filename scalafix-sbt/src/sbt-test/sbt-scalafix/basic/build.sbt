@@ -1,5 +1,3 @@
-scalafixConfig in ThisBuild := Some(baseDirectory.value / ".scalafix.conf")
-
 lazy val root = project
   .in(file("."))
   .aggregate(
@@ -13,36 +11,8 @@ lazy val p2 = project.settings(scalaVersion := "2.10.5")
 lazy val p3 = project.settings(scalaVersion := "2.12.1")
 
 TaskKey[Unit]("check") := {
-  // returns true if test succeeded, else false.
-  def assertContentMatches(file: String, expectedUntrimmed: String): Boolean = {
-    val expected = expectedUntrimmed.trim
-    val obtained = new String(
-      java.nio.file.Files.readAllBytes(
-        java.nio.file.Paths.get(
-          new java.io.File(file).toURI
-        ))
-    ).trim
-
-    if (obtained.diff(expected).nonEmpty ||
-        expected.diff(obtained).nonEmpty) {
-      val msg =
-        s"""File: $file
-           |Obtained output:
-           |$obtained
-           |Expected:
-           |$expected
-           |Diff:
-           |${obtained.diff(expected)}
-           |${expected.diff(obtained)}
-           |""".stripMargin
-      streams.value.log.error(file)
-      streams.value.log.error(msg)
-      false
-    } else {
-      streams.value.log.success(file)
-      true
-    }
-  }
+  val assertContentMatches: ((String, String) => Boolean) =
+    scalafix.sbt.ScalafixTestUtility.assertContentMatches(streams.value) _
   val expected =
     """object Main {
       |  implicit val x: Int = 2
