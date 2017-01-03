@@ -14,13 +14,6 @@ trait ScalafixKeys {
     taskKey[Option[File]]("Path to scalafix-nsc compiler plugin jar.")
 }
 
-object rewrite {
-  // TODO(olafur) share these with scalafix-core.
-  val ProcedureSyntax = "ProcedureSyntax"
-  val ExplicitImplicit = "ExplicitImplicit"
-  val VolatileLazyVal = "VolatileLazyVal"
-}
-
 object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
   object autoImport extends ScalafixKeys
   private val Version = "2\\.(\\d\\d)\\..*".r
@@ -30,7 +23,9 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
     report.allFiles
       .find { x =>
         x.getAbsolutePath.matches(
-          // The published
+          // publishLocal produces jars with name `VERSION/scalafix-nsc_2.11.jar`
+          // while the jars published with publishSigned to Maven are named
+          // `scalafix-nsc_2.11-VERSION.jar`
           s".*scalafix-nsc_2.1[12](-$scalafixVersion)?.jar$$")
       }
       .getOrElse {
@@ -47,10 +42,10 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
           """Serves as a caching layer for extracting the jar location of the
             |scalafix-nsc compiler plugin. If the dependency was added to all
             |projects, the (slow) update task will be re-run for every project.""".stripMargin,
-        resolvers += Resolver.url(
-          "scalameta",
-          url("http://dl.bintray.com/scalameta/maven")
-        )(Resolver.ivyStylePatterns),
+        resolvers += Resolver.bintrayIvyRepo("scalameta", "maven"),
+        publishLocal := {},
+        publish := {},
+        publishArtifact := false,
         scalaVersion := version,
         libraryDependencies ++= Seq(
           "ch.epfl.scala" %% "scalafix-nsc" % scalafixVersion
