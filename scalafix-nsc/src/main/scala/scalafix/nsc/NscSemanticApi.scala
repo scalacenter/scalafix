@@ -14,105 +14,55 @@ import scalafix.util.logger
 case class SemanticContext(enclosingPackage: String, inScope: List[String])
 
 trait NscSemanticApi extends ReflectToolkit {
+  case class ImportOracle(oracle: mutable.Map[Int, g.Scope])
 
-  /** Returns a map from byte offset to type name at that offset. */
-  private def offsetToType(gtree: g.Tree,
-                           dialect: Dialect): mutable.Map[Int, m.Type] = {
-    // TODO(olafur) Come up with more principled approach, this is hacky as hell.
-    // Operating on strings is definitely the wrong way to approach this
-    // problem. Ideally, this implementation uses the tree/symbol api. However,
-    // while I'm just trying to get something simple working I feel a bit more
-    // productive with this hack.
-    val builder = mutable.Map.empty[Int, m.Type]
-    def add(gtree: g.Tree, ctx: SemanticContext): Unit = {
-
-      /** Removes redudant Foo.this.ActualType prefix from a type */
-      val stripRedundantThis: m.Type => m.Type = _.transform {
-        case m.Term.Select(m.Term.This(m.Name.Indeterminate(_)), qual) =>
-          qual
-        case m.Type.Select(m.Term.This(m.Name.Indeterminate(_)), qual) =>
-          qual
-      }.asInstanceOf[m.Type]
-
-      val stripImportedPrefix: m.Type => m.Type = _.transform {
-        case prefix @ m.Type.Select(_, name)
-            if ctx.inScope.contains(prefix.syntax) =>
-          name
-      }.asInstanceOf[m.Type]
-
-      val stripEnclosingPackage: m.Type => m.Type = _.transform {
-        case typ: m.Type.Ref =>
-          import scala.meta._
-          typ.syntax.stripPrefix(ctx.enclosingPackage).parse[m.Type].get
-      }.asInstanceOf[m.Type]
-
-      val cleanUp: (Type) => Type =
-        stripRedundantThis andThen
-          stripImportedPrefix andThen
-          stripEnclosingPackage
-
-      val parsed = dialect(gtree.toString()).parse[m.Type]
-      parsed match {
-        case m.Parsed.Success(ast) =>
-          builder(gtree.pos.point) = cleanUp(ast)
-        case _ =>
-      }
-    }
-
-    def members(tpe: g.Type): Iterable[String] = tpe.members.collect {
-      case x if !x.fullName.contains("$") =>
-        x.fullName
-    }
-
-    def evaluate(ctx: SemanticContext, gtree: g.Tree): SemanticContext = {
-      gtree match {
-        case g.ValDef(_, _, tpt, _) if tpt.nonEmpty => add(tpt, ctx)
-        case g.DefDef(_, _, _, _, tpt, _) => add(tpt, ctx)
-        case _ =>
-      }
-      gtree match {
-        case g.PackageDef(pid, _) =>
-          val newCtx = ctx.copy(enclosingPackage = pid.symbol.fullName + ".",
-                                inScope = ctx.inScope ++ members(pid.tpe))
-          gtree.children.foldLeft(newCtx)(evaluate)
-          ctx // leaving pkg scope
-        case t: g.Template =>
-          val newCtx =
-            ctx.copy(inScope = t.symbol.owner.fullName :: ctx.inScope)
-          gtree.children.foldLeft(newCtx)(evaluate)
-          ctx
+  private class ScopeTraverser(val acc: g.Scope) extends g.Traverser {
+    override def traverse(t: g.Tree): Unit = {
+      t match {
         case g.Import(expr, selectors) =>
-          val newNames: Seq[String] = selectors.collect {
-            case g.ImportSelector(from, _, to, _) if from == to =>
-              Seq(s"${expr.symbol.fullName}.$from")
-            case g.ImportSelector(_, _, null, _) =>
-              members(expr.tpe)
-          }.flatten
-          ctx.copy(inScope = ctx.inScope ++ newNames)
-        case _ =>
-          gtree.children.foldLeft(ctx)(evaluate)
+        case _ => super.traverse(t)
       }
     }
-    evaluate(SemanticContext("", Nil), gtree)
-    builder
+  }
+
+  private class OffsetTraverser extends g.Traverser {
+    val offsets = mutable.Map[Int, g.Tree]()
+    val treeOwners = mutable.Map[g.Tree, g.Tree]()
+    override def traverse(t: g.Tree): Unit = {
+      t match {
+        case g.ValDef(_, _, tpt, _) if tpt.nonEmpty =>
+          offsets += (tpt.pos.point -> tpt)
+        case _ => super.traverse(t)
+      }
+    }
   }
 
   private def getSemanticApi(unit: g.CompilationUnit,
                              config: ScalafixConfig): SemanticApi = {
-    val offsets = offsetToType(unit.body, config.dialect)
     if (!g.settings.Yrangepos.value) {
       val instructions = "Please re-compile with the scalac option -Yrangepos enabled"
       val explanation  = "This option is necessary for the semantic API to function"
       sys.error(s"$instructions. $explanation")
     }
 
+    val traverser = new OffsetTraverser
+    traverser.traverse(unit.body)
+
+    def toMetaType(tp: g.Tree) =
+      config.dialect(tp.toString).parse[m.Type].get
+      
     new SemanticApi {
+      override def shortenType(tpe: m.Type, pos: m.Position): (m.Type, Seq[m.Ref]) = {
+        val gtree = traverser.offsets(pos.start.offset)
+        val ownerTree = traverser.treeOwners(gtree)
+        (tpe -> Nil)
+      }
       override def typeSignature(defn: m.Defn): Option[m.Type] = {
         defn match {
           case m.Defn.Val(_, Seq(pat), _, _) =>
-            offsets.get(pat.pos.start.offset)
+            traverser.offsets.get(pat.pos.start.offset).map(toMetaType)
           case m.Defn.Def(_, name, _, _, _, _) =>
-            offsets.get(name.pos.start.offset)
+            traverser.offsets.get(name.pos.start.offset).map(toMetaType)
           case _ =>
             None
         }

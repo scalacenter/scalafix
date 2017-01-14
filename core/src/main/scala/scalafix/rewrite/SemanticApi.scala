@@ -1,7 +1,6 @@
 package scalafix.rewrite
 
-import scala.meta.Defn
-import scala.meta.Type
+import scala.meta._
 
 /** A custom semantic api for scalafix rewrites.
   *
@@ -18,4 +17,7 @@ trait SemanticApi {
 
   /** Returns the type annotation for given val/def. */
   def typeSignature(defn: Defn): Option[Type]
+
+  /**  */
+  def shortenType(tpe: Type, pos: Position): (Type, Seq[Ref])
 }

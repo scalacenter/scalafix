@@ -7,13 +7,14 @@ class A {
 class A {
   implicit val x: List[Int] = List(1)
 }
-<<< map
+<<< ONLY map
 class A {
   implicit val x = Map(1 -> "STRING")
 }
 >>>
+import scala.collection.immutable.Map
 class A {
-  implicit val x: scala.collection.immutable.Map[Int, String] =
+  implicit val x: Map[Int, String] =
     Map(1 -> "STRING")
 }
 <<< def works
