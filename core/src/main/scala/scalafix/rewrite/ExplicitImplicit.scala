@@ -43,8 +43,6 @@ case object ExplicitImplicit extends Rewrite {
           }
           .getOrElse(ast.tokens.head)
       } yield {
-        logger.elem(typ)
-
         val (shortenedTpe, missingImports) = semantic.shortenType(typ, defn)
         Patch(replace, replace, s"$replace: ${shortenedTpe.syntax}") +:
           missingImports.map(missingImport =>

@@ -11,32 +11,67 @@ import scalafix.ScalafixConfig
 import scalafix.rewrite.SemanticApi
 import scalafix.util.logger
 
-case class SemanticContext(enclosingPackage: String, inScope: List[String])
-
 trait NscSemanticApi extends ReflectToolkit {
-  case class ImportOracle(oracle: mutable.Map[Int, g.Scope])
+  private class ScopeTraverser extends g.Traverser {
+    // TODO(jvican): PackageRoot seems to get also first pkg's members
+    val topLevelPkg: g.Symbol = g.rootMirror.RootPackage
+    val scopes = mutable.Map[g.Symbol, g.Scope](topLevelPkg -> g.newScope)
+    var enclosingScope = scopes(topLevelPkg)
 
-  private class ScopeTraverser(val acc: g.Scope) extends g.Traverser {
-    def addAllMembers(sym: g.Symbol) =
-      sym.info.members
-        .filterNot(s => s.isRoot || s.isPackageObjectOrClass)
-        .foreach(acc.enter)
+    /** The compiler sets different symbols for `PackageDef`s
+      * and term names pointing to that package. Get the
+      * underlying symbol of `moduleClass` for them to be equal. */
+    @inline
+    def getUnderlyingPkgSymbol(pkgSym: g.Symbol) =
+      pkgSym.asModule.moduleClass
+
+    def getScope(sym: g.Symbol): g.Scope = {
+      logger.elem(scopes.keySet.map(_.hashCode))
+      scopes.getOrElseUpdate(sym,
+                             scopes
+                               .get(sym.owner)
+                               .map(_.cloneScope)
+                               .getOrElse(scopes(topLevelPkg)))
+    }
+
+    def addAll(members: g.Scope, scope: g.Scope): g.Scope = {
+      members
+        .filterNot(s =>
+          s.isRoot || s.isPackageObjectOrClass || s.hasPackageFlag)
+        .foreach(scope.enter)
+      scope
+    }
+
+    def addAllMembers(sym: g.Symbol): g.Scope = {
+      val currentScope = getScope(sym)
+      addAll(sym.info.members, currentScope)
+    }
+
     override def traverse(t: g.Tree): Unit = {
       t match {
         case pkg: g.PackageDef =>
-          addAllMembers(pkg.pid.symbol)
-        case g.Import(expr, selectors) =>
-          logger.elem(t)
-          val exprSym = expr.symbol
-          exprSym.info.members
-            .filter { m =>
-              selectors.exists(_.name == m.name)
-            }
-            .foreach(acc.enter)
+          val sym = getUnderlyingPkgSymbol(pkg.pid.symbol)
+          val currentScope = addAllMembers(sym)
+          val previousScope = enclosingScope
+
+          enclosingScope = currentScope
+          super.traverse(t)
+          enclosingScope = previousScope
+
+        case g.Import(pkg, selectors) =>
+          val pkgSym = pkg.symbol
+          val importedNames = selectors.map(_.name.decode).toSet
+          val imported = pkgSym.info.members.filter(m =>
+            importedNames.contains(m.name.decode))
+          addAll(imported, enclosingScope)
+
           selectors.foreach {
             case isel @ g.ImportSelector(g.TermName("_"), _, null, _) =>
-              addAllMembers(exprSym)
+              addAll(pkgSym.info.members, enclosingScope)
+            // TODO(jvican): Handle renames
+            case _ =>
           }
+          super.traverse(t)
         case _ => super.traverse(t)
       }
     }
@@ -55,6 +90,14 @@ trait NscSemanticApi extends ReflectToolkit {
           offsets += (tpt.pos.point -> tpt)
           treeOwners += (t.pos.point -> t)
         case _ => super.traverse(t)
+      }
+    }
+  }
+
+  private class FQNMetaConverter extends g.Traverser {
+    override def traverse(t: g.Tree): Unit = {
+      t match {
+        case t => t
       }
     }
   }
@@ -81,57 +124,136 @@ trait NscSemanticApi extends ReflectToolkit {
       }
     }
 
-    val st = new ScopeTraverser(g.newScope)
+    val st = new ScopeTraverser
     st.traverse(unit.body)
-    logger.elem(st.acc)
-    val globallyImported = st.acc.map(s => parseAsType(s.fullName)).toSet
+    val globalPkg = st.topLevelPkg
+    val globallyImported = st.scopes(globalPkg)
 
     val traverser = new OffsetTraverser
     traverser.traverse(unit.body)
 
-    new SemanticApi {
-      override def shortenType(tpe: m.Type, t: m.Tree): (m.Type, Seq[m.Ref]) = {
-        val tpePos = gimmePosition(t).start.offset
-        val ownerTree = traverser.treeOwners(tpePos)
-        val gtpeTree = traverser.offsets(tpePos)
-        val tpeSymbol = gtpeTree.symbol
-        val symbol = ownerTree match {
-          case st: g.SymTree => st.symbol
-          case _ => g.NoSymbol
+    def typeRefsInTpe(tpe: m.Type): Seq[m.Ref] = {
+      val b = Seq.newBuilder[m.Ref]
+      def loop(t: m.Tree): Unit = {
+        t match {
+          case s: m.Type.Select => b += s
+          case s: m.Term.Select => b += s
+          case _ => t.children.foreach(loop)
         }
-        logger.elem(globallyImported)
+      }
+      loop(tpe)
+      b.result()
+    }
 
-        // TODO(jvican): Only maintain types and packages
-        val allMembersOwners = (ownerTree.symbol.ownerChain
-            .flatMap(_.info.members.toList)
-            .map(_.fullName)) :+ tpeSymbol.fullName
+    def stripRedundantPkg(ref: m.Ref, enclosingPkg: Option[String]): m.Ref = {
+      ref
+        .transform {
+          case ref: m.Term.Select if enclosingPkg.contains(ref.qual.syntax) =>
+            ref.name
+        }
+        .asInstanceOf[m.Ref]
+    }
 
-        val missing =
-          tpeSymbol.ownerChain
-            .takeWhile(s => !st.acc.exists(_.fullName == s.fullName))
-            .filterNot { s =>
-              allMembersOwners.contains(s.fullName)
+    def stripThis(ref: m.Tree) = {
+      ref.transform {
+        case m.Term.Select(m.Term.This(m.Name.Indeterminate(_)), qual) =>
+          qual
+        case m.Type.Select(m.Term.This(m.Name.Indeterminate(_)), qual) =>
+          qual
+      }
+    }
+
+    def toFQN(ref: m.Ref, inScope: g.Scope): m.Ref = {
+      logger.elem(ref.structure)
+      (ref
+        .transform {
+          case ts: m.Type.Select =>
+            val sym = inScope.lookup(g.TypeName(ts.name.value))
+            if (sym.exists) config.dialect(sym.fullName).parse[m.Type].get
+            else ts
+          case ts: m.Term.Select =>
+            val sym = inScope.lookup(g.TermName(ts.name.value))
+            if (sym.exists)
+            config.dialect(sym.fullName).parse[m.Type].get
+            else ts
+          case tn: m.Type.Name =>
+            //val sym = inScope.lookup(ts.qual)
+            logger.elem(tn)
+
+            tn
+        })
+        .asInstanceOf[m.Ref]
+    }
+
+    new SemanticApi {
+      override def shortenType(tpe: m.Type,
+                               owner: m.Tree): (m.Type, Seq[m.Ref]) = {
+        val ownerTpePos = gimmePosition(owner).start.offset
+        val ownerTree = traverser.treeOwners(ownerTpePos)
+        val gtpeTree = traverser.offsets(ownerTpePos)
+        val ownerSymbol = ownerTree.symbol
+        val contextOwnerChain = ownerSymbol.ownerChain
+
+        // Clean up invalid syntactic imports
+        def keepOwner(s: g.Symbol): Boolean =
+          !(s.isRoot ||
+            s.isEmptyPackage ||
+            s.isPackageObjectOrClass ||
+            g.definitions.ScalaPackageClass == s)
+
+        def keepValidReference(s: g.Symbol): Boolean =
+          ((s.isStaticModule && !s.isEmptyPackage) || s.isClass ||
+            (s.isValue && !s.isMethod && !s.isLabel))
+
+        def mixScopes(sc: g.Scope, sc2: g.Scope) = {
+          val newScope = sc.cloneScope
+          sc2.foreach(s => newScope.enter(s))
+          newScope
+        }
+
+        val bottomUpScope = contextOwnerChain
+          .filter(keepOwner)
+          .filter(s => s.isType)
+          .map(_.info.members.filter(keepValidReference))
+          .reduce(mixScopes _)
+        logger.elem(bottomUpScope)
+        val enclosingPkg =
+          contextOwnerChain
+            .find(s => s.hasPackageFlag)
+            .getOrElse(globalPkg)
+        val closestScope =
+          enclosingPkg.ownerChain
+            .foldLeft(globallyImported) {
+              (accScope: g.Scope, owner: g.Symbol) =>
+                if (accScope != globallyImported) accScope
+                else st.scopes.getOrElse(owner, globallyImported)
             }
-            .filterNot(s => s.isEmptyPackage || s.hasPackageFlag)
+        logger.elem(closestScope)
+
+        val accessible = bottomUpScope.map(_.fullName).toSet ++ closestScope
+            .map(s => parseAsType(s.fullName).syntax)
 
         val missingRefs =
-          missing.map(ms => parseAsType(ms.fullName).asInstanceOf[m.Ref])
+          typeRefsInTpe(tpe)
+          //.map(ref => toFQN(ref, enclosingPkg))
+            .filterNot(ref => accessible.contains(ref.syntax))
+            .map(stripThis(_).asInstanceOf[m.Ref])
+            .filterNot(ref => ref.is[m.Name])
 
-        val allImported =
-          (globallyImported ++ missingRefs.toSet).map(_.syntax)
-        val shortenedTpe = tpe.transform {
-          case ref: m.Type.Select if allImported.contains(ref.syntax) =>
+        val allInScope = accessible ++ missingRefs.map(_.syntax)
+        val shortenedTpe = stripThis(tpe.transform {
+          case ref: m.Type.Select if allInScope.contains(ref.syntax) =>
             ref.name
-          case ref: m.Term.Select if allImported.contains(ref.syntax) =>
+          case ref: m.Term.Select if allInScope.contains(ref.syntax) =>
             ref.name
-          case m.Term.Select(m.Term.This(m.Name.Indeterminate(_)), qual) =>
-            qual
-          case m.Type.Select(m.Term.This(m.Name.Indeterminate(_)), qual) =>
-            qual
-        }
+        })
 
-        logger.elem(shortenedTpe, missingRefs, allImported)
-        (shortenedTpe.asInstanceOf[m.Type] -> missingRefs)
+        logger.elem(shortenedTpe, missingRefs, allInScope)
+        val pkg =
+          if (enclosingPkg == globalPkg) None else Some(enclosingPkg.fullName)
+        val finalMissingRefs = missingRefs
+          .map(ref => stripRedundantPkg(ref, pkg))
+        (shortenedTpe.asInstanceOf[m.Type] -> finalMissingRefs)
       }
       override def typeSignature(defn: m.Defn): Option[m.Type] = {
         defn match {
