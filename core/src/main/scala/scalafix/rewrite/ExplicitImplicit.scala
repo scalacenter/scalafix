@@ -1,5 +1,6 @@
 package scalafix.rewrite
 
+import scala.meta._
 import scala.{meta => m}
 import scalafix.util.Patch
 import scalafix.util.Whitespace
@@ -13,6 +14,14 @@ case object ExplicitImplicit extends Rewrite {
   private def isImplicitly(term: m.Term): Boolean = term match {
     case m.Term.ApplyType(m.Term.Name("implicitly"), _) => true
     case _ => false
+  }
+  @scala.annotation.tailrec
+  final def parents(tree: Tree,
+                    accum: Seq[Tree] = Seq.empty[Tree]): Seq[Tree] = {
+    tree.parent match {
+      case Some(parent) => parents(parent, parent +: accum)
+      case _ => accum
+    }
   }
   override def rewrite(ast: m.Tree, ctx: RewriteCtx): Seq[Patch] = {
     import scala.meta._
@@ -28,11 +37,20 @@ case object ExplicitImplicit extends Rewrite {
         replace <- lhsTokens.reverseIterator.find(x =>
           !x.is[Token.Equals] && !x.is[Whitespace])
         typ <- semantic.typeSignature(defn)
+        importToken = parents(defn)
+          .collectFirst {
+            case p: Pkg => p.stats.head.tokens.head
+          }
+          .getOrElse(ast.tokens.head)
       } yield {
         logger.elem(typ)
-        Patch(replace, replace, s"$replace: ${typ.syntax}")
+
+        val (shortenedTpe, missingImports) = semantic.shortenType(typ, defn)
+        Patch(replace, replace, s"$replace: ${shortenedTpe.syntax}") +:
+          missingImports.map(missingImport =>
+            Patch.AddLeft(importToken, s"import ${missingImport}\n"))
       }
-    }.toSeq
+    }.toSeq.flatten
     ast.collect {
       case t @ m.Defn.Val(mods, _, None, body)
           if mods.exists(_.syntax == "implicit") &&

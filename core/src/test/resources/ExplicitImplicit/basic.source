@@ -7,12 +7,16 @@ class A {
 class A {
   implicit val x: List[Int] = List(1)
 }
-<<< ONLY map
+<<< map
+import scala.collection
+import scala.concurrent.Future
 class A {
   implicit val x = Map(1 -> "STRING")
 }
 >>>
 import scala.collection.immutable.Map
+import scala.collection
+import scala.concurrent.Future
 class A {
   implicit val x: Map[Int, String] =
     Map(1 -> "STRING")

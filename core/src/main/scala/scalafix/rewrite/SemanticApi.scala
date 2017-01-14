@@ -19,5 +19,5 @@ trait SemanticApi {
   def typeSignature(defn: Defn): Option[Type]
 
   /**  */
-  def shortenType(tpe: Type, pos: Position): (Type, Seq[Ref])
+  def shortenType(tpe: Type, t: Tree): (Type, Seq[Ref])
 }
