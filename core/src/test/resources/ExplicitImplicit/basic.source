@@ -57,6 +57,42 @@ class A {
   implicit val x: B = new B
   implicit val y: x.C = new x.C
 }
+<<< path dependent type
+class A {
+  trait C {
+    class B
+  }
+  val c = new C {}
+  implicit val x = new c.B
+}
+>>>
+class A {
+  trait C {
+    class B
+  }
+  val c = new C {}
+  implicit val x: c.B = new c.B
+}
+<<< path dependent type II
+class A {
+  object D {
+    val c = new C {}
+  }
+  trait C {
+    class B
+  }
+  implicit val x = new D.c.B
+}
+>>>
+class A {
+  object D {
+    val c = new C {}
+  }
+  trait C {
+    class B
+  }
+  implicit val x: D.c.B = new D.c.B
+}
 <<< two classes
 class A[T](e: T)
 class B {
