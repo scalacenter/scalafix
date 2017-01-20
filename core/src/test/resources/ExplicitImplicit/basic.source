@@ -57,6 +57,80 @@ class A {
   implicit val x: B = new B
   implicit val y: x.C = new x.C
 }
+<<< NOWRAP higher kinded cats
+package cats {
+  package laws {
+    package discipline {
+      trait CartesianTests[F[_]]
+      object CartesianTests {
+        trait Isomorphisms[F[_]]
+        object Isomorphisms {
+          def id[T[_]]: Isomorphisms[T] = ???
+        }
+      }
+    }
+  }
+}
+package cats {
+  trait Id[T]
+}
+package cats {
+  package tests {
+    import cats.laws.discipline._
+    class IdTests {
+      implicit val iso = CartesianTests.Isomorphisms.id[Id]
+    }
+  }
+}
+>>>
+package cats {
+  package laws {
+    package discipline {
+      trait CartesianTests[F[_]]
+      object CartesianTests {
+        trait Isomorphisms[F[_]]
+        object Isomorphisms {
+          def id[T[_]]: Isomorphisms[T] = ???
+        }
+      }
+    }
+  }
+}
+package cats {
+  trait Id[T]
+}
+package cats {
+  package tests {
+    import cats.laws.discipline._
+    class IdTests {
+      implicit val iso: CartesianTests.Isomorphisms[Id] = CartesianTests.Isomorphisms.id[Id]
+    }
+  }
+}
+<<< higher kinded
+import scala.concurrent.Future
+package hello {
+  trait Id[F[_]]
+  object Id {
+    def ident[F[_]]: Id[F] = ???
+  }
+}
+object World {
+  import hello._
+  implicit val futureId = Id.ident[scala.concurrent.Future]
+}
+>>>
+import scala.concurrent.Future
+package hello {
+  trait Id[F[_]]
+  object Id {
+    def ident[F[_]]: Id[F] = ???
+  }
+}
+object World {
+  import hello._
+  implicit val futureId: Id[Future] = Id.ident[scala.concurrent.Future]
+}
 <<< path dependent type
 class A {
   trait C {

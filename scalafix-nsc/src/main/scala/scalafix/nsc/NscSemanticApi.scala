@@ -42,7 +42,7 @@ trait NscSemanticApi extends ReflectToolkit {
       members
         .filterNot(s =>
           s.isRoot || s.isPackageObjectOrClass || s.hasPackageFlag)
-        .foreach(scope.enter)
+        .foreach(scope.enterIfNew)
       scope
     }
 
@@ -108,8 +108,7 @@ trait NscSemanticApi extends ReflectToolkit {
     st.traverse(unit.body)
     val rootPkg = st.topLevelPkg
     val rootImported = st.scopes(rootPkg)
-    logger.elem(rootImported)
-    logger.elem(rootPkg.info.members)
+    val realRootScope = rootPkg.info.members
 
     // Compute offsets for the whole compilation unit
     val traverser = new OffsetTraverser
@@ -164,13 +163,16 @@ trait NscSemanticApi extends ReflectToolkit {
     def lookupBothNames(name: String, in: g.Scope): g.Symbol = {
       val typeName = g.TypeName(name)
       val typeNameLookup = in.lookup(typeName)
-      val symbol = if (typeNameLookup.exists) typeNameLookup
-      else {
-        val termName = g.TermName(name)
-        val termNameLookup = in.lookup(termName)
-        if (termNameLookup.exists) termNameLookup
-        else g.NoSymbol
-      }
+      val symbol =
+        if (typeNameLookup.exists) typeNameLookup
+        else {
+          val termName = g.TermName(name)
+          val termNameLookup = in.lookup(termName)
+          if (termNameLookup.exists) termNameLookup
+          else g.NoSymbol
+        }
+
+      // The ultimate check, scope could be overloaded
       if (symbol.isOverloaded)
         symbol.alternatives.head
       else symbol
@@ -225,11 +227,10 @@ trait NscSemanticApi extends ReflectToolkit {
     /* Shortened name */
     type Hit = m.Ref
 
-    /* */
-    def getMissingOrHit(
-        ref: m.Ref,
-        inScope: g.Scope,
-        enclosingTerm: g.Symbol): Either[Missing, Hit] = {
+    /* Get the shortened type `ref` at a concrete spot. */
+    def getMissingOrHit(ref: m.Ref,
+                        inScope: g.Scope,
+                        enclosingTerm: g.Symbol): Either[Missing, Hit] = {
 
       val refNoThis = stripThis(ref).asInstanceOf[m.Ref]
       val names = refNoThis.collect {
@@ -238,7 +239,7 @@ trait NscSemanticApi extends ReflectToolkit {
       }
 
       // Mix local scope with root scope for FQN and non-FQN lookups
-      val wholeScope = mixScopes(inScope, rootPkg.info.members)
+      val wholeScope = mixScopes(inScope, realRootScope)
       logger.elem(wholeScope)
       val (_, reversedSymbols) = {
         names.iterator.foldLeft(wholeScope -> List.empty[g.Symbol]) {
@@ -261,7 +262,8 @@ trait NscSemanticApi extends ReflectToolkit {
          * 2. If it exists, get the first value in the chain */
         val maybePathDependentType = metaToSymbols
           .find(ms => isOnlyVariable(ms._2))
-          .flatMap(_ => metaToSymbols.dropWhile(ms => !ms._2.isValue).headOption)
+          .flatMap(_ =>
+            metaToSymbols.dropWhile(ms => !ms._2.isValue).headOption)
         logger.elem(maybePathDependentType)
         val isPathDependent = maybePathDependentType.isDefined
 
@@ -300,7 +302,7 @@ trait NscSemanticApi extends ReflectToolkit {
           val importRef = m.Type.Select(pathImportRef, useName)
           Left(importRef -> useName)
         }
-      // Received type is not valid/doesn't exist, return what we got
+        // Received type is not valid/doesn't exist, return what we got
       } else Left(refNoThis -> refNoThis)
     }
 
@@ -333,7 +335,7 @@ trait NscSemanticApi extends ReflectToolkit {
         val bottomUpScope = interestingOwners.iterator
           .map(_.info.members.filter(keepValidMembers))
           .reduce(mixScopes _)
-        interestingOwners.foreach(owner => bottomUpScope.enter(owner))
+        interestingOwners.foreach(owner => bottomUpScope.enterIfNew(owner))
 
         val enclosingPkg =
           contextOwnerChain
@@ -353,25 +355,23 @@ trait NscSemanticApi extends ReflectToolkit {
 
         // Get only the type Select chains (that inside have terms)
         val typeRefs = tpe.collect { case ts: m.Type.Select => ts }
-        val typeRewrites = typeRefs.map(tr =>
-          getMissingOrHit(tr, globalScope, enclosingPkg))
+
+        // Collect rewrites to be applied on type refs
+        val typeRewrites =
+          typeRefs.map(tr => getMissingOrHit(tr, globalScope, enclosingPkg))
         val typeRefsAndRewrites = typeRefs.zip(typeRewrites)
+        val mappedRewrites = typeRefsAndRewrites.map {
+          case (typeRef, missingOrHit) =>
+            typeRef -> missingOrHit.fold(_._2, identity)
+        }.toMap
 
-        val shortenedType = typeRefsAndRewrites.foldLeft(tpe) {
-          case (targetTpe, (typeRef, missingOrHit)) =>
-            val newTpe = missingOrHit.fold(
-              m => targetTpe.transform { case ref if ref == typeRef => m._2 },
-              h => targetTpe.transform { case ref if ref == typeRef => h }
-            )
-            // Cast to type, transform returns tree
-            newTpe.asInstanceOf[m.Type]
-        }
+        // Replace the types in one transform to not change ref equality
+        val shortenedType =
+          tpe.transform { case ref: m.Type.Select => mappedRewrites(ref) }
+        val shortenedImports =
+					typeRewrites.collect { case Left(missing) => missing._1 }
 
-        val shortenedImports = typeRewrites.collect {
-          case Left(missing) => missing._1
-        }
-
-        (shortenedType -> shortenedImports)
+        (shortenedType.asInstanceOf[m.Type] -> shortenedImports)
       }
 
       override def typeSignature(defn: m.Defn): Option[m.Type] = {
