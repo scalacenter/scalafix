@@ -22,6 +22,12 @@ trait NscSemanticApi extends ReflectToolkit {
     else pkgSym.asModule.moduleClass
   }
 
+  /** Keep members that are meaningful for scoping rules. */
+  def keepMeaningfulMembers(s: g.Symbol): Boolean =
+    !(s.hasPackageFlag) &&
+      (s.isModule || s.isClass || s.isValue || s.isAccessor) && !s.isMethod
+
+  /** Traverse the tree and create the scopes based on packages and imports. */
   private class ScopeTraverser extends g.Traverser {
     val topLevelPkg: g.Symbol = g.rootMirror.RootPackage
     // Don't introduce fully qualified scopes to cause lookup failure
@@ -40,8 +46,7 @@ trait NscSemanticApi extends ReflectToolkit {
 
     def addAll(members: g.Scope, scope: g.Scope): g.Scope = {
       members
-        .filterNot(s =>
-          s.isRoot || s.isPackageObjectOrClass || s.hasPackageFlag)
+        .filterNot(s => s.isRoot || s.hasPackageFlag)
         .foreach(scope.enterIfNew)
       scope
     }
@@ -51,8 +56,13 @@ trait NscSemanticApi extends ReflectToolkit {
         case pkg: g.PackageDef =>
           val sym = getUnderlyingPkgSymbol(pkg.pid.symbol)
           val currentScope = getScope(sym)
-          currentScope.enter(sym)
+          currentScope.enterIfNew(sym)
 
+          // Add members when processing the packages globally
+          val members = sym.info.members.filter(keepMeaningfulMembers)
+          members.foreach(currentScope.enterIfNew)
+
+          // Set enclosing package before visiting enclosed trees
           val previousScope = enclosingScope
           enclosingScope = currentScope
           super.traverse(t)
@@ -61,7 +71,7 @@ trait NscSemanticApi extends ReflectToolkit {
         case g.Import(pkg, selectors) =>
           val pkgSym = pkg.symbol
 
-          // Add imported members of FQN
+          // Add imported members at the right scope
           val importedNames = selectors.map(_.name.decode).toSet
           val imported = pkgSym.info.members.filter(m =>
             importedNames.contains(m.name.decode))
@@ -125,6 +135,7 @@ trait NscSemanticApi extends ReflectToolkit {
       }
     }
 
+    /** Strip `this` references and convert indeterminate names to term names. */
     def stripThis(ref: m.Tree) = {
       ref.transform {
         case m.Term.Select(m.Term.This(ind: m.Name.Indeterminate), name) =>
@@ -132,25 +143,6 @@ trait NscSemanticApi extends ReflectToolkit {
         case m.Type.Select(m.Term.This(ind: m.Name.Indeterminate), name) =>
           m.Type.Select(m.Term.Name(ind.value), name)
       }
-    }
-
-    /** Collect all the Meta names from a Meta ref. */
-    def collectNames(name: m.Ref): List[m.Name] = {
-      @scala.annotation.tailrec
-      def loop(ref: m.Ref, acc: List[m.Name]): List[m.Name] = {
-        ref match {
-          case name: m.Term.Name => name :: acc
-          case name: m.Type.Name => name :: acc
-          case m.Type.Select(qual, name) => loop(qual, name :: acc)
-          case m.Term.Select(qual, name) =>
-            loop(qual.asInstanceOf[m.Ref], name :: acc)
-          // Preserve indeterminate names so that are converted to type names
-          case m.Term.This(name: m.Name.Indeterminate) => name :: acc
-          case _ =>
-            sys.error(s"Type reference has unexpected ${ref.structure}")
-        }
-      }
-      loop(name, Nil)
     }
 
     /** Look up a Meta name for both Reflect Term and Type names.
@@ -214,20 +206,13 @@ trait NscSemanticApi extends ReflectToolkit {
       transformedRef.asInstanceOf[m.Ref]
     }
 
-    def isOnlyVariable(symbol: g.Symbol) =
-      symbol.isAccessor
-
-    @inline
-    def isModuleOrAccessor(symbol: g.Symbol) =
-      symbol.isModule || symbol.isAccessor
-
-    /* Missing import and shortened name */
+    /** Missing import and shortened name */
     type Missing = (m.Ref, m.Ref)
 
-    /* Shortened name */
+    /** Shortened name */
     type Hit = m.Ref
 
-    /* Get the shortened type `ref` at a concrete spot. */
+    /** Get the shortened type `ref` at a concrete spot. */
     def getMissingOrHit(ref: m.Ref,
                         inScope: g.Scope,
                         enclosingTerm: g.Symbol): Either[Missing, Hit] = {
@@ -261,7 +246,7 @@ trait NscSemanticApi extends ReflectToolkit {
          * 1. Locate the term among the FQN
          * 2. If it exists, get the first value in the chain */
         val maybePathDependentType = metaToSymbols
-          .find(ms => isOnlyVariable(ms._2))
+          .find(ms => ms._2.isAccessor)
           .flatMap(_ =>
             metaToSymbols.dropWhile(ms => !ms._2.isValue).headOption)
         logger.elem(maybePathDependentType)
@@ -306,6 +291,7 @@ trait NscSemanticApi extends ReflectToolkit {
       } else Left(refNoThis -> refNoThis)
     }
 
+    @inline
     def mixScopes(sc: g.Scope, sc2: g.Scope) = {
       val mixedScope = sc.cloneScope
       sc2.foreach(s => mixedScope.enterIfNew(s))
@@ -322,21 +308,6 @@ trait NscSemanticApi extends ReflectToolkit {
         val ownerSymbol = ownerTree.symbol
         val contextOwnerChain = ownerSymbol.ownerChain
 
-        // Clean up invalid syntactic imports
-        def keepInterestingOwner(s: g.Symbol): Boolean =
-          !(s.isRoot || s.isEmptyPackage)
-
-        def keepValidMembers(s: g.Symbol): Boolean =
-          !(s.hasPackageFlag || s.isPackageObjectOrClass || s.isPackageObjectClass) &&
-            (s.isModule || s.isClass || s.isValue || s.isAccessor) && !s.isMethod
-
-        val interestingOwners =
-          contextOwnerChain.filter(keepInterestingOwner)
-        val bottomUpScope = interestingOwners.iterator
-          .map(_.info.members.filter(keepValidMembers))
-          .reduce(mixScopes _)
-        interestingOwners.foreach(owner => bottomUpScope.enterIfNew(owner))
-
         val enclosingPkg =
           contextOwnerChain
             .find(s => s.hasPackageFlag)
@@ -344,13 +315,16 @@ trait NscSemanticApi extends ReflectToolkit {
         logger.elem(enclosingPkg)
 
         val userImportsScope = {
-          enclosingPkg.ownerChain
-            .foldLeft(rootImported) { (accScope: g.Scope, owner: g.Symbol) =>
-              if (accScope != rootImported) accScope
-              else st.scopes.getOrElse(owner, rootImported)
-            }
+          if (enclosingPkg == rootPkg) rootImported
+          else st.scopes.getOrElse(enclosingPkg, rootImported)
         }
 
+        // Prune owners and use them to create a local bottom up scope
+        val interestingOwners =
+          contextOwnerChain.takeWhile(_ != enclosingPkg)
+        val bottomUpScope = interestingOwners.iterator
+          .map(_.info.members.filter(keepMeaningfulMembers))
+          .reduce(mixScopes _)
         val globalScope = mixScopes(bottomUpScope, userImportsScope)
 
         // Get only the type Select chains (that inside have terms)
@@ -369,7 +343,7 @@ trait NscSemanticApi extends ReflectToolkit {
         val shortenedType =
           tpe.transform { case ref: m.Type.Select => mappedRewrites(ref) }
         val shortenedImports =
-					typeRewrites.collect { case Left(missing) => missing._1 }
+          typeRewrites.collect { case Left(missing) => missing._1 }
 
         (shortenedType.asInstanceOf[m.Type] -> shortenedImports)
       }
