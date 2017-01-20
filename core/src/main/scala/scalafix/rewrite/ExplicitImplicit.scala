@@ -23,6 +23,17 @@ case object ExplicitImplicit extends Rewrite {
       case _ => accum
     }
   }
+  /** Get the last sequential top level package from a source file. */
+  def getLastTopLevelPkg(potentialPkg: Stat): Stat = {
+    potentialPkg match {
+      case p: Pkg =>
+        val stats = p.stats
+        val first = stats.head
+        if (stats.size != 1) first
+        else getLastTopLevelPkg(first)
+      case _ => potentialPkg
+    }
+  }
   override def rewrite(ast: m.Tree, ctx: RewriteCtx): Seq[Patch] = {
     import scala.meta._
     val semantic = getSemanticApi(ctx)
@@ -39,7 +50,8 @@ case object ExplicitImplicit extends Rewrite {
         typ <- semantic.typeSignature(defn)
         importToken = parents(defn)
           .collectFirst {
-            case p: Pkg => p.stats.head.tokens.head
+            case p: Pkg =>
+              getLastTopLevelPkg(p).tokens.head
           }
           .getOrElse(ast.tokens.head)
       } yield {

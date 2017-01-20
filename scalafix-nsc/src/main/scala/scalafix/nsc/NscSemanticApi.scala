@@ -36,7 +36,6 @@ trait NscSemanticApi extends ReflectToolkit {
     var enclosingScope = topLevelScope
 
     def getScope(sym: g.Symbol): g.Scope = {
-      logger.elem(scopes.keySet.map(_.hashCode))
       scopes.getOrElseUpdate(sym,
                              scopes
                                .get(sym.owner)
@@ -225,13 +224,10 @@ trait NscSemanticApi extends ReflectToolkit {
 
       // Mix local scope with root scope for FQN and non-FQN lookups
       val wholeScope = mixScopes(inScope, realRootScope)
-      logger.elem(wholeScope)
       val (_, reversedSymbols) = {
         names.iterator.foldLeft(wholeScope -> List.empty[g.Symbol]) {
           case ((scope, symbols), metaName) =>
             val sym = lookupBothNames(metaName.value, scope)
-            logger.elem(sym)
-            logger.elem(sym.info.members)
             if (!sym.exists) scope -> symbols
             else sym.info.members -> (sym :: symbols)
         }
@@ -249,7 +245,6 @@ trait NscSemanticApi extends ReflectToolkit {
           .find(ms => ms._2.isAccessor)
           .flatMap(_ =>
             metaToSymbols.dropWhile(ms => !ms._2.isValue).headOption)
-        logger.elem(maybePathDependentType)
         val isPathDependent = maybePathDependentType.isDefined
 
         val (lastName, lastSymbol) = maybePathDependentType
@@ -312,7 +307,6 @@ trait NscSemanticApi extends ReflectToolkit {
           contextOwnerChain
             .find(s => s.hasPackageFlag)
             .getOrElse(rootPkg)
-        logger.elem(enclosingPkg)
 
         val userImportsScope = {
           if (enclosingPkg == rootPkg) rootImported
