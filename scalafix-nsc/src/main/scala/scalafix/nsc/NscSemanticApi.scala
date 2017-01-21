@@ -32,6 +32,7 @@ trait NscSemanticApi extends ReflectToolkit {
     val topLevelPkg: g.Symbol = g.rootMirror.RootPackage
     // Don't introduce fully qualified scopes to cause lookup failure
     val scopes = mutable.Map[g.Symbol, g.Scope](topLevelPkg -> g.newScope)
+    val renames = mutable.Map[g.Symbol, g.Symbol]()
     val topLevelScope = scopes(topLevelPkg)
     var enclosingScope = topLevelScope
 
@@ -43,11 +44,18 @@ trait NscSemanticApi extends ReflectToolkit {
                                .getOrElse(topLevelScope))
     }
 
+    @inline
     def addAll(members: g.Scope, scope: g.Scope): g.Scope = {
       members
         .filterNot(s => s.isRoot || s.hasPackageFlag)
         .foreach(scope.enterIfNew)
       scope
+    }
+
+    @inline
+    def addRename(symbol: g.Symbol, renamedTo: g.Name) = {
+      val renamedSymbol = symbol.cloneSymbol.setName(renamedTo)
+      renames += symbol -> renamedSymbol
     }
 
     override def traverse(t: g.Tree): Unit = {
@@ -77,9 +85,30 @@ trait NscSemanticApi extends ReflectToolkit {
           addAll(imported, enclosingScope)
 
           selectors.foreach {
-            case isel @ g.ImportSelector(g.TermName("_"), _, null, _) =>
+            case g.ImportSelector(g.TermName("_"), _, null, _) =>
               addAll(pkgSym.info.members, enclosingScope)
-            // TODO(jvican): Handle renames
+            case g.ImportSelector(from, _, g.TermName("_"), _) =>
+              // Look up symbol and unlink it from the scope
+              val symbol = enclosingScope.lookup(from)
+              if (symbol.exists)
+                enclosingScope.unlink(symbol)
+            case isel @ g.ImportSelector(from, _, to, _) if to != null =>
+              // Look up symbol and set the rename on it
+              val termSymbol = enclosingScope.lookup(from.toTermName)
+              val typeSymbol = enclosingScope.lookup(from.toTypeName)
+              val existsTerm = termSymbol.exists
+              val existsType = typeSymbol.exists
+
+              // Import selectos are always term names
+              // Add rename for both term and type name
+              if (existsTerm && existsType) {
+                addRename(termSymbol, to)
+                addRename(typeSymbol, to)
+              } else if (termSymbol.exists) {
+                addRename(termSymbol, to)
+              } else if (typeSymbol.exists) {
+                addRename(typeSymbol, to)
+              } // TODO(jvican): Warn user that rename was not found
             case _ =>
           }
           super.traverse(t)
@@ -252,12 +281,31 @@ trait NscSemanticApi extends ReflectToolkit {
         val (onlyPaths, shortenedNames) =
           metaToSymbols.span(_._1 != lastName)
 
+        val renames: Map[m.Name, g.Name] = shortenedNames.map {
+          case (metaName, symbol) =>
+            metaName -> st.renames.getOrElse(symbol, symbol).name
+        }.toMap
+
         val localSym = inScope.lookup(lastSymbol.name)
         if (lastSymbol.exists &&
             (isPathDependent || localSym.exists)) {
           // Return shortened type for names already in scope
           val onlyNames = onlyPaths.map(_._1)
-          Right(removePrefixes(refNoThis, onlyNames))
+          val removed = removePrefixes(refNoThis, onlyNames)
+          val shortenedAndRenamedType = removed.transform {
+            case name: m.Name =>
+              val maybeGname: Option[g.Name] = renames.get(name)
+              if (maybeGname.isDefined) {
+                val gName = maybeGname.get
+                val renamedName = {
+                  if (gName.isTypeName) m.Type.Name(gName.decoded)
+                  else m.Term.Name(gName.decoded)
+                }
+                if (renamedName.value != name.value) renamedName
+                else name
+              } else name
+          }
+          Right(shortenedAndRenamedType.asInstanceOf[m.Ref])
         } else {
           // Remove unnecessary packages from type name
           val noRedundantPaths = {

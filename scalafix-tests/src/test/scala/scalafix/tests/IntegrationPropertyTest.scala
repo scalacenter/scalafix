@@ -190,7 +190,7 @@ class ScalaJs
           Command("examples/test:compile")
         )
       ),
-      skip = true // GenJsCode is hard: import renames + dependent types
+      skip = false // GenJsCode is hard: import renames + dependent types
     )
 
 class ScalacheckShapeless

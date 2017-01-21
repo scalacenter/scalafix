@@ -21,6 +21,28 @@ class A {
   implicit val x: Map[Int, String] =
     Map(1 -> "STRING")
 }
+<<< renamed map
+import scala.collection.immutable.{Map => MyMap}
+class A {
+  implicit val x = MyMap(1 -> "STRING")
+}
+>>>
+import scala.collection.immutable.{Map => MyMap}
+class A {
+  implicit val x: MyMap[Int, String] =
+    MyMap(1 -> "STRING")
+}
+<<< removed map
+import scala.collection.immutable.{Map => _}
+class A {
+  implicit val x = Map(1 -> "STRING")
+}
+>>>
+import scala.collection.immutable.{Map => _}
+class A {
+  implicit val x: Map[Int, String] =
+    Map(1 -> "STRING")
+}
 <<< def works
 class A {
   implicit def x = 2
