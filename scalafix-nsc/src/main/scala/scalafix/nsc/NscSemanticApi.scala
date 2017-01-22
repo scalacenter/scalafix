@@ -180,7 +180,10 @@ trait NscSemanticApi extends ReflectToolkit {
       * we need to check both names to guarantee whether a name is in scope.
       */
     @inline
-    def lookupBothNames(name: String, in: g.Scope): g.Symbol = {
+    def lookupBothNames(name: String,
+                        in: g.Scope,
+                        disambiguatingOwner: Option[g.Symbol],
+                        disambiguatingNamespace: String): g.Symbol = {
       val typeName = g.TypeName(name)
       val typeNameLookup = in.lookup(typeName)
       val symbol =
@@ -192,10 +195,19 @@ trait NscSemanticApi extends ReflectToolkit {
           else g.NoSymbol
         }
 
-      // The ultimate check, scope could be overloaded
-      if (symbol.isOverloaded)
-        symbol.alternatives.head
-      else symbol
+      // Disambiguate overloaded symbols caused by name shadowing
+      if (symbol.isOverloaded) {
+        val alternatives = symbol.alternatives
+        disambiguatingOwner
+          .flatMap(o => alternatives.find(_.owner == o))
+          .getOrElse {
+            val substrings = alternatives.iterator
+              .filter(s => disambiguatingNamespace.indexOf(s.fullName) == 0)
+            // Last effort to disambiguate, pick sym with longest substring
+            if (substrings.isEmpty) alternatives.head
+            else substrings.maxBy(_.fullName.length)
+          }
+      } else symbol
     }
 
     /** Remove sequential prefixes from a concrete ref. */
@@ -253,10 +265,14 @@ trait NscSemanticApi extends ReflectToolkit {
 
       // Mix local scope with root scope for FQN and non-FQN lookups
       val wholeScope = mixScopes(inScope, realRootScope)
+      val disambiguatingSyntax = ref.syntax
       val (_, reversedSymbols) = {
         names.iterator.foldLeft(wholeScope -> List.empty[g.Symbol]) {
           case ((scope, symbols), metaName) =>
-            val sym = lookupBothNames(metaName.value, scope)
+            val sym = lookupBothNames(metaName.value,
+                                      scope,
+                                      symbols.headOption,
+                                      disambiguatingSyntax)
             if (!sym.exists) scope -> symbols
             else sym.info.members -> (sym :: symbols)
         }
