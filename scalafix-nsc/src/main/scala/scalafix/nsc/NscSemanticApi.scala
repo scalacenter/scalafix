@@ -246,6 +246,32 @@ trait NscSemanticApi extends ReflectToolkit {
       transformedRef.asInstanceOf[m.Ref]
     }
 
+    def lookUpSymbols(names: List[m.Name], scope: g.Scope, from: String) = {
+      val (_, reversedSymbols) = {
+        names.foldLeft(scope -> List.empty[g.Symbol]) {
+          case ((scope, symbols), metaName) =>
+            val sym =
+              lookupBothNames(metaName.value, scope, symbols.headOption, from)
+            if (!sym.exists) scope -> symbols
+            else sym.info.members -> (sym :: symbols)
+        }
+      }
+      reversedSymbols.reverse
+    }
+
+    def renameType(tpe: m.Ref, renames: Map[m.Name, g.Name]) = {
+      tpe.transform {
+        case name: m.Name =>
+          renames.get(name) match {
+            case Some(gname) =>
+              val realName = gname.decoded
+              if (gname.isTypeName) m.Type.Name(realName)
+              else m.Term.Name(realName)
+            case None => name
+          }
+      }
+    }
+
     /** Missing import and shortened name */
     type Missing = (m.Ref, m.Ref)
 
@@ -265,20 +291,7 @@ trait NscSemanticApi extends ReflectToolkit {
 
       // Mix local scope with root scope for FQN and non-FQN lookups
       val wholeScope = mixScopes(inScope, realRootScope)
-      val disambiguatingSyntax = ref.syntax
-      val (_, reversedSymbols) = {
-        names.iterator.foldLeft(wholeScope -> List.empty[g.Symbol]) {
-          case ((scope, symbols), metaName) =>
-            val sym = lookupBothNames(metaName.value,
-                                      scope,
-                                      symbols.headOption,
-                                      disambiguatingSyntax)
-            if (!sym.exists) scope -> symbols
-            else sym.info.members -> (sym :: symbols)
-        }
-      }
-
-      val symbols = reversedSymbols.reverse
+      val symbols = lookUpSymbols(names, wholeScope, ref.syntax)
       val metaToSymbols = names.zip(symbols)
       logger.elem(metaToSymbols)
 
@@ -297,9 +310,11 @@ trait NscSemanticApi extends ReflectToolkit {
         val (onlyPaths, shortenedNames) =
           metaToSymbols.span(_._1 != lastName)
 
+        // Build map of meta names to reflect names
         val renames: Map[m.Name, g.Name] = shortenedNames.map {
           case (metaName, symbol) =>
-            metaName -> st.renames.getOrElse(symbol, symbol).name
+            val mappedSym = st.renames.getOrElse(symbol, symbol)
+            metaName -> mappedSym.name
         }.toMap
 
         val localSym = inScope.lookup(lastSymbol.name)
@@ -308,19 +323,7 @@ trait NscSemanticApi extends ReflectToolkit {
           // Return shortened type for names already in scope
           val onlyNames = onlyPaths.map(_._1)
           val removed = removePrefixes(refNoThis, onlyNames)
-          val shortenedAndRenamedType = removed.transform {
-            case name: m.Name =>
-              val maybeGname: Option[g.Name] = renames.get(name)
-              if (maybeGname.isDefined) {
-                val gName = maybeGname.get
-                val renamedName = {
-                  if (gName.isTypeName) m.Type.Name(gName.decoded)
-                  else m.Term.Name(gName.decoded)
-                }
-                if (renamedName.value != name.value) renamedName
-                else name
-              } else name
-          }
+          val shortenedAndRenamedType = renameType(removed, renames)
           Right(shortenedAndRenamedType.asInstanceOf[m.Ref])
         } else {
           // Remove unnecessary packages from type name
