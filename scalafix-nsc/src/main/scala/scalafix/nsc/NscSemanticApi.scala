@@ -365,7 +365,6 @@ trait NscSemanticApi extends ReflectToolkit {
       val wholeScope = mixScopes(inScope, realRootScope)
       val symbols = lookupSymbols(names, wholeScope, toShorten.syntax)
       val metaToSymbols = names.zip(symbols)
-      logger.elem(metaToSymbols)
 
       if (symbols.isEmpty) refNoThis
       else {
@@ -427,7 +426,6 @@ trait NscSemanticApi extends ReflectToolkit {
 
     new SemanticApi {
       override def shortenType(tpe: m.Type, owner: m.Tree): m.Type = {
-        logger.elem(tpe)
         val ownerTpePos = gimmePosition(owner).start.offset
         val ownerTree = traverser.treeOwners(ownerTpePos)
         val gtpeTree = traverser.offsets(ownerTpePos)

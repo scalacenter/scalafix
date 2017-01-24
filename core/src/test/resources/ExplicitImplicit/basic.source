@@ -8,12 +8,10 @@ class A {
   implicit val x: List[Int] = List(1)
 }
 <<< map
-import scala.concurrent.Future
 class A {
   implicit val x = Map(1 -> "STRING")
 }
 >>>
-import scala.concurrent.Future
 class A {
   implicit val x: Map[Int, String] =
     Map(1 -> "STRING")
@@ -185,7 +183,7 @@ class A {
   }
   implicit val x: D.c.B = new D.c.B
 }
-<<< ONLY renamed term in type selection
+<<< renamed term in type selection
 package E {
   object D {
     class C
@@ -205,7 +203,7 @@ class A {
   import E.{D => d}
   implicit val x: d.C = new d.C
 }
-<<< ONLY renamed term in deeper type selection
+<<< renamed term in deeper type selection
 package E {
   object D {
     object C {
