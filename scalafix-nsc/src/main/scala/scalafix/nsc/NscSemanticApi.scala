@@ -14,8 +14,8 @@ import scalafix.util.logger
 trait NscSemanticApi extends ReflectToolkit {
 
   /** The compiler sets different symbols for `PackageDef`s
-		* and term names pointing to that package. Get the
-		* underlying symbol of `moduleClass` for them to be equal. */
+    * and term names pointing to that package. Get the
+    * underlying symbol of `moduleClass` for them to be equal. */
   @inline
   def getUnderlyingPkgSymbol(pkgSym: g.Symbol) = {
     if (!pkgSym.isModule) pkgSym
@@ -27,21 +27,43 @@ trait NscSemanticApi extends ReflectToolkit {
     !(s.hasPackageFlag) &&
       (s.isModule || s.isClass || s.isValue || s.isAccessor) && !s.isMethod
 
+  @inline
+  def mixScopes(sc: g.Scope, sc2: g.Scope) = {
+    val mixedScope = sc.cloneScope
+    sc2.foreach(s => mixedScope.enterIfNew(s))
+    mixedScope
+  }
+
+  /** Return a scope with the default packages imported by Scala. */
+  def importDefaultPackages(scope: g.Scope) = {
+    import g.definitions.{ScalaPackage, PredefModule, JavaLangPackage}
+    // Handle packages to import from user-defined compiler flags
+    val packagesToImportFrom = {
+      if (g.settings.noimports) Nil
+      else if (g.settings.nopredef) List(ScalaPackage, JavaLangPackage)
+      else List(ScalaPackage, PredefModule, JavaLangPackage)
+    }
+    packagesToImportFrom.foldLeft(scope) {
+      case (scope, pkg) => mixScopes(scope, pkg.info.members)
+    }
+  }
+
   /** Traverse the tree and create the scopes based on packages and imports. */
   private class ScopeTraverser extends g.Traverser {
     val topLevelPkg: g.Symbol = g.rootMirror.RootPackage
     // Don't introduce fully qualified scopes to cause lookup failure
-    val scopes = mutable.Map[g.Symbol, g.Scope](topLevelPkg -> g.newScope)
+    val topLevelScope = importDefaultPackages(g.newScope)
+    val scopes = mutable.Map[g.Symbol, g.Scope](topLevelPkg -> topLevelScope)
     val renames = mutable.Map[g.Symbol, g.Symbol]()
-    val topLevelScope = scopes(topLevelPkg)
     var enclosingScope = topLevelScope
 
     def getScope(sym: g.Symbol): g.Scope = {
-      scopes.getOrElseUpdate(sym,
-                             scopes
-                               .get(sym.owner)
-                               .map(_.cloneScope)
-                               .getOrElse(topLevelScope))
+      scopes.getOrElseUpdate(sym, {
+        scopes
+          .get(sym.owner)
+          .map(_.cloneScope)
+          .getOrElse(topLevelScope)
+      })
     }
 
     @inline
@@ -57,6 +79,11 @@ trait NscSemanticApi extends ReflectToolkit {
       val renamedSymbol = symbol.cloneSymbol.setName(renamedTo)
       renames += symbol -> renamedSymbol
     }
+
+    /** Get the underlying type if symbol represents a type alias. */
+    @inline
+    def getUnderlyingTypeAlias(symbol: g.Symbol) =
+      symbol.info.dealias.typeSymbol
 
     override def traverse(t: g.Tree): Unit = {
       t match {
@@ -79,6 +106,7 @@ trait NscSemanticApi extends ReflectToolkit {
           val pkgSym = pkg.symbol
 
           // Add imported members at the right scope
+          // TODO(jvican): Put this into the selectors.foreach
           val importedNames = selectors.map(_.name.decode).toSet
           val imported = pkgSym.info.members.filter(m =>
             importedNames.contains(m.name.decode))
@@ -93,20 +121,19 @@ trait NscSemanticApi extends ReflectToolkit {
               if (symbol.exists)
                 enclosingScope.unlink(symbol)
             case isel @ g.ImportSelector(from, _, to, _) if to != null =>
-              // Look up symbol and set the rename on it
+              // Look up symbol for import selectors and rename it
               val termSymbol = enclosingScope.lookup(from.toTermName)
-              val typeSymbol = enclosingScope.lookup(from.toTypeName)
+              val typeSymbol = getUnderlyingTypeAlias(enclosingScope.lookup(from.toTypeName))
               val existsTerm = termSymbol.exists
               val existsType = typeSymbol.exists
 
-              // Import selectos are always term names
               // Add rename for both term and type name
               if (existsTerm && existsType) {
                 addRename(termSymbol, to)
                 addRename(typeSymbol, to)
-              } else if (termSymbol.exists) {
+              } else if (existsTerm) {
                 addRename(termSymbol, to)
-              } else if (typeSymbol.exists) {
+              } else if (existsType) {
                 addRename(typeSymbol, to)
               } // TODO(jvican): Warn user that rename was not found
             case _ =>
@@ -164,13 +191,14 @@ trait NscSemanticApi extends ReflectToolkit {
     }
 
     /** Strip `this` references and convert indeterminate names to term names. */
-    def stripThis(ref: m.Tree) = {
-      ref.transform {
+    def stripThis(ref: m.Tree): m.Ref = {
+      val transformedTree = ref.transform {
         case m.Term.Select(m.Term.This(ind: m.Name.Indeterminate), name) =>
           m.Term.Select(m.Term.Name(ind.value), name)
         case m.Type.Select(m.Term.This(ind: m.Name.Indeterminate), name) =>
           m.Type.Select(m.Term.Name(ind.value), name)
       }
+      transformedTree.asInstanceOf[m.Ref]
     }
 
     /** Look up a Meta name for both Reflect Term and Type names.
@@ -259,8 +287,9 @@ trait NscSemanticApi extends ReflectToolkit {
       reversedSymbols.reverse
     }
 
-    def renameType(tpe: m.Ref, renames: Map[m.Name, g.Name]) = {
-      tpe.transform {
+    /** Rename a type based on used import selectors. */
+    def renameType(toRename: m.Ref, renames: Map[m.Name, g.Name]) = {
+      toRename.transform {
         case name: m.Name =>
           renames.get(name) match {
             case Some(gname) =>
@@ -272,18 +301,20 @@ trait NscSemanticApi extends ReflectToolkit {
       }
     }
 
-    /** Missing import and shortened name */
-    type Missing = (m.Ref, m.Ref)
-
-    /** Shortened name */
-    type Hit = m.Ref
+    /** Convert list of names to Term names. */
+    def toTermNames(names: List[m.Name]): List[m.Term.Name] = {
+      names.map {
+        case tn: m.Term.Name => tn
+        case name: m.Name => m.Term.Name(name.value)
+      }
+    }
 
     /** Get the shortened type `ref` at a concrete spot. */
-    def getMissingOrHit(ref: m.Ref,
+    def getMissingOrHit(toShorten: m.Ref,
                         inScope: g.Scope,
-                        enclosingTerm: g.Symbol): Either[Missing, Hit] = {
+                        enclosingTerm: g.Symbol): m.Ref = {
 
-      val refNoThis = stripThis(ref).asInstanceOf[m.Ref]
+      val refNoThis = stripThis(toShorten)
       val names = refNoThis.collect {
         case tn: m.Term.Name => tn
         case tn: m.Type.Name => tn
@@ -291,7 +322,7 @@ trait NscSemanticApi extends ReflectToolkit {
 
       // Mix local scope with root scope for FQN and non-FQN lookups
       val wholeScope = mixScopes(inScope, realRootScope)
-      val symbols = lookUpSymbols(names, wholeScope, ref.syntax)
+      val symbols = lookUpSymbols(names, wholeScope, toShorten.syntax)
       val metaToSymbols = names.zip(symbols)
       logger.elem(metaToSymbols)
 
@@ -324,45 +355,32 @@ trait NscSemanticApi extends ReflectToolkit {
           val onlyNames = onlyPaths.map(_._1)
           val removed = removePrefixes(refNoThis, onlyNames)
           val shortenedAndRenamedType = renameType(removed, renames)
-          Right(shortenedAndRenamedType.asInstanceOf[m.Ref])
+          shortenedAndRenamedType.asInstanceOf[m.Ref]
         } else {
-          // Remove unnecessary packages from type name
-          val noRedundantPaths = {
-            val paths = onlyPaths.dropWhile(path =>
-              getUnderlyingPkgSymbol(path._2) != enclosingTerm)
-            if (paths.isEmpty) onlyPaths.map(_._1)
-            else paths.tail.map(_._1)
+          val (validRefs, invalidRefs) = onlyPaths.span(_._2.exists)
+          val onlyShortenedNames = shortenedNames.map(_._1)
+          val shortenedRefs = {
+            if (validRefs.nonEmpty) {
+              val lastValidRef = validRefs.last._1
+              lastValidRef :: onlyShortenedNames
+            } else onlyShortenedNames
           }
 
-          // Shortened names must be just one if no PDT
-          assert(shortenedNames.size == 1)
-          assert(noRedundantPaths.size >= 1)
-
-          // Get type name to use and build refs out of the names
-          val useName = shortenedNames.head._1.asInstanceOf[m.Type.Name]
-          val refs = noRedundantPaths.asInstanceOf[List[m.Term.Ref]]
-          val pathImportRef = refs.reduceLeft[m.Term.Ref] {
+          val termRefs = toTermNames(shortenedRefs.init)
+          val typeRef = shortenedRefs.last.asInstanceOf[m.Type.Name]
+          val termSelects = termRefs.reduceLeft[m.Term.Ref] {
             case (qual: m.Term, path: m.Term.Name) =>
               m.Term.Select(qual, path)
           }
 
-          val importRef = m.Type.Select(pathImportRef, useName)
-          Left(importRef -> useName)
+          m.Type.Select(termSelects, typeRef)
         }
         // Received type is not valid/doesn't exist, return what we got
-      } else Left(refNoThis -> refNoThis)
-    }
-
-    @inline
-    def mixScopes(sc: g.Scope, sc2: g.Scope) = {
-      val mixedScope = sc.cloneScope
-      sc2.foreach(s => mixedScope.enterIfNew(s))
-      mixedScope
+      } else refNoThis
     }
 
     new SemanticApi {
-      override def shortenType(tpe: m.Type,
-                               owner: m.Tree): (m.Type, Seq[m.Ref]) = {
+      override def shortenType(tpe: m.Type, owner: m.Tree): m.Type = {
         logger.elem(tpe)
         val ownerTpePos = gimmePosition(owner).start.offset
         val ownerTree = traverser.treeOwners(ownerTpePos)
@@ -394,19 +412,12 @@ trait NscSemanticApi extends ReflectToolkit {
         // Collect rewrites to be applied on type refs
         val typeRewrites =
           typeRefs.map(tr => getMissingOrHit(tr, globalScope, enclosingPkg))
-        val typeRefsAndRewrites = typeRefs.zip(typeRewrites)
-        val mappedRewrites = typeRefsAndRewrites.map {
-          case (typeRef, missingOrHit) =>
-            typeRef -> missingOrHit.fold(_._2, identity)
-        }.toMap
+        val mappedRewrites = typeRefs.zip(typeRewrites).toMap
 
         // Replace the types in one transform to not change ref equality
         val shortenedType =
           tpe.transform { case ref: m.Type.Select => mappedRewrites(ref) }
-        val shortenedImports =
-          typeRewrites.collect { case Left(missing) => missing._1 }
-
-        (shortenedType.asInstanceOf[m.Type] -> shortenedImports)
+        shortenedType.asInstanceOf[m.Type]
       }
 
       override def typeSignature(defn: m.Defn): Option[m.Type] = {

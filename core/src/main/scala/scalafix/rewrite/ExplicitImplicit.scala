@@ -23,17 +23,6 @@ case object ExplicitImplicit extends Rewrite {
       case _ => accum
     }
   }
-  /** Get the last sequential top level package from a source file. */
-  def getLastTopLevelPkg(potentialPkg: Stat): Stat = {
-    potentialPkg match {
-      case p: Pkg =>
-        val stats = p.stats
-        val first = stats.head
-        if (stats.size != 1) first
-        else getLastTopLevelPkg(first)
-      case _ => potentialPkg
-    }
-  }
   override def rewrite(ast: m.Tree, ctx: RewriteCtx): Seq[Patch] = {
     import scala.meta._
     val semantic = getSemanticApi(ctx)
@@ -48,19 +37,11 @@ case object ExplicitImplicit extends Rewrite {
         replace <- lhsTokens.reverseIterator.find(x =>
           !x.is[Token.Equals] && !x.is[Whitespace])
         typ <- semantic.typeSignature(defn)
-        importToken = parents(defn)
-          .collectFirst {
-            case p: Pkg =>
-              getLastTopLevelPkg(p).tokens.head
-          }
-          .getOrElse(ast.tokens.head)
       } yield {
-        val (shortenedTpe, missingImports) = semantic.shortenType(typ, defn)
-        Patch(replace, replace, s"$replace: ${shortenedTpe.syntax}") +:
-          missingImports.map(missingImport =>
-            Patch.AddLeft(importToken, s"import ${missingImport}\n"))
+        val shortenedTpe = semantic.shortenType(typ, defn)
+        Patch(replace, replace, s"$replace: ${shortenedTpe.syntax}")
       }
-    }.toSeq.flatten
+    }.toSeq
     ast.collect {
       case t @ m.Defn.Val(mods, _, None, body)
           if mods.exists(_.syntax == "implicit") &&
