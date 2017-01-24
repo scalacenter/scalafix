@@ -17,31 +17,40 @@ trait NscSemanticApi extends ReflectToolkit {
     * and term names pointing to that package. Get the
     * underlying symbol of `moduleClass` for them to be equal. */
   @inline
-  def getUnderlyingPkgSymbol(pkgSym: g.Symbol) = {
+  private def getUnderlyingPkgSymbol(pkgSym: g.Symbol) = {
     if (!pkgSym.isModule) pkgSym
     else pkgSym.asModule.moduleClass
   }
 
-  /** Keep members that are meaningful for scoping rules. */
-  def keepMeaningfulMembers(s: g.Symbol): Boolean =
-    !(s.hasPackageFlag) &&
-      (s.isModule || s.isClass || s.isValue || s.isAccessor) && !s.isMethod
+  /** Keep members that are meaningful for scoping rules. For example,
+    * remove methods (don't appear in types) and inner packages.  */
+  private def keepMeaningfulMembers(s: g.Symbol): Boolean =
+    (s.isModule || s.isClass || s.isValue || s.isAccessor) &&
+      !(s.hasPackageFlag || s.isMethod)
 
   @inline
-  def mixScopes(sc: g.Scope, sc2: g.Scope) = {
+  private def mixScopes(sc: g.Scope, sc2: g.Scope) = {
     val mixedScope = sc.cloneScope
     sc2.foreach(s => mixedScope.enterIfNew(s))
     mixedScope
   }
 
-  /** Return a scope with the default packages imported by Scala. */
-  def importDefaultPackages(scope: g.Scope) = {
+  private object RootImports {
     import g.definitions.{ScalaPackage, PredefModule, JavaLangPackage}
+    val javaImports = List(JavaLangPackage)
+    val scalaAndJavaImports = List(ScalaPackage, JavaLangPackage)
+    val allImports = List(PredefModule, ScalaPackage, JavaLangPackage)
+  }
+
+  /** Return a scope with the default packages imported by Scala.
+    * Follow the same semantics as `rootImports` in global reflect Context. */
+  private def importDefaultPackages(scope: g.Scope, unit: g.CompilationUnit) = {
     // Handle packages to import from user-defined compiler flags
     val packagesToImportFrom = {
       if (g.settings.noimports) Nil
-      else if (g.settings.nopredef) List(ScalaPackage, JavaLangPackage)
-      else List(ScalaPackage, PredefModule, JavaLangPackage)
+      else if (unit.isJava) RootImports.javaImports
+      else if (g.settings.nopredef) RootImports.scalaAndJavaImports
+      else RootImports.allImports
     }
     packagesToImportFrom.foldLeft(scope) {
       case (scope, pkg) => mixScopes(scope, pkg.info.members)
@@ -49,14 +58,15 @@ trait NscSemanticApi extends ReflectToolkit {
   }
 
   /** Traverse the tree and create the scopes based on packages and imports. */
-  private class ScopeTraverser extends g.Traverser {
+  private class ScopeTraverser(unit: g.CompilationUnit) extends g.Traverser {
     val topLevelPkg: g.Symbol = g.rootMirror.RootPackage
     // Don't introduce fully qualified scopes to cause lookup failure
-    val topLevelScope = importDefaultPackages(g.newScope)
+    val topLevelScope = importDefaultPackages(g.newScope, unit)
     val scopes = mutable.Map[g.Symbol, g.Scope](topLevelPkg -> topLevelScope)
     val renames = mutable.Map[g.Symbol, g.Symbol]()
     var enclosingScope = topLevelScope
 
+    /** Get the scope for a given symbol. */
     def getScope(sym: g.Symbol): g.Scope = {
       scopes.getOrElseUpdate(sym, {
         scopes
@@ -66,6 +76,7 @@ trait NscSemanticApi extends ReflectToolkit {
       })
     }
 
+    /** Add all the `members` to a mutable scope. */
     @inline
     def addAll(members: g.Scope, scope: g.Scope): g.Scope = {
       members
@@ -74,6 +85,7 @@ trait NscSemanticApi extends ReflectToolkit {
       scope
     }
 
+    /** Define a rename from a symbol to a name. */
     @inline
     def addRename(symbol: g.Symbol, renamedTo: g.Name) = {
       val renamedSymbol = symbol.cloneSymbol.setName(renamedTo)
@@ -84,6 +96,8 @@ trait NscSemanticApi extends ReflectToolkit {
     @inline
     def getUnderlyingTypeAlias(symbol: g.Symbol) =
       symbol.info.dealias.typeSymbol
+
+    def traverseScopes(): Unit = traverse(unit.body)
 
     override def traverse(t: g.Tree): Unit = {
       t match {
@@ -123,7 +137,8 @@ trait NscSemanticApi extends ReflectToolkit {
             case isel @ g.ImportSelector(from, _, to, _) if to != null =>
               // Look up symbol for import selectors and rename it
               val termSymbol = enclosingScope.lookup(from.toTermName)
-              val typeSymbol = getUnderlyingTypeAlias(enclosingScope.lookup(from.toTypeName))
+              val typeSymbol =
+                getUnderlyingTypeAlias(enclosingScope.lookup(from.toTypeName))
               val existsTerm = termSymbol.exists
               val existsType = typeSymbol.exists
 
@@ -169,8 +184,8 @@ trait NscSemanticApi extends ReflectToolkit {
     }
 
     // Compute scopes for global and local imports
-    val st = new ScopeTraverser
-    st.traverse(unit.body)
+    val st = new ScopeTraverser(unit)
+    st.traverseScopes()
     val rootPkg = st.topLevelPkg
     val rootImported = st.scopes(rootPkg)
     val realRootScope = rootPkg.info.members
