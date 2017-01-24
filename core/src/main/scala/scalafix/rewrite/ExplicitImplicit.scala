@@ -15,14 +15,6 @@ case object ExplicitImplicit extends Rewrite {
     case m.Term.ApplyType(m.Term.Name("implicitly"), _) => true
     case _ => false
   }
-  @scala.annotation.tailrec
-  final def parents(tree: Tree,
-                    accum: Seq[Tree] = Seq.empty[Tree]): Seq[Tree] = {
-    tree.parent match {
-      case Some(parent) => parents(parent, parent +: accum)
-      case _ => accum
-    }
-  }
   override def rewrite(ast: m.Tree, ctx: RewriteCtx): Seq[Patch] = {
     import scala.meta._
     val semantic = getSemanticApi(ctx)

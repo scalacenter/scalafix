@@ -242,13 +242,11 @@ trait NscSemanticApi extends ReflectToolkit {
                         disambiguatingNamespace: String): g.Symbol = {
       val typeName = g.TypeName(name)
       val typeNameLookup = in.lookup(typeName)
-
-          val termName = g.TermName(name)
-          val termNameLookup = in.lookup(termName)
-          logger.elem(termNameLookup, typeNameLookup)
       val symbol =
         if (typeNameLookup.exists) typeNameLookup
         else {
+          val termName = g.TermName(name)
+          val termNameLookup = in.lookup(termName)
           if (termNameLookup.exists) termNameLookup
           else g.NoSymbol
         }

@@ -67,7 +67,7 @@ class A {
 class A {
   class B { class C }
   implicit val x = new B
-  implicit val y: x.C = new x.C
+  implicit val y = new x.C
 }
 >>>
 class A {
