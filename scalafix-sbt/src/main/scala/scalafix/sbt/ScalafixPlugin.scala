@@ -104,6 +104,7 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
             .map { jar =>
               Seq(
                 Some(s"-Xplugin:${jar.getAbsolutePath}"),
+                Some("-Yrangepos"),
                 config
               ).flatten
             }
