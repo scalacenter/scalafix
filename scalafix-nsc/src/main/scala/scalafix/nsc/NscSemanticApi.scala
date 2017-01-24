@@ -401,18 +401,20 @@ trait NscSemanticApi extends ReflectToolkit {
         val localSym = inScope.lookup(lastSymbol.name)
         if (!isPathDependent && localSym.exists) renamedTypeName
         else {
-          // Get last symbol that was found in scope
-          val lastAccessibleRef = {
-            onlyPaths.reduceLeft[(m.Name, g.Symbol)] {
-              case (t1 @ (_, s1), t2 @ (_, s2)) =>
-                if (s1.exists && s2.exists) t2 else t1
+          // Compute the shortest prefix that we append to type name
+          val shortenedRefs = {
+            if (isPathDependent) onlyShortenedNames.init
+            else {
+              // Get last symbol that was found in scope
+              val lastAccessibleRef =
+                onlyPaths.reduceLeft[(m.Name, g.Symbol)] {
+                  case (t1 @ (_, s1), t2 @ (_, s2)) =>
+                    if (s1.exists && s2.exists) t2 else t1
+                }
+              val lastName = lastAccessibleRef._1
+              renameType(lastName, renames) :: onlyShortenedNames.init
             }
           }
-
-          // Compute the shortest prefix that we append to type name
-          val shortenedRefs =
-            if (isPathDependent) onlyShortenedNames.init
-            else lastAccessibleRef._1 :: onlyShortenedNames.init
           val termRefs = shortenedRefs.map(toTermName)
           val termSelects = termRefs.reduceLeft[m.Term.Ref] {
             case (qual: m.Term, path: m.Term.Name) =>

@@ -185,6 +185,52 @@ class A {
   }
   implicit val x: D.c.B = new D.c.B
 }
+<<< ONLY renamed term in type selection
+package E {
+  object D {
+    class C
+  }
+}
+class A {
+  import E.{D => d}
+  implicit val x = new d.C
+}
+>>>
+package E {
+  object D {
+    class C
+  }
+}
+class A {
+  import E.{D => d}
+  implicit val x: d.C = new d.C
+}
+<<< ONLY renamed term in deeper type selection
+package E {
+  object D {
+    object C {
+      class B
+    }
+  }
+}
+class A {
+  import E.{D => d}
+  import d.{C => c}
+  implicit val x = new c.B
+}
+>>>
+package E {
+  object D {
+    object C {
+      class B
+    }
+  }
+}
+class A {
+  import E.{D => d}
+  import d.{C => c}
+  implicit val x: c.B = new c.B
+}
 <<< two classes
 class A[T](e: T)
 class B {
