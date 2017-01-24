@@ -206,8 +206,9 @@ trait NscSemanticApi extends ReflectToolkit {
     val traverser = new OffsetTraverser
     traverser.traverse(unit.body)
 
-    def toMetaType(tp: g.Tree) =
+    def toMetaType(tp: g.Tree) = {
       config.dialect(tp.toString).parse[m.Type].get
+    }
 
     def gimmePosition(t: m.Tree): m.Position = {
       t match {
@@ -241,11 +242,13 @@ trait NscSemanticApi extends ReflectToolkit {
                         disambiguatingNamespace: String): g.Symbol = {
       val typeName = g.TypeName(name)
       val typeNameLookup = in.lookup(typeName)
+
+          val termName = g.TermName(name)
+          val termNameLookup = in.lookup(termName)
+          logger.elem(termNameLookup, typeNameLookup)
       val symbol =
         if (typeNameLookup.exists) typeNameLookup
         else {
-          val termName = g.TermName(name)
-          val termNameLookup = in.lookup(termName)
           if (termNameLookup.exists) termNameLookup
           else g.NoSymbol
         }
@@ -265,43 +268,7 @@ trait NscSemanticApi extends ReflectToolkit {
       } else symbol
     }
 
-    /** Remove sequential prefixes from a concrete ref. */
-    def removePrefixes(ref: m.Ref, prefixes: List[m.Name]): m.Ref = {
-      /* Pattern match on `value`s of names b/c `stripThis` creates new names. */
-      def loop(ref: m.Term.Ref,
-               reversedPrefixes: List[m.Name]): List[m.Term.Ref] = {
-        reversedPrefixes match {
-          case prefix :: acc =>
-            val prefixValue = prefix.value
-            ref match {
-              case m.Term.Select(qual, name) =>
-                val qualAsRef = qual.asInstanceOf[m.Term.Ref]
-                if (name.value == prefixValue) loop(qualAsRef, acc)
-                else {
-                  // Make sure that removes names seq and reconstruct trees
-                  val nestedResult = loop(qualAsRef, reversedPrefixes)
-                  if (nestedResult.isEmpty) List(name)
-                  else List(m.Term.Select(nestedResult.head, name))
-                }
-              case name: m.Term.Name if name.value == prefixValue => Nil
-              case r => List(r)
-            }
-          case Nil => List(ref)
-        }
-      }
-
-      val transformedRef = ref.transform {
-        case m.Type.Select(qual, typeName) =>
-          val removed = loop(qual, prefixes.reverse)
-          if (removed.isEmpty) typeName
-          else m.Type.Select(removed.head, typeName)
-        case r => r
-      }
-
-      transformedRef.asInstanceOf[m.Ref]
-    }
-
-    def lookUpSymbols(names: List[m.Name], scope: g.Scope, from: String) = {
+    def lookupSymbols(names: List[m.Name], scope: g.Scope, from: String) = {
       val (_, reversedSymbols) = {
         names.foldLeft(scope -> List.empty[g.Symbol]) {
           case ((scope, symbols), metaName) =>
@@ -315,8 +282,8 @@ trait NscSemanticApi extends ReflectToolkit {
     }
 
     /** Rename a type based on used import selectors. */
-    def renameType(toRename: m.Ref, renames: Map[m.Name, g.Name]) = {
-      toRename.transform {
+    def renameType[T <: m.Name](toRename: T, renames: Map[m.Name, g.Name]) = {
+      val renamed = toRename match {
         case name: m.Name =>
           renames.get(name) match {
             case Some(gname) =>
@@ -326,15 +293,16 @@ trait NscSemanticApi extends ReflectToolkit {
             case None => name
           }
       }
+      renamed.asInstanceOf[T]
     }
 
-    /** Convert list of names to Term names. */
-    def toTermNames(names: List[m.Name]): List[m.Term.Name] = {
-      names.map {
-        case tn: m.Term.Name => tn
-        case name: m.Name => m.Term.Name(name.value)
-      }
-    }
+    def toTermName(name: m.Name): m.Term.Name =
+      if (name.is[m.Term.Name]) name.asInstanceOf[m.Term.Name]
+      else m.Term.Name(name.value)
+
+    def toTypeName(name: m.Name): m.Type.Name =
+      if (name.is[m.Type.Name]) name.asInstanceOf[m.Type.Name]
+      else m.Type.Name(name.value)
 
     /** Get the shortened type `ref` at a concrete spot. */
     def getMissingOrHit(toShorten: m.Ref,
@@ -349,61 +317,64 @@ trait NscSemanticApi extends ReflectToolkit {
 
       // Mix local scope with root scope for FQN and non-FQN lookups
       val wholeScope = mixScopes(inScope, realRootScope)
-      val symbols = lookUpSymbols(names, wholeScope, toShorten.syntax)
+      val symbols = lookupSymbols(names, wholeScope, toShorten.syntax)
       val metaToSymbols = names.zip(symbols)
       logger.elem(metaToSymbols)
 
-      if (symbols.nonEmpty) {
-        /* Check for path dependent types:
-         * 1. Locate the term among the FQN
-         * 2. If it exists, get the first value in the chain */
-        val maybePathDependentType = metaToSymbols
-          .find(ms => ms._2.isAccessor)
-          .flatMap(_ =>
-            metaToSymbols.dropWhile(ms => !ms._2.isValue).headOption)
+      if (symbols.isEmpty) refNoThis
+      else {
+        val maybePathDependentType =
+          metaToSymbols.find(ms => ms._2.isAccessor)
         val isPathDependent = maybePathDependentType.isDefined
 
-        val (lastName, lastSymbol) = maybePathDependentType
-          .getOrElse(metaToSymbols.last)
+        // Get the latest value in path if it's path dependent type
+        val firstTermInPathDependent = maybePathDependentType.flatMap(_ =>
+          metaToSymbols.dropWhile(ms => !ms._2.isValue).headOption)
+
+        val (lastName, lastSymbol) =
+          firstTermInPathDependent.getOrElse(metaToSymbols.last)
         val (onlyPaths, shortenedNames) =
           metaToSymbols.span(_._1 != lastName)
 
         // Build map of meta names to reflect names
-        val renames: Map[m.Name, g.Name] = shortenedNames.map {
+        val renames: Map[m.Name, g.Name] = metaToSymbols.map {
           case (metaName, symbol) =>
             val mappedSym = st.renames.getOrElse(symbol, symbol)
             metaName -> mappedSym.name
         }.toMap
 
+        // Get shortened and renamed type name
+        val onlyShortenedNames = shortenedNames.map(_._1)
+        val typeName = toTypeName(onlyShortenedNames.last)
+        val renamedTypeName = renameType(typeName, renames)
+
+        /* Strategy:
+         *   - Has the local scope lookup succeded and is not a PDT?
+         *     Return type name since it's already in the scope.
+         *   - Otherwise, compute the shortened prefix to use. */
         val localSym = inScope.lookup(lastSymbol.name)
-        if (lastSymbol.exists &&
-            (isPathDependent || localSym.exists)) {
-          // Return shortened type for names already in scope
-          val onlyNames = onlyPaths.map(_._1)
-          val removed = removePrefixes(refNoThis, onlyNames)
-          val shortenedAndRenamedType = renameType(removed, renames)
-          shortenedAndRenamedType.asInstanceOf[m.Ref]
-        } else {
-          val (validRefs, invalidRefs) = onlyPaths.span(_._2.exists)
-          val onlyShortenedNames = shortenedNames.map(_._1)
-          val shortenedRefs = {
-            if (validRefs.nonEmpty) {
-              val lastValidRef = validRefs.last._1
-              lastValidRef :: onlyShortenedNames
-            } else onlyShortenedNames
+        if (!isPathDependent && localSym.exists) renamedTypeName
+        else {
+          // Get last symbol that was found in scope
+          val lastAccessibleRef = {
+            onlyPaths.reduceLeft[(m.Name, g.Symbol)] {
+              case (t1 @ (_, s1), t2 @ (_, s2)) =>
+                if (s1.exists && s2.exists) t2 else t1
+            }
           }
 
-          val termRefs = toTermNames(shortenedRefs.init)
-          val typeRef = shortenedRefs.last.asInstanceOf[m.Type.Name]
+          // Compute the shortest prefix that we append to type name
+          val shortenedRefs =
+            if (isPathDependent) onlyShortenedNames.init
+            else lastAccessibleRef._1 :: onlyShortenedNames.init
+          val termRefs = shortenedRefs.map(toTermName)
           val termSelects = termRefs.reduceLeft[m.Term.Ref] {
             case (qual: m.Term, path: m.Term.Name) =>
-              m.Term.Select(qual, path)
+              m.Term.Select(qual, renameType(path, renames))
           }
-
-          m.Type.Select(termSelects, typeRef)
+          m.Type.Select(termSelects, renamedTypeName)
         }
-        // Received type is not valid/doesn't exist, return what we got
-      } else refNoThis
+      }
     }
 
     new SemanticApi {
