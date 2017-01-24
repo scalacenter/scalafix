@@ -190,8 +190,10 @@ trait NscSemanticApi extends ReflectToolkit {
   private def getSemanticApi(unit: g.CompilationUnit,
                              config: ScalafixConfig): SemanticApi = {
     if (!g.settings.Yrangepos.value) {
-      val instructions = "Please re-compile with the scalac option -Yrangepos enabled"
-      val explanation  = "This option is necessary for the semantic API to function"
+      val instructions =
+        "Please re-compile with the scalac option -Yrangepos enabled"
+      val explanation =
+        "This option is necessary for the semantic API to function"
       sys.error(s"$instructions. $explanation")
     }
 
@@ -231,52 +233,98 @@ trait NscSemanticApi extends ReflectToolkit {
 
     /** Look up a Meta name for both Reflect Term and Type names.
       *
-      * Unfortunately, meta selection chains are term refs while they could
-      * be type refs (e.g. `A` in `A.this.B` is a term). For this reason,
-      * we need to check both names to guarantee whether a name is in scope.
+      * Meta type selections are always qualified by terms, so we cannot
+      * know whether a term name represents a term or a type. Check both
+      * types given a preference to types (since we are shortening them).
       */
     @inline
-    def lookupBothNames(name: String,
-                        in: g.Scope,
-                        disambiguatingOwner: Option[g.Symbol],
-                        disambiguatingNamespace: String): g.Symbol = {
-      val typeName = g.TypeName(name)
-      val typeNameLookup = in.lookup(typeName)
-      val symbol =
-        if (typeNameLookup.exists) typeNameLookup
-        else {
-          val termName = g.TermName(name)
-          val termNameLookup = in.lookup(termName)
-          if (termNameLookup.exists) termNameLookup
-          else g.NoSymbol
-        }
+    def lookupBothNames(
+        name: String,
+        in: g.Scope,
+        disambiguatingOwner: Option[g.Symbol],
+        disambiguatingNamespace: String): (g.Symbol, g.Symbol) = {
+      def disambiguateOverloadedSymbol(symbol: g.Symbol) = {
+        if (symbol.isOverloaded) {
+          val alternatives = symbol.alternatives
+          disambiguatingOwner
+            .flatMap(o => alternatives.find(_.owner == o))
+            .getOrElse {
+              val substrings = alternatives.iterator
+                .filter(s => disambiguatingNamespace.indexOf(s.fullName) == 0)
+              // Last effort to disambiguate, pick sym with longest substring
+              if (substrings.isEmpty) alternatives.head
+              else substrings.maxBy(_.fullName.length)
+            }
+        } else symbol
+      }
 
-      // Disambiguate overloaded symbols caused by name shadowing
-      if (symbol.isOverloaded) {
-        val alternatives = symbol.alternatives
-        disambiguatingOwner
-          .flatMap(o => alternatives.find(_.owner == o))
-          .getOrElse {
-            val substrings = alternatives.iterator
-              .filter(s => disambiguatingNamespace.indexOf(s.fullName) == 0)
-            // Last effort to disambiguate, pick sym with longest substring
-            if (substrings.isEmpty) alternatives.head
-            else substrings.maxBy(_.fullName.length)
-          }
-      } else symbol
+      val termName = g.TermName(name)
+      val termSymbol = disambiguateOverloadedSymbol(in.lookup(termName))
+      val typeName = g.TypeName(name)
+      val typeSymbol = disambiguateOverloadedSymbol(in.lookup(typeName))
+      termSymbol -> typeSymbol
     }
 
-    def lookupSymbols(names: List[m.Name], scope: g.Scope, from: String) = {
-      val (_, reversedSymbols) = {
-        names.foldLeft(scope -> List.empty[g.Symbol]) {
-          case ((scope, symbols), metaName) =>
-            val sym =
-              lookupBothNames(metaName.value, scope, symbols.headOption, from)
-            if (!sym.exists) scope -> symbols
-            else sym.info.members -> (sym :: symbols)
+    /** Look up the symbols attached to meta names in a scope.
+      *
+      * As we don't know a priori whether a meta name represents a type or
+      * a term, we need to explore the whole binary tree of lookups until:
+      *   1. All the meta names have a symbol.
+      *   2. The last found symbol is a type (we are shortening types).
+      *
+      * For that, we perform a DFS post-order traversal in the tree of
+      * all possible names (first as a type name and then as a term name).
+      */
+    def lookupSymbols(names: List[m.Name],
+                      scope: g.Scope,
+                      from: String): List[g.Symbol] = {
+
+      // First compute the size for names
+      val namesSize = names.size
+
+      def traverseLookupTree(names: List[m.Name],
+                             scope: g.Scope,
+                             symbols: List[g.Symbol]): List[g.Symbol] = {
+        @inline
+        def traverse(symbol: g.Symbol, at: List[m.Name]) = {
+          val nextSymbols = symbol :: symbols
+          val nextScope = symbol.info.members
+          traverseLookupTree(at, nextScope, nextSymbols)
+        }
+
+        @inline
+        def isSuffixTypeSymbol(symbols: List[g.Symbol]) = {
+          symbols match {
+            case symbol :: acc => symbol.isType
+            case Nil => false
+          }
+        }
+
+        @inline
+        def isCorrectResult(symbols: List[g.Symbol]) =
+          namesSize == symbols.size && isSuffixTypeSymbol(symbols)
+
+        names match {
+          case name :: acc =>
+            val lastSymbol = symbols.headOption
+            val (termSymbol, typeSymbol) =
+              lookupBothNames(name.value, scope, lastSymbol, from)
+            val leftTraversal =
+              if (!typeSymbol.exists) symbols
+              else traverse(typeSymbol, acc)
+            val rightTraversal =
+              if (!termSymbol.exists) symbols
+              else traverse(termSymbol, acc)
+
+            // Return the first complete lookup that is a type
+            if (isCorrectResult(leftTraversal)) leftTraversal
+            else if (isCorrectResult(rightTraversal)) rightTraversal
+            else symbols
+          case Nil => symbols
         }
       }
-      reversedSymbols.reverse
+
+      traverseLookupTree(names, scope, Nil).reverse
     }
 
     /** Rename a type based on used import selectors. */
