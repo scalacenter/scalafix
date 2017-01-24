@@ -22,11 +22,12 @@ trait NscSemanticApi extends ReflectToolkit {
     else pkgSym.asModule.moduleClass
   }
 
-  /** Keep members that are meaningful for scoping rules. For example,
-    * remove methods (don't appear in types) and inner packages.  */
-  private def keepMeaningfulMembers(s: g.Symbol): Boolean =
-    (s.isModule || s.isClass || s.isValue || s.isAccessor) &&
-      !(s.hasPackageFlag || s.isMethod)
+  /** Keep members that are relevant for scoping rules.
+    * For example, remove methods (don't appear in types).  */
+  @inline
+  private def keepRelevantMembers(s: g.Symbol): Boolean =
+    (s.isModule || s.isValue || s.isAccessor || s.isType) &&
+      !(s.isMethod || s.isSynthetic || s.hasPackageFlag)
 
   @inline
   private def mixScopes(sc: g.Scope, sc2: g.Scope) = {
@@ -43,7 +44,7 @@ trait NscSemanticApi extends ReflectToolkit {
   }
 
   /** Return a scope with the default packages imported by Scala.
-    * Follow the same semantics as `rootImports` in global reflect Context. */
+    * Follow the same semantics as `rootImports` in the global Context. */
   private def importDefaultPackages(scope: g.Scope, unit: g.CompilationUnit) = {
     // Handle packages to import from user-defined compiler flags
     val packagesToImportFrom = {
@@ -97,6 +98,13 @@ trait NscSemanticApi extends ReflectToolkit {
     def getUnderlyingTypeAlias(symbol: g.Symbol) =
       symbol.info.dealias.typeSymbol
 
+    /** Look up type and term symbols from a given name. */
+    def lookupTypeAndTerm(name: g.Name, scope: g.Scope) = {
+      val termSymbol = scope.lookup(name.toTermName)
+      val typeSymbol = getUnderlyingTypeAlias(scope.lookup(name.toTypeName))
+      termSymbol -> typeSymbol
+    }
+
     def traverseScopes(): Unit = traverse(unit.body)
 
     override def traverse(t: g.Tree): Unit = {
@@ -107,7 +115,7 @@ trait NscSemanticApi extends ReflectToolkit {
           currentScope.enterIfNew(sym)
 
           // Add members when processing the packages globally
-          val members = sym.info.members.filter(keepMeaningfulMembers)
+          val members = sym.info.members.filter(keepRelevantMembers)
           members.foreach(currentScope.enterIfNew)
 
           // Set enclosing package before visiting enclosed trees
@@ -117,40 +125,44 @@ trait NscSemanticApi extends ReflectToolkit {
           enclosingScope = previousScope
 
         case g.Import(pkg, selectors) =>
-          val pkgSym = pkg.symbol
+          val pkgMembers = pkg.symbol.info.members
 
-          // Add imported members at the right scope
-          // TODO(jvican): Put this into the selectors.foreach
-          val importedNames = selectors.map(_.name.decode).toSet
-          val imported = pkgSym.info.members.filter(m =>
-            importedNames.contains(m.name.decode))
-          addAll(imported, enclosingScope)
-
+          // TODO(jvican): Find out Scala rules to process imports
+          // We could be processing them in the wrong order...
           selectors.foreach {
             case g.ImportSelector(g.TermName("_"), _, null, _) =>
-              addAll(pkgSym.info.members, enclosingScope)
+              // Wildcard import, add everything in the package
+              addAll(pkgMembers, enclosingScope)
+
             case g.ImportSelector(from, _, g.TermName("_"), _) =>
               // Look up symbol and unlink it from the scope
               val symbol = enclosingScope.lookup(from)
               if (symbol.exists)
                 enclosingScope.unlink(symbol)
-            case isel @ g.ImportSelector(from, _, to, _) if to != null =>
-              // Look up symbol for import selectors and rename it
-              val termSymbol = enclosingScope.lookup(from.toTermName)
-              val typeSymbol =
-                getUnderlyingTypeAlias(enclosingScope.lookup(from.toTypeName))
-              val existsTerm = termSymbol.exists
-              val existsType = typeSymbol.exists
 
-              // Add rename for both term and type name
-              if (existsTerm && existsType) {
+            case g.ImportSelector(name, _, same, _) if name == same =>
+              // Ordinary name import, add both term and type to scope
+              val (termSymbol, typeSymbol) =
+                lookupTypeAndTerm(name, pkgMembers)
+              if (termSymbol.exists)
+                enclosingScope.enterIfNew(termSymbol)
+              if (typeSymbol.exists)
+                enclosingScope.enterIfNew(typeSymbol)
+
+            case g.ImportSelector(from, _, to, _) if to != null =>
+              // Found a rename, look up symbols and change names
+              val (termSymbol, typeSymbol) =
+                lookupTypeAndTerm(from, pkgMembers)
+
+              // Add non-renamed symbol because FQN will fully resolve renames
+              if (termSymbol.exists) {
+                enclosingScope.enterIfNew(termSymbol)
                 addRename(termSymbol, to)
+              }
+              if (typeSymbol.exists) {
+                enclosingScope.enterIfNew(typeSymbol)
                 addRename(typeSymbol, to)
-              } else if (existsTerm) {
-                addRename(termSymbol, to)
-              } else if (existsType) {
-                addRename(typeSymbol, to)
-              } // TODO(jvican): Warn user that rename was not found
+              }
             case _ =>
           }
           super.traverse(t)
@@ -417,7 +429,7 @@ trait NscSemanticApi extends ReflectToolkit {
         val interestingOwners =
           contextOwnerChain.takeWhile(_ != enclosingPkg)
         val bottomUpScope = interestingOwners.iterator
-          .map(_.info.members.filter(keepMeaningfulMembers))
+          .map(_.info.members.filter(keepRelevantMembers))
           .reduce(mixScopes _)
         val globalScope = mixScopes(bottomUpScope, userImportsScope)
 
