@@ -32,16 +32,15 @@ class A {
   implicit val x: MyMap[Int, String] =
     MyMap(1 -> "STRING")
 }
-<<< removed map
-import scala.collection.immutable.{Map => _}
+<<< local map definition
 class A {
+  case class Map[K](elem: (K, String))
   implicit val x = Map(1 -> "STRING")
 }
 >>>
-import scala.collection.immutable.{Map => _}
 class A {
-  implicit val x: Map[Int, String] =
-    Map(1 -> "STRING")
+  case class Map[K](elem: (K, String))
+  implicit val x: Map[Int] = Map(1 -> "STRING")
 }
 <<< def works
 class A {
