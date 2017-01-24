@@ -100,6 +100,12 @@ trait NscSemanticApi extends ReflectToolkit {
   private def getSemanticApi(unit: g.CompilationUnit,
                              config: ScalafixConfig): SemanticApi = {
     val offsets = offsetToType(unit.body, config.dialect)
+    if (!g.settings.Yrangepos.value) {
+      val instructions = "Please re-compile with the scalac option -Yrangepos enabled"
+      val explanation  = "This option is necessary for the semantic API to function"
+      sys.error(s"$instructions. $explanation")
+    }
+
     new SemanticApi {
       override def typeSignature(defn: m.Defn): Option[m.Type] = {
         defn match {
