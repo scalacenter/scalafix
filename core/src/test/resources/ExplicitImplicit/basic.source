@@ -13,8 +13,29 @@ class A {
 }
 >>>
 class A {
-  implicit val x: scala.collection.immutable.Map[Int, String] =
+  implicit val x: Map[Int, String] =
     Map(1 -> "STRING")
+}
+<<< renamed map
+import scala.collection.immutable.{Map => MyMap}
+class A {
+  implicit val x = MyMap(1 -> "STRING")
+}
+>>>
+import scala.collection.immutable.{Map => MyMap}
+class A {
+  implicit val x: MyMap[Int, String] =
+    MyMap(1 -> "STRING")
+}
+<<< local map definition
+class A {
+  case class Map[K](elem: (K, String))
+  implicit val x = Map(1 -> "STRING")
+}
+>>>
+class A {
+  case class Map[K](elem: (K, String))
+  implicit val x: Map[Int] = Map(1 -> "STRING")
 }
 <<< def works
 class A {
@@ -51,6 +72,162 @@ class A {
   class B { class C }
   implicit val x: B = new B
   implicit val y: x.C = new x.C
+}
+<<< NOWRAP higher kinded cats
+package cats {
+  package laws {
+    package discipline {
+      trait CartesianTests[F[_]]
+      object CartesianTests {
+        trait Isomorphisms[F[_]]
+        object Isomorphisms {
+          def id[T[_]]: Isomorphisms[T] = ???
+        }
+      }
+    }
+  }
+}
+package cats {
+  trait Id[T]
+}
+package cats {
+  package tests {
+    import cats.laws.discipline._
+    class IdTests {
+      implicit val iso = CartesianTests.Isomorphisms.id[Id]
+    }
+  }
+}
+>>>
+package cats {
+  package laws {
+    package discipline {
+      trait CartesianTests[F[_]]
+      object CartesianTests {
+        trait Isomorphisms[F[_]]
+        object Isomorphisms {
+          def id[T[_]]: Isomorphisms[T] = ???
+        }
+      }
+    }
+  }
+}
+package cats {
+  trait Id[T]
+}
+package cats {
+  package tests {
+    import cats.laws.discipline._
+    class IdTests {
+      implicit val iso: CartesianTests.Isomorphisms[Id] = CartesianTests.Isomorphisms.id[Id]
+    }
+  }
+}
+<<< higher kinded
+import scala.concurrent.Future
+package hello {
+  trait Id[F[_]]
+  object Id {
+    def ident[F[_]]: Id[F] = ???
+  }
+}
+object World {
+  import hello._
+  implicit val futureId = Id.ident[scala.concurrent.Future]
+}
+>>>
+import scala.concurrent.Future
+package hello {
+  trait Id[F[_]]
+  object Id {
+    def ident[F[_]]: Id[F] = ???
+  }
+}
+object World {
+  import hello._
+  implicit val futureId: Id[Future] = Id.ident[scala.concurrent.Future]
+}
+<<< path dependent type
+class A {
+  trait C {
+    class B
+  }
+  val c = new C {}
+  implicit val x = new c.B
+}
+>>>
+class A {
+  trait C {
+    class B
+  }
+  val c = new C {}
+  implicit val x: c.B = new c.B
+}
+<<< path dependent type II
+class A {
+  object D {
+    val c = new C {}
+  }
+  trait C {
+    class B
+  }
+  implicit val x = new D.c.B
+}
+>>>
+class A {
+  object D {
+    val c = new C {}
+  }
+  trait C {
+    class B
+  }
+  implicit val x: D.c.B = new D.c.B
+}
+<<< renamed term in type selection
+package E {
+  object D {
+    class C
+  }
+}
+class A {
+  import E.{D => d}
+  implicit val x = new d.C
+}
+>>>
+package E {
+  object D {
+    class C
+  }
+}
+class A {
+  import E.{D => d}
+  implicit val x: d.C = new d.C
+}
+<<< renamed term in deeper type selection
+package E {
+  object D {
+    object C {
+      class B
+    }
+  }
+}
+class A {
+  import E.{D => d}
+  import d.{C => c}
+  implicit val x = new c.B
+}
+>>>
+package E {
+  object D {
+    object C {
+      class B
+    }
+  }
+}
+class A {
+  import E.{D => d}
+  import d.{C => c}
+  implicit val x: c.B = new c.B
 }
 <<< two classes
 class A[T](e: T)
@@ -172,7 +349,7 @@ object A {
     implicit val x: List[D.B] = List(new D.B)
   }
 }
-<<< SKIP slick tuple
+<<< slick tuple
 object slick {
   case class Supplier(id: Int, name: String)
   implicit val supplierGetter = (arg: (Int, String)) => Supplier(arg._1, arg._2)
@@ -180,7 +357,7 @@ object slick {
 >>>
 object slick {
   case class Supplier(id: Int, name: String)
-  implicit val supplierGetter: ((Int, String)) => slick.Supplier = (arg: (Int, String)) => Supplier(arg._1, arg._2)
+  implicit val supplierGetter: ((Int, String)) => Supplier = (arg: (Int, String)) => Supplier(arg._1, arg._2)
 }
 <<< NOWRAP package import
 package scala.concurrent {

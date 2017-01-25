@@ -1,8 +1,10 @@
 package scalafix.rewrite
 
+import scala.meta._
 import scala.{meta => m}
 import scalafix.util.Patch
 import scalafix.util.Whitespace
+import scalafix.util.logger
 
 case object ExplicitImplicit extends Rewrite {
   // Don't explicitly annotate vals when the right-hand body is a single call
@@ -27,7 +29,10 @@ case object ExplicitImplicit extends Rewrite {
         replace <- lhsTokens.reverseIterator.find(x =>
           !x.is[Token.Equals] && !x.is[Whitespace])
         typ <- semantic.typeSignature(defn)
-      } yield Patch(replace, replace, s"$replace: ${typ.syntax}")
+      } yield {
+        val shortenedTpe = semantic.shortenType(typ, defn)
+        Patch(replace, replace, s"$replace: ${shortenedTpe.syntax}")
+      }
     }.toSeq
     ast.collect {
       case t @ m.Defn.Val(mods, _, None, body)
