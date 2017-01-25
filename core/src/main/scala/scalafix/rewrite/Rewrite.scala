@@ -2,7 +2,9 @@ package scalafix.rewrite
 
 import scala.meta._
 import scalafix.Failure.MissingSemanticApi
+import scalafix.util.TreePatch
 import scalafix.util.Patch
+import scala.collection.immutable.Seq
 
 abstract class Rewrite {
   def getSemanticApi(ctx: RewriteCtx): SemanticApi = ctx.semantic.getOrElse {
@@ -16,7 +18,10 @@ object Rewrite {
     t.map(x => x.source -> x.value).toMap
   }
 
-  val syntaxRewrites: Seq[Rewrite] = Seq(ProcedureSyntax, VolatileLazyVal)
+  val syntaxRewrites: Seq[Rewrite] = Seq(
+    ProcedureSyntax,
+    VolatileLazyVal
+  )
   val semanticRewrites: Seq[Rewrite] = Seq(ExplicitImplicit)
   val allRewrites: Seq[Rewrite] = syntaxRewrites ++ semanticRewrites
   val defaultRewrites: Seq[Rewrite] =

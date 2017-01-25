@@ -1,7 +1,6 @@
 package scalafix.rewrite
 
-import scala.meta.Defn
-import scala.meta.Type
+import scala.meta._
 
 /** A custom semantic api for scalafix rewrites.
   *
@@ -18,4 +17,13 @@ trait SemanticApi {
 
   /** Returns the type annotation for given val/def. */
   def typeSignature(defn: Defn): Option[Type]
+
+  /** Returns the fully qualified name of this name, or none if unable to find it*/
+  def fqn(name: Ref): Option[Ref]
+
+  /** Returns all used refs in this compilation unit */
+  def usedFqns: Seq[Ref]
+
+  /** Returns true if importee is not used in this compilation unit, false otherwise */
+  def isUnusedImport(importee: Importee): Boolean
 }

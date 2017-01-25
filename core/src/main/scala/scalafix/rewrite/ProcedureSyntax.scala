@@ -7,6 +7,8 @@ import scala.meta.tokens.Token.RightBrace
 import scala.meta.tokens.Token.RightParen
 import scala.meta.tokens.Token.Space
 import scalafix.util.Patch
+import scala.collection.immutable.Seq
+import scalafix.util.TokenPatch
 
 case object ProcedureSyntax extends Rewrite {
   override def rewrite(ast: Tree, ctx: RewriteCtx): Seq[Patch] = {
@@ -27,7 +29,7 @@ case object ProcedureSyntax extends Rewrite {
           if (between.nonEmpty) " " + between
           else ""
         }
-        Patch(next(closingParen), bodyStart, s": Unit = {$comment")
+        TokenPatch.AddRight(closingParen, s": Unit =")
     }
     patches
   }

@@ -172,7 +172,7 @@ object A {
     implicit val x: List[D.B] = List(new D.B)
   }
 }
-<<< SKIP slick tuple
+<<< slick tuple
 object slick {
   case class Supplier(id: Int, name: String)
   implicit val supplierGetter = (arg: (Int, String)) => Supplier(arg._1, arg._2)
@@ -195,42 +195,4 @@ package scala.concurrent
 package banana
 object x {
   implicit val f: Future[Int] = Future.successful(1)
-}
-<<< SKIP global
-class Global {
-  type Position = Int
-  class Symbol {
-    def pos: Position = ???
-  }
-}
-trait Compiler {
-  val g: Global
-  val s: g.Symbol
-}
-trait Foo { self: Compiler =>
-  val addons: Object {
-    val g: Foo.this.g.type
-  }
-  import g._
-  import addons._
-  implicit val x = s.pos
-}
->>>
-class Global {
-  type Position = Int
-  class Symbol {
-    def pos: Position = ???
-  }
-}
-trait Compiler {
-  val g: Global
-  val s: g.Symbol
-}
-trait Foo { self: Compiler =>
-  val addons: Object {
-    val g: Foo.this.g.type
-  }
-  import g._
-  import addons._
-  implicit val x: Position = s.pos
 }

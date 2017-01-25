@@ -97,7 +97,8 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
         } else {
           val config =
             scalafixConfig.value.map { x =>
-              if (!x.isFile) streams.value.log.warn(s"File does not exist: $x")
+              if (!x.isFile)
+                streams.value.log.warn(s"File does not exist: $x")
               s"-P:scalafix:${x.getAbsolutePath}"
             }
           scalafixInternalJar.value

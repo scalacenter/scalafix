@@ -1,50 +1,14 @@
 package scalafix.tests
 
-import scala.util.matching.Regex
 import scalafix.rewrite.ExplicitImplicit
-import scalafix.rewrite.Rewrite
+import scalafix.util.FileOps
 import scalafix.util.logger
 
-import java.io.File
-
-import ammonite.ops.Path
 import ammonite.ops._
 import org.scalatest.FunSuite
 import org.scalatest.concurrent.TimeLimits
 import org.scalatest.time.Minutes
 import org.scalatest.time.Span
-
-object ItTest {
-  val root: Path = pwd / "target" / "it"
-}
-
-object Command {
-  val testCompile =
-    Command("test:compile", optional = true)
-  val scalafixTask =
-    Command("scalafix", optional = true)
-  def default: Seq[Command] = Seq(
-    scalafixTask
-  )
-  val RepoName: Regex = ".*/([^/].*).git".r
-}
-case class Command(cmd: String, optional: Boolean = false)
-
-case class ItTest(name: String,
-                  repo: String,
-                  hash: String,
-                  cmds: Seq[Command] = Command.default,
-                  rewrites: Seq[Rewrite] = Rewrite.defaultRewrites,
-                  addCoursier: Boolean = true) {
-  def repoName: String = repo match {
-    case Command.RepoName(x) => x
-    case _ =>
-      throw new IllegalArgumentException(
-        s"Unable to parse repo name from repo: $repo")
-  }
-  def workingPath: Path = ItTest.root / repoName
-  def parentDir: File = workingPath.toIO.getParentFile
-}
 
 // Clones the repo, adds scalafix as a plugin and tests that the
 // following commands success:
@@ -58,8 +22,7 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
   private val isCi = sys.props.contains("CI")
   private val maxTime = Span(20, Minutes) // just in case.
 
-  val hardClean = false
-  val comprehensiveTest = false
+  val hardClean = true
 
   // Clones/cleans/checkouts
   def setup(t: ItTest): Unit = {
@@ -69,6 +32,7 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
     }
     if (hardClean) {
       %%("git", "clean", "-fd")(t.workingPath)
+      %%("git", "checkout", t.hash)(t.workingPath)
     } else {
       %%("git", "checkout", "--", ".")(t.workingPath)
     }
@@ -89,6 +53,8 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
     write.over(
       t.workingPath / ".scalafix.conf",
       s"""rewrites = [${t.rewrites.mkString(", ")}]
+         |fatalWarnings = true
+         |${t.config}
          |""".stripMargin
     )
     write.append(
@@ -111,6 +77,19 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
       logger.info(s"Running $id")
       failAfter(maxTime) {
         %("sbt", "++2.11.8", cmd)(t.workingPath)
+        if (t.testPatch) {
+          val obtainedPatch = %%("git", "diff")(t.workingPath).out.lines
+          val expectedPatch = read.lines(
+            Path(
+              FileOps.getFile("scalafix-tests",
+                              "src",
+                              "main",
+                              "resources",
+                              "patches",
+                              t.name + ".patch"))
+          )
+          assert(obtainedPatch == expectedPatch)
+        }
       }
       logger.info(s"Completed $id")
     }
@@ -126,13 +105,24 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
   check()
 }
 
+class Akka
+    extends IntegrationPropertyTest(
+      ItTest(
+        name = "akka",
+        repo = "https://github.com/akka/akka.git",
+        hash = "3936883e9ae9ef0f7a3b0eaf2ccb4c0878fcb145",
+        rewrites = Seq()
+      ),
+      skip = true
+    )
+
 class Circe
     extends IntegrationPropertyTest(
       ItTest(
         name = "circe",
         repo = "https://github.com/circe/circe.git",
         hash = "717e1d7d5d146cbd0455770771261e334f419b14",
-        rewrites = Seq(ExplicitImplicit)
+        rewrites = Seq()
       ),
       skip = true
     )
@@ -142,9 +132,11 @@ class Slick
       ItTest(
         name = "slick",
         repo = "https://github.com/slick/slick.git",
+        rewrites = Seq(),
+        testPatch = true,
         hash = "bd3c24be419ff2791c123067668c81e7de858915"
       ),
-      skip = true
+      skip = false
     )
 
 class Scalaz
@@ -162,8 +154,11 @@ class Cats
       ItTest(
         name = "cats",
         repo = "https://github.com/typelevel/cats.git",
+        config = ItTest.catsImportConfig,
         hash = "31080daf3fd8c6ddd80ceee966a8b3eada578198"
-      ))
+      ),
+      skip = true
+    )
 
 class Monix
     extends IntegrationPropertyTest(
