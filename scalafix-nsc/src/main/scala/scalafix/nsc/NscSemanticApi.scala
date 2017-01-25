@@ -101,8 +101,10 @@ trait NscSemanticApi extends ReflectToolkit {
                              config: ScalafixConfig): SemanticApi = {
     val offsets = offsetToType(unit.body, config.dialect)
     if (!g.settings.Yrangepos.value) {
-      val instructions = "Please re-compile with the scalac option -Yrangepos enabled"
-      val explanation  = "This option is necessary for the semantic API to function"
+      val instructions =
+        "Please re-compile with the scalac option -Yrangepos enabled"
+      val explanation =
+        "This option is necessary for the semantic API to function"
       sys.error(s"$instructions. $explanation")
     }
 
