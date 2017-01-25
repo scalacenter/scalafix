@@ -8,26 +8,30 @@ import scala.tools.nsc.Settings
 import scala.tools.nsc.reporters.StoreReporter
 import scala.util.control.NonFatal
 import scala.{meta => m}
-import scalafix.nsc.NscSemanticApi
+import scalafix.nsc.ScalafixNscPlugin
 import scalafix.rewrite.ExplicitImplicit
 import scalafix.rewrite.Rewrite
+import scalafix.util.DiffAssertions
+import scalafix.util.FileOps
 import scalafix.util.logger
 
 import org.scalatest.FunSuite
 
-class SemanticTests extends FunSuite {
+class SemanticTests extends FunSuite with DiffAssertions { self =>
   val rewrite: Rewrite = ExplicitImplicit
   val parseAsCompilationUnit: Boolean = false
-
-  private lazy val g: Global = {
+  private val testGlobal: Global = {
     def fail(msg: String) =
       sys.error(s"ReflectToMeta initialization failed: $msg")
     val classpath = System.getProperty("sbt.paths.scalafixNsc.test.classes")
     val pluginpath = System.getProperty("sbt.paths.plugin.jar")
     val scalacOptions = Seq(
-      "-Yrangepos"
-    ).mkString(" ", ", ", " ")
-    val options = "-cp " + classpath + " -Xplugin:" + pluginpath + ":" + classpath + " -Xplugin-require:scalafix" + scalacOptions
+      "-Yrangepos",
+      "-Ywarn-unused-import"
+    ).mkString(" ", " ", " ")
+    val options = "-cp " + classpath + " -Xplugin:" + pluginpath + ":" +
+        classpath + " -Xplugin-require:scalafix" + scalacOptions
+
     val args = CommandLineParser.tokenize(options)
     val emptySettings = new Settings(
       error => fail(s"couldn't apply settings because $error"))
@@ -41,20 +45,8 @@ class SemanticTests extends FunSuite {
     g
   }
 
-  private object fixer extends NscSemanticApi {
-    lazy val global: SemanticTests.this.g.type = SemanticTests.this.g
-    def apply(unit: g.CompilationUnit, config: ScalafixConfig): Fixed =
-      fix(unit, config)
-  }
-
-  def wrap(code: String, diffTest: DiffTest): String = {
-    if (diffTest.noWrap) code
-    else {
-      val packageName = diffTest.name.replaceAll("[^a-zA-Z0-9]", "")
-      val packagedCode = s"package $packageName { $code }"
-      packagedCode
-    }
-  }
+  private val fixer = new ScalafixNscPlugin(testGlobal).component
+  private val g: fixer.global.type = fixer.global
 
   private def unwrap(gtree: g.Tree): g.Tree = gtree match {
     case g.PackageDef(g.Ident(g.TermName(_)), stat :: Nil) => stat
@@ -64,17 +56,19 @@ class SemanticTests extends FunSuite {
   private def getTypedCompilationUnit(code: String): g.CompilationUnit = {
     import g._
     val unit = new CompilationUnit(newSourceFile(code, "<ReflectToMeta>"))
-
     val run = g.currentRun
     val phases = List(run.parserPhase, run.namerPhase, run.typerPhase)
     val reporter = new StoreReporter()
     g.reporter = reporter
-
     phases.foreach(phase => {
       g.phase = phase
       g.globalPhase = phase
       phase.asInstanceOf[GlobalPhase].apply(unit)
       val errors = reporter.infos.filter(_.severity == reporter.ERROR)
+      val warnings = reporter.infos.filter(_.severity == reporter.WARNING)
+      warnings.foreach(warning => logger.warn(s"""${warning.msg}
+                                                 |${warning.pos.lineContent}
+                                                 |${warning.pos.lineCaret}""".stripMargin))
       errors.foreach(error =>
         fail(s"""scalac ${phase.name} error: ${error.msg} at ${error.pos}
                 |$code""".stripMargin))
@@ -83,7 +77,7 @@ class SemanticTests extends FunSuite {
   }
 
   def fix(code: String, config: ScalafixConfig): String = {
-    val Fixed.Success(fixed) = fixer(getTypedCompilationUnit(code), config)
+    val Fixed.Success(fixed) = fixer.fix(getTypedCompilationUnit(code), config)
     fixed
   }
   case class MismatchException(details: String) extends Exception
@@ -130,33 +124,41 @@ class SemanticTests extends FunSuite {
       getTypedCompilationUnit(code)
     } catch {
       case NonFatal(e) =>
-        fail(s"Fixed source code does not typecheck! ${e.getMessage}", e)
+        e.printStackTrace()
+        fail(
+          s"""Fixed source code does not typecheck!
+             |Message: ${e.getMessage}
+             |Reveal: ${logger.reveal(code)}
+             |Code: $code""".stripMargin,
+          e
+        )
     }
   }
 
   private def parse(code: String): m.Tree = {
     import scala.meta._
-    code.parse[Source].get match {
-      // unwraps injected package
-      case m.Source(Seq(Pkg(_, stats))) => m.Source(stats)
-      case els => els
-    }
+    code.parse[Source].get
   }
 
   def check(original: String, expectedStr: String, diffTest: DiffTest): Unit = {
-    val fixed = fix(wrap(original, diffTest), diffTest.config)
-    val obtained = parse(fixed)
+    val fixed = fix(diffTest.wrapped(), diffTest.config)
+    val obtained = parse(diffTest.unwrap(fixed))
     val expected = parse(expectedStr)
     try {
       checkMismatchesModuloDesugarings(obtained, expected)
-      if (!diffTest.noWrap) typeChecks(wrap(fixed, diffTest))
+      if (diffTest.isSyntax) {
+        assertNoDiff(obtained.syntax, expected.syntax)
+      }
+      if (!diffTest.noWrap) {
+        typeChecks(diffTest.wrapped(fixed))
+      }
     } catch {
       case MismatchException(details) =>
         val header = s"scala -> meta converter error\n$details"
         val fullDetails =
-          s"""expected:
+          s"""${logger.header("Expected")}
              |${expected.syntax}
-             |obtained:
+             |${logger.header("Obtained")}
              |${obtained.syntax}""".stripMargin
         fail(s"$header\n$fullDetails")
     }

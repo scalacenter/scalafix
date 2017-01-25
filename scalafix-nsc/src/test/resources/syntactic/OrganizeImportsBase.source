@@ -1,0 +1,73 @@
+rewrites = []
+imports.organize = true
+imports.removeUnused = false
+imports.expandRelative = false
+<<< Basic
+import scala.collection.immutable.{Seq, Map, List => L}
+>>>
+import scala.collection.immutable.{List => L}
+import scala.collection.immutable.Map
+import scala.collection.immutable.Seq
+<<< order
+import scalafix._
+import java.{util => ju}
+import javax._
+import scala.collection.mutable
+import scala.language.implicitConversions
+>>>
+import scala.language.implicitConversions
+
+import scala.collection.mutable
+
+import java.{util => ju}
+
+import javax._
+import scalafix._
+<<< spaces
+import scala.collection.immutable.List
+import scala.collection.immutable.Map
+import scala.collection.immutable.Seq
+trait foo
+>>>
+import scala.collection.immutable.List
+import scala.collection.immutable.Map
+import scala.collection.immutable.Seq
+trait foo
+<<< unimport
+import scala.collection.mutable.{ ListBuffer => _, _ }
+>>>
+import scala.collection.mutable.{ListBuffer => _, _}
+<<< comments
+import scala.collection.immutable.List // comment
+// leading
+import scala.collection.immutable.{
+  Map, // Map
+  Set // Set
+}
+trait a
+>>>
+import scala.collection.immutable.List // comment
+// leading
+import scala.collection.immutable.Map // Map
+import scala.collection.immutable.Set // Set
+trait a
+<<< relative imports
+import scalafix._
+import rewrite.ExplicitImplicit
+>>>
+import scalafix._
+
+import rewrite.ExplicitImplicit
+<<< wildcard subsumes
+import scala.collection.mutable._
+import scala.collection.mutable.ListBuffer
+object a { ListBuffer(1) }
+>>>
+import scala.collection.mutable._
+object a { ListBuffer(1) }
+<<< rename + wildcard
+import java.sql.{Array => SQLArray, _}
+object a { val x: Array[Int] = Array(1) }
+>>>
+import java.sql.{Array => SQLArray, _}
+object a { val x: Array[Int] = Array(1) }
