@@ -1,13 +1,14 @@
 package scalafix
 
-import scala.meta.parsers.Parsed
+import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.inputs.Input
+import scala.meta.parsers.Parsed
 import scalafix.rewrite.RewriteCtx
 import scalafix.rewrite.SemanticApi
+import scalafix.util.AssociatedComments
 import scalafix.util.Patch
 import scalafix.util.TokenList
-import scalafix.util.logger
 
 object Scalafix {
   def fix(code: Input,
@@ -15,9 +16,15 @@ object Scalafix {
           semanticApi: Option[SemanticApi]): Fixed = {
     config.parser.apply(code, config.dialect) match {
       case Parsed.Success(ast) =>
-        val ctx = RewriteCtx(config, new TokenList(ast.tokens), semanticApi)
-        val patches: Seq[Patch] = config.rewrites.flatMap(_.rewrite(ast, ctx))
-        Fixed.Success(Patch.apply(ast.tokens, patches))
+        val tokens = ast.tokens
+        implicit val ctx = RewriteCtx(
+          config,
+          new TokenList(ast.tokens),
+          AssociatedComments(tokens),
+          semanticApi
+        )
+        val patches = config.rewrites.flatMap(_.rewrite(ast, ctx))
+        Fixed.Success(Patch.apply(ast, patches))
       case Parsed.Error(pos, msg, e) =>
         Fixed.Failed(Failure.ParseError(pos, msg, e))
     }

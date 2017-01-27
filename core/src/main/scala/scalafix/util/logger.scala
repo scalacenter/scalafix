@@ -17,10 +17,15 @@ object logger {
                      enclosing: sourcecode.Enclosing,
                      showSource: Boolean): Unit = {
     val position = f"${new File(file.value).getName}:${line.value}"
+    val value = {
+      val str = s"${t.value}"
+      if (str.contains("\n")) s"\n$str"
+      else str
+    }
     val key =
-      if (showSource) s"[${t.source}]: ${t.value}"
-      else t.value
-    println(f"$logLevel%-7s $position%-25s $key")
+      if (showSource) s"[${t.source}]: "
+      else ""
+    println(f"$logLevel%-7s $position%-25s $key$value")
   }
 
   def elem(ts: sourcecode.Text[Any]*)(

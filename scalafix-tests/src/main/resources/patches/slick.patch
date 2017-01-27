@@ -1,0 +1,3903 @@
+diff --git a/slick-codegen/src/main/scala/slick/codegen/AbstractGenerator.scala b/slick-codegen/src/main/scala/slick/codegen/AbstractGenerator.scala
+index 0c60c03..54737fd 100644
+--- a/slick-codegen/src/main/scala/slick/codegen/AbstractGenerator.scala
++++ b/slick-codegen/src/main/scala/slick/codegen/AbstractGenerator.scala
+@@ -1,10 +1,10 @@
+ package slick.codegen
+ 
+-import slick.ast.ColumnOption
+ import slick.{model => m}
++import slick.ast.ColumnOption
+ import slick.model.ForeignKeyAction
+-import slick.sql.SqlProfile
+ import slick.relational.RelationalProfile
++import slick.sql.SqlProfile
+ 
+ /**
+  * Slick code generator providing the base structure and facilities.
+diff --git a/slick-codegen/src/main/scala/slick/codegen/AbstractSourceCodeGenerator.scala b/slick-codegen/src/main/scala/slick/codegen/AbstractSourceCodeGenerator.scala
+index 487a73e..126e8fe 100644
+--- a/slick-codegen/src/main/scala/slick/codegen/AbstractSourceCodeGenerator.scala
++++ b/slick-codegen/src/main/scala/slick/codegen/AbstractSourceCodeGenerator.scala
+@@ -1,8 +1,8 @@
+ package slick.codegen
+ 
+ import slick.SlickException
+-import slick.ast.ColumnOption
+ import slick.{model => m}
++import slick.ast.ColumnOption
+ import slick.model.ForeignKeyAction
+ import slick.relational.RelationalProfile
+ import slick.sql.SqlProfile
+diff --git a/slick-codegen/src/main/scala/slick/codegen/OutputHelpers.scala b/slick-codegen/src/main/scala/slick/codegen/OutputHelpers.scala
+index d7377a2..cafc34d 100644
+--- a/slick-codegen/src/main/scala/slick/codegen/OutputHelpers.scala
++++ b/slick-codegen/src/main/scala/slick/codegen/OutputHelpers.scala
+@@ -1,8 +1,7 @@
+ package slick.codegen
+-import java.io.File
+ import java.io.BufferedWriter
++import java.io.File
+ import java.io.FileWriter
+-import slick.SlickException
+ 
+ /** Output-related code-generation utilities. */
+ trait OutputHelpers{
+diff --git a/slick-codegen/src/main/scala/slick/codegen/SourceCodeGenerator.scala b/slick-codegen/src/main/scala/slick/codegen/SourceCodeGenerator.scala
+index 8105853..6c4920c 100644
+--- a/slick-codegen/src/main/scala/slick/codegen/SourceCodeGenerator.scala
++++ b/slick-codegen/src/main/scala/slick/codegen/SourceCodeGenerator.scala
+@@ -1,13 +1,13 @@
+ package slick.codegen
+ 
+-import java.net.URI
+-
+-import scala.concurrent.{ExecutionContext, Await}
++import scala.concurrent.Await
++import scala.concurrent.ExecutionContext
+ import scala.concurrent.duration.Duration
+-import scala.util.Try
+ 
+-import slick.basic.DatabaseConfig
++import java.net.URI
++
+ import slick.{model => m}
++import slick.basic.DatabaseConfig
+ import slick.jdbc.JdbcProfile
+ import slick.util.ConfigExtensionMethods.configExtensionMethods
+ 
+diff --git a/slick-hikaricp/src/main/scala/slick/jdbc/hikaricp/HikariCPJdbcDataSource.scala b/slick-hikaricp/src/main/scala/slick/jdbc/hikaricp/HikariCPJdbcDataSource.scala
+index 6ab9e6a..eaac412 100644
+--- a/slick-hikaricp/src/main/scala/slick/jdbc/hikaricp/HikariCPJdbcDataSource.scala
++++ b/slick-hikaricp/src/main/scala/slick/jdbc/hikaricp/HikariCPJdbcDataSource.scala
+@@ -1,14 +1,12 @@
+ package slick.jdbc.hikaricp
+ 
+-import java.sql.{Connection, Driver}
+-import java.util.concurrent.atomic.AtomicInteger
+-import java.util.concurrent.locks.ReentrantLock
++import java.sql.Connection
++import java.sql.Driver
+ 
+ import com.typesafe.config.Config
+-import slick.SlickException
+-import slick.jdbc.{JdbcDataSource, JdbcDataSourceFactory}
++import slick.jdbc.JdbcDataSource
++import slick.jdbc.JdbcDataSourceFactory
+ import slick.util.ConfigExtensionMethods._
+-import slick.util.Logging
+ 
+ /** A JdbcDataSource for a HikariCP connection pool.
+   * See `slick.jdbc.JdbcBackend#Database.forConfig` for documentation on the config parameters. */
+diff --git a/slick-testkit/src/codegen/scala/slick/test/codegen/GenerateMainSources.scala b/slick-testkit/src/codegen/scala/slick/test/codegen/GenerateMainSources.scala
+index 2bf7907..fb0ceb9 100644
+--- a/slick-testkit/src/codegen/scala/slick/test/codegen/GenerateMainSources.scala
++++ b/slick-testkit/src/codegen/scala/slick/test/codegen/GenerateMainSources.scala
+@@ -1,19 +1,14 @@
+ package slick.test.codegen
+ 
+-import java.io.File
+-import java.sql.Blob
++import scala.concurrent.ExecutionContext.Implicits.global
+ 
+-import com.typesafe.slick.testkit.util.{TestCodeGenerator, InternalJdbcTestDB, StandardTestDBs, JdbcTestDB}
++import java.sql.Blob
+ 
+-import scala.concurrent.{Future, Await}
+-import scala.concurrent.duration.Duration
+-import scala.concurrent.ExecutionContext.Implicits.global
+-import scala.io.{Codec, Source}
++import com.typesafe.slick.testkit.util.JdbcTestDB
++import com.typesafe.slick.testkit.util.StandardTestDBs
++import com.typesafe.slick.testkit.util.TestCodeGenerator
++import slick.codegen.SourceCodeGenerator
+ import slick.dbio.DBIO
+-import slick.codegen.{OutputHelpers, SourceCodeGenerator}
+-import slick.jdbc.JdbcBackend
+-import slick.jdbc.meta.MTable
+-import slick.model.Model
+ 
+ /** Generates files for GeneratedCodeTest */
+ object GenerateMainSources extends TestCodeGenerator {
+diff --git a/slick-testkit/src/codegen/scala/slick/test/codegen/GenerateRoundtripSources.scala b/slick-testkit/src/codegen/scala/slick/test/codegen/GenerateRoundtripSources.scala
+index 6be40bb..44d368f 100644
+--- a/slick-testkit/src/codegen/scala/slick/test/codegen/GenerateRoundtripSources.scala
++++ b/slick-testkit/src/codegen/scala/slick/test/codegen/GenerateRoundtripSources.scala
+@@ -1,8 +1,9 @@
+ package slick.test.codegen
+ 
+ import scala.concurrent.Await
+-import scala.concurrent.duration.Duration
+ import scala.concurrent.ExecutionContext.Implicits.global
++import scala.concurrent.duration.Duration
++
+ import slick.codegen.SourceCodeGenerator
+ import slick.jdbc.JdbcProfile
+ 
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/ActionTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/ActionTest.scala
+index 8c9b516..242ce90 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/ActionTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/ActionTest.scala
+@@ -1,12 +1,11 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import com.typesafe.slick.testkit.util.{AsyncTest, RelationalTestDB, StandardTestDBs}
+-import slick.dbio.DBIOAction
+-import slick.dbio.Effect.Read
+-
+-import scala.collection.mutable.ArrayBuffer
+ import scala.concurrent.Future
+ 
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.RelationalTestDB
++import com.typesafe.slick.testkit.util.StandardTestDBs
++
+ class ActionTest extends AsyncTest[RelationalTestDB] {
+   import tdb.profile.api._
+ 
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/AggregateTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/AggregateTest.scala
+index e938a7e..4fc43cb 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/AggregateTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/AggregateTest.scala
+@@ -1,7 +1,9 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import com.typesafe.slick.testkit.util.{AsyncTest, RelationalTestDB}
+-import slick.jdbc.{PostgresProfile, H2Profile}
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.RelationalTestDB
++import slick.jdbc.H2Profile
++import slick.jdbc.PostgresProfile
+ 
+ class AggregateTest extends AsyncTest[RelationalTestDB] {
+   import tdb.profile.api._
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/ColumnDefaultTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/ColumnDefaultTest.scala
+index dd092cc..58c2d98 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/ColumnDefaultTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/ColumnDefaultTest.scala
+@@ -1,6 +1,7 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import com.typesafe.slick.testkit.util.{AsyncTest, RelationalTestDB}
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.RelationalTestDB
+ 
+ class ColumnDefaultTest extends AsyncTest[RelationalTestDB] {
+   import tdb.profile.api._
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/CountTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/CountTest.scala
+index 339c8dd..2a3f941 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/CountTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/CountTest.scala
+@@ -1,6 +1,7 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import com.typesafe.slick.testkit.util.{RelationalTestDB, AsyncTest}
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.RelationalTestDB
+ 
+ class CountTest extends AsyncTest[RelationalTestDB] {
+   import tdb.profile.api._
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/ForUpdateTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/ForUpdateTest.scala
+index e2931e4..e485c61 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/ForUpdateTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/ForUpdateTest.scala
+@@ -1,17 +1,20 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import java.util.concurrent.{CountDownLatch, LinkedBlockingQueue, TimeUnit, ThreadPoolExecutor}
++import scala.concurrent.Await
++import scala.util.Failure
++
++import java.util.concurrent.CountDownLatch
++import java.util.concurrent.LinkedBlockingQueue
++import java.util.concurrent.ThreadPoolExecutor
++import java.util.concurrent.TimeUnit
+ 
+-import com.typesafe.slick.testkit.util.{TestkitConfig, AsyncTest, JdbcTestDB}
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.JdbcTestDB
++import com.typesafe.slick.testkit.util.TestkitConfig
+ import org.junit.Assert
+ import slick.dbio.DBIOAction
+-import slick.jdbc.{SQLServerProfile, TransactionIsolation}
+ import slick.util.Logging
+ 
+-import scala.concurrent.duration.Duration
+-import scala.concurrent.{Await, ExecutionContext, Future}
+-import scala.util.Failure
+-
+ 
+ class ForUpdateTest extends AsyncTest[JdbcTestDB] with Logging {
+   import tdb.profile.api._
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/ForeignKeyTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/ForeignKeyTest.scala
+index bc7010b..7836c6e 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/ForeignKeyTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/ForeignKeyTest.scala
+@@ -1,6 +1,7 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import com.typesafe.slick.testkit.util.{RelationalTestDB, AsyncTest}
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.RelationalTestDB
+ 
+ class ForeignKeyTest extends AsyncTest[RelationalTestDB] {
+   import tdb.profile.api._
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/InsertTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/InsertTest.scala
+index 91b033f..dcf83d0 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/InsertTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/InsertTest.scala
+@@ -1,6 +1,7 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import com.typesafe.slick.testkit.util.{JdbcTestDB, AsyncTest}
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.JdbcTestDB
+ 
+ class InsertTest extends AsyncTest[JdbcTestDB] {
+   import tdb.profile.api._
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JdbcMapperTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JdbcMapperTest.scala
+index 6f76e93..efd0d64 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JdbcMapperTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JdbcMapperTest.scala
+@@ -1,10 +1,10 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import org.junit.Assert._
+-
+-import com.typesafe.slick.testkit.util.{JdbcTestDB, AsyncTest}
+ import scala.reflect.ClassTag
+ 
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.JdbcTestDB
++
+ class JdbcMapperTest extends AsyncTest[JdbcTestDB] {
+   import tdb.profile.api._
+ 
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JdbcMetaTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JdbcMetaTest.scala
+index 7976f44..b39f77e 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JdbcMetaTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JdbcMetaTest.scala
+@@ -1,9 +1,8 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import org.junit.{Test, Assert}
+-import org.junit.Assert._
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.JdbcTestDB
+ import slick.jdbc.meta._
+-import com.typesafe.slick.testkit.util.{TestDB, JdbcTestDB, AsyncTest}
+ 
+ class JdbcMetaTest extends AsyncTest[JdbcTestDB] {
+   import tdb.profile.api._
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JdbcMiscTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JdbcMiscTest.scala
+index ed68f14..072906c 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JdbcMiscTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JdbcMiscTest.scala
+@@ -1,8 +1,11 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import com.typesafe.slick.testkit.util.{JdbcTestDB, AsyncTest}
+-
+-import slick.jdbc.{ResultSetHoldability, ResultSetConcurrency, ResultSetType, JdbcBackend}
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.JdbcTestDB
++import slick.jdbc.JdbcBackend
++import slick.jdbc.ResultSetConcurrency
++import slick.jdbc.ResultSetHoldability
++import slick.jdbc.ResultSetType
+ 
+ class JdbcMiscTest extends AsyncTest[JdbcTestDB] {
+   import tdb.profile.api._
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JdbcScalarFunctionTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JdbcScalarFunctionTest.scala
+index edbb45e..e6d631d 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JdbcScalarFunctionTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JdbcScalarFunctionTest.scala
+@@ -1,7 +1,11 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import java.sql.{Time, Date, Timestamp}
+-import com.typesafe.slick.testkit.util.{JdbcTestDB, AsyncTest}
++import java.sql.Date
++import java.sql.Time
++import java.sql.Timestamp
++
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.JdbcTestDB
+ 
+ class JdbcScalarFunctionTest extends AsyncTest[JdbcTestDB] {
+   import tdb.profile.api._
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JdbcTypeTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JdbcTypeTest.scala
+index 36b2b8d..b96756d 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JdbcTypeTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JdbcTypeTest.scala
+@@ -1,13 +1,19 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import com.typesafe.slick.testkit.util.{JdbcTestDB, AsyncTest}
+-import java.io.{ObjectInputStream, ObjectOutputStream, ByteArrayOutputStream}
+-import java.sql.{Blob, Date, Time, Timestamp}
++import scala.concurrent.Future
++
++import java.io.ByteArrayOutputStream
++import java.io.ObjectInputStream
++import java.io.ObjectOutputStream
++import java.sql.Blob
++import java.sql.Date
++import java.sql.Time
++import java.sql.Timestamp
+ import java.util.UUID
+-import javax.sql.rowset.serial.SerialBlob
+-import org.junit.Assert._
+ 
+-import scala.concurrent.Future
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.JdbcTestDB
++import javax.sql.rowset.serial.SerialBlob
+ 
+ /** Data type related tests which are specific to JdbcProfile */
+ class JdbcTypeTest extends AsyncTest[JdbcTestDB] {
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JoinTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JoinTest.scala
+index b3aba27..36cfc01 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JoinTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/JoinTest.scala
+@@ -1,7 +1,7 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import org.junit.Assert._
+-import com.typesafe.slick.testkit.util.{RelationalTestDB, AsyncTest}
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.RelationalTestDB
+ 
+ class JoinTest extends AsyncTest[RelationalTestDB] {
+   import tdb.profile.api._
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/MainTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/MainTest.scala
+index 1beafea..f11d429 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/MainTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/MainTest.scala
+@@ -1,7 +1,9 @@
+ package com.typesafe.slick.testkit.tests
+ 
+ import scala.language.higherKinds
+-import com.typesafe.slick.testkit.util.{JdbcTestDB, AsyncTest}
++
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.JdbcTestDB
+ 
+ class MainTest extends AsyncTest[JdbcTestDB] { mainTest =>
+   import tdb.profile.api._
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/ModelBuilderTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/ModelBuilderTest.scala
+index e015421..d0be347 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/ModelBuilderTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/ModelBuilderTest.scala
+@@ -1,16 +1,12 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import com.typesafe.slick.testkit.util.{AsyncTest, JdbcTestDB}
+-
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.JdbcTestDB
+ import org.junit.Assert._
+-
+-import scala.concurrent.{ExecutionContext, Await}
+-import scala.concurrent.duration.Duration
+-
+ import slick.ast.ColumnOption
+-import slick.model._
+-import slick.jdbc.{SQLiteProfile, meta}
++import slick.jdbc.SQLiteProfile
+ import slick.jdbc.meta.MTable
++import slick.model._
+ import slick.relational.RelationalProfile
+ import slick.sql.SqlProfile
+ 
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/MutateTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/MutateTest.scala
+index 4c0e192..bb27bb9 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/MutateTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/MutateTest.scala
+@@ -1,7 +1,7 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import org.junit.Assert._
+-import com.typesafe.slick.testkit.util.{JdbcTestDB, AsyncTest}
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.JdbcTestDB
+ 
+ class MutateTest extends AsyncTest[JdbcTestDB] {
+   import tdb.profile.api._
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/NestingTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/NestingTest.scala
+index 66b34f3..4a82796 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/NestingTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/NestingTest.scala
+@@ -1,9 +1,10 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import com.typesafe.slick.testkit.util.{RelationalTestDB, AsyncTest}
+-
+ import scala.concurrent.Future
+ 
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.RelationalTestDB
++
+ class NestingTest extends AsyncTest[RelationalTestDB] {
+   import tdb.profile.api._
+ 
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/NewQuerySemanticsTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/NewQuerySemanticsTest.scala
+index 8bd0e8c..30e7728 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/NewQuerySemanticsTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/NewQuerySemanticsTest.scala
+@@ -1,9 +1,9 @@
+ package com.typesafe.slick.testkit.tests
+ 
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.RelationalTestDB
+ import slick.jdbc.H2Profile
+ 
+-import com.typesafe.slick.testkit.util.{RelationalTestDB, AsyncTest}
+-
+ class NewQuerySemanticsTest extends AsyncTest[RelationalTestDB] {
+   import tdb.profile.api._
+ 
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/OracleExtraTests.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/OracleExtraTests.scala
+index 1bd92d1..cc0a35c 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/OracleExtraTests.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/OracleExtraTests.scala
+@@ -1,6 +1,7 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import com.typesafe.slick.testkit.util.{AsyncTest, JdbcTestDB}
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.JdbcTestDB
+ import slick.jdbc.OracleProfile
+ 
+ class OracleExtraTests extends AsyncTest[JdbcTestDB] {
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/PagingTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/PagingTest.scala
+index 3f37f29..a4156b5 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/PagingTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/PagingTest.scala
+@@ -1,6 +1,7 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import com.typesafe.slick.testkit.util.{RelationalTestDB, AsyncTest}
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.RelationalTestDB
+ 
+ class PagingTest extends AsyncTest[RelationalTestDB] {
+   import tdb.profile.api._
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/PlainSQLTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/PlainSQLTest.scala
+index 86d9fce..470247d 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/PlainSQLTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/PlainSQLTest.scala
+@@ -1,9 +1,8 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import org.junit.Assert
+-import org.junit.Assert._
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.JdbcTestDB
+ import slick.jdbc.GetResult
+-import com.typesafe.slick.testkit.util.{JdbcTestDB, AsyncTest}
+ 
+ class PlainSQLTest extends AsyncTest[JdbcTestDB] {
+   import tdb.profile.api._
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/PrimaryKeyTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/PrimaryKeyTest.scala
+index 3beedc2..ea92df3 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/PrimaryKeyTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/PrimaryKeyTest.scala
+@@ -1,6 +1,7 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import com.typesafe.slick.testkit.util.{RelationalTestDB, AsyncTest}
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.RelationalTestDB
+ 
+ class PrimaryKeyTest extends AsyncTest[RelationalTestDB] {
+   import tdb.profile.api._
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/RelationalMapperTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/RelationalMapperTest.scala
+index acacf44..75aefa6 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/RelationalMapperTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/RelationalMapperTest.scala
+@@ -2,7 +2,8 @@ package com.typesafe.slick.testkit.tests
+ 
+ import scala.language.existentials
+ 
+-import com.typesafe.slick.testkit.util.{RelationalTestDB, AsyncTest}
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.RelationalTestDB
+ 
+ class RelationalMapperTest extends AsyncTest[RelationalTestDB] {
+   import tdb.profile.api._
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/RelationalMiscTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/RelationalMiscTest.scala
+index d449fde..1110a9f 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/RelationalMiscTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/RelationalMiscTest.scala
+@@ -2,7 +2,8 @@ package com.typesafe.slick.testkit.tests
+ 
+ import scala.language.higherKinds
+ 
+-import com.typesafe.slick.testkit.util.{RelationalTestDB, AsyncTest}
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.RelationalTestDB
+ 
+ class RelationalMiscTest extends AsyncTest[RelationalTestDB] {
+   import tdb.profile.api._
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/RelationalScalarFunctionTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/RelationalScalarFunctionTest.scala
+index 1bb526b..5cbbee9 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/RelationalScalarFunctionTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/RelationalScalarFunctionTest.scala
+@@ -1,6 +1,7 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import com.typesafe.slick.testkit.util.{RelationalTestDB, AsyncTest}
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.RelationalTestDB
+ 
+ class RelationalScalarFunctionTest extends AsyncTest[RelationalTestDB] {
+   import tdb.profile.api._
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/RelationalTypeTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/RelationalTypeTest.scala
+index eda129b..03344fb 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/RelationalTypeTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/RelationalTypeTest.scala
+@@ -1,7 +1,8 @@
+ package com.typesafe.slick.testkit.tests
+ 
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.RelationalTestDB
+ import slick.ast.NumericTypedType
+-import com.typesafe.slick.testkit.util.{RelationalTestDB, AsyncTest}
+ 
+ /** Data type related test cases for RelationalProfile */
+ class RelationalTypeTest extends AsyncTest[RelationalTestDB] {
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/SequenceTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/SequenceTest.scala
+index f1e8af6..c768ef4 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/SequenceTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/SequenceTest.scala
+@@ -1,6 +1,7 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import com.typesafe.slick.testkit.util.{JdbcTestDB, AsyncTest}
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.JdbcTestDB
+ 
+ class SequenceTest extends AsyncTest[JdbcTestDB] {
+   import tdb.profile.api._
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/TemplateTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/TemplateTest.scala
+index aff5e64..eb2da5b 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/TemplateTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/TemplateTest.scala
+@@ -1,6 +1,7 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import com.typesafe.slick.testkit.util.{RelationalTestDB, AsyncTest}
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.RelationalTestDB
+ 
+ class TemplateTest extends AsyncTest[RelationalTestDB] {
+   import tdb.profile.api._
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/TransactionTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/TransactionTest.scala
+index fe89ca5..c40301b 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/TransactionTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/TransactionTest.scala
+@@ -1,7 +1,7 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import com.typesafe.slick.testkit.util.{AsyncTest, JdbcTestDB}
+-
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.JdbcTestDB
+ import slick.jdbc.TransactionIsolation
+ 
+ class TransactionTest extends AsyncTest[JdbcTestDB] {
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/UnionTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/UnionTest.scala
+index 4d1cdfb..edc69d5 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/UnionTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/tests/UnionTest.scala
+@@ -1,6 +1,7 @@
+ package com.typesafe.slick.testkit.tests
+ 
+-import com.typesafe.slick.testkit.util.{RelationalTestDB, AsyncTest}
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.RelationalTestDB
+ 
+ class UnionTest extends AsyncTest[RelationalTestDB] {
+   import tdb.profile.api._
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/BuildCapabilitiesTable.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/BuildCapabilitiesTable.scala
+index 25cd662..0e3dcc9 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/BuildCapabilitiesTable.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/BuildCapabilitiesTable.scala
+@@ -1,9 +1,12 @@
+ package com.typesafe.slick.testkit.util
+ 
+-import java.io.{PrintWriter, OutputStreamWriter, BufferedWriter, FileOutputStream, FileWriter}
++import java.io.BufferedWriter
++import java.io.FileOutputStream
++import java.io.OutputStreamWriter
++import java.io.PrintWriter
+ 
+ import slick.basic.BasicProfile
+-import slick.jdbc.{JdbcCapabilities, JdbcProfile}
++import slick.jdbc.JdbcCapabilities
+ import slick.relational.RelationalCapabilities
+ import slick.sql.SqlCapabilities
+ 
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/DBTest.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/DBTest.scala
+index b99fd10..046f7ad 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/DBTest.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/DBTest.scala
+@@ -1,15 +1,15 @@
+ package com.typesafe.slick.testkit.util
+ 
+-import slick.dbio.DBIO
+-
+ import scala.collection.JavaConversions
+ import scala.concurrent.Await
+ import scala.concurrent.duration.Duration
+ 
+-import org.junit.{Before, After}
++import org.junit.After
++import org.junit.Before
+ import org.junit.runner.RunWith
+ import org.junit.runners.Parameterized
+ import org.junit.runners.Parameterized.Parameters
++import slick.dbio.DBIO
+ 
+ @RunWith(classOf[Parameterized])
+ abstract class DBTest {
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/DelegateConnection.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/DelegateConnection.scala
+index 619be37..eac1afd 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/DelegateConnection.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/DelegateConnection.scala
+@@ -1,7 +1,7 @@
+ package com.typesafe.slick.testkit.util
+ 
+-import java.sql.{Array => _, _}
+ import java.util
++import java.sql.{Array => _, _}
+ import java.util.Properties
+ import java.util.concurrent.Executor
+ 
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/DelegateResultSet.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/DelegateResultSet.scala
+index deed358..c881902 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/DelegateResultSet.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/DelegateResultSet.scala
+@@ -1,10 +1,11 @@
+ package com.typesafe.slick.testkit.util
+ 
+ import java.io._
+-import java.sql.{Array => SQLArray, _}
+-import java.util.{Map, Calendar}
+ import java.math.BigDecimal
+ import java.net.URL
++import java.sql.{Array => SQLArray, _}
++import java.util.Calendar
++import java.util.Map
+ 
+ /** An implementation of ResultSet which delegates all calls to another ResultSet.
+   * Individual methods can be overridden in subclasses to implement custom behavior.
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/ShouldNotTypecheck.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/ShouldNotTypecheck.scala
+index 0eb5d00..2ed055f 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/ShouldNotTypecheck.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/ShouldNotTypecheck.scala
+@@ -1,9 +1,10 @@
+ package com.typesafe.slick.testkit.util
+ 
+ import scala.language.experimental.macros
+-import scala.reflect.macros.blackbox.Context
++
+ import scala.reflect.macros.TypecheckException
+-import scala.util.control.NonFatal
++import scala.reflect.macros.blackbox.Context
++
+ import java.util.regex.Pattern
+ 
+ /**
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/SimpleParentRunner.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/SimpleParentRunner.scala
+index 5130a3d..d89feca 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/SimpleParentRunner.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/SimpleParentRunner.scala
+@@ -1,12 +1,17 @@
+ package com.typesafe.slick.testkit.util
+ 
+-import org.junit.runner.{Runner, Description}
+-import org.junit.runner.notification.{StoppedByUserException, Failure, RunNotifier}
+-import org.junit.runner.manipulation._
+-import org.junit.runners.model._
+ import scala.collection.JavaConverters._
++
+ import java.lang.reflect.InvocationTargetException
+ 
++import org.junit.runner.Description
++import org.junit.runner.Runner
++import org.junit.runner.manipulation._
++import org.junit.runner.notification.Failure
++import org.junit.runner.notification.RunNotifier
++import org.junit.runner.notification.StoppedByUserException
++import org.junit.runners.model._
++
+ /**
+  * A JUnit Runner similar to JUnit's own ParentRunner but simpler, more
+  * extensible (in the way we need it), and more Scala-like.
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/StandardTestDBs.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/StandardTestDBs.scala
+index 3f29dc0..0294eb2 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/StandardTestDBs.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/StandardTestDBs.scala
+@@ -1,22 +1,22 @@
+ package com.typesafe.slick.testkit.util
+ 
+-import java.io.File
+-import java.util.logging.{Level, Logger}
++import scala.concurrent.Await
++import scala.concurrent.ExecutionContext
++import scala.concurrent.duration.Duration
++
+ import java.sql.SQLException
++import java.util.logging.Level
++import java.util.logging.Logger
++
++import org.junit.Assert
+ import slick.compiler.Phase
+ import slick.dbio._
+-import slick.driver.JdbcProfile
+-import slick.memory.MemoryProfile
+ import slick.jdbc._
+ import slick.jdbc.GetResult._
+ import slick.jdbc.meta.MTable
+-import org.junit.Assert
++import slick.memory.MemoryProfile
+ import slick.util.ConfigExtensionMethods._
+ 
+-
+-import scala.concurrent.duration.Duration
+-import scala.concurrent.{Await, ExecutionContext}
+-
+ object StandardTestDBs {
+   lazy val H2Mem = new H2TestDB("h2mem", false) {
+     val url = "jdbc:h2:mem:test1"
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/TestCodeGenerator.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/TestCodeGenerator.scala
+index 1cbf26b..8a2407e 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/TestCodeGenerator.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/TestCodeGenerator.scala
+@@ -1,18 +1,19 @@
+ package com.typesafe.slick.testkit.util
+ 
+ import scala.concurrent.Await
+-import scala.concurrent.duration.Duration
+ import scala.concurrent.ExecutionContext.Implicits.global
+-import scala.io.{Codec, Source}
++import scala.concurrent.duration.Duration
++import scala.io.Codec
++import scala.io.Source
+ 
+ import java.util.concurrent.ExecutionException
+ 
+-import slick.codegen.{OutputHelpers, SourceCodeGenerator}
++import org.junit.Test
++import slick.codegen.OutputHelpers
++import slick.codegen.SourceCodeGenerator
+ import slick.dbio._
+ import slick.model.Model
+ 
+-import org.junit.Test
+-
+ trait TestCodeGenerator {
+   def packageName: String
+   def defaultTestCode(c: Config): String
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/TestDB.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/TestDB.scala
+index 6ea24de..7985939 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/TestDB.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/TestDB.scala
+@@ -1,25 +1,28 @@
+ package com.typesafe.slick.testkit.util
+ 
+-import java.lang.reflect.Method
+-
+-import com.typesafe.config.Config
+-
+-import org.junit.Assert
++import scala.collection.mutable
++import scala.concurrent.Await
++import scala.concurrent.ExecutionContext
++import scala.concurrent.Future
+ 
+ import java.io._
+-import java.net.{URL, URLClassLoader}
+-import java.sql.{Connection, Driver}
++import java.net.URL
++import java.net.URLClassLoader
++import java.sql.Connection
++import java.sql.Driver
+ import java.util.Properties
+ import java.util.concurrent.ExecutionException
+ import java.util.zip.GZIPInputStream
+ 
+-import scala.collection.mutable
+-import scala.concurrent.{Await, Future, ExecutionContext}
+-
+-import slick.SlickException
+-import slick.basic.{BasicProfile, Capability}
+-import slick.dbio.{NoStream, DBIOAction, DBIO}
+-import slick.jdbc.{JdbcProfile, ResultSetAction, JdbcDataSource, SimpleJdbcAction}
++import com.typesafe.config.Config
++import slick.basic.BasicProfile
++import slick.basic.Capability
++import slick.dbio.DBIO
++import slick.dbio.DBIOAction
++import slick.dbio.NoStream
++import slick.jdbc.JdbcDataSource
++import slick.jdbc.JdbcProfile
++import slick.jdbc.ResultSetAction
+ import slick.jdbc.GetResult._
+ import slick.relational.RelationalProfile
+ import slick.sql.SqlProfile
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/Testkit.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/Testkit.scala
+index 347316a..de4ab9f 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/Testkit.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/Testkit.scala
+@@ -2,33 +2,40 @@ package com.typesafe.slick.testkit.util
+ 
+ import scala.language.existentials
+ 
+-import java.lang.reflect.Method
+-import java.util.concurrent.{LinkedBlockingQueue, ThreadPoolExecutor, ExecutionException, TimeUnit}
+-import java.util.concurrent.atomic.AtomicInteger
+-
+-import scala.concurrent.{Promise, ExecutionContext, Await, Future, blocking}
++import scala.concurrent.Await
++import scala.concurrent.ExecutionContext
++import scala.concurrent.Future
++import scala.concurrent.Promise
+ import scala.concurrent.duration.Duration
+ import scala.reflect.ClassTag
+-import scala.util.{Failure, Success}
++import scala.util.Failure
++import scala.util.Success
+ import scala.util.control.NonFatal
+ 
+-import slick.SlickTreeException
+-import slick.basic.Capability
+-import slick.dbio._
+-import slick.jdbc.{JdbcProfile, JdbcCapabilities, JdbcBackend}
+-import slick.lifted.Rep
+-import slick.util.DumpInfo
+-import slick.relational.{RelationalProfile, RelationalCapabilities}
+-import slick.sql.{SqlProfile, SqlCapabilities}
++import java.lang.reflect.Method
++import java.util.concurrent.ExecutionException
++import java.util.concurrent.LinkedBlockingQueue
++import java.util.concurrent.ThreadPoolExecutor
++import java.util.concurrent.TimeUnit
++import java.util.concurrent.atomic.AtomicInteger
+ 
++import org.junit.Assert
+ import org.junit.runner.Description
+ import org.junit.runner.notification.RunNotifier
+ import org.junit.runners.model._
+-import org.junit.Assert
+-
++import org.reactivestreams.Publisher
++import org.reactivestreams.Subscriber
++import org.reactivestreams.Subscription
+ import org.slf4j.MDC
+-
+-import org.reactivestreams.{Subscription, Subscriber, Publisher}
++import slick.SlickTreeException
++import slick.basic.Capability
++import slick.dbio._
++import slick.jdbc.JdbcBackend
++import slick.jdbc.JdbcCapabilities
++import slick.lifted.Rep
++import slick.relational.RelationalCapabilities
++import slick.sql.SqlCapabilities
++import slick.util.DumpInfo
+ 
+ /** JUnit runner for the Slick driver test kit. */
+ class Testkit(clazz: Class[_ <: ProfileTest], runnerBuilder: RunnerBuilder) extends SimpleParentRunner[TestMethod](clazz) {
+diff --git a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/TestkitConfig.scala b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/TestkitConfig.scala
+index ab4d01c..8a09892 100644
+--- a/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/TestkitConfig.scala
++++ b/slick-testkit/src/main/scala/com/typesafe/slick/testkit/util/TestkitConfig.scala
+@@ -1,12 +1,14 @@
+ package com.typesafe.slick.testkit.util
+ 
+-import java.util.concurrent.TimeUnit
+-
+-import com.typesafe.config.{ConfigValueFactory, Config, ConfigFactory}
+-import java.io.{FileInputStream, File}
+-import java.util.Properties
+ import scala.collection.JavaConverters._
+ import scala.concurrent.duration.Duration
++
++import java.io.File
++import java.util.concurrent.TimeUnit
++
++import com.typesafe.config.Config
++import com.typesafe.config.ConfigFactory
++import com.typesafe.config.ConfigValueFactory
+ import slick.SlickException
+ 
+ /** Manages the configuration for TestKit tests.
+diff --git a/slick-testkit/src/test/scala/slick/benchmark/CompilerBenchmark.scala b/slick-testkit/src/test/scala/slick/benchmark/CompilerBenchmark.scala
+index a84e617..63e91d1 100644
+--- a/slick-testkit/src/test/scala/slick/benchmark/CompilerBenchmark.scala
++++ b/slick-testkit/src/test/scala/slick/benchmark/CompilerBenchmark.scala
+@@ -1,11 +1,11 @@
+ package slick.benchmark
+ 
++import scala.collection.mutable.HashMap
++
+ import slick.compiler._
+ import slick.jdbc.H2Profile
+ import slick.jdbc.H2Profile.api._
+ 
+-import scala.collection.mutable.HashMap
+-
+ /** Test query compiler performance with all queries from NewQuerySemanticsTest */
+ object CompilerBenchmark {
+   val RUNS = 50
+diff --git a/slick-testkit/src/test/scala/slick/benchmark/UnboxedBenchmark.scala b/slick-testkit/src/test/scala/slick/benchmark/UnboxedBenchmark.scala
+index 6c7c035..5022f37 100644
+--- a/slick-testkit/src/test/scala/slick/benchmark/UnboxedBenchmark.scala
++++ b/slick-testkit/src/test/scala/slick/benchmark/UnboxedBenchmark.scala
+@@ -1,9 +1,9 @@
+ package slick.benchmark
+ 
++import com.typesafe.slick.testkit.util.DelegateResultSet
+ import slick.ast._
+ import slick.jdbc._
+ import slick.relational._
+-import com.typesafe.slick.testkit.util.DelegateResultSet
+ import slick.util.TreePrinter
+ 
+ @deprecated("Using deprecated .simple API", "3.0")
+diff --git a/slick-testkit/src/test/scala/slick/test/codegen/CodeGenRoundTripTest.scala b/slick-testkit/src/test/scala/slick/test/codegen/CodeGenRoundTripTest.scala
+index 1e97611..fbc3133 100644
+--- a/slick-testkit/src/test/scala/slick/test/codegen/CodeGenRoundTripTest.scala
++++ b/slick-testkit/src/test/scala/slick/test/codegen/CodeGenRoundTripTest.scala
+@@ -1,11 +1,14 @@
+ package slick.test.codegen
+ 
++import scala.concurrent.ExecutionContext.Implicits.global
++
++import com.typesafe.slick.testkit.util.DBTest
++import com.typesafe.slick.testkit.util.DBTestObject
++import com.typesafe.slick.testkit.util.JdbcTestDB
++import com.typesafe.slick.testkit.util.StandardTestDBs._
+ import org.junit.Test
+ import org.junit.Assert._
+ import slick.collection.heterogeneous._
+-import com.typesafe.slick.testkit.util.{DBTest, DBTestObject, JdbcTestDB}
+-import com.typesafe.slick.testkit.util.StandardTestDBs._
+-import scala.concurrent.ExecutionContext.Implicits.global
+ 
+ object CodeGeneratorRoundTripTest extends DBTestObject(H2Mem, SQLiteMem, Postgres, MySQL, DerbyMem, HsqldbMem)
+ 
+diff --git a/slick-testkit/src/test/scala/slick/test/codegen/CodeGeneratorAllTest.scala b/slick-testkit/src/test/scala/slick/test/codegen/CodeGeneratorAllTest.scala
+index 1aee784..d57fe71 100644
+--- a/slick-testkit/src/test/scala/slick/test/codegen/CodeGeneratorAllTest.scala
++++ b/slick-testkit/src/test/scala/slick/test/codegen/CodeGeneratorAllTest.scala
+@@ -1,12 +1,15 @@
+ package slick.test.codegen
+ 
+-import org.junit.Test
+ import scala.concurrent.Await
+ import scala.concurrent.ExecutionContext.Implicits.global
+ import scala.concurrent.duration.Duration
+-import slick.codegen.SourceCodeGenerator
+-import com.typesafe.slick.testkit.util.{DBTest, DBTestObject, JdbcTestDB}
++
++import com.typesafe.slick.testkit.util.DBTest
++import com.typesafe.slick.testkit.util.DBTestObject
++import com.typesafe.slick.testkit.util.JdbcTestDB
+ import com.typesafe.slick.testkit.util.StandardTestDBs._
++import org.junit.Test
++import slick.codegen.SourceCodeGenerator
+ 
+ object CodeGeneratorAllTest extends DBTestObject(H2Mem, SQLiteMem, Postgres, MySQL, DerbyMem, HsqldbMem)
+ 
+diff --git a/slick-testkit/src/test/scala/slick/test/codegen/GeneratedCodeTest.scala b/slick-testkit/src/test/scala/slick/test/codegen/GeneratedCodeTest.scala
+index a83d963..c5fcd75 100644
+--- a/slick-testkit/src/test/scala/slick/test/codegen/GeneratedCodeTest.scala
++++ b/slick-testkit/src/test/scala/slick/test/codegen/GeneratedCodeTest.scala
+@@ -1,12 +1,14 @@
+ package slick.test.codegen
+ 
+ import scala.concurrent.ExecutionContext.Implicits.global
+-import slick.ast.{FieldSymbol, Node, Select}
+-import slick.jdbc.JdbcProfile
++
++import com.typesafe.slick.testkit.util.TestCodeRunner
++import org.junit.Assert._
++import slick.ast.FieldSymbol
++import slick.ast.Node
++import slick.ast.Select
+ import slick.jdbc.meta.MTable
+ import slick.test.codegen.generated._
+-import com.typesafe.slick.testkit.util.{TestCodeRunner, JdbcTestDB}
+-import org.junit.Assert._
+ 
+ /** Test files generated by CodeGeneratorTest */
+ class GeneratedCodeTest extends TestCodeRunner(AllTests)
+diff --git a/slick-testkit/src/test/scala/slick/test/collection/heterogenous/HListTest.scala b/slick-testkit/src/test/scala/slick/test/collection/heterogenous/HListTest.scala
+index a79d5c4..33bba1c 100644
+--- a/slick-testkit/src/test/scala/slick/test/collection/heterogenous/HListTest.scala
++++ b/slick-testkit/src/test/scala/slick/test/collection/heterogenous/HListTest.scala
+@@ -1,9 +1,9 @@
+ package slick.test.collection.heterogenous
+ 
+ import org.junit.Test
+-import slick.collection.heterogeneous._
+-import syntax._
+ import org.junit.Assert._
++import slick.collection.heterogeneous._
++import slick.collection.heterogeneous.syntax._
+ 
+ class HListTest {
+   @Test
+diff --git a/slick-testkit/src/test/scala/slick/test/compile/NestedShapesTest.scala b/slick-testkit/src/test/scala/slick/test/compile/NestedShapesTest.scala
+index 981fd3e..0309596 100644
+--- a/slick-testkit/src/test/scala/slick/test/compile/NestedShapesTest.scala
++++ b/slick-testkit/src/test/scala/slick/test/compile/NestedShapesTest.scala
+@@ -2,7 +2,7 @@ package slick.test.compile
+ 
+ import com.typesafe.slick.testkit.util.ShouldNotTypecheck
+ import slick.jdbc.H2Profile.api._
+-import slick.lifted.{Shape, ShapeLevel}
++import slick.lifted.Shape
+ 
+ class NestedShapesTest {
+   def legal = {
+diff --git a/slick-testkit/src/test/scala/slick/test/jdbc/DataSourceTest.scala b/slick-testkit/src/test/scala/slick/test/jdbc/DataSourceTest.scala
+index a150b22..15f8922 100644
+--- a/slick-testkit/src/test/scala/slick/test/jdbc/DataSourceTest.scala
++++ b/slick-testkit/src/test/scala/slick/test/jdbc/DataSourceTest.scala
+@@ -1,19 +1,21 @@
+ package slick.test.jdbc
+ 
+-import java.io.PrintWriter
+-import java.sql.{Connection, Driver, DriverPropertyInfo, SQLException}
++import scala.concurrent.Await
++import scala.concurrent.duration.Duration
++
++import java.sql.Connection
++import java.sql.Driver
++import java.sql.DriverPropertyInfo
++import java.sql.SQLException
+ import java.util.Properties
+ import java.util.logging.Logger
+-import javax.sql.DataSource
+ 
+ import com.typesafe.config.ConfigFactory
+ import org.junit.Test
+ import org.junit.Assert._
+ import slick.basic.DatabaseConfig
+-import slick.jdbc.{JdbcBackend, JdbcProfile}
+-
+-import scala.concurrent.Await
+-import scala.concurrent.duration.Duration
++import slick.jdbc.JdbcBackend
++import slick.jdbc.JdbcProfile
+ 
+ class DataSourceTest {
+   @Test def testDataSourceJdbcDataSource: Unit = {
+diff --git a/slick-testkit/src/test/scala/slick/test/jdbc/MBeansTest.scala b/slick-testkit/src/test/scala/slick/test/jdbc/MBeansTest.scala
+index e7e9440..eba4e50 100644
+--- a/slick-testkit/src/test/scala/slick/test/jdbc/MBeansTest.scala
++++ b/slick-testkit/src/test/scala/slick/test/jdbc/MBeansTest.scala
+@@ -1,18 +1,19 @@
+ package slick.test.jdbc
+ 
++import scala.collection.JavaConverters._
++import scala.concurrent.Await
++import scala.concurrent.Future
++import scala.concurrent.ExecutionContext.Implicits.global
++import scala.concurrent.duration.Duration
++
+ import java.lang.management.ManagementFactory
+ import java.util.concurrent.TimeUnit
+-import javax.management.ObjectName
+ 
+-import org.junit.Assert._
++import javax.management.ObjectName
+ import org.junit.Test
++import org.junit.Assert._
+ import slick.jdbc.H2Profile.api._
+ 
+-import scala.concurrent.{Future, Await}
+-import scala.concurrent.duration.Duration
+-import scala.concurrent.ExecutionContext.Implicits.global
+-import scala.collection.JavaConverters._
+-
+ class MBeansTest {
+ 
+   @Test
+diff --git a/slick-testkit/src/test/scala/slick/test/jdbc/ModelBuilderTest.scala b/slick-testkit/src/test/scala/slick/test/jdbc/ModelBuilderTest.scala
+index 1acf367..15eff14 100644
+--- a/slick-testkit/src/test/scala/slick/test/jdbc/ModelBuilderTest.scala
++++ b/slick-testkit/src/test/scala/slick/test/jdbc/ModelBuilderTest.scala
+@@ -1,16 +1,17 @@
+ package slick.test.jdbc
+ 
+-import org.junit.Test
+-import org.junit.Assert._
+ import scala.concurrent.Await
+ import scala.concurrent.ExecutionContext.Implicits.global
+ import scala.concurrent.duration.Duration
+-import slick.testutil._
+-import com.typesafe.slick.testkit.util.{DBTest, DBTestObject, JdbcTestDB}
+-import com.typesafe.slick.testkit.util.StandardTestDBs._
+-
+ import scala.util.Failure
+ 
++import com.typesafe.slick.testkit.util.DBTest
++import com.typesafe.slick.testkit.util.DBTestObject
++import com.typesafe.slick.testkit.util.JdbcTestDB
++import com.typesafe.slick.testkit.util.StandardTestDBs._
++import org.junit.Test
++import org.junit.Assert._
++
+ object ModelBuilderTest extends DBTestObject(H2Mem)
+ 
+ class ModelBuilderTest(val tdb: JdbcTestDB) extends DBTest {
+diff --git a/slick-testkit/src/test/scala/slick/test/jdbc/PositionedResultTest.scala b/slick-testkit/src/test/scala/slick/test/jdbc/PositionedResultTest.scala
+index 9bda3ac..78f915b 100644
+--- a/slick-testkit/src/test/scala/slick/test/jdbc/PositionedResultTest.scala
++++ b/slick-testkit/src/test/scala/slick/test/jdbc/PositionedResultTest.scala
+@@ -1,9 +1,10 @@
+ package slick.test.jdbc
+ 
+-import slick.jdbc.{PositionedResult, PositionedResultIterator}
+ import com.typesafe.slick.testkit.util.DelegateResultSet
+ import org.junit.Test
+ import org.junit.Assert._
++import slick.jdbc.PositionedResult
++import slick.jdbc.PositionedResultIterator
+ 
+ class PositionedResultTest {
+ 
+diff --git a/slick-testkit/src/test/scala/slick/test/jdbc/SqlActionBuilderTest.scala b/slick-testkit/src/test/scala/slick/test/jdbc/SqlActionBuilderTest.scala
+index 10a6eaa..1726384 100644
+--- a/slick-testkit/src/test/scala/slick/test/jdbc/SqlActionBuilderTest.scala
++++ b/slick-testkit/src/test/scala/slick/test/jdbc/SqlActionBuilderTest.scala
+@@ -1,8 +1,8 @@
+ package slick.test.jdbc
+ 
+ import org.junit.Test
+-import slick.jdbc.JdbcProfile
+ import org.junit.Assert._
++import slick.jdbc.JdbcProfile
+ 
+ class SqlActionBuilderTest {
+ 
+diff --git a/slick-testkit/src/test/scala/slick/test/jdbc/TypedStaticQueryTest.scala b/slick-testkit/src/test/scala/slick/test/jdbc/TypedStaticQueryTest.scala
+index 160d2c7..1d4fa4c 100644
+--- a/slick-testkit/src/test/scala/slick/test/jdbc/TypedStaticQueryTest.scala
++++ b/slick-testkit/src/test/scala/slick/test/jdbc/TypedStaticQueryTest.scala
+@@ -1,11 +1,13 @@
+ package slick.test.jdbc
+ 
+-import org.junit.Test
+-import org.junit.Assert._
+ import scala.concurrent.Await
+-import scala.concurrent.duration.Duration
+ import scala.concurrent.ExecutionContext.Implicits.global
+-import slick.basic.{DatabaseConfig, StaticDatabaseConfig}
++import scala.concurrent.duration.Duration
++
++import org.junit.Test
++import org.junit.Assert._
++import slick.basic.DatabaseConfig
++import slick.basic.StaticDatabaseConfig
+ import slick.collection.heterogeneous.HNil
+ import slick.collection.heterogeneous.syntax._
+ import slick.jdbc.JdbcProfile
+diff --git a/slick-testkit/src/test/scala/slick/test/jdbc/hikaricp/SlickDeadlockTest.scala b/slick-testkit/src/test/scala/slick/test/jdbc/hikaricp/SlickDeadlockTest.scala
+index ffce94b..4f9ecec 100644
+--- a/slick-testkit/src/test/scala/slick/test/jdbc/hikaricp/SlickDeadlockTest.scala
++++ b/slick-testkit/src/test/scala/slick/test/jdbc/hikaricp/SlickDeadlockTest.scala
+@@ -1,16 +1,21 @@
+ package slick.test.jdbc.hikaricp
+ 
++import scala.concurrent.Await
++import scala.concurrent.Future
++import scala.concurrent.duration._
++
+ import java.sql.Blob
+ import java.util.concurrent.TimeUnit
+-import javax.sql.rowset.serial.SerialBlob
+ 
+-import com.typesafe.slick.testkit.util.{AsyncTest, JdbcTestDB}
+-import org.junit.{After, Before, Ignore, Test}
++import com.typesafe.slick.testkit.util.AsyncTest
++import com.typesafe.slick.testkit.util.JdbcTestDB
++import javax.sql.rowset.serial.SerialBlob
++import org.junit.After
++import org.junit.Before
++import org.junit.Test
+ import slick.jdbc.H2Profile.api._
+-import slick.lifted.{ProvenShape, TableQuery}
+-
+-import scala.concurrent.duration._
+-import scala.concurrent.{Await, Future}
++import slick.lifted.ProvenShape
++import slick.lifted.TableQuery
+ 
+ class SlickDeadlockTest extends AsyncTest[JdbcTestDB] {
+ 
+diff --git a/slick-testkit/src/test/scala/slick/test/memory/DistributedQueryingTest.scala b/slick-testkit/src/test/scala/slick/test/memory/DistributedQueryingTest.scala
+index 88c4412..ea11de2 100644
+--- a/slick-testkit/src/test/scala/slick/test/memory/DistributedQueryingTest.scala
++++ b/slick-testkit/src/test/scala/slick/test/memory/DistributedQueryingTest.scala
+@@ -1,14 +1,16 @@
+ package slick.test.memory
+ 
++import scala.concurrent.Await
++import scala.concurrent.ExecutionContext
++import scala.concurrent.ExecutionContext.Implicits.global
++import scala.concurrent.duration.Duration
++
+ import org.junit.Test
+ import org.junit.Assert._
+-import com.typesafe.slick.testkit.util.StandardTestDBs
+ import slick.basic.DatabaseConfig
+ import slick.jdbc.JdbcProfile
+-import slick.memory.{DistributedBackend, DistributedProfile}
+-import scala.concurrent.duration.Duration
+-import scala.concurrent.{Await, ExecutionContext}
+-import ExecutionContext.Implicits.global
++import slick.memory.DistributedBackend
++import slick.memory.DistributedProfile
+ 
+ /** Test for the DistributedProfile */
+ class DistributedQueryingTest {
+diff --git a/slick-testkit/src/test/scala/slick/test/model/ModelTest.scala b/slick-testkit/src/test/scala/slick/test/model/ModelTest.scala
+index 0669e70..2d1ef8b 100644
+--- a/slick-testkit/src/test/scala/slick/test/model/ModelTest.scala
++++ b/slick-testkit/src/test/scala/slick/test/model/ModelTest.scala
+@@ -1,7 +1,6 @@
+ package slick.test.model
+ 
+ import org.junit.Test
+-import org.junit.Assert._
+ import slick.model._
+ 
+ /** Test case for the SQL schema support in table definitions */
+diff --git a/slick-testkit/src/test/scala/slick/test/profile/ProfileNameTest.scala b/slick-testkit/src/test/scala/slick/test/profile/ProfileNameTest.scala
+index f130832..3efb47f 100644
+--- a/slick-testkit/src/test/scala/slick/test/profile/ProfileNameTest.scala
++++ b/slick-testkit/src/test/scala/slick/test/profile/ProfileNameTest.scala
+@@ -1,8 +1,9 @@
+ package slick.test.profile
+ 
+-import org.junit.Assert._
+ import org.junit.Test
+-import slick.jdbc.{H2Profile, SQLiteProfile}
++import org.junit.Assert._
++import slick.jdbc.H2Profile
++import slick.jdbc.SQLiteProfile
+ 
+ class ProfileNameTest {
+ 
+diff --git a/slick-testkit/src/test/scala/slick/test/profile/ProfileTest.scala b/slick-testkit/src/test/scala/slick/test/profile/ProfileTest.scala
+index f10f9a5..3090465 100644
+--- a/slick-testkit/src/test/scala/slick/test/profile/ProfileTest.scala
++++ b/slick-testkit/src/test/scala/slick/test/profile/ProfileTest.scala
+@@ -1,7 +1,9 @@
+ package slick.test.profile
+ 
++import com.typesafe.slick.testkit.util.ProfileTest
++import com.typesafe.slick.testkit.util.StandardTestDBs
++import com.typesafe.slick.testkit.util.Testkit
+ import org.junit.runner.RunWith
+-import com.typesafe.slick.testkit.util.{StandardTestDBs, ProfileTest, Testkit}
+ 
+ @RunWith(classOf[Testkit])
+ class H2MemTest extends ProfileTest(StandardTestDBs.H2Mem)
+diff --git a/slick-testkit/src/test/scala/slick/testutil/RecordedTest.scala b/slick-testkit/src/test/scala/slick/testutil/RecordedTest.scala
+index 49c4794..883a8d8 100644
+--- a/slick-testkit/src/test/scala/slick/testutil/RecordedTest.scala
++++ b/slick-testkit/src/test/scala/slick/testutil/RecordedTest.scala
+@@ -1,9 +1,12 @@
+ package slick.testutil
+ 
+-import org.junit.{Test, Assert}
+-import java.io._
+ import scala.Console
+ 
++import java.io._
++
++import org.junit.Assert
++import org.junit.Test
++
+ /**
+  * A JUnit test which compares the console output against a recorded test run.
+  */
+diff --git a/slick/src/macro/scala/slick/util/MacroSupportInterpolationImpl.scala b/slick/src/macro/scala/slick/util/MacroSupportInterpolationImpl.scala
+index c1a8547..2663aed 100644
+--- a/slick/src/macro/scala/slick/util/MacroSupportInterpolationImpl.scala
++++ b/slick/src/macro/scala/slick/util/MacroSupportInterpolationImpl.scala
+@@ -1,8 +1,8 @@
+ package slick.util
+ 
+-import scala.reflect.macros.blackbox.Context
+-import scala.reflect.NameTransformer
+ import scala.collection.mutable.ListBuffer
++import scala.reflect.NameTransformer
++import scala.reflect.macros.blackbox.Context
+ 
+ object MacroSupportInterpolationImpl {
+   def b(ctx: Context)(args: ctx.Expr[Any]*): ctx.Expr[Unit] = {
+diff --git a/slick/src/main/scala/slick/SlickException.scala b/slick/src/main/scala/slick/SlickException.scala
+index fb038aa..dadaeb0 100644
+--- a/slick/src/main/scala/slick/SlickException.scala
++++ b/slick/src/main/scala/slick/SlickException.scala
+@@ -1,6 +1,9 @@
+ package slick
+ 
+-import slick.util.{GlobalConfig, DumpInfo, TreePrinter, Dumpable}
++import slick.util.DumpInfo
++import slick.util.Dumpable
++import slick.util.GlobalConfig
++import slick.util.TreePrinter
+ 
+ /** All Exceptions that are thrown directly by Slick are of type `SlickException`.
+   * Other Exceptions originating in non-Slick code are generally not wrapped but
+diff --git a/slick/src/main/scala/slick/ast/ClientSideOp.scala b/slick/src/main/scala/slick/ast/ClientSideOp.scala
+index 732296b..5da0301 100644
+--- a/slick/src/main/scala/slick/ast/ClientSideOp.scala
++++ b/slick/src/main/scala/slick/ast/ClientSideOp.scala
+@@ -1,8 +1,7 @@
+ package slick.ast
+ 
+-import slick.ast.Util._
+-import slick.ast.TypeUtil._
+ import slick.SlickException
++import slick.ast.TypeUtil._
+ import slick.util.ConstArray
+ 
+ /**
+diff --git a/slick/src/main/scala/slick/ast/Node.scala b/slick/src/main/scala/slick/ast/Node.scala
+index 7c7cb62..c37a246 100644
+--- a/slick/src/main/scala/slick/ast/Node.scala
++++ b/slick/src/main/scala/slick/ast/Node.scala
+@@ -1,12 +1,16 @@
+ package slick.ast
+ 
+-import scala.collection.mutable.ListBuffer
+ import scala.language.existentials
++
++import scala.collection.mutable.ListBuffer
+ import scala.reflect.ClassTag
+-import slick.SlickException
+-import slick.util.{Logging, Dumpable, DumpInfo, GlobalConfig, ConstArray}
+-import Util._
++
+ import TypeUtil._
++import slick.SlickException
++import slick.util.ConstArray
++import slick.util.DumpInfo
++import slick.util.Dumpable
++import slick.util.GlobalConfig
+ 
+ /** A node in the Slick AST.
+   * Every Node has a number of child nodes and an optional type annotation. */
+diff --git a/slick/src/main/scala/slick/ast/Symbol.scala b/slick/src/main/scala/slick/ast/Symbol.scala
+index 14209a4..e19f087 100644
+--- a/slick/src/main/scala/slick/ast/Symbol.scala
++++ b/slick/src/main/scala/slick/ast/Symbol.scala
+@@ -1,11 +1,11 @@
+ package slick.ast
+ 
+-import Util._
+-import slick.util.ConstArray
+ import scala.collection.mutable.HashMap
+ import scala.reflect.ClassTag
+ import scala.util.DynamicVariable
+ 
++import slick.util.ConstArray
++
+ /** A symbol which can be used in the AST. It can be either a TypeSymbol or a TermSymbol. */
+ sealed trait Symbol {
+   def name: String
+diff --git a/slick/src/main/scala/slick/ast/Type.scala b/slick/src/main/scala/slick/ast/Type.scala
+index 93de20e..ab7cc75 100644
+--- a/slick/src/main/scala/slick/ast/Type.scala
++++ b/slick/src/main/scala/slick/ast/Type.scala
+@@ -1,14 +1,20 @@
+ package slick.ast
+ 
+-import scala.language.{implicitConversions, higherKinds}
+-import slick.SlickException
+-import scala.collection.generic.CanBuild
+-import scala.collection.mutable.{Builder, ArrayBuilder}
+-import scala.reflect.{ClassTag, classTag => mkClassTag}
+-import Util._
+-import scala.collection.mutable.ArrayBuffer
++import scala.language.higherKinds
++import scala.language.implicitConversions
++
+ import scala.annotation.implicitNotFound
+-import slick.util.{DumpInfo, Dumpable, TupleSupport, ConstArray}
++import scala.collection.generic.CanBuild
++import scala.collection.mutable.ArrayBuilder
++import scala.collection.mutable.Builder
++import scala.reflect.ClassTag
++import scala.reflect.{classTag => mkClassTag}
++
++import slick.SlickException
++import slick.util.ConstArray
++import slick.util.DumpInfo
++import slick.util.Dumpable
++import slick.util.TupleSupport
+ 
+ /** Super-trait for all types */
+ trait Type extends Dumpable {
+diff --git a/slick/src/main/scala/slick/ast/Util.scala b/slick/src/main/scala/slick/ast/Util.scala
+index 13e4c1d..428055e 100644
+--- a/slick/src/main/scala/slick/ast/Util.scala
++++ b/slick/src/main/scala/slick/ast/Util.scala
+@@ -1,12 +1,10 @@
+ package slick.ast
+ 
+-import slick.ast.TypeUtil.:@
+-import slick.util.ConstArray
++import scala.language.implicitConversions
+ 
+-import scala.collection
+ import scala.collection.mutable
+-import scala.language.implicitConversions
+-import scala.collection.mutable.ArrayBuffer
++
++import slick.util.ConstArray
+ 
+ /**
+  * Utility methods for AST manipulation.
+diff --git a/slick/src/main/scala/slick/basic/BasicBackend.scala b/slick/src/main/scala/slick/basic/BasicBackend.scala
+index 69f3fcb..d26191c 100644
+--- a/slick/src/main/scala/slick/basic/BasicBackend.scala
++++ b/slick/src/main/scala/slick/basic/BasicBackend.scala
+@@ -1,25 +1,26 @@
+ package slick.basic
+ 
+-import slick.util.AsyncExecutor.{Priority, Continuation, Fresh, WithConnection}
+-
+-import scala.language.existentials
++import scala.concurrent.ExecutionContext
++import scala.concurrent.Future
++import scala.concurrent.Promise
++import scala.util.Failure
++import scala.util.Success
++import scala.util.control.NonFatal
+ 
+ import java.io.Closeable
+-import java.util.concurrent.atomic.{AtomicReferenceArray, AtomicBoolean, AtomicLong}
++import java.util.concurrent.atomic.AtomicLong
++import java.util.concurrent.atomic.AtomicReferenceArray
+ 
+ import com.typesafe.config.Config
+-
+-import scala.collection.mutable.ArrayBuffer
+-import scala.concurrent.{Promise, ExecutionContext, Future}
+-import scala.util.{Try, Success, Failure}
+-import scala.util.control.NonFatal
+-
+-import org.slf4j.LoggerFactory
+ import org.reactivestreams._
+-
++import org.slf4j.LoggerFactory
+ import slick.SlickException
+ import slick.dbio._
+ import slick.util._
++import slick.util.AsyncExecutor.Continuation
++import slick.util.AsyncExecutor.Fresh
++import slick.util.AsyncExecutor.Priority
++import slick.util.AsyncExecutor.WithConnection
+ 
+ /** Backend for the basic database and session handling features.
+   * Concrete backends like `JdbcBackend` extend this type and provide concrete
+diff --git a/slick/src/main/scala/slick/basic/BasicProfile.scala b/slick/src/main/scala/slick/basic/BasicProfile.scala
+index a263949..7850692 100644
+--- a/slick/src/main/scala/slick/basic/BasicProfile.scala
++++ b/slick/src/main/scala/slick/basic/BasicProfile.scala
+@@ -1,16 +1,16 @@
+ package slick.basic
+ 
+-import scala.language.{higherKinds, implicitConversions, existentials}
++import scala.language.existentials
++import scala.language.higherKinds
++import scala.language.implicitConversions
+ 
+-import slick.SlickException
++import com.typesafe.config.Config
+ import slick.ast._
+ import slick.compiler.QueryCompiler
+ import slick.dbio._
+ import slick.lifted._
+ import slick.util.GlobalConfig
+ 
+-import com.typesafe.config.{ConfigFactory, Config}
+-
+ /** The basic functionality that has to be implemented by all profiles. */
+ trait BasicProfile extends BasicActionComponent { self: BasicProfile =>
+ 
+diff --git a/slick/src/main/scala/slick/basic/DatabaseConfig.scala b/slick/src/main/scala/slick/basic/DatabaseConfig.scala
+index 003cf67..d94d04f 100644
+--- a/slick/src/main/scala/slick/basic/DatabaseConfig.scala
++++ b/slick/src/main/scala/slick/basic/DatabaseConfig.scala
+@@ -1,18 +1,22 @@
+ package slick.basic
+ 
+ import scala.language.experimental.macros
+-import scala.annotation.{StaticAnnotation, Annotation}
++
++import scala.annotation.Annotation
++import scala.annotation.StaticAnnotation
+ import scala.reflect.ClassTag
+ import scala.reflect.macros.blackbox.Context
+ import scala.util.control.NonFatal
+ 
+-import java.net.{URL, URI}
++import java.net.URI
++import java.net.URL
+ 
+-import slick.util.{SlickLogger, ClassLoaderUtil}
+-import slick.util.ConfigExtensionMethods.configExtensionMethods
++import com.typesafe.config.Config
++import com.typesafe.config.ConfigFactory
+ import slick.SlickException
+-
+-import com.typesafe.config.{ConfigFactory, Config}
++import slick.util.ClassLoaderUtil
++import slick.util.SlickLogger
++import slick.util.ConfigExtensionMethods.configExtensionMethods
+ 
+ /** A configuration for a Database plus a matching Profile. */
+ trait DatabaseConfig[P <: BasicProfile] {
+diff --git a/slick/src/main/scala/slick/basic/DatabasePublisher.scala b/slick/src/main/scala/slick/basic/DatabasePublisher.scala
+index 5c71343..c45d6b5 100644
+--- a/slick/src/main/scala/slick/basic/DatabasePublisher.scala
++++ b/slick/src/main/scala/slick/basic/DatabasePublisher.scala
+@@ -1,11 +1,13 @@
+ package slick.basic
+ 
+-import org.reactivestreams._
+-
+-import scala.concurrent.{Promise, Future, ExecutionContext}
++import scala.concurrent.ExecutionContext
++import scala.concurrent.Future
++import scala.concurrent.Promise
++import scala.util.Failure
++import scala.util.Success
+ 
++import org.reactivestreams._
+ import slick.dbio.DBIO
+-import scala.util.{Failure, Success}
+ 
+ /** A Reactive Streams `Publisher` for database Actions. */
+ abstract class DatabasePublisher[T] extends Publisher[T] { self =>
+diff --git a/slick/src/main/scala/slick/collection/heterogeneous/HList.scala b/slick/src/main/scala/slick/collection/heterogeneous/HList.scala
+index 1474783..f87bcd7 100644
+--- a/slick/src/main/scala/slick/collection/heterogeneous/HList.scala
++++ b/slick/src/main/scala/slick/collection/heterogeneous/HList.scala
+@@ -2,10 +2,14 @@ package slick.collection.heterogeneous
+ 
+ import scala.language.higherKinds
+ import scala.language.experimental.macros
++
+ import scala.annotation.unchecked.{uncheckedVariance => uv}
+-import scala.reflect.macros.whitebox.Context
+-import slick.lifted.{MappedScalaProductShape, Shape, ShapeLevel}
+ import scala.reflect.ClassTag
++import scala.reflect.macros.whitebox.Context
++
++import slick.lifted.MappedScalaProductShape
++import slick.lifted.Shape
++import slick.lifted.ShapeLevel
+ 
+ /** A heterogenous list where each element has its own type. */
+ sealed abstract class HList extends Product {
+diff --git a/slick/src/main/scala/slick/collection/heterogeneous/Nat.scala b/slick/src/main/scala/slick/collection/heterogeneous/Nat.scala
+index fc444fb..59cfdaa 100644
+--- a/slick/src/main/scala/slick/collection/heterogeneous/Nat.scala
++++ b/slick/src/main/scala/slick/collection/heterogeneous/Nat.scala
+@@ -2,6 +2,7 @@ package slick.collection.heterogeneous
+ 
+ import scala.language.higherKinds
+ import scala.language.experimental.macros
++
+ import scala.reflect.macros.whitebox.Context
+ 
+ /** Natural numbers for indexing in HLists.
+diff --git a/slick/src/main/scala/slick/compiler/AssignUniqueSymbols.scala b/slick/src/main/scala/slick/compiler/AssignUniqueSymbols.scala
+index 49fa3c6..9f4024e 100644
+--- a/slick/src/main/scala/slick/compiler/AssignUniqueSymbols.scala
++++ b/slick/src/main/scala/slick/compiler/AssignUniqueSymbols.scala
+@@ -1,11 +1,9 @@
+ package slick.compiler
+ 
+-import slick.ast.Library.AggregateFunctionSymbol
++import scala.collection.mutable.HashMap
+ 
+-import scala.collection.mutable.{HashSet, HashMap}
+-import slick.SlickException
+ import slick.ast._
+-import TypeUtil._
++import slick.ast.Library.AggregateFunctionSymbol
+ 
+ /** Ensure that all symbol definitions in a tree are unique. The same symbol can initially occur in
+   * multiple sub-trees when some part of a query is reused multiple times. This phase assigns new,
+diff --git a/slick/src/main/scala/slick/compiler/CodeGen.scala b/slick/src/main/scala/slick/compiler/CodeGen.scala
+index 003087d..7f6d578 100644
+--- a/slick/src/main/scala/slick/compiler/CodeGen.scala
++++ b/slick/src/main/scala/slick/compiler/CodeGen.scala
+@@ -1,7 +1,7 @@
+ package slick.compiler
+ 
+-import slick.ast.TypeUtil.:@
+ import slick.ast._
++import slick.ast.TypeUtil.:@
+ import slick.util.SlickLogger
+ 
+ /** A standard skeleton for a code generator phase. */
+diff --git a/slick/src/main/scala/slick/compiler/CreateAggregates.scala b/slick/src/main/scala/slick/compiler/CreateAggregates.scala
+index 25d5e9b..b44e01d 100644
+--- a/slick/src/main/scala/slick/compiler/CreateAggregates.scala
++++ b/slick/src/main/scala/slick/compiler/CreateAggregates.scala
+@@ -1,10 +1,10 @@
+ package slick.compiler
+ 
++import slick.ast._
+ import slick.ast.Library.AggregateFunctionSymbol
+ import slick.ast.TypeUtil._
+ import slick.ast.Util._
+-import slick.ast._
+-import slick.util.{ConstArray, Ellipsis, ??}
++import slick.util.ConstArray
+ 
+ /** Rewrite aggregation function calls to Aggregate nodes. */
+ class CreateAggregates extends Phase {
+diff --git a/slick/src/main/scala/slick/compiler/CreateResultSetMapping.scala b/slick/src/main/scala/slick/compiler/CreateResultSetMapping.scala
+index 318246c..afd6143 100644
+--- a/slick/src/main/scala/slick/compiler/CreateResultSetMapping.scala
++++ b/slick/src/main/scala/slick/compiler/CreateResultSetMapping.scala
+@@ -2,8 +2,7 @@ package slick.compiler
+ 
+ import slick.SlickException
+ import slick.ast._
+-import Util._
+-import TypeUtil._
++import slick.ast.TypeUtil._
+ import slick.util.ConstArray
+ 
+ /** Create a ResultSetMapping root node, ensure that the top-level server-side node returns a
+diff --git a/slick/src/main/scala/slick/compiler/EmulateOuterJoins.scala b/slick/src/main/scala/slick/compiler/EmulateOuterJoins.scala
+index c6ebaae..f64dcf6 100644
+--- a/slick/src/main/scala/slick/compiler/EmulateOuterJoins.scala
++++ b/slick/src/main/scala/slick/compiler/EmulateOuterJoins.scala
+@@ -1,8 +1,8 @@
+ package slick.compiler
+ 
+ import slick.ast._
+-import Util._
+-import TypeUtil._
++import slick.ast.TypeUtil._
++import slick.ast.Util._
+ import slick.util.ConstArray
+ 
+ /** An optional phase which rewrites outer joins into more commonly supported
+diff --git a/slick/src/main/scala/slick/compiler/ExpandRecords.scala b/slick/src/main/scala/slick/compiler/ExpandRecords.scala
+index fb52f82..a3f96e7 100644
+--- a/slick/src/main/scala/slick/compiler/ExpandRecords.scala
++++ b/slick/src/main/scala/slick/compiler/ExpandRecords.scala
+@@ -1,7 +1,7 @@
+ package slick.compiler
+ 
+ import slick.ast._
+-import Util._
++import slick.ast.Util._
+ 
+ /** Expand paths of record types to reference all fields individually and
+   * recreate the record structure at the call site. */
+diff --git a/slick/src/main/scala/slick/compiler/ExpandSums.scala b/slick/src/main/scala/slick/compiler/ExpandSums.scala
+index a9a0fb1..dd096b0 100644
+--- a/slick/src/main/scala/slick/compiler/ExpandSums.scala
++++ b/slick/src/main/scala/slick/compiler/ExpandSums.scala
+@@ -1,13 +1,15 @@
+ package slick.compiler
+ 
+-import slick.util.{ConstArrayOp, ConstArray}
+-import slick.{SlickTreeException, SlickException}
+-import slick.ast._
+-import Util._
+-import TypeUtil._
+-
+ import scala.collection.mutable
+ 
++import slick.SlickException
++import slick.SlickTreeException
++import slick.ast._
++import slick.ast.TypeUtil._
++import slick.ast.Util._
++import slick.util.ConstArray
++import slick.util.ConstArrayOp
++
+ /** Expand sum types and their catamorphisms to equivalent product type operations. */
+ class ExpandSums extends Phase {
+   val name = "expandSums"
+diff --git a/slick/src/main/scala/slick/compiler/ExpandTables.scala b/slick/src/main/scala/slick/compiler/ExpandTables.scala
+index bc135d9..b1fd4ac 100644
+--- a/slick/src/main/scala/slick/compiler/ExpandTables.scala
++++ b/slick/src/main/scala/slick/compiler/ExpandTables.scala
+@@ -1,12 +1,12 @@
+ package slick.compiler
+ 
++import scala.collection.mutable
++
+ import slick.ast._
+-import Util._
+-import TypeUtil._
++import slick.ast.TypeUtil._
++import slick.ast.Util._
+ import slick.util.ConstArray
+ 
+-import scala.collection.mutable
+-
+ /** Expand table-valued expressions in the result type to their star projection and compute the
+   * missing structural expansions of table types. After this phase the AST should always be
+   * well-typed. */
+diff --git a/slick/src/main/scala/slick/compiler/FixRowNumberOrdering.scala b/slick/src/main/scala/slick/compiler/FixRowNumberOrdering.scala
+index 2397b26..f0b024e 100644
+--- a/slick/src/main/scala/slick/compiler/FixRowNumberOrdering.scala
++++ b/slick/src/main/scala/slick/compiler/FixRowNumberOrdering.scala
+@@ -1,7 +1,6 @@
+ package slick.compiler
+ 
+ import slick.ast._
+-import Util._
+ 
+ /** Inject the proper orderings into the RowNumber nodes produced earlier by
+   * the resolveFixJoins phase. */
+diff --git a/slick/src/main/scala/slick/compiler/FlattenProjections.scala b/slick/src/main/scala/slick/compiler/FlattenProjections.scala
+index f06aba2..e2e2db5 100644
+--- a/slick/src/main/scala/slick/compiler/FlattenProjections.scala
++++ b/slick/src/main/scala/slick/compiler/FlattenProjections.scala
+@@ -1,11 +1,11 @@
+ package slick.compiler
+ 
+-import slick.util.ConstArray
++import scala.collection.mutable.ArrayBuffer
++import scala.collection.mutable.HashMap
+ 
+-import scala.collection.mutable.{ArrayBuffer, HashMap}
+ import slick.ast._
+-import Util._
+-import TypeUtil._
++import slick.ast.TypeUtil._
++import slick.util.ConstArray
+ 
+ /** Flatten all `Pure` node contents into a single `StructNode`.
+   *
+diff --git a/slick/src/main/scala/slick/compiler/HoistClientOps.scala b/slick/src/main/scala/slick/compiler/HoistClientOps.scala
+index 09a6cf0..e81b524 100644
+--- a/slick/src/main/scala/slick/compiler/HoistClientOps.scala
++++ b/slick/src/main/scala/slick/compiler/HoistClientOps.scala
+@@ -1,12 +1,13 @@
+ package slick.compiler
+ 
++import scala.util.control.NonFatal
++
+ import slick.SlickException
+ import slick.ast._
+-import slick.ast.Util._
+ import slick.ast.TypeUtil._
+-import slick.util.{ConstArray, Ellipsis, ??}
+-
+-import scala.util.control.NonFatal
++import slick.ast.Util._
++import slick.util.ConstArray
++import slick.util.Ellipsis
+ 
+ /** Lift applicable operations at the top level to the client side. */
+ class HoistClientOps extends Phase {
+diff --git a/slick/src/main/scala/slick/compiler/InferTypes.scala b/slick/src/main/scala/slick/compiler/InferTypes.scala
+index 77c21e3..84931c0 100644
+--- a/slick/src/main/scala/slick/compiler/InferTypes.scala
++++ b/slick/src/main/scala/slick/compiler/InferTypes.scala
+@@ -1,8 +1,6 @@
+ package slick.compiler
+ 
+ import slick.ast._
+-import Util._
+-import TypeUtil._
+ 
+ /** Infer all missing types. */
+ class InferTypes extends Phase {
+diff --git a/slick/src/main/scala/slick/compiler/InsertCompiler.scala b/slick/src/main/scala/slick/compiler/InsertCompiler.scala
+index 4eb79a9..aed45c1 100644
+--- a/slick/src/main/scala/slick/compiler/InsertCompiler.scala
++++ b/slick/src/main/scala/slick/compiler/InsertCompiler.scala
+@@ -1,11 +1,12 @@
+ package slick.compiler
+ 
+-import slick.ast._
+-import scala.collection.mutable.ArrayBuffer
+-import slick.{SlickTreeException, SlickException}
+-import slick.util.{ConstArray, SlickLogger}
+ import org.slf4j.LoggerFactory
+-import Util._
++import slick.SlickException
++import slick.SlickTreeException
++import slick.ast._
++import slick.ast.Util._
++import slick.util.ConstArray
++import slick.util.SlickLogger
+ 
+ /** A custom compiler for INSERT statements. We could reuse the standard
+   * phases with a minor modification instead, but this is much faster. */
+diff --git a/slick/src/main/scala/slick/compiler/MergeToComprehensions.scala b/slick/src/main/scala/slick/compiler/MergeToComprehensions.scala
+index deff667..53897d9 100644
+--- a/slick/src/main/scala/slick/compiler/MergeToComprehensions.scala
++++ b/slick/src/main/scala/slick/compiler/MergeToComprehensions.scala
+@@ -1,12 +1,13 @@
+ package slick.compiler
+ 
+-import slick.ast.Library.AggregateFunctionSymbol
+-import slick.{SlickException, SlickTreeException}
++import slick.SlickTreeException
+ import slick.ast._
++import slick.ast.Library.AggregateFunctionSymbol
+ import slick.ast.QueryParameter.constOp
+-import slick.ast.Util._
+ import slick.ast.TypeUtil._
+-import slick.util.{ConstArray, Ellipsis, ??}
++import slick.ast.Util._
++import slick.util.ConstArray
++import slick.util.Ellipsis
+ 
+ /** This phase merges nested nodes of types Bind, Filter, GroupBy, SortBy, Take, Drop,
+   * CollectionCast and Distinct to Comprehension nodes. Nodes can be merged if they occur in the
+diff --git a/slick/src/main/scala/slick/compiler/OptimizeScalar.scala b/slick/src/main/scala/slick/compiler/OptimizeScalar.scala
+index f6349c4..61a2faa 100644
+--- a/slick/src/main/scala/slick/compiler/OptimizeScalar.scala
++++ b/slick/src/main/scala/slick/compiler/OptimizeScalar.scala
+@@ -1,8 +1,7 @@
+ package slick.compiler
+ 
+-import slick.ast.TypeUtil._
+-import slick.ast.Util._
+ import slick.ast._
++import slick.ast.Util._
+ import slick.util.ConstArray
+ 
+ /** Optimize scalar expressions */
+diff --git a/slick/src/main/scala/slick/compiler/PruneProjections.scala b/slick/src/main/scala/slick/compiler/PruneProjections.scala
+index 27547fc..3dd2288 100644
+--- a/slick/src/main/scala/slick/compiler/PruneProjections.scala
++++ b/slick/src/main/scala/slick/compiler/PruneProjections.scala
+@@ -1,8 +1,8 @@
+ package slick.compiler
+ 
+ import slick.ast._
+-import Util._
+-import TypeUtil._
++import slick.ast.TypeUtil._
++import slick.ast.Util._
+ 
+ /** Remove unreferenced fields from StructNodes. */
+ class PruneProjections extends Phase {
+diff --git a/slick/src/main/scala/slick/compiler/QueryCompiler.scala b/slick/src/main/scala/slick/compiler/QueryCompiler.scala
+index 076a27e..164b52b 100644
+--- a/slick/src/main/scala/slick/compiler/QueryCompiler.scala
++++ b/slick/src/main/scala/slick/compiler/QueryCompiler.scala
+@@ -1,10 +1,12 @@
+ package slick.compiler
+ 
+ import scala.collection.immutable.HashMap
++
++import org.slf4j.LoggerFactory
+ import slick.SlickException
++import slick.ast.Node
++import slick.ast.SymbolNamer
+ import slick.util._
+-import slick.ast.{SymbolNamer, Node}
+-import org.slf4j.LoggerFactory
+ 
+ /** An immutable, stateless query compiler consisting of a series of phases */
+ class QueryCompiler(val phases: Vector[Phase]) extends Logging {
+diff --git a/slick/src/main/scala/slick/compiler/RelabelUnions.scala b/slick/src/main/scala/slick/compiler/RelabelUnions.scala
+index 78f54ca..1d98c8b 100644
+--- a/slick/src/main/scala/slick/compiler/RelabelUnions.scala
++++ b/slick/src/main/scala/slick/compiler/RelabelUnions.scala
+@@ -1,7 +1,7 @@
+ package slick.compiler
+ 
+ import slick.ast._
+-import Util._
++import slick.ast.Util._
+ 
+ /** Assign the AnonSymbols of fields from the left side of a Union to the
+   * right side. This ensures that both sides are protected when we prune
+diff --git a/slick/src/main/scala/slick/compiler/RemoveFieldNames.scala b/slick/src/main/scala/slick/compiler/RemoveFieldNames.scala
+index dd46eb3..3bdbf9d 100644
+--- a/slick/src/main/scala/slick/compiler/RemoveFieldNames.scala
++++ b/slick/src/main/scala/slick/compiler/RemoveFieldNames.scala
+@@ -1,8 +1,8 @@
+ package slick.compiler
+ 
+ import slick.ast._
+-import Util._
+-import TypeUtil._
++import slick.ast.TypeUtil._
++import slick.ast.Util._
+ import slick.util.ConstArray
+ 
+ /** Convert unreferenced StructNodes to single columns or ProductNodes (which is needed for
+diff --git a/slick/src/main/scala/slick/compiler/RemoveTakeDrop.scala b/slick/src/main/scala/slick/compiler/RemoveTakeDrop.scala
+index c089c45..88cc104 100644
+--- a/slick/src/main/scala/slick/compiler/RemoveTakeDrop.scala
++++ b/slick/src/main/scala/slick/compiler/RemoveTakeDrop.scala
+@@ -1,12 +1,12 @@
+ package slick.compiler
+ 
++import scala.collection.mutable
++
+ import slick.SlickException
+ import slick.ast._
+-import Util._
+-import TypeUtil._
+-import QueryParameter.constOp
+-
+-import scala.collection.mutable
++import slick.ast.QueryParameter.constOp
++import slick.ast.TypeUtil._
++import slick.ast.Util._
+ 
+ /** Replace all occurrences of `Take` and `Drop` with row number computations based on
+   * `zipWithIndex` operations. */
+diff --git a/slick/src/main/scala/slick/compiler/ReorderOperations.scala b/slick/src/main/scala/slick/compiler/ReorderOperations.scala
+index 92cb8a3..19ec3d0 100644
+--- a/slick/src/main/scala/slick/compiler/ReorderOperations.scala
++++ b/slick/src/main/scala/slick/compiler/ReorderOperations.scala
+@@ -1,9 +1,10 @@
+ package slick.compiler
+ 
+ import slick.ast._
+-import slick.ast.Util._
+ import slick.ast.TypeUtil._
+-import slick.util.{ConstArray, Ellipsis}
++import slick.ast.Util._
++import slick.util.ConstArray
++import slick.util.Ellipsis
+ 
+ /** Reorder certain stream operations for more efficient merging in `mergeToComprehensions`. */
+ class ReorderOperations extends Phase {
+diff --git a/slick/src/main/scala/slick/compiler/ResolveZipJoins.scala b/slick/src/main/scala/slick/compiler/ResolveZipJoins.scala
+index 08b423a..30c706a 100644
+--- a/slick/src/main/scala/slick/compiler/ResolveZipJoins.scala
++++ b/slick/src/main/scala/slick/compiler/ResolveZipJoins.scala
+@@ -1,8 +1,7 @@
+ package slick.compiler
+ 
+ import slick.ast._
+-import Util._
+-import TypeUtil._
++import slick.ast.Util._
+ import slick.util.ConstArray
+ 
+ /** Rewrite zip joins into a form suitable for SQL using inner joins and RowNumber columns.
+diff --git a/slick/src/main/scala/slick/compiler/RewriteBooleans.scala b/slick/src/main/scala/slick/compiler/RewriteBooleans.scala
+index 1c15a64..f6c296f 100644
+--- a/slick/src/main/scala/slick/compiler/RewriteBooleans.scala
++++ b/slick/src/main/scala/slick/compiler/RewriteBooleans.scala
+@@ -1,8 +1,7 @@
+ package slick.compiler
+ 
+ import slick.ast._
+-import Util.nodeToNodeOps
+-import TypeUtil._
++import slick.ast.TypeUtil._
+ 
+ /** For SQL back-ends which do not support real boolean types for fields and general expressions
+   * but which do have special boolean expressions and operators, this phase injects conversions
+diff --git a/slick/src/main/scala/slick/compiler/RewriteDistinct.scala b/slick/src/main/scala/slick/compiler/RewriteDistinct.scala
+index af77fe6..c9b9356 100644
+--- a/slick/src/main/scala/slick/compiler/RewriteDistinct.scala
++++ b/slick/src/main/scala/slick/compiler/RewriteDistinct.scala
+@@ -1,10 +1,10 @@
+ package slick.compiler
+ 
+-import slick.ast.Library.AggregateFunctionSymbol
++import slick.ast._
+ import slick.ast.TypeUtil._
+ import slick.ast.Util._
+-import slick.ast._
+-import slick.util.{Ellipsis, ConstArray}
++import slick.util.ConstArray
++import slick.util.Ellipsis
+ 
+ /** Rewrite "distinct on" to "distinct" or "group by" */
+ class RewriteDistinct extends Phase {
+diff --git a/slick/src/main/scala/slick/compiler/RewriteJoins.scala b/slick/src/main/scala/slick/compiler/RewriteJoins.scala
+index ad06f9c..6dc9ba3 100644
+--- a/slick/src/main/scala/slick/compiler/RewriteJoins.scala
++++ b/slick/src/main/scala/slick/compiler/RewriteJoins.scala
+@@ -1,13 +1,13 @@
+ package slick.compiler
+ 
+-import slick.util.{ConstArray, Ellipsis}
+-import slick.{SlickTreeException, SlickException}
+-import slick.ast._
+-import Util._
+-import TypeUtil._
+-
+ import scala.collection.mutable.ArrayBuffer
+ 
++import slick.ast._
++import slick.ast.TypeUtil._
++import slick.ast.Util._
++import slick.util.ConstArray
++import slick.util.Ellipsis
++
+ /** Rewrite monadic joins to applicative joins. After this phase all `Bind` nodes are of the
+   * form `Bind(_, _, Pure(_, _))` (i.e. `flatMap` has been reduced to `map`). */
+ class RewriteJoins extends Phase {
+diff --git a/slick/src/main/scala/slick/compiler/SpecializeParameters.scala b/slick/src/main/scala/slick/compiler/SpecializeParameters.scala
+index 890124e..f0275a5 100644
+--- a/slick/src/main/scala/slick/compiler/SpecializeParameters.scala
++++ b/slick/src/main/scala/slick/compiler/SpecializeParameters.scala
+@@ -1,8 +1,7 @@
+ package slick.compiler
+ 
+-import slick.SlickException
+ import slick.ast._
+-import Util._
++import slick.ast.Util._
+ import slick.util.ConstArray
+ 
+ /** Specialize the AST for edge cases of query parameters. This is required for
+diff --git a/slick/src/main/scala/slick/compiler/VerifySymbols.scala b/slick/src/main/scala/slick/compiler/VerifySymbols.scala
+index 79560c9..5b56b2c 100644
+--- a/slick/src/main/scala/slick/compiler/VerifySymbols.scala
++++ b/slick/src/main/scala/slick/compiler/VerifySymbols.scala
+@@ -1,8 +1,8 @@
+ package slick.compiler
+ 
+ import slick.SlickTreeException
+-import slick.ast.Util._
+ import slick.ast._
++import slick.ast.Util._
+ 
+ /** Verify that all monadic joins have been transformed into applicative joins and that the
+   * resulting tree does not contain references to unreachable symbols. */
+diff --git a/slick/src/main/scala/slick/compiler/VerifyTypes.scala b/slick/src/main/scala/slick/compiler/VerifyTypes.scala
+index 68c991a..787e08b 100644
+--- a/slick/src/main/scala/slick/compiler/VerifyTypes.scala
++++ b/slick/src/main/scala/slick/compiler/VerifyTypes.scala
+@@ -1,11 +1,12 @@
+ package slick.compiler
+ 
++import scala.collection.mutable
++
+ import slick.SlickTreeException
+-import slick.ast.Util._
+ import slick.ast._
+-import slick.util.{Dumpable, RefId}
+-
+-import scala.collection.mutable
++import slick.ast.Util._
++import slick.util.Dumpable
++import slick.util.RefId
+ 
+ /** Optional phase which verifies that retyping the tree does not change any types. Useful for
+   * debugging type-related problems with large trees. */
+diff --git a/slick/src/main/scala/slick/dbio/DBIOAction.scala b/slick/src/main/scala/slick/dbio/DBIOAction.scala
+index ec5802d..1297edb 100644
+--- a/slick/src/main/scala/slick/dbio/DBIOAction.scala
++++ b/slick/src/main/scala/slick/dbio/DBIOAction.scala
+@@ -1,19 +1,24 @@
+ package slick.dbio
+ 
+-import org.reactivestreams.Subscription
+-
+-import scala.annotation.tailrec
+-import scala.collection.mutable.ArrayBuffer
+ import scala.language.higherKinds
+ 
+-import scala.collection.generic.{CanBuild, CanBuildFrom}
+ import scala.collection.mutable
+-import scala.concurrent.{ExecutionContext, Future}
++import scala.collection.generic.CanBuild
++import scala.collection.generic.CanBuildFrom
++import scala.collection.mutable.ArrayBuffer
++import scala.concurrent.ExecutionContext
++import scala.concurrent.Future
++import scala.util.Failure
++import scala.util.Success
++import scala.util.Try
++import scala.util.control.NonFatal
++
++import org.reactivestreams.Subscription
+ import slick.SlickException
+ import slick.basic.BasicBackend
+-import slick.util.{DumpInfo, Dumpable, ignoreFollowOnError}
+-import scala.util.{Try, Failure, Success}
+-import scala.util.control.NonFatal
++import slick.util.DumpInfo
++import slick.util.Dumpable
++import slick.util.ignoreFollowOnError
+ 
+ /** A Database I/O Action that can be executed on a database. The DBIOAction type allows a
+   * separation of execution logic and resource usage management logic from composition logic.
+diff --git a/slick/src/main/scala/slick/jdbc/DB2Profile.scala b/slick/src/main/scala/slick/jdbc/DB2Profile.scala
+index efdfd96..98cb7ed 100644
+--- a/slick/src/main/scala/slick/jdbc/DB2Profile.scala
++++ b/slick/src/main/scala/slick/jdbc/DB2Profile.scala
+@@ -3,13 +3,13 @@ package slick.jdbc
+ import scala.concurrent.ExecutionContext
+ 
+ import slick.ast._
+-import slick.compiler.{CompilerState, QueryCompiler, Phase}
++import slick.basic.Capability
++import slick.compiler.CompilerState
++import slick.compiler.Phase
+ import slick.dbio._
+ import slick.jdbc.meta.MTable
+ import slick.lifted._
+-import slick.model.Model
+ import slick.relational.RelationalCapabilities
+-import slick.basic.Capability
+ import slick.util.MacroSupport.macroSupportInterpolation
+ 
+ /** Slick profile for IBM DB2 UDB.
+diff --git a/slick/src/main/scala/slick/jdbc/DerbyProfile.scala b/slick/src/main/scala/slick/jdbc/DerbyProfile.scala
+index dad0fa4..2600da6 100644
+--- a/slick/src/main/scala/slick/jdbc/DerbyProfile.scala
++++ b/slick/src/main/scala/slick/jdbc/DerbyProfile.scala
+@@ -6,11 +6,11 @@ import slick.SlickException
+ import slick.ast._
+ import slick.ast.TypeUtil._
+ import slick.basic.Capability
++import slick.compiler.CompilerState
++import slick.compiler.Phase
+ import slick.dbio._
+-import slick.compiler.{Phase, QueryCompiler, CompilerState}
+ import slick.jdbc.meta.MTable
+ import slick.lifted._
+-import slick.model.Model
+ import slick.relational.RelationalCapabilities
+ import slick.sql.SqlCapabilities
+ import slick.util.MacroSupport.macroSupportInterpolation
+diff --git a/slick/src/main/scala/slick/jdbc/DriverDataSource.scala b/slick/src/main/scala/slick/jdbc/DriverDataSource.scala
+index f534bf5..df1d959 100644
+--- a/slick/src/main/scala/slick/jdbc/DriverDataSource.scala
++++ b/slick/src/main/scala/slick/jdbc/DriverDataSource.scala
+@@ -2,18 +2,21 @@ package slick.jdbc
+ 
+ import scala.language.reflectiveCalls
+ 
+-import java.io.{PrintWriter, Closeable}
++import scala.beans.BeanProperty
++import scala.collection.JavaConverters._
++import scala.util.control.NonFatal
++
++import java.io.Closeable
++import java.io.PrintWriter
+ import java.sql._
+ import java.util.Properties
+ import java.util.logging.Logger
+-import javax.sql.DataSource
+ 
++import javax.sql.DataSource
+ import slick.SlickException
+-import slick.util.{ClassLoaderUtil, Logging, ignoreFollowOnError}
+-
+-import scala.beans.BeanProperty
+-import scala.collection.JavaConverters._
+-import scala.util.control.NonFatal
++import slick.util.ClassLoaderUtil
++import slick.util.Logging
++import slick.util.ignoreFollowOnError
+ 
+ /** A DataSource that wraps the DriverManager API. It can be configured as a Java Bean and used
+   * both stand-alone and as a source for a connection pool. */
+diff --git a/slick/src/main/scala/slick/jdbc/H2Profile.scala b/slick/src/main/scala/slick/jdbc/H2Profile.scala
+index f518a11..ca11f93 100644
+--- a/slick/src/main/scala/slick/jdbc/H2Profile.scala
++++ b/slick/src/main/scala/slick/jdbc/H2Profile.scala
+@@ -4,14 +4,16 @@ import scala.concurrent.ExecutionContext
+ 
+ import java.util.UUID
+ 
++import slick.ast._
+ import slick.basic.Capability
+-import slick.relational.{RelationalProfile, RelationalCapabilities}
++import slick.compiler.CompilerState
++import slick.compiler.Phase
++import slick.jdbc.meta.MColumn
++import slick.jdbc.meta.MTable
++import slick.relational.RelationalCapabilities
++import slick.relational.RelationalProfile
+ import slick.sql.SqlCapabilities
+-import slick.ast._
+ import slick.util.MacroSupport.macroSupportInterpolation
+-import slick.compiler.{Phase, CompilerState}
+-import slick.jdbc.meta.{MColumn, MTable}
+-import slick.model.Model
+ 
+ /** Slick profile for H2.
+   *
+diff --git a/slick/src/main/scala/slick/jdbc/HsqldbProfile.scala b/slick/src/main/scala/slick/jdbc/HsqldbProfile.scala
+index 7696cf0..4e8668f 100644
+--- a/slick/src/main/scala/slick/jdbc/HsqldbProfile.scala
++++ b/slick/src/main/scala/slick/jdbc/HsqldbProfile.scala
+@@ -1,18 +1,18 @@
+ package slick.jdbc
+ 
++import scala.concurrent.ExecutionContext
++
+ import java.sql.Types
+ 
+-import scala.concurrent.ExecutionContext
+ import slick.SlickException
+ import slick.ast._
+ import slick.basic.Capability
+-import slick.compiler.{Phase, CompilerState}
++import slick.compiler.CompilerState
++import slick.compiler.Phase
+ import slick.dbio._
+ import slick.jdbc.meta.MTable
+ import slick.lifted._
+-import slick.model.Model
+-import slick.relational.RelationalProfile
+-import slick.sql.{SqlProfile, SqlCapabilities}
++import slick.sql.SqlCapabilities
+ import slick.util.ConstArray
+ import slick.util.MacroSupport.macroSupportInterpolation
+ 
+diff --git a/slick/src/main/scala/slick/jdbc/Invoker.scala b/slick/src/main/scala/slick/jdbc/Invoker.scala
+index 6887cce..0591632 100644
+--- a/slick/src/main/scala/slick/jdbc/Invoker.scala
++++ b/slick/src/main/scala/slick/jdbc/Invoker.scala
+@@ -1,9 +1,10 @@
+ package slick.jdbc
+ 
+ import scala.language.higherKinds
++
+ import scala.annotation.unchecked.{uncheckedVariance => uV}
+-import scala.collection.immutable.Map
+ import scala.collection.generic.CanBuildFrom
++
+ import slick.util.CloseableIterator
+ 
+ /** Base trait for all statement invokers of result element type R. */
+diff --git a/slick/src/main/scala/slick/jdbc/JdbcActionComponent.scala b/slick/src/main/scala/slick/jdbc/JdbcActionComponent.scala
+index 9c3e6db..e236bb3 100644
+--- a/slick/src/main/scala/slick/jdbc/JdbcActionComponent.scala
++++ b/slick/src/main/scala/slick/jdbc/JdbcActionComponent.scala
+@@ -1,24 +1,31 @@
+ package slick.jdbc
+ 
+-import slick.sql.{FixedSqlStreamingAction, FixedSqlAction, SqlActionComponent}
+-
+-import scala.language.{existentials, higherKinds}
+-
+-import java.sql.{PreparedStatement, Statement}
++import scala.language.existentials
++import scala.language.higherKinds
+ 
+ import scala.collection.mutable.Builder
+-import scala.concurrent.Future
+-import scala.util.Try
+ import scala.util.control.NonFatal
+ 
++import java.sql.PreparedStatement
++import java.sql.Statement
++
+ import slick.SlickException
+-import slick.dbio._
+ import slick.ast._
+-import slick.ast.Util._
+ import slick.ast.TypeUtil.:@
+-import slick.lifted.{CompiledStreamingExecutable, Query, FlatShapeLevel, Shape}
+-import slick.relational.{ResultConverter, CompiledMapping}
+-import slick.util.{CloseableIterator, DumpInfo, SQLBuilder, ignoreFollowOnError}
++import slick.ast.Util._
++import slick.dbio._
++import slick.lifted.CompiledStreamingExecutable
++import slick.lifted.FlatShapeLevel
++import slick.lifted.Query
++import slick.lifted.Shape
++import slick.relational.CompiledMapping
++import slick.relational.ResultConverter
++import slick.sql.FixedSqlAction
++import slick.sql.FixedSqlStreamingAction
++import slick.sql.SqlActionComponent
++import slick.util.DumpInfo
++import slick.util.SQLBuilder
++import slick.util.ignoreFollowOnError
+ 
+ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
+ 
+diff --git a/slick/src/main/scala/slick/jdbc/JdbcBackend.scala b/slick/src/main/scala/slick/jdbc/JdbcBackend.scala
+index 4b8f456..8b4b5f7 100644
+--- a/slick/src/main/scala/slick/jdbc/JdbcBackend.scala
++++ b/slick/src/main/scala/slick/jdbc/JdbcBackend.scala
+@@ -1,26 +1,24 @@
+ package slick.jdbc
+ 
+-import java.util.concurrent.Executors
++import scala.concurrent.ExecutionContext
++import scala.concurrent.Future
+ 
+-import org.reactivestreams.Subscriber
+-
+-import scala.concurrent.{ExecutionContext, Future}
+-
+-import java.util.Properties
+ import java.sql.{Array => _, _}
+-import javax.sql.DataSource
+-import javax.naming.InitialContext
++import java.util.Properties
+ 
+-import slick.dbio._
+-import slick.basic.DatabasePublisher
++import com.typesafe.config.Config
++import com.typesafe.config.ConfigFactory
++import javax.naming.InitialContext
++import javax.sql.DataSource
++import org.reactivestreams.Subscriber
++import org.slf4j.LoggerFactory
+ import slick.SlickException
++import slick.basic.DatabasePublisher
++import slick.dbio._
+ import slick.relational.RelationalBackend
+ import slick.util._
+ import slick.util.ConfigExtensionMethods._
+ 
+-import org.slf4j.LoggerFactory
+-import com.typesafe.config.{ConfigFactory, Config}
+-
+ /** A JDBC-based database back-end that is used by [[slick.jdbc.JdbcProfile]]. */
+ trait JdbcBackend extends RelationalBackend {
+   type This = JdbcBackend
+diff --git a/slick/src/main/scala/slick/jdbc/JdbcDataSource.scala b/slick/src/main/scala/slick/jdbc/JdbcDataSource.scala
+index c88e12c..568358e 100644
+--- a/slick/src/main/scala/slick/jdbc/JdbcDataSource.scala
++++ b/slick/src/main/scala/slick/jdbc/JdbcDataSource.scala
+@@ -1,15 +1,17 @@
+ package slick.jdbc
+ 
+ import java.io.Closeable
++import java.sql.Connection
++import java.sql.Driver
++import java.sql.DriverManager
++import java.sql.SQLException
+ import java.util.Properties
+-import java.util.concurrent.TimeUnit
+-import java.sql.{Connection, Driver, DriverManager, SQLException}
+-import javax.sql.DataSource
+ 
+ import com.typesafe.config.Config
++import javax.sql.DataSource
++import slick.SlickException
+ import slick.util._
+ import slick.util.ConfigExtensionMethods._
+-import slick.SlickException
+ 
+ /** A `JdbcDataSource` provides a way to create a `Connection` object for a database. It is
+   * similar to a `javax.sql.DataSource` but simpler. Unlike [[JdbcBackend.DatabaseDef]] it is not a
+diff --git a/slick/src/main/scala/slick/jdbc/JdbcInvokerComponent.scala b/slick/src/main/scala/slick/jdbc/JdbcInvokerComponent.scala
+index aaf7f69..fe9981a 100644
+--- a/slick/src/main/scala/slick/jdbc/JdbcInvokerComponent.scala
++++ b/slick/src/main/scala/slick/jdbc/JdbcInvokerComponent.scala
+@@ -1,10 +1,16 @@
+ package slick.jdbc
+ 
+-import scala.language.{higherKinds, existentials}
++import scala.language.existentials
++
+ import java.sql.PreparedStatement
+-import slick.ast.{CompiledStatement, ResultSetMapping, Node, ParameterSwitch}
++
++import slick.ast.CompiledStatement
++import slick.ast.Node
++import slick.ast.ParameterSwitch
++import slick.ast.ResultSetMapping
++import slick.relational.CompiledMapping
++import slick.relational.ResultConverter
+ import slick.util.SQLBuilder
+-import slick.relational.{ResultConverter, CompiledMapping}
+ 
+ trait JdbcInvokerComponent { self: JdbcProfile =>
+ 
+diff --git a/slick/src/main/scala/slick/jdbc/JdbcMappingCompilerComponent.scala b/slick/src/main/scala/slick/jdbc/JdbcMappingCompilerComponent.scala
+index 1634d02..1211dc4 100644
+--- a/slick/src/main/scala/slick/jdbc/JdbcMappingCompilerComponent.scala
++++ b/slick/src/main/scala/slick/jdbc/JdbcMappingCompilerComponent.scala
+@@ -1,11 +1,11 @@
+ package slick.jdbc
+ 
+-import java.sql.{PreparedStatement, ResultSet}
++import java.sql.PreparedStatement
++import java.sql.ResultSet
+ 
+ import slick.ast._
+-import slick.ast.TypeUtil.:@
+-import slick.compiler.{CompilerState, CodeGen}
+-import slick.lifted.MappedProjection
++import slick.compiler.CodeGen
++import slick.compiler.CompilerState
+ import slick.relational._
+ import slick.util.SQLBuilder
+ 
+diff --git a/slick/src/main/scala/slick/jdbc/JdbcModelBuilder.scala b/slick/src/main/scala/slick/jdbc/JdbcModelBuilder.scala
+index d25359c..80f7fa7 100644
+--- a/slick/src/main/scala/slick/jdbc/JdbcModelBuilder.scala
++++ b/slick/src/main/scala/slick/jdbc/JdbcModelBuilder.scala
+@@ -1,18 +1,17 @@
+ package slick.jdbc
+ 
+-import org.slf4j.LoggerFactory
+-
+-import scala.concurrent.{ExecutionContext, Future}
++import scala.concurrent.ExecutionContext
+ import scala.reflect.ClassTag
++import scala.util.Failure
++import scala.util.Success
+ 
+-import scala.util.{Failure, Success}
+ import java.sql.DatabaseMetaData
+ 
+ import slick.SlickException
++import slick.{model => m}
+ import slick.ast.ColumnOption
+ import slick.dbio._
+ import slick.jdbc.meta._
+-import slick.{model => m}
+ import slick.relational.RelationalProfile
+ import slick.sql.SqlProfile
+ import slick.util.Logging
+diff --git a/slick/src/main/scala/slick/jdbc/JdbcModelComponent.scala b/slick/src/main/scala/slick/jdbc/JdbcModelComponent.scala
+index ca45caa..51a260e 100644
+--- a/slick/src/main/scala/slick/jdbc/JdbcModelComponent.scala
++++ b/slick/src/main/scala/slick/jdbc/JdbcModelComponent.scala
+@@ -1,6 +1,7 @@
+ package slick.jdbc
+ 
+-import scala.concurrent.{ExecutionContext, Future}
++import scala.concurrent.ExecutionContext
++
+ import slick.dbio.DBIO
+ import slick.jdbc.meta.MTable
+ import slick.model.Model
+diff --git a/slick/src/main/scala/slick/jdbc/JdbcProfile.scala b/slick/src/main/scala/slick/jdbc/JdbcProfile.scala
+index 0fcddf3..c86f579 100644
+--- a/slick/src/main/scala/slick/jdbc/JdbcProfile.scala
++++ b/slick/src/main/scala/slick/jdbc/JdbcProfile.scala
+@@ -1,13 +1,18 @@
+ package slick.jdbc
+ 
++import scala.language.higherKinds
++import scala.language.implicitConversions
++
+ import scala.collection.mutable.Builder
+-import scala.language.{implicitConversions, higherKinds}
+ 
+ import slick.ast._
+ import slick.ast.TypeUtil.:@
+-import slick.compiler.{Phase, QueryCompiler, InsertCompiler}
++import slick.compiler.InsertCompiler
++import slick.compiler.Phase
++import slick.compiler.QueryCompiler
+ import slick.lifted._
+-import slick.relational.{RelationalProfile, CompiledMapping, SimpleFastPathResultConverter}
++import slick.relational.CompiledMapping
++import slick.relational.RelationalProfile
+ import slick.sql.SqlProfile
+ 
+ /** Abstract profile for accessing SQL databases via JDBC. */
+diff --git a/slick/src/main/scala/slick/jdbc/JdbcResultConverter.scala b/slick/src/main/scala/slick/jdbc/JdbcResultConverter.scala
+index 6e9ebf7..7f1615c 100644
+--- a/slick/src/main/scala/slick/jdbc/JdbcResultConverter.scala
++++ b/slick/src/main/scala/slick/jdbc/JdbcResultConverter.scala
+@@ -1,10 +1,10 @@
+ package slick.jdbc
+ 
+-import scala.language.existentials
+-import java.sql.{PreparedStatement, ResultSet}
+-import slick.relational._
++import java.sql.PreparedStatement
++import java.sql.ResultSet
++
+ import slick.SlickException
+-import slick.ast.ScalaBaseType
++import slick.relational._
+ 
+ /** Specialized JDBC ResultConverter for non-`Option` values. */
+ class BaseResultConverter[@specialized(Byte, Short, Int, Long, Char, Float, Double, Boolean) T](val ti: JdbcType[T], val name: String, val idx: Int) extends ResultConverter[JdbcResultConverterDomain, T] {
+diff --git a/slick/src/main/scala/slick/jdbc/JdbcStatementBuilderComponent.scala b/slick/src/main/scala/slick/jdbc/JdbcStatementBuilderComponent.scala
+index b775986..6f2ce28 100644
+--- a/slick/src/main/scala/slick/jdbc/JdbcStatementBuilderComponent.scala
++++ b/slick/src/main/scala/slick/jdbc/JdbcStatementBuilderComponent.scala
+@@ -1,18 +1,25 @@
+ package slick.jdbc
+ 
+-import scala.language.{existentials, implicitConversions, higherKinds}
++import scala.language.existentials
++
+ import scala.collection.mutable.HashMap
++
+ import slick.SlickException
+ import slick.ast._
+-import slick.ast.Util.nodeToNodeOps
+ import slick.ast.TypeUtil._
+-import slick.compiler.{RewriteBooleans, CodeGen, Phase, CompilerState, QueryCompiler}
++import slick.ast.Util.nodeToNodeOps
++import slick.compiler.CodeGen
++import slick.compiler.CompilerState
++import slick.compiler.QueryCompiler
++import slick.compiler.RewriteBooleans
+ import slick.lifted._
+-import slick.relational.{RelationalProfile, RelationalCapabilities, ResultConverter, CompiledMapping}
++import slick.relational.CompiledMapping
++import slick.relational.RelationalCapabilities
++import slick.relational.RelationalProfile
++import slick.relational.ResultConverter
+ import slick.sql.SqlProfile
+ import slick.util._
+ import slick.util.MacroSupport.macroSupportInterpolation
+-import slick.util.SQLBuilder.Result
+ 
+ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
+ 
+diff --git a/slick/src/main/scala/slick/jdbc/JdbcType.scala b/slick/src/main/scala/slick/jdbc/JdbcType.scala
+index 10959a5..e20a93d 100644
+--- a/slick/src/main/scala/slick/jdbc/JdbcType.scala
++++ b/slick/src/main/scala/slick/jdbc/JdbcType.scala
+@@ -1,7 +1,10 @@
+ package slick.jdbc
+ 
+-import java.sql.{PreparedStatement, ResultSet}
+-import slick.ast.{FieldSymbol, BaseTypedType}
++import java.sql.PreparedStatement
++import java.sql.ResultSet
++
++import slick.ast.BaseTypedType
++import slick.ast.FieldSymbol
+ 
+ /** A JdbcType object represents a Scala type that can be used as a column type in the database.
+   * Implicit JdbcTypes for the standard types are provided by the profile. */
+diff --git a/slick/src/main/scala/slick/jdbc/JdbcTypesComponent.scala b/slick/src/main/scala/slick/jdbc/JdbcTypesComponent.scala
+index df1832d..9bcd786 100644
+--- a/slick/src/main/scala/slick/jdbc/JdbcTypesComponent.scala
++++ b/slick/src/main/scala/slick/jdbc/JdbcTypesComponent.scala
+@@ -1,13 +1,20 @@
+ package slick.jdbc
+ 
+-import java.sql.{Blob, Clob, Date, Time, Timestamp, ResultSet, PreparedStatement}
+-import java.util.UUID
+-
+ import scala.reflect.ClassTag
+ 
++import java.sql.Blob
++import java.sql.Clob
++import java.sql.Date
++import java.sql.PreparedStatement
++import java.sql.ResultSet
++import java.sql.Time
++import java.sql.Timestamp
++import java.util.UUID
++
+ import slick.SlickException
+ import slick.ast._
+-import slick.relational.{RelationalProfile, RelationalTypesComponent}
++import slick.relational.RelationalProfile
++import slick.relational.RelationalTypesComponent
+ 
+ trait JdbcTypesComponent extends RelationalTypesComponent { self: JdbcProfile =>
+ 
+diff --git a/slick/src/main/scala/slick/jdbc/LoggingStatement.scala b/slick/src/main/scala/slick/jdbc/LoggingStatement.scala
+index 48c16f5..26cd6f0 100644
+--- a/slick/src/main/scala/slick/jdbc/LoggingStatement.scala
++++ b/slick/src/main/scala/slick/jdbc/LoggingStatement.scala
+@@ -1,14 +1,21 @@
+ package slick.jdbc
+ 
+-import slick.util.TableDump
++import scala.language.reflectiveCalls
+ 
+ import scala.collection.mutable.ArrayBuffer
+-import scala.language.reflectiveCalls
+ 
+-import java.io.{InputStream, Reader}
+-import java.util.Calendar
+ import java.{sql => js}
+-import java.sql.{PreparedStatement, Connection, SQLWarning, ResultSet, Statement, Timestamp}
++import java.io.InputStream
++import java.io.Reader
++import java.sql.Connection
++import java.sql.PreparedStatement
++import java.sql.ResultSet
++import java.sql.SQLWarning
++import java.sql.Statement
++import java.sql.Timestamp
++import java.util.Calendar
++
++import slick.util.TableDump
+ 
+ /** A wrapper for `java.sql.Statement` that logs statements and benchmark results
+   * to the appropriate [[JdbcBackend]] loggers. */
+diff --git a/slick/src/main/scala/slick/jdbc/MacroTreeBuilder.scala b/slick/src/main/scala/slick/jdbc/MacroTreeBuilder.scala
+index ce21586..8ca289f 100644
+--- a/slick/src/main/scala/slick/jdbc/MacroTreeBuilder.scala
++++ b/slick/src/main/scala/slick/jdbc/MacroTreeBuilder.scala
+@@ -1,7 +1,5 @@
+ package slick.jdbc
+ 
+-import scala.language.experimental.macros
+-
+ import scala.collection.mutable.ListBuffer
+ import scala.reflect.ClassTag
+ import scala.reflect.macros.blackbox.Context
+diff --git a/slick/src/main/scala/slick/jdbc/MySQLProfile.scala b/slick/src/main/scala/slick/jdbc/MySQLProfile.scala
+index 210ea17..b8f1df1 100644
+--- a/slick/src/main/scala/slick/jdbc/MySQLProfile.scala
++++ b/slick/src/main/scala/slick/jdbc/MySQLProfile.scala
+@@ -1,24 +1,28 @@
+ package slick.jdbc
+ 
+-import com.typesafe.config.Config
+-
+ import scala.concurrent.ExecutionContext
+ 
++import com.typesafe.config.Config
+ import slick.SlickException
+ import slick.ast._
+-import slick.ast.Util._
+ import slick.ast.TypeUtil._
++import slick.ast.Util._
+ import slick.basic.Capability
+-import slick.compiler.{Phase, ResolveZipJoins, CompilerState}
+-import slick.jdbc.meta.{MPrimaryKey, MColumn, MTable}
++import slick.compiler.CompilerState
++import slick.compiler.Phase
++import slick.compiler.ResolveZipJoins
++import slick.jdbc.meta.MColumn
++import slick.jdbc.meta.MPrimaryKey
++import slick.jdbc.meta.MTable
+ import slick.lifted._
+-import slick.model.Model
+-import slick.relational.{RelationalProfile, RelationalCapabilities}
++import slick.relational.RelationalCapabilities
++import slick.relational.RelationalProfile
+ import slick.sql.SqlCapabilities
+-import slick.util.{SlickLogger, GlobalConfig, ConstArray}
+-import slick.util.MacroSupport.macroSupportInterpolation
++import slick.util.ConstArray
++import slick.util.GlobalConfig
++import slick.util.SlickLogger
+ import slick.util.ConfigExtensionMethods.configExtensionMethods
+-import slick.util.SQLBuilder.Result
++import slick.util.MacroSupport.macroSupportInterpolation
+ 
+ /** Slick profile for MySQL.
+   *
+diff --git a/slick/src/main/scala/slick/jdbc/OracleProfile.scala b/slick/src/main/scala/slick/jdbc/OracleProfile.scala
+index a2f58b8..b50fdf1 100644
+--- a/slick/src/main/scala/slick/jdbc/OracleProfile.scala
++++ b/slick/src/main/scala/slick/jdbc/OracleProfile.scala
+@@ -1,22 +1,23 @@
+ package slick.jdbc
+ 
+-import java.util.UUID
+-
+ import scala.concurrent.ExecutionContext
+-import scala.language.implicitConversions
+ 
+ import java.sql.{Array => _, _}
++import java.util.UUID
+ 
+ import slick.SlickException
+ import slick.ast._
+-import slick.ast.Util._
+-import slick.compiler.{CompilerState, Phase, QueryCompiler}
++import slick.basic.Capability
++import slick.compiler.CompilerState
++import slick.compiler.Phase
+ import slick.dbio._
+-import slick.jdbc.meta.{MColumn, MTable}
++import slick.jdbc.meta.MColumn
++import slick.jdbc.meta.MTable
+ import slick.lifted._
+-import slick.model.{ForeignKeyAction, Model}
+-import slick.relational.{RelationalCapabilities, ResultConverter, RelationalProfile}
+-import slick.basic.Capability
++import slick.model.ForeignKeyAction
++import slick.relational.RelationalCapabilities
++import slick.relational.RelationalProfile
++import slick.relational.ResultConverter
+ import slick.util.ConstArray
+ import slick.util.MacroSupport.macroSupportInterpolation
+ 
+diff --git a/slick/src/main/scala/slick/jdbc/PositionedParameters.scala b/slick/src/main/scala/slick/jdbc/PositionedParameters.scala
+index df10449..d6da557 100644
+--- a/slick/src/main/scala/slick/jdbc/PositionedParameters.scala
++++ b/slick/src/main/scala/slick/jdbc/PositionedParameters.scala
+@@ -1,6 +1,12 @@
+ package slick.jdbc
+ 
+-import java.sql.{PreparedStatement, Date, Time, Timestamp, Types, Blob, Clob}
++import java.sql.Blob
++import java.sql.Clob
++import java.sql.Date
++import java.sql.PreparedStatement
++import java.sql.Time
++import java.sql.Timestamp
++import java.sql.Types
+ 
+ /** A wrapper for a JDBC `PreparedStatement` which allows inceremental setting of
+   * parameters without having to sepcify the column index each time. */
+diff --git a/slick/src/main/scala/slick/jdbc/PositionedResult.scala b/slick/src/main/scala/slick/jdbc/PositionedResult.scala
+index e94540b..bcbc156 100644
+--- a/slick/src/main/scala/slick/jdbc/PositionedResult.scala
++++ b/slick/src/main/scala/slick/jdbc/PositionedResult.scala
+@@ -1,10 +1,19 @@
+ package slick.jdbc
+ 
+ import scala.language.higherKinds
++
+ import scala.collection.generic.CanBuildFrom
+-import java.sql.{ResultSet, Blob, Clob, Date, Time, Timestamp}
++
+ import java.io.Closeable
+-import slick.util.{ReadAheadIterator, CloseableIterator}
++import java.sql.Blob
++import java.sql.Clob
++import java.sql.Date
++import java.sql.ResultSet
++import java.sql.Time
++import java.sql.Timestamp
++
++import slick.util.CloseableIterator
++import slick.util.ReadAheadIterator
+ 
+ /**
+  * A database result positioned at a row and column.
+diff --git a/slick/src/main/scala/slick/jdbc/PostgresProfile.scala b/slick/src/main/scala/slick/jdbc/PostgresProfile.scala
+index 5ea0bd3..3a6aa37 100644
+--- a/slick/src/main/scala/slick/jdbc/PostgresProfile.scala
++++ b/slick/src/main/scala/slick/jdbc/PostgresProfile.scala
+@@ -1,18 +1,19 @@
+ package slick.jdbc
+ 
+-import java.util.UUID
+-import java.sql.{PreparedStatement, ResultSet}
+-
+ import scala.concurrent.ExecutionContext
+ 
++import java.sql.PreparedStatement
++import java.sql.ResultSet
++import java.util.UUID
++
+ import slick.ast._
+-import slick.ast.Util._
+ import slick.basic.Capability
+-import slick.compiler.{Phase, CompilerState}
++import slick.compiler.CompilerState
++import slick.compiler.Phase
+ import slick.dbio._
+-import slick.jdbc.meta.{MIndexInfo, MColumn, MTable}
+-import slick.lifted._
+-import slick.model.Model
++import slick.jdbc.meta.MColumn
++import slick.jdbc.meta.MIndexInfo
++import slick.jdbc.meta.MTable
+ import slick.relational.RelationalProfile
+ import slick.util.ConstArray
+ import slick.util.MacroSupport.macroSupportInterpolation
+diff --git a/slick/src/main/scala/slick/jdbc/ResultSetInvoker.scala b/slick/src/main/scala/slick/jdbc/ResultSetInvoker.scala
+index 96a5770..aeef616 100644
+--- a/slick/src/main/scala/slick/jdbc/ResultSetInvoker.scala
++++ b/slick/src/main/scala/slick/jdbc/ResultSetInvoker.scala
+@@ -1,8 +1,9 @@
+ package slick.jdbc
+ 
+ import java.sql.ResultSet
+-import slick.dbio.{Effect, NoStream, SynchronousDatabaseAction}
++
+ import slick.basic.BasicStreamingAction
++import slick.dbio.Effect
+ import slick.util.CloseableIterator
+ 
+ /** An invoker which calls a function to retrieve a ResultSet. This can be used
+diff --git a/slick/src/main/scala/slick/jdbc/SQLServerProfile.scala b/slick/src/main/scala/slick/jdbc/SQLServerProfile.scala
+index 95c28b0..c97fca9 100644
+--- a/slick/src/main/scala/slick/jdbc/SQLServerProfile.scala
++++ b/slick/src/main/scala/slick/jdbc/SQLServerProfile.scala
+@@ -1,24 +1,30 @@
+ package slick.jdbc
+ 
+ import scala.concurrent.ExecutionContext
+-import scala.reflect.{ClassTag,classTag}
+-import java.sql.{Timestamp, Date, Time, ResultSet}
++import scala.reflect.ClassTag
++import scala.reflect.classTag
+ 
+-import com.typesafe.config.Config
++import java.sql.Date
++import java.sql.ResultSet
++import java.sql.Time
++import java.sql.Timestamp
+ 
++import com.typesafe.config.Config
+ import slick.ast._
+ import slick.ast.Util._
+ import slick.basic.Capability
+ import slick.compiler._
+ import slick.dbio._
+-import slick.jdbc.meta.{MColumn, MTable}
++import slick.jdbc.meta.MColumn
++import slick.jdbc.meta.MTable
+ import slick.lifted._
+-import slick.model.Model
+ import slick.relational.RelationalProfile
+ import slick.sql.SqlCapabilities
+-import slick.util.{SlickLogger, ConstArray, GlobalConfig}
+-import slick.util.MacroSupport.macroSupportInterpolation
++import slick.util.ConstArray
++import slick.util.GlobalConfig
++import slick.util.SlickLogger
+ import slick.util.ConfigExtensionMethods._
++import slick.util.MacroSupport.macroSupportInterpolation
+ 
+ /** Slick profile for Microsoft SQL Server.
+   *
+diff --git a/slick/src/main/scala/slick/jdbc/SQLiteProfile.scala b/slick/src/main/scala/slick/jdbc/SQLiteProfile.scala
+index 8432cbf..c9d24e5 100644
+--- a/slick/src/main/scala/slick/jdbc/SQLiteProfile.scala
++++ b/slick/src/main/scala/slick/jdbc/SQLiteProfile.scala
+@@ -1,21 +1,22 @@
+ package slick.jdbc
+ 
+-import java.sql.{Timestamp, Time, Date}
+-import slick.relational.RelationalCapabilities
+-import slick.sql.SqlCapabilities
+-
+ import scala.concurrent.ExecutionContext
++
++import java.sql.Date
++import java.sql.Time
++import java.sql.Timestamp
++
+ import slick.SlickException
++import slick.ast._
+ import slick.basic.Capability
++import slick.compiler.CompilerState
+ import slick.dbio._
+-import slick.lifted._
+-import slick.ast._
++import slick.jdbc.meta.MColumn
++import slick.jdbc.meta.MPrimaryKey
++import slick.jdbc.meta.MTable
++import slick.relational.RelationalCapabilities
++import slick.sql.SqlCapabilities
+ import slick.util.MacroSupport.macroSupportInterpolation
+-import slick.compiler.CompilerState
+-import slick.model.Model
+-import slick.jdbc.meta.{MPrimaryKey, MColumn, MTable}
+-import slick.relational.RelationalProfile
+-import slick.sql.SqlProfile
+ 
+ /** Slick profile for SQLite.
+   *
+diff --git a/slick/src/main/scala/slick/jdbc/StatementInvoker.scala b/slick/src/main/scala/slick/jdbc/StatementInvoker.scala
+index 4e54796..2197bf3 100644
+--- a/slick/src/main/scala/slick/jdbc/StatementInvoker.scala
++++ b/slick/src/main/scala/slick/jdbc/StatementInvoker.scala
+@@ -1,10 +1,13 @@
+ package slick.jdbc
+ 
++import scala.collection.mutable.ArrayBuffer
++
+ import java.sql.PreparedStatement
+-import slick.util.{TableDump, SlickLogger, CloseableIterator}
+-import slick.SlickException
++
+ import org.slf4j.LoggerFactory
+-import scala.collection.mutable.ArrayBuffer
++import slick.util.CloseableIterator
++import slick.util.SlickLogger
++import slick.util.TableDump
+ 
+ private[jdbc] object StatementInvoker {
+   val maxLogResults = 5
+diff --git a/slick/src/main/scala/slick/jdbc/StaticQuery.scala b/slick/src/main/scala/slick/jdbc/StaticQuery.scala
+index 1fc189e..d6fc526 100644
+--- a/slick/src/main/scala/slick/jdbc/StaticQuery.scala
++++ b/slick/src/main/scala/slick/jdbc/StaticQuery.scala
+@@ -1,22 +1,23 @@
+ package slick.jdbc
+ 
+-import java.net.URI
+-import java.sql.PreparedStatement
+-
+-import com.typesafe.config.ConfigException
++import scala.language.experimental.macros
+ 
+ import scala.concurrent.Await
+ import scala.concurrent.duration.Duration
+-import scala.language.experimental.macros
+-import scala.language.implicitConversions
+-import scala.reflect.ClassTag
+-import scala.reflect.macros.{blackbox, whitebox}
+-import scala.collection.mutable.ArrayBuffer
++import scala.reflect.macros.blackbox
++import scala.reflect.macros.whitebox
+ 
++import java.net.URI
++import java.sql.PreparedStatement
++
++import com.typesafe.config.ConfigException
+ import slick.SlickException
+-import slick.basic.{DatabaseConfig, StaticDatabaseConfigMacros, StaticDatabaseConfig}
+-import slick.dbio.{NoStream, Effect}
+-import slick.sql.{SqlAction, SqlStreamingAction}
++import slick.basic.DatabaseConfig
++import slick.basic.StaticDatabaseConfigMacros
++import slick.dbio.Effect
++import slick.dbio.NoStream
++import slick.sql.SqlAction
++import slick.sql.SqlStreamingAction
+ import slick.util.ClassLoaderUtil
+ 
+ class ActionBasedSQLInterpolation(val s: StringContext) extends AnyVal {
+diff --git a/slick/src/main/scala/slick/jdbc/StreamingInvokerAction.scala b/slick/src/main/scala/slick/jdbc/StreamingInvokerAction.scala
+index 6b88aed..2eeca49 100644
+--- a/slick/src/main/scala/slick/jdbc/StreamingInvokerAction.scala
++++ b/slick/src/main/scala/slick/jdbc/StreamingInvokerAction.scala
+@@ -4,8 +4,11 @@ import scala.collection.mutable.Builder
+ import scala.util.control.NonFatal
+ 
+ import slick.dbio._
+-import slick.sql.{FixedSqlAction, FixedSqlStreamingAction}
+-import slick.util.{DumpInfo, CloseableIterator, ignoreFollowOnError}
++import slick.sql.FixedSqlAction
++import slick.sql.FixedSqlStreamingAction
++import slick.util.CloseableIterator
++import slick.util.DumpInfo
++import slick.util.ignoreFollowOnError
+ 
+ /** A streaming Action that wraps an Invoker.
+   * It is used for the Lifted Embedding, Direct Embedding, Plain SQL queries, and JDBC metadata.
+diff --git a/slick/src/main/scala/slick/jdbc/TransactionIsolation.scala b/slick/src/main/scala/slick/jdbc/TransactionIsolation.scala
+index 4fd485c..3de72a0 100644
+--- a/slick/src/main/scala/slick/jdbc/TransactionIsolation.scala
++++ b/slick/src/main/scala/slick/jdbc/TransactionIsolation.scala
+@@ -1,6 +1,6 @@
+ package slick.jdbc
+ 
+-import java.sql.{Connection, ResultSet}
++import java.sql.Connection
+ 
+ /** Represents a transaction isolation level. */
+ sealed abstract class TransactionIsolation(val intValue: Int)
+diff --git a/slick/src/main/scala/slick/jdbc/meta/DatabaseMeta.scala b/slick/src/main/scala/slick/jdbc/meta/DatabaseMeta.scala
+index a538bc3..7357205 100644
+--- a/slick/src/main/scala/slick/jdbc/meta/DatabaseMeta.scala
++++ b/slick/src/main/scala/slick/jdbc/meta/DatabaseMeta.scala
+@@ -1,6 +1,7 @@
+ package slick.jdbc.meta
+ 
+-import slick.jdbc.{PositionedResult, ResultSetAction}
++import slick.jdbc.PositionedResult
++import slick.jdbc.ResultSetAction
+ import slick.jdbc.GetResult.GetString
+ 
+ /**
+diff --git a/slick/src/main/scala/slick/jdbc/meta/MAttribute.scala b/slick/src/main/scala/slick/jdbc/meta/MAttribute.scala
+index f43ef92..a86c51d 100644
+--- a/slick/src/main/scala/slick/jdbc/meta/MAttribute.scala
++++ b/slick/src/main/scala/slick/jdbc/meta/MAttribute.scala
+@@ -1,7 +1,9 @@
+ package slick.jdbc.meta
+ 
+ import java.sql._
+-import slick.jdbc.{ResultSetAction, JdbcTypesComponent}
++
++import slick.jdbc.JdbcTypesComponent
++import slick.jdbc.ResultSetAction
+ 
+ /** A wrapper for a row in the ResultSet returned by DatabaseMetaData.getAttributes(). */
+ case class MAttribute(typeName: MQName, attrName: String, sqlType: Int, attrTypeName: String,
+diff --git a/slick/src/main/scala/slick/jdbc/meta/MBestRowIdentifierColumn.scala b/slick/src/main/scala/slick/jdbc/meta/MBestRowIdentifierColumn.scala
+index 7b08893..528c5f4 100644
+--- a/slick/src/main/scala/slick/jdbc/meta/MBestRowIdentifierColumn.scala
++++ b/slick/src/main/scala/slick/jdbc/meta/MBestRowIdentifierColumn.scala
+@@ -1,7 +1,9 @@
+ package slick.jdbc.meta
+ 
+ import java.sql._
+-import slick.jdbc.{ResultSetAction, JdbcTypesComponent}
++
++import slick.jdbc.JdbcTypesComponent
++import slick.jdbc.ResultSetAction
+ 
+ /** A wrapper for a row in the ResultSet returned by DatabaseMetaData.getBestRowIdentifier(). */
+ case class MBestRowIdentifierColumn(
+diff --git a/slick/src/main/scala/slick/jdbc/meta/MColumn.scala b/slick/src/main/scala/slick/jdbc/meta/MColumn.scala
+index de16849..485362a 100644
+--- a/slick/src/main/scala/slick/jdbc/meta/MColumn.scala
++++ b/slick/src/main/scala/slick/jdbc/meta/MColumn.scala
+@@ -2,7 +2,8 @@ package slick.jdbc.meta
+ 
+ import java.sql._
+ 
+-import slick.jdbc.{ResultSetAction, JdbcTypesComponent}
++import slick.jdbc.JdbcTypesComponent
++import slick.jdbc.ResultSetAction
+ 
+ /** A wrapper for a row in the ResultSet returned by DatabaseMetaData.getColumns(). */
+ case class MColumn(
+diff --git a/slick/src/main/scala/slick/jdbc/meta/MForeignKey.scala b/slick/src/main/scala/slick/jdbc/meta/MForeignKey.scala
+index a0beffd..51dce90 100644
+--- a/slick/src/main/scala/slick/jdbc/meta/MForeignKey.scala
++++ b/slick/src/main/scala/slick/jdbc/meta/MForeignKey.scala
+@@ -1,7 +1,9 @@
+ package slick.jdbc.meta
+ 
+ import java.sql._
+-import slick.jdbc.{JdbcBackend, ResultSetAction, Invoker}
++
++import slick.jdbc.JdbcBackend
++import slick.jdbc.ResultSetAction
+ import slick.model.ForeignKeyAction
+ 
+ /** A wrapper for a row in the ResultSet returned by
+diff --git a/slick/src/main/scala/slick/jdbc/meta/MFunction.scala b/slick/src/main/scala/slick/jdbc/meta/MFunction.scala
+index 8cc83a6..4a1cff6 100644
+--- a/slick/src/main/scala/slick/jdbc/meta/MFunction.scala
++++ b/slick/src/main/scala/slick/jdbc/meta/MFunction.scala
+@@ -1,6 +1,7 @@
+ package slick.jdbc.meta
+ 
+ import java.sql._
++
+ import slick.jdbc.ResultSetAction
+ 
+ /** A wrapper for a row in the ResultSet returned by DatabaseMetaData.getFunctions(). */
+diff --git a/slick/src/main/scala/slick/jdbc/meta/MFunctionColumn.scala b/slick/src/main/scala/slick/jdbc/meta/MFunctionColumn.scala
+index a5907db..e4a8b0a 100644
+--- a/slick/src/main/scala/slick/jdbc/meta/MFunctionColumn.scala
++++ b/slick/src/main/scala/slick/jdbc/meta/MFunctionColumn.scala
+@@ -1,7 +1,9 @@
+ package slick.jdbc.meta
+ 
+ import java.sql._
+-import slick.jdbc.{ResultSetAction, JdbcTypesComponent}
++
++import slick.jdbc.JdbcTypesComponent
++import slick.jdbc.ResultSetAction
+ 
+ /** A wrapper for a row in the ResultSet returned by DatabaseMetaData.getFunctionColumns(). */
+ case class MFunctionColumn(
+diff --git a/slick/src/main/scala/slick/jdbc/meta/MPrimaryKey.scala b/slick/src/main/scala/slick/jdbc/meta/MPrimaryKey.scala
+index c79368a..7ae1bd0 100644
+--- a/slick/src/main/scala/slick/jdbc/meta/MPrimaryKey.scala
++++ b/slick/src/main/scala/slick/jdbc/meta/MPrimaryKey.scala
+@@ -1,8 +1,8 @@
+ package slick.jdbc.meta
+ 
+-import slick.dbio.Effect
+-import slick.jdbc.{ResultSetAction, Invoker}
+ import slick.basic.BasicStreamingAction
++import slick.dbio.Effect
++import slick.jdbc.ResultSetAction
+ 
+ /** A wrapper for a row in the ResultSet returned by DatabaseMetaData.getPrimaryKeys(). */
+ case class MPrimaryKey(table: MQName, column: String, keySeq: Short, pkName: Option[String])
+diff --git a/slick/src/main/scala/slick/jdbc/meta/MPrivilege.scala b/slick/src/main/scala/slick/jdbc/meta/MPrivilege.scala
+index ec62418..e96e10e 100644
+--- a/slick/src/main/scala/slick/jdbc/meta/MPrivilege.scala
++++ b/slick/src/main/scala/slick/jdbc/meta/MPrivilege.scala
+@@ -1,6 +1,7 @@
+ package slick.jdbc.meta
+ 
+-import slick.jdbc.{PositionedResult, ResultSetAction}
++import slick.jdbc.PositionedResult
++import slick.jdbc.ResultSetAction
+ 
+ /** A common privilege type which is used by MTablePrivilege and MColumnPrivilege. */
+ case class MPrivilege(grantor: Option[String], grantee: String, privilege: String, grantable: Option[Boolean])
+diff --git a/slick/src/main/scala/slick/jdbc/meta/MProcedure.scala b/slick/src/main/scala/slick/jdbc/meta/MProcedure.scala
+index 78861ec..3527e6d 100644
+--- a/slick/src/main/scala/slick/jdbc/meta/MProcedure.scala
++++ b/slick/src/main/scala/slick/jdbc/meta/MProcedure.scala
+@@ -1,6 +1,7 @@
+ package slick.jdbc.meta
+ 
+ import java.sql._
++
+ import slick.jdbc.ResultSetAction
+ 
+ /** A wrapper for a row in the ResultSet returned by DatabaseMetaData.getProcedures(). */
+diff --git a/slick/src/main/scala/slick/jdbc/meta/MProcedureColumn.scala b/slick/src/main/scala/slick/jdbc/meta/MProcedureColumn.scala
+index 38b0147..e492a67 100644
+--- a/slick/src/main/scala/slick/jdbc/meta/MProcedureColumn.scala
++++ b/slick/src/main/scala/slick/jdbc/meta/MProcedureColumn.scala
+@@ -1,7 +1,9 @@
+ package slick.jdbc.meta
+ 
+ import java.sql._
+-import slick.jdbc.{ResultSetAction, JdbcTypesComponent}
++
++import slick.jdbc.JdbcTypesComponent
++import slick.jdbc.ResultSetAction
+ 
+ /** A wrapper for a row in the ResultSet returned by DatabaseMetaData.getProcedureColumns(). */
+ case class MProcedureColumn(
+diff --git a/slick/src/main/scala/slick/jdbc/meta/MTable.scala b/slick/src/main/scala/slick/jdbc/meta/MTable.scala
+index dcb64e4..50e7b14 100644
+--- a/slick/src/main/scala/slick/jdbc/meta/MTable.scala
++++ b/slick/src/main/scala/slick/jdbc/meta/MTable.scala
+@@ -1,8 +1,8 @@
+ package slick.jdbc.meta
+ 
+-import slick.dbio.Effect
+-import slick.jdbc.{ResultSetAction, Invoker}
+ import slick.basic.BasicStreamingAction
++import slick.dbio.Effect
++import slick.jdbc.ResultSetAction
+ 
+ /** A wrapper for a row in the ResultSet returned by DatabaseMetaData.getTables(). */
+ case class MTable(
+diff --git a/slick/src/main/scala/slick/jdbc/meta/MTypeInfo.scala b/slick/src/main/scala/slick/jdbc/meta/MTypeInfo.scala
+index cd08d6a..6a78b76 100644
+--- a/slick/src/main/scala/slick/jdbc/meta/MTypeInfo.scala
++++ b/slick/src/main/scala/slick/jdbc/meta/MTypeInfo.scala
+@@ -1,7 +1,9 @@
+ package slick.jdbc.meta
+ 
+ import java.sql._
+-import slick.jdbc.{ResultSetAction, JdbcTypesComponent}
++
++import slick.jdbc.JdbcTypesComponent
++import slick.jdbc.ResultSetAction
+ 
+ /** A wrapper for a row in the ResultSet returned by DatabaseMetaData.getTypeInfo(). */
+ case class MTypeInfo(
+diff --git a/slick/src/main/scala/slick/jdbc/meta/MUDT.scala b/slick/src/main/scala/slick/jdbc/meta/MUDT.scala
+index 7863bc2..a03c6d4 100644
+--- a/slick/src/main/scala/slick/jdbc/meta/MUDT.scala
++++ b/slick/src/main/scala/slick/jdbc/meta/MUDT.scala
+@@ -1,6 +1,7 @@
+ package slick.jdbc.meta
+ 
+-import slick.jdbc.{ResultSetAction, JdbcTypesComponent}
++import slick.jdbc.JdbcTypesComponent
++import slick.jdbc.ResultSetAction
+ 
+ /** A wrapper for a row in the ResultSet returned by DatabaseMetaData.getUDTs(). */
+ case class MUDT(
+diff --git a/slick/src/main/scala/slick/jdbc/meta/MVersionColumn.scala b/slick/src/main/scala/slick/jdbc/meta/MVersionColumn.scala
+index b45630f..501c148 100644
+--- a/slick/src/main/scala/slick/jdbc/meta/MVersionColumn.scala
++++ b/slick/src/main/scala/slick/jdbc/meta/MVersionColumn.scala
+@@ -1,7 +1,9 @@
+ package slick.jdbc.meta
+ 
+ import java.sql._
+-import slick.jdbc.{ResultSetAction, JdbcTypesComponent}
++
++import slick.jdbc.JdbcTypesComponent
++import slick.jdbc.ResultSetAction
+ 
+ /** A wrapper for a row in the ResultSet returned by DatabaseMetaData.getVersionColumns(). */
+ case class MVersionColumn(
+diff --git a/slick/src/main/scala/slick/lifted/Case.scala b/slick/src/main/scala/slick/lifted/Case.scala
+index 68f1a3d..ee571a6 100644
+--- a/slick/src/main/scala/slick/lifted/Case.scala
++++ b/slick/src/main/scala/slick/lifted/Case.scala
+@@ -1,7 +1,12 @@
+ package slick.lifted
+ 
+-import slick.ast.{LiteralNode, IfThenElse, Node, BaseTypedType, OptionType, TypedType, OptionApply}
+-import slick.SlickException
++import slick.ast.BaseTypedType
++import slick.ast.IfThenElse
++import slick.ast.LiteralNode
++import slick.ast.Node
++import slick.ast.OptionApply
++import slick.ast.OptionType
++import slick.ast.TypedType
+ import slick.util.ConstArray
+ 
+ /** `Case` provides a DSL for conditional statements in the query language.
+diff --git a/slick/src/main/scala/slick/lifted/Compiled.scala b/slick/src/main/scala/slick/lifted/Compiled.scala
+index 68982f7..17b7264 100644
+--- a/slick/src/main/scala/slick/lifted/Compiled.scala
++++ b/slick/src/main/scala/slick/lifted/Compiled.scala
+@@ -1,10 +1,11 @@
+ package slick.lifted
+ 
+-import scala.language.{implicitConversions, higherKinds}
++import scala.language.higherKinds
++
+ import scala.annotation.implicitNotFound
++
+ import slick.ast.Node
+ import slick.basic.BasicProfile
+-import slick.compiler.QueryCompiler
+ 
+ /** A possibly parameterized query that will be cached for repeated efficient
+   * execution without having to recompile it every time. The compiled state
+diff --git a/slick/src/main/scala/slick/lifted/Constraint.scala b/slick/src/main/scala/slick/lifted/Constraint.scala
+index 9c5cc12..d4ed4d6 100644
+--- a/slick/src/main/scala/slick/lifted/Constraint.scala
++++ b/slick/src/main/scala/slick/lifted/Constraint.scala
+@@ -1,11 +1,10 @@
+ package slick.lifted
+ 
+-import slick.ast._
+-import slick.ast.Filter
+-import slick.model
+-
+ import scala.collection.mutable.ArrayBuffer
+ 
++import slick.model
++import slick.ast._
++
+ // workaround until deprecated lifted.ForeignKeyAction is removed
+ 
+ /** Marker trait for foreign key and primary key constraints. */
+diff --git a/slick/src/main/scala/slick/lifted/ExtensionMethods.scala b/slick/src/main/scala/slick/lifted/ExtensionMethods.scala
+index c26c64a..a5f41a9 100644
+--- a/slick/src/main/scala/slick/lifted/ExtensionMethods.scala
++++ b/slick/src/main/scala/slick/lifted/ExtensionMethods.scala
+@@ -1,12 +1,13 @@
+ package slick.lifted
+ 
+-import slick.util.ConstArray
++import scala.language.higherKinds
++import scala.language.implicitConversions
+ 
+-import scala.language.{implicitConversions, higherKinds}
+-import slick.ast._
+ import FunctionSymbolExtensionMethods._
+-import ScalaBaseType._
+ import slick.SlickException
++import slick.ast._
++import slick.ast.ScalaBaseType._
++import slick.util.ConstArray
+ 
+ trait ExtensionMethods[B1, P1] extends Any {
+   protected[this] def c: Rep[P1]
+diff --git a/slick/src/main/scala/slick/lifted/FunctionSymbolExtensionMethods.scala b/slick/src/main/scala/slick/lifted/FunctionSymbolExtensionMethods.scala
+index 269521c..0df9044 100644
+--- a/slick/src/main/scala/slick/lifted/FunctionSymbolExtensionMethods.scala
++++ b/slick/src/main/scala/slick/lifted/FunctionSymbolExtensionMethods.scala
+@@ -1,7 +1,10 @@
+ package slick.lifted
+ 
+ import scala.language.implicitConversions
+-import slick.ast.{TypedType, Node, FunctionSymbol}
++
++import slick.ast.FunctionSymbol
++import slick.ast.Node
++import slick.ast.TypedType
+ 
+ /** Utility methods for internal use in the lifted embedding */
+ final class FunctionSymbolExtensionMethods(val fs: FunctionSymbol) /*extends AnyVal*/ {
+diff --git a/slick/src/main/scala/slick/lifted/Functions.scala b/slick/src/main/scala/slick/lifted/Functions.scala
+index bc06096..1e718e4 100644
+--- a/slick/src/main/scala/slick/lifted/Functions.scala
++++ b/slick/src/main/scala/slick/lifted/Functions.scala
+@@ -1,8 +1,11 @@
+ package slick.lifted
+ 
+-import java.sql.{Date, Time}
+-import slick.ast.{TypedType, Library}
++import java.sql.Date
++import java.sql.Time
++
+ import FunctionSymbolExtensionMethods._
++import slick.ast.Library
++import slick.ast.TypedType
+ import slick.ast.ScalaBaseType._
+ 
+ /** Contains stand-alone database functions for use in queries. Functions which
+diff --git a/slick/src/main/scala/slick/lifted/MappedTo.scala b/slick/src/main/scala/slick/lifted/MappedTo.scala
+index 45533be..2e6c1eb 100644
+--- a/slick/src/main/scala/slick/lifted/MappedTo.scala
++++ b/slick/src/main/scala/slick/lifted/MappedTo.scala
+@@ -1,6 +1,7 @@
+ package slick.lifted
+ 
+ import scala.language.experimental.macros
++
+ import scala.reflect.macros.blackbox.Context
+ import scala.util.control.NonFatal
+ 
+diff --git a/slick/src/main/scala/slick/lifted/OptionMapper.scala b/slick/src/main/scala/slick/lifted/OptionMapper.scala
+index 61877f0..5ab2adc 100644
+--- a/slick/src/main/scala/slick/lifted/OptionMapper.scala
++++ b/slick/src/main/scala/slick/lifted/OptionMapper.scala
+@@ -1,7 +1,13 @@
+ package slick.lifted
+ 
+-import annotation.implicitNotFound
+-import slick.ast.{OptionType, FieldSymbol, OptionApply, FunctionSymbol, BaseTypedType, Node, TypedType}
++import scala.annotation.implicitNotFound
++
++import slick.ast.BaseTypedType
++import slick.ast.FunctionSymbol
++import slick.ast.Node
++import slick.ast.OptionApply
++import slick.ast.OptionType
++import slick.ast.TypedType
+ 
+ trait OptionMapper[BR, R] extends (Rep[BR] => Rep[R]) {
+   def lift: Boolean
+diff --git a/slick/src/main/scala/slick/lifted/Query.scala b/slick/src/main/scala/slick/lifted/Query.scala
+index 0138b56..5307315 100644
+--- a/slick/src/main/scala/slick/lifted/Query.scala
++++ b/slick/src/main/scala/slick/lifted/Query.scala
+@@ -1,14 +1,15 @@
+ package slick.lifted
+ 
+-import slick.util.ConstArray
+-
+ import scala.language.higherKinds
+ import scala.language.experimental.macros
++
+ import scala.annotation.implicitNotFound
+ import scala.reflect.macros.blackbox.Context
+-import slick.ast.{Join => AJoin, _}
++
+ import FunctionSymbolExtensionMethods._
+-import ScalaBaseType._
++import slick.ast.{Join => AJoin, _}
++import slick.ast.ScalaBaseType._
++import slick.util.ConstArray
+ 
+ sealed trait QueryBase[T] extends Rep[T]
+ 
+diff --git a/slick/src/main/scala/slick/lifted/Rep.scala b/slick/src/main/scala/slick/lifted/Rep.scala
+index 216d075..d708e42 100644
+--- a/slick/src/main/scala/slick/lifted/Rep.scala
++++ b/slick/src/main/scala/slick/lifted/Rep.scala
+@@ -1,8 +1,9 @@
+ package slick.lifted
+ 
+ import scala.language.existentials
+-import slick.ast._
++
+ import slick.SlickException
++import slick.ast._
+ 
+ /** Common base trait for all lifted values, including columns.
+   *
+diff --git a/slick/src/main/scala/slick/lifted/Shape.scala b/slick/src/main/scala/slick/lifted/Shape.scala
+index bd40e46..60329e4 100644
+--- a/slick/src/main/scala/slick/lifted/Shape.scala
++++ b/slick/src/main/scala/slick/lifted/Shape.scala
+@@ -1,16 +1,19 @@
+ package slick.lifted
+ 
+-import slick.relational.{ProductResultConverter, SimpleFastPathResultConverter, ResultConverterDomain, TypeMappingResultConverter}
+-
+-import scala.language.{existentials, implicitConversions, higherKinds}
++import scala.language.existentials
++import scala.language.implicitConversions
+ import scala.language.experimental.macros
++
+ import scala.annotation.implicitNotFound
+ import scala.annotation.unchecked.uncheckedVariance
++import scala.reflect.ClassTag
+ import scala.reflect.macros.blackbox.Context
++
+ import slick.SlickException
+-import slick.util.{ConstArray, ProductWrapper, TupleSupport}
+ import slick.ast._
+-import scala.reflect.ClassTag
++import slick.util.ConstArray
++import slick.util.ProductWrapper
++import slick.util.TupleSupport
+ 
+ /** A type class that encodes the unpacking `Mixed => Unpacked` of a
+  * `Query[Mixed]` to its result element type `Unpacked` and the packing to a
+diff --git a/slick/src/main/scala/slick/lifted/SimpleFunction.scala b/slick/src/main/scala/slick/lifted/SimpleFunction.scala
+index 562001a..71f0fb8 100644
+--- a/slick/src/main/scala/slick/lifted/SimpleFunction.scala
++++ b/slick/src/main/scala/slick/lifted/SimpleFunction.scala
+@@ -1,7 +1,7 @@
+ package slick.lifted
+ 
+-import slick.jdbc.JdbcStatementBuilderComponent
+ import slick.ast._
++import slick.jdbc.JdbcStatementBuilderComponent
+ import slick.util._
+ 
+ /** Base class for SimpleFunction/BinaryOperator/Expression implementations. */
+diff --git a/slick/src/main/scala/slick/memory/DistributedBackend.scala b/slick/src/main/scala/slick/memory/DistributedBackend.scala
+index 0f8a4e1..c27df0e 100644
+--- a/slick/src/main/scala/slick/memory/DistributedBackend.scala
++++ b/slick/src/main/scala/slick/memory/DistributedBackend.scala
+@@ -1,16 +1,18 @@
+ package slick.memory
+ 
++import scala.collection.mutable.ArrayBuffer
++import scala.concurrent.ExecutionContext
++import scala.concurrent.Future
++import scala.concurrent.blocking
++import scala.util.Failure
++import scala.util.Try
++
+ import com.typesafe.config.Config
+ import org.reactivestreams.Subscriber
+-
+-import scala.concurrent.{ExecutionContext, Future, blocking}
+ import slick.SlickException
+-import slick.dbio._
+-import slick.relational.RelationalBackend
+ import slick.basic.BasicBackend
++import slick.relational.RelationalBackend
+ import slick.util.Logging
+-import scala.collection.mutable.ArrayBuffer
+-import scala.util.{Failure, Try}
+ 
+ /** The backend for DistributedProfile. */
+ trait DistributedBackend extends RelationalBackend with Logging {
+diff --git a/slick/src/main/scala/slick/memory/DistributedProfile.scala b/slick/src/main/scala/slick/memory/DistributedProfile.scala
+index 9af4561..53eabe6 100644
+--- a/slick/src/main/scala/slick/memory/DistributedProfile.scala
++++ b/slick/src/main/scala/slick/memory/DistributedProfile.scala
+@@ -1,17 +1,21 @@
+ package slick.memory
+ 
+-import scala.language.{implicitConversions, existentials}
+-
+-import scala.collection.mutable.{Builder, HashMap}
++import scala.collection.mutable.Builder
++import scala.collection.mutable.HashMap
+ 
+ import slick.SlickException
+ import slick.ast._
+ import slick.ast.TypeUtil._
+-import slick.basic.{FixedBasicAction, FixedBasicStreamingAction}
++import slick.basic.FixedBasicAction
++import slick.basic.FixedBasicStreamingAction
+ import slick.compiler._
+ import slick.dbio._
+-import slick.relational.{RelationalProfile, ResultConverter, CompiledMapping}
+-import slick.util.{DumpInfo, RefId, ??}
++import slick.relational.CompiledMapping
++import slick.relational.RelationalProfile
++import slick.relational.ResultConverter
++import slick.util.??
++import slick.util.DumpInfo
++import slick.util.RefId
+ 
+ /** A profile for distributed queries. */
+ class DistributedProfile(val profiles: RelationalProfile*) extends MemoryQueryingProfile { self: DistributedProfile =>
+diff --git a/slick/src/main/scala/slick/memory/HeapBackend.scala b/slick/src/main/scala/slick/memory/HeapBackend.scala
+index 30d6f43..7486dc7 100644
+--- a/slick/src/main/scala/slick/memory/HeapBackend.scala
++++ b/slick/src/main/scala/slick/memory/HeapBackend.scala
+@@ -1,19 +1,22 @@
+ package slick.memory
+ 
++import scala.collection.mutable.ArrayBuffer
++import scala.collection.mutable.HashMap
++import scala.collection.mutable.HashSet
++import scala.concurrent.ExecutionContext
++import scala.concurrent.Future
++
+ import java.util.concurrent.atomic.AtomicLong
+ 
+ import com.typesafe.config.Config
+-
+ import org.reactivestreams.Subscriber
+-
+-import scala.collection.mutable.{ArrayBuffer, HashMap, HashSet}
+-import scala.concurrent.{Future, ExecutionContext}
+-
+ import slick.SlickException
+ import slick.ast._
+-import slick.dbio._
+-import slick.lifted.{PrimaryKey, Constraint, Index}
+-import slick.relational.{RelationalProfile, RelationalBackend}
++import slick.lifted.Constraint
++import slick.lifted.Index
++import slick.lifted.PrimaryKey
++import slick.relational.RelationalBackend
++import slick.relational.RelationalProfile
+ import slick.util.Logging
+ 
+ /** A simple database engine that stores data in heap data structures. */
+diff --git a/slick/src/main/scala/slick/memory/MemoryProfile.scala b/slick/src/main/scala/slick/memory/MemoryProfile.scala
+index c66a090..7290b07 100644
+--- a/slick/src/main/scala/slick/memory/MemoryProfile.scala
++++ b/slick/src/main/scala/slick/memory/MemoryProfile.scala
+@@ -1,17 +1,22 @@
+ package slick.memory
+ 
+-import scala.language.{implicitConversions, existentials}
++import scala.language.existentials
++
+ import scala.collection.mutable.Builder
+ import scala.reflect.ClassTag
+-import scala.util.control.NonFatal
+ 
+ import slick.ast._
+ import slick.ast.TypeUtil._
+-import slick.basic.{FixedBasicAction, FixedBasicStreamingAction}
++import slick.basic.FixedBasicAction
++import slick.basic.FixedBasicStreamingAction
+ import slick.compiler._
+ import slick.dbio._
+-import slick.relational.{RelationalProfile, ResultConverterCompiler, ResultConverter, CompiledMapping}
+-import slick.util.{DumpInfo, ??}
++import slick.relational.CompiledMapping
++import slick.relational.RelationalProfile
++import slick.relational.ResultConverter
++import slick.relational.ResultConverterCompiler
++import slick.util.??
++import slick.util.DumpInfo
+ 
+ /** A profile for interpreted queries on top of the in-memory database. */
+ trait MemoryProfile extends RelationalProfile with MemoryQueryingProfile { self: MemoryProfile =>
+diff --git a/slick/src/main/scala/slick/memory/MemoryQueryingProfile.scala b/slick/src/main/scala/slick/memory/MemoryQueryingProfile.scala
+index 67d3201..1e20a13 100644
+--- a/slick/src/main/scala/slick/memory/MemoryQueryingProfile.scala
++++ b/slick/src/main/scala/slick/memory/MemoryQueryingProfile.scala
+@@ -1,16 +1,15 @@
+ package slick.memory
+ 
+-import scala.concurrent.Future
+-import scala.language.{implicitConversions, existentials}
+ import scala.collection.mutable.ArrayBuffer
++
+ import slick.SlickException
+ import slick.ast._
++import slick.ast.TypeUtil._
+ import slick.basic.BasicProfile
+ import slick.compiler._
+-import slick.lifted._
+ import slick.relational._
+-import slick.util.{??, ConstArray}
+-import TypeUtil._
++import slick.util.??
++import slick.util.ConstArray
+ 
+ /** The querying (read-only) part that can be shared between MemoryProfile and DistributedProfile. */
+ trait MemoryQueryingProfile extends BasicProfile { self: MemoryQueryingProfile =>
+diff --git a/slick/src/main/scala/slick/memory/QueryInterpreter.scala b/slick/src/main/scala/slick/memory/QueryInterpreter.scala
+index ad5f2a8..143d7e2 100644
+--- a/slick/src/main/scala/slick/memory/QueryInterpreter.scala
++++ b/slick/src/main/scala/slick/memory/QueryInterpreter.scala
+@@ -1,13 +1,18 @@
+ package slick.memory
+ 
++import scala.collection.mutable
++import scala.collection.mutable.ArrayBuffer
++import scala.collection.mutable.HashMap
++
+ import java.util.regex.Pattern
++
+ import org.slf4j.LoggerFactory
+-import scala.collection.mutable
+-import scala.collection.mutable.{ArrayBuffer, HashMap}
+-import slick.ast._
+ import slick.SlickException
+-import slick.util.{ConstArray, SlickLogger, Logging}
+-import TypeUtil.typeToTypeUtil
++import slick.ast._
++import slick.ast.TypeUtil.typeToTypeUtil
++import slick.util.ConstArray
++import slick.util.Logging
++import slick.util.SlickLogger
+ 
+ /** A query interpreter for MemoryProfile and for client-side operations
+   * that need to be run as part of distributed queries against multiple
+diff --git a/slick/src/main/scala/slick/relational/RelationalProfile.scala b/slick/src/main/scala/slick/relational/RelationalProfile.scala
+index 47dbafe..b0cfecf 100644
+--- a/slick/src/main/scala/slick/relational/RelationalProfile.scala
++++ b/slick/src/main/scala/slick/relational/RelationalProfile.scala
+@@ -1,14 +1,19 @@
+ package slick.relational
+ 
++import scala.language.higherKinds
++import scala.language.implicitConversions
++
++import scala.reflect.ClassTag
++
+ import slick.ast._
+-import slick.basic.{BasicActionComponent, BasicProfile}
+-import slick.compiler.{EmulateOuterJoins, Phase, QueryCompiler}
++import slick.basic.BasicActionComponent
++import slick.basic.BasicProfile
++import slick.compiler.EmulateOuterJoins
++import slick.compiler.Phase
++import slick.compiler.QueryCompiler
+ import slick.dbio._
+-import slick.lifted.FunctionSymbolExtensionMethods._
+ import slick.lifted._
+-
+-import scala.language.{existentials, higherKinds, implicitConversions}
+-import scala.reflect.ClassTag
++import slick.lifted.FunctionSymbolExtensionMethods._
+ 
+ /** A profile for relational databases that does not assume the existence
+   * of SQL (or any other text-based language for executing statements).
+diff --git a/slick/src/main/scala/slick/relational/ResultConverter.scala b/slick/src/main/scala/slick/relational/ResultConverter.scala
+index 8979192..ba7f8cf 100644
+--- a/slick/src/main/scala/slick/relational/ResultConverter.scala
++++ b/slick/src/main/scala/slick/relational/ResultConverter.scala
+@@ -1,10 +1,9 @@
+ package slick.relational
+ 
+-import scala.language.existentials
+ import slick.SlickException
+-import slick.ast._
+-import slick.util.{Dumpable, DumpInfo, TupleSupport}
+-import java.io.{StringWriter, OutputStreamWriter, PrintWriter}
++import slick.util.DumpInfo
++import slick.util.Dumpable
++import slick.util.TupleSupport
+ 
+ /** A `ResultConverter` is used to read data from a result, update a result,
+   * and set parameters of a query. */
+diff --git a/slick/src/main/scala/slick/relational/ResultConverterCompiler.scala b/slick/src/main/scala/slick/relational/ResultConverterCompiler.scala
+index df18615..c13db74 100644
+--- a/slick/src/main/scala/slick/relational/ResultConverterCompiler.scala
++++ b/slick/src/main/scala/slick/relational/ResultConverterCompiler.scala
+@@ -1,10 +1,11 @@
+ package slick.relational
+ 
+ import scala.language.existentials
+-import slick.ast._
++
++import org.slf4j.LoggerFactory
+ import slick.SlickException
++import slick.ast._
+ import slick.util.SlickLogger
+-import org.slf4j.LoggerFactory
+ 
+ /** Create a ResultConverter for parameters and result sets. Subclasses have
+   * to provide profile-specific createColumnConverter implementations. */
+diff --git a/slick/src/main/scala/slick/sql/SqlProfile.scala b/slick/src/main/scala/slick/sql/SqlProfile.scala
+index 97eace6..7d0856d 100644
+--- a/slick/src/main/scala/slick/sql/SqlProfile.scala
++++ b/slick/src/main/scala/slick/sql/SqlProfile.scala
+@@ -1,13 +1,18 @@
+ package slick.sql
+ 
+-import slick.basic.{BasicStreamingAction, BasicAction}
+-import slick.compiler.QueryCompiler
+-import slick.relational.{RelationalActionComponent, RelationalTableComponent, RelationalProfile}
+-
+ import scala.language.higherKinds
++
++import slick.ast.ColumnOption
++import slick.ast.Symbol
++import slick.ast.SymbolNamer
++import slick.ast.TableNode
++import slick.basic.BasicAction
++import slick.basic.BasicStreamingAction
++import slick.compiler.QueryCompiler
+ import slick.dbio._
+-import slick.ast.{TableNode, Symbol, SymbolNamer, Node, ColumnOption}
+-import slick.lifted.AbstractTable
++import slick.relational.RelationalActionComponent
++import slick.relational.RelationalProfile
++import slick.relational.RelationalTableComponent
+ import slick.util.DumpInfo
+ 
+ /** Abstract profile for SQL-based databases. */
+diff --git a/slick/src/main/scala/slick/util/AsyncExecutor.scala b/slick/src/main/scala/slick/util/AsyncExecutor.scala
+index a4a5250..073a521 100644
+--- a/slick/src/main/scala/slick/util/AsyncExecutor.scala
++++ b/slick/src/main/scala/slick/util/AsyncExecutor.scala
+@@ -1,15 +1,16 @@
+ package slick.util
+ 
++import scala.concurrent._
++import scala.concurrent.duration._
++import scala.util.control.NonFatal
++
+ import java.io.Closeable
+ import java.lang.management.ManagementFactory
+ import java.util.concurrent._
+-import javax.management.{InstanceNotFoundException, ObjectName}
+-
+-import scala.concurrent.duration._
+-import scala.concurrent._
+ import java.util.concurrent.atomic.AtomicInteger
+ 
+-import scala.util.control.NonFatal
++import javax.management.InstanceNotFoundException
++import javax.management.ObjectName
+ 
+ /** A connection pool for asynchronous execution of blocking I/O actions.
+   * This is used for the asynchronous query execution API on top of blocking back-ends like JDBC. */
+diff --git a/slick/src/main/scala/slick/util/BeanConfigurator.scala b/slick/src/main/scala/slick/util/BeanConfigurator.scala
+index f01741e..1b8bbf5 100644
+--- a/slick/src/main/scala/slick/util/BeanConfigurator.scala
++++ b/slick/src/main/scala/slick/util/BeanConfigurator.scala
+@@ -1,12 +1,11 @@
+ package slick.util
+ 
++import scala.collection.JavaConverters._
++
+ import java.beans.Introspector
+ import java.util.Properties
+ 
+-import scala.collection.JavaConverters._
+-
+ import com.typesafe.config.ConfigFactory
+-
+ import slick.SlickException
+ 
+ /** Configure Java Beans reflectively, using Typesafe Config for data type conversions. */
+diff --git a/slick/src/main/scala/slick/util/CloseableIterator.scala b/slick/src/main/scala/slick/util/CloseableIterator.scala
+index 8c435a4..9ffce2c 100644
+--- a/slick/src/main/scala/slick/util/CloseableIterator.scala
++++ b/slick/src/main/scala/slick/util/CloseableIterator.scala
+@@ -1,8 +1,9 @@
+ package slick.util
+ 
+-import java.io.Closeable
+ import scala.util.control.NonFatal
+ 
++import java.io.Closeable
++
+ /**
+  * An Iterator with a `close` method to close the underlying data source.
+  * Implementers must close the data source when `hasNext` returns `false`.
+diff --git a/slick/src/main/scala/slick/util/ConstArray.scala b/slick/src/main/scala/slick/util/ConstArray.scala
+index 6d1a9de..8dfbb37 100644
+--- a/slick/src/main/scala/slick/util/ConstArray.scala
++++ b/slick/src/main/scala/slick/util/ConstArray.scala
+@@ -1,12 +1,12 @@
+ package slick.util
+ 
+-import java.util.Arrays
+-
+ import scala.annotation.unchecked.uncheckedVariance
+ import scala.collection.immutable
+ import scala.reflect.ClassTag
+ import scala.util.hashing.MurmurHash3
+ 
++import java.util.Arrays
++
+ /** An efficient immutable array implementation which is used in the AST. Semantics are generally
+   * the same as for Scala collections but for performance reasons it does not implement any
+   * standard collection traits. */
+diff --git a/slick/src/main/scala/slick/util/GlobalConfig.scala b/slick/src/main/scala/slick/util/GlobalConfig.scala
+index 7b82fef..20bae00 100644
+--- a/slick/src/main/scala/slick/util/GlobalConfig.scala
++++ b/slick/src/main/scala/slick/util/GlobalConfig.scala
+@@ -1,11 +1,14 @@
+ package slick.util
+ 
++import scala.language.implicitConversions
++
+ import scala.collection.mutable
+ import scala.concurrent.duration.Duration
+-import scala.language.implicitConversions
+-import com.typesafe.config._
+-import java.util.concurrent.TimeUnit
++
+ import java.util.Properties
++import java.util.concurrent.TimeUnit
++
++import com.typesafe.config._
+ 
+ /** Singleton object with Slick's configuration, loaded from the application config.
+   * This includes configuration for the global profile objects and settings for debug logging.
+diff --git a/slick/src/main/scala/slick/util/Logging.scala b/slick/src/main/scala/slick/util/Logging.scala
+index 28e1d15..fe947a7 100644
+--- a/slick/src/main/scala/slick/util/Logging.scala
++++ b/slick/src/main/scala/slick/util/Logging.scala
+@@ -1,9 +1,10 @@
+ package slick.util
+ 
+-import org.slf4j.{Logger => Slf4jLogger, LoggerFactory}
+-
+ import scala.reflect.ClassTag
+ 
++import org.slf4j.{Logger => Slf4jLogger}
++import org.slf4j.LoggerFactory
++
+ final class SlickLogger(val slf4jLogger: Slf4jLogger) {
+   @inline
+   def debug(msg: => String, n: => Dumpable): Unit = debug(msg+"\n"+SlickLogger.treePrinter.get(n))
+diff --git a/slick/src/main/scala/slick/util/MacroSupport.scala b/slick/src/main/scala/slick/util/MacroSupport.scala
+index c57892d..7f2aa35 100644
+--- a/slick/src/main/scala/slick/util/MacroSupport.scala
++++ b/slick/src/main/scala/slick/util/MacroSupport.scala
+@@ -1,7 +1,7 @@
+ package slick.util
+ 
+-import scala.language.experimental.macros
+ import scala.language.implicitConversions
++import scala.language.experimental.macros
+ 
+ object MacroSupport {
+   implicit def macroSupportInterpolation(s: StringContext): MacroSupportInterpolation = new MacroSupportInterpolation(s)
+diff --git a/slick/src/main/scala/slick/util/ManagedArrayBlockingQueue.scala b/slick/src/main/scala/slick/util/ManagedArrayBlockingQueue.scala
+index e1ead69..5cedae3 100644
+--- a/slick/src/main/scala/slick/util/ManagedArrayBlockingQueue.scala
++++ b/slick/src/main/scala/slick/util/ManagedArrayBlockingQueue.scala
+@@ -1,8 +1,9 @@
+ package slick.util
+ 
+-import java.util.concurrent.{BlockingQueue, TimeUnit}
+-import java.util.concurrent.locks._
+ import java.util
++import java.util.concurrent.BlockingQueue
++import java.util.concurrent.TimeUnit
++import java.util.concurrent.locks._
+ 
+ import slick.util.AsyncExecutor._
+ 
+diff --git a/slick/src/main/scala/slick/util/SQLBuilder.scala b/slick/src/main/scala/slick/util/SQLBuilder.scala
+index 020e489..2ca6d1d 100644
+--- a/slick/src/main/scala/slick/util/SQLBuilder.scala
++++ b/slick/src/main/scala/slick/util/SQLBuilder.scala
+@@ -1,8 +1,9 @@
+ package slick.util
+ 
+-import java.sql.PreparedStatement
+ import scala.collection.mutable.ArrayBuffer
+ 
++import java.sql.PreparedStatement
++
+ final class SQLBuilder { self =>
+   import SQLBuilder._
+ 
+diff --git a/slick/src/main/scala/slick/util/TableDump.scala b/slick/src/main/scala/slick/util/TableDump.scala
+index 6650b53..6052b7f 100644
+--- a/slick/src/main/scala/slick/util/TableDump.scala
++++ b/slick/src/main/scala/slick/util/TableDump.scala
+@@ -1,6 +1,7 @@
+ package slick.util
+ 
+ import scala.collection.mutable.ArrayBuffer
++
+ import LogUtil._
+ 
+ /** Utility methods for creating result set debug output. */
+diff --git a/slick/src/main/scala/slick/util/TreePrinter.scala b/slick/src/main/scala/slick/util/TreePrinter.scala
+index cb6a1de..5acba03 100644
+--- a/slick/src/main/scala/slick/util/TreePrinter.scala
++++ b/slick/src/main/scala/slick/util/TreePrinter.scala
+@@ -1,6 +1,9 @@
+ package slick.util
+ 
+-import java.io.{OutputStreamWriter, StringWriter, PrintWriter}
++import java.io.OutputStreamWriter
++import java.io.PrintWriter
++import java.io.StringWriter
++
+ import LogUtil._
+ 
+ /** Create a readable printout of a tree. */
