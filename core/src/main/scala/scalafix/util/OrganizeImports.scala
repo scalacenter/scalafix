@@ -160,15 +160,14 @@ private[this] class OrganizeImports private (implicit ctx: RewriteCtx) {
       .mkString("\n\n")
   }
 
-  def getRemovePatches(oldImports: Seq[Import],
-                       tokens: Tokens): Seq[TokenPatch.Remove] = {
+  def getRemovePatches(oldImports: Seq[Import]): Seq[TokenPatch.Remove] = {
     val toRemove = for {
       firstImport <- oldImports.headOption
       first <- firstImport.tokens.headOption
       lastImport <- oldImports.lastOption
       last <- lastImport.tokens.lastOption
     } yield {
-      tokens.toIterator
+      ctx.tokens.toIterator
         .dropWhile(_.start < first.start)
         .takeWhile { x =>
           x.end <= last.end
@@ -200,14 +199,13 @@ private[this] class OrganizeImports private (implicit ctx: RewriteCtx) {
       val oldImports = getGlobalImports(code)
       val globalImports = oldImports.flatMap(getCanonicalImports)
       val cleanedUpImports = cleanUpImports(globalImports, patches)
-      val tokens = code.tokens
       val tokenToEdit =
         oldImports.headOption
           .map(_.tokens.head)
-          .getOrElse(tokens.head)
+          .getOrElse(ctx.tokens.head)
       val toInsert = prettyPrint(cleanedUpImports)
       TokenPatch.AddLeft(tokenToEdit, toInsert) +:
-        getRemovePatches(oldImports, tokens)
+        getRemovePatches(oldImports)
     }
   }
 }
