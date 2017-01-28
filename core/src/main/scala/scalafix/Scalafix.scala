@@ -17,12 +17,7 @@ object Scalafix {
     config.parser.apply(code, config.dialect) match {
       case Parsed.Success(ast) =>
         val tokens = ast.tokens
-        implicit val ctx = RewriteCtx(
-          config,
-          new TokenList(ast.tokens),
-          AssociatedComments(tokens),
-          semanticApi
-        )
+        implicit val ctx = RewriteCtx.fromCode(ast, config, semanticApi)
         val patches = config.rewrites.flatMap(_.rewrite(ast, ctx))
         Fixed.Success(Patch.apply(ast, patches))
       case Parsed.Error(pos, msg, e) =>

@@ -15,6 +15,10 @@ trait DiffAssertions extends FunSuiteLike {
   def assertEqual[A](a: A, b: A): Unit = {
     assert(a === b)
   }
+  def header[T](t: T): String = {
+    val line = s"=" * (t.toString.length + 3)
+    s"$line\n=> $t\n$line"
+  }
 
   case class DiffFailure(title: String,
                          expected: String,
@@ -28,12 +32,12 @@ trait DiffAssertions extends FunSuiteLike {
     val sb = new StringBuilder
     if (obtained.length < 1000) {
       sb.append(s"""
-                   #${logger.header("Obtained")}
+                   #${header("Obtained")}
                    #${trailingSpace(obtained)}
          """.stripMargin('#'))
     }
     sb.append(s"""
-                 #${logger.header("Diff")}
+                 #${header("Diff")}
                  #${trailingSpace(compareContents(obtained, expected))}
          """.stripMargin('#'))
     sb.toString()

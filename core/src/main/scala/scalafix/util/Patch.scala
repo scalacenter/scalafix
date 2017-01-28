@@ -19,11 +19,14 @@ abstract class TokenPatch(val tok: Token, val newTok: String)
     s"TokenPatch(${logger.reveal(tok.syntax)}, ${tok.structure}, $newTok)"
 }
 
-abstract class ImportPatch(val importer: CanonicalImport) extends TreePatch
+abstract class ImportPatch(val importer: Importer) extends TreePatch {
+  def importee: Importee = importer.importees.head
+  def toImport: Import = Import(Seq(importer))
+}
 object TreePatch {
-  case class RemoveGlobalImport(override val importer: CanonicalImport)
+  case class RemoveGlobalImport(override val importer: Importer)
       extends ImportPatch(importer)
-  case class AddGlobalImport(override val importer: CanonicalImport)
+  case class AddGlobalImport(override val importer: Importer)
       extends ImportPatch(importer)
 }
 

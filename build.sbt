@@ -128,6 +128,7 @@ lazy val `scalafix-root` = project
   .aggregate(
     `scalafix-nsc`,
     `scalafix-tests`,
+    `scalafix-testutils`,
     core,
 //    cli, // superseded by sbt plugin
     readme,
@@ -158,11 +159,10 @@ lazy val `scalafix-nsc` = project
     scalaVersion := "2.11.8",
     crossScalaVersions := crossVersions,
     libraryDependencies ++= Seq(
-      "org.scala-lang"                 % "scala-compiler" % scalaVersion.value,
-      "org.scalameta"                  %% "scalameta"     % Build.metaV % "provided",
-      "com.googlecode.java-diff-utils" % "diffutils"      % "1.3.0" % "test",
-      "org.scalatest"                  %% "scalatest"     % Build.testV % Test,
-      "com.lihaoyi"                    %% "ammonite-ops"  % Build.ammoniteV % Test,
+      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
+      "org.scalameta"  %% "scalameta"     % Build.metaV % "provided",
+      "org.scalatest"  %% "scalatest"     % Build.testV % Test,
+      "com.lihaoyi"    %% "ammonite-ops"  % Build.ammoniteV % Test,
       // integration property tests
       "org.typelevel"      %% "catalysts-platform" % "0.0.5"    % Test,
       "com.typesafe.slick" %% "slick"              % "3.2.0-M2" % Test,
@@ -198,12 +198,12 @@ lazy val `scalafix-nsc` = project
     },
     exposePaths("scalafixNsc", Test)
   )
-  .dependsOn(core)
+  .dependsOn(core, `scalafix-testutils` % Test)
 
 lazy val cli = project
-  .settings(allSettings)
-  .settings(packSettings)
   .settings(
+    allSettings,
+    packSettings,
     moduleName := "scalafix-cli",
     packJvmOpts := Map(
       "scalafix" -> jvmOptions,
@@ -220,7 +220,7 @@ lazy val cli = project
       "com.martiansoftware"        % "nailgun-server" % "0.9.1"
     )
   )
-  .dependsOn(core % "compile->compile;test->test")
+  .dependsOn(core, `scalafix-testutils` % Test)
 
 lazy val publishedArtifacts = Seq(
   publishLocal in `scalafix-nsc`,
@@ -248,6 +248,16 @@ lazy val `scalafix-sbt` = project
     scriptedBufferLog := false
   )
   .enablePlugins(BuildInfoPlugin)
+
+lazy val `scalafix-testutils` = project.settings(
+  allSettings,
+  scalaVersion := "2.11.8",
+  crossScalaVersions := crossVersions,
+  libraryDependencies ++= Seq(
+    "com.googlecode.java-diff-utils" % "diffutils"  % "1.3.0",
+    "org.scalatest"                  %% "scalatest" % Build.testV
+  )
+)
 
 lazy val `scalafix-tests` = project
   .settings(

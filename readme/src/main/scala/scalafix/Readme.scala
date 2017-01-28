@@ -2,8 +2,6 @@ package scalafix
 
 import scalatags.Text.TypedTag
 import scalatags.Text.all._
-import scalatex._
-import scalatags.Text.all._
 
 object Readme {
   def note = b("Note. ")
