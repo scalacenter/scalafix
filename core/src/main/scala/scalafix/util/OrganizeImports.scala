@@ -185,9 +185,9 @@ private[this] class OrganizeImports private (implicit ctx: RewriteCtx) {
       patch match {
         case _: AddGlobalImport =>
           if (is.exists(_.supersedes(patch))) is
-          else is :+ patch.importer
+          else is ++ getCanonicalImports(patch.toImport)
         case remove: RemoveGlobalImport =>
-          is.filter(_.structure == remove.importer.structure)
+          is.filterNot(_.structure == remove.importer.structure)
       }
     patches.foldLeft(removeUnused(globalImports))(combine)
   }

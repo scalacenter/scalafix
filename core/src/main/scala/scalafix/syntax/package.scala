@@ -13,7 +13,7 @@ package object syntax {
     def supersedes(patch: ImportPatch): Boolean =
       i.ref.structure == patch.importer.ref.structure &&
         (i.importee.is[Importee.Wildcard] ||
-          i.importee.structure == patch.importer.importee.structure)
+          i.importee.structure == patch.importee.structure)
   }
 
   implicit class XtensionToken(token: Token) {
