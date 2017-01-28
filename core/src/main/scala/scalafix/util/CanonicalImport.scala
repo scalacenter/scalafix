@@ -6,10 +6,10 @@ import scala.meta.tokens.Token.Comment
 import scalafix.rewrite.RewriteCtx
 
 object CanonicalImport {
-  def apply(ref: Term.Ref,
-            wildcard: Importee.Wildcard,
-            unimports: Seq[Importee.Unimport],
-            renames: Seq[Importee.Rename])(
+  def fromWildcard(ref: Term.Ref,
+                   wildcard: Importee.Wildcard,
+                   unimports: Seq[Importee.Unimport],
+                   renames: Seq[Importee.Rename])(
       implicit ctx: RewriteCtx,
       ownerImport: Import
   ): CanonicalImport =
@@ -23,7 +23,7 @@ object CanonicalImport {
           (wildcard +: unimports).flatMap(ctx.comments.trailing),
       None
     ) {}
-  def apply(ref: Term.Ref, importee: Importee)(
+  def fromImportee(ref: Term.Ref, importee: Importee)(
       implicit ctx: RewriteCtx,
       ownerImport: Import
   ): CanonicalImport =
@@ -39,6 +39,12 @@ object CanonicalImport {
     ) {}
 }
 
+/** A canonical imports is the minimal representation for a single import statement
+  *
+  * Only construct this class from custom constructors in the companion object.
+  * This class should be sealed abstract but the abstract modifier removes the
+  * convenient copy method.
+  */
 sealed case class CanonicalImport(
     ref: Term.Ref,
     importee: Importee,
@@ -47,7 +53,7 @@ sealed case class CanonicalImport(
     leadingComments: Set[Comment],
     trailingComments: Set[Comment],
     fullyQualifiedRef: Option[Term.Ref]
-) {
+)(implicit ctx: RewriteCtx) {
 
   def isRootImport: Boolean =
     ref.collect {
@@ -72,7 +78,7 @@ sealed case class CanonicalImport(
   def withoutLeading(leading: Set[Comment]): CanonicalImport =
     copy(leadingComments = leadingComments.filterNot(leading))
   def tree: Import = Import(Seq(Importer(ref, unimports :+ importee)))
-  def syntax(implicit ctx: RewriteCtx): String =
+  def syntax: String =
     s"${leading}import $importerSyntax$trailing"
   def leading: String =
     if (leadingComments.isEmpty) ""
@@ -80,18 +86,18 @@ sealed case class CanonicalImport(
   def trailing: String =
     if (trailingComments.isEmpty) ""
     else trailingComments.mkString(" ", "\n", "")
-  def importerSyntax(implicit ctx: RewriteCtx): String =
+  def importerSyntax: String =
     s"$refSyntax.$importeeSyntax"
-  private def curlySpace(implicit ctx: RewriteCtx) =
+  private def curlySpace =
     if (ctx.config.imports.spaceAroundCurlyBrace) " "
     else ""
 
-  def actualRef(implicit ctx: RewriteCtx): Term.Ref =
+  def actualRef: Term.Ref =
     if (ctx.config.imports.expandRelative) fullyQualifiedRef.getOrElse(ref)
     else ref
-  def refSyntax(implicit ctx: RewriteCtx): String =
+  def refSyntax: String =
     actualRef.syntax
-  def importeeSyntax(implicit ctx: RewriteCtx): String =
+  def importeeSyntax: String =
     if (extraImportees.nonEmpty)
       s"""{$curlySpace${extraImportees
         .map(_.syntax)
@@ -106,7 +112,7 @@ sealed case class CanonicalImport(
     case i: Importee.Wildcard => (0, i.syntax)
     case i => (1, i.syntax)
   }
-  def sortOrder(implicit ctx: RewriteCtx): (String, (Int, String)) =
+  def sortOrder: (String, (Int, String)) =
     (refSyntax, importeeOrder)
   def structure: String = Importer(ref, Seq(importee)).structure
 }

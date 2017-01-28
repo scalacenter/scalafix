@@ -3,6 +3,7 @@ build:
   environment:
     - COURSIER_CACHE=/drone/cache/coursier
   commands:
+    - git rev-parse HEAD
     - export SBT_OPTS="-Xmx24G -XX:MaxPermSize=4G -Xss4M"
     # configuring ivy.home doesn't seem to work. Maybe related:
     #   https://github.com/sbt/sbt/issues/1894
