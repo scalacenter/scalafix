@@ -1,0 +1,1 @@
+scalac -Ywarn-unused-import -Yrangepos -Xplugin:/Users/ollie/.ivy2/local/ch.epfl.scala/scalafix-nsc_2.11/0.2.0-SNAPSHOT/jars/scalafix-nsc_2.11.jar  $1

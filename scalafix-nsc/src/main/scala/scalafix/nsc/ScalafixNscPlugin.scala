@@ -13,8 +13,9 @@ class ScalafixNscPlugin(val global: Global) extends Plugin {
   val name = "scalafix"
   val description = "Refactoring tool."
   var config: ScalafixConfig = ScalafixConfig()
-  val components: List[PluginComponent] =
-    new ScalafixNscComponent(this, global, () => config) :: Nil
+  val component: ScalafixNscComponent =
+    new ScalafixNscComponent(this, global, () => config)
+  val components: List[PluginComponent] = component :: Nil
 
   override def init(options: List[String], error: (String) => Unit): Boolean = {
     options match {

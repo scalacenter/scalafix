@@ -4,6 +4,7 @@ import scalafix.Fixed
 import scalafix.Scalafix
 import scalafix.ScalafixConfig
 import scalafix.util.DiffAssertions
+import scala.collection.immutable.Seq
 
 import org.scalatest.FunSuiteLike
 

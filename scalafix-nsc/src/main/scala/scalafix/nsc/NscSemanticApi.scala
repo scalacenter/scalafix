@@ -4,6 +4,8 @@ import scala.collection.mutable
 import scala.meta.Dialect
 import scala.meta.Type
 import scala.reflect.internal.util.SourceFile
+import scala.tools.nsc.Settings
+import scala.util.Try
 import scala.{meta => m}
 import scalafix.Fixed
 import scalafix.Scalafix
@@ -13,7 +15,21 @@ import scalafix.util.logger
 
 case class SemanticContext(enclosingPackage: String, inScope: List[String])
 
-trait NscSemanticApi extends ReflectToolkit {
+trait NscSemanticApi extends ReflectToolkit with HijackImportInfos {
+  private implicit class XtensionGTree(tree: g.Tree) {
+    def structure = g.showRaw(tree)
+  }
+  private implicit class XtensionPosition(
+      gpos: scala.reflect.internal.util.Position) {
+    def matches(mpos: m.Position): Boolean =
+      gpos.isDefined &&
+        gpos.start == mpos.start.offset &&
+        gpos.end == mpos.end.offset
+    def inside(mpos: m.Position): Boolean =
+      gpos.isDefined &&
+        gpos.start <= mpos.start.offset &&
+        gpos.end >= mpos.end.offset
+  }
 
   /** Returns a map from byte offset to type name at that offset. */
   private def offsetToType(gtree: g.Tree,
@@ -53,7 +69,7 @@ trait NscSemanticApi extends ReflectToolkit {
 
       val parsed = dialect(gtree.toString()).parse[m.Type]
       parsed match {
-        case m.Parsed.Success(ast) =>
+        case m.parsers.Parsed.Success(ast) =>
           builder(gtree.pos.point) = cleanUp(ast)
         case _ =>
       }
@@ -97,16 +113,70 @@ trait NscSemanticApi extends ReflectToolkit {
     builder
   }
 
-  private def getSemanticApi(unit: g.CompilationUnit,
-                             config: ScalafixConfig): SemanticApi = {
-    val offsets = offsetToType(unit.body, config.dialect)
-    if (!g.settings.Yrangepos.value) {
+  private def find(body: g.Tree, pos: m.Position): Option[g.Tree] = {
+    var result = Option.empty[g.Tree]
+    new g.Traverser {
+      override def traverse(tree: g.Tree): Unit =
+        if (tree.pos.matches(pos)) result = Some(tree)
+        else if (tree.pos.inside(pos)) super.traverse(tree)
+    }.traverse(body)
+    result
+  }
+
+  private def fullNameToRef(fullName: String): Option[m.Ref] = {
+    import scala.meta._
+    Try(
+      fullName.parse[Term].get
+    ).toOption.collect { case t: m.Ref => t }
+  }
+  private def symbolToRef(sym: g.Symbol): Option[m.Ref] =
+    Option(sym).flatMap(sym => fullNameToRef(sym.fullName))
+
+  private def assertSettingsAreValid(): Unit = {
+    val requiredSettings: Seq[(Settings#BooleanSetting, Boolean)] = Seq(
+      g.settings.Yrangepos -> true,
+//      g.settings.fatalWarnings -> false,
+      g.settings.warnUnusedImport -> true
+    )
+    val missingSettings = requiredSettings.filterNot {
+      case (setting, value) => setting.value == value
+    }
+    if (missingSettings.nonEmpty) {
+      val (toEnable, toDisable) = missingSettings.partition(_._2)
+      def mkString(key: String,
+                   settings: Seq[(Settings#BooleanSetting, Boolean)]) =
+        if (settings.isEmpty) ""
+        else s"\n$key: ${settings.map(_._1.name).mkString(", ")}"
       val instructions =
-        "Please re-compile with the scalac option -Yrangepos enabled"
+        s"Please re-compile with the scalac options:" +
+          mkString("Enabled", toEnable) +
+          mkString("Disabled", toDisable)
       val explanation =
-        "This option is necessary for the semantic API to function"
+        "This is necessary for scalafix semantic rewrites to function"
       sys.error(s"$instructions. $explanation")
     }
+  }
+
+  private def getUnusedImports(
+      unit: g.CompilationUnit
+  ): List[g.ImportSelector] = {
+    def isMask(s: g.ImportSelector) =
+      s.name != g.termNames.WILDCARD && s.rename == g.termNames.WILDCARD
+    for {
+      imps <- allImportInfos.customRemove(unit).toList
+      imp <- imps.reverse.distinct
+      used = allUsedSelectors(imp)
+      s <- imp.tree.selectors
+      if !isMask(s) && !used(s)
+      _ = imps.foreach(allUsedSelectors.customRemove)
+    } yield s
+  }
+
+  private def getSemanticApi(unit: g.CompilationUnit,
+                             config: ScalafixConfig): SemanticApi = {
+    assertSettingsAreValid()
+    val offsets = offsetToType(unit.body, config.dialect)
+    val unused = getUnusedImports(unit)
 
     new SemanticApi {
       override def typeSignature(defn: m.Defn): Option[m.Type] = {
@@ -118,6 +188,53 @@ trait NscSemanticApi extends ReflectToolkit {
           case _ =>
             None
         }
+      }
+
+      /** Returns the fully qualified name of this name, or none if unable to find it */
+      override def fqn(name: m.Ref): Option[m.Ref] =
+        find(unit.body, name.pos)
+          .map { x =>
+//            logger.elem(x.symbol.alias, x.symbol, x.symbol.fullName, x)
+            x.toString()
+          }
+          .flatMap(fullNameToRef)
+
+      def isUnusedImport(importee: m.Importee): Boolean =
+        unused.exists(_.namePos == importee.pos.start.offset)
+      def usedFqns: Seq[m.Ref] = {
+        logger.elem(unused)
+        val builder = Seq.newBuilder[m.Ref]
+        new g.Traverser {
+          override def traverse(tree: g.Tree): Unit = tree match {
+            case _: g.Import =>
+            case _ =>
+              for {
+                symRef <- symbolToRef(tree.symbol)
+                treeRef <- fullNameToRef(tree.toString())
+              } {
+                // both tree and symbol are refs, then add both
+                // Why? For example tree ListBuffer.apply has symbol
+                // GenericCompanion.apply
+                builder += symRef
+                builder += treeRef
+              }
+              super.traverse(tree)
+              // for some crazy reason, the traverser does not visit annotations
+              // 1. annotations
+              if (tree.symbol != null) {
+                tree.symbol.annotations.foreach(x =>
+                  super.traverse(x.original))
+              }
+              tree match {
+                // 2. or type trees
+                case t: g.TypeTree
+                    if t.original != null && t.original.nonEmpty =>
+                  traverse(t.original)
+                case _ =>
+              }
+          }
+        }.traverse(unit.body)
+        builder.result()
       }
     }
   }

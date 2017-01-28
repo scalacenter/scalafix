@@ -2,6 +2,7 @@ package scalafix
 
 import scala.collection.immutable.Seq
 import scalafix.rewrite.ExplicitImplicit
+import scalafix.rewrite.ProcedureSyntax
 import scalafix.util.FileOps
 import scalafix.util.logger
 
@@ -10,11 +11,11 @@ import java.io.File
 object DiffTest {
   def testsToRun: Seq[DiffTest] = tests.filter(testShouldRun)
 
+  private val testDir = "scalafix-nsc/src/test/resources"
   private def isOnly(name: String): Boolean = name.startsWith("ONLY ")
   private def isSkip(name: String): Boolean = name.startsWith("SKIP ")
   private def stripPrefix(name: String) =
     name.stripPrefix("SKIP ").stripPrefix("ONLY ").trim
-  private val testDir = "core/src/test/resources"
   private def apply(content: String, filename: String): Seq[DiffTest] = {
     val spec = filename.stripPrefix(testDir + File.separator)
     val moduleOnly = isOnly(content)
@@ -79,6 +80,21 @@ case class DiffTest(spec: String,
                     only: Boolean,
                     config: ScalafixConfig) {
   def noWrap: Boolean = name.startsWith("NOWRAP ")
+  def isSyntax: Boolean =
+    Seq(
+      "syntactic",
+      ProcedureSyntax.toString
+    ).exists(spec.startsWith)
+
+  private def packageName = name.replaceAll("[^a-zA-Z0-9]", "")
+  private def packagePrefix = s"package $packageName {\n"
+  private def packageSuffix = s" }\n"
+  def wrapped(code: String = original): String =
+    if (noWrap) original
+    else s"$packagePrefix$code$packageSuffix"
+  def unwrap(code: String): String =
+    if (noWrap) code
+    else code.stripPrefix(packagePrefix).stripSuffix(packageSuffix)
 
   val fullName = s"$spec: $name"
 }

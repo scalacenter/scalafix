@@ -1,0 +1,32 @@
+rewrites = [VolatileLazyVal]
+<<< basic
+object a {
+
+val foo = 1
+
+  lazy val x = 2
+  @volatile lazy val dontChangeMe = 2
+  private lazy val y = 2
+
+  class foo {
+    lazy val z = {
+      println()
+    }
+  }
+}
+>>>
+object a {
+
+val foo = 1
+
+  @volatile lazy val x = 2
+  @volatile lazy val dontChangeMe = 2
+  @volatile private lazy val y = 2
+
+  class foo {
+    @volatile lazy val z = {
+      println()
+    }
+  }
+}
+

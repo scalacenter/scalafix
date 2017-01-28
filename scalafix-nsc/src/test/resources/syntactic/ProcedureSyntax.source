@@ -1,0 +1,45 @@
+rewrites = [ProcedureSyntax]
+<<< nested function
+object Main {
+// This is a comment
+  def main(args: Seq[String]) {
+  var number = 2
+    def increment(n: Int) {
+      number += n
+    }
+    increment(3)
+      args.foreach(println)
+  }
+}
+>>>
+object Main {
+// This is a comment
+  def main(args: Seq[String]): Unit = {
+  var number = 2
+    def increment(n: Int): Unit = {
+      number += n
+    }
+    increment(3)
+      args.foreach(println)
+  }
+}
+<<< right no paren
+object a {
+def foo {
+  println(1)
+}
+}
+>>>
+object a {
+def foo: Unit = {
+  println(1)
+}
+}
+<<< pathological comment
+object a {
+def main() /* unit */ {
+}}
+>>>
+object a {
+def main(): Unit = /* unit */ {
+}}
