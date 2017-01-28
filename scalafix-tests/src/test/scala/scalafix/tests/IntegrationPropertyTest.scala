@@ -77,28 +77,6 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
       logger.info(s"Running $id")
       failAfter(maxTime) {
         %("sbt", "++2.11.8", cmd)(t.workingPath)
-        if (t.testPatch) {
-          val obtainedPatch = %%("git", "diff")(t.workingPath).out.lines
-          val expectedPatch = read.lines(
-            Path(
-              FileOps
-                .getFile("scalafix-tests",
-                         "src",
-                         "main",
-                         "resources",
-                         "patches",
-                         t.name + ".patch")
-                .getAbsoluteFile
-            )
-          )
-          val mismatch = obtainedPatch
-            .zip(expectedPatch)
-            .dropWhile {
-              case (a, b) => a == b
-            }
-            .take(5)
-          assert(mismatch.isEmpty)
-        }
       }
       logger.info(s"Completed $id")
     }

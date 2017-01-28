@@ -11,31 +11,38 @@ import scalafix.syntax._
 import scalafix.util.TreePatch.AddGlobalImport
 import scalafix.util.TreePatch.RemoveGlobalImport
 
-object OrganizeImports {
-  def extractImports(stats: Seq[Stat])(
-      implicit ctx: RewriteCtx): (Seq[Import], Seq[CanonicalImport]) = {
-    val imports = stats.takeWhile(_.is[Import]).collect { case i: Import => i }
-    val importees = imports.collect {
-      case imp @ Import(importers) =>
-        implicit val currentImport = imp
-        importers.flatMap { importer =>
-          val ref = importer.ref //  fqnRef.getOrElse(importer.ref)
-          val wildcard = importer.importees.collectFirst {
-            case wildcard: Importee.Wildcard => wildcard
-          }
-          wildcard.fold(importer.importees.map(i => CanonicalImport(ref, i))) {
-            wildcard =>
-              val unimports = importer.importees.collect {
-                case i: Importee.Unimport => i
-              }
-              val renames = importer.importees.collect {
-                case i: Importee.Rename => i
-              }
-              List(CanonicalImport(ref, wildcard, unimports, renames))
-          }
+private[this] class OrganizeImports private (implicit ctx: RewriteCtx) {
+  def extractImports(stats: Seq[Stat]): Seq[Import] = {
+    stats
+      .takeWhile(_.is[Import])
+      .collect { case i: Import => i }
+  }
+
+  def getCanonicalImports(imp: Import): Seq[CanonicalImport] = {
+    implicit val currentImport = imp
+    imp.importers.flatMap { importer =>
+      val wildcard = importer.importees.collectFirst {
+        case wildcard: Importee.Wildcard => wildcard
+      }
+      wildcard.fold(
+        importer.importees.map(i =>
+          CanonicalImport.fromImportee(importer.ref, i))
+      ) { wildcard =>
+        val unimports = importer.importees.collect {
+          case i: Importee.Unimport => i
         }
-    }.flatten
-    imports -> importees
+        val renames = importer.importees.collect {
+          case i: Importee.Rename => i
+        }
+        List(
+          CanonicalImport.fromWildcard(
+            importer.ref,
+            wildcard,
+            unimports,
+            renames
+          ))
+      }
+    }
   }
 
   def getLastTopLevelPkg(potPkg: Stat): Stat = potPkg match {
@@ -44,14 +51,13 @@ object OrganizeImports {
     case _ => potPkg
   }
 
-  def getGlobalImports(ast: Tree)(
-      implicit ctx: RewriteCtx): (Seq[Import], Seq[CanonicalImport]) =
+  def getGlobalImports(ast: Tree): Seq[Import] =
     ast match {
       case Pkg(_, Seq(pkg: Pkg)) => getGlobalImports(pkg)
       case Source(Seq(pkg: Pkg)) => getGlobalImports(pkg)
       case Pkg(_, stats) => extractImports(stats)
       case Source(stats) => extractImports(stats)
-      case _ => Nil -> Nil
+      case _ => Nil
     }
 
   def removeDuplicates(imports: Seq[CanonicalImport]): Seq[CanonicalImport] = {
@@ -73,32 +79,30 @@ object OrganizeImports {
     imports.filterNot(isDuplicate)
   }
 
-  def removeUnused(possiblyDuplicates: Seq[CanonicalImport])(
-      implicit ctx: RewriteCtx): Seq[CanonicalImport] = {
+  def removeUnused(
+      possiblyDuplicates: Seq[CanonicalImport]): Seq[CanonicalImport] = {
     val imports = removeDuplicates(possiblyDuplicates)
     if (!ctx.config.imports.removeUnused) imports
     else {
       val (usedImports, unusedImports) =
         ctx.semantic
           .map { semantic =>
-            val unusedImports =
-              imports.partition(i => !semantic.isUnusedImport(i.importee))
-            unusedImports
+            imports.partition(i => !semantic.isUnusedImport(i.importee))
           }
           .getOrElse(possiblyDuplicates -> Nil)
       usedImports
     }
   }
 
-  def groupImports(imports0: Seq[CanonicalImport])(
-      implicit ctx: RewriteCtx): Seq[Seq[Import]] = {
+  def fullyQualify(imp: CanonicalImport): Option[Term.Ref] =
+    for {
+      semantic <- ctx.semantic
+      fqnRef <- semantic.fqn(imp.ref)
+      if fqnRef.is[Term.Ref]
+    } yield fqnRef.asInstanceOf[Term.Ref]
+
+  def groupImports(imports0: Seq[CanonicalImport]): Seq[Seq[Import]] = {
     val config = ctx.config.imports
-    def fullyQualify(imp: CanonicalImport): Option[Term.Ref] =
-      for {
-        semantic <- ctx.semantic
-        fqnRef <- semantic.fqn(imp.ref)
-        if fqnRef.is[Term.Ref]
-      } yield fqnRef.asInstanceOf[Term.Ref]
     val imports =
       imports0.map(imp => imp.withFullyQualifiedRef(fullyQualify(imp)))
     val (fullyQualifiedImports, relativeImports) =
@@ -150,51 +154,66 @@ object OrganizeImports {
     asImports
   }
 
-  def prettyPrint(imports: Seq[CanonicalImport])(
-      implicit ctx: RewriteCtx): String = {
+  def prettyPrint(imports: Seq[CanonicalImport]): String = {
     groupImports(imports)
       .map(_.map(_.syntax).mkString("\n"))
       .mkString("\n\n")
   }
 
-  def organizeImports(code: Tree, patches: Seq[ImportPatch])(
-      implicit ctx: RewriteCtx): Seq[TokenPatch] = {
+  def getRemovePatches(oldImports: Seq[Import],
+                       tokens: Tokens): Seq[TokenPatch.Remove] = {
+    val toRemove = for {
+      firstImport <- oldImports.headOption
+      first <- firstImport.tokens.headOption
+      lastImport <- oldImports.lastOption
+      last <- lastImport.tokens.lastOption
+    } yield {
+      tokens.toIterator
+        .dropWhile(_.start < first.start)
+        .takeWhile { x =>
+          x.end <= last.end
+        }
+        .map(TokenPatch.Remove)
+        .toList
+    }
+    toRemove.getOrElse(Nil)
+  }
+
+  def cleanUpImports(globalImports: Seq[CanonicalImport],
+                     patches: Seq[ImportPatch]): Seq[CanonicalImport] = {
+    def combine(is: Seq[CanonicalImport],
+                patch: ImportPatch): Seq[CanonicalImport] =
+      patch match {
+        case _: AddGlobalImport =>
+          if (is.exists(_.supersedes(patch))) is
+          else is :+ patch.importer
+        case remove: RemoveGlobalImport =>
+          is.filter(_.structure == remove.importer.structure)
+      }
+    patches.foldLeft(removeUnused(globalImports))(combine)
+  }
+
+  def organizeImports(code: Tree, patches: Seq[ImportPatch]): Seq[TokenPatch] = {
     if (!ctx.config.imports.organize && patches.isEmpty) {
       Nil
     } else {
-      def combine(is: Seq[CanonicalImport],
-                  patch: ImportPatch): Seq[CanonicalImport] =
-        patch match {
-          case add: AddGlobalImport =>
-            if (is.exists(_.supersedes(patch))) is
-            else is :+ patch.importer
-          case remove: RemoveGlobalImport =>
-            is.filter(_.structure == remove.importer.structure)
-        }
-      val (oldImports, globalImports) = getGlobalImports(code)
-      val allImports =
-        patches.foldLeft(removeUnused(globalImports))(combine)
-      groupImports(allImports)
+      val oldImports = getGlobalImports(code)
+      val globalImports = oldImports.flatMap(getCanonicalImports)
+      val cleanedUpImports = cleanUpImports(globalImports, patches)
       val tokens = code.tokens
-      val tok =
-        oldImports.headOption.map(_.tokens.head).getOrElse(tokens.head)
-      val toRemove = for {
-        firstImport <- oldImports.headOption
-        first <- firstImport.tokens.headOption
-        lastImport <- oldImports.lastOption
-        last <- lastImport.tokens.lastOption
-      } yield {
-        tokens.toIterator
-          .dropWhile(_.start < first.start)
-          .takeWhile { x =>
-            x.end <= last.end
-          }
-          .map(TokenPatch.Remove)
-          .toList
-      }
-      val toInsert = prettyPrint(allImports)
-      TokenPatch.AddLeft(tok, toInsert) +:
-        toRemove.getOrElse(Nil)
+      val tokenToEdit =
+        oldImports.headOption
+          .map(_.tokens.head)
+          .getOrElse(tokens.head)
+      val toInsert = prettyPrint(cleanedUpImports)
+      TokenPatch.AddLeft(tokenToEdit, toInsert) +:
+        getRemovePatches(oldImports, tokens)
     }
   }
+}
+
+object OrganizeImports {
+  def organizeImports(code: Tree, patches: Seq[ImportPatch])(
+      implicit ctx: RewriteCtx): Seq[TokenPatch] =
+    new OrganizeImports().organizeImports(code, patches)
 }
