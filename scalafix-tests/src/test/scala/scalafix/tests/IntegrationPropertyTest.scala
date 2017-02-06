@@ -207,5 +207,5 @@ class ScalafixIntegrationTest
         ),
         addCoursier = false
       ),
-      skip = false
+      skip = true
     )

@@ -1,6 +1,7 @@
 import sbt.ScriptedPlugin
 import sbt.ScriptedPlugin._
 
+import Dependencies._
 organization in ThisBuild := "ch.epfl.scala"
 
 lazy val crossVersions = Seq(
@@ -145,9 +146,9 @@ lazy val core = project
     addCompilerPlugin(
       "org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
     libraryDependencies ++= Seq(
-      "com.typesafe"   % "config"        % "1.3.1",
-      "com.lihaoyi"    %% "sourcecode"   % "0.1.3",
-      "org.scalameta"  %% "contrib"    % Build.metaV,
+      "com.typesafe" % "config"      % "1.3.1",
+      "com.lihaoyi"  %% "sourcecode" % "0.1.3",
+      scalameta,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
     )
   )
@@ -160,12 +161,12 @@ lazy val `scalafix-nsc` = project
     crossScalaVersions := crossVersions,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-      "org.scalameta"  %% "contrib"     % Build.metaV % "provided",
-      "org.scalatest"  %% "scalatest"     % Build.testV % Test,
-      "com.lihaoyi"    %% "ammonite-ops"  % Build.ammoniteV % Test,
+      scalameta,
+      scalahost(scalaVersion.value),
+      scalatest,
+      "com.lihaoyi" %% "ammonite-ops" % Build.ammoniteV % Test,
       // integration property tests
       "org.typelevel"      %% "catalysts-platform" % "0.0.5"    % Test,
-      "com.typesafe.slick" %% "slick"              % "3.2.0-M2" % Test,
       "io.circe"           %% "circe-core"         % "0.6.0"    % Test,
       "org.typelevel"      %% "cats-core"          % "0.7.2"    % Test,
       "org.scalacheck"     %% "scalacheck"         % "1.13.4"   % Test
@@ -174,6 +175,13 @@ lazy val `scalafix-nsc` = project
     // to overcome this issue, all transitive dependencies are included
     // in the published compiler plugin.
     publishArtifact in Compile := true,
+    assemblyMergeStrategy in assembly := {
+      // conflicts with scalahost plugin
+      case "scalac-plugin.xml" => MergeStrategy.first
+      case x =>
+        val oldStrategy = (assemblyMergeStrategy in assembly).value
+        oldStrategy(x)
+    },
     assemblyJarName in assembly :=
       name.value + "_" +
         scalaVersion.value + "-" +
@@ -255,7 +263,7 @@ lazy val `scalafix-testutils` = project.settings(
   crossScalaVersions := crossVersions,
   libraryDependencies ++= Seq(
     "com.googlecode.java-diff-utils" % "diffutils"  % "1.3.0",
-    "org.scalatest"                  %% "scalatest" % Build.testV
+    "org.scalatest"                  %% "scalatest" % Build.scalatestV
   )
 )
 
@@ -273,7 +281,7 @@ lazy val `scalafix-tests` = project
         .value,
     libraryDependencies ++= Seq(
       "com.lihaoyi"   %% "ammonite-ops" % Build.ammoniteV,
-      "org.scalatest" %% "scalatest"    % Build.testV % "test"
+      "org.scalatest" %% "scalatest"    % Build.scalatestV % "test"
     )
   )
   .dependsOn(core)
@@ -325,4 +333,3 @@ def exposePaths(projectName: String,
     }
   )
 }
-

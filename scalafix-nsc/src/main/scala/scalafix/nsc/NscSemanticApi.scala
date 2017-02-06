@@ -1,8 +1,12 @@
 package scalafix.nsc
 
+import scala.collection.immutable.Seq
 import scala.collection.mutable
 import scala.meta.Dialect
+import scala.meta.Ref
+import scala.meta.Source
 import scala.meta.Type
+import scala.meta.semantic.v1._
 import scala.reflect.internal.util.SourceFile
 import scala.tools.nsc.Settings
 import scala.util.Try
@@ -12,12 +16,20 @@ import scalafix.Scalafix
 import scalafix.ScalafixConfig
 import scalafix.rewrite.SemanticApi
 import scalafix.util.logger
-
 case class SemanticContext(enclosingPackage: String, inScope: List[String])
 
 trait NscSemanticApi extends ReflectToolkit with HijackImportInfos {
   private implicit class XtensionGTree(tree: g.Tree) {
-    def structure = g.showRaw(tree)
+    def structure: String = g.showRaw(tree)
+  }
+  private implicit class XtensionMInput(input: m.Input) {
+    def matches(other: m.Input): Boolean = {
+      (input, other) match {
+        case (m.inputs.Input.File(f, _), m.inputs.Input.File(f2, _)) =>
+          f.getAbsolutePath == f2.getAbsolutePath
+        case _ => false
+      }
+    }
   }
   private implicit class XtensionPosition(
       gpos: scala.reflect.internal.util.Position) {
@@ -172,12 +184,11 @@ trait NscSemanticApi extends ReflectToolkit with HijackImportInfos {
     } yield s
   }
 
-  private def getSemanticApi(unit: g.CompilationUnit,
-                             config: ScalafixConfig): SemanticApi = {
+  private def getSemanticApi(unit: g.CompilationUnit, config: ScalafixConfig)(
+      implicit mirr: Mirror): SemanticApi = {
     assertSettingsAreValid()
     val offsets = offsetToType(unit.body, config.dialect)
     val unused = getUnusedImports(unit)
-
     new SemanticApi {
       override def typeSignature(defn: m.Defn): Option[m.Type] = {
         defn match {
@@ -189,53 +200,15 @@ trait NscSemanticApi extends ReflectToolkit with HijackImportInfos {
             None
         }
       }
-
-      /** Returns the fully qualified name of this name, or none if unable to find it */
       override def fqn(name: m.Ref): Option[m.Ref] =
         find(unit.body, name.pos)
-          .map { x =>
-//            logger.elem(x.symbol.alias, x.symbol, x.symbol.fullName, x)
-            x.toString()
-          }
+          .map(_.toString())
           .flatMap(fullNameToRef)
 
       def isUnusedImport(importee: m.Importee): Boolean =
         unused.exists(_.namePos == importee.pos.start.offset)
-      def usedFqns: Seq[m.Ref] = {
-        logger.elem(unused)
-        val builder = Seq.newBuilder[m.Ref]
-        new g.Traverser {
-          override def traverse(tree: g.Tree): Unit = tree match {
-            case _: g.Import =>
-            case _ =>
-              for {
-                symRef <- symbolToRef(tree.symbol)
-                treeRef <- fullNameToRef(tree.toString())
-              } {
-                // both tree and symbol are refs, then add both
-                // Why? For example tree ListBuffer.apply has symbol
-                // GenericCompanion.apply
-                builder += symRef
-                builder += treeRef
-              }
-              super.traverse(tree)
-              // for some crazy reason, the traverser does not visit annotations
-              // 1. annotations
-              if (tree.symbol != null) {
-                tree.symbol.annotations.foreach(x =>
-                  super.traverse(x.original))
-              }
-              tree match {
-                // 2. or type trees
-                case t: g.TypeTree
-                    if t.original != null && t.original.nonEmpty =>
-                  traverse(t.original)
-                case _ =>
-              }
-          }
-        }.traverse(unit.body)
-        builder.result()
-      }
+
+      override def mirror: Mirror = mirr
     }
   }
 
@@ -245,9 +218,15 @@ trait NscSemanticApi extends ReflectToolkit with HijackImportInfos {
     else m.Input.String(new String(source.content))
   }
 
-  def fix(unit: g.CompilationUnit, config: ScalafixConfig): Fixed = {
+  def fix(unit: g.CompilationUnit, config: ScalafixConfig)(
+      implicit mirror: Mirror): Fixed = {
     val api = getSemanticApi(unit, config)
     val input = getMetaInput(unit.source)
-    Scalafix.fix(input, config, Some(api))
+    mirror.sources.find(_.pos.input.matches(input)) match {
+      case Some(source) =>
+        Scalafix.fix(source, config, Some(api))
+      case None =>
+        Scalafix.fix(input, config, Some(api))
+    }
   }
 }
