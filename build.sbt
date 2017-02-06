@@ -161,12 +161,12 @@ lazy val `scalafix-nsc` = project
     crossScalaVersions := crossVersions,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-      scalameta,
       scalahost(scalaVersion.value),
       scalatest,
       "com.lihaoyi" %% "ammonite-ops" % Build.ammoniteV % Test,
       // integration property tests
       "org.typelevel"      %% "catalysts-platform" % "0.0.5"    % Test,
+      "com.typesafe.slick" %% "slick"              % "3.2.0-M2" % Test,
       "io.circe"           %% "circe-core"         % "0.6.0"    % Test,
       "org.typelevel"      %% "cats-core"          % "0.7.2"    % Test,
       "org.scalacheck"     %% "scalacheck"         % "1.13.4"   % Test

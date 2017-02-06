@@ -14,11 +14,11 @@ import scala.{meta => m}
 import scalafix.Fixed
 import scalafix.Scalafix
 import scalafix.ScalafixConfig
-import scalafix.rewrite.SemanticApi
+import scalafix.rewrite.ScalafixMirror
 import scalafix.util.logger
 case class SemanticContext(enclosingPackage: String, inScope: List[String])
 
-trait NscSemanticApi extends ReflectToolkit with HijackImportInfos {
+trait NscScalafixMirror extends ReflectToolkit with HijackImportInfos {
   private implicit class XtensionGTree(tree: g.Tree) {
     def structure: String = g.showRaw(tree)
   }
@@ -185,11 +185,11 @@ trait NscSemanticApi extends ReflectToolkit with HijackImportInfos {
   }
 
   private def getSemanticApi(unit: g.CompilationUnit, config: ScalafixConfig)(
-      implicit mirr: Mirror): SemanticApi = {
+      implicit mirror: Mirror): ScalafixMirror = {
     assertSettingsAreValid()
     val offsets = offsetToType(unit.body, config.dialect)
     val unused = getUnusedImports(unit)
-    new SemanticApi {
+    new ScalafixMirror {
       override def typeSignature(defn: m.Defn): Option[m.Type] = {
         defn match {
           case m.Defn.Val(_, Seq(pat), _, _) =>
@@ -207,8 +207,11 @@ trait NscSemanticApi extends ReflectToolkit with HijackImportInfos {
 
       def isUnusedImport(importee: m.Importee): Boolean =
         unused.exists(_.namePos == importee.pos.start.offset)
-
-      override def mirror: Mirror = mirr
+      // TODO(olafur) more elegant way to combine two interfaces
+      override def dialect: Dialect = mirror.dialect
+      override def sources: Seq[Source] = mirror.sources
+      override def database: Database = mirror.database
+      override def symbol(ref: Ref): Completed[Symbol] = mirror.symbol(ref)
     }
   }
 

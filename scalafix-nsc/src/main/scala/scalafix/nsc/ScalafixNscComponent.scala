@@ -19,7 +19,7 @@ class ScalafixNscComponent(plugin: Plugin,
                            getConfig: () => ScalafixConfig)
     extends PluginComponent
     with ReflectToolkit
-    with NscSemanticApi {
+    with NscScalafixMirror {
 
   // warnUnusedImports could be set triggering a compiler error
   // if fatal warnings is also enabled.

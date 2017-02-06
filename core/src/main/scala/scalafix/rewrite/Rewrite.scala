@@ -7,7 +7,7 @@ import scalafix.util.Patch
 import scala.collection.immutable.Seq
 
 abstract class Rewrite {
-  def getSemanticApi(ctx: RewriteCtx): SemanticApi = ctx.semantic.getOrElse {
+  def getSemanticApi(ctx: RewriteCtx): ScalafixMirror = ctx.semantic.getOrElse {
     throw MissingSemanticApi(this)
   }
   def rewrite(code: Tree, rewriteCtx: RewriteCtx): Seq[Patch]
