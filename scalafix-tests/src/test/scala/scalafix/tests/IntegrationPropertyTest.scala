@@ -72,17 +72,23 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
       %%("git", "diff", "--name-only")(t.workingPath).out.lines
         .exists(_.endsWith(".scala"))
     }
-    def sbt(cmd: String): Unit = {
+    def sbt(cmds: Seq[Command]): Unit = {
+      val cmd = cmds.mkString("; ", "; ", "")
       val id = s"${t.name}/$cmd"
       logger.info(s"Running $id")
+      val args = Seq(
+          "sbt",
+          "++2.11.8"
+        ) ++ cmds.map(_.toString)
       failAfter(maxTime) {
-        %("sbt", "++2.11.8", cmd)(t.workingPath)
+        import sys.process._
+        Process(args, cwd = t.workingPath.toIO).!
       }
       logger.info(s"Completed $id")
     }
     val testFun: () => Any = { () =>
       setup(t)
-      t.cmds.map(_.cmd).foreach(sbt)
+      sbt(t.commands)
       assertDiffIsNonEmpty()
     }
 
@@ -166,7 +172,7 @@ class ScalaJs
         name = "Scala.js",
         repo = "https://github.com/scala-js/scala-js.git",
         hash = "8917b5a9bd8fb2175a112fc15c761050eeb4099f",
-        cmds = Seq(
+        commands = Seq(
           Command("set scalafixEnabled in Global := true"),
           Command("compiler/test:compile"),
           Command("examples/test:compile")
@@ -184,4 +190,22 @@ class ScalacheckShapeless
         addCoursier = false
       ),
       skip = true // coursier can't resolve locally published snapshot on ci, sbt.ivy.home is not read.
+    )
+
+class ScalafixIntegrationTest
+    extends IntegrationPropertyTest(
+      ItTest(
+        name = "scalafix",
+        repo = "https://github.com/scalacenter/scalafix.git",
+        hash = "69069ff8d028f9fc553fac62c28b3d4eb6707bcb",
+        rewrites = Nil,
+        commands = Seq(
+          Command.clean,
+          Command.enableScalafix,
+          Command("scalafix-nsc/test:compile"),
+          Command.disableScalafix
+        ),
+        addCoursier = false
+      ),
+      skip = false
     )

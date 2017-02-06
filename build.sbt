@@ -147,7 +147,7 @@ lazy val core = project
     libraryDependencies ++= Seq(
       "com.typesafe"   % "config"        % "1.3.1",
       "com.lihaoyi"    %% "sourcecode"   % "0.1.3",
-      "org.scalameta"  %% "scalameta"    % Build.metaV,
+      "org.scalameta"  %% "contrib"    % Build.metaV,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
     )
   )
@@ -160,7 +160,7 @@ lazy val `scalafix-nsc` = project
     crossScalaVersions := crossVersions,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-      "org.scalameta"  %% "scalameta"     % Build.metaV % "provided",
+      "org.scalameta"  %% "contrib"     % Build.metaV % "provided",
       "org.scalatest"  %% "scalatest"     % Build.testV % Test,
       "com.lihaoyi"    %% "ammonite-ops"  % Build.ammoniteV % Test,
       // integration property tests
@@ -325,3 +325,4 @@ def exposePaths(projectName: String,
     }
   )
 }
+

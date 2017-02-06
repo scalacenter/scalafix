@@ -1,6 +1,7 @@
 package scalafix
 
 import scala.collection.immutable.Seq
+import scala.meta.contrib._
 import scala.tools.cmd.CommandLineParser
 import scala.tools.nsc.CompilerCommand
 import scala.tools.nsc.Global
@@ -11,12 +12,7 @@ import scala.{meta => m}
 import scalafix.nsc.ScalafixNscPlugin
 import scalafix.rewrite.ExplicitImplicit
 import scalafix.rewrite.Rewrite
-import scalafix.rewrite.RewriteCtx
 import scalafix.util.DiffAssertions
-import scalafix.util.FileOps
-import scalafix.util.Patch
-import scalafix.util.TreePatch.AddGlobalImport
-import scalafix.util.TreePatch.RemoveGlobalImport
 import scalafix.util.logger
 
 import org.scalatest.FunSuite
