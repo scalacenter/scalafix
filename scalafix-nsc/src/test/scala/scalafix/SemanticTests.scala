@@ -1,6 +1,12 @@
 package scalafix
 
 import scala.collection.immutable.Seq
+import scala.meta.Term
+import scala.meta.internal.scalahost.v1.online.Mirror
+import scala.meta.contrib._
+import scala.meta.internal.scalahost.ScalahostPlugin
+import scala.meta.semantic.v1.Database
+import scala.reflect.io.AbstractFile
 import scala.tools.cmd.CommandLineParser
 import scala.tools.nsc.CompilerCommand
 import scala.tools.nsc.Global
@@ -11,13 +17,13 @@ import scala.{meta => m}
 import scalafix.nsc.ScalafixNscPlugin
 import scalafix.rewrite.ExplicitImplicit
 import scalafix.rewrite.Rewrite
-import scalafix.rewrite.RewriteCtx
 import scalafix.util.DiffAssertions
-import scalafix.util.FileOps
-import scalafix.util.Patch
-import scalafix.util.TreePatch.AddGlobalImport
-import scalafix.util.TreePatch.RemoveGlobalImport
 import scalafix.util.logger
+
+import java.io.File
+import java.io.PrintWriter
+import java.nio.file.Files
+import java.nio.file.Paths
 
 import org.scalatest.FunSuite
 
@@ -49,41 +55,66 @@ class SemanticTests extends FunSuite with DiffAssertions { self =>
     g
   }
 
-  private val fixer = new ScalafixNscPlugin(testGlobal).component
+  private val scalafixNscPlugin = new ScalafixNscPlugin(testGlobal)
+  private val fixer = scalafixNscPlugin.component
   private val g: fixer.global.type = fixer.global
+  implicit val mirror = scalafixNscPlugin.mirror
+  import mirror._
 
   private def unwrap(gtree: g.Tree): g.Tree = gtree match {
     case g.PackageDef(g.Ident(g.TermName(_)), stat :: Nil) => stat
     case body => body
   }
 
-  private def getTypedCompilationUnit(code: String): g.CompilationUnit = {
-    import g._
-    val unit = new CompilationUnit(newSourceFile(code, "<ReflectToMeta>"))
-    val run = g.currentRun
-    val phases = List(run.parserPhase, run.namerPhase, run.typerPhase)
+  private def computeDatabaseFromSnippet(
+      code: String): (g.CompilationUnit, Database) = {
+    val javaFile = File.createTempFile("paradise", ".scala")
+    val writer = new PrintWriter(javaFile)
+    try writer.write(code)
+    finally writer.close()
+
+    val run = new g.Run
+    val abstractFile = AbstractFile.getFile(javaFile)
+    val sourceFile = g.getSourceFile(abstractFile)
+    val unit = new g.CompilationUnit(sourceFile)
+    run.compileUnits(List(unit), run.phaseNamed("terminal"))
+
+    g.phase = run.parserPhase
+    g.globalPhase = run.parserPhase
     val reporter = new StoreReporter()
     g.reporter = reporter
+    unit.body = g.newUnitParser(unit).parse()
+    val errors = reporter.infos.filter(_.severity == reporter.ERROR)
+    errors.foreach(error =>
+      fail(s"scalac parse error: ${error.msg} at ${error.pos}"))
+
+    val packageobjectsPhase = run.phaseNamed("packageobjects")
+    val phases = List(run.parserPhase,
+                      run.namerPhase,
+                      packageobjectsPhase,
+                      run.typerPhase)
+    reporter.reset()
+
     phases.foreach(phase => {
       g.phase = phase
       g.globalPhase = phase
-      phase.asInstanceOf[GlobalPhase].apply(unit)
+      phase.asInstanceOf[g.GlobalPhase].apply(unit)
       val errors = reporter.infos.filter(_.severity == reporter.ERROR)
-      val warnings = reporter.infos.filter(_.severity == reporter.WARNING)
-      warnings.foreach(warning => logger.warn(s"""${warning.msg}
-                                                 |${warning.pos.lineContent}
-                                                 |${warning.pos.lineCaret}""".stripMargin))
       errors.foreach(error =>
-        fail(s"""scalac ${phase.name} error: ${error.msg} at ${error.pos}
-                |$code""".stripMargin))
+        fail(s"scalac ${phase.name} error: ${error.msg} at ${error.pos}"))
     })
-    unit
+    g.phase = run.phaseNamed("patmat")
+    g.globalPhase = run.phaseNamed("patmat")
+
+    unit -> unit.asInstanceOf[mirror.g.CompilationUnit].toDatabase
   }
 
   def fix(code: String, config: ScalafixConfig): String = {
-    val Fixed.Success(fixed) = fixer.fix(getTypedCompilationUnit(code), config)
+    val (unit, database) = computeDatabaseFromSnippet(code)
+    val Fixed.Success(fixed) = fixer.fix(unit, config)
     fixed
   }
+
   case class MismatchException(details: String) extends Exception
   private def checkMismatchesModuloDesugarings(obtained: m.Tree,
                                                expected: m.Tree): Unit = {
@@ -125,7 +156,7 @@ class SemanticTests extends FunSuite with DiffAssertions { self =>
   }
   private def typeChecks(code: String): Unit = {
     try {
-      getTypedCompilationUnit(code)
+      computeDatabaseFromSnippet(code)
     } catch {
       case NonFatal(e) =>
         e.printStackTrace()

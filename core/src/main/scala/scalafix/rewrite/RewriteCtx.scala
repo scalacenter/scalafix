@@ -10,13 +10,13 @@ case class RewriteCtx(
     tokens: Tokens,
     tokenList: TokenList,
     comments: AssociatedComments,
-    semantic: Option[SemanticApi]
+    semantic: Option[ScalafixMirror]
 )
 
 object RewriteCtx {
   def fromCode(ast: Tree,
                config: ScalafixConfig = ScalafixConfig(),
-               semanticApi: Option[SemanticApi] = None): RewriteCtx = {
+               semanticApi: Option[ScalafixMirror] = None): RewriteCtx = {
     val tokens = ast.tokens(config.dialect)
     RewriteCtx(
       config,

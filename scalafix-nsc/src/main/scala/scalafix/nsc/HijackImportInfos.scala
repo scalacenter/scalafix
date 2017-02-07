@@ -10,6 +10,7 @@ trait HijackImportInfos { self: ReflectToolkit =>
   val allImportInfos: NonRemovableMap[g.CompilationUnit,
                                       List[g.analyzer.ImportInfo]] =
     new NonRemovableMap[g.CompilationUnit, List[g.analyzer.ImportInfo]](Nil)
+
   /** overrides private lazy maps in g.analyzer's Contexts with custom maps */
   def hijackImportInfos(): Unit = {
     def hijackLazyField[T](name: String, value: T): T = {

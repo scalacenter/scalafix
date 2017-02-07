@@ -11,7 +11,7 @@ case class ItTest(name: String,
                   repo: String,
                   hash: String,
                   config: String = "",
-                  cmds: Seq[Command] = Command.default,
+                  commands: Seq[Command] = Command.default,
                   rewrites: Seq[Rewrite] = Rewrite.defaultRewrites,
                   addCoursier: Boolean = true,
                   testPatch: Boolean = false) {
