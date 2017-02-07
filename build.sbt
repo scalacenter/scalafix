@@ -94,7 +94,7 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
   buildInfoKeys := Seq[BuildInfoKey](
     name,
     version,
-    "stableVersion" -> version.value, // TODO(olafur) customize.
+    "stableVersion" -> "0.2.2",
     scalaVersion,
     sbtVersion
   ),
