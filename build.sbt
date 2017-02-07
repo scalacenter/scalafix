@@ -169,6 +169,7 @@ lazy val `scalafix-nsc` = project
       "com.typesafe.slick" %% "slick"              % "3.2.0-M2" % Test,
       "io.circe"           %% "circe-core"         % "0.6.0"    % Test,
       "org.typelevel"      %% "cats-core"          % "0.7.2"    % Test,
+      "com.chuusai"        %% "shapeless"          % "2.3.2"    % Test,
       "org.scalacheck"     %% "scalacheck"         % "1.13.4"   % Test
     ),
     // sbt does not fetch transitive dependencies of compiler plugins.
