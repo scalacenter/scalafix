@@ -82,7 +82,8 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
         ) ++ cmds.map(_.toString)
       failAfter(maxTime) {
         import sys.process._
-        Process(args, cwd = t.workingPath.toIO).!
+        val status = Process(args, cwd = t.workingPath.toIO).!
+        assert(status == 0)
       }
       logger.info(s"Completed $id")
     }

@@ -1,18 +1,17 @@
 package scalafix.nsc
 
-import scala.collection.mutable
+import scala.meta.internal.scalahost.v1.online.Mirror
 import scala.meta.semantic.v1
+import scala.meta.semantic.v1._
 import scala.tools.nsc.Global
 import scala.tools.nsc.Phase
 import scala.tools.nsc.plugins.Plugin
 import scala.tools.nsc.plugins.PluginComponent
-import scala.tools.nsc.typechecker.Contexts
 import scala.util.control.NonFatal
 import scalafix.Failure.ParseError
 import scalafix.ScalafixConfig
 import scalafix.util.FileOps
 import scalafix.util.logger
-import scala.meta.internal.scalahost.v1.online.Mirror
 
 class ScalafixNscComponent(plugin: Plugin,
                            val global: Global,
@@ -20,14 +19,14 @@ class ScalafixNscComponent(plugin: Plugin,
     extends PluginComponent
     with ReflectToolkit
     with NscScalafixMirror {
-
   // warnUnusedImports could be set triggering a compiler error
   // if fatal warnings is also enabled.
   g.settings.warnUnusedImport.tryToSetFromPropertyValue("true")
   g.settings.fatalWarnings.tryToSetFromPropertyValue("false")
 
   override val phaseName: String = "scalafix"
-  override val runsAfter: List[String] = "typer" :: Nil
+  override val runsRightAfter: Option[String] = Some("typer")
+  override val runsAfter: List[String] = Nil
 
   private def runOn(unit: g.CompilationUnit)(implicit mirror: Mirror): Unit = {
     if (unit.source.file.exists &&

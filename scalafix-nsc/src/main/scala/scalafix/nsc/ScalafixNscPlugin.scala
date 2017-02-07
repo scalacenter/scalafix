@@ -19,6 +19,7 @@ class ScalafixNscPlugin(val global: Global) extends Plugin {
   // It seems warn-unused-imports still uses the old g.analyzer to collect import infos.
   scalafixComponent.hijackImportInfos()
   private val scalahostPlugin = new ScalahostPlugin(global) // let scalahost hijack global
+  global.settings.plugin.appendToValue("scalahost")
   val mirror = new Mirror(global)
   val name = "scalafix"
   val description = "Refactoring tool."

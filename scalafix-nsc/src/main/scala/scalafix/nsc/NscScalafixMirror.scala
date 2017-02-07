@@ -54,7 +54,7 @@ trait NscScalafixMirror extends ReflectToolkit with HijackImportInfos {
     val builder = mutable.Map.empty[Int, m.Type]
     def add(gtree: g.Tree, ctx: SemanticContext): Unit = {
 
-      /** Removes redudant Foo.this.ActualType prefix from a type */
+      // Removes redudant Foo.this.ActualType prefix from a type
       val stripRedundantThis: m.Type => m.Type = _.transform {
         case m.Term.Select(m.Term.This(m.Name.Indeterminate(_)), qual) =>
           qual
