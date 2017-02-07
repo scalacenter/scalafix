@@ -46,10 +46,11 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
         publishLocal := {},
         publish := {},
         publishArtifact := false,
+        publishMavenStyle := false, // necessary to support intransitive dependencies.
         scalaVersion := version,
-        libraryDependencies ++= Seq(
-          "ch.epfl.scala" %% "scalafix-nsc" % scalafixVersion
-        )
+        libraryDependencies := Nil, // remove injected dependencies from random sbt plugins.
+        libraryDependencies +=
+          ("ch.epfl.scala" %% "scalafix-nsc" % scalafixVersion).intransitive()
       )
   }
   private val scalafix211 = stub("2.11.8")
