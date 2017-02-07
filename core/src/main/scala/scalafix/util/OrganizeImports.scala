@@ -94,10 +94,20 @@ private[this] class OrganizeImports private (implicit ctx: RewriteCtx) {
     }
   }
 
+  def rootPkgName(ref: Ref): String = ref match {
+    case name: Term.Name => name.value
+    case _ =>
+      ref.collect {
+        case Term.Select(name: Term.Name, _) => name.value
+      }.head
+  }
+
   def fullyQualify(imp: CanonicalImport): Option[Term.Ref] =
     for {
       semantic <- ctx.semantic
       fqnRef <- semantic.fqn(imp.ref)
+      // Avoid inserting unneeded `package`
+      if rootPkgName(fqnRef) != rootPkgName(imp.ref)
       if fqnRef.is[Term.Ref]
     } yield fqnRef.asInstanceOf[Term.Ref]
 
@@ -108,7 +118,7 @@ private[this] class OrganizeImports private (implicit ctx: RewriteCtx) {
     val (fullyQualifiedImports, relativeImports) =
       imports.partition { imp =>
         ctx.config.imports.expandRelative ||
-        fullyQualify(imp).exists(_.syntax == imp.ref.syntax)
+        fullyQualify(imp).forall(_.syntax == imp.ref.syntax)
       }
     val groupById =
       config.groups.zipWithIndex.toMap

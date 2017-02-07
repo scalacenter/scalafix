@@ -44,3 +44,7 @@ package object scalafix {
     ProcedureSyntax.toString
   }
 }
+<<< useless package #55
+import shapeless.nat._0
+>>>
+import shapeless.nat._0
