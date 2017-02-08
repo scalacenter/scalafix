@@ -106,6 +106,7 @@ private[this] class OrganizeImports private (implicit ctx: RewriteCtx) {
   def fullyQualify(imp: CanonicalImport): Option[Term.Ref] =
     for {
       semantic <- ctx.semantic
+      // TODO(olafur) switch to scala.meta mirror instead of scalafix homebrew.
 //      sym <- semantic.symbol(imp.ref).toOption
 //      fqnRef <- sym.toTermRef
       fqnRef <- semantic.fqn(imp.ref)

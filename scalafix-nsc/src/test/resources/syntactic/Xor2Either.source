@@ -1,5 +1,5 @@
 rewrites = [Xor2Either]
-<<< ONLY xor 1
+<<< xor 1
 import scala.concurrent.Future
 import cats.data.{ Xor, XorT }
 trait A {
@@ -11,11 +11,10 @@ type MyDisjunction = Xor[Int, String]
   val u: XorT[Future, Int, String] = ???
 }
 >>>
+import scala.concurrent.Future
+
 import cats.data.EitherT
 import cats.implicits._
-import scala.util.Either
-import scala.concurrent.Future
-import cats.data.{ Xor, XorT }
 trait A {
 type MyDisjunction = Either[Int, String]
   val r: MyDisjunction = Right("")
@@ -24,13 +23,22 @@ type MyDisjunction = Either[Int, String]
   val nest: Seq[Either[Int, Either[String, Int]]]
   val u: EitherT[Future, Int, String] = ???
 }
-<<< xor do not modify when not present
-import scala.concurrent.Future
-trait A {
-  val num = 1
+<<< no implicits
+object a { val x = cats.data.Xor.left[String, Int]("str") }
+>>>
+object a { val x = Left[String, Int]("str") }
+<<< SKIP .right
+import cats.data.Xor
+class a {
+  val x: Xor[Int, String] = Xor.right("foo")
+  for {
+    y <- x
+  } yield y
 }
 >>>
-import scala.concurrent.Future
-trait A {
-  val num = 1
+class a {
+  val x: Either[Int, String] = Right("foo")
+  for {
+    y <- x.right
+  } yield y
 }

@@ -2,15 +2,14 @@ package scalafix.util
 
 import scala.collection.immutable.Seq
 import scala.meta._
+import scala.meta.internal.ast.Helpers._
 import scala.meta.tokens.Token
 import scala.meta.tokens.Token
-import scalafix.ImportsConfig
-import scalafix.ScalafixConfig
 import scalafix.rewrite.RewriteCtx
+import scalafix.syntax._
 import scalafix.util.TokenPatch.Add
 import scalafix.util.TokenPatch.Remove
-import scalafix.syntax._
-
+import scalafix.util.TreePatch.Replace
 sealed abstract class Patch
 abstract class TreePatch extends Patch
 abstract class TokenPatch(val tok: Token, val newTok: String)
@@ -24,6 +23,12 @@ abstract class ImportPatch(val importer: Importer) extends TreePatch {
   def toImport: Import = Import(Seq(importer))
 }
 object TreePatch {
+  case class Replace(from: Symbol,
+                     to: Term.Ref,
+                     additionalImports: List[Importer] = Nil)
+      extends TreePatch {
+    require(to.isStableId)
+  }
   case class RemoveGlobalImport(override val importer: Importer)
       extends ImportPatch(importer)
   case class AddGlobalImport(override val importer: Importer)
@@ -60,11 +65,19 @@ object Patch {
   def apply(ast: Tree, patches: Seq[Patch])(implicit ctx: RewriteCtx): String = {
     val input = ast.tokens
     val tokenPatches = patches.collect { case e: TokenPatch => e }
-    val importPatches = OrganizeImports.organizeImports(ast, patches.collect {
-      case e: ImportPatch => e
+    val replacePatches = Replacer.toTokenPatches(ast, patches.collect {
+      case e: Replace => e
     })
+    val importPatches = OrganizeImports.organizeImports(
+      ast,
+      patches.collect { case e: ImportPatch => e } ++
+        replacePatches.collect { case e: ImportPatch => e }
+    )
+    val replaceTokenPatches = replacePatches.collect {
+      case t: TokenPatch => t
+    }
     val patchMap: Map[(Int, Int), String] =
-      (importPatches ++ tokenPatches)
+      (importPatches ++ tokenPatches ++ replaceTokenPatches)
         .groupBy(_.tok.posTuple)
         .mapValues(_.reduce(merge).newTok)
     input.toIterator
