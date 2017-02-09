@@ -5,5 +5,4 @@ object TreeExtractors {
     def unapply(tree: Tree): Option[(Tree, Tree)] =
       tree.parent.map(parent => tree -> parent)
   }
-
 }

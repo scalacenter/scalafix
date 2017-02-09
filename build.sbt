@@ -167,7 +167,6 @@ lazy val `scalafix-nsc` = project
       // integration property tests
       "org.typelevel"      %% "catalysts-platform" % "0.0.5"    % Test,
       "com.typesafe.slick" %% "slick"              % "3.2.0-M2" % Test,
-      "org.typelevel"      %% "cats-core"          % "0.7.2"    % Test,
       "com.chuusai"        %% "shapeless"          % "2.3.2"    % Test,
       "org.scalacheck"     %% "scalacheck"         % "1.13.4"   % Test
     ),

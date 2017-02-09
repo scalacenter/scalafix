@@ -38,17 +38,18 @@ package object syntax {
       else els
   }
   implicit class XtensionCompleted[T](completed: Completed[T]) {
+    // TODO(olafur) contribute these upstream
     def toOption: Option[T] = completed match {
       case Completed.Success(e) => Some(e)
       case _ => None
     }
+    def toEither: Either[Exception, T] = completed match {
+      case Completed.Success(e) => Right(e)
+      case Completed.Error(e) => Left(e)
+    }
+    def toTry: Try[T] = Try(completed.get)
   }
   implicit class XtensionSymbol(symbol: Symbol) {
-    def /(name: String): Symbol = symbol match {
-      case Symbol.Global(sym, term: Signature.Term) =>
-        Symbol.Global(Symbol.Global(sym, term), Signature.Term(name))
-    }
-
     /** Returns simplified version of this Symbol.
       *
       * - No Symbol.Multi
@@ -66,20 +67,22 @@ package object syntax {
       case x => x
     }
 
-    def to[T <: Tree]: T = {
+    /** Returns corresponding scala.meta.Tree for symbol
+      * Caveat: not thoroughly tested, may crash
+      * */
+    def to[T <: Tree]: Try[T] = Try {
       val tree = symbol match {
         case Symbol.Global(Symbol.None, Signature.Term(name)) =>
           Term.Name(name)
         case Symbol.Global(sym, Signature.Type(name)) =>
-          Type.Select(sym.to[Term.Ref], Type.Name(name))
+          Type.Select(sym.to[Term.Ref].get, Type.Name(name))
         case Symbol.Global(sym, Signature.Term(name)) =>
-          Term.Select(sym.to[Term], Term.Name(name))
+          Term.Select(sym.to[Term].get, Term.Name(name))
       }
-      tree.asInstanceOf[T] // crash intended
+      tree.asInstanceOf[T] // should crash
     }
   }
   implicit class XtensionString(str: String) {
-    def asSymbol: Symbol = Symbol(s"_root_.$str")
     def reveal: String = logger.reveal(str)
   }
 }

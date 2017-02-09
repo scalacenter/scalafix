@@ -12,7 +12,7 @@ import scalafix.util.logger
 
 case object Xor2Either extends Rewrite {
   override def rewrite(code: Tree, rewriteCtx: RewriteCtx): Seq[Patch] = {
-    implicit val semantic = getSemanticApi(rewriteCtx)
+    implicit val semantic = getMirror(rewriteCtx)
     code.collectFirst {
       case t: Term.Name
           if semantic

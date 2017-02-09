@@ -22,6 +22,7 @@ abstract class ImportPatch(val importer: Importer) extends TreePatch {
   def importee: Importee = importer.importees.head
   def toImport: Import = Import(Seq(importer))
 }
+
 object TreePatch {
   case class Replace(from: Symbol,
                      to: Term.Ref,
@@ -29,6 +30,8 @@ object TreePatch {
       extends TreePatch {
     require(to.isStableId)
   }
+  // TODO(olafur) implement this
+  //  case class Rename(from: Symbol, to: Term.Name) extends TreePatch
   case class RemoveGlobalImport(override val importer: Importer)
       extends ImportPatch(importer)
   case class AddGlobalImport(override val importer: Importer)

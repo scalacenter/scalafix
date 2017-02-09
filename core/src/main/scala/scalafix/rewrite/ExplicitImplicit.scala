@@ -17,7 +17,7 @@ case object ExplicitImplicit extends Rewrite {
   }
   override def rewrite(ast: m.Tree, ctx: RewriteCtx): Seq[Patch] = {
     import scala.meta._
-    val semantic = getSemanticApi(ctx)
+    val semantic = getMirror(ctx)
     def fix(defn: Defn, body: Term): Seq[Patch] = {
       import ctx.tokenList._
       for {
