@@ -5,7 +5,7 @@ style = defaultWithAlign
 }*/
 
 object Build {
-  val scalametaV = "1.6.0-671"
+  val scalametaV = "1.6.0-654"
   val ammoniteV  = "0.8.2"
   val scalatestV = "3.0.0"
 }
