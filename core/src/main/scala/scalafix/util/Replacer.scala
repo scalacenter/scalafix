@@ -32,7 +32,6 @@ private[this] class Replacer(implicit ctx: RewriteCtx) {
             builder ++=
               replacements
                 .find { x =>
-//                  logger.elem(x.from.syntax, symbol.syntax)
                   x.from == symbol
                 }
                 .toList
@@ -53,5 +52,6 @@ private[this] class Replacer(implicit ctx: RewriteCtx) {
 object Replacer {
   def toTokenPatches(ast: Tree, replacements: Seq[Replace])(
       implicit ctx: RewriteCtx): Seq[Patch] =
-    new Replacer().toTokenPatches(ast, replacements)
+    if (replacements.isEmpty) Nil
+    else new Replacer().toTokenPatches(ast, replacements)
 }
