@@ -4,6 +4,7 @@ import scala.collection.immutable.Seq
 import scala.collection.mutable
 import scala.meta.Importee.Wildcard
 import scala.meta._
+import scala.meta.semantic.v1.Completed
 import scala.meta.tokens.Token.Comment
 import scalafix.FilterMatcher
 import scalafix.rewrite.RewriteCtx
@@ -105,10 +106,12 @@ private[this] class OrganizeImports private (implicit ctx: RewriteCtx) {
   def fullyQualify(imp: CanonicalImport): Option[Term.Ref] =
     for {
       semantic <- ctx.semantic
+      // TODO(olafur) switch to scala.meta mirror instead of scalafix homebrew.
+//      sym <- semantic.symbol(imp.ref).toOption
+//      fqnRef <- sym.toTermRef
       fqnRef <- semantic.fqn(imp.ref)
       // Avoid inserting unneeded `package`
       if rootPkgName(fqnRef) != rootPkgName(imp.ref)
-      if fqnRef.is[Term.Ref]
     } yield fqnRef.asInstanceOf[Term.Ref]
 
   def groupImports(imports0: Seq[CanonicalImport]): Seq[Seq[Import]] = {

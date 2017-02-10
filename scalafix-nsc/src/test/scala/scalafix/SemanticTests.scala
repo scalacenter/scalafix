@@ -2,9 +2,9 @@ package scalafix
 
 import scala.collection.immutable.Seq
 import scala.meta.Term
-import scala.meta.internal.scalahost.v1.online.Mirror
 import scala.meta.contrib._
 import scala.meta.internal.scalahost.ScalahostPlugin
+import scala.meta.internal.scalahost.v1.online.Mirror
 import scala.meta.semantic.v1.Database
 import scala.reflect.io.AbstractFile
 import scala.tools.cmd.CommandLineParser
@@ -22,8 +22,6 @@ import scalafix.util.logger
 
 import java.io.File
 import java.io.PrintWriter
-import java.nio.file.Files
-import java.nio.file.Paths
 
 import org.scalatest.FunSuite
 
@@ -34,15 +32,14 @@ class SemanticTests extends FunSuite with DiffAssertions { self =>
     def fail(msg: String) =
       sys.error(s"ReflectToMeta initialization failed: $msg")
     val classpath = System.getProperty("sbt.paths.scalafixNsc.test.classes")
-    val pluginpath = System.getProperty("sbt.paths.plugin.jar")
     val scalacOptions = Seq(
+      "-cp",
+      classpath,
       "-Yrangepos",
       "-Ywarn-unused-import"
     ).mkString(" ", " ", " ")
-    val options = "-cp " + classpath + " -Xplugin:" + pluginpath + ":" +
-        classpath + " -Xplugin-require:scalafix" + scalacOptions
 
-    val args = CommandLineParser.tokenize(options)
+    val args = CommandLineParser.tokenize(scalacOptions)
     val emptySettings = new Settings(
       error => fail(s"couldn't apply settings because $error"))
     val reporter = new StoreReporter()

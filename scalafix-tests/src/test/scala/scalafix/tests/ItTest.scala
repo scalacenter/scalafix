@@ -7,14 +7,15 @@ import java.io.File
 
 import ammonite.ops.Path
 
-case class ItTest(name: String,
-                  repo: String,
-                  hash: String,
-                  config: String = "",
-                  commands: Seq[Command] = Command.default,
-                  rewrites: Seq[Rewrite] = Rewrite.defaultRewrites,
-                  addCoursier: Boolean = true,
-                  testPatch: Boolean = false) {
+case class ItTest(
+    name: String,
+    repo: String,
+    hash: String,
+    config: String = "",
+    commands: Seq[Command] = Command.default,
+    rewrites: Seq[Rewrite] = Rewrite.defaultRewrites,
+    addCoursier: Boolean = true
+) {
   def repoName: String = repo match {
     case Command.RepoName(x) => x
     case _ =>

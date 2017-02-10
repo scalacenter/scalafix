@@ -7,7 +7,7 @@ import scalafix.util.Patch
 import scala.collection.immutable.Seq
 
 abstract class Rewrite {
-  def getSemanticApi(ctx: RewriteCtx): ScalafixMirror = ctx.semantic.getOrElse {
+  def getMirror(ctx: RewriteCtx): ScalafixMirror = ctx.semantic.getOrElse {
     throw MissingSemanticApi(this)
   }
   def rewrite(code: Tree, rewriteCtx: RewriteCtx): Seq[Patch]
@@ -22,7 +22,10 @@ object Rewrite {
     ProcedureSyntax,
     VolatileLazyVal
   )
-  val semanticRewrites: Seq[Rewrite] = Seq(ExplicitImplicit)
+  val semanticRewrites: Seq[Rewrite] = Seq(
+    ExplicitImplicit,
+    Xor2Either
+  )
   val allRewrites: Seq[Rewrite] = syntaxRewrites ++ semanticRewrites
   val defaultRewrites: Seq[Rewrite] =
     allRewrites.filterNot(_ == VolatileLazyVal)

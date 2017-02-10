@@ -5,12 +5,13 @@ style = defaultWithAlign
 }*/
 
 object Build {
-  val scalametaV = "1.6.0-641"
+  val scalametaV = "1.6.0-654"
   val ammoniteV  = "0.8.2"
   val scalatestV = "3.0.0"
 }
 
 object Dependencies {
+  var testClasspath: String = "empty"
   import Build._
   def scalahost(scalaVersion: String): ModuleID = "org.scalameta" % s"scalahost_$scalaVersion" % scalametaV
   def scalameta: ModuleID                       = "org.scalameta" %% "contrib"                 % scalametaV
