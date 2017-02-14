@@ -4,6 +4,7 @@ import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.inputs.Input
 import scala.meta.parsers.Parsed
+import scalafix.config.ScalafixConfig
 import scalafix.rewrite.RewriteCtx
 import scalafix.rewrite.ScalafixCtx
 import scalafix.rewrite.ScalafixMirror

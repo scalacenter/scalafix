@@ -6,13 +6,9 @@ import scala.meta.semantic.v1.Signature
 import scala.meta.semantic.v1.Symbol
 import scala.meta.tokens.Token
 import scala.util.Try
-import scalafix.rewrite.ScalafixCtx
-import scalafix.rewrite.ScalafixMirror
 import scalafix.util.CanonicalImport
 import scalafix.util.ImportPatch
 import scalafix.util.logger
-
-import com.typesafe.config.Config
 
 package object syntax {
   implicit class XtensionImporter(i: CanonicalImport) {
@@ -34,11 +30,6 @@ package object syntax {
     def posTuple: (Int, Int) = token.start -> token.end
   }
 
-  implicit class XtensionConfig(config: Config) {
-    def getBoolOrElse(key: String, els: Boolean): Boolean =
-      if (config.hasPath(key)) config.getBoolean(key)
-      else els
-  }
   implicit class XtensionCompleted[T](completed: Completed[T]) {
     // TODO(olafur) contribute these upstream
     def toOption: Option[T] = completed match {

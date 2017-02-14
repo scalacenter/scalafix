@@ -1,5 +1,6 @@
 package scalafix
 
+import scalafix.config.ScalafixConfig
 import scalatags.Text.TypedTag
 import scalatags.Text.all._
 

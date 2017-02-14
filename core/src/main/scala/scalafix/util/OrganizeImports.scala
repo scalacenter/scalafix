@@ -6,8 +6,9 @@ import scala.meta.Importee.Wildcard
 import scala.meta._
 import scala.meta.semantic.v1.Completed
 import scala.meta.tokens.Token.Comment
-import scalafix.FilterMatcher
+import scalafix.config.FilterMatcher
 import scalafix.rewrite.ScalafixCtx
+import scalafix.rewrite.RewriteCtx
 import scalafix.syntax._
 import scalafix.util.TreePatch.AddGlobalImport
 import scalafix.util.TreePatch.RemoveGlobalImport
@@ -222,5 +223,10 @@ private[this] class OrganizeImports private (implicit ctx: ScalafixCtx) {
 object OrganizeImports {
   def organizeImports(code: Tree, patches: Seq[ImportPatch])(
       implicit ctx: ScalafixCtx): Seq[TokenPatch] =
-    new OrganizeImports().organizeImports(code, patches)
+    new OrganizeImports().organizeImports(
+      code,
+      patches ++ ctx.config.patches.all.collect {
+        case i: ImportPatch => i
+      }
+    )
 }

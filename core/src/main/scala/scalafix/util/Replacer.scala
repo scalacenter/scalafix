@@ -24,11 +24,15 @@ private[this] class Replacer(implicit ctx: ScalafixCtx) {
   }
 
   def toTokenPatches(ast: Tree, replacements: Seq[Replace]): Seq[Patch] = {
+    if (replacements.isEmpty) return Nil
     val builder = Seq.newBuilder[Patch]
     object traverser extends Traverser {
       override def apply(tree: Tree): Unit = {
         tree match {
           case (ref: Ref) `:withSymbol:` symbol =>
+            if (ctx.config.debug.printSymbols)
+              logger.info(
+                s"Ref '$ref' has symbol $symbol (normalized ${symbol.normalized})")
             builder ++=
               replacements
                 .find { x =>
@@ -51,7 +55,12 @@ private[this] class Replacer(implicit ctx: ScalafixCtx) {
 }
 object Replacer {
   def toTokenPatches(ast: Tree, replacements: Seq[Replace])(
-      implicit ctx: ScalafixCtx): Seq[Patch] =
-    if (replacements.isEmpty) Nil
-    else new Replacer().toTokenPatches(ast, replacements)
+      implicit ctx: ScalafixCtx): Seq[Patch] = {
+    new Replacer().toTokenPatches(
+      ast,
+      replacements ++ ctx.config.patches.all.collect {
+        case r: Replace => r
+      }
+    )
+  }
 }

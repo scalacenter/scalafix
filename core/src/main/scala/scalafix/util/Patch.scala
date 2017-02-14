@@ -2,6 +2,7 @@ package scalafix.util
 
 import scala.collection.immutable.Seq
 import scala.meta._
+import scala.meta.contrib._
 import scala.meta.internal.ast.Helpers._
 import scala.meta.tokens.Token
 import scala.meta.tokens.Token
@@ -10,6 +11,8 @@ import scalafix.syntax._
 import scalafix.util.TokenPatch.Add
 import scalafix.util.TokenPatch.Remove
 import scalafix.util.TreePatch.Replace
+import scalafix.config._
+
 sealed abstract class Patch
 abstract class TreePatch extends Patch
 abstract class TokenPatch(val tok: Token, val newTok: String)
@@ -24,14 +27,14 @@ abstract class ImportPatch(val importer: Importer) extends TreePatch {
 }
 
 object TreePatch {
+  @metaconfig.ConfigReader
   case class Replace(from: Symbol,
                      to: Term.Ref,
-                     additionalImports: List[Importer] = Nil)
+                     additionalImports: List[Importer] = Nil,
+                     normalized: Boolean = true)
       extends TreePatch {
     require(to.isStableId)
   }
-  // TODO(olafur) implement this
-  //  case class Rename(from: Symbol, to: Term.Name) extends TreePatch
   case class RemoveGlobalImport(override val importer: Importer)
       extends ImportPatch(importer)
   case class AddGlobalImport(override val importer: Importer)

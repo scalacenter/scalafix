@@ -42,12 +42,12 @@ object ScalafixMirror {
     override def symbol(ref: Ref): Completed[Symbol] = mirror.symbol(ref)
   }
 
-  def empty(implicit dialect: Dialect): ScalafixMirror = new ScalafixMirror {
+  def empty(implicit d: Dialect): ScalafixMirror = new ScalafixMirror {
     override def fqn(name: Ref): Option[Ref] = None
     override def isUnusedImport(importee: Importee): Boolean = false
     override def typeSignature(defn: Defn): Option[Type] = None
     override def sources = Nil
-    override def dialect: Dialect = dialect
+    override def dialect: Dialect = d
     override def database: Database = Database()
     override def symbol(ref: Ref): Completed[Symbol] = Completed.Error(error)
   }

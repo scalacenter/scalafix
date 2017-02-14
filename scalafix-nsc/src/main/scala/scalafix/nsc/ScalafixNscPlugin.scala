@@ -7,7 +7,7 @@ import scala.meta.internal.scalahost.v1.online.Mirror
 import scala.tools.nsc.Global
 import scala.tools.nsc.plugins.Plugin
 import scala.tools.nsc.plugins.PluginComponent
-import scalafix.ScalafixConfig
+import scalafix.config.ScalafixConfig
 
 import java.io.File
 
@@ -37,7 +37,7 @@ class ScalafixNscPlugin(val global: Global) extends Plugin {
       case file :: Nil =>
         ScalafixConfig.fromFile(new File(file)) match {
           case Left(msg) =>
-            error(msg)
+            error(msg.getMessage)
             false
           case Right(userConfig) =>
             config = userConfig

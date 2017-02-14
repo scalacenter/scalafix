@@ -1,8 +1,10 @@
 package scalafix
 
 import scala.collection.immutable.Seq
+import scalafix.config.ScalafixConfig
 import scalafix.rewrite.ExplicitImplicit
 import scalafix.rewrite.ProcedureSyntax
+import scalafix.rewrite.Xor2Either
 import scalafix.util.FileOps
 import scalafix.util.logger
 
@@ -26,7 +28,7 @@ object DiffTest {
       val firstLine = split.head
       ScalafixConfig.fromString(firstLine) match {
         case Right(x) => x
-        case Left(e) => throw new IllegalArgumentException(e)
+        case Left(e) => throw e
       }
     }
 
@@ -80,12 +82,7 @@ case class DiffTest(spec: String,
                     only: Boolean,
                     config: ScalafixConfig) {
   def noWrap: Boolean = name.startsWith("NOWRAP ")
-  def isSyntax: Boolean =
-    Seq(
-      "syntactic",
-      ProcedureSyntax.toString
-    ).exists(spec.startsWith)
-
+  def checkSyntax: Boolean = spec.startsWith("checkSyntax")
   private def packageName = name.replaceAll("[^a-zA-Z0-9]", "")
   private def packagePrefix = s"package $packageName {\n"
   private def packageSuffix = s" }\n"

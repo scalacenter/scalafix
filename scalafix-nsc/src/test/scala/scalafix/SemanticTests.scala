@@ -2,6 +2,7 @@ package scalafix
 
 import scala.collection.immutable.Seq
 import scala.meta.Term
+import scala.meta.Tree
 import scala.meta.contrib._
 import scala.meta.internal.scalahost.ScalahostPlugin
 import scala.meta.internal.scalahost.v1.online.Mirror
@@ -14,6 +15,7 @@ import scala.tools.nsc.Settings
 import scala.tools.nsc.reporters.StoreReporter
 import scala.util.control.NonFatal
 import scala.{meta => m}
+import scalafix.config.ScalafixConfig
 import scalafix.nsc.ScalafixNscPlugin
 import scalafix.rewrite.ExplicitImplicit
 import scalafix.rewrite.Rewrite
@@ -173,14 +175,20 @@ class SemanticTests extends FunSuite with DiffAssertions { self =>
     code.parse[Source].get
   }
 
+  def assertNoDiff(obtained: Tree, expected: Tree): Boolean = {
+    assertNoDiff(obtained.tokens.mkString,
+                 expected.tokens.mkString,
+                 "Tree syntax mismatch")
+  }
+
   def check(original: String, expectedStr: String, diffTest: DiffTest): Unit = {
     val fixed = fix(diffTest.wrapped(), diffTest.config)
     val obtained = parse(diffTest.unwrap(fixed))
     val expected = parse(expectedStr)
     try {
       checkMismatchesModuloDesugarings(obtained, expected)
-      if (diffTest.isSyntax) {
-        assertNoDiff(obtained.syntax, expected.syntax)
+      if (diffTest.checkSyntax) {
+        assertNoDiff(obtained, expected)
       }
       if (!diffTest.noWrap) {
         typeChecks(diffTest.wrapped(fixed))

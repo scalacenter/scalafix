@@ -3,7 +3,6 @@ package scalafix.cli
 import scala.collection.GenSeq
 import scalafix.Failure
 import scalafix.Scalafix
-import scalafix.ScalafixConfig
 import scalafix.rewrite.Rewrite
 import scalafix.util.FileOps
 
@@ -18,6 +17,7 @@ import scalafix.Fixed
 import scalafix.cli.termdisplay.TermDisplay
 import scalafix.rewrite.ScalafixRewrite
 import scalafix.rewrite.ScalafixRewrites
+import scalafix.config.ScalafixConfig
 
 import caseapp._
 import caseapp.core.Messages
