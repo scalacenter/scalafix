@@ -6,7 +6,7 @@ import scalafix.util.Whitespace
 import scala.collection.immutable.Seq
 import scalafix.util.TokenPatch
 
-case object ExplicitImplicit extends Rewrite {
+case object ExplicitImplicit extends Rewrite[ScalafixMirror] {
   // Don't explicitly annotate vals when the right-hand body is a single call
   // to `implicitly`. Prevents ambiguous implicit. Not annotating in such cases,
   // this a common trick employed implicit-heavy code to workaround SI-2712.
@@ -15,9 +15,9 @@ case object ExplicitImplicit extends Rewrite {
     case m.Term.ApplyType(m.Term.Name("implicitly"), _) => true
     case _ => false
   }
-  override def rewrite(ast: m.Tree, ctx: RewriteCtx): Seq[Patch] = {
+  override def rewrite(ctx: ScalafixCtx): Seq[Patch] = {
     import scala.meta._
-    val semantic = getMirror(ctx)
+    import ctx._
     def fix(defn: Defn, body: Term): Seq[Patch] = {
       import ctx.tokenList._
       for {
@@ -28,10 +28,10 @@ case object ExplicitImplicit extends Rewrite {
         lhsTokens = slice(start, end)
         replace <- lhsTokens.reverseIterator.find(x =>
           !x.is[Token.Equals] && !x.is[Whitespace])
-        typ <- semantic.typeSignature(defn)
+        typ <- mirror.typeSignature(defn)
       } yield TokenPatch.AddRight(replace, s": ${typ.syntax}")
     }.to[Seq]
-    ast.collect {
+    tree.collect {
       case t @ m.Defn.Val(mods, _, None, body)
           if mods.exists(_.syntax == "implicit") &&
             !isImplicitly(body) =>

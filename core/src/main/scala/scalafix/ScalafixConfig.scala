@@ -6,6 +6,8 @@ import scala.meta.dialects.Scala211
 import scala.meta.parsers.Parse
 import scala.util.control.NonFatal
 import scalafix.rewrite.Rewrite
+import scalafix.rewrite.ScalafixCtx
+import scalafix.rewrite.ScalafixRewrite
 import scalafix.syntax._
 
 import java.io.File
@@ -31,7 +33,7 @@ object ImportsConfig {
   def default: ImportsConfig = ImportsConfig()
 }
 case class ScalafixConfig(
-    rewrites: Seq[Rewrite] = Rewrite.defaultRewrites,
+    rewrites: Seq[ScalafixRewrite] = Rewrite.defaultRewrites,
     parser: Parse[_ <: Tree] = Parse.parseSource,
     imports: ImportsConfig = ImportsConfig(),
     fatalWarning: Boolean = true,
@@ -81,7 +83,7 @@ object ScalafixConfig {
     else Right(ScalafixConfig())
   }
 
-  def fromNames(names: List[String]): Either[String, Seq[Rewrite]] =
+  def fromNames(names: List[String]): Either[String, Seq[ScalafixRewrite]] =
     names match {
       case "all" :: Nil => Right(Rewrite.allRewrites)
       case _ =>

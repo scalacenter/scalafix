@@ -5,7 +5,7 @@ import scala.meta._
 import scala.meta.internal.ast.Helpers._
 import scala.meta.tokens.Token
 import scala.meta.tokens.Token
-import scalafix.rewrite.RewriteCtx
+import scalafix.rewrite.ScalafixCtx
 import scalafix.syntax._
 import scalafix.util.TokenPatch.Add
 import scalafix.util.TokenPatch.Remove
@@ -65,7 +65,8 @@ object Patch {
                    |1. $a
                    |2. $b""".stripMargin)
   }
-  def apply(ast: Tree, patches: Seq[Patch])(implicit ctx: RewriteCtx): String = {
+  def apply(ast: Tree, patches: Seq[Patch])(
+      implicit ctx: ScalafixCtx): String = {
     val input = ast.tokens
     val tokenPatches = patches.collect { case e: TokenPatch => e }
     val replacePatches = Replacer.toTokenPatches(ast, patches.collect {

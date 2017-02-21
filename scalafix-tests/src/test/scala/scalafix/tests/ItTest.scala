@@ -1,8 +1,9 @@
 package scalafix.tests
 
 import scalafix.rewrite.Rewrite
-import ammonite.ops._
+import scalafix.rewrite.ScalafixRewrite
 
+import ammonite.ops._
 import java.io.File
 
 import ammonite.ops.Path
@@ -13,7 +14,7 @@ case class ItTest(
     hash: String,
     config: String = "",
     commands: Seq[Command] = Command.default,
-    rewrites: Seq[Rewrite] = Rewrite.defaultRewrites,
+    rewrites: Seq[ScalafixRewrite] = Rewrite.defaultRewrites,
     addCoursier: Boolean = true
 ) {
   def repoName: String = repo match {

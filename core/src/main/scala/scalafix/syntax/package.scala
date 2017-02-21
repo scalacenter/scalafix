@@ -6,6 +6,8 @@ import scala.meta.semantic.v1.Signature
 import scala.meta.semantic.v1.Symbol
 import scala.meta.tokens.Token
 import scala.util.Try
+import scalafix.rewrite.ScalafixCtx
+import scalafix.rewrite.ScalafixMirror
 import scalafix.util.CanonicalImport
 import scalafix.util.ImportPatch
 import scalafix.util.logger
@@ -50,6 +52,7 @@ package object syntax {
     def toTry: Try[T] = Try(completed.get)
   }
   implicit class XtensionSymbol(symbol: Symbol) {
+
     /** Returns simplified version of this Symbol.
       *
       * - No Symbol.Multi

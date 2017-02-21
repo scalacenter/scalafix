@@ -4,14 +4,14 @@ import scalafix.syntax._
 import scala.meta.{Symbol => _, _}
 import scala.meta.semantic.v1._
 import scala.collection.immutable.Seq
-import scalafix.rewrite.RewriteCtx
+import scalafix.rewrite.ScalafixCtx
 import scalafix.util.TreePatch.Replace
 import scala.meta.internal.ast.Helpers._
 import scala.util.Try
 import scalafix.util.TreePatch.AddGlobalImport
 
-private[this] class Replacer(implicit ctx: RewriteCtx) {
-  private implicit val mirror = ctx.semantic.get
+private[this] class Replacer(implicit ctx: ScalafixCtx) {
+  import ctx._
   object `:withSymbol:` {
     def unapply(ref: Ref): Option[(Ref, Symbol)] =
       Try(
@@ -51,7 +51,7 @@ private[this] class Replacer(implicit ctx: RewriteCtx) {
 }
 object Replacer {
   def toTokenPatches(ast: Tree, replacements: Seq[Replace])(
-      implicit ctx: RewriteCtx): Seq[Patch] =
+      implicit ctx: ScalafixCtx): Seq[Patch] =
     if (replacements.isEmpty) Nil
     else new Replacer().toTokenPatches(ast, replacements)
 }
