@@ -15,8 +15,8 @@ object Rewrite {
   }
 
   val syntaxRewrites: Seq[ScalafixRewrite] = Seq(
-    ProcedureSyntax(),
-    VolatileLazyVal()
+    ProcedureSyntax.default,
+    VolatileLazyVal.default
   )
   val semanticRewrites: Seq[ScalafixRewrite] = Seq(
     ExplicitImplicit,
@@ -24,7 +24,7 @@ object Rewrite {
   )
   val allRewrites: Seq[ScalafixRewrite] = syntaxRewrites ++ semanticRewrites
   val defaultRewrites: Seq[ScalafixRewrite] =
-    allRewrites.filterNot(_ == VolatileLazyVal)
+    allRewrites.filterNot(_ == VolatileLazyVal.default)
   val name2rewrite: Map[String, ScalafixRewrite] =
     allRewrites.map(x => x.name -> x).toMap
 }

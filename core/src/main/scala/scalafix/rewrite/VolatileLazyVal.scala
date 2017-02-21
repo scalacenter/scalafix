@@ -25,5 +25,6 @@ class VolatileLazyVal[T]() extends Rewrite[T] {
 }
 
 object VolatileLazyVal {
+  val default: ScalafixRewrite = apply[ScalafixMirror]()
   def apply[T](): VolatileLazyVal[T] = new VolatileLazyVal[T]()
 }

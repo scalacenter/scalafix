@@ -36,5 +36,6 @@ class ProcedureSyntax[T]() extends Rewrite[T] {
 }
 
 object ProcedureSyntax {
+  val default: ScalafixRewrite = apply()
   def apply[T](): Rewrite[T] = new ProcedureSyntax[T]()
 }
