@@ -7,12 +7,13 @@ import scala.meta._
 import scala.meta.semantic.v1.Completed
 import scala.meta.tokens.Token.Comment
 import scalafix.FilterMatcher
-import scalafix.rewrite.RewriteCtx
+import scalafix.rewrite.ScalafixCtx
 import scalafix.syntax._
 import scalafix.util.TreePatch.AddGlobalImport
 import scalafix.util.TreePatch.RemoveGlobalImport
 
-private[this] class OrganizeImports private (implicit ctx: RewriteCtx) {
+private[this] class OrganizeImports private (implicit ctx: ScalafixCtx) {
+  import ctx._
   def extractImports(stats: Seq[Stat]): Seq[Import] = {
     stats
       .takeWhile(_.is[Import])
@@ -86,11 +87,7 @@ private[this] class OrganizeImports private (implicit ctx: RewriteCtx) {
     if (!ctx.config.imports.removeUnused) imports
     else {
       val (usedImports, unusedImports) =
-        ctx.semantic
-          .map { semantic =>
-            imports.partition(i => !semantic.isUnusedImport(i.importee))
-          }
-          .getOrElse(possiblyDuplicates -> Nil)
+        imports.partition(i => !ctx.mirror.isUnusedImport(i.importee))
       usedImports
     }
   }
@@ -105,11 +102,10 @@ private[this] class OrganizeImports private (implicit ctx: RewriteCtx) {
 
   def fullyQualify(imp: CanonicalImport): Option[Term.Ref] =
     for {
-      semantic <- ctx.semantic
       // TODO(olafur) switch to scala.meta mirror instead of scalafix homebrew.
 //      sym <- semantic.symbol(imp.ref).toOption
 //      fqnRef <- sym.toTermRef
-      fqnRef <- semantic.fqn(imp.ref)
+      fqnRef <- mirror.fqn(imp.ref)
       // Avoid inserting unneeded `package`
       if rootPkgName(fqnRef) != rootPkgName(imp.ref)
     } yield fqnRef.asInstanceOf[Term.Ref]
@@ -225,6 +221,6 @@ private[this] class OrganizeImports private (implicit ctx: RewriteCtx) {
 
 object OrganizeImports {
   def organizeImports(code: Tree, patches: Seq[ImportPatch])(
-      implicit ctx: RewriteCtx): Seq[TokenPatch] =
+      implicit ctx: ScalafixCtx): Seq[TokenPatch] =
     new OrganizeImports().organizeImports(code, patches)
 }

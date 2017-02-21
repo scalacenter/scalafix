@@ -5,10 +5,9 @@ import scala.meta._
 import scala.meta.inputs.Input
 import scala.meta.parsers.Parsed
 import scalafix.rewrite.RewriteCtx
+import scalafix.rewrite.ScalafixCtx
 import scalafix.rewrite.ScalafixMirror
-import scalafix.util.AssociatedComments
 import scalafix.util.Patch
-import scalafix.util.TokenList
 
 object Scalafix {
   def fix(code: Input,
@@ -25,8 +24,11 @@ object Scalafix {
           config: ScalafixConfig,
           semanticApi: Option[ScalafixMirror]): Fixed = {
     val tokens = ast.tokens
-    implicit val ctx = RewriteCtx.fromCode(ast, config, semanticApi)
-    val patches = config.rewrites.flatMap(_.rewrite(ast, ctx))
+    implicit val ctx: ScalafixCtx = RewriteCtx(
+      ast,
+      config,
+      semanticApi.getOrElse(ScalafixMirror.empty(config.dialect)))
+    val patches = config.rewrites.flatMap(_.rewrite(ctx))
     Fixed.Success(Patch.apply(ast, patches))
   }
 

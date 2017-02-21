@@ -10,12 +10,12 @@ import scalafix.util.Patch
 import scalafix.util.TreePatch._
 import scalafix.util.logger
 
-case object Xor2Either extends Rewrite {
-  override def rewrite(code: Tree, rewriteCtx: RewriteCtx): Seq[Patch] = {
-    implicit val semantic = getMirror(rewriteCtx)
-    code.collectFirst {
+case object Xor2Either extends Rewrite[ScalafixMirror] {
+  override def rewrite(ctx: ScalafixCtx): Seq[Patch] = {
+    import ctx._
+    tree.collectFirst {
       case t: Term.Name
-          if semantic
+          if mirror
             .symbol(t)
             .toOption
             .exists(_.normalized == Symbol("_root_.cats.data.Xor.map.")) =>

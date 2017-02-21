@@ -10,10 +10,10 @@ import scalafix.util.Patch
 import scala.collection.immutable.Seq
 import scalafix.util.TokenPatch
 
-case object ProcedureSyntax extends Rewrite {
-  override def rewrite(ast: Tree, ctx: RewriteCtx): Seq[Patch] = {
+class ProcedureSyntax[T]() extends Rewrite[T] {
+  override def rewrite(ctx: RewriteCtx[T]): Seq[Patch] = {
     import ctx.tokenList._
-    val patches: Seq[Patch] = ast.collect {
+    val patches: Seq[Patch] = ctx.tree.collect {
       case t: Defn.Def
           if t.decltpe.exists(_.tokens.isEmpty) &&
             t.body.tokens.head.is[LeftBrace] =>
@@ -33,4 +33,8 @@ case object ProcedureSyntax extends Rewrite {
     }
     patches
   }
+}
+
+object ProcedureSyntax {
+  def apply[T](): Rewrite[T] = new ProcedureSyntax[T]()
 }

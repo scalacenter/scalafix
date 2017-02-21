@@ -16,6 +16,7 @@ import ArgParserImplicits._
 import scala.util.control.NonFatal
 import scalafix.Fixed
 import scalafix.cli.termdisplay.TermDisplay
+import scalafix.rewrite.ScalafixRewrite
 
 import caseapp._
 import caseapp.core.Messages
@@ -35,7 +36,7 @@ case class CommonOptions(
 case class ScalafixOptions(
     @HelpMessage(
       s"Rules to run, one of: ${Rewrite.allRewrites.mkString(", ")}"
-    ) rewrites: List[Rewrite] = Rewrite.syntaxRewrites.toList,
+    ) rewrites: List[ScalafixRewrite] = Rewrite.syntaxRewrites.toList,
     @Hidden @HelpMessage(
       "Files to fix. Runs on all *.scala files if given a directory."
     ) @ExtraName("f") files: List[String] = List.empty[String],

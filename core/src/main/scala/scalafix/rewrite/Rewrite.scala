@@ -1,16 +1,12 @@
 package scalafix.rewrite
 
-import scala.meta._
-import scalafix.Failure.MissingSemanticApi
-import scalafix.util.TreePatch
-import scalafix.util.Patch
 import scala.collection.immutable.Seq
+import scala.meta._
+import scalafix.util.Patch
 
-abstract class Rewrite {
-  def getMirror(ctx: RewriteCtx): ScalafixMirror = ctx.semantic.getOrElse {
-    throw MissingSemanticApi(this)
-  }
-  def rewrite(code: Tree, rewriteCtx: RewriteCtx): Seq[Patch]
+abstract class Rewrite[T](implicit sourceName: sourcecode.Name) {
+  def name: String = sourceName.value
+  def rewrite(ctx: RewriteCtx[T]): Seq[Patch]
 }
 
 object Rewrite {
@@ -18,17 +14,17 @@ object Rewrite {
     t.map(x => x.source -> x.value).toMap
   }
 
-  val syntaxRewrites: Seq[Rewrite] = Seq(
-    ProcedureSyntax,
-    VolatileLazyVal
+  val syntaxRewrites: Seq[ScalafixRewrite] = Seq(
+    ProcedureSyntax(),
+    VolatileLazyVal()
   )
-  val semanticRewrites: Seq[Rewrite] = Seq(
+  val semanticRewrites: Seq[ScalafixRewrite] = Seq(
     ExplicitImplicit,
     Xor2Either
   )
-  val allRewrites: Seq[Rewrite] = syntaxRewrites ++ semanticRewrites
-  val defaultRewrites: Seq[Rewrite] =
+  val allRewrites: Seq[ScalafixRewrite] = syntaxRewrites ++ semanticRewrites
+  val defaultRewrites: Seq[ScalafixRewrite] =
     allRewrites.filterNot(_ == VolatileLazyVal)
-  val name2rewrite: Map[String, Rewrite] =
-    allRewrites.map(x => x.toString -> x).toMap
+  val name2rewrite: Map[String, ScalafixRewrite] =
+    allRewrites.map(x => x.name -> x).toMap
 }

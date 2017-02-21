@@ -8,7 +8,9 @@ import scala.collection.immutable.Seq
 
 import org.scalatest.FunSuiteLike
 
-class RewriteSuite(rewrite: Rewrite) extends FunSuiteLike with DiffAssertions {
+class RewriteSuite(rewrite: ScalafixRewrite)
+    extends FunSuiteLike
+    with DiffAssertions {
 
   def check(name: String, original: String, expected: String): Unit = {
     test(name) {

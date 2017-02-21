@@ -17,6 +17,7 @@ import scala.{meta => m}
 import scalafix.nsc.ScalafixNscPlugin
 import scalafix.rewrite.ExplicitImplicit
 import scalafix.rewrite.Rewrite
+import scalafix.rewrite.ScalafixRewrite
 import scalafix.util.DiffAssertions
 import scalafix.util.logger
 
@@ -26,7 +27,7 @@ import java.io.PrintWriter
 import org.scalatest.FunSuite
 
 class SemanticTests extends FunSuite with DiffAssertions { self =>
-  val rewrite: Rewrite = ExplicitImplicit
+  val rewrite: ScalafixRewrite = ExplicitImplicit
   val parseAsCompilationUnit: Boolean = false
   private val testGlobal: Global = {
     def fail(msg: String) =
