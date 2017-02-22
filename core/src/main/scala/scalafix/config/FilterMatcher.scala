@@ -1,13 +1,16 @@
-package scalafix
+package scalafix.config
 
 import scala.util.matching.Regex
 import scalafix.util.AbsoluteFile
 
-case class FilterMatcher(include: Regex, exclude: Regex) {
+import metaconfig.Reader
+
+@metaconfig.ConfigReader
+case class FilterMatcher(includeFilters: Regex, excludeFilters: Regex) {
   def matches(file: AbsoluteFile): Boolean = matches(file.path)
   def matches(input: String): Boolean =
-    include.findFirstIn(input).isDefined &&
-      exclude.findFirstIn(input).isEmpty
+    includeFilters.findFirstIn(input).isDefined &&
+      excludeFilters.findFirstIn(input).isEmpty
 }
 
 object FilterMatcher {

@@ -9,7 +9,7 @@ import scala.tools.nsc.plugins.Plugin
 import scala.tools.nsc.plugins.PluginComponent
 import scala.util.control.NonFatal
 import scalafix.Failure.ParseError
-import scalafix.ScalafixConfig
+import scalafix.config.ScalafixConfig
 import scalafix.util.FileOps
 import scalafix.util.logger
 
@@ -54,13 +54,14 @@ class ScalafixNscComponent(plugin: Plugin,
           case NonFatal(e) if !e.isInstanceOf[ParseError] =>
             val config = getConfig()
             val err: (String) => Unit =
-              if (config.fatalWarning)
+              if (config.fatalWarnings)
                 (msg: String) => g.reporter.error(unit.body.pos, msg)
               else
                 (msg: String) =>
                   g.reporter.info(unit.body.pos, msg, force = true)
             val details =
-              if (config.fatalWarning) e.getStackTrace.mkString("\n", "\n", "")
+              if (config.fatalWarnings)
+                e.getStackTrace.mkString("\n", "\n", "")
               else ""
             err(
               s"Failed to fix ${unit.source}. Error: ${e.getMessage}. $e" +

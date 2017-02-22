@@ -10,10 +10,7 @@ lazy val crossVersions = Seq(
 )
 
 lazy val buildSettings = Seq(
-  assemblyJarName in assembly := "scalafix.jar",
-  scalaVersion := "2.11.8",
-  updateOptions := updateOptions.value.withCachedResolution(true)
-)
+  )
 
 lazy val jvmOptions = Seq(
   "-Xss4m"
@@ -43,15 +40,6 @@ lazy val release = Command.command("release") { s =>
         "gitPushTag" ::
           s
 }
-
-lazy val commonSettings = Seq(
-  resolvers += Resolver.bintrayIvyRepo("scalameta", "maven"),
-  triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
-  scalacOptions := compilerOptions,
-  scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
-  test in assembly := {},
-  testOptions in Test += Tests.Argument("-oD")
-)
 
 lazy val publishSettings = Seq(
   commands += release,
@@ -102,10 +90,18 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
   buildInfoObject := "Versions"
 )
 
-lazy val allSettings =
-  commonSettings ++
-    buildSettings ++
-    publishSettings
+lazy val allSettings = List(
+  resolvers += Resolver.bintrayIvyRepo("scalameta", "maven"),
+  triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
+  scalacOptions := compilerOptions,
+  scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
+  test in assembly := {},
+  libraryDependencies += scalatest % Test,
+  testOptions in Test += Tests.Argument("-oD"),
+  assemblyJarName in assembly := "scalafix.jar",
+  scalaVersion := "2.11.8",
+  updateOptions := updateOptions.value.withCachedResolution(true)
+)
 
 lazy val `scalafix-root` = project
   .in(file("."))
@@ -137,21 +133,33 @@ lazy val `scalafix-root` = project
   )
   .dependsOn(core)
 
+// settings to projects using @metaconfig.ConfigReader annotation.
+lazy val metaconfigSettings: Seq[Def.Setting[_]] = Seq(
+  addCompilerPlugin(
+    ("org.scalameta" % "paradise" % paradiseV).cross(CrossVersion.full)),
+  scalacOptions += "-Xplugin-require:macroparadise",
+  scalacOptions in (Compile, console) := Seq(), // macroparadise plugin doesn't work in repl yet.
+  sources in (Compile, doc) := Nil // macroparadise doesn't work with scaladoc yet.
+)
+
 lazy val core = project
   .settings(
     allSettings,
     buildInfoSettings,
+    metaconfigSettings,
     crossScalaVersions := crossVersions,
     moduleName := "scalafix-core",
-    addCompilerPlugin(
-      "org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+    dependencyOverrides += scalameta,
     libraryDependencies ++= Seq(
       "com.typesafe" % "config"      % "1.3.1",
       "com.lihaoyi"  %% "sourcecode" % "0.1.3",
+      metaconfig,
       scalameta,
+      scalahost(scalaVersion.value),
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
     )
   )
+  .dependsOn(`scalafix-testutils` % Test)
   .enablePlugins(BuildInfoPlugin)
 
 lazy val `scalafix-nsc` = project
@@ -162,8 +170,7 @@ lazy val `scalafix-nsc` = project
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       scalahost(scalaVersion.value),
-      scalatest,
-      "com.lihaoyi" %% "ammonite-ops" % Build.ammoniteV % Test,
+      ammonite % Test,
       // integration property tests
       "org.typelevel"      %% "catalysts-platform" % "0.0.5"    % Test,
       "com.typesafe.slick" %% "slick"              % "3.2.0-M2" % Test,
@@ -261,8 +268,8 @@ lazy val `scalafix-testutils` = project.settings(
   scalaVersion := "2.11.8",
   crossScalaVersions := crossVersions,
   libraryDependencies ++= Seq(
-    "com.googlecode.java-diff-utils" % "diffutils"  % "1.3.0",
-    "org.scalatest"                  %% "scalatest" % Build.scalatestV
+    "com.googlecode.java-diff-utils" % "diffutils" % "1.3.0",
+    scalatest
   )
 )
 
@@ -279,8 +286,7 @@ lazy val `scalafix-tests` = project
         )
         .value,
     libraryDependencies ++= Seq(
-      "com.lihaoyi"   %% "ammonite-ops" % Build.ammoniteV,
-      "org.scalatest" %% "scalatest"    % Build.scalatestV % "test"
+      ammonite
     )
   )
   .dependsOn(core)
@@ -295,8 +301,7 @@ lazy val readme = scalatex
     noPublish,
     libraryDependencies ++= Seq(
       "com.twitter" %% "util-eval" % "6.34.0"
-    ),
-    dependencyOverrides += "com.lihaoyi" %% "scalaparse" % "0.3.1"
+    )
   )
   .dependsOn(core, cli)
 

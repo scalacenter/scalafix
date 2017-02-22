@@ -2,7 +2,7 @@ package scalafix.rewrite
 import scala.meta.Dialect
 import scala.meta.Tree
 import scala.meta.tokens.Tokens
-import scalafix.ScalafixConfig
+import scalafix.config.ScalafixConfig
 import scalafix.util.AssociatedComments
 import scalafix.util.TokenList
 

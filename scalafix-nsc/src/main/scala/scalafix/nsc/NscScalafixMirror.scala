@@ -13,7 +13,7 @@ import scala.util.Try
 import scala.{meta => m}
 import scalafix.Fixed
 import scalafix.Scalafix
-import scalafix.ScalafixConfig
+import scalafix.config.ScalafixConfig
 import scalafix.rewrite.ScalafixMirror
 import scalafix.util.logger
 case class SemanticContext(enclosingPackage: String, inScope: List[String])

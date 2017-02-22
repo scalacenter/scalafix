@@ -3,6 +3,8 @@ package scalafix.rewrite
 import scala.collection.immutable.Seq
 import scala.meta._
 import scalafix.util.Patch
+import scala.collection.immutable.Seq
+import scalafix.config.ReaderUtil
 
 /** A rewrite is a named RewriteCtx[A] => Seq[Patch] function.
   * @tparam A Required api in [[ScalafixMirror]]. Example values:

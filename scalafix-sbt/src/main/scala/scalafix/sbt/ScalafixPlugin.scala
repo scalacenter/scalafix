@@ -42,7 +42,8 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
           """Serves as a caching layer for extracting the jar location of the
             |scalafix-nsc compiler plugin. If the dependency was added to all
             |projects, the (slow) update task will be re-run for every project.""".stripMargin,
-        resolvers += Resolver.bintrayIvyRepo("scalameta", "maven"),
+        // Only needed when using snapshot versions.
+//        resolvers += Resolver.bintrayIvyRepo("scalameta", "maven"),
         publishLocal := {},
         publish := {},
         publishArtifact := false,

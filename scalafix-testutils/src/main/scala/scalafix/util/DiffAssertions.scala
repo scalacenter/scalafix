@@ -42,7 +42,6 @@ trait DiffAssertions extends FunSuiteLike {
          """.stripMargin('#'))
     sb.toString()
   }
-
   def assertNoDiff(obtained: String,
                    expected: String,
                    title: String = ""): Boolean = {

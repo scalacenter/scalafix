@@ -1,7 +1,7 @@
 addSbtPlugin("com.eed3si9n"    % "sbt-doge"            % "0.1.5")
 addSbtPlugin("com.eed3si9n"    % "sbt-buildinfo"       % "0.6.1")
 addSbtPlugin("com.eed3si9n"    % "sbt-assembly"        % "0.14.3")
-addSbtPlugin("com.lihaoyi"     % "scalatex-sbt-plugin" % "0.3.5")
+addSbtPlugin("com.lihaoyi"     % "scalatex-sbt-plugin" % "0.3.7")
 addSbtPlugin("io.get-coursier" % "sbt-coursier"        % "1.0.0-M15")
 addSbtPlugin("org.wartremover" % "sbt-wartremover"     % "1.2.1")
 addSbtPlugin("org.xerial.sbt"  % "sbt-pack"            % "0.8.0")
