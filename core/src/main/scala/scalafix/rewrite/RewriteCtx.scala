@@ -1,19 +1,36 @@
 package scalafix.rewrite
+import scala.meta.Dialect
 import scala.meta.Tree
 import scala.meta.tokens.Tokens
 import scalafix.ScalafixConfig
 import scalafix.util.AssociatedComments
 import scalafix.util.TokenList
 
-class RewriteCtx[T](implicit val tree: Tree,
-                    val config: ScalafixConfig,
-                    val mirror: T) {
+/** Bundle of useful things when implementing [[Rewrite]].
+  *
+  * @tparam A The api needed for this Rewrite. Example values:
+  *           [[ScalafixMirror]] when using scalafix-nsc,
+  *           [[scala.meta.Mirror]] when using scalahost or
+  *           [[None]] for syntactic rewrites (i.e., don't care).
+  */
+class RewriteCtx[+A](implicit val tree: Tree,
+                     val config: ScalafixConfig,
+                     val mirror: A) {
   implicit lazy val tokens: Tokens = tree.tokens(config.dialect)
-  implicit lazy val tokenList: TokenList = new TokenList(tokens)
-  implicit lazy val comments: AssociatedComments = AssociatedComments(tokens)
+  lazy val tokenList: TokenList = new TokenList(tokens)
+  lazy val comments: AssociatedComments = AssociatedComments(tokens)
+  def map[B](f: A => B): RewriteCtx[B] =
+    new RewriteCtx[B]()(tree, config, f(mirror))
 }
 
 object RewriteCtx {
+
+  /** Constructor for a syntactic rewrite. */
+  def apply(tree: Tree,
+            config: ScalafixConfig = ScalafixConfig()): RewriteCtx[None.type] =
+    apply(tree, config, None)
+
+  /** Constructor for a generic rewrite. */
   def apply[T](tree: Tree, config: ScalafixConfig, mirror: T): RewriteCtx[T] =
     new RewriteCtx()(tree, config, mirror)
 }

@@ -4,27 +4,23 @@ import scala.collection.immutable.Seq
 import scala.meta._
 import scalafix.util.Patch
 
-abstract class Rewrite[T](implicit sourceName: sourcecode.Name) {
+/** A rewrite is a named RewriteCtx[A] => Seq[Patch] function.
+  * @tparam A Required api in [[ScalafixMirror]]. Example values:
+  *           [[ScalafixMirror]] for scalafix-nsc,
+  *           [[scala.meta.Mirror]] when using scalahost or
+  *           [[Any]] for syntactic rewrites.
+  */
+abstract class Rewrite[-A](implicit sourceName: sourcecode.Name) {
   def name: String = sourceName.value
-  def rewrite(ctx: RewriteCtx[T]): Seq[Patch]
+  override def toString: String = name
+  def rewrite[B <: A](ctx: RewriteCtx[B]): Seq[Patch]
 }
 
 object Rewrite {
-  private def nameMap[T](t: sourcecode.Text[T]*): Map[String, T] = {
-    t.map(x => x.source -> x.value).toMap
+  def withName[A](name: String)(f: RewriteCtx[A] => Seq[Patch]): Rewrite[A] =
+    apply(f)(sourcecode.Name(name))
+  def apply[T](f: RewriteCtx[T] => Seq[Patch])(
+      implicit name: sourcecode.Name): Rewrite[T] = new Rewrite[T]() {
+    override def rewrite[B <: T](ctx: RewriteCtx[B]): Seq[Patch] = f(ctx)
   }
-
-  val syntaxRewrites: Seq[ScalafixRewrite] = Seq(
-    ProcedureSyntax.default,
-    VolatileLazyVal.default
-  )
-  val semanticRewrites: Seq[ScalafixRewrite] = Seq(
-    ExplicitImplicit,
-    Xor2Either
-  )
-  val allRewrites: Seq[ScalafixRewrite] = syntaxRewrites ++ semanticRewrites
-  val defaultRewrites: Seq[ScalafixRewrite] =
-    allRewrites.filterNot(_ == VolatileLazyVal.default)
-  val name2rewrite: Map[String, ScalafixRewrite] =
-    allRewrites.map(x => x.name -> x).toMap
 }

@@ -15,7 +15,7 @@ case object ExplicitImplicit extends Rewrite[ScalafixMirror] {
     case m.Term.ApplyType(m.Term.Name("implicitly"), _) => true
     case _ => false
   }
-  override def rewrite(ctx: ScalafixCtx): Seq[Patch] = {
+  override def rewrite[T <: ScalafixMirror](ctx: RewriteCtx[T]): Seq[Patch] = {
     import scala.meta._
     import ctx._
     def fix(defn: Defn, body: Term): Seq[Patch] = {
