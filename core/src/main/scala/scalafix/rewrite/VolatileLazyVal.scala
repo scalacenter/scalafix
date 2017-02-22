@@ -5,7 +5,7 @@ import scalafix.util.Patch
 import scala.collection.immutable.Seq
 import scalafix.util.TokenPatch
 
-class VolatileLazyVal[T]() extends Rewrite[T] {
+case object VolatileLazyVal extends Rewrite[Any] {
   private object NonVolatileLazyVal {
     def unapply(defn: Defn.Val): Option[Token] = {
       defn.mods.collectFirst {
@@ -16,15 +16,10 @@ class VolatileLazyVal[T]() extends Rewrite[T] {
       }
     }.flatten
   }
-  override def rewrite(ctx: RewriteCtx[T]): Seq[Patch] = {
+  override def rewrite[T](ctx: RewriteCtx[T]): Seq[Patch] = {
     ctx.tree.collect {
       case NonVolatileLazyVal(tok) =>
         TokenPatch.AddLeft(tok, s"@volatile ")
     }
   }
-}
-
-object VolatileLazyVal {
-  val default: ScalafixRewrite = apply[ScalafixMirror]()
-  def apply[T](): VolatileLazyVal[T] = new VolatileLazyVal[T]()
 }

@@ -2,6 +2,7 @@ package scalafix.cli
 
 import scalafix.rewrite.Rewrite
 import scalafix.rewrite.ScalafixRewrite
+import scalafix.rewrite.ScalafixRewrites
 
 import java.io.InputStream
 import java.io.PrintStream
@@ -12,10 +13,10 @@ object ArgParserImplicits {
 
   implicit val rewriteRead: ArgParser[ScalafixRewrite] =
     ArgParser.instance[ScalafixRewrite] { str =>
-      Rewrite.name2rewrite.get(str) match {
+      ScalafixRewrites.name2rewrite.get(str) match {
         case Some(x) => Right(x)
         case _ =>
-          val availableKeys = Rewrite.name2rewrite.keys.mkString(", ")
+          val availableKeys = ScalafixRewrites.name2rewrite.keys.mkString(", ")
           Left(s"invalid input $str, must be one of $availableKeys")
       }
     }

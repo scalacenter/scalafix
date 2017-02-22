@@ -5,9 +5,8 @@ import scala.meta._
 import scala.meta.dialects.Scala211
 import scala.meta.parsers.Parse
 import scala.util.control.NonFatal
-import scalafix.rewrite.Rewrite
-import scalafix.rewrite.ScalafixCtx
 import scalafix.rewrite.ScalafixRewrite
+import scalafix.rewrite.ScalafixRewrites
 import scalafix.syntax._
 
 import java.io.File
@@ -33,7 +32,7 @@ object ImportsConfig {
   def default: ImportsConfig = ImportsConfig()
 }
 case class ScalafixConfig(
-    rewrites: Seq[ScalafixRewrite] = Rewrite.defaultRewrites,
+    rewrites: Seq[ScalafixRewrite] = ScalafixRewrites.default,
     parser: Parse[_ <: Tree] = Parse.parseSource,
     imports: ImportsConfig = ImportsConfig(),
     fatalWarning: Boolean = true,
@@ -85,16 +84,15 @@ object ScalafixConfig {
 
   def fromNames(names: List[String]): Either[String, Seq[ScalafixRewrite]] =
     names match {
-      case "all" :: Nil => Right(Rewrite.allRewrites)
+      case "all" :: Nil => Right(ScalafixRewrites.all)
       case _ =>
         val invalidNames =
-          names.filterNot(Rewrite.name2rewrite.contains)
+          names.filterNot(ScalafixRewrites.name2rewrite.contains)
         if (invalidNames.nonEmpty) {
-          Left(
-            s"Invalid rewrite rule: ${invalidNames.mkString(",")}. " +
-              s"Valid rules are: ${Rewrite.name2rewrite.keys.mkString(",")}")
+          Left(s"Invalid rewrite rule: ${invalidNames.mkString(",")}. " +
+            s"Valid rules are: ${ScalafixRewrites.name2rewrite.keys.mkString(",")}")
         } else {
-          Right(names.map(Rewrite.name2rewrite))
+          Right(names.map(ScalafixRewrites.name2rewrite))
         }
     }
 }

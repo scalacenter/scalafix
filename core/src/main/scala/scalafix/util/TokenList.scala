@@ -3,6 +3,7 @@ package scalafix.util
 import scala.meta.tokens.Token
 import scala.meta.tokens.Tokens
 
+/** Helper to traverse tokens as a doubly linked list.  */
 class TokenList(tokens: Tokens) {
   private[this] val tok2idx = {
     val map = Map.newBuilder[Token, Int]

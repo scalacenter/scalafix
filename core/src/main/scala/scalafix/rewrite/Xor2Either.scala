@@ -11,7 +11,7 @@ import scalafix.util.TreePatch._
 import scalafix.util.logger
 
 case object Xor2Either extends Rewrite[ScalafixMirror] {
-  override def rewrite(ctx: ScalafixCtx): Seq[Patch] = {
+  override def rewrite[T <: ScalafixMirror](ctx: RewriteCtx[T]): Seq[Patch] = {
     import ctx._
     tree.collectFirst {
       case t: Term.Name
