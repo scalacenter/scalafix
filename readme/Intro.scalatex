@@ -7,10 +7,11 @@
     <a href="https://gitter.im/scalacenter/scalafix?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://camo.githubusercontent.com/382ebf95f5b4df9275ac203229928db8c8fd5c50/68747470733a2f2f6261646765732e6769747465722e696d2f6f6c6166757270672f7363616c61666d742e737667" alt="Join the chat at https://gitter.im/scalacenter/scalafix" data-canonical-src="https://badges.gitter.im/scalacenter/scalafix.svg" style="max-width:100%;"></a>
 
 @p
-  Scalafix is a new tool to help Scala 2.x compile with @dotty(),
-  a next generation compiler for Scala.
+  Scalafix is a Scala code rewriting tool and library.
   This effort follows the Scala Center Advisory Board proposal:
   @lnk("Clarification of Scala to Dotty migration path", "http://scala-lang.org/blog/2016/05/30/scala-center-advisory-board.html#the-first-meeting").
+  The long-term goal of the project is to automate migration from Scala 2.x to @dotty,
+  a next-generation Scala compiler.
 
 @p
   The name "scalafix" is inspired by

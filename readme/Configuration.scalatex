@@ -5,10 +5,63 @@
   @lnk("HOCON", "https://github.com/typesafehub/config")
   syntax.
   I recommend you put a file @code{.scalafix.conf} into the root directory of
-  your project. However, the file can be put anywhere you like.
+  your project.
 
   @sect{rewrites}
     Available options are listed in @sect.ref{Rewrites}.
 
     @config
       rewrites = [ExplicitImplicit] # No rewrites are run if empty.
+
+  @sect{imports}
+    Scalafix can organize imports for you.
+    If you use import patches such as @code{Add/RemoveGlobalImport},
+    you need to allow scalafix to organize you imports.
+    To minimize the diff from import patches, it's best to run scalafix once
+    with organize imports enabled and no zero patches.
+    @config
+      // Group and sort imports
+      imports.organize = true
+      // Example relative import: `import collection.immutable`
+      // Expanded: `import scala.collection.immutable`
+      imports.expandRelative = true
+      // Removes global imports that -Ywarn-unused-import complains about
+      // Requires sbt-scalafix/ScalafixMirror
+      imports.removeUnused = true
+      // Groups are separated by a blank line, example:
+      // import com.a
+      // import com.b
+      //
+      // import scala.collection.immutable._
+      imports.groups = [
+        "com.mycompany.*"
+        "scala\\..*"
+      ]
+  @sect{patches}
+    For simple use-cases, it's possible to write custom rewrites directly
+    .scalafix.conf.
+    @config
+      patches.removeGlobalImports = [
+        "scala.collection.mutable" # scala.meta.Importee
+      ]
+      patches.addGlobalImports = [
+        "scala.collection.immutable"
+      ]
+      patches.replacements = [
+        {
+          from = "_root_.scala.Seq." // scala.meta.Symbol
+          to = "Seq"
+          additionalImports = [ "scala.collection.immutable.Seq" ]
+        }
+      ]
+      // Helper to see which symbols appear in your source files
+      debug.printSymbols = true
+    For more advanced use-cases, I recommend you use @sect.ref{scalafix-core}
+    as a library.
+
+  @sect{Available options}
+
+    The following is the list of all available options along with their
+    default values.
+    @hl.scala(scalafix.config.Class2Hocon())
+
