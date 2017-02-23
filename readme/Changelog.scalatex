@@ -1,6 +1,44 @@
 @import Main._
 @import scalafix.Readme._
+
 @sect{Changelog}
+  @sect{0.3.0}
+    @ul
+      @li
+        Scalafix now uses the scala.meta semantic API!
+        See @lnk("scala.meta 1.6 release notes",
+        "https://github.com/scalameta/scalameta/blob/master/changelog/1.6.0.md#semantic-api")
+        for more details about the semantic api.
+        This first release of the scala.meta semantic API enables rewrites to query for the "symbol"
+        of a name that appears in a Scala source file.
+        A symbol is a unique identifier of a definition such as a class, val, def or trait.
+      @li
+        Rewrites can now be implemented in terms of "tree patches", which are high
+        level descriptions of common refactorings.
+        Tree patches can be composed as Lego blocks to build advanced refactorings
+        such as @code{Xor2Either}.
+        The current available tree patches are
+        @ul
+          @li
+            @code{Replace}: Replaces usage of a symbol with another name.
+          @li
+            @code{AddGlobalImport}: Adds a top-level import to source file.
+          @li
+            @code{RemoveGlobalImport}: Removes a top-level import from source file.
+        @p
+          Special thanks go to @user{ShaneDelmore} for helping out try the
+          scalafix patch API at every step of its development. His feedback has
+          been invaluable in improving the design of the API.
+      @li
+        To demonstrate the capabilities of rewrites using the scala.meta API,
+        we have included an example rewrite called @lnk(
+          "Xor2Either",
+          "https://github.com/scalacenter/scalafix/blob/master/core/src/main/scala/scalafix/rewrite/Xor2Either.scala"
+        ).
+        The rewrite migrates usage of @code{cats.data.Xor} to @code{scala.util.Either}.
+      @li
+        Configuration in .scalafix.conf has been greatly improved to support a wide range
+        of options.
   @sect{0.2.1}
     @ul
       @li
@@ -22,7 +60,7 @@
         New command line tool: @code{scalafix}.
         (EDIT: superseded by scalafix-nsc compiler plugin in v0.2)
       @li
-        New SBT plugin: @code{sbt-scalafix}. See @sect.ref{sbt}.
+        New SBT plugin: @code{sbt-scalafix}. See @sect.ref{sbt-scalafix}.
       @li
         Two rewrite rules:
         @sect.ref{ProcedureSyntax}

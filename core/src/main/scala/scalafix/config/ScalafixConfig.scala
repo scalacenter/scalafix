@@ -10,7 +10,9 @@ import scalafix.util.FileOps
 
 import java.io.File
 
+import metaconfig.HasFields
 import metaconfig.Reader
+import metaconfig.String2AnyMap
 import metaconfig.hocon.Hocon2Class
 
 @metaconfig.ConfigReader
@@ -29,9 +31,12 @@ case class ScalafixConfig(
 }
 
 object ScalafixConfig {
+
   val default = ScalafixConfig()
+
   def fromFile(file: File): Either[Throwable, ScalafixConfig] =
     fromString(FileOps.readFile(file))
+
   def fromString(str: String): Either[Throwable, ScalafixConfig] =
     Hocon2Class.gimmeClass[ScalafixConfig](str, default.reader, None)
 }

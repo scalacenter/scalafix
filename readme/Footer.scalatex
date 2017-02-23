@@ -1,7 +1,7 @@
 @import Main._
 @import scalafix.Readme._
 
-@raw
+@comment
   <script>
     function closeSidebar() {
       document.getElementsByClassName("scalatex-scrollspy-Styles-menu")[0].children[1].click()

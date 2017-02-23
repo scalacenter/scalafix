@@ -4,7 +4,14 @@
 
 @sect{Installation}
 
-  @sect{sbt}
+  @p
+    Scalafix can used either as a tool or a library.
+    Integrations are currently limited to the command-line, but it may be possible
+    to add IDE integrations in the future.
+
+  @sect{sbt-scalafix}
+    sbt-scalafix is an integration to run pre-made scalafix rewrites as sbt commands.
+
     @hl.scala
       addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@scalafix.Versions.version")
 
@@ -12,20 +19,103 @@
       @li
         @code{sbt scalafix} runs @sect.ref{Rewrites}.
       @li
-        Set @code{scalafixConfig in ThisBuild := Some(baseDirectory.value / ".scalafix.conf")}
-        to customize which rewrites to run.
-        See @sect.ref{Configuration} for more details.
+        uses scalafix-nsc, a compiler plugin, to run rewrites during compilation.
+        The compiler plugin is disabled by default, @code{scalafixEnabled in ThisBuild := true}
+        enables the compiler plugin for your entire build.
+      @li
+        Configuration is read from @code{.scalafix.conf}.
+        See @sect.ref{Configuration} for more details on how to customize which rewrites to run.
       @li
         Scalafix supports 2.11 and 2.12.
         Projects with @code{scalaVersion} 2.10 are ignored by scalafix.
 
-  @sect{Other}
+  @sect{sbt-scalahost}
+    sbt-scalahost is an integration to run custom scalafix rewrites using the scala.meta
+    semantic API.
+
+    @hl.scala
+      // project/plugins.sbt
+      addSbtPlugin("org.scalameta" % "sbt-scalahost" % "@scalafix.Versions.scalameta")
+
+      // build.sbt
+      val rewrites = projects
+        .settings(
+          scalaVersion := "2.11.8", // 2.12.x is also supported
+          libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % "@scalafix.Versions.version"
+        )
+        .dependsOn(
+          projectToPerformRewritesOn % Scalameta
+        )
+
+      // in rewrites/src/main/scala/Rewrites.scala
+      ...
+      implicit mirror = scala.meta.Mirror()
+      val source = mirror.sources.head
+      val ctx = scalafix.rewrite.RewriteCtx(source,
+        scalafix.config.ScalafixConfig(), mirror)
+      val patched = Patch(source, Seq(
+        scalafix.util.TreePatch.AddGlobalImport(
+          importer"scala.collection.immutable.Seq"))
+      )
+      ...
+
+    For more information about sbt-scalahost, see
+    @lnk("sbt-semantic-example", "https://github.com/scalameta/sbt-semantic-example").
+    For more information about using scalafix as a library, see @sect.ref{scalafix-core}.
+
+  @sect{scalafix-core}
+    Scalafix can be used as a library to run custom rewrites.
+    @hl.scala
+      libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % "@scalafix.Versions.version"
+
+    By using scalafix as a library, you have full control of how/when/where
+    rewrites are written.
+
+    @p
+      When writing custom rewrites, you should decide what API you need.
+      There currently available APIs are:
+
+      @ul
+        @li
+          Syntactic api. This is the easiest option but also the least powerful options.
+          It does provide access to compilation information such as symbols/types.
+          Just create a @code{scalafix.rewrite.Rewrite[Any]} and go!
+        @li
+          @code{scala.meta.Mirror}, aka.
+          @lnk("scala.meta semantic API",
+               "https://github.com/scalameta/scalameta/blob/master/changelog/1.6.0.md#semantic-api").
+          See @sect.ref{sbt-scalahost} on how to construct a @code{scala.meta.Mirror}.
+          Once you have a @code{Mirror} instance, you can create a
+          @code{scalafix.rewrite.RewriteCtx[Mirror]} for each @code{scala.meta.Source} in
+          @code{scala.meta.Mirror.sources}.
+        @li
+          @code{scalafix.rewrite.ScalafixMirror}. This option is currently in
+          use by @sect.ref{sbt-scalafix} but is being phased out in favor of
+          @code{Mirror}. @code{ScalafixMirror} extends @code{Mirror} with a
+          few custom methods that we will try to eventually contribute upstream
+          to @code{Mirror}.
+          @p
+            It is possible to run custom rewrites using @code{ScalafixMirror}, but
+            the setup is complex.
+            You need to ensure that your compiled rewrite is included in the compiler
+            classpath. Once the rewrite is in the compiler classpath, you
+            can enable your rewrite via @code{.scalafix.conf}
+            @code{rewrites = [_root_.fully.qualified.name.to.rewrite.object]}.
+            Note, your rewrite needs to be an @code{object}.
+            For more question, don't hesitate to ask on Gitter.
+
+    @p
+      Scalafix as a library is still under heavy development.
+      Feedback is very welcome.
+      Be prepared for breaking changes.
+
+  @sect{scalafix-nsc}
     Scalafix can be used directly as a compiler plugin:
     @hl.scala
       // download
-      "ch.epfl.scala" %% "scalafix-nsc" % "@scalafix.Versions.version"
+      https/repo1.maven.org/maven2/ch/epfl/scala/scalafix-nsc_2.12/@scalafix.Versions.version/scalafix-nsc_2.12-@(scalafix.Versions.version + ".jar")
       // compile
-      scalac -Xplugin:/path/to/scalafix-nsc.jar mycode.scala
+      scalac -Xplugin:/path/to/scalafix-nsc_2.12-@(scalafix.Versions.version + ".jar") mycode.scala
 
     @ul
       @li

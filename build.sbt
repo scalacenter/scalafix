@@ -83,7 +83,8 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
   buildInfoKeys := Seq[BuildInfoKey](
     name,
     version,
-    "stableVersion" -> "0.2.2",
+    "stableVersion" -> "0.3.0",
+    "scalameta" -> scalametaV,
     scalaVersion,
     sbtVersion
   ),
@@ -102,7 +103,7 @@ lazy val allSettings = List(
   assemblyJarName in assembly := "scalafix.jar",
   scalaVersion := "2.11.8",
   updateOptions := updateOptions.value.withCachedResolution(true)
-)
+) ++ publishSettings
 
 lazy val `scalafix-root` = project
   .in(file("."))
