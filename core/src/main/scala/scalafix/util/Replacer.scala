@@ -8,9 +8,10 @@ import scalafix.rewrite.ScalafixCtx
 import scalafix.util.TreePatch.Replace
 import scala.meta.internal.ast.Helpers._
 import scala.util.Try
+import scalafix.rewrite.RewriteCtx
 import scalafix.util.TreePatch.AddGlobalImport
 
-private[this] class Replacer(implicit ctx: ScalafixCtx) {
+private[this] class Replacer(implicit ctx: RewriteCtx[Mirror]) {
   import ctx._
   object `:withSymbol:` {
     def unapply(ref: Ref): Option[(Ref, Symbol)] =
@@ -55,7 +56,7 @@ private[this] class Replacer(implicit ctx: ScalafixCtx) {
 }
 object Replacer {
   def toTokenPatches(ast: Tree, replacements: Seq[Replace])(
-      implicit ctx: ScalafixCtx): Seq[Patch] = {
+      implicit ctx: RewriteCtx[Mirror]): Seq[Patch] = {
     new Replacer().toTokenPatches(
       ast,
       replacements ++ ctx.config.patches.all.collect {

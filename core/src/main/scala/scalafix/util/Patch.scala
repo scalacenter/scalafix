@@ -12,6 +12,7 @@ import scalafix.util.TokenPatch.Add
 import scalafix.util.TokenPatch.Remove
 import scalafix.util.TreePatch.Replace
 import scalafix.config._
+import scalafix.rewrite.RewriteCtx
 
 sealed abstract class Patch
 abstract class TreePatch extends Patch
@@ -68,8 +69,8 @@ object Patch {
                    |1. $a
                    |2. $b""".stripMargin)
   }
-  def apply(ast: Tree, patches: Seq[Patch])(
-      implicit ctx: ScalafixCtx): String = {
+  def apply[T <: Mirror: CanOrganizeImports](ast: Tree, patches: Seq[Patch])(
+      implicit ctx: RewriteCtx[T]): String = {
     val input = ast.tokens
     val tokenPatches = patches.collect { case e: TokenPatch => e }
     val replacePatches = Replacer.toTokenPatches(ast, patches.collect {

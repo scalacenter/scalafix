@@ -11,4 +11,5 @@ package object rewrite {
   type ScalafixCtx = RewriteCtx[ScalafixMirror]
   type SyntaxRewrite = Rewrite[Any]
   type SyntaxCtx = RewriteCtx[None.type]
+  type AnyCtx = RewriteCtx[Any]
 }

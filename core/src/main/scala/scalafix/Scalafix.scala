@@ -8,6 +8,7 @@ import scalafix.config.ScalafixConfig
 import scalafix.rewrite.RewriteCtx
 import scalafix.rewrite.ScalafixCtx
 import scalafix.rewrite.ScalafixMirror
+import scalafix.util.CanOrganizeImports
 import scalafix.util.Patch
 
 object Scalafix {
@@ -24,13 +25,13 @@ object Scalafix {
   def fix(ast: Tree,
           config: ScalafixConfig,
           semanticApi: Option[ScalafixMirror]): Fixed = {
-    val tokens = ast.tokens
     implicit val ctx: ScalafixCtx = RewriteCtx(
       ast,
       config,
       semanticApi.getOrElse(ScalafixMirror.empty(config.dialect)))
     val patches = config.rewrites.flatMap(_.rewrite(ctx))
-    Fixed.Success(Patch.apply(ast, patches))
+    Fixed.Success(
+      Patch.apply(ast, patches)(CanOrganizeImports.ScalafixMirror, ctx))
   }
 
   def fix(code: Input, config: ScalafixConfig): Fixed = {
