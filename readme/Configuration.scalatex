@@ -59,7 +59,7 @@
     For more advanced use-cases, I recommend you use @sect.ref{scalafix-core}
     as a library.
 
-  @sect{Available options}
+  @sect{All options}
 
     The following is the list of all available options along with their
     default values.

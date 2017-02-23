@@ -13,9 +13,16 @@
         of a name that appears in a Scala source file.
         A symbol is a unique identifier of a definition such as a class, val, def or trait.
       @li
+        To demonstrate the capabilities of rewrites using the scala.meta semantic API,
+        we have included an example rewrite called @lnk(
+          "Xor2Either",
+          "https://github.com/scalacenter/scalafix/blob/master/core/src/main/scala/scalafix/rewrite/Xor2Either.scala"
+        ).
+        The rewrite migrates usage of @code{cats.data.Xor} to @code{scala.util.Either}.
+      @li
         Rewrites can now be implemented in terms of "tree patches", which are high
-        level descriptions of common refactorings.
-        Tree patches can be composed as Lego blocks to build advanced refactorings
+        level descriptions of common refactoring operations.
+        Tree patches can be composed to build more advanced refactorings
         such as @code{Xor2Either}.
         The current available tree patches are
         @ul
@@ -30,15 +37,9 @@
           scalafix patch API at every step of its development. His feedback has
           been invaluable in improving the design of the API.
       @li
-        To demonstrate the capabilities of rewrites using the scala.meta API,
-        we have included an example rewrite called @lnk(
-          "Xor2Either",
-          "https://github.com/scalacenter/scalafix/blob/master/core/src/main/scala/scalafix/rewrite/Xor2Either.scala"
-        ).
-        The rewrite migrates usage of @code{cats.data.Xor} to @code{scala.util.Either}.
-      @li
         Configuration in .scalafix.conf has been greatly improved to support a wide range
         of options.
+        Examples, see @sect.ref{patches}, @sect.ref{imports} and @sect.ref{All options}.
   @sect{0.2.1}
     @ul
       @li
