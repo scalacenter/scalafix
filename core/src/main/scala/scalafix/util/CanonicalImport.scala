@@ -3,14 +3,16 @@ package scalafix.util
 import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.tokens.Token.Comment
+import scalafix.rewrite.AnyCtx
 import scalafix.rewrite.ScalafixCtx
+import scalafix.rewrite.SyntaxCtx
 
 object CanonicalImport {
   def fromWildcard(ref: Term.Ref,
                    wildcard: Importee.Wildcard,
                    unimports: Seq[Importee.Unimport],
                    renames: Seq[Importee.Rename])(
-      implicit ctx: ScalafixCtx,
+      implicit ctx: AnyCtx,
       ownerImport: Import
   ): CanonicalImport =
     new CanonicalImport(
@@ -24,7 +26,7 @@ object CanonicalImport {
       None
     ) {}
   def fromImportee(ref: Term.Ref, importee: Importee)(
-      implicit ctx: ScalafixCtx,
+      implicit ctx: AnyCtx,
       ownerImport: Import
   ): CanonicalImport =
     new CanonicalImport(
@@ -53,7 +55,7 @@ sealed case class CanonicalImport(
     leadingComments: Set[Comment],
     trailingComments: Set[Comment],
     fullyQualifiedRef: Option[Term.Ref]
-)(implicit ctx: ScalafixCtx) {
+)(implicit ctx: AnyCtx) {
 
   def isRootImport: Boolean =
     ref.collect {

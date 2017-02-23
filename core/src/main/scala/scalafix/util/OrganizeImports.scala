@@ -7,14 +7,27 @@ import scala.meta._
 import scala.meta.semantic.v1.Completed
 import scala.meta.tokens.Token.Comment
 import scalafix.config.FilterMatcher
-import scalafix.rewrite.ScalafixCtx
 import scalafix.rewrite.RewriteCtx
 import scalafix.syntax._
 import scalafix.util.TreePatch.AddGlobalImport
 import scalafix.util.TreePatch.RemoveGlobalImport
 
-private[this] class OrganizeImports private (implicit ctx: ScalafixCtx) {
-  import ctx._
+/** Set of operations needed to run organize imports */
+trait OrganizeImportsMirror {
+
+  /** Returns true if this importee is never used and can be removed. */
+  def isUnused(importee: Importee): Boolean
+
+  /** Returns fully qualified name of this reference
+    *
+    * For example scala.collection.immutable.List for List.
+    **/
+  def fullyQualifiedName(ref: Ref): Option[Ref]
+}
+
+private[this] class OrganizeImports[T] private (implicit ctx: RewriteCtx[T],
+                                                ev: CanOrganizeImports[T]) {
+  val mirror: OrganizeImportsMirror = ev.toOrganizeImportsMirror(ctx.mirror)
   def extractImports(stats: Seq[Stat]): Seq[Import] = {
     stats
       .takeWhile(_.is[Import])
@@ -88,7 +101,7 @@ private[this] class OrganizeImports private (implicit ctx: ScalafixCtx) {
     if (!ctx.config.imports.removeUnused) imports
     else {
       val (usedImports, unusedImports) =
-        imports.partition(i => !ctx.mirror.isUnusedImport(i.importee))
+        imports.partition(i => !mirror.isUnused(i.importee))
       usedImports
     }
   }
@@ -103,10 +116,7 @@ private[this] class OrganizeImports private (implicit ctx: ScalafixCtx) {
 
   def fullyQualify(imp: CanonicalImport): Option[Term.Ref] =
     for {
-      // TODO(olafur) switch to scala.meta mirror instead of scalafix homebrew.
-//      sym <- semantic.symbol(imp.ref).toOption
-//      fqnRef <- sym.toTermRef
-      fqnRef <- mirror.fqn(imp.ref)
+      fqnRef <- mirror.fullyQualifiedName(imp.ref)
       // Avoid inserting unneeded `package`
       if rootPkgName(fqnRef) != rootPkgName(imp.ref)
     } yield fqnRef.asInstanceOf[Term.Ref]
@@ -221,8 +231,9 @@ private[this] class OrganizeImports private (implicit ctx: ScalafixCtx) {
 }
 
 object OrganizeImports {
-  def organizeImports(code: Tree, patches: Seq[ImportPatch])(
-      implicit ctx: ScalafixCtx): Seq[TokenPatch] =
+  def organizeImports[T: CanOrganizeImports](code: Tree,
+                                             patches: Seq[ImportPatch])(
+      implicit ctx: RewriteCtx[T]): Seq[TokenPatch] =
     new OrganizeImports().organizeImports(
       code,
       patches ++ ctx.config.patches.all.collect {
