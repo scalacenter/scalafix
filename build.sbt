@@ -41,8 +41,9 @@ lazy val release = Command.command("release") { s =>
           s
 }
 
+commands += release
+
 lazy val publishSettings = Seq(
-  commands += release,
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
     if (isSnapshot.value)
