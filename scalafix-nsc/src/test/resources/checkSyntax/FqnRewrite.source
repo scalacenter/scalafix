@@ -1,0 +1,9 @@
+rewrites = [
+  _root_.scalafix.test.FqnRewrite
+]
+<<< NOWRAP add import
+import scala._
+object FqnMe
+>>>
+import scala.meta._
+object FqnMe

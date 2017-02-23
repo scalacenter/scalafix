@@ -9,6 +9,7 @@ import scala.util.matching.Regex
 import scalafix.Failure.UnknownRewrite
 import scalafix.rewrite.ScalafixRewrite
 import scalafix.rewrite.ScalafixRewrites
+import scalafix.util.ClassloadObject
 import scalafix.util.TreePatch._
 
 import metaconfig.Reader
@@ -26,7 +27,13 @@ trait ScalafixMetaconfigReaders {
   }
 
   implicit lazy val rewriteReader: Reader[ScalafixRewrite] =
-    ReaderUtil.fromMap(ScalafixRewrites.name2rewrite)
+    Reader.instance[ScalafixRewrite] {
+      case fqn: String if fqn.startsWith("_root_.") =>
+        val suffix = if (fqn.endsWith("$")) "" else "$"
+        ClassloadObject[ScalafixRewrite](fqn.stripPrefix("_root_.") + suffix)
+      case els =>
+        ReaderUtil.fromMap(ScalafixRewrites.name2rewrite).read(els)
+    }
 
   implicit val RegexReader: Reader[Regex] = Reader.instance[Regex] {
     case str: String => Right(FilterMatcher.mkRegexp(List(str)))
