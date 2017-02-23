@@ -77,8 +77,8 @@
 
       @ul
         @li
-          Syntactic api. This is the easiest option but also the least powerful options.
-          It does provide access to compilation information such as symbols/types.
+          Syntactic api. This is the easiest option but also the least powerful one.
+          It does not provide access to compilation information such as symbols/types.
           Just create a @code{scalafix.rewrite.Rewrite[Any]} and go!
         @li
           @code{scala.meta.Mirror}, aka.
@@ -99,10 +99,10 @@
             the setup is complex.
             You need to ensure that your compiled rewrite is included in the compiler
             classpath. Once the rewrite is in the compiler classpath, you
-            can enable your rewrite via @code{.scalafix.conf}
-            @code{rewrites = [_root_.fully.qualified.name.to.rewrite.object]}.
+            can enable your rewrite with
+            @code{rewrites = [_root_.fully.qualified.name.of.rewrite]}.
             Note, your rewrite needs to be an @code{object}.
-            For more question, don't hesitate to ask on Gitter.
+            For more question about this option, don't hesitate to ask on Gitter.
 
     @p
       Scalafix as a library is still under heavy development.
