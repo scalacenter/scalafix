@@ -38,7 +38,7 @@
       addSbtPlugin("org.scalameta" % "sbt-scalahost" % "@scalafix.Versions.scalameta")
 
       // build.sbt
-      val rewrites = projects
+      val rewrites = project
         .settings(
           scalaVersion := "2.11.8", // 2.12.x is also supported
           libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % "@scalafix.Versions.version"
