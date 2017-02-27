@@ -42,11 +42,11 @@
 
     @hl.scala
       // before: procedure syntax
-      def main(args: Seq[String) {
+      def main(args: Seq[String]) {
         println("Hello world!")
       }
       // after: regular syntax
-      def main(args: Seq[String): Unit = {
+      def main(args: Seq[String]): Unit = {
         println("Hello world!")
       }
 
