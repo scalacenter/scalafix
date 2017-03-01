@@ -2,6 +2,22 @@
 @import scalafix.Readme._
 
 @sect{Changelog}
+  @sect{0.3.1}
+    @ul
+      @li
+        Fixed a bug in organize imports when there was no import in the
+        original source file.
+      @li
+        Patch.apply and OrganizeImports no longer accept a redundant @code{tree: Tree} argument, the
+        @code{ctx} already contains the tree.
+      @li
+        Xor2Either is disabled by default now, it was enabled by default
+        causing the @code{scalafix} command to slow down significantly.
+        Rewrites using @code{scala.meta.Mirror} should not experience a
+        slowdown.
+      @li
+        Added new @code{Rename(from: Name, to: Name)} tree patch that's
+        accesible via the scalafix-library.
   @sect{0.3.0}
     @ul
       @li
