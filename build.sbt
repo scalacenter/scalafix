@@ -83,7 +83,7 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
   buildInfoKeys := Seq[BuildInfoKey](
     name,
     version,
-    "stableVersion" -> "0.3.0",
+    "stableVersion" -> "0.3.1",
     "scalameta" -> scalametaV,
     scalaVersion,
     sbtVersion
