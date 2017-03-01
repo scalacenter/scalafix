@@ -3,7 +3,6 @@ import scala.language.higherKinds
 
 import scala.tools.nsc.typechecker.Contexts
 
-
 trait HijackImportInfos { self: ReflectToolkit =>
   val allUsedSelectors: NonRemovableMap[g.analyzer.ImportInfo,
                                         Set[g.ImportSelector]] =

@@ -6,6 +6,7 @@ import scala.meta.Importee.Wildcard
 import scala.meta._
 import scala.meta.semantic.v1.Completed
 import scala.meta.tokens.Token.Comment
+import scala.meta.tokens.Token.KwImport
 import scalafix.config.FilterMatcher
 import scalafix.rewrite.RewriteCtx
 import scalafix.syntax._
@@ -212,18 +213,30 @@ private[this] class OrganizeImports[T] private (implicit ctx: RewriteCtx[T],
     patches.foldLeft(removeUnused(globalImports))(combine)
   }
 
-  def organizeImports(code: Tree, patches: Seq[ImportPatch]): Seq[TokenPatch] = {
+  lazy val fallbackToken: Token = {
+    def loop(tree: Tree): Token = tree match {
+      case Source(stat :: _) => loop(stat)
+      case Pkg(_, stat :: _) => loop(stat)
+      case els => els.tokens(ctx.config.dialect).head
+    }
+    loop(ctx.tree)
+  }
+
+  def organizeImports(patches: Seq[ImportPatch]): Seq[TokenPatch] = {
     if (!ctx.config.imports.organize && patches.isEmpty) {
       Nil
     } else {
-      val oldImports = getGlobalImports(code)
+      val oldImports = getGlobalImports(ctx.tree)
       val globalImports = oldImports.flatMap(getCanonicalImports)
       val cleanedUpImports = cleanUpImports(globalImports, patches)
       val tokenToEdit =
         oldImports.headOption
           .map(_.tokens.head)
-          .getOrElse(ctx.tokens.head)
-      val toInsert = prettyPrint(cleanedUpImports)
+          .getOrElse(fallbackToken)
+      val suffix =
+        if (!tokenToEdit.is[KwImport] && tokenToEdit.eq(fallbackToken)) "\n"
+        else ""
+      val toInsert = prettyPrint(cleanedUpImports) ++ suffix
       TokenPatch.AddLeft(tokenToEdit, toInsert) +:
         getRemovePatches(oldImports)
     }
@@ -231,11 +244,9 @@ private[this] class OrganizeImports[T] private (implicit ctx: RewriteCtx[T],
 }
 
 object OrganizeImports {
-  def organizeImports[T: CanOrganizeImports](code: Tree,
-                                             patches: Seq[ImportPatch])(
+  def organizeImports[T: CanOrganizeImports](patches: Seq[ImportPatch])(
       implicit ctx: RewriteCtx[T]): Seq[TokenPatch] =
     new OrganizeImports().organizeImports(
-      code,
       patches ++ ctx.config.patches.all.collect {
         case i: ImportPatch => i
       }

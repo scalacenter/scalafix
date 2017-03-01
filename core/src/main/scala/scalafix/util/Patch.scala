@@ -85,7 +85,6 @@ object Patch {
       case e: Replace => e
     })
     val importPatches = OrganizeImports.organizeImports(
-      ast,
       patches.collect { case e: ImportPatch => e } ++
         replacePatches.collect { case e: ImportPatch => e }
     )
