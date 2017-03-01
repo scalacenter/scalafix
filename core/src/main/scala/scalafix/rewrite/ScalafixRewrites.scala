@@ -11,7 +11,7 @@ object ScalafixRewrites {
   )
   val all: List[ScalafixRewrite] = syntax ++ semantic
   val default: List[ScalafixRewrite] =
-    all.filterNot(_ == VolatileLazyVal)
+    all.filterNot(Set(VolatileLazyVal, Xor2Either))
   val name2rewrite: Map[String, ScalafixRewrite] =
     all.map(x => x.name -> x).toMap
 

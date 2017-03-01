@@ -13,6 +13,7 @@ import scalafix.util.TokenPatch.Remove
 import scalafix.util.TreePatch.Replace
 import scalafix.config._
 import scalafix.rewrite.RewriteCtx
+import scalafix.util.TreePatch.Rename
 
 sealed abstract class Patch
 abstract class TreePatch extends Patch
@@ -28,6 +29,7 @@ abstract class ImportPatch(val importer: Importer) extends TreePatch {
 }
 
 object TreePatch {
+  case class Rename(from: Name, to: Name) extends TreePatch
   @metaconfig.ConfigReader
   case class Replace(from: Symbol,
                      to: Term.Ref,
@@ -69,15 +71,20 @@ object Patch {
                    |1. $a
                    |2. $b""".stripMargin)
   }
-  def apply[T <: Mirror: CanOrganizeImports](ast: Tree, patches: Seq[Patch])(
+  def apply[T <: Mirror: CanOrganizeImports](patches: Seq[Patch])(
       implicit ctx: RewriteCtx[T]): String = {
-    val input = ast.tokens
+    if (ctx.config.debug.printSymbols)
+      logger.info(ctx.mirror.database)
+    val ast = ctx.tree
+    val input = ctx.tokens
     val tokenPatches = patches.collect { case e: TokenPatch => e }
+    val renamePatches = Renamer.toTokenPatches(patches.collect {
+      case e: Rename => e
+    })
     val replacePatches = Replacer.toTokenPatches(ast, patches.collect {
       case e: Replace => e
     })
     val importPatches = OrganizeImports.organizeImports(
-      ast,
       patches.collect { case e: ImportPatch => e } ++
         replacePatches.collect { case e: ImportPatch => e }
     )
@@ -85,7 +92,7 @@ object Patch {
       case t: TokenPatch => t
     }
     val patchMap: Map[(Int, Int), String] =
-      (importPatches ++ tokenPatches ++ replaceTokenPatches)
+      (importPatches ++ tokenPatches ++ replaceTokenPatches ++ renamePatches)
         .groupBy(_.tok.posTuple)
         .mapValues(_.reduce(merge).newTok)
     input.toIterator
