@@ -30,8 +30,7 @@ object Scalafix {
       config,
       semanticApi.getOrElse(ScalafixMirror.empty(config.dialect)))
     val patches = config.rewrites.flatMap(_.rewrite(ctx))
-    Fixed.Success(
-      Patch.apply(ast, patches)(CanOrganizeImports.ScalafixMirror, ctx))
+    Fixed.Success(Patch.apply(patches)(CanOrganizeImports.ScalafixMirror, ctx))
   }
 
   def fix(code: Input, config: ScalafixConfig): Fixed = {
