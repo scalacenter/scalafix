@@ -1,5 +1,3 @@
-package scalafix.sbt
-
 import sbt.Keys.TaskStreams
 
 /**
