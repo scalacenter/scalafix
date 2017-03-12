@@ -139,7 +139,7 @@ private[this] class OrganizeImports[T] private (implicit ctx: RewriteCtx[T],
         .groupBy { imp =>
           config.groups
             .find(_.matches(imp.refSyntax))
-            .getOrElse(config.groups.last)
+            .getOrElse(FilterMatcher.matchEverything)
         } + (FilterMatcher("relative") -> relativeImports)
     val inOrder =
       grouped

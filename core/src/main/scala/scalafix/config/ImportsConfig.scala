@@ -17,8 +17,7 @@ case class ImportsConfig(
     groups: List[FilterMatcher] = List(
       FilterMatcher("scala.language.*"),
       FilterMatcher("(scala|scala\\..*)$"),
-      FilterMatcher("(java|java\\..*)$"),
-      FilterMatcher(".*")
+      FilterMatcher("(java|java\\..*)$")
     ),
     groupByPrefix: Boolean = false
 ) {}

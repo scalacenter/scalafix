@@ -1,0 +1,22 @@
+rewrites = []
+imports.groups = []
+<<< Simple test case (see #86)
+import java.util.HashMap
+import java.util.Map
+import scala.collection.immutable.HashSet
+
+import java.util.LinkedHashMap
+
+object Test {
+  val x: Map[String, String] = new HashMap
+  val y: Set[String] = new HashSet
+}
+>>>
+import java.util.HashMap
+import java.util.Map
+import scala.collection.immutable.HashSet
+
+object Test {
+  val x: Map[String, String] = new HashMap
+  val y: Set[String] = new HashSet
+}
