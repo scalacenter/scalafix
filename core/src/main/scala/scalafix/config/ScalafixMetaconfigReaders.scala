@@ -5,12 +5,20 @@ import scala.meta.Ref
 import scala.meta.parsers.Parse
 import scala.meta.semantic.v1.Symbol
 import scala.reflect.ClassTag
+import scala.util.Try
 import scala.util.matching.Regex
 import scalafix.Failure.UnknownRewrite
+import scalafix.rewrite.ScalafixMirror
 import scalafix.rewrite.ScalafixRewrite
 import scalafix.rewrite.ScalafixRewrites
 import scalafix.util.ClassloadObject
+import scalafix.util.FileOps
+import scalafix.util.ScalafixToolbox
 import scalafix.util.TreePatch._
+
+import java.io.File
+import java.net.URI
+import java.net.URL
 
 import metaconfig.Reader
 import org.scalameta.logger
@@ -26,11 +34,53 @@ trait ScalafixMetaconfigReaders {
     ReaderUtil.oneOf[Dialect](Scala211, Sbt0137, Dotty, Paradise211)
   }
 
+  object ClassloadRewrite {
+    def unapply(arg: String): Option[String] = arg match {
+      case UriRewrite("scala", uri) =>
+        val suffix = if (arg.endsWith("$")) "" else "$"
+        Option(uri.getSchemeSpecificPart + suffix)
+      case _ => None
+    }
+  }
+
+  object UriRewrite {
+    def unapply(arg: String): Option[(String, URI)] =
+      for {
+        uri <- Try(new URI(arg)).toOption
+        scheme <- Option(uri.getScheme)
+      } yield scheme -> uri
+  }
+
+  object UrlRewrite {
+    def unapply(arg: String): Option[URL] = arg match {
+      case UriRewrite("http" | "https", uri) if uri.isAbsolute =>
+        Option(uri.toURL)
+      case _ => None
+    }
+  }
+
+  object FileRewrite {
+    def unapply(arg: String): Option[File] = arg match {
+      case UriRewrite("file", uri) =>
+        Option(new File(uri.getSchemeSpecificPart).getAbsoluteFile)
+      case _ => None
+    }
+  }
+
+  object FromSourceRewrite {
+    def unapply(arg: String): Option[String] = arg match {
+      case FileRewrite(file) => Option(FileOps.readFile(file))
+      case UrlRewrite(url) => Option(FileOps.readURL(url))
+      case _ => None
+    }
+  }
+
   implicit lazy val rewriteReader: Reader[ScalafixRewrite] =
     Reader.instance[ScalafixRewrite] {
-      case fqn: String if fqn.startsWith("_root_.") =>
-        val suffix = if (fqn.endsWith("$")) "" else "$"
-        ClassloadObject[ScalafixRewrite](fqn.stripPrefix("_root_.") + suffix)
+      case ClassloadRewrite(fqn) =>
+        ClassloadObject[ScalafixRewrite](fqn)
+      case FromSourceRewrite(code) =>
+        ScalafixToolbox.getRewrite[ScalafixMirror](code)
       case els =>
         ReaderUtil.fromMap(ScalafixRewrites.name2rewrite).read(els)
     }

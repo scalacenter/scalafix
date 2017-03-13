@@ -1,5 +1,5 @@
 rewrites = [
-  _root_.scalafix.test.FqnRewrite
+  "scala:scalafix.test.FqnRewrite"
 ]
 <<< NOWRAP add import
 import scala._

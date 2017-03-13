@@ -25,10 +25,14 @@ class RewriteCtx[+A](implicit val tree: Tree,
 
 object RewriteCtx {
 
-  /** Constructor for a syntactic rewrite. */
+  /** Constructor for a syntactic rewrite.
+    *
+    * Syntactic rewrite ctx is RewriteCtx[Null] because it is a subtype of any
+    * other rewritectx.
+    */
   def apply(tree: Tree,
-            config: ScalafixConfig = ScalafixConfig()): RewriteCtx[None.type] =
-    apply(tree, config, None)
+            config: ScalafixConfig = ScalafixConfig()): RewriteCtx[Null] =
+    apply(tree, config, null)
 
   /** Constructor for a generic rewrite. */
   def apply[T](tree: Tree, config: ScalafixConfig, mirror: T): RewriteCtx[T] =
