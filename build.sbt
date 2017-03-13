@@ -36,9 +36,9 @@ lazy val gitPushTag = taskKey[Unit]("Push to git tag")
 lazy val release = Command.command("release") { s =>
   "clean" ::
     "very publishSigned" ::
-      "sonatypeRelease" ::
-        "gitPushTag" ::
-          s
+    "sonatypeRelease" ::
+    "gitPushTag" ::
+    s
 }
 
 commands += release

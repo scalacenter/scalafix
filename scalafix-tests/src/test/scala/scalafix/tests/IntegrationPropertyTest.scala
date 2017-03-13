@@ -77,9 +77,9 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
       val id = s"${t.name}/$cmd"
       logger.info(s"Running $id")
       val args = Seq(
-          "sbt",
-          "++2.11.8"
-        ) ++ cmds.map(_.toString)
+        "sbt",
+        "++2.11.8"
+      ) ++ cmds.map(_.toString)
       failAfter(maxTime) {
         import sys.process._
         val status = Process(args, cwd = t.workingPath.toIO).!
