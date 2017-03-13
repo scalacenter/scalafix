@@ -1,7 +1,8 @@
 rewrites = [
-  "https://gist.githubusercontent.com/olafurpg/2a4b1ee14c831fb7cab556b4b471c976/raw/e42891cd705eed6b1411b92a71f9f4f4a399a4f1/MyRewrite.scala"
+  "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/5c71c5444174130531021c2c39b0b3ccef30ef00/ExampleRewrite.scala"
 ]
 <<< NOWRAP basic
 object Name
 >>>
+import scala.collection.immutable.Seq
 object Name1
