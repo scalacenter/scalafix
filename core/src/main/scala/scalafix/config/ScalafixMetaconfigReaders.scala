@@ -23,6 +23,7 @@ import java.net.URL
 import metaconfig.Reader
 import org.scalameta.logger
 
+object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
 // A collection of metaconfig.Reader instances that are shared across
 trait ScalafixMetaconfigReaders {
   implicit lazy val parseReader: Reader[MetaParser] = {

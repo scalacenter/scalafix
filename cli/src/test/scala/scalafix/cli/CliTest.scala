@@ -1,5 +1,7 @@
 package scalafix.cli
 
+import scalafix.config.ScalafixConfig
+import scalafix.rewrite.VolatileLazyVal
 import scalafix.util.DiffAssertions
 import scalafix.util.FileOps
 
@@ -26,20 +28,33 @@ object BasicTest {
 
 }
 
-class CliSuite extends FunSuite with DiffAssertions {
+class CliTest extends FunSuite with DiffAssertions {
 
   println(Cli.helpMessage)
 
   import BasicTest._
 
   test("testMain") {
-    val expected = ScalafixOptions(
-      files = List("foo", "bar"),
-      inPlace = true
-    )
     val Right(WithHelp(false, false, obtained)) =
-      Cli.parse(Seq("-i", "foo", "bar"))
-    assertEqual(obtained, expected)
+      Cli.parse(
+        Seq(
+          "--debug",
+          "--config",
+          "imports.groupByPrefix=true",
+          "--single-thread",
+          "--files",
+          "a.scala",
+          "b.scala",
+          "-i",
+          "foo.scala",
+          "bar.scala"
+        ))
+    assert(obtained.inPlace)
+    assert(obtained.debug)
+    assert(obtained.singleThread)
+    assert(obtained.resolvedConfig.imports.groupByPrefix)
+    assert(
+      obtained.files == List("a.scala", "b.scala", "foo.scala", "bar.scala"))
   }
 
   test("write fix to file") {

@@ -129,7 +129,7 @@ lazy val `scalafix-root` = project
     `scalafix-tests`,
     `scalafix-testutils`,
     core,
-//    cli, // superseded by sbt plugin
+    cli,
     readme,
     `scalafix-sbt`
   )

@@ -11,6 +11,14 @@ import scalafix.util.ImportPatch
 import scalafix.util.logger
 
 package object syntax {
+
+
+  implicit class XtensionEither[B](either: Either[Throwable, B]) {
+    def get: B = either match {
+      case Right(b) => b
+      case Left(e) => throw e
+    }
+  }
   implicit class XtensionImporter(i: CanonicalImport) {
     def supersedes(patch: ImportPatch): Boolean =
       i.ref.structure == patch.importer.ref.structure &&
