@@ -1,1 +1,1 @@
-addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % sys.props("plugin.version"))
+../../../../test-project-template/project/plugins.sbt

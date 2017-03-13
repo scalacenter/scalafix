@@ -2,7 +2,7 @@ scalaVersion := "2.11.8"
 
 TaskKey[Unit]("check") := {
   val assertContentMatches: ((String, String) => Boolean) =
-    scalafix.sbt.ScalafixTestUtility.assertContentMatches(streams.value) _
+    ScalafixTestUtility.assertContentMatches(streams.value) _
   val expected =
     """object Main {
       |  implicit val x: Int = 2

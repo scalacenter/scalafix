@@ -4,7 +4,7 @@ scalafixConfig in ThisBuild := Some(file("myscalafix.conf"))
 
 TaskKey[Unit]("check") := {
   val assertContentMatches: ((String, String) => Boolean) =
-    scalafix.sbt.ScalafixTestUtility.assertContentMatches(streams.value) _
+    ScalafixTestUtility.assertContentMatches(streams.value) _
   val expected =
     """object Main {
       |  implicit val x = 2
