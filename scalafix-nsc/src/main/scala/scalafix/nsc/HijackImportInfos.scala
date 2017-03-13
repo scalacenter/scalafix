@@ -4,11 +4,11 @@ import scala.language.higherKinds
 import scala.tools.nsc.typechecker.Contexts
 
 trait HijackImportInfos { self: ReflectToolkit =>
-  val allUsedSelectors: NonRemovableMap[g.analyzer.ImportInfo,
-                                        Set[g.ImportSelector]] =
+  val allUsedSelectors
+    : NonRemovableMap[g.analyzer.ImportInfo, Set[g.ImportSelector]] =
     new NonRemovableMap[g.analyzer.ImportInfo, Set[g.ImportSelector]](Set())
-  val allImportInfos: NonRemovableMap[g.CompilationUnit,
-                                      List[g.analyzer.ImportInfo]] =
+  val allImportInfos
+    : NonRemovableMap[g.CompilationUnit, List[g.analyzer.ImportInfo]] =
     new NonRemovableMap[g.CompilationUnit, List[g.analyzer.ImportInfo]](Nil)
 
   /** overrides private lazy maps in g.analyzer's Contexts with custom maps */

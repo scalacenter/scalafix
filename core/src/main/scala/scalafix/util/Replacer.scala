@@ -39,9 +39,10 @@ private[this] class Replacer(implicit ctx: RewriteCtx[Mirror]) {
                   x.from == symbol
                 }
                 .toList
-                .flatMap(replace =>
-                  TokenPatch.AddLeft(ref.tokens.head, replace.to.syntax) +:
-                    (ref.tokens.map(TokenPatch.Remove.apply) ++
+                .flatMap(
+                  replace =>
+                    TokenPatch.AddLeft(ref.tokens.head, replace.to.syntax) +:
+                      (ref.tokens.map(TokenPatch.Remove.apply) ++
                       replace.additionalImports.map(x => AddGlobalImport(x))))
           case imp: Import => // Do nothing
           case _ => super.apply(tree)

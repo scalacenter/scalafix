@@ -22,7 +22,7 @@ object CanonicalImport {
       renames,
       leadingComments = ctx.comments.leading(ownerImport),
       trailingComments = ctx.comments.trailing(ownerImport) ++
-          (wildcard +: unimports).flatMap(ctx.comments.trailing),
+        (wildcard +: unimports).flatMap(ctx.comments.trailing),
       None
     ) {}
   def fromImportee(ref: Term.Ref, importee: Importee)(
@@ -36,7 +36,7 @@ object CanonicalImport {
       Nil,
       leadingComments = ctx.comments.leading(ownerImport),
       trailingComments = ctx.comments.trailing(ownerImport) ++
-          ctx.comments.trailing(importee),
+        ctx.comments.trailing(importee),
       None
     ) {}
 }

@@ -8,14 +8,19 @@ object ScalafixTestUtility {
   private def calcDiff(expected: String, obtained: String): Option[String] = {
     import scala.collection.JavaConverters._
 
-    if (expected == obtained) None else {
+    if (expected == obtained) None
+    else {
       def jLinesOf(s: String) = s.lines.toSeq.asJava
 
       val expectedLines = jLinesOf(expected)
       val obtainedLines = jLinesOf(obtained)
 
       val diff = DiffUtils.diff(expectedLines, obtainedLines)
-      val unifiedDiff = DiffUtils.generateUnifiedDiff("expected", "obtained", expectedLines, diff, 1)
+      val unifiedDiff = DiffUtils.generateUnifiedDiff("expected",
+                                                      "obtained",
+                                                      expectedLines,
+                                                      diff,
+                                                      1)
 
       Some(unifiedDiff.asScala.drop(3).mkString("\n"))
     }
@@ -33,25 +38,27 @@ object ScalafixTestUtility {
         ))
     ).trim
 
-    calcDiff(expected, obtained).map { diff =>
-      val msg =
-        s"""File: $file
-           |Obtained output:
-           |----------------
-           |$obtained
-           |Expected:
-           |---------
-           |$expected
-           |Diff:
-           |-----
-           |$diff""".stripMargin
+    calcDiff(expected, obtained)
+      .map { diff =>
+        val msg =
+          s"""File: $file
+             |Obtained output:
+             |----------------
+             |$obtained
+             |Expected:
+             |---------
+             |$expected
+             |Diff:
+             |-----
+             |$diff""".stripMargin
 
-      streams.log.error(file)
-      streams.log.error(msg)
-      false
-    }.getOrElse {
-      streams.log.success(file)
-      true
-    }
+        streams.log.error(file)
+        streams.log.error(msg)
+        false
+      }
+      .getOrElse {
+        streams.log.success(file)
+        true
+      }
   }
 }
