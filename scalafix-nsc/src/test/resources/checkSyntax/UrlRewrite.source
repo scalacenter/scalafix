@@ -1,0 +1,7 @@
+rewrites = [
+  "https://gist.githubusercontent.com/olafurpg/2a4b1ee14c831fb7cab556b4b471c976/raw/e42891cd705eed6b1411b92a71f9f4f4a399a4f1/MyRewrite.scala"
+]
+<<< NOWRAP basic
+object Name
+>>>
+object Name1

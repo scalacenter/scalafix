@@ -71,10 +71,10 @@ object Renamer {
       implicit ctx: RewriteCtx[T]): Seq[TokenPatch] = {
     object MatchingRename {
       def unapply(arg: Name): Option[(Token, Name)] =
-        renames.find(_.from eq arg).map { rename =>
-          val tok = arg.tokens(ctx.config.dialect).head
-          tok -> rename.to
-        }
+        for {
+          rename <- renames.find(_.from eq arg)
+          tok <- arg.tokens.headOption
+        } yield tok -> rename.to
     }
     ctx.tree.collect {
       case MatchingRename(tok, to) =>

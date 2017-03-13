@@ -16,6 +16,9 @@ abstract class Rewrite[-A](implicit sourceName: sourcecode.Name) {
   def name: String = sourceName.value
   override def toString: String = name
   def rewrite[B <: A](ctx: RewriteCtx[B]): Seq[Patch]
+
+  def andThen[B <: A](other: Rewrite[B]): Rewrite[B] =
+    Rewrite(ctx => this.rewrite(ctx) ++ other.rewrite(ctx))
 }
 
 object Rewrite {
