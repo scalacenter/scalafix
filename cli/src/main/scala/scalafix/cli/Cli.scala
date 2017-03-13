@@ -1,9 +1,17 @@
 package scalafix.cli
 
 import scala.collection.GenSeq
+import scala.meta.inputs.Input
+import scala.util.control.NonFatal
 import scalafix.Failure
+import scalafix.Fixed
 import scalafix.Scalafix
-import scalafix.rewrite.Rewrite
+import scalafix.cli.ArgParserImplicits._
+import scalafix.cli.termdisplay.TermDisplay
+import scalafix.config.ScalafixConfig
+import scalafix.rewrite.ProcedureSyntax
+import scalafix.rewrite.ScalafixRewrite
+import scalafix.rewrite.ScalafixRewrites
 import scalafix.util.FileOps
 
 import java.io.File
@@ -11,50 +19,76 @@ import java.io.InputStream
 import java.io.OutputStreamWriter
 import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicInteger
-import ArgParserImplicits._
-import scala.util.control.NonFatal
-import scalafix.Fixed
-import scalafix.cli.termdisplay.TermDisplay
-import scalafix.rewrite.ScalafixRewrite
-import scalafix.rewrite.ScalafixRewrites
-import scalafix.config.ScalafixConfig
+import java.util.regex.Pattern
 
 import caseapp._
 import caseapp.core.Messages
 import caseapp.core.WithHelp
 import com.martiansoftware.nailgun.NGContext
+import org.scalameta.logger
 
 case class CommonOptions(
     @Hidden workingDirectory: String = System.getProperty("user.dir"),
     @Hidden out: PrintStream = System.out,
     @Hidden in: InputStream = System.in,
     @Hidden err: PrintStream = System.err
-)
+) {
+  def workingDirectoryFile = new File(workingDirectory)
+}
 
 @AppName("scalafix")
 @AppVersion(scalafix.Versions.version)
 @ProgName("scalafix")
 case class ScalafixOptions(
     @HelpMessage(
-      s"Rules to run, one of: ${ScalafixRewrites.all.mkString(", ")}"
-    ) rewrites: List[ScalafixRewrite] = ScalafixRewrites.syntax.toList,
-    @Hidden @HelpMessage(
+      "Scalafix configuration, either a file path or a hocon string"
+    ) @ValueDescription(
+      ".scalafix.conf OR imports.organize=false"
+    ) @ExtraName("c") config: Option[ScalafixConfig] = None,
+    @HelpMessage(
+      s"Additional rewrite rules to run. NOTE. rewrite.rules = [ .. ] from --config will also run."
+    ) @ValueDescription(
+      s"$ProcedureSyntax OR file:LocalFile.scala OR scala:full.Name OR https://gist.com/.../Rewrite.scala"
+    ) rewrites: List[ScalafixRewrite] = ScalafixRewrites.syntax,
+    @HelpMessage(
       "Files to fix. Runs on all *.scala files if given a directory."
+    ) @ValueDescription(
+      "File1.scala File2.scala"
     ) @ExtraName("f") files: List[String] = List.empty[String],
     @HelpMessage(
       "If true, writes changes to files instead of printing to stdout."
     ) @ExtraName("i") inPlace: Boolean = false,
     @HelpMessage(
-      "If true, uses all available CPUs. If false, runs in single thread."
-    ) parallel: Boolean = true,
+      "Regex that is passed as first argument to " +
+        "fileToFix.replaceAll(outFrom, outTo)."
+    ) @ValueDescription("/shared/") outFrom: String = "",
+    @HelpMessage(
+      "Replacement string that is passed as second " +
+        "argument to fileToFix.replaceAll(outFrom, outTo)"
+    ) @ValueDescription("/custom/") outTo: String = "",
+    @HelpMessage(
+      "If true, run on single thread. If false (default), use all available cores."
+    ) singleThread: Boolean = false,
     @HelpMessage(
       "If true, prints out debug information."
     ) debug: Boolean = false,
     @Recurse common: CommonOptions = CommonOptions()
-)
+) {
+
+  /** Returns ScalafixConfig from .scalafix.conf, it exists and --config was not passed. */
+  lazy val resolvedConfig: ScalafixConfig = config match {
+    case None => ScalafixConfig.auto(common.workingDirectoryFile)
+    case Some(x) => x
+  }
+
+  lazy val outFromPattern: Pattern = Pattern.compile(outFrom)
+  def replacePath(file: File): File =
+    new File(outFromPattern.matcher(file.getPath).replaceAll(outTo))
+}
 
 object Cli {
-  private val withHelp = Messages[ScalafixOptions].withHelp
+  import ArgParserImplicits._
+  private val withHelp = OptionsMessages.withHelp
   val helpMessage: String = withHelp.helpMessage
   val usageMessage: String = withHelp.usageMessage
   val default = ScalafixOptions()
@@ -71,21 +105,22 @@ object Cli {
                                      |Cause: $e""".stripMargin)
     }
   }
-  def handleFile(file: File, config: ScalafixOptions): Unit = {
-    val fixed =
-      Scalafix.fix(FileOps.readFile(file), ScalafixConfig(config.rewrites))
+
+  def handleFile(file: File, options: ScalafixOptions): Unit = {
+    val fixed = Scalafix.fix(Input.File(file), options.resolvedConfig)
     fixed match {
       case Fixed.Success(code) =>
-        if (config.inPlace) {
-          FileOps.writeFile(file, code)
-        } else config.common.out.write(code.getBytes)
+        if (options.inPlace) {
+          val outFile = options.replacePath(file)
+          FileOps.writeFile(outFile, code)
+        } else options.common.out.write(code.getBytes)
       case Fixed.Failed(e: Failure.ParseError) =>
-        if (config.files.contains(file.getPath)) {
+        if (options.files.contains(file.getPath)) {
           // Only log if user explicitly specified that file.
-          config.common.err.write(e.toString.getBytes())
+          options.common.err.write(e.toString.getBytes())
         }
       case Fixed.Failed(e) =>
-        config.common.err.write(s"Failed to fix $file. Cause: $e".getBytes)
+        options.common.err.write(s"Failed to fix $file. Cause: $e".getBytes)
     }
   }
 
@@ -100,8 +135,8 @@ object Cli {
         val filesToFix: GenSeq[String] = {
           val files =
             FileOps.listFiles(realPath).filter(x => x.endsWith(".scala"))
-          if (config.parallel) files.par
-          else files
+          if (config.singleThread) files
+          else files.par
         }
         val logger = new TermDisplay(new OutputStreamWriter(System.out))
         logger.init()
@@ -123,9 +158,15 @@ object Cli {
   }
 
   def parse(args: Seq[String]): Either[String, WithHelp[ScalafixOptions]] =
-    Parser[ScalafixOptions].withHelp.detailedParse(args) match {
-      case Right((help, extraFiles, _)) =>
-        Right(help.map(_.copy(files = help.base.files ++ extraFiles)))
+    OptionsParser.withHelp.detailedParse(args) match {
+      case Right((help, extraFiles, ls)) =>
+        Right(
+          help.map(c =>
+            c.copy(
+              files = help.base.files ++ extraFiles,
+              rewrites = c.rewrites ++ c.config.map(_.rewrites).getOrElse(Nil)
+          ))
+        )
       case Left(x) => Left(x)
     }
 

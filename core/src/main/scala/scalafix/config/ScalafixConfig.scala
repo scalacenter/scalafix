@@ -1,5 +1,6 @@
 package scalafix.config
 
+import scalafix.syntax._
 import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.dialects.Scala211
@@ -10,9 +11,7 @@ import scalafix.util.FileOps
 
 import java.io.File
 
-import metaconfig.HasFields
 import metaconfig.Reader
-import metaconfig.String2AnyMap
 import metaconfig.hocon.Hocon2Class
 
 @metaconfig.ConfigReader
@@ -33,6 +32,13 @@ case class ScalafixConfig(
 object ScalafixConfig {
 
   val default = ScalafixConfig()
+
+  /** Returns config from current working directory, if .scalafix.conf exists. */
+  def auto(workingDir: File): ScalafixConfig = {
+    val file = new File(workingDir, ".scalafix.conf")
+    if (file.isFile && file.exists()) ScalafixConfig.fromFile(file).get
+    else ScalafixConfig.default
+  }
 
   def fromFile(file: File): Either[Throwable, ScalafixConfig] =
     fromString(FileOps.readFile(file))

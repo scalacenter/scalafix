@@ -15,4 +15,5 @@ object ScalafixRewrites {
   val name2rewrite: Map[String, ScalafixRewrite] =
     all.map(x => x.name -> x).toMap
 
+
 }
