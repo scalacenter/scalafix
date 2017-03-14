@@ -144,12 +144,13 @@ trait NscScalafixMirror extends ReflectToolkit with HijackImportInfos {
   private def symbolToRef(sym: g.Symbol): Option[m.Ref] =
     Option(sym).flatMap(sym => fullNameToRef(sym.fullName))
 
-  private def assertSettingsAreValid(): Unit = {
-    val requiredSettings: Seq[(Settings#BooleanSetting, Boolean)] = Seq(
-      g.settings.Yrangepos -> true,
-//      g.settings.fatalWarnings -> false,
-      g.settings.warnUnusedImport -> true
-    )
+  private def assertSettingsAreValid(config: ScalafixConfig): Unit = {
+    val requiredSettings: Seq[(Settings#BooleanSetting, Boolean)] =
+      (g.settings.Yrangepos, true) :: {
+        if (config.imports.removeUnused)
+          g.settings.warnUnusedImport -> true :: Nil
+        else Nil
+      }
     val missingSettings = requiredSettings.filterNot {
       case (setting, value) => setting.value == value
     }
@@ -186,7 +187,7 @@ trait NscScalafixMirror extends ReflectToolkit with HijackImportInfos {
 
   private def getSemanticApi(unit: g.CompilationUnit, config: ScalafixConfig)(
       implicit mirror: Mirror): ScalafixMirror = {
-    assertSettingsAreValid()
+    assertSettingsAreValid(config)
     val offsets = offsetToType(unit.body, config.dialect)
     val unused = getUnusedImports(unit)
     new ScalafixMirror {

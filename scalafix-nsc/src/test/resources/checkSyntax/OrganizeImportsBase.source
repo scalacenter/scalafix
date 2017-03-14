@@ -76,3 +76,9 @@ object a { val x: Array[Int] = Array(1) }
 import scala.collection.immutable.{Seq, _}
 >>>
 import scala.collection.immutable.{Seq, _}
+<<< ref prefix
+import scala.collection.mutable
+import scala.collection.immutable._
+>>>
+import scala.collection.immutable._
+import scala.collection.mutable

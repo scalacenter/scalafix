@@ -1,0 +1,13 @@
+@import Main._
+@import scalafix.Readme._
+
+@sect{FAQ / Troubleshooting}
+
+  @sect{Enclosing tree [2873] does not include tree [2872]}
+    Scalafix  requires code to compile with the scalac option @code{-Yrangepos}.
+    A macro that emits invalid tree positions is usually the cause of
+    compiler errors triggered by @code{-Yrangepos}.
+    Other tools like the presentation compiler (ENSIME) or
+    scala.meta semantic api also require @code{-Yrangepos} to work properly.
+
+

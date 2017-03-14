@@ -6,6 +6,7 @@ object ScalafixRewrites {
     VolatileLazyVal
   )
   val semantic: List[ScalafixRewrite] = List(
+    ScalaJsRewrites.DemandJSGlobal,
     ExplicitImplicit,
     Xor2Either
   )
@@ -14,6 +15,5 @@ object ScalafixRewrites {
     all.filterNot(Set(VolatileLazyVal, Xor2Either))
   val name2rewrite: Map[String, ScalafixRewrite] =
     all.map(x => x.name -> x).toMap
-
 
 }

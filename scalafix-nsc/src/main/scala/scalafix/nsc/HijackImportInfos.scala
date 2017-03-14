@@ -1,7 +1,10 @@
 package scalafix.nsc
 import scala.language.higherKinds
 
+import scala.reflect.internal.Positions
 import scala.tools.nsc.typechecker.Contexts
+
+import org.scalameta.logger
 
 trait HijackImportInfos { self: ReflectToolkit =>
   val allUsedSelectors

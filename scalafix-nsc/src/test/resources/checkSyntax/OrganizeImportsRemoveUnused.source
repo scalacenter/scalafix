@@ -38,8 +38,8 @@ object a {
 }
 trait CommutativeSemigroup[@sp(Int, Long, Float, Double) A] extends Any
 >>>
-import scala.{specialized => sp}
 import scala.annotation.tailrec
+import scala.{specialized => sp}
 object a {
   @deprecated
   @tailrec

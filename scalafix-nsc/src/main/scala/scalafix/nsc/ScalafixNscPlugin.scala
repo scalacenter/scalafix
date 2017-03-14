@@ -12,6 +12,8 @@ import scalafix.config.ScalafixConfig
 import java.io.File
 
 class ScalafixNscPlugin(val global: Global) extends Plugin {
+  var config: ScalafixConfig =
+    ScalafixConfig.auto(new File(sys.props("user.dir")))
   private val scalafixComponent =
     new ScalafixNscComponent(this, global, () => config)
   // IMPORTANT. This needs to happen before we create ScalahostPlugin in order to hijack the
@@ -27,7 +29,6 @@ class ScalafixNscPlugin(val global: Global) extends Plugin {
   val mirror = new Mirror(global)
   val name = "scalafix"
   val description = "Refactoring tool."
-  var config: ScalafixConfig = ScalafixConfig()
   val component: ScalafixNscComponent = scalafixComponent
   val components: List[PluginComponent] = component :: Nil
 

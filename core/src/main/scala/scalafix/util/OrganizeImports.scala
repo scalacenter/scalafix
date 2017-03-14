@@ -28,6 +28,15 @@ trait OrganizeImportsMirror {
 
 private[this] class OrganizeImports[T] private (implicit ctx: RewriteCtx[T],
                                                 ev: CanOrganizeImports[T]) {
+  lazy val fallbackToken: Token = {
+    def loop(tree: Tree): Token = tree match {
+      case Source(stat :: _) => loop(stat)
+      case Pkg(_, stat :: _) => loop(stat)
+      case els => els.tokens(ctx.config.dialect).head
+    }
+
+    loop(ctx.tree)
+  }
   val mirror: OrganizeImportsMirror = ev.toOrganizeImportsMirror(ctx.mirror)
   def extractImports(stats: Seq[Stat]): Seq[Import] = {
     stats
@@ -104,7 +113,8 @@ private[this] class OrganizeImports[T] private (implicit ctx: RewriteCtx[T],
     val config = ctx.config.imports
     val rootImports = imports0.filter(_.isRootImport)
     val imports =
-      imports0.map(imp => imp.withFullyQualifiedRef(fullyQualify(imp), rootImports))
+      imports0.map(imp =>
+        imp.withFullyQualifiedRef(fullyQualify(imp), rootImports))
     val (fullyQualifiedImports, relativeImports) =
       imports.partition { imp =>
         ctx.config.imports.expandRelative ||
@@ -122,7 +132,7 @@ private[this] class OrganizeImports[T] private (implicit ctx: RewriteCtx[T],
         } + (FilterMatcher("relative") -> relativeImports)
     val inOrder =
       grouped
-        .mapValues(x => x.sortBy(_.sortOrder))
+        .mapValues(_.sorted)
         .to[Seq]
         .filter(_._2.nonEmpty)
         .sortBy(x => groupById(x._1))
@@ -188,16 +198,8 @@ private[this] class OrganizeImports[T] private (implicit ctx: RewriteCtx[T],
         case remove: RemoveGlobalImport =>
           is.filterNot(_.structure == remove.importer.structure)
       }
-    patches.foldLeft(removeUnused(globalImports))(combine)
-  }
 
-  lazy val fallbackToken: Token = {
-    def loop(tree: Tree): Token = tree match {
-      case Source(stat :: _) => loop(stat)
-      case Pkg(_, stat :: _) => loop(stat)
-      case els => els.tokens(ctx.config.dialect).head
-    }
-    loop(ctx.tree)
+    patches.foldLeft(removeUnused(globalImports))(combine)
   }
 
   def organizeImports(patches: Seq[ImportPatch]): Seq[TokenPatch] = {

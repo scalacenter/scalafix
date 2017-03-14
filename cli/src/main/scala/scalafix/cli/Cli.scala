@@ -6,7 +6,6 @@ import scala.util.control.NonFatal
 import scalafix.Failure
 import scalafix.Fixed
 import scalafix.Scalafix
-import scalafix.cli.ArgParserImplicits._
 import scalafix.cli.termdisplay.TermDisplay
 import scalafix.config.ScalafixConfig
 import scalafix.rewrite.ProcedureSyntax
@@ -22,10 +21,8 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.regex.Pattern
 
 import caseapp._
-import caseapp.core.Messages
 import caseapp.core.WithHelp
 import com.martiansoftware.nailgun.NGContext
-import org.scalameta.logger
 
 case class CommonOptions(
     @Hidden workingDirectory: String = System.getProperty("user.dir"),

@@ -21,8 +21,16 @@ class ScalafixNscComponent(plugin: Plugin,
     with NscScalafixMirror {
   // warnUnusedImports could be set triggering a compiler error
   // if fatal warnings is also enabled.
-  g.settings.warnUnusedImport.tryToSetFromPropertyValue("true")
-  g.settings.fatalWarnings.tryToSetFromPropertyValue("false")
+  if (getConfig().imports.removeUnused) {
+    g.settings.warnUnusedImport.tryToSetFromPropertyValue("true")
+    if (g.settings.fatalWarnings.value) {
+      val msg =
+        "-Xfatal-warnings is enabled along with imports.removeUnused=true in scalafix. " +
+          "Consider disabling -Xfatal-warnings to avoid compilation errors."
+      logger.warn(msg)
+    }
+    g.settings.fatalWarnings.tryToSetFromPropertyValue("false")
+  }
 
   override val phaseName: String = "scalafix"
   override val runsRightAfter: Option[String] = Some("typer")
