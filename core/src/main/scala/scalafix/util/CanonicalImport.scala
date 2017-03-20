@@ -10,19 +10,17 @@ import scalafix.rewrite.SyntaxCtx
 object CanonicalImport {
   def fromWildcard(ref: Term.Ref,
                    wildcard: Importee.Wildcard,
-                   unimports: Seq[Importee.Unimport],
-                   renames: Seq[Importee.Rename])(
+                   extraImportees: Seq[Importee])(
       implicit ctx: AnyCtx,
       ownerImport: Import
   ): CanonicalImport =
     new CanonicalImport(
       ref,
       wildcard,
-      unimports,
-      renames,
+      extraImportees,
       leadingComments = ctx.comments.leading(ownerImport),
       trailingComments = ctx.comments.trailing(ownerImport) ++
-        (wildcard +: unimports).flatMap(ctx.comments.trailing),
+        extraImportees.flatMap(ctx.comments.trailing),
       None
     ) {}
   def fromImportee(ref: Term.Ref, importee: Importee)(
@@ -32,7 +30,6 @@ object CanonicalImport {
     new CanonicalImport(
       ref,
       importee,
-      Nil,
       Nil,
       leadingComments = ctx.comments.leading(ownerImport),
       trailingComments = ctx.comments.trailing(ownerImport) ++
@@ -50,8 +47,7 @@ object CanonicalImport {
 sealed case class CanonicalImport(
     ref: Term.Ref,
     importee: Importee,
-    unimports: Seq[Importee.Unimport],
-    renames: Seq[Importee.Rename],
+    extraImportees: Seq[Importee],
     leadingComments: Set[Comment],
     trailingComments: Set[Comment],
     fullyQualifiedRef: Option[Term.Ref]
@@ -76,10 +72,9 @@ sealed case class CanonicalImport(
     base.startsWith("scala.language") ||
     base.startsWith("scala.annotation")
   }
-  private def extraImportees = renames ++ unimports
   def withoutLeading(leading: Set[Comment]): CanonicalImport =
     copy(leadingComments = leadingComments.filterNot(leading))
-  def tree: Import = Import(Seq(Importer(ref, unimports :+ importee)))
+  def tree: Import = Import(Seq(Importer(ref, extraImportees :+ importee)))
   def syntax: String =
     s"${leading}import $importerSyntax$trailing"
   def leading: String =

@@ -71,3 +71,7 @@ object a { val x: Array[Int] = Array(1) }
 >>>
 import java.sql.{Array => SQLArray, _}
 object a { val x: Array[Int] = Array(1) }
+<<< keep importee.name with wildcard
+import scala.collection.immutable.{Seq, _}
+>>>
+import scala.collection.immutable.{Seq, _}

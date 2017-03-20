@@ -38,25 +38,18 @@ private[this] class OrganizeImports[T] private (implicit ctx: RewriteCtx[T],
   def getCanonicalImports(imp: Import): Seq[CanonicalImport] = {
     implicit val currentImport = imp
     imp.importers.flatMap { importer =>
-      val wildcard = importer.importees.collectFirst {
+      val wildcard = importer.importees.lastOption.collectFirst {
         case wildcard: Importee.Wildcard => wildcard
       }
       wildcard.fold(
         importer.importees.map(i =>
           CanonicalImport.fromImportee(importer.ref, i))
       ) { wildcard =>
-        val unimports = importer.importees.collect {
-          case i: Importee.Unimport => i
-        }
-        val renames = importer.importees.collect {
-          case i: Importee.Rename => i
-        }
         List(
           CanonicalImport.fromWildcard(
             importer.ref,
             wildcard,
-            unimports,
-            renames
+            importer.importees.init
           ))
       }
     }
@@ -101,9 +94,10 @@ private[this] class OrganizeImports[T] private (implicit ctx: RewriteCtx[T],
     val imports = removeDuplicates(possiblyDuplicates)
     if (!ctx.config.imports.removeUnused) imports
     else {
-      val (usedImports, unusedImports) =
-        imports.partition(i => !mirror.isUnused(i.importee))
-      usedImports
+      imports.collect {
+        case i if !mirror.isUnused(i.importee) =>
+          i.copy(extraImportees = i.extraImportees.filterNot(mirror.isUnused))
+      }
     }
   }
 
