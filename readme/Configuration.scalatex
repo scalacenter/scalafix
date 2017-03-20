@@ -8,10 +8,24 @@
   your project.
 
   @sect{rewrites}
-    Available options are listed in @sect.ref{Rewrites}.
+    You can either run a pre-made that comes with scalafix or a custom rewrite
+    that you write yourself.
 
-    @config
-      rewrites = [ExplicitImplicit] # No rewrites are run if empty.
+    @sect{Pre-made rewrites}
+      Available rewrites are listed in @sect.ref{Rewrites}.
+
+      @config
+        rewrites = [ExplicitImplicit] # No rewrites are run if empty.
+
+    @sect{Custom rewrites}
+      @config
+        rewrites = [
+          "file:rewrites/MyRewrite.scala" // from local file
+          // from url
+          "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/5c71c5444174130531021c2c39b0b3ccef30ef00/ExampleRewrite.scala"
+          // from fully qualified name on classpath
+          "scala:scalafix.rewrite.ExplicitImplicit"
+        ]
 
   @sect{imports}
 
