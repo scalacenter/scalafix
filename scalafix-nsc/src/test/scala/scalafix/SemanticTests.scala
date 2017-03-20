@@ -18,11 +18,8 @@ import scala.{meta => m}
 import scalafix.config.ScalafixConfig
 import scalafix.nsc.ScalafixNscPlugin
 import scalafix.rewrite.ExplicitImplicit
-import scalafix.rewrite.Rewrite
-import scalafix.rewrite.RewriteCtx
 import scalafix.rewrite.ScalafixRewrite
 import scalafix.util.DiffAssertions
-import scalafix.util.ScalafixToolbox
 import scalafix.util.logger
 
 import java.io.File
@@ -188,12 +185,10 @@ class SemanticTests extends FunSuite with DiffAssertions { self =>
     val obtained = parse(diffTest.unwrap(fixed))
     val expected = parse(expectedStr)
     try {
+      typeChecks(diffTest.wrapped(fixed))
       checkMismatchesModuloDesugarings(obtained, expected)
       if (diffTest.checkSyntax) {
         assertNoDiff(obtained, expected)
-      }
-      if (!diffTest.noWrap) {
-        typeChecks(diffTest.wrapped(fixed))
       }
     } catch {
       case MismatchException(details) =>

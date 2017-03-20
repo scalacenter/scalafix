@@ -70,24 +70,8 @@ private[this] class OrganizeImports[T] private (implicit ctx: RewriteCtx[T],
       case _ => Nil
     }
 
-  def removeDuplicates(imports: Seq[CanonicalImport]): Seq[CanonicalImport] = {
-    val usedSyntax = mutable.Set.empty[String]
-    val wildcards = imports.collect {
-      case c if c.importee.is[Importee.Wildcard] => c.ref.syntax
-    }.toSet
-    def isDuplicate(imp: CanonicalImport): Boolean = {
-      val plainSyntax = imp.tree.syntax
-      if (usedSyntax.contains(plainSyntax)) true
-      else {
-        usedSyntax += plainSyntax
-        imp.importee match {
-          case _: Importee.Name => wildcards.contains(imp.ref.syntax)
-          case _ => false
-        }
-      }
-    }
-    imports.filterNot(isDuplicate)
-  }
+  def removeDuplicates(imports: Seq[CanonicalImport]): Seq[CanonicalImport] =
+    imports.distinctBy(_.importerSyntax)
 
   def removeUnused(
       possiblyDuplicates: Seq[CanonicalImport]): Seq[CanonicalImport] = {
@@ -199,8 +183,7 @@ private[this] class OrganizeImports[T] private (implicit ctx: RewriteCtx[T],
                 patch: ImportPatch): Seq[CanonicalImport] =
       patch match {
         case _: AddGlobalImport =>
-          if (is.exists(_.supersedes(patch))) is
-          else is ++ getCanonicalImports(patch.toImport)
+          is ++ getCanonicalImports(patch.toImport)
         case remove: RemoveGlobalImport =>
           is.filterNot(_.structure == remove.importer.structure)
       }
