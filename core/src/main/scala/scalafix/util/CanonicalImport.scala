@@ -1,11 +1,9 @@
 package scalafix.util
 
 import scala.collection.immutable.Seq
-import scala.meta._
+import scala.meta._, contrib._
 import scala.meta.tokens.Token.Comment
 import scalafix.rewrite.AnyCtx
-import scalafix.rewrite.ScalafixCtx
-import scalafix.rewrite.SyntaxCtx
 
 object CanonicalImport {
   def fromWildcard(ref: Term.Ref,
@@ -52,26 +50,31 @@ sealed case class CanonicalImport(
     trailingComments: Set[Comment],
     fullyQualifiedRef: Option[Term.Ref]
 )(implicit ctx: AnyCtx) {
-
-  def isRootImport: Boolean =
-    ref.collect {
-      case q"_root_.$_" => true
-    }.nonEmpty
-
-  def addRootImport(ref: Term.Ref): Term.Ref =
-    if (!isRootImport) ref
-    else {
-      ("_root_." + ref.syntax).parse[Term].get.asInstanceOf[Term.Ref]
-    }
-
-  def withFullyQualifiedRef(fqnRef: Option[Term.Ref]): CanonicalImport =
-    copy(fullyQualifiedRef = fqnRef.map(addRootImport))
-
-  def isSpecialImport: Boolean = {
-    val base = ref.syntax
-    base.startsWith("scala.language") ||
-    base.startsWith("scala.annotation")
+  lazy val isRootImport: Boolean = ref.collectFirst {
+    case q"_root_.$name" => name
+  }.isDefined
+  private def getRootName(ref: Term.Ref): Term.Name =
+    ref.collectFirst {
+      case q"_root_.$name" => name
+      case q"${name: Term.Name}.$_" => name
+    }.get
+  lazy val rootName: Term.Name = getRootName(ref)
+  private def addRootImport(rootImports: Seq[CanonicalImport])(
+      fullyQualifiedRef: Term.Ref): Term.Ref = {
+    val fqnRoot = getRootName(fullyQualifiedRef)
+    def otherImportIsRoot =
+      rootImports.exists(_.rootName.value == fqnRoot.value)
+    if (isRootImport || otherImportIsRoot) {
+      ("_root_." + fullyQualifiedRef.syntax)
+        .parse[Term]
+        .get
+        .asInstanceOf[Term.Ref]
+    } else fullyQualifiedRef
   }
+  def withFullyQualifiedRef(
+      fqnRef: Option[Term.Ref],
+      rootImports: Seq[CanonicalImport]): CanonicalImport =
+    copy(fullyQualifiedRef = fqnRef.map(addRootImport(rootImports)))
   def withoutLeading(leading: Set[Comment]): CanonicalImport =
     copy(leadingComments = leadingComments.filterNot(leading))
   def tree: Import = Import(Seq(Importer(ref, extraImportees :+ importee)))
@@ -88,7 +91,6 @@ sealed case class CanonicalImport(
   private def curlySpace =
     if (ctx.config.imports.spaceAroundCurlyBrace) " "
     else ""
-
   def actualRef: Term.Ref =
     if (ctx.config.imports.expandRelative) fullyQualifiedRef.getOrElse(ref)
     else ref

@@ -102,8 +102,9 @@ private[this] class OrganizeImports[T] private (implicit ctx: RewriteCtx[T],
 
   def groupImports(imports0: Seq[CanonicalImport]): Seq[Seq[Import]] = {
     val config = ctx.config.imports
+    val rootImports = imports0.filter(_.isRootImport)
     val imports =
-      imports0.map(imp => imp.withFullyQualifiedRef(fullyQualify(imp)))
+      imports0.map(imp => imp.withFullyQualifiedRef(fullyQualify(imp), rootImports))
     val (fullyQualifiedImports, relativeImports) =
       imports.partition { imp =>
         ctx.config.imports.expandRelative ||
