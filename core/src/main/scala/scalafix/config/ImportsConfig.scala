@@ -9,7 +9,9 @@ import metaconfig.Reader
 
 @metaconfig.ConfigReader
 case class ImportsConfig(
-    expandRelative: Boolean = true,
+    // Disabled because unused imports can be created when expanding relative
+    // imports, see https://github.com/scalacenter/scalafix/issues/83
+    expandRelative: Boolean = false,
     spaceAroundCurlyBrace: Boolean = false,
     organize: Boolean = true,
     removeUnused: Boolean = true,
