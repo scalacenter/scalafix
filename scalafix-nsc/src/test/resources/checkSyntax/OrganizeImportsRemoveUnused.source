@@ -121,3 +121,10 @@ object a { val x = foobar"kas" }
 >>>
 import scalafix.tests.ImportMe.sc2xtensoin
 object a { val x = foobar"kas" }
+<<< remove unused importee.name with wildcard
+import scala.collection.immutable.{Seq, _}
+object A { IntMap.empty[String] }
+>>>
+import scala.collection.immutable._
+object A { IntMap.empty[String] }
+
