@@ -2,6 +2,27 @@
 @import scalafix.Readme._
 
 @sect{Changelog}
+  @sect{0.3.2}
+    See @lnk("merged PRs", "https://github.com/scalacenter/scalafix/milestone/2?closed=1").
+    @ul
+      @li
+        It is possible to load custom rewrites from source with
+        @code{rewrites = ["file:MyRewrite.scala"]} or urls
+        @code{rewrites = ["https://gist./../.Rewrite.scala"]}.
+        See @sect.ref{Custom rewrites} for more info.
+      @li
+        @code{imports.groups = []} can now be empty, thank you @user{mlangc}
+        for contributing this fix!
+      @li
+        Named imports are no longer subsumed by wildcard imports, which could
+        previously introduce ambiguous imports.
+      @li
+        @code{imports.expandRelative = false} by default.
+        Expanded relative imports can create unused imports.
+        If you want to expand relative imports, you may need to run scalafix twice
+        to remove unused imports created by scalafix.
+      @li
+        Fixed minor ordering bugs in organize imports.
   @sect{0.3.1}
     @ul
       @li

@@ -3,6 +3,8 @@
 
 @sect{FAQ / Troubleshooting}
 
+  If you have any questions, don't hesitate to ask on Gitter. @gitter
+
   @sect{Enclosing tree [2873] does not include tree [2872]}
     Scalafix  requires code to compile with the scalac option @code{-Yrangepos}.
     A macro that emits invalid tree positions is usually the cause of
@@ -10,4 +12,11 @@
     Other tools like the presentation compiler (ENSIME) or
     scala.meta semantic api also require @code{-Yrangepos} to work properly.
 
+  @sect{sbt.Init$RuntimeUndefined: References to undefined settings at runtime.}
+    You might be using an old version of sbt.
+    sbt-scalafix requires sbt 0.13.13 or higher.
+
+  @sect{(root/compile:compileIncremental) java.lang.reflect.InvocationTargetException}
+    You might have a typo in @code{.scalafix.conf},
+    run @code{last root/compile:compileIncremental} to see the full stack trace.
 
