@@ -127,4 +127,20 @@ object A { IntMap.empty[String] }
 >>>
 import scala.collection.immutable._
 object A { IntMap.empty[String] }
-
+<<< remove unused importee.Name
+import scala.collection.immutable._
+import scala.collection.immutable.Seq
+object A { IntMap.empty[String] }
+>>>
+import scala.collection.immutable._
+object A { IntMap.empty[String] }
+<<< keep used importee.Name
+import shapeless._
+import scalafix.test.Generic
+import scalafix.test._
+object A { val x = Generic[Int]; new Used }
+>>>
+import scalafix.test._
+import scalafix.test.Generic
+import shapeless._
+object A { val x = Generic[Int]; new Used }

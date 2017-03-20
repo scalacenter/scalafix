@@ -1,5 +1,8 @@
 package scalafix
 
+import scala.collection.IterableLike
+import scala.collection.generic.CanBuildFrom
+import scala.collection.mutable
 import scala.meta._
 import scala.meta.semantic.v1.Completed
 import scala.meta.semantic.v1.Signature
@@ -12,18 +15,27 @@ import scalafix.util.logger
 
 package object syntax {
 
+  implicit class XtensionIterableLike[A, Repr](xs: IterableLike[A, Repr]) {
+    def distinctBy[B, That](f: A => B)(
+        implicit cbf: CanBuildFrom[Repr, A, That]): That = {
+      val builder = cbf(xs.repr)
+      val set = mutable.HashSet.empty[B]
+      xs.foreach { o =>
+        val b = f(o)
+        if (!set(b)) {
+          set += b
+          builder += o
+        }
+      }
+      builder.result
+    }
+  }
 
   implicit class XtensionEither[B](either: Either[Throwable, B]) {
     def get: B = either match {
       case Right(b) => b
       case Left(e) => throw e
     }
-  }
-  implicit class XtensionImporter(i: CanonicalImport) {
-    def supersedes(patch: ImportPatch): Boolean =
-      i.ref.structure == patch.importer.ref.structure &&
-        (i.importee.is[Importee.Wildcard] ||
-          i.importee.structure == patch.importee.structure)
   }
   implicit class XtensionTermRef(ref: Term.Ref) {
     def toTypeRef: Type.Ref = ref match {

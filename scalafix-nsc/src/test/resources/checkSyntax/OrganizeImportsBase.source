@@ -58,12 +58,13 @@ import rewrite.ExplicitImplicit
 import scalafix._
 
 import rewrite.ExplicitImplicit
-<<< wildcard subsumes
+<<< wildcard does not subsume
 import scala.collection.mutable._
 import scala.collection.mutable.ListBuffer
 object a { ListBuffer(1) }
 >>>
 import scala.collection.mutable._
+import scala.collection.mutable.ListBuffer
 object a { ListBuffer(1) }
 <<< rename + wildcard
 import java.sql.{Array => SQLArray, _}
