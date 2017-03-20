@@ -1,0 +1,114 @@
+rewrites = [DemandJSGlobal]
+<<< pull request example
+import scala.scalajs.js
+import scala.scalajs.js.annotation.JSName
+
+@js.native class Foo extends js.Object
+@js.native @JSName("Foobaz") object Bar extends js.Object
+@js.native trait Baz extends js.Object
+>>>
+import scala.scalajs.js
+import scala.scalajs.js.annotation.JSGlobal
+import scala.scalajs.js.annotation.JSName
+
+@js.native @JSGlobal class Foo extends js.Object
+@js.native @JSGlobal("Foobaz") object Bar extends js.Object
+@js.native trait Baz extends js.Object
+<<< fully qualified annotation
+@scala.scalajs.js.native
+class Foo extends scala.scalajs.js.Object
+>>>
+import scala.scalajs.js.annotation.JSGlobal
+@scala.scalajs.js.native @JSGlobal
+class Foo extends scala.scalajs.js.Object
+<<< false alarm
+import scala.scalajs.annotation.falsealarm.js
+@js.native
+class Foo
+>>>
+import scala.scalajs.annotation.falsealarm.js
+@js.native
+class Foo
+<<< nested classes
+import scala.scalajs.js
+import scala.scalajs.js.annotation.JSName
+@js.native
+object Foo extends js.Object {
+  @js.native
+  class Bar extends js.Object
+
+  @js.native
+  @JSName("Foobaz")
+  object Baz extends js.Object
+}
+>>>
+import scala.scalajs.js
+import scala.scalajs.js.annotation.JSGlobal
+import scala.scalajs.js.annotation.JSName
+@js.native @JSGlobal
+object Foo extends js.Object {
+  @js.native
+  class Bar extends js.Object
+
+  @js.native
+  @JSName("Foobaz")
+  object Baz extends js.Object
+}
+<<< untouched
+import scala.scalajs.js
+import scala.scalajs.js.annotation._
+@js.native
+@JSImport("foo.js", "Foo")
+class Foo1 extends js.Object {
+  @js.native class Inner1 extends js.Object
+  @js.native @JSName("Baz") object Inner2 extends js.Object
+}
+
+@js.native
+@JSImport("foo.js", "Foo")
+object Foo1 extends js.Object {
+  @js.native class Inner1 extends js.Object
+  @js.native @JSName("Baz") object Inner2 extends js.Object
+}
+
+@js.native
+@JSGlobalScope
+object Foo2 extends js.Object {
+  @js.native class Inner1 extends js.Object
+  @js.native @JSName("Baz") object Inner2 extends js.Object
+}
+
+@js.native
+object Foo3 extends js.GlobalScope {
+  @js.native class Inner1 extends js.Object
+  @js.native @JSName("Baz") object Inner2 extends js.Object
+}
+>>>
+import scala.scalajs.js
+import scala.scalajs.js.annotation._
+@js.native
+@JSImport("foo.js", "Foo")
+class Foo1 extends js.Object {
+  @js.native class Inner1 extends js.Object
+  @js.native @JSName("Baz") object Inner2 extends js.Object
+}
+
+@js.native
+@JSImport("foo.js", "Foo")
+object Foo1 extends js.Object {
+  @js.native class Inner1 extends js.Object
+  @js.native @JSName("Baz") object Inner2 extends js.Object
+}
+
+@js.native
+@JSGlobalScope
+object Foo2 extends js.Object {
+  @js.native class Inner1 extends js.Object
+  @js.native @JSName("Baz") object Inner2 extends js.Object
+}
+
+@js.native
+object Foo3 extends js.GlobalScope {
+  @js.native class Inner1 extends js.Object
+  @js.native @JSName("Baz") object Inner2 extends js.Object
+}

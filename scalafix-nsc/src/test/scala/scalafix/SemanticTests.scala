@@ -189,6 +189,8 @@ class SemanticTests extends FunSuite with DiffAssertions { self =>
       checkMismatchesModuloDesugarings(obtained, expected)
       if (diffTest.checkSyntax) {
         assertNoDiff(obtained, expected)
+      } else {
+        checkMismatchesModuloDesugarings(obtained, expected)
       }
     } catch {
       case MismatchException(details) =>
@@ -212,4 +214,3 @@ class SemanticTests extends FunSuite with DiffAssertions { self =>
     }
   }
 }
-

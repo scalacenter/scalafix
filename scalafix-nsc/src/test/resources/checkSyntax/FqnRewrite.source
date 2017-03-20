@@ -1,6 +1,7 @@
 rewrites = [
   "scala:scalafix.test.FqnRewrite"
 ]
+imports.removeUnused = true
 <<< NOWRAP add import
 import scala._
 object FqnMe

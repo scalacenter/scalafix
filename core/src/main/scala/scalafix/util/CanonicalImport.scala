@@ -49,7 +49,8 @@ sealed case class CanonicalImport(
     leadingComments: Set[Comment],
     trailingComments: Set[Comment],
     fullyQualifiedRef: Option[Term.Ref]
-)(implicit ctx: AnyCtx) {
+)(implicit ctx: AnyCtx)
+    extends Ordered[CanonicalImport] {
   lazy val isRootImport: Boolean = ref.collectFirst {
     case q"_root_.$name" => name
   }.isDefined
@@ -111,7 +112,13 @@ sealed case class CanonicalImport(
     case i: Importee.Wildcard => (0, i.syntax)
     case i => (1, i.syntax)
   }
-  def sortOrder: (String, (Int, String)) =
-    (refSyntax, importeeOrder)
+  def sortOrder: (String, (Int, String)) = (refSyntax, importeeOrder)
   def structure: String = Importer(ref, Seq(importee)).structure
+
+  override def compare(that: CanonicalImport): Int = {
+    import Ordered.orderingToOrdered
+    if (ref.syntax == that.ref.syntax) {
+      importeeOrder.compare(that.importeeOrder)
+    } else syntax.compareTo(that.syntax)
+  }
 }

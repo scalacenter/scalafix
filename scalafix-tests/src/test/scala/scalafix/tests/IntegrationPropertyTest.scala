@@ -1,6 +1,7 @@
 package scalafix.tests
 
 import scalafix.rewrite.ExplicitImplicit
+import scalafix.rewrite.ScalaJsRewrites
 import scalafix.util.FileOps
 import scalafix.util.logger
 
@@ -42,6 +43,12 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
     write.over(
       t.workingPath / "project" / "build.properties",
       "sbt.version=0.13.13\n"
+    )
+    write.append(
+      t.workingPath / ".jvmopts",
+      """-Xmx8g
+        |-Xms1g
+        |""".stripMargin
     )
     if (t.addCoursier) {
       write.over(
@@ -206,6 +213,36 @@ class ScalafixIntegrationTest
           Command.disableScalafix
         ),
         addCoursier = false
+      ),
+      skip = true
+    )
+
+class ScalajsBootstrap
+    extends IntegrationPropertyTest(
+      ItTest(
+        name = "scalajs-bootstrap",
+        repo = "https://github.com/Karasiq/scalajs-bootstrap.git",
+        hash = "1cf125a8f78951df9a1a274f19b81221e55ad4bd",
+        rewrites = List(ScalaJsRewrites.DemandJSGlobal),
+        config = "imports.organize = false",
+        commands = Seq(
+          Command("scalafix")
+        )
+      ),
+      skip = true
+    )
+
+class ScalajsSri
+    extends IntegrationPropertyTest(
+      ItTest(
+        name = "sri",
+        repo = "https://github.com/chandu0101/sri.git",
+        hash = "2526f0574f7ef8088f209ff50d38f72c458e0a62",
+        rewrites = List(ScalaJsRewrites.DemandJSGlobal),
+        config = "imports.organize = false",
+        commands = Seq(
+          Command("scalafix")
+        )
       ),
       skip = true
     )

@@ -19,6 +19,7 @@ patches.replacements = [
 patches.addGlobalImports = [
   "scala.collection.immutable.Seq"
 ]
+rewrites = []
 <<< NOWRAP flip either
 import scala._
 object FlipEither {
