@@ -41,7 +41,9 @@ object ScalafixConfig {
   }
 
   def fromFile(file: File): Either[Throwable, ScalafixConfig] =
-    fromString(FileOps.readFile(file))
+    fromString(FileOps.readFile(file)).left.map { th =>
+      new IllegalArgumentException(s"Error reading configuration from ${file.getAbsolutePath}:\n  ${th.getMessage}", th)
+    }
 
   def fromString(str: String): Either[Throwable, ScalafixConfig] =
     Hocon2Class.gimmeClass[ScalafixConfig](str, default.reader, None)
