@@ -144,3 +144,8 @@ import scalafix.test._
 import scalafix.test.Generic
 import shapeless._
 object A { val x = Generic[Int]; new Used }
+<<< remove unused java import in trivial example
+import java.util.UUID
+object Test
+>>>
+object Test
