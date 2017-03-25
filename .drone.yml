@@ -1,28 +1,43 @@
-build:
-  image: danieletorelli/sbt
-  environment:
-    - COURSIER_CACHE=/drone/cache/coursier
-  commands:
-    - git rev-parse HEAD
-    - export SBT_OPTS="-Xmx24G -XX:MaxPermSize=4G -Xss4M"
-    # configuring ivy.home doesn't seem to work. Maybe related:
-    #   https://github.com/sbt/sbt/issues/1894
-    # After 10+ experiments I've given up on trying to use sbt.ivy.yhome and
-    # copy the files myself instead, as recommended here:
-    #   http://readme.drone.io/usage/caching/
-    - test -d /drone/.sbt && cp -a /drone/.sbt /root
-    - rm -rf /drone/.sbt
+pipeline:
+  # Fetch folders from distributed cache
+  sftp_cache_restore:
+    image: plugins/sftp-cache
+    restore: true
+    mount:
+      - /drone/.ivy2
+      - /drone/.coursier-cache
+      - /drone/.sbt
+      - /drone/.git
 
-    - test -d /drone/.ivy2 && cp -a /drone/.ivy2 /root
-    - rm -rf /drone/.ivy2
+  tests:
+    image: scalaplatform/scala:0.6
+    pull: true
+    volumes:
+      - /platform:/keys
+    commands:
+      - git log | head -n 20
+      - sbt "very publishLocal" # necessary for 2.11/2.12 cross publish.
+      - sbt test scripted
 
-    - sbt "very publishLocal" # necessary for 2.11/2.12 cross publish.
-    - sbt test scripted
+  notify:
+    image: drillster/drone-email
+    host: smtp.mailgun.org
+    username: noreply@drone.geirsson.com
+    password: ${MAILGUN_PASSWORD}
+    from: noreply@drone.geirsson.com
+    recipients:
+      - olafurpg@gmail.com
+    when:
+      event: push
+      branch: [master]
+      status: [changed, failure]
 
-    - cp -a /root/.ivy2 /drone
-    - cp -a /root/.sbt /drone
-cache:
-  mount:
-    - /drone/.sbt
-    - /drone/.ivy2
-    - /drone/cache
+  # Save folders in distributed cache
+  sftp_cache_rebuild:
+    image: plugins/sftp-cache
+    rebuild: true
+    mount:
+      - /drone/.ivy2
+      - /drone/.coursier-cache
+      - /drone/.sbt
+      - /drone/.git
