@@ -8,3 +8,4 @@ for dir in $(./bin/cache_directories.sh); do
     mkdir -p $to && \
     cp -a $from $to
 done
+echo "Finised copying cache!"
