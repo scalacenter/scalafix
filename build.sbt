@@ -48,7 +48,7 @@ commands += Command.command("ci-fast") { s =>
 
 commands += Command.command("ci-slow") { s =>
   "very publishLocal" ::
-    "scalafix-tests/test" ::
+    "wow 2.11.8 scalafix-tests/test" ::
     "very scripted" ::
     s
 }

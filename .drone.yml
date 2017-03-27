@@ -44,6 +44,7 @@ matrix:
   include:
     - TEST: ci-fast
       SCALA_VERSION: 2.11.8
-    - TEST: ci-fast
-      SCALA_VERSION: 2.12.1
+    # See https://github.com/scalacenter/scalafix/issues/101
+    # - TEST: ci-fast
+    #   SCALA_VERSION: 2.12.1
     - TEST: ci-slow
