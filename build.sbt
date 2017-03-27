@@ -269,11 +269,7 @@ lazy val `scalafix-sbt` = project
       "-XX:MaxPermSize=256m",
       "-Xmx2g",
       "-Xss2m"
-    ) ++ {
-      // pass along custom boot properties if specified
-      val bootProps = "sbt.boot.properties"
-      sys.props.get(bootProps).map(x => s"-D$bootProps=$x").toList
-    },
+    ),
     scriptedBufferLog := false
   )
   .enablePlugins(BuildInfoPlugin)

@@ -84,13 +84,10 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
       val id = s"${t.name}/$cmd"
       logger.info(s"Running $id")
 
-      // pass along custom boot properties if specified
-      val bootProps = "sbt.boot.properties"
-      val customBoot = sys.props.get(bootProps).map(x => s"-D$bootProps=$x").toList
       val args = Seq(
         "sbt",
         "++2.11.8"
-      ) ++ cmds.map(_.toString) ++ customBoot
+      ) ++ cmds.map(_.toString)
       failAfter(maxTime) {
         import sys.process._
         val status = Process(args, cwd = t.workingPath.toIO).!

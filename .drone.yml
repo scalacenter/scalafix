@@ -12,12 +12,16 @@ pipeline:
   tests:
     image: scalaplatform/scala:0.6
     pull: true
+    environment:
+      - COURSIER_CACHE=/drone/cache/coursier
     volumes:
       - /platform:/keys
     commands:
       - git log | head -n 20
-      - sbt $TEST
-
+      - ./bin/copy_cache.sh /drone /root
+      - /usr/bin/sbt $TEST
+      - ./bin/before_cache.sh
+      - ./bin/copy_cache.sh /root /drone
   notify:
     image: drillster/drone-email
     host: smtp.mailgun.org
