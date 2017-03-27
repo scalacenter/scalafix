@@ -16,8 +16,7 @@ pipeline:
       - /platform:/keys
     commands:
       - git log | head -n 20
-      - sbt "very publishLocal" # necessary for 2.11/2.12 cross publish.
-      - sbt test scripted
+      - sbt $TEST
 
   notify:
     image: drillster/drone-email
@@ -41,3 +40,10 @@ pipeline:
       - /drone/.coursier-cache
       - /drone/.sbt
       - /drone/.git
+matrix:
+  include:
+    - TEST: ci-fast
+      SCALA_VERSION: 2.11.8
+    - TEST: ci-fast
+      SCALA_VERSION: 2.12.1
+    - TEST: ci-slow

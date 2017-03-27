@@ -33,7 +33,7 @@ lazy val compilerOptions = Seq(
 lazy val gitPushTag = taskKey[Unit]("Push to git tag")
 
 // Custom scalafix release command. Tried sbt-release but didn't play well with sbt-doge.
-lazy val release = Command.command("release") { s =>
+commands += Command.command("release") { s =>
   "clean" ::
     "very publishSigned" ::
     "sonatypeRelease" ::
@@ -41,7 +41,16 @@ lazy val release = Command.command("release") { s =>
     s
 }
 
-commands += release
+commands += Command.command("ci-fast") { s =>
+  "test" ::
+    s
+}
+
+commands += Command.command("ci-slow") { s =>
+  "very publishLocal" ::
+    "very scripted" ::
+    s
+}
 
 lazy val publishSettings = Seq(
   publishTo := {
@@ -101,7 +110,7 @@ lazy val allSettings = List(
   libraryDependencies += scalatest % Test,
   testOptions in Test += Tests.Argument("-oD"),
   assemblyJarName in assembly := "scalafix.jar",
-  scalaVersion := "2.11.8",
+  scalaVersion := sys.env.getOrElse("SCALA_VERSION", "2.11.8"),
   updateOptions := updateOptions.value.withCachedResolution(true)
 ) ++ publishSettings
 
