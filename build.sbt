@@ -42,14 +42,15 @@ commands += Command.command("release") { s =>
 }
 
 commands += Command.command("ci-fast") { s =>
-  "testQuick" ::
+  "clean" ::
+    "testQuick" ::
     s
 }
 
 commands += Command.command("ci-slow") { s =>
   "very publishLocal" ::
     "wow 2.11.8 scalafix-tests/test" ::
-    "very scripted" ::
+    "very scalafix-sbt/scripted" ::
     s
 }
 
@@ -259,8 +260,8 @@ lazy val `scalafix-sbt` = project
     sbtPlugin := true,
     // Doesn't work because we need to publish 2.11 and 2.12.
 //    scripted := scripted.dependsOn(publishedArtifacts: _*).evaluated,
-    scalaVersion := "2.10.5",
-    crossScalaVersions := Seq("2.10.5"),
+    scalaVersion := "2.10.6",
+    crossScalaVersions := Seq("2.10.6"),
     moduleName := "sbt-scalafix",
     scriptedLaunchOpts ++= Seq(
       "-Dplugin.version=" + version.value,
@@ -291,13 +292,6 @@ lazy val `scalafix-tests` = project
     noPublish,
     testQuick := {},
     parallelExecution in Test := true,
-    compileInputs in (Compile, compile) :=
-      (compileInputs in (Compile, compile))
-        .dependsOn(
-          (publishLocal in `scalafix-sbt`) +:
-            publishedArtifacts: _*
-        )
-        .value,
     libraryDependencies ++= Seq(
       ammonite
     )
