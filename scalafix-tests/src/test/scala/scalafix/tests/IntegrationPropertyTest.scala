@@ -85,8 +85,10 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
       logger.info(s"Running $id")
 
       val sbt = if (sys.env.contains("DRONE")) "/usr/bin/sbt" else "sbt"
+      logger.elem(sbt)
       val args = Seq(
         sbt,
+        s"-Dsbt.ivy.home=${sys.props("user.home")}",
         "++2.11.8"
       ) ++ cmds.map(_.toString)
       failAfter(maxTime) {
