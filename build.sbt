@@ -241,7 +241,7 @@ lazy val cli = project
     ),
     libraryDependencies ++= Seq(
       "com.github.scopt"           %% "scopt"         % "3.5.0",
-      "com.github.alexarchambault" %% "case-app"      % "1.1.0-RC3",
+      "com.github.alexarchambault" %% "case-app"      % "1.1.3",
       "com.martiansoftware"        % "nailgun-server" % "0.9.1"
     )
   )
