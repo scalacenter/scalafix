@@ -33,7 +33,7 @@ lazy val compilerOptions = Seq(
 lazy val gitPushTag = taskKey[Unit]("Push to git tag")
 
 // Custom scalafix release command. Tried sbt-release but didn't play well with sbt-doge.
-lazy val release = Command.command("release") { s =>
+commands += Command.command("release") { s =>
   "clean" ::
     "very publishSigned" ::
     "sonatypeRelease" ::
@@ -41,7 +41,18 @@ lazy val release = Command.command("release") { s =>
     s
 }
 
-commands += release
+commands += Command.command("ci-fast") { s =>
+  "clean" ::
+    "testQuick" ::
+    s
+}
+
+commands += Command.command("ci-slow") { s =>
+  "very publishLocal" ::
+    "wow 2.11.8 scalafix-tests/test" ::
+    "very scalafix-sbt/scripted" ::
+    s
+}
 
 lazy val publishSettings = Seq(
   publishTo := {
@@ -101,7 +112,8 @@ lazy val allSettings = List(
   libraryDependencies += scalatest % Test,
   testOptions in Test += Tests.Argument("-oD"),
   assemblyJarName in assembly := "scalafix.jar",
-  scalaVersion := "2.11.8",
+  scalaVersion := sys.env.getOrElse("SCALA_VERSION", "2.11.8"),
+  crossScalaVersions := crossVersions,
   updateOptions := updateOptions.value.withCachedResolution(true)
 ) ++ publishSettings
 
@@ -149,7 +161,6 @@ lazy val core = project
     allSettings,
     buildInfoSettings,
     metaconfigSettings,
-    crossScalaVersions := crossVersions,
     moduleName := "scalafix-core",
     dependencyOverrides += scalameta,
     libraryDependencies ++= Seq(
@@ -167,8 +178,6 @@ lazy val core = project
 lazy val `scalafix-nsc` = project
   .settings(
     allSettings,
-    scalaVersion := "2.11.8",
-    crossScalaVersions := crossVersions,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       scalahost(scalaVersion.value),
@@ -232,7 +241,7 @@ lazy val cli = project
     ),
     libraryDependencies ++= Seq(
       "com.github.scopt"           %% "scopt"         % "3.5.0",
-      "com.github.alexarchambault" %% "case-app"      % "1.1.0-RC3",
+      "com.github.alexarchambault" %% "case-app"      % "1.1.3",
       "com.martiansoftware"        % "nailgun-server" % "0.9.1"
     )
   )
@@ -251,8 +260,8 @@ lazy val `scalafix-sbt` = project
     sbtPlugin := true,
     // Doesn't work because we need to publish 2.11 and 2.12.
 //    scripted := scripted.dependsOn(publishedArtifacts: _*).evaluated,
-    scalaVersion := "2.10.5",
-    crossScalaVersions := Seq(scalaVersion.value),
+    scalaVersion := "2.10.6",
+    crossScalaVersions := Seq("2.10.6"),
     moduleName := "sbt-scalafix",
     scriptedLaunchOpts ++= Seq(
       "-Dplugin.version=" + version.value,
@@ -267,8 +276,6 @@ lazy val `scalafix-sbt` = project
 
 lazy val `scalafix-testutils` = project.settings(
   allSettings,
-  scalaVersion := "2.11.8",
-  crossScalaVersions := crossVersions,
   libraryDependencies ++= Seq(
     "com.googlecode.java-diff-utils" % "diffutils" % "1.3.0",
     scalatest
@@ -279,14 +286,8 @@ lazy val `scalafix-tests` = project
   .settings(
     allSettings,
     noPublish,
+    testQuick := {},
     parallelExecution in Test := true,
-    compileInputs in (Compile, compile) :=
-      (compileInputs in (Compile, compile))
-        .dependsOn(
-          (publishLocal in `scalafix-sbt`) +:
-            publishedArtifacts: _*
-        )
-        .value,
     libraryDependencies ++= Seq(
       ammonite
     )
@@ -302,7 +303,7 @@ lazy val readme = scalatex
     allSettings,
     noPublish,
     libraryDependencies ++= Seq(
-      "com.twitter" %% "util-eval" % "6.34.0"
+      "com.twitter" %% "util-eval" % "6.42.0"
     )
   )
   .dependsOn(core, cli)

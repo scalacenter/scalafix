@@ -83,8 +83,13 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
       val cmd = cmds.mkString("; ", "; ", "")
       val id = s"${t.name}/$cmd"
       logger.info(s"Running $id")
+
+      val sbt = if (sys.env.contains("DRONE")) "/usr/bin/sbt" else "sbt"
+      logger.elem(sbt)
       val args = Seq(
-        "sbt",
+        sbt,
+        s"-Xss8m",
+        s"-Xmx4g",
         "++2.11.8"
       ) ++ cmds.map(_.toString)
       failAfter(maxTime) {
@@ -134,7 +139,8 @@ class Slick
         name = "slick",
         repo = "https://github.com/slick/slick.git",
         rewrites = Seq(),
-        hash = "bd3c24be419ff2791c123067668c81e7de858915"
+        hash = "bd3c24be419ff2791c123067668c81e7de858915",
+        addCoursier = false
       ),
       skip = false
     )
