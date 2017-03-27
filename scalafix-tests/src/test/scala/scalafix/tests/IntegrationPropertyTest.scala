@@ -84,8 +84,9 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
       val id = s"${t.name}/$cmd"
       logger.info(s"Running $id")
 
+      val sbt = if (sys.env.contains("DRONE")) "/usr/bin/sbt" else "sbt"
       val args = Seq(
-        "sbt",
+        sbt,
         "++2.11.8"
       ) ++ cmds.map(_.toString)
       failAfter(maxTime) {
