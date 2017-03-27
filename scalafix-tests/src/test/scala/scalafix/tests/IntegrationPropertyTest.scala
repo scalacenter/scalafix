@@ -89,6 +89,8 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
       val args = Seq(
         sbt,
         s"-Dsbt.ivy.home=${sys.props("user.home")}",
+        s"-Xss8m",
+        s"-Xmx4g",
         "++2.11.8"
       ) ++ cmds.map(_.toString)
       failAfter(maxTime) {
