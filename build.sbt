@@ -180,7 +180,7 @@ lazy val `scalafix-nsc` = project
     allSettings,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-      scalahost(scalaVersion.value),
+      scalahost_nsc(scalaVersion.value),
       ammonite % Test,
       // integration property tests
       "org.typelevel"      %% "catalysts-platform" % "0.0.5"    % Test,

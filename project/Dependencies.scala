@@ -5,10 +5,11 @@ style = defaultWithAlign
 }*/
 
 object Dependencies {
-  val scalametaV = "1.6.0"
+  val scalametaV = "1.7.0-485-086c4ac9"
   val paradiseV  = "3.0.0-M7"
   var testClasspath: String = "empty"
   def scalahost(scalaVersion: String): ModuleID = "org.scalameta" % s"scalahost_$scalaVersion" % scalametaV
+  def scalahost_nsc(scalaVersion: String): ModuleID = "org.scalameta" % s"scalahost-nsc_$scalaVersion" % scalametaV
   def scalameta: ModuleID                       = "org.scalameta" %% "contrib"                 % scalametaV
   def scalatest: ModuleID                       = "org.scalatest" %% "scalatest"               % "3.0.0"
   def metaconfig: ModuleID                      = "com.geirsson"  %% "metaconfig-hocon"        % "0.1.2"
