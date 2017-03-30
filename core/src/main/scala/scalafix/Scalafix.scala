@@ -28,9 +28,16 @@ object Scalafix {
     implicit val ctx: ScalafixCtx = RewriteCtx(
       ast,
       config,
-      semanticApi.getOrElse(ScalafixMirror.empty(config.dialect)))
-    val patches = config.rewrites.flatMap(_.rewrite(ctx))
-    Fixed.Success(Patch.apply(patches)(CanOrganizeImports.ScalafixMirror, ctx))
+      semanticApi.getOrElse(ScalafixMirror.failingMirror(config.dialect)))
+    try {
+      val patches = config.rewrites.flatMap(_.rewrite(ctx))
+      val patched =
+        Patch.apply(patches)(CanOrganizeImports.ScalafixMirror, ctx)
+      Fixed.Success(patched)
+    } catch {
+      case e: Failure =>
+        Fixed.Failed(e)
+    }
   }
 
   def fix(code: Input, config: ScalafixConfig): Fixed = {

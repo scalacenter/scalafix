@@ -1,6 +1,7 @@
 package scalafix.cli
 
 import scalafix.config.ScalafixConfig
+import scalafix.rewrite.ExplicitImplicit
 import scalafix.rewrite.VolatileLazyVal
 import scalafix.util.DiffAssertions
 import scalafix.util.FileOps
@@ -10,6 +11,7 @@ import java.io.File
 import java.io.PrintStream
 
 import caseapp.core.WithHelp
+import org.scalameta.logger
 import org.scalatest.FunSuite
 
 object BasicTest {
@@ -31,6 +33,10 @@ object BasicTest {
 class CliTest extends FunSuite with DiffAssertions {
 
   println(Cli.helpMessage)
+
+  val devNull = CommonOptions(
+    err = new PrintStream(new ByteArrayOutputStream())
+  )
 
   import BasicTest._
 
@@ -102,5 +108,16 @@ class CliTest extends FunSuite with DiffAssertions {
   test("--rewrites") {
     assert(Cli.parse(Seq("--rewrites", "VolatileLazyVal")).isRight)
     assert(Cli.parse(Seq("--rewrites", "Foobar")).isLeft)
+  }
+
+  test("error returns failure exit code") {
+    val file = File.createTempFile("prefix", ".scala")
+    FileOps.writeFile(file, "object a { implicit val x = ??? }")
+    val code = Cli.runOn(
+      ScalafixOptions(rewrites = List(ExplicitImplicit),
+                      files = List(file.getAbsolutePath),
+                      inPlace = true,
+                      common = devNull))
+    assert(code == ExitStatus.ScalafixError)
   }
 }
