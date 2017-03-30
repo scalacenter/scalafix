@@ -4,6 +4,7 @@ import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.semantic.v1.Completed
 import scala.meta.semantic.v1.Database
+import scalafix.Failure.MissingSemanticApi
 
 import sourcecode.Enclosing
 
@@ -27,11 +28,8 @@ trait ScalafixMirror extends Mirror {
 }
 
 object ScalafixMirror {
-  private def error(implicit enclosing: Enclosing) =
-    new UnsupportedOperationException(
-      s"${enclosing.value} requires the semantic api,")
-  private def unsupported(implicit enclosing: Enclosing) = throw error
-
+  private def unsupported(implicit enclosing: Enclosing) =
+    throw MissingSemanticApi(enclosing.value)
   def fromMirror(mirror: Mirror): ScalafixMirror = new ScalafixMirror {
     override def fqn(name: Ref): Nothing = unsupported
     override def isUnusedImport(importee: Importee): Nothing = unsupported
@@ -42,13 +40,13 @@ object ScalafixMirror {
     override def symbol(ref: Ref): Completed[Symbol] = mirror.symbol(ref)
   }
 
-  def empty(implicit d: Dialect): ScalafixMirror = new ScalafixMirror {
-    override def fqn(name: Ref): Option[Ref] = None
-    override def isUnusedImport(importee: Importee): Boolean = false
-    override def typeSignature(defn: Defn): Option[Type] = None
+  def failingMirror(implicit d: Dialect): ScalafixMirror = new ScalafixMirror {
+    override def fqn(name: Ref): Option[Ref] = unsupported
+    override def isUnusedImport(importee: Importee): Boolean = unsupported
+    override def typeSignature(defn: Defn): Option[Type] = unsupported
     override def sources = Nil
     override def dialect: Dialect = d
-    override def database: Database = Database()
-    override def symbol(ref: Ref): Completed[Symbol] = Completed.Error(error)
+    override def database: Database = unsupported
+    override def symbol(ref: Ref): Completed[Symbol] = unsupported
   }
 }

@@ -28,7 +28,8 @@ case class CommonOptions(
     @Hidden workingDirectory: String = System.getProperty("user.dir"),
     @Hidden out: PrintStream = System.out,
     @Hidden in: InputStream = System.in,
-    @Hidden err: PrintStream = System.err
+    @Hidden err: PrintStream = System.err,
+    @Hidden stackVerbosity: Int = 20
 ) {
   def workingDirectoryFile = new File(workingDirectory)
 }
@@ -86,7 +87,11 @@ case class ScalafixOptions(
 object Cli {
   import ArgParserImplicits._
   private val withHelp = OptionsMessages.withHelp
-  val helpMessage: String = withHelp.helpMessage
+  val helpMessage: String = withHelp.helpMessage +
+    s"""|
+        |Exit status codes:
+        | ${ExitStatus.all.mkString("\n ")}
+        |""".stripMargin
   val usageMessage: String = withHelp.usageMessage
   val default = ScalafixOptions()
   // Run this at the end of the world, calls sys.exit.
@@ -94,16 +99,28 @@ object Cli {
     sys.exit(runMain(args, CommonOptions()))
   }
 
-  def safeHandleFile(file: File, config: ScalafixOptions): Unit = {
-    try handleFile(file, config)
+  def safeHandleFile(file: File, options: ScalafixOptions): ExitStatus = {
+    try handleFile(file, options)
     catch {
       case NonFatal(e) =>
-        config.common.err.println(s"""Unexpected error fixing file: $file
-                                     |Cause: $e""".stripMargin)
+        reportError(file, e, options)
+        ExitStatus.UnexpectedError
     }
   }
 
-  def handleFile(file: File, options: ScalafixOptions): Unit = {
+  def reportError(file: File,
+                  cause: Throwable,
+                  options: ScalafixOptions): Unit = {
+    options.common.err.println(
+      s"""Error fixing file: $file
+         |Cause: $cause""".stripMargin
+    )
+    cause.setStackTrace(
+      cause.getStackTrace.take(options.common.stackVerbosity))
+    cause.printStackTrace(options.common.err)
+  }
+
+  def handleFile(file: File, options: ScalafixOptions): ExitStatus = {
     val fixed = Scalafix.fix(Input.File(file), options.resolvedConfig)
     fixed match {
       case Fixed.Success(code) =>
@@ -111,18 +128,21 @@ object Cli {
           val outFile = options.replacePath(file)
           FileOps.writeFile(outFile, code)
         } else options.common.out.write(code.getBytes)
+        ExitStatus.Ok
       case Fixed.Failed(e: Failure.ParseError) =>
         if (options.files.contains(file.getPath)) {
           // Only log if user explicitly specified that file.
           options.common.err.write(e.toString.getBytes())
         }
-      case Fixed.Failed(e) =>
-        options.common.err.write(s"Failed to fix $file. Cause: $e".getBytes)
+        ExitStatus.ParseError
+      case Fixed.Failed(failure) =>
+        reportError(file, failure.ex, options)
+        ExitStatus.ScalafixError
     }
   }
 
-  def runOn(config: ScalafixOptions): Int = {
-    config.files.foreach { pathStr =>
+  def runOn(config: ScalafixOptions): ExitStatus = {
+    val codes = config.files.map { pathStr =>
       val path = new File(pathStr)
       val workingDirectory = new File(config.common.workingDirectory)
       val realPath: File =
@@ -141,17 +161,19 @@ object Cli {
         logger.startTask(msg, workingDirectory)
         logger.taskLength(msg, filesToFix.length, 0)
         val counter = new AtomicInteger()
-        filesToFix.foreach { x =>
-          safeHandleFile(new File(x), config)
+        val codes = filesToFix.map { x =>
+          val code = safeHandleFile(new File(x), config)
           val progress = counter.incrementAndGet()
           logger.taskProgress(msg, progress)
+          code
         }
         logger.stop()
+        codes.reduce(ExitStatus.merge)
       } else {
         safeHandleFile(realPath, config)
       }
     }
-    0
+    codes.reduce(ExitStatus.merge)
   }
 
   def parse(args: Seq[String]): Either[String, WithHelp[ScalafixOptions]] =
@@ -176,7 +198,7 @@ object Cli {
         commonOptions.out.println(helpMessage)
         0
       case Right(WithHelp(_, _, options)) =>
-        runOn(options.copy(common = commonOptions))
+        runOn(options.copy(common = commonOptions)).code
       case Left(error) =>
         commonOptions.err.println(error)
         1
