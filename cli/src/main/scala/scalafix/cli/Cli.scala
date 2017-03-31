@@ -45,14 +45,22 @@ case class ScalafixOptions(
       ".scalafix.conf OR imports.organize=false"
     ) @ExtraName("c") config: Option[ScalafixConfig] = None,
     @HelpMessage(
-      "The classpath for the input files, to support semantic fixes."
+      "java.io.File.pathSeparator separated list of jar files" +
+      "or directories containing classfiles and `semanticdb` files." +
+      "The `semanticdb` files are emitted by the scalahost-nsc" +
+      "compiler plugin and are necessary for the semantic API to" +
+      "function. The classfiles + jar files are necessary for" +
+      "runtime compilation of quasiquotes when extracting" +
+      """symbols (that is, `q"scala.Predef".symbol`)."""
     ) @ValueDescription(
       "entry1.jar:entry2.jar"
     ) classpath: Option[String] = None,
     @HelpMessage(
-      "The sourcepath for the input files, to support semantic fixes. May contain either sources or directories."
+      "java.io.File.pathSeparator separated list of" +
+      "Scala source files OR directories containing Scala" +
+      "source files."
     ) @ValueDescription(
-      "File2.scala:File1.scala:directory/one"
+      "File2.scala:File1.scala:src/main/scala"
     ) sourcepath: Option[String] = None,
     @HelpMessage(
       s"Additional rewrite rules to run. NOTE. rewrite.rules = [ .. ] from --config will also run."

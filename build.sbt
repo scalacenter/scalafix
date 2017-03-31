@@ -180,7 +180,7 @@ lazy val `scalafix-nsc` = project
     allSettings,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-      scalahost_nsc(scalaVersion.value),
+      scalahostNsc(scalaVersion.value),
       ammonite % Test,
       // integration property tests
       "org.typelevel"      %% "catalysts-platform" % "0.0.5"    % Test,
@@ -229,6 +229,10 @@ lazy val cli = project
   .settings(
     allSettings,
     packSettings,
+    libraryDependencies ++= Seq(
+      // NB: The Mirror has an undeclared dependency on the scalahost-nsc package.
+      scalahostNsc(scalaVersion.value)
+    ),
     moduleName := "scalafix-cli",
     packJvmOpts := Map(
       "scalafix" -> jvmOptions,
