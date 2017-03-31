@@ -48,6 +48,7 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
       t.workingPath / ".jvmopts",
       """-Xmx8g
         |-Xms1g
+        |-Xss16m
         |""".stripMargin
     )
     if (t.addCoursier) {
@@ -88,8 +89,6 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
       logger.elem(sbt)
       val args = Seq(
         sbt,
-        s"-Xss8m",
-        s"-Xmx4g",
         "++2.11.8"
       ) ++ cmds.map(_.toString)
       failAfter(maxTime) {
