@@ -225,6 +225,10 @@ lazy val cli = project
     allSettings,
     isFullCrossVersion,
     moduleName := "scalafix-cli",
+    fork.in(Test, test) := true,
+    baseDirectory.in(test) := file("."),
+    javaOptions.in(test) +=
+      s"-Dscalafix.scalahost.pluginpath=${scalahostNscPluginPath.value}",
     mainClass in assembly := Some("scalafix.cli.Cli"),
     libraryDependencies ++= Seq(
       "com.github.scopt"           %% "scopt"         % "3.5.0",
@@ -331,3 +335,23 @@ def exposePaths(projectName: String,
 lazy val isFullCrossVersion = Seq(
   crossVersion := CrossVersion.full
 )
+
+lazy val scalahostNscPluginPath = Def.task {
+  val files = update
+    .in(dummyScalahostProject)
+    .value
+    .allFiles
+  val path = files.find { file =>
+    val path = file.getAbsolutePath
+    path.endsWith(s"scalahost-nsc_${scalaVersion.value}.jar")
+  }.get
+  path.getAbsolutePath
+}
+
+lazy val dummyScalahostProject = project
+  .in(file("target/dummy"))
+  .settings(
+    allSettings,
+    description := "Just a project that has scalahost-nsc on the classpath.",
+    libraryDependencies += scalahostNsc
+  )

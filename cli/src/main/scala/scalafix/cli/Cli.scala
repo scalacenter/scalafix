@@ -1,7 +1,11 @@
 package scalafix.cli
 
 import scala.collection.GenSeq
+import scala.meta.Mirror
+import scala.meta.internal.scalahost.v1.offline
 import scala.meta.inputs.Input
+import scala.util.Success
+import scala.util.Try
 import scala.util.control.NonFatal
 import scalafix.Failure
 import scalafix.syntax._
@@ -64,6 +68,14 @@ case class ScalafixOptions(
       "File2.scala:File1.scala:src/main/scala"
     ) sourcepath: Option[String] = None,
     @HelpMessage(
+      "java.io.File.pathSeparator separated list of"
+    ) @ValueDescription(
+      "File path to the scalahost-nsc compiler plugin fatjar, " +
+        "the same path that is passed in `-Xplugin:/scalahost.jar`. " +
+        "(optional) skip this option by adding org.scalameta:scalafix-nsc:x.y.z " +
+        "to the classpath of scalafix-cli, for example with coursier bootstrap. "
+    ) scalahostNscPluginPath: Option[String] = None,
+    @HelpMessage(
       s"Additional rewrite rules to run. NOTE. rewrite.rules = [ .. ] from --config will also run."
     ) @ValueDescription(
       s"$ProcedureSyntax OR file:LocalFile.scala OR scala:full.Name OR https://gist.com/.../Rewrite.scala"
@@ -108,7 +120,12 @@ case class ScalafixOptions(
   lazy val resolvedMirror: Either[String, Option[ScalafixMirror]] =
     (classpath, sourcepath) match {
       case (Some(cp), Some(sp)) =>
-        Right(Some(ScalafixMirror.fromMirror(scala.meta.Mirror(cp, sp))))
+        val tryMirror = for {
+          pluginPath <- scalahostNscPluginPath.fold(
+            Try(offline.Mirror.autodetectScalahostNscPluginPath))(Success(_))
+          mirror <- Try(ScalafixMirror.fromMirror(Mirror(cp, sp, pluginPath)))
+        } yield Option(mirror)
+        tryMirror.asEither.leftAsString
       case (None, None) => Right(None)
       case _ =>
         Left(
@@ -217,9 +234,9 @@ object Cli {
   def parse(args: Seq[String]): Either[String, WithHelp[ScalafixOptions]] =
     OptionsParser.withHelp.detailedParse(args) match {
       case Right((help, extraFiles, ls)) =>
-        Right(
-          help.map(_.copy(files = help.base.files ++ extraFiles))
-        )
+        for {
+          _ <- help.base.resolvedMirror // validate
+        } yield help.map(_.copy(files = help.base.files ++ extraFiles))
       case Left(x) => Left(x)
     }
 

@@ -119,6 +119,29 @@ class CliTest extends FunSuite with DiffAssertions {
       Cli.parse(Seq("--rewrites", "file:rewrites/MyRewrite.scala")).isRight)
   }
 
+  test("--sourcepath --classpath") {
+    assert(Cli.parse(List("--sourcepath", "foo.scala")).isLeft)
+    assert(Cli.parse(List("--classpath", "foo")).isLeft)
+    assert( // missing --scalahost-nsc-plugin-path
+      Cli
+        .parse(List("--sourcepath", "foo.scala", "--classpath", "bar"))
+        .isLeft)
+    // injected by javaOptions in build.sbt
+    val path = sys.props("scalafix.scalahost.pluginpath")
+    assert(
+      Cli
+        .parse(
+          List(
+            "--sourcepath",
+            "foo.scala",
+            "--classpath",
+            "bar",
+            "--scalahost-nsc-plugin-path",
+            path
+          ))
+        .isRight)
+  }
+
   test("error returns failure exit code") {
     val file = File.createTempFile("prefix", ".scala")
     FileOps.writeFile(file, "object a { implicit val x = ??? }")
