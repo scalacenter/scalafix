@@ -4,6 +4,7 @@ import scala.collection.GenSeq
 import scala.meta.inputs.Input
 import scala.util.control.NonFatal
 import scalafix.Failure
+import scalafix.syntax._
 import scalafix.Fixed
 import scalafix.Scalafix
 import scalafix.cli.termdisplay.TermDisplay
@@ -94,18 +95,23 @@ case class ScalafixOptions(
 
   /** Returns ScalafixConfig from .scalafix.conf, it exists and --config was not passed. */
   lazy val resolvedConfig: ScalafixConfig = config match {
-    case None => ScalafixConfig.auto(common.workingDirectoryFile)
+    case None =>
+      ScalafixConfig
+        .auto(common.workingDirectoryFile)
+        .getOrElse(
+          ScalafixConfig.default
+        )
+        .withRewrites(_ ++ rewrites)
     case Some(x) => x
   }
 
-  lazy val resolvedMirror: Option[ScalafixMirror] =
+  lazy val resolvedMirror: Either[String, Option[ScalafixMirror]] =
     (classpath, sourcepath) match {
       case (Some(cp), Some(sp)) =>
-        Some(ScalafixMirror.fromMirror(scala.meta.Mirror(cp, sp)))
-      case (None, None) => None
+        Right(Some(ScalafixMirror.fromMirror(scala.meta.Mirror(cp, sp))))
+      case (None, None) => Right(None)
       case _ =>
-        // FIXME: improve during review.
-        throw new Exception(
+        Left(
           "The semantic API was partially configured: both a classpath and sourcepath are required.")
     }
 
@@ -153,7 +159,7 @@ object Cli {
   def handleFile(file: File, options: ScalafixOptions): ExitStatus = {
     val fixed = Scalafix.fix(Input.File(file),
                              options.resolvedConfig,
-                             options.resolvedMirror)
+                             options.resolvedMirror.get)
     fixed match {
       case Fixed.Success(code) =>
         if (options.inPlace) {
@@ -212,11 +218,7 @@ object Cli {
     OptionsParser.withHelp.detailedParse(args) match {
       case Right((help, extraFiles, ls)) =>
         Right(
-          help.map(c =>
-            c.copy(
-              files = help.base.files ++ extraFiles,
-              rewrites = c.rewrites ++ c.config.map(_.rewrites).getOrElse(Nil)
-          ))
+          help.map(_.copy(files = help.base.files ++ extraFiles))
         )
       case Left(x) => Left(x)
     }

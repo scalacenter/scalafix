@@ -13,7 +13,9 @@ import java.io.File
 
 class ScalafixNscPlugin(val global: Global) extends Plugin {
   var config: ScalafixConfig =
-    ScalafixConfig.auto(new File(sys.props("user.dir")))
+    ScalafixConfig
+      .auto(new File(sys.props("user.dir")))
+      .getOrElse(ScalafixConfig.default)
   private val scalafixComponent =
     new ScalafixNscComponent(this, global, () => config)
   // IMPORTANT. This needs to happen before we create ScalahostPlugin in order to hijack the

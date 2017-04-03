@@ -2,6 +2,7 @@ package scalafix.cli
 
 import scalafix.config.ScalafixConfig
 import scalafix.rewrite.ExplicitImplicit
+import scalafix.rewrite.ProcedureSyntax
 import scalafix.rewrite.VolatileLazyVal
 import scalafix.util.DiffAssertions
 import scalafix.util.FileOps
@@ -67,7 +68,11 @@ class CliTest extends FunSuite with DiffAssertions {
     val file = File.createTempFile("prefix", ".scala")
     FileOps.writeFile(file, original)
     Cli.runOn(
-      ScalafixOptions(files = List(file.getAbsolutePath), inPlace = true))
+      ScalafixOptions(
+        rewrites = List(ProcedureSyntax),
+        files = List(file.getAbsolutePath),
+        inPlace = true
+      ))
     assertNoDiff(FileOps.readFile(file), expected)
   }
 
@@ -106,8 +111,12 @@ class CliTest extends FunSuite with DiffAssertions {
   }
 
   test("--rewrites") {
-    assert(Cli.parse(Seq("--rewrites", "VolatileLazyVal")).isRight)
+    val Right(WithHelp(_, _, obtained)) =
+      Cli.parse(Seq("--rewrites", "VolatileLazyVal"))
+    assert(obtained.rewrites == List(VolatileLazyVal))
     assert(Cli.parse(Seq("--rewrites", "Foobar")).isLeft)
+    assert(
+      Cli.parse(Seq("--rewrites", "file:rewrites/MyRewrite.scala")).isRight)
   }
 
   test("error returns failure exit code") {

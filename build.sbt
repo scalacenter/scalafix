@@ -168,7 +168,7 @@ lazy val core = project
       "com.lihaoyi"  %% "sourcecode" % "0.1.3",
       metaconfig,
       scalameta,
-      scalahost(scalaVersion.value),
+      scalahost,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
     )
   )
@@ -180,7 +180,7 @@ lazy val `scalafix-nsc` = project
     allSettings,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-      scalahostNsc(scalaVersion.value),
+      scalahostNsc,
       ammonite % Test,
       // integration property tests
       "org.typelevel"      %% "catalysts-platform" % "0.0.5"    % Test,
@@ -229,10 +229,6 @@ lazy val cli = project
   .settings(
     allSettings,
     packSettings,
-    libraryDependencies ++= Seq(
-      // NB: The Mirror has an undeclared dependency on the scalahost-nsc package.
-      scalahostNsc(scalaVersion.value)
-    ),
     moduleName := "scalafix-cli",
     packJvmOpts := Map(
       "scalafix" -> jvmOptions,
@@ -290,7 +286,7 @@ lazy val `scalafix-tests` = project
   .settings(
     allSettings,
     noPublish,
-    testQuick := {},
+    testQuick := {}, // these tests are slow.
     parallelExecution in Test := true,
     libraryDependencies ++= Seq(
       ammonite

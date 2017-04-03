@@ -31,12 +31,20 @@ package object syntax {
     }
   }
 
-  implicit class XtensionEither[B](either: Either[Throwable, B]) {
+  implicit class XtensionEitherThrowable[B](either: Either[Throwable, B]) {
     def get: B = either match {
       case Right(b) => b
       case Left(e) => throw e
     }
   }
+
+  implicit class XtensionEitherString[B](either: Either[String, B]) {
+    def get: B = either match {
+      case Right(b) => b
+      case Left(e) => throw new Exception(e)
+    }
+  }
+
   implicit class XtensionTermRef(ref: Term.Ref) {
     def toTypeRef: Type.Ref = ref match {
       case Term.Name(name) => Type.Name(name)
