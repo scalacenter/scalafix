@@ -1,5 +1,7 @@
 package scalafix.sbt
 
+import scalafix.Versions
+
 import sbt.Keys._
 import sbt._
 import sbt.plugins.JvmPlugin
@@ -16,7 +18,6 @@ trait ScalafixKeys {
 
 object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
   object autoImport extends ScalafixKeys
-  private val Version = "2\\.(\\d\\d)\\..*".r
   private val scalafixVersion = _root_.scalafix.Versions.version
   private val disabled = sys.props.contains("scalafix.disable")
   private def jar(report: UpdateReport): File =
@@ -26,7 +27,7 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
           // publishLocal produces jars with name `VERSION/scalafix-nsc_2.11.jar`
           // while the jars published with publishSigned to Maven are named
           // `scalafix-nsc_2.11-VERSION.jar`
-          s".*scalafix-nsc_2.1[12](-$scalafixVersion)?.jar$$")
+          s".*scalafix-nsc_2.1[12].(\\d+)(-$scalafixVersion)?.jar$$")
       }
       .getOrElse {
         throw new IllegalStateException(
@@ -35,7 +36,7 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
       }
 
   private def stub(version: String) = {
-    val Version(id) = version
+    val id = version.replace(".", "-")
     Project(id = s"scalafix-$id", base = file(s"project/scalafix/$id"))
       .settings(
         description :=
@@ -51,11 +52,13 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
         scalaVersion := version,
         libraryDependencies := Nil, // remove injected dependencies from random sbt plugins.
         libraryDependencies +=
-          ("ch.epfl.scala" %% "scalafix-nsc" % scalafixVersion).intransitive()
+          ("ch.epfl.scala" % "scalafix-nsc" % scalafixVersion)
+            .cross(CrossVersion.full)
+            .intransitive()
       )
   }
-  private val scalafix211 = stub("2.11.8")
-  private val scalafix212 = stub("2.12.1")
+  private val scalafix211 = stub(Versions.scala211)
+  private val scalafix212 = stub(Versions.scala212)
 
   override def extraProjects: Seq[Project] = Seq(scalafix211, scalafix212)
 
@@ -79,10 +82,10 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
       scalafixInternalJar :=
         Def
           .taskDyn[Option[File]] {
-            scalaVersion.value match {
-              case Version("11") =>
+            CrossVersion.partialVersion(scalaVersion.value) match {
+              case Some((2, 11)) =>
                 Def.task(Option(jar((update in scalafix211).value)))
-              case Version("12") =>
+              case Some((2, 12)) =>
                 Def.task(Option(jar((update in scalafix212).value)))
               case _ =>
                 Def.task(None)

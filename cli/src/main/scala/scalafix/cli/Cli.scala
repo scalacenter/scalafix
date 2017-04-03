@@ -68,14 +68,14 @@ case class ScalafixOptions(
     ) @ValueDescription(
       "File2.scala:File1.scala:src/main/scala"
     ) sourcepath: Option[String] = None,
-     @HelpMessage(
+    @HelpMessage(
       """File path to the scalahost-nsc compiler plugin fatjar, the same path
         |        that is passed in `-Xplugin:/scalahost.jar`.
         |        (optional) skip this option by using the "scalafix-fatcli"
         |        module instead of "scalafix-cli."""".stripMargin
     ) @ValueDescription(
-       "$HOME/.ivy2/cache/.../scalahost-nsc_2.11.8.jar"
-     ) scalahostNscPluginPath: Option[String] = None,
+      "$HOME/.ivy2/cache/.../scalahost-nsc_2.11.8.jar"
+    ) scalahostNscPluginPath: Option[String] = None,
     @HelpMessage(
       s"""Rewrite rules to run.
          |        NOTE. rewrite.rules = [ .. ] from --config will also run.""".stripMargin

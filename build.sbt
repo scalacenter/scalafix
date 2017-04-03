@@ -4,10 +4,7 @@ import sbt.ScriptedPlugin._
 import Dependencies._
 organization in ThisBuild := "ch.epfl.scala"
 
-lazy val crossVersions = Seq(
-  "2.11.8",
-  "2.12.1"
-)
+lazy val crossVersions = Seq(scala211, scala212)
 
 lazy val compilerOptions = Seq(
   "-deprecation",
@@ -36,13 +33,13 @@ commands += Command.command("release") { s =>
 
 commands += Command.command("ci-fast") { s =>
   "clean" ::
-    "testQuick" ::
+    s"plz $ciScalaVersion testQuick" ::
     s
 }
 
 commands += Command.command("ci-slow") { s =>
   "very publishLocal" ::
-    "wow 2.11.8 scalafix-tests/test" ::
+    s"wow ${ciScalaVersion.get} scalafix-tests/test" ::
     "very scalafix-sbt/scripted" ::
     s
 }
@@ -90,6 +87,8 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
     "stableVersion" -> "0.3.1",
     "scalameta" -> scalametaV,
     scalaVersion,
+    "scala211" -> scala211,
+    "scala212" -> scala212,
     sbtVersion
   ),
   buildInfoPackage := "scalafix",
@@ -105,40 +104,22 @@ lazy val allSettings = List(
   libraryDependencies += scalatest % Test,
   testOptions in Test += Tests.Argument("-oD"),
   assemblyJarName in assembly := "scalafix.jar",
-  scalaVersion := sys.env.getOrElse("SCALA_VERSION", "2.11.8"),
+  scalaVersion := ciScalaVersion.getOrElse(scala211),
   crossScalaVersions := crossVersions,
   updateOptions := updateOptions.value.withCachedResolution(true)
 ) ++ publishSettings
 
-lazy val `scalafix-root` = project
-  .in(file("."))
-  .settings(
-    moduleName := "scalafix",
-    allSettings,
-    noPublish,
-    gitPushTag := {
-      val tag = s"v${version.value}"
-      assert(!tag.endsWith("SNAPSHOT"))
-      import sys.process._
-      Seq("git", "tag", "-a", tag, "-m", tag).!!
-      Seq("git", "push", "--tags").!!
-    },
-    initialCommands in console :=
-      """
-        |import scala.meta._
-        |import scalafix._
-      """.stripMargin
-  )
-  .aggregate(
-    `scalafix-nsc`,
-    `scalafix-tests`,
-    `scalafix-testutils`,
-    core,
-    cli,
-    readme,
-    `scalafix-sbt`
-  )
-  .dependsOn(core)
+allSettings
+
+noPublish
+
+gitPushTag := {
+  val tag = s"v${version.value}"
+  assert(!tag.endsWith("SNAPSHOT"))
+  import sys.process._
+  Seq("git", "tag", "-a", tag, "-m", tag).!!
+  Seq("git", "push", "--tags").!!
+}
 
 // settings to projects using @metaconfig.ConfigReader annotation.
 lazy val metaconfigSettings: Seq[Def.Setting[_]] = Seq(
@@ -259,8 +240,20 @@ lazy val `scalafix-sbt` = project
     sbtPlugin := true,
     // Doesn't work because we need to publish 2.11 and 2.12.
 //    scripted := scripted.dependsOn(publishedArtifacts: _*).evaluated,
-    scalaVersion := "2.10.6",
-    crossScalaVersions := Seq("2.10.6"),
+    testQuick := {
+      RunSbtCommand(
+        s"; very publishLocal " +
+          "; very scalafix-sbt/scripted sbt-scalafix/config"
+      )(state.value)
+    },
+    test := {
+      RunSbtCommand(
+        "; very publishLocal " +
+          "; very scalafix-sbt/scripted"
+      )(state.value)
+    },
+    scalaVersion := scala210,
+    crossScalaVersions := Seq(scala210),
     moduleName := "sbt-scalafix",
     scriptedLaunchOpts ++= Seq(
       "-Dplugin.version=" + version.value,
@@ -364,3 +357,8 @@ lazy val dummyScalahostProject = project
     description := "Just a project that has scalahost-nsc on the classpath.",
     libraryDependencies += scalahostNsc
   )
+
+lazy val ciScalaVersion = sys.env.get("CI_SCALA_VERSION")
+lazy val scala210 = "2.10.6"
+lazy val scala211 = "2.11.8"
+lazy val scala212 = "2.12.1"

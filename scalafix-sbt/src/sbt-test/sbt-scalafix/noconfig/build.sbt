@@ -1,18 +1,16 @@
 scalaVersion := "2.11.8"
 
 TaskKey[Unit]("check") := {
-  val assertContentMatches: ((String, String) => Boolean) =
-    ScalafixTestUtility.assertContentMatches(streams.value) _
   val expected =
     """object Main {
-      |  implicit val x: Int = 2
+      |  implicit val x = 2
       |  lazy val y = 2
-      |  def main(args: Array[String]): Unit = {
+      |  def main(args: Array[String]) {
       |    println("hello")
       |  }
       |}""".stripMargin
   assert(
-    assertContentMatches(
+    ScalafixTestUtility.assertContentMatches(streams.value)(
       "src/main/scala/Test.scala",
       expected
     )

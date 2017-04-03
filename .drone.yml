@@ -8,6 +8,8 @@ pipeline:
       - /drone/.coursier-cache
       - /drone/.sbt
       - /drone/.git
+    when:
+      event: [push, pull_request, tag, deployment]
 
   tests:
     image: scalaplatform/scala:0.6
@@ -20,7 +22,7 @@ pipeline:
       - git log | head -n 20
       - ./scalafmt --test
       - ./bin/copy_cache.sh /drone /root
-      - /usr/bin/sbt $TEST
+      - /usr/bin/sbt $CI_TEST
       - ./bin/before_cache.sh
       - ./bin/copy_cache.sh /root /drone
   notify:
@@ -47,9 +49,10 @@ pipeline:
       - /drone/.git
 matrix:
   include:
-    - TEST: ci-fast
-      SCALA_VERSION: 2.11.8
+    - CI_TEST: ci-fast
+      CI_SCALA_VERSION: 2.11.8
     # See https://github.com/scalacenter/scalafix/issues/101
-    # - TEST: ci-fast
-    #   SCALA_VERSION: 2.12.1
-    - TEST: ci-slow
+    # - CI_TEST: ci-fast
+    #   CI_SCALA_VERSION: 2.12.1
+    - CI_TEST: ci-slow
+      CI_SCALA_VERSION: 2.11.8
