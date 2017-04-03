@@ -2,8 +2,6 @@
 @import scalafix.Readme._
 
 @p
-  @raw
-    <a href="http://drone.geirsson.com:8001/scalacenter/scalafix"><img src="http://drone.geirsson.com:8001/api/badges/scalacenter/scalafix/status.svg" /></a>
   @gitter
 
 @p
