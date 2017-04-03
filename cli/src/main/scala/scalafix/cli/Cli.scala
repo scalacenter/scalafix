@@ -46,19 +46,19 @@ case class ScalafixOptions(
     ) @ExtraName("c") config: Option[ScalafixConfig] = None,
     @HelpMessage(
       "java.io.File.pathSeparator separated list of jar files" +
-      "or directories containing classfiles and `semanticdb` files." +
-      "The `semanticdb` files are emitted by the scalahost-nsc" +
-      "compiler plugin and are necessary for the semantic API to" +
-      "function. The classfiles + jar files are necessary for" +
-      "runtime compilation of quasiquotes when extracting" +
-      """symbols (that is, `q"scala.Predef".symbol`)."""
+        "or directories containing classfiles and `semanticdb` files." +
+        "The `semanticdb` files are emitted by the scalahost-nsc" +
+        "compiler plugin and are necessary for the semantic API to" +
+        "function. The classfiles + jar files are necessary for" +
+        "runtime compilation of quasiquotes when extracting" +
+        """symbols (that is, `q"scala.Predef".symbol`)."""
     ) @ValueDescription(
       "entry1.jar:entry2.jar"
     ) classpath: Option[String] = None,
     @HelpMessage(
       "java.io.File.pathSeparator separated list of" +
-      "Scala source files OR directories containing Scala" +
-      "source files."
+        "Scala source files OR directories containing Scala" +
+        "source files."
     ) @ValueDescription(
       "File2.scala:File1.scala:src/main/scala"
     ) sourcepath: Option[String] = None,
@@ -98,15 +98,16 @@ case class ScalafixOptions(
     case Some(x) => x
   }
 
-  lazy val resolvedMirror: Option[ScalafixMirror] = (classpath, sourcepath) match {
-    case (Some(cp), Some(sp)) =>
-      Some(ScalafixMirror.fromMirror(scala.meta.Mirror(cp, sp)))
-    case (None, None) => None
-    case _ =>
-      // FIXME: improve during review.
-      throw new Exception(
-        "The semantic API was partially configured: both a classpath and sourcepath are required.")
-  }
+  lazy val resolvedMirror: Option[ScalafixMirror] =
+    (classpath, sourcepath) match {
+      case (Some(cp), Some(sp)) =>
+        Some(ScalafixMirror.fromMirror(scala.meta.Mirror(cp, sp)))
+      case (None, None) => None
+      case _ =>
+        // FIXME: improve during review.
+        throw new Exception(
+          "The semantic API was partially configured: both a classpath and sourcepath are required.")
+    }
 
   lazy val outFromPattern: Pattern = Pattern.compile(outFrom)
   def replacePath(file: File): File =
@@ -150,7 +151,9 @@ object Cli {
   }
 
   def handleFile(file: File, options: ScalafixOptions): ExitStatus = {
-    val fixed = Scalafix.fix(Input.File(file), options.resolvedConfig, options.resolvedMirror)
+    val fixed = Scalafix.fix(Input.File(file),
+                             options.resolvedConfig,
+                             options.resolvedMirror)
     fixed match {
       case Fixed.Success(code) =>
         if (options.inPlace) {

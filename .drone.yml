@@ -18,6 +18,7 @@ pipeline:
       - /platform:/keys
     commands:
       - git log | head -n 20
+      - ./scalafmt --test
       - ./bin/copy_cache.sh /drone /root
       - /usr/bin/sbt $TEST
       - ./bin/before_cache.sh
