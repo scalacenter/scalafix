@@ -2,6 +2,7 @@ package scalafix.cli
 
 import scala.collection.GenSeq
 import scala.meta.Mirror
+import scala.meta.dialects
 import scala.meta.internal.scalahost.v1.offline
 import scala.meta.inputs.Input
 import scala.util.Success
@@ -126,6 +127,8 @@ case class ScalafixOptions(
         .withRewrites(_ ++ rewrites)
     case Some(x) => x
   }
+  lazy val resolvedSbtConfig: ScalafixConfig =
+    resolvedConfig.copy(dialect = dialects.Sbt0137)
 
   lazy val resolvedMirror: Either[String, Option[ScalafixMirror]] =
     (classpath, sourcepath) match {
@@ -153,10 +156,10 @@ object Cli {
   val helpMessage: String = withHelp.helpMessage +
     s"""|
         |Examples:
-        |  $$ scalafix --rewrites ProcedureSyntax Code.scala    # print fixed file to stdout
+        |  $$ scalafix --rewrites ProcedureSyntax Code.scala # print fixed file to stdout
         |  $$ cat .scalafix.conf
         |  rewrites = [ProcedureSyntax]
-        |  $$ scalafix Code.scala
+        |  $$ scalafix Code.scala # Same as --rewrites ProcedureSyntax
         |  scalafix -i --rewrites ProcedureSyntax Code.scala # write fixed file in-place
         |Exit status codes:
         | ${ExitStatus.all.mkString("\n ")}
@@ -190,9 +193,11 @@ object Cli {
   }
 
   def handleFile(file: File, options: ScalafixOptions): ExitStatus = {
-    val fixed = Scalafix.fix(Input.File(file),
-                             options.resolvedConfig,
-                             options.resolvedMirror.get)
+    val config =
+      if (file.getAbsolutePath.endsWith(".sbt")) options.resolvedSbtConfig
+      else options.resolvedConfig
+    val fixed =
+      Scalafix.fix(Input.File(file), config, options.resolvedMirror.get)
     fixed match {
       case Fixed.Success(code) =>
         if (options.inPlace) {
@@ -223,7 +228,9 @@ object Cli {
       if (realPath.isDirectory) {
         val filesToFix: GenSeq[String] = {
           val files =
-            FileOps.listFiles(realPath).filter(x => x.endsWith(".scala"))
+            FileOps
+              .listFiles(realPath)
+              .filter(x => x.endsWith(".scala") || x.endsWith(".sbt"))
           if (config.singleThread) files
           else files.par
         }

@@ -152,4 +152,15 @@ class CliTest extends FunSuite with DiffAssertions {
                       common = devNull))
     assert(code == ExitStatus.ScalafixError)
   }
+  test(".sbt files get fixed with sbt dialect") {
+    val file = File.createTempFile("prefix", ".sbt")
+    FileOps.writeFile(file, "def foo { println(1) }\n")
+    val code = Cli.runOn(
+      ScalafixOptions(rewrites = List(ProcedureSyntax),
+                      files = List(file.getAbsolutePath),
+                      inPlace = true,
+                      common = devNull))
+    assert(code == ExitStatus.Ok)
+    assert(FileOps.readFile(file) == "def foo: Unit = { println(1) }\n")
+  }
 }
