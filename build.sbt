@@ -268,6 +268,7 @@ lazy val `scalafix-sbt` = project
 
 lazy val `scalafix-testutils` = project.settings(
   allSettings,
+  noPublish,
   libraryDependencies ++= Seq(
     "com.googlecode.java-diff-utils" % "diffutils" % "1.3.0",
     scalatest
@@ -354,6 +355,7 @@ lazy val dummyScalahostProject = project
   .in(file("target/dummy"))
   .settings(
     allSettings,
+    noPublish,
     description := "Just a project that has scalahost-nsc on the classpath.",
     libraryDependencies += scalahostNsc
   )
