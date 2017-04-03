@@ -1,9 +1,18 @@
 @import Main._
 @import scalafix.Readme._
+@import scalafix.Versions
 
 @sect{Changelog}
   @sect{0.3.3}
     @ul
+      @li
+        scalafix-core and scalafix-cli are now published as
+        @code{CrossVersion.full}, meaning the artifact IDs now have a @code("_" +
+        Versions.scalaVersion) suffix. To depend on them,
+        @hl.scala
+          libraryDependencies +=
+            "ch.epfl.scala" % "scalafix-core" % "@scalafix.Versions.version" cross CrossVersion.full
+
       @li
         scalafix-cli new supports running semantic rewrites with the
         @code{--classpath/--sourcepath} options.

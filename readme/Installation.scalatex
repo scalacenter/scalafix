@@ -44,7 +44,7 @@
       val rewrites = project
         .settings(
           scalaVersion := "2.11.8", // 2.12.x is also supported
-          libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % "@scalafix.Versions.version"
+          libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@scalafix.Versions.version" cross CrossVersion.full
         )
         .dependsOn(
           projectToPerformRewritesOn % Scalameta
@@ -69,7 +69,7 @@
   @sect{scalafix-core}
     Scalafix can be used as a library to run custom rewrites.
     @hl.scala
-      libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % "@scalafix.Versions.version"
+      libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@scalafix.Versions.version" cross CrossVersion.full
 
     By using scalafix as a library, you have full control of how/when/where
     rewrites are written.
