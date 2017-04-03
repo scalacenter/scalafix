@@ -9,13 +9,6 @@ lazy val crossVersions = Seq(
   "2.12.1"
 )
 
-lazy val buildSettings = Seq(
-  )
-
-lazy val jvmOptions = Seq(
-  "-Xss4m"
-)
-
 lazy val compilerOptions = Seq(
   "-deprecation",
   "-encoding",
@@ -161,6 +154,7 @@ lazy val core = project
     allSettings,
     buildInfoSettings,
     metaconfigSettings,
+    isFullCrossVersion,
     moduleName := "scalafix-core",
     dependencyOverrides += scalameta,
     libraryDependencies ++= Seq(
@@ -178,6 +172,7 @@ lazy val core = project
 lazy val `scalafix-nsc` = project
   .settings(
     allSettings,
+    isFullCrossVersion,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       scalahostNsc,
@@ -228,17 +223,9 @@ lazy val `scalafix-nsc` = project
 lazy val cli = project
   .settings(
     allSettings,
-    packSettings,
+    isFullCrossVersion,
     moduleName := "scalafix-cli",
-    packJvmOpts := Map(
-      "scalafix" -> jvmOptions,
-      "scalafix_ng_server" -> jvmOptions
-    ),
     mainClass in assembly := Some("scalafix.cli.Cli"),
-    packMain := Map(
-      "scalafix" -> "scalafix.cli.Cli",
-      "scalafix_ng_server" -> "com.martiansoftware.nailgun.NGServer"
-    ),
     libraryDependencies ++= Seq(
       "com.github.scopt"           %% "scopt"         % "3.5.0",
       "com.github.alexarchambault" %% "case-app"      % "1.1.3",
@@ -340,3 +327,7 @@ def exposePaths(projectName: String,
     }
   )
 }
+
+lazy val isFullCrossVersion = Seq(
+  crossVersion := CrossVersion.full
+)
