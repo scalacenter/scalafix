@@ -237,6 +237,14 @@ lazy val cli = project
     )
   )
   .dependsOn(core, `scalafix-testutils` % Test)
+lazy val fatcli = project
+  .settings(
+    allSettings,
+    isFullCrossVersion,
+    moduleName := "scalafix-fatcli",
+    libraryDependencies += scalahostNsc
+  )
+  .dependsOn(cli)
 
 lazy val publishedArtifacts = Seq(
   publishLocal in `scalafix-nsc`,
@@ -348,6 +356,7 @@ lazy val scalahostNscPluginPath = Def.task {
   path.getAbsolutePath
 }
 
+// sbt makes it hard to do simple stuff like get the jar of a dependency.
 lazy val dummyScalahostProject = project
   .in(file("target/dummy"))
   .settings(

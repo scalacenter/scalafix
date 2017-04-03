@@ -34,7 +34,6 @@ class SemanticTests extends FunSuite with DiffAssertions { self =>
     def fail(msg: String) =
       sys.error(s"ReflectToMeta initialization failed: $msg")
     val classpath = System.getProperty("sbt.paths.scalafixNsc.test.classes")
-    logger.elem(classpath)
     val scalacOptions = Seq(
       "-cp",
       classpath,

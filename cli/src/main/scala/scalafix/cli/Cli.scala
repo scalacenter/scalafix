@@ -29,6 +29,7 @@ import java.util.regex.Pattern
 import caseapp._
 import caseapp.core.WithHelp
 import com.martiansoftware.nailgun.NGContext
+import org.scalameta.logger
 
 case class CommonOptions(
     @Hidden workingDirectory: String = System.getProperty("user.dir"),
@@ -50,35 +51,38 @@ case class ScalafixOptions(
       ".scalafix.conf OR imports.organize=false"
     ) @ExtraName("c") config: Option[ScalafixConfig] = None,
     @HelpMessage(
-      "java.io.File.pathSeparator separated list of jar files" +
-        "or directories containing classfiles and `semanticdb` files." +
-        "The `semanticdb` files are emitted by the scalahost-nsc" +
-        "compiler plugin and are necessary for the semantic API to" +
-        "function. The classfiles + jar files are necessary for" +
-        "runtime compilation of quasiquotes when extracting" +
-        """symbols (that is, `q"scala.Predef".symbol`)."""
+      """java.io.File.pathSeparator separated list of jar files or directories
+        |        containing classfiles and `semanticdb` files. The `semanticdb`
+        |        files are emitted by the scalahost-nsc compiler plugin and
+        |        are necessary for the semantic API to function. The
+        |        classfiles + jar files are necessary forruntime compilation
+        |        of quasiquotes when extracting symbols (that is,
+        |        `q"scala.Predef".symbol`).""".stripMargin
     ) @ValueDescription(
       "entry1.jar:entry2.jar"
     ) classpath: Option[String] = None,
     @HelpMessage(
-      "java.io.File.pathSeparator separated list of" +
-        "Scala source files OR directories containing Scala" +
-        "source files."
+      """java.io.File.pathSeparator separated list of Scala source files OR
+        |        directories containing Scala source files.""".stripMargin
     ) @ValueDescription(
       "File2.scala:File1.scala:src/main/scala"
     ) sourcepath: Option[String] = None,
     @HelpMessage(
       "java.io.File.pathSeparator separated list of"
     ) @ValueDescription(
-      "File path to the scalahost-nsc compiler plugin fatjar, " +
-        "the same path that is passed in `-Xplugin:/scalahost.jar`. " +
-        "(optional) skip this option by adding org.scalameta:scalafix-nsc:x.y.z " +
-        "to the classpath of scalafix-cli, for example with coursier bootstrap. "
+      """File path to the scalahost-nsc compiler plugin fatjar, the same path
+        |        that is passed in `-Xplugin:/scalahost.jar`.
+        |        (optional) skip this option by building the "scalafix-fatcli"
+        |        module instead of "scalafix-cli."""".stripMargin
     ) scalahostNscPluginPath: Option[String] = None,
     @HelpMessage(
-      s"Additional rewrite rules to run. NOTE. rewrite.rules = [ .. ] from --config will also run."
+      s"""Rewrite rules to run.
+         |        NOTE. rewrite.rules = [ .. ] from --config will also run.""".stripMargin
     ) @ValueDescription(
-      s"$ProcedureSyntax OR file:LocalFile.scala OR scala:full.Name OR https://gist.com/.../Rewrite.scala"
+      s"""$ProcedureSyntax OR
+         |               file:LocalFile.scala OR
+         |               scala:full.Name OR
+         |               https://gist.com/.../Rewrite.scala""".stripMargin
     ) rewrites: List[ScalafixRewrite] = ScalafixRewrites.syntax,
     @HelpMessage(
       "Files to fix. Runs on all *.scala files if given a directory."
@@ -89,12 +93,12 @@ case class ScalafixOptions(
       "If true, writes changes to files instead of printing to stdout."
     ) @ExtraName("i") inPlace: Boolean = false,
     @HelpMessage(
-      "Regex that is passed as first argument to " +
-        "fileToFix.replaceAll(outFrom, outTo)."
+      """Regex that is passed as first argument to
+        |        fileToFix.replaceAll(outFrom, outTo).""".stripMargin
     ) @ValueDescription("/shared/") outFrom: String = "",
     @HelpMessage(
-      "Replacement string that is passed as second " +
-        "argument to fileToFix.replaceAll(outFrom, outTo)"
+      """Replacement string that is passed as second argument to
+        |        fileToFix.replaceAll(outFrom, outTo)""".stripMargin
     ) @ValueDescription("/custom/") outTo: String = "",
     @HelpMessage(
       "If true, run on single thread. If false (default), use all available cores."
@@ -104,6 +108,12 @@ case class ScalafixOptions(
     ) debug: Boolean = false,
     @Recurse common: CommonOptions = CommonOptions()
 ) {
+
+  lazy val absoluteFiles: List[File] = files.map { f =>
+    val file = new File(f)
+    if (file.isAbsolute) file
+    else new File(new File(common.workingDirectory), f)
+  }
 
   /** Returns ScalafixConfig from .scalafix.conf, it exists and --config was not passed. */
   lazy val resolvedConfig: ScalafixConfig = config match {
@@ -142,6 +152,12 @@ object Cli {
   private val withHelp = OptionsMessages.withHelp
   val helpMessage: String = withHelp.helpMessage +
     s"""|
+        |Examples:
+        |  $$ scalafix --rewrites ProcedureSyntax Code.scala    # print fixed file to stdout
+        |  $$ cat .scalafix.conf
+        |  rewrites = [ProcedureSyntax]
+        |  $$ scalafix Code.scala
+        |  scalafix -i --rewrites ProcedureSyntax Code.scala # write fixed file in-place
         |Exit status codes:
         | ${ExitStatus.all.mkString("\n ")}
         |""".stripMargin
@@ -185,9 +201,10 @@ object Cli {
         } else options.common.out.write(code.getBytes)
         ExitStatus.Ok
       case Fixed.Failed(e: Failure.ParseError) =>
-        if (options.files.contains(file.getPath)) {
+        if (options.absoluteFiles.exists(
+              _.getAbsolutePath == file.getAbsolutePath)) {
           // Only log if user explicitly specified that file.
-          options.common.err.write(e.toString.getBytes())
+          options.common.err.write((e.exception.getMessage + "\n").getBytes)
         }
         ExitStatus.ParseError
       case Fixed.Failed(failure) =>
