@@ -3,8 +3,6 @@ scalaVersion := "2.11.8"
 scalafixConfig in ThisBuild := Some(file("myscalafix.conf"))
 
 TaskKey[Unit]("check") := {
-  val assertContentMatches: ((String, String) => Boolean) =
-    ScalafixTestUtility.assertContentMatches(streams.value) _
   val expected =
     """object Main {
       |  implicit val x = 2
@@ -14,7 +12,7 @@ TaskKey[Unit]("check") := {
       |  }
       |}""".stripMargin
   assert(
-    assertContentMatches(
+    ScalafixTestUtility.assertContentMatches(streams.value)(
       "src/main/scala/Test.scala",
       expected
     )

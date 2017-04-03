@@ -1,9 +1,15 @@
 package scalafix.cli
 
 import scala.collection.GenSeq
+import scala.meta.Mirror
+import scala.meta.dialects
+import scala.meta.internal.scalahost.v1.offline
 import scala.meta.inputs.Input
+import scala.util.Success
+import scala.util.Try
 import scala.util.control.NonFatal
 import scalafix.Failure
+import scalafix.syntax._
 import scalafix.Fixed
 import scalafix.Scalafix
 import scalafix.cli.termdisplay.TermDisplay
@@ -24,6 +30,7 @@ import java.util.regex.Pattern
 import caseapp._
 import caseapp.core.WithHelp
 import com.martiansoftware.nailgun.NGContext
+import org.scalameta.logger
 
 case class CommonOptions(
     @Hidden workingDirectory: String = System.getProperty("user.dir"),
@@ -45,27 +52,38 @@ case class ScalafixOptions(
       ".scalafix.conf OR imports.organize=false"
     ) @ExtraName("c") config: Option[ScalafixConfig] = None,
     @HelpMessage(
-      "java.io.File.pathSeparator separated list of jar files" +
-        "or directories containing classfiles and `semanticdb` files." +
-        "The `semanticdb` files are emitted by the scalahost-nsc" +
-        "compiler plugin and are necessary for the semantic API to" +
-        "function. The classfiles + jar files are necessary for" +
-        "runtime compilation of quasiquotes when extracting" +
-        """symbols (that is, `q"scala.Predef".symbol`)."""
+      """java.io.File.pathSeparator separated list of jar files or directories
+        |        containing classfiles and `semanticdb` files. The `semanticdb`
+        |        files are emitted by the scalahost-nsc compiler plugin and
+        |        are necessary for the semantic API to function. The
+        |        classfiles + jar files are necessary forruntime compilation
+        |        of quasiquotes when extracting symbols (that is,
+        |        `q"scala.Predef".symbol`).""".stripMargin
     ) @ValueDescription(
       "entry1.jar:entry2.jar"
     ) classpath: Option[String] = None,
     @HelpMessage(
-      "java.io.File.pathSeparator separated list of" +
-        "Scala source files OR directories containing Scala" +
-        "source files."
+      """java.io.File.pathSeparator separated list of Scala source files OR
+        |        directories containing Scala source files.""".stripMargin
     ) @ValueDescription(
       "File2.scala:File1.scala:src/main/scala"
     ) sourcepath: Option[String] = None,
     @HelpMessage(
-      s"Additional rewrite rules to run. NOTE. rewrite.rules = [ .. ] from --config will also run."
+      """File path to the scalahost-nsc compiler plugin fatjar, the same path
+        |        that is passed in `-Xplugin:/scalahost.jar`.
+        |        (optional) skip this option by using the "scalafix-fatcli"
+        |        module instead of "scalafix-cli."""".stripMargin
     ) @ValueDescription(
-      s"$ProcedureSyntax OR file:LocalFile.scala OR scala:full.Name OR https://gist.com/.../Rewrite.scala"
+      "$HOME/.ivy2/cache/.../scalahost-nsc_2.11.8.jar"
+    ) scalahostNscPluginPath: Option[String] = None,
+    @HelpMessage(
+      s"""Rewrite rules to run.
+         |        NOTE. rewrite.rules = [ .. ] from --config will also run.""".stripMargin
+    ) @ValueDescription(
+      s"""$ProcedureSyntax OR
+         |               file:LocalFile.scala OR
+         |               scala:full.Name OR
+         |               https://gist.com/.../Rewrite.scala""".stripMargin
     ) rewrites: List[ScalafixRewrite] = ScalafixRewrites.syntax,
     @HelpMessage(
       "Files to fix. Runs on all *.scala files if given a directory."
@@ -76,12 +94,12 @@ case class ScalafixOptions(
       "If true, writes changes to files instead of printing to stdout."
     ) @ExtraName("i") inPlace: Boolean = false,
     @HelpMessage(
-      "Regex that is passed as first argument to " +
-        "fileToFix.replaceAll(outFrom, outTo)."
+      """Regex that is passed as first argument to
+        |        fileToFix.replaceAll(outFrom, outTo).""".stripMargin
     ) @ValueDescription("/shared/") outFrom: String = "",
     @HelpMessage(
-      "Replacement string that is passed as second " +
-        "argument to fileToFix.replaceAll(outFrom, outTo)"
+      """Replacement string that is passed as second argument to
+        |        fileToFix.replaceAll(outFrom, outTo)""".stripMargin
     ) @ValueDescription("/custom/") outTo: String = "",
     @HelpMessage(
       "If true, run on single thread. If false (default), use all available cores."
@@ -92,20 +110,38 @@ case class ScalafixOptions(
     @Recurse common: CommonOptions = CommonOptions()
 ) {
 
-  /** Returns ScalafixConfig from .scalafix.conf, it exists and --config was not passed. */
-  lazy val resolvedConfig: ScalafixConfig = config match {
-    case None => ScalafixConfig.auto(common.workingDirectoryFile)
-    case Some(x) => x
+  lazy val absoluteFiles: List[File] = files.map { f =>
+    val file = new File(f)
+    if (file.isAbsolute) file
+    else new File(new File(common.workingDirectory), f)
   }
 
-  lazy val resolvedMirror: Option[ScalafixMirror] =
+  /** Returns ScalafixConfig from .scalafix.conf, it exists and --config was not passed. */
+  lazy val resolvedConfig: ScalafixConfig = config match {
+    case None =>
+      ScalafixConfig
+        .auto(common.workingDirectoryFile)
+        .getOrElse(
+          ScalafixConfig.default
+        )
+        .withRewrites(_ ++ rewrites)
+    case Some(x) => x
+  }
+  lazy val resolvedSbtConfig: ScalafixConfig =
+    resolvedConfig.copy(dialect = dialects.Sbt0137)
+
+  lazy val resolvedMirror: Either[String, Option[ScalafixMirror]] =
     (classpath, sourcepath) match {
       case (Some(cp), Some(sp)) =>
-        Some(ScalafixMirror.fromMirror(scala.meta.Mirror(cp, sp)))
-      case (None, None) => None
+        val tryMirror = for {
+          pluginPath <- scalahostNscPluginPath.fold(
+            Try(offline.Mirror.autodetectScalahostNscPluginPath))(Success(_))
+          mirror <- Try(ScalafixMirror.fromMirror(Mirror(cp, sp, pluginPath)))
+        } yield Option(mirror)
+        tryMirror.asEither.leftAsString
+      case (None, None) => Right(None)
       case _ =>
-        // FIXME: improve during review.
-        throw new Exception(
+        Left(
           "The semantic API was partially configured: both a classpath and sourcepath are required.")
     }
 
@@ -119,6 +155,12 @@ object Cli {
   private val withHelp = OptionsMessages.withHelp
   val helpMessage: String = withHelp.helpMessage +
     s"""|
+        |Examples:
+        |  $$ scalafix --rewrites ProcedureSyntax Code.scala # print fixed file to stdout
+        |  $$ cat .scalafix.conf
+        |  rewrites = [ProcedureSyntax]
+        |  $$ scalafix Code.scala # Same as --rewrites ProcedureSyntax
+        |  scalafix -i --rewrites ProcedureSyntax Code.scala # write fixed file in-place
         |Exit status codes:
         | ${ExitStatus.all.mkString("\n ")}
         |""".stripMargin
@@ -151,9 +193,11 @@ object Cli {
   }
 
   def handleFile(file: File, options: ScalafixOptions): ExitStatus = {
-    val fixed = Scalafix.fix(Input.File(file),
-                             options.resolvedConfig,
-                             options.resolvedMirror)
+    val config =
+      if (file.getAbsolutePath.endsWith(".sbt")) options.resolvedSbtConfig
+      else options.resolvedConfig
+    val fixed =
+      Scalafix.fix(Input.File(file), config, options.resolvedMirror.get)
     fixed match {
       case Fixed.Success(code) =>
         if (options.inPlace) {
@@ -162,9 +206,10 @@ object Cli {
         } else options.common.out.write(code.getBytes)
         ExitStatus.Ok
       case Fixed.Failed(e: Failure.ParseError) =>
-        if (options.files.contains(file.getPath)) {
+        if (options.absoluteFiles.exists(
+              _.getAbsolutePath == file.getAbsolutePath)) {
           // Only log if user explicitly specified that file.
-          options.common.err.write(e.toString.getBytes())
+          options.common.err.write((e.exception.getMessage + "\n").getBytes)
         }
         ExitStatus.ParseError
       case Fixed.Failed(failure) =>
@@ -183,7 +228,9 @@ object Cli {
       if (realPath.isDirectory) {
         val filesToFix: GenSeq[String] = {
           val files =
-            FileOps.listFiles(realPath).filter(x => x.endsWith(".scala"))
+            FileOps
+              .listFiles(realPath)
+              .filter(x => x.endsWith(".scala") || x.endsWith(".sbt"))
           if (config.singleThread) files
           else files.par
         }
@@ -211,13 +258,9 @@ object Cli {
   def parse(args: Seq[String]): Either[String, WithHelp[ScalafixOptions]] =
     OptionsParser.withHelp.detailedParse(args) match {
       case Right((help, extraFiles, ls)) =>
-        Right(
-          help.map(c =>
-            c.copy(
-              files = help.base.files ++ extraFiles,
-              rewrites = c.rewrites ++ c.config.map(_.rewrites).getOrElse(Nil)
-          ))
-        )
+        for {
+          _ <- help.base.resolvedMirror // validate
+        } yield help.map(_.copy(files = help.base.files ++ extraFiles))
       case Left(x) => Left(x)
     }
 

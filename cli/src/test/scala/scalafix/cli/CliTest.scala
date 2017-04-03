@@ -2,6 +2,7 @@ package scalafix.cli
 
 import scalafix.config.ScalafixConfig
 import scalafix.rewrite.ExplicitImplicit
+import scalafix.rewrite.ProcedureSyntax
 import scalafix.rewrite.VolatileLazyVal
 import scalafix.util.DiffAssertions
 import scalafix.util.FileOps
@@ -67,7 +68,11 @@ class CliTest extends FunSuite with DiffAssertions {
     val file = File.createTempFile("prefix", ".scala")
     FileOps.writeFile(file, original)
     Cli.runOn(
-      ScalafixOptions(files = List(file.getAbsolutePath), inPlace = true))
+      ScalafixOptions(
+        rewrites = List(ProcedureSyntax),
+        files = List(file.getAbsolutePath),
+        inPlace = true
+      ))
     assertNoDiff(FileOps.readFile(file), expected)
   }
 
@@ -106,8 +111,35 @@ class CliTest extends FunSuite with DiffAssertions {
   }
 
   test("--rewrites") {
-    assert(Cli.parse(Seq("--rewrites", "VolatileLazyVal")).isRight)
+    val Right(WithHelp(_, _, obtained)) =
+      Cli.parse(Seq("--rewrites", "VolatileLazyVal"))
+    assert(obtained.rewrites == List(VolatileLazyVal))
     assert(Cli.parse(Seq("--rewrites", "Foobar")).isLeft)
+    assert(
+      Cli.parse(Seq("--rewrites", "file:rewrites/MyRewrite.scala")).isRight)
+  }
+
+  test("--sourcepath --classpath") {
+    assert(Cli.parse(List("--sourcepath", "foo.scala")).isLeft)
+    assert(Cli.parse(List("--classpath", "foo")).isLeft)
+    assert( // missing --scalahost-nsc-plugin-path
+      Cli
+        .parse(List("--sourcepath", "foo.scala", "--classpath", "bar"))
+        .isLeft)
+    // injected by javaOptions in build.sbt
+    val path = sys.props("scalafix.scalahost.pluginpath")
+    assert(
+      Cli
+        .parse(
+          List(
+            "--sourcepath",
+            "foo.scala",
+            "--classpath",
+            "bar",
+            "--scalahost-nsc-plugin-path",
+            path
+          ))
+        .isRight)
   }
 
   test("error returns failure exit code") {
@@ -119,5 +151,16 @@ class CliTest extends FunSuite with DiffAssertions {
                       inPlace = true,
                       common = devNull))
     assert(code == ExitStatus.ScalafixError)
+  }
+  test(".sbt files get fixed with sbt dialect") {
+    val file = File.createTempFile("prefix", ".sbt")
+    FileOps.writeFile(file, "def foo { println(1) }\n")
+    val code = Cli.runOn(
+      ScalafixOptions(rewrites = List(ProcedureSyntax),
+                      files = List(file.getAbsolutePath),
+                      inPlace = true,
+                      common = devNull))
+    assert(code == ExitStatus.Ok)
+    assert(FileOps.readFile(file) == "def foo: Unit = { println(1) }\n")
   }
 }

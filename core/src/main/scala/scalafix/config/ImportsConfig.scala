@@ -13,7 +13,8 @@ case class ImportsConfig(
     // imports, see https://github.com/scalacenter/scalafix/issues/83
     expandRelative: Boolean = false,
     spaceAroundCurlyBrace: Boolean = false,
-    organize: Boolean = true,
+    // Disabled since users should explicitly opt into it.
+    organize: Boolean = false,
     removeUnused: Boolean = true,
     alwaysUsed: List[Ref] = List(),
     groups: List[FilterMatcher] = List(

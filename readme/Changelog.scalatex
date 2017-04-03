@@ -2,6 +2,15 @@
 @import scalafix.Readme._
 
 @sect{Changelog}
+  @sect{0.3.3}
+    @ul
+      @li
+        scalafix-cli new supports running semantic rewrites with the
+        @code{--classpath/--sourcepath} options.
+      @li
+        scalafix-cli now supports @code{.sbt} files.
+      @li
+        New documentation for @sect.ref{scalafix-cli}.
   @sect{0.3.2}
     See @lnk("merged PRs", "https://github.com/scalacenter/scalafix/milestone/2?closed=1").
     @ul

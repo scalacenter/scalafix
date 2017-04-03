@@ -1,6 +1,9 @@
 @import Main._
 @import scalafix.Readme._
 @import scalafix.rewrite._
+@import scalafix.{Versions => V}
+@import scalafix.cli.Cli
+
 
 @sect{Installation}
 
@@ -109,17 +112,50 @@
       Feedback is very welcome.
       Be prepared for breaking changes.
 
-  @sect{scalafix-nsc}
-    Scalafix can be used directly as a compiler plugin:
-    @hl.scala
-      // download
-      https/repo1.maven.org/maven2/ch/epfl/scala/scalafix-nsc_2.12/@scalafix.Versions.version/scalafix-nsc_2.12-@(scalafix.Versions.version + ".jar")
-      // compile
-      scalac -Xplugin:/path/to/scalafix-nsc_2.12-@(scalafix.Versions.version + ".jar") mycode.scala
+  @sect{scalafix-cli}
+    The command line interface can be installed with
+    @lnk("coursier", "https://github.com/coursier/coursier#command-line").
 
-    @ul
-      @li
-        The compiler plugin writes fixes directly to source files during compilation.
-      @li
-        To specify a configuration file @code{-P:scalafix:/full/path/to/.scalafix.conf}.
+    Once you have the @code{coursier} command-line installed, run
+
+    @hl.scala
+      coursier bootstrap ch.epfl.scala:scalafix-cli_@(V.scalaVersion):@(V.version) --main scalafix.cli.Cli -o scalafix
+
+    This creates a small bootstrap script (<20kb) that downloads necessary
+    dependencies on the first run.
+
+    @p
+      If you run semantic rewrites with the cli, you can optionally use the
+      @code{fatcli} module instead of the @code{cli} module.
+
+    @hl.scala
+      coursier bootstrap ch.epfl.scala:scalafix-fatcli_@(V.scalaVersion):@(V.version) --main scalafix.cli.Cli -o scalafix
+
+    @p
+      The @code{fatcli} module depends on the @code{scalahost-nsc} compiler plugin
+      fatjar, making it unnecessary to pass in the @code{--scalahost-nsc-plugin-path}
+      flag.
+
+    @p
+      Once the scalafix cli is installed, consult the help page for further usage
+      instructions
+
+    @hl.scala(Cli.helpMessage)
+
+  @sect{scalafix-nsc}
+    @b{Note.} scalafix-nsc is being phased out in favor of scalahost-nsc.
+
+    @p
+      Scalafix can be used directly as a compiler plugin:
+      @hl.scala
+        // download
+        https/repo1.maven.org/maven2/ch/epfl/scala/scalafix-nsc_2.12/@scalafix.Versions.version/scalafix-nsc_2.12-@(scalafix.Versions.version + ".jar")
+        // compile
+        scalac -Xplugin:/path/to/scalafix-nsc_2.12-@(scalafix.Versions.version + ".jar") mycode.scala
+
+      @ul
+        @li
+          The compiler plugin writes fixes directly to source files during compilation.
+        @li
+          To specify a configuration file @code{-P:scalafix:/full/path/to/.scalafix.conf}.
         See @sect.ref{Configuration} for more details.

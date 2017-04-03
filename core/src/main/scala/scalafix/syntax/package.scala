@@ -8,6 +8,7 @@ import scala.meta.semantic.v1.Completed
 import scala.meta.semantic.v1.Signature
 import scala.meta.semantic.v1.Symbol
 import scala.meta.tokens.Token
+import scala.util.Success
 import scala.util.Try
 import scalafix.util.CanonicalImport
 import scalafix.util.ImportPatch
@@ -31,12 +32,34 @@ package object syntax {
     }
   }
 
-  implicit class XtensionEither[B](either: Either[Throwable, B]) {
-    def get: B = either match {
+  implicit class XtensionTryToEither[A](e: Try[A]) {
+    def asEither: Either[Throwable, A] = e match {
+      case Success(x) => Right(x)
+      case scala.util.Failure(x) => Left(x)
+    }
+  }
+
+  implicit class XtensionEither[A, B](either: Either[A, B]) {
+    def map[C](f: B => C): Either[A, C] = either.right.map(f)
+    def flatMap[C >: A, D](f: B => Either[C, D]): Either[C, D] =
+      either.right.flatMap(f)
+  }
+
+  implicit class XtensionEitherThrowable[A](either: Either[Throwable, A]) {
+    def leftAsString: Either[String, A] = either.left.map(_.getMessage)
+    def get: A = either match {
       case Right(b) => b
       case Left(e) => throw e
     }
   }
+
+  implicit class XtensionEitherString[B](either: Either[String, B]) {
+    def get: B = either match {
+      case Right(b) => b
+      case Left(e) => throw new Exception(e)
+    }
+  }
+
   implicit class XtensionTermRef(ref: Term.Ref) {
     def toTypeRef: Type.Ref = ref match {
       case Term.Name(name) => Type.Name(name)
