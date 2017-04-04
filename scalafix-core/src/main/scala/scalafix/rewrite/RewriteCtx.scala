@@ -3,6 +3,7 @@ import scala.meta.Dialect
 import scala.meta.Tree
 import scala.meta.tokens.Tokens
 import scalafix.config.ScalafixConfig
+import scalafix.config.ScalafixReporter
 import scalafix.util.AssociatedComments
 import scalafix.util.TokenList
 
@@ -19,6 +20,7 @@ class RewriteCtx[+A](implicit val tree: Tree,
   implicit lazy val tokens: Tokens = tree.tokens(config.dialect)
   lazy val tokenList: TokenList = new TokenList(tokens)
   lazy val comments: AssociatedComments = AssociatedComments(tokens)
+  val reporter: ScalafixReporter = config.reporter
   def map[B](f: A => B): RewriteCtx[B] =
     new RewriteCtx[B]()(tree, config, f(mirror))
 }

@@ -1,9 +1,8 @@
 package scalafix.tests
 
 import scalafix.Versions
-import scalafix.util.logger
-
 import ammonite.ops._
+import org.scalameta.logger
 import org.scalatest.FunSuite
 import org.scalatest.concurrent.TimeLimits
 import org.scalatest.time.Minutes
@@ -81,8 +80,7 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
     def sbt(cmds: Seq[Command]): Unit = {
       val cmd = cmds.mkString("; ", "; ", "")
       val id = s"${t.name}/$cmd"
-      logger.info(s"Running $id")
-
+      logger.elem(s"Running $id")
       val sbt = if (sys.env.contains("DRONE")) "/usr/bin/sbt" else "sbt"
       logger.elem(sbt)
       val args = Seq(
@@ -94,7 +92,7 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
         val status = Process(args, cwd = t.workingPath.toIO).!
         assert(status == 0)
       }
-      logger.info(s"Completed $id")
+      logger.elem(s"Completed $id")
     }
     val testFun: () => Any = { () =>
       setup(t)

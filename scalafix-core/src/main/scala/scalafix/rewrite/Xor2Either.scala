@@ -8,7 +8,6 @@ import scalafix.syntax._
 import scalafix.util.TreeExtractors._
 import scalafix.util.Patch
 import scalafix.util.TreePatch._
-import scalafix.util.logger
 
 case object Xor2Either extends Rewrite[ScalafixMirror] {
   override def rewrite[T <: ScalafixMirror](ctx: RewriteCtx[T]): Seq[Patch] = {

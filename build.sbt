@@ -209,14 +209,7 @@ lazy val `scalafix-sbt` = project
     buildInfoSettings,
     ScriptedPlugin.scriptedSettings,
     sbtPlugin := true,
-    // Doesn't work because we need to publish 2.11 and 2.12.
-//    scripted := scripted.dependsOn(publishedArtifacts: _*).evaluated,
-    testQuick := {
-      RunSbtCommand(
-        s"; very publishLocal " +
-          "; very scalafix-sbt/scripted sbt-scalafix/config"
-      )(state.value)
-    },
+    testQuick := {}, // these test are slow.
     test := {
       RunSbtCommand(
         "; very publishLocal " +

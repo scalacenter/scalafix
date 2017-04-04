@@ -15,7 +15,6 @@ import scalafix.Fixed
 import scalafix.Scalafix
 import scalafix.config.ScalafixConfig
 import scalafix.rewrite.ScalafixMirror
-import scalafix.util.logger
 case class SemanticContext(enclosingPackage: String, inScope: List[String])
 
 trait NscScalafixMirror extends ReflectToolkit with HijackImportInfos {

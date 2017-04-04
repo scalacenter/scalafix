@@ -11,7 +11,6 @@ import scala.util.control.NonFatal
 import scalafix.Failure.ParseError
 import scalafix.config.ScalafixConfig
 import scalafix.util.FileOps
-import scalafix.util.logger
 
 class ScalafixNscComponent(plugin: Plugin,
                            val global: Global,
@@ -27,7 +26,7 @@ class ScalafixNscComponent(plugin: Plugin,
       val msg =
         "-Xfatal-warnings is enabled along with imports.removeUnused=true in scalafix. " +
           "Consider disabling -Xfatal-warnings to avoid compilation errors."
-      logger.warn(msg)
+      getConfig().reporter.warn(msg)
     }
     g.settings.fatalWarnings.tryToSetFromPropertyValue("false")
   }

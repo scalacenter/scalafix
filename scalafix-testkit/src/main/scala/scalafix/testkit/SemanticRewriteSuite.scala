@@ -16,13 +16,14 @@ import scala.tools.nsc.reporters.StoreReporter
 import scala.util.control.NonFatal
 import scala.{meta => m}
 import scalafix.Fixed
+import scalafix.syntax._
 import scalafix.config.ScalafixConfig
 import scalafix.nsc.ScalafixNscPlugin
-import scalafix.util.logger
 
 import java.io.File
 import java.io.PrintWriter
 
+import org.scalameta.logger
 import org.scalatest.FunSuite
 
 abstract class SemanticRewriteSuite(classpath: String)
@@ -165,7 +166,7 @@ abstract class SemanticRewriteSuite(classpath: String)
         fail(
           s"""Fixed source code does not typecheck!
              |Message: ${e.getMessage}
-             |Reveal: ${logger.reveal(code)}
+             |Reveal: ${code.revealWhiteSpace}
              |Code: $code""".stripMargin,
           e
         )
@@ -184,6 +185,10 @@ abstract class SemanticRewriteSuite(classpath: String)
   }
 
   def check(original: String, expectedStr: String, diffTest: DiffTest): Unit = {
+    def formatHeader(header: String): String = {
+      val line = s"=" * (header.length + 3)
+      s"$line\n=> $header\n$line"
+    }
     val fixed = fix(diffTest.wrapped(), diffTest.config)
     val obtained = parse(diffTest.unwrap(fixed))
     val expected = parse(expectedStr)
@@ -199,9 +204,9 @@ abstract class SemanticRewriteSuite(classpath: String)
       case MismatchException(details) =>
         val header = s"scala -> meta converter error\n$details"
         val fullDetails =
-          s"""${logger.header("Expected")}
+          s"""${formatHeader("Expected")}
              |${expected.syntax}
-             |${logger.header("Obtained")}
+             |${formatHeader("Obtained")}
              |${obtained.syntax}""".stripMargin
         fail(s"$header\n$fullDetails")
     }
