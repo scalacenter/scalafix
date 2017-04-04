@@ -17,8 +17,6 @@ import scala.util.control.NonFatal
 import scala.{meta => m}
 import scalafix.config.ScalafixConfig
 import scalafix.nsc.ScalafixNscPlugin
-import scalafix.rewrite.ExplicitImplicit
-import scalafix.rewrite.ScalafixRewrite
 import scalafix.util.DiffAssertions
 import scalafix.util.logger
 
@@ -27,12 +25,12 @@ import java.io.PrintWriter
 
 import org.scalatest.FunSuite
 
-class SemanticTests extends FunSuite with DiffAssertions { self =>
-  val rewrite: ScalafixRewrite = ExplicitImplicit
-  val parseAsCompilationUnit: Boolean = false
+abstract class SemanticRewriteSuite extends FunSuite with DiffAssertions {
+  self =>
   private val testGlobal: Global = {
     def fail(msg: String) =
       sys.error(s"ReflectToMeta initialization failed: $msg")
+
     val classpath = System.getProperty("sbt.paths.scalafixNsc.test.classes")
     val scalacOptions = Seq(
       "-cp",
@@ -58,6 +56,7 @@ class SemanticTests extends FunSuite with DiffAssertions { self =>
   private val fixer = scalafixNscPlugin.component
   private val g: fixer.global.type = fixer.global
   implicit val mirror = scalafixNscPlugin.mirror
+
   import mirror._
 
   private def unwrap(gtree: g.Tree): g.Tree = gtree match {
@@ -115,6 +114,7 @@ class SemanticTests extends FunSuite with DiffAssertions { self =>
   }
 
   case class MismatchException(details: String) extends Exception
+
   private def checkMismatchesModuloDesugarings(obtained: m.Tree,
                                                expected: m.Tree): Unit = {
     import scala.meta._
@@ -134,6 +134,7 @@ class SemanticTests extends FunSuite with DiffAssertions { self =>
           def sameStructure =
             x.productPrefix == y.productPrefix &&
               loop(x.productIterator.toList, y.productIterator.toList)
+
           sameStructure
         case _ =>
           x == y
@@ -151,8 +152,10 @@ class SemanticTests extends FunSuite with DiffAssertions { self =>
         throw MismatchException(s"$x != $y$structure")
       } else true
     }
+
     loop(obtained, expected)
   }
+
   private def typeChecks(code: String): Unit = {
     try {
       computeDatabaseFromSnippet(code)
@@ -201,16 +204,6 @@ class SemanticTests extends FunSuite with DiffAssertions { self =>
              |${logger.header("Obtained")}
              |${obtained.syntax}""".stripMargin
         fail(s"$header\n$fullDetails")
-    }
-  }
-
-  DiffTest.testsToRun.foreach { dt =>
-    if (dt.skip) {
-      ignore(dt.fullName) {}
-    } else {
-      test(dt.fullName) {
-        check(dt.original, dt.expected, dt)
-      }
     }
   }
 }

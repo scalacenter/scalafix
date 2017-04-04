@@ -122,10 +122,12 @@ class CliTest extends FunSuite with DiffAssertions {
   test("--sourcepath --classpath") {
     assert(Cli.parse(List("--sourcepath", "foo.scala")).isLeft)
     assert(Cli.parse(List("--classpath", "foo")).isLeft)
-    assert( // missing --scalahost-nsc-plugin-path
+    // NOTE: This assertion should fail by default, but scalafix-cli % Test
+    // depends on testkit, which has scalahost-nsc as a dependency.
+    assert(
       Cli
         .parse(List("--sourcepath", "foo.scala", "--classpath", "bar"))
-        .isLeft)
+        .isRight)
     // injected by javaOptions in build.sbt
     val path = sys.props("scalafix.scalahost.pluginpath")
     assert(
