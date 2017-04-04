@@ -30,13 +30,14 @@ commands += Command.command("release") { s =>
     "gitPushTag" ::
     s
 }
-
 commands += Command.command("ci-fast") { s =>
   "clean" ::
     s"plz $ciScalaVersion testQuick" ::
     s
 }
-
+commands += Command.command("ci-publish") { s =>
+  s"very publish" :: s
+}
 commands += Command.command("ci-slow") { s =>
   "very publishLocal" ::
     s"wow ${ciScalaVersion.get} scalafix-tests/test" ::
@@ -45,13 +46,9 @@ commands += Command.command("ci-slow") { s =>
 }
 
 lazy val publishSettings = Seq(
-  publishTo := {
-    val nexus = "https://oss.sonatype.org/"
-    if (isSnapshot.value)
-      Some("snapshots" at nexus + "content/repositories/snapshots")
-    else
-      Some("releases" at nexus + "service/local/staging/deploy/maven2")
-  },
+  publishTo := publishTo.in(bintray).value,
+  bintrayOrganization := Some("scalameta"),
+  bintrayRepository := "maven",
   publishArtifact in Test := false,
   licenses := Seq(
     "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
@@ -84,7 +81,7 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
   buildInfoKeys := Seq[BuildInfoKey](
     name,
     version,
-    "stableVersion" -> "0.3.1",
+    "stableVersion" -> version.value.replaceAll("\\+.*", ""),
     "scalameta" -> scalametaV,
     scalaVersion,
     "scala211" -> scala211,
@@ -96,7 +93,9 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
 )
 
 lazy val allSettings = List(
-  resolvers += Resolver.bintrayIvyRepo("scalameta", "maven"),
+  resolvers += Resolver.url( // can't customize name with bintrayIvyRepo
+    "scalameta",
+    url("http://dl.bintray.com/scalameta/maven"))(Resolver.ivyStylePatterns),
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
   scalacOptions := compilerOptions,
   scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",

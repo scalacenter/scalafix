@@ -19,12 +19,25 @@ pipeline:
     volumes:
       - /platform:/keys
     commands:
-      - git log | head -n 20
+      - git fetch --tags && git log | head -n 20
       - ./scalafmt --test
       - ./bin/copy_cache.sh /drone /root
       - /usr/bin/sbt $CI_TEST
       - ./bin/before_cache.sh
       - ./bin/copy_cache.sh /root /drone
+
+  publish:
+    image: olafurpg/scalafix:0.3.0
+    pull: true
+    volumes:
+      - /platform:/keys
+    commands:
+      - ./bin/bintray.sh
+      - ./bin/update-gh-pages.sh
+    when:
+      event: [push, tag]
+      branch: [master]
+
   notify:
     image: drillster/drone-email
     host: smtp.mailgun.org
@@ -51,6 +64,7 @@ matrix:
   include:
     - CI_TEST: ci-fast
       CI_SCALA_VERSION: 2.11.8
+      CI_PUBLISH: true
     # See https://github.com/scalacenter/scalafix/issues/101
     # - CI_TEST: ci-fast
     #   CI_SCALA_VERSION: 2.12.1
