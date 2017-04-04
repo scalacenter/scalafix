@@ -87,7 +87,7 @@ lazy val allSettings = List(
   scalaVersion := ciScalaVersion.getOrElse(scala211),
   crossScalaVersions := crossVersions,
   updateOptions := updateOptions.value.withCachedResolution(true)
-) ++ noPublish
+)
 
 allSettings
 
