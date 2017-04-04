@@ -30,19 +30,14 @@ commands += Command.command("release") { s =>
     "gitPushTag" ::
     s
 }
-commands += Command.command("ci-fast") { s =>
-  "clean" ::
-    s"plz $ciScalaVersion testQuick" ::
+commands += CiCommand("ci-fast")("test" :: Nil)
+commands += Command.command("ci-slow") { s =>
+  "very scalafix-sbt/test" ::
+    ci("scalafix-tests/it:test") ::
     s
 }
 commands += Command.command("ci-publish") { s =>
   s"very publish" :: s
-}
-commands += Command.command("ci-slow") { s =>
-  "very publishLocal" ::
-    s"wow ${ciScalaVersion.get} scalafix-tests/test" ::
-    "very scalafix-sbt/scripted" ::
-    s
 }
 
 lazy val publishSettings = Seq(
@@ -275,10 +270,12 @@ lazy val `scalafix-testutils` = project.settings(
 )
 
 lazy val `scalafix-tests` = project
+  .configs(IntegrationTest)
   .settings(
     allSettings,
     noPublish,
-    testQuick := {}, // these tests are slow.
+    Defaults.itSettings,
+    libraryDependencies += scalatest % IntegrationTest,
     parallelExecution in Test := true,
     libraryDependencies ++= Seq(
       ammonite
@@ -359,7 +356,14 @@ lazy val dummyScalahostProject = project
     libraryDependencies += scalahostNsc
   )
 
-lazy val ciScalaVersion = sys.env.get("CI_SCALA_VERSION")
 lazy val scala210 = "2.10.6"
 lazy val scala211 = "2.11.8"
 lazy val scala212 = "2.12.1"
+lazy val ciScalaVersion = sys.env.get("CI_SCALA_VERSION")
+def CiCommand(name: String)(commands: List[String]): Command =
+  Command.command(name) { initState =>
+    commands.foldLeft(initState) {
+      case (state, command) => ci(command) :: state
+    }
+  }
+def ci(command: String) = s"plz ${ciScalaVersion.get} $command"
