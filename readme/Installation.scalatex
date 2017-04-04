@@ -4,6 +4,8 @@
 @import scalafix.{Versions => V}
 @import scalafix.cli.Cli
 
+@def bintrayRepo = """resolvers += Resolver.bintrayIvyRepo("scalameta", "maven")""""
+
 
 @sect{Installation}
 
@@ -43,6 +45,7 @@
       // build.sbt
       val rewrites = project
         .settings(
+          @bintrayRepo,
           scalaVersion := "2.11.8", // 2.12.x is also supported
           libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@scalafix.Versions.version" cross CrossVersion.full
         )
@@ -69,6 +72,7 @@
   @sect{scalafix-core}
     Scalafix can be used as a library to run custom rewrites.
     @hl.scala
+      resolvers += Resolver.bintrayIvyRepo("scalameta", "maven")
       libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@scalafix.Versions.version" cross CrossVersion.full
 
     By using scalafix as a library, you have full control of how/when/where
@@ -113,32 +117,26 @@
       Be prepared for breaking changes.
 
   @sect{scalafix-cli}
-    The command line interface can be installed with
-    @lnk("coursier", "https://github.com/coursier/coursier#command-line").
-
-    Once you have the @code{coursier} command-line installed, run
-
-    @hl.scala
-      coursier bootstrap ch.epfl.scala:scalafix-cli_@(V.scalaVersion):@(V.version) --main scalafix.cli.Cli -o scalafix
-
-    This creates a small bootstrap script (<20kb) that downloads necessary
-    dependencies on the first run.
+    @p
+      A 16kb bootstrap script can be downloaded from @lnk("here", "https://github.com/scalacenter/scalafix/raw/master/scalafix").
+      The script will download necessary dependencies on the first run.
 
     @p
-      If you run semantic rewrites with the cli, you can optionally use the
-      @code{fatcli} module instead of the @code{cli} module.
+      Alternatively, you can build the boostrap script yourself with
+      @lnk("coursier", "https://github.com/coursier/coursier#command-line").
+      Once you have the @code{coursier} command-line installed, run
 
-    @hl.scala
-      coursier bootstrap ch.epfl.scala:scalafix-fatcli_@(V.scalaVersion):@(V.version) --main scalafix.cli.Cli -o scalafix
+      @hl.scala
+        coursier bootstrap ch.epfl.scala:scalafix-fatcli_@(V.scalaVersion):@(V.version) -r 'ivy:https://dl.bintray.com/scalameta/maven/[organisation]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]' -f --main scalafix.cli.Cli -o scalafix
 
-    @p
-      The @code{fatcli} module depends on the @code{scalahost-nsc} compiler plugin
-      fatjar, making it unnecessary to pass in the @code{--scalahost-nsc-plugin-path}
-      flag.
+      @p
+        The @code{fatcli} module depends on the @code{scalahost-nsc} compiler plugin
+        fatjar, making it unnecessary to pass in the @code{--scalahost-nsc-plugin-path}
+        flag.
 
-    @p
-      Once the scalafix cli is installed, consult the help page for further usage
-      instructions
+      @p
+        Once the scalafix cli is installed, consult the help page for further usage
+        instructions
 
     @hl.scala(Cli.helpMessage)
 
