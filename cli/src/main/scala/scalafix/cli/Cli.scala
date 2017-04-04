@@ -160,7 +160,8 @@ object Cli {
         |  $$ cat .scalafix.conf
         |  rewrites = [ProcedureSyntax]
         |  $$ scalafix Code.scala # Same as --rewrites ProcedureSyntax
-        |  scalafix -i --rewrites ProcedureSyntax Code.scala # write fixed file in-place
+        |  $$ scalafix -i --rewrites ProcedureSyntax Code.scala # write fixed file in-place
+        |
         |Exit status codes:
         | ${ExitStatus.all.mkString("\n ")}
         |""".stripMargin

@@ -3,8 +3,11 @@ package scalafix
 import scalafix.config.ScalafixConfig
 import scalatags.Text.TypedTag
 import scalatags.Text.all._
+import scalatex.site.Highlighter
+import scalatex.site.Main
 
 object Readme {
+  val highlight = new Highlighter {}
   def note = b("Note. ")
   def gitter =
     raw(
@@ -18,9 +21,7 @@ object Readme {
   def config(str: String): TypedTag[String] = {
     // assert that config listings in docs is free of typos.
     ScalafixConfig.fromString(str) match {
-      case Right(_) =>
-        pre(
-          code(`class` := "scala scalatex-site-Styles-highlightMe hljs", str))
+      case Right(_) => highlight.scala(str)
       case Left(e) => throw e
     }
   }

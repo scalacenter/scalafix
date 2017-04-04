@@ -71,11 +71,14 @@
   @sect{scalafix-core}
     Scalafix can be used as a library to run custom rewrites.
     @hl.scala
+      // < 0.3.3
+      libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % "@V.stableVersion"
+      // 0.3.3 and onwards
       libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@V.stableVersion" cross CrossVersion.full
 
       // pre-release version
       @bintrayRepo
-      @bintrayIvyRepo // will be unnecessary soon
+      @bintrayIvyRepo // will be unnecessary in the future
       libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@V.version" cross CrossVersion.full
 
     By using scalafix as a library, you have full control of how/when/where
@@ -151,7 +154,7 @@
       Scalafix can be used directly as a compiler plugin:
       @hl.scala
         // download
-        https/repo1.maven.org/maven2/ch/epfl/scala/scalafix-nsc_2.12/@V.stableVersion/scalafix-nsc_2.12-@(V.stableVersion + ".jar")
+        https://repo1.maven.org/maven2/ch/epfl/scala/scalafix-nsc_2.12/@V.stableVersion/scalafix-nsc_2.12-@(V.stableVersion + ".jar")
         // compile
         scalac -Xplugin:/path/to/scalafix-nsc_2.12-@(V.stableVersion + ".jar") mycode.scala
 
