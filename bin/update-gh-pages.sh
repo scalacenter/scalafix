@@ -17,7 +17,7 @@ SHA=`git rev-parse --verify HEAD`
 sbt "readme/run --validate-links"
 
 rm -rf ${SUBDIR}
-git clone ${SSH_REPO} ${SUBDIR}
+git clone ${REPO} ${SUBDIR}
 cd ${SUBDIR}
 git checkout ${TARGET_BRANCH} || git checkout --orphan ${TARGET_BRANCH}
 cd ..
