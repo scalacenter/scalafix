@@ -17,7 +17,7 @@ commands += Command.command("release") { s =>
 commands += CiCommand("ci-fast")("test" :: Nil)
 commands += Command.command("ci-slow") { s =>
   "very scalafix-sbt/test" ::
-    ci("tests/it:test") ::
+    ci("scalafix-tests/it:test") ::
     s
 }
 commands += Command.command("ci-publish") { s =>
