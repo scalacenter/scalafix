@@ -30,13 +30,13 @@ if [[ -z `git diff --exit-code` ]]; then
     exit 0
 fi
 
-git add .
-git commit -m "Deploy to GitHub Pages: ${SHA}"
-
 if [[ ${SETUP_GIT} == "true" ]]; then
   git config user.name "scalametabot"
   git config user.email "scalametabot@gmail.com"
 fi
+
+git add .
+git commit -m "Deploy to GitHub Pages: ${SHA}"
 
 git push -f $HTTP_REPO gh-pages
 git checkout master
