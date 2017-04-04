@@ -281,14 +281,16 @@ object Cli {
   }
 
   def nailMain(nGContext: NGContext): Unit = {
-    runMain(
-      nGContext.getArgs,
-      CommonOptions(
-        workingDirectory = nGContext.getWorkingDirectory,
-        out = nGContext.out,
-        in = nGContext.in,
-        err = nGContext.err
+    val code =
+      runMain(
+        nGContext.getArgs,
+        CommonOptions(
+          workingDirectory = nGContext.getWorkingDirectory,
+          out = nGContext.out,
+          in = nGContext.in,
+          err = nGContext.err
+        )
       )
-    )
+    nGContext.exit(code)
   }
 }
