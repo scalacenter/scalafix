@@ -4,8 +4,8 @@
 @import scalafix.{Versions => V}
 @import scalafix.cli.Cli
 
-@def bintrayRepo = """resolvers += Resolver.bintrayIvyRepo("scalameta", "maven")""""
-
+@def bintrayIvyRepo = """resolvers += Resolver.bintrayIvyRepo("scalameta", "maven")"""
+@def bintrayRepo = """resolvers += Resolver.bintrayRepo("scalameta", "maven")"""
 
 @sect{Installation}
 
@@ -18,7 +18,7 @@
     sbt-scalafix is an integration to run pre-made scalafix rewrites as sbt commands.
 
     @hl.scala
-      addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@scalafix.Versions.version")
+      addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@V.stableVersion")
 
     @ul
       @li
@@ -40,14 +40,13 @@
 
     @hl.scala
       // project/plugins.sbt
-      addSbtPlugin("org.scalameta" % "sbt-scalahost" % "@scalafix.Versions.scalameta")
+      addSbtPlugin("org.scalameta" % "sbt-scalahost" % "@V.scalameta")
 
       // build.sbt
       val rewrites = project
         .settings(
-          @bintrayRepo,
           scalaVersion := "2.11.8", // 2.12.x is also supported
-          libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@scalafix.Versions.version" cross CrossVersion.full
+          libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@V.stableVersion" cross CrossVersion.full
         )
         .dependsOn(
           projectToPerformRewritesOn % Scalameta
@@ -72,8 +71,12 @@
   @sect{scalafix-core}
     Scalafix can be used as a library to run custom rewrites.
     @hl.scala
-      resolvers += Resolver.bintrayIvyRepo("scalameta", "maven")
-      libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@scalafix.Versions.version" cross CrossVersion.full
+      libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@V.stableVersion" cross CrossVersion.full
+
+      // pre-release version
+      @bintrayRepo
+      @bintrayIvyRepo // will be unnecessary soon
+      libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@V.version" cross CrossVersion.full
 
     By using scalafix as a library, you have full control of how/when/where
     rewrites are written.
@@ -127,7 +130,8 @@
       Once you have the @code{coursier} command-line installed, run
 
       @hl.scala
-        coursier bootstrap ch.epfl.scala:scalafix-fatcli_@(V.scalaVersion):@(V.version) -r 'ivy:https://dl.bintray.com/scalameta/maven/[organisation]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]' -f --main scalafix.cli.Cli -o scalafix
+        // pre-release
+        coursier bootstrap ch.epfl.scala:scalafix-fatcli_@(V.scalaVersion):@(V.version) -r bintray:scalameta/maven -r 'ivy:https://dl.bintray.com/scalameta/maven/[organisation]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]' -f --main scalafix.cli.Cli -o scalafix
 
       @p
         The @code{fatcli} module depends on the @code{scalahost-nsc} compiler plugin
@@ -147,9 +151,9 @@
       Scalafix can be used directly as a compiler plugin:
       @hl.scala
         // download
-        https/repo1.maven.org/maven2/ch/epfl/scala/scalafix-nsc_2.12/@scalafix.Versions.version/scalafix-nsc_2.12-@(scalafix.Versions.version + ".jar")
+        https/repo1.maven.org/maven2/ch/epfl/scala/scalafix-nsc_2.12/@V.stableVersion/scalafix-nsc_2.12-@(V.stableVersion + ".jar")
         // compile
-        scalac -Xplugin:/path/to/scalafix-nsc_2.12-@(scalafix.Versions.version + ".jar") mycode.scala
+        scalac -Xplugin:/path/to/scalafix-nsc_2.12-@(V.stableVersion + ".jar") mycode.scala
 
       @ul
         @li

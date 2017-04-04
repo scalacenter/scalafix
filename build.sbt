@@ -76,7 +76,9 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
   buildInfoKeys := Seq[BuildInfoKey](
     name,
     version,
-    "stableVersion" -> version.value.replaceAll("\\+.*", ""),
+    // TODO(olafur) update to version.value.replaceAll("\\+.*", "") once custom
+    // resolver is no longer necessary
+    "stableVersion" -> "0.3.2",
     "scalameta" -> scalametaV,
     scalaVersion,
     "scala211" -> scala211,
