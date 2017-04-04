@@ -1,0 +1,1 @@
+../../../../test-project-template/project/ScalafixTestUtility.scala
