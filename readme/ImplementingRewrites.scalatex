@@ -16,7 +16,6 @@
 
     @hl.scala
       @bintrayRepo
-      @bintrayIvyRepo // will be unnecessary in the future
       libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % "@V.version" % Test cross CrossVersion.full
 
   @p

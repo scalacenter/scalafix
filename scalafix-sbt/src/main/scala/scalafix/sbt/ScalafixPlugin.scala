@@ -44,7 +44,7 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
             |scalafix-nsc compiler plugin. If the dependency was added to all
             |projects, the (slow) update task will be re-run for every project.""".stripMargin,
         // Only needed when using snapshot versions.
-//        resolvers += Resolver.bintrayIvyRepo("scalameta", "maven"),
+//        resolvers += Resolver.bintrayRepo("scalameta", "maven"),
         publishLocal := {},
         publish := {},
         publishArtifact := false,

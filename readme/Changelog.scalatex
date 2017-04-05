@@ -22,7 +22,7 @@
         This version depends on a pre-release of scala.meta, which is publised
         to the scalameta bintray repository and requires
         @hl.scala
-          resolvers += Resolver.bintrayIvyRepo("scalameta", "maven")
+          resolvers += Resolver.bintrayRepo("scalameta", "maven")
       @li
         scalafix-cli new supports running semantic rewrites with the
         @code{--classpath/--sourcepath} options.

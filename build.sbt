@@ -74,9 +74,8 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
 )
 
 lazy val allSettings = List(
-  resolvers += Resolver.url( // can't customize name with bintrayIvyRepo
-    "scalameta",
-    url("http://dl.bintray.com/scalameta/maven"))(Resolver.ivyStylePatterns),
+  resolvers += Resolver.bintrayRepo("scalameta", "maven"),
+  resolvers += Resolver.sonatypeRepo("releases"),
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
   scalacOptions := compilerOptions,
   scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
@@ -118,8 +117,6 @@ lazy val core = project
     isFullCrossVersion,
     dependencyOverrides += scalameta,
     libraryDependencies ++= Seq(
-      "com.typesafe" % "config"      % "1.3.1",
-      "com.lihaoyi"  %% "sourcecode" % "0.1.3",
       metaconfig,
       scalameta,
       scalahost,
@@ -333,7 +330,7 @@ lazy val isFullCrossVersion = Seq(
 )
 
 lazy val scala210 = "2.10.6"
-lazy val scala211 = "2.11.8"
+lazy val scala211 = "2.11.9"
 lazy val scala212 = "2.12.1"
 lazy val ciScalaVersion = sys.env.get("CI_SCALA_VERSION")
 def CiCommand(name: String)(commands: List[String]): Command =
