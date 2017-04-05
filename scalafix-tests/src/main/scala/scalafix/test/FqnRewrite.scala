@@ -1,7 +1,7 @@
 package scalafix.test
 
-import scala.meta._
 import scala.collection.immutable.Seq
+import scala.meta._
 import scalafix.rewrite.Rewrite
 import scalafix.rewrite.RewriteCtx
 import scalafix.util.Patch

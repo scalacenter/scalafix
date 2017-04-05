@@ -115,8 +115,6 @@ class CliTest extends FunSuite with DiffAssertions {
       Cli.parse(Seq("--rewrites", "VolatileLazyVal"))
     assert(obtained.rewrites == List(VolatileLazyVal))
     assert(Cli.parse(Seq("--rewrites", "Foobar")).isLeft)
-    assert(
-      Cli.parse(Seq("--rewrites", "file:rewrites/MyRewrite.scala")).isRight)
   }
 
   test("--sourcepath --classpath") {

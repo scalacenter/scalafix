@@ -30,7 +30,7 @@ case class DiffTest(spec: String,
 }
 
 object DiffTest {
-  def testsToRun(directory: File): Seq[DiffTest] = {
+  def fromFile(directory: File): Seq[DiffTest] = {
     val tests: Seq[DiffTest] = {
       for {
         filename <- getTestFiles(directory)

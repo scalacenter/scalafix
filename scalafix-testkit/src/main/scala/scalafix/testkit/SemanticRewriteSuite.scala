@@ -206,4 +206,14 @@ abstract class SemanticRewriteSuite(classpath: String)
         fail(s"$header\n$fullDetails")
     }
   }
+
+  def runDiffTest(dt: DiffTest): Unit = {
+    if (dt.skip) {
+      ignore(dt.fullName) {}
+    } else {
+      test(dt.fullName) {
+        check(dt.original, dt.expected, dt)
+      }
+    }
+  }
 }

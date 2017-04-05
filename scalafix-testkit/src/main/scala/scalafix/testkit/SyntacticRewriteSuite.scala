@@ -7,10 +7,9 @@ import scalafix.rewrite.ScalafixRewrite
 
 import org.scalatest.FunSuiteLike
 
-class RewriteSuite(rewrite: ScalafixRewrite)
+class SyntacticRewriteSuite(rewrite: ScalafixRewrite)
     extends FunSuiteLike
     with DiffAssertions {
-
   def check(name: String, original: String, expected: String): Unit = {
     test(name) {
       import scala.meta._
@@ -19,5 +18,4 @@ class RewriteSuite(rewrite: ScalafixRewrite)
       assertNoDiff(obtained, expected)
     }
   }
-
 }
