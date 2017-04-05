@@ -1,11 +1,10 @@
-patches.replacements = [
-  {
+patches.replacements = [ {
     from = _root_.scala.util.Right.
     to = Left
   }
   {
-    from = _root_.scala.Predef.String.
-    to = Int
+    from = "_root_.scala.Predef.String."
+    to = "Int"
   }
   {
     from = _root_.scala.Int.
@@ -14,13 +13,12 @@ patches.replacements = [
   {
     from = _root_.scala.util.Left.
     to = Right
-  }
-]
+}]
 patches.addGlobalImports = [
   "scala.collection.immutable.Seq"
 ]
 rewrites = []
-<<< NOWRAP flip either
+<<< ONLY NOWRAP flip either
 import scala._
 object FlipEither {
   val x: Either[Int, String] = if (true) Left(1) else Right("msg")

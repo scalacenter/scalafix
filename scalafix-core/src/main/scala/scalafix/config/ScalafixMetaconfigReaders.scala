@@ -21,6 +21,7 @@ import java.net.URL
 
 import metaconfig.Conf
 import metaconfig.ConfDecoder
+import org.scalameta.logger
 
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
 // A collection of metaconfig.Reader instances that are shared across
@@ -132,7 +133,11 @@ trait ScalafixMetaconfigReaders {
   implicit lazy val symbolReader: ConfDecoder[Symbol] =
     ConfDecoder.stringR.map(Symbol.apply)
   implicit def listReader[T: ConfDecoder]: ConfDecoder[List[T]] =
-    ConfDecoder.seqR[T].map(_.toList)
+    ConfDecoder.instance[List[T]] {
+      case x @ Conf.Lst(vs) =>
+        logger.elem(vs)
+        ConfDecoder.seqR[T].read(x).right.map(_.toList)
+    }
   implicit lazy val AddGlobalImportReader: ConfDecoder[AddGlobalImport] =
     importerReader.map(AddGlobalImport.apply)
   implicit lazy val RemoveGlobalImportReader: ConfDecoder[RemoveGlobalImport] =
