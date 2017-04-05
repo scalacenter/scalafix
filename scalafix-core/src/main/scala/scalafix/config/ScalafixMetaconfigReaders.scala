@@ -1,13 +1,12 @@
 package scalafix.config
 
-import scala.meta._
 import scala.meta.Ref
+import scala.meta._
 import scala.meta.parsers.Parse
 import scala.meta.semantic.v1.Symbol
 import scala.reflect.ClassTag
 import scala.util.Try
 import scala.util.matching.Regex
-import scalafix.Failure.UnknownRewrite
 import scalafix.rewrite.ScalafixMirror
 import scalafix.rewrite.ScalafixRewrite
 import scalafix.rewrite.ScalafixRewrites
@@ -20,40 +19,40 @@ import java.io.File
 import java.net.URI
 import java.net.URL
 
-import metaconfig.Reader
-import org.scalameta.logger
+import metaconfig.Conf
+import metaconfig.ConfDecoder
 
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
 // A collection of metaconfig.Reader instances that are shared across
 trait ScalafixMetaconfigReaders {
-  implicit lazy val parseReader: Reader[MetaParser] = {
+  implicit lazy val parseReader: ConfDecoder[MetaParser] = {
     import scala.meta.parsers.Parse._
     ReaderUtil.oneOf[MetaParser](parseSource, parseStat, parseCase)
   }
-  implicit lazy val dialectReader: Reader[Dialect] = {
+  implicit lazy val dialectReader: ConfDecoder[Dialect] = {
     import scala.meta.dialects._
     ReaderUtil.oneOf[Dialect](Scala211, Sbt0137, Dotty, Paradise211)
   }
 
   object ClassloadRewrite {
-    def unapply(arg: String): Option[String] = arg match {
+    def unapply(arg: Conf.Str): Option[String] = arg match {
       case UriRewrite("scala", uri) =>
-        val suffix = if (arg.endsWith("$")) "" else "$"
+        val suffix = if (arg.value.endsWith("$")) "" else "$"
         Option(uri.getSchemeSpecificPart + suffix)
       case _ => None
     }
   }
 
   object UriRewrite {
-    def unapply(arg: String): Option[(String, URI)] =
+    def unapply(arg: Conf.Str): Option[(String, URI)] =
       for {
-        uri <- Try(new URI(arg)).toOption
+        uri <- Try(new URI(arg.value)).toOption
         scheme <- Option(uri.getScheme)
       } yield scheme -> uri
   }
 
   object UrlRewrite {
-    def unapply(arg: String): Option[URL] = arg match {
+    def unapply(arg: Conf.Str): Option[URL] = arg match {
       case UriRewrite("http" | "https", uri) if uri.isAbsolute =>
         Option(uri.toURL)
       case _ => None
@@ -61,7 +60,7 @@ trait ScalafixMetaconfigReaders {
   }
 
   object FileRewrite {
-    def unapply(arg: String): Option[File] = arg match {
+    def unapply(arg: Conf.Str): Option[File] = arg match {
       case UriRewrite("file", uri) =>
         Option(new File(uri.getSchemeSpecificPart).getAbsoluteFile)
       case _ => None
@@ -69,15 +68,15 @@ trait ScalafixMetaconfigReaders {
   }
 
   object FromSourceRewrite {
-    def unapply(arg: String): Option[String] = arg match {
+    def unapply(arg: Conf.Str): Option[String] = arg match {
       case FileRewrite(file) => Option(FileOps.readFile(file))
       case UrlRewrite(url) => Option(FileOps.readURL(url))
       case _ => None
     }
   }
 
-  implicit lazy val rewriteReader: Reader[ScalafixRewrite] =
-    Reader.instance[ScalafixRewrite] {
+  implicit lazy val rewriteReader: ConfDecoder[ScalafixRewrite] =
+    ConfDecoder.instance[ScalafixRewrite] {
       case ClassloadRewrite(fqn) =>
         ClassloadObject[ScalafixRewrite](fqn)
       case FromSourceRewrite(code) =>
@@ -86,22 +85,28 @@ trait ScalafixMetaconfigReaders {
         ReaderUtil.fromMap(ScalafixRewrites.name2rewrite).read(els)
     }
 
-  implicit val RegexReader: Reader[Regex] = Reader.instance[Regex] {
-    case str: String => Right(FilterMatcher.mkRegexp(List(str)))
-    case str: Seq[_] =>
-      Right(FilterMatcher.mkRegexp(str.asInstanceOf[Seq[String]]))
+  object ConfStrLst {
+    def unapply(arg: Conf.Lst): Option[List[String]] =
+      if (arg.values.forall(_.isInstanceOf[Conf.Str]))
+        Some(arg.values.collect { case Conf.Str(value) => value })
+      else None
+  }
+
+  implicit val RegexReader: ConfDecoder[Regex] = ConfDecoder.instance[Regex] {
+    case Conf.Str(str) => Right(FilterMatcher.mkRegexp(List(str)))
+    case ConfStrLst(values) => Right(FilterMatcher.mkRegexp(values))
   }
   private val fallbackFilterMatcher = FilterMatcher(Nil, Nil)
-  implicit val FilterMatcherReader: Reader[FilterMatcher] =
-    Reader.instance[FilterMatcher] {
-      case str: String => Right(FilterMatcher(str))
-      case str: Seq[_] =>
-        Right(FilterMatcher(str.asInstanceOf[Seq[String]], Nil))
+  implicit val FilterMatcherReader: ConfDecoder[FilterMatcher] =
+    ConfDecoder.instance[FilterMatcher] {
+      case Conf.Str(str) => Right(FilterMatcher(str))
+      case ConfStrLst(values) =>
+        Right(FilterMatcher(values, Nil))
       case els => fallbackFilterMatcher.reader.read(els)
     }
 
-  def parseReader[T](implicit parse: Parse[T]): Reader[T] =
-    Reader.stringR.flatMap { str =>
+  def parseReader[T](implicit parse: Parse[T]): ConfDecoder[T] =
+    ConfDecoder.stringR.flatMap { str =>
       str.parse[T] match {
         case parsers.Parsed.Success(x) => Right(x)
         case parsers.Parsed.Error(_, x, _) =>
@@ -109,25 +114,27 @@ trait ScalafixMetaconfigReaders {
       }
     }
 
-  def castReader[From, To](reader: Reader[From])(
-      implicit ev: ClassTag[To]): Reader[To] = reader.flatMap {
+  def castReader[From, To](ConfDecoder: ConfDecoder[From])(
+      implicit ev: ClassTag[To]): ConfDecoder[To] = ConfDecoder.flatMap {
     case x if ev.runtimeClass.isInstance(x) => Right(x.asInstanceOf[To])
     case x =>
       Left(new IllegalArgumentException(s"Expected Ref, got ${x.getClass}"))
   }
-  implicit lazy val importerReader: Reader[Importer] = parseReader[Importer]
-  implicit lazy val refReader: Reader[Ref] =
+  implicit lazy val importerReader: ConfDecoder[Importer] =
+    parseReader[Importer]
+  implicit lazy val refReader: ConfDecoder[Ref] =
     castReader[Stat, Ref](parseReader[Stat])
-  implicit lazy val termRefReader: Reader[Term.Ref] =
+  implicit lazy val termRefReader: ConfDecoder[Term.Ref] =
     castReader[Stat, Term.Ref](parseReader[Stat])
   protected[scalafix] val fallbackReplace = Replace(Symbol.None, q"IGNOREME")
-  implicit lazy val replaceReader: Reader[Replace] = fallbackReplace.reader
-  implicit lazy val symbolReader: Reader[Symbol] =
-    Reader.stringR.map(Symbol.apply)
-  implicit def listReader[T: Reader]: Reader[List[T]] =
-    Reader.seqR[T].map(_.toList)
-  implicit lazy val AddGlobalImportReader: Reader[AddGlobalImport] =
+  implicit lazy val replaceReader: ConfDecoder[Replace] =
+    fallbackReplace.reader
+  implicit lazy val symbolReader: ConfDecoder[Symbol] =
+    ConfDecoder.stringR.map(Symbol.apply)
+  implicit def listReader[T: ConfDecoder]: ConfDecoder[List[T]] =
+    ConfDecoder.seqR[T].map(_.toList)
+  implicit lazy val AddGlobalImportReader: ConfDecoder[AddGlobalImport] =
     importerReader.map(AddGlobalImport.apply)
-  implicit lazy val RemoveGlobalImportReader: Reader[RemoveGlobalImport] =
+  implicit lazy val RemoveGlobalImportReader: ConfDecoder[RemoveGlobalImport] =
     importerReader.map(RemoveGlobalImport.apply)
 }

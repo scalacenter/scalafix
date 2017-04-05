@@ -1,6 +1,6 @@
 package scalafix.config
 
-@metaconfig.ConfigReader
+@metaconfig.DeriveConfDecoder
 case class DebugConfig(
     printSymbols: Boolean = false
 )

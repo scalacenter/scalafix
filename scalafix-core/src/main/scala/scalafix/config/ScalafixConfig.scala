@@ -10,25 +10,22 @@ import scalafix.util.FileOps
 
 import java.io.File
 
-import metaconfig.Reader
 import metaconfig.hocon.Hocon2Class
+import metaconfig.Recurse
 
-@metaconfig.ConfigReader
+@metaconfig.DeriveConfDecoder
 case class ScalafixConfig(
     rewrites: List[ScalafixRewrite] = Nil,
     parser: Parse[_ <: Tree] = Parse.parseSource,
-    imports: ImportsConfig = ImportsConfig(),
-    patches: PatchConfig = PatchConfig(),
-    debug: DebugConfig = DebugConfig(),
+    @Recurse imports: ImportsConfig = ImportsConfig(),
+    @Recurse patches: PatchConfig = PatchConfig(),
+    @Recurse debug: DebugConfig = DebugConfig(),
     fatalWarnings: Boolean = true,
     dialect: Dialect = Scala211
 ) {
   def withRewrites(
       f: List[ScalafixRewrite] => List[ScalafixRewrite]): ScalafixConfig =
     copy(rewrites = f(rewrites).distinct)
-  implicit val importsConfigReader: Reader[ImportsConfig] = imports.reader
-  implicit val patchConfigReader: Reader[PatchConfig] = patches.reader
-  implicit val debugConfigReader: Reader[DebugConfig] = debug.reader
 }
 
 object ScalafixConfig {

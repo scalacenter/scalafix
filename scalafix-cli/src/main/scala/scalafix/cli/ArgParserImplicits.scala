@@ -16,6 +16,7 @@ import caseapp.core.ArgParser
 import caseapp.core.Parser
 import caseapp._
 import caseapp.core.Messages
+import metaconfig.Conf
 import org.scalameta.logger
 
 object ArgParserImplicits {
@@ -38,7 +39,10 @@ object ArgParserImplicits {
 
   implicit val rewriteRead: ArgParser[ScalafixRewrite] =
     ArgParser.instance[ScalafixRewrite] { str =>
-      ScalafixMetaconfigReaders.rewriteReader.read(str).left.map(_.getMessage)
+      ScalafixMetaconfigReaders.rewriteReader
+        .read(Conf.Str(str))
+        .left
+        .map(_.getMessage)
     }
 
   val OptionsParser: Parser[ScalafixOptions] = Parser.apply[ScalafixOptions]

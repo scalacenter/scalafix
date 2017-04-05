@@ -18,7 +18,7 @@ object AnyEqual {
         case (xs: Iterable[_], ys: Iterable[_]) =>
           xs.toList.length == ys.toList.length &&
             xs.zip(ys).forall { case (x, y) => loop(x, y) }
-        case (x: Tree, y: Tree) => x.equal[Structurally](y)
+        case (x: Tree, y: Tree) => x.isEqual(y)
         case (x: Regex, y: Regex) => x.regex == y.regex
         case (x: Product, y: Product) =>
           loop(x.productIterator.toList, y.productIterator.toList)
