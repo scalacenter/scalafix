@@ -1,10 +1,9 @@
-package scalafix.rewrite
+package scalafix.testkit
 
-import scalafix.Fixed
-import scalafix.Scalafix
-import scalafix.util.DiffAssertions
 import scala.collection.immutable.Seq
+import scalafix.Scalafix
 import scalafix.config.ScalafixConfig
+import scalafix.rewrite.ScalafixRewrite
 
 import org.scalatest.FunSuiteLike
 

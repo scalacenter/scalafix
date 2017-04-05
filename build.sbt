@@ -17,7 +17,7 @@ commands += Command.command("release") { s =>
 commands += CiCommand("ci-fast")("test" :: Nil)
 commands += Command.command("ci-slow") { s =>
   "very scalafix-sbt/test" ::
-    ci("scalafix-tests/it:test") ::
+    ci("tests/it:test") ::
     s
 }
 commands += Command.command("ci-publish") { s =>
@@ -246,6 +246,7 @@ lazy val testkit = project
     allSettings,
     publishSettings,
     libraryDependencies ++= Seq(
+      ammonite,
       "com.googlecode.java-diff-utils" % "diffutils" % "1.3.0",
       scalatest
     )
@@ -265,7 +266,6 @@ lazy val tests = project
     libraryDependencies += scalatest % IntegrationTest,
     parallelExecution in Test := true,
     libraryDependencies ++= Seq(
-      ammonite,
       // integration property tests
       "org.typelevel"      %% "catalysts-platform" % "0.0.5"    % Test,
       "com.typesafe.slick" %% "slick"              % "3.2.0-M2" % Test,
@@ -361,5 +361,5 @@ lazy val gitPushTag = taskKey[Unit]("Push to git tag")
 
 def setId(project: Project): Project = {
   val newId = "scalafix-" + project.id
-  project.copy(id = newId, base = file(newId)).settings(moduleName := newId)
+  project.copy(base = file(newId)).settings(moduleName := newId)
 }

@@ -3,6 +3,7 @@ package scalafix.rewrite
 import scalafix.Failure
 import scalafix.Fixed
 import scalafix.Scalafix
+import scalafix.testkit.RewriteSuite
 
 class ErrorSuite extends RewriteSuite(ProcedureSyntax) {
 

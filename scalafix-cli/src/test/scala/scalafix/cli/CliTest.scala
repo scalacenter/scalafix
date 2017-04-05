@@ -4,7 +4,7 @@ import scalafix.config.ScalafixConfig
 import scalafix.rewrite.ExplicitImplicit
 import scalafix.rewrite.ProcedureSyntax
 import scalafix.rewrite.VolatileLazyVal
-import scalafix.util.DiffAssertions
+import scalafix.testkit.DiffAssertions
 import scalafix.util.FileOps
 
 import java.io.ByteArrayOutputStream

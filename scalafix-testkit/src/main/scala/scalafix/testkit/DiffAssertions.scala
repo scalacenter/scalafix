@@ -1,6 +1,4 @@
-package scalafix.util
-
-import scala.collection.mutable
+package scalafix.testkit
 
 import java.io.File
 import java.text.SimpleDateFormat
@@ -84,7 +82,7 @@ trait DiffAssertions extends FunSuiteLike {
       format.format(new Date(0L))
     }
   }
-  import scala.collection.mutable.{HashMap => _, _}
+  import scala.collection.mutable.{HashMap => _}
 //  import scala.collection.mutable.{HashMap => _}
 //  import scala.collection.mutable._
   import Predef.{any2stringadd => _}

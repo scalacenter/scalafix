@@ -1,4 +1,4 @@
-package scalafix
+package scalafix.testkit
 
 import scala.collection.immutable.Seq
 import scala.meta.io.AbsolutePath

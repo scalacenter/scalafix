@@ -1,4 +1,4 @@
-package scalafix
+package scalafix.testkit
 
 import scala.collection.immutable.Seq
 import scala.meta.Term
@@ -15,9 +15,9 @@ import scala.tools.nsc.Settings
 import scala.tools.nsc.reporters.StoreReporter
 import scala.util.control.NonFatal
 import scala.{meta => m}
+import scalafix.Fixed
 import scalafix.config.ScalafixConfig
 import scalafix.nsc.ScalafixNscPlugin
-import scalafix.util.DiffAssertions
 import scalafix.util.logger
 
 import java.io.File
@@ -25,13 +25,13 @@ import java.io.PrintWriter
 
 import org.scalatest.FunSuite
 
-abstract class SemanticRewriteSuite extends FunSuite with DiffAssertions {
-  self =>
+abstract class SemanticRewriteSuite(classpath: String)
+    extends FunSuite
+    with DiffAssertions { self =>
   private val testGlobal: Global = {
     def fail(msg: String) =
       sys.error(s"ReflectToMeta initialization failed: $msg")
 
-    val classpath = System.getProperty("sbt.paths.scalafixNsc.test.classes")
     val scalacOptions = Seq(
       "-cp",
       classpath,
