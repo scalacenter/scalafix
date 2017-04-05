@@ -4,9 +4,6 @@
 @import scalafix.{Versions => V}
 @import scalafix.cli.Cli
 
-@def bintrayIvyRepo = """resolvers += Resolver.bintrayIvyRepo("scalameta", "maven")"""
-@def bintrayRepo = """resolvers += Resolver.bintrayRepo("scalameta", "maven")"""
-
 @sect{Installation}
 
   @p
@@ -164,3 +161,4 @@
         @li
           To specify a configuration file @code{-P:scalafix:/full/path/to/.scalafix.conf}.
         See @sect.ref{Configuration} for more details.
+

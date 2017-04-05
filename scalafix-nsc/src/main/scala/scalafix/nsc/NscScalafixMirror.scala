@@ -26,7 +26,7 @@ trait NscScalafixMirror extends ReflectToolkit with HijackImportInfos {
     def matches(other: m.Input): Boolean = {
       (input, other) match {
         case (m.inputs.Input.File(f, _), m.inputs.Input.File(f2, _)) =>
-          f.getAbsolutePath == f2.getAbsolutePath
+          f.absolute == f2.absolute
         case _ => false
       }
     }

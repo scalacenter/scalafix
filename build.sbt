@@ -6,22 +6,6 @@ organization in ThisBuild := "ch.epfl.scala"
 
 lazy val crossVersions = Seq(scala211, scala212)
 
-lazy val compilerOptions = Seq(
-  "-deprecation",
-  "-encoding",
-  "UTF-8",
-  "-feature",
-  "-unchecked",
-  "-Yno-adapted-args",
-  "-Ywarn-dead-code",
-  "-language:existentials",
-//  "-Ywarn-numeric-widen", // TODO(olafur) enable
-  "-Xfuture",
-  "-Xlint"
-)
-
-lazy val gitPushTag = taskKey[Unit]("Push to git tag")
-
 // Custom scalafix release command. Tried sbt-release but didn't play well with sbt-doge.
 commands += Command.command("release") { s =>
   "clean" ::
@@ -33,7 +17,7 @@ commands += Command.command("release") { s =>
 commands += CiCommand("ci-fast")("test" :: Nil)
 commands += Command.command("ci-slow") { s =>
   "very scalafix-sbt/test" ::
-    ci("scalafix-tests/it:test") ::
+    ci("tests/it:test") ::
     s
 }
 commands += Command.command("ci-publish") { s =>
@@ -103,11 +87,9 @@ lazy val allSettings = List(
   scalaVersion := ciScalaVersion.getOrElse(scala211),
   crossScalaVersions := crossVersions,
   updateOptions := updateOptions.value.withCachedResolution(true)
-) ++ publishSettings
+)
 
 allSettings
-
-noPublish
 
 gitPushTag := {
   val tag = s"v${version.value}"
@@ -127,12 +109,13 @@ lazy val metaconfigSettings: Seq[Def.Setting[_]] = Seq(
 )
 
 lazy val core = project
+  .configure(setId)
   .settings(
     allSettings,
+    publishSettings,
     buildInfoSettings,
     metaconfigSettings,
     isFullCrossVersion,
-    moduleName := "scalafix-core",
     dependencyOverrides += scalameta,
     libraryDependencies ++= Seq(
       "com.typesafe" % "config"      % "1.3.1",
@@ -143,22 +126,17 @@ lazy val core = project
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
     )
   )
-  .dependsOn(`scalafix-testutils` % Test)
   .enablePlugins(BuildInfoPlugin)
 
-lazy val `scalafix-nsc` = project
+lazy val nsc = project
+  .configure(setId)
   .settings(
     allSettings,
+    publishSettings,
     isFullCrossVersion,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-      scalahostNsc,
-      ammonite % Test,
-      // integration property tests
-      "org.typelevel"      %% "catalysts-platform" % "0.0.5"    % Test,
-      "com.typesafe.slick" %% "slick"              % "3.2.0-M2" % Test,
-      "com.chuusai"        %% "shapeless"          % "2.3.2"    % Test,
-      "org.scalacheck"     %% "scalacheck"         % "1.13.4"   % Test
+      scalahostNsc
     ),
     // sbt does not fetch transitive dependencies of compiler plugins.
     // to overcome this issue, all transitive dependencies are included
@@ -195,17 +173,14 @@ lazy val `scalafix-nsc` = project
     },
     exposePaths("scalafixNsc", Test)
   )
-  .dependsOn(core, `scalafix-testutils` % Test)
+  .dependsOn(core)
 
 lazy val cli = project
+  .configure(setId)
   .settings(
     allSettings,
+    publishSettings,
     isFullCrossVersion,
-    moduleName := "scalafix-cli",
-    fork.in(Test, test) := true,
-    baseDirectory.in(test) := file("."),
-    javaOptions.in(test) +=
-      s"-Dscalafix.scalahost.pluginpath=${scalahostNscPluginPath.value}",
     mainClass in assembly := Some("scalafix.cli.Cli"),
     libraryDependencies ++= Seq(
       "com.github.scopt"           %% "scopt"         % "3.5.0",
@@ -213,24 +188,27 @@ lazy val cli = project
       "com.martiansoftware"        % "nailgun-server" % "0.9.1"
     )
   )
-  .dependsOn(core, `scalafix-testutils` % Test)
+  .dependsOn(core, testkit % Test)
+
 lazy val fatcli = project
+  .configure(setId)
   .settings(
     allSettings,
+    publishSettings,
     isFullCrossVersion,
-    moduleName := "scalafix-fatcli",
     libraryDependencies += scalahostNsc
   )
   .dependsOn(cli)
 
 lazy val publishedArtifacts = Seq(
-  publishLocal in `scalafix-nsc`,
+  publishLocal in nsc,
   publishLocal in core
 )
 
 lazy val `scalafix-sbt` = project
   .settings(
     allSettings,
+    publishSettings,
     buildInfoSettings,
     ScriptedPlugin.scriptedSettings,
     sbtPlugin := true,
@@ -262,16 +240,24 @@ lazy val `scalafix-sbt` = project
   )
   .enablePlugins(BuildInfoPlugin)
 
-lazy val `scalafix-testutils` = project.settings(
-  allSettings,
-  noPublish,
-  libraryDependencies ++= Seq(
-    "com.googlecode.java-diff-utils" % "diffutils" % "1.3.0",
-    scalatest
+lazy val testkit = project
+  .configure(setId)
+  .settings(
+    allSettings,
+    publishSettings,
+    libraryDependencies ++= Seq(
+      ammonite,
+      "com.googlecode.java-diff-utils" % "diffutils" % "1.3.0",
+      scalatest
+    )
   )
-)
+  .dependsOn(
+    core,
+    nsc
+  )
 
-lazy val `scalafix-tests` = project
+lazy val tests = project
+  .configure(setId)
   .configs(IntegrationTest)
   .settings(
     allSettings,
@@ -280,10 +266,19 @@ lazy val `scalafix-tests` = project
     libraryDependencies += scalatest % IntegrationTest,
     parallelExecution in Test := true,
     libraryDependencies ++= Seq(
-      ammonite
-    )
+      // integration property tests
+      "org.typelevel"      %% "catalysts-platform" % "0.0.5"    % Test,
+      "com.typesafe.slick" %% "slick"              % "3.2.0-M2" % Test,
+      "com.chuusai"        %% "shapeless"          % "2.3.2"    % Test,
+      "org.scalacheck"     %% "scalacheck"         % "1.13.4"   % Test
+    ),
+    exposePaths("scalafixNsc", Test)
   )
-  .dependsOn(core)
+  .dependsOn(
+    core,
+    nsc,
+    testkit
+  )
 
 lazy val readme = scalatex
   .ScalatexReadme(projectId = "readme",
@@ -336,28 +331,6 @@ lazy val isFullCrossVersion = Seq(
   crossVersion := CrossVersion.full
 )
 
-lazy val scalahostNscPluginPath = Def.task {
-  val files = update
-    .in(dummyScalahostProject)
-    .value
-    .allFiles
-  val path = files.find { file =>
-    val path = file.getAbsolutePath
-    path.endsWith(s"scalahost-nsc_${scalaVersion.value}.jar")
-  }.get
-  path.getAbsolutePath
-}
-
-// sbt makes it hard to do simple stuff like get the jar of a dependency.
-lazy val dummyScalahostProject = project
-  .in(file("target/dummy"))
-  .settings(
-    allSettings,
-    noPublish,
-    description := "Just a project that has scalahost-nsc on the classpath.",
-    libraryDependencies += scalahostNsc
-  )
-
 lazy val scala210 = "2.10.6"
 lazy val scala211 = "2.11.8"
 lazy val scala212 = "2.12.1"
@@ -369,3 +342,24 @@ def CiCommand(name: String)(commands: List[String]): Command =
     }
   }
 def ci(command: String) = s"plz ${ciScalaVersion.get} $command"
+
+lazy val compilerOptions = Seq(
+  "-deprecation",
+  "-encoding",
+  "UTF-8",
+  "-feature",
+  "-unchecked",
+  "-Yno-adapted-args",
+  "-Ywarn-dead-code",
+  "-language:existentials",
+  //  "-Ywarn-numeric-widen", // TODO(olafur) enable
+  "-Xfuture",
+  "-Xlint"
+)
+
+lazy val gitPushTag = taskKey[Unit]("Push to git tag")
+
+def setId(project: Project): Project = {
+  val newId = "scalafix-" + project.id
+  project.copy(base = file(newId)).settings(moduleName := newId)
+}

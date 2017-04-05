@@ -1,9 +1,0 @@
-rewrites = [
-  "file:rewrites/MyRewrite2.scala"
-]
-<<< NOWRAP basic
-object Name
->>>
-import scala.collection.immutable.Seq
-object Name1
-

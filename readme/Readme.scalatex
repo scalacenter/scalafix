@@ -6,6 +6,7 @@
   @scalatex.Installation()
   @scalatex.Configuration()
   @scalatex.Rewrites()
+  @scalatex.ImplementingRewrites()
   @scalatex.Faq()
   @scalatex.Changelog()
 @scalatex.Footer()
