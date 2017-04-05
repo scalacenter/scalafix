@@ -288,6 +288,7 @@ lazy val readme = scalatex
   .settings(
     allSettings,
     noPublish,
+    test := run.in(Compile).toTask(" --validate-links").value,
     libraryDependencies ++= Seq(
       "com.twitter" %% "util-eval" % "6.42.0"
     )

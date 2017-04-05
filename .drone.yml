@@ -32,8 +32,7 @@ pipeline:
     volumes:
       - /platform:/keys
     commands:
-      - ./bin/bintray.sh
-      - ./bin/update-gh-pages.sh
+      - ./bin/publish.sh
     when:
       event: [push, tag]
       branch: [master]

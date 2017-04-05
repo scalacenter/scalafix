@@ -20,7 +20,7 @@
     @sect{Custom rewrites}
       @config
         rewrites = [
-          "file:rewrites/MyRewrite.scala" // from local file
+          "file:readme/MyRewrite.scala" // from local file
           // from url
           "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/5c71c5444174130531021c2c39b0b3ccef30ef00/ExampleRewrite.scala"
           // from fully qualified name on classpath
