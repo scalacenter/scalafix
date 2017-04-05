@@ -38,7 +38,7 @@
   @p
     To setup a test suite with scalafix-testkit:
 
-    @hl.ref(wd/"scalafix-tests"/"src"/"test"/"scala"/"scalafix"/"SemanticTests.scala")
+    @hl.ref(wd/"scalafix-tests"/"src"/"test"/"scala"/"scalafix"/"tests"/"SemanticTests.scala")
 
   @p
     Define @code{.scalafix.conf} configuration at the top of a @code{.source} file:
