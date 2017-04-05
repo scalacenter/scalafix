@@ -63,10 +63,10 @@ object DiffTest {
     val style: ScalafixConfig = {
       val firstLine = split.head
       val config = Hocon2Class.gimmeConfig(firstLine)
-      logger.elem(config, config.right.get.normalize)
+//      logger.elem(config, config.right.get.normalize)
       ScalafixConfig.fromString(firstLine) match {
         case Right(x) =>
-          logger.elem(filename, x.patches)
+//          logger.elem(filename, x.patches)
           x
         case Left(e) =>
           throw new IllegalArgumentException(s"""Failed to parse $filename""",

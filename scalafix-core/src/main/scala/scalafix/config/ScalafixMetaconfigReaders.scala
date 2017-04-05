@@ -135,7 +135,7 @@ trait ScalafixMetaconfigReaders {
   implicit def listReader[T: ConfDecoder]: ConfDecoder[List[T]] =
     ConfDecoder.instance[List[T]] {
       case x @ Conf.Lst(vs) =>
-        logger.elem(vs)
+//        logger.elem(vs)
         ConfDecoder.seqR[T].read(x).right.map(_.toList)
     }
   implicit lazy val AddGlobalImportReader: ConfDecoder[AddGlobalImport] =

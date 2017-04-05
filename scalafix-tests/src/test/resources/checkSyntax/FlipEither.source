@@ -18,7 +18,7 @@ patches.addGlobalImports = [
   "scala.collection.immutable.Seq"
 ]
 rewrites = []
-<<< ONLY NOWRAP flip either
+<<< SKIP NOWRAP flip either
 import scala._
 object FlipEither {
   val x: Either[Int, String] = if (true) Left(1) else Right("msg")
