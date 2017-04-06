@@ -30,7 +30,7 @@ abstract class ImportPatch(val importer: Importer) extends TreePatch {
 
 object TreePatch {
   case class Rename(from: Name, to: Name) extends TreePatch
-  @metaconfig.ConfigReader
+  @metaconfig.DeriveConfDecoder
   case class Replace(from: Symbol,
                      to: Term.Ref,
                      additionalImports: List[Importer] = Nil,

@@ -1,5 +1,6 @@
 package scalafix.tests
 
+import scalafix.Versions
 import scalafix.util.logger
 
 import ammonite.ops._
@@ -86,7 +87,7 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
       logger.elem(sbt)
       val args = Seq(
         sbt,
-        "++2.11.8"
+        "++" + Versions.scala211
       ) ++ cmds.map(_.toString)
       failAfter(maxTime) {
         import sys.process._

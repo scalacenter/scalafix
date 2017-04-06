@@ -75,7 +75,6 @@
 
       // pre-release version
       @bintrayRepo
-      @bintrayIvyRepo // will be unnecessary in the future
       libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@V.version" cross CrossVersion.full
 
     By using scalafix as a library, you have full control of how/when/where
