@@ -16,6 +16,8 @@ import scalafix.util.ScalafixToolbox
 import scalafix.util.TreePatch._
 
 import java.io.File
+import java.io.OutputStream
+import java.io.PrintStream
 import java.net.URI
 import java.net.URL
 
@@ -142,4 +144,11 @@ trait ScalafixMetaconfigReaders {
     importerReader.map(AddGlobalImport.apply)
   implicit lazy val RemoveGlobalImportReader: ConfDecoder[RemoveGlobalImport] =
     importerReader.map(RemoveGlobalImport.apply)
+
+  implicit lazy val PrintStreamReader: ConfDecoder[PrintStream] = {
+    val empty = new PrintStream(new OutputStream {
+      override def write(b: Int): Unit = ()
+    })
+    ReaderUtil.oneOf[PrintStream](empty)
+  }
 }

@@ -10,9 +10,8 @@ import scala.meta.semantic.v1.Symbol
 import scala.meta.tokens.Token
 import scala.util.Success
 import scala.util.Try
-import scalafix.util.CanonicalImport
-import scalafix.util.ImportPatch
-import scalafix.util.logger
+
+import org.scalameta.logger
 
 package object syntax {
 
@@ -120,6 +119,6 @@ package object syntax {
     }
   }
   implicit class XtensionString(str: String) {
-    def reveal: String = logger.reveal(str)
+    def revealWhiteSpace: String = logger.revealWhitespace(str)
   }
 }

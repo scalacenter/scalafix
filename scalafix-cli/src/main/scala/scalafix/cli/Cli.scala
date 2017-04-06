@@ -13,7 +13,9 @@ import scalafix.syntax._
 import scalafix.Fixed
 import scalafix.Scalafix
 import scalafix.cli.termdisplay.TermDisplay
+import scalafix.config.PrintStreamReporter
 import scalafix.config.ScalafixConfig
+import scalafix.config.ScalafixReporter
 import scalafix.rewrite.ProcedureSyntax
 import scalafix.rewrite.ScalafixMirror
 import scalafix.rewrite.ScalafixRewrite
@@ -119,14 +121,19 @@ case class ScalafixOptions(
   /** Returns ScalafixConfig from .scalafix.conf, it exists and --config was not passed. */
   lazy val resolvedConfig: ScalafixConfig = config match {
     case None =>
-      ScalafixConfig
+      val config = ScalafixConfig
         .auto(common.workingDirectoryFile)
         .getOrElse(
           ScalafixConfig.default
         )
         .withRewrites(_ ++ rewrites)
+      config.copy(reporter = config.reporter match {
+        case r: PrintStreamReporter => r.copy(outStream = common.err)
+        case _ => ScalafixReporter.default.copy(outStream = common.err)
+      })
     case Some(x) => x
   }
+
   lazy val resolvedSbtConfig: ScalafixConfig =
     resolvedConfig.copy(dialect = dialects.Sbt0137)
 

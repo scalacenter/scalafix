@@ -6,21 +6,22 @@ import scala.meta.contrib._
 import scala.meta.internal.ast.Helpers._
 import scala.meta.tokens.Token
 import scala.meta.tokens.Token
-import scalafix.rewrite.ScalafixCtx
+import scalafix.config._
+import scalafix.rewrite.RewriteCtx
 import scalafix.syntax._
 import scalafix.util.TokenPatch.Add
 import scalafix.util.TokenPatch.Remove
-import scalafix.util.TreePatch.Replace
-import scalafix.config._
-import scalafix.rewrite.RewriteCtx
 import scalafix.util.TreePatch.Rename
+import scalafix.util.TreePatch.Replace
+
+import org.scalameta.logger
 
 sealed abstract class Patch
 abstract class TreePatch extends Patch
 abstract class TokenPatch(val tok: Token, val newTok: String)
     extends TreePatch {
   override def toString: String =
-    s"TokenPatch(${logger.reveal(tok.syntax)}, ${tok.structure}, $newTok)"
+    s"TokenPatch(${tok.syntax.revealWhiteSpace}, ${tok.structure}, $newTok)"
 }
 
 abstract class ImportPatch(val importer: Importer) extends TreePatch {
@@ -74,7 +75,7 @@ object Patch {
   def apply[T <: Mirror: CanOrganizeImports](patches: Seq[Patch])(
       implicit ctx: RewriteCtx[T]): String = {
     if (ctx.config.debug.printSymbols)
-      logger.info(ctx.mirror.database)
+      ctx.reporter.info(ctx.mirror.database.toString())
     val ast = ctx.tree
     val input = ctx.tokens
     val tokenPatches = patches.collect { case e: TokenPatch => e }

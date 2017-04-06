@@ -16,7 +16,7 @@ commands += Command.command("release") { s =>
 }
 commands += CiCommand("ci-fast")("test" :: Nil)
 commands += Command.command("ci-slow") { s =>
-  "very scalafix-sbt/test" ::
+  "scalafix-sbt/it:test" ::
     ci("tests/it:test") ::
     s
 }
@@ -203,21 +203,16 @@ lazy val publishedArtifacts = Seq(
 )
 
 lazy val `scalafix-sbt` = project
+  .configs(IntegrationTest)
   .settings(
     allSettings,
     publishSettings,
     buildInfoSettings,
+    Defaults.itSettings,
     ScriptedPlugin.scriptedSettings,
     sbtPlugin := true,
-    // Doesn't work because we need to publish 2.11 and 2.12.
-//    scripted := scripted.dependsOn(publishedArtifacts: _*).evaluated,
-    testQuick := {
-      RunSbtCommand(
-        s"; very publishLocal " +
-          "; very scalafix-sbt/scripted sbt-scalafix/config"
-      )(state.value)
-    },
-    test := {
+    testQuick := {}, // these test are slow.
+    test in IntegrationTest := {
       RunSbtCommand(
         "; very publishLocal " +
           "; very scalafix-sbt/scripted"

@@ -24,8 +24,10 @@ case class ScalafixConfig(
     @Recurse patches: PatchConfig = PatchConfig(),
     @Recurse debug: DebugConfig = DebugConfig(),
     fatalWarnings: Boolean = true,
+    reporter: ScalafixReporter = ScalafixReporter.default,
     dialect: Dialect = Scala211
 ) {
+
   def withRewrites(
       f: List[ScalafixRewrite] => List[ScalafixRewrite]): ScalafixConfig =
     copy(rewrites = f(rewrites).distinct)
