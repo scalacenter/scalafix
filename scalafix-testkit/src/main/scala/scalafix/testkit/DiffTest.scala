@@ -7,7 +7,6 @@ import scalafix.util.FileOps
 
 import java.io.File
 
-import metaconfig.hocon.Hocon2Class
 import org.scalameta.logger
 
 case class DiffTest(spec: String,
@@ -62,7 +61,7 @@ object DiffTest {
 
     val style: ScalafixConfig = {
       val firstLine = split.head
-      val config = Hocon2Class.gimmeConfig(firstLine)
+      val config = ScalafixConfig.fromString(firstLine)
 //      logger.elem(config, config.right.get.normalize)
       ScalafixConfig.fromString(firstLine) match {
         case Right(x) =>

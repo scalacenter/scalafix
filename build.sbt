@@ -98,7 +98,7 @@ gitPushTag := {
   Seq("git", "push", "--tags").!!
 }
 
-// settings to projects using @metaconfig.ConfigReader annotation.
+// settings to projects using @metaconfig.ConfDecoder annotation.
 lazy val metaconfigSettings: Seq[Def.Setting[_]] = Seq(
   addCompilerPlugin(
     ("org.scalameta" % "paradise" % paradiseV).cross(CrossVersion.full)),
