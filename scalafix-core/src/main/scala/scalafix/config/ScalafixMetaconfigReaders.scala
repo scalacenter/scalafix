@@ -25,7 +25,6 @@ import metaconfig.Conf
 import metaconfig.ConfDecoder
 import org.scalameta.logger
 
-
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
 // A collection of metaconfig.Reader instances that are shared across
 trait ScalafixMetaconfigReaders {
