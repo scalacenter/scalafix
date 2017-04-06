@@ -4,6 +4,8 @@ import scala.meta.Position
 import scala.meta.internal.inputs._
 import scalafix.util.Severity
 
+import metaconfig.ConfDecoder
+
 trait ScalafixReporter {
 
   /** Messages with severity < minSeverity are skipped. */
@@ -41,12 +43,12 @@ trait ScalafixReporter {
 }
 
 object ScalafixReporter {
-  val default: PrintStreamReporter = new PrintStreamReporter(
+  val default: PrintStreamReporter = PrintStreamReporter(
     Console.out,
     Severity.Info,
     FilterMatcher.matchEverything,
     includeLoggerName = false
   )
-  implicit val scalafixReporterReader: metaconfig.Reader[ScalafixReporter] =
+  implicit val scalafixReporterReader: ConfDecoder[ScalafixReporter] =
     default.reader.map(_.asInstanceOf[ScalafixReporter])
 }

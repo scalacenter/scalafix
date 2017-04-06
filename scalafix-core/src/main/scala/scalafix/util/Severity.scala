@@ -2,7 +2,7 @@ package scalafix.util
 
 import scalafix.config.ReaderUtil
 
-import metaconfig.Reader
+import metaconfig.ConfDecoder
 
 sealed abstract class Severity(color: String, val order: Int)(
     implicit name: sourcecode.Name)
@@ -18,6 +18,6 @@ object Severity {
   case object Info extends Severity(Console.BLUE, 3)
   case object Warn extends Severity(Console.YELLOW, 4)
   case object Error extends Severity(Console.RED, 5)
-  implicit val SeverityReader: Reader[Severity] =
+  implicit val SeverityReader: ConfDecoder[Severity] =
     ReaderUtil.oneOf[Severity](Trace, Debug, Info, Warn, Error)
 }

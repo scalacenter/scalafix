@@ -6,17 +6,16 @@ import scala.meta.internal.inputs._
 
 import java.io.PrintStream
 
-import metaconfig.ConfigReader
-import metaconfig.Reader
+import metaconfig.Recurse
 
 /** A ScalafixReporter that emits messages to a PrintStream. */
-@ConfigReader
+@metaconfig.DeriveConfDecoder
 case class PrintStreamReporter(outStream: PrintStream,
                                minSeverity: Severity,
-                               filter: FilterMatcher,
+                               @Recurse filter: FilterMatcher,
                                includeLoggerName: Boolean)
     extends ScalafixReporter {
-  implicit val FilterMatcherReader: Reader[FilterMatcher] = filter.reader
+  private val FilterMatcherReader = null // shadow other reader
 
   override def report(message: String, position: Position, severity: Severity)(
       implicit ctx: LogContext): Unit = {

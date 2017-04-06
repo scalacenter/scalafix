@@ -25,6 +25,7 @@ import metaconfig.Conf
 import metaconfig.ConfDecoder
 import org.scalameta.logger
 
+
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
 // A collection of metaconfig.Reader instances that are shared across
 trait ScalafixMetaconfigReaders {
@@ -145,7 +146,7 @@ trait ScalafixMetaconfigReaders {
   implicit lazy val RemoveGlobalImportReader: ConfDecoder[RemoveGlobalImport] =
     importerReader.map(RemoveGlobalImport.apply)
 
-  implicit lazy val PrintStreamReader: Reader[PrintStream] = {
+  implicit lazy val PrintStreamReader: ConfDecoder[PrintStream] = {
     val empty = new PrintStream(new OutputStream {
       override def write(b: Int): Unit = ()
     })
