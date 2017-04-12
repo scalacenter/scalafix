@@ -84,7 +84,8 @@ object Renamer {
     object MatchingRenameSymbol {
       def unapply(arg: Name): Option[(Token, Name)] =
         for {
-          symbol <- mirror.symbol(arg).toOption
+          // TODO(olafur) avoid Try() once don't require `Mirror` in Replacer.
+          symbol <- Try(mirror.symbol(arg).get).toOption
           rename <- renameSymbols.find(_.matches(symbol))
           tok <- arg.tokens.headOption
         } yield tok -> rename.to

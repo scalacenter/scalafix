@@ -2,8 +2,9 @@ package scalafix.config
 
 import scala.collection.immutable.Seq
 import scala.meta.Ref
+import metaconfig._
 
-@metaconfig.DeriveConfDecoder
+@DeriveConfDecoder
 case class ImportsConfig(
     // Disabled because unused imports can be created when expanding relative
     // imports, see https://github.com/scalacenter/scalafix/issues/83

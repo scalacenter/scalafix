@@ -1,5 +1,6 @@
 package scalafix.util
 
+import metaconfig._
 import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.contrib._

@@ -10,6 +10,6 @@ object Dependencies {
   def scalahostNsc: ModuleID = "org.scalameta" % s"scalahost-nsc" % scalametaV cross CrossVersion.full
   def scalameta: ModuleID = "org.scalameta" %% "contrib" % scalametaV
   def scalatest: ModuleID = "org.scalatest" %% "scalatest" % "3.0.0"
-  def metaconfig: ModuleID = "com.geirsson" %% "metaconfig-typesafe-config" % "0.2.2"
+  def metaconfig: ModuleID = "com.geirsson" %% "metaconfig-typesafe-config" % "0.3.0"
   def ammonite = "com.lihaoyi" %% "ammonite-ops" % "0.8.2"
 }

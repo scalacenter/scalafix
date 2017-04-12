@@ -4,6 +4,8 @@ import scala.reflect.ClassTag
 
 import metaconfig.ConfDecoder
 import metaconfig.Conf
+import metaconfig.ConfError
+import metaconfig.Configured
 
 object ReaderUtil {
   def oneOf[T: ClassTag](options: sourcecode.Text[T]*): ConfDecoder[T] = {
@@ -17,12 +19,11 @@ object ReaderUtil {
       case Conf.Str(x) =>
         m.get(x) match {
           case Some(y) =>
-            Right(y)
+            Configured.Ok(y)
           case None =>
             val available = m.keys.mkString(", ")
-            val msg =
-              s"Unknown input '$x'. Expected one of $available"
-            Left(new IllegalArgumentException(msg))
+            val msg = s"Unknown input '$x'. Expected one of: $available"
+            Configured.NotOk(ConfError.msg(msg))
         }
     }
 }

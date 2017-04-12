@@ -1,6 +1,7 @@
 package scalafix.config
+import metaconfig._
 
-@metaconfig.DeriveConfDecoder
+@DeriveConfDecoder
 case class DebugConfig(
     printSymbols: Boolean = false
 )

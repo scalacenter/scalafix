@@ -7,9 +7,10 @@ import scala.meta.internal.inputs._
 import java.io.PrintStream
 
 import metaconfig.Recurse
+import metaconfig._
 
 /** A ScalafixReporter that emits messages to a PrintStream. */
-@metaconfig.DeriveConfDecoder
+@DeriveConfDecoder
 case class PrintStreamReporter(outStream: PrintStream,
                                minSeverity: Severity,
                                @Recurse filter: FilterMatcher,
