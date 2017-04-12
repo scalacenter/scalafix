@@ -3,6 +3,17 @@
 @import scalafix.Versions
 
 @sect{Changelog}
+  @sect{0.3.4}
+    @ul
+      New @code{RenameSymbol} tree patch, which behaves similar to "Rename
+      method/variable" refactorings in IDEs.
+    @ul
+      New module: @sect.ref{scalafix-testkit}.
+    @ul
+      Rewrites can now report info/warn/error messages via
+       @code{ctx.reporter.info/warn/error}, see @pr(118).
+    @ul
+      2.11 support is now only for 2.11.10.
   @sect{0.3.3}
     @ul
       @li
