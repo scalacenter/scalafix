@@ -71,24 +71,29 @@ object Replacer {
 object Renamer {
   def toTokenPatches(renamePatches: Seq[RenamePatch])(
       implicit ctx: RewriteCtx[Mirror]): Seq[TokenPatch] = {
+    if (renamePatches.isEmpty) return Nil
     import ctx._
     val renames = renamePatches.collect { case r: Rename => r }
     val renameSymbols = renamePatches.collect { case r: RenameSymbol => r }
     object MatchingRename {
       def unapply(arg: Name): Option[(Token, Name)] =
-        for {
-          rename <- renames.find(_.from eq arg)
-          tok <- arg.tokens.headOption
-        } yield tok -> rename.to
+        if (renames.isEmpty) None
+        else
+          for {
+            rename <- renames.find(_.from eq arg)
+            tok <- arg.tokens.headOption
+          } yield tok -> rename.to
     }
     object MatchingRenameSymbol {
       def unapply(arg: Name): Option[(Token, Name)] =
-        for {
-          // TODO(olafur) avoid Try() once don't require `Mirror` in Replacer.
-          symbol <- Try(mirror.symbol(arg).get).toOption
-          rename <- renameSymbols.find(_.matches(symbol))
-          tok <- arg.tokens.headOption
-        } yield tok -> rename.to
+        if (renameSymbols.isEmpty) None
+        else
+          for {
+            // TODO(olafur) avoid Try() once don't require `Mirror` in Replacer.
+            symbol <- mirror.symbol(arg).toOption
+            rename <- renameSymbols.find(_.matches(symbol))
+            tok <- arg.tokens.headOption
+          } yield tok -> rename.to
     }
     object ToRename {
       def unapply(arg: Name): Option[(Token, Name)] =
