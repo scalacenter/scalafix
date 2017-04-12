@@ -4,8 +4,9 @@ import scala.util.matching.Regex
 import scalafix.util.AbsoluteFile
 
 import metaconfig.ExtraName
+import metaconfig._
 
-@metaconfig.DeriveConfDecoder
+@DeriveConfDecoder
 case class FilterMatcher(
     @ExtraName("include") includeFilters: Regex,
     @ExtraName("exclude") excludeFilters: Regex

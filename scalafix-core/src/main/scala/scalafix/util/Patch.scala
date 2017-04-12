@@ -1,5 +1,6 @@
 package scalafix.util
 
+import metaconfig._
 import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.contrib._
@@ -12,6 +13,7 @@ import scalafix.syntax._
 import scalafix.util.TokenPatch.Add
 import scalafix.util.TokenPatch.Remove
 import scalafix.util.TreePatch.Rename
+import scalafix.util.TreePatch.RenamePatch
 import scalafix.util.TreePatch.Replace
 
 import org.scalameta.logger
@@ -30,7 +32,16 @@ abstract class ImportPatch(val importer: Importer) extends TreePatch {
 }
 
 object TreePatch {
-  case class Rename(from: Name, to: Name) extends TreePatch
+  trait RenamePatch
+  case class Rename(from: Name, to: Name) extends TreePatch with RenamePatch
+  case class RenameSymbol(from: Symbol, to: Name, normalize: Boolean = false)
+      extends TreePatch
+      with RenamePatch {
+    private lazy val resolvedFrom = if (normalize) from.normalized else from
+    def matches(symbol: Symbol): Boolean =
+      if (normalize) symbol.normalized == resolvedFrom
+      else symbol == resolvedFrom
+  }
   @metaconfig.DeriveConfDecoder
   case class Replace(from: Symbol,
                      to: Term.Ref,
@@ -80,7 +91,7 @@ object Patch {
     val input = ctx.tokens
     val tokenPatches = patches.collect { case e: TokenPatch => e }
     val renamePatches = Renamer.toTokenPatches(patches.collect {
-      case e: Rename => e
+      case e: RenamePatch => e
     })
     val replacePatches = Replacer.toTokenPatches(ast, patches.collect {
       case e: Replace => e

@@ -11,6 +11,8 @@ import scalafix.config.ScalafixConfig
 
 import java.io.File
 
+import metaconfig.Configured
+
 class ScalafixNscPlugin(val global: Global) extends Plugin {
   var config: ScalafixConfig =
     ScalafixConfig
@@ -39,10 +41,10 @@ class ScalafixNscPlugin(val global: Global) extends Plugin {
       case Nil => true
       case file :: Nil =>
         ScalafixConfig.fromFile(new File(file)) match {
-          case Left(msg) =>
-            error(msg.getMessage)
+          case Configured.NotOk(msg) =>
+            error(msg.toString())
             false
-          case Right(userConfig) =>
+          case Configured.Ok(userConfig) =>
             config = userConfig
             true
         }

@@ -10,13 +10,10 @@ import scalafix.util.FileOps
 
 import java.io.File
 
-import metaconfig.Conf
-import metaconfig.ConfDecoder
+import metaconfig._
 import metaconfig.typesafeconfig.TypesafeConfig2Class
-import metaconfig.Recurse
-import metaconfig.Result
 
-@metaconfig.DeriveConfDecoder
+@DeriveConfDecoder
 case class ScalafixConfig(
     rewrites: List[ScalafixRewrite] = Nil,
     parser: Parse[_ <: Tree] = Parse.parseSource,
@@ -46,16 +43,16 @@ object ScalafixConfig {
     else None
   }
 
-  private def gimmeClass[T](conf: Result[Conf])(
-      implicit reader: metaconfig.ConfDecoder[T]): metaconfig.Result[T] =
+  private def gimmeClass[T](conf: Configured[Conf])(
+      implicit reader: metaconfig.ConfDecoder[T]): metaconfig.Configured[T] =
     for {
-      config <- conf.right
-      cls <- reader.read(config).right
+      config <- conf
+      cls <- reader.read(config)
     } yield cls
 
-  def fromFile(file: File): Either[Throwable, ScalafixConfig] =
+  def fromFile(file: File): Configured[ScalafixConfig] =
     gimmeClass[ScalafixConfig](TypesafeConfig2Class.gimmeConfFromFile(file))
 
-  def fromString(str: String): Either[Throwable, ScalafixConfig] =
+  def fromString(str: String): Configured[ScalafixConfig] =
     gimmeClass[ScalafixConfig](TypesafeConfig2Class.gimmeConfFromString(str))
 }

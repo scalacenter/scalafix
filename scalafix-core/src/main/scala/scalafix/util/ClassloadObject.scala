@@ -8,6 +8,9 @@ import scala.util.Try
 
 import java.lang.reflect.InvocationTargetException
 
+import metaconfig.ConfError
+import metaconfig.Configured
+
 // Helper to classload object or no argument class.
 class ClassloadObject[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
   private val t = ev.runtimeClass
@@ -39,10 +42,10 @@ class ClassloadObject[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
 }
 
 object ClassloadObject {
-  def apply[T: ClassTag](fqn: String): Either[Throwable, T] =
+  def apply[T: ClassTag](fqn: String): Configured[T] =
     new ClassloadObject(this.getClass.getClassLoader)
       .createInstanceFor(fqn) match {
-      case Success(e) => Right(e)
-      case Failure(e) => Left(e)
+      case Success(e) => Configured.Ok(e)
+      case Failure(e) => Configured.NotOk(ConfError.msg(e.getMessage))
     }
 }

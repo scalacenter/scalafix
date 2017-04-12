@@ -31,9 +31,9 @@ object ArgParserImplicits {
     ArgParser.instance[ScalafixConfig] { str =>
       Try(new File(str)) match {
         case Success(file) if file.isFile && file.exists() =>
-          ScalafixConfig.fromFile(file).left.map(_.getMessage)
+          ScalafixConfig.fromFile(file).toEither.left.map(_.toString)
         case _ =>
-          ScalafixConfig.fromString(str).left.map(_.getMessage)
+          ScalafixConfig.fromString(str).toEither.left.map(_.toString())
       }
     }
 
@@ -41,8 +41,9 @@ object ArgParserImplicits {
     ArgParser.instance[ScalafixRewrite] { str =>
       ScalafixMetaconfigReaders.rewriteReader
         .read(Conf.Str(str))
+        .toEither
         .left
-        .map(_.getMessage)
+        .map(_.toString())
     }
 
   val OptionsParser: Parser[ScalafixOptions] = Parser.apply[ScalafixOptions]

@@ -6,8 +6,9 @@ import scalafix.util.TreePatch
 import scala.collection.immutable.Seq
 import scalafix.util.ImportPatch
 import scalafix.util.TreePatch.RemoveGlobalImport
+import metaconfig._
 
-@metaconfig.DeriveConfDecoder
+@DeriveConfDecoder
 case class PatchConfig(
     removeGlobalImports: List[RemoveGlobalImport] = Nil,
     addGlobalImports: List[AddGlobalImport] = Nil,

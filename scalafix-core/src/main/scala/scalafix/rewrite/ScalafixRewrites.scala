@@ -8,6 +8,7 @@ object ScalafixRewrites {
   val semantic: List[ScalafixRewrite] = List(
     ScalaJsRewrites.DemandJSGlobal,
     ExplicitImplicit,
+    Scalameta17,
     Xor2Either
   )
   val all: List[ScalafixRewrite] = syntax ++ semantic

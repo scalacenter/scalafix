@@ -7,6 +7,7 @@ import scalafix.util.FileOps
 
 import java.io.File
 
+import metaconfig.Configured
 import org.scalameta.logger
 
 case class DiffTest(spec: String,
@@ -61,16 +62,7 @@ object DiffTest {
 
     val style: ScalafixConfig = {
       val firstLine = split.head
-      val config = ScalafixConfig.fromString(firstLine)
-//      logger.elem(config, config.right.get.normalize)
-      ScalafixConfig.fromString(firstLine) match {
-        case Right(x) =>
-//          logger.elem(filename, x.patches)
-          x
-        case Left(e) =>
-          throw new IllegalArgumentException(s"""Failed to parse $filename""",
-                                             e)
-      }
+      ScalafixConfig.fromString(firstLine).get
     }
 
     split.tail.map { t =>

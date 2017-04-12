@@ -23,6 +23,8 @@ import java.net.URL
 
 import metaconfig.Conf
 import metaconfig.ConfDecoder
+import metaconfig.ConfError
+import metaconfig.Configured
 import org.scalameta.logger
 
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
@@ -96,32 +98,33 @@ trait ScalafixMetaconfigReaders {
   }
 
   implicit val RegexReader: ConfDecoder[Regex] = ConfDecoder.instance[Regex] {
-    case Conf.Str(str) => Right(FilterMatcher.mkRegexp(List(str)))
-    case ConfStrLst(values) => Right(FilterMatcher.mkRegexp(values))
+    case Conf.Str(str) => Configured.Ok(FilterMatcher.mkRegexp(List(str)))
+    case ConfStrLst(values) => Configured.Ok(FilterMatcher.mkRegexp(values))
   }
   private val fallbackFilterMatcher = FilterMatcher(Nil, Nil)
   implicit val FilterMatcherReader: ConfDecoder[FilterMatcher] =
     ConfDecoder.instance[FilterMatcher] {
-      case Conf.Str(str) => Right(FilterMatcher(str))
+      case Conf.Str(str) => Configured.Ok(FilterMatcher(str))
       case ConfStrLst(values) =>
-        Right(FilterMatcher(values, Nil))
+        Configured.Ok(FilterMatcher(values, Nil))
       case els => fallbackFilterMatcher.reader.read(els)
     }
 
   def parseReader[T](implicit parse: Parse[T]): ConfDecoder[T] =
-    ConfDecoder.stringR.flatMap { str =>
+    ConfDecoder.stringConfDecoder.flatMap { str =>
       str.parse[T] match {
-        case parsers.Parsed.Success(x) => Right(x)
-        case parsers.Parsed.Error(_, x, _) =>
-          Left(new IllegalArgumentException(x))
+        case parsers.Parsed.Success(x) => Configured.Ok(x)
+        case parsers.Parsed.Error(pos, msg, _) =>
+          ConfError.parseError(pos, msg).notOk
       }
     }
 
   def castReader[From, To](ConfDecoder: ConfDecoder[From])(
       implicit ev: ClassTag[To]): ConfDecoder[To] = ConfDecoder.flatMap {
-    case x if ev.runtimeClass.isInstance(x) => Right(x.asInstanceOf[To])
+    case x if ev.runtimeClass.isInstance(x) =>
+      Configured.Ok(x.asInstanceOf[To])
     case x =>
-      Left(new IllegalArgumentException(s"Expected Ref, got ${x.getClass}"))
+      ConfError.msg(s"Expected Ref, got ${x.getClass}").notOk
   }
   implicit lazy val importerReader: ConfDecoder[Importer] =
     parseReader[Importer]
@@ -133,13 +136,7 @@ trait ScalafixMetaconfigReaders {
   implicit lazy val replaceReader: ConfDecoder[Replace] =
     fallbackReplace.reader
   implicit lazy val symbolReader: ConfDecoder[Symbol] =
-    ConfDecoder.stringR.map(Symbol.apply)
-  implicit def listReader[T: ConfDecoder]: ConfDecoder[List[T]] =
-    ConfDecoder.instance[List[T]] {
-      case x @ Conf.Lst(vs) =>
-//        logger.elem(vs)
-        ConfDecoder.seqR[T].read(x).right.map(_.toList)
-    }
+    ConfDecoder.stringConfDecoder.map(Symbol.apply)
   implicit lazy val AddGlobalImportReader: ConfDecoder[AddGlobalImport] =
     importerReader.map(AddGlobalImport.apply)
   implicit lazy val RemoveGlobalImportReader: ConfDecoder[RemoveGlobalImport] =
