@@ -3,6 +3,8 @@ import sbt.ScriptedPlugin._
 
 import Dependencies._
 organization in ThisBuild := "ch.epfl.scala"
+version in ThisBuild := customScalafixVersion.getOrElse(
+  version.in(ThisBuild).value)
 
 lazy val crossVersions = Seq(scala211, scala212)
 
@@ -25,7 +27,13 @@ commands += Command.command("ci-publish") { s =>
 }
 
 lazy val publishSettings = Seq(
-  publishTo := publishTo.in(bintray).value,
+  publishTo := {
+    if (customScalafixVersion.isDefined)
+      Some(
+        "releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2")
+    else
+      publishTo.in(bintray).value
+  },
   bintrayOrganization := Some("scalameta"),
   bintrayRepository := "maven",
   publishArtifact in Test := false,
@@ -354,3 +362,5 @@ def setId(project: Project): Project = {
   val newId = "scalafix-" + project.id
   project.copy(base = file(newId)).settings(moduleName := newId)
 }
+
+def customScalafixVersion = sys.props.get("scalafix.version")
