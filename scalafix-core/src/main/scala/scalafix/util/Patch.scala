@@ -17,24 +17,13 @@ import scalafix.util.TreePatch.RenamePatch
 import scalafix.util.TreePatch.Replace
 
 sealed abstract class Patch {
-  def applied[T](ctx: RewriteCtx[T]): Fixed = ???
-
-  final private[scalafix] def underlying: Seq[Patch] = {
-    val builder = Seq.newBuilder[Patch]
-    def loop(patch: Patch): Unit = patch match {
-      case Concat(a, b) =>
-        loop(a)
-        loop(b)
-      case els =>
-        builder += els
-    }
-    loop(this)
-    builder.result()
-  }
   // NOTE: potential bottle-neck, this might be very slow for large
   // patches. We might want to group related patches and enforce some ordering.
   def +(other: Patch): Patch = Concat(this, other)
   def ++(other: Seq[Patch]): Patch = other.foldLeft(this)(_ + _)
+
+  def appliedDiff[T](implicit ctx: RewriteCtx[T]): Fixed = ???
+  def applied[T](implicit ctx: RewriteCtx[T]): Fixed = ???
 }
 
 private[scalafix] case class Concat(a: Patch, b: Patch) extends Patch
@@ -109,7 +98,7 @@ object Patch {
       implicit ctx: RewriteCtx[T]): String = {
     if (ctx.config.debug.printSymbols)
       ctx.reporter.info(ctx.mirror.database.toString())
-    val patches = patch.underlying
+    val patches = underlying(patch)
     val ast = ctx.tree
     val input = ctx.tokens
     val tokenPatches = patches.collect { case e: TokenPatch => e }
@@ -133,5 +122,18 @@ object Patch {
     input.toIterator
       .map(x => patchMap.getOrElse(x.posTuple, x.syntax))
       .mkString
+  }
+
+  private def underlying(patch: Patch): Seq[Patch] = {
+    val builder = Seq.newBuilder[Patch]
+    def loop(patch: Patch): Unit = patch match {
+      case Concat(a, b) =>
+        loop(a)
+        loop(b)
+      case els =>
+        builder += els
+    }
+    loop(patch)
+    builder.result()
   }
 }

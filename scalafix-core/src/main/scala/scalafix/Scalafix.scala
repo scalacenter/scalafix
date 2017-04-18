@@ -5,6 +5,7 @@ import scala.meta._
 import scala.meta.inputs.Input
 import scala.meta.parsers.Parsed
 import scalafix.config.ScalafixConfig
+import scalafix.rewrite.ScalafixCtx
 import scalafix.rewrite.ScalafixMirror
 import scalafix.util.CanOrganizeImports
 
