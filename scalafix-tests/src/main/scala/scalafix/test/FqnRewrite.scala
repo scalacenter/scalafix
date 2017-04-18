@@ -8,6 +8,6 @@ import scalafix.util.Patch
 import scalafix.util.TreePatch.AddGlobalImport
 
 case object FqnRewrite extends Rewrite[Any] {
-  override def rewrite[B <: Any](ctx: RewriteCtx[B]): Seq[Patch] =
-    Seq(AddGlobalImport(importer"scala.meta._"))
+  override def rewrite[B <: Any](ctx: RewriteCtx[B]): Patch =
+    AddGlobalImport(importer"scala.meta._")
 }

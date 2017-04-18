@@ -22,7 +22,7 @@
         rewrites = [
           "file:readme/MyRewrite.scala" // from local file
           // from url
-          "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/5c71c5444174130531021c2c39b0b3ccef30ef00/ExampleRewrite.scala"
+          "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/d873e0d4a0661ced768a76526b29b9cc0af744be/ExampleRewrite.scala"
           // from fully qualified name on classpath
           "scala:scalafix.rewrite.ExplicitImplicit"
         ]

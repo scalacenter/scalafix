@@ -1,5 +1,6 @@
 import scala.meta._
 import scalafix.rewrite._
+import scalafix.util.Patch
 
 package object scalafix {
   type SemanticRewriteCtx = RewriteCtx[Mirror]
@@ -8,4 +9,7 @@ package object scalafix {
       extends SemanticPatchOps
   implicit class XtensionRewriteCtx[T](val ctx: RewriteCtx[T])
       extends SyntacticPatchOps[T]
+  implicit class XtensionSeqPatch(patches: Seq[Patch]) {
+    def asPatch: Patch = Patch.fromSeq(patches)
+  }
 }

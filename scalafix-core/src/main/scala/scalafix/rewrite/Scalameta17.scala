@@ -13,7 +13,7 @@ import scalafix.util.TreePatch.RenameSymbol
 
 case object Scalameta17 extends Rewrite[Mirror] {
 
-  override def rewrite[T <: Mirror](ctx: RewriteCtx[T]): Seq[Patch] = {
+  override def rewrite[T <: Mirror](ctx: RewriteCtx[T]): Patch = {
     import ctx._
     val litPatches = tree.collect {
       case t @ Term.Name("Lit") if t.symbol.syntax.startsWith("_root_.scala.meta.Lit.apply(") =>
@@ -34,7 +34,7 @@ case object Scalameta17 extends Rewrite[Mirror] {
           case _                                             => AddRight(tok, "") // nothing
         }
     }
-    RenameSymbol(Symbol("_root_.scala.meta.io.AbsolutePath#getAbsolutePath()Ljava/lang/String;."), q"absolute") +:
+    RenameSymbol(Symbol("_root_.scala.meta.io.AbsolutePath#getAbsolutePath()Ljava/lang/String;."), q"absolute") ++
       litPatches
   }
 }

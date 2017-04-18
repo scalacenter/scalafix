@@ -15,17 +15,17 @@ import scalafix.config.ReaderUtil
 abstract class Rewrite[-A](implicit sourceName: sourcecode.Name) {
   def name: String = sourceName.value
   override def toString: String = name
-  def rewrite[B <: A](ctx: RewriteCtx[B]): Seq[Patch]
+  def rewrite[B <: A](ctx: RewriteCtx[B]): Patch
 
   def andThen[B <: A](other: Rewrite[B]): Rewrite[B] =
-    Rewrite(ctx => this.rewrite(ctx) ++ other.rewrite(ctx))
+    Rewrite(ctx => this.rewrite(ctx) + other.rewrite(ctx))
 }
 
 object Rewrite {
-  def withName[A](name: String)(f: RewriteCtx[A] => Seq[Patch]): Rewrite[A] =
+  def withName[A](name: String)(f: RewriteCtx[A] => Patch): Rewrite[A] =
     apply(f)(sourcecode.Name(name))
-  def apply[T](f: RewriteCtx[T] => Seq[Patch])(
+  def apply[T](f: RewriteCtx[T] => Patch)(
       implicit name: sourcecode.Name): Rewrite[T] = new Rewrite[T]() {
-    override def rewrite[B <: T](ctx: RewriteCtx[B]): Seq[Patch] = f(ctx)
+    override def rewrite[B <: T](ctx: RewriteCtx[B]): Patch = f(ctx)
   }
 }

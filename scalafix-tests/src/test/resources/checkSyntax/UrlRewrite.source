@@ -1,5 +1,5 @@
 rewrites = [
-  "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/a9ea60178be48c39212c428a391e1f415b6ea88c/ExampleRewrite.scala"
+  "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/d873e0d4a0661ced768a76526b29b9cc0af744be/ExampleRewrite.scala"
 ]
 <<< NOWRAP basic
 object Name

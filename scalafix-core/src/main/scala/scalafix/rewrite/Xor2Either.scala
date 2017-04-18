@@ -10,16 +10,17 @@ import scalafix.util.Patch
 import scalafix.util.TreePatch._
 
 case object Xor2Either extends Rewrite[ScalafixMirror] {
-  override def rewrite[T <: ScalafixMirror](ctx: RewriteCtx[T]): Seq[Patch] = {
+  override def rewrite[T <: ScalafixMirror](ctx: RewriteCtx[T]): Patch = {
     import ctx._
-    tree.collectFirst {
+    val importImplicits = tree.collectFirst {
       case t: Term.Name
           if mirror
             .symbol(t)
             .toOption
             .exists(_.normalized == Symbol("_root_.cats.data.Xor.map.")) =>
         AddGlobalImport(importer"cats.implicits._")
-    }.toList ++
+    }
+    importImplicits.getOrElse(Patch.empty) ++
       Seq(
         Replace(Symbol("_root_.cats.data.XorT."),
                 q"EitherT",

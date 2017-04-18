@@ -30,7 +30,7 @@ object Scalafix {
       config,
       semanticApi.getOrElse(ScalafixMirror.failingMirror(config.dialect)))
     try {
-      val patches = config.rewrites.flatMap(_.rewrite(ctx))
+      val patches = config.rewrites.map(_.rewrite(ctx)).asPatch
       val patched =
         Patch.apply(patches)(CanOrganizeImports.ScalafixMirror, ctx)
       Fixed.Success(patched)

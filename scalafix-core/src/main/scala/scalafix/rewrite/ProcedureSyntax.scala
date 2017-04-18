@@ -11,7 +11,7 @@ import scala.collection.immutable.Seq
 import scalafix.util.TokenPatch
 
 case object ProcedureSyntax extends Rewrite[Any] {
-  override def rewrite[T](ctx: RewriteCtx[T]): Seq[Patch] = {
+  override def rewrite[T](ctx: RewriteCtx[T]): Patch = {
     import ctx.tokenList._
     val patches: Seq[Patch] = ctx.tree.collect {
       case t: Defn.Def
@@ -31,6 +31,6 @@ case object ProcedureSyntax extends Rewrite[Any] {
         }
         TokenPatch.AddRight(closingParen, s": Unit =")
     }
-    patches
+    patches.asPatch
   }
 }

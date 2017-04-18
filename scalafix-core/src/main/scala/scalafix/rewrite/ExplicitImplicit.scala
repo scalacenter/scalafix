@@ -15,7 +15,7 @@ case object ExplicitImplicit extends Rewrite[ScalafixMirror] {
     case m.Term.ApplyType(m.Term.Name("implicitly"), _) => true
     case _ => false
   }
-  override def rewrite[T <: ScalafixMirror](ctx: RewriteCtx[T]): Seq[Patch] = {
+  override def rewrite[T <: ScalafixMirror](ctx: RewriteCtx[T]): Patch = {
     import scala.meta._
     import ctx._
     def fix(defn: Defn, body: Term): Seq[Patch] = {
@@ -31,14 +31,17 @@ case object ExplicitImplicit extends Rewrite[ScalafixMirror] {
         typ <- mirror.typeSignature(defn)
       } yield TokenPatch.AddRight(replace, s": ${typ.syntax}")
     }.to[Seq]
-    tree.collect {
-      case t @ m.Defn.Val(mods, _, None, body)
-          if mods.exists(_.syntax == "implicit") &&
-            !isImplicitly(body) =>
-        fix(t, body)
-      case t @ m.Defn.Def(mods, _, _, _, None, body)
-          if mods.exists(_.syntax == "implicit") =>
-        fix(t, body)
-    }.flatten
+    tree
+      .collect {
+        case t @ m.Defn.Val(mods, _, None, body)
+            if mods.exists(_.syntax == "implicit") &&
+              !isImplicitly(body) =>
+          fix(t, body)
+        case t @ m.Defn.Def(mods, _, _, _, None, body)
+            if mods.exists(_.syntax == "implicit") =>
+          fix(t, body)
+      }
+      .flatten
+      .asPatch
   }
 }

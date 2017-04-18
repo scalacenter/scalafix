@@ -12,13 +12,30 @@ import scalafix.rewrite.RewriteCtx
 import scalafix.syntax._
 import scalafix.util.TokenPatch.Add
 import scalafix.util.TokenPatch.Remove
-import scalafix.util.TreePatch.Rename
 import scalafix.util.TreePatch.RenamePatch
 import scalafix.util.TreePatch.Replace
 
-import org.scalameta.logger
+sealed abstract class Patch {
+  final private[scalafix] def underlying: Seq[Patch] = {
+    val builder = Seq.newBuilder[Patch]
+    def loop(patch: Patch): Unit = patch match {
+      case Concat(a, b) =>
+        loop(a)
+        loop(b)
+      case els =>
+        builder += els
+    }
+    loop(this)
+    builder.result()
+  }
+  // NOTE: this might potentially be very slow for large patches. We might want
+  // to make sure
+  def +(other: Patch): Patch = Concat(this, other)
+  def ++(other: Seq[Patch]): Patch = other.foldLeft(this)(_ + _)
+}
 
-sealed abstract class Patch
+private[scalafix] case class Concat(a: Patch, b: Patch) extends Patch
+private[scalafix] case object EmptyPatch extends Patch
 abstract class TreePatch extends Patch
 abstract class TokenPatch(val tok: Token, val newTok: String)
     extends TreePatch {
@@ -69,6 +86,8 @@ private[scalafix] object TokenPatch {
 
 }
 object Patch {
+  def fromSeq(seq: scala.Seq[Patch]): Patch = seq.foldLeft(empty)(_ + _)
+  def empty: Patch = EmptyPatch
   def merge(a: TokenPatch, b: TokenPatch): TokenPatch = (a, b) match {
     case (add1: Add, add2: Add) =>
       Add(add1.tok,
@@ -83,10 +102,11 @@ object Patch {
                    |1. $a
                    |2. $b""".stripMargin)
   }
-  def apply[T <: Mirror: CanOrganizeImports](patches: Seq[Patch])(
+  def apply[T <: Mirror: CanOrganizeImports](patch: Patch)(
       implicit ctx: RewriteCtx[T]): String = {
     if (ctx.config.debug.printSymbols)
       ctx.reporter.info(ctx.mirror.database.toString())
+    val patches = patch.underlying
     val ast = ctx.tree
     val input = ctx.tokens
     val tokenPatches = patches.collect { case e: TokenPatch => e }

@@ -79,9 +79,9 @@ object ScalaJsRewrites {
     val patches = patchB.result()
 
     if (patches.nonEmpty && config.imports.organize) {
-      AddGlobalImport(importer"scala.scalajs.js.annotation.JSGlobal") +: patches
+      AddGlobalImport(importer"scala.scalajs.js.annotation.JSGlobal") ++ patches
     } else {
-      patches
+      patches.asPatch
     }
   }
 }
