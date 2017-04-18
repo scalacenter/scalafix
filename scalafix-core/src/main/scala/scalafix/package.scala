@@ -1,9 +1,9 @@
 import scala.meta._
 
 package object scalafix {
-  type SemanticRewriteCtx = rewrite.RewriteCtx[Mirror]
-  type SyntacticRewriteCtx = rewrite.RewriteCtx[Any]
 
+  type SemanticRewrite = rewrite.Rewrite[Mirror]
+  type SyntaxRewrite = rewrite.Rewrite[Any]
   type Rewrite[T] = rewrite.Rewrite[T]
   val Rewrite = rewrite.Rewrite
 
@@ -11,6 +11,9 @@ package object scalafix {
   val Patch = util.Patch
 
   type RewriteCtx[T] = rewrite.RewriteCtx[T]
+  type SemanticRewriteCtx = RewriteCtx[Mirror]
+  // Syntactic rewrite ctx is RewriteCtx[Null] because it is a subtype of any other rewritectx.
+  type SyntacticRewriteCtx = RewriteCtx[Any]
   val RewriteCtx = rewrite.RewriteCtx
 
   implicit class XtensionSemanticRewriteCtx(val ctx: SemanticRewriteCtx)

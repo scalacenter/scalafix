@@ -1,4 +1,5 @@
-package scalafix.rewrite
+package scalafix
+package rewrite
 
 object ScalafixRewrites {
   val syntax: List[SyntaxRewrite] = List(

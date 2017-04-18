@@ -1,4 +1,5 @@
-package scalafix.util
+package scalafix
+package util
 
 import metaconfig._
 import scala.collection.immutable.Seq
@@ -7,8 +8,8 @@ import scala.meta.contrib._
 import scala.meta.internal.ast.Helpers._
 import scala.meta.tokens.Token
 import scala.meta.tokens.Token
+import scalafix.Fixed
 import scalafix.config._
-import scalafix.rewrite.RewriteCtx
 import scalafix.syntax._
 import scalafix.util.TokenPatch.Add
 import scalafix.util.TokenPatch.Remove
@@ -16,6 +17,8 @@ import scalafix.util.TreePatch.RenamePatch
 import scalafix.util.TreePatch.Replace
 
 sealed abstract class Patch {
+  def applied[T](ctx: RewriteCtx[T]): Fixed = ???
+
   final private[scalafix] def underlying: Seq[Patch] = {
     val builder = Seq.newBuilder[Patch]
     def loop(patch: Patch): Unit = patch match {

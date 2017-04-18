@@ -1,4 +1,5 @@
-package scalafix.rewrite
+package scalafix
+package rewrite
 
 import scala.collection.immutable.Seq
 import scala.meta._
@@ -16,14 +17,16 @@ abstract class Rewrite[-A](implicit sourceName: sourcecode.Name) {
   def name: String = sourceName.value
   override def toString: String = name
   def rewrite[B <: A](ctx: RewriteCtx[B]): Patch
-
   def andThen[B <: A](other: Rewrite[B]): Rewrite[B] =
     Rewrite(ctx => this.rewrite(ctx) + other.rewrite(ctx))
 }
 
 object Rewrite {
-  def withName[A](name: String)(f: RewriteCtx[A] => Patch): Rewrite[A] =
-    apply(f)(sourcecode.Name(name))
+  def empty[T]: Rewrite[T] = syntactic(_ => Patch.empty)
+  def syntactic(f: SyntacticRewriteCtx => Patch)(
+      implicit name: sourcecode.Name): SyntaxRewrite = apply(f)
+  def semantic(f: SemanticRewriteCtx => Patch)(
+      implicit name: sourcecode.Name): SemanticRewrite = apply(f)
   def apply[T](f: RewriteCtx[T] => Patch)(
       implicit name: sourcecode.Name): Rewrite[T] = new Rewrite[T]() {
     override def rewrite[B <: T](ctx: RewriteCtx[B]): Patch = f(ctx)
