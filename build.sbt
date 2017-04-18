@@ -126,6 +126,9 @@ lazy val core = project
       metaconfig,
       scalameta,
       scalahost,
+      // TODO(olafur) can we move this into separate module.
+      // Currently only used in Patch.appliedDiff
+      googleDiff,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
     )
   )
@@ -245,7 +248,7 @@ lazy val testkit = project
     publishSettings,
     libraryDependencies ++= Seq(
       ammonite,
-      "com.googlecode.java-diff-utils" % "diffutils" % "1.3.0",
+      googleDiff,
       scalatest
     )
   )

@@ -11,9 +11,11 @@ import scala.reflect.internal.util.SourceFile
 import scala.tools.nsc.Settings
 import scala.util.Try
 import scala.{meta => m}
+import scalafix.Failure
 import scalafix.Fixed
 import scalafix.Scalafix
 import scalafix.config.ScalafixConfig
+import scalafix.rewrite.RewriteCtx
 import scalafix.rewrite.ScalafixMirror
 case class SemanticContext(enclosingPackage: String, inScope: List[String])
 
@@ -225,11 +227,13 @@ trait NscScalafixMirror extends ReflectToolkit with HijackImportInfos {
       implicit mirror: Mirror): Fixed = {
     val api = getSemanticApi(unit, config)
     val input = getMetaInput(unit.source)
-    mirror.sources.find(_.pos.input.matches(input)) match {
-      case Some(source) =>
-        Scalafix.fix(source, config, Some(api))
-      case None =>
-        Scalafix.fix(input, config, Some(api))
-    }
+    mirror.sources
+      .find(_.pos.input.matches(input))
+      .map { source =>
+        val ctx = RewriteCtx.apply(source, config, api)
+        Scalafix.fix(ctx)
+      }
+      .getOrElse(Fixed.Failed(Failure.Unexpected(new IllegalStateException(
+        s"Unable to find source $input in ${api.database}"))))
   }
 }

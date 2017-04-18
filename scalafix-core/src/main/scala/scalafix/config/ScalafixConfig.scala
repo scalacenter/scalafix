@@ -4,6 +4,8 @@ import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.dialects.Scala211
 import scala.meta.parsers.Parse
+import scalafix.rewrite.Rewrite
+import scalafix.rewrite.ScalafixMirror
 import scalafix.rewrite.ScalafixRewrite
 import scalafix.syntax._
 import scalafix.util.FileOps
@@ -25,6 +27,8 @@ case class ScalafixConfig(
     dialect: Dialect = Scala211
 ) {
 
+  def combinedRewrite: ScalafixRewrite =
+    rewrites.foldLeft(Rewrite.empty[ScalafixMirror])(_ andThen _)
   def withRewrites(
       f: List[ScalafixRewrite] => List[ScalafixRewrite]): ScalafixConfig =
     copy(rewrites = f(rewrites).distinct)

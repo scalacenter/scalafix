@@ -16,14 +16,24 @@ import scalafix.util.TokenPatch.Remove
 import scalafix.util.TreePatch.RenamePatch
 import scalafix.util.TreePatch.Replace
 
+import difflib.DiffUtils
+
 sealed abstract class Patch {
   // NOTE: potential bottle-neck, this might be very slow for large
   // patches. We might want to group related patches and enforce some ordering.
   def +(other: Patch): Patch = Concat(this, other)
   def ++(other: Seq[Patch]): Patch = other.foldLeft(this)(_ + _)
 
-  def appliedDiff[T](implicit ctx: RewriteCtx[T]): Fixed = ???
-  def applied[T](implicit ctx: RewriteCtx[T]): Fixed = ???
+  def appliedDiff[T <: Mirror: CanOrganizeImports](
+      implicit ctx: RewriteCtx[T]): String = {
+    val original = ctx.tree.syntax
+    val obtained = applied[T]
+    Patch.unifiedDiff(original, obtained)
+  }
+
+  def applied[T <: Mirror: CanOrganizeImports](
+      implicit ctx: RewriteCtx[T]): String =
+    Patch.apply[T](this)
 }
 
 private[scalafix] case class Concat(a: Patch, b: Patch) extends Patch
@@ -51,7 +61,8 @@ private[scalafix] object TreePatch {
       if (normalize) symbol.normalized == resolvedFrom
       else symbol == resolvedFrom
   }
-  @metaconfig.DeriveConfDecoder
+
+  @DeriveConfDecoder
   case class Replace(from: Symbol,
                      to: Term.Ref,
                      additionalImports: List[Importer] = Nil,
@@ -135,5 +146,15 @@ object Patch {
     }
     loop(patch)
     builder.result()
+  }
+
+  def unifiedDiff(a: String, b: String): String = {
+    import scala.collection.JavaConverters._
+    val originalLines = a.lines.toSeq.asJava
+    val diff = DiffUtils.diff(originalLines, b.lines.toSeq.asJava)
+    DiffUtils
+      .generateUnifiedDiff("original", "revised", originalLines, diff, 3)
+      .asScala
+      .mkString("\n")
   }
 }

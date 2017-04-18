@@ -2,15 +2,18 @@ package scalafix.cli
 
 import scala.collection.GenSeq
 import scala.meta.Mirror
+import scala.meta.Tree
 import scala.meta.dialects
 import scala.meta.internal.scalahost.v1.offline
 import scala.meta.inputs.Input
+import scala.meta.parsers.Parsed
 import scala.util.Success
 import scala.util.Try
 import scala.util.control.NonFatal
 import scalafix.Failure
 import scalafix.syntax._
 import scalafix.Fixed
+import scalafix.Fixed.Failed
 import scalafix.Scalafix
 import scalafix.cli.termdisplay.TermDisplay
 import scalafix.config.PrintStreamReporter
@@ -198,6 +201,14 @@ object Cli {
     cause.setStackTrace(
       cause.getStackTrace.take(options.common.stackVerbosity))
     cause.printStackTrace(options.common.err)
+  }
+
+  def parsed(code: Input, config: ScalafixConfig): Either[Failed, Tree] = {
+    config.parser.apply(code, config.dialect) match {
+      case Parsed.Success(ast) => Right(ast)
+      case Parsed.Error(pos, msg, e) =>
+        Left(Fixed.Failed(Failure.ParseError(pos, msg, e)))
+    }
   }
 
   def handleFile(file: File, options: ScalafixOptions): ExitStatus = {
