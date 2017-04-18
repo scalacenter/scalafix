@@ -28,8 +28,8 @@ sealed abstract class Patch {
     loop(this)
     builder.result()
   }
-  // NOTE: this might potentially be very slow for large patches. We might want
-  // to make sure
+  // NOTE: potential bottle-neck, this might be very slow for large
+  // patches. We might want to group related patches and enforce some ordering.
   def +(other: Patch): Patch = Concat(this, other)
   def ++(other: Seq[Patch]): Patch = other.foldLeft(this)(_ + _)
 }

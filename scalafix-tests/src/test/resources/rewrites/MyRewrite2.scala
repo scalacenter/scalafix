@@ -1,9 +1,5 @@
 import scalafix._
-import scalafix.rewrite._
-import scalafix.util._
-import scala.collection.immutable.Seq
 import scala.meta._
-import scalafix.config.ScalafixConfig
 
 object Rewrites {
   val myRewrite = Rewrite[Any] { ctx =>

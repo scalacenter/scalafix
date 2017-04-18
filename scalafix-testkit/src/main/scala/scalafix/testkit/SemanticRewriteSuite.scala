@@ -22,6 +22,7 @@ import scalafix.nsc.ScalafixNscPlugin
 
 import java.io.File
 import java.io.PrintWriter
+import java.net.URLClassLoader
 
 import org.scalameta.logger
 import org.scalatest.FunSuite
@@ -220,5 +221,12 @@ abstract class SemanticRewriteSuite(classpath: String)
         check(dt.original, dt.expected, dt)
       }
     }
+  }
+}
+object SemanticRewriteSuite {
+  def thisClasspath: String = this.getClass.getClassLoader match {
+    case u: URLClassLoader =>
+      u.getURLs.map(_.getPath).mkString(java.io.File.pathSeparator)
+    case _ => ""
   }
 }

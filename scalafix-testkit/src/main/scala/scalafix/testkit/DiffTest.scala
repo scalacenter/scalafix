@@ -54,8 +54,12 @@ object DiffTest {
     name.stripPrefix("SKIP ").stripPrefix("ONLY ").trim
   private def apply(testDir: File,
                     content: String,
-                    filename: String): Seq[DiffTest] = {
-    val spec = filename.stripPrefix(testDir.getPath + File.separator)
+                    filename: String): Seq[DiffTest] =
+    apply(filename.stripPrefix(testDir.getPath + File.separator),
+          content,
+          filename)
+
+  def apply(spec: String, content: String, filename: String): Seq[DiffTest] = {
     val moduleOnly = isOnly(content)
     val moduleSkip = isSkip(content)
     val split = content.split("\n<<< ")
