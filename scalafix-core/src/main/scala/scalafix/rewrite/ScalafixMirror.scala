@@ -14,6 +14,7 @@ import sourcecode.Enclosing
   *
   * See [[ExplicitImplicit]] for an example usage of this semantic api.
   */
+@deprecated("Use scala.meta.Mirror instead.", "0.4")
 trait ScalafixMirror extends Mirror {
 
   /** Returns the type annotation for given val/def. */
