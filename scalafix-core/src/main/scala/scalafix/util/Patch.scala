@@ -31,7 +31,7 @@ abstract class ImportPatch(val importer: Importer) extends TreePatch {
   def toImport: Import = Import(Seq(importer))
 }
 
-object TreePatch {
+private[scalafix] object TreePatch {
   trait RenamePatch
   case class Rename(from: Name, to: Name) extends TreePatch with RenamePatch
   case class RenameSymbol(from: Symbol, to: Name, normalize: Boolean = false)
@@ -56,7 +56,7 @@ object TreePatch {
       extends ImportPatch(importer)
 }
 
-object TokenPatch {
+private[scalafix] object TokenPatch {
   case class Remove(override val tok: Token) extends TokenPatch(tok, "")
   def AddRight(tok: Token, toAdd: String): TokenPatch = Add(tok, "", toAdd)
   def AddLeft(tok: Token, toAdd: String): TokenPatch = Add(tok, toAdd, "")

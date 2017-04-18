@@ -1,5 +1,5 @@
 rewrites = [
-  "file:scalafix-tests/src/resources/rewrites/MyRewrite.scala"
+  "file:scalafix-tests/src/test/resources/rewrites/MyRewrite.scala"
 ]
 <<< NOWRAP basic
 object Name

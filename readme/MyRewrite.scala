@@ -8,7 +8,7 @@ import scala.meta._
 case object MyRewrite extends Rewrite[Any] {
   def rewrite[T](ctx: RewriteCtx[T]): Seq[Patch] = {
     ctx.tree.collect {
-      case n: scala.meta.Name => Rename(n, Term.Name(n.syntax + "1"))
+      case n: scala.meta.Name => ctx.rename(n, Term.Name(n.syntax + "1"))
     }
   }
 }

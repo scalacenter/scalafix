@@ -3,9 +3,7 @@ package scalafix.util
 import scala.collection.immutable.Seq
 import scala.collection.mutable
 import scala.tools.reflect.ToolBoxError
-import scala.util.control.NonFatal
 import scalafix.rewrite.Rewrite
-import scalafix.util.TreeExtractors._
 
 import metaconfig.ConfError
 import metaconfig.Configured

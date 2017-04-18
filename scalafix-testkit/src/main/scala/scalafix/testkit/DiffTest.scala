@@ -62,7 +62,14 @@ object DiffTest {
 
     val style: ScalafixConfig = {
       val firstLine = split.head
-      ScalafixConfig.fromString(firstLine).get
+      ScalafixConfig.fromString(firstLine) match {
+        case Configured.Ok(x) => x
+        case Configured.NotOk(x) =>
+          throw new IllegalArgumentException(
+            s"Failed to parse $filename",
+            new IllegalArgumentException(x.toString()))
+
+      }
     }
 
     split.tail.map { t =>
