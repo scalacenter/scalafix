@@ -1,4 +1,5 @@
-package scalafix.config
+package scalafix
+package config
 
 import scala.meta.Ref
 import scala.meta._
@@ -8,12 +9,10 @@ import scala.reflect.ClassTag
 import scala.util.Try
 import scala.util.matching.Regex
 import scalafix.rewrite.ScalafixMirror
-import scalafix.rewrite.ScalafixRewrite
 import scalafix.rewrite.ScalafixRewrites
-import scalafix.util.ClassloadObject
+import scalafix.util.ClassloadRewrite
 import scalafix.util.FileOps
-import scalafix.util.ScalafixToolbox
-import scalafix.util.TreePatch._
+import scalafix.patch.TreePatch._
 
 import java.io.File
 import java.io.OutputStream
@@ -39,11 +38,10 @@ trait ScalafixMetaconfigReaders {
     ReaderUtil.oneOf[Dialect](Scala211, Sbt0137, Dotty, Paradise211)
   }
 
-  object ClassloadRewrite {
+  object FromClassloadRewrite {
     def unapply(arg: Conf.Str): Option[String] = arg match {
       case UriRewrite("scala", uri) =>
-        val suffix = if (arg.value.endsWith("$")) "" else "$"
-        Option(uri.getSchemeSpecificPart + suffix)
+        Option(uri.getSchemeSpecificPart)
       case _ => None
     }
   }
@@ -56,38 +54,48 @@ trait ScalafixMetaconfigReaders {
       } yield scheme -> uri
   }
 
-  object UrlRewrite {
-    def unapply(arg: Conf.Str): Option[URL] = arg match {
-      case UriRewrite("http" | "https", uri) if uri.isAbsolute =>
-        Option(uri.toURL)
-      case _ => None
+  def scalafixConfigEmptyRewriteReader: ConfDecoder[(Conf, ScalafixConfig)] =
+    ConfDecoder.instance[(Conf, ScalafixConfig)] {
+      case Conf.Obj(values) =>
+        val (rewrites, noRewrites) = values.partition(_._1 == "rewrites")
+        val rewriteConf =
+          Configured.Ok(rewrites.lastOption.map(_._2).getOrElse(Conf.Lst()))
+        val config =
+          ScalafixConfig.syntaxConfDecoder.read(Conf.Obj(noRewrites))
+        rewriteConf.product(config)
+    }
+  def scalafixConfigConfDecoder(mirror: Option[ScalafixMirror])(
+      implicit rewriteDecoder: ConfDecoder[Rewrite]
+  ): ConfDecoder[ScalafixConfig] = {
+    mirror match {
+      case None => scalafixConfigEmptyRewriteReader.map(_._2)
+      case Some(mirror) =>
+        scalafixConfigEmptyRewriteReader.flatMap {
+          case (rewriteConf, scalafixConfig) =>
+            implicit val rewritesReader =
+              implicitly[ConfDecoder[List[Rewrite]]]
+            rewritesReader
+              .read(rewriteConf)
+              .map { rewrites =>
+                val combined =
+                  rewrites.foldLeft(Rewrite.emptySemantic(mirror))(_ andThen _)
+                scalafixConfig.copy(rewrite = combined)
+              }
+        }
     }
   }
 
-  object FileRewrite {
-    def unapply(arg: Conf.Str): Option[File] = arg match {
-      case UriRewrite("file", uri) =>
-        Option(new File(uri.getSchemeSpecificPart).getAbsoluteFile)
-      case _ => None
-    }
-  }
-
-  object FromSourceRewrite {
-    def unapply(arg: Conf.Str): Option[String] = arg match {
-      case FileRewrite(file) => Option(FileOps.readFile(file))
-      case UrlRewrite(url) => Option(FileOps.readURL(url))
-      case _ => None
-    }
-  }
-
-  implicit lazy val rewriteReader: ConfDecoder[ScalafixRewrite] =
-    ConfDecoder.instance[ScalafixRewrite] {
-      case ClassloadRewrite(fqn) =>
-        ClassloadObject[ScalafixRewrite](fqn)
-      case FromSourceRewrite(code) =>
-        ScalafixToolbox.getRewrite[ScalafixMirror](code)
+  def rewriteConfDecoder(
+      mirror: Option[ScalafixMirror]): ConfDecoder[Rewrite] =
+    ConfDecoder.instance[Rewrite] {
+      case FromClassloadRewrite(fqn) =>
+        ClassloadRewrite(fqn, mirror.toList)
       case els =>
-        ReaderUtil.fromMap(ScalafixRewrites.name2rewrite).read(els)
+        val name2rewrite = mirror match {
+          case Some(mirror) => ScalafixRewrites.name2rewrite(mirror)
+          case None => ScalafixRewrites.syntaxName2rewrite
+        }
+        ReaderUtil.fromMap(name2rewrite).read(els)
     }
 
   object ConfStrLst {

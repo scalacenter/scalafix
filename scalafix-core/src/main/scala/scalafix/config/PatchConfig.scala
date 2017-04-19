@@ -1,11 +1,11 @@
 package scalafix.config
 
-import scalafix.util.TreePatch.AddGlobalImport
-import scalafix.util.TreePatch.Replace
-import scalafix.util.TreePatch
+import scalafix.patch.TreePatch.AddGlobalImport
+import scalafix.patch.TreePatch.Replace
+import scalafix.patch.TreePatch
 import scala.collection.immutable.Seq
-import scalafix.util.ImportPatch
-import scalafix.util.TreePatch.RemoveGlobalImport
+import scalafix.patch.ImportPatch
+import scalafix.patch.TreePatch.RemoveGlobalImport
 import metaconfig._
 
 @DeriveConfDecoder

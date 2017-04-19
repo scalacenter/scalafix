@@ -1,7 +1,6 @@
 package scalafix.tests
 
 import scalafix.rewrite.Rewrite
-import scalafix.rewrite.ScalafixRewrite
 import scalafix.rewrite.ScalafixRewrites
 
 import ammonite.ops._
@@ -15,7 +14,7 @@ case class ItTest(
     hash: String,
     config: String = "",
     commands: Seq[Command] = Command.default,
-    rewrites: Seq[ScalafixRewrite] = ScalafixRewrites.default,
+    rewrites: Seq[String] = ScalafixRewrites.defaultName,
     addCoursier: Boolean = true
 ) {
   def repoName: String = repo match {

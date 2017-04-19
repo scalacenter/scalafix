@@ -2,33 +2,52 @@ package scalafix
 package rewrite
 
 import scala.collection.immutable.Seq
-import scala.meta._
-import scalafix.util.Patch
 import scala.collection.immutable.Seq
+import scala.meta._
 import scalafix.config.ReaderUtil
 
-/** A rewrite is a named RewriteCtx[A] => Seq[Patch] function.
-  * @tparam A Required api in [[ScalafixMirror]]. Example values:
-  *           [[ScalafixMirror]] for scalafix-nsc,
-  *           [[scala.meta.Mirror]] when using scalahost or
-  *           [[Any]] for syntactic rewrites.
-  */
-abstract class Rewrite[-A](implicit sourceName: sourcecode.Name) {
+import metaconfig.ConfDecoder
+import sourcecode.Name
+
+/** A rewrite is a named RewriteCtx => Patch function. */
+abstract class Rewrite(implicit sourceName: Name) { self =>
+
   def name: String = sourceName.value
   override def toString: String = name
-  def rewrite[B <: A](ctx: RewriteCtx[B]): Patch
-  def andThen[B <: A](other: Rewrite[B]): Rewrite[B] =
-    Rewrite(ctx => this.rewrite(ctx) + other.rewrite(ctx))
+  def rewrite(ctx: RewriteCtx): Patch
+  def andThen(other: Rewrite): Rewrite = Rewrite.merge(this, other)
+  private[scalafix] def wrappedRewrite(ctx: RewriteCtx): Patch =
+    patch.InCtx(rewrite(ctx), ctx, None)
+}
+
+abstract class SemanticRewrite(mirror: Mirror)(implicit name: Name)
+    extends Rewrite {
+  private[scalafix] override def wrappedRewrite(ctx: RewriteCtx): Patch =
+    patch.InCtx(rewrite(ctx), ctx, Some(mirror))
 }
 
 object Rewrite {
-  def empty[T]: Rewrite[T] = syntactic(_ => Patch.empty)
-  def syntactic(f: SyntacticRewriteCtx => Patch)(
-      implicit name: sourcecode.Name): SyntaxRewrite = apply(f)
-  def semantic(f: SemanticRewriteCtx => Patch)(
-      implicit name: sourcecode.Name): SemanticRewrite = apply(f)
-  def apply[T](f: RewriteCtx[T] => Patch)(
-      implicit name: sourcecode.Name): Rewrite[T] = new Rewrite[T]() {
-    override def rewrite[B <: T](ctx: RewriteCtx[B]): Patch = f(ctx)
+  val syntaxRewriteConfDecoder = config.rewriteConfDecoder(None)
+  def empty: Rewrite = syntactic(_ => Patch.empty)
+  def emptySemantic(mirror: Mirror)(implicit name: Name): Rewrite =
+    semantic(x => y => Patch.empty)(name)(mirror)
+  def syntactic(f: RewriteCtx => Patch)(implicit name: Name): Rewrite =
+    new Rewrite() {
+      override def rewrite(ctx: RewriteCtx): Patch = f(ctx)
+    }
+  def semantic(f: Mirror => RewriteCtx => Patch)(
+      implicit name: Name): Mirror => Rewrite = { mirror =>
+    new SemanticRewrite(mirror) {
+      override def rewrite(ctx: RewriteCtx): Patch = f(mirror)(ctx)
+    }
+  }
+  def merge(a: Rewrite, b: Rewrite): Rewrite = {
+    val newName = if (a.name == "empty") b.name else s"${a.name}+${b.name}"
+    new Rewrite()(Name(newName)) {
+      override def rewrite(ctx: RewriteCtx) =
+        a.rewrite(ctx) + b.rewrite(ctx)
+      override def wrappedRewrite(ctx: RewriteCtx): Patch =
+        a.wrappedRewrite(ctx) + b.wrappedRewrite(ctx)
+    }
   }
 }

@@ -113,6 +113,15 @@ lazy val metaconfigSettings: Seq[Def.Setting[_]] = Seq(
   sources in (Compile, doc) := Nil // macroparadise doesn't work with scaladoc yet.
 )
 
+lazy val reflect = project
+  .configure(setId)
+  .settings(
+    allSettings,
+    publishSettings,
+    isFullCrossVersion,
+    libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
+  )
+  .dependsOn(core)
 lazy val core = project
   .configure(setId)
   .settings(
@@ -128,8 +137,7 @@ lazy val core = project
       scalahost,
       // TODO(olafur) can we move this into separate module.
       // Currently only used in Patch.appliedDiff
-      googleDiff,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value
+      googleDiff
     )
   )
   .enablePlugins(BuildInfoPlugin)
@@ -179,7 +187,10 @@ lazy val nsc = project
     },
     exposePaths("scalafixNsc", Test)
   )
-  .dependsOn(core)
+  .dependsOn(
+    core,
+    reflect
+  )
 
 lazy val cli = project
   .configure(setId)
@@ -189,12 +200,15 @@ lazy val cli = project
     isFullCrossVersion,
     mainClass in assembly := Some("scalafix.cli.Cli"),
     libraryDependencies ++= Seq(
-      "com.github.scopt"           %% "scopt"         % "3.5.0",
       "com.github.alexarchambault" %% "case-app"      % "1.1.3",
       "com.martiansoftware"        % "nailgun-server" % "0.9.1"
     )
   )
-  .dependsOn(core, testkit % Test)
+  .dependsOn(
+    core,
+    reflect,
+    testkit % Test
+  )
 
 lazy val fatcli = project
   .configure(setId)
@@ -277,6 +291,7 @@ lazy val tests = project
   )
   .dependsOn(
     core,
+    reflect,
     nsc,
     testkit
   )

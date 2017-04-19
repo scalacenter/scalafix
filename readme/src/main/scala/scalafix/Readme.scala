@@ -1,10 +1,9 @@
 package scalafix
 
-import scalafix.config.ScalafixConfig
+import scalafix.reflect.ScalafixCompilerDecoder
 import scalatags.Text.TypedTag
 import scalatags.Text.all._
 import scalatex.site.Highlighter
-import scalatex.site.Main
 
 object Readme {
   val highlight = new Highlighter {}
@@ -24,7 +23,7 @@ object Readme {
   def comment(frags: Frag*): TypedTag[String] = span("")
   def config(str: String): TypedTag[String] = {
     // assert that config listings in docs is free of typos.
-    ScalafixConfig.fromString(str).get
+    ScalafixConfig.fromString(str, None)(ScalafixCompilerDecoder(None)).get
     highlight.scala(str)
   }
 }

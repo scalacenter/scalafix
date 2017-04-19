@@ -1,12 +1,12 @@
-package scalafix.rewrite
+package scalafix
+package rewrite
 
 import scala.{meta => m}
-import scalafix.util.Patch
 import scalafix.util.Whitespace
 import scala.collection.immutable.Seq
-import scalafix.util.TokenPatch
 
-case object ExplicitImplicit extends Rewrite[ScalafixMirror] {
+case class ExplicitImplicit(implicit mirror: ScalafixMirror)
+    extends SemanticRewrite(mirror) {
   // Don't explicitly annotate vals when the right-hand body is a single call
   // to `implicitly`. Prevents ambiguous implicit. Not annotating in such cases,
   // this a common trick employed implicit-heavy code to workaround SI-2712.
@@ -15,7 +15,7 @@ case object ExplicitImplicit extends Rewrite[ScalafixMirror] {
     case m.Term.ApplyType(m.Term.Name("implicitly"), _) => true
     case _ => false
   }
-  override def rewrite[T <: ScalafixMirror](ctx: RewriteCtx[T]): Patch = {
+  override def rewrite(ctx: RewriteCtx): Patch = {
     import scala.meta._
     import ctx._
     def fix(defn: Defn, body: Term): Seq[Patch] = {
@@ -29,7 +29,7 @@ case object ExplicitImplicit extends Rewrite[ScalafixMirror] {
         replace <- lhsTokens.reverseIterator.find(x =>
           !x.is[Token.Equals] && !x.is[Whitespace])
         typ <- mirror.typeSignature(defn)
-      } yield TokenPatch.AddRight(replace, s": ${typ.syntax}")
+      } yield ctx.addRight(replace, s": ${typ.syntax}")
     }.to[Seq]
     tree
       .collect {

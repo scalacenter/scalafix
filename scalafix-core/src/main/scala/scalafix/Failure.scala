@@ -3,7 +3,9 @@ package scalafix
 import scala.meta.inputs.Position
 
 sealed abstract class Failure(val ex: Throwable)
-    extends Exception(ex.getMessage)
+    extends Exception(ex.getMessage) {
+  override def getCause: Throwable = ex
+}
 
 object Failure {
   case class ParseError(pos: Position, message: String, exception: Throwable)

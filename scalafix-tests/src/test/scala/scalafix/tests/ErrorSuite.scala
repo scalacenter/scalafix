@@ -1,8 +1,5 @@
 package scalafix.tests
 
-import scalafix.Failure
-import scalafix.Fixed
-import scalafix.Scalafix
 import scalafix.rewrite.ProcedureSyntax
 import scalafix.testkit.SyntacticRewriteSuite
 

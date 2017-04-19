@@ -1,4 +1,5 @@
-package scalafix.nsc
+package scalafix
+package nsc
 
 import scala.meta.internal.scalahost.v1.online.Mirror
 import scala.meta.semantic.v1
@@ -10,11 +11,13 @@ import scala.tools.nsc.plugins.PluginComponent
 import scala.util.control.NonFatal
 import scalafix.Failure.ParseError
 import scalafix.config.ScalafixConfig
+import scalafix.rewrite.ScalafixMirror
 import scalafix.util.FileOps
 
 class ScalafixNscComponent(plugin: Plugin,
                            val global: Global,
-                           getConfig: () => ScalafixConfig)
+                           getConfig: () => ScalafixConfig,
+                           getRewrite: ScalafixMirror => Rewrite)
     extends PluginComponent
     with ReflectToolkit
     with NscScalafixMirror {
@@ -40,7 +43,7 @@ class ScalafixNscComponent(plugin: Plugin,
         unit.source.file.file.isFile &&
         !unit.isJava) {
       val config = getConfig()
-      val fixed = fix(unit, config).get
+      val fixed = fix(unit, config, getRewrite).get
       if (fixed.nonEmpty && fixed != new String(unit.source.content)) {
         FileOps.writeFile(unit.source.file.file, fixed)
       }
@@ -50,8 +53,6 @@ class ScalafixNscComponent(plugin: Plugin,
     override def name: String = "scalafix"
     override def run(): Unit = {
       implicit val mirror = new Mirror(global) {
-        // super.database is a def, which means the entire database is recalculated
-        // on every call to .symbol.
         override lazy val database = super.database
       }
       global.currentRun.units.foreach { unit =>

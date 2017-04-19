@@ -9,7 +9,7 @@ object CanonicalImport {
   def fromWildcard(ref: Term.Ref,
                    wildcard: Importee.Wildcard,
                    extraImportees: Seq[Importee])(
-      implicit ctx: SyntacticRewriteCtx,
+      implicit ctx: RewriteCtx,
       ownerImport: Import
   ): CanonicalImport =
     new CanonicalImport(
@@ -22,7 +22,7 @@ object CanonicalImport {
       None
     ) {}
   def fromImportee(ref: Term.Ref, importee: Importee)(
-      implicit ctx: SyntacticRewriteCtx,
+      implicit ctx: RewriteCtx,
       ownerImport: Import
   ): CanonicalImport =
     new CanonicalImport(
@@ -49,7 +49,7 @@ sealed case class CanonicalImport(
     leadingComments: Set[Comment],
     trailingComments: Set[Comment],
     fullyQualifiedRef: Option[Term.Ref]
-)(implicit ctx: SyntacticRewriteCtx)
+)(implicit ctx: RewriteCtx)
     extends Ordered[CanonicalImport] {
   lazy val isRootImport: Boolean = ref.collectFirst {
     case q"_root_.$name" => name

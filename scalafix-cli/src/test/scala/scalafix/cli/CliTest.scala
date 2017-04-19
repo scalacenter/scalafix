@@ -59,7 +59,7 @@ class CliTest extends FunSuite with DiffAssertions {
     assert(obtained.inPlace)
     assert(obtained.debug)
     assert(obtained.singleThread)
-    assert(obtained.resolvedConfig.imports.groupByPrefix)
+    assert(obtained.resolvedConfig.get.imports.groupByPrefix)
     assert(
       obtained.files == List("a.scala", "b.scala", "foo.scala", "bar.scala"))
   }
@@ -69,7 +69,7 @@ class CliTest extends FunSuite with DiffAssertions {
     FileOps.writeFile(file, original)
     Cli.runOn(
       ScalafixOptions(
-        rewrites = List(ProcedureSyntax),
+        rewrites = List(ProcedureSyntax.toString),
         files = List(file.getAbsolutePath),
         inPlace = true
       ))
@@ -80,13 +80,15 @@ class CliTest extends FunSuite with DiffAssertions {
     val file = File.createTempFile("prefix", ".scala")
     FileOps.writeFile(file, original)
     val baos = new ByteArrayOutputStream()
-    Cli.runOn(
+    val exit = Cli.runOn(
       ScalafixOptions(
         common = CommonOptions(
           out = new PrintStream(baos)
         ),
+        rewrites = List(ProcedureSyntax.toString),
         files = List(file.getAbsolutePath)
       ))
+    assert(exit == ExitStatus.Ok)
     assertNoDiff(FileOps.readFile(file), original)
     assertNoDiff(new String(baos.toByteArray), expected)
   }
@@ -105,7 +107,9 @@ class CliTest extends FunSuite with DiffAssertions {
     val file1, file2 = createFile()
 
     Cli.runOn(
-      ScalafixOptions(files = List(dir.getAbsolutePath), inPlace = true))
+      ScalafixOptions(rewrites = List(ProcedureSyntax.toString),
+                      files = List(dir.getAbsolutePath),
+                      inPlace = true))
     assertNoDiff(FileOps.readFile(file1), expected)
     assertNoDiff(FileOps.readFile(file2), expected)
   }
@@ -113,7 +117,7 @@ class CliTest extends FunSuite with DiffAssertions {
   test("--rewrites") {
     val Right(WithHelp(_, _, obtained)) =
       Cli.parse(Seq("--rewrites", "VolatileLazyVal"))
-    assert(obtained.rewrites == List(VolatileLazyVal))
+    assert(obtained.resolvedConfig.get.rewrite.name == "VolatileLazyVal")
     assert(Cli.parse(Seq("--rewrites", "Foobar")).isLeft)
   }
 
@@ -146,17 +150,18 @@ class CliTest extends FunSuite with DiffAssertions {
     val file = File.createTempFile("prefix", ".scala")
     FileOps.writeFile(file, "object a { implicit val x = ??? }")
     val code = Cli.runOn(
-      ScalafixOptions(rewrites = List(ExplicitImplicit),
+      ScalafixOptions(rewrites = List(ExplicitImplicit.toString),
                       files = List(file.getAbsolutePath),
                       inPlace = true,
                       common = devNull))
-    assert(code == ExitStatus.ScalafixError)
+    assert(code == ExitStatus.UnexpectedError)
   }
+
   test(".sbt files get fixed with sbt dialect") {
     val file = File.createTempFile("prefix", ".sbt")
     FileOps.writeFile(file, "def foo { println(1) }\n")
     val code = Cli.runOn(
-      ScalafixOptions(rewrites = List(ProcedureSyntax),
+      ScalafixOptions(rewrites = List(ProcedureSyntax.toString),
                       files = List(file.getAbsolutePath),
                       inPlace = true,
                       common = devNull))

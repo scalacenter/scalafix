@@ -1,28 +1,35 @@
 import scala.meta._
+import scalafix.patch.SemanticPatchOps
+import scalafix.patch.SyntacticPatchOps
 
 package object scalafix {
 
-//  type ScalafixConfig = config.ScalafixConfigT[rewrite.ScalafixMirror]
+  type ScalafixConfig = config.ScalafixConfig
+  val ScalafixConfig = config.ScalafixConfig
 
-  type SemanticRewrite = rewrite.Rewrite[Mirror]
-  type SyntaxRewrite = rewrite.Rewrite[Any]
-  type Rewrite[T] = rewrite.Rewrite[T]
-  val Rewrite = rewrite.Rewrite
-
-  type Patch = util.Patch
-  val Patch = util.Patch
-
-  type RewriteCtx[T] = rewrite.RewriteCtx[T]
-  type SemanticRewriteCtx = RewriteCtx[Mirror]
-  // Syntactic rewrite ctx is RewriteCtx[Null] because it is a subtype of any other rewritectx.
-  type SyntacticRewriteCtx = RewriteCtx[Any]
+  type RewriteCtx = rewrite.RewriteCtx
   val RewriteCtx = rewrite.RewriteCtx
 
-  implicit class XtensionSemanticRewriteCtx(val ctx: SemanticRewriteCtx)
-      extends rewrite.SemanticPatchOps
-  implicit class XtensionRewriteCtx[T](val ctx: RewriteCtx[T])
-      extends rewrite.SyntacticPatchOps[T]
+  type SemanticRewrite = rewrite.SemanticRewrite
+  type Rewrite = rewrite.Rewrite
+  val Rewrite = rewrite.Rewrite
+
+  type Patch = patch.Patch
+  val Patch = patch.Patch
+
+  implicit class XtensionMirrorRewriteCtx(val ctx: RewriteCtx)(
+      implicit val mirror: Mirror)
+      extends SemanticPatchOps(ctx, mirror) {
+    def semanticOps: SemanticPatchOps = this
+  }
+  implicit class XtensionRewriteCtx(val ctx: RewriteCtx)
+      extends SyntacticPatchOps(ctx) {
+    def semanticOps: SyntacticPatchOps = this
+  }
   implicit class XtensionSeqPatch(patches: Seq[Patch]) {
     def asPatch: Patch = Patch.fromSeq(patches)
+  }
+  implicit class XtensionOptionPatch(patch: Option[Patch]) {
+    def asPatch: Patch = patch.getOrElse(Patch.empty)
   }
 }

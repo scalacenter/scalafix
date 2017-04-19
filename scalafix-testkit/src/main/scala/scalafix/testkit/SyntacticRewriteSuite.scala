@@ -1,15 +1,15 @@
-package scalafix.testkit
+package scalafix
+package testkit
 
 import scala.meta._
 import scala.collection.immutable.Seq
 import scalafix.Scalafix
 import scalafix.config.ScalafixConfig
 import scalafix.rewrite.RewriteCtx
-import scalafix.rewrite.ScalafixRewrite
 
 import org.scalatest.FunSuiteLike
 
-class SyntacticRewriteSuite(rewrite: ScalafixRewrite)
+class SyntacticRewriteSuite(rewrite: Rewrite)
     extends FunSuiteLike
     with DiffAssertions {
   def check(name: String, original: String, expected: String): Unit = {

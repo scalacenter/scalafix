@@ -120,7 +120,7 @@ class ScalajsBootstrap
         name = "scalajs-bootstrap",
         repo = "https://github.com/Karasiq/scalajs-bootstrap.git",
         hash = "1cf125a8f78951df9a1a274f19b81221e55ad4bd",
-        rewrites = List(ScalaJsRewrites.DemandJSGlobal),
+        rewrites = List("DemandJSGlobal"),
         config = "imports.organize = false",
         commands = Seq(
           Command("scalafix")
@@ -135,7 +135,7 @@ class ScalajsSri
         name = "sri",
         repo = "https://github.com/chandu0101/sri.git",
         hash = "2526f0574f7ef8088f209ff50d38f72c458e0a62",
-        rewrites = List(ScalaJsRewrites.DemandJSGlobal),
+        rewrites = List("DemandJSGlobal"),
         config = "imports.organize = false",
         commands = Seq(
           Command("scalafix")

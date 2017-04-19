@@ -8,9 +8,9 @@ import scala.collection.immutable.{Seq, Map, List => L}
 >>>
 import scala.collection.immutable.{ List => L, Map, Seq }
 <<< relative imports
-import scalafix.rewrite.{ ExplicitImplicit, ProcedureSyntax }
-import ExplicitImplicit.rewrite
+import scala.collection.{mutable, immutable}
+import immutable.Seq
 >>>
-import scalafix.rewrite.{ ExplicitImplicit, ProcedureSyntax }
+import scala.collection.{ immutable, mutable }
 
-import ExplicitImplicit.rewrite
+import immutable.Seq
