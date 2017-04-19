@@ -1,14 +1,10 @@
-package scalafix.config
+package scalafix
+package config
 
 import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.dialects.Scala211
 import scala.meta.parsers.Parse
-import scalafix.rewrite.Rewrite
-import scalafix.rewrite.ScalafixMirror
-import scalafix.rewrite.ScalafixRewrite
-import scalafix.syntax._
-import scalafix.util.FileOps
 
 import java.io.File
 
@@ -17,7 +13,7 @@ import metaconfig.typesafeconfig.TypesafeConfig2Class
 
 @DeriveConfDecoder
 case class ScalafixConfig(
-    rewrites: List[ScalafixRewrite] = Nil,
+//    rewrites: List[SyntaxRewrite] = Nil,
     parser: Parse[_ <: Tree] = Parse.parseSource,
     @Recurse imports: ImportsConfig = ImportsConfig(),
     @Recurse patches: PatchConfig = PatchConfig(),
@@ -27,11 +23,9 @@ case class ScalafixConfig(
     dialect: Dialect = Scala211
 ) {
 
-  def combinedRewrite: ScalafixRewrite =
-    rewrites.foldLeft(Rewrite.empty[ScalafixMirror])(_ andThen _)
-  def withRewrites(
-      f: List[ScalafixRewrite] => List[ScalafixRewrite]): ScalafixConfig =
-    copy(rewrites = f(rewrites).distinct)
+//  def withRewrites[B](
+//      f: List[SyntaxRewrite] => List[SyntaxRewrite]): ScalafixConfig =
+//    copy(rewrites = f(rewrites).distinct)
 }
 
 object ScalafixConfig {

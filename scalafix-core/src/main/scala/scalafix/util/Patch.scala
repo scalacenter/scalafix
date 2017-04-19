@@ -24,16 +24,15 @@ sealed abstract class Patch {
   def +(other: Patch): Patch = Concat(this, other)
   def ++(other: Seq[Patch]): Patch = other.foldLeft(this)(_ + _)
 
-  def appliedDiff[T <: Mirror: CanOrganizeImports](
-      implicit ctx: RewriteCtx[T]): String = {
-    val original = ctx.tree.syntax
-    val obtained = applied[T]
-    Patch.unifiedDiff(original, obtained)
+  def appliedDiff: String = {
+    ???
+//    val original = ctx.tree.syntax
+//    val obtained = applied[T]
+//    Patch.unifiedDiff(original, obtained)
   }
 
-  def applied[T <: Mirror: CanOrganizeImports](
-      implicit ctx: RewriteCtx[T]): String =
-    Patch.apply[T](this)
+  def applied: String = ???
+//    Patch.apply[T](this)
 }
 
 private[scalafix] case class Concat(a: Patch, b: Patch) extends Patch

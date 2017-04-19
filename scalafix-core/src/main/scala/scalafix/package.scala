@@ -2,6 +2,8 @@ import scala.meta._
 
 package object scalafix {
 
+//  type ScalafixConfig = config.ScalafixConfigT[rewrite.ScalafixMirror]
+
   type SemanticRewrite = rewrite.Rewrite[Mirror]
   type SyntaxRewrite = rewrite.Rewrite[Any]
   type Rewrite[T] = rewrite.Rewrite[T]
