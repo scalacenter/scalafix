@@ -146,29 +146,12 @@ trait NscScalafixMirror extends ReflectToolkit with HijackImportInfos {
     Option(sym).flatMap(sym => fullNameToRef(sym.fullName))
 
   private def assertSettingsAreValid(config: ScalafixConfig): Unit = {
-    val requiredSettings: Seq[(Settings#BooleanSetting, Boolean)] =
-      (g.settings.Yrangepos, true) :: {
-        if (config.imports.removeUnused)
-          g.settings.warnUnusedImport -> true :: Nil
-        else Nil
-      }
-    val missingSettings = requiredSettings.filterNot {
-      case (setting, value) => setting.value == value
-    }
-    if (missingSettings.nonEmpty) {
-      val (toEnable, toDisable) = missingSettings.partition(_._2)
-      def mkString(key: String,
-                   settings: Seq[(Settings#BooleanSetting, Boolean)]) =
-        if (settings.isEmpty) ""
-        else s"\n$key: ${settings.map(_._1.name).mkString(", ")}"
-      val instructions =
-        s"Please re-compile with the scalac options:" +
-          mkString("Enabled", toEnable) +
-          mkString("Disabled", toDisable)
-      val explanation =
-        "This is necessary for scalafix semantic rewrites to function"
-      sys.error(s"$instructions. $explanation")
-    }
+    if (!g.settings.Yrangepos.value)
+      sys.error("-Yrangepos is required use scalafix mirror.")
+    if (config.imports.removeUnused &&
+        !g.settings.warnUnusedImport)
+      sys.error(
+        "-Xwarn-unusedimport is required to use `imports.removeUnused` in scalafix.")
   }
 
   private def getUnusedImports(
