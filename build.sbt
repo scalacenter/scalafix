@@ -349,8 +349,8 @@ lazy val isFullCrossVersion = Seq(
 )
 
 lazy val scala210 = "2.10.6"
-lazy val scala211 = "2.11.10"
-lazy val scala212 = "2.12.1"
+lazy val scala211 = "2.11.11"
+lazy val scala212 = "2.12.2"
 lazy val ciScalaVersion = sys.env.get("CI_SCALA_VERSION")
 def CiCommand(name: String)(commands: List[String]): Command =
   Command.command(name) { initState =>

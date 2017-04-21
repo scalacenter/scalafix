@@ -2,7 +2,6 @@ package scalafix
 
 import scala.meta._
 import scala.util.control.NonFatal
-import scalafix.config.ScalafixConfig
 
 object Scalafix {
   def fix(input: Input, config: ScalafixConfig): Fixed =
