@@ -69,7 +69,7 @@ object ScalafixPlugin extends AutoPlugin {
       scalafixConfig.value
         .map(x => "--config" :: x.getAbsolutePath :: Nil)
         .getOrElse(Nil)
-    println("CONFIG : " + config)
+    val log = streams.value.log
     val sourcepath = scalahostSourcepath.value.flatten
     val classpath = scalahostClasspath.value.flatMap(_.map(_.data))
     def format(files: Seq[File]): String =
@@ -89,7 +89,8 @@ object ScalafixPlugin extends AutoPlugin {
           "--classpath",
           format(classpath)
         )
-    main.main(args.toArray)
+    log.info(s"Running scalafix ${args.mkString(" ")}...")
+    if (sourcepath.nonEmpty && classpath.nonEmpty) main.main(args.toArray)
   }
   lazy val scalafixSettings = Seq(
     scalafix := scalafixTaskImpl.evaluated

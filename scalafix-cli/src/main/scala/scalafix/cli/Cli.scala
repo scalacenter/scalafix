@@ -2,6 +2,7 @@ package scalafix
 package cli
 
 import scala.collection.GenSeq
+import scala.collection.immutable.Seq
 import scala.meta.Tree
 import scala.meta._
 import scala.meta.dialects
@@ -25,6 +26,8 @@ import java.io.InputStream
 import java.io.OutputStreamWriter
 import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
+import java.util.function.UnaryOperator
 import java.util.regex.Pattern
 
 import caseapp._
@@ -126,19 +129,22 @@ case class ScalafixOptions(
       } yield input.asInstanceOf[Input.File].path
   }
 
-  lazy val resolvedFiles =
-    if (files.nonEmpty) files
-    else {
-      resolvedMirror
-        .map {
-          case Some(x) =>
-            x.sources.collect {
-              case InputSource(path) => path.absolute
-            }
-          case _ => Nil
-        }
-        .getOrElse(Nil)
-    }
+  lazy val resolvedFiles: GenSeq[String] = {
+    val scalaFiles = {
+      if (files.nonEmpty) files.flatMap(FileOps.listFiles)
+      else {
+        resolvedMirror
+          .map {
+            case Some(x) =>
+              x.sources.collect { case InputSource(path) => path.absolute }
+            case _ => Nil
+          }
+          .getOrElse(Nil)
+      }
+    }.filter(Cli.isScalaPath)
+    if (singleThread) scalaFiles
+    else scalaFiles.par
+  }
   lazy val absoluteFiles: List[File] = files.map { f =>
     val file = new File(f)
     if (file.isAbsolute) file
@@ -185,10 +191,29 @@ case class ScalafixOptions(
         val tryMirror = for {
           pluginPath <- scalahostNscPluginPath.fold(
             Try(offline.Mirror.autodetectScalahostNscPluginPath))(Success(_))
-          mirror <- Try(Mirror(cp, sp, pluginPath))
+          mirror <- Try {
+            // TODO(olafur) offline.Mirror needs to document what can go wrong in the types.
+            // see https://github.com/scalameta/scalameta/issues/814
+            val files =
+              sp.split(File.pathSeparator)
+                .flatMap(FileOps.listFiles)
+                .filter { x =>
+                  // need to filter here because of https://github.com/scalameta/scalameta/issues/814
+                  new File(x).parse[Source] match {
+                    case parsers.Parsed.Success(_) => true
+                    case _ => false
+                  }
+                }
+            if (files.isEmpty) throw Cli.EmptySourcepath // need to fix offline.Mirror :v
+            val mirror =
+              Mirror(cp, files.mkString(File.pathSeparator), pluginPath)
+            mirror.sources // ugh. need to trigger lazy to validate that all files parse
+            mirror
+          }
         } yield Option(mirror)
         tryMirror match {
           case Success(x) => Ok(x)
+          case scala.util.Failure(Cli.EmptySourcepath) => Ok(None)
           case scala.util.Failure(e) => ConfError.msg(e.toString).notOk
         }
       case (None, None) =>
@@ -196,7 +221,8 @@ case class ScalafixOptions(
       case _ =>
         ConfError
           .msg(
-            "The semantic API was partially configured: both a classpath and sourcepath are required.")
+            "The semantic API was partially configured: " +
+              "both a classpath and sourcepath are required.")
           .notOk
     }
 
@@ -224,10 +250,11 @@ object Cli {
   val default = ScalafixOptions()
   // Run this at the end of the world, calls sys.exit.
 
+  case object EmptySourcepath extends Exception(s"No sources parse")
   case class NonZeroExitCode(n: Int)
       extends Exception(s"Expected exit code 0. Got exit code $n")
   def main(args: Array[String]): Unit = {
-    val code = runMain(args, CommonOptions())
+    val code = runMain(args.to[Seq], CommonOptions())
     if (args.contains("--no-sys-exit")) {
       if (code != 0) throw NonZeroExitCode(code)
       else ()
@@ -289,43 +316,31 @@ object Cli {
     }
   }
 
-  def runOnFile(config: ScalafixOptions)(pathStr: String): ExitStatus = {
-    val path = new File(pathStr)
-    val workingDirectory = new File(config.common.workingDirectory)
-    val realPath: File =
-      if (path.isAbsolute) path
-      else new File(config.common.workingDirectory, path.getPath)
-    if (realPath.isDirectory) {
-      val filesToFix: GenSeq[String] = {
-        val files =
-          FileOps
-            .listFiles(realPath)
-            .filter(x => x.endsWith(".scala") || x.endsWith(".sbt"))
-        if (config.singleThread) files
-        else files.par
-      }
-      val logger = new TermDisplay(new OutputStreamWriter(System.out))
-      logger.init()
-      val msg = "Running scalafix..."
-      logger.startTask(msg, workingDirectory)
-      logger.taskLength(msg, filesToFix.length, 0)
-      val counter = new AtomicInteger()
-      val codes = filesToFix.map { x =>
-        val code = safeHandleFile(new File(x), config)
-        val progress = counter.incrementAndGet()
-        logger.taskProgress(msg, progress)
-        code
-      }
-      logger.stop()
-      codes.reduce(ExitStatus.merge)
-    } else {
-      safeHandleFile(realPath, config)
-    }
-  }
+  def isScalaPath(path: String): Boolean =
+    path.endsWith(".scala") || path.endsWith(".sbt")
 
   def runOn(config: ScalafixOptions): ExitStatus = {
-    val codes = config.resolvedFiles.map(runOnFile(config))
-    codes.foldLeft(ExitStatus.Ok)(ExitStatus.merge)
+    val workingDirectory = new File(config.common.workingDirectory)
+    val display = new TermDisplay(new OutputStreamWriter(System.out))
+    val filesToFix = config.resolvedFiles
+    if (filesToFix.length > 10) display.init()
+    val msg = "Running scalafix..."
+    display.startTask(msg, workingDirectory)
+    display.taskLength(msg, filesToFix.length, 0)
+    val exitCode = new AtomicReference(ExitStatus.Ok)
+    val counter = new AtomicInteger()
+    filesToFix.foreach { x =>
+      val code = safeHandleFile(new File(x), config)
+      val progress = counter.incrementAndGet()
+      exitCode.getAndUpdate(new UnaryOperator[ExitStatus] {
+        override def apply(t: ExitStatus): ExitStatus =
+          ExitStatus.merge(code, t)
+      })
+      display.taskProgress(msg, progress)
+      code
+    }
+    display.stop()
+    exitCode.get()
   }
 
   def parse(args: Seq[String]): Either[String, WithHelp[ScalafixOptions]] =
@@ -358,7 +373,7 @@ object Cli {
   def nailMain(nGContext: NGContext): Unit = {
     val code =
       runMain(
-        nGContext.getArgs,
+        nGContext.getArgs.to[Seq],
         CommonOptions(
           workingDirectory = nGContext.getWorkingDirectory,
           out = nGContext.out,

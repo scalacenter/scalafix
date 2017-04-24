@@ -85,7 +85,7 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
       logger.elem(sbt)
       val args = Seq(
         sbt,
-        "++" + Versions.scala211
+        "++" + Versions.scala212
       ) ++ cmds.map(_.toString)
       failAfter(maxTime) {
         import sys.process._

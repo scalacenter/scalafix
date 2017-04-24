@@ -1,5 +1,6 @@
 package scalafix.tests
 
+import scalafix.rewrite.ProcedureSyntax
 import scalafix.rewrite.ScalaJsRewrites
 
 class Akka
@@ -29,7 +30,7 @@ class Slick
       ItTest(
         name = "slick",
         repo = "https://github.com/slick/slick.git",
-        rewrites = Seq(),
+        rewrites = Seq(ProcedureSyntax.toString),
         hash = "bd3c24be419ff2791c123067668c81e7de858915",
         addCoursier = false
       ),

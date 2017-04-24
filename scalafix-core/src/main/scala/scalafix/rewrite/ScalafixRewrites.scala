@@ -17,8 +17,6 @@ object ScalafixRewrites {
     syntax ++ semantic(mirror)
   def default(mirror: Mirror): List[Rewrite] =
     all(mirror).filterNot(Set(VolatileLazyVal, Xor2Either))
-  def defaultName: List[String] =
-    default(null).map(_.name) // TODO(olafur) ugly hack
   def name2rewrite(mirror: Mirror): Map[String, Rewrite] =
     all(mirror).map(x => x.name -> x).toMap
   lazy val syntaxName2rewrite: Map[String, Rewrite] =

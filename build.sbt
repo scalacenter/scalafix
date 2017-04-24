@@ -228,6 +228,11 @@ lazy val tests = project
     noPublish,
     Defaults.itSettings,
     libraryDependencies += scalatest % IntegrationTest,
+    test.in(IntegrationTest) := RunSbtCommand(
+      s"; plz $scala212 publishLocal " +
+        s"; such scalafix-sbt/publishLocal " +
+        "; tests/it:testQuick" // hack to workaround cyclic dependencies in test.
+    )(state.value),
     parallelExecution in Test := true,
     libraryDependencies ++= Seq(
       scalahost % Test,

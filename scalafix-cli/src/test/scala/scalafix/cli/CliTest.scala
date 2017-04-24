@@ -1,5 +1,6 @@
 package scalafix.cli
 
+import scala.collection.immutable.Seq
 import scalafix.config.ScalafixConfig
 import scalafix.rewrite.ExplicitImplicit
 import scalafix.rewrite.ProcedureSyntax

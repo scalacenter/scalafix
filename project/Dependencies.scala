@@ -14,5 +14,10 @@ object Dependencies {
   def googleDiff = "com.googlecode.java-diff-utils" % "diffutils" % "1.3.0"
 
   def scalameta: ModuleID =
-    "org.scalameta" %% "contrib" % scalametaV excludeAll ExclusionRule("org.apache.commons", "commons-compress")
+    "org.scalameta" %% "contrib" % scalametaV excludeAll (
+      ExclusionRule("org.scalameta", "testkit_2.11"),
+      ExclusionRule("org.scalameta", "testkit_2.12"),
+      ExclusionRule("org.apache.commons"),
+      ExclusionRule("commons-io")
+    )
 }
