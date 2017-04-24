@@ -76,7 +76,8 @@ trait ScalafixMetaconfigReaders {
             rewritesReader
               .read(rewriteConf)
               .map { rewrites =>
-                scalafixConfig.copy(rewrite = Rewrite.combine(rewrites))
+                scalafixConfig.copy(
+                  rewrite = Rewrite.combine(rewrites, Some(mirror)))
               }
         }
     }

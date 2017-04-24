@@ -30,8 +30,8 @@ abstract class SemanticRewrite(mirror: Mirror)(implicit name: Name)
 object Rewrite {
   val syntaxRewriteConfDecoder = config.rewriteConfDecoder(None)
   def empty: Rewrite = syntactic(_ => Patch.empty)
-  def combine(rewrites: Seq[Rewrite]): Rewrite =
-    rewrites.foldLeft(empty)(_ andThen _)
+  def combine(rewrites: Seq[Rewrite], mirror: Option[Mirror]): Rewrite =
+    rewrites.foldLeft(mirror.fold(empty)(emptySemantic))(_ andThen _)
   def emptySemantic(mirror: Mirror): Rewrite =
     semantic(x => y => Patch.empty)(Name("empty"))(mirror)
   def syntactic(f: RewriteCtx => Patch)(implicit name: Name): Rewrite =

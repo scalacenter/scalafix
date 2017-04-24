@@ -1,7 +1,7 @@
 package scalafix.testkit
 
-import scala.meta._
 import scala.collection.immutable.Seq
+import scala.meta._
 import scala.meta.io.AbsolutePath
 import scalafix.config.ScalafixConfig
 import scalafix.reflect.ScalafixCompilerDecoder
@@ -10,7 +10,6 @@ import scalafix.util.FileOps
 import java.io.File
 
 import metaconfig.Configured
-import org.scalameta.logger
 
 case class DiffTest(spec: String,
                     name: String,
