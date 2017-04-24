@@ -79,6 +79,7 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
 )
 
 lazy val allSettings = List(
+  version := sys.props.getOrElse("scalafix.version", version.value),
   resolvers += Resolver.bintrayRepo("scalameta", "maven"),
   resolvers += Resolver.sonatypeRepo("releases"),
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
@@ -167,7 +168,8 @@ lazy val fatcli = project
   .dependsOn(cli)
 
 lazy val publishedArtifacts = Seq(
-  publishLocal in core
+  publishLocal in core,
+  publishLocal in cli
 )
 
 lazy val `scalafix-sbt` = project
@@ -178,11 +180,12 @@ lazy val `scalafix-sbt` = project
     buildInfoSettings,
     Defaults.itSettings,
     ScriptedPlugin.scriptedSettings,
+    addSbtPlugin("org.scalameta" % "sbt-scalahost" % scalametaV),
     sbtPlugin := true,
     testQuick := {}, // these test are slow.
     test in IntegrationTest := {
       RunSbtCommand(
-        "; very publishLocal " +
+        s"; plz $scala212 publishLocal " +
           "; very scalafix-sbt/scripted"
       )(state.value)
     },

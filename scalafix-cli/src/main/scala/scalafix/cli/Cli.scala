@@ -1,27 +1,23 @@
-package scalafix.cli
+package scalafix
+package cli
 
 import scala.collection.GenSeq
-import scala.meta.Mirror
 import scala.meta.Tree
+import scala.meta._
 import scala.meta.dialects
-import scala.meta.internal.scalahost.v1.offline
 import scala.meta.inputs.Input
+import scala.meta.internal.scalahost.v1.offline
+import scala.meta.io.AbsolutePath
 import scala.meta.parsers.Parsed
 import scala.util.Success
 import scala.util.Try
 import scala.util.control.NonFatal
-import scalafix.Failure
-import scalafix.syntax._
-import scalafix.Fixed
 import scalafix.Fixed.Failed
-import scalafix.Scalafix
 import scalafix.cli.termdisplay.TermDisplay
 import scalafix.config._
 import scalafix.reflect.ScalafixCompilerDecoder
 import scalafix.reflect.ScalafixToolbox
 import scalafix.rewrite.ProcedureSyntax
-import scalafix.rewrite.RewriteCtx
-import scalafix.rewrite.Mirror$
 import scalafix.util.FileOps
 
 import java.io.File
@@ -115,9 +111,34 @@ case class ScalafixOptions(
     @HelpMessage(
       "If true, prints out debug information."
     ) debug: Boolean = false,
+    @HelpMessage(
+      "If true, does not sys.exit at the end. Useful for example in sbt-scalafix."
+    ) noSysExit: Boolean = false,
     @Recurse common: CommonOptions = CommonOptions()
 ) {
 
+  object InputSource {
+    def unapply(source: Source): Option[AbsolutePath] =
+      for {
+        tok <- source.tokens.headOption
+        input = tok.input
+        if input.isInstanceOf[Input.File]
+      } yield input.asInstanceOf[Input.File].path
+  }
+
+  lazy val resolvedFiles =
+    if (files.nonEmpty) files
+    else {
+      resolvedMirror
+        .map {
+          case Some(x) =>
+            x.sources.collect {
+              case InputSource(path) => path.absolute
+            }
+          case _ => Nil
+        }
+        .getOrElse(Nil)
+    }
   lazy val absoluteFiles: List[File] = files.map { f =>
     val file = new File(f)
     if (file.isAbsolute) file
@@ -148,7 +169,7 @@ case class ScalafixOptions(
       }
     } yield
       scalafixConfig.copy(
-        rewrite = cliArgRewrite,
+        rewrite = scalafixConfig.rewrite.andThen(cliArgRewrite),
         reporter = scalafixConfig.reporter match {
           case r: PrintStreamReporter => r.copy(outStream = common.err)
           case _ => ScalafixReporter.default.copy(outStream = common.err)
@@ -164,13 +185,14 @@ case class ScalafixOptions(
         val tryMirror = for {
           pluginPath <- scalahostNscPluginPath.fold(
             Try(offline.Mirror.autodetectScalahostNscPluginPath))(Success(_))
-          mirror <- Try(Mirror.fromMirror(Mirror(cp, sp, pluginPath)))
+          mirror <- Try(Mirror(cp, sp, pluginPath))
         } yield Option(mirror)
         tryMirror match {
           case Success(x) => Ok(x)
           case scala.util.Failure(e) => ConfError.msg(e.toString).notOk
         }
-      case (None, None) => Ok(None)
+      case (None, None) =>
+        Ok(Try(Mirror()).toOption)
       case _ =>
         ConfError
           .msg(
@@ -201,8 +223,15 @@ object Cli {
   val usageMessage: String = withHelp.usageMessage
   val default = ScalafixOptions()
   // Run this at the end of the world, calls sys.exit.
+
+  case class NonZeroExitCode(n: Int)
+      extends Exception(s"Expected exit code 0. Got exit code $n")
   def main(args: Array[String]): Unit = {
-    sys.exit(runMain(args, CommonOptions()))
+    val code = runMain(args, CommonOptions())
+    if (args.contains("--no-sys-exit")) {
+      if (code != 0) throw NonZeroExitCode(code)
+      else ()
+    } else sys.exit(code)
   }
 
   def safeHandleFile(file: File, options: ScalafixOptions): ExitStatus = {
@@ -260,41 +289,43 @@ object Cli {
     }
   }
 
-  def runOn(config: ScalafixOptions): ExitStatus = {
-    val codes = config.files.map { pathStr =>
-      val path = new File(pathStr)
-      val workingDirectory = new File(config.common.workingDirectory)
-      val realPath: File =
-        if (path.isAbsolute) path
-        else new File(config.common.workingDirectory, path.getPath)
-      if (realPath.isDirectory) {
-        val filesToFix: GenSeq[String] = {
-          val files =
-            FileOps
-              .listFiles(realPath)
-              .filter(x => x.endsWith(".scala") || x.endsWith(".sbt"))
-          if (config.singleThread) files
-          else files.par
-        }
-        val logger = new TermDisplay(new OutputStreamWriter(System.out))
-        logger.init()
-        val msg = "Running scalafix..."
-        logger.startTask(msg, workingDirectory)
-        logger.taskLength(msg, filesToFix.length, 0)
-        val counter = new AtomicInteger()
-        val codes = filesToFix.map { x =>
-          val code = safeHandleFile(new File(x), config)
-          val progress = counter.incrementAndGet()
-          logger.taskProgress(msg, progress)
-          code
-        }
-        logger.stop()
-        codes.reduce(ExitStatus.merge)
-      } else {
-        safeHandleFile(realPath, config)
+  def runOnFile(config: ScalafixOptions)(pathStr: String): ExitStatus = {
+    val path = new File(pathStr)
+    val workingDirectory = new File(config.common.workingDirectory)
+    val realPath: File =
+      if (path.isAbsolute) path
+      else new File(config.common.workingDirectory, path.getPath)
+    if (realPath.isDirectory) {
+      val filesToFix: GenSeq[String] = {
+        val files =
+          FileOps
+            .listFiles(realPath)
+            .filter(x => x.endsWith(".scala") || x.endsWith(".sbt"))
+        if (config.singleThread) files
+        else files.par
       }
+      val logger = new TermDisplay(new OutputStreamWriter(System.out))
+      logger.init()
+      val msg = "Running scalafix..."
+      logger.startTask(msg, workingDirectory)
+      logger.taskLength(msg, filesToFix.length, 0)
+      val counter = new AtomicInteger()
+      val codes = filesToFix.map { x =>
+        val code = safeHandleFile(new File(x), config)
+        val progress = counter.incrementAndGet()
+        logger.taskProgress(msg, progress)
+        code
+      }
+      logger.stop()
+      codes.reduce(ExitStatus.merge)
+    } else {
+      safeHandleFile(realPath, config)
     }
-    codes.reduce(ExitStatus.merge)
+  }
+
+  def runOn(config: ScalafixOptions): ExitStatus = {
+    val codes = config.resolvedFiles.map(runOnFile(config))
+    codes.foldLeft(ExitStatus.Ok)(ExitStatus.merge)
   }
 
   def parse(args: Seq[String]): Either[String, WithHelp[ScalafixOptions]] =
