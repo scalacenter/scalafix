@@ -28,9 +28,6 @@ case class ItTest(
 }
 
 object ItTest {
-  val organizeImportsConfig: String =
-    """|imports.optimize = true
-       |imports.removeUnused = true""".stripMargin
   val catsImportConfig: String =
     """|imports.organize = true
        |imports.removeUnused = false

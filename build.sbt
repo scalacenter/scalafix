@@ -157,11 +157,8 @@ lazy val nsc = project
     // in the published compiler plugin.
     publishArtifact in Compile := true,
     assemblyMergeStrategy in assembly := {
-      // conflicts with scalahost plugin
-      case "scalac-plugin.xml" => MergeStrategy.first
-      case x =>
-        val oldStrategy = (assemblyMergeStrategy in assembly).value
-        oldStrategy(x)
+      case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
+      case x => MergeStrategy.first
     },
     assemblyJarName in assembly :=
       name.value + "_" +

@@ -121,7 +121,6 @@ class ScalajsBootstrap
         repo = "https://github.com/Karasiq/scalajs-bootstrap.git",
         hash = "1cf125a8f78951df9a1a274f19b81221e55ad4bd",
         rewrites = List("DemandJSGlobal"),
-        config = "imports.organize = false",
         commands = Seq(
           Command("scalafix")
         )
