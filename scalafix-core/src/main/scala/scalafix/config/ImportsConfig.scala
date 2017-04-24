@@ -12,7 +12,7 @@ case class ImportsConfig(
     spaceAroundCurlyBrace: Boolean = false,
     // Disabled since users should explicitly opt into it.
     organize: Boolean = false,
-    // Unsupported
+    // TODO(olafur) renable when we remove scalafix-nsc.
     removeUnused: Boolean = false,
     alwaysUsed: List[Ref] = List(),
     groups: List[FilterMatcher] = List(

@@ -19,7 +19,7 @@ commands += Command.command("release") { s =>
 commands += CiCommand("ci-fast")("test" :: Nil)
 commands += Command.command("ci-slow") { s =>
   "scalafix-sbt/it:test" ::
-    ci("tests/it:test") ::
+    // ci("tests/it:test") :: // TODO(olafur) enable once we remove scalafix-nsc
     s
 }
 commands += Command.command("ci-publish") { s =>
