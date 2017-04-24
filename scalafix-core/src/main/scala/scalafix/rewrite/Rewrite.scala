@@ -22,6 +22,7 @@ abstract class Rewrite(implicit sourceName: Name) { self =>
 
 abstract class SemanticRewrite(mirror: Mirror)(implicit name: Name)
     extends Rewrite {
+  implicit val ImplicitMirror: Mirror = mirror
   private[scalafix] override def wrappedRewrite(ctx: RewriteCtx): Patch =
     patch.InCtx(rewrite(ctx), ctx, Some(mirror))
 }

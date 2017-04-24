@@ -5,7 +5,7 @@ import scala.{meta => m}
 import scalafix.util.Whitespace
 import scala.collection.immutable.Seq
 
-case class ExplicitImplicit(implicit mirror: ScalafixMirror)
+case class ExplicitImplicit()(implicit mirror: ScalafixMirror)
     extends SemanticRewrite(mirror) {
   // Don't explicitly annotate vals when the right-hand body is a single call
   // to `implicitly`. Prevents ambiguous implicit. Not annotating in such cases,

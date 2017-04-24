@@ -9,7 +9,7 @@ import scala.meta.semantic.v1.Mirror
 import scala.meta.semantic.v1.Signature
 import scala.meta.semantic.v1.Symbol
 
-case class Scalameta17(implicit mirror: Mirror) extends SemanticRewrite(mirror) {
+case class Scalameta17(mirror: Mirror) extends SemanticRewrite(mirror) {
 
   override def rewrite(ctx: RewriteCtx): Patch = {
     import ctx._

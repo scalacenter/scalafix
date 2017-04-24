@@ -9,8 +9,8 @@ object ScalafixRewrites {
   def semantic(mirror: ScalafixMirror): List[Rewrite] = List(
     ScalaJsRewrites.DemandJSGlobal(mirror),
     ExplicitImplicit()(mirror),
-    Scalameta17()(mirror),
-    Xor2Either()(mirror)
+    Scalameta17(mirror),
+    Xor2Either(mirror)
   )
   def all(mirror: ScalafixMirror): List[Rewrite] =
     syntax ++ semantic(mirror)
@@ -22,5 +22,4 @@ object ScalafixRewrites {
     all(mirror).map(x => x.name -> x).toMap
   lazy val syntaxName2rewrite: Map[String, Rewrite] =
     syntax.map(x => x.name -> x).toMap
-
 }
