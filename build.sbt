@@ -19,7 +19,6 @@ commands += Command.command("release") { s =>
 commands += CiCommand("ci-fast")("test" :: Nil)
 commands += Command.command("ci-slow") { s =>
   "scalafix-sbt/it:test" ::
-    // ci("tests/it:test") :: // TODO(olafur) enable once we remove scalafix-nsc
     s
 }
 commands += Command.command("ci-publish") { s =>
@@ -85,10 +84,8 @@ lazy val allSettings = List(
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
   scalacOptions := compilerOptions,
   scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
-  test in assembly := {},
   libraryDependencies += scalatest % Test,
   testOptions in Test += Tests.Argument("-oD"),
-  assemblyJarName in assembly := "scalafix.jar",
   scalaVersion := ciScalaVersion.getOrElse(scala211),
   crossScalaVersions := crossVersions,
   updateOptions := updateOptions.value.withCachedResolution(true)
@@ -142,60 +139,12 @@ lazy val core = project
   )
   .enablePlugins(BuildInfoPlugin)
 
-lazy val nsc = project
-  .configure(setId)
-  .settings(
-    allSettings,
-    publishSettings,
-    isFullCrossVersion,
-    libraryDependencies ++= Seq(
-      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-      scalahostNsc
-    ),
-    // sbt does not fetch transitive dependencies of compiler plugins.
-    // to overcome this issue, all transitive dependencies are included
-    // in the published compiler plugin.
-    publishArtifact in Compile := true,
-    assemblyMergeStrategy in assembly := {
-      case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
-      case x => MergeStrategy.first
-    },
-    assemblyJarName in assembly :=
-      name.value + "_" +
-        scalaVersion.value + "-" +
-        version.value + "-assembly.jar",
-    assemblyOption in assembly ~= { _.copy(includeScala = false) },
-    Keys.`package` in Compile := {
-      val slimJar = (Keys.`package` in Compile).value
-      val fatJar =
-        new File(crossTarget.value + "/" + (assemblyJarName in assembly).value)
-      val _ = assembly.value
-      IO.copy(List(fatJar -> slimJar), overwrite = true)
-      slimJar
-    },
-    packagedArtifact in Compile in packageBin := {
-      val temp = (packagedArtifact in Compile in packageBin).value
-      val (art, slimJar) = temp
-      val fatJar =
-        new File(crossTarget.value + "/" + (assemblyJarName in assembly).value)
-      val _ = assembly.value
-      IO.copy(List(fatJar -> slimJar), overwrite = true)
-      (art, slimJar)
-    },
-    exposePaths("scalafixNsc", Test)
-  )
-  .dependsOn(
-    core,
-    reflect
-  )
-
 lazy val cli = project
   .configure(setId)
   .settings(
     allSettings,
     publishSettings,
     isFullCrossVersion,
-    mainClass in assembly := Some("scalafix.cli.Cli"),
     libraryDependencies ++= Seq(
       "com.github.alexarchambault" %% "case-app"      % "1.1.3",
       "com.martiansoftware"        % "nailgun-server" % "0.9.1"
@@ -218,7 +167,6 @@ lazy val fatcli = project
   .dependsOn(cli)
 
 lazy val publishedArtifacts = Seq(
-  publishLocal in nsc,
   publishLocal in core
 )
 
@@ -258,6 +206,7 @@ lazy val testkit = project
     allSettings,
     publishSettings,
     libraryDependencies ++= Seq(
+      scalahostNsc,
       ammonite,
       googleDiff,
       scalatest
@@ -265,7 +214,7 @@ lazy val testkit = project
   )
   .dependsOn(
     core,
-    nsc
+    reflect
   )
 
 lazy val tests = project
@@ -278,18 +227,17 @@ lazy val tests = project
     libraryDependencies += scalatest % IntegrationTest,
     parallelExecution in Test := true,
     libraryDependencies ++= Seq(
+      scalahost % Test,
       // integration property tests
       "org.typelevel"      %% "catalysts-platform" % "0.0.5"    % Test,
       "com.typesafe.slick" %% "slick"              % "3.2.0-M2" % Test,
       "com.chuusai"        %% "shapeless"          % "2.3.2"    % Test,
       "org.scalacheck"     %% "scalacheck"         % "1.13.4"   % Test
-    ),
-    exposePaths("scalafixNsc", Test)
+    )
   )
   .dependsOn(
     core,
     reflect,
-    nsc,
     testkit
   )
 

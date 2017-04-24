@@ -3,7 +3,6 @@ package scalafix.reflect
 import scala.meta._
 import scalafix.Rewrite
 import scalafix.config._
-import scalafix.rewrite.ScalafixMirror
 import scalafix.util.FileOps
 
 import java.io.File
@@ -13,7 +12,7 @@ import metaconfig.Conf
 import metaconfig.ConfDecoder
 
 object ScalafixCompilerDecoder {
-  def apply(mirror: Option[ScalafixMirror]): ConfDecoder[Rewrite] =
+  def apply(mirror: Option[Mirror]): ConfDecoder[Rewrite] =
     ConfDecoder.instance[Rewrite] {
       case FromSourceRewrite(code) =>
         ScalafixToolbox.getRewrite(code, mirror)

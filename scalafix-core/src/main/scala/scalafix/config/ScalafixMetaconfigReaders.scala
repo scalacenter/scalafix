@@ -8,7 +8,6 @@ import scala.meta.semantic.v1.Symbol
 import scala.reflect.ClassTag
 import scala.util.Try
 import scala.util.matching.Regex
-import scalafix.rewrite.ScalafixMirror
 import scalafix.rewrite.ScalafixRewrites
 import scalafix.util.ClassloadRewrite
 import scalafix.util.FileOps
@@ -64,7 +63,7 @@ trait ScalafixMetaconfigReaders {
           ScalafixConfig.syntaxConfDecoder.read(Conf.Obj(noRewrites))
         rewriteConf.product(config)
     }
-  def scalafixConfigConfDecoder(mirror: Option[ScalafixMirror])(
+  def scalafixConfigConfDecoder(mirror: Option[Mirror])(
       implicit rewriteDecoder: ConfDecoder[Rewrite]
   ): ConfDecoder[ScalafixConfig] = {
     mirror match {
@@ -85,8 +84,7 @@ trait ScalafixMetaconfigReaders {
     }
   }
 
-  def rewriteConfDecoder(
-      mirror: Option[ScalafixMirror]): ConfDecoder[Rewrite] =
+  def rewriteConfDecoder(mirror: Option[Mirror]): ConfDecoder[Rewrite] =
     ConfDecoder.instance[Rewrite] {
       case FromClassloadRewrite(fqn) =>
         ClassloadRewrite(fqn, mirror.toList)

@@ -1,11 +1,14 @@
 package scalafix.testkit
 
 import scala.collection.immutable.Seq
-import scala.meta.Term
-import scala.meta.Tree
+import scala.meta._
 import scala.meta.contrib._
 import scala.meta.internal.scalahost.ScalahostPlugin
-import scala.meta.internal.scalahost.v1.online.Mirror
+import scala.meta.internal.scalahost.v1
+import scala.meta.internal.scalahost.v1.LocationOps
+import scala.meta.internal.scalahost.v1.offline
+import scala.meta.internal.scalahost.v1.online
+import scala.meta.semantic.v1.Completed
 import scala.meta.semantic.v1.Database
 import scala.reflect.io.AbstractFile
 import scala.tools.cmd.CommandLineParser
@@ -15,33 +18,50 @@ import scala.tools.nsc.Settings
 import scala.tools.nsc.reporters.StoreReporter
 import scala.util.control.NonFatal
 import scala.{meta => m}
-import scalafix.Fixed
-import scalafix.syntax._
+import scalafix.Scalafix
 import scalafix.config.ScalafixConfig
-import scalafix.nsc.ScalafixNscPlugin
-import scalafix.rewrite.ScalafixMirror
+import scalafix.rewrite.RewriteCtx
+import scalafix.syntax._
 
 import java.io.File
 import java.io.PrintWriter
 import java.net.URLClassLoader
 
-import org.scalameta.logger
+import metaconfig.ConfError
 import org.scalatest.FunSuite
 
-abstract class SemanticRewriteSuite(classpath: String)
+// TODO(olafur) contribute upstream to scalameta-testkit
+class TestkitMirror(db: Database,
+                    source: Source,
+                    classPath: String,
+                    sourcePath: String,
+                    scalahostNscPluginPath: String)
+    extends offline.Mirror(classPath, sourcePath, scalahostNscPluginPath) {
+  override lazy val sources: Seq[Source] = Seq(source)
+  override lazy val database: Database = db
+}
+
+/**
+  *
+  * @param classpath
+  */
+abstract class SemanticRewriteSuite(
+    classpath: String = SemanticRewriteSuite.thisClasspath)
     extends FunSuite
     with DiffAssertions { self =>
-  private val testGlobal: Global = {
+  lazy val pluginPath = offline.Mirror.autodetectScalahostNscPluginPath
+  private val g: Global = {
     def fail(msg: String) =
       sys.error(s"ReflectToMeta initialization failed: $msg")
 
     val scalacOptions = Seq(
+      "-Yrangepos",
       "-cp",
       classpath,
-      "-Yrangepos",
+      "-Xplugin:" + pluginPath,
+      "-Xplugin-require:scalahost",
       "-Ywarn-unused-import"
     ).mkString(" ", " ", " ")
-
     val args = CommandLineParser.tokenize(scalacOptions)
     val emptySettings = new Settings(
       error => fail(s"couldn't apply settings because $error"))
@@ -55,25 +75,63 @@ abstract class SemanticRewriteSuite(classpath: String)
     g
   }
 
-  private val scalafixNscPlugin = new ScalafixNscPlugin(testGlobal)
-  private val fixer = scalafixNscPlugin.component
-  private val g: fixer.global.type = fixer.global
-  implicit val mirror = scalafixNscPlugin.mirror
+  implicit val mirror: online.Mirror = new online.Mirror(g)
 
   import mirror._
 
-  private def unwrap(gtree: g.Tree): g.Tree = gtree match {
-    case g.PackageDef(g.Ident(g.TermName(_)), stat :: Nil) => stat
-    case body => body
+  def runDiffTest(dt: DiffTest): Unit = {
+    if (dt.skip) {
+      ignore(dt.fullName) {}
+    } else {
+      test(dt.fullName) {
+        check(dt.original, dt.expected, dt)
+      }
+    }
   }
 
-  private def computeDatabaseFromSnippet(
-      code: String): (g.CompilationUnit, Database) = {
+  def check(original: String, expectedStr: String, diffTest: DiffTest): Unit = {
+    def formatHeader(header: String): String = {
+      val line = s"=" * (header.length + 3)
+      s"$line\n=> $header\n$line"
+    }
+
+    val fixed = fix(diffTest.wrapped(), diffTest.config)
+    val obtained = parse(diffTest.unwrap(fixed))
+    val expected = parse(expectedStr)
+    try {
+      typeChecks(diffTest.wrapped(fixed))
+      checkMismatchesModuloDesugarings(obtained, expected)
+      if (diffTest.checkSyntax) {
+        assertNoDiff(obtained, expected)
+      } else {
+        checkMismatchesModuloDesugarings(obtained, expected)
+      }
+    } catch {
+      case MismatchException(details) =>
+        val header = s"scala -> meta converter error\n$details"
+        val fullDetails =
+          s"""${formatHeader("Expected")}
+             |${expected.syntax}
+             |${formatHeader("Obtained")}
+             |${obtained.syntax}""".stripMargin
+        fail(s"$header\n$fullDetails")
+    }
+  }
+
+  def fix(code: String, getConfig: Option[Mirror] => ScalafixConfig): String = {
+    val mirror = computeMirror(code)
+    val config = getConfig(Some(mirror))
+    val tree = mirror.sources.head
+    val ctx = RewriteCtx(tree, config)
+    val fixed = Scalafix.fix(ctx).get
+    fixed
+  }
+
+  private def computeMirror(code: String): Mirror = {
     val javaFile = File.createTempFile("paradise", ".scala")
     val writer = new PrintWriter(javaFile)
     try writer.write(code)
     finally writer.close()
-
     val run = new g.Run
     val abstractFile = AbstractFile.getFile(javaFile)
     val sourceFile = g.getSourceFile(abstractFile)
@@ -101,23 +159,27 @@ abstract class SemanticRewriteSuite(classpath: String)
       g.globalPhase = phase
       phase.asInstanceOf[g.GlobalPhase].apply(unit)
       val errors = reporter.infos.filter(_.severity == reporter.ERROR)
-      errors.foreach(error =>
-        fail(s"scalac ${phase.name} error: ${error.msg} at ${error.pos}"))
+      errors.foreach {
+        case reporter.Info(pos, msg, reporter.ERROR) =>
+          val formattedMessage =
+            ConfError
+              .msg(msg)
+              .atPos(
+                m.Position.Range(Input.File(javaFile), pos.start, pos.end))
+              .notOk
+              .toString
+          fail(formattedMessage)
+      }
     })
     g.phase = run.phaseNamed("patmat")
     g.globalPhase = run.phaseNamed("patmat")
-
-    unit -> unit.asInstanceOf[mirror.g.CompilationUnit].toDatabase
+    val source = javaFile.parse[Source].get
+    new TestkitMirror(unit.asInstanceOf[mirror.g.CompilationUnit].toDatabase,
+                      source,
+                      classpath,
+                      "foo/src",
+                      pluginPath)
   }
-
-  def fix(code: String,
-          config: Option[ScalafixMirror] => ScalafixConfig): String = {
-    val (unit, database) = computeDatabaseFromSnippet(code)
-    val fixed = fixer.fix(unit, config(None), m => config(Some(m)).rewrite).get
-    fixed
-  }
-
-  case class MismatchException(details: String) extends Exception
 
   private def checkMismatchesModuloDesugarings(obtained: m.Tree,
                                                expected: m.Tree): Unit = {
@@ -162,7 +224,7 @@ abstract class SemanticRewriteSuite(classpath: String)
 
   private def typeChecks(code: String): Unit = {
     try {
-      computeDatabaseFromSnippet(code)
+      computeMirror(code)
     } catch {
       case NonFatal(e) =>
         e.printStackTrace()
@@ -187,44 +249,14 @@ abstract class SemanticRewriteSuite(classpath: String)
                  "Tree syntax mismatch")
   }
 
-  def check(original: String, expectedStr: String, diffTest: DiffTest): Unit = {
-    def formatHeader(header: String): String = {
-      val line = s"=" * (header.length + 3)
-      s"$line\n=> $header\n$line"
-    }
-    val fixed = fix(diffTest.wrapped(), diffTest.config)
-    val obtained = parse(diffTest.unwrap(fixed))
-    val expected = parse(expectedStr)
-    try {
-      typeChecks(diffTest.wrapped(fixed))
-      checkMismatchesModuloDesugarings(obtained, expected)
-      if (diffTest.checkSyntax) {
-        assertNoDiff(obtained, expected)
-      } else {
-        checkMismatchesModuloDesugarings(obtained, expected)
-      }
-    } catch {
-      case MismatchException(details) =>
-        val header = s"scala -> meta converter error\n$details"
-        val fullDetails =
-          s"""${formatHeader("Expected")}
-             |${expected.syntax}
-             |${formatHeader("Obtained")}
-             |${obtained.syntax}""".stripMargin
-        fail(s"$header\n$fullDetails")
-    }
+  private def unwrap(gtree: g.Tree): g.Tree = gtree match {
+    case g.PackageDef(g.Ident(g.TermName(_)), stat :: Nil) => stat
+    case body => body
   }
 
-  def runDiffTest(dt: DiffTest): Unit = {
-    if (dt.skip) {
-      ignore(dt.fullName) {}
-    } else {
-      test(dt.fullName) {
-        check(dt.original, dt.expected, dt)
-      }
-    }
-  }
+  case class MismatchException(details: String) extends Exception
 }
+
 object SemanticRewriteSuite {
   def thisClasspath: String = this.getClass.getClassLoader match {
     case u: URLClassLoader =>

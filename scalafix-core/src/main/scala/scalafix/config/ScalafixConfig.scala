@@ -5,7 +5,6 @@ import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.dialects.Scala211
 import scala.meta.parsers.Parse
-import scalafix.rewrite.ScalafixMirror
 
 import java.io.File
 
@@ -38,7 +37,7 @@ object ScalafixConfig {
     auto(workingDir, None)(rewriteConfDecoder(None))
 
   /** Returns config from current working directory, if .scalafix.conf exists. */
-  def auto(workingDir: File, mirror: Option[ScalafixMirror])(
+  def auto(workingDir: File, mirror: Option[Mirror])(
       implicit rewriteDecoder: ConfDecoder[Rewrite]
   ): Option[Configured[ScalafixConfig]] = {
     val file = new File(workingDir, ".scalafix.conf")
@@ -54,13 +53,13 @@ object ScalafixConfig {
       cls <- reader.read(config)
     } yield cls
 
-  def fromFile(file: File, mirror: Option[ScalafixMirror])(
+  def fromFile(file: File, mirror: Option[Mirror])(
       implicit rewriteDecoder: ConfDecoder[Rewrite]
   ): Configured[ScalafixConfig] =
     gimmeClass(TypesafeConfig2Class.gimmeConfFromFile(file))(
       scalafixConfigConfDecoder(mirror))
 
-  def fromString(str: String, mirror: Option[ScalafixMirror])(
+  def fromString(str: String, mirror: Option[Mirror])(
       implicit rewriteDecoder: ConfDecoder[Rewrite]
   ): Configured[ScalafixConfig] =
     gimmeClass(TypesafeConfig2Class.gimmeConfFromString(str))(

@@ -1,4 +1,4 @@
-SKIP rewrites = []
+rewrites = []
 imports.organize = true
 imports.removeUnused = false
 imports.expandRelative = true

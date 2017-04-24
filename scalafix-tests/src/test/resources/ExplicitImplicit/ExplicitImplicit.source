@@ -1,4 +1,4 @@
-rewrites = [ExplicitImplicit]
+SKIP rewrites = [ExplicitImplicit]
 <<< list
 class A {
   implicit val x = List(1)

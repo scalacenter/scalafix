@@ -21,7 +21,7 @@ import scalafix.reflect.ScalafixCompilerDecoder
 import scalafix.reflect.ScalafixToolbox
 import scalafix.rewrite.ProcedureSyntax
 import scalafix.rewrite.RewriteCtx
-import scalafix.rewrite.ScalafixMirror
+import scalafix.rewrite.Mirror$
 import scalafix.util.FileOps
 
 import java.io.File
@@ -158,13 +158,13 @@ case class ScalafixOptions(
   lazy val resolvedSbtConfig: Configured[ScalafixConfig] =
     resolvedConfig.map(_.copy(dialect = dialects.Sbt0137))
 
-  lazy val resolvedMirror: Configured[Option[ScalafixMirror]] =
+  lazy val resolvedMirror: Configured[Option[Mirror]] =
     (classpath, sourcepath) match {
       case (Some(cp), Some(sp)) =>
         val tryMirror = for {
           pluginPath <- scalahostNscPluginPath.fold(
             Try(offline.Mirror.autodetectScalahostNscPluginPath))(Success(_))
-          mirror <- Try(ScalafixMirror.fromMirror(Mirror(cp, sp, pluginPath)))
+          mirror <- Try(Mirror.fromMirror(Mirror(cp, sp, pluginPath)))
         } yield Option(mirror)
         tryMirror match {
           case Success(x) => Ok(x)
