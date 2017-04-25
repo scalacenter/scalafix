@@ -5,7 +5,8 @@ import scala.meta._
 object ScalafixRewrites {
   val syntax: List[Rewrite] = List(
     ProcedureSyntax,
-    VolatileLazyVal
+    VolatileLazyVal,
+    ExplicitUnit
   )
   def semantic(mirror: Mirror): List[Rewrite] = List(
     ScalaJsRewrites.DemandJSGlobal(mirror),
