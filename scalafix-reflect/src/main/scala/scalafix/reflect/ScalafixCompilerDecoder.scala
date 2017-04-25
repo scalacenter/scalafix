@@ -28,6 +28,32 @@ object ScalafixCompilerDecoder {
     def unapply(arg: Conf.Str): Option[URL] = arg match {
       case UriRewrite("http" | "https", uri) if uri.isAbsolute =>
         Option(uri.toURL)
+      case GitHubUrlRewrite(url) => Option(url)
+      case _ => None
+    }
+  }
+
+  object GitHubUrlRewrite {
+    private[this] val GitHubShorthand =
+      """github:([^\/]+)\/([^\/]+)\/([^\/]+)""".r
+    private[this] val GitHubShorthandWithSha =
+      """github:([^\/]+)\/([^\/]+)\/([^\/]+)\?sha=(.+)""".r
+
+    private[this] def expandGitHubURL(org: String,
+                                      repo: String,
+                                      version: String,
+                                      sha: String): URL = {
+      val normVersion = version.replaceAll("[^\\d]", "_")
+      val fileName = s"${repo.toLowerCase.capitalize}_$normVersion.scala"
+      new URL(
+        s"https://github.com/$org/$repo/blob/$sha/scalafix-rewrites/src/main/scala/$repo/scalafix/$fileName")
+    }
+
+    def unapply(arg: Conf.Str): Option[URL] = arg.value match {
+      case GitHubShorthandWithSha(org, repo, version, sha) =>
+        Option(expandGitHubURL(org, repo, version, sha))
+      case GitHubShorthand(org, repo, version) =>
+        Option(expandGitHubURL(org, repo, version, "master"))
       case _ => None
     }
   }
