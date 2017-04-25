@@ -12,7 +12,11 @@ import metaconfig.Conf
 import metaconfig.ConfDecoder
 
 object ScalafixCompilerDecoder {
-  def apply(mirror: Option[Mirror]): ConfDecoder[Rewrite] =
+  def syntactic: ConfDecoder[Rewrite] = fromMirrorOption(None)
+  def semantic(mirror: Mirror): ConfDecoder[Rewrite] =
+    fromMirrorOption(Some(mirror))
+
+  def fromMirrorOption(mirror: Option[Mirror]): ConfDecoder[Rewrite] =
     ConfDecoder.instance[Rewrite] {
       case FromSourceRewrite(code) =>
         ScalafixToolbox.getRewrite(code, mirror)

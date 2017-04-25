@@ -23,7 +23,7 @@ object Readme {
   def comment(frags: Frag*): TypedTag[String] = span("")
   def config(str: String): TypedTag[String] = {
     // assert that config listings in docs is free of typos.
-    ScalafixConfig.fromString(str, None)(ScalafixCompilerDecoder(None)).get
+    ScalafixConfig.fromString(str)(ScalafixCompilerDecoder.syntactic).get
     highlight.scala(str)
   }
 }

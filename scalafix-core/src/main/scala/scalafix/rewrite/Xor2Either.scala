@@ -17,6 +17,7 @@ case class Xor2Either(mirror: Mirror) extends SemanticRewrite(mirror) {
             .exists(_.normalized == Symbol("_root_.cats.data.Xor.map.")) =>
         ctx.addGlobalImport(importer"cats.implicits._")
     }
+
     importImplicits.getOrElse(Patch.empty) ++
       Seq(
         ctx.replace(Symbol("_root_.cats.data.XorT."),

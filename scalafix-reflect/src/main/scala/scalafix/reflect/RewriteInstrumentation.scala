@@ -21,6 +21,7 @@ object RewriteInstrumentation {
       def unapply(arg: Term): Boolean = arg match {
         case q"Rewrite.syntactic($_)" => true
         case q"Rewrite.semantic($_)" => true
+        case q"Rewrite.semantic($_)" => true
         case _ => false
       }
     }

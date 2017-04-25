@@ -53,13 +53,13 @@ object ScalafixConfig {
       cls <- reader.read(config)
     } yield cls
 
-  def fromFile(file: File, mirror: Option[Mirror])(
+  def fromFile(file: File, mirror: Option[Mirror] = None)(
       implicit rewriteDecoder: ConfDecoder[Rewrite]
   ): Configured[ScalafixConfig] =
     gimmeClass(TypesafeConfig2Class.gimmeConfFromFile(file))(
       scalafixConfigConfDecoder(mirror))
 
-  def fromString(str: String, mirror: Option[Mirror])(
+  def fromString(str: String, mirror: Option[Mirror] = None)(
       implicit rewriteDecoder: ConfDecoder[Rewrite]
   ): Configured[ScalafixConfig] =
     gimmeClass(TypesafeConfig2Class.gimmeConfFromString(str))(

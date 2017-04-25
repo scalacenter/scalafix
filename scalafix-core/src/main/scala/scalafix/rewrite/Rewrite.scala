@@ -16,6 +16,8 @@ abstract class Rewrite(implicit sourceName: Name) { self =>
   override def toString: String = name
   def rewrite(ctx: RewriteCtx): Patch
   def andThen(other: Rewrite): Rewrite = Rewrite.merge(this, other)
+  // NOTE: See comment for InCtx for an explanation why wrappedRewrite and
+  // InCtx are necessary.
   private[scalafix] def wrappedRewrite(ctx: RewriteCtx): Patch =
     patch.InCtx(rewrite(ctx), ctx, None)
 }
@@ -32,7 +34,12 @@ object Rewrite {
   def empty: Rewrite = syntactic(_ => Patch.empty)
   def combine(rewrites: Seq[Rewrite], mirror: Option[Mirror]): Rewrite =
     rewrites.foldLeft(mirror.fold(empty)(emptySemantic))(_ andThen _)
-  def emptySemantic(mirror: Mirror): Rewrite =
+  // NOTE: this is one example where the Rewrite.wrappedRewrite hack leaks.
+  // An empty semantic rewrite is necessary to support patches from .scalafix.conf
+  // like `patches.addGlobalImport = ???`.
+  // TODO(olafur) get rid of this rewrite by converting `patches.addGlobalImport`
+  // into an actual rewrite instead of handling it specially inside Patch.applied.
+  private[scalafix] def emptySemantic(mirror: Mirror): Rewrite =
     semantic(x => y => Patch.empty)(Name("empty"))(mirror)
   def syntactic(f: RewriteCtx => Patch)(implicit name: Name): Rewrite =
     new Rewrite() {

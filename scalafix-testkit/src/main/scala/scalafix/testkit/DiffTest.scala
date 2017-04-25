@@ -68,7 +68,7 @@ object DiffTest {
     val style = { mirror: Option[Mirror] =>
       val firstLine = split.head
       ScalafixConfig.fromString(firstLine, mirror)(
-        ScalafixCompilerDecoder(mirror)) match {
+        ScalafixCompilerDecoder.fromMirrorOption(mirror)) match {
         case Configured.Ok(x) => x
         case Configured.NotOk(x) =>
           throw new IllegalArgumentException(s"""Failed to parse $filename

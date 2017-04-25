@@ -2,6 +2,9 @@ package scalafix
 
 import scalafix.Failure.Unexpected
 
+// TODO(olafur) figure out what to do with validation. I believe some
+// Validated[Nel[Failure], String] would make most sense since there can be
+// multiple errors, not only one.
 sealed abstract class Fixed {
   def toEither: Either[Failure, String] = this match {
     case Fixed.Failed(e) => Left(e)

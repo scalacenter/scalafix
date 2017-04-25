@@ -114,6 +114,13 @@ case class ScalafixOptions(
     @HelpMessage(
       "If true, prints out debug information."
     ) debug: Boolean = false,
+    // NOTE: This option could be avoided by adding another entrypoint like `Cli.safeMain`
+    // or SafeCli.main. However, I opted for a cli flag since that plays nicely
+    // with default `run.in(Compile).toTask("--no-sys-exit").value` in sbt.
+    // Another other option would be to do
+    // `runMain.in(Compile).toTask("scalafix.cli.SafeMain")` but I prefer to
+    // keep only one main function if possible since that plays nicely with
+    // automatic detection of `main` functions in tools like `coursier launch`.
     @HelpMessage(
       "If true, does not sys.exit at the end. Useful for example in sbt-scalafix."
     ) noSysExit: Boolean = false,
@@ -155,7 +162,7 @@ case class ScalafixOptions(
   lazy val resolvedConfig: Configured[ScalafixConfig] =
     for {
       mirror <- resolvedMirror
-      decoder = ScalafixCompilerDecoder(mirror)
+      decoder = ScalafixCompilerDecoder.fromMirrorOption(mirror)
       cliArgRewrite <- rewrites
         .foldLeft(ScalafixToolbox.emptyRewrite) {
           case (rewrite, next) =>
