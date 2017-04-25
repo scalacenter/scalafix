@@ -1,5 +1,6 @@
 package scalafix.tests
 
+import scalafix.rewrite.ProcedureSyntax
 import scalafix.rewrite.ScalaJsRewrites
 
 class Akka
@@ -29,7 +30,7 @@ class Slick
       ItTest(
         name = "slick",
         repo = "https://github.com/slick/slick.git",
-        rewrites = Seq(),
+        rewrites = Seq(ProcedureSyntax.toString),
         hash = "bd3c24be419ff2791c123067668c81e7de858915",
         addCoursier = false
       ),
@@ -120,8 +121,7 @@ class ScalajsBootstrap
         name = "scalajs-bootstrap",
         repo = "https://github.com/Karasiq/scalajs-bootstrap.git",
         hash = "1cf125a8f78951df9a1a274f19b81221e55ad4bd",
-        rewrites = List(ScalaJsRewrites.DemandJSGlobal),
-        config = "imports.organize = false",
+        rewrites = List("DemandJSGlobal"),
         commands = Seq(
           Command("scalafix")
         )
@@ -135,7 +135,7 @@ class ScalajsSri
         name = "sri",
         repo = "https://github.com/chandu0101/sri.git",
         hash = "2526f0574f7ef8088f209ff50d38f72c458e0a62",
-        rewrites = List(ScalaJsRewrites.DemandJSGlobal),
+        rewrites = List("DemandJSGlobal"),
         config = "imports.organize = false",
         commands = Seq(
           Command("scalafix")

@@ -1,9 +1,9 @@
 package scalafix.config
 
 import scala.meta._
-import scalafix.util.TreePatch.AddGlobalImport
-import scalafix.util.TreePatch.RemoveGlobalImport
-import scalafix.util.TreePatch.Replace
+import scalafix.patch.TreePatch.AddGlobalImport
+import scalafix.patch.TreePatch.RemoveGlobalImport
+import scalafix.patch.TreePatch.Replace
 
 import org.scalameta.logger
 import org.scalatest.FunSuite
@@ -13,7 +13,7 @@ class ScalafixConfigTest extends FunSuite {
   implicit val reader = ScalafixConfig.default.reader
   def check[T](config: String, expected: T): Unit = {
     test(logger.revealWhitespace(config).take(50)) {
-      ScalafixConfig.fromString(config).get
+      ScalafixConfig.fromString(config, None)(rewriteConfDecoder(None)).get
     }
   }
   check(

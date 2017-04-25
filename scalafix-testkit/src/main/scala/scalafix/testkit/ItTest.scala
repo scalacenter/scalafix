@@ -1,7 +1,7 @@
 package scalafix.tests
 
+import scalafix.rewrite.ProcedureSyntax
 import scalafix.rewrite.Rewrite
-import scalafix.rewrite.ScalafixRewrite
 import scalafix.rewrite.ScalafixRewrites
 
 import ammonite.ops._
@@ -15,7 +15,7 @@ case class ItTest(
     hash: String,
     config: String = "",
     commands: Seq[Command] = Command.default,
-    rewrites: Seq[ScalafixRewrite] = ScalafixRewrites.default,
+    rewrites: Seq[String] = Nil,
     addCoursier: Boolean = true
 ) {
   def repoName: String = repo match {
@@ -29,9 +29,6 @@ case class ItTest(
 }
 
 object ItTest {
-  val organizeImportsConfig: String =
-    """|imports.optimize = true
-       |imports.removeUnused = true""".stripMargin
   val catsImportConfig: String =
     """|imports.organize = true
        |imports.removeUnused = false

@@ -1,4 +1,5 @@
-package scalafix.rewrite
+package scalafix
+package rewrite
 
 import scala.meta._
 import scala.meta.tokens.Token.Comment
@@ -6,12 +7,10 @@ import scala.meta.tokens.Token.LeftBrace
 import scala.meta.tokens.Token.RightBrace
 import scala.meta.tokens.Token.RightParen
 import scala.meta.tokens.Token.Space
-import scalafix.util.Patch
 import scala.collection.immutable.Seq
-import scalafix.util.TokenPatch
 
-case object ProcedureSyntax extends Rewrite[Any] {
-  override def rewrite[T](ctx: RewriteCtx[T]): Seq[Patch] = {
+case object ProcedureSyntax extends Rewrite {
+  override def rewrite(ctx: RewriteCtx): Patch = {
     import ctx.tokenList._
     val patches: Seq[Patch] = ctx.tree.collect {
       case t: Defn.Def
@@ -29,8 +28,8 @@ case object ProcedureSyntax extends Rewrite[Any] {
           if (between.nonEmpty) " " + between
           else ""
         }
-        TokenPatch.AddRight(closingParen, s": Unit =")
+        ctx.addRight(closingParen, s": Unit =")
     }
-    patches
+    patches.asPatch
   }
 }

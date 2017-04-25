@@ -1,10 +1,15 @@
 rewrites = [
-  "scala:scalafix.test.FqnRewrite"
+  "scala:banana.rewrite.FqnRewrite"
+  "scala:banana.rewrite.FqnRewrite2"
+  "scala:banana.rewrite.LambdaRewrites.syntax"
+  "scala:banana.rewrite.LambdaRewrites.semantic"
 ]
 imports.removeUnused = true
 <<< NOWRAP add import
-import scala._
 object FqnMe
 >>>
+// comment
 import scala.meta._
-object FqnMe
+
+import hello.semantic
+object FqnMe2

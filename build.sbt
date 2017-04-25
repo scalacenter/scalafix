@@ -19,7 +19,6 @@ commands += Command.command("release") { s =>
 commands += CiCommand("ci-fast")("test" :: Nil)
 commands += Command.command("ci-slow") { s =>
   "scalafix-sbt/it:test" ::
-    ci("tests/it:test") ::
     s
 }
 commands += Command.command("ci-publish") { s =>
@@ -80,15 +79,14 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
 )
 
 lazy val allSettings = List(
+  version := sys.props.getOrElse("scalafix.version", version.value),
   resolvers += Resolver.bintrayRepo("scalameta", "maven"),
   resolvers += Resolver.sonatypeRepo("releases"),
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
   scalacOptions := compilerOptions,
   scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
-  test in assembly := {},
   libraryDependencies += scalatest % Test,
   testOptions in Test += Tests.Argument("-oD"),
-  assemblyJarName in assembly := "scalafix.jar",
   scalaVersion := ciScalaVersion.getOrElse(scala211),
   crossScalaVersions := crossVersions,
   updateOptions := updateOptions.value.withCachedResolution(true)
@@ -113,6 +111,15 @@ lazy val metaconfigSettings: Seq[Def.Setting[_]] = Seq(
   sources in (Compile, doc) := Nil // macroparadise doesn't work with scaladoc yet.
 )
 
+lazy val reflect = project
+  .configure(setId)
+  .settings(
+    allSettings,
+    publishSettings,
+    isFullCrossVersion,
+    libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
+  )
+  .dependsOn(core)
 lazy val core = project
   .configure(setId)
   .settings(
@@ -126,57 +133,12 @@ lazy val core = project
       metaconfig,
       scalameta,
       scalahost,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value
+      // TODO(olafur) can we move this into separate module.
+      // Currently only used in Patch.appliedDiff
+      googleDiff
     )
   )
   .enablePlugins(BuildInfoPlugin)
-
-lazy val nsc = project
-  .configure(setId)
-  .settings(
-    allSettings,
-    publishSettings,
-    isFullCrossVersion,
-    libraryDependencies ++= Seq(
-      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-      scalahostNsc
-    ),
-    // sbt does not fetch transitive dependencies of compiler plugins.
-    // to overcome this issue, all transitive dependencies are included
-    // in the published compiler plugin.
-    publishArtifact in Compile := true,
-    assemblyMergeStrategy in assembly := {
-      // conflicts with scalahost plugin
-      case "scalac-plugin.xml" => MergeStrategy.first
-      case x =>
-        val oldStrategy = (assemblyMergeStrategy in assembly).value
-        oldStrategy(x)
-    },
-    assemblyJarName in assembly :=
-      name.value + "_" +
-        scalaVersion.value + "-" +
-        version.value + "-assembly.jar",
-    assemblyOption in assembly ~= { _.copy(includeScala = false) },
-    Keys.`package` in Compile := {
-      val slimJar = (Keys.`package` in Compile).value
-      val fatJar =
-        new File(crossTarget.value + "/" + (assemblyJarName in assembly).value)
-      val _ = assembly.value
-      IO.copy(List(fatJar -> slimJar), overwrite = true)
-      slimJar
-    },
-    packagedArtifact in Compile in packageBin := {
-      val temp = (packagedArtifact in Compile in packageBin).value
-      val (art, slimJar) = temp
-      val fatJar =
-        new File(crossTarget.value + "/" + (assemblyJarName in assembly).value)
-      val _ = assembly.value
-      IO.copy(List(fatJar -> slimJar), overwrite = true)
-      (art, slimJar)
-    },
-    exposePaths("scalafixNsc", Test)
-  )
-  .dependsOn(core)
 
 lazy val cli = project
   .configure(setId)
@@ -184,14 +146,16 @@ lazy val cli = project
     allSettings,
     publishSettings,
     isFullCrossVersion,
-    mainClass in assembly := Some("scalafix.cli.Cli"),
     libraryDependencies ++= Seq(
-      "com.github.scopt"           %% "scopt"         % "3.5.0",
       "com.github.alexarchambault" %% "case-app"      % "1.1.3",
       "com.martiansoftware"        % "nailgun-server" % "0.9.1"
     )
   )
-  .dependsOn(core, testkit % Test)
+  .dependsOn(
+    core,
+    reflect,
+    testkit % Test
+  )
 
 lazy val fatcli = project
   .configure(setId)
@@ -204,8 +168,8 @@ lazy val fatcli = project
   .dependsOn(cli)
 
 lazy val publishedArtifacts = Seq(
-  publishLocal in nsc,
-  publishLocal in core
+  publishLocal in core,
+  publishLocal in cli
 )
 
 lazy val `scalafix-sbt` = project
@@ -216,11 +180,12 @@ lazy val `scalafix-sbt` = project
     buildInfoSettings,
     Defaults.itSettings,
     ScriptedPlugin.scriptedSettings,
+    addSbtPlugin("org.scalameta" % "sbt-scalahost" % scalametaV),
     sbtPlugin := true,
     testQuick := {}, // these test are slow.
     test in IntegrationTest := {
       RunSbtCommand(
-        "; very publishLocal " +
+        s"; plz $scala212 publishLocal " +
           "; very scalafix-sbt/scripted"
       )(state.value)
     },
@@ -244,14 +209,15 @@ lazy val testkit = project
     allSettings,
     publishSettings,
     libraryDependencies ++= Seq(
+      scalahostNsc,
       ammonite,
-      "com.googlecode.java-diff-utils" % "diffutils" % "1.3.0",
+      googleDiff,
       scalatest
     )
   )
   .dependsOn(
     core,
-    nsc
+    reflect
   )
 
 lazy val tests = project
@@ -262,19 +228,24 @@ lazy val tests = project
     noPublish,
     Defaults.itSettings,
     libraryDependencies += scalatest % IntegrationTest,
+    test.in(IntegrationTest) := RunSbtCommand(
+      s"; plz $scala212 publishLocal " +
+        s"; such scalafix-sbt/publishLocal " +
+        "; tests/it:testQuick" // hack to workaround cyclic dependencies in test.
+    )(state.value),
     parallelExecution in Test := true,
     libraryDependencies ++= Seq(
+      scalahost % Test,
       // integration property tests
       "org.typelevel"      %% "catalysts-platform" % "0.0.5"    % Test,
       "com.typesafe.slick" %% "slick"              % "3.2.0-M2" % Test,
       "com.chuusai"        %% "shapeless"          % "2.3.2"    % Test,
       "org.scalacheck"     %% "scalacheck"         % "1.13.4"   % Test
-    ),
-    exposePaths("scalafixNsc", Test)
+    )
   )
   .dependsOn(
     core,
-    nsc,
+    reflect,
     testkit
   )
 
@@ -331,8 +302,8 @@ lazy val isFullCrossVersion = Seq(
 )
 
 lazy val scala210 = "2.10.6"
-lazy val scala211 = "2.11.10"
-lazy val scala212 = "2.12.1"
+lazy val scala211 = "2.11.11"
+lazy val scala212 = "2.12.2"
 lazy val ciScalaVersion = sys.env.get("CI_SCALA_VERSION")
 def CiCommand(name: String)(commands: List[String]): Command =
   Command.command(name) { initState =>

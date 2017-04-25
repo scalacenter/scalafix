@@ -1,25 +1,24 @@
-package scalafix.cli
+package scalafix
+package cli
 
 import scala.collection.GenSeq
-import scala.meta.Mirror
+import scala.collection.immutable.Seq
+import scala.meta.Tree
+import scala.meta._
 import scala.meta.dialects
-import scala.meta.internal.scalahost.v1.offline
 import scala.meta.inputs.Input
+import scala.meta.internal.scalahost.v1.offline
+import scala.meta.io.AbsolutePath
+import scala.meta.parsers.Parsed
 import scala.util.Success
 import scala.util.Try
 import scala.util.control.NonFatal
-import scalafix.Failure
-import scalafix.syntax._
-import scalafix.Fixed
-import scalafix.Scalafix
+import scalafix.Fixed.Failed
 import scalafix.cli.termdisplay.TermDisplay
-import scalafix.config.PrintStreamReporter
-import scalafix.config.ScalafixConfig
-import scalafix.config.ScalafixReporter
+import scalafix.config._
+import scalafix.reflect.ScalafixCompilerDecoder
+import scalafix.reflect.ScalafixToolbox
 import scalafix.rewrite.ProcedureSyntax
-import scalafix.rewrite.ScalafixMirror
-import scalafix.rewrite.ScalafixRewrite
-import scalafix.rewrite.ScalafixRewrites
 import scalafix.util.FileOps
 
 import java.io.File
@@ -27,11 +26,17 @@ import java.io.InputStream
 import java.io.OutputStreamWriter
 import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
+import java.util.function.UnaryOperator
 import java.util.regex.Pattern
 
 import caseapp._
 import caseapp.core.WithHelp
 import com.martiansoftware.nailgun.NGContext
+import metaconfig.Conf
+import metaconfig.ConfError
+import metaconfig.Configured
+import metaconfig.Configured.Ok
 import org.scalameta.logger
 
 case class CommonOptions(
@@ -52,7 +57,7 @@ case class ScalafixOptions(
       "Scalafix configuration, either a file path or a hocon string"
     ) @ValueDescription(
       ".scalafix.conf OR imports.organize=false"
-    ) @ExtraName("c") config: Option[ScalafixConfig] = None,
+    ) @ExtraName("c") config: Option[String] = None,
     @HelpMessage(
       """java.io.File.pathSeparator separated list of jar files or directories
         |        containing classfiles and `semanticdb` files. The `semanticdb`
@@ -86,7 +91,7 @@ case class ScalafixOptions(
          |               file:LocalFile.scala OR
          |               scala:full.Name OR
          |               https://gist.com/.../Rewrite.scala""".stripMargin
-    ) rewrites: List[ScalafixRewrite] = ScalafixRewrites.syntax,
+    ) rewrites: List[String] = Nil,
     @HelpMessage(
       "Files to fix. Runs on all *.scala files if given a directory."
     ) @ValueDescription(
@@ -109,9 +114,44 @@ case class ScalafixOptions(
     @HelpMessage(
       "If true, prints out debug information."
     ) debug: Boolean = false,
+    // NOTE: This option could be avoided by adding another entrypoint like `Cli.safeMain`
+    // or SafeCli.main. However, I opted for a cli flag since that plays nicely
+    // with default `run.in(Compile).toTask("--no-sys-exit").value` in sbt.
+    // Another other option would be to do
+    // `runMain.in(Compile).toTask("scalafix.cli.SafeMain")` but I prefer to
+    // keep only one main function if possible since that plays nicely with
+    // automatic detection of `main` functions in tools like `coursier launch`.
+    @HelpMessage(
+      "If true, does not sys.exit at the end. Useful for example in sbt-scalafix."
+    ) noSysExit: Boolean = false,
     @Recurse common: CommonOptions = CommonOptions()
 ) {
 
+  object InputSource {
+    def unapply(source: Source): Option[AbsolutePath] =
+      for {
+        tok <- source.tokens.headOption
+        input = tok.input
+        if input.isInstanceOf[Input.File]
+      } yield input.asInstanceOf[Input.File].path
+  }
+
+  lazy val resolvedFiles: GenSeq[String] = {
+    val scalaFiles = {
+      if (files.nonEmpty) files.flatMap(FileOps.listFiles)
+      else {
+        resolvedMirror
+          .map {
+            case Some(x) =>
+              x.sources.collect { case InputSource(path) => path.absolute }
+            case _ => Nil
+          }
+          .getOrElse(Nil)
+      }
+    }.filter(Cli.isScalaPath)
+    if (singleThread) scalaFiles
+    else scalaFiles.par
+  }
   lazy val absoluteFiles: List[File] = files.map { f =>
     val file = new File(f)
     if (file.isAbsolute) file
@@ -119,37 +159,78 @@ case class ScalafixOptions(
   }
 
   /** Returns ScalafixConfig from .scalafix.conf, it exists and --config was not passed. */
-  lazy val resolvedConfig: ScalafixConfig = config match {
-    case None =>
-      val config = ScalafixConfig
-        .auto(common.workingDirectoryFile)
-        .getOrElse(
-          ScalafixConfig.default
-        )
-        .withRewrites(_ ++ rewrites)
-      config.copy(reporter = config.reporter match {
-        case r: PrintStreamReporter => r.copy(outStream = common.err)
-        case _ => ScalafixReporter.default.copy(outStream = common.err)
-      })
-    case Some(x) => x
-  }
+  lazy val resolvedConfig: Configured[ScalafixConfig] =
+    for {
+      mirror <- resolvedMirror
+      decoder = ScalafixCompilerDecoder.fromMirrorOption(mirror)
+      cliArgRewrite <- rewrites
+        .foldLeft(ScalafixToolbox.emptyRewrite) {
+          case (rewrite, next) =>
+            rewrite
+              .product(decoder.read(Conf.Str(next)))
+              .map { case (a, b) => a.andThen(b) }
+        }
+      scalafixConfig <- config match {
+        case None =>
+          ScalafixConfig
+            .auto(common.workingDirectoryFile, mirror)(decoder)
+            .getOrElse(Ok(ScalafixConfig.default))
+        case Some(x) =>
+          if (new File(x).isFile)
+            ScalafixConfig.fromFile(new File(x), mirror)(decoder)
+          else ScalafixConfig.fromString(x, mirror)(decoder)
+      }
+    } yield
+      scalafixConfig.copy(
+        rewrite = scalafixConfig.rewrite.andThen(cliArgRewrite),
+        reporter = scalafixConfig.reporter match {
+          case r: PrintStreamReporter => r.copy(outStream = common.err)
+          case _ => ScalafixReporter.default.copy(outStream = common.err)
+        }
+      )
 
-  lazy val resolvedSbtConfig: ScalafixConfig =
-    resolvedConfig.copy(dialect = dialects.Sbt0137)
+  lazy val resolvedSbtConfig: Configured[ScalafixConfig] =
+    resolvedConfig.map(_.copy(dialect = dialects.Sbt0137))
 
-  lazy val resolvedMirror: Either[String, Option[ScalafixMirror]] =
+  lazy val resolvedMirror: Configured[Option[Mirror]] =
     (classpath, sourcepath) match {
       case (Some(cp), Some(sp)) =>
         val tryMirror = for {
           pluginPath <- scalahostNscPluginPath.fold(
             Try(offline.Mirror.autodetectScalahostNscPluginPath))(Success(_))
-          mirror <- Try(ScalafixMirror.fromMirror(Mirror(cp, sp, pluginPath)))
+          mirror <- Try {
+            // TODO(olafur) offline.Mirror needs to document what can go wrong in the types.
+            // see https://github.com/scalameta/scalameta/issues/814
+            val files =
+              sp.split(File.pathSeparator)
+                .flatMap(FileOps.listFiles)
+                .filter { x =>
+                  // need to filter here because of https://github.com/scalameta/scalameta/issues/814
+                  new File(x).parse[Source] match {
+                    case parsers.Parsed.Success(_) => true
+                    case _ => false
+                  }
+                }
+            if (files.isEmpty) throw Cli.EmptySourcepath // need to fix offline.Mirror :v
+            val mirror =
+              Mirror(cp, files.mkString(File.pathSeparator), pluginPath)
+            mirror.sources // ugh. need to trigger lazy to validate that all files parse
+            mirror
+          }
         } yield Option(mirror)
-        tryMirror.asEither.leftAsString
-      case (None, None) => Right(None)
+        tryMirror match {
+          case Success(x) => Ok(x)
+          case scala.util.Failure(Cli.EmptySourcepath) => Ok(None)
+          case scala.util.Failure(e) => ConfError.msg(e.toString).notOk
+        }
+      case (None, None) =>
+        Ok(Try(Mirror()).toOption)
       case _ =>
-        Left(
-          "The semantic API was partially configured: both a classpath and sourcepath are required.")
+        ConfError
+          .msg(
+            "The semantic API was partially configured: " +
+              "both a classpath and sourcepath are required.")
+          .notOk
     }
 
   lazy val outFromPattern: Pattern = Pattern.compile(outFrom)
@@ -175,8 +256,16 @@ object Cli {
   val usageMessage: String = withHelp.usageMessage
   val default = ScalafixOptions()
   // Run this at the end of the world, calls sys.exit.
+
+  case object EmptySourcepath extends Exception(s"No sources parse")
+  case class NonZeroExitCode(n: Int)
+      extends Exception(s"Expected exit code 0. Got exit code $n")
   def main(args: Array[String]): Unit = {
-    sys.exit(runMain(args, CommonOptions()))
+    val code = runMain(args.to[Seq], CommonOptions())
+    if (args.contains("--no-sys-exit")) {
+      if (code != 0) throw NonZeroExitCode(code)
+      else ()
+    } else sys.exit(code)
   }
 
   def safeHandleFile(file: File, options: ScalafixOptions): ExitStatus = {
@@ -200,12 +289,20 @@ object Cli {
     cause.printStackTrace(options.common.err)
   }
 
+  def parsed(code: Input, config: ScalafixConfig): Either[Failed, Tree] = {
+    config.parser.apply(code, config.dialect) match {
+      case Parsed.Success(ast) => Right(ast)
+      case Parsed.Error(pos, msg, e) =>
+        Left(Fixed.Failed(Failure.ParseError(pos, msg, e)))
+    }
+  }
+
   def handleFile(file: File, options: ScalafixOptions): ExitStatus = {
     val config =
       if (file.getAbsolutePath.endsWith(".sbt")) options.resolvedSbtConfig
       else options.resolvedConfig
-    val fixed =
-      Scalafix.fix(Input.File(file), config, options.resolvedMirror.get)
+
+    val fixed = Scalafix.fix(Input.File(file), config.get)
     fixed match {
       case Fixed.Success(code) =>
         if (options.inPlace) {
@@ -226,49 +323,41 @@ object Cli {
     }
   }
 
+  def isScalaPath(path: String): Boolean =
+    path.endsWith(".scala") || path.endsWith(".sbt")
+
   def runOn(config: ScalafixOptions): ExitStatus = {
-    val codes = config.files.map { pathStr =>
-      val path = new File(pathStr)
-      val workingDirectory = new File(config.common.workingDirectory)
-      val realPath: File =
-        if (path.isAbsolute) path
-        else new File(config.common.workingDirectory, path.getPath)
-      if (realPath.isDirectory) {
-        val filesToFix: GenSeq[String] = {
-          val files =
-            FileOps
-              .listFiles(realPath)
-              .filter(x => x.endsWith(".scala") || x.endsWith(".sbt"))
-          if (config.singleThread) files
-          else files.par
-        }
-        val logger = new TermDisplay(new OutputStreamWriter(System.out))
-        logger.init()
-        val msg = "Running scalafix..."
-        logger.startTask(msg, workingDirectory)
-        logger.taskLength(msg, filesToFix.length, 0)
-        val counter = new AtomicInteger()
-        val codes = filesToFix.map { x =>
-          val code = safeHandleFile(new File(x), config)
-          val progress = counter.incrementAndGet()
-          logger.taskProgress(msg, progress)
-          code
-        }
-        logger.stop()
-        codes.reduce(ExitStatus.merge)
-      } else {
-        safeHandleFile(realPath, config)
-      }
+    val workingDirectory = new File(config.common.workingDirectory)
+    val display = new TermDisplay(new OutputStreamWriter(System.out))
+    val filesToFix = config.resolvedFiles
+    if (filesToFix.length > 10) display.init()
+    val msg = "Running scalafix..."
+    display.startTask(msg, workingDirectory)
+    display.taskLength(msg, filesToFix.length, 0)
+    val exitCode = new AtomicReference(ExitStatus.Ok)
+    val counter = new AtomicInteger()
+    filesToFix.foreach { x =>
+      val code = safeHandleFile(new File(x), config)
+      val progress = counter.incrementAndGet()
+      exitCode.getAndUpdate(new UnaryOperator[ExitStatus] {
+        override def apply(t: ExitStatus): ExitStatus =
+          ExitStatus.merge(code, t)
+      })
+      display.taskProgress(msg, progress)
+      code
     }
-    codes.reduce(ExitStatus.merge)
+    display.stop()
+    exitCode.get()
   }
 
   def parse(args: Seq[String]): Either[String, WithHelp[ScalafixOptions]] =
     OptionsParser.withHelp.detailedParse(args) match {
       case Right((help, extraFiles, ls)) =>
-        for {
+        val configured = for {
           _ <- help.base.resolvedMirror // validate
+          _ <- help.base.resolvedConfig // validate
         } yield help.map(_.copy(files = help.base.files ++ extraFiles))
+        configured.toEither.left.map(_.toString())
       case Left(x) => Left(x)
     }
 
@@ -291,7 +380,7 @@ object Cli {
   def nailMain(nGContext: NGContext): Unit = {
     val code =
       runMain(
-        nGContext.getArgs,
+        nGContext.getArgs.to[Seq],
         CommonOptions(
           workingDirectory = nGContext.getWorkingDirectory,
           out = nGContext.out,

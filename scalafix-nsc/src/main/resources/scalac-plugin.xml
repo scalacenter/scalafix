@@ -1,4 +1,0 @@
-<plugin>
-  <name>scalafix</name>
-  <classname>scalafix.nsc.ScalafixNscPlugin</classname>
-</plugin>

@@ -12,7 +12,8 @@ case class ImportsConfig(
     spaceAroundCurlyBrace: Boolean = false,
     // Disabled since users should explicitly opt into it.
     organize: Boolean = false,
-    removeUnused: Boolean = true,
+    // TODO(olafur) renable when Mirror.messages
+    removeUnused: Boolean = false,
     alwaysUsed: List[Ref] = List(),
     groups: List[FilterMatcher] = List(
       FilterMatcher("scala.language.*"),

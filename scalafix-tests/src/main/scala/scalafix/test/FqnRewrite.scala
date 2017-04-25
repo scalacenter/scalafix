@@ -1,13 +1,28 @@
-package scalafix.test
+package banana.rewrite
 
-import scala.collection.immutable.Seq
 import scala.meta._
-import scalafix.rewrite.Rewrite
-import scalafix.rewrite.RewriteCtx
-import scalafix.util.Patch
-import scalafix.util.TreePatch.AddGlobalImport
+import scala.meta.contrib._
+import scalafix._
 
-case object FqnRewrite extends Rewrite[Any] {
-  override def rewrite[B <: Any](ctx: RewriteCtx[B]): Seq[Patch] =
-    Seq(AddGlobalImport(importer"scala.meta._"))
+case class FqnRewrite(mirror: Mirror) extends SemanticRewrite(mirror) {
+  override def rewrite(ctx: RewriteCtx): Patch =
+    ctx.addGlobalImport(importer"scala.meta._")
+}
+
+case object FqnRewrite2 extends Rewrite {
+  override def rewrite(ctx: RewriteCtx): Patch =
+    ctx.tree.collectFirst {
+      case n: Name => ctx.rename(n, Term.Name(n.value + "2"))
+    }.asPatch
+}
+
+object LambdaRewrites {
+  val syntax: Rewrite = Rewrite.syntactic { ctx =>
+    ctx.addLeft(ctx.tokens.head, "// comment\n")
+  }
+
+  val semantic = Rewrite.semantic { implicit mirror => ctx =>
+    ctx.addGlobalImport(importer"hello.semantic")
+  }
+
 }

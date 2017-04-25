@@ -1,14 +1,15 @@
 package scalafix.testkit
 
 import scala.collection.immutable.Seq
+import scala.meta._
 import scala.meta.io.AbsolutePath
 import scalafix.config.ScalafixConfig
+import scalafix.reflect.ScalafixCompilerDecoder
 import scalafix.util.FileOps
 
 import java.io.File
 
 import metaconfig.Configured
-import org.scalameta.logger
 
 case class DiffTest(spec: String,
                     name: String,
@@ -17,7 +18,7 @@ case class DiffTest(spec: String,
                     expected: String,
                     skip: Boolean,
                     only: Boolean,
-                    config: ScalafixConfig) {
+                    config: Option[Mirror] => ScalafixConfig) {
   def noWrap: Boolean = name.startsWith("NOWRAP ")
   def checkSyntax: Boolean = spec.startsWith("checkSyntax")
   private def packageName = name.replaceAll("[^a-zA-Z0-9]", "")
@@ -54,15 +55,26 @@ object DiffTest {
     name.stripPrefix("SKIP ").stripPrefix("ONLY ").trim
   private def apply(testDir: File,
                     content: String,
-                    filename: String): Seq[DiffTest] = {
-    val spec = filename.stripPrefix(testDir.getPath + File.separator)
+                    filename: String): Seq[DiffTest] =
+    apply(filename.stripPrefix(testDir.getPath + File.separator),
+          content,
+          filename)
+
+  def apply(spec: String, content: String, filename: String): Seq[DiffTest] = {
     val moduleOnly = isOnly(content)
     val moduleSkip = isSkip(content)
     val split = content.split("\n<<< ")
 
-    val style: ScalafixConfig = {
+    val style = { mirror: Option[Mirror] =>
       val firstLine = split.head
-      ScalafixConfig.fromString(firstLine).get
+      ScalafixConfig.fromString(firstLine, mirror)(
+        ScalafixCompilerDecoder.fromMirrorOption(mirror)) match {
+        case Configured.Ok(x) => x
+        case Configured.NotOk(x) =>
+          throw new IllegalArgumentException(s"""Failed to parse $filename
+                                                |Mirror: $mirror
+                                                |Error: $x""".stripMargin)
+      }
     }
 
     split.tail.map { t =>

@@ -1,20 +1,24 @@
-package scalafix.rewrite
+package scalafix
+package rewrite
+import scala.meta._
 
 object ScalafixRewrites {
-  val syntax: List[SyntaxRewrite] = List(
+  val syntax: List[Rewrite] = List(
     ProcedureSyntax,
     VolatileLazyVal
   )
-  val semantic: List[ScalafixRewrite] = List(
-    ScalaJsRewrites.DemandJSGlobal,
-    ExplicitImplicit,
-    Scalameta17,
-    Xor2Either
+  def semantic(mirror: Mirror): List[Rewrite] = List(
+    ScalaJsRewrites.DemandJSGlobal(mirror),
+//    ExplicitImplicit(mirror), // Unsupported for now
+    Scalameta17(mirror),
+    Xor2Either(mirror)
   )
-  val all: List[ScalafixRewrite] = syntax ++ semantic
-  val default: List[ScalafixRewrite] =
-    all.filterNot(Set(VolatileLazyVal, Xor2Either))
-  val name2rewrite: Map[String, ScalafixRewrite] =
-    all.map(x => x.name -> x).toMap
-
+  def all(mirror: Mirror): List[Rewrite] =
+    syntax ++ semantic(mirror)
+  def default(mirror: Mirror): List[Rewrite] =
+    all(mirror).filterNot(Set(VolatileLazyVal, Xor2Either))
+  def name2rewrite(mirror: Mirror): Map[String, Rewrite] =
+    all(mirror).map(x => x.name -> x).toMap
+  lazy val syntaxName2rewrite: Map[String, Rewrite] =
+    syntax.map(x => x.name -> x).toMap
 }

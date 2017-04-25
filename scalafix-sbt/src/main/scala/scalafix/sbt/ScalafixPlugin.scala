@@ -1,23 +1,28 @@
 package scalafix.sbt
 
+import scala.language.reflectiveCalls
+
+import scala.meta.scalahost.sbt.ScalahostSbtPlugin
 import scalafix.Versions
+
+import java.io.File
 
 import sbt.Keys._
 import sbt._
 import sbt.plugins.JvmPlugin
 
-trait ScalafixKeys {
-  val scalafixConfig: SettingKey[Option[File]] =
-    settingKey[Option[File]](
-      ".scalafix.conf file to specify which scalafix rules should run.")
-  val scalafixEnabled: SettingKey[Boolean] =
-    settingKey[Boolean]("Is scalafix enabled?")
-  val scalafixInternalJar: TaskKey[Option[File]] =
-    taskKey[Option[File]]("Path to scalafix-nsc compiler plugin jar.")
-}
-
-object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
-  object autoImport extends ScalafixKeys
+object ScalafixPlugin extends AutoPlugin {
+  override def trigger: PluginTrigger = allRequirements
+  override def requires: Plugins =
+    CliWrapperPlugin && ScalahostSbtPlugin && JvmPlugin
+  object autoImport {
+    val scalafix = inputKey[Unit]("Run scalafix")
+    val scalafixConfig: SettingKey[Option[File]] =
+      settingKey[Option[File]](
+        ".scalafix.conf file to specify which scalafix rules should run.")
+  }
+  import autoImport._
+  import CliWrapperPlugin.autoImport._
   private val scalafixVersion = _root_.scalafix.Versions.version
   private val disabled = sys.props.contains("scalafix.disable")
   private def jar(report: UpdateReport): File =
@@ -35,87 +40,109 @@ object ScalafixPlugin extends AutoPlugin with ScalafixKeys {
         )
       }
 
-  private def stub(version: String) = {
-    val id = version.replace(".", "-")
-    Project(id = s"scalafix-$id", base = file(s"project/scalafix/$id"))
+  private val scalafixStub =
+    Project(id = s"scalafix-stub", base = file(s"project/scalafix/stub"))
       .settings(
         description :=
-          """Serves as a caching layer for extracting the jar location of the
-            |scalafix-nsc compiler plugin. If the dependency was added to all
-            |projects, the (slow) update task will be re-run for every project.""".stripMargin,
-        // Only needed when using snapshot versions.
-//        resolvers += Resolver.bintrayRepo("scalameta", "maven"),
+          """Project to host scalafix-cli, which is executed to run rewrites.""".stripMargin,
         publishLocal := {},
         publish := {},
         publishArtifact := false,
         publishMavenStyle := false, // necessary to support intransitive dependencies.
-        scalaVersion := version,
-        libraryDependencies := Nil, // remove injected dependencies from random sbt plugins.
+        scalaVersion := Versions.scala212,
+//        libraryDependencies := Nil, // remove injected dependencies from random sbt plugins.
         libraryDependencies +=
-          ("ch.epfl.scala" % "scalafix-nsc" % scalafixVersion)
-            .cross(CrossVersion.full)
-            .intransitive()
+          "ch.epfl.scala" % "scalafix-fatcli" % scalafixVersion cross CrossVersion.full
       )
-  }
-  private val scalafix211 = stub(Versions.scala211)
-  private val scalafix212 = stub(Versions.scala212)
 
-  override def extraProjects: Seq[Project] = Seq(scalafix211, scalafix212)
-
-  override def requires = JvmPlugin
-  override def trigger: PluginTrigger = AllRequirements
-
-  val scalafix: Command = Command.command("scalafix") { state =>
-    s"set scalafixEnabled in Global := true" ::
-      "clean" ::
-      "test:compile" ::
-      s"set scalafixEnabled in Global := false" ::
-      state
-  }
+  override def extraProjects: Seq[Project] = Seq(scalafixStub)
 
   override def globalSettings: Seq[Def.Setting[_]] = Seq(
+    cliWrapperClasspath := managedClasspath.in(scalafixStub, Compile).value,
+    cliWrapperMainClass := "scalafix.cli.Cli$",
     scalafixConfig := Option(file(".scalafix.conf")).filter(_.isFile)
   )
+
+  lazy val scalafixTaskImpl = Def.inputTask {
+    val main = cliWrapperMain.in(scalafixStub).value
+    val config =
+      scalafixConfig.value
+        .map(x => "--config" :: x.getAbsolutePath :: Nil)
+        .getOrElse(Nil)
+    val log = streams.value.log
+    val sourcepath = scalahostSourcepath.value.flatten
+    val classpath = scalahostClasspath.value.flatMap(_.map(_.data))
+    def format(files: Seq[File]): String =
+      files.map(_.getAbsolutePath).mkString(File.pathSeparator)
+    val inputArgs = Def.spaceDelimited("<rewrite>").parsed
+    val rewriteArgs =
+      if (inputArgs.nonEmpty) "--rewrites" +: inputArgs
+      else Nil
+    val args =
+      config ++
+        rewriteArgs ++
+        Seq(
+          "--no-sys-exit",
+          "-i",
+          "--sourcepath",
+          format(sourcepath),
+          "--classpath",
+          format(classpath)
+        )
+    log.info(s"Running scalafix ${args.mkString(" ")}...")
+    if (sourcepath.nonEmpty && classpath.nonEmpty) main.main(args.toArray)
+  }
+  lazy val scalafixSettings = Seq(
+    scalafix := scalafixTaskImpl.evaluated
+  )
+
   override def projectSettings: Seq[Def.Setting[_]] =
-    Seq(
-      commands += scalafix,
-      scalafixInternalJar :=
-        Def
-          .taskDyn[Option[File]] {
-            CrossVersion.partialVersion(scalaVersion.value) match {
-              case Some((2, 11)) =>
-                Def.task(Option(jar((update in scalafix211).value)))
-              case Some((2, 12)) =>
-                Def.task(Option(jar((update in scalafix212).value)))
-              case _ =>
-                Def.task(None)
-            }
-          }
-          .value,
-      scalafixEnabled in Global := false,
-      scalacOptions ++= {
-        // scalafix should not affect compilations outside of the scalafix task.
-        // The approach taken here is the same as scoverage uses, see:
-        // https://github.com/scoverage/sbt-scoverage/blob/45ac49583f5a32dfebdce23b94c5336da4906e59/src/main/scala/scoverage/ScoverageSbtPlugin.scala#L70-L83
-        if (!(scalafixEnabled in Global).value) {
-          Nil
-        } else {
-          val config =
-            scalafixConfig.value.map { x =>
-              if (!x.isFile)
-                streams.value.log.warn(s"File does not exist: $x")
-              s"-P:scalafix:${x.getAbsolutePath}"
-            }
-          scalafixInternalJar.value
-            .map { jar =>
-              Seq(
-                Some(s"-Xplugin:${jar.getAbsolutePath}"),
-                Some("-Yrangepos"),
-                config
-              ).flatten
-            }
-            .getOrElse(Nil)
-        }
-      }
-    )
+    inConfig(Compile)(scalafixSettings) ++
+      inConfig(Test)(scalafixSettings) ++
+      inConfig(IntegrationTest)(scalafixSettings)
+  // TODO(olafur) remove
+  private def scalahostAggregateFilter: Def.Initialize[ScopeFilter] =
+    Def.setting {
+      ScopeFilter(configurations = inConfigurations(Compile, Test))
+    }
+  lazy private val scalahostSourcepath: Def.Initialize[Seq[Seq[File]]] =
+    Def.settingDyn(sourceDirectories.all(scalahostAggregateFilter.value))
+  lazy private val scalahostClasspath: Def.Initialize[Task[Seq[Classpath]]] =
+    Def.taskDyn(fullClasspath.all(scalahostAggregateFilter.value))
+}
+
+// generic plugin for wrapping any command-line interface as an sbt plugin
+object CliWrapperPlugin extends AutoPlugin {
+  override def trigger: PluginTrigger = allRequirements
+  override def requires: Plugins = JvmPlugin
+  def createSyntheticProject(id: String, base: File): Project =
+    Project(id, base).settings(publish := {},
+                               publishLocal := {},
+                               publishArtifact := false)
+  class HasMain(reflectiveMain: Main) {
+    def main(args: Array[String]): Unit = reflectiveMain.main(args)
+  }
+  type Main = {
+    def main(args: Array[String]): Unit
+  }
+  object autoImport {
+    val cliWrapperClasspath =
+      taskKey[Classpath]("classpath to run code generation in")
+    val cliWrapperMainClass =
+      taskKey[String]("Fully qualified name of main class")
+    val cliWrapperMain =
+      taskKey[HasMain]("Classloaded instance of main")
+  }
+  import autoImport._
+  override def globalSettings: Seq[Def.Setting[_]] = Seq(
+    cliWrapperMain := {
+      val cp = cliWrapperClasspath.value.map(_.data.toURI.toURL)
+      val cl = new java.net.URLClassLoader(cp.toArray, null)
+      val cls = cl.loadClass(cliWrapperMainClass.value)
+      val constuctor = cls.getDeclaredConstructor()
+      constuctor.setAccessible(true)
+      val main = constuctor.newInstance().asInstanceOf[Main]
+      new HasMain(main)
+    }
+  )
 }
