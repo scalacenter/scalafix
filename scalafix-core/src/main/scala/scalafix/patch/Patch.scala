@@ -49,11 +49,12 @@ sealed abstract class Patch {
 
   /** Returns unified diff from applying this patch */
   def appliedDiff: String = {
-    val original = this match {
-      case InCtx(_, ctx, _) => ctx.tree.syntax
+    val ctx = this match {
+      case InCtx(_, ctx, _) => ctx
       case _ => throw Failure.MissingTopLevelInCtx(this)
     }
-    Patch.unifiedDiff(original, applied)
+    val original = ctx.tree.input
+    Patch.unifiedDiff(original, Input.LabeledString(original.label, applied))
   }
 
   /** Returns string output of applying this single patch.
@@ -161,7 +162,7 @@ object Patch {
   def apply(patch: Patch): String = patch match {
     case InCtx(p, ctx, mirror) =>
       val patches = underlying(p)
-      val semanticPatches = patches.collect { case tp: TokenPatch => tp }
+      val semanticPatches = patches.collect { case tp: TreePatch => tp }
       mirror match {
         case Some(x) =>
           semanticApply(underlying(p))(ctx, x)
@@ -227,12 +228,17 @@ object Patch {
     builder.result()
   }
 
-  def unifiedDiff(a: String, b: String): String = {
+  def unifiedDiff(original: Input, revised: Input): String = {
     import scala.collection.JavaConverters._
-    val originalLines = a.lines.toSeq.asJava
-    val diff = DiffUtils.diff(originalLines, b.lines.toSeq.asJava)
+    val originalLines = original.asString.lines.toSeq.asJava
+    val diff =
+      DiffUtils.diff(originalLines, revised.asString.lines.toSeq.asJava)
     DiffUtils
-      .generateUnifiedDiff("original", "revised", originalLines, diff, 3)
+      .generateUnifiedDiff(original.label,
+                           revised.label,
+                           originalLines,
+                           diff,
+                           3)
       .asScala
       .mkString("\n")
   }

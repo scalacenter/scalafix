@@ -12,6 +12,7 @@ import scala.util.Success
 import scala.util.Try
 
 import org.scalameta.logger
+import scala.compat.Platform.EOL
 
 package object syntax {
 
@@ -120,5 +121,18 @@ package object syntax {
   }
   implicit class XtensionString(str: String) {
     def revealWhiteSpace: String = logger.revealWhitespace(str)
+  }
+  implicit class XtensionTreeScalafix(tree: Tree) {
+    def input: Input = tree.tokens.head.input
+  }
+  implicit class XtensionInputScalafix(input: Input) {
+    def label: String = input match {
+      case Input.File(path, _) => path.absolute
+      case Input.LabeledString(label, _) => label
+      case _ =>
+        s"Input.${input.productPrefix}('<${input.chars.take(10).mkString}...>')"
+          .replaceAllLiterally(EOL, "")
+    }
+    def asString: String = new String(input.chars)
   }
 }

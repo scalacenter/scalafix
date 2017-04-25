@@ -7,6 +7,8 @@ import scala.meta.{Symbol => _, _}
 import scala.meta.semantic.v1._
 import scalafix.syntax._
 
+import org.scalameta.logger
+
 case class Xor2Either(mirror: Mirror) extends SemanticRewrite(mirror) {
   override def rewrite(ctx: RewriteCtx): Patch = {
     val importImplicits = ctx.tree.collectFirst {

@@ -21,7 +21,6 @@ object RewriteInstrumentation {
       def unapply(arg: Term): Boolean = arg match {
         case q"Rewrite.syntactic($_)" => true
         case q"Rewrite.semantic($_)" => true
-        case q"Rewrite.semantic($_)" => true
         case _ => false
       }
     }
@@ -52,7 +51,6 @@ object RewriteInstrumentation {
         val x = result.result()
         if (x.isEmpty) ConfError.msg(s"Found no rewrites in input $code").notOk
         else Configured.Ok(x)
-
     }
   }
 }
