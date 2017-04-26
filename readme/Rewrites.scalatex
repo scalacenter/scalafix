@@ -66,6 +66,23 @@
       With @code{@@volatile}, Dotty uses a deadlock free scheme that is
       comparable-if-not-faster than the scheme used in scalac.
 
+  @sect(ExplicitUnit.toString)
+    @p
+      Adds an explicit @code{Unit} return type to @code{def} declarations without a return type
+
+    @hl.scala
+      // before
+      trait A {
+        def doSomething
+      }
+      // after
+      trait A {
+        def doSomething: Unit
+      }
+
+    @p
+      Such members already have a return type of @code{Unit} and sometimes this is unexpected.
+      Adding an explicit return type makes it more obvious.
 
   @sect{Planned rewrites...}
     See @lnk("here", "https://github.com/scalacenter/scalafix/issues?q=is%3Aissue+is%3Aopen+label%3Arewrite")
