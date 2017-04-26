@@ -1,8 +1,7 @@
 package scalafix.patch
 
 import scalafix.syntax._
-import scala.meta.{Symbol => _, _}
-import scala.meta.semantic.v1._
+import scala.meta._
 import scala.collection.immutable.Seq
 import scalafix.patch.TreePatch._
 import scalafix.patch.TokenPatch._

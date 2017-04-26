@@ -5,7 +5,7 @@ import scala.collection.immutable.Seq
 import scala.meta.Ref
 import scala.meta._
 import scala.meta.parsers.Parse
-import scala.meta.semantic.v1.Symbol
+import scala.meta.semantic.Symbol
 import scala.reflect.ClassTag
 import scala.util.Try
 import scala.util.matching.Regex

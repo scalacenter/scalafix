@@ -158,16 +158,6 @@ lazy val cli = project
     testkit % Test
   )
 
-lazy val fatcli = project
-  .configure(setId)
-  .settings(
-    allSettings,
-    publishSettings,
-    isFullCrossVersion,
-    libraryDependencies += scalahostNsc
-  )
-  .dependsOn(cli)
-
 lazy val publishedArtifacts = Seq(
   publishLocal in core,
   publishLocal in cli
@@ -181,7 +171,7 @@ lazy val `scalafix-sbt` = project
     buildInfoSettings,
     Defaults.itSettings,
     ScriptedPlugin.scriptedSettings,
-    addSbtPlugin("org.scalameta" % "sbt-scalahost" % scalametaV),
+    libraryDependencies += "org.scalameta" % "sbt-scalahost" % scalametaV,
     sbtPlugin := true,
     testQuick := {}, // these test are slow.
     test in IntegrationTest := {
@@ -211,7 +201,7 @@ lazy val testkit = project
     isFullCrossVersion,
     publishSettings,
     libraryDependencies ++= Seq(
-      scalahostNsc,
+      scalahost,
       ammonite,
       googleDiff,
       scalatest

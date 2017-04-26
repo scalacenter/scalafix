@@ -77,7 +77,7 @@ class Compiler() {
     reporter.reset()
     val run = new global.Run
     val label = input match {
-      case Input.File(path, _) => path.absolute
+      case Input.File(path, _) => path.toString()
       case Input.LabeledString(label, _) => label
       case _ => "(input)"
     }

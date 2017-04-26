@@ -3,7 +3,7 @@ package scalafix.patch
 import scala.collection.immutable.Seq
 import scala.meta.Importee.Wildcard
 import scala.meta._
-import scala.meta.semantic.v1.Completed
+import scala.meta.semantic.Completed
 import scala.meta.tokens.Token.Comment
 import scala.meta.tokens.Token.KwImport
 import scalafix.config.FilterMatcher

@@ -131,8 +131,6 @@ class CliTest extends FunSuite with DiffAssertions {
       Cli
         .parse(List("--sourcepath", "foo.scala", "--classpath", "bar"))
         .isRight)
-    // injected by javaOptions in build.sbt
-    val path = sys.props("scalafix.scalahost.pluginpath")
     assert(
       Cli
         .parse(
@@ -140,9 +138,7 @@ class CliTest extends FunSuite with DiffAssertions {
             "--sourcepath",
             "foo.scala",
             "--classpath",
-            "bar",
-            "--scalahost-nsc-plugin-path",
-            path
+            "bar"
           ))
         .isRight)
   }

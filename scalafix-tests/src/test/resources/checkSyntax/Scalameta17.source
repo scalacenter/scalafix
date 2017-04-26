@@ -1,4 +1,4 @@
-rewrites = [Scalameta17]
+SKIP rewrites = [Scalameta17]
 <<< lit
 import scala.meta._
 object a {

@@ -4,9 +4,9 @@ import scala.collection.IterableLike
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable
 import scala.meta._
-import scala.meta.semantic.v1.Completed
-import scala.meta.semantic.v1.Signature
-import scala.meta.semantic.v1.Symbol
+import scala.meta.semantic.Completed
+import scala.meta.semantic.Signature
+import scala.meta.semantic.Symbol
 import scala.meta.tokens.Token
 import scala.util.Success
 import scala.util.Try
@@ -121,13 +121,14 @@ package object syntax {
   }
   implicit class XtensionString(str: String) {
     def revealWhiteSpace: String = logger.revealWhitespace(str)
+    def trimSugar: String = str.trim.replaceAllLiterally(".this", "")
   }
   implicit class XtensionTreeScalafix(tree: Tree) {
     def input: Input = tree.tokens.head.input
   }
   implicit class XtensionInputScalafix(input: Input) {
     def label: String = input match {
-      case Input.File(path, _) => path.absolute
+      case Input.File(path, _) => path.toString()
       case Input.LabeledString(label, _) => label
       case _ =>
         s"Input.${input.productPrefix}('<${input.chars.take(10).mkString}...>')"

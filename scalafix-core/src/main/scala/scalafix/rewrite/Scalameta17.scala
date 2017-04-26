@@ -4,10 +4,10 @@ package rewrite
 
 import scala.collection.immutable.Seq
 import scala.meta._
-import scala.meta.semantic.v1.Completed
-import scala.meta.semantic.v1.Mirror
-import scala.meta.semantic.v1.Signature
-import scala.meta.semantic.v1.Symbol
+import scala.meta.semantic.Completed
+import scala.meta.semantic.Mirror
+import scala.meta.semantic.Signature
+import scala.meta.semantic.Symbol
 
 case class Scalameta17(mirror: Mirror) extends SemanticRewrite(mirror) {
 

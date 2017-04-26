@@ -2,7 +2,7 @@ package scalafix
 package rewrite
 import scala.meta.Dialect
 import scala.meta.Tree
-import scala.meta.semantic.v1.Mirror
+import scala.meta.semantic.Mirror
 import scala.meta.tokens.Tokens
 import scalafix.config.ScalafixConfig
 import scalafix.config.ScalafixReporter

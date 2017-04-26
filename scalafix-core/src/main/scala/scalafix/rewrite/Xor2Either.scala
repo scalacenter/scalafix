@@ -4,7 +4,7 @@ import scala.collection.immutable.Seq
 import scala.meta.contrib._
 import scala.meta.internal.ast.Helpers._
 import scala.meta.{Symbol => _, _}
-import scala.meta.semantic.v1._
+import scala.meta.semantic._
 import scalafix.syntax._
 
 import org.scalameta.logger
