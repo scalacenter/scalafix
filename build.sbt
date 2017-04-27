@@ -67,7 +67,8 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
   buildInfoKeys := Seq[BuildInfoKey](
     name,
     version,
-    "stableVersion" -> version.value.replaceAll("\\+.*", ""),
+    "stable" -> version.value.replaceAll("\\+.*", ""),
+    "nightly" -> version.value,
     "scalameta" -> scalametaV,
     scalaVersion,
     "scala211" -> scala211,
@@ -207,6 +208,7 @@ lazy val testkit = project
   .configure(setId)
   .settings(
     allSettings,
+    isFullCrossVersion,
     publishSettings,
     libraryDependencies ++= Seq(
       scalahostNsc,
