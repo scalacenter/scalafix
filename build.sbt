@@ -207,6 +207,7 @@ lazy val testkit = project
   .configure(setId)
   .settings(
     allSettings,
+    isFullCrossVersion,
     publishSettings,
     libraryDependencies ++= Seq(
       scalahostNsc,
