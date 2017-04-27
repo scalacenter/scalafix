@@ -16,7 +16,7 @@
 
     @hl.scala
       @bintrayRepo
-      libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % "@V.version" % Test cross CrossVersion.full
+      libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % "@V.nightly" % Test cross CrossVersion.full
 
   @p
     Tests are written in @code{.source} text files in some directory

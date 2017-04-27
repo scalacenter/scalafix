@@ -12,10 +12,10 @@
     to add IDE integrations in the future.
 
   @sect{sbt-scalafix}
-    sbt-scalafix is an integration to run pre-made scalafix rewrites as sbt commands.
+    The sbt-plugin is the recommended integration for semantic rewrites.
 
     @hl.scala
-      addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@V.stableVersion")
+      addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@V.stable")
 
     @ul
       @li
@@ -31,51 +31,11 @@
         Scalafix supports 2.11 and 2.12.
         Projects with @code{scalaVersion} 2.10 are ignored by scalafix.
 
-  @sect{sbt-scalahost}
-    sbt-scalahost is an integration to run custom scalafix rewrites using the scala.meta
-    semantic API.
-
-    @hl.scala
-      // project/plugins.sbt
-      addSbtPlugin("org.scalameta" % "sbt-scalahost" % "@V.scalameta")
-
-      // build.sbt
-      val rewrites = project
-        .settings(
-          scalaVersion := "2.11.8", // 2.12.x is also supported
-          libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@V.stableVersion" cross CrossVersion.full
-        )
-        .dependsOn(
-          projectToPerformRewritesOn % Scalameta
-        )
-
-      // in rewrites/src/main/scala/Rewrites.scala
-      ...
-      implicit mirror = scala.meta.Mirror()
-      val source = mirror.sources.head
-      val ctx = scalafix.rewrite.RewriteCtx(source,
-        scalafix.config.ScalafixConfig(), mirror)
-      val patched = Patch(source, Seq(
-        scalafix.util.TreePatch.AddGlobalImport(
-          importer"scala.collection.immutable.Seq"))
-      )
-      ...
-
-    For more information about sbt-scalahost, see
-    @lnk("sbt-semantic-example", "https://github.com/scalameta/sbt-semantic-example").
-    For more information about using scalafix as a library, see @sect.ref{scalafix-core}.
-
   @sect{scalafix-core}
     Scalafix can be used as a library to run custom rewrites.
     @hl.scala
-      // < 0.3.3
-      libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % "@V.stableVersion"
-      // 0.3.3 and onwards
-      libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@V.stableVersion" cross CrossVersion.full
+      libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@V.stable" cross CrossVersion.full
 
-      // pre-release version
-      @bintrayRepo
-      libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@V.version" cross CrossVersion.full
 
     By using scalafix as a library, you have full control of how/when/where
     rewrites are written.
@@ -91,73 +51,62 @@
           Just create a @code{scalafix.rewrite.Rewrite[Any]} and go!
         @li
           @code{scala.meta.Mirror}, aka.
-          @lnk("scala.meta semantic API",
+          @lnk("scalameta semantic API",
                "https://github.com/scalameta/scalameta/blob/master/changelog/1.6.0.md#semantic-api").
-          See @sect.ref{sbt-scalahost} on how to construct a @code{scala.meta.Mirror}.
+          See @lnk("sbt-semantic-example", "https://github.com/scalameta/sbt-semantic-example")
+          on how to construct a @code{scala.meta.Mirror}.
           Once you have a @code{Mirror} instance, you can create a
           @code{scalafix.rewrite.RewriteCtx[Mirror]} for each @code{scala.meta.Source} in
           @code{scala.meta.Mirror.sources}.
-        @li
-          @code{scalafix.rewrite.ScalafixMirror}. This option is currently in
-          use by @sect.ref{sbt-scalafix} but is being phased out in favor of
-          @code{Mirror}. @code{ScalafixMirror} extends @code{Mirror} with a
-          few custom methods that we will try to eventually contribute upstream
-          to @code{Mirror}.
-          @p
-            It is possible to run custom rewrites using @code{ScalafixMirror}, but
-            the setup is complex.
-            You need to ensure that your compiled rewrite is included in the compiler
-            classpath. Once the rewrite is in the compiler classpath, you
-            can enable your rewrite with
-            @code{rewrites = [_root_.fully.qualified.name.of.rewrite]}.
-            Note, your rewrite needs to be an @code{object}.
-            For more question about this option, don't hesitate to ask on Gitter.
-
     @p
       Scalafix as a library is still under heavy development.
       Feedback is very welcome.
       Be prepared for breaking changes.
 
   @sect{scalafix-cli}
-    @p
-      A 16kb bootstrap script can be downloaded from @lnk("here", "https://github.com/scalacenter/scalafix/raw/master/scalafix").
-      The script will download necessary dependencies on the first run.
+    The recommended way to install the scalafix command-line interface is with
+    @lnk("coursier", "https://github.com/coursier/coursier#command-line").
+
+    @hl.scala
+      // coursier
+      coursier bootstrap ch.epfl.scala:scalafix-fatcli_@(V.scalaVersion):@(V.stable) -f --main scalafix.cli.Cli -o scalafix
+      ./scalafix --help
+
+      // homebrew
+      brew install --HEAD olafurpg/scalafmt/scalafix
+      scalafix --help
+
+      // wget
+      wget -O scalafix https://github.com/scalacenter/scalafix/blob/master/scalafix?raw=true
+      ./scalafix --help
 
     @p
-      Alternatively, you can build the boostrap script yourself with
-      @lnk("coursier", "https://github.com/coursier/coursier#command-line").
-      Once you have the @code{coursier} command-line installed, run
+      The @code{fatcli} module depends on the @code{scalahost-nsc} compiler plugin
+      fatjar, making it unnecessary to pass in the @code{--scalahost-nsc-plugin-path}
+      flag.
 
-      @hl.scala
-        // pre-release
-        coursier bootstrap ch.epfl.scala:scalafix-fatcli_@(V.scalaVersion):@(V.version) -r bintray:scalameta/maven -r 'ivy:https://dl.bintray.com/scalameta/maven/[organisation]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]' -f --main scalafix.cli.Cli -o scalafix
-
-      @p
-        The @code{fatcli} module depends on the @code{scalahost-nsc} compiler plugin
-        fatjar, making it unnecessary to pass in the @code{--scalahost-nsc-plugin-path}
-        flag.
-
-      @p
-        Once the scalafix cli is installed, consult the help page for further usage
-        instructions
+    @p
+      Once the scalafix cli is installed, consult the help page for further usage
+      instructions
 
     @hl.scala(Cli.helpMessage)
 
-  @sect{scalafix-nsc}
-    @b{Note.} scalafix-nsc is being phased out in favor of scalahost-nsc.
+  @sect{cbt}
+    There is an experimental
+    @lnk("cbt plugin", "https://github.com/cvogt/cbt/blob/fb0c68ffab35db304771e177ce93f80a680fabcc/plugins/scalafix/Scalafix.scala")
+    for scalafix.
 
-    @p
-      Scalafix can be used directly as a compiler plugin:
-      @hl.scala
-        // download
-        https://repo1.maven.org/maven2/ch/epfl/scala/scalafix-nsc_2.12/@V.stableVersion/scalafix-nsc_2.12-@(V.stableVersion + ".jar")
-        // compile
-        scalac -Xplugin:/path/to/scalafix-nsc_2.12-@(V.stableVersion + ".jar") mycode.scala
+  @sect{Pre-release}
+     Our CI infrastructure publishes a pre-release version on every merge into master.
+     These pre-releases make it possible to try out new scalafix features that have
+     not yet been officially released.
 
-      @ul
-        @li
-          The compiler plugin writes fixes directly to source files during compilation.
-        @li
-          To specify a configuration file @code{-P:scalafix:/full/path/to/.scalafix.conf}.
-        See @sect.ref{Configuration} for more details.
+     @hl.scala
+       // sbt
+       @bintrayRepo // necessary to resolve pre-release
+       libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@V.nightly" cross CrossVersion.full
+       libraryDependencies += "ch.epfl.scala" % "scalafix-fatcli" % "@V.nightly" cross CrossVersion.full
+       libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % "@V.nightly" % Test cross CrossVersion.full
+       // cli
+       coursier bootstrap ch.epfl.scala:scalafix-fatcli_@(V.scalaVersion):@(V.nightly) -r bintray:scalameta/maven -f --main scalafix.cli.Cli -o scalafix
 

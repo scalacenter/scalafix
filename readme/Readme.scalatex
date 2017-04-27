@@ -1,7 +1,7 @@
 @import Main._
 @import scalafix.Readme._
 
-@sect("scalafix - a Scala rewrite tool", scalafix.Versions.stableVersion)
+@sect("scalafix - a Scala rewrite tool", scalafix.Versions.stable)
   @scalatex.Intro()
   @scalatex.Installation()
   @scalatex.Configuration()
