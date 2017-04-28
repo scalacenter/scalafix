@@ -1,17 +1,23 @@
 rewrites = [NoXml]
-<<< ONLY single line, no splice
+<<< single line, no splice
+import scala.xml.quote._
 object A {
   <div></div>
 }
 >>>
+import scala.xml.quote._
 object A {
   xml"""<div></div>"""
 }
-<<< single line, splice
+<<< ONLY single line, splice
+import scala.xml.quote._
 object A {
+  val bar = "bar"
   <div>{bar}</div>
 }
 >>>
+import scala.xml.quote._
 object A {
+  val bar = "bar"
   xml"""<div>${bar}</div>"""
 }

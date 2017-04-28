@@ -85,6 +85,7 @@ lazy val allSettings = List(
   resolvers += Resolver.bintrayRepo("scalameta", "maven"),
   resolvers += Resolver.sonatypeRepo("releases"),
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
+  incOptions := incOptions.value.withRecompileOnMacroDef(false),
   scalacOptions := compilerOptions,
   scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
   libraryDependencies += scalatest % Test,
@@ -231,10 +232,11 @@ lazy val tests = project
     libraryDependencies ++= Seq(
       scalahost % Test,
       // integration property tests
-      "org.typelevel"      %% "catalysts-platform" % "0.0.5"    % Test,
-      "com.typesafe.slick" %% "slick"              % "3.2.0-M2" % Test,
-      "com.chuusai"        %% "shapeless"          % "2.3.2"    % Test,
-      "org.scalacheck"     %% "scalacheck"         % "1.13.4"   % Test
+      "ch.epfl"            %% "xmlquote"           % "0.1-SNAPSHOT" % Test,
+      "org.typelevel"      %% "catalysts-platform" % "0.0.5"        % Test,
+      "com.typesafe.slick" %% "slick"              % "3.2.0-M2"     % Test,
+      "com.chuusai"        %% "shapeless"          % "2.3.2"        % Test,
+      "org.scalacheck"     %% "scalacheck"         % "1.13.4"       % Test
     )
   )
   .dependsOn(
