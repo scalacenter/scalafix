@@ -9,7 +9,7 @@ import scala.xml.quote._
 object A {
   xml"""<div></div>"""
 }
-<<< ONLY single line, splice
+<<< single line, splice
 import scala.xml.quote._
 object A {
   val bar = "bar"
@@ -20,4 +20,14 @@ import scala.xml.quote._
 object A {
   val bar = "bar"
   xml"""<div>${bar}</div>"""
+<<< SKIP protect curly brace
+import scala.xml.quote._
+object A {
+  <div>{{</div>
+}
+>>>
+import scala.xml.quote._
+object A {
+  xml"""<div>{</div>"""
+}
 }

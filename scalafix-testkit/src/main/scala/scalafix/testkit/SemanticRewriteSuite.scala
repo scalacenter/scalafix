@@ -22,6 +22,7 @@ import java.net.URL
 import java.net.URLClassLoader
 
 import metaconfig.ConfError
+import org.scalameta.logger
 import org.scalatest.FunSuite
 
 /**
@@ -85,6 +86,7 @@ abstract class SemanticRewriteSuite(
 
     val fixed = fix(diffTest.wrapped(), diffTest.config)
     val obtained = parse(diffTest.unwrap(fixed))
+    logger.elem(obtained)
     val expected = parse(expectedStr)
     try {
       typeChecks(diffTest.wrapped(fixed))
@@ -258,3 +260,4 @@ object SemanticRewriteSuite {
   def scalahostJarPath: File =
     new File(thisClasspathLst.find(_.toString.contains("scalahost")).get.toURI)
 }
+

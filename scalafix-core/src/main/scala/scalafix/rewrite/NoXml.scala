@@ -15,7 +15,12 @@ case object NoXml extends Rewrite {
         ctx.addRight(tok, "\"\"\"")
       case tok @ Token.Xml.SpliceStart() =>
         ctx.addRight(tok, "$")
+      case tok @ Token.Xml.Part(part) =>
+        ctx.addRight(tok, "$")
+        logger.elem(part)
+        if (part.contains("{{"))
+          ctx.replaceToken(tok, part.replaceAllLiterally("{{", "{"))
+        else Patch.empty
     }.asPatch
   }
 }
-
