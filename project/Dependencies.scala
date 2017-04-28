@@ -5,6 +5,7 @@ object Dependencies {
   val scalametaV = "1.8.0-650-890aeec1"
   val paradiseV = "3.0.0-308-ec15a2f8"
   val metaconfigV = "0.3.2"
+
   var testClasspath: String = "empty"
   def scalahost: ModuleID = "org.scalameta" % s"scalahost" % scalametaV cross CrossVersion.full
   def scalatest: ModuleID = "org.scalatest" %% "scalatest" % "3.0.0"

@@ -1,0 +1,17 @@
+rewrites = [NoXml]
+<<< ONLY single line, no splice
+object A {
+  <div></div>
+}
+>>>
+object A {
+  xml"""<div></div>"""
+}
+<<< single line, splice
+object A {
+  <div>{bar}</div>
+}
+>>>
+object A {
+  xml"""<div>${bar}</div>"""
+}

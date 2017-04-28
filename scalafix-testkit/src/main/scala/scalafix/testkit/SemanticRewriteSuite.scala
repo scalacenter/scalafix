@@ -88,7 +88,6 @@ abstract class SemanticRewriteSuite(
     val expected = parse(expectedStr)
     try {
       typeChecks(diffTest.wrapped(fixed))
-      checkMismatchesModuloDesugarings(obtained, expected)
       if (diffTest.checkSyntax) {
         assertNoDiff(obtained, expected)
       } else {

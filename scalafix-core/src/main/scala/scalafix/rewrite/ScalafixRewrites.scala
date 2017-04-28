@@ -6,6 +6,7 @@ object ScalafixRewrites {
   val syntax: List[Rewrite] = List(
     ProcedureSyntax,
     VolatileLazyVal,
+    NoXml,
     ExplicitUnit
   )
   def semantic(mirror: Mirror): List[Rewrite] = List(
