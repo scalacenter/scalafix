@@ -37,67 +37,12 @@ import org.scalameta.logger
 sealed abstract class Patch {
   // NOTE: potential bottle-neck, this might be very slow for large
   // patches. We might want to group related patches and enforce some ordering.
-  def +(other: Patch): Patch =
-    if (this eq other) this
-    else {
-      (this, other) match {
-        case (a: InCtx, b: InCtx) => InCtx.merge(a, b)
-        case _ => Concat(this, other)
-      }
-    }
+  def +(other: Patch): Patch = if (this eq other) this else Concat(this, other)
   def ++(other: Seq[Patch]): Patch = other.foldLeft(this)(_ + _)
-
-  /** Returns unified diff from applying this patch */
-  def appliedDiff: String = {
-    val ctx = this match {
-      case InCtx(_, ctx, _) => ctx
-      case _ => throw Failure.MissingTopLevelInCtx(this)
-    }
-    val original = ctx.tree.input
-    Patch.unifiedDiff(original, Input.LabeledString(original.label, applied))
-  }
-
-  /** Returns string output of applying this single patch.
-    *
-    * Note. This method may be removed in the future because it makes the assumption
-    * that there is only a single RewriteCtx in this Patch. In the future, we may
-    * want to support the ability to combine patches from different files to build
-    * a unified diff.
-    **/
-  def applied: String = Patch(this)
 }
 
 private[scalafix] case class Concat(a: Patch, b: Patch) extends Patch
 private[scalafix] case object EmptyPatch extends Patch
-// NOTE: This method is an implementation detail of how Patch works internally.
-// The challenge is that patches need a Mirror and RewriteCtx, but I don't
-// want Patch.applied/appliedDiff to to accept a Mirror or RewriteCtx argument.
-// The public api now forces users to do for example `ctx.addGlobalImport`
-// so we know that the ctx and mirror are available when the user calls that method.
-// However, I don't want to store the mirror and ctx with every Patch.
-// wrappedRewrite is a hack to store the ctx and mirror only once per source
-// file at the top of the Patch. This detail may change in the future if
-// we can come up with a less hacky and more robust way to accomplish the same.
-// However, by keeping this method private, the public api should can remain unchanged
-// if we change this implementation detail.
-private[scalafix] case class InCtx(patch: Patch,
-                                   ctx: RewriteCtx,
-                                   mirror: Option[Mirror])
-    extends Patch
-private[scalafix] object InCtx {
-  def merge(a: InCtx, b: InCtx): Patch = (a, b) match {
-    case (InCtx(_, ac, _), InCtx(_, bc, _)) if ac ne bc =>
-      // TODO(olafur) Encode failure inside a patch to support accummulation of errors
-      // instead of fail-fast exceptions.
-      throw Failure.MismatchingRewriteCtx(ac, bc)
-    case (InCtx(_, _, Some(am)), InCtx(_, _, Some(bm))) if am ne bm =>
-      throw Failure.MismatchingMirror(am, bm)
-    case (InCtx(ap, ac, am), InCtx(bp, bc, bm)) =>
-      InCtx(ap + bp, ac, am.orElse(bm))
-    case (_, InCtx(p, ctx, m)) => InCtx(p + a, ctx, m)
-    case (InCtx(p, ctx, m), _) => InCtx(p + b, ctx, m)
-  }
-}
 abstract class TreePatch extends Patch
 abstract class TokenPatch(val tok: Token, val newTok: String) extends Patch {
   override def toString: String =
@@ -146,9 +91,10 @@ private[scalafix] object TokenPatch {
 
 }
 object Patch {
-  def fromSeq(seq: scala.Seq[Patch]): Patch = seq.foldLeft(empty)(_ + _)
-  def empty: Patch = EmptyPatch
-  def merge(a: TokenPatch, b: TokenPatch): TokenPatch = (a, b) match {
+  private def fromSeq(seq: scala.Seq[Patch]): Patch =
+    seq.foldLeft(empty)(_ + _)
+  private def empty: Patch = EmptyPatch
+  private def merge(a: TokenPatch, b: TokenPatch): TokenPatch = (a, b) match {
     case (add1: Add, add2: Add) =>
       Add(add1.tok,
           add1.addLeft + add2.addLeft,
@@ -159,23 +105,22 @@ object Patch {
     case (rem: Remove, _: Remove) => rem
     case _ => throw Failure.TokenPatchMergeError(a, b)
   }
-  def apply(patch: Patch): String = patch match {
-    case InCtx(p, ctx, mirror) =>
-      val patches = underlying(p)
-      val semanticPatches = patches.collect { case tp: TreePatch => tp }
-      mirror match {
-        case Some(x) =>
-          semanticApply(underlying(p))(ctx, x)
-        case None =>
-          if (semanticPatches.nonEmpty)
-            throw Failure.Unsupported(
-              s"Semantic patches are not supported without a Mirror: $semanticPatches")
-          syntaxApply(ctx, underlying(p).collect {
-            case tp: TokenPatch => tp
-          })
-      }
-
-    case _ => throw Failure.MissingTopLevelInCtx(patch)
+  private[scalafix] def apply(p: Patch,
+                              ctx: RewriteCtx,
+                              mirror: Option[Mirror]): String = {
+    val patches = underlying(p)
+    val semanticPatches = patches.collect { case tp: TreePatch => tp }
+    mirror match {
+      case Some(x) =>
+        semanticApply(underlying(p))(ctx, x)
+      case None =>
+        if (semanticPatches.nonEmpty)
+          throw Failure.Unsupported(
+            s"Semantic patches are not supported without a Mirror: $semanticPatches")
+        syntaxApply(ctx, underlying(p).collect {
+          case tp: TokenPatch => tp
+        })
+    }
   }
 
   private def syntaxApply(ctx: RewriteCtx, patches: Seq[TokenPatch]): String = {
@@ -216,8 +161,6 @@ object Patch {
   private def underlying(patch: Patch): Seq[Patch] = {
     val builder = Seq.newBuilder[Patch]
     def loop(patch: Patch): Unit = patch match {
-      case InCtx(p, _, _) =>
-        loop(p)
       case Concat(a, b) =>
         loop(a)
         loop(b)

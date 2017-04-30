@@ -4,6 +4,7 @@ package rewrite
 import scala.collection.immutable.Seq
 import scala.collection.immutable.Seq
 import scala.meta._
+import scalafix.syntax._
 import scalafix.config.ReaderUtil
 
 import metaconfig.ConfDecoder
@@ -11,22 +12,34 @@ import sourcecode.Name
 
 /** A rewrite is a named RewriteCtx => Patch function. */
 abstract class Rewrite(implicit sourceName: Name) { self =>
+  def rewrite(ctx: RewriteCtx): Patch
 
+  def andThen(other: Rewrite): Rewrite = Rewrite.merge(this, other)
+
+  /** Returns unified diff from applying this patch */
+  def appliedDiff(ctx: RewriteCtx): String = {
+    val original = ctx.tree.input
+    Patch.unifiedDiff(original,
+                      Input.LabeledString(original.label, applied(ctx)))
+  }
+
+  /** Returns string output of applying this single patch.
+    *
+    * Note. This method may be removed in the future because it makes the assumption
+    * that there is only a single RewriteCtx in this Patch. In the future, we may
+    * want to support the ability to combine patches from different files to build
+    * a unified diff.
+    **/
+  def applied(ctx: RewriteCtx): String = Patch(rewrite(ctx), ctx, None)
   def name: String = sourceName.value
   override def toString: String = name
-  def rewrite(ctx: RewriteCtx): Patch
-  def andThen(other: Rewrite): Rewrite = Rewrite.merge(this, other)
-  // NOTE: See comment for InCtx for an explanation why wrappedRewrite and
-  // InCtx are necessary.
-  private[scalafix] def wrappedRewrite(ctx: RewriteCtx): Patch =
-    patch.InCtx(rewrite(ctx), ctx, None)
 }
 
 abstract class SemanticRewrite(mirror: Mirror)(implicit name: Name)
     extends Rewrite {
   implicit val ImplicitMirror: Mirror = mirror
-  private[scalafix] override def wrappedRewrite(ctx: RewriteCtx): Patch =
-    patch.InCtx(rewrite(ctx), ctx, Some(mirror))
+  override def applied(ctx: RewriteCtx): String =
+    Patch(rewrite(ctx), ctx, Some(mirror))
 }
 
 object Rewrite {
