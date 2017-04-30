@@ -16,10 +16,7 @@ class SyntacticRewriteSuite(rewrite: Rewrite)
   def check(name: String, original: String, expected: String): Unit = {
     test(name) {
       import scala.meta._
-      val obtained =
-        Scalafix
-          .fix(Input.String(original), ScalafixConfig(rewrite = rewrite))
-          .get
+      val obtained = rewrite.apply(Input.String(original))
       assertNoDiff(obtained, expected)
     }
   }

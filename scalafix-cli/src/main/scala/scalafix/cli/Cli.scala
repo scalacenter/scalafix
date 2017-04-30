@@ -10,6 +10,7 @@ import scala.meta.inputs.Input
 import scala.meta.internal.scalahost.v1.offline
 import scala.meta.io.AbsolutePath
 import scala.meta.parsers.Parsed
+import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -159,7 +160,7 @@ case class ScalafixOptions(
   }
 
   /** Returns ScalafixConfig from .scalafix.conf, it exists and --config was not passed. */
-  lazy val resolvedConfig: Configured[ScalafixConfig] =
+  lazy val resolvedRewriteAndConfig: Configured[(Rewrite, ScalafixConfig)] =
     for {
       mirror <- resolvedMirror
       decoder = ScalafixCompilerDecoder.fromMirrorOption(mirror)
@@ -170,24 +171,34 @@ case class ScalafixOptions(
               .product(decoder.read(Conf.Str(next)))
               .map { case (a, b) => a.andThen(b) }
         }
-      scalafixConfig <- config match {
-        case None =>
+      configuration <- {
+        val input: Option[Input] =
           ScalafixConfig
-            .auto(common.workingDirectoryFile, mirror)(decoder)
-            .getOrElse(Ok(ScalafixConfig.default))
-        case Some(x) =>
-          if (new File(x).isFile)
-            ScalafixConfig.fromFile(new File(x), mirror)(decoder)
-          else ScalafixConfig.fromString(x, mirror)(decoder)
+            .auto(common.workingDirectoryFile)
+            .orElse(config.map { x =>
+              if (new File(x).isFile) Input.File(new File(x))
+              else Input.String(x)
+            })
+        input
+          .map(x => ScalafixConfig.fromInput(x, mirror)(decoder))
+          .getOrElse(
+            Configured.Ok(
+              Rewrite.emptyFromMirrorOpt(mirror) ->
+                ScalafixConfig.default
+            ))
       }
-    } yield
-      scalafixConfig.copy(
-        rewrite = scalafixConfig.rewrite.andThen(cliArgRewrite),
+      // TODO(olafur) implement withFilter on Configured
+      (configRewrite, scalafixConfig) = configuration
+      finalConfig = scalafixConfig.copy(
         reporter = scalafixConfig.reporter match {
           case r: PrintStreamReporter => r.copy(outStream = common.err)
           case _ => ScalafixReporter.default.copy(outStream = common.err)
         }
       )
+      finalRewrite = cliArgRewrite.andThen(configRewrite)
+    } yield finalRewrite -> finalConfig
+  lazy val resolvedRewrite = resolvedRewriteAndConfig.map(_._1)
+  lazy val resolvedConfig = resolvedRewriteAndConfig.map(_._2)
 
   lazy val resolvedSbtConfig: Configured[ScalafixConfig] =
     resolvedConfig.map(_.copy(dialect = dialects.Sbt0137))
@@ -289,36 +300,28 @@ object Cli {
     cause.printStackTrace(options.common.err)
   }
 
-  def parsed(code: Input, config: ScalafixConfig): Either[Failed, Tree] = {
-    config.parser.apply(code, config.dialect) match {
-      case Parsed.Success(ast) => Right(ast)
-      case Parsed.Error(pos, msg, e) =>
-        Left(Fixed.Failed(Failure.ParseError(pos, msg, e)))
-    }
-  }
-
   def handleFile(file: File, options: ScalafixOptions): ExitStatus = {
     val config =
       if (file.getAbsolutePath.endsWith(".sbt")) options.resolvedSbtConfig
       else options.resolvedConfig
-
-    val fixed = Scalafix.fix(Input.File(file), config.get)
+    val fixed =
+      Try(options.resolvedRewrite.get.apply(Input.File(file), config.get))
     fixed match {
-      case Fixed.Success(code) =>
+      case scala.util.Success(code) =>
         if (options.inPlace) {
           val outFile = options.replacePath(file)
           FileOps.writeFile(outFile, code)
         } else options.common.out.write(code.getBytes)
         ExitStatus.Ok
-      case Fixed.Failed(e: Failure.ParseError) =>
+      case scala.util.Failure(e @ ParseException(_, _)) =>
         if (options.absoluteFiles.exists(
               _.getAbsolutePath == file.getAbsolutePath)) {
           // Only log if user explicitly specified that file.
-          options.common.err.write((e.exception.getMessage + "\n").getBytes)
+          reportError(file, e, options)
         }
         ExitStatus.ParseError
-      case Fixed.Failed(failure) =>
-        reportError(file, failure.ex, options)
+      case scala.util.Failure(e) =>
+        reportError(file, e, options)
         ExitStatus.ScalafixError
     }
   }

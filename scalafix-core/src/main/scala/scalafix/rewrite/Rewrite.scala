@@ -2,9 +2,7 @@ package scalafix
 package rewrite
 
 import scala.collection.immutable.Seq
-import scala.collection.immutable.Seq
 import scala.meta._
-import scalafix.Rewrite
 import scalafix.syntax._
 import scalafix.config.ReaderUtil
 
@@ -25,6 +23,11 @@ abstract class Rewrite(implicit rewriteName: Name) { self =>
 
   /** Returns string output of applying this single patch. */
   final def apply(ctx: RewriteCtx): String = apply(ctx, rewrite(ctx))
+  final def apply(input: Input,
+                  config: ScalafixConfig = ScalafixConfig.default): String = {
+    val ctx = RewriteCtx(config.dialect(input).parse[Source].get, config)
+    apply(ctx, rewrite(ctx))
+  }
   final protected def apply(ctx: RewriteCtx, patch: Patch): String =
     Patch(rewrite(ctx), ctx, mirrorOption)
 
@@ -56,10 +59,12 @@ abstract class SemanticRewrite(mirror: Mirror)(implicit name: Name)
 
 object Rewrite {
   val syntaxRewriteConfDecoder: ConfDecoder[Rewrite] =
-    config.rewriteConfDecoder(None)
+    config.rewriteConfDecoder(config.baseRewriteDecoders(None), None)
   def empty: Rewrite = syntactic(_ => Patch.empty)
+  def emptyFromMirrorOpt(mirror: Option[Mirror]): Rewrite =
+    mirror.fold(empty)(emptySemantic)
   def combine(rewrites: Seq[Rewrite], mirror: Option[Mirror]): Rewrite =
-    rewrites.foldLeft(mirror.fold(empty)(emptySemantic))(_ andThen _)
+    rewrites.foldLeft(emptyFromMirrorOpt(mirror))(_ andThen _)
   // NOTE: this is one example where the Rewrite.wrappedRewrite hack leaks.
   // An empty semantic rewrite is necessary to support patches from .scalafix.conf
   // like `patches.addGlobalImport = ???`.

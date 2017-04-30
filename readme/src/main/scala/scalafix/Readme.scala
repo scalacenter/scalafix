@@ -1,5 +1,8 @@
 package scalafix
 
+import metaconfig._, typesafeconfig._
+import scala.meta.inputs.Input
+import scalafix.config.ScalafixMetaconfigReaders
 import scalafix.reflect.ScalafixCompilerDecoder
 import scalatags.Text.TypedTag
 import scalatags.Text.all._
@@ -23,7 +26,10 @@ object Readme {
   def comment(frags: Frag*): TypedTag[String] = span("")
   def config(str: String): TypedTag[String] = {
     // assert that config listings in docs is free of typos.
-    ScalafixConfig.fromString(str)(ScalafixCompilerDecoder.syntactic).get
+    ScalafixMetaconfigReaders
+      .scalafixConfigConfDecoder(ScalafixCompilerDecoder.syntactic)
+      .read(Input.String(str).toConf.get)
+      .get
     highlight.scala(str)
   }
 }
