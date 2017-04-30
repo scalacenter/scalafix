@@ -37,8 +37,14 @@ import org.scalameta.logger
 sealed abstract class Patch {
   // NOTE: potential bottle-neck, this might be very slow for large
   // patches. We might want to group related patches and enforce some ordering.
-  def +(other: Patch): Patch = if (this eq other) this else Concat(this, other)
+  def +(other: Patch): Patch =
+    if (this eq other) this
+    else if (isEmpty) other
+    else if (other.isEmpty) this
+    else Concat(this, other)
   def ++(other: Seq[Patch]): Patch = other.foldLeft(this)(_ + _)
+  def isEmpty: Boolean = this == EmptyPatch
+  def nonEmpty: Boolean = !isEmpty
 }
 
 private[scalafix] case class Concat(a: Patch, b: Patch) extends Patch
@@ -91,9 +97,14 @@ private[scalafix] object TokenPatch {
 
 }
 object Patch {
-  private def fromSeq(seq: scala.Seq[Patch]): Patch =
+
+  /** Combine a sequence of patches into a single patch */
+  def fromSeq(seq: scala.Seq[Patch]): Patch =
     seq.foldLeft(empty)(_ + _)
-  private def empty: Patch = EmptyPatch
+
+  /** A patch that does no diff/rewrite */
+  val empty: Patch = EmptyPatch
+
   private def merge(a: TokenPatch, b: TokenPatch): TokenPatch = (a, b) match {
     case (add1: Add, add2: Add) =>
       Add(add1.tok,

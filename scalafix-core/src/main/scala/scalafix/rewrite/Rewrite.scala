@@ -4,46 +4,59 @@ package rewrite
 import scala.collection.immutable.Seq
 import scala.collection.immutable.Seq
 import scala.meta._
+import scalafix.Rewrite
 import scalafix.syntax._
 import scalafix.config.ReaderUtil
 
 import metaconfig.ConfDecoder
 import sourcecode.Name
 
-/** A rewrite is a named RewriteCtx => Patch function. */
-abstract class Rewrite(implicit sourceName: Name) { self =>
+/** A Rewrite is a program that produces a Patch from a scala.meta.Tree. */
+abstract class Rewrite(implicit rewriteName: Name) { self =>
+
+  /** Build patch for a single tree/compilation unit.
+    *
+    * Override this method to implement a rewrite.
+    */
   def rewrite(ctx: RewriteCtx): Patch
 
-  def andThen(other: Rewrite): Rewrite = Rewrite.merge(this, other)
+  /** Combine this rewrite with another rewrite. */
+  final def andThen(other: Rewrite): Rewrite = Rewrite.merge(this, other)
+
+  /** Returns string output of applying this single patch. */
+  final def apply(ctx: RewriteCtx): String = apply(ctx, rewrite(ctx))
+  final protected def apply(ctx: RewriteCtx, patch: Patch): String =
+    Patch(rewrite(ctx), ctx, mirrorOption)
 
   /** Returns unified diff from applying this patch */
-  def appliedDiff(ctx: RewriteCtx): String = {
+  final def diff(ctx: RewriteCtx): String =
+    diff(ctx, rewrite(ctx))
+  final protected def diff(ctx: RewriteCtx, patch: Patch): String = {
     val original = ctx.tree.input
     Patch.unifiedDiff(original,
-                      Input.LabeledString(original.label, applied(ctx)))
+                      Input.LabeledString(original.label, apply(ctx, patch)))
+
   }
 
-  /** Returns string output of applying this single patch.
-    *
-    * Note. This method may be removed in the future because it makes the assumption
-    * that there is only a single RewriteCtx in this Patch. In the future, we may
-    * want to support the ability to combine patches from different files to build
-    * a unified diff.
-    **/
-  def applied(ctx: RewriteCtx): String = Patch(rewrite(ctx), ctx, None)
-  def name: String = sourceName.value
-  override def toString: String = name
+  final def name: String = rewriteName.value
+  final override def toString: String = name
+
+  // NOTE. This is kind of hacky and hopefully we can find a better workaround.
+  // The challenge is the following:
+  // - a.andThen(b) needs to work for mixing semantic + syntactic rewrites.
+  // - applied/appliedDiff should work without passing in Mirror explicitly
+  protected[scalafix] def mirrorOption: Option[Mirror] = None
 }
 
 abstract class SemanticRewrite(mirror: Mirror)(implicit name: Name)
     extends Rewrite {
   implicit val ImplicitMirror: Mirror = mirror
-  override def applied(ctx: RewriteCtx): String =
-    Patch(rewrite(ctx), ctx, Some(mirror))
+  override def mirrorOption: Option[Mirror] = Some(mirror)
 }
 
 object Rewrite {
-  val syntaxRewriteConfDecoder = config.rewriteConfDecoder(None)
+  val syntaxRewriteConfDecoder: ConfDecoder[Rewrite] =
+    config.rewriteConfDecoder(None)
   def empty: Rewrite = syntactic(_ => Patch.empty)
   def combine(rewrites: Seq[Rewrite], mirror: Option[Mirror]): Rewrite =
     rewrites.foldLeft(mirror.fold(empty)(emptySemantic))(_ andThen _)
@@ -70,10 +83,15 @@ object Rewrite {
       else if (b.name == "empty") a.name
       else s"${a.name}+${b.name}"
     new Rewrite()(Name(newName)) {
-      override def rewrite(ctx: RewriteCtx) =
+      override def rewrite(ctx: RewriteCtx): Patch =
         a.rewrite(ctx) + b.rewrite(ctx)
-      override def wrappedRewrite(ctx: RewriteCtx): Patch =
-        a.wrappedRewrite(ctx) + b.wrappedRewrite(ctx)
+      override def mirrorOption: Option[Mirror] =
+        (a.mirrorOption, b.mirrorOption) match {
+          case (Some(m1), Some(m2)) =>
+            if (m1 ne m2) throw Failure.MismatchingMirror(m1, m2)
+            else Some(m1)
+          case (a, b) => a.orElse(b)
+        }
     }
   }
 }

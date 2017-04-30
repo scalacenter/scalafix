@@ -26,7 +26,7 @@ class SyntacticRewriteSuite(rewrite: Rewrite)
   def checkDiff(original: Input, expected: String): Unit = {
     test(original.label) {
       val ctx = RewriteCtx(original.parse[Source].get, ScalafixConfig.default)
-      val obtained = rewrite.wrappedRewrite(ctx).appliedDiff
+      val obtained = rewrite.diff(ctx)
       assert(obtained == expected)
     }
   }
