@@ -4,7 +4,6 @@ package testkit
 import scalafix.syntax._
 import scala.meta._
 import scala.collection.immutable.Seq
-import scalafix.Scalafix
 import scalafix.config.ScalafixConfig
 import scalafix.rewrite.RewriteCtx
 

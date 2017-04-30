@@ -19,7 +19,6 @@ import scala.tools.nsc.Settings
 import scala.tools.nsc.reporters.StoreReporter
 import scala.util.control.NonFatal
 import scala.{meta => m}
-import scalafix.Scalafix
 import scalafix.config.ScalafixConfig
 import scalafix.rewrite.RewriteCtx
 import scalafix.syntax._

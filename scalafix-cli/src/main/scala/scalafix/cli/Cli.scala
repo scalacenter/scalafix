@@ -14,7 +14,6 @@ import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 import scala.util.control.NonFatal
-import scalafix.Fixed.Failed
 import scalafix.cli.termdisplay.TermDisplay
 import scalafix.config._
 import scalafix.reflect.ScalafixCompilerDecoder
