@@ -1,5 +1,6 @@
 package scalafix.config
 
+import metaconfig._, typesafeconfig._
 import scala.meta._
 import scalafix.patch.TreePatch.AddGlobalImport
 import scalafix.patch.TreePatch.RemoveGlobalImport
@@ -13,7 +14,9 @@ class ScalafixConfigTest extends FunSuite {
   implicit val reader = ScalafixConfig.default.reader
   def check[T](config: String, expected: T): Unit = {
     test(logger.revealWhitespace(config).take(50)) {
-      ScalafixConfig.fromString(config, None)(rewriteConfDecoder(None)).get
+      ScalafixConfig.ScalafixConfigDecoder
+        .read(Input.String(config).toConf.get)
+        .get
     }
   }
   check(

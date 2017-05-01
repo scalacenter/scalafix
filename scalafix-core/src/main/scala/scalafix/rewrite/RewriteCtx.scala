@@ -18,17 +18,6 @@ class RewriteCtx(implicit val tree: Tree, val config: ScalafixConfig) {
 }
 
 object RewriteCtx {
-  private lazy val syntacticRewriteCtx: Any = new Object()
-
-  def syntactic(tree: Tree,
-                config: ScalafixConfig = ScalafixConfig()): RewriteCtx =
-    apply(tree, config)
-
-  def semantic(tree: Tree,
-               config: ScalafixConfig = ScalafixConfig()): RewriteCtx =
-    apply(tree, config)
-
-  /** Constructor for a generic rewrite. */
   def apply(tree: Tree, config: ScalafixConfig): RewriteCtx =
     new RewriteCtx()(tree, config)
 }

@@ -1,4 +1,5 @@
-package scalafix.testkit
+package scalafix
+package testkit
 
 import scala.collection.immutable.Seq
 import scala.meta._
@@ -18,7 +19,6 @@ import scala.tools.nsc.Settings
 import scala.tools.nsc.reporters.StoreReporter
 import scala.util.control.NonFatal
 import scala.{meta => m}
-import scalafix.Scalafix
 import scalafix.config.ScalafixConfig
 import scalafix.rewrite.RewriteCtx
 import scalafix.syntax._
@@ -118,13 +118,13 @@ abstract class SemanticRewriteSuite(
     }
   }
 
-  def fix(code: String, getConfig: Option[Mirror] => ScalafixConfig): String = {
+  def fix(code: String,
+          getConfig: Option[Mirror] => (Rewrite, ScalafixConfig)): String = {
     val mirror = computeMirror(code)
-    val config = getConfig(Some(mirror))
+    val (rewrite, config) = getConfig(Some(mirror))
     val tree = mirror.sources.head
     val ctx = RewriteCtx(tree, config)
-    val fixed = Scalafix.fix(ctx).get
-    fixed
+    rewrite.apply(ctx)
   }
 
   private def computeMirror(code: String): Mirror = {

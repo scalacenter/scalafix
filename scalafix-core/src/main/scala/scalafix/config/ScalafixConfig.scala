@@ -9,11 +9,10 @@ import scala.meta.parsers.Parse
 import java.io.File
 
 import metaconfig._
-import metaconfig.typesafeconfig.TypesafeConfig2Class
+import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 
 @DeriveConfDecoder
 case class ScalafixConfig(
-    rewrite: Rewrite = Rewrite.empty,
     parser: Parse[_ <: Tree] = Parse.parseSource,
     @Recurse imports: ImportsConfig = ImportsConfig(),
     @Recurse patches: PatchConfig = PatchConfig(),
@@ -21,47 +20,26 @@ case class ScalafixConfig(
     fatalWarnings: Boolean = true,
     reporter: ScalafixReporter = ScalafixReporter.default,
     dialect: Dialect = Scala211
-) {
-  implicit val RewriteConfDecoder: ConfDecoder[Rewrite] =
-    Rewrite.syntaxRewriteConfDecoder
-  def withRewrite(f: Rewrite => Rewrite): ScalafixConfig =
-    copy(rewrite = f(rewrite))
-}
+)
 
 object ScalafixConfig {
 
   lazy val default = ScalafixConfig()
-  lazy val syntaxConfDecoder: ConfDecoder[ScalafixConfig] = default.reader
-
-  def autoNoRewrites(workingDir: File): Option[Configured[ScalafixConfig]] =
-    auto(workingDir, None)(rewriteConfDecoder(None))
+  implicit lazy val ScalafixConfigDecoder: ConfDecoder[ScalafixConfig] =
+    default.reader
 
   /** Returns config from current working directory, if .scalafix.conf exists. */
-  def auto(workingDir: File, mirror: Option[Mirror])(
-      implicit rewriteDecoder: ConfDecoder[Rewrite]
-  ): Option[Configured[ScalafixConfig]] = {
+  def auto(workingDir: File): Option[Input] = {
     val file = new File(workingDir, ".scalafix.conf")
     if (file.isFile && file.exists())
-      Some(ScalafixConfig.fromFile(file, mirror))
+      Some(Input.File(file))
     else None
   }
 
-  private def gimmeClass[T](conf: Configured[Conf])(
-      implicit reader: metaconfig.ConfDecoder[T]): metaconfig.Configured[T] =
-    for {
-      config <- conf
-      cls <- reader.read(config)
-    } yield cls
-
-  def fromFile(file: File, mirror: Option[Mirror] = None)(
-      implicit rewriteDecoder: ConfDecoder[Rewrite]
-  ): Configured[ScalafixConfig] =
-    gimmeClass(TypesafeConfig2Class.gimmeConfFromFile(file))(
-      scalafixConfigConfDecoder(mirror))
-
-  def fromString(str: String, mirror: Option[Mirror] = None)(
-      implicit rewriteDecoder: ConfDecoder[Rewrite]
-  ): Configured[ScalafixConfig] =
-    gimmeClass(TypesafeConfig2Class.gimmeConfFromString(str))(
-      scalafixConfigConfDecoder(mirror))
+  def fromInput(input: Input, mirror: Option[Mirror])(
+      implicit decoder: ConfDecoder[Rewrite]
+  ): Configured[(Rewrite, ScalafixConfig)] =
+    typesafeConfigMetaconfigParser
+      .fromInput(input)
+      .flatMap(config.scalafixConfigConfDecoder.read)
 }

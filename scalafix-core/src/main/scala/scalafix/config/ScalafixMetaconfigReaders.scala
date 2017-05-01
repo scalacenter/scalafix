@@ -1,6 +1,7 @@
 package scalafix
 package config
 
+import scala.collection.immutable.Seq
 import scala.meta.Ref
 import scala.meta._
 import scala.meta.parsers.Parse
@@ -60,40 +61,43 @@ trait ScalafixMetaconfigReaders {
         val rewriteConf =
           Configured.Ok(rewrites.lastOption.map(_._2).getOrElse(Conf.Lst()))
         val config =
-          ScalafixConfig.syntaxConfDecoder.read(Conf.Obj(noRewrites))
+          ScalafixConfig.ScalafixConfigDecoder.read(Conf.Obj(noRewrites))
         rewriteConf.product(config)
     }
-  def scalafixConfigConfDecoder(mirror: Option[Mirror])(
+  def scalafixConfigConfDecoder(
       implicit rewriteDecoder: ConfDecoder[Rewrite]
-  ): ConfDecoder[ScalafixConfig] = {
-    mirror match {
-      case None => scalafixConfigEmptyRewriteReader.map(_._2)
-      case Some(mirror) =>
-        scalafixConfigEmptyRewriteReader.flatMap {
-          case (rewriteConf, scalafixConfig) =>
-            implicit val rewritesReader =
-              implicitly[ConfDecoder[List[Rewrite]]]
-            rewritesReader
-              .read(rewriteConf)
-              .map { rewrites =>
-                scalafixConfig.copy(
-                  rewrite = Rewrite.combine(rewrites, Some(mirror)))
-              }
-        }
+  ): ConfDecoder[(Rewrite, ScalafixConfig)] =
+    scalafixConfigEmptyRewriteReader.flatMap {
+      case (conf, config) =>
+        rewriteDecoder.read(conf).map(x => x -> config)
     }
-  }
 
-  def rewriteConfDecoder(mirror: Option[Mirror]): ConfDecoder[Rewrite] =
+  def rewriteByName(mirror: Option[Mirror]): Map[String, Rewrite] =
+    ScalafixRewrites.syntaxName2rewrite ++
+      mirror.fold(Map.empty[String, Rewrite])(ScalafixRewrites.name2rewrite)
+
+  def classloadRewriteDecoder(mirror: Option[Mirror]): ConfDecoder[Rewrite] =
     ConfDecoder.instance[Rewrite] {
       case FromClassloadRewrite(fqn) =>
         ClassloadRewrite(fqn, mirror.toList)
-      case els =>
-        val name2rewrite = mirror match {
-          case Some(mirror) => ScalafixRewrites.name2rewrite(mirror)
-          case None => ScalafixRewrites.syntaxName2rewrite
-        }
-        ReaderUtil.fromMap(name2rewrite).read(els)
     }
+
+  def baseRewriteDecoders(mirror: Option[Mirror]): ConfDecoder[Rewrite] =
+    MetaconfigPendingUpstream.orElse(
+      ReaderUtil.fromMap(rewriteByName(mirror)),
+      classloadRewriteDecoder(mirror)
+    )
+
+  def rewriteConfDecoder(singleRewriteDecoder: ConfDecoder[Rewrite],
+                         mirror: Option[Mirror]): ConfDecoder[Rewrite] = {
+    ConfDecoder.instance[Rewrite] {
+      case Conf.Lst(values) =>
+        MetaconfigPendingUpstream
+          .flipSeq(values.map(singleRewriteDecoder.read))
+          .map(rewrites => Rewrite.combine(rewrites, mirror))
+      case rewrite @ Conf.Str(_) => singleRewriteDecoder.read(rewrite)
+    }
+  }
 
   object ConfStrLst {
     def unapply(arg: Conf.Lst): Option[List[String]] =

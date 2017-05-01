@@ -15,13 +15,15 @@ object ScalafixCompilerDecoder {
   def syntactic: ConfDecoder[Rewrite] = fromMirrorOption(None)
   def semantic(mirror: Mirror): ConfDecoder[Rewrite] =
     fromMirrorOption(Some(mirror))
-
   def fromMirrorOption(mirror: Option[Mirror]): ConfDecoder[Rewrite] =
+    rewriteConfDecoder(
+      MetaconfigPendingUpstream.orElse(baseCompilerDecoder(mirror),
+                                       baseRewriteDecoders(mirror)),
+      mirror)
+  def baseCompilerDecoder(mirror: Option[Mirror]): ConfDecoder[Rewrite] =
     ConfDecoder.instance[Rewrite] {
       case FromSourceRewrite(code) =>
         ScalafixToolbox.getRewrite(code, mirror)
-      case els =>
-        rewriteConfDecoder(mirror).read(els)
     }
 
   object UrlRewrite {

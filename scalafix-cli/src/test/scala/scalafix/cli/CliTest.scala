@@ -118,7 +118,7 @@ class CliTest extends FunSuite with DiffAssertions {
   test("--rewrites") {
     val Right(WithHelp(_, _, obtained)) =
       Cli.parse(Seq("--rewrites", "VolatileLazyVal"))
-    assert(obtained.resolvedConfig.get.rewrite.name == "VolatileLazyVal")
+    assert(obtained.resolvedRewrite.get.name == "VolatileLazyVal")
     assert(Cli.parse(Seq("--rewrites", "Foobar")).isLeft)
   }
 
@@ -155,7 +155,7 @@ class CliTest extends FunSuite with DiffAssertions {
                       files = List(file.getAbsolutePath),
                       inPlace = true,
                       common = devNull))
-    assert(code == ExitStatus.UnexpectedError)
+    assert(code == ExitStatus.ScalafixError)
   }
 
   test(".sbt files get fixed with sbt dialect") {

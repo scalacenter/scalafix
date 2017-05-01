@@ -16,8 +16,9 @@ import org.scalameta.logger
 
 class ErrorSuite extends SyntacticRewriteSuite(ProcedureSyntax) {
   test("on parse error") {
-    val Fixed.Failed(err: Failure.ParseError) =
-      Scalafix.fix("object A {", ScalafixConfig(rewrite = ProcedureSyntax))
+    intercept[ParseException] {
+      ProcedureSyntax.apply(Input.String("object A {"))
+    }
   }
 }
 class PatchSuite
