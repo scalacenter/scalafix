@@ -7,6 +7,9 @@ import scalafix.patch.TokenPatch._
 import scalafix.patch.TreePatch._
 
 class SyntacticPatchOps(ctx: RewriteCtx) {
+  def replaceToken(token: Token, toReplace: String): Patch =
+    Add(token, "", toReplace, keepTok = false)
+  def removeToken(token: Token): Patch = Add(token, "", "", keepTok = false)
   def rename(from: Name, to: Name): Patch = Rename(from, to)
   def addRight(tok: Token, toAdd: String): Patch = Add(tok, "", toAdd)
   def addLeft(tok: Token, toAdd: String): Patch = Add(tok, toAdd, "")
