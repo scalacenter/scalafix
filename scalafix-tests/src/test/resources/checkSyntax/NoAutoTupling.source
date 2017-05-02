@@ -1,0 +1,79 @@
+rewrites = [NoAutoTupling]
+<<< add explicit tuple
+object tup {
+  def fooo(t: (Int, Int)): Int = ???
+  fooo(1, 2)
+}
+>>>
+object tup {
+  def fooo(t: (Int, Int)): Int = ???
+  fooo((1, 2))
+}
+
+<<< multiple parameter lists, all auto-tupled
+object tup {
+  def fooo(t: (Int, Int))(s: (String, String)): Int = ???
+  fooo(1, 2)("a", "b")
+
+  def baar(t: (Boolean, Int, String))(s: (Boolean, String))(k: (Int, String)): String = ???
+  baar(true, 1, "foo")(false, "42")(42, "foo")
+}
+>>>
+object tup {
+  def fooo(t: (Int, Int))(s: (String, String)): Int = ???
+  fooo((1, 2))(("a", "b"))
+
+  def baar(t: (Boolean, Int, String))(s: (Boolean, String))(k: (Int, String)): String = ???
+  baar((true, 1, "foo"))((false, "42"))((42, "foo"))
+}
+
+<<< multiple parameter lists, some auto-tupled
+object tup {
+  def fooo(t: (Int, Int))(s: (String, String)): Int = ???
+  fooo((1, 2))("a", "b")
+
+  def baar(t: (Boolean, Int, String))(s: (Boolean, String))(k: (Int, String)): String = ???
+  baar(true, 1, "foo")((false, "42"))(42, "foo")
+}
+>>>
+object tup {
+  def fooo(t: (Int, Int))(s: (String, String)): Int = ???
+  fooo((1, 2))(("a", "b"))
+
+
+  def baar(t: (Boolean, Int, String))(s: (Boolean, String))(k: (Int, String)): String = ???
+  baar((true, 1, "foo"))((false, "42"))((42, "foo"))
+}
+
+<<< already tupled calls stay the same
+object tup {
+  def fooo(t: (Int, Int)): Int = ???
+  fooo((1, 2))
+}
+>>>
+object tup {
+  def fooo(t: (Int, Int)): Int = ???
+  fooo((1, 2))
+}
+
+<<< methods not involving tuples stay the same
+object tup {
+  def sum(a: Int, b: Int): Int = ???
+  sum(1, 2)
+}
+>>>
+object tup {
+  def sum(a: Int, b: Int): Int = ???
+  sum(1, 2)
+}
+
+<<< methods with tuples, but not single parameter
+object tup {
+  def sum(a: Int, b: (Int, String)): Int = ???
+  sum(1, (2, "foo"))
+}
+>>>
+object tup {
+  def sum(a: Int, b: (Int, String)): Int = ???
+  sum(1, (2, "foo"))
+}
