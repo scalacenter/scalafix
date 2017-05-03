@@ -41,14 +41,24 @@ object ScalafixCompilerDecoder {
     private[this] val GitHubShorthandWithSha =
       """github:([^\/]+)\/([^\/]+)\/([^\/]+)\?sha=(.+)""".r
 
+    private[this] def normalizedPackageName(repoName: String): String = {
+      val packageName = repoName.replaceAll("[^a-zA-Z0-9]", "_").toLowerCase
+      if (packageName.headOption.map(_.isDigit) == Some(true)) {
+        s"_$packageName"
+      } else {
+        packageName
+      }
+    }
+
     private[this] def expandGitHubURL(org: String,
                                       repo: String,
                                       version: String,
                                       sha: String): URL = {
       val normVersion = version.replaceAll("[^\\d]", "_")
-      val fileName = s"${repo.toLowerCase.capitalize}_$normVersion.scala"
+      val packageName = normalizedPackageName(repo)
+      val fileName = s"${packageName.capitalize}_$normVersion.scala"
       new URL(
-        s"https://github.com/$org/$repo/blob/$sha/scalafix-rewrites/src/main/scala/$repo/scalafix/$fileName")
+        s"https://github.com/$org/$repo/blob/$sha/scalafix-rewrites/src/main/scala/$packageName/scalafix/$fileName")
     }
 
     def unapply(arg: Conf.Str): Option[URL] = arg.value match {
