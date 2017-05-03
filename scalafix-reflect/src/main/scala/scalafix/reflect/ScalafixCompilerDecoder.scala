@@ -42,7 +42,7 @@ object ScalafixCompilerDecoder {
       """github:([^\/]+)\/([^\/]+)\/([^\/]+)\?sha=(.+)""".r
 
     private[this] def normalizedPackageName(repoName: String): String = {
-      val packageName = repoName.replaceAll("[^a-zA-Z0-9]", "_")
+      val packageName = repoName.replaceAll("[^a-zA-Z0-9]", "_").toLowerCase
       if (packageName.headOption.map(_.isDigit) == Some(true)) {
         s"_$packageName"
       } else {
