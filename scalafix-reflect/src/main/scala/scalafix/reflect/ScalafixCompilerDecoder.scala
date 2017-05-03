@@ -55,8 +55,8 @@ object ScalafixCompilerDecoder {
                                       version: String,
                                       sha: String): URL = {
       val normVersion = version.replaceAll("[^\\d]", "_")
-      val fileName = s"${repo.toLowerCase.capitalize}_$normVersion.scala"
       val packageName = normalizedPackageName(repo)
+      val fileName = s"${packageName.capitalize}_$normVersion.scala"
       new URL(
         s"https://github.com/$org/$repo/blob/$sha/scalafix-rewrites/src/main/scala/$packageName/scalafix/$fileName")
     }

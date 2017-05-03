@@ -21,18 +21,18 @@ class GitHubUrlRewriteSuite extends FunSuiteLike with Matchers {
     }
   }
 
-  test("it replaces invalid characters in package name with _") {
+  test("it replaces invalid characters in package name and file name with _") {
     Conf.Str("github:someorg/some-repo/1.2.3") match {
       case GitHubUrlRewrite(url) =>
-        url.toString shouldBe "https://github.com/someorg/some-repo/blob/master/scalafix-rewrites/src/main/scala/some_repo/scalafix/Some-repo_1_2_3.scala"
+        url.toString shouldBe "https://github.com/someorg/some-repo/blob/master/scalafix-rewrites/src/main/scala/some_repo/scalafix/Some_repo_1_2_3.scala"
     }
   }
 
   test(
-    "it adds an underscore to the package name if the repo name begins with a digit") {
+    "it adds an underscore to the package name and to the file name if the repo name begins with a digit") {
     Conf.Str("github:someorg/42some-repo/1.2.3") match {
       case GitHubUrlRewrite(url) =>
-        url.toString shouldBe "https://github.com/someorg/42some-repo/blob/master/scalafix-rewrites/src/main/scala/_42some_repo/scalafix/42some-repo_1_2_3.scala"
+        url.toString shouldBe "https://github.com/someorg/42some-repo/blob/master/scalafix-rewrites/src/main/scala/_42some_repo/scalafix/_42some_repo_1_2_3.scala"
     }
   }
 }
