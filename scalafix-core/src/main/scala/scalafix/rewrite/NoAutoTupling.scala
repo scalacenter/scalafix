@@ -2,11 +2,8 @@ package scalafix
 package rewrite
 
 import scala.meta._
-import scala.meta.contrib._
 import scalafix.syntax._
-import scala.meta.semantic.v1.Signature
-
-import org.scalameta.logger
+import scala.meta.semantic.Signature
 
 case class NoAutoTupling(mirror: Mirror) extends SemanticRewrite(mirror) {
 

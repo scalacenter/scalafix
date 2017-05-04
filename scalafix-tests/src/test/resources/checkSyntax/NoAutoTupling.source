@@ -77,3 +77,14 @@ object tup {
   def sum(a: Int, b: (Int, String)): Int = ???
   sum(1, (2, "foo"))
 }
+
+<<< auto-tupling with lambdas
+object tup {
+  val foo = (a: (Int, Boolean)) => a
+  foo(2, true)
+}
+>>>
+object tup {
+  val foo = (a: (Int, Boolean)) => a
+  foo((2, true))
+}
