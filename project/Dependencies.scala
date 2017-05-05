@@ -2,7 +2,7 @@ import sbt._
 /* scalafmt: { maxColumn = 120 }*/
 
 object Dependencies {
-  val scalametaV = "1.8.0-594-3890ed93"
+  val scalametaV = "1.8.0-600-ae298f26"
   val paradiseV = "3.0.0-M8"
   var testClasspath: String = "empty"
   def scalahost: ModuleID = "org.scalameta" % s"scalahost" % scalametaV cross CrossVersion.full

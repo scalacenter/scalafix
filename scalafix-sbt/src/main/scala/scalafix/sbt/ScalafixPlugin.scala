@@ -7,10 +7,10 @@ import scalafix.Versions
 import java.io.File
 
 import sbt.File
-import sbt._
-import sbt.plugins.JvmPlugin
-import sbt.Keys.{version => _, _}
+import sbt.Keys.{version => _}
+import sbt.Keys._
 import sbt.ScopeFilter.ScopeFilter
+import sbt._
 import sbt.plugins.JvmPlugin
 
 object ScalafixPlugin extends AutoPlugin {
@@ -23,24 +23,9 @@ object ScalafixPlugin extends AutoPlugin {
       settingKey[Option[File]](
         ".scalafix.conf file to specify which scalafix rules should run.")
   }
-  import autoImport._
   import CliWrapperPlugin.autoImport._
+  import autoImport._
   private val scalafixVersion = _root_.scalafix.Versions.version
-  private val disabled = sys.props.contains("scalafix.disable")
-  private def jar(report: UpdateReport): File =
-    report.allFiles
-      .find { x =>
-        x.getAbsolutePath.matches(
-          // publishLocal produces jars with name `VERSION/scalafix-nsc_2.11.jar`
-          // while the jars published with publishSigned to Maven are named
-          // `scalafix-nsc_2.11-VERSION.jar`
-          s".*scalafix-nsc_2.1[12].(\\d+)(-$scalafixVersion)?.jar$$")
-      }
-      .getOrElse {
-        throw new IllegalStateException(
-          s"Unable to resolve scalafix-nsc compiler plugin. Report: $report"
-        )
-      }
 
   private val scalafixStub =
     Project(id = s"scalafix-stub", base = file(s"project/scalafix/stub"))
