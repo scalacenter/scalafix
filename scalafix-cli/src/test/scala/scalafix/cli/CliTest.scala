@@ -1,10 +1,8 @@
 package scalafix.cli
 
 import scala.collection.immutable.Seq
-import scalafix.config.ScalafixConfig
 import scalafix.rewrite.ExplicitImplicit
 import scalafix.rewrite.ProcedureSyntax
-import scalafix.rewrite.VolatileLazyVal
 import scalafix.testkit.DiffAssertions
 import scalafix.util.FileOps
 
@@ -13,7 +11,6 @@ import java.io.File
 import java.io.PrintStream
 
 import caseapp.core.WithHelp
-import org.scalameta.logger
 import org.scalatest.FunSuite
 
 object BasicTest {

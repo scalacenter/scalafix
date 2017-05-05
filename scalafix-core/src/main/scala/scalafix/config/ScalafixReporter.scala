@@ -1,7 +1,6 @@
 package scalafix.config
 
 import scala.meta.Position
-import scala.meta.internal.inputs._
 import scalafix.util.Severity
 
 import metaconfig.ConfDecoder

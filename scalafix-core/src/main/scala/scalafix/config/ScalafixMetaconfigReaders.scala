@@ -1,7 +1,6 @@
 package scalafix
 package config
 
-import scala.collection.immutable.Seq
 import scala.meta.Ref
 import scala.meta._
 import scala.meta.parsers.Parse
@@ -9,22 +8,18 @@ import scala.meta.semantic.Symbol
 import scala.reflect.ClassTag
 import scala.util.Try
 import scala.util.matching.Regex
+import scalafix.patch.TreePatch._
 import scalafix.rewrite.ScalafixRewrites
 import scalafix.util.ClassloadRewrite
-import scalafix.util.FileOps
-import scalafix.patch.TreePatch._
 
-import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
 import java.net.URI
-import java.net.URL
 
 import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
-import org.scalameta.logger
 
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
 // A collection of metaconfig.Reader instances that are shared across

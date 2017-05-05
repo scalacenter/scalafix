@@ -112,22 +112,6 @@ object TermDisplay {
         None
     }
 
-    // Scala version of http://stackoverflow.com/questions/3758606/how-to-convert-byte-size-into-human-readable-format-in-java/3758880#3758880
-    private def byteCount(bytes: Long, si: Boolean = false): String = {
-      val unit = if (si) 1000 else 1024
-      if (bytes < unit)
-        bytes + " B"
-      else {
-        val exp = (math.log(bytes) / math.log(unit)).toInt
-        val pre =
-          (if (si) "kMGTPE"
-           else "KMGTPE").charAt(exp - 1) +
-            (if (si) ""
-             else "i")
-        f"${bytes / math.pow(unit, exp)}%.1f ${pre}B"
-      }
-    }
-
     def display(): String = {
       val decile = (10.0 * fraction.getOrElse(0.0)).toInt
       assert(decile >= 0)

@@ -3,12 +3,8 @@ package testkit
 
 import scala.collection.immutable.Seq
 import scala.meta._
-import scala.meta.contrib._
-import scala.meta.internal.scalahost.ScalahostPlugin
-import scala.meta.internal.scalahost
 import scala.meta.internal.scalahost.mirrors.OnlineMirror
 import scala.meta.internal.semantic.mirrors.CommonMirror
-import scala.meta.internal.semantic.mirrors.OfflineMirror
 import scala.reflect.io.AbstractFile
 import scala.tools.cmd.CommandLineParser
 import scala.tools.nsc.CompilerCommand
@@ -27,7 +23,6 @@ import java.net.URL
 import java.net.URLClassLoader
 
 import metaconfig.ConfError
-import org.scalameta.logger
 import org.scalatest.FunSuite
 
 // TODO(olafur) contribute upstream to scalameta-testkit
@@ -38,12 +33,17 @@ class TestkitMirror(db: AttributedSource,
     extends CommonMirror {
   override lazy val sources: Seq[Source] = Seq(source)
   override lazy val database: Database = Database(Seq(db))
-  override def dialect: Dialect = dialects.Scala210
+  override def dialect: Dialect = dialects.Scala211
 }
 
 /**
   *
-  * @param classpath
+  * @param classpath the classpath to use to compile rewrite unit tests.
+  *                  Defaults to the classpath of the current classloader.
+  * @param scalahostPluginPath the file path to the scalahost compiler plugin,
+  *                            which is passed as `-Xplugin:/path/scalahost.jar`
+  *                            to scalac in order to build a semantic DB
+  *                            when compiling .source unit test files.
   */
 abstract class SemanticRewriteSuite(
     classpath: String = SemanticRewriteSuite.thisClasspath,
@@ -165,6 +165,7 @@ abstract class SemanticRewriteSuite(
               .notOk
               .toString
           fail(formattedMessage)
+        case _ => // nothing
       }
     })
     g.phase = run.phaseNamed("patmat")
@@ -244,11 +245,6 @@ abstract class SemanticRewriteSuite(
     assertNoDiff(obtained.tokens.mkString,
                  expected.tokens.mkString,
                  "Tree syntax mismatch")
-  }
-
-  private def unwrap(gtree: g.Tree): g.Tree = gtree match {
-    case g.PackageDef(g.Ident(g.TermName(_)), stat :: Nil) => stat
-    case body => body
   }
 
   case class MismatchException(details: String) extends Exception

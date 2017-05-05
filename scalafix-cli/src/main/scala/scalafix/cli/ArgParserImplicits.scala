@@ -1,16 +1,12 @@
 package scalafix
 package cli
 
-import scalafix.config.ScalafixConfig
-import scalafix.config.ScalafixMetaconfigReaders
-
 import java.io.InputStream
 import java.io.PrintStream
 
 import caseapp.core.ArgParser
 import caseapp.core.Messages
 import caseapp.core.Parser
-import metaconfig.Conf
 
 object ArgParserImplicits {
   implicit val inputStreamRead: ArgParser[InputStream] =

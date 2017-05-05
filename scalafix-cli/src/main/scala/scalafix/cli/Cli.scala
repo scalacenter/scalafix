@@ -3,13 +3,10 @@ package cli
 
 import scala.collection.GenSeq
 import scala.collection.immutable.Seq
-import scala.meta.Tree
 import scala.meta._
 import scala.meta.dialects
 import scala.meta.inputs.Input
 import scala.meta.io.AbsolutePath
-import scala.meta.parsers.Parsed
-import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -36,7 +33,6 @@ import metaconfig.Conf
 import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.Ok
-import org.scalameta.logger
 
 case class CommonOptions(
     @Hidden workingDirectory: String = System.getProperty("user.dir"),

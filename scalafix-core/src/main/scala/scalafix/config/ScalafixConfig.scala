@@ -1,7 +1,6 @@
 package scalafix
 package config
 
-import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.dialects.Scala211
 import scala.meta.parsers.Parse

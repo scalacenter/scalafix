@@ -1,7 +1,7 @@
 package scalafix
 package util
 
-import scala.meta._
+import scala.meta.semantic.Mirror
 import scala.reflect.ClassTag
 import scala.util.Failure
 import scala.util.Success
@@ -11,27 +11,22 @@ import java.lang.reflect.InvocationTargetException
 
 import metaconfig.ConfError
 import metaconfig.Configured
-import org.scalameta.logger
 
 class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
   private val t = ev.runtimeClass
+
   private val functionClasstag =
     implicitly[ClassTag[Function[Mirror, T]]].runtimeClass
-
   object LambdaRewrite {
     def unapply(fqcn: String): Option[(Class[_], String)] = {
       val idx = fqcn.lastIndexOf(".")
-      if (idx == -1) None
+      if (idx == 1) None
       else {
         val (obj, field) = fqcn.splitAt(idx)
         getClassFor(obj + "$").map(x => x -> field.stripPrefix(".")).toOption
       }
     }
   }
-
-  private def getClassFor(fqcn: String): Try[Class[_]] =
-    Try { Class.forName(fqcn, false, classLoader) }
-
   private def classloadLambdaRewrite(clazz: Class[_],
                                      args: Seq[AnyRef],
                                      fieldName: String): Try[T] = Try {
@@ -54,6 +49,9 @@ class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
       }
   }
 
+  private def getClassFor(fqcn: String): Try[Class[_]] =
+    Try { Class.forName(fqcn, false, classLoader) }
+
   private def classloadClassRewrite(clazz: Class[_],
                                     args: Seq[AnyRef]): Try[T] =
     Try {
@@ -70,7 +68,7 @@ class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
             else s" or constructor matching arguments $args"
           throw new IllegalArgumentException(
             s"""No suitable constructor on $clazz.
-               |Expected : zero-argument constructor$argsMsg
+               |Expected : zeroargument constructor$argsMsg
                |Found    : $constructors
              """.stripMargin)
         }
@@ -98,11 +96,10 @@ class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
       combined += getClassFor(fqcn + "$").flatMap(cls =>
         classloadClassRewrite(cls, args))
     }
-
-    val lambdaRewrite = fqcn match {
+    fqcn match {
       case LambdaRewrite(cls, field) =>
         combined += classloadLambdaRewrite(cls, args, field)
-      case _ => Nil
+      case _ =>
     }
     val result = combined.result()
     val successes = result.collect { case Success(t) => t }

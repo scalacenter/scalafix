@@ -128,8 +128,8 @@ package object syntax {
   }
   implicit class XtensionInputScalafix(input: Input) {
     def label: String = input match {
-      case Input.File(path, _) => path.toString()
-      case Input.LabeledString(label, _) => label
+      case inputs.Input.File(path, _) => path.toString()
+      case inputs.Input.LabeledString(label, _) => label
       case _ =>
         s"Input.${input.productPrefix}('<${input.chars.take(10).mkString}...>')"
           .replaceAllLiterally(EOL, "")

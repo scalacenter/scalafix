@@ -1,13 +1,9 @@
 package scalafix.tests
 
-import scalafix.rewrite.ProcedureSyntax
-import scalafix.rewrite.Rewrite
-import scalafix.rewrite.ScalafixRewrites
-
-import ammonite.ops._
 import java.io.File
 
 import ammonite.ops.Path
+import ammonite.ops._
 
 case class ItTest(
     name: String,

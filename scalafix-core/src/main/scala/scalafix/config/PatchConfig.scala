@@ -3,8 +3,6 @@ package scalafix.config
 import scalafix.patch.TreePatch.AddGlobalImport
 import scalafix.patch.TreePatch.Replace
 import scalafix.patch.TreePatch
-import scala.collection.immutable.Seq
-import scalafix.patch.ImportPatch
 import scalafix.patch.TreePatch.RemoveGlobalImport
 import metaconfig._
 

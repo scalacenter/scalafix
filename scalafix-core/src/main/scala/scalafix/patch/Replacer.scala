@@ -5,21 +5,17 @@ import scala.meta._
 import scala.collection.immutable.Seq
 import scalafix.patch.TreePatch._
 import scalafix.patch.TokenPatch._
-import scala.meta.internal.ast.Helpers._
 import scala.util.Try
 import scalafix.rewrite.RewriteCtx
 import scalafix.patch.TreePatch.AddGlobalImport
 import scalafix.patch.TreePatch.Rename
 
-import org.scalameta.logger
-
 private[this] class Replacer(implicit ctx: RewriteCtx, mirror: Mirror) {
-  import ctx._
   object `:withSymbol:` {
     def unapply(ref: Ref): Option[(Ref, Symbol)] =
       Try(
         mirror.symbol(ref) match {
-          case Completed.Success(symbol) =>
+          case semantic.Completed.Success(symbol) =>
             Some(ref -> symbol.normalized)
           case _ => None
         }
@@ -72,7 +68,6 @@ object Renamer {
       implicit ctx: RewriteCtx,
       mirror: Mirror): Seq[TokenPatch] = {
     if (renamePatches.isEmpty) return Nil
-    import ctx._
     val renames = renamePatches.collect { case r: Rename => r }
     val renameSymbols = renamePatches.collect { case r: RenameSymbol => r }
     object MatchingRename {
