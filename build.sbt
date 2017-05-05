@@ -71,6 +71,7 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
     "nightly" -> version.value,
     "scalameta" -> scalametaV,
     scalaVersion,
+    "supportedScalaVersions" -> Seq(scala211, scala212),
     "scala211" -> scala211,
     "scala212" -> scala212,
     sbtVersion
@@ -173,7 +174,6 @@ lazy val `scalafix-sbt` = project
     buildInfoSettings,
     Defaults.itSettings,
     ScriptedPlugin.scriptedSettings,
-    libraryDependencies += "org.scalameta" % "sbt-scalahost" % scalametaV,
     sbtPlugin := true,
     testQuick := {}, // these test are slow.
     test in IntegrationTest := {
