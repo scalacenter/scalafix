@@ -20,9 +20,6 @@ import metaconfig.ConfError
 import metaconfig.Configured
 
 object ScalafixToolbox {
-  import scala.reflect.runtime.universe._
-  import scala.tools.reflect.ToolBox
-  private val tb = runtimeMirror(getClass.getClassLoader).mkToolBox()
   private val rewriteCache
     : mutable.WeakHashMap[Input, Configured.Ok[Rewrite]] =
     mutable.WeakHashMap.empty
