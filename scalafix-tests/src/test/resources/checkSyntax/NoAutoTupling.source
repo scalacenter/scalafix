@@ -40,7 +40,6 @@ object tup {
   def fooo(t: (Int, Int))(s: (String, String)): Int = ???
   fooo((1, 2))(("a", "b"))
 
-
   def baar(t: (Boolean, Int, String))(s: (Boolean, String))(k: (Int, String)): String = ???
   baar((true, 1, "foo"))((false, "42"))((42, "foo"))
 }
