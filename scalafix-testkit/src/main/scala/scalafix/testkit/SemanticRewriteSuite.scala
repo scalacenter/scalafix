@@ -260,4 +260,3 @@ object SemanticRewriteSuite {
   def scalahostJarPath: File =
     new File(thisClasspathLst.find(_.toString.contains("scalahost")).get.toURI)
 }
-

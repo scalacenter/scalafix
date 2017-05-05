@@ -229,14 +229,15 @@ lazy val tests = project
         "; tests/it:testQuick" // hack to workaround cyclic dependencies in test.
     )(state.value),
     parallelExecution in Test := true,
+    resolvers += Resolver.bintrayRepo("allanrenucci", "maven"),
     libraryDependencies ++= Seq(
       scalahost % Test,
       // integration property tests
-      "ch.epfl"            %% "xmlquote"           % "0.1-SNAPSHOT" % Test,
-      "org.typelevel"      %% "catalysts-platform" % "0.0.5"        % Test,
-      "com.typesafe.slick" %% "slick"              % "3.2.0-M2"     % Test,
-      "com.chuusai"        %% "shapeless"          % "2.3.2"        % Test,
-      "org.scalacheck"     %% "scalacheck"         % "1.13.4"       % Test
+      "org.renucci"        %% "scala-xml-quote"    % "0.1"      % Test,
+      "org.typelevel"      %% "catalysts-platform" % "0.0.5"    % Test,
+      "com.typesafe.slick" %% "slick"              % "3.2.0-M2" % Test,
+      "com.chuusai"        %% "shapeless"          % "2.3.2"    % Test,
+      "org.scalacheck"     %% "scalacheck"         % "1.13.4"   % Test
     )
   )
   .dependsOn(
