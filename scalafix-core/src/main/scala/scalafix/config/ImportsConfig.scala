@@ -1,6 +1,5 @@
 package scalafix.config
 
-import scala.collection.immutable.Seq
 import scala.meta.Ref
 import metaconfig._
 

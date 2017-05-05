@@ -2,7 +2,6 @@ package scalafix
 package rewrite
 
 import scala.meta._
-import scala.collection.immutable.Seq
 
 case object VolatileLazyVal extends Rewrite {
   private object NonVolatileLazyVal {

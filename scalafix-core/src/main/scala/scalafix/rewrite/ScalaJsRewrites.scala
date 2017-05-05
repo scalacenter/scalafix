@@ -4,8 +4,6 @@ import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.contrib._
 
-import org.scalameta.logger
-
 object ScalaJsRewrites {
   // Symbols copy pasted from mirror.database
   val nativeSymbol = Symbol("_root_.scala.scalajs.js.package.native#")

@@ -20,9 +20,6 @@ import metaconfig.ConfError
 import metaconfig.Configured
 
 object ScalafixToolbox {
-  import scala.reflect.runtime.universe._
-  import scala.tools.reflect.ToolBox
-  private val tb = runtimeMirror(getClass.getClassLoader).mkToolBox()
   private val rewriteCache
     : mutable.WeakHashMap[Input, Configured.Ok[Rewrite]] =
     mutable.WeakHashMap.empty
@@ -77,7 +74,7 @@ class Compiler() {
     reporter.reset()
     val run = new global.Run
     val label = input match {
-      case Input.File(path, _) => path.absolute
+      case Input.File(path, _) => path.toString()
       case Input.LabeledString(label, _) => label
       case _ => "(input)"
     }

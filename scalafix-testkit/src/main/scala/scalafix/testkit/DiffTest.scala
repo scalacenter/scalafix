@@ -3,7 +3,6 @@ package scalafix.testkit
 import metaconfig._, typesafeconfig._
 import scala.collection.immutable.Seq
 import scala.meta._
-import scala.meta.io.AbsolutePath
 import scalafix.Rewrite
 import scalafix.config.ScalafixConfig
 import scalafix.config.ScalafixMetaconfigReaders

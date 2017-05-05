@@ -16,7 +16,6 @@ import scalafix.patch.TreePatch.RenamePatch
 import scalafix.patch.TreePatch.Replace
 
 import difflib.DiffUtils
-import org.scalameta.logger
 
 /** A data structure that can produce a .patch file.
   *

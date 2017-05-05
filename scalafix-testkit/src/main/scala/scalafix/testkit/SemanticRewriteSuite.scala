@@ -3,14 +3,8 @@ package testkit
 
 import scala.collection.immutable.Seq
 import scala.meta._
-import scala.meta.contrib._
-import scala.meta.internal.scalahost.ScalahostPlugin
-import scala.meta.internal.scalahost.v1
-import scala.meta.internal.scalahost.v1.LocationOps
-import scala.meta.internal.scalahost.v1.offline
-import scala.meta.internal.scalahost.v1.online
-import scala.meta.semantic.v1.Completed
-import scala.meta.semantic.v1.Database
+import scala.meta.internal.scalahost.mirrors.OnlineMirror
+import scala.meta.internal.semantic.mirrors.CommonMirror
 import scala.reflect.io.AbstractFile
 import scala.tools.cmd.CommandLineParser
 import scala.tools.nsc.CompilerCommand
@@ -25,40 +19,46 @@ import scalafix.syntax._
 
 import java.io.File
 import java.io.PrintWriter
+import java.net.URL
 import java.net.URLClassLoader
 
 import metaconfig.ConfError
 import org.scalatest.FunSuite
 
 // TODO(olafur) contribute upstream to scalameta-testkit
-class TestkitMirror(db: Database,
+class TestkitMirror(db: AttributedSource,
                     source: Source,
                     classPath: String,
-                    sourcePath: String,
-                    scalahostNscPluginPath: String)
-    extends offline.Mirror(classPath, sourcePath, scalahostNscPluginPath) {
+                    sourcePath: String)
+    extends CommonMirror {
   override lazy val sources: Seq[Source] = Seq(source)
-  override lazy val database: Database = db
+  override lazy val database: Database = Database(Seq(db))
+  override def dialect: Dialect = dialects.Scala211
 }
 
 /**
   *
-  * @param classpath
+  * @param classpath the classpath to use to compile rewrite unit tests.
+  *                  Defaults to the classpath of the current classloader.
+  * @param scalahostPluginPath the file path to the scalahost compiler plugin,
+  *                            which is passed as `-Xplugin:/path/scalahost.jar`
+  *                            to scalac in order to build a semantic DB
+  *                            when compiling .source unit test files.
   */
 abstract class SemanticRewriteSuite(
-    classpath: String = SemanticRewriteSuite.thisClasspath)
-    extends FunSuite
+    classpath: String = SemanticRewriteSuite.thisClasspath,
+    scalahostPluginPath: File = SemanticRewriteSuite.scalahostJarPath
+) extends FunSuite
     with DiffAssertions { self =>
-  lazy val pluginPath = offline.Mirror.autodetectScalahostNscPluginPath
   private val g: Global = {
     def fail(msg: String) =
       sys.error(s"ReflectToMeta initialization failed: $msg")
-
+    // TODO(olafur) hack, find a way to pass this path via buildinfo
     val scalacOptions = Seq(
       "-Yrangepos",
       "-cp",
       classpath,
-      "-Xplugin:" + pluginPath,
+      "-Xplugin:" + scalahostPluginPath,
       "-Xplugin-require:scalahost",
       "-Ywarn-unused-import"
     ).mkString(" ", " ", " ")
@@ -75,7 +75,7 @@ abstract class SemanticRewriteSuite(
     g
   }
 
-  implicit val mirror: online.Mirror = new online.Mirror(g)
+  implicit val mirror: OnlineMirror = new OnlineMirror(g)
 
   import mirror._
 
@@ -143,10 +143,6 @@ abstract class SemanticRewriteSuite(
     val reporter = new StoreReporter()
     g.reporter = reporter
     unit.body = g.newUnitParser(unit).parse()
-    val errors = reporter.infos.filter(_.severity == reporter.ERROR)
-    errors.foreach(error =>
-      fail(s"scalac parse error: ${error.msg} at ${error.pos}"))
-
     val packageobjectsPhase = run.phaseNamed("packageobjects")
     val phases = List(run.parserPhase,
                       run.namerPhase,
@@ -169,16 +165,18 @@ abstract class SemanticRewriteSuite(
               .notOk
               .toString
           fail(formattedMessage)
+        case _ => // nothing
       }
     })
     g.phase = run.phaseNamed("patmat")
     g.globalPhase = run.phaseNamed("patmat")
     val source = javaFile.parse[Source].get
-    new TestkitMirror(unit.asInstanceOf[mirror.g.CompilationUnit].toDatabase,
-                      source,
-                      classpath,
-                      "foo/src",
-                      pluginPath)
+    new TestkitMirror(
+      unit.asInstanceOf[mirror.g.CompilationUnit].toAttributedSource,
+      source,
+      classpath,
+      "foo/src"
+    )
   }
 
   private def checkMismatchesModuloDesugarings(obtained: m.Tree,
@@ -249,18 +247,17 @@ abstract class SemanticRewriteSuite(
                  "Tree syntax mismatch")
   }
 
-  private def unwrap(gtree: g.Tree): g.Tree = gtree match {
-    case g.PackageDef(g.Ident(g.TermName(_)), stat :: Nil) => stat
-    case body => body
-  }
-
   case class MismatchException(details: String) extends Exception
 }
 
 object SemanticRewriteSuite {
-  def thisClasspath: String = this.getClass.getClassLoader match {
-    case u: URLClassLoader =>
-      u.getURLs.map(_.getPath).mkString(java.io.File.pathSeparator)
-    case _ => ""
+  def thisClasspathLst: List[URL] = this.getClass.getClassLoader match {
+    case u: URLClassLoader => u.getURLs.toList
+    case _ => Nil
   }
+  def thisClasspath: String =
+    thisClasspathLst.mkString(java.io.File.pathSeparator)
+
+  def scalahostJarPath: File =
+    new File(thisClasspathLst.find(_.toString.contains("scalahost")).get.toURI)
 }

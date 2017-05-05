@@ -71,6 +71,7 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
     "nightly" -> version.value,
     "scalameta" -> scalametaV,
     scalaVersion,
+    "supportedScalaVersions" -> Seq(scala211, scala212),
     "scala211" -> scala211,
     "scala212" -> scala212,
     sbtVersion
@@ -88,7 +89,7 @@ lazy val allSettings = List(
   scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
   libraryDependencies += scalatest % Test,
   testOptions in Test += Tests.Argument("-oD"),
-  scalaVersion := ciScalaVersion.getOrElse(scala211),
+  scalaVersion := ciScalaVersion.getOrElse(scala212),
   crossScalaVersions := crossVersions,
   updateOptions := updateOptions.value.withCachedResolution(true)
 )
@@ -118,9 +119,13 @@ lazy val reflect = project
     allSettings,
     publishSettings,
     isFullCrossVersion,
-    libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
+    libraryDependencies ++= Seq(
+      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
+      "org.scala-lang" % "scala-reflect"  % scalaVersion.value
+    )
   )
   .dependsOn(core)
+
 lazy val core = project
   .configure(setId)
   .settings(
@@ -128,12 +133,10 @@ lazy val core = project
     publishSettings,
     buildInfoSettings,
     metaconfigSettings,
-    isFullCrossVersion,
     dependencyOverrides += scalameta,
     libraryDependencies ++= Seq(
       metaconfig,
       scalameta,
-      scalahost,
       // TODO(olafur) can we move this into separate module.
       // Currently only used in Patch.appliedDiff
       googleDiff
@@ -158,16 +161,6 @@ lazy val cli = project
     testkit % Test
   )
 
-lazy val fatcli = project
-  .configure(setId)
-  .settings(
-    allSettings,
-    publishSettings,
-    isFullCrossVersion,
-    libraryDependencies += scalahostNsc
-  )
-  .dependsOn(cli)
-
 lazy val publishedArtifacts = Seq(
   publishLocal in core,
   publishLocal in cli
@@ -181,7 +174,6 @@ lazy val `scalafix-sbt` = project
     buildInfoSettings,
     Defaults.itSettings,
     ScriptedPlugin.scriptedSettings,
-    addSbtPlugin("org.scalameta" % "sbt-scalahost" % scalametaV),
     sbtPlugin := true,
     testQuick := {}, // these test are slow.
     test in IntegrationTest := {
@@ -211,7 +203,7 @@ lazy val testkit = project
     isFullCrossVersion,
     publishSettings,
     libraryDependencies ++= Seq(
-      scalahostNsc,
+      scalahost,
       ammonite,
       googleDiff,
       scalatest

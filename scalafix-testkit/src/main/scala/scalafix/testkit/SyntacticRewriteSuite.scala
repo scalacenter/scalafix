@@ -1,11 +1,10 @@
 package scalafix
 package testkit
 
-import scalafix.syntax._
 import scala.meta._
-import scala.collection.immutable.Seq
 import scalafix.config.ScalafixConfig
 import scalafix.rewrite.RewriteCtx
+import scalafix.syntax._
 
 import org.scalatest.FunSuiteLike
 
@@ -19,6 +18,7 @@ class SyntacticRewriteSuite(rewrite: Rewrite)
       assertNoDiff(obtained, expected)
     }
   }
+
   def checkDiff(original: Input, expected: String): Unit = {
     test(original.label) {
       val ctx = RewriteCtx(original.parse[Source].get, ScalafixConfig.default)

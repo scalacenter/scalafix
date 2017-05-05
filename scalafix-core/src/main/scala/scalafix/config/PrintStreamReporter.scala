@@ -2,7 +2,7 @@ package scalafix.config
 
 import scalafix.util.Severity
 import scala.meta.Position
-import scala.meta.internal.inputs._
+import scala.meta.internal.inputs.XtensionPointFormatMessage
 
 import java.io.PrintStream
 

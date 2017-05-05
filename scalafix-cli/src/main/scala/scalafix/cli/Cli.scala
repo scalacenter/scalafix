@@ -3,14 +3,10 @@ package cli
 
 import scala.collection.GenSeq
 import scala.collection.immutable.Seq
-import scala.meta.Tree
 import scala.meta._
 import scala.meta.dialects
 import scala.meta.inputs.Input
-import scala.meta.internal.scalahost.v1.offline
 import scala.meta.io.AbsolutePath
-import scala.meta.parsers.Parsed
-import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -37,7 +33,6 @@ import metaconfig.Conf
 import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.Ok
-import org.scalameta.logger
 
 case class CommonOptions(
     @Hidden workingDirectory: String = System.getProperty("user.dir"),
@@ -75,14 +70,6 @@ case class ScalafixOptions(
     ) @ValueDescription(
       "File2.scala:File1.scala:src/main/scala"
     ) sourcepath: Option[String] = None,
-    @HelpMessage(
-      """File path to the scalahost-nsc compiler plugin fatjar, the same path
-        |        that is passed in `-Xplugin:/scalahost.jar`.
-        |        (optional) skip this option by using the "scalafix-fatcli"
-        |        module instead of "scalafix-cli."""".stripMargin
-    ) @ValueDescription(
-      "$HOME/.ivy2/cache/.../scalahost-nsc_2.11.8.jar"
-    ) scalahostNscPluginPath: Option[String] = None,
     @HelpMessage(
       s"""Rewrite rules to run.
          |        NOTE. rewrite.rules = [ .. ] from --config will also run.""".stripMargin
@@ -143,12 +130,12 @@ case class ScalafixOptions(
         resolvedMirror
           .map {
             case Some(x) =>
-              x.sources.collect { case InputSource(path) => path.absolute }
+              x.sources.collect { case InputSource(path) => path.toString() }
             case _ => Nil
           }
           .getOrElse(Nil)
       }
-    }.filter(Cli.isScalaPath)
+    }.filter(Cli.isScalaPath _)
     if (singleThread) scalaFiles
     else scalaFiles.par
   }
@@ -206,8 +193,6 @@ case class ScalafixOptions(
     (classpath, sourcepath) match {
       case (Some(cp), Some(sp)) =>
         val tryMirror = for {
-          pluginPath <- scalahostNscPluginPath.fold(
-            Try(offline.Mirror.autodetectScalahostNscPluginPath))(Success(_))
           mirror <- Try {
             // TODO(olafur) offline.Mirror needs to document what can go wrong in the types.
             // see https://github.com/scalameta/scalameta/issues/814
@@ -223,7 +208,7 @@ case class ScalafixOptions(
                 }
             if (files.isEmpty) throw Cli.EmptySourcepath // need to fix offline.Mirror :v
             val mirror =
-              Mirror(cp, files.mkString(File.pathSeparator), pluginPath)
+              Mirror(cp, files.mkString(File.pathSeparator))
             mirror.sources // ugh. need to trigger lazy to validate that all files parse
             mirror
           }
