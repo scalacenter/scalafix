@@ -12,40 +12,35 @@ case class NoAutoTupling(mirror: Mirror) extends SemanticRewrite(mirror) {
 
   private[this] def addWrappingParens(ctx: RewriteCtx,
                                       args: Seq[Term.Arg]): Patch =
-    Seq(
-      ctx.addLeft(args.head.tokens.last, "("),
+    ctx.addLeft(args.head.tokens.last, "(") +
       ctx.addRight(args.last.tokens.last, ")")
-    ).asPatch
 
   override def rewrite(ctx: RewriteCtx): Patch = {
     // "hack" to avoid fixing an argument list more than once due
     // to recursive matching of multiple parameters lists.
     val fixed = MutableSet.empty[Seq[Term.Arg]]
     ctx.tree.collect {
-      case x @ q"$fun(...$argss)"
-          if argss.length > 0 && fun.isInstanceOf[Ref] =>
+      case q"${fun: Term.Ref}(...$argss)" if argss.nonEmpty =>
         mirror
-          .symbol(fun.asInstanceOf[Ref])
+          .symbol(fun)
           .toOption
           .collect {
             case Symbol.Global(_, Signature.Method(_, jvmSignature)) =>
-              jvmSignature.stripPrefix("(").takeWhile(_ != ')').split(';')
-          }
-          .map { argListSignatures =>
-            argListSignatures
-              .zip(argss)
-              .foldLeft(Seq.empty[Patch]) {
-                case (patches, (argListSignature, args)) =>
-                  if (!fixed(args) && singleTuplePattern
-                        .matcher(argListSignature)
-                        .matches && args.length > 1) {
-                    fixed += args // dirty hack, see explanation above
-                    patches :+ addWrappingParens(ctx, args)
-                  } else {
-                    patches
-                  }
-              }
-              .asPatch
+              val argListSignatures =
+                jvmSignature.stripPrefix("(").takeWhile(_ != ')').split(';')
+              argListSignatures
+                .zip(argss)
+                .foldLeft(Patch.empty) {
+                  case (patches, (argListSignature, args)) =>
+                    if (!fixed(args) && singleTuplePattern
+                          .matcher(argListSignature)
+                          .matches && args.length > 1) {
+                      fixed += args // dirty hack, see explanation above
+                      patches + addWrappingParens(ctx, args)
+                    } else {
+                      patches
+                    }
+                }
           }
           .getOrElse(Patch.empty)
     }.asPatch
