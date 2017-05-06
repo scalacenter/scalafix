@@ -84,5 +84,34 @@
       Such members already have a return type of @code{Unit} and sometimes this is unexpected.
       Adding an explicit return type makes it more obvious.
 
+  @sect(NoAutoTupling.toString)
+    @p
+      Adds explicit tuples around argument lists where auto-tupling is occurring.
+
+    @hl.scala
+      // before
+      def someMethod(t: (Int, String)) = ...
+      someMethod(1, "something")
+      // after
+      def someMethod(t: (Int, String)) = ...
+      someMethod((1, "something"))
+
+    @p
+      Auto-tupling is a feature that can lead to unexpected results, making code to compile when one would expect a compiler error instead. Adding explicit tuples makes it more obvious.
+
+    @note Some auto-tupling cases are left unfixed, namely the ones involving @code{Function1} instead of methods. For example this code won't be affected by the rewrite:
+
+      @hl.scala
+        def f: (((Int, String)) => ((String, List[Int])) => Int) = a => b => a._1
+        f(1, "")("a", Nil)
+
+      Same for:
+
+      @hl.scala
+        val f = (a: (Int, Boolean)) => a
+        f(2, true)
+
+      This is a known limitation and you can track the progress on this @lnk("here", "https://github.com/scalacenter/scalafix/issues/147").
+
   @sect{Planned rewrites...}
     See @lnk("here", "https://github.com/scalacenter/scalafix/issues?q=is%3Aissue+is%3Aopen+label%3Arewrite")
