@@ -24,7 +24,17 @@ case object NoXml extends Rewrite {
 
     }.asPatch
 
-    //TODO: emit warning on `{{`
+    // Emit warning on `{{`
+    ctx.tree.tokens.foreach {
+      case tok @ Token.Xml.Part(part) if part.contains("{{") =>
+        val offset = part.indexOf("{{")
+        val pos =
+          Position.Range(tok.input, tok.start + offset, tok.start + offset + 2)
+        ctx.reporter.warn(
+          "Single opening braces within XML text don't need to be doubled",
+          pos)
+      case _ =>
+    }
 
     if (patch.nonEmpty) patch + AddGlobalImport(importer"scala.xml.quote._")
     else patch
