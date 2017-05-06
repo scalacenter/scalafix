@@ -77,7 +77,7 @@ object tup {
   sum(1, (2, "foo"))
 }
 
-<<< auto-tupling with lambdas
+<<< SKIP auto-tupling with lambdas
 object tup {
   val foo = (a: (Int, Boolean)) => a
   foo(2, true)
@@ -86,4 +86,15 @@ object tup {
 object tup {
   val foo = (a: (Int, Boolean)) => a
   foo((2, true))
+}
+
+<<< SKIP auto-tupling with curried methods
+object tup {
+  def foo: (((Int, String)) => ((String, List[Int])) => Int) = a => b => a._1
+  foo(1 + 2, "foo")("bar", 1 :: 2 :: Nil)
+}
+>>>
+object tup {
+  def foo: (((Int, String)) => ((String, List[Int])) => Int) = a => b => a._1
+  foo((1 + 2, "foo"))(("bar", 1 :: 2 :: Nil))
 }
