@@ -12,7 +12,7 @@ case class NoAutoTupling(mirror: Mirror) extends SemanticRewrite(mirror) {
 
   private[this] def addWrappingParens(ctx: RewriteCtx,
                                       args: Seq[Term.Arg]): Patch =
-    ctx.addLeft(args.head.tokens.last, "(") +
+    ctx.addLeft(args.head.tokens.head, "(") +
       ctx.addRight(args.last.tokens.last, ")")
 
   override def rewrite(ctx: RewriteCtx): Patch = {

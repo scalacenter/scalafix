@@ -2,12 +2,12 @@ rewrites = [NoAutoTupling]
 <<< add explicit tuple
 object tup {
   def fooo(t: (Int, Int)): Int = ???
-  fooo(1, 2)
+  fooo(1 + 1, 2)
 }
 >>>
 object tup {
   def fooo(t: (Int, Int)): Int = ???
-  fooo((1, 2))
+  fooo((1 + 1, 2))
 }
 
 <<< multiple parameter lists, all auto-tupled
