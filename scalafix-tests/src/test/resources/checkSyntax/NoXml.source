@@ -58,7 +58,7 @@ object A {
     </div>"""
 }
 
-<<< splice in attribute position
+<<< SKIP splice in attribute position
 object A {
   <foo bar={"Hello"}/>
 }
