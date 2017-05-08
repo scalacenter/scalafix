@@ -98,3 +98,25 @@ object tup {
   def foo: (((Int, String)) => ((String, List[Int])) => Int) = a => b => a._1
   foo((1 + 2, "foo"))(("bar", 1 :: 2 :: Nil))
 }
+
+<<< auto-tupling with class constructors
+object tup {
+  class Foo(t: (Int, String))(s: (Boolean, List[Int]))
+  new Foo(1, "foo")(true, Nil)
+}
+>>>
+object tup {
+  class Foo(t: (Int, String))(s: (Boolean, List[Int]))
+  new Foo((1, "foo"))((true, Nil))
+}
+
+<<< auto-tupling with case class constructors
+object tup {
+  case class Foo(t: (Int, String))(s: (Boolean, List[Int]))
+  Foo(1, "foo")(true, Nil)
+}
+>>>
+object tup {
+  case class Foo(t: (Int, String))(s: (Boolean, List[Int]))
+  Foo((1, "foo"))((true, Nil))
+}
