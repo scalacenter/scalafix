@@ -1,9 +1,10 @@
-rewrites = [NoXml]
+rewrites = [RemoveXmlLiterals]
 
 <<< don't add import when not needed
 object A {}
 >>>
 object A {}
+
 <<< single line, no splice
 object A {
   <div></div>
@@ -11,7 +12,19 @@ object A {
 >>>
 import scala.xml.quote._
 object A {
-  xml"""<div></div>"""
+  xml"<div></div>"
+}
+
+<<< single line, triple quoted
+object A {
+  val a = <div b="Hello"/>
+  val b = <a>\</a>
+}
+>>>
+import scala.xml.quote._
+object A {
+  val a = xml"""<div b="Hello"/>"""
+  val b = xml"""<a>\</a>"""
 }
 
 <<< single line, splice
@@ -23,7 +36,7 @@ object A {
 import scala.xml.quote._
 object A {
   val bar = "bar"
-  xml"""<div>${bar}</div>"""
+  xml"<div>${bar}</div>"
 }
 
 <<< multi-line, no splice
@@ -65,7 +78,7 @@ object A {
 >>>
 import scala.xml.quote._
 object A {
-  xml"""<foo bar=${"Hello"}/>"""
+  xml"<foo bar=${"Hello"}/>"
 }
 
 <<< nested xml literals
@@ -75,7 +88,7 @@ object A {
 >>>
 import scala.xml.quote._
 object A {
-  xml"""<a>${xml"""<a>${"Hello"}</a>"""}</a>"""
+  xml"<a>${xml"<a>${"Hello"}</a>"}</a>"
 }
 
 <<< protect $
@@ -85,7 +98,7 @@ object A {
 >>>
 import scala.xml.quote._
 object A {
-  xml"""<div>$$</div>"""
+  xml"<div>$$</div>"
 }
 
 <<< SKIP protect curly brace
@@ -95,5 +108,5 @@ object A {
 >>>
 import scala.xml.quote._
 object A {
-  xml"""<div>{</div>"""
+  xml"<div>{</div>"
 }

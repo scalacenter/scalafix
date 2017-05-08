@@ -85,7 +85,6 @@ lazy val allSettings = List(
   resolvers += Resolver.bintrayRepo("scalameta", "maven"),
   resolvers += Resolver.sonatypeRepo("releases"),
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
-  incOptions := incOptions.value.withRecompileOnMacroDef(false),
   scalacOptions := compilerOptions,
   scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
   libraryDependencies += scalatest % Test,

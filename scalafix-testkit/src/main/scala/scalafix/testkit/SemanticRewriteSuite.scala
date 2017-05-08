@@ -85,8 +85,8 @@ abstract class SemanticRewriteSuite(
     }
 
     val fixed = fix(diffTest.wrapped(), diffTest.config)
+    logger.elem(diffTest.unwrap(fixed))
     val obtained = parse(diffTest.unwrap(fixed))
-    logger.elem(obtained)
     val expected = parse(expectedStr)
     try {
       typeChecks(diffTest.wrapped(fixed))
