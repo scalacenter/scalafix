@@ -2,17 +2,16 @@ package scalafix
 package rewrite
 
 import scala.meta._
-import patch.TreePatch.AddGlobalImport
 
 /** Rewrite Xml Literal to Xml Interpolator
   *
   * e.g.
   * {{{
   *   // before:
-  *   <div>{ "Hello }</div>
+  *   <div>{ "Hello" }</div>
   *
   *   // after:
-  *   xml"<div>${ "Hello }</div>"
+  *   xml"<div>${ "Hello" }</div>"
   * }}}
   */
 case object RemoveXmlLiterals extends Rewrite {
@@ -55,6 +54,18 @@ case object RemoveXmlLiterals extends Rewrite {
         }
       }
 
+      /** Substitute {{ by { */
+      def patchEscapedBraces(tok: Token.Xml.Part) = {
+        ctx.reporter.warn(
+          """Single opening braces don't need be escaped with {{ inside the xml interpolator,
+            |unlike xml literals. For example <x>{{</x> is identical to xml"<x>{</x>".
+            |This Rewrite will replace all occurrences of {{. Make sure this is intended.
+          """.stripMargin,
+          tok.pos
+        )
+        ctx.replaceToken(tok, tok.value.replaceAllLiterally("{{", "{"))
+      }
+
       removeSplices(xml.tokens).collect {
         case tok @ Token.Xml.Start() =>
           val toAdd =
@@ -72,34 +83,38 @@ case object RemoveXmlLiterals extends Rewrite {
           ctx.addLeft(tok, "$")
 
         case tok @ Token.Xml.Part(part) =>
+          var patch = Patch.empty
           if (part.contains('$'))
-            ctx.replaceToken(tok, part.replaceAllLiterally("$", "$$"))
-          else Patch.empty
+            patch += ctx.replaceToken(tok, part.replaceAllLiterally("$", "$$"))
+          if (part.contains("{{"))
+            patch += patchEscapedBraces(tok)
+          patch
 
       }.asPatch
     }
 
-    /** Emit warning on `{{` */
-    def warnOnDoubledBrace(xml: Tree) = xml.tokens.foreach {
-      case tok @ Token.Xml.Part(part) if part.contains("{{") =>
-        val offset = part.indexOf("{{")
-        val pos =
-          Position.Range(tok.input, tok.start + offset, tok.start + offset + 2)
-        ctx.reporter.warn(
-          "Single opening braces within XML text don't need to be doubled",
-          pos)
-      case _ =>
+    /** add `import scala.xml.quote._` */
+    def importXmlQuote = {
+      val nextToken = {
+        def loop(tree: Tree): Token = tree match {
+          case Source(stat :: _) => loop(stat)
+          case Pkg(_, stat :: _) => loop(stat)
+          case els => els.tokens.head
+        }
+        loop(ctx.tree)
+      }
+
+      ctx.addLeft(nextToken, "import scala.xml.quote._\n")
     }
 
     val patch = ctx.tree.collect {
       case xml @ Xml(parts) =>
-        warnOnDoubledBrace(xml)
-        val tripleQuote = isMultiLine(xml) || parts.exists(
+        val tripleQuoted = isMultiLine(xml) || parts.exists(
           containsEscapeSequence)
-        patchXml(xml, tripleQuote)
+        patchXml(xml, tripleQuoted)
     }.asPatch
 
-    if (patch.nonEmpty) patch + AddGlobalImport(importer"scala.xml.quote._")
+    if (patch.nonEmpty) patch + importXmlQuote
     else patch
   }
 }

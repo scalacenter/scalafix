@@ -228,6 +228,7 @@ lazy val tests = project
         "; tests/it:testQuick" // hack to workaround cyclic dependencies in test.
     )(state.value),
     parallelExecution in Test := true,
+    // TODO: Remove once scala-xml-quote is merged into scala-xml
     resolvers += Resolver.bintrayRepo("allanrenucci", "maven"),
     libraryDependencies ++= Seq(
       scalahost % Test,

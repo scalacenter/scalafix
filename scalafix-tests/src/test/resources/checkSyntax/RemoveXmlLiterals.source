@@ -101,7 +101,7 @@ object A {
   xml"<div>$$</div>"
 }
 
-<<< SKIP protect curly brace
+<<< protect curly brace
 object A {
   <div>{{</div>
 }
@@ -109,4 +109,14 @@ object A {
 import scala.xml.quote._
 object A {
   xml"<div>{</div>"
+}
+
+<<< SKIP protect curly brace 2
+object A {
+  <div b="{{"/>
+}
+>>>
+import scala.xml.quote._
+object A {
+  xml"""<div b="{{"/>"""
 }
