@@ -1,0 +1,10 @@
+rewrites = "scala:banana.rewrite.FqnRewrite3"
+
+<<< patch empty tokens
+object A {
+  s"${}${}"
+}
+>>>
+object A {
+  s"${}a${}a"
+}
