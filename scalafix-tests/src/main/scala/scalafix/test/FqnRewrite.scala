@@ -27,10 +27,12 @@ object LambdaRewrites {
 
 }
 
-case object FqnRewrite3 extends Rewrite {
+case object PatchTokenWithEmptyRange extends Rewrite {
   override def rewrite(ctx: RewriteCtx): Patch = {
     ctx.tokens.collect {
       case tok @ Token.Interpolation.SpliceEnd() =>
+        ctx.addRight(tok, "a")
+      case tok @ Token.Xml.SpliceEnd() =>
         ctx.addRight(tok, "a")
     }
   }.asPatch
