@@ -134,14 +134,15 @@ object Patch {
   }
 
   private def syntaxApply(ctx: RewriteCtx, patches: Seq[TokenPatch]): String = {
-    val patchMap: Map[(Int, Int), String] = patches
-      .groupBy(_.tok.posTuple)
+    val patchMap = patches
+      .groupBy(_.tok.hash)
       .mapValues(_.reduce(merge).newTok)
-    ctx.tokens.toIterator
-      .map(x => patchMap.getOrElse(x.posTuple, x.syntax))
-      .mkString
 
+    ctx.tokens.toIterator
+      .map(tok => patchMap.getOrElse(tok.hash, tok.syntax))
+      .mkString
   }
+
   private def semanticApply(patches: Seq[Patch])(implicit ctx: RewriteCtx,
                                                  mirror: Mirror): String = {
     val ast = ctx.tree

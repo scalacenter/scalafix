@@ -1,0 +1,12 @@
+rewrites = "scala:banana.rewrite.PatchTokenWithEmptyRange"
+
+<<< patch empty tokens
+object A {
+  s"${1}${2}"
+  <a>{1}{2}</a>
+}
+>>>
+object A {
+  s"${1}a${2}a"
+  <a>{1}a{2}a</a>
+}

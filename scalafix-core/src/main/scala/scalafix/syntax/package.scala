@@ -70,7 +70,14 @@ package object syntax {
   }
 
   implicit class XtensionToken(token: Token) {
-    def posTuple: (Int, Int) = token.start -> token.end
+    // copy pasted from:
+    // https://github.com/scalameta/scalafmt/blob/ba319e0aaee6d4e1b30098ad57940c67910c33e9/scalafmt-core/shared/src/main/scala/org/scalafmt/util/TokenOps.scala
+    private[scalafix] def hash: Long = {
+      val longHash: Long =
+        (token.productPrefix.hashCode.toLong << (62 - 8)) |
+          (token.start.toLong << (62 - (8 + 28))) | token.end
+      longHash
+    }
   }
 
   implicit class XtensionCompleted[T](completed: Completed[T]) {
