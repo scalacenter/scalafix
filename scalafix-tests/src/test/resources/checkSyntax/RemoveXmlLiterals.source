@@ -121,7 +121,7 @@ object A {
   xml"""<div b="{{"/>"""
 }
 
-<<< SKIP multiple splices (enable when scala-xml-quote is fixed: exception during macro expansion)
+<<< multiple splices
 object A {
   <a>{1}{2}</a>
 }
