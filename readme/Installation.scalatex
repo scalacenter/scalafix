@@ -69,7 +69,7 @@
 
     @hl.scala
       // coursier
-      coursier bootstrap ch.epfl.scala:scalafix-fatcli_@(V.scalaVersion):@(V.stable) -f --main scalafix.cli.Cli -o scalafix
+      coursier bootstrap ch.epfl.scala:scalafix-cli_@(V.scalaVersion):@(V.stable) -f --main scalafix.cli.Cli -o scalafix
       ./scalafix --help
 
       // homebrew
@@ -81,7 +81,7 @@
       ./scalafix --help
 
     @p
-      The @code{fatcli} module depends on the @code{scalahost-nsc} compiler plugin
+      The @code{cli} module depends on the @code{scalahost-nsc} compiler plugin
       fatjar, making it unnecessary to pass in the @code{--scalahost-nsc-plugin-path}
       flag.
 
@@ -105,8 +105,8 @@
        // sbt
        @bintrayRepo // necessary to resolve pre-release
        libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@V.nightly" cross CrossVersion.full
-       libraryDependencies += "ch.epfl.scala" % "scalafix-fatcli" % "@V.nightly" cross CrossVersion.full
+       libraryDependencies += "ch.epfl.scala" % "scalafix-cli" % "@V.nightly" cross CrossVersion.full
        libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % "@V.nightly" % Test cross CrossVersion.full
        // cli
-       coursier bootstrap ch.epfl.scala:scalafix-fatcli_@(V.scalaVersion):@(V.nightly) -r bintray:scalameta/maven -f --main scalafix.cli.Cli -o scalafix
+       coursier bootstrap ch.epfl.scala:scalafix-cli_@(V.scalaVersion):@(V.nightly) -r bintray:scalameta/maven -f --main scalafix.cli.Cli -o scalafix
 
