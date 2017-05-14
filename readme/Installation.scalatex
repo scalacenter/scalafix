@@ -81,11 +81,6 @@
       ./scalafix --help
 
     @p
-      The @code{cli} module depends on the @code{scalahost-nsc} compiler plugin
-      fatjar, making it unnecessary to pass in the @code{--scalahost-nsc-plugin-path}
-      flag.
-
-    @p
       Once the scalafix cli is installed, consult the help page for further usage
       instructions
 
