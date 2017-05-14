@@ -101,22 +101,15 @@ object tup {
 
 <<< auto-tupling with class constructors
 object tup {
-  class Foo(t: (Int, String))(s: (Boolean, List[Int]))
+  case class Foo(t: (Int, String))(s: (Boolean, List[Int]))
   new Foo(1, "foo")(true, Nil)
+  Foo(1, "foo")(true, Nil) // blocked by https://github.com/scalameta/scalameta/issues/846
+  Foo.apply(1, "foo")(true, Nil)
 }
 >>>
 object tup {
-  class Foo(t: (Int, String))(s: (Boolean, List[Int]))
+  case class Foo(t: (Int, String))(s: (Boolean, List[Int]))
   new Foo((1, "foo"))((true, Nil))
-}
-
-<<< auto-tupling with case class constructors
-object tup {
-  case class Foo(t: (Int, String))(s: (Boolean, List[Int]))
-  Foo(1, "foo")(true, Nil)
-}
->>>
-object tup {
-  case class Foo(t: (Int, String))(s: (Boolean, List[Int]))
-  Foo((1, "foo"))((true, Nil))
+  Foo(1, "foo")(true, Nil) // blocked by https://github.com/scalameta/scalameta/issues/846
+  Foo.apply((1, "foo"))((true, Nil))
 }

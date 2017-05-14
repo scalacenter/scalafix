@@ -21,9 +21,7 @@ case class NoAutoTupling(mirror: Mirror) extends SemanticRewrite(mirror) {
     val fixed = MutableSet.empty[Seq[Term.Arg]]
     ctx.tree.collect {
       case q"${fun: Term.Ref}(...$argss)" if argss.nonEmpty =>
-        mirror
-          .symbol(fun)
-          .toOption
+        fun.symbolOpt
           .collect {
             case Symbol.Global(_, Signature.Method(_, jvmSignature)) =>
               val argListSignatures =

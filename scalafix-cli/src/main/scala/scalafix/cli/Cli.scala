@@ -208,7 +208,8 @@ case class ScalafixOptions(
                 }
             if (files.isEmpty) throw Cli.EmptySourcepath // need to fix offline.Mirror :v
             val mirror =
-              Mirror(cp, files.mkString(File.pathSeparator))
+              Mirror(Classpath(cp),
+                     Sourcepath(files.mkString(File.pathSeparator)))
             mirror.sources // ugh. need to trigger lazy to validate that all files parse
             mirror
           }

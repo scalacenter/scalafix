@@ -3,8 +3,7 @@ package testkit
 
 import scala.collection.immutable.Seq
 import scala.meta._
-import scala.meta.internal.scalahost.mirrors.OnlineMirror
-import scala.meta.internal.semantic.mirrors.CommonMirror
+import scala.meta.internal.semantic.DatabaseOps
 import scala.reflect.io.AbstractFile
 import scala.tools.cmd.CommandLineParser
 import scala.tools.nsc.CompilerCommand
@@ -25,17 +24,6 @@ import java.net.URLClassLoader
 import metaconfig.ConfError
 import org.scalatest.FunSuite
 
-// TODO(olafur) contribute upstream to scalameta-testkit
-class TestkitMirror(db: AttributedSource,
-                    source: Source,
-                    classPath: String,
-                    sourcePath: String)
-    extends CommonMirror {
-  override lazy val sources: Seq[Source] = Seq(source)
-  override lazy val database: Database = Database(Seq(db))
-  override def dialect: Dialect = dialects.Scala211
-}
-
 /**
   *
   * @param classpath the classpath to use to compile rewrite unit tests.
@@ -50,7 +38,7 @@ abstract class SemanticRewriteSuite(
     scalahostPluginPath: File = SemanticRewriteSuite.scalahostJarPath
 ) extends FunSuite
     with DiffAssertions { self =>
-  private val g: Global = {
+  val g: Global = {
     def fail(msg: String) =
       sys.error(s"ReflectToMeta initialization failed: $msg")
     // TODO(olafur) hack, find a way to pass this path via buildinfo
@@ -75,9 +63,9 @@ abstract class SemanticRewriteSuite(
     g
   }
 
-  implicit val mirror: OnlineMirror = new OnlineMirror(g)
-
-  import mirror._
+  lazy val databaseOps: DatabaseOps { val global: self.g.type } =
+    new DatabaseOps { override val global: self.g.type = self.g }
+  import databaseOps._
 
   def runDiffTest(dt: DiffTest): Unit = {
     if (dt.skip) {
@@ -127,8 +115,18 @@ abstract class SemanticRewriteSuite(
     rewrite.apply(ctx)
   }
 
-  private def computeMirror(code: String): Mirror = {
-    val javaFile = File.createTempFile("paradise", ".scala")
+  def withCwd[T](f: File => T): T = {
+    val cwd = sys.props("user.dir")
+    try {
+      val javaFile = File.createTempFile("paradise", ".scala")
+      sys.props("user.dir") = javaFile.getParentFile.getAbsolutePath
+      f(javaFile)
+    } finally {
+      sys.props("user.dir") = cwd
+    }
+  }
+
+  private def computeMirror(code: String): Mirror = withCwd { javaFile =>
     val writer = new PrintWriter(javaFile)
     try writer.write(code)
     finally writer.close()
@@ -170,13 +168,13 @@ abstract class SemanticRewriteSuite(
     })
     g.phase = run.phaseNamed("patmat")
     g.globalPhase = run.phaseNamed("patmat")
-    val source = javaFile.parse[Source].get
-    new TestkitMirror(
-      unit.asInstanceOf[mirror.g.CompilationUnit].toAttributedSource,
-      source,
-      classpath,
-      "foo/src"
-    )
+    new Mirror {
+      override def database =
+        Database(
+          List(
+            unit.source.toInput -> unit.toAttributes
+          ))
+    }
   }
 
   private def checkMismatchesModuloDesugarings(obtained: m.Tree,
