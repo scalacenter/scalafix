@@ -10,9 +10,7 @@ case class Xor2Either(mirror: Mirror) extends SemanticRewrite(mirror) {
   override def rewrite(ctx: RewriteCtx): Patch = {
     val importImplicits = ctx.tree.collectFirst {
       case t: Term.Name
-          if mirror
-            .symbol(t)
-            .toOption
+          if t.symbolOpt
             .exists(_.normalized == Symbol("_root_.cats.data.Xor.map.")) =>
         ctx.addGlobalImport(importer"cats.implicits._")
     }

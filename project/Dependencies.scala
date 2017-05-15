@@ -2,7 +2,7 @@ import sbt._
 /* scalafmt: { maxColumn = 120 }*/
 
 object Dependencies {
-  val scalametaV = "1.8.0-604-2128ff7b"
+  val scalametaV = "1.8.0-650-890aeec1"
   val paradiseV = "3.0.0-308-ec15a2f8"
   val metaconfigV = "0.3.2"
   var testClasspath: String = "empty"

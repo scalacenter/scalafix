@@ -9,6 +9,7 @@ import scalafix.patch.TreePatch.AddGlobalImport
 import scalafix.patch.TreePatch.RemoveGlobalImport
 import scalafix.rewrite.RewriteCtx
 import scalafix.syntax._
+import scalafix.syntax.XtensionRefSymbolOpt
 import scalafix.util.CanonicalImport
 
 private[this] class OrganizeImports[T] private (implicit ctx: RewriteCtx,
@@ -25,7 +26,7 @@ private[this] class OrganizeImports[T] private (implicit ctx: RewriteCtx,
 
   def fullyQualifiedName(ref: Ref): Option[Ref] =
     for {
-      sym <- mirror.symbol(ref).toOption
+      sym <- ref.symbolOpt
       name <- sym.to[Ref].toOption
       strippedRoot = name.transform {
         case q"_root_.$nme" => nme

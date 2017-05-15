@@ -194,28 +194,13 @@ case class ScalafixOptions(
       case (Some(cp), Some(sp)) =>
         val tryMirror = for {
           mirror <- Try {
-            // TODO(olafur) offline.Mirror needs to document what can go wrong in the types.
-            // see https://github.com/scalameta/scalameta/issues/814
-            val files =
-              sp.split(File.pathSeparator)
-                .flatMap(FileOps.listFiles)
-                .filter { x =>
-                  // need to filter here because of https://github.com/scalameta/scalameta/issues/814
-                  new File(x).parse[Source] match {
-                    case parsers.Parsed.Success(_) => true
-                    case _ => false
-                  }
-                }
-            if (files.isEmpty) throw Cli.EmptySourcepath // need to fix offline.Mirror :v
-            val mirror =
-              Mirror(cp, files.mkString(File.pathSeparator))
+            val mirror = Mirror(Classpath(cp), Sourcepath(sp))
             mirror.sources // ugh. need to trigger lazy to validate that all files parse
             mirror
           }
         } yield Option(mirror)
         tryMirror match {
           case Success(x) => Ok(x)
-          case scala.util.Failure(Cli.EmptySourcepath) => Ok(None)
           case scala.util.Failure(e) => ConfError.msg(e.toString).notOk
         }
       case (None, None) =>
@@ -252,7 +237,6 @@ object Cli {
   val default = ScalafixOptions()
   // Run this at the end of the world, calls sys.exit.
 
-  case object EmptySourcepath extends Exception(s"No sources parse")
   case class NonZeroExitCode(n: Int)
       extends Exception(s"Expected exit code 0. Got exit code $n")
   def main(args: Array[String]): Unit = {

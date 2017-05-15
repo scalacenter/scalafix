@@ -10,16 +10,12 @@ import scalafix.rewrite.RewriteCtx
 import scalafix.patch.TreePatch.AddGlobalImport
 import scalafix.patch.TreePatch.Rename
 
+import org.scalameta.logger
+
 private[this] class Replacer(implicit ctx: RewriteCtx, mirror: Mirror) {
   object `:withSymbol:` {
     def unapply(ref: Ref): Option[(Ref, Symbol)] =
-      Try(
-        mirror.symbol(ref) match {
-          case semantic.Completed.Success(symbol) =>
-            Some(ref -> symbol.normalized)
-          case _ => None
-        }
-      ).toOption.flatten
+      ref.symbolOpt.map(sym => ref -> sym.normalized)
   }
 
   def toTokenPatches(ast: Tree, replacements: Seq[Replace]): Seq[Patch] = {
@@ -29,17 +25,17 @@ private[this] class Replacer(implicit ctx: RewriteCtx, mirror: Mirror) {
       override def apply(tree: Tree): Unit = {
         tree match {
           case (ref: Ref) `:withSymbol:` symbol =>
-            builder ++=
-              replacements
-                .find { x =>
-                  x.from == symbol
-                }
-                .toList
-                .flatMap(
-                  replace =>
-                    ctx.addLeft(ref.tokens.head, replace.to.syntax) +:
-                      (ref.tokens.map(TokenPatch.Remove.apply) ++
-                      replace.additionalImports.map(x => AddGlobalImport(x))))
+            val patches = replacements
+              .find { x =>
+                x.from == symbol
+              }
+              .toList
+              .flatMap { replace =>
+                ctx.addLeft(ref.tokens.head, replace.to.syntax) +:
+                  (ref.tokens.map(TokenPatch.Remove.apply) ++
+                  replace.additionalImports.map(x => AddGlobalImport(x)))
+              }
+            builder ++= patches
           case imp: Import => // Do nothing
           case _ => super.apply(tree)
         }
@@ -84,8 +80,7 @@ object Renamer {
         if (renameSymbols.isEmpty) None
         else
           for {
-            // TODO(olafur) avoid Try() once don't require `Mirror` in Replacer.
-            symbol <- mirror.symbol(arg).toOption
+            symbol <- arg.symbolOpt
             rename <- renameSymbols.find(_.matches(symbol))
             tok <- arg.tokens.headOption
           } yield tok -> rename.to

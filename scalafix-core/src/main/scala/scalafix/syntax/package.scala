@@ -4,7 +4,6 @@ import scala.collection.IterableLike
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable
 import scala.meta._
-import scala.meta.semantic.Completed
 import scala.meta.semantic.Signature
 import scala.meta.semantic.Symbol
 import scala.meta.tokens.Token
@@ -60,6 +59,10 @@ package object syntax {
     }
   }
 
+  implicit class XtensionRefSymbolOpt(ref: Ref)(implicit mirror: Mirror) {
+    def symbolOpt: Option[Symbol] = Try(ref.symbol).toOption
+  }
+
   implicit class XtensionTermRef(ref: Term.Ref) {
     def toTypeRef: Type.Ref = ref match {
       case Term.Name(name) => Type.Name(name)
@@ -80,18 +83,6 @@ package object syntax {
     }
   }
 
-  implicit class XtensionCompleted[T](completed: Completed[T]) {
-    // TODO(olafur) contribute these upstream
-    def toOption: Option[T] = completed match {
-      case Completed.Success(e) => Some(e)
-      case _ => None
-    }
-    def toEither: Either[Exception, T] = completed match {
-      case Completed.Success(e) => Right(e)
-      case Completed.Error(e) => Left(e)
-    }
-    def toTry: Try[T] = Try(completed.get)
-  }
   implicit class XtensionSymbol(symbol: Symbol) {
 
     /** Returns simplified version of this Symbol.
