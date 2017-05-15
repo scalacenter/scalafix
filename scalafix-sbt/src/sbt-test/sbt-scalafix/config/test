@@ -1,5 +1,0 @@
-# compile should not affect scalafix
-> compile
-> scalafix
-> check
-

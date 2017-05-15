@@ -57,7 +57,7 @@ object ScalafixPlugin extends AutoPlugin {
         .map(x => "--config" :: x.getAbsolutePath :: Nil)
         .getOrElse(Nil)
     val log = streams.value.log
-    val sourcepath = scalahostSourcepath.value.flatten
+    val sourcepath = List(baseDirectory.in(ThisBuild).value)
     val classpath = scalahostClasspath.value.flatMap(_.map(_.data))
     def format(files: Seq[File]): String =
       files.map(_.getAbsolutePath).mkString(File.pathSeparator)
