@@ -7,7 +7,8 @@ object ScalafixRewrites {
     ProcedureSyntax,
     VolatileLazyVal,
     RemoveXmlLiterals,
-    ExplicitUnit
+    ExplicitUnit,
+    NoValInForComprehension
   )
   def semantic(mirror: Mirror): List[Rewrite] = List(
     ScalaJsRewrites.DemandJSGlobal(mirror),
