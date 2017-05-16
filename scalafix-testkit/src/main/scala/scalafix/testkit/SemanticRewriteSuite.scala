@@ -22,6 +22,7 @@ import java.net.URL
 import java.net.URLClassLoader
 
 import metaconfig.ConfError
+import org.scalameta.logger
 import org.scalatest.FunSuite
 
 /**
@@ -84,11 +85,11 @@ abstract class SemanticRewriteSuite(
     }
 
     val fixed = fix(diffTest.wrapped(), diffTest.config)
+    logger.elem(diffTest.unwrap(fixed))
     val obtained = parse(diffTest.unwrap(fixed))
     val expected = parse(expectedStr)
     try {
       typeChecks(diffTest.wrapped(fixed))
-      checkMismatchesModuloDesugarings(obtained, expected)
       if (diffTest.checkSyntax) {
         assertNoDiff(obtained, expected)
       } else {
