@@ -3,7 +3,7 @@ package rewrite
 
 import scala.meta._
 
-/** Rewrite Xml Literal to Xml Interpolator
+/** Rewrite Xml Literal to Xml Interpolator.
   *
   * e.g.
   * {{{
@@ -13,20 +13,16 @@ import scala.meta._
   *   // after:
   *   xml"<div>${ "Hello" }</div>"
   * }}}
+  *
+  * This only rewrites xml literals in expression position:
+  * Xml patterns will not be supported by the xml interpolator,
+  * until we know how to rewrite `case <a>{ns @ _*}</a>`.
   */
 case object RemoveXmlLiterals extends Rewrite {
 
   override def rewrite(ctx: RewriteCtx): Patch = {
-    object Xml {
-      def unapply(tree: Tree): Option[Seq[Lit]] =
-        tree match {
-          case Pat.Xml(parts, _) => Some(parts)
-          case Term.Xml(parts, _) => Some(parts)
-          case _ => None
-        }
-    }
 
-    def isMultiLine(xml: Tree) =
+    def isMultiLine(xml: Term.Xml) =
       xml.pos.start.line != xml.pos.end.line
 
     /** Contains '"' or '\' */
@@ -36,7 +32,7 @@ case object RemoveXmlLiterals extends Rewrite {
     }
 
     /** Rewrite xml literal to interpolator */
-    def patchXml(xml: Tree, tripleQuoted: Boolean) = {
+    def patchXml(xml: Term.Xml, tripleQuoted: Boolean) = {
 
       // We don't want to patch inner xml literals multiple times
       def removeSplices(tokens: Tokens) = {
@@ -57,10 +53,9 @@ case object RemoveXmlLiterals extends Rewrite {
       /** Substitute {{ by { */
       def patchEscapedBraces(tok: Token.Xml.Part) = {
         ctx.reporter.warn(
-          """Single opening braces don't need be escaped with {{ inside the xml interpolator,
-            |unlike xml literals. For example <x>{{</x> is identical to xml"<x>{</x>".
-            |This Rewrite will replace all occurrences of {{. Make sure this is intended.
-          """.stripMargin,
+          "Single opening braces don't need be escaped with {{ inside the xml interpolator,"
+            + " unlike xml literals. For example <x>{{</x> is identical to xml\"<x>{</x>\"."
+            + " This Rewrite will replace all occurrences of {{. Make sure this is intended.",
           tok.pos
         )
         ctx.replaceToken(tok, tok.value.replaceAllLiterally("{{", "{"))
@@ -108,7 +103,7 @@ case object RemoveXmlLiterals extends Rewrite {
     }
 
     val patch = ctx.tree.collect {
-      case xml @ Xml(parts) =>
+      case xml @ Term.Xml(parts, _) =>
         val tripleQuoted = isMultiLine(xml) || parts.exists(
           containsEscapeSequence)
         patchXml(xml, tripleQuoted)
