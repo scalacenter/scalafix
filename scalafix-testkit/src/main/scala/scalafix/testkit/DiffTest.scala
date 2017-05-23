@@ -104,8 +104,4 @@ object DiffTest {
     else testsFiles
   }
 
-  private def bySpecThenName(left: DiffTest, right: DiffTest): Boolean = {
-    import scala.math.Ordered.orderingToOrdered
-    (left.spec, left.name).compare(right.spec -> right.name) < 0
-  }
 }
