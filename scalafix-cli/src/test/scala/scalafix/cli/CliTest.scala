@@ -124,20 +124,19 @@ class CliTest extends FunSuite with DiffAssertions {
     assert(Cli.parse(List("--classpath", "foo")).isLeft)
     // NOTE: This assertion should fail by default, but scalafix-cli % Test
     // depends on testkit, which has scalahost-nsc as a dependency.
-    assert(
-      Cli
-        .parse(List("--sourcepath", "foo.scala", "--classpath", "bar"))
-        .isRight)
-    assert(
-      Cli
-        .parse(
-          List(
-            "--sourcepath",
-            "foo.scala",
-            "--classpath",
-            "bar"
-          ))
-        .isRight)
+    import scalafix.syntax._
+    Cli
+      .parse(List("--sourcepath", "/foo.scala", "--classpath", "/bar"))
+      .get
+    Cli
+      .parse(
+        List(
+          "--sourcepath",
+          "/foo.scala",
+          "--classpath",
+          "/bar"
+        ))
+      .get
   }
 
   test("error returns failure exit code") {
