@@ -1,9 +1,11 @@
 package scalafix
 package rewrite
 
+import scalafix.syntax._
 import scala.meta._
 import scalafix.util.Whitespace
 import scala.collection.immutable.Seq
+import org.scalameta.logger
 
 case class ExplicitImplicit(mirror: Mirror) extends SemanticRewrite(mirror) {
   // Don't explicitly annotate vals when the right-hand body is a single call
@@ -14,6 +16,31 @@ case class ExplicitImplicit(mirror: Mirror) extends SemanticRewrite(mirror) {
     case Term.ApplyType(Term.Name("implicitly"), _) => true
     case _ => false
   }
+
+  def defnName(defn: Defn): Option[Name] = Option(defn).collect {
+    case Defn.Val(_, Seq(Pat.Var.Term(name)), _, _) => name
+    case Defn.Def(_, name, _, _, _, _) => name
+  }
+
+  def parseDenotationInfo(denot: Denotation): Option[Type] = {
+    val base =
+      if (denot.isVal) denot.info
+      else if (denot.isDef) denot.info.replaceFirst(".*\\)", "")
+      else {
+        throw new UnsupportedOperationException(
+          s"Can't parse type for denotation $denot, denot.info=${denot.info}")
+      }
+    base.parse[Type].toOption
+  }
+
+  def defnType(defn: Defn): Option[Type] =
+    for {
+      name <- defnName(defn)
+      symbol <- name.symbolOpt
+      denot <- mirror.database.denotations.get(symbol)
+      typ <- parseDenotationInfo(denot)
+    } yield typ
+
   override def rewrite(ctx: RewriteCtx): Patch = {
     import scala.meta._
     import ctx._
@@ -27,12 +54,8 @@ case class ExplicitImplicit(mirror: Mirror) extends SemanticRewrite(mirror) {
         lhsTokens = slice(start, end)
         replace <- lhsTokens.reverseIterator.find(x =>
           !x.is[Token.Equals] && !x.is[Whitespace])
-        typ <- {
-//          mirror.typeSignature(defn)
-          // TODO(olafur) use denotations when the get merged into Mirror.
-          Option.empty[Type]
-        }
-      } yield ctx.addRight(replace, s": ${typ.syntax}")
+        typ <- defnType(defn)
+      } yield ctx.addRight(replace, s": ${typ.treeSyntax}")
     }.to[Seq]
     tree
       .collect {
@@ -46,8 +69,5 @@ case class ExplicitImplicit(mirror: Mirror) extends SemanticRewrite(mirror) {
       }
       .flatten
       .asPatch
-    throw new UnsupportedOperationException(
-      "ExplicitImplicit is temporarily unsupported while scala.meta.Mirror doesn't support denotations. " +
-        "Track https://github.com/scalameta/scalameta/pull/808 to see when denotations get added to Mirror.")
   }
 }

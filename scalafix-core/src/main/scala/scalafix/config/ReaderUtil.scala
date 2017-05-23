@@ -12,9 +12,12 @@ object ReaderUtil {
     val m = options.map(x => x.source -> x.value).toMap
     fromMap(m)
   }
-
   // Poor mans coproduct reader
-  def fromMap[T: ClassTag](m: Map[String, T]): ConfDecoder[T] =
+  def fromMap[T: ClassTag](
+      m: Map[String, T],
+      additionalMessage: PartialFunction[String, String] =
+        PartialFunction.empty
+  ): ConfDecoder[T] =
     ConfDecoder.instance[T] {
       case Conf.Str(x) =>
         m.get(x) match {
@@ -22,7 +25,9 @@ object ReaderUtil {
             Configured.Ok(y)
           case None =>
             val available = m.keys.mkString(", ")
-            val msg = s"Unknown input '$x'. Expected one of: $available"
+            val extraMsg = additionalMessage.applyOrElse(x, (_: String) => "")
+            val msg =
+              s"Unknown input '$x'. Expected one of: $available. $extraMsg"
             Configured.NotOk(ConfError.msg(msg))
         }
     }

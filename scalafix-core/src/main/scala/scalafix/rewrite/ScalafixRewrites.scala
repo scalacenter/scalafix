@@ -11,7 +11,7 @@ object ScalafixRewrites {
   )
   def semantic(mirror: Mirror): List[Rewrite] = List(
     ScalaJsRewrites.DemandJSGlobal(mirror),
-//    ExplicitImplicit(mirror), // Unsupported for now
+    ExplicitImplicit(mirror),
     Xor2Either(mirror),
     NoAutoTupling(mirror)
   )
@@ -23,4 +23,5 @@ object ScalafixRewrites {
     all(mirror).map(x => x.name -> x).toMap
   lazy val syntaxName2rewrite: Map[String, Rewrite] =
     syntax.map(x => x.name -> x).toMap
+  lazy val semanticNames: List[String] = semantic(Database(Nil)).map(_.name)
 }

@@ -1,4 +1,4 @@
-rewrites = [NoAutoTupling]
+ONLY rewrites = [NoAutoTupling]
 <<< add explicit tuple
 object tup {
   def fooo(t: (Int, Int)): Int = ???

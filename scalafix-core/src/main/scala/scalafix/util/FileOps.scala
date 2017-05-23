@@ -5,6 +5,7 @@ import java.io.File
 import java.io.FileReader
 import java.io.PrintWriter
 import java.net.URL
+import scala.meta.io.AbsolutePath
 
 object FileOps {
 
@@ -64,6 +65,10 @@ object FileOps {
 
   def getFile(path: String*): File = {
     new File(path.mkString(File.separator))
+  }
+
+  def writeFile(file: AbsolutePath, content: String): Unit = {
+    writeFile(file.toString(), content)
   }
 
   def writeFile(file: File, content: String): Unit = {

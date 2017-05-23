@@ -4,7 +4,8 @@ package rewrite
 import scala.meta._
 import scalafix.syntax._
 import scala.meta.semantic.Signature
-import scala.collection.mutable.{Set => MutableSet}
+import scala.collection.mutable
+import org.scalameta.logger
 
 case class NoAutoTupling(mirror: Mirror) extends SemanticRewrite(mirror) {
 
@@ -18,7 +19,7 @@ case class NoAutoTupling(mirror: Mirror) extends SemanticRewrite(mirror) {
   override def rewrite(ctx: RewriteCtx): Patch = {
     // "hack" to avoid fixing an argument list more than once due
     // to recursive matching of multiple parameters lists.
-    val fixed = MutableSet.empty[Seq[Term.Arg]]
+    val fixed = mutable.Set.empty[Seq[Term.Arg]]
     ctx.tree.collect {
       case q"${fun: Term.Ref}(...$argss)" if argss.nonEmpty =>
         fun.symbolOpt

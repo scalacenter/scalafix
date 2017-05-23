@@ -87,12 +87,9 @@ abstract class SemanticRewriteSuite(
     val obtained = parse(diffTest.unwrap(fixed))
     val expected = parse(expectedStr)
     try {
+      assertNoDiff(obtained, expected)
       typeChecks(diffTest.wrapped(fixed))
-      if (diffTest.checkSyntax) {
-        assertNoDiff(obtained, expected)
-      } else {
-        checkMismatchesModuloDesugarings(obtained, expected)
-      }
+      checkMismatchesModuloDesugarings(obtained, expected)
     } catch {
       case MismatchException(details) =>
         val header = s"scala -> meta converter error\n$details"

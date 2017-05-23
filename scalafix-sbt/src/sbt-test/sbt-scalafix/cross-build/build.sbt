@@ -1,3 +1,4 @@
+updateOptions in ThisBuild := updateOptions.value.withLatestSnapshots(false)
 lazy val root = project
   .in(file("."))
   .aggregate(

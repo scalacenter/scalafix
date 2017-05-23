@@ -69,7 +69,7 @@ object DiffTest {
 
     val style: (Option[Mirror]) => (Rewrite, ScalafixConfig) = {
       mirror: Option[Mirror] =>
-        val firstLine = split.head
+        val firstLine = stripPrefix(split.head)
         val decoder = ScalafixMetaconfigReaders.scalafixConfigConfDecoder(
           ScalafixCompilerDecoder.fromMirrorOption(mirror))
         Input.String(firstLine).toConf.flatMap(decoder.read) match {

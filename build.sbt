@@ -182,6 +182,7 @@ lazy val `scalafix-sbt` = project
           "; very scalafix-sbt/scripted"
       )(state.value)
     },
+    addSbtPlugin(scalahostSbt),
     scalaVersion := scala210,
     crossScalaVersions := Seq(scala210),
     moduleName := "sbt-scalafix",
