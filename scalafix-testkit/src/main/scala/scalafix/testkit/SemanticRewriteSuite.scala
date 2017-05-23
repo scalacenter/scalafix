@@ -22,7 +22,6 @@ import java.net.URL
 import java.net.URLClassLoader
 
 import metaconfig.ConfError
-import org.scalameta.logger
 import org.scalatest.FunSuite
 
 /**
@@ -85,7 +84,6 @@ abstract class SemanticRewriteSuite(
     }
 
     val fixed = fix(diffTest.wrapped(), diffTest.config)
-    logger.elem(diffTest.unwrap(fixed))
     val obtained = parse(diffTest.unwrap(fixed))
     val expected = parse(expectedStr)
     try {
@@ -117,14 +115,9 @@ abstract class SemanticRewriteSuite(
   }
 
   def withCwd[T](f: File => T): T = {
-    val cwd = sys.props("user.dir")
-    try {
-      val javaFile = File.createTempFile("paradise", ".scala")
-      sys.props("user.dir") = javaFile.getParentFile.getAbsolutePath
-      f(javaFile)
-    } finally {
-      sys.props("user.dir") = cwd
-    }
+    val javaFile = File.createTempFile("paradise", ".scala")
+    databaseOps.config.setSourceroot(AbsolutePath(javaFile.getParentFile))
+    f(javaFile)
   }
 
   private def computeMirror(code: String): Mirror = withCwd { javaFile =>
