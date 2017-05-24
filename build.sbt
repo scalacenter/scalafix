@@ -84,6 +84,12 @@ lazy val allSettings = List(
   version := sys.props.getOrElse("scalafix.version", version.value),
   resolvers += Resolver.bintrayRepo("scalameta", "maven"),
   resolvers += Resolver.sonatypeRepo("releases"),
+  resolvers ~= { old =>
+    if (isDroneCI) {
+      println(s"Using resolver: $epflArtifactory")
+      epflArtifactory +: old
+    } else old
+  },
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
   scalacOptions := compilerOptions,
   scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
@@ -331,5 +337,8 @@ def setId(project: Project): Project = {
   val newId = "scalafix-" + project.id
   project.copy(base = file(newId)).settings(moduleName := newId)
 }
-
 def customScalafixVersion = sys.props.get("scalafix.version")
+def isDroneCI = sys.env("CI") == "DRONE"
+def epflArtifactory =
+  MavenRepository("epfl-artifactory",
+                  "http://scala-webapps.epfl.ch:8081/artifactory/dbuild/")
