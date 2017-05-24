@@ -1,6 +1,6 @@
 pipeline:
   tests:
-    image: scalaplatform/scala:0.6
+    image: scalaplatform/scala:1.2
     pull: true
     commands:
       - git fetch --tags && git log | head -n 20
