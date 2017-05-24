@@ -44,7 +44,7 @@ class CliTest extends FunSuite with DiffAssertions {
     val RunScalafix(runner) = Cli.parse(
       Seq(
         "--debug",
-        "--config",
+        "--config-str",
         "imports.groupByPrefix=true",
         "--single-thread",
         "--files",
@@ -56,7 +56,8 @@ class CliTest extends FunSuite with DiffAssertions {
       ))
     val obtained = runner.cli
     assert(!runner.writeMode.isWriteFile)
-    assert(obtained.debug)
+    assert(runner.config.imports.groupByPrefix)
+    assert(obtained.verbose)
     assert(obtained.singleThread)
     assert(
       obtained.files == List("a.scala", "b.scala", "foo.scala", "bar.scala"))

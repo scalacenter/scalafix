@@ -34,11 +34,14 @@ case class ScalafixOptions(
     version: Boolean = false,
     @HelpMessage("If set, print out debugging inforation to stderr.")
     verbose: Boolean = false,
-    @HelpMessage(
-      "Scalafix configuration, either a file path or a hocon string")
-    @ValueDescription(".scalafix.conf OR imports.organize=false")
+    @HelpMessage("File path to a .scalafix.conf configuration file.")
+    @ValueDescription(".scalafix.conf")
     @ExtraName("c")
     config: Option[String] = None,
+    @HelpMessage("String representing scalafix configuration")
+    @ValueDescription("imports.organize=false")
+    @ExtraName("c")
+    configStr: Option[String] = None,
     @HelpMessage(
       """Absolute path passed to scalahost with -P:scalahost:sourceroot:<path>.
         |        Required for semantic rewrites
@@ -97,8 +100,6 @@ case class ScalafixOptions(
     @HelpMessage(
       "If true, run on single thread. If false (default), use all available cores")
     singleThread: Boolean = false,
-    @HelpMessage("If true, prints out debug information")
-    debug: Boolean = false,
     // NOTE: This option could be avoided by adding another entrypoint like `Cli.safeMain`
     // or SafeCli.main. However, I opted for a cli flag since that plays nicely
     // with default `run.in(Compile).toTask("--no-sys-exit").value` in sbt.

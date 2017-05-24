@@ -30,8 +30,15 @@ object Cli {
   val default = ScalafixOptions()
   // Run this at the end of the world, calls sys.exit.
 
-  case class NonZeroExitCode(exitStatus: ExitStatus)
-      extends Exception(s"Expected exit code 0. Got exit code $exitStatus")
+  class NonZeroExitCode(exitStatus: ExitStatus)
+      extends Exception(s"Got exit code $exitStatus")
+  object NonZeroExitCode {
+    def apply(exitStatus: ExitStatus): NonZeroExitCode = {
+      val err = new NonZeroExitCode(exitStatus)
+      err.setStackTrace(Array.empty)
+      err
+    }
+  }
   def runOn(options: ScalafixOptions): ExitStatus =
     runMain(parseOptions(options), options.common)
   def parseOptions(options: ScalafixOptions): CliCommand =

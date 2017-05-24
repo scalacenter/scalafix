@@ -1,7 +1,6 @@
 package scalafix
 package cli
 
-import java.io.File
 import java.io.OutputStreamWriter
 import java.net.URI
 import java.nio.file.Files
@@ -12,6 +11,7 @@ import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 import scala.collection.immutable.Seq
 import scala.meta._
+import scala.meta.internal.inputs._
 import scala.meta.internal.io.FileIO
 import scala.meta.internal.semantic.vfs
 import scala.meta.parsers.ParseException
@@ -53,6 +53,7 @@ case class CliRunner(
   def run(): ExitStatus = {
     val display = new TermDisplay(new OutputStreamWriter(System.out))
     if (inputs.length > 10) display.init()
+    if (inputs.isEmpty) common.err.println("Running scalafix on 0 files.")
     val msg = "Running scalafix..."
     display.startTask(msg, common.workingDirectoryFile)
     display.taskLength(msg, inputs.length, 0)
@@ -76,24 +77,25 @@ case class CliRunner(
   }
 
   def safeHandleInput(input: Input): ExitStatus = {
-    val path = input.path(common.workingPath)
+    def path = input.path(common.workingPath)
     try {
       val inputConfig = if (input.isSbtFile) sbtConfig else config
-      val tree = inputConfig.dialect(input).parse[Source].get
-      val ctx = RewriteCtx(tree, config)
-      val fixed = rewrite(ctx)
-      if (writeMode.isWriteFile) {
-        val outFile = replacePath(path)
-        Files.write(outFile.toNIO, fixed.getBytes(input.charset))
-      } else common.out.write(fixed.getBytes)
-      ExitStatus.Ok
+      inputConfig.dialect(input).parse[Source] match {
+        case parsers.Parsed.Error(pos, message, _) =>
+          if (wasExplicitlyPassed(path)) {
+            common.err.println(pos.formatMessage("error", message))
+          }
+          ExitStatus.ParseError
+        case parsers.Parsed.Success(tree) =>
+          val ctx = RewriteCtx(tree, config)
+          val fixed = rewrite(ctx)
+          if (writeMode.isWriteFile) {
+            val outFile = replacePath(path)
+            Files.write(outFile.toNIO, fixed.getBytes(input.charset))
+          } else common.out.write(fixed.getBytes)
+          ExitStatus.Ok
+      }
     } catch {
-      case e @ ParseException(_, _) =>
-        if (wasExplicitlyPassed(path)) {
-          // Only log if user explicitly specified that file.
-          reportError(path, e, cli)
-        }
-        ExitStatus.ParseError
       case NonFatal(e) =>
         reportError(path, e, cli)
         e match {
@@ -121,14 +123,16 @@ object CliRunner {
     val builder = new CliRunner.Builder(options)
     for {
       database <- builder.resolvedMirror
-      config <- builder.resolvedConfig
       rewrite <- builder.resolvedRewrite
       replace <- builder.resolvedPathReplace
       inputs <- builder.resolvedInputs
+      config <- builder.resolvedConfig
     } yield {
       if (options.verbose) {
         options.common.err.println(
-          s"""|Database:
+          s"""|Files to fix:
+              |$inputs
+              |Database:
               |$database
               |Config:
               |$config
@@ -153,6 +157,8 @@ object CliRunner {
   private class Builder(val cli: ScalafixOptions) {
     import cli._
 
+    implicit val workingDirectory: AbsolutePath = common.workingPath
+    // Database
     val resolvedDatabase: Configured[Database] =
       (classpath, sourcepath) match {
         case (Some(cp), sp) =>
@@ -182,7 +188,67 @@ object CliRunner {
         if (x == Cli.emptyDatabase) None else Some(x)
       }
 
-    /** Returns ScalafixConfig from .scalafix.conf, it exists and --config was not passed. */
+    // Inputs
+    val explicitPaths: Seq[Input] = cli.files.toVector.flatMap { file =>
+      val path = AbsolutePath.fromString(file)
+      if (path.isDirectory)
+        FileIO.listAllFilesRecursively(path).map(Input.File.apply)
+      else List(Input.File(path))
+    }
+    val resolvedSourceroot: Configured[AbsolutePath] = sourceroot match {
+      case None => ConfError.msg("--sourceroot is required").notOk
+      case Some(path) => Ok(AbsolutePath.fromString(path))
+    }
+
+    def isInputFile(input: Input): Boolean = input match {
+      case _: Input.File | _: Input.LabeledString => true
+      case _ => false
+    }
+
+    val mirrorPaths: Configured[Seq[Input]] =
+      resolvedDatabase.flatMap { database =>
+        val nonInputFiles = database.entries.filter(x => !isInputFile(x._1))
+        if (nonInputFiles.isEmpty) Ok(database.entries.map(_._1))
+        else {
+          ConfError
+            .msg(
+              s"""Expected Input.File from parsed database, received:
+                 |${nonInputFiles.mkString("\n")}""".stripMargin
+            )
+            .notOk
+        }
+      }
+    val resolvedInputs: Configured[Seq[Input]] = {
+      mirrorPaths.map { fromMirror =>
+        val result = fromMirror ++ explicitPaths
+        result
+      }
+    }
+
+    lazy val resolvedConfigInput: Configured[Input] =
+      (config, configStr) match {
+        case (Some(x), Some(y)) =>
+          ConfError
+            .msg(s"Can't configure both --config $x and --config-str $y")
+            .notOk
+        case (Some(configPath), _) =>
+          val path = AbsolutePath.fromString(configPath)
+          if (path.isFile) Ok(Input.File(path))
+          else ConfError.msg(s"--config $path is not a file").notOk
+        case (_, Some(configString)) =>
+          Ok(Input.String(configString))
+        case _ =>
+          Ok(
+            ScalafixConfig
+              .auto(common.workingPath)
+              .getOrElse(Input.String("")))
+      }
+
+    // ScalafixConfig and Rewrite
+    // Determines the config in the following order:
+    //  - --config-str or --config
+    //  - .scalafix.conf in working directory
+    //  - ScalafixConfig.default
     val resolvedRewriteAndConfig: Configured[(Rewrite, ScalafixConfig)] =
       for {
         mirror <- resolvedMirror
@@ -194,21 +260,14 @@ object CliRunner {
                 .product(decoder.read(Conf.Str(next)))
                 .map { case (a, b) => a.andThen(b) }
           }
+        inputs <- resolvedInputs
         configuration <- {
-          val input: Option[Input] =
-            ScalafixConfig
-              .auto(common.workingDirectoryFile)
-              .orElse(config.map { x =>
-                if (new File(x).isFile) Input.File(new File(x))
-                else Input.String(x)
-              })
-          input
-            .map(x => ScalafixConfig.fromInput(x, mirror)(decoder))
-            .getOrElse(
-              Configured.Ok(
-                Rewrite.emptyFromMirrorOpt(mirror) ->
-                  ScalafixConfig.default
-              ))
+          if (inputs.isEmpty) {
+            Ok(Rewrite.empty -> ScalafixConfig.default)
+          } else {
+            resolvedConfigInput.flatMap(input =>
+              ScalafixConfig.fromInput(input, mirror)(decoder))
+          }
         }
         // TODO(olafur) implement withFilter on Configured
         (configRewrite, scalafixConfig) = configuration
@@ -220,35 +279,10 @@ object CliRunner {
         )
         finalRewrite = cliArgRewrite.andThen(configRewrite)
       } yield finalRewrite -> finalConfig
-    val resolvedRewrite = resolvedRewriteAndConfig.map(_._1)
-    val resolvedConfig = resolvedRewriteAndConfig.map(_._2)
-
-    implicit val workingDirectory: AbsolutePath = common.workingPath
-    val explicitPaths: Seq[Input] = cli.files.toVector.flatMap { file =>
-      val path = AbsolutePath.fromString(file)
-      if (path.isDirectory)
-        FileIO.listAllFilesRecursively(path).map(Input.File.apply)
-      else List(Input.File(path))
-    }
-    val resolvedSourceroot = sourceroot match {
-      case None => ConfError.msg("--sourceroot is required").notOk
-      case Some(path) => Ok(AbsolutePath.fromString(path))
-    }
-    val mirrorPaths: Configured[Seq[Input]] = resolvedDatabase
-      .flatMap(database => {
-        val x = database.entries.map {
-          case (x: Input, _) => Ok(x)
-          case (x: Input.LabeledString, _) =>
-            // TODO(olafur) validate that the file contents have not changed.
-            resolvedSourceroot.map(root => Input.File(root.resolve(x.label)))
-          case (els, _) =>
-            ConfError.msg(s"Unexpected Input type ${els.structure}").notOk
-        }
-        x.flipSeq
-      })
-    val resolvedInputs: Configured[Seq[Input]] = for {
-      fromMirror <- mirrorPaths
-    } yield fromMirror ++ explicitPaths
+    val resolvedRewrite: Configured[Rewrite] =
+      resolvedRewriteAndConfig.map(_._1)
+    val resolvedConfig: Configured[ScalafixConfig] =
+      resolvedRewriteAndConfig.map(_._2)
 
     val resolvedPathReplace: Configured[AbsolutePath => AbsolutePath] = try {
       val outFromPattern = Pattern.compile(outFrom)
