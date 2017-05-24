@@ -113,5 +113,24 @@
 
       This is a known limitation and you can track the progress on this @lnk("here", "https://github.com/scalacenter/scalafix/issues/147").
 
+  @sect(NoValInForComprehension.toString)
+    @p
+      Removes @code{val} from definitions in for-comprehension.
+
+    @hl.scala
+      // before
+      for {
+        n <- List(1, 2, 3)
+        val inc = n + 1
+      } yield inc
+      // after
+      for {
+        n <- List(1, 2, 3)
+        inc = n + 1
+      } yield inc
+
+    @p
+      The two syntaxes are equivalent and the presence of the @code{val} keyword has been deprecated since Scala 2.10.
+
   @sect{Planned rewrites...}
     See @lnk("here", "https://github.com/scalacenter/scalafix/issues?q=is%3Aissue+is%3Aopen+label%3Arewrite")
