@@ -162,4 +162,3 @@ class CliTest extends FunSuite with DiffAssertions {
     assert(FileOps.readFile(file) == "def foo: Unit = { println(1) }\n")
   }
 }
-
