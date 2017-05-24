@@ -28,7 +28,7 @@ abstract class Rewrite(implicit rewriteName: Name) { self =>
     apply(ctx, rewrite(ctx))
   }
   final protected def apply(ctx: RewriteCtx, patch: Patch): String =
-    Patch(rewrite(ctx), ctx, mirrorOption)
+    Patch(patch, ctx, mirrorOption)
 
   /** Returns unified diff from applying this patch */
   final def diff(ctx: RewriteCtx): String =

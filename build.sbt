@@ -182,6 +182,7 @@ lazy val `scalafix-sbt` = project
           "; very scalafix-sbt/scripted"
       )(state.value)
     },
+    addSbtPlugin(scalahostSbt),
     scalaVersion := scala210,
     crossScalaVersions := Seq(scala210),
     moduleName := "sbt-scalafix",
@@ -233,7 +234,7 @@ lazy val tests = project
     libraryDependencies ++= Seq(
       scalahost % Test,
       // integration property tests
-      "org.renucci"        %% "scala-xml-quote"    % "0.1.1"    % Test,
+      "org.renucci"        %% "scala-xml-quote"    % "0.1.3"    % Test,
       "org.typelevel"      %% "catalysts-platform" % "0.0.5"    % Test,
       "com.typesafe.slick" %% "slick"              % "3.2.0-M2" % Test,
       "com.chuusai"        %% "shapeless"          % "2.3.2"    % Test,

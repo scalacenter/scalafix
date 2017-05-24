@@ -77,11 +77,20 @@ trait ScalafixMetaconfigReaders {
         ClassloadRewrite(fqn, mirror.toList)
     }
 
-  def baseRewriteDecoders(mirror: Option[Mirror]): ConfDecoder[Rewrite] =
+  def baseRewriteDecoders(mirror: Option[Mirror]): ConfDecoder[Rewrite] = {
     MetaconfigPendingUpstream.orElse(
-      ReaderUtil.fromMap(rewriteByName(mirror)),
+      ReaderUtil.fromMap(
+        rewriteByName(mirror), {
+          case x if ScalafixRewrites.semanticNames.contains(x) =>
+            s"""NOTE. $x is a scalafix rewrite that requires the Semantic API to be configured. Potential workaround:
+               |  - use sbt-scalahost, which configures the Semantic API automatically.
+               |  - make sure that your scalaVersion is >=2.11
+               |""".stripMargin.trim
+        }
+      ),
       classloadRewriteDecoder(mirror)
     )
+  }
 
   def rewriteConfDecoder(singleRewriteDecoder: ConfDecoder[Rewrite],
                          mirror: Option[Mirror]): ConfDecoder[Rewrite] = {

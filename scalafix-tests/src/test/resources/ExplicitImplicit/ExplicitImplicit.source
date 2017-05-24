@@ -1,4 +1,4 @@
-SKIP rewrites = [ExplicitImplicit]
+rewrites = ExplicitImplicit
 <<< list
 class A {
   implicit val x = List(1)
@@ -13,8 +13,7 @@ class A {
 }
 >>>
 class A {
-  implicit val x: scala.collection.immutable.Map[Int, String] =
-    Map(1 -> "STRING")
+  implicit val x: scala.collection.immutable.Map[Int, String] = Map(1 -> "STRING")
 }
 <<< def works
 class A {
@@ -31,6 +30,22 @@ class A {
 >>>
 class A {
   implicit def x[T](e: T): T = e
+}
+<<< def param works 2
+class A {
+  implicit def x[T](e: T) = List(e)
+}
+>>>
+class A {
+  implicit def x[T](e: T): List[T] = List(e)
+}
+<<< def param works 3
+class A {
+  implicit def x[T](e: T) = Map(e -> e)
+}
+>>>
+class A {
+  implicit def x[T](e: T): scala.collection.immutable.Map[T, T] = Map(e -> e)
 }
 <<< type param
 class A {
@@ -49,8 +64,8 @@ class A {
 >>>
 class A {
   class B { class C }
-  implicit val x: B = new B
-  implicit val y: x.C = new x.C
+  implicit val x: A.this.B = new B
+  implicit val y: A.this.x.C = new x.C
 }
 <<< two classes
 class A[T](e: T)
@@ -60,7 +75,7 @@ class B {
 >>>
 class A[T](e: T)
 class B {
-  implicit val x: A[Int] = new A(10)
+  implicit val x: twoclasses.A[Int] = new A(10)
 }
 <<< deeper package
 class A[T](e: T)
@@ -73,7 +88,7 @@ package foo {
 class A[T](e: T)
 package foo {
   class B {
-    implicit val x: A[Int] = new A(10)
+    implicit val x: deeperpackage.A[Int] = new A(10)
   }
 }
 <<< shallow package
@@ -88,7 +103,7 @@ package foo {
   class A[T](e: T)
 }
 class B {
-  implicit val x: foo.A[Int] = new foo.A(10)
+  implicit val x: shallowpackage.foo.A[Int] = new foo.A(10)
 }
 <<< implicitly 2712 trick
 class A {
@@ -108,7 +123,7 @@ class A {
 >>>
 import scala.collection.immutable.Map
 class A {
-  implicit val x: Map[Int, String] = Map(1 -> "")
+  implicit val x: scala.collection.immutable.Map[Int, String] = Map(1 -> "")
 }
 <<< shorten imported name 2
 import scala.collection.immutable._
@@ -118,7 +133,7 @@ class A {
 >>>
 import scala.collection.immutable._
 class A {
-  implicit val x: Map[Int, String] = Map(1 -> "")
+  implicit val x: scala.collection.immutable.Map[Int, String] = Map(1 -> "")
 }
 <<< enclosing package strip is last
 package b { class B }
@@ -133,7 +148,7 @@ package b { class B }
 package a {
   import b.B
   class A {
-    implicit val x: B = new B
+    implicit val x: enclosingpackagestripislast.b.B = new B
   }
 }
 <<< inner inner object
@@ -150,7 +165,7 @@ object A {
   object B {
     class C
     object C {
-      implicit val x: List[C] = List(new C)
+      implicit val x: List[innerinnerobject.A.B.C] = List(new C)
     }
   }
 }
@@ -169,7 +184,7 @@ object D {
 }
 object A {
   class C {
-    implicit val x: List[D.B] = List(new D.B)
+    implicit val x: List[siblingobjects.D.B] = List(new D.B)
   }
 }
 <<< slick tuple
@@ -180,7 +195,7 @@ object slick {
 >>>
 object slick {
   case class Supplier(id: Int, name: String)
-  implicit val supplierGetter: ((Int, String)) => slick.Supplier = (arg: (Int, String)) => Supplier(arg._1, arg._2)
+  implicit val supplierGetter: ((Int, String)) => slicktuple.slick.Supplier = (arg: (Int, String)) => Supplier(arg._1, arg._2)
 }
 <<< NOWRAP package import
 package scala.concurrent {
@@ -191,8 +206,10 @@ package scala.concurrent {
   }
 }
 >>>
-package scala.concurrent
-package banana
-object x {
-  implicit val f: Future[Int] = Future.successful(1)
+package scala.concurrent {
+  package banana {
+    object x {
+      implicit val f: scala.concurrent.Future[Int] = Future.successful(1)
+    }
+  }
 }

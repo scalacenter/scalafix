@@ -28,9 +28,9 @@ object ScalafixConfig {
     default.reader
 
   /** Returns config from current working directory, if .scalafix.conf exists. */
-  def auto(workingDir: File): Option[Input] = {
-    val file = new File(workingDir, ".scalafix.conf")
-    if (file.isFile && file.exists())
+  def auto(workingDirectory: AbsolutePath): Option[Input] = {
+    val file = workingDirectory.resolve(".scalafix.conf")
+    if (file.isFile && file.toFile.exists())
       Some(Input.File(file))
     else None
   }

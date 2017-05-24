@@ -1,24 +1,55 @@
 package scalafix.cli
 
-case class ExitStatus(code: Int, name: String) {
+import scala.collection.mutable
+
+sealed abstract case class ExitStatus(code: Int, name: String) {
+  def isOk: Boolean = code == ExitStatus.Ok.code
   override def toString: String = s"$name=$code"
 }
 
 object ExitStatus {
-  def apply(n: Int)(implicit name: sourcecode.Name) =
-    new ExitStatus(n, name.value)
-  val Ok: ExitStatus = apply(0)
-  val UnexpectedError: ExitStatus = apply(1)
-  val ParseError: ExitStatus = apply(2)
-  val ScalafixError: ExitStatus = apply(3)
+  // NOTE: ExitCode resembles an Enumeration very much, but has minor differences
+  // for example how the name is calculated for merged exit codes.
+  private var counter = 0
+  private val allInternal = mutable.ListBuffer.empty[ExitStatus]
+  private val cache =
+    new java.util.concurrent.ConcurrentHashMap[Int, ExitStatus]
+  private def generateExitStatus(implicit name: sourcecode.Name) = {
+    val code = counter
+    counter = if (counter == 0) 1 else counter << 1
+    val result = new ExitStatus(code, name.value) {}
+    allInternal += result
+    result
+  }
+  // see https://github.com/scalameta/scalafmt/issues/941
+  // format: off
+  val Ok,
+      UnexpectedError,
+      ParseError,
+      ScalafixError,
+      InvalidCommandLineOption,
+      MissingSemanticApi
+    : ExitStatus = generateExitStatus
+  // format: on
+  lazy val all: List[ExitStatus] = allInternal.toList
+  private def codeToName(code: Int): String = {
+    if (code == 0) Ok.name
+    else {
+      val names = all.collect {
+        case exit if (exit.code & code) != 0 => exit.name
+      }
+      names.mkString("+")
+    }
+  }
+  def apply(code: Int): ExitStatus = {
+    if (cache.contains(code)) cache.get(code)
+    else {
+      val result = new ExitStatus(code, codeToName(code)) {}
+      cache.put(code, result)
+      result
+    }
+  }
 
-  def all: Seq[ExitStatus] = Seq(
-    Ok,
-    UnexpectedError,
-    ParseError,
-    ScalafixError
-  )
-
-  def merge(code1: ExitStatus, code2: ExitStatus): ExitStatus =
-    if (code1 == Ok) code2 else code1
+  def merge(exit1: ExitStatus, exit2: ExitStatus): ExitStatus =
+    apply(exit1.code | exit2.code)
 }
