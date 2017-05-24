@@ -43,7 +43,7 @@ class CliTest extends FunSuite with DiffAssertions {
   test("Cli.parse") {
     val RunScalafix(runner) = Cli.parse(
       Seq(
-        "--debug",
+        "--verbose",
         "--config-str",
         "imports.groupByPrefix=true",
         "--single-thread",

@@ -1,6 +1,9 @@
 pipeline:
   tests:
     image: scalaplatform/scala:1.2
+    environment:
+      - BINTRAY_USERNAME=foo_user
+      - BINTRAY_PASSWORD=foo_password
     pull: true
     commands:
       - git fetch --tags && git log | head -n 20
