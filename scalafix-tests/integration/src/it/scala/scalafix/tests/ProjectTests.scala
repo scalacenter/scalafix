@@ -1,7 +1,6 @@
 package scalafix.tests
 
 import scalafix.rewrite.ProcedureSyntax
-import scalafix.rewrite.ScalaJsRewrites
 
 class Slick
     extends IntegrationPropertyTest(
