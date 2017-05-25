@@ -26,8 +26,8 @@ package object scalafix {
       extends SyntacticPatchOps(ctx) {
     def semanticOps: SyntacticPatchOps = this
   }
-  implicit class XtensionSeqPatch(patches: Seq[Patch]) {
-    def asPatch: Patch = Patch.fromSeq(patches)
+  implicit class XtensionSeqPatch(patches: Iterable[Patch]) {
+    def asPatch: Patch = Patch.fromIterable(patches)
   }
   implicit class XtensionOptionPatch(patch: Option[Patch]) {
     def asPatch: Patch = patch.getOrElse(Patch.empty)

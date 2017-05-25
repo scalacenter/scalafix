@@ -12,6 +12,7 @@ import scalafix.util.TokenList
 
 /** Bundle of useful things when implementing [[Rewrite]]. */
 case class RewriteCtx(tree: Tree, config: ScalafixConfig) {
+  def toks(t: Tree): Tokens = t.tokens(config.dialect)
   implicit lazy val tokens: Tokens = tree.tokens(config.dialect)
   lazy val tokenList: TokenList = new TokenList(tokens)
   lazy val comments: AssociatedComments = AssociatedComments(tokens)

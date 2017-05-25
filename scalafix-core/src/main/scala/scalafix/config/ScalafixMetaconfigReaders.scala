@@ -11,11 +11,10 @@ import scala.util.matching.Regex
 import scalafix.patch.TreePatch._
 import scalafix.rewrite.ScalafixRewrites
 import scalafix.util.ClassloadRewrite
-
 import java.io.OutputStream
 import java.io.PrintStream
 import java.net.URI
-
+import java.util.regex.Pattern
 import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
@@ -49,10 +48,13 @@ trait ScalafixMetaconfigReaders {
       } yield scheme -> uri
   }
 
+  private val rewriteReges = Pattern.compile("rewrites?")
+  private def isRewriteKey(key: (String, Conf)) =
+    rewriteReges.matcher(key._1).matches()
   def scalafixConfigEmptyRewriteReader: ConfDecoder[(Conf, ScalafixConfig)] =
     ConfDecoder.instance[(Conf, ScalafixConfig)] {
       case Conf.Obj(values) =>
-        val (rewrites, noRewrites) = values.partition(_._1 == "rewrites")
+        val (rewrites, noRewrites) = values.partition(isRewriteKey)
         val rewriteConf =
           Configured.Ok(rewrites.lastOption.map(_._2).getOrElse(Conf.Lst()))
         val config =
@@ -141,6 +143,8 @@ trait ScalafixMetaconfigReaders {
   }
   implicit lazy val importerReader: ConfDecoder[Importer] =
     parseReader[Importer]
+  implicit lazy val importeeReader: ConfDecoder[Importee] =
+    parseReader[Importee]
   implicit lazy val refReader: ConfDecoder[Ref] =
     castReader[Stat, Ref](parseReader[Stat])
   implicit lazy val termRefReader: ConfDecoder[Term.Ref] =
@@ -153,7 +157,7 @@ trait ScalafixMetaconfigReaders {
   implicit lazy val AddGlobalImportReader: ConfDecoder[AddGlobalImport] =
     importerReader.map(AddGlobalImport.apply)
   implicit lazy val RemoveGlobalImportReader: ConfDecoder[RemoveGlobalImport] =
-    importerReader.map(RemoveGlobalImport.apply)
+    symbolReader.map(RemoveGlobalImport.apply)
 
   implicit lazy val PrintStreamReader: ConfDecoder[PrintStream] = {
     val empty = new PrintStream(new OutputStream {

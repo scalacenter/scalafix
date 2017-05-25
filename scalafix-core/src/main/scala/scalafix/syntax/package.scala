@@ -3,6 +3,7 @@ package scalafix
 import java.nio.charset.Charset
 import scala.collection.IterableLike
 import scala.collection.generic.CanBuildFrom
+import scala.collection.immutable.Seq
 import scala.collection.mutable
 import scala.meta._
 import scala.meta.semantic.Signature
@@ -12,10 +13,13 @@ import scala.util.Success
 import scala.util.Try
 import org.scalameta.logger
 import scala.compat.Platform.EOL
+import scala.meta.classifiers.Classifier
 import scala.meta.internal.io.PathIO
 import scala.meta.internal.prettyprinters.TreeSyntax
 import scala.meta.internal.prettyprinters.TreeToString
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
+import scalafix.patch.TokenPatch
+import scalafix.util.Whitespace
 
 package object syntax {
 
@@ -95,6 +99,15 @@ package object syntax {
   }
 
   implicit class XtensionSymbol(symbol: Symbol) {
+    def underlyingSymbols: Seq[Symbol] = symbol match {
+      case Symbol.Multi(symbols) => symbols
+      case _ => List(symbol)
+    }
+    def isSameNormalized(other: Symbol): Boolean = {
+      val syms = symbol.underlyingSymbols.map(_.normalized)
+      val otherSyms = other.underlyingSymbols.map(_.normalized)
+      syms.exists(otherSyms.contains)
+    }
 
     /** Returns simplified version of this Symbol.
       *
