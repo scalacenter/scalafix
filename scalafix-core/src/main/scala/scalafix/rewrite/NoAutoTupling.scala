@@ -5,7 +5,6 @@ import scala.meta._
 import scalafix.syntax._
 import scala.meta.semantic.Signature
 import scala.collection.mutable
-import org.scalameta.logger
 
 case class NoAutoTupling(mirror: Mirror) extends SemanticRewrite(mirror) {
 

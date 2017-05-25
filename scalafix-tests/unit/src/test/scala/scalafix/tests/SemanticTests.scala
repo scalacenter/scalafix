@@ -9,13 +9,5 @@ class SemanticTests
       AbsolutePath(BuildInfo.inputSourceroot),
       AbsolutePath(BuildInfo.outputSourceroot)
     ) {
-
-//  DiffTest.fromFile(BuildInfo.testsInputResources).groupBy(_.spec).foreach {
-//    case (spec, tests) =>
-//      println(s"SPEC: $spec")
-//      tests.foreach { test =>
-//        println()
-//        println(test.expected)
-//      }
-//  }
+  runAllTests()
 }

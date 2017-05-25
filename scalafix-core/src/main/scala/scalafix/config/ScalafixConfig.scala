@@ -14,7 +14,6 @@ import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 case class ScalafixConfig(
     parser: Parse[_ <: Tree] = Parse.parseSource,
     @Recurse explicitReturnTypes: ExplicitReturnTypesConfig = ExplicitReturnTypesConfig(),
-    @Recurse imports: ImportsConfig = ImportsConfig(),
     @Recurse patches: PatchConfig = PatchConfig(),
     @Recurse debug: DebugConfig = DebugConfig(),
     fatalWarnings: Boolean = true,

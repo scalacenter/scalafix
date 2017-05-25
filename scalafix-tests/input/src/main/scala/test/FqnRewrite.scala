@@ -5,7 +5,6 @@ rewrites = [
   "scala:banana.rewrite.LambdaRewrites.syntax"
   "scala:banana.rewrite.LambdaRewrites.semantic"
 ]
-imports.removeUnused = true
 */
 package test
 
