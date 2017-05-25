@@ -28,3 +28,4 @@ before_cache:
   - find $HOME/.sbt -name "*.lock" -type f -delete
   - find $HOME/.ivy2/cache -name "ivydata-*.properties" -type f -delete
   - find $HOME/.ivy2/cache -name "*scalafix*.xml" -type f -delete
+  - rm -rf $HOME/.ivy2/local
