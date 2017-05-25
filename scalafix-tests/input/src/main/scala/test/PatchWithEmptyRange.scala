@@ -1,6 +1,6 @@
 /*
 rewrites = "scala:banana.rewrite.PatchTokenWithEmptyRange"
-*/
+ */
 package test
 
 class PatchWithEmptyRange {

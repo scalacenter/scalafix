@@ -1,6 +1,6 @@
 /*
 rewrites = RemoveXmlLiterals
-*/
+ */
 package test
 
 class RemoveXmlLiterals {

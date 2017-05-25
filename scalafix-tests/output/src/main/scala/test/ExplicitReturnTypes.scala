@@ -1,6 +1,6 @@
 package test
 
-object ExplicitReturnTypesInput {
+object ExplicitReturnTypes {
   implicit val L: List[Int] = List(1)
   implicit val M: scala.collection.immutable.Map[Int, String] = Map(1 -> "STRING")
   implicit def D: Int = 2
@@ -14,7 +14,7 @@ object ExplicitReturnTypesInput {
   }
   class TwoClasses[T](e: T)
   class TwoClasses2 {
-    implicit val x: test.ExplicitReturnTypesInput.TwoClasses[Int] = new TwoClasses(10)
+    implicit val x: test.ExplicitReturnTypes.TwoClasses[Int] = new TwoClasses(10)
   }
   class implicitlytrick {
     implicit val s: String = "string"
@@ -24,7 +24,7 @@ object ExplicitReturnTypesInput {
     object B {
       class C
       object C {
-        implicit val x: List[test.ExplicitReturnTypesInput.InnerInnerObject.B.C] = List(new C)
+        implicit val x: List[test.ExplicitReturnTypes.InnerInnerObject.B.C] = List(new C)
       }
     }
   }
@@ -33,12 +33,12 @@ object ExplicitReturnTypesInput {
   }
   object A {
     class C {
-      implicit val x: List[test.ExplicitReturnTypesInput.SiblingObject.B] = List(new SiblingObject.B)
+      implicit val x: List[test.ExplicitReturnTypes.SiblingObject.B] = List(new SiblingObject.B)
     }
   }
   object slick {
     case class Supplier(id: Int, name: String)
-    implicit val supplierGetter: ((Int, String)) => test.ExplicitReturnTypesInput.slick.Supplier = (arg: (Int, String)) =>
+    implicit val supplierGetter: ((Int, String)) => test.ExplicitReturnTypes.slick.Supplier = (arg: (Int, String)) =>
       Supplier(arg._1, arg._2)
   }
 }

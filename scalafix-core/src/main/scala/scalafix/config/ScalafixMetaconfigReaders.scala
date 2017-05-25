@@ -15,10 +15,12 @@ import java.io.OutputStream
 import java.io.PrintStream
 import java.net.URI
 import java.util.regex.Pattern
+import scala.util.control.NonFatal
 import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
+import metaconfig.Configured.Ok
 
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
 // A collection of metaconfig.Reader instances that are shared across
@@ -157,7 +159,14 @@ trait ScalafixMetaconfigReaders {
   implicit lazy val AddGlobalImportReader: ConfDecoder[AddGlobalImport] =
     importerReader.map(AddGlobalImport.apply)
   implicit lazy val RemoveGlobalImportReader: ConfDecoder[RemoveGlobalImport] =
-    symbolReader.map(RemoveGlobalImport.apply)
+    termRefReader.flatMap { ref =>
+      try {
+        Ok(RemoveGlobalImport(Symbol(s"_root_.$ref.")))
+      } catch {
+        case NonFatal(e) =>
+          ConfError.exception(e, 0).notOk
+      }
+    }
 
   implicit lazy val PrintStreamReader: ConfDecoder[PrintStream] = {
     val empty = new PrintStream(new OutputStream {

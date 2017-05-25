@@ -65,10 +65,10 @@ object ImportPatchOps {
       trailingComma + leadingComma + PatchOps.removeTokens(tokens)
     }
 
-      extraPatches ++
-        (isRemovedImportee ++
-          isRemovedImporter ++
-          isRemovedImport).map(remove)
+    extraPatches ++
+      (isRemovedImportee ++
+        isRemovedImporter ++
+        isRemovedImport).map(remove)
   }
 
   private def extractImports(stats: Seq[Stat]): Seq[Import] = {

@@ -1,6 +1,6 @@
 /*
 rewrites = VolatileLazyVal
-*/
+ */
 package test
 
 class VolatileLazyVal {

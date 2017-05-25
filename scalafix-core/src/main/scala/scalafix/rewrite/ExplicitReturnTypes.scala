@@ -2,12 +2,13 @@ package scalafix
 package rewrite
 
 import scalafix.syntax._
-import scala.meta._
+import scala.meta._, contrib._
 import scalafix.util.Whitespace
 import scala.collection.immutable.Seq
-import org.scalameta.logger
 
-case class ExplicitReturnTypes(mirror: Mirror) extends SemanticRewrite(mirror) {
+// TODO: implement ExplicitReturnTypesConfig
+case class ExplicitReturnTypes(mirror: Mirror)
+    extends SemanticRewrite(mirror) {
   // Don't explicitly annotate vals when the right-hand body is a single call
   // to `implicitly`. Prevents ambiguous implicit. Not annotating in such cases,
   // this a common trick employed implicit-heavy code to workaround SI-2712.
@@ -60,11 +61,11 @@ case class ExplicitReturnTypes(mirror: Mirror) extends SemanticRewrite(mirror) {
     tree
       .collect {
         case t @ Defn.Val(mods, _, None, body)
-            if mods.exists(_.syntax == "implicit") &&
+            if t.hasMod(mod"implicit") &&
               !isImplicitly(body) =>
           fix(t, body)
         case t @ Defn.Def(mods, _, _, _, None, body)
-            if mods.exists(_.syntax == "implicit") =>
+            if t.hasMod(mod"implicit") =>
           fix(t, body)
       }
       .flatten

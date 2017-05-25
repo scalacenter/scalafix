@@ -1,6 +1,6 @@
 /*
 rewrites = ProcedureSyntax
-*/
+ */
 package test
 
 object ProcedureSyntax {
@@ -16,6 +16,5 @@ object ProcedureSyntax {
   def foo {
     println(1)
   }
-  def main() /* unit */ {
-  }
+  def main() /* unit */ {}
 }

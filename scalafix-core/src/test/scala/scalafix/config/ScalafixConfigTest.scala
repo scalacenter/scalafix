@@ -22,7 +22,7 @@ class ScalafixConfigTest extends FunSuite {
   check(
     """
       |patches.removeGlobalImports = [
-      |  "scala.{meta => m}"
+      |  "scala.meta"
       |]
       |patches.addGlobalImports = [
       |  "scala.meta._"
@@ -34,10 +34,6 @@ class ScalafixConfigTest extends FunSuite {
       |      scala.meta._
       |    ]
       |}]
-      |imports.organize = false
-      |imports.groups = [
-      |  foo.bar
-      |]
     """.stripMargin,
     default.copy(
       patches = default.patches.copy(
@@ -52,13 +48,7 @@ class ScalafixConfigTest extends FunSuite {
           AddGlobalImport(importer"scala.meta._")
         ),
         removeGlobalImports = List(
-          RemoveGlobalImport(importer"scala.{meta => m}")
-        )
-      ),
-      imports = default.imports.copy(
-        organize = false,
-        groups = List(
-          FilterMatcher("foo.bar")
+          RemoveGlobalImport(Symbol("_root_.scala.meta."))
         )
       )
     )

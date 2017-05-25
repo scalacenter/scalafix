@@ -3,7 +3,7 @@ rewrites = ExplicitReturnTypes
  */
 package test
 
-object ExplicitReturnTypesInput {
+object ExplicitReturnTypes {
   implicit val L = List(1)
   implicit val M = Map(1 -> "STRING")
   implicit def D = 2

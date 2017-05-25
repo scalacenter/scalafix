@@ -45,7 +45,7 @@ class CliTest extends FunSuite with DiffAssertions {
       Seq(
         "--verbose",
         "--config-str",
-        "imports.groupByPrefix=true",
+        "fatalWarnings=true",
         "--single-thread",
         "--files",
         "a.scala",
@@ -56,7 +56,7 @@ class CliTest extends FunSuite with DiffAssertions {
       ))
     val obtained = runner.cli
     assert(!runner.writeMode.isWriteFile)
-    assert(runner.config.imports.groupByPrefix)
+    assert(runner.config.fatalWarnings)
     assert(obtained.verbose)
     assert(obtained.singleThread)
     assert(

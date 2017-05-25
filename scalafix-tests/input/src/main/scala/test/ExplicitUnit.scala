@@ -1,6 +1,6 @@
 /*
 rewrites = ExplicitUnit
-*/
+ */
 package test
 
 object ExplicitUnit {

@@ -13,6 +13,5 @@ object ProcedureSyntax {
   def foo: Unit = {
     println(1)
   }
-  def main(): Unit = /* unit */ {
-  }
+  def main(): Unit = /* unit */ {}
 }

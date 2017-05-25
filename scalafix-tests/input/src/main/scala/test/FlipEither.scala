@@ -29,7 +29,7 @@ patches.addGlobalImports = [
   "scala.collection.immutable.Seq"
 ]
 rewrites = []
-*/
+ */
 package test
 
 object FlipEither {

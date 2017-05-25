@@ -25,9 +25,5 @@ case class ItTest(
 }
 
 object ItTest {
-  val catsImportConfig: String =
-    """|imports.organize = true
-       |imports.removeUnused = false
-       |imports.groupByPrefix = true""".stripMargin
   val root: Path = pwd / "target" / "it"
 }

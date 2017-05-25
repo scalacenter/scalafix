@@ -5,7 +5,7 @@ rewrites = [
   "scala:banana.rewrite.LambdaRewrites.syntax"
   "scala:banana.rewrite.LambdaRewrites.semantic"
 ]
-*/
+ */
 package test
 
 object FqnRewrite
