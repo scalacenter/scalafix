@@ -33,8 +33,8 @@ abstract class SemanticRewriteSuite(
   }
 
   override def afterAll(): Unit = {
-    val onlyTests = testsToRun.filter(_.isOnly)
-    if (sys.env.contains("CI") && testsToRun.nonEmpty) {
+    val onlyTests = testsToRun.filter(_.isOnly).toList
+    if (sys.env.contains("CI") && onlyTests.nonEmpty) {
       sys.error(
         s"sys.env('CI') is set and the following tests are marked as ONLY: " +
           s"${onlyTests.map(_.filename).mkString(", ")}")
