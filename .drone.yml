@@ -1,6 +1,6 @@
 pipeline:
   tests:
-    image: scalaplatform/scala:1.2
+    image: olafurpg/scala:0.1
     environment:
       - BINTRAY_USERNAME=foo_user
       - BINTRAY_PASSWORD=foo_password
