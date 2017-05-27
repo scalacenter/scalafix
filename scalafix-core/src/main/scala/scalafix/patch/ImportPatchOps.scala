@@ -118,19 +118,4 @@ object ImportPatchOps {
         isRemovedImport).map(remove)
   }
 
-  private def extractImports(stats: Seq[Stat]): Seq[Import] = {
-    stats
-      .takeWhile(_.is[Import])
-      .collect { case i: Import => i }
-  }
-
-  def getGlobalImports(ast: Tree): Seq[Import] =
-    ast match {
-      case Pkg(_, Seq(pkg: Pkg)) => getGlobalImports(pkg)
-      case Source(Seq(pkg: Pkg)) => getGlobalImports(pkg)
-      case Pkg(_, stats) => extractImports(stats)
-      case Source(stats) => extractImports(stats)
-      case _ => Nil
-    }
-
 }

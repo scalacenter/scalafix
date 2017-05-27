@@ -59,20 +59,3 @@ object MatchingParens {
   def apply(tokens: Tokens): MatchingParens =
     new MatchingParens(getMatchingParentheses(tokens)) {}
 }
-
-object TreeOps {
-  def parents(tree: Tree): Stream[Tree] =
-    tree #:: (tree.parent match {
-      case Some(x) => parents(x)
-      case _ => Stream.empty
-    })
-}
-object TokenOps {
-  type TokenHash = Long
-  def hash(token: Token): TokenHash = {
-    val longHash: Long =
-      (token.productPrefix.hashCode.toLong << (62 - 8)) |
-        (token.start.toLong << (62 - (8 + 28))) | token.end
-    longHash
-  }
-}

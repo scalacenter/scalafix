@@ -76,7 +76,8 @@ case class ScalafixOptions(
          |               https://gist.com/.../Rewrite.scala""".stripMargin
     )
     @HelpMessage(
-      s"Space separated list of rewrites to run. Available options include ${ScalafixRewrites.semanticNames}")
+      s"Space separated list of rewrites to run. Available options include: " +
+        s"${ScalafixRewrites.allNames.mkString(", ")}")
     rewrites: List[String] = Nil,
     @HelpMessage(
       "Files to fix. Runs on all *.scala files if given a directory")
