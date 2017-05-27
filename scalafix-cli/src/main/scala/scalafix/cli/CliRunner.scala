@@ -25,6 +25,7 @@ import scalafix.config.ScalafixConfig
 import scalafix.config.ScalafixReporter
 import scalafix.reflect.ScalafixCompilerDecoder
 import scalafix.reflect.ScalafixToolbox
+import scalafix.rewrite.ScalafixRewrites
 import scalafix.syntax._
 import metaconfig.Configured.Ok
 import metaconfig._
@@ -181,11 +182,11 @@ object CliRunner {
               s"Missing --classpath, cannot use --sourcepath $sp without --classpath")
             .notOk
         case (None, None) =>
-          Ok(Cli.emptyDatabase)
+          Ok(ScalafixRewrites.emptyDatabase)
       }
     val resolvedMirror: Configured[Option[Database]] =
       resolvedDatabase.map { x =>
-        if (x == Cli.emptyDatabase) None else Some(x)
+        if (x == ScalafixRewrites.emptyDatabase) None else Some(x)
       }
 
     // Inputs

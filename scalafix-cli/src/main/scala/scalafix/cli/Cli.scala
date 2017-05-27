@@ -11,7 +11,6 @@ import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
 
 object Cli {
-  val emptyDatabase = Database(Nil)
   import ArgParserImplicits._
   private val withHelp = OptionsMessages.withHelp
   val helpMessage: String = withHelp.helpMessage +

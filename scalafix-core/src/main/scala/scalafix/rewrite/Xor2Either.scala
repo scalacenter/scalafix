@@ -25,8 +25,8 @@ case class Xor2Either(mirror: Mirror) extends SemanticRewrite(mirror) {
         ctx.replace(Symbol("_root_.cats.data.Xor.Right."), q"Right"),
         ctx.replace(Symbol("_root_.cats.data.XorFunctions.left."), q"Left"),
         ctx.replace(Symbol("_root_.cats.data.XorFunctions.right."), q"Right"),
-        ctx.removeGlobalImport(importer"cats.data.Xor"),
-        ctx.removeGlobalImport(importer"cats.data.XorT")
+        ctx.removeGlobalImport(Symbol("_root_.cats.data.Xor.")),
+        ctx.removeGlobalImport(Symbol("_root_.cats.data.XorT."))
       )
   }
 }

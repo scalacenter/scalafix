@@ -116,7 +116,7 @@
       @li
         Configuration in .scalafix.conf has been greatly improved to support a wide range
         of options.
-        Examples, see @sect.ref{patches}, @sect.ref{imports} and @sect.ref{All options}.
+        Examples, see @sect.ref{patches}, @code{imports} (now removed) and @sect.ref{All options}.
   @sect{0.2.1}
     @ul
       @li
@@ -127,7 +127,7 @@
   @sect{0.2.0}
     @ul
       @li
-        First semantic rewrite! See @sect.ref{ExplicitImplicit}
+        First semantic rewrite! See @sect.ref{ExplicitReturnTypes}.
       @li
         Removed command line interface in favor of compiler plugin.
         Why? To run semantic rewrites, scalafix needs to compile source files.

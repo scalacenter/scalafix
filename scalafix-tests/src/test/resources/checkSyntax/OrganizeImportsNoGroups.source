@@ -1,9 +1,0 @@
-rewrites = []
-imports.groups = []
-imports.removeUnused = false
-<<< Simple test case (see #86)
-import java.util.HashMap
-import scala.collection.immutable.HashSet
->>>
-import java.util.HashMap
-import scala.collection.immutable.HashSet

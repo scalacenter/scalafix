@@ -13,7 +13,8 @@ import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 @DeriveConfDecoder
 case class ScalafixConfig(
     parser: Parse[_ <: Tree] = Parse.parseSource,
-    @Recurse imports: ImportsConfig = ImportsConfig(),
+    @Recurse explicitReturnTypes: ExplicitReturnTypesConfig =
+      ExplicitReturnTypesConfig(),
     @Recurse patches: PatchConfig = PatchConfig(),
     @Recurse debug: DebugConfig = DebugConfig(),
     fatalWarnings: Boolean = true,

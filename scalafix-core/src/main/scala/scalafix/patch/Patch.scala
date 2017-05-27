@@ -12,10 +12,11 @@ import scalafix.config._
 import scalafix.syntax._
 import scalafix.patch.TokenPatch.Add
 import scalafix.patch.TokenPatch.Remove
+import scalafix.patch.TreePatch.ImportPatch
 import scalafix.patch.TreePatch.RenamePatch
 import scalafix.patch.TreePatch.Replace
-
 import difflib.DiffUtils
+import org.scalameta.logger
 
 /** A data structure that can produce a .patch file.
   *
@@ -46,19 +47,31 @@ sealed abstract class Patch {
   def nonEmpty: Boolean = !isEmpty
 }
 
-private[scalafix] case class Concat(a: Patch, b: Patch) extends Patch
-private[scalafix] case object EmptyPatch extends Patch
-abstract class TreePatch extends Patch
-abstract class TokenPatch(val tok: Token, val newTok: String) extends Patch {
+//////////////////////////////
+// Low-level patches
+//////////////////////////////
+trait LowLevelPatch
+abstract class TokenPatch(val tok: Token, val newTok: String)
+    extends Patch
+    with LowLevelPatch {
   override def toString: String =
-    s"TokenPatch(${tok.syntax.revealWhiteSpace}, ${tok.structure}, $newTok)"
+    s"TokenPatch.${this.getClass.getSimpleName}(${tok.syntax.revealWhiteSpace}, ${tok.structure}, $newTok)"
+}
+private[scalafix] object TokenPatch {
+  case class Remove(override val tok: Token) extends TokenPatch(tok, "")
+  case class Add(override val tok: Token,
+                 addLeft: String,
+                 addRight: String,
+                 keepTok: Boolean = true)
+      extends TokenPatch(tok,
+                         s"""$addLeft${if (keepTok) tok else ""}$addRight""")
+
 }
 
-abstract class ImportPatch(val importer: Importer) extends TreePatch {
-  def importee: Importee = importer.importees.head
-  def toImport: Import = Import(Seq(importer))
-}
-
+//////////////////////////////
+// High-level patches
+//////////////////////////////
+abstract class TreePatch extends Patch
 private[scalafix] object TreePatch {
   trait RenamePatch
   case class Rename(from: Name, to: Name) extends TreePatch with RenamePatch
@@ -79,26 +92,23 @@ private[scalafix] object TreePatch {
       extends TreePatch {
     require(to.isStableId)
   }
-  case class RemoveGlobalImport(override val importer: Importer)
-      extends ImportPatch(importer)
-  case class AddGlobalImport(override val importer: Importer)
-      extends ImportPatch(importer)
+  abstract class ImportPatch extends TreePatch
+  @DeriveConfDecoder
+  case class RemoveGlobalImport(symbol: Symbol) extends ImportPatch
+  @DeriveConfDecoder
+  case class RemoveImportee(importee: Importee) extends ImportPatch
+  @DeriveConfDecoder
+  case class AddGlobalImport(importer: Importer) extends ImportPatch
 }
 
-private[scalafix] object TokenPatch {
-  case class Remove(override val tok: Token) extends TokenPatch(tok, "")
-  case class Add(override val tok: Token,
-                 addLeft: String,
-                 addRight: String,
-                 keepTok: Boolean = true)
-      extends TokenPatch(tok,
-                         s"""$addLeft${if (keepTok) tok else ""}$addRight""")
+// implementation detail
+private[scalafix] case class Concat(a: Patch, b: Patch) extends Patch
+private[scalafix] case object EmptyPatch extends Patch with LowLevelPatch
 
-}
 object Patch {
 
   /** Combine a sequence of patches into a single patch */
-  def fromSeq(seq: scala.Seq[Patch]): Patch =
+  def fromIterable(seq: Iterable[Patch]): Patch =
     seq.foldLeft(empty)(_ + _)
 
   /** A patch that does no diff/rewrite */
@@ -112,7 +122,7 @@ object Patch {
           add1.keepTok && add2.keepTok)
     case (_: Remove, add: Add) => add.copy(keepTok = false)
     case (add: Add, _: Remove) => add.copy(keepTok = false)
-    case (rem: Remove, _: Remove) => rem
+    case (rem: Remove, rem2: Remove) => rem
     case _ => throw Failure.TokenPatchMergeError(a, b)
   }
   private[scalafix] def apply(p: Patch,
@@ -133,11 +143,11 @@ object Patch {
     }
   }
 
-  private def syntaxApply(ctx: RewriteCtx, patches: Seq[TokenPatch]): String = {
+  private def syntaxApply(ctx: RewriteCtx,
+                          patches: Iterable[TokenPatch]): String = {
     val patchMap = patches
       .groupBy(_.tok.hash)
       .mapValues(_.reduce(merge).newTok)
-
     ctx.tokens.toIterator
       .map(tok => patchMap.getOrElse(tok.hash, tok.syntax))
       .mkString
@@ -153,16 +163,29 @@ object Patch {
     val replacePatches = Replacer.toTokenPatches(ast, patches.collect {
       case e: Replace => e
     })
-    val importPatches = OrganizeImports.organizeImports(
+    val importPatches =
       patches.collect { case e: ImportPatch => e } ++
-        replacePatches.collect { case e: ImportPatch => e }
-    )
+        replacePatches.collect { case e: ImportPatch => e } ++
+        ctx.config.patches.all.collect { case e: ImportPatch => e }
+    val importTokenPatches = {
+      val result = ImportPatchOps.superNaiveImportPatchToTokenPatchConverter(
+        ctx,
+        importPatches)
+      Patch
+        .underlying(result.asPatch)
+        .collect {
+          case x: TokenPatch => x
+          case els =>
+            throw Failure.InvariantFailedException(
+              s"Expected TokenPatch, got $els")
+        }
+    }
     val replaceTokenPatches = replacePatches.collect {
       case t: TokenPatch => t
     }
     syntaxApply(
       ctx,
-      importPatches ++
+      importTokenPatches ++
         tokenPatches ++
         replaceTokenPatches ++
         renamePatches
@@ -175,6 +198,7 @@ object Patch {
       case Concat(a, b) =>
         loop(a)
         loop(b)
+      case EmptyPatch => // do nothing
       case els =>
         builder += els
     }

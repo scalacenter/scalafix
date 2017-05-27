@@ -1,14 +1,13 @@
 pipeline:
   tests:
-    image: scalaplatform/scala:1.2
+    image: olafurpg/scala:0.1
     environment:
       - BINTRAY_USERNAME=foo_user
       - BINTRAY_PASSWORD=foo_password
     pull: true
     commands:
       - git fetch --tags && git log | head -n 20
-      - ./scalafmt --test
-      - /usr/bin/sbt $CI_TEST
+      - ./bin/runci.sh $CI_TEST
 
   publish:
     image: olafurpg/scalafix:0.3.0
@@ -30,3 +29,4 @@ matrix:
       CI_SCALA_VERSION: 2.12.2
     - CI_TEST: ci-slow
       CI_SCALA_VERSION: 2.11.11
+    - CI_TEST: scalafmt

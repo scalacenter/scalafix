@@ -1,0 +1,20 @@
+@import Main._
+@import scalafix.Readme._
+@import scalafix.rewrite._
+@import scalafix.{Versions => V}
+@import scalafix.cli.Cli
+
+@sect{scalafix-testkit}
+  @p
+    Use scalafix-testkit for a rapid edit/run/debug cycle while implementing
+    semantic scalafix rewrites.
+
+  @p
+    @b{Note.} Scalafix-testkit is a new module under active development and
+    is currently only available as a pre-release version. To depend on
+    scalafix-testkit
+
+    @hl.scala
+      @bintrayRepo
+      libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % "@V.nightly" % Test cross CrossVersion.full
+

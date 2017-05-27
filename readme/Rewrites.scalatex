@@ -10,10 +10,10 @@
         "http://scala-lang.org/blog/2016/05/30/scala-center-advisory-board.html#the-first-meeting").
     To create custom rewrites, see @sect.ref{scalafix-core}.
 
-  @sect(ExplicitImplicit.toString)
+  @sect(ExplicitReturnTypes.toString)
     Dotty requires implicit @code{val}s and @code{def}s to explicitly annotate
     return types.
-    The @ExplicitImplicit.toString rewrite inserts the inferred type from the
+    The @ExplicitReturnTypes.toString rewrite inserts the inferred type from the
     compiler for implicit definitions that are missing an explicit return type.
     For example,
 
@@ -26,7 +26,7 @@
     @ul
       @li
         @note. This rewrite is new and may insert an ambiguous type name in rare cases.
-        For example, running ExplicitImplicit (as of v0.2.0) on the Scala.js repo
+        For example, running ExplicitReturnTypes (as of v0.2.0) on the Scala.js repo
         did introduce compilation errors.
       @li
         scalafix tries to minimize the inserted type signature, by using

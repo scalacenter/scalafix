@@ -1,7 +1,7 @@
 package scalafix.cli
 
 import scala.collection.immutable.Seq
-import scalafix.rewrite.ExplicitImplicit
+import scalafix.rewrite.ExplicitReturnTypes
 import scalafix.rewrite.ProcedureSyntax
 import scalafix.testkit.DiffAssertions
 import scalafix.util.FileOps
@@ -45,7 +45,7 @@ class CliTest extends FunSuite with DiffAssertions {
       Seq(
         "--verbose",
         "--config-str",
-        "imports.groupByPrefix=true",
+        "fatalWarnings=true",
         "--single-thread",
         "--files",
         "a.scala",
@@ -56,7 +56,7 @@ class CliTest extends FunSuite with DiffAssertions {
       ))
     val obtained = runner.cli
     assert(!runner.writeMode.isWriteFile)
-    assert(runner.config.imports.groupByPrefix)
+    assert(runner.config.fatalWarnings)
     assert(obtained.verbose)
     assert(obtained.singleThread)
     assert(
@@ -146,7 +146,7 @@ class CliTest extends FunSuite with DiffAssertions {
     val file = File.createTempFile("prefix", ".scala")
     FileOps.writeFile(file, "object a { implicit val x = ??? }")
     val code = Cli.runOn(
-      ScalafixOptions(rewrites = List(ExplicitImplicit.toString),
+      ScalafixOptions(rewrites = List(ExplicitReturnTypes.toString),
                       files = List(file.getAbsolutePath),
                       common = devNull))
     assert(code == ExitStatus.InvalidCommandLineOption)

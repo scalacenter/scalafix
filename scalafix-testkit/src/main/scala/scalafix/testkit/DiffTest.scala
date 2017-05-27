@@ -1,107 +1,63 @@
 package scalafix.testkit
 
-import metaconfig._, typesafeconfig._
 import scala.collection.immutable.Seq
 import scala.meta._
 import scalafix.Rewrite
 import scalafix.config.ScalafixConfig
-import scalafix.config.ScalafixMetaconfigReaders
 import scalafix.reflect.ScalafixCompilerDecoder
-import scalafix.util.FileOps
+import org.scalatest.exceptions.TestFailedException
 
-import java.io.File
-
-import metaconfig.Configured
-
-case class DiffTest(spec: String,
-                    name: String,
-                    filename: String,
-                    original: String,
-                    expected: String,
-                    skip: Boolean,
-                    only: Boolean,
-                    config: Option[Mirror] => (Rewrite, ScalafixConfig)) {
-  def noWrap: Boolean = name.startsWith("NOWRAP ")
-  def checkSyntax: Boolean = spec.startsWith("checkSyntax")
-  private def packageName = name.replaceAll("[^a-zA-Z0-9]", "")
-  private def packagePrefix = s"package $packageName {\n"
-  private def packageSuffix = s" }\n"
-  def wrapped(code: String = original): String =
-    if (noWrap) original
-    else s"$packagePrefix$code$packageSuffix"
-  def unwrap(code: String): String =
-    if (noWrap) code
-    else code.stripPrefix(packagePrefix).stripSuffix(packageSuffix)
-  val fullName = s"$spec: $name"
+case class DiffTest(filename: RelativePath,
+                    original: Input,
+                    attributes: Attributes,
+                    config: () => (Rewrite, ScalafixConfig),
+                    isSkip: Boolean,
+                    isOnly: Boolean) {
+  def name: String = filename.toString()
+  private def prefix =
+    if (isOnly) "ONLY "
+    else if (isSkip) "SKIP "
+    else ""
+  def originalStr = new String(original.chars)
 }
 
 object DiffTest {
-  def fromFile(directory: File): Seq[DiffTest] = {
-    val tests: Seq[DiffTest] = {
-      for {
-        filename <- getTestFiles(directory)
-        test <- {
-          val content = FileOps.readFile(filename)
-          DiffTest(directory, content, filename)
-        }
-      } yield test
-    }
-    val onlyOne = tests.exists(_.only)
-    def testShouldRun(t: DiffTest): Boolean = !onlyOne || t.only
+
+  private val PrefixRegex = "\\s+(ONLY|SKIP)".r
+  private def stripPrefix(str: String) = PrefixRegex.replaceFirstIn(str, "")
+
+  def fromMirror(mirror: Database): Seq[DiffTest] = mirror.entries.collect {
+    case (input @ Input.LabeledString(label, code), attributes) =>
+      val relpath = RelativePath(label)
+      val config: () => (Rewrite, ScalafixConfig) = { () =>
+        input.tokenize.get
+          .collectFirst {
+            case Token.Comment(comment) =>
+              val decoder =
+                ScalafixCompilerDecoder.fromMirrorOption(Some(mirror))
+              ScalafixConfig
+                .fromInput(Input.LabeledString(label, stripPrefix(comment)),
+                           Some(mirror))(decoder)
+                .get
+          }
+          .getOrElse(throw new TestFailedException(
+            s"Missing scalafix configuration inside comment at top of file $relpath",
+            0))
+      }
+      DiffTest(
+        filename = relpath,
+        original = input,
+        attributes = attributes,
+        config = config,
+        isSkip = code.contains("SKIP"),
+        isOnly = code.contains("ONLY")
+      )
+  }
+
+  def testToRun(tests: Seq[DiffTest]): Seq[DiffTest] = {
+    val onlyOne = tests.exists(_.isOnly)
+    def testShouldRun(t: DiffTest): Boolean = !onlyOne || t.isOnly
     tests.filter(testShouldRun)
-  }
-
-  private def isOnly(name: String): Boolean = name.startsWith("ONLY ")
-  private def isSkip(name: String): Boolean = name.startsWith("SKIP ")
-  private def stripPrefix(name: String) =
-    name.stripPrefix("SKIP ").stripPrefix("ONLY ").trim
-  private def apply(testDir: File,
-                    content: String,
-                    filename: String): Seq[DiffTest] =
-    apply(filename.stripPrefix(testDir.getPath + File.separator),
-          content,
-          filename)
-
-  def apply(spec: String, content: String, filename: String): Seq[DiffTest] = {
-    val moduleOnly = isOnly(content)
-    val moduleSkip = isSkip(content)
-    val split = content.split("\n<<< ")
-
-    val style: (Option[Mirror]) => (Rewrite, ScalafixConfig) = {
-      mirror: Option[Mirror] =>
-        val firstLine = stripPrefix(split.head)
-        val decoder = ScalafixMetaconfigReaders.scalafixConfigConfDecoder(
-          ScalafixCompilerDecoder.fromMirrorOption(mirror))
-        Input.String(firstLine).toConf.flatMap(decoder.read) match {
-          case Configured.Ok(x) => x
-          case Configured.NotOk(x) =>
-            throw new IllegalArgumentException(s"""Failed to parse $filename
-                                                  |Mirror: $mirror
-                                                  |Error: $x""".stripMargin)
-        }
-    }
-
-    split.tail.map { t =>
-      val before :: expected :: Nil = t.split("\n>>>\n", 2).toList
-      val name :: original :: Nil = before.split("\n", 2).toList
-      val actualName = stripPrefix(name)
-      DiffTest(spec,
-               actualName,
-               filename,
-               original,
-               expected,
-               moduleSkip || isSkip(name),
-               moduleOnly || isOnly(name),
-               style)
-    }.toList
-  }
-
-  /** Avoids parsing all files if some tests are marked ONLY. */
-  private def getTestFiles(directory: File): Vector[String] = {
-    val testsFiles = FileOps.listFiles(directory).filter(_.endsWith(".source"))
-    val onlyTests = testsFiles.filter(_.contains("\n<<< ONLY"))
-    if (onlyTests.nonEmpty) onlyTests
-    else testsFiles
   }
 
 }
