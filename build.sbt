@@ -243,6 +243,7 @@ lazy val testsInput = project
     scalametaSourceroot := sourceDirectory.in(Compile).value,
     scalametaSemanticdb := ScalametaSemanticdb.Fat,
     scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
+    scalacOptions += "-Ywarn-unused-import", // For RemoveUnusedImports
     // TODO: Remove once scala-xml-quote is merged into scala-xml
     resolvers += Resolver.bintrayRepo("allanrenucci", "maven"),
     libraryDependencies ++= testsDeps
