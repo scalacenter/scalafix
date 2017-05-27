@@ -186,7 +186,7 @@ lazy val `scalafix-sbt` = project
     ScriptedPlugin.scriptedSettings,
     sbtPlugin := true,
     testQuick := {}, // these test are slow.
-    test in IntegrationTest := {
+    test.in(IntegrationTest) := {
       RunSbtCommand(
         s"; plz $scala212 publishLocal " +
           "; very scalafix-sbt/scripted"
@@ -306,6 +306,17 @@ lazy val integration = project
     allSettings,
     noPublish,
     Defaults.itSettings,
+    test.in(IntegrationTest) := {
+      test
+        .in(IntegrationTest)
+        .dependsOn(
+          publishLocal.in(core),
+          publishLocal.in(cli),
+          publishLocal.in(reflect),
+          publishLocal.in(`scalafix-sbt`)
+        )
+        .value
+    },
     libraryDependencies += scalatest % IntegrationTest
   )
   .dependsOn(

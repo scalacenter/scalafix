@@ -111,7 +111,9 @@ object ScalafixPlugin extends AutoPlugin {
     Def.taskDyn(compile.all(scalahostAggregateFilter.value))
   private[scalafix] implicit class XtensionFormatClasspath(paths: Seq[File]) {
     def asPath: String =
-      paths.map(_.getAbsolutePath).mkString(java.io.File.pathSeparator)
+      paths.toIterator
+        .collect { case f if f.exists() => f.getAbsolutePath }
+        .mkString(java.io.File.pathSeparator)
   }
 }
 
