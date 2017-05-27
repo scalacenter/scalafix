@@ -2,14 +2,14 @@ package scalafix.patch
 
 import scala.collection.immutable.Seq
 import scala.collection.mutable
-import scalafix.syntax._
 import scala.meta._
 import scala.meta.tokens.Token.Comment
 import scala.meta.tokens.Token.KwImport
-import scalafix.Failure
 import scalafix.config.FilterMatcher
 import scalafix.patch.TreePatch.ImportPatch
 import scalafix.rewrite.RewriteCtx
+import scalafix.syntax._
+import scalafix.util.Newline
 import scalafix.util.Whitespace
 import org.scalameta.logger
 
@@ -21,7 +21,7 @@ object ImportPatchOps {
       ctx: RewriteCtx,
       importPatches: Seq[ImportPatch])(
       implicit mirror: Mirror): Iterable[Patch] = {
-    val allImports = getGlobalImports(ctx.tree)
+    val allImports = ctx.tree.collect { case i: Import => i }
     val allImporters = allImports.flatMap(_.importers)
     val allImportees = allImporters.flatMap(_.importees)
     val allImporteeSymbols = allImportees.flatMap { importee =>
@@ -48,42 +48,74 @@ object ImportPatchOps {
         ctx.addLeft(editToken, s"import $importer\n")
     }
     val isRemovedImporter =
-      allImporters.filter(_.importees.forall(isRemovedImportee)).toSet
+      allImporters.toIterator
+        .filter(_.importees.forall(isRemovedImportee))
+        .toSet
+    val curlyBraceRemoves = allImporters.map { importer =>
+      val keptImportees = importer.importees.filterNot(isRemovedImportee)
+      keptImportees match {
+        case (Importee.Wildcard() | Importee.Name(_)) +: Nil =>
+          ctx
+            .toks(importer)
+            .collectFirst {
+              case open @ Token.LeftBrace() =>
+                ctx.matching
+                  .close(open)
+                  .map(close =>
+                    ctx.removeToken(open) +
+                      ctx.removeToken(close))
+                  .asPatch
+            }
+            .asPatch
+        case _ => Patch.empty
+      }
+    }
     val isRemovedImport =
       allImports.filter(_.importers.forall(isRemovedImporter))
     def remove(toRemove: Tree) = {
       val tokens = ctx.toks(toRemove)
       def removeFirstComma(lst: Iterable[Token]) =
-        lst.find(!_.is[Whitespace]) match {
-          case Some(tok @ Token.Comma()) => TokenPatch.Remove(tok)
-          case _ => Patch.empty
-        }
-      val trailingComma =
-        removeFirstComma(ctx.tokenList.from(tokens.last))
+        lst
+          .takeWhile {
+            case Token.Space() => true
+            case Token.Comma() => true
+            case _ => false
+          }
+          .map(ctx.removeToken(_))
       val leadingComma =
-        removeFirstComma(ctx.tokenList.to(tokens.head).reverse)
-      trailingComma + leadingComma + PatchOps.removeTokens(tokens)
+        removeFirstComma(ctx.tokenList.to(tokens.head))
+      val hadLeadingComma = leadingComma.exists {
+        case TokenPatch.Add(_: Token.Comma, _, _, keepTok @ false) => true
+        case _ => false
+      }
+      val trailingComma =
+        if (hadLeadingComma) List(Patch.empty)
+        else removeFirstComma(ctx.tokenList.from(tokens.last))
+      PatchOps.removeTokens(tokens) ++ trailingComma ++ leadingComma
     }
 
-    extraPatches ++
+    val leadingNewlines = isRemovedImport.map { i =>
+      var newline = false
+      ctx.tokenList
+        .to(ctx.toks(i).head)
+        .takeWhile(x =>
+          !newline && {
+            x.is[Token.Space] || {
+              val isNewline = x.is[Newline]
+              if (isNewline) newline = true
+              isNewline
+            }
+        })
+        .map(tok => ctx.removeToken(tok))
+        .asPatch
+    }
+
+    leadingNewlines ++
+      curlyBraceRemoves ++
+      extraPatches ++
       (isRemovedImportee ++
         isRemovedImporter ++
         isRemovedImport).map(remove)
   }
-
-  private def extractImports(stats: Seq[Stat]): Seq[Import] = {
-    stats
-      .takeWhile(_.is[Import])
-      .collect { case i: Import => i }
-  }
-
-  def getGlobalImports(ast: Tree): Seq[Import] =
-    ast match {
-      case Pkg(_, Seq(pkg: Pkg)) => getGlobalImports(pkg)
-      case Source(Seq(pkg: Pkg)) => getGlobalImports(pkg)
-      case Pkg(_, stats) => extractImports(stats)
-      case Source(stats) => extractImports(stats)
-      case _ => Nil
-    }
 
 }

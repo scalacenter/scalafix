@@ -19,6 +19,7 @@ import scala.meta.internal.prettyprinters.TreeSyntax
 import scala.meta.internal.prettyprinters.TreeToString
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
 import scalafix.patch.TokenPatch
+import scalafix.util.TreeOps
 import scalafix.util.Whitespace
 
 package object syntax {
@@ -87,17 +88,6 @@ package object syntax {
     }
   }
 
-  implicit class XtensionToken(token: Token) {
-    // copy pasted from:
-    // https://github.com/scalameta/scalafmt/blob/ba319e0aaee6d4e1b30098ad57940c67910c33e9/scalafmt-core/shared/src/main/scala/org/scalafmt/util/TokenOps.scala
-    private[scalafix] def hash: Long = {
-      val longHash: Long =
-        (token.productPrefix.hashCode.toLong << (62 - 8)) |
-          (token.start.toLong << (62 - (8 + 28))) | token.end
-      longHash
-    }
-  }
-
   implicit class XtensionSymbol(symbol: Symbol) {
     def underlyingSymbols: Seq[Symbol] = symbol match {
       case Symbol.Multi(symbols) => symbols
@@ -146,6 +136,7 @@ package object syntax {
     def trimSugar: String = str.trim.replaceAllLiterally(".this", "")
   }
   implicit class XtensionTreeScalafix(tree: Tree) {
+    def parents: Stream[Tree] = TreeOps.parents(tree)
     def input: Input = tree.tokens.head.input
     def treeSyntax: String = ScalafixScalametaHacks.resetOrigin(tree).syntax
   }

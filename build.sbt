@@ -170,11 +170,6 @@ lazy val cli = project
     testkit % Test
   )
 
-lazy val publishedArtifacts = Seq(
-  publishLocal in core,
-  publishLocal in cli
-)
-
 lazy val `scalafix-sbt` = project
   .configs(IntegrationTest)
   .settings(
@@ -248,6 +243,7 @@ lazy val testsInput = project
     scalametaSourceroot := sourceDirectory.in(Compile).value,
     scalametaSemanticdb := ScalametaSemanticdb.Fat,
     scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
+    scalacOptions += "-Ywarn-unused-import", // For RemoveUnusedImports
     // TODO: Remove once scala-xml-quote is merged into scala-xml
     resolvers += Resolver.bintrayRepo("allanrenucci", "maven"),
     libraryDependencies ++= testsDeps

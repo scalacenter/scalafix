@@ -8,8 +8,7 @@ import scala.meta.tokens.Token._
 trait Whitespace
 object Whitespace {
   def unapply(token: Token): Boolean = {
-    token.is[Space] || token.is[Tab] || token.is[CR] || token.is[LF] ||
-    token.is[FF]
+    token.is[Space] || token.is[Tab] || token.is[Newline] || token.is[FF]
   }
 }
 
@@ -18,5 +17,13 @@ trait Trivia
 object Trivia {
   def unapply(token: Token): Boolean = {
     token.is[Whitespace] || token.is[Comment]
+  }
+}
+
+@classifier
+trait Newline
+object Newline {
+  def unapply(token: Token): Boolean = {
+    token.is[LF] || token.is[CR]
   }
 }
