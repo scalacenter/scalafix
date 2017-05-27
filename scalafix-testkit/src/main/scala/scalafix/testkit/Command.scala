@@ -7,12 +7,10 @@ case class Command(cmd: String) {
 }
 
 object Command {
+  val enableWarnUnusedImports =
+    Command("set scalacOptions in ThisBuild += \"-Ywarn-unused-import\" ")
   val clean =
     Command("clean")
-  val enableScalafix =
-    Command("set scalafixEnabled in Global := true")
-  val disableScalafix =
-    Command("set scalafixEnabled in Global := false")
   val testCompile =
     Command("test:compile")
   val scalafixTask =

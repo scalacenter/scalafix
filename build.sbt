@@ -170,11 +170,6 @@ lazy val cli = project
     testkit % Test
   )
 
-lazy val publishedArtifacts = Seq(
-  publishLocal in core,
-  publishLocal in cli
-)
-
 lazy val `scalafix-sbt` = project
   .configs(IntegrationTest)
   .settings(

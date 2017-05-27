@@ -7,6 +7,7 @@ import java.io.PrintStream
 import scala.meta._
 import scala.meta.io.AbsolutePath
 import scalafix.rewrite.ProcedureSyntax
+import scalafix.rewrite.ScalafixRewrites
 import caseapp._
 import metaconfig.Conf
 import metaconfig.ConfError
@@ -74,6 +75,8 @@ case class ScalafixOptions(
          |               scala:full.Name OR
          |               https://gist.com/.../Rewrite.scala""".stripMargin
     )
+    @HelpMessage(
+      s"Space separated list of rewrites to run. Available options include ${ScalafixRewrites.semanticNames}")
     rewrites: List[String] = Nil,
     @HelpMessage(
       "Files to fix. Runs on all *.scala files if given a directory")

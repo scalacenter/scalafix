@@ -15,6 +15,7 @@ import scalafix.patch.TokenPatch.Remove
 import scalafix.patch.TreePatch.ImportPatch
 import scalafix.patch.TreePatch.RenamePatch
 import scalafix.patch.TreePatch.Replace
+import scalafix.util.TokenOps
 import difflib.DiffUtils
 import org.scalameta.logger
 
@@ -42,7 +43,7 @@ sealed abstract class Patch {
     else if (isEmpty) other
     else if (other.isEmpty) this
     else Concat(this, other)
-  def ++(other: Seq[Patch]): Patch = other.foldLeft(this)(_ + _)
+  def ++(other: Iterable[Patch]): Patch = other.foldLeft(this)(_ + _)
   def isEmpty: Boolean = this == EmptyPatch
   def nonEmpty: Boolean = !isEmpty
 }
@@ -146,10 +147,10 @@ object Patch {
   private def syntaxApply(ctx: RewriteCtx,
                           patches: Iterable[TokenPatch]): String = {
     val patchMap = patches
-      .groupBy(_.tok.hash)
+      .groupBy(x => TokenOps.hash(x.tok))
       .mapValues(_.reduce(merge).newTok)
     ctx.tokens.toIterator
-      .map(tok => patchMap.getOrElse(tok.hash, tok.syntax))
+      .map(tok => patchMap.getOrElse(TokenOps.hash(tok), tok.syntax))
       .mkString
   }
 
