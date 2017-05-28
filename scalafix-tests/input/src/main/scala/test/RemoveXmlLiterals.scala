@@ -45,28 +45,20 @@ class RemoveXmlLiterals {
   }
 
   object I {
-    <div>{{</div>
+    val a = <div>{{</div>
+    val b = <div>}}</div>
+    // <div b="{{"/> >>> xml"""<div b="{{"/>"""
   }
 
-//  <<< SKIP protect curly brace 2
-//  object J {
-//      <div b="{{"/>
-//  }
-//  >>>
-//  import scala.xml.quote._
-//  object J {
-//    xml"""<div b="{{"/>"""
-//  }
-
-  object K {
+  object J {
     <a>{1}{2}</a>
   }
 
-  object L {
+  object K {
     null match { case <a></a> => }
   }
 
-  object M {
+  object L {
     null match { case <a>{_*}</a> => }
   }
 

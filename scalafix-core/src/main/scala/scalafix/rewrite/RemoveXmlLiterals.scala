@@ -50,15 +50,20 @@ case object RemoveXmlLiterals extends Rewrite {
         }
       }
 
-      /** Substitute {{ by { */
+      /** Substitute {{ by { and }} by } */
       def patchEscapedBraces(tok: Token.Xml.Part) = {
         ctx.reporter.warn(
-          "Single opening braces don't need be escaped with {{ inside the xml interpolator,"
-            + " unlike xml literals. For example <x>{{</x> is identical to xml\"<x>{</x>\"."
-            + " This Rewrite will replace all occurrences of {{. Make sure this is intended.",
+          """Single braces don't need be escaped with {{ and }} inside the xml interpolator, unlike xml literals.
+            |For example <x>{{</x> is identical to xml"<x>{</x>".
+            |This Rewrite will replace all occurrences of {{ and }} . Make sure this is intended.
+          """.stripMargin,
           tok.pos
         )
-        ctx.replaceToken(tok, tok.value.replaceAllLiterally("{{", "{"))
+
+        val patched = tok.value
+          .replaceAllLiterally("{{", "{")
+          .replaceAllLiterally("}}", "}")
+        ctx.replaceToken(tok, patched)
       }
 
       removeSplices(xml.tokens).collect {
@@ -81,7 +86,7 @@ case object RemoveXmlLiterals extends Rewrite {
           var patch = Patch.empty
           if (part.contains('$'))
             patch += ctx.replaceToken(tok, part.replaceAllLiterally("$", "$$"))
-          if (part.contains("{{"))
+          if (part.contains("{{") || part.contains("}}"))
             patch += patchEscapedBraces(tok)
           patch
 
