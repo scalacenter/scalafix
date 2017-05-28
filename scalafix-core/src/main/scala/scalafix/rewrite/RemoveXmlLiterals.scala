@@ -20,7 +20,7 @@ case object RemoveXmlLiterals extends Rewrite {
     object Xml {
       def unapply(tree: Tree): Option[Seq[Lit]] =
         tree match {
-          case Pat.Xml(parts, _) => Some(parts)
+          //case Pat.Xml(parts, _) => Some(parts) // Not stable
           case Term.Xml(parts, _) => Some(parts)
           case _ => None
         }
