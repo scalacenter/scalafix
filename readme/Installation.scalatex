@@ -19,11 +19,8 @@
 
     @ul
       @li
-        @code{sbt scalafix} runs @sect.ref{Rewrites}.
-      @li
-        uses scalafix-nsc, a compiler plugin, to run rewrites during compilation.
-        The compiler plugin is disabled by default, @code{scalafixEnabled in ThisBuild := true}
-        enables the compiler plugin for your entire build.
+        @code{sbt scalafix <Rewrite>} will run @code{<Rewrite>} from
+        @sect.ref{Rewrites}
       @li
         Configuration is read from @code{.scalafix.conf}.
         See @sect.ref{Configuration} for more details on how to customize which rewrites to run.
@@ -50,14 +47,12 @@
           It does not provide access to compilation information such as symbols/types.
           Just create a @code{scalafix.rewrite.Rewrite[Any]} and go!
         @li
-          @code{scala.meta.Mirror}, aka.
-          @lnk("scalameta semantic API",
-               "https://github.com/scalameta/scalameta/blob/master/changelog/1.6.0.md#semantic-api").
-          See @lnk("sbt-semantic-example", "https://github.com/scalameta/sbt-semantic-example")
-          on how to construct a @code{scala.meta.Mirror}.
-          Once you have a @code{Mirror} instance, you can create a
-          @code{scalafix.rewrite.RewriteCtx[Mirror]} for each @code{scala.meta.Source} in
-          @code{scala.meta.Mirror.sources}.
+          Semantic API. This requires a @code{scala.meta.Mirror}, which is an implementation
+          of the
+          @lnk("Scalameta semantic API",
+               "https://github.com/scalameta/scalameta/blob/master/changelog/1.8.0.md").
+          The semantic API can be used with @sect.ref{sbt-scalafix} or
+          @lnk("sbt-scalahost", "https://github.com/scalameta/sbt-semantic-example").
     @p
       Scalafix as a library is still under heavy development.
       Feedback is very welcome.
@@ -85,23 +80,4 @@
       instructions
 
     @hl.scala(Cli.helpMessage)
-
-  @sect{cbt}
-    There is an experimental
-    @lnk("cbt plugin", "https://github.com/cvogt/cbt/blob/fb0c68ffab35db304771e177ce93f80a680fabcc/plugins/scalafix/Scalafix.scala")
-    for scalafix.
-
-  @sect{Pre-release}
-     Our CI infrastructure publishes a pre-release version on every merge into master.
-     These pre-releases make it possible to try out new scalafix features that have
-     not yet been officially released.
-
-     @hl.scala
-       // sbt
-       @bintrayRepo // necessary to resolve pre-release
-       libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@V.nightly" cross CrossVersion.full
-       libraryDependencies += "ch.epfl.scala" % "scalafix-cli" % "@V.nightly" cross CrossVersion.full
-       libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % "@V.nightly" % Test cross CrossVersion.full
-       // cli
-       coursier bootstrap ch.epfl.scala:scalafix-cli_@(V.scalaVersion):@(V.nightly) -r bintray:scalameta/maven -f --main scalafix.cli.Cli -o scalafix
 

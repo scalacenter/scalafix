@@ -25,15 +25,70 @@
 
     @ul
       @li
-        @note. This rewrite is new and may insert an ambiguous type name in rare cases.
-        For example, running ExplicitReturnTypes (as of v0.2.0) on the Scala.js repo
-        did introduce compilation errors.
+        @note. This rewrite inserts fully qualified names, even if the short name
+        is available in scope. Track @issue(169) for updates on making the
+        rewrite insert shorter names.
       @li
-        scalafix tries to minimize the inserted type signature, by using
-        available variable names in scope.
-      @li
-        scalafix will insert the fully qualified type name if the type
-        is not in scope.
+        @note. This rewrite currently only inserts fully qualified names
+        for implicit vals. However, there exists configuration to limit
+        give fine-grained control on how the rewrite works, see
+        @lnk("ExplicitReturnTypesConfig",
+          "https://github.com/scalacenter/scalafix/blob/db6152304aaef19c4a8ba4fc77b732264bf52fec/scalafix-core/src/main/scala/scalafix/config/ExplicitReturnTypesConfig.scala").
+
+
+  @sect(RemoveUnusedImports.toString)
+    This rewrite acts upon "Unused import" warnings emitted by the Scala compiler.
+    See @lnk("slick/slick/pulls#1736", "https://github.com/slick/slick/pull/1736")
+    for an example diff from running @code{sbt "scalafix RemoveUnusedImports"}.
+
+    @p
+      @note. This rewrite does a best-effort at preserving original formatting.
+      In some cases, the rewriten code may be formatted weirdly
+
+      @hl.scala
+        // before
+        import scala.concurrent.{
+          CancellationException,
+          TimeoutException
+        }
+        // after
+        import scala.concurrent.
+
+          TimeoutException
+
+      It's recommended to use a code formatter to clean up missing or superfluous
+      whitespace.
+
+    @p
+      @note. This rewrite is new and has only been tested on a few large projects
+      such as Slick and Scalding. Please report if you hit on buggy behavior.
+
+  @sect(RemoveXmlLiterals.toString)
+    This rewrites replaces XML literals with a @code{xml""} interpolator
+    from @lnk("scala-xml-quote", "https://github.com/densh/scala-xml-quote")
+    project.
+
+    @hl.scala
+      // tries to use single quote when possible
+      <div>{bar}</div>
+      xml"<div>${bar}</div>"
+
+      // multi-line literals get triple quote
+      <div>
+        <span>{"Hello"}</span>
+      </div>
+      xml"""<div>
+        <span>Hello</span>
+      </div>"""
+
+      // skips XML literals in pattern position
+      x match { case <a></a> => }
+      x match { case <a></a> => }
+
+      // replaces escaped {{ with single curly brace {
+      <div>{{</div>
+      xml"<div>{</div>"
+
 
   @sect(ProcedureSyntax.toString)
     "Procedure syntax" is not supported in Dotty.
@@ -133,4 +188,4 @@
       The two syntaxes are equivalent and the presence of the @code{val} keyword has been deprecated since Scala 2.10.
 
   @sect{Planned rewrites...}
-    See @lnk("here", "https://github.com/scalacenter/scalafix/issues?q=is%3Aissue+is%3Aopen+label%3Arewrite")
+    See @lnk("here", "https://github.com/scalacenter/scalafix/labels/rewrite").
