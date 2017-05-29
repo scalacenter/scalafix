@@ -221,7 +221,7 @@ lazy val testkit = project
 
 lazy val testsDeps = List(
   // integration property tests
-  "org.renucci"        %% "scala-xml-quote"    % "0.1.3",
+  "org.renucci"        %% "scala-xml-quote"    % "0.1.4",
   "org.typelevel"      %% "catalysts-platform" % "0.0.5",
   "com.typesafe.slick" %% "slick"              % "3.2.0-M2",
   "com.chuusai"        %% "shapeless"          % "2.3.2",

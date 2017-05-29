@@ -43,15 +43,21 @@ class RemoveXmlLiterals {
   }
 
   object I {
-    xml"<div>{</div>"
+    val a = xml"<div>{</div>"
+    val b = xml"<div>}</div>"
+    // <div b="{{"/> >>> xml"""<div b="{{"/>"""
   }
 
   object J {
-    xml"""<div b="{"/>"""
+    xml"<a>${1}${2}</a>"
   }
 
   object K {
-    xml"<a>${1}${2}</a>"
+    null match { case <a></a> => }
+  }
+
+  object L {
+    null match { case <a>{_*}</a> => }
   }
 
 }
