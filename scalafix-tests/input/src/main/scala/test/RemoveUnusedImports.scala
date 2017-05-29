@@ -16,6 +16,11 @@ import scala.concurrent.{ // formatting caveat
   ExecutionException,
   TimeoutException
 }
+//import scala.concurrent.{
+//    CancellationException
+//  , ExecutionException
+//  , TimeoutException // ERROR
+//}
 
 object RemoveUnusedImports {
   import Future._

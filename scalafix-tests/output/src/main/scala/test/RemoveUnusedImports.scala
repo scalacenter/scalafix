@@ -11,6 +11,11 @@ import scala.concurrent. // formatting caveat
 
   TimeoutException
 
+//import scala.concurrent.{
+//    CancellationException
+//  , ExecutionException
+//  , TimeoutException // ERROR
+//}
 
 object RemoveUnusedImports {
   val NonFatal(a) = new Exception
