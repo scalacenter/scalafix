@@ -1,0 +1,99 @@
+@import Main._
+@import scalafix.Readme._
+@import scalafix.Versions
+
+@sect{0.4.0}
+  NOTE. Has not been released yet, this changelog is a work-in-progress.
+  @p
+    This release is almost a full re-write amount of changes from the 0.3.x series.
+    A majority of the codebase has been rewritten to take full advantage
+    of the latest @lnk("Scalameta semantic API", "https://github.com/scalameta/scalameta/blob/master/changelog/1.8.0.md").
+    The changes affect all Scalafix modules: core (patch, rewrite api), command
+    line interface and sbt plugin.
+
+  @h4{New features}
+
+  @ul
+    @li
+
+
+
+  @h4{Breaking changes}
+
+  @ul
+    @li
+      The @code{scalafix-nsc} compiler plugin has been removed in favor of
+      the @lnk("Scalameta Semantic DB", "https://github.com/scalameta/scalameta/blob/master/changelog/1.8.0.md#semantic-db"),
+      that is emitted by the Scalameta @code{scalahost} compiler plugin.
+      This change enables Scalafix rewrites to run separately from compilation.
+      This means that running scalafix will be much faster, since it no longer
+      requires creating a custom instance of the Scala compiler and re-typechecking
+      an entire project. Scalafix reads all of its inputs from @code{.semanticdb}
+      files that are created by the scalahost compiler plugin during regular compilation.
+    @li
+      The signature of @code{Rewrite.rewrite} has been simplified
+      @hl.scala
+        // before
+        def rewrite[T](ctx: RewriteCtx[T]): Seq[Patch]
+        // after
+        def rewrite(ctx: RewriteCtx): Patch
+
+        // a Seq[Patch] can be converted into Patch with .asPatch
+        Seq[Patch]().asPatch: Patch
+    @li
+      @code{RewriteCtx.mirror} has been removed. To write semantic rewrites,
+      accept the @code{Mirror} as a constructor parameter instead
+      @hl.scala
+        // before
+        case object MySemanticRewrite extends Rewrite {
+          def rewrite[T](ctx: RewriteCtx[T]): Seq[Patch]
+        }
+        // after
+        case class MySemanticRewrite(mirror: Mirror) extends SemanticRewrite(mirror) {
+          def rewrite(ctx: RewriteCtx): Patch
+        }
+    @li
+      @code{scalafix.patch.TreePatch.{AddGlobalImport, RemoveGlobalImport, Replace, ...}}
+      have been made @code{private[scalafix]}. Instead, use the provided operations
+      on @code{ctx: RewriteCtx}.
+
+
+      @hl.scala
+        // before
+        TokenPatch.AddGlobalImport(importer"scala.meta._")
+
+        // after
+        ctx.addGlobalImport(importer"scala.meta._")
+
+      The motivation for this change was to statically enforce that a @code{Mirror}
+      is in scope during Patch creation.
+      For the full available API of patch operations, see
+      @lnk("SemanticPatchOps",
+        "https://github.com/scalacenter/scalafix/blob/db6152304aaef19c4a8ba4fc77b732264bf52fec/scalafix-core/src/main/scala/scalafix/rewrite/SemanticPatchOps.scala")
+    @li
+      The following configuration options have been removed
+      @hl.scala
+        imports.removeUnusedImports // replaced by RemoveUnusedImports rewrite.
+        imports.organizeImports
+        imports.expandRelative
+        imports.groupByPrefix
+    @li
+      scalafix-cli now enabled the @code{--in-place (-i)} flag by default.
+      Use @code{--stdout} to print to standard output.
+    @li
+      scalafix-testkit no longer reads tests from @code{.source} files.
+      Instead, tests are written in regular @code{.scala} files that are
+      compiled through sbt or another build tool.
+      See @sect.ref{scalafix-testkit} for how to use it.
+
+  @code{git shortlog -sn --no-merges v0.3.0..v0.4.0} tells us that 4 people
+  contributed to this release:
+  @ul
+    @li
+      Ólafur Páll Geirsson
+    @li
+      Gabriele Petronella
+    @li
+      Allan Renucci
+    @li
+      Matthias Langer

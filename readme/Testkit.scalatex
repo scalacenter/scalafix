@@ -10,11 +10,57 @@
     semantic scalafix rewrites.
 
   @p
-    @b{Note.} Scalafix-testkit is a new module under active development and
-    is currently only available as a pre-release version. To depend on
-    scalafix-testkit
+    @b{Note.} Scalafix-testkit is a new module under active development
+    will be included in the next 0.4 release. The following instructions
+    may be incomplete. For any questions, don't hesitate to ask on @gitter
+
+
+  @p
+    To use scalafix-testkit
 
     @hl.scala
       @bintrayRepo
-      libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % "@V.nightly" % Test cross CrossVersion.full
+      libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % "@V.stable" % Test cross CrossVersion.full
+
+  @p
+    The following instructions assume you are using sbt.
+    However, scalafix-testkit can be used with any build tool. Please
+    ask on the Gitter channel for help on setting up scalafix-testkit  with another build tool.
+
+  @p
+    You will need three projects to run scalafix-testkit.
+    @hl.scala
+      // project/plugins.sbt
+      addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.6.1")
+      addSbtPlugin("org.scalameta" % "sbt-scalahost" % @V.scalameta)
+      // build.sbt
+      lazy val testsInput = project.in(file("scalafix/input"))
+      lazy val testsExpectedOutput = project.in(file("scalafix/output"))
+      lazy val tests = project
+        .in(file("scalafix/tests"))
+        .settings(
+          libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % "@V.stable" % Test cross CrossVersion.full,
+           buildInfoPackage := "scalafix.tests",
+           buildInfoObject := "BuildInfo",
+           buildInfoKeys := Seq[BuildInfoKey](
+             "inputSourceroot" ->
+               sourceDirectory.in(testsInput, Compile).value,
+             "outputSourceroot" ->
+               sourceDirectory.in(testsExpectedOutput, Compile).value,
+             "mirrorClasspath" -> classDirectory.in(testsInput, Compile).value
+           )
+        )
+        .dependsOn(testsInput % Scalameta)
+
+    Then glue everything together in a test suite like this
+
+    @hl.ref(wd/"scalafix-tests"/"unit"/"src"/"test"/"scala"/"scalafix"/"tests"/"SemanticTests.scala")
+
+  @p
+    For a full working example, see the
+    @lnk("scalafix repo", "https://github.com/scalacenter/scalafix").
+
+
+
+
 

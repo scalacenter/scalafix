@@ -8,7 +8,6 @@ import scalafix.patch.TokenPatch._
 import scala.util.Try
 import scalafix.rewrite.RewriteCtx
 import scalafix.patch.TreePatch.AddGlobalImport
-import scalafix.patch.TreePatch.Rename
 
 import org.scalameta.logger
 
@@ -64,17 +63,7 @@ object Renamer {
       implicit ctx: RewriteCtx,
       mirror: Mirror): Seq[TokenPatch] = {
     if (renamePatches.isEmpty) return Nil
-    val renames = renamePatches.collect { case r: Rename => r }
     val renameSymbols = renamePatches.collect { case r: RenameSymbol => r }
-    object MatchingRename {
-      def unapply(arg: Name): Option[(Token, Name)] =
-        if (renames.isEmpty) None
-        else
-          for {
-            rename <- renames.find(_.from eq arg)
-            tok <- arg.tokens.headOption
-          } yield tok -> rename.to
-    }
     object MatchingRenameSymbol {
       def unapply(arg: Name): Option[(Token, Name)] =
         if (renameSymbols.isEmpty) None
@@ -85,14 +74,8 @@ object Renamer {
             tok <- arg.tokens.headOption
           } yield tok -> rename.to
     }
-    object ToRename {
-      def unapply(arg: Name): Option[(Token, Name)] =
-        MatchingRename
-          .unapply(arg)
-          .orElse(MatchingRenameSymbol.unapply(arg))
-    }
     ctx.tree.collect {
-      case ToRename(tok, to) =>
+      case MatchingRenameSymbol(tok, to) =>
         Seq(
           Remove(tok),
           TokenPatch.Add(tok, to.syntax, "")
