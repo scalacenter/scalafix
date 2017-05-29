@@ -17,7 +17,6 @@ import scalafix.patch.TreePatch.RenamePatch
 import scalafix.patch.TreePatch.Replace
 import scalafix.util.TokenOps
 import difflib.DiffUtils
-import org.scalameta.logger
 
 /** A data structure that can produce a .patch file.
   *
@@ -77,7 +76,6 @@ private[scalafix] object TokenPatch {
 abstract class TreePatch extends Patch
 private[scalafix] object TreePatch {
   trait RenamePatch
-  case class Rename(from: Name, to: Name) extends TreePatch with RenamePatch
   case class RenameSymbol(from: Symbol, to: Name, normalize: Boolean = false)
       extends TreePatch
       with RenamePatch {

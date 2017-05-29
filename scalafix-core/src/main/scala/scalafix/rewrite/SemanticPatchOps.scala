@@ -16,7 +16,8 @@ class SyntacticPatchOps(ctx: RewriteCtx) {
     Add(token, "", toReplace, keepTok = false)
   def removeTokens(tokens: Tokens): Patch = PatchOps.removeTokens(tokens)
   def removeToken(token: Token): Patch = Add(token, "", "", keepTok = false)
-  def rename(from: Name, to: Name): Patch = Rename(from, to)
+  def rename(from: Name, to: Name): Patch =
+    Add(ctx.toks(from).head, "", to.value, keepTok = false)
   def addRight(tok: Token, toAdd: String): Patch = Add(tok, "", toAdd)
   def addLeft(tok: Token, toAdd: String): Patch = Add(tok, toAdd, "")
 }
