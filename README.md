@@ -1,7 +1,7 @@
 scalafix
 [![Latest version](https://index.scala-lang.org/scalacenter/scalafix/scalafix-core/latest.svg)](https://index.scala-lang.org/scalacenter/scalafix/scalafix-core)
-[![Build Status](https://platform-ci.scala-lang.org/api/badges/scalacenter/scalafix/status.svg)](https://platform-ci.scala-lang.org/scalacenter/scalafix)
-[![Join the chat at https://gitter.im/scalacenter/scalafix](https://badges.gitter.im/scalacenter/scalafix.svg)](https://gitter.im/scalacenter/scalafix?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.org/scalacenter/scalafix.svg?branch=master)](https://travis-ci.org/scalacenter/scalafix)
+[![Join the chat at https://gitter.im/scalacenter/scalafix](https://badges.gitter.im/scalacenter/scalafix.svg)](https://gitter.im/scalacenter/scalafix)
 ========
 
 Rewrite tool to prepare Scala 2.x code for [Dotty](http://dotty.epfl.ch).

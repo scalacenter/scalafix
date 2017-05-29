@@ -3,4 +3,50 @@
 @import scalafix.Versions
 
 @sect{0.4.0}
-  asdfa
+  This release is almost a full re-write amount of changes from the 0.3.x series.
+  A majority of the codebase has been rewritten to take full advantage
+  of the latest @lnk("Scalameta semantic API", "https://github.com/scalameta/scalameta/blob/master/changelog/1.8.0.md").
+  The changes affect all Scalafix modules: core (patch, rewrite api), command
+  line interface and sbt plugin.
+
+  @ul
+    @li
+      The @code{scalafix-nsc} compiler plugin has been removed in favor of
+      the @lnk("Scalameta Semantic DB", "https://github.com/scalameta/scalameta/blob/master/changelog/1.8.0.md#semantic-db"),
+      that is emitted by the Scalameta @code{scalahost} compiler plugin.
+      This change enables Scalafix rewrites to run separately from compilation.
+      This means that running scalafix will be much faster, since it no longer
+      requires creating a custom instance of the Scala compiler and re-typechecking
+      an entire project. Scalafix reads all of its inputs from @code{.semanticdb}
+      files that are created by the scalahost compiler plugin during regular compilation.
+    @li
+      The signature of @code{Rewrite.rewrite} has been simplified
+      @hl.scala
+        // before
+        def rewrite[T](ctx: RewriteCtx[T]): Seq[Patch]
+        // after
+        def rewrite(ctx: RewriteCtx): Patch
+    @li
+      @code{RewriteCtx.mirror} has been removed. To write semantic rewrites,
+      accept the @code{Mirror} as a constructor parameter instead
+      @hl.scala
+        // before
+        def rewrite[T](ctx: RewriteCtx[T]): Seq[Patch]
+        // after
+        def rewrite(ctx: RewriteCtx): Patch
+    @li
+      @code{scalafix.patch.TreePatch.{AddGlobalImport, RemoveGlobalImport, Replace, ...}
+      have been made @code{private[scalafix]}. Instead, use the provided operations
+      on @code{ctx: RewriteCtx}.
+
+  @code{git shortlog -sn --no-merges v0.3.0..v0.4.0} tells us that 4 people
+  contributed to this release:
+  @ul
+    @li
+      Ólafur Páll Geirsson
+    @li
+      Gabriele Petronella
+    @li
+      Allan Renucci
+    @li
+      Matthias Langer
