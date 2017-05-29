@@ -56,7 +56,9 @@ abstract class TokenPatch(val tok: Token, val newTok: String)
     extends Patch
     with LowLevelPatch {
   override def toString: String =
-    s"TokenPatch.${this.getClass.getSimpleName}(${tok.syntax.revealWhiteSpace}, ${tok.structure}, $newTok)"
+    if (newTok.isEmpty) s"TokenPatch.Remove(${tok.structure.revealWhiteSpace})"
+    else
+      s"TokenPatch.${this.getClass.getSimpleName}(${tok.syntax.revealWhiteSpace}, ${tok.structure}, $newTok)"
 }
 private[scalafix] object TokenPatch {
   case class Remove(override val tok: Token) extends TokenPatch(tok, "")
