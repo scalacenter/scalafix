@@ -3,20 +3,31 @@
 @import scalafix.Versions
 
 @sect{0.4.0}
-  NOTE. Has not been released yet, this changelog is a work-in-progress.
+  NOTE. This version has not been released yet, this changelog is a work-in-progress.
   @p
-    This release is almost a full re-write amount of changes from the 0.3.x series.
-    A majority of the codebase has been rewritten to take full advantage
-    of the latest @lnk("Scalameta semantic API", "https://github.com/scalameta/scalameta/blob/master/changelog/1.8.0.md").
-    The changes affect all Scalafix modules: core (patch, rewrite api), command
-    line interface and sbt plugin.
+    This release is almost a full rewrite of the 0.3 Scalafix codebase.
+    The main motivation for this change is to take full advantage
+    of what the @lnk("Scalameta semantic API", "https://github.com/scalameta/scalameta/blob/master/changelog/1.8.0.md")
+    offers.
 
   @h4{New features}
 
   @ul
     @li
-
-
+      New rewrite @sect.ref{RemoveUnusedImports}, by @user{olafurpg}.
+    @li
+      New rewrite @sect.ref{RemoveXmlLiterals}, by @user{allanrenucci}.
+    @li
+      New rewrite @sect.ref{NoAutoTupling}, by @user{gabro}.
+    @li
+      New rewrite @sect.ref{ExplicitUnit}, by @user{gabro}.
+    @li
+      Improved @sect.ref{scalafix-testkit}, by @user{olafurpg}.
+    @li
+      Cleaned up @code{Patch} API. TODO(olafur) document.
+    @li
+      All the latest improvements in the
+      @lnk("Scalameta Semantic API", "https://github.com/scalameta/scalameta/blob/master/changelog/1.8.0.md").
 
   @h4{Breaking changes}
 
