@@ -53,8 +53,10 @@ object ImportPatchOps {
         .toSet
     val curlyBraceRemoves = allImporters.map { importer =>
       val keptImportees = importer.importees.filterNot(isRemovedImportee)
+      val hasRemovedImportee = importer.importees.exists(isRemovedImportee)
       keptImportees match {
-        case (Importee.Wildcard() | Importee.Name(_)) +: Nil =>
+        case (Importee.Wildcard() | Importee.Name(_)) +: Nil
+            if hasRemovedImportee =>
           ctx
             .toks(importer)
             .collectFirst {
@@ -70,34 +72,43 @@ object ImportPatchOps {
         case _ => Patch.empty
       }
     }
+    // NOTE: keeps track of which comma is removed by which tree to prevent the
+    // same comma being removed twice.
+    val isRemovedComma = mutable.Map.empty[Token.Comma, Tree]
     val isRemovedImport =
       allImports.filter(_.importers.forall(isRemovedImporter))
     def remove(toRemove: Tree) = {
       val tokens = ctx.toks(toRemove)
-      def removeFirstComma(lst: Iterable[Token]) =
+      def removeFirstComma(lst: Iterable[Token]) = {
         lst
           .takeWhile {
             case Token.Space() => true
-            case Token.Comma() => true
+            case comma @ Token.Comma() =>
+              if (!isRemovedComma.contains(comma)) {
+                isRemovedComma(comma) = toRemove
+              }
+              true
             case _ => false
           }
           .map(ctx.removeToken(_))
+      }
       val leadingComma =
-        removeFirstComma(ctx.tokenList.to(tokens.head))
+        removeFirstComma(ctx.tokenList.leading(tokens.head))
       val hadLeadingComma = leadingComma.exists {
-        case TokenPatch.Add(_: Token.Comma, _, _, keepTok @ false) => true
+        case TokenPatch.Add(comma: Token.Comma, _, _, keepTok @ false) =>
+          isRemovedComma.get(comma).contains(toRemove)
         case _ => false
       }
       val trailingComma =
         if (hadLeadingComma) List(Patch.empty)
-        else removeFirstComma(ctx.tokenList.from(tokens.last))
+        else removeFirstComma(ctx.tokenList.trailing(tokens.last))
       PatchOps.removeTokens(tokens) ++ trailingComma ++ leadingComma
     }
 
     val leadingNewlines = isRemovedImport.map { i =>
       var newline = false
       ctx.tokenList
-        .to(ctx.toks(i).head)
+        .leading(ctx.toks(i).head)
         .takeWhile(x =>
           !newline && {
             x.is[Token.Space] || {
