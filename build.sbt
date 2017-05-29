@@ -336,38 +336,6 @@ lazy val readme = scalatex
   )
   .dependsOn(core, cli)
 
-// Injects necessary paths into system properties to build a scalac global in tests.
-def exposePaths(projectName: String,
-                config: Configuration): Seq[Def.Setting[_]] = {
-  def uncapitalize(s: String) =
-    if (s.length == 0) ""
-    else {
-      val chars = s.toCharArray; chars(0) = chars(0).toLower; new String(chars)
-    }
-  val prefix = "sbt.paths." + projectName + "." + uncapitalize(config.name) + "."
-  Seq(
-    sourceDirectory in config := {
-      val defaultValue = (sourceDirectory in config).value
-      System.setProperty(prefix + "sources", defaultValue.getAbsolutePath)
-      defaultValue
-    },
-    resourceDirectory in config := {
-      val defaultValue = (resourceDirectory in config).value
-      System.setProperty(prefix + "resources", defaultValue.getAbsolutePath)
-      defaultValue
-    },
-    fullClasspath in config := {
-      val defaultValue = (fullClasspath in config).value
-      val classpath = defaultValue.files.map(_.getAbsolutePath)
-      val scalaLibrary = classpath.find(_.contains("scala-library")).get
-      System.setProperty("sbt.paths.scalalibrary.classes", scalaLibrary)
-      System.setProperty(prefix + "classes",
-                         classpath.mkString(java.io.File.pathSeparator))
-      defaultValue
-    }
-  )
-}
-
 lazy val isFullCrossVersion = Seq(
   crossVersion := CrossVersion.full
 )
