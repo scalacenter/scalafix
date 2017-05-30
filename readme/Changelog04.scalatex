@@ -4,10 +4,12 @@
 
 @sect{0.4.0}
   @p
-    This release is almost a full rewrite of the v0.3 Scalafix codebase.
-    The main motivation for this change is to take full advantage
-    of what the @lnk("Scalameta semantic API", "https://github.com/scalameta/scalameta/blob/master/changelog/1.8.0.md")
-    offers.
+    This release represents a significant milestone for Scalafix.
+    Scalafix no longer runs as a compiler plugin as it did in previous releases.
+    Instead, Scalafix runs now independently from the compiler, and uses the
+    @lnk("Scalameta Semantic API",
+         "https://github.com/scalameta/scalameta/blob/master/changelog/1.8.0.md")
+    to query information from the compiler.
 
   @h4{New features}
 
