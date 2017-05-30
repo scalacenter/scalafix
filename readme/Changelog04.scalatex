@@ -3,20 +3,37 @@
 @import scalafix.Versions
 
 @sect{0.4.0}
-  NOTE. Has not been released yet, this changelog is a work-in-progress.
+  NOTE. This version has not been released yet, this changelog is a work-in-progress.
   @p
-    This release is almost a full re-write amount of changes from the 0.3.x series.
-    A majority of the codebase has been rewritten to take full advantage
-    of the latest @lnk("Scalameta semantic API", "https://github.com/scalameta/scalameta/blob/master/changelog/1.8.0.md").
-    The changes affect all Scalafix modules: core (patch, rewrite api), command
-    line interface and sbt plugin.
+    This release is almost a full rewrite of the 0.3 Scalafix codebase.
+    The main motivation for this change is to take full advantage
+    of what the @lnk("Scalameta semantic API", "https://github.com/scalameta/scalameta/blob/master/changelog/1.8.0.md")
+    offers.
 
   @h4{New features}
 
   @ul
     @li
-
-
+      New rewrite @sect.ref{RemoveUnusedImports}, by @user{olafurpg}.
+    @li
+      New rewrite @sect.ref{RemoveXmlLiterals}, by @user{allanrenucci}.
+    @li
+      New rewrite @sect.ref{NoAutoTupling}, by @user{gabro}.
+    @li
+      New rewrite @sect.ref{ExplicitUnit}, by @user{gabro}.
+    @li
+      New @sect.ref{github:} protocol for loading rewrites, by @user{gabro}.
+    @li
+      Improved @sect.ref{scalafix-testkit}, by @user{olafurpg}.
+    @li
+      Simplified Rewrite API. The public API has shrunk down to
+      four types: @code{Rewrite}, @code{Patch}, @code{ScalafixConfig} and
+      @code{RewriteCtx}. The type parameters on @code{Rewrite} and @code{RewriteCtx}
+      have been removed. A single @code{import scalafix._} is enough get
+      started with rewrites.
+    @li
+      See the
+      @lnk("Scalameta Semantic API", "https://github.com/scalameta/scalameta/blob/master/changelog/1.8.0.md").
 
   @h4{Breaking changes}
 
@@ -74,6 +91,8 @@
       The following configuration options have been removed
       @hl.scala
         imports.removeUnusedImports // replaced by RemoveUnusedImports rewrite.
+
+        // These were wishful thinking, too eagerly merged.
         imports.organizeImports
         imports.expandRelative
         imports.groupByPrefix

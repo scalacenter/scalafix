@@ -19,6 +19,7 @@ import scala.util.Success
 import scala.util.Try
 import scala.util.control.NonFatal
 import scalafix.cli.termdisplay.TermDisplay
+import scalafix.config.Class2Hocon
 import scalafix.config.MetaconfigPendingUpstream._
 import scalafix.config.PrintStreamReporter
 import scalafix.config.ScalafixConfig
@@ -136,7 +137,7 @@ object CliRunner {
               |Database:
               |$database
               |Config:
-              |$config
+              |${Class2Hocon(config)}
               |Rewrite:
               |$config
               |""".stripMargin

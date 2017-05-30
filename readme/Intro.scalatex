@@ -20,7 +20,13 @@
 
   @ul
     @li
-      October 24 2016: Read the v0.1 release announcement @br @lnk{http://www.scala-lang.org/blog/2016/10/24/scalafix.html}
+      May 3rd 2017: Move fast and refactor with scalafix: @br @lnk("https://vimeo.com/channels/flatmap2017/216469977").
     @li
-      December 12 2016: See the talk about scalafix at Scala eXchange (requires login) @lnk{https://skillsmatter.com/skillscasts/9117-smooth-migrations-to-dotty-with-scalafix#video}
+      March 2nd 2017: Refactoring with scalafix and scalameta: @br @lnk("https://www.youtube.com/watch?v=7I18pJ6orrI").
+    @li
+      February 27 2017: Refactor with scalafix v0.3: @br @lnk{http://www.scala-lang.org/blog/2017/02/27/scalafix-v0.3.html}.
+    @li
+      December 12 2016: See the talk about scalafix at Scala eXchange (requires login) @lnk{https://skillsmatter.com/skillscasts/9117-smooth-migrations-to-dotty-with-scalafix#video}.
+    @li
+      October 24 2016: Read the v0.1 release announcement @br @lnk{http://www.scala-lang.org/blog/2016/10/24/scalafix.html}.
 
