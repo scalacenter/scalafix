@@ -2,13 +2,14 @@ package scalafix
 package testkit
 
 import scala.meta._
+import org.scalameta.logger
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 
 abstract class SemanticRewriteSuite(
     val mirror: Database,
     val inputSourceroot: AbsolutePath,
-    val expectedOutputSourceroot: AbsolutePath
+    val expectedOutputSourceroot: Seq[AbsolutePath]
 ) extends FunSuite
     with DiffAssertions
     with BeforeAndAfterAll { self =>
@@ -27,7 +28,19 @@ abstract class SemanticRewriteSuite(
       }
       val expected =
         new String(
-          expectedOutputSourceroot.resolve(diffTest.filename).readAllBytes)
+          expectedOutputSourceroot
+            .map(_.resolve(diffTest.filename))
+            .find(_.isFile)
+            .map(_.readAllBytes)
+            .getOrElse {
+              val tried = expectedOutputSourceroot
+                .map(_.resolve(diffTest.filename))
+                .mkString("\n")
+              sys.error(
+                s"""Missing expected output file for test ${diffTest.filename}. Tried:
+                   |$tried""".stripMargin)
+            }
+        )
       assertNoDiff(obtained, expected)
     }
   }

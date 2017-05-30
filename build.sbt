@@ -260,6 +260,17 @@ lazy val testsOutput = project
   )
   .dependsOn(testsShared)
 
+lazy val testsOutputDotty = project
+  .in(file("scalafix-tests/output-dotty"))
+  .settings(
+    allSettings,
+    noPublish,
+    scalaVersion := "0.1.1-bin-20170530-f8f52cc-NIGHTLY",
+    libraryDependencies := libraryDependencies.value.map(_.withDottyCompat()),
+    scalacOptions := Nil
+  )
+  .disablePlugins(ScalahostSbtPlugin)
+
 lazy val unit = project
   .in(file("scalafix-tests/unit"))
   .settings(
@@ -282,6 +293,8 @@ lazy val unit = project
         sourceDirectory.in(testsInput, Compile).value,
       "outputSourceroot" ->
         sourceDirectory.in(testsOutput, Compile).value,
+      "outputDottySourceroot" ->
+        sourceDirectory.in(testsOutputDotty, Compile).value,
       "testsInputResources" -> resourceDirectory.in(testsInput, Compile).value,
       "mirrorClasspath" -> classDirectory.in(testsInput, Compile).value
     ),
