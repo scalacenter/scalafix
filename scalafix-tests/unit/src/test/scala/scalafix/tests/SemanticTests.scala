@@ -7,7 +7,10 @@ class SemanticTests
     extends SemanticRewriteSuite(
       Database.load(Classpath(AbsolutePath(BuildInfo.mirrorClasspath))),
       AbsolutePath(BuildInfo.inputSourceroot),
-      AbsolutePath(BuildInfo.outputSourceroot)
+      Seq(
+        AbsolutePath(BuildInfo.outputSourceroot),
+        AbsolutePath(BuildInfo.outputDottySourceroot)
+      )
     ) {
   runAllTests()
 }
