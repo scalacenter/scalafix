@@ -23,6 +23,8 @@
     @li
       New rewrite @sect.ref{ExplicitUnit}, by @user{gabro}.
     @li
+      New rewrite @sect.ref{NoValInForComprehension}, by @user{gabro}.
+    @li
       New @sect.ref{github:} protocol for loading rewrites, by @user{gabro}.
     @li
       Improved @sect.ref{scalafix-testkit}, by @user{olafurpg}.
