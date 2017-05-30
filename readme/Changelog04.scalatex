@@ -22,11 +22,17 @@
     @li
       New rewrite @sect.ref{ExplicitUnit}, by @user{gabro}.
     @li
+      New @sect.ref{github:} protocol for loading rewrites, by @user{gabro}.
+    @li
       Improved @sect.ref{scalafix-testkit}, by @user{olafurpg}.
     @li
-      Cleaned up @code{Patch} API. TODO(olafur) document.
+      Simplified Rewrite API. The public API has shrunk down to
+      four types: @code{Rewrite}, @code{Patch}, @code{ScalafixConfig} and
+      @code{RewriteCtx}. The type parameters on @code{Rewrite} and @code{RewriteCtx}
+      have been removed. A single @code{import scalafix._} is enough get
+      started with rewrites.
     @li
-      All the latest improvements in the
+      See the
       @lnk("Scalameta Semantic API", "https://github.com/scalameta/scalameta/blob/master/changelog/1.8.0.md").
 
   @h4{Breaking changes}
@@ -85,6 +91,8 @@
       The following configuration options have been removed
       @hl.scala
         imports.removeUnusedImports // replaced by RemoveUnusedImports rewrite.
+
+        // These were wishful thinking, too eagerly merged.
         imports.organizeImports
         imports.expandRelative
         imports.groupByPrefix

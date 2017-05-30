@@ -18,21 +18,41 @@
         rewrites = [ProcedureSyntax] # No rewrites are run if empty.
 
     @sect{Custom rewrites}
-      @config
-        rewrites = [
-          "file:readme/MyRewrite.scala" // from local file
-          // from url
-          "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/80218434edb85120a9c6fd6533a4418118de8ba7/ExampleRewrite.scala"
-          // from fully qualified name on classpath
-          "scala:scalafix.rewrite.ProcedureSyntax"
-        ]
+      Scalafix supports loading rewrites from a few different
+      URI protocols.
+
+      @sect{scala:}
+        If a rewrites is on the classpath, you can classload it with the
+        @code{scala:} protocol.
+        @config
+          rewrite = "scala:scalafix.rewrite.ProcedureSyntax"
+
+      @sect{file:}
+        If a rewrites is written in a single file on disk, you can load it
+        with the @code{file:} protocol.
+        @config
+          rewrite = "file:readme/MyRewrite.scala" // from local file
+
+      @sect{http:}
+        If a rewrite is written in a single source file on the internet,
+        you can load it with the @code{https:} or @code{http:} protocol
+        @config
+          rewrite = "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/80218434edb85120a9c6fd6533a4418118de8ba7/ExampleRewrite.scala"
+
+      @sect{github:}
+        If a rewrite is written in a single file and you want a short syntax,
+        you can use the @code{github:} protocol for sharing your rewrite
+
+        @hl.scala
+          // expands into @githubSyntax("org/repo/1.0.0")
+          rewrite = "github:org/repo/1.0.0"
 
   @sect{patches}
     For simple use-cases, it's possible to write custom rewrites directly
     .scalafix.conf.
     @config
       patches.removeGlobalImports = [
-        "scala.collection.mutable" # scala.meta.Importee
+        "scala.collection.mutable" // scala.meta.Importee
       ]
       patches.addGlobalImports = [
         "scala.collection.immutable"

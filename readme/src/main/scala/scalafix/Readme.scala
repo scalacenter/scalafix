@@ -32,4 +32,8 @@ object Readme {
       .get
     highlight.scala(str)
   }
+  def githubSyntax(path: String) =
+    reflect.ScalafixCompilerDecoder.GitHubUrlRewrite
+      .unapply(Conf.Str(s"github:$path"))
+      .get
 }
