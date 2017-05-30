@@ -3,9 +3,8 @@
 @import scalafix.Versions
 
 @sect{0.4.0}
-  NOTE. This version has not been released yet, this changelog is a work-in-progress.
   @p
-    This release is almost a full rewrite of the 0.3 Scalafix codebase.
+    This release is almost a full rewrite of the v0.3 Scalafix codebase.
     The main motivation for this change is to take full advantage
     of what the @lnk("Scalameta semantic API", "https://github.com/scalameta/scalameta/blob/master/changelog/1.8.0.md")
     offers.
