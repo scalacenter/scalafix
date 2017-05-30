@@ -78,7 +78,7 @@
         <span>{"Hello"}</span>
       </div>
       xml"""<div>
-        <span>Hello</span>
+        <span>${"Hello"}</span>
       </div>"""
 
       // skips XML literals in pattern position
