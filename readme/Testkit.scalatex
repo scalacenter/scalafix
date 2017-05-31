@@ -35,6 +35,7 @@
       addSbtPlugin("org.scalameta" % "sbt-scalahost" % "@V.scalameta")
       // build.sbt
       lazy val testsInput = project.in(file("scalafix/input"))
+        .settings(scalametaSourceroot := sourceDirectory.in(Compile).value)
       lazy val testsExpectedOutput = project.in(file("scalafix/output"))
       lazy val tests = project
         .in(file("scalafix/tests"))
@@ -52,13 +53,41 @@
         )
         .dependsOn(testsInput % Scalameta)
 
-    Then glue everything together in a test suite like this
+    Then glue everything together in a test suite like this.
 
-    @hl.ref(wd/"scalafix-tests"/"unit"/"src"/"test"/"scala"/"scalafix"/"tests"/"SemanticTests.scala")
+    @hl.scala
+      //scalafix/tests/src/test/scala/SemanticTests.scala
+      package scalafix.tests
+
+      import scala.meta._
+      import scalafix.testkit._
+
+      class SemanticTests
+        extends SemanticRewriteSuite(
+          Database.load(Classpath(AbsolutePath(BuildInfo.mirrorClasspath))),
+          AbsolutePath(BuildInfo.inputSourceroot),
+          Seq(
+            AbsolutePath(BuildInfo.outputSourceroot)
+          )
+        ) {
+        runAllTests()
+      }
+
+
+    Specify scalafix configuration inside comment at top of file like this.
+
+    @hl.ref(wd/"scalafix-tests"/"input"/"src"/"main"/"scala"/"test"/"VolatileLazyVal.scala")
+
+    And then testkit checks if rewritten codes match the one in output.
+
+    @hl.ref(wd/"scalafix-tests"/"output"/"src"/"main"/"scala"/"test"/"VolatileLazyVal.scala")
 
   @p
     For a full working example, see the
     @lnk("scalafix repo", "https://github.com/scalacenter/scalafix").
+
+  @p
+    @b{Note:} this working example specifies an extra output directory for @b{dotty}. Please check it out. :)
 
 
 
