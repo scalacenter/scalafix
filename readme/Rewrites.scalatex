@@ -139,6 +139,16 @@
       Such members already have a return type of @code{Unit} and sometimes this is unexpected.
       Adding an explicit return type makes it more obvious.
 
+  @sect(DottyVarArgPattern.toString)
+    @p
+      Replaces @code{@@} symbols in VarArg patterns with a colon (@code{:}). See @lnk{http://dotty.epfl.ch/docs/reference/changed/vararg-patterns.html}
+
+    @hl.scala
+      // before
+      case List(1, 2, xs @@ _*)
+      // after
+      case List(1, 2, xs : _*)
+
   @sect(NoAutoTupling.toString)
     @p
       Adds explicit tuples around argument lists where auto-tupling is occurring.
