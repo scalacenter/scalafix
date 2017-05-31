@@ -32,7 +32,7 @@
     @hl.scala
       // project/plugins.sbt
       addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.6.1")
-      addSbtPlugin("org.scalameta" % "sbt-scalahost" % @V.scalameta)
+      addSbtPlugin("org.scalameta" % "sbt-scalahost" % "@V.scalameta")
       // build.sbt
       lazy val testsInput = project.in(file("scalafix/input"))
       lazy val testsExpectedOutput = project.in(file("scalafix/output"))
