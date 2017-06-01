@@ -79,13 +79,15 @@ object ScalafixPlugin extends AutoPlugin {
           if (inputArgs.nonEmpty)
             "--rewrites" +: inputArgs
           else Nil
+        val sourceroot =
+          ScalahostSbtPlugin.autoImport.scalametaSourceroot.value.getAbsolutePath
         config ++
           rewriteArgs ++
           Seq(
             "--no-sys-exit",
             "-i",
             "--sourceroot",
-            baseDirectory.in(ThisBuild).value.getAbsolutePath,
+            sourceroot,
             "--classpath",
             classpath
           )
