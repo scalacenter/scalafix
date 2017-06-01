@@ -10,6 +10,15 @@ Rewrite tool to prepare Scala 2.x code for [Dotty](http://dotty.epfl.ch).
 
 Head over here: https://scalacenter.github.io/scalafix/
 
+## Team
+
+The current maintainers (people who can merge pull requests) are:
+
+- Ólafur Páll Geirsson - [`@olafurpg`](https://github.com/olafurpg)
+- Eugene Burmako - [`@xeno-by`](https://github.com/xeno-by)
+- Shane Delmore - [`@ShaneDelmore`](https://github.com/ShaneDelmore)
+- Gabriele Petronella - [`@gabro`](https://github.com/gabro)
+
 ## Contributing
 
 Contributions are welcome!
