@@ -75,6 +75,22 @@ class CliTest extends FunSuite with DiffAssertions {
     assertNoDiff(FileOps.readFile(file), expected)
   }
 
+  test("--include/--exclude is respected") {
+    val ignore = "Ignore"
+    val exclude = File.createTempFile("prefix", s"$ignore.scala")
+    val include = File.createTempFile("prefix", "Fixme.scala")
+    FileOps.writeFile(exclude, original)
+    FileOps.writeFile(include, original)
+    Cli.runOn(
+      ScalafixOptions(
+        rewrites = List(ProcedureSyntax.toString),
+        files = List(exclude.getAbsolutePath, include.getAbsolutePath),
+        exclude = List(ignore)
+      ))
+    assertNoDiff(FileOps.readFile(exclude), original)
+    assertNoDiff(FileOps.readFile(include), expected)
+  }
+
   test("print to stdout does not write to file") {
     val file = File.createTempFile("prefix", ".scala")
     FileOps.writeFile(file, original)

@@ -20,6 +20,7 @@ import scala.util.Try
 import scala.util.control.NonFatal
 import scalafix.cli.termdisplay.TermDisplay
 import scalafix.config.Class2Hocon
+import scalafix.config.FilterMatcher
 import scalafix.config.MetaconfigPendingUpstream._
 import scalafix.config.PrintStreamReporter
 import scalafix.config.ScalafixConfig
@@ -31,15 +32,11 @@ import scalafix.syntax._
 import metaconfig.Configured.Ok
 import metaconfig._
 
-private[cli] final case class DatabaseWithSourceroot(
+sealed abstract case class CliRunner(
     sourceroot: AbsolutePath,
-    database: Database
-) extends Mirror
-
-case class CliRunner(
     cli: ScalafixOptions,
     config: ScalafixConfig,
-    database: Option[DatabaseWithSourceroot],
+    database: Option[Database],
     rewrite: Rewrite,
     explicitPaths: Seq[Input],
     inputs: Seq[Input],
@@ -82,9 +79,6 @@ case class CliRunner(
     display.stop()
     exitCode.get()
   }
-  private val sourceroot: AbsolutePath =
-    database.map(_.sourceroot).getOrElse(common.workingPath)
-
   def safeHandleInput(input: Input): ExitStatus = {
     def path = input.path(sourceroot)
     try {
@@ -132,6 +126,7 @@ object CliRunner {
     val builder = new CliRunner.Builder(options)
     for {
       database <- builder.resolvedMirror
+      sourceroot <- builder.resolvedSourceroot
       _ <- builder.assertSourcepathIsEmpty
       rewrite <- builder.resolvedRewrite
       replace <- builder.resolvedPathReplace
@@ -153,6 +148,7 @@ object CliRunner {
         options.common.err.println(database.toString)
       }
       new CliRunner(
+        sourceroot = sourceroot,
         cli = options,
         config = config,
         database = database,
@@ -160,7 +156,7 @@ object CliRunner {
         replacePath = replace,
         inputs = inputs,
         explicitPaths = builder.explicitPaths
-      )
+      ) {}
     }
   }
 
@@ -197,18 +193,22 @@ object CliRunner {
         case (None, None) =>
           Ok(ScalafixRewrites.emptyDatabase)
       }
-    private val resolvedSourceroot: Configured[AbsolutePath] =
+    val resolvedMirror: Configured[Option[Database]] =
+      resolvedDatabase.map { x =>
+        if (x == ScalafixRewrites.emptyDatabase) None
+        else Some(x)
+      }
+    val resolvedMirrorSourceroot: Configured[AbsolutePath] =
       sourceroot match {
         case None => ConfError.msg("--sourceroot is required").notOk
         case Some(path) => Ok(AbsolutePath.fromString(path))
       }
-
-    val resolvedMirror: Configured[Option[DatabaseWithSourceroot]] =
-      resolvedDatabase.flatMap { x =>
-        if (x == ScalafixRewrites.emptyDatabase) Ok(None)
-        else {
-          resolvedSourceroot.map(root => Some(DatabaseWithSourceroot(root, x)))
-        }
+    val resolvedSourceroot: Configured[AbsolutePath] =
+      resolvedMirror.flatMap {
+        // Use mirror sourceroot if Mirror.nonEmpty
+        case Some(_) => resolvedMirrorSourceroot
+        // Use working directory if running syntactic rewrites.
+        case None => Ok(common.workingPath)
       }
 
     // Inputs
@@ -237,11 +237,25 @@ object CliRunner {
             .notOk
         }
       }
-    val resolvedInputs: Configured[Seq[Input]] = {
-      mirrorPaths.map { fromMirror =>
-        val result = fromMirror ++ explicitPaths
-        result
-      }
+    private val resolvedPathMatcher: Configured[FilterMatcher] = try {
+      Ok(FilterMatcher(include, exclude))
+    } catch {
+      case e: PatternSyntaxException =>
+        ConfError
+          .msg(
+            s"Invalid '${e.getPattern}' for  --include/--exclude. ${e.getMessage}")
+          .notOk
+    }
+    val resolvedInputs: Configured[Seq[Input]] = for {
+      fromMirror <- mirrorPaths
+      pathMatcher <- resolvedPathMatcher
+      sourceroot <- resolvedSourceroot
+    } yield {
+      def inputOK(input: Input) = pathMatcher.matches(input.path(sourceroot))
+      val builder = Seq.newBuilder[Input]
+      fromMirror.withFilter(inputOK).foreach(builder += _)
+      explicitPaths.withFilter(inputOK).foreach(builder += _)
+      builder.result()
     }
 
     lazy val resolvedConfigInput: Configured[Input] =

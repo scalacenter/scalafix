@@ -104,6 +104,20 @@ case class ScalafixOptions(
     @ValueDescription("/custom/")
     outTo: String = "",
     @HelpMessage(
+      """Space separated list of regexes to filter which files to fix.
+        |        A file must match one of the regexes to be included.
+        |        Defaults to matching all files.
+      """.stripMargin)
+    @ValueDescription("core Foobar.scala")
+    include: List[String] = List(".*"),
+    @HelpMessage(
+      """Space separated list of regexes to exclude which files to fix.
+        |        If a file match one of the exclude regexes, then it will not
+        |        get fixed. Defaults to excluding no files.
+      """.stripMargin)
+    @ValueDescription("core Foobar.scala")
+    exclude: List[String] = Nil,
+    @HelpMessage(
       "If true, run on single thread. If false (default), use all available cores")
     singleThread: Boolean = false,
     // NOTE: This option could be avoided by adding another entrypoint like `Cli.safeMain`
