@@ -120,21 +120,21 @@ class CliTest extends FunSuite with DiffAssertions {
     assert(Cli.parse(Seq("--rewrites", "Foobar")).isError)
   }
 
-  test("--sourcepath --classpath") {
-    assert(Cli.parse(List("--sourcepath", "foo.scala")).isError)
+  test("--sourceroot --classpath") {
+    assert(Cli.parse(List("--sourceroot", "foo.scala")).isError)
     assert(Cli.parse(List("--classpath", "foo")).isError)
     // NOTE: This assertion should fail by default, but scalafix-cli % Test
     // depends on testkit, which has scalahost-nsc as a dependency.
     assert(
       Cli
-        .parse(List("--sourcepath", "/foo.scala", "--classpath", "/bar"))
+        .parse(List("--sourceroot", "/foo.scala", "--classpath", "/bar"))
         .isOk
     )
     assert(
       Cli
         .parse(
           List(
-            "--sourcepath",
+            "--sourceroot",
             "/foo.scala",
             "--classpath",
             "/bar"

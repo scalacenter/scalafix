@@ -31,10 +31,15 @@ import scalafix.syntax._
 import metaconfig.Configured.Ok
 import metaconfig._
 
+private[cli] final case class DatabaseWithSourceroot(
+    sourceroot: AbsolutePath,
+    database: Database
+) extends Mirror
+
 case class CliRunner(
     cli: ScalafixOptions,
     config: ScalafixConfig,
-    database: Option[Database],
+    database: Option[DatabaseWithSourceroot],
     rewrite: Rewrite,
     explicitPaths: Seq[Input],
     inputs: Seq[Input],
@@ -77,9 +82,11 @@ case class CliRunner(
     display.stop()
     exitCode.get()
   }
+  private val sourceroot: AbsolutePath =
+    database.map(_.sourceroot).getOrElse(common.workingPath)
 
   def safeHandleInput(input: Input): ExitStatus = {
-    def path = input.path(common.workingPath)
+    def path = input.path(sourceroot)
     try {
       val inputConfig = if (input.isSbtFile) sbtConfig else config
       inputConfig.dialect(input).parse[Source] match {
@@ -125,6 +132,7 @@ object CliRunner {
     val builder = new CliRunner.Builder(options)
     for {
       database <- builder.resolvedMirror
+      _ <- builder.assertSourcepathIsEmpty
       rewrite <- builder.resolvedRewrite
       replace <- builder.resolvedPathReplace
       inputs <- builder.resolvedInputs
@@ -160,9 +168,13 @@ object CliRunner {
     import cli._
 
     implicit val workingDirectory: AbsolutePath = common.workingPath
+
+    val assertSourcepathIsEmpty: Configured[Unit] =
+      cli.sourcepath.fold(Configured.unit)(path =>
+        ConfError.msg(s"Expected --sourcepath to be empty, was $path.").notOk)
     // Database
-    val resolvedDatabase: Configured[Database] =
-      (classpath, sourcepath) match {
+    private val resolvedDatabase: Configured[Database] =
+      (classpath, sourceroot) match {
         case (Some(cp), sp) =>
           val tryMirror = for {
             mirror <- Try {
@@ -185,9 +197,18 @@ object CliRunner {
         case (None, None) =>
           Ok(ScalafixRewrites.emptyDatabase)
       }
-    val resolvedMirror: Configured[Option[Database]] =
-      resolvedDatabase.map { x =>
-        if (x == ScalafixRewrites.emptyDatabase) None else Some(x)
+    private val resolvedSourceroot: Configured[AbsolutePath] =
+      sourceroot match {
+        case None => ConfError.msg("--sourceroot is required").notOk
+        case Some(path) => Ok(AbsolutePath.fromString(path))
+      }
+
+    val resolvedMirror: Configured[Option[DatabaseWithSourceroot]] =
+      resolvedDatabase.flatMap { x =>
+        if (x == ScalafixRewrites.emptyDatabase) Ok(None)
+        else {
+          resolvedSourceroot.map(root => Some(DatabaseWithSourceroot(root, x)))
+        }
       }
 
     // Inputs
@@ -196,10 +217,6 @@ object CliRunner {
       if (path.isDirectory)
         FileIO.listAllFilesRecursively(path).map(Input.File.apply)
       else List(Input.File(path))
-    }
-    val resolvedSourceroot: Configured[AbsolutePath] = sourceroot match {
-      case None => ConfError.msg("--sourceroot is required").notOk
-      case Some(path) => Ok(AbsolutePath.fromString(path))
     }
 
     def isInputFile(input: Input): Boolean = input match {
