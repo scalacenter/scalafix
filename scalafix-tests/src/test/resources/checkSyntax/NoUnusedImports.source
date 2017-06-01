@@ -1,0 +1,44 @@
+rewrites = [NoUnusedImports]
+<<< remove unused imports
+object imp {
+  import scala.collection.mutable.Set
+  import scala.collection.mutable.ListBuffer
+  import java.util._
+
+  val l = ListBuffer.empty[Int]
+}
+>>>
+object imp {
+  import scala.collection.mutable.ListBuffer
+
+  val l = ListBuffer.empty[Int]
+}
+
+<<< funky formatting
+object imp {
+  import scala.collection.mutable.Set    ; import scala.collection.mutable.ListBuffer
+  import scala.util.Success; import java.util.Date
+  import scala.util.Try
+
+  val d = new Date
+}
+>>>
+object imp {
+ import java.util.Date
+
+  val d = new Date
+}
+
+<<< selective import
+object imp {
+  import scala.collection.mutable.{ Set, ListBuffer }
+
+  val l = ListBuffer.empty[Int]
+}
+>>>
+object imp {
+  import scala.collection.mutable.{ ListBuffer }
+
+  val l = ListBuffer.empty[Int]
+}
+
