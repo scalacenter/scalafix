@@ -251,7 +251,7 @@ object CliRunner {
       pathMatcher <- resolvedPathMatcher
       sourceroot <- resolvedSourceroot
     } yield {
-      def inputOK(input: Input) = pathMatcher.matches(input.path(sourceroot))
+      def inputOK(input: Input) = pathMatcher.matches(input.label)
       val builder = Seq.newBuilder[Input]
       fromMirror.withFilter(inputOK).foreach(builder += _)
       explicitPaths.withFilter(inputOK).foreach(builder += _)

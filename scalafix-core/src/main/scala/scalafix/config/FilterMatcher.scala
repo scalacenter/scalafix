@@ -11,7 +11,6 @@ case class FilterMatcher(
     @ExtraName("include") includeFilters: Regex,
     @ExtraName("exclude") excludeFilters: Regex
 ) {
-  def matches(path: AbsolutePath): Boolean = matches(path.toString())
   def matches(file: AbsoluteFile): Boolean = matches(file.path)
   def matches(input: String): Boolean =
     includeFilters.findFirstIn(input).isDefined &&
