@@ -10,7 +10,4 @@ addSbtPlugin("com.dwijnand"    % "sbt-dynver"          % "1.2.0")
 addSbtPlugin("ch.epfl.lamp"    % "sbt-dotty"           % "0.1.1")
 addSbtPlugin("org.scalameta"   % "sbt-scalahost"       % Dependencies.scalametaV)
 
-resolvers += Resolver.bintrayIvyRepo("duhemm", "sbt-plugins")
-addSbtPlugin("org.duhemm" % "sbt-errors-summary" % "0.2.0")
-
 libraryDependencies += "org.scala-sbt" % "scripted-plugin" % sbtVersion.value
