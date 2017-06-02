@@ -15,7 +15,8 @@ object ScalafixRewrites {
     ExplicitReturnTypes(mirror),
     RemoveUnusedImports(mirror),
     Xor2Either(mirror),
-    NoAutoTupling(mirror)
+    NoAutoTupling(mirror),
+    NoExtendsApp(mirror)
   )
   def all(mirror: Mirror): List[Rewrite] =
     syntax ++ semantic(mirror)
