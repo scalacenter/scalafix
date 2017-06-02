@@ -8,7 +8,8 @@ object ScalafixRewrites {
     VolatileLazyVal,
     RemoveXmlLiterals,
     ExplicitUnit,
-    NoValInForComprehension
+    NoValInForComprehension,
+    DottyVarArgPattern
   )
   def semantic(mirror: Mirror): List[Rewrite] = List(
     ExplicitReturnTypes(mirror),

@@ -369,7 +369,8 @@ def CiCommand(name: String)(commands: List[String]): Command =
       case (state, command) => command :: state
     }
   }
-def ci(command: String) = s"plz ${ciScalaVersion.get} $command"
+def ci(command: String) =
+  s"plz ${ciScalaVersion.getOrElse("No CI_SCALA_VERSION defined")} $command"
 
 lazy val compilerOptions = Seq(
   "-deprecation",
