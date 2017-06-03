@@ -79,13 +79,15 @@ object ScalafixPlugin extends AutoPlugin {
           if (inputArgs.nonEmpty)
             "--rewrites" +: inputArgs
           else Nil
+        val sourceroot =
+          ScalahostSbtPlugin.autoImport.scalametaSourceroot.value.getAbsolutePath
         config ++
           rewriteArgs ++
           Seq(
             "--no-sys-exit",
             "-i",
             "--sourceroot",
-            baseDirectory.in(ThisBuild).value.getAbsolutePath,
+            sourceroot,
             "--classpath",
             classpath
           )
@@ -110,9 +112,6 @@ object ScalafixPlugin extends AutoPlugin {
     Def.setting {
       ScopeFilter(configurations = inConfigurations(Compile, Test))
     }
-  lazy private val scalahostSourcepath: Def.Initialize[Seq[Seq[File]]] =
-    Def.settingDyn(
-      unmanagedSourceDirectories.all(scalahostAggregateFilter.value))
   lazy private val scalahostClasspath: Def.Initialize[Seq[File]] =
     Def.settingDyn(classDirectory.all(scalahostAggregateFilter.value))
   lazy private val scalahostCompile: Def.Initialize[Task[Seq[Analysis]]] =

@@ -75,6 +75,22 @@ class CliTest extends FunSuite with DiffAssertions {
     assertNoDiff(FileOps.readFile(file), expected)
   }
 
+  test("--include/--exclude is respected") {
+    val ignore = "Ignore"
+    val exclude = File.createTempFile("prefix", s"$ignore.scala")
+    val include = File.createTempFile("prefix", "Fixme.scala")
+    FileOps.writeFile(exclude, original)
+    FileOps.writeFile(include, original)
+    Cli.runOn(
+      ScalafixOptions(
+        rewrites = List(ProcedureSyntax.toString),
+        files = List(exclude.getAbsolutePath, include.getAbsolutePath),
+        exclude = List(ignore)
+      ))
+    assertNoDiff(FileOps.readFile(exclude), original)
+    assertNoDiff(FileOps.readFile(include), expected)
+  }
+
   test("print to stdout does not write to file") {
     val file = File.createTempFile("prefix", ".scala")
     FileOps.writeFile(file, original)
@@ -120,21 +136,21 @@ class CliTest extends FunSuite with DiffAssertions {
     assert(Cli.parse(Seq("--rewrites", "Foobar")).isError)
   }
 
-  test("--sourcepath --classpath") {
-    assert(Cli.parse(List("--sourcepath", "foo.scala")).isError)
+  test("--sourceroot --classpath") {
+    assert(Cli.parse(List("--sourceroot", "foo.scala")).isError)
     assert(Cli.parse(List("--classpath", "foo")).isError)
     // NOTE: This assertion should fail by default, but scalafix-cli % Test
     // depends on testkit, which has scalahost-nsc as a dependency.
     assert(
       Cli
-        .parse(List("--sourcepath", "/foo.scala", "--classpath", "/bar"))
+        .parse(List("--sourceroot", "/foo.scala", "--classpath", "/bar"))
         .isOk
     )
     assert(
       Cli
         .parse(
           List(
-            "--sourcepath",
+            "--sourceroot",
             "/foo.scala",
             "--classpath",
             "/bar"

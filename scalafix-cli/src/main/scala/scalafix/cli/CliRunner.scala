@@ -20,6 +20,7 @@ import scala.util.Try
 import scala.util.control.NonFatal
 import scalafix.cli.termdisplay.TermDisplay
 import scalafix.config.Class2Hocon
+import scalafix.config.FilterMatcher
 import scalafix.config.MetaconfigPendingUpstream._
 import scalafix.config.PrintStreamReporter
 import scalafix.config.ScalafixConfig
@@ -31,7 +32,8 @@ import scalafix.syntax._
 import metaconfig.Configured.Ok
 import metaconfig._
 
-case class CliRunner(
+sealed abstract case class CliRunner(
+    sourceroot: AbsolutePath,
     cli: ScalafixOptions,
     config: ScalafixConfig,
     database: Option[Database],
@@ -77,9 +79,8 @@ case class CliRunner(
     display.stop()
     exitCode.get()
   }
-
   def safeHandleInput(input: Input): ExitStatus = {
-    def path = input.path(common.workingPath)
+    def path = input.path(sourceroot)
     try {
       val inputConfig = if (input.isSbtFile) sbtConfig else config
       inputConfig.dialect(input).parse[Source] match {
@@ -125,6 +126,8 @@ object CliRunner {
     val builder = new CliRunner.Builder(options)
     for {
       database <- builder.resolvedMirror
+      sourceroot <- builder.resolvedSourceroot
+      _ <- builder.assertSourcepathIsEmpty
       rewrite <- builder.resolvedRewrite
       replace <- builder.resolvedPathReplace
       inputs <- builder.resolvedInputs
@@ -145,6 +148,7 @@ object CliRunner {
         options.common.err.println(database.toString)
       }
       new CliRunner(
+        sourceroot = sourceroot,
         cli = options,
         config = config,
         database = database,
@@ -152,7 +156,7 @@ object CliRunner {
         replacePath = replace,
         inputs = inputs,
         explicitPaths = builder.explicitPaths
-      )
+      ) {}
     }
   }
 
@@ -160,9 +164,13 @@ object CliRunner {
     import cli._
 
     implicit val workingDirectory: AbsolutePath = common.workingPath
+
+    val assertSourcepathIsEmpty: Configured[Unit] =
+      cli.sourcepath.fold(Configured.unit)(path =>
+        ConfError.msg(s"Expected --sourcepath to be empty, was $path.").notOk)
     // Database
-    val resolvedDatabase: Configured[Database] =
-      (classpath, sourcepath) match {
+    private val resolvedDatabase: Configured[Database] =
+      (classpath, sourceroot) match {
         case (Some(cp), sp) =>
           val tryMirror = for {
             mirror <- Try {
@@ -187,7 +195,20 @@ object CliRunner {
       }
     val resolvedMirror: Configured[Option[Database]] =
       resolvedDatabase.map { x =>
-        if (x == ScalafixRewrites.emptyDatabase) None else Some(x)
+        if (x == ScalafixRewrites.emptyDatabase) None
+        else Some(x)
+      }
+    val resolvedMirrorSourceroot: Configured[AbsolutePath] =
+      sourceroot match {
+        case None => ConfError.msg("--sourceroot is required").notOk
+        case Some(path) => Ok(AbsolutePath.fromString(path))
+      }
+    val resolvedSourceroot: Configured[AbsolutePath] =
+      resolvedMirror.flatMap {
+        // Use mirror sourceroot if Mirror.nonEmpty
+        case Some(_) => resolvedMirrorSourceroot
+        // Use working directory if running syntactic rewrites.
+        case None => Ok(common.workingPath)
       }
 
     // Inputs
@@ -196,10 +217,6 @@ object CliRunner {
       if (path.isDirectory)
         FileIO.listAllFilesRecursively(path).map(Input.File.apply)
       else List(Input.File(path))
-    }
-    val resolvedSourceroot: Configured[AbsolutePath] = sourceroot match {
-      case None => ConfError.msg("--sourceroot is required").notOk
-      case Some(path) => Ok(AbsolutePath.fromString(path))
     }
 
     def isInputFile(input: Input): Boolean = input match {
@@ -220,11 +237,25 @@ object CliRunner {
             .notOk
         }
       }
-    val resolvedInputs: Configured[Seq[Input]] = {
-      mirrorPaths.map { fromMirror =>
-        val result = fromMirror ++ explicitPaths
-        result
-      }
+    private val resolvedPathMatcher: Configured[FilterMatcher] = try {
+      Ok(FilterMatcher(include, exclude))
+    } catch {
+      case e: PatternSyntaxException =>
+        ConfError
+          .msg(
+            s"Invalid '${e.getPattern}' for  --include/--exclude. ${e.getMessage}")
+          .notOk
+    }
+    val resolvedInputs: Configured[Seq[Input]] = for {
+      fromMirror <- mirrorPaths
+      pathMatcher <- resolvedPathMatcher
+      sourceroot <- resolvedSourceroot
+    } yield {
+      def inputOK(input: Input) = pathMatcher.matches(input.label)
+      val builder = Seq.newBuilder[Input]
+      fromMirror.withFilter(inputOK).foreach(builder += _)
+      explicitPaths.withFilter(inputOK).foreach(builder += _)
+      builder.result()
     }
 
     lazy val resolvedConfigInput: Configured[Input] =

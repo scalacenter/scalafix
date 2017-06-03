@@ -24,7 +24,7 @@ trait DiffAssertions extends FunSuiteLike {
                          diff: String)
       extends TestFailedException(
         title + "\n" + error2message(obtained, expected),
-        1)
+        3)
 
   def error2message(obtained: String, expected: String): String = {
     val sb = new StringBuilder

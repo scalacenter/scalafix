@@ -45,7 +45,8 @@ case class ScalafixOptions(
     configStr: Option[String] = None,
     @HelpMessage(
       """Absolute path passed to scalahost with -P:scalahost:sourceroot:<path>.
-        |        Required for semantic rewrites
+        |        Relative filenames persisted in the Semantic DB are absolutized
+        |        by the sourceroot. Required for semantic rewrites.
       """.stripMargin)
     @ValueDescription("/foo/myproject")
     sourceroot: Option[String] = None,
@@ -60,6 +61,7 @@ case class ScalafixOptions(
     )
     @ValueDescription("entry1.jar:entry2.jar")
     classpath: Option[String] = None,
+    @Hidden // TODO(olafur) remove in v0.4. This is not used.
     @HelpMessage(
       """java.io.File.pathSeparator separated list of Scala source files OR
         |        directories containing Scala source files""".stripMargin)
@@ -101,6 +103,20 @@ case class ScalafixOptions(
     )
     @ValueDescription("/custom/")
     outTo: String = "",
+    @HelpMessage(
+      """Space separated list of regexes to filter which files to fix.
+        |        A file must match one of the regexes to be included.
+        |        Defaults to matching all files.
+      """.stripMargin)
+    @ValueDescription("core Foobar.scala")
+    include: List[String] = List(".*"),
+    @HelpMessage(
+      """Space separated list of regexes to exclude which files to fix.
+        |        If a file match one of the exclude regexes, then it will not
+        |        get fixed. Defaults to excluding no files.
+      """.stripMargin)
+    @ValueDescription("core Foobar.scala")
+    exclude: List[String] = Nil,
     @HelpMessage(
       "If true, run on single thread. If false (default), use all available cores")
     singleThread: Boolean = false,

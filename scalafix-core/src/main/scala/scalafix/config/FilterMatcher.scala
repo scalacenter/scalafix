@@ -1,8 +1,8 @@
 package scalafix.config
 
+import scala.meta.io.AbsolutePath
 import scala.util.matching.Regex
 import scalafix.util.AbsoluteFile
-
 import metaconfig.ExtraName
 import metaconfig._
 
