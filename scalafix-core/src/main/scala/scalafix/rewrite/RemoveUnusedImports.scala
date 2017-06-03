@@ -11,15 +11,17 @@ case class RemoveUnusedImports(mirror: Mirror)
     case Message(pos, _, "Unused import") =>
       pos
   }.toSet
-  private def isUnused(importee: Importee) = importee match {
-    // NOTE: workaround for https://github.com/scalameta/scalameta/issues/899
-    case Importee.Wildcard() =>
-      val lookupPos =
+  private def isUnused(importee: Importee) = {
+    val pos = importee match {
+      // NOTE: workaround for https://github.com/scalameta/scalameta/issues/899
+      case Importee.Wildcard() =>
         importee.parents
           .collectFirst { case x: Import => x.pos }
           .getOrElse(importee.pos)
-      unusedImports.contains(lookupPos)
-    case _ => unusedImports.contains(importee.pos)
+      case Importee.Rename(name, _) => name.pos
+      case _ => importee.pos
+    }
+    unusedImports.contains(pos)
   }
   override def rewrite(ctx: RewriteCtx): Patch =
     ctx.tree.collect {

@@ -8,6 +8,8 @@ import scala.util.control.{NonFatal, Breaks}
 import scala.concurrent.{Await, Future}
 import scala.util.{Properties, DynamicVariable, Try}
 import scala.util.{Success => Successful, Random}
+import scala.collection.mutable.{Set ⇒ MutableSet, Map ⇒ MutableMap}
+import scala.collection.mutable.{Seq => MutableSeq}
 import scala.sys.process._
 import scala.concurrent.{CancellationException, ExecutionException, ExecutionContext}
 import scala.runtime.{RichBoolean}
