@@ -17,7 +17,7 @@ case class NoExtendsApp(mirror: Mirror) extends SemanticRewrite(mirror) {
         .templateBodyTokens(template)
         .map { body =>
           val open =
-            ctx.addLeft(body.head, s"\n  def main(args: Array[String]) = {")
+            ctx.addLeft(body.head, s"\n  def main(args: Array[String]): Unit = {")
           val indentBody = ctx.indent(body)
           // this handles bodies on a single line like:
           //   object Main extends App { println(args(0)) }

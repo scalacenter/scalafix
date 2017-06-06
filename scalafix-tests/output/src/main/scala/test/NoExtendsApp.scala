@@ -1,7 +1,7 @@
 package test
 
 object Main {
-  def main(args: Array[String]) = {
+  def main(args: Array[String]): Unit = {
     println(s"Hello, ${args(0)}")
     println(s"Hello 2, ${args(0)}")
   }
@@ -9,14 +9,14 @@ object Main {
 
 trait Something
 object Main2 extends Something{
-  def main(args: Array[String]) = {
+  def main(args: Array[String]): Unit = {
     println(s"Hello, ${args(0)}")
     println(s"Hello 2, ${args(0)}")
   }
 }
 
 object Main3 extends Something{
-  def main(args: Array[String]) = {
+  def main(args: Array[String]): Unit = {
     println(s"Hello, ${args(0)}")
     println(s"Hello 2, ${args(0)}")
   }
@@ -40,12 +40,12 @@ object Main9 extends
 
 import scala.{ App => Ppa }
 object Main10 extends Something {
-  def main(args: Array[String]) = {
+  def main(args: Array[String]): Unit = {
     println(s"Hello, ${args(0)}")
     println(s"Hello 2, ${args(0)}")
   }
 }
 
 object Main11 {
-  def main(args: Array[String]) = { println(args(0)) }
+  def main(args: Array[String]): Unit = { println(args(0)) }
 }
