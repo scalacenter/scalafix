@@ -14,18 +14,24 @@ case class NoExtendsApp(mirror: Mirror) extends SemanticRewrite(mirror) {
   override def rewrite(ctx: RewriteCtx): Patch = {
     def wrapBodyInMain(template: Template) =
       ctx
-        .templateBodyTokens(template)
-        .map { body =>
+        .templateBodyTokens(template) match {
+        case None =>
+          ctx.reporter.warn(
+            "Missing or empty body for object that extends scala.App. See http://dotty.epfl.ch/docs/reference/dropped/delayed-init.html for possible workarounds.",
+            template.pos
+          )
+          Patch.empty
+        case Some(body) =>
           val open =
-            ctx.addLeft(body.head, s"\n  def main(args: Array[String]): Unit = {")
+            ctx.addLeft(body.head,
+                        s"\n  def main(args: Array[String]): Unit = {")
           val indentBody = ctx.indent(body)
           // this handles bodies on a single line like:
           //   object Main extends App { println(args(0)) }
           val closingSpaces = if (indentBody.isDefined) " " * 2 else ""
           val close = ctx.addRight(body.last, s"$closingSpaces}\n")
           open + indentBody.asPatch + close
-        }
-        .asPatch
+      }
 
     ctx.tree.collect {
       case t: Defn.Object =>
