@@ -199,7 +199,7 @@
 
   @sect(NoExtendsApp.toString)
     @p
-      Removes use of the @code{scala.App} trait.
+      Replaces usage of the @code{scala.App} trait with an explicit main function.
 
     @hl.scala
       // before
@@ -215,10 +215,8 @@
       }
 
     @p
-      The @code{App} trait makes use of the @code{DelayedInit} feature which has been dropped in Dotty. While it will still be possible to use @code{App} for a concise setup of a main program, the semantics have slighly changed from Scala 2.x and it won't be possible to access the command line arguments without an explicit @code{main}.
-    @p For these reasons, this rewrite is conservative and it always drops the use of @code{App}, introducing a @code{main} method.
-
-    @p More details can be found @lnk("here", "https://github.com/lampepfl/dotty/blob/master/docs/docs/reference/dropped/delayed-init.md").
+      The @code{scala.App} trait uses @code{DelayedInit}, which has been dropped in Dotty.
+      More info @lnk("here", "https://github.com/lampepfl/dotty/blob/master/docs/docs/reference/dropped/delayed-init.md").
 
   @sect{Planned rewrites...}
     See @lnk("here", "https://github.com/scalacenter/scalafix/labels/rewrite").
