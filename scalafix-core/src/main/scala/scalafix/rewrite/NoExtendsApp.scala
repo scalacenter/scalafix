@@ -16,13 +16,12 @@ case class NoExtendsApp(mirror: Mirror) extends SemanticRewrite(mirror) {
       ctx
         .templateBodyTokens(template)
         .map { body =>
-          val bodyIndentation = ctx.indentationTokens(body)
           val open =
             ctx.addLeft(
               body.head,
-              s"\n${bodyIndentation}def main(args: Array[String]) = {")
-          val close = ctx.addRight(body.last, s"${bodyIndentation}}\n")
-          open + ctx.indent(body, bodyIndentation) + close
+              s"\n  def main(args: Array[String]) = {")
+          val close = ctx.addRight(body.last, s"  }\n")
+          open + ctx.indent(body) + close
         }
         .asPatch
 
@@ -50,25 +49,12 @@ object NoExtendsAppSyntax {
       maybeTokens.filterNot(_.isEmpty)
     }
 
-    def indent(tokens: Tokens, indentation: Tokens): Patch = {
+    def indent(tokens: Tokens, numberOfSpaces: Int = 2): Patch = {
       val lastNewLine = tokens.dropRightWhile(t => !t.is[Newline]).last
       tokens.collect {
         case nl @ Newline() if nl != lastNewLine =>
-          ctx.addRight(nl, indentation.syntax)
+          ctx.addRight(nl, " " * numberOfSpaces)
       }.asPatch
-    }
-
-    def indentationTokens(tokens: Tokens): Tokens = {
-      val firstNonWhitespaceToken =
-        tokens.dropWhile(_.is[Whitespace]).headOption
-      firstNonWhitespaceToken match {
-        case None => tokens
-        case Some(firstNonWhitespaceToken) =>
-          tokens
-            .dropRightWhile(_ != firstNonWhitespaceToken)
-            .dropRight(1)
-            .takeRightWhile(t => !t.is[Newline])
-      }
     }
 
     def removeTokensBetween(from: Token,
