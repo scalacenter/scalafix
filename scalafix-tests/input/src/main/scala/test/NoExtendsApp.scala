@@ -1,5 +1,5 @@
 /*
-rewrites = [NoExtendsApp]
+rewrites = NoExtendsApp
 */
 package test
 
