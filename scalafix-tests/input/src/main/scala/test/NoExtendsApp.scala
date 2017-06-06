@@ -44,3 +44,5 @@ object Main10 extends Ppa with Something {
   println(s"Hello, ${args(0)}")
   println(s"Hello 2, ${args(0)}")
 }
+
+object Main11 extends App { println(args(0)) }

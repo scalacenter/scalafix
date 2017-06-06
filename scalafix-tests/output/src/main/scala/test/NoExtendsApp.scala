@@ -45,3 +45,7 @@ object Main10 extends Something {
     println(s"Hello 2, ${args(0)}")
   }
 }
+
+object Main11 {
+  def main(args: Array[String]) = { println(args(0)) }
+}
