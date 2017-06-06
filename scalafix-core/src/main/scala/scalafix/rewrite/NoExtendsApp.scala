@@ -57,7 +57,7 @@ object NoExtendsAppSyntax {
       }.asPatch
     }
 
-    def removeTokensBetween(from: Token,
+    private[scalafix] def removeTokensBetween(from: Token,
                             to: Token,
                             removeLeadingWhitespace: Boolean = true): Patch = {
       val toRemove = ctx.tokenList
