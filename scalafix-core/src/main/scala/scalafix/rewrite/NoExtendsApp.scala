@@ -1,7 +1,7 @@
 package scalafix
 package rewrite
 
-import scala.meta.{Symbol => _, _}
+import scala.meta._
 import scalafix.syntax._
 import scalafix.util.{Whitespace => _, _}
 import scala.meta.contrib._
@@ -27,7 +27,7 @@ case class NoExtendsApp(mirror: Mirror) extends SemanticRewrite(mirror) {
 
     ctx.tree.collect {
       case t: Defn.Object =>
-        ctx.removeParentFromTemplate("_root_.scala.App.", t.templ) +
+        ctx.removeParentFromTemplate(Symbol("_root_.scala.App."), t.templ) +
           wrapBodyInMain(t.templ)
     }.asPatch
   }
@@ -77,12 +77,12 @@ object NoExtendsAppSyntax {
         .asPatch
     }
 
-    def removeParentFromTemplate(normalized: String, template: Template)(
+    def removeParentFromTemplate(normalized: Symbol, template: Template)(
         implicit m: Mirror): Patch = {
       val maybePatch = for {
         treeToRemove <- template.parents
           .collect { case c: Ctor.Ref => c }
-          .find(_.symbolOpt.map(_.normalized.syntax) == Some(normalized))
+          .find(_.symbolOpt.map(_.normalized) == Some(normalized))
         nameToRemove <- treeToRemove.tokens.headOption
         leadingExtendsOrWithToken <- ctx.tokenList
           .leading(nameToRemove)
