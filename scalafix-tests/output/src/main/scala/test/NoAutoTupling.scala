@@ -39,16 +39,16 @@ class NoAutoTupling {
     def sum(a: Int, b: (Int, String)): Int = ???
     sum(1, (2, "foo"))
   }
-//  <<< SKIP auto-tupling with lambdas
-//  object tup6 {
-//    val foo = (a: (Int, Boolean)) => a
-//    foo(2, true)
-//  }
-//  <<< SKIP auto-tupling with curried methods
-//  object tup7 {
-//    def foo: (((Int, String)) => ((String, List[Int])) => Int) = a => b => a._1
-//    foo(1 + 2, "foo")("bar", 1 :: 2 :: Nil)
-//  }
+//  <<< auto-tupling with lambdas
+ object tup6 {
+   val foo = (a: (Int, Boolean)) => a
+   foo((2, true))
+ }
+//  <<< auto-tupling with curried methods
+ object tup7 {
+   def foo: (((Int, String)) => ((String, List[Int])) => Int) = a => b => a._1
+   foo((1 + 2, "foo"))(("bar", 1 :: 2 :: Nil))
+ }
 //  <<< auto-tupling with class constructors
   object tup8 {
     case class Foo(t: (Int, String))(s: (Boolean, List[Int]))
