@@ -37,7 +37,7 @@ object ScalafixPlugin extends AutoPlugin {
         publishArtifact := false,
         publishMavenStyle := false, // necessary to support intransitive dependencies.
         scalaVersion := Versions.scala212,
-//        libraryDependencies := Nil, // remove injected dependencies from random sbt plugins.
+        libraryDependencies := Nil, // remove injected dependencies from random sbt plugins.
         libraryDependencies +=
           "ch.epfl.scala" % "scalafix-cli" % scalafixVersion cross CrossVersion.full
       )
@@ -48,8 +48,8 @@ object ScalafixPlugin extends AutoPlugin {
     cliWrapperClasspath := {
       CrossVersion.partialVersion(sbtVersion.value) match {
         case Some((0, x)) if x < 13 =>
-          streams.value.log
-            .warn("sbt-scalafix requires sbt 0.13.13 or higher.")
+          throw new MessageOnlyException(
+            "sbt-scalafix requires sbt 0.13.13 or higher.")
         case _ =>
       }
       managedClasspath.in(scalafixStub, Compile).value

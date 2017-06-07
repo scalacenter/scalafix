@@ -19,8 +19,10 @@ object Readme {
 
   def github: String = "https://github.com"
   def repo: String = "https://github.com/scalacenter/scalafix"
+  def metaRepo: String = "https://github.com/scalameta/scalameta"
   def user(name: String): Frag = a(href := s"$github/$name", s"@$name")
   def issue(i: Int): Frag = a(href := s"$repo/issues/$i", s"#$i")
+  def metaIssue(i: Int): Frag = a(href := s"$metaRepo/issues/$i", s"#$i")
   def pr(i: Int): Frag = a(href := s"$repo/pulls/$i", s"#$i")
   def dotty = a(href := "http://dotty.epfl.ch/", "Dotty")
   def comment(frags: Frag*): TypedTag[String] = span("")

@@ -42,8 +42,29 @@
     for an example diff from running @code{sbt "scalafix RemoveUnusedImports"}.
 
     @p
+      To use this rewrite:
+      @ul
+        @li
+          enable @code{-Ywarn-unused-import}
+        @li
+          disable @code{-Xfatal-warnings}. Unfortunately, the Scala compiler
+          does not support finer grained control over the severity level
+          per message kind. See @metaIssue(924) for a possible workaround
+          in the near future.
+
+    @hl.scala
+      // before
+      import scala.List
+      import scala.collection.{immutable, mutable}
+      object Foo { immutable.Seq.empty[Int] }
+
+      // before
+      import scala.collection.immutable
+      object Foo { immutable.Seq.empty[Int] }
+
+    @p
       @note. This rewrite does a best-effort at preserving original formatting.
-      In some cases, the rewriten code may be formatted weirdly
+      In some cases, the rewritten code may be formatted weirdly
 
       @hl.scala
         // before
@@ -56,12 +77,7 @@
 
           TimeoutException
 
-      It's recommended to use a code formatter to clean up missing or superfluous
-      whitespace.
-
-    @p
-      @note. This rewrite is new and has only been tested on a few large projects
-      such as Slick and Scalding. Please report if you hit on buggy behavior.
+      It's recommended to use a code formatter after running this rewrite.
 
   @sect(RemoveXmlLiterals.toString)
     This rewrites replaces XML literals with a @code{xml""} interpolator

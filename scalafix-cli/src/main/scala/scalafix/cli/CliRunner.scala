@@ -127,7 +127,6 @@ object CliRunner {
     for {
       database <- builder.resolvedMirror
       sourceroot <- builder.resolvedSourceroot
-      _ <- builder.assertSourcepathIsEmpty
       rewrite <- builder.resolvedRewrite
       replace <- builder.resolvedPathReplace
       inputs <- builder.resolvedInputs
@@ -165,9 +164,6 @@ object CliRunner {
 
     implicit val workingDirectory: AbsolutePath = common.workingPath
 
-    val assertSourcepathIsEmpty: Configured[Unit] =
-      cli.sourcepath.fold(Configured.unit)(path =>
-        ConfError.msg(s"Expected --sourcepath to be empty, was $path.").notOk)
     // Database
     private val resolvedDatabase: Configured[Database] =
       (classpath, sourceroot) match {

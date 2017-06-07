@@ -61,12 +61,6 @@ case class ScalafixOptions(
     )
     @ValueDescription("entry1.jar:entry2.jar")
     classpath: Option[String] = None,
-    @Hidden // TODO(olafur) remove in v0.4. This is not used.
-    @HelpMessage(
-      """java.io.File.pathSeparator separated list of Scala source files OR
-        |        directories containing Scala source files""".stripMargin)
-    @ValueDescription("File2.scala:File1.scala:src/main/scala")
-    sourcepath: Option[String] = None,
     @HelpMessage(
       s"""Rewrite rules to run.
          |        NOTE. rewrite.rules = [ .. ] from --config will also run""".stripMargin
