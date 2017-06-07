@@ -2,6 +2,34 @@
 @import scalafix.Readme._
 @import scalafix.Versions
 
+@sect{0.4.1}
+  First of all, I'd like to welcome Gabriele Petronella, @user{gabro}, to the
+  @lnk("scalafix team", "https://github.com/scalacenter/scalafix#team")! See @pr(184).
+
+  @ul
+    @li
+      New rewrite @sect.ref{NoExtendsApp}, by @user{gabro}.
+    @li
+      New rewrite @sect.ref{DottyVarArgPattern}, by @user{gosubpl}.
+    @li
+      Errors in the @sect.ref{scalafix-testkit} docs have now been fixed, by @user{taisukeoe}.
+    @li
+      @code{--sourceroot} is now used by scalafix-cli, @issue(176).
+    @li
+      @code{--sourcepath} is no longer used by scalafix-cli.
+    @li
+      @sect.ref{NoAutoTupling} now handles Function1 signatures,
+      see @issue(147).
+    @li
+      scalafix-cli now supports @code{--include} and @code{--exclude}
+      to filter which files get fixed. See @sect.ref{--help} for more details.
+    @li
+      @sect.ref{RemoveUnusedImports} now also removes unused renamed imports,
+      see @issue(189).
+
+  Big thanks you everybody who contributed this release via issues, pull requests,
+  online discussions on @gitter and and offline discussions at Scaladays Copenhagen last week!
+
 @sect{0.4.0}
   @p
     This release represents a significant milestone for Scalafix.

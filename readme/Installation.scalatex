@@ -76,8 +76,9 @@
       ./scalafix --help
 
     @p
-      Once the scalafix cli is installed, consult the help page for further usage
+      Once the scalafix cli is installed, consult the --help page for further usage
       instructions
 
+  @sect{--help}
     @hl.scala(Cli.helpMessage)
 
