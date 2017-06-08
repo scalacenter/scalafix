@@ -2,6 +2,15 @@
 @import scalafix.Readme._
 @import scalafix.Versions
 
+@sect{0.4.2}
+  @ul
+    @li
+      Fixed @issue(200), thank you @user{xuwei-k} for reporting.
+    @li
+      New section documenting how to implement rewrites, see
+      @sect.ref{Creating your own rewrite}.
+    @li
+      In particular, @sect.ref{scalacenter/scalafix.g8}
 @sect{0.4.1}
   First of all, I'd like to welcome Gabriele Petronella, @user{gabro}, to the
   @lnk("scalafix team", "https://github.com/scalacenter/scalafix#team")! See @pr(184).
