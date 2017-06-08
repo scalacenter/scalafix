@@ -3,6 +3,8 @@ set -eu
 PUBLISH=${CI_PUBLISH:-false}
 
 if [[ "$TRAVIS_BRANCH" == "master" && "$PUBLISH" == "true" ]]; then
+  openssl aes-256-cbc -K $encrypted_468467362b53_key -iv $encrypted_468467362b53_iv -in .travis/github_deploy_key.enc -out .travis/github_deploy_key -d
+  $(npm bin)/set-up-ssh --key "$encrypted_468467362b53_key" --iv "$encrypted_468467362b53_iv"  --path-encrypted-key ".travis/github_deploy_key.enc"
   echo "Running publish from $(pwd)"
   git log | head -n 20
   mkdir -p $HOME/.bintray
