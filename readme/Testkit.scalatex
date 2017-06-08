@@ -10,8 +10,9 @@
     semantic scalafix rewrites.
 
   @p
-    Note. This section may be incomplete, in case of any questions
-    don't hestitate to ask on @gitter.
+    Note. You may prefer to use the @sect.ref{scalacenter/scalafix.g8} template
+    to generate the following boilerplate.
+    In case of any problems, don't hestitate to ask on @gitter.
 
   @p
     The following instructions assume you are using sbt.

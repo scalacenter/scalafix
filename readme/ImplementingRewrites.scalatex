@@ -51,6 +51,21 @@
       have some unit tests and be documented so that other people can help maintain
       the rewrite.
 
+  @sect{scalacenter/scalafix.g8}
+    @p
+      Run the following commands to generate a skeleton project
+
+      @hl.scala
+        // by convention, --rewrite= should match the Github repo name.
+        // this makes it possible for users to run `scalafix github:org/reponame/v1.0`
+        sbt new scalacenter/scalafix.g8 --rewrite "reponame" --version=v1.0
+        cd reponame/scalafix
+        sbt tests/test
+    @p
+      Note that the @code{scalafix} directory is a self-contained sbt build
+      and can be put into the root directory of your repo.
+      The tests are written using @sect.ref{scalafix-testkit}.
+
   @sect{Example rewrites}
     The Scalafix repository contains several example rewrites and tests,
     see @lnk("here", "https://github.com/scalacenter/scalafix/tree/master/scalafix-core/src/main/scala/scalafix/rewrite").
@@ -159,13 +174,17 @@
     @p
       You have implemented a rewrite, you have tests, it works,
       and now you want to share it with the world. Congrats!
-      There are several ways to share a rewrite:
+      There are several ways to share a rewrite if the rewrite is contained in
+      a single file and uses no external dependencies,
       @ul
         @li
-          If the rewrite is contained in a single file, then you can create a gist
-          and tell users to use the @sect.ref{http:} protocol,
-          @code{scalafix --rewrites https://gist....}.
+          If you used @sect.ref{scalacenter/scalafix.g8} to build your project,
+          push your rewrite to github and tell users to run
+          @code{scalafix github:org/$reponame/$version}.
         @li
-          If your rewrite uses a custom library @code{foo}, then it's a bit tricky
-          to share it. See @issue(201) for more updates.
-        @li
+          otherwise, tell users to use the @sect.ref{http:} protocol,
+          @code{scalafix --rewrites https://gist....} where the url
+          points to the plaintext contents of your rewrite.
+
+      If your rewrite uses a custom library @code{foo}, then it's a bit tricky
+      to share it. See @issue(201) for more updates.
