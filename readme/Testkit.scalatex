@@ -10,17 +10,8 @@
     semantic scalafix rewrites.
 
   @p
-    @b{Note.} Scalafix-testkit is a new module under active development
-    will be included in the next 0.4 release. The following instructions
-    may be incomplete. For any questions, don't hesitate to ask on @gitter
-
-
-  @p
-    To use scalafix-testkit
-
-    @hl.scala
-      @bintrayRepo
-      libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % "@V.stable" % Test cross CrossVersion.full
+    Note. This section may be incomplete, in case of any questions
+    don't hestitate to ask on @gitter.
 
   @p
     The following instructions assume you are using sbt.
@@ -41,8 +32,7 @@
         .in(file("scalafix/tests"))
         .settings(
           libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % "@V.stable" % Test cross CrossVersion.full,
-           buildInfoPackage := "scalafix.tests",
-           buildInfoObject := "BuildInfo",
+           buildInfoPackage := "myproject.scalafix.tests",
            buildInfoKeys := Seq[BuildInfoKey](
              "inputSourceroot" ->
                sourceDirectory.in(testsInput, Compile).value,
@@ -76,11 +66,11 @@
 
     Specify scalafix configuration inside comment at top of file like this.
 
-    @hl.ref(wd/"scalafix-tests"/"input"/"src"/"main"/"scala"/"test"/"VolatileLazyVal.scala")
+    @hl.ref(wd/"scalafix-tests"/"input"/"src"/"main"/"scala"/"test"/"ExplicitUnit.scala")
 
     And then testkit checks if rewritten codes match the one in output.
 
-    @hl.ref(wd/"scalafix-tests"/"output"/"src"/"main"/"scala"/"test"/"VolatileLazyVal.scala")
+    @hl.ref(wd/"scalafix-tests"/"output"/"src"/"main"/"scala"/"test"/"ExplicitUnit.scala")
 
   @p
     For a full working example, see the
