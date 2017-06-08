@@ -58,7 +58,7 @@
       import scala.collection.{immutable, mutable}
       object Foo { immutable.Seq.empty[Int] }
 
-      // before
+      // after
       import scala.collection.immutable
       object Foo { immutable.Seq.empty[Int] }
 
