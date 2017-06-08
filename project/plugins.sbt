@@ -9,5 +9,7 @@ addSbtPlugin("me.lessis"       % "bintray-sbt"         % "0.3.0")
 addSbtPlugin("com.dwijnand"    % "sbt-dynver"          % "1.2.0")
 addSbtPlugin("ch.epfl.lamp"    % "sbt-dotty"           % "0.1.1")
 addSbtPlugin("org.scalameta"   % "sbt-scalahost"       % Dependencies.scalametaV)
+addSbtPlugin("com.typesafe.sbt" % "sbt-ghpages"         % "0.6.0")
+addSbtPlugin("com.typesafe.sbt" % "sbt-site"            % "1.2.0")
 
 libraryDependencies += "org.scala-sbt" % "scripted-plugin" % sbtVersion.value

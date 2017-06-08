@@ -347,12 +347,20 @@ lazy val readme = scalatex
   .settings(
     allSettings,
     noPublish,
+    git.remoteRepo := "git@github.com:scalacenter/scalafix.git",
+    siteSourceDirectory := target.value / "scalatex",
+    publish := {
+      ghpagesPushSite
+        .dependsOn(run.in(Compile).toTask(" --validate-links"))
+        .value
+    },
     test := run.in(Compile).toTask(" --validate-links").value,
     libraryDependencies ++= Seq(
       "com.twitter" %% "util-eval" % "6.42.0"
     )
   )
   .dependsOn(core, cli)
+  .enablePlugins(GhpagesPlugin)
 
 lazy val isFullCrossVersion = Seq(
   crossVersion := CrossVersion.full
