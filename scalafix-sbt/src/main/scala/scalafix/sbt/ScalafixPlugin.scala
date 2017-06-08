@@ -27,19 +27,33 @@ object ScalafixPlugin extends AutoPlugin {
   import autoImport._
   private val scalafixVersion = _root_.scalafix.Versions.version
 
+  // override injected settings by other sbt plugins.
+  private val leaveMeAlone = Seq(
+    skip in publish := true,
+    publishLocal := {},
+    publish := {},
+    test := {},
+    sources := Nil,
+    scalacOptions := Nil,
+    javaOptions := Nil,
+    libraryDependencies := Nil,
+    publishArtifact := false,
+    publishMavenStyle := false
+  )
+
   private val scalafixStub =
     Project(id = s"scalafix-stub", base = file(s"project/scalafix/stub"))
       .settings(
+        leaveMeAlone,
         description :=
-          """Project to host scalafix-cli, which is executed to run rewrites.""".stripMargin,
-        publishLocal := {},
-        publish := {},
-        publishArtifact := false,
-        publishMavenStyle := false, // necessary to support intransitive dependencies.
+          """Project to fetch jars for ch.epfl.scala:scalafix-cli_2.11, since there
+            |is no nice api in sbt to get jars for a ModuleId outside of
+            |a project. Please upvote https://github.com/sbt/sbt/issues/2879 to
+            |make this hack unnecessary.""".stripMargin,
         scalaVersion := Versions.scala212,
-        libraryDependencies := Nil, // remove injected dependencies from random sbt plugins.
-        libraryDependencies +=
+        libraryDependencies := Seq(
           "ch.epfl.scala" % "scalafix-cli" % scalafixVersion cross CrossVersion.full
+        )
       )
 
   override def extraProjects: Seq[Project] = Seq(scalafixStub)

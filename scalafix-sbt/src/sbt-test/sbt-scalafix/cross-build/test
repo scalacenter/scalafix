@@ -1,5 +1,7 @@
 # compile should not affect scalafix
 > compile
+# This should not fail, see https://github.com/scalacenter/scalafix/issues/200
+> scalafix-stub/compile
 > scalafix
 > check
 
