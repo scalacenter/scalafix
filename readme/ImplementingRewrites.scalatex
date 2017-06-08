@@ -1,0 +1,190 @@
+@import Main._
+@import scalafix.Readme._
+@import scalafix.rewrite._
+@import scalafix.{Versions => V}
+@import scalafix.cli.Cli
+
+@sect{Creating your own rewrite}
+  @p
+    It is possible to implement custom rewrites with Scalafix.
+    Depending on what your rewrite does, it may be a lot of work or very
+    little work. Don't hestitate to get an estimate on @gitter for
+    how complicated it would be to implement your rewrite.
+
+  @sect{Before you begin}
+    Before you dive right into the code of your rewrite, it might be
+    good to answer the following questions first.
+
+    @sect{What diff do you want to make?}
+      Scalafix is a tool to automatically produce diffs.
+      Before implementing a rewrite, it's good to manually migrate/refactor a
+      few examples first. Manually refactoring code is helpful
+      to estimate how complicated the rewrite is.
+
+    @sect{Is the expected output unambiguous?}
+      Does the rewrite require manual intervention or do you always know what
+      output the rewrite should produce? Scalafix currently does not yet support
+      interactive refactoring. However, Scalafix has support for configuration,
+      which makes it possible to leave some choice to the user on how the rewrite
+      should behave.
+
+    @sect{Who will use your rewrite?}
+      The target audience/users of your rewrite can impact the implementation the
+      rewrite. If you are the only end-user of the rewrite, then you can maybe
+      take shortcuts and worry less about rare corner cases that may be easier to fix
+      manually. If your rewrite is intended to be used by the entire Scala
+      community, then you might want to be more careful with corner cases.
+
+    @sect{What code will your rewrite fix?}
+      Is your rewrite specific to a particular codebase? Or is the rewrite intended
+      to be used on codebases that you don't have access to? If your rewrite is
+      specific to one codebase, then it's easier to validate if your rewrite
+      is ready. You may not even need tests, since your codebase is your only test.
+      If your rewrite is intended to be used in any random codebase, you may
+      want to have tests and put more effort into handling corner cases.
+      In general, the smaller the target domain of your rewrite, the easier it
+      is to implement a rewrite.
+
+    @sect{How often will your rewrite run?}
+      Are you writing a one-off migration script or will your rewrite run on
+      every pull request? A rewrite that runs on every pull request should ideally
+      have some unit tests and be documented so that other people can help maintain
+      the rewrite.
+
+  @sect{scalacenter/scalafix.g8}
+    @p
+      Run the following commands to generate a skeleton project
+
+      @hl.scala
+        // by convention, --rewrite= should match the GitHub repo name.
+        // this makes it possible for users to run `scalafix github:org/reponame/v1.0`
+        sbt new scalacenter/scalafix.g8 --rewrite "reponame" --version=v1.0
+        cd reponame/scalafix
+        sbt tests/test
+    @p
+      Note that the @code{scalafix} directory is a self-contained sbt build
+      and can be put into the root directory of your repo.
+      The tests are written using @sect.ref{scalafix-testkit}.
+
+  @sect{Example rewrites}
+    The Scalafix repository contains several example rewrites and tests,
+    see @lnk("here", "https://github.com/scalacenter/scalafix/tree/master/scalafix-core/src/main/scala/scalafix/rewrite").
+    These examples may serve as inspiration for your rewrite.
+
+  @sect{Vocabulary}
+    The following sections explain useful vocabulary when working with Scalafix.
+
+    @sect{Rewrite}
+      A rewrite is a small program/function that can produce diffs.
+      To implement a rewrite, you extend the
+      @lnk("Rewrite", "https://github.com/scalacenter/scalafix/blob/master/scalafix-core/src/main/scala/scalafix/rewrite/Rewrite.scala")
+      class.
+      To run a rewrite, users execute @code{scalafix --rewrites MyRewrite}.
+      Multiple rewrites can be composed into a single rewrite.
+      For example, the migration for Dotty may involve @sect.ref{ProcedureSyntax},
+      @sect.ref{ExplicitUnit}, @sect.ref{DottyVarArgPattern}, @sect.ref{ExplicitReturnTypes}
+      and a few other rewrites. It is possible to combine all of those rewrites
+      into a single @code{Dotty} rewrite so users can run
+      @code{scalafix --rewrites Dotty}.
+
+    @sect{RewriteCtx}
+      A rewrite context contains data structures and utilities to rewrite a single
+      source file. For example, the rewrite context contains the parsed @sect.ref{Tree},
+      @sect.ref{Tokens}, lookup tables for matching parentheses and more.
+
+    @sect{Patch}
+      A "Patch" is a data structure that describes how to produce a diff.
+      Two patches can combined into a single patch with the @code{+} operator.
+      A patch can also be empty. Patches can either be low-level "token patches",
+      that operate on the token level or high-level "tree patches" that operate
+      on parsed abstract syntax tree nodes. The public API for patch
+      operations is available in PatchOps.scala
+
+      @hl.ref(wd/"scalafix-core"/"src"/"main"/"scala"/"scalafix"/"patch"/"PatchOps.scala", start = "class SyntacticPatch")
+
+      Some things are typically easier to do on the token level and other
+      things are easier to do on the tree level.
+      The Patch API is constantly evolving and we regularly add more
+      utility methods to accomplish common tasks.
+      If you experience that it's difficult to implement something that
+      seems simple then don't hesitate to ask on @gitter.
+
+    @sect{Scalameta}
+      Scalafix uses @lnk("Scalameta", "http://scalameta.org/") to implement
+      rewrites.
+      Scalameta is a clean-room implementation of a metaprogramming toolkit for Scala.
+      This means it's not necessary to have experience with Scala compiler internals
+      to implement Scalafix rewrites.
+      In fact, Scalafix doesn't even depend on the Scala compiler.
+      Since Scalafix is not tied so a single compiler, this means that Scalafix
+      rewrites in theory can work with any Scala compiler, including @dotty and
+      IntelliJ Scala Plugin.
+
+    @sect{Scalahost}
+      Scalahost is a compiler plugin for Scala 2.x in the @sect.ref{Scalameta} project
+      that collects information to build a @sect.ref{Mirror}.
+      For more information about Scalahost, see
+      the @lnk("Scalameta documentation", "http://scalameta.org/tutorial/#Scalahost").
+
+    @sect{Token}
+      A token is for example an identifier @code{println}, a delimiter @code{[} @code{)},
+      or a whitespace character like space or newline.
+      In the context of Scalafix, a @code{Token} means the data structure
+      @code{scala.meta.Token}.
+      See @lnk("Scalameta tutorial", "http://scalameta.org/tutorial/#Tokens")
+      for more details.
+      See @lnk("Wikipedia", "https://en.wikipedia.org/wiki/Lexical_analysis#Token")
+      for a more general definition.
+
+    @sect{Tokens}
+      @code{Tokens} is a list of @sect.ref{Token}.
+      See @lnk("Scalameta tutorial", "http://scalameta.org/tutorial/#Tokens")
+
+    @sect{Tree}
+      A @code{Tree} is a parsed abstract syntax tree.
+      In the context of Scalafix, a @code{Tree} means the data structure
+      @code{scala.meta.Tree}.
+      See @lnk("Scalameta tutorial", "http://scalameta.org/tutorial/#Trees")
+      for more details.
+      See @lnk("Wikipedia", "https://en.wikipedia.org/wiki/Abstract_syntax_tree")
+      for a more general definition.
+
+    @sect{Syntactic}
+      A @sect.ref{Rewrite} is "syntactic" when it does not require information
+      from type-checking such as resolved names (@code{println} => @code{scala.Predef.println}),
+      types or terms, or inferred implicit arguments.
+      A syntactic rewrite can use @sect.ref{Tokens} and @sect.ref{Tree}, but
+      not @sect.ref{Mirror}.
+
+    @sect{Semantic}
+      A @sect.ref{Rewrite} is "semantic" if it requires information from the compiler
+      such as types, symbols and reported compiler messages.
+      A semantic rewrite can use a @sect.ref{Mirror}.
+
+    @sect{Mirror}
+       A mirror is a Scalameta concept that encapsulates a compilation context, providing
+       capabilities to perform semantic operations for @sect.ref{Semantic} rewrites.
+       To learn more about mirrors and its associated concepts (Symbol,
+       Denotation, ...), see the
+       @lnk("Scalameta tutorial", "http://scalameta.org/tutorial/#Mirror").
+
+  @scalatex.Testkit()
+
+  @sect{Sharing your rewrite}
+    @p
+      You have implemented a rewrite, you have tests, it works,
+      and now you want to share it with the world. Congrats!
+      There are several ways to share a rewrite if the rewrite is contained in
+      a single file and uses no external dependencies,
+      @ul
+        @li
+          If you used @sect.ref{scalacenter/scalafix.g8} to build your project,
+          push your rewrite to github and tell users to run
+          @code{scalafix github:org/$reponame/$version}.
+        @li
+          otherwise, tell users to use the @sect.ref{http:} protocol,
+          @code{scalafix --rewrites https://gist....} where the url
+          points to the plaintext contents of your rewrite.
+
+      If your rewrite uses a custom library, then it's a bit tricky
+      to share it. See @issue(201) for more updates.

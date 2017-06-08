@@ -41,24 +41,24 @@ object ScalafixCompilerDecoder {
     private[this] val GitHubShorthandWithSha =
       """github:([^\/]+)\/([^\/]+)\/([^\/]+)\?sha=(.+)""".r
 
-    private[this] def normalizedPackageName(repoName: String): String = {
-      val packageName = repoName.replaceAll("[^a-zA-Z0-9]", "_").toLowerCase
-      if (packageName.headOption.map(_.isDigit) == Some(true)) {
-        s"_$packageName"
-      } else {
-        packageName
-      }
-    }
+    private[this] val alphanumerical = "[^a-zA-Z0-9]"
+
+    // approximates the "format=Camel" formatter in giter8.
+    // http://www.foundweekends.org/giter8/Combined+Pages.html#Formatting+template+fields
+    private[this] def CamelCase(string: String): String =
+      string.split(alphanumerical).map(_.capitalize).mkString
+
+    // approximates the "format=Snake" formatter in giter8.
+    private[this] def SnakeCase(string: String): String =
+      string.split(alphanumerical).map(_.toLowerCase).mkString("_")
 
     private[this] def expandGitHubURL(org: String,
                                       repo: String,
                                       version: String,
                                       sha: String): URL = {
-      val normVersion = version.replaceAll("[^\\d]", "_")
-      val packageName = normalizedPackageName(repo)
-      val fileName = s"${packageName.capitalize}_$normVersion.scala"
+      val fileName = s"${CamelCase(repo)}_${SnakeCase(version)}.scala"
       new URL(
-        s"https://github.com/$org/$repo/blob/$sha/scalafix-rewrites/src/main/scala/$packageName/scalafix/$fileName")
+        s"https://github.com/$org/$repo/blob/$sha/scalafix/rewrites/src/main/scala/fix/$fileName")
     }
 
     def unapply(arg: Conf.Str): Option[URL] = arg.value match {

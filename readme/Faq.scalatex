@@ -1,5 +1,6 @@
 @import Main._
 @import scalafix.Readme._
+@import scalafix.{Versions => V}
 
 @sect{FAQ / Troubleshooting}
 
@@ -16,3 +17,21 @@
     You might be using an old version of sbt.
     sbt-scalafix requires sbt 0.13.13 or higher.
 
+  @sect{Scalafix doesn't do anything}
+    @ul
+      @li
+        Make sure that you are running at least one rewrite.
+      @li
+        Make sure that you are using a supported Scala version: @V.supportedScalaVersions.mkString(", ")
+      @li
+        It could be that sbt-scalafix failed to enable the @sect.ref{Scalahost} compiler plugin.
+        You can check if Scalahost is enabled in sbt with @code{show myproject/scalacOptions}.
+        If it does not contains an option @code{-Xplugin:/path/to/scalahost.jar},
+        then Scalahost is not enabled.
+        See @lnk("here", "http://scalameta.org/tutorial/#Installation")
+        for how to manually install scalahost and verify that
+        @code{.semanticdb} files are created.
+
+  @sect{RemoveUnusedImports does not remove unused imports}
+    Make sure that you followed the instructions in @sect.ref{RemoveUnusedImports}
+    regarding scalac options.
