@@ -56,7 +56,7 @@
       Run the following commands to generate a skeleton project
 
       @hl.scala
-        // by convention, --rewrite= should match the Github repo name.
+        // by convention, --rewrite= should match the GitHub repo name.
         // this makes it possible for users to run `scalafix github:org/reponame/v1.0`
         sbt new scalacenter/scalafix.g8 --rewrite "reponame" --version=v1.0
         cd reponame/scalafix
@@ -186,5 +186,5 @@
           @code{scalafix --rewrites https://gist....} where the url
           points to the plaintext contents of your rewrite.
 
-      If your rewrite uses a custom library @code{foo}, then it's a bit tricky
+      If your rewrite uses a custom library, then it's a bit tricky
       to share it. See @issue(201) for more updates.

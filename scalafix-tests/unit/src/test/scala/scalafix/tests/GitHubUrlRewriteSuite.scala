@@ -5,7 +5,7 @@ import scalafix.reflect.ScalafixCompilerDecoder.GitHubUrlRewrite
 import metaconfig.Conf
 import org.scalatest.FunSuite
 
-class GithubUrlRewriteSuite extends FunSuite {
+class GitHubUrlRewriteSuite extends FunSuite {
   def check(original: String, expected: String): Unit = {
     test(original) {
       Conf.Str(original) match {
