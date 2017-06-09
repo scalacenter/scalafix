@@ -46,7 +46,7 @@ object ScalafixCompilerDecoder {
     // approximates the "format=Camel" formatter in giter8.
     // http://www.foundweekends.org/giter8/Combined+Pages.html#Formatting+template+fields
     private[this] def CamelCase(string: String): String =
-      string.split(alphanumerical).map(_.capitalize).mkString
+      string.split(alphanumerical).mkString.capitalize
 
     // approximates the "format=Snake" formatter in giter8.
     private[this] def SnakeCase(string: String): String =
@@ -58,7 +58,7 @@ object ScalafixCompilerDecoder {
                                       sha: String): URL = {
       val fileName = s"${CamelCase(repo)}_${SnakeCase(version)}.scala"
       new URL(
-        s"https://github.com/$org/$repo/blob/$sha/scalafix/rewrites/src/main/scala/fix/$fileName")
+        s"https://raw.githubusercontent.com/$org/$repo/$sha/scalafix/rewrites/src/main/scala/fix/$fileName")
     }
 
     def unapply(arg: Conf.Str): Option[URL] = arg.value match {
