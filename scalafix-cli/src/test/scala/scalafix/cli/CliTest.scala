@@ -8,6 +8,8 @@ import scalafix.util.FileOps
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.PrintStream
+import java.nio.file.Paths
+import scala.meta.io.AbsolutePath
 import scalafix.cli.CliCommand.RunScalafix
 import caseapp.core.WithHelp
 import org.scalatest.FunSuite
@@ -138,7 +140,7 @@ class CliTest extends FunSuite with DiffAssertions {
 
   test("--sourceroot --classpath") {
     assert(Cli.parse(List("--sourceroot", "foo.scala")).isError)
-    assert(Cli.parse(List("--classpath", "foo")).isError)
+    assert(Cli.parse(List("--classpath", "auto")).isError)
     // NOTE: This assertion should fail by default, but scalafix-cli % Test
     // depends on testkit, which has scalahost-nsc as a dependency.
     assert(
