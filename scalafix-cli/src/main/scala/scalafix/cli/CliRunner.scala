@@ -1,18 +1,28 @@
 package scalafix
 package cli
 
+import java.io.File
+import java.io.IOException
 import java.io.OutputStreamWriter
 import java.net.URI
+import java.nio.file.FileVisitResult
+import java.nio.file.FileVisitor
 import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.SimpleFileVisitor
+import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.UnaryOperator
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 import scala.collection.immutable.Seq
+import scala.collection.mutable.ListBuffer
 import scala.meta._
 import scala.meta.internal.inputs._
 import scala.meta.internal.io.FileIO
+import scala.meta.internal.io.PathIO
 import scala.meta.internal.semantic.vfs
 import scala.meta.parsers.ParseException
 import scala.util.Success
@@ -29,8 +39,10 @@ import scalafix.reflect.ScalafixCompilerDecoder
 import scalafix.reflect.ScalafixToolbox
 import scalafix.rewrite.ScalafixRewrites
 import scalafix.syntax._
+import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
 import metaconfig._
+import org.scalameta.logger
 
 sealed abstract case class CliRunner(
     sourceroot: AbsolutePath,
@@ -158,22 +170,57 @@ object CliRunner {
       ) {}
     }
   }
+  private val META_INF = Paths.get("META-INF")
+  private val SEMANTICDB = Paths.get("semanticdb")
+
+  private def isTargetroot(path: Path): Boolean = {
+    path.toFile.isDirectory &&
+    path.resolve(META_INF).toFile.isDirectory &&
+    path.resolve(META_INF).resolve(SEMANTICDB).toFile.isDirectory
+  }
+  def autoClasspath(workingPath: AbsolutePath): Classpath = {
+    val buffer = List.newBuilder[AbsolutePath]
+    Files.walkFileTree(
+      workingPath.toNIO,
+      new SimpleFileVisitor[Path] {
+        override def preVisitDirectory(
+            dir: Path,
+            attrs: BasicFileAttributes): FileVisitResult = {
+          if (isTargetroot(dir)) {
+            buffer += AbsolutePath(dir)
+            FileVisitResult.SKIP_SUBTREE
+          } else {
+            FileVisitResult.CONTINUE
+          }
+        }
+      }
+    )
+    Classpath(buffer.result())
+  }
 
   private class Builder(val cli: ScalafixOptions) {
     import cli._
 
     implicit val workingDirectory: AbsolutePath = common.workingPath
 
+    lazy val resolvedClasspath: Option[Configured[Classpath]] = classpath.map {
+      case "auto" => Ok(autoClasspath(common.workingPath))
+      case x =>
+        val paths = x.split(File.pathSeparator).map { path =>
+          AbsolutePath.fromString(path)(common.workingPath)
+        }
+        Ok(Classpath(paths))
+    }
+
     // Database
     private val resolvedDatabase: Configured[Database] =
-      (classpath, sourceroot) match {
-        case (Some(cp), sp) =>
+      (resolvedClasspath, sourceroot) match {
+        case (Some(Ok(cp)), sp) =>
           val tryMirror = for {
             mirror <- Try {
               val sourcepath = sp.map(Sourcepath.apply)
-              val classpath = Classpath(cp)
               val mirror =
-                vfs.Database.load(classpath).toSchema.toMeta(sourcepath)
+                vfs.Database.load(cp).toSchema.toMeta(sourcepath)
               mirror
             }
           } yield mirror
@@ -181,6 +228,7 @@ object CliRunner {
             case Success(x) => Ok(x)
             case scala.util.Failure(e) => ConfError.msg(e.toString).notOk
           }
+        case (Some(err @ NotOk(_)), _) => err
         case (None, Some(sp)) =>
           ConfError
             .msg(

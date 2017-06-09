@@ -2,7 +2,6 @@ package scalafix
 package testkit
 
 import scala.meta._
-import org.scalameta.logger
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 
