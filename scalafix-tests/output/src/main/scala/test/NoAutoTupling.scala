@@ -1,60 +1,49 @@
 package test
 
-class NoAutoTupling {
-//  <<< add explicit tuple
-  object tup {
-    def fooo(t: (Int, Int)): Int = ???
-    fooo((1 + 1, 2))
-  }
-//  <<< multiple parameter lists, all auto-tupled
-  object tup1 {
-    def fooo(t: (Int, Int))(s: (String, String)): Int = ???
-    fooo((1, 2))(("a", "b"))
+class NoAutoTupling2 {
+  def a(x: (Int, Boolean)) = x
+  a((2, true))
 
-    def baar(t: (Boolean, Int, String))(s: (Boolean, String))(
-        k: (Int, String)): String = ???
-    baar((true, 1, "foo"))((false, "42"))((42, "foo"))
-  }
-//  <<< multiple parameter lists, some auto-tupled
-  object tup2 {
-    def fooo(t: (Int, Int))(s: (String, String)): Int = ???
-    fooo((1, 2))(("a", "b"))
+  def b(x: Int, y: Boolean) = (x, y)
+  b(2, true)
 
-    def baar(t: (Boolean, Int, String))(s: (Boolean, String))(
-        k: (Int, String)): String = ???
-    baar((true, 1, "foo"))((false, "42"))((42, "foo"))
+  def c(x: Int, y: Boolean)(z: (String, List[Int])) = (x, y, z)
+  c(2, true)(("foo", 1 :: 2 :: Nil))
+
+  def d(x: (Int, Boolean))(y: (String, List[Int])) = (x, y)
+  d((2, true))(("foo", 1 :: 2 :: Nil))
+
+  def e(x: (Int, Boolean))(s: List[String], c: Char)(y: (String, List[Int])) = (x, y)
+  e((2, true))("a" :: "b" :: Nil, 'z')(("foo", 1 :: 2 :: Nil))
+
+  def f: (((Int, String)) => ((String, List[Int])) => Int) = a => b => a._1
+  f((1 + 2, "foo"))(("bar", 1 :: 2 :: Nil))
+
+  val g = (x: (Int, Boolean)) => x
+  g((2, true))
+
+  case class Foo(t: (Int, String))(s: (Boolean, List[Int]))
+  // new Foo(1, "foo")(true, Nil)
+  Foo((1, "foo"))((true, Nil))
+  Foo.apply((1, "foo"))((true, Nil))
+
+  case class Bar(x: Int, y: String)(s: (Boolean, List[Int]))
+  // new Bar(1, "foo")(true, Nil)
+  Bar(1, "foo")((true, Nil))
+  Bar.apply(1, "foo")((true, Nil))
+
+  object NoFalsePositives {
+    def a(a: (Int, Boolean), b: Int) = (a, b)
+    a((2, true), 2)
+
+    def b(a: Int, b: Int) = (a, b)
+    b(1 + 1, 2)
+
+    case class Foo(x: Int, y: String, z: (Char, Boolean))
+    new Foo(42, "foo", ('z', true))
+    Foo(42, "foo", ('z', true))
+    Foo.apply(42, "foo", ('z', true))
   }
-//  <<< already tupled calls stay the same
-  object tup3 {
-    def fooo(t: (Int, Int)): Int = ???
-    fooo((1, 2))
-  }
-//  <<< methods not involving tuples stay the same
-  object tup4 {
-    def sum(a: Int, b: Int): Int = ???
-    sum(1, 2)
-  }
-//  <<< methods with tuples, but not single parameter
-  object tup5 {
-    def sum(a: Int, b: (Int, String)): Int = ???
-    sum(1, (2, "foo"))
-  }
-//  <<< auto-tupling with lambdas
- object tup6 {
-   val foo = (a: (Int, Boolean)) => a
-   foo((2, true))
- }
-//  <<< auto-tupling with curried methods
- object tup7 {
-   def foo: (((Int, String)) => ((String, List[Int])) => Int) = a => b => a._1
-   foo((1 + 2, "foo"))(("bar", 1 :: 2 :: Nil))
- }
-//  <<< auto-tupling with class constructors
-  object tup8 {
-    case class Foo(t: (Int, String))(s: (Boolean, List[Int]))
-    new Foo((1, "foo"))((true, Nil))
-//    Foo(1, "foo")(true, Nil) // blocked by https://github.com/scalameta/scalameta/issues/846
-    Foo.apply((1, "foo"))((true, Nil))
-  }
+
 }
 
