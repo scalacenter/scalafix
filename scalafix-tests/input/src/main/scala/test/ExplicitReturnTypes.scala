@@ -1,9 +1,21 @@
 /*
 rewrites = ExplicitReturnTypes
+explicitReturnTypes.memberKind = [Def, Var]
+explicitReturnTypes.memberVisibility = [Public, Protected]
  */
 package test
 
 object ExplicitReturnTypes {
+  val a = 1
+  def b() = List
+  var c = true
+  protected val d = 1.0f
+  protected def e(a:Int,b:Double) = a + b
+  protected var f = (x: Int) => x + 1
+  private val g = 1
+  private def h(a:Int) = ""
+  private var i = 1
+
   implicit val L = List(1)
   implicit val M = Map(1 -> "STRING")
   implicit def D = 2

@@ -2,9 +2,12 @@ package scalafix
 package rewrite
 
 import scalafix.syntax._
-import scala.meta._, contrib._
+import scala.meta._
+import contrib._
 import scalafix.util.Whitespace
 import scala.collection.immutable.Seq
+import scalafix.config.{MemberKind, MemberVisibility}
+import scalafix.config.MemberVisibility.Public
 
 // TODO: implement ExplicitReturnTypesConfig
 case class ExplicitReturnTypes(mirror: Mirror)
@@ -20,19 +23,39 @@ case class ExplicitReturnTypes(mirror: Mirror)
 
   def defnName(defn: Defn): Option[Name] = Option(defn).collect {
     case Defn.Val(_, Seq(Pat.Var.Term(name)), _, _) => name
+    case Defn.Var(_, Seq(Pat.Var.Term(name)), _, _) => name
     case Defn.Def(_, name, _, _, _, _) => name
+  }
+
+  def visibility(mod:Mod):Option[MemberVisibility] = Option(mod).flatMap{
+    case _:Mod.Private => Some(MemberVisibility.Private)
+    case _:Mod.Protected => Some(MemberVisibility.Protected)
+    case _ => None
+  }
+
+  def kind(defn:Defn):Option[MemberKind] = Option(defn).flatMap{
+    case _:Defn.Val => Some(MemberKind.Val)
+    case _:Defn.Def => Some(MemberKind.Def)
+    case _:Defn.Var => Some(MemberKind.Var)
+    case _          => None
   }
 
   def parseDenotationInfo(denot: Denotation): Option[Type] = {
     val base =
       if (denot.isVal) denot.info
+      else if(denot.isVar) denot.info.replaceFirst("var ", "")
       else if (denot.isDef) denot.info.replaceFirst(".*\\)", "")
       else {
         throw new UnsupportedOperationException(
           s"Can't parse type for denotation $denot, denot.info=${denot.info}")
       }
-    base.parse[Type].toOption
+    if(denot.isVal || denot.isDef)
+      base.parse[Type].toOption
+    else
+      base.parse[Stat].toOption.flatMap{_.collect{case Term.Ascribe(_,typ) => typ}.headOption}
   }
+
+  def denotations:Seq[(Symbol,Denotation)] = mirror.database.entries.flatMap(_._2.denotations)
 
   def defnType(defn: Defn): Option[Type] =
     for {
@@ -56,16 +79,27 @@ case class ExplicitReturnTypes(mirror: Mirror)
         replace <- lhsTokens.reverseIterator.find(x =>
           !x.is[Token.Equals] && !x.is[Whitespace])
         typ <- defnType(defn)
-      } yield ctx.addRight(replace, s": ${typ.treeSyntax}")
+      } yield {
+        ctx.addRight(replace, s": ${typ.treeSyntax}")
+      }
     }.to[Seq]
+
+    def checkModsScope(mods:Seq[Mod]):Boolean =
+      ctx.config.explicitReturnTypes.memberVisibility.contains(mods.flatMap(visibility).headOption.getOrElse(Public))
+    def checkDefnScope(defn:Defn):Boolean =
+      kind(defn).exists(ctx.config.explicitReturnTypes.memberKind.contains)
+
     tree
       .collect {
         case t @ Defn.Val(mods, _, None, body)
-            if t.hasMod(mod"implicit") &&
-              !isImplicitly(body) =>
+          if  t.hasMod(mod"implicit") && !isImplicitly(body)
+            || !t.hasMod(mod"implicit") && checkDefnScope(t) && checkModsScope(mods) =>
+          fix(t, body)
+        case t @ Defn.Var(mods, _, None, Some(body))
+          if checkDefnScope(t) && checkModsScope(mods) =>
           fix(t, body)
         case t @ Defn.Def(mods, _, _, _, None, body)
-            if t.hasMod(mod"implicit") =>
+          if t.hasMod(mod"implicit") || checkDefnScope(t) && checkModsScope(mods) =>
           fix(t, body)
       }
       .flatten
