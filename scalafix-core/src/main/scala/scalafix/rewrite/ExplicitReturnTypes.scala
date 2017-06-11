@@ -42,8 +42,7 @@ case class ExplicitReturnTypes(mirror: Mirror)
 
   def parseDenotationInfo(denot: Denotation): Option[Type] = {
     val base =
-      if (denot.isVal) denot.info
-      else if(denot.isVar) denot.info.replaceFirst("var ", "")
+      if (denot.isVal || denot.isVar) denot.info
       else if (denot.isDef) denot.info.replaceFirst(".*\\)", "")
       else {
         throw new UnsupportedOperationException(
