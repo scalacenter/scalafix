@@ -1,13 +1,12 @@
 package scalafix
 package rewrite
 
-import scalafix.syntax._
-import scala.meta._
-import contrib._
-import scalafix.util.Whitespace
 import scala.collection.immutable.Seq
+import scala.meta._
+import scala.meta.contrib._
 import scalafix.config.{MemberKind, MemberVisibility}
-import scalafix.config.MemberVisibility.Public
+import scalafix.syntax._
+import scalafix.util.Whitespace
 
 // TODO: implement ExplicitReturnTypesConfig
 case class ExplicitReturnTypes(mirror: Mirror)
@@ -27,17 +26,19 @@ case class ExplicitReturnTypes(mirror: Mirror)
     case Defn.Def(_, name, _, _, _, _) => name
   }
 
-  def visibility(mod: Mod): Option[MemberVisibility] = Option(mod).flatMap {
-    case _: Mod.Private => Some(MemberVisibility.Private)
-    case _: Mod.Protected => Some(MemberVisibility.Protected)
-    case _ => None
-  }
+  def visibility(mods: Traversable[Mod]): MemberVisibility =
+    mods
+      .collect {
+        case _: Mod.Private => MemberVisibility.Private
+        case _: Mod.Protected => MemberVisibility.Protected
+      }
+      .headOption
+      .getOrElse(MemberVisibility.Public)
 
-  def kind(defn: Defn): Option[MemberKind] = Option(defn).flatMap {
-    case _: Defn.Val => Some(MemberKind.Val)
-    case _: Defn.Def => Some(MemberKind.Def)
-    case _: Defn.Var => Some(MemberKind.Var)
-    case _ => None
+  def kind(defn: Defn): Option[MemberKind] = Option(defn).collect {
+    case _: Defn.Val => MemberKind.Val
+    case _: Defn.Def => MemberKind.Def
+    case _: Defn.Var => MemberKind.Var
   }
 
   def parseDenotationInfo(denot: Denotation): Option[Type] = {
@@ -65,8 +66,9 @@ case class ExplicitReturnTypes(mirror: Mirror)
     } yield typ
 
   override def rewrite(ctx: RewriteCtx): Patch = {
-    import scala.meta._
     import ctx._
+
+    import scala.meta._
     def fix(defn: Defn, body: Term): Seq[Patch] = {
       import ctx.tokenList._
       for {
@@ -83,7 +85,8 @@ case class ExplicitReturnTypes(mirror: Mirror)
 
     def checkModsScope(mods: Seq[Mod]): Boolean =
       ctx.config.explicitReturnTypes.memberVisibility
-        .contains(mods.flatMap(visibility).headOption.getOrElse(Public))
+        .contains(visibility(mods))
+
     def checkDefnScope(defn: Defn): Boolean =
       kind(defn).exists(ctx.config.explicitReturnTypes.memberKind.contains)
 
