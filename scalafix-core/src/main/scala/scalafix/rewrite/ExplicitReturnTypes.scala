@@ -54,8 +54,6 @@ case class ExplicitReturnTypes(mirror: Mirror)
       base.parse[Stat].toOption.flatMap{_.collect{case Term.Ascribe(_,typ) => typ}.headOption}
   }
 
-  def denotations:Seq[(Symbol,Denotation)] = mirror.database.entries.flatMap(_._2.denotations)
-
   def defnType(defn: Defn): Option[Type] =
     for {
       name <- defnName(defn)
