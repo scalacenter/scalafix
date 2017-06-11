@@ -91,15 +91,15 @@ case class ExplicitReturnTypes(mirror: Mirror)
       .collect {
         case t @ Defn.Val(mods, _, None, body)
             if t.hasMod(mod"implicit") && !isImplicitly(body)
-              || !t.hasMod(mod"implicit") && checkDefnScope(t) && checkModsScope(
-                mods) =>
+              || !t.hasMod(mod"implicit")
+                && checkDefnScope(t) && checkModsScope(mods) =>
           fix(t, body)
         case t @ Defn.Var(mods, _, None, Some(body))
             if checkDefnScope(t) && checkModsScope(mods) =>
           fix(t, body)
         case t @ Defn.Def(mods, _, _, _, None, body)
-            if t.hasMod(mod"implicit") || checkDefnScope(t) && checkModsScope(
-              mods) =>
+            if t.hasMod(mod"implicit")
+              || checkDefnScope(t) && checkModsScope(mods) =>
           fix(t, body)
       }
       .flatten
