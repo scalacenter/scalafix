@@ -50,6 +50,10 @@ case class ExplicitReturnTypes(mirror: Mirror)
     if (denot.isVal || denot.isDef)
       base.parse[Type].toOption
     else
+    /*
+      Currently a symbol of Var points to its setter function.
+      That's why its argument type should be extracted via pattern-match.
+     */
       for {
         stat <- base.parse[Stat].toOption
         typ <- stat.collectFirst { case Term.Ascribe(_, typ) => typ }
