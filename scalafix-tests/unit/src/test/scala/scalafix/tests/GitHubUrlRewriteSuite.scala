@@ -3,16 +3,23 @@ package tests
 
 import scalafix.reflect.ScalafixCompilerDecoder.GitHubUrlRewrite
 import metaconfig.Conf
+import metaconfig.Configured.NotOk
+import metaconfig.Configured.Ok
 import org.scalatest.FunSuite
 
 class GitHubUrlRewriteSuite extends FunSuite {
-  def check(original: String, expected: String): Unit = {
-    test(original) {
+  def check(original: String, expected: String, ok: Boolean = true): Unit = {
+    test((if (ok) "" else "FAIL ") + original) {
       Conf.Str(original) match {
-        case GitHubUrlRewrite(obtained) =>
+        case GitHubUrlRewrite(Ok(obtained)) if ok =>
+          assert(obtained.toString == expected)
+        case GitHubUrlRewrite(NotOk(obtained)) if !ok =>
           assert(obtained.toString == expected)
       }
     }
+  }
+  def checkFail(original: String, expected: String): Unit = {
+    check(original, expected, ok = false)
   }
 
   check(
@@ -39,5 +46,11 @@ class GitHubUrlRewriteSuite extends FunSuite {
       // The rewrite inside the file can still be renamed to _42SomeRepo
       // without problem.
       "src/main/scala/fix/42somerepo_1_2_3.scala"
+  )
+  checkFail(
+    "github:someorg/somerepo",
+    """Invalid url 'github:someorg/somerepo'. Valid formats are:
+      |- github:org/repo/version
+      |- github:org/repo/version?sha=branch""".stripMargin
   )
 }

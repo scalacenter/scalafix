@@ -4,12 +4,14 @@ import scala.meta._
 import scalafix.Rewrite
 import scalafix.config._
 import scalafix.util.FileOps
-
 import java.io.File
 import java.net.URL
-
 import metaconfig.Conf
 import metaconfig.ConfDecoder
+import metaconfig.ConfError
+import metaconfig.Configured
+import metaconfig.Configured.NotOk
+import metaconfig.Configured.Ok
 
 object ScalafixCompilerDecoder {
   def syntactic: ConfDecoder[Rewrite] = fromMirrorOption(None)
@@ -22,14 +24,17 @@ object ScalafixCompilerDecoder {
       mirror)
   def baseCompilerDecoder(mirror: Option[Mirror]): ConfDecoder[Rewrite] =
     ConfDecoder.instance[Rewrite] {
-      case FromSourceRewrite(code) =>
-        ScalafixToolbox.getRewrite(code, mirror)
+      case FromSourceRewrite(rewrite) =>
+        rewrite match {
+          case Ok(code) => ScalafixToolbox.getRewrite(code, mirror)
+          case err @ NotOk(_) => err
+        }
     }
 
   object UrlRewrite {
-    def unapply(arg: Conf.Str): Option[URL] = arg match {
+    def unapply(arg: Conf.Str): Option[Configured[URL]] = arg match {
       case UriRewrite("http" | "https", uri) if uri.isAbsolute =>
-        Option(uri.toURL)
+        Option(Ok(uri.toURL))
       case GitHubUrlRewrite(url) => Option(url)
       case _ => None
     }
@@ -40,6 +45,8 @@ object ScalafixCompilerDecoder {
       """github:([^\/]+)\/([^\/]+)\/([^\/]+)""".r
     private[this] val GitHubShorthandWithSha =
       """github:([^\/]+)\/([^\/]+)\/([^\/]+)\?sha=(.+)""".r
+    private[this] val GitHubFallback =
+      """github:(.*)""".r
 
     private[this] val alphanumerical = "[^a-zA-Z0-9]"
 
@@ -61,11 +68,18 @@ object ScalafixCompilerDecoder {
         s"https://raw.githubusercontent.com/$org/$repo/$sha/scalafix/rewrites/src/main/scala/fix/$fileName")
     }
 
-    def unapply(arg: Conf.Str): Option[URL] = arg.value match {
+    def unapply(arg: Conf.Str): Option[Configured[URL]] = arg.value match {
       case GitHubShorthandWithSha(org, repo, version, sha) =>
-        Option(expandGitHubURL(org, repo, version, sha))
+        Option(Ok(expandGitHubURL(org, repo, version, sha)))
       case GitHubShorthand(org, repo, version) =>
-        Option(expandGitHubURL(org, repo, version, "master"))
+        Option(Ok(expandGitHubURL(org, repo, version, "master")))
+      case GitHubFallback(invalid) =>
+        Some(
+          ConfError
+            .msg(s"""Invalid url 'github:$invalid'. Valid formats are:
+                    |- github:org/repo/version
+                    |- github:org/repo/version?sha=branch""".stripMargin)
+            .notOk)
       case _ => None
     }
   }
@@ -79,13 +93,15 @@ object ScalafixCompilerDecoder {
   }
 
   object FromSourceRewrite {
-    def unapply(arg: Conf.Str): Option[Input] = arg match {
-      case FileRewrite(file) => Option(Input.File(file))
-      case UrlRewrite(url) =>
+    def unapply(arg: Conf.Str): Option[Configured[Input]] = arg match {
+      case FileRewrite(file) =>
+        // NOgg
+        Option(Ok(Input.File(file)))
+      case UrlRewrite(Ok(url)) =>
         val code = FileOps.readURL(url)
         val file = File.createTempFile(url.toString, ".scala")
         FileOps.writeFile(file, code)
-        Option(Input.File(file))
+        Option(Ok(Input.File(file)))
       case _ => None
     }
   }
