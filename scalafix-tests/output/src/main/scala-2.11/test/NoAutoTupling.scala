@@ -1,39 +1,36 @@
-/*
-rewrites = NoAutoTupling
- */
 package test
 
 class NoAutoTupling2 {
   def a(x: (Int, Boolean)) = x
-  a(2, true)
+  a((2, true))
 
   def b(x: Int, y: Boolean) = (x, y)
   b(2, true)
 
   def c(x: Int, y: Boolean)(z: (String, List[Int])) = (x, y, z)
-  c(2, true)("foo", 1 :: 2 :: Nil)
+  c(2, true)(("foo", 1 :: 2 :: Nil))
 
   def d(x: (Int, Boolean))(y: (String, List[Int])) = (x, y)
-  d(2, true)("foo", 1 :: 2 :: Nil)
+  d(2, true)(("foo", 1 :: 2 :: Nil))
 
   def e(x: (Int, Boolean))(s: List[String], c: Char)(y: (String, List[Int])) = (x, y)
-  e(2, true)("a" :: "b" :: Nil, 'z')("foo", 1 :: 2 :: Nil)
+  e(2, true)("a" :: "b" :: Nil, 'z')(("foo", 1 :: 2 :: Nil))
 
   def f: (((Int, String)) => ((String, List[Int])) => Int) = a => b => a._1
-  f(1 + 2, "foo")("bar", 1 :: 2 :: Nil)
+  f(1 + 2, "foo")(("bar", 1 :: 2 :: Nil))
 
   val g = (x: (Int, Boolean)) => x
-  g(2, true)
+  g((2, true))
 
   case class Foo(t: (Int, String))(s: (Boolean, List[Int]))
   // new Foo(1, "foo")(true, Nil)
-  Foo(1, "foo")(true, Nil)
-  Foo.apply(1, "foo")(true, Nil)
+  Foo(1, "foo")((true, Nil))
+  Foo.apply(1, "foo")((true, Nil))
 
   case class Bar(x: Int, y: String)(s: (Boolean, List[Int]))
   // new Bar(1, "foo")(true, Nil)
-  Bar(1, "foo")(true, Nil)
-  Bar.apply(1, "foo")(true, Nil)
+  Bar(1, "foo")((true, Nil))
+  Bar.apply(1, "foo")((true, Nil))
 
   object NoFalsePositives {
     def a(a: (Int, Boolean), b: Int) = (a, b)
@@ -49,3 +46,4 @@ class NoAutoTupling2 {
   }
 
 }
+

@@ -12,6 +12,13 @@ abstract class SemanticRewriteSuite(
 ) extends FunSuite
     with DiffAssertions
     with BeforeAndAfterAll { self =>
+
+  private def dialectToPath(dialect: Dialect): Option[String] =
+    Option(dialect).collect {
+      case dialects.Scala211 => "scala-2.11"
+      case dialects.Scala212 => "scala-2.12"
+    }
+
   def runOn(diffTest: DiffTest): Unit = {
     test(diffTest.name) {
       val (rewrite, config) = diffTest.config.apply()
@@ -25,21 +32,24 @@ abstract class SemanticRewriteSuite(
           .get
         tokens.filter(_ ne comment).mkString
       }
-      val expected =
-        new String(
-          expectedOutputSourceroot
-            .map(_.resolve(diffTest.filename))
-            .find(_.isFile)
-            .map(_.readAllBytes)
-            .getOrElse {
-              val tried = expectedOutputSourceroot
-                .map(_.resolve(diffTest.filename))
-                .mkString("\n")
-              sys.error(
-                s"""Missing expected output file for test ${diffTest.filename}. Tried:
-                   |$tried""".stripMargin)
-            }
-        )
+      val candidateOutputFiles = expectedOutputSourceroot.flatMap { root =>
+        val scalaSpecificFilename =
+          dialectToPath(diffTest.attributes.dialect).toList.map(path =>
+            root.resolve(RelativePath(
+              diffTest.filename.value.replaceFirst("scala", path))))
+        root.resolve(diffTest.filename) :: scalaSpecificFilename
+      }
+      val candidateBytes = candidateOutputFiles
+        .collectFirst { case f if f.isFile => f.readAllBytes }
+        .getOrElse {
+          val tried = candidateOutputFiles.mkString("\n")
+          sys.error(
+            s"""Missing expected output file for test ${diffTest.filename}. Tried:
+               |$tried""".stripMargin)
+        }
+      val expected = new String(
+        candidateBytes
+      )
       assertNoDiff(obtained, expected)
     }
   }
