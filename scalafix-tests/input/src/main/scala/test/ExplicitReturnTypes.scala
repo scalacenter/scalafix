@@ -1,14 +1,14 @@
 /*
 rewrites = ExplicitReturnTypes
-explicitReturnTypes.memberKind = [Def, Var]
+explicitReturnTypes.memberKind = [Val, Def, Var]
 explicitReturnTypes.memberVisibility = [Public, Protected]
  */
 package test
 
 object ExplicitReturnTypes {
-  val a = 1
-  def b() = List
-  var c = true
+  val a = 1 + 2
+  def b() = "a" + "b"
+  var c = 1 == 1
   protected val d = 1.0f
   protected def e(a:Int,b:Double) = a + b
   protected var f = (x: Int) => x + 1

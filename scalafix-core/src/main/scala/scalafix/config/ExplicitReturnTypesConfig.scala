@@ -5,7 +5,8 @@ import metaconfig._
 @DeriveConfDecoder
 case class ExplicitReturnTypesConfig(
     memberKind: Seq[MemberKind] = Nil,
-    memberVisibility: Seq[MemberVisibility] = Nil
+    memberVisibility: Seq[MemberVisibility] = Nil,
+    skipSimpleDefinitions: Boolean = true
 )
 
 sealed trait MemberVisibility

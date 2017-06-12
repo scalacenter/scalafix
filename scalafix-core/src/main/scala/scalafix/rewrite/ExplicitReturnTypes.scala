@@ -8,7 +8,6 @@ import scalafix.config.{MemberKind, MemberVisibility}
 import scalafix.syntax._
 import scalafix.util.Whitespace
 
-// TODO: implement ExplicitReturnTypesConfig
 case class ExplicitReturnTypes(mirror: Mirror)
     extends SemanticRewrite(mirror) {
   // Don't explicitly annotate vals when the right-hand body is a single call
@@ -28,11 +27,10 @@ case class ExplicitReturnTypes(mirror: Mirror)
 
   def visibility(mods: Traversable[Mod]): MemberVisibility =
     mods
-      .collect {
+      .collectFirst {
         case _: Mod.Private => MemberVisibility.Private
         case _: Mod.Protected => MemberVisibility.Protected
       }
-      .headOption
       .getOrElse(MemberVisibility.Public)
 
   def kind(defn: Defn): Option[MemberKind] = Option(defn).collect {
@@ -52,9 +50,10 @@ case class ExplicitReturnTypes(mirror: Mirror)
     if (denot.isVal || denot.isDef)
       base.parse[Type].toOption
     else
-      base.parse[Stat].toOption.flatMap {
-        _.collect { case Term.Ascribe(_, typ) => typ }.headOption
-      }
+      for {
+        stat <- base.parse[Stat].toOption
+        typ <- stat.collectFirst { case Term.Ascribe(_, typ) => typ }
+      } yield typ
   }
 
   def defnType(defn: Defn): Option[Type] =
@@ -83,26 +82,38 @@ case class ExplicitReturnTypes(mirror: Mirror)
       } yield ctx.addRight(replace, s": ${typ.treeSyntax}")
     }.to[Seq]
 
-    def checkModsScope(mods: Seq[Mod]): Boolean =
-      ctx.config.explicitReturnTypes.memberVisibility
-        .contains(visibility(mods))
+    import ctx.config.explicitReturnTypes._
 
-    def checkDefnScope(defn: Defn): Boolean =
-      kind(defn).exists(ctx.config.explicitReturnTypes.memberKind.contains)
+    def matchesMemberVisibility(mods: Seq[Mod]): Boolean =
+      memberVisibility.contains(visibility(mods))
+
+    def matchesMemberKind(defn: Defn): Boolean =
+      kind(defn).exists(memberKind.contains)
+
+    def matchesSimpleDefinition(rhs: Term): Boolean =
+      rhs.is[Lit] && skipSimpleDefinitions
 
     tree
       .collect {
         case t @ Defn.Val(mods, _, None, body)
             if t.hasMod(mod"implicit") && !isImplicitly(body)
-              || !t.hasMod(mod"implicit")
-                && checkDefnScope(t) && checkModsScope(mods) =>
+              || !matchesSimpleDefinition(body)
+                && !t.hasMod(mod"implicit")
+                && matchesMemberKind(t)
+                && matchesMemberVisibility(mods) =>
           fix(t, body)
+
         case t @ Defn.Var(mods, _, None, Some(body))
-            if checkDefnScope(t) && checkModsScope(mods) =>
+            if !matchesSimpleDefinition(body)
+              && (matchesMemberKind(t)
+                && matchesMemberVisibility(mods)) =>
           fix(t, body)
+
         case t @ Defn.Def(mods, _, _, _, None, body)
-            if t.hasMod(mod"implicit")
-              || checkDefnScope(t) && checkModsScope(mods) =>
+            if (t.hasMod(mod"implicit")
+              || !matchesSimpleDefinition(body)
+                && matchesMemberKind(t)
+                && matchesMemberVisibility(mods)) =>
           fix(t, body)
       }
       .flatten

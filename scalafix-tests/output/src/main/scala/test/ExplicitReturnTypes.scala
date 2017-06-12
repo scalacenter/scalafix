@@ -1,9 +1,9 @@
 package test
 
 object ExplicitReturnTypes {
-  val a = 1
-  def b(): scala.collection.immutable.List.type = List
-  var c: Boolean = true
+  val a: Int = 1 + 2
+  def b(): String = "a" + "b"
+  var c: Boolean = 1 == 1
   protected val d = 1.0f
   protected def e(a:Int,b:Double): Double = a + b
   protected var f: Int => Int = (x: Int) => x + 1
