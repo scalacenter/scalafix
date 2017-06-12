@@ -1,4 +1,5 @@
 updateOptions in ThisBuild := updateOptions.value.withLatestSnapshots(false)
+scalacOptions in ThisBuild += "-Ywarn-adapted-args" // For NoAutoTupling
 lazy val root = project
   .in(file("."))
   .aggregate(
