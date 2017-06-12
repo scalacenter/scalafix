@@ -56,10 +56,12 @@
       Run the following commands to generate a skeleton project
 
       @hl.scala
-        // by convention, --rewrite= should match the GitHub repo name.
-        // this makes it possible for users to run `scalafix github:org/reponame/v1.0`
-        sbt new scalacenter/scalafix.g8 --rewrite "reponame" --version=v1.0
-        cd reponame/scalafix
+        cd reponame // The project you want to implement rewrites for.
+
+        // --rewrite= should ideally match the GitHub repo name, to make
+        // it possible for users to run `scalafix "github:org/reponame/v1.0"`
+        sbt new scalacenter/scalafix.g8 --rewrite="reponame" --version="v1.0"
+        cd scalafix
         sbt tests/test
     @p
       Note that the @code{scalafix} directory is a self-contained sbt build
