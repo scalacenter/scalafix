@@ -102,8 +102,8 @@ case class ExplicitReturnTypes(mirror: Mirror)
         body.is[Lit] && skipSimpleDefinitions
 
       defn.hasMod(mod"implicit") && !isImplicitly(body) ||
-      !matchesSimpleDefinition() &&
       !defn.hasMod(mod"implicit") &&
+      !matchesSimpleDefinition() &&
       matchesMemberKind() &&
       matchesMemberVisibility()
     }
