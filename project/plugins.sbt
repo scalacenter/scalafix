@@ -11,5 +11,6 @@ addSbtPlugin("ch.epfl.lamp"     % "sbt-dotty"           % "0.1.1")
 addSbtPlugin("org.scalameta"    % "sbt-scalahost"       % Dependencies.scalametaV)
 addSbtPlugin("com.typesafe.sbt" % "sbt-ghpages"         % "0.6.0")
 addSbtPlugin("com.typesafe.sbt" % "sbt-site"            % "1.2.0")
+addSbtPlugin("com.eed3si9n"     % "sbt-assembly"        % "0.14.4")
 
 libraryDependencies += "org.scala-sbt" % "scripted-plugin" % sbtVersion.value

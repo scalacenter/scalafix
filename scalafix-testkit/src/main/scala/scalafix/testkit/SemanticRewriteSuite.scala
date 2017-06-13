@@ -29,8 +29,7 @@ abstract class SemanticRewriteSuite(
         val tokens = obtainedWithComment.tokenize.get
         val comment = tokens
           .find(x => x.is[Token.Comment] && x.syntax.startsWith("/*"))
-          .get
-        tokens.filter(_ ne comment).mkString
+        tokens.filterNot(comment.contains).mkString
       }
       val candidateOutputFiles = expectedOutputSourceroot.flatMap { root =>
         val scalaSpecificFilename =

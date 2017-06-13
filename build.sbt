@@ -163,6 +163,8 @@ lazy val cli = project
     allSettings,
     publishSettings,
     isFullCrossVersion,
+    mainClass in assembly := Some("scalafix.cli.Cli"),
+    assemblyJarName in assembly := "scalafix.jar",
     libraryDependencies ++= Seq(
       "com.github.alexarchambault" %% "case-app"      % "1.1.3",
       "com.martiansoftware"        % "nailgun-server" % "0.9.1"
