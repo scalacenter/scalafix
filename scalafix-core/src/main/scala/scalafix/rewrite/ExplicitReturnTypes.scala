@@ -51,8 +51,8 @@ case class ExplicitReturnTypes(mirror: Mirror)
       base.parse[Type].toOption
     else
       /*
-      Currently a symbol of Var points to its setter function.
-      That's why its argument type should be extracted via pattern-match.
+    Currently a symbol of Var points to its setter function.
+    That's why its argument type should be extracted via pattern-match.
        */
       for {
         stat <- base.parse[Stat].toOption
@@ -86,38 +86,40 @@ case class ExplicitReturnTypes(mirror: Mirror)
       } yield ctx.addRight(replace, s": ${typ.treeSyntax}")
     }.to[Seq]
 
-    import ctx.config.explicitReturnTypes._
+    def isRewriteCandidate[D <: Defn](
+        defn: D,
+        mods: Traversable[Mod],
+        body: Term)(implicit ev: Extract[D, Mod]): Boolean = {
+      import ctx.config.explicitReturnTypes._
 
-    def matchesMemberVisibility(mods: Seq[Mod]): Boolean =
-      memberVisibility.contains(visibility(mods))
+      def matchesMemberVisibility(): Boolean =
+        memberVisibility.contains(visibility(mods))
 
-    def matchesMemberKind(defn: Defn): Boolean =
-      kind(defn).exists(memberKind.contains)
+      def matchesMemberKind(): Boolean =
+        kind(defn).exists(memberKind.contains)
 
-    def matchesSimpleDefinition(rhs: Term): Boolean =
-      rhs.is[Lit] && skipSimpleDefinitions
+      def matchesSimpleDefinition(): Boolean =
+        body.is[Lit] && skipSimpleDefinitions
+
+      defn.hasMod(mod"implicit") && !isImplicitly(body) ||
+      !matchesSimpleDefinition() &&
+      !defn.hasMod(mod"implicit") &&
+      matchesMemberKind() &&
+      matchesMemberVisibility()
+    }
 
     tree
       .collect {
         case t @ Defn.Val(mods, _, None, body)
-            if t.hasMod(mod"implicit") && !isImplicitly(body)
-              || !matchesSimpleDefinition(body)
-                && !t.hasMod(mod"implicit")
-                && matchesMemberKind(t)
-                && matchesMemberVisibility(mods) =>
+            if isRewriteCandidate(t, mods, body) =>
           fix(t, body)
 
         case t @ Defn.Var(mods, _, None, Some(body))
-            if !matchesSimpleDefinition(body)
-              && (matchesMemberKind(t)
-                && matchesMemberVisibility(mods)) =>
+            if isRewriteCandidate(t, mods, body) =>
           fix(t, body)
 
         case t @ Defn.Def(mods, _, _, _, None, body)
-            if (t.hasMod(mod"implicit")
-              || !matchesSimpleDefinition(body)
-                && matchesMemberKind(t)
-                && matchesMemberVisibility(mods)) =>
+            if isRewriteCandidate(t, mods, body) =>
           fix(t, body)
       }
       .flatten

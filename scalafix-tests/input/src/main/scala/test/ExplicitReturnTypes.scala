@@ -16,6 +16,8 @@ object ExplicitReturnTypes {
   private def h(a:Int) = ""
   private var i = 1
 
+  private implicit var j = 1
+
   implicit val L = List(1)
   implicit val M = Map(1 -> "STRING")
   implicit def D = 2
