@@ -1,6 +1,18 @@
 package test
 
 object ExplicitReturnTypes {
+  val a: Int = 1 + 2
+  def b(): String = "a" + "b"
+  var c: Boolean = 1 == 1
+  protected val d = 1.0f
+  protected def e(a:Int,b:Double): Double = a + b
+  protected var f: Int => Int = (x: Int) => x + 1
+  private val g = 1
+  private def h(a:Int) = ""
+  private var i = 1
+
+  private implicit var j: Int = 1
+
   implicit val L: List[Int] = List(1)
   implicit val M: scala.collection.immutable.Map[Int, String] = Map(1 -> "STRING")
   implicit def D: Int = 2
