@@ -51,13 +51,10 @@ case class ScalafixOptions(
     @ValueDescription("/foo/myproject")
     sourceroot: Option[String] = None,
     @HelpMessage(
-      """java.io.File.pathSeparator separated list of jar files or directories
-        |        containing classfiles and `semanticdb` files. The `semanticdb`
-        |        files are emitted by the scalahost-nsc compiler plugin and
-        |        are necessary for the semantic API to function. The
-        |        classfiles + jar files are necessary forruntime compilation
-        |        of quasiquotes when extracting symbols (that is,
-        |        `q"scala.Predef".symbol`)""".stripMargin
+      """java.io.File.pathSeparator separated list of directories containing
+        |        `.semanticdb` files. The `semanticdb` files are emitted by the
+        |        scalahost-nsc compiler plugin and are necessary for semantic
+        |        rewrites like ExplicitReturnTypes to function.""".stripMargin
     )
     @ValueDescription("entry1.jar:entry2.jar")
     classpath: Option[String] = None,
@@ -76,7 +73,13 @@ case class ScalafixOptions(
         s"${ScalafixRewrites.allNames.mkString(", ")}")
     rewrites: List[String] = Nil,
     @HelpMessage(
-      "Files to fix. Runs on all *.scala files if given a directory")
+      """Files to fix. Runs on all *.scala files if given a directory. NOTE,
+        |        when running semantic rewrites like ExplicitReturnTypes,
+        |        use `--include foo` instead of `--files foo`. This is an
+        |        unfortunate implementation detail leaking into the UI,
+        |        see https://github.com/scalacenter/scalafix/issues/218 to
+        |        track the unification of --include and --files.
+      """.stripMargin)
     @ValueDescription("File1.scala File2.scala")
     @ExtraName("f")
     files: List[String] = List.empty[String],
@@ -98,9 +101,10 @@ case class ScalafixOptions(
     @ValueDescription("/custom/")
     outTo: String = "",
     @HelpMessage(
-      """Space separated list of regexes to filter which files to fix.
-        |        A file must match one of the regexes to be included.
-        |        Defaults to matching all files.
+      """Space separated list of regexes to filter files from the Semantic DB
+        |        to be included for fixing. This is the parallel of --files
+        |        but for semantic rewrites. A file must match one of the regexes
+        |        to be included. Defaults to matching all files.
       """.stripMargin)
     @ValueDescription("core Foobar.scala")
     include: List[String] = List(".*"),

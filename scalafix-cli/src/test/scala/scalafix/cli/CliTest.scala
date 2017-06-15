@@ -119,6 +119,7 @@ class CliTest extends FunSuite with DiffAssertions {
 
     def createFile(): File = {
       val file = File.createTempFile("file", ".scala", dir)
+      logger.elem(file.getAbsolutePath)
       FileOps.writeFile(file, original)
       file
     }

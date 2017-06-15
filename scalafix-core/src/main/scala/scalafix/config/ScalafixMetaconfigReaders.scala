@@ -85,11 +85,22 @@ trait ScalafixMetaconfigReaders {
     MetaconfigPendingUpstream.orElse(
       ReaderUtil.fromMap(
         rewriteByName(mirror), {
-          case x if ScalafixRewrites.semanticNames.contains(x) =>
-            s"""NOTE. $x is a scalafix rewrite that requires the Semantic API to be configured. Potential workaround:
-               |  - use sbt-scalahost, which configures the Semantic API automatically.
-               |  - make sure that your scalaVersion is >=2.11
-               |""".stripMargin.trim
+          case els =>
+            val heading =
+              if (ScalafixRewrites.semanticNames.contains(els)) els
+              else {
+                s"""If $els is defined like this
+                   |
+                   |    case class $els(mirror: Mirror) extends SemanticRewrite(mirror)
+                   |
+                   |then it""".stripMargin
+              }
+            s"""
+               |NOTE.
+               |$heading is a semantic rewrite that requires the Semantic API to
+               |be configured via in --classpath and --sourceroot. It is
+               |recommended to run semantic rewrites from build integrations like
+               |sbt-scalafix instead of manually from the command line interface.""".stripMargin
         }
       ),
       classloadRewriteDecoder(mirror)

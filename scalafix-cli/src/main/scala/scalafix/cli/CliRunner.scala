@@ -14,9 +14,11 @@ import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
+import java.util.function.Predicate
 import java.util.function.UnaryOperator
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
+import java.util.stream.Collectors
 import scala.collection.immutable.Seq
 import scala.collection.mutable.ListBuffer
 import scala.meta._
@@ -50,8 +52,8 @@ sealed abstract case class CliRunner(
     config: ScalafixConfig,
     database: Option[Database],
     rewrite: Rewrite,
-    explicitPaths: Seq[Input],
-    inputs: Seq[Input],
+    explicitPaths: scala.Seq[Input],
+    inputs: scala.Seq[Input],
     replacePath: AbsolutePath => AbsolutePath
 ) {
   val sbtConfig: ScalafixConfig = config.copy(dialect = dialects.Sbt0137)
@@ -256,11 +258,19 @@ object CliRunner {
       }
 
     // Inputs
-    val explicitPaths: Seq[Input] = cli.files.toVector.flatMap { file =>
+    val explicitPaths: scala.Seq[Input] = cli.files.toVector.flatMap { file =>
       val path = AbsolutePath.fromString(file)
-      if (path.isDirectory)
-        FileIO.listAllFilesRecursively(path).map(Input.File.apply)
-      else List(Input.File(path))
+      if (path.isDirectory) {
+        import scala.collection.JavaConverters._
+        val x = Files
+          .walk(path.toNIO)
+          .filter((t: Path) => t.getFileName.toString.endsWith(".scala"))
+          .collect(Collectors.toList[Path])
+        x.asScala.toIterator.map(path => Input.File(AbsolutePath(path))).toSeq
+      } else {
+        // if the user provided explicit path, take it.
+        List(Input.File(path))
+      }
     }
 
     def isInputFile(input: Input): Boolean = input match {
