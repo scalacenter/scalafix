@@ -72,7 +72,7 @@ case class ScalafixOptions(
     @HelpMessage(
       s"Space separated list of rewrites to run. Available options include: " +
         s"${ScalafixRewrites.allNames.mkString(", ")}")
-    @ExtraName("rewrite")
+    @ExtraName("r")
     rewrites: List[String] = Nil,
     @HelpMessage(
       """.scala files to fix, recurses on directories.""".stripMargin)

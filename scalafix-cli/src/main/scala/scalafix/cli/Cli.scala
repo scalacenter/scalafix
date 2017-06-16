@@ -20,16 +20,12 @@ object Cli {
     OptionsMessages.withHelp
   val helpMessage: String = withHelp.helpMessage +
     s"""|
-        |Note: the scalafix cli is mostly designed to be invoked programmatically
-        |from build tool integrations. In particular, semantic rewrites like ExplicitReturnTypes
-        |require an intricate combination of --sourceroot and --classpath to work
-        |properly.
+        |Default rewrites: ${ScalafixRewrites.allNames.mkString(", ")}
         |
-        |Available rewrites: ${ScalafixRewrites.allNames.mkString(", ")}
-        |
-        |Examples (for syntactic rewrites only):
-        |  $$ scalafix --rewrites=ProcedureSyntax Code.scala # write fixed file in-place
-        |  $$ scalafix --stdout --rewrites=ProcedureSyntax Code.scala # print fixed file to stdout
+        |Examples:
+        |  $$ scalafix --rewrite=ProcedureSyntax Code.scala           # write fixed file in-place
+        |  $$ scalafix --rewrites=ProcedureSyntax --stdout Code.scala # print fixed file to stdout
+        |  $$ scalafix --rewrites=ExplicitReturnTypes --auto-mirror   # automatically configure Semantic API.
         |  $$ cat .scalafix.conf
         |  rewrites = [ProcedureSyntax]
         |  $$ scalafix Code.scala # Same as --rewrites ProcedureSyntax
