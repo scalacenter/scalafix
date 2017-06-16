@@ -52,15 +52,14 @@ case class ScalafixOptions(
     sourceroot: Option[String] = None,
     @HelpMessage(
       """java.io.File.pathSeparator separated list of directories containing
-        |        `.semanticdb` files. The `semanticdb` files are emitted by the
+        |        '.semanticdb' files. The 'semanticdb' files are emitted by the
         |        scalahost-nsc compiler plugin and are necessary for semantic
         |        rewrites like ExplicitReturnTypes to function.""".stripMargin
     )
     @ValueDescription("entry1.jar:entry2.jar")
     classpath: Option[String] = None,
     @HelpMessage(
-      s"""Rewrite rules to run.
-         |        NOTE. rewrite.rules = [ .. ] from --config will also run""".stripMargin
+      s"""Rewrite rules to run.""".stripMargin
     )
     @ValueDescription(
       s"""$ProcedureSyntax OR
@@ -75,7 +74,7 @@ case class ScalafixOptions(
     @HelpMessage(
       """Files to fix. Runs on all *.scala files if given a directory. NOTE,
         |        when running semantic rewrites like ExplicitReturnTypes,
-        |        use `--include foo` instead of `--files foo`. This is an
+        |        use '--include foo' instead of '--files foo'. This is an
         |        unfortunate implementation detail leaking into the UI,
         |        see https://github.com/scalacenter/scalafix/issues/218 to
         |        track the unification of --include and --files.
@@ -83,10 +82,7 @@ case class ScalafixOptions(
     @ValueDescription("File1.scala File2.scala")
     @ExtraName("f")
     files: List[String] = List.empty[String],
-    @HelpMessage(
-      "If true, writes changes to files instead of printing to stdout")
-    @ExtraName("i")
-    inPlace: Boolean = true,
+    @HelpMessage("If set, print fix to stdout instead of writing to file.")
     stdout: Boolean = false,
     @HelpMessage(
       """Regex that is passed as first argument to
@@ -118,15 +114,27 @@ case class ScalafixOptions(
     @HelpMessage(
       "If true, run on single thread. If false (default), use all available cores")
     singleThread: Boolean = false,
-    // NOTE: This option could be avoided by adding another entrypoint like `Cli.safeMain`
+    // NOTE: This option could be avoided by adding another entrypoint like 'Cli.safeMain'
     // or SafeCli.main. However, I opted for a cli flag since that plays nicely
-    // with default `run.in(Compile).toTask("--no-sys-exit").value` in sbt.
+    // with default 'run.in(Compile).toTask("--no-sys-exit").value' in sbt.
     // Another other option would be to do
-    // `runMain.in(Compile).toTask("scalafix.cli.SafeMain")` but I prefer to
+    // 'runMain.in(Compile).toTask("scalafix.cli.SafeMain")' but I prefer to
     // keep only one main function if possible since that plays nicely with
-    // automatic detection of `main` functions in tools like `coursier launch`.
+    // automatic detection of 'main' functions in tools like 'coursier launch'.
     @HelpMessage(
       "If true, does not sys.exit at the end. Useful for example in sbt-scalafix")
     noSysExit: Boolean = false,
-    @Recurse common: CommonOptions = CommonOptions()
+    @Recurse common: CommonOptions = CommonOptions(),
+    @HelpMessage(
+      """Print out bash completion file for scalafix. To install on
+        |        Mac:
+        |        scalafix --bash > /usr/local/etc/bash_completion.d/scalafix
+        |        Linux:
+        |        scalafix --bash > /etc/bash_completion.d/scalafix""".stripMargin)
+    bash: Boolean = false,
+    @HelpMessage(
+      """Print out zsh completion file for scalafix. To install:
+        |
+        |        scalafix --zsh > /usr/local/share/zsh/site-functions/_scalafix""".stripMargin)
+    zsh: Boolean = false
 )

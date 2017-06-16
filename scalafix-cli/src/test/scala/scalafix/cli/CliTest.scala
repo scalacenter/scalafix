@@ -10,6 +10,7 @@ import java.io.File
 import java.io.PrintStream
 import java.nio.file.Paths
 import scala.meta.io.AbsolutePath
+import scalafix.cli.CliCommand.PrintAndExit
 import scalafix.cli.CliCommand.RunScalafix
 import caseapp.core.WithHelp
 import org.scalatest.FunSuite
@@ -71,8 +72,7 @@ class CliTest extends FunSuite with DiffAssertions {
     Cli.runOn(
       ScalafixOptions(
         rewrites = List(ProcedureSyntax.toString),
-        files = List(file.getAbsolutePath),
-        inPlace = true
+        files = List(file.getAbsolutePath)
       ))
     assertNoDiff(FileOps.readFile(file), expected)
   }
@@ -180,5 +180,17 @@ class CliTest extends FunSuite with DiffAssertions {
                       common = devNull))
     assert(code == ExitStatus.Ok)
     assert(FileOps.readFile(file) == "def foo: Unit = { println(1) }\n")
+  }
+
+  test("--zsh-completions") {
+    val obtained = Cli.parse(Seq("--zsh"))
+    assert(obtained.isOk)
+    assert(obtained.isInstanceOf[PrintAndExit])
+  }
+
+  test("--bash-completions") {
+    val obtained = Cli.parse(Seq("--bash"))
+    assert(obtained.isOk)
+    assert(obtained.isInstanceOf[PrintAndExit])
   }
 }

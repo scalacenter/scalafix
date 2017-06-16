@@ -5,6 +5,10 @@ import scala.meta.Database
 import scala.meta.io.AbsolutePath
 import scalafix.cli.CliCommand.PrintAndExit
 import scalafix.cli.CliCommand.RunScalafix
+import scalafix.rewrite.ScalafixRewrites
+import caseapp.Name
+import caseapp.core.Arg
+import caseapp.core.Messages
 import caseapp.core.WithHelp
 import com.martiansoftware.nailgun.NGContext
 import metaconfig.Configured.NotOk
@@ -12,13 +16,16 @@ import metaconfig.Configured.Ok
 
 object Cli {
   import ArgParserImplicits._
-  private val withHelp = OptionsMessages.withHelp
+  private val withHelp: Messages[WithHelp[ScalafixOptions]] =
+    OptionsMessages.withHelp
   val helpMessage: String = withHelp.helpMessage +
     s"""|
         |Note: the scalafix cli is mostly designed to be invoked programmatically
         |from build tool integrations. In particular, semantic rewrites like ExplicitReturnTypes
         |require an intricate combination of --sourceroot and --classpath to work
         |properly.
+        |
+        |Available rewrites: ${ScalafixRewrites.allNames.mkString(", ")}
         |
         |Examples (for syntactic rewrites only):
         |  $$ scalafix --rewrites ProcedureSyntax Code.scala # write fixed file in-place
@@ -33,6 +40,86 @@ object Cli {
   val usageMessage: String = withHelp.usageMessage
   val default = ScalafixOptions()
   // Run this at the end of the world, calls sys.exit.
+
+  def toZshOption(arg: Arg): scala.Seq[String] = {
+    if (arg.noHelp) Nil
+    else {
+      // See https://github.com/zsh-users/zsh-completions/blob/master/zsh-completions-howto.org#writing-completion-functions-using-_arguments
+      // for more details on how to use _arguments in zsh.
+      import caseapp.core.NameOps
+      val description = arg.helpMessage
+        .map { x =>
+          val escaped = x.message
+            .replaceAll("\n *", " ")
+            .replaceAllLiterally(":", "\\:")
+          s"=[$escaped]"
+        }
+        .getOrElse("")
+      val (repeat, message, action) = arg.name match {
+        case "rewrites" => ("*", ":rewrite", ":_rewrite_names")
+        case _ => ("", "", "")
+      }
+      (Name(arg.name) +: arg.extraNames).distinct.map { name =>
+        s""""$repeat${name.option}$description$message$action""""
+      }
+    }
+  }
+
+  def bashArgs: String = {
+    import caseapp.core.NameOps
+    withHelp.args
+      .flatMap(arg => caseapp.Name(arg.name) +: arg.extraNames)
+      .map(_.option)
+      .distinct
+      .mkString(" ")
+  }
+
+  def zshArgs: String = {
+    withHelp.args.flatMap(toZshOption).mkString(" \\\n   ")
+  }
+
+  def rewriteNames: String =
+    ScalafixRewrites.allNames.map(x => s""""$x"""").mkString(" \\\n  ")
+
+  def bashCompletions: String =
+    s"""
+_scalafix()
+{
+    local cur prev opts
+    COMPREPLY=()
+    cur="$${COMP_WORDS[COMP_CWORD]}"
+    prev="$${COMP_WORDS[COMP_CWORD-1]}"
+    opts="$bashArgs"
+    if [[ $${cur} == -* ]] ; then
+        COMPREPLY=(  $$(compgen -W "$${opts}" -- $${cur}) )
+        return 0
+    fi
+}
+complete -F _scalafix scalafix
+""".stripMargin
+
+  def zshCompletions: String = {
+    s"""#compdef scalafix
+typeset -A opt_args
+local context state line
+
+_rewrite_names () {
+   compadd $rewriteNames
+}
+
+
+local -a scalafix_opts
+scalafix_opts=(
+  $zshArgs
+)
+
+case $$words[$$CURRENT] in
+      *) _arguments $$scalafix_opts "*::filename:_files";;
+esac
+
+return 0
+""".stripMargin
+  }
 
   class NonZeroExitCode(exitStatus: ExitStatus)
       extends Exception(s"Got exit code $exitStatus")
@@ -74,6 +161,10 @@ object Cli {
       case Right((WithHelp(_, _, options), _, _)) if options.version =>
         PrintAndExit(s"${withHelp.appName} ${withHelp.appVersion}",
                      ExitStatus.Ok)
+      case Right((WithHelp(_, _, options), _, _)) if options.bash =>
+        PrintAndExit(bashCompletions, ExitStatus.Ok)
+      case Right((WithHelp(_, _, options), _, _)) if options.zsh =>
+        PrintAndExit(zshCompletions, ExitStatus.Ok)
       case Right((WithHelp(_, _, options), extraFiles, _)) =>
         parseOptions(options.copy(files = options.files ++ extraFiles))
     }
