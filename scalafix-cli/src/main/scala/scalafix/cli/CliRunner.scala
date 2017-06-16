@@ -245,22 +245,28 @@ object CliRunner {
     implicit val workingDirectory: AbsolutePath = common.workingPath
 
     val resolvedClasspath: Option[Configured[Classpath]] =
-      if (noAutoMirror) {
+      if (autoMirror) {
+        val cp = autoClasspath(common.workingPath)
+        if (verbose) {
+          common.err.println(s"Automatic classpath=$cp")
+        }
+        if (cp.shallow.nonEmpty) Some(Ok(cp))
+        else None
+      } else {
         classpath.map { x =>
           val paths = x.split(File.pathSeparator).map { path =>
             AbsolutePath.fromString(path)(common.workingPath)
           }
           Ok(Classpath(paths))
         }
-      } else {
-        val cp = autoClasspath(common.workingPath)
-        if (cp.shallow.nonEmpty) Some(Ok(cp))
-        else None
       }
 
     val autoSourceroot: Option[AbsolutePath] =
-      if (noAutoMirror) sourceroot.map(AbsolutePath.fromString(_))
-      else Some(common.workingPath)
+      if (sourceroot.isEmpty && autoMirror) {
+        Some(common.workingPath)
+      } else {
+        sourceroot.map(AbsolutePath.fromString(_))
+      }
 
     // Database
     private val resolvedDatabase: Configured[Database] =
@@ -271,6 +277,9 @@ object CliRunner {
               val sourcepath = sp.map(Sourcepath.apply)
               val mirror =
                 vfs.Database.load(cp).toSchema.toMeta(sourcepath)
+              if (verbose) {
+                common.err.println(s"Mirror: $mirror")
+              }
               mirror
             }
           } yield mirror

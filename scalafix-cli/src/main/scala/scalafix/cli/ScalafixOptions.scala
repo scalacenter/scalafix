@@ -58,8 +58,8 @@ case class ScalafixOptions(
     )
     @ValueDescription("entry1.jar:entry2.jar")
     classpath: Option[String] = None,
-    @HelpMessage("""Don't automatically look for semanticdb files.""")
-    noAutoMirror: Boolean = true,
+    @HelpMessage("""automatically look for semanticdb files (EXPERIMENTAL).""")
+    autoMirror: Boolean = false,
     @HelpMessage(
       s"""Rewrite rules to run.""".stripMargin
     )
