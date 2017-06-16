@@ -67,8 +67,10 @@ sealed abstract case class CliRunner(
     explicitPaths.toIterator
       .map(x => new URI(x.path(common.workingPath).toString()).normalize())
       .toSet
-  def wasExplicitlyPassed(path: AbsolutePath): Boolean =
-    explicitURIs.contains(path.toURI.normalize())
+
+  def reportParseError(path: AbsolutePath): Boolean =
+    cli.quietParseErrors &&
+      explicitURIs.contains(path.toURI.normalize())
 
   def run(): ExitStatus = {
     val display = new TermDisplay(new OutputStreamWriter(System.out))
@@ -123,10 +125,14 @@ sealed abstract case class CliRunner(
       val inputConfig = if (input.isSbtFile) sbtConfig else config
       inputConfig.dialect(input).parse[Source] match {
         case parsers.Parsed.Error(pos, message, _) =>
-          if (wasExplicitlyPassed(path)) {
+          if (reportParseError(path)) {
             common.err.println(pos.formatMessage("error", message))
+            ExitStatus.ParseError
+          } else {
+            // Ignore parse errors, useful for example when running scalafix on
+            // millions of lines of code for experimentation.
+            ExitStatus.Ok
           }
-          ExitStatus.ParseError
         case parsers.Parsed.Success(tree) =>
           val ctx = RewriteCtx(tree, config)
           val fixed = rewrite(ctx)

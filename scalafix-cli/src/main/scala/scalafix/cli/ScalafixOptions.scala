@@ -131,6 +131,9 @@ case class ScalafixOptions(
     inPlace: Boolean = true,
     @Recurse common: CommonOptions = CommonOptions(),
     @HelpMessage(
+      """Don't report parse errors for non-explictly passed filepaths.""".stripMargin)
+    quietParseErrors: Boolean = false,
+    @HelpMessage(
       """Print out bash completion file for scalafix. To install on
         |        Mac:
         |        scalafix --bash > /usr/local/etc/bash_completion.d/scalafix
