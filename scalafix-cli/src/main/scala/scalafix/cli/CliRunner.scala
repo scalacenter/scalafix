@@ -142,8 +142,11 @@ sealed abstract case class CliRunner(
               Files.write(outFile.toNIO, fixed.getBytes(input.charset))
               ExitStatus.Ok
             } else {
+              val relpath =
+                // toRelative should not throw exceptions, but it does, see https://github.com/scalameta/scalameta/issues/821
+                Try(outFile.toRelative(common.workingPath)).getOrElse(outFile)
               ctx.reporter.error(
-                s"Stale semanticdb for $outFile, please recompile.")
+                s"Stale semanticdb for $relpath, skipping rewrite. Pease recompile.")
               ExitStatus.StaleSemanticDB
             }
           } else {
