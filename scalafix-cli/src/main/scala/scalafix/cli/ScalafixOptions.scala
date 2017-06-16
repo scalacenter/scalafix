@@ -58,6 +58,8 @@ case class ScalafixOptions(
     )
     @ValueDescription("entry1.jar:entry2.jar")
     classpath: Option[String] = None,
+    @HelpMessage("""Don't automatically look for semanticdb files.""")
+    noAutoMirror: Boolean = true,
     @HelpMessage(
       s"""Rewrite rules to run.""".stripMargin
     )
@@ -73,13 +75,7 @@ case class ScalafixOptions(
     @ExtraName("rewrite")
     rewrites: List[String] = Nil,
     @HelpMessage(
-      """Files to fix. Runs on all *.scala files if given a directory. NOTE,
-        |        when running semantic rewrites like ExplicitReturnTypes,
-        |        use '--include foo' instead of '--files foo'. This is an
-        |        unfortunate implementation detail leaking into the UI,
-        |        see https://github.com/scalacenter/scalafix/issues/218 to
-        |        track the unification of --include and --files.
-      """.stripMargin)
+      """.scala files to fix, recurses on directories.""".stripMargin)
     @ValueDescription("File1.scala File2.scala")
     @ExtraName("f")
     files: List[String] = List.empty[String],

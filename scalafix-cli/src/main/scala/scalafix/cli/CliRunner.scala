@@ -244,18 +244,27 @@ object CliRunner {
 
     implicit val workingDirectory: AbsolutePath = common.workingPath
 
-    lazy val resolvedClasspath: Option[Configured[Classpath]] = classpath.map {
-      case "auto" => Ok(autoClasspath(common.workingPath))
-      case x =>
-        val paths = x.split(File.pathSeparator).map { path =>
-          AbsolutePath.fromString(path)(common.workingPath)
+    val resolvedClasspath: Option[Configured[Classpath]] =
+      if (noAutoMirror) {
+        classpath.map { x =>
+          val paths = x.split(File.pathSeparator).map { path =>
+            AbsolutePath.fromString(path)(common.workingPath)
+          }
+          Ok(Classpath(paths))
         }
-        Ok(Classpath(paths))
-    }
+      } else {
+        val cp = autoClasspath(common.workingPath)
+        if (cp.shallow.nonEmpty) Some(Ok(cp))
+        else None
+      }
+
+    val autoSourceroot: Option[AbsolutePath] =
+      if (noAutoMirror) sourceroot.map(AbsolutePath.fromString(_))
+      else Some(common.workingPath)
 
     // Database
     private val resolvedDatabase: Configured[Database] =
-      (resolvedClasspath, sourceroot) match {
+      (resolvedClasspath, autoSourceroot) match {
         case (Some(Ok(cp)), sp) =>
           val tryMirror = for {
             mirror <- Try {
@@ -284,9 +293,9 @@ object CliRunner {
         else Some(x)
       }
     val resolvedMirrorSourceroot: Configured[AbsolutePath] =
-      sourceroot match {
+      autoSourceroot match {
         case None => ConfError.msg("--sourceroot is required").notOk
-        case Some(path) => Ok(AbsolutePath.fromString(path))
+        case Some(path) => Ok(path)
       }
     val resolvedSourceroot: Configured[AbsolutePath] =
       resolvedMirror.flatMap {
@@ -331,7 +340,7 @@ object CliRunner {
         }
       }
     private val resolvedPathMatcher: Configured[FilterMatcher] = try {
-      Ok(FilterMatcher(include, exclude))
+      Ok(FilterMatcher(include ++ files, exclude))
     } catch {
       case e: PatternSyntaxException =>
         ConfError

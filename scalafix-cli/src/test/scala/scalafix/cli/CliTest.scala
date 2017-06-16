@@ -141,7 +141,6 @@ class CliTest extends FunSuite with DiffAssertions {
 
   test("--sourceroot --classpath") {
     assert(Cli.parse(List("--sourceroot", "foo.scala")).isError)
-    assert(Cli.parse(List("--classpath", "auto")).isError)
     // NOTE: This assertion should fail by default, but scalafix-cli % Test
     // depends on testkit, which has scalahost-nsc as a dependency.
     assert(
@@ -182,13 +181,13 @@ class CliTest extends FunSuite with DiffAssertions {
     assert(FileOps.readFile(file) == "def foo: Unit = { println(1) }\n")
   }
 
-  test("--zsh-completions") {
+  test("--zsh") {
     val obtained = Cli.parse(Seq("--zsh"))
     assert(obtained.isOk)
     assert(obtained.isInstanceOf[PrintAndExit])
   }
 
-  test("--bash-completions") {
+  test("--bash") {
     val obtained = Cli.parse(Seq("--bash"))
     assert(obtained.isOk)
     assert(obtained.isInstanceOf[PrintAndExit])
