@@ -2,6 +2,7 @@ package scalafix
 package cli
 
 import java.io.File
+import java.io.FileInputStream
 import java.io.IOException
 import java.io.OutputStreamWriter
 import java.net.URI
@@ -19,6 +20,7 @@ import java.util.function.UnaryOperator
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 import java.util.stream.Collectors
+import scala.annotation.tailrec
 import scala.collection.immutable.Seq
 import scala.collection.mutable.ListBuffer
 import scala.meta._
@@ -93,6 +95,28 @@ sealed abstract case class CliRunner(
     display.stop()
     exitCode.get()
   }
+
+  // checks if outFile contents have changed since the creation its .semanticdb file.
+  private def isUpToDate(input: Input, outFile: File): Boolean =
+    if (!outFile.exists() || database.isEmpty) true
+    else {
+      input match {
+        case Input.LabeledString(_, _) =>
+          val fileToWrite = scala.io.Source.fromFile(outFile)
+          val originalContents = input.chars.toIterator
+          try {
+            @tailrec
+            def isEqual(a: Iterator[Char], b: Iterator[Char]): Boolean =
+              if (a.hasNext && b.hasNext) a.next() == b.next() && isEqual(a, b)
+              else if (a.hasNext || b.hasNext) false
+              else true
+            isEqual(fileToWrite, originalContents)
+          } finally fileToWrite.close()
+        case _ =>
+          true // No way to check for Input.File, see https://github.com/scalameta/scalameta/issues/886
+      }
+    }
+
   def safeHandleInput(input: Input): ExitStatus = {
     def path = input.path(sourceroot)
     try {
@@ -108,9 +132,18 @@ sealed abstract case class CliRunner(
           val fixed = rewrite(ctx)
           if (writeMode.isWriteFile) {
             val outFile = replacePath(path)
-            Files.write(outFile.toNIO, fixed.getBytes(input.charset))
-          } else common.out.write(fixed.getBytes)
-          ExitStatus.Ok
+            if (isUpToDate(input, outFile.toFile)) {
+              Files.write(outFile.toNIO, fixed.getBytes(input.charset))
+              ExitStatus.Ok
+            } else {
+              ctx.reporter.error(
+                s"Stale semanticdb for $outFile, please recompile.")
+              ExitStatus.StaleSemanticDB
+            }
+          } else {
+            common.out.write(fixed.getBytes)
+            ExitStatus.Ok
+          }
       }
     } catch {
       case NonFatal(e) =>
