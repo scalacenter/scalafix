@@ -28,8 +28,8 @@ object Cli {
         |Available rewrites: ${ScalafixRewrites.allNames.mkString(", ")}
         |
         |Examples (for syntactic rewrites only):
-        |  $$ scalafix --rewrites ProcedureSyntax Code.scala # write fixed file in-place
-        |  $$ scalafix --stdout --rewrites ProcedureSyntax Code.scala # print fixed file to stdout
+        |  $$ scalafix --rewrites=ProcedureSyntax Code.scala # write fixed file in-place
+        |  $$ scalafix --stdout --rewrites=ProcedureSyntax Code.scala # print fixed file to stdout
         |  $$ cat .scalafix.conf
         |  rewrites = [ProcedureSyntax]
         |  $$ scalafix Code.scala # Same as --rewrites ProcedureSyntax
@@ -47,18 +47,18 @@ object Cli {
       // See https://github.com/zsh-users/zsh-completions/blob/master/zsh-completions-howto.org#writing-completion-functions-using-_arguments
       // for more details on how to use _arguments in zsh.
       import caseapp.core.NameOps
+      val (repeat, assign, message, action) = arg.name match {
+        case "rewrites" => ("*", "=", ":rewrite", ":_rewrite_names")
+        case _ => ("", "", "", "")
+      }
       val description = arg.helpMessage
         .map { x =>
           val escaped = x.message
             .replaceAll("\n *", " ")
             .replaceAllLiterally(":", "\\:")
-          s"=[$escaped]"
+          s"$assign[$escaped]"
         }
         .getOrElse("")
-      val (repeat, message, action) = arg.name match {
-        case "rewrites" => ("*", ":rewrite", ":_rewrite_names")
-        case _ => ("", "", "")
-      }
       (Name(arg.name) +: arg.extraNames).distinct.map { name =>
         s""""$repeat${name.option}$description$message$action""""
       }

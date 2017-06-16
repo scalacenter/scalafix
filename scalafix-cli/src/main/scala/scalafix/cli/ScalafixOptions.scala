@@ -70,6 +70,7 @@ case class ScalafixOptions(
     @HelpMessage(
       s"Space separated list of rewrites to run. Available options include: " +
         s"${ScalafixRewrites.allNames.mkString(", ")}")
+    @ExtraName("rewrite")
     rewrites: List[String] = Nil,
     @HelpMessage(
       """Files to fix. Runs on all *.scala files if given a directory. NOTE,
@@ -99,7 +100,7 @@ case class ScalafixOptions(
     @HelpMessage(
       """Space separated list of regexes to filter files from the Semantic DB
         |        to be included for fixing. This is the parallel of --files
-        |        but for semantic rewrites. A file must match one of the regexes
+        |        but for semantic reerites. A file must match one of the regexes
         |        to be included. Defaults to matching all files.
       """.stripMargin)
     @ValueDescription("core Foobar.scala")
@@ -124,6 +125,10 @@ case class ScalafixOptions(
     @HelpMessage(
       "If true, does not sys.exit at the end. Useful for example in sbt-scalafix")
     noSysExit: Boolean = false,
+    // Here for backwards compat with scripts.
+    @Hidden
+    @ExtraName("i")
+    inPlace: Boolean = true,
     @Recurse common: CommonOptions = CommonOptions(),
     @HelpMessage(
       """Print out bash completion file for scalafix. To install on
