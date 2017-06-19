@@ -17,15 +17,31 @@ import metaconfig.Configured.Ok
 object Cli {
   import ArgParserImplicits._
   private val withHelp: Messages[WithHelp[ScalafixOptions]] =
-    OptionsMessages.withHelp
+    OptionsMessages.copy(optionsDesc = "[options] [<file>...]").withHelp
   val helpMessage: String = withHelp.helpMessage +
-    s"""|
-        |Default rewrites: ${ScalafixRewrites.allNames.mkString(", ")}
+    s"""|Available rewrites: ${ScalafixRewrites.allNames.mkString(", ")}
         |
-        |Examples:
-        |  $$ scalafix --rewrites=ProcedureSyntax Code.scala           # write fixed file in-place
-        |  $$ scalafix --rewrites=ProcedureSyntax --stdout Code.scala # print fixed file to stdout
-        |  $$ scalafix --rewrites=ExplicitReturnTypes --auto-mirror   # automatically configure Semantic API.
+        |NOTE. The command line tool is mostly intended to be invoked programmatically
+        |from build-tool integrations such as sbt-scalafix. The necessary fixture to run
+        |semantic rewrites is tricky to setup manually.
+        |
+        |Scalafix chooses which files to fix according to the following rules:
+        |- when --syntactic is passed, then Scalafix looks for .scala files in the provided files/directories.
+        |- by default, looks for .semanticdb files and matches them back to the original files.
+        |  - if --classpath and --sourcepath are provided, then those are used to find .semanticdb files.
+        |  - otherwise, Scalafix will automatically look for META-INF/semanticdb directories from the
+        |    current working directory.
+        |
+        |Examples (semantic):
+        |  $$ scalafix # automatically finds .semanticdb files and runs rewrite configured in .scalafix.conf.
+        |  $$ scalafix <directory> # same as above except only run on files in <directory>
+        |  $$ scalafix --rewrites RemoveUnusedImports # same as above but run RemoveUnusedImports.
+        |  $$ scalafix --classpath <foo.jar:target/classes> --sourceroot <directory> # customize semanticdb.
+        |
+        |Examples (syntactic):
+        |  $$ scalafix --syntactic --rewrites=ProcedureSyntax Code.scala # write fixed file in-place
+        |  $$ scalafix --syntactic --rewrites=ProcedureSyntax --stdout Code.scala # print fixed file to stdout
+        |  $$ scalafix --syntactic --rewrites=ExplicitReturnTypes --auto-mirror # automatically configure Semantic API.
         |  $$ cat .scalafix.conf
         |  rewrites = [ProcedureSyntax]
         |  $$ scalafix Code.scala # Same as --rewrites ProcedureSyntax
@@ -180,7 +196,7 @@ return 0
               commonOptions: CommonOptions): ExitStatus =
     cliCommand match {
       case CliCommand.PrintAndExit(msg, exit) =>
-        if (exit.isOk) commonOptions.reporter.info(msg)
+        if (exit.isOk) commonOptions.out.println(msg)
         else commonOptions.reporter.error(msg)
         exit
       case CliCommand.RunScalafix(runner) =>

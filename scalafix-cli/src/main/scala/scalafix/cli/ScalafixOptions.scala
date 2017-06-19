@@ -50,17 +50,16 @@ case class ScalafixOptions(
     @ExtraName("c")
     configStr: Option[String] = None,
     @HelpMessage(
-      """Absolute path passed to scalahost with -P:scalahost:sourceroot:<path>.
-        |        Relative filenames persisted in the Semantic DB are absolutized
-        |        by the sourceroot. Required for semantic rewrites.
-      """.stripMargin)
+      "Absolute path passed to scalahost with -P:scalahost:sourceroot:<path>. " +
+        "Relative filenames persisted in the Semantic DB are absolutized by the " +
+        "sourceroot. Required for semantic rewrites.")
     @ValueDescription("/foo/myproject")
     sourceroot: Option[String] = None,
     @HelpMessage(
-      """java.io.File.pathSeparator separated list of directories containing
-        |        '.semanticdb' files. The 'semanticdb' files are emitted by the
-        |        scalahost-nsc compiler plugin and are necessary for semantic
-        |        rewrites like ExplicitReturnTypes to function.""".stripMargin
+      "java.io.File.pathSeparator separated list of directories containing " +
+        "'.semanticdb' files. The 'semanticdb' files are emitted by the " +
+        "scalahost-nsc compiler plugin and are necessary for semantic rewrites " +
+        "like ExplicitReturnTypes to function."
     )
     @ValueDescription("entry1.jar:entry2.jar")
     classpath: Option[String] = None,
@@ -70,41 +69,34 @@ case class ScalafixOptions(
       s"""Rewrite rules to run.""".stripMargin
     )
     @ValueDescription(
-      s"""$ProcedureSyntax OR
-         |               file:LocalFile.scala OR
-         |               scala:full.Name OR
-         |               https://gist.com/.../Rewrite.scala""".stripMargin
+      s"$ProcedureSyntax OR " +
+        s"file:LocalFile.scala OR " +
+        s"scala:full.Name OR " +
+        s"https://gist.com/.../Rewrite.scala"
     )
     @HelpMessage(
       s"Space separated list of rewrites to run. Available options include: " +
         s"${ScalafixRewrites.allNames.mkString(", ")}")
     @ExtraName("r")
     rewrites: List[String] = Nil,
-    @HelpMessage(
-      """.scala files to fix, recurses on directories.""".stripMargin)
-    @ValueDescription("File1.scala File2.scala")
     @ExtraName("f")
-    @Hidden // hidden because it's optional.
+    @Hidden // hidden because it's optional. The help message explains how files are chosen.
     files: List[String] = List.empty[String],
     @HelpMessage("If set, print fix to stdout instead of writing to file.")
     stdout: Boolean = false,
     @HelpMessage(
-      """Regex that is passed as first argument to
-        |        fileToFix.replaceAll(outFrom, outTo)""".stripMargin
+      "Regex that is passed as first argument to fileToFix.replaceAll(outFrom, outTo)"
     )
     @ValueDescription("/shared/")
     outFrom: Option[String] = None,
     @HelpMessage(
-      """Replacement string that is passed as second argument to
-        |        fileToFix.replaceAll(outFrom, outTo)""".stripMargin
-    )
+      "Replacement string that is passed as second argument to fileToFix.replaceAll(outFrom, outTo)")
     @ValueDescription("/custom/")
     outTo: Option[String] = None,
     @HelpMessage(
-      """Space separated list of regexes to exclude which files to fix.
-        |        If a file match one of the exclude regexes, then it will not
-        |        get fixed. Defaults to excluding no files.
-      """.stripMargin)
+      "Space separated list of regexes to exclude which files to fix. If a file " +
+        "match one of the exclude regexes, then it will not get fixed. " +
+        "Defaults to excluding no files.")
     @ValueDescription("core Foobar.scala")
     exclude: List[String] = Nil,
     @HelpMessage(
@@ -130,15 +122,12 @@ case class ScalafixOptions(
     quietParseErrors: Boolean = false,
     @HelpMessage(
       """Print out bash completion file for scalafix. To install on
-        |        Mac:
-        |        scalafix --bash > /usr/local/etc/bash_completion.d/scalafix
-        |        Linux:
-        |        scalafix --bash > /etc/bash_completion.d/scalafix""".stripMargin)
+        |          scalafix --bash > /usr/local/etc/bash_completion.d/scalafix # Mac
+        |          scalafix --bash > /etc/bash_completion.d/scalafix           # Linux""".stripMargin)
     bash: Boolean = false,
     @HelpMessage(
       """Print out zsh completion file for scalafix. To install:
-        |
-        |        scalafix --zsh > /usr/local/share/zsh/site-functions/_scalafix""".stripMargin)
+        |          scalafix --zsh > /usr/local/share/zsh/site-functions/_scalafix""".stripMargin)
     zsh: Boolean = false
 ) {
   def autoMirror: Boolean = {
