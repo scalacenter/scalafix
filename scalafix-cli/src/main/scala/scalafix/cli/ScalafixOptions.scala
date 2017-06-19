@@ -14,6 +14,7 @@ import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
+import org.scalameta.logger
 
 case class CommonOptions(
     @Hidden workingDirectory: String = System.getProperty("user.dir"),
@@ -58,8 +59,8 @@ case class ScalafixOptions(
     )
     @ValueDescription("entry1.jar:entry2.jar")
     classpath: Option[String] = None,
-    @HelpMessage("""automatically look for semanticdb files (EXPERIMENTAL).""")
-    autoMirror: Boolean = false,
+    @HelpMessage("""don't automatically look for semanticdb files.""")
+    syntactic: Boolean = false,
     @HelpMessage(
       s"""Rewrite rules to run.""".stripMargin
     )
@@ -78,6 +79,7 @@ case class ScalafixOptions(
       """.scala files to fix, recurses on directories.""".stripMargin)
     @ValueDescription("File1.scala File2.scala")
     @ExtraName("f")
+    @Hidden // hidden because it's optional.
     files: List[String] = List.empty[String],
     @HelpMessage("If set, print fix to stdout instead of writing to file.")
     stdout: Boolean = false,
@@ -93,14 +95,6 @@ case class ScalafixOptions(
     )
     @ValueDescription("/custom/")
     outTo: String = "",
-    @HelpMessage(
-      """Space separated list of regexes to filter files from the Semantic DB
-        |        to be included for fixing. This is the parallel of --files
-        |        but for semantic reerites. A file must match one of the regexes
-        |        to be included. Defaults to matching all files.
-      """.stripMargin)
-    @ValueDescription("core Foobar.scala")
-    include: List[String] = List(".*"),
     @HelpMessage(
       """Space separated list of regexes to exclude which files to fix.
         |        If a file match one of the exclude regexes, then it will not
@@ -141,4 +135,8 @@ case class ScalafixOptions(
         |
         |        scalafix --zsh > /usr/local/share/zsh/site-functions/_scalafix""".stripMargin)
     zsh: Boolean = false
-)
+) {
+  def autoMirror: Boolean = {
+    !syntactic && classpath.isEmpty && sourceroot.isEmpty
+  }
+}

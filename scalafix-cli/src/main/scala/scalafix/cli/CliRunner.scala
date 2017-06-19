@@ -189,18 +189,22 @@ object CliRunner {
       config <- builder.resolvedConfig
     } yield {
       if (options.verbose) {
+        val entries = database.map(_.entries.length).getOrElse(0)
+        val inputsNames = inputs
+          .map(_.syntax.stripPrefix(options.common.workingDirectory + "/"))
+          .mkString(", ")
         options.common.err.println(
-          s"""|Files to fix:
-              |$inputs
-              |Database:
-              |$database
+          s"""|Files to fix (${inputs.length}):
+              |${inputsNames}
+              |Database entires count: $entries
+              |Database head:
+              |${database.toString.take(1000)}
               |Config:
               |${Class2Hocon(config)}
               |Rewrite:
-              |$config
+              |$rewrite
               |""".stripMargin
         )
-        options.common.err.println(database.toString)
       }
       new CliRunner(
         sourceroot = sourceroot,
@@ -265,11 +269,8 @@ object CliRunner {
       }
 
     val autoSourceroot: Option[AbsolutePath] =
-      if (sourceroot.isEmpty && autoMirror) {
-        Some(common.workingPath)
-      } else {
-        sourceroot.map(AbsolutePath.fromString(_))
-      }
+      if (autoMirror) Some(common.workingPath)
+      else sourceroot.map(AbsolutePath.fromString(_))
 
     // Database
     private val resolvedDatabase: Configured[Database] =
@@ -280,9 +281,7 @@ object CliRunner {
               val sourcepath = sp.map(Sourcepath.apply)
               val mirror =
                 vfs.Database.load(cp).toSchema.toMeta(sourcepath)
-              if (verbose) {
-                common.err.println(s"Mirror: $mirror")
-              }
+              common.err.println(s"Mirror: ${mirror.toString().take(1000)}")
               mirror
             }
           } yield mirror
@@ -318,20 +317,24 @@ object CliRunner {
       }
 
     // Inputs
-    val explicitPaths: scala.Seq[Input] = cli.files.toVector.flatMap { file =>
-      val path = AbsolutePath.fromString(file)
-      if (path.isDirectory) {
-        import scala.collection.JavaConverters._
-        val x = Files
-          .walk(path.toNIO)
-          .filter((t: Path) => t.getFileName.toString.endsWith(".scala"))
-          .collect(Collectors.toList[Path])
-        x.asScala.toIterator.map(path => Input.File(AbsolutePath(path))).toSeq
-      } else {
-        // if the user provided explicit path, take it.
-        List(Input.File(path))
+    val explicitPaths: scala.Seq[Input] =
+//      if (!syntactic)
+      cli.files.toVector.flatMap { file =>
+        val path = AbsolutePath.fromString(file)
+        if (path.isDirectory) {
+          import scala.collection.JavaConverters._
+          val x = Files
+            .walk(path.toNIO)
+            .filter((t: Path) => t.getFileName.toString.endsWith(".scala"))
+            .collect(Collectors.toList[Path])
+          x.asScala.toIterator
+            .map(path => Input.File(AbsolutePath(path)))
+            .toSeq
+        } else {
+          // if the user provided explicit path, take it.
+          List(Input.File(path))
+        }
       }
-    }
 
     def isInputFile(input: Input): Boolean = input match {
       case _: Input.File | _: Input.LabeledString => true
@@ -352,7 +355,9 @@ object CliRunner {
         }
       }
     private val resolvedPathMatcher: Configured[FilterMatcher] = try {
-      Ok(FilterMatcher(include ++ files, exclude))
+      logger.elem(files)
+      val include = if (files.isEmpty) List(".*") else files
+      Ok(FilterMatcher(include, exclude))
     } catch {
       case e: PatternSyntaxException =>
         ConfError
@@ -365,6 +370,7 @@ object CliRunner {
       pathMatcher <- resolvedPathMatcher
       sourceroot <- resolvedSourceroot
     } yield {
+      logger.elem(explicitPaths, fromMirror)
       def inputOK(input: Input) = pathMatcher.matches(input.label)
       val builder = Seq.newBuilder[Input]
       fromMirror.withFilter(inputOK).foreach(builder += _)

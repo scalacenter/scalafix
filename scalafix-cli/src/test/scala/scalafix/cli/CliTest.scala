@@ -166,6 +166,7 @@ class CliTest extends FunSuite with DiffAssertions {
     FileOps.writeFile(file, "object a { implicit val x = ??? }")
     val code = Cli.runOn(
       default.copy(rewrites = List(ExplicitReturnTypes.toString),
+                   syntactic = true,
                    files = List(file.getAbsolutePath),
                    common = devNull))
     assert(code == ExitStatus.InvalidCommandLineOption)
