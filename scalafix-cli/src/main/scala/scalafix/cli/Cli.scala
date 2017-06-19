@@ -116,7 +116,7 @@ _scalafix()
     fi
 }
 complete -F _scalafix scalafix
-""".stripMargin
+"""
 
   def zshCompletions: String = {
     s"""#compdef scalafix
@@ -137,7 +137,7 @@ case $$words[$$CURRENT] in
 esac
 
 return 0
-""".stripMargin
+"""
   }
 
   class NonZeroExitCode(exitStatus: ExitStatus)
