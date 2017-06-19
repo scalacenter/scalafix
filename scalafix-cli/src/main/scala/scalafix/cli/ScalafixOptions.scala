@@ -6,6 +6,8 @@ import java.io.InputStream
 import java.io.PrintStream
 import scala.meta._
 import scala.meta.io.AbsolutePath
+import scalafix.config.PrintStreamReporter
+import scalafix.config.ScalafixReporter
 import scalafix.rewrite.ProcedureSyntax
 import scalafix.rewrite.ScalafixRewrites
 import caseapp._
@@ -14,7 +16,6 @@ import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
-import org.scalameta.logger
 
 case class CommonOptions(
     @Hidden workingDirectory: String = System.getProperty("user.dir"),
@@ -23,10 +24,14 @@ case class CommonOptions(
     @Hidden err: PrintStream = System.err,
     @Hidden stackVerbosity: Int = 20
 ) {
+  def reporter: PrintStreamReporter =
+    ScalafixReporter.default.copy(outStream = err)
   def workingPath = AbsolutePath(workingDirectory)
   def workingDirectoryFile = new File(workingDirectory)
 }
 
+// NOTE: Do not depend on this class as a library, the interface will change between
+// patch versions.
 @AppName("scalafix")
 @AppVersion(scalafix.Versions.version)
 @ProgName("scalafix")
@@ -88,13 +93,13 @@ case class ScalafixOptions(
         |        fileToFix.replaceAll(outFrom, outTo)""".stripMargin
     )
     @ValueDescription("/shared/")
-    outFrom: String = "",
+    outFrom: Option[String] = None,
     @HelpMessage(
       """Replacement string that is passed as second argument to
         |        fileToFix.replaceAll(outFrom, outTo)""".stripMargin
     )
     @ValueDescription("/custom/")
-    outTo: String = "",
+    outTo: Option[String] = None,
     @HelpMessage(
       """Space separated list of regexes to exclude which files to fix.
         |        If a file match one of the exclude regexes, then it will not

@@ -180,7 +180,8 @@ return 0
               commonOptions: CommonOptions): ExitStatus =
     cliCommand match {
       case CliCommand.PrintAndExit(msg, exit) =>
-        commonOptions.out.write(msg.getBytes)
+        if (exit.isOk) commonOptions.reporter.info(msg)
+        else commonOptions.reporter.error(msg)
         exit
       case CliCommand.RunScalafix(runner) =>
         val exit = runner.run()

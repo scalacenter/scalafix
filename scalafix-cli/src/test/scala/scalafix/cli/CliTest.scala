@@ -37,7 +37,7 @@ class CliTest extends FunSuite with DiffAssertions {
 
   println(Cli.helpMessage)
 
-  val default = ScalafixOptions()
+  val default = ScalafixOptions(syntactic = true)
 
   val devNull = CommonOptions(
     err = new PrintStream(new ByteArrayOutputStream())
