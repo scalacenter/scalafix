@@ -23,7 +23,7 @@ object Cli {
         |Default rewrites: ${ScalafixRewrites.allNames.mkString(", ")}
         |
         |Examples:
-        |  $$ scalafix --rewrite=ProcedureSyntax Code.scala           # write fixed file in-place
+        |  $$ scalafix --rewrites=ProcedureSyntax Code.scala           # write fixed file in-place
         |  $$ scalafix --rewrites=ProcedureSyntax --stdout Code.scala # print fixed file to stdout
         |  $$ scalafix --rewrites=ExplicitReturnTypes --auto-mirror   # automatically configure Semantic API.
         |  $$ cat .scalafix.conf
@@ -85,9 +85,17 @@ _scalafix()
     COMPREPLY=()
     cur="$${COMP_WORDS[COMP_CWORD]}"
     prev="$${COMP_WORDS[COMP_CWORD-1]}"
+    rewrites="${ScalafixRewrites.allNames.mkString(" ")}"
     opts="$bashArgs"
+
+    case "$${prev}" in
+      --rewrites|-r )
+        COMPREPLY=(   $$(compgen -W "$${rewrites}" -- $${cur}) )
+        return 0
+        ;;
+    esac
     if [[ $${cur} == -* ]] ; then
-        COMPREPLY=(  $$(compgen -W "$${opts}" -- $${cur}) )
+        COMPREPLY=(   $$(compgen -W "$${opts}" -- $${cur}) )
         return 0
     fi
 }
@@ -102,7 +110,6 @@ local context state line
 _rewrite_names () {
    compadd $rewriteNames
 }
-
 
 local -a scalafix_opts
 scalafix_opts=(
