@@ -329,7 +329,10 @@ object CliRunner {
             import scala.collection.JavaConverters._
             val x = Files
               .walk(path.toNIO)
-              .filter((t: Path) => t.getFileName.toString.endsWith(".scala"))
+              .filter(new Predicate[Path] {
+                override def test(t: Path): Boolean =
+                  t.getFileName.toString.endsWith(".scala")
+              })
               .collect(Collectors.toList[Path])
             x.asScala.toIterator
               .map(path => Input.File(AbsolutePath(path)))
