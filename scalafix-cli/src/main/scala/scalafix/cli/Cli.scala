@@ -28,7 +28,7 @@ object Cli {
         |Scalafix chooses which files to fix according to the following rules:
         |- when --syntactic is passed, then Scalafix looks for .scala files in the provided files/directories.
         |- by default, looks for .semanticdb files and matches them back to the original files.
-        |  - if --classpath and --sourcepath are provided, then those are used to find .semanticdb files.
+        |  - if --classpath and --sourceroot are provided, then those are used to find .semanticdb files.
         |  - otherwise, Scalafix will automatically look for META-INF/semanticdb directories from the
         |    current working directory.
         |
@@ -36,12 +36,12 @@ object Cli {
         |  $$ scalafix # automatically finds .semanticdb files and runs rewrite configured in .scalafix.conf.
         |  $$ scalafix <directory> # same as above except only run on files in <directory>
         |  $$ scalafix --rewrites RemoveUnusedImports # same as above but run RemoveUnusedImports.
-        |  $$ scalafix --classpath <foo.jar:target/classes> --sourceroot <directory> # customize semanticdb.
+        |  $$ scalafix --classpath <foo.jar:target/classes> # explicitly pass classpath, --sourceroot is cwd.
+        |  $$ scalafix --classpath <foo.jar:target/classes> --sourceroot <directory>
         |
         |Examples (syntactic):
         |  $$ scalafix --syntactic --rewrites=ProcedureSyntax Code.scala # write fixed file in-place
         |  $$ scalafix --syntactic --rewrites=ProcedureSyntax --stdout Code.scala # print fixed file to stdout
-        |  $$ scalafix --syntactic --rewrites=ExplicitReturnTypes --auto-mirror # automatically configure Semantic API.
         |  $$ cat .scalafix.conf
         |  rewrites = [ProcedureSyntax]
         |  $$ scalafix Code.scala # Same as --rewrites ProcedureSyntax

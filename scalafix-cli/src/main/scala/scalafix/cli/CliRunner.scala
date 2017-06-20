@@ -107,14 +107,8 @@ sealed abstract case class CliRunner(
         case Input.LabeledString(_, _) =>
           val fileToWrite = scala.io.Source.fromFile(outFile)
           val originalContents = input.chars.toIterator
-          try {
-            @tailrec
-            def isEqual(a: Iterator[Char], b: Iterator[Char]): Boolean =
-              if (a.hasNext && b.hasNext) a.next() == b.next() && isEqual(a, b)
-              else if (a.hasNext || b.hasNext) false
-              else true
-            isEqual(fileToWrite, originalContents)
-          } finally fileToWrite.close()
+          try fileToWrite.sameElements(originalContents)
+          finally fileToWrite.close()
         case _ =>
           true // No way to check for Input.File, see https://github.com/scalameta/scalameta/issues/886
       }
@@ -261,7 +255,7 @@ object CliRunner {
             """Unable to automatically detect .semanticdb files to run semantic rewrites. Possible workarounds:
               |- re-compile sources with the scalahost compiler plugin enabled.
               |- pass in the --syntactic flag to run only syntactic rewrites.
-              |- explicitly pass in --classuath and --sourceroot to run semantic rewrites.""".stripMargin
+              |- explicitly pass in --classpath and --sourceroot to run semantic rewrites.""".stripMargin
           Some(ConfError.msg(msg).notOk)
         }
       } else {
@@ -275,7 +269,11 @@ object CliRunner {
 
     val autoSourceroot: Option[AbsolutePath] =
       if (autoMirror) resolvedClasspath.map(_ => common.workingPath)
-      else sourceroot.map(AbsolutePath.fromString(_))
+      else {
+        sourceroot
+          .map(AbsolutePath.fromString(_))
+          .orElse(Some(common.workingPath))
+      }
 
     // Database
     private val resolvedDatabase: Configured[Database] =
@@ -294,12 +292,7 @@ object CliRunner {
             case scala.util.Failure(e) => ConfError.msg(e.toString).notOk
           }
         case (Some(err @ NotOk(_)), _) => err
-        case (None, Some(sp)) =>
-          ConfError
-            .msg(
-              s"Missing --classpath, cannot use --sourcepath $sp without --classpath")
-            .notOk
-        case (None, None) =>
+        case (None, _) =>
           Ok(ScalafixRewrites.emptyDatabase)
       }
     val resolvedMirror: Configured[Option[Database]] =

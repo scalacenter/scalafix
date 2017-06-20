@@ -52,16 +52,16 @@ case class ScalafixOptions(
     @HelpMessage(
       "Absolute path passed to scalahost with -P:scalahost:sourceroot:<path>. " +
         "Relative filenames persisted in the Semantic DB are absolutized by the " +
-        "sourceroot. Required for semantic rewrites.")
+        "sourceroot. Defaults to current working directory if not provided.")
     @ValueDescription("/foo/myproject")
     sourceroot: Option[String] = None,
     @HelpMessage(
-      "java.io.File.pathSeparator separated list of directories containing " +
+      "java.io.File.pathSeparator separated list of directories or jars containing " +
         "'.semanticdb' files. The 'semanticdb' files are emitted by the " +
         "scalahost-nsc compiler plugin and are necessary for semantic rewrites " +
         "like ExplicitReturnTypes to function."
     )
-    @ValueDescription("entry1.jar:entry2.jar")
+    @ValueDescription("entry1.jar:entry2.jar:target/scala-2.12/classes")
     classpath: Option[String] = None,
     @HelpMessage("""don't automatically look for semanticdb files.""")
     syntactic: Boolean = false,
