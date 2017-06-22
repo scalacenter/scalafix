@@ -10,6 +10,7 @@ import java.io.File
 import java.io.PrintStream
 import java.nio.file.Paths
 import scala.meta.io.AbsolutePath
+import scalafix.cli.CliCommand.PrintAndExit
 import scalafix.cli.CliCommand.RunScalafix
 import caseapp.core.WithHelp
 import org.scalatest.FunSuite
@@ -35,6 +36,8 @@ object BasicTest {
 class CliTest extends FunSuite with DiffAssertions {
 
   println(Cli.helpMessage)
+
+  val default = ScalafixOptions(syntactic = true)
 
   val devNull = CommonOptions(
     err = new PrintStream(new ByteArrayOutputStream())
@@ -69,10 +72,9 @@ class CliTest extends FunSuite with DiffAssertions {
     val file = File.createTempFile("prefix", ".scala")
     FileOps.writeFile(file, original)
     Cli.runOn(
-      ScalafixOptions(
+      default.copy(
         rewrites = List(ProcedureSyntax.toString),
-        files = List(file.getAbsolutePath),
-        inPlace = true
+        files = List(file.getAbsolutePath)
       ))
     assertNoDiff(FileOps.readFile(file), expected)
   }
@@ -84,7 +86,7 @@ class CliTest extends FunSuite with DiffAssertions {
     FileOps.writeFile(exclude, original)
     FileOps.writeFile(include, original)
     Cli.runOn(
-      ScalafixOptions(
+      default.copy(
         rewrites = List(ProcedureSyntax.toString),
         files = List(exclude.getAbsolutePath, include.getAbsolutePath),
         exclude = List(ignore)
@@ -98,7 +100,7 @@ class CliTest extends FunSuite with DiffAssertions {
     FileOps.writeFile(file, original)
     val baos = new ByteArrayOutputStream()
     val exit = Cli.runOn(
-      ScalafixOptions(
+      default.copy(
         common = CommonOptions(
           out = new PrintStream(baos)
         ),
@@ -119,14 +121,15 @@ class CliTest extends FunSuite with DiffAssertions {
 
     def createFile(): File = {
       val file = File.createTempFile("file", ".scala", dir)
+      logger.elem(file.getAbsolutePath)
       FileOps.writeFile(file, original)
       file
     }
     val file1, file2 = createFile()
 
     Cli.runOn(
-      ScalafixOptions(rewrites = List(ProcedureSyntax.toString),
-                      files = List(dir.getAbsolutePath)))
+      default.copy(rewrites = List(ProcedureSyntax.toString),
+                   files = List(dir.getAbsolutePath)))
     assertNoDiff(FileOps.readFile(file1), expected)
     assertNoDiff(FileOps.readFile(file2), expected)
   }
@@ -139,8 +142,6 @@ class CliTest extends FunSuite with DiffAssertions {
   }
 
   test("--sourceroot --classpath") {
-    assert(Cli.parse(List("--sourceroot", "foo.scala")).isError)
-    assert(Cli.parse(List("--classpath", "auto")).isError)
     // NOTE: This assertion should fail by default, but scalafix-cli % Test
     // depends on testkit, which has scalahost-nsc as a dependency.
     assert(
@@ -164,9 +165,10 @@ class CliTest extends FunSuite with DiffAssertions {
     val file = File.createTempFile("prefix", ".scala")
     FileOps.writeFile(file, "object a { implicit val x = ??? }")
     val code = Cli.runOn(
-      ScalafixOptions(rewrites = List(ExplicitReturnTypes.toString),
-                      files = List(file.getAbsolutePath),
-                      common = devNull))
+      default.copy(rewrites = List(ExplicitReturnTypes.toString),
+                   syntactic = true,
+                   files = List(file.getAbsolutePath),
+                   common = devNull))
     assert(code == ExitStatus.InvalidCommandLineOption)
   }
 
@@ -174,10 +176,22 @@ class CliTest extends FunSuite with DiffAssertions {
     val file = File.createTempFile("prefix", ".sbt")
     FileOps.writeFile(file, "def foo { println(1) }\n")
     val code = Cli.runOn(
-      ScalafixOptions(rewrites = List(ProcedureSyntax.toString),
-                      files = List(file.getAbsolutePath),
-                      common = devNull))
+      default.copy(rewrites = List(ProcedureSyntax.toString),
+                   files = List(file.getAbsolutePath),
+                   common = devNull))
     assert(code == ExitStatus.Ok)
     assert(FileOps.readFile(file) == "def foo: Unit = { println(1) }\n")
+  }
+
+  test("--zsh") {
+    val obtained = Cli.parse(Seq("--zsh"))
+    assert(obtained.isOk)
+    assert(obtained.isInstanceOf[PrintAndExit])
+  }
+
+  test("--bash") {
+    val obtained = Cli.parse(Seq("--bash"))
+    assert(obtained.isOk)
+    assert(obtained.isInstanceOf[PrintAndExit])
   }
 }

@@ -5,7 +5,7 @@ sealed abstract class CliCommand {
   def isOk: Boolean = !isError
   def isError: Boolean = this match {
     case RunScalafix(_) => false
-    case _ => true
+    case PrintAndExit(_, ExitStatus(code, _)) => code != 0
   }
 }
 

@@ -2,6 +2,7 @@ package scalafix
 package cli
 
 import java.io.File
+import java.io.FileInputStream
 import java.io.IOException
 import java.io.OutputStreamWriter
 import java.net.URI
@@ -14,9 +15,12 @@ import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
+import java.util.function.Predicate
 import java.util.function.UnaryOperator
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
+import java.util.stream.Collectors
+import scala.annotation.tailrec
 import scala.collection.immutable.Seq
 import scala.collection.mutable.ListBuffer
 import scala.meta._
@@ -50,8 +54,8 @@ sealed abstract case class CliRunner(
     config: ScalafixConfig,
     database: Option[Database],
     rewrite: Rewrite,
-    explicitPaths: Seq[Input],
-    inputs: Seq[Input],
+    explicitPaths: scala.Seq[Input],
+    inputs: scala.Seq[Input],
     replacePath: AbsolutePath => AbsolutePath
 ) {
   val sbtConfig: ScalafixConfig = config.copy(dialect = dialects.Sbt0137)
@@ -63,14 +67,16 @@ sealed abstract case class CliRunner(
     explicitPaths.toIterator
       .map(x => new URI(x.path(common.workingPath).toString()).normalize())
       .toSet
-  def wasExplicitlyPassed(path: AbsolutePath): Boolean =
-    explicitURIs.contains(path.toURI.normalize())
+
+  def reportParseError(path: AbsolutePath): Boolean =
+    cli.quietParseErrors &&
+      explicitURIs.contains(path.toURI.normalize())
 
   def run(): ExitStatus = {
     val display = new TermDisplay(new OutputStreamWriter(System.out))
     if (inputs.length > 10) display.init()
     if (inputs.isEmpty) common.err.println("Running scalafix on 0 files.")
-    val msg = "Running scalafix..."
+    val msg = s"Running scalafix rewrite ${rewrite.name}..."
     display.startTask(msg, common.workingDirectoryFile)
     display.taskLength(msg, inputs.length, 0)
     val exitCode = new AtomicReference(ExitStatus.Ok)
@@ -91,24 +97,57 @@ sealed abstract case class CliRunner(
     display.stop()
     exitCode.get()
   }
+
+  // checks if outFile contents have changed since the creation its .semanticdb file.
+  private def isUpToDate(input: Input, outFile: File): Boolean =
+    if (database.isEmpty) true
+    else if (!outFile.exists() && cli.outTo.nonEmpty) true
+    else {
+      input match {
+        case Input.LabeledString(_, _) =>
+          val fileToWrite = scala.io.Source.fromFile(outFile)
+          val originalContents = input.chars.toIterator
+          try fileToWrite.sameElements(originalContents)
+          finally fileToWrite.close()
+        case _ =>
+          true // No way to check for Input.File, see https://github.com/scalameta/scalameta/issues/886
+      }
+    }
+
   def safeHandleInput(input: Input): ExitStatus = {
     def path = input.path(sourceroot)
     try {
       val inputConfig = if (input.isSbtFile) sbtConfig else config
       inputConfig.dialect(input).parse[Source] match {
         case parsers.Parsed.Error(pos, message, _) =>
-          if (wasExplicitlyPassed(path)) {
+          if (reportParseError(path)) {
             common.err.println(pos.formatMessage("error", message))
+            ExitStatus.ParseError
+          } else {
+            // Ignore parse errors, useful for example when running scalafix on
+            // millions of lines of code for experimentation.
+            ExitStatus.Ok
           }
-          ExitStatus.ParseError
         case parsers.Parsed.Success(tree) =>
           val ctx = RewriteCtx(tree, config)
           val fixed = rewrite(ctx)
           if (writeMode.isWriteFile) {
             val outFile = replacePath(path)
-            Files.write(outFile.toNIO, fixed.getBytes(input.charset))
-          } else common.out.write(fixed.getBytes)
-          ExitStatus.Ok
+            if (isUpToDate(input, outFile.toFile)) {
+              Files.write(outFile.toNIO, fixed.getBytes(input.charset))
+              ExitStatus.Ok
+            } else {
+              val relpath =
+                // toRelative should not throw exceptions, but it does, see https://github.com/scalameta/scalameta/issues/821
+                Try(outFile.toRelative(common.workingPath)).getOrElse(outFile)
+              ctx.reporter.error(
+                s"Stale semanticdb for $relpath, skipping rewrite. Pease recompile.")
+              ExitStatus.StaleSemanticDB
+            }
+          } else {
+            common.out.write(fixed.getBytes)
+            ExitStatus.Ok
+          }
       }
     } catch {
       case NonFatal(e) =>
@@ -123,10 +162,7 @@ sealed abstract case class CliRunner(
   def reportError(path: AbsolutePath,
                   cause: Throwable,
                   options: ScalafixOptions): Unit = {
-    options.common.err.println(
-      s"""Error fixing file: ${path.toString()}
-         |Cause: $cause""".stripMargin
-    )
+    options.common.reporter.error(s"Failed to fix $path")
     cause.setStackTrace(
       cause.getStackTrace.take(options.common.stackVerbosity))
     cause.printStackTrace(options.common.err)
@@ -145,18 +181,22 @@ object CliRunner {
       config <- builder.resolvedConfig
     } yield {
       if (options.verbose) {
+        val entries = database.map(_.entries.length).getOrElse(0)
+        val inputsNames = inputs
+          .map(_.syntax.stripPrefix(options.common.workingDirectory + "/"))
+          .mkString(", ")
         options.common.err.println(
-          s"""|Files to fix:
-              |$inputs
-              |Database:
-              |$database
+          s"""|Files to fix (${inputs.length}):
+              |$inputsNames
+              |Database entires count: $entries
+              |Database head:
+              |${database.toString.take(1000)}
               |Config:
               |${Class2Hocon(config)}
               |Rewrite:
-              |$config
+              |$rewrite
               |""".stripMargin
         )
-        options.common.err.println(database.toString)
       }
       new CliRunner(
         sourceroot = sourceroot,
@@ -203,18 +243,41 @@ object CliRunner {
 
     implicit val workingDirectory: AbsolutePath = common.workingPath
 
-    lazy val resolvedClasspath: Option[Configured[Classpath]] = classpath.map {
-      case "auto" => Ok(autoClasspath(common.workingPath))
-      case x =>
-        val paths = x.split(File.pathSeparator).map { path =>
-          AbsolutePath.fromString(path)(common.workingPath)
+    val resolvedClasspath: Option[Configured[Classpath]] =
+      if (autoMirror) {
+        val cp = autoClasspath(common.workingPath)
+        if (verbose) {
+          common.err.println(s"Automatic classpath=$cp")
         }
-        Ok(Classpath(paths))
-    }
+        if (cp.shallow.nonEmpty) Some(Ok(cp))
+        else {
+          val msg =
+            """Unable to automatically detect .semanticdb files to run semantic rewrites. Possible workarounds:
+              |- re-compile sources with the scalahost compiler plugin enabled.
+              |- pass in the --syntactic flag to run only syntactic rewrites.
+              |- explicitly pass in --classpath and --sourceroot to run semantic rewrites.""".stripMargin
+          Some(ConfError.msg(msg).notOk)
+        }
+      } else {
+        classpath.map { x =>
+          val paths = x.split(File.pathSeparator).map { path =>
+            AbsolutePath.fromString(path)(common.workingPath)
+          }
+          Ok(Classpath(paths))
+        }
+      }
+
+    val autoSourceroot: Option[AbsolutePath] =
+      if (autoMirror) resolvedClasspath.map(_ => common.workingPath)
+      else {
+        sourceroot
+          .map(AbsolutePath.fromString(_))
+          .orElse(Some(common.workingPath))
+      }
 
     // Database
     private val resolvedDatabase: Configured[Database] =
-      (resolvedClasspath, sourceroot) match {
+      (resolvedClasspath, autoSourceroot) match {
         case (Some(Ok(cp)), sp) =>
           val tryMirror = for {
             mirror <- Try {
@@ -229,12 +292,7 @@ object CliRunner {
             case scala.util.Failure(e) => ConfError.msg(e.toString).notOk
           }
         case (Some(err @ NotOk(_)), _) => err
-        case (None, Some(sp)) =>
-          ConfError
-            .msg(
-              s"Missing --classpath, cannot use --sourcepath $sp without --classpath")
-            .notOk
-        case (None, None) =>
+        case (None, _) =>
           Ok(ScalafixRewrites.emptyDatabase)
       }
     val resolvedMirror: Configured[Option[Database]] =
@@ -243,9 +301,9 @@ object CliRunner {
         else Some(x)
       }
     val resolvedMirrorSourceroot: Configured[AbsolutePath] =
-      sourceroot match {
+      autoSourceroot match {
         case None => ConfError.msg("--sourceroot is required").notOk
-        case Some(path) => Ok(AbsolutePath.fromString(path))
+        case Some(path) => Ok(path)
       }
     val resolvedSourceroot: Configured[AbsolutePath] =
       resolvedMirror.flatMap {
@@ -256,13 +314,28 @@ object CliRunner {
       }
 
     // Inputs
-    val explicitPaths: Seq[Input] = cli.files.toVector.flatMap { file =>
-      val path = AbsolutePath.fromString(file)
-      if (path.isDirectory)
-        FileIO.listAllFilesRecursively(path).map(Input.File.apply)
-      else List(Input.File(path))
-    }
-
+    val explicitPaths: scala.Seq[Input] =
+      if (syntactic) {
+        cli.files.toVector.flatMap { file =>
+          val path = AbsolutePath.fromString(file)
+          if (path.isDirectory) {
+            import scala.collection.JavaConverters._
+            val x = Files
+              .walk(path.toNIO)
+              .filter(new Predicate[Path] {
+                override def test(t: Path): Boolean =
+                  t.getFileName.toString.endsWith(".scala")
+              })
+              .collect(Collectors.toList[Path])
+            x.asScala.toIterator
+              .map(path => Input.File(AbsolutePath(path)))
+              .toSeq
+          } else {
+            // if the user provided explicit path, take it.
+            List(Input.File(path))
+          }
+        }
+      } else Nil
     def isInputFile(input: Input): Boolean = input match {
       case _: Input.File | _: Input.LabeledString => true
       case _ => false
@@ -282,6 +355,7 @@ object CliRunner {
         }
       }
     private val resolvedPathMatcher: Configured[FilterMatcher] = try {
+      val include = if (files.isEmpty) List(".*") else files
       Ok(FilterMatcher(include, exclude))
     } catch {
       case e: PatternSyntaxException =>
@@ -362,9 +436,12 @@ object CliRunner {
       resolvedRewriteAndConfig.map(_._2)
 
     val resolvedPathReplace: Configured[AbsolutePath => AbsolutePath] = try {
-      val outFromPattern = Pattern.compile(outFrom)
+      val outFromPattern = Pattern.compile(outFrom.getOrElse(""))
       def replacePath(file: AbsolutePath): AbsolutePath =
-        AbsolutePath(outFromPattern.matcher(file.toString()).replaceAll(outTo))
+        AbsolutePath(
+          outFromPattern
+            .matcher(file.toString())
+            .replaceAll(outTo.getOrElse("")))
       Ok(replacePath _)
     } catch {
       case e: PatternSyntaxException =>

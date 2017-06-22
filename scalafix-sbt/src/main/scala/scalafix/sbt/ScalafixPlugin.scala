@@ -99,7 +99,6 @@ object ScalafixPlugin extends AutoPlugin {
           rewriteArgs ++
           Seq(
             "--no-sys-exit",
-            "-i",
             "--sourceroot",
             sourceroot,
             "--classpath",

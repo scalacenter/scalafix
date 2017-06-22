@@ -51,4 +51,11 @@ object Failure {
   case class Unsupported(msg: String)
       extends Failure(new UnsupportedOperationException(msg))
   case class InvariantFailedException(msg: String) extends Exception(msg)
+  case class StaleSemanticDB(outPath: AbsolutePath)
+      extends Failure(
+        new Exception(
+          s"Stale Semantic DB! Contents of $outPath have changed since " +
+            s"creation of its correspondin .semanticdb file. Please recompile and run " +
+            s"scalafix again.")
+      )
 }
