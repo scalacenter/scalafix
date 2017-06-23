@@ -2,12 +2,8 @@ package scalafix
 package cli
 
 import java.io.File
-import java.io.FileInputStream
-import java.io.IOException
 import java.io.OutputStreamWriter
-import java.net.URI
 import java.nio.file.FileVisitResult
-import java.nio.file.FileVisitor
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -15,27 +11,22 @@ import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
-import java.util.function.Predicate
 import java.util.function.UnaryOperator
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 import java.util.stream.Collectors
-import scala.annotation.tailrec
-import scala.collection.immutable.Seq
-import scala.collection.mutable.ListBuffer
 import scala.meta._
+import scala.meta.inputs.Input
 import scala.meta.internal.inputs._
-import scala.meta.internal.io.FileIO
-import scala.meta.internal.io.PathIO
+import scala.meta.internal.io.PlatformFileIO
 import scala.meta.internal.semantic.vfs
-import scala.meta.parsers.ParseException
+import scala.meta.io.AbsolutePath
 import scala.util.Success
 import scala.util.Try
 import scala.util.control.NonFatal
 import scalafix.cli.termdisplay.TermDisplay
 import scalafix.config.Class2Hocon
 import scalafix.config.FilterMatcher
-import scalafix.config.MetaconfigPendingUpstream._
 import scalafix.config.PrintStreamReporter
 import scalafix.config.ScalafixConfig
 import scalafix.config.ScalafixReporter
@@ -43,6 +34,7 @@ import scalafix.reflect.ScalafixCompilerDecoder
 import scalafix.reflect.ScalafixToolbox
 import scalafix.rewrite.ScalafixRewrites
 import scalafix.syntax._
+import difflib.DiffUtils
 import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
 import metaconfig._
@@ -54,8 +46,7 @@ sealed abstract case class CliRunner(
     config: ScalafixConfig,
     database: Option[Database],
     rewrite: Rewrite,
-    explicitPaths: scala.Seq[Input],
-    inputs: scala.Seq[Input],
+    inputs: Seq[FixFile],
     replacePath: AbsolutePath => AbsolutePath
 ) {
   val sbtConfig: ScalafixConfig = config.copy(dialect = dialects.Sbt0137)
@@ -63,14 +54,7 @@ sealed abstract case class CliRunner(
     if (cli.stdout) WriteMode.Stdout
     else WriteMode.WriteFile
   val common: CommonOptions = cli.common
-  val explicitURIs: Set[URI] =
-    explicitPaths.toIterator
-      .map(x => new URI(x.path(common.workingPath).toString()).normalize())
-      .toSet
-
-  def reportParseError(path: AbsolutePath): Boolean =
-    cli.quietParseErrors &&
-      explicitURIs.contains(path.toURI.normalize())
+  implicit val workingDirectory: AbsolutePath = common.workingPath
 
   def run(): ExitStatus = {
     val display = new TermDisplay(new OutputStreamWriter(System.out))
@@ -98,50 +82,52 @@ sealed abstract case class CliRunner(
     exitCode.get()
   }
 
-  // checks if outFile contents have changed since the creation its .semanticdb file.
-  private def isUpToDate(input: Input, outFile: File): Boolean =
+  // safeguard to verify that the original file contents have not changed since the
+  // creation of the .semanticdb file. Without this check, we risk overwriting
+  // the latest changes written by the user.
+  private def isUpToDate(input: FixFile): Boolean =
     if (database.isEmpty) true
-    else if (!outFile.exists() && cli.outTo.nonEmpty) true
+    else if (!input.toIO.exists() && cli.outTo.nonEmpty) true
     else {
-      input match {
-        case Input.LabeledString(_, _) =>
-          val fileToWrite = scala.io.Source.fromFile(outFile)
-          val originalContents = input.chars.toIterator
-          try fileToWrite.sameElements(originalContents)
+      input.mirror match {
+        case Some(Input.LabeledString(_, contents)) =>
+          val fileToWrite = scala.io.Source.fromFile(input.toIO)
+          try fileToWrite.sameElements(contents.toCharArray.toIterator)
           finally fileToWrite.close()
         case _ =>
           true // No way to check for Input.File, see https://github.com/scalameta/scalameta/issues/886
       }
     }
 
-  def safeHandleInput(input: Input): ExitStatus = {
-    def path = input.path(sourceroot)
+  def safeHandleInput(input: FixFile): ExitStatus = {
     try {
-      val inputConfig = if (input.isSbtFile) sbtConfig else config
-      inputConfig.dialect(input).parse[Source] match {
+      val inputConfig = if (input.original.isSbtFile) sbtConfig else config
+      inputConfig.dialect(input.toParse).parse[Source] match {
         case parsers.Parsed.Error(pos, message, _) =>
-          if (reportParseError(path)) {
-            common.err.println(pos.formatMessage("error", message))
-            ExitStatus.ParseError
-          } else {
+          if (cli.quietParseErrors && !input.passedExplicitly) {
             // Ignore parse errors, useful for example when running scalafix on
             // millions of lines of code for experimentation.
             ExitStatus.Ok
+          } else {
+            common.err.println(pos.formatMessage("error", message))
+            ExitStatus.ParseError
           }
         case parsers.Parsed.Success(tree) =>
           val ctx = RewriteCtx(tree, config)
           val fixed = rewrite(ctx)
           if (writeMode.isWriteFile) {
-            val outFile = replacePath(path)
-            if (isUpToDate(input, outFile.toFile)) {
-              Files.write(outFile.toNIO, fixed.getBytes(input.charset))
+            val outFile = replacePath(input.original.path)
+            if (isUpToDate(input)) {
+              Files.write(outFile.toNIO,
+                          fixed.getBytes(input.original.charset))
               ExitStatus.Ok
             } else {
-              val relpath =
-                // toRelative should not throw exceptions, but it does, see https://github.com/scalameta/scalameta/issues/821
-                Try(outFile.toRelative(common.workingPath)).getOrElse(outFile)
               ctx.reporter.error(
-                s"Stale semanticdb for $relpath, skipping rewrite. Pease recompile.")
+                s"Stale semanticdb for ${CliRunner.pretty(outFile)}, skipping rewrite. Pease recompile.")
+              if (cli.verbose) {
+                val diff = Patch.unifiedDiff(input.mirror.get, input.original)
+                common.err.println(diff)
+              }
               ExitStatus.StaleSemanticDB
             }
           } else {
@@ -151,7 +137,7 @@ sealed abstract case class CliRunner(
       }
     } catch {
       case NonFatal(e) =>
-        reportError(path, e, cli)
+        reportError(input.original.path, e, cli)
         e match {
           case _: scalafix.Failure => ExitStatus.ScalafixError
           case _ => ExitStatus.UnexpectedError
@@ -170,6 +156,12 @@ sealed abstract case class CliRunner(
 }
 
 object CliRunner {
+  private[scalafix] def pretty(path: AbsolutePath)(
+      implicit cwd: AbsolutePath): String = {
+    // toRelative should not throw exceptions, but it does, see https://github.com/scalameta/scalameta/issues/821
+    Try(path.toRelative(cwd)).getOrElse(path).toString
+  }
+
   def fromOptions(options: ScalafixOptions): Configured[CliRunner] = {
     val builder = new CliRunner.Builder(options)
     for {
@@ -177,13 +169,15 @@ object CliRunner {
       sourceroot <- builder.resolvedSourceroot
       rewrite <- builder.resolvedRewrite
       replace <- builder.resolvedPathReplace
-      inputs <- builder.resolvedInputs
+      inputs <- builder.fixFilesWithMirror
       config <- builder.resolvedConfig
     } yield {
       if (options.verbose) {
         val entries = database.map(_.entries.length).getOrElse(0)
         val inputsNames = inputs
-          .map(_.syntax.stripPrefix(options.common.workingDirectory + "/"))
+          .map(
+            _.original.path.syntax
+              .stripPrefix(options.common.workingDirectory + "/"))
           .mkString(", ")
         options.common.err.println(
           s"""|Files to fix (${inputs.length}):
@@ -205,8 +199,7 @@ object CliRunner {
         database = database,
         rewrite = rewrite,
         replacePath = replace,
-        inputs = inputs,
-        explicitPaths = builder.explicitPaths
+        inputs = inputs
       ) {}
     }
   }
@@ -313,47 +306,35 @@ object CliRunner {
         case None => Ok(common.workingPath)
       }
 
-    // Inputs
-    val explicitPaths: scala.Seq[Input] =
-      if (syntactic) {
-        cli.files.toVector.flatMap { file =>
-          val path = AbsolutePath.fromString(file)
-          if (path.isDirectory) {
-            import scala.collection.JavaConverters._
-            val x = Files
-              .walk(path.toNIO)
-              .filter(new Predicate[Path] {
-                override def test(t: Path): Boolean =
-                  t.getFileName.toString.endsWith(".scala")
-              })
-              .collect(Collectors.toList[Path])
-            x.asScala.toIterator
-              .map(path => Input.File(AbsolutePath(path)))
-              .toSeq
-          } else {
-            // if the user provided explicit path, take it.
-            List(Input.File(path))
+    // expands a single file into a list of files.
+    def expand(matcher: FilterMatcher)(path: AbsolutePath): Seq[FixFile] = {
+      if (!path.toFile.exists()) {
+        common.err.println(s"$path does not exist.")
+        Nil
+      } else if (path.isDirectory) {
+        val builder = Seq.newBuilder[FixFile]
+        Files.walkFileTree(
+          path.toNIO,
+          new SimpleFileVisitor[Path] {
+            override def visitFile(
+                file: Path,
+                attrs: BasicFileAttributes): FileVisitResult = {
+              if (Cli.isScalaPath(file) && matcher.matches(file.toString)) {
+                builder += FixFile(Input.File(AbsolutePath(file)))
+              }
+              FileVisitResult.CONTINUE
+            }
           }
-        }
-      } else Nil
-    def isInputFile(input: Input): Boolean = input match {
-      case _: Input.File | _: Input.LabeledString => true
-      case _ => false
+        )
+        builder.result()
+      } else if (matcher.matches(path.toString())) {
+        // if the user provided explicit path, take it.
+        List(FixFile(Input.File(path), passedExplicitly = true))
+      } else {
+        Nil
+      }
     }
 
-    val mirrorPaths: Configured[Seq[Input]] =
-      resolvedDatabase.flatMap { database =>
-        val nonInputFiles = database.entries.filter(x => !isInputFile(x._1))
-        if (nonInputFiles.isEmpty) Ok(database.entries.map(_._1))
-        else {
-          ConfError
-            .msg(
-              s"""Expected Input.File from parsed database, received:
-                 |${nonInputFiles.mkString("\n")}""".stripMargin
-            )
-            .notOk
-        }
-      }
     private val resolvedPathMatcher: Configured[FilterMatcher] = try {
       val include = if (files.isEmpty) List(".*") else files
       Ok(FilterMatcher(include, exclude))
@@ -364,19 +345,39 @@ object CliRunner {
             s"Invalid '${e.getPattern}' for  --include/--exclude. ${e.getMessage}")
           .notOk
     }
-    val resolvedInputs: Configured[Seq[Input]] = for {
-      fromMirror <- mirrorPaths
+
+    val fixFiles: Configured[Seq[FixFile]] = for {
       pathMatcher <- resolvedPathMatcher
-      sourceroot <- resolvedSourceroot
     } yield {
-      def inputOK(input: Input) = pathMatcher.matches(input.label)
-      val builder = Seq.newBuilder[Input]
-      fromMirror.withFilter(inputOK).foreach(builder += _)
-      explicitPaths.withFilter(inputOK).foreach(builder += _)
-      builder.result()
+      val paths =
+        if (cli.files.nonEmpty) cli.files.map(AbsolutePath.fromString(_))
+        // If no files are provided, assume cwd.
+        else common.workingPath :: Nil
+      paths.toVector.flatMap(expand(pathMatcher))
     }
 
-    lazy val resolvedConfigInput: Configured[Input] =
+    val mirrorInputs: Configured[Map[AbsolutePath, Input.LabeledString]] =
+      for {
+        sourceroot <- resolvedSourceroot
+        database <- resolvedDatabase
+      } yield {
+        val inputsByAbsolutePath = database.entries.collect {
+          case (input @ Input.LabeledString(path, _), _) =>
+            sourceroot.resolve(path) -> input
+        }
+        inputsByAbsolutePath.toMap
+      }
+
+    val fixFilesWithMirror: Configured[Seq[FixFile]] = for {
+      fromMirror <- mirrorInputs
+      files <- fixFiles
+    } yield {
+      files.map { file =>
+        file.copy(mirror = fromMirror.get(file.original.path))
+      }
+    }
+
+    val resolvedConfigInput: Configured[Input] =
       (config, configStr) match {
         case (Some(x), Some(y)) =>
           ConfError
@@ -411,7 +412,7 @@ object CliRunner {
                 .product(decoder.read(Conf.Str(next)))
                 .map { case (a, b) => a.andThen(b) }
           }
-        inputs <- resolvedInputs
+        inputs <- fixFilesWithMirror
         configuration <- {
           if (inputs.isEmpty) {
             Ok(Rewrite.empty -> ScalafixConfig.default)

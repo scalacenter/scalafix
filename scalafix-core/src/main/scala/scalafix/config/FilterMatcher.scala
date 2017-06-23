@@ -2,7 +2,6 @@ package scalafix.config
 
 import scala.meta.io.AbsolutePath
 import scala.util.matching.Regex
-import scalafix.util.AbsoluteFile
 import metaconfig.ExtraName
 import metaconfig._
 
@@ -11,7 +10,7 @@ case class FilterMatcher(
     @ExtraName("include") includeFilters: Regex,
     @ExtraName("exclude") excludeFilters: Regex
 ) {
-  def matches(file: AbsoluteFile): Boolean = matches(file.path)
+  def matches(file: AbsolutePath): Boolean = matches(file.toString())
   def matches(input: String): Boolean =
     includeFilters.findFirstIn(input).isDefined &&
       excludeFilters.findFirstIn(input).isEmpty
