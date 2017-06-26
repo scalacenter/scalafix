@@ -88,17 +88,17 @@ class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
         throw i.getTargetException
     }
 
-  def classloadRewrite(fqcn: String, args: Seq[AnyRef]): Try[T] = {
+  def classloadRewrite(fqcn: String, args: Class[_] => Seq[AnyRef]): Try[T] = {
     val combined = List.newBuilder[Try[T]]
     combined += getClassFor(fqcn).flatMap(cls =>
-      classloadClassRewrite(cls, args))
+      classloadClassRewrite(cls, args(cls)))
     if (!fqcn.endsWith("$")) {
       combined += getClassFor(fqcn + "$").flatMap(cls =>
-        classloadClassRewrite(cls, args))
+        classloadClassRewrite(cls, args(cls)))
     }
     fqcn match {
       case LambdaRewrite(cls, field) =>
-        combined += classloadLambdaRewrite(cls, args, field)
+        combined += classloadLambdaRewrite(cls, args(cls), field)
       case _ =>
     }
     val result = combined.result()
@@ -120,7 +120,7 @@ object ClassloadRewrite {
   lazy val defaultClassloader = getClass.getClassLoader
   def apply(
       fqn: String,
-      args: Seq[AnyRef],
+      args: Class[_] => Seq[AnyRef],
       classloader: ClassLoader = defaultClassloader): Configured[Rewrite] = {
     val result =
       new ClassloadRewrite[Rewrite](classloader).classloadRewrite(fqn, args)

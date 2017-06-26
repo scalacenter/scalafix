@@ -49,12 +49,7 @@ object Replacer {
   def toTokenPatches(ast: Tree, replacements: Seq[Replace])(
       implicit ctx: RewriteCtx,
       mirror: Mirror): Seq[Patch] = {
-    new Replacer().toTokenPatches(
-      ast,
-      replacements ++ ctx.config.patches.all.collect {
-        case r: Replace => r
-      }
-    )
+    new Replacer().toTokenPatches(ast, replacements)
   }
 }
 

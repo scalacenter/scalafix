@@ -12,6 +12,8 @@ import scala.tools.nsc.reporters.StoreReporter
 import scala.{meta => m}
 import scalafix.rewrite.Rewrite
 import scalafix.util.ClassloadRewrite
+import scalafix.config.classloadRewrite
+import scalafix.config.LazyMirror
 
 import java.io.File
 import java.net.URLClassLoader
@@ -24,10 +26,8 @@ object ScalafixToolbox {
     : mutable.WeakHashMap[Input, Configured.Ok[Rewrite]] =
     mutable.WeakHashMap.empty
   private val compiler = new Compiler()
-  lazy val emptyRewrite: Configured[Rewrite] =
-    Configured.Ok(Rewrite.empty)
 
-  def getRewrite(code: Input, mirror: Option[m.Mirror]): Configured[Rewrite] =
+  def getRewrite(code: Input, mirror: LazyMirror): Configured[Rewrite] =
     rewriteCache.getOrElse(code, {
       val uncached = getRewriteUncached(code, mirror)
       uncached match {
@@ -38,14 +38,15 @@ object ScalafixToolbox {
     })
 
   def getRewriteUncached(code: Input,
-                         mirror: Option[m.Mirror]): Configured[Rewrite] =
+                         mirror: LazyMirror): Configured[Rewrite] =
     for {
       classloader <- compiler.compile(code)
       names <- RewriteInstrumentation.getRewriteFqn(code)
-      rewrite <- names.foldLeft(emptyRewrite) {
+      rewrite <- names.foldLeft(Rewrite.emptyConfigured) {
         case (rewrite, fqn) =>
           rewrite
-            .product(ClassloadRewrite(fqn, mirror.toList, classloader))
+            .product(
+              ClassloadRewrite(fqn, classloadRewrite(mirror), classloader))
             .map { case (a, b) => a.andThen(b) }
       }
     } yield rewrite

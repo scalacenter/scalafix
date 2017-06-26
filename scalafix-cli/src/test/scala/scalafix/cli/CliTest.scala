@@ -35,7 +35,7 @@ trait ScalafixCliTest extends FunSuite with DiffAssertions {
     workingDirectory = cwd.toString
   )
 
-  val default = ScalafixOptions(syntactic = true, common = devNull)
+  val default = ScalafixOptions(common = devNull)
 
 }
 
@@ -161,7 +161,6 @@ class CliTest extends ScalafixCliTest {
     FileOps.writeFile(file, "object a { implicit val x = ??? }")
     val code = Cli.runOn(
       default.copy(rewrites = List(ExplicitReturnTypes.toString),
-                   syntactic = true,
                    files = List(file.getAbsolutePath),
                    common = devNull))
     assert(code == ExitStatus.InvalidCommandLineOption)

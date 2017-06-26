@@ -15,16 +15,19 @@ import java.io.OutputStream
 import java.io.PrintStream
 import java.net.URI
 import java.util.regex.Pattern
+import scala.collection.immutable.Seq
 import scala.util.control.NonFatal
 import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.Ok
+import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
 // A collection of metaconfig.Reader instances that are shared across
 trait ScalafixMetaconfigReaders {
+
   implicit lazy val parseReader: ConfDecoder[MetaParser] = {
     import scala.meta.parsers.Parse._
     ReaderUtil.oneOf[MetaParser](parseSource, parseStat, parseCase)
@@ -64,56 +67,82 @@ trait ScalafixMetaconfigReaders {
         rewriteConf.product(config)
     }
   def scalafixConfigConfDecoder(
-      implicit rewriteDecoder: ConfDecoder[Rewrite]
+      rewriteDecoder: ConfDecoder[Rewrite],
+      extraRewrites: List[String] = Nil
   ): ConfDecoder[(Rewrite, ScalafixConfig)] =
     scalafixConfigEmptyRewriteReader.flatMap {
-      case (conf, config) =>
-        rewriteDecoder.read(conf).map(x => x -> config)
+      case (rewriteConf, config) =>
+        val rewriteList: Seq[Conf] = rewriteConf match {
+          case Conf.Lst(rewrites) => rewrites
+          case x => x :: Nil
+        }
+        val combinedRewrites =
+          Conf.Lst(extraRewrites.map(Conf.Str) ++ rewriteList)
+        rewriteDecoder.read(combinedRewrites).map(rewrite => rewrite -> config)
     }
 
-  def rewriteByName(mirror: Option[Mirror]): Map[String, Rewrite] =
-    ScalafixRewrites.syntaxName2rewrite ++
-      mirror.fold(Map.empty[String, Rewrite])(ScalafixRewrites.name2rewrite)
+  def defaultRewriteDecoder(getMirror: LazyMirror): ConfDecoder[Rewrite] =
+    ConfDecoder.instance[Rewrite] {
+      case conf @ Conf.Str(value) =>
+        val isSyntactic = ScalafixRewrites.syntacticNames.contains(value)
+        val kind = RewriteKind(syntactic = isSyntactic)
+        val mirror = getMirror(kind)
+        val names: Map[String, Rewrite] =
+          ScalafixRewrites.syntaxName2rewrite ++
+            mirror.fold(Map.empty[String, Rewrite])(
+              ScalafixRewrites.name2rewrite)
+        ReaderUtil.fromMap(names).read(conf)
+    }
 
-  def classloadRewriteDecoder(mirror: Option[Mirror]): ConfDecoder[Rewrite] =
+  private lazy val semanticRewriteClass = classOf[SemanticRewrite]
+
+  def classloadRewrite(mirror: LazyMirror): Class[_] => Seq[Mirror] = { cls =>
+    val kind =
+      if (cls.isAssignableFrom(semanticRewriteClass)) RewriteKind.Semantic
+      else RewriteKind.Syntactic
+    mirror(kind).toList
+  }
+
+  def classloadRewriteDecoder(mirror: LazyMirror): ConfDecoder[Rewrite] =
     ConfDecoder.instance[Rewrite] {
       case FromClassloadRewrite(fqn) =>
-        ClassloadRewrite(fqn, mirror.toList)
+        ClassloadRewrite(fqn, classloadRewrite(mirror))
     }
 
-  def baseRewriteDecoders(mirror: Option[Mirror]): ConfDecoder[Rewrite] = {
+  def baseSyntacticRewriteDecoder: ConfDecoder[Rewrite] =
+    baseRewriteDecoders(_ => None)
+  def baseRewriteDecoders(mirror: LazyMirror): ConfDecoder[Rewrite] = {
     MetaconfigPendingUpstream.orElse(
-      ReaderUtil.fromMap(
-        rewriteByName(mirror), {
-          case els =>
-            val heading =
-              if (ScalafixRewrites.semanticNames.contains(els)) els
-              else {
-                s"""If $els is defined like this
-                   |
-                   |    case class $els(mirror: Mirror) extends SemanticRewrite(mirror)
-                   |
-                   |then it""".stripMargin
-              }
-            s"""
-               |NOTE.
-               |$heading is a semantic rewrite that requires the Semantic API to
-               |be configured via in --classpath and --sourceroot. It is
-               |recommended to run semantic rewrites from build integrations like
-               |sbt-scalafix instead of manually from the command line interface.""".stripMargin
-        }
-      ),
+      defaultRewriteDecoder(mirror),
       classloadRewriteDecoder(mirror)
     )
   }
+  def configFromInput(input: Input,
+                      mirror: LazyMirror,
+                      extraRewrites: List[String])(
+      implicit decoder: ConfDecoder[Rewrite]
+  ): Configured[(Rewrite, ScalafixConfig)] =
+    for {
+      conf <- typesafeConfigMetaconfigParser.fromInput(input)
+      rewriteAndConfig <- config
+        .scalafixConfigConfDecoder(decoder, extraRewrites)
+        .read(conf)
+      (rewrite, config) = rewriteAndConfig
+      patchRewrite <- Rewrite.patchRewrite(config.patches, mirror)
+    } yield {
+      patchRewrite.fold(rewrite -> config)(rewrite.andThen(_) -> config)
+    }
 
-  def rewriteConfDecoder(singleRewriteDecoder: ConfDecoder[Rewrite],
-                         mirror: Option[Mirror]): ConfDecoder[Rewrite] = {
+  def rewriteConfDecoderSyntactic(
+      singleRewriteDecoder: ConfDecoder[Rewrite]): ConfDecoder[Rewrite] =
+    rewriteConfDecoder(singleRewriteDecoder)
+  def rewriteConfDecoder(
+      singleRewriteDecoder: ConfDecoder[Rewrite]): ConfDecoder[Rewrite] = {
     ConfDecoder.instance[Rewrite] {
       case Conf.Lst(values) =>
         MetaconfigPendingUpstream
           .flipSeq(values.map(singleRewriteDecoder.read))
-          .map(rewrites => Rewrite.combine(rewrites, mirror))
+          .map(rewrites => Rewrite.combine(rewrites))
       case rewrite @ Conf.Str(_) => singleRewriteDecoder.read(rewrite)
     }
   }

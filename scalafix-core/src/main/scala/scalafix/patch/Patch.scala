@@ -166,8 +166,7 @@ object Patch {
     })
     val importPatches =
       patches.collect { case e: ImportPatch => e } ++
-        replacePatches.collect { case e: ImportPatch => e } ++
-        ctx.config.patches.all.collect { case e: ImportPatch => e }
+        replacePatches.collect { case e: ImportPatch => e }
     val importTokenPatches = {
       val result = ImportPatchOps.superNaiveImportPatchToTokenPatchConverter(
         ctx,

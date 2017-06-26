@@ -63,8 +63,6 @@ case class ScalafixOptions(
     )
     @ValueDescription("entry1.jar:entry2.jar:target/scala-2.12/classes")
     classpath: Option[String] = None,
-    @HelpMessage("""don't automatically look for semanticdb files.""")
-    syntactic: Boolean = false,
     @HelpMessage(
       s"""Rewrite rules to run.""".stripMargin
     )
@@ -129,8 +127,4 @@ case class ScalafixOptions(
       """Print out zsh completion file for scalafix. To install:
         |          scalafix --zsh > /usr/local/share/zsh/site-functions/_scalafix""".stripMargin)
     zsh: Boolean = false
-) {
-  def autoMirror: Boolean = {
-    !syntactic && classpath.isEmpty && sourceroot.isEmpty
-  }
-}
+)

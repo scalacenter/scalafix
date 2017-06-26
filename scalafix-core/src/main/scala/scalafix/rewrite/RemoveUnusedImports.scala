@@ -5,7 +5,7 @@ import scala.meta._
 import scalafix.syntax._
 import org.scalameta.logger
 
-case class RemoveUnusedImports(mirror: Mirror)
+case class RemoveUnusedImports(mirror: Database)
     extends SemanticRewrite(mirror) {
   private val unusedImports = mirror.database.messages.toIterator.collect {
     case Message(pos, _, "Unused import") =>
