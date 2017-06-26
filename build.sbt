@@ -149,19 +149,31 @@ lazy val core = crossProject
     metaconfigSettings,
     dependencyOverrides += scalameta,
     libraryDependencies ++= Seq(
-      "org.scalameta" %%% "contrib" % scalametaV,
-      "com.geirsson" %%% "metaconfig-typesafe-config" % metaconfigV
+      "org.scalameta" %%% "contrib"                    % scalametaV,
+      "com.geirsson"  %%% "metaconfig-typesafe-config" % metaconfigV
     )
-  )
-  .jvmSettings(
-    // TODO(olafur) can we move this into separate module.
-    // Currently only used in Patch.appliedDiff
-    libraryDependencies += googleDiff
   )
   .disablePlugins(ScalahostSbtPlugin)
   .enablePlugins(BuildInfoPlugin, ScalaJSPlugin)
-lazy val coreJS = core.js
-lazy val coreJVM = core.jvm
+lazy val coreJS = core.js.dependsOn(diffJS)
+lazy val coreJVM = core.jvm.dependsOn(diffJVM)
+
+lazy val diff = crossProject
+  .in(file("scalafix-diff"))
+  .settings(
+    moduleName := "scalafix-diff",
+    allSettings,
+    noPublish
+  )
+  .jvmSettings(
+    libraryDependencies += googleDiff
+  )
+  .jsSettings(
+    npmDependencies in Compile += "diff" -> "3.2.0"
+  )
+  .enablePlugins(ScalaJSBundlerPlugin)
+lazy val diffJS = diff.js
+lazy val diffJVM = diff.jvm
 
 lazy val cli = project
   .configure(setId)

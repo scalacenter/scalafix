@@ -16,7 +16,7 @@ import scalafix.patch.TreePatch.ImportPatch
 import scalafix.patch.TreePatch.RenamePatch
 import scalafix.patch.TreePatch.Replace
 import scalafix.util.TokenOps
-import difflib.DiffUtils
+import scalafix.diff.DiffUtils
 
 /** A data structure that can produce a .patch file.
   *
@@ -209,15 +209,10 @@ object Patch {
   def unifiedDiff(original: Input, revised: Input): String = {
     import scala.collection.JavaConverters._
     val originalLines = original.asString.lines.toSeq.asJava
-    val diff =
-      DiffUtils.diff(originalLines, revised.asString.lines.toSeq.asJava)
-    DiffUtils
-      .generateUnifiedDiff(original.label,
-                           revised.label,
-                           originalLines,
-                           diff,
-                           3)
-      .asScala
-      .mkString("\n")
+    DiffUtils.diff(original.label,
+                   revised.label,
+                   original.asString.lines,
+                   revised.asString.lines,
+                   3)
   }
 }
