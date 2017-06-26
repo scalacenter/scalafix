@@ -1,5 +1,6 @@
 package scalafix.cli
 
+import java.nio.file.Path
 import scala.collection.immutable.Seq
 import scala.meta.Database
 import scala.meta.io.AbsolutePath
@@ -165,8 +166,10 @@ return 0
     } else sys.exit(exit.code)
   }
 
-  def isScalaPath(path: AbsolutePath): Boolean =
-    path.toString().endsWith(".scala") || path.toString().endsWith(".sbt")
+  def isScalaPath(path: Path): Boolean = {
+    val filename = path.getFileName.toString
+    filename.endsWith(".scala") || filename.endsWith(".sbt")
+  }
 
   def parse(args: Seq[String]): CliCommand = {
     import CliCommand._

@@ -72,12 +72,16 @@ object ScalafixPlugin extends AutoPlugin {
     scalafixConfig := Option(file(".scalafix.conf")).filter(_.isFile)
   )
 
-  lazy val scalafixTaskImpl = Def.inputTask {
+  lazy val scalafixTaskImpl: Def.Initialize[InputTask[Unit]] = Def.inputTask {
     val main = cliWrapperMain.in(scalafixStub).value
     val log = streams.value.log
     scalahostCompile.value // trigger compilation
     val classpath = scalahostClasspath.value.asPath
     val inputArgs = Def.spaceDelimited("<rewrite>").parsed
+    val directoriesToFix: Seq[String] =
+      scalafixUnmanagedSources.value.flatMap(_.collect {
+        case p if p.exists() => p.getAbsolutePath
+      })
     val args: Seq[String] =
       if (inputArgs.nonEmpty &&
           inputArgs.exists(_.startsWith("-"))) {
@@ -95,6 +99,7 @@ object ScalafixPlugin extends AutoPlugin {
           else Nil
         val sourceroot =
           ScalahostSbtPlugin.autoImport.scalametaSourceroot.value.getAbsolutePath
+        // only fix unmanaged sources, skip code generated files.
         config ++
           rewriteArgs ++
           Seq(
@@ -107,9 +112,9 @@ object ScalafixPlugin extends AutoPlugin {
       }
     if (classpath.nonEmpty) {
       CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, 11 | 12)) =>
+        case Some((2, 11 | 12)) if directoriesToFix.nonEmpty =>
           log.info(s"Running scalafix ${args.mkString(" ")}")
-          main.main(args.toArray)
+          main.main((args ++ directoriesToFix).toArray)
         case _ => // do nothing
       }
     }
@@ -129,6 +134,9 @@ object ScalafixPlugin extends AutoPlugin {
     Def.settingDyn(classDirectory.all(scalahostAggregateFilter.value))
   lazy private val scalahostCompile: Def.Initialize[Task[Seq[Analysis]]] =
     Def.taskDyn(compile.all(scalahostAggregateFilter.value))
+  lazy private val scalafixUnmanagedSources: Def.Initialize[Seq[Seq[File]]] =
+    Def.settingDyn(
+      unmanagedSourceDirectories.all(scalahostAggregateFilter.value))
   private[scalafix] implicit class XtensionFormatClasspath(paths: Seq[File]) {
     def asPath: String =
       paths.toIterator

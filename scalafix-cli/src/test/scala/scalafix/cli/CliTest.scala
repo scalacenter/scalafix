@@ -1,23 +1,21 @@
 package scalafix.cli
 
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.PrintStream
+import java.nio.file.Files
+import java.nio.file.Path
 import scala.collection.immutable.Seq
+import scala.meta.io.AbsolutePath
+import scalafix.cli.CliCommand.PrintAndExit
+import scalafix.cli.CliCommand.RunScalafix
 import scalafix.rewrite.ExplicitReturnTypes
 import scalafix.rewrite.ProcedureSyntax
 import scalafix.testkit.DiffAssertions
 import scalafix.util.FileOps
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.PrintStream
-import java.nio.file.Paths
-import scala.meta.io.AbsolutePath
-import scalafix.cli.CliCommand.PrintAndExit
-import scalafix.cli.CliCommand.RunScalafix
-import caseapp.core.WithHelp
 import org.scalatest.FunSuite
-import scalafix.syntax._
-import org.scalameta.logger
 
-object BasicTest {
+trait ScalafixCliTest extends FunSuite with DiffAssertions {
   val original = """|object Main {
                     |  def foo() {
                     |    println(1)
@@ -30,20 +28,18 @@ object BasicTest {
                     |  }
                     |}
                  """.stripMargin
+  implicit val cwd: Path = Files.createTempDirectory("scalafix-cli")
+
+  val devNull = CommonOptions(
+    err = new PrintStream(new ByteArrayOutputStream()),
+    workingDirectory = cwd.toString
+  )
+
+  val default = ScalafixOptions(syntactic = true, common = devNull)
 
 }
 
-class CliTest extends FunSuite with DiffAssertions {
-
-  println(Cli.helpMessage)
-
-  val default = ScalafixOptions(syntactic = true)
-
-  val devNull = CommonOptions(
-    err = new PrintStream(new ByteArrayOutputStream())
-  )
-
-  import BasicTest._
+class CliTest extends ScalafixCliTest {
 
   test("Cli.parse") {
     val RunScalafix(runner) = Cli.parse(
@@ -121,7 +117,6 @@ class CliTest extends FunSuite with DiffAssertions {
 
     def createFile(): File = {
       val file = File.createTempFile("file", ".scala", dir)
-      logger.elem(file.getAbsolutePath)
       FileOps.writeFile(file, original)
       file
     }
