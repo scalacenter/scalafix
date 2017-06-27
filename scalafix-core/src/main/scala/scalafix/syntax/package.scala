@@ -21,6 +21,8 @@ import scala.meta.internal.scalafix.ScalafixScalametaHacks
 import scalafix.patch.TokenPatch
 import scalafix.util.TreeOps
 import scalafix.util.Whitespace
+import metaconfig.ConfDecoder
+import metaconfig.Configured
 
 package object syntax {
 

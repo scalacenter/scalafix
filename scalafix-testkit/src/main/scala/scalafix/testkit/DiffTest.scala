@@ -34,10 +34,10 @@ object DiffTest {
           .collectFirst {
             case Token.Comment(comment) =>
               val decoder =
-                ScalafixCompilerDecoder.fromMirrorOption(Some(mirror))
+                ScalafixCompilerDecoder.fromMirror(_ => Some(mirror))
               ScalafixConfig
                 .fromInput(Input.LabeledString(label, stripPrefix(comment)),
-                           Some(mirror))(decoder)
+                           _ => Some(mirror))(decoder)
                 .get
           }
           .getOrElse(throw new TestFailedException(

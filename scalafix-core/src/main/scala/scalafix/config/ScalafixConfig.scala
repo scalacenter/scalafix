@@ -1,12 +1,10 @@
 package scalafix
 package config
 
+import java.io.PrintStream
 import scala.meta._
 import scala.meta.dialects.Scala211
 import scala.meta.parsers.Parse
-
-import java.io.File
-
 import metaconfig._
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 
@@ -20,7 +18,15 @@ case class ScalafixConfig(
     fatalWarnings: Boolean = true,
     reporter: ScalafixReporter = ScalafixReporter.default,
     dialect: Dialect = Scala211
-)
+) {
+
+  def withOut(out: PrintStream): ScalafixConfig = copy(
+    reporter = reporter match {
+      case r: PrintStreamReporter => r.copy(outStream = out)
+      case _ => ScalafixReporter.default.copy(outStream = out)
+    }
+  )
+}
 
 object ScalafixConfig {
 
@@ -36,10 +42,11 @@ object ScalafixConfig {
     else None
   }
 
-  def fromInput(input: Input, mirror: Option[Mirror])(
+  def fromInput(input: Input,
+                mirror: LazyMirror,
+                extraRewrites: List[String] = Nil)(
       implicit decoder: ConfDecoder[Rewrite]
   ): Configured[(Rewrite, ScalafixConfig)] =
-    typesafeConfigMetaconfigParser
-      .fromInput(input)
-      .flatMap(config.scalafixConfigConfDecoder.read)
+    configFromInput(input, mirror, extraRewrites)
+
 }

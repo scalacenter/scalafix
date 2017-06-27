@@ -14,37 +14,33 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.function.UnaryOperator
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
-import java.util.stream.Collectors
 import scala.meta._
 import scala.meta.inputs.Input
 import scala.meta.internal.inputs._
 import scala.meta.internal.io.PlatformFileIO
 import scala.meta.internal.semantic.vfs
 import scala.meta.io.AbsolutePath
-import scala.util.Success
 import scala.util.Try
 import scala.util.control.NonFatal
 import scalafix.cli.termdisplay.TermDisplay
 import scalafix.config.Class2Hocon
 import scalafix.config.FilterMatcher
+import scalafix.config.LazyMirror
+import scalafix.config.MetaconfigPendingUpstream
 import scalafix.config.PrintStreamReporter
+import scalafix.config.RewriteKind
 import scalafix.config.ScalafixConfig
 import scalafix.config.ScalafixReporter
 import scalafix.reflect.ScalafixCompilerDecoder
-import scalafix.reflect.ScalafixToolbox
-import scalafix.rewrite.ScalafixRewrites
 import scalafix.syntax._
-import difflib.DiffUtils
 import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
 import metaconfig._
-import org.scalameta.logger
 
 sealed abstract case class CliRunner(
     sourceroot: AbsolutePath,
     cli: ScalafixOptions,
     config: ScalafixConfig,
-    database: Option[Database],
     rewrite: Rewrite,
     inputs: Seq[FixFile],
     replacePath: AbsolutePath => AbsolutePath
@@ -86,8 +82,7 @@ sealed abstract case class CliRunner(
   // creation of the .semanticdb file. Without this check, we risk overwriting
   // the latest changes written by the user.
   private def isUpToDate(input: FixFile): Boolean =
-    if (database.isEmpty) true
-    else if (!input.toIO.exists() && cli.outTo.nonEmpty) true
+    if (!input.toIO.exists() && cli.outTo.nonEmpty) true
     else {
       input.mirror match {
         case Some(Input.LabeledString(_, contents)) =>
@@ -165,27 +160,14 @@ object CliRunner {
   def fromOptions(options: ScalafixOptions): Configured[CliRunner] = {
     val builder = new CliRunner.Builder(options)
     for {
-      database <- builder.resolvedMirror
-      sourceroot <- builder.resolvedSourceroot
       rewrite <- builder.resolvedRewrite
       replace <- builder.resolvedPathReplace
       inputs <- builder.fixFilesWithMirror
       config <- builder.resolvedConfig
     } yield {
       if (options.verbose) {
-        val entries = database.map(_.entries.length).getOrElse(0)
-        val inputsNames = inputs
-          .map(
-            _.original.path.syntax
-              .stripPrefix(options.common.workingDirectory + "/"))
-          .mkString(", ")
         options.common.err.println(
-          s"""|Files to fix (${inputs.length}):
-              |$inputsNames
-              |Database entires count: $entries
-              |Database head:
-              |${database.toString.take(1000)}
-              |Config:
+          s"""|Config:
               |${Class2Hocon(config)}
               |Rewrite:
               |$rewrite
@@ -193,10 +175,9 @@ object CliRunner {
         )
       }
       new CliRunner(
-        sourceroot = sourceroot,
+        sourceroot = builder.resolvedSourceroot,
         cli = options,
         config = config,
-        database = database,
         rewrite = rewrite,
         replacePath = replace,
         inputs = inputs
@@ -236,75 +217,64 @@ object CliRunner {
 
     implicit val workingDirectory: AbsolutePath = common.workingPath
 
-    val resolvedClasspath: Option[Configured[Classpath]] =
-      if (autoMirror) {
-        val cp = autoClasspath(common.workingPath)
-        if (verbose) {
-          common.err.println(s"Automatic classpath=$cp")
-        }
-        if (cp.shallow.nonEmpty) Some(Ok(cp))
-        else {
-          val msg =
-            """Unable to automatically detect .semanticdb files to run semantic rewrites. Possible workarounds:
-              |- re-compile sources with the scalahost compiler plugin enabled.
-              |- pass in the --syntactic flag to run only syntactic rewrites.
-              |- explicitly pass in --classpath and --sourceroot to run semantic rewrites.""".stripMargin
-          Some(ConfError.msg(msg).notOk)
-        }
-      } else {
-        classpath.map { x =>
-          val paths = x.split(File.pathSeparator).map { path =>
+    def resolveClasspath: Configured[Classpath] =
+      classpath match {
+        case Some(cp) =>
+          val paths = cp.split(File.pathSeparator).map { path =>
             AbsolutePath.fromString(path)(common.workingPath)
           }
           Ok(Classpath(paths))
+        case None =>
+          val cp = autoClasspath(common.workingPath)
+          if (verbose) {
+            common.err.println(s"Automatic classpath=$cp")
+          }
+          if (cp.shallow.nonEmpty) Ok(cp)
+          else {
+            val msg =
+              """Unable to automatically detect .semanticdb files to run semantic rewrites. Possible workarounds:
+                |- re-compile sources with the scalahost compiler plugin enabled.
+                |- explicitly pass in --classpath and --sourceroot to run semantic rewrites.""".stripMargin
+            ConfError.msg(msg).notOk
+          }
+      }
+
+    val resolvedSourceroot: AbsolutePath =
+      sourceroot
+        .map(AbsolutePath.fromString(_))
+        .getOrElse(common.workingPath)
+
+    // We don't know yet if we need to compute the database or not.
+    // If all the rewrites are syntactic, we never need to compute the mirror.
+    // If a single rewrite is semantic, then we need to compute the database.
+    private var cachedDatabase = Option.empty[Configured[Database]]
+    private def hasDatabase = cachedDatabase.isDefined
+    private def computeAndCacheDatabase(): Option[Database] = {
+      val result: Configured[Database] = cachedDatabase.getOrElse {
+        try {
+          resolveClasspath.map { classpath =>
+            val db = Database.load(classpath, Sourcepath(resolvedSourceroot))
+            if (verbose) {
+              common.err.println(
+                s"Loaded database with ${db.entries.length} entries.")
+            }
+            db
+          }
+        } catch {
+          case NonFatal(e) =>
+            ConfError.exception(e, common.stackVerbosity).notOk
         }
       }
-
-    val autoSourceroot: Option[AbsolutePath] =
-      if (autoMirror) resolvedClasspath.map(_ => common.workingPath)
-      else {
-        sourceroot
-          .map(AbsolutePath.fromString(_))
-          .orElse(Some(common.workingPath))
+      if (cachedDatabase.isEmpty) {
+        cachedDatabase = Some(result)
       }
-
-    // Database
-    private val resolvedDatabase: Configured[Database] =
-      (resolvedClasspath, autoSourceroot) match {
-        case (Some(Ok(cp)), sp) =>
-          val tryMirror = for {
-            mirror <- Try {
-              val sourcepath = sp.map(Sourcepath.apply)
-              val mirror =
-                vfs.Database.load(cp).toSchema.toMeta(sourcepath)
-              mirror
-            }
-          } yield mirror
-          tryMirror match {
-            case Success(x) => Ok(x)
-            case scala.util.Failure(e) => ConfError.msg(e.toString).notOk
-          }
-        case (Some(err @ NotOk(_)), _) => err
-        case (None, _) =>
-          Ok(ScalafixRewrites.emptyDatabase)
-      }
-    val resolvedMirror: Configured[Option[Database]] =
-      resolvedDatabase.map { x =>
-        if (x == ScalafixRewrites.emptyDatabase) None
-        else Some(x)
-      }
-    val resolvedMirrorSourceroot: Configured[AbsolutePath] =
-      autoSourceroot match {
-        case None => ConfError.msg("--sourceroot is required").notOk
-        case Some(path) => Ok(path)
-      }
-    val resolvedSourceroot: Configured[AbsolutePath] =
-      resolvedMirror.flatMap {
-        // Use mirror sourceroot if Mirror.nonEmpty
-        case Some(_) => resolvedMirrorSourceroot
-        // Use working directory if running syntactic rewrites.
-        case None => Ok(common.workingPath)
-      }
+      result.toEither.right.toOption
+    }
+    private def resolveDatabase(kind: RewriteKind): Option[Database] = {
+      if (kind.isSyntactic) None
+      else computeAndCacheDatabase()
+    }
+    private val lazyMirror: LazyMirror = resolveDatabase
 
     // expands a single file into a list of files.
     def expand(matcher: FilterMatcher)(path: AbsolutePath): Seq[FixFile] = {
@@ -356,27 +326,6 @@ object CliRunner {
       paths.toVector.flatMap(expand(pathMatcher))
     }
 
-    val mirrorInputs: Configured[Map[AbsolutePath, Input.LabeledString]] =
-      for {
-        sourceroot <- resolvedSourceroot
-        database <- resolvedDatabase
-      } yield {
-        val inputsByAbsolutePath = database.entries.collect {
-          case (input @ Input.LabeledString(path, _), _) =>
-            sourceroot.resolve(path) -> input
-        }
-        inputsByAbsolutePath.toMap
-      }
-
-    val fixFilesWithMirror: Configured[Seq[FixFile]] = for {
-      fromMirror <- mirrorInputs
-      files <- fixFiles
-    } yield {
-      files.map { file =>
-        file.copy(mirror = fromMirror.get(file.original.path))
-      }
-    }
-
     val resolvedConfigInput: Configured[Input] =
       (config, configStr) match {
         case (Some(x), Some(y)) =>
@@ -401,36 +350,24 @@ object CliRunner {
     //  - --config-str or --config
     //  - .scalafix.conf in working directory
     //  - ScalafixConfig.default
-    val resolvedRewriteAndConfig: Configured[(Rewrite, ScalafixConfig)] =
+    val resolvedRewriteAndConfig: Configured[(Rewrite, ScalafixConfig)] = {
+      val decoder = ScalafixCompilerDecoder.fromMirror(lazyMirror)
       for {
-        mirror <- resolvedMirror
-        decoder = ScalafixCompilerDecoder.fromMirrorOption(mirror)
-        cliArgRewrite <- rewrites
-          .foldLeft(ScalafixToolbox.emptyRewrite) {
-            case (rewrite, next) =>
-              rewrite
-                .product(decoder.read(Conf.Str(next)))
-                .map { case (a, b) => a.andThen(b) }
-          }
-        inputs <- fixFilesWithMirror
+        inputs <- fixFiles
         configuration <- {
-          if (inputs.isEmpty) {
-            Ok(Rewrite.empty -> ScalafixConfig.default)
-          } else {
+          if (inputs.isEmpty) Ok(Rewrite.empty -> ScalafixConfig.default)
+          else {
             resolvedConfigInput.flatMap(input =>
-              ScalafixConfig.fromInput(input, mirror)(decoder))
+              ScalafixConfig.fromInput(input, lazyMirror, rewrites)(decoder))
           }
         }
+      } yield {
         // TODO(olafur) implement withFilter on Configured
-        (configRewrite, scalafixConfig) = configuration
-        finalConfig = scalafixConfig.copy(
-          reporter = scalafixConfig.reporter match {
-            case r: PrintStreamReporter => r.copy(outStream = common.err)
-            case _ => ScalafixReporter.default.copy(outStream = common.err)
-          }
-        )
-        finalRewrite = cliArgRewrite.andThen(configRewrite)
-      } yield finalRewrite -> finalConfig
+        val (finalRewrite, scalafixConfig) = configuration
+        val finalConfig = scalafixConfig.withOut(common.err)
+        finalRewrite -> finalConfig
+      }
+    }
     val resolvedRewrite: Configured[Rewrite] =
       resolvedRewriteAndConfig.map(_._1)
     val resolvedConfig: Configured[ScalafixConfig] =
@@ -448,5 +385,28 @@ object CliRunner {
       case e: PatternSyntaxException =>
         ConfError.msg(s"Invalid regex '$outFrom'! ${e.getMessage}").notOk
     }
+
+    val mirrorInputs: Configured[Map[AbsolutePath, Input.LabeledString]] =
+      for {
+        _ <- resolvedRewrite // force evaluation of rewrite.
+        database <- cachedDatabase.getOrElse(Ok(Database(Nil)))
+      } yield {
+        val inputsByAbsolutePath = database.entries.collect {
+          case (input @ Input.LabeledString(path, _), _) =>
+            resolvedSourceroot.resolve(path) -> input
+        }
+        inputsByAbsolutePath.toMap
+      }
+
+    val fixFilesWithMirror: Configured[Seq[FixFile]] = for {
+      fromMirror <- mirrorInputs
+      files <- fixFiles
+    } yield {
+      files.map { file =>
+        val labeled = fromMirror.get(file.original.path)
+        file.copy(mirror = labeled)
+      }
+    }
+
   }
 }

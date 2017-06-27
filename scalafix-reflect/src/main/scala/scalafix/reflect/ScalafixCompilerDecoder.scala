@@ -14,15 +14,16 @@ import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
 
 object ScalafixCompilerDecoder {
-  def syntactic: ConfDecoder[Rewrite] = fromMirrorOption(None)
-  def semantic(mirror: Mirror): ConfDecoder[Rewrite] =
-    fromMirrorOption(Some(mirror))
-  def fromMirrorOption(mirror: Option[Mirror]): ConfDecoder[Rewrite] =
+  def syntactic: ConfDecoder[Rewrite] =
+    fromMirror(_ => None)
+  def semantic(mirror: Database): ConfDecoder[Rewrite] =
+    fromMirror(_ => Some(mirror))
+  def fromMirror(mirror: LazyMirror): ConfDecoder[Rewrite] =
     rewriteConfDecoder(
       MetaconfigPendingUpstream.orElse(baseCompilerDecoder(mirror),
-                                       baseRewriteDecoders(mirror)),
-      mirror)
-  def baseCompilerDecoder(mirror: Option[Mirror]): ConfDecoder[Rewrite] =
+                                       baseRewriteDecoders(mirror))
+    )
+  def baseCompilerDecoder(mirror: LazyMirror): ConfDecoder[Rewrite] =
     ConfDecoder.instance[Rewrite] {
       case FromSourceRewrite(rewrite) =>
         rewrite match {
