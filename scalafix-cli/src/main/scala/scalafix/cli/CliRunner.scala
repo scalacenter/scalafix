@@ -32,12 +32,10 @@ import scalafix.config.RewriteKind
 import scalafix.config.ScalafixConfig
 import scalafix.config.ScalafixReporter
 import scalafix.reflect.ScalafixCompilerDecoder
-import scalafix.reflect.ScalafixToolbox
 import scalafix.syntax._
 import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
 import metaconfig._
-import org.scalameta.logger
 
 sealed abstract case class CliRunner(
     sourceroot: AbsolutePath,
@@ -270,7 +268,7 @@ object CliRunner {
       if (cachedDatabase.isEmpty) {
         cachedDatabase = Some(result)
       }
-      result.toEither.toOption
+      result.toEither.right.toOption
     }
     private def resolveDatabase(kind: RewriteKind): Option[Database] = {
       if (kind.isSyntactic) None
