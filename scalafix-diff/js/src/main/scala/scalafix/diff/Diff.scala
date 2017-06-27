@@ -15,19 +15,20 @@ object JSDiff extends js.Object {
                           options: js.Dynamic): String = js.native
 }
 
-object Diff {
+object DiffUtils {
   def unifiedDiff(originalFileName: String,
                   revisedFileName: String,
                   originalLines: List[String],
                   revisedLines: List[String],
                   contextSize: Int): String = {
-    val diff = JSDiff.createTwoFilesPatch(originalFileName,
-                                          revisedFileName,
-                                          originalLines.mkString("\n"),
-                                          revisedLines.mkString("\n"),
-                                          None,
-                                          None,
-                                          js.Dynamic.literal("context" -> contextSize))
+    val diff = JSDiff.createTwoFilesPatch(
+      originalFileName,
+      revisedFileName,
+      originalLines.mkString("\n"),
+      revisedLines.mkString("\n"),
+      None,
+      None,
+      js.Dynamic.literal("context" -> contextSize))
     diff.split("\n").drop(1).mkString("\n")
   }
 }

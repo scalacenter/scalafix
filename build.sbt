@@ -99,7 +99,7 @@ lazy val allSettings = List(
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
   scalacOptions ++= compilerOptions,
   scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
-  libraryDependencies += scalatest % Test,
+  libraryDependencies += scalatest.value % Test,
   testOptions in Test += Tests.Argument("-oD"),
   scalaVersion := ciScalaVersion.getOrElse(scala212),
   crossScalaVersions := crossVersions,
@@ -147,14 +147,21 @@ lazy val core = crossProject
     publishSettings,
     buildInfoSettings,
     metaconfigSettings,
-    dependencyOverrides += scalameta,
+    dependencyOverrides += scalameta.value,
     libraryDependencies ++= Seq(
-      "org.scalameta" %%% "contrib"                    % scalametaV,
-      "com.geirsson"  %%% "metaconfig-typesafe-config" % metaconfigV
+      "org.scalameta" %%% "contrib" % scalametaV
     )
+  )
+  .jvmSettings(
+    libraryDependencies += "com.geirsson" %%% "metaconfig-typesafe-config" % metaconfigV
+  )
+  .jsSettings(
+    libraryDependencies += "com.geirsson" %%% "metaconfig-hocon" % metaconfigV
   )
   .disablePlugins(ScalahostSbtPlugin)
   .enablePlugins(BuildInfoPlugin, ScalaJSPlugin)
+  .dependsOn(diff)
+
 lazy val coreJS = core.js.dependsOn(diffJS)
 lazy val coreJVM = core.jvm.dependsOn(diffJVM)
 
@@ -235,7 +242,7 @@ lazy val testkit = project
       scalahost,
       ammonite,
       googleDiff,
-      scalatest
+      scalatest.value
     )
   )
   .dependsOn(
@@ -351,7 +358,7 @@ lazy val integration = project
         )
         .value
     },
-    libraryDependencies += scalatest % IntegrationTest
+    libraryDependencies += scalatest.value % IntegrationTest
   )
   .dependsOn(
     testsInput % Scalameta,
