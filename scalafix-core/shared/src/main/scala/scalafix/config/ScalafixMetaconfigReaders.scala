@@ -208,6 +208,11 @@ trait ScalafixMetaconfigReaders {
       }
     }
 
+  implicit val metaconfigConfDecoder: ConfDecoder[Conf] =
+    new ConfDecoder[Conf] {
+      override def read(conf: Conf): Configured[Conf] = Ok(conf)
+    }
+
   implicit lazy val PrintStreamReader: ConfDecoder[PrintStream] = {
     val empty = new PrintStream(new OutputStream {
       override def write(b: Int): Unit = ()

@@ -6,9 +6,6 @@ import scala.meta._
 import scala.meta.dialects.Scala211
 import scala.meta.parsers.Parse
 import metaconfig._
-//import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
-//import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
-import scalafix.config.MetaconfigParser.parser
 
 @DeriveConfDecoder
 case class ScalafixConfig(
@@ -19,7 +16,11 @@ case class ScalafixConfig(
     @Recurse debug: DebugConfig = DebugConfig(),
     fatalWarnings: Boolean = true,
     reporter: ScalafixReporter = ScalafixReporter.default,
-    dialect: Dialect = Scala211
+    dialect: Dialect = Scala211,
+    // Custom configuration for rewrites.
+    // Feel free to read data from here if your custom rewrite needs
+    // configuration from the user.
+    x: Conf = Conf.Obj()
 ) {
 
   def withOut(out: PrintStream): ScalafixConfig = copy(
