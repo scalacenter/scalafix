@@ -147,30 +147,27 @@ lazy val core = crossProject
     publishSettings,
     buildInfoSettings,
     metaconfigSettings,
-    dependencyOverrides += scalameta.value,
-    libraryDependencies ++= Seq(
-      "org.scalameta" %%% "contrib" % scalametaV
-    )
+    libraryDependencies += scalameta.value
   )
   .jvmSettings(
-    libraryDependencies += "com.geirsson" %%% "metaconfig-typesafe-config" % metaconfigV
+    libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV
   )
   .jsSettings(
     libraryDependencies += "com.geirsson" %%% "metaconfig-hocon" % metaconfigV
   )
   .disablePlugins(ScalahostSbtPlugin)
-  .enablePlugins(BuildInfoPlugin, ScalaJSPlugin)
+  .enablePlugins(BuildInfoPlugin)
   .dependsOn(diff)
 
-lazy val coreJS = core.js.dependsOn(diffJS)
-lazy val coreJVM = core.jvm.dependsOn(diffJVM)
+lazy val coreJS = core.js
+lazy val coreJVM = core.jvm
 
 lazy val diff = crossProject
   .in(file("scalafix-diff"))
   .settings(
     moduleName := "scalafix-diff",
     allSettings,
-    noPublish
+    publishSettings
   )
   .jvmSettings(
     libraryDependencies += googleDiff
