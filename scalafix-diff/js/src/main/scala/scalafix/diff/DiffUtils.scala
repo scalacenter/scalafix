@@ -33,12 +33,11 @@ object DiffUtils {
     def trimHeader(line: String) =
       if (line.startsWith("+++") || line.startsWith("---")) line.trim else line
 
-    def removeNewlineDiff(diffLines: Array[String]) =
+    def removeNewlineDiff(diffLines: Iterator[String]) =
       diffLines.filterNot(_ == "\\ No newline at end of file")
 
     removeNewlineDiff(
-      diff
-        .split("\n")
+      diff.lines
         .drop(1) // remove ==== separator
         .map(trimHeader) // remove whitespaces at the end of headers
     ).mkString("\n")
