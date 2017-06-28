@@ -1,6 +1,7 @@
 package scalafix.config
 
-import metaconfig._, typesafeconfig._
+import metaconfig._
+import MetaconfigParser.parser
 import scala.meta._
 import scalafix.patch.TreePatch.AddGlobalImport
 import scalafix.patch.TreePatch.RemoveGlobalImport

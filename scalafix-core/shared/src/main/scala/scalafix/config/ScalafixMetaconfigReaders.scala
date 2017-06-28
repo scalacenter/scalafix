@@ -22,7 +22,7 @@ import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.Ok
-import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
+import scalafix.config.MetaconfigParser.{parser => hoconParser}
 
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
 // A collection of metaconfig.Reader instances that are shared across
@@ -123,7 +123,7 @@ trait ScalafixMetaconfigReaders {
       implicit decoder: ConfDecoder[Rewrite]
   ): Configured[(Rewrite, ScalafixConfig)] =
     for {
-      conf <- typesafeConfigMetaconfigParser.fromInput(input)
+      conf <- hoconParser.fromInput(input)
       rewriteAndConfig <- config
         .scalafixConfigConfDecoder(decoder, extraRewrites)
         .read(conf)

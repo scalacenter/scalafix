@@ -99,7 +99,7 @@ lazy val allSettings = List(
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
   scalacOptions ++= compilerOptions,
   scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
-  libraryDependencies += scalatest % Test,
+  libraryDependencies += scalatest.value % Test,
   testOptions in Test += Tests.Argument("-oD"),
   scalaVersion := ciScalaVersion.getOrElse(scala212),
   crossScalaVersions := crossVersions,
@@ -137,25 +137,47 @@ lazy val reflect = project
       "org.scala-lang" % "scala-reflect"  % scalaVersion.value
     )
   )
-  .dependsOn(core)
+  .dependsOn(coreJVM)
 
-lazy val core = project
-  .configure(setId)
+lazy val core = crossProject
+  .in(file("scalafix-core"))
   .settings(
+    moduleName := "scalafix-core",
     allSettings,
     publishSettings,
     buildInfoSettings,
     metaconfigSettings,
-    dependencyOverrides += scalameta,
-    libraryDependencies ++= Seq(
-      metaconfig,
-      scalameta,
-      // TODO(olafur) can we move this into separate module.
-      // Currently only used in Patch.appliedDiff
-      googleDiff
-    )
+    libraryDependencies += scalameta.value
   )
+  .jvmSettings(
+    libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV
+  )
+  .jsSettings(
+    libraryDependencies += "com.geirsson" %%% "metaconfig-hocon" % metaconfigV
+  )
+  .disablePlugins(ScalahostSbtPlugin)
   .enablePlugins(BuildInfoPlugin)
+  .dependsOn(diff)
+
+lazy val coreJS = core.js
+lazy val coreJVM = core.jvm
+
+lazy val diff = crossProject
+  .in(file("scalafix-diff"))
+  .settings(
+    moduleName := "scalafix-diff",
+    allSettings,
+    publishSettings
+  )
+  .jvmSettings(
+    libraryDependencies += googleDiff
+  )
+  .jsSettings(
+    npmDependencies in Compile += "diff" -> "3.2.0"
+  )
+  .enablePlugins(ScalaJSBundlerPlugin)
+lazy val diffJS = diff.js
+lazy val diffJVM = diff.jvm
 
 lazy val cli = project
   .configure(setId)
@@ -171,7 +193,7 @@ lazy val cli = project
     )
   )
   .dependsOn(
-    core,
+    coreJVM,
     reflect,
     testkit % Test
   )
@@ -217,11 +239,11 @@ lazy val testkit = project
       scalahost,
       ammonite,
       googleDiff,
-      scalatest
+      scalatest.value
     )
   )
   .dependsOn(
-    core,
+    coreJVM,
     reflect
   )
 
@@ -326,18 +348,18 @@ lazy val integration = project
       test
         .in(IntegrationTest)
         .dependsOn(
-          publishLocal.in(core),
+          publishLocal.in(coreJVM),
           publishLocal.in(cli),
           publishLocal.in(reflect),
           publishLocal.in(`scalafix-sbt`)
         )
         .value
     },
-    libraryDependencies += scalatest % IntegrationTest
+    libraryDependencies += scalatest.value % IntegrationTest
   )
   .dependsOn(
     testsInput % Scalameta,
-    core,
+    coreJVM,
     reflect,
     testkit
   )
@@ -362,7 +384,7 @@ lazy val readme = scalatex
       "com.twitter" %% "util-eval" % "6.42.0"
     )
   )
-  .dependsOn(core, cli)
+  .dependsOn(coreJVM, cli)
   .enablePlugins(GhpagesPlugin)
 
 lazy val isFullCrossVersion = Seq(

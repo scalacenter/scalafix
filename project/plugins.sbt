@@ -12,5 +12,7 @@ addSbtPlugin("org.scalameta"    % "sbt-scalahost"       % Dependencies.scalameta
 addSbtPlugin("com.typesafe.sbt" % "sbt-ghpages"         % "0.6.0")
 addSbtPlugin("com.typesafe.sbt" % "sbt-site"            % "1.2.0")
 addSbtPlugin("com.eed3si9n"     % "sbt-assembly"        % "0.14.4")
+addSbtPlugin("org.scala-js"     % "sbt-scalajs"         % "0.6.17")
+addSbtPlugin("ch.epfl.scala"    % "sbt-scalajs-bundler" % "0.6.0")
 
 libraryDependencies += "org.scala-sbt" % "scripted-plugin" % sbtVersion.value
