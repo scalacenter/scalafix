@@ -10,8 +10,8 @@ object JSDiff extends js.Object {
                           newFileName: String,
                           oldStr: String,
                           newStr: String,
-                          oldHeader: Option[String],
-                          newHeader: Option[String],
+                          oldHeader: String,
+                          newHeader: String,
                           options: js.Dynamic): String = js.native
 }
 
@@ -26,9 +26,20 @@ object DiffUtils {
       revisedFileName,
       originalLines.mkString("\n"),
       revisedLines.mkString("\n"),
-      None,
-      None,
+      "",
+      "",
       js.Dynamic.literal("context" -> contextSize))
-    diff.split("\n").drop(1).mkString("\n")
+
+    def trimHeader(line: String) =
+      if (line.startsWith("+++") || line.startsWith("---")) line.trim else line
+
+    def removeNewlineDiff(diffLines: Iterator[String]) =
+      diffLines.filterNot(_ == "\\ No newline at end of file")
+
+    removeNewlineDiff(
+      diff.lines
+        .drop(1) // remove ==== separator
+        .map(trimHeader) // remove whitespaces at the end of headers
+    ).mkString("\n")
   }
 }
