@@ -8,32 +8,43 @@ class DiffUtilsTest extends FunSuite {
   val revisedFileName = "SomeFileRenamed.scala"
   val originalLines =
     s"""|object Foo {
-        |  const x = Map(
+        |  val a = "foo"
+        |  val b = 42
+        |  case class Bar(x: Boolean)
+        |  val x = Map(
         |    'a -> "a",
         |    'b -> "b",
         |    'c -> "c"
         |  )
+        |  val c = 1 + 1
+        |  val d = true
         |}""".stripMargin.split("\n").toList
   val revisedLines =
     s"""|object Foo {
-        |  const y = Map(
+        |  val a = "foo"
+        |  val b = 42
+        |  case class Bar(x: Boolean)
+        |  val y = Map(
         |    'd -> "d",
         |    'a -> "a",
         |    'b -> "b",
         |    'c -> "c",
         |    'e -> "e"
         |  )
+        |  val c = 1 + 1
+        |  val d = true
         |}""".stripMargin.split("\n").toList
 
-  val contextSize = 4
+  val contextSize = 2
 
   val expectedDiff =
     s"""|--- SomeFile.scala
         |+++ SomeFileRenamed.scala
-        |@@ -1,7 +1,9 @@
-        | object Foo {
-        |-  const x = Map(
-        |+  const y = Map(
+        |@@ -3,8 +3,10 @@
+        |   val b = 42
+        |   case class Bar(x: Boolean)
+        |-  val x = Map(
+        |+  val y = Map(
         |+    'd -> "d",
         |     'a -> "a",
         |     'b -> "b",
@@ -41,7 +52,7 @@ class DiffUtilsTest extends FunSuite {
         |+    'c -> "c",
         |+    'e -> "e"
         |   )
-        | }""".stripMargin
+        |   val c = 1 + 1""".stripMargin
 
   test("unifiedDiff") {
     val actualDiff = DiffUtils.unifiedDiff(originalFileName,
