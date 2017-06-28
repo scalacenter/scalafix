@@ -175,7 +175,7 @@ lazy val diff = crossProject
   .jsSettings(
     npmDependencies in Compile += "diff" -> "3.2.0"
   )
-  .enablePlugins(ScalaJSBundlerPlugin)
+  .jsConfigure(_.enablePlugins(ScalaJSBundlerPlugin))
 lazy val diffJS = diff.js
 lazy val diffJVM = diff.jvm
 
