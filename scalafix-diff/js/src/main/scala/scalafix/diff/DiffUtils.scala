@@ -31,8 +31,9 @@ object DiffUtils {
       js.Dynamic.literal("context" -> contextSize))
     def trimHeader(line: String) =
       if (line.startsWith("+++") || line.startsWith("---")) line.trim else line
-    diff.split("\n")
-      .drop(1)          // remove ==== separator
+    diff
+      .split("\n")
+      .drop(1) // remove ==== separator
       .map(trimHeader) // remove whitespaces at the end of headers
       .mkString("\n")
   }
