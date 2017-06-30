@@ -223,9 +223,9 @@ lazy val `scalafix-sbt` = project
       )(state.value)
     },
     // install the tab completion for sbt-scalafix.
-    compileInputs.in(Compile, compile) :=
-      compileInputs
-        .in(Compile, compile)
+    compile.in(Compile) :=
+      compile
+        .in(Compile)
         .dependsOn(runMain.in(cli, Compile).toTask {
           // poor man's source generator.
           val out =
