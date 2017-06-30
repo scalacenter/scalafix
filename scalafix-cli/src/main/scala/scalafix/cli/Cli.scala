@@ -6,6 +6,8 @@ import scala.meta.Database
 import scala.meta.io.AbsolutePath
 import scalafix.cli.CliCommand.PrintAndExit
 import scalafix.cli.CliCommand.RunScalafix
+import scalafix.internal.cli.CommonOptions
+import scalafix.internal.cli.ScalafixOptions
 import scalafix.rewrite.ScalafixRewrites
 import caseapp.Name
 import caseapp.core.Arg
@@ -16,7 +18,7 @@ import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
 
 object Cli {
-  import ArgParserImplicits._
+  import scalafix.internal.cli.ArgParserImplicits._
   private val withHelp: Messages[WithHelp[ScalafixOptions]] =
     OptionsMessages.copy(optionsDesc = "[options] [<file>...]").withHelp
   val helpMessage: String = withHelp.helpMessage +

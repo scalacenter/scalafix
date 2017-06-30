@@ -5,16 +5,15 @@
   * which in turn was copy/pasted from (MIT licence)
   * https://github.com/lihaoyi/Ammonite/blob/10854e3b8b454a74198058ba258734a17af32023/terminal/src/main/scala/ammonite/terminal/Utils.scala
   */
-package scalafix.cli.termdisplay
-
-import scala.annotation.tailrec
-import scala.collection.mutable.ArrayBuffer
-import scala.util.Try
+package scalafix.internal.cli
 
 import java.io.File
 import java.io.Writer
 import java.sql.Timestamp
 import java.util.concurrent._
+import scala.annotation.tailrec
+import scala.collection.mutable.ArrayBuffer
+import scala.util.Try
 
 object Terminal {
 

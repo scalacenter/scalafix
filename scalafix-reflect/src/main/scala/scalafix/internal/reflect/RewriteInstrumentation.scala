@@ -1,8 +1,7 @@
-package scalafix.reflect
+package scalafix.internal.reflect
 
 import scala.collection.immutable.Seq
 import scala.meta._
-
 import metaconfig.ConfError
 import metaconfig.Configured
 

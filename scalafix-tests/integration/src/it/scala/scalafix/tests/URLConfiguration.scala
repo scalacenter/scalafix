@@ -1,7 +1,7 @@
 package scalafix.tests
 
 import scala.meta.semantic.Database
-import scalafix.reflect.ScalafixCompilerDecoder
+import scalafix.reflect.ScalafixReflect
 import metaconfig.Conf
 import org.scalatest.FunSuite
 
@@ -13,8 +13,8 @@ class URLConfiguration extends FunSuite {
 
     val mirror = Some(Database(Nil))
     val obtained =
-      ScalafixCompilerDecoder
-        .fromMirror(mirror)
+      ScalafixReflect
+        .fromLazyMirror(mirror)
         .read(Conf.Str(url))
     assert(obtained.get.name.contains("Rewrite2"))
   }

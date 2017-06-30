@@ -32,7 +32,7 @@
       lazy val tests = project
         .in(file("scalafix/tests"))
         .settings(
-          libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % "@V.stable" % Test cross CrossVersion.full,
+          libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % "@V.stableVersion" % Test cross CrossVersion.full,
            buildInfoPackage := "myproject.scalafix.tests",
            buildInfoKeys := Seq[BuildInfoKey](
              "inputSourceroot" ->

@@ -1,15 +1,14 @@
-package scalafix.patch
+package scalafix.internal.patch
 
-import scalafix.syntax._
-import scala.meta._
 import scala.collection.immutable.Seq
-import scalafix.patch.TreePatch._
+import scala.meta._
+import scalafix.patch.Patch
+import scalafix.patch.TokenPatch
 import scalafix.patch.TokenPatch._
-import scala.util.Try
-import scalafix.rewrite.RewriteCtx
 import scalafix.patch.TreePatch.AddGlobalImport
-
-import org.scalameta.logger
+import scalafix.patch.TreePatch._
+import scalafix.rewrite.RewriteCtx
+import scalafix.syntax._
 
 private[this] class Replacer(implicit ctx: RewriteCtx, mirror: Mirror) {
   object `:withSymbol:` {

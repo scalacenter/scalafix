@@ -1,11 +1,9 @@
 package scalafix.config
 
-import scalafix.util.Severity
 import scala.meta.Position
 import scala.meta.internal.inputs.XtensionPointFormatMessage
-
 import java.io.PrintStream
-
+import scalafix.internal.util.Severity
 import metaconfig.Recurse
 import metaconfig._
 

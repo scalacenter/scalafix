@@ -1,14 +1,12 @@
-package scalafix
-package util
+package scalafix.internal.util
 
+import java.lang.reflect.InvocationTargetException
 import scala.meta.semantic.Mirror
 import scala.reflect.ClassTag
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
-
-import java.lang.reflect.InvocationTargetException
-
+import scalafix.Rewrite
 import metaconfig.ConfError
 import metaconfig.Configured
 

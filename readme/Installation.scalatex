@@ -15,7 +15,7 @@
     The sbt-plugin is the recommended integration for semantic rewrites.
 
     @hl.scala
-      addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@V.stable")
+      addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@V.stableVersion")
 
     @ul
       @li
@@ -31,7 +31,7 @@
   @sect{scalafix-core}
     Scalafix can be used as a library to run custom rewrites.
     @hl.scala
-      libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@V.stable" cross CrossVersion.full
+      libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@V.stableVersion" cross CrossVersion.full
 
 
     By using scalafix as a library, you have full control of how/when/where
@@ -64,7 +64,7 @@
 
     @hl.scala
       // coursier
-      coursier bootstrap ch.epfl.scala:scalafix-cli_@(V.scalaVersion):@(V.stable) -f --main scalafix.cli.Cli -o scalafix
+      coursier bootstrap ch.epfl.scala:scalafix-cli_@(V.scalaVersion):@(V.stableVersion) -f --main scalafix.cli.Cli -o scalafix
       ./scalafix --help
 
       // homebrew

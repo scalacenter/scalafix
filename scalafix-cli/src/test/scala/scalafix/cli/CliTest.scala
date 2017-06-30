@@ -9,10 +9,12 @@ import scala.collection.immutable.Seq
 import scala.meta.io.AbsolutePath
 import scalafix.cli.CliCommand.PrintAndExit
 import scalafix.cli.CliCommand.RunScalafix
+import scalafix.internal.cli.CommonOptions
+import scalafix.internal.cli.ScalafixOptions
+import scalafix.internal.util.FileOps
 import scalafix.rewrite.ExplicitReturnTypes
 import scalafix.rewrite.ProcedureSyntax
 import scalafix.testkit.DiffAssertions
-import scalafix.util.FileOps
 import org.scalatest.FunSuite
 
 trait ScalafixCliTest extends FunSuite with DiffAssertions {

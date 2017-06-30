@@ -1,5 +1,4 @@
-package scalafix
-package cli
+package scalafix.internal.cli
 
 import java.io.File
 import java.io.InputStream

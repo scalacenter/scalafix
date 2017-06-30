@@ -1,4 +1,4 @@
-package scalafix.util
+package scalafix.internal.util
 
 import scala.meta.Token
 

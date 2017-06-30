@@ -15,8 +15,11 @@ import scalafix.patch.TokenPatch.Remove
 import scalafix.patch.TreePatch.ImportPatch
 import scalafix.patch.TreePatch.RenamePatch
 import scalafix.patch.TreePatch.Replace
-import scalafix.util.TokenOps
 import scalafix.diff.DiffUtils
+import scalafix.internal.patch.ImportPatchOps
+import scalafix.internal.patch.Renamer
+import scalafix.internal.patch.Replacer
+import scalafix.internal.util.TokenOps
 
 /** A data structure that can produce a .patch file.
   *

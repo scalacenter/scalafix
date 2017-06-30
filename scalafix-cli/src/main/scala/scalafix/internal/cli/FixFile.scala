@@ -1,4 +1,4 @@
-package scalafix.cli
+package scalafix.internal.cli
 
 import java.io.File
 import scala.meta.Input

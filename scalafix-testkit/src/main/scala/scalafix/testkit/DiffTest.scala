@@ -4,7 +4,7 @@ import scala.collection.immutable.Seq
 import scala.meta._
 import scalafix.Rewrite
 import scalafix.config.ScalafixConfig
-import scalafix.reflect.ScalafixCompilerDecoder
+import scalafix.reflect.ScalafixReflect
 import org.scalatest.exceptions.TestFailedException
 
 case class DiffTest(filename: RelativePath,
@@ -34,7 +34,7 @@ object DiffTest {
           .collectFirst {
             case Token.Comment(comment) =>
               val decoder =
-                ScalafixCompilerDecoder.fromMirror(_ => Some(mirror))
+                ScalafixReflect.fromLazyMirror(_ => Some(mirror))
               ScalafixConfig
                 .fromInput(Input.LabeledString(label, stripPrefix(comment)),
                            _ => Some(mirror))(decoder)

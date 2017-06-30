@@ -1,4 +1,4 @@
-package scalafix.util
+package scalafix.internal.util
 
 import java.io.BufferedReader
 import java.io.File

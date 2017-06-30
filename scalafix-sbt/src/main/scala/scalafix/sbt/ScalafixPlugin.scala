@@ -12,6 +12,7 @@ import sbt._
 import sbt.inc.Analysis
 import sbt.plugins.JvmPlugin
 import scala.meta.scalahost.sbt.ScalahostSbtPlugin
+import scalafix.internal.sbt.CliWrapperPlugin
 
 object ScalafixPlugin extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
@@ -126,6 +127,7 @@ object ScalafixPlugin extends AutoPlugin {
   override def projectSettings: Seq[Def.Setting[_]] =
     inConfig(Compile)(scalafixSettings) ++
       inConfig(Test)(scalafixSettings)
+
   private def scalahostAggregateFilter: Def.Initialize[ScopeFilter] =
     Def.setting {
       ScopeFilter(configurations = inConfigurations(Compile, Test))
@@ -143,40 +145,4 @@ object ScalafixPlugin extends AutoPlugin {
         .collect { case f if f.exists() => f.getAbsolutePath }
         .mkString(java.io.File.pathSeparator)
   }
-}
-
-// generic plugin for wrapping any command-line interface as an sbt plugin
-object CliWrapperPlugin extends AutoPlugin {
-  override def trigger: PluginTrigger = allRequirements
-  override def requires: Plugins = JvmPlugin
-  def createSyntheticProject(id: String, base: File): Project =
-    Project(id, base).settings(publish := {},
-                               publishLocal := {},
-                               publishArtifact := false)
-  class HasMain(reflectiveMain: Main) {
-    def main(args: Array[String]): Unit = reflectiveMain.main(args)
-  }
-  type Main = {
-    def main(args: Array[String]): Unit
-  }
-  object autoImport {
-    val cliWrapperClasspath =
-      taskKey[Classpath]("classpath to run code generation in")
-    val cliWrapperMainClass =
-      taskKey[String]("Fully qualified name of main class")
-    val cliWrapperMain =
-      taskKey[HasMain]("Classloaded instance of main")
-  }
-  import autoImport._
-  override def globalSettings: Seq[Def.Setting[_]] = Seq(
-    cliWrapperMain := {
-      val cp = cliWrapperClasspath.value.map(_.data.toURI.toURL)
-      val cl = new java.net.URLClassLoader(cp.toArray, null)
-      val cls = cl.loadClass(cliWrapperMainClass.value)
-      val constuctor = cls.getDeclaredConstructor()
-      constuctor.setAccessible(true)
-      val main = constuctor.newInstance().asInstanceOf[Main]
-      new HasMain(main)
-    }
-  )
 }

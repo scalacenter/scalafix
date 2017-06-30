@@ -1,9 +1,7 @@
-package scalafix
-package cli
+package scalafix.internal.cli
 
 import java.io.InputStream
 import java.io.PrintStream
-
 import caseapp.core.ArgParser
 import caseapp.core.Messages
 import caseapp.core.Parser
