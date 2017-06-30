@@ -53,6 +53,10 @@ lazy val publishSettings = Seq(
       "scm:git:git@github.com:scalacenter/scalafix.git"
     )
   ),
+  mimaPreviousArtifacts := Set(
+    organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % stableVersion.value
+  ),
+  mimaBinaryIssueFilters ++= Mima.ignoredABIProblems,
   pomExtra :=
     <developers>
       <developer>
@@ -69,11 +73,14 @@ lazy val noPublish = Seq(
   publishLocal := {}
 )
 
+lazy val stableVersion =
+  settingKey[String]("Version of latest release to Maven.")
+
 lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
   buildInfoKeys := Seq[BuildInfoKey](
     name,
     version,
-    "stable" -> version.value.replaceAll("\\+.*", ""),
+    stableVersion,
     "nightly" -> version.value,
     "scalameta" -> scalametaV,
     scalaVersion,
@@ -88,6 +95,7 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
 
 lazy val allSettings = List(
   version := sys.props.getOrElse("scalafix.version", version.value),
+  stableVersion := version.value.replaceAll("\\+.*", ""),
   resolvers += Resolver.bintrayRepo("scalameta", "maven"),
   resolvers += Resolver.sonatypeRepo("releases"),
   resolvers ~= { old =>
