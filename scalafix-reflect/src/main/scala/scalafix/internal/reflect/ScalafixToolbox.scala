@@ -2,7 +2,6 @@ package scalafix.internal.reflect
 
 import java.io.File
 import java.net.URLClassLoader
-import scala.collection.immutable.Seq
 import scala.collection.mutable
 import scala.meta.inputs.Input
 import scala.reflect.internal.util.AbstractFileClassLoader

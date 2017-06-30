@@ -3,9 +3,6 @@ package scalafix.internal.patch
 import scala.collection.immutable.Seq
 import scala.collection.mutable
 import scala.meta._
-import scala.meta.tokens.Token.Comment
-import scala.meta.tokens.Token.KwImport
-import scalafix.config.FilterMatcher
 import scalafix.patch.Patch
 import scalafix.patch.TokenPatch
 import scalafix.patch.TreePatch

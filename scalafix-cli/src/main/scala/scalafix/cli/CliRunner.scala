@@ -25,7 +25,6 @@ import scalafix.config.FilterMatcher
 import scalafix.config.LazyMirror
 import scalafix.config.RewriteKind
 import scalafix.config.ScalafixConfig
-import scalafix.config.ScalafixReporter
 import scalafix.internal.cli.CommonOptions
 import scalafix.internal.cli.FixFile
 import scalafix.internal.cli.ScalafixOptions
@@ -247,7 +246,6 @@ object CliRunner {
     // If all the rewrites are syntactic, we never need to compute the mirror.
     // If a single rewrite is semantic, then we need to compute the database.
     private var cachedDatabase = Option.empty[Configured[Database]]
-    private def hasDatabase = cachedDatabase.isDefined
     private def computeAndCacheDatabase(): Option[Database] = {
       val result: Configured[Database] = cachedDatabase.getOrElse {
         try {

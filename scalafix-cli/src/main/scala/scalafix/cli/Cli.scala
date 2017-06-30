@@ -8,6 +8,7 @@ import scalafix.cli.CliCommand.RunScalafix
 import scalafix.internal.cli.CommonOptions
 import scalafix.internal.cli.ScalafixOptions
 import scalafix.rewrite.ScalafixRewrites
+import scala.meta.io.AbsolutePath
 import caseapp.Name
 import caseapp.core.Arg
 import caseapp.core.Messages
