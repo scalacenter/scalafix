@@ -1,5 +1,3 @@
-
-
 package object scalafix {
 
   type ScalafixConfig = config.ScalafixConfig

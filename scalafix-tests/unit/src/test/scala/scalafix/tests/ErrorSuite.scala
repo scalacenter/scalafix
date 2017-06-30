@@ -10,7 +10,6 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 
-
 class ErrorSuite extends SyntacticRewriteSuite(ProcedureSyntax) {
   test("on parse error") {
     intercept[ParseException] {
