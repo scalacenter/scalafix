@@ -1,5 +1,6 @@
 package scalafix.cli
 
+import java.nio.file.Files
 import java.nio.file.Path
 import scala.collection.immutable.Seq
 import scala.meta.Database
@@ -93,8 +94,11 @@ object Cli {
     withHelp.args.flatMap(toZshOption).mkString(" \\\n   ")
   }
 
-  def rewriteNames: String =
+  def zshNames: String =
     ScalafixRewrites.allNames.map(x => s""""$x"""").mkString(" \\\n  ")
+
+  def sbtNames: String =
+    ScalafixRewrites.allNames.map(x => s""""$x"""").mkString(",\n    ")
 
   def bashCompletions: String =
     s"""
@@ -127,7 +131,7 @@ typeset -A opt_args
 local context state line
 
 _rewrite_names () {
-   compadd $rewriteNames
+   compadd $zshNames
 }
 
 local -a scalafix_opts
@@ -140,6 +144,26 @@ case $$words[$$CURRENT] in
 esac
 
 return 0
+"""
+  }
+
+  def sbtCompletions: String = {
+    s"""package scalafix.internal.sbt
+
+import sbt.complete.DefaultParsers._
+import sbt.complete.Parser
+
+object ScalafixCompletions {
+  val names = List(
+    $sbtNames
+  )
+  val parser = {
+    val rewrite: Parser[String] =
+      names.map(literal).reduceLeft(_ | _)
+    (token(Space) ~> token(rewrite)).* <~ SpaceClass.*
+  }
+}
+
 """
   }
 
@@ -189,6 +213,11 @@ return 0
         PrintAndExit(bashCompletions, ExitStatus.Ok)
       case Right((WithHelp(_, _, options), _, _)) if options.zsh =>
         PrintAndExit(zshCompletions, ExitStatus.Ok)
+      case Right((WithHelp(_, _, options), _, _)) if options.sbt.nonEmpty =>
+        val path = AbsolutePath(options.sbt.get).toNIO
+        Files.createDirectories(path.getParent)
+        Files.write(path, sbtCompletions.getBytes)
+        PrintAndExit(s"Sbt completions installed in $path", ExitStatus.Ok)
       case Right((WithHelp(_, _, options), extraFiles, _)) =>
         parseOptions(options.copy(files = options.files ++ extraFiles))
     }
