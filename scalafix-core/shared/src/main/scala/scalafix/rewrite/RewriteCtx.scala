@@ -32,7 +32,7 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
   val reporter: ScalafixReporter = config.reporter
 
   // Debug utilities
-  def mirror(implicit mirror: Mirror): Database =
+  def mirror(implicit mirror: Mirror): Mirror =
     Database(mirror.database.entries.filter(_._1 == input))
   def printMirror()(implicit mirror: Mirror, fileLine: FileLine): Unit = {
     val db = this.mirror(mirror)
