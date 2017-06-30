@@ -5,12 +5,8 @@ package patch
 import scala.meta._
 import org.scalameta.FileLine
 
-object PatchOps {
-  def removeTokens(tokens: Tokens): Patch =
-    tokens.foldLeft(Patch.empty)(_ + TokenPatch.Remove(_))
-}
-
-trait SyntacticPatchOps {
+trait PatchOps {
+  // Syntactic patch ops.
   def removeImportee(importee: Importee): Patch
   def replaceToken(token: Token, toReplace: String): Patch
   def removeTokens(tokens: Tokens): Patch
@@ -18,9 +14,8 @@ trait SyntacticPatchOps {
   def rename(from: Name, to: Name)(implicit fileLine: FileLine): Patch
   def addRight(tok: Token, toAdd: String): Patch
   def addLeft(tok: Token, toAdd: String): Patch
-}
 
-trait SemanticPatchOps {
+  // Semantic patch ops.
   def removeGlobalImport(symbol: Symbol)(implicit mirror: Mirror): Patch
   def addGlobalImport(importer: Importer)(implicit mirror: Mirror): Patch
   def replace(from: Symbol,

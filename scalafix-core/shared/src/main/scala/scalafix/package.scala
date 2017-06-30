@@ -1,6 +1,4 @@
 import scala.meta._
-import scalafix.patch.SemanticPatchOps
-import scalafix.patch.SyntacticPatchOps
 
 package object scalafix {
 

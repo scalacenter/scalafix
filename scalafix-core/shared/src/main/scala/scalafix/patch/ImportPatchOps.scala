@@ -102,7 +102,7 @@ object ImportPatchOps {
       val trailingComma =
         if (hadLeadingComma) List(Patch.empty)
         else removeFirstComma(ctx.tokenList.trailing(tokens.last))
-      PatchOps.removeTokens(tokens) ++ trailingComma ++ leadingComma
+      ctx.removeTokens(tokens) ++ trailingComma ++ leadingComma
     }
 
     val leadingNewlines = isRemovedImport.map { i =>

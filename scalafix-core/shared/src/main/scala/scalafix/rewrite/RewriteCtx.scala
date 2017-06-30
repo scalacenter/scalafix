@@ -9,8 +9,7 @@ import scalafix.syntax._
 import scalafix.config.ScalafixConfig
 import scalafix.config.ScalafixReporter
 import scalafix.patch.PatchOps
-import scalafix.patch.SemanticPatchOps
-import scalafix.patch.SyntacticPatchOps
+import scalafix.patch.TokenPatch
 import scalafix.patch.TokenPatch.Add
 import scalafix.patch.TreePatch
 import scalafix.patch.TreePatch._
@@ -20,9 +19,8 @@ import org.scalameta.FileLine
 import org.scalameta.logger
 
 /** Bundle of useful things when implementing [[Rewrite]]. */
-case class RewriteCtx(tree: Tree, config: ScalafixConfig)
-    extends SyntacticPatchOps
-    with SemanticPatchOps { ctx =>
+case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
+  ctx =>
   def syntax: String =
     s"""${tree.input.syntax}
        |${logger.revealWhitespace(tree.syntax.take(100))}""".stripMargin
@@ -39,7 +37,8 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig)
     TreePatch.RemoveImportee(importee)
   def replaceToken(token: Token, toReplace: String): Patch =
     Add(token, "", toReplace, keepTok = false)
-  def removeTokens(tokens: Tokens): Patch = PatchOps.removeTokens(tokens)
+  def removeTokens(tokens: Tokens): Patch =
+    tokens.foldLeft(Patch.empty)(_ + TokenPatch.Remove(_))
   def removeToken(token: Token): Patch = Add(token, "", "", keepTok = false)
   def rename(from: Name, to: Name)(implicit fileLine: FileLine): Patch =
     ctx
