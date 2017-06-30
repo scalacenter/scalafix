@@ -222,18 +222,6 @@ lazy val `scalafix-sbt` = project
           "; very scalafix-sbt/scripted"
       )(state.value)
     },
-    // install the tab completion for sbt-scalafix.
-    compile.in(Compile) :=
-      compile
-        .in(Compile)
-        .dependsOn(runMain.in(cli, Compile).toTask {
-          // poor man's source generator.
-          val out =
-            file("scalafix-sbt") / "src" / "main" / "scala" /
-              "scalafix" / "internal" / "sbt" / "ScalafixCompletions.scala"
-          s" scalafix.cli.Cli --no-sys-exit --sbt ${out.getAbsolutePath}"
-        })
-        .value,
     addSbtPlugin(scalahostSbt),
     scalaVersion := scala210,
     crossScalaVersions := Seq(scala210),
