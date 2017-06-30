@@ -28,7 +28,20 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
   lazy val tokenList: TokenList = new TokenList(tokens)
   lazy val matching: MatchingParens = MatchingParens(tokens)
   lazy val comments: AssociatedComments = AssociatedComments(tokens)
+  lazy val input: Input = tokens.head.input
   val reporter: ScalafixReporter = config.reporter
+
+  // Debug utilities
+  def mirror(implicit mirror: Mirror): Mirror =
+    Database(mirror.database.entries.filter(_._1 == input))
+  def printMirror()(implicit mirror: Mirror, fileLine: FileLine): Unit = {
+    val db = this.mirror(mirror)
+    debug(sourcecode.Text(db, "mirror"))
+  }
+  def debug(values: sourcecode.Text[Any]*)(implicit fileLine: FileLine): Unit = {
+    // alias for org.scalameta.logger.
+    logger.elem(values: _*)
+  }
 
   // Syntactic patch ops.
   def removeImportee(importee: Importee): Patch =
