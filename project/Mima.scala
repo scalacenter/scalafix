@@ -1,4 +1,4 @@
-jmport com.typesafe.tools.mima.core._
+import com.typesafe.tools.mima.core._
 
 object Mima {
   val ignoredABIProblems: Seq[ProblemFilter] = {
