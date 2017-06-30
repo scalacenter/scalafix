@@ -23,4 +23,3 @@ object ScalafixCompletions {
     (token(Space) ~> token(rewrite)).* <~ SpaceClass.*
   }
 }
-
