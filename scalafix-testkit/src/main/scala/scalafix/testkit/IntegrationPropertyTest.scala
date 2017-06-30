@@ -17,7 +17,6 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
     extends FunSuite
     with TimeLimits {
 
-  private val isCi = sys.props.contains("CI")
   private val maxTime = Span(20, Minutes) // just in case.
 
   val hardClean = true

@@ -2,8 +2,6 @@ package scalafix
 package rewrite
 import scala.meta._
 import scala.meta.contrib.AssociatedComments
-import scala.meta.inputs.Input
-import scala.meta.io.AbsolutePath
 import scala.meta.tokens.Tokens
 import scalafix.syntax._
 import scalafix.config.ScalafixConfig

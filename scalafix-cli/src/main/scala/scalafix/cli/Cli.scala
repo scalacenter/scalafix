@@ -2,8 +2,6 @@ package scalafix.cli
 
 import java.nio.file.Path
 import scala.collection.immutable.Seq
-import scala.meta.Database
-import scala.meta.io.AbsolutePath
 import scalafix.cli.CliCommand.PrintAndExit
 import scalafix.cli.CliCommand.RunScalafix
 import scalafix.internal.cli.CommonOptions

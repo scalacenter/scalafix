@@ -10,11 +10,6 @@ import scalafix.config.ScalafixReporter
 import scalafix.rewrite.ProcedureSyntax
 import scalafix.rewrite.ScalafixRewrites
 import caseapp._
-import metaconfig.Conf
-import metaconfig.ConfError
-import metaconfig.Configured
-import metaconfig.Configured.NotOk
-import metaconfig.Configured.Ok
 
 case class CommonOptions(
     @Hidden workingDirectory: String = System.getProperty("user.dir"),

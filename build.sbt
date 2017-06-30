@@ -387,6 +387,7 @@ lazy val readme = scalatex
         .dependsOn(run.in(Compile).toTask(" --validate-links"))
         .value
     },
+    scalacOptions ~= (_.filterNot(_ == "-Xlint")),
     test := run.in(Compile).toTask(" --validate-links").value,
     libraryDependencies ++= Seq(
       "com.twitter" %% "util-eval" % "6.42.0"
