@@ -102,7 +102,7 @@
       on parsed abstract syntax tree nodes. The public API for patch
       operations is available in PatchOps.scala
 
-      @hl.ref(wd/"scalafix-core"/"shared"/"src"/"main"/"scala"/"scalafix"/"patch"/"PatchOps.scala", start = "class SyntacticPatch")
+      @hl.ref(wd/"scalafix-core"/"shared"/"src"/"main"/"scala"/"scalafix"/"patch"/"PatchOps.scala", start = "trait SyntacticPatch")
 
       Some things are typically easier to do on the token level and other
       things are easier to do on the tree level.

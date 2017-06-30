@@ -3,35 +3,30 @@ package scalafix
 package patch
 
 import scala.meta._
-import scalafix.patch.TokenPatch._
-import scalafix.patch.TreePatch._
 import org.scalameta.FileLine
-import org.scalameta.logger
 
 object PatchOps {
-  def removeTokens(tokens: Tokens): Patch = tokens.foldLeft(Patch.empty)(_ + TokenPatch.Remove(_))
+  def removeTokens(tokens: Tokens): Patch =
+    tokens.foldLeft(Patch.empty)(_ + TokenPatch.Remove(_))
 }
 
-class SyntacticPatchOps(ctx: RewriteCtx) {
-  def removeImportee(importee: Importee): Patch = TreePatch.RemoveImportee(importee)
-  def replaceToken(token: Token, toReplace: String): Patch =
-    Add(token, "", toReplace, keepTok = false)
-  def removeTokens(tokens: Tokens): Patch = PatchOps.removeTokens(tokens)
-  def removeToken(token: Token): Patch = Add(token, "", "", keepTok = false)
-  def rename(from: Name, to: Name)(implicit fileLine: FileLine): Patch =
-    ctx.toks(from).headOption.fold(Patch.empty)(tok => Add(tok, "", to.value, keepTok = false))
-  def addRight(tok: Token, toAdd: String): Patch = Add(tok, "", toAdd)
-  def addLeft(tok: Token, toAdd: String): Patch = Add(tok, toAdd, "")
+trait SyntacticPatchOps {
+  def removeImportee(importee: Importee): Patch
+  def replaceToken(token: Token, toReplace: String): Patch
+  def removeTokens(tokens: Tokens): Patch
+  def removeToken(token: Token): Patch
+  def rename(from: Name, to: Name)(implicit fileLine: FileLine): Patch
+  def addRight(tok: Token, toAdd: String): Patch
+  def addLeft(tok: Token, toAdd: String): Patch
 }
 
-class SemanticPatchOps(ctx: RewriteCtx, mirror: Mirror) {
-  def removeGlobalImport(symbol: Symbol): Patch = RemoveGlobalImport(symbol)
-  def addGlobalImport(importer: Importer): Patch = AddGlobalImport(importer)
+trait SemanticPatchOps {
+  def removeGlobalImport(symbol: Symbol)(implicit mirror: Mirror): Patch
+  def addGlobalImport(importer: Importer)(implicit mirror: Mirror): Patch
   def replace(from: Symbol,
               to: Term.Ref,
               additionalImports: List[Importer] = Nil,
-              normalized: Boolean = true): Patch =
-    Replace(from, to, additionalImports, normalized)
-  def renameSymbol(from: Symbol, to: Name, normalize: Boolean = false): Patch =
-    RenameSymbol(from, to, normalize)
+              normalized: Boolean = true)(implicit mirror: Mirror): Patch
+  def renameSymbol(from: Symbol, to: Name, normalize: Boolean = true)(
+      implicit mirror: Mirror): Patch
 }
