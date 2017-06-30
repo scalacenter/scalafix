@@ -34,7 +34,7 @@ object Readme {
     highlight.scala(str)
   }
   def githubSyntax(path: String) =
-    reflect.ScalafixReflect.GitHubUrlRewrite
+    internal.reflect.ScalafixCompilerDecoder.GitHubUrlRewrite
       .unapply(Conf.Str(s"github:$path"))
       .get
 }
