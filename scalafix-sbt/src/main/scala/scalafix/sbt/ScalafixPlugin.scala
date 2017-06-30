@@ -13,6 +13,7 @@ import sbt.inc.Analysis
 import sbt.plugins.JvmPlugin
 import scala.meta.scalahost.sbt.ScalahostSbtPlugin
 import scalafix.internal.sbt.CliWrapperPlugin
+import scalafix.internal.sbt.ScalafixCompletions
 
 object ScalafixPlugin extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
@@ -78,39 +79,34 @@ object ScalafixPlugin extends AutoPlugin {
     val log = streams.value.log
     scalahostCompile.value // trigger compilation
     val classpath = scalahostClasspath.value.asPath
-    val inputArgs = Def.spaceDelimited("<rewrite>").parsed
+    val inputArgs: Seq[String] = ScalafixCompletions.parser.parsed
     val directoriesToFix: Seq[String] =
       scalafixUnmanagedSources.value.flatMap(_.collect {
         case p if p.exists() => p.getAbsolutePath
       })
-    val args: Seq[String] =
-      if (inputArgs.nonEmpty &&
-          inputArgs.exists(_.startsWith("-"))) {
-        // run custom command
-        inputArgs
-      } else {
-        // run scalafix rewrites
-        val config =
-          scalafixConfig.value
-            .map(x => "--config" :: x.getAbsolutePath :: Nil)
-            .getOrElse(Nil)
-        val rewriteArgs =
-          if (inputArgs.nonEmpty)
-            "--rewrites" +: inputArgs
-          else Nil
-        val sourceroot =
-          ScalahostSbtPlugin.autoImport.scalametaSourceroot.value.getAbsolutePath
-        // only fix unmanaged sources, skip code generated files.
-        config ++
-          rewriteArgs ++
-          Seq(
-            "--no-sys-exit",
-            "--sourceroot",
-            sourceroot,
-            "--classpath",
-            classpath
-          )
-      }
+    val args: Seq[String] = {
+      // run scalafix rewrites
+      val config =
+        scalafixConfig.value
+          .map(x => "--config" :: x.getAbsolutePath :: Nil)
+          .getOrElse(Nil)
+      val rewriteArgs =
+        if (inputArgs.nonEmpty)
+          inputArgs.flatMap("-r" :: _ :: Nil)
+        else Nil
+      val sourceroot =
+        ScalahostSbtPlugin.autoImport.scalametaSourceroot.value.getAbsolutePath
+      // only fix unmanaged sources, skip code generated files.
+      config ++
+        rewriteArgs ++
+        Seq(
+          "--no-sys-exit",
+          "--sourceroot",
+          sourceroot,
+          "--classpath",
+          classpath
+        )
+    }
     if (classpath.nonEmpty) {
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, 11 | 12)) if directoriesToFix.nonEmpty =>
