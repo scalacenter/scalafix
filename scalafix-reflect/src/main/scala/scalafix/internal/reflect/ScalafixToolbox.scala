@@ -1,5 +1,7 @@
-package scalafix.reflect
+package scalafix.internal.reflect
 
+import java.io.File
+import java.net.URLClassLoader
 import scala.collection.immutable.Seq
 import scala.collection.mutable
 import scala.meta.inputs.Input
@@ -10,14 +12,10 @@ import scala.tools.nsc.Settings
 import scala.tools.nsc.io.VirtualDirectory
 import scala.tools.nsc.reporters.StoreReporter
 import scala.{meta => m}
-import scalafix.rewrite.Rewrite
-import scalafix.util.ClassloadRewrite
-import scalafix.config.classloadRewrite
 import scalafix.config.LazyMirror
-
-import java.io.File
-import java.net.URLClassLoader
-
+import scalafix.config.classloadRewrite
+import scalafix.internal.util.ClassloadRewrite
+import scalafix.rewrite.Rewrite
 import metaconfig.ConfError
 import metaconfig.Configured
 

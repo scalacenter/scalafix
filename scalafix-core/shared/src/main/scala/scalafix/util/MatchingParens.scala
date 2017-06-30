@@ -1,7 +1,7 @@
 package scalafix.util
 
 import scala.meta._
-import scalafix.util.TokenOps._
+import scalafix.internal.util.TokenOps._
 import tokens.Token._
 
 sealed abstract class MatchingParens(map: Map[TokenHash, Token]) {

@@ -22,7 +22,6 @@ import scala.meta.internal.semantic.vfs
 import scala.meta.io.AbsolutePath
 import scala.util.Try
 import scala.util.control.NonFatal
-import scalafix.cli.termdisplay.TermDisplay
 import scalafix.config.Class2Hocon
 import scalafix.config.FilterMatcher
 import scalafix.config.LazyMirror
@@ -31,7 +30,12 @@ import scalafix.config.PrintStreamReporter
 import scalafix.config.RewriteKind
 import scalafix.config.ScalafixConfig
 import scalafix.config.ScalafixReporter
-import scalafix.reflect.ScalafixCompilerDecoder
+import scalafix.internal.cli.CommonOptions
+import scalafix.internal.cli.FixFile
+import scalafix.internal.cli.ScalafixOptions
+import scalafix.internal.cli.TermDisplay
+import scalafix.internal.cli.WriteMode
+import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
 import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
@@ -351,7 +355,7 @@ object CliRunner {
     //  - .scalafix.conf in working directory
     //  - ScalafixConfig.default
     val resolvedRewriteAndConfig: Configured[(Rewrite, ScalafixConfig)] = {
-      val decoder = ScalafixCompilerDecoder.fromMirror(lazyMirror)
+      val decoder = ScalafixReflect.fromLazyMirror(lazyMirror)
       for {
         inputs <- fixFiles
         configuration <- {

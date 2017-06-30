@@ -1,8 +1,7 @@
 package scalafix.config
 
 import scala.meta.Position
-import scalafix.util.Severity
-
+import scalafix.internal.util.Severity
 import metaconfig.ConfDecoder
 
 trait ScalafixReporter {

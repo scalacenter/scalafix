@@ -1,11 +1,12 @@
-package scalafix.reflect
+package scalafix.internal.reflect
 
-import scala.meta._
-import scalafix.Rewrite
-import scalafix.config._
-import scalafix.util.FileOps
 import java.io.File
 import java.net.URL
+import scala.meta.Input
+import scalafix.Rewrite
+import scalafix.config.LazyMirror
+import scalafix.config.ScalafixMetaconfigReaders.UriRewrite
+import scalafix.internal.util.FileOps
 import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
@@ -14,15 +15,6 @@ import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
 
 object ScalafixCompilerDecoder {
-  def syntactic: ConfDecoder[Rewrite] =
-    fromMirror(_ => None)
-  def semantic(mirror: Database): ConfDecoder[Rewrite] =
-    fromMirror(_ => Some(mirror))
-  def fromMirror(mirror: LazyMirror): ConfDecoder[Rewrite] =
-    rewriteConfDecoder(
-      MetaconfigPendingUpstream.orElse(baseCompilerDecoder(mirror),
-                                       baseRewriteDecoders(mirror))
-    )
   def baseCompilerDecoder(mirror: LazyMirror): ConfDecoder[Rewrite] =
     ConfDecoder.instance[Rewrite] {
       case FromSourceRewrite(rewrite) =>

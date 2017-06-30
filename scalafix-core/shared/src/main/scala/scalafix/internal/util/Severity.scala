@@ -1,7 +1,6 @@
-package scalafix.util
+package scalafix.internal.util
 
 import scalafix.config.ReaderUtil
-
 import metaconfig.ConfDecoder
 
 sealed abstract class Severity(color: String, val order: Int)(

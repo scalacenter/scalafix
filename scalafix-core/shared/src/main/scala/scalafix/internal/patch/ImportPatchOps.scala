@@ -1,4 +1,4 @@
-package scalafix.patch
+package scalafix.internal.patch
 
 import scala.collection.immutable.Seq
 import scala.collection.mutable
@@ -6,12 +6,13 @@ import scala.meta._
 import scala.meta.tokens.Token.Comment
 import scala.meta.tokens.Token.KwImport
 import scalafix.config.FilterMatcher
+import scalafix.patch.Patch
+import scalafix.patch.TokenPatch
+import scalafix.patch.TreePatch
 import scalafix.patch.TreePatch.ImportPatch
 import scalafix.rewrite.RewriteCtx
 import scalafix.syntax._
 import scalafix.util.Newline
-import scalafix.util.Whitespace
-import org.scalameta.logger
 
 object ImportPatchOps {
 

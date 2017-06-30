@@ -1,4 +1,5 @@
-package scalafix.util
+package scalafix.internal.util
+
 import scala.collection.immutable.Seq
 object CollectionOps {
   def partition[A, B](coll: Seq[A])(

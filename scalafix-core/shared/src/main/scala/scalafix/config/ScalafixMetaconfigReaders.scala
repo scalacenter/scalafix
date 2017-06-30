@@ -10,7 +10,7 @@ import scala.util.Try
 import scala.util.matching.Regex
 import scalafix.patch.TreePatch._
 import scalafix.rewrite.ScalafixRewrites
-import scalafix.util.ClassloadRewrite
+import scalafix.internal.util.ClassloadRewrite
 import java.io.OutputStream
 import java.io.PrintStream
 import java.net.URI

@@ -1,7 +1,7 @@
 package scalafix
 package tests
 
-import scalafix.reflect.ScalafixCompilerDecoder.GitHubUrlRewrite
+import scalafix.internal.reflect.ScalafixCompilerDecoder._
 import metaconfig.Conf
 import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok

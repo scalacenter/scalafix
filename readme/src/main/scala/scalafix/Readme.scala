@@ -3,7 +3,7 @@ package scalafix
 import metaconfig._, typesafeconfig._
 import scala.meta.inputs.Input
 import scalafix.config.ScalafixMetaconfigReaders
-import scalafix.reflect.ScalafixCompilerDecoder
+import scalafix.reflect.ScalafixReflect
 import scalatags.Text.TypedTag
 import scalatags.Text.all._
 import scalatex.site.Highlighter
@@ -28,13 +28,13 @@ object Readme {
   def config(str: String): TypedTag[String] = {
     // assert that config listings in docs is free of typos.
     ScalafixMetaconfigReaders
-      .scalafixConfigConfDecoder(ScalafixCompilerDecoder.syntactic)
+      .scalafixConfigConfDecoder(ScalafixReflect.syntactic)
       .read(Input.String(str).toConf.get)
       .get
     highlight.scala(str)
   }
   def githubSyntax(path: String) =
-    reflect.ScalafixCompilerDecoder.GitHubUrlRewrite
+    reflect.ScalafixReflect.GitHubUrlRewrite
       .unapply(Conf.Str(s"github:$path"))
       .get
 }
