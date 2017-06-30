@@ -6,7 +6,6 @@ import java.io.PrintStream
 import java.nio.file.Files
 import java.nio.file.Path
 import scala.collection.immutable.Seq
-import scala.meta.io.AbsolutePath
 import scalafix.cli.CliCommand.PrintAndExit
 import scalafix.cli.CliCommand.RunScalafix
 import scalafix.internal.cli.CommonOptions

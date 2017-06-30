@@ -3,7 +3,6 @@ package scalafix
 import scala.meta.Tree
 import scala.meta.parsers.Parse
 import scala.meta.semantic.Database
-import scala.meta.semantic.Mirror
 
 package object config extends ScalafixMetaconfigReaders {
   type MetaParser = Parse[_ <: Tree]

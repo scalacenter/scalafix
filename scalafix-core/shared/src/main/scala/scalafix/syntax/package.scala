@@ -8,21 +8,13 @@ import scala.collection.mutable
 import scala.meta._
 import scala.meta.semantic.Signature
 import scala.meta.semantic.Symbol
-import scala.meta.tokens.Token
 import scala.util.Success
 import scala.util.Try
 import org.scalameta.logger
 import scala.compat.Platform.EOL
-import scala.meta.classifiers.Classifier
 import scala.meta.internal.io.PathIO
-import scala.meta.internal.prettyprinters.TreeSyntax
-import scala.meta.internal.prettyprinters.TreeToString
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
-import scalafix.patch.TokenPatch
 import scalafix.util.TreeOps
-import scalafix.util.Whitespace
-import metaconfig.ConfDecoder
-import metaconfig.Configured
 
 package object syntax {
 

@@ -3,7 +3,6 @@ package rewrite
 
 import scala.meta._
 import scalafix.syntax._
-import org.scalameta.logger
 
 case class RemoveUnusedImports(mirror: Database)
     extends SemanticRewrite(mirror) {

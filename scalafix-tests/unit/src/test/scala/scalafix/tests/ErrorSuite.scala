@@ -3,16 +3,12 @@ package tests
 
 import scala.meta._
 import scala.meta.tokens.Token.Ident
-import scalafix.patch.TokenPatch
-import scalafix.patch.TreePatch
 import scalafix.rewrite.ProcedureSyntax
 import scalafix.testkit.SyntacticRewriteSuite
 
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
-
-import org.scalameta.logger
 
 class ErrorSuite extends SyntacticRewriteSuite(ProcedureSyntax) {
   test("on parse error") {

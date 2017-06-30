@@ -14,10 +14,6 @@ case class DiffTest(filename: RelativePath,
                     isSkip: Boolean,
                     isOnly: Boolean) {
   def name: String = filename.toString()
-  private def prefix =
-    if (isOnly) "ONLY "
-    else if (isSkip) "SKIP "
-    else ""
   def originalStr = new String(original.chars)
 }
 

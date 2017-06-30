@@ -17,16 +17,12 @@ import java.util.regex.PatternSyntaxException
 import scala.meta._
 import scala.meta.inputs.Input
 import scala.meta.internal.inputs._
-import scala.meta.internal.io.PlatformFileIO
-import scala.meta.internal.semantic.vfs
 import scala.meta.io.AbsolutePath
 import scala.util.Try
 import scala.util.control.NonFatal
 import scalafix.config.Class2Hocon
 import scalafix.config.FilterMatcher
 import scalafix.config.LazyMirror
-import scalafix.config.MetaconfigPendingUpstream
-import scalafix.config.PrintStreamReporter
 import scalafix.config.RewriteKind
 import scalafix.config.ScalafixConfig
 import scalafix.config.ScalafixReporter
@@ -37,7 +33,6 @@ import scalafix.internal.cli.TermDisplay
 import scalafix.internal.cli.WriteMode
 import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
-import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
 import metaconfig._
 

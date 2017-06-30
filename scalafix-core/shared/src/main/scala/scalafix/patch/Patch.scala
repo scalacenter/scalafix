@@ -210,8 +210,6 @@ object Patch {
   }
 
   def unifiedDiff(original: Input, revised: Input): String = {
-    import scala.collection.JavaConverters._
-    val originalLines = original.asString.lines.toSeq.asJava
     DiffUtils.unifiedDiff(original.label,
                           revised.label,
                           original.asString.lines.toList,
