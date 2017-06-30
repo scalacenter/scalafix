@@ -1,6 +1,4 @@
 import scala.meta._
-import scalafix.patch.SemanticPatchOps
-import scalafix.patch.SyntacticPatchOps
 
 package object scalafix {
 
@@ -17,15 +15,6 @@ package object scalafix {
   type Patch = patch.Patch
   val Patch = patch.Patch
 
-  implicit class XtensionMirrorRewriteCtx(val ctx: RewriteCtx)(
-      implicit val mirror: Mirror)
-      extends SemanticPatchOps(ctx, mirror) {
-    def semanticOps: SemanticPatchOps = this
-  }
-  implicit class XtensionRewriteCtx(val ctx: RewriteCtx)
-      extends SyntacticPatchOps(ctx) {
-    def semanticOps: SyntacticPatchOps = this
-  }
   implicit class XtensionSeqPatch(patches: Iterable[Patch]) {
     def asPatch: Patch = Patch.fromIterable(patches)
   }
