@@ -11,7 +11,7 @@ trait PatchOps {
   def replaceToken(token: Token, toReplace: String): Patch
   def removeTokens(tokens: Tokens): Patch
   def removeToken(token: Token): Patch
-  def rename(from: Name, to: Name)(implicit fileLine: FileLine): Patch
+  def rename(from: Name, to: Name): Patch
   def addRight(tok: Token, toAdd: String): Patch
   def addLeft(tok: Token, toAdd: String): Patch
 

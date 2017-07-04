@@ -51,7 +51,7 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
   def removeTokens(tokens: Tokens): Patch =
     tokens.foldLeft(Patch.empty)(_ + TokenPatch.Remove(_))
   def removeToken(token: Token): Patch = Add(token, "", "", keepTok = false)
-  def rename(from: Name, to: Name)(implicit fileLine: FileLine): Patch =
+  def rename(from: Name, to: Name): Patch =
     ctx
       .toks(from)
       .headOption
