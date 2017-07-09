@@ -121,8 +121,7 @@ case class ScalafixOptions(
       """Print out zsh completion file for scalafix. To install:
         |          scalafix --zsh > /usr/local/share/zsh/site-functions/_scalafix""".stripMargin)
     zsh: Boolean = false,
-    @HelpMessage(
-      """Print out sbt completion parser to argument.""".stripMargin)
+    @HelpMessage("""Print out sbt completion parser to argument.""".stripMargin)
     @ValueDescription("scalafix-sbt/src/main/scala/Completions.scala")
     @Hidden
     sbt: Option[String] = None

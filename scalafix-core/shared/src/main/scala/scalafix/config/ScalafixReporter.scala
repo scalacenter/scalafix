@@ -17,9 +17,8 @@ trait ScalafixReporter {
     * In a command-line interface, this might mean "print message to console".
     * In an IDE, this might mean putting red/yellow squiggly marks under code.
     */
-  protected def report(message: String,
-                       position: Position,
-                       severity: Severity)(implicit ctx: LogContext): Unit
+  protected def report(message: String, position: Position, severity: Severity)(
+      implicit ctx: LogContext): Unit
 
   protected def handleMessage(
       message: String,

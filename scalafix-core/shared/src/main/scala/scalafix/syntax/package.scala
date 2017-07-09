@@ -102,8 +102,9 @@ package object syntax {
       case Symbol.Multi(sym +: _) => sym.normalized
       case Symbol.Global(sym, Signature.Type(name)) =>
         Symbol.Global(sym, Signature.Term(name))
-      case Symbol.Global(Symbol.Global(sym, Signature.Term(name)),
-                         Signature.Method("apply", _)) =>
+      case Symbol.Global(
+          Symbol.Global(sym, Signature.Term(name)),
+          Signature.Method("apply", _)) =>
         Symbol.Global(sym, Signature.Term(name))
       case Symbol.Global(sym, Signature.Method(name, _)) =>
         Symbol.Global(sym.normalized, Signature.Term(name))

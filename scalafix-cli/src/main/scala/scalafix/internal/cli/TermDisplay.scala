@@ -447,23 +447,26 @@ class TermDisplay(
   override def startTask(msg: String, file: File): Unit =
     updateThread.newEntry(
       msg,
-      DownloadInfo(0L,
-                   0L,
-                   None,
-                   System.currentTimeMillis(),
-                   updateCheck = false),
+      DownloadInfo(
+        0L,
+        0L,
+        None,
+        System.currentTimeMillis(),
+        updateCheck = false),
       s"$msg\n"
     )
 
-  def taskLength(url: String,
-                 totalLength: Long,
-                 alreadyDownloaded: Long): Unit = {
+  def taskLength(
+      url: String,
+      totalLength: Long,
+      alreadyDownloaded: Long): Unit = {
     val info = updateThread.infos.get(url)
     assert(info != null)
     val newInfo = info match {
       case info0: DownloadInfo =>
-        info0.copy(length = Some(totalLength),
-                   previouslyDownloaded = alreadyDownloaded)
+        info0.copy(
+          length = Some(totalLength),
+          previouslyDownloaded = alreadyDownloaded)
       case _ =>
         throw new Exception(s"Incoherent display state for $url")
     }
@@ -488,8 +491,9 @@ class TermDisplay(
   override def completedTask(url: String, success: Boolean): Unit =
     updateThread.removeEntry(url, success, s"Downloaded $url\n")(x => x)
 
-  override def checkingUpdates(url: String,
-                               currentTimeOpt: Option[Long]): Unit =
+  override def checkingUpdates(
+      url: String,
+      currentTimeOpt: Option[Long]): Unit =
     updateThread.newEntry(
       url,
       CheckUpdateInfo(currentTimeOpt, None, isDone = false),

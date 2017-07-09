@@ -64,10 +64,11 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
     RemoveGlobalImport(symbol)
   def addGlobalImport(importer: Importer)(implicit mirror: Mirror): Patch =
     AddGlobalImport(importer)
-  def replace(from: Symbol,
-              to: Term.Ref,
-              additionalImports: List[Importer] = Nil,
-              normalized: Boolean = true)(implicit mirror: Mirror): Patch =
+  def replace(
+      from: Symbol,
+      to: Term.Ref,
+      additionalImports: List[Importer] = Nil,
+      normalized: Boolean = true)(implicit mirror: Mirror): Patch =
     Replace(from, to, additionalImports, normalized)
   def renameSymbol(from: Symbol, to: Name, normalize: Boolean = false)(
       implicit mirror: Mirror): Patch =

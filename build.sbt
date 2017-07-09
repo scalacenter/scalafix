@@ -142,7 +142,7 @@ lazy val reflect = project
     isFullCrossVersion,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-      "org.scala-lang" % "scala-reflect"  % scalaVersion.value
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value
     )
   )
   .dependsOn(coreJVM)
@@ -196,8 +196,8 @@ lazy val cli = project
     mainClass in assembly := Some("scalafix.cli.Cli"),
     assemblyJarName in assembly := "scalafix.jar",
     libraryDependencies ++= Seq(
-      "com.github.alexarchambault" %% "case-app"      % "1.1.3",
-      "com.martiansoftware"        % "nailgun-server" % "0.9.1"
+      "com.github.alexarchambault" %% "case-app" % "1.1.3",
+      "com.martiansoftware" % "nailgun-server" % "0.9.1"
     )
   )
   .dependsOn(
@@ -257,11 +257,11 @@ lazy val testkit = project
 
 lazy val testsDeps = List(
   // integration property tests
-  "org.renucci"        %% "scala-xml-quote"    % "0.1.4",
-  "org.typelevel"      %% "catalysts-platform" % "0.0.5",
-  "com.typesafe.slick" %% "slick"              % "3.2.0-M2",
-  "com.chuusai"        %% "shapeless"          % "2.3.2",
-  "org.scalacheck"     %% "scalacheck"         % "1.13.4"
+  "org.renucci" %% "scala-xml-quote" % "0.1.4",
+  "org.typelevel" %% "catalysts-platform" % "0.0.5",
+  "com.typesafe.slick" %% "slick" % "3.2.0-M2",
+  "com.chuusai" %% "shapeless" % "2.3.2",
+  "org.scalacheck" %% "scalacheck" % "1.13.4"
 )
 
 lazy val testsShared = project
@@ -373,10 +373,11 @@ lazy val integration = project
   )
 
 lazy val readme = scalatex
-  .ScalatexReadme(projectId = "readme",
-                  wd = file(""),
-                  url = "https://github.com/scalacenter/scalafix/tree/master",
-                  source = "Readme")
+  .ScalatexReadme(
+    projectId = "readme",
+    wd = file(""),
+    url = "https://github.com/scalacenter/scalafix/tree/master",
+    source = "Readme")
   .settings(
     allSettings,
     noPublish,
@@ -440,5 +441,6 @@ def setId(project: Project): Project = {
 def customScalafixVersion = sys.props.get("scalafix.version")
 def isDroneCI = sys.env.get("CI").exists(_ == "DRONE")
 def epflArtifactory =
-  MavenRepository("epfl-artifactory",
-                  "http://scala-webapps.epfl.ch:8081/artifactory/dbuild/")
+  MavenRepository(
+    "epfl-artifactory",
+    "http://scala-webapps.epfl.ch:8081/artifactory/dbuild/")

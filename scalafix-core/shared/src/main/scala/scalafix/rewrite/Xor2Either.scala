@@ -17,9 +17,10 @@ case class Xor2Either(mirror: Mirror) extends SemanticRewrite(mirror) {
 
     importImplicits.getOrElse(Patch.empty) ++
       Seq(
-        ctx.replace(Symbol("_root_.cats.data.XorT."),
-                    q"EitherT",
-                    List(importer"cats.data.EitherT")),
+        ctx.replace(
+          Symbol("_root_.cats.data.XorT."),
+          q"EitherT",
+          List(importer"cats.data.EitherT")),
         ctx.replace(Symbol("_root_.cats.data.Xor."), q"Either"),
         ctx.replace(Symbol("_root_.cats.data.Xor.Left."), q"Left"),
         ctx.replace(Symbol("_root_.cats.data.Xor.Right."), q"Right"),

@@ -18,10 +18,11 @@ trait DiffAssertions extends FunSuiteLike {
     s"$line\n=> $t\n$line"
   }
 
-  case class DiffFailure(title: String,
-                         expected: String,
-                         obtained: String,
-                         diff: String)
+  case class DiffFailure(
+      title: String,
+      expected: String,
+      obtained: String,
+      diff: String)
       extends TestFailedException(
         title + "\n" + error2message(obtained, expected),
         3)
@@ -40,9 +41,10 @@ trait DiffAssertions extends FunSuiteLike {
          """.stripMargin('#'))
     sb.toString()
   }
-  def assertNoDiff(obtained: String,
-                   expected: String,
-                   title: String = ""): Boolean = {
+  def assertNoDiff(
+      obtained: String,
+      expected: String,
+      title: String = ""): Boolean = {
     val result = compareContents(obtained, expected)
     if (result.isEmpty) true
     else {

@@ -26,8 +26,9 @@ abstract class Rewrite(implicit rewriteName: Name) { self =>
 
   /** Returns string output of applying this single patch. */
   final def apply(ctx: RewriteCtx): String = apply(ctx, rewrite(ctx))
-  final def apply(input: Input,
-                  config: ScalafixConfig = ScalafixConfig.default): String = {
+  final def apply(
+      input: Input,
+      config: ScalafixConfig = ScalafixConfig.default): String = {
     val ctx = RewriteCtx(config.dialect(input).parse[Source].get, config)
     apply(ctx, rewrite(ctx))
   }
@@ -39,8 +40,9 @@ abstract class Rewrite(implicit rewriteName: Name) { self =>
     diff(ctx, rewrite(ctx))
   final protected def diff(ctx: RewriteCtx, patch: Patch): String = {
     val original = ctx.tree.input
-    Patch.unifiedDiff(original,
-                      Input.LabeledString(original.label, apply(ctx, patch)))
+    Patch.unifiedDiff(
+      original,
+      Input.LabeledString(original.label, apply(ctx, patch)))
 
   }
 
@@ -98,8 +100,9 @@ object Rewrite {
     }
 
   // Build rewrite from PatchConfig.
-  def patchRewrite(patches: PatchConfig,
-                   getMirror: LazyMirror): Configured[Option[Rewrite]] = {
+  def patchRewrite(
+      patches: PatchConfig,
+      getMirror: LazyMirror): Configured[Option[Rewrite]] = {
     val configurationPatches = patches.all
     if (configurationPatches.isEmpty) Configured.Ok(None)
     else {

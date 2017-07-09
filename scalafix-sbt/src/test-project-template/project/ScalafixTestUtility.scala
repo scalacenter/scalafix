@@ -16,11 +16,12 @@ object ScalafixTestUtility {
       val obtainedLines = jLinesOf(obtained)
 
       val diff = DiffUtils.diff(expectedLines, obtainedLines)
-      val unifiedDiff = DiffUtils.generateUnifiedDiff("expected",
-                                                      "obtained",
-                                                      expectedLines,
-                                                      diff,
-                                                      1)
+      val unifiedDiff = DiffUtils.generateUnifiedDiff(
+        "expected",
+        "obtained",
+        expectedLines,
+        diff,
+        1)
 
       Some(unifiedDiff.asScala.drop(3).mkString("\n"))
     }

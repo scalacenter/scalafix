@@ -64,12 +64,14 @@ abstract class TokenPatch(val tok: Token, val newTok: String)
 }
 private[scalafix] object TokenPatch {
   case class Remove(override val tok: Token) extends TokenPatch(tok, "")
-  case class Add(override val tok: Token,
-                 addLeft: String,
-                 addRight: String,
-                 keepTok: Boolean = true)
-      extends TokenPatch(tok,
-                         s"""$addLeft${if (keepTok) tok else ""}$addRight""")
+  case class Add(
+      override val tok: Token,
+      addLeft: String,
+      addRight: String,
+      keepTok: Boolean = true)
+      extends TokenPatch(
+        tok,
+        s"""$addLeft${if (keepTok) tok else ""}$addRight""")
 
 }
 
@@ -89,10 +91,11 @@ private[scalafix] object TreePatch {
   }
 
   @DeriveConfDecoder
-  case class Replace(from: Symbol,
-                     to: Term.Ref,
-                     additionalImports: List[Importer] = Nil,
-                     normalized: Boolean = true)
+  case class Replace(
+      from: Symbol,
+      to: Term.Ref,
+      additionalImports: List[Importer] = Nil,
+      normalized: Boolean = true)
       extends TreePatch {
     require(to.isStableId)
   }
@@ -120,18 +123,20 @@ object Patch {
 
   private def merge(a: TokenPatch, b: TokenPatch): TokenPatch = (a, b) match {
     case (add1: Add, add2: Add) =>
-      Add(add1.tok,
-          add1.addLeft + add2.addLeft,
-          add1.addRight + add2.addRight,
-          add1.keepTok && add2.keepTok)
+      Add(
+        add1.tok,
+        add1.addLeft + add2.addLeft,
+        add1.addRight + add2.addRight,
+        add1.keepTok && add2.keepTok)
     case (_: Remove, add: Add) => add.copy(keepTok = false)
     case (add: Add, _: Remove) => add.copy(keepTok = false)
     case (rem: Remove, rem2: Remove) => rem
     case _ => throw Failure.TokenPatchMergeError(a, b)
   }
-  private[scalafix] def apply(p: Patch,
-                              ctx: RewriteCtx,
-                              mirror: Option[Mirror]): String = {
+  private[scalafix] def apply(
+      p: Patch,
+      ctx: RewriteCtx,
+      mirror: Option[Mirror]): String = {
     val patches = underlying(p)
     val semanticPatches = patches.collect { case tp: TreePatch => tp }
     mirror match {
@@ -147,8 +152,9 @@ object Patch {
     }
   }
 
-  private def syntaxApply(ctx: RewriteCtx,
-                          patches: Iterable[TokenPatch]): String = {
+  private def syntaxApply(
+      ctx: RewriteCtx,
+      patches: Iterable[TokenPatch]): String = {
     val patchMap = patches
       .groupBy(x => TokenOps.hash(x.tok))
       .mapValues(_.reduce(merge).newTok)
@@ -157,8 +163,8 @@ object Patch {
       .mkString
   }
 
-  private def semanticApply(patches: Seq[Patch])(implicit ctx: RewriteCtx,
-                                                 mirror: Mirror): String = {
+  private def semanticApply(
+      patches: Seq[Patch])(implicit ctx: RewriteCtx, mirror: Mirror): String = {
     val ast = ctx.tree
     val tokenPatches = patches.collect { case e: TokenPatch => e }
     val renamePatches = Renamer.toTokenPatches(patches.collect {
@@ -210,10 +216,11 @@ object Patch {
   }
 
   def unifiedDiff(original: Input, revised: Input): String = {
-    DiffUtils.unifiedDiff(original.label,
-                          revised.label,
-                          original.asString.lines.toList,
-                          revised.asString.lines.toList,
-                          3)
+    DiffUtils.unifiedDiff(
+      original.label,
+      revised.label,
+      original.asString.lines.toList,
+      revised.asString.lines.toList,
+      3)
   }
 }

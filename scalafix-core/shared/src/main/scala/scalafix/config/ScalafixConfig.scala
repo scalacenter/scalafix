@@ -45,9 +45,10 @@ object ScalafixConfig {
     else None
   }
 
-  def fromInput(input: Input,
-                mirror: LazyMirror,
-                extraRewrites: List[String] = Nil)(
+  def fromInput(
+      input: Input,
+      mirror: LazyMirror,
+      extraRewrites: List[String] = Nil)(
       implicit decoder: ConfDecoder[Rewrite]
   ): Configured[(Rewrite, ScalafixConfig)] =
     configFromInput(input, mirror, extraRewrites)

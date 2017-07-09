@@ -19,8 +19,7 @@ import metaconfig.ConfError
 import metaconfig.Configured
 
 object ScalafixToolbox {
-  private val rewriteCache
-    : mutable.WeakHashMap[Input, Configured.Ok[Rewrite]] =
+  private val rewriteCache: mutable.WeakHashMap[Input, Configured.Ok[Rewrite]] =
     mutable.WeakHashMap.empty
   private val compiler = new Compiler()
 
@@ -34,8 +33,7 @@ object ScalafixToolbox {
       uncached
     })
 
-  def getRewriteUncached(code: Input,
-                         mirror: LazyMirror): Configured[Rewrite] =
+  def getRewriteUncached(code: Input, mirror: LazyMirror): Configured[Rewrite] =
     for {
       classloader <- compiler.compile(code)
       names <- RewriteInstrumentation.getRewriteFqn(code)
