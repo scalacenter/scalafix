@@ -78,8 +78,7 @@ class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
       }
       if (t.isInstance(obj)) obj.asInstanceOf[T]
       else {
-        throw new ClassCastException(
-          s"${clazz.getName} is not a subtype of $t")
+        throw new ClassCastException(s"${clazz.getName} is not a subtype of $t")
       }
     } recover {
       case i: InvocationTargetException if i.getTargetException ne null =>
@@ -107,9 +106,10 @@ class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
          | ${ex.getStackTrace.take(10).mkString(" \n")}""".stripMargin
     if (successes.nonEmpty) Success(successes.head)
     else {
-      Failure(new IllegalArgumentException(
-        s"""Unable to load rewrite $fqcn with args $args. Tried the following:
-           |${failures.map(pretty).mkString("\n")}""".stripMargin))
+      Failure(
+        new IllegalArgumentException(
+          s"""Unable to load rewrite $fqcn with args $args. Tried the following:
+             |${failures.map(pretty).mkString("\n")}""".stripMargin))
     }
   }
 }

@@ -111,8 +111,7 @@ sealed abstract case class CliRunner(
           if (writeMode.isWriteFile) {
             val outFile = replacePath(input.original.path)
             if (isUpToDate(input)) {
-              Files.write(outFile.toNIO,
-                          fixed.getBytes(input.original.charset))
+              Files.write(outFile.toNIO, fixed.getBytes(input.original.charset))
               ExitStatus.Ok
             } else {
               ctx.reporter.error(
@@ -142,8 +141,7 @@ sealed abstract case class CliRunner(
                   cause: Throwable,
                   options: ScalafixOptions): Unit = {
     options.common.reporter.error(s"Failed to fix $path")
-    cause.setStackTrace(
-      cause.getStackTrace.take(options.common.stackVerbosity))
+    cause.setStackTrace(cause.getStackTrace.take(options.common.stackVerbosity))
     cause.printStackTrace(options.common.err)
   }
 }

@@ -58,18 +58,17 @@ object NoExtendsAppSyntax {
     }
 
     def indent(tokens: Tokens, numberOfSpaces: Int = 2): Option[Patch] =
-      tokens.dropRightWhile(t => !t.is[Newline]).lastOption.map {
-        lastNewLine =>
-          tokens.collect {
-            case nl @ Newline() if nl != lastNewLine =>
-              ctx.addRight(nl, " " * numberOfSpaces)
-          }.asPatch
+      tokens.dropRightWhile(t => !t.is[Newline]).lastOption.map { lastNewLine =>
+        tokens.collect {
+          case nl @ Newline() if nl != lastNewLine =>
+            ctx.addRight(nl, " " * numberOfSpaces)
+        }.asPatch
       }
 
-    private[scalafix] def removeTokensBetween(
-        from: Token,
-        to: Token,
-        removeLeadingWhitespace: Boolean = true): Patch = {
+    private[scalafix] def removeTokensBetween(from: Token,
+                                              to: Token,
+                                              removeLeadingWhitespace: Boolean =
+                                                true): Patch = {
       val toRemove = ctx.tokenList
         .slice(
           ctx.tokenList.prev(from),
@@ -111,8 +110,7 @@ object NoExtendsAppSyntax {
               trailingWith <- ctx.tokenList
                 .trailing(nameToRemove)
                 .find(t => t.is[KwWith])
-            } yield
-              ctx.removeTokensBetween(nameToRemove, trailingWith)).asPatch
+            } yield ctx.removeTokensBetween(nameToRemove, trailingWith)).asPatch
         }
       maybePatch.asPatch
     }

@@ -15,8 +15,7 @@ object ReaderUtil {
   // Poor mans coproduct reader
   def fromMap[T: ClassTag](
       m: Map[String, T],
-      additionalMessage: PartialFunction[String, String] =
-        PartialFunction.empty
+      additionalMessage: PartialFunction[String, String] = PartialFunction.empty
   ): ConfDecoder[T] =
     ConfDecoder.instance[T] {
       case Conf.Str(x) =>
