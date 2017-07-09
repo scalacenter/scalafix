@@ -23,8 +23,9 @@ abstract class SemanticRewriteSuite(
     test(diffTest.name) {
       val (rewrite, config) = diffTest.config.apply()
       val obtainedWithComment =
-        rewrite.apply(diffTest.original,
-                      config.copy(dialect = diffTest.attributes.dialect))
+        rewrite.apply(
+          diffTest.original,
+          config.copy(dialect = diffTest.attributes.dialect))
       val obtained = {
         val tokens = obtainedWithComment.tokenize.get
         val comment = tokens

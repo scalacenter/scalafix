@@ -7,12 +7,13 @@ import scalafix.config.ScalafixConfig
 import scalafix.reflect.ScalafixReflect
 import org.scalatest.exceptions.TestFailedException
 
-case class DiffTest(filename: RelativePath,
-                    original: Input,
-                    attributes: Attributes,
-                    config: () => (Rewrite, ScalafixConfig),
-                    isSkip: Boolean,
-                    isOnly: Boolean) {
+case class DiffTest(
+    filename: RelativePath,
+    original: Input,
+    attributes: Attributes,
+    config: () => (Rewrite, ScalafixConfig),
+    isSkip: Boolean,
+    isOnly: Boolean) {
   def name: String = filename.toString()
   def originalStr = new String(original.chars)
 }
@@ -32,8 +33,9 @@ object DiffTest {
               val decoder =
                 ScalafixReflect.fromLazyMirror(_ => Some(mirror))
               ScalafixConfig
-                .fromInput(Input.LabeledString(label, stripPrefix(comment)),
-                           _ => Some(mirror))(decoder)
+                .fromInput(
+                  Input.LabeledString(label, stripPrefix(comment)),
+                  _ => Some(mirror))(decoder)
                 .get
           }
           .getOrElse(throw new TestFailedException(

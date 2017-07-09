@@ -1,8 +1,9 @@
 package scalafix.config
 
-case class LogContext(line: sourcecode.Line,
-                      file: sourcecode.File,
-                      enclosing: sourcecode.Enclosing) {
+case class LogContext(
+    line: sourcecode.Line,
+    file: sourcecode.File,
+    enclosing: sourcecode.Enclosing) {
   override def toString: String = enclosing.value.replaceAll(" .*", "")
 }
 

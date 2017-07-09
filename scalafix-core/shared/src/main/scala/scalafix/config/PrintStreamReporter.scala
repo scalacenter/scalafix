@@ -9,10 +9,11 @@ import metaconfig._
 
 /** A ScalafixReporter that emits messages to a PrintStream. */
 @DeriveConfDecoder
-case class PrintStreamReporter(outStream: PrintStream,
-                               minSeverity: Severity,
-                               @Recurse filter: FilterMatcher,
-                               includeLoggerName: Boolean)
+case class PrintStreamReporter(
+    outStream: PrintStream,
+    minSeverity: Severity,
+    @Recurse filter: FilterMatcher,
+    includeLoggerName: Boolean)
     extends ScalafixReporter {
   private val FilterMatcherReader = null // shadow other reader
 

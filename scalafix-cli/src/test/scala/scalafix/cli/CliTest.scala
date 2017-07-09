@@ -124,8 +124,9 @@ class CliTest extends ScalafixCliTest {
     val file1, file2 = createFile()
 
     Cli.runOn(
-      default.copy(rewrites = List(ProcedureSyntax.toString),
-                   files = List(dir.getAbsolutePath)))
+      default.copy(
+        rewrites = List(ProcedureSyntax.toString),
+        files = List(dir.getAbsolutePath)))
     assertNoDiff(FileOps.readFile(file1), expected)
     assertNoDiff(FileOps.readFile(file2), expected)
   }
@@ -161,9 +162,10 @@ class CliTest extends ScalafixCliTest {
     val file = File.createTempFile("prefix", ".scala")
     FileOps.writeFile(file, "object a { implicit val x = ??? }")
     val code = Cli.runOn(
-      default.copy(rewrites = List(ExplicitReturnTypes.toString),
-                   files = List(file.getAbsolutePath),
-                   common = devNull))
+      default.copy(
+        rewrites = List(ExplicitReturnTypes.toString),
+        files = List(file.getAbsolutePath),
+        common = devNull))
     assert(code == ExitStatus.InvalidCommandLineOption)
   }
 
@@ -171,9 +173,10 @@ class CliTest extends ScalafixCliTest {
     val file = File.createTempFile("prefix", ".sbt")
     FileOps.writeFile(file, "def foo { println(1) }\n")
     val code = Cli.runOn(
-      default.copy(rewrites = List(ProcedureSyntax.toString),
-                   files = List(file.getAbsolutePath),
-                   common = devNull))
+      default.copy(
+        rewrites = List(ProcedureSyntax.toString),
+        files = List(file.getAbsolutePath),
+        common = devNull))
     assert(code == ExitStatus.Ok)
     assert(FileOps.readFile(file) == "def foo: Unit = { println(1) }\n")
   }

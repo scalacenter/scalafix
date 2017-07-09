@@ -25,9 +25,10 @@ class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
       }
     }
   }
-  private def classloadLambdaRewrite(clazz: Class[_],
-                                     args: Seq[AnyRef],
-                                     fieldName: String): Try[T] = Try {
+  private def classloadLambdaRewrite(
+      clazz: Class[_],
+      args: Seq[AnyRef],
+      fieldName: String): Try[T] = Try {
     val field = clazz.getDeclaredField(fieldName)
     val obj = {
       val constructor = clazz.getDeclaredConstructor()
@@ -50,8 +51,9 @@ class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
   private def getClassFor(fqcn: String): Try[Class[_]] =
     Try { Class.forName(fqcn, false, classLoader) }
 
-  private def classloadClassRewrite(clazz: Class[_],
-                                    args: Seq[AnyRef]): Try[T] =
+  private def classloadClassRewrite(
+      clazz: Class[_],
+      args: Seq[AnyRef]): Try[T] =
     Try {
       val argsLen = args.length
       val constructors =

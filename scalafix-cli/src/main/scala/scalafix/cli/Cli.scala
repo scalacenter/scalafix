@@ -206,8 +206,9 @@ object ScalafixCompletions {
       case Right((WithHelp(usage @ true, _, _), _, _)) =>
         PrintAndExit(usageMessage, ExitStatus.Ok)
       case Right((WithHelp(_, _, options), _, _)) if options.version =>
-        PrintAndExit(s"${withHelp.appName} ${withHelp.appVersion}",
-                     ExitStatus.Ok)
+        PrintAndExit(
+          s"${withHelp.appName} ${withHelp.appVersion}",
+          ExitStatus.Ok)
       case Right((WithHelp(_, _, options), _, _)) if options.bash =>
         PrintAndExit(bashCompletions, ExitStatus.Ok)
       case Right((WithHelp(_, _, options), _, _)) if options.zsh =>
@@ -225,8 +226,9 @@ object ScalafixCompletions {
   def runMain(args: Seq[String], commonOptions: CommonOptions): ExitStatus =
     runMain(parse(args), commonOptions)
 
-  def runMain(cliCommand: CliCommand,
-              commonOptions: CommonOptions): ExitStatus =
+  def runMain(
+      cliCommand: CliCommand,
+      commonOptions: CommonOptions): ExitStatus =
     cliCommand match {
       case CliCommand.PrintAndExit(msg, exit) =>
         if (exit.isOk) commonOptions.out.println(msg)

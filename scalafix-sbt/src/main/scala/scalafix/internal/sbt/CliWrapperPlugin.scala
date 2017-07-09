@@ -19,9 +19,10 @@ object CliWrapperPlugin extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
   override def requires: Plugins = JvmPlugin
   def createSyntheticProject(id: String, base: File): Project =
-    Project(id, base).settings(publish := {},
-                               publishLocal := {},
-                               publishArtifact := false)
+    Project(id, base).settings(
+      publish := {},
+      publishLocal := {},
+      publishArtifact := false)
   class HasMain(reflectiveMain: Main) {
     def main(args: Array[String]): Unit = reflectiveMain.main(args)
   }

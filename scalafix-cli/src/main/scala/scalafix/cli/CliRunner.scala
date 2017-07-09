@@ -137,9 +137,10 @@ sealed abstract case class CliRunner(
     }
   }
 
-  def reportError(path: AbsolutePath,
-                  cause: Throwable,
-                  options: ScalafixOptions): Unit = {
+  def reportError(
+      path: AbsolutePath,
+      cause: Throwable,
+      options: ScalafixOptions): Unit = {
     options.common.reporter.error(s"Failed to fix $path")
     cause.setStackTrace(cause.getStackTrace.take(options.common.stackVerbosity))
     cause.printStackTrace(options.common.err)

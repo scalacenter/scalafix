@@ -39,11 +39,12 @@ class ScalafixConfigTest extends FunSuite {
     default.copy(
       patches = default.patches.copy(
         replacements = List(
-          Replace(Symbol("_root_.org.scalameta."),
-                  to = q"scala.meta",
-                  additionalImports = List(
-                    importer"scala.meta._"
-                  ))
+          Replace(
+            Symbol("_root_.org.scalameta."),
+            to = q"scala.meta",
+            additionalImports = List(
+              importer"scala.meta._"
+            ))
         ),
         addGlobalImports = List(
           AddGlobalImport(importer"scala.meta._")

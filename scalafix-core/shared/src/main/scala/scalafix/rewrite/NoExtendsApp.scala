@@ -23,8 +23,9 @@ case class NoExtendsApp(mirror: Mirror) extends SemanticRewrite(mirror) {
           Patch.empty
         case Some(body) =>
           val open =
-            ctx.addLeft(body.head,
-                        s"\n  def main(args: Array[String]): Unit = {")
+            ctx.addLeft(
+              body.head,
+              s"\n  def main(args: Array[String]): Unit = {")
           val indentBody = ctx.indent(body)
           // this handles bodies on a single line like:
           //   object Main extends App { println(args(0)) }
@@ -65,10 +66,10 @@ object NoExtendsAppSyntax {
         }.asPatch
       }
 
-    private[scalafix] def removeTokensBetween(from: Token,
-                                              to: Token,
-                                              removeLeadingWhitespace: Boolean =
-                                                true): Patch = {
+    private[scalafix] def removeTokensBetween(
+        from: Token,
+        to: Token,
+        removeLeadingWhitespace: Boolean = true): Patch = {
       val toRemove = ctx.tokenList
         .slice(
           ctx.tokenList.prev(from),

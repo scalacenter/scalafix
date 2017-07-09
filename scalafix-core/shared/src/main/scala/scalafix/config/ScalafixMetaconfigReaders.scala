@@ -117,9 +117,10 @@ trait ScalafixMetaconfigReaders {
       classloadRewriteDecoder(mirror)
     )
   }
-  def configFromInput(input: Input,
-                      mirror: LazyMirror,
-                      extraRewrites: List[String])(
+  def configFromInput(
+      input: Input,
+      mirror: LazyMirror,
+      extraRewrites: List[String])(
       implicit decoder: ConfDecoder[Rewrite]
   ): Configured[(Rewrite, ScalafixConfig)] =
     for {

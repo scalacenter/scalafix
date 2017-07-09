@@ -52,10 +52,11 @@ object ScalafixCompilerDecoder {
     private[this] def SnakeCase(string: String): String =
       string.split(alphanumerical).map(_.toLowerCase).mkString("_")
 
-    private[this] def expandGitHubURL(org: String,
-                                      repo: String,
-                                      version: String,
-                                      sha: String): URL = {
+    private[this] def expandGitHubURL(
+        org: String,
+        repo: String,
+        version: String,
+        sha: String): URL = {
       val fileName = s"${CamelCase(repo)}_${SnakeCase(version)}.scala"
       new URL(
         s"https://raw.githubusercontent.com/$org/$repo/$sha/scalafix/rewrites/src/main/scala/fix/$fileName")

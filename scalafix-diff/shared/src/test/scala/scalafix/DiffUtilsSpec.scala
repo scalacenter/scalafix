@@ -55,11 +55,12 @@ class DiffUtilsTest extends FunSuite {
         |   val c = 1 + 1""".stripMargin
 
   test("unifiedDiff") {
-    val actualDiff = DiffUtils.unifiedDiff(originalFileName,
-                                           revisedFileName,
-                                           originalLines,
-                                           revisedLines,
-                                           contextSize)
+    val actualDiff = DiffUtils.unifiedDiff(
+      originalFileName,
+      revisedFileName,
+      originalLines,
+      revisedLines,
+      contextSize)
     assert(actualDiff == expectedDiff)
   }
 
