@@ -196,6 +196,7 @@ lazy val cli = project
     mainClass in assembly := Some("scalafix.cli.Cli"),
     assemblyJarName in assembly := "scalafix.jar",
     libraryDependencies ++= Seq(
+      "org.scalameta" %% "sbthost-runtime" % "0.2.0",
       "com.github.alexarchambault" %% "case-app" % "1.1.3",
       "com.martiansoftware" % "nailgun-server" % "0.9.1"
     )
