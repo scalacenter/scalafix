@@ -1,10 +1,11 @@
 package scalafix.config
 
 import scala.collection.immutable.Seq
-
 import metaconfig.Conf
 import metaconfig.ConfDecoder
+import metaconfig.ConfError
 import metaconfig.Configured
+import metaconfig.Metaconfig
 
 // TODO(olafur) contribute upstream to metaconfig.
 object MetaconfigPendingUpstream {
@@ -12,6 +13,13 @@ object MetaconfigPendingUpstream {
     lst.foldLeft(Configured.Ok(Seq.empty[T]): Configured[Seq[T]]) {
       case (res, configured) =>
         res.product(configured).map { case (a, b) => b +: a }
+    }
+  }
+  def getKey[T](conf: Conf.Obj, path: String, extraNames: String*)(
+      implicit ev: ConfDecoder[T]): Configured[T] = {
+    Metaconfig.getKey(conf, path +: extraNames) match {
+      case Some(value) => ev.read(value)
+      case None => ConfError.missingField(conf, path).notOk
     }
   }
 

@@ -197,15 +197,41 @@ trait ScalafixMetaconfigReaders {
     fallbackReplace.reader
   implicit lazy val symbolReader: ConfDecoder[Symbol] =
     ConfDecoder.stringConfDecoder.map(Symbol.apply)
+  private def parseSymbol(sym: String): Configured[Symbol] =
+    try Ok(Symbol(sym)) // Because https://github.com/scalameta/scalameta/issues/821
+    catch { case NonFatal(e) => ConfError.exception(e, 0).notOk }
+  implicit lazy val symbolGlobalReader: ConfDecoder[Symbol.Global] =
+    ConfDecoder.instance[Symbol.Global] {
+      case Conf.Str(path) =>
+        def symbolGlobal(symbol: Symbol): Configured[Symbol.Global] =
+          symbol match {
+            case g: Symbol.Global => Ok(g)
+            case els =>
+              ConfError
+                .typeMismatch(
+                  "Symbol.Global",
+                  Conf.Str(s"$els: ${els.productPrefix}"))
+                .notOk
+          }
+        val toParse =
+          if (path.startsWith("_")) path
+          else s"_root_.$path."
+        parseSymbol(toParse).flatMap(symbolGlobal)
+    }
   implicit lazy val AddGlobalImportReader: ConfDecoder[AddGlobalImport] =
     importerReader.map(AddGlobalImport.apply)
+  implicit lazy val MoveSymbolReader: ConfDecoder[MoveSymbol] =
+    ConfDecoder.instance[MoveSymbol] {
+      case obj @ Conf.Obj(_) =>
+        import MetaconfigPendingUpstream.getKey
+        getKey[Symbol.Global](obj, "from")
+          .product(getKey[Symbol.Global](obj, "to"))
+          .map(MoveSymbol.tupled.apply)
+    }
   implicit lazy val RemoveGlobalImportReader: ConfDecoder[RemoveGlobalImport] =
     termRefReader.flatMap { ref =>
-      try {
-        Ok(RemoveGlobalImport(Symbol(s"_root_.$ref.")))
-      } catch {
-        case NonFatal(e) =>
-          ConfError.exception(e, 0).notOk
+      parseSymbol(s"_root_.$ref.").map { s =>
+        RemoveGlobalImport(s)
       }
     }
 

@@ -14,6 +14,7 @@ import org.scalameta.logger
 import scala.compat.Platform.EOL
 import scala.meta.internal.io.PathIO
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
+import scalafix.internal.util.SymbolOps
 import scalafix.util.TreeOps
 
 package object syntax {

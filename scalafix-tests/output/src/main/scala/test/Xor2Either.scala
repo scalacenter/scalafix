@@ -1,8 +1,8 @@
 package test
 
+import scala.concurrent.Future
 import cats.implicits._
 import cats.data.EitherT
-import scala.concurrent.Future
 trait Xor2Either {
   type MyDisjunction = Either[Int, String]
   val r: MyDisjunction = Right("")
