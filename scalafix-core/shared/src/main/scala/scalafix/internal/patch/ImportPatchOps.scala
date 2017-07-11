@@ -49,6 +49,14 @@ object ImportPatchOps {
       allImporters.toIterator
         .filter(_.importees.forall(isRemovedImportee))
         .toSet
+    def removeSpaces(tokens: scala.Seq[Token]): Patch =
+      tokens
+        .takeWhile {
+          case Token.Space() => true
+          case _ => false
+        }
+        .map(ctx.removeToken(_))
+        .asPatch
     val curlyBraceRemoves = allImporters.map { importer =>
       val keptImportees = importer.importees.filterNot(isRemovedImportee)
       val hasRemovedImportee = importer.importees.exists(isRemovedImportee)
@@ -61,9 +69,12 @@ object ImportPatchOps {
               case open @ Token.LeftBrace() =>
                 ctx.matching
                   .close(open)
-                  .map(close =>
+                  .map { close =>
                     ctx.removeToken(open) +
-                      ctx.removeToken(close))
+                      removeSpaces(ctx.tokenList.trailing(open)) +
+                      ctx.removeToken(close) +
+                      removeSpaces(ctx.tokenList.leading(close))
+                  }
                   .asPatch
             }
             .asPatch

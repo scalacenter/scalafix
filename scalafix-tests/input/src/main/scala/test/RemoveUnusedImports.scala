@@ -4,7 +4,7 @@ rewrite = RemoveUnusedImports
 package test
 
 import scala.collection.mutable
-import scala.util.control.{NonFatal, Breaks}
+import scala.util.control.{ NonFatal, Breaks }
 import scala.concurrent.{Await, Future}
 import scala.util.{Properties, DynamicVariable, Try}
 import scala.util.{Success => Successful, Random}
