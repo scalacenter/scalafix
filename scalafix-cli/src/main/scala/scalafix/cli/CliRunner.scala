@@ -154,10 +154,27 @@ object CliRunner {
     Try(path.toRelative(cwd)).getOrElse(path).toString
   }
 
+  /** Construct CliRunner with rewrite from ScalafixOptions. */
   def fromOptions(options: ScalafixOptions): Configured[CliRunner] = {
     val builder = new CliRunner.Builder(options)
+    builder.resolvedRewrite.flatMap(rewrite =>
+      fromOptions(options, rewrite, builder))
+  }
+
+  /** Construct CliRunner with custom rewrite. */
+  def fromOptions(
+      options: ScalafixOptions,
+      rewrite: Rewrite): Configured[CliRunner] = {
+    val builder = new CliRunner.Builder(options)
+    fromOptions(options, rewrite, builder)
+  }
+
+  private def fromOptions(
+      options: ScalafixOptions,
+      rewrite: Rewrite,
+      builder: Builder
+  ): Configured[CliRunner] = {
     for {
-      rewrite <- builder.resolvedRewrite
       replace <- builder.resolvedPathReplace
       inputs <- builder.fixFilesWithMirror
       config <- builder.resolvedConfig
