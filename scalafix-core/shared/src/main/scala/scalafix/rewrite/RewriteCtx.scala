@@ -34,7 +34,7 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
   // Debug utilities
   def mirror(implicit mirror: Mirror): Mirror =
     Database(mirror.database.entries.filter(_._1 == input))
-  def printMirror()(implicit mirror: Mirror, fileLine: FileLine): Unit = {
+  def debugMirror()(implicit mirror: Mirror, fileLine: FileLine): Unit = {
     val db = this.mirror(mirror)
     debug(sourcecode.Text(db, "mirror"))
   }
@@ -44,6 +44,9 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
   }
 
   // Syntactic patch ops.
+  def moveSymbol(from: Symbol.Global, to: Symbol.Global)(
+      implicit mirror: Mirror): Patch =
+    TreePatch.MoveSymbol(from, to)
   def removeImportee(importee: Importee): Patch =
     TreePatch.RemoveImportee(importee)
   def replaceToken(token: Token, toReplace: String): Patch =
@@ -51,17 +54,27 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
   def removeTokens(tokens: Tokens): Patch =
     tokens.foldLeft(Patch.empty)(_ + TokenPatch.Remove(_))
   def removeToken(token: Token): Patch = Add(token, "", "", keepTok = false)
+  def replaceTree(from: Tree, to: String): Patch = {
+    val tokens = toks(from)
+    removeTokens(tokens) + tokens.headOption.map(x => addRight(x, to))
+  }
   def rename(from: Name, to: Name): Patch =
-    ctx
-      .toks(from)
-      .headOption
-      .fold(Patch.empty)(tok => Add(tok, "", to.value, keepTok = false))
+    rename(from, to.value)
+  def rename(from: Name, to: String): Patch =
+    if (from.value == to) Patch.empty
+    else
+      ctx
+        .toks(from)
+        .headOption
+        .fold(Patch.empty)(tok => Add(tok, "", to, keepTok = false))
   def addRight(tok: Token, toAdd: String): Patch = Add(tok, "", toAdd)
   def addLeft(tok: Token, toAdd: String): Patch = Add(tok, toAdd, "")
 
   // Semantic patch ops.
   def removeGlobalImport(symbol: Symbol)(implicit mirror: Mirror): Patch =
     RemoveGlobalImport(symbol)
+  def addGlobalImport(symbol: Symbol): Patch =
+    TreePatch.AddGlobalSymbol(symbol)
   def addGlobalImport(importer: Importer)(implicit mirror: Mirror): Patch =
     AddGlobalImport(importer)
   def replace(

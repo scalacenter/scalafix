@@ -1,8 +1,10 @@
 package scalafix.internal.patch
 
+import scala.annotation.tailrec
 import scala.collection.immutable.Seq
 import scala.collection.mutable
 import scala.meta._
+import scalafix.internal.util.SymbolOps
 import scalafix.patch.Patch
 import scalafix.patch.TokenPatch
 import scalafix.patch.TreePatch
@@ -13,6 +15,37 @@ import scalafix.util.Newline
 
 object ImportPatchOps {
 
+  private def fallbackToken(ctx: RewriteCtx): Token = {
+    def loop(tree: Tree): Token = tree match {
+      case Source((stat: Pkg) :: _) => loop(stat)
+      case Source(_) => ctx.toks(tree).head
+      case Pkg(_, stat :: _) => loop(stat)
+      case els => ctx.tokenList.prev(ctx.tokenList.prev(ctx.toks(els).head))
+    }
+    loop(ctx.tree)
+  }
+  private def extractImports(stats: Seq[Stat]): Seq[Import] = {
+    stats
+      .takeWhile(_.is[Import])
+      .collect { case i: Import => i }
+  }
+
+  @tailrec private final def getLastTopLevelPkg(potPkg: Stat): Stat =
+    potPkg match {
+      case Pkg(_, head +: Nil) => getLastTopLevelPkg(head)
+      case Pkg(_, head +: _) => head
+      case _ => potPkg
+    }
+
+  @tailrec private final def getGlobalImports(ast: Tree): Seq[Import] =
+    ast match {
+      case Pkg(_, Seq(pkg: Pkg)) => getGlobalImports(pkg)
+      case Source(Seq(pkg: Pkg)) => getGlobalImports(pkg)
+      case Pkg(_, stats) => extractImports(stats)
+      case Source(stats) => extractImports(stats)
+      case _ => Nil
+    }
+
   // NOTE(olafur): This method is the simplest/dummest thing I can think of
   // to convert
   private[scalafix] def superNaiveImportPatchToTokenPatchConverter(
@@ -22,15 +55,18 @@ object ImportPatchOps {
     val allImports = ctx.tree.collect { case i: Import => i }
     val allImporters = allImports.flatMap(_.importers)
     val allImportees = allImporters.flatMap(_.importees)
-    val allImporteeSymbols = allImportees.flatMap { importee =>
-      importee.symbolOpt.map(_.normalized -> importee)
+    val allNamedImports = allImportees.collect {
+      case Importee.Name(n) if mirror.database.names.contains(n.pos) =>
+        n.symbol
+      // TODO(olafur) handle rename.
     }
-    def fallbackToken(tree: Tree): Token = tree match {
-      case Source(stat :: _) => fallbackToken(stat)
-      case Pkg(_, stat :: _) => fallbackToken(stat)
-      case els => ctx.toks(els).head
+    val allImporteeSymbols = allImportees.flatMap(importee =>
+      importee.symbolOpt.map(_.normalized -> importee))
+    val editToken: Token = {
+      val imports = getGlobalImports(ctx.tree)
+      if (imports.isEmpty) fallbackToken(ctx)
+      else ctx.toks(imports.last).last
     }
-    val editToken = fallbackToken(ctx.tree)
     val isRemovedImportee = mutable.LinkedHashSet.empty[Importee]
     importPatches.foreach {
       case TreePatch.RemoveGlobalImport(sym) =>
@@ -41,9 +77,15 @@ object ImportPatchOps {
       case _ =>
     }
     val extraPatches = importPatches.collect {
+      case TreePatch.AddGlobalSymbol(symbol)
+          if !allNamedImports.contains(symbol) =>
+        SymbolOps
+          .toImporter(symbol)
+          .fold(Patch.empty)(importer =>
+            ctx.addRight(editToken, s"\nimport $importer"))
       case TreePatch.AddGlobalImport(importer)
           if !allImporters.exists(_.syntax == importer.syntax) =>
-        ctx.addLeft(editToken, s"import $importer\n")
+        ctx.addRight(editToken, s"\nimport $importer")
     }
     val isRemovedImporter =
       allImporters.toIterator

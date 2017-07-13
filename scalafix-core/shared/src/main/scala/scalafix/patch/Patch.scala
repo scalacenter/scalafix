@@ -4,9 +4,7 @@ package patch
 import metaconfig._
 import scala.collection.immutable.Seq
 import scala.meta._
-import scala.meta.contrib._
 import scala.meta.internal.ast.Helpers._
-import scala.meta.tokens.Token
 import scala.meta.tokens.Token
 import scalafix.config._
 import scalafix.syntax._
@@ -17,9 +15,11 @@ import scalafix.patch.TreePatch.RenamePatch
 import scalafix.patch.TreePatch.Replace
 import scalafix.diff.DiffUtils
 import scalafix.internal.patch.ImportPatchOps
+import scalafix.internal.patch.MoveSymbolOps
 import scalafix.internal.patch.Renamer
 import scalafix.internal.patch.Replacer
 import scalafix.internal.util.TokenOps
+import scalafix.patch.TreePatch.MoveSymbol
 
 /** A data structure that can produce a .patch file.
   *
@@ -45,6 +45,8 @@ sealed abstract class Patch {
     else if (isEmpty) other
     else if (other.isEmpty) this
     else Concat(this, other)
+  def +(other: Option[Patch]): Patch =
+    this.+(other.getOrElse(Patch.empty))
   def ++(other: Iterable[Patch]): Patch = other.foldLeft(this)(_ + _)
   def isEmpty: Boolean = this == EmptyPatch
   def nonEmpty: Boolean = !isEmpty
@@ -90,6 +92,8 @@ private[scalafix] object TreePatch {
       else symbol == resolvedFrom
   }
 
+  case class MoveSymbol(from: Symbol.Global, to: Symbol.Global)
+      extends TreePatch
   @DeriveConfDecoder
   case class Replace(
       from: Symbol,
@@ -100,12 +104,13 @@ private[scalafix] object TreePatch {
     require(to.isStableId)
   }
   abstract class ImportPatch extends TreePatch
-  @DeriveConfDecoder
   case class RemoveGlobalImport(symbol: Symbol) extends ImportPatch
   @DeriveConfDecoder
   case class RemoveImportee(importee: Importee) extends ImportPatch
   @DeriveConfDecoder
   case class AddGlobalImport(importer: Importer) extends ImportPatch
+  @DeriveConfDecoder
+  case class AddGlobalSymbol(symbol: Symbol) extends ImportPatch
 }
 
 // implementation detail
@@ -140,9 +145,9 @@ object Patch {
     val patches = underlying(p)
     val semanticPatches = patches.collect { case tp: TreePatch => tp }
     mirror match {
-      case Some(x) =>
-        semanticApply(underlying(p))(ctx, x)
-      case None =>
+      case Some(x: Database) =>
+        semanticApply(p)(ctx, x)
+      case _ =>
         if (semanticPatches.nonEmpty)
           throw Failure.Unsupported(
             s"Semantic patches are not supported without a Mirror: $semanticPatches")
@@ -164,7 +169,14 @@ object Patch {
   }
 
   private def semanticApply(
-      patches: Seq[Patch])(implicit ctx: RewriteCtx, mirror: Mirror): String = {
+      patch: Patch)(implicit ctx: RewriteCtx, mirror: Database): String = {
+    val patches = {
+      val under = underlying(patch)
+      val moves = MoveSymbolOps.naiveMoveSymbolPatch(under.collect {
+        case m: MoveSymbol => m
+      })
+      underlying(moves) ++ under
+    }
     val ast = ctx.tree
     val tokenPatches = patches.collect { case e: TokenPatch => e }
     val renamePatches = Renamer.toTokenPatches(patches.collect {
