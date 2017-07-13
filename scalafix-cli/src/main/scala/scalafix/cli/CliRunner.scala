@@ -157,7 +157,7 @@ object CliRunner {
   /** Construct CliRunner with rewrite from ScalafixOptions. */
   def fromOptions(options: ScalafixOptions): Configured[CliRunner] = {
     val builder = new CliRunner.Builder(options)
-    builder.resolvedRewrite.flatMap(rewrite =>
+    builder.resolvedRewrite.andThen(rewrite =>
       fromOptions(options, rewrite, builder))
   }
 
@@ -174,28 +174,29 @@ object CliRunner {
       rewrite: Rewrite,
       builder: Builder
   ): Configured[CliRunner] = {
-    for {
-      replace <- builder.resolvedPathReplace
-      inputs <- builder.fixFilesWithMirror
-      config <- builder.resolvedConfig
-    } yield {
-      if (options.verbose) {
-        options.common.err.println(
-          s"""|Config:
-              |${Class2Hocon(config)}
-              |Rewrite:
-              |$rewrite
-              |""".stripMargin
-        )
-      }
-      new CliRunner(
-        sourceroot = builder.resolvedSourceroot,
-        cli = options,
-        config = config,
-        rewrite = rewrite,
-        replacePath = replace,
-        inputs = inputs
-      ) {}
+    (
+      builder.resolvedPathReplace |@|
+        builder.fixFilesWithMirror |@|
+        builder.resolvedConfig
+    ).map {
+      case ((replace, inputs), config) =>
+        if (options.verbose) {
+          options.common.err.println(
+            s"""|Config:
+                |${Class2Hocon(config)}
+                |Rewrite:
+                |$rewrite
+                |""".stripMargin
+          )
+        }
+        new CliRunner(
+          sourceroot = builder.resolvedSourceroot,
+          cli = options,
+          config = config,
+          rewrite = rewrite,
+          replacePath = replace,
+          inputs = inputs
+        ) {}
     }
   }
   private val META_INF = Paths.get("META-INF")
@@ -365,20 +366,19 @@ object CliRunner {
     //  - ScalafixConfig.default
     val resolvedRewriteAndConfig: Configured[(Rewrite, ScalafixConfig)] = {
       val decoder = ScalafixReflect.fromLazyMirror(lazyMirror)
-      for {
-        inputs <- fixFiles
-        configuration <- {
+      fixFiles.andThen { inputs =>
+        val configured =
           if (inputs.isEmpty) Ok(Rewrite.empty -> ScalafixConfig.default)
           else {
-            resolvedConfigInput.flatMap(input =>
+            resolvedConfigInput.andThen(input =>
               ScalafixConfig.fromInput(input, lazyMirror, rewrites)(decoder))
           }
+        configured.map { configuration =>
+          // TODO(olafur) implement withFilter on Configured
+          val (finalRewrite, scalafixConfig) = configuration
+          val finalConfig = scalafixConfig.withOut(common.err)
+          finalRewrite -> finalConfig
         }
-      } yield {
-        // TODO(olafur) implement withFilter on Configured
-        val (finalRewrite, scalafixConfig) = configuration
-        val finalConfig = scalafixConfig.withOut(common.err)
-        finalRewrite -> finalConfig
       }
     }
     val resolvedRewrite: Configured[Rewrite] =
@@ -399,27 +399,26 @@ object CliRunner {
         ConfError.msg(s"Invalid regex '$outFrom'! ${e.getMessage}").notOk
     }
 
-    val mirrorInputs: Configured[Map[AbsolutePath, Input.LabeledString]] =
-      for {
-        _ <- resolvedRewrite // force evaluation of rewrite.
-        database <- cachedDatabase.getOrElse(Ok(Database(Nil)))
-      } yield {
-        val inputsByAbsolutePath = database.entries.collect {
-          case (input @ Input.LabeledString(path, _), _) =>
-            resolvedSourceroot.resolve(path) -> input
+    val mirrorInputs: Configured[Map[AbsolutePath, Input.LabeledString]] = {
+      resolvedRewrite.andThen { _ =>
+        cachedDatabase.getOrElse(Ok(Database(Nil))).map { database =>
+          val inputsByAbsolutePath = database.entries.collect {
+            case (input @ Input.LabeledString(path, _), _) =>
+              resolvedSourceroot.resolve(path) -> input
+          }
+          inputsByAbsolutePath.toMap
         }
-        inputsByAbsolutePath.toMap
-      }
-
-    val fixFilesWithMirror: Configured[Seq[FixFile]] = for {
-      fromMirror <- mirrorInputs
-      files <- fixFiles
-    } yield {
-      files.map { file =>
-        val labeled = fromMirror.get(file.original.path)
-        file.copy(mirror = labeled)
       }
     }
+
+    val fixFilesWithMirror: Configured[Seq[FixFile]] =
+      mirrorInputs.product(fixFiles).map {
+        case (fromMirror, files) =>
+          files.map { file =>
+            val labeled = fromMirror.get(file.original.path)
+            file.copy(mirror = labeled)
+          }
+      }
 
   }
 }

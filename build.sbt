@@ -98,12 +98,6 @@ lazy val allSettings = List(
   stableVersion := version.value.replaceAll("\\+.*", ""),
   resolvers += Resolver.bintrayRepo("scalameta", "maven"),
   resolvers += Resolver.sonatypeRepo("releases"),
-  resolvers ~= { old =>
-    if (isDroneCI) {
-      println(s"Using resolver: $epflArtifactory")
-      epflArtifactory +: old
-    } else old
-  },
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
   scalacOptions ++= compilerOptions,
   scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
@@ -161,7 +155,7 @@ lazy val core = crossProject
     libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV
   )
   .jsSettings(
-    libraryDependencies += "com.geirsson" %%% "metaconfig-hocon" % metaconfigV
+//    libraryDependencies += "com.geirsson" %%% "metaconfig-hocon" % metaconfigV
   )
   .disablePlugins(ScalahostSbtPlugin)
   .enablePlugins(BuildInfoPlugin)
@@ -421,13 +415,7 @@ lazy val compilerOptions = Seq(
   "-encoding",
   "UTF-8",
   "-feature",
-  "-unchecked",
-  "-Yno-adapted-args",
-  "-Ywarn-dead-code",
-  "-language:existentials",
-  //  "-Ywarn-numeric-widen", // TODO(olafur) enable
-  "-Xfuture",
-  "-Xlint"
+  "-unchecked"
 )
 
 lazy val gitPushTag = taskKey[Unit]("Push to git tag")

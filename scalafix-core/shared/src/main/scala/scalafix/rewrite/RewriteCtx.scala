@@ -44,9 +44,6 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
   }
 
   // Syntactic patch ops.
-  def moveSymbol(from: Symbol.Global, to: Symbol.Global)(
-      implicit mirror: Mirror): Patch =
-    TreePatch.MoveSymbol(from, to)
   def removeImportee(importee: Importee): Patch =
     TreePatch.RemoveImportee(importee)
   def replaceToken(token: Token, toReplace: String): Patch =
@@ -73,17 +70,8 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
   // Semantic patch ops.
   def removeGlobalImport(symbol: Symbol)(implicit mirror: Mirror): Patch =
     RemoveGlobalImport(symbol)
-  def addGlobalImport(symbol: Symbol): Patch =
+  def addGlobalImport(symbol: Symbol)(implicit mirror: Mirror): Patch =
     TreePatch.AddGlobalSymbol(symbol)
   def addGlobalImport(importer: Importer)(implicit mirror: Mirror): Patch =
     AddGlobalImport(importer)
-  def replace(
-      from: Symbol,
-      to: Term.Ref,
-      additionalImports: List[Importer] = Nil,
-      normalized: Boolean = true)(implicit mirror: Mirror): Patch =
-    Replace(from, to, additionalImports, normalized)
-  def renameSymbol(from: Symbol, to: Name, normalize: Boolean = false)(
-      implicit mirror: Mirror): Patch =
-    RenameSymbol(from, to, normalize)
 }

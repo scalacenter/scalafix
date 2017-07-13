@@ -4,18 +4,30 @@ import scala.meta.Position
 import scala.meta.internal.inputs.XtensionPointFormatMessage
 import java.io.PrintStream
 import scalafix.internal.util.Severity
-import metaconfig.Recurse
 import metaconfig._
 
 /** A ScalafixReporter that emits messages to a PrintStream. */
-@DeriveConfDecoder
 case class PrintStreamReporter(
     outStream: PrintStream,
     minSeverity: Severity,
-    @Recurse filter: FilterMatcher,
+    filter: FilterMatcher,
     includeLoggerName: Boolean)
     extends ScalafixReporter {
-  private val FilterMatcherReader = null // shadow other reader
+  val reader: ConfDecoder[ScalafixReporter] =
+    ConfDecoder.instanceF[ScalafixReporter] { c =>
+      (
+        c.getOrElse("minSeverity")(minSeverity) |@|
+          c.getOrElse("filter")(filter) |@|
+          c.getOrElse("includeLoggerName")(includeLoggerName)
+      ).map {
+        case ((a, b), c) =>
+          copy(
+            minSeverity = a,
+            filter = b,
+            includeLoggerName = c
+          )
+      }
+    }
 
   override def report(message: String, position: Position, severity: Severity)(
       implicit ctx: LogContext): Unit = {

@@ -3,9 +3,9 @@ package rewrite
 
 import scala.meta._
 import scalafix.syntax._
-import scalafix.util.{Whitespace => _, _}
 import scala.meta.contrib._
 import scala.meta.tokens.Token._
+import scalafix.util.Newline
 
 //TODO(gabro): move the helpers somewhere else
 import NoExtendsAppSyntax._

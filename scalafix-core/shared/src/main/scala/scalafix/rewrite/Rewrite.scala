@@ -4,7 +4,6 @@ package rewrite
 import scala.collection.immutable.Seq
 import scala.meta._
 import scalafix.config.LazyMirror
-import scalafix.config.PatchConfig
 import scalafix.config.RewriteKind
 import scalafix.syntax._
 import metaconfig.ConfDecoder
@@ -71,10 +70,6 @@ object Rewrite {
     mirror.fold(empty)(emptySemantic)
   def combine(rewrites: Seq[Rewrite]): Rewrite =
     rewrites.foldLeft(empty)(_ andThen _)
-  // NOTE: this is one example where the Rewrite.wrappedRewrite hack leaks.
-  // An empty semantic rewrite is necessary to support patches from .scalafix.conf
-  // like `patches.addGlobalImport = ???`.
-  // TODO(olafur) get rid of this rewrite by converting `patches.addGlobalImport`
   // into an actual rewrite instead of handling it specially inside Patch.applied.
   private[scalafix] def emptySemantic(mirror: Mirror): Rewrite =
     semantic(x => y => Patch.empty)(Name("empty"))(mirror)
@@ -98,29 +93,6 @@ object Rewrite {
     new SemanticRewrite(mirror)(Name(name)) {
       override def rewrite(ctx: RewriteCtx): Patch = patch
     }
-
-  // Build rewrite from PatchConfig.
-  def patchRewrite(
-      patches: PatchConfig,
-      getMirror: LazyMirror): Configured[Option[Rewrite]] = {
-    val configurationPatches = patches.all
-    if (configurationPatches.isEmpty) Configured.Ok(None)
-    else {
-      getMirror(RewriteKind.Semantic) match {
-        case None =>
-          ConfError
-            .msg(".scalafix.conf patches require the Semantic API.")
-            .notOk
-        case Some(mirror) =>
-          val rewrite = Rewrite.constant(
-            "ConfigPatches",
-            configurationPatches.asPatch,
-            mirror
-          )
-          Configured.Ok(Some(rewrite))
-      }
-    }
-  }
 
   /** Combine two rewrites into a single rewrite */
   def merge(a: Rewrite, b: Rewrite): Rewrite = {

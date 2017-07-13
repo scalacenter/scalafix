@@ -33,18 +33,21 @@ object ScalafixToolbox {
       uncached
     })
 
-  def getRewriteUncached(code: Input, mirror: LazyMirror): Configured[Rewrite] =
-    for {
-      classloader <- compiler.compile(code)
-      names <- RewriteInstrumentation.getRewriteFqn(code)
-      rewrite <- names.foldLeft(Rewrite.emptyConfigured) {
-        case (rewrite, fqn) =>
-          rewrite
-            .product(
-              ClassloadRewrite(fqn, classloadRewrite(mirror), classloader))
-            .map { case (a, b) => a.andThen(b) }
-      }
-    } yield rewrite
+  def getRewriteUncached(code: Input, mirror: LazyMirror): Configured[Rewrite] = {
+    (
+      compiler.compile(code) |@|
+        RewriteInstrumentation.getRewriteFqn(code)
+    ).andThen {
+      case (classloader, names) =>
+        names.foldLeft(Configured.ok(Rewrite.empty)) {
+          case (rewrite, fqn) =>
+            rewrite
+              .product(
+                ClassloadRewrite(fqn, classloadRewrite(mirror), classloader))
+              .map { case (a, b) => a.andThen(b) }
+        }
+    }
+  }
 }
 
 class Compiler() {

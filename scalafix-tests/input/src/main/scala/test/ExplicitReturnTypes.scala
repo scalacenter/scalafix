@@ -1,7 +1,7 @@
 /*
 rewrites = ExplicitReturnTypes
-explicitReturnTypes.memberKind = [Val, Def, Var]
-explicitReturnTypes.memberVisibility = [Public, Protected]
+x.explicitReturnTypes.memberKind = [Val, Def, Var]
+x.explicitReturnTypes.memberVisibility = [Public, Protected]
  */
 package test
 
