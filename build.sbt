@@ -155,7 +155,7 @@ lazy val core = crossProject
     libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV
   )
   .jsSettings(
-//    libraryDependencies += "com.geirsson" %%% "metaconfig-hocon" % metaconfigV
+    libraryDependencies += "com.geirsson" %%% "metaconfig-hocon" % metaconfigV
   )
   .disablePlugins(ScalahostSbtPlugin)
   .enablePlugins(BuildInfoPlugin)
