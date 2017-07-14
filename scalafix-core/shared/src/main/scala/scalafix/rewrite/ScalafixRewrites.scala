@@ -14,8 +14,7 @@ object ScalafixRewrites {
   def semantic(mirror: Database): List[Rewrite] = List(
     ExplicitReturnTypes(mirror),
     RemoveUnusedImports(mirror),
-    NoAutoTupling(mirror),
-    NoExtendsApp(mirror)
+    NoAutoTupling(mirror)
   )
   def all(mirror: Database): List[Rewrite] =
     syntax ++ semantic(mirror)

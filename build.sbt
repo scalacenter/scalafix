@@ -97,6 +97,7 @@ lazy val allSettings = List(
   version := sys.props.getOrElse("scalafix.version", version.value),
   stableVersion := version.value.replaceAll("\\+.*", ""),
   resolvers += Resolver.bintrayRepo("scalameta", "maven"),
+  resolvers += Resolver.bintrayIvyRepo("scalameta", "sbt-plugins"),
   resolvers += Resolver.sonatypeRepo("releases"),
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
   scalacOptions ++= compilerOptions,

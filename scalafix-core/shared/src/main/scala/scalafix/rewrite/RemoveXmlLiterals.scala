@@ -23,7 +23,7 @@ case object RemoveXmlLiterals extends Rewrite {
   override def rewrite(ctx: RewriteCtx): Patch = {
 
     def isMultiLine(xml: Term.Xml) =
-      xml.pos.start.line != xml.pos.end.line
+      xml.pos.startLine != xml.pos.endLine
 
     /** Contains '"' or '\' */
     def containsEscapeSequence(xmlPart: Lit) = {

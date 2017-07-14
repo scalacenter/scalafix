@@ -13,9 +13,7 @@ object ScalafixCompletions {
     "DottyVarArgPattern",
     "ExplicitReturnTypes",
     "RemoveUnusedImports",
-    "Xor2Either",
-    "NoAutoTupling",
-    "NoExtendsApp"
+    "NoAutoTupling"
   )
   val parser = {
     val rewrite: Parser[String] =

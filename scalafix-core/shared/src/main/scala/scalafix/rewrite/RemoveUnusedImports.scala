@@ -12,11 +12,6 @@ case class RemoveUnusedImports(mirror: Database)
   }.toSet
   private def isUnused(importee: Importee) = {
     val pos = importee match {
-      // NOTE: workaround for https://github.com/scalameta/scalameta/issues/899
-      case Importee.Wildcard() =>
-        importee.parents
-          .collectFirst { case x: Import => x.pos }
-          .getOrElse(importee.pos)
       case Importee.Rename(name, _) => name.pos
       case _ => importee.pos
     }

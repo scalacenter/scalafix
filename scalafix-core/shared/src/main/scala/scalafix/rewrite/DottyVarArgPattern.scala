@@ -8,7 +8,7 @@ import scalafix.Patch
 case object DottyVarArgPattern extends Rewrite {
   override def rewrite(ctx: RewriteCtx): Patch = {
     val patches = ctx.tree.collect {
-      case bind @ Pat.Bind(_, Pat.Arg.SeqWildcard()) =>
+      case bind @ Pat.Bind(_, Pat.SeqWildcard()) =>
         ctx.tokenList
           .leading(bind.tokens.last)
           .collectFirst {

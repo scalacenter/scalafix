@@ -150,13 +150,13 @@ package object syntax {
     }
     def path(sourceroot: AbsolutePath): AbsolutePath = input match {
       case Input.File(path, _) => path
-      case Input.LabeledString(label, _) => sourceroot.resolve(label)
+      case Input.VirtualFile(label, _) => sourceroot.resolve(label)
       // crash
     }
     def isSbtFile: Boolean = label.endsWith(".sbt")
     def label: String = input match {
       case inputs.Input.File(path, _) => path.toString()
-      case inputs.Input.LabeledString(label, _) => label
+      case inputs.Input.VirtualFile(label, _) => label
       case _ =>
         s"Input.${input.productPrefix}('<${input.chars.take(10).mkString}...>')"
           .replaceAllLiterally(EOL, "")

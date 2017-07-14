@@ -2,6 +2,8 @@ package scalafix.internal.reflect
 
 import java.io.File
 import java.net.URLClassLoader
+import java.net.URLDecoder
+import java.net.URLEncoder
 import scala.collection.mutable
 import scala.meta.inputs.Input
 import scala.reflect.internal.util.AbstractFileClassLoader
@@ -17,6 +19,7 @@ import scalafix.internal.util.ClassloadRewrite
 import scalafix.rewrite.Rewrite
 import metaconfig.ConfError
 import metaconfig.Configured
+import org.scalameta.logger
 
 object ScalafixToolbox {
   private val rewriteCache: mutable.WeakHashMap[Input, Configured.Ok[Rewrite]] =
@@ -56,10 +59,13 @@ class Compiler() {
   settings.deprecation.value = true // enable detailed deprecation warnings
   settings.unchecked.value = true // enable detailed unchecked warnings
   settings.outputDirs.setSingleOutput(target)
+  settings.Ylogcp.value = true
   getClass.getClassLoader match {
     case u: URLClassLoader =>
-      settings.classpath.value =
-        u.getURLs.map(_.getPath).mkString(File.pathSeparator)
+      settings.classpath.value = u.getURLs
+        .map(x => URLDecoder.decode(x.getPath, "UTF-8"))
+        .mkString(File.pathSeparator)
+      logger.elem(settings.classpath.value)
     case _ => ""
   }
   lazy val reporter = new StoreReporter
@@ -74,7 +80,7 @@ class Compiler() {
     val run = new global.Run
     val label = input match {
       case Input.File(path, _) => path.toString()
-      case Input.LabeledString(label, _) => label
+      case Input.VirtualFile(label, _) => label
       case _ => "(input)"
     }
     run.compileSources(

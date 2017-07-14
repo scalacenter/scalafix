@@ -83,7 +83,7 @@ sealed abstract case class CliRunner(
     if (!input.toIO.exists() && cli.outTo.nonEmpty) true
     else {
       input.mirror match {
-        case Some(Input.LabeledString(_, contents)) =>
+        case Some(Input.VirtualFile(_, contents)) =>
           val fileToWrite = scala.io.Source.fromFile(input.toIO)
           try fileToWrite.sameElements(contents.toCharArray.toIterator)
           finally fileToWrite.close()
@@ -238,7 +238,7 @@ object CliRunner {
           val paths = cp.split(File.pathSeparator).map { path =>
             AbsolutePath.fromString(path)(common.workingPath)
           }
-          Ok(Classpath(paths))
+          Ok(Classpath(paths.toList))
         case None =>
           val cp = autoClasspath(common.workingPath)
           if (verbose) {
@@ -399,13 +399,14 @@ object CliRunner {
         ConfError.msg(s"Invalid regex '$outFrom'! ${e.getMessage}").notOk
     }
 
-    val mirrorInputs: Configured[Map[AbsolutePath, Input.LabeledString]] = {
+    val mirrorInputs: Configured[Map[AbsolutePath, Input.VirtualFile]] = {
       resolvedRewrite.andThen { _ =>
         cachedDatabase.getOrElse(Ok(Database(Nil))).map { database =>
-          val inputsByAbsolutePath = database.entries.collect {
-            case (input @ Input.LabeledString(path, _), _) =>
-              resolvedSourceroot.resolve(path) -> input
-          }
+          val inputsByAbsolutePath =
+            database.entries.toIterator.map(_.input).collect {
+              case input @ Input.VirtualFile(path, _) =>
+                resolvedSourceroot.resolve(path) -> input
+            }
           inputsByAbsolutePath.toMap
         }
       }
