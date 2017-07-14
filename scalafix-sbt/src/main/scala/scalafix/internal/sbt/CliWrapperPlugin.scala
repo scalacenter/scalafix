@@ -24,6 +24,7 @@ object CliWrapperPlugin extends AutoPlugin {
       publishLocal := {},
       publishArtifact := false)
   class HasMain(reflectiveMain: Main) {
+    import scala.language.reflectiveCalls
     def main(args: Array[String]): Unit = reflectiveMain.main(args)
   }
   type Main = {

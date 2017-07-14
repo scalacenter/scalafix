@@ -97,8 +97,8 @@ lazy val allSettings = List(
   version := sys.props.getOrElse("scalafix.version", version.value),
   stableVersion := version.value.replaceAll("\\+.*", ""),
   resolvers += Resolver.bintrayRepo("scalameta", "maven"),
+  resolvers += Resolver.bintrayIvyRepo("scalameta", "sbt-plugins"),
   resolvers += Resolver.sonatypeRepo("releases"),
-  resolvers += Resolver.sonatypeRepo("staging"),
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
   scalacOptions ++= compilerOptions,
   scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
@@ -212,6 +212,16 @@ lazy val `scalafix-sbt` = project
     ScriptedPlugin.scriptedSettings,
     sbtPlugin := true,
     testQuick := {}, // these test are slow.
+    compile.in(Compile) :=
+      compile
+        .in(Compile)
+        .dependsOn(
+          run
+            .in(cli, Compile)
+            .toTask(" --no-sys-exit " +
+              "--sbt scalafix-sbt/target/scala-2.10/sbt-0.13/src_managed/main/ScalafixCompletions.sbt")
+        )
+        .value,
     test.in(IntegrationTest) := {
       RunSbtCommand(
         s"; plz $scala212 publishLocal " +
