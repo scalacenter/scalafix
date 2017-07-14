@@ -4,20 +4,14 @@ package patch
 import metaconfig._
 import scala.collection.immutable.Seq
 import scala.meta._
-import scala.meta.internal.ast.Helpers._
 import scala.meta.tokens.Token
 import scalafix.config._
 import scalafix.syntax._
 import scalafix.patch.TokenPatch.Add
 import scalafix.patch.TokenPatch.Remove
 import scalafix.patch.TreePatch.ImportPatch
-import scalafix.patch.TreePatch.RenamePatch
-import scalafix.patch.TreePatch.Replace
 import scalafix.diff.DiffUtils
 import scalafix.internal.patch.ImportPatchOps
-import scalafix.internal.patch.MoveSymbolOps
-import scalafix.internal.patch.Renamer
-import scalafix.internal.patch.Replacer
 import scalafix.internal.util.TokenOps
 import scalafix.patch.TreePatch.MoveSymbol
 
@@ -82,35 +76,15 @@ private[scalafix] object TokenPatch {
 //////////////////////////////
 abstract class TreePatch extends Patch
 private[scalafix] object TreePatch {
-  trait RenamePatch
-  case class RenameSymbol(from: Symbol, to: Name, normalize: Boolean = false)
-      extends TreePatch
-      with RenamePatch {
-    private lazy val resolvedFrom = if (normalize) from.normalized else from
-    def matches(symbol: Symbol): Boolean =
-      if (normalize) symbol.normalized == resolvedFrom
-      else symbol == resolvedFrom
-  }
-
-  case class MoveSymbol(from: Symbol.Global, to: Symbol.Global)
-      extends TreePatch
-  @DeriveConfDecoder
-  case class Replace(
-      from: Symbol,
-      to: Term.Ref,
-      additionalImports: List[Importer] = Nil,
-      normalized: Boolean = true)
-      extends TreePatch {
-    require(to.isStableId)
-  }
   abstract class ImportPatch extends TreePatch
   case class RemoveGlobalImport(symbol: Symbol) extends ImportPatch
-  @DeriveConfDecoder
   case class RemoveImportee(importee: Importee) extends ImportPatch
-  @DeriveConfDecoder
   case class AddGlobalImport(importer: Importer) extends ImportPatch
-  @DeriveConfDecoder
   case class AddGlobalSymbol(symbol: Symbol) extends ImportPatch
+  case class MoveSymbol(from: Symbol.Global, to: Symbol.Global)
+      extends TreePatch
+  object MoveSymbol {}
+
 }
 
 // implementation detail
@@ -170,24 +144,14 @@ object Patch {
 
   private def semanticApply(
       patch: Patch)(implicit ctx: RewriteCtx, mirror: Database): String = {
-    val patches = {
-      val under = underlying(patch)
-      val moves = MoveSymbolOps.naiveMoveSymbolPatch(under.collect {
+    val base = underlying(patch)
+    val moveSymbol = underlying(
+      MoveSymbolOps.naiveMoveSymbolPatch(base.collect {
         case m: MoveSymbol => m
-      })
-      underlying(moves) ++ under
-    }
-    val ast = ctx.tree
+      }))
+    val patches = base.filterNot(_.isInstanceOf[MoveSymbol]) ++ moveSymbol
     val tokenPatches = patches.collect { case e: TokenPatch => e }
-    val renamePatches = Renamer.toTokenPatches(patches.collect {
-      case e: RenamePatch => e
-    })
-    val replacePatches = Replacer.toTokenPatches(ast, patches.collect {
-      case e: Replace => e
-    })
-    val importPatches =
-      patches.collect { case e: ImportPatch => e } ++
-        replacePatches.collect { case e: ImportPatch => e }
+    val importPatches = patches.collect { case e: ImportPatch => e }
     val importTokenPatches = {
       val result = ImportPatchOps.superNaiveImportPatchToTokenPatchConverter(
         ctx,
@@ -201,16 +165,7 @@ object Patch {
               s"Expected TokenPatch, got $els")
         }
     }
-    val replaceTokenPatches = replacePatches.collect {
-      case t: TokenPatch => t
-    }
-    syntaxApply(
-      ctx,
-      importTokenPatches ++
-        tokenPatches ++
-        replaceTokenPatches ++
-        renamePatches
-    )
+    syntaxApply(ctx, importTokenPatches ++ tokenPatches)
   }
 
   private def underlying(patch: Patch): Seq[Patch] = {

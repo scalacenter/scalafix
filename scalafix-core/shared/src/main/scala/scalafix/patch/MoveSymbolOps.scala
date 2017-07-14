@@ -1,11 +1,15 @@
-package scalafix.internal.patch
+package scalafix.patch
 
+import scalafix.config._
 import scala.collection.mutable
-import scalafix._, syntax._
 import scala.meta._
+import scalafix._
 import scalafix.internal.util.SymbolOps.BottomSymbol
 import scalafix.internal.util.SymbolOps.SignatureName
 import scalafix.patch.TreePatch.MoveSymbol
+import scalafix.syntax._
+import metaconfig.Conf
+import metaconfig.ConfDecoder
 
 object MoveSymbolOps {
   private object Select {
@@ -20,7 +24,7 @@ object MoveSymbolOps {
       implicit ctx: RewriteCtx,
       mirror: Database): Patch = {
     val moves: Map[Symbol, Symbol] =
-      ctx.config.patches.moveSymbols.toIterator.flatMap {
+      moveSymbols.toIterator.flatMap {
         case MoveSymbol(term @ Symbol.Global(qual, Signature.Term(name)), to) =>
           (term -> to) ::
             (Symbol.Global(qual, Signature.Type(name)) -> to) ::

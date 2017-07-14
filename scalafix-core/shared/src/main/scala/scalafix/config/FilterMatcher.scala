@@ -2,14 +2,19 @@ package scalafix.config
 
 import scala.meta.io.AbsolutePath
 import scala.util.matching.Regex
-import metaconfig.ExtraName
 import metaconfig._
 
-@DeriveConfDecoder
 case class FilterMatcher(
-    @ExtraName("include") includeFilters: Regex,
-    @ExtraName("exclude") excludeFilters: Regex
+    includeFilters: Regex,
+    excludeFilters: Regex
 ) {
+  val reader: ConfDecoder[FilterMatcher] =
+    ConfDecoder.instanceF[FilterMatcher] { c =>
+      (
+        c.getOrElse("include")(includeFilters) |@|
+          c.getOrElse("exclude")(excludeFilters)
+      ).map { case (a, b) => FilterMatcher(a, b) }
+    }
   def matches(file: AbsolutePath): Boolean = matches(file.toString())
   def matches(input: String): Boolean =
     includeFilters.findFirstIn(input).isDefined &&
@@ -18,6 +23,7 @@ case class FilterMatcher(
 
 object FilterMatcher {
   val matchEverything = new FilterMatcher(".*".r, mkRegexp(Nil))
+  implicit val reader: ConfDecoder[FilterMatcher] = matchEverything.reader
 
   def mkRegexp(filters: Seq[String]): Regex =
     filters match {

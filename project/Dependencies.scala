@@ -5,7 +5,7 @@ import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 object Dependencies {
   val scalametaV = "1.8.0"
   val paradiseV = "3.0.0-M9"
-  val metaconfigV = "0.3.3"
+  val metaconfigV = "0.5.0-RC4"
 
   var testClasspath: String = "empty"
   def scalahost: ModuleID = "org.scalameta" % "scalahost" % scalametaV cross CrossVersion.full

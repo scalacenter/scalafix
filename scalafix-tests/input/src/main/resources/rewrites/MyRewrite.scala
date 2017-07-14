@@ -1,6 +1,5 @@
 package foo.bar
 
-import metaconfig._
 import scalafix._
 import scala.meta._
 

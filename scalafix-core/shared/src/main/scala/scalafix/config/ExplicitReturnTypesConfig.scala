@@ -2,12 +2,28 @@ package scalafix.config
 
 import metaconfig._
 
-@DeriveConfDecoder
 case class ExplicitReturnTypesConfig(
-    memberKind: Seq[MemberKind] = Nil,
-    memberVisibility: Seq[MemberVisibility] = Nil,
+    memberKind: List[MemberKind] = Nil,
+    memberVisibility: List[MemberVisibility] = Nil,
     skipSimpleDefinitions: Boolean = true
-)
+) {
+  implicit val reader: ConfDecoder[ExplicitReturnTypesConfig] =
+    ConfDecoder.instanceF[ExplicitReturnTypesConfig] { c =>
+      (
+        c.getOrElse("memberKind")(memberKind) |@|
+          c.getOrElse("memberVisibility")(memberVisibility) |@|
+          c.getOrElse("skipSimpleDefinitions")(skipSimpleDefinitions)
+      ).map {
+        case ((a, b), c) =>
+          ExplicitReturnTypesConfig(a, b, c)
+      }
+    }
+}
+
+object ExplicitReturnTypesConfig {
+  val default = ExplicitReturnTypesConfig()
+  implicit val reader: ConfDecoder[ExplicitReturnTypesConfig] = default.reader
+}
 
 sealed trait MemberVisibility
 object MemberVisibility {

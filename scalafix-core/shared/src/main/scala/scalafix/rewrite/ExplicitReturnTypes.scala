@@ -4,6 +4,7 @@ package rewrite
 import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.contrib._
+import scalafix.config.ExplicitReturnTypesConfig
 import scalafix.config.{MemberKind, MemberVisibility}
 import scalafix.syntax._
 import scalafix.util.Whitespace
@@ -89,7 +90,11 @@ case class ExplicitReturnTypes(mirror: Mirror) extends SemanticRewrite(mirror) {
         defn: D,
         mods: Traversable[Mod],
         body: Term)(implicit ev: Extract[D, Mod]): Boolean = {
-      import ctx.config.explicitReturnTypes._
+      val config =
+        ctx.config.x.dynamic.explicitReturnTypes
+          .as[ExplicitReturnTypesConfig]
+          .get
+      import config._
 
       def matchesMemberVisibility(): Boolean =
         memberVisibility.contains(visibility(mods))

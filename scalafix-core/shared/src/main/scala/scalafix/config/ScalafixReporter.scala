@@ -47,5 +47,5 @@ object ScalafixReporter {
     includeLoggerName = false
   )
   implicit val scalafixReporterReader: ConfDecoder[ScalafixReporter] =
-    default.reader.map(_.asInstanceOf[ScalafixReporter])
+    default.reader
 }

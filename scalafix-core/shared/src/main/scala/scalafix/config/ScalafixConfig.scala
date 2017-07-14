@@ -7,21 +7,40 @@ import scala.meta.dialects.Scala211
 import scala.meta.parsers.Parse
 import metaconfig._
 
-@DeriveConfDecoder
 case class ScalafixConfig(
     parser: Parse[_ <: Tree] = Parse.parseSource,
-    @Recurse explicitReturnTypes: ExplicitReturnTypesConfig =
-      ExplicitReturnTypesConfig(),
-    @Recurse patches: PatchConfig = PatchConfig(),
-    @Recurse debug: DebugConfig = DebugConfig(),
+    debug: DebugConfig = DebugConfig(),
     fatalWarnings: Boolean = true,
     reporter: ScalafixReporter = ScalafixReporter.default,
+    patches: ConfigRewritePatches = ConfigRewritePatches.default,
     dialect: Dialect = Scala211,
     // Custom configuration for rewrites.
     // Feel free to read data from here if your custom rewrite needs
     // configuration from the user.
     x: Conf = Conf.Obj()
 ) {
+
+  val reader: ConfDecoder[ScalafixConfig] =
+    ConfDecoder.instanceF[ScalafixConfig] { conf =>
+      import conf._
+      (
+        getOrElse("fatalWarnings")(fatalWarnings) |@|
+          getOrElse("reporter")(reporter) |@|
+          getOrElse("patches")(patches)(patches.reader) |@|
+          getOrElse("dialect")(dialect) |@|
+          getOrElse("x")(x)
+      ).map {
+        case ((((a, b), c), d), e) =>
+          copy(
+            fatalWarnings = a,
+            reporter = b,
+            patches = c,
+            dialect = d,
+            x = e
+          )
+      }
+
+    }
 
   def withOut(out: PrintStream): ScalafixConfig = copy(
     reporter = reporter match {

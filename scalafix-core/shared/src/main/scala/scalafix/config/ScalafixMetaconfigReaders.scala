@@ -23,6 +23,8 @@ import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.Ok
 import scalafix.config.MetaconfigParser.{parser => hoconParser}
+import scalafix.rewrite.ConfigRewrite
+import org.scalameta.logger
 
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
 // A collection of metaconfig.Reader instances that are shared across
@@ -122,16 +124,27 @@ trait ScalafixMetaconfigReaders {
       mirror: LazyMirror,
       extraRewrites: List[String])(
       implicit decoder: ConfDecoder[Rewrite]
-  ): Configured[(Rewrite, ScalafixConfig)] =
-    for {
-      conf <- hoconParser.fromInput(input)
-      rewriteAndConfig <- config
+  ): Configured[(Rewrite, ScalafixConfig)] = {
+    hoconParser.fromInput(input).andThen { conf =>
+      config
         .scalafixConfigConfDecoder(decoder, extraRewrites)
         .read(conf)
-      (rewrite, config) = rewriteAndConfig
-      patchRewrite <- Rewrite.patchRewrite(config.patches, mirror)
-    } yield {
-      patchRewrite.fold(rewrite -> config)(rewrite.andThen(_) -> config)
+        .andThen {
+          case (rewrite, config) =>
+            ConfigRewrite(config.patches, mirror).map { configRewrite =>
+              configRewrite.fold(rewrite -> config)(
+                rewrite.andThen(_) -> config)
+            }
+        }
+    }
+  }
+
+  implicit lazy val MoveSymbolReader: ConfDecoder[MoveSymbol] =
+    ConfDecoder.instanceF[MoveSymbol] { c =>
+      (
+        c.get[Symbol.Global]("from") |@|
+          c.get[Symbol.Global]("to")
+      ).map { case (a, b) => MoveSymbol(a, b) }
     }
 
   def rewriteConfDecoderSyntactic(
@@ -165,7 +178,8 @@ trait ScalafixMetaconfigReaders {
       case Conf.Str(str) => Configured.Ok(FilterMatcher(str))
       case ConfStrLst(values) =>
         Configured.Ok(FilterMatcher(values, Nil))
-      case els => fallbackFilterMatcher.reader.read(els)
+      case els =>
+        fallbackFilterMatcher.reader.read(els)
     }
 
   def parseReader[T](implicit parse: Parse[T]): ConfDecoder[T] =
@@ -192,9 +206,6 @@ trait ScalafixMetaconfigReaders {
     castReader[Stat, Ref](parseReader[Stat])
   implicit lazy val termRefReader: ConfDecoder[Term.Ref] =
     castReader[Stat, Term.Ref](parseReader[Stat])
-  protected[scalafix] val fallbackReplace = Replace(Symbol.None, q"IGNOREME")
-  implicit lazy val replaceReader: ConfDecoder[Replace] =
-    fallbackReplace.reader
   implicit lazy val symbolReader: ConfDecoder[Symbol] =
     ConfDecoder.stringConfDecoder.map(Symbol.apply)
   private def parseSymbol(sym: String): Configured[Symbol] =
@@ -216,18 +227,10 @@ trait ScalafixMetaconfigReaders {
         val toParse =
           if (path.startsWith("_")) path
           else s"_root_.$path."
-        parseSymbol(toParse).flatMap(symbolGlobal)
+        parseSymbol(toParse).andThen(symbolGlobal)
     }
   implicit lazy val AddGlobalImportReader: ConfDecoder[AddGlobalImport] =
     importerReader.map(AddGlobalImport.apply)
-  implicit lazy val MoveSymbolReader: ConfDecoder[MoveSymbol] =
-    ConfDecoder.instance[MoveSymbol] {
-      case obj @ Conf.Obj(_) =>
-        import MetaconfigPendingUpstream.getKey
-        getKey[Symbol.Global](obj, "from")
-          .product(getKey[Symbol.Global](obj, "to"))
-          .map(MoveSymbol.tupled.apply)
-    }
   implicit lazy val RemoveGlobalImportReader: ConfDecoder[RemoveGlobalImport] =
     termRefReader.flatMap { ref =>
       parseSymbol(s"_root_.$ref.").map { s =>
