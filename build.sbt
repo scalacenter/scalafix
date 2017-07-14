@@ -212,16 +212,6 @@ lazy val `scalafix-sbt` = project
     ScriptedPlugin.scriptedSettings,
     sbtPlugin := true,
     testQuick := {}, // these test are slow.
-    compile.in(Compile) :=
-      compile
-        .in(Compile)
-        .dependsOn(
-          run
-            .in(cli, Compile)
-            .toTask(" --no-sys-exit " +
-              "--sbt scalafix-sbt/target/scala-2.10/sbt-0.13/src_managed/main/ScalafixCompletions.sbt")
-        )
-        .value,
     test.in(IntegrationTest) := {
       RunSbtCommand(
         s"; plz $scala212 publishLocal " +
