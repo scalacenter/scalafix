@@ -11,8 +11,8 @@ object RewriteInstrumentation {
     import scala.meta._
     object ExtendsRewrite {
       def unapply(templ: Template): Boolean = templ match {
-        case Template(_, ctor"Rewrite" :: _, _, _) => true
-        case Template(_, ctor"SemanticRewrite($_)" :: _, _, _) => true
+        case Template(_, init"Rewrite" :: _, _, _) => true
+        case Template(_, init"SemanticRewrite($_)" :: _, _, _) => true
         case _ => false
       }
     }
@@ -41,7 +41,7 @@ object RewriteInstrumentation {
             tree.children.foreach(s => loop(prefix :+ name.syntax, s))
           case Defn.Class(_, name, _, _, ExtendsRewrite()) =>
             add(prefix :+ name.syntax)
-          case Defn.Val(_, Pat.Var.Term(name) :: Nil, _, LambdaRewrite()) =>
+          case Defn.Val(_, Pat.Var(name) :: Nil, _, LambdaRewrite()) =>
             add(prefix :+ name.syntax)
           case _ =>
             tree.children.foreach(s => loop(prefix, s))

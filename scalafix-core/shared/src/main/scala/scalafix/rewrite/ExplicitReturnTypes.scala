@@ -20,8 +20,8 @@ case class ExplicitReturnTypes(mirror: Mirror) extends SemanticRewrite(mirror) {
   }
 
   def defnName(defn: Defn): Option[Name] = Option(defn).collect {
-    case Defn.Val(_, Seq(Pat.Var.Term(name)), _, _) => name
-    case Defn.Var(_, Seq(Pat.Var.Term(name)), _, _) => name
+    case Defn.Val(_, Seq(Pat.Var(name)), _, _) => name
+    case Defn.Var(_, Seq(Pat.Var(name)), _, _) => name
     case Defn.Def(_, name, _, _, _, _) => name
   }
 

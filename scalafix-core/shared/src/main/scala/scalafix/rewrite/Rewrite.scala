@@ -41,7 +41,7 @@ abstract class Rewrite(implicit rewriteName: Name) { self =>
     val original = ctx.tree.input
     Patch.unifiedDiff(
       original,
-      Input.LabeledString(original.label, apply(ctx, patch)))
+      Input.VirtualFile(original.label, apply(ctx, patch)))
 
   }
 

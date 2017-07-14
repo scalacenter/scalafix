@@ -1,7 +1,7 @@
 package scalafix.config
 
 import scala.meta.Position
-import scala.meta.internal.inputs.XtensionPointFormatMessage
+import scala.meta.internal.inputs.XtensionPositionFormatMessage
 import java.io.PrintStream
 import scalafix.internal.util.Severity
 import metaconfig._
@@ -34,6 +34,6 @@ case class PrintStreamReporter(
     val enclosing =
       if (includeLoggerName) s"(${ctx.enclosing.value}) " else ""
     outStream.println(
-      position.start.formatMessage(enclosing + severity.toString, message))
+      position.formatMessage(enclosing + severity.toString, message))
   }
 }

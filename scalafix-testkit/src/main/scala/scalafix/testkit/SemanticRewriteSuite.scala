@@ -36,7 +36,7 @@ abstract class SemanticRewriteSuite(
         val scalaSpecificFilename =
           dialectToPath(diffTest.attributes.dialect).toList.map(path =>
             root.resolve(RelativePath(
-              diffTest.filename.value.replaceFirst("scala", path))))
+              diffTest.filename.toString().replaceFirst("scala", path))))
         root.resolve(diffTest.filename) :: scalaSpecificFilename
       }
       val candidateBytes = candidateOutputFiles

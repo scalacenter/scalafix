@@ -53,7 +53,7 @@ object NoExtendsAppSyntax {
         open <- ctx.matching.open(close.asInstanceOf[RightBrace])
       } yield
         tokens
-          .dropWhile(_.pos.start.offset <= open.pos.start.offset)
+          .dropWhile(_.pos.start <= open.pos.start)
           .dropRight(1)
       maybeTokens.filterNot(_.isEmpty)
     }
@@ -91,7 +91,7 @@ object NoExtendsAppSyntax {
         implicit m: Mirror): Patch = {
       val maybePatch = for {
         treeToRemove <- template.parents
-          .collect { case c: Ctor.Ref => c }
+          .collect { case c: Init => c }
           .find(_.symbolOpt.map(_.normalized) == Some(normalized))
         nameToRemove <- treeToRemove.tokens.headOption
         leadingExtendsOrWithToken <- ctx.tokenList

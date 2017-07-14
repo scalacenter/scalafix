@@ -3,7 +3,7 @@ import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 /* scalafmt: { maxColumn = 120 }*/
 
 object Dependencies {
-  val scalametaV = "1.8.0"
+  val scalametaV = "1.9.0-1035-1bd51115"
   val paradiseV = "3.0.0-M9"
   val metaconfigV = "0.5.0-RC4"
 

@@ -74,7 +74,7 @@ class Compiler() {
     val run = new global.Run
     val label = input match {
       case Input.File(path, _) => path.toString()
-      case Input.LabeledString(label, _) => label
+      case Input.VirtualFile(label, _) => label
       case _ => "(input)"
     }
     run.compileSources(

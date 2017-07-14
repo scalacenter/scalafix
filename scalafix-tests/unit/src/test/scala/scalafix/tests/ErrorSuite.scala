@@ -40,7 +40,7 @@ class PatchSuite
   )
 
   checkDiff(
-    Input.LabeledString("/label", original),
+    Input.VirtualFile("/label", original),
     """--- /label
       |+++ /label
       |@@ -1,4 +1,4 @@

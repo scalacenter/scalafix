@@ -11,7 +11,7 @@ case class FixFile(
     // is labeled strings instead of Input.File. The labeled string must be used
     // in the RewriteCtx in order to position lookups in Database.names/symbols
     // to match, since scala.meta.Position.input must match.
-    mirror: Option[Input.LabeledString] = None,
+    mirror: Option[Input.VirtualFile] = None,
     // Was this file passed explicitly or expanded from a directory?
     // If the file was expanded from a directory, we may want to skip reporting
     // a parse error.
