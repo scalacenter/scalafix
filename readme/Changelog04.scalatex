@@ -17,7 +17,7 @@
 
   @ul
     @li
-      New rewrite @sect.ref{NoExtendsApp}, by @user{gabro}.
+      New rewrite @code{NoExtendsApp} (removed in v0.5), by @user{gabro}.
     @li
       New rewrite @sect.ref{DottyVarArgPattern}, by @user{gosubpl}.
     @li
