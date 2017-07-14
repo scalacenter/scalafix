@@ -219,26 +219,5 @@
     @p
       The two syntaxes are equivalent and the presence of the @code{val} keyword has been deprecated since Scala 2.10.
 
-  @sect(NoExtendsApp.toString)
-    @p
-      Replaces usage of the @code{scala.App} trait with an explicit main function.
-
-    @hl.scala
-      // before
-      object Main extends App {
-        println(s"Hello ${args(0)}")
-      }
-
-      // after
-      object Main {
-        def main(args: Array[String]) = {
-          println(s"Hello ${args(0)}")
-        }
-      }
-
-    @p
-      The @code{scala.App} trait uses @code{DelayedInit}, which has been dropped in Dotty.
-      More info @lnk("here", "https://github.com/lampepfl/dotty/blob/master/docs/docs/reference/dropped/delayed-init.md").
-
   @sect{Planned rewrites...}
     See @lnk("here", "https://github.com/scalacenter/scalafix/labels/rewrite").
