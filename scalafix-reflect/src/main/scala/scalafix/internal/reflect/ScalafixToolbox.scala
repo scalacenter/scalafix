@@ -59,13 +59,11 @@ class Compiler() {
   settings.deprecation.value = true // enable detailed deprecation warnings
   settings.unchecked.value = true // enable detailed unchecked warnings
   settings.outputDirs.setSingleOutput(target)
-  settings.Ylogcp.value = true
   getClass.getClassLoader match {
     case u: URLClassLoader =>
       settings.classpath.value = u.getURLs
         .map(x => URLDecoder.decode(x.getPath, "UTF-8"))
         .mkString(File.pathSeparator)
-      logger.elem(settings.classpath.value)
     case _ => ""
   }
   lazy val reporter = new StoreReporter

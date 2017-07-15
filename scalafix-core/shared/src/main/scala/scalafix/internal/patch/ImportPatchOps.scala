@@ -3,7 +3,6 @@ package scalafix.internal.patch
 import scala.annotation.tailrec
 import scala.collection.immutable.Seq
 import scala.collection.mutable
-import scala.meta._
 import scalafix.internal.util.SymbolOps
 import scalafix.patch.Patch
 import scalafix.patch.TokenPatch
@@ -12,6 +11,7 @@ import scalafix.patch.TreePatch.ImportPatch
 import scalafix.rewrite.RewriteCtx
 import scalafix.syntax._
 import scalafix.util.Newline
+import scala.meta._
 
 object ImportPatchOps {
 

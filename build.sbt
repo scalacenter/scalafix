@@ -1,3 +1,4 @@
+import scalajsbundler.util.JSON._
 import sbt.ScriptedPlugin
 import sbt.ScriptedPlugin._
 import Dependencies._
@@ -27,20 +28,10 @@ commands += Command.command("ci-slow") { s =>
   "scalafix-sbt/it:test" ::
     s
 }
-commands += Command.command("ci-publish") { s =>
-  s"very publish" :: s
-}
 
 lazy val publishSettings = Seq(
-  publishTo := {
-    if (customScalafixVersion.isDefined)
-      Some(
-        "releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2")
-    else
-      publishTo.in(bintray).value
-  },
-  bintrayOrganization := Some("scalameta"),
-  bintrayRepository := "maven",
+  publishTo := Some(
+    "releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2"),
   publishArtifact in Test := false,
   licenses := Seq(
     "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
@@ -96,8 +87,6 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
 lazy val allSettings = List(
   version := sys.props.getOrElse("scalafix.version", version.value),
   stableVersion := version.value.replaceAll("\\+.*", ""),
-  resolvers += Resolver.bintrayRepo("scalameta", "maven"),
-  resolvers += Resolver.bintrayIvyRepo("scalameta", "sbt-plugins"),
   resolvers += Resolver.sonatypeRepo("releases"),
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
   scalacOptions ++= compilerOptions,
@@ -110,6 +99,10 @@ lazy val allSettings = List(
   updateOptions := updateOptions.value.withCachedResolution(true)
 )
 
+lazy val allJSSettings = List(
+  additionalNpmConfig.in(Compile) := Map("private" -> bool(true))
+)
+
 allSettings
 
 gitPushTag := {
@@ -119,15 +112,6 @@ gitPushTag := {
   Seq("git", "tag", "-a", tag, "-m", tag).!!
   Seq("git", "push", "--tags").!!
 }
-
-// settings to projects using @metaconfig.ConfDecoder annotation.
-lazy val metaconfigSettings: Seq[Def.Setting[_]] = Seq(
-  addCompilerPlugin(
-    ("org.scalameta" % "paradise" % paradiseV).cross(CrossVersion.full)),
-  scalacOptions += "-Xplugin-require:macroparadise",
-  scalacOptions in (Compile, console) := Seq(), // macroparadise plugin doesn't work in repl yet.
-  sources in (Compile, doc) := Nil // macroparadise doesn't work with scaladoc yet.
-)
 
 lazy val reflect = project
   .configure(setId)
@@ -149,7 +133,8 @@ lazy val core = crossProject
     allSettings,
     publishSettings,
     buildInfoSettings,
-    metaconfigSettings,
+    addCompilerPlugin(
+      "org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
     libraryDependencies += scalameta.value
   )
   .jvmSettings(
@@ -176,6 +161,7 @@ lazy val diff = crossProject
     libraryDependencies += googleDiff
   )
   .jsSettings(
+    allJSSettings,
     npmDependencies in Compile += "diff" -> "3.2.0"
   )
   .jsConfigure(_.enablePlugins(ScalaJSBundlerPlugin))
@@ -429,8 +415,18 @@ def setId(project: Project): Project = {
     .disablePlugins(ScalahostSbtPlugin)
 }
 def customScalafixVersion = sys.props.get("scalafix.version")
-def isDroneCI = sys.env.get("CI").exists(_ == "DRONE")
-def epflArtifactory =
-  MavenRepository(
-    "epfl-artifactory",
-    "http://scala-webapps.epfl.ch:8081/artifactory/dbuild/")
+
+inScope(Global)(
+  Seq(
+    credentials ++= (for {
+      username <- sys.env.get("SONATYPE_USERNAME")
+      password <- sys.env.get("SONATYPE_PASSWORD")
+    } yield
+      Credentials(
+        "Sonatype Nexus Repository Manager",
+        "oss.sonatype.org",
+        username,
+        password)).toSeq,
+    PgpKeys.pgpPassphrase := sys.env.get("PGP_PASSPHRASE").map(_.toCharArray())
+  )
+)

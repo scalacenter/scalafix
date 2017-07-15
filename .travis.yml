@@ -13,10 +13,7 @@ env:
   - CI_TEST: ci-slow
     CI_SCALA_VERSION: 2.11.11
   - CI_TEST: scalafmt
-  global:
-  - secure: pcOAabtTTW6aY1z8H/vi7ikfYab/1qJDsdyxbmIYHTn4Lu06dsveoNyoIooA42qgQykgo54jxLQK8vpwz/OL3PvB1ds/qgsPl5wJPC/+OBh3oQzfAh/P3SUZdygOwDoYmlXMJBMy1b+yWcUQVtrODEsa6Z5VCmrwUqSwx389DfjQmvBSz/zglGwWdgcmKdm9o3gbJqBoazqB30xZ8rXgSV3BR65l6ECWLIo8RogFDUadQXdKRsQQCsUo6Leytmj7SSXgF3Ef9fz69IkN7A8PsLiMKzDjxrzyDLoYhAgZ10t7XCtUU/pHoM3nfanSNToSGnkCYXpiUn49HXuYo5RkvNe+CPy4X1koIh5+1yJcz0DSLvvNO0wABN1CGpmgSvONUouti6ueL4bCuBKzwu68LmcTuilLLRV9LpBvIpQ31i8hjDyFPssDGF+GGOJ96k+ya0WRM4Djc3j4z2o8O/lI5G5GlrAQ+zIgLLKpQ/Ig6ZC3VaB9kkVdaGq3ifnrtDjzUSR+uPYmw1i9thNkOssvfygRLMkgxOkL3UbQBcsCEX3TJtUg6wqbqROooubJ3PEsSWWjpABRYLrxR+waqOSlVOMvweOkj5NZ1BmUmeMjDqoaPOxDjJ4dlm2aOjsJgjwGpnoX+rfEGVskfaVvEorn9v/f53nn7VW5RkSkz/mxxfY=
-  - secure: N+Vufh6e2453LFzC+uZEFjkdBfk3xMQPCu0hjUyS4cAiZq2cik4pCtssJDbufehRZRd95OL6HIuKBQKBYkwHl/fqa9zJHIg219mS6AARBt98/nUms6DnwMX7Igx8PpEtGtvb9T1YuM8Ekmrz6sIB93R60pMd3BnoNBZAILHlhAxzL+cvfBByUHDZVGF6GyBp2CQSEziprjOV2Qdmm/HyEiJ6PO/omYkRwGatieaSrLkwkHROoukmw1SnnoIygVOQxeD3u1vZmnUPmP1RN/fbHak8TJN956LsQQ0OpW4GwyrImIloBCOEBLiENQMBA5c46l1sksveNxeU+NaJXd+Jwa5qfMykkUZWg692ekUc85pG6MkGeoCYdxjFK2PfOc55fIvE0AF6CRkYVXB1F+A8kyDQnSxpgpZj7vZYo8NkBGYDS9CUCTj2xycxyPBIb2YI2vYUVSOmfg5a6zXS9e3iU0E4egLixjeQoEzanp9W88OjqpUHttI1TcUEphqR+WEduwSSewa2VOlaLTL8VjaUt78gK54JQSGLZyaNOWt8BZNWYt/kX43oubNbCvtsJJVac3PvswvMr5g3TZf3xGuwtLBoHammtP4+eV4Nvlsf5ndzmX3V2S9/tzjofJZpzXyXZFSkpCvSyY38MjATzE8dQSoP6sSkP1a69O2f+pXcEl8=
-  - secure: ykBb38rCeKlVVYpa8IEkFt0k/z214F4a86cS5h0YrrFetWfqlUAI5hkjwUttqjl2FH7WBwdx6X+axC4m98TlPBfDEGjVWUVrFANy8wXRthYSLm/EoFY7khF79cakfOljOUi2HZz3L27Je8DIdMIVYPlP46qK0tUBjnkLa19gB+2v5R7Bt5Fm/76V18v2eeEDmFGVh6Xs19FVqwAKJaOrdnJoxQjhWBgo2DDcY9slzHhYthFTmArtfqudpw8uz8HT514s4DgDT6Yn4cNyQ+FTDiPHlcw6CDJgLwcEryEQNBkDeSY1giOaesYPbYAjMpvf5Piopmce8UimL3Myr1Y4DB0i6Qwmn3ZM9LTgZQU1+KKHK+sxG9rJ5DVhJME7y/69ugyWNYtPHyIS3sNsD/1ySCX65sU7B6VPa4uVZ/qahi7ZVcuCpwhIhAYUtFM22IwLQxNqtu+0P97lYfGoR3esZE4R0+GR5rrd/r/2Y5uZZg/CJQROaNSgmpuWE4KJSiwT2O5JhQm4eLjwxpZ+r1i+ricMvk17tlhli0UmXNobSluGr9kMEKmyPycEmUY9xACezsrqevrJ6tQAtQVh9AKN71muApuS0NYN3cvTDTCcf6K0Qq9hteiEaIq/yvZbvH3ZHxjCanABgEG4Ih9m9T7yFUyhd0WeEhNaFdZufdn6/xs=
+
 cache:
   directories:
   - "$HOME/.sbt/0.13/dependency"
@@ -24,6 +21,7 @@ cache:
   - "$HOME/.sbt/launchers"
   - "$HOME/.ivy2/cache"
   - "$HOME/.coursier"
+
 before_cache:
 - du -h -d 1 $HOME/.ivy2/cache
 - du -h -d 2 $HOME/.sbt/
@@ -31,5 +29,6 @@ before_cache:
 - find $HOME/.ivy2/cache -name "ivydata-*.properties" -type f -delete
 - find $HOME/.ivy2/cache -name "*scalafix*.xml" -type f -delete
 - rm -rf $HOME/.ivy2/local
+
 after_success:
-- "./bin/publish.sh"
+- "./bin/ci-publish.sh"
