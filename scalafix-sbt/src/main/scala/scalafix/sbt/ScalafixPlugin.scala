@@ -2,88 +2,66 @@ package scalafix.sbt
 
 import scala.language.reflectiveCalls
 
-import scalafix.Versions
-import java.io.File
-import sbt.File
-import sbt.Keys.{version => _}
-import sbt.Keys._
-import sbt.ScopeFilter.ScopeFilter
-import sbt._
-import sbt.inc.Analysis
-import sbt.plugins.JvmPlugin
 import scala.meta.scalahost.sbt.ScalahostSbtPlugin
-import scalafix.internal.sbt.CliWrapperPlugin
+import scalafix.Versions
+import sbt.File
+import sbt.Keys._
+import sbt._
+import sbt.plugins.JvmPlugin
 import scalafix.internal.sbt.ScalafixCompletions
+import scalafix.internal.sbt.ScalafixJarFetcher
 
 object ScalafixPlugin extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
-  override def requires: Plugins =
-    CliWrapperPlugin && ScalahostSbtPlugin && JvmPlugin
+  override def requires: Plugins = JvmPlugin
   object autoImport {
-    val scalafix = inputKey[Unit]("Run scalafix")
+    val scalafix: InputKey[Unit] = inputKey[Unit]("Run scalafix rewrite.")
+    val scalafixVersion: SettingKey[String] = settingKey[String](
+      s"Which scalafix version to run. Default is ${Versions.version}.")
+    val scalafixScalaVersion: SettingKey[String] = settingKey[String](
+      s"Which scala version to run scalafix from. Default is ${Versions.scala212}.")
     val scalafixConfig: SettingKey[Option[File]] =
       settingKey[Option[File]](
         ".scalafix.conf file to specify which scalafix rules should run.")
   }
-  import CliWrapperPlugin.autoImport._
+  import ScalahostSbtPlugin.autoImport._
+  import scalafix.internal.sbt.CliWrapperPlugin.autoImport._
   import autoImport._
-  private val scalafixVersion = _root_.scalafix.Versions.version
-
-  // override injected settings by other sbt plugins.
-  private val leaveMeAlone = Seq(
-    skip in publish := true,
-    publishLocal := {},
-    publish := {},
-    test := {},
-    sources := Nil,
-    scalacOptions := Nil,
-    javaOptions := Nil,
-    libraryDependencies := Nil,
-    publishArtifact := false,
-    publishMavenStyle := false
-  )
-
-  private val scalafixStub =
-    Project(id = s"scalafix-stub", base = file(s"project/scalafix/stub"))
-      .settings(
-        leaveMeAlone,
-        description :=
-          """Project to fetch jars for ch.epfl.scala:scalafix-cli_2.11, since there
-            |is no nice api in sbt to get jars for a ModuleId outside of
-            |a project. Please upvote https://github.com/sbt/sbt/issues/2879 to
-            |make this hack unnecessary.""".stripMargin,
-        scalaVersion := Versions.scala212,
-        libraryDependencies := Seq(
-          "ch.epfl.scala" % "scalafix-cli" % scalafixVersion cross CrossVersion.full
-        )
-      )
-
-  override def extraProjects: Seq[Project] = Seq(scalafixStub)
 
   override def globalSettings: Seq[Def.Setting[_]] = Seq(
-    cliWrapperClasspath := {
-      CrossVersion.partialVersion(sbtVersion.value) match {
-        case Some((0, x)) if x < 13 =>
-          throw new MessageOnlyException(
-            "sbt-scalafix requires sbt 0.13.13 or higher.")
-        case _ =>
-      }
-      managedClasspath.in(scalafixStub, Compile).value
-    },
+    scalafixConfig := Option(file(".scalafix.conf")).filter(_.isFile),
     cliWrapperMainClass := "scalafix.cli.Cli$",
-    scalafixConfig := Option(file(".scalafix.conf")).filter(_.isFile)
+    scalafixVersion := Versions.version,
+    scalafixScalaVersion := Versions.scala212,
+    cliWrapperClasspath := ScalafixJarFetcher.fetchJars(
+      "ch.epfl.scala",
+      s"scalafix-cli_${scalafixScalaVersion.value}",
+      scalafixVersion.value
+    )
   )
 
+  lazy val scalafixSettings = Seq(
+    scalafix := scalafixTaskImpl.evaluated
+  )
+  override def projectSettings: Seq[Def.Setting[_]] =
+    inConfig(Compile)(scalafixSettings) ++
+      inConfig(Test)(scalafixSettings) ++ List(
+      scalafix := {
+        scalafix.in(Compile).evaluated
+        scalafix.in(Test).evaluated
+      }
+    )
+
   lazy val scalafixTaskImpl: Def.Initialize[InputTask[Unit]] = Def.inputTask {
-    val main = cliWrapperMain.in(scalafixStub).value
+    val main = cliWrapperMain.value
     val log = streams.value.log
-    scalahostCompile.value // trigger compilation
-    val classpath = scalahostClasspath.value.asPath
+    compile.value // trigger compilation
+    val classpath = classDirectory.value.getAbsolutePath
     val inputArgs: Seq[String] = ScalafixCompletions.parser.parsed
     val directoriesToFix: Seq[String] =
-      scalafixUnmanagedSources.value.flatMap(_.collect {
+      unmanagedSourceDirectories.value.collect {
         case p if p.exists() => p.getAbsolutePath
-      })
+      }
     val args: Seq[String] = {
       // run scalafix rewrites
       val config =
@@ -94,8 +72,11 @@ object ScalafixPlugin extends AutoPlugin {
         if (inputArgs.nonEmpty)
           inputArgs.flatMap("-r" :: _ :: Nil)
         else Nil
-      val sourceroot =
-        ScalahostSbtPlugin.autoImport.scalametaSourceroot.value.getAbsolutePath
+      val sourceroot: String =
+        scalametaSourceroot
+          .??(file(sys.props("user.dir")))
+          .value
+          .getAbsolutePath
       // only fix unmanaged sources, skip code generated files.
       config ++
         rewriteArgs ++
@@ -116,25 +97,7 @@ object ScalafixPlugin extends AutoPlugin {
       }
     }
   }
-  lazy val scalafixSettings = Seq(
-    scalafix := scalafixTaskImpl.evaluated
-  )
 
-  override def projectSettings: Seq[Def.Setting[_]] =
-    inConfig(Compile)(scalafixSettings) ++
-      inConfig(Test)(scalafixSettings)
-
-  private def scalahostAggregateFilter: Def.Initialize[ScopeFilter] =
-    Def.setting {
-      ScopeFilter(configurations = inConfigurations(Compile, Test))
-    }
-  lazy private val scalahostClasspath: Def.Initialize[Seq[File]] =
-    Def.settingDyn(classDirectory.all(scalahostAggregateFilter.value))
-  lazy private val scalahostCompile: Def.Initialize[Task[Seq[Analysis]]] =
-    Def.taskDyn(compile.all(scalahostAggregateFilter.value))
-  lazy private val scalafixUnmanagedSources: Def.Initialize[Seq[Seq[File]]] =
-    Def.settingDyn(
-      unmanagedSourceDirectories.all(scalahostAggregateFilter.value))
   private[scalafix] implicit class XtensionFormatClasspath(paths: Seq[File]) {
     def asPath: String =
       paths.toIterator
