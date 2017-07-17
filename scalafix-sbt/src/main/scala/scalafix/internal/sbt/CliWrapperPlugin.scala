@@ -1,5 +1,6 @@
 package scalafix.internal.sbt
 
+import scalaz.concurrent.Task
 import sbt.AutoPlugin
 import sbt.Def
 import sbt.File
@@ -31,8 +32,8 @@ object CliWrapperPlugin extends AutoPlugin {
     def main(args: Array[String]): Unit
   }
   object autoImport {
-    val cliWrapperClasspath: TaskKey[Classpath] =
-      taskKey[Classpath]("classpath to run code generation in")
+    val cliWrapperClasspath: TaskKey[Seq[File]] =
+      taskKey[Seq[File]]("classpath to run code generation in")
     val cliWrapperMainClass: TaskKey[String] =
       taskKey[String]("Fully qualified name of main class")
     val cliWrapperMain: TaskKey[HasMain] =
@@ -41,7 +42,7 @@ object CliWrapperPlugin extends AutoPlugin {
   import autoImport._
   override def globalSettings: Seq[Def.Setting[_]] = Seq(
     cliWrapperMain := {
-      val cp = cliWrapperClasspath.value.map(_.data.toURI.toURL)
+      val cp = cliWrapperClasspath.value.map(_.toURI.toURL)
       val cl = new java.net.URLClassLoader(cp.toArray, null)
       val cls = cl.loadClass(cliWrapperMainClass.value)
       val constuctor = cls.getDeclaredConstructor()
