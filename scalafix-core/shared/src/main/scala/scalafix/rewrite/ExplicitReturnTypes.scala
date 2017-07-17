@@ -90,10 +90,8 @@ case class ExplicitReturnTypes(mirror: Mirror) extends SemanticRewrite(mirror) {
         defn: D,
         mods: Traversable[Mod],
         body: Term)(implicit ev: Extract[D, Mod]): Boolean = {
-      val config =
-        ctx.config.x.dynamic.explicitReturnTypes
-          .as[ExplicitReturnTypesConfig]
-          .get
+      val config = ctx.config
+        .getRewriteConfig("explicitReturnTypes", ExplicitReturnTypesConfig())
       import config._
 
       def matchesMemberVisibility(): Boolean =
