@@ -36,4 +36,19 @@ object SymbolOps {
       case _ => None
     }
   }
+  def normalize(symbol: Symbol): Symbol = symbol match {
+    case Symbol.Multi(syms) =>
+      Symbol.Multi(syms.map(normalize))
+    case Symbol.Global(sym, Signature.Type(name)) =>
+      Symbol.Global(sym, Signature.Term(name))
+    case Symbol.Global(sym, Signature.Term("package")) =>
+      normalize(sym)
+    case Symbol.Global(
+        Symbol.Global(sym, Signature.Term(name)),
+        Signature.Method("apply", _)) =>
+      Symbol.Global(sym, Signature.Term(name))
+    case Symbol.Global(sym, Signature.Method(name, _)) =>
+      Symbol.Global(normalize(sym), Signature.Term(name))
+    case x => x
+  }
 }

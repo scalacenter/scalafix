@@ -7,7 +7,7 @@ patches.moveSymbols = [
     to = "com.geirsson.mutable.CoolBuffer" }
   { from = "scala.collection.mutable.HashMap"
     to = "com.geirsson.mutable.unsafe.CoolMap" }
-  { from = "scala.math.package.sqrt"
+  { from = "scala.math.sqrt"
     to = "com.geirsson.fastmath.sqrt" }
 ]
  */
