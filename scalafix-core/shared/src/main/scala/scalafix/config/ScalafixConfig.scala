@@ -19,6 +19,9 @@ case class ScalafixConfig(
     // configuration from the user.
     x: Conf = Conf.Obj()
 ) {
+  def getRewriteConfig[T: ConfDecoder](key: String, default: T): T = {
+    x.getOrElse[T](key)(default).get
+  }
 
   val reader: ConfDecoder[ScalafixConfig] =
     ConfDecoder.instanceF[ScalafixConfig] { conf =>
