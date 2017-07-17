@@ -76,17 +76,31 @@ object ImportPatchOps {
       case x: TreePatch.RemoveImportee => isRemovedImportee += x.importee
       case _ =>
     }
-    val extraPatches = importPatches.collect {
+    val importersToAdd = importPatches.flatMap {
       case TreePatch.AddGlobalSymbol(symbol)
           if !allNamedImports.contains(symbol) =>
-        SymbolOps
-          .toImporter(symbol)
-          .fold(Patch.empty)(importer =>
-            ctx.addRight(editToken, s"\nimport $importer"))
+        SymbolOps.toImporter(symbol).toList
       case TreePatch.AddGlobalImport(importer)
           if !allImporters.exists(_.syntax == importer.syntax) =>
-        ctx.addRight(editToken, s"\nimport $importer")
+        importer :: Nil
+      case _ => Nil
     }
+    val grouped: Seq[Importer] =
+      if (ctx.config.groupImportsByPrefix)
+        importersToAdd
+          .groupBy(_.ref.syntax)
+          .map {
+            case (_, is) =>
+              Importer(
+                is.head.ref,
+                is.sortBy(_.syntax).toIterator.flatMap(_.importees).toList)
+          }
+          .toList
+      else importersToAdd
+    val extraPatches =
+      grouped
+        .sortBy(_.ref.syntax)
+        .map(is => ctx.addRight(editToken, s"\nimport ${is.syntax}"))
     val isRemovedImporter =
       allImporters.toIterator
         .filter(_.importees.forall(isRemovedImportee))

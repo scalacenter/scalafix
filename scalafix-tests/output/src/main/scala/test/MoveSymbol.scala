@@ -1,10 +1,8 @@
 package fix
 
-import com.geirsson.mutable.CoolBuffer
-import com.geirsson.mutable
+import com.geirsson.{ fastmath, mutable }
+import com.geirsson.mutable.{ CoolBuffer, unsafe }
 import com.geirsson.mutable.unsafe.CoolMap
-import com.geirsson.mutable.unsafe
-import com.geirsson.fastmath
 
 object MoveSymbol {
   fastmath.sqrt(9)

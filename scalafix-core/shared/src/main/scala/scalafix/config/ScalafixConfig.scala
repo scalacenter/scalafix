@@ -10,6 +10,7 @@ import metaconfig._
 case class ScalafixConfig(
     parser: Parse[_ <: Tree] = Parse.parseSource,
     debug: DebugConfig = DebugConfig(),
+    groupImportsByPrefix: Boolean = true,
     fatalWarnings: Boolean = true,
     reporter: ScalafixReporter = ScalafixReporter.default,
     patches: ConfigRewritePatches = ConfigRewritePatches.default,
