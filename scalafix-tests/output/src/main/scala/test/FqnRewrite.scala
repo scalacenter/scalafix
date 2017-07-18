@@ -2,6 +2,5 @@
 
 package test2
 
-import scala.collection.mutable
-import scala.collection.immutable
+import scala.collection.{ immutable, mutable }
 object FqnRewrite
