@@ -9,6 +9,7 @@ object ScalafixRewrites {
     RemoveXmlLiterals,
     ExplicitUnit,
     NoValInForComprehension,
+    DottyEnumKeyword,
     DottyVarArgPattern
   )
   def semantic(mirror: Database): List[Rewrite] = List(
