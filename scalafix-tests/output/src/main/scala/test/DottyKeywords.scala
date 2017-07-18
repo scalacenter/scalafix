@@ -4,7 +4,8 @@ object DottyKeywords {
   // This is enum
   val `enum` = "enum"
   val `inline` = "inline"
-  @`inline` def foo(a: Int) = a
+  @inline def foo(a: Int) = a
+  @scala.inline def buz(a: Int) = a
   object x {
     import DottyKeywords.{`enum` => y}
     println(y)
@@ -18,6 +19,5 @@ object DottyKeywords {
     val `enum` = 1
     `enum` + 3
   }
-  import DottyKeywords.{z => `enum`}
   `enum` + 23
 }
