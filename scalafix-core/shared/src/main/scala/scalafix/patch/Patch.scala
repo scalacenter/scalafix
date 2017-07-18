@@ -12,8 +12,9 @@ import scalafix.patch.TokenPatch.Remove
 import scalafix.patch.TreePatch.ImportPatch
 import scalafix.diff.DiffUtils
 import scalafix.internal.patch.ImportPatchOps
+import scalafix.internal.patch.ReplaceSymbolOps
 import scalafix.internal.util.TokenOps
-import scalafix.patch.TreePatch.MoveSymbol
+import scalafix.patch.TreePatch.ReplaceSymbol
 
 /** A data structure that can produce a .patch file.
   *
@@ -81,9 +82,9 @@ private[scalafix] object TreePatch {
   case class RemoveImportee(importee: Importee) extends ImportPatch
   case class AddGlobalImport(importer: Importer) extends ImportPatch
   case class AddGlobalSymbol(symbol: Symbol) extends ImportPatch
-  case class MoveSymbol(from: Symbol.Global, to: Symbol.Global)
+  case class ReplaceSymbol(from: Symbol.Global, to: Symbol.Global)
       extends TreePatch
-  object MoveSymbol {}
+  object ReplaceSymbol {}
 
 }
 
@@ -146,10 +147,10 @@ object Patch {
       patch: Patch)(implicit ctx: RewriteCtx, mirror: Database): String = {
     val base = underlying(patch)
     val moveSymbol = underlying(
-      MoveSymbolOps.naiveMoveSymbolPatch(base.collect {
-        case m: MoveSymbol => m
+      ReplaceSymbolOps.naiveMoveSymbolPatch(base.collect {
+        case m: ReplaceSymbol => m
       }))
-    val patches = base.filterNot(_.isInstanceOf[MoveSymbol]) ++ moveSymbol
+    val patches = base.filterNot(_.isInstanceOf[ReplaceSymbol]) ++ moveSymbol
     val tokenPatches = patches.collect { case e: TokenPatch => e }
     val importPatches = patches.collect { case e: ImportPatch => e }
     val importTokenPatches = {

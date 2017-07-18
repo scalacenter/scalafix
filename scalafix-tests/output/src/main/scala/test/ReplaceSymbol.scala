@@ -4,7 +4,7 @@ import com.geirsson.{ fastmath, mutable }
 import com.geirsson.mutable.{ CoolBuffer, unsafe }
 import com.geirsson.mutable.unsafe.CoolMap
 
-object MoveSymbol {
+object ReplaceSymbol {
   fastmath.sqrt(9)
   val u: unsafe.CoolMap[Int, Int] = CoolMap.empty[Int, Int]
   val x: CoolBuffer[Int] = CoolBuffer.empty[Int]

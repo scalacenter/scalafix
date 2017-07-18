@@ -2,12 +2,12 @@ package scalafix.config
 
 import scalafix.Patch
 import scalafix.patch.TreePatch.AddGlobalImport
-import scalafix.patch.TreePatch.MoveSymbol
+import scalafix.patch.TreePatch.ReplaceSymbol
 import scalafix.patch.TreePatch.RemoveGlobalImport
 import metaconfig.ConfDecoder
 
 case class ConfigRewritePatches(
-    moveSymbols: List[MoveSymbol] = Nil,
+    replaceSymbols: List[ReplaceSymbol] = Nil,
     addGlobalImports: List[AddGlobalImport] = Nil,
     removeGlobalImports: List[RemoveGlobalImport] = Nil
 ) {
@@ -15,12 +15,13 @@ case class ConfigRewritePatches(
     ConfDecoder.instanceF[ConfigRewritePatches] { conf =>
       import conf._
       (
-        getOrElse("moveSymbols")(moveSymbols) |@|
+        getOrElse("replaceSymbols")(replaceSymbols) |@|
           getOrElse("addGlobalImports")(addGlobalImports) |@|
           getOrElse("removeGlobalImports")(removeGlobalImports)
       ).map { case ((a, b), c) => ConfigRewritePatches(a, b, c) }
     }
-  def all: List[Patch] = moveSymbols ++ addGlobalImports ++ removeGlobalImports
+  def all: List[Patch] =
+    replaceSymbols ++ addGlobalImports ++ removeGlobalImports
 }
 
 object ConfigRewritePatches {
