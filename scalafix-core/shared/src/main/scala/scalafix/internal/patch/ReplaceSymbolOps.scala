@@ -1,17 +1,18 @@
-package scalafix.patch
+package scalafix.internal.patch
 
-import scalafix.config._
 import scala.collection.mutable
 import scala.meta._
 import scalafix._
+import scalafix.config._
 import scalafix.internal.util.SymbolOps.BottomSymbol
 import scalafix.internal.util.SymbolOps.SignatureName
-import scalafix.patch.TreePatch.MoveSymbol
+import scalafix.patch.Patch
+import scalafix.patch.TreePatch.ReplaceSymbol
 import scalafix.syntax._
 import metaconfig.Conf
 import metaconfig.ConfDecoder
 
-object MoveSymbolOps {
+object ReplaceSymbolOps {
   private object Select {
     def unapply(arg: Ref): Option[(Ref, Name)] = arg match {
       case Term.Select(a: Ref, b) => Some(a -> b)
@@ -20,12 +21,14 @@ object MoveSymbolOps {
     }
   }
 
-  def naiveMoveSymbolPatch(moveSymbols: Seq[MoveSymbol])(
+  def naiveMoveSymbolPatch(moveSymbols: Seq[ReplaceSymbol])(
       implicit ctx: RewriteCtx,
       mirror: Database): Patch = {
     val moves: Map[Symbol, Symbol] =
       moveSymbols.toIterator.flatMap {
-        case MoveSymbol(term @ Symbol.Global(qual, Signature.Term(name)), to) =>
+        case ReplaceSymbol(
+            term @ Symbol.Global(qual, Signature.Term(name)),
+            to) =>
           (term -> to) ::
             (Symbol.Global(qual, Signature.Type(name)) -> to) ::
             Nil

@@ -139,12 +139,12 @@ trait ScalafixMetaconfigReaders {
     }
   }
 
-  implicit lazy val MoveSymbolReader: ConfDecoder[MoveSymbol] =
-    ConfDecoder.instanceF[MoveSymbol] { c =>
+  implicit lazy val MoveSymbolReader: ConfDecoder[ReplaceSymbol] =
+    ConfDecoder.instanceF[ReplaceSymbol] { c =>
       (
         c.get[Symbol.Global]("from") |@|
           c.get[Symbol.Global]("to")
-      ).map { case (a, b) => MoveSymbol(a, b) }
+      ).map { case (a, b) => ReplaceSymbol(a, b) }
     }
 
   def rewriteConfDecoderSyntactic(

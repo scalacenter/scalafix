@@ -2,7 +2,7 @@
 patches.removeGlobalImports = [
   "scala.collection.mutable"
 ]
-patches.moveSymbols = [
+patches.replaceSymbols = [
   { from = "scala.collection.mutable.ListBuffer"
     to = "com.geirsson.mutable.CoolBuffer" }
   { from = "scala.collection.mutable.HashMap"
@@ -17,7 +17,7 @@ import scala.collection.mutable.HashMap
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable
 
-object MoveSymbol {
+object ReplaceSymbol {
   math.sqrt(9)
   val u: mutable.HashMap[Int, Int] = HashMap.empty[Int, Int]
   val x: ListBuffer[Int] = ListBuffer.empty[Int]
