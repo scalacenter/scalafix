@@ -1,10 +1,12 @@
 package fix
 
-object DottyEnumKeyword {
+object DottyKeywords {
   // This is enum
   val `enum` = "enum"
+  val `inline` = "inline"
+  @`inline` def foo(a: Int) = a
   object x {
-    import DottyEnumKeyword.{`enum` => y}
+    import DottyKeywords.{`enum` => y}
     println(y)
     class `enum`
     val u: `enum` = new `enum`
@@ -16,6 +18,6 @@ object DottyEnumKeyword {
     val `enum` = 1
     `enum` + 3
   }
-  import DottyEnumKeyword.{z => `enum`}
+  import DottyKeywords.{z => `enum`}
   `enum` + 23
 }
