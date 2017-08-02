@@ -203,11 +203,14 @@ lazy val `scalafix-sbt` = project
     ),
     testQuick := {}, // these test are slow.
     test.in(IntegrationTest) := {
-      RunSbtCommand(
-        s"; plz $scala212 publishLocal " +
-          "; very scalafix-sbt/scripted"
-      )(state.value)
+      RunSbtCommand(s"; scalafix-sbt/scripted")(state.value)
     },
+    publishLocal := publishLocal
+      .dependsOn(publishLocal in reflect)
+      .dependsOn(publishLocal in coreJVM)
+      .dependsOn(publishLocal in diffJVM)
+      .dependsOn(publishLocal in cli)
+      .value,
     addSbtPlugin(scalahostSbt),
     scalaVersion := scala210,
     crossScalaVersions := Seq(scala210),
