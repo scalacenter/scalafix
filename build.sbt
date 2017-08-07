@@ -196,6 +196,13 @@ lazy val `scalafix-sbt` = project
     buildInfoSettings,
     Defaults.itSettings,
     ScriptedPlugin.scriptedSettings,
+    commands += Command.command(
+      "installCompletions",
+      "Code generates names of scalafix rewrites.",
+      "") { s =>
+      "cli/run --sbt scalafix-sbt/src/main/scala/scalafix/internal/sbt/ScalafixRewriteNames.scala" ::
+        s
+    },
     sbtPlugin := true,
     libraryDependencies ++= Seq(
       "io.get-coursier" %% "coursier" % "1.0.0-RC6",
@@ -288,9 +295,9 @@ lazy val testsOutputDotty = project
   .settings(
     allSettings,
     noPublish,
-//    scalaVersion := dotty,
-//    crossScalaVersions := List(dotty),
-//    libraryDependencies := libraryDependencies.value.map(_.withDottyCompat()),
+    scalaVersion := dotty,
+    crossScalaVersions := List(dotty),
+    libraryDependencies := libraryDependencies.value.map(_.withDottyCompat()),
     scalacOptions := Nil
   )
   .disablePlugins(ScalahostSbtPlugin)

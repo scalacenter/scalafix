@@ -57,7 +57,8 @@ object ScalafixPlugin extends AutoPlugin {
     val log = streams.value.log
     compile.value // trigger compilation
     val classpath = classDirectory.value.getAbsolutePath
-    val inputArgs: Seq[String] = ScalafixCompletions.parser.parsed
+    val inputArgs: Seq[String] =
+      ScalafixCompletions.parser(state.value.baseDir).parsed
     val directoriesToFix: Seq[String] =
       unmanagedSourceDirectories.value.collect {
         case p if p.exists() => p.getAbsolutePath

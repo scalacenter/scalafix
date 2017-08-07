@@ -1,3 +1,4 @@
+import java.io.File
 import sbt._
 import Keys._
 import sbt.complete.Parser
