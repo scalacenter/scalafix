@@ -288,9 +288,9 @@ lazy val testsOutputDotty = project
   .settings(
     allSettings,
     noPublish,
-    scalaVersion := dotty,
-    crossScalaVersions := List(dotty),
-    libraryDependencies := libraryDependencies.value.map(_.withDottyCompat()),
+//    scalaVersion := dotty,
+//    crossScalaVersions := List(dotty),
+//    libraryDependencies := libraryDependencies.value.map(_.withDottyCompat()),
     scalacOptions := Nil
   )
   .disablePlugins(ScalahostSbtPlugin)

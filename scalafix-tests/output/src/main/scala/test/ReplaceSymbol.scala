@@ -1,10 +1,12 @@
 package fix
 
+import com.geirsson.Future
 import com.geirsson.{ fastmath, mutable }
 import com.geirsson.mutable.{ CoolBuffer, unsafe }
 import com.geirsson.mutable.unsafe.CoolMap
 
 object ReplaceSymbol {
+  Future.successful(1 + 2)
   fastmath.sqrt(9)
   val u: unsafe.CoolMap[Int, Int] = CoolMap.empty[Int, Int]
   val x: CoolBuffer[Int] = CoolBuffer.empty[Int]

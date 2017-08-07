@@ -23,6 +23,7 @@ import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.Ok
 import scalafix.config.MetaconfigParser.{parser => hoconParser}
+import scalafix.patch.TreePatch
 import scalafix.rewrite.ConfigRewrite
 import org.scalameta.logger
 
@@ -47,6 +48,12 @@ trait ScalafixMetaconfigReaders {
     }
   }
 
+  object UriRewriteString {
+    def unapply(arg: Conf.Str): Option[(String, String)] =
+      UriRewrite.unapply(arg).map {
+        case (a, b) => a -> b.getSchemeSpecificPart
+      }
+  }
   object UriRewrite {
     def unapply(arg: Conf.Str): Option[(String, URI)] =
       for {
@@ -105,10 +112,25 @@ trait ScalafixMetaconfigReaders {
     mirror(kind).toList
   }
 
+  private lazy val ReplaceSymbolR = "([^/]+)/(.*)".r
+
   def classloadRewriteDecoder(mirror: LazyMirror): ConfDecoder[Rewrite] =
     ConfDecoder.instance[Rewrite] {
-      case FromClassloadRewrite(fqn) =>
+      case UriRewriteString("scala", fqn) =>
         ClassloadRewrite(fqn, classloadRewrite(mirror))
+      case UriRewriteString("replace", replace @ ReplaceSymbolR(from, to)) =>
+        mirror(RewriteKind.Semantic) match {
+          case Some(m) =>
+            (
+              symbolGlobalReader.read(Conf.Str(from)) |@|
+                symbolGlobalReader.read(Conf.Str(to))
+            ).map {
+              case (from, to) =>
+                Rewrite.constant(replace, TreePatch.ReplaceSymbol(from, to), m)
+            }
+          case _ =>
+            Configured.error(s"$replace requires semantic API.")
+        }
     }
 
   def baseSyntacticRewriteDecoder: ConfDecoder[Rewrite] =
