@@ -124,9 +124,8 @@ trait ScalafixMetaconfigReaders {
             (
               symbolGlobalReader.read(Conf.Str(from)) |@|
                 symbolGlobalReader.read(Conf.Str(to))
-            ).map {
-              case (from, to) =>
-                Rewrite.constant(replace, TreePatch.ReplaceSymbol(from, to), m)
+            ).map(TreePatch.ReplaceSymbol.tupled).map { p =>
+              Rewrite.constant(replace, p, m)
             }
           case _ =>
             Configured.error(s"$replace requires semantic API.")

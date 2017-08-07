@@ -84,7 +84,6 @@ private[scalafix] object TreePatch {
   case class AddGlobalSymbol(symbol: Symbol) extends ImportPatch
   case class ReplaceSymbol(from: Symbol.Global, to: Symbol.Global)
       extends TreePatch
-  object ReplaceSymbol {}
 
 }
 

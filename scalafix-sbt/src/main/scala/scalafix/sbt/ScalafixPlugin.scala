@@ -10,6 +10,10 @@ import sbt._
 import sbt.plugins.JvmPlugin
 import scalafix.internal.sbt.ScalafixCompletions
 import scalafix.internal.sbt.ScalafixJarFetcher
+import sbt.Def
+import sbt.Def
+import sbt.Def
+import sbt.complete.DefaultParsers
 
 object ScalafixPlugin extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
@@ -40,64 +44,73 @@ object ScalafixPlugin extends AutoPlugin {
     )
   )
 
-  lazy val scalafixSettings = Seq(
-    scalafix := scalafixTaskImpl.evaluated
-  )
-  override def projectSettings: Seq[Def.Setting[_]] =
-    inConfig(Compile)(scalafixSettings) ++
-      inConfig(Test)(scalafixSettings) ++ List(
-      scalafix := {
-        scalafix.in(Compile).evaluated
-        scalafix.in(Test).evaluated
-      }
-    )
+  // hack to avoid illegal dynamic reference, can't figure out how to use inputTaskDyn.
+  private val workingDirectory = file(sys.props("user.dir"))
+  val p = ScalafixCompletions.parser(workingDirectory)
 
-  lazy val scalafixTaskImpl: Def.Initialize[InputTask[Unit]] = Def.inputTask {
-    val main = cliWrapperMain.value
-    val log = streams.value.log
-    compile.value // trigger compilation
-    val classpath = classDirectory.value.getAbsolutePath
-    val inputArgs: Seq[String] =
-      ScalafixCompletions.parser(state.value.baseDir).parsed
-    val directoriesToFix: Seq[String] =
-      unmanagedSourceDirectories.value.collect {
-        case p if p.exists() => p.getAbsolutePath
+  lazy val scalafixSettings = Seq(
+    scalafix.in(Compile) := scalafixTaskImpl(Compile).evaluated,
+    scalafix.in(Test) := scalafixTaskImpl(Test).evaluated,
+    scalafix := scalafixTaskImpl(Compile, Test).evaluated
+  )
+
+  override def projectSettings: Seq[Def.Setting[_]] =
+    scalafixSettings
+
+  def scalafixTaskImpl(
+      config: Configuration*): Def.Initialize[InputTask[Unit]] =
+    Def.inputTaskDyn(scalafixTaskImpl(p.parsed, config: _*))
+  def scalafixTaskImpl(
+      inputArgs: Seq[String],
+      config: Configuration*): Def.Initialize[Task[Unit]] =
+    scalafixTaskImpl(
+      inputArgs,
+      ScopeFilter(configurations = inConfigurations(config: _*)))
+  def scalafixTaskImpl(
+      inputArgs: Seq[String],
+      filter: ScopeFilter): Def.Initialize[Task[Unit]] =
+    Def.task {
+      val main = cliWrapperMain.value
+      val log = streams.value.log
+
+      compile.all(filter).value // trigger compilation
+      val classpath = classDirectory.all(filter).value.asPath
+      val directoriesToFix: Seq[String] =
+        unmanagedSourceDirectories.all(filter).value.flatten.collect {
+          case p if p.exists() => p.getAbsolutePath
+        }
+      val args: Seq[String] = {
+        // run scalafix rewrites
+        val config =
+          scalafixConfig.value
+            .map(x => "--config" :: x.getAbsolutePath :: Nil)
+            .getOrElse(Nil)
+        val rewriteArgs =
+          if (inputArgs.nonEmpty)
+            inputArgs.flatMap("-r" :: _ :: Nil)
+          else Nil
+        val sourceroot: String =
+          scalametaSourceroot.??(workingDirectory).value.getAbsolutePath
+        // only fix unmanaged sources, skip code generated files.
+        config ++
+          rewriteArgs ++
+          Seq(
+            "--no-sys-exit",
+            "--sourceroot",
+            sourceroot,
+            "--classpath",
+            classpath
+          )
       }
-    val args: Seq[String] = {
-      // run scalafix rewrites
-      val config =
-        scalafixConfig.value
-          .map(x => "--config" :: x.getAbsolutePath :: Nil)
-          .getOrElse(Nil)
-      val rewriteArgs =
-        if (inputArgs.nonEmpty)
-          inputArgs.flatMap("-r" :: _ :: Nil)
-        else Nil
-      val sourceroot: String =
-        scalametaSourceroot
-          .??(file(sys.props("user.dir")))
-          .value
-          .getAbsolutePath
-      // only fix unmanaged sources, skip code generated files.
-      config ++
-        rewriteArgs ++
-        Seq(
-          "--no-sys-exit",
-          "--sourceroot",
-          sourceroot,
-          "--classpath",
-          classpath
-        )
-    }
-    if (classpath.nonEmpty) {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, 11 | 12)) if directoriesToFix.nonEmpty =>
-          log.info(s"Running scalafix ${args.mkString(" ")}")
-          main.main((args ++ directoriesToFix).toArray)
-        case _ => // do nothing
+      if (classpath.nonEmpty) {
+        CrossVersion.partialVersion(scalaVersion.value) match {
+          case Some((2, 11 | 12)) if directoriesToFix.nonEmpty =>
+            log.info(s"Running scalafix ${args.mkString(" ")}")
+            main.main((args ++ directoriesToFix).toArray)
+          case _ => // do nothing
+        }
       }
     }
-  }
 
   private[scalafix] implicit class XtensionFormatClasspath(paths: Seq[File]) {
     def asPath: String =
