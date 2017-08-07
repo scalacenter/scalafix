@@ -173,7 +173,8 @@
       To use this rewrite:
       @ul
         @li
-          enable @code{-Yno-adapted-args}
+          enable @code{-Ywarn-adapted-args} (note, -Yno-adapted-args will fail
+          compilation, which prevents scalafix from running)
         @li
           disable @code{-Xfatal-warnings}. Unfortunately, the Scala compiler
           does not support finer grained control over the severity level
