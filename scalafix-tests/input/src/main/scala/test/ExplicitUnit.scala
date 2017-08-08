@@ -23,3 +23,4 @@ object ExplicitUnit {
     def x: String // don't touch this
   }
 }
+

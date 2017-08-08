@@ -1,4 +1,7 @@
 /*
+rewrites = [
+  "replace:scala.concurrent/com.geirsson"
+]
 patches.removeGlobalImports = [
   "scala.collection.mutable"
 ]
@@ -16,8 +19,10 @@ package fix
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable
+import scala.concurrent.Future
 
 object ReplaceSymbol {
+  Future.successful(1 + 2)
   math.sqrt(9)
   val u: mutable.HashMap[Int, Int] = HashMap.empty[Int, Int]
   val x: ListBuffer[Int] = ListBuffer.empty[Int]

@@ -23,8 +23,8 @@ import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.Ok
 import scalafix.config.MetaconfigParser.{parser => hoconParser}
+import scalafix.patch.TreePatch
 import scalafix.rewrite.ConfigRewrite
-import org.scalameta.logger
 
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
 // A collection of metaconfig.Reader instances that are shared across
@@ -47,6 +47,12 @@ trait ScalafixMetaconfigReaders {
     }
   }
 
+  object UriRewriteString {
+    def unapply(arg: Conf.Str): Option[(String, String)] =
+      UriRewrite.unapply(arg).map {
+        case (a, b) => a -> b.getSchemeSpecificPart
+      }
+  }
   object UriRewrite {
     def unapply(arg: Conf.Str): Option[(String, URI)] =
       for {
@@ -99,16 +105,32 @@ trait ScalafixMetaconfigReaders {
   private lazy val semanticRewriteClass = classOf[SemanticRewrite]
 
   def classloadRewrite(mirror: LazyMirror): Class[_] => Seq[Mirror] = { cls =>
+    val semanticRewrite =
+      cls.getClassLoader.loadClass("scalafix.rewrite.SemanticRewrite")
     val kind =
-      if (cls.isAssignableFrom(semanticRewriteClass)) RewriteKind.Semantic
+      if (semanticRewriteClass.isAssignableFrom(cls)) RewriteKind.Semantic
       else RewriteKind.Syntactic
     mirror(kind).toList
   }
 
+  private lazy val ReplaceSymbolR = "([^/]+)/(.*)".r
+
   def classloadRewriteDecoder(mirror: LazyMirror): ConfDecoder[Rewrite] =
     ConfDecoder.instance[Rewrite] {
-      case FromClassloadRewrite(fqn) =>
+      case UriRewriteString("scala", fqn) =>
         ClassloadRewrite(fqn, classloadRewrite(mirror))
+      case UriRewriteString("replace", replace @ ReplaceSymbolR(from, to)) =>
+        mirror(RewriteKind.Semantic) match {
+          case Some(m) =>
+            (
+              symbolGlobalReader.read(Conf.Str(from)) |@|
+                symbolGlobalReader.read(Conf.Str(to))
+            ).map(TreePatch.ReplaceSymbol.tupled).map { p =>
+              Rewrite.constant(replace, p, m)
+            }
+          case _ =>
+            Configured.error(s"$replace requires semantic API.")
+        }
     }
 
   def baseSyntacticRewriteDecoder: ConfDecoder[Rewrite] =

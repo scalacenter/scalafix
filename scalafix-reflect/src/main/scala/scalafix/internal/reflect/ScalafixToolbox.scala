@@ -3,8 +3,6 @@ package scalafix.internal.reflect
 import java.io.File
 import java.net.URLClassLoader
 import java.net.URLDecoder
-import java.net.URLEncoder
-import scala.collection.mutable
 import scala.meta.inputs.Input
 import scala.reflect.internal.util.AbstractFileClassLoader
 import scala.reflect.internal.util.BatchSourceFile
@@ -19,38 +17,40 @@ import scalafix.internal.util.ClassloadRewrite
 import scalafix.rewrite.Rewrite
 import metaconfig.ConfError
 import metaconfig.Configured
-import org.scalameta.logger
 
-object ScalafixToolbox {
-  private val rewriteCache: mutable.WeakHashMap[Input, Configured.Ok[Rewrite]] =
-    mutable.WeakHashMap.empty
+object ScalafixToolbox extends ScalafixToolbox
+class ScalafixToolbox {
+  private val rewriteCache =
+    new java.util.concurrent.ConcurrentHashMap[Input, Configured[Rewrite]]()
   private val compiler = new Compiler()
 
   def getRewrite(code: Input, mirror: LazyMirror): Configured[Rewrite] =
-    rewriteCache.getOrElse(code, {
+    rewriteCache.getOrDefault(code, {
       val uncached = getRewriteUncached(code, mirror)
       uncached match {
-        case toCache @ Configured.Ok(_) => rewriteCache(code) = toCache
+        case toCache @ Configured.Ok(_) =>
+          rewriteCache.put(code, toCache)
         case _ =>
       }
       uncached
     })
 
-  def getRewriteUncached(code: Input, mirror: LazyMirror): Configured[Rewrite] = {
-    (
-      compiler.compile(code) |@|
-        RewriteInstrumentation.getRewriteFqn(code)
-    ).andThen {
-      case (classloader, names) =>
-        names.foldLeft(Configured.ok(Rewrite.empty)) {
-          case (rewrite, fqn) =>
-            rewrite
-              .product(
-                ClassloadRewrite(fqn, classloadRewrite(mirror), classloader))
-              .map { case (a, b) => a.andThen(b) }
-        }
+  def getRewriteUncached(code: Input, mirror: LazyMirror): Configured[Rewrite] =
+    synchronized {
+      (
+        compiler.compile(code) |@|
+          RewriteInstrumentation.getRewriteFqn(code)
+      ).andThen {
+        case (classloader, names) =>
+          names.foldLeft(Configured.ok(Rewrite.empty)) {
+            case (rewrite, fqn) =>
+              val args = classloadRewrite(mirror)
+              rewrite
+                .product(ClassloadRewrite(fqn, args, classloader))
+                .map { case (a, b) => a.andThen(b) }
+          }
+      }
     }
-  }
 }
 
 class Compiler() {
@@ -87,7 +87,10 @@ class Compiler() {
       case reporter.Info(pos, msg, reporter.ERROR) =>
         ConfError
           .msg(msg)
-          .atPos(m.Position.Range(input, pos.start, pos.end))
+          .atPos(
+            if (pos.isDefined) m.Position.Range(input, pos.start, pos.end)
+            else m.Position.None
+          )
           .notOk
     }
     ConfError

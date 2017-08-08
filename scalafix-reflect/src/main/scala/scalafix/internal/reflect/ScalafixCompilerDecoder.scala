@@ -1,9 +1,15 @@
 package scalafix.internal.reflect
 
 import java.io.File
+import java.io.FileNotFoundException
 import java.net.URL
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.attribute.FileAttribute
+import java.util.concurrent.ConcurrentHashMap
 import scala.meta.Input
-import scalafix.Rewrite
+import scalafix.rewrite.Rewrite
 import scalafix.config.LazyMirror
 import scalafix.config.ScalafixMetaconfigReaders.UriRewrite
 import scalafix.internal.util.FileOps
@@ -13,6 +19,7 @@ import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
+import org.scalameta.logger
 
 object ScalafixCompilerDecoder {
   def baseCompilerDecoder(mirror: LazyMirror): ConfDecoder[Rewrite] =
@@ -87,15 +94,31 @@ object ScalafixCompilerDecoder {
   }
 
   object FromSourceRewrite {
+    private val scalafixRoot = Files.createTempDirectory("scalafix")
+    scalafixRoot.toFile.deleteOnExit()
+    private val fileCache = scala.collection.concurrent.TrieMap.empty[Int, Path]
+    private def getTempFile(url: URL, code: String): Path =
+      fileCache.getOrElseUpdate(
+        code.hashCode, {
+          val filename = Paths.get(url.getPath).getFileName.toString
+          val tmp = Files.createTempFile(scalafixRoot, filename, ".scala")
+          Files.write(tmp, code.getBytes)
+          tmp
+        }
+      )
     def unapply(arg: Conf.Str): Option[Configured[Input]] = arg match {
       case FileRewrite(file) =>
         // NOgg
         Option(Ok(Input.File(file)))
       case UrlRewrite(Ok(url)) =>
-        val code = FileOps.readURL(url)
-        val file = File.createTempFile(url.toString, ".scala")
-        FileOps.writeFile(file, code)
-        Option(Ok(Input.File(file)))
+        try {
+          val code = FileOps.readURL(url)
+          val file = getTempFile(url, code)
+          Option(Ok(Input.File(file)))
+        } catch {
+          case e: FileNotFoundException =>
+            Option(Configured.error(s"404 - not found $url"))
+        }
       case _ => None
     }
   }

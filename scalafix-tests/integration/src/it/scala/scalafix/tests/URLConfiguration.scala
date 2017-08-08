@@ -14,7 +14,7 @@ class URLConfiguration extends FunSuite {
     val mirror = Some(Database(Nil))
     val obtained =
       ScalafixReflect
-        .fromLazyMirror(mirror)
+        .fromLazyMirror(_ => mirror)
         .read(Conf.Str(url))
     assert(obtained.get.name.contains("Rewrite2"))
   }

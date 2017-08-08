@@ -68,7 +68,7 @@ class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
             else s" or constructor matching arguments $args"
           throw new IllegalArgumentException(
             s"""No suitable constructor on $clazz.
-               |Expected : zeroargument constructor$argsMsg
+               |Expected : zero argument constructor $argsMsg
                |Found    : $constructors
              """.stripMargin)
         }
