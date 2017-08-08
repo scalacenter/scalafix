@@ -15,4 +15,3 @@ object ScalafixRewriteNames {
     "NoAutoTupling"
   )
 }
-

@@ -11,15 +11,14 @@ import sbt.plugins.JvmPlugin
 import scalafix.internal.sbt.ScalafixCompletions
 import scalafix.internal.sbt.ScalafixJarFetcher
 import sbt.Def
-import sbt.Def
-import sbt.Def
-import sbt.complete.DefaultParsers
 
 object ScalafixPlugin extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
   override def requires: Plugins = JvmPlugin
   object autoImport {
     val scalafix: InputKey[Unit] = inputKey[Unit]("Run scalafix rewrite.")
+    val scalafixVerbose: SettingKey[Boolean] =
+      settingKey[Boolean]("pass --verbose to scalafix")
     val scalafixVersion: SettingKey[String] = settingKey[String](
       s"Which scalafix version to run. Default is ${Versions.version}.")
     val scalafixScalaVersion: SettingKey[String] = settingKey[String](
@@ -35,6 +34,7 @@ object ScalafixPlugin extends AutoPlugin {
   override def globalSettings: Seq[Def.Setting[_]] = Seq(
     scalafixConfig := Option(file(".scalafix.conf")).filter(_.isFile),
     cliWrapperMainClass := "scalafix.cli.Cli$",
+    scalafixVerbose := false,
     scalafixVersion := Versions.version,
     scalafixScalaVersion := Versions.scala212,
     cliWrapperClasspath := ScalafixJarFetcher.fetchJars(
@@ -46,7 +46,7 @@ object ScalafixPlugin extends AutoPlugin {
 
   // hack to avoid illegal dynamic reference, can't figure out how to use inputTaskDyn.
   private val workingDirectory = file(sys.props("user.dir"))
-  val p = ScalafixCompletions.parser(workingDirectory)
+  private val scalafixParser = ScalafixCompletions.parser(workingDirectory)
 
   lazy val scalafixSettings = Seq(
     scalafix.in(Compile) := scalafixTaskImpl(Compile).evaluated,
@@ -59,17 +59,15 @@ object ScalafixPlugin extends AutoPlugin {
 
   def scalafixTaskImpl(
       config: Configuration*): Def.Initialize[InputTask[Unit]] =
-    Def.inputTaskDyn(scalafixTaskImpl(p.parsed, config: _*))
-  def scalafixTaskImpl(
-      inputArgs: Seq[String],
-      config: Configuration*): Def.Initialize[Task[Unit]] =
-    scalafixTaskImpl(
-      inputArgs,
-      ScopeFilter(configurations = inConfigurations(config: _*)))
+    Def.inputTaskDyn(
+      scalafixTaskImpl(
+        scalafixParser.parsed,
+        ScopeFilter(configurations = inConfigurations(config: _*))))
   def scalafixTaskImpl(
       inputArgs: Seq[String],
       filter: ScopeFilter): Def.Initialize[Task[Unit]] =
     Def.task {
+      val verbose = if (scalafixVerbose.value) "--verbose" :: Nil else Nil
       val main = cliWrapperMain.value
       val log = streams.value.log
 
@@ -79,6 +77,12 @@ object ScalafixPlugin extends AutoPlugin {
         unmanagedSourceDirectories.all(filter).value.flatten.collect {
           case p if p.exists() => p.getAbsolutePath
         }
+      val baseArgs = Set[String](
+        "--project-id",
+        name.value,
+        "--no-sys-exit",
+        "--non-interactive"
+      )
       val args: Seq[String] = {
         // run scalafix rewrites
         val config =
@@ -92,10 +96,11 @@ object ScalafixPlugin extends AutoPlugin {
         val sourceroot: String =
           scalametaSourceroot.??(workingDirectory).value.getAbsolutePath
         // only fix unmanaged sources, skip code generated files.
-        config ++
+        verbose ++
+          config ++
           rewriteArgs ++
-          Seq(
-            "--no-sys-exit",
+          baseArgs ++
+          List(
             "--sourceroot",
             sourceroot,
             "--classpath",
@@ -105,7 +110,8 @@ object ScalafixPlugin extends AutoPlugin {
       if (classpath.nonEmpty) {
         CrossVersion.partialVersion(scalaVersion.value) match {
           case Some((2, 11 | 12)) if directoriesToFix.nonEmpty =>
-            log.info(s"Running scalafix ${args.mkString(" ")}")
+            val nonBaseArgs = args.filterNot(baseArgs).mkString(" ")
+            log.info(s"Running scalafix $nonBaseArgs")
             main.main((args ++ directoriesToFix).toArray)
           case _ => // do nothing
         }

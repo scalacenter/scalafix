@@ -121,8 +121,14 @@ case class ScalafixOptions(
       """Print out zsh completion file for scalafix. To install:
         |          scalafix --zsh > /usr/local/share/zsh/site-functions/_scalafix""".stripMargin)
     zsh: Boolean = false,
+    @HelpMessage("Don't use fancy progress bar.")
+    nonInteractive: Boolean = false,
+    @HelpMessage("String ID to prefix reported messages with")
+    projectId: Option[String] = None,
     @HelpMessage("""Print out sbt completion parser to argument.""".stripMargin)
     @ValueDescription("scalafix-sbt/src/main/scala/Completions.scala")
     @Hidden
     sbt: Option[String] = None
-)
+) {
+  def projectIdPrefix: String = projectId.fold("")(id => s"[$id] ")
+}

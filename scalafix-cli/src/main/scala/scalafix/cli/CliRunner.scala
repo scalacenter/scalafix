@@ -3,6 +3,7 @@ package cli
 
 import java.io.File
 import java.io.OutputStreamWriter
+import java.io.PrintStream
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
@@ -51,10 +52,12 @@ sealed abstract case class CliRunner(
   implicit val workingDirectory: AbsolutePath = common.workingPath
 
   def run(): ExitStatus = {
-    val display = new TermDisplay(new OutputStreamWriter(System.out))
+    val display = new TermDisplay(
+      new OutputStreamWriter(cli.common.out),
+      fallbackMode = cli.nonInteractive || TermDisplay.defaultFallbackMode)
     if (inputs.length > 10) display.init()
     if (inputs.isEmpty) common.err.println("Running scalafix on 0 files.")
-    val msg = s"Running scalafix rewrite ${rewrite.name}..."
+    val msg = cli.projectIdPrefix + s"Running ${rewrite.name}"
     display.startTask(msg, common.workingDirectoryFile)
     display.taskLength(msg, inputs.length, 0)
     val exitCode = new AtomicReference(ExitStatus.Ok)

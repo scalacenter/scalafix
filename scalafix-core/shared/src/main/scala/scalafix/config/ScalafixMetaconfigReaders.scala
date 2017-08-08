@@ -25,7 +25,6 @@ import metaconfig.Configured.Ok
 import scalafix.config.MetaconfigParser.{parser => hoconParser}
 import scalafix.patch.TreePatch
 import scalafix.rewrite.ConfigRewrite
-import org.scalameta.logger
 
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
 // A collection of metaconfig.Reader instances that are shared across
@@ -106,8 +105,10 @@ trait ScalafixMetaconfigReaders {
   private lazy val semanticRewriteClass = classOf[SemanticRewrite]
 
   def classloadRewrite(mirror: LazyMirror): Class[_] => Seq[Mirror] = { cls =>
+    val semanticRewrite =
+      cls.getClassLoader.loadClass("scalafix.rewrite.SemanticRewrite")
     val kind =
-      if (cls.isAssignableFrom(semanticRewriteClass)) RewriteKind.Semantic
+      if (semanticRewriteClass.isAssignableFrom(cls)) RewriteKind.Semantic
       else RewriteKind.Syntactic
     mirror(kind).toList
   }

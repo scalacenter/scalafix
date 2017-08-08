@@ -1,6 +1,5 @@
 # compile should not affect scalafix
 > compile
 > scalafix
-> scalafix https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/80218434edb85120a9c6fd6533a4418118de8ba7/ExampleRewrite.scala
 > check
 
