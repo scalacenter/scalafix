@@ -53,7 +53,8 @@ sealed abstract case class CliRunner(
 
   def run(): ExitStatus = {
     val display = new TermDisplay(
-      new OutputStreamWriter(cli.common.out),
+      new OutputStreamWriter(
+        if (cli.stdout) cli.common.err else cli.common.out),
       fallbackMode = cli.nonInteractive || TermDisplay.defaultFallbackMode)
     if (inputs.length > 10) display.init()
     if (inputs.isEmpty) common.err.println("Running scalafix on 0 files.")
