@@ -6,6 +6,7 @@ import scala.meta.tokens.Tokens
 import scalafix.syntax._
 import scalafix.config.ScalafixConfig
 import scalafix.config.ScalafixReporter
+import scalafix.internal.util.SymbolOps.BottomSymbol
 import scalafix.patch.PatchOps
 import scalafix.patch.TokenPatch
 import scalafix.patch.TokenPatch.Add
@@ -77,5 +78,10 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
   def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
       implicit mirror: Mirror): Patch =
     TreePatch.ReplaceSymbol(fromSymbol, toSymbol)
+  def renameSymbol(fromSymbol: Symbol.Global, toName: String)(
+      implicit mirror: Mirror): Patch =
+    TreePatch.ReplaceSymbol(
+      fromSymbol,
+      Symbol.Global(BottomSymbol(), Signature.Term(toName)))
 
 }

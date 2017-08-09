@@ -20,4 +20,5 @@ trait PatchOps {
   def addGlobalImport(importer: Importer)(implicit mirror: Mirror): Patch
   def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
       implicit mirror: Mirror): Patch
+  def renameSymbol(fromSymbol: Symbol.Global, toName: String)(implicit mirror: Mirror): Patch
 }
