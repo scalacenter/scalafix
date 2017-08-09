@@ -205,8 +205,8 @@ lazy val `scalafix-sbt` = project
     },
     sbtPlugin := true,
     libraryDependencies ++= Seq(
-      "io.get-coursier" %% "coursier" % "1.0.0-RC6",
-      "io.get-coursier" %% "coursier-cache" % "1.0.0-RC6"
+      "io.get-coursier" %% "coursier" % coursier.util.Properties.version,
+      "io.get-coursier" %% "coursier-cache" % coursier.util.Properties.version
     ),
     testQuick := {}, // these test are slow.
     test.in(IntegrationTest) := {
