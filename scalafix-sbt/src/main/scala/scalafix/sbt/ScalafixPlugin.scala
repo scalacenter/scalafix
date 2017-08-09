@@ -37,11 +37,17 @@ object ScalafixPlugin extends AutoPlugin {
     scalafixVerbose := false,
     scalafixVersion := Versions.version,
     scalafixScalaVersion := Versions.scala212,
-    cliWrapperClasspath := ScalafixJarFetcher.fetchJars(
-      "ch.epfl.scala",
-      s"scalafix-cli_${scalafixScalaVersion.value}",
-      scalafixVersion.value
-    )
+    cliWrapperClasspath := {
+      val jars = ScalafixJarFetcher.fetchJars(
+        "ch.epfl.scala",
+        s"scalafix-cli_${scalafixScalaVersion.value}",
+        scalafixVersion.value
+      )
+      if (jars.isEmpty) {
+        throw new MessageOnlyException("Unable to download scalafix-cli jars!")
+      }
+      jars
+    }
   )
 
   // hack to avoid illegal dynamic reference, can't figure out how to use inputTaskDyn.
