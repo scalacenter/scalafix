@@ -18,4 +18,6 @@ trait PatchOps {
   def removeGlobalImport(symbol: Symbol)(implicit mirror: Mirror): Patch
   def addGlobalImport(symbol: Symbol)(implicit mirror: Mirror): Patch
   def addGlobalImport(importer: Importer)(implicit mirror: Mirror): Patch
+  def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
+      implicit mirror: Mirror): Patch
 }
