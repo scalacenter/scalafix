@@ -113,23 +113,26 @@ trait ScalafixMetaconfigReaders {
     mirror(kind).toList
   }
 
-  private lazy val ReplaceSymbolR = "([^/]+)/(.*)".r
+  private lazy val SlashSeparated = "([^/]+)/(.*)".r
+
+  private def requireSemanticMirror[T](mirror: LazyMirror, what: String)(
+      f: Mirror => Configured[T]): Configured[T] = {
+    mirror(RewriteKind.Semantic).fold(
+      Configured.error(s"$what requires the semantic API."): Configured[T])(f)
+  }
 
   def classloadRewriteDecoder(mirror: LazyMirror): ConfDecoder[Rewrite] =
     ConfDecoder.instance[Rewrite] {
       case UriRewriteString("scala", fqn) =>
         ClassloadRewrite(fqn, classloadRewrite(mirror))
-      case UriRewriteString("replace", replace @ ReplaceSymbolR(from, to)) =>
-        mirror(RewriteKind.Semantic) match {
-          case Some(m) =>
-            (
-              symbolGlobalReader.read(Conf.Str(from)) |@|
-                symbolGlobalReader.read(Conf.Str(to))
-            ).map(TreePatch.ReplaceSymbol.tupled).map { p =>
-              Rewrite.constant(replace, p, m)
-            }
-          case _ =>
-            Configured.error(s"$replace requires semantic API.")
+      case UriRewriteString("replace", replace @ SlashSeparated(from, to)) =>
+        requireSemanticMirror(mirror, replace) { m =>
+          (
+            symbolGlobalReader.read(Conf.Str(from)) |@|
+              symbolGlobalReader.read(Conf.Str(to))
+          ).map(TreePatch.ReplaceSymbol.tupled).map { p =>
+            Rewrite.constant(replace, p, m)
+          }
         }
     }
 
@@ -161,7 +164,7 @@ trait ScalafixMetaconfigReaders {
     }
   }
 
-  implicit lazy val MoveSymbolReader: ConfDecoder[ReplaceSymbol] =
+  implicit lazy val ReplaceSymbolReader: ConfDecoder[ReplaceSymbol] =
     ConfDecoder.instanceF[ReplaceSymbol] { c =>
       (
         c.get[Symbol.Global]("from") |@|

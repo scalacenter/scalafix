@@ -27,6 +27,10 @@ object ReplaceSymbolOps {
     val moves: Map[Symbol, Symbol] =
       moveSymbols.toIterator.flatMap {
         case ReplaceSymbol(
+            term @ Symbol.Global(qual, Signature.Method(name, _)),
+            to) =>
+          (term -> to) :: Nil
+        case ReplaceSymbol(
             term @ Symbol.Global(qual, Signature.Term(name)),
             to) =>
           (term -> to) ::
@@ -63,18 +67,25 @@ object ReplaceSymbolOps {
             case Symbol.Multi(syms) => syms
             case els => els :: Nil
           }
-          .map(_.normalized)
-          .collectFirst { case x if moves.contains(x) => moves(x) }
+          .collectFirst {
+            case x if moves.contains(x) => moves(x)
+            case x if moves.contains(x.normalized) => moves(x.normalized)
+          }
         result
       }
     }
     val toImport = mutable.Set.empty[Symbol]
     val patches = ctx.tree.collect {
       case n @ Move(to) =>
+        // was this written as `to = "blah"` instead of `to = _root_.blah`
+        val isSelected = to match {
+          case Symbol.Global(BottomSymbol(), _) => false
+          case _ => true
+        }
         n.parent match {
           case Some(i @ Importee.Name(_)) =>
             ctx.removeImportee(i)
-          case Some(parent @ Select(_, `n`)) =>
+          case Some(parent @ Select(_, `n`)) if isSelected =>
             val (patch, imp) = loop(parent, to)
             toImport += imp
             patch

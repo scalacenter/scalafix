@@ -11,6 +11,7 @@ object SymbolOps {
     }
   }
   object BottomSymbol {
+    def apply(): Symbol = Symbol.Global(Symbol.None, Signature.Term("_root_"))
     def unapply(arg: Symbol): Boolean = arg match {
       case Symbol.Global(Symbol.None, Signature.Term("_root_")) => true
       case _ => false

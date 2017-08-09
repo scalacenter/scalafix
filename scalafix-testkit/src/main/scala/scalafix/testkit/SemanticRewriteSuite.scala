@@ -1,7 +1,9 @@
 package scalafix
 package testkit
 
+import scalafix.syntax._
 import scala.meta._
+import org.scalameta.logger
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 
@@ -51,6 +53,15 @@ abstract class SemanticRewriteSuite(
         candidateBytes
       )
       assertNoDiff(obtained, expected)
+    }
+  }
+
+  /** Helper method to print out mirror for individual files */
+  def debugFile(filename: String): Unit = {
+    mirror.entries.foreach { entry =>
+      if (entry.input.label.contains(filename)) {
+        logger.elem(entry)
+      }
     }
   }
 
