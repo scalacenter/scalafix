@@ -1,8 +1,9 @@
 package scalafix.internal.sbt
 
+import java.io.OutputStreamWriter
 import sbt.File
 
-object ScalafixJarFetcher {
+private[scalafix] object ScalafixJarFetcher {
   def fetchJars(org: String, artifact: String, version: String): List[File] =
     this.synchronized {
       import coursier._
@@ -11,7 +12,8 @@ object ScalafixJarFetcher {
         Cache.ivy2Local,
         MavenRepository("https://repo1.maven.org/maven2")
       )
-      val fetch = Fetch.from(repositories, Cache.fetch())
+      val logger = new TermDisplay(new OutputStreamWriter(System.err), true)
+      val fetch = Fetch.from(repositories, Cache.fetch(logger = Some(logger)))
       val resolution = start.process.run(fetch).unsafePerformSync
       val errors = resolution.metadataErrors
       if (errors.nonEmpty) {
