@@ -3,6 +3,7 @@ package scalafix.cli
 import java.nio.file.Files
 import java.nio.file.Path
 import scala.collection.immutable.Seq
+import scala.meta.internal.tokenizers.PlatformTokenizerCache
 import scalafix.cli.CliCommand.PrintAndExit
 import scalafix.cli.CliCommand.RunScalafix
 import scalafix.internal.cli.CommonOptions
@@ -180,7 +181,10 @@ object ScalafixRewriteNames {
     val exit = runMain(args.to[Seq], CommonOptions())
     if (args.contains("--no-sys-exit")) {
       if (exit.code != 0) throw NonZeroExitCode(exit)
-      else ()
+      else {
+        // This one accummulates a lot of garbage, scalameta needs to get rid of it.
+        PlatformTokenizerCache.megaCache.clear()
+      }
     } else sys.exit(exit.code)
   }
 
