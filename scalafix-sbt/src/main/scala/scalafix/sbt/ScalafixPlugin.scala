@@ -2,7 +2,6 @@ package scalafix.sbt
 
 import scala.language.reflectiveCalls
 
-import scala.meta.scalahost.sbt.ScalahostSbtPlugin
 import scalafix.Versions
 import sbt.File
 import sbt.Keys._
@@ -10,7 +9,6 @@ import sbt._
 import sbt.plugins.JvmPlugin
 import scalafix.internal.sbt.ScalafixCompletions
 import scalafix.internal.sbt.ScalafixJarFetcher
-import sbt.Def
 
 object ScalafixPlugin extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
@@ -19,6 +17,19 @@ object ScalafixPlugin extends AutoPlugin {
     val scalafix: InputKey[Unit] = inputKey[Unit]("Run scalafix rewrite.")
     val scalafixVerbose: SettingKey[Boolean] =
       settingKey[Boolean]("pass --verbose to scalafix")
+    lazy val scalafixScalacOptions: Def.Initialize[Seq[String]] = Def.setting {
+      val pluginName = "semanticdb"
+      Seq(
+        "-Yrangepos",
+        "-Xplugin-require:semanticdb",
+        s"-P:$pluginName:sourceroot:${scalafixSourceroot.value.getAbsolutePath}"
+      )
+    }
+    def scalafixSettings: Seq[Def.Setting[_]] =
+      scalafixTaskSettings ++
+        scalafixScalacSettings
+    val scalafixSourceroot: SettingKey[File] = settingKey[File](
+      s"Which sourceroot should be used for .semanticdb files.")
     val scalafixVersion: SettingKey[String] = settingKey[String](
       s"Which scalafix version to run. Default is ${Versions.version}.")
     val scalafixScalaVersion: SettingKey[String] = settingKey[String](
@@ -27,7 +38,6 @@ object ScalafixPlugin extends AutoPlugin {
       settingKey[Option[File]](
         ".scalafix.conf file to specify which scalafix rules should run.")
   }
-  import ScalahostSbtPlugin.autoImport._
   import scalafix.internal.sbt.CliWrapperPlugin.autoImport._
   import autoImport._
 
@@ -35,6 +45,7 @@ object ScalafixPlugin extends AutoPlugin {
     scalafixConfig := Option(file(".scalafix.conf")).filter(_.isFile),
     cliWrapperMainClass := "scalafix.cli.Cli$",
     scalafixVerbose := false,
+    scalafixSourceroot := baseDirectory.in(ThisBuild).value,
     scalafixVersion := Versions.version,
     scalafixScalaVersion := Versions.scala212,
     cliWrapperClasspath := {
@@ -51,10 +62,47 @@ object ScalafixPlugin extends AutoPlugin {
   )
 
   // hack to avoid illegal dynamic reference, can't figure out how to use inputTaskDyn.
-  private val workingDirectory = file(sys.props("user.dir"))
+  private def workingDirectory = file(sys.props("user.dir"))
   private val scalafixParser = ScalafixCompletions.parser(workingDirectory)
+  private val isSupportedScalaVersion = Def.setting {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, 11 | 12)) => true
+      case _ => false
+    }
+  }
+  private object logger {
+    def warn(msg: String): Unit = {
+      println(
+        s"[${scala.Console.YELLOW}warn${scala.Console.RESET}] scalafix - $msg")
+    }
+  }
 
-  lazy val scalafixSettings = Seq(
+  lazy val scalafixScalacSettings: Seq[Def.Setting[_]] = Seq(
+    scalacOptions ++= {
+      if (isSupportedScalaVersion.value) {
+        scalafixScalacOptions.value
+      } else {
+        Nil
+      }
+    },
+    libraryDependencies ++= {
+      if (isSupportedScalaVersion.value) {
+        // Only add compiler plugin in 2.11 and 2.12 projects.
+        if (!Versions.supportedScalaVersions.contains(scalaVersion.value)) {
+          val supportedVersion =
+            Versions.supportedScalaVersions.mkString(", ")
+          logger.warn(
+            s"Unsupported ${thisProject.value.id}/scalaVersion ${scalaVersion.value}. " +
+              s"Please upgrade to one of: $supportedVersion")
+        }
+        val semanticdb = "org.scalameta" % "semanticdb-scalac" % Versions.scalameta cross CrossVersion.full
+        compilerPlugin(semanticdb) :: Nil
+      } else {
+        Nil
+      }
+    }
+  )
+  lazy val scalafixTaskSettings = Seq(
     scalafix.in(Compile) := scalafixTaskImpl(Compile).evaluated,
     scalafix.in(Test) := scalafixTaskImpl(Test).evaluated,
     scalafix := scalafixTaskImpl(Compile, Test).evaluated
@@ -85,7 +133,7 @@ object ScalafixPlugin extends AutoPlugin {
         }
       val baseArgs = Set[String](
         "--project-id",
-        name.value,
+        thisProject.value.id,
         "--no-sys-exit",
         "--non-interactive"
       )
@@ -99,8 +147,7 @@ object ScalafixPlugin extends AutoPlugin {
           if (inputArgs.nonEmpty)
             inputArgs.flatMap("-r" :: _ :: Nil)
           else Nil
-        val sourceroot: String =
-          scalametaSourceroot.??(workingDirectory).value.getAbsolutePath
+        val sourceroot = scalafixSourceroot.value.getAbsolutePath
         // only fix unmanaged sources, skip code generated files.
         verbose ++
           config ++

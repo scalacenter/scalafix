@@ -24,7 +24,7 @@ object ReplaceSymbolOps {
   def naiveMoveSymbolPatch(moveSymbols: Seq[ReplaceSymbol])(
       implicit ctx: RewriteCtx,
       mirror: Database): Patch = {
-    val moves: Map[Symbol, Symbol] =
+    val moves: Map[Symbol, Symbol.Global] =
       moveSymbols.toIterator.flatMap {
         case ReplaceSymbol(
             term @ Symbol.Global(qual, Signature.Method(name, _)),
@@ -59,10 +59,8 @@ object ReplaceSymbolOps {
       }
     }
     object Move {
-      def unapply(name: Name): Option[Symbol] = {
-        val result = mirror.names
-          .get(name.pos)
-          .toIterator
+      def unapply(name: Name): Option[Symbol.Global] = {
+        val result = name.symbolOpt.toIterator
           .flatMap {
             case Symbol.Multi(syms) => syms
             case els => els :: Nil
@@ -91,7 +89,7 @@ object ReplaceSymbolOps {
             patch
           case _ =>
             toImport += to
-            ctx.rename(n, to.name)
+            ctx.rename(n, to.signature.name)
         }
     }
     val importPatch = toImport.foldLeft(Patch.empty) {

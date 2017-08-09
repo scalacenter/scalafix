@@ -1,6 +1,6 @@
 package scalafix.tests
 
-import scala.meta.semantic.Database
+import scala.meta.semanticdb.Database
 import scalafix.reflect.ScalafixReflect
 import metaconfig.Conf
 import org.scalatest.FunSuite

@@ -6,7 +6,7 @@ import scalafix.syntax._
 
 case class RemoveUnusedImports(mirror: Database)
     extends SemanticRewrite(mirror) {
-  private val unusedImports = mirror.database.messages.toIterator.collect {
+  private val unusedImports = mirror.messages.toIterator.collect {
     case Message(pos, _, "Unused import") =>
       pos
   }.toSet

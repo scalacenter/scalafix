@@ -170,8 +170,6 @@
        Denotation, ...), see the
        @lnk("Scalameta tutorial", "http://scalameta.org/tutorial/#Mirror").
 
-  @scalatex.Testkit()
-
   @sect{Sharing your rewrite}
     @p
       You have implemented a rewrite, you have tests, it works,

@@ -9,7 +9,7 @@ import scalafix.config.{MemberKind, MemberVisibility}
 import scalafix.syntax._
 import scalafix.util.Whitespace
 
-case class ExplicitReturnTypes(mirror: Mirror) extends SemanticRewrite(mirror) {
+case class ExplicitReturnTypes(mirror: Database) extends SemanticRewrite(mirror) {
   // Don't explicitly annotate vals when the right-hand body is a single call
   // to `implicitly`. Prevents ambiguous implicit. Not annotating in such cases,
   // this a common trick employed implicit-heavy code to workaround SI-2712.
@@ -64,7 +64,7 @@ case class ExplicitReturnTypes(mirror: Mirror) extends SemanticRewrite(mirror) {
     for {
       name <- defnName(defn)
       symbol <- name.symbolOpt
-      denot <- mirror.database.denotations.get(symbol)
+      denot <- symbol.denotOpt
       typ <- parseDenotationInfo(denot)
     } yield typ
 

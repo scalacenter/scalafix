@@ -1,7 +1,7 @@
 package scalafix.internal.util
 
 import java.lang.reflect.InvocationTargetException
-import scala.meta.semantic.Mirror
+import scala.meta.semanticdb.Database
 import scala.reflect.ClassTag
 import scala.util.Failure
 import scala.util.Success
@@ -14,7 +14,7 @@ class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
   private val t = ev.runtimeClass
 
   private val functionClasstag =
-    implicitly[ClassTag[Function[Mirror, T]]].runtimeClass
+    implicitly[ClassTag[Function[Database, T]]].runtimeClass
   object LambdaRewrite {
     def unapply(fqcn: String): Option[(Class[_], String)] = {
       val idx = fqcn.lastIndexOf(".")
@@ -40,8 +40,8 @@ class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
     if (t.isInstance(rewrite)) rewrite.asInstanceOf[T]
     else
       args match {
-        case (mirror: Mirror) :: Nil if functionClasstag.isInstance(rewrite) =>
-          rewrite.asInstanceOf[Function[Mirror, T]].apply(mirror)
+        case (mirror: Database) :: Nil if functionClasstag.isInstance(rewrite) =>
+          rewrite.asInstanceOf[Function[Database, T]].apply(mirror)
         case _ =>
           throw new IllegalArgumentException(
             s"Unable to load rewrite from field $fieldName on object $obj with arguments $args")

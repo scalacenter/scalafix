@@ -33,9 +33,9 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
   val reporter: ScalafixReporter = config.reporter
 
   // Debug utilities
-  def mirror(implicit mirror: Mirror): Mirror =
-    Database(mirror.database.entries.filter(_.input == input))
-  def debugMirror()(implicit mirror: Mirror, fileLine: FileLine): Unit = {
+  def mirror(implicit mirror: Database): Database =
+    Database(mirror.entries.filter(_.input == input))
+  def debugMirror()(implicit mirror: Database, fileLine: FileLine): Unit = {
     val db = this.mirror(mirror)
     debug(sourcecode.Text(db, "mirror"))
   }
@@ -69,17 +69,17 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
   def addLeft(tok: Token, toAdd: String): Patch = Add(tok, toAdd, "")
 
   // Semantic patch ops.
-  def removeGlobalImport(symbol: Symbol)(implicit mirror: Mirror): Patch =
+  def removeGlobalImport(symbol: Symbol)(implicit mirror: Database): Patch =
     RemoveGlobalImport(symbol)
-  def addGlobalImport(symbol: Symbol)(implicit mirror: Mirror): Patch =
+  def addGlobalImport(symbol: Symbol)(implicit mirror: Database): Patch =
     TreePatch.AddGlobalSymbol(symbol)
-  def addGlobalImport(importer: Importer)(implicit mirror: Mirror): Patch =
+  def addGlobalImport(importer: Importer)(implicit mirror: Database): Patch =
     AddGlobalImport(importer)
   def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
-      implicit mirror: Mirror): Patch =
+      implicit mirror: Database): Patch =
     TreePatch.ReplaceSymbol(fromSymbol, toSymbol)
   def renameSymbol(fromSymbol: Symbol.Global, toName: String)(
-      implicit mirror: Mirror): Patch =
+      implicit mirror: Database): Patch =
     TreePatch.ReplaceSymbol(
       fromSymbol,
       Symbol.Global(BottomSymbol(), Signature.Term(toName)))

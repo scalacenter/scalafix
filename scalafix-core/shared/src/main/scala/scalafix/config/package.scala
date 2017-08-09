@@ -2,7 +2,7 @@ package scalafix
 
 import scala.meta.Tree
 import scala.meta.parsers.Parse
-import scala.meta.semantic.Database
+import scala.meta.semanticdb.Database
 
 package object config extends ScalafixMetaconfigReaders {
   type MetaParser = Parse[_ <: Tree]

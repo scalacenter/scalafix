@@ -1,6 +1,6 @@
 package scalafix.tests
 
-import scala.meta.semantic.Database
+import scala.meta.semanticdb.Database
 import scalafix.rewrite.ExplicitReturnTypes
 import scalafix.rewrite.ProcedureSyntax
 import scalafix.rewrite.RemoveUnusedImports

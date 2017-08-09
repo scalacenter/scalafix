@@ -114,7 +114,7 @@ object Patch {
   private[scalafix] def apply(
       p: Patch,
       ctx: RewriteCtx,
-      mirror: Option[Mirror]): String = {
+      mirror: Option[Database]): String = {
     val patches = underlying(p)
     val semanticPatches = patches.collect { case tp: TreePatch => tp }
     mirror match {
@@ -123,7 +123,7 @@ object Patch {
       case _ =>
         if (semanticPatches.nonEmpty)
           throw Failure.Unsupported(
-            s"Semantic patches are not supported without a Mirror: $semanticPatches")
+            s"Semantic patches are not supported without a Database: $semanticPatches")
         syntaxApply(ctx, underlying(p).collect {
           case tp: TokenPatch => tp
         })

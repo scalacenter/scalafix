@@ -1,5 +1,8 @@
 package object scalafix {
 
+  @deprecated("Use scala.meta.Database instead.", "0.5.0")
+  type Mirror = scala.meta.Database
+
   type ScalafixConfig = config.ScalafixConfig
   val ScalafixConfig = config.ScalafixConfig
 

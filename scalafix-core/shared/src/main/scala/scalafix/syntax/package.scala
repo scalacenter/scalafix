@@ -1,13 +1,14 @@
 package scalafix
 
 import java.nio.charset.Charset
+import java.nio.file.Paths
 import scala.collection.IterableLike
 import scala.collection.generic.CanBuildFrom
 import scala.collection.immutable.Seq
 import scala.collection.mutable
 import scala.meta._
-import scala.meta.semantic.Signature
-import scala.meta.semantic.Symbol
+import scala.meta.semanticdb.Signature
+import scala.meta.semanticdb.Symbol
 import scala.util.Success
 import scala.util.Try
 import org.scalameta.logger
@@ -63,8 +64,11 @@ package object syntax {
     }
   }
 
-  implicit class XtensionRefSymbolOpt(ref: Ref)(implicit mirror: Mirror) {
-    def symbolOpt: Option[Symbol] = Try(ref.symbol).toOption
+  implicit class XtensionRefSymbolOpt(ref: Ref)(implicit mirror: Database) {
+    def symbolOpt: Option[Symbol] = mirror.names.collectFirst {
+      case ResolvedName(pos, sym, _) if pos == ref.pos => sym
+    }
+    def symbol: Symbol = symbolOpt.get
   }
 
   implicit class XtensionParsedOpt[T](parsed: Parsed[T]) {
@@ -83,6 +87,11 @@ package object syntax {
     }
   }
 
+  implicit class XtensionSymbolMirror(symbol: Symbol)(implicit mirror: Database) {
+    def denotOpt: Option[Denotation] = mirror.symbols.collectFirst {
+      case ResolvedSymbol(sym, denot) if sym == symbol => denot
+    }
+  }
   implicit class XtensionSymbol(symbol: Symbol) {
     def underlyingSymbols: Seq[Symbol] = symbol match {
       case Symbol.Multi(symbols) => symbols
@@ -107,6 +116,7 @@ package object syntax {
           Type.Select(sym.to[Term.Ref].get, Type.Name(name))
         case Symbol.Global(sym, Signature.Term(name)) =>
           Term.Select(sym.to[Term].get, Term.Name(name))
+        case els => sys.error(els.toString)
       }
       tree.asInstanceOf[T] // should crash
     }
@@ -115,17 +125,13 @@ package object syntax {
     def revealWhiteSpace: String = logger.revealWhitespace(str)
     def trimSugar: String = str.trim.replaceAllLiterally(".this", "")
   }
+  implicit class XtensionAttributes(attributes: Attributes) {
+    def dialect: Dialect = ScalafixScalametaHacks.dialect(attributes.language)
+  }
   implicit class XtensionTreeScalafix(tree: Tree) {
     def parents: Stream[Tree] = TreeOps.parents(tree)
     def input: Input = tree.tokens.head.input
     def treeSyntax: String = ScalafixScalametaHacks.resetOrigin(tree).syntax
-  }
-  implicit class XtensionAbsolutePath(ignore: AbsolutePath.type) {
-    def fromString(path: String)(
-        implicit workingDirectory: AbsolutePath): AbsolutePath = {
-      if (PathIO.isAbsolutePath(path)) AbsolutePath(path)
-      else workingDirectory.resolve(path)
-    }
   }
   implicit class XtensionInputScalafix(input: Input) {
     def charset: Charset = input match {
@@ -135,7 +141,7 @@ package object syntax {
     def path(sourceroot: AbsolutePath): AbsolutePath = input match {
       case Input.File(path, _) => path
       case Input.VirtualFile(label, _) => sourceroot.resolve(label)
-      // crash
+      case els => sys.error(els.toString)
     }
     def isSbtFile: Boolean = label.endsWith(".sbt")
     def label: String = input match {

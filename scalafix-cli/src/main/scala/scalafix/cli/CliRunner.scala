@@ -240,7 +240,7 @@ object CliRunner {
       classpath match {
         case Some(cp) =>
           val paths = cp.split(File.pathSeparator).map { path =>
-            AbsolutePath.fromString(path)(common.workingPath)
+            AbsolutePath(path)(common.workingPath)
           }
           Ok(Classpath(paths.toList))
         case None =>
@@ -260,7 +260,7 @@ object CliRunner {
 
     val resolvedSourceroot: AbsolutePath =
       sourceroot
-        .map(AbsolutePath.fromString(_))
+        .map(AbsolutePath(_))
         .getOrElse(common.workingPath)
 
     // We don't know yet if we need to compute the database or not.
@@ -338,7 +338,7 @@ object CliRunner {
       pathMatcher <- resolvedPathMatcher
     } yield {
       val paths =
-        if (cli.files.nonEmpty) cli.files.map(AbsolutePath.fromString(_))
+        if (cli.files.nonEmpty) cli.files.map(AbsolutePath(_))
         // If no files are provided, assume cwd.
         else common.workingPath :: Nil
       paths.toVector.flatMap(expand(pathMatcher))
@@ -351,7 +351,7 @@ object CliRunner {
             .msg(s"Can't configure both --config $x and --config-str $y")
             .notOk
         case (Some(configPath), _) =>
-          val path = AbsolutePath.fromString(configPath)
+          val path = AbsolutePath(configPath)
           if (path.isFile) Ok(Input.File(path))
           else ConfError.msg(s"--config $path is not a file").notOk
         case (_, Some(configString)) =>
