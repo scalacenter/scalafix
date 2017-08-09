@@ -74,4 +74,8 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
     TreePatch.AddGlobalSymbol(symbol)
   def addGlobalImport(importer: Importer)(implicit mirror: Mirror): Patch =
     AddGlobalImport(importer)
+  def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
+      implicit mirror: Mirror): Patch =
+    TreePatch.ReplaceSymbol(fromSymbol, toSymbol)
+
 }
