@@ -16,8 +16,10 @@ trait SemanticCtx {
   def messages: Seq[Message] = database.messages
   def symbols: Seq[ResolvedSymbol] = database.symbols
   def sugars: Seq[Sugar] = database.sugars
+
   /** Lookup symbol at this position. */
   def symbol(position: Position): Option[Symbol]
+
   /** Lookup denotation of this symbol. */
   def denotation(symbol: Symbol): Option[Denotation]
 }

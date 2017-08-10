@@ -40,7 +40,8 @@ class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
     if (t.isInstance(rewrite)) rewrite.asInstanceOf[T]
     else
       args match {
-        case (mirror: SemanticCtx) :: Nil if functionClasstag.isInstance(rewrite) =>
+        case (mirror: SemanticCtx) :: Nil
+            if functionClasstag.isInstance(rewrite) =>
           rewrite.asInstanceOf[Function[SemanticCtx, T]].apply(mirror)
         case _ =>
           throw new IllegalArgumentException(

@@ -104,13 +104,14 @@ trait ScalafixMetaconfigReaders {
 
   private lazy val semanticRewriteClass = classOf[SemanticRewrite]
 
-  def classloadRewrite(mirror: LazyMirror): Class[_] => Seq[SemanticCtx] = { cls =>
-    val semanticRewrite =
-      cls.getClassLoader.loadClass("scalafix.rewrite.SemanticRewrite")
-    val kind =
-      if (semanticRewriteClass.isAssignableFrom(cls)) RewriteKind.Semantic
-      else RewriteKind.Syntactic
-    mirror(kind).toList
+  def classloadRewrite(mirror: LazyMirror): Class[_] => Seq[SemanticCtx] = {
+    cls =>
+      val semanticRewrite =
+        cls.getClassLoader.loadClass("scalafix.rewrite.SemanticRewrite")
+      val kind =
+        if (semanticRewriteClass.isAssignableFrom(cls)) RewriteKind.Semantic
+        else RewriteKind.Syntactic
+      mirror(kind).toList
   }
 
   private lazy val SlashSeparated = "([^/]+)/(.*)".r
