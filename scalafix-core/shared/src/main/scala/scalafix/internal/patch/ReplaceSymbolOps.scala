@@ -60,7 +60,7 @@ object ReplaceSymbolOps {
     }
     object Move {
       def unapply(name: Name): Option[Symbol.Global] = {
-        val result = name.symbolOpt.toIterator
+        val result = name.symbol.toIterator
           .flatMap {
             case Symbol.Multi(syms) => syms
             case els => els :: Nil

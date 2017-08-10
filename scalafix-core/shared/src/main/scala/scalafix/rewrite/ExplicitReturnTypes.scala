@@ -65,8 +65,8 @@ case class ExplicitReturnTypes(mirror: SemanticCtx)
   def defnType(defn: Defn): Option[Type] =
     for {
       name <- defnName(defn)
-      symbol <- name.symbolOpt
-      denot <- symbol.denotOpt
+      symbol <- name.symbol
+      denot <- symbol.denotation
       typ <- parseDenotationInfo(denot)
     } yield typ
 

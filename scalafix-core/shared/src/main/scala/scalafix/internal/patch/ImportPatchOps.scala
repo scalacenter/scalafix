@@ -62,7 +62,7 @@ object ImportPatchOps {
       // TODO(olafur) handle rename.
     }
     val allImporteeSymbols = allImportees.flatMap(importee =>
-      importee.symbolOpt.map(_.normalized -> importee))
+      importee.symbol.map(_.normalized -> importee))
     val editToken: Token = {
       val imports = getGlobalImports(ctx.tree)
       if (imports.isEmpty) fallbackToken(ctx)

@@ -1,12 +1,8 @@
 package scalafix
 
-import java.nio.charset.Charset
 import scala.collection.immutable.Seq
 import scala.meta._
-import scala.meta.semanticdb.Signature
 import scala.meta.semanticdb.Symbol
-import scala.util.Try
-import org.scalameta.logger
 import scala.compat.Platform.EOL
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
 import scalafix.internal.util.SymbolOps
@@ -14,11 +10,10 @@ import scalafix.util.TreeOps
 
 package object syntax {
 
-  implicit class XtensionRefSymbolOpt(ref: Ref)(implicit mirror: SemanticCtx) {
-    def symbolOpt: Option[Symbol] = mirror.names.collectFirst {
-      case ResolvedName(pos, sym, _) if pos == ref.pos => sym
-    }
-    def symbol: Symbol = symbolOpt.get
+  implicit class XtensionRefSymbolOpt(tree: Tree)(implicit mirror: SemanticCtx) {
+    @deprecated("Renamed to symbol", "0.5.0")
+    def symbolOpt: Option[Symbol] = symbol
+    def symbol: Option[Symbol] = mirror.symbol(tree.pos)
   }
 
   implicit class XtensionParsedOpt[T](parsed: Parsed[T]) {
@@ -28,10 +23,11 @@ package object syntax {
     }
   }
 
-  implicit class XtensionSymbolMirror(symbol: Symbol)(implicit mirror: SemanticCtx) {
-    def denotOpt: Option[Denotation] = mirror.symbols.collectFirst {
-      case ResolvedSymbol(sym, denot) if sym == symbol => denot
-    }
+  implicit class XtensionSymbolMirror(symbol: Symbol)(
+      implicit mirror: SemanticCtx) {
+    @deprecated("Renamed to denotation", "0.5.0")
+    def denotOpt: Option[Denotation] = denotation
+    def denotation: Option[Denotation] = mirror.denotation(symbol)
   }
   implicit class XtensionSymbol(symbol: Symbol) {
     private def underlyingSymbols(symbol: Symbol): Seq[Symbol] = symbol match {
