@@ -12,9 +12,9 @@ lazy val root = project
 
 lazy val scala210 = project.settings(scalaVersion := "2.10.5")
 lazy val scala211 = project.settings(scalaVersion := Versions.scala211)
-lazy val scala212 = project.settings(scalaVersion := Versions.scala211)
+lazy val scala212 = project.settings(scalaVersion := Versions.scala212)
 lazy val customSourceroot = project.settings(
-  scalaVersion := "2.12.3",
+  scalaVersion := Versions.scala212,
   scalafixSourceroot := sourceDirectory.value
 )
 
