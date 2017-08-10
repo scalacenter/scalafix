@@ -68,6 +68,35 @@
       and can be put into the root directory of your repo.
       The tests are written using @sect.ref{scalafix-testkit}.
 
+    @sect{scalafix-testkit}
+      Scalafix-testkit is a module to help you write/run/debug/test scalafix rewrites.
+      The scalacenter/scalafix.g8 template boilerplate to use scalafix-testkit.
+      The anatomy of a scalafix-testkit project is like this
+
+      @hl.scala
+        scalafix
+        ├── rewrites // rewrite implementations
+        ├── input    // code that runs through rewrite
+        ├── output   // expected output from running input on rewrites
+        └── tests    // tiny project where unit tests run
+
+      The key features of scalafix-testkit are
+
+      @ul
+        @li
+          Input code to rewrites and expected output is written in plain .scala files,
+          with full IDE support.
+        @li
+          Input and expected output files are kept in two separate sbt projects.
+          Each project can have its own set of dependencies.
+        @li
+          Each individual *.scala file in the input project can have a custom
+          .scalafix.conf configuration provided in a comment at the top of
+          the file.
+        @li
+          Test failures are reported as unified diffs from the obtained output
+          of the rewrite and the expected output in the @code{output} project.
+
   @sect{Example rewrites}
     The Scalafix repository contains several example rewrites and tests,
     see @lnk("here", "https://github.com/scalacenter/scalafix/tree/master/scalafix-core/src/main/scala/scalafix/rewrite").
