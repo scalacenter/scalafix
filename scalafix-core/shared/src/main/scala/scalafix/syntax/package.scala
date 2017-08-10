@@ -14,7 +14,7 @@ import scalafix.util.TreeOps
 
 package object syntax {
 
-  implicit class XtensionRefSymbolOpt(ref: Ref)(implicit mirror: Mirror) {
+  implicit class XtensionRefSymbolOpt(ref: Ref)(implicit mirror: SemanticCtx) {
     def symbolOpt: Option[Symbol] = mirror.names.collectFirst {
       case ResolvedName(pos, sym, _) if pos == ref.pos => sym
     }
@@ -28,7 +28,7 @@ package object syntax {
     }
   }
 
-  implicit class XtensionSymbolMirror(symbol: Symbol)(implicit mirror: Mirror) {
+  implicit class XtensionSymbolMirror(symbol: Symbol)(implicit mirror: SemanticCtx) {
     def denotOpt: Option[Denotation] = mirror.symbols.collectFirst {
       case ResolvedSymbol(sym, denot) if sym == symbol => denot
     }

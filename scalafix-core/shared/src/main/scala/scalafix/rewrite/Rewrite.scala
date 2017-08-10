@@ -51,14 +51,14 @@ abstract class Rewrite(implicit rewriteName: Name) { self =>
   // NOTE. This is kind of hacky and hopefully we can find a better workaround.
   // The challenge is the following:
   // - a.andThen(b) needs to work for mixing semantic + syntactic rewrites.
-  // - applied/appliedDiff should work without passing in Mirror explicitly
-  protected[scalafix] def mirrorOption: Option[Mirror] = None
+  // - applied/appliedDiff should work without passing in SemanticCtx explicitly
+  protected[scalafix] def mirrorOption: Option[SemanticCtx] = None
 }
 
-abstract class SemanticRewrite(mirror: Mirror)(implicit name: Name)
+abstract class SemanticRewrite(mirror: SemanticCtx)(implicit name: Name)
     extends Rewrite {
-  implicit val ImplicitMirror: Mirror = mirror
-  override def mirrorOption: Option[Mirror] = Some(mirror)
+  implicit val ImplicitMirror: SemanticCtx = mirror
+  override def mirrorOption: Option[SemanticCtx] = Some(mirror)
 }
 
 object Rewrite {
@@ -66,12 +66,12 @@ object Rewrite {
     config.rewriteConfDecoderSyntactic(config.baseSyntacticRewriteDecoder)
   def emptyConfigured: Configured[Rewrite] = Configured.Ok(empty)
   def empty: Rewrite = syntactic(_ => Patch.empty)
-  def emptyFromMirrorOpt(mirror: Option[Mirror]): Rewrite =
+  def emptyFromMirrorOpt(mirror: Option[SemanticCtx]): Rewrite =
     mirror.fold(empty)(emptySemantic)
   def combine(rewrites: Seq[Rewrite]): Rewrite =
     rewrites.foldLeft(empty)(_ andThen _)
   // into an actual rewrite instead of handling it specially inside Patch.applied.
-  private[scalafix] def emptySemantic(mirror: Mirror): Rewrite =
+  private[scalafix] def emptySemantic(mirror: SemanticCtx): Rewrite =
     semantic(x => y => Patch.empty)(Name("empty"))(mirror)
 
   /** Creates a syntactic rewrite. */
@@ -81,15 +81,15 @@ object Rewrite {
     }
 
   /** Creates a semantic rewrite. */
-  def semantic(f: Mirror => RewriteCtx => Patch)(
-      implicit name: Name): Mirror => Rewrite = { mirror =>
+  def semantic(f: SemanticCtx => RewriteCtx => Patch)(
+      implicit name: Name): SemanticCtx => Rewrite = { mirror =>
     new SemanticRewrite(mirror) {
       override def rewrite(ctx: RewriteCtx): Patch = f(mirror)(ctx)
     }
   }
 
   /** Creates a rewrite that always returns the same patch. */
-  def constant(name: String, patch: Patch, mirror: Mirror): Rewrite =
+  def constant(name: String, patch: Patch, mirror: SemanticCtx): Rewrite =
     new SemanticRewrite(mirror)(Name(name)) {
       override def rewrite(ctx: RewriteCtx): Patch = patch
     }
@@ -103,7 +103,7 @@ object Rewrite {
     new Rewrite()(Name(newName)) {
       override def rewrite(ctx: RewriteCtx): Patch =
         a.rewrite(ctx) + b.rewrite(ctx)
-      override def mirrorOption: Option[Mirror] =
+      override def mirrorOption: Option[SemanticCtx] =
         (a.mirrorOption, b.mirrorOption) match {
           case (Some(m1), Some(m2)) =>
             if (m1 ne m2) throw Failure.MismatchingMirror(m1, m2)

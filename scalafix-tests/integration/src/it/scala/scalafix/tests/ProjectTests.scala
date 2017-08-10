@@ -1,6 +1,6 @@
 package scalafix.tests
 
-import scalafix.Mirror
+import scalafix.SemanticCtx
 import scalafix.rewrite.ExplicitReturnTypes
 import scalafix.rewrite.ProcedureSyntax
 import scalafix.rewrite.RemoveUnusedImports

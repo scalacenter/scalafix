@@ -117,16 +117,16 @@ object Patch {
   private[scalafix] def apply(
       p: Patch,
       ctx: RewriteCtx,
-      mirror: Option[Mirror]): String = {
+      mirror: Option[SemanticCtx]): String = {
     val patches = underlying(p)
     val semanticPatches = patches.collect { case tp: TreePatch => tp }
     mirror match {
-      case Some(x: Mirror) =>
+      case Some(x: SemanticCtx) =>
         semanticApply(p)(ctx, x)
       case _ =>
         if (semanticPatches.nonEmpty)
           throw Failure.Unsupported(
-            s"Semantic patches are not supported without a Mirror: $semanticPatches")
+            s"Semantic patches are not supported without a SemanticCtx: $semanticPatches")
         syntaxApply(ctx, underlying(p).collect {
           case tp: TokenPatch => tp
         })
@@ -145,7 +145,7 @@ object Patch {
   }
 
   private def semanticApply(
-      patch: Patch)(implicit ctx: RewriteCtx, mirror: Mirror): String = {
+      patch: Patch)(implicit ctx: RewriteCtx, mirror: SemanticCtx): String = {
     val base = underlying(patch)
     val moveSymbol = underlying(
       ReplaceSymbolOps.naiveMoveSymbolPatch(base.collect {

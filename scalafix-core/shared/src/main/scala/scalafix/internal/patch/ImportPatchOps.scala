@@ -52,7 +52,7 @@ object ImportPatchOps {
   private[scalafix] def superNaiveImportPatchToTokenPatchConverter(
       ctx: RewriteCtx,
       importPatches: Seq[ImportPatch])(
-      implicit mirror: Mirror): Iterable[Patch] = {
+      implicit mirror: SemanticCtx): Iterable[Patch] = {
     val allImports = ctx.tree.collect { case i: Import => i }
     val allImporters = allImports.flatMap(_.importers)
     val allImportees = allImporters.flatMap(_.importees)

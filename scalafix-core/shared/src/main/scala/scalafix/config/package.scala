@@ -12,5 +12,5 @@ package object config extends ScalafixMetaconfigReaders {
   // to detect if a rewrite is semantic is different.
   // LazyMirror allows us to delay the computation of a mirror right up until
   // the moment we instantiate the rewrite.
-  type LazyMirror = RewriteKind => Option[Mirror]
+  type LazyMirror = RewriteKind => Option[SemanticCtx]
 }

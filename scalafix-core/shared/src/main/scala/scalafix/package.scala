@@ -1,7 +1,14 @@
 package object scalafix {
 
-  type Mirror = scalafix.util.Mirror
-  val Mirror = scalafix.util.Mirror
+  type SemanticCtx = scalafix.util.SemanticCtx
+  val SemanticCtx = scalafix.util.SemanticCtx
+
+  // These are remnants from scala.meta.Mirror which got removed in 2.0.0-M2.
+  // and kept here for compatibility with existing rewrites.
+  @deprecated("Renamed to SemanticCtx", "0.5.0")
+  type Mirror = scalafix.util.SemanticCtx
+  @deprecated("Renamed to SemanticCtx", "0.5.0")
+  val Mirror = scalafix.util.SemanticCtx
 
   type ScalafixConfig = config.ScalafixConfig
   val ScalafixConfig = config.ScalafixConfig

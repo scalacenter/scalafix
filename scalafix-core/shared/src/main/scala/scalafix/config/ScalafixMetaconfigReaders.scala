@@ -104,7 +104,7 @@ trait ScalafixMetaconfigReaders {
 
   private lazy val semanticRewriteClass = classOf[SemanticRewrite]
 
-  def classloadRewrite(mirror: LazyMirror): Class[_] => Seq[Mirror] = { cls =>
+  def classloadRewrite(mirror: LazyMirror): Class[_] => Seq[SemanticCtx] = { cls =>
     val semanticRewrite =
       cls.getClassLoader.loadClass("scalafix.rewrite.SemanticRewrite")
     val kind =
@@ -116,7 +116,7 @@ trait ScalafixMetaconfigReaders {
   private lazy val SlashSeparated = "([^/]+)/(.*)".r
 
   private def requireSemanticMirror[T](mirror: LazyMirror, what: String)(
-      f: Mirror => Configured[T]): Configured[T] = {
+      f: SemanticCtx => Configured[T]): Configured[T] = {
     mirror(RewriteKind.Semantic).fold(
       Configured.error(s"$what requires the semantic API."): Configured[T])(f)
   }

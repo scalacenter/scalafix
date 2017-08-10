@@ -13,7 +13,7 @@ import scalafix.patch.TokenPatch.Add
 import scalafix.patch.TreePatch
 import scalafix.patch.TreePatch._
 import scalafix.util.MatchingParens
-import scalafix.util.Mirror
+import scalafix.util.SemanticCtx
 import scalafix.util.TokenList
 import org.scalameta.FileLine
 import org.scalameta.logger
@@ -34,9 +34,9 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
   val reporter: ScalafixReporter = config.reporter
 
   // Debug utilities
-  def mirror(implicit mirror: Mirror): Mirror =
-    Mirror(mirror.entries.filter(_.input == input))
-  def debugMirror()(implicit mirror: Mirror, fileLine: FileLine): Unit = {
+  def mirror(implicit mirror: SemanticCtx): SemanticCtx =
+    SemanticCtx(mirror.entries.filter(_.input == input))
+  def debugMirror()(implicit mirror: SemanticCtx, fileLine: FileLine): Unit = {
     val db = this.mirror(mirror)
     debug(sourcecode.Text(db, "mirror"))
   }
@@ -70,17 +70,17 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
   def addLeft(tok: Token, toAdd: String): Patch = Add(tok, toAdd, "")
 
   // Semantic patch ops.
-  def removeGlobalImport(symbol: Symbol)(implicit mirror: Mirror): Patch =
+  def removeGlobalImport(symbol: Symbol)(implicit mirror: SemanticCtx): Patch =
     RemoveGlobalImport(symbol)
-  def addGlobalImport(symbol: Symbol)(implicit mirror: Mirror): Patch =
+  def addGlobalImport(symbol: Symbol)(implicit mirror: SemanticCtx): Patch =
     TreePatch.AddGlobalSymbol(symbol)
-  def addGlobalImport(importer: Importer)(implicit mirror: Mirror): Patch =
+  def addGlobalImport(importer: Importer)(implicit mirror: SemanticCtx): Patch =
     AddGlobalImport(importer)
   def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
-      implicit mirror: Mirror): Patch =
+      implicit mirror: SemanticCtx): Patch =
     TreePatch.ReplaceSymbol(fromSymbol, toSymbol)
   def renameSymbol(fromSymbol: Symbol.Global, toName: String)(
-      implicit mirror: Mirror): Patch =
+      implicit mirror: SemanticCtx): Patch =
     TreePatch.ReplaceSymbol(
       fromSymbol,
       Symbol.Global(BottomSymbol(), Signature.Term(toName)))

@@ -31,7 +31,7 @@ import scalafix.internal.cli.FixFile
 import scalafix.internal.cli.ScalafixOptions
 import scalafix.internal.cli.TermDisplay
 import scalafix.internal.cli.WriteMode
-import scalafix.internal.util.ScalafixMirror
+import scalafix.internal.util.SemanticCtxImpl
 import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
 import metaconfig.Configured.Ok
@@ -268,12 +268,12 @@ object CliRunner {
     // We don't know yet if we need to compute the database or not.
     // If all the rewrites are syntactic, we never need to compute the mirror.
     // If a single rewrite is semantic, then we need to compute the database.
-    private var cachedDatabase = Option.empty[Configured[Mirror]]
-    private def computeAndCacheDatabase(): Option[Mirror] = {
-      val result: Configured[Mirror] = cachedDatabase.getOrElse {
+    private var cachedDatabase = Option.empty[Configured[SemanticCtx]]
+    private def computeAndCacheDatabase(): Option[SemanticCtx] = {
+      val result: Configured[SemanticCtx] = cachedDatabase.getOrElse {
         try {
           resolveClasspath.map { classpath =>
-            val db = new ScalafixMirror(
+            val db = new SemanticCtxImpl(
               Database.load(classpath, Sourcepath(resolvedSourceroot)))
             if (verbose) {
               common.err.println(
@@ -291,7 +291,7 @@ object CliRunner {
       }
       result.toEither.right.toOption
     }
-    private def resolveDatabase(kind: RewriteKind): Option[Mirror] = {
+    private def resolveDatabase(kind: RewriteKind): Option[SemanticCtx] = {
       if (kind.isSyntactic) None
       else computeAndCacheDatabase()
     }
@@ -408,7 +408,7 @@ object CliRunner {
 
     val mirrorInputs: Configured[Map[AbsolutePath, Input.VirtualFile]] = {
       resolvedRewrite.andThen { _ =>
-        cachedDatabase.getOrElse(Ok(Mirror(Nil))).map { database =>
+        cachedDatabase.getOrElse(Ok(SemanticCtx(Nil))).map { database =>
           val inputsByAbsolutePath =
             database.entries.toIterator.map(_.input).collect {
               case input @ Input.VirtualFile(path, _) =>
