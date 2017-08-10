@@ -4,9 +4,9 @@ package rewrite
 import scala.meta._
 import scalafix.syntax._
 
-case class RemoveUnusedImports(mirror: Database)
+case class RemoveUnusedImports(mirror: SemanticCtx)
     extends SemanticRewrite(mirror) {
-  private val unusedImports = mirror.database.messages.toIterator.collect {
+  private val unusedImports = mirror.messages.toIterator.collect {
     case Message(pos, _, "Unused import") =>
       pos
   }.toSet

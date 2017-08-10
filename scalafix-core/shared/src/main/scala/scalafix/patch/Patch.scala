@@ -15,6 +15,7 @@ import scalafix.internal.patch.ImportPatchOps
 import scalafix.internal.patch.ReplaceSymbolOps
 import scalafix.internal.util.TokenOps
 import scalafix.patch.TreePatch.ReplaceSymbol
+import org.scalameta.logger
 
 /** A data structure that can produce a .patch file.
   *
@@ -55,9 +56,11 @@ abstract class TokenPatch(val tok: Token, val newTok: String)
     extends Patch
     with LowLevelPatch {
   override def toString: String =
-    if (newTok.isEmpty) s"TokenPatch.Remove(${tok.structure.revealWhiteSpace})"
+    if (newTok.isEmpty)
+      s"TokenPatch.Remove(${logger.revealWhitespace(tok.structure)})"
     else
-      s"TokenPatch.${this.getClass.getSimpleName}(${tok.syntax.revealWhiteSpace}, ${tok.structure}, $newTok)"
+      s"TokenPatch.${this.getClass.getSimpleName}(${logger.revealWhitespace(
+        tok.syntax)}, ${tok.structure}, $newTok)"
 }
 private[scalafix] object TokenPatch {
   case class Remove(override val tok: Token) extends TokenPatch(tok, "")
@@ -114,16 +117,16 @@ object Patch {
   private[scalafix] def apply(
       p: Patch,
       ctx: RewriteCtx,
-      mirror: Option[Mirror]): String = {
+      mirror: Option[SemanticCtx]): String = {
     val patches = underlying(p)
     val semanticPatches = patches.collect { case tp: TreePatch => tp }
     mirror match {
-      case Some(x: Database) =>
+      case Some(x: SemanticCtx) =>
         semanticApply(p)(ctx, x)
       case _ =>
         if (semanticPatches.nonEmpty)
           throw Failure.Unsupported(
-            s"Semantic patches are not supported without a Mirror: $semanticPatches")
+            s"Semantic patches are not supported without a SemanticCtx: $semanticPatches")
         syntaxApply(ctx, underlying(p).collect {
           case tp: TokenPatch => tp
         })
@@ -142,7 +145,7 @@ object Patch {
   }
 
   private def semanticApply(
-      patch: Patch)(implicit ctx: RewriteCtx, mirror: Database): String = {
+      patch: Patch)(implicit ctx: RewriteCtx, mirror: SemanticCtx): String = {
     val base = underlying(patch)
     val moveSymbol = underlying(
       ReplaceSymbolOps.naiveMoveSymbolPatch(base.collect {
@@ -185,8 +188,8 @@ object Patch {
     DiffUtils.unifiedDiff(
       original.label,
       revised.label,
-      original.asString.lines.toList,
-      revised.asString.lines.toList,
+      new String(original.chars).lines.toList,
+      new String(revised.chars).lines.toList,
       3)
   }
 }

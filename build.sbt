@@ -95,7 +95,6 @@ lazy val allSettings = List(
   testOptions in Test += Tests.Argument("-oD"),
   scalaVersion := ciScalaVersion.getOrElse(scala212),
   crossScalaVersions := crossVersions,
-  scalametaSemanticdb := ScalametaSemanticdb.Disabled,
   updateOptions := updateOptions.value.withCachedResolution(true)
 )
 
@@ -143,7 +142,6 @@ lazy val core = crossProject
   .jsSettings(
     libraryDependencies += "com.geirsson" %%% "metaconfig-hocon" % metaconfigV
   )
-  .disablePlugins(ScalahostSbtPlugin)
   .enablePlugins(BuildInfoPlugin)
   .dependsOn(diff)
 
@@ -215,7 +213,6 @@ lazy val `scalafix-sbt` = project
           "; very scalafix-sbt/scripted"
       )(state.value)
     },
-    addSbtPlugin(scalahostSbt),
     scalaVersion := scala210,
     crossScalaVersions := Seq(scala210),
     moduleName := "sbt-scalafix",
@@ -265,13 +262,22 @@ lazy val testsShared = project
     noPublish
   )
 
+lazy val semanticdbSettings = Seq(
+  scalacOptions ++= List(
+    "-Yrangepos",
+    "-Xplugin-require:semanticdb"
+  ),
+  addCompilerPlugin(
+    "org.scalameta" % "semanticdb-scalac" % scalametaV cross CrossVersion.full)
+)
+
 lazy val testsInput = project
   .in(file("scalafix-tests/input"))
   .settings(
     allSettings,
     noPublish,
-    scalametaSourceroot := sourceDirectory.in(Compile).value,
-    scalametaSemanticdb := ScalametaSemanticdb.Fat,
+    semanticdbSettings,
+    scalacOptions += s"-P:semanticdb:sourceroot:${sourceDirectory.in(Compile).value}",
     scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
     scalacOptions += "-Ywarn-adapted-args", // For NoAutoTupling
     scalacOptions += "-Ywarn-unused-import", // For RemoveUnusedImports
@@ -286,6 +292,7 @@ lazy val testsOutput = project
   .settings(
     allSettings,
     noPublish,
+    semanticdbSettings,
     resolvers := resolvers.in(testsInput).value,
     libraryDependencies := libraryDependencies.in(testsInput).value
   )
@@ -301,7 +308,6 @@ lazy val testsOutputDotty = project
     libraryDependencies := libraryDependencies.value.map(_.withDottyCompat()),
     scalacOptions := Nil
   )
-  .disablePlugins(ScalahostSbtPlugin)
 
 lazy val unit = project
   .in(file("scalafix-tests/unit"))
@@ -334,7 +340,7 @@ lazy val unit = project
   )
   .enablePlugins(BuildInfoPlugin)
   .dependsOn(
-    testsInput % Scalameta,
+    testsInput,
     cli,
     testkit
   )
@@ -360,7 +366,7 @@ lazy val integration = project
     libraryDependencies += scalatest.value % IntegrationTest
   )
   .dependsOn(
-    testsInput % Scalameta,
+    testsInput,
     coreJVM,
     reflect,
     testkit
@@ -398,7 +404,7 @@ lazy val isFullCrossVersion = Seq(
 lazy val dotty = "0.1.1-bin-20170530-f8f52cc-NIGHTLY"
 lazy val scala210 = "2.10.6"
 lazy val scala211 = "2.11.11"
-lazy val scala212 = "2.12.2"
+lazy val scala212 = "2.12.3"
 lazy val ciScalaVersion = sys.env.get("CI_SCALA_VERSION")
 def CiCommand(name: String)(commands: List[String]): Command =
   Command.command(name) { initState =>
@@ -424,7 +430,6 @@ def setId(project: Project): Project = {
   project
     .copy(base = file(newId))
     .settings(moduleName := newId)
-    .disablePlugins(ScalahostSbtPlugin)
 }
 def customScalafixVersion = sys.props.get("scalafix.version")
 

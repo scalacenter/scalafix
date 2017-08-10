@@ -51,8 +51,7 @@
           of the
           @lnk("Scalameta semantic API",
                "https://github.com/scalameta/scalameta/blob/master/changelog/1.8.0.md").
-          The semantic API can be used with @sect.ref{sbt-scalafix} or
-          @lnk("sbt-scalahost", "https://github.com/scalameta/sbt-semantic-example").
+          The semantic API can be used with @sect.ref{sbt-scalafix}.
     @p
       Scalafix as a library is still under heavy development.
       Feedback is very welcome.

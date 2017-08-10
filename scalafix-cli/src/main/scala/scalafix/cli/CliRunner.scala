@@ -31,6 +31,7 @@ import scalafix.internal.cli.FixFile
 import scalafix.internal.cli.ScalafixOptions
 import scalafix.internal.cli.TermDisplay
 import scalafix.internal.cli.WriteMode
+import scalafix.internal.util.SemanticCtxImpl
 import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
 import metaconfig.Configured.Ok
@@ -98,7 +99,8 @@ sealed abstract case class CliRunner(
 
   def safeHandleInput(input: FixFile): ExitStatus = {
     try {
-      val inputConfig = if (input.original.isSbtFile) sbtConfig else config
+      val inputConfig =
+        if (input.original.label.endsWith(".sbt")) sbtConfig else config
       inputConfig.dialect(input.toParse).parse[Source] match {
         case parsers.Parsed.Error(pos, message, _) =>
           if (cli.quietParseErrors && !input.passedExplicitly) {
@@ -240,7 +242,7 @@ object CliRunner {
       classpath match {
         case Some(cp) =>
           val paths = cp.split(File.pathSeparator).map { path =>
-            AbsolutePath.fromString(path)(common.workingPath)
+            AbsolutePath(path)(common.workingPath)
           }
           Ok(Classpath(paths.toList))
         case None =>
@@ -260,18 +262,19 @@ object CliRunner {
 
     val resolvedSourceroot: AbsolutePath =
       sourceroot
-        .map(AbsolutePath.fromString(_))
+        .map(AbsolutePath(_))
         .getOrElse(common.workingPath)
 
     // We don't know yet if we need to compute the database or not.
     // If all the rewrites are syntactic, we never need to compute the mirror.
     // If a single rewrite is semantic, then we need to compute the database.
-    private var cachedDatabase = Option.empty[Configured[Database]]
-    private def computeAndCacheDatabase(): Option[Database] = {
-      val result: Configured[Database] = cachedDatabase.getOrElse {
+    private var cachedDatabase = Option.empty[Configured[SemanticCtx]]
+    private def computeAndCacheDatabase(): Option[SemanticCtx] = {
+      val result: Configured[SemanticCtx] = cachedDatabase.getOrElse {
         try {
           resolveClasspath.map { classpath =>
-            val db = Database.load(classpath, Sourcepath(resolvedSourceroot))
+            val db = new SemanticCtxImpl(
+              Database.load(classpath, Sourcepath(resolvedSourceroot)))
             if (verbose) {
               common.err.println(
                 s"Loaded database with ${db.entries.length} entries.")
@@ -288,7 +291,7 @@ object CliRunner {
       }
       result.toEither.right.toOption
     }
-    private def resolveDatabase(kind: RewriteKind): Option[Database] = {
+    private def resolveDatabase(kind: RewriteKind): Option[SemanticCtx] = {
       if (kind.isSyntactic) None
       else computeAndCacheDatabase()
     }
@@ -338,7 +341,7 @@ object CliRunner {
       pathMatcher <- resolvedPathMatcher
     } yield {
       val paths =
-        if (cli.files.nonEmpty) cli.files.map(AbsolutePath.fromString(_))
+        if (cli.files.nonEmpty) cli.files.map(AbsolutePath(_))
         // If no files are provided, assume cwd.
         else common.workingPath :: Nil
       paths.toVector.flatMap(expand(pathMatcher))
@@ -351,7 +354,7 @@ object CliRunner {
             .msg(s"Can't configure both --config $x and --config-str $y")
             .notOk
         case (Some(configPath), _) =>
-          val path = AbsolutePath.fromString(configPath)
+          val path = AbsolutePath(configPath)
           if (path.isFile) Ok(Input.File(path))
           else ConfError.msg(s"--config $path is not a file").notOk
         case (_, Some(configString)) =>
@@ -405,7 +408,7 @@ object CliRunner {
 
     val mirrorInputs: Configured[Map[AbsolutePath, Input.VirtualFile]] = {
       resolvedRewrite.andThen { _ =>
-        cachedDatabase.getOrElse(Ok(Database(Nil))).map { database =>
+        cachedDatabase.getOrElse(Ok(SemanticCtx(Nil))).map { database =>
           val inputsByAbsolutePath =
             database.entries.toIterator.map(_.input).collect {
               case input @ Input.VirtualFile(path, _) =>

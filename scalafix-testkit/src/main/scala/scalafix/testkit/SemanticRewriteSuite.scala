@@ -8,17 +8,17 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 
 abstract class SemanticRewriteSuite(
-    val mirror: Database,
+    val mirror: SemanticCtx,
     val inputSourceroot: AbsolutePath,
     val expectedOutputSourceroot: Seq[AbsolutePath]
 ) extends FunSuite
     with DiffAssertions
     with BeforeAndAfterAll { self =>
 
-  private def dialectToPath(dialect: Dialect): Option[String] =
+  private def dialectToPath(dialect: String): Option[String] =
     Option(dialect).collect {
-      case dialects.Scala211 => "scala-2.11"
-      case dialects.Scala212 => "scala-2.12"
+      case "Scala211" => "scala-2.11"
+      case "Scala212" => "scala-2.12"
     }
 
   def runOn(diffTest: DiffTest): Unit = {
@@ -36,7 +36,7 @@ abstract class SemanticRewriteSuite(
       }
       val candidateOutputFiles = expectedOutputSourceroot.flatMap { root =>
         val scalaSpecificFilename =
-          dialectToPath(diffTest.attributes.dialect).toList.map(path =>
+          dialectToPath(diffTest.attributes.language).toList.map(path =>
             root.resolve(RelativePath(
               diffTest.filename.toString().replaceFirst("scala", path))))
         root.resolve(diffTest.filename) :: scalaSpecificFilename
