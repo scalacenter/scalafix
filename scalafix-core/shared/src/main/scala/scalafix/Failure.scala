@@ -24,7 +24,7 @@ object Failure {
         new UnsupportedOperationException(
           s"Operation '$operation' requires the semantic api. " +
             "This may indicate a configuration or build integration error. " +
-            "See sbt-scalafix or scala.meta.SemanticCtx for instructions on " +
+            "See sbt-scalafix or scalafix.SemanticCtx for instructions on " +
             "how to setup a semantic api."
         ))
   case class MissingTopLevelInCtx(patch: Patch)
