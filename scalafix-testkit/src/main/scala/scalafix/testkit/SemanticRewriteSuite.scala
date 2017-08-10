@@ -3,6 +3,7 @@ package testkit
 
 import scalafix.syntax._
 import scala.meta._
+import scalafix.internal.util.SemanticCtxImpl
 import org.scalameta.logger
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
@@ -14,6 +15,15 @@ abstract class SemanticRewriteSuite(
 ) extends FunSuite
     with DiffAssertions
     with BeforeAndAfterAll { self =>
+  def this(
+      database: Database,
+      inputSourceroot: AbsolutePath,
+      expectedOutputSourceroot: Seq[AbsolutePath]
+  ) =
+    this(
+      new SemanticCtxImpl(database),
+      inputSourceroot,
+      expectedOutputSourceroot)
 
   private def dialectToPath(dialect: String): Option[String] =
     Option(dialect).collect {

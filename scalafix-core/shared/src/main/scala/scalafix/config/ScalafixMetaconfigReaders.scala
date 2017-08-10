@@ -122,18 +122,21 @@ trait ScalafixMetaconfigReaders {
       Configured.error(s"$what requires the semantic API."): Configured[T])(f)
   }
 
+  def parseReplaceSymbol(
+      from: String,
+      to: String): Configured[(Symbol.Global, Symbol.Global)] =
+    symbolGlobalReader.read(Conf.Str(from)) |@|
+      symbolGlobalReader.read(Conf.Str(to))
+
   def classloadRewriteDecoder(mirror: LazyMirror): ConfDecoder[Rewrite] =
     ConfDecoder.instance[Rewrite] {
       case UriRewriteString("scala", fqn) =>
         ClassloadRewrite(fqn, classloadRewrite(mirror))
       case UriRewriteString("replace", replace @ SlashSeparated(from, to)) =>
         requireSemanticMirror(mirror, replace) { m =>
-          (
-            symbolGlobalReader.read(Conf.Str(from)) |@|
-              symbolGlobalReader.read(Conf.Str(to))
-          ).map(TreePatch.ReplaceSymbol.tupled).map { p =>
-            Rewrite.constant(replace, p, m)
-          }
+          parseReplaceSymbol(from, to)
+            .map(TreePatch.ReplaceSymbol.tupled)
+            .map(p => Rewrite.constant(replace, p, m))
         }
     }
 

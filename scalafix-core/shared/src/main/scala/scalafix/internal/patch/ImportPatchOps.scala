@@ -77,14 +77,19 @@ object ImportPatchOps {
       case x: TreePatch.RemoveImportee => isRemovedImportee += x.importee
       case _ =>
     }
-    val importersToAdd = importPatches.flatMap {
-      case TreePatch.AddGlobalSymbol(symbol)
-          if !allNamedImports.contains(symbol) =>
-        SymbolOps.toImporter(symbol).toList
-      case TreePatch.AddGlobalImport(importer)
-          if !allImporters.exists(_.syntax == importer.syntax) =>
-        importer :: Nil
-      case _ => Nil
+    val importersToAdd = {
+      val isAlreadyImported = mutable.Set.empty[Symbol]
+      importPatches.flatMap {
+        case TreePatch.AddGlobalSymbol(symbol)
+            if !allNamedImports.contains(symbol) &&
+              !isAlreadyImported(symbol) =>
+          isAlreadyImported += symbol
+          SymbolOps.toImporter(symbol).toList
+        case TreePatch.AddGlobalImport(importer)
+            if !allImporters.exists(_.syntax == importer.syntax) =>
+          importer :: Nil
+        case _ => Nil
+      }
     }
     val grouped: Seq[Importer] =
       if (ctx.config.groupImportsByPrefix)
@@ -94,7 +99,15 @@ object ImportPatchOps {
             case (_, is) =>
               Importer(
                 is.head.ref,
-                is.sortBy(_.syntax).toIterator.flatMap(_.importees).toList)
+                is.flatMap(_.importees)
+                  .sortBy({
+                    case Importee.Name(n) => n.value
+                    case Importee.Rename(n, _) => n.value
+                    case Importee.Unimport(n) => n.value
+                    case Importee.Wildcard() => '\uFFFF'.toString
+                  })
+                  .toList
+              )
           }
           .toList
       else importersToAdd
