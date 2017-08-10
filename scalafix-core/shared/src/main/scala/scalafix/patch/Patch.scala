@@ -15,6 +15,7 @@ import scalafix.internal.patch.ImportPatchOps
 import scalafix.internal.patch.ReplaceSymbolOps
 import scalafix.internal.util.TokenOps
 import scalafix.patch.TreePatch.ReplaceSymbol
+import org.scalameta.logger
 
 /** A data structure that can produce a .patch file.
   *
@@ -55,9 +56,11 @@ abstract class TokenPatch(val tok: Token, val newTok: String)
     extends Patch
     with LowLevelPatch {
   override def toString: String =
-    if (newTok.isEmpty) s"TokenPatch.Remove(${tok.structure.revealWhiteSpace})"
+    if (newTok.isEmpty)
+      s"TokenPatch.Remove(${logger.revealWhitespace(tok.structure)})"
     else
-      s"TokenPatch.${this.getClass.getSimpleName}(${tok.syntax.revealWhiteSpace}, ${tok.structure}, $newTok)"
+      s"TokenPatch.${this.getClass.getSimpleName}(${logger.revealWhitespace(
+        tok.syntax)}, ${tok.structure}, $newTok)"
 }
 private[scalafix] object TokenPatch {
   case class Remove(override val tok: Token) extends TokenPatch(tok, "")
@@ -185,8 +188,8 @@ object Patch {
     DiffUtils.unifiedDiff(
       original.label,
       revised.label,
-      original.asString.lines.toList,
-      revised.asString.lines.toList,
+      new String(original.chars).lines.toList,
+      new String(revised.chars).lines.toList,
       3)
   }
 }

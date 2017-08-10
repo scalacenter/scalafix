@@ -292,6 +292,7 @@ lazy val testsOutput = project
   .settings(
     allSettings,
     noPublish,
+    semanticdbSettings,
     resolvers := resolvers.in(testsInput).value,
     libraryDependencies := libraryDependencies.in(testsInput).value
   )

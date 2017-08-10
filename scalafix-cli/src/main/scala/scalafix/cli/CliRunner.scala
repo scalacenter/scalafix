@@ -98,7 +98,8 @@ sealed abstract case class CliRunner(
 
   def safeHandleInput(input: FixFile): ExitStatus = {
     try {
-      val inputConfig = if (input.original.isSbtFile) sbtConfig else config
+      val inputConfig =
+        if (input.original.label.endsWith(".sbt")) sbtConfig else config
       inputConfig.dialect(input.toParse).parse[Source] match {
         case parsers.Parsed.Error(pos, message, _) =>
           if (cli.quietParseErrors && !input.passedExplicitly) {
