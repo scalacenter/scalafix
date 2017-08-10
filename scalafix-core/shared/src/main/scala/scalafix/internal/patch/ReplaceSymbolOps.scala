@@ -23,7 +23,7 @@ object ReplaceSymbolOps {
 
   def naiveMoveSymbolPatch(moveSymbols: Seq[ReplaceSymbol])(
       implicit ctx: RewriteCtx,
-      mirror: Database): Patch = {
+      mirror: Mirror): Patch = {
     val moves: Map[Symbol, Symbol.Global] =
       moveSymbols.toIterator.flatMap {
         case ReplaceSymbol(

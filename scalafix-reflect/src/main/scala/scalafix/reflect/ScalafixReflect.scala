@@ -1,6 +1,7 @@
 package scalafix.reflect
 
 import scala.meta._
+import scalafix.Mirror
 import scalafix.Rewrite
 import scalafix.config._
 import scalafix.internal.reflect.ScalafixCompilerDecoder
@@ -10,7 +11,7 @@ object ScalafixReflect {
   def syntactic: ConfDecoder[Rewrite] =
     fromLazyMirror(_ => None)
 
-  def semantic(mirror: Database): ConfDecoder[Rewrite] =
+  def semantic(mirror: Mirror): ConfDecoder[Rewrite] =
     fromLazyMirror(_ => Some(mirror))
 
   def fromLazyMirror(mirror: LazyMirror): ConfDecoder[Rewrite] =

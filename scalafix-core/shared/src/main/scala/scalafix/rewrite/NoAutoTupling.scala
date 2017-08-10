@@ -3,7 +3,7 @@ package rewrite
 
 import scala.meta._
 
-case class NoAutoTupling(mirror: Database) extends SemanticRewrite(mirror) {
+case class NoAutoTupling(mirror: Mirror) extends SemanticRewrite(mirror) {
 
   private[this] def addWrappingParens(ctx: RewriteCtx, args: Seq[Term]): Patch =
     ctx.addLeft(args.head.tokens.head, "(") +

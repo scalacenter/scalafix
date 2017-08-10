@@ -4,6 +4,8 @@ package internal.util
 import scala.meta._
 
 class ScalafixMirror(val database: Database) extends Mirror {
+  override def toString: String = database.toString()
+  override def hashCode(): Int = database.hashCode()
   private val _denots: Map[Symbol, Denotation] = {
     val builder = Map.newBuilder[Symbol, Denotation]
     database.symbols.foreach(r => builder += (r.sym -> r.denot))

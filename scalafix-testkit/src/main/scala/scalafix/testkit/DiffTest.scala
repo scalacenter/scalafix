@@ -1,6 +1,7 @@
 package scalafix.testkit
 
 import scala.meta._
+import scalafix.Mirror
 import scalafix.Rewrite
 import scalafix.config.ScalafixConfig
 import scalafix.reflect.ScalafixReflect
@@ -22,7 +23,7 @@ object DiffTest {
   private val PrefixRegex = "\\s+(ONLY|SKIP)".r
   private def stripPrefix(str: String) = PrefixRegex.replaceFirstIn(str, "")
 
-  def fromMirror(mirror: Database): Seq[DiffTest] = mirror.entries.map {
+  def fromMirror(mirror: Mirror): Seq[DiffTest] = mirror.entries.map {
     attributes =>
       val input @ Input.VirtualFile(label, code) = attributes.input
       val relpath = RelativePath(label)

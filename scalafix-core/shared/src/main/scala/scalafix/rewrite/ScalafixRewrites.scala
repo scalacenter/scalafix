@@ -12,18 +12,18 @@ object ScalafixRewrites {
     DottyKeywords,
     DottyVarArgPattern
   )
-  def semantic(mirror: Database): List[Rewrite] = List(
+  def semantic(mirror: Mirror): List[Rewrite] = List(
     ExplicitReturnTypes(mirror),
     RemoveUnusedImports(mirror),
     NoAutoTupling(mirror)
   )
-  def all(mirror: Database): List[Rewrite] =
+  def all(mirror: Mirror): List[Rewrite] =
     syntax ++ semantic(mirror)
-  def name2rewrite(mirror: Database): Map[String, Rewrite] =
+  def name2rewrite(mirror: Mirror): Map[String, Rewrite] =
     all(mirror).map(x => x.name -> x).toMap
   lazy val syntaxName2rewrite: Map[String, Rewrite] =
     syntax.map(x => x.name -> x).toMap
-  val emptyDatabase = Database(Nil)
+  val emptyDatabase = Mirror(Nil)
   lazy val syntacticNames: List[String] = syntaxName2rewrite.keys.toList
   lazy val semanticNames: List[String] = semantic(emptyDatabase).map(_.name)
   def allNames: List[String] = syntaxName2rewrite.keys.toList ++ semanticNames

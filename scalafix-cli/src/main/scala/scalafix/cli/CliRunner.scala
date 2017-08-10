@@ -31,6 +31,7 @@ import scalafix.internal.cli.FixFile
 import scalafix.internal.cli.ScalafixOptions
 import scalafix.internal.cli.TermDisplay
 import scalafix.internal.cli.WriteMode
+import scalafix.internal.util.ScalafixMirror
 import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
 import metaconfig.Configured.Ok
@@ -267,12 +268,13 @@ object CliRunner {
     // We don't know yet if we need to compute the database or not.
     // If all the rewrites are syntactic, we never need to compute the mirror.
     // If a single rewrite is semantic, then we need to compute the database.
-    private var cachedDatabase = Option.empty[Configured[Database]]
-    private def computeAndCacheDatabase(): Option[Database] = {
-      val result: Configured[Database] = cachedDatabase.getOrElse {
+    private var cachedDatabase = Option.empty[Configured[Mirror]]
+    private def computeAndCacheDatabase(): Option[Mirror] = {
+      val result: Configured[Mirror] = cachedDatabase.getOrElse {
         try {
           resolveClasspath.map { classpath =>
-            val db = Database.load(classpath, Sourcepath(resolvedSourceroot))
+            val db = new ScalafixMirror(
+              Database.load(classpath, Sourcepath(resolvedSourceroot)))
             if (verbose) {
               common.err.println(
                 s"Loaded database with ${db.entries.length} entries.")
@@ -289,7 +291,7 @@ object CliRunner {
       }
       result.toEither.right.toOption
     }
-    private def resolveDatabase(kind: RewriteKind): Option[Database] = {
+    private def resolveDatabase(kind: RewriteKind): Option[Mirror] = {
       if (kind.isSyntactic) None
       else computeAndCacheDatabase()
     }
@@ -406,7 +408,7 @@ object CliRunner {
 
     val mirrorInputs: Configured[Map[AbsolutePath, Input.VirtualFile]] = {
       resolvedRewrite.andThen { _ =>
-        cachedDatabase.getOrElse(Ok(Database(Nil))).map { database =>
+        cachedDatabase.getOrElse(Ok(Mirror(Nil))).map { database =>
           val inputsByAbsolutePath =
             database.entries.toIterator.map(_.input).collect {
               case input @ Input.VirtualFile(path, _) =>

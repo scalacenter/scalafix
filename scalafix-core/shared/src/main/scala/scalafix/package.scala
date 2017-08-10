@@ -1,6 +1,7 @@
 package object scalafix {
 
   type Mirror = scalafix.util.Mirror
+  val Mirror = scalafix.util.Mirror
 
   type ScalafixConfig = config.ScalafixConfig
   val ScalafixConfig = config.ScalafixConfig

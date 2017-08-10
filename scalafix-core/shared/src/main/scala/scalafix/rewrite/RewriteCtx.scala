@@ -13,6 +13,7 @@ import scalafix.patch.TokenPatch.Add
 import scalafix.patch.TreePatch
 import scalafix.patch.TreePatch._
 import scalafix.util.MatchingParens
+import scalafix.util.Mirror
 import scalafix.util.TokenList
 import org.scalameta.FileLine
 import org.scalameta.logger
@@ -33,9 +34,9 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
   val reporter: ScalafixReporter = config.reporter
 
   // Debug utilities
-  def mirror(implicit mirror: Database): Database =
-    Database(mirror.entries.filter(_.input == input))
-  def debugMirror()(implicit mirror: Database, fileLine: FileLine): Unit = {
+  def mirror(implicit mirror: Mirror): Mirror =
+    Mirror(mirror.entries.filter(_.input == input))
+  def debugMirror()(implicit mirror: Mirror, fileLine: FileLine): Unit = {
     val db = this.mirror(mirror)
     debug(sourcecode.Text(db, "mirror"))
   }
@@ -69,17 +70,17 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
   def addLeft(tok: Token, toAdd: String): Patch = Add(tok, toAdd, "")
 
   // Semantic patch ops.
-  def removeGlobalImport(symbol: Symbol)(implicit mirror: Database): Patch =
+  def removeGlobalImport(symbol: Symbol)(implicit mirror: Mirror): Patch =
     RemoveGlobalImport(symbol)
-  def addGlobalImport(symbol: Symbol)(implicit mirror: Database): Patch =
+  def addGlobalImport(symbol: Symbol)(implicit mirror: Mirror): Patch =
     TreePatch.AddGlobalSymbol(symbol)
-  def addGlobalImport(importer: Importer)(implicit mirror: Database): Patch =
+  def addGlobalImport(importer: Importer)(implicit mirror: Mirror): Patch =
     AddGlobalImport(importer)
   def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
-      implicit mirror: Database): Patch =
+      implicit mirror: Mirror): Patch =
     TreePatch.ReplaceSymbol(fromSymbol, toSymbol)
   def renameSymbol(fromSymbol: Symbol.Global, toName: String)(
-      implicit mirror: Database): Patch =
+      implicit mirror: Mirror): Patch =
     TreePatch.ReplaceSymbol(
       fromSymbol,
       Symbol.Global(BottomSymbol(), Signature.Term(toName)))

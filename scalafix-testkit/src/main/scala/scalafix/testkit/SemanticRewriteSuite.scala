@@ -8,7 +8,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 
 abstract class SemanticRewriteSuite(
-    val mirror: Database,
+    val mirror: Mirror,
     val inputSourceroot: AbsolutePath,
     val expectedOutputSourceroot: Seq[AbsolutePath]
 ) extends FunSuite

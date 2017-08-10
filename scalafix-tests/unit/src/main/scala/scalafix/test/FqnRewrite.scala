@@ -4,7 +4,7 @@ import scala.meta._
 import scala.meta.contrib._
 import scalafix._
 
-case class FqnRewrite(mirror: Database) extends SemanticRewrite(mirror) {
+case class FqnRewrite(mirror: Mirror) extends SemanticRewrite(mirror) {
   override def rewrite(ctx: RewriteCtx): Patch =
     ctx.addGlobalImport(importer"scala.collection.immutable")
 }

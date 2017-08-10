@@ -1,4 +1,5 @@
-package scalafix.internal.patch
+package scalafix
+package internal.patch
 
 import scala.annotation.tailrec
 import scala.collection.immutable.Seq
@@ -51,7 +52,7 @@ object ImportPatchOps {
   private[scalafix] def superNaiveImportPatchToTokenPatchConverter(
       ctx: RewriteCtx,
       importPatches: Seq[ImportPatch])(
-      implicit mirror: Database): Iterable[Patch] = {
+      implicit mirror: Mirror): Iterable[Patch] = {
     val allImports = ctx.tree.collect { case i: Import => i }
     val allImporters = allImports.flatMap(_.importers)
     val allImportees = allImporters.flatMap(_.importees)

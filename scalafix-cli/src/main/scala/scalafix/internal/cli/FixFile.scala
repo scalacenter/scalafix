@@ -7,9 +7,9 @@ import scala.meta.Input
 case class FixFile(
     // The file on the local filesystem where the fix should written to.
     original: Input.File,
-    // For semantic rewrites on fat semanticdb, the input in scala.meta.Database
+    // For semantic rewrites on fat semanticdb, the input in scala.meta.Mirror
     // is labeled strings instead of Input.File. The labeled string must be used
-    // in the RewriteCtx in order to position lookups in Database.names/symbols
+    // in the RewriteCtx in order to position lookups in Mirror.names/symbols
     // to match, since scala.meta.Position.input must match.
     mirror: Option[Input.VirtualFile] = None,
     // Was this file passed explicitly or expanded from a directory?

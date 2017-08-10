@@ -24,7 +24,7 @@ object Failure {
         new UnsupportedOperationException(
           s"Operation '$operation' requires the semantic api. " +
             "This may indicate a configuration or build integration error. " +
-            "See sbt-scalafix or scala.meta.Database for instructions on " +
+            "See sbt-scalafix or scala.meta.Mirror for instructions on " +
             "how to setup a semantic api."
         ))
   case class MissingTopLevelInCtx(patch: Patch)
@@ -38,11 +38,11 @@ object Failure {
           s"""Cannot mix two different RewriteCtx inside the same patch.
              |RewriteCtx 1: $a
              |RewriteCtx 2: $b""".stripMargin))
-  case class MismatchingMirror(a: Database, b: Database)
+  case class MismatchingMirror(a: Mirror, b: Mirror)
       extends Failure(
         InvariantFailedException(
-          s"""Cannot mix two different Database inside the same patch.
-             |Database 1: $a
+          s"""Cannot mix two different Mirror inside the same patch.
+             |Mirror 1: $a
              |${a}
              |RewriteCtx 2: $b
              |${b}
