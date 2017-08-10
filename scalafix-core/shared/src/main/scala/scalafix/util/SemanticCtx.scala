@@ -11,8 +11,8 @@ import scalafix.internal.util.SemanticCtxImpl
   */
 trait SemanticCtx {
   def database: Database
+  def names: Seq[ResolvedName]
   def entries: Seq[Attributes] = database.entries
-  def names: Seq[ResolvedName] = database.names
   def messages: Seq[Message] = database.messages
   def symbols: Seq[ResolvedSymbol] = database.symbols
   def sugars: Seq[Sugar] = database.sugars

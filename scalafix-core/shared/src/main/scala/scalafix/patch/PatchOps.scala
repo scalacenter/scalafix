@@ -20,5 +20,6 @@ trait PatchOps {
   def addGlobalImport(importer: Importer)(implicit mirror: SemanticCtx): Patch
   def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
       implicit mirror: SemanticCtx): Patch
+  def replaceSymbols(toReplace: (String, String)*)(implicit mirror: SemanticCtx): Patch
   def renameSymbol(fromSymbol: Symbol.Global, toName: String)(implicit mirror: SemanticCtx): Patch
 }

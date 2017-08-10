@@ -124,7 +124,6 @@ object ScalafixPlugin extends AutoPlugin {
       val verbose = if (scalafixVerbose.value) "--verbose" :: Nil else Nil
       val main = cliWrapperMain.value
       val log = streams.value.log
-
       compile.all(filter).value // trigger compilation
       val classpath = classDirectory.all(filter).value.asPath
       val directoriesToFix: Seq[String] =
