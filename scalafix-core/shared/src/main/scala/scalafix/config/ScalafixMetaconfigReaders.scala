@@ -80,12 +80,14 @@ trait ScalafixMetaconfigReaders {
   ): ConfDecoder[(Rewrite, ScalafixConfig)] =
     scalafixConfigEmptyRewriteReader.flatMap {
       case (rewriteConf, config) =>
-        val rewriteList: Seq[Conf] = rewriteConf match {
-          case Conf.Lst(rewrites) => rewrites
-          case x => x :: Nil
-        }
-        val combinedRewrites =
-          Conf.Lst(extraRewrites.map(Conf.Str) ++ rewriteList)
+        val combinedRewrites: Conf.Lst =
+          if (extraRewrites.nonEmpty)
+            Conf.Lst(extraRewrites.map(Conf.Str))
+          else
+            rewriteConf match {
+              case rewrites @ Conf.Lst(_) => rewrites
+              case x => Conf.Lst(x :: Nil)
+            }
         rewriteDecoder.read(combinedRewrites).map(rewrite => rewrite -> config)
     }
 
