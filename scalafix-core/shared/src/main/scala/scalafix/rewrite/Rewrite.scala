@@ -3,6 +3,8 @@ package rewrite
 
 import scala.collection.immutable.Seq
 import scala.meta._
+import scalafix.internal.config.ScalafixMetaconfigReaders
+import scalafix.internal.config.ScalafixConfig
 import scalafix.syntax._
 import metaconfig.ConfDecoder
 import metaconfig.Configured
@@ -30,7 +32,7 @@ abstract class Rewrite(implicit rewriteName: Name) { self =>
   }
   final def apply(input: String): String = apply(Input.String(input))
   final protected def apply(ctx: RewriteCtx, patch: Patch): String =
-    Patch(patch, ctx, mirrorOption)
+    Patch(patch, ctx, semanticOption)
 
   /** Returns unified diff from applying this patch */
   final def diff(ctx: RewriteCtx): String =
@@ -50,27 +52,28 @@ abstract class Rewrite(implicit rewriteName: Name) { self =>
   // The challenge is the following:
   // - a.andThen(b) needs to work for mixing semantic + syntactic rewrites.
   // - applied/appliedDiff should work without passing in SemanticCtx explicitly
-  protected[scalafix] def mirrorOption: Option[SemanticCtx] = None
+  protected[scalafix] def semanticOption: Option[SemanticCtx] = None
 }
 
-abstract class SemanticRewrite(mirror: SemanticCtx)(implicit name: Name)
+abstract class SemanticRewrite(semanticCtx: SemanticCtx)(implicit name: Name)
     extends Rewrite {
-  implicit val ImplicitMirror: SemanticCtx = mirror
-  override def mirrorOption: Option[SemanticCtx] = Some(mirror)
+  implicit val ImplicitSemanticCtx: SemanticCtx = semanticCtx
+  override def semanticOption: Option[SemanticCtx] = Some(semanticCtx)
 }
 
 object Rewrite {
   val syntaxRewriteConfDecoder: ConfDecoder[Rewrite] =
-    config.rewriteConfDecoderSyntactic(config.baseSyntacticRewriteDecoder)
+    ScalafixMetaconfigReaders.rewriteConfDecoderSyntactic(
+      ScalafixMetaconfigReaders.baseSyntacticRewriteDecoder)
   def emptyConfigured: Configured[Rewrite] = Configured.Ok(empty)
   def empty: Rewrite = syntactic(_ => Patch.empty)
-  def emptyFromMirrorOpt(mirror: Option[SemanticCtx]): Rewrite =
-    mirror.fold(empty)(emptySemantic)
+  def emptyFromSemanticCtxOpt(semanticCtx: Option[SemanticCtx]): Rewrite =
+    semanticCtx.fold(empty)(emptySemantic)
   def combine(rewrites: Seq[Rewrite]): Rewrite =
     rewrites.foldLeft(empty)(_ andThen _)
   // into an actual rewrite instead of handling it specially inside Patch.applied.
-  private[scalafix] def emptySemantic(mirror: SemanticCtx): Rewrite =
-    semantic(x => y => Patch.empty)(Name("empty"))(mirror)
+  private[scalafix] def emptySemantic(semanticCtx: SemanticCtx): Rewrite =
+    semantic(x => y => Patch.empty)(Name("empty"))(semanticCtx)
 
   /** Creates a syntactic rewrite. */
   def syntactic(f: RewriteCtx => Patch)(implicit name: Name): Rewrite =
@@ -80,15 +83,15 @@ object Rewrite {
 
   /** Creates a semantic rewrite. */
   def semantic(f: SemanticCtx => RewriteCtx => Patch)(
-      implicit name: Name): SemanticCtx => Rewrite = { mirror =>
-    new SemanticRewrite(mirror) {
-      override def rewrite(ctx: RewriteCtx): Patch = f(mirror)(ctx)
+      implicit name: Name): SemanticCtx => Rewrite = { semanticCtx =>
+    new SemanticRewrite(semanticCtx) {
+      override def rewrite(ctx: RewriteCtx): Patch = f(semanticCtx)(ctx)
     }
   }
 
   /** Creates a rewrite that always returns the same patch. */
-  def constant(name: String, patch: Patch, mirror: SemanticCtx): Rewrite =
-    new SemanticRewrite(mirror)(Name(name)) {
+  def constant(name: String, patch: Patch, semanticCtx: SemanticCtx): Rewrite =
+    new SemanticRewrite(semanticCtx)(Name(name)) {
       override def rewrite(ctx: RewriteCtx): Patch = patch
     }
 
@@ -101,10 +104,10 @@ object Rewrite {
     new Rewrite()(Name(newName)) {
       override def rewrite(ctx: RewriteCtx): Patch =
         a.rewrite(ctx) + b.rewrite(ctx)
-      override def mirrorOption: Option[SemanticCtx] =
-        (a.mirrorOption, b.mirrorOption) match {
+      override def semanticOption: Option[SemanticCtx] =
+        (a.semanticOption, b.semanticOption) match {
           case (Some(m1), Some(m2)) =>
-            if (m1 ne m2) throw Failure.MismatchingMirror(m1, m2)
+            if (m1 ne m2) throw Failure.MismatchingSemanticCtx(m1, m2)
             else Some(m1)
           case (a, b) => a.orElse(b)
         }

@@ -40,9 +40,9 @@ class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
     if (t.isInstance(rewrite)) rewrite.asInstanceOf[T]
     else
       args match {
-        case (mirror: SemanticCtx) :: Nil
+        case (semanticCtx: SemanticCtx) :: Nil
             if functionClasstag.isInstance(rewrite) =>
-          rewrite.asInstanceOf[Function[SemanticCtx, T]].apply(mirror)
+          rewrite.asInstanceOf[Function[SemanticCtx, T]].apply(semanticCtx)
         case _ =>
           throw new IllegalArgumentException(
             s"Unable to load rewrite from field $fieldName on object $obj with arguments $args")

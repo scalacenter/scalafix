@@ -4,7 +4,7 @@ import scala.meta._
 import scala.meta.contrib._
 import scalafix._
 
-case class FqnRewrite(mirror: SemanticCtx) extends SemanticRewrite(mirror) {
+case class FqnRewrite(sctx: SemanticCtx) extends SemanticRewrite(sctx) {
   override def rewrite(ctx: RewriteCtx): Patch =
     ctx.addGlobalImport(importer"scala.collection.immutable")
 }
@@ -21,7 +21,7 @@ object LambdaRewrites {
     ctx.addLeft(ctx.tokens.head, "// comment\n")
   }
 
-  val semantic = Rewrite.semantic { implicit mirror => ctx =>
+  val semantic = Rewrite.semantic { implicit sctx => ctx =>
     ctx.addGlobalImport(importer"scala.collection.mutable")
   }
 

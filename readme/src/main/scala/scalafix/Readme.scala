@@ -2,7 +2,7 @@ package scalafix
 
 import metaconfig._, typesafeconfig._
 import scala.meta.inputs.Input
-import scalafix.config.ScalafixMetaconfigReaders
+import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.reflect.ScalafixReflect
 import scalatags.Text.TypedTag
 import scalatags.Text.all._

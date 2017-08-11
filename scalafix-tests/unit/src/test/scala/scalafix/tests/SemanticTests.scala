@@ -6,7 +6,7 @@ import scalafix.testkit._
 
 class SemanticTests
     extends SemanticRewriteSuite(
-      SemanticCtx.load(Classpath(AbsolutePath(BuildInfo.mirrorClasspath))),
+      SemanticCtx.load(Classpath(AbsolutePath(BuildInfo.semanticClasspath))),
       AbsolutePath(BuildInfo.inputSourceroot),
       Seq(
         AbsolutePath(BuildInfo.outputSourceroot),

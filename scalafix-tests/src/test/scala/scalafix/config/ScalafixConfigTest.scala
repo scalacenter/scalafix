@@ -1,4 +1,4 @@
-package scalafix.config
+package scalafix.internal.config
 
 import metaconfig._
 import MetaconfigParser.parser

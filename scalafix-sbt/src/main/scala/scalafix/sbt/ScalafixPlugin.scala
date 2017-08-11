@@ -32,6 +32,8 @@ object ScalafixPlugin extends AutoPlugin {
         scalafixScalacSettings
     val scalafixSourceroot: SettingKey[File] = settingKey[File](
       s"Which sourceroot should be used for .semanticdb files.")
+    @deprecated("Renamed to scalafixSourceroot", "0.5.0")
+    val scalametaSourceroot: SettingKey[File] = scalafixSourceroot
     val scalafixVersion: SettingKey[String] = settingKey[String](
       s"Which scalafix version to run. Default is ${Versions.version}.")
     val scalafixScalaVersion: SettingKey[String] = settingKey[String](

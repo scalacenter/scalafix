@@ -2,22 +2,22 @@ package scalafix.reflect
 
 import scalafix.SemanticCtx
 import scalafix.Rewrite
-import scalafix.config._
+import scalafix.internal.config._
 import scalafix.internal.reflect.ScalafixCompilerDecoder
 import metaconfig.ConfDecoder
 
 object ScalafixReflect {
   def syntactic: ConfDecoder[Rewrite] =
-    fromLazyMirror(_ => None)
+    fromLazySemanticCtx(_ => None)
 
-  def semantic(mirror: SemanticCtx): ConfDecoder[Rewrite] =
-    fromLazyMirror(_ => Some(mirror))
+  def semantic(semanticCtx: SemanticCtx): ConfDecoder[Rewrite] =
+    fromLazySemanticCtx(_ => Some(semanticCtx))
 
-  def fromLazyMirror(mirror: LazyMirror): ConfDecoder[Rewrite] =
+  def fromLazySemanticCtx(semanticCtx: LazySemanticCtx): ConfDecoder[Rewrite] =
     rewriteConfDecoder(
       MetaconfigPendingUpstream.orElse(
-        ScalafixCompilerDecoder.baseCompilerDecoder(mirror),
-        baseRewriteDecoders(mirror)
+        ScalafixCompilerDecoder.baseCompilerDecoder(semanticCtx),
+        baseRewriteDecoders(semanticCtx)
       )
     )
 }

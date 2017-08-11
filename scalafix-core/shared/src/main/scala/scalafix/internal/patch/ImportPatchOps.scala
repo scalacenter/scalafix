@@ -52,12 +52,12 @@ object ImportPatchOps {
   private[scalafix] def superNaiveImportPatchToTokenPatchConverter(
       ctx: RewriteCtx,
       importPatches: Seq[ImportPatch])(
-      implicit mirror: SemanticCtx): Iterable[Patch] = {
+      implicit semanticCtx: SemanticCtx): Iterable[Patch] = {
     val allImports = ctx.tree.collect { case i: Import => i }
     val allImporters = allImports.flatMap(_.importers)
     val allImportees = allImporters.flatMap(_.importees)
     val allNamedImports = allImportees.collect {
-      case Importee.Name(n) if mirror.names.contains(n.pos) =>
+      case Importee.Name(n) if semanticCtx.names.contains(n.pos) =>
         n.symbol
       // TODO(olafur) handle rename.
     }

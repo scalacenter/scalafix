@@ -5,13 +5,13 @@ import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.contrib._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
-import scalafix.config.ExplicitReturnTypesConfig
-import scalafix.config.{MemberKind, MemberVisibility}
+import scalafix.internal.config.ExplicitReturnTypesConfig
+import scalafix.internal.config.{MemberKind, MemberVisibility}
 import scalafix.syntax._
 import scalafix.util.Whitespace
 
-case class ExplicitReturnTypes(mirror: SemanticCtx)
-    extends SemanticRewrite(mirror) {
+case class ExplicitReturnTypes(semanticCtx: SemanticCtx)
+    extends SemanticRewrite(semanticCtx) {
   // Don't explicitly annotate vals when the right-hand body is a single call
   // to `implicitly`. Prevents ambiguous implicit. Not annotating in such cases,
   // this a common trick employed implicit-heavy code to workaround SI-2712.

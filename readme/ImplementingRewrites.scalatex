@@ -195,7 +195,7 @@
     @sect{SemanticCtx}
        A SemanticCtx encapsulates a compilation context, providing
        capabilities to perform semantic operations for @sect.ref{Semantic} rewrites.
-       To learn more about mirrors and its associated concepts (Symbol,
+       To learn more about SemanticCtx and its associated data structures (Symbol,
        Denotation, ...), see the
        @lnk("Scalameta tutorial", "http://scalameta.org/tutorial/#Mirror").
 

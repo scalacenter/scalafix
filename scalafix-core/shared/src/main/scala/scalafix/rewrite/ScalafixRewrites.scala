@@ -11,15 +11,15 @@ object ScalafixRewrites {
     DottyKeywords,
     DottyVarArgPattern
   )
-  def semantic(mirror: SemanticCtx): List[Rewrite] = List(
-    ExplicitReturnTypes(mirror),
-    RemoveUnusedImports(mirror),
-    NoAutoTupling(mirror)
+  def semantic(semanticCtx: SemanticCtx): List[Rewrite] = List(
+    ExplicitReturnTypes(semanticCtx),
+    RemoveUnusedImports(semanticCtx),
+    NoAutoTupling(semanticCtx)
   )
-  def all(mirror: SemanticCtx): List[Rewrite] =
-    syntax ++ semantic(mirror)
-  def name2rewrite(mirror: SemanticCtx): Map[String, Rewrite] =
-    all(mirror).map(x => x.name -> x).toMap
+  def all(semanticCtx: SemanticCtx): List[Rewrite] =
+    syntax ++ semantic(semanticCtx)
+  def name2rewrite(semanticCtx: SemanticCtx): Map[String, Rewrite] =
+    all(semanticCtx).map(x => x.name -> x).toMap
   lazy val syntaxName2rewrite: Map[String, Rewrite] =
     syntax.map(x => x.name -> x).toMap
   val emptyDatabase = SemanticCtx(Nil)

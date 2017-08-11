@@ -1,5 +1,5 @@
 package scalafix
-package config
+package internal.config
 
 import java.io.PrintStream
 import scala.meta._
@@ -73,10 +73,10 @@ object ScalafixConfig {
 
   def fromInput(
       input: Input,
-      mirror: LazyMirror,
+      semanticCtx: LazySemanticCtx,
       extraRewrites: List[String] = Nil)(
       implicit decoder: ConfDecoder[Rewrite]
   ): Configured[(Rewrite, ScalafixConfig)] =
-    configFromInput(input, mirror, extraRewrites)
+    configFromInput(input, semanticCtx, extraRewrites)
 
 }

@@ -140,7 +140,7 @@ class CliTest extends ScalafixCliTest {
 
   test("--sourceroot --classpath") {
     // NOTE: This assertion should fail by default, but scalafix-cli % Test
-    // depends on testkit, which has scalahost-nsc as a dependency.
+    // depends on testkit, which has semanticdb-scalac as a dependency.
     assert(
       Cli
         .parse(List("--sourceroot", "/foo.scala", "--classpath", "/bar"))

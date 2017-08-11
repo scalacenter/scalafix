@@ -3,14 +3,15 @@ package rewrite
 
 import scala.meta._
 
-case class NoAutoTupling(mirror: SemanticCtx) extends SemanticRewrite(mirror) {
+case class NoAutoTupling(semanticCtx: SemanticCtx)
+    extends SemanticRewrite(semanticCtx) {
 
   private[this] def addWrappingParens(ctx: RewriteCtx, args: Seq[Term]): Patch =
     ctx.addLeft(args.head.tokens.head, "(") +
       ctx.addRight(args.last.tokens.last, ")")
 
   override def rewrite(ctx: RewriteCtx): Patch = {
-    val adaptations = mirror.messages.toIterator.collect {
+    val adaptations = semanticCtx.messages.toIterator.collect {
       case Message(pos, _, msg)
           if msg.startsWith("Adapting argument list by creating a") =>
         pos

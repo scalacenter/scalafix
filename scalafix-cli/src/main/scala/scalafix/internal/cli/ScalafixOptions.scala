@@ -5,8 +5,8 @@ import java.io.InputStream
 import java.io.PrintStream
 import scala.meta._
 import scala.meta.io.AbsolutePath
-import scalafix.config.PrintStreamReporter
-import scalafix.config.ScalafixReporter
+import scalafix.internal.config.PrintStreamReporter
+import scalafix.internal.config.ScalafixReporter
 import scalafix.rewrite.ProcedureSyntax
 import scalafix.rewrite.ScalafixRewrites
 import caseapp._
@@ -43,16 +43,15 @@ case class ScalafixOptions(
     @ValueDescription("imports.organize=false")
     @ExtraName("c")
     configStr: Option[String] = None,
-    @HelpMessage(
-      "Absolute path passed to scalahost with -P:scalahost:sourceroot:<path>. " +
-        "Relative filenames persisted in the Semantic DB are absolutized by the " +
-        "sourceroot. Defaults to current working directory if not provided.")
+    @HelpMessage("Absolute path passed to semanticdb with -P:semanticdb:sourceroot:<path>. " +
+      "Relative filenames persisted in the Semantic DB are absolutized by the " +
+      "sourceroot. Defaults to current working directory if not provided.")
     @ValueDescription("/foo/myproject")
     sourceroot: Option[String] = None,
     @HelpMessage(
       "java.io.File.pathSeparator separated list of directories or jars containing " +
         "'.semanticdb' files. The 'semanticdb' files are emitted by the " +
-        "scalahost-nsc compiler plugin and are necessary for semantic rewrites " +
+        "semanticdb-scalac compiler plugin and are necessary for semantic rewrites " +
         "like ExplicitReturnTypes to function."
     )
     @ValueDescription("entry1.jar:entry2.jar:target/scala-2.12/classes")

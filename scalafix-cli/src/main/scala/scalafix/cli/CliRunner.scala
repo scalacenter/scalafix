@@ -20,11 +20,11 @@ import scala.meta.internal.inputs._
 import scala.meta.io.AbsolutePath
 import scala.util.Try
 import scala.util.control.NonFatal
-import scalafix.config.Class2Hocon
-import scalafix.config.FilterMatcher
-import scalafix.config.LazyMirror
-import scalafix.config.RewriteKind
-import scalafix.config.ScalafixConfig
+import scalafix.internal.config.Class2Hocon
+import scalafix.internal.config.FilterMatcher
+import scalafix.internal.config.LazySemanticCtx
+import scalafix.internal.config.RewriteKind
+import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.cli.CommonOptions
 import scalafix.internal.cli.FixFile
 import scalafix.internal.cli.ScalafixOptions
@@ -86,7 +86,7 @@ sealed abstract case class CliRunner(
   private def isUpToDate(input: FixFile): Boolean =
     if (!input.toIO.exists() && cli.outTo.nonEmpty) true
     else {
-      input.mirror match {
+      input.semanticCtx match {
         case Some(Input.VirtualFile(_, contents)) =>
           val fileToWrite = scala.io.Source.fromFile(input.toIO)
           try fileToWrite.sameElements(contents.toCharArray.toIterator)
@@ -122,7 +122,8 @@ sealed abstract case class CliRunner(
               ctx.reporter.error(
                 s"Stale semanticdb for ${CliRunner.pretty(outFile)}, skipping rewrite. Please recompile.")
               if (cli.verbose) {
-                val diff = Patch.unifiedDiff(input.mirror.get, input.original)
+                val diff =
+                  Patch.unifiedDiff(input.semanticCtx.get, input.original)
                 common.err.println(diff)
               }
               ExitStatus.StaleSemanticDB
@@ -181,7 +182,7 @@ object CliRunner {
   ): Configured[CliRunner] = {
     (
       builder.resolvedPathReplace |@|
-        builder.fixFilesWithMirror |@|
+        builder.fixFilesWithSemanticCtx |@|
         builder.resolvedConfig
     ).map {
       case ((replace, inputs), config) =>
@@ -253,7 +254,7 @@ object CliRunner {
           else {
             val msg =
               """Unable to automatically detect .semanticdb files to run semantic rewrites. Possible workarounds:
-                |- re-compile sources with the scalahost compiler plugin enabled.
+                |- re-compile sources with the semanticdb compiler plugin enabled.
                 |- explicitly pass in --classpath and --sourceroot to run semantic rewrites.""".stripMargin
             ConfError.msg(msg).notOk
           }
@@ -265,7 +266,7 @@ object CliRunner {
         .getOrElse(common.workingPath)
 
     // We don't know yet if we need to compute the database or not.
-    // If all the rewrites are syntactic, we never need to compute the mirror.
+    // If all the rewrites are syntactic, we never need to compute the semanticCtx.
     // If a single rewrite is semantic, then we need to compute the database.
     private var cachedDatabase = Option.empty[Configured[SemanticCtx]]
     private def computeAndCacheDatabase(): Option[SemanticCtx] = {
@@ -294,7 +295,7 @@ object CliRunner {
       if (kind.isSyntactic) None
       else computeAndCacheDatabase()
     }
-    private val lazyMirror: LazyMirror = resolveDatabase
+    private val lazySemanticCtx: LazySemanticCtx = resolveDatabase
 
     // expands a single file into a list of files.
     def expand(matcher: FilterMatcher)(path: AbsolutePath): Seq[FixFile] = {
@@ -371,13 +372,15 @@ object CliRunner {
     //  - .scalafix.conf in working directory
     //  - ScalafixConfig.default
     val resolvedRewriteAndConfig: Configured[(Rewrite, ScalafixConfig)] = {
-      val decoder = ScalafixReflect.fromLazyMirror(lazyMirror)
+      val decoder = ScalafixReflect.fromLazySemanticCtx(lazySemanticCtx)
       fixFiles.andThen { inputs =>
         val configured =
           if (inputs.isEmpty) Ok(Rewrite.empty -> ScalafixConfig.default)
           else {
-            resolvedConfigInput.andThen(input =>
-              ScalafixConfig.fromInput(input, lazyMirror, rewrites)(decoder))
+            resolvedConfigInput.andThen(
+              input =>
+                ScalafixConfig.fromInput(input, lazySemanticCtx, rewrites)(
+                  decoder))
           }
         configured.map { configuration =>
           // TODO(olafur) implement withFilter on Configured
@@ -405,7 +408,7 @@ object CliRunner {
         ConfError.msg(s"Invalid regex '$outFrom'! ${e.getMessage}").notOk
     }
 
-    val mirrorInputs: Configured[Map[AbsolutePath, Input.VirtualFile]] = {
+    val semanticInputs: Configured[Map[AbsolutePath, Input.VirtualFile]] = {
       resolvedRewrite.andThen { _ =>
         cachedDatabase.getOrElse(Ok(SemanticCtx(Nil))).map { database =>
           val inputsByAbsolutePath =
@@ -418,12 +421,12 @@ object CliRunner {
       }
     }
 
-    val fixFilesWithMirror: Configured[Seq[FixFile]] =
-      mirrorInputs.product(fixFiles).map {
-        case (fromMirror, files) =>
+    val fixFilesWithSemanticCtx: Configured[Seq[FixFile]] =
+      semanticInputs.product(fixFiles).map {
+        case (fromSemanticCtx, files) =>
           files.map { file =>
-            val labeled = fromMirror.get(file.original.path)
-            file.copy(mirror = labeled)
+            val labeled = fromSemanticCtx.get(file.original.path)
+            file.copy(semanticCtx = labeled)
           }
       }
 

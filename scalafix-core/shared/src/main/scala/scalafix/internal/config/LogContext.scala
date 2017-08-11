@@ -1,4 +1,4 @@
-package scalafix.config
+package scalafix.internal.config
 
 case class LogContext(
     line: sourcecode.Line,

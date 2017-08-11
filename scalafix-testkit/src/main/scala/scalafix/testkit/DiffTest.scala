@@ -3,7 +3,7 @@ package scalafix.testkit
 import scala.meta._
 import scalafix.SemanticCtx
 import scalafix.Rewrite
-import scalafix.config.ScalafixConfig
+import scalafix.internal.config.ScalafixConfig
 import scalafix.reflect.ScalafixReflect
 import org.scalatest.exceptions.TestFailedException
 
@@ -23,8 +23,8 @@ object DiffTest {
   private val PrefixRegex = "\\s+(ONLY|SKIP)".r
   private def stripPrefix(str: String) = PrefixRegex.replaceFirstIn(str, "")
 
-  def fromMirror(mirror: SemanticCtx): Seq[DiffTest] = mirror.entries.map {
-    attributes =>
+  def fromSemanticCtx(semanticCtx: SemanticCtx): Seq[DiffTest] =
+    semanticCtx.entries.map { attributes =>
       val input @ Input.VirtualFile(label, code) = attributes.input
       val relpath = RelativePath(label)
       val config: () => (Rewrite, ScalafixConfig) = { () =>
@@ -32,11 +32,11 @@ object DiffTest {
           .collectFirst {
             case Token.Comment(comment) =>
               val decoder =
-                ScalafixReflect.fromLazyMirror(_ => Some(mirror))
+                ScalafixReflect.fromLazySemanticCtx(_ => Some(semanticCtx))
               ScalafixConfig
                 .fromInput(
                   Input.VirtualFile(label, stripPrefix(comment)),
-                  _ => Some(mirror))(decoder)
+                  _ => Some(semanticCtx))(decoder)
                 .get
           }
           .getOrElse(throw new TestFailedException(
@@ -51,7 +51,7 @@ object DiffTest {
         isSkip = code.contains("SKIP"),
         isOnly = code.contains("ONLY")
       )
-  }
+    }
 
   def testToRun(tests: Seq[DiffTest]): Seq[DiffTest] = {
     val onlyOne = tests.exists(_.isOnly)

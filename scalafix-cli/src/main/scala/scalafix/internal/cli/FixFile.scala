@@ -11,14 +11,14 @@ case class FixFile(
     // is labeled strings instead of Input.File. The labeled string must be used
     // in the RewriteCtx in order to position lookups in SemanticCtx.names/symbols
     // to match, since scala.meta.Position.input must match.
-    mirror: Option[Input.VirtualFile] = None,
+    semanticCtx: Option[Input.VirtualFile] = None,
     // Was this file passed explicitly or expanded from a directory?
     // If the file was expanded from a directory, we may want to skip reporting
     // a parse error.
     passedExplicitly: Boolean = false
 ) {
   override def toString: String =
-    s"InputFile(${original.path.toNIO}, $mirror, $passedExplicitly)"
-  def toParse: Input = mirror.getOrElse(original)
+    s"InputFile(${original.path.toNIO}, $semanticCtx, $passedExplicitly)"
+  def toParse: Input = semanticCtx.getOrElse(original)
   def toIO: File = original.path.toFile
 }
