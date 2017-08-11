@@ -177,10 +177,7 @@ object ScalafixRewriteNames {
     val exit = runMain(args.to[Seq], CommonOptions())
     if (args.contains("--no-sys-exit")) {
       if (exit.code != 0) throw NonZeroExitCode(exit)
-      else {
-        // This one accummulates a lot of garbage, scalameta needs to get rid of it.
-        PlatformTokenizerCache.megaCache.clear()
-      }
+      else ()
     } else sys.exit(exit.code)
   }
 
@@ -221,8 +218,8 @@ object ScalafixRewriteNames {
 
   def runMain(
       cliCommand: CliCommand,
-      commonOptions: CommonOptions): ExitStatus =
-    cliCommand match {
+      commonOptions: CommonOptions): ExitStatus = {
+    val result = cliCommand match {
       case CliCommand.PrintAndExit(msg, exit) =>
         if (exit.isOk) commonOptions.out.println(msg)
         else commonOptions.reporter.error(msg)
@@ -231,6 +228,10 @@ object ScalafixRewriteNames {
         val exit = runner.run()
         exit
     }
+    // This one accummulates a lot of garbage, scalameta needs to get rid of it.
+    PlatformTokenizerCache.megaCache.clear()
+    result
+  }
 
   def nailMain(nGContext: NGContext): Unit = {
     val exit =
