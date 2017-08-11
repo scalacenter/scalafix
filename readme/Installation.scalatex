@@ -88,6 +88,8 @@
     @hl.scala
       // ===> build.sbt
       libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % "@V.stableVersion"
+      // (optional) Scala.js is also supported
+      libraryDependencies += "ch.epfl.scala" %%% "scalafix-core" % "@V.stableVersion"
 
     Example usage of the syntactic API.
     @hl.ref(wd/"readme"/"src"/"main"/"scala"/"fix"/"MyRewrite.scala")
