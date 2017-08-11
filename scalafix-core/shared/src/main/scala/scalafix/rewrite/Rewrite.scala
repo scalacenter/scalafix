@@ -56,7 +56,7 @@ abstract class Rewrite(implicit rewriteName: Name) { self =>
 
 abstract class SemanticRewrite(semanticCtx: SemanticCtx)(implicit name: Name)
     extends Rewrite {
-  implicit val ImplicitMirror: SemanticCtx = semanticCtx
+  implicit val ImplicitSemanticCtx: SemanticCtx = semanticCtx
   override def semanticOption: Option[SemanticCtx] = Some(semanticCtx)
 }
 
@@ -66,7 +66,7 @@ object Rewrite {
       ScalafixMetaconfigReaders.baseSyntacticRewriteDecoder)
   def emptyConfigured: Configured[Rewrite] = Configured.Ok(empty)
   def empty: Rewrite = syntactic(_ => Patch.empty)
-  def emptyFromMirrorOpt(semanticCtx: Option[SemanticCtx]): Rewrite =
+  def emptyFromSemanticCtxOpt(semanticCtx: Option[SemanticCtx]): Rewrite =
     semanticCtx.fold(empty)(emptySemantic)
   def combine(rewrites: Seq[Rewrite]): Rewrite =
     rewrites.foldLeft(empty)(_ andThen _)
@@ -106,7 +106,7 @@ object Rewrite {
       override def semanticOption: Option[SemanticCtx] =
         (a.semanticOption, b.semanticOption) match {
           case (Some(m1), Some(m2)) =>
-            if (m1 ne m2) throw Failure.MismatchingMirror(m1, m2)
+            if (m1 ne m2) throw Failure.MismatchingSemanticCtx(m1, m2)
             else Some(m1)
           case (a, b) => a.orElse(b)
         }

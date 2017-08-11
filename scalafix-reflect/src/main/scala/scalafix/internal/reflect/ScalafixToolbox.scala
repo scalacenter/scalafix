@@ -11,7 +11,7 @@ import scala.tools.nsc.Settings
 import scala.tools.nsc.io.VirtualDirectory
 import scala.tools.nsc.reporters.StoreReporter
 import scala.{meta => m}
-import scalafix.internal.config.LazyMirror
+import scalafix.internal.config.LazySemanticCtx
 import scalafix.internal.config.classloadRewrite
 import scalafix.internal.util.ClassloadRewrite
 import scalafix.rewrite.Rewrite
@@ -24,7 +24,7 @@ class ScalafixToolbox {
     new java.util.concurrent.ConcurrentHashMap[Input, Configured[Rewrite]]()
   private val compiler = new Compiler()
 
-  def getRewrite(code: Input, semanticCtx: LazyMirror): Configured[Rewrite] =
+  def getRewrite(code: Input, semanticCtx: LazySemanticCtx): Configured[Rewrite] =
     rewriteCache.getOrDefault(code, {
       val uncached = getRewriteUncached(code, semanticCtx)
       uncached match {
@@ -35,7 +35,7 @@ class ScalafixToolbox {
       uncached
     })
 
-  def getRewriteUncached(code: Input, semanticCtx: LazyMirror): Configured[Rewrite] =
+  def getRewriteUncached(code: Input, semanticCtx: LazySemanticCtx): Configured[Rewrite] =
     synchronized {
       (
         compiler.compile(code) |@|

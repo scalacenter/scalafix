@@ -22,7 +22,7 @@ import scala.util.Try
 import scala.util.control.NonFatal
 import scalafix.internal.config.Class2Hocon
 import scalafix.internal.config.FilterMatcher
-import scalafix.internal.config.LazyMirror
+import scalafix.internal.config.LazySemanticCtx
 import scalafix.internal.config.RewriteKind
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.cli.CommonOptions
@@ -181,7 +181,7 @@ object CliRunner {
   ): Configured[CliRunner] = {
     (
       builder.resolvedPathReplace |@|
-        builder.fixFilesWithMirror |@|
+        builder.fixFilesWithSemanticCtx |@|
         builder.resolvedConfig
     ).map {
       case ((replace, inputs), config) =>
@@ -294,7 +294,7 @@ object CliRunner {
       if (kind.isSyntactic) None
       else computeAndCacheDatabase()
     }
-    private val lazyMirror: LazyMirror = resolveDatabase
+    private val lazySemanticCtx: LazySemanticCtx = resolveDatabase
 
     // expands a single file into a list of files.
     def expand(matcher: FilterMatcher)(path: AbsolutePath): Seq[FixFile] = {
@@ -371,13 +371,13 @@ object CliRunner {
     //  - .scalafix.conf in working directory
     //  - ScalafixConfig.default
     val resolvedRewriteAndConfig: Configured[(Rewrite, ScalafixConfig)] = {
-      val decoder = ScalafixReflect.fromLazyMirror(lazyMirror)
+      val decoder = ScalafixReflect.fromLazySemanticCtx(lazySemanticCtx)
       fixFiles.andThen { inputs =>
         val configured =
           if (inputs.isEmpty) Ok(Rewrite.empty -> ScalafixConfig.default)
           else {
             resolvedConfigInput.andThen(input =>
-              ScalafixConfig.fromInput(input, lazyMirror, rewrites)(decoder))
+              ScalafixConfig.fromInput(input, lazySemanticCtx, rewrites)(decoder))
           }
         configured.map { configuration =>
           // TODO(olafur) implement withFilter on Configured
@@ -418,11 +418,11 @@ object CliRunner {
       }
     }
 
-    val fixFilesWithMirror: Configured[Seq[FixFile]] =
+    val fixFilesWithSemanticCtx: Configured[Seq[FixFile]] =
       semanticInputs.product(fixFiles).map {
-        case (fromMirror, files) =>
+        case (fromSemanticCtx, files) =>
           files.map { file =>
-            val labeled = fromMirror.get(file.original.path)
+            val labeled = fromSemanticCtx.get(file.original.path)
             file.copy(semanticCtx = labeled)
           }
       }

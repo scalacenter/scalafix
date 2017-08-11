@@ -99,14 +99,14 @@
         Seq[Patch]().asPatch: Patch
     @li
       @code{RewriteCtx.mirror} has been removed. To write semantic rewrites,
-      accept the @code{Mirror} as a constructor parameter instead
+      accept @code{SemanticCtx} as a constructor parameter instead
       @hl.scala
         // before
         case object MySemanticRewrite extends Rewrite {
           def rewrite[T](ctx: RewriteCtx[T]): Seq[Patch]
         }
         // after
-        case class MySemanticRewrite(mirror: Mirror) extends SemanticRewrite(mirror) {
+        case class MySemanticRewrite(sctx: SemanticCtx) extends SemanticRewrite(sctx) {
           def rewrite(ctx: RewriteCtx): Patch
         }
     @li
@@ -122,7 +122,7 @@
         // after
         ctx.addGlobalImport(importer"scala.meta._")
 
-      The motivation for this change was to statically enforce that a @code{Mirror}
+      The motivation for this change was to statically enforce that a @code{SemanticCtx}
       is in scope during Patch creation.
       For the full available API of patch operations, see
       @lnk("SemanticPatchOps",

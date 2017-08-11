@@ -17,7 +17,7 @@ object Failure {
           |Token Patch 1: $a
           |Token Patch 2: $b"""
         ))
-  case class MismatchingMirror(a: SemanticCtx, b: SemanticCtx)
+  case class MismatchingSemanticCtx(a: SemanticCtx, b: SemanticCtx)
       extends Failure(
         InvariantFailedException(
           s"""Cannot mix two different SemanticCtx inside the same patch.

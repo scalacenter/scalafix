@@ -23,7 +23,7 @@ object DiffTest {
   private val PrefixRegex = "\\s+(ONLY|SKIP)".r
   private def stripPrefix(str: String) = PrefixRegex.replaceFirstIn(str, "")
 
-  def fromMirror(semanticCtx: SemanticCtx): Seq[DiffTest] = semanticCtx.entries.map {
+  def fromSemanticCtx(semanticCtx: SemanticCtx): Seq[DiffTest] = semanticCtx.entries.map {
     attributes =>
       val input @ Input.VirtualFile(label, code) = attributes.input
       val relpath = RelativePath(label)
@@ -32,7 +32,7 @@ object DiffTest {
           .collectFirst {
             case Token.Comment(comment) =>
               val decoder =
-                ScalafixReflect.fromLazyMirror(_ => Some(semanticCtx))
+                ScalafixReflect.fromLazySemanticCtx(_ => Some(semanticCtx))
               ScalafixConfig
                 .fromInput(
                   Input.VirtualFile(label, stripPrefix(comment)),

@@ -1,6 +1,6 @@
 package scalafix
 
-import scalafix.internal.config.LazyMirror
+import scalafix.internal.config.LazySemanticCtx
 import metaconfig.ConfDecoder
 import metaconfig.Configured
 import scala.meta.Input
@@ -27,7 +27,7 @@ package object config {
     */
   def fromInput(
       configuration: Input,
-      semanticCtx: LazyMirror,
+      semanticCtx: LazySemanticCtx,
       extraRewrites: List[String],
       rewriteDecoder: ConfDecoder[Rewrite]
   ): Configured[(Rewrite, ScalafixConfig)] =

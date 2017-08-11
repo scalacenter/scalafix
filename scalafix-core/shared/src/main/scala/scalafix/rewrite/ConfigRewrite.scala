@@ -8,11 +8,11 @@ import metaconfig.Configured
 object ConfigRewrite {
   def apply(
       patches: ConfigRewritePatches,
-      getMirror: LazyMirror): Configured[Option[Rewrite]] = {
+      getSemanticCtx: LazySemanticCtx): Configured[Option[Rewrite]] = {
     val configurationPatches = patches.all
     if (configurationPatches.isEmpty) Configured.Ok(None)
     else {
-      getMirror(RewriteKind.Semantic) match {
+      getSemanticCtx(RewriteKind.Semantic) match {
         case None =>
           ConfError
             .msg(".scalafix.conf patches require the Semantic API.")

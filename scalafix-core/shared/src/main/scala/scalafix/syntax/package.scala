@@ -23,7 +23,7 @@ package object syntax {
     }
   }
 
-  implicit class XtensionSymbolMirror(symbol: Symbol)(
+  implicit class XtensionSymbolSemanticCtx(symbol: Symbol)(
       implicit semanticCtx: SemanticCtx) {
     @deprecated("Renamed to denotation", "0.5.0")
     def denotOpt: Option[Denotation] = denotation

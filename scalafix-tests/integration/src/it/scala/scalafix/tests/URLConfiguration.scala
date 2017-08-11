@@ -14,7 +14,7 @@ class URLConfiguration extends FunSuite {
     val semanticCtx = Some(SemanticCtx(Nil))
     val obtained =
       ScalafixReflect
-        .fromLazyMirror(_ => semanticCtx)
+        .fromLazySemanticCtx(_ => semanticCtx)
         .read(Conf.Str(url))
     assert(obtained.get.name.contains("Rewrite2"))
   }

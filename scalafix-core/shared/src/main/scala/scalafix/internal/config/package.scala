@@ -11,7 +11,7 @@ package object config extends ScalafixMetaconfigReaders {
   // For example, to know if a classloaded rewrites is semantic or syntactic
   // we have to test against it's Class[_]. For default rewrites, the interface
   // to detect if a rewrite is semantic is different.
-  // LazyMirror allows us to delay the computation of a semanticCtx right up until
+  // LazySemanticCtx allows us to delay the computation of a semanticCtx right up until
   // the moment we instantiate the rewrite.
-  type LazyMirror = RewriteKind => Option[SemanticCtx]
+  type LazySemanticCtx = RewriteKind => Option[SemanticCtx]
 }

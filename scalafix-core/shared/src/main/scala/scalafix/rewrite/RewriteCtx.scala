@@ -37,7 +37,7 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
   // Debug utilities
   def semanticCtx(implicit semanticCtx: SemanticCtx): SemanticCtx =
     SemanticCtx(semanticCtx.entries.filter(_.input == input))
-  def debugMirror()(implicit semanticCtx: SemanticCtx, fileLine: FileLine): Unit = {
+  def debugSemanticCtx()(implicit semanticCtx: SemanticCtx, fileLine: FileLine): Unit = {
     val db = this.semanticCtx(semanticCtx)
     debug(sourcecode.Text(db, "semanticCtx"))
   }
