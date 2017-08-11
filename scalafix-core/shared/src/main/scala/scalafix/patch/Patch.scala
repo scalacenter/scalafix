@@ -1,11 +1,9 @@
 package scalafix
 package patch
 
-import metaconfig._
 import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.tokens.Token
-import scalafix.config._
 import scalafix.syntax._
 import scalafix.patch.TokenPatch.Add
 import scalafix.patch.TokenPatch.Remove

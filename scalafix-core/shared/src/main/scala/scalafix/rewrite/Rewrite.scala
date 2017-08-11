@@ -3,11 +3,8 @@ package rewrite
 
 import scala.collection.immutable.Seq
 import scala.meta._
-import scalafix.config.LazyMirror
-import scalafix.config.RewriteKind
 import scalafix.syntax._
 import metaconfig.ConfDecoder
-import metaconfig.ConfError
 import metaconfig.Configured
 import sourcecode.Name
 

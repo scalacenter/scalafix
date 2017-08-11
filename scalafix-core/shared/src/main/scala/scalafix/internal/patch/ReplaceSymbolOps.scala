@@ -3,14 +3,11 @@ package scalafix.internal.patch
 import scala.collection.mutable
 import scala.meta._
 import scalafix._
-import scalafix.config._
 import scalafix.internal.util.SymbolOps.BottomSymbol
 import scalafix.internal.util.SymbolOps.SignatureName
 import scalafix.patch.Patch
 import scalafix.patch.TreePatch.ReplaceSymbol
 import scalafix.syntax._
-import metaconfig.Conf
-import metaconfig.ConfDecoder
 
 object ReplaceSymbolOps {
   private object Select {

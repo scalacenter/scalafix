@@ -1,6 +1,5 @@
 package scalafix.reflect
 
-import scala.meta._
 import scalafix.SemanticCtx
 import scalafix.Rewrite
 import scalafix.config._

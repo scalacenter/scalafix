@@ -2,7 +2,6 @@ package scalafix.rewrite
 
 import scalafix._
 import config._
-import scala.meta._
 import metaconfig.ConfError
 import metaconfig.Configured
 

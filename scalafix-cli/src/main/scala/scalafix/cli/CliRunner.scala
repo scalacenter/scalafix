@@ -3,7 +3,6 @@ package cli
 
 import java.io.File
 import java.io.OutputStreamWriter
-import java.io.PrintStream
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
