@@ -81,12 +81,12 @@
     @li
       The @code{scalafix-nsc} compiler plugin has been removed in favor of
       the @lnk("Scalameta Semantic DB", "https://github.com/scalameta/scalameta/blob/master/changelog/1.8.0.md#semantic-db"),
-      that is emitted by the Scalameta @code{scalahost} compiler plugin.
+      that is emitted by the Scalameta @code{semanticdb-scalac} compiler plugin.
       This change enables Scalafix rewrites to run separately from compilation.
       This means that running scalafix will be much faster, since it no longer
       requires creating a custom instance of the Scala compiler and re-typechecking
       an entire project. Scalafix reads all of its inputs from @code{.semanticdb}
-      files that are created by the scalahost compiler plugin during regular compilation.
+      files that are created by the semanticdb-scalac compiler plugin during regular compilation.
     @li
       The signature of @code{Rewrite.rewrite} has been simplified
       @hl.scala

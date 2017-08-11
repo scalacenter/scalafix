@@ -253,7 +253,7 @@ object CliRunner {
           else {
             val msg =
               """Unable to automatically detect .semanticdb files to run semantic rewrites. Possible workarounds:
-                |- re-compile sources with the scalahost compiler plugin enabled.
+                |- re-compile sources with the semanticdb compiler plugin enabled.
                 |- explicitly pass in --classpath and --sourceroot to run semantic rewrites.""".stripMargin
             ConfError.msg(msg).notOk
           }

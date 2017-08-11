@@ -240,7 +240,7 @@ lazy val testkit = project
     isFullCrossVersion,
     publishSettings,
     libraryDependencies ++= Seq(
-      scalahost,
+      semanticdb,
       ammonite,
       googleDiff,
       scalatest.value
