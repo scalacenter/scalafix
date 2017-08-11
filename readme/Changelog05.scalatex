@@ -1,0 +1,61 @@
+@import Main._
+@import scalafix.Readme._
+@import scalafix.Versions
+
+@sect{0.5.0}
+  @p
+    @note. This changelog is still incomplete and will be updated before the
+    final 0.5.0 release.
+    We hope to provide scalafix migration rewrites for most of the mechanical
+    breaking changes.
+
+  @p
+    This release introduces major improvements to scalafix integrations (sbt/cli)
+    as well as increased focus on stability for future releases. In particular,
+    our CI will from now on guard against binary breaking changes in the public API,
+    which has been separated from the internal API.
+
+  @h4{New features}
+  @ul
+    @li
+      @sect.ref{sbt-scalafix} tab completion for rewrites.
+    @li
+      @sect.ref{scalafix-cli} bash/zsh tab completion.
+    @li
+      @sect.ref{scalafix-cli} automatic inference of semantic/syntactic rewrites,
+      meaning the cli (with the sbt plugin uses) will no longer build a semantic
+      context if the rewrites are only syntactic.
+    @li
+      Scala.js support for @sect.ref{scalafix-core}.
+    @li
+      New @sect.ref{replace:} syntax to move usage of symbols around
+      as well as to rename methods. Note, the implementation is still buggy
+      in some cases but we opted to not delay the release any further.
+      Please report bugs you encounter.
+    @li
+      Support for querying symbols inside "sugars", for example inferred implicits,
+      type parameters and extension methods. Thanks to upstream improvements in the
+      @lnk("Scalameta v2.0 Semantic API", "http://scalameta.org/tutorial/#SemanticAPI").
+
+  @h4{Bug fixes / Improvements}
+
+  @ul
+    @li
+      More robust classloading in @sect.ref{sbt-scalafix} (no synthetic projects)
+      and many other small things.
+    @li
+      Improved dynamic compilation of @sect.ref{Custom rewrites} while running
+      in multi-threaded environments such as multi-module sbt builds.
+
+  @h4{Breaking changes}
+
+  @p
+    A big part of the scalafix codebase has been moved under
+    @code{scalafix.internal}. From now on, we will guard against breaking
+    binary compatibility changes in CI using MiMa.
+
+  @ul
+    @li
+      @code{scala.meta.Mirror} is now @code{scalafix.SemanticCtx}, using the
+      abbreviated name @code{sctx: SemanticCtx} as convention.
+
