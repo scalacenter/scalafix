@@ -10,8 +10,6 @@ sealed abstract class Failure(val ex: Throwable)
 }
 
 object Failure {
-  case class ParseError(pos: Position, message: String, exception: Throwable)
-      extends Failure(exception)
   case class TokenPatchMergeError(a: Patch, b: Patch)
       extends Failure(
         new UnsupportedOperationException(
@@ -19,43 +17,15 @@ object Failure {
           |Token Patch 1: $a
           |Token Patch 2: $b"""
         ))
-  case class MissingSemanticApi(operation: String)
-      extends Failure(
-        new UnsupportedOperationException(
-          s"Operation '$operation' requires the semantic api. " +
-            "This may indicate a configuration or build integration error. " +
-            "See sbt-scalafix or scalafix.SemanticCtx for instructions on " +
-            "how to setup a semantic api."
-        ))
-  case class MissingTopLevelInCtx(patch: Patch)
-      extends Failure(
-        InvariantFailedException(
-          s"""Expected an InCtx at top of Patch tree, obtained:
-             |$patch """.stripMargin))
-  case class MismatchingRewriteCtx(a: RewriteCtx, b: RewriteCtx)
-      extends Failure(
-        InvariantFailedException(
-          s"""Cannot mix two different RewriteCtx inside the same patch.
-             |RewriteCtx 1: $a
-             |RewriteCtx 2: $b""".stripMargin))
   case class MismatchingMirror(a: SemanticCtx, b: SemanticCtx)
       extends Failure(
         InvariantFailedException(
           s"""Cannot mix two different SemanticCtx inside the same patch.
              |SemanticCtx 1: $a
-             |${a}
              |RewriteCtx 2: $b
-             |${b}
              |""".stripMargin))
-  case class Unexpected(e: Throwable) extends Failure(e)
   case class Unsupported(msg: String)
       extends Failure(new UnsupportedOperationException(msg))
-  case class InvariantFailedException(msg: String) extends Exception(msg)
-  case class StaleSemanticDB(outPath: AbsolutePath)
-      extends Failure(
-        new Exception(
-          s"Stale Semantic DB! Contents of $outPath have changed since " +
-            s"creation of its correspondin .semanticdb file. Please recompile and run " +
-            s"scalafix again.")
-      )
+  case class InvariantFailedException(msg: String)
+      extends Failure(new Exception(msg))
 }
