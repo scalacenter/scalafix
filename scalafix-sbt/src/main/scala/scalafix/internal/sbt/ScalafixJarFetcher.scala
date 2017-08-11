@@ -13,6 +13,7 @@ private[scalafix] object ScalafixJarFetcher {
         MavenRepository("https://repo1.maven.org/maven2")
       )
       val logger = new TermDisplay(new OutputStreamWriter(System.err), true)
+      logger.init()
       val fetch = Fetch.from(repositories, Cache.fetch(logger = Some(logger)))
       val resolution = start.process.run(fetch).unsafePerformSync
       val errors = resolution.metadataErrors
