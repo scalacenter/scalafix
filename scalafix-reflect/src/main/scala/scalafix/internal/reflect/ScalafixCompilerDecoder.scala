@@ -19,11 +19,11 @@ import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
 
 object ScalafixCompilerDecoder {
-  def baseCompilerDecoder(mirror: LazyMirror): ConfDecoder[Rewrite] =
+  def baseCompilerDecoder(semanticCtx: LazyMirror): ConfDecoder[Rewrite] =
     ConfDecoder.instance[Rewrite] {
       case FromSourceRewrite(rewrite) =>
         rewrite match {
-          case Ok(code) => ScalafixToolbox.getRewrite(code, mirror)
+          case Ok(code) => ScalafixToolbox.getRewrite(code, semanticCtx)
           case err @ NotOk(_) => err
         }
     }

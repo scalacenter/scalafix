@@ -35,11 +35,11 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
   val reporter: ScalafixReporter = config.reporter
 
   // Debug utilities
-  def mirror(implicit mirror: SemanticCtx): SemanticCtx =
-    SemanticCtx(mirror.entries.filter(_.input == input))
-  def debugMirror()(implicit mirror: SemanticCtx, fileLine: FileLine): Unit = {
-    val db = this.mirror(mirror)
-    debug(sourcecode.Text(db, "mirror"))
+  def semanticCtx(implicit semanticCtx: SemanticCtx): SemanticCtx =
+    SemanticCtx(semanticCtx.entries.filter(_.input == input))
+  def debugMirror()(implicit semanticCtx: SemanticCtx, fileLine: FileLine): Unit = {
+    val db = this.semanticCtx(semanticCtx)
+    debug(sourcecode.Text(db, "semanticCtx"))
   }
   def debug(values: sourcecode.Text[Any]*)(implicit fileLine: FileLine): Unit = {
     // alias for org.scalameta.logger.
@@ -71,17 +71,17 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
   def addLeft(tok: Token, toAdd: String): Patch = Add(tok, toAdd, "")
 
   // Semantic patch ops.
-  def removeGlobalImport(symbol: Symbol)(implicit mirror: SemanticCtx): Patch =
+  def removeGlobalImport(symbol: Symbol)(implicit semanticCtx: SemanticCtx): Patch =
     RemoveGlobalImport(symbol)
-  def addGlobalImport(symbol: Symbol)(implicit mirror: SemanticCtx): Patch =
+  def addGlobalImport(symbol: Symbol)(implicit semanticCtx: SemanticCtx): Patch =
     TreePatch.AddGlobalSymbol(symbol)
-  def addGlobalImport(importer: Importer)(implicit mirror: SemanticCtx): Patch =
+  def addGlobalImport(importer: Importer)(implicit semanticCtx: SemanticCtx): Patch =
     AddGlobalImport(importer)
   def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
-      implicit mirror: SemanticCtx): Patch =
+      implicit semanticCtx: SemanticCtx): Patch =
     TreePatch.ReplaceSymbol(fromSymbol, toSymbol)
   def replaceSymbols(toReplace: (String, String)*)(
-      implicit mirror: SemanticCtx): Patch =
+      implicit semanticCtx: SemanticCtx): Patch =
     toReplace.foldLeft(Patch.empty) {
       case (a, (from, to)) =>
         val (fromSymbol, toSymbol) =
@@ -89,7 +89,7 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
         a + ctx.replaceSymbol(fromSymbol, toSymbol)
     }
   def renameSymbol(fromSymbol: Symbol.Global, toName: String)(
-      implicit mirror: SemanticCtx): Patch =
+      implicit semanticCtx: SemanticCtx): Patch =
     TreePatch.ReplaceSymbol(
       fromSymbol,
       Symbol.Global(BottomSymbol(), Signature.Term(toName)))

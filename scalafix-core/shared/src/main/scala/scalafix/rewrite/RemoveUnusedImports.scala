@@ -3,9 +3,9 @@ package rewrite
 
 import scala.meta._
 
-case class RemoveUnusedImports(mirror: SemanticCtx)
-    extends SemanticRewrite(mirror) {
-  private val unusedImports = mirror.messages.toIterator.collect {
+case class RemoveUnusedImports(semanticCtx: SemanticCtx)
+    extends SemanticRewrite(semanticCtx) {
+  private val unusedImports = semanticCtx.messages.toIterator.collect {
     case Message(pos, _, "Unused import") =>
       pos
   }.toSet

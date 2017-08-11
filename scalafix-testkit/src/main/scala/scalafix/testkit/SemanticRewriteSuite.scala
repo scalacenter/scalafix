@@ -9,7 +9,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 
 abstract class SemanticRewriteSuite(
-    val mirror: SemanticCtx,
+    val semanticCtx: SemanticCtx,
     val inputSourceroot: AbsolutePath,
     val expectedOutputSourceroot: Seq[AbsolutePath]
 ) extends FunSuite
@@ -66,9 +66,9 @@ abstract class SemanticRewriteSuite(
     }
   }
 
-  /** Helper method to print out mirror for individual files */
+  /** Helper method to print out semanticCtx for individual files */
   def debugFile(filename: String): Unit = {
-    mirror.entries.foreach { entry =>
+    semanticCtx.entries.foreach { entry =>
       if (entry.input.label.contains(filename)) {
         logger.elem(entry)
       }
@@ -84,7 +84,7 @@ abstract class SemanticRewriteSuite(
     }
     super.afterAll()
   }
-  lazy val testsToRun = DiffTest.testToRun(DiffTest.fromMirror(mirror))
+  lazy val testsToRun = DiffTest.testToRun(DiffTest.fromMirror(semanticCtx))
   def runAllTests(): Unit = {
     testsToRun.foreach(runOn)
   }

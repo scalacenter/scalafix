@@ -86,7 +86,7 @@ sealed abstract case class CliRunner(
   private def isUpToDate(input: FixFile): Boolean =
     if (!input.toIO.exists() && cli.outTo.nonEmpty) true
     else {
-      input.mirror match {
+      input.semanticCtx match {
         case Some(Input.VirtualFile(_, contents)) =>
           val fileToWrite = scala.io.Source.fromFile(input.toIO)
           try fileToWrite.sameElements(contents.toCharArray.toIterator)
@@ -122,7 +122,7 @@ sealed abstract case class CliRunner(
               ctx.reporter.error(
                 s"Stale semanticdb for ${CliRunner.pretty(outFile)}, skipping rewrite. Please recompile.")
               if (cli.verbose) {
-                val diff = Patch.unifiedDiff(input.mirror.get, input.original)
+                val diff = Patch.unifiedDiff(input.semanticCtx.get, input.original)
                 common.err.println(diff)
               }
               ExitStatus.StaleSemanticDB
@@ -265,7 +265,7 @@ object CliRunner {
         .getOrElse(common.workingPath)
 
     // We don't know yet if we need to compute the database or not.
-    // If all the rewrites are syntactic, we never need to compute the mirror.
+    // If all the rewrites are syntactic, we never need to compute the semanticCtx.
     // If a single rewrite is semantic, then we need to compute the database.
     private var cachedDatabase = Option.empty[Configured[SemanticCtx]]
     private def computeAndCacheDatabase(): Option[SemanticCtx] = {
@@ -405,7 +405,7 @@ object CliRunner {
         ConfError.msg(s"Invalid regex '$outFrom'! ${e.getMessage}").notOk
     }
 
-    val mirrorInputs: Configured[Map[AbsolutePath, Input.VirtualFile]] = {
+    val semanticInputs: Configured[Map[AbsolutePath, Input.VirtualFile]] = {
       resolvedRewrite.andThen { _ =>
         cachedDatabase.getOrElse(Ok(SemanticCtx(Nil))).map { database =>
           val inputsByAbsolutePath =
@@ -419,11 +419,11 @@ object CliRunner {
     }
 
     val fixFilesWithMirror: Configured[Seq[FixFile]] =
-      mirrorInputs.product(fixFiles).map {
+      semanticInputs.product(fixFiles).map {
         case (fromMirror, files) =>
           files.map { file =>
             val labeled = fromMirror.get(file.original.path)
-            file.copy(mirror = labeled)
+            file.copy(semanticCtx = labeled)
           }
       }
 

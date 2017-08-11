@@ -15,11 +15,11 @@ trait PatchOps {
   def addRight(tok: Token, toAdd: String): Patch
   def addLeft(tok: Token, toAdd: String): Patch
 
-  def removeGlobalImport(symbol: Symbol)(implicit mirror: SemanticCtx): Patch
-  def addGlobalImport(symbol: Symbol)(implicit mirror: SemanticCtx): Patch
-  def addGlobalImport(importer: Importer)(implicit mirror: SemanticCtx): Patch
+  def removeGlobalImport(symbol: Symbol)(implicit semanticCtx: SemanticCtx): Patch
+  def addGlobalImport(symbol: Symbol)(implicit semanticCtx: SemanticCtx): Patch
+  def addGlobalImport(importer: Importer)(implicit semanticCtx: SemanticCtx): Patch
   def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
-      implicit mirror: SemanticCtx): Patch
-  def replaceSymbols(toReplace: (String, String)*)(implicit mirror: SemanticCtx): Patch
-  def renameSymbol(fromSymbol: Symbol.Global, toName: String)(implicit mirror: SemanticCtx): Patch
+      implicit semanticCtx: SemanticCtx): Patch
+  def replaceSymbols(toReplace: (String, String)*)(implicit semanticCtx: SemanticCtx): Patch
+  def renameSymbol(fromSymbol: Symbol.Global, toName: String)(implicit semanticCtx: SemanticCtx): Patch
 }

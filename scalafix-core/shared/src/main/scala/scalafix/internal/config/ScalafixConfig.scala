@@ -73,10 +73,10 @@ object ScalafixConfig {
 
   def fromInput(
       input: Input,
-      mirror: LazyMirror,
+      semanticCtx: LazyMirror,
       extraRewrites: List[String] = Nil)(
       implicit decoder: ConfDecoder[Rewrite]
   ): Configured[(Rewrite, ScalafixConfig)] =
-    configFromInput(input, mirror, extraRewrites)
+    configFromInput(input, semanticCtx, extraRewrites)
 
 }

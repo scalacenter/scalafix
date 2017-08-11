@@ -16,7 +16,7 @@ case object MyRewrite extends Rewrite {
   }
 }
 
-case class MyRewrite2(mirror: SemanticCtx) extends SemanticRewrite(mirror) {
+case class MyRewrite2(semanticCtx: SemanticCtx) extends SemanticRewrite(semanticCtx) {
   def rewrite(ctx: RewriteCtx): Patch =
     ctx.addGlobalImport(importer"scala.collection.immutable.Seq")
 }

@@ -115,10 +115,10 @@ object Patch {
   private[scalafix] def apply(
       p: Patch,
       ctx: RewriteCtx,
-      mirror: Option[SemanticCtx]): String = {
+      semanticCtx: Option[SemanticCtx]): String = {
     val patches = underlying(p)
     val semanticPatches = patches.collect { case tp: TreePatch => tp }
-    mirror match {
+    semanticCtx match {
       case Some(x: SemanticCtx) =>
         semanticApply(p)(ctx, x)
       case _ =>
@@ -143,7 +143,7 @@ object Patch {
   }
 
   private def semanticApply(
-      patch: Patch)(implicit ctx: RewriteCtx, mirror: SemanticCtx): String = {
+      patch: Patch)(implicit ctx: RewriteCtx, semanticCtx: SemanticCtx): String = {
     val base = underlying(patch)
     val moveSymbol = underlying(
       ReplaceSymbolOps.naiveMoveSymbolPatch(base.collect {

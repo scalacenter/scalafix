@@ -96,31 +96,31 @@ trait ScalafixMetaconfigReaders {
       case conf @ Conf.Str(value) =>
         val isSyntactic = ScalafixRewrites.syntacticNames.contains(value)
         val kind = RewriteKind(syntactic = isSyntactic)
-        val mirror = getMirror(kind)
+        val semanticCtx = getMirror(kind)
         val names: Map[String, Rewrite] =
           ScalafixRewrites.syntaxName2rewrite ++
-            mirror.fold(Map.empty[String, Rewrite])(
+            semanticCtx.fold(Map.empty[String, Rewrite])(
               ScalafixRewrites.name2rewrite)
         ReaderUtil.fromMap(names).read(conf)
     }
 
   private lazy val semanticRewriteClass = classOf[SemanticRewrite]
 
-  def classloadRewrite(mirror: LazyMirror): Class[_] => Seq[SemanticCtx] = {
+  def classloadRewrite(semanticCtx: LazyMirror): Class[_] => Seq[SemanticCtx] = {
     cls =>
       val semanticRewrite =
         cls.getClassLoader.loadClass("scalafix.rewrite.SemanticRewrite")
       val kind =
         if (semanticRewriteClass.isAssignableFrom(cls)) RewriteKind.Semantic
         else RewriteKind.Syntactic
-      mirror(kind).toList
+      semanticCtx(kind).toList
   }
 
   private lazy val SlashSeparated = "([^/]+)/(.*)".r
 
-  private def requireSemanticMirror[T](mirror: LazyMirror, what: String)(
+  private def requireSemanticMirror[T](semanticCtx: LazyMirror, what: String)(
       f: SemanticCtx => Configured[T]): Configured[T] = {
-    mirror(RewriteKind.Semantic).fold(
+    semanticCtx(RewriteKind.Semantic).fold(
       Configured.error(s"$what requires the semantic API."): Configured[T])(f)
   }
 
@@ -130,12 +130,12 @@ trait ScalafixMetaconfigReaders {
     symbolGlobalReader.read(Conf.Str(from)) |@|
       symbolGlobalReader.read(Conf.Str(to))
 
-  def classloadRewriteDecoder(mirror: LazyMirror): ConfDecoder[Rewrite] =
+  def classloadRewriteDecoder(semanticCtx: LazyMirror): ConfDecoder[Rewrite] =
     ConfDecoder.instance[Rewrite] {
       case UriRewriteString("scala", fqn) =>
-        ClassloadRewrite(fqn, classloadRewrite(mirror))
+        ClassloadRewrite(fqn, classloadRewrite(semanticCtx))
       case UriRewriteString("replace", replace @ SlashSeparated(from, to)) =>
-        requireSemanticMirror(mirror, replace) { m =>
+        requireSemanticMirror(semanticCtx, replace) { m =>
           parseReplaceSymbol(from, to)
             .map(TreePatch.ReplaceSymbol.tupled)
             .map(p => Rewrite.constant(replace, p, m))
@@ -144,15 +144,15 @@ trait ScalafixMetaconfigReaders {
 
   def baseSyntacticRewriteDecoder: ConfDecoder[Rewrite] =
     baseRewriteDecoders(_ => None)
-  def baseRewriteDecoders(mirror: LazyMirror): ConfDecoder[Rewrite] = {
+  def baseRewriteDecoders(semanticCtx: LazyMirror): ConfDecoder[Rewrite] = {
     MetaconfigPendingUpstream.orElse(
-      defaultRewriteDecoder(mirror),
-      classloadRewriteDecoder(mirror)
+      defaultRewriteDecoder(semanticCtx),
+      classloadRewriteDecoder(semanticCtx)
     )
   }
   def configFromInput(
       input: Input,
-      mirror: LazyMirror,
+      semanticCtx: LazyMirror,
       extraRewrites: List[String])(
       implicit decoder: ConfDecoder[Rewrite]
   ): Configured[(Rewrite, ScalafixConfig)] = {
@@ -161,7 +161,7 @@ trait ScalafixMetaconfigReaders {
         .read(conf)
         .andThen {
           case (rewrite, config) =>
-            ConfigRewrite(config.patches, mirror).map { configRewrite =>
+            ConfigRewrite(config.patches, semanticCtx).map { configRewrite =>
               configRewrite.fold(rewrite -> config)(
                 rewrite.andThen(_) -> config)
             }

@@ -10,10 +10,10 @@ import scalafix.util.TreeOps
 
 package object syntax {
 
-  implicit class XtensionRefSymbolOpt(tree: Tree)(implicit mirror: SemanticCtx) {
+  implicit class XtensionRefSymbolOpt(tree: Tree)(implicit semanticCtx: SemanticCtx) {
     @deprecated("Renamed to symbol", "0.5.0")
     def symbolOpt: Option[Symbol] = symbol
-    def symbol: Option[Symbol] = mirror.symbol(tree.pos)
+    def symbol: Option[Symbol] = semanticCtx.symbol(tree.pos)
   }
 
   implicit class XtensionParsedOpt[T](parsed: Parsed[T]) {
@@ -24,10 +24,10 @@ package object syntax {
   }
 
   implicit class XtensionSymbolMirror(symbol: Symbol)(
-      implicit mirror: SemanticCtx) {
+      implicit semanticCtx: SemanticCtx) {
     @deprecated("Renamed to denotation", "0.5.0")
     def denotOpt: Option[Denotation] = denotation
-    def denotation: Option[Denotation] = mirror.denotation(symbol)
+    def denotation: Option[Denotation] = semanticCtx.denotation(symbol)
   }
   implicit class XtensionSymbol(symbol: Symbol) {
     private def underlyingSymbols(symbol: Symbol): Seq[Symbol] = symbol match {
