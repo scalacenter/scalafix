@@ -6,31 +6,27 @@
 
   If you have any questions, don't hesitate to ask on gitter @gitter.
 
+  @sect{I get resolution errors for org.scalameta:semanticdb-scalac}
+    Make sure you are using a supported Scala version:
+    @V.supportedScalaVersions.mkString(", "). Note, the version must match
+    exactly, including the last number.
   @sect{Enclosing tree [2873] does not include tree [2872]}
     Scalafix requires code to compile with the scalac option @code{-Yrangepos}.
     A macro that emits invalid tree positions is usually the cause of
     compiler errors triggered by @code{-Yrangepos}.
     Other tools like the presentation compiler (ENSIME) or
     Scalameta Semantic API also require @code{-Yrangepos} to work properly.
-
-  @sect{sbt.Init$RuntimeUndefined: References to undefined settings at runtime.}
-    You might be using an old version of sbt.
-    sbt-scalafix requires sbt 0.13.13 or higher.
-
+  @sect{I get exceptions about coursier}
+    If you use sbt-coursier, make sure you are on version @V.coursier.
   @sect{Scalafix doesn't do anything}
     @ul
       @li
+        If you use @sect.ref{sbt-scalafix}, try @sect.ref{Verify sbt installation}.
+      @li
         Make sure that you are running at least one rewrite.
       @li
-        Make sure that you are using a supported Scala version: @V.supportedScalaVersions.mkString(", ")
-      @li
-        It could be that sbt-scalafix failed to enable the @sect.ref{Scalahost} compiler plugin.
-        You can check if Scalahost is enabled in sbt with @code{show myproject/scalacOptions}.
-        If it does not contains an option @code{-Xplugin:/path/to/scalahost.jar},
-        then Scalahost is not enabled.
-        See @lnk("here", "http://scalameta.org/tutorial/#Installation")
-        for how to manually install scalahost and verify that
-        @code{.semanticdb} files are created.
+        Make sure that you are using a supported Scala
+        version: @V.supportedScalaVersions.mkString(", ")
 
   @sect{RemoveUnusedImports does not remove unused imports}
     Make sure that you followed the instructions in @sect.ref{RemoveUnusedImports}

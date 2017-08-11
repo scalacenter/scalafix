@@ -31,6 +31,7 @@ abstract class Rewrite(implicit rewriteName: Name) { self =>
     val ctx = RewriteCtx(config.dialect(input).parse[Source].get, config)
     apply(ctx, rewrite(ctx))
   }
+  final def apply(input: String): String = apply(Input.String(input))
   final protected def apply(ctx: RewriteCtx, patch: Patch): String =
     Patch(patch, ctx, mirrorOption)
 

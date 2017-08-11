@@ -2,12 +2,17 @@ import scalajsbundler.util.JSON._
 import sbt.ScriptedPlugin
 import sbt.ScriptedPlugin._
 import Dependencies._
-import xsbti.Position
-import xsbti.Reporter
-import xsbti.Severity
-organization in ThisBuild := "ch.epfl.scala"
-version in ThisBuild := customScalafixVersion.getOrElse(
-  version.in(ThisBuild).value)
+
+inThisBuild(
+  List(
+    organization := "ch.epfl.scala",
+    version := customScalafixVersion.getOrElse(version.value).replace('+', '-')
+  )
+)
+name := {
+  println(s"Welcome to scalafix ${version.value}")
+  "scalafixRoot"
+}
 
 lazy val crossVersions = Seq(scala211, scala212)
 
@@ -72,6 +77,7 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
     name,
     version,
     stableVersion,
+    "coursier" -> coursier.util.Properties.version,
     "nightly" -> version.value,
     "scalameta" -> scalametaV,
     scalaVersion,

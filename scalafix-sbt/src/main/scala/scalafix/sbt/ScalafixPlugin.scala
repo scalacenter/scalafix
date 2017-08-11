@@ -9,22 +9,24 @@ import sbt._
 import sbt.plugins.JvmPlugin
 import scalafix.internal.sbt.ScalafixCompletions
 import scalafix.internal.sbt.ScalafixJarFetcher
+import sbt.Def
 
 object ScalafixPlugin extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
   override def requires: Plugins = JvmPlugin
   object autoImport {
     val scalafix: InputKey[Unit] = inputKey[Unit]("Run scalafix rewrite.")
+    val scalafixConfig: SettingKey[Option[File]] =
+      settingKey[Option[File]](
+        ".scalafix.conf file to specify which scalafix rules should run.")
+    val scalafixEnabled: SettingKey[Boolean] =
+      settingKey[Boolean](
+        "If false, scalafix will not enable the semanticdb-scalac " +
+          "compiler plugin, which is necessary for semantic rewrites.")
+    def scalafixScalacOptions: Def.Initialize[Seq[String]] =
+      ScalafixPlugin.scalafixScalacOptions
     val scalafixVerbose: SettingKey[Boolean] =
       settingKey[Boolean]("pass --verbose to scalafix")
-    lazy val scalafixScalacOptions: Def.Initialize[Seq[String]] = Def.setting {
-      val pluginName = "semanticdb"
-      Seq(
-        "-Yrangepos",
-        "-Xplugin-require:semanticdb",
-        s"-P:$pluginName:sourceroot:${scalafixSourceroot.value.getAbsolutePath}"
-      )
-    }
     def scalafixSettings: Seq[Def.Setting[_]] =
       scalafixTaskSettings ++
         scalafixScalacSettings
@@ -34,19 +36,21 @@ object ScalafixPlugin extends AutoPlugin {
       s"Which scalafix version to run. Default is ${Versions.version}.")
     val scalafixScalaVersion: SettingKey[String] = settingKey[String](
       s"Which scala version to run scalafix from. Default is ${Versions.scala212}.")
-    val scalafixConfig: SettingKey[Option[File]] =
-      settingKey[Option[File]](
-        ".scalafix.conf file to specify which scalafix rules should run.")
+    val scalafixSemanticdbVersion: SettingKey[String] = settingKey[String](
+      s"Which version of semanticdb to sue. Default is ${Versions.scalameta}.")
   }
   import scalafix.internal.sbt.CliWrapperPlugin.autoImport._
   import autoImport._
 
+  override def projectSettings: Seq[Def.Setting[_]] = scalafixSettings
   override def globalSettings: Seq[Def.Setting[_]] = Seq(
     scalafixConfig := Option(file(".scalafix.conf")).filter(_.isFile),
     cliWrapperMainClass := "scalafix.cli.Cli$",
+    scalafixEnabled := true,
     scalafixVerbose := false,
     scalafixSourceroot := baseDirectory.in(ThisBuild).value,
     scalafixVersion := Versions.version,
+    scalafixSemanticdbVersion := Versions.scalameta,
     scalafixScalaVersion := Versions.scala212,
     cliWrapperClasspath := {
       val jars = ScalafixJarFetcher.fetchJars(
@@ -61,7 +65,8 @@ object ScalafixPlugin extends AutoPlugin {
     }
   )
 
-  // hack to avoid illegal dynamic reference, can't figure out how to use inputTaskDyn.
+  // hack to avoid illegal dynamic reference, can't figure out how to do
+  // scalafixParser(baseDirectory.in(ThisBuild).value).parsed
   private def workingDirectory = file(sys.props("user.dir"))
   private val scalafixParser = ScalafixCompletions.parser(workingDirectory)
   private val isSupportedScalaVersion = Def.setting {
@@ -77,6 +82,17 @@ object ScalafixPlugin extends AutoPlugin {
     }
   }
 
+  lazy val scalafixScalacOptions: Def.Initialize[Seq[String]] = Def.setting {
+    if (!scalafixEnabled.value) Nil
+    else {
+      Seq(
+        "-Yrangepos",
+        s"-Xplugin-require:semanticdb",
+        s"-P:semanticdb:sourceroot:${scalafixSourceroot.value.getAbsolutePath}"
+      )
+    }
+  }
+
   lazy val scalafixScalacSettings: Seq[Def.Setting[_]] = Seq(
     scalacOptions ++= {
       if (isSupportedScalaVersion.value) {
@@ -86,7 +102,7 @@ object ScalafixPlugin extends AutoPlugin {
       }
     },
     libraryDependencies ++= {
-      if (isSupportedScalaVersion.value) {
+      if (isSupportedScalaVersion.value && scalafixEnabled.value) {
         // Only add compiler plugin in 2.11 and 2.12 projects.
         if (!Versions.supportedScalaVersions.contains(scalaVersion.value)) {
           val supportedVersion =
@@ -95,7 +111,10 @@ object ScalafixPlugin extends AutoPlugin {
             s"Unsupported ${thisProject.value.id}/scalaVersion ${scalaVersion.value}. " +
               s"Please upgrade to one of: $supportedVersion")
         }
-        val semanticdb = "org.scalameta" % "semanticdb-scalac" % Versions.scalameta cross CrossVersion.full
+        val semanticdb =
+          "org.scalameta" %
+            "semanticdb-scalac" %
+            scalafixSemanticdbVersion.value cross CrossVersion.full
         compilerPlugin(semanticdb) :: Nil
       } else {
         Nil
@@ -107,9 +126,6 @@ object ScalafixPlugin extends AutoPlugin {
     scalafix.in(Test) := scalafixTaskImpl(Test).evaluated,
     scalafix := scalafixTaskImpl(Compile, Test).evaluated
   )
-
-  override def projectSettings: Seq[Def.Setting[_]] =
-    scalafixSettings
 
   def scalafixTaskImpl(
       config: Configuration*): Def.Initialize[InputTask[Unit]] =

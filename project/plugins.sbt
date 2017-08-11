@@ -1,3 +1,4 @@
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.5.0-M3")
 addSbtPlugin("com.eed3si9n" % "sbt-doge" % "0.1.5")
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.6.1")
 addSbtPlugin("com.lihaoyi" % "scalatex-sbt-plugin" % "0.3.9")

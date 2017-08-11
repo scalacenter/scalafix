@@ -151,9 +151,9 @@
       rewrites in theory can work with any Scala compiler, including @dotty and
       IntelliJ Scala Plugin.
 
-    @sect{Scalahost}
-      Scalahost is a compiler plugin for Scala 2.x in the @sect.ref{Scalameta} project
-      that collects information to build a @sect.ref{Mirror}.
+    @sect{Semanticdb}
+      Semanticdb is a compiler plugin for Scala 2.x in the @sect.ref{Scalameta} project
+      that collects information to build a @sect.ref{SemanticCtx}.
       For more information about Scalahost, see
       the @lnk("Scalameta documentation", "http://scalameta.org/tutorial/#Scalahost").
 
@@ -185,15 +185,15 @@
       from type-checking such as resolved names (@code{println} => @code{scala.Predef.println}),
       types or terms, or inferred implicit arguments.
       A syntactic rewrite can use @sect.ref{Tokens} and @sect.ref{Tree}, but
-      not @sect.ref{Mirror}.
+      not @sect.ref{SemanticCtx}.
 
     @sect{Semantic}
       A @sect.ref{Rewrite} is "semantic" if it requires information from the compiler
       such as types, symbols and reported compiler messages.
-      A semantic rewrite can use a @sect.ref{Mirror}.
+      A semantic rewrite can use a @sect.ref{SemanticCtx}.
 
-    @sect{Mirror}
-       A mirror is a Scalameta concept that encapsulates a compilation context, providing
+    @sect{SemanticCtx}
+       A SemanticCtx encapsulates a compilation context, providing
        capabilities to perform semantic operations for @sect.ref{Semantic} rewrites.
        To learn more about mirrors and its associated concepts (Symbol,
        Denotation, ...), see the

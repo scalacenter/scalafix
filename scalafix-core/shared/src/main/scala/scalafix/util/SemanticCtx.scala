@@ -25,6 +25,7 @@ trait SemanticCtx {
 }
 
 object SemanticCtx {
+  val empty = new SemanticCtxImpl(Database(Nil))
   def apply(entries: Seq[Attributes]): SemanticCtx =
     new SemanticCtxImpl(Database(entries))
   def load(classpath: Classpath): SemanticCtx =

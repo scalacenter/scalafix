@@ -115,7 +115,7 @@
     @li
       Configuration in .scalafix.conf has been greatly improved to support a wide range
       of options.
-      Examples, see @sect.ref{patches}, @code{imports} (now removed) and @sect.ref{All options}.
+      Examples, see @sect.ref{patches}, @code{imports} (now removed) and @code{All options} (removed).
 @sect{0.2.1}
   @ul
     @li

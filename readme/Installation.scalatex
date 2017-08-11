@@ -7,56 +7,97 @@
 @sect{Installation}
 
   @p
-    Scalafix can used either as a tool or a library.
-    Integrations are currently limited to the command-line, but it may be possible
-    to add IDE integrations in the future.
+    Integrations are currently limited to the command-line and sbt. It may
+    be possible to add IDE integrations such as IntelliJ/ENSIME in the future,
+    but it is not a priority.
 
   @sect{sbt-scalafix}
     The sbt-plugin is the recommended integration for semantic rewrites.
 
     @hl.scala
+      // ===> project/plugins.sbt
       addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@V.stableVersion")
 
-    @ul
-      @li
-        @code{sbt scalafix <Rewrite>} will run @code{<Rewrite>} from
-        @sect.ref{Rewrites}
-      @li
-        Configuration is read from @code{.scalafix.conf}.
-        See @sect.ref{Configuration} for more details on how to customize which rewrites to run.
-      @li
-        Scalafix supports 2.11 and 2.12.
-        Projects with @code{scalaVersion} 2.10 are ignored by scalafix.
+      // ===> build.sbt
+      scalaVersion := "@V.scala212" // @V.scala211 is also supported.
+      // if scalacOptions is defined with append `++=`, do nothing.
+      // if scalacOptions is defined like this: scalacOptions := List(...),
+      // then do one of the following
+      scalacOptions ++= List(...) // change := to ++=
+      // or
+      scalacOptions := List(...)                    // keep unchanged
+      scalacOptions ++= scalafixScalacOptions.value // add this line
+
+      // ===> sbt shell (example usage)
+      > scalafix                               // Run .scalafix.conf rewrites
+      > scalafix RemoveUnusedImports           // Run specific rewrite
+      > myProject/scalafix RemoveUnusedImports // Run rewrite in one project only
+      > test:scalafix RemoveUnusedImports      // Run rewrite in single configuration
+      > scalafix ExplicitR<TAB>                // use tab completion
+      > scalafix replace:com.foobar/com.buzbaz // refactor (experimental)
+      > scalafix file:rewrites/MyRewrite.scala // run local custom rewrite
+      > scalafix github:org/repo/v1            // run library migration rewrite
+
+    @sect{Verify sbt installation}
+      To verify the installation, check that the scalacOptions include -Xplugin-require:semanticdb
+      @hl.scala
+        > show scalacOptions
+        [info] * -Yrangepos                  // required
+        [info] * -Xplugin-require:semanticdb // recommended
+        [info] * -P:semanticdb:sourceroot:/* // recommended
+
+    @sect{sbt settings and tasks}
+      @table
+        @(cls := "pure-table")
+        @thead
+          @tr
+            @th
+              Name
+            @th
+              Type
+            @th
+              Description
+        @tbody
+          @sbtkey("scalafix <rewrite>..", "Unit")
+            Run scalafix with rewrites.
+            See @sect.ref{Rewrites} or use tab completion to explore
+            supported rewrites.
+          @sbtkey("scalafixEnabled", "Boolean")
+            True by default.
+            If false, then sbt-scalafix will not enable the
+            @lnk("semanticdb-scalac", "http://scalameta.org/tutorial/#SemanticDB")
+            compiler plugin.
+          @sbtkey("scalafixConfig", "Option[File]")
+            Location of @code{.scalafix.conf}.
+            See @sect.ref{Configuration} for more details.
+          @sbtkey("scalafixSourceroot", "File")
+            The root directory of this project.
+          @sbtkey("scalafixScalacOptions", "Seq[String]")
+            Necessary Scala compiler settings for scalafix to work.
+          @sbtkey("scalafixVersion", "String")
+            Which version of scalafix-cli to run.
+          @sbtkey("scalafixScalaVersion", "String")
+            Which Scala version of scalafix-cli to run.
+          @sbtkey("scalafixSemanticdbVersion", "String")
+            Which version of org.scalameta:semanticdb-scalac to run.
+          @sbtkey("scalafixVerbose", "Boolean")
+            If true, print out debug information.
 
   @sect{scalafix-core}
     Scalafix can be used as a library to run custom rewrites.
     @hl.scala
-      libraryDependencies += "ch.epfl.scala" % "scalafix-core" % "@V.stableVersion" cross CrossVersion.full
+      // ===> build.sbt
+      libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % "@V.stableVersion"
 
-
-    By using scalafix as a library, you have full control of how/when/where
-    rewrites are written.
-
-    @p
-      When writing custom rewrites, you should decide what API you need.
-      There currently available APIs are:
-
-      @ul
-        @li
-          Syntactic api. This is the easiest option but also the least powerful one.
-          It does not provide access to compilation information such as symbols/types.
-          Just create a @code{scalafix.rewrite.Rewrite[Any]} and go!
-        @li
-          Semantic API. This requires a @code{scala.meta.Mirror}, which is an implementation
-          of the
-          @lnk("Scalameta semantic API",
-               "https://github.com/scalameta/scalameta/blob/master/changelog/1.8.0.md").
-          The semantic API can be used with @sect.ref{sbt-scalafix}.
-    @p
-      Scalafix as a library is still under heavy development.
-      Feedback is very welcome.
-      Be prepared for breaking changes.
-
+    Example usage of the syntactic API.
+    @hl.ref(wd/"readme"/"src"/"main"/"scala"/"fix"/"MyRewrite.scala")
+    @hl.scala
+      println(MyRewrite.Reverse("object Hello { println('world) }"))
+      // @fix.MyRewrite.Reverse("object Hello { println('world) }")
+      println(MyRewrite.Uppercase("object Hello { println('world) }"))
+      // @fix.MyRewrite.Uppercase("object Hello { println('world) }")
+    The semantic API requires a more complicated setup. Please
+    use @sect.ref{scalacenter/scalafix.g8}.
   @sect{scalafix-cli}
     The recommended way to install the scalafix command-line interface is with
     @lnk("coursier", "https://github.com/coursier/coursier#command-line").

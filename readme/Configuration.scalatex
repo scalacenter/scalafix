@@ -1,11 +1,12 @@
 @import Main._
 @import scalafix.Readme._
 @sect{Configuration}
-  Scalafix reads configuration from a file using
-  @lnk("HOCON", "https://github.com/typesafehub/config")
-  syntax.
-  I recommend you put a file @code{.scalafix.conf} into the root directory of
-  your project.
+  @p
+    Scalafix reads configuration from a file using
+    @lnk("HOCON", "https://github.com/typesafehub/config")
+    syntax.
+    I recommend you put a file @code{.scalafix.conf} into the root directory of
+    your project.
 
   @sect{rewrites}
     You can either run a pre-made that comes with scalafix or a custom rewrite
@@ -27,6 +28,29 @@
         @config
           rewrite = "scala:scalafix.rewrite.ProcedureSyntax"
 
+      @sect{github:}
+        If a rewrite is written in a single file and you want a short syntax,
+        you can use the @code{github:} protocol for sharing your rewrite
+
+        @hl.scala
+          rewrite = "github:typelevel/cats/v1.0.0"
+          // expands into @githubSyntax("typelevel/cats/v1.0.0").get
+
+      @sect{replace:}
+
+        @b{New/Experimental}.
+
+        To replace usage of one class/object/trait. Note, will not move the
+        definition only the call-sites.
+
+        @config
+          rewrite = "replace:com.company.App/io.company.App"
+
+        To rename a method
+
+        @config
+          rewrite = "replace:com.company.App.start/init"
+
       @sect{file:}
         If a rewrites is written in a single file on disk, you can load it
         with the @code{file:} protocol.
@@ -39,14 +63,6 @@
         @config
           rewrite = "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/80218434edb85120a9c6fd6533a4418118de8ba7/ExampleRewrite.scala"
 
-      @sect{github:}
-        If a rewrite is written in a single file and you want a short syntax,
-        you can use the @code{github:} protocol for sharing your rewrite
-
-        @hl.scala
-          // expands into @githubSyntax("org/repo/1.0.0")
-          rewrite = "github:org/repo/1.0.0"
-
   @sect{patches}
     For simple use-cases, it's possible to write custom rewrites directly
     .scalafix.conf.
@@ -57,21 +73,13 @@
       patches.addGlobalImports = [
         "scala.collection.immutable"
       ]
-      patches.replacements = [
-        {
-          from = "_root_.scala.Seq." // scala.meta.Symbol
-          to = "Seq"
-          additionalImports = [ "scala.collection.immutable.Seq" ]
-        }
+      patches.replaceSymbols = [
+        { from = "scala.collection.mutable.ListBuffer"
+          to   = "com.geirsson.mutable.CoolBuffer" }
       ]
       // Helper to see which symbols appear in your source files
       debug.printSymbols = true
     For more advanced use-cases, I recommend you use @sect.ref{scalafix-core}
     as a library.
 
-  @sect{All options}
-
-    The following is the list of all available options along with their
-    default values.
-    @hl.scala(scalafix.config.Class2Hocon())
 
