@@ -340,7 +340,7 @@ lazy val unit = project
       "outputDottySourceroot" ->
         sourceDirectory.in(testsOutputDotty, Compile).value,
       "testsInputResources" -> resourceDirectory.in(testsInput, Compile).value,
-      "mirrorClasspath" -> classDirectory.in(testsInput, Compile).value
+      "semanticClasspath" -> classDirectory.in(testsInput, Compile).value
     ),
     libraryDependencies ++= testsDeps
   )
