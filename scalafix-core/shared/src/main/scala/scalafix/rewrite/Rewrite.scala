@@ -4,6 +4,7 @@ package rewrite
 import scala.collection.immutable.Seq
 import scala.meta._
 import scalafix.internal.config.ScalafixMetaconfigReaders
+import scalafix.internal.config.ScalafixConfig
 import scalafix.syntax._
 import metaconfig.ConfDecoder
 import metaconfig.Configured

@@ -6,6 +6,10 @@ import metaconfig.Configured
 import scala.meta.Input
 
 package object config {
+  @deprecated("ScalafixConfig is now internal, import scalafix.internal.config.ScalafixConfig instead.", "0.5.0")
+  type ScalafixConfig = internal.config.ScalafixConfig
+  @deprecated("ScalafixConfig is now internal, import scalafix.internal.config.ScalafixConfig instead.", "0.5.0")
+  val ScalafixConfig = internal.config.ScalafixConfig
   def fromString(
       configuration: String,
       decoder: ConfDecoder[Rewrite]

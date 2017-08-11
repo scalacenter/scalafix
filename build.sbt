@@ -6,7 +6,7 @@ import Dependencies._
 inThisBuild(
   List(
     organization := "ch.epfl.scala",
-    version := customScalafixVersion.getOrElse(version.value).replace('+', '-')
+    version := customScalafixVersion.getOrElse(version.value)
   )
 )
 name := {
@@ -50,7 +50,9 @@ lazy val publishSettings = Seq(
     )
   ),
   mimaPreviousArtifacts := Set(
-    organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % stableVersion.value
+    organization.value %
+      s"${moduleName.value}_${scalaBinaryVersion.value}" %
+      sys.props.getOrElse("scalafix.stable.version", stableVersion.value)
   ),
   mimaBinaryIssueFilters ++= Mima.ignoredABIProblems,
   pomExtra :=
