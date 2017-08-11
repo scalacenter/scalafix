@@ -95,9 +95,7 @@ case class ExplicitReturnTypes(mirror: SemanticCtx)
         defn: D,
         mods: Traversable[Mod],
         body: Term)(implicit ev: Extract[D, Mod]): Boolean = {
-      val config = ctx.config
-        .getRewriteConfig("explicitReturnTypes", ExplicitReturnTypesConfig())
-      import config._
+      import ctx.config.explicitReturnTypes._
 
       def matchesMemberVisibility(): Boolean =
         memberVisibility.contains(visibility(mods))

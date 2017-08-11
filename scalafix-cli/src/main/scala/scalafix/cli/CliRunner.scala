@@ -3,7 +3,6 @@ package cli
 
 import java.io.File
 import java.io.OutputStreamWriter
-import java.io.PrintStream
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
@@ -121,7 +120,7 @@ sealed abstract case class CliRunner(
               ExitStatus.Ok
             } else {
               ctx.reporter.error(
-                s"Stale semanticdb for ${CliRunner.pretty(outFile)}, skipping rewrite. Pease recompile.")
+                s"Stale semanticdb for ${CliRunner.pretty(outFile)}, skipping rewrite. Please recompile.")
               if (cli.verbose) {
                 val diff = Patch.unifiedDiff(input.mirror.get, input.original)
                 common.err.println(diff)

@@ -2,7 +2,6 @@ package scalafix
 package rewrite
 
 import scala.meta._
-import scalafix.syntax._
 
 case class RemoveUnusedImports(mirror: SemanticCtx)
     extends SemanticRewrite(mirror) {

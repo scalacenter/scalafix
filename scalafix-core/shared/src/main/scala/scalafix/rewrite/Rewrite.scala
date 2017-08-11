@@ -3,11 +3,8 @@ package rewrite
 
 import scala.collection.immutable.Seq
 import scala.meta._
-import scalafix.config.LazyMirror
-import scalafix.config.RewriteKind
 import scalafix.syntax._
 import metaconfig.ConfDecoder
-import metaconfig.ConfError
 import metaconfig.Configured
 import sourcecode.Name
 
@@ -31,6 +28,7 @@ abstract class Rewrite(implicit rewriteName: Name) { self =>
     val ctx = RewriteCtx(config.dialect(input).parse[Source].get, config)
     apply(ctx, rewrite(ctx))
   }
+  final def apply(input: String): String = apply(Input.String(input))
   final protected def apply(ctx: RewriteCtx, patch: Patch): String =
     Patch(patch, ctx, mirrorOption)
 

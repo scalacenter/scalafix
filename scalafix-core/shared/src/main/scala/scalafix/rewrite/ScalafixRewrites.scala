@@ -1,6 +1,5 @@
 package scalafix
 package rewrite
-import scala.meta._
 
 object ScalafixRewrites {
   val syntax: List[Rewrite] = List(

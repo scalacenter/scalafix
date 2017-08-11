@@ -1,16 +1,10 @@
 package scalafix.internal.sbt
 
-import scalaz.concurrent.Task
 import sbt.AutoPlugin
 import sbt.Def
 import sbt.File
-import sbt.Keys.Classpath
-import sbt.Keys.publish
-import sbt.Keys.publishArtifact
-import sbt.Keys.publishLocal
 import sbt.PluginTrigger
 import sbt.Plugins
-import sbt.Project
 import sbt.TaskKey
 import sbt.plugins.JvmPlugin
 import sbt.taskKey
@@ -19,11 +13,6 @@ import sbt.taskKey
 object CliWrapperPlugin extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
   override def requires: Plugins = JvmPlugin
-  def createSyntheticProject(id: String, base: File): Project =
-    Project(id, base).settings(
-      publish := {},
-      publishLocal := {},
-      publishArtifact := false)
   class HasMain(reflectiveMain: Main) {
     import scala.language.reflectiveCalls
     def main(args: Array[String]): Unit = reflectiveMain.main(args)

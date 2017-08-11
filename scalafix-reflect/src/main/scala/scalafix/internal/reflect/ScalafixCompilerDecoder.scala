@@ -6,8 +6,6 @@ import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.attribute.FileAttribute
-import java.util.concurrent.ConcurrentHashMap
 import scala.meta.Input
 import scalafix.rewrite.Rewrite
 import scalafix.config.LazyMirror
@@ -19,7 +17,6 @@ import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
-import org.scalameta.logger
 
 object ScalafixCompilerDecoder {
   def baseCompilerDecoder(mirror: LazyMirror): ConfDecoder[Rewrite] =

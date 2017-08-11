@@ -34,6 +34,19 @@
         give fine-grained control on how the rewrite works, see
         @lnk("ExplicitReturnTypesConfig",
           "https://github.com/scalacenter/scalafix/blob/db6152304aaef19c4a8ba4fc77b732264bf52fec/scalafix-core/src/main/scala/scalafix/config/ExplicitReturnTypesConfig.scala").
+        Example configuration:
+        @config
+          explicitReturnTypes {
+             memberKind = [
+               Def
+               Var
+               Val
+             ]
+             memberVisibility = [
+               Public
+               Protected
+            ]
+          }
 
 
   @sect(RemoveUnusedImports.toString)

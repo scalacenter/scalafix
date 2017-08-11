@@ -9,6 +9,12 @@ import scalatags.Text.all._
 import scalatex.site.Highlighter
 
 object Readme {
+  def sbtkey(name: String, typ: String)(description: Frag*) =
+    tr(
+      td(code(name)),
+      td(code(typ)),
+      td(description)
+    )
   val highlight = new Highlighter {}
   def note = b("Note. ")
   def gitter =
@@ -28,7 +34,7 @@ object Readme {
   def config(str: String): TypedTag[String] = {
     // assert that config listings in docs is free of typos.
     ScalafixMetaconfigReaders
-      .scalafixConfigConfDecoder(ScalafixReflect.syntactic)
+      .scalafixConfigConfDecoder(ScalafixReflect.semantic(SemanticCtx.empty))
       .read(Input.String(str).toConf.get)
       .get
     highlight.scala(str)
