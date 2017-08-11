@@ -37,7 +37,9 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
   // Debug utilities
   def semanticCtx(implicit semanticCtx: SemanticCtx): SemanticCtx =
     SemanticCtx(semanticCtx.entries.filter(_.input == input))
-  def debugSemanticCtx()(implicit semanticCtx: SemanticCtx, fileLine: FileLine): Unit = {
+  def debugSemanticCtx()(
+      implicit semanticCtx: SemanticCtx,
+      fileLine: FileLine): Unit = {
     val db = this.semanticCtx(semanticCtx)
     debug(sourcecode.Text(db, "semanticCtx"))
   }
@@ -71,11 +73,14 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
   def addLeft(tok: Token, toAdd: String): Patch = Add(tok, toAdd, "")
 
   // Semantic patch ops.
-  def removeGlobalImport(symbol: Symbol)(implicit semanticCtx: SemanticCtx): Patch =
+  def removeGlobalImport(symbol: Symbol)(
+      implicit semanticCtx: SemanticCtx): Patch =
     RemoveGlobalImport(symbol)
-  def addGlobalImport(symbol: Symbol)(implicit semanticCtx: SemanticCtx): Patch =
+  def addGlobalImport(symbol: Symbol)(
+      implicit semanticCtx: SemanticCtx): Patch =
     TreePatch.AddGlobalSymbol(symbol)
-  def addGlobalImport(importer: Importer)(implicit semanticCtx: SemanticCtx): Patch =
+  def addGlobalImport(importer: Importer)(
+      implicit semanticCtx: SemanticCtx): Patch =
     AddGlobalImport(importer)
   def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
       implicit semanticCtx: SemanticCtx): Patch =

@@ -142,8 +142,9 @@ object Patch {
       .mkString
   }
 
-  private def semanticApply(
-      patch: Patch)(implicit ctx: RewriteCtx, semanticCtx: SemanticCtx): String = {
+  private def semanticApply(patch: Patch)(
+      implicit ctx: RewriteCtx,
+      semanticCtx: SemanticCtx): String = {
     val base = underlying(patch)
     val moveSymbol = underlying(
       ReplaceSymbolOps.naiveMoveSymbolPatch(base.collect {

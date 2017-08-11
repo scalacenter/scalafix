@@ -3,7 +3,8 @@ package rewrite
 
 import scala.meta._
 
-case class NoAutoTupling(semanticCtx: SemanticCtx) extends SemanticRewrite(semanticCtx) {
+case class NoAutoTupling(semanticCtx: SemanticCtx)
+    extends SemanticRewrite(semanticCtx) {
 
   private[this] def addWrappingParens(ctx: RewriteCtx, args: Seq[Term]): Patch =
     ctx.addLeft(args.head.tokens.head, "(") +

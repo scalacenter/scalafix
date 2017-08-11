@@ -84,7 +84,8 @@ abstract class SemanticRewriteSuite(
     }
     super.afterAll()
   }
-  lazy val testsToRun = DiffTest.testToRun(DiffTest.fromSemanticCtx(semanticCtx))
+  lazy val testsToRun =
+    DiffTest.testToRun(DiffTest.fromSemanticCtx(semanticCtx))
   def runAllTests(): Unit = {
     testsToRun.foreach(runOn)
   }

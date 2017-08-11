@@ -43,10 +43,9 @@ case class ScalafixOptions(
     @ValueDescription("imports.organize=false")
     @ExtraName("c")
     configStr: Option[String] = None,
-    @HelpMessage(
-      "Absolute path passed to semanticdb with -P:semanticdb:sourceroot:<path>. " +
-        "Relative filenames persisted in the Semantic DB are absolutized by the " +
-        "sourceroot. Defaults to current working directory if not provided.")
+    @HelpMessage("Absolute path passed to semanticdb with -P:semanticdb:sourceroot:<path>. " +
+      "Relative filenames persisted in the Semantic DB are absolutized by the " +
+      "sourceroot. Defaults to current working directory if not provided.")
     @ValueDescription("/foo/myproject")
     sourceroot: Option[String] = None,
     @HelpMessage(

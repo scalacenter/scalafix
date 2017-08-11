@@ -10,7 +10,8 @@ import scalafix.util.TreeOps
 
 package object syntax {
 
-  implicit class XtensionRefSymbolOpt(tree: Tree)(implicit semanticCtx: SemanticCtx) {
+  implicit class XtensionRefSymbolOpt(tree: Tree)(
+      implicit semanticCtx: SemanticCtx) {
     @deprecated("Renamed to symbol", "0.5.0")
     def symbolOpt: Option[Symbol] = symbol
     def symbol: Option[Symbol] = semanticCtx.symbol(tree.pos)

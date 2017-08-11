@@ -91,7 +91,8 @@ trait ScalafixMetaconfigReaders {
         rewriteDecoder.read(combinedRewrites).map(rewrite => rewrite -> config)
     }
 
-  def defaultRewriteDecoder(getSemanticCtx: LazySemanticCtx): ConfDecoder[Rewrite] =
+  def defaultRewriteDecoder(
+      getSemanticCtx: LazySemanticCtx): ConfDecoder[Rewrite] =
     ConfDecoder.instance[Rewrite] {
       case conf @ Conf.Str(value) =>
         val isSyntactic = ScalafixRewrites.syntacticNames.contains(value)
@@ -106,20 +107,21 @@ trait ScalafixMetaconfigReaders {
 
   private lazy val semanticRewriteClass = classOf[SemanticRewrite]
 
-  def classloadRewrite(semanticCtx: LazySemanticCtx): Class[_] => Seq[SemanticCtx] = {
-    cls =>
-      val semanticRewrite =
-        cls.getClassLoader.loadClass("scalafix.rewrite.SemanticRewrite")
-      val kind =
-        if (semanticRewriteClass.isAssignableFrom(cls)) RewriteKind.Semantic
-        else RewriteKind.Syntactic
-      semanticCtx(kind).toList
+  def classloadRewrite(
+      semanticCtx: LazySemanticCtx): Class[_] => Seq[SemanticCtx] = { cls =>
+    val semanticRewrite =
+      cls.getClassLoader.loadClass("scalafix.rewrite.SemanticRewrite")
+    val kind =
+      if (semanticRewriteClass.isAssignableFrom(cls)) RewriteKind.Semantic
+      else RewriteKind.Syntactic
+    semanticCtx(kind).toList
   }
 
   private lazy val SlashSeparated = "([^/]+)/(.*)".r
 
-  private def requireSemanticSemanticCtx[T](semanticCtx: LazySemanticCtx, what: String)(
-      f: SemanticCtx => Configured[T]): Configured[T] = {
+  private def requireSemanticSemanticCtx[T](
+      semanticCtx: LazySemanticCtx,
+      what: String)(f: SemanticCtx => Configured[T]): Configured[T] = {
     semanticCtx(RewriteKind.Semantic).fold(
       Configured.error(s"$what requires the semantic API."): Configured[T])(f)
   }
@@ -130,7 +132,8 @@ trait ScalafixMetaconfigReaders {
     symbolGlobalReader.read(Conf.Str(from)) |@|
       symbolGlobalReader.read(Conf.Str(to))
 
-  def classloadRewriteDecoder(semanticCtx: LazySemanticCtx): ConfDecoder[Rewrite] =
+  def classloadRewriteDecoder(
+      semanticCtx: LazySemanticCtx): ConfDecoder[Rewrite] =
     ConfDecoder.instance[Rewrite] {
       case UriRewriteString("scala", fqn) =>
         ClassloadRewrite(fqn, classloadRewrite(semanticCtx))

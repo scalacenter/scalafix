@@ -21,5 +21,6 @@ trait PatchOps {
   def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
       implicit semanticCtx: SemanticCtx): Patch
   def replaceSymbols(toReplace: (String, String)*)(implicit semanticCtx: SemanticCtx): Patch
-  def renameSymbol(fromSymbol: Symbol.Global, toName: String)(implicit semanticCtx: SemanticCtx): Patch
+  def renameSymbol(fromSymbol: Symbol.Global, toName: String)(
+      implicit semanticCtx: SemanticCtx): Patch
 }

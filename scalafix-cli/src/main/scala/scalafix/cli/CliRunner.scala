@@ -122,7 +122,8 @@ sealed abstract case class CliRunner(
               ctx.reporter.error(
                 s"Stale semanticdb for ${CliRunner.pretty(outFile)}, skipping rewrite. Please recompile.")
               if (cli.verbose) {
-                val diff = Patch.unifiedDiff(input.semanticCtx.get, input.original)
+                val diff =
+                  Patch.unifiedDiff(input.semanticCtx.get, input.original)
                 common.err.println(diff)
               }
               ExitStatus.StaleSemanticDB
@@ -376,8 +377,10 @@ object CliRunner {
         val configured =
           if (inputs.isEmpty) Ok(Rewrite.empty -> ScalafixConfig.default)
           else {
-            resolvedConfigInput.andThen(input =>
-              ScalafixConfig.fromInput(input, lazySemanticCtx, rewrites)(decoder))
+            resolvedConfigInput.andThen(
+              input =>
+                ScalafixConfig.fromInput(input, lazySemanticCtx, rewrites)(
+                  decoder))
           }
         configured.map { configuration =>
           // TODO(olafur) implement withFilter on Configured

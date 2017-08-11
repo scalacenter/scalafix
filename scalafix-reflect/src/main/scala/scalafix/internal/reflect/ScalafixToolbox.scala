@@ -24,7 +24,9 @@ class ScalafixToolbox {
     new java.util.concurrent.ConcurrentHashMap[Input, Configured[Rewrite]]()
   private val compiler = new Compiler()
 
-  def getRewrite(code: Input, semanticCtx: LazySemanticCtx): Configured[Rewrite] =
+  def getRewrite(
+      code: Input,
+      semanticCtx: LazySemanticCtx): Configured[Rewrite] =
     rewriteCache.getOrDefault(code, {
       val uncached = getRewriteUncached(code, semanticCtx)
       uncached match {
@@ -35,7 +37,9 @@ class ScalafixToolbox {
       uncached
     })
 
-  def getRewriteUncached(code: Input, semanticCtx: LazySemanticCtx): Configured[Rewrite] =
+  def getRewriteUncached(
+      code: Input,
+      semanticCtx: LazySemanticCtx): Configured[Rewrite] =
     synchronized {
       (
         compiler.compile(code) |@|
