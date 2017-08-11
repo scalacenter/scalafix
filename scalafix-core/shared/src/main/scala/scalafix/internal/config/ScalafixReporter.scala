@@ -1,4 +1,4 @@
-package scalafix.config
+package scalafix.internal.config
 
 import scala.meta.Position
 import scalafix.internal.util.Severity

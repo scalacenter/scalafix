@@ -1,4 +1,4 @@
-package scalafix.config
+package scalafix.internal.config
 
 import scala.collection.immutable.Seq
 import metaconfig.Conf

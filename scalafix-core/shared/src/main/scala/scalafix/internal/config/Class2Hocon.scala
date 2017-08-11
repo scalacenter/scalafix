@@ -1,4 +1,4 @@
-package scalafix.config
+package scalafix.internal.config
 
 import metaconfig.HasFields
 import metaconfig.String2AnyMap

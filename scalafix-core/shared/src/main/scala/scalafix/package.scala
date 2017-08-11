@@ -10,8 +10,8 @@ package object scalafix {
   @deprecated("Renamed to SemanticCtx", "0.5.0")
   val Mirror = scalafix.util.SemanticCtx
 
-  type ScalafixConfig = config.ScalafixConfig
-  val ScalafixConfig = config.ScalafixConfig
+  type ScalafixConfig = scalafix.internal.config.ScalafixConfig
+  val ScalafixConfig = internal.config.ScalafixConfig
 
   type RewriteCtx = rewrite.RewriteCtx
   val RewriteCtx = rewrite.RewriteCtx

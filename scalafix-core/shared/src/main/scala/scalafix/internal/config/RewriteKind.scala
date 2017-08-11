@@ -1,4 +1,4 @@
-package scalafix.config
+package scalafix.internal.config
 
 // Boolean enum, either Syntactic or Semantic.
 sealed trait RewriteKind {

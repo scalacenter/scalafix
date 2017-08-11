@@ -20,11 +20,11 @@ import scala.meta.internal.inputs._
 import scala.meta.io.AbsolutePath
 import scala.util.Try
 import scala.util.control.NonFatal
-import scalafix.config.Class2Hocon
-import scalafix.config.FilterMatcher
-import scalafix.config.LazyMirror
-import scalafix.config.RewriteKind
-import scalafix.config.ScalafixConfig
+import scalafix.internal.config.Class2Hocon
+import scalafix.internal.config.FilterMatcher
+import scalafix.internal.config.LazyMirror
+import scalafix.internal.config.RewriteKind
+import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.cli.CommonOptions
 import scalafix.internal.cli.FixFile
 import scalafix.internal.cli.ScalafixOptions

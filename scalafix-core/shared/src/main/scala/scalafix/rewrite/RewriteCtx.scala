@@ -4,9 +4,9 @@ import scala.meta._
 import scala.meta.contrib.AssociatedComments
 import scala.meta.tokens.Tokens
 import scalafix.syntax._
-import scalafix.config.ScalafixConfig
-import scalafix.config.ScalafixMetaconfigReaders
-import scalafix.config.ScalafixReporter
+import scalafix.internal.config.ScalafixConfig
+import scalafix.internal.config.ScalafixMetaconfigReaders
+import scalafix.internal.config.ScalafixReporter
 import scalafix.internal.util.SymbolOps.BottomSymbol
 import scalafix.patch.PatchOps
 import scalafix.patch.TokenPatch

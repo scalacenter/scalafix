@@ -1,5 +1,5 @@
 package scalafix
-package config
+package internal.config
 
 import java.io.PrintStream
 import scala.meta._

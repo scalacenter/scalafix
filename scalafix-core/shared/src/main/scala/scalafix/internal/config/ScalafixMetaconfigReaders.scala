@@ -1,5 +1,5 @@
 package scalafix
-package config
+package internal.config
 
 import scala.meta.Ref
 import scala.meta._
@@ -22,7 +22,7 @@ import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.Ok
-import scalafix.config.MetaconfigParser.{parser => hoconParser}
+import scalafix.internal.config.MetaconfigParser.{parser => hoconParser}
 import scalafix.patch.TreePatch
 import scalafix.rewrite.ConfigRewrite
 
@@ -157,8 +157,7 @@ trait ScalafixMetaconfigReaders {
       implicit decoder: ConfDecoder[Rewrite]
   ): Configured[(Rewrite, ScalafixConfig)] = {
     hoconParser.fromInput(input).andThen { conf =>
-      config
-        .scalafixConfigConfDecoder(decoder, extraRewrites)
+      scalafixConfigConfDecoder(decoder, extraRewrites)
         .read(conf)
         .andThen {
           case (rewrite, config) =>

@@ -3,7 +3,7 @@ package scalafix.testkit
 import scala.meta._
 import scalafix.SemanticCtx
 import scalafix.Rewrite
-import scalafix.config.ScalafixConfig
+import scalafix.internal.config.ScalafixConfig
 import scalafix.reflect.ScalafixReflect
 import org.scalatest.exceptions.TestFailedException
 

@@ -1,4 +1,4 @@
-package scalafix.config
+package scalafix.internal.config
 
 import scala.meta.io.AbsolutePath
 import scala.util.matching.Regex

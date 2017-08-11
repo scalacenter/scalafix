@@ -11,8 +11,8 @@ import scala.tools.nsc.Settings
 import scala.tools.nsc.io.VirtualDirectory
 import scala.tools.nsc.reporters.StoreReporter
 import scala.{meta => m}
-import scalafix.config.LazyMirror
-import scalafix.config.classloadRewrite
+import scalafix.internal.config.LazyMirror
+import scalafix.internal.config.classloadRewrite
 import scalafix.internal.util.ClassloadRewrite
 import scalafix.rewrite.Rewrite
 import metaconfig.ConfError

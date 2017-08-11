@@ -1,4 +1,4 @@
-package scalafix.config
+package scalafix.internal.config
 
 import scalafix.Patch
 import scalafix.patch.TreePatch.AddGlobalImport

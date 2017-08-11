@@ -8,8 +8,8 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import scala.meta.Input
 import scalafix.rewrite.Rewrite
-import scalafix.config.LazyMirror
-import scalafix.config.ScalafixMetaconfigReaders.UriRewrite
+import scalafix.internal.config.LazyMirror
+import scalafix.internal.config.ScalafixMetaconfigReaders.UriRewrite
 import scalafix.internal.util.FileOps
 import metaconfig.Conf
 import metaconfig.ConfDecoder

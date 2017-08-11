@@ -2,7 +2,7 @@ package scalafix
 package testkit
 
 import scala.meta._
-import scalafix.config.ScalafixConfig
+import scalafix.internal.config.ScalafixConfig
 import scalafix.rewrite.RewriteCtx
 import scalafix.syntax._
 

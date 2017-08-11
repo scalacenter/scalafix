@@ -5,8 +5,8 @@ import java.io.InputStream
 import java.io.PrintStream
 import scala.meta._
 import scala.meta.io.AbsolutePath
-import scalafix.config.PrintStreamReporter
-import scalafix.config.ScalafixReporter
+import scalafix.internal.config.PrintStreamReporter
+import scalafix.internal.config.ScalafixReporter
 import scalafix.rewrite.ProcedureSyntax
 import scalafix.rewrite.ScalafixRewrites
 import caseapp._

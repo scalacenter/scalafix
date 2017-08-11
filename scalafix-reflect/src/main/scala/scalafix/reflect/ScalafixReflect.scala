@@ -2,7 +2,7 @@ package scalafix.reflect
 
 import scalafix.SemanticCtx
 import scalafix.Rewrite
-import scalafix.config._
+import scalafix.internal.config._
 import scalafix.internal.reflect.ScalafixCompilerDecoder
 import metaconfig.ConfDecoder
 

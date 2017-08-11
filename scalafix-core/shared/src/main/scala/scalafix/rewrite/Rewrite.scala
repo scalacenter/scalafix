@@ -3,6 +3,7 @@ package rewrite
 
 import scala.collection.immutable.Seq
 import scala.meta._
+import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.syntax._
 import metaconfig.ConfDecoder
 import metaconfig.Configured
@@ -61,7 +62,8 @@ abstract class SemanticRewrite(mirror: SemanticCtx)(implicit name: Name)
 
 object Rewrite {
   val syntaxRewriteConfDecoder: ConfDecoder[Rewrite] =
-    config.rewriteConfDecoderSyntactic(config.baseSyntacticRewriteDecoder)
+    ScalafixMetaconfigReaders.rewriteConfDecoderSyntactic(
+      ScalafixMetaconfigReaders.baseSyntacticRewriteDecoder)
   def emptyConfigured: Configured[Rewrite] = Configured.Ok(empty)
   def empty: Rewrite = syntactic(_ => Patch.empty)
   def emptyFromMirrorOpt(mirror: Option[SemanticCtx]): Rewrite =
