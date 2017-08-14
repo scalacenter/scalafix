@@ -27,7 +27,4 @@ class SemanticCtxImpl(val database: Database) extends SemanticCtx {
   def denotation(symbol: Symbol): Option[Denotation] =
     _denots.get(symbol)
   override def names: Seq[ResolvedName] = _names.values.toSeq
-
-  override def merge(other: SemanticCtx): SemanticCtx =
-    new SemanticCtxImpl(Database(database.entries ++ other.database.entries))
 }

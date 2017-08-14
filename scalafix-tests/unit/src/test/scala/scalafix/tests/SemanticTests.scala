@@ -8,7 +8,19 @@ import lang.meta.internal.io.PathIO
 
 class SemanticTests
     extends SemanticRewriteSuite(
-      SemanticTests.defaultCtx,
+      SemanticCtx.load(
+        Sbthost.patchDatabase(
+          Database.load(
+            Classpath(
+              List(
+                AbsolutePath(BuildInfo.semanticSbtClasspath),
+                AbsolutePath(BuildInfo.semanticClasspath)
+              )
+            )
+          ),
+          PathIO.workingDirectory
+        )
+      ),
       List(
         AbsolutePath(BuildInfo.inputSourceroot),
         AbsolutePath(BuildInfo.inputSbtSourceroot)
@@ -20,17 +32,4 @@ class SemanticTests
       )
     ) {
   runAllTests()
-}
-
-object SemanticTests {
-  def defaultCtx: SemanticCtx = {
-    val impl = Sbthost.patchDatabase(
-      Database.load(Classpath(AbsolutePath(BuildInfo.semanticSbtClasspath))),
-      PathIO.workingDirectory)
-    SemanticCtx
-      .load(impl)
-      .merge(
-        SemanticCtx.load(Classpath(AbsolutePath(BuildInfo.semanticClasspath)))
-      )
-  }
 }
