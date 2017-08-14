@@ -10,11 +10,20 @@ import org.scalatest.FunSuite
 
 abstract class SemanticRewriteSuite(
     val semanticCtx: SemanticCtx,
-    val inputSourceroot: AbsolutePath,
+    val inputSourceroot: Seq[AbsolutePath],
     val expectedOutputSourceroot: Seq[AbsolutePath]
 ) extends FunSuite
     with DiffAssertions
     with BeforeAndAfterAll { self =>
+  def this(
+      sctx: SemanticCtx,
+      inputSourceroot: AbsolutePath,
+      expectedOutputSourceroot: Seq[AbsolutePath]
+  ) = this(
+    sctx,
+    List(inputSourceroot),
+    expectedOutputSourceroot
+  )
   def this(
       database: Database,
       inputSourceroot: AbsolutePath,
@@ -23,7 +32,8 @@ abstract class SemanticRewriteSuite(
     this(
       new SemanticCtxImpl(database),
       inputSourceroot,
-      expectedOutputSourceroot)
+      expectedOutputSourceroot
+    )
 
   private def dialectToPath(dialect: String): Option[String] =
     Option(dialect).collect {

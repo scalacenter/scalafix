@@ -16,6 +16,7 @@ trait SemanticCtx {
   def messages: Seq[Message] = database.messages
   def symbols: Seq[ResolvedSymbol] = database.symbols
   def sugars: Seq[Sugar] = database.sugars
+  def merge(other: SemanticCtx): SemanticCtx
 
   /** Lookup symbol at this position. */
   def symbol(position: Position): Option[Symbol]
@@ -34,4 +35,6 @@ object SemanticCtx {
     new SemanticCtxImpl(Database.load(classpath, sourcepath))
   def load(bytes: Array[Byte]): SemanticCtx =
     new SemanticCtxImpl(Database.load(bytes))
+  def load(db: Database): SemanticCtx =
+    new SemanticCtxImpl(db)
 }

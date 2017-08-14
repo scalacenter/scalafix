@@ -183,7 +183,7 @@ lazy val cli = project
     mainClass in assembly := Some("scalafix.cli.Cli"),
     assemblyJarName in assembly := "scalafix.jar",
     libraryDependencies ++= Seq(
-      "org.scalameta" %% "sbthost-runtime" % "0.2.0",
+      "org.scalameta" %% "sbthost-runtime" % sbthostV,
       "com.github.alexarchambault" %% "case-app" % "1.1.3",
       "com.martiansoftware" % "nailgun-server" % "0.9.1"
     )
@@ -317,6 +317,24 @@ lazy val testsOutputDotty = project
     scalacOptions := Nil
   )
 
+lazy val testsInputSbt = project
+  .in(file("scalafix-tests/input-sbt"))
+  .settings(
+    scalacOptions += "-Xplugin-require:sbthost",
+    scalaVersion := scala210,
+    sbtPlugin := true,
+    scalacOptions += s"-P:sbthost:sourceroot:${sourceDirectory.in(Compile).value}",
+    addCompilerPlugin(
+      "org.scalameta" % "sbthost-nsc" % sbthostV cross CrossVersion.full)
+  )
+
+lazy val testsOutputSbt = project
+  .in(file("scalafix-tests/output-sbt"))
+  .settings(
+    scalaVersion := scala210,
+    sbtPlugin := true
+  )
+
 lazy val unit = project
   .in(file("scalafix-tests/unit"))
   .settings(
@@ -331,17 +349,25 @@ lazy val unit = project
         .in(Compile, compile)
         .dependsOn(
           compile.in(testsInput, Compile),
+          compile.in(testsInputSbt, Compile),
+          compile.in(testsOutputSbt, Compile),
+          compile.in(testsOutputDotty, Compile),
           compile.in(testsOutput, Compile)
         )
         .value,
     buildInfoKeys := Seq[BuildInfoKey](
       "inputSourceroot" ->
         sourceDirectory.in(testsInput, Compile).value,
+      "inputSbtSourceroot" ->
+        sourceDirectory.in(testsInputSbt, Compile).value,
       "outputSourceroot" ->
         sourceDirectory.in(testsOutput, Compile).value,
       "outputDottySourceroot" ->
         sourceDirectory.in(testsOutputDotty, Compile).value,
+      "outputSbtSourceroot" ->
+        sourceDirectory.in(testsOutputSbt, Compile).value,
       "testsInputResources" -> resourceDirectory.in(testsInput, Compile).value,
+      "semanticSbtClasspath" -> classDirectory.in(testsInputSbt, Compile).value,
       "semanticClasspath" -> classDirectory.in(testsInput, Compile).value
     ),
     libraryDependencies ++= testsDeps
