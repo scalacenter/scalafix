@@ -311,6 +311,8 @@ lazy val testsOutputDotty = project
   .settings(
     allSettings,
     noPublish,
+    // Skip this project for IntellIJ, see https://youtrack.jetbrains.com/issue/SCL-12237
+    SettingKey[Boolean]("ide-skip-project") := true,
     scalaVersion := dotty,
     crossScalaVersions := List(dotty),
     libraryDependencies := libraryDependencies.value.map(_.withDottyCompat()),

@@ -16,6 +16,9 @@ object ScalafixPlugin extends AutoPlugin {
   override def requires: Plugins = JvmPlugin
   object autoImport {
     val scalafix: InputKey[Unit] = inputKey[Unit]("Run scalafix rewrite.")
+    val scalafixBuild: InputKey[Unit] = inputKey[Unit](
+      "Run scalafix rewrite on build sources. " +
+        "Requires the sbthost plugin to be enabled globally.")
     val scalafixConfig: SettingKey[Option[File]] =
       settingKey[Option[File]](
         ".scalafix.conf file to specify which scalafix rules should run.")
@@ -124,6 +127,29 @@ object ScalafixPlugin extends AutoPlugin {
     }
   )
   lazy val scalafixTaskSettings = Seq(
+    scalafixBuild := Def.inputTaskDyn {
+      val extracted = Project.extract(state.value)
+      val root = extracted.rootProject(extracted.structure.root)
+      val current = thisProject.value.id
+      if (root != current) {
+        // TODO(olafur) come up with less hacky approach to avoid aggregating
+        // scalafixBuild across multiple builds. My first instinct was to make
+        // it a command but then I didn't know how to access project specific .value.
+        // This was the dumbest I could think of that allows me to continue,
+        Def.task(())
+      } else {
+        val baseDir = (baseDirectory in ThisBuild).value
+        val sbtDir: File = baseDir./("project")
+        val sbtFiles = baseDir.*("*.sbt").get
+        scalafixTaskImpl(
+          scalafixParser.parsed,
+          Seq.empty[String],
+          sbtDir +: sbtFiles,
+          "sbt-build",
+          streams.value
+        )
+      }
+    }.evaluated,
     scalafix.in(Compile) := scalafixTaskImpl(Compile).evaluated,
     scalafix.in(Test) := scalafixTaskImpl(Test).evaluated,
     scalafix := scalafixTaskImpl(Compile, Test).evaluated
@@ -131,62 +157,79 @@ object ScalafixPlugin extends AutoPlugin {
 
   def scalafixTaskImpl(
       config: Configuration*): Def.Initialize[InputTask[Unit]] =
-    Def.inputTaskDyn(
+    Def.inputTaskDyn {
       scalafixTaskImpl(
         scalafixParser.parsed,
-        ScopeFilter(configurations = inConfigurations(config: _*))))
+        ScopeFilter(configurations = inConfigurations(config: _*)))
+    }
+
   def scalafixTaskImpl(
       inputArgs: Seq[String],
       filter: ScopeFilter): Def.Initialize[Task[Unit]] =
-    Def.task {
-      val verbose = if (scalafixVerbose.value) "--verbose" :: Nil else Nil
-      val main = cliWrapperMain.value
-      val log = streams.value.log
+    Def.taskDyn {
       compile.all(filter).value // trigger compilation
       val classpath = classDirectory.all(filter).value.asPath
-      val directoriesToFix: Seq[String] =
+      val directoriesToFix: Seq[File] =
         unmanagedSourceDirectories.all(filter).value.flatten.collect {
-          case p if p.exists() => p.getAbsolutePath
+          case p if p.exists() => p.getAbsoluteFile
         }
-      val baseArgs = Set[String](
-        "--project-id",
+      scalafixTaskImpl(
+        inputArgs,
+        List("--classpath", classpath),
+        directoriesToFix,
         thisProject.value.id,
-        "--no-sys-exit",
-        "--non-interactive"
+        streams.value
       )
-      val args: Seq[String] = {
-        // run scalafix rewrites
-        val config =
-          scalafixConfig.value
-            .map(x => "--config" :: x.getAbsolutePath :: Nil)
-            .getOrElse(Nil)
-        val rewriteArgs =
-          if (inputArgs.nonEmpty)
-            inputArgs.flatMap("-r" :: _ :: Nil)
-          else Nil
-        val sourceroot = scalafixSourceroot.value.getAbsolutePath
-        // only fix unmanaged sources, skip code generated files.
-        verbose ++
-          config ++
-          rewriteArgs ++
-          baseArgs ++
-          List(
-            "--sourceroot",
-            sourceroot,
-            "--classpath",
-            classpath
-          )
-      }
-      if (classpath.nonEmpty) {
-        CrossVersion.partialVersion(scalaVersion.value) match {
-          case Some((2, 11 | 12)) if directoriesToFix.nonEmpty =>
-            val nonBaseArgs = args.filterNot(baseArgs).mkString(" ")
-            log.info(s"Running scalafix $nonBaseArgs")
-            main.main((args ++ directoriesToFix).toArray)
-          case _ => // do nothing
+    }
+
+  def scalafixTaskImpl(
+      inputArgs: Seq[String],
+      options: Seq[String],
+      files: Seq[File],
+      projectId: String,
+      streams: TaskStreams
+  ): Def.Initialize[Task[Unit]] = {
+    if (files.isEmpty) Def.task(())
+    else {
+      Def.task {
+        val log = streams.log
+        val verbose = if (scalafixVerbose.value) "--verbose" :: Nil else Nil
+        val main = cliWrapperMain.value
+        val baseArgs = Set[String](
+          "--project-id",
+          projectId,
+          "--no-sys-exit",
+          "--non-interactive"
+        )
+        val args: Seq[String] = {
+          // run scalafix rewrites
+          val config =
+            scalafixConfig.value
+              .map(x => "--config" :: x.getAbsolutePath :: Nil)
+              .getOrElse(Nil)
+          val rewriteArgs =
+            if (inputArgs.nonEmpty)
+              inputArgs.flatMap("-r" :: _ :: Nil)
+            else Nil
+          val sourceroot = scalafixSourceroot.value.getAbsolutePath
+          // only fix unmanaged sources, skip code generated files.
+          verbose ++
+            config ++
+            rewriteArgs ++
+            baseArgs ++
+            options ++
+            List(
+              "--sourceroot",
+              sourceroot
+            )
         }
+        val finalArgs = args ++ files.map(_.getAbsolutePath)
+        val nonBaseArgs = finalArgs.filterNot(baseArgs).mkString(" ")
+        log.info(s"Running scalafix $nonBaseArgs")
+        main.main(finalArgs.toArray)
       }
     }
+  }
 
   private[scalafix] implicit class XtensionFormatClasspath(paths: Seq[File]) {
     def asPath: String =

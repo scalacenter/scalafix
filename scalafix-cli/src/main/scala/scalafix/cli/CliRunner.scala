@@ -18,6 +18,7 @@ import scala.meta._
 import scala.meta.inputs.Input
 import scala.meta.internal.inputs._
 import scala.meta.io.AbsolutePath
+import scala.meta.sbthost.Sbthost
 import scala.util.Try
 import scala.util.control.NonFatal
 import scalafix.internal.config.Class2Hocon
@@ -273,8 +274,10 @@ object CliRunner {
       val result: Configured[SemanticCtx] = cachedDatabase.getOrElse {
         try {
           resolveClasspath.map { classpath =>
-            val db = new SemanticCtxImpl(
-              Database.load(classpath, Sourcepath(resolvedSourceroot)))
+            val db = SemanticCtx.load(
+              Sbthost.patchDatabase(
+                Database.load(classpath, Sourcepath(resolvedSourceroot)),
+                resolvedSourceroot))
             if (verbose) {
               common.err.println(
                 s"Loaded database with ${db.entries.length} entries.")
