@@ -12,6 +12,7 @@ object ScalafixRewrites {
     DottyVarArgPattern
   )
   def semantic(semanticCtx: SemanticCtx): List[Rewrite] = List(
+    Sbt1(semanticCtx),
     ExplicitReturnTypes(semanticCtx),
     RemoveUnusedImports(semanticCtx),
     NoAutoTupling(semanticCtx)

@@ -24,11 +24,10 @@ commands += Command.command("release") { s =>
     "gitPushTag" ::
     s
 }
-commands += CiCommand("ci-fast")(
-  ci("test") ::
-    "such testsOutputDotty/test" ::
-    Nil
-)
+commands += Command.command("ci-fast") { s =>
+  "test" ::
+    s
+}
 commands += Command.command("ci-slow") { s =>
   "scalafix-sbt/it:test" ::
     s
@@ -82,6 +81,7 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
     "coursier" -> coursier.util.Properties.version,
     "nightly" -> version.value,
     "scalameta" -> scalametaV,
+    "sbthost" -> sbthostV,
     scalaVersion,
     "supportedScalaVersions" -> Seq(scala211, scala212),
     "scala211" -> scala211,
@@ -152,7 +152,6 @@ lazy val core = crossProject
   )
   .enablePlugins(BuildInfoPlugin)
   .dependsOn(diff)
-
 lazy val coreJS = core.js
 lazy val coreJVM = core.jvm
 
@@ -183,7 +182,7 @@ lazy val cli = project
     mainClass in assembly := Some("scalafix.cli.Cli"),
     assemblyJarName in assembly := "scalafix.jar",
     libraryDependencies ++= Seq(
-      "org.scalameta" %% "sbthost-runtime" % "0.2.0",
+      "org.scalameta" %% "sbthost-runtime" % sbthostV,
       "com.github.alexarchambault" %% "case-app" % "1.1.3",
       "com.martiansoftware" % "nailgun-server" % "0.9.1"
     )
@@ -311,10 +310,30 @@ lazy val testsOutputDotty = project
   .settings(
     allSettings,
     noPublish,
+    // Skip this project for IntellIJ, see https://youtrack.jetbrains.com/issue/SCL-12237
+    SettingKey[Boolean]("ide-skip-project") := true,
     scalaVersion := dotty,
     crossScalaVersions := List(dotty),
     libraryDependencies := libraryDependencies.value.map(_.withDottyCompat()),
     scalacOptions := Nil
+  )
+
+lazy val testsInputSbt = project
+  .in(file("scalafix-tests/input-sbt"))
+  .settings(
+    scalacOptions += "-Xplugin-require:sbthost",
+    scalaVersion := scala210,
+    sbtPlugin := true,
+    scalacOptions += s"-P:sbthost:sourceroot:${sourceDirectory.in(Compile).value}",
+    addCompilerPlugin(
+      "org.scalameta" % "sbthost-nsc" % sbthostV cross CrossVersion.full)
+  )
+
+lazy val testsOutputSbt = project
+  .in(file("scalafix-tests/output-sbt"))
+  .settings(
+    scalaVersion := scala210,
+    sbtPlugin := true
   )
 
 lazy val unit = project
@@ -331,17 +350,25 @@ lazy val unit = project
         .in(Compile, compile)
         .dependsOn(
           compile.in(testsInput, Compile),
+          compile.in(testsInputSbt, Compile),
+          compile.in(testsOutputSbt, Compile),
+          compile.in(testsOutputDotty, Compile),
           compile.in(testsOutput, Compile)
         )
         .value,
     buildInfoKeys := Seq[BuildInfoKey](
       "inputSourceroot" ->
         sourceDirectory.in(testsInput, Compile).value,
+      "inputSbtSourceroot" ->
+        sourceDirectory.in(testsInputSbt, Compile).value,
       "outputSourceroot" ->
         sourceDirectory.in(testsOutput, Compile).value,
       "outputDottySourceroot" ->
         sourceDirectory.in(testsOutputDotty, Compile).value,
+      "outputSbtSourceroot" ->
+        sourceDirectory.in(testsOutputSbt, Compile).value,
       "testsInputResources" -> resourceDirectory.in(testsInput, Compile).value,
+      "semanticSbtClasspath" -> classDirectory.in(testsInputSbt, Compile).value,
       "semanticClasspath" -> classDirectory.in(testsInput, Compile).value
     ),
     libraryDependencies ++= testsDeps
@@ -408,20 +435,6 @@ lazy val readme = scalatex
 lazy val isFullCrossVersion = Seq(
   crossVersion := CrossVersion.full
 )
-
-lazy val dotty = "0.1.1-bin-20170530-f8f52cc-NIGHTLY"
-lazy val scala210 = "2.10.6"
-lazy val scala211 = "2.11.11"
-lazy val scala212 = "2.12.3"
-lazy val ciScalaVersion = sys.env.get("CI_SCALA_VERSION")
-def CiCommand(name: String)(commands: List[String]): Command =
-  Command.command(name) { initState =>
-    commands.foldLeft(initState) {
-      case (state, command) => command :: state
-    }
-  }
-def ci(command: String) =
-  s"plz ${ciScalaVersion.getOrElse("No CI_SCALA_VERSION defined")} $command"
 
 lazy val compilerOptions = Seq(
   "-deprecation",

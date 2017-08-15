@@ -10,6 +10,7 @@ object ScalafixRewriteNames {
     "ProcedureSyntax",
     "ExplicitUnit",
     "DottyVarArgPattern",
+    "Sbt1",
     "ExplicitReturnTypes",
     "RemoveUnusedImports",
     "NoAutoTupling"

@@ -34,4 +34,6 @@ object SemanticCtx {
     new SemanticCtxImpl(Database.load(classpath, sourcepath))
   def load(bytes: Array[Byte]): SemanticCtx =
     new SemanticCtxImpl(Database.load(bytes))
+  def load(db: Database): SemanticCtx =
+    new SemanticCtxImpl(db)
 }

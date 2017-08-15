@@ -30,9 +30,10 @@ TaskKey[Unit]("check") := {
       |  }
       |}""".stripMargin
   val testExpected = expected.replaceFirst("Main", "MainTest")
+  // NOTE: ProcedureSyntax runs since it's syntactic. Only semantic rewrites
+  // don't trigger.
   def unchanged(code: String) =
     code
-      .replace(": Unit =", "")
       .replace("((", "(")
       .replace("\"))", "\")")
 
