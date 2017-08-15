@@ -28,6 +28,8 @@ object ScalafixPlugin extends AutoPlugin {
           "compiler plugin, which is necessary for semantic rewrites.")
     def scalafixScalacOptions: Def.Initialize[Seq[String]] =
       ScalafixPlugin.scalafixScalacOptions
+    def scalafixBuildSettings: Seq[Def.Setting[_]] =
+      ScalafixPlugin.scalafixBuildSettings
     val scalafixVerbose: SettingKey[Boolean] =
       settingKey[Boolean]("pass --verbose to scalafix")
     def scalafixSettings: Seq[Def.Setting[_]] =
@@ -98,7 +100,19 @@ object ScalafixPlugin extends AutoPlugin {
     }
   }
 
-  lazy val scalafixScalacSettings: Seq[Def.Setting[_]] = Seq(
+  lazy val scalafixBuildSettings: Seq[Def.Setting[_]] = Def.settings(
+    libraryDependencies ++= {
+      val sbthost = "org.scalameta" % "sbthost-nsc" % "0.3.1" cross CrossVersion.full
+      val isMetabuild = {
+        val p = thisProject.value
+        p.id.endsWith("-build") && p.base.getName == "project"
+      }
+      if (isMetabuild) compilerPlugin(sbthost) :: Nil
+      else Nil
+    }
+  )
+
+  lazy val scalafixScalacSettings: Seq[Def.Setting[_]] = Def.settings(
     scalacOptions ++= {
       if (isSupportedScalaVersion.value) {
         scalafixScalacOptions.value
