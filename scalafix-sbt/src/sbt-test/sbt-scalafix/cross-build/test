@@ -1,5 +1,8 @@
 # compile should not affect scalafix
 > compile
-> scalafix
+> scalafix ProcedureSyntax
+# Should fail because 2.10 has no semanticdb
+# Other >2.10 projects should succeed
+-> scalafix
 > check
 
