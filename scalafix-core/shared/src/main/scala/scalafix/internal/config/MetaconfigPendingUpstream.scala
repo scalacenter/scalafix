@@ -5,6 +5,8 @@ import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
+import metaconfig.Configured.NotOk
+import metaconfig.Configured.Ok
 import metaconfig.Metaconfig
 
 // TODO(olafur) contribute upstream to metaconfig.
@@ -21,6 +23,10 @@ object MetaconfigPendingUpstream {
       case Some(value) => ev.read(value)
       case None => ConfError.missingField(conf, path).notOk
     }
+  }
+  def get_![T](configured: Configured[T]): T = configured match {
+    case Ok(a) => a
+    case NotOk(e) => sys.error(e.toString())
   }
 
   def orElse[T](a: ConfDecoder[T], b: ConfDecoder[T]): ConfDecoder[T] =

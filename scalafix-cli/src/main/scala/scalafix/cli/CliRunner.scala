@@ -21,17 +21,17 @@ import scala.meta.io.AbsolutePath
 import scala.meta.sbthost.Sbthost
 import scala.util.Try
 import scala.util.control.NonFatal
-import scalafix.internal.config.Class2Hocon
-import scalafix.internal.config.FilterMatcher
-import scalafix.internal.config.LazySemanticCtx
-import scalafix.internal.config.RewriteKind
-import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.cli.CommonOptions
 import scalafix.internal.cli.FixFile
 import scalafix.internal.cli.ScalafixOptions
 import scalafix.internal.cli.TermDisplay
 import scalafix.internal.cli.WriteMode
-import scalafix.internal.util.SemanticCtxImpl
+import scalafix.internal.config.Class2Hocon
+import scalafix.internal.config.FilterMatcher
+import scalafix.internal.config.LazySemanticCtx
+import scalafix.internal.config.MetaconfigPendingUpstream
+import scalafix.internal.config.RewriteKind
+import scalafix.internal.config.ScalafixConfig
 import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
 import metaconfig.Configured.Ok
@@ -97,44 +97,47 @@ sealed abstract case class CliRunner(
       }
     }
 
-  def safeHandleInput(input: FixFile): ExitStatus = {
-    try {
-      val inputConfig =
-        if (input.original.label.endsWith(".sbt")) sbtConfig else config
-      inputConfig.dialect(input.toParse).parse[Source] match {
-        case parsers.Parsed.Error(pos, message, _) =>
-          if (cli.quietParseErrors && !input.passedExplicitly) {
-            // Ignore parse errors, useful for example when running scalafix on
-            // millions of lines of code for experimentation.
+  def unsafeHandleInput(input: FixFile): ExitStatus = {
+    val inputConfig =
+      if (input.original.label.endsWith(".sbt")) sbtConfig else config
+    inputConfig.dialect(input.toParse).parse[Source] match {
+      case parsers.Parsed.Error(pos, message, _) =>
+        if (cli.quietParseErrors && !input.passedExplicitly) {
+          // Ignore parse errors, useful for example when running scalafix on
+          // millions of lines of code for experimentation.
+          ExitStatus.Ok
+        } else {
+          common.err.println(pos.formatMessage("error", message))
+          ExitStatus.ParseError
+        }
+      case parsers.Parsed.Success(tree) =>
+        val ctx = RewriteCtx(tree, config)
+        val fixed = rewrite(ctx)
+        if (writeMode.isWriteFile) {
+          val outFile = replacePath(input.original.path)
+          if (isUpToDate(input)) {
+            Files.write(outFile.toNIO, fixed.getBytes(input.original.charset))
             ExitStatus.Ok
           } else {
-            common.err.println(pos.formatMessage("error", message))
-            ExitStatus.ParseError
-          }
-        case parsers.Parsed.Success(tree) =>
-          val ctx = RewriteCtx(tree, config)
-          val fixed = rewrite(ctx)
-          if (writeMode.isWriteFile) {
-            val outFile = replacePath(input.original.path)
-            if (isUpToDate(input)) {
-              Files.write(outFile.toNIO, fixed.getBytes(input.original.charset))
-              ExitStatus.Ok
-            } else {
-              ctx.reporter.error(
-                s"Stale semanticdb for ${CliRunner.pretty(outFile)}, skipping rewrite. Please recompile.")
-              if (cli.verbose) {
-                val diff =
-                  Patch.unifiedDiff(input.semanticCtx.get, input.original)
-                common.err.println(diff)
-              }
-              ExitStatus.StaleSemanticDB
+            ctx.reporter.error(
+              s"Stale semanticdb for ${CliRunner.pretty(outFile)}, skipping rewrite. Please recompile.")
+            if (cli.verbose) {
+              val diff =
+                Patch.unifiedDiff(input.semanticCtx.get, input.original)
+              common.err.println(diff)
             }
-          } else {
-            common.out.write(fixed.getBytes)
-            ExitStatus.Ok
+            ExitStatus.StaleSemanticDB
           }
-      }
-    } catch {
+        } else {
+          common.out.write(fixed.getBytes)
+          ExitStatus.Ok
+        }
+    }
+  }
+
+  def safeHandleInput(input: FixFile): ExitStatus =
+    try unsafeHandleInput(input)
+    catch {
       case NonFatal(e) =>
         reportError(input.original.path, e, cli)
         e match {
@@ -142,7 +145,6 @@ sealed abstract case class CliRunner(
           case _ => ExitStatus.UnexpectedError
         }
     }
-  }
 
   def reportError(
       path: AbsolutePath,
@@ -162,21 +164,31 @@ object CliRunner {
   }
 
   /** Construct CliRunner with rewrite from ScalafixOptions. */
-  def fromOptions(options: ScalafixOptions): Configured[CliRunner] = {
-    val builder = new CliRunner.Builder(options)
-    builder.resolvedRewrite.andThen(rewrite =>
-      fromOptions(options, rewrite, builder))
-  }
+  def fromOptions(options: ScalafixOptions): Configured[CliRunner] =
+    safeFromOptions(options, None)
 
   /** Construct CliRunner with custom rewrite. */
   def fromOptions(
       options: ScalafixOptions,
-      rewrite: Rewrite): Configured[CliRunner] = {
-    val builder = new CliRunner.Builder(options)
-    fromOptions(options, rewrite, builder)
-  }
+      rewrite: Rewrite): Configured[CliRunner] =
+    safeFromOptions(options, Some(rewrite))
 
-  private def fromOptions(
+  private def safeFromOptions(
+      options: ScalafixOptions,
+      rewrite: Option[Rewrite]
+  ): Configured[CliRunner] = {
+    try {
+      val builder = new CliRunner.Builder(options)
+      rewrite.fold(
+        builder.resolvedRewrite.andThen(rewrite =>
+          unsafeFromOptions(options, rewrite, builder))
+      )(r => unsafeFromOptions(options, r, builder))
+    } catch {
+      case NonFatal(e) =>
+        ConfError.exception(e, options.common.stackVerbosity).notOk
+    }
+  }
+  private def unsafeFromOptions(
       options: ScalafixOptions,
       rewrite: Rewrite,
       builder: Builder
@@ -272,27 +284,27 @@ object CliRunner {
     private var cachedDatabase = Option.empty[Configured[SemanticCtx]]
     private def computeAndCacheDatabase(): Option[SemanticCtx] = {
       val result: Configured[SemanticCtx] = cachedDatabase.getOrElse {
-        try {
-          resolveClasspath.map { classpath =>
-            val db = SemanticCtx.load(
-              Sbthost.patchDatabase(
-                Database.load(classpath, Sourcepath(resolvedSourceroot)),
-                resolvedSourceroot))
-            if (verbose) {
-              common.err.println(
-                s"Loaded database with ${db.entries.length} entries.")
-            }
-            db
+        resolveClasspath.andThen { classpath =>
+          val db = SemanticCtx.load(
+            Sbthost.patchDatabase(
+              Database.load(classpath, Sourcepath(resolvedSourceroot)),
+              resolvedSourceroot))
+          if (verbose) {
+            common.err.println(
+              s"Loaded database with ${db.entries.length} entries.")
           }
-        } catch {
-          case NonFatal(e) =>
-            ConfError.exception(e, common.stackVerbosity).notOk
+          if (db.entries.nonEmpty) Ok(db)
+          else {
+            ConfError
+              .msg("Missing SemanticCtx, found no semanticdb files!")
+              .notOk
+          }
         }
       }
       if (cachedDatabase.isEmpty) {
         cachedDatabase = Some(result)
       }
-      result.toEither.right.toOption
+      Some(MetaconfigPendingUpstream.get_!(result))
     }
     private def resolveDatabase(kind: RewriteKind): Option[SemanticCtx] = {
       if (kind.isSyntactic) None
