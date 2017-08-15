@@ -29,7 +29,8 @@ object ExitStatus {
       ScalafixError,
       InvalidCommandLineOption,
       MissingSemanticApi,
-      StaleSemanticDB
+      StaleSemanticDB,
+      TestFailed
     : ExitStatus = generateExitStatus
   // format: on
   lazy val all: List[ExitStatus] = allInternal.toList

@@ -7,4 +7,5 @@ sealed abstract class WriteMode {
 object WriteMode {
   case object WriteFile extends WriteMode
   case object Stdout extends WriteMode
+  case object Test extends WriteMode
 }

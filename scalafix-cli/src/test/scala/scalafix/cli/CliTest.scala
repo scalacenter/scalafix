@@ -65,15 +65,38 @@ class CliTest extends ScalafixCliTest {
       obtained.files == List("a.scala", "b.scala", "foo.scala", "bar.scala"))
   }
 
-  test("write fix to file") {
+  def withFile(contents: String)(f: File => Unit): Unit = {
     val file = File.createTempFile("prefix", ".scala")
-    FileOps.writeFile(file, original)
-    Cli.runOn(
-      default.copy(
-        rewrites = List(ProcedureSyntax.toString),
-        files = List(file.getAbsolutePath)
-      ))
-    assertNoDiff(FileOps.readFile(file), expected)
+    FileOps.writeFile(file, contents)
+    f(file)
+  }
+
+  test("write fix to file") {
+    withFile(original) { file =>
+      Cli.runOn(
+        default.copy(
+          rewrites = List(ProcedureSyntax.toString),
+          files = List(file.getAbsolutePath)
+        ))
+      assertNoDiff(FileOps.readFile(file), expected)
+    }
+  }
+
+  test("--test") {
+    val config = default.copy(
+      test = true,
+      rewrites = List(ProcedureSyntax.toString)
+    )
+    withFile(original) { file =>
+      val exit = Cli.runOn(config.copy(files = List(file.getAbsolutePath)))
+      assert(exit == ExitStatus.TestFailed)
+      assertNoDiff(FileOps.readFile(file), original)
+    }
+    withFile(expected) { file =>
+      val exit = Cli.runOn(config.copy(files = List(file.getAbsolutePath)))
+      assert(exit == ExitStatus.Ok)
+      assertNoDiff(FileOps.readFile(file), expected)
+    }
   }
 
   test("--include/--exclude is respected") {

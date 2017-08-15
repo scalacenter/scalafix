@@ -76,6 +76,9 @@ case class ScalafixOptions(
     @HelpMessage("If set, print fix to stdout instead of writing to file.")
     stdout: Boolean = false,
     @HelpMessage(
+      "Exit non-zero code if files have not been fixed. Won't write to files.")
+    test: Boolean = false,
+    @HelpMessage(
       "Regex that is passed as first argument to fileToFix.replaceAll(outFrom, outTo)"
     )
     @ValueDescription("/shared/")
