@@ -10,7 +10,6 @@ import sbt.plugins.JvmPlugin
 import scalafix.internal.sbt.ScalafixCompletions
 import scalafix.internal.sbt.ScalafixJarFetcher
 import sbt.Def
-import sbt.Def
 
 object ScalafixPlugin extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
@@ -57,6 +56,8 @@ object ScalafixPlugin extends AutoPlugin {
     scalafixEnabled := true,
     scalafixVerbose := false,
     scalafixBuild := Def.inputTaskDyn {
+      // Will currently fail silently if semanticdb-sbt is not enabled.
+      // See https://github.com/scalacenter/scalafix/issues/264
       val baseDir = (baseDirectory in ThisBuild).value
       val sbtDir: File = baseDir./("project")
       val sbtFiles = baseDir.*("*.sbt").get
