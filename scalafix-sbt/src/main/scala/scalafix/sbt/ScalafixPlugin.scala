@@ -10,6 +10,7 @@ import sbt.plugins.JvmPlugin
 import scalafix.internal.sbt.ScalafixCompletions
 import scalafix.internal.sbt.ScalafixJarFetcher
 import sbt.Def
+import sbt.Def
 
 object ScalafixPlugin extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
@@ -55,6 +56,19 @@ object ScalafixPlugin extends AutoPlugin {
     cliWrapperMainClass := "scalafix.cli.Cli$",
     scalafixEnabled := true,
     scalafixVerbose := false,
+    scalafixBuild := Def.inputTaskDyn {
+      val baseDir = (baseDirectory in ThisBuild).value
+      val sbtDir: File = baseDir./("project")
+      val sbtFiles = baseDir.*("*.sbt").get
+      scalafixTaskImpl(
+        scalafixParser.parsed,
+        Seq.empty[String],
+        sbtDir +: sbtFiles,
+        "sbt-build",
+        streams.value
+      )
+    }.evaluated,
+    aggregate.in(scalafixBuild) := false,
     scalafixSourceroot := baseDirectory.in(ThisBuild).value,
     scalafixVersion := Versions.version,
     scalafixSemanticdbVersion := Versions.scalameta,
@@ -141,29 +155,6 @@ object ScalafixPlugin extends AutoPlugin {
     }
   )
   lazy val scalafixTaskSettings = Seq(
-    scalafixBuild := Def.inputTaskDyn {
-      val extracted = Project.extract(state.value)
-      val root = extracted.rootProject(extracted.structure.root)
-      val current = thisProject.value.id
-      if (root != current) {
-        // TODO(olafur) come up with less hacky approach to avoid aggregating
-        // scalafixBuild across multiple builds. My first instinct was to make
-        // it a command but then I didn't know how to access project specific .value.
-        // This was the dumbest I could think of that allows me to continue,
-        Def.task(())
-      } else {
-        val baseDir = (baseDirectory in ThisBuild).value
-        val sbtDir: File = baseDir./("project")
-        val sbtFiles = baseDir.*("*.sbt").get
-        scalafixTaskImpl(
-          scalafixParser.parsed,
-          Seq.empty[String],
-          sbtDir +: sbtFiles,
-          "sbt-build",
-          streams.value
-        )
-      }
-    }.evaluated,
     scalafix.in(Compile) := scalafixTaskImpl(Compile).evaluated,
     scalafix.in(Test) := scalafixTaskImpl(Test).evaluated,
     scalafix := scalafixTaskImpl(Compile, Test).evaluated
