@@ -17,6 +17,7 @@ import java.util.regex.PatternSyntaxException
 import scala.meta._
 import scala.meta.inputs.Input
 import scala.meta.internal.inputs._
+import scala.meta.internal.tokenizers.PlatformTokenizerCache
 import scala.meta.io.AbsolutePath
 import scala.meta.sbthost.Sbthost
 import scala.util.Try
@@ -48,6 +49,7 @@ sealed abstract case class CliRunner(
   val sbtConfig: ScalafixConfig = config.copy(dialect = dialects.Sbt0137)
   val writeMode: WriteMode =
     if (cli.stdout) WriteMode.Stdout
+    else if (cli.test) WriteMode.Test
     else WriteMode.WriteFile
   val common: CommonOptions = cli.common
   implicit val workingDirectory: AbsolutePath = common.workingPath
@@ -113,24 +115,42 @@ sealed abstract case class CliRunner(
       case parsers.Parsed.Success(tree) =>
         val ctx = RewriteCtx(tree, config)
         val fixed = rewrite(ctx)
-        if (writeMode.isWriteFile) {
-          val outFile = replacePath(input.original.path)
-          if (isUpToDate(input)) {
-            Files.write(outFile.toNIO, fixed.getBytes(input.original.charset))
+        writeMode match {
+          case WriteMode.Stdout =>
+            common.out.write(fixed.getBytes)
             ExitStatus.Ok
-          } else {
-            ctx.reporter.error(
-              s"Stale semanticdb for ${CliRunner.pretty(outFile)}, skipping rewrite. Please recompile.")
-            if (cli.verbose) {
+          case WriteMode.Test =>
+            val isUnchanged =
+              input.original.path.readAllBytes
+                .sameElements(fixed.getBytes(input.original.charset))
+            if (isUnchanged) ExitStatus.Ok
+            else {
               val diff =
-                Patch.unifiedDiff(input.semanticCtx.get, input.original)
-              common.err.println(diff)
+                Patch.unifiedDiff(
+                  input.original,
+                  Input.VirtualFile(
+                    s"<expected fix from ${rewrite.name}>",
+                    fixed
+                  )
+                )
+              common.out.println(diff)
+              ExitStatus.TestFailed
             }
-            ExitStatus.StaleSemanticDB
-          }
-        } else {
-          common.out.write(fixed.getBytes)
-          ExitStatus.Ok
+          case WriteMode.WriteFile =>
+            val outFile = replacePath(input.original.path)
+            if (isUpToDate(input)) {
+              Files.write(outFile.toNIO, fixed.getBytes(input.original.charset))
+              ExitStatus.Ok
+            } else {
+              ctx.reporter.error(
+                s"Stale semanticdb for ${CliRunner.pretty(outFile)}, skipping rewrite. Please recompile.")
+              if (cli.verbose) {
+                val diff =
+                  Patch.unifiedDiff(input.semanticCtx.get, input.original)
+                common.err.println(diff)
+              }
+              ExitStatus.StaleSemanticDB
+            }
         }
     }
   }
