@@ -2,32 +2,37 @@
 @import scalafix.Readme._
 @import scalafix.{Versions => V}
 
-@sect{FAQ / Troubleshooting}
+@sect{FAQ}
+  @p
+    If you have any questions, don't hesitate to ask on gitter @gitter.
+  @sect{Troubleshooting}
+    @sect{I get resolution errors for org.scalameta:semanticdb-scalac}
+      Make sure you are using a supported Scala version:
+      @V.supportedScalaVersions.mkString(", "). Note, the version must match
+      exactly, including the last number.
+    @sect{Enclosing tree [2873] does not include tree [2872]}
+      Scalafix requires code to compile with the scalac option @code{-Yrangepos}.
+      A macro that emits invalid tree positions is usually the cause of
+      compiler errors triggered by @code{-Yrangepos}.
+      Other tools like the presentation compiler (ENSIME/Scala IDE)
+      require @code{-Yrangepos} to work properly.
+    @sect{I get exceptions about coursier}
+      If you use sbt-coursier, make sure you are on version @V.coursier.
+    @sect{Scalafix doesn't do anything}
+      @ul
+        @li
+          If you use @sect.ref{sbt-scalafix}, try @sect.ref{Verify sbt installation}.
+        @li
+          Make sure that you are running at least one rewrite.
+        @li
+          Make sure that you are using a supported Scala
+          version: @V.supportedScalaVersions.mkString(", ")
 
-  If you have any questions, don't hesitate to ask on gitter @gitter.
+    @sect{RemoveUnusedImports does not remove unused imports}
+      Make sure that you followed the instructions in @sect.ref{RemoveUnusedImports}
+      regarding scalac options.
 
-  @sect{I get resolution errors for org.scalameta:semanticdb-scalac}
-    Make sure you are using a supported Scala version:
-    @V.supportedScalaVersions.mkString(", "). Note, the version must match
-    exactly, including the last number.
-  @sect{Enclosing tree [2873] does not include tree [2872]}
-    Scalafix requires code to compile with the scalac option @code{-Yrangepos}.
-    A macro that emits invalid tree positions is usually the cause of
-    compiler errors triggered by @code{-Yrangepos}.
-    Other tools like the presentation compiler (ENSIME) or
-    Scalameta Semantic API also require @code{-Yrangepos} to work properly.
-  @sect{I get exceptions about coursier}
-    If you use sbt-coursier, make sure you are on version @V.coursier.
-  @sect{Scalafix doesn't do anything}
-    @ul
-      @li
-        If you use @sect.ref{sbt-scalafix}, try @sect.ref{Verify sbt installation}.
-      @li
-        Make sure that you are running at least one rewrite.
-      @li
-        Make sure that you are using a supported Scala
-        version: @V.supportedScalaVersions.mkString(", ")
+  @sect{Features}
 
-  @sect{RemoveUnusedImports does not remove unused imports}
-    Make sure that you followed the instructions in @sect.ref{RemoveUnusedImports}
-    regarding scalac options.
+    @sect{IDE support}
+      Scalafix has no IDE support at the moment.

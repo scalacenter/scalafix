@@ -11,6 +11,7 @@
     To create custom rewrites, see @sect.ref{scalafix-core}.
 
   @sect(ExplicitReturnTypes.toString)
+    @experimental
     Dotty requires implicit @code{val}s and @code{def}s to explicitly annotate
     return types.
     The @ExplicitReturnTypes.toString rewrite inserts the inferred type from the
@@ -29,12 +30,8 @@
         is available in scope. Track @issue(169) for updates on making the
         rewrite insert shorter names.
       @li
-        @note. This rewrite currently only inserts fully qualified names
-        for implicit vals. However, there exists configuration to limit
-        give fine-grained control on how the rewrite works, see
-        @lnk("ExplicitReturnTypesConfig",
-          "https://github.com/scalacenter/scalafix/blob/db6152304aaef19c4a8ba4fc77b732264bf52fec/scalafix-core/src/main/scala/scalafix/config/ExplicitReturnTypesConfig.scala").
-        Example configuration:
+        Inserts type annotations only for implicit definitions by default. To configure the
+        rewrite to run on non-implicit definitions
         @config
           explicitReturnTypes {
              memberKind = [
@@ -232,6 +229,24 @@
 
     @p
       The two syntaxes are equivalent and the presence of the @code{val} keyword has been deprecated since Scala 2.10.
+
+  @sect(Sbt1.toString)
+    @experimental
+    @p
+      To use this rewrite:
+      @ul
+        @li
+          Install @sect.ref{semanticdb-sbt}
+        @li
+          Run @code{scalafixBuild}
+    @hl.scala
+      // before
+      x <+= (y in Compile)
+      // after
+      x += (y in Compile).value
+
+    This rewrite currently handles many basic cases but may produce incorrect
+    output in more advanced cases. Please report back your experience.
 
   @sect{Planned rewrites...}
     See @lnk("here", "https://github.com/scalacenter/scalafix/labels/rewrite").
