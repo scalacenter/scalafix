@@ -7,6 +7,11 @@ object Dependencies {
   val scalametaV = "2.0.0-M2"
   val metaconfigV = "0.5.1"
   def sbthostV = "0.3.1"
+  def dotty = "0.1.1-bin-20170530-f8f52cc-NIGHTLY"
+  def scala210 = "2.10.6"
+  def scala211 = "2.11.11"
+  def scala212 = "2.12.3"
+  def ciScalaVersion = sys.env.get("CI_SCALA_VERSION")
 
   var testClasspath: String = "empty"
   def semanticdb: ModuleID = "org.scalameta" % "semanticdb-scalac" % scalametaV cross CrossVersion.full

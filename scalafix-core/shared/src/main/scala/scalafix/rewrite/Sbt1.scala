@@ -107,13 +107,16 @@ case class Sbt1(sctx: SemanticCtx) extends SemanticRewrite(sctx) {
       override final val newOperator: String = "++="
     }
 
-    ctx.tree.collect {
-      case `<<=`(lhs: Term, opToken: Token, rhs: Term) =>
-        `<<=`.rewriteDslOperator(lhs, opToken, rhs)
-      case `<+=`(lhs: Term, opToken: Token, rhs: Term) =>
-        `<+=`.rewriteDslOperator(lhs, opToken, rhs)
-      case `<++=`(lhs: Term, opToken: Token, rhs: Term) =>
-        `<++=`.rewriteDslOperator(lhs, opToken, rhs)
-    }.flatten.asPatch
+    ctx.tree
+      .collect {
+        case `<<=`(lhs: Term, opToken: Token, rhs: Term) =>
+          `<<=`.rewriteDslOperator(lhs, opToken, rhs)
+        case `<+=`(lhs: Term, opToken: Token, rhs: Term) =>
+          `<+=`.rewriteDslOperator(lhs, opToken, rhs)
+        case `<++=`(lhs: Term, opToken: Token, rhs: Term) =>
+          `<++=`.rewriteDslOperator(lhs, opToken, rhs)
+      }
+      .flatten
+      .asPatch
   }
 }

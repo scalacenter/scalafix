@@ -17,7 +17,7 @@ package object config {
   def fromString(
       configuration: String,
       decoder: ConfDecoder[Rewrite]
-  ): Configured[(Rewrite, ScalafixConfig)] =
+  ): Configured[(Rewrite, internal.config.ScalafixConfig)] =
     fromInput(Input.String(configuration), _ => None, Nil, decoder)
 
   /** Load configuration from an input.
@@ -38,7 +38,7 @@ package object config {
       semanticCtx: LazySemanticCtx,
       extraRewrites: List[String],
       rewriteDecoder: ConfDecoder[Rewrite]
-  ): Configured[(Rewrite, ScalafixConfig)] =
-    ScalafixConfig.fromInput(configuration, semanticCtx, extraRewrites)(
-      rewriteDecoder)
+  ): Configured[(Rewrite, internal.config.ScalafixConfig)] =
+    internal.config.ScalafixConfig
+      .fromInput(configuration, semanticCtx, extraRewrites)(rewriteDecoder)
 }
