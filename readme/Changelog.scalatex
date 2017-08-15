@@ -3,6 +3,9 @@
 @import scalafix.Versions
 
 @sect{Changelog}
-  @scalatex.Changelog05()
-  @scalatex.Changelog04()
-  @scalatex.Changelog03()
+  @sect{0.5.x}
+    @scalatex.Changelog05()
+  @sect{0.4.x}
+    @scalatex.Changelog04()
+  @sect{0.3.x}
+    @scalatex.Changelog03()

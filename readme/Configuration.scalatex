@@ -38,13 +38,15 @@
 
       @sect{replace:}
 
-        @b{New/Experimental}.
+        @experimental
 
-        To replace usage of one class/object/trait. Note, will not move the
-        definition only the call-sites.
+        To replace usage of one class/object/trait/def with another.
+        Note, does not move definitions like "Move" does in an IDE. This
+        only moves use-sites.
 
         @config
           rewrite = "replace:com.company.App/io.company.App"
+          // From sbt shell: > scalafix replace:from/to
 
         To rename a method
 
@@ -64,7 +66,7 @@
           rewrite = "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/80218434edb85120a9c6fd6533a4418118de8ba7/ExampleRewrite.scala"
 
   @sect{patches}
-    For simple use-cases, it's possible to write custom rewrites directly
+    For simple use-cases, it's possible to write custom rewrites directly in
     .scalafix.conf.
     @config
       patches.removeGlobalImports = [
@@ -79,7 +81,7 @@
       ]
       // Helper to see which symbols appear in your source files
       debug.printSymbols = true
-    For more advanced use-cases, I recommend you use @sect.ref{scalafix-core}
-    as a library.
+    For more advanced use-cases, I recommend you use see
+    @sect.ref{Creating your own rewrite}.
 
 
