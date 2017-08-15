@@ -81,6 +81,7 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
     "coursier" -> coursier.util.Properties.version,
     "nightly" -> version.value,
     "scalameta" -> scalametaV,
+    "sbthost" -> sbthostV,
     scalaVersion,
     "supportedScalaVersions" -> Seq(scala211, scala212),
     "scala211" -> scala211,

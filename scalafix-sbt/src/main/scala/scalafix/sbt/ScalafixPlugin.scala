@@ -117,7 +117,7 @@ object ScalafixPlugin extends AutoPlugin {
 
   lazy val scalafixBuildSettings: Seq[Def.Setting[_]] = Def.settings(
     libraryDependencies ++= {
-      val sbthost = "org.scalameta" % "sbthost-nsc" % "0.3.1" cross CrossVersion.full
+      val sbthost = "org.scalameta" % "sbthost-nsc" % Versions.sbthost cross CrossVersion.full
       val isMetabuild = {
         val p = thisProject.value
         p.id.endsWith("-build") && p.base.getName == "project"
