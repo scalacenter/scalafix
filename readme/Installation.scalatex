@@ -59,9 +59,14 @@
               Description
         @tbody
           @sbtkey("scalafix <rewrite>..", "Unit")
-            Run scalafix with rewrites.
+            Run scalafix on project sources.
             See @sect.ref{Rewrites} or use tab completion to explore
             supported rewrites.
+          @sbtkey("scalafixBuild <rewrite>..", "Unit")
+            Run scalafix on the build sources, @code{*.sbt} and
+            @code{project/*}.
+            @note Requires @sect.ref{semanticdb-sbt} enabled globally
+            for semantic rewrites.
           @sbtkey("scalafixEnabled", "Boolean")
             True by default.
             If false, then sbt-scalafix will not enable the
@@ -82,6 +87,23 @@
             Which version of org.scalameta:semanticdb-scalac to run.
           @sbtkey("scalafixVerbose", "Boolean")
             If true, print out debug information.
+    @sect{semanticdb-sbt}
+      @b{Experimental}.
+      semanticdb-sbt is a Scala 2.10 compiler plugin that extracts semantic
+      information from the sbt compiler. To enable semanticdb-sbt,
+
+      @hl.scala
+        // ~/.sbt/0.13/plugins/plugins.sbt
+        addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@V.stableVersion")
+        // ~/.sbt/0.13/build.sbt
+        import scalafix.sbt.ScalafixPlugin.autoImport._
+        scalafixBuildSettings // enable semanticdb-sbt for sbt metabuilds.
+
+      @note This integration is new, you can expect to face problems from enabling
+      sbt-scalafix globally. In particular, sbt-scalafix does not at the moment
+      support older versions of 2.11 than @V.scala211 and 2.12 than @V.scala212.
+      It's possible to disable sbt-scalafix with @code{scalafixEnabled := false}.
+      Please report back on your experience.
 
   @sect{scalafix-core}
     Scalafix can be used as a library to run custom rewrites.
