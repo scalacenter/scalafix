@@ -19,7 +19,8 @@ case class ScalafixConfig(
     // Feel free to read data from here if your custom rewrite needs
     // configuration from the user.
     x: Conf = Conf.Obj(),
-    explicitReturnTypes: ExplicitReturnTypesConfig = ExplicitReturnTypesConfig()
+    explicitReturnTypes: ExplicitReturnTypesConfig = ExplicitReturnTypesConfig(),
+    lint: LintConfig = LintConfig.default
 ) {
   def getRewriteConfig[T: ConfDecoder](key: String, default: T): T = {
     x.getOrElse[T](key)(default).get
@@ -34,16 +35,18 @@ case class ScalafixConfig(
           getOrElse("patches")(patches)(patches.reader) |@|
           getOrElse("dialect")(dialect) |@|
           getOrElse("x")(x) |@|
-          getOrElse("explicitReturnTypes")(explicitReturnTypes)
+          getOrElse("explicitReturnTypes")(explicitReturnTypes) |@|
+          getOrElse("lint")(lint)(lint.reader)
       ).map {
-        case (((((a, b), c), d), e), f) =>
+        case ((((((a, b), c), d), e), f), g) =>
           copy(
             fatalWarnings = a,
             reporter = b,
             patches = c,
             dialect = d,
             x = e,
-            explicitReturnTypes = f
+            explicitReturnTypes = f,
+            lint = g
           )
       }
 

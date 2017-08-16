@@ -45,8 +45,8 @@ class RemoveXmlLiterals {
   }
 
   object I {
-    val a = <div>{{</div>
-    val b = <div>}}</div>
+    val a = <div>{{</div>// scalafix: warning
+    val b = <div>}}</div>// scalafix: warning
     // <div b="{{"/> >>> xml"""<div b="{{"/>"""
   }
 

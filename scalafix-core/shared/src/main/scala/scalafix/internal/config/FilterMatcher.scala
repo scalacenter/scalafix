@@ -22,7 +22,8 @@ case class FilterMatcher(
 }
 
 object FilterMatcher {
-  val matchEverything = new FilterMatcher(".*".r, mkRegexp(Nil))
+  lazy val matchEverything = new FilterMatcher(".*".r, mkRegexp(Nil))
+  lazy val matchNothing = new FilterMatcher(mkRegexp(Nil), mkRegexp(Nil))
   implicit val reader: ConfDecoder[FilterMatcher] = matchEverything.reader
 
   def mkRegexp(filters: Seq[String]): Regex =

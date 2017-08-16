@@ -80,7 +80,9 @@ sealed abstract case class CliRunner(
       code
     }
     display.stop()
-    exitCode.get()
+    val exit = exitCode.get()
+    if (!config.reporter.hasErrors) ExitStatus.merge(ExitStatus.LinterError, exit)
+    else exit
   }
 
   // safeguard to verify that the original file contents have not changed since the

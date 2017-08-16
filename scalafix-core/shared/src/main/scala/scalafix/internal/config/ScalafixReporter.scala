@@ -6,6 +6,9 @@ import metaconfig.ConfDecoder
 
 trait ScalafixReporter {
 
+  /** Returns true if this reporter has seen an error */
+  def hasErrors: Boolean
+
   /** Messages with severity < minSeverity are skipped. */
   def minSeverity: Severity
 
@@ -20,7 +23,7 @@ trait ScalafixReporter {
   protected def report(message: String, position: Position, severity: Severity)(
       implicit ctx: LogContext): Unit
 
-  protected def handleMessage(
+  private[scalafix] def handleMessage(
       message: String,
       position: Position,
       severity: Severity)(implicit ctx: LogContext): Unit =

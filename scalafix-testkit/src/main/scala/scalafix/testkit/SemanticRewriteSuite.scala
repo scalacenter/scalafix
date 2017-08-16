@@ -1,12 +1,17 @@
 package scalafix
 package testkit
 
+import scala.collection.JavaConverters._
+import scala.collection.mutable
 import scalafix.syntax._
 import scala.meta._
 import scalafix.internal.util.SemanticCtxImpl
 import org.scalameta.logger
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
+import org.scalatest.exceptions.TestFailedException
+import scala.meta.internal.inputs.XtensionPositionFormatMessage
+import scalafix.lint.LintCategory
 
 abstract class SemanticRewriteSuite(
     val semanticCtx: SemanticCtx,
@@ -44,15 +49,62 @@ abstract class SemanticRewriteSuite(
   def runOn(diffTest: DiffTest): Unit = {
     test(diffTest.name) {
       val (rewrite, config) = diffTest.config.apply()
-      val obtainedWithComment =
-        rewrite.apply(
-          diffTest.original,
-          config.copy(dialect = diffTest.attributes.dialect))
+      val ctx = RewriteCtx(
+        config.dialect(diffTest.original).parse[Source].get,
+        config.copy(dialect = diffTest.attributes.dialect)
+      )
+      val patch = rewrite.rewrite(ctx)
+      val obtainedWithComment = rewrite.apply(ctx, patch)
+      val lintMessages = Patch.lintMessages(patch, ctx).to[mutable.Set]
+      def assertLint(position: Position, category: LintCategory): Unit = {
+        val matchingMessage = lintMessages.find { m =>
+          // NOTE(olafur) I have no idea why -1 is necessary.
+          m.position.startLine == (position.startLine - 1) &&
+          m.id.category == category
+        }
+        matchingMessage match {
+          case Some(x) =>
+            lintMessages -= x
+          case None =>
+            throw new TestFailedException(
+              position.formatMessage("error", s"No $category reported!"),
+              0
+            )
+        }
+      }
       val obtained = {
         val tokens = obtainedWithComment.tokenize.get
-        val comment = tokens
-          .find(x => x.is[Token.Comment] && x.syntax.startsWith("/*"))
-        tokens.filterNot(comment.contains).mkString
+        val configComment = tokens.find { x =>
+          x.is[Token.Comment] && x.syntax.startsWith("/*")
+        }.get
+        val LintAssertion = " scalafix: (.*)".r
+        tokens.filter {
+          case `configComment` => false
+          case tok @ Token.Comment(LintAssertion(severity)) =>
+            severity match {
+              case "warning" =>
+                assertLint(tok.pos, LintCategory.Warning)
+              case "error" =>
+                assertLint(tok.pos, LintCategory.Error)
+              case els =>
+                throw new TestFailedException(
+                  tok.pos.formatMessage("error", s"Unknown severity '$els'"),
+                  0)
+            }
+            false
+          case _ => true
+        }.mkString
+      }
+      if (lintMessages.nonEmpty) {
+        Patch.lintMessages(patch, ctx).foreach(ctx.printLintMessage)
+        val explanation =
+          """To fix this problem, suffix the culprit lines with
+            |   // scalafix: warning
+            |   // scalafix: error
+            |""".stripMargin
+        throw new TestFailedException(
+          s"Uncaught linter messages! $explanation",
+          0)
       }
       val candidateOutputFiles = expectedOutputSourceroot.flatMap { root =>
         val scalaSpecificFilename =

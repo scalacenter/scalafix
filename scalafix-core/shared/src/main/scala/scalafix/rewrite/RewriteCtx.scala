@@ -8,6 +8,8 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.internal.config.ScalafixReporter
 import scalafix.internal.util.SymbolOps.BottomSymbol
+import scalafix.lint.LintCategory
+import scalafix.patch.LintPatch
 import scalafix.patch.PatchOps
 import scalafix.patch.TokenPatch
 import scalafix.patch.TokenPatch.Add
@@ -47,6 +49,24 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
     // alias for org.scalameta.logger.
     logger.elem(values: _*)
   }
+
+  def printLintMessage(msg: LintMessage): Unit = {
+    if (config.lint.ignore.matches(msg.id.key)) ()
+    else {
+      val category =
+        if (config.lint.error.matches(msg.id.key)) LintCategory.Error
+        else if (config.lint.warning.matches(msg.id.key)) LintCategory.Warning
+        else msg.id.category
+      reporter.handleMessage(
+        msg.format(config.lint.explain),
+        msg.position,
+        category.toSeverity
+      )
+    }
+  }
+
+  def lint(msg: LintMessage): Patch =
+    LintPatch(msg)
 
   // Syntactic patch ops.
   def removeImportee(importee: Importee): Patch =

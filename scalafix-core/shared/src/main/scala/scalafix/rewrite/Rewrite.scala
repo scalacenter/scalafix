@@ -28,10 +28,13 @@ abstract class Rewrite(implicit val rewriteName: RewriteName) { self =>
       input: Input,
       config: ScalafixConfig = ScalafixConfig.default): String = {
     val ctx = RewriteCtx(config.dialect(input).parse[Source].get, config)
-    apply(ctx, rewrite(ctx))
+    val patch = rewrite(ctx)
+    val result = apply(ctx, patch)
+    Patch.lintMessages(patch, ctx).foreach(ctx.printLintMessage)
+    result
   }
   final def apply(input: String): String = apply(Input.String(input))
-  final protected def apply(ctx: RewriteCtx, patch: Patch): String =
+  final def apply(ctx: RewriteCtx, patch: Patch): String =
     Patch(patch, ctx, semanticOption)
 
   /** Returns unified diff from applying this patch */
