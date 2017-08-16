@@ -81,7 +81,8 @@ sealed abstract case class CliRunner(
     }
     display.stop()
     val exit = exitCode.get()
-    if (!config.reporter.hasErrors) ExitStatus.merge(ExitStatus.LinterError, exit)
+    if (!config.reporter.hasErrors)
+      ExitStatus.merge(ExitStatus.LinterError, exit)
     else exit
   }
 

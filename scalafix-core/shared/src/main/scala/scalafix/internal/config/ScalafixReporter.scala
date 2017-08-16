@@ -7,7 +7,10 @@ import metaconfig.ConfDecoder
 trait ScalafixReporter {
 
   /** Returns true if this reporter has seen an error */
-  def hasErrors: Boolean
+  def hasErrors: Boolean = errorCount > 0
+
+  /** Returns the number of reported errors */
+  def errorCount: Int
 
   /** Messages with severity < minSeverity are skipped. */
   def minSeverity: Severity
