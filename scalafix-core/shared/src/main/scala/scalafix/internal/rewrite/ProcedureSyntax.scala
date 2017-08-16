@@ -1,10 +1,12 @@
-package scalafix
-package rewrite
+package scalafix.internal.rewrite
 
 import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.tokens.Token.LeftBrace
 import scala.meta.tokens.Token.RightParen
+import scalafix.Patch
+import scalafix.rewrite.Rewrite
+import scalafix.rewrite.RewriteCtx
 
 case object ProcedureSyntax extends Rewrite {
   override def rewrite(ctx: RewriteCtx): Patch = {

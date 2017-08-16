@@ -1,7 +1,9 @@
-package scalafix
-package rewrite
+package scalafix.internal.rewrite
 
 import scala.meta._
+import scalafix.Patch
+import scalafix.rewrite.Rewrite
+import scalafix.rewrite.RewriteCtx
 
 case object VolatileLazyVal extends Rewrite {
   private object NonVolatileLazyVal {

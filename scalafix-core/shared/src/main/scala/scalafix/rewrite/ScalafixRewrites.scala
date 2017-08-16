@@ -1,6 +1,8 @@
 package scalafix
 package rewrite
 
+import scalafix.internal.rewrite._
+
 object ScalafixRewrites {
   val syntax: List[Rewrite] = List(
     ProcedureSyntax,

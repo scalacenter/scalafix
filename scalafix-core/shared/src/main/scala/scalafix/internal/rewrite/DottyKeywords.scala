@@ -1,8 +1,10 @@
-package scalafix
-package rewrite
+package scalafix.internal.rewrite
 
-import scalafix.syntax._
 import scala.meta._
+import scalafix.Patch
+import scalafix.rewrite.Rewrite
+import scalafix.rewrite.RewriteCtx
+import scalafix.syntax._
 
 case object DottyKeywords extends Rewrite {
   override def rewrite(ctx: RewriteCtx): Patch =

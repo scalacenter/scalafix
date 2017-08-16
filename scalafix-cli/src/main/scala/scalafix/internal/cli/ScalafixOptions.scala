@@ -7,7 +7,7 @@ import scala.meta._
 import scala.meta.io.AbsolutePath
 import scalafix.internal.config.PrintStreamReporter
 import scalafix.internal.config.ScalafixReporter
-import scalafix.rewrite.ProcedureSyntax
+import scalafix.internal.rewrite.ProcedureSyntax
 import scalafix.rewrite.ScalafixRewrites
 import caseapp._
 

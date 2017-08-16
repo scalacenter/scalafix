@@ -1,6 +1,7 @@
 @import Main._
 @import scalafix.Readme._
 @import scalafix.rewrite._
+@import scalafix.internal.rewrite._
 
 @sect{Rewrites}
   @p

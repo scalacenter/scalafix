@@ -1,9 +1,11 @@
-package scalafix.rewrite
+package scalafix.internal.rewrite
 
-import scalafix._
 import scala.meta._
-import scala.meta.tokens.Token.RightParen
 import scala.meta.tokens.Token.LeftParen
+import scala.meta.tokens.Token.RightParen
+import scalafix._
+import scalafix.rewrite.RewriteCtx
+import scalafix.rewrite.SemanticRewrite
 
 case class Sbt1(sctx: SemanticCtx) extends SemanticRewrite(sctx) {
   override def rewrite(ctx: RewriteCtx): Patch = {
