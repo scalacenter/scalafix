@@ -11,7 +11,7 @@ import metaconfig.Configured
 import sourcecode.Name
 
 /** A Rewrite is a program that produces a Patch from a scala.meta.Tree. */
-abstract class Rewrite(implicit rewriteName: Name) { self =>
+abstract class Rewrite(implicit val rewriteName: RewriteName) { self =>
 
   /** Build patch for a single tree/compilation unit.
     *
@@ -45,8 +45,8 @@ abstract class Rewrite(implicit rewriteName: Name) { self =>
 
   }
 
-  final def name: String = rewriteName.value
-  final override def toString: String = name
+  final def name: String = rewriteName.toString
+  final override def toString: String = name.toString
 
   // NOTE. This is kind of hacky and hopefully we can find a better workaround.
   // The challenge is the following:
@@ -97,11 +97,7 @@ object Rewrite {
 
   /** Combine two rewrites into a single rewrite */
   def merge(a: Rewrite, b: Rewrite): Rewrite = {
-    val newName =
-      if (a.name == "empty") b.name
-      else if (b.name == "empty") a.name
-      else s"${a.name}+${b.name}"
-    new Rewrite()(Name(newName)) {
+    new Rewrite()(a.rewriteName + b.rewriteName) {
       override def rewrite(ctx: RewriteCtx): Patch =
         a.rewrite(ctx) + b.rewrite(ctx)
       override def semanticOption: Option[SemanticCtx] =
