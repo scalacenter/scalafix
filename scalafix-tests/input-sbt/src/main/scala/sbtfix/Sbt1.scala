@@ -5,7 +5,7 @@ package sbtfix
 
 import sbt._
 
-object SbtOneZeroMigrationTest {
+object Sbt1 {
   object `<++=` {
     val key = taskKey[Seq[File]]("Seed.")
     val target = taskKey[Seq[File]]("Target to be reassigned.")

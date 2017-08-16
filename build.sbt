@@ -288,6 +288,7 @@ lazy val testsInput = project
     scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
     scalacOptions += "-Ywarn-adapted-args", // For NoAutoTupling
     scalacOptions += "-Ywarn-unused-import", // For RemoveUnusedImports
+    logLevel := Level.Error, // avoid flood of compiler warnings
     // TODO: Remove once scala-xml-quote is merged into scala-xml
     resolvers += Resolver.bintrayRepo("allanrenucci", "maven"),
     libraryDependencies ++= testsDeps
@@ -321,6 +322,7 @@ lazy val testsOutputDotty = project
 lazy val testsInputSbt = project
   .in(file("scalafix-tests/input-sbt"))
   .settings(
+    logLevel := Level.Error, // avoid flood of deprecation warnings.
     scalacOptions += "-Xplugin-require:sbthost",
     scalaVersion := scala210,
     sbtPlugin := true,
