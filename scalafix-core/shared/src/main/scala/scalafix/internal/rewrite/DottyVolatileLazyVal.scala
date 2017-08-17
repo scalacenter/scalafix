@@ -4,8 +4,15 @@ import scala.meta._
 import scalafix.Patch
 import scalafix.rewrite.Rewrite
 import scalafix.rewrite.RewriteCtx
+import scalafix.rewrite.RewriteName
 
-case object VolatileLazyVal extends Rewrite {
+case object DottyVolatileLazyVal
+    extends Rewrite()(
+      RewriteName("DottyVolatileLazyVal").withOldName(
+        name = "VolatileLazyVal",
+        message = "Use DottyVolatileLazyVal instead.",
+        since = "0.5.0")
+    ) {
   private object NonVolatileLazyVal {
     def unapply(defn: Defn.Val): Option[Token] = {
       defn.mods.collectFirst {

@@ -1,11 +1,12 @@
 package scalafix.rewrite
 
 import scalafix.internal.config.ScalafixReporter
+import scalafix.util.Deprecated
 
 /** A thin wrapper around a string name and optional deprecation warning. */
 final case class RewriteIdentifier(
     value: String,
-    deprecated: Option[scalafix.util.Deprecated]
+    deprecated: Option[Deprecated]
 ) {
   override def toString: String = value
 }
@@ -17,9 +18,14 @@ object RewriteIdentifier {
 
 /** A thin wrapper around a list of RewriteIdentifier. */
 final case class RewriteName(identifiers: List[RewriteIdentifier]) {
+  private def nonDeprecated = identifiers.filter(_.deprecated.isEmpty)
+  def withOldName(name: String, message: String, since: String): RewriteName =
+    this.+(
+      RewriteName(
+        RewriteIdentifier(name, Some(Deprecated(message, since))) :: Nil))
   def name: String =
-    if (identifiers.isEmpty) "empty"
-    else identifiers.mkString("+")
+    if (nonDeprecated.isEmpty) "empty"
+    else nonDeprecated.mkString("+")
   def isEmpty: Boolean = identifiers.isEmpty
   def +(other: RewriteName): RewriteName =
     new RewriteName((identifiers :: other.identifiers :: Nil).flatten)

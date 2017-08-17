@@ -180,8 +180,8 @@ class CliTest extends BaseCliTest {
 
   test("--rewrites") {
     val RunScalafix(runner) =
-      parse(Seq("--rewrites", "VolatileLazyVal"))
-    assert(runner.rewrite.name == "VolatileLazyVal")
+      parse(Seq("--rewrites", "DottyVolatileLazyVal"))
+    assert(runner.rewrite.name == "DottyVolatileLazyVal")
     assert(parse(Seq("--rewrites", "Foobar")).isError)
   }
 
@@ -217,6 +217,32 @@ class CliTest extends BaseCliTest {
                          |""".stripMargin,
     expectedExit = ExitStatus.Ok
   )
+
+  val deprecatedOut = new ByteArrayOutputStream()
+  check(
+    name = "deprecated name emits warning",
+    originalLayout = s"""|/a.scala
+                         |object a {
+                         |  @volatile lazy val x = 2
+                         |}
+                         |""".stripMargin,
+    args = Seq(
+      "-r",
+      "VolatileLazyVal",
+      "a.scala"
+    ),
+    expectedLayout = s"""|/a.scala
+                         |object a {
+                         |  @volatile lazy val x = 2
+                         |}
+                         |""".stripMargin,
+    expectedExit = ExitStatus.Ok,
+    default.common.copy(out = new PrintStream(deprecatedOut))
+  )
+  test("RewriteIdentifier.deprecated is reported") {
+    val obtained = deprecatedOut.toString
+    assert(obtained.contains("Use DottyVolatileLazyVal instead"))
+  }
 
   test("--zsh") {
     val obtained = parse(Seq("--zsh"))
