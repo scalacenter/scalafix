@@ -18,7 +18,7 @@ package object config {
       configuration: String,
       decoder: ConfDecoder[Rewrite]
   ): Configured[(Rewrite, internal.config.ScalafixConfig)] =
-    fromInput(Input.String(configuration), _ => None, Nil, decoder)
+    fromInput(Input.String(configuration), LazySemanticCtx.empty, Nil, decoder)
 
   /** Load configuration from an input.
     *

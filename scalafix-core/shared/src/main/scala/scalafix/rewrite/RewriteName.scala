@@ -1,9 +1,11 @@
 package scalafix.rewrite
 
+import scalafix.internal.config.ScalafixReporter
+
 /** A thin wrapper around a string name and optional deprecation warning. */
 final case class RewriteIdentifier(
     value: String,
-    deprecated: Option[scala.deprecated]
+    deprecated: Option[scalafix.util.Deprecated]
 ) {
   override def toString: String = value
 }
@@ -22,6 +24,16 @@ final case class RewriteName(identifiers: List[RewriteIdentifier]) {
   def +(other: RewriteName): RewriteName =
     new RewriteName((identifiers :: other.identifiers :: Nil).flatten)
   override def toString: String = name
+  def reportDeprecationWarning(name: String, reporter: ScalafixReporter): Unit = {
+    identifiers.foreach { ident =>
+      if (ident.value == name) {
+        ident.deprecated.foreach { d =>
+          reporter.warn(
+            s"Name $name is deprecated. ${d.message} (since ${d.since})")
+        }
+      }
+    }
+  }
 }
 
 object RewriteName {

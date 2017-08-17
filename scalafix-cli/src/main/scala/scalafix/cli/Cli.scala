@@ -225,11 +225,7 @@ object ScalafixRewriteNames {
     val result = cliCommand match {
       case CliCommand.PrintAndExit(msg, exit) =>
         if (exit.isOk) commonOptions.out.println(msg)
-        else {
-          ScalafixReporter.default
-            .copy(outStream = commonOptions.err)
-            .error(msg)
-        }
+        else commonOptions.reporter.error(msg)
         exit
       case CliCommand.RunScalafix(runner) =>
         val exit = runner.run()

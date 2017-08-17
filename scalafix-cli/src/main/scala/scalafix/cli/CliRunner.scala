@@ -333,7 +333,8 @@ object CliRunner {
       if (kind.isSyntactic) None
       else computeAndCacheDatabase()
     }
-    private val lazySemanticCtx: LazySemanticCtx = resolveDatabase
+    private val lazySemanticCtx: LazySemanticCtx =
+      new LazySemanticCtx(resolveDatabase, common.reporter)
 
     // expands a single file into a list of files.
     def expand(matcher: FilterMatcher)(path: AbsolutePath): Seq[FixFile] = {
