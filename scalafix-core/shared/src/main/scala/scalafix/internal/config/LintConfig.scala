@@ -1,6 +1,6 @@
 package scalafix.internal.config
 
-import scalafix.lint.LintCategory
+import scalafix.lint.LintSeverity
 import scalafix.lint.LintID
 import metaconfig.ConfDecoder
 
@@ -22,11 +22,11 @@ case class LintConfig(
       ).map { case ((((a, b), c), d), e) => LintConfig(a, b, c, d, e) }
     }
 
-  def getConfiguredCategory(key: String): Option[LintCategory] =
+  def getConfiguredSeverity(key: String): Option[LintSeverity] =
     Option(key).collect {
-      case error() => LintCategory.Error
-      case warning() => LintCategory.Warning
-      case info() => LintCategory.Info
+      case error() => LintSeverity.Error
+      case warning() => LintSeverity.Warning
+      case info() => LintSeverity.Info
     }
 }
 

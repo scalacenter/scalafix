@@ -8,7 +8,7 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.internal.config.ScalafixReporter
 import scalafix.internal.util.SymbolOps.BottomSymbol
-import scalafix.lint.LintCategory
+import scalafix.lint.LintSeverity
 import scalafix.patch.LintPatch
 import scalafix.patch.PatchOps
 import scalafix.patch.TokenPatch
@@ -55,8 +55,8 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
     if (config.lint.ignore.matches(key)) ()
     else {
       val category = config.lint
-        .getConfiguredCategory(key)
-        .getOrElse(msg.id.category)
+        .getConfiguredSeverity(key)
+        .getOrElse(msg.id.severity)
       reporter.handleMessage(
         msg.format(owner, config.lint.explain),
         msg.position,

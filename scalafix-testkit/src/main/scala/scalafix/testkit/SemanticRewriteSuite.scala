@@ -11,7 +11,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 import org.scalatest.exceptions.TestFailedException
 import scala.meta.internal.inputs.XtensionPositionFormatMessage
-import scalafix.lint.LintCategory
+import scalafix.lint.LintSeverity
 
 abstract class SemanticRewriteSuite(
     val semanticCtx: SemanticCtx,
@@ -56,11 +56,11 @@ abstract class SemanticRewriteSuite(
       val patch = rewrite.rewrite(ctx)
       val obtainedWithComment = rewrite.apply(ctx, patch)
       val lintMessages = Patch.lintMessages(patch, ctx).to[mutable.Set]
-      def assertLint(position: Position, category: LintCategory): Unit = {
+      def assertLint(position: Position, category: LintSeverity): Unit = {
         val matchingMessage = lintMessages.find { m =>
           // NOTE(olafur) I have no idea why -1 is necessary.
           m.position.startLine == (position.startLine - 1) &&
-          m.id.category == category
+          m.id.severity == category
         }
         matchingMessage match {
           case Some(x) =>
@@ -83,9 +83,9 @@ abstract class SemanticRewriteSuite(
           case tok @ Token.Comment(LintAssertion(severity)) =>
             severity match {
               case "warning" =>
-                assertLint(tok.pos, LintCategory.Warning)
+                assertLint(tok.pos, LintSeverity.Warning)
               case "error" =>
-                assertLint(tok.pos, LintCategory.Error)
+                assertLint(tok.pos, LintSeverity.Error)
               case els =>
                 throw new TestFailedException(
                   tok.pos.formatMessage("error", s"Unknown severity '$els'"),
