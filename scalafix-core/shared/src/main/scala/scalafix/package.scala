@@ -29,8 +29,8 @@ package object scalafix {
   type Patch = patch.Patch
   val Patch = patch.Patch
 
-  type LintID = scalafix.lint.LintID
-  val LintID = scalafix.lint.LintID
+  type LintCategory = scalafix.lint.LintCategory
+  val LintCategory = scalafix.lint.LintCategory
 
   type LintMessage = scalafix.lint.LintMessage
 

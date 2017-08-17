@@ -148,17 +148,18 @@
     @sect{LintMessage}
       Rewrites are able to emit "lint messages" with info/warn/error severity
       using @code{ctx.lint(lintID.at(String/Position))}.
-      To report a lint message, first create a @sect.ref{LintID} and then
+      To report a lint message, first create a @sect.ref{LintCategory} and then
       report as a Patch
       @hl.scala
-        val divisionByZero = LintID.error("Division by zero is unsafe!")
+        val divisionByZero = LintCategory.error("Division by zero is unsafe!")
         def rewrite(ctx: RewriteCtx): Patch = {
           val tree: Tree = // ...
           ctx.lint(divisionByZero.at(tree.pos))
         }
 
-    @sect{LintID}
-      A LintID is a unique identifier for a category for lint messages.
+    @sect{LintCategory}
+      A LintCategory is group of lint messages of the same kind.
+      The severity of a LintCategory can be customized in @sect.ref{lint}.
 
     @sect{Scalameta}
       Scalafix uses @lnk("Scalameta", "http://scalameta.org/") to implement

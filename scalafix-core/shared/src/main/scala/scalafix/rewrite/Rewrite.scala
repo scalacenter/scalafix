@@ -35,7 +35,7 @@ abstract class Rewrite(implicit val rewriteName: RewriteName) { self =>
     val result = Patch(patch, ctx, semanticOption)
     Patch.lintMessages(patch, ctx).foreach { msg =>
       // Set the lint message owner. This allows us to distinguish
-      // LintID with the same id from different rewrites.
+      // LintCategory with the same id from different rewrites.
       ctx.printLintMessage(msg, rewriteName)
     }
     result

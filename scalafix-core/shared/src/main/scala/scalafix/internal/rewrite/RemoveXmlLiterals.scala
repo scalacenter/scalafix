@@ -23,7 +23,7 @@ import scalafix.rewrite.RewriteCtx
   */
 case object RemoveXmlLiterals extends Rewrite {
 
-  val singleBracesEscape = LintID.warning(
+  val singleBracesEscape = LintCategory.warning(
     """Single braces don't need be escaped with {{ and }} inside xml interpolators, unlike xml literals.
       |For example <x>{{</x> is identical to xml"<x>{</x>". This Rewrite will replace all occurrences of
       |{{ and }}. Make sure this is intended.

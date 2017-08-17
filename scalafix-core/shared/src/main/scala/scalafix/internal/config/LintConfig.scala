@@ -1,7 +1,7 @@
 package scalafix.internal.config
 
 import scalafix.lint.LintSeverity
-import scalafix.lint.LintID
+import scalafix.lint.LintCategory
 import metaconfig.ConfDecoder
 
 case class LintConfig(

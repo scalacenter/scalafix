@@ -51,12 +51,12 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
   }
 
   def printLintMessage(msg: LintMessage, owner: RewriteName): Unit = {
-    val key = msg.id.key(owner)
+    val key = msg.category.key(owner)
     if (config.lint.ignore.matches(key)) ()
     else {
       val category = config.lint
         .getConfiguredSeverity(key)
-        .getOrElse(msg.id.severity)
+        .getOrElse(msg.category.severity)
       reporter.handleMessage(
         msg.format(owner, config.lint.explain),
         msg.position,

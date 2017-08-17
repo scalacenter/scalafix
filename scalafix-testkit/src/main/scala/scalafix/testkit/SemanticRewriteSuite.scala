@@ -60,7 +60,7 @@ abstract class SemanticRewriteSuite(
         val matchingMessage = lintMessages.find { m =>
           // NOTE(olafur) I have no idea why -1 is necessary.
           m.position.startLine == (position.startLine - 1) &&
-          m.id.severity == category
+          m.category.severity == category
         }
         matchingMessage match {
           case Some(x) =>
