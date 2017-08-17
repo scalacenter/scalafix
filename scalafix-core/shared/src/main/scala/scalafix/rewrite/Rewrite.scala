@@ -8,7 +8,6 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.syntax._
 import metaconfig.ConfDecoder
 import metaconfig.Configured
-import sourcecode.Name
 
 /** A Rewrite is a program that produces a Patch from a scala.meta.Tree. */
 abstract class Rewrite(implicit val rewriteName: RewriteName) { self =>
@@ -49,6 +48,7 @@ abstract class Rewrite(implicit val rewriteName: RewriteName) { self =>
   }
 
   final def name: String = rewriteName.toString
+  final def names: List[String] = rewriteName.identifiers.map(_.value)
   final override def toString: String = name.toString
 
   // NOTE. This is kind of hacky and hopefully we can find a better workaround.
@@ -58,7 +58,8 @@ abstract class Rewrite(implicit val rewriteName: RewriteName) { self =>
   protected[scalafix] def semanticOption: Option[SemanticCtx] = None
 }
 
-abstract class SemanticRewrite(semanticCtx: SemanticCtx)(implicit name: Name)
+abstract class SemanticRewrite(semanticCtx: SemanticCtx)(
+    implicit name: RewriteName)
     extends Rewrite {
   implicit val ImplicitSemanticCtx: SemanticCtx = semanticCtx
   override def semanticOption: Option[SemanticCtx] = Some(semanticCtx)
@@ -68,33 +69,33 @@ object Rewrite {
   val syntaxRewriteConfDecoder: ConfDecoder[Rewrite] =
     ScalafixMetaconfigReaders.rewriteConfDecoderSyntactic(
       ScalafixMetaconfigReaders.baseSyntacticRewriteDecoder)
+  lazy val empty: Rewrite = syntactic(_ => Patch.empty)(RewriteName.empty)
   def emptyConfigured: Configured[Rewrite] = Configured.Ok(empty)
-  def empty: Rewrite = syntactic(_ => Patch.empty)
   def emptyFromSemanticCtxOpt(semanticCtx: Option[SemanticCtx]): Rewrite =
     semanticCtx.fold(empty)(emptySemantic)
   def combine(rewrites: Seq[Rewrite]): Rewrite =
     rewrites.foldLeft(empty)(_ andThen _)
-  // into an actual rewrite instead of handling it specially inside Patch.applied.
   private[scalafix] def emptySemantic(semanticCtx: SemanticCtx): Rewrite =
-    semantic(x => y => Patch.empty)(Name("empty"))(semanticCtx)
+    semantic(_ => _ => Patch.empty)(RewriteName.empty)(semanticCtx)
 
   /** Creates a syntactic rewrite. */
-  def syntactic(f: RewriteCtx => Patch)(implicit name: Name): Rewrite =
+  def syntactic(f: RewriteCtx => Patch)(implicit name: RewriteName): Rewrite =
     new Rewrite() {
       override def rewrite(ctx: RewriteCtx): Patch = f(ctx)
     }
 
   /** Creates a semantic rewrite. */
   def semantic(f: SemanticCtx => RewriteCtx => Patch)(
-      implicit name: Name): SemanticCtx => Rewrite = { semanticCtx =>
-    new SemanticRewrite(semanticCtx) {
-      override def rewrite(ctx: RewriteCtx): Patch = f(semanticCtx)(ctx)
-    }
+      implicit rewriteName: RewriteName): SemanticCtx => Rewrite = {
+    semanticCtx =>
+      new SemanticRewrite(semanticCtx) {
+        override def rewrite(ctx: RewriteCtx): Patch = f(semanticCtx)(ctx)
+      }
   }
 
   /** Creates a rewrite that always returns the same patch. */
   def constant(name: String, patch: Patch, semanticCtx: SemanticCtx): Rewrite =
-    new SemanticRewrite(semanticCtx)(Name(name)) {
+    new SemanticRewrite(semanticCtx)(RewriteName(name)) {
       override def rewrite(ctx: RewriteCtx): Patch = patch
     }
 

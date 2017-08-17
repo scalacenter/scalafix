@@ -1,24 +1,32 @@
 package scalafix.rewrite
 
-final class RewriteName(val head: String, val tail: List[String]) {
-  require(
-    head != RewriteName.emptyHead || tail.isEmpty,
-    "Empty rewrite cannot have underlying names!"
-  )
+/** A thin wrapper around a string name and optional deprecation warning. */
+final case class RewriteIdentifier(
+    value: String,
+    deprecated: Option[scala.deprecated]
+) {
+  override def toString: String = value
+}
+
+object RewriteIdentifier {
+  def apply(value: String) =
+    new RewriteIdentifier(value, None)
+}
+
+/** A thin wrapper around a list of RewriteIdentifier. */
+final case class RewriteName(identifiers: List[RewriteIdentifier]) {
   def name: String =
-    (head :: tail).mkString("+")
-  def isEmpty: Boolean = head == RewriteName.emptyHead
+    if (identifiers.isEmpty) "empty"
+    else identifiers.mkString("+")
+  def isEmpty: Boolean = identifiers.isEmpty
   def +(other: RewriteName): RewriteName =
-    if (isEmpty) other
-    else if (other.isEmpty) this
-    else new RewriteName(head, head :: tail ::: other.tail)
+    new RewriteName((identifiers :: other.identifiers :: Nil).flatten)
   override def toString: String = name
 }
 
 object RewriteName {
-  private[scalafix] val emptyHead = "empty"
-  final val empty = new RewriteName(emptyHead, Nil)
-  def apply(name: String) = new RewriteName(name, Nil)
+  final val empty = new RewriteName(Nil)
+  def apply(name: String) = new RewriteName(RewriteIdentifier(name) :: Nil)
   implicit def generate(implicit name: sourcecode.Name): RewriteName =
-    new RewriteName(name.value, Nil)
+    RewriteName(name.value)
 }
