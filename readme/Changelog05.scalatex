@@ -24,6 +24,8 @@
     @li
       Configurable @sect.ref{ExplicitReturnTypes}, by @user{taisuke}.
     @li
+      Configurable @sect.ref{lint} reporting.
+    @li
       @sect.ref{sbt-scalafix} rewrite tab completion.
     @li
       @sect.ref{scalafix-cli} @code{--zsh} and @code{--bash} to generate tab
@@ -42,6 +44,11 @@
       Ability to implement rewrites for sources of sbt builds, including
       @code{*.sbt} files. The API to write sbt rewrites is identical to
       regular Scala rewrites.
+    @li
+      Rewrites can now emit lint messages with @code{ctx.lint}, see
+      @sect.ref{LintMessage}.
+    @li
+      Rewrites can have multiple names with optional deprecation warnings.
     @li
       Thanks to upstream improvements in the
       @lnk("Scalameta v2.0 Semantic API", "http://scalameta.org/tutorial/#SemanticAPI"),
