@@ -1,8 +1,10 @@
-package scalafix
-package rewrite
+package scalafix.internal.rewrite
 
 import scala.meta._
 import scala.meta.contrib._
+import scalafix.Patch
+import scalafix.rewrite.Rewrite
+import scalafix.rewrite.RewriteCtx
 
 case object NoValInForComprehension extends Rewrite {
 

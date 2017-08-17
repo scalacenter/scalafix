@@ -10,9 +10,9 @@ import scalafix.cli.CliCommand.PrintAndExit
 import scalafix.cli.CliCommand.RunScalafix
 import scalafix.internal.cli.CommonOptions
 import scalafix.internal.cli.ScalafixOptions
+import scalafix.internal.rewrite.ExplicitReturnTypes
+import scalafix.internal.rewrite.ProcedureSyntax
 import scalafix.internal.util.FileOps
-import scalafix.rewrite.ExplicitReturnTypes
-import scalafix.rewrite.ProcedureSyntax
 import scalafix.testkit.DiffAssertions
 import org.scalatest.FunSuite
 

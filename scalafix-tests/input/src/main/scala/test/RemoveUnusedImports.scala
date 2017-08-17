@@ -28,7 +28,7 @@ object RemoveUnusedImports {
   import Future._
   val NonFatal(a) = new Exception
   Future.successful(1)
-  Properties.ScalaCompilerVersion
+  println(Properties.ScalaCompilerVersion)
   Try(1)
   Successful(1)
   ExecutionContext.defaultReporter

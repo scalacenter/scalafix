@@ -1,7 +1,9 @@
 package scalafix.tests
 
 import scalafix.SemanticCtx
-import scalafix.rewrite.ExplicitReturnTypes
+import scalafix.internal.rewrite.ExplicitReturnTypes
+import scalafix.internal.rewrite.ProcedureSyntax
+import scalafix.internal.rewrite.RemoveUnusedImports
 import scalafix.rewrite.ProcedureSyntax
 import scalafix.rewrite.RemoveUnusedImports
 import scalafix.rewrite.ScalafixRewrites

@@ -26,7 +26,7 @@
         If a rewrites is on the classpath, you can classload it with the
         @code{scala:} protocol.
         @config
-          rewrite = "scala:scalafix.rewrite.ProcedureSyntax"
+          rewrite = "scala:scalafix.internal.rewrite.ProcedureSyntax"
 
       @sect{github:}
         If a rewrite is written in a single file and you want a short syntax,

@@ -1,12 +1,15 @@
-package scalafix
-package rewrite
+package scalafix.internal.rewrite
 
 import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.contrib._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
-import scalafix.internal.config.ExplicitReturnTypesConfig
-import scalafix.internal.config.{MemberKind, MemberVisibility}
+import scalafix.Patch
+import scalafix.SemanticCtx
+import scalafix.internal.config.MemberKind
+import scalafix.internal.config.MemberVisibility
+import scalafix.rewrite.RewriteCtx
+import scalafix.rewrite.SemanticRewrite
 import scalafix.syntax._
 import scalafix.util.Whitespace
 
@@ -71,9 +74,8 @@ case class ExplicitReturnTypes(semanticCtx: SemanticCtx)
     } yield typ
 
   override def rewrite(ctx: RewriteCtx): Patch = {
-    import ctx._
-
     import scala.meta._
+    import ctx._
     def fix(defn: Defn, body: Term): Seq[Patch] = {
       import ctx.tokenList._
       for {

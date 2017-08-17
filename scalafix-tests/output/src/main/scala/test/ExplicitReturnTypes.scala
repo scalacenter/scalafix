@@ -1,5 +1,7 @@
 package test
 
+import scala.language.implicitConversions
+
 object ExplicitReturnTypes {
   val a: Int = 1 + 2
   def b(): String = "a" + "b"

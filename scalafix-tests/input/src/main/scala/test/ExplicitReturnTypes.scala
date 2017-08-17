@@ -5,6 +5,8 @@ explicitReturnTypes.memberVisibility = [Public, Protected]
  */
 package test
 
+import scala.language.implicitConversions
+
 object ExplicitReturnTypes {
   val a = 1 + 2
   def b() = "a" + "b"

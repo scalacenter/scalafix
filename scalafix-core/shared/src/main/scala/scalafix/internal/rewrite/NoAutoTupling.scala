@@ -1,7 +1,10 @@
-package scalafix
-package rewrite
+package scalafix.internal.rewrite
 
 import scala.meta._
+import scalafix.Patch
+import scalafix.SemanticCtx
+import scalafix.rewrite.RewriteCtx
+import scalafix.rewrite.SemanticRewrite
 
 case class NoAutoTupling(semanticCtx: SemanticCtx)
     extends SemanticRewrite(semanticCtx) {
