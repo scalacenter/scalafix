@@ -1,38 +1,15 @@
 package scalafix.lint
 
 import scala.meta.Position
-import scalafix.internal.util.Severity
-import scalafix.rewrite.RewriteName
 
-final class LintID(
-    val id: String,
-    val owner: RewriteName,
-    val explanation: String,
-    val category: LintCategory
-) {
-  override def toString: String = key
-  lazy val key = s"$owner.$id"
-  private def noExplanation: LintID =
-    new LintID(id, owner, explanation, category)
-  def at(message: String, position: Position): LintMessage =
-    new LintMessage(message, position, this)
-  def at(message: String): LintMessage =
-    new LintMessage(message, Position.None, this)
-  def at(position: Position): LintMessage =
-    new LintMessage(explanation, position, noExplanation)
-}
-
-object LintID {
-  def error(explain: String)(
-      implicit alias: sourcecode.Name,
-      rewrite: RewriteName): LintID =
-    new LintID(alias.value, rewrite, explain, LintCategory.Error)
-  def warning(explain: String)(
-      implicit alias: sourcecode.Name,
-      rewrite: RewriteName): LintID =
-    new LintID(alias.value, rewrite, explain, LintCategory.Warning)
-}
-
+/** An instance of a LintID with a custom message at a particular position
+  *
+  * @param message The message to display to the user. If empty, LintID.explanation
+  *                is used instead.
+  * @param position Optionally place a caret under a location in a source file.
+  *                 For an empty position use Position.None.
+  * @param id the LintID associated with this message.
+  */
 class LintMessage(
     val message: String,
     val position: Position,
@@ -48,23 +25,4 @@ class LintMessage(
       else ""
     s"[${id.owner.name}.${id.id}] $message$explanation"
   }
-}
-
-sealed abstract class LintCategory {
-  private[scalafix] def toSeverity: Severity = this match {
-    case LintCategory.Error => Severity.Error
-    case LintCategory.Warning => Severity.Warn
-    case LintCategory.Info => Severity.Info
-  }
-  def isError: Boolean = this == LintCategory.Error
-  override def toString: String = this match {
-    case LintCategory.Error => "error"
-    case LintCategory.Warning => "warning"
-    case LintCategory.Info => "info"
-  }
-}
-object LintCategory {
-  case object Info extends LintCategory
-  case object Warning extends LintCategory
-  case object Error extends LintCategory
 }
