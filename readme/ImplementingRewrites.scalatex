@@ -97,7 +97,7 @@
           Test failures are reported as unified diffs from the obtained output
           of the rewrite and the expected output in the @code{output} project.
         @li
-          Assert a @sect.ref{LintMessage} is reported at a particular line
+          Assert that a @sect.ref{LintMessage} is expected at a particular line
           by suffixing the line with the comment @code{// scalafix: warning}.
           The test fails if there exist reported lint messages that have no
           associated assertion in the input file.
@@ -147,7 +147,7 @@
 
     @sect{LintMessage}
       Rewrites are able to emit "lint messages" with info/warn/error severity
-      using @code{ctx.lint(lintID.at(String/Position))}.
+      using @code{ctx.lint(lintCategory.at(String/Position)): Patch}.
       To report a lint message, first create a @sect.ref{LintCategory} and then
       report as a Patch
       @hl.scala

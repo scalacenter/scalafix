@@ -1,9 +1,9 @@
 /*
-rewrites = VolatileLazyVal
+rewrites = DottyVolatileLazyVal
  */
 package test
 
-class VolatileLazyVal {
+class DottyVolatileLazyVal {
   lazy val x = 2
   @volatile lazy val dontChangeMe = 2
   private lazy val y = 2

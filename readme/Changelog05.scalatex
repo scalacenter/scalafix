@@ -81,7 +81,7 @@
       @code{Predef.intArrayOps} and now it resolves to
       @code{IndexedSeqOptimized.head}.
 
-  @h4{Breaking changes for rewrite authors}
+  @h4{Breaking changes}
   @p
     From 0.5 onwards, our CI will check binary breaking changes in the public API
     on every pull request.
@@ -103,4 +103,6 @@
     @li
       upgraded to Scalameta 2.0, which has several breaking changes
       in the Tree api.
+    @li
+      The @code{VolatileLazyVal} rewrite is now named @sect.ref{DottyVolatileLazyVal}.
 

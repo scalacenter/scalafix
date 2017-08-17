@@ -54,20 +54,22 @@ abstract class SemanticRewriteSuite(
         config.copy(dialect = diffTest.attributes.dialect)
       )
       val patch = rewrite.rewrite(ctx)
-      val obtainedWithComment = rewrite.apply(ctx, patch)
+      val obtainedWithComment = Patch.apply(patch, ctx, rewrite.semanticOption)
       val lintMessages = Patch.lintMessages(patch, ctx).to[mutable.Set]
-      def assertLint(position: Position, category: LintSeverity): Unit = {
+      def assertLint(position: Position, key: String): Unit = {
         val matchingMessage = lintMessages.find { m =>
           // NOTE(olafur) I have no idea why -1 is necessary.
           m.position.startLine == (position.startLine - 1) &&
-          m.category.severity == category
+          m.category.key(rewrite.rewriteName) == key
         }
         matchingMessage match {
           case Some(x) =>
             lintMessages -= x
           case None =>
             throw new TestFailedException(
-              position.formatMessage("error", s"No $category reported!"),
+              position.formatMessage(
+                "error",
+                s"Message '$key' was not reported here!"),
               0
             )
         }
@@ -80,30 +82,19 @@ abstract class SemanticRewriteSuite(
         val LintAssertion = " scalafix: (.*)".r
         tokens.filter {
           case `configComment` => false
-          case tok @ Token.Comment(LintAssertion(severity)) =>
-            severity match {
-              case "warning" =>
-                assertLint(tok.pos, LintSeverity.Warning)
-              case "error" =>
-                assertLint(tok.pos, LintSeverity.Error)
-              case els =>
-                throw new TestFailedException(
-                  tok.pos.formatMessage("error", s"Unknown severity '$els'"),
-                  0)
-            }
+          case tok @ Token.Comment(LintAssertion(key)) =>
+            assertLint(tok.pos, key)
             false
           case _ => true
         }.mkString
       }
       if (lintMessages.nonEmpty) {
-        Patch
-          .lintMessages(patch, ctx)
-          .foreach(x => ctx.printLintMessage(x, rewrite.rewriteName))
+        lintMessages.foreach(x => ctx.printLintMessage(x, rewrite.rewriteName))
+        val key = lintMessages.head.category.key(rewrite.rewriteName)
         val explanation =
-          """To fix this problem, suffix the culprit lines with
-            |   // scalafix: warning
-            |   // scalafix: error
-            |""".stripMargin
+          s"""|To fix this problem, suffix the culprit lines with
+              |   // scalafix: $key
+              |""".stripMargin
         throw new TestFailedException(
           s"Uncaught linter messages! $explanation",
           0)
