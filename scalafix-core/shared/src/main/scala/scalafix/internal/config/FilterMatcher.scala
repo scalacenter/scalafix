@@ -19,6 +19,8 @@ case class FilterMatcher(
   def matches(input: String): Boolean =
     includeFilters.findFirstIn(input).isDefined &&
       excludeFilters.findFirstIn(input).isEmpty
+  def unapply(arg: String): Boolean =
+    matches(arg)
 }
 
 object FilterMatcher {
