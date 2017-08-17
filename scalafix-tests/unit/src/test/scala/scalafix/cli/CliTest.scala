@@ -16,19 +16,21 @@ import scalafix.internal.util.FileOps
 import scalafix.testkit.DiffAssertions
 import org.scalatest.FunSuite
 
-trait ScalafixCliTest extends FunSuite with DiffAssertions {
-  val original = """|object Main {
-                    |  def foo() {
-                    |    println(1)
-                    |  }
-                    |}
+class CliTest extends FunSuite with DiffAssertions {
+  val original: String =
+    """|object Main {
+       |  def foo() {
+       |    println(1)
+       |  }
+       |}
                  """.stripMargin
-  val expected = """|object Main {
-                    |  def foo(): Unit = {
-                    |    println(1)
-                    |  }
-                    |}
-                 """.stripMargin
+  val expected: String =
+    """|object Main {
+       |  def foo(): Unit = {
+       |    println(1)
+       |  }
+       |}
+       |""".stripMargin
   implicit val cwd: Path = Files.createTempDirectory("scalafix-cli")
 
   val devNull = CommonOptions(
@@ -37,10 +39,6 @@ trait ScalafixCliTest extends FunSuite with DiffAssertions {
   )
 
   val default = ScalafixOptions(common = devNull)
-
-}
-
-class CliTest extends ScalafixCliTest {
 
   test("Cli.parse") {
     val RunScalafix(runner) = Cli.parse(
