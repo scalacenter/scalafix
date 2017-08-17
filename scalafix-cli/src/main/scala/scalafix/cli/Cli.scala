@@ -10,6 +10,9 @@ import scalafix.internal.cli.CommonOptions
 import scalafix.internal.cli.ScalafixOptions
 import scalafix.rewrite.ScalafixRewrites
 import scala.meta.io.AbsolutePath
+import scalafix.internal.config.PrintStreamReporter
+import scalafix.internal.config.ScalafixReporter
+import scalafix.internal.util.Severity
 import caseapp.Name
 import caseapp.core.Arg
 import caseapp.core.Messages
@@ -222,7 +225,11 @@ object ScalafixRewriteNames {
     val result = cliCommand match {
       case CliCommand.PrintAndExit(msg, exit) =>
         if (exit.isOk) commonOptions.out.println(msg)
-        else commonOptions.reporter.error(msg)
+        else {
+          ScalafixReporter.default
+            .copy(outStream = commonOptions.err)
+            .error(msg)
+        }
         exit
       case CliCommand.RunScalafix(runner) =>
         val exit = runner.run()

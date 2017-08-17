@@ -81,9 +81,9 @@ sealed abstract case class CliRunner(
     }
     display.stop()
     val exit = exitCode.get()
-    if (!config.reporter.hasErrors)
+    if (config.reporter.hasErrors) {
       ExitStatus.merge(ExitStatus.LinterError, exit)
-    else exit
+    } else exit
   }
 
   // safeguard to verify that the original file contents have not changed since the
@@ -173,7 +173,7 @@ sealed abstract case class CliRunner(
       path: AbsolutePath,
       cause: Throwable,
       options: ScalafixOptions): Unit = {
-    options.common.reporter.error(s"Failed to fix $path")
+    config.reporter.error(s"Failed to fix $path")
     cause.setStackTrace(cause.getStackTrace.take(options.common.stackVerbosity))
     cause.printStackTrace(options.common.err)
   }

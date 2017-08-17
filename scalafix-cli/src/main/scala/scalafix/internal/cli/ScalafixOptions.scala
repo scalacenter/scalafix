@@ -5,8 +5,6 @@ import java.io.InputStream
 import java.io.PrintStream
 import scala.meta._
 import scala.meta.io.AbsolutePath
-import scalafix.internal.config.PrintStreamReporter
-import scalafix.internal.config.ScalafixReporter
 import scalafix.internal.rewrite.ProcedureSyntax
 import scalafix.rewrite.ScalafixRewrites
 import caseapp._
@@ -18,8 +16,6 @@ case class CommonOptions(
     @Hidden err: PrintStream = System.err,
     @Hidden stackVerbosity: Int = 20
 ) {
-  def reporter: PrintStreamReporter =
-    ScalafixReporter.default.copy(outStream = err)
   def workingPath = AbsolutePath(workingDirectory)
   def workingDirectoryFile = new File(workingDirectory)
 }
