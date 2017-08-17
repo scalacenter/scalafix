@@ -37,6 +37,7 @@ import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
 import metaconfig.Configured.Ok
 import metaconfig._
+import org.scalameta.logger
 
 sealed abstract case class CliRunner(
     sourceroot: AbsolutePath,
@@ -117,7 +118,7 @@ sealed abstract case class CliRunner(
         }
       case parsers.Parsed.Success(tree) =>
         val ctx = RewriteCtx(tree, config)
-        val fixed = rewrite(ctx)
+        val fixed = rewrite.apply(ctx)
         writeMode match {
           case WriteMode.Stdout =>
             common.out.write(fixed.getBytes)
@@ -339,7 +340,8 @@ object CliRunner {
     // expands a single file into a list of files.
     def expand(matcher: FilterMatcher)(path: AbsolutePath): Seq[FixFile] = {
       if (!path.toFile.exists()) {
-        common.err.println(s"$path does not exist.")
+        common.reporter.error(
+          s"$path does not exist. ${common.workingDirectory}")
         Nil
       } else if (path.isDirectory) {
         val builder = Seq.newBuilder[FixFile]
@@ -430,7 +432,15 @@ object CliRunner {
       }
     }
     val resolvedRewrite: Configured[Rewrite] =
-      resolvedRewriteAndConfig.map(_._1)
+      resolvedRewriteAndConfig.andThen {
+        case (rewrite, _) =>
+          if (rewrite.rewriteName.isEmpty)
+            ConfError
+              .msg(
+                "No rewrite was provided! Use --rewrite to specify a rewrite.")
+              .notOk
+          else Ok(rewrite)
+      }
     val resolvedConfig: Configured[ScalafixConfig] =
       resolvedRewriteAndConfig.map(_._2)
 

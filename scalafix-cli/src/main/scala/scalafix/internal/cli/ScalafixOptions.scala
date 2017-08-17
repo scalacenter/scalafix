@@ -24,6 +24,10 @@ case class CommonOptions(
   def workingDirectoryFile = new File(workingDirectory)
 }
 
+object CommonOptions {
+  lazy val default = CommonOptions()
+}
+
 // NOTE: Do not depend on this class as a library, the interface will change between
 // patch versions.
 @AppName("scalafix")

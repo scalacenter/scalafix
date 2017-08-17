@@ -10,10 +10,10 @@ import scala.meta.Position
   *                 For an empty position use Position.None.
   * @param id the LintID associated with this message.
   */
-class LintMessage(
-    val message: String,
-    val position: Position,
-    val id: LintID
+final case class LintMessage(
+    message: String,
+    position: Position,
+    id: LintID
 ) {
   def format(explain: Boolean): String = {
     val explanation =

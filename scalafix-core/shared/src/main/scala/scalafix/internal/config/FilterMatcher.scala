@@ -9,11 +9,18 @@ case class FilterMatcher(
     excludeFilters: Regex
 ) {
   val reader: ConfDecoder[FilterMatcher] =
-    ConfDecoder.instanceF[FilterMatcher] { c =>
-      (
-        c.getOrElse("include")(includeFilters) |@|
-          c.getOrElse("exclude")(excludeFilters)
-      ).map { case (a, b) => FilterMatcher(a, b) }
+    ConfDecoder.instanceF[FilterMatcher] {
+      case c @ Conf.Str(_) =>
+        c.as[Regex].map(FilterMatcher(_, FilterMatcher.mkRegexp(Nil)))
+      case c @ Conf.Lst(_) =>
+        c.as[List[String]].map { x =>
+          FilterMatcher(FilterMatcher.mkRegexp(x), FilterMatcher.mkRegexp(Nil))
+        }
+      case c =>
+        (
+          c.getOrElse("include")(includeFilters) |@|
+            c.getOrElse("exclude")(excludeFilters)
+        ).map { case (a, b) => FilterMatcher(a, b) }
     }
   def matches(file: AbsolutePath): Boolean = matches(file.toString())
   def matches(input: String): Boolean =

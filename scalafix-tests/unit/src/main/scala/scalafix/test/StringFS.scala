@@ -13,11 +13,16 @@ object StringFS {
   def string2dir(layout: String): AbsolutePath = {
     val root = Files.createTempDirectory("root")
     layout.split("(?=\n/)").foreach { row =>
-      val path :: contents :: Nil =
-        row.stripPrefix("\n").split("\n", 2).toList
-      val file = root.resolve(path)
-      file.getParent.toFile.mkdirs()
-      Files.write(file, contents.getBytes)
+      row.stripPrefix("\n").split("\n", 2).toList match {
+        case path :: contents :: Nil =>
+          val file = root.resolve(path.stripPrefix("/"))
+          file.getParent.toFile.mkdirs()
+          Files.write(file, contents.getBytes)
+        case els =>
+          throw new IllegalArgumentException(
+            s"Unable to split argument info path/contents! \n$els")
+
+      }
     }
     AbsolutePath(root)
   }
@@ -34,14 +39,15 @@ object StringFS {
   def dir2string(file: AbsolutePath): String = {
     import scala.collection.JavaConverters._
     Files
-      .list(file.toNIO)
+      .walk(file.toNIO)
       .iterator()
       .asScala
+      .filter(_.toFile.isFile)
       .toArray
       .sorted
       .map { path =>
         val contents = new String(Files.readAllBytes(path))
-        s"""|${file.toNIO.relativize(path)}
+        s"""|/${file.toNIO.relativize(path)}
             |$contents""".stripMargin
       }
       .mkString("\n")

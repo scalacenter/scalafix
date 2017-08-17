@@ -13,31 +13,29 @@ import scala.meta.inputs.Position
   * @param category The default category this message should get reported to.
   *                 Note that users can configure/override the default category.
   */
-final class LintID(
-    val id: String,
-    val owner: RewriteName,
-    val explanation: String,
-    val category: LintCategory
+final case class LintID(
+    id: String,
+    owner: RewriteName,
+    explanation: String,
+    category: LintCategory
 ) {
   override def toString: String = key
   lazy val key = s"$owner.$id"
   private def noExplanation: LintID =
     new LintID(id, owner, explanation, category)
   def at(message: String, position: Position): LintMessage =
-    new LintMessage(message, position, this)
+    LintMessage(message, position, this)
   def at(message: String): LintMessage =
-    new LintMessage(message, Position.None, this)
+    LintMessage(message, Position.None, this)
   def at(position: Position): LintMessage =
-    new LintMessage(explanation, position, noExplanation)
+    LintMessage(explanation, position, noExplanation)
 }
 
 object LintID {
-  def error(explain: String)(
-      implicit alias: sourcecode.Name,
-      rewrite: RewriteName): LintID =
-    new LintID(alias.value, rewrite, explain, LintCategory.Error)
+  def error(explain: String)(implicit alias: sourcecode.Name): LintID =
+    new LintID(alias.value, RewriteName.empty, explain, LintCategory.Error)
   def warning(explain: String)(
       implicit alias: sourcecode.Name,
       rewrite: RewriteName): LintID =
-    new LintID(alias.value, rewrite, explain, LintCategory.Warning)
+    new LintID(alias.value, RewriteName.empty, explain, LintCategory.Warning)
 }

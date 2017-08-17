@@ -25,6 +25,7 @@ import metaconfig.Configured.Ok
 import scalafix.internal.config.MetaconfigParser.{parser => hoconParser}
 import scalafix.patch.TreePatch
 import scalafix.rewrite.ConfigRewrite
+import org.scalameta.logger
 
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
 // A collection of metaconfig.Reader instances that are shared across
@@ -94,7 +95,7 @@ trait ScalafixMetaconfigReaders {
   def defaultRewriteDecoder(
       getSemanticCtx: LazySemanticCtx): ConfDecoder[Rewrite] =
     ConfDecoder.instance[Rewrite] {
-      case conf @ Conf.Str(value) =>
+      case conf @ Conf.Str(value) if !value.contains(":") =>
         val isSyntactic = ScalafixRewrites.syntacticNames.contains(value)
         val kind = RewriteKind(syntactic = isSyntactic)
         val semanticCtx = getSemanticCtx(kind)
