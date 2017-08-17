@@ -334,7 +334,10 @@ lazy val testsInputSbt = project
 lazy val testsOutputSbt = project
   .in(file("scalafix-tests/output-sbt"))
   .settings(
+    allSettings,
+    noPublish,
     scalaVersion := scala210,
+    crossScalaVersions := Seq(scala210),
     sbtPlugin := true
   )
 
