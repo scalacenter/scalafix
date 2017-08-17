@@ -96,7 +96,9 @@ abstract class SemanticRewriteSuite(
         }.mkString
       }
       if (lintMessages.nonEmpty) {
-        Patch.lintMessages(patch, ctx).foreach(ctx.printLintMessage)
+        Patch
+          .lintMessages(patch, ctx)
+          .foreach(x => ctx.printLintMessage(x, rewrite.rewriteName))
         val explanation =
           """To fix this problem, suffix the culprit lines with
             |   // scalafix: warning

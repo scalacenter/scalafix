@@ -1,6 +1,7 @@
 package scalafix.lint
 
 import scala.meta.Position
+import scalafix.rewrite.RewriteName
 
 /** An instance of a LintID with a custom message at a particular position
   *
@@ -15,7 +16,7 @@ final case class LintMessage(
     position: Position,
     id: LintID
 ) {
-  def format(explain: Boolean): String = {
+  def format(owner: RewriteName, explain: Boolean): String = {
     val explanation =
       if (explain)
         s"""
@@ -23,6 +24,6 @@ final case class LintMessage(
            |${id.explanation}
            |""".stripMargin
       else ""
-    s"[${id.owner.name}.${id.id}] $message$explanation"
+    s"[${owner.name}.${id.id}] $message$explanation"
   }
 }

@@ -22,12 +22,12 @@ case class LintConfig(
       ).map { case ((((a, b), c), d), e) => LintConfig(a, b, c, d, e) }
     }
 
-  def getCategory(id: LintID): LintCategory = id.key match {
-    case error() => LintCategory.Error
-    case warning() => LintCategory.Warning
-    case info() => LintCategory.Info
-    case _ => id.category
-  }
+  def getConfiguredCategory(key: String): Option[LintCategory] =
+    Option(key).collect {
+      case error() => LintCategory.Error
+      case warning() => LintCategory.Warning
+      case info() => LintCategory.Info
+    }
 }
 
 object LintConfig {

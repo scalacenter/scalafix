@@ -89,9 +89,7 @@ private[scalafix] object TreePatch {
 }
 
 // implementation detail
-private[scalafix] case class LintPatch(
-    message: LintMessage
-) extends Patch
+private[scalafix] case class LintPatch(message: LintMessage) extends Patch
 private[scalafix] case class Concat(a: Patch, b: Patch) extends Patch
 private[scalafix] case object EmptyPatch extends Patch with LowLevelPatch
 
@@ -116,6 +114,9 @@ object Patch {
     case (rem: Remove, rem2: Remove) => rem
     case _ => throw Failure.TokenPatchMergeError(a, b)
   }
+  // Patch.apply and Patch.lintMessages package private. Feel free to use them
+  // for your application, but please ask on the Gitter channel to see if we
+  // can expose a better api for your use case.
   private[scalafix] def apply(
       p: Patch,
       ctx: RewriteCtx,
