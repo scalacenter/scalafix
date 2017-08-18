@@ -292,7 +292,6 @@ lazy val testsInput = project
     resolvers += Resolver.bintrayRepo("allanrenucci", "maven"),
     libraryDependencies ++= testsDeps
   )
-  .disablePlugins(ScalafixPlugin)
   .dependsOn(testsShared)
 
 lazy val testsOutput = project
