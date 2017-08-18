@@ -6,21 +6,21 @@ import scalafix.Patch
 import scalafix.rewrite.Rewrite
 import scalafix.rewrite.RewriteCtx
 
-/** Rewrite Xml Literal to Xml Interpolator.
-  *
-  * e.g.
-  * {{{
-  *   // before:
-  *   <div>{ "Hello" }</div>
-  *
-  *   // after:
-  *   xml"<div>${ "Hello" }</div>"
-  * }}}
-  *
-  * This only rewrites xml literals in expression position:
-  * Xml patterns will not be supported by the xml interpolator,
-  * until we know how to rewrite `case <a>{ns @ _*}</a>`.
-  */
+/* Rewrite Xml literals to Xml interpolators.
+ *
+ * e.g.
+ * {{{
+ *   // before:
+ *   <div>{ "Hello" }</div>
+ *
+ *   // after:
+ *   xml"<div>${ "Hello" }</div>"
+ * }}}
+ *
+ * This only rewrites xml literals in expression position:
+ * Xml patterns will not be supported by the xml interpolator,
+ * until we know how to rewrite `case <a>{ns @ _*}</a>`.
+ */
 case object RemoveXmlLiterals extends Rewrite {
 
   val singleBracesEscape = LintCategory.warning(
