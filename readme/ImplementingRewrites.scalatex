@@ -96,6 +96,11 @@
         @li
           Test failures are reported as unified diffs from the obtained output
           of the rewrite and the expected output in the @code{output} project.
+        @li
+          Assert that a @sect.ref{LintMessage} is expected at a particular line
+          by suffixing the line with the comment @code{// scalafix: <LintCategory>}.
+          The test fails if there exist reported lint messages that have no
+          associated assertion in the input file.
 
   @sect{Example rewrites}
     The Scalafix repository contains several example rewrites and tests,
@@ -139,6 +144,24 @@
       utility methods to accomplish common tasks.
       If you experience that it's difficult to implement something that
       seems simple then don't hesitate to ask on @gitter.
+
+    @sect{LintMessage}
+      Rewrites are able to emit "lint messages" with info/warn/error severity
+      using @code{ctx.lint(lintCategory.at(String/Position)): Patch}.
+      To report a lint message, first create a @sect.ref{LintCategory} and then
+      report it as a @code{Patch}
+      @hl.scala
+        val divisionByZero = LintCategory.error("Division by zero is unsafe!")
+        def rewrite(ctx: RewriteCtx): Patch = {
+          val tree: Tree = // ...
+          ctx.lint(divisionByZero.at(tree.pos))
+        }
+
+    @sect{LintCategory}
+      A LintCategory is group of lint messages of the same kind.
+      A LintCategory has a default severity level (info/warn/error) at which
+      it will be reported. Scalafix users can override the default severity
+      with @sect.ref{lint}.
 
     @sect{Scalameta}
       Scalafix uses @lnk("Scalameta", "http://scalameta.org/") to implement

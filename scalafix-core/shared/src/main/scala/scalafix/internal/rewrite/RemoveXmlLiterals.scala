@@ -1,5 +1,6 @@
 package scalafix.internal.rewrite
 
+import scalafix._
 import scala.meta._
 import scalafix.Patch
 import scalafix.rewrite.Rewrite
@@ -21,6 +22,13 @@ import scalafix.rewrite.RewriteCtx
   * until we know how to rewrite `case <a>{ns @ _*}</a>`.
   */
 case object RemoveXmlLiterals extends Rewrite {
+
+  val singleBracesEscape = LintCategory.warning(
+    """Single braces don't need be escaped with {{ and }} inside xml interpolators, unlike xml literals.
+      |For example <x>{{</x> is identical to xml"<x>{</x>". This Rewrite will replace all occurrences of
+      |{{ and }}. Make sure this is intended.
+      |""".stripMargin
+  )
 
   override def rewrite(ctx: RewriteCtx): Patch = {
 
@@ -54,18 +62,12 @@ case object RemoveXmlLiterals extends Rewrite {
 
       /** Substitute {{ by { and }} by } */
       def patchEscapedBraces(tok: Token.Xml.Part) = {
-        ctx.reporter.warn(
-          """Single braces don't need be escaped with {{ and }} inside the xml interpolator, unlike xml literals.
-            |For example <x>{{</x> is identical to xml"<x>{</x>".
-            |This Rewrite will replace all occurrences of {{ and }} . Make sure this is intended.
-          """.stripMargin,
-          tok.pos
-        )
 
         val patched = tok.value
           .replaceAllLiterally("{{", "{")
           .replaceAllLiterally("}}", "}")
-        ctx.replaceToken(tok, patched)
+        ctx.replaceToken(tok, patched) +
+          ctx.lint(singleBracesEscape.at(tok.pos))
       }
 
       removeSplices(xml.tokens).collect {

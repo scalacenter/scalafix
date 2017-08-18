@@ -29,6 +29,11 @@ package object scalafix {
   type Patch = patch.Patch
   val Patch = patch.Patch
 
+  type LintCategory = scalafix.lint.LintCategory
+  val LintCategory = scalafix.lint.LintCategory
+
+  type LintMessage = scalafix.lint.LintMessage
+
   implicit class XtensionSeqPatch(patches: Iterable[Patch]) {
     def asPatch: Patch = Patch.fromIterable(patches)
   }

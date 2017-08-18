@@ -12,6 +12,7 @@ import scalafix.diff.DiffUtils
 import scalafix.internal.patch.ImportPatchOps
 import scalafix.internal.patch.ReplaceSymbolOps
 import scalafix.internal.util.TokenOps
+import scalafix.lint.LintMessage
 import scalafix.patch.TreePatch.ReplaceSymbol
 import org.scalameta.logger
 
@@ -88,6 +89,7 @@ private[scalafix] object TreePatch {
 }
 
 // implementation detail
+private[scalafix] case class LintPatch(message: LintMessage) extends Patch
 private[scalafix] case class Concat(a: Patch, b: Patch) extends Patch
 private[scalafix] case object EmptyPatch extends Patch with LowLevelPatch
 
@@ -112,13 +114,30 @@ object Patch {
     case (rem: Remove, rem2: Remove) => rem
     case _ => throw Failure.TokenPatchMergeError(a, b)
   }
+
+  private[scalafix] def lintMessages(
+      patch: Patch,
+      ctx: RewriteCtx): List[LintMessage] = {
+    val builder = List.newBuilder[LintMessage]
+    foreach(patch) {
+      case LintPatch(lint) =>
+        builder += lint
+      case _ =>
+    }
+    builder.result()
+  }
+
+  // Patch.apply and Patch.lintMessages package private. Feel free to use them
+  // for your application, but please ask on the Gitter channel to see if we
+  // can expose a better api for your use case.
   private[scalafix] def apply(
       p: Patch,
       ctx: RewriteCtx,
-      semanticCtx: Option[SemanticCtx]): String = {
+      semanticCtx: Option[SemanticCtx]
+  ): String = {
     val patches = underlying(p)
     val semanticPatches = patches.collect { case tp: TreePatch => tp }
-    semanticCtx match {
+    val result = semanticCtx match {
       case Some(x: SemanticCtx) =>
         semanticApply(p)(ctx, x)
       case _ =>
@@ -129,6 +148,7 @@ object Patch {
           case tp: TokenPatch => tp
         })
     }
+    result
   }
 
   private def syntaxApply(
@@ -171,16 +191,24 @@ object Patch {
 
   private def underlying(patch: Patch): Seq[Patch] = {
     val builder = Seq.newBuilder[Patch]
+    foreach(patch) {
+      case _: LintPatch =>
+      case els =>
+        builder += els
+    }
+    builder.result()
+  }
+
+  private def foreach(patch: Patch)(f: Patch => Unit): Unit = {
     def loop(patch: Patch): Unit = patch match {
       case Concat(a, b) =>
         loop(a)
         loop(b)
       case EmptyPatch => // do nothing
       case els =>
-        builder += els
+        f(els)
     }
     loop(patch)
-    builder.result()
   }
 
   def unifiedDiff(original: Input, revised: Input): String = {

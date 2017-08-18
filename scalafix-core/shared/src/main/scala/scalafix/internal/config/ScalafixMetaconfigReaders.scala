@@ -94,7 +94,7 @@ trait ScalafixMetaconfigReaders {
   def defaultRewriteDecoder(
       getSemanticCtx: LazySemanticCtx): ConfDecoder[Rewrite] =
     ConfDecoder.instance[Rewrite] {
-      case conf @ Conf.Str(value) =>
+      case conf @ Conf.Str(value) if !value.contains(":") =>
         val isSyntactic = ScalafixRewrites.syntacticNames.contains(value)
         val kind = RewriteKind(syntactic = isSyntactic)
         val semanticCtx = getSemanticCtx(kind)
@@ -102,15 +102,20 @@ trait ScalafixMetaconfigReaders {
           ScalafixRewrites.syntaxName2rewrite ++
             semanticCtx.fold(Map.empty[String, Rewrite])(
               ScalafixRewrites.name2rewrite)
-        ReaderUtil.fromMap(names).read(conf)
+        val result = ReaderUtil.fromMap(names).read(conf)
+        result match {
+          case Ok(rewrite) =>
+            rewrite.rewriteName
+              .reportDeprecationWarning(value, getSemanticCtx.reporter)
+          case _ =>
+        }
+        result
     }
 
   private lazy val semanticRewriteClass = classOf[SemanticRewrite]
 
   def classloadRewrite(
       semanticCtx: LazySemanticCtx): Class[_] => Seq[SemanticCtx] = { cls =>
-    val semanticRewrite =
-      cls.getClassLoader.loadClass("scalafix.rewrite.SemanticRewrite")
     val kind =
       if (semanticRewriteClass.isAssignableFrom(cls)) RewriteKind.Semantic
       else RewriteKind.Syntactic
@@ -146,7 +151,7 @@ trait ScalafixMetaconfigReaders {
     }
 
   def baseSyntacticRewriteDecoder: ConfDecoder[Rewrite] =
-    baseRewriteDecoders(_ => None)
+    baseRewriteDecoders(LazySemanticCtx.empty)
   def baseRewriteDecoders(semanticCtx: LazySemanticCtx): ConfDecoder[Rewrite] = {
     MetaconfigPendingUpstream.orElse(
       defaultRewriteDecoder(semanticCtx),

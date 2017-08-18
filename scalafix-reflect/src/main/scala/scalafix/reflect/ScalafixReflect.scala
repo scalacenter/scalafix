@@ -8,10 +8,10 @@ import metaconfig.ConfDecoder
 
 object ScalafixReflect {
   def syntactic: ConfDecoder[Rewrite] =
-    fromLazySemanticCtx(_ => None)
+    fromLazySemanticCtx(LazySemanticCtx.empty)
 
   def semantic(semanticCtx: SemanticCtx): ConfDecoder[Rewrite] =
-    fromLazySemanticCtx(_ => Some(semanticCtx))
+    fromLazySemanticCtx(LazySemanticCtx(_ => Some(semanticCtx)))
 
   def fromLazySemanticCtx(semanticCtx: LazySemanticCtx): ConfDecoder[Rewrite] =
     rewriteConfDecoder(

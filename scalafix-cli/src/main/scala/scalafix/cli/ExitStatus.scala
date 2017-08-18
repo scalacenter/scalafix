@@ -30,7 +30,8 @@ object ExitStatus {
       InvalidCommandLineOption,
       MissingSemanticApi,
       StaleSemanticDB,
-      TestFailed
+      TestFailed,
+      LinterError
     : ExitStatus = generateExitStatus
   // format: on
   lazy val all: List[ExitStatus] = allInternal.toList

@@ -97,8 +97,8 @@ lazy val allSettings = List(
   stableVersion := version.value.replaceAll("\\+.*", ""),
   resolvers += Resolver.sonatypeRepo("releases"),
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
-  scalacOptions ++= compilerOptions,
-  scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
+  scalacOptions ++= compilerOptions.value,
+  scalacOptions in (Compile, console) := compilerOptions.value :+ "-Yrepl-class-based",
   libraryDependencies += scalatest.value % Test,
   testOptions in Test += Tests.Argument("-oD"),
   scalaVersion := ciScalaVersion.getOrElse(scala212),
@@ -197,6 +197,7 @@ lazy val `scalafix-sbt` = project
   .configs(IntegrationTest)
   .settings(
     allSettings,
+    is210Only,
     publishSettings,
     buildInfoSettings,
     Defaults.itSettings,
@@ -220,8 +221,6 @@ lazy val `scalafix-sbt` = project
           "; very scalafix-sbt/scripted"
       )(state.value)
     },
-    scalaVersion := scala210,
-    crossScalaVersions := Seq(scala210),
     moduleName := "sbt-scalafix",
     scriptedLaunchOpts ++= Seq(
       "-Dplugin.version=" + version.value,
@@ -301,6 +300,7 @@ lazy val testsOutput = project
     allSettings,
     noPublish,
     semanticdbSettings,
+    scalacOptions -= warnUnusedImports,
     resolvers := resolvers.in(testsInput).value,
     libraryDependencies := libraryDependencies.in(testsInput).value
   )
@@ -324,7 +324,7 @@ lazy val testsInputSbt = project
   .settings(
     logLevel := Level.Error, // avoid flood of deprecation warnings.
     scalacOptions += "-Xplugin-require:sbthost",
-    scalaVersion := scala210,
+    is210Only,
     sbtPlugin := true,
     scalacOptions += s"-P:sbthost:sourceroot:${sourceDirectory.in(Compile).value}",
     addCompilerPlugin(
@@ -336,8 +336,7 @@ lazy val testsOutputSbt = project
   .settings(
     allSettings,
     noPublish,
-    scalaVersion := scala210,
-    crossScalaVersions := Seq(scala210),
+    is210Only,
     sbtPlugin := true
   )
 
@@ -437,17 +436,27 @@ lazy val readme = scalatex
   .dependsOn(coreJVM, cli)
   .enablePlugins(GhpagesPlugin)
 
+lazy val is210Only = Seq(
+  scalaVersion := scala210,
+  crossScalaVersions := Seq(scala210),
+  scalacOptions -= warnUnusedImports
+)
+
 lazy val isFullCrossVersion = Seq(
   crossVersion := CrossVersion.full
 )
 
-lazy val compilerOptions = Seq(
-  "-deprecation",
-  "-encoding",
-  "UTF-8",
-  "-feature",
-  "-unchecked"
-)
+lazy val warnUnusedImports = "-Ywarn-unused-import"
+lazy val compilerOptions = Def.setting {
+  Seq(
+    "-deprecation",
+    "-encoding",
+    "UTF-8",
+    "-feature",
+    warnUnusedImports,
+    "-unchecked"
+  )
+}
 
 lazy val gitPushTag = taskKey[Unit]("Push to git tag")
 

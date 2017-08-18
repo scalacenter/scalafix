@@ -3,6 +3,7 @@ package scalafix.internal.config
 import scala.meta.Position
 import scala.meta.internal.inputs.XtensionPositionFormatMessage
 import java.io.PrintStream
+import java.util.concurrent.atomic.AtomicInteger
 import scalafix.internal.util.Severity
 import metaconfig._
 
@@ -28,12 +29,19 @@ case class PrintStreamReporter(
           )
       }
     }
+  private val _errorCount = new AtomicInteger()
 
   override def report(message: String, position: Position, severity: Severity)(
       implicit ctx: LogContext): Unit = {
+    if (severity == Severity.Error) {
+      _errorCount.incrementAndGet()
+    }
     val enclosing =
       if (includeLoggerName) s"(${ctx.enclosing.value}) " else ""
     outStream.println(
       position.formatMessage(enclosing + severity.toString, message))
   }
+
+  /** Returns true if this reporter has seen an error */
+  override def errorCount: Int = _errorCount.get()
 }

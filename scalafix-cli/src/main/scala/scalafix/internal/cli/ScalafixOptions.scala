@@ -18,10 +18,14 @@ case class CommonOptions(
     @Hidden err: PrintStream = System.err,
     @Hidden stackVerbosity: Int = 20
 ) {
-  def reporter: PrintStreamReporter =
-    ScalafixReporter.default.copy(outStream = err)
+  lazy val reporter: PrintStreamReporter =
+    ScalafixReporter.default.copy(outStream = out)
   def workingPath = AbsolutePath(workingDirectory)
   def workingDirectoryFile = new File(workingDirectory)
+}
+
+object CommonOptions {
+  lazy val default = CommonOptions()
 }
 
 // NOTE: Do not depend on this class as a library, the interface will change between

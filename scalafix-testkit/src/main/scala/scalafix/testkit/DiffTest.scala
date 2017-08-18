@@ -3,6 +3,7 @@ package scalafix.testkit
 import scala.meta._
 import scalafix.SemanticCtx
 import scalafix.Rewrite
+import scalafix.internal.config.LazySemanticCtx
 import scalafix.internal.config.ScalafixConfig
 import scalafix.reflect.ScalafixReflect
 import org.scalatest.exceptions.TestFailedException
@@ -32,11 +33,12 @@ object DiffTest {
           .collectFirst {
             case Token.Comment(comment) =>
               val decoder =
-                ScalafixReflect.fromLazySemanticCtx(_ => Some(semanticCtx))
+                ScalafixReflect.fromLazySemanticCtx(
+                  LazySemanticCtx(_ => Some(semanticCtx)))
               ScalafixConfig
                 .fromInput(
                   Input.VirtualFile(label, stripPrefix(comment)),
-                  _ => Some(semanticCtx))(decoder)
+                  LazySemanticCtx(_ => Some(semanticCtx)))(decoder)
                 .get
           }
           .getOrElse(throw new TestFailedException(

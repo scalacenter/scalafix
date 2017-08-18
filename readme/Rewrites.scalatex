@@ -132,7 +132,7 @@
         println("Hello world!")
       }
 
-  @sect(VolatileLazyVal.toString)
+  @sect(DottyVolatileLazyVal.toString)
     @p
       Adds a @code{@@volatile} annotation to lazy vals.
       The @code{@@volatile} annotation is needed to maintain thread-safe

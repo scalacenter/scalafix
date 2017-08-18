@@ -142,4 +142,4 @@
       Two rewrite rules:
       @sect.ref{ProcedureSyntax}
       and
-      @sect.ref{VolatileLazyVal}.
+      @sect.ref{DottyVolatileLazyVal}.

@@ -7,7 +7,6 @@ import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.reflect.ScalafixReflect
 import scalatags.Text.TypedTag
 import scalatags.Text.all._
-import scalatex.Main
 import scalatex.site.Highlighter
 
 object Readme {

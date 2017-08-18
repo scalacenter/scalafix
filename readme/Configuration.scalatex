@@ -65,6 +65,16 @@
         @config
           rewrite = "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/80218434edb85120a9c6fd6533a4418118de8ba7/ExampleRewrite.scala"
 
+  @sect{lint}
+    Override the default severity level of a @sect.ref{LintMessage} with @code{lint}
+    @config
+      // Assuming 'Foo' is a rewrite and 'warningID'/'errorID' are LintCategory IDs.
+      lint.error = [ Foo.warningID ] // promote Foo.warnigID to an error
+      lint.warning = [ Foo.errorID ] // demote Foo.errorID to a warning
+      lint.info = [ Foo.errorID ] // demote Foo.errorID to info
+      lint.ignore = [ Foo.errorID ] // don't report Foo.errorID
+      lint.explain = true // print out detailed explanation for lint messages.
+
   @sect{patches}
     For simple use-cases, it's possible to write custom rewrites directly in
     .scalafix.conf.

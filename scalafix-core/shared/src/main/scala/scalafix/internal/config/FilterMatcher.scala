@@ -9,20 +9,30 @@ case class FilterMatcher(
     excludeFilters: Regex
 ) {
   val reader: ConfDecoder[FilterMatcher] =
-    ConfDecoder.instanceF[FilterMatcher] { c =>
-      (
-        c.getOrElse("include")(includeFilters) |@|
-          c.getOrElse("exclude")(excludeFilters)
-      ).map { case (a, b) => FilterMatcher(a, b) }
+    ConfDecoder.instanceF[FilterMatcher] {
+      case c @ Conf.Str(_) =>
+        c.as[Regex].map(FilterMatcher(_, FilterMatcher.mkRegexp(Nil)))
+      case c @ Conf.Lst(_) =>
+        c.as[List[String]].map { x =>
+          FilterMatcher(FilterMatcher.mkRegexp(x), FilterMatcher.mkRegexp(Nil))
+        }
+      case c =>
+        (
+          c.getOrElse("include")(includeFilters) |@|
+            c.getOrElse("exclude")(excludeFilters)
+        ).map { case (a, b) => FilterMatcher(a, b) }
     }
   def matches(file: AbsolutePath): Boolean = matches(file.toString())
   def matches(input: String): Boolean =
     includeFilters.findFirstIn(input).isDefined &&
       excludeFilters.findFirstIn(input).isEmpty
+  def unapply(arg: String): Boolean =
+    matches(arg)
 }
 
 object FilterMatcher {
-  val matchEverything = new FilterMatcher(".*".r, mkRegexp(Nil))
+  lazy val matchEverything = new FilterMatcher(".*".r, mkRegexp(Nil))
+  lazy val matchNothing = new FilterMatcher(mkRegexp(Nil), mkRegexp(Nil))
   implicit val reader: ConfDecoder[FilterMatcher] = matchEverything.reader
 
   def mkRegexp(filters: Seq[String]): Regex =

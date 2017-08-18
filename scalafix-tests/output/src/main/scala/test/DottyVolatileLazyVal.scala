@@ -1,6 +1,6 @@
 package test
 
-class VolatileLazyVal {
+class DottyVolatileLazyVal {
   @volatile lazy val x = 2
   @volatile lazy val dontChangeMe = 2
   @volatile private lazy val y = 2

@@ -186,7 +186,7 @@ object ScalafixRewriteNames {
     filename.endsWith(".scala") || filename.endsWith(".sbt")
   }
 
-  def parse(args: Seq[String]): CliCommand = {
+  def parse(args: Seq[String], common: CommonOptions): CliCommand = {
     import CliCommand._
     OptionsParser.withHelp.detailedParse(args) match {
       case Left(err) =>
@@ -209,12 +209,16 @@ object ScalafixRewriteNames {
         Files.write(path, sbtCompletions.getBytes)
         PrintAndExit(s"Sbt completions installed in $path", ExitStatus.Ok)
       case Right((WithHelp(_, _, options), extraFiles, _)) =>
-        parseOptions(options.copy(files = options.files ++ extraFiles))
+        parseOptions(
+          options.copy(
+            common = common,
+            files = options.files ++ extraFiles
+          ))
     }
   }
 
-  def runMain(args: Seq[String], commonOptions: CommonOptions): ExitStatus =
-    runMain(parse(args), commonOptions)
+  def runMain(args: Seq[String], common: CommonOptions): ExitStatus =
+    runMain(parse(args, common), common)
 
   def runMain(
       cliCommand: CliCommand,
@@ -230,7 +234,11 @@ object ScalafixRewriteNames {
     }
     // This one accummulates a lot of garbage, scalameta needs to get rid of it.
     PlatformTokenizerCache.megaCache.clear()
-    result
+    if (commonOptions.reporter.hasErrors) {
+      ExitStatus.merge(ExitStatus.InvalidCommandLineOption, result)
+    } else {
+      result
+    }
   }
 
   def nailMain(nGContext: NGContext): Unit = {

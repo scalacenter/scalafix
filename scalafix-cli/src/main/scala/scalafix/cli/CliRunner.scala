@@ -17,7 +17,6 @@ import java.util.regex.PatternSyntaxException
 import scala.meta._
 import scala.meta.inputs.Input
 import scala.meta.internal.inputs._
-import scala.meta.internal.tokenizers.PlatformTokenizerCache
 import scala.meta.io.AbsolutePath
 import scala.meta.sbthost.Sbthost
 import scala.util.Try
@@ -80,7 +79,10 @@ sealed abstract case class CliRunner(
       code
     }
     display.stop()
-    exitCode.get()
+    val exit = exitCode.get()
+    if (config.reporter.hasErrors) {
+      ExitStatus.merge(ExitStatus.LinterError, exit)
+    } else exit
   }
 
   // safeguard to verify that the original file contents have not changed since the
@@ -114,7 +116,7 @@ sealed abstract case class CliRunner(
         }
       case parsers.Parsed.Success(tree) =>
         val ctx = RewriteCtx(tree, config)
-        val fixed = rewrite(ctx)
+        val fixed = rewrite.apply(ctx)
         writeMode match {
           case WriteMode.Stdout =>
             common.out.write(fixed.getBytes)
@@ -170,7 +172,7 @@ sealed abstract case class CliRunner(
       path: AbsolutePath,
       cause: Throwable,
       options: ScalafixOptions): Unit = {
-    options.common.reporter.error(s"Failed to fix $path")
+    config.reporter.error(s"Failed to fix $path")
     cause.setStackTrace(cause.getStackTrace.take(options.common.stackVerbosity))
     cause.printStackTrace(options.common.err)
   }
@@ -330,12 +332,14 @@ object CliRunner {
       if (kind.isSyntactic) None
       else computeAndCacheDatabase()
     }
-    private val lazySemanticCtx: LazySemanticCtx = resolveDatabase
+    private val lazySemanticCtx: LazySemanticCtx =
+      new LazySemanticCtx(resolveDatabase, common.reporter)
 
     // expands a single file into a list of files.
     def expand(matcher: FilterMatcher)(path: AbsolutePath): Seq[FixFile] = {
       if (!path.toFile.exists()) {
-        common.err.println(s"$path does not exist.")
+        common.reporter.error(
+          s"$path does not exist. ${common.workingDirectory}")
         Nil
       } else if (path.isDirectory) {
         val builder = Seq.newBuilder[FixFile]
@@ -426,7 +430,15 @@ object CliRunner {
       }
     }
     val resolvedRewrite: Configured[Rewrite] =
-      resolvedRewriteAndConfig.map(_._1)
+      resolvedRewriteAndConfig.andThen {
+        case (rewrite, _) =>
+          if (rewrite.rewriteName.isEmpty)
+            ConfError
+              .msg(
+                "No rewrite was provided! Use --rewrite to specify a rewrite.")
+              .notOk
+          else Ok(rewrite)
+      }
     val resolvedConfig: Configured[ScalafixConfig] =
       resolvedRewriteAndConfig.map(_._2)
 
