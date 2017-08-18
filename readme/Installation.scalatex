@@ -46,6 +46,17 @@
         [info] * -Xplugin-require:semanticdb // recommended
         [info] * -P:semanticdb:sourceroot:/* // recommended
 
+    @sect{scalafix-sbt-example}
+      For a minimal working example usage of sbt-scalafix, see the
+      @lnk("scalacenter/scalafix-sbt-example", "https://github.com/scalacenter/scalafix-sbt-example")
+      repository.
+
+      @hl.scala
+        git clone https://github.com/olafurpg/scalafix-sbt-example
+        cd scalafix-sbt-example
+        sbt "scalafix RemoveUnusedImports"
+        git diff // should produce a diff
+
     @sect{sbt settings and tasks}
       @table
         @(cls := "pure-table")

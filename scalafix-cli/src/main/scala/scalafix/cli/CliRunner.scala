@@ -141,7 +141,7 @@ sealed abstract case class CliRunner(
           case WriteMode.WriteFile =>
             val outFile = replacePath(input.original.path)
             if (isUpToDate(input)) {
-              Files.createDirectories(outFile.toNIO)
+              Files.createDirectories(outFile.toNIO.getParent)
               Files.write(outFile.toNIO, fixed.getBytes(input.original.charset))
               ExitStatus.Ok
             } else {
