@@ -34,7 +34,11 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
        |""".stripMargin
   val cwd: Path = Files.createTempDirectory("scalafix-cli")
   val ps = new PrintStream(new ByteArrayOutputStream())
-  val devNull = CommonOptions(workingDirectory = cwd.toString)
+  val devNull = CommonOptions(
+    out = ps,
+    err = ps,
+    workingDirectory = cwd.toString
+  )
 
   val default = ScalafixOptions(common = devNull)
 

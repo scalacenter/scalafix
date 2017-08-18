@@ -221,7 +221,7 @@ object CliRunner {
     ).map {
       case ((replace, inputs), config) =>
         if (options.verbose) {
-          options.common.err.println(
+          options.diagnostic.println(
             s"""|Config:
                 |${Class2Hocon(config)}
                 |Rewrite:
