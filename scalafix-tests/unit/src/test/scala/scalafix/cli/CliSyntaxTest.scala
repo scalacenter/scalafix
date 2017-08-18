@@ -1,42 +1,9 @@
 package scalafix.cli
 
-import java.io.ByteArrayOutputStream
-import java.io.PrintStream
 import scala.collection.immutable.Seq
-import scalafix.cli.CliCommand.PrintAndExit
-import scalafix.cli.CliCommand.RunScalafix
-import scalafix.internal.rewrite.ProcedureSyntax
+import scalafix.internal.rewrite._
 
-class CliTest extends BaseCliTest {
-
-  test("parse") {
-    val RunScalafix(runner) = parse(
-      Seq(
-        "--verbose",
-        "--config-str",
-        "fatalWarnings=true",
-        "--single-thread",
-        "-r",
-        ProcedureSyntax.toString,
-        "--files",
-        "build.sbt",
-        "project/Mima.scala",
-        "--stdout",
-        "project/Dependencies.scala"
-      ))
-    val obtained = runner.cli
-    assert(!runner.writeMode.isWriteFile)
-    assert(runner.config.fatalWarnings)
-    assert(obtained.verbose)
-    assert(obtained.singleThread)
-    assert(
-      obtained.files == List(
-        "build.sbt",
-        "project/Mima.scala",
-        "project/Dependencies.scala"
-      )
-    )
-  }
+class CliSyntaxTest extends BaseCliTest {
 
   check(
     name = "fix file",
@@ -172,13 +139,6 @@ class CliTest extends BaseCliTest {
     output => assertNoDiff(output, expected)
   )
 
-  test("--rewrites") {
-    val RunScalafix(runner) =
-      parse(Seq("--rewrites", "DottyVolatileLazyVal"))
-    assert(runner.rewrite.name == "DottyVolatileLazyVal")
-    assert(parse(Seq("--rewrites", "Foobar")).isError)
-  }
-
   check(
     name = "parse errors return exit code",
     originalLayout = s"""|/a.scala
@@ -252,16 +212,4 @@ class CliTest extends BaseCliTest {
       assert(output.contains("No files to fix!") && output.contains("dir"))
     }
   )
-
-  test("--zsh") {
-    val obtained = parse(Seq("--zsh"))
-    assert(obtained.isOk)
-    assert(obtained.isInstanceOf[PrintAndExit])
-  }
-
-  test("--bash") {
-    val obtained = parse(Seq("--bash"))
-    assert(obtained.isOk)
-    assert(obtained.isInstanceOf[PrintAndExit])
-  }
 }
