@@ -74,10 +74,10 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
       name: String,
       args: Seq[String],
       expectedExit: ExitStatus,
-      fileIsFixed: Boolean,
       outputAssert: String => Unit = _ => ()
   ): Unit = {
     test(name) {
+      val fileIsFixed = expectedExit.isOk
       val tmp = Files.createTempDirectory("scalafix")
       val out = new ByteArrayOutputStream()
       tmp.toFile.deleteOnExit()
