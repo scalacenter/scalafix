@@ -61,9 +61,9 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
             out = new PrintStream(out)
           ))
       val obtained = StringFS.dir2string(root)
+      assert(exit == expectedExit)
       assertNoDiff(obtained, expectedLayout)
       outputAssert(out.toString)
-      assert(exit == expectedExit)
     }
   }
 
@@ -106,9 +106,9 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
             if (fileIsFixed) BuildInfo.outputSourceroot
             else BuildInfo.inputSourceroot
           ).resolve(removeImportsPath))
+      assert(exit == expectedExit)
       assertNoDiff(obtained, expected)
       outputAssert(out.toString())
-      assert(exit == expectedExit)
     }
   }
 

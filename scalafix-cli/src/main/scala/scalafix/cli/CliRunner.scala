@@ -141,6 +141,7 @@ sealed abstract case class CliRunner(
           case WriteMode.WriteFile =>
             val outFile = replacePath(input.original.path)
             if (isUpToDate(input)) {
+              Files.createDirectories(outFile.toNIO.getParent)
               Files.write(outFile.toNIO, fixed.getBytes(input.original.charset))
               ExitStatus.Ok
             } else {
@@ -449,13 +450,22 @@ object CliRunner {
       }
 
     val resolvedPathReplace: Configured[AbsolutePath => AbsolutePath] = try {
-      val outFromPattern = Pattern.compile(outFrom.getOrElse(""))
-      def replacePath(file: AbsolutePath): AbsolutePath =
-        AbsolutePath(
-          outFromPattern
-            .matcher(file.toString())
-            .replaceAll(outTo.getOrElse("")))
-      Ok(replacePath _)
+      (outFrom, outTo) match {
+        case (None, None) => Ok(identity[AbsolutePath])
+        case (Some(from), Some(to)) =>
+          val outFromPattern = Pattern.compile(from)
+          def replacePath(file: AbsolutePath): AbsolutePath =
+            AbsolutePath(outFromPattern.matcher(file.toString()).replaceAll(to))
+          Ok(replacePath _)
+        case (Some(from), _) =>
+          ConfError
+            .msg(s"--out-from $from must be accompanied with --out-to")
+            .notOk
+        case (_, Some(to)) =>
+          ConfError
+            .msg(s"--out-to $to must be accompanied with --out-from")
+            .notOk
+      }
     } catch {
       case e: PatternSyntaxException =>
         ConfError.msg(s"Invalid regex '$outFrom'! ${e.getMessage}").notOk
