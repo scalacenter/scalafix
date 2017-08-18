@@ -56,7 +56,7 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
       val category = config.lint
         .getConfiguredSeverity(key)
         .getOrElse(msg.category.severity)
-      reporter.handleMessage(
+      config.lint.reporter.handleMessage(
         msg.format(owner, config.lint.explain),
         msg.position,
         category.toSeverity

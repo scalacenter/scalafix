@@ -36,6 +36,7 @@ import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
 import metaconfig.Configured.Ok
 import metaconfig._
+import org.scalameta.logger
 
 sealed abstract case class CliRunner(
     sourceroot: AbsolutePath,
@@ -79,7 +80,7 @@ sealed abstract case class CliRunner(
     }
     display.stop()
     val exit = exitCode.get()
-    if (config.reporter.hasErrors) {
+    if (config.lint.reporter.hasErrors) {
       ExitStatus.merge(ExitStatus.LinterError, exit)
     } else exit
   }
@@ -215,13 +216,14 @@ object CliRunner {
       builder: Builder
   ): Configured[CliRunner] = {
     (
-      builder.resolvedPathReplace |@|
+      builder.resolvedSourceroot |@|
+        builder.resolvedPathReplace |@|
         builder.fixFilesWithSemanticCtx |@|
         builder.resolvedConfig
     ).map {
-      case ((replace, inputs), config) =>
+      case (((sourceroot, replace), inputs), config) =>
         if (options.verbose) {
-          options.common.err.println(
+          options.diagnostic.info(
             s"""|Config:
                 |${Class2Hocon(config)}
                 |Rewrite:
@@ -230,7 +232,7 @@ object CliRunner {
           )
         }
         new CliRunner(
-          sourceroot = builder.resolvedSourceroot,
+          sourceroot = sourceroot,
           cli = options,
           config = config,
           rewrite = rewrite,
@@ -286,18 +288,23 @@ object CliRunner {
           }
           if (cp.shallow.nonEmpty) Ok(cp)
           else {
-            val msg =
-              """Unable to automatically detect .semanticdb files to run semantic rewrites. Possible workarounds:
-                |- re-compile sources with the semanticdb compiler plugin enabled.
-                |- explicitly pass in --classpath and --sourceroot to run semantic rewrites.""".stripMargin
-            ConfError.msg(msg).notOk
+            ConfError
+              .msg(
+                "Unable to infer --classpath containing .semanticdb files. " +
+                  "Please provide --classpath explicitly.")
+              .notOk
           }
       }
 
-    val resolvedSourceroot: AbsolutePath =
-      sourceroot
+    val resolvedSourceroot: Configured[AbsolutePath] = {
+      val result = sourceroot
         .map(AbsolutePath(_))
         .getOrElse(common.workingPath)
+      if (result.isDirectory) Ok(result)
+      else {
+        ConfError.msg(s"Invalid --sourceroot $result is not a directory!").notOk
+      }
+    }
 
     // We don't know yet if we need to compute the database or not.
     // If all the rewrites are syntactic, we never need to compute the semanticCtx.
@@ -305,21 +312,20 @@ object CliRunner {
     private var cachedDatabase = Option.empty[Configured[SemanticCtx]]
     private def computeAndCacheDatabase(): Option[SemanticCtx] = {
       val result: Configured[SemanticCtx] = cachedDatabase.getOrElse {
-        resolveClasspath.andThen { classpath =>
-          val db = SemanticCtx.load(
-            Sbthost.patchDatabase(
-              Database.load(classpath, Sourcepath(resolvedSourceroot)),
-              resolvedSourceroot))
-          if (verbose) {
-            common.err.println(
-              s"Loaded database with ${db.entries.length} entries.")
-          }
-          if (db.entries.nonEmpty) Ok(db)
-          else {
-            ConfError
-              .msg("Missing SemanticCtx, found no semanticdb files!")
-              .notOk
-          }
+        (resolveClasspath |@| resolvedSourceroot).andThen {
+          case (classpath, root) =>
+            val db = SemanticCtx.load(Sbthost
+              .patchDatabase(Database.load(classpath, Sourcepath(root)), root))
+            if (verbose) {
+              common.err.println(
+                s"Loaded database with ${db.entries.length} entries.")
+            }
+            if (db.entries.nonEmpty) Ok(db)
+            else {
+              ConfError
+                .msg("Missing SemanticCtx, found no semanticdb files!")
+                .notOk
+            }
         }
       }
       if (cachedDatabase.isEmpty) {
@@ -332,13 +338,12 @@ object CliRunner {
       else computeAndCacheDatabase()
     }
     private val lazySemanticCtx: LazySemanticCtx =
-      new LazySemanticCtx(resolveDatabase, common.reporter)
+      new LazySemanticCtx(resolveDatabase, diagnostic)
 
     // expands a single file into a list of files.
     def expand(matcher: FilterMatcher)(path: AbsolutePath): Seq[FixFile] = {
       if (!path.toFile.exists()) {
-        common.reporter.error(
-          s"$path does not exist. ${common.workingDirectory}")
+        common.cliArg.error(s"$path does not exist. ${common.workingDirectory}")
         Nil
       } else if (path.isDirectory) {
         val builder = Seq.newBuilder[FixFile]
@@ -439,7 +444,9 @@ object CliRunner {
           else Ok(rewrite)
       }
     val resolvedConfig: Configured[ScalafixConfig] =
-      resolvedRewriteAndConfig.map(_._2)
+      resolvedRewriteAndConfig.map {
+        case (_, config) => config.withFreshReporters
+      }
 
     val resolvedPathReplace: Configured[AbsolutePath => AbsolutePath] = try {
       val outFromPattern = Pattern.compile(outFrom.getOrElse(""))
@@ -455,23 +462,34 @@ object CliRunner {
     }
 
     val semanticInputs: Configured[Map[AbsolutePath, Input.VirtualFile]] = {
-      resolvedRewrite.andThen { _ =>
-        cachedDatabase.getOrElse(Ok(SemanticCtx(Nil))).map { database =>
-          val inputsByAbsolutePath =
-            database.entries.toIterator.map(_.input).collect {
-              case input @ Input.VirtualFile(path, _) =>
-                resolvedSourceroot.resolve(path) -> input
-            }
-          inputsByAbsolutePath.toMap
-        }
+      (resolvedRewrite |@| resolvedSourceroot).andThen {
+        case (_, root) =>
+          cachedDatabase.getOrElse(Ok(SemanticCtx(Nil))).map { database =>
+            val inputsByAbsolutePath =
+              database.entries.toIterator.map(_.input).collect {
+                case input @ Input.VirtualFile(path, _) =>
+                  val key = root.resolve(path)
+                  if (!key.isFile) {
+                    common.cliArg.error(
+                      s"semanticdb input $key is not a file. Is --sourceroot correct?")
+                  }
+                  key -> input
+              }
+            inputsByAbsolutePath.toMap
+          }
       }
     }
 
     val fixFilesWithSemanticCtx: Configured[Seq[FixFile]] =
-      semanticInputs.product(fixFiles).map {
+      (semanticInputs |@| fixFiles).map {
         case (fromSemanticCtx, files) =>
           files.map { file =>
             val labeled = fromSemanticCtx.get(file.original.path)
+            if (fromSemanticCtx.nonEmpty && labeled.isEmpty) {
+              common.cliArg.error(
+                s"No semanticdb associated with ${file.original.path}. " +
+                  s"Is --sourceroot correct?")
+            }
             file.copy(semanticCtx = labeled)
           }
       }

@@ -30,6 +30,7 @@ case class PrintStreamReporter(
       }
     }
   private val _errorCount = new AtomicInteger()
+  override def reset: PrintStreamReporter = copy()
 
   override def report(message: String, position: Position, severity: Severity)(
       implicit ctx: LogContext): Unit = {

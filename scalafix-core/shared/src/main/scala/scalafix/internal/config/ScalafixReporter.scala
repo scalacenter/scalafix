@@ -9,6 +9,9 @@ trait ScalafixReporter {
   /** Returns true if this reporter has seen an error */
   def hasErrors: Boolean = errorCount > 0
 
+  /** Clear any internal mutable state */
+  private[scalafix] def reset: ScalafixReporter
+
   /** Returns the number of reported errors */
   def errorCount: Int
 
