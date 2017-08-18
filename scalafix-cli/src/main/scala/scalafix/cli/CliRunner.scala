@@ -59,7 +59,6 @@ sealed abstract case class CliRunner(
         if (cli.stdout) cli.common.err else cli.common.out),
       fallbackMode = cli.nonInteractive || TermDisplay.defaultFallbackMode)
     if (inputs.length > 10) display.init()
-    if (inputs.isEmpty) common.err.println("Running scalafix on 0 files.")
     val msg = cli.projectIdPrefix + s"Running ${rewrite.name}"
     display.startTask(msg, common.workingDirectoryFile)
     display.taskLength(msg, inputs.length, 0)
@@ -376,15 +375,21 @@ object CliRunner {
           .notOk
     }
 
-    val fixFiles: Configured[Seq[FixFile]] = for {
-      pathMatcher <- resolvedPathMatcher
-    } yield {
-      val paths =
-        if (cli.files.nonEmpty) cli.files.map(AbsolutePath(_))
-        // If no files are provided, assume cwd.
-        else common.workingPath :: Nil
-      paths.toVector.flatMap(expand(pathMatcher))
-    }
+    val fixFiles: Configured[Seq[FixFile]] =
+      resolvedPathMatcher.andThen { pathMatcher =>
+        val paths =
+          if (cli.files.nonEmpty) cli.files.map(AbsolutePath(_))
+          // If no files are provided, assume cwd.
+          else common.workingPath :: Nil
+        val result = paths.toVector.flatMap(expand(pathMatcher))
+        if (result.isEmpty) {
+          ConfError
+            .msg(
+              s"No files to fix! Missing at least one .scala or .sbt file from: " +
+                paths.mkString(", "))
+            .notOk
+        } else Ok(result)
+      }
 
     val resolvedConfigInput: Configured[Input] =
       (config, configStr) match {
@@ -413,14 +418,8 @@ object CliRunner {
     val resolvedRewriteAndConfig: Configured[(Rewrite, ScalafixConfig)] = {
       val decoder = ScalafixReflect.fromLazySemanticCtx(lazySemanticCtx)
       fixFiles.andThen { inputs =>
-        val configured =
-          if (inputs.isEmpty) Ok(Rewrite.empty -> ScalafixConfig.default)
-          else {
-            resolvedConfigInput.andThen(
-              input =>
-                ScalafixConfig.fromInput(input, lazySemanticCtx, rewrites)(
-                  decoder))
-          }
+        val configured = resolvedConfigInput.andThen(input =>
+          ScalafixConfig.fromInput(input, lazySemanticCtx, rewrites)(decoder))
         configured.map { configuration =>
           // TODO(olafur) implement withFilter on Configured
           val (finalRewrite, scalafixConfig) = configuration

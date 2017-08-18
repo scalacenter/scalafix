@@ -155,7 +155,6 @@ class CliTest extends BaseCliTest {
     expectedExit = ExitStatus.Ok
   )
 
-  val stdout = new ByteArrayOutputStream()
   check(
     name = "--stdout does not write to file",
     originalLayout = s"""|/a.scala
@@ -170,13 +169,8 @@ class CliTest extends BaseCliTest {
     expectedLayout = s"""|/a.scala
                          |$original""".stripMargin,
     expectedExit = ExitStatus.Ok,
-    common = default.common.copy(out = new PrintStream(stdout))
+    output => assertNoDiff(output, expected)
   )
-
-  test("--stdout prints to stdout") {
-    val obtained = stdout.toString
-    assertNoDiff(obtained, expected)
-  }
 
   test("--rewrites") {
     val RunScalafix(runner) =
@@ -218,7 +212,6 @@ class CliTest extends BaseCliTest {
     expectedExit = ExitStatus.Ok
   )
 
-  val deprecatedOut = new ByteArrayOutputStream()
   check(
     name = "deprecated name emits warning",
     originalLayout = s"""|/a.scala
@@ -237,12 +230,28 @@ class CliTest extends BaseCliTest {
                          |}
                          |""".stripMargin,
     expectedExit = ExitStatus.Ok,
-    default.common.copy(out = new PrintStream(deprecatedOut))
+    output => assert(output.contains("Use DottyVolatileLazyVal instead"))
   )
-  test("RewriteIdentifier.deprecated is reported") {
-    val obtained = deprecatedOut.toString
-    assert(obtained.contains("Use DottyVolatileLazyVal instead"))
-  }
+
+  check(
+    name = "no files to fix is error",
+    originalLayout = s"""|/dir/a.java
+                         |package a;
+                         |class A
+                         |""".stripMargin,
+    args = Seq(
+      "-r",
+      ProcedureSyntax.toString,
+      "dir"
+    ),
+    expectedLayout = s"""|/dir/a.java
+                         |package a;
+                         |class A
+                         |""".stripMargin,
+    expectedExit = ExitStatus.InvalidCommandLineOption, { output =>
+      assert(output.contains("No files to fix!") && output.contains("dir"))
+    }
+  )
 
   test("--zsh") {
     val obtained = parse(Seq("--zsh"))

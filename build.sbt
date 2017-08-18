@@ -453,7 +453,6 @@ lazy val compilerOptions = Def.setting {
     "-encoding",
     "UTF-8",
     "-feature",
-    warnUnusedImports,
     "-unchecked"
   )
 }
