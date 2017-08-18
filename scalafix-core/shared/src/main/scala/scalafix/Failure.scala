@@ -1,7 +1,5 @@
 package scalafix
 
-import scala.meta._
-
 // TODO(olafur) this signature makes no sense. We should try to avoid exception
 // try/catch dodgeball court whenever possible.
 sealed abstract class Failure(val ex: Throwable)

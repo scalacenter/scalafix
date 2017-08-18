@@ -17,7 +17,6 @@ import java.util.regex.PatternSyntaxException
 import scala.meta._
 import scala.meta.inputs.Input
 import scala.meta.internal.inputs._
-import scala.meta.internal.tokenizers.PlatformTokenizerCache
 import scala.meta.io.AbsolutePath
 import scala.meta.sbthost.Sbthost
 import scala.util.Try
@@ -37,7 +36,6 @@ import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
 import metaconfig.Configured.Ok
 import metaconfig._
-import org.scalameta.logger
 
 sealed abstract case class CliRunner(
     sourceroot: AbsolutePath,

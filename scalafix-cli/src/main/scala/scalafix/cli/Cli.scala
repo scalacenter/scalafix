@@ -10,9 +10,6 @@ import scalafix.internal.cli.CommonOptions
 import scalafix.internal.cli.ScalafixOptions
 import scalafix.rewrite.ScalafixRewrites
 import scala.meta.io.AbsolutePath
-import scalafix.internal.config.PrintStreamReporter
-import scalafix.internal.config.ScalafixReporter
-import scalafix.internal.util.Severity
 import caseapp.Name
 import caseapp.core.Arg
 import caseapp.core.Messages

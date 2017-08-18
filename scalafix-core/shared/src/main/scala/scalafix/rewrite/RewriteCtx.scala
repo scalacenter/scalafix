@@ -8,7 +8,6 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.internal.config.ScalafixReporter
 import scalafix.internal.util.SymbolOps.BottomSymbol
-import scalafix.lint.LintSeverity
 import scalafix.patch.LintPatch
 import scalafix.patch.PatchOps
 import scalafix.patch.TokenPatch

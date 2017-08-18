@@ -15,5 +15,6 @@ addSbtPlugin(
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % "0.6.18")
 addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.7.0")
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.1.14")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.5.0-M4")
 
 libraryDependencies += "org.scala-sbt" % "scripted-plugin" % sbtVersion.value

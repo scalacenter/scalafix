@@ -1,7 +1,6 @@
 package scalafix
 package testkit
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scalafix.syntax._
 import scala.meta._
@@ -11,7 +10,6 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 import org.scalatest.exceptions.TestFailedException
 import scala.meta.internal.inputs.XtensionPositionFormatMessage
-import scalafix.lint.LintSeverity
 
 abstract class SemanticRewriteSuite(
     val semanticCtx: SemanticCtx,

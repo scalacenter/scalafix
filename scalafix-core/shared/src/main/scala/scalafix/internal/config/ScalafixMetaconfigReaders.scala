@@ -25,7 +25,6 @@ import metaconfig.Configured.Ok
 import scalafix.internal.config.MetaconfigParser.{parser => hoconParser}
 import scalafix.patch.TreePatch
 import scalafix.rewrite.ConfigRewrite
-import org.scalameta.logger
 
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
 // A collection of metaconfig.Reader instances that are shared across
