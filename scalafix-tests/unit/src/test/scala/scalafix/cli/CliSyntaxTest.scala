@@ -212,4 +212,29 @@ class CliSyntaxTest extends BaseCliTest {
       assert(output.contains("No files to fix!") && output.contains("dir"))
     }
   )
+
+  check(
+    name = "--out-from --out-to change output path",
+    originalLayout = """
+                       |/src/shared/a.scala
+                       |object a { def foo { println(1) } }
+                       |""".stripMargin,
+    args = List(
+      "-r",
+      ProcedureSyntax.toString,
+      "--out-from",
+      "shared",
+      "--out-to",
+      "fixed",
+      "src"
+    ),
+    expectedLayout = """
+                       |/src/fixed/a.scala
+                       |object a { def foo: Unit = { println(1) } }
+                       |
+                       |/src/shared/a.scala
+                       |object a { def foo { println(1) } }
+                       |""".stripMargin,
+    expectedExit = ExitStatus.Ok
+  )
 }
