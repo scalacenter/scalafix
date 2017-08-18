@@ -4,6 +4,7 @@ import scalafix.lint.LintSeverity
 import metaconfig.ConfDecoder
 
 case class LintConfig(
+    reporter: ScalafixReporter = ScalafixReporter.default,
     explain: Boolean = false,
     ignore: FilterMatcher = FilterMatcher.matchNothing,
     info: FilterMatcher = FilterMatcher.matchNothing,
@@ -13,12 +14,13 @@ case class LintConfig(
   val reader: ConfDecoder[LintConfig] =
     ConfDecoder.instanceF[LintConfig] { c =>
       (
-        c.getOrElse("explain")(explain) |@|
+        c.getOrElse("reporter")(reporter) |@|
+          c.getOrElse("explain")(explain) |@|
           c.getOrElse("ignore")(ignore) |@|
           c.getOrElse("info")(info) |@|
           c.getOrElse("warning")(warning) |@|
           c.getOrElse("error")(error)
-      ).map { case ((((a, b), c), d), e) => LintConfig(a, b, c, d, e) }
+      ).map { case (((((a, b), c), d), e), f) => LintConfig(a, b, c, d, e, f) }
     }
 
   def getConfiguredSeverity(key: String): Option[LintSeverity] =

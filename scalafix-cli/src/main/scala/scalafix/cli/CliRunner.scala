@@ -80,7 +80,7 @@ sealed abstract case class CliRunner(
     }
     display.stop()
     val exit = exitCode.get()
-    if (config.reporter.hasErrors) {
+    if (config.lint.reporter.hasErrors) {
       ExitStatus.merge(ExitStatus.LinterError, exit)
     } else exit
   }
@@ -223,7 +223,7 @@ object CliRunner {
     ).map {
       case (((sourceroot, replace), inputs), config) =>
         if (options.verbose) {
-          options.diagnostic.println(
+          options.diagnostic.info(
             s"""|Config:
                 |${Class2Hocon(config)}
                 |Rewrite:
@@ -338,13 +338,12 @@ object CliRunner {
       else computeAndCacheDatabase()
     }
     private val lazySemanticCtx: LazySemanticCtx =
-      new LazySemanticCtx(resolveDatabase, common.reporter)
+      new LazySemanticCtx(resolveDatabase, diagnostic)
 
     // expands a single file into a list of files.
     def expand(matcher: FilterMatcher)(path: AbsolutePath): Seq[FixFile] = {
       if (!path.toFile.exists()) {
-        common.reporter.error(
-          s"$path does not exist. ${common.workingDirectory}")
+        common.cliArg.error(s"$path does not exist. ${common.workingDirectory}")
         Nil
       } else if (path.isDirectory) {
         val builder = Seq.newBuilder[FixFile]
@@ -445,7 +444,9 @@ object CliRunner {
           else Ok(rewrite)
       }
     val resolvedConfig: Configured[ScalafixConfig] =
-      resolvedRewriteAndConfig.map(_._2)
+      resolvedRewriteAndConfig.map {
+        case (_, config) => config.withFreshReporters
+      }
 
     val resolvedPathReplace: Configured[AbsolutePath => AbsolutePath] = try {
       val outFromPattern = Pattern.compile(outFrom.getOrElse(""))
@@ -469,7 +470,7 @@ object CliRunner {
                 case input @ Input.VirtualFile(path, _) =>
                   val key = root.resolve(path)
                   if (!key.isFile) {
-                    common.reporter.error(
+                    common.cliArg.error(
                       s"semanticdb input $key is not a file. Is --sourceroot correct?")
                   }
                   key -> input
@@ -485,8 +486,9 @@ object CliRunner {
           files.map { file =>
             val labeled = fromSemanticCtx.get(file.original.path)
             if (fromSemanticCtx.nonEmpty && labeled.isEmpty) {
-              common.reporter.error(
-                s"No semanticdb associated with ${file.original.path}")
+              common.cliArg.error(
+                s"No semanticdb associated with ${file.original.path}. " +
+                  s"Is --sourceroot correct?")
             }
             file.copy(semanticCtx = labeled)
           }

@@ -52,7 +52,7 @@ class CliSemanticTest extends BaseCliTest {
   )
 
   checkSemantic(
-    name = "--sourceroot fails to resolve all --files",
+    name = "--sourceroot does not resolve all --files",
     args = Seq(
       "--sourceroot",
       CommonOptions.default.workingPath
@@ -68,6 +68,7 @@ class CliSemanticTest extends BaseCliTest {
     outputAssert = msg => {
       assert(msg.contains("No semanticdb associated with"))
       assert(msg.contains(removeImportsPath.toString()))
+      assert(msg.contains("Is --sourceroot correct?"))
     }
   )
 }

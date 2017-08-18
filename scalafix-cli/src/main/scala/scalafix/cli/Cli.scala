@@ -226,7 +226,7 @@ object ScalafixRewriteNames {
     val result = cliCommand match {
       case CliCommand.PrintAndExit(msg, exit) =>
         if (exit.isOk) commonOptions.out.println(msg)
-        else commonOptions.reporter.error(msg)
+        else commonOptions.cliArg.error(msg)
         exit
       case CliCommand.RunScalafix(runner) =>
         val exit = runner.run()
@@ -234,7 +234,7 @@ object ScalafixRewriteNames {
     }
     // This one accummulates a lot of garbage, scalameta needs to get rid of it.
     PlatformTokenizerCache.megaCache.clear()
-    if (commonOptions.reporter.hasErrors) {
+    if (commonOptions.cliArg.hasErrors) {
       ExitStatus.merge(ExitStatus.InvalidCommandLineOption, result)
     } else {
       result

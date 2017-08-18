@@ -18,8 +18,7 @@ case class CommonOptions(
     @Hidden err: PrintStream = System.err,
     @Hidden stackVerbosity: Int = 20
 ) {
-
-  lazy val reporter: PrintStreamReporter =
+  lazy val cliArg: PrintStreamReporter =
     ScalafixReporter.default.copy(outStream = out)
   def workingPath = AbsolutePath(workingDirectory)
   def workingDirectoryFile = new File(workingDirectory)
@@ -138,6 +137,8 @@ case class ScalafixOptions(
     sbt: Option[String] = None
 ) {
   def projectIdPrefix: String = projectId.fold("")(id => s"[$id] ")
-  def diagnostic: PrintStream =
-    if (stdout) common.err else common.out
+  lazy val diagnostic: ScalafixReporter =
+    ScalafixReporter.default.copy(
+      outStream = if (stdout) common.err else common.out
+    )
 }

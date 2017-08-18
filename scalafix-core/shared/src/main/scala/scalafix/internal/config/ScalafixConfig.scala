@@ -26,6 +26,13 @@ case class ScalafixConfig(
     x.getOrElse[T](key)(default).get
   }
 
+  def withFreshReporters: ScalafixConfig = copy(
+    reporter = reporter.reset,
+    lint = lint.copy(
+      reporter = lint.reporter.reset
+    )
+  )
+
   val reader: ConfDecoder[ScalafixConfig] =
     ConfDecoder.instanceF[ScalafixConfig] { conf =>
       import conf._
