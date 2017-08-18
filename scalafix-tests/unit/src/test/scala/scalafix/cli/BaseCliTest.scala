@@ -42,15 +42,22 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
       args: Seq[String],
       expectedLayout: String,
       expectedExit: ExitStatus,
-      common: CommonOptions = devNull
+      outputAssert: String => Unit = _ => ()
   ): Unit = {
     test(name) {
+      val out = new ByteArrayOutputStream()
       val root = StringFS.string2dir(originalLayout)
       val exit =
-        Cli.runMain(args, common.copy(workingDirectory = root.toString()))
+        Cli.runMain(
+          args,
+          default.common.copy(
+            workingDirectory = root.toString(),
+            out = new PrintStream(out)
+          ))
       assert(exit == expectedExit)
       val obtained = StringFS.dir2string(root)
       assertNoDiff(obtained, expectedLayout)
+      outputAssert(out.toString)
     }
   }
   def parse(args: Seq[String]): CliCommand =
