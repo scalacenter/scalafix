@@ -64,7 +64,7 @@ lazy val publishSettings = Seq(
     </developers>
 )
 
-lazy val noPublish = Seq(
+lazy val noPublish = allSettings ++ Seq(
   publishArtifact := false,
   publish := {},
   publishLocal := {}
@@ -263,10 +263,7 @@ lazy val testsDeps = List(
 
 lazy val testsShared = project
   .in(file("scalafix-tests/shared"))
-  .settings(
-    allSettings,
-    noPublish
-  )
+  .settings(noPublish)
 
 lazy val semanticdbSettings = Seq(
   scalacOptions ++= List(
@@ -280,7 +277,6 @@ lazy val semanticdbSettings = Seq(
 lazy val testsInput = project
   .in(file("scalafix-tests/input"))
   .settings(
-    allSettings,
     noPublish,
     semanticdbSettings,
     scalacOptions += s"-P:semanticdb:sourceroot:${sourceDirectory.in(Compile).value}",
@@ -297,7 +293,6 @@ lazy val testsInput = project
 lazy val testsOutput = project
   .in(file("scalafix-tests/output"))
   .settings(
-    allSettings,
     noPublish,
     semanticdbSettings,
     scalacOptions -= warnUnusedImports,
@@ -309,7 +304,6 @@ lazy val testsOutput = project
 lazy val testsOutputDotty = project
   .in(file("scalafix-tests/output-dotty"))
   .settings(
-    allSettings,
     noPublish,
     // Skip this project for IntellIJ, see https://youtrack.jetbrains.com/issue/SCL-12237
     SettingKey[Boolean]("ide-skip-project") := true,
@@ -322,6 +316,7 @@ lazy val testsOutputDotty = project
 lazy val testsInputSbt = project
   .in(file("scalafix-tests/input-sbt"))
   .settings(
+    noPublish,
     logLevel := Level.Error, // avoid flood of deprecation warnings.
     scalacOptions += "-Xplugin-require:sbthost",
     is210Only,
@@ -334,7 +329,6 @@ lazy val testsInputSbt = project
 lazy val testsOutputSbt = project
   .in(file("scalafix-tests/output-sbt"))
   .settings(
-    allSettings,
     noPublish,
     is210Only,
     sbtPlugin := true
@@ -343,7 +337,6 @@ lazy val testsOutputSbt = project
 lazy val unit = project
   .in(file("scalafix-tests/unit"))
   .settings(
-    allSettings,
     noPublish,
     fork := false,
     javaOptions := Nil,
@@ -388,7 +381,6 @@ lazy val integration = project
   .in(file("scalafix-tests/integration"))
   .configs(IntegrationTest)
   .settings(
-    allSettings,
     noPublish,
     Defaults.itSettings,
     test.in(IntegrationTest) := {
@@ -418,7 +410,6 @@ lazy val readme = scalatex
     url = "https://github.com/scalacenter/scalafix/tree/master",
     source = "Readme")
   .settings(
-    allSettings,
     noPublish,
     git.remoteRepo := "git@github.com:scalacenter/scalafix.git",
     siteSourceDirectory := target.value / "scalatex",
