@@ -85,7 +85,7 @@ case class ExplicitReturnTypes(semanticCtx: SemanticCtx)
         // Example: `val x = ` from `val x = rhs.banana`
         lhsTokens = slice(start, end)
         replace <- lhsTokens.reverseIterator.find(x =>
-          !x.is[Token.Equals] && !x.is[Whitespace])
+          !x.is[Token.Equals] && !x.is[Trivia])
         typ <- defnType(defn)
       } yield ctx.addRight(replace, s": ${treeSyntax(typ)}")
     }.to[Seq]
