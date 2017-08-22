@@ -4,7 +4,6 @@ import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.contrib._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
-import scala.meta.internal.tokenizers.Chars
 import scalafix.Patch
 import scalafix.SemanticCtx
 import scalafix.internal.config.MemberKind
@@ -12,7 +11,7 @@ import scalafix.internal.config.MemberVisibility
 import scalafix.rewrite.RewriteCtx
 import scalafix.rewrite.SemanticRewrite
 import scalafix.syntax._
-import scalafix.util.Whitespace
+import scalafix.util.TokenOps
 
 case class ExplicitReturnTypes(semanticCtx: SemanticCtx)
     extends SemanticRewrite(semanticCtx) {
@@ -89,7 +88,7 @@ case class ExplicitReturnTypes(semanticCtx: SemanticCtx)
           !x.is[Token.Equals] && !x.is[Trivia])
         typ <- defnType(defn)
         space = {
-          if (replace.syntax.lastOption.exists(Chars.isOperatorPart)) " "
+          if (TokenOps.needsLeadingSpaceBeforeColon(replace)) " "
           else ""
         }
       } yield ctx.addRight(replace, s"$space: ${treeSyntax(typ)}")
