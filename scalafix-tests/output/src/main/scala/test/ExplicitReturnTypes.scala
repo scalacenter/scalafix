@@ -3,6 +3,10 @@ package test
 import scala.language.implicitConversions
 
 object ExplicitReturnTypes {
+  def foo(x: Int): Int =
+    // comment
+    x + 2
+  def * : Int = "abc".length
   val a: Int = 1 + 2
   def b(): String = "a" + "b"
   var c: Boolean = 1 == 1

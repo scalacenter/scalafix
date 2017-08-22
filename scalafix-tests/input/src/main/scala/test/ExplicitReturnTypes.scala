@@ -8,6 +8,10 @@ package test
 import scala.language.implicitConversions
 
 object ExplicitReturnTypes {
+  def foo(x: Int) =
+    // comment
+    x + 2
+  def * = "abc".length
   val a = 1 + 2
   def b() = "a" + "b"
   var c = 1 == 1

@@ -4,6 +4,7 @@ import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.contrib._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
+import scala.meta.internal.tokenizers.Chars
 import scalafix.Patch
 import scalafix.SemanticCtx
 import scalafix.internal.config.MemberKind
@@ -85,9 +86,13 @@ case class ExplicitReturnTypes(semanticCtx: SemanticCtx)
         // Example: `val x = ` from `val x = rhs.banana`
         lhsTokens = slice(start, end)
         replace <- lhsTokens.reverseIterator.find(x =>
-          !x.is[Token.Equals] && !x.is[Whitespace])
+          !x.is[Token.Equals] && !x.is[Trivia])
         typ <- defnType(defn)
-      } yield ctx.addRight(replace, s": ${treeSyntax(typ)}")
+        space = {
+          if (replace.syntax.lastOption.exists(Chars.isOperatorPart)) " "
+          else ""
+        }
+      } yield ctx.addRight(replace, s"$space: ${treeSyntax(typ)}")
     }.to[Seq]
 
     def treeSyntax(tree: Tree): String =
