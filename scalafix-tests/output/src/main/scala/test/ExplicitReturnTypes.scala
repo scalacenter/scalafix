@@ -3,10 +3,6 @@ package test
 import scala.language.implicitConversions
 
 object ExplicitReturnTypes {
-  def foo(x: Int): Int =
-    // comment
-    x + 2
-  def * : Int = "abc".length
   val a: Int = 1 + 2
   def b(): String = "a" + "b"
   var c: Boolean = 1 == 1
@@ -58,6 +54,15 @@ object ExplicitReturnTypes {
     case class Supplier(id: Int, name: String)
     implicit val supplierGetter: ((Int, String)) => test.ExplicitReturnTypes.slick.Supplier = (arg: (Int, String)) =>
       Supplier(arg._1, arg._2)
+  }
+  def foo(x: Int): Int =
+    // comment
+    x + 2
+  object ExtraSpace {
+    def * : Int = "abc".length
+    def foo_ : Int = "abc".length
+    def `x`: Int = "abc".length
+    def `x `: Int = "abc".length
   }
 }
 
