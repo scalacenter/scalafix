@@ -14,7 +14,7 @@
     @sect.ref{scalafix-cli}.
   @ul
     @li
-      @code{scalafixBuild} task in @sect.ref{sbt-scalafix} to run rewrites
+      @code{sbtfix} task in @sect.ref{sbt-scalafix} to run rewrites
       on build sources.
     @li
       @sect.ref{Sbt1} rewrite to migrate usage of deprecated sbt 0.13 APIs,
