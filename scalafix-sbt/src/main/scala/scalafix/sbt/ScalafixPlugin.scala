@@ -16,7 +16,7 @@ object ScalafixPlugin extends AutoPlugin {
   override def requires: Plugins = JvmPlugin
   object autoImport {
     val scalafix: InputKey[Unit] = inputKey[Unit]("Run scalafix rewrite.")
-    val scalafixBuild: InputKey[Unit] = inputKey[Unit](
+    val sbtfix: InputKey[Unit] = inputKey[Unit](
       "Run scalafix rewrite on build sources. " +
         "Requires the sbthost plugin to be enabled globally.")
     val scalafixConfig: SettingKey[Option[File]] =
@@ -28,8 +28,8 @@ object ScalafixPlugin extends AutoPlugin {
           "compiler plugin, which is necessary for semantic rewrites.")
     def scalafixScalacOptions: Def.Initialize[Seq[String]] =
       ScalafixPlugin.scalafixScalacOptions
-    def scalafixBuildSettings: Seq[Def.Setting[_]] =
-      ScalafixPlugin.scalafixBuildSettings
+    def sbtfixSettings: Seq[Def.Setting[_]] =
+      ScalafixPlugin.sbtfixSettings
     val scalafixVerbose: SettingKey[Boolean] =
       settingKey[Boolean]("pass --verbose to scalafix")
     def scalafixSettings: Seq[Def.Setting[_]] =
@@ -55,7 +55,7 @@ object ScalafixPlugin extends AutoPlugin {
     cliWrapperMainClass := "scalafix.cli.Cli$",
     scalafixEnabled := true,
     scalafixVerbose := false,
-    scalafixBuild := Def.inputTaskDyn {
+    sbtfix := Def.inputTaskDyn {
       // Will currently fail silently if semanticdb-sbt is not enabled.
       // See https://github.com/scalacenter/scalafix/issues/264
       val baseDir = (baseDirectory in ThisBuild).value
@@ -69,7 +69,7 @@ object ScalafixPlugin extends AutoPlugin {
         streams.value
       )
     }.evaluated,
-    aggregate.in(scalafixBuild) := false,
+    aggregate.in(sbtfix) := false,
     scalafixSourceroot := baseDirectory.in(ThisBuild).value,
     scalafixVersion := Versions.version,
     scalafixSemanticdbVersion := Versions.scalameta,
@@ -115,7 +115,7 @@ object ScalafixPlugin extends AutoPlugin {
     }
   }
 
-  lazy val scalafixBuildSettings: Seq[Def.Setting[_]] = Def.settings(
+  lazy val sbtfixSettings: Seq[Def.Setting[_]] = Def.settings(
     libraryDependencies ++= {
       val sbthost = "org.scalameta" % "sbthost-nsc" % Versions.sbthost cross CrossVersion.full
       val isMetabuild = {

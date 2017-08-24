@@ -239,7 +239,7 @@
         @li
           Install @sect.ref{semanticdb-sbt}
         @li
-          Run @code{scalafixBuild}
+          Run @code{sbtfix}
     @hl.scala
       // before
       x <+= (y in Compile)

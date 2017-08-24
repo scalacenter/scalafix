@@ -73,7 +73,7 @@
             Run scalafix on project sources.
             See @sect.ref{Rewrites} or use tab completion to explore
             supported rewrites.
-          @sbtkey("scalafixBuild <rewrite>..", "Unit")
+          @sbtkey("sbtfix <rewrite>..", "Unit")
             Run scalafix on the build sources, @code{*.sbt} and
             @code{project/*}.
             @note Requires @sect.ref{semanticdb-sbt} enabled globally
@@ -108,7 +108,7 @@
         addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@V.stableVersion")
         // ~/.sbt/0.13/build.sbt
         import scalafix.sbt.ScalafixPlugin.autoImport._
-        scalafixBuildSettings // enable semanticdb-sbt for sbt metabuilds.
+        sbtfixSettings // enable semanticdb-sbt for sbt metabuilds.
 
       @note This integration is new, you can expect to face problems from enabling
       sbt-scalafix globally. In particular, sbt-scalafix does not at the moment
