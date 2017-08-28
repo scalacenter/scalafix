@@ -1,6 +1,6 @@
 lazy val x = {
-  unmanagedSourceDirectories <+= Def.setting(file("nested"))
+  unmanagedSourceDirectories.in(Compile) <+= Def.setting(file("nested"))
   "x"
 }
 
-unmanagedSourceDirectories <+= Def.setting(file("top"))
+unmanagedSourceDirectories.in(Compile) <+= Def.setting(file("top"))
