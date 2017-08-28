@@ -56,8 +56,6 @@ TaskKey[Unit]("check") := {
     }
 
   if (results.contains(false)) sys.error("Assertions failed.")
-  s.log.info("Checking sbtfix results")
-
 
   assert(
     assertContentMatches(

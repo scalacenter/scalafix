@@ -250,23 +250,28 @@ object CliRunner {
     path.resolve(META_INF).toFile.isDirectory &&
     path.resolve(META_INF).resolve(SEMANTICDB).toFile.isDirectory
   }
-  def autoClasspath(workingPath: AbsolutePath): Classpath = {
+  def autoClasspath(cli: ScalafixOptions): Classpath = {
     val buffer = List.newBuilder[AbsolutePath]
-    Files.walkFileTree(
-      workingPath.toNIO,
-      new SimpleFileVisitor[Path] {
-        override def preVisitDirectory(
-            dir: Path,
-            attrs: BasicFileAttributes): FileVisitResult = {
-          if (isTargetroot(dir)) {
-            buffer += AbsolutePath(dir)
-            FileVisitResult.SKIP_SUBTREE
-          } else {
-            FileVisitResult.CONTINUE
+    def walk(root: Path): Unit =
+      Files.walkFileTree(
+        root,
+        new SimpleFileVisitor[Path] {
+          override def preVisitDirectory(
+              dir: Path,
+              attrs: BasicFileAttributes): FileVisitResult = {
+            if (isTargetroot(dir)) {
+              buffer += AbsolutePath(dir)
+              FileVisitResult.SKIP_SUBTREE
+            } else {
+              FileVisitResult.CONTINUE
+            }
           }
         }
-      }
-    )
+      )
+    cli.classpathAutoRoots match {
+      case Some(cp) => Classpath(cp).shallow.foreach(x => walk(x.toNIO))
+      case None => walk(cli.common.workingPath.toNIO)
+    }
     Classpath(buffer.result())
   }
 
@@ -283,7 +288,7 @@ object CliRunner {
           }
           Ok(Classpath(paths.toList))
         case None =>
-          val cp = autoClasspath(common.workingPath)
+          val cp = autoClasspath(cli)
           if (verbose) {
             common.err.println(s"Automatic classpath=$cp")
           }
@@ -292,7 +297,7 @@ object CliRunner {
             ConfError
               .msg(
                 "Unable to infer --classpath containing .semanticdb files. " +
-                  "Please provide --classpath explicitly.")
+                  "Is the semanticdb compiler plugin installed?")
               .notOk
           }
       }
@@ -476,7 +481,7 @@ object CliRunner {
         case (_, root) =>
           cachedDatabase.getOrElse(Ok(SemanticCtx(Nil))).map { database =>
             def checkExists(path: AbsolutePath): Unit =
-              if (!path.isFile) {
+              if (!cli.noStrictSemanticdb && !path.isFile) {
                 common.cliArg.error(
                   s"semanticdb input $path is not a file. Is --sourceroot correct?")
               }
@@ -501,7 +506,7 @@ object CliRunner {
         case (fromSemanticCtx, files) =>
           files.map { file =>
             val labeled = fromSemanticCtx.get(file.original.path)
-            if (fromSemanticCtx.nonEmpty && labeled.isEmpty) {
+            if (!cli.noStrictSemanticdb && fromSemanticCtx.nonEmpty && labeled.isEmpty) {
               common.cliArg.error(
                 s"No semanticdb associated with ${file.original.path}. " +
                   s"Is --sourceroot correct?")

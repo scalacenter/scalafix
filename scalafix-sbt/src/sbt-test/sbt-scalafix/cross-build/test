@@ -6,4 +6,3 @@
 -> scalafix
 > sbtfix Sbt1
 > check
-
