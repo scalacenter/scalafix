@@ -475,15 +475,21 @@ object CliRunner {
       (resolvedRewrite |@| resolvedSourceroot).andThen {
         case (_, root) =>
           cachedDatabase.getOrElse(Ok(SemanticCtx(Nil))).map { database =>
+            def checkExists(path: AbsolutePath): Unit =
+              if (!path.isFile) {
+                common.cliArg.error(
+                  s"semanticdb input $path is not a file. Is --sourceroot correct?")
+              }
             val inputsByAbsolutePath =
               database.entries.toIterator.map(_.input).collect {
                 case input @ Input.VirtualFile(path, _) =>
                   val key = root.resolve(path)
-                  if (!key.isFile) {
-                    common.cliArg.error(
-                      s"semanticdb input $key is not a file. Is --sourceroot correct?")
-                  }
+                  checkExists(key)
                   key -> input
+                case input @ Input.File(path, _) =>
+                  checkExists(path)
+                  val contents = new String(input.chars)
+                  path -> Input.VirtualFile(path.toString(), contents)
               }
             inputsByAbsolutePath.toMap
           }

@@ -1,4 +1,6 @@
 import _root_.scalafix.Versions
+lazy val assertContentMatches: ((String, String) => Boolean) =
+  ScalafixTestUtility.assertContentMatches(streams.value) _
 updateOptions in ThisBuild := updateOptions.value.withLatestSnapshots(false)
 scalacOptions in ThisBuild += "-Ywarn-adapted-args" // For NoAutoTupling
 lazy val root = project
@@ -18,9 +20,8 @@ lazy val customSourceroot = project.settings(
   scalafixSourceroot := sourceDirectory.value
 )
 
+
 TaskKey[Unit]("check") := {
-  val assertContentMatches: ((String, String) => Boolean) =
-    ScalafixTestUtility.assertContentMatches(streams.value) _
   val expected =
     """object Main {
       |  def foo(a: (Int, String)) = a
@@ -55,4 +56,18 @@ TaskKey[Unit]("check") := {
     }
 
   if (results.contains(false)) sys.error("Assertions failed.")
+}
+
+TaskKey[Unit]("checkSbtfix") := {
+  assertContentMatches(
+    "sbtfix-me.sbt",
+    """
+      |lazy val x = {
+      |  unmanagedSourceDirectories += Def.setting(file("nested")).value
+      |  "x"
+      |}
+      |
+      |unmanagedSourceDirectories += Def.setting(file("top")).value
+      |""".stripMargin
+  )
 }

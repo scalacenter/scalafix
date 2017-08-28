@@ -5,4 +5,6 @@
 # Other >2.10 projects should succeed
 -> scalafix
 > check
+> scalafix Sbt1
+> checkSbtfix
 
