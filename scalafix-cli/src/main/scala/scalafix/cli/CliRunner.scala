@@ -252,25 +252,22 @@ object CliRunner {
   }
   def autoClasspath(cli: ScalafixOptions): Classpath = {
     val buffer = List.newBuilder[AbsolutePath]
-    def walk(root: Path): Unit =
-      Files.walkFileTree(
-        root,
-        new SimpleFileVisitor[Path] {
-          override def preVisitDirectory(
-              dir: Path,
-              attrs: BasicFileAttributes): FileVisitResult = {
-            if (isTargetroot(dir)) {
-              buffer += AbsolutePath(dir)
-              FileVisitResult.SKIP_SUBTREE
-            } else {
-              FileVisitResult.CONTINUE
-            }
-          }
+    val visitor = new SimpleFileVisitor[Path] {
+      override def preVisitDirectory(
+          dir: Path,
+          attrs: BasicFileAttributes): FileVisitResult = {
+        if (isTargetroot(dir)) {
+          buffer += AbsolutePath(dir)
+          FileVisitResult.SKIP_SUBTREE
+        } else {
+          FileVisitResult.CONTINUE
         }
-      )
+      }
+    }
     cli.classpathAutoRoots match {
-      case Some(cp) => Classpath(cp).shallow.foreach(x => walk(x.toNIO))
-      case None => walk(cli.common.workingPath.toNIO)
+      case Some(cp) =>
+        Classpath(cp).shallow.foreach(x => Files.walkFileTree(x.toNIO, visitor))
+      case None => Files.walkFileTree(cli.common.workingPath.toNIO, visitor)
     }
     Classpath(buffer.result())
   }
@@ -492,6 +489,7 @@ object CliRunner {
                   checkExists(key)
                   key -> input
                 case input @ Input.File(path, _) =>
+                  // Some semanticdbs may have Input.File, for example in semanticdb-sbt.
                   checkExists(path)
                   val contents = new String(input.chars)
                   path -> Input.VirtualFile(path.toString(), contents)

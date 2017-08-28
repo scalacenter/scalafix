@@ -60,10 +60,12 @@ case class ScalafixOptions(
     )
     @ValueDescription("entry1.jar:entry2.jar:target/scala-2.12/classes")
     classpath: Option[String] = None,
-    @HelpMessage("Directories where to automatically find --classpath")
+    @HelpMessage(
+      "Automatically infer --classpath starting from these directories. " +
+        "Ignored if --classpath is provided.")
     @ValueDescription("target:project/target")
     classpathAutoRoots: Option[String] = None,
-    @HelpMessage("Don't strictly validate semanticdb loading.")
+    @HelpMessage("Disable validation when loading semanticdb files.")
     noStrictSemanticdb: Boolean = false,
     @HelpMessage(
       s"""Rewrite rules to run.""".stripMargin
