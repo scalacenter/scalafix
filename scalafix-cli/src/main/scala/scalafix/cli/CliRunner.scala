@@ -250,7 +250,8 @@ object CliRunner {
     path.resolve(META_INF).toFile.isDirectory &&
     path.resolve(META_INF).resolve(SEMANTICDB).toFile.isDirectory
   }
-  def autoClasspath(cli: ScalafixOptions): Classpath = {
+
+  def autoClasspath(roots: List[AbsolutePath]): Classpath = {
     val buffer = List.newBuilder[AbsolutePath]
     val visitor = new SimpleFileVisitor[Path] {
       override def preVisitDirectory(
@@ -264,11 +265,7 @@ object CliRunner {
         }
       }
     }
-    cli.classpathAutoRoots match {
-      case Some(cp) =>
-        Classpath(cp).shallow.foreach(x => Files.walkFileTree(x.toNIO, visitor))
-      case None => Files.walkFileTree(cli.common.workingPath.toNIO, visitor)
-    }
+    roots.foreach(x => Files.walkFileTree(x.toNIO, visitor))
     Classpath(buffer.result())
   }
 
@@ -285,7 +282,10 @@ object CliRunner {
           }
           Ok(Classpath(paths.toList))
         case None =>
-          val cp = autoClasspath(cli)
+          val roots =
+            cli.classpathAutoRoots.fold(List(cli.common.workingPath))(cp =>
+              Classpath(cp).shallow)
+          val cp = autoClasspath(roots)
           if (verbose) {
             common.err.println(s"Automatic classpath=$cp")
           }

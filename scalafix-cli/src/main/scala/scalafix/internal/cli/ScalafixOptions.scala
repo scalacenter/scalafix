@@ -143,6 +143,9 @@ case class ScalafixOptions(
     @Hidden
     sbt: Option[String] = None
 ) {
+  def classpathRoots: List[AbsolutePath] =
+    classpathAutoRoots.fold(List(common.workingPath))(cp =>
+      Classpath(cp).shallow)
   def projectIdPrefix: String = projectId.fold("")(id => s"[$id] ")
   lazy val diagnostic: ScalafixReporter =
     ScalafixReporter.default.copy(
