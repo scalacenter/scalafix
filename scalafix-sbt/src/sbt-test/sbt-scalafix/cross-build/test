@@ -4,5 +4,5 @@
 # Should fail because 2.10 has no semanticdb
 # Other >2.10 projects should succeed
 -> scalafix
+> sbtfix Sbt1
 > check
-

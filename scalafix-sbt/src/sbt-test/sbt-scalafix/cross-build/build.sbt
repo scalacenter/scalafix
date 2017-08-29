@@ -19,8 +19,9 @@ lazy val customSourceroot = project.settings(
 )
 
 TaskKey[Unit]("check") := {
+  val s = streams.value
   val assertContentMatches: ((String, String) => Boolean) =
-    ScalafixTestUtility.assertContentMatches(streams.value) _
+    ScalafixTestUtility.assertContentMatches(s) _
   val expected =
     """object Main {
       |  def foo(a: (Int, String)) = a
@@ -55,4 +56,18 @@ TaskKey[Unit]("check") := {
     }
 
   if (results.contains(false)) sys.error("Assertions failed.")
+
+  assert(
+    assertContentMatches(
+      "sbtfix-me.sbt",
+      """
+        |lazy val x = {
+        |  unmanagedSourceDirectories.in(Compile) += Def.setting(file("nested")).value
+        |  "x"
+        |}
+        |
+        |unmanagedSourceDirectories.in(Compile) += Def.setting(file("top")).value
+        |""".stripMargin
+    )
+  )
 }

@@ -17,7 +17,7 @@ class AutoClasspathSuite extends FunSuite {
     assert(semanticdb.toFile.mkdirs())
     assert(semanticdb2.toFile.mkdirs())
     assert(fakesemanticdb.toFile.mkdirs())
-    val obtained = CliRunner.autoClasspath(AbsolutePath(tmp))
+    val obtained = CliRunner.autoClasspath(List(AbsolutePath(tmp)))
     val expected = Classpath(List(target, target2).map(AbsolutePath.apply))
     assert(obtained.shallow.toSet == expected.shallow.toSet)
   }

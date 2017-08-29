@@ -61,6 +61,13 @@ case class ScalafixOptions(
     @ValueDescription("entry1.jar:entry2.jar:target/scala-2.12/classes")
     classpath: Option[String] = None,
     @HelpMessage(
+      "Automatically infer --classpath starting from these directories. " +
+        "Ignored if --classpath is provided.")
+    @ValueDescription("target:project/target")
+    classpathAutoRoots: Option[String] = None,
+    @HelpMessage("Disable validation when loading semanticdb files.")
+    noStrictSemanticdb: Boolean = false,
+    @HelpMessage(
       s"""Rewrite rules to run.""".stripMargin
     )
     @ValueDescription(
@@ -136,6 +143,9 @@ case class ScalafixOptions(
     @Hidden
     sbt: Option[String] = None
 ) {
+  def classpathRoots: List[AbsolutePath] =
+    classpathAutoRoots.fold(List(common.workingPath))(cp =>
+      Classpath(cp).shallow)
   def projectIdPrefix: String = projectId.fold("")(id => s"[$id] ")
   lazy val diagnostic: ScalafixReporter =
     ScalafixReporter.default.copy(

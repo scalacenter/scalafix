@@ -58,12 +58,18 @@ object ScalafixPlugin extends AutoPlugin {
     sbtfix := Def.inputTaskDyn {
       // Will currently fail silently if semanticdb-sbt is not enabled.
       // See https://github.com/scalacenter/scalafix/issues/264
-      val baseDir = (baseDirectory in ThisBuild).value
+      val baseDir = baseDirectory.in(ThisBuild).value
       val sbtDir: File = baseDir./("project")
       val sbtFiles = baseDir.*("*.sbt").get
+      val extraOptions =
+        "--no-strict-semanticdb" ::
+          "--classpath-auto-roots" ::
+          baseDir./("target").getAbsolutePath ::
+          sbtDir.getAbsolutePath ::
+          Nil
       scalafixTaskImpl(
         scalafixParser.parsed,
-        Seq.empty[String],
+        extraOptions,
         sbtDir +: sbtFiles,
         "sbt-build",
         streams.value

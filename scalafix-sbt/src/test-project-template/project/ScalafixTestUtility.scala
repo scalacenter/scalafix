@@ -1,9 +1,6 @@
 import sbt.Keys.TaskStreams
 import difflib.DiffUtils
 
-/**
-  * Created by ollie on 02/01/17.
-  */
 object ScalafixTestUtility {
   private def calcDiff(expected: String, obtained: String): Option[String] = {
     import scala.collection.JavaConverters._
