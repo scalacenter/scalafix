@@ -20,8 +20,23 @@ trait SemanticCtx {
   /** Lookup symbol at this position. */
   def symbol(position: Position): Option[Symbol]
 
+  /** Lookup symbol at this tree.
+    *
+    * This method returns the same result as symbol(Tree.Position) in most cases
+    * but handles some special cases:
+    * - when tree is Term/Type.Select(_, name), query by name.position
+    * - workaround for https://github.com/scalameta/scalameta/issues/1083
+    */
+  def symbol(tree: Tree): Option[Symbol]
+
   /** Lookup denotation of this symbol. */
   def denotation(symbol: Symbol): Option[Denotation]
+
+  /** Lookup denotation of this tree.
+    *
+    * Shorthand method for symbol(tree).flatMap(denotation).
+    */
+  def denotation(tree: Tree): Option[Denotation]
 }
 
 object SemanticCtx {

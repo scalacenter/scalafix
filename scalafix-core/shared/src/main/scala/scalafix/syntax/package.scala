@@ -9,21 +9,18 @@ import scalafix.internal.util.SymbolOps
 import scalafix.util.TreeOps
 
 package object syntax {
-
   implicit class XtensionRefSymbolOpt(tree: Tree)(
       implicit semanticCtx: SemanticCtx) {
     @deprecated("Renamed to symbol", "0.5.0")
     def symbolOpt: Option[Symbol] = symbol
     def symbol: Option[Symbol] = semanticCtx.symbol(tree.pos)
   }
-
   implicit class XtensionParsedOpt[T](parsed: Parsed[T]) {
     def toOption: Option[T] = parsed match {
       case parsers.Parsed.Success(tree) => Some(tree)
       case _ => None
     }
   }
-
   implicit class XtensionSymbolSemanticCtx(symbol: Symbol)(
       implicit semanticCtx: SemanticCtx) {
     @deprecated("Renamed to denotation", "0.5.0")
@@ -31,15 +28,6 @@ package object syntax {
     def denotation: Option[Denotation] = semanticCtx.denotation(symbol)
   }
   implicit class XtensionSymbol(symbol: Symbol) {
-    private def underlyingSymbols(symbol: Symbol): Seq[Symbol] = symbol match {
-      case Symbol.Multi(symbols) => symbols
-      case _ => List(symbol)
-    }
-    def isSameNormalized(other: Symbol): Boolean = {
-      val syms = underlyingSymbols(symbol).map(_.normalized)
-      val otherSyms = underlyingSymbols(other).map(_.normalized)
-      syms.exists(otherSyms.contains)
-    }
     def normalized: Symbol = SymbolOps.normalize(symbol)
   }
   implicit class XtensionAttributes(attributes: Attributes) {

@@ -50,4 +50,13 @@ object SymbolOps {
       Symbol.Global(normalize(sym), Signature.Term(sig.name))
     case x => x
   }
+  private def underlyingSymbols(symbol: Symbol): Seq[Symbol] = symbol match {
+    case Symbol.Multi(symbols) => symbols
+    case _ => List(symbol)
+  }
+  def isSameNormalized(a: Symbol, b: Symbol): Boolean = {
+    val syms = underlyingSymbols(a).map(normalize)
+    val otherSyms = underlyingSymbols(b).map(normalize)
+    syms.exists(otherSyms.contains)
+  }
 }
