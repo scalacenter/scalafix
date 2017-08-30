@@ -77,7 +77,8 @@ case class ExplicitReturnTypes(sctx: SemanticCtx)
     import scala.meta._
     import ctx._
     def fix(defn: Defn, body: Term): Seq[Patch] = {
-      import ctx.tokenList._
+      val lst = ctx.tokenList
+      import lst._
       for {
         start <- defn.tokens.headOption
         end <- body.tokens.headOption
@@ -101,7 +102,8 @@ case class ExplicitReturnTypes(sctx: SemanticCtx)
         defn: D,
         mods: Traversable[Mod],
         body: Term)(implicit ev: Extract[D, Mod]): Boolean = {
-      import ctx.config.explicitReturnTypes._
+      val config = ctx.config
+      import config.explicitReturnTypes._
 
       def matchesMemberVisibility(): Boolean =
         memberVisibility.contains(visibility(mods))

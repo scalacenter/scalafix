@@ -10,7 +10,6 @@ import scalafix.rewrite.RewriteCtx
 
 case object ProcedureSyntax extends Rewrite {
   override def rewrite(ctx: RewriteCtx): Patch = {
-    import ctx.tokenList._
     val patches: Seq[Patch] = ctx.tree.collect {
       case t: Defn.Def
           if t.decltpe.exists(_.tokens.isEmpty) &&
@@ -21,7 +20,10 @@ case object ProcedureSyntax extends Rewrite {
           lastParam <- lastParmList.lastOption
         } yield lastParam.tokens.last).getOrElse(t.name.tokens.last)
         val closingParen =
-          slice(defEnd, bodyStart).find(_.is[RightParen]).getOrElse(defEnd)
+          ctx.tokenList
+            .slice(defEnd, bodyStart)
+            .find(_.is[RightParen])
+            .getOrElse(defEnd)
         ctx.addRight(closingParen, s": Unit =")
     }
     patches.asPatch

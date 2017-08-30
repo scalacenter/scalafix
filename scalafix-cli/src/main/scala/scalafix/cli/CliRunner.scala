@@ -145,7 +145,7 @@ sealed abstract case class CliRunner(
               Files.write(outFile.toNIO, fixed.getBytes(input.original.charset))
               ExitStatus.Ok
             } else {
-              ctx.reporter.error(
+              cli.diagnostic.error(
                 s"Stale semanticdb for ${CliRunner.pretty(outFile)}, skipping rewrite. Please recompile.")
               if (cli.verbose) {
                 val diff =
