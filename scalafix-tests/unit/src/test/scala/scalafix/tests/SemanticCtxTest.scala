@@ -8,7 +8,7 @@ class SemanticCtxTest extends BaseSemanticTest("SemanticCtxTest") {
 
   test("symbol(Importee.Name)") {
     val mutable =
-      SymbolMatcher(Symbol("_root_.scala.collection.mutable."))
+      SymbolMatcher.exact(Symbol("_root_.scala.collection.mutable."))
     var hasAssert = false
     source.collect {
       case importee @ Importee.Name(name @ Name("mutable")) =>
@@ -20,13 +20,26 @@ class SemanticCtxTest extends BaseSemanticTest("SemanticCtxTest") {
   }
 
   test("symbol(Type.Select)") {
-    val success =
-      SymbolMatcher(Symbol("_root_.scala.util.Success."))
+    val listBuffer =
+      SymbolMatcher.exact(Symbol("_root_.scala.collection.mutable.ListBuffer#"))
     var hasAssert = false
     source.collect {
-      case importee @ Importee.Rename(name @ Name("Success"), _) =>
-        assert(sctx.symbol(importee) == sctx.symbol(name))
-        assert(importee.matches(success))
+      case select @ Type.Select(_, name @ Type.Name("ListBuffer")) =>
+        assert(sctx.symbol(select) == sctx.symbol(name))
+        assert(select.matches(listBuffer))
+        hasAssert = true
+    }
+    assert(hasAssert)
+  }
+
+  test("symbol(Term.Select)") {
+    val listBuffer =
+      SymbolMatcher.exact(Symbol("_root_.scala.collection.mutable.ListBuffer."))
+    var hasAssert = false
+    source.collect {
+      case select @ Term.Select(_, name @ Term.Name("ListBuffer")) =>
+        assert(sctx.symbol(select) == sctx.symbol(name))
+        assert(select.matches(listBuffer))
         hasAssert = true
     }
     assert(hasAssert)
@@ -34,7 +47,7 @@ class SemanticCtxTest extends BaseSemanticTest("SemanticCtxTest") {
 
   test("symbol(Importee.Rename)") {
     val success =
-      SymbolMatcher(Symbol("_root_.scala.util.Success."))
+      SymbolMatcher.normalized(Symbol("_root_.scala.util.Success."))
     var hasAssert = false
     source.collect {
       case importee @ Importee.Rename(name @ Name("Success"), _) =>

@@ -8,7 +8,7 @@ class SymbolMatcherTest extends BaseSemanticTest("SymbolMatcherTest") {
 
   test("matches/unapply") {
     val explicitReturn =
-      SymbolMatcher(Symbol("_root_.test.SymbolMatcherTest."))
+      SymbolMatcher.exact(Symbol("_root_.test.SymbolMatcherTest."))
     val source = attrs.input.parse[Source].get
     val assertions = source.collect {
       case explicitReturn(t @ Name(_)) if t.matches(explicitReturn) =>

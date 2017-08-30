@@ -5,5 +5,5 @@ import scala.util.{Success => Successful}
 
 object SemanticCtxTest {
   Successful
-  mutable.Stack
+  val x: mutable.ListBuffer[Int] = mutable.ListBuffer.empty[Int]
 }
