@@ -6,10 +6,13 @@ import scala.meta.Tree
 import scalafix.internal.util.SymbolOps
 
 class SymbolMatcher(symbols: List[Symbol])(implicit sctx: SemanticCtx) {
+  def matches(tree: Tree): Boolean =
+    sctx.symbol(tree).fold(false)(matches)
   def matches(symbol: Symbol): Boolean =
     symbols.exists(x => SymbolOps.isSameNormalized(x, symbol))
   def unapply(tree: Tree): Option[Tree] =
-    sctx.symbol(tree).filter(matches).map(_ => tree)
+    if (matches(tree)) Some(tree)
+    else None
 }
 
 object SymbolMatcher {

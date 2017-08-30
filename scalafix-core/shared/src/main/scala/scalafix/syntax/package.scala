@@ -6,14 +6,15 @@ import scala.meta.semanticdb.Symbol
 import scala.compat.Platform.EOL
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
 import scalafix.internal.util.SymbolOps
+import scalafix.util.SymbolMatcher
 import scalafix.util.TreeOps
 
 package object syntax {
-  implicit class XtensionRefSymbolOpt(tree: Tree)(
-      implicit semanticCtx: SemanticCtx) {
+  implicit class XtensionRefSymbolOpt(tree: Tree)(implicit sctx: SemanticCtx) {
     @deprecated("Renamed to symbol", "0.5.0")
     def symbolOpt: Option[Symbol] = symbol
-    def symbol: Option[Symbol] = semanticCtx.symbol(tree.pos)
+    def symbol: Option[Symbol] = sctx.symbol(tree.pos)
+    def denotation: Option[Denotation] = sctx.denotation(tree)
   }
   implicit class XtensionParsedOpt[T](parsed: Parsed[T]) {
     def toOption: Option[T] = parsed match {
@@ -34,6 +35,8 @@ package object syntax {
     def dialect: Dialect = ScalafixScalametaHacks.dialect(attributes.language)
   }
   implicit class XtensionTreeScalafix(tree: Tree) {
+    def matches(matcher: SymbolMatcher): Boolean =
+      matcher.matches(tree)
     def parents: Stream[Tree] = TreeOps.parents(tree)
     def input: Input = tree.tokens.headOption.map(_.input).getOrElse(Input.None)
   }
