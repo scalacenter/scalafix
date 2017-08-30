@@ -142,7 +142,10 @@ lazy val core = crossProject
     buildInfoSettings,
     addCompilerPlugin(
       "org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
-    libraryDependencies += scalameta.value
+    libraryDependencies ++= List(
+      scalameta.value,
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
+    )
   )
   .jvmSettings(
     libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV
