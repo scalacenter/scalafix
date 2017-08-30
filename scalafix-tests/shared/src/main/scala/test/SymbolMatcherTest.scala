@@ -1,0 +1,3 @@
+package test
+
+object SymbolMatcherTest {}

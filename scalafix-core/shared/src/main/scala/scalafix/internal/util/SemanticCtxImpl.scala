@@ -36,6 +36,8 @@ class SemanticCtxImpl(val database: Database) extends SemanticCtx {
           Position.Range(name.pos.input, name.pos.start + 1, name.pos.end - 1)
         else name.pos
       symbol(pos)
+    case Importee.Rename(name, _) => symbol(name)
+    case Importee.Name(name) => symbol(name)
     case Term.Select(_, name @ Name(_)) => symbol(name)
     case Type.Select(_, name @ Name(_)) => symbol(name)
     case _ => symbol(tree.pos)

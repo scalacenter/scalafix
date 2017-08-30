@@ -261,10 +261,6 @@ lazy val testsDeps = List(
   "org.scalacheck" %% "scalacheck" % "1.13.4"
 )
 
-lazy val testsShared = project
-  .in(file("scalafix-tests/shared"))
-  .settings(noPublish)
-
 lazy val semanticdbSettings = Seq(
   scalacOptions ++= List(
     "-Yrangepos",
@@ -273,6 +269,13 @@ lazy val semanticdbSettings = Seq(
   addCompilerPlugin(
     "org.scalameta" % "semanticdb-scalac" % scalametaV cross CrossVersion.full)
 )
+
+lazy val testsShared = project
+  .in(file("scalafix-tests/shared"))
+  .settings(
+    semanticdbSettings,
+    noPublish
+  )
 
 lazy val testsInput = project
   .in(file("scalafix-tests/input"))
@@ -366,7 +369,8 @@ lazy val unit = project
         sourceDirectory.in(testsOutputSbt, Compile).value,
       "testsInputResources" -> resourceDirectory.in(testsInput, Compile).value,
       "semanticSbtClasspath" -> classDirectory.in(testsInputSbt, Compile).value,
-      "semanticClasspath" -> classDirectory.in(testsInput, Compile).value
+      "semanticClasspath" -> classDirectory.in(testsInput, Compile).value,
+      "sharedClasspath" -> classDirectory.in(testsShared, Compile).value
     ),
     libraryDependencies ++= testsDeps
   )
