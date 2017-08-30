@@ -20,6 +20,8 @@ trait RewriteCtx extends PatchOps {
   def input: Input
   def debugSemanticCtx()(implicit sctx: SemanticCtx, fileLine: FileLine): Unit
   def debug(values: sourcecode.Text[Any]*)(implicit fileLine: FileLine): Unit
+
+  // Private scalafix methods, may be removed without notice.
   private[scalafix] def toks(t: Tree): Tokens
   private[scalafix] def config: ScalafixConfig
   private[scalafix] def printLintMessage(

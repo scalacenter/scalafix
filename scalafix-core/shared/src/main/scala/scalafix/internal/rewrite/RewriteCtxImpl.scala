@@ -72,6 +72,8 @@ case class RewriteCtxImpl(tree: Tree, config: ScalafixConfig)
   // Syntactic patch ops.
   def removeImportee(importee: Importee): Patch =
     TreePatch.RemoveImportee(importee)
+  def addGlobalImport(importer: Importer): Patch =
+    AddGlobalImport(importer)
   def replaceToken(token: Token, toReplace: String): Patch =
     Add(token, "", toReplace, keepTok = false)
   def removeTokens(tokens: Tokens): Patch =
@@ -81,15 +83,6 @@ case class RewriteCtxImpl(tree: Tree, config: ScalafixConfig)
     val tokens = toks(from)
     removeTokens(tokens) + tokens.headOption.map(x => addRight(x, to))
   }
-  def rename(from: Name, to: Name): Patch =
-    rename(from, to.value)
-  def rename(from: Name, to: String): Patch =
-    if (from.value == to) Patch.empty
-    else
-      ctx
-        .toks(from)
-        .headOption
-        .fold(Patch.empty)(tok => Add(tok, "", to, keepTok = false))
   def addRight(tok: Token, toAdd: String): Patch = Add(tok, "", toAdd)
   def addRight(tree: Tree, toAdd: String): Patch =
     toks(tree).lastOption.fold(Patch.empty)(addRight(_, toAdd))
@@ -102,8 +95,6 @@ case class RewriteCtxImpl(tree: Tree, config: ScalafixConfig)
     RemoveGlobalImport(symbol)
   def addGlobalImport(symbol: Symbol)(implicit sctx: SemanticCtx): Patch =
     TreePatch.AddGlobalSymbol(symbol)
-  def addGlobalImport(importer: Importer)(implicit sctx: SemanticCtx): Patch =
-    AddGlobalImport(importer)
   def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
       implicit sctx: SemanticCtx): Patch =
     TreePatch.ReplaceSymbol(fromSymbol, toSymbol)

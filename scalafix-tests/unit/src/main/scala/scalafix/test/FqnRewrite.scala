@@ -12,7 +12,7 @@ case class FqnRewrite(sctx: SemanticCtx) extends SemanticRewrite(sctx) {
 case object FqnRewrite2 extends Rewrite {
   override def rewrite(ctx: RewriteCtx): Patch =
     ctx.tree.collectFirst {
-      case n: Name => ctx.rename(n, Term.Name(n.value + "2"))
+      case n: Name => ctx.replaceTree(n, n.value + "2")
     }.asPatch
 }
 

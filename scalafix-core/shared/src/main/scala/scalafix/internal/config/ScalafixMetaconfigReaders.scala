@@ -264,9 +264,9 @@ trait ScalafixMetaconfigReaders {
                   Conf.Str(s"$els: ${els.productPrefix}"))
                 .notOk
           }
-        val toParse =
-          if (path.startsWith("_")) path
-          else s"_root_.$path."
+        var toParse = path
+        if (!path.startsWith("_")) toParse = s"_root_.$toParse"
+        if (!path.endsWith(".") && !path.endsWith("#")) toParse += "."
         parseSymbol(toParse).andThen(symbolGlobal)
     }
   implicit lazy val AddGlobalImportReader: ConfDecoder[AddGlobalImport] =

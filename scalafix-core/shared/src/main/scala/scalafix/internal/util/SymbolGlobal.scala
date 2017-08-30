@@ -5,6 +5,9 @@ import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 import scala.util.control.NonFatal
 import scala.{meta => m}
+import scalafix.internal.config.ScalafixMetaconfigReaders
+import metaconfig.Conf
+import metaconfig.Configured
 
 object SymbolGlobal {
 
@@ -46,23 +49,13 @@ object SymbolGlobal {
     }
     symbol match {
       case Literal(Constant(symbol: String)) =>
-        try {
-          var toParse = symbol
-          if (!symbol.startsWith("_")) toParse = s"_root_.$toParse"
-          if (!symbol.endsWith(".") && !symbol.endsWith("#")) toParse += "."
-          m.Symbol(toParse) match {
-            case sym @ m.Symbol.Global(_, _) =>
-              convert(sym)
-            case els =>
-              c.abort(
-                c.enclosingPosition,
-                s"""|Expected: Symbol.Global
-                    |Obtained: Symbol.${els.productPrefix}""".stripMargin
-              )
-          }
-        } catch {
-          case NonFatal(e) =>
-            c.abort(c.enclosingPosition, e.getMessage)
+        ScalafixMetaconfigReaders.symbolGlobalReader.read(Conf.Str(symbol)) match {
+          case Configured.Ok(sym) => convert(sym)
+          case Configured.NotOk(err) =>
+            c.abort(
+              c.enclosingPosition,
+              err.toString()
+            )
         }
       case els =>
         c.abort(
