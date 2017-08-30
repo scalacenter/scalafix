@@ -2,9 +2,9 @@ package scalafix
 package tests
 
 import scala.meta._
-import scala.meta.sbthost.Sbthost
+import scala.meta.semanticdb.SemanticdbSbt
 import scalafix.testkit._
-import lang.meta.internal.io.PathIO
+import scala.meta.internal.io.PathIO
 import SemanticTests._
 
 class SemanticTests
@@ -21,7 +21,7 @@ class SemanticTests
 
 object SemanticTests {
   def sctx: SemanticCtx = SemanticCtx.load(
-    Sbthost.patchDatabase(
+    SemanticdbSbt.patchDatabase(
       Database.load(
         classpath,
         sourcepath

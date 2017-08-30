@@ -81,7 +81,7 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
     "coursier" -> coursier.util.Properties.version,
     "nightly" -> version.value,
     "scalameta" -> scalametaV,
-    "sbthost" -> sbthostV,
+    "semanticdbSbt" -> semanticdbSbt,
     scalaVersion,
     "supportedScalaVersions" -> Seq(scala211, scala212),
     "scala211" -> scala211,
@@ -185,7 +185,7 @@ lazy val cli = project
     mainClass in assembly := Some("scalafix.cli.Cli"),
     assemblyJarName in assembly := "scalafix.jar",
     libraryDependencies ++= Seq(
-      "org.scalameta" %% "sbthost-runtime" % sbthostV,
+      "org.scalameta" %% "semanticdb-sbt-runtime" % semanticdbSbt,
       "com.github.alexarchambault" %% "case-app" % "1.1.3",
       "com.martiansoftware" % "nailgun-server" % "0.9.1"
     )
@@ -324,12 +324,12 @@ lazy val testsInputSbt = project
   .settings(
     noPublish,
     logLevel := Level.Error, // avoid flood of deprecation warnings.
-    scalacOptions += "-Xplugin-require:sbthost",
+    scalacOptions += "-Xplugin-require:semanticdb-sbt",
     is210Only,
     sbtPlugin := true,
-    scalacOptions += s"-P:sbthost:sourceroot:${sourceDirectory.in(Compile).value}",
+    scalacOptions += s"-P:semanticdb-sbt:sourceroot:${sourceDirectory.in(Compile).value}",
     addCompilerPlugin(
-      "org.scalameta" % "sbthost-nsc" % sbthostV cross CrossVersion.full)
+      "org.scalameta" % "semanticdb-sbt" % semanticdbSbt cross CrossVersion.full)
   )
 
 lazy val testsOutputSbt = project

@@ -18,7 +18,7 @@ import scala.meta._
 import scala.meta.inputs.Input
 import scala.meta.internal.inputs._
 import scala.meta.io.AbsolutePath
-import scala.meta.sbthost.Sbthost
+import scala.meta.semanticdb.SemanticdbSbt
 import scala.util.Try
 import scala.util.control.NonFatal
 import scalafix.internal.cli.CommonOptions
@@ -319,7 +319,7 @@ object CliRunner {
       val result: Configured[SemanticCtx] = cachedDatabase.getOrElse {
         (resolveClasspath |@| resolvedSourceroot).andThen {
           case (classpath, root) =>
-            val patched = Sbthost.patchDatabase(
+            val patched = SemanticdbSbt.patchDatabase(
               Database.load(classpath, Sourcepath(root)),
               root)
             val db = SemanticCtxImpl(patched, Sourcepath(root), classpath)

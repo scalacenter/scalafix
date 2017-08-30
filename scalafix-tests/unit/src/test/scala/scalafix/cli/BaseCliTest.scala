@@ -2,6 +2,7 @@ package scalafix.cli
 
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import scala.collection.immutable.Seq
@@ -15,7 +16,7 @@ import ammonite.ops
 import scala.meta.io.RelativePath
 import scalafix.internal.rewrite.RemoveUnusedImports
 import scalafix.testkit.SemanticRewriteSuite
-import lang.meta.internal.io.FileIO
+import scala.meta.internal.io.FileIO
 import org.scalatest.FunSuite
 
 // extend this class to run custom cli tests.
@@ -96,7 +97,9 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
       )
       val obtained = {
         val fixed =
-          FileIO.slurp(AbsolutePath(root.toNIO).resolve(removeImportsPath))
+          FileIO.slurp(
+            AbsolutePath(root.toNIO).resolve(removeImportsPath),
+            StandardCharsets.UTF_8)
         if (fileIsFixed) SemanticRewriteSuite.stripTestkitComments(fixed)
         else fixed
       }
@@ -105,7 +108,9 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
           AbsolutePath(
             if (fileIsFixed) BuildInfo.outputSourceroot
             else BuildInfo.inputSourceroot
-          ).resolve(removeImportsPath))
+          ).resolve(removeImportsPath),
+          StandardCharsets.UTF_8
+        )
       assert(exit == expectedExit)
       assertNoDiff(obtained, expected)
       outputAssert(out.toString())
