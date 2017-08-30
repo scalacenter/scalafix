@@ -98,7 +98,7 @@
       @code{.symbol} now returns @code{Option[Symbol]} instead of @code{Symbol}.
       @code{.symbolOpt} has been deprecated.
     @li
-      A large number of unused methods and classes inside @code{scalafix.Failure},
+      A large number of unused methods and classes inside @code{scalafix.internal.util.Failure},
       @code{scalafix.`package`} and @code{scalafix.syntax} has been removed.
     @li
       upgraded to Scalameta 2.0, which has several breaking changes

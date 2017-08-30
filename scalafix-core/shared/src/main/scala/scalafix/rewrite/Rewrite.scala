@@ -5,6 +5,7 @@ import scala.collection.immutable.Seq
 import scala.meta._
 import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.internal.config.ScalafixConfig
+import scalafix.internal.util.Failure
 import scalafix.syntax._
 import metaconfig.Conf
 import metaconfig.ConfDecoder

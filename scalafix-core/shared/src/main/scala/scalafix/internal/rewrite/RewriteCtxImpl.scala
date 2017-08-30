@@ -4,11 +4,9 @@ import scala.meta._
 import scala.meta.contrib.AssociatedComments
 import scala.meta.tokens.Tokens
 import scalafix.LintMessage
-import scalafix.syntax._
 import scalafix._
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.config.ScalafixMetaconfigReaders
-import scalafix.internal.config.ScalafixReporter
 import scalafix.internal.util.SymbolOps.BottomSymbol
 import scalafix.patch.LintPatch
 import scalafix.patch.TokenPatch
@@ -18,6 +16,7 @@ import scalafix.patch.TreePatch.AddGlobalImport
 import scalafix.patch.TreePatch.RemoveGlobalImport
 import scalafix.rewrite.RewriteCtx
 import scalafix.rewrite.RewriteName
+import scalafix.syntax._
 import scalafix.util.MatchingParens
 import scalafix.util.SemanticCtx
 import scalafix.util.TokenList

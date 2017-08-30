@@ -32,6 +32,7 @@ import scalafix.internal.config.LazySemanticCtx
 import scalafix.internal.config.MetaconfigPendingUpstream
 import scalafix.internal.config.RewriteKind
 import scalafix.internal.config.ScalafixConfig
+import scalafix.internal.util.Failure
 import scalafix.internal.util.SemanticCtxImpl
 import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
@@ -165,7 +166,7 @@ sealed abstract case class CliRunner(
       case NonFatal(e) =>
         reportError(input.original.path, e, cli)
         e match {
-          case _: scalafix.Failure => ExitStatus.ScalafixError
+          case _: Failure => ExitStatus.ScalafixError
           case _ => ExitStatus.UnexpectedError
         }
     }

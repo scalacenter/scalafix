@@ -11,6 +11,7 @@ import scalafix.patch.TreePatch.ImportPatch
 import scalafix.diff.DiffUtils
 import scalafix.internal.patch.ImportPatchOps
 import scalafix.internal.patch.ReplaceSymbolOps
+import scalafix.internal.util.Failure
 import scalafix.internal.util.TokenOps
 import scalafix.lint.LintMessage
 import scalafix.patch.TreePatch.ReplaceSymbol

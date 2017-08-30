@@ -2,7 +2,6 @@ package scalafix.util
 
 import scala.meta._
 import scalafix.internal.util.SemanticCtxImpl
-import lang.meta.internal.io.PathIO
 
 /** Context for semantic rewrites.
   *

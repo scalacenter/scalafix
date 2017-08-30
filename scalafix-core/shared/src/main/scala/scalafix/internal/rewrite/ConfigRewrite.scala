@@ -1,7 +1,8 @@
-package scalafix.rewrite
+package scalafix.internal.rewrite
 
 import scalafix._
 import scalafix.internal.config._
+import scalafix.rewrite.Rewrite
 import metaconfig.ConfError
 import metaconfig.Configured
 
