@@ -31,7 +31,6 @@ object SemanticRewriteSuite {
 
 abstract class SemanticRewriteSuite(
     val sctx: SemanticCtx,
-    val inputSourceroot: Seq[AbsolutePath],
     val expectedOutputSourceroot: Seq[AbsolutePath]
 ) extends FunSuite
     with DiffAssertions
@@ -42,7 +41,6 @@ abstract class SemanticRewriteSuite(
       expectedOutputSourceroot: Seq[AbsolutePath]
   ) = this(
     sctx,
-    List(inputSourceroot),
     expectedOutputSourceroot
   )
   def this(
@@ -51,7 +49,7 @@ abstract class SemanticRewriteSuite(
       expectedOutputSourceroot: Seq[AbsolutePath]
   ) =
     this(
-      new SemanticCtxImpl(database),
+      SemanticCtxImpl(database, Sourcepath(inputSourceroot), Classpath(Nil)),
       inputSourceroot,
       expectedOutputSourceroot
     )

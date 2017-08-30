@@ -12,12 +12,24 @@ import scalafix.util.TokenList
 import org.scalameta.FileLine
 
 trait RewriteCtx extends PatchOps {
+
+  /** The parsed syntax tree that should be fixed.
+    *
+    * The API does not support fixing un-parseable code at this point.
+    */
   def tree: Tree
+
+  /** The input where the tree was parsed from.
+    *
+    * This is typically either Input.VirtualFile for semantic rewrites
+    * and Input.File for syntactic rewrites. For Input.VirtualFile, it is
+    * possible to trace back to the original file path via SemanticCtx.sourceroot.
+    */
+  def input: Input
   def tokens: Tokens
   def matching: MatchingParens
   def tokenList: TokenList
   def comments: AssociatedComments
-  def input: Input
   def debugSemanticCtx()(implicit sctx: SemanticCtx, fileLine: FileLine): Unit
   def debug(values: sourcecode.Text[Any]*)(implicit fileLine: FileLine): Unit
 

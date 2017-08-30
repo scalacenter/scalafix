@@ -25,9 +25,8 @@ object ScalafixRewrites {
     all(sctx).flatMap(x => x.names.map(_ -> x)).toMap
   lazy val syntaxName2rewrite: Map[String, Rewrite] =
     syntax.flatMap(x => x.names.map(_ -> x)).toMap
-  val emptyDatabase = SemanticCtx(Nil)
   lazy val syntacticNames: List[String] = syntaxName2rewrite.keys.toList
   lazy val semanticNames: List[String] =
-    semantic(emptyDatabase).flatMap(_.names)
+    semantic(SemanticCtx.empty).flatMap(_.names)
   def allNames: List[String] = syntaxName2rewrite.keys.toList ++ semanticNames
 }

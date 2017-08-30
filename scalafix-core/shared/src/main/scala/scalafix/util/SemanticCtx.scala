@@ -2,6 +2,7 @@ package scalafix.util
 
 import scala.meta._
 import scalafix.internal.util.SemanticCtxImpl
+import lang.meta.internal.io.PathIO
 
 /** Context for semantic rewrites.
   *
@@ -10,6 +11,8 @@ import scalafix.internal.util.SemanticCtxImpl
   * Symbol => Denotation lookups.
   */
 trait SemanticCtx {
+  def sourcepath: Sourcepath
+  def classpath: Classpath
   def database: Database
   def names: Seq[ResolvedName]
   def entries: Seq[Attributes] = database.entries
@@ -37,18 +40,22 @@ trait SemanticCtx {
     * Shorthand method for symbol(tree).flatMap(denotation).
     */
   def denotation(tree: Tree): Option[Denotation]
+
+  def withEntries(entries: Seq[Attributes]): SemanticCtx
 }
 
 object SemanticCtx {
-  val empty = new SemanticCtxImpl(Database(Nil))
-  def apply(entries: Seq[Attributes]): SemanticCtx =
-    new SemanticCtxImpl(Database(entries))
+  val empty: SemanticCtx =
+    SemanticCtxImpl(Database(Nil), Sourcepath(Nil), Classpath(Nil))
   def load(classpath: Classpath): SemanticCtx =
-    new SemanticCtxImpl(Database.load(classpath))
-  def load(classpath: Classpath, sourcepath: Sourcepath): SemanticCtx =
-    new SemanticCtxImpl(Database.load(classpath, sourcepath))
+    SemanticCtxImpl(Database.load(classpath), Sourcepath(Nil), classpath)
+  def load(sourcepath: Sourcepath, classpath: Classpath): SemanticCtx =
+    SemanticCtxImpl(Database.load(classpath, sourcepath), sourcepath, classpath)
+  def load(
+      database: Database,
+      sourcepath: Sourcepath,
+      classpath: Classpath): SemanticCtx =
+    SemanticCtxImpl(database, sourcepath, classpath)
   def load(bytes: Array[Byte]): SemanticCtx =
-    new SemanticCtxImpl(Database.load(bytes))
-  def load(db: Database): SemanticCtx =
-    new SemanticCtxImpl(db)
+    empty.withEntries(Database.load(bytes).entries)
 }

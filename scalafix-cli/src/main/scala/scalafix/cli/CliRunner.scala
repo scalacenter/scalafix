@@ -32,6 +32,7 @@ import scalafix.internal.config.LazySemanticCtx
 import scalafix.internal.config.MetaconfigPendingUpstream
 import scalafix.internal.config.RewriteKind
 import scalafix.internal.config.ScalafixConfig
+import scalafix.internal.util.SemanticCtxImpl
 import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
 import metaconfig.Configured.Ok
@@ -317,8 +318,10 @@ object CliRunner {
       val result: Configured[SemanticCtx] = cachedDatabase.getOrElse {
         (resolveClasspath |@| resolvedSourceroot).andThen {
           case (classpath, root) =>
-            val db = SemanticCtx.load(Sbthost
-              .patchDatabase(Database.load(classpath, Sourcepath(root)), root))
+            val patched = Sbthost.patchDatabase(
+              Database.load(classpath, Sourcepath(root)),
+              root)
+            val db = SemanticCtxImpl(patched, Sourcepath(root), classpath)
             if (verbose) {
               common.err.println(
                 s"Loaded database with ${db.entries.length} entries.")
@@ -476,7 +479,7 @@ object CliRunner {
     val semanticInputs: Configured[Map[AbsolutePath, Input.VirtualFile]] = {
       (resolvedRewrite |@| resolvedSourceroot).andThen {
         case (_, root) =>
-          cachedDatabase.getOrElse(Ok(SemanticCtx(Nil))).map { database =>
+          cachedDatabase.getOrElse(Ok(SemanticCtx.empty)).map { database =>
             def checkExists(path: AbsolutePath): Unit =
               if (!cli.noStrictSemanticdb && !path.isFile) {
                 common.cliArg.error(

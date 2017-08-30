@@ -3,9 +3,13 @@ package internal.util
 
 import scala.meta._
 
-class SemanticCtxImpl(val database: Database) extends SemanticCtx {
+case class SemanticCtxImpl(
+    database: Database,
+    sourcepath: Sourcepath,
+    classpath: Classpath)
+    extends SemanticCtx {
   override def toString: String =
-    s"SemanticCtx(database.size=${database.entries.length})"
+    s"SemanticCtx($sourcepath, $classpath, database.size=${database.entries.length})"
   override def hashCode(): Int = database.hashCode()
   private lazy val _denots: Map[Symbol, Denotation] = {
     val builder = Map.newBuilder[Symbol, Denotation]
@@ -47,4 +51,6 @@ class SemanticCtxImpl(val database: Database) extends SemanticCtx {
   def denotation(tree: Tree): Option[Denotation] =
     symbol(tree).flatMap(denotation)
   override def names: Seq[ResolvedName] = _names.values.toSeq
+  def withEntries(entries: Seq[Attributes]): SemanticCtx =
+    copy(database = Database(entries))
 }
