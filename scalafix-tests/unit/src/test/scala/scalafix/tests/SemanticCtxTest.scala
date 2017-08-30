@@ -47,7 +47,8 @@ class SemanticCtxTest extends BaseSemanticTest("SemanticCtxTest") {
 
   test("symbol(Importee.Rename)") {
     val success =
-      SymbolMatcher.normalized(Symbol("_root_.scala.util.Success."))
+      SymbolMatcher.exact(
+        Symbol("_root_.scala.util.Success.;_root_.scala.util.Success#"))
     var hasAssert = false
     source.collect {
       case importee @ Importee.Rename(name @ Name("Success"), _) =>
