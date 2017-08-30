@@ -141,7 +141,7 @@ abstract class SemanticRewriteSuite(
 
   /** Helper method to print out sctx for individual files */
   def debugFile(filename: String): Unit = {
-    sctx.entries.foreach { entry =>
+    sctx.documents.foreach { entry =>
       if (entry.input.label.contains(filename)) {
         logger.elem(entry)
       }

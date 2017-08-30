@@ -45,7 +45,7 @@ case class Sbt1(sctx: SemanticCtx) extends SemanticRewrite(sctx) {
       }
 
       private def infoStartsWith(r: Term.Ref, prefix: String): Boolean =
-        sctx.denotation(r).exists(denot => denot.info.startsWith(prefix))
+        sctx.denotation(r).exists(denot => denot.signature.startsWith(prefix))
 
       private def existKeys(lhs: Term, typePrefix: String): Boolean = {
         val singleNames = lhs match {

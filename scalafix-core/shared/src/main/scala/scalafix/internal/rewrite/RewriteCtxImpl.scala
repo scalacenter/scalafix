@@ -39,7 +39,7 @@ case class RewriteCtxImpl(tree: Tree, config: ScalafixConfig)
 
   // Debug utilities
   def sctx(implicit sctx: SemanticCtx): SemanticCtx =
-    sctx.withEntries(sctx.entries.filter(_.input == input))
+    sctx.withEntries(sctx.documents.filter(_.input == input))
   def debugSemanticCtx()(implicit sctx: SemanticCtx, fileLine: FileLine): Unit = {
     val db = this.sctx(sctx)
     debug(sourcecode.Text(db, "sctx"))

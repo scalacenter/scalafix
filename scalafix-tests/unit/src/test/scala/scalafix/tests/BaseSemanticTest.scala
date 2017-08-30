@@ -10,14 +10,14 @@ abstract class BaseSemanticTest(filename: String)
     extends FunSuite
     with BeforeAndAfterAll {
   private var _db: SemanticCtx = _
-  private var _attrs: Attributes = _
+  private var _docs: Document = _
   implicit def sctx: SemanticCtx = _db
-  def attrs: Attributes = _attrs
-  def source: Source = attrs.input.parse[Source].get
+  def docs: Document = _docs
+  def source: Source = docs.input.parse[Source].get
 
   override def beforeAll(): Unit = {
     _db = SemanticCtx.load(Classpath(AbsolutePath(BuildInfo.sharedClasspath)))
-    _attrs = _db.entries
+    _docs = _db.documents
       .find(_.input.label.contains(filename))
       .get
   }

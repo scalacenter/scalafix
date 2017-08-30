@@ -20,8 +20,8 @@ trait SemanticCtx {
   /** The underlying raw database. */
   def database: Database
 
-  /** Shorthand for scala.meta.Database.entries */
-  def entries: Seq[Attributes] = database.entries
+  /** Shorthand for scala.meta.Database.documents */
+  def documents: Seq[Document] = database.documents
 
   /** Shorthand for scala.meta.Database.messages */
   def messages: Seq[Message] = database.messages
@@ -29,8 +29,8 @@ trait SemanticCtx {
   /** Shorthand for scala.meta.Database.symbols */
   def symbols: Seq[ResolvedSymbol] = database.symbols
 
-  /** Shorthand for scala.meta.Database.sugars */
-  def sugars: Seq[Sugar] = database.sugars
+  /** Shorthand for scala.meta.Database.synthetics */
+  def synthetics: Seq[Synthetic] = database.synthetics
 
   /** The resolved names in this database.
     *
@@ -59,8 +59,8 @@ trait SemanticCtx {
     */
   def denotation(tree: Tree): Option[Denotation]
 
-  /** Build new SemanticCtx with only these entries. */
-  def withEntries(entries: Seq[Attributes]): SemanticCtx
+  /** Build new SemanticCtx with only these documents. */
+  def withEntries(documents: Seq[Document]): SemanticCtx
 }
 
 object SemanticCtx {
@@ -76,5 +76,5 @@ object SemanticCtx {
       classpath: Classpath): SemanticCtx =
     SemanticCtxImpl(database, sourcepath, classpath)
   def load(bytes: Array[Byte]): SemanticCtx =
-    empty.withEntries(Database.load(bytes).entries)
+    empty.withEntries(Database.load(bytes).documents)
 }

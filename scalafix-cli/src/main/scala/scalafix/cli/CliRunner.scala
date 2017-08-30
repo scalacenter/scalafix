@@ -325,9 +325,9 @@ object CliRunner {
             val db = SemanticCtxImpl(patched, Sourcepath(root), classpath)
             if (verbose) {
               common.err.println(
-                s"Loaded database with ${db.entries.length} entries.")
+                s"Loaded database with ${db.documents.length} documents.")
             }
-            if (db.entries.nonEmpty) Ok(db)
+            if (db.documents.nonEmpty) Ok(db)
             else {
               ConfError
                 .msg("Missing SemanticCtx, found no semanticdb files!")
@@ -487,7 +487,7 @@ object CliRunner {
                   s"semanticdb input $path is not a file. Is --sourceroot correct?")
               }
             val inputsByAbsolutePath =
-              database.entries.toIterator.map(_.input).collect {
+              database.documents.toIterator.map(_.input).collect {
                 case input @ Input.VirtualFile(path, _) =>
                   val key = root.resolve(path)
                   checkExists(key)

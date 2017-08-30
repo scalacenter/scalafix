@@ -59,11 +59,11 @@ case class ExplicitReturnTypes(
 
   def parseDenotationInfo(denot: Denotation): Option[Type] = {
     val base =
-      if (denot.isVal || denot.isVar) denot.info
-      else if (denot.isDef) denot.info.replaceFirst(".*\\)", "")
+      if (denot.isVal || denot.isVar) denot.signature
+      else if (denot.isDef) denot.signature.replaceFirst(".*\\)", "")
       else {
         throw new UnsupportedOperationException(
-          s"Can't parse type for denotation $denot, denot.info=${denot.info}")
+          s"Can't parse type for denotation $denot, denot.info=${denot.signature}")
       }
     if (denot.isVal || denot.isDef)
       base.parse[Type].toOption
