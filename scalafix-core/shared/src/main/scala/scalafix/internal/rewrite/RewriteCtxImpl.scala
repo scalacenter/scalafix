@@ -32,12 +32,11 @@ case class RewriteCtxImpl(tree: Tree, config: ScalafixConfig)
        |${logger.revealWhitespace(tree.syntax.take(100))}""".stripMargin
   override def toString: String = syntax
   def toks(t: Tree): Tokens = t.tokens(config.dialect)
-  implicit lazy val tokens: Tokens = tree.tokens(config.dialect)
+  lazy val tokens: Tokens = tree.tokens(config.dialect)
   lazy val tokenList: TokenList = new TokenList(tokens)
-  lazy val matching: MatchingParens = MatchingParens(tokens)
+  lazy val matchingParens: MatchingParens = MatchingParens(tokens)
   lazy val comments: AssociatedComments = AssociatedComments(tokens)
   lazy val input: Input = tokens.head.input
-  val reporter: ScalafixReporter = config.reporter
 
   // Debug utilities
   def sctx(implicit sctx: SemanticCtx): SemanticCtx =
