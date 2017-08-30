@@ -87,7 +87,11 @@ case class RewriteCtx(tree: Tree, config: ScalafixConfig) extends PatchOps {
         .headOption
         .fold(Patch.empty)(tok => Add(tok, "", to, keepTok = false))
   def addRight(tok: Token, toAdd: String): Patch = Add(tok, "", toAdd)
+  def addRight(tree: Tree, toAdd: String): Patch =
+    toks(tree).lastOption.fold(Patch.empty)(addRight(_, toAdd))
   def addLeft(tok: Token, toAdd: String): Patch = Add(tok, toAdd, "")
+  def addLeft(tree: Tree, toAdd: String): Patch =
+    toks(tree).lastOption.fold(Patch.empty)(addLeft(_, toAdd))
 
   // Semantic patch ops.
   def removeGlobalImport(symbol: Symbol)(implicit sctx: SemanticCtx): Patch =

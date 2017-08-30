@@ -14,6 +14,8 @@ trait PatchOps {
   def rename(from: Name, to: String): Patch
   def addRight(tok: Token, toAdd: String): Patch
   def addLeft(tok: Token, toAdd: String): Patch
+  def addRight(tree: Tree, toAdd: String): Patch
+  def addLeft(tree: Tree, toAdd: String): Patch
   def lint(msg: LintMessage): Patch
 
   def removeGlobalImport(symbol: Symbol)(implicit sctx: SemanticCtx): Patch
