@@ -137,7 +137,7 @@ object ImportPatchOps {
             .toks(importer)
             .collectFirst {
               case open @ Token.LeftBrace() =>
-                ctx.matching
+                ctx.matchingParens
                   .close(open)
                   .map { close =>
                     ctx.removeToken(open) +
