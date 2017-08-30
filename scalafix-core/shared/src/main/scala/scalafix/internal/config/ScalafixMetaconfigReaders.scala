@@ -166,6 +166,10 @@ trait ScalafixMetaconfigReaders {
       scalafixConfigConfDecoder(decoder, extraRewrites)
         .read(conf)
         .andThen {
+          // Initialize configuration
+          case (rewrite, config) => rewrite.init(conf).map(_ -> config)
+        }
+        .andThen {
           case (rewrite, config) =>
             ConfigRewrite(config.patches, sctx).map { configRewrite =>
               configRewrite.fold(rewrite -> config)(

@@ -15,16 +15,8 @@ case class ScalafixConfig(
     reporter: ScalafixReporter = ScalafixReporter.default,
     patches: ConfigRewritePatches = ConfigRewritePatches.default,
     dialect: Dialect = Scala211,
-    // Custom configuration for rewrites.
-    // Feel free to read data from here if your custom rewrite needs
-    // configuration from the user.
-    x: Conf = Conf.Obj(),
-    explicitReturnTypes: ExplicitReturnTypesConfig = ExplicitReturnTypesConfig(),
     lint: LintConfig = LintConfig.default
 ) {
-  def getRewriteConfig[T: ConfDecoder](key: String, default: T): T = {
-    x.getOrElse[T](key)(default).get
-  }
 
   def withFreshReporters: ScalafixConfig = copy(
     reporter = reporter.reset,
@@ -41,19 +33,15 @@ case class ScalafixConfig(
           getOrElse("reporter")(reporter) |@|
           getOrElse("patches")(patches)(patches.reader) |@|
           getOrElse("dialect")(dialect) |@|
-          getOrElse("x")(x) |@|
-          getOrElse("explicitReturnTypes")(explicitReturnTypes) |@|
           getOrElse("lint")(lint)(lint.reader)
       ).map {
-        case ((((((a, b), c), d), e), f), g) =>
+        case ((((a, b), c), d), e) =>
           copy(
             fatalWarnings = a,
             reporter = b,
             patches = c,
             dialect = d,
-            x = e,
-            explicitReturnTypes = f,
-            lint = g
+            lint = e
           )
       }
 

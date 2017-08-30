@@ -6,6 +6,7 @@ import scala.meta._
 import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.internal.config.ScalafixConfig
 import scalafix.syntax._
+import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.Configured
 
@@ -17,6 +18,19 @@ abstract class Rewrite(implicit val rewriteName: RewriteName) { self =>
     * Override this method to implement a rewrite.
     */
   def rewrite(ctx: RewriteCtx): Patch
+
+  /** Initialize rewrite.
+    *
+    * This method is called once by scalafix before rewrite is called.
+    * Use this method to either read custom configuration or to build
+    * expensive indices.
+    *
+    * @param config The .scalafix.conf configuration.
+    * @return the initialized rewrite or an error. If no initialization is needed,
+    *         return Configured.Ok(this).
+    */
+  def init(config: Conf): Configured[Rewrite] =
+    Configured.Ok(this)
 
   /** Combine this rewrite with another rewrite. */
   final def andThen(other: Rewrite): Rewrite = Rewrite.merge(this, other)
@@ -105,6 +119,11 @@ object Rewrite {
   /** Combine two rewrites into a single rewrite */
   def merge(a: Rewrite, b: Rewrite): Rewrite = {
     new Rewrite()(a.rewriteName + b.rewriteName) {
+      override def init(config: Conf): Configured[Rewrite] = {
+        a.init(config).product(b.init(config)).map {
+          case (x, y) => merge(x, y)
+        }
+      }
       override def rewrite(ctx: RewriteCtx): Patch =
         a.rewrite(ctx) + b.rewrite(ctx)
       override def semanticOption: Option[SemanticCtx] =
