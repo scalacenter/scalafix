@@ -23,10 +23,10 @@ package object syntax {
     }
   }
   implicit class XtensionSymbolSemanticCtx(symbol: Symbol)(
-      implicit semanticCtx: SemanticCtx) {
+      implicit sctx: SemanticCtx) {
     @deprecated("Renamed to denotation", "0.5.0")
     def denotOpt: Option[Denotation] = denotation
-    def denotation: Option[Denotation] = semanticCtx.denotation(symbol)
+    def denotation: Option[Denotation] = sctx.denotation(symbol)
   }
   implicit class XtensionSymbol(symbol: Symbol) {
     def normalized: Symbol = SymbolOps.normalize(symbol)

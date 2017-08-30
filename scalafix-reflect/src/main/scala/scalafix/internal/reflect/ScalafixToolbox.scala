@@ -24,11 +24,9 @@ class ScalafixToolbox {
     new java.util.concurrent.ConcurrentHashMap[Input, Configured[Rewrite]]()
   private val compiler = new Compiler()
 
-  def getRewrite(
-      code: Input,
-      semanticCtx: LazySemanticCtx): Configured[Rewrite] =
+  def getRewrite(code: Input, sctx: LazySemanticCtx): Configured[Rewrite] =
     rewriteCache.getOrDefault(code, {
-      val uncached = getRewriteUncached(code, semanticCtx)
+      val uncached = getRewriteUncached(code, sctx)
       uncached match {
         case toCache @ Configured.Ok(_) =>
           rewriteCache.put(code, toCache)
@@ -39,7 +37,7 @@ class ScalafixToolbox {
 
   def getRewriteUncached(
       code: Input,
-      semanticCtx: LazySemanticCtx): Configured[Rewrite] =
+      sctx: LazySemanticCtx): Configured[Rewrite] =
     synchronized {
       (
         compiler.compile(code) |@|
@@ -48,7 +46,7 @@ class ScalafixToolbox {
         case (classloader, names) =>
           names.foldLeft(Configured.ok(Rewrite.empty)) {
             case (rewrite, fqn) =>
-              val args = classloadRewrite(semanticCtx)
+              val args = classloadRewrite(sctx)
               rewrite
                 .product(ClassloadRewrite(fqn, args, classloader))
                 .map { case (a, b) => a.andThen(b) }

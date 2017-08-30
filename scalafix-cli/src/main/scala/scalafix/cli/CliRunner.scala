@@ -91,7 +91,7 @@ sealed abstract case class CliRunner(
   private def isUpToDate(input: FixFile): Boolean =
     if (!input.toIO.exists() && cli.outTo.nonEmpty) true
     else {
-      input.semanticCtx match {
+      input.sctx match {
         case Some(Input.VirtualFile(_, contents)) =>
           val fileToWrite = scala.io.Source.fromFile(input.toIO)
           try fileToWrite.sameElements(contents.toCharArray.toIterator)
@@ -149,7 +149,7 @@ sealed abstract case class CliRunner(
                 s"Stale semanticdb for ${CliRunner.pretty(outFile)}, skipping rewrite. Please recompile.")
               if (cli.verbose) {
                 val diff =
-                  Patch.unifiedDiff(input.semanticCtx.get, input.original)
+                  Patch.unifiedDiff(input.sctx.get, input.original)
                 common.err.println(diff)
               }
               ExitStatus.StaleSemanticDB
@@ -310,7 +310,7 @@ object CliRunner {
     }
 
     // We don't know yet if we need to compute the database or not.
-    // If all the rewrites are syntactic, we never need to compute the semanticCtx.
+    // If all the rewrites are syntactic, we never need to compute the sctx.
     // If a single rewrite is semantic, then we need to compute the database.
     private var cachedDatabase = Option.empty[Configured[SemanticCtx]]
     private def computeAndCacheDatabase(): Option[SemanticCtx] = {
@@ -509,7 +509,7 @@ object CliRunner {
                 s"No semanticdb associated with ${file.original.path}. " +
                   s"Is --sourceroot correct?")
             }
-            file.copy(semanticCtx = labeled)
+            file.copy(sctx = labeled)
           }
       }
 

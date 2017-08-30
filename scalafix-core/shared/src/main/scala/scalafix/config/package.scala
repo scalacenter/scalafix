@@ -24,7 +24,7 @@ package object config {
     *
     * @param configuration Contents to parse into configuration. Most typically a
     *                      [[scala.meta.Input.File]] or [[scala.meta.Input.String]].
-    * @param semanticCtx Callback to build semantic context for semantic rewrites.
+    * @param sctx Callback to build semantic context for semantic rewrites.
     * @param extraRewrites additional rewrites to load on top of those defined
     *                      in the .scalafix.conf configuration file.
     * @param rewriteDecoder the decoder for parsing `rewrite` fields.
@@ -35,10 +35,10 @@ package object config {
     */
   def fromInput(
       configuration: Input,
-      semanticCtx: LazySemanticCtx,
+      sctx: LazySemanticCtx,
       extraRewrites: List[String],
       rewriteDecoder: ConfDecoder[Rewrite]
   ): Configured[(Rewrite, internal.config.ScalafixConfig)] =
     internal.config.ScalafixConfig
-      .fromInput(configuration, semanticCtx, extraRewrites)(rewriteDecoder)
+      .fromInput(configuration, sctx, extraRewrites)(rewriteDecoder)
 }

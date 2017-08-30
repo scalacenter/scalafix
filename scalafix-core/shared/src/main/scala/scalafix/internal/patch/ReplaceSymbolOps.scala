@@ -20,7 +20,7 @@ object ReplaceSymbolOps {
 
   def naiveMoveSymbolPatch(moveSymbols: Seq[ReplaceSymbol])(
       implicit ctx: RewriteCtx,
-      semanticCtx: SemanticCtx): Patch = {
+      sctx: SemanticCtx): Patch = {
     val moves: Map[Symbol, Symbol.Global] =
       moveSymbols.toIterator.flatMap {
         case ReplaceSymbol(

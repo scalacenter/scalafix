@@ -83,10 +83,10 @@ object ScalafixConfig {
 
   def fromInput(
       input: Input,
-      semanticCtx: LazySemanticCtx,
+      sctx: LazySemanticCtx,
       extraRewrites: List[String] = Nil)(
       implicit decoder: ConfDecoder[Rewrite]
   ): Configured[(Rewrite, ScalafixConfig)] =
-    configFromInput(input, semanticCtx, extraRewrites)
+    configFromInput(input, sctx, extraRewrites)
 
 }

@@ -16,12 +16,11 @@ trait PatchOps {
   def addLeft(tok: Token, toAdd: String): Patch
   def lint(msg: LintMessage): Patch
 
-  def removeGlobalImport(symbol: Symbol)(implicit semanticCtx: SemanticCtx): Patch
-  def addGlobalImport(symbol: Symbol)(implicit semanticCtx: SemanticCtx): Patch
-  def addGlobalImport(importer: Importer)(implicit semanticCtx: SemanticCtx): Patch
+  def removeGlobalImport(symbol: Symbol)(implicit sctx: SemanticCtx): Patch
+  def addGlobalImport(symbol: Symbol)(implicit sctx: SemanticCtx): Patch
+  def addGlobalImport(importer: Importer)(implicit sctx: SemanticCtx): Patch
   def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
-      implicit semanticCtx: SemanticCtx): Patch
-  def replaceSymbols(toReplace: (String, String)*)(implicit semanticCtx: SemanticCtx): Patch
-  def renameSymbol(fromSymbol: Symbol.Global, toName: String)(
-      implicit semanticCtx: SemanticCtx): Patch
+      implicit sctx: SemanticCtx): Patch
+  def replaceSymbols(toReplace: (String, String)*)(implicit sctx: SemanticCtx): Patch
+  def renameSymbol(fromSymbol: Symbol.Global, toName: String)(implicit sctx: SemanticCtx): Patch
 }

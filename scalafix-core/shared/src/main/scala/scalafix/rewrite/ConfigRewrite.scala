@@ -17,11 +17,11 @@ object ConfigRewrite {
           ConfError
             .msg(".scalafix.conf patches require the Semantic API.")
             .notOk
-        case Some(semanticCtx) =>
+        case Some(sctx) =>
           val rewrite = Rewrite.constant(
             ".scalafix.conf",
             configurationPatches.asPatch,
-            semanticCtx
+            sctx
           )
           Configured.Ok(Some(rewrite))
       }
