@@ -4,7 +4,8 @@ package internal.util
 import scala.meta._
 
 class SemanticCtxImpl(val database: Database) extends SemanticCtx {
-  override def toString: String = database.toString()
+  override def toString: String =
+    s"SemanticCtx(database.size=${database.entries.length})"
   override def hashCode(): Int = database.hashCode()
   private lazy val _denots: Map[Symbol, Denotation] = {
     val builder = Map.newBuilder[Symbol, Denotation]
