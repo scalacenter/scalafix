@@ -3,21 +3,40 @@ package scalafix.util
 import scala.meta._
 import scalafix.internal.util.SemanticCtxImpl
 
-/** Context for semantic rewrites.
+/** Context for semantic rewrites, encapsulates a compilation context.
   *
   * A SemanticCtx is a thin wrapper around [[scala.meta.Database]] with
   * additional in-memory indices for fast Position => Symbol and
   * Symbol => Denotation lookups.
   */
 trait SemanticCtx {
+
+  /** List of source files that built this SemanticCtx. */
   def sourcepath: Sourcepath
+
+  /** Classpath built this SemanticCtx. */
   def classpath: Classpath
+
+  /** The underlying raw database. */
   def database: Database
-  def names: Seq[ResolvedName]
+
+  /** Shorthand for scala.meta.Database.entries */
   def entries: Seq[Attributes] = database.entries
+
+  /** Shorthand for scala.meta.Database.messages */
   def messages: Seq[Message] = database.messages
+
+  /** Shorthand for scala.meta.Database.symbols */
   def symbols: Seq[ResolvedSymbol] = database.symbols
+
+  /** Shorthand for scala.meta.Database.sugars */
   def sugars: Seq[Sugar] = database.sugars
+
+  /** The resolved names in this database.
+    *
+    * Includes resolved name in synthetics, such as inferred implicits/types.
+    */
+  def names: Seq[ResolvedName]
 
   /** Lookup symbol at this position. */
   def symbol(position: Position): Option[Symbol]
@@ -40,6 +59,7 @@ trait SemanticCtx {
     */
   def denotation(tree: Tree): Option[Denotation]
 
+  /** Build new SemanticCtx with only these entries. */
   def withEntries(entries: Seq[Attributes]): SemanticCtx
 }
 
