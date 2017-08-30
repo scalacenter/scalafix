@@ -35,7 +35,7 @@ package object syntax {
   }
   implicit class XtensionTreeScalafix(tree: Tree) {
     def parents: Stream[Tree] = TreeOps.parents(tree)
-    def input: Input = tree.tokens.head.input
+    def input: Input = tree.tokens.headOption.map(_.input).getOrElse(Input.None)
   }
   implicit class XtensionInputScalafix(input: Input) {
     def label: String = input match {
