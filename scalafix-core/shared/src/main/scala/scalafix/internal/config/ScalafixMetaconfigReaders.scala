@@ -172,8 +172,7 @@ trait ScalafixMetaconfigReaders {
         .andThen {
           case (rewrite, config) =>
             ConfigRewrite(config.patches, sctx).map { configRewrite =>
-              configRewrite.fold(rewrite -> config)(
-                rewrite.andThen(_) -> config)
+              configRewrite.fold(rewrite -> config)(rewrite.merge(_) -> config)
             }
         }
     }

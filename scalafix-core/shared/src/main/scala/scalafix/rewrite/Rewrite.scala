@@ -34,7 +34,9 @@ abstract class Rewrite(implicit val rewriteName: RewriteName) { self =>
     Configured.Ok(this)
 
   /** Combine this rewrite with another rewrite. */
-  final def andThen(other: Rewrite): Rewrite = Rewrite.merge(this, other)
+  final def merge(other: Rewrite): Rewrite = Rewrite.merge(this, other)
+  @deprecated("Renamed to merge.", "0.5.0")
+  final def andThen(other: Rewrite): Rewrite = merge(other)
 
   /** Returns string output of applying this single patch. */
   final def apply(ctx: RewriteCtx): String = apply(ctx, rewrite(ctx))
@@ -93,7 +95,7 @@ object Rewrite {
   def emptyFromSemanticCtxOpt(sctx: Option[SemanticCtx]): Rewrite =
     sctx.fold(empty)(emptySemantic)
   def combine(rewrites: Seq[Rewrite]): Rewrite =
-    rewrites.foldLeft(empty)(_ andThen _)
+    rewrites.foldLeft(empty)(_ merge _)
   private[scalafix] def emptySemantic(sctx: SemanticCtx): Rewrite =
     semantic(_ => _ => Patch.empty)(RewriteName.empty)(sctx)
 
@@ -122,7 +124,7 @@ object Rewrite {
     new Rewrite()(a.rewriteName + b.rewriteName) {
       override def init(config: Conf): Configured[Rewrite] = {
         a.init(config).product(b.init(config)).map {
-          case (x, y) => merge(x, y)
+          case (x, y) => x.merge(y)
         }
       }
       override def rewrite(ctx: RewriteCtx): Patch =

@@ -49,7 +49,7 @@ class ScalafixToolbox {
               val args = classloadRewrite(sctx)
               rewrite
                 .product(ClassloadRewrite(fqn, args, classloader))
-                .map { case (a, b) => a.andThen(b) }
+                .map { case (a, b) => a.merge(b) }
           }
       }
     }
