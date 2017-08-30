@@ -54,6 +54,8 @@ trait RewriteCtx extends PatchOps {
 }
 
 object RewriteCtx {
-  def apply(tree: Tree, config: ScalafixConfig): RewriteCtx =
+  def apply(tree: Tree): RewriteCtx =
+    apply(tree, ScalafixConfig.default)
+  private[scalafix] def apply(tree: Tree, config: ScalafixConfig): RewriteCtx =
     RewriteCtxImpl(tree, config)
 }
