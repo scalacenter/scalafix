@@ -11,7 +11,7 @@ case object MyRewrite extends Rewrite {
         .get
     assert(custom, "Expected `x.custom = true` in the configuration!")
     ctx.tree.collect {
-      case n: scala.meta.Name => ctx.rename(n, Term.Name(n.syntax + "1"))
+      case n: scala.meta.Name => ctx.replaceTree(n, n.syntax + "1")
     }.asPatch
   }
 }
