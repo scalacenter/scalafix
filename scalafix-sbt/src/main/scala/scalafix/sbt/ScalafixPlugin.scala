@@ -18,7 +18,7 @@ object ScalafixPlugin extends AutoPlugin {
     val scalafix: InputKey[Unit] = inputKey[Unit]("Run scalafix rewrite.")
     val sbtfix: InputKey[Unit] = inputKey[Unit](
       "Run scalafix rewrite on build sources. " +
-        "Requires the sbthost plugin to be enabled globally.")
+        "Requires the semanticdb-sbt plugin to be enabled globally.")
     val scalafixConfig: SettingKey[Option[File]] =
       settingKey[Option[File]](
         ".scalafix.conf file to specify which scalafix rules should run.")
@@ -123,7 +123,7 @@ object ScalafixPlugin extends AutoPlugin {
 
   lazy val sbtfixSettings: Seq[Def.Setting[_]] = Def.settings(
     libraryDependencies ++= {
-      val sbthost = "org.scalameta" % "sbthost-nsc" % Versions.sbthost cross CrossVersion.full
+      val sbthost = "org.scalameta" % "semanticdb-sbt" % Versions.semanticdbSbt cross CrossVersion.full
       val isMetabuild = {
         val p = thisProject.value
         p.id.endsWith("-build") && p.base.getName == "project"

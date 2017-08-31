@@ -9,26 +9,27 @@ case class SemanticCtxImpl(
     classpath: Classpath)
     extends SemanticCtx {
   override def toString: String =
-    s"SemanticCtx($sourcepath, $classpath, database.size=${database.entries.length})"
+    s"SemanticCtx($sourcepath, $classpath, database.size=${database.documents.length})"
   override def hashCode(): Int = database.hashCode()
   private lazy val _denots: Map[Symbol, Denotation] = {
     val builder = Map.newBuilder[Symbol, Denotation]
-    database.symbols.foreach(r => builder += (r.sym -> r.denot))
+    database.symbols.foreach(r => builder += (r.symbol -> r.denotation))
     builder.result()
   }
   private lazy val _names: Map[Position, ResolvedName] = {
     val builder = Map.newBuilder[Position, ResolvedName]
     def add(r: ResolvedName) = {
-      builder += (r.pos -> r)
+      builder += (r.position -> r)
     }
-    database.entries.foreach { entry =>
+    database.documents.foreach { entry =>
       entry.names.foreach(add)
-      entry.sugars.foreach(sugar => sugar.names.foreach(add))
+      entry.synthetics.foreach(_.names.foreach(add))
+      entry.symbols.foreach(_.denotation.names.foreach(add))
     }
     builder.result()
   }
   def symbol(position: Position): Option[Symbol] =
-    _names.get(position).map(_.sym)
+    _names.get(position).map(_.symbol)
   def symbol(tree: Tree): Option[Symbol] = tree match {
     case name @ Name(_) =>
       val syntax = name.syntax
@@ -51,6 +52,6 @@ case class SemanticCtxImpl(
   def denotation(tree: Tree): Option[Denotation] =
     symbol(tree).flatMap(denotation)
   override def names: Seq[ResolvedName] = _names.values.toSeq
-  def withEntries(entries: Seq[Attributes]): SemanticCtx =
-    copy(database = Database(entries))
+  def withDocuments(documents: Seq[Document]): SemanticCtx =
+    copy(database = Database(documents))
 }

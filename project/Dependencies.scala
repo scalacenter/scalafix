@@ -4,9 +4,9 @@ import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 
 object Dependencies {
 
-  val scalametaV = "2.0.0-M2"
-  val metaconfigV = "0.5.1"
-  def sbthostV = "0.3.1"
+  val scalametaV = "2.0.0-M3"
+  val metaconfigV = "0.5.2"
+  def semanticdbSbt = "0.4.0"
   def dotty = "0.1.1-bin-20170530-f8f52cc-NIGHTLY"
   def scala210 = "2.10.6"
   def scala211 = "2.11.11"

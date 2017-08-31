@@ -11,7 +11,6 @@ import org.scalatest.FunSuite
 import org.scalatest.exceptions.TestFailedException
 import scala.meta.internal.inputs.XtensionPositionFormatMessage
 import scala.util.matching.Regex
-import lang.meta.internal.io.FileIO
 
 object SemanticRewriteSuite {
   val LintAssertion: Regex = " scalafix: (.*)".r
@@ -141,7 +140,7 @@ abstract class SemanticRewriteSuite(
 
   /** Helper method to print out sctx for individual files */
   def debugFile(filename: String): Unit = {
-    sctx.entries.foreach { entry =>
+    sctx.documents.foreach { entry =>
       if (entry.input.label.contains(filename)) {
         logger.elem(entry)
       }

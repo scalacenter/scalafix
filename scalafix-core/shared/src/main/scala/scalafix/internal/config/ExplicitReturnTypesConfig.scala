@@ -1,21 +1,27 @@
 package scalafix.internal.config
 
 import metaconfig._
+import MetaconfigPendingUpstream.XtensionConfScalafix
 
 case class ExplicitReturnTypesConfig(
     memberKind: List[MemberKind] = Nil,
     memberVisibility: List[MemberVisibility] = Nil,
-    skipSimpleDefinitions: Boolean = true
+    skipSimpleDefinitions: Boolean = true,
+    // Experimental, still blocked by https://github.com/scalameta/scalameta/issues/1099
+    // to work for defs. May insert names that conflicts with existing names in scope.
+    // Use at your own risk.
+    unsafeShortenNames: Boolean = false
 ) {
   implicit val reader: ConfDecoder[ExplicitReturnTypesConfig] =
     ConfDecoder.instanceF[ExplicitReturnTypesConfig] { c =>
       (
-        c.getOrElse("memberKind")(memberKind) |@|
-          c.getOrElse("memberVisibility")(memberVisibility) |@|
-          c.getOrElse("skipSimpleDefinitions")(skipSimpleDefinitions)
+        c.getField(memberKind) |@|
+          c.getField(memberVisibility) |@|
+          c.getField(skipSimpleDefinitions) |@|
+          c.getField(unsafeShortenNames)
       ).map {
-        case ((a, b), c) =>
-          ExplicitReturnTypesConfig(a, b, c)
+        case (((a, b), c), d) =>
+          ExplicitReturnTypesConfig(a, b, c, d)
       }
     }
 }

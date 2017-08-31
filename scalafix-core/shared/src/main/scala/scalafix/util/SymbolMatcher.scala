@@ -24,10 +24,12 @@ import scalafix.internal.util.SymbolOps
 final class SymbolMatcher(
     symbols: List[Symbol],
     isEqual: (Symbol, Symbol) => Boolean)(implicit sctx: SemanticCtx) {
-  def matches(tree: Tree): Boolean =
+  def matches(tree: Tree): Boolean = {
     sctx.symbol(tree).fold(false)(matches)
+  }
   def matches(symbol: Symbol): Boolean =
     symbols.exists(x => isEqual(x, symbol))
+
   // Returns Option[Tree] to aid composing multiple unapplies, example:
   // case myMethod(Name(n)) =>
   // If it returned a Boolean, then it would not be possible to deconstruct @
@@ -35,6 +37,10 @@ final class SymbolMatcher(
   // case n @ myMethod() =>  // impossible to deconstruct `n`
   def unapply(tree: Tree): Option[Tree] =
     if (matches(tree)) Some(tree)
+    else None
+
+  def unapply(symbol: Symbol): Option[Symbol] =
+    if (matches(symbol)) Some(symbol)
     else None
 }
 

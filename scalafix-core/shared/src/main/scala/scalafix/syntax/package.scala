@@ -33,7 +33,7 @@ package object syntax {
   implicit class XtensionSymbol(symbol: Symbol) {
     def normalized: Symbol = SymbolOps.normalize(symbol)
   }
-  implicit class XtensionAttributes(attributes: Attributes) {
+  implicit class XtensionDocument(attributes: Document) {
     def dialect: Dialect = ScalafixScalametaHacks.dialect(attributes.language)
   }
   implicit class XtensionTreeScalafix(tree: Tree) {

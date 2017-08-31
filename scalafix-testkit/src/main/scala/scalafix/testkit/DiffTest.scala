@@ -11,7 +11,7 @@ import org.scalatest.exceptions.TestFailedException
 case class DiffTest(
     filename: RelativePath,
     original: Input,
-    attributes: Attributes,
+    attributes: Document,
     config: () => (Rewrite, ScalafixConfig),
     isSkip: Boolean,
     isOnly: Boolean) {
@@ -25,7 +25,7 @@ object DiffTest {
   private def stripPrefix(str: String) = PrefixRegex.replaceFirstIn(str, "")
 
   def fromSemanticCtx(sctx: SemanticCtx): Seq[DiffTest] =
-    sctx.entries.map { attributes =>
+    sctx.documents.map { attributes =>
       val input @ Input.VirtualFile(label, code) = attributes.input
       val relpath = RelativePath(label)
       val config: () => (Rewrite, ScalafixConfig) = { () =>
