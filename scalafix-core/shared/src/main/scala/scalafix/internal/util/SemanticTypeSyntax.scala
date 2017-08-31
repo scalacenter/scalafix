@@ -41,23 +41,20 @@ object SemanticTypeSyntax {
           Type.Tuple(rargs)
 
         // shorten names
-        case Type.Select(_, name @ sctx.Symbol(sym))
-            if shortenNames && isStable(sym) =>
-          patch += ctx.addGlobalImport(sym)
-          name
-        case Term.Select(_, name @ sctx.Symbol(sym))
+        case Select(_, name @ sctx.Symbol(sym))
             if shortenNames && isStable(sym) =>
           patch += ctx.addGlobalImport(sym)
           name
 
         // _root_ qualify names
-        case Term.Select(qual @ Term.Name(root), name)
-            if !shortenNames && root != "_root_" =>
-          Term.Select(q"_root_.$qual", name)
-        case Type.Select(qual @ Term.Name(root), name)
-            if !shortenNames && root != "_root_" =>
-          Type.Select(q"_root_.$qual", name)
-
+        case Select(qual @ Term.Name(pkg), n)
+            // NOTE(olafur): can't resolve symbol here since it's not always
+            // included in sctx  for Denotation.signature.
+            if !shortenNames && pkg != "_root_" =>
+          n match {
+            case name: Type.Name => Type.Select(q"_root_.$qual", name)
+            case name: Term.Name => q"_root_.$qual.$name"
+          }
         // Recursive cases
         case Type.Select(qual, name) =>
           Type.Select(loop[Term.Ref](qual), name)
