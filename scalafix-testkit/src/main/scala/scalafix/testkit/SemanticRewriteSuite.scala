@@ -30,8 +30,7 @@ object SemanticRewriteSuite {
 }
 
 abstract class SemanticRewriteSuite(
-    val semanticCtx: SemanticCtx,
-    val inputSourceroot: Seq[AbsolutePath],
+    val sctx: SemanticCtx,
     val expectedOutputSourceroot: Seq[AbsolutePath]
 ) extends FunSuite
     with DiffAssertions
@@ -42,7 +41,6 @@ abstract class SemanticRewriteSuite(
       expectedOutputSourceroot: Seq[AbsolutePath]
   ) = this(
     sctx,
-    List(inputSourceroot),
     expectedOutputSourceroot
   )
   def this(
@@ -51,7 +49,7 @@ abstract class SemanticRewriteSuite(
       expectedOutputSourceroot: Seq[AbsolutePath]
   ) =
     this(
-      new SemanticCtxImpl(database),
+      SemanticCtxImpl(database, Sourcepath(inputSourceroot), Classpath(Nil)),
       inputSourceroot,
       expectedOutputSourceroot
     )
@@ -141,9 +139,9 @@ abstract class SemanticRewriteSuite(
     }
   }
 
-  /** Helper method to print out semanticCtx for individual files */
+  /** Helper method to print out sctx for individual files */
   def debugFile(filename: String): Unit = {
-    semanticCtx.entries.foreach { entry =>
+    sctx.entries.foreach { entry =>
       if (entry.input.label.contains(filename)) {
         logger.elem(entry)
       }
@@ -160,7 +158,7 @@ abstract class SemanticRewriteSuite(
     super.afterAll()
   }
   lazy val testsToRun =
-    DiffTest.testToRun(DiffTest.fromSemanticCtx(semanticCtx))
+    DiffTest.testToRun(DiffTest.fromSemanticCtx(sctx))
   def runAllTests(): Unit = {
     testsToRun.foreach(runOn)
   }

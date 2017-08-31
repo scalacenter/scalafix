@@ -8,7 +8,7 @@ object Rewrites {
     }.asPatch
   }
 
-  val myRewrite2 = Rewrite.semantic { implicit semanticCtx => ctx =>
+  val myRewrite2 = Rewrite.semantic { implicit sctx => ctx =>
     ctx.addGlobalImport(importer"scala.collection.immutable.Seq")
   }
 }

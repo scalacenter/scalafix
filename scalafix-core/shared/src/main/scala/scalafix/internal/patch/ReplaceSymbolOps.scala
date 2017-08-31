@@ -20,7 +20,7 @@ object ReplaceSymbolOps {
 
   def naiveMoveSymbolPatch(moveSymbols: Seq[ReplaceSymbol])(
       implicit ctx: RewriteCtx,
-      semanticCtx: SemanticCtx): Patch = {
+      sctx: SemanticCtx): Patch = {
     val moves: Map[Symbol, Symbol.Global] =
       moveSymbols.toIterator.flatMap {
         case ReplaceSymbol(
@@ -38,10 +38,10 @@ object ReplaceSymbolOps {
       (ref, sym) match {
         // same length
         case (a @ Name(_), Symbol.Global(Symbol.None, SignatureName(b))) =>
-          ctx.rename(a, b) -> Symbol.None
+          ctx.replaceTree(a, b) -> Symbol.None
         // ref is shorter
         case (a @ Name(_), sym @ Symbol.Global(qual, SignatureName(b))) =>
-          ctx.rename(a, b) -> sym
+          ctx.replaceTree(a, b) -> sym
         // ref is longer
         case (
             Select(qual, Name(_)),
@@ -52,7 +52,7 @@ object ReplaceSymbolOps {
             Select(qual: Ref, a @ Name(_)),
             Symbol.Global(symQual, SignatureName(b))) =>
           val (patch, toImport) = loop(qual, symQual)
-          (patch + ctx.rename(a, b)) -> toImport
+          (patch + ctx.replaceTree(a, b)) -> toImport
       }
     }
     object Move {
@@ -86,7 +86,7 @@ object ReplaceSymbolOps {
             patch
           case _ =>
             toImport += to
-            ctx.rename(n, to.signature.name)
+            ctx.replaceTree(n, to.signature.name)
         }
     }
     val importPatch = toImport.foldLeft(Patch.empty) {

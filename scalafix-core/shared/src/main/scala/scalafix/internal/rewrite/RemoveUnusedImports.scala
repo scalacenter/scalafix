@@ -6,9 +6,9 @@ import scalafix.SemanticCtx
 import scalafix.rewrite.RewriteCtx
 import scalafix.rewrite.SemanticRewrite
 
-case class RemoveUnusedImports(semanticCtx: SemanticCtx)
-    extends SemanticRewrite(semanticCtx) {
-  private val unusedImports = semanticCtx.messages.toIterator.collect {
+case class RemoveUnusedImports(sctx: SemanticCtx)
+    extends SemanticRewrite(sctx) {
+  private val unusedImports = sctx.messages.toIterator.collect {
     case Message(pos, _, "Unused import") =>
       pos
   }.toSet

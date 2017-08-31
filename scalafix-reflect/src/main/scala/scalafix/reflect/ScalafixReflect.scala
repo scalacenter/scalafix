@@ -10,14 +10,14 @@ object ScalafixReflect {
   def syntactic: ConfDecoder[Rewrite] =
     fromLazySemanticCtx(LazySemanticCtx.empty)
 
-  def semantic(semanticCtx: SemanticCtx): ConfDecoder[Rewrite] =
-    fromLazySemanticCtx(LazySemanticCtx(_ => Some(semanticCtx)))
+  def semantic(sctx: SemanticCtx): ConfDecoder[Rewrite] =
+    fromLazySemanticCtx(LazySemanticCtx(_ => Some(sctx)))
 
-  def fromLazySemanticCtx(semanticCtx: LazySemanticCtx): ConfDecoder[Rewrite] =
+  def fromLazySemanticCtx(sctx: LazySemanticCtx): ConfDecoder[Rewrite] =
     rewriteConfDecoder(
       MetaconfigPendingUpstream.orElse(
-        ScalafixCompilerDecoder.baseCompilerDecoder(semanticCtx),
-        baseRewriteDecoders(semanticCtx)
+        ScalafixCompilerDecoder.baseCompilerDecoder(sctx),
+        baseRewriteDecoders(sctx)
       )
     )
 }

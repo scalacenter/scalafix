@@ -1,4 +1,7 @@
-package scalafix
+package scalafix.internal.util
+
+import scalafix.Patch
+import scalafix.SemanticCtx
 
 // TODO(olafur) this signature makes no sense. We should try to avoid exception
 // try/catch dodgeball court whenever possible.

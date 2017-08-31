@@ -3,7 +3,7 @@ package scalafix.cli
 import scala.collection.immutable.Seq
 import scalafix.internal.rewrite._
 
-class CliSyntaxTest extends BaseCliTest {
+class CliSyntacticTests extends BaseCliTest {
 
   check(
     name = "fix file",

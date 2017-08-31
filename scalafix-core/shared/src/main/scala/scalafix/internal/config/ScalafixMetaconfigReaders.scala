@@ -23,8 +23,8 @@ import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.Ok
 import scalafix.internal.config.MetaconfigParser.{parser => hoconParser}
+import scalafix.internal.rewrite.ConfigRewrite
 import scalafix.patch.TreePatch
-import scalafix.rewrite.ConfigRewrite
 
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
 // A collection of metaconfig.Reader instances that are shared across
@@ -97,11 +97,10 @@ trait ScalafixMetaconfigReaders {
       case conf @ Conf.Str(value) if !value.contains(":") =>
         val isSyntactic = ScalafixRewrites.syntacticNames.contains(value)
         val kind = RewriteKind(syntactic = isSyntactic)
-        val semanticCtx = getSemanticCtx(kind)
+        val sctx = getSemanticCtx(kind)
         val names: Map[String, Rewrite] =
           ScalafixRewrites.syntaxName2rewrite ++
-            semanticCtx.fold(Map.empty[String, Rewrite])(
-              ScalafixRewrites.name2rewrite)
+            sctx.fold(Map.empty[String, Rewrite])(ScalafixRewrites.name2rewrite)
         val result = ReaderUtil.fromMap(names).read(conf)
         result match {
           case Ok(rewrite) =>
@@ -114,20 +113,20 @@ trait ScalafixMetaconfigReaders {
 
   private lazy val semanticRewriteClass = classOf[SemanticRewrite]
 
-  def classloadRewrite(
-      semanticCtx: LazySemanticCtx): Class[_] => Seq[SemanticCtx] = { cls =>
-    val kind =
-      if (semanticRewriteClass.isAssignableFrom(cls)) RewriteKind.Semantic
-      else RewriteKind.Syntactic
-    semanticCtx(kind).toList
+  def classloadRewrite(sctx: LazySemanticCtx): Class[_] => Seq[SemanticCtx] = {
+    cls =>
+      val kind =
+        if (semanticRewriteClass.isAssignableFrom(cls)) RewriteKind.Semantic
+        else RewriteKind.Syntactic
+      sctx(kind).toList
   }
 
   private lazy val SlashSeparated = "([^/]+)/(.*)".r
 
   private def requireSemanticSemanticCtx[T](
-      semanticCtx: LazySemanticCtx,
+      sctx: LazySemanticCtx,
       what: String)(f: SemanticCtx => Configured[T]): Configured[T] = {
-    semanticCtx(RewriteKind.Semantic).fold(
+    sctx(RewriteKind.Semantic).fold(
       Configured.error(s"$what requires the semantic API."): Configured[T])(f)
   }
 
@@ -137,13 +136,12 @@ trait ScalafixMetaconfigReaders {
     symbolGlobalReader.read(Conf.Str(from)) |@|
       symbolGlobalReader.read(Conf.Str(to))
 
-  def classloadRewriteDecoder(
-      semanticCtx: LazySemanticCtx): ConfDecoder[Rewrite] =
+  def classloadRewriteDecoder(sctx: LazySemanticCtx): ConfDecoder[Rewrite] =
     ConfDecoder.instance[Rewrite] {
       case UriRewriteString("scala", fqn) =>
-        ClassloadRewrite(fqn, classloadRewrite(semanticCtx))
+        ClassloadRewrite(fqn, classloadRewrite(sctx))
       case UriRewriteString("replace", replace @ SlashSeparated(from, to)) =>
-        requireSemanticSemanticCtx(semanticCtx, replace) { m =>
+        requireSemanticSemanticCtx(sctx, replace) { m =>
           parseReplaceSymbol(from, to)
             .map(TreePatch.ReplaceSymbol.tupled)
             .map(p => Rewrite.constant(replace, p, m))
@@ -152,15 +150,15 @@ trait ScalafixMetaconfigReaders {
 
   def baseSyntacticRewriteDecoder: ConfDecoder[Rewrite] =
     baseRewriteDecoders(LazySemanticCtx.empty)
-  def baseRewriteDecoders(semanticCtx: LazySemanticCtx): ConfDecoder[Rewrite] = {
+  def baseRewriteDecoders(sctx: LazySemanticCtx): ConfDecoder[Rewrite] = {
     MetaconfigPendingUpstream.orElse(
-      defaultRewriteDecoder(semanticCtx),
-      classloadRewriteDecoder(semanticCtx)
+      defaultRewriteDecoder(sctx),
+      classloadRewriteDecoder(sctx)
     )
   }
   def configFromInput(
       input: Input,
-      semanticCtx: LazySemanticCtx,
+      sctx: LazySemanticCtx,
       extraRewrites: List[String])(
       implicit decoder: ConfDecoder[Rewrite]
   ): Configured[(Rewrite, ScalafixConfig)] = {
@@ -168,10 +166,13 @@ trait ScalafixMetaconfigReaders {
       scalafixConfigConfDecoder(decoder, extraRewrites)
         .read(conf)
         .andThen {
+          // Initialize configuration
+          case (rewrite, config) => rewrite.init(conf).map(_ -> config)
+        }
+        .andThen {
           case (rewrite, config) =>
-            ConfigRewrite(config.patches, semanticCtx).map { configRewrite =>
-              configRewrite.fold(rewrite -> config)(
-                rewrite.andThen(_) -> config)
+            ConfigRewrite(config.patches, sctx).map { configRewrite =>
+              configRewrite.fold(rewrite -> config)(rewrite.merge(_) -> config)
             }
         }
     }
@@ -262,9 +263,9 @@ trait ScalafixMetaconfigReaders {
                   Conf.Str(s"$els: ${els.productPrefix}"))
                 .notOk
           }
-        val toParse =
-          if (path.startsWith("_")) path
-          else s"_root_.$path."
+        var toParse = path
+        if (!path.startsWith("_")) toParse = s"_root_.$toParse"
+        if (!path.endsWith(".") && !path.endsWith("#")) toParse += "."
         parseSymbol(toParse).andThen(symbolGlobal)
     }
   implicit lazy val AddGlobalImportReader: ConfDecoder[AddGlobalImport] =

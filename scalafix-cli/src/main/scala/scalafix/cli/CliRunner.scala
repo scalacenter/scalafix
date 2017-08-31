@@ -32,6 +32,8 @@ import scalafix.internal.config.LazySemanticCtx
 import scalafix.internal.config.MetaconfigPendingUpstream
 import scalafix.internal.config.RewriteKind
 import scalafix.internal.config.ScalafixConfig
+import scalafix.internal.util.Failure
+import scalafix.internal.util.SemanticCtxImpl
 import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
 import metaconfig.Configured.Ok
@@ -91,7 +93,7 @@ sealed abstract case class CliRunner(
   private def isUpToDate(input: FixFile): Boolean =
     if (!input.toIO.exists() && cli.outTo.nonEmpty) true
     else {
-      input.semanticCtx match {
+      input.semanticFile match {
         case Some(Input.VirtualFile(_, contents)) =>
           val fileToWrite = scala.io.Source.fromFile(input.toIO)
           try fileToWrite.sameElements(contents.toCharArray.toIterator)
@@ -145,11 +147,11 @@ sealed abstract case class CliRunner(
               Files.write(outFile.toNIO, fixed.getBytes(input.original.charset))
               ExitStatus.Ok
             } else {
-              ctx.reporter.error(
+              cli.diagnostic.error(
                 s"Stale semanticdb for ${CliRunner.pretty(outFile)}, skipping rewrite. Please recompile.")
               if (cli.verbose) {
                 val diff =
-                  Patch.unifiedDiff(input.semanticCtx.get, input.original)
+                  Patch.unifiedDiff(input.semanticFile.get, input.original)
                 common.err.println(diff)
               }
               ExitStatus.StaleSemanticDB
@@ -164,7 +166,7 @@ sealed abstract case class CliRunner(
       case NonFatal(e) =>
         reportError(input.original.path, e, cli)
         e match {
-          case _: scalafix.Failure => ExitStatus.ScalafixError
+          case _: Failure => ExitStatus.ScalafixError
           case _ => ExitStatus.UnexpectedError
         }
     }
@@ -310,15 +312,17 @@ object CliRunner {
     }
 
     // We don't know yet if we need to compute the database or not.
-    // If all the rewrites are syntactic, we never need to compute the semanticCtx.
+    // If all the rewrites are syntactic, we never need to compute the sctx.
     // If a single rewrite is semantic, then we need to compute the database.
     private var cachedDatabase = Option.empty[Configured[SemanticCtx]]
     private def computeAndCacheDatabase(): Option[SemanticCtx] = {
       val result: Configured[SemanticCtx] = cachedDatabase.getOrElse {
         (resolveClasspath |@| resolvedSourceroot).andThen {
           case (classpath, root) =>
-            val db = SemanticCtx.load(Sbthost
-              .patchDatabase(Database.load(classpath, Sourcepath(root)), root))
+            val patched = Sbthost.patchDatabase(
+              Database.load(classpath, Sourcepath(root)),
+              root)
+            val db = SemanticCtxImpl(patched, Sourcepath(root), classpath)
             if (verbose) {
               common.err.println(
                 s"Loaded database with ${db.entries.length} entries.")
@@ -476,7 +480,7 @@ object CliRunner {
     val semanticInputs: Configured[Map[AbsolutePath, Input.VirtualFile]] = {
       (resolvedRewrite |@| resolvedSourceroot).andThen {
         case (_, root) =>
-          cachedDatabase.getOrElse(Ok(SemanticCtx(Nil))).map { database =>
+          cachedDatabase.getOrElse(Ok(SemanticCtx.empty)).map { database =>
             def checkExists(path: AbsolutePath): Unit =
               if (!cli.noStrictSemanticdb && !path.isFile) {
                 common.cliArg.error(
@@ -509,7 +513,7 @@ object CliRunner {
                 s"No semanticdb associated with ${file.original.path}. " +
                   s"Is --sourceroot correct?")
             }
-            file.copy(semanticCtx = labeled)
+            file.copy(semanticFile = labeled)
           }
       }
 

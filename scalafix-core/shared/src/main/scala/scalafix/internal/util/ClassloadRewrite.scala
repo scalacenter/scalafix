@@ -3,7 +3,6 @@ package scalafix.internal.util
 import java.lang.reflect.InvocationTargetException
 import scalafix.SemanticCtx
 import scala.reflect.ClassTag
-import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 import scalafix.Rewrite
@@ -40,9 +39,9 @@ class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
     if (t.isInstance(rewrite)) rewrite.asInstanceOf[T]
     else
       args match {
-        case (semanticCtx: SemanticCtx) :: Nil
+        case (sctx: SemanticCtx) :: Nil
             if functionClasstag.isInstance(rewrite) =>
-          rewrite.asInstanceOf[Function[SemanticCtx, T]].apply(semanticCtx)
+          rewrite.asInstanceOf[Function[SemanticCtx, T]].apply(sctx)
         case _ =>
           throw new IllegalArgumentException(
             s"Unable to load rewrite from field $fieldName on object $obj with arguments $args")
@@ -103,13 +102,13 @@ class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
     }
     val result = combined.result()
     val successes = result.collect { case Success(t) => t }
-    val failures = result.collect { case Failure(e) => e }
+    val failures = result.collect { case util.Failure(e) => e }
     def pretty(ex: Throwable): String =
       s"""$ex
          | ${ex.getStackTrace.take(10).mkString(" \n")}""".stripMargin
     if (successes.nonEmpty) Success(successes.head)
     else {
-      Failure(
+      util.Failure(
         new IllegalArgumentException(
           s"""Unable to load rewrite $fqcn with args $args. Tried the following:
              |${failures.map(pretty).mkString("\n")}""".stripMargin))
@@ -127,7 +126,7 @@ object ClassloadRewrite {
       new ClassloadRewrite[Rewrite](classloader).classloadRewrite(fqn, args)
     result match {
       case Success(e) => Configured.Ok(e)
-      case Failure(e) => Configured.NotOk(ConfError.msg(e.toString))
+      case util.Failure(e) => Configured.NotOk(ConfError.msg(e.toString))
     }
   }
 }

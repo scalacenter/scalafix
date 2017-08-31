@@ -11,12 +11,12 @@ case object MyRewrite extends Rewrite {
         .get
     assert(custom, "Expected `x.custom = true` in the configuration!")
     ctx.tree.collect {
-      case n: scala.meta.Name => ctx.rename(n, Term.Name(n.syntax + "1"))
+      case n: scala.meta.Name => ctx.replaceTree(n, n.syntax + "1")
     }.asPatch
   }
 }
 
-case class MyRewrite2(semanticCtx: SemanticCtx) extends SemanticRewrite(semanticCtx) {
+case class MyRewrite2(sctx: SemanticCtx) extends SemanticRewrite(sctx) {
   def rewrite(ctx: RewriteCtx): Patch =
     ctx.addGlobalImport(importer"scala.collection.immutable.Seq")
 }

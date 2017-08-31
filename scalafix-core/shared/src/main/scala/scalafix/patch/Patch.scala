@@ -11,6 +11,7 @@ import scalafix.patch.TreePatch.ImportPatch
 import scalafix.diff.DiffUtils
 import scalafix.internal.patch.ImportPatchOps
 import scalafix.internal.patch.ReplaceSymbolOps
+import scalafix.internal.util.Failure
 import scalafix.internal.util.TokenOps
 import scalafix.lint.LintMessage
 import scalafix.patch.TreePatch.ReplaceSymbol
@@ -133,11 +134,11 @@ object Patch {
   private[scalafix] def apply(
       p: Patch,
       ctx: RewriteCtx,
-      semanticCtx: Option[SemanticCtx]
+      sctx: Option[SemanticCtx]
   ): String = {
     val patches = underlying(p)
     val semanticPatches = patches.collect { case tp: TreePatch => tp }
-    val result = semanticCtx match {
+    val result = sctx match {
       case Some(x: SemanticCtx) =>
         semanticApply(p)(ctx, x)
       case _ =>
@@ -162,9 +163,8 @@ object Patch {
       .mkString
   }
 
-  private def semanticApply(patch: Patch)(
-      implicit ctx: RewriteCtx,
-      semanticCtx: SemanticCtx): String = {
+  private def semanticApply(
+      patch: Patch)(implicit ctx: RewriteCtx, sctx: SemanticCtx): String = {
     val base = underlying(patch)
     val moveSymbol = underlying(
       ReplaceSymbolOps.naiveMoveSymbolPatch(base.collect {

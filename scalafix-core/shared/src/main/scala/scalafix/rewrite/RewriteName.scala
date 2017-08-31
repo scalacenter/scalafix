@@ -3,19 +3,6 @@ package scalafix.rewrite
 import scalafix.internal.config.ScalafixReporter
 import scalafix.util.Deprecated
 
-/** A thin wrapper around a string name and optional deprecation warning. */
-final case class RewriteIdentifier(
-    value: String,
-    deprecated: Option[Deprecated]
-) {
-  override def toString: String = value
-}
-
-object RewriteIdentifier {
-  def apply(value: String) =
-    new RewriteIdentifier(value, None)
-}
-
 /** A thin wrapper around a list of RewriteIdentifier. */
 final case class RewriteName(identifiers: List[RewriteIdentifier]) {
   private def nonDeprecated = identifiers.filter(_.deprecated.isEmpty)

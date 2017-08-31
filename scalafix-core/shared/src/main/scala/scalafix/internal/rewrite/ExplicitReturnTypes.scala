@@ -6,15 +6,28 @@ import scala.meta.contrib._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
 import scalafix.Patch
 import scalafix.SemanticCtx
+import scalafix.internal.config.ExplicitReturnTypesConfig
 import scalafix.internal.config.MemberKind
 import scalafix.internal.config.MemberVisibility
+import scalafix.rewrite.Rewrite
 import scalafix.rewrite.RewriteCtx
 import scalafix.rewrite.SemanticRewrite
 import scalafix.syntax._
 import scalafix.util.TokenOps
+import metaconfig.Conf
+import metaconfig.Configured
 
-case class ExplicitReturnTypes(semanticCtx: SemanticCtx)
-    extends SemanticRewrite(semanticCtx) {
+case class ExplicitReturnTypes(
+    sctx: SemanticCtx,
+    config: ExplicitReturnTypesConfig = ExplicitReturnTypesConfig.default)
+    extends SemanticRewrite(sctx) {
+  def this(sctx: SemanticCtx) = this(sctx, ExplicitReturnTypesConfig.default)
+
+  override def init(config: Conf): Configured[Rewrite] =
+    config.dynamic.explicitReturnTypes.as[ExplicitReturnTypesConfig].map { c =>
+      ExplicitReturnTypes(sctx, c)
+    }
+
   // Don't explicitly annotate vals when the right-hand body is a single call
   // to `implicitly`. Prevents ambiguous implicit. Not annotating in such cases,
   // this a common trick employed implicit-heavy code to workaround SI-2712.
@@ -75,9 +88,9 @@ case class ExplicitReturnTypes(semanticCtx: SemanticCtx)
 
   override def rewrite(ctx: RewriteCtx): Patch = {
     import scala.meta._
-    import ctx._
     def fix(defn: Defn, body: Term): Seq[Patch] = {
-      import ctx.tokenList._
+      val lst = ctx.tokenList
+      import lst._
       for {
         start <- defn.tokens.headOption
         end <- body.tokens.headOption
@@ -101,7 +114,7 @@ case class ExplicitReturnTypes(semanticCtx: SemanticCtx)
         defn: D,
         mods: Traversable[Mod],
         body: Term)(implicit ev: Extract[D, Mod]): Boolean = {
-      import ctx.config.explicitReturnTypes._
+      import config._
 
       def matchesMemberVisibility(): Boolean =
         memberVisibility.contains(visibility(mods))
@@ -119,7 +132,7 @@ case class ExplicitReturnTypes(semanticCtx: SemanticCtx)
       matchesMemberVisibility()
     }
 
-    tree
+    ctx.tree
       .collect {
         case t @ Defn.Val(mods, _, None, body)
             if isRewriteCandidate(t, mods, body) =>

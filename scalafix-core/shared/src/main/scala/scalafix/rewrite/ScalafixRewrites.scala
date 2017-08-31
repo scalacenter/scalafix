@@ -13,21 +13,20 @@ object ScalafixRewrites {
     DottyKeywords,
     DottyVarArgPattern
   )
-  def semantic(semanticCtx: SemanticCtx): List[Rewrite] = List(
-    Sbt1(semanticCtx),
-    ExplicitReturnTypes(semanticCtx),
-    RemoveUnusedImports(semanticCtx),
-    NoAutoTupling(semanticCtx)
+  def semantic(sctx: SemanticCtx): List[Rewrite] = List(
+    Sbt1(sctx),
+    ExplicitReturnTypes(sctx),
+    RemoveUnusedImports(sctx),
+    NoAutoTupling(sctx)
   )
-  def all(semanticCtx: SemanticCtx): List[Rewrite] =
-    syntax ++ semantic(semanticCtx)
-  def name2rewrite(semanticCtx: SemanticCtx): Map[String, Rewrite] =
-    all(semanticCtx).flatMap(x => x.names.map(_ -> x)).toMap
+  def all(sctx: SemanticCtx): List[Rewrite] =
+    syntax ++ semantic(sctx)
+  def name2rewrite(sctx: SemanticCtx): Map[String, Rewrite] =
+    all(sctx).flatMap(x => x.names.map(_ -> x)).toMap
   lazy val syntaxName2rewrite: Map[String, Rewrite] =
     syntax.flatMap(x => x.names.map(_ -> x)).toMap
-  val emptyDatabase = SemanticCtx(Nil)
   lazy val syntacticNames: List[String] = syntaxName2rewrite.keys.toList
   lazy val semanticNames: List[String] =
-    semantic(emptyDatabase).flatMap(_.names)
+    semantic(SemanticCtx.empty).flatMap(_.names)
   def allNames: List[String] = syntaxName2rewrite.keys.toList ++ semanticNames
 }

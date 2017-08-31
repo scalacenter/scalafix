@@ -5,7 +5,9 @@ import scala.collection.immutable.Seq
 import scala.meta._
 import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.internal.config.ScalafixConfig
+import scalafix.internal.util.Failure
 import scalafix.syntax._
+import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.Configured
 
@@ -18,8 +20,23 @@ abstract class Rewrite(implicit val rewriteName: RewriteName) { self =>
     */
   def rewrite(ctx: RewriteCtx): Patch
 
+  /** Initialize rewrite.
+    *
+    * This method is called once by scalafix before rewrite is called.
+    * Use this method to either read custom configuration or to build
+    * expensive indices.
+    *
+    * @param config The .scalafix.conf configuration.
+    * @return the initialized rewrite or an error. If no initialization is needed,
+    *         return Configured.Ok(this).
+    */
+  def init(config: Conf): Configured[Rewrite] =
+    Configured.Ok(this)
+
   /** Combine this rewrite with another rewrite. */
-  final def andThen(other: Rewrite): Rewrite = Rewrite.merge(this, other)
+  final def merge(other: Rewrite): Rewrite = Rewrite.merge(this, other)
+  @deprecated("Renamed to merge.", "0.5.0")
+  final def andThen(other: Rewrite): Rewrite = merge(other)
 
   /** Returns string output of applying this single patch. */
   final def apply(ctx: RewriteCtx): String = apply(ctx, rewrite(ctx))
@@ -63,11 +80,10 @@ abstract class Rewrite(implicit val rewriteName: RewriteName) { self =>
   protected[scalafix] def semanticOption: Option[SemanticCtx] = None
 }
 
-abstract class SemanticRewrite(semanticCtx: SemanticCtx)(
-    implicit name: RewriteName)
+abstract class SemanticRewrite(sctx: SemanticCtx)(implicit name: RewriteName)
     extends Rewrite {
-  implicit val ImplicitSemanticCtx: SemanticCtx = semanticCtx
-  override def semanticOption: Option[SemanticCtx] = Some(semanticCtx)
+  implicit val ImplicitSemanticCtx: SemanticCtx = sctx
+  override def semanticOption: Option[SemanticCtx] = Some(sctx)
 }
 
 object Rewrite {
@@ -76,12 +92,12 @@ object Rewrite {
       ScalafixMetaconfigReaders.baseSyntacticRewriteDecoder)
   lazy val empty: Rewrite = syntactic(_ => Patch.empty)(RewriteName.empty)
   def emptyConfigured: Configured[Rewrite] = Configured.Ok(empty)
-  def emptyFromSemanticCtxOpt(semanticCtx: Option[SemanticCtx]): Rewrite =
-    semanticCtx.fold(empty)(emptySemantic)
+  def emptyFromSemanticCtxOpt(sctx: Option[SemanticCtx]): Rewrite =
+    sctx.fold(empty)(emptySemantic)
   def combine(rewrites: Seq[Rewrite]): Rewrite =
-    rewrites.foldLeft(empty)(_ andThen _)
-  private[scalafix] def emptySemantic(semanticCtx: SemanticCtx): Rewrite =
-    semantic(_ => _ => Patch.empty)(RewriteName.empty)(semanticCtx)
+    rewrites.foldLeft(empty)(_ merge _)
+  private[scalafix] def emptySemantic(sctx: SemanticCtx): Rewrite =
+    semantic(_ => _ => Patch.empty)(RewriteName.empty)(sctx)
 
   /** Creates a syntactic rewrite. */
   def syntactic(f: RewriteCtx => Patch)(implicit name: RewriteName): Rewrite =
@@ -91,22 +107,26 @@ object Rewrite {
 
   /** Creates a semantic rewrite. */
   def semantic(f: SemanticCtx => RewriteCtx => Patch)(
-      implicit rewriteName: RewriteName): SemanticCtx => Rewrite = {
-    semanticCtx =>
-      new SemanticRewrite(semanticCtx) {
-        override def rewrite(ctx: RewriteCtx): Patch = f(semanticCtx)(ctx)
-      }
+      implicit rewriteName: RewriteName): SemanticCtx => Rewrite = { sctx =>
+    new SemanticRewrite(sctx) {
+      override def rewrite(ctx: RewriteCtx): Patch = f(sctx)(ctx)
+    }
   }
 
   /** Creates a rewrite that always returns the same patch. */
-  def constant(name: String, patch: Patch, semanticCtx: SemanticCtx): Rewrite =
-    new SemanticRewrite(semanticCtx)(RewriteName(name)) {
+  def constant(name: String, patch: Patch, sctx: SemanticCtx): Rewrite =
+    new SemanticRewrite(sctx)(RewriteName(name)) {
       override def rewrite(ctx: RewriteCtx): Patch = patch
     }
 
   /** Combine two rewrites into a single rewrite */
   def merge(a: Rewrite, b: Rewrite): Rewrite = {
     new Rewrite()(a.rewriteName + b.rewriteName) {
+      override def init(config: Conf): Configured[Rewrite] = {
+        a.init(config).product(b.init(config)).map {
+          case (x, y) => x.merge(y)
+        }
+      }
       override def rewrite(ctx: RewriteCtx): Patch =
         a.rewrite(ctx) + b.rewrite(ctx)
       override def semanticOption: Option[SemanticCtx] =
