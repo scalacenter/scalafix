@@ -10,16 +10,22 @@ object SymbolOps {
       case _ => None
     }
   }
-  object BottomSymbol {
-    def apply(): Symbol = Symbol.Global(Symbol.None, Signature.Term("_root_"))
-    def unapply(arg: Symbol): Boolean = arg match {
-      case Symbol.Global(Symbol.None, Signature.Term("_root_")) => true
-      case _ => false
+  object Root {
+    def apply(): Symbol.Global =
+      Symbol.Global(Symbol.None, Signature.Term("_root_"))
+    def apply(signature: Signature): Symbol.Global =
+      Symbol.Global(apply(), signature)
+    def unapply(arg: Symbol): Option[Signature] = arg match {
+      case Symbol.Global(
+          Symbol.Global(Symbol.None, Signature.Term("_root_")),
+          sig) =>
+        Some(sig)
+      case _ => None
     }
   }
   def toTermRef(symbol: Symbol): Term.Ref = {
     symbol match {
-      case Symbol.Global(BottomSymbol(), signature) =>
+      case Root(signature) =>
         Term.Name(signature.name)
       case Symbol.Global(qual, signature) =>
         Term.Select(toTermRef(qual), Term.Name(signature.name))
@@ -27,7 +33,7 @@ object SymbolOps {
   }
   def toImporter(symbol: Symbol): Option[Importer] = {
     symbol match {
-      case Symbol.Global(BottomSymbol(), SignatureName(name)) =>
+      case Root(SignatureName(name)) =>
         None
       case Symbol.Global(qual, SignatureName(name)) =>
         Some(

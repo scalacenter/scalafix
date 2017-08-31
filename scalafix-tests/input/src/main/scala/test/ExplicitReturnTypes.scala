@@ -12,11 +12,18 @@ object ExplicitReturnTypes {
   def b() = "a" + "b"
   var c = 1 == 1
   protected val d = 1.0f
-  protected def e(a:Int,b:Double) = a + b
+  protected def e(a: Int, b: Double) = a + b
   protected var f = (x: Int) => x + 1
   private val g = 1
-  private def h(a:Int) = ""
-  private var i = 1
+  private def h(a: Int) = ""
+  private var i = 22
+
+  locally {
+    implicit val Implicit = scala.concurrent.Future.successful(2)
+    val Var = scala.concurrent.Future.successful(2)
+    val Val = scala.concurrent.Future.successful(2)
+    def Def = scala.concurrent.Future.successful(2)
+  }
 
   private implicit var j = 1
 
