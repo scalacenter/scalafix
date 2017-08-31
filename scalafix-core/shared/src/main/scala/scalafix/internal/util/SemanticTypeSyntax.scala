@@ -3,10 +3,12 @@ package scalafix.internal.util
 import scala.meta._
 import scalafix._
 import scalafix.util.SymbolMatcher
+import scalafix.util.TreeExtractors._
 
 object SemanticTypeSyntax {
   def prettify(tpe: Type, ctx: RewriteCtx, shortenNames: Boolean)(
       implicit sctx: SemanticCtx): (Type, Patch) = {
+
     val functionN: SymbolMatcher = SymbolMatcher.exact(
       1.to(22).map(i => Symbol(s"_root_.scala.Function$i#")): _*
     )

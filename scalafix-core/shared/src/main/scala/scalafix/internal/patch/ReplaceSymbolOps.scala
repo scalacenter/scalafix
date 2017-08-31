@@ -3,7 +3,7 @@ package scalafix.internal.patch
 import scala.collection.mutable
 import scala.meta._
 import scalafix._
-import scalafix.internal.util.SymbolOps.BottomSymbol
+import scalafix.internal.util.SymbolOps.Root
 import scalafix.internal.util.SymbolOps.SignatureName
 import scalafix.patch.Patch
 import scalafix.patch.TreePatch.ReplaceSymbol
@@ -74,7 +74,7 @@ object ReplaceSymbolOps {
       case n @ Move(to) =>
         // was this written as `to = "blah"` instead of `to = _root_.blah`
         val isSelected = to match {
-          case Symbol.Global(BottomSymbol(), _) => false
+          case Root(_) => false
           case _ => true
         }
         n.parent match {
@@ -90,8 +90,7 @@ object ReplaceSymbolOps {
         }
     }
     val importPatch = toImport.foldLeft(Patch.empty) {
-      case (p, BottomSymbol()) => p
-      case (p, Symbol.Global(BottomSymbol(), _)) => p
+      case (p, Root(_)) => p
       case (p, sym) => p + ctx.addGlobalImport(sym)
     }
     importPatch ++ patches

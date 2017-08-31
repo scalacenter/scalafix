@@ -7,7 +7,7 @@ import scalafix.LintMessage
 import scalafix._
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.config.ScalafixMetaconfigReaders
-import scalafix.internal.util.SymbolOps.BottomSymbol
+import scalafix.internal.util.SymbolOps.Root
 import scalafix.patch.LintPatch
 import scalafix.patch.TokenPatch
 import scalafix.patch.TokenPatch.Add
@@ -106,8 +106,6 @@ case class RewriteCtxImpl(tree: Tree, config: ScalafixConfig)
     }
   def renameSymbol(fromSymbol: Symbol.Global, toName: String)(
       implicit sctx: SemanticCtx): Patch =
-    TreePatch.ReplaceSymbol(
-      fromSymbol,
-      Symbol.Global(BottomSymbol(), Signature.Term(toName)))
+    TreePatch.ReplaceSymbol(fromSymbol, Root(Signature.Term(toName)))
 
 }
