@@ -9,6 +9,7 @@ import scalafix.SemanticCtx
 import scalafix.internal.config.ExplicitReturnTypesConfig
 import scalafix.internal.config.MemberKind
 import scalafix.internal.config.MemberVisibility
+import scalafix.internal.util.TypeTreeOps
 import scalafix.rewrite.Rewrite
 import scalafix.rewrite.RewriteCtx
 import scalafix.rewrite.SemanticRewrite
@@ -16,6 +17,7 @@ import scalafix.syntax._
 import scalafix.util.TokenOps
 import metaconfig.Conf
 import metaconfig.Configured
+import org.scalameta.logger
 
 case class ExplicitReturnTypes(
     sctx: SemanticCtx,
@@ -57,7 +59,7 @@ case class ExplicitReturnTypes(
     case _: Defn.Var => MemberKind.Var
   }
 
-  def parseDenotationInfo(denot: Denotation): Option[Type] = {
+  def parseDenotationInfo(symbol: Symbol, denot: Denotation): Option[Type] = {
     val base =
       if (denot.isVal || denot.isVar) denot.signature
       else if (denot.isDef) denot.signature.replaceFirst(".*\\)", "")
@@ -66,7 +68,7 @@ case class ExplicitReturnTypes(
           s"Can't parse type for denotation $denot, denot.info=${denot.signature}")
       }
     if (denot.isVal || denot.isDef)
-      base.parse[Type].toOption
+      Input.Denotation(base, symbol).parse[Type].toOption
     else
       /*
     Currently a symbol of Var points to its setter function.
@@ -78,15 +80,15 @@ case class ExplicitReturnTypes(
       } yield typ
   }
 
-  def defnType(defn: Defn): Option[Type] =
-    for {
-      name <- defnName(defn)
-      symbol <- name.symbol
-      denot <- symbol.denotation
-      typ <- parseDenotationInfo(denot)
-    } yield typ
-
   override def rewrite(ctx: RewriteCtx): Patch = {
+    def defnType(defn: Defn): Option[(Type, Patch)] =
+      for {
+        name <- defnName(defn)
+        symbol <- name.symbol
+        denot <- symbol.denotation
+        typ <- parseDenotationInfo(symbol, denot)
+//        _ = logger.elem(typ, typ.structure)
+      } yield TypeTreeOps.prettify(typ, ctx, true)
     import scala.meta._
     def fix(defn: Defn, body: Term): Seq[Patch] = {
       val lst = ctx.tokenList
@@ -99,12 +101,13 @@ case class ExplicitReturnTypes(
         lhsTokens = slice(start, end)
         replace <- lhsTokens.reverseIterator.find(x =>
           !x.is[Token.Equals] && !x.is[Trivia])
-        typ <- defnType(defn)
+        (typ, patch) <- defnType(defn)
+//        _ = logger.elem(typ)
         space = {
           if (TokenOps.needsLeadingSpaceBeforeColon(replace)) " "
           else ""
         }
-      } yield ctx.addRight(replace, s"$space: ${treeSyntax(typ)}")
+      } yield ctx.addRight(replace, s"$space: ${treeSyntax(typ)}") + patch
     }.to[Seq]
 
     def treeSyntax(tree: Tree): String =
@@ -131,6 +134,7 @@ case class ExplicitReturnTypes(
       matchesMemberKind() &&
       matchesMemberVisibility()
     }
+    ctx.debugSemanticCtx()
 
     ctx.tree
       .collect {

@@ -23,7 +23,8 @@ case class SemanticCtxImpl(
     }
     database.documents.foreach { entry =>
       entry.names.foreach(add)
-      entry.synthetics.foreach(sugar => sugar.names.foreach(add))
+      entry.synthetics.foreach(_.names.foreach(add))
+      entry.symbols.foreach(_.denotation.names.foreach(add))
     }
     builder.result()
   }

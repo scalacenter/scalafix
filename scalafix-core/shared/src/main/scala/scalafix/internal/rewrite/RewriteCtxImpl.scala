@@ -42,7 +42,7 @@ case class RewriteCtxImpl(tree: Tree, config: ScalafixConfig)
     sctx.withEntries(sctx.documents.filter(_.input == input))
   def debugSemanticCtx()(implicit sctx: SemanticCtx, fileLine: FileLine): Unit = {
     val db = this.sctx(sctx)
-    debug(sourcecode.Text(db, "sctx"))
+    debug(sourcecode.Text(db.documents.head, "sctx"))
   }
   def debug(values: sourcecode.Text[Any]*)(implicit fileLine: FileLine): Unit = {
     // alias for org.scalameta.logger.

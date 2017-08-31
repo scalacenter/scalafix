@@ -61,6 +61,8 @@ trait SemanticCtx {
 
   /** Build new SemanticCtx with only these documents. */
   def withEntries(documents: Seq[Document]): SemanticCtx
+
+  object Symbol { def unapply(tree: Tree): Option[Symbol] = symbol(tree) }
 }
 
 object SemanticCtx {
