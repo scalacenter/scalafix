@@ -50,7 +50,7 @@ object SymbolOps {
       Symbol.Global(normalize(sym), Signature.Term(sig.name))
     case x => x
   }
-  private def underlyingSymbols(symbol: Symbol): Seq[Symbol] = symbol match {
+  def underlyingSymbols(symbol: Symbol): Seq[Symbol] = symbol match {
     case Symbol.Multi(symbols) => symbols
     case _ => List(symbol)
   }

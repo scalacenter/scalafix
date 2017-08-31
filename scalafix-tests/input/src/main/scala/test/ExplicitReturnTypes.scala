@@ -1,4 +1,4 @@
-/* ONLY
+/*
 rewrites = ExplicitReturnTypes
 explicitReturnTypes.memberKind = [Val, Def, Var]
 explicitReturnTypes.memberVisibility = [Public, Protected]

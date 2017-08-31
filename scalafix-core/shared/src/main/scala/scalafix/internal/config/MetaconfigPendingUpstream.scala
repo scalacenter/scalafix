@@ -31,6 +31,10 @@ object MetaconfigPendingUpstream {
 
   def orElse[T](a: ConfDecoder[T], b: ConfDecoder[T]): ConfDecoder[T] =
     a.orElse(b)
+  implicit class XtensionConfScalafix(conf: Conf) {
+    def getField[T: ConfDecoder](e: sourcecode.Text[T]): Configured[T] =
+      conf.getOrElse(e.source)(e.value)
+  }
   implicit class XtensionConfDecoderSeqConfigured[T](lst: Seq[Configured[T]]) {
     def flipSeq: Configured[Seq[T]] =
       MetaconfigPendingUpstream.this.flipSeq(lst)

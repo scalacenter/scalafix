@@ -9,7 +9,7 @@ import scalafix.SemanticCtx
 import scalafix.internal.config.ExplicitReturnTypesConfig
 import scalafix.internal.config.MemberKind
 import scalafix.internal.config.MemberVisibility
-import scalafix.internal.util.TypeTreeOps
+import scalafix.internal.util.SemanticTypeSyntax
 import scalafix.rewrite.Rewrite
 import scalafix.rewrite.RewriteCtx
 import scalafix.rewrite.SemanticRewrite
@@ -17,7 +17,6 @@ import scalafix.syntax._
 import scalafix.util.TokenOps
 import metaconfig.Conf
 import metaconfig.Configured
-import org.scalameta.logger
 
 case class ExplicitReturnTypes(
     sctx: SemanticCtx,
@@ -59,25 +58,24 @@ case class ExplicitReturnTypes(
     case _: Defn.Var => MemberKind.Var
   }
 
+  private val VarSignature = "\\(x\\$1: (.+)\\).*".r
+
   def parseDenotationInfo(symbol: Symbol, denot: Denotation): Option[Type] = {
     val base =
-      if (denot.isVal || denot.isVar) denot.signature
+      if (denot.isVal) denot.signature
       else if (denot.isDef) denot.signature.replaceFirst(".*\\)", "")
-      else {
+      else if (denot.isVar) {
+        denot.signature match {
+          case VarSignature(sig) => sig
+          case els =>
+            throw new UnsupportedOperationException(
+              s"Unexpected Denotation.signature=$els for symbol=$symbol")
+        }
+      } else {
         throw new UnsupportedOperationException(
           s"Can't parse type for denotation $denot, denot.info=${denot.signature}")
       }
-    if (denot.isVal || denot.isDef)
-      Input.Denotation(base, symbol).parse[Type].toOption
-    else
-      /*
-    Currently a symbol of Var points to its setter function.
-    That's why its argument type should be extracted via pattern-match.
-       */
-      for {
-        stat <- base.parse[Stat].toOption
-        typ <- stat.collectFirst { case Term.Ascribe(_, typ) => typ }
-      } yield typ
+    Input.Denotation(base, symbol).parse[Type].toOption
   }
 
   override def rewrite(ctx: RewriteCtx): Patch = {
@@ -87,8 +85,7 @@ case class ExplicitReturnTypes(
         symbol <- name.symbol
         denot <- symbol.denotation
         typ <- parseDenotationInfo(symbol, denot)
-//        _ = logger.elem(typ, typ.structure)
-      } yield TypeTreeOps.prettify(typ, ctx, true)
+      } yield SemanticTypeSyntax.prettify(typ, ctx, config.unsafeShortenNames)
     import scala.meta._
     def fix(defn: Defn, body: Term): Seq[Patch] = {
       val lst = ctx.tokenList
@@ -102,7 +99,6 @@ case class ExplicitReturnTypes(
         replace <- lhsTokens.reverseIterator.find(x =>
           !x.is[Token.Equals] && !x.is[Trivia])
         (typ, patch) <- defnType(defn)
-//        _ = logger.elem(typ)
         space = {
           if (TokenOps.needsLeadingSpaceBeforeColon(replace)) " "
           else ""
@@ -134,7 +130,6 @@ case class ExplicitReturnTypes(
       matchesMemberKind() &&
       matchesMemberVisibility()
     }
-    ctx.debugSemanticCtx()
 
     ctx.tree
       .collect {

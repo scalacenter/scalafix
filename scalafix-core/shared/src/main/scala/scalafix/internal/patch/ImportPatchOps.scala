@@ -13,8 +13,28 @@ import scalafix.rewrite.RewriteCtx
 import scalafix.syntax._
 import scalafix.util.Newline
 import scala.meta._
+import org.scalameta.logger
 
 object ImportPatchOps {
+  object symbols {
+    val Scala = Symbol("_root_.scala.")
+    val Predef = Symbol("_root_.scala.Predef.")
+    val Java = Symbol("_root_.java.lang.")
+    val Immutable = Symbol("_root_.scala.collection.immutable.")
+  }
+
+  def isPredef(symbol: Symbol): Boolean = {
+    import symbols._
+    symbol match {
+      case Symbol.Global(`Immutable`, Signature.Type("List" | "Map" | "Set")) =>
+        true
+      case Symbol.Global(owner, _) =>
+        owner == Scala ||
+          owner == Predef ||
+          owner == Java
+      case _ => false
+    }
+  }
 
   private def fallbackToken(ctx: RewriteCtx): Token = {
     def loop(tree: Tree): Token = tree match {
@@ -63,10 +83,10 @@ object ImportPatchOps {
     }
     val allImporteeSymbols = allImportees.flatMap(importee =>
       importee.symbol.map(_.normalized -> importee))
+    val globalImports = getGlobalImports(ctx.tree)
     val editToken: Token = {
-      val imports = getGlobalImports(ctx.tree)
-      if (imports.isEmpty) fallbackToken(ctx)
-      else ctx.toks(imports.last).last
+      if (globalImports.isEmpty) fallbackToken(ctx)
+      else ctx.toks(globalImports.last).last
     }
     val isRemovedImportee = mutable.LinkedHashSet.empty[Importee]
     importPatches.foreach {
@@ -79,10 +99,20 @@ object ImportPatchOps {
     }
     val importersToAdd = {
       val isAlreadyImported = mutable.Set.empty[Symbol]
+      for { // register global imports
+        import_ <- globalImports
+        importer <- import_.importers
+        importee <- importer.importees
+        symbol <- sctx.symbol(importee).toList
+        underlying <- SymbolOps.underlyingSymbols(symbol)
+      } {
+        isAlreadyImported += underlying
+      }
       importPatches.flatMap {
         case TreePatch.AddGlobalSymbol(symbol)
             if !allNamedImports.contains(symbol) &&
-              !isAlreadyImported(symbol) =>
+              !isAlreadyImported(symbol) &&
+              !isPredef(symbol) =>
           isAlreadyImported += symbol
           SymbolOps.toImporter(symbol).toList
         case TreePatch.AddGlobalImport(importer)
