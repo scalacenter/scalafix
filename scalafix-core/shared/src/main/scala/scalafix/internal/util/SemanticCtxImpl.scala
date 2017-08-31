@@ -52,6 +52,6 @@ case class SemanticCtxImpl(
   def denotation(tree: Tree): Option[Denotation] =
     symbol(tree).flatMap(denotation)
   override def names: Seq[ResolvedName] = _names.values.toSeq
-  def withEntries(documents: Seq[Document]): SemanticCtx =
+  def withDocuments(documents: Seq[Document]): SemanticCtx =
     copy(database = Database(documents))
 }

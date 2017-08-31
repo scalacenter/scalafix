@@ -60,9 +60,12 @@ trait SemanticCtx {
   def denotation(tree: Tree): Option[Denotation]
 
   /** Build new SemanticCtx with only these documents. */
-  def withEntries(documents: Seq[Document]): SemanticCtx
+  def withDocuments(documents: Seq[Document]): SemanticCtx
 
-  object Symbol { def unapply(tree: Tree): Option[Symbol] = symbol(tree) }
+  object Symbol {
+    def unapply(tree: Tree): Option[Symbol] = symbol(tree)
+    def unapply(pos: Position): Option[Symbol] = symbol(pos)
+  }
 }
 
 object SemanticCtx {
@@ -78,5 +81,5 @@ object SemanticCtx {
       classpath: Classpath): SemanticCtx =
     SemanticCtxImpl(database, sourcepath, classpath)
   def load(bytes: Array[Byte]): SemanticCtx =
-    empty.withEntries(Database.load(bytes).documents)
+    empty.withDocuments(Database.load(bytes).documents)
 }

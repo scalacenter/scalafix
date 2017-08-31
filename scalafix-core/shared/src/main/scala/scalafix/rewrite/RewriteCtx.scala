@@ -42,6 +42,9 @@ trait RewriteCtx extends PatchOps {
   /** Find comments/docstrings associated with tree nodes. **/
   def comments: AssociatedComments
 
+  /** Get SemanticCtx for this single tree alone. */
+  def sctx(implicit sctx: SemanticCtx): SemanticCtx
+
   /** Print out the contents of SemanticCtx for this input only. **/
   def debugSemanticCtx()(implicit sctx: SemanticCtx, fileLine: FileLine): Unit
 
