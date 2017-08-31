@@ -25,9 +25,9 @@ case class ExplicitReturnTypes(
   def this(sctx: SemanticCtx) = this(sctx, ExplicitReturnTypesConfig.default)
 
   override def init(config: Conf): Configured[Rewrite] =
-    config.dynamic.explicitReturnTypes.as[ExplicitReturnTypesConfig].map { c =>
-      ExplicitReturnTypes(sctx, c)
-    }
+    config
+      .getOrElse("explicitReturnTypes")(ExplicitReturnTypesConfig.default)
+      .map(c => ExplicitReturnTypes(sctx, c))
 
   // Don't explicitly annotate vals when the right-hand body is a single call
   // to `implicitly`. Prevents ambiguous implicit. Not annotating in such cases,
@@ -58,6 +58,7 @@ case class ExplicitReturnTypes(
     case _: Defn.Var => MemberKind.Var
   }
 
+  // Workaround for https://github.com/scalameta/scalameta/issues/1100
   private val VarSignature = "\\(x\\$1: (.+)\\).*".r
 
   def parseDenotationInfo(symbol: Symbol, denot: Denotation): Option[Type] = {
@@ -67,9 +68,7 @@ case class ExplicitReturnTypes(
       else if (denot.isVar) {
         denot.signature match {
           case VarSignature(sig) => sig
-          case els =>
-            throw new UnsupportedOperationException(
-              s"Unexpected Denotation.signature=$els for symbol=$symbol")
+          case els => els
         }
       } else {
         throw new UnsupportedOperationException(
@@ -87,7 +86,7 @@ case class ExplicitReturnTypes(
         typ <- parseDenotationInfo(symbol, denot)
       } yield SemanticTypeSyntax.prettify(typ, ctx, config.unsafeShortenNames)
     import scala.meta._
-    def fix(defn: Defn, body: Term): Seq[Patch] = {
+    def fix(defn: Defn, body: Term): Patch = {
       val lst = ctx.tokenList
       import lst._
       for {
@@ -104,7 +103,7 @@ case class ExplicitReturnTypes(
           else ""
         }
       } yield ctx.addRight(replace, s"$space: ${treeSyntax(typ)}") + patch
-    }.to[Seq]
+    }.asPatch
 
     def treeSyntax(tree: Tree): String =
       ScalafixScalametaHacks.resetOrigin(tree).syntax
@@ -124,28 +123,33 @@ case class ExplicitReturnTypes(
       def matchesSimpleDefinition(): Boolean =
         body.is[Lit] && skipSimpleDefinitions
 
-      defn.hasMod(mod"implicit") && !isImplicitly(body) ||
-      !defn.hasMod(mod"implicit") &&
-      !matchesSimpleDefinition() &&
-      matchesMemberKind() &&
-      matchesMemberVisibility()
+      def isImplicit: Boolean =
+        defn.hasMod(mod"implicit") && !isImplicitly(body)
+
+      def isLocal: Boolean =
+        defn.parent.exists(_.is[Template])
+
+      isImplicit || {
+        isLocal &&
+        !defn.hasMod(mod"implicit") &&
+        !matchesSimpleDefinition() &&
+        matchesMemberKind() &&
+        matchesMemberVisibility()
+      }
     }
 
-    ctx.tree
-      .collect {
-        case t @ Defn.Val(mods, _, None, body)
-            if isRewriteCandidate(t, mods, body) =>
-          fix(t, body)
+    ctx.tree.collect {
+      case t @ Defn.Val(mods, _, None, body)
+          if isRewriteCandidate(t, mods, body) =>
+        fix(t, body)
 
-        case t @ Defn.Var(mods, _, None, Some(body))
-            if isRewriteCandidate(t, mods, body) =>
-          fix(t, body)
+      case t @ Defn.Var(mods, _, None, Some(body))
+          if isRewriteCandidate(t, mods, body) =>
+        fix(t, body)
 
-        case t @ Defn.Def(mods, _, _, _, None, body)
-            if isRewriteCandidate(t, mods, body) =>
-          fix(t, body)
-      }
-      .flatten
-      .asPatch
+      case t @ Defn.Def(mods, _, _, _, None, body)
+          if isRewriteCandidate(t, mods, body) =>
+        fix(t, body)
+    }.asPatch
   }
 }

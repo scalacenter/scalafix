@@ -34,17 +34,11 @@
         Inserts type annotations only for implicit definitions by default. To configure the
         rewrite to run on non-implicit definitions
         @config
-          explicitReturnTypes {
-             memberKind = [
-               Def
-               Var
-               Val
-             ]
-             memberVisibility = [
-               Public
-               Protected
-            ]
-          }
+          explicitReturnTypes.memberKind = [Val, Def, Var]
+          explicitReturnTypes.memberVisibility = [Public, Protected]
+          // Experimental, shorten fully qualified names and insert missing imports
+          // By default, names are fully qualified and prefixed with _root_.
+          unsafeShortenNames = true // false by default.
 
 
   @sect(RemoveUnusedImports.toString)

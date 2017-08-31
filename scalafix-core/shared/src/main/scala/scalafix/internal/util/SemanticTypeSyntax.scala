@@ -30,12 +30,17 @@ object SemanticTypeSyntax {
     var patch = Patch.empty
     def loop[T](tpe: Tree): T = {
       val result = tpe match {
+        // Function2[A, B] => A => B
         case Type.Apply(functionN(_), args) =>
           val rargs = args.map(loop[Type])
-          Type.Function(rargs.init, args.last)
+          Type.Function(rargs.init, rargs.last)
+
+        // Tuple2[A, B] => (A, B)
         case Type.Apply(tupleN(_), args) =>
           val rargs = args.map(loop[Type])
           Type.Tuple(rargs)
+
+        // shorten names
         case Type.Select(_, name @ sctx.Symbol(sym))
             if shortenNames && isStable(sym) =>
           patch += ctx.addGlobalImport(sym)
@@ -44,6 +49,20 @@ object SemanticTypeSyntax {
             if shortenNames && isStable(sym) =>
           patch += ctx.addGlobalImport(sym)
           name
+
+        // _root_ qualify names
+        case Term.Select(qual @ Term.Name(root), name)
+            if !shortenNames && root != "_root_" =>
+          Term.Select(q"_root_.$qual", name)
+        case Type.Select(qual @ Term.Name(root), name)
+            if !shortenNames && root != "_root_" =>
+          Type.Select(q"_root_.$qual", name)
+
+        // Recursive cases
+        case Type.Select(qual, name) =>
+          Type.Select(loop[Term.Ref](qual), name)
+        case Term.Select(qual, name) =>
+          Term.Select(loop[Term.Ref](qual), name)
         case Type.Apply(qual, args) =>
           val rargs = args.map(loop[Type])
           Type.Apply(loop[Type](qual), rargs)

@@ -16,4 +16,5 @@ object ExplicitReturnTypesShort {
     result
   }
   implicit val p: Int = pathDependent(new Y { type X = Int; def x = 2 })
+  implicit val FALSE: Any => Boolean = (x: Any) => false
 }
