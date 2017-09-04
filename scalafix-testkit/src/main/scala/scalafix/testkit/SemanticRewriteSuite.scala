@@ -105,7 +105,7 @@ abstract class SemanticRewriteSuite(
       val (rewrite, config) = diffTest.config.apply()
       val ctx = RewriteCtx(
         config.dialect(diffTest.original).parse[Source].get,
-        config.copy(dialect = diffTest.attributes.dialect)
+        config.copy(dialect = diffTest.document.dialect)
       )
       val patch = rewrite.rewrite(ctx)
       val obtainedWithComment = Patch.apply(patch, ctx, rewrite.semanticOption)
@@ -118,7 +118,7 @@ abstract class SemanticRewriteSuite(
       val obtained = SemanticRewriteSuite.stripTestkitComments(tokens)
       val candidateOutputFiles = expectedOutputSourceroot.flatMap { root =>
         val scalaSpecificFilename =
-          dialectToPath(diffTest.attributes.language).toList.map(path =>
+          dialectToPath(diffTest.document.language).toList.map(path =>
             root.resolve(RelativePath(
               diffTest.filename.toString().replaceFirst("scala", path))))
         root.resolve(diffTest.filename) :: scalaSpecificFilename
