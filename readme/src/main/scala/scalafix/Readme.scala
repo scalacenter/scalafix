@@ -12,6 +12,8 @@ import scalatex.site.Highlighter
 object Readme {
   def users = fa("users")
   def authors = fa("terminal")
+  def pureTable(frags: Frag*) =
+    table(cls := "pure-table", frags)
   def sbtkey(name: String, typ: String)(description: Frag*) =
     tr(
       td(code(name)),
