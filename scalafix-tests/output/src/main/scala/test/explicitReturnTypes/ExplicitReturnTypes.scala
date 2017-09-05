@@ -3,12 +3,13 @@ package test
 import scala.language.implicitConversions
 
 object ExplicitReturnTypes {
+  def none[T]: _root_.scala.Option[T] =  None.asInstanceOf[Option[T]]
   val a: _root_.scala.Int = 1 + 2
   def b(): _root_.java.lang.String = "a" + "b"
   var c: _root_.scala.Boolean = 1 == 1
   protected val d = 1.0f
   protected def e(a: Int, b: Double): _root_.scala.Double = a + b
-  protected var f: _root_.scala.Function1[_root_.scala.Int, _root_.scala.Int] = (x: Int) => x + 1
+  protected var f: _root_.scala.Int => _root_.scala.Int = (x: Int) => x + 1
   private val g = 1
   private def h(a: Int) = ""
   private var i = 22
@@ -28,11 +29,6 @@ object ExplicitReturnTypes {
   implicit def tparam[T](e: T): T = e
   implicit def tparam2[T](e: T): _root_.scala.collection.immutable.List[T] = List(e)
   implicit def tparam3[T](e: T): _root_.scala.collection.immutable.Map[T, T] = Map(e -> e)
-  class Path {
-    class B { class C }
-    implicit val x: Path.this.B = new B
-    implicit val y: Path.this.x.C = new x.C
-  }
   class TwoClasses[T](e: T)
   class TwoClasses2 {
     implicit val x: _root_.test.ExplicitReturnTypes.TwoClasses[_root_.scala.Int] = new TwoClasses(10)

@@ -8,6 +8,7 @@ package test
 import scala.language.implicitConversions
 
 object ExplicitReturnTypes {
+  def none[T] =  None.asInstanceOf[Option[T]]
   val a = 1 + 2
   def b() = "a" + "b"
   var c = 1 == 1
@@ -33,11 +34,6 @@ object ExplicitReturnTypes {
   implicit def tparam[T](e: T) = e
   implicit def tparam2[T](e: T) = List(e)
   implicit def tparam3[T](e: T) = Map(e -> e)
-  class Path {
-    class B { class C }
-    implicit val x = new B
-    implicit val y = new x.C
-  }
   class TwoClasses[T](e: T)
   class TwoClasses2 {
     implicit val x = new TwoClasses(10)
