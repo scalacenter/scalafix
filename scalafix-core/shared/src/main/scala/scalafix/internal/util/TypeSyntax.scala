@@ -2,10 +2,12 @@ package scalafix.internal.util
 
 import scala.meta._
 import scalafix._
+import scalafix.internal.util.SymbolOps.SymbolType
 import scalafix.util.SymbolMatcher
 import scalafix.util.TreeExtractors._
+import org.langmeta.semanticdb.Symbol
 
-object SemanticTypeSyntax {
+object TypeSyntax {
   def prettify(tpe: Type, ctx: RewriteCtx, shortenNames: Boolean)(
       implicit sctx: SemanticCtx): (Type, Patch) = {
 
@@ -25,10 +27,38 @@ object SemanticTypeSyntax {
       symbol match {
         case Symbol.Global(owner, Signature.Term(_) | Signature.Type(_)) =>
           loop(owner)
-        case els =>
+        case _ =>
           false
       }
     }
+
+    def stableRef(sym: Symbol): (Patch, Type) = {
+      var patch = Patch.empty
+      def loop[T](symbol: Symbol): T = {
+        val result = symbol match {
+          case Symbol.Global(Symbol.None, Signature.Term(name)) =>
+            Term.Name(name)
+          case Symbol.Global(owner @ SymbolType(), Signature.Type(name)) =>
+            Type.Project(loop[Type](owner), Type.Name(name))
+          case Symbol.Global(owner, Signature.Term(name)) =>
+            if (shortenNames && isStable(owner)) {
+              patch += ctx.addGlobalImport(symbol)
+              Term.Name(name)
+            } else Term.Select(loop(owner), Term.Name(name))
+          case Symbol.Global(owner, Signature.Type(name)) =>
+            if (shortenNames && isStable(owner)) {
+              patch += ctx.addGlobalImport(symbol)
+              Type.Name(name)
+            } else Type.Select(loop(owner), Type.Name(name))
+          case Symbol.Global(_, Signature.TypeParameter(name)) =>
+            Type.Name(name)
+        }
+        result.asInstanceOf[T]
+      }
+      val tpe = loop[Type](sym)
+      patch -> tpe
+    }
+
     var patch = Patch.empty
     def loop[T](tpe: Tree): T = {
       val result = tpe match {
@@ -42,26 +72,14 @@ object SemanticTypeSyntax {
           val rargs = args.map(loop[Type])
           Type.Tuple(rargs)
 
-        // shorten names
-        case Select(_, name @ sctx.Symbol(sym))
-            if shortenNames && isStable(sym) =>
-          patch += ctx.addGlobalImport(sym)
-          name
+        case Type.Name(_) :&&: sctx.Symbol(sym) =>
+          val (addImport, tpe) = stableRef(sym)
+          patch += addImport
+          tpe
 
-        // _root_ qualify names
-        case Select(qual @ Term.Name(pkg), n)
-            // NOTE(olafur): can't resolve symbol here since it's not always
-            // included in sctx  for Denotation.signature.
-            if !shortenNames && pkg != "_root_" =>
-          n match {
-            case name: Type.Name => Type.Select(q"_root_.$qual", name)
-            case name: Term.Name => q"_root_.$qual.$name"
-          }
-        // Recursive cases
-        case Type.Select(qual, name) =>
-          Type.Select(loop[Term.Ref](qual), name)
-        case Term.Select(qual, name) =>
-          Term.Select(loop[Term.Ref](qual), name)
+        // TODO(olafur): handle select after https://github.com/scalameta/scalameta/pull/1107
+
+        // Recursive case
         case Type.Apply(qual, args) =>
           val rargs = args.map(loop[Type])
           Type.Apply(loop[Type](qual), rargs)

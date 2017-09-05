@@ -9,7 +9,7 @@ import scalafix.SemanticCtx
 import scalafix.internal.config.ExplicitReturnTypesConfig
 import scalafix.internal.config.MemberKind
 import scalafix.internal.config.MemberVisibility
-import scalafix.internal.util.SemanticTypeSyntax
+import scalafix.internal.util.TypeSyntax
 import scalafix.rewrite.Rewrite
 import scalafix.rewrite.RewriteCtx
 import scalafix.rewrite.SemanticRewrite
@@ -58,23 +58,28 @@ case class ExplicitReturnTypes(
     case _: Defn.Var => MemberKind.Var
   }
 
-  // Workaround for https://github.com/scalameta/scalameta/issues/1100
-  private val VarSignature = "\\(x\\$1: (.+)\\).*".r
+  private val denotDialect =
+    dialects.Scala212.copy(allowMethodTypes = true, allowTypeLambdas = true)
 
   def parseDenotationInfo(symbol: Symbol, denot: Denotation): Option[Type] = {
-    val base =
-      if (denot.isVal) denot.signature
-      else if (denot.isDef) denot.signature.replaceFirst(".*\\)", "")
-      else if (denot.isVar) {
-        denot.signature match {
-          case VarSignature(sig) => sig
-          case els => els
-        }
-      } else {
+    def getDeclType(tpe: Type): Type = tpe match {
+      case Type.Method(_, tpe) if denot.isDef => tpe
+      case Type.Lambda(_, tpe) if denot.isDef => getDeclType(tpe)
+      case Type.Method((Term.Param(_, _, Some(tpe), _) :: Nil) :: Nil, _)
+          if denot.isVar =>
+        // Workaround for https://github.com/scalameta/scalameta/issues/1100
+        tpe
+      case x =>
+        x
+    }
+    val signature =
+      if (denot.isVal || denot.isDef | denot.isVar) denot.signature
+      else {
         throw new UnsupportedOperationException(
           s"Can't parse type for denotation $denot, denot.info=${denot.signature}")
       }
-    Input.Denotation(base, symbol).parse[Type].toOption
+    val input = Input.Denotation(signature, symbol)
+    (denotDialect, input).parse[Type].toOption.map(getDeclType)
   }
 
   override def rewrite(ctx: RewriteCtx): Patch = {
@@ -84,7 +89,7 @@ case class ExplicitReturnTypes(
         symbol <- name.symbol
         denot <- symbol.denotation
         typ <- parseDenotationInfo(symbol, denot)
-      } yield SemanticTypeSyntax.prettify(typ, ctx, config.unsafeShortenNames)
+      } yield TypeSyntax.prettify(typ, ctx, config.unsafeShortenNames)
     import scala.meta._
     def fix(defn: Defn, body: Term): Patch = {
       val lst = ctx.tokenList

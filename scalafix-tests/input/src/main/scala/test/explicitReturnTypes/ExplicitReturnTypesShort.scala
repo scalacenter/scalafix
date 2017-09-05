@@ -2,7 +2,7 @@
 rewrites = ExplicitReturnTypes
 explicitReturnTypes.unsafeShortenNames = true
  */
-package test
+package test.explicitReturnTypes
 
 import scala.language.implicitConversions
 
@@ -14,10 +14,7 @@ object ExplicitReturnTypesShort {
   implicit val x = List.empty[Map[Int, Set[String]]]
   implicit val y = HashMap.empty[String, Success[ListBuffer[Int]]]
   implicit def z(x: Int) = List.empty[String]
-  trait Y { type X; def x: X }
-  implicit def pathDependent(x: Y) = {
-    implicit val result: x.X = x.x
-    result
-  }
+  implicit var zz = scala.collection.immutable.ListSet.empty[String]
   implicit val FALSE = (x: Any) => false
+  implicit def tparam[T](e: T) = e
 }

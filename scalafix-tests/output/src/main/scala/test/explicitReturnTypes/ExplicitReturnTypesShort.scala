@@ -1,19 +1,17 @@
-package test
+package test.explicitReturnTypes
 
 import scala.language.implicitConversions
 
 import scala.collection.immutable.HashMap
 import scala.collection.mutable.ListBuffer
 import scala.util.Success
+import scala.collection.immutable.ListSet
 
 object ExplicitReturnTypesShort {
   implicit val x: List[Map[Int, Set[String]]] = List.empty[Map[Int, Set[String]]]
   implicit val y: HashMap[String, Success[ListBuffer[Int]]] = HashMap.empty[String, Success[ListBuffer[Int]]]
-  implicit def z(x: Int): scala.collection.immutable.List[scala.Predef.String] = List.empty[String]
-  trait Y { type X; def x: X }
-  implicit def pathDependent(x: Y): x.X = {
-    implicit val result: x.X = x.x
-    result
-  }
+  implicit def z(x: Int): List[String] = List.empty[String]
+  implicit var zz: ListSet[String] = scala.collection.immutable.ListSet.empty[String]
   implicit val FALSE: Any => Boolean = (x: Any) => false
+  implicit def tparam[T](e: T): T = e
 }

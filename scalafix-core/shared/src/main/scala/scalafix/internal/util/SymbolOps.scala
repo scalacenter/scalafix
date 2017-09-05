@@ -10,6 +10,12 @@ object SymbolOps {
       case _ => None
     }
   }
+  object SymbolType {
+    def unapply(arg: Symbol): Boolean = arg match {
+      case Symbol.Global(_, Signature.Type(_)) => true
+      case _ => false
+    }
+  }
   object Root {
     def apply(): Symbol.Global =
       Symbol.Global(Symbol.None, Signature.Term("_root_"))
