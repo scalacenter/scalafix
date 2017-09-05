@@ -1,7 +1,7 @@
 /*
 rewrites = ExplicitReturnTypes
  */
-package test
+package test.explicitReturnTypes
 
 object ExplicitReturnTypesPathDependent {
   class Path {

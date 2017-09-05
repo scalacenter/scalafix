@@ -2,7 +2,7 @@
 rewrites = ExplicitReturnTypes
 explicitReturnTypes.unsafeShortenNames = true
  */
-package test
+package test.explicitReturnTypes
 
 import scala.language.implicitConversions
 

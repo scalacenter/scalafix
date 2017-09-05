@@ -1,8 +1,8 @@
-package test
+package test.explicitReturnTypes
 
 import scala.language.implicitConversions
 
-object ExplicitReturnTypes {
+object ExplicitReturnTypesBase {
   def none[T]: _root_.scala.Option[T] =  None.asInstanceOf[Option[T]]
   val a: _root_.scala.Int = 1 + 2
   def b(): _root_.java.lang.String = "a" + "b"
@@ -29,36 +29,11 @@ object ExplicitReturnTypes {
   implicit def tparam[T](e: T): T = e
   implicit def tparam2[T](e: T): _root_.scala.collection.immutable.List[T] = List(e)
   implicit def tparam3[T](e: T): _root_.scala.collection.immutable.Map[T, T] = Map(e -> e)
-  class TwoClasses[T](e: T)
-  class TwoClasses2 {
-    implicit val x: _root_.test.ExplicitReturnTypes.TwoClasses[_root_.scala.Int] = new TwoClasses(10)
-  }
   class implicitlytrick {
     implicit val s: _root_.java.lang.String = "string"
     implicit val x = implicitly[String]
   }
-  object InnerInnerObject {
-    object B {
-      class C
-      object C {
-        implicit val x: _root_.scala.collection.immutable.List[_root_.test.ExplicitReturnTypes.InnerInnerObject.B.C] = List(new C)
-      }
-    }
-  }
-  object SiblingObject {
-    class B
-  }
-  object A {
-    class C {
-      implicit val x: _root_.scala.collection.immutable.List[_root_.test.ExplicitReturnTypes.SiblingObject.B] = List(new SiblingObject.B)
-    }
-  }
-  object slick {
-    case class Supplier(id: Int, name: String)
-    implicit val supplierGetter: ((_root_.scala.Int, _root_.scala.Predef.String)) => _root_.test.ExplicitReturnTypes.slick.Supplier = (arg: (Int, String)) =>
-      Supplier(arg._1, arg._2)
-  }
-  def foo(x: Int): _root_.scala.Int =
+  def comment(x: Int): _root_.scala.Int =
     // comment
     x + 2
   object ExtraSpace {
@@ -69,24 +44,3 @@ object ExplicitReturnTypes {
   }
 }
 
-class DeeperPackage[T](e: T)
-package foo {
-  class B {
-    implicit val x: _root_.test.DeeperPackage[_root_.scala.Int] = new DeeperPackage(10)
-  }
-}
-
-package shallwpackage {
-  class A[T](e: T)
-}
-class shallobpackage {
-  implicit val x: _root_.test.shallwpackage.A[_root_.scala.Int] = new shallwpackage.A(10)
-}
-
-package enclosingPackageStripIsLast { class B }
-package a {
-  import enclosingPackageStripIsLast.B
-  class A {
-    implicit val x: _root_.test.enclosingPackageStripIsLast.B = new B
-  }
-}

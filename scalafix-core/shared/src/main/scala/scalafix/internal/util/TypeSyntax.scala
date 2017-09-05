@@ -32,9 +32,6 @@ object TypeSyntax {
       }
     }
 
-    type -> = Int
-    val x: -> = 2
-
     def stableRef(sym: Symbol): (Patch, Type) = {
       var patch = Patch.empty
       def loop[T](symbol: Symbol): T = {
