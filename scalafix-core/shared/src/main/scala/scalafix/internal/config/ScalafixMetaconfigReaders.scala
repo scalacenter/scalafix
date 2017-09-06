@@ -61,9 +61,9 @@ trait ScalafixMetaconfigReaders {
       } yield scheme -> uri
   }
 
-  private val ruleReges = Pattern.compile("rules?")
+  private val ruleRegex = Pattern.compile("(rules?|rewrites?)")
   private def isRuleKey(key: (String, Conf)) =
-    ruleReges.matcher(key._1).matches()
+    ruleRegex.matcher(key._1).matches()
   def scalafixConfigEmptyRuleReader: ConfDecoder[(Conf, ScalafixConfig)] =
     ConfDecoder.instance[(Conf, ScalafixConfig)] {
       case Conf.Obj(values) =>

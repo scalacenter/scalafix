@@ -4,14 +4,12 @@ import scala.meta._
 import scala.meta.contrib._
 import scalafix._
 
-case class FqnRule(sctx: SemanticCtx) extends SemanticRule(sctx) {
-  override def name = "FqnRule"
+case class FqnRule(sctx: SemanticCtx) extends SemanticRule(sctx, "FqnRule") {
   override def fix(ctx: RuleCtx): Patch =
     ctx.addGlobalImport(importer"scala.collection.immutable")
 }
 
-case object FqnRule2 extends Rule {
-  override def name = "FqnRule2"
+case object FqnRule2 extends Rule("FqnRule2") {
   override def fix(ctx: RuleCtx): Patch =
     ctx.tree.collectFirst {
       case n: Name => ctx.replaceTree(n, n.value + "2")
@@ -29,8 +27,7 @@ object LambdaRules {
 
 }
 
-case object PatchTokenWithEmptyRange extends Rule {
-  override def name = "PatchTokenWithEmptyRange"
+case object PatchTokenWithEmptyRange extends Rule("PatchTokenWithEmptyRange") {
   override def fix(ctx: RuleCtx): Patch = {
     ctx.tokens.collect {
       case tok @ Token.Interpolation.SpliceEnd() =>
