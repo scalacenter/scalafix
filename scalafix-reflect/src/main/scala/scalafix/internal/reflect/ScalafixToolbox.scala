@@ -35,7 +35,9 @@ class ScalafixToolbox {
       uncached
     })
 
-  def getRuleUncached(code: Input, index: LazySemanticdbIndex): Configured[Rule] =
+  def getRuleUncached(
+      code: Input,
+      index: LazySemanticdbIndex): Configured[Rule] =
     synchronized {
       (
         compiler.compile(code) |@|

@@ -39,7 +39,8 @@ class ClassloadRule[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
     if (t.isInstance(rule)) rule.asInstanceOf[T]
     else
       args match {
-        case (index: SemanticdbIndex) :: Nil if functionClasstag.isInstance(rule) =>
+        case (index: SemanticdbIndex) :: Nil
+            if functionClasstag.isInstance(rule) =>
           rule.asInstanceOf[Function[SemanticdbIndex, T]].apply(index)
         case _ =>
           throw new IllegalArgumentException(

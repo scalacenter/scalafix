@@ -91,7 +91,8 @@ trait ScalafixMetaconfigReaders {
         ruleDecoder.read(combinedRules).map(rule => rule -> config)
     }
 
-  def defaultRuleDecoder(getSemanticdbIndex: LazySemanticdbIndex): ConfDecoder[Rule] =
+  def defaultRuleDecoder(
+      getSemanticdbIndex: LazySemanticdbIndex): ConfDecoder[Rule] =
     ConfDecoder.instance[Rule] {
       case conf @ Conf.Str(value) if !value.contains(":") =>
         val isSyntactic = ScalafixRules.syntacticNames.contains(value)
@@ -112,12 +113,12 @@ trait ScalafixMetaconfigReaders {
 
   private lazy val semanticRuleClass = classOf[SemanticRule]
 
-  def classloadRule(index: LazySemanticdbIndex): Class[_] => Seq[SemanticdbIndex] = {
-    cls =>
-      val kind =
-        if (semanticRuleClass.isAssignableFrom(cls)) RuleKind.Semantic
-        else RuleKind.Syntactic
-      index(kind).toList
+  def classloadRule(
+      index: LazySemanticdbIndex): Class[_] => Seq[SemanticdbIndex] = { cls =>
+    val kind =
+      if (semanticRuleClass.isAssignableFrom(cls)) RuleKind.Semantic
+      else RuleKind.Syntactic
+    index(kind).toList
   }
 
   private lazy val SlashSeparated = "([^/]+)/(.*)".r

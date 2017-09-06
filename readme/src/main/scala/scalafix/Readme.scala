@@ -39,7 +39,8 @@ object Readme {
   def config(str: String): TypedTag[String] = {
     // assert that config listings in docs is free of typos.
     ScalafixMetaconfigReaders
-      .scalafixConfigConfDecoder(ScalafixReflect.semantic(SemanticdbIndex.empty))
+      .scalafixConfigConfDecoder(
+        ScalafixReflect.semantic(SemanticdbIndex.empty))
       .read(Input.String(str).toConf.get)
       .get
     highlight.scala(str)

@@ -29,7 +29,8 @@ case class ExplicitResultTypes(
           "ExplicitReturnTypes",
           "Renamed to ExplicitResultTypes",
           "0.5")) {
-  def this(index: SemanticdbIndex) = this(index, ExplicitResultTypesConfig.default)
+  def this(index: SemanticdbIndex) =
+    this(index, ExplicitResultTypesConfig.default)
   override def init(config: Conf): Configured[Rule] =
     config
       .getOrElse("explicitReturnTypes")(ExplicitResultTypesConfig.default)

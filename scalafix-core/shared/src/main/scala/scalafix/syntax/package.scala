@@ -12,7 +12,8 @@ import scalafix.util.SymbolMatcher
 import scalafix.util.TreeOps
 
 package object syntax {
-  implicit class XtensionRefSymbolOpt(tree: Tree)(implicit index: SemanticdbIndex) {
+  implicit class XtensionRefSymbolOpt(tree: Tree)(
+      implicit index: SemanticdbIndex) {
     @deprecated("Renamed to symbol", "0.5.0")
     def symbolOpt: Option[Symbol] = symbol
     def symbol: Option[Symbol] = index.symbol(tree.pos)
