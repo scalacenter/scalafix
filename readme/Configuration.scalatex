@@ -12,7 +12,7 @@
     you may not need to create a .scalafix.conf.
 
   @sect{rules}
-    You can either run a pre-made rule that comes with scalafix or a custom rule
+    You can either run a default rule that comes with Scalafix or a custom rule
     that you write yourself.
 
     @sect{Default rules}
@@ -27,6 +27,12 @@
       with the @code{scala:} protocol.
       @config
         rule = "class:scalafix.internal.rule.ProcedureSyntax"
+
+    @sect{file:}
+      If a rule is written in a single file on local disk, you can load it
+      with the @code{file:} protocol.
+      @config
+        rule = "file:readme/MyRule.scala" // from local file
 
     @sect{http:}
       If a rule is written in a single source file on the internet,
@@ -59,11 +65,6 @@
       @config
         rule = "replace:com.company.App.start/init"
 
-    @sect{file:}
-      If a rules is written in a single file on disk, you can load it
-      with the @code{file:} protocol.
-      @config
-        rule = "file:readme/MyRule.scala" // from local file
 
 
   @sect{lint}

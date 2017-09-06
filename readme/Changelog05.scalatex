@@ -21,7 +21,7 @@
       by @user{jvican}.
     @li
       @sect.ref{ExplicitResultTypes} experimental @code{unsafeShortenNames}
-      option to insert imports instead of fully qualified imports.
+      option to insert imports instead of fully qualified names.
     @li
       Scala.js support for @sect.ref{scalafix-core}, by @user{gabro}.
     @li
@@ -46,7 +46,6 @@
     @li
       Rules can now emit lint messages with @code{ctx.lint}, see
       @sect.ref{LintMessage}.
-      instead of @code{String}.
     @li
       Thanks to upstream improvements in the
       @lnk("Scalameta v2.0 Semantic API", "http://scalameta.org/tutorial/#SemanticAPI"),
@@ -91,7 +90,7 @@
       @code{Predef.intArrayOps} and now it resolves to
       @code{IndexedSeqOptimized.head}.
     @li
-      @sect.ref{scalafix-cli} automatically inferences whether passed --rewrites
+      @sect.ref{scalafix-cli} automatically infers whether passed --rewrites
       are semantic or syntactic.
       This means it's possible to run custom syntactic rules from scalafix-cli
       without passing in @code{--classpath}.
