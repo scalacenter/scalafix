@@ -124,16 +124,15 @@ abstract class Rule(ruleName: RuleName) { self =>
   protected[scalafix] def semanticOption: Option[SemanticCtx] = None
 }
 
-abstract class SemanticRule(sctx: SemanticCtx) extends Rule {
+abstract class SemanticRule(sctx: SemanticCtx, name: RuleName)
+    extends Rule(name) {
   implicit val ImplicitSemanticCtx: SemanticCtx = sctx
   override def semanticOption: Option[SemanticCtx] = Some(sctx)
 }
 
 object Rule {
-  private[scalafix] class CompositeRule(val rules: List[Rule]) extends Rule {
-    override def name: RuleName = rules.foldLeft(RuleName.empty) {
-      case (a, rule) => a + rule.name
-    }
+  private[scalafix] class CompositeRule(val rules: List[Rule])
+      extends Rule(rules.foldLeft(RuleName.empty)(_ + _.name)) {
     override def init(config: Conf): Configured[Rule] = {
       MetaconfigPendingUpstream
         .flipSeq(rules.map(_.init(config)))
@@ -151,7 +150,7 @@ object Rule {
   val syntaxRuleConfDecoder: ConfDecoder[Rule] =
     ScalafixMetaconfigReaders.ruleConfDecoderSyntactic(
       ScalafixMetaconfigReaders.baseSyntacticRuleDecoder)
-  lazy val empty: Rule = new Rule { def name: RuleName = RuleName.empty }
+  lazy val empty: Rule = new Rule(RuleName.empty) {}
   def emptyConfigured: Configured[Rule] = Configured.Ok(empty)
   def emptyFromSemanticCtxOpt(sctx: Option[SemanticCtx]): Rule =
     sctx.fold(empty)(emptySemantic)
@@ -162,31 +161,27 @@ object Rule {
 
   /** Creates a linter. */
   def linter(ruleName: String)(f: RuleCtx => List[LintMessage]): Rule =
-    new Rule {
-      override def name: RuleName = ruleName
+    new Rule(ruleName) {
       override def check(ctx: RuleCtx): List[LintMessage] = f(ctx)
     }
 
   /** Creates a syntactic rule. */
   def syntactic(ruleName: String)(f: RuleCtx => Patch): Rule =
-    new Rule {
-      override def name: RuleName = ruleName
+    new Rule(ruleName) {
       override def fix(ctx: RuleCtx): Patch = f(ctx)
     }
 
   /** Creates a semantic rule. */
   def semantic(ruleName: String)(
       f: SemanticCtx => RuleCtx => Patch): SemanticCtx => Rule = { sctx =>
-    new SemanticRule(sctx) {
-      override def name: RuleName = ruleName
+    new SemanticRule(sctx, ruleName) {
       override def fix(ctx: RuleCtx): Patch = f(sctx)(ctx)
     }
   }
 
   /** Creates a rule that always returns the same patch. */
   def constant(ruleName: String, patch: Patch, sctx: SemanticCtx): Rule =
-    new SemanticRule(sctx) {
-      override def name: RuleName = ruleName
+    new SemanticRule(sctx, ruleName) {
       override def fix(ctx: RuleCtx): Patch = patch
     }
 

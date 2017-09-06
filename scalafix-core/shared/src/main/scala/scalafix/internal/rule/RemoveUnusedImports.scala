@@ -6,8 +6,8 @@ import scalafix.SemanticCtx
 import scalafix.rule.RuleCtx
 import scalafix.rule.SemanticRule
 
-case class RemoveUnusedImports(sctx: SemanticCtx) extends SemanticRule(sctx) {
-  def name = "RemoveUnusedImports"
+case class RemoveUnusedImports(sctx: SemanticCtx)
+    extends SemanticRule(sctx, "RemoveUnusedImports") {
   private val unusedImports = sctx.messages.toIterator.collect {
     case Message(pos, _, "Unused import") =>
       pos

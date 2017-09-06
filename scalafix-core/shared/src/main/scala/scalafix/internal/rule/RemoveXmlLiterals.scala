@@ -21,8 +21,7 @@ import scalafix.rule.RuleCtx
  * Xml patterns will not be supported by the xml interpolator,
  * until we know how to rule `case <a>{ns @ _*}</a>`.
  */
-case object RemoveXmlLiterals extends Rule {
-  def name = "RemoveXmlLiterals"
+case object RemoveXmlLiterals extends Rule("RemoveXmlLiterals") {
   val singleBracesEscape = LintCategory.warning(
     "singleBracesEscape",
     """Single braces don't need be escaped with {{ and }} inside xml interpolators, unlike xml literals.

@@ -6,8 +6,7 @@ import scalafix.rule.Rule
 import scalafix.rule.RuleCtx
 import scalafix.rule.RuleName
 
-case object ExplicitUnit extends Rule {
-  override def name: RuleName = "ExplicitUnit"
+case object ExplicitUnit extends Rule("ExplicitUnit") {
   override def fix(ctx: RuleCtx): Patch = {
     ctx.tree.collect {
       case t: Decl.Def if t.decltpe.tokens.isEmpty =>

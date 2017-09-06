@@ -22,16 +22,14 @@ import metaconfig.Configured
 case class ExplicitResultTypes(
     sctx: SemanticCtx,
     config: ExplicitResultTypesConfig = ExplicitResultTypesConfig.default)
-    extends SemanticRule(sctx) {
+    extends SemanticRule(
+      sctx,
+      RuleName("ExplicitResultTypes")
+        .withDeprecatedName(
+          "ExplicitReturnTypes",
+          "Renamed to ExplicitResultTypes",
+          "0.5")) {
   def this(sctx: SemanticCtx) = this(sctx, ExplicitResultTypesConfig.default)
-
-  override def name: RuleName =
-    RuleName("ExplicitResultTypes")
-      .withDeprecatedName(
-        "ExplicitReturnTypes",
-        "Renamed to ExplicitResultTypes",
-        "0.5")
-
   override def init(config: Conf): Configured[Rule] =
     config
       .getOrElse("explicitReturnTypes")(ExplicitResultTypesConfig.default)

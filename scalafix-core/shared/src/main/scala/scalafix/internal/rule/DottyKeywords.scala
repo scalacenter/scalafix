@@ -6,8 +6,7 @@ import scalafix.rule.Rule
 import scalafix.rule.RuleCtx
 import scalafix.syntax._
 
-case object DottyKeywords extends Rule {
-  def name = "DottyKeywords"
+case object DottyKeywords extends Rule("DottyKeywords") {
   override def fix(ctx: RuleCtx): Patch =
     ctx.tree.collect {
       case name @ Name("enum") =>

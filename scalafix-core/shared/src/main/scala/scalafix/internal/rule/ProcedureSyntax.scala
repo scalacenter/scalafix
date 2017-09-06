@@ -8,8 +8,7 @@ import scalafix.Patch
 import scalafix.rule.Rule
 import scalafix.rule.RuleCtx
 
-case object ProcedureSyntax extends Rule {
-  def name = "ProcedureSyntax"
+case object ProcedureSyntax extends Rule("ProcedureSyntax") {
   override def fix(ctx: RuleCtx): Patch = {
     val patches: Seq[Patch] = ctx.tree.collect {
       case t: Defn.Def

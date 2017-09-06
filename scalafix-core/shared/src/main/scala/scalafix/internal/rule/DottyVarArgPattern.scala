@@ -6,8 +6,7 @@ import scalafix.Patch
 import scalafix.rule.Rule
 import scalafix.rule.RuleCtx
 
-case object DottyVarArgPattern extends Rule {
-  def name = "DottyVarArgPattern"
+case object DottyVarArgPattern extends Rule("DottyVarArgPattern") {
   override def fix(ctx: RuleCtx): Patch = {
     val patches = ctx.tree.collect {
       case bind @ Pat.Bind(_, Pat.SeqWildcard()) =>

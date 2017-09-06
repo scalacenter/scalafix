@@ -7,8 +7,7 @@ import scalafix._
 import scalafix.rule.RuleCtx
 import scalafix.rule.SemanticRule
 
-case class Sbt1(sctx: SemanticCtx) extends SemanticRule(sctx) {
-  def name = "Sbt1"
+case class Sbt1(sctx: SemanticCtx) extends SemanticRule(sctx, "Sbt1") {
   override def fix(ctx: RuleCtx): Patch = {
     sealed abstract class SbtOperator {
       val operator: String

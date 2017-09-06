@@ -6,9 +6,7 @@ import scalafix.Patch
 import scalafix.rule.Rule
 import scalafix.rule.RuleCtx
 
-case object NoValInForComprehension extends Rule {
-  def name = "NoValInForComprehension"
-
+case object NoValInForComprehension extends Rule("NoValInForComprehension") {
   override def fix(ctx: RuleCtx): Patch = {
     ctx.tree.collect {
       case v: Enumerator.Val =>
