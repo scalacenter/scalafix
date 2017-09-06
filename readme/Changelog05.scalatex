@@ -14,10 +14,10 @@
     @sect.ref{scalafix-cli}.
   @ul
     @li
-      @code{sbtfix} task in @sect.ref{sbt-scalafix} to run rewrites
+      @code{sbtfix} task in @sect.ref{sbt-scalafix} to run rules
       on build sources.
     @li
-      @sect.ref{Sbt1} rewrite to migrate usage of deprecated sbt 0.13 APIs,
+      @sect.ref{Sbt1} rule to migrate usage of deprecated sbt 0.13 APIs,
       by @user{jvican}.
     @li
       Scala.js support for @sect.ref{scalafix-core}, by @user{gabro}.
@@ -26,29 +26,29 @@
     @li
       Configurable @sect.ref{lint} reporting.
     @li
-      @sect.ref{sbt-scalafix} rewrite tab completion.
+      @sect.ref{sbt-scalafix} rule tab completion.
     @li
       @sect.ref{scalafix-cli} @code{--zsh} and @code{--bash} to generate tab
       completion scripts for zsh and bash.
     @li
-      @sect.ref{scalafix-cli} automatically inferences semantic/syntactic rewrites.
-      This means it's possible to run custom syntactic rewrites from scalafix-cli
+      @sect.ref{scalafix-cli} automatically inferences semantic/syntactic rules.
+      This means it's possible to run custom syntactic rules from scalafix-cli
       without passing in @code{--classpath}.
     @li
       @sect.ref{replace:} to run quick one-off refactorings.
 
-  @h4{New features for rewrite authors}
+  @h4{New features for rule authors}
     @authors
   @ul
     @li
-      Ability to implement rewrites for sources of sbt builds, including
-      @code{*.sbt} files. The API to write sbt rewrites is identical to
-      regular Scala rewrites.
+      Ability to implement rules for sources of sbt builds, including
+      @code{*.sbt} files. The API to write sbt rules is identical to
+      regular Scala rules.
     @li
-      Rewrites can now emit lint messages with @code{ctx.lint}, see
+      Rules can now emit lint messages with @code{ctx.lint}, see
       @sect.ref{LintMessage}.
     @li
-      Rewrites can have multiple names with optional deprecation warnings.
+      Rules can have multiple names with optional deprecation warnings.
     @li
       Thanks to upstream improvements in the
       @lnk("Scalameta v2.0 Semantic API", "http://scalameta.org/tutorial/#SemanticAPI"),
@@ -73,7 +73,7 @@
       Previously, sbt-scalafix used synthetic projects which cause problem
       in some multi-module builds. Now, sbt-scalafix uses Coursier instead.
     @li
-      Improved dynamic compilation of @sect.ref{Custom rewrites} while running
+      Improved dynamic compilation of @sect.ref{Custom rules} while running
       from multi-module sbt builds.
     @li
       Extension methods now resolve to the correct symbol. For example,
@@ -104,5 +104,5 @@
       upgraded to Scalameta 2.0, which has several breaking changes
       in the Tree api.
     @li
-      The @code{VolatileLazyVal} rewrite is now named @sect.ref{DottyVolatileLazyVal}.
+      The @code{VolatileLazyVal} rule is now named @sect.ref{DottyVolatileLazyVal}.
 

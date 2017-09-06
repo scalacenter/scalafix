@@ -1,21 +1,21 @@
 @import Main._
 @import scalafix.Readme._
-@import scalafix.rewrite._
-@import scalafix.internal.rewrite._
+@import scalafix.rule._
+@import scalafix.internal.rule._
 
-@sect{Rewrites}
+@sect{Rules}
   @p
-    Scalafix comes with a few rewrites out-of-the-box.
-    These rewrites have been chosen to meet the long-term goal of scalafix to
+    Scalafix comes with a few rules out-of-the-box.
+    These rules have been chosen to meet the long-term goal of scalafix to
     @lnk("clarify the Scala to Dotty migration path",
         "http://scala-lang.org/blog/2016/05/30/scala-center-advisory-board.html#the-first-meeting").
-    To create custom rewrites, see @sect.ref{scalafix-core}.
+    To create custom rules, see @sect.ref{scalafix-core}.
 
-  @sect(ExplicitReturnTypes.toString)
+  @sect(ExplicitResultTypes.toString)
     @experimental
     Dotty requires implicit @code{val}s and @code{def}s to explicitly annotate
     return types.
-    The @ExplicitReturnTypes.toString rewrite inserts the inferred type from the
+    The @ExplicitResultTypes.toString rule inserts the inferred type from the
     compiler for implicit definitions that are missing an explicit return type.
     For example,
 
@@ -27,12 +27,12 @@
 
     @ul
       @li
-        @note. This rewrite inserts fully qualified names, even if the short name
+        @note. This rule inserts fully qualified names, even if the short name
         is available in scope. Track @issue(169) for updates on making the
-        rewrite insert shorter names.
+        rule insert shorter names.
       @li
         Inserts type annotations only for implicit definitions by default. To configure the
-        rewrite to run on non-implicit definitions
+        rule to run on non-implicit definitions
         @config
           explicitReturnTypes.memberKind = [Val, Def, Var]
           explicitReturnTypes.memberVisibility = [Public, Protected]
@@ -42,12 +42,12 @@
 
 
   @sect(RemoveUnusedImports.toString)
-    This rewrite acts upon "Unused import" warnings emitted by the Scala compiler.
+    This rule acts upon "Unused import" warnings emitted by the Scala compiler.
     See @lnk("slick/slick/pulls#1736", "https://github.com/slick/slick/pull/1736")
     for an example diff from running @code{sbt "scalafix RemoveUnusedImports"}.
 
     @p
-      To use this rewrite:
+      To use this rule:
       @ul
         @li
           enable @code{-Ywarn-unused-import}
@@ -68,7 +68,7 @@
       object Foo { immutable.Seq.empty[Int] }
 
     @p
-      @note. This rewrite does a best-effort at preserving original formatting.
+      @note. This rule does a best-effort at preserving original formatting.
       In some cases, the rewritten code may be formatted weirdly
 
       @hl.scala
@@ -82,10 +82,10 @@
 
           TimeoutException
 
-      It's recommended to use a code formatter after running this rewrite.
+      It's recommended to use a code formatter after running this rule.
 
   @sect(RemoveXmlLiterals.toString)
-    This rewrites replaces XML literals with a @code{xml""} interpolator
+    This rules replaces XML literals with a @code{xml""} interpolator
     from @lnk("scala-xml-quote", "https://github.com/densh/scala-xml-quote")
     project.
 
@@ -175,7 +175,7 @@
       Adds explicit tuples around argument lists where auto-tupling is occurring.
 
     @p
-      To use this rewrite:
+      To use this rule:
       @ul
         @li
           enable @code{-Ywarn-adapted-args} (note, -Yno-adapted-args will fail
@@ -228,7 +228,7 @@
   @sect(Sbt1.toString)
     @experimental
     @p
-      To use this rewrite:
+      To use this rule:
       @ul
         @li
           Install @sect.ref{semanticdb-sbt}
@@ -240,8 +240,8 @@
       // after
       x += (y in Compile).value
 
-    This rewrite currently handles many basic cases but may produce incorrect
+    This rule currently handles many basic cases but may produce incorrect
     output in more advanced cases. Please report back your experience.
 
-  @sect{Planned rewrites...}
-    See @lnk("here", "https://github.com/scalacenter/scalafix/labels/rewrite").
+  @sect{Planned rules...}
+    See @lnk("here", "https://github.com/scalacenter/scalafix/labels/rule").

@@ -7,8 +7,8 @@
     @li
       Fixed @issue(200), thank you @user{xuwei-k} for reporting.
     @li
-      New section documenting how to implement rewrites, see
-      @sect.ref{Creating your own rewrite}.
+      New section documenting how to implement rules, see
+      @sect.ref{Creating your own rule}.
     @li
       In particular, @sect.ref{scalacenter/scalafix.g8}
 @sect{0.4.1}
@@ -17,9 +17,9 @@
 
   @ul
     @li
-      New rewrite @code{NoExtendsApp} (removed in v0.5), by @user{gabro}.
+      New rule @code{NoExtendsApp} (removed in v0.5), by @user{gabro}.
     @li
-      New rewrite @sect.ref{DottyVarArgPattern}, by @user{gosubpl}.
+      New rule @sect.ref{DottyVarArgPattern}, by @user{gosubpl}.
     @li
       Errors in the @sect.ref{scalafix-testkit} docs have now been fixed, by @user{taisukeoe}.
     @li
@@ -52,25 +52,25 @@
 
   @ul
     @li
-      New rewrite @sect.ref{RemoveUnusedImports}, by @user{olafurpg}.
+      New rule @sect.ref{RemoveUnusedImports}, by @user{olafurpg}.
     @li
-      New rewrite @sect.ref{RemoveXmlLiterals}, by @user{allanrenucci}.
+      New rule @sect.ref{RemoveXmlLiterals}, by @user{allanrenucci}.
     @li
-      New rewrite @sect.ref{NoAutoTupling}, by @user{gabro}.
+      New rule @sect.ref{NoAutoTupling}, by @user{gabro}.
     @li
-      New rewrite @sect.ref{ExplicitUnit}, by @user{gabro}.
+      New rule @sect.ref{ExplicitUnit}, by @user{gabro}.
     @li
-      New rewrite @sect.ref{NoValInForComprehension}, by @user{gabro}.
+      New rule @sect.ref{NoValInForComprehension}, by @user{gabro}.
     @li
-      New @sect.ref{github:} protocol for loading rewrites, by @user{gabro}.
+      New @sect.ref{github:} protocol for loading rules, by @user{gabro}.
     @li
       Improved @sect.ref{scalafix-testkit}, by @user{olafurpg}.
     @li
-      Simplified Rewrite API. The public API has shrunk down to
-      four types: @code{Rewrite}, @code{Patch}, @code{ScalafixConfig} and
-      @code{RewriteCtx}. The type parameters on @code{Rewrite} and @code{RewriteCtx}
+      Simplified Rule API. The public API has shrunk down to
+      four types: @code{Rule}, @code{Patch}, @code{ScalafixConfig} and
+      @code{RuleCtx}. The type parameters on @code{Rule} and @code{RuleCtx}
       have been removed. A single @code{import scalafix._} is enough get
-      started with rewrites.
+      started with rules.
     @li
       See the
       @lnk("Scalameta Semantic API", "https://github.com/scalameta/scalameta/blob/master/changelog/1.8.0.md").
@@ -82,37 +82,37 @@
       The @code{scalafix-nsc} compiler plugin has been removed in favor of
       the @lnk("Scalameta Semantic DB", "https://github.com/scalameta/scalameta/blob/master/changelog/1.8.0.md#semantic-db"),
       that is emitted by the Scalameta @code{semanticdb-scalac} compiler plugin.
-      This change enables Scalafix rewrites to run separately from compilation.
+      This change enables Scalafix rules to run separately from compilation.
       This means that running scalafix will be much faster, since it no longer
       requires creating a custom instance of the Scala compiler and re-typechecking
       an entire project. Scalafix reads all of its inputs from @code{.semanticdb}
       files that are created by the semanticdb-scalac compiler plugin during regular compilation.
     @li
-      The signature of @code{Rewrite.rewrite} has been simplified
+      The signature of @code{Rule.rule} has been simplified
       @hl.scala
         // before
-        def rewrite[T](ctx: RewriteCtx[T]): Seq[Patch]
+        def rule[T](ctx: RuleCtx[T]): Seq[Patch]
         // after
-        def rewrite(ctx: RewriteCtx): Patch
+        def rule(ctx: RuleCtx): Patch
 
         // a Seq[Patch] can be converted into Patch with .asPatch
         Seq[Patch]().asPatch: Patch
     @li
-      @code{RewriteCtx.mirror} has been removed. To write semantic rewrites,
+      @code{RuleCtx.mirror} has been removed. To write semantic rules,
       accept @code{SemanticCtx} as a constructor parameter instead
       @hl.scala
         // before
-        case object MySemanticRewrite extends Rewrite {
-          def rewrite[T](ctx: RewriteCtx[T]): Seq[Patch]
+        case object MySemanticRule extends Rule {
+          def rule[T](ctx: RuleCtx[T]): Seq[Patch]
         }
         // after
-        case class MySemanticRewrite(sctx: SemanticCtx) extends SemanticRewrite(sctx) {
-          def rewrite(ctx: RewriteCtx): Patch
+        case class MySemanticRule(sctx: SemanticCtx) extends SemanticRule(sctx) {
+          def rule(ctx: RuleCtx): Patch
         }
     @li
       @code{scalafix.patch.TreePatch.{AddGlobalImport, RemoveGlobalImport, Replace, ...}}
       have been made @code{private[scalafix]}. Instead, use the provided operations
-      on @code{ctx: RewriteCtx}.
+      on @code{ctx: RuleCtx}.
 
 
       @hl.scala
@@ -126,11 +126,11 @@
       is in scope during Patch creation.
       For the full available API of patch operations, see
       @lnk("SemanticPatchOps",
-        "https://github.com/scalacenter/scalafix/blob/db6152304aaef19c4a8ba4fc77b732264bf52fec/scalafix-core/src/main/scala/scalafix/rewrite/SemanticPatchOps.scala")
+        "https://github.com/scalacenter/scalafix/blob/db6152304aaef19c4a8ba4fc77b732264bf52fec/scalafix-core/src/main/scala/scalafix/rule/SemanticPatchOps.scala")
     @li
       The following configuration options have been removed
       @hl.scala
-        imports.removeUnusedImports // replaced by RemoveUnusedImports rewrite.
+        imports.removeUnusedImports // replaced by RemoveUnusedImports rule.
 
         // These were wishful thinking, too eagerly merged.
         imports.organizeImports

@@ -8,6 +8,7 @@ import scalafix.rule.RuleCtx
 object MyRule {
   // Syntactic
   case object Uppercase extends Rule {
+    override def name = "Uppercase"
     override def fix(ctx: RuleCtx): Patch =
       ctx.tree.collect {
         case tree @ Name(name) => ctx.replaceTree(tree, name.toUpperCase)

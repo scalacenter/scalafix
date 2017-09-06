@@ -1,6 +1,6 @@
 @import Main._
 @import scalafix.Readme._
-@import scalafix.rewrite._
+@import scalafix.rule._
 @import scalafix.{Versions => V}
 @import scalafix.cli.Cli
 
@@ -12,7 +12,7 @@
     but it is not a priority.
 
   @sect{sbt-scalafix}
-    The sbt-plugin is the recommended integration for semantic rewrites.
+    The sbt-plugin is the recommended integration for semantic rules.
 
     @hl.scala
       // ===> project/plugins.sbt
@@ -29,14 +29,14 @@
       scalacOptions ++= scalafixScalacOptions.value // add this line
 
       // ===> sbt shell (example usage)
-      > scalafix                               // Run .scalafix.conf rewrites
-      > scalafix RemoveUnusedImports           // Run specific rewrite
-      > myProject/scalafix RemoveUnusedImports // Run rewrite in one project only
-      > test:scalafix RemoveUnusedImports      // Run rewrite in single configuration
+      > scalafix                               // Run .scalafix.conf rules
+      > scalafix RemoveUnusedImports           // Run specific rule
+      > myProject/scalafix RemoveUnusedImports // Run rule in one project only
+      > test:scalafix RemoveUnusedImports      // Run rule in single configuration
       > scalafix ExplicitR<TAB>                // use tab completion
       > scalafix replace:com.foobar/com.buzbaz // refactor (experimental)
-      > scalafix file:rewrites/MyRewrite.scala // run local custom rewrite
-      > scalafix github:org/repo/v1            // run library migration rewrite
+      > scalafix file:rules/MyRule.scala // run local custom rule
+      > scalafix github:org/repo/v1            // run library migration rule
 
     @sect{Verify sbt installation}
       To verify the installation, check that the scalacOptions include -Xplugin-require:semanticdb
@@ -69,15 +69,15 @@
             @th
               Description
         @tbody
-          @sbtkey("scalafix <rewrite>..", "Unit")
+          @sbtkey("scalafix <rule>..", "Unit")
             Run scalafix on project sources.
-            See @sect.ref{Rewrites} or use tab completion to explore
-            supported rewrites.
-          @sbtkey("sbtfix <rewrite>..", "Unit")
+            See @sect.ref{Rules} or use tab completion to explore
+            supported rules.
+          @sbtkey("sbtfix <rule>..", "Unit")
             Run scalafix on the build sources, @code{*.sbt} and
             @code{project/*}.
             @note Requires @sect.ref{semanticdb-sbt} enabled globally
-            for semantic rewrites.
+            for semantic rules.
           @sbtkey("scalafixEnabled", "Boolean")
             True by default.
             If false, then sbt-scalafix will not enable the
@@ -117,7 +117,7 @@
       Please report back on your experience.
 
   @sect{scalafix-core}
-    Scalafix can be used as a library to run custom rewrites.
+    Scalafix can be used as a library to run custom rules.
     @hl.scala
       // ===> build.sbt
       libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % "@V.stableVersion"
@@ -125,10 +125,10 @@
       libraryDependencies += "ch.epfl.scala" %%% "scalafix-core" % "@V.stableVersion"
 
     Example usage of the syntactic API.
-    @hl.ref(wd/"readme"/"src"/"main"/"scala"/"fix"/"MyRewrite.scala")
+    @hl.ref(wd/"readme"/"src"/"main"/"scala"/"fix"/"MyRule.scala")
     @hl.scala
-      println(MyRewrite.Uppercase("object Hello { println('world) }"))
-      // @fix.MyRewrite.Uppercase("object Hello { println('world) }")
+      println(MyRule.Uppercase("object Hello { println('world) }"))
+      // @fix.MyRule.Uppercase("object Hello { println('world) }")
     The semantic API requires a more complicated setup. Please
     use @sect.ref{scalacenter/scalafix.g8}.
   @sect{scalafix-cli}

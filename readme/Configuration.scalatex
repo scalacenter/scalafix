@@ -8,32 +8,32 @@
     I recommend you put a file @code{.scalafix.conf} into the root directory of
     your project.
 
-  @sect{rewrites}
-    You can either run a pre-made that comes with scalafix or a custom rewrite
+  @sect{rules}
+    You can either run a pre-made that comes with scalafix or a custom rule
     that you write yourself.
 
-    @sect{Pre-made rewrites}
-      Available rewrites are listed in @sect.ref{Rewrites}.
+    @sect{Pre-made rules}
+      Available rules are listed in @sect.ref{Rules}.
 
       @config
-        rewrites = [ProcedureSyntax] # No rewrites are run if empty.
+        rules = [ProcedureSyntax] # No rules are run if empty.
 
-    @sect{Custom rewrites}
-      Scalafix supports loading rewrites from a few different
+    @sect{Custom rules}
+      Scalafix supports loading rules from a few different
       URI protocols.
 
       @sect{scala:}
-        If a rewrites is on the classpath, you can classload it with the
+        If a rules is on the classpath, you can classload it with the
         @code{scala:} protocol.
         @config
-          rewrite = "scala:scalafix.internal.rewrite.ProcedureSyntax"
+          rule = "scala:scalafix.internal.rule.ProcedureSyntax"
 
       @sect{github:}
-        If a rewrite is written in a single file and you want a short syntax,
-        you can use the @code{github:} protocol for sharing your rewrite
+        If a rule is written in a single file and you want a short syntax,
+        you can use the @code{github:} protocol for sharing your rule
 
         @hl.scala
-          rewrite = "github:typelevel/cats/v1.0.0"
+          rule = "github:typelevel/cats/v1.0.0"
           // expands into @githubSyntax("typelevel/cats/v1.0.0").get
 
       @sect{replace:}
@@ -45,30 +45,30 @@
         only moves use-sites.
 
         @config
-          rewrite = "replace:com.company.App/io.company.App"
+          rule = "replace:com.company.App/io.company.App"
           // From sbt shell: > scalafix replace:from/to
 
         To rename a method
 
         @config
-          rewrite = "replace:com.company.App.start/init"
+          rule = "replace:com.company.App.start/init"
 
       @sect{file:}
-        If a rewrites is written in a single file on disk, you can load it
+        If a rules is written in a single file on disk, you can load it
         with the @code{file:} protocol.
         @config
-          rewrite = "file:readme/MyRewrite.scala" // from local file
+          rule = "file:readme/MyRule.scala" // from local file
 
       @sect{http:}
-        If a rewrite is written in a single source file on the internet,
+        If a rule is written in a single source file on the internet,
         you can load it with the @code{https:} or @code{http:} protocol
         @config
-          rewrite = "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/84dc2450844531d3aeb81d4f3e1dc741abf920c3/ExampleRewrite.scala"
+          rule = "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/84dc2450844531d3aeb81d4f3e1dc741abf920c3/ExampleRule.scala"
 
   @sect{lint}
     Override the default severity level of a @sect.ref{LintMessage} with @code{lint}
     @config
-      // Assuming 'Foo' is a rewrite and 'warningID'/'errorID' are LintCategory IDs.
+      // Assuming 'Foo' is a rule and 'warningID'/'errorID' are LintCategory IDs.
       lint.error = [ Foo.warningID ] // promote Foo.warnigID to an error
       lint.warning = [ Foo.errorID ] // demote Foo.errorID to a warning
       lint.info = [ Foo.errorID ] // demote Foo.errorID to info
@@ -76,7 +76,7 @@
       lint.explain = true // print out detailed explanation for lint messages.
 
   @sect{patches}
-    For simple use-cases, it's possible to write custom rewrites directly in
+    For simple use-cases, it's possible to write custom rules directly in
     .scalafix.conf.
     @config
       patches.removeGlobalImports = [
@@ -92,6 +92,6 @@
       // Helper to see which symbols appear in your source files
       debug.printSymbols = true
     For more advanced use-cases, I recommend you use see
-    @sect.ref{Creating your own rewrite}.
+    @sect.ref{Creating your own rule}.
 
 
