@@ -40,6 +40,11 @@ object ExplicitReturnTypesBase {
     val Val = scala.concurrent.Future.successful(2)
     def Def = scala.concurrent.Future.successful(2)
   }
-
+  object unicode {
+    object `->` {
+      def unapply[S](in: (S, S)): Option[(S, S)] = Some(in)
+    }
+    val `→`: _root_.test.explicitReturnTypes.ExplicitReturnTypesBase.unicode.->.type = `->`
+  }
 }
 
