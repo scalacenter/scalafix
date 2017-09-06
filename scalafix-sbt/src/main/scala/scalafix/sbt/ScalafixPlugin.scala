@@ -15,21 +15,20 @@ object ScalafixPlugin extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
   override def requires: Plugins = JvmPlugin
   object autoImport {
-    val scalafix: InputKey[Unit] = inputKey[Unit]("Run scalafix rule.")
-    val sbtfix: InputKey[Unit] = inputKey[Unit](
-      "Run scalafix rule on build sources. " +
-        "Requires the semanticdb-sbt plugin to be enabled globally.")
+    val scalafix: InputKey[Unit] =
+      inputKey[Unit]("Run scalafix rule.")
+    val sbtfix: InputKey[Unit] =
+      inputKey[Unit](
+        "Run scalafix rule on build sources. Requires the semanticdb-sbt plugin to be enabled globally.")
     val scalafixConfig: SettingKey[Option[File]] =
       settingKey[Option[File]](
         ".scalafix.conf file to specify which scalafix rules should run.")
     val scalafixEnabled: SettingKey[Boolean] =
       settingKey[Boolean](
-        "If false, scalafix will not enable the semanticdb-scalac " +
-          "compiler plugin, which is necessary for semantic rules.")
+        "If false, scalafix will not enable the semanticdb-scalac compiler plugin, which is necessary for semantic rules.")
     def scalafixScalacOptions: Def.Initialize[Seq[String]] =
       ScalafixPlugin.scalafixScalacOptions
-    def sbtfixSettings: Seq[Def.Setting[_]] =
-      ScalafixPlugin.sbtfixSettings
+    def sbtfixSettings: Seq[Def.Setting[_]] = ScalafixPlugin.sbtfixSettings
     val scalafixVerbose: SettingKey[Boolean] =
       settingKey[Boolean]("pass --verbose to scalafix")
     def scalafixSettings: Seq[Def.Setting[_]] =

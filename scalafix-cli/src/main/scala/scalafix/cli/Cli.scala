@@ -17,12 +17,20 @@ import caseapp.core.WithHelp
 import com.martiansoftware.nailgun.NGContext
 import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
+import org.typelevel.paiges.Doc
 
 object Cli {
+  private def wrap(msg: String) = Doc.paragraph(msg).render(70)
   import scalafix.internal.cli.ArgParserImplicits._
-  private val withHelp: Messages[WithHelp[ScalafixOptions]] =
-    OptionsMessages.copy(optionsDesc = "[options] [<file>...]").withHelp
-  val helpMessage: String = withHelp.helpMessage +
+  private lazy val withHelp: Messages[WithHelp[ScalafixOptions]] = {
+    val messages =
+      OptionsMessages.copy(optionsDesc = "[options] [<file>...]").withHelp
+    messages.copy(args = messages.args.map(arg =>
+      arg.copy(helpMessage = arg.helpMessage.map(msg =>
+        msg.copy(message = wrap(msg.message).replace("\n", "\n\t"))))))
+  }
+
+  lazy val helpMessage: String = withHelp.helpMessage +
     s"""|Available rules: ${ScalafixRules.allNames.mkString(", ")}
         |
         |NOTE. The command line tool is mostly intended to be invoked programmatically
@@ -49,7 +57,7 @@ object Cli {
         |Exit status codes:
         | ${ExitStatus.all.mkString("\n ")}
         |""".stripMargin
-  val usageMessage: String = withHelp.usageMessage
+  lazy val usageMessage: String = withHelp.usageMessage
   val default = ScalafixOptions()
   // Run this at the end of the world, calls sys.exit.
 

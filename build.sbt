@@ -187,6 +187,7 @@ lazy val cli = project
     libraryDependencies ++= Seq(
       "org.scalameta" %% "semanticdb-sbt-runtime" % semanticdbSbt,
       "com.github.alexarchambault" %% "case-app" % "1.1.3",
+      "org.typelevel" %% "paiges-core" % "0.2.0",
       "com.martiansoftware" % "nailgun-server" % "0.9.1"
     )
   )
