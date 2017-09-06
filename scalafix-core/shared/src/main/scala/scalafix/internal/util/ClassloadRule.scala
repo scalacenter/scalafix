@@ -1,7 +1,7 @@
 package scalafix.internal.util
 
 import java.lang.reflect.InvocationTargetException
-import scalafix.SemanticCtx
+import scalafix.SemanticdbIndex
 import scala.reflect.ClassTag
 import scala.util.Success
 import scala.util.Try
@@ -13,7 +13,7 @@ class ClassloadRule[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
   private val t = ev.runtimeClass
 
   private val functionClasstag =
-    implicitly[ClassTag[Function[SemanticCtx, T]]].runtimeClass
+    implicitly[ClassTag[Function[SemanticdbIndex, T]]].runtimeClass
   object LambdaRule {
     def unapply(fqcn: String): Option[(Class[_], String)] = {
       val idx = fqcn.lastIndexOf(".")
@@ -39,8 +39,9 @@ class ClassloadRule[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
     if (t.isInstance(rule)) rule.asInstanceOf[T]
     else
       args match {
-        case (sctx: SemanticCtx) :: Nil if functionClasstag.isInstance(rule) =>
-          rule.asInstanceOf[Function[SemanticCtx, T]].apply(sctx)
+        case (index: SemanticdbIndex) :: Nil
+            if functionClasstag.isInstance(rule) =>
+          rule.asInstanceOf[Function[SemanticdbIndex, T]].apply(index)
         case _ =>
           throw new IllegalArgumentException(
             s"Unable to load rule from field $fieldName on object $obj with arguments $args")

@@ -10,7 +10,7 @@ import org.langmeta.semanticdb.Symbol
 
 object TypeSyntax {
   def prettify(tpe: Type, ctx: RuleCtx, shortenNames: Boolean)(
-      implicit sctx: SemanticCtx): (Type, Patch) = {
+      implicit index: SemanticdbIndex): (Type, Patch) = {
 
     val functionN: SymbolMatcher = SymbolMatcher.exact(
       1.to(22).map(i => Symbol(s"_root_.scala.Function$i#")): _*
@@ -87,7 +87,7 @@ object TypeSyntax {
         case Type.Apply(tupleN(_), args) =>
           val rargs = apply_![Type](args)
           Type.Tuple(rargs)
-        case Name(_) :&&: sctx.Symbol(sym) =>
+        case Name(_) :&&: index.Symbol(sym) =>
           val (addImport, t) = stableRef(sym)
           patch += addImport
           t

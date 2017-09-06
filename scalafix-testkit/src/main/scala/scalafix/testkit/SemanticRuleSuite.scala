@@ -4,7 +4,7 @@ package testkit
 import scala.collection.mutable
 import scalafix.syntax._
 import scala.meta._
-import scalafix.internal.util.SemanticCtxImpl
+import scalafix.internal.util.EagerInMemorySemanticdbIndex
 import org.scalameta.logger
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
@@ -29,17 +29,17 @@ object SemanticRuleSuite {
 }
 
 abstract class SemanticRuleSuite(
-    val sctx: SemanticCtx,
+    val index: SemanticdbIndex,
     val expectedOutputSourceroot: Seq[AbsolutePath]
 ) extends FunSuite
     with DiffAssertions
     with BeforeAndAfterAll { self =>
   def this(
-      sctx: SemanticCtx,
+      index: SemanticdbIndex,
       inputSourceroot: AbsolutePath,
       expectedOutputSourceroot: Seq[AbsolutePath]
   ) = this(
-    sctx,
+    index,
     expectedOutputSourceroot
   )
   def this(
@@ -48,7 +48,10 @@ abstract class SemanticRuleSuite(
       expectedOutputSourceroot: Seq[AbsolutePath]
   ) =
     this(
-      SemanticCtxImpl(database, Sourcepath(inputSourceroot), Classpath(Nil)),
+      EagerInMemorySemanticdbIndex(
+        database,
+        Sourcepath(inputSourceroot),
+        Classpath(Nil)),
       inputSourceroot,
       expectedOutputSourceroot
     )
@@ -138,9 +141,9 @@ abstract class SemanticRuleSuite(
     }
   }
 
-  /** Helper method to print out sctx for individual files */
+  /** Helper method to print out index for individual files */
   def debugFile(filename: String): Unit = {
-    sctx.documents.foreach { entry =>
+    index.documents.foreach { entry =>
       if (entry.input.label.contains(filename)) {
         logger.elem(entry)
       }
@@ -157,7 +160,7 @@ abstract class SemanticRuleSuite(
     super.afterAll()
   }
   lazy val testsToRun =
-    DiffTest.testToRun(DiffTest.fromSemanticCtx(sctx))
+    DiffTest.testToRun(DiffTest.fromSemanticdbIndex(index))
   def runAllTests(): Unit = {
     testsToRun.foreach(runOn)
   }

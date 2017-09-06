@@ -134,17 +134,17 @@ object Patch {
   private[scalafix] def apply(
       p: Patch,
       ctx: RuleCtx,
-      sctx: Option[SemanticCtx]
+      index: Option[SemanticdbIndex]
   ): String = {
     val patches = underlying(p)
     val semanticPatches = patches.collect { case tp: TreePatch => tp }
-    val result = sctx match {
-      case Some(x: SemanticCtx) =>
+    val result = index match {
+      case Some(x: SemanticdbIndex) =>
         semanticApply(p)(ctx, x)
       case _ =>
         if (semanticPatches.nonEmpty)
           throw Failure.Unsupported(
-            s"Semantic patches are not supported without a SemanticCtx: $semanticPatches")
+            s"Semantic patches are not supported without a SemanticdbIndex: $semanticPatches")
         syntaxApply(ctx, underlying(p).collect {
           case tp: TokenPatch => tp
         })
@@ -162,7 +162,7 @@ object Patch {
   }
 
   private def semanticApply(
-      patch: Patch)(implicit ctx: RuleCtx, sctx: SemanticCtx): String = {
+      patch: Patch)(implicit ctx: RuleCtx, index: SemanticdbIndex): String = {
     val base = underlying(patch)
     val moveSymbol = underlying(
       ReplaceSymbolOps.naiveMoveSymbolPatch(base.collect {

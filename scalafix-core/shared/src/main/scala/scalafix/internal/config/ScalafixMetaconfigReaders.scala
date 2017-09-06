@@ -91,20 +91,21 @@ trait ScalafixMetaconfigReaders {
         ruleDecoder.read(combinedRules).map(rule => rule -> config)
     }
 
-  def defaultRuleDecoder(getSemanticCtx: LazySemanticCtx): ConfDecoder[Rule] =
+  def defaultRuleDecoder(
+      getSemanticdbIndex: LazySemanticdbIndex): ConfDecoder[Rule] =
     ConfDecoder.instance[Rule] {
       case conf @ Conf.Str(value) if !value.contains(":") =>
         val isSyntactic = ScalafixRules.syntacticNames.contains(value)
         val kind = RuleKind(syntactic = isSyntactic)
-        val sctx = getSemanticCtx(kind)
+        val index = getSemanticdbIndex(kind)
         val names: Map[String, Rule] =
           ScalafixRules.syntaxName2rule ++
-            sctx.fold(Map.empty[String, Rule])(ScalafixRules.name2rule)
+            index.fold(Map.empty[String, Rule])(ScalafixRules.name2rule)
         val result = ReaderUtil.fromMap(names).read(conf)
         result match {
           case Ok(rule) =>
             rule.name
-              .reportDeprecationWarning(value, getSemanticCtx.reporter)
+              .reportDeprecationWarning(value, getSemanticdbIndex.reporter)
           case _ =>
         }
         result
@@ -112,20 +113,20 @@ trait ScalafixMetaconfigReaders {
 
   private lazy val semanticRuleClass = classOf[SemanticRule]
 
-  def classloadRule(sctx: LazySemanticCtx): Class[_] => Seq[SemanticCtx] = {
-    cls =>
-      val kind =
-        if (semanticRuleClass.isAssignableFrom(cls)) RuleKind.Semantic
-        else RuleKind.Syntactic
-      sctx(kind).toList
+  def classloadRule(
+      index: LazySemanticdbIndex): Class[_] => Seq[SemanticdbIndex] = { cls =>
+    val kind =
+      if (semanticRuleClass.isAssignableFrom(cls)) RuleKind.Semantic
+      else RuleKind.Syntactic
+    index(kind).toList
   }
 
   private lazy val SlashSeparated = "([^/]+)/(.*)".r
 
-  private def requireSemanticSemanticCtx[T](
-      sctx: LazySemanticCtx,
-      what: String)(f: SemanticCtx => Configured[T]): Configured[T] = {
-    sctx(RuleKind.Semantic).fold(
+  private def requireSemanticSemanticdbIndex[T](
+      index: LazySemanticdbIndex,
+      what: String)(f: SemanticdbIndex => Configured[T]): Configured[T] = {
+    index(RuleKind.Semantic).fold(
       Configured.error(s"$what requires the semantic API."): Configured[T])(f)
   }
 
@@ -135,12 +136,12 @@ trait ScalafixMetaconfigReaders {
     symbolGlobalReader.read(Conf.Str(from)) |@|
       symbolGlobalReader.read(Conf.Str(to))
 
-  def classloadRuleDecoder(sctx: LazySemanticCtx): ConfDecoder[Rule] =
+  def classloadRuleDecoder(index: LazySemanticdbIndex): ConfDecoder[Rule] =
     ConfDecoder.instance[Rule] {
       case UriRuleString("scala", fqn) =>
-        ClassloadRule(fqn, classloadRule(sctx))
+        ClassloadRule(fqn, classloadRule(index))
       case UriRuleString("replace", replace @ SlashSeparated(from, to)) =>
-        requireSemanticSemanticCtx(sctx, replace) { m =>
+        requireSemanticSemanticdbIndex(index, replace) { m =>
           parseReplaceSymbol(from, to)
             .map(TreePatch.ReplaceSymbol.tupled)
             .map(p => Rule.constant(replace, p, m))
@@ -148,16 +149,16 @@ trait ScalafixMetaconfigReaders {
     }
 
   def baseSyntacticRuleDecoder: ConfDecoder[Rule] =
-    baseRuleDecoders(LazySemanticCtx.empty)
-  def baseRuleDecoders(sctx: LazySemanticCtx): ConfDecoder[Rule] = {
+    baseRuleDecoders(LazySemanticdbIndex.empty)
+  def baseRuleDecoders(index: LazySemanticdbIndex): ConfDecoder[Rule] = {
     MetaconfigPendingUpstream.orElse(
-      defaultRuleDecoder(sctx),
-      classloadRuleDecoder(sctx)
+      defaultRuleDecoder(index),
+      classloadRuleDecoder(index)
     )
   }
   def configFromInput(
       input: Input,
-      sctx: LazySemanticCtx,
+      index: LazySemanticdbIndex,
       extraRules: List[String])(
       implicit decoder: ConfDecoder[Rule]
   ): Configured[(Rule, ScalafixConfig)] = {
@@ -170,7 +171,7 @@ trait ScalafixMetaconfigReaders {
         }
         .andThen {
           case (rule, config) =>
-            ConfigRule(config.patches, sctx).map { configRule =>
+            ConfigRule(config.patches, index).map { configRule =>
               configRule.fold(rule -> config)(rule.merge(_) -> config)
             }
         }

@@ -19,13 +19,13 @@ import scalafix.internal.util.SymbolOps
   * }}}
   * @param symbols the symbols to match against.
   * @param isEqual which equality to use, can be normalized or structural.
-  * @param sctx the semantic context to lookup symbols of trees.
+  * @param index the semantic context to lookup symbols of trees.
   */
 final class SymbolMatcher(
     symbols: List[Symbol],
-    isEqual: (Symbol, Symbol) => Boolean)(implicit sctx: SemanticCtx) {
+    isEqual: (Symbol, Symbol) => Boolean)(implicit index: SemanticdbIndex) {
   def matches(tree: Tree): Boolean = {
-    sctx.symbol(tree).fold(false)(matches)
+    index.symbol(tree).fold(false)(matches)
   }
   def matches(symbol: Symbol): Boolean =
     symbols.exists(x => isEqual(x, symbol))
@@ -47,10 +47,11 @@ final class SymbolMatcher(
 object SymbolMatcher {
 
   /** Construct SymbolMatcher with structural equality. */
-  def exact(symbol: Symbol*)(implicit sctx: SemanticCtx): SymbolMatcher =
+  def exact(symbol: Symbol*)(implicit index: SemanticdbIndex): SymbolMatcher =
     new SymbolMatcher(symbol.toList, _ == _)
 
   /** Construct SymbolMatcher with normalized equality. */
-  def normalized(symbol: Symbol*)(implicit sctx: SemanticCtx): SymbolMatcher =
+  def normalized(symbol: Symbol*)(
+      implicit index: SemanticdbIndex): SymbolMatcher =
     new SymbolMatcher(symbol.toList, SymbolOps.isSameNormalized)
 }

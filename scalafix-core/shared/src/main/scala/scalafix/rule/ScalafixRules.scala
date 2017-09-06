@@ -13,20 +13,20 @@ object ScalafixRules {
     DottyKeywords,
     DottyVarArgPattern
   )
-  def semantic(sctx: SemanticCtx): List[Rule] = List(
-    Sbt1(sctx),
-    ExplicitResultTypes(sctx),
-    RemoveUnusedImports(sctx),
-    NoAutoTupling(sctx)
+  def semantic(index: SemanticdbIndex): List[Rule] = List(
+    Sbt1(index),
+    ExplicitResultTypes(index),
+    RemoveUnusedImports(index),
+    NoAutoTupling(index)
   )
-  def all(sctx: SemanticCtx): List[Rule] =
-    syntax ++ semantic(sctx)
-  def name2rule(sctx: SemanticCtx): Map[String, Rule] =
-    all(sctx).flatMap(x => x.allNames.map(_ -> x)).toMap
+  def all(index: SemanticdbIndex): List[Rule] =
+    syntax ++ semantic(index)
+  def name2rule(index: SemanticdbIndex): Map[String, Rule] =
+    all(index).flatMap(x => x.allNames.map(_ -> x)).toMap
   lazy val syntaxName2rule: Map[String, Rule] =
     syntax.flatMap(x => x.allNames.map(_ -> x)).toMap
   lazy val syntacticNames: List[String] = syntaxName2rule.keys.toList
   lazy val semanticNames: List[String] =
-    semantic(SemanticCtx.empty).flatMap(_.allNames)
+    semantic(SemanticdbIndex.empty).flatMap(_.allNames)
   def allNames: List[String] = syntaxName2rule.keys.toList ++ semanticNames
 }

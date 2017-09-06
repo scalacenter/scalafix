@@ -3,13 +3,13 @@ package internal.util
 
 import scala.meta._
 
-case class SemanticCtxImpl(
+case class EagerInMemorySemanticdbIndex(
     database: Database,
     sourcepath: Sourcepath,
     classpath: Classpath)
-    extends SemanticCtx {
+    extends SemanticdbIndex {
   override def toString: String =
-    s"SemanticCtx($sourcepath, $classpath, database.size=${database.documents.length})"
+    s"$productPrefix($sourcepath, $classpath, database.size=${database.documents.length})"
   override def hashCode(): Int = database.hashCode()
   private lazy val _denots: Map[Symbol, Denotation] = {
     val builder = Map.newBuilder[Symbol, Denotation]
@@ -52,6 +52,6 @@ case class SemanticCtxImpl(
   def denotation(tree: Tree): Option[Denotation] =
     symbol(tree).flatMap(denotation)
   override def names: Seq[ResolvedName] = _names.values.toSeq
-  def withDocuments(documents: Seq[Document]): SemanticCtx =
+  def withDocuments(documents: Seq[Document]): SemanticdbIndex =
     copy(database = Database(documents))
 }

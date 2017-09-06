@@ -11,7 +11,7 @@ import scala.tools.nsc.Settings
 import scala.tools.nsc.io.VirtualDirectory
 import scala.tools.nsc.reporters.StoreReporter
 import scala.{meta => m}
-import scalafix.internal.config.LazySemanticCtx
+import scalafix.internal.config.LazySemanticdbIndex
 import scalafix.internal.config.classloadRule
 import scalafix.internal.util.ClassloadRule
 import scalafix.rule.Rule
@@ -24,9 +24,9 @@ class ScalafixToolbox {
     new java.util.concurrent.ConcurrentHashMap[Input, Configured[Rule]]()
   private val compiler = new Compiler()
 
-  def getRule(code: Input, sctx: LazySemanticCtx): Configured[Rule] =
+  def getRule(code: Input, index: LazySemanticdbIndex): Configured[Rule] =
     ruleCache.getOrDefault(code, {
-      val uncached = getRuleUncached(code, sctx)
+      val uncached = getRuleUncached(code, index)
       uncached match {
         case toCache @ Configured.Ok(_) =>
           ruleCache.put(code, toCache)
@@ -35,7 +35,9 @@ class ScalafixToolbox {
       uncached
     })
 
-  def getRuleUncached(code: Input, sctx: LazySemanticCtx): Configured[Rule] =
+  def getRuleUncached(
+      code: Input,
+      index: LazySemanticdbIndex): Configured[Rule] =
     synchronized {
       (
         compiler.compile(code) |@|
@@ -44,7 +46,7 @@ class ScalafixToolbox {
         case (classloader, names) =>
           names.foldLeft(Configured.ok(Rule.empty)) {
             case (rule, fqn) =>
-              val args = classloadRule(sctx)
+              val args = classloadRule(index)
               rule
                 .product(ClassloadRule(fqn, args, classloader))
                 .map { case (a, b) => a.merge(b) }

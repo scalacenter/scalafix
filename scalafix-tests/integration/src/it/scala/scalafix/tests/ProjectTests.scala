@@ -1,6 +1,6 @@
 package scalafix.tests
 
-import scalafix.SemanticCtx
+import scalafix.SemanticdbIndex
 import scalafix.internal.rule.ExplicitResultTypes
 import scalafix.internal.rule.ProcedureSyntax
 import scalafix.internal.rule.RemoveUnusedImports

@@ -28,12 +28,12 @@ import scalafix.internal.cli.TermDisplay
 import scalafix.internal.cli.WriteMode
 import scalafix.internal.config.Class2Hocon
 import scalafix.internal.config.FilterMatcher
-import scalafix.internal.config.LazySemanticCtx
+import scalafix.internal.config.LazySemanticdbIndex
 import scalafix.internal.config.MetaconfigPendingUpstream
 import scalafix.internal.config.RuleKind
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.util.Failure
-import scalafix.internal.util.SemanticCtxImpl
+import scalafix.internal.util.EagerInMemorySemanticdbIndex
 import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
 import metaconfig.Configured.Ok
@@ -219,7 +219,7 @@ object CliRunner {
     (
       builder.resolvedSourceroot |@|
         builder.resolvedPathReplace |@|
-        builder.fixFilesWithSemanticCtx |@|
+        builder.fixFilesWithSemanticdbIndex |@|
         builder.resolvedConfig
     ).map {
       case (((sourceroot, replace), inputs), config) =>
@@ -310,17 +310,18 @@ object CliRunner {
     }
 
     // We don't know yet if we need to compute the database or not.
-    // If all the rules are syntactic, we never need to compute the sctx.
+    // If all the rules are syntactic, we never need to compute the index.
     // If a single rule is semantic, then we need to compute the database.
-    private var cachedDatabase = Option.empty[Configured[SemanticCtx]]
-    private def computeAndCacheDatabase(): Option[SemanticCtx] = {
-      val result: Configured[SemanticCtx] = cachedDatabase.getOrElse {
+    private var cachedDatabase = Option.empty[Configured[SemanticdbIndex]]
+    private def computeAndCacheDatabase(): Option[SemanticdbIndex] = {
+      val result: Configured[SemanticdbIndex] = cachedDatabase.getOrElse {
         (resolveClasspath |@| resolvedSourceroot).andThen {
           case (classpath, root) =>
             val patched = SemanticdbSbt.patchDatabase(
               Database.load(classpath, Sourcepath(root)),
               root)
-            val db = SemanticCtxImpl(patched, Sourcepath(root), classpath)
+            val db =
+              EagerInMemorySemanticdbIndex(patched, Sourcepath(root), classpath)
             if (verbose) {
               common.err.println(
                 s"Loaded database with ${db.documents.length} documents.")
@@ -328,7 +329,7 @@ object CliRunner {
             if (db.documents.nonEmpty) Ok(db)
             else {
               ConfError
-                .msg("Missing SemanticCtx, found no semanticdb files!")
+                .msg("Missing SemanticdbIndex, found no semanticdb files!")
                 .notOk
             }
         }
@@ -338,12 +339,12 @@ object CliRunner {
       }
       Some(MetaconfigPendingUpstream.get_!(result))
     }
-    private def resolveDatabase(kind: RuleKind): Option[SemanticCtx] = {
+    private def resolveDatabase(kind: RuleKind): Option[SemanticdbIndex] = {
       if (kind.isSyntactic) None
       else computeAndCacheDatabase()
     }
-    private val lazySemanticCtx: LazySemanticCtx =
-      new LazySemanticCtx(resolveDatabase, diagnostic)
+    private val lazySemanticdbIndex: LazySemanticdbIndex =
+      new LazySemanticdbIndex(resolveDatabase, diagnostic)
 
     // expands a single file into a list of files.
     def expand(matcher: FilterMatcher)(path: AbsolutePath): Seq[FixFile] = {
@@ -426,10 +427,10 @@ object CliRunner {
     //  - .scalafix.conf in working directory
     //  - ScalafixConfig.default
     val resolvedRuleAndConfig: Configured[(Rule, ScalafixConfig)] = {
-      val decoder = ScalafixReflect.fromLazySemanticCtx(lazySemanticCtx)
+      val decoder = ScalafixReflect.fromLazySemanticdbIndex(lazySemanticdbIndex)
       fixFiles.andThen { inputs =>
         val configured = resolvedConfigInput.andThen(input =>
-          ScalafixConfig.fromInput(input, lazySemanticCtx, rules)(decoder))
+          ScalafixConfig.fromInput(input, lazySemanticdbIndex, rules)(decoder))
         configured.map { configuration =>
           // TODO(olafur) implement withFilter on Configured
           val (finalRule, scalafixConfig) = configuration
@@ -477,7 +478,7 @@ object CliRunner {
     val semanticInputs: Configured[Map[AbsolutePath, Input.VirtualFile]] = {
       (resolvedRule |@| resolvedSourceroot).andThen {
         case (_, root) =>
-          cachedDatabase.getOrElse(Ok(SemanticCtx.empty)).map { database =>
+          cachedDatabase.getOrElse(Ok(SemanticdbIndex.empty)).map { database =>
             def checkExists(path: AbsolutePath): Unit =
               if (!cli.noStrictSemanticdb && !path.isFile) {
                 common.cliArg.error(
@@ -500,12 +501,12 @@ object CliRunner {
       }
     }
 
-    val fixFilesWithSemanticCtx: Configured[Seq[FixFile]] =
+    val fixFilesWithSemanticdbIndex: Configured[Seq[FixFile]] =
       (semanticInputs |@| fixFiles).map {
-        case (fromSemanticCtx, files) =>
+        case (fromSemanticdbIndex, files) =>
           files.map { file =>
-            val labeled = fromSemanticCtx.get(file.original.path)
-            if (!cli.noStrictSemanticdb && fromSemanticCtx.nonEmpty && labeled.isEmpty) {
+            val labeled = fromSemanticdbIndex.get(file.original.path)
+            if (!cli.noStrictSemanticdb && fromSemanticdbIndex.nonEmpty && labeled.isEmpty) {
               common.cliArg.error(
                 s"No semanticdb associated with ${file.original.path}. " +
                   s"Is --sourceroot correct?")

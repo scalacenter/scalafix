@@ -1,9 +1,9 @@
 package scalafix.testkit
 
 import scala.meta._
-import scalafix.SemanticCtx
+import scalafix.SemanticdbIndex
 import scalafix.Rule
-import scalafix.internal.config.LazySemanticCtx
+import scalafix.internal.config.LazySemanticdbIndex
 import scalafix.internal.config.ScalafixConfig
 import scalafix.reflect.ScalafixReflect
 import org.scalatest.exceptions.TestFailedException
@@ -24,8 +24,8 @@ object DiffTest {
   private val PrefixRegex = "\\s+(ONLY|SKIP)".r
   private def stripPrefix(str: String) = PrefixRegex.replaceFirstIn(str, "")
 
-  def fromSemanticCtx(sctx: SemanticCtx): Seq[DiffTest] =
-    sctx.documents.map { document =>
+  def fromSemanticdbIndex(index: SemanticdbIndex): Seq[DiffTest] =
+    index.documents.map { document =>
       val input @ Input.VirtualFile(label, code) = document.input
       val relpath = RelativePath(label)
       val config: () => (Rule, ScalafixConfig) = { () =>
@@ -33,12 +33,12 @@ object DiffTest {
           .collectFirst {
             case Token.Comment(comment) =>
               val decoder =
-                ScalafixReflect.fromLazySemanticCtx(
-                  LazySemanticCtx(_ => Some(sctx)))
+                ScalafixReflect.fromLazySemanticdbIndex(
+                  LazySemanticdbIndex(_ => Some(index)))
               ScalafixConfig
                 .fromInput(
                   Input.VirtualFile(label, stripPrefix(comment)),
-                  LazySemanticCtx(_ => Some(sctx)))(decoder)
+                  LazySemanticdbIndex(_ => Some(index)))(decoder)
                 .get
           }
           .getOrElse(throw new TestFailedException(

@@ -33,14 +33,14 @@ import metaconfig.Configured
   *     }
   *   }
   *   // example semantic linter
-  *   case class NeverInferProduct(sctx: SemanticCtx)
-  *       extends SemanticRule(sctx, "NeverInferProduct")
+  *   case class NeverInferProduct(index: SemanticdbIndex)
+  *       extends SemanticRule(index, "NeverInferProduct")
   *       with Product {
   *     val product = SymbolMatcher.exact(Symbol("_root_.scala.Product#"))
   *     val inferredProduct: LintCategory =
   *       LintCategory.error("inferredProduct", "Don't infer Product!")
   *     override def check(ctx: RuleCtx) =
-  *       ctx.sctx.synthetics.flatMap {
+  *       ctx.index.synthetics.flatMap {
   *         case Synthetic(pos, text, names) =>
   *           names.collect {
   *             case ResolvedName(_, product(_), _) =>
@@ -121,14 +121,20 @@ abstract class Rule(ruleName: RuleName) { self =>
   // NOTE. This is kind of hacky and hopefully we can find a better workaround.
   // The challenge is the following:
   // - a.andThen(b) needs to work for mixing semantic + syntactic rules.
-  // - applied/appliedDiff should work without passing in SemanticCtx explicitly
-  protected[scalafix] def semanticOption: Option[SemanticCtx] = None
+  // - applied/appliedDiff should work without passing in SemanticdbIndex explicitly
+  protected[scalafix] def semanticOption: Option[SemanticdbIndex] = None
 }
 
-abstract class SemanticRule(sctx: SemanticCtx, name: RuleName)
+abstract class SemanticRule(index: SemanticdbIndex, name: RuleName)
     extends Rule(name) {
-  implicit val ImplicitSemanticCtx: SemanticCtx = sctx
-  override def semanticOption: Option[SemanticCtx] = Some(sctx)
+  implicit val ImplicitSemanticdbIndex: SemanticdbIndex = index
+  @deprecated("Renamed to index.", "0.5.0")
+  protected def mirror: SemanticdbIndex = index
+  @deprecated("Renamed to index.", "0.5.0")
+  protected def sctx: SemanticdbIndex = index
+  @deprecated("Renamed to index.", "0.5.0")
+  protected def semanticCtx: SemanticdbIndex = index
+  override def semanticOption: Option[SemanticdbIndex] = Some(index)
 }
 
 object Rule {
@@ -141,7 +147,7 @@ object Rule {
     }
     override def fix(ctx: RuleCtx): Patch =
       Patch.empty ++ rules.map(_.fix(ctx))
-    override def semanticOption: Option[SemanticCtx] =
+    override def semanticOption: Option[SemanticdbIndex] =
       rules
         .collectFirst {
           case r if r.semanticOption.isDefined => r.semanticOption
@@ -153,12 +159,12 @@ object Rule {
       ScalafixMetaconfigReaders.baseSyntacticRuleDecoder)
   lazy val empty: Rule = new Rule(RuleName.empty) {}
   def emptyConfigured: Configured[Rule] = Configured.Ok(empty)
-  def emptyFromSemanticCtxOpt(sctx: Option[SemanticCtx]): Rule =
-    sctx.fold(empty)(emptySemantic)
+  def emptyFromSemanticdbIndexOpt(index: Option[SemanticdbIndex]): Rule =
+    index.fold(empty)(emptySemantic)
   def combine(rules: Seq[Rule]): Rule =
     rules.foldLeft(empty)(_ merge _)
-  private[scalafix] def emptySemantic(sctx: SemanticCtx): Rule =
-    semantic(RuleName.empty.value)(_ => _ => Patch.empty)(sctx)
+  private[scalafix] def emptySemantic(index: SemanticdbIndex): Rule =
+    semantic(RuleName.empty.value)(_ => _ => Patch.empty)(index)
 
   /** Creates a linter. */
   def linter(ruleName: String)(f: RuleCtx => List[LintMessage]): Rule =
@@ -174,15 +180,16 @@ object Rule {
 
   /** Creates a semantic rule. */
   def semantic(ruleName: String)(
-      f: SemanticCtx => RuleCtx => Patch): SemanticCtx => Rule = { sctx =>
-    new SemanticRule(sctx, ruleName) {
-      override def fix(ctx: RuleCtx): Patch = f(sctx)(ctx)
-    }
+      f: SemanticdbIndex => RuleCtx => Patch): SemanticdbIndex => Rule = {
+    index =>
+      new SemanticRule(index, ruleName) {
+        override def fix(ctx: RuleCtx): Patch = f(index)(ctx)
+      }
   }
 
   /** Creates a rule that always returns the same patch. */
-  def constant(ruleName: String, patch: Patch, sctx: SemanticCtx): Rule =
-    new SemanticRule(sctx, ruleName) {
+  def constant(ruleName: String, patch: Patch, index: SemanticdbIndex): Rule =
+    new SemanticRule(index, ruleName) {
       override def fix(ctx: RuleCtx): Patch = patch
     }
 

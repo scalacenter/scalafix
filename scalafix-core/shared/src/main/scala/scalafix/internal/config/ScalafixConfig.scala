@@ -71,10 +71,10 @@ object ScalafixConfig {
 
   def fromInput(
       input: Input,
-      sctx: LazySemanticCtx,
+      index: LazySemanticdbIndex,
       extraRules: List[String] = Nil)(
       implicit decoder: ConfDecoder[Rule]
   ): Configured[(Rule, ScalafixConfig)] =
-    configFromInput(input, sctx, extraRules)
+    configFromInput(input, index, extraRules)
 
 }

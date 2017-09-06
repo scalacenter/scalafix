@@ -16,7 +16,7 @@ case object MyRule extends Rule {
   }
 }
 
-case class MyRule2(sctx: SemanticCtx) extends SemanticRule(sctx) {
+case class MyRule2(index: SemanticdbIndex) extends SemanticRule(index) {
   def rule(ctx: RuleCtx): Patch =
     ctx.addGlobalImport(importer"scala.collection.immutable.Seq")
 }

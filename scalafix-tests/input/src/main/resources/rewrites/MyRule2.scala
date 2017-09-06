@@ -8,7 +8,7 @@ object Rules {
     }.asPatch
   }
 
-  val myRule2 = Rule.semantic { implicit sctx => ctx =>
+  val myRule2 = Rule.semantic { implicit index => ctx =>
     ctx.addGlobalImport(importer"scala.collection.immutable.Seq")
   }
 }

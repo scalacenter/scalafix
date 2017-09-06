@@ -9,7 +9,7 @@ import SemanticTests._
 
 class SemanticTests
     extends SemanticRuleSuite(
-      sctx,
+      index,
       Seq(
         AbsolutePath(BuildInfo.outputSourceroot),
         AbsolutePath(BuildInfo.outputSbtSourceroot),
@@ -20,7 +20,7 @@ class SemanticTests
 }
 
 object SemanticTests {
-  def sctx: SemanticCtx = SemanticCtx.load(
+  def index: SemanticdbIndex = SemanticdbIndex.load(
     SemanticdbSbt.patchDatabase(
       Database.load(
         classpath,
