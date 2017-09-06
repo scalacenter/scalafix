@@ -1,6 +1,6 @@
 package scalafix
 
-package object rewrite {
+package object rule {
   type Rewrite = Rule
   val Rewrite = Rule
 }

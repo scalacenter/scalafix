@@ -1,5 +1,5 @@
 /*
-rewrites = ExplicitResultTypes
+rules = ExplicitResultTypes
 explicitReturnTypes.unsafeShortenNames = true
  */
 package test.explicitReturnTypes

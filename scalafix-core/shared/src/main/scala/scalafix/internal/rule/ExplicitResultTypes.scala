@@ -1,4 +1,4 @@
-package scalafix.internal.rewrite
+package scalafix.internal.rule
 
 import scala.collection.immutable.Seq
 import scala.meta._
@@ -10,10 +10,10 @@ import scalafix.internal.config.ExplicitResultTypesConfig
 import scalafix.internal.config.MemberKind
 import scalafix.internal.config.MemberVisibility
 import scalafix.internal.util.TypeSyntax
-import scalafix.rewrite.Rule
-import scalafix.rewrite.RewriteCtx
-import scalafix.rewrite.RewriteName
-import scalafix.rewrite.SemanticRule
+import scalafix.rule.Rule
+import scalafix.rule.RewriteCtx
+import scalafix.rule.RewriteName
+import scalafix.rule.SemanticRule
 import scalafix.syntax._
 import scalafix.util.TokenOps
 import metaconfig.Conf

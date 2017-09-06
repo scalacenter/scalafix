@@ -15,9 +15,9 @@ object ScalafixPlugin extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
   override def requires: Plugins = JvmPlugin
   object autoImport {
-    val scalafix: InputKey[Unit] = inputKey[Unit]("Run scalafix rewrite.")
+    val scalafix: InputKey[Unit] = inputKey[Unit]("Run scalafix rule.")
     val sbtfix: InputKey[Unit] = inputKey[Unit](
-      "Run scalafix rewrite on build sources. " +
+      "Run scalafix rule on build sources. " +
         "Requires the semanticdb-sbt plugin to be enabled globally.")
     val scalafixConfig: SettingKey[Option[File]] =
       settingKey[Option[File]](
@@ -25,7 +25,7 @@ object ScalafixPlugin extends AutoPlugin {
     val scalafixEnabled: SettingKey[Boolean] =
       settingKey[Boolean](
         "If false, scalafix will not enable the semanticdb-scalac " +
-          "compiler plugin, which is necessary for semantic rewrites.")
+          "compiler plugin, which is necessary for semantic rules.")
     def scalafixScalacOptions: Def.Initialize[Seq[String]] =
       ScalafixPlugin.scalafixScalacOptions
     def sbtfixSettings: Seq[Def.Setting[_]] =
@@ -214,12 +214,12 @@ object ScalafixPlugin extends AutoPlugin {
           "--non-interactive"
         )
         val args: Seq[String] = {
-          // run scalafix rewrites
+          // run scalafix rules
           val config =
             scalafixConfig.value
               .map(x => "--config" :: x.getAbsolutePath :: Nil)
               .getOrElse(Nil)
-          val rewriteArgs =
+          val ruleArgs =
             if (inputArgs.nonEmpty)
               inputArgs.flatMap("-r" :: _ :: Nil)
             else Nil
@@ -227,7 +227,7 @@ object ScalafixPlugin extends AutoPlugin {
           // only fix unmanaged sources, skip code generated files.
           verbose ++
             config ++
-            rewriteArgs ++
+            ruleArgs ++
             baseArgs ++
             options ++
             List(

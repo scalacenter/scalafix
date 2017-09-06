@@ -7,7 +7,7 @@ import scala.meta.Input
 case class FixFile(
     // The file on the local filesystem where the fix should written to.
     original: Input.File,
-    // For semantic rewrites on fat semanticdb, the input in scalafix.SemanticCtx
+    // For semantic rules on fat semanticdb, the input in scalafix.SemanticCtx
     // is labeled strings instead of Input.File. The labeled string must be used
     // in the RewriteCtx in order to position lookups in SemanticCtx.names/symbols
     // to match, since scala.meta.Position.input must match.

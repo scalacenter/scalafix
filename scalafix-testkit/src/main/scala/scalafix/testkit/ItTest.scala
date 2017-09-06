@@ -11,7 +11,7 @@ case class ItTest(
     hash: String,
     config: String = "",
     commands: Seq[Command] = Command.default,
-    rewrites: Seq[String] = Nil,
+    rules: Seq[String] = Nil,
     addCoursier: Boolean = true
 ) {
   def repoName: String = repo match {

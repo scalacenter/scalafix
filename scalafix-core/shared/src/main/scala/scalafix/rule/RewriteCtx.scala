@@ -1,10 +1,10 @@
 package scalafix
-package rewrite
+package rule
 import scala.meta._
 import scala.meta.contrib.AssociatedComments
 import scala.meta.tokens.Tokens
 import scalafix.internal.config.ScalafixConfig
-import scalafix.internal.rewrite.RewriteCtxImpl
+import scalafix.internal.rule.RewriteCtxImpl
 import scalafix.patch.PatchOps
 import scalafix.util.MatchingParens
 import scalafix.util.SemanticCtx
@@ -21,8 +21,8 @@ trait RewriteCtx extends PatchOps {
 
   /** The input where the tree was parsed from.
     *
-    * This is typically either Input.VirtualFile for semantic rewrites
-    * and Input.File for syntactic rewrites. For Input.VirtualFile, it is
+    * This is typically either Input.VirtualFile for semantic rules
+    * and Input.File for syntactic rules. For Input.VirtualFile, it is
     * possible to trace back to the original file path via SemanticCtx.sourcepath.
     */
   def input: Input

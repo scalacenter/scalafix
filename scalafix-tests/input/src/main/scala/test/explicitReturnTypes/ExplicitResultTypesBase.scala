@@ -1,5 +1,5 @@
 /*
-rewrites = ExplicitResultTypes
+rules = ExplicitResultTypes
 explicitReturnTypes.memberKind = [Val, Def, Var]
 explicitReturnTypes.memberVisibility = [Public, Protected]
  */

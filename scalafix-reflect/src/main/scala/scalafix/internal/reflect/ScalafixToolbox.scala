@@ -14,22 +14,22 @@ import scala.{meta => m}
 import scalafix.internal.config.LazySemanticCtx
 import scalafix.internal.config.classloadRewrite
 import scalafix.internal.util.ClassloadRewrite
-import scalafix.rewrite.Rule
+import scalafix.rule.Rule
 import metaconfig.ConfError
 import metaconfig.Configured
 
 object ScalafixToolbox extends ScalafixToolbox
 class ScalafixToolbox {
-  private val rewriteCache =
+  private val ruleCache =
     new java.util.concurrent.ConcurrentHashMap[Input, Configured[Rule]]()
   private val compiler = new Compiler()
 
   def getRewrite(code: Input, sctx: LazySemanticCtx): Configured[Rule] =
-    rewriteCache.getOrDefault(code, {
+    ruleCache.getOrDefault(code, {
       val uncached = getRewriteUncached(code, sctx)
       uncached match {
         case toCache @ Configured.Ok(_) =>
-          rewriteCache.put(code, toCache)
+          ruleCache.put(code, toCache)
         case _ =>
       }
       uncached
@@ -43,9 +43,9 @@ class ScalafixToolbox {
       ).andThen {
         case (classloader, names) =>
           names.foldLeft(Configured.ok(Rule.empty)) {
-            case (rewrite, fqn) =>
+            case (rule, fqn) =>
               val args = classloadRewrite(sctx)
-              rewrite
+              rule
                 .product(ClassloadRewrite(fqn, args, classloader))
                 .map { case (a, b) => a.merge(b) }
           }

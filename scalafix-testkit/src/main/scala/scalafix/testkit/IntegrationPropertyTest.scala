@@ -56,7 +56,7 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
     }
     write.over(
       t.workingPath / ".scalafix.conf",
-      s"""rewrites = [${t.rewrites.mkString(", ")}]
+      s"""rules = [${t.rules.mkString(", ")}]
          |fatalWarnings = true
          |${t.config}
          |""".stripMargin

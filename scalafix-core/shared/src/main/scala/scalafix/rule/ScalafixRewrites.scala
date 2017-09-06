@@ -1,7 +1,7 @@
 package scalafix
-package rewrite
+package rule
 
-import scalafix.internal.rewrite._
+import scalafix.internal.rule._
 
 object ScalafixRewrites {
   val syntax: List[Rule] = List(
@@ -21,12 +21,12 @@ object ScalafixRewrites {
   )
   def all(sctx: SemanticCtx): List[Rule] =
     syntax ++ semantic(sctx)
-  def name2rewrite(sctx: SemanticCtx): Map[String, Rule] =
+  def name2rule(sctx: SemanticCtx): Map[String, Rule] =
     all(sctx).flatMap(x => x.allNames.map(_ -> x)).toMap
-  lazy val syntaxName2rewrite: Map[String, Rule] =
+  lazy val syntaxName2rule: Map[String, Rule] =
     syntax.flatMap(x => x.allNames.map(_ -> x)).toMap
-  lazy val syntacticNames: List[String] = syntaxName2rewrite.keys.toList
+  lazy val syntacticNames: List[String] = syntaxName2rule.keys.toList
   lazy val semanticNames: List[String] =
     semantic(SemanticCtx.empty).flatMap(_.allNames)
-  def allNames: List[String] = syntaxName2rewrite.keys.toList ++ semanticNames
+  def allNames: List[String] = syntaxName2rule.keys.toList ++ semanticNames
 }

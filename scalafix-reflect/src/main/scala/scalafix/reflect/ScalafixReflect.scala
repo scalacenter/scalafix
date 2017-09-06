@@ -14,7 +14,7 @@ object ScalafixReflect {
     fromLazySemanticCtx(LazySemanticCtx(_ => Some(sctx)))
 
   def fromLazySemanticCtx(sctx: LazySemanticCtx): ConfDecoder[Rule] =
-    rewriteConfDecoder(
+    ruleConfDecoder(
       MetaconfigPendingUpstream.orElse(
         ScalafixCompilerDecoder.baseCompilerDecoder(sctx),
         baseRewriteDecoders(sctx)

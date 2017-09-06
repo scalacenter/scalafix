@@ -1,11 +1,11 @@
-package scalafix.internal.rewrite
+package scalafix.internal.rule
 
 import scala.meta._
 import scala.meta.tokens.Token.LeftParen
 import scala.meta.tokens.Token.RightParen
 import scalafix._
-import scalafix.rewrite.RewriteCtx
-import scalafix.rewrite.SemanticRule
+import scalafix.rule.RewriteCtx
+import scalafix.rule.SemanticRule
 
 case class Sbt1(sctx: SemanticCtx) extends SemanticRule(sctx) {
   def name = "Sbt1"
@@ -65,7 +65,7 @@ case class Sbt1(sctx: SemanticCtx) extends SemanticRule(sctx) {
         (singleNames ++ scopedNames).nonEmpty
       }
 
-      def rewriteDslOperator(
+      def ruleDslOperator(
           lhs: Term,
           opToken: Token,
           rhs: Term): List[Patch] = {
@@ -80,7 +80,7 @@ case class Sbt1(sctx: SemanticCtx) extends SemanticRule(sctx) {
 
         val removeOperator = ctx.removeToken(opToken)
         val addNewOperator = ctx.addLeft(opToken, newOperator)
-        val rewriteRhs = {
+        val ruleRhs = {
           val requiresEvaluated = existKeys(lhs, SbtTypes.inputKey)
           val newSelector =
             if (requiresEvaluated) SbtSelectors.evaluated
@@ -88,7 +88,7 @@ case class Sbt1(sctx: SemanticCtx) extends SemanticRule(sctx) {
           ctx.addRight(rhs.tokens.last, newSelector)
         }
 
-        (removeOperator :: addNewOperator :: wrapExpression) ++ Seq(rewriteRhs)
+        (removeOperator :: addNewOperator :: wrapExpression) ++ Seq(ruleRhs)
       }
     }
 
@@ -110,11 +110,11 @@ case class Sbt1(sctx: SemanticCtx) extends SemanticRule(sctx) {
     ctx.tree
       .collect {
         case `<<=`(lhs: Term, opToken: Token, rhs: Term) =>
-          `<<=`.rewriteDslOperator(lhs, opToken, rhs)
+          `<<=`.ruleDslOperator(lhs, opToken, rhs)
         case `<+=`(lhs: Term, opToken: Token, rhs: Term) =>
-          `<+=`.rewriteDslOperator(lhs, opToken, rhs)
+          `<+=`.ruleDslOperator(lhs, opToken, rhs)
         case `<++=`(lhs: Term, opToken: Token, rhs: Term) =>
-          `<++=`.rewriteDslOperator(lhs, opToken, rhs)
+          `<++=`.ruleDslOperator(lhs, opToken, rhs)
       }
       .flatten
       .asPatch

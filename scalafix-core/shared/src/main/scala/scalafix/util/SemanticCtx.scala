@@ -3,7 +3,7 @@ package scalafix.util
 import scala.meta._
 import scalafix.internal.util.SemanticCtxImpl
 
-/** Context for semantic rewrites, encapsulates a compilation context.
+/** Context for semantic rules, encapsulates a compilation context.
   *
   * A SemanticCtx is a thin wrapper around [[scala.meta.Database]] with
   * additional in-memory indices for fast Position => Symbol and

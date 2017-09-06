@@ -1,10 +1,10 @@
-package scalafix.internal.rewrite
+package scalafix.internal.rule
 
 import scala.meta._
 import scalafix.Patch
-import scalafix.rewrite.Rule
-import scalafix.rewrite.RewriteCtx
-import scalafix.rewrite.RewriteName
+import scalafix.rule.Rule
+import scalafix.rule.RewriteCtx
+import scalafix.rule.RewriteName
 
 case object DottyVolatileLazyVal extends Rule {
   override def name: RewriteName =

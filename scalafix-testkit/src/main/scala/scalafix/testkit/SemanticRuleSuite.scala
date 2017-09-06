@@ -60,7 +60,7 @@ abstract class SemanticRuleSuite(
     }
 
   private def assertLintMessagesAreReported(
-      rewrite: Rewrite,
+      rule: Rewrite,
       ctx: RewriteCtx,
       lints: List[LintMessage],
       tokens: Tokens): Unit = {
@@ -69,7 +69,7 @@ abstract class SemanticRuleSuite(
       val matchingMessage = lintMessages.find { m =>
         // NOTE(olafur) I have no idea why -1 is necessary.
         m.position.startLine == (position.startLine - 1) &&
-        m.category.key(rewrite.name) == key
+        m.category.key(rule.name) == key
       }
       matchingMessage match {
         case Some(x) =>
@@ -88,8 +88,8 @@ abstract class SemanticRuleSuite(
       case _ =>
     }
     if (lintMessages.nonEmpty) {
-      lintMessages.foreach(x => ctx.printLintMessage(x, rewrite.name))
-      val key = lintMessages.head.category.key(rewrite.name)
+      lintMessages.foreach(x => ctx.printLintMessage(x, rule.name))
+      val key = lintMessages.head.category.key(rule.name)
       val explanation =
         s"""|To fix this problem, suffix the culprit lines with
             |   // scalafix: $key
@@ -102,16 +102,16 @@ abstract class SemanticRuleSuite(
 
   def runOn(diffTest: DiffTest): Unit = {
     test(diffTest.name) {
-      val (rewrite, config) = diffTest.config.apply()
+      val (rule, config) = diffTest.config.apply()
       val ctx = RewriteCtx(
         config.dialect(diffTest.original).parse[Source].get,
         config.copy(dialect = diffTest.document.dialect)
       )
-      val patch = rewrite.fix(ctx)
-      val obtainedWithComment = Patch.apply(patch, ctx, rewrite.semanticOption)
+      val patch = rule.fix(ctx)
+      val obtainedWithComment = Patch.apply(patch, ctx, rule.semanticOption)
       val tokens = obtainedWithComment.tokenize.get
       assertLintMessagesAreReported(
-        rewrite,
+        rule,
         ctx,
         Patch.lintMessages(patch, ctx),
         tokens)

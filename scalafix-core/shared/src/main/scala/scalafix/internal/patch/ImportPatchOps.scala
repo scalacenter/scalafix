@@ -9,7 +9,7 @@ import scalafix.patch.Patch
 import scalafix.patch.TokenPatch
 import scalafix.patch.TreePatch
 import scalafix.patch.TreePatch.ImportPatch
-import scalafix.rewrite.RewriteCtx
+import scalafix.rule.RewriteCtx
 import scalafix.syntax._
 import scalafix.util.Newline
 import scala.meta._

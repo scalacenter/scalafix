@@ -5,7 +5,7 @@ import scalafix.SemanticCtx
 import scala.reflect.ClassTag
 import scala.util.Success
 import scala.util.Try
-import scalafix.rewrite.Rule
+import scalafix.rule.Rule
 import metaconfig.ConfError
 import metaconfig.Configured
 
@@ -35,16 +35,16 @@ class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
       constructor.newInstance()
     }
     field.setAccessible(true)
-    val rewrite = field.get(obj)
-    if (t.isInstance(rewrite)) rewrite.asInstanceOf[T]
+    val rule = field.get(obj)
+    if (t.isInstance(rule)) rule.asInstanceOf[T]
     else
       args match {
         case (sctx: SemanticCtx) :: Nil
-            if functionClasstag.isInstance(rewrite) =>
-          rewrite.asInstanceOf[Function[SemanticCtx, T]].apply(sctx)
+            if functionClasstag.isInstance(rule) =>
+          rule.asInstanceOf[Function[SemanticCtx, T]].apply(sctx)
         case _ =>
           throw new IllegalArgumentException(
-            s"Unable to load rewrite from field $fieldName on object $obj with arguments $args")
+            s"Unable to load rule from field $fieldName on object $obj with arguments $args")
       }
   }
 
@@ -110,7 +110,7 @@ class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
     else {
       util.Failure(
         new IllegalArgumentException(
-          s"""Unable to load rewrite $fqcn with args $args. Tried the following:
+          s"""Unable to load rule $fqcn with args $args. Tried the following:
              |${failures.map(pretty).mkString("\n")}""".stripMargin))
     }
   }

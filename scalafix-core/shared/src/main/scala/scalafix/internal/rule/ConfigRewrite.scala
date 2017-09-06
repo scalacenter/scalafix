@@ -1,8 +1,8 @@
-package scalafix.internal.rewrite
+package scalafix.internal.rule
 
 import scalafix._
 import scalafix.internal.config._
-import scalafix.rewrite.Rule
+import scalafix.rule.Rule
 import metaconfig.ConfError
 import metaconfig.Configured
 
@@ -19,12 +19,12 @@ object ConfigRewrite {
             .msg(".scalafix.conf patches require the Semantic API.")
             .notOk
         case Some(sctx) =>
-          val rewrite = Rule.constant(
+          val rule = Rule.constant(
             ".scalafix.conf",
             configurationPatches.asPatch,
             sctx
           )
-          Configured.Ok(Some(rewrite))
+          Configured.Ok(Some(rule))
       }
     }
   }

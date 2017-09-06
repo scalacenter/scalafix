@@ -8,7 +8,7 @@ import scalafix.cli.CliCommand.PrintAndExit
 import scalafix.cli.CliCommand.RunScalafix
 import scalafix.internal.cli.CommonOptions
 import scalafix.internal.cli.ScalafixOptions
-import scalafix.rewrite.ScalafixRewrites
+import scalafix.rule.ScalafixRewrites
 import scala.meta.io.AbsolutePath
 import caseapp.Name
 import caseapp.core.Arg
@@ -23,28 +23,28 @@ object Cli {
   private val withHelp: Messages[WithHelp[ScalafixOptions]] =
     OptionsMessages.copy(optionsDesc = "[options] [<file>...]").withHelp
   val helpMessage: String = withHelp.helpMessage +
-    s"""|Available rewrites: ${ScalafixRewrites.allNames.mkString(", ")}
+    s"""|Available rules: ${ScalafixRewrites.allNames.mkString(", ")}
         |
         |NOTE. The command line tool is mostly intended to be invoked programmatically
         |from build-tool integrations such as sbt-scalafix. The necessary fixture to run
-        |semantic rewrites is tricky to setup manually.
+        |semantic rules is tricky to setup manually.
         |
         |Scalafix chooses which files to fix according to the following rules:
-        |- scalafix <directory> <rewrite> finds *.scala files in <directory>
-        |- when <rewrite> is semantic
+        |- scalafix <directory> <rule> finds *.scala files in <directory>
+        |- when <rule> is semantic
         |  - if --classpath and --sourceroot are provided, then those are used to find .semanticdb files
         |  - otherwise, Scalafix will automatically look for META-INF/semanticdb directories from the
         |    current working directory.
         |
         |Examples (semantic):
-        |  $$ scalafix # automatically finds .semanticdb files and runs rewrite configured in .scalafix.conf.
+        |  $$ scalafix # automatically finds .semanticdb files and runs rule configured in .scalafix.conf.
         |  $$ scalafix <directory> # same as above except only run on files in <directory>
-        |  $$ scalafix --rewrites RemoveUnusedImports # same as above but run RemoveUnusedImports.
+        |  $$ scalafix --rules RemoveUnusedImports # same as above but run RemoveUnusedImports.
         |  $$ scalafix --classpath <foo.jar:target/classes> # explicitly pass classpath, --sourceroot is cwd.
         |  $$ scalafix --classpath <foo.jar:target/classes> --sourceroot <directory>
         |  $$ cat .scalafix.conf
-        |  rewrites = [ProcedureSyntax]
-        |  $$ scalafix Code.scala # Same as --rewrites ProcedureSyntax
+        |  rules = [ProcedureSyntax]
+        |  $$ scalafix Code.scala # Same as --rules ProcedureSyntax
         |
         |Exit status codes:
         | ${ExitStatus.all.mkString("\n ")}
@@ -60,7 +60,7 @@ object Cli {
       // for more details on how to use _arguments in zsh.
       import caseapp.core.NameOps
       val (repeat, assign, message, action) = arg.name match {
-        case "rewrites" => ("*", "=", ":rewrite", ":_rewrite_names")
+        case "rules" => ("*", "=", ":rule", ":_rule_names")
         case _ => ("", "", "", "")
       }
       val description = arg.helpMessage
@@ -104,12 +104,12 @@ _scalafix()
     COMPREPLY=()
     cur="$${COMP_WORDS[COMP_CWORD]}"
     prev="$${COMP_WORDS[COMP_CWORD-1]}"
-    rewrites="${ScalafixRewrites.allNames.mkString(" ")}"
+    rules="${ScalafixRewrites.allNames.mkString(" ")}"
     opts="$bashArgs"
 
     case "$${prev}" in
-      --rewrites|-r )
-        COMPREPLY=(   $$(compgen -W "$${rewrites}" -- $${cur}) )
+      --rules|-r )
+        COMPREPLY=(   $$(compgen -W "$${rules}" -- $${cur}) )
         return 0
         ;;
     esac
@@ -126,7 +126,7 @@ complete -F _scalafix scalafix
 typeset -A opt_args
 local context state line
 
-_rewrite_names () {
+_rule_names () {
    compadd $zshNames
 }
 

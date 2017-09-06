@@ -1,9 +1,9 @@
 /*
-rewrites = [
-  "scala:banana.rewrite.FqnRule"
-  "scala:banana.rewrite.FqnRule2"
-  "scala:banana.rewrite.LambdaRewrites.syntax"
-  "scala:banana.rewrite.LambdaRewrites.semantic"
+rules = [
+  "scala:banana.rule.FqnRule"
+  "scala:banana.rule.FqnRule2"
+  "scala:banana.rule.LambdaRewrites.syntax"
+  "scala:banana.rule.LambdaRewrites.semantic"
 ]
  */
 package test

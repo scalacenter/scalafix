@@ -24,26 +24,26 @@ class GitHubUrlRuleSuite extends FunSuite {
 
   check(
     "github:someorg/somerepo/1.2.3",
-    "https://raw.githubusercontent.com/someorg/somerepo/master/scalafix/rewrites/" +
+    "https://raw.githubusercontent.com/someorg/somerepo/master/scalafix/rules/" +
       "src/main/scala/fix/Somerepo_1_2_3.scala"
   )
   check(
     "github:someorg/somerepo/1.2.3?sha=master~1",
-    "https://raw.githubusercontent.com/someorg/somerepo/master~1/scalafix/rewrites/" +
+    "https://raw.githubusercontent.com/someorg/somerepo/master~1/scalafix/rules/" +
       "src/main/scala/fix/Somerepo_1_2_3.scala"
   )
   check(
     "github:someorg/some-repo/1.2.3",
-    "https://raw.githubusercontent.com/someorg/some-repo/master/scalafix/rewrites/" +
+    "https://raw.githubusercontent.com/someorg/some-repo/master/scalafix/rules/" +
       "src/main/scala/fix/Somerepo_1_2_3.scala"
   )
   check(
     "github:someorg/42some-repo/1.2.3",
-    "https://raw.githubusercontent.com/someorg/42some-repo/master/scalafix/rewrites/" +
+    "https://raw.githubusercontent.com/someorg/42some-repo/master/scalafix/rules/" +
       // NOTE: identifiers can't start with numbers like 42. However,
       // giter8 doesn't support adding a prefix in case the first character
       // is a number: http://www.foundweekends.org/giter8/Combined+Pages.html#Formatting+template+fields
-      // The rewrite inside the file can still be renamed to _42SomeRepo
+      // The rule inside the file can still be renamed to _42SomeRepo
       // without problem.
       "src/main/scala/fix/42somerepo_1_2_3.scala"
   )

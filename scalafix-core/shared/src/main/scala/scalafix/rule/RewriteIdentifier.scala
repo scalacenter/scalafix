@@ -1,4 +1,4 @@
-package scalafix.rewrite
+package scalafix.rule
 
 import scalafix.util.Deprecated
 

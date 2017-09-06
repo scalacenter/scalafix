@@ -1,6 +1,6 @@
 package scalafix.lint
 
-import scalafix.rewrite.RewriteName
+import scalafix.rule.RewriteName
 import scala.meta.inputs.Position
 
 /** A unique identifier for one kind of a linter message.

@@ -1,5 +1,5 @@
 /*
-rewrites = ExplicitResultTypes
+rules = ExplicitResultTypes
  */
 package test.explicitReturnTypes
 

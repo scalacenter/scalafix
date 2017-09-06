@@ -1,10 +1,10 @@
-package scalafix.internal.rewrite
+package scalafix.internal.rule
 
 import scala.meta._
 import scala.meta.tokens.Token
 import scalafix.Patch
-import scalafix.rewrite.Rule
-import scalafix.rewrite.RewriteCtx
+import scalafix.rule.Rule
+import scalafix.rule.RewriteCtx
 
 case object DottyVarArgPattern extends Rule {
   def name = "DottyVarArgPattern"

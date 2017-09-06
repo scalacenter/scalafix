@@ -1,10 +1,10 @@
-package scalafix.internal.rewrite
+package scalafix.internal.rule
 
 import scala.meta._
 import scalafix.Patch
 import scalafix.SemanticCtx
-import scalafix.rewrite.RewriteCtx
-import scalafix.rewrite.SemanticRule
+import scalafix.rule.RewriteCtx
+import scalafix.rule.SemanticRule
 
 case class NoAutoTupling(sctx: SemanticCtx) extends SemanticRule(sctx) {
 

@@ -1,5 +1,5 @@
 /*
-rewrites = ProcedureSyntax
+rules = ProcedureSyntax
  */
 package test
 

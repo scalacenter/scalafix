@@ -14,7 +14,7 @@ import scalafix.tests.BuildInfo
 import scala.meta.AbsolutePath
 import ammonite.ops
 import scala.meta.io.RelativePath
-import scalafix.internal.rewrite.RemoveUnusedImports
+import scalafix.internal.rule.RemoveUnusedImports
 import scalafix.testkit.SemanticRuleSuite
 import scala.meta.internal.io.FileIO
 import org.scalatest.FunSuite

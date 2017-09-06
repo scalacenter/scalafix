@@ -52,7 +52,7 @@ trait PatchOps {
   /** Add the string toAdd to the first token of tree. Does not remove tokens. */
   def addLeft(tree: Tree, toAdd: String): Patch
 
-  // Semantic patches below, available to rewrites that "extends SemanticRewrite"
+  // Semantic patches below, available to rules that "extends SemanticRewrite"
 
   /** Report a linter message.
     *

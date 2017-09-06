@@ -1,12 +1,12 @@
-package scalafix.internal.rewrite
+package scalafix.internal.rule
 
 import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.tokens.Token.LeftBrace
 import scala.meta.tokens.Token.RightParen
 import scalafix.Patch
-import scalafix.rewrite.Rule
-import scalafix.rewrite.RewriteCtx
+import scalafix.rule.Rule
+import scalafix.rule.RewriteCtx
 
 case object ProcedureSyntax extends Rule {
   def name = "ProcedureSyntax"

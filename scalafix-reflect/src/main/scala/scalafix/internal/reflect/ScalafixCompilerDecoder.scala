@@ -7,7 +7,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import scala.meta.Input
-import scalafix.rewrite.Rule
+import scalafix.rule.Rule
 import scalafix.internal.config.LazySemanticCtx
 import scalafix.internal.config.ScalafixMetaconfigReaders.UriRewrite
 import scalafix.internal.util.FileOps
@@ -21,8 +21,8 @@ import metaconfig.Configured.Ok
 object ScalafixCompilerDecoder {
   def baseCompilerDecoder(sctx: LazySemanticCtx): ConfDecoder[Rule] =
     ConfDecoder.instance[Rule] {
-      case FromSourceRewrite(rewrite) =>
-        rewrite match {
+      case FromSourceRewrite(rule) =>
+        rule match {
           case Ok(code) => ScalafixToolbox.getRewrite(code, sctx)
           case err @ NotOk(_) => err
         }
@@ -63,7 +63,7 @@ object ScalafixCompilerDecoder {
         sha: String): URL = {
       val fileName = s"${CamelCase(repo)}_${SnakeCase(version)}.scala"
       new URL(
-        s"https://raw.githubusercontent.com/$org/$repo/$sha/scalafix/rewrites/src/main/scala/fix/$fileName")
+        s"https://raw.githubusercontent.com/$org/$repo/$sha/scalafix/rules/src/main/scala/fix/$fileName")
     }
 
     def unapply(arg: Conf.Str): Option[Configured[URL]] = arg.value match {

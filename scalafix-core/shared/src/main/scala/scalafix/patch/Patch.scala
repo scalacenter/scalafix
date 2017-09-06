@@ -27,7 +27,7 @@ import org.scalameta.logger
   *
   * Patches are split into low-level token patches and high-level tree patches.
   * A token patch works on scala.meta.Token and provides surgical precision over
-  * how details like formatting are managed by the rewrite.
+  * how details like formatting are managed by the rule.
   *
   * NOTE: Patch current only works for a single file, but it may be possible
   * to add support in the future for combining patches for different files
@@ -100,7 +100,7 @@ object Patch {
   def fromIterable(seq: Iterable[Patch]): Patch =
     seq.foldLeft(empty)(_ + _)
 
-  /** A patch that does no diff/rewrite */
+  /** A patch that does no diff/rule */
   val empty: Patch = EmptyPatch
 
   private def merge(a: TokenPatch, b: TokenPatch): TokenPatch = (a, b) match {

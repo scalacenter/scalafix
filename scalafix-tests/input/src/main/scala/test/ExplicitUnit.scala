@@ -1,5 +1,5 @@
 /*
-rewrites = ExplicitUnit
+rules = ExplicitUnit
  */
 package test
 

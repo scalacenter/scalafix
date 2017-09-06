@@ -1,5 +1,5 @@
 /*
-rewrites = DottyVolatileLazyVal
+rules = DottyVolatileLazyVal
  */
 package test
 

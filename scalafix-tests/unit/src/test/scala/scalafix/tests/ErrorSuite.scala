@@ -7,7 +7,7 @@ import scalafix.testkit.SyntacticRuleSuite
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
-import scalafix.internal.rewrite.ProcedureSyntax
+import scalafix.internal.rule.ProcedureSyntax
 
 class ErrorSuite extends SyntacticRuleSuite(ProcedureSyntax) {
   test("on parse error") {

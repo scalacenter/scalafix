@@ -3,7 +3,7 @@ package fix
 import scala.meta.Name
 import scalafix.Patch
 import scalafix.Rule
-import scalafix.rewrite.RewriteCtx
+import scalafix.rule.RewriteCtx
 
 object MyRewrite {
   // Syntactic

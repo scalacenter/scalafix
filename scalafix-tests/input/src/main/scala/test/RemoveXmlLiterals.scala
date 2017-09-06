@@ -1,5 +1,5 @@
 /*
-rewrites = RemoveXmlLiterals
+rules = RemoveXmlLiterals
  */
 package test
 

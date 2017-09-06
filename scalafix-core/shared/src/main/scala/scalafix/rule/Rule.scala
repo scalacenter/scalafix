@@ -1,5 +1,5 @@
 package scalafix
-package rewrite
+package rule
 
 import scala.collection.immutable.Seq
 import scala.meta._
@@ -17,7 +17,7 @@ abstract class Rule { self =>
   /** Name of this rule.
     *
     * By convention, this name should be PascalCase matching the class name
-    * of the rewrite.
+    * of the rule.
     *
     * Example good name: NoVars, ExplicitUnit.
     * Example bad name: no-vars, noVars, FixVars.
@@ -30,20 +30,20 @@ abstract class Rule { self =>
   /** Returns a patch to fix violations of this rule. */
   def fix(ctx: RewriteCtx): Patch = Patch.empty
 
-  /** Initialize rewrite.
+  /** Initialize rule.
     *
-    * This method is called once by scalafix before rewrite is called.
+    * This method is called once by scalafix before rule is called.
     * Use this method to either read custom configuration or to build
     * expensive indices.
     *
     * @param config The .scalafix.conf configuration.
-    * @return the initialized rewrite or an error. If no initialization is needed,
+    * @return the initialized rule or an error. If no initialization is needed,
     *         return Configured.Ok(this).
     */
   def init(config: Conf): Configured[Rule] =
     Configured.Ok(this)
 
-  /** Combine this rewrite with another rewrite. */
+  /** Combine this rule with another rule. */
   final def merge(other: Rule): Rule = Rule.merge(this, other)
   @deprecated("Renamed to merge.", "0.5.0")
   final def andThen(other: Rule): Rule = merge(other)
@@ -62,7 +62,7 @@ abstract class Rule { self =>
     val result = Patch(patch, ctx, semanticOption)
     Patch.lintMessages(patch, ctx).foreach { msg =>
       // Set the lint message owner. This allows us to distinguish
-      // LintCategory with the same id from different rewrites.
+      // LintCategory with the same id from different rules.
       ctx.printLintMessage(msg, name)
     }
     result
@@ -84,7 +84,7 @@ abstract class Rule { self =>
 
   // NOTE. This is kind of hacky and hopefully we can find a better workaround.
   // The challenge is the following:
-  // - a.andThen(b) needs to work for mixing semantic + syntactic rewrites.
+  // - a.andThen(b) needs to work for mixing semantic + syntactic rules.
   // - applied/appliedDiff should work without passing in SemanticCtx explicitly
   protected[scalafix] def semanticOption: Option[SemanticCtx] = None
 }
@@ -114,14 +114,14 @@ object Rule {
         .getOrElse(None)
   }
   val syntaxRewriteConfDecoder: ConfDecoder[Rule] =
-    ScalafixMetaconfigReaders.rewriteConfDecoderSyntactic(
+    ScalafixMetaconfigReaders.ruleConfDecoderSyntactic(
       ScalafixMetaconfigReaders.baseSyntacticRewriteDecoder)
   lazy val empty: Rule = new Rule { def name: RewriteName = RewriteName.empty }
   def emptyConfigured: Configured[Rule] = Configured.Ok(empty)
   def emptyFromSemanticCtxOpt(sctx: Option[SemanticCtx]): Rule =
     sctx.fold(empty)(emptySemantic)
-  def combine(rewrites: Seq[Rule]): Rule =
-    rewrites.foldLeft(empty)(_ merge _)
+  def combine(rules: Seq[Rule]): Rule =
+    rules.foldLeft(empty)(_ merge _)
   private[scalafix] def emptySemantic(sctx: SemanticCtx): Rule =
     semantic(RewriteName.empty.value)(_ => _ => Patch.empty)(sctx)
 
@@ -132,14 +132,14 @@ object Rule {
       override def check(ctx: RewriteCtx): List[LintMessage] = f(ctx)
     }
 
-  /** Creates a syntactic rewrite. */
+  /** Creates a syntactic rule. */
   def syntactic(ruleName: String)(f: RewriteCtx => Patch): Rule =
     new Rule {
       override def name: RewriteName = ruleName
       override def fix(ctx: RewriteCtx): Patch = f(ctx)
     }
 
-  /** Creates a semantic rewrite. */
+  /** Creates a semantic rule. */
   def semantic(ruleName: String)(
       f: SemanticCtx => RewriteCtx => Patch): SemanticCtx => Rule = { sctx =>
     new SemanticRule(sctx) {
@@ -148,14 +148,14 @@ object Rule {
     }
   }
 
-  /** Creates a rewrite that always returns the same patch. */
+  /** Creates a rule that always returns the same patch. */
   def constant(ruleName: String, patch: Patch, sctx: SemanticCtx): Rule =
     new SemanticRule(sctx) {
       override def name: RewriteName = ruleName
       override def fix(ctx: RewriteCtx): Patch = patch
     }
 
-  /** Combine two rewrites into a single rewrite */
+  /** Combine two rules into a single rule */
   def merge(a: Rule, b: Rule): Rule =
     new CompositeRule(a :: b :: Nil)
 }

@@ -1,7 +1,7 @@
 package scalafix.lint
 
 import scala.meta.Position
-import scalafix.rewrite.RewriteName
+import scalafix.rule.RewriteName
 
 /** An observation of a LintCategory at a particular position
   *

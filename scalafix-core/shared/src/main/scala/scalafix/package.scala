@@ -4,7 +4,7 @@ package object scalafix {
   val SemanticCtx = scalafix.util.SemanticCtx
 
   // These are remnants from scala.meta.SemanticCtx which got removed in 2.0.0-M2.
-  // and kept here for compatibility with existing rewrites.
+  // and kept here for compatibility with existing rules.
   @deprecated("Renamed to SemanticCtx", "0.5.0")
   type Mirror = scalafix.util.SemanticCtx
   @deprecated("Renamed to SemanticCtx", "0.5.0")
@@ -19,19 +19,19 @@ package object scalafix {
     "0.5.0")
   val ScalafixConfig = internal.config.ScalafixConfig
 
-  type RewriteCtx = rewrite.RewriteCtx
-  val RewriteCtx = rewrite.RewriteCtx
+  type RewriteCtx = rule.RewriteCtx
+  val RewriteCtx = rule.RewriteCtx
 
-//  type RuleCtx = rewrite.RuleCtx
-//  val RuleCtx = rewrite.RuleCtx
+//  type RuleCtx = rule.RuleCtx
+//  val RuleCtx = rule.RuleCtx
 
-  type SemanticRewrite = rewrite.SemanticRule
-  type Rewrite = rewrite.Rule
-  val Rewrite = rewrite.Rule
+  type SemanticRewrite = rule.SemanticRule
+  type Rewrite = rule.Rule
+  val Rewrite = rule.Rule
 
-  type SemanticRule = rewrite.SemanticRule
-  type Rule = rewrite.Rule
-  val Rule = rewrite.Rule
+  type SemanticRule = rule.SemanticRule
+  type Rule = rule.Rule
+  val Rule = rule.Rule
 
   type Patch = patch.Patch
   val Patch = patch.Patch

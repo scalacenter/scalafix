@@ -1,10 +1,10 @@
-package scalafix.internal.rewrite
+package scalafix.internal.rule
 
 import scalafix._
 import scala.meta._
 import scalafix.Patch
-import scalafix.rewrite.Rule
-import scalafix.rewrite.RewriteCtx
+import scalafix.rule.Rule
+import scalafix.rule.RewriteCtx
 
 /* Rewrite Xml literals to Xml interpolators.
  *
@@ -17,9 +17,9 @@ import scalafix.rewrite.RewriteCtx
  *   xml"<div>${ "Hello" }</div>"
  * }}}
  *
- * This only rewrites xml literals in expression position:
+ * This only rules xml literals in expression position:
  * Xml patterns will not be supported by the xml interpolator,
- * until we know how to rewrite `case <a>{ns @ _*}</a>`.
+ * until we know how to rule `case <a>{ns @ _*}</a>`.
  */
 case object RemoveXmlLiterals extends Rule {
   def name = "RemoveXmlLiterals"

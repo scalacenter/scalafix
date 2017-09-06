@@ -1,9 +1,9 @@
-package scalafix.internal.rewrite
+package scalafix.internal.rule
 
 import scala.meta._
 import scalafix.Patch
-import scalafix.rewrite.Rule
-import scalafix.rewrite.RewriteCtx
+import scalafix.rule.Rule
+import scalafix.rule.RewriteCtx
 import scalafix.syntax._
 
 case object DottyKeywords extends Rule {

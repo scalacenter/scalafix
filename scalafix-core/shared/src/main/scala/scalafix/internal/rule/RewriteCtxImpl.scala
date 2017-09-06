@@ -1,4 +1,4 @@
-package scalafix.internal.rewrite
+package scalafix.internal.rule
 
 import scala.meta._
 import scala.meta.contrib.AssociatedComments
@@ -14,8 +14,8 @@ import scalafix.patch.TokenPatch.Add
 import scalafix.patch.TreePatch
 import scalafix.patch.TreePatch.AddGlobalImport
 import scalafix.patch.TreePatch.RemoveGlobalImport
-import scalafix.rewrite.RewriteCtx
-import scalafix.rewrite.RewriteName
+import scalafix.rule.RewriteCtx
+import scalafix.rule.RewriteName
 import scalafix.syntax._
 import scalafix.util.MatchingParens
 import scalafix.util.SemanticCtx

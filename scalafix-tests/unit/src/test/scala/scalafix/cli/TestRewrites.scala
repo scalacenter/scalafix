@@ -1,7 +1,7 @@
 package scalafix.cli
 
 import scalafix.lint.LintCategory
-import scalafix.rewrite.Rule
+import scalafix.rule.Rule
 
 object TestRewrites {
   val LintError: Rule = Rule.syntactic("LintError") { ctx =>
