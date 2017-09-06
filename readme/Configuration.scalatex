@@ -1,72 +1,71 @@
 @import Main._
 @import scalafix.Readme._
+@import scalafix.rule.ScalafixRules
 @sect{Configuration}
   @p
     Scalafix reads configuration from a file using
     @lnk("HOCON", "https://github.com/typesafehub/config")
     syntax.
-    I recommend you put a file @code{.scalafix.conf} into the root directory of
-    your project.
-
-  @sect{rewrites}
-    The "rewrites" section has been renamed to "@sect.ref{rules}".
+    The convention is to keep a file @code{.scalafix.conf} into the root
+    directory of your project.
+    Configuration is not needed or is optional for most rules, so
+    you may not need to create a .scalafix.conf.
 
   @sect{rules}
-    You can either run a pre-made that comes with scalafix or a custom rule
+    You can either run a default rule that comes with Scalafix or a custom rule
     that you write yourself.
 
-    @sect{Pre-made rules}
-      Available rules are listed in @sect.ref{Rules}.
+    @sect{Default rules}
+      The following rules come built into Scalafix.
+      @hl.scala
+        rules = [
+          @(ScalafixRules.allNames.mkString("\n          "))
+        ]
+
+    @sect{class:}
+      If a scalafix rule is already on the classpath, you can classload it
+      with the @code{scala:} protocol.
+      @config
+        rule = "class:scalafix.internal.rule.ProcedureSyntax"
+
+    @sect{file:}
+      If a rule is written in a single file on local disk, you can load it
+      with the @code{file:} protocol.
+      @config
+        rule = "file:readme/MyRule.scala" // from local file
+
+    @sect{http:}
+      If a rule is written in a single source file on the internet,
+      you can load it with the @code{https:} or @code{http:} protocol
+      @config
+        rule = "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/f5fe47495c9b6e3ce0960b766ffa75be6d6768b2/DummyRule.scala"
+
+    @sect{github:}
+      If a rule is written in a single file and you use GitHub,
+      you can use the @code{github:} protocol for sharing your rule
+
+      @hl.scala
+        rule = "github:typelevel/cats/v1.0.0"
+        // expands into @githubSyntax("typelevel/cats/v1.0.0").get
+
+    @sect{replace:}
+
+      @experimental
+
+      To replace usage of one class/object/trait/def with another.
+      Note, does not move definitions like "Move" does in an IDE. This
+      only moves use-sites.
 
       @config
-        rules = [ProcedureSyntax] # No rules are run if empty.
+        rule = "replace:com.company.App/io.company.App"
+        // From sbt shell: > scalafix replace:from/to
 
-    @sect{Custom rules}
-      Scalafix supports loading rules from a few different
-      URI protocols.
+      To rename a method
 
-      @sect{scala:}
-        If a rules is on the classpath, you can classload it with the
-        @code{scala:} protocol.
-        @config
-          rule = "scala:scalafix.internal.rule.ProcedureSyntax"
+      @config
+        rule = "replace:com.company.App.start/init"
 
-      @sect{github:}
-        If a rule is written in a single file and you want a short syntax,
-        you can use the @code{github:} protocol for sharing your rule
 
-        @hl.scala
-          rule = "github:typelevel/cats/v1.0.0"
-          // expands into @githubSyntax("typelevel/cats/v1.0.0").get
-
-      @sect{replace:}
-
-        @experimental
-
-        To replace usage of one class/object/trait/def with another.
-        Note, does not move definitions like "Move" does in an IDE. This
-        only moves use-sites.
-
-        @config
-          rule = "replace:com.company.App/io.company.App"
-          // From sbt shell: > scalafix replace:from/to
-
-        To rename a method
-
-        @config
-          rule = "replace:com.company.App.start/init"
-
-      @sect{file:}
-        If a rules is written in a single file on disk, you can load it
-        with the @code{file:} protocol.
-        @config
-          rule = "file:readme/MyRule.scala" // from local file
-
-      @sect{http:}
-        If a rule is written in a single source file on the internet,
-        you can load it with the @code{https:} or @code{http:} protocol
-        @config
-          rule = "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/f5fe47495c9b6e3ce0960b766ffa75be6d6768b2/DummyRule.scala"
 
   @sect{lint}
     Override the default severity level of a @sect.ref{LintMessage} with @code{lint}

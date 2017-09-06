@@ -5,11 +5,32 @@
   @gitter
 
 @p
-  Scalafix is a Scala code rewriting tool and library.
-  This effort follows the Scala Center Advisory Board proposal:
-  @lnk("Clarification of Scala to Dotty migration path", "http://scala-lang.org/blog/2016/05/30/scala-center-advisory-board.html#the-first-meeting").
-  The goal of the project is to help automate migration between different
-  Scala compiler and library versions.
+  Scalafix is a rewrite and linting tool for Scala.
+  Key features of Scalafix include
+  @ul
+    @li
+      @b{Fidelity}: Scalafix supports formatting-aware rewriting
+      of Scala code. Every detail in the source file is represented
+      with rich data structures and full position information, down to
+      individual space characters.
+    @li
+      @b{Extensible}: Implement your own custom Scalafix rules.
+      Jumpstart with our @sect.ref{scalacenter/scalafix.g8} template,
+      which sets up a minimal sbt project with testing scaffolding.
+    @li
+      @b{Accessible}: Scalafix enables novices to implement advanced rules
+      without learning compiler internals.
+    @li
+      @b{Portable}: Scalafix works with a wide range of Scala dialects (sbt,
+      Scala 2.x, Dotty) and runs on JVM, Node.js and in the browser.
+
+  Scalafix is developed at the
+  @lnk("Scala Center", "https://scala.epfl.ch/")
+  with the goal to help automate migration between different Scala compiler and
+  library versions.
+  The project follows the Advisory Board proposal:
+  @lnk("Clarification of Scala to Dotty migration path",
+       "http://scala-lang.org/blog/2016/05/30/scala-center-advisory-board.html#the-first-meeting").
 
 @sect{Links}
 

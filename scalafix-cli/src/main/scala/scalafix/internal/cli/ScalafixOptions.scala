@@ -68,7 +68,7 @@ case class ScalafixOptions(
     @HelpMessage("Disable validation when loading semanticdb files.")
     noStrictSemanticdb: Boolean = false,
     @HelpMessage(
-      s"""Rule rules to run.""".stripMargin
+      s"""Scalafix rules to run.""".stripMargin
     )
     @ValueDescription(
       s"$ProcedureSyntax OR " +

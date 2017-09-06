@@ -20,6 +20,9 @@
       @sect.ref{Sbt1} rule to migrate usage of deprecated sbt 0.13 APIs,
       by @user{jvican}.
     @li
+      @sect.ref{ExplicitResultTypes} experimental @code{unsafeShortenNames}
+      option to insert imports instead of fully qualified names.
+    @li
       Scala.js support for @sect.ref{scalafix-core}, by @user{gabro}.
     @li
       Configurable @sect.ref{ExplicitReturnTypes}, by @user{taisuke}.
@@ -30,10 +33,6 @@
     @li
       @sect.ref{scalafix-cli} @code{--zsh} and @code{--bash} to generate tab
       completion scripts for zsh and bash.
-    @li
-      @sect.ref{scalafix-cli} automatically inferences semantic/syntactic rules.
-      This means it's possible to run custom syntactic rules from scalafix-cli
-      without passing in @code{--classpath}.
     @li
       @sect.ref{replace:} to run quick one-off refactorings.
 
@@ -48,38 +47,53 @@
       Rules can now emit lint messages with @code{ctx.lint}, see
       @sect.ref{LintMessage}.
     @li
-      Rules can have multiple names with optional deprecation warnings.
-    @li
       Thanks to upstream improvements in the
       @lnk("Scalameta v2.0 Semantic API", "http://scalameta.org/tutorial/#SemanticAPI"),
-      it is now possible to query symbols of inferred
+      it is now possible to
       @ul
         @li
-          implicit arguments
+          query symbols of implicit arguments, implicit conversions,
+          type parameters, @code{.apply}/@code{.unapply} and symbol signatures.
+          This represents significant portion of the work for Scalafix v0.5 and is
+          a major milestone for the Scalameta semantic API.
         @li
-          implicit conversions (including extension methods)
-        @li
-          type parameters
-        @li
-          @code{.apply}/@code{.unapply}
+          parse symbols signatures as @code{scala.meta.Type}, including the new
+          @code{Type.Method} which is the "type of methods" and cannot be written
+          in source.
+    @li
+      @code{Rule.init(config): Configured[Rule]} allows rules to load the user
+      configuration during rule construction. Before, rules had to parse the
+      configuration while fixing each individual file.
     @li
       @code{PatchOps.replaceSymbol/replaceTree}, see @sect.ref{Patch}.
+    @li
+      PatchOps now has docstrings!
+    @li
+      Rules can have multiple names with optional deprecation warnings.
 
   @h4{Bug fixes / Improvements}
 
   @ul
     @li
+      ExplicitResultTypes produces valid type signatures in a lot more cases
+      than before. Note that it still has some known bugs, see @issue(324).
+    @li
       More robust classloading to invoke scalafix in @sect.ref{sbt-scalafix}.
       Previously, sbt-scalafix used synthetic projects which cause problem
       in some multi-module builds. Now, sbt-scalafix uses Coursier instead.
     @li
-      Improved dynamic compilation of @sect.ref{Custom rules} while running
+      Improved dynamic compilation of custom rules while running
       from multi-module sbt builds.
     @li
       Extension methods now resolve to the correct symbol. For example,
       @code{head} in @code{Array[Int].head} previously resolved to
       @code{Predef.intArrayOps} and now it resolves to
       @code{IndexedSeqOptimized.head}.
+    @li
+      @sect.ref{scalafix-cli} automatically infers whether passed --rewrites
+      are semantic or syntactic.
+      This means it's possible to run custom syntactic rules from scalafix-cli
+      without passing in @code{--classpath}.
 
   @h4{Breaking changes}
   @p
@@ -90,7 +104,19 @@
 
   @ul
     @li
-      @code{scala.meta.Mirror} is now @code{scalafix.SemanticCtx}.
+      @code{scalafix.Rewrite/SemanticRewrite} is now deprecated and @code{Mirror}
+      is now @code{SemanticdbIndex}.
+      @hl.scala
+        // before
+        case class MyRewrite(mirror: Mirror) extends SemanticRewrite(mirror) {
+          def rewrite(ctx: RewriteCtx): Patch
+        }
+        // before
+        case class MyRule(index: SemanticdbIndex) extends SemanticRule(index) {
+          def fix(ctx: RewriteCtx): Patch
+        }
+    @li
+      @code{scalafix.testkit.SemanticRewriteSuite} is now now @code{SemanticRuleSuite}.
     @li
       @code{scalafix.config} has been moved to @code{scalafix.internal.config}.
       Configuration case classes break binary compatility with every new field.
@@ -102,7 +128,7 @@
       @code{scalafix.`package`} and @code{scalafix.syntax} has been removed.
     @li
       upgraded to Scalameta 2.0, which has several breaking changes
-      in the Tree api.
+      in the Tree api, see @lnk{https://github.com/scalameta/scalameta/blob/15a0187501dc8e5a6fe06d0e002ce1d3340968dc/changelog/2.0.0.md}.
     @li
       The @code{VolatileLazyVal} rule is now named @sect.ref{DottyVolatileLazyVal}.
 

@@ -174,11 +174,17 @@
       rules in theory can work with any Scala compiler, including @dotty and
       IntelliJ Scala Plugin.
 
-    @sect{Semanticdb}
-      Semanticdb is a compiler plugin for Scala 2.x in the @sect.ref{Scalameta} project
-      that collects information to build a @sect.ref{SemanticCtx}.
-      For more information about Scalahost, see
-      the @lnk("Scalameta documentation", "http://scalameta.org/tutorial/#Scalahost").
+    @sect{SemanticDB}
+      SemanticDB is a language agnostic schema for semantic information such
+      as resolved names, symbols signatures, reported compiler messages
+      and more. See the
+      @lnk("Scalameta documentation", "http://scalameta.org/tutorial/#SemanticDB").
+
+    @sect{semanticdb-scalac}
+      semanticdb-scalac is a compiler plugin for Scala 2.x in the @sect.ref{Scalameta} project
+      that collects information to build a @sect.ref{SemanticDB}.
+      For more information about semanticdb-scalac, see
+      the @lnk("Scalameta documentation", "http://scalameta.org/tutorial/#semanticdb-scalac").
 
     @sect{Token}
       A token is for example an identifier @code{println}, a delimiter @code{[} @code{)},
@@ -225,8 +231,9 @@
     @sect{Rule}
       A scalafix "Rule" can report lint messages and provide auto-fix patches
       to violations of some kind of rule/coding style/convention/breaking change.
+      The default scalafix rules are listed in @sect.ref{Rules}.
 
-    @sect{Rewrite}
+    @sect{Rewrites}
       "Rewrite" is the old name for @sect.ref{Rule}
 
   @sect{Sharing your rule}

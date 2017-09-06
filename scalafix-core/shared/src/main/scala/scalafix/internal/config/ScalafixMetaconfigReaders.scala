@@ -39,20 +39,13 @@ trait ScalafixMetaconfigReaders {
     ReaderUtil.oneOf[Dialect](Scala211, Sbt0137, Dotty, Paradise211)
   }
 
-  object FromClassloadRule {
-    def unapply(arg: Conf.Str): Option[String] = arg match {
-      case UriRule("scala", uri) =>
-        Option(uri.getSchemeSpecificPart)
-      case _ => None
-    }
-  }
-
   object UriRuleString {
     def unapply(arg: Conf.Str): Option[(String, String)] =
       UriRule.unapply(arg).map {
         case (a, b) => a -> b.getSchemeSpecificPart
       }
   }
+
   object UriRule {
     def unapply(arg: Conf.Str): Option[(String, URI)] =
       for {
@@ -138,7 +131,7 @@ trait ScalafixMetaconfigReaders {
 
   def classloadRuleDecoder(index: LazySemanticdbIndex): ConfDecoder[Rule] =
     ConfDecoder.instance[Rule] {
-      case UriRuleString("scala", fqn) =>
+      case UriRuleString("scala" | "class", fqn) =>
         ClassloadRule(fqn, classloadRule(index))
       case UriRuleString("replace", replace @ SlashSeparated(from, to)) =>
         requireSemanticSemanticdbIndex(index, replace) { m =>

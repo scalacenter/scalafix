@@ -48,7 +48,6 @@
       It is possible to load custom rules from source with
       @code{rules = ["file:MyRule.scala"]} or urls
       @code{rules = ["https://gist./../.Rule.scala"]}.
-      See @sect.ref{Custom rules} for more info.
     @li
       @code{imports.groups = []} can now be empty, thank you @user{mlangc}
       for contributing this fix!
@@ -139,7 +138,7 @@
     @li
       New SBT plugin: @code{sbt-scalafix}. See @sect.ref{sbt-scalafix}.
     @li
-      Two rule rules:
+      Two new rules:
       @sect.ref{ProcedureSyntax}
       and
       @sect.ref{DottyVolatileLazyVal}.
