@@ -96,10 +96,10 @@ trait ScalafixMetaconfigReaders {
       case conf @ Conf.Str(value) if !value.contains(":") =>
         val isSyntactic = ScalafixRules.syntacticNames.contains(value)
         val kind = RuleKind(syntactic = isSyntactic)
-        val sctx = getSemanticdbIndex(kind)
+        val index = getSemanticdbIndex(kind)
         val names: Map[String, Rule] =
           ScalafixRules.syntaxName2rule ++
-            sctx.fold(Map.empty[String, Rule])(ScalafixRules.name2rule)
+            index.fold(Map.empty[String, Rule])(ScalafixRules.name2rule)
         val result = ReaderUtil.fromMap(names).read(conf)
         result match {
           case Ok(rule) =>
@@ -112,20 +112,20 @@ trait ScalafixMetaconfigReaders {
 
   private lazy val semanticRuleClass = classOf[SemanticRule]
 
-  def classloadRule(sctx: LazySemanticdbIndex): Class[_] => Seq[SemanticdbIndex] = {
+  def classloadRule(index: LazySemanticdbIndex): Class[_] => Seq[SemanticdbIndex] = {
     cls =>
       val kind =
         if (semanticRuleClass.isAssignableFrom(cls)) RuleKind.Semantic
         else RuleKind.Syntactic
-      sctx(kind).toList
+      index(kind).toList
   }
 
   private lazy val SlashSeparated = "([^/]+)/(.*)".r
 
   private def requireSemanticSemanticdbIndex[T](
-      sctx: LazySemanticdbIndex,
+      index: LazySemanticdbIndex,
       what: String)(f: SemanticdbIndex => Configured[T]): Configured[T] = {
-    sctx(RuleKind.Semantic).fold(
+    index(RuleKind.Semantic).fold(
       Configured.error(s"$what requires the semantic API."): Configured[T])(f)
   }
 
@@ -135,12 +135,12 @@ trait ScalafixMetaconfigReaders {
     symbolGlobalReader.read(Conf.Str(from)) |@|
       symbolGlobalReader.read(Conf.Str(to))
 
-  def classloadRuleDecoder(sctx: LazySemanticdbIndex): ConfDecoder[Rule] =
+  def classloadRuleDecoder(index: LazySemanticdbIndex): ConfDecoder[Rule] =
     ConfDecoder.instance[Rule] {
       case UriRuleString("scala", fqn) =>
-        ClassloadRule(fqn, classloadRule(sctx))
+        ClassloadRule(fqn, classloadRule(index))
       case UriRuleString("replace", replace @ SlashSeparated(from, to)) =>
-        requireSemanticSemanticdbIndex(sctx, replace) { m =>
+        requireSemanticSemanticdbIndex(index, replace) { m =>
           parseReplaceSymbol(from, to)
             .map(TreePatch.ReplaceSymbol.tupled)
             .map(p => Rule.constant(replace, p, m))
@@ -149,15 +149,15 @@ trait ScalafixMetaconfigReaders {
 
   def baseSyntacticRuleDecoder: ConfDecoder[Rule] =
     baseRuleDecoders(LazySemanticdbIndex.empty)
-  def baseRuleDecoders(sctx: LazySemanticdbIndex): ConfDecoder[Rule] = {
+  def baseRuleDecoders(index: LazySemanticdbIndex): ConfDecoder[Rule] = {
     MetaconfigPendingUpstream.orElse(
-      defaultRuleDecoder(sctx),
-      classloadRuleDecoder(sctx)
+      defaultRuleDecoder(index),
+      classloadRuleDecoder(index)
     )
   }
   def configFromInput(
       input: Input,
-      sctx: LazySemanticdbIndex,
+      index: LazySemanticdbIndex,
       extraRules: List[String])(
       implicit decoder: ConfDecoder[Rule]
   ): Configured[(Rule, ScalafixConfig)] = {
@@ -170,7 +170,7 @@ trait ScalafixMetaconfigReaders {
         }
         .andThen {
           case (rule, config) =>
-            ConfigRule(config.patches, sctx).map { configRule =>
+            ConfigRule(config.patches, index).map { configRule =>
               configRule.fold(rule -> config)(rule.merge(_) -> config)
             }
         }

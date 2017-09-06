@@ -43,12 +43,10 @@ trait RuleCtx extends PatchOps {
   def comments: AssociatedComments
 
   /** Get SemanticdbIndex for this single tree alone. */
-  def sctx(implicit sctx: SemanticdbIndex): SemanticdbIndex
+  def index(implicit index: SemanticdbIndex): SemanticdbIndex
 
   /** Print out the contents of SemanticdbIndex for this input only. **/
-  def debugSemanticdbIndex()(
-      implicit sctx: SemanticdbIndex,
-      fileLine: FileLine): Unit
+  def debugIndex()(implicit index: SemanticdbIndex, fileLine: FileLine): Unit
 
   // Private scalafix methods, subject for removal without notice.
   private[scalafix] def toks(t: Tree): Tokens

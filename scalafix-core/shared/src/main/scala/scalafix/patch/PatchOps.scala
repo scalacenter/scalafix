@@ -79,7 +79,7 @@ trait PatchOps {
     * only necessary to use this patch once per tree, duplicate symbols are
     * ignored.
     */
-  def removeGlobalImport(symbol: Symbol)(implicit sctx: SemanticdbIndex): Patch
+  def removeGlobalImport(symbol: Symbol)(implicit index: SemanticdbIndex): Patch
 
   /** Add an import on symbol among the global imports.
     *
@@ -87,7 +87,7 @@ trait PatchOps {
     * only necessary to use this patch once per tree, duplicate symbols are
     * ignored.
     */
-  def addGlobalImport(symbol: Symbol)(implicit sctx: SemanticdbIndex): Patch
+  def addGlobalImport(symbol: Symbol)(implicit index: SemanticdbIndex): Patch
 
   /** Replace references/call-sites to fromSymbol with references to toSymbol.
     *
@@ -99,7 +99,7 @@ trait PatchOps {
     * is the same patch as `replace:com.foo/com.bar` from sbt-scalafix.
     */
   def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
-      implicit sctx: SemanticdbIndex): Patch
+      implicit index: SemanticdbIndex): Patch
 
   /**
     * Replace appearances of names that reference fromSymbol with toName.
@@ -108,12 +108,12 @@ trait PatchOps {
     * Use this patch for example to rename a methods on a class.
     */
   def renameSymbol(fromSymbol: Symbol.Global, toName: String)(
-      implicit sctx: SemanticdbIndex): Patch
+      implicit index: SemanticdbIndex): Patch
 
   /** Shorthand for calling replaceSymbol from strings.
     *
     * String values are treated as Symbol.Global.
     */
   def replaceSymbols(toReplace: (String, String)*)(
-      implicit sctx: SemanticdbIndex): Patch
+      implicit index: SemanticdbIndex): Patch
 }

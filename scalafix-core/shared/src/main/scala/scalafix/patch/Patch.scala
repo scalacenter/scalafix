@@ -134,11 +134,11 @@ object Patch {
   private[scalafix] def apply(
       p: Patch,
       ctx: RuleCtx,
-      sctx: Option[SemanticdbIndex]
+      index: Option[SemanticdbIndex]
   ): String = {
     val patches = underlying(p)
     val semanticPatches = patches.collect { case tp: TreePatch => tp }
-    val result = sctx match {
+    val result = index match {
       case Some(x: SemanticdbIndex) =>
         semanticApply(p)(ctx, x)
       case _ =>
@@ -162,7 +162,7 @@ object Patch {
   }
 
   private def semanticApply(
-      patch: Patch)(implicit ctx: RuleCtx, sctx: SemanticdbIndex): String = {
+      patch: Patch)(implicit ctx: RuleCtx, index: SemanticdbIndex): String = {
     val base = underlying(patch)
     val moveSymbol = underlying(
       ReplaceSymbolOps.naiveMoveSymbolPatch(base.collect {

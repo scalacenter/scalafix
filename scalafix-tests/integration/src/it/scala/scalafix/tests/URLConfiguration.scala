@@ -11,10 +11,10 @@ class URLConfiguration extends FunSuite {
     "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/84dc2450844531d3aeb81d4f3e1dc741abf920c3/ExampleRule.scala"
   test("compile from URL works") {
 
-    val sctx = Some(SemanticdbIndex(Nil))
+    val index = Some(SemanticdbIndex(Nil))
     val obtained =
       ScalafixReflect
-        .fromLazySemanticdbIndex(_ => sctx)
+        .fromLazySemanticdbIndex(_ => index)
         .read(Conf.Str(url))
     assert(obtained.get.name.contains("Rule2"))
   }

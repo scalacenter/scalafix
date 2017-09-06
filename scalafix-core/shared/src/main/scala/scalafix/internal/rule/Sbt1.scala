@@ -7,7 +7,7 @@ import scalafix._
 import scalafix.rule.RuleCtx
 import scalafix.rule.SemanticRule
 
-case class Sbt1(sctx: SemanticdbIndex) extends SemanticRule(sctx, "Sbt1") {
+case class Sbt1(index: SemanticdbIndex) extends SemanticRule(index, "Sbt1") {
   override def fix(ctx: RuleCtx): Patch = {
     sealed abstract class SbtOperator {
       val operator: String
@@ -45,7 +45,7 @@ case class Sbt1(sctx: SemanticdbIndex) extends SemanticRule(sctx, "Sbt1") {
       }
 
       private def infoStartsWith(r: Term.Ref, prefix: String): Boolean =
-        sctx.denotation(r).exists(denot => denot.signature.startsWith(prefix))
+        index.denotation(r).exists(denot => denot.signature.startsWith(prefix))
 
       private def existKeys(lhs: Term, typePrefix: String): Boolean = {
         val singleNames = lhs match {

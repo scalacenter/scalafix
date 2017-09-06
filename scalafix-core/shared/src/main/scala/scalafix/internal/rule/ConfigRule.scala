@@ -18,11 +18,11 @@ object ConfigRule {
           ConfError
             .msg(".scalafix.conf patches require the Semantic API.")
             .notOk
-        case Some(sctx) =>
+        case Some(index) =>
           val rule = Rule.constant(
             ".scalafix.conf",
             configurationPatches.asPatch,
-            sctx
+            index
           )
           Configured.Ok(Some(rule))
       }

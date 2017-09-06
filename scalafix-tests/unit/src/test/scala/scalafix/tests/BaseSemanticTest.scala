@@ -11,7 +11,7 @@ abstract class BaseSemanticTest(filename: String)
     with BeforeAndAfterAll {
   private var _db: SemanticdbIndex = _
   private var _doc: Document = _
-  implicit def sctx: SemanticdbIndex = _db
+  implicit def index: SemanticdbIndex = _db
   def docs: Document = _doc
   def source: Source = docs.input.parse[Source].get
 

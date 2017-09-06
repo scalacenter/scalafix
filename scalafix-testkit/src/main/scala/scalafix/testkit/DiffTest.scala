@@ -24,8 +24,8 @@ object DiffTest {
   private val PrefixRegex = "\\s+(ONLY|SKIP)".r
   private def stripPrefix(str: String) = PrefixRegex.replaceFirstIn(str, "")
 
-  def fromSemanticdbIndex(sctx: SemanticdbIndex): Seq[DiffTest] =
-    sctx.documents.map { document =>
+  def fromSemanticdbIndex(index: SemanticdbIndex): Seq[DiffTest] =
+    index.documents.map { document =>
       val input @ Input.VirtualFile(label, code) = document.input
       val relpath = RelativePath(label)
       val config: () => (Rule, ScalafixConfig) = { () =>
@@ -34,11 +34,11 @@ object DiffTest {
             case Token.Comment(comment) =>
               val decoder =
                 ScalafixReflect.fromLazySemanticdbIndex(
-                  LazySemanticdbIndex(_ => Some(sctx)))
+                  LazySemanticdbIndex(_ => Some(index)))
               ScalafixConfig
                 .fromInput(
                   Input.VirtualFile(label, stripPrefix(comment)),
-                  LazySemanticdbIndex(_ => Some(sctx)))(decoder)
+                  LazySemanticdbIndex(_ => Some(index)))(decoder)
                 .get
           }
           .getOrElse(throw new TestFailedException(

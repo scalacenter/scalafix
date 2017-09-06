@@ -9,7 +9,7 @@ case class EagerInMemorySemanticdbIndex(
     classpath: Classpath)
     extends SemanticdbIndex {
   override def toString: String =
-    s"SemanticdbIndex($sourcepath, $classpath, database.size=${database.documents.length})"
+    s"$productPrefix($sourcepath, $classpath, database.size=${database.documents.length})"
   override def hashCode(): Int = database.hashCode()
   private lazy val _denots: Map[Symbol, Denotation] = {
     val builder = Map.newBuilder[Symbol, Denotation]

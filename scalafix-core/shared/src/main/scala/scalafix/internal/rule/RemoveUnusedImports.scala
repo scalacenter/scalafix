@@ -6,9 +6,9 @@ import scalafix.SemanticdbIndex
 import scalafix.rule.RuleCtx
 import scalafix.rule.SemanticRule
 
-case class RemoveUnusedImports(sctx: SemanticdbIndex)
-    extends SemanticRule(sctx, "RemoveUnusedImports") {
-  private val unusedImports = sctx.messages.toIterator.collect {
+case class RemoveUnusedImports(index: SemanticdbIndex)
+    extends SemanticRule(index, "RemoveUnusedImports") {
+  private val unusedImports = index.messages.toIterator.collect {
     case Message(pos, _, "Unused import") =>
       pos
   }.toSet

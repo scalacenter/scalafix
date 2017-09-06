@@ -12,7 +12,7 @@ class SemanticdbIndexTest extends BaseSemanticTest("SemanticdbIndexTest") {
     var hasAssert = false
     source.collect {
       case importee @ Importee.Name(name @ Name("mutable")) =>
-        assert(sctx.symbol(importee) == sctx.symbol(name))
+        assert(index.symbol(importee) == index.symbol(name))
         assert(importee.matches(mutable))
         hasAssert = true
     }
@@ -25,7 +25,7 @@ class SemanticdbIndexTest extends BaseSemanticTest("SemanticdbIndexTest") {
     var hasAssert = false
     source.collect {
       case select @ Type.Select(_, name @ Type.Name("ListBuffer")) =>
-        assert(sctx.symbol(select) == sctx.symbol(name))
+        assert(index.symbol(select) == index.symbol(name))
         assert(select.matches(listBuffer))
         hasAssert = true
     }
@@ -38,7 +38,7 @@ class SemanticdbIndexTest extends BaseSemanticTest("SemanticdbIndexTest") {
     var hasAssert = false
     source.collect {
       case select @ Term.Select(_, name @ Term.Name("ListBuffer")) =>
-        assert(sctx.symbol(select) == sctx.symbol(name))
+        assert(index.symbol(select) == index.symbol(name))
         assert(select.matches(listBuffer))
         hasAssert = true
     }
@@ -52,7 +52,7 @@ class SemanticdbIndexTest extends BaseSemanticTest("SemanticdbIndexTest") {
     var hasAssert = false
     source.collect {
       case importee @ Importee.Rename(name @ Name("Success"), _) =>
-        assert(sctx.symbol(importee) == sctx.symbol(name))
+        assert(index.symbol(importee) == index.symbol(name))
         assert(importee.matches(success))
         hasAssert = true
     }

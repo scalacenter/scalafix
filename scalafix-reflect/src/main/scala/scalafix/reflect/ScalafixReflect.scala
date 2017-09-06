@@ -10,14 +10,14 @@ object ScalafixReflect {
   def syntactic: ConfDecoder[Rule] =
     fromLazySemanticdbIndex(LazySemanticdbIndex.empty)
 
-  def semantic(sctx: SemanticdbIndex): ConfDecoder[Rule] =
-    fromLazySemanticdbIndex(LazySemanticdbIndex(_ => Some(sctx)))
+  def semantic(index: SemanticdbIndex): ConfDecoder[Rule] =
+    fromLazySemanticdbIndex(LazySemanticdbIndex(_ => Some(index)))
 
-  def fromLazySemanticdbIndex(sctx: LazySemanticdbIndex): ConfDecoder[Rule] =
+  def fromLazySemanticdbIndex(index: LazySemanticdbIndex): ConfDecoder[Rule] =
     ruleConfDecoder(
       MetaconfigPendingUpstream.orElse(
-        ScalafixCompilerDecoder.baseCompilerDecoder(sctx),
-        baseRuleDecoders(sctx)
+        ScalafixCompilerDecoder.baseCompilerDecoder(index),
+        baseRuleDecoders(index)
       )
     )
 }

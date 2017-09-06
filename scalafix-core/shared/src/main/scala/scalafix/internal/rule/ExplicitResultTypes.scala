@@ -20,20 +20,20 @@ import metaconfig.Conf
 import metaconfig.Configured
 
 case class ExplicitResultTypes(
-    sctx: SemanticdbIndex,
+    index: SemanticdbIndex,
     config: ExplicitResultTypesConfig = ExplicitResultTypesConfig.default)
     extends SemanticRule(
-      sctx,
+      index,
       RuleName("ExplicitResultTypes")
         .withDeprecatedName(
           "ExplicitReturnTypes",
           "Renamed to ExplicitResultTypes",
           "0.5")) {
-  def this(sctx: SemanticdbIndex) = this(sctx, ExplicitResultTypesConfig.default)
+  def this(index: SemanticdbIndex) = this(index, ExplicitResultTypesConfig.default)
   override def init(config: Conf): Configured[Rule] =
     config
       .getOrElse("explicitReturnTypes")(ExplicitResultTypesConfig.default)
-      .map(c => ExplicitResultTypes(sctx, c))
+      .map(c => ExplicitResultTypes(index, c))
 
   // Don't explicitly annotate vals when the right-hand body is a single call
   // to `implicitly`. Prevents ambiguous implicit. Not annotating in such cases,

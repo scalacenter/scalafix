@@ -310,7 +310,7 @@ object CliRunner {
     }
 
     // We don't know yet if we need to compute the database or not.
-    // If all the rules are syntactic, we never need to compute the sctx.
+    // If all the rules are syntactic, we never need to compute the index.
     // If a single rule is semantic, then we need to compute the database.
     private var cachedDatabase = Option.empty[Configured[SemanticdbIndex]]
     private def computeAndCacheDatabase(): Option[SemanticdbIndex] = {

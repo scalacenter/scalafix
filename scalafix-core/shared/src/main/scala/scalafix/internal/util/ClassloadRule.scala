@@ -39,8 +39,8 @@ class ClassloadRule[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
     if (t.isInstance(rule)) rule.asInstanceOf[T]
     else
       args match {
-        case (sctx: SemanticdbIndex) :: Nil if functionClasstag.isInstance(rule) =>
-          rule.asInstanceOf[Function[SemanticdbIndex, T]].apply(sctx)
+        case (index: SemanticdbIndex) :: Nil if functionClasstag.isInstance(rule) =>
+          rule.asInstanceOf[Function[SemanticdbIndex, T]].apply(index)
         case _ =>
           throw new IllegalArgumentException(
             s"Unable to load rule from field $fieldName on object $obj with arguments $args")

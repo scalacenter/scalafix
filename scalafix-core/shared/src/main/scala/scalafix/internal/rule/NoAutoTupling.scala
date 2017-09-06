@@ -6,15 +6,15 @@ import scalafix.SemanticdbIndex
 import scalafix.rule.RuleCtx
 import scalafix.rule.SemanticRule
 
-case class NoAutoTupling(sctx: SemanticdbIndex)
-    extends SemanticRule(sctx, "NoAutoTupling") {
+case class NoAutoTupling(index: SemanticdbIndex)
+    extends SemanticRule(index, "NoAutoTupling") {
 
   private[this] def addWrappingParens(ctx: RuleCtx, args: Seq[Term]): Patch =
     ctx.addLeft(args.head.tokens.head, "(") +
       ctx.addRight(args.last.tokens.last, ")")
 
   override def fix(ctx: RuleCtx): Patch = {
-    val adaptations = sctx.messages.toIterator.collect {
+    val adaptations = index.messages.toIterator.collect {
       case Message(pos, _, msg)
           if msg.startsWith("Adapting argument list by creating a") =>
         pos

@@ -15,9 +15,9 @@ abstract class Rewrite(implicit rewriteName: RuleName)
 }
 
 @deprecated("Moved to scalafix.rule.SemanticRule", "0.5.0")
-abstract class SemanticRewrite(sctx: SemanticdbIndex)(
+abstract class SemanticRewrite(index: SemanticdbIndex)(
     implicit rewriteName: RuleName)
-    extends SemanticRule(sctx, rewriteName) {
+    extends SemanticRule(index, rewriteName) {
   override def fix(ctx: RuleCtx): Patch = rewrite(ctx)
   def rewrite(ctx: RuleCtx): Patch
 }

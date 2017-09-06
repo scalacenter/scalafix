@@ -29,17 +29,17 @@ object SemanticRuleSuite {
 }
 
 abstract class SemanticRuleSuite(
-    val sctx: SemanticdbIndex,
+    val index: SemanticdbIndex,
     val expectedOutputSourceroot: Seq[AbsolutePath]
 ) extends FunSuite
     with DiffAssertions
     with BeforeAndAfterAll { self =>
   def this(
-      sctx: SemanticdbIndex,
+      index: SemanticdbIndex,
       inputSourceroot: AbsolutePath,
       expectedOutputSourceroot: Seq[AbsolutePath]
   ) = this(
-    sctx,
+    index,
     expectedOutputSourceroot
   )
   def this(
@@ -141,9 +141,9 @@ abstract class SemanticRuleSuite(
     }
   }
 
-  /** Helper method to print out sctx for individual files */
+  /** Helper method to print out index for individual files */
   def debugFile(filename: String): Unit = {
-    sctx.documents.foreach { entry =>
+    index.documents.foreach { entry =>
       if (entry.input.label.contains(filename)) {
         logger.elem(entry)
       }
@@ -160,7 +160,7 @@ abstract class SemanticRuleSuite(
     super.afterAll()
   }
   lazy val testsToRun =
-    DiffTest.testToRun(DiffTest.fromSemanticdbIndex(sctx))
+    DiffTest.testToRun(DiffTest.fromSemanticdbIndex(index))
   def runAllTests(): Unit = {
     testsToRun.foreach(runOn)
   }

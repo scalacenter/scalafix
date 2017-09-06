@@ -37,13 +37,11 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
   lazy val input: Input = tokens.head.input
 
   // Debug utilities
-  def sctx(implicit sctx: SemanticdbIndex): SemanticdbIndex =
-    sctx.withDocuments(sctx.documents.filter(_.input == input))
-  def debugSemanticdbIndex()(
-      implicit sctx: SemanticdbIndex,
-      fileLine: FileLine): Unit = {
-    val db = this.sctx(sctx)
-    debug(sourcecode.Text(db.documents.head, "sctx"))
+  def index(implicit index: SemanticdbIndex): SemanticdbIndex =
+    index.withDocuments(index.documents.filter(_.input == input))
+  def debugIndex()(implicit index: SemanticdbIndex, fileLine: FileLine): Unit = {
+    val db = this.index(index)
+    debug(sourcecode.Text(db.documents.head, "index"))
   }
   def debug(values: sourcecode.Text[Any]*)(implicit fileLine: FileLine): Unit = {
     // alias for org.scalameta.logger.
@@ -91,15 +89,15 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
 
   // Semantic patch ops.
   def removeGlobalImport(symbol: Symbol)(
-      implicit sctx: SemanticdbIndex): Patch =
+      implicit index: SemanticdbIndex): Patch =
     RemoveGlobalImport(symbol)
-  def addGlobalImport(symbol: Symbol)(implicit sctx: SemanticdbIndex): Patch =
+  def addGlobalImport(symbol: Symbol)(implicit index: SemanticdbIndex): Patch =
     TreePatch.AddGlobalSymbol(symbol)
   def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
-      implicit sctx: SemanticdbIndex): Patch =
+      implicit index: SemanticdbIndex): Patch =
     TreePatch.ReplaceSymbol(fromSymbol, toSymbol)
   def replaceSymbols(toReplace: (String, String)*)(
-      implicit sctx: SemanticdbIndex): Patch =
+      implicit index: SemanticdbIndex): Patch =
     toReplace.foldLeft(Patch.empty) {
       case (a, (from, to)) =>
         val (fromSymbol, toSymbol) =
@@ -107,7 +105,7 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
         a + ctx.replaceSymbol(fromSymbol, toSymbol)
     }
   def renameSymbol(fromSymbol: Symbol.Global, toName: String)(
-      implicit sctx: SemanticdbIndex): Patch =
+      implicit index: SemanticdbIndex): Patch =
     TreePatch.ReplaceSymbol(fromSymbol, Root(Signature.Term(toName)))
 
 }

@@ -106,7 +106,7 @@
           def rule[T](ctx: RuleCtx[T]): Seq[Patch]
         }
         // after
-        case class MySemanticRule(sctx: SemanticCtx) extends SemanticRule(sctx) {
+        case class MySemanticRule(index: SemanticdbIndex) extends SemanticRule(index) {
           def rule(ctx: RuleCtx): Patch
         }
     @li
