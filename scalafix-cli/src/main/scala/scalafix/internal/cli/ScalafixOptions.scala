@@ -56,7 +56,7 @@ case class ScalafixOptions(
       "java.io.File.pathSeparator separated list of directories or jars containing " +
         "'.semanticdb' files. The 'semanticdb' files are emitted by the " +
         "semanticdb-scalac compiler plugin and are necessary for semantic rewrites " +
-        "like ExplicitReturnTypes to function."
+        "like ExplicitResultTypes to function."
     )
     @ValueDescription("entry1.jar:entry2.jar:target/scala-2.12/classes")
     classpath: Option[String] = None,

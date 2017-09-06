@@ -6,7 +6,7 @@ import scala.meta.contrib._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
 import scalafix.Patch
 import scalafix.SemanticCtx
-import scalafix.internal.config.ExplicitReturnTypesConfig
+import scalafix.internal.config.ExplicitResultTypesConfig
 import scalafix.internal.config.MemberKind
 import scalafix.internal.config.MemberVisibility
 import scalafix.internal.util.TypeSyntax
@@ -19,11 +19,11 @@ import scalafix.util.TokenOps
 import metaconfig.Conf
 import metaconfig.Configured
 
-case class ExplicitReturnTypes(
+case class ExplicitResultTypes(
     sctx: SemanticCtx,
-    config: ExplicitReturnTypesConfig = ExplicitReturnTypesConfig.default)
+    config: ExplicitResultTypesConfig = ExplicitResultTypesConfig.default)
     extends SemanticRule(sctx) {
-  def this(sctx: SemanticCtx) = this(sctx, ExplicitReturnTypesConfig.default)
+  def this(sctx: SemanticCtx) = this(sctx, ExplicitResultTypesConfig.default)
 
   override def name: RewriteName =
     RewriteName("ExplicitResultTypes")
@@ -34,8 +34,8 @@ case class ExplicitReturnTypes(
 
   override def init(config: Conf): Configured[Rule] =
     config
-      .getOrElse("explicitReturnTypes")(ExplicitReturnTypesConfig.default)
-      .map(c => ExplicitReturnTypes(sctx, c))
+      .getOrElse("explicitReturnTypes")(ExplicitResultTypesConfig.default)
+      .map(c => ExplicitResultTypes(sctx, c))
 
   // Don't explicitly annotate vals when the right-hand body is a single call
   // to `implicitly`. Prevents ambiguous implicit. Not annotating in such cases,

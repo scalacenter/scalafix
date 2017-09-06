@@ -11,7 +11,7 @@ object ScalafixRewriteNames {
     "ExplicitUnit",
     "DottyVarArgPattern",
     "Sbt1",
-    "ExplicitReturnTypes",
+    "ExplicitResultTypes",
     "RemoveUnusedImports",
     "NoAutoTupling"
   )

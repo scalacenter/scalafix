@@ -15,7 +15,7 @@ object ScalafixRewrites {
   )
   def semantic(sctx: SemanticCtx): List[Rule] = List(
     Sbt1(sctx),
-    ExplicitReturnTypes(sctx),
+    ExplicitResultTypes(sctx),
     RemoveUnusedImports(sctx),
     NoAutoTupling(sctx)
   )

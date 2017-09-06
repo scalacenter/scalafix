@@ -2,7 +2,7 @@ package test.explicitReturnTypes
 
 import scala.language.implicitConversions
 
-object ExplicitReturnTypesBase {
+object ExplicitResultTypesBase {
   def none[T]: _root_.scala.Option[T] =  None.asInstanceOf[Option[T]]
   val a: _root_.scala.Int = 1 + 2
   def b(): _root_.java.lang.String = "a" + "b"
@@ -44,7 +44,7 @@ object ExplicitReturnTypesBase {
     object `->` {
       def unapply[S](in: (S, S)): Option[(S, S)] = Some(in)
     }
-    val `→`: _root_.test.explicitReturnTypes.ExplicitReturnTypesBase.unicode.->.type = `->`
+    val `→`: _root_.test.explicitReturnTypes.ExplicitResultTypesBase.unicode.->.type = `->`
   }
 }
 

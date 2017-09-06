@@ -1,5 +1,5 @@
 /*
-rewrites = ExplicitReturnTypes
+rewrites = ExplicitResultTypes
 explicitReturnTypes.memberKind = [Val, Def, Var]
 explicitReturnTypes.memberVisibility = [Public, Protected]
  */
@@ -7,7 +7,7 @@ package test.explicitReturnTypes
 
 import scala.language.implicitConversions
 
-object ExplicitReturnTypesBase {
+object ExplicitResultTypesBase {
   def none[T] =  None.asInstanceOf[Option[T]]
   val a = 1 + 2
   def b() = "a" + "b"

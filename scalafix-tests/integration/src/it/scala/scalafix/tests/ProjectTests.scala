@@ -1,7 +1,7 @@
 package scalafix.tests
 
 import scalafix.SemanticCtx
-import scalafix.internal.rewrite.ExplicitReturnTypes
+import scalafix.internal.rewrite.ExplicitResultTypes
 import scalafix.internal.rewrite.ProcedureSyntax
 import scalafix.internal.rewrite.RemoveUnusedImports
 import scalafix.rewrite.ProcedureSyntax
@@ -15,7 +15,7 @@ class Slick
         repo = "https://github.com/slick/slick.git",
         rewrites = Seq(
           ProcedureSyntax.name,
-          ExplicitReturnTypes(ScalafixRewrites.emptyDatabase).name,
+          ExplicitResultTypes(ScalafixRewrites.emptyDatabase).name,
           RemoveUnusedImports(ScalafixRewrites.emptyDatabase).name
         ),
         hash = "bd3c24be419ff2791c123067668c81e7de858915",

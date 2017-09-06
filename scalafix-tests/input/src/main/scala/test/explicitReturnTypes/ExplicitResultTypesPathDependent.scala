@@ -1,9 +1,9 @@
 /*
-rewrites = ExplicitReturnTypes
+rewrites = ExplicitResultTypes
  */
 package test.explicitReturnTypes
 
-object ExplicitReturnTypesPathDependent {
+object ExplicitResultTypesPathDependent {
   class Path {
     class B { class C }
     implicit val x = new B

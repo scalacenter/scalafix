@@ -8,10 +8,13 @@ import scalafix.util.Deprecated
 /** A thin wrapper around a list of RewriteIdentifier. */
 final case class RewriteName(identifiers: List[RewriteIdentifier]) {
   private def nonDeprecated = identifiers.filter(n => n.deprecated.isEmpty)
-  def withOldName(name: String, message: String, since: String): RewriteName =
+  def withOldName(name: String, message: String, since: String): RewriteName = {
+    val conflictingName = identifiers.find(_.value == name)
+    require(conflictingName.isEmpty, s"Duplicate name! $conflictingName")
     this.+(
       RewriteName(
         RewriteIdentifier(name, Some(Deprecated(message, since))) :: Nil))
+  }
   def value: String =
     if (nonDeprecated.isEmpty) "empty"
     else nonDeprecated.mkString("+")

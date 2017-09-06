@@ -7,7 +7,7 @@ import scala.collection.mutable.ListBuffer
 import scala.util.Success
 import scala.collection.immutable.ListSet
 
-object ExplicitReturnTypesShort {
+object ExplicitResultTypesShort {
   implicit val x: List[Map[Int, Set[String]]] = List.empty[Map[Int, Set[String]]]
   implicit val y: HashMap[String, Success[ListBuffer[Int]]] = HashMap.empty[String, Success[ListBuffer[Int]]]
   implicit def z(x: Int): List[String] = List.empty[String]

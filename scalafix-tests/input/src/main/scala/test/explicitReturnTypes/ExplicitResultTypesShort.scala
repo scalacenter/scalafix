@@ -1,5 +1,5 @@
 /*
-rewrites = ExplicitReturnTypes
+rewrites = ExplicitResultTypes
 explicitReturnTypes.unsafeShortenNames = true
  */
 package test.explicitReturnTypes
@@ -10,7 +10,7 @@ import scala.collection.immutable.HashMap
 import scala.collection.mutable.ListBuffer
 import scala.util.Success
 
-object ExplicitReturnTypesShort {
+object ExplicitResultTypesShort {
   implicit val x = List.empty[Map[Int, Set[String]]]
   implicit val y = HashMap.empty[String, Success[ListBuffer[Int]]]
   implicit def z(x: Int) = List.empty[String]

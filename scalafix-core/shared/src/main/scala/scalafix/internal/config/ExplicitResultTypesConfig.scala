@@ -3,7 +3,7 @@ package scalafix.internal.config
 import metaconfig._
 import MetaconfigPendingUpstream.XtensionConfScalafix
 
-case class ExplicitReturnTypesConfig(
+case class ExplicitResultTypesConfig(
     memberKind: List[MemberKind] = Nil,
     memberVisibility: List[MemberVisibility] = Nil,
     skipSimpleDefinitions: Boolean = true,
@@ -12,8 +12,8 @@ case class ExplicitReturnTypesConfig(
     // Use at your own risk.
     unsafeShortenNames: Boolean = false
 ) {
-  implicit val reader: ConfDecoder[ExplicitReturnTypesConfig] =
-    ConfDecoder.instanceF[ExplicitReturnTypesConfig] { c =>
+  implicit val reader: ConfDecoder[ExplicitResultTypesConfig] =
+    ConfDecoder.instanceF[ExplicitResultTypesConfig] { c =>
       (
         c.getField(memberKind) |@|
           c.getField(memberVisibility) |@|
@@ -21,14 +21,14 @@ case class ExplicitReturnTypesConfig(
           c.getField(unsafeShortenNames)
       ).map {
         case (((a, b), c), d) =>
-          ExplicitReturnTypesConfig(a, b, c, d)
+          ExplicitResultTypesConfig(a, b, c, d)
       }
     }
 }
 
-object ExplicitReturnTypesConfig {
-  val default = ExplicitReturnTypesConfig()
-  implicit val reader: ConfDecoder[ExplicitReturnTypesConfig] = default.reader
+object ExplicitResultTypesConfig {
+  val default = ExplicitResultTypesConfig()
+  implicit val reader: ConfDecoder[ExplicitResultTypesConfig] = default.reader
 }
 
 sealed trait MemberVisibility
