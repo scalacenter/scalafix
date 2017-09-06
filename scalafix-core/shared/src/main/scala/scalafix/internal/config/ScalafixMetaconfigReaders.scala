@@ -91,8 +91,7 @@ trait ScalafixMetaconfigReaders {
         ruleDecoder.read(combinedRules).map(rule => rule -> config)
     }
 
-  def defaultRuleDecoder(
-      getSemanticCtx: LazySemanticCtx): ConfDecoder[Rule] =
+  def defaultRuleDecoder(getSemanticCtx: LazySemanticCtx): ConfDecoder[Rule] =
     ConfDecoder.instance[Rule] {
       case conf @ Conf.Str(value) if !value.contains(":") =>
         val isSyntactic = ScalafixRules.syntacticNames.contains(value)
@@ -189,8 +188,7 @@ trait ScalafixMetaconfigReaders {
   def ruleConfDecoderSyntactic(
       singleRuleDecoder: ConfDecoder[Rule]): ConfDecoder[Rule] =
     ruleConfDecoder(singleRuleDecoder)
-  def ruleConfDecoder(
-      singleRuleDecoder: ConfDecoder[Rule]): ConfDecoder[Rule] = {
+  def ruleConfDecoder(singleRuleDecoder: ConfDecoder[Rule]): ConfDecoder[Rule] = {
     ConfDecoder.instance[Rule] {
       case Conf.Lst(values) =>
         MetaconfigPendingUpstream

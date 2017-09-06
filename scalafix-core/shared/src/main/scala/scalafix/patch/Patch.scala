@@ -152,9 +152,7 @@ object Patch {
     result
   }
 
-  private def syntaxApply(
-      ctx: RuleCtx,
-      patches: Iterable[TokenPatch]): String = {
+  private def syntaxApply(ctx: RuleCtx, patches: Iterable[TokenPatch]): String = {
     val patchMap = patches
       .groupBy(x => TokenOps.hash(x.tok))
       .mapValues(_.reduce(merge).newTok)

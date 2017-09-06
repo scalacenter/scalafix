@@ -193,9 +193,7 @@ object CliRunner {
     safeFromOptions(options, None)
 
   /** Construct CliRunner with custom rule. */
-  def fromOptions(
-      options: ScalafixOptions,
-      rule: Rule): Configured[CliRunner] =
+  def fromOptions(options: ScalafixOptions, rule: Rule): Configured[CliRunner] =
     safeFromOptions(options, Some(rule))
 
   private def safeFromOptions(
@@ -445,8 +443,7 @@ object CliRunner {
         case (rule, _) =>
           if (rule.name.isEmpty)
             ConfError
-              .msg(
-                "No rule was provided! Use --rule to specify a rule.")
+              .msg("No rule was provided! Use --rule to specify a rule.")
               .notOk
           else Ok(rule)
       }

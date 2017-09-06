@@ -39,8 +39,7 @@ class ClassloadRule[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
     if (t.isInstance(rule)) rule.asInstanceOf[T]
     else
       args match {
-        case (sctx: SemanticCtx) :: Nil
-            if functionClasstag.isInstance(rule) =>
+        case (sctx: SemanticCtx) :: Nil if functionClasstag.isInstance(rule) =>
           rule.asInstanceOf[Function[SemanticCtx, T]].apply(sctx)
         case _ =>
           throw new IllegalArgumentException(
@@ -51,9 +50,7 @@ class ClassloadRule[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
   private def getClassFor(fqcn: String): Try[Class[_]] =
     Try { Class.forName(fqcn, false, classLoader) }
 
-  private def classloadClassRule(
-      clazz: Class[_],
-      args: Seq[AnyRef]): Try[T] =
+  private def classloadClassRule(clazz: Class[_], args: Seq[AnyRef]): Try[T] =
     Try {
       val argsLen = args.length
       val constructors =

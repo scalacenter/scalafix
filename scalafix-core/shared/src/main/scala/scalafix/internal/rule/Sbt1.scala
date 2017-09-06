@@ -65,10 +65,7 @@ case class Sbt1(sctx: SemanticCtx) extends SemanticRule(sctx) {
         (singleNames ++ scopedNames).nonEmpty
       }
 
-      def ruleDslOperator(
-          lhs: Term,
-          opToken: Token,
-          rhs: Term): List[Patch] = {
+      def ruleDslOperator(lhs: Term, opToken: Token, rhs: Term): List[Patch] = {
         val wrapExpression = rhs match {
           case arg @ Term.Apply(_, Seq(_: Term.Block))
               if !isParensWrapped(arg.tokens) =>

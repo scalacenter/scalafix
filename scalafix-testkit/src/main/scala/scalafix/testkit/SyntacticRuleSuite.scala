@@ -8,9 +8,7 @@ import scalafix.syntax._
 
 import org.scalatest.FunSuiteLike
 
-class SyntacticRuleSuite(rule: Rule)
-    extends FunSuiteLike
-    with DiffAssertions {
+class SyntacticRuleSuite(rule: Rule) extends FunSuiteLike with DiffAssertions {
   def check(name: String, original: String, expected: String): Unit = {
     test(name) {
       import scala.meta._

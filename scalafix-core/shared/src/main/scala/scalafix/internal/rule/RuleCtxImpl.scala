@@ -23,8 +23,7 @@ import scalafix.util.TokenList
 import org.scalameta.FileLine
 import org.scalameta.logger
 
-case class RuleCtxImpl(tree: Tree, config: ScalafixConfig)
-    extends RuleCtx {
+case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
   ctx =>
   def syntax: String =
     s"""${tree.input.syntax}
