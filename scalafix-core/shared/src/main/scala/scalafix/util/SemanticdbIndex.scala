@@ -3,12 +3,7 @@ package scalafix.util
 import scala.meta._
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
 
-/** Context for semantic rules, encapsulates a compilation context.
-  *
-  * A SemanticdbIndex is a thin wrapper around [[scala.meta.Database]] with
-  * additional in-memory indices for fast Position => Symbol and
-  * Symbol => Denotation lookups.
-  */
+/** An index for looking up data in a [[scala.meta.Database]]. */
 trait SemanticdbIndex {
 
   /** List of source files that built this SemanticdbIndex. */
