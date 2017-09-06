@@ -1,0 +1,110 @@
+package scalafix.internal.rule
+
+import scala.meta._
+import scala.meta.contrib.AssociatedComments
+import scala.meta.tokens.Tokens
+import scalafix.LintMessage
+import scalafix._
+import scalafix.internal.config.ScalafixConfig
+import scalafix.internal.config.ScalafixMetaconfigReaders
+import scalafix.internal.util.SymbolOps.Root
+import scalafix.patch.LintPatch
+import scalafix.patch.TokenPatch
+import scalafix.patch.TokenPatch.Add
+import scalafix.patch.TreePatch
+import scalafix.patch.TreePatch.AddGlobalImport
+import scalafix.patch.TreePatch.RemoveGlobalImport
+import scalafix.rule.RuleCtx
+import scalafix.rule.RuleName
+import scalafix.syntax._
+import scalafix.util.MatchingParens
+import scalafix.util.SemanticCtx
+import scalafix.util.TokenList
+import org.scalameta.FileLine
+import org.scalameta.logger
+
+case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
+  ctx =>
+  def syntax: String =
+    s"""${tree.input.syntax}
+       |${logger.revealWhitespace(tree.syntax.take(100))}""".stripMargin
+  override def toString: String = syntax
+  def toks(t: Tree): Tokens = t.tokens(config.dialect)
+  lazy val tokens: Tokens = tree.tokens(config.dialect)
+  lazy val tokenList: TokenList = new TokenList(tokens)
+  lazy val matchingParens: MatchingParens = MatchingParens(tokens)
+  lazy val comments: AssociatedComments = AssociatedComments(tokens)
+  lazy val input: Input = tokens.head.input
+
+  // Debug utilities
+  def sctx(implicit sctx: SemanticCtx): SemanticCtx =
+    sctx.withDocuments(sctx.documents.filter(_.input == input))
+  def debugSemanticCtx()(implicit sctx: SemanticCtx, fileLine: FileLine): Unit = {
+    val db = this.sctx(sctx)
+    debug(sourcecode.Text(db.documents.head, "sctx"))
+  }
+  def debug(values: sourcecode.Text[Any]*)(implicit fileLine: FileLine): Unit = {
+    // alias for org.scalameta.logger.
+    logger.elem(values: _*)
+  }
+
+  def printLintMessage(msg: LintMessage, owner: RuleName): Unit = {
+    val key = msg.category.key(owner)
+    if (config.lint.ignore.matches(key)) ()
+    else {
+      val category = config.lint
+        .getConfiguredSeverity(key)
+        .getOrElse(msg.category.severity)
+      config.lint.reporter.handleMessage(
+        msg.format(owner, config.lint.explain),
+        msg.position,
+        category.toSeverity
+      )
+    }
+  }
+
+  def lint(msg: LintMessage): Patch =
+    LintPatch(msg)
+
+  // Syntactic patch ops.
+  def removeImportee(importee: Importee): Patch =
+    TreePatch.RemoveImportee(importee)
+  def addGlobalImport(importer: Importer): Patch =
+    AddGlobalImport(importer)
+  def replaceToken(token: Token, toReplace: String): Patch =
+    Add(token, "", toReplace, keepTok = false)
+  def removeTokens(tokens: Tokens): Patch =
+    tokens.foldLeft(Patch.empty)(_ + TokenPatch.Remove(_))
+  def removeToken(token: Token): Patch = Add(token, "", "", keepTok = false)
+  def replaceTree(from: Tree, to: String): Patch = {
+    val tokens = toks(from)
+    removeTokens(tokens) + tokens.headOption.map(x => addRight(x, to))
+  }
+  def addRight(tok: Token, toAdd: String): Patch = Add(tok, "", toAdd)
+  def addRight(tree: Tree, toAdd: String): Patch =
+    toks(tree).lastOption.fold(Patch.empty)(addRight(_, toAdd))
+  def addLeft(tok: Token, toAdd: String): Patch = Add(tok, toAdd, "")
+  def addLeft(tree: Tree, toAdd: String): Patch =
+    toks(tree).lastOption.fold(Patch.empty)(addLeft(_, toAdd))
+
+  // Semantic patch ops.
+  def removeGlobalImport(symbol: Symbol)(implicit sctx: SemanticCtx): Patch =
+    RemoveGlobalImport(symbol)
+  def addGlobalImport(symbol: Symbol)(implicit sctx: SemanticCtx): Patch =
+    TreePatch.AddGlobalSymbol(symbol)
+  def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
+      implicit sctx: SemanticCtx): Patch =
+    TreePatch.ReplaceSymbol(fromSymbol, toSymbol)
+  def replaceSymbols(toReplace: (String, String)*)(
+      implicit sctx: SemanticCtx): Patch =
+    toReplace.foldLeft(Patch.empty) {
+      case (a, (from, to)) =>
+        val (fromSymbol, toSymbol) =
+          ScalafixMetaconfigReaders.parseReplaceSymbol(from, to).get
+        a + ctx.replaceSymbol(fromSymbol, toSymbol)
+    }
+  def renameSymbol(fromSymbol: Symbol.Global, toName: String)(
+      implicit sctx: SemanticCtx): Patch =
+    TreePatch.ReplaceSymbol(fromSymbol, Root(Signature.Term(toName)))
+
+}

@@ -1,7 +1,7 @@
 package scalafix.cli
 
 import scala.collection.immutable.Seq
-import scalafix.internal.rewrite._
+import scalafix.internal.rule._
 
 class CliSyntacticTests extends BaseCliTest {
 
@@ -44,7 +44,7 @@ class CliSyntacticTests extends BaseCliTest {
   )
 
   check(
-    name = "empty rewrite",
+    name = "empty rule",
     originalLayout = s"/foobar.scala\n",
     args = Seq("foobar.scala"),
     expectedLayout = "/foobar.scala",
@@ -77,7 +77,7 @@ class CliSyntacticTests extends BaseCliTest {
                         |$original""".stripMargin,
     args = Seq(
       "-r",
-      "scala:scalafix.cli.TestRewrites.LintError",
+      "scala:scalafix.cli.TestRules.LintError",
       "foobar.scala"
     ),
     expectedLayout = s"""/foobar.scala
@@ -93,7 +93,7 @@ class CliSyntacticTests extends BaseCliTest {
       "--config-str",
       "lint.error=LintWarning.warning",
       "-r",
-      "scala:scalafix.cli.TestRewrites.LintWarning",
+      "scala:scalafix.cli.TestRules.LintWarning",
       "foobar.scala"
     ),
     expectedLayout = s"""/foobar.scala

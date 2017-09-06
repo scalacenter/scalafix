@@ -3,13 +3,13 @@ package tests
 
 import scala.meta._
 import scala.meta.tokens.Token.Ident
-import scalafix.testkit.SyntacticRewriteSuite
+import scalafix.testkit.SyntacticRuleSuite
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
-import scalafix.internal.rewrite.ProcedureSyntax
+import scalafix.internal.rule.ProcedureSyntax
 
-class ErrorSuite extends SyntacticRewriteSuite(ProcedureSyntax) {
+class ErrorSuite extends SyntacticRuleSuite(ProcedureSyntax) {
   test("on parse error") {
     intercept[ParseException] {
       ProcedureSyntax.apply(Input.String("object A {"))
@@ -17,7 +17,7 @@ class ErrorSuite extends SyntacticRewriteSuite(ProcedureSyntax) {
   }
 }
 class PatchSuite
-    extends SyntacticRewriteSuite(Rewrite.syntactic(ctx =>
+    extends SyntacticRuleSuite(Rule.syntactic("PatchSuite")(ctx =>
       ctx.addRight(ctx.tree.tokens.find(_.is[Ident]).get, "bba"))) {
 
   val original =

@@ -30,7 +30,7 @@ import scalafix.internal.config.Class2Hocon
 import scalafix.internal.config.FilterMatcher
 import scalafix.internal.config.LazySemanticCtx
 import scalafix.internal.config.MetaconfigPendingUpstream
-import scalafix.internal.config.RewriteKind
+import scalafix.internal.config.RuleKind
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.util.Failure
 import scalafix.internal.util.SemanticCtxImpl
@@ -44,7 +44,7 @@ sealed abstract case class CliRunner(
     sourceroot: AbsolutePath,
     cli: ScalafixOptions,
     config: ScalafixConfig,
-    rewrite: Rewrite,
+    rule: Rule,
     inputs: Seq[FixFile],
     replacePath: AbsolutePath => AbsolutePath
 ) {
@@ -62,7 +62,7 @@ sealed abstract case class CliRunner(
         if (cli.stdout) cli.common.err else cli.common.out),
       fallbackMode = cli.nonInteractive || TermDisplay.defaultFallbackMode)
     if (inputs.length > 10) display.init()
-    val msg = cli.projectIdPrefix + s"Running ${rewrite.name}"
+    val msg = cli.projectIdPrefix + s"Running ${rule.name}"
     display.startTask(msg, common.workingDirectoryFile)
     display.taskLength(msg, inputs.length, 0)
     val exitCode = new AtomicReference(ExitStatus.Ok)
@@ -117,8 +117,8 @@ sealed abstract case class CliRunner(
           ExitStatus.ParseError
         }
       case parsers.Parsed.Success(tree) =>
-        val ctx = RewriteCtx(tree, config)
-        val fixed = rewrite.apply(ctx)
+        val ctx = RuleCtx(tree, config)
+        val fixed = rule.apply(ctx)
         writeMode match {
           case WriteMode.Stdout =>
             common.out.write(fixed.getBytes)
@@ -133,7 +133,7 @@ sealed abstract case class CliRunner(
                 Patch.unifiedDiff(
                   input.original,
                   Input.VirtualFile(
-                    s"<expected fix from ${rewrite.name}>",
+                    s"<expected fix from ${rule.name}>",
                     fixed
                   )
                 )
@@ -148,7 +148,7 @@ sealed abstract case class CliRunner(
               ExitStatus.Ok
             } else {
               cli.diagnostic.error(
-                s"Stale semanticdb for ${CliRunner.pretty(outFile)}, skipping rewrite. Please recompile.")
+                s"Stale semanticdb for ${CliRunner.pretty(outFile)}, skipping rule. Please recompile.")
               if (cli.verbose) {
                 val diff =
                   Patch.unifiedDiff(input.semanticFile.get, input.original)
@@ -188,25 +188,23 @@ object CliRunner {
     Try(path.toRelative(cwd)).getOrElse(path).toString
   }
 
-  /** Construct CliRunner with rewrite from ScalafixOptions. */
+  /** Construct CliRunner with rule from ScalafixOptions. */
   def fromOptions(options: ScalafixOptions): Configured[CliRunner] =
     safeFromOptions(options, None)
 
-  /** Construct CliRunner with custom rewrite. */
-  def fromOptions(
-      options: ScalafixOptions,
-      rewrite: Rewrite): Configured[CliRunner] =
-    safeFromOptions(options, Some(rewrite))
+  /** Construct CliRunner with custom rule. */
+  def fromOptions(options: ScalafixOptions, rule: Rule): Configured[CliRunner] =
+    safeFromOptions(options, Some(rule))
 
   private def safeFromOptions(
       options: ScalafixOptions,
-      rewrite: Option[Rewrite]
+      rule: Option[Rule]
   ): Configured[CliRunner] = {
     try {
       val builder = new CliRunner.Builder(options)
-      rewrite.fold(
-        builder.resolvedRewrite.andThen(rewrite =>
-          unsafeFromOptions(options, rewrite, builder))
+      rule.fold(
+        builder.resolvedRule.andThen(rule =>
+          unsafeFromOptions(options, rule, builder))
       )(r => unsafeFromOptions(options, r, builder))
     } catch {
       case NonFatal(e) =>
@@ -215,7 +213,7 @@ object CliRunner {
   }
   private def unsafeFromOptions(
       options: ScalafixOptions,
-      rewrite: Rewrite,
+      rule: Rule,
       builder: Builder
   ): Configured[CliRunner] = {
     (
@@ -229,8 +227,8 @@ object CliRunner {
           options.diagnostic.info(
             s"""|Config:
                 |${Class2Hocon(config)}
-                |Rewrite:
-                |$rewrite
+                |Rule:
+                |$rule
                 |""".stripMargin
           )
         }
@@ -238,7 +236,7 @@ object CliRunner {
           sourceroot = sourceroot,
           cli = options,
           config = config,
-          rewrite = rewrite,
+          rule = rule,
           replacePath = replace,
           inputs = inputs
         ) {}
@@ -312,8 +310,8 @@ object CliRunner {
     }
 
     // We don't know yet if we need to compute the database or not.
-    // If all the rewrites are syntactic, we never need to compute the sctx.
-    // If a single rewrite is semantic, then we need to compute the database.
+    // If all the rules are syntactic, we never need to compute the sctx.
+    // If a single rule is semantic, then we need to compute the database.
     private var cachedDatabase = Option.empty[Configured[SemanticCtx]]
     private def computeAndCacheDatabase(): Option[SemanticCtx] = {
       val result: Configured[SemanticCtx] = cachedDatabase.getOrElse {
@@ -340,7 +338,7 @@ object CliRunner {
       }
       Some(MetaconfigPendingUpstream.get_!(result))
     }
-    private def resolveDatabase(kind: RewriteKind): Option[SemanticCtx] = {
+    private def resolveDatabase(kind: RuleKind): Option[SemanticCtx] = {
       if (kind.isSyntactic) None
       else computeAndCacheDatabase()
     }
@@ -422,36 +420,35 @@ object CliRunner {
               .getOrElse(Input.String("")))
       }
 
-    // ScalafixConfig and Rewrite
+    // ScalafixConfig and Rule
     // Determines the config in the following order:
     //  - --config-str or --config
     //  - .scalafix.conf in working directory
     //  - ScalafixConfig.default
-    val resolvedRewriteAndConfig: Configured[(Rewrite, ScalafixConfig)] = {
+    val resolvedRuleAndConfig: Configured[(Rule, ScalafixConfig)] = {
       val decoder = ScalafixReflect.fromLazySemanticCtx(lazySemanticCtx)
       fixFiles.andThen { inputs =>
         val configured = resolvedConfigInput.andThen(input =>
-          ScalafixConfig.fromInput(input, lazySemanticCtx, rewrites)(decoder))
+          ScalafixConfig.fromInput(input, lazySemanticCtx, rules)(decoder))
         configured.map { configuration =>
           // TODO(olafur) implement withFilter on Configured
-          val (finalRewrite, scalafixConfig) = configuration
+          val (finalRule, scalafixConfig) = configuration
           val finalConfig = scalafixConfig.withOut(common.err)
-          finalRewrite -> finalConfig
+          finalRule -> finalConfig
         }
       }
     }
-    val resolvedRewrite: Configured[Rewrite] =
-      resolvedRewriteAndConfig.andThen {
-        case (rewrite, _) =>
-          if (rewrite.rewriteName.isEmpty)
+    val resolvedRule: Configured[Rule] =
+      resolvedRuleAndConfig.andThen {
+        case (rule, _) =>
+          if (rule.name.isEmpty)
             ConfError
-              .msg(
-                "No rewrite was provided! Use --rewrite to specify a rewrite.")
+              .msg("No rule was provided! Use --rule to specify a rule.")
               .notOk
-          else Ok(rewrite)
+          else Ok(rule)
       }
     val resolvedConfig: Configured[ScalafixConfig] =
-      resolvedRewriteAndConfig.map {
+      resolvedRuleAndConfig.map {
         case (_, config) => config.withFreshReporters
       }
 
@@ -478,7 +475,7 @@ object CliRunner {
     }
 
     val semanticInputs: Configured[Map[AbsolutePath, Input.VirtualFile]] = {
-      (resolvedRewrite |@| resolvedSourceroot).andThen {
+      (resolvedRule |@| resolvedSourceroot).andThen {
         case (_, root) =>
           cachedDatabase.getOrElse(Ok(SemanticCtx.empty)).map { database =>
             def checkExists(path: AbsolutePath): Unit =

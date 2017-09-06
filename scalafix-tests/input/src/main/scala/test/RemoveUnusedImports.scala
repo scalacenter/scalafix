@@ -1,5 +1,5 @@
 /*
-rewrite = RemoveUnusedImports
+rule = RemoveUnusedImports
  */
 package test
 

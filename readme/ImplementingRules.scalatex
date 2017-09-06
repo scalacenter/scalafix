@@ -1,0 +1,249 @@
+@import Main._
+@import scalafix.Readme._
+@import scalafix.rule._
+@import scalafix.{Versions => V}
+@import scalafix.cli.Cli
+
+@sect{Creating your own rule}
+  @p
+    It is possible to implement custom rules with Scalafix.
+    Depending on what your rule does, it may be a lot of work or very
+    little work. Don't hestitate to get an estimate on @gitter for
+    how complicated it would be to implement your rule.
+
+  @sect{Before you begin}
+    Before you dive right into the code of your rule, it might be
+    good to answer the following questions first.
+
+    @sect{What diff do you want to make?}
+      Scalafix is a tool to automatically produce diffs.
+      Before implementing a rule, it's good to manually migrate/refactor a
+      few examples first. Manually refactoring code is helpful
+      to estimate how complicated the rule is.
+
+    @sect{Is the expected output unambiguous?}
+      Does the rule require manual intervention or do you always know what
+      output the rule should produce? Scalafix currently does not yet support
+      interactive refactoring. However, Scalafix has support for configuration,
+      which makes it possible to leave some choice to the user on how the rule
+      should behave.
+
+    @sect{Who will use your rule?}
+      The target audience/users of your rule can impact the implementation the
+      rule. If you are the only end-user of the rule, then you can maybe
+      take shortcuts and worry less about rare corner cases that may be easier to fix
+      manually. If your rule is intended to be used by the entire Scala
+      community, then you might want to be more careful with corner cases.
+
+    @sect{What code will your rule fix?}
+      Is your rule specific to a particular codebase? Or is the rule intended
+      to be used on codebases that you don't have access to? If your rule is
+      specific to one codebase, then it's easier to validate if your rule
+      is ready. You may not even need tests, since your codebase is your only test.
+      If your rule is intended to be used in any random codebase, you may
+      want to have tests and put more effort into handling corner cases.
+      In general, the smaller the target domain of your rule, the easier it
+      is to implement a rule.
+
+    @sect{How often will your rule run?}
+      Are you writing a one-off migration script or will your rule run on
+      every pull request? A rule that runs on every pull request should ideally
+      have some unit tests and be documented so that other people can help maintain
+      the rule.
+
+  @sect{scalacenter/scalafix.g8}
+    @p
+      Run the following commands to generate a skeleton project
+
+      @hl.scala
+        cd reponame // The project you want to implement rules for.
+
+        // --rule= should ideally match the GitHub repo name, to make
+        // it possible for users to run `scalafix "github:org/reponame/v1.0"`
+        sbt new scalacenter/scalafix.g8 --rule="reponame" --version="v1.0"
+        cd scalafix
+        sbt tests/test
+    @p
+      Note that the @code{scalafix} directory is a self-contained sbt build
+      and can be put into the root directory of your repo.
+      The tests are written using @sect.ref{scalafix-testkit}.
+
+    @sect{scalafix-testkit}
+      Scalafix-testkit is a module to help you write/run/debug/test scalafix rules.
+      The scalacenter/scalafix.g8 template boilerplate to use scalafix-testkit.
+      The anatomy of a scalafix-testkit project is like this
+
+      @hl.scala
+        scalafix
+        ├── rules    // rule implementations
+        ├── input    // code that runs through rule
+        ├── output   // expected output from running input on rules
+        └── tests    // tiny project where unit tests run
+
+      The key features of scalafix-testkit are
+
+      @ul
+        @li
+          Input code to rules and expected output is written in plain .scala files,
+          with full IDE support.
+        @li
+          Input and expected output files are kept in two separate sbt projects.
+          Each project can have its own set of dependencies.
+        @li
+          Each individual *.scala file in the input project can have a custom
+          .scalafix.conf configuration provided in a comment at the top of
+          the file.
+        @li
+          Test failures are reported as unified diffs from the obtained output
+          of the rule and the expected output in the @code{output} project.
+        @li
+          Assert that a @sect.ref{LintMessage} is expected at a particular line
+          by suffixing the line with the comment @code{// scalafix: <LintCategory>}.
+          The test fails if there exist reported lint messages that have no
+          associated assertion in the input file.
+
+  @sect{Example rules}
+    The Scalafix repository contains several example rules and tests,
+    see @lnk("here", "https://github.com/scalacenter/scalafix/tree/master/scalafix-core/src/main/scala/scalafix/rule").
+    These examples may serve as inspiration for your rule.
+
+  @sect{Vocabulary}
+    The following sections explain useful vocabulary when working with Scalafix.
+
+    @sect{Rule}
+      A rule is a small program/function that can produce diffs.
+      To implement a rule, you extend the
+      @lnk("Rule", "https://github.com/scalacenter/scalafix/blob/master/scalafix-core/src/main/scala/scalafix/rule/Rule.scala")
+      class.
+      To run a rule, users execute @code{scalafix --rules MyRule}.
+      Multiple rules can be composed into a single rule.
+      For example, the migration for Dotty may involve @sect.ref{ProcedureSyntax},
+      @sect.ref{ExplicitUnit}, @sect.ref{DottyVarArgPattern}, @sect.ref{ExplicitReturnTypes}
+      and a few other rules. It is possible to combine all of those rules
+      into a single @code{Dotty} rule so users can run
+      @code{scalafix --rules Dotty}.
+
+    @sect{RuleCtx}
+      A rule context contains data structures and utilities to rule a single
+      source file. For example, the rule context contains the parsed @sect.ref{Tree},
+      @sect.ref{Tokens}, lookup tables for matching parentheses and more.
+
+    @sect{Patch}
+      A "Patch" is a data structure that describes how to produce a diff.
+      Two patches can combined into a single patch with the @code{+} operator.
+      A patch can also be empty. Patches can either be low-level "token patches",
+      that operate on the token level or high-level "tree patches" that operate
+      on parsed abstract syntax tree nodes. The public API for patch
+      operations is available in PatchOps.scala
+
+      @hl.ref(wd/"scalafix-core"/"shared"/"src"/"main"/"scala"/"scalafix"/"patch"/"PatchOps.scala", start = "trait PatchOps")
+
+      Some things are typically easier to do on the token level and other
+      things are easier to do on the tree level.
+      The Patch API is constantly evolving and we regularly add more
+      utility methods to accomplish common tasks.
+      If you experience that it's difficult to implement something that
+      seems simple then don't hesitate to ask on @gitter.
+
+    @sect{LintMessage}
+      Rules are able to emit "lint messages" with info/warn/error severity
+      using @code{ctx.lint(lintCategory.at(String/Position)): Patch}.
+      To report a lint message, first create a @sect.ref{LintCategory} and then
+      report it as a @code{Patch}
+      @hl.scala
+        val divisionByZero = LintCategory.error("Division by zero is unsafe!")
+        def rule(ctx: RuleCtx): Patch = {
+          val tree: Tree = // ...
+          ctx.lint(divisionByZero.at(tree.pos))
+        }
+
+    @sect{LintCategory}
+      A LintCategory is group of lint messages of the same kind.
+      A LintCategory has a default severity level (info/warn/error) at which
+      it will be reported. Scalafix users can override the default severity
+      with @sect.ref{lint}.
+
+    @sect{Scalameta}
+      Scalafix uses @lnk("Scalameta", "http://scalameta.org/") to implement
+      rules.
+      Scalameta is a clean-room implementation of a metaprogramming toolkit for Scala.
+      This means it's not necessary to have experience with Scala compiler internals
+      to implement Scalafix rules.
+      In fact, Scalafix doesn't even depend on the Scala compiler.
+      Since Scalafix is not tied so a single compiler, this means that Scalafix
+      rules in theory can work with any Scala compiler, including @dotty and
+      IntelliJ Scala Plugin.
+
+    @sect{Semanticdb}
+      Semanticdb is a compiler plugin for Scala 2.x in the @sect.ref{Scalameta} project
+      that collects information to build a @sect.ref{SemanticCtx}.
+      For more information about Scalahost, see
+      the @lnk("Scalameta documentation", "http://scalameta.org/tutorial/#Scalahost").
+
+    @sect{Token}
+      A token is for example an identifier @code{println}, a delimiter @code{[} @code{)},
+      or a whitespace character like space or newline.
+      In the context of Scalafix, a @code{Token} means the data structure
+      @code{scala.meta.Token}.
+      See @lnk("Scalameta tutorial", "http://scalameta.org/tutorial/#Tokens")
+      for more details.
+      See @lnk("Wikipedia", "https://en.wikipedia.org/wiki/Lexical_analysis#Token")
+      for a more general definition.
+
+    @sect{Tokens}
+      @code{Tokens} is a list of @sect.ref{Token}.
+      See @lnk("Scalameta tutorial", "http://scalameta.org/tutorial/#Tokens")
+
+    @sect{Tree}
+      A @code{Tree} is a parsed abstract syntax tree.
+      In the context of Scalafix, a @code{Tree} means the data structure
+      @code{scala.meta.Tree}.
+      See @lnk("Scalameta tutorial", "http://scalameta.org/tutorial/#Trees")
+      for more details.
+      See @lnk("Wikipedia", "https://en.wikipedia.org/wiki/Abstract_syntax_tree")
+      for a more general definition.
+
+    @sect{Syntactic}
+      A @sect.ref{Rule} is "syntactic" when it does not require information
+      from type-checking such as resolved names (@code{println} => @code{scala.Predef.println}),
+      types or terms, or inferred implicit arguments.
+      A syntactic rule can use @sect.ref{Tokens} and @sect.ref{Tree}, but
+      not @sect.ref{SemanticCtx}.
+
+    @sect{Semantic}
+      A @sect.ref{Rule} is "semantic" if it requires information from the compiler
+      such as types, symbols and reported compiler messages.
+      A semantic rule can use a @sect.ref{SemanticCtx}.
+
+    @sect{SemanticCtx}
+      A SemanticCtx encapsulates a compilation context, providing
+      capabilities to perform semantic operations for @sect.ref{Semantic} rules.
+      To learn more about SemanticCtx and its associated data structures (Symbol,
+      Denotation, ...), see the
+      @lnk("Scalameta tutorial", "http://scalameta.org/tutorial/#Mirror").
+
+    @sect{Rule}
+      A scalafix "Rule" can report lint messages and provide auto-fix patches
+      to violations of some kind of rule/coding style/convention/breaking change.
+
+    @sect{Rewrite}
+      "Rewrite" is the old name for @sect.ref{Rule}
+
+  @sect{Sharing your rule}
+    @p
+      You have implemented a rule, you have tests, it works,
+      and now you want to share it with the world. Congrats!
+      There are several ways to share a rule if the rule is contained in
+      a single file and uses no external dependencies,
+      @ul
+        @li
+          If you used @sect.ref{scalacenter/scalafix.g8} to build your project,
+          push your rule to github and tell users to run
+          @code{scalafix github:org/$reponame/$version}.
+        @li
+          otherwise, tell users to use the @sect.ref{http:} protocol,
+          @code{scalafix --rules https://gist....} where the url
+          points to the plaintext contents of your rule.
+
+      If your rule uses a custom library, then it's a bit tricky
+      to share it. See @issue(201) for more updates.

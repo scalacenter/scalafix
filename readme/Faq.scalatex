@@ -23,7 +23,7 @@
         @li
           If you use @sect.ref{sbt-scalafix}, try @sect.ref{Verify sbt installation}.
         @li
-          Make sure that you are running at least one rewrite.
+          Make sure that you are running at least one rule.
         @li
           Make sure that you are using a supported Scala
           version: @V.supportedScalaVersions.mkString(", ")

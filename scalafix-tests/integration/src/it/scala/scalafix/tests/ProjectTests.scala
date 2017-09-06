@@ -1,22 +1,22 @@
 package scalafix.tests
 
 import scalafix.SemanticCtx
-import scalafix.internal.rewrite.ExplicitReturnTypes
-import scalafix.internal.rewrite.ProcedureSyntax
-import scalafix.internal.rewrite.RemoveUnusedImports
-import scalafix.rewrite.ProcedureSyntax
-import scalafix.rewrite.RemoveUnusedImports
-import scalafix.rewrite.ScalafixRewrites
+import scalafix.internal.rule.ExplicitResultTypes
+import scalafix.internal.rule.ProcedureSyntax
+import scalafix.internal.rule.RemoveUnusedImports
+import scalafix.rule.ProcedureSyntax
+import scalafix.rule.RemoveUnusedImports
+import scalafix.rule.ScalafixRules
 
 class Slick
     extends IntegrationPropertyTest(
       ItTest(
         name = "slick",
         repo = "https://github.com/slick/slick.git",
-        rewrites = Seq(
+        rules = Seq(
           ProcedureSyntax.name,
-          ExplicitReturnTypes(ScalafixRewrites.emptyDatabase).name,
-          RemoveUnusedImports(ScalafixRewrites.emptyDatabase).name
+          ExplicitResultTypes(ScalafixRules.emptyDatabase).name,
+          RemoveUnusedImports(ScalafixRules.emptyDatabase).name
         ),
         hash = "bd3c24be419ff2791c123067668c81e7de858915",
         addCoursier = false,

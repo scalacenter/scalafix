@@ -1,5 +1,5 @@
 /*
-rewrites = [
+rules = [
   "replace:scala.concurrent/com.geirsson"
 ]
 patches.removeGlobalImports = [

@@ -3,7 +3,7 @@ package scalafix.cli
 import scala.collection.immutable.Seq
 import scalafix.cli.CliCommand.PrintAndExit
 import scalafix.cli.CliCommand.RunScalafix
-import scalafix.internal.rewrite.ProcedureSyntax
+import scalafix.internal.rule.ProcedureSyntax
 
 class CliArgsTest extends BaseCliTest {
   test("--zsh") {
@@ -18,11 +18,11 @@ class CliArgsTest extends BaseCliTest {
     assert(obtained.isInstanceOf[PrintAndExit])
   }
 
-  test("--rewrites") {
+  test("--rules") {
     val RunScalafix(runner) =
-      parse(Seq("--rewrites", "DottyVolatileLazyVal"))
-    assert(runner.rewrite.name == "DottyVolatileLazyVal")
-    assert(parse(Seq("--rewrites", "Foobar")).isError)
+      parse(Seq("--rules", "DottyVolatileLazyVal"))
+    assert(runner.rule.name.value == "DottyVolatileLazyVal")
+    assert(parse(Seq("--rules", "Foobar")).isError)
   }
 
   test("parse") {

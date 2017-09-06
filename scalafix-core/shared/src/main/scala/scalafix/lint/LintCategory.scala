@@ -1,6 +1,6 @@
 package scalafix.lint
 
-import scalafix.rewrite.RewriteName
+import scalafix.rule.RuleName
 import scala.meta.inputs.Position
 
 /** A unique identifier for one kind of a linter message.
@@ -16,9 +16,9 @@ final case class LintCategory(
     explanation: String,
     severity: LintSeverity
 ) {
-  def key(owner: RewriteName): String =
+  def key(owner: RuleName): String =
     if (owner.isEmpty) id
-    else s"$owner.$id"
+    else s"${owner.value}.$id"
   private def noExplanation: LintCategory =
     new LintCategory(id, explanation, severity)
   def at(message: String, position: Position): LintMessage =
@@ -30,10 +30,8 @@ final case class LintCategory(
 }
 
 object LintCategory {
-  def error(explain: String)(implicit alias: sourcecode.Name): LintCategory =
-    new LintCategory(alias.value, explain, LintSeverity.Error)
-  def warning(explain: String)(
-      implicit alias: sourcecode.Name,
-      rewrite: RewriteName): LintCategory =
-    new LintCategory(alias.value, explain, LintSeverity.Warning)
+  def error(id: String, explain: String): LintCategory =
+    new LintCategory(id, explain, LintSeverity.Error)
+  def warning(id: String, explain: String): LintCategory =
+    new LintCategory(id, explain, LintSeverity.Warning)
 }

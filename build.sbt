@@ -207,7 +207,7 @@ lazy val `scalafix-sbt` = project
     ScriptedPlugin.scriptedSettings,
     commands += Command.command(
       "installCompletions",
-      "Code generates names of scalafix rewrites.",
+      "Code generates names of scalafix rules.",
       "") { s =>
       "cli/run --sbt scalafix-sbt/src/main/scala/scalafix/internal/sbt/ScalafixRewriteNames.scala" ::
         s

@@ -3,7 +3,7 @@ Contributing
 
 ## Modules
 
-- `scalafix-core/` the rewrite rules
+- `scalafix-core/` data structures and algorithms for scalafix rules.
 - `scalafix-cli/` command-line interface
 - `scalafix-sbt/` SBT plugin
 - `scalafix-nsc/` Scalafix compiler plugin for scalac (codename `nsc` stands for "new Scala compiler")
@@ -19,16 +19,16 @@ If you experience any issues, don't hesitate to ask on Gitter.
 ## Testing
 
 ```sh
-# For rewrites.
-$ sbt scalafix-tests/test # Fast unit tests for rewrites with access to semantic api.
+# For rules.
+$ sbt scalafix-tests/test # Fast unit tests for rules with access to semantic api.
                           # See core/src/main/resources/ExplicitImplicit for
                           # how to write more unit tests.
                           # You can prefix a test name with "ONLY" to only run
                           # that single test.
 $ sbt scalafix-core/test  # Fast unit tests without access to semantic api.
-                          # I recommend you use scalafix-nsc/test for rewrite tests.
-                          # For anything but rewrites, put the tests in core.
-$ sbt scalafix-tests/it:test # Slow integration tests running rewrites on
+                          # I recommend you use scalafix-nsc/test for rule tests.
+                          # For anything but rules, put the tests in core.
+$ sbt scalafix-tests/it:test # Slow integration tests running rules on
                              # open source projects.
 
 # For SBT plugin

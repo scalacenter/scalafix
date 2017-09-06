@@ -1,5 +1,5 @@
 /*
-rewrites = DottyVarArgPattern
+rules = DottyVarArgPattern
  */
 package test
 

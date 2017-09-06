@@ -1,5 +1,5 @@
 /*
-rewrite = Sbt1
+rule = Sbt1
  */
 package sbtfix
 

@@ -1,5 +1,5 @@
 /*
-rewrites = NoAutoTupling
+rules = NoAutoTupling
  */
 package test
 

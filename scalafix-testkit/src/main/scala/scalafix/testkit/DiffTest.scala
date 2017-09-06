@@ -2,7 +2,7 @@ package scalafix.testkit
 
 import scala.meta._
 import scalafix.SemanticCtx
-import scalafix.Rewrite
+import scalafix.Rule
 import scalafix.internal.config.LazySemanticCtx
 import scalafix.internal.config.ScalafixConfig
 import scalafix.reflect.ScalafixReflect
@@ -12,7 +12,7 @@ case class DiffTest(
     filename: RelativePath,
     original: Input,
     document: Document,
-    config: () => (Rewrite, ScalafixConfig),
+    config: () => (Rule, ScalafixConfig),
     isSkip: Boolean,
     isOnly: Boolean) {
   def name: String = filename.toString()
@@ -28,7 +28,7 @@ object DiffTest {
     sctx.documents.map { document =>
       val input @ Input.VirtualFile(label, code) = document.input
       val relpath = RelativePath(label)
-      val config: () => (Rewrite, ScalafixConfig) = { () =>
+      val config: () => (Rule, ScalafixConfig) = { () =>
         input.tokenize.get
           .collectFirst {
             case Token.Comment(comment) =>

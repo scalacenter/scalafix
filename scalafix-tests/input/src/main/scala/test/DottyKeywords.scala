@@ -1,5 +1,5 @@
 /*
-rewrite = DottyKeywords
+rule = DottyKeywords
  */
 package fix
 

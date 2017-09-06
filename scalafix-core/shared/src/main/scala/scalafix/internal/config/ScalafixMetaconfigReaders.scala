@@ -9,8 +9,8 @@ import scala.reflect.ClassTag
 import scala.util.Try
 import scala.util.matching.Regex
 import scalafix.patch.TreePatch._
-import scalafix.rewrite.ScalafixRewrites
-import scalafix.internal.util.ClassloadRewrite
+import scalafix.rule.ScalafixRules
+import scalafix.internal.util.ClassloadRule
 import java.io.OutputStream
 import java.io.PrintStream
 import java.net.URI
@@ -23,7 +23,7 @@ import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.Ok
 import scalafix.internal.config.MetaconfigParser.{parser => hoconParser}
-import scalafix.internal.rewrite.ConfigRewrite
+import scalafix.internal.rule.ConfigRule
 import scalafix.patch.TreePatch
 
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
@@ -39,21 +39,21 @@ trait ScalafixMetaconfigReaders {
     ReaderUtil.oneOf[Dialect](Scala211, Sbt0137, Dotty, Paradise211)
   }
 
-  object FromClassloadRewrite {
+  object FromClassloadRule {
     def unapply(arg: Conf.Str): Option[String] = arg match {
-      case UriRewrite("scala", uri) =>
+      case UriRule("scala", uri) =>
         Option(uri.getSchemeSpecificPart)
       case _ => None
     }
   }
 
-  object UriRewriteString {
+  object UriRuleString {
     def unapply(arg: Conf.Str): Option[(String, String)] =
-      UriRewrite.unapply(arg).map {
+      UriRule.unapply(arg).map {
         case (a, b) => a -> b.getSchemeSpecificPart
       }
   }
-  object UriRewrite {
+  object UriRule {
     def unapply(arg: Conf.Str): Option[(String, URI)] =
       for {
         uri <- Try(new URI(arg.value)).toOption
@@ -61,63 +61,62 @@ trait ScalafixMetaconfigReaders {
       } yield scheme -> uri
   }
 
-  private val rewriteReges = Pattern.compile("rewrites?")
-  private def isRewriteKey(key: (String, Conf)) =
-    rewriteReges.matcher(key._1).matches()
-  def scalafixConfigEmptyRewriteReader: ConfDecoder[(Conf, ScalafixConfig)] =
+  private val ruleRegex = Pattern.compile("(rules?|rewrites?)")
+  private def isRuleKey(key: (String, Conf)) =
+    ruleRegex.matcher(key._1).matches()
+  def scalafixConfigEmptyRuleReader: ConfDecoder[(Conf, ScalafixConfig)] =
     ConfDecoder.instance[(Conf, ScalafixConfig)] {
       case Conf.Obj(values) =>
-        val (rewrites, noRewrites) = values.partition(isRewriteKey)
-        val rewriteConf =
-          Configured.Ok(rewrites.lastOption.map(_._2).getOrElse(Conf.Lst()))
+        val (rules, noRules) = values.partition(isRuleKey)
+        val ruleConf =
+          Configured.Ok(rules.lastOption.map(_._2).getOrElse(Conf.Lst()))
         val config =
-          ScalafixConfig.ScalafixConfigDecoder.read(Conf.Obj(noRewrites))
-        rewriteConf.product(config)
+          ScalafixConfig.ScalafixConfigDecoder.read(Conf.Obj(noRules))
+        ruleConf.product(config)
     }
   def scalafixConfigConfDecoder(
-      rewriteDecoder: ConfDecoder[Rewrite],
-      extraRewrites: List[String] = Nil
-  ): ConfDecoder[(Rewrite, ScalafixConfig)] =
-    scalafixConfigEmptyRewriteReader.flatMap {
-      case (rewriteConf, config) =>
-        val combinedRewrites: Conf.Lst =
-          if (extraRewrites.nonEmpty)
-            Conf.Lst(extraRewrites.map(Conf.Str))
+      ruleDecoder: ConfDecoder[Rule],
+      extraRules: List[String] = Nil
+  ): ConfDecoder[(Rule, ScalafixConfig)] =
+    scalafixConfigEmptyRuleReader.flatMap {
+      case (ruleConf, config) =>
+        val combinedRules: Conf.Lst =
+          if (extraRules.nonEmpty)
+            Conf.Lst(extraRules.map(Conf.Str))
           else
-            rewriteConf match {
-              case rewrites @ Conf.Lst(_) => rewrites
+            ruleConf match {
+              case rules @ Conf.Lst(_) => rules
               case x => Conf.Lst(x :: Nil)
             }
-        rewriteDecoder.read(combinedRewrites).map(rewrite => rewrite -> config)
+        ruleDecoder.read(combinedRules).map(rule => rule -> config)
     }
 
-  def defaultRewriteDecoder(
-      getSemanticCtx: LazySemanticCtx): ConfDecoder[Rewrite] =
-    ConfDecoder.instance[Rewrite] {
+  def defaultRuleDecoder(getSemanticCtx: LazySemanticCtx): ConfDecoder[Rule] =
+    ConfDecoder.instance[Rule] {
       case conf @ Conf.Str(value) if !value.contains(":") =>
-        val isSyntactic = ScalafixRewrites.syntacticNames.contains(value)
-        val kind = RewriteKind(syntactic = isSyntactic)
+        val isSyntactic = ScalafixRules.syntacticNames.contains(value)
+        val kind = RuleKind(syntactic = isSyntactic)
         val sctx = getSemanticCtx(kind)
-        val names: Map[String, Rewrite] =
-          ScalafixRewrites.syntaxName2rewrite ++
-            sctx.fold(Map.empty[String, Rewrite])(ScalafixRewrites.name2rewrite)
+        val names: Map[String, Rule] =
+          ScalafixRules.syntaxName2rule ++
+            sctx.fold(Map.empty[String, Rule])(ScalafixRules.name2rule)
         val result = ReaderUtil.fromMap(names).read(conf)
         result match {
-          case Ok(rewrite) =>
-            rewrite.rewriteName
+          case Ok(rule) =>
+            rule.name
               .reportDeprecationWarning(value, getSemanticCtx.reporter)
           case _ =>
         }
         result
     }
 
-  private lazy val semanticRewriteClass = classOf[SemanticRewrite]
+  private lazy val semanticRuleClass = classOf[SemanticRule]
 
-  def classloadRewrite(sctx: LazySemanticCtx): Class[_] => Seq[SemanticCtx] = {
+  def classloadRule(sctx: LazySemanticCtx): Class[_] => Seq[SemanticCtx] = {
     cls =>
       val kind =
-        if (semanticRewriteClass.isAssignableFrom(cls)) RewriteKind.Semantic
-        else RewriteKind.Syntactic
+        if (semanticRuleClass.isAssignableFrom(cls)) RuleKind.Semantic
+        else RuleKind.Syntactic
       sctx(kind).toList
   }
 
@@ -126,7 +125,7 @@ trait ScalafixMetaconfigReaders {
   private def requireSemanticSemanticCtx[T](
       sctx: LazySemanticCtx,
       what: String)(f: SemanticCtx => Configured[T]): Configured[T] = {
-    sctx(RewriteKind.Semantic).fold(
+    sctx(RuleKind.Semantic).fold(
       Configured.error(s"$what requires the semantic API."): Configured[T])(f)
   }
 
@@ -136,43 +135,43 @@ trait ScalafixMetaconfigReaders {
     symbolGlobalReader.read(Conf.Str(from)) |@|
       symbolGlobalReader.read(Conf.Str(to))
 
-  def classloadRewriteDecoder(sctx: LazySemanticCtx): ConfDecoder[Rewrite] =
-    ConfDecoder.instance[Rewrite] {
-      case UriRewriteString("scala", fqn) =>
-        ClassloadRewrite(fqn, classloadRewrite(sctx))
-      case UriRewriteString("replace", replace @ SlashSeparated(from, to)) =>
+  def classloadRuleDecoder(sctx: LazySemanticCtx): ConfDecoder[Rule] =
+    ConfDecoder.instance[Rule] {
+      case UriRuleString("scala", fqn) =>
+        ClassloadRule(fqn, classloadRule(sctx))
+      case UriRuleString("replace", replace @ SlashSeparated(from, to)) =>
         requireSemanticSemanticCtx(sctx, replace) { m =>
           parseReplaceSymbol(from, to)
             .map(TreePatch.ReplaceSymbol.tupled)
-            .map(p => Rewrite.constant(replace, p, m))
+            .map(p => Rule.constant(replace, p, m))
         }
     }
 
-  def baseSyntacticRewriteDecoder: ConfDecoder[Rewrite] =
-    baseRewriteDecoders(LazySemanticCtx.empty)
-  def baseRewriteDecoders(sctx: LazySemanticCtx): ConfDecoder[Rewrite] = {
+  def baseSyntacticRuleDecoder: ConfDecoder[Rule] =
+    baseRuleDecoders(LazySemanticCtx.empty)
+  def baseRuleDecoders(sctx: LazySemanticCtx): ConfDecoder[Rule] = {
     MetaconfigPendingUpstream.orElse(
-      defaultRewriteDecoder(sctx),
-      classloadRewriteDecoder(sctx)
+      defaultRuleDecoder(sctx),
+      classloadRuleDecoder(sctx)
     )
   }
   def configFromInput(
       input: Input,
       sctx: LazySemanticCtx,
-      extraRewrites: List[String])(
-      implicit decoder: ConfDecoder[Rewrite]
-  ): Configured[(Rewrite, ScalafixConfig)] = {
+      extraRules: List[String])(
+      implicit decoder: ConfDecoder[Rule]
+  ): Configured[(Rule, ScalafixConfig)] = {
     hoconParser.fromInput(input).andThen { conf =>
-      scalafixConfigConfDecoder(decoder, extraRewrites)
+      scalafixConfigConfDecoder(decoder, extraRules)
         .read(conf)
         .andThen {
           // Initialize configuration
-          case (rewrite, config) => rewrite.init(conf).map(_ -> config)
+          case (rule, config) => rule.init(conf).map(_ -> config)
         }
         .andThen {
-          case (rewrite, config) =>
-            ConfigRewrite(config.patches, sctx).map { configRewrite =>
-              configRewrite.fold(rewrite -> config)(rewrite.merge(_) -> config)
+          case (rule, config) =>
+            ConfigRule(config.patches, sctx).map { configRule =>
+              configRule.fold(rule -> config)(rule.merge(_) -> config)
             }
         }
     }
@@ -186,17 +185,16 @@ trait ScalafixMetaconfigReaders {
       ).map { case (a, b) => ReplaceSymbol(a, b) }
     }
 
-  def rewriteConfDecoderSyntactic(
-      singleRewriteDecoder: ConfDecoder[Rewrite]): ConfDecoder[Rewrite] =
-    rewriteConfDecoder(singleRewriteDecoder)
-  def rewriteConfDecoder(
-      singleRewriteDecoder: ConfDecoder[Rewrite]): ConfDecoder[Rewrite] = {
-    ConfDecoder.instance[Rewrite] {
+  def ruleConfDecoderSyntactic(
+      singleRuleDecoder: ConfDecoder[Rule]): ConfDecoder[Rule] =
+    ruleConfDecoder(singleRuleDecoder)
+  def ruleConfDecoder(singleRuleDecoder: ConfDecoder[Rule]): ConfDecoder[Rule] = {
+    ConfDecoder.instance[Rule] {
       case Conf.Lst(values) =>
         MetaconfigPendingUpstream
-          .flipSeq(values.map(singleRewriteDecoder.read))
-          .map(rewrites => Rewrite.combine(rewrites))
-      case rewrite @ Conf.Str(_) => singleRewriteDecoder.read(rewrite)
+          .flipSeq(values.map(singleRuleDecoder.read))
+          .map(rules => Rule.combine(rules))
+      case rule @ Conf.Str(_) => singleRuleDecoder.read(rule)
     }
   }
 

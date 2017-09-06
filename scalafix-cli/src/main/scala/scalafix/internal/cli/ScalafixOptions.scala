@@ -7,8 +7,8 @@ import scala.meta._
 import scala.meta.io.AbsolutePath
 import scalafix.internal.config.PrintStreamReporter
 import scalafix.internal.config.ScalafixReporter
-import scalafix.internal.rewrite.ProcedureSyntax
-import scalafix.rewrite.ScalafixRewrites
+import scalafix.internal.rule.ProcedureSyntax
+import scalafix.rule.ScalafixRules
 import caseapp._
 
 case class CommonOptions(
@@ -55,8 +55,8 @@ case class ScalafixOptions(
     @HelpMessage(
       "java.io.File.pathSeparator separated list of directories or jars containing " +
         "'.semanticdb' files. The 'semanticdb' files are emitted by the " +
-        "semanticdb-scalac compiler plugin and are necessary for semantic rewrites " +
-        "like ExplicitReturnTypes to function."
+        "semanticdb-scalac compiler plugin and are necessary for semantic rules " +
+        "like ExplicitResultTypes to function."
     )
     @ValueDescription("entry1.jar:entry2.jar:target/scala-2.12/classes")
     classpath: Option[String] = None,
@@ -68,19 +68,19 @@ case class ScalafixOptions(
     @HelpMessage("Disable validation when loading semanticdb files.")
     noStrictSemanticdb: Boolean = false,
     @HelpMessage(
-      s"""Rewrite rules to run.""".stripMargin
+      s"""Rule rules to run.""".stripMargin
     )
     @ValueDescription(
       s"$ProcedureSyntax OR " +
         s"file:LocalFile.scala OR " +
         s"scala:full.Name OR " +
-        s"https://gist.com/.../Rewrite.scala"
+        s"https://gist.com/.../Rule.scala"
     )
     @HelpMessage(
-      s"Space separated list of rewrites to run. Available options include: " +
-        s"${ScalafixRewrites.allNames.mkString(", ")}")
+      s"Space separated list of rules to run. Available options include: " +
+        s"${ScalafixRules.allNames.mkString(", ")}")
     @ExtraName("r")
-    rewrites: List[String] = Nil,
+    rules: List[String] = Nil,
     @ExtraName("f")
     @Hidden // hidden because it's optional. The help message explains how files are chosen.
     files: List[String] = List.empty[String],
