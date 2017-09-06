@@ -1,7 +1,6 @@
 package scalafix
 package rule
 
-import scala.collection.immutable.Seq
 import scala.meta._
 import scalafix.internal.config.MetaconfigPendingUpstream
 import scalafix.internal.config.ScalafixMetaconfigReaders
@@ -11,26 +10,62 @@ import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.Configured
 
-/** A Rule is a program that produces a Patch from a scala.meta.Tree. */
-abstract class Rule { self =>
-
-  /** Name of this rule.
-    *
-    * By convention, this name should be PascalCase matching the class name
-    * of the rule.
-    *
-    * Example good name: NoVars, ExplicitUnit.
-    * Example bad name: no-vars, noVars, FixVars.
-    */
-  def name: RuleName // = RuleName(this.getClass.getSimpleName)
+/** A Scalafix Rule is a checker/linter/rewrite/auto-fixer.
+  *
+  * To implement a rewrite/auto-fixer, override the `fix` method. Example:
+  * {{{
+  *   object ReverseNames extends Rule("ReverseNames") {
+  *     override def fix(ctx: RuleCtx) =
+  *       ctx.tree.collect {
+  *         case name @ Name(value) => ctx.replaceTree(name, value.reverse)
+  *       }.asPatch
+  *   }
+  * }}}
+  *
+  * To implement a linter/checker, override the `check` method. Example:
+  * {{{
+  *   // example syntactic linter
+  *   object NoVars extends Rule("NoVars") {
+  *     val varDefinition = LintCategory.error("varDefinition", "Var is bad!")
+  *     override def check(ctx: RuleCtx) = ctx.tree.collect {
+  *       case definition @ q"$_ var $_ = $_" => varDefinition.at(definition.pos)
+  *     }
+  *   }
+  *   // example semantic linter
+  *   case class NeverInferProduct(sctx: SemanticCtx)
+  *       extends SemanticRule(sctx, "NeverInferProduct")
+  *       with Product {
+  *     val product = SymbolMatcher.exact(Symbol("_root_.scala.Product#"))
+  *     val inferredProduct: LintCategory =
+  *       LintCategory.error("inferredProduct", "Don't infer Product!")
+  *     override def check(ctx: RuleCtx) =
+  *       ctx.sctx.synthetics.flatMap {
+  *         case Synthetic(pos, text, names) =>
+  *           names.collect {
+  *             case ResolvedName(_, product(_), _) =>
+  *               inferredProduct.at(pos)
+  *           }
+  *       }
+  *   }
+  * }}}
+  *
+  * @param ruleName
+  *   Name of this rule that users call via .scalafix.conf
+  *   or in the sbt shell. By convention, a name should be
+  *   PascalCase matching the class name of the rule.
+  *
+  *   Example good name: NoVars, ExplicitUnit.
+  *   Example bad name: no-vars, noVars, FixVars.
+  */
+abstract class Rule(ruleName: RuleName) { self =>
 
   /** Returns linter messages to report violations of this rule. */
-  def check(ctx: RuleCtx): List[LintMessage] = Nil
+  def check(ctx: RuleCtx): Seq[LintMessage] = Nil
 
   /** Returns a patch to fix violations of this rule. */
   def fix(ctx: RuleCtx): Patch = Patch.empty
 
-  /** Initialize rule.
+  /** Initialize this rule with the given user configuration.
     *
     * This method is called once by scalafix before rule is called.
     * Use this method to either read custom configuration or to build
@@ -81,7 +116,7 @@ abstract class Rule { self =>
   private[scalafix] final def allNames: List[String] =
     name.identifiers.map(_.value)
   final override def toString: String = name.toString
-
+  final def name: RuleName = ruleName
   // NOTE. This is kind of hacky and hopefully we can find a better workaround.
   // The challenge is the following:
   // - a.andThen(b) needs to work for mixing semantic + syntactic rules.
