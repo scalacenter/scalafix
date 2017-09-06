@@ -2,11 +2,11 @@ package scalafix.internal.rule
 
 import scala.meta._
 import scalafix.Patch
-import scalafix.SemanticCtx
+import scalafix.SemanticdbIndex
 import scalafix.rule.RuleCtx
 import scalafix.rule.SemanticRule
 
-case class NoAutoTupling(sctx: SemanticCtx)
+case class NoAutoTupling(sctx: SemanticdbIndex)
     extends SemanticRule(sctx, "NoAutoTupling") {
 
   private[this] def addWrappingParens(ctx: RuleCtx, args: Seq[Term]): Patch =

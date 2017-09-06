@@ -1,7 +1,7 @@
 package scalafix.internal.util
 
 import scalafix.Patch
-import scalafix.SemanticCtx
+import scalafix.SemanticdbIndex
 
 // TODO(olafur) this signature makes no sense. We should try to avoid exception
 // try/catch dodgeball court whenever possible.
@@ -18,11 +18,11 @@ object Failure {
           |Token Patch 1: $a
           |Token Patch 2: $b"""
         ))
-  case class MismatchingSemanticCtx(a: SemanticCtx, b: SemanticCtx)
+  case class MismatchingSemanticdbIndex(a: SemanticdbIndex, b: SemanticdbIndex)
       extends Failure(
         InvariantFailedException(
-          s"""Cannot mix two different SemanticCtx inside the same patch.
-             |SemanticCtx 1: $a
+          s"""Cannot mix two different SemanticdbIndex inside the same patch.
+             |SemanticdbIndex 1: $a
              |RuleCtx 2: $b
              |""".stripMargin))
   case class Unsupported(msg: String)

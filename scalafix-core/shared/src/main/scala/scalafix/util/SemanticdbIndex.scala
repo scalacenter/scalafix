@@ -1,20 +1,20 @@
 package scalafix.util
 
 import scala.meta._
-import scalafix.internal.util.SemanticCtxImpl
+import scalafix.internal.util.EagerInMemorySemanticdbIndex
 
 /** Context for semantic rules, encapsulates a compilation context.
   *
-  * A SemanticCtx is a thin wrapper around [[scala.meta.Database]] with
+  * A SemanticdbIndex is a thin wrapper around [[scala.meta.Database]] with
   * additional in-memory indices for fast Position => Symbol and
   * Symbol => Denotation lookups.
   */
-trait SemanticCtx {
+trait SemanticdbIndex {
 
-  /** List of source files that built this SemanticCtx. */
+  /** List of source files that built this SemanticdbIndex. */
   def sourcepath: Sourcepath
 
-  /** Classpath built this SemanticCtx. */
+  /** Classpath built this SemanticdbIndex. */
   def classpath: Classpath
 
   /** The underlying raw database. */
@@ -59,8 +59,8 @@ trait SemanticCtx {
     */
   def denotation(tree: Tree): Option[Denotation]
 
-  /** Build new SemanticCtx with only these documents. */
-  def withDocuments(documents: Seq[Document]): SemanticCtx
+  /** Build new SemanticdbIndex with only these documents. */
+  def withDocuments(documents: Seq[Document]): SemanticdbIndex
 
   object Symbol {
     def unapply(tree: Tree): Option[Symbol] = symbol(tree)
@@ -68,18 +68,24 @@ trait SemanticCtx {
   }
 }
 
-object SemanticCtx {
-  val empty: SemanticCtx =
-    SemanticCtxImpl(Database(Nil), Sourcepath(Nil), Classpath(Nil))
-  def load(classpath: Classpath): SemanticCtx =
-    SemanticCtxImpl(Database.load(classpath), Sourcepath(Nil), classpath)
-  def load(sourcepath: Sourcepath, classpath: Classpath): SemanticCtx =
-    SemanticCtxImpl(Database.load(classpath, sourcepath), sourcepath, classpath)
+object SemanticdbIndex {
+  val empty: SemanticdbIndex =
+    EagerInMemorySemanticdbIndex(Database(Nil), Sourcepath(Nil), Classpath(Nil))
+  def load(classpath: Classpath): SemanticdbIndex =
+    EagerInMemorySemanticdbIndex(
+      Database.load(classpath),
+      Sourcepath(Nil),
+      classpath)
+  def load(sourcepath: Sourcepath, classpath: Classpath): SemanticdbIndex =
+    EagerInMemorySemanticdbIndex(
+      Database.load(classpath, sourcepath),
+      sourcepath,
+      classpath)
   def load(
       database: Database,
       sourcepath: Sourcepath,
-      classpath: Classpath): SemanticCtx =
-    SemanticCtxImpl(database, sourcepath, classpath)
-  def load(bytes: Array[Byte]): SemanticCtx =
+      classpath: Classpath): SemanticdbIndex =
+    EagerInMemorySemanticdbIndex(database, sourcepath, classpath)
+  def load(bytes: Array[Byte]): SemanticdbIndex =
     empty.withDocuments(Database.load(bytes).documents)
 }

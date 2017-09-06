@@ -7,7 +7,7 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.rule.RuleCtxImpl
 import scalafix.patch.PatchOps
 import scalafix.util.MatchingParens
-import scalafix.util.SemanticCtx
+import scalafix.util.SemanticdbIndex
 import scalafix.util.TokenList
 import org.scalameta.FileLine
 
@@ -23,7 +23,7 @@ trait RuleCtx extends PatchOps {
     *
     * This is typically either Input.VirtualFile for semantic rules
     * and Input.File for syntactic rules. For Input.VirtualFile, it is
-    * possible to trace back to the original file path via SemanticCtx.sourcepath.
+    * possible to trace back to the original file path via SemanticdbIndex.sourcepath.
     */
   def input: Input
 
@@ -42,11 +42,13 @@ trait RuleCtx extends PatchOps {
   /** Find comments/docstrings associated with tree nodes. **/
   def comments: AssociatedComments
 
-  /** Get SemanticCtx for this single tree alone. */
-  def sctx(implicit sctx: SemanticCtx): SemanticCtx
+  /** Get SemanticdbIndex for this single tree alone. */
+  def sctx(implicit sctx: SemanticdbIndex): SemanticdbIndex
 
-  /** Print out the contents of SemanticCtx for this input only. **/
-  def debugSemanticCtx()(implicit sctx: SemanticCtx, fileLine: FileLine): Unit
+  /** Print out the contents of SemanticdbIndex for this input only. **/
+  def debugSemanticdbIndex()(
+      implicit sctx: SemanticdbIndex,
+      fileLine: FileLine): Unit
 
   // Private scalafix methods, subject for removal without notice.
   private[scalafix] def toks(t: Tree): Tokens

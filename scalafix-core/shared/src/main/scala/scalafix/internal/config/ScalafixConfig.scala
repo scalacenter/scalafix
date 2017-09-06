@@ -71,7 +71,7 @@ object ScalafixConfig {
 
   def fromInput(
       input: Input,
-      sctx: LazySemanticCtx,
+      sctx: LazySemanticdbIndex,
       extraRules: List[String] = Nil)(
       implicit decoder: ConfDecoder[Rule]
   ): Configured[(Rule, ScalafixConfig)] =

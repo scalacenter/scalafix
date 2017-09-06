@@ -4,7 +4,7 @@ import scala.meta._
 import scalafix.util.SymbolMatcher
 import scalafix.syntax._
 
-class SemanticCtxTest extends BaseSemanticTest("SemanticCtxTest") {
+class SemanticdbIndexTest extends BaseSemanticTest("SemanticdbIndexTest") {
 
   test("symbol(Importee.Name)") {
     val mutable =

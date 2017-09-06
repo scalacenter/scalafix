@@ -8,7 +8,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import scala.meta.Input
 import scalafix.rule.Rule
-import scalafix.internal.config.LazySemanticCtx
+import scalafix.internal.config.LazySemanticdbIndex
 import scalafix.internal.config.ScalafixMetaconfigReaders.UriRule
 import scalafix.internal.util.FileOps
 import metaconfig.Conf
@@ -19,7 +19,7 @@ import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
 
 object ScalafixCompilerDecoder {
-  def baseCompilerDecoder(sctx: LazySemanticCtx): ConfDecoder[Rule] =
+  def baseCompilerDecoder(sctx: LazySemanticdbIndex): ConfDecoder[Rule] =
     ConfDecoder.instance[Rule] {
       case FromSourceRule(rule) =>
         rule match {

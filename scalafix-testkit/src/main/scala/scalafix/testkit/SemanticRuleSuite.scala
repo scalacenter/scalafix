@@ -4,7 +4,7 @@ package testkit
 import scala.collection.mutable
 import scalafix.syntax._
 import scala.meta._
-import scalafix.internal.util.SemanticCtxImpl
+import scalafix.internal.util.EagerInMemorySemanticdbIndex
 import org.scalameta.logger
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
@@ -29,13 +29,13 @@ object SemanticRuleSuite {
 }
 
 abstract class SemanticRuleSuite(
-    val sctx: SemanticCtx,
+    val sctx: SemanticdbIndex,
     val expectedOutputSourceroot: Seq[AbsolutePath]
 ) extends FunSuite
     with DiffAssertions
     with BeforeAndAfterAll { self =>
   def this(
-      sctx: SemanticCtx,
+      sctx: SemanticdbIndex,
       inputSourceroot: AbsolutePath,
       expectedOutputSourceroot: Seq[AbsolutePath]
   ) = this(
@@ -48,7 +48,10 @@ abstract class SemanticRuleSuite(
       expectedOutputSourceroot: Seq[AbsolutePath]
   ) =
     this(
-      SemanticCtxImpl(database, Sourcepath(inputSourceroot), Classpath(Nil)),
+      EagerInMemorySemanticdbIndex(
+        database,
+        Sourcepath(inputSourceroot),
+        Classpath(Nil)),
       inputSourceroot,
       expectedOutputSourceroot
     )
@@ -157,7 +160,7 @@ abstract class SemanticRuleSuite(
     super.afterAll()
   }
   lazy val testsToRun =
-    DiffTest.testToRun(DiffTest.fromSemanticCtx(sctx))
+    DiffTest.testToRun(DiffTest.fromSemanticdbIndex(sctx))
   def runAllTests(): Unit = {
     testsToRun.foreach(runOn)
   }

@@ -23,7 +23,7 @@ import scalafix.internal.util.SymbolOps
   */
 final class SymbolMatcher(
     symbols: List[Symbol],
-    isEqual: (Symbol, Symbol) => Boolean)(implicit sctx: SemanticCtx) {
+    isEqual: (Symbol, Symbol) => Boolean)(implicit sctx: SemanticdbIndex) {
   def matches(tree: Tree): Boolean = {
     sctx.symbol(tree).fold(false)(matches)
   }
@@ -47,10 +47,11 @@ final class SymbolMatcher(
 object SymbolMatcher {
 
   /** Construct SymbolMatcher with structural equality. */
-  def exact(symbol: Symbol*)(implicit sctx: SemanticCtx): SymbolMatcher =
+  def exact(symbol: Symbol*)(implicit sctx: SemanticdbIndex): SymbolMatcher =
     new SymbolMatcher(symbol.toList, _ == _)
 
   /** Construct SymbolMatcher with normalized equality. */
-  def normalized(symbol: Symbol*)(implicit sctx: SemanticCtx): SymbolMatcher =
+  def normalized(symbol: Symbol*)(
+      implicit sctx: SemanticdbIndex): SymbolMatcher =
     new SymbolMatcher(symbol.toList, SymbolOps.isSameNormalized)
 }

@@ -5,7 +5,7 @@ import scala.meta._
 import scala.meta.contrib._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
 import scalafix.Patch
-import scalafix.SemanticCtx
+import scalafix.SemanticdbIndex
 import scalafix.internal.config.ExplicitResultTypesConfig
 import scalafix.internal.config.MemberKind
 import scalafix.internal.config.MemberVisibility
@@ -20,7 +20,7 @@ import metaconfig.Conf
 import metaconfig.Configured
 
 case class ExplicitResultTypes(
-    sctx: SemanticCtx,
+    sctx: SemanticdbIndex,
     config: ExplicitResultTypesConfig = ExplicitResultTypesConfig.default)
     extends SemanticRule(
       sctx,
@@ -29,7 +29,7 @@ case class ExplicitResultTypes(
           "ExplicitReturnTypes",
           "Renamed to ExplicitResultTypes",
           "0.5")) {
-  def this(sctx: SemanticCtx) = this(sctx, ExplicitResultTypesConfig.default)
+  def this(sctx: SemanticdbIndex) = this(sctx, ExplicitResultTypesConfig.default)
   override def init(config: Conf): Configured[Rule] =
     config
       .getOrElse("explicitReturnTypes")(ExplicitResultTypesConfig.default)

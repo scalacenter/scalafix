@@ -2,11 +2,11 @@ package scalafix.internal.rule
 
 import scala.meta._
 import scalafix.Patch
-import scalafix.SemanticCtx
+import scalafix.SemanticdbIndex
 import scalafix.rule.RuleCtx
 import scalafix.rule.SemanticRule
 
-case class RemoveUnusedImports(sctx: SemanticCtx)
+case class RemoveUnusedImports(sctx: SemanticdbIndex)
     extends SemanticRule(sctx, "RemoveUnusedImports") {
   private val unusedImports = sctx.messages.toIterator.collect {
     case Message(pos, _, "Unused import") =>

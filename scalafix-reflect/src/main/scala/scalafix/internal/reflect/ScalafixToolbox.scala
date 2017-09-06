@@ -11,7 +11,7 @@ import scala.tools.nsc.Settings
 import scala.tools.nsc.io.VirtualDirectory
 import scala.tools.nsc.reporters.StoreReporter
 import scala.{meta => m}
-import scalafix.internal.config.LazySemanticCtx
+import scalafix.internal.config.LazySemanticdbIndex
 import scalafix.internal.config.classloadRule
 import scalafix.internal.util.ClassloadRule
 import scalafix.rule.Rule
@@ -24,7 +24,7 @@ class ScalafixToolbox {
     new java.util.concurrent.ConcurrentHashMap[Input, Configured[Rule]]()
   private val compiler = new Compiler()
 
-  def getRule(code: Input, sctx: LazySemanticCtx): Configured[Rule] =
+  def getRule(code: Input, sctx: LazySemanticdbIndex): Configured[Rule] =
     ruleCache.getOrDefault(code, {
       val uncached = getRuleUncached(code, sctx)
       uncached match {
@@ -35,7 +35,7 @@ class ScalafixToolbox {
       uncached
     })
 
-  def getRuleUncached(code: Input, sctx: LazySemanticCtx): Configured[Rule] =
+  def getRuleUncached(code: Input, sctx: LazySemanticdbIndex): Configured[Rule] =
     synchronized {
       (
         compiler.compile(code) |@|
