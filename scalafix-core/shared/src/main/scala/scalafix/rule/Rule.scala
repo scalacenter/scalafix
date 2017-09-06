@@ -22,7 +22,7 @@ import metaconfig.Configured
   *   }
   * }}}
   *
-  * To report violations of this rule (without autofix suggestions), override
+  * To report violations of this rule (without automatic fix), override
   * the `check` method. Example:
   * {{{
   *   // example syntactic linter
