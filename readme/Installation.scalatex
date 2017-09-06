@@ -35,7 +35,7 @@
       > test:scalafix RemoveUnusedImports      // Run rule in single configuration
       > scalafix ExplicitR<TAB>                // use tab completion
       > scalafix replace:com.foobar/com.buzbaz // refactor (experimental)
-      > scalafix file:rules/MyRule.scala // run local custom rule
+      > scalafix file:rules/MyRule.scala       // run local custom rule
       > scalafix github:org/repo/v1            // run library migration rule
 
     @sect{Verify sbt installation}
@@ -45,6 +45,8 @@
         [info] * -Yrangepos                  // required
         [info] * -Xplugin-require:semanticdb // recommended
         [info] * -P:semanticdb:sourceroot:/* // recommended
+        > show libraryDependencies
+        [info] * org.scalameta:semanticdb-scalac:@V.scalameta:plugin->default(compile)
 
     @sect{scalafix-sbt-example}
       For a minimal working example usage of sbt-scalafix, see the

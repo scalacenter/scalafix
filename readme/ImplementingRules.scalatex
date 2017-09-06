@@ -75,7 +75,7 @@
 
       @hl.scala
         scalafix
-        ├── rules // rule implementations
+        ├── rules    // rule implementations
         ├── input    // code that runs through rule
         ├── output   // expected output from running input on rules
         └── tests    // tiny project where unit tests run

@@ -39,7 +39,8 @@
           // Experimental, shorten fully qualified names and insert missing imports
           // By default, names are fully qualified and prefixed with _root_.
           unsafeShortenNames = true // false by default.
-
+  @sect{ExplicitReturnTypes}
+    This rewrite has been renamed into @sect.ref{ExplicitResultTypes}
 
   @sect(RemoveUnusedImports.toString)
     This rule acts upon "Unused import" warnings emitted by the Scala compiler.

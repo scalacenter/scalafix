@@ -11,10 +11,10 @@ object RuleInstrumentation {
     import scala.meta._
     object ExtendsRule {
       def unapply(templ: Template): Boolean = templ match {
-        case Template(_, init"Rule" :: _, _, _) => true
-        case Template(_, init"Rule" :: _, _, _) => true
-        case Template(_, init"SemanticRule($_)" :: _, _, _) => true
-        case Template(_, init"SemanticRule($_)" :: _, _, _) => true
+        case Template(_, init"Rewrite" :: _, _, _) => true
+        case Template(_, init"Rule($_)" :: _, _, _) => true
+        case Template(_, init"SemanticRewrite($_)" :: _, _, _) => true
+        case Template(_, init"SemanticRule($_, $_)" :: _, _, _) => true
         case _ => false
       }
     }
