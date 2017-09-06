@@ -9,6 +9,7 @@ import scalafix.rewrite.Rule
 import scalafix.rewrite.RewriteCtx
 
 case object ProcedureSyntax extends Rule {
+  def name = "ProcedureSyntax"
   override def fix(ctx: RewriteCtx): Patch = {
     val patches: Seq[Patch] = ctx.tree.collect {
       case t: Defn.Def

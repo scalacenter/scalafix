@@ -69,7 +69,7 @@ abstract class SemanticRuleSuite(
       val matchingMessage = lintMessages.find { m =>
         // NOTE(olafur) I have no idea why -1 is necessary.
         m.position.startLine == (position.startLine - 1) &&
-        m.category.key(rewrite.rewriteName) == key
+        m.category.key(rewrite.name) == key
       }
       matchingMessage match {
         case Some(x) =>
@@ -88,8 +88,8 @@ abstract class SemanticRuleSuite(
       case _ =>
     }
     if (lintMessages.nonEmpty) {
-      lintMessages.foreach(x => ctx.printLintMessage(x, rewrite.rewriteName))
-      val key = lintMessages.head.category.key(rewrite.rewriteName)
+      lintMessages.foreach(x => ctx.printLintMessage(x, rewrite.name))
+      val key = lintMessages.head.category.key(rewrite.name)
       val explanation =
         s"""|To fix this problem, suffix the culprit lines with
             |   // scalafix: $key

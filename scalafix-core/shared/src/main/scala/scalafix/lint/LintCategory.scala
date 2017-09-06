@@ -18,7 +18,7 @@ final case class LintCategory(
 ) {
   def key(owner: RewriteName): String =
     if (owner.isEmpty) id
-    else s"$owner.$id"
+    else s"${owner.value}.$id"
   private def noExplanation: LintCategory =
     new LintCategory(id, explanation, severity)
   def at(message: String, position: Position): LintMessage =
@@ -30,10 +30,8 @@ final case class LintCategory(
 }
 
 object LintCategory {
-  def error(explain: String)(implicit alias: sourcecode.Name): LintCategory =
-    new LintCategory(alias.value, explain, LintSeverity.Error)
-  def warning(explain: String)(
-      implicit alias: sourcecode.Name,
-      rewrite: RewriteName): LintCategory =
-    new LintCategory(alias.value, explain, LintSeverity.Warning)
+  def error(id: String, explain: String): LintCategory =
+    new LintCategory(id, explain, LintSeverity.Error)
+  def warning(id: String, explain: String): LintCategory =
+    new LintCategory(id, explain, LintSeverity.Warning)
 }

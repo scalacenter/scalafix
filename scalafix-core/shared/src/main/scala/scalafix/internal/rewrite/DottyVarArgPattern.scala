@@ -7,6 +7,7 @@ import scalafix.rewrite.Rule
 import scalafix.rewrite.RewriteCtx
 
 case object DottyVarArgPattern extends Rule {
+  def name = "DottyVarArgPattern"
   override def fix(ctx: RewriteCtx): Patch = {
     val patches = ctx.tree.collect {
       case bind @ Pat.Bind(_, Pat.SeqWildcard()) =>

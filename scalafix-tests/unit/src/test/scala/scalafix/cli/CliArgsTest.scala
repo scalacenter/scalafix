@@ -21,7 +21,7 @@ class CliArgsTest extends BaseCliTest {
   test("--rewrites") {
     val RunScalafix(runner) =
       parse(Seq("--rewrites", "DottyVolatileLazyVal"))
-    assert(runner.rewrite.name == "DottyVolatileLazyVal")
+    assert(runner.rewrite.name.value == "DottyVolatileLazyVal")
     assert(parse(Seq("--rewrites", "Foobar")).isError)
   }
 

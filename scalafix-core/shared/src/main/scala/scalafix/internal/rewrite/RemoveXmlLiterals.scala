@@ -22,8 +22,9 @@ import scalafix.rewrite.RewriteCtx
  * until we know how to rewrite `case <a>{ns @ _*}</a>`.
  */
 case object RemoveXmlLiterals extends Rule {
-
+  def name = "RemoveXmlLiterals"
   val singleBracesEscape = LintCategory.warning(
+    "singleBracesEscape",
     """Single braces don't need be escaped with {{ and }} inside xml interpolators, unlike xml literals.
       |For example <x>{{</x> is identical to xml"<x>{</x>". This Rewrite will replace all occurrences of
       |{{ and }}. Make sure this is intended.

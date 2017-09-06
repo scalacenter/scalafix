@@ -22,11 +22,11 @@ object ScalafixRewrites {
   def all(sctx: SemanticCtx): List[Rule] =
     syntax ++ semantic(sctx)
   def name2rewrite(sctx: SemanticCtx): Map[String, Rule] =
-    all(sctx).flatMap(x => x.names.map(_ -> x)).toMap
+    all(sctx).flatMap(x => x.allNames.map(_ -> x)).toMap
   lazy val syntaxName2rewrite: Map[String, Rule] =
-    syntax.flatMap(x => x.names.map(_ -> x)).toMap
+    syntax.flatMap(x => x.allNames.map(_ -> x)).toMap
   lazy val syntacticNames: List[String] = syntaxName2rewrite.keys.toList
   lazy val semanticNames: List[String] =
-    semantic(SemanticCtx.empty).flatMap(_.names)
+    semantic(SemanticCtx.empty).flatMap(_.allNames)
   def allNames: List[String] = syntaxName2rewrite.keys.toList ++ semanticNames
 }

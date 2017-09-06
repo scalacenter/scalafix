@@ -24,6 +24,6 @@ final case class LintMessage(
            |${category.explanation}
            |""".stripMargin
       else ""
-    s"[${owner.name}.${category.id}] $message$explanation"
+    s"[${owner.value}.${category.id}] $message$explanation"
   }
 }

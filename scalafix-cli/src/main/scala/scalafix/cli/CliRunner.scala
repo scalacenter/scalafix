@@ -443,7 +443,7 @@ object CliRunner {
     val resolvedRewrite: Configured[Rewrite] =
       resolvedRewriteAndConfig.andThen {
         case (rewrite, _) =>
-          if (rewrite.rewriteName.isEmpty)
+          if (rewrite.name.isEmpty)
             ConfError
               .msg(
                 "No rewrite was provided! Use --rewrite to specify a rewrite.")

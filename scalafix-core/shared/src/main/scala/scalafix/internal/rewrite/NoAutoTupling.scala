@@ -8,6 +8,8 @@ import scalafix.rewrite.SemanticRule
 
 case class NoAutoTupling(sctx: SemanticCtx) extends SemanticRule(sctx) {
 
+  def name = "NoAutoTupling"
+
   private[this] def addWrappingParens(ctx: RewriteCtx, args: Seq[Term]): Patch =
     ctx.addLeft(args.head.tokens.head, "(") +
       ctx.addRight(args.last.tokens.last, ")")

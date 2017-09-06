@@ -12,6 +12,7 @@ import scalafix.internal.config.MemberVisibility
 import scalafix.internal.util.TypeSyntax
 import scalafix.rewrite.Rule
 import scalafix.rewrite.RewriteCtx
+import scalafix.rewrite.RewriteName
 import scalafix.rewrite.SemanticRule
 import scalafix.syntax._
 import scalafix.util.TokenOps
@@ -23,6 +24,13 @@ case class ExplicitReturnTypes(
     config: ExplicitReturnTypesConfig = ExplicitReturnTypesConfig.default)
     extends SemanticRule(sctx) {
   def this(sctx: SemanticCtx) = this(sctx, ExplicitReturnTypesConfig.default)
+
+  override def name: RewriteName =
+    RewriteName("ExplicitResultTypes")
+      .withOldName(
+        "ExplicitReturnTypes",
+        "Renamed to ExplicitResultTypes",
+        "0.5")
 
   override def init(config: Conf): Configured[Rule] =
     config

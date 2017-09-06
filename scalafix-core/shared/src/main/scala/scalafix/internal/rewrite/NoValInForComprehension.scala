@@ -7,6 +7,7 @@ import scalafix.rewrite.Rule
 import scalafix.rewrite.RewriteCtx
 
 case object NoValInForComprehension extends Rule {
+  def name = "NoValInForComprehension"
 
   override def fix(ctx: RewriteCtx): Patch = {
     ctx.tree.collect {

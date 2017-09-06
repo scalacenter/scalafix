@@ -104,7 +104,7 @@ trait ScalafixMetaconfigReaders {
         val result = ReaderUtil.fromMap(names).read(conf)
         result match {
           case Ok(rewrite) =>
-            rewrite.rewriteName
+            rewrite.name
               .reportDeprecationWarning(value, getSemanticCtx.reporter)
           case _ =>
         }

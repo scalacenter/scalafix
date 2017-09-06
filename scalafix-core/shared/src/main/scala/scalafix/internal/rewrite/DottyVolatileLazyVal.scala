@@ -6,13 +6,13 @@ import scalafix.rewrite.Rule
 import scalafix.rewrite.RewriteCtx
 import scalafix.rewrite.RewriteName
 
-case object DottyVolatileLazyVal
-    extends Rule()(
-      RewriteName("DottyVolatileLazyVal").withOldName(
+case object DottyVolatileLazyVal extends Rule {
+  override def name: RewriteName =
+    RewriteName("DottyVolatileLazyVal")
+      .withOldName(
         name = "VolatileLazyVal",
         message = "Use DottyVolatileLazyVal instead.",
         since = "0.5.0")
-    ) {
   private object NonVolatileLazyVal {
     def unapply(defn: Defn.Val): Option[Token] = {
       defn.mods.collectFirst {

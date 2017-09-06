@@ -8,6 +8,7 @@ import scalafix.rewrite.RewriteCtx
 import scalafix.rewrite.SemanticRule
 
 case class Sbt1(sctx: SemanticCtx) extends SemanticRule(sctx) {
+  def name = "Sbt1"
   override def fix(ctx: RewriteCtx): Patch = {
     sealed abstract class SbtOperator {
       val operator: String
