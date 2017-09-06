@@ -66,7 +66,7 @@
         If a rule is written in a single source file on the internet,
         you can load it with the @code{https:} or @code{http:} protocol
         @config
-          rule = "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/f96587ec5afe8ed139b2c543c65a417dcafca79e/ExampleRewrite.scala"
+          rule = "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/f5fe47495c9b6e3ce0960b766ffa75be6d6768b2/DummyRule.scala"
 
   @sect{lint}
     Override the default severity level of a @sect.ref{LintMessage} with @code{lint}
