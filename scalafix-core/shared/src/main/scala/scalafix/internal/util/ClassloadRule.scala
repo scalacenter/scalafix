@@ -9,12 +9,12 @@ import scalafix.rule.Rule
 import metaconfig.ConfError
 import metaconfig.Configured
 
-class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
+class ClassloadRule[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
   private val t = ev.runtimeClass
 
   private val functionClasstag =
     implicitly[ClassTag[Function[SemanticCtx, T]]].runtimeClass
-  object LambdaRewrite {
+  object LambdaRule {
     def unapply(fqcn: String): Option[(Class[_], String)] = {
       val idx = fqcn.lastIndexOf(".")
       if (idx == 1) None
@@ -24,7 +24,7 @@ class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
       }
     }
   }
-  private def classloadLambdaRewrite(
+  private def classloadLambdaRule(
       clazz: Class[_],
       args: Seq[AnyRef],
       fieldName: String): Try[T] = Try {
@@ -51,7 +51,7 @@ class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
   private def getClassFor(fqcn: String): Try[Class[_]] =
     Try { Class.forName(fqcn, false, classLoader) }
 
-  private def classloadClassRewrite(
+  private def classloadClassRule(
       clazz: Class[_],
       args: Seq[AnyRef]): Try[T] =
     Try {
@@ -87,17 +87,17 @@ class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
         throw i.getTargetException
     }
 
-  def classloadRewrite(fqcn: String, args: Class[_] => Seq[AnyRef]): Try[T] = {
+  def classloadRule(fqcn: String, args: Class[_] => Seq[AnyRef]): Try[T] = {
     val combined = List.newBuilder[Try[T]]
     combined += getClassFor(fqcn).flatMap(cls =>
-      classloadClassRewrite(cls, args(cls)))
+      classloadClassRule(cls, args(cls)))
     if (!fqcn.endsWith("$")) {
       combined += getClassFor(fqcn + "$").flatMap(cls =>
-        classloadClassRewrite(cls, args(cls)))
+        classloadClassRule(cls, args(cls)))
     }
     fqcn match {
-      case LambdaRewrite(cls, field) =>
-        combined += classloadLambdaRewrite(cls, args(cls), field)
+      case LambdaRule(cls, field) =>
+        combined += classloadLambdaRule(cls, args(cls), field)
       case _ =>
     }
     val result = combined.result()
@@ -116,14 +116,14 @@ class ClassloadRewrite[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
   }
 }
 
-object ClassloadRewrite {
+object ClassloadRule {
   lazy val defaultClassloader = getClass.getClassLoader
   def apply(
       fqn: String,
       args: Class[_] => Seq[AnyRef],
       classloader: ClassLoader = defaultClassloader): Configured[Rule] = {
     val result =
-      new ClassloadRewrite[Rule](classloader).classloadRewrite(fqn, args)
+      new ClassloadRule[Rule](classloader).classloadRule(fqn, args)
     result match {
       case Success(e) => Configured.Ok(e)
       case util.Failure(e) => Configured.NotOk(ConfError.msg(e.toString))

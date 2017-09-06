@@ -23,7 +23,7 @@ object Failure {
         InvariantFailedException(
           s"""Cannot mix two different SemanticCtx inside the same patch.
              |SemanticCtx 1: $a
-             |RewriteCtx 2: $b
+             |RuleCtx 2: $b
              |""".stripMargin))
   case class Unsupported(msg: String)
       extends Failure(new UnsupportedOperationException(msg))

@@ -13,7 +13,7 @@ case class ScalafixConfig(
     groupImportsByPrefix: Boolean = true,
     fatalWarnings: Boolean = true,
     reporter: ScalafixReporter = ScalafixReporter.default,
-    patches: ConfigRewritePatches = ConfigRewritePatches.default,
+    patches: ConfigRulePatches = ConfigRulePatches.default,
     dialect: Dialect = Scala211,
     lint: LintConfig = LintConfig.default
 ) {
@@ -72,9 +72,9 @@ object ScalafixConfig {
   def fromInput(
       input: Input,
       sctx: LazySemanticCtx,
-      extraRewrites: List[String] = Nil)(
-      implicit decoder: ConfDecoder[Rewrite]
-  ): Configured[(Rewrite, ScalafixConfig)] =
-    configFromInput(input, sctx, extraRewrites)
+      extraRules: List[String] = Nil)(
+      implicit decoder: ConfDecoder[Rule]
+  ): Configured[(Rule, ScalafixConfig)] =
+    configFromInput(input, sctx, extraRules)
 
 }

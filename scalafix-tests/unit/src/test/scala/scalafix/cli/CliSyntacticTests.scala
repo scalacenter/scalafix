@@ -77,7 +77,7 @@ class CliSyntacticTests extends BaseCliTest {
                         |$original""".stripMargin,
     args = Seq(
       "-r",
-      "scala:scalafix.cli.TestRewrites.LintError",
+      "scala:scalafix.cli.TestRules.LintError",
       "foobar.scala"
     ),
     expectedLayout = s"""/foobar.scala
@@ -93,7 +93,7 @@ class CliSyntacticTests extends BaseCliTest {
       "--config-str",
       "lint.error=LintWarning.warning",
       "-r",
-      "scala:scalafix.cli.TestRewrites.LintWarning",
+      "scala:scalafix.cli.TestRules.LintWarning",
       "foobar.scala"
     ),
     expectedLayout = s"""/foobar.scala

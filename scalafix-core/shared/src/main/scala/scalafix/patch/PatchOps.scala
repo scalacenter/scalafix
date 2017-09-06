@@ -52,14 +52,14 @@ trait PatchOps {
   /** Add the string toAdd to the first token of tree. Does not remove tokens. */
   def addLeft(tree: Tree, toAdd: String): Patch
 
-  // Semantic patches below, available to rules that "extends SemanticRewrite"
+  // Semantic patches below, available to rules that "extends SemanticRule"
 
   /** Report a linter message.
     *
     * To construct a LintMessage, start by creating a lint category. Example:
     *
     * {{{
-    *   class MyLinter extends Rewrite {
+    *   class MyLinter extends Rule {
     *     val divisionByZero = scalafix.LintCategory.error("Division by zero!")
     *     val divisionTree: scala.meta.Tree = ???
     *     PatchOps.lint(divisionByZero.at(divisionTree.pos))
@@ -67,7 +67,7 @@ trait PatchOps {
     * }}}
     *
     * Each LintCategory is assigned a unique identifier, which is formatted
-    * as "RewriteName.categoryID". The divisionByZero example would have the
+    * as "RuleName.categoryID". The divisionByZero example would have the
     * id "MyLinter.divisionByZero". A LintCategory has a default severity level
     * (warning, error) that the user can override in .scalafix.conf.
     */

@@ -1,6 +1,6 @@
 package scalafix.lint
 
-import scalafix.rule.RewriteName
+import scalafix.rule.RuleName
 import scala.meta.inputs.Position
 
 /** A unique identifier for one kind of a linter message.
@@ -16,7 +16,7 @@ final case class LintCategory(
     explanation: String,
     severity: LintSeverity
 ) {
-  def key(owner: RewriteName): String =
+  def key(owner: RuleName): String =
     if (owner.isEmpty) id
     else s"${owner.value}.$id"
   private def noExplanation: LintCategory =

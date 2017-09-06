@@ -11,8 +11,8 @@ import scalafix.internal.config.MemberKind
 import scalafix.internal.config.MemberVisibility
 import scalafix.internal.util.TypeSyntax
 import scalafix.rule.Rule
-import scalafix.rule.RewriteCtx
-import scalafix.rule.RewriteName
+import scalafix.rule.RuleCtx
+import scalafix.rule.RuleName
 import scalafix.rule.SemanticRule
 import scalafix.syntax._
 import scalafix.util.TokenOps
@@ -25,9 +25,9 @@ case class ExplicitResultTypes(
     extends SemanticRule(sctx) {
   def this(sctx: SemanticCtx) = this(sctx, ExplicitResultTypesConfig.default)
 
-  override def name: RewriteName =
-    RewriteName("ExplicitResultTypes")
-      .withOldName(
+  override def name: RuleName =
+    RuleName("ExplicitResultTypes")
+      .withDeprecatedName(
         "ExplicitReturnTypes",
         "Renamed to ExplicitResultTypes",
         "0.5")
@@ -90,7 +90,7 @@ case class ExplicitResultTypes(
     (denotDialect, input).parse[Type].toOption.map(getDeclType)
   }
 
-  override def fix(ctx: RewriteCtx): Patch = {
+  override def fix(ctx: RuleCtx): Patch = {
     def defnType(defn: Defn): Option[(Type, Patch)] =
       for {
         name <- defnName(defn)
@@ -121,10 +121,8 @@ case class ExplicitResultTypes(
     def treeSyntax(tree: Tree): String =
       ScalafixScalametaHacks.resetOrigin(tree).syntax
 
-    def isRewriteCandidate[D <: Defn](
-        defn: D,
-        mods: Traversable[Mod],
-        body: Term)(implicit ev: Extract[D, Mod]): Boolean = {
+    def isRuleCandidate[D <: Defn](defn: D, mods: Traversable[Mod], body: Term)(
+        implicit ev: Extract[D, Mod]): Boolean = {
       import config._
 
       def matchesMemberVisibility(): Boolean =
@@ -153,15 +151,15 @@ case class ExplicitResultTypes(
 
     ctx.tree.collect {
       case t @ Defn.Val(mods, _, None, body)
-          if isRewriteCandidate(t, mods, body) =>
+          if isRuleCandidate(t, mods, body) =>
         fix(t, body)
 
       case t @ Defn.Var(mods, _, None, Some(body))
-          if isRewriteCandidate(t, mods, body) =>
+          if isRuleCandidate(t, mods, body) =>
         fix(t, body)
 
       case t @ Defn.Def(mods, _, _, _, None, body)
-          if isRewriteCandidate(t, mods, body) =>
+          if isRuleCandidate(t, mods, body) =>
         fix(t, body)
     }.asPatch
   }

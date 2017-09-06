@@ -4,9 +4,9 @@ import scalafix._
 import scala.meta._
 import scalafix.Patch
 import scalafix.rule.Rule
-import scalafix.rule.RewriteCtx
+import scalafix.rule.RuleCtx
 
-/* Rewrite Xml literals to Xml interpolators.
+/* Rule Xml literals to Xml interpolators.
  *
  * e.g.
  * {{{
@@ -26,12 +26,12 @@ case object RemoveXmlLiterals extends Rule {
   val singleBracesEscape = LintCategory.warning(
     "singleBracesEscape",
     """Single braces don't need be escaped with {{ and }} inside xml interpolators, unlike xml literals.
-      |For example <x>{{</x> is identical to xml"<x>{</x>". This Rewrite will replace all occurrences of
+      |For example <x>{{</x> is identical to xml"<x>{</x>". This Rule will replace all occurrences of
       |{{ and }}. Make sure this is intended.
       |""".stripMargin
   )
 
-  override def fix(ctx: RewriteCtx): Patch = {
+  override def fix(ctx: RuleCtx): Patch = {
 
     def isMultiLine(xml: Term.Xml) =
       xml.pos.startLine != xml.pos.endLine
@@ -42,7 +42,7 @@ case object RemoveXmlLiterals extends Rule {
       value.exists(c => c == '\"' || c == '\\')
     }
 
-    /** Rewrite xml literal to interpolator */
+    /** Rule xml literal to interpolator */
     def patchXml(xml: Term.Xml, tripleQuoted: Boolean) = {
 
       // We don't want to patch inner xml literals multiple times

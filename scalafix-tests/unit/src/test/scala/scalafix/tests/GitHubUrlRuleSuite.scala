@@ -11,9 +11,9 @@ class GitHubUrlRuleSuite extends FunSuite {
   def check(original: String, expected: String, ok: Boolean = true): Unit = {
     test((if (ok) "" else "FAIL ") + original) {
       Conf.Str(original) match {
-        case GitHubUrlRewrite(Ok(obtained)) if ok =>
+        case GitHubUrlRule(Ok(obtained)) if ok =>
           assert(obtained.toString == expected)
-        case GitHubUrlRewrite(NotOk(obtained)) if !ok =>
+        case GitHubUrlRule(NotOk(obtained)) if !ok =>
           assert(obtained.toString == expected)
       }
     }

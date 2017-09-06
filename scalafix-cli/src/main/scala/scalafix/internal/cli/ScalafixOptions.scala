@@ -8,7 +8,7 @@ import scala.meta.io.AbsolutePath
 import scalafix.internal.config.PrintStreamReporter
 import scalafix.internal.config.ScalafixReporter
 import scalafix.internal.rule.ProcedureSyntax
-import scalafix.rule.ScalafixRewrites
+import scalafix.rule.ScalafixRules
 import caseapp._
 
 case class CommonOptions(
@@ -68,17 +68,17 @@ case class ScalafixOptions(
     @HelpMessage("Disable validation when loading semanticdb files.")
     noStrictSemanticdb: Boolean = false,
     @HelpMessage(
-      s"""Rewrite rules to run.""".stripMargin
+      s"""Rule rules to run.""".stripMargin
     )
     @ValueDescription(
       s"$ProcedureSyntax OR " +
         s"file:LocalFile.scala OR " +
         s"scala:full.Name OR " +
-        s"https://gist.com/.../Rewrite.scala"
+        s"https://gist.com/.../Rule.scala"
     )
     @HelpMessage(
       s"Space separated list of rules to run. Available options include: " +
-        s"${ScalafixRewrites.allNames.mkString(", ")}")
+        s"${ScalafixRules.allNames.mkString(", ")}")
     @ExtraName("r")
     rules: List[String] = Nil,
     @ExtraName("f")

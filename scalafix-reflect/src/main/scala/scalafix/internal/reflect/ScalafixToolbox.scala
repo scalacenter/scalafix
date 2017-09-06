@@ -12,8 +12,8 @@ import scala.tools.nsc.io.VirtualDirectory
 import scala.tools.nsc.reporters.StoreReporter
 import scala.{meta => m}
 import scalafix.internal.config.LazySemanticCtx
-import scalafix.internal.config.classloadRewrite
-import scalafix.internal.util.ClassloadRewrite
+import scalafix.internal.config.classloadRule
+import scalafix.internal.util.ClassloadRule
 import scalafix.rule.Rule
 import metaconfig.ConfError
 import metaconfig.Configured
@@ -24,9 +24,9 @@ class ScalafixToolbox {
     new java.util.concurrent.ConcurrentHashMap[Input, Configured[Rule]]()
   private val compiler = new Compiler()
 
-  def getRewrite(code: Input, sctx: LazySemanticCtx): Configured[Rule] =
+  def getRule(code: Input, sctx: LazySemanticCtx): Configured[Rule] =
     ruleCache.getOrDefault(code, {
-      val uncached = getRewriteUncached(code, sctx)
+      val uncached = getRuleUncached(code, sctx)
       uncached match {
         case toCache @ Configured.Ok(_) =>
           ruleCache.put(code, toCache)
@@ -35,18 +35,18 @@ class ScalafixToolbox {
       uncached
     })
 
-  def getRewriteUncached(code: Input, sctx: LazySemanticCtx): Configured[Rule] =
+  def getRuleUncached(code: Input, sctx: LazySemanticCtx): Configured[Rule] =
     synchronized {
       (
         compiler.compile(code) |@|
-          RewriteInstrumentation.getRewriteFqn(code)
+          RuleInstrumentation.getRuleFqn(code)
       ).andThen {
         case (classloader, names) =>
           names.foldLeft(Configured.ok(Rule.empty)) {
             case (rule, fqn) =>
-              val args = classloadRewrite(sctx)
+              val args = classloadRule(sctx)
               rule
-                .product(ClassloadRewrite(fqn, args, classloader))
+                .product(ClassloadRule(fqn, args, classloader))
                 .map { case (a, b) => a.merge(b) }
           }
       }

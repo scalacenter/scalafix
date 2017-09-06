@@ -3,13 +3,13 @@ package scalafix.internal.rule
 import scala.meta._
 import scalafix.Patch
 import scalafix.rule.Rule
-import scalafix.rule.RewriteCtx
-import scalafix.rule.RewriteName
+import scalafix.rule.RuleCtx
+import scalafix.rule.RuleName
 
 case object DottyVolatileLazyVal extends Rule {
-  override def name: RewriteName =
-    RewriteName("DottyVolatileLazyVal")
-      .withOldName(
+  override def name: RuleName =
+    RuleName("DottyVolatileLazyVal")
+      .withDeprecatedName(
         name = "VolatileLazyVal",
         message = "Use DottyVolatileLazyVal instead.",
         since = "0.5.0")
@@ -23,7 +23,7 @@ case object DottyVolatileLazyVal extends Rule {
       }
     }.flatten
   }
-  override def fix(ctx: RewriteCtx): Patch = {
+  override def fix(ctx: RuleCtx): Patch = {
     ctx.tree.collect {
       case NonVolatileLazyVal(tok) =>
         ctx.addLeft(tok, s"@volatile ")

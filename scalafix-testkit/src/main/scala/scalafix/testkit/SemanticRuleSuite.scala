@@ -60,8 +60,8 @@ abstract class SemanticRuleSuite(
     }
 
   private def assertLintMessagesAreReported(
-      rule: Rewrite,
-      ctx: RewriteCtx,
+      rule: Rule,
+      ctx: RuleCtx,
       lints: List[LintMessage],
       tokens: Tokens): Unit = {
     val lintMessages = lints.to[mutable.Set]
@@ -103,7 +103,7 @@ abstract class SemanticRuleSuite(
   def runOn(diffTest: DiffTest): Unit = {
     test(diffTest.name) {
       val (rule, config) = diffTest.config.apply()
-      val ctx = RewriteCtx(
+      val ctx = RuleCtx(
         config.dialect(diffTest.original).parse[Source].get,
         config.copy(dialect = diffTest.document.dialect)
       )

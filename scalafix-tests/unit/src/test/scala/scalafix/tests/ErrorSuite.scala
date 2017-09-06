@@ -17,7 +17,7 @@ class ErrorSuite extends SyntacticRuleSuite(ProcedureSyntax) {
   }
 }
 class PatchSuite
-    extends SyntacticRuleSuite(Rewrite.syntactic("PatchSuite")(ctx =>
+    extends SyntacticRuleSuite(Rule.syntactic("PatchSuite")(ctx =>
       ctx.addRight(ctx.tree.tokens.find(_.is[Ident]).get, "bba"))) {
 
   val original =

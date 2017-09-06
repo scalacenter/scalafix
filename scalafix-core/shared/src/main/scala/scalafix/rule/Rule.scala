@@ -11,7 +11,7 @@ import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.Configured
 
-/** A Rewrite is a program that produces a Patch from a scala.meta.Tree. */
+/** A Rule is a program that produces a Patch from a scala.meta.Tree. */
 abstract class Rule { self =>
 
   /** Name of this rule.
@@ -22,13 +22,13 @@ abstract class Rule { self =>
     * Example good name: NoVars, ExplicitUnit.
     * Example bad name: no-vars, noVars, FixVars.
     */
-  def name: RewriteName // = RewriteName(this.getClass.getSimpleName)
+  def name: RuleName // = RuleName(this.getClass.getSimpleName)
 
   /** Returns linter messages to report violations of this rule. */
-  def check(ctx: RewriteCtx): List[LintMessage] = Nil
+  def check(ctx: RuleCtx): List[LintMessage] = Nil
 
   /** Returns a patch to fix violations of this rule. */
-  def fix(ctx: RewriteCtx): Patch = Patch.empty
+  def fix(ctx: RuleCtx): Patch = Patch.empty
 
   /** Initialize rule.
     *
@@ -49,16 +49,16 @@ abstract class Rule { self =>
   final def andThen(other: Rule): Rule = merge(other)
 
   /** Returns string output of applying this single patch. */
-  final def apply(ctx: RewriteCtx): String = apply(ctx, fix(ctx))
+  final def apply(ctx: RuleCtx): String = apply(ctx, fix(ctx))
   final def apply(
       input: Input,
       config: ScalafixConfig = ScalafixConfig.default): String = {
-    val ctx = RewriteCtx(config.dialect(input).parse[Source].get, config)
+    val ctx = RuleCtx(config.dialect(input).parse[Source].get, config)
     val patch = fix(ctx)
     apply(ctx, patch)
   }
   final def apply(input: String): String = apply(Input.String(input))
-  final def apply(ctx: RewriteCtx, patch: Patch): String = {
+  final def apply(ctx: RuleCtx, patch: Patch): String = {
     val result = Patch(patch, ctx, semanticOption)
     Patch.lintMessages(patch, ctx).foreach { msg =>
       // Set the lint message owner. This allows us to distinguish
@@ -69,9 +69,9 @@ abstract class Rule { self =>
   }
 
   /** Returns unified diff from applying this patch */
-  final def diff(ctx: RewriteCtx): String =
+  final def diff(ctx: RuleCtx): String =
     diff(ctx, fix(ctx))
-  final protected def diff(ctx: RewriteCtx, patch: Patch): String = {
+  final protected def diff(ctx: RuleCtx, patch: Patch): String = {
     val original = ctx.tree.input
     Patch.unifiedDiff(
       original,
@@ -96,7 +96,7 @@ abstract class SemanticRule(sctx: SemanticCtx) extends Rule {
 
 object Rule {
   private[scalafix] class CompositeRule(val rules: List[Rule]) extends Rule {
-    override def name: RewriteName = rules.foldLeft(RewriteName.empty) {
+    override def name: RuleName = rules.foldLeft(RuleName.empty) {
       case (a, rule) => a + rule.name
     }
     override def init(config: Conf): Configured[Rule] = {
@@ -104,7 +104,7 @@ object Rule {
         .flipSeq(rules.map(_.init(config)))
         .map(x => new CompositeRule(x.toList))
     }
-    override def fix(ctx: RewriteCtx): Patch =
+    override def fix(ctx: RuleCtx): Patch =
       Patch.empty ++ rules.map(_.fix(ctx))
     override def semanticOption: Option[SemanticCtx] =
       rules
@@ -113,46 +113,46 @@ object Rule {
         }
         .getOrElse(None)
   }
-  val syntaxRewriteConfDecoder: ConfDecoder[Rule] =
+  val syntaxRuleConfDecoder: ConfDecoder[Rule] =
     ScalafixMetaconfigReaders.ruleConfDecoderSyntactic(
-      ScalafixMetaconfigReaders.baseSyntacticRewriteDecoder)
-  lazy val empty: Rule = new Rule { def name: RewriteName = RewriteName.empty }
+      ScalafixMetaconfigReaders.baseSyntacticRuleDecoder)
+  lazy val empty: Rule = new Rule { def name: RuleName = RuleName.empty }
   def emptyConfigured: Configured[Rule] = Configured.Ok(empty)
   def emptyFromSemanticCtxOpt(sctx: Option[SemanticCtx]): Rule =
     sctx.fold(empty)(emptySemantic)
   def combine(rules: Seq[Rule]): Rule =
     rules.foldLeft(empty)(_ merge _)
   private[scalafix] def emptySemantic(sctx: SemanticCtx): Rule =
-    semantic(RewriteName.empty.value)(_ => _ => Patch.empty)(sctx)
+    semantic(RuleName.empty.value)(_ => _ => Patch.empty)(sctx)
 
   /** Creates a linter. */
-  def linter(ruleName: String)(f: RewriteCtx => List[LintMessage]): Rule =
+  def linter(ruleName: String)(f: RuleCtx => List[LintMessage]): Rule =
     new Rule {
-      override def name: RewriteName = ruleName
-      override def check(ctx: RewriteCtx): List[LintMessage] = f(ctx)
+      override def name: RuleName = ruleName
+      override def check(ctx: RuleCtx): List[LintMessage] = f(ctx)
     }
 
   /** Creates a syntactic rule. */
-  def syntactic(ruleName: String)(f: RewriteCtx => Patch): Rule =
+  def syntactic(ruleName: String)(f: RuleCtx => Patch): Rule =
     new Rule {
-      override def name: RewriteName = ruleName
-      override def fix(ctx: RewriteCtx): Patch = f(ctx)
+      override def name: RuleName = ruleName
+      override def fix(ctx: RuleCtx): Patch = f(ctx)
     }
 
   /** Creates a semantic rule. */
   def semantic(ruleName: String)(
-      f: SemanticCtx => RewriteCtx => Patch): SemanticCtx => Rule = { sctx =>
+      f: SemanticCtx => RuleCtx => Patch): SemanticCtx => Rule = { sctx =>
     new SemanticRule(sctx) {
-      override def name: RewriteName = ruleName
-      override def fix(ctx: RewriteCtx): Patch = f(sctx)(ctx)
+      override def name: RuleName = ruleName
+      override def fix(ctx: RuleCtx): Patch = f(sctx)(ctx)
     }
   }
 
   /** Creates a rule that always returns the same patch. */
   def constant(ruleName: String, patch: Patch, sctx: SemanticCtx): Rule =
     new SemanticRule(sctx) {
-      override def name: RewriteName = ruleName
-      override def fix(ctx: RewriteCtx): Patch = patch
+      override def name: RuleName = ruleName
+      override def fix(ctx: RuleCtx): Patch = patch
     }
 
   /** Combine two rules into a single rule */

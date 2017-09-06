@@ -4,14 +4,14 @@ import scala.meta._
 import scala.meta.contrib.AssociatedComments
 import scala.meta.tokens.Tokens
 import scalafix.internal.config.ScalafixConfig
-import scalafix.internal.rule.RewriteCtxImpl
+import scalafix.internal.rule.RuleCtxImpl
 import scalafix.patch.PatchOps
 import scalafix.util.MatchingParens
 import scalafix.util.SemanticCtx
 import scalafix.util.TokenList
 import org.scalameta.FileLine
 
-trait RewriteCtx extends PatchOps {
+trait RuleCtx extends PatchOps {
 
   /** The parsed syntax tree that should be fixed.
     *
@@ -53,12 +53,12 @@ trait RewriteCtx extends PatchOps {
   private[scalafix] def config: ScalafixConfig
   private[scalafix] def printLintMessage(
       msg: LintMessage,
-      owner: RewriteName): Unit
+      owner: RuleName): Unit
 }
 
-object RewriteCtx {
-  def apply(tree: Tree): RewriteCtx =
+object RuleCtx {
+  def apply(tree: Tree): RuleCtx =
     apply(tree, ScalafixConfig.default)
-  private[scalafix] def apply(tree: Tree, config: ScalafixConfig): RewriteCtx =
-    RewriteCtxImpl(tree, config)
+  private[scalafix] def apply(tree: Tree, config: ScalafixConfig): RuleCtx =
+    RuleCtxImpl(tree, config)
 }

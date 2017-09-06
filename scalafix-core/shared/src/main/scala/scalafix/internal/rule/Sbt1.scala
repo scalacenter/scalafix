@@ -4,12 +4,12 @@ import scala.meta._
 import scala.meta.tokens.Token.LeftParen
 import scala.meta.tokens.Token.RightParen
 import scalafix._
-import scalafix.rule.RewriteCtx
+import scalafix.rule.RuleCtx
 import scalafix.rule.SemanticRule
 
 case class Sbt1(sctx: SemanticCtx) extends SemanticRule(sctx) {
   def name = "Sbt1"
-  override def fix(ctx: RewriteCtx): Patch = {
+  override def fix(ctx: RuleCtx): Patch = {
     sealed abstract class SbtOperator {
       val operator: String
       val newOperator: String

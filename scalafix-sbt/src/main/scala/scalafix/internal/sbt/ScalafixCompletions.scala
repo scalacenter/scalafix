@@ -7,24 +7,24 @@ import sbt.complete.FileExamples
 import sbt.complete.Parser
 
 object ScalafixCompletions {
-  private val names = ScalafixRewriteNames.all
+  private val names = ScalafixRuleNames.all
 
   private def uri(protocol: String) =
     token(protocol + ":") ~> NotQuoted.map(x => s"$protocol:$x")
 
-  private def fileRewrite(base: File): Parser[String] =
+  private def fileRule(base: File): Parser[String] =
     token("file:") ~>
       StringBasic
         .examples(new FileExamples(base))
         .map(f => s"file:${new File(base, f).getAbsolutePath}")
 
-  private val namedRewrite: Parser[String] =
+  private val namedRule: Parser[String] =
     names.map(literal).reduceLeft(_ | _)
 
   def parser(base: File): Parser[Seq[String]] = {
     val all =
-      namedRewrite |
-        fileRewrite(base) |
+      namedRule |
+        fileRule(base) |
         uri("github") |
         uri("replace") |
         uri("http") |

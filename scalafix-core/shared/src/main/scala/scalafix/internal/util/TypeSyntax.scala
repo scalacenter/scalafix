@@ -9,7 +9,7 @@ import scalafix.util.TreeExtractors._
 import org.langmeta.semanticdb.Symbol
 
 object TypeSyntax {
-  def prettify(tpe: Type, ctx: RewriteCtx, shortenNames: Boolean)(
+  def prettify(tpe: Type, ctx: RuleCtx, shortenNames: Boolean)(
       implicit sctx: SemanticCtx): (Type, Patch) = {
 
     val functionN: SymbolMatcher = SymbolMatcher.exact(

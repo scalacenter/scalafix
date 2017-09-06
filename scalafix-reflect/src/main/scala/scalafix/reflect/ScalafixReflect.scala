@@ -17,7 +17,7 @@ object ScalafixReflect {
     ruleConfDecoder(
       MetaconfigPendingUpstream.orElse(
         ScalafixCompilerDecoder.baseCompilerDecoder(sctx),
-        baseRewriteDecoders(sctx)
+        baseRuleDecoders(sctx)
       )
     )
 }

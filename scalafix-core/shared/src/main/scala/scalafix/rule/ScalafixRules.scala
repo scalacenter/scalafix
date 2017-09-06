@@ -3,7 +3,7 @@ package rule
 
 import scalafix.internal.rule._
 
-object ScalafixRewrites {
+object ScalafixRules {
   val syntax: List[Rule] = List(
     ProcedureSyntax,
     DottyVolatileLazyVal,

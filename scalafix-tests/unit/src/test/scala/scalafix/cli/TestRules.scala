@@ -3,7 +3,7 @@ package scalafix.cli
 import scalafix.lint.LintCategory
 import scalafix.rule.Rule
 
-object TestRewrites {
+object TestRules {
   val LintError: Rule = Rule.syntactic("LintError") { ctx =>
     val failure = LintCategory.error("failure", "Error!")
     ctx.lint(failure.at(ctx.tree.pos))

@@ -14,8 +14,8 @@ import scalafix.patch.TokenPatch.Add
 import scalafix.patch.TreePatch
 import scalafix.patch.TreePatch.AddGlobalImport
 import scalafix.patch.TreePatch.RemoveGlobalImport
-import scalafix.rule.RewriteCtx
-import scalafix.rule.RewriteName
+import scalafix.rule.RuleCtx
+import scalafix.rule.RuleName
 import scalafix.syntax._
 import scalafix.util.MatchingParens
 import scalafix.util.SemanticCtx
@@ -23,8 +23,8 @@ import scalafix.util.TokenList
 import org.scalameta.FileLine
 import org.scalameta.logger
 
-case class RewriteCtxImpl(tree: Tree, config: ScalafixConfig)
-    extends RewriteCtx {
+case class RuleCtxImpl(tree: Tree, config: ScalafixConfig)
+    extends RuleCtx {
   ctx =>
   def syntax: String =
     s"""${tree.input.syntax}
@@ -49,7 +49,7 @@ case class RewriteCtxImpl(tree: Tree, config: ScalafixConfig)
     logger.elem(values: _*)
   }
 
-  def printLintMessage(msg: LintMessage, owner: RewriteName): Unit = {
+  def printLintMessage(msg: LintMessage, owner: RuleName): Unit = {
     val key = msg.category.key(owner)
     if (config.lint.ignore.matches(key)) ()
     else {

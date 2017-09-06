@@ -1,7 +1,7 @@
 package scalafix.lint
 
 import scala.meta.Position
-import scalafix.rule.RewriteName
+import scalafix.rule.RuleName
 
 /** An observation of a LintCategory at a particular position
   *
@@ -16,7 +16,7 @@ final case class LintMessage(
     position: Position,
     category: LintCategory
 ) {
-  def format(owner: RewriteName, explain: Boolean): String = {
+  def format(owner: RuleName, explain: Boolean): String = {
     val explanation =
       if (explain)
         s"""

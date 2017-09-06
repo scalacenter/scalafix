@@ -9,7 +9,7 @@ import java.nio.file.Paths
 import scala.meta.Input
 import scalafix.rule.Rule
 import scalafix.internal.config.LazySemanticCtx
-import scalafix.internal.config.ScalafixMetaconfigReaders.UriRewrite
+import scalafix.internal.config.ScalafixMetaconfigReaders.UriRule
 import scalafix.internal.util.FileOps
 import metaconfig.Conf
 import metaconfig.ConfDecoder
@@ -21,23 +21,23 @@ import metaconfig.Configured.Ok
 object ScalafixCompilerDecoder {
   def baseCompilerDecoder(sctx: LazySemanticCtx): ConfDecoder[Rule] =
     ConfDecoder.instance[Rule] {
-      case FromSourceRewrite(rule) =>
+      case FromSourceRule(rule) =>
         rule match {
-          case Ok(code) => ScalafixToolbox.getRewrite(code, sctx)
+          case Ok(code) => ScalafixToolbox.getRule(code, sctx)
           case err @ NotOk(_) => err
         }
     }
 
-  object UrlRewrite {
+  object UrlRule {
     def unapply(arg: Conf.Str): Option[Configured[URL]] = arg match {
-      case UriRewrite("http" | "https", uri) if uri.isAbsolute =>
+      case UriRule("http" | "https", uri) if uri.isAbsolute =>
         Option(Ok(uri.toURL))
-      case GitHubUrlRewrite(url) => Option(url)
+      case GitHubUrlRule(url) => Option(url)
       case _ => None
     }
   }
 
-  object GitHubUrlRewrite {
+  object GitHubUrlRule {
     private[this] val GitHubShorthand =
       """github:([^\/]+)\/([^\/]+)\/([^\/]+)""".r
     private[this] val GitHubShorthandWithSha =
@@ -82,15 +82,15 @@ object ScalafixCompilerDecoder {
     }
   }
 
-  object FileRewrite {
+  object FileRule {
     def unapply(arg: Conf.Str): Option[File] = arg match {
-      case UriRewrite("file", uri) =>
+      case UriRule("file", uri) =>
         Option(new File(uri.getSchemeSpecificPart).getAbsoluteFile)
       case _ => None
     }
   }
 
-  object FromSourceRewrite {
+  object FromSourceRule {
     private val scalafixRoot = Files.createTempDirectory("scalafix")
     scalafixRoot.toFile.deleteOnExit()
     private val fileCache = scala.collection.concurrent.TrieMap.empty[Int, Path]
@@ -104,10 +104,10 @@ object ScalafixCompilerDecoder {
         }
       )
     def unapply(arg: Conf.Str): Option[Configured[Input]] = arg match {
-      case FileRewrite(file) =>
+      case FileRule(file) =>
         // NOgg
         Option(Ok(Input.File(file)))
-      case UrlRewrite(Ok(url)) =>
+      case UrlRule(Ok(url)) =>
         try {
           val code = FileOps.readURL(url)
           val file = getTempFile(url, code)

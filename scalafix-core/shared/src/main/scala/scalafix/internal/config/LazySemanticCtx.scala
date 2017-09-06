@@ -9,16 +9,16 @@ import scalafix.SemanticCtx
 // to detect if a rule is semantic is different.
 // LazySemanticCtx allows us to delay the computation of a sctx right up until
 // the moment we instantiate the rule.
-//type LazySemanticCtx = RewriteKind => Option[SemanticCtx]
+//type LazySemanticCtx = RuleKind => Option[SemanticCtx]
 class LazySemanticCtx(
-    f: RewriteKind => Option[SemanticCtx],
+    f: RuleKind => Option[SemanticCtx],
     val reporter: ScalafixReporter)
-    extends Function[RewriteKind, Option[SemanticCtx]] {
-  override def apply(v1: RewriteKind): Option[SemanticCtx] = f(v1)
+    extends Function[RuleKind, Option[SemanticCtx]] {
+  override def apply(v1: RuleKind): Option[SemanticCtx] = f(v1)
 }
 
 object LazySemanticCtx {
   lazy val empty = new LazySemanticCtx(_ => None, ScalafixReporter.default)
-  def apply(f: RewriteKind => Option[SemanticCtx]): LazySemanticCtx =
+  def apply(f: RuleKind => Option[SemanticCtx]): LazySemanticCtx =
     new LazySemanticCtx(f, ScalafixReporter.default)
 }

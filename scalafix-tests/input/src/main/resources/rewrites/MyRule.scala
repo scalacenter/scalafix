@@ -3,8 +3,8 @@ package foo.bar
 import scalafix._
 import scala.meta._
 
-case object MyRewrite extends Rewrite {
-  def rule(ctx: RewriteCtx): Patch = {
+case object MyRule extends Rule {
+  def rule(ctx: RuleCtx): Patch = {
     val custom =
       ctx.config.x.dynamic.custom.asConf
         .map(_.asInstanceOf[Conf.Bool].value)
@@ -16,7 +16,7 @@ case object MyRewrite extends Rewrite {
   }
 }
 
-case class MyRewrite2(sctx: SemanticCtx) extends SemanticRewrite(sctx) {
-  def rule(ctx: RewriteCtx): Patch =
+case class MyRule2(sctx: SemanticCtx) extends SemanticRule(sctx) {
+  def rule(ctx: RuleCtx): Patch =
     ctx.addGlobalImport(importer"scala.collection.immutable.Seq")
 }

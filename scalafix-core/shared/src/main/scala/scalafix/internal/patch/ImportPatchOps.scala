@@ -9,7 +9,7 @@ import scalafix.patch.Patch
 import scalafix.patch.TokenPatch
 import scalafix.patch.TreePatch
 import scalafix.patch.TreePatch.ImportPatch
-import scalafix.rule.RewriteCtx
+import scalafix.rule.RuleCtx
 import scalafix.syntax._
 import scalafix.util.Newline
 import scala.meta._
@@ -36,7 +36,7 @@ object ImportPatchOps {
     }
   }
 
-  private def fallbackToken(ctx: RewriteCtx): Token = {
+  private def fallbackToken(ctx: RuleCtx): Token = {
     def loop(tree: Tree): Token = tree match {
       case Source((stat: Pkg) :: _) => loop(stat)
       case Source(_) => ctx.toks(tree).head
@@ -70,7 +70,7 @@ object ImportPatchOps {
   // NOTE(olafur): This method is the simplest/dummest thing I can think of
   // to convert
   private[scalafix] def superNaiveImportPatchToTokenPatchConverter(
-      ctx: RewriteCtx,
+      ctx: RuleCtx,
       importPatches: Seq[ImportPatch])(
       implicit sctx: SemanticCtx): Iterable[Patch] = {
     val allImports = ctx.tree.collect { case i: Import => i }

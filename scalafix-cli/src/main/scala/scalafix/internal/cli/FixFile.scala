@@ -9,7 +9,7 @@ case class FixFile(
     original: Input.File,
     // For semantic rules on fat semanticdb, the input in scalafix.SemanticCtx
     // is labeled strings instead of Input.File. The labeled string must be used
-    // in the RewriteCtx in order to position lookups in SemanticCtx.names/symbols
+    // in the RuleCtx in order to position lookups in SemanticCtx.names/symbols
     // to match, since scala.meta.Position.input must match.
     semanticFile: Option[Input.VirtualFile] = None,
     // Was this file passed explicitly or expanded from a directory?

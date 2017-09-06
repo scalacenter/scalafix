@@ -6,14 +6,14 @@ import scalafix.rule.Rule
 import metaconfig.ConfError
 import metaconfig.Configured
 
-object ConfigRewrite {
+object ConfigRule {
   def apply(
-      patches: ConfigRewritePatches,
+      patches: ConfigRulePatches,
       getSemanticCtx: LazySemanticCtx): Configured[Option[Rule]] = {
     val configurationPatches = patches.all
     if (configurationPatches.isEmpty) Configured.Ok(None)
     else {
-      getSemanticCtx(RewriteKind.Semantic) match {
+      getSemanticCtx(RuleKind.Semantic) match {
         case None =>
           ConfError
             .msg(".scalafix.conf patches require the Semantic API.")

@@ -19,8 +19,8 @@ import org.scalameta.logger
 
 /** A data structure that can produce a .patch file.
   *
-  * The best way to build a Patch is with a RewriteCtx inside a Rewrite.
-  * For example, `Rewrite.syntactic(ctx => ctx.addLeft(ctx.tree.tokens.head): Patch)`
+  * The best way to build a Patch is with a RuleCtx inside a Rule.
+  * For example, `Rule.syntactic(ctx => ctx.addLeft(ctx.tree.tokens.head): Patch)`
   *
   * Patches can be composed with Patch.+ and Patch.++. A Seq[Patch] can be combined
   * into a single patch with `Seq[Patch](...).asPatch` with `import scalafix._`.
@@ -118,7 +118,7 @@ object Patch {
 
   private[scalafix] def lintMessages(
       patch: Patch,
-      ctx: RewriteCtx): List[LintMessage] = {
+      ctx: RuleCtx): List[LintMessage] = {
     val builder = List.newBuilder[LintMessage]
     foreach(patch) {
       case LintPatch(lint) =>
@@ -133,7 +133,7 @@ object Patch {
   // can expose a better api for your use case.
   private[scalafix] def apply(
       p: Patch,
-      ctx: RewriteCtx,
+      ctx: RuleCtx,
       sctx: Option[SemanticCtx]
   ): String = {
     val patches = underlying(p)
@@ -153,7 +153,7 @@ object Patch {
   }
 
   private def syntaxApply(
-      ctx: RewriteCtx,
+      ctx: RuleCtx,
       patches: Iterable[TokenPatch]): String = {
     val patchMap = patches
       .groupBy(x => TokenOps.hash(x.tok))
@@ -164,7 +164,7 @@ object Patch {
   }
 
   private def semanticApply(
-      patch: Patch)(implicit ctx: RewriteCtx, sctx: SemanticCtx): String = {
+      patch: Patch)(implicit ctx: RuleCtx, sctx: SemanticCtx): String = {
     val base = underlying(patch)
     val moveSymbol = underlying(
       ReplaceSymbolOps.naiveMoveSymbolPatch(base.collect {

@@ -5,23 +5,23 @@ import scala.meta._
 import metaconfig.ConfError
 import metaconfig.Configured
 
-object RewriteInstrumentation {
+object RuleInstrumentation {
 
-  def getRewriteFqn(code: Input): Configured[Seq[String]] = {
+  def getRuleFqn(code: Input): Configured[Seq[String]] = {
     import scala.meta._
-    object ExtendsRewrite {
+    object ExtendsRule {
       def unapply(templ: Template): Boolean = templ match {
-        case Template(_, init"Rewrite" :: _, _, _) => true
         case Template(_, init"Rule" :: _, _, _) => true
-        case Template(_, init"SemanticRewrite($_)" :: _, _, _) => true
+        case Template(_, init"Rule" :: _, _, _) => true
+        case Template(_, init"SemanticRule($_)" :: _, _, _) => true
         case Template(_, init"SemanticRule($_)" :: _, _, _) => true
         case _ => false
       }
     }
-    object LambdaRewrite {
+    object LambdaRule {
       def unapply(arg: Term): Boolean = arg match {
-        case q"Rewrite.syntactic($_)" => true
-        case q"Rewrite.semantic($_)" => true
+        case q"Rule.syntactic($_)" => true
+        case q"Rule.semantic($_)" => true
         case q"Rule.syntactic($_)" => true
         case q"Rule.semantic($_)" => true
         case _ => false
@@ -39,13 +39,13 @@ object RewriteInstrumentation {
         def loop(prefix: Vector[String], tree: Tree): Unit = tree match {
           case Pkg(ref, stats) =>
             stats.foreach(s => loop(prefix :+ ref.syntax, s))
-          case Defn.Object(_, name, ExtendsRewrite()) =>
+          case Defn.Object(_, name, ExtendsRule()) =>
             add(prefix :+ name.syntax)
           case Defn.Object(_, name, _) =>
             tree.children.foreach(s => loop(prefix :+ name.syntax, s))
-          case Defn.Class(_, name, _, _, ExtendsRewrite()) =>
+          case Defn.Class(_, name, _, _, ExtendsRule()) =>
             add(prefix :+ name.syntax)
-          case Defn.Val(_, Pat.Var(name) :: Nil, _, LambdaRewrite()) =>
+          case Defn.Val(_, Pat.Var(name) :: Nil, _, LambdaRule()) =>
             add(prefix :+ name.syntax)
           case _ =>
             tree.children.foreach(s => loop(prefix, s))
