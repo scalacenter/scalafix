@@ -10,9 +10,9 @@ import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.Configured
 
-/** A Scalafix Rule is a checker/linter/rewrite/auto-fixer.
+/** A Scalafix Rule.
   *
-  * To implement a rewrite/auto-fixer, override the `fix` method. Example:
+  * To provide automatic fixes for this rule, override the `fix` method. Example:
   * {{{
   *   object ReverseNames extends Rule("ReverseNames") {
   *     override def fix(ctx: RuleCtx) =
@@ -22,7 +22,8 @@ import metaconfig.Configured
   *   }
   * }}}
   *
-  * To implement a linter/checker, override the `check` method. Example:
+  * To report violations of this rule (without autofix suggestions), override
+  * the `check` method. Example:
   * {{{
   *   // example syntactic linter
   *   object NoVars extends Rule("NoVars") {

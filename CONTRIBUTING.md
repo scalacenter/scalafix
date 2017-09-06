@@ -3,7 +3,7 @@ Contributing
 
 ## Modules
 
-- `scalafix-core/` data structures and algorithms for scalafix rules (linters/checkers/rewrites/fixes)
+- `scalafix-core/` data structures and algorithms for scalafix rules.
 - `scalafix-cli/` command-line interface
 - `scalafix-sbt/` SBT plugin
 - `scalafix-nsc/` Scalafix compiler plugin for scalac (codename `nsc` stands for "new Scala compiler")
