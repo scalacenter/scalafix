@@ -13,16 +13,8 @@ object ExplicitReturnTypesBase {
   private val g = 1
   private def h(a: Int) = ""
   private var i = 22
-
-  locally {
-    implicit val Implicit: _root_.scala.concurrent.Future[_root_.scala.Int] = scala.concurrent.Future.successful(2)
-    val Var = scala.concurrent.Future.successful(2)
-    val Val = scala.concurrent.Future.successful(2)
-    def Def = scala.concurrent.Future.successful(2)
-  }
-
   private implicit var j: _root_.scala.Int = 1
-
+  val k: (_root_.scala.Int, _root_.java.lang.String) = (1, "msg")
   implicit val L: _root_.scala.collection.immutable.List[_root_.scala.Int] = List(1)
   implicit val M: _root_.scala.collection.immutable.Map[_root_.scala.Int, _root_.java.lang.String] = Map(1 -> "STRING")
   implicit def D: _root_.scala.Int = 2
@@ -41,6 +33,18 @@ object ExplicitReturnTypesBase {
     def foo_ : _root_.scala.Int = "abc".length
     def `x`: _root_.scala.Int = "abc".length
     def `x `: _root_.scala.Int = "abc".length
+  }
+  locally {
+    implicit val Implicit: _root_.scala.concurrent.Future[_root_.scala.Int] = scala.concurrent.Future.successful(2)
+    val Var = scala.concurrent.Future.successful(2)
+    val Val = scala.concurrent.Future.successful(2)
+    def Def = scala.concurrent.Future.successful(2)
+  }
+  object unicode {
+    object `->` {
+      def unapply[S](in: (S, S)): Option[(S, S)] = Some(in)
+    }
+    val `→`: _root_.test.explicitReturnTypes.ExplicitReturnTypesBase.unicode.->.type = `->`
   }
 }
 

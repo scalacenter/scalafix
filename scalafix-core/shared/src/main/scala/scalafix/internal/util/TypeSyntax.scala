@@ -1,6 +1,7 @@
 package scalafix.internal.util
 
 import scala.meta._
+import scala.reflect.ClassTag
 import scalafix._
 import scalafix.internal.util.SymbolOps.SymbolType
 import scalafix.util.SymbolMatcher
@@ -32,9 +33,9 @@ object TypeSyntax {
       }
     }
 
-    def stableRef(sym: Symbol): (Patch, Type) = {
+    def stableRef(sym: Symbol): (Patch, Tree) = {
       var patch = Patch.empty
-      def loop[T](symbol: Symbol): T = {
+      def loop[T: ClassTag](symbol: Symbol): T = {
         val result = symbol match {
           case Symbol.Global(Symbol.None, Signature.Term(name)) =>
             Term.Name(name)
@@ -44,50 +45,59 @@ object TypeSyntax {
             if (shortenNames && isStable(owner)) {
               patch += ctx.addGlobalImport(symbol)
               Term.Name(name)
-            } else Term.Select(loop(owner), Term.Name(name))
+            } else {
+              Term.Select(loop[Term.Ref](owner), Term.Name(name))
+            }
           case Symbol.Global(owner, Signature.Type(name)) =>
             if (shortenNames && isStable(owner)) {
               patch += ctx.addGlobalImport(symbol)
               Type.Name(name)
-            } else Type.Select(loop(owner), Type.Name(name))
+            } else Type.Select(loop[Term.Ref](owner), Type.Name(name))
+
           case Symbol.Global(_, Signature.TypeParameter(name)) =>
             Type.Name(name)
         }
         result.asInstanceOf[T]
       }
-      val tpe = loop[Type](sym)
+      val tpe = loop[Tree](sym)
       patch -> tpe
     }
 
     var patch = Patch.empty
-    def loop[T](tpe: Tree): T = {
-      val result = tpe match {
-        // Function2[A, B] => A => B
+    object transformer extends Transformer {
+      def typeMismatch[T](obtained: Any, expected: ClassTag[T]): Nothing =
+        throw new IllegalArgumentException(
+          s"""Expected $expected.
+             |Obtained $obtained: ${obtained.getClass}""".stripMargin
+        )
+      def apply_![T](tree: Tree)(implicit ev: ClassTag[T]): T =
+        super.apply(tree) match {
+          case e: T => e
+          case els => typeMismatch(els, ev)
+        }
+      def apply_![T](tpes: List[Type])(implicit ev: ClassTag[T]): List[T] =
+        super.apply(tpes).collect {
+          case tpe: T => tpe
+          case els => typeMismatch(els, ev)
+        }
+      override def apply(tree: Tree): Tree = tree match {
         case Type.Apply(functionN(_), args) =>
-          val rargs = args.map(loop[Type])
+          val rargs = apply_![Type](args)
           Type.Function(rargs.init, rargs.last)
-
-        // Tuple2[A, B] => (A, B)
         case Type.Apply(tupleN(_), args) =>
-          val rargs = args.map(loop[Type])
+          val rargs = apply_![Type](args)
           Type.Tuple(rargs)
-
-        case Type.Name(_) :&&: sctx.Symbol(sym) =>
-          val (addImport, tpe) = stableRef(sym)
+        case Name(_) :&&: sctx.Symbol(sym) =>
+          val (addImport, t) = stableRef(sym)
           patch += addImport
-          tpe
-
-        // TODO(olafur): handle select after https://github.com/scalameta/scalameta/pull/1107
-
-        // Recursive case
-        case Type.Apply(qual, args) =>
-          val rargs = args.map(loop[Type])
-          Type.Apply(loop[Type](qual), rargs)
-        case _ =>
-          tpe
+          t
+        case Type.Select(qual, name) =>
+          Type.Select(apply_![Term.Ref](qual), name)
+        case els =>
+          super.apply(els)
       }
-      result.asInstanceOf[T]
     }
-    loop(tpe).asInstanceOf[Type] -> patch
+    val result = transformer.apply(tpe).asInstanceOf[Type]
+    result -> patch
   }
 }
