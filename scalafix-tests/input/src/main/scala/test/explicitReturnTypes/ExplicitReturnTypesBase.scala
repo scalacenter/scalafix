@@ -18,16 +18,8 @@ object ExplicitReturnTypesBase {
   private val g = 1
   private def h(a: Int) = ""
   private var i = 22
-
-  locally {
-    implicit val Implicit = scala.concurrent.Future.successful(2)
-    val Var = scala.concurrent.Future.successful(2)
-    val Val = scala.concurrent.Future.successful(2)
-    def Def = scala.concurrent.Future.successful(2)
-  }
-
   private implicit var j = 1
-
+  val k = (1, "msg")
   implicit val L = List(1)
   implicit val M = Map(1 -> "STRING")
   implicit def D = 2
@@ -47,4 +39,11 @@ object ExplicitReturnTypesBase {
     def `x` = "abc".length
     def `x ` = "abc".length
   }
+  locally {
+    implicit val Implicit = scala.concurrent.Future.successful(2)
+    val Var = scala.concurrent.Future.successful(2)
+    val Val = scala.concurrent.Future.successful(2)
+    def Def = scala.concurrent.Future.successful(2)
+  }
+
 }
