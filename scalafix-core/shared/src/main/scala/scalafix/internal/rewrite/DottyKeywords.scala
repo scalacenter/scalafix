@@ -2,11 +2,11 @@ package scalafix.internal.rewrite
 
 import scala.meta._
 import scalafix.Patch
-import scalafix.rewrite.Rewrite
+import scalafix.rewrite.Rule
 import scalafix.rewrite.RewriteCtx
 import scalafix.syntax._
 
-case object DottyKeywords extends Rewrite {
+case object DottyKeywords extends Rule {
   override def rewrite(ctx: RewriteCtx): Patch =
     ctx.tree.collect {
       case name @ Name("enum") =>

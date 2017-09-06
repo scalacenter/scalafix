@@ -12,7 +12,7 @@ import metaconfig.ConfDecoder
 import metaconfig.Configured
 
 /** A Rewrite is a program that produces a Patch from a scala.meta.Tree. */
-abstract class Rewrite(implicit val rewriteName: RewriteName) { self =>
+abstract class Rule(implicit val rewriteName: RewriteName) { self =>
 
   /** Build patch for a single tree/compilation unit.
     *
@@ -30,13 +30,13 @@ abstract class Rewrite(implicit val rewriteName: RewriteName) { self =>
     * @return the initialized rewrite or an error. If no initialization is needed,
     *         return Configured.Ok(this).
     */
-  def init(config: Conf): Configured[Rewrite] =
+  def init(config: Conf): Configured[Rule] =
     Configured.Ok(this)
 
   /** Combine this rewrite with another rewrite. */
-  final def merge(other: Rewrite): Rewrite = Rewrite.merge(this, other)
+  final def merge(other: Rule): Rule = Rule.merge(this, other)
   @deprecated("Renamed to merge.", "0.5.0")
-  final def andThen(other: Rewrite): Rewrite = merge(other)
+  final def andThen(other: Rule): Rule = merge(other)
 
   /** Returns string output of applying this single patch. */
   final def apply(ctx: RewriteCtx): String = apply(ctx, rewrite(ctx))
@@ -80,49 +80,49 @@ abstract class Rewrite(implicit val rewriteName: RewriteName) { self =>
   protected[scalafix] def semanticOption: Option[SemanticCtx] = None
 }
 
-abstract class SemanticRewrite(sctx: SemanticCtx)(implicit name: RewriteName)
-    extends Rewrite {
+abstract class SemanticRule(sctx: SemanticCtx)(implicit name: RewriteName)
+    extends Rule {
   implicit val ImplicitSemanticCtx: SemanticCtx = sctx
   override def semanticOption: Option[SemanticCtx] = Some(sctx)
 }
 
-object Rewrite {
-  val syntaxRewriteConfDecoder: ConfDecoder[Rewrite] =
+object Rule {
+  val syntaxRewriteConfDecoder: ConfDecoder[Rule] =
     ScalafixMetaconfigReaders.rewriteConfDecoderSyntactic(
       ScalafixMetaconfigReaders.baseSyntacticRewriteDecoder)
-  lazy val empty: Rewrite = syntactic(_ => Patch.empty)(RewriteName.empty)
-  def emptyConfigured: Configured[Rewrite] = Configured.Ok(empty)
-  def emptyFromSemanticCtxOpt(sctx: Option[SemanticCtx]): Rewrite =
+  lazy val empty: Rule = syntactic(_ => Patch.empty)(RewriteName.empty)
+  def emptyConfigured: Configured[Rule] = Configured.Ok(empty)
+  def emptyFromSemanticCtxOpt(sctx: Option[SemanticCtx]): Rule =
     sctx.fold(empty)(emptySemantic)
-  def combine(rewrites: Seq[Rewrite]): Rewrite =
+  def combine(rewrites: Seq[Rule]): Rule =
     rewrites.foldLeft(empty)(_ merge _)
-  private[scalafix] def emptySemantic(sctx: SemanticCtx): Rewrite =
+  private[scalafix] def emptySemantic(sctx: SemanticCtx): Rule =
     semantic(_ => _ => Patch.empty)(RewriteName.empty)(sctx)
 
   /** Creates a syntactic rewrite. */
-  def syntactic(f: RewriteCtx => Patch)(implicit name: RewriteName): Rewrite =
-    new Rewrite() {
+  def syntactic(f: RewriteCtx => Patch)(implicit name: RewriteName): Rule =
+    new Rule() {
       override def rewrite(ctx: RewriteCtx): Patch = f(ctx)
     }
 
   /** Creates a semantic rewrite. */
   def semantic(f: SemanticCtx => RewriteCtx => Patch)(
-      implicit rewriteName: RewriteName): SemanticCtx => Rewrite = { sctx =>
-    new SemanticRewrite(sctx) {
+      implicit rewriteName: RewriteName): SemanticCtx => Rule = { sctx =>
+    new SemanticRule(sctx) {
       override def rewrite(ctx: RewriteCtx): Patch = f(sctx)(ctx)
     }
   }
 
   /** Creates a rewrite that always returns the same patch. */
-  def constant(name: String, patch: Patch, sctx: SemanticCtx): Rewrite =
-    new SemanticRewrite(sctx)(RewriteName(name)) {
+  def constant(name: String, patch: Patch, sctx: SemanticCtx): Rule =
+    new SemanticRule(sctx)(RewriteName(name)) {
       override def rewrite(ctx: RewriteCtx): Patch = patch
     }
 
   /** Combine two rewrites into a single rewrite */
-  def merge(a: Rewrite, b: Rewrite): Rewrite = {
-    new Rewrite()(a.rewriteName + b.rewriteName) {
-      override def init(config: Conf): Configured[Rewrite] = {
+  def merge(a: Rule, b: Rule): Rule = {
+    new Rule()(a.rewriteName + b.rewriteName) {
+      override def init(config: Conf): Configured[Rule] = {
         a.init(config).product(b.init(config)).map {
           case (x, y) => x.merge(y)
         }

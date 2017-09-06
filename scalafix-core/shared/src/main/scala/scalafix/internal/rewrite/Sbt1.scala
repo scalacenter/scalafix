@@ -5,9 +5,9 @@ import scala.meta.tokens.Token.LeftParen
 import scala.meta.tokens.Token.RightParen
 import scalafix._
 import scalafix.rewrite.RewriteCtx
-import scalafix.rewrite.SemanticRewrite
+import scalafix.rewrite.SemanticRule
 
-case class Sbt1(sctx: SemanticCtx) extends SemanticRewrite(sctx) {
+case class Sbt1(sctx: SemanticCtx) extends SemanticRule(sctx) {
   override def rewrite(ctx: RewriteCtx): Patch = {
     sealed abstract class SbtOperator {
       val operator: String

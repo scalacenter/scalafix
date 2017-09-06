@@ -14,17 +14,17 @@ import scala.{meta => m}
 import scalafix.internal.config.LazySemanticCtx
 import scalafix.internal.config.classloadRewrite
 import scalafix.internal.util.ClassloadRewrite
-import scalafix.rewrite.Rewrite
+import scalafix.rewrite.Rule
 import metaconfig.ConfError
 import metaconfig.Configured
 
 object ScalafixToolbox extends ScalafixToolbox
 class ScalafixToolbox {
   private val rewriteCache =
-    new java.util.concurrent.ConcurrentHashMap[Input, Configured[Rewrite]]()
+    new java.util.concurrent.ConcurrentHashMap[Input, Configured[Rule]]()
   private val compiler = new Compiler()
 
-  def getRewrite(code: Input, sctx: LazySemanticCtx): Configured[Rewrite] =
+  def getRewrite(code: Input, sctx: LazySemanticCtx): Configured[Rule] =
     rewriteCache.getOrDefault(code, {
       val uncached = getRewriteUncached(code, sctx)
       uncached match {
@@ -35,16 +35,14 @@ class ScalafixToolbox {
       uncached
     })
 
-  def getRewriteUncached(
-      code: Input,
-      sctx: LazySemanticCtx): Configured[Rewrite] =
+  def getRewriteUncached(code: Input, sctx: LazySemanticCtx): Configured[Rule] =
     synchronized {
       (
         compiler.compile(code) |@|
           RewriteInstrumentation.getRewriteFqn(code)
       ).andThen {
         case (classloader, names) =>
-          names.foldLeft(Configured.ok(Rewrite.empty)) {
+          names.foldLeft(Configured.ok(Rule.empty)) {
             case (rewrite, fqn) =>
               val args = classloadRewrite(sctx)
               rewrite

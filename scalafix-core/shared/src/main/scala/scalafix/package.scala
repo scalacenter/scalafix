@@ -22,9 +22,16 @@ package object scalafix {
   type RewriteCtx = rewrite.RewriteCtx
   val RewriteCtx = rewrite.RewriteCtx
 
-  type SemanticRewrite = rewrite.SemanticRewrite
-  type Rewrite = rewrite.Rewrite
-  val Rewrite = rewrite.Rewrite
+//  type RuleCtx = rewrite.RuleCtx
+//  val RuleCtx = rewrite.RuleCtx
+
+  type SemanticRewrite = rewrite.SemanticRule
+  type Rewrite = rewrite.Rule
+  val Rewrite = rewrite.Rule
+
+  type SemanticRule = rewrite.SemanticRule
+  type Rule = rewrite.Rule
+  val Rule = rewrite.Rule
 
   type Patch = patch.Patch
   val Patch = patch.Patch

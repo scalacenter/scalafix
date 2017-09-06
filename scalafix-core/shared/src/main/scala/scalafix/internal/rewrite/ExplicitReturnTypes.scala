@@ -10,9 +10,9 @@ import scalafix.internal.config.ExplicitReturnTypesConfig
 import scalafix.internal.config.MemberKind
 import scalafix.internal.config.MemberVisibility
 import scalafix.internal.util.TypeSyntax
-import scalafix.rewrite.Rewrite
+import scalafix.rewrite.Rule
 import scalafix.rewrite.RewriteCtx
-import scalafix.rewrite.SemanticRewrite
+import scalafix.rewrite.SemanticRule
 import scalafix.syntax._
 import scalafix.util.TokenOps
 import metaconfig.Conf
@@ -21,10 +21,10 @@ import metaconfig.Configured
 case class ExplicitReturnTypes(
     sctx: SemanticCtx,
     config: ExplicitReturnTypesConfig = ExplicitReturnTypesConfig.default)
-    extends SemanticRewrite(sctx) {
+    extends SemanticRule(sctx) {
   def this(sctx: SemanticCtx) = this(sctx, ExplicitReturnTypesConfig.default)
 
-  override def init(config: Conf): Configured[Rewrite] =
+  override def init(config: Conf): Configured[Rule] =
     config
       .getOrElse("explicitReturnTypes")(ExplicitReturnTypesConfig.default)
       .map(c => ExplicitReturnTypes(sctx, c))

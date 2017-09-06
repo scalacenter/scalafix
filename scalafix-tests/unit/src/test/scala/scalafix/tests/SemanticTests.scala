@@ -8,7 +8,7 @@ import scala.meta.internal.io.PathIO
 import SemanticTests._
 
 class SemanticTests
-    extends SemanticRewriteSuite(
+    extends SemanticRuleSuite(
       sctx,
       Seq(
         AbsolutePath(BuildInfo.outputSourceroot),

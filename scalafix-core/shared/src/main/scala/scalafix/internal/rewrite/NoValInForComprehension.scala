@@ -3,10 +3,10 @@ package scalafix.internal.rewrite
 import scala.meta._
 import scala.meta.contrib._
 import scalafix.Patch
-import scalafix.rewrite.Rewrite
+import scalafix.rewrite.Rule
 import scalafix.rewrite.RewriteCtx
 
-case object NoValInForComprehension extends Rewrite {
+case object NoValInForComprehension extends Rule {
 
   override def rewrite(ctx: RewriteCtx): Patch = {
     ctx.tree.collect {

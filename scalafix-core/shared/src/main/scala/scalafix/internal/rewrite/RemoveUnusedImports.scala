@@ -4,10 +4,9 @@ import scala.meta._
 import scalafix.Patch
 import scalafix.SemanticCtx
 import scalafix.rewrite.RewriteCtx
-import scalafix.rewrite.SemanticRewrite
+import scalafix.rewrite.SemanticRule
 
-case class RemoveUnusedImports(sctx: SemanticCtx)
-    extends SemanticRewrite(sctx) {
+case class RemoveUnusedImports(sctx: SemanticCtx) extends SemanticRule(sctx) {
   private val unusedImports = sctx.messages.toIterator.collect {
     case Message(pos, _, "Unused import") =>
       pos

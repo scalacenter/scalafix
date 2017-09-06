@@ -127,8 +127,6 @@
     Example usage of the syntactic API.
     @hl.ref(wd/"readme"/"src"/"main"/"scala"/"fix"/"MyRewrite.scala")
     @hl.scala
-      println(MyRewrite.Reverse("object Hello { println('world) }"))
-      // @fix.MyRewrite.Reverse("object Hello { println('world) }")
       println(MyRewrite.Uppercase("object Hello { println('world) }"))
       // @fix.MyRewrite.Uppercase("object Hello { println('world) }")
     The semantic API requires a more complicated setup. Please

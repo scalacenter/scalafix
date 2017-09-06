@@ -12,7 +12,9 @@ object RewriteInstrumentation {
     object ExtendsRewrite {
       def unapply(templ: Template): Boolean = templ match {
         case Template(_, init"Rewrite" :: _, _, _) => true
+        case Template(_, init"Rule" :: _, _, _) => true
         case Template(_, init"SemanticRewrite($_)" :: _, _, _) => true
+        case Template(_, init"SemanticRule($_)" :: _, _, _) => true
         case _ => false
       }
     }
@@ -20,6 +22,8 @@ object RewriteInstrumentation {
       def unapply(arg: Term): Boolean = arg match {
         case q"Rewrite.syntactic($_)" => true
         case q"Rewrite.semantic($_)" => true
+        case q"Rule.syntactic($_)" => true
+        case q"Rule.semantic($_)" => true
         case _ => false
       }
     }

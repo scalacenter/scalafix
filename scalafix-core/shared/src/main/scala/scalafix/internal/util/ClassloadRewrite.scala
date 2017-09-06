@@ -5,7 +5,7 @@ import scalafix.SemanticCtx
 import scala.reflect.ClassTag
 import scala.util.Success
 import scala.util.Try
-import scalafix.Rewrite
+import scalafix.rewrite.Rule
 import metaconfig.ConfError
 import metaconfig.Configured
 
@@ -121,9 +121,9 @@ object ClassloadRewrite {
   def apply(
       fqn: String,
       args: Class[_] => Seq[AnyRef],
-      classloader: ClassLoader = defaultClassloader): Configured[Rewrite] = {
+      classloader: ClassLoader = defaultClassloader): Configured[Rule] = {
     val result =
-      new ClassloadRewrite[Rewrite](classloader).classloadRewrite(fqn, args)
+      new ClassloadRewrite[Rule](classloader).classloadRewrite(fqn, args)
     result match {
       case Success(e) => Configured.Ok(e)
       case util.Failure(e) => Configured.NotOk(ConfError.msg(e.toString))

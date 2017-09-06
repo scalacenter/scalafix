@@ -7,7 +7,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import scala.meta.Input
-import scalafix.rewrite.Rewrite
+import scalafix.rewrite.Rule
 import scalafix.internal.config.LazySemanticCtx
 import scalafix.internal.config.ScalafixMetaconfigReaders.UriRewrite
 import scalafix.internal.util.FileOps
@@ -19,8 +19,8 @@ import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
 
 object ScalafixCompilerDecoder {
-  def baseCompilerDecoder(sctx: LazySemanticCtx): ConfDecoder[Rewrite] =
-    ConfDecoder.instance[Rewrite] {
+  def baseCompilerDecoder(sctx: LazySemanticCtx): ConfDecoder[Rule] =
+    ConfDecoder.instance[Rule] {
       case FromSourceRewrite(rewrite) =>
         rewrite match {
           case Ok(code) => ScalafixToolbox.getRewrite(code, sctx)

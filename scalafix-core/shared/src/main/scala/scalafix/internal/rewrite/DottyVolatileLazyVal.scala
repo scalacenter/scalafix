@@ -2,12 +2,12 @@ package scalafix.internal.rewrite
 
 import scala.meta._
 import scalafix.Patch
-import scalafix.rewrite.Rewrite
+import scalafix.rewrite.Rule
 import scalafix.rewrite.RewriteCtx
 import scalafix.rewrite.RewriteName
 
 case object DottyVolatileLazyVal
-    extends Rewrite()(
+    extends Rule()(
       RewriteName("DottyVolatileLazyVal").withOldName(
         name = "VolatileLazyVal",
         message = "Use DottyVolatileLazyVal instead.",

@@ -5,10 +5,10 @@ import scala.meta._
 import scala.meta.tokens.Token.LeftBrace
 import scala.meta.tokens.Token.RightParen
 import scalafix.Patch
-import scalafix.rewrite.Rewrite
+import scalafix.rewrite.Rule
 import scalafix.rewrite.RewriteCtx
 
-case object ProcedureSyntax extends Rewrite {
+case object ProcedureSyntax extends Rule {
   override def rewrite(ctx: RewriteCtx): Patch = {
     val patches: Seq[Patch] = ctx.tree.collect {
       case t: Defn.Def

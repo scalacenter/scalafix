@@ -4,9 +4,9 @@ import scala.meta._
 import scalafix.Patch
 import scalafix.SemanticCtx
 import scalafix.rewrite.RewriteCtx
-import scalafix.rewrite.SemanticRewrite
+import scalafix.rewrite.SemanticRule
 
-case class NoAutoTupling(sctx: SemanticCtx) extends SemanticRewrite(sctx) {
+case class NoAutoTupling(sctx: SemanticCtx) extends SemanticRule(sctx) {
 
   private[this] def addWrappingParens(ctx: RewriteCtx, args: Seq[Term]): Patch =
     ctx.addLeft(args.head.tokens.head, "(") +

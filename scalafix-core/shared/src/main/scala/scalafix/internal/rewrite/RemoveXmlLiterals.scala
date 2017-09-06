@@ -3,7 +3,7 @@ package scalafix.internal.rewrite
 import scalafix._
 import scala.meta._
 import scalafix.Patch
-import scalafix.rewrite.Rewrite
+import scalafix.rewrite.Rule
 import scalafix.rewrite.RewriteCtx
 
 /* Rewrite Xml literals to Xml interpolators.
@@ -21,7 +21,7 @@ import scalafix.rewrite.RewriteCtx
  * Xml patterns will not be supported by the xml interpolator,
  * until we know how to rewrite `case <a>{ns @ _*}</a>`.
  */
-case object RemoveXmlLiterals extends Rewrite {
+case object RemoveXmlLiterals extends Rule {
 
   val singleBracesEscape = LintCategory.warning(
     """Single braces don't need be escaped with {{ and }} inside xml interpolators, unlike xml literals.

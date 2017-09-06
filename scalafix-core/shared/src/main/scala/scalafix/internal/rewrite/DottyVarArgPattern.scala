@@ -3,10 +3,10 @@ package scalafix.internal.rewrite
 import scala.meta._
 import scala.meta.tokens.Token
 import scalafix.Patch
-import scalafix.rewrite.Rewrite
+import scalafix.rewrite.Rule
 import scalafix.rewrite.RewriteCtx
 
-case object DottyVarArgPattern extends Rewrite {
+case object DottyVarArgPattern extends Rule {
   override def rewrite(ctx: RewriteCtx): Patch = {
     val patches = ctx.tree.collect {
       case bind @ Pat.Bind(_, Pat.SeqWildcard()) =>

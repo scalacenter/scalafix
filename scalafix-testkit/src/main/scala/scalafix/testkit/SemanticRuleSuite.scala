@@ -12,7 +12,7 @@ import org.scalatest.exceptions.TestFailedException
 import scala.meta.internal.inputs.XtensionPositionFormatMessage
 import scala.util.matching.Regex
 
-object SemanticRewriteSuite {
+object SemanticRuleSuite {
   val LintAssertion: Regex = " scalafix: (.*)".r
   def stripTestkitComments(input: String): String =
     stripTestkitComments(input.tokenize.get)
@@ -28,7 +28,7 @@ object SemanticRewriteSuite {
   }
 }
 
-abstract class SemanticRewriteSuite(
+abstract class SemanticRuleSuite(
     val sctx: SemanticCtx,
     val expectedOutputSourceroot: Seq[AbsolutePath]
 ) extends FunSuite
@@ -83,7 +83,7 @@ abstract class SemanticRewriteSuite(
       }
     }
     tokens.foreach {
-      case tok @ Token.Comment(SemanticRewriteSuite.LintAssertion(key)) =>
+      case tok @ Token.Comment(SemanticRuleSuite.LintAssertion(key)) =>
         assertLint(tok.pos, key)
       case _ =>
     }
@@ -115,7 +115,7 @@ abstract class SemanticRewriteSuite(
         ctx,
         Patch.lintMessages(patch, ctx),
         tokens)
-      val obtained = SemanticRewriteSuite.stripTestkitComments(tokens)
+      val obtained = SemanticRuleSuite.stripTestkitComments(tokens)
       val candidateOutputFiles = expectedOutputSourceroot.flatMap { root =>
         val scalaSpecificFilename =
           dialectToPath(diffTest.document.language).toList.map(path =>

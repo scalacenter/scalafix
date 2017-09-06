@@ -1,19 +1,19 @@
 package scalafix.reflect
 
 import scalafix.SemanticCtx
-import scalafix.Rewrite
+import scalafix.Rule
 import scalafix.internal.config._
 import scalafix.internal.reflect.ScalafixCompilerDecoder
 import metaconfig.ConfDecoder
 
 object ScalafixReflect {
-  def syntactic: ConfDecoder[Rewrite] =
+  def syntactic: ConfDecoder[Rule] =
     fromLazySemanticCtx(LazySemanticCtx.empty)
 
-  def semantic(sctx: SemanticCtx): ConfDecoder[Rewrite] =
+  def semantic(sctx: SemanticCtx): ConfDecoder[Rule] =
     fromLazySemanticCtx(LazySemanticCtx(_ => Some(sctx)))
 
-  def fromLazySemanticCtx(sctx: LazySemanticCtx): ConfDecoder[Rewrite] =
+  def fromLazySemanticCtx(sctx: LazySemanticCtx): ConfDecoder[Rule] =
     rewriteConfDecoder(
       MetaconfigPendingUpstream.orElse(
         ScalafixCompilerDecoder.baseCompilerDecoder(sctx),

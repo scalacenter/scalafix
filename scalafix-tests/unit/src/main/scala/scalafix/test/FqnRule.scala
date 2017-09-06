@@ -4,12 +4,12 @@ import scala.meta._
 import scala.meta.contrib._
 import scalafix._
 
-case class FqnRewrite(sctx: SemanticCtx) extends SemanticRewrite(sctx) {
+case class FqnRule(sctx: SemanticCtx) extends SemanticRewrite(sctx) {
   override def rewrite(ctx: RewriteCtx): Patch =
     ctx.addGlobalImport(importer"scala.collection.immutable")
 }
 
-case object FqnRewrite2 extends Rewrite {
+case object FqnRule2 extends Rewrite {
   override def rewrite(ctx: RewriteCtx): Patch =
     ctx.tree.collectFirst {
       case n: Name => ctx.replaceTree(n, n.value + "2")
