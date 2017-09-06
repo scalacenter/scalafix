@@ -7,7 +7,7 @@ import scalafix.rewrite.RewriteCtx
 import scalafix.syntax._
 
 case object DottyKeywords extends Rule {
-  override def rewrite(ctx: RewriteCtx): Patch =
+  override def fix(ctx: RewriteCtx): Patch =
     ctx.tree.collect {
       case name @ Name("enum") =>
         ctx.replaceTree(name, s"`enum`")

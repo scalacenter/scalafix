@@ -9,7 +9,7 @@ import scalafix.rewrite.Rule
 import scalafix.rewrite.RewriteCtx
 
 case object ProcedureSyntax extends Rule {
-  override def rewrite(ctx: RewriteCtx): Patch = {
+  override def fix(ctx: RewriteCtx): Patch = {
     val patches: Seq[Patch] = ctx.tree.collect {
       case t: Defn.Def
           if t.decltpe.exists(_.tokens.isEmpty) &&

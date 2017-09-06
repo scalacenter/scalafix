@@ -8,7 +8,7 @@ import scalafix.rewrite.RewriteCtx
 object MyRewrite {
   // Syntactic
   case object Uppercase extends Rule {
-    override def rewrite(ctx: RewriteCtx): Patch =
+    override def fix(ctx: RewriteCtx): Patch =
       ctx.tree.collect {
         case tree @ Name(name) => ctx.replaceTree(tree, name.toUpperCase)
       }.asPatch

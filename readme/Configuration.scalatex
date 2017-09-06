@@ -63,7 +63,7 @@
         If a rewrite is written in a single source file on the internet,
         you can load it with the @code{https:} or @code{http:} protocol
         @config
-          rewrite = "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/dfce7784d61dffda183a582b9a1750399c2c465b/ExampleRewrite.scala"
+          rewrite = "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/84dc2450844531d3aeb81d4f3e1dc741abf920c3/ExampleRewrite.scala"
 
   @sect{lint}
     Override the default severity level of a @sect.ref{LintMessage} with @code{lint}

@@ -107,7 +107,7 @@ abstract class SemanticRuleSuite(
         config.dialect(diffTest.original).parse[Source].get,
         config.copy(dialect = diffTest.document.dialect)
       )
-      val patch = rewrite.rewrite(ctx)
+      val patch = rewrite.fix(ctx)
       val obtainedWithComment = Patch.apply(patch, ctx, rewrite.semanticOption)
       val tokens = obtainedWithComment.tokenize.get
       assertLintMessagesAreReported(

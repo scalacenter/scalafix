@@ -14,11 +14,11 @@ import metaconfig.Configured
 /** A Rewrite is a program that produces a Patch from a scala.meta.Tree. */
 abstract class Rule(implicit val rewriteName: RewriteName) { self =>
 
-  /** Build patch for a single tree/compilation unit.
-    *
-    * Override this method to implement a rewrite.
-    */
-  def rewrite(ctx: RewriteCtx): Patch
+  /** Returns linter messages to report violations of this rule. */
+  def check(ctx: RewriteCtx): List[LintMessage] = Nil
+
+  /** Returns a patch to fix violations of this rule. */
+  def fix(ctx: RewriteCtx): Patch = Patch.empty
 
   /** Initialize rewrite.
     *
@@ -39,12 +39,12 @@ abstract class Rule(implicit val rewriteName: RewriteName) { self =>
   final def andThen(other: Rule): Rule = merge(other)
 
   /** Returns string output of applying this single patch. */
-  final def apply(ctx: RewriteCtx): String = apply(ctx, rewrite(ctx))
+  final def apply(ctx: RewriteCtx): String = apply(ctx, fix(ctx))
   final def apply(
       input: Input,
       config: ScalafixConfig = ScalafixConfig.default): String = {
     val ctx = RewriteCtx(config.dialect(input).parse[Source].get, config)
-    val patch = rewrite(ctx)
+    val patch = fix(ctx)
     apply(ctx, patch)
   }
   final def apply(input: String): String = apply(Input.String(input))
@@ -60,7 +60,7 @@ abstract class Rule(implicit val rewriteName: RewriteName) { self =>
 
   /** Returns unified diff from applying this patch */
   final def diff(ctx: RewriteCtx): String =
-    diff(ctx, rewrite(ctx))
+    diff(ctx, fix(ctx))
   final protected def diff(ctx: RewriteCtx, patch: Patch): String = {
     val original = ctx.tree.input
     Patch.unifiedDiff(
@@ -102,21 +102,21 @@ object Rule {
   /** Creates a syntactic rewrite. */
   def syntactic(f: RewriteCtx => Patch)(implicit name: RewriteName): Rule =
     new Rule() {
-      override def rewrite(ctx: RewriteCtx): Patch = f(ctx)
+      override def fix(ctx: RewriteCtx): Patch = f(ctx)
     }
 
   /** Creates a semantic rewrite. */
   def semantic(f: SemanticCtx => RewriteCtx => Patch)(
       implicit rewriteName: RewriteName): SemanticCtx => Rule = { sctx =>
     new SemanticRule(sctx) {
-      override def rewrite(ctx: RewriteCtx): Patch = f(sctx)(ctx)
+      override def fix(ctx: RewriteCtx): Patch = f(sctx)(ctx)
     }
   }
 
   /** Creates a rewrite that always returns the same patch. */
   def constant(name: String, patch: Patch, sctx: SemanticCtx): Rule =
     new SemanticRule(sctx)(RewriteName(name)) {
-      override def rewrite(ctx: RewriteCtx): Patch = patch
+      override def fix(ctx: RewriteCtx): Patch = patch
     }
 
   /** Combine two rewrites into a single rewrite */
@@ -127,8 +127,8 @@ object Rule {
           case (x, y) => x.merge(y)
         }
       }
-      override def rewrite(ctx: RewriteCtx): Patch =
-        a.rewrite(ctx) + b.rewrite(ctx)
+      override def fix(ctx: RewriteCtx): Patch =
+        a.fix(ctx) + b.fix(ctx)
       override def semanticOption: Option[SemanticCtx] =
         (a.semanticOption, b.semanticOption) match {
           case (Some(m1), Some(m2)) =>

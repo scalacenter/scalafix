@@ -18,7 +18,7 @@ case class RemoveUnusedImports(sctx: SemanticCtx) extends SemanticRule(sctx) {
     }
     unusedImports.contains(pos)
   }
-  override def rewrite(ctx: RewriteCtx): Patch =
+  override def fix(ctx: RewriteCtx): Patch =
     ctx.tree.collect {
       case i: Importee if isUnused(i) => ctx.removeImportee(i)
     }.asPatch

@@ -12,7 +12,7 @@ case class NoAutoTupling(sctx: SemanticCtx) extends SemanticRule(sctx) {
     ctx.addLeft(args.head.tokens.head, "(") +
       ctx.addRight(args.last.tokens.last, ")")
 
-  override def rewrite(ctx: RewriteCtx): Patch = {
+  override def fix(ctx: RewriteCtx): Patch = {
     val adaptations = sctx.messages.toIterator.collect {
       case Message(pos, _, msg)
           if msg.startsWith("Adapting argument list by creating a") =>

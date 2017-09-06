@@ -82,7 +82,7 @@ case class ExplicitReturnTypes(
     (denotDialect, input).parse[Type].toOption.map(getDeclType)
   }
 
-  override def rewrite(ctx: RewriteCtx): Patch = {
+  override def fix(ctx: RewriteCtx): Patch = {
     def defnType(defn: Defn): Option[(Type, Patch)] =
       for {
         name <- defnName(defn)

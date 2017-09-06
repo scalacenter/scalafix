@@ -30,7 +30,7 @@ case object RemoveXmlLiterals extends Rule {
       |""".stripMargin
   )
 
-  override def rewrite(ctx: RewriteCtx): Patch = {
+  override def fix(ctx: RewriteCtx): Patch = {
 
     def isMultiLine(xml: Term.Xml) =
       xml.pos.startLine != xml.pos.endLine
