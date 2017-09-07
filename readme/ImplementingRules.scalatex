@@ -68,39 +68,44 @@
       and can be put into the root directory of your repo.
       The tests are written using @sect.ref{scalafix-testkit}.
 
-    @sect{scalafix-testkit}
-      Scalafix-testkit is a module to help you write/run/debug/test scalafix rules.
-      The scalacenter/scalafix.g8 template boilerplate to use scalafix-testkit.
-      The anatomy of a scalafix-testkit project is like this
+  @sect{scalafix-testkit}
+    Scalafix-testkit is a module to help you write/run/debug/test scalafix rules.
+    The scalacenter/scalafix.g8 template boilerplate to use scalafix-testkit.
+    The anatomy of a scalafix-testkit project is like this
 
-      @hl.scala
-        scalafix
-        ├── rules    // rule implementations
-        ├── input    // code that runs through rule
-        ├── output   // expected output from running input on rules
-        └── tests    // tiny project where unit tests run
+    @hl.scala
+      scalafix
+      ├── rules    // rule implementations
+      ├── input    // code that runs through rule
+      ├── output   // expected output from running input on rules
+      └── tests    // tiny project where unit tests run
 
-      The key features of scalafix-testkit are
+    scalafix-testkit features include:
 
-      @ul
-        @li
-          Input code to rules and expected output is written in plain .scala files,
-          with full IDE support.
-        @li
-          Input and expected output files are kept in two separate sbt projects.
-          Each project can have its own set of dependencies.
-        @li
-          Each individual *.scala file in the input project can have a custom
-          .scalafix.conf configuration provided in a comment at the top of
-          the file.
-        @li
-          Test failures are reported as unified diffs from the obtained output
-          of the rule and the expected output in the @code{output} project.
-        @li
-          Assert that a @sect.ref{LintMessage} is expected at a particular line
-          by suffixing the line with the comment @code{// scalafix: <LintCategory>}.
-          The test fails if there exist reported lint messages that have no
-          associated assertion in the input file.
+    @ul
+      @li
+        Input code for rules and expected output is written in plain .scala files,
+        with full IDE support.
+      @li
+        Input and expected output files are kept in two separate sbt projects.
+        Each project can have its own set of dependencies.
+      @li
+        Each individual *.scala file in the input project can have a custom
+        .scalafix.conf configuration provided in a comment at the top of
+        the file.
+      @li
+        Test failures are reported as unified diffs from the obtained output
+        of the rule and the expected output in the @code{output} project.
+      @li
+        Assert that a @sect.ref{LintMessage} is expected at a particular line
+        by suffixing the line with the comment @code{// assert: <LintCategory>}.
+        The test fails if there exist reported lint messages that have no
+        associated assertion in the input file. For an example, see the NoInfer
+        test suite.
+        see
+
+        @hl.ref(wd/"scalafix-tests"/"input"/"src"/"main"/"scala"/"test"/"NoInfer.scala", start = "assert:", end = "assert:")
+
 
   @sect{Example rules}
     The Scalafix repository contains several example rules and tests,

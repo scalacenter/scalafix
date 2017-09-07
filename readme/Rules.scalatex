@@ -253,6 +253,30 @@
       // after
       x += (y in Compile).value
 
+
+    @pureTable
+      @def row(what: String)(status: Frag*) = tr(td(code(what)), td(status))
+      @thead
+        @tr
+          @th
+            Change
+          @th
+            Status
+      @tbody
+        @row{<+= to .value}
+          Done.
+        @row{<++= to .value}
+          Done.
+        @row{<<= to .value}
+          Done.
+        @row{extends Build}
+          Not handled.
+          See @lnk{http://www.scala-sbt.org/1.x/docs/Migrating-from-sbt-013x.html#Migrating+from+the+Build+trait}
+        @row{(task1, task2).map}
+          Not handled.
+          See @lnk{http://www.scala-sbt.org/1.x/docs/Migrating-from-sbt-013x.html#Migrating+from+the+tuple+enrichments}
+
+
   @sect(NoInfer.toString)
     @since("0.5.0")
 
@@ -272,6 +296,7 @@
       @li
         Scalafix does not yet expose an way to disable rules across
         regions of code, track @issue(241) for updates.
+        bt1
 
   @sect{Planned rules...}
     See @lnk("here", "https://github.com/scalacenter/scalafix/labels/rule").

@@ -1,7 +1,7 @@
 package scalafix.internal.patch
 
-import scala.collection.mutable
 import scala.meta._
+import scala.meta.internal.trees._
 import scalafix._
 import scalafix.internal.util.SymbolOps.Root
 import scalafix.internal.util.SymbolOps.SignatureName
@@ -69,7 +69,6 @@ object ReplaceSymbolOps {
         result
       }
     }
-    val toImport = mutable.Set.empty[Symbol]
     val patches = ctx.tree.collect {
       case n @ Move(to) =>
         // was this written as `to = "blah"` instead of `to = _root_.blah`
@@ -82,17 +81,14 @@ object ReplaceSymbolOps {
             ctx.removeImportee(i)
           case Some(parent @ Select(_, `n`)) if isSelected =>
             val (patch, imp) = loop(parent, to)
-            toImport += imp
-            patch
-          case _ =>
-            toImport += to
-            ctx.replaceTree(n, to.signature.name)
+            ctx.addGlobalImport(imp) + patch
+          case Some(_) =>
+            val addImport =
+              if (n.isDefinition) Patch.empty
+              else ctx.addGlobalImport(to)
+            addImport + ctx.replaceTree(n, to.signature.name)
         }
     }
-    val importPatch = toImport.foldLeft(Patch.empty) {
-      case (p, Root(_)) => p
-      case (p, sym) => p + ctx.addGlobalImport(sym)
-    }
-    importPatch ++ patches
+    patches.asPatch
   }
 }

@@ -6,6 +6,8 @@ patches.removeGlobalImports = [
   "scala.collection.mutable"
 ]
 patches.replaceSymbols = [
+  { from = "fix.ReplaceSymbol"
+    to = "fix.ReplaceSymbol" }
   { from = "scala.collection.mutable.ListBuffer"
     to = "com.geirsson.mutable.CoolBuffer" }
   { from = "scala.collection.mutable.HashMap"
