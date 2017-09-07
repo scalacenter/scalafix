@@ -4,12 +4,14 @@ rule = NoInfer
 package test
 
 case object NoInfer {
-  List(1, "")// scalafix: NoInfer.any
-  List[Any](1, "")
+  val x = List(1, "")// assert: NoInfer.any
+  x.map(x => x -> x)// assert: NoInfer.any
+  List[Any](1, "") // OK, not reported message
+  List[Any](1, "").map(identity[Any])/*(canBuildFrom[Any])*/// assert: NoInfer.any
   (null: Any)
   null match {
     case _: Any =>
   }
   case class A()
-  List(NoInfer, A())// scalafix: NoInfer.product
+  List(NoInfer, A())// assert: NoInfer.product
 }

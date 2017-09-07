@@ -11,16 +11,9 @@ import scalafix.util.SymbolMatcher
 case class NoInfer(index: SemanticdbIndex)
     extends SemanticRule(index, "NoInfer")
     with Product {
-  val badSymbol: SymbolMatcher = SymbolMatcher.exact(
-    Symbol("_root_.java.io.Serializable#"),
-    Symbol("_root_.scala.Any#"),
-    Symbol("_root_.scala.AnyVal#"),
-    Symbol("_root_.scala.AnyVal#"),
-    Symbol("_root_.scala.Product#")
-  )
+  private val badSymbol = SymbolMatcher.exact(NoInfer.badSymbols: _*)
   val error: LintCategory =
     LintCategory.error(
-      "",
       """The Scala compiler sometimes infers a too generic type such as Any.
         |If this is intended behavior, then the type should be explicitly type
         |annotated in the source.""".stripMargin
@@ -36,4 +29,18 @@ case class NoInfer(index: SemanticdbIndex)
               .at(s"Inferred ${signature.name}", pos)
         }
     }
+}
+
+case object NoInfer {
+  lazy val badSymbols: List[Symbol] = List(
+    Symbol("_root_.java.io.Serializable#"),
+    Symbol("_root_.scala.Any#"),
+    Symbol("_root_.scala.AnyVal#"),
+    Symbol("_root_.scala.AnyVal#"),
+    Symbol("_root_.scala.Product#")
+  )
+
+  def badSymbolNames: List[String] = badSymbols.collect {
+    case Symbol.Global(_, signature) => signature.name
+  }
 }

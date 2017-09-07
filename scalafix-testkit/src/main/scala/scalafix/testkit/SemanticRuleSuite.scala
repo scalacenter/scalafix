@@ -14,7 +14,7 @@ import scala.util.matching.Regex
 import org.langmeta.internal.ScalafixLangmetaHacks
 
 object SemanticRuleSuite {
-  val LintAssertion: Regex = " scalafix: (.*)".r
+  val LintAssertion: Regex = " assert: (.*)".r
   def stripTestkitComments(input: String): String =
     stripTestkitComments(input.tokenize.get)
   def stripTestkitComments(tokens: Tokens): String = {
@@ -70,25 +70,21 @@ abstract class SemanticRuleSuite(
       tokens: Tokens): Unit = {
     val lintMessages = lints.to[mutable.Set]
     def assertLint(position: Position, key: String): Unit = {
-      val matchingMessage = lintMessages.find { m =>
+      val matchingMessage = lintMessages.filter { m =>
         assert(m.position.input == position.input)
         m.position.startLine == position.startLine &&
         m.category.key(rule.name) == key
       }
-      matchingMessage match {
-        case Some(x) =>
-          lintMessages -= x
-        case None =>
-          logger.elem(
-            position.startLine,
-            lintMessages.map(x => x.position.startLine))
-          throw new TestFailedException(
-            ScalafixLangmetaHacks.formatMessage(
-              position,
-              "error",
-              s"Message '$key' was not reported here!"),
-            0
-          )
+      if (matchingMessage.isEmpty) {
+        throw new TestFailedException(
+          ScalafixLangmetaHacks.formatMessage(
+            position,
+            "error",
+            s"Message '$key' was not reported here!"),
+          0
+        )
+      } else {
+        lintMessages --= matchingMessage
       }
     }
     tokens.foreach {
@@ -101,7 +97,7 @@ abstract class SemanticRuleSuite(
       val key = lintMessages.head.category.key(rule.name)
       val explanation =
         s"""|To fix this problem, suffix the culprit lines with
-            |   // scalafix: $key
+            |   // assert: $key
             |""".stripMargin
       throw new TestFailedException(
         s"Uncaught linter messages! $explanation",

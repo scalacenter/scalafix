@@ -45,8 +45,8 @@ class RemoveXmlLiterals {
   }
 
   object I {
-    val a = <div>{{</div>// scalafix: RemoveXmlLiterals.singleBracesEscape
-    val b = <div>}}</div>// scalafix: RemoveXmlLiterals.singleBracesEscape
+    val a = <div>{{</div>// assert: RemoveXmlLiterals.singleBracesEscape
+    val b = <div>}}</div>// assert: RemoveXmlLiterals.singleBracesEscape
     // <div b="{{"/> >>> xml"""<div b="{{"/>"""
   }
 

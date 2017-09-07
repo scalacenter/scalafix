@@ -26,27 +26,11 @@ import metaconfig.Configured
   * the `check` method. Example:
   * {{{
   *   // example syntactic linter
-  *   object NoVars extends Rule("NoVars") {
-  *     val varDefinition = LintCategory.error("varDefinition", "Var is bad!")
-  *     override def check(ctx: RuleCtx) = ctx.tree.collect {
-  *       case definition @ q"$_ var $_ = $_" => varDefinition.at(definition.pos)
+  *   object NoNulls extends Rule("NoNulls") {
+  *     val error = LintCategory.error("Nulls are not allowed.")
+  *     override def check(ctx: RuleCtx): List[LintMessage] = ctx.tree.collect {
+  *       case nil @ q"null" => error.at(nil.pos)
   *     }
-  *   }
-  *   // example semantic linter
-  *   case class NeverInferProduct(index: SemanticdbIndex)
-  *       extends SemanticRule(index, "NeverInferProduct")
-  *       with Product {
-  *     val product = SymbolMatcher.exact(Symbol("_root_.scala.Product#"))
-  *     val inferredProduct: LintCategory =
-  *       LintCategory.error("inferredProduct", "Don't infer Product!")
-  *     override def check(ctx: RuleCtx) =
-  *       ctx.index.synthetics.flatMap {
-  *         case Synthetic(pos, text, names) =>
-  *           names.collect {
-  *             case ResolvedName(_, product(_), _) =>
-  *               inferredProduct.at(pos)
-  *           }
-  *       }
   *   }
   * }}}
   *
@@ -96,7 +80,8 @@ abstract class Rule(ruleName: RuleName) { self =>
   final def apply(input: String): String = apply(Input.String(input))
   final def apply(ctx: RuleCtx, patch: Patch): String = {
     val result = Patch(patch, ctx, semanticOption)
-    Patch.lintMessages(patch, ctx, check(ctx)).foreach { msg =>
+    val checkMessages = check(ctx)
+    Patch.lintMessages(patch, ctx, checkMessages).foreach { msg =>
       // Set the lint message owner. This allows us to distinguish
       // LintCategory with the same id from different rules.
       ctx.printLintMessage(msg, name)
