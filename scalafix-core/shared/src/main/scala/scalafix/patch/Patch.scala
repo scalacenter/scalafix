@@ -118,8 +118,11 @@ object Patch {
 
   private[scalafix] def lintMessages(
       patch: Patch,
-      ctx: RuleCtx): List[LintMessage] = {
+      ctx: RuleCtx,
+      checkMessages: scala.Seq[LintMessage]
+  ): List[LintMessage] = {
     val builder = List.newBuilder[LintMessage]
+    checkMessages.foreach(builder += _)
     foreach(patch) {
       case LintPatch(lint) =>
         builder += lint

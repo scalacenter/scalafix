@@ -52,12 +52,19 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
     val key = msg.category.key(owner)
     if (config.lint.ignore.matches(key)) ()
     else {
+      val pos = msg.position.input match {
+        case Input.Synthetic(_, in, start, end) =>
+          ???
+          Position.Range(in, start, end)
+        case _ =>
+          msg.position
+      }
       val category = config.lint
         .getConfiguredSeverity(key)
         .getOrElse(msg.category.severity)
       config.lint.reporter.handleMessage(
         msg.format(owner, config.lint.explain),
-        msg.position,
+        pos,
         category.toSeverity
       )
     }

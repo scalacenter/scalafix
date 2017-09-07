@@ -96,7 +96,7 @@ abstract class Rule(ruleName: RuleName) { self =>
   final def apply(input: String): String = apply(Input.String(input))
   final def apply(ctx: RuleCtx, patch: Patch): String = {
     val result = Patch(patch, ctx, semanticOption)
-    Patch.lintMessages(patch, ctx).foreach { msg =>
+    Patch.lintMessages(patch, ctx, check(ctx)).foreach { msg =>
       // Set the lint message owner. This allows us to distinguish
       // LintCategory with the same id from different rules.
       ctx.printLintMessage(msg, name)
@@ -145,6 +145,8 @@ object Rule {
         .flipSeq(rules.map(_.init(config)))
         .map(x => new CompositeRule(x.toList))
     }
+    override def check(ctx: RuleCtx): Seq[LintMessage] =
+      rules.flatMap(_.check(ctx))
     override def fix(ctx: RuleCtx): Patch =
       Patch.empty ++ rules.map(_.fix(ctx))
     override def semanticOption: Option[SemanticdbIndex] =

@@ -24,6 +24,7 @@ final case class LintMessage(
            |${category.explanation}
            |""".stripMargin
       else ""
-    s"[${owner.value}.${category.id}] $message$explanation"
+    val id = if (category.id.isEmpty) "" else s".${category.id}"
+    s"[${owner.value}$id] $message$explanation"
   }
 }

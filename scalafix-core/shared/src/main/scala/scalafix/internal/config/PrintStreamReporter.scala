@@ -6,6 +6,7 @@ import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicInteger
 import scalafix.internal.util.Severity
 import metaconfig._
+import org.langmeta.internal.ScalafixLangmetaHacks
 
 /** A ScalafixReporter that emits messages to a PrintStream. */
 case class PrintStreamReporter(
@@ -40,7 +41,8 @@ case class PrintStreamReporter(
     val enclosing =
       if (includeLoggerName) s"(${ctx.enclosing.value}) " else ""
     outStream.println(
-      position.formatMessage(enclosing + severity.toString, message))
+      ScalafixLangmetaHacks
+        .formatMessage(position, enclosing + severity.toString, message))
   }
 
   /** Returns true if this reporter has seen an error */

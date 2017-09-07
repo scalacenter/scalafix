@@ -14,6 +14,7 @@ object ScalafixRules {
     DottyVarArgPattern
   )
   def semantic(index: SemanticdbIndex): List[Rule] = List(
+    NoInfer(index),
     Sbt1(index),
     ExplicitResultTypes(index),
     RemoveUnusedImports(index),
