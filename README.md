@@ -4,7 +4,17 @@ scalafix
 [![Join the chat at https://gitter.im/scalacenter/scalafix](https://badges.gitter.im/scalacenter/scalafix.svg)](https://gitter.im/scalacenter/scalafix)
 ========
 
-Rewrite tool to prepare Scala 2.x code for [Dotty](http://dotty.epfl.ch).
+Rewrite and linting tool for Scala.
+
+## Key features
+
+- **Fidelity**: Scalafix supports formatting-aware rewriting of Scala code. Every detail in the source file is represented with rich data structures and full position information, down to individual space characters.
+
+- **Extensible**: Implement your own custom Scalafix rules. Jumpstart with our scalacenter/scalafix.g8 template, which sets up a minimal sbt project with testing scaffolding.
+
+- **Accessible**: Scalafix enables novices to implement advanced rules without learning compiler internals.
+
+- **Portable**: Scalafix works with a wide range of Scala dialects (sbt, Scala 2.x, Dotty) and runs on JVM, Node.js and in the browser.
 
 ## User documentation
 
