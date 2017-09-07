@@ -20,3 +20,4 @@ case class MyRule2(index: SemanticdbIndex) extends SemanticRule(index) {
   def rule(ctx: RuleCtx): Patch =
     ctx.addGlobalImport(importer"scala.collection.immutable.Seq")
 }
+

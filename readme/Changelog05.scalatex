@@ -20,6 +20,9 @@
       @sect.ref{Sbt1} rule to migrate usage of deprecated sbt 0.13 APIs,
       by @user{jvican}.
     @li
+      @sect.ref{NoInfer} linter that reports errors when the compiler reports
+      types such as @code{Any}
+    @li
       @sect.ref{ExplicitResultTypes} experimental @code{unsafeShortenNames}
       option to insert imports instead of fully qualified names.
     @li

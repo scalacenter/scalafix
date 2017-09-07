@@ -9,11 +9,11 @@ import org.scalameta.logger
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 import org.scalatest.exceptions.TestFailedException
-import scala.meta.internal.inputs.XtensionPositionFormatMessage
 import scala.util.matching.Regex
+import org.langmeta.internal.ScalafixLangmetaHacks
 
 object SemanticRuleSuite {
-  val LintAssertion: Regex = " scalafix: (.*)".r
+  val LintAssertion: Regex = " assert: (.*)".r
   def stripTestkitComments(input: String): String =
     stripTestkitComments(input.tokenize.get)
   def stripTestkitComments(tokens: Tokens): String = {
@@ -69,20 +69,21 @@ abstract class SemanticRuleSuite(
       tokens: Tokens): Unit = {
     val lintMessages = lints.to[mutable.Set]
     def assertLint(position: Position, key: String): Unit = {
-      val matchingMessage = lintMessages.find { m =>
-        // NOTE(olafur) I have no idea why -1 is necessary.
-        m.position.startLine == (position.startLine - 1) &&
+      val matchingMessage = lintMessages.filter { m =>
+        assert(m.position.input == position.input)
+        m.position.startLine == position.startLine &&
         m.category.key(rule.name) == key
       }
-      matchingMessage match {
-        case Some(x) =>
-          lintMessages -= x
-        case None =>
-          throw new TestFailedException(
-            position
-              .formatMessage("error", s"Message '$key' was not reported here!"),
-            0
-          )
+      if (matchingMessage.isEmpty) {
+        throw new TestFailedException(
+          ScalafixLangmetaHacks.formatMessage(
+            position,
+            "error",
+            s"Message '$key' was not reported here!"),
+          0
+        )
+      } else {
+        lintMessages --= matchingMessage
       }
     }
     tokens.foreach {
@@ -95,7 +96,7 @@ abstract class SemanticRuleSuite(
       val key = lintMessages.head.category.key(rule.name)
       val explanation =
         s"""|To fix this problem, suffix the culprit lines with
-            |   // scalafix: $key
+            |   // assert: $key
             |""".stripMargin
       throw new TestFailedException(
         s"Uncaught linter messages! $explanation",
@@ -113,11 +114,12 @@ abstract class SemanticRuleSuite(
       val patch = rule.fix(ctx)
       val obtainedWithComment = Patch.apply(patch, ctx, rule.semanticOption)
       val tokens = obtainedWithComment.tokenize.get
+      val checkMessages = rule.check(ctx)
       assertLintMessagesAreReported(
         rule,
         ctx,
-        Patch.lintMessages(patch, ctx),
-        tokens)
+        Patch.lintMessages(patch, ctx, checkMessages),
+        ctx.tokens)
       val obtained = SemanticRuleSuite.stripTestkitComments(tokens)
       val candidateOutputFiles = expectedOutputSourceroot.flatMap { root =>
         val scalaSpecificFilename =
@@ -126,17 +128,20 @@ abstract class SemanticRuleSuite(
               diffTest.filename.toString().replaceFirst("scala", path))))
         root.resolve(diffTest.filename) :: scalaSpecificFilename
       }
-      val candidateBytes = candidateOutputFiles
+      val expected = candidateOutputFiles
         .collectFirst { case f if f.isFile => f.readAllBytes }
+        .map(new String(_))
         .getOrElse {
-          val tried = candidateOutputFiles.mkString("\n")
-          sys.error(
-            s"""Missing expected output file for test ${diffTest.filename}. Tried:
-               |$tried""".stripMargin)
+          // TODO(olafur) come up with more principled check to determine if
+          // rule is linter or rewrite.
+          if (checkMessages.nonEmpty) obtained // linter
+          else {
+            val tried = candidateOutputFiles.mkString("\n")
+            sys.error(
+              s"""Missing expected output file for test ${diffTest.filename}. Tried:
+                 |$tried""".stripMargin)
+          }
         }
-      val expected = new String(
-        candidateBytes
-      )
       assertNoDiff(obtained, expected)
     }
   }

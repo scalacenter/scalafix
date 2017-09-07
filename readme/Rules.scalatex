@@ -253,8 +253,25 @@
       // after
       x += (y in Compile).value
 
-    This rule currently handles many basic cases but may produce incorrect
-    output in more advanced cases. Please report back your experience.
+  @sect(NoInfer.toString)
+    @since("0.5.0")
+
+    This rule reports errors when the compiler inferred one of
+    the following types
+    @ul
+      @NoInfer.badSymbolNames.map(li(_))
+
+    Example:
+    @hl.scala
+      MyCode.scala:7: error: [NoInfer.any] Inferred Any
+        List(1, "")
+            ^
+    @h3{Known limitations}
+
+    @ul
+      @li
+        Scalafix does not yet expose an way to disable rules across
+        regions of code, track @issue(241) for updates.
 
   @sect{Planned rules...}
     See @lnk("here", "https://github.com/scalacenter/scalafix/labels/rule").
