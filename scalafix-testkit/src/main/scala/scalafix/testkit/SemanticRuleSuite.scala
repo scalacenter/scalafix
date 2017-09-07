@@ -9,7 +9,6 @@ import org.scalameta.logger
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 import org.scalatest.exceptions.TestFailedException
-import scala.meta.internal.inputs.XtensionPositionFormatMessage
 import scala.util.matching.Regex
 import org.langmeta.internal.ScalafixLangmetaHacks
 
