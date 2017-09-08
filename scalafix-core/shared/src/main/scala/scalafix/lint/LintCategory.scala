@@ -19,6 +19,7 @@ final case class LintCategory(
 ) {
   def key(owner: RuleName): String =
     if (owner.isEmpty) id
+    else if (id.isEmpty) owner.value
     else s"${owner.value}.$id"
   private def noExplanation: LintCategory =
     new LintCategory(id, explanation, severity)

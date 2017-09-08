@@ -36,7 +36,6 @@ case object NoInfer {
     Symbol("_root_.java.io.Serializable#"),
     Symbol("_root_.scala.Any#"),
     Symbol("_root_.scala.AnyVal#"),
-    Symbol("_root_.scala.AnyVal#"),
     Symbol("_root_.scala.Product#")
   )
 

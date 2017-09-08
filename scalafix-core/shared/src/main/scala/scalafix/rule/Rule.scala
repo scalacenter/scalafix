@@ -9,6 +9,7 @@ import scalafix.syntax._
 import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.Configured
+import org.scalameta.logger
 
 /** A Scalafix Rule.
   *
@@ -79,13 +80,11 @@ abstract class Rule(ruleName: RuleName) { self =>
   }
   final def apply(input: String): String = apply(Input.String(input))
   final def apply(ctx: RuleCtx, patch: Patch): String = {
-    val result = Patch(patch, ctx, semanticOption)
-    val checkMessages = check(ctx)
-    Patch.lintMessages(patch, ctx, checkMessages).foreach { msg =>
-      // Set the lint message owner. This allows us to distinguish
-      // LintCategory with the same id from different rules.
-      ctx.printLintMessage(msg, name)
-    }
+    apply(ctx, Map(name -> patch))
+  }
+  final def apply(ctx: RuleCtx, patches: Map[RuleName, Patch]): String = {
+    val result = Patch(patches.values.asPatch, ctx, semanticOption)
+    Patch.reportLintMessages(patches, ctx)
     result
   }
 
@@ -101,6 +100,9 @@ abstract class Rule(ruleName: RuleName) { self =>
 
   private[scalafix] final def allNames: List[String] =
     name.identifiers.map(_.value)
+  protected[scalafix] def fixWithName(ctx: RuleCtx): Map[RuleName, Patch] =
+    Map(name -> (fix(ctx) ++ check(ctx).map(ctx.lint)))
+
   final override def toString: String = name.toString
   final def name: RuleName = ruleName
   // NOTE. This is kind of hacky and hopefully we can find a better workaround.
@@ -132,6 +134,8 @@ object Rule {
     }
     override def check(ctx: RuleCtx): Seq[LintMessage] =
       rules.flatMap(_.check(ctx))
+    override def fixWithName(ctx: RuleCtx): Map[RuleName, Patch] =
+      rules.foldLeft(Map.empty[RuleName, Patch])(_ ++ _.fixWithName(ctx))
     override def fix(ctx: RuleCtx): Patch =
       Patch.empty ++ rules.map(_.fix(ctx))
     override def semanticOption: Option[SemanticdbIndex] =
@@ -181,6 +185,14 @@ object Rule {
     }
 
   /** Combine two rules into a single rule */
-  def merge(a: Rule, b: Rule): Rule =
-    new CompositeRule(a :: b :: Nil)
+  def merge(a: Rule, b: Rule): Rule = (a, b) match {
+    case (c1: CompositeRule, c2: CompositeRule) =>
+      new CompositeRule(c1.rules ::: c2.rules)
+    case (c1: CompositeRule, _) =>
+      new CompositeRule(b :: c1.rules)
+    case (_, c2: CompositeRule) =>
+      new CompositeRule(b :: c2.rules)
+    case (_, _) =>
+      new CompositeRule(a :: b :: Nil)
+  }
 }

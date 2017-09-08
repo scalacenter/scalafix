@@ -15,6 +15,7 @@ import scalafix.internal.util.Failure
 import scalafix.internal.util.TokenOps
 import scalafix.lint.LintMessage
 import scalafix.patch.TreePatch.ReplaceSymbol
+import scalafix.rule.RuleName
 import org.scalameta.logger
 
 /** A data structure that can produce a .patch file.
@@ -116,13 +117,20 @@ object Patch {
     case _ => throw Failure.TokenPatchMergeError(a, b)
   }
 
-  private[scalafix] def lintMessages(
-      patch: Patch,
-      ctx: RuleCtx,
-      checkMessages: scala.Seq[LintMessage]
-  ): List[LintMessage] = {
+  private[scalafix] def reportLintMessages(
+      patches: Map[RuleName, Patch],
+      ctx: RuleCtx): Unit = {
+    patches.foreach {
+      case (name, patch) =>
+        Patch.lintMessages(patch).foreach { msg =>
+          // Set the lint message owner. This allows us to distinguish
+          // LintCategory with the same id from different rules.
+          ctx.printLintMessage(msg, name)
+        }
+    }
+  }
+  private[scalafix] def lintMessages(patch: Patch): List[LintMessage] = {
     val builder = List.newBuilder[LintMessage]
-    checkMessages.foreach(builder += _)
     foreach(patch) {
       case LintPatch(lint) =>
         builder += lint
@@ -198,6 +206,17 @@ object Patch {
         builder += els
     }
     builder.result()
+  }
+
+  private[scalafix] def isOnlyLintMessages(patch: Patch): Boolean = {
+    // TODO(olafur): foreach should really return Stream[Patch] for early termination.
+    var onlyLint = true
+    var hasLintMessage = false
+    foreach(patch) {
+      case _: LintPatch => hasLintMessage = true
+      case _ => onlyLint = false
+    }
+    hasLintMessage && onlyLint
   }
 
   private def foreach(patch: Patch)(f: Patch => Unit): Unit = {

@@ -10,6 +10,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 import org.scalatest.exceptions.TestFailedException
 import scala.util.matching.Regex
+import scalafix.rule.RuleName
 import org.langmeta.internal.ScalafixLangmetaHacks
 
 object SemanticRuleSuite {
@@ -65,41 +66,54 @@ abstract class SemanticRuleSuite(
   private def assertLintMessagesAreReported(
       rule: Rule,
       ctx: RuleCtx,
-      lints: List[LintMessage],
+      patches: Map[RuleName, Patch],
       tokens: Tokens): Unit = {
-    val lintMessages = lints.to[mutable.Set]
-    def assertLint(position: Position, key: String): Unit = {
-      val matchingMessage = lintMessages.filter { m =>
-        assert(m.position.input == position.input)
-        m.position.startLine == position.startLine &&
-        m.category.key(rule.name) == key
-      }
-      if (matchingMessage.isEmpty) {
+
+    type Msg = (Position, String)
+
+    def matches(a: Msg)(b: Msg) =
+      a._1.startLine == b._1.startLine &&
+        a._2 == b._2
+
+    def diff(a: Seq[Msg], b: Seq[Msg]) =
+      a.filter(x => !b.exists(matches(x)))
+
+    val lintAssertions = tokens.collect {
+      case tok @ Token.Comment(SemanticRuleSuite.LintAssertion(key)) =>
+        tok.pos -> key
+    }
+    val lintMessages = patches.toSeq.flatMap {
+      case (name, patch) =>
+        Patch
+          .lintMessages(patch)
+          .map(lint => lint.position -> lint.category.key(name))
+    }
+
+    val uncoveredAsserts = diff(lintAssertions, lintMessages)
+    uncoveredAsserts.foreach {
+      case (pos, key) =>
         throw new TestFailedException(
           ScalafixLangmetaHacks.formatMessage(
-            position,
+            pos,
             "error",
             s"Message '$key' was not reported here!"),
           0
         )
-      } else {
-        lintMessages --= matchingMessage
-      }
     }
-    tokens.foreach {
-      case tok @ Token.Comment(SemanticRuleSuite.LintAssertion(key)) =>
-        assertLint(tok.pos, key)
-      case _ =>
-    }
-    if (lintMessages.nonEmpty) {
-      lintMessages.foreach(x => ctx.printLintMessage(x, rule.name))
-      val key = lintMessages.head.category.key(rule.name)
-      val explanation =
-        s"""|To fix this problem, suffix the culprit lines with
-            |   // assert: $key
-            |""".stripMargin
+
+    val uncoveredMessages = diff(lintMessages, lintAssertions)
+    if (uncoveredMessages.nonEmpty) {
+      Patch.reportLintMessages(patches, ctx)
+      val explanation = uncoveredMessages
+        .groupBy(_._2)
+        .map {
+          case (key, positions) =>
+            s"""Append to lines: ${positions.map(_._1.startLine).mkString(", ")}
+               |   // assert: $key""".stripMargin
+        }
+        .mkString("\n\n")
       throw new TestFailedException(
-        s"Uncaught linter messages! $explanation",
+        s"Uncaught linter messages! To fix this problem\n$explanation",
         0)
     }
   }
@@ -107,19 +121,15 @@ abstract class SemanticRuleSuite(
   def runOn(diffTest: DiffTest): Unit = {
     test(diffTest.name) {
       val (rule, config) = diffTest.config.apply()
-      val ctx = RuleCtx(
+      val ctx: RuleCtx = RuleCtx(
         config.dialect(diffTest.original).parse[Source].get,
         config.copy(dialect = diffTest.document.dialect)
       )
-      val patch = rule.fix(ctx)
+      val patches = rule.fixWithName(ctx)
+      assertLintMessagesAreReported(rule, ctx, patches, ctx.tokens)
+      val patch = patches.values.asPatch
       val obtainedWithComment = Patch.apply(patch, ctx, rule.semanticOption)
       val tokens = obtainedWithComment.tokenize.get
-      val checkMessages = rule.check(ctx)
-      assertLintMessagesAreReported(
-        rule,
-        ctx,
-        Patch.lintMessages(patch, ctx, checkMessages),
-        ctx.tokens)
       val obtained = SemanticRuleSuite.stripTestkitComments(tokens)
       val candidateOutputFiles = expectedOutputSourceroot.flatMap { root =>
         val scalaSpecificFilename =
@@ -132,9 +142,7 @@ abstract class SemanticRuleSuite(
         .collectFirst { case f if f.isFile => f.readAllBytes }
         .map(new String(_))
         .getOrElse {
-          // TODO(olafur) come up with more principled check to determine if
-          // rule is linter or rewrite.
-          if (checkMessages.nonEmpty) obtained // linter
+          if (Patch.isOnlyLintMessages(patch)) obtained // linter
           else {
             val tried = candidateOutputFiles.mkString("\n")
             sys.error(
