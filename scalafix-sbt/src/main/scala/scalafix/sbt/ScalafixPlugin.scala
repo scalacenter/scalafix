@@ -43,7 +43,7 @@ object ScalafixPlugin extends AutoPlugin {
     val scalafixScalaVersion: SettingKey[String] = settingKey[String](
       s"Which scala version to run scalafix from. Default is ${Versions.scala212}.")
     val scalafixSemanticdbVersion: SettingKey[String] = settingKey[String](
-      s"Which version of semanticdb to sue. Default is ${Versions.scalameta}.")
+      s"Which version of semanticdb to use. Default is ${Versions.scalameta}.")
   }
   import scalafix.internal.sbt.CliWrapperPlugin.autoImport._
   import autoImport._
