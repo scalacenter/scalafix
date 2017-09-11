@@ -17,9 +17,9 @@ object ScalafixLangmetaHacks {
         val count = end - start
         val eolOffset =
           if (input.chars.lift(start + count - 1).contains('\n')) -1 else 0
-        new String(input.chars, start, count + eolOffset)
+        new String(input.chars, start, math.max(0, count + eolOffset))
       }
-      var caret = " " * pos.startColumn + "^"
+      val caret = " " * pos.startColumn + "^"
       header + EOL + line + EOL + caret
     } else {
       s"$severity: $message"
