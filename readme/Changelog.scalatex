@@ -3,9 +3,4 @@
 @import scalafix.Versions
 
 @sect{Changelog}
-  @sect{0.5.x}
-    @scalatex.Changelog05()
-  @sect{0.4.x}
-    @scalatex.Changelog04()
-  @sect{0.3.x}
-    @scalatex.Changelog03()
+  Changelogs are now published in @lnk("GitHub releases", "https://github.com/scalacenter/scalafix/releases")
