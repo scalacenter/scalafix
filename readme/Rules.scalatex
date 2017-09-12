@@ -2,6 +2,7 @@
 @import scalafix.Readme._
 @import scalafix.rule._
 @import scalafix.internal.rule._
+@import scalafix.{Versions => V}
 
 @sect{Rules}
   @p
@@ -241,12 +242,35 @@
   @sect(Sbt1.toString)
     @experimental
     @p
-      To use this rule:
+      To fix the sbt build sources of your build use @b{sbtfix}:
       @ul
         @li
           Install @sect.ref{semanticdb-sbt}
         @li
-          Run @code{sbtfix Sbt1}
+          Start a new sbt shell session or inside an active shell run @code{> reload}
+        @li
+          Run @code{> sbtfix Sbt1}
+        @li
+          Note that the command is @b{sbtfix} to run on your sbt build sources.
+    @p
+      To fix sources of an sbt 0.13 plugin use @b{scalafix}:
+      @ul
+        @li
+          Install the @code{semanticdb-sbt} compiler plugin to your sbt 0.13 plugin:
+          @hl.scala
+            // build.sbt
+            lazy val my210project = project.settings(
+              scalaVersion := "2.10.6", // semanticdb-sbt only supports 2.10.6
+              addCompilerPlugin(
+                "org.scalameta" % "semanticdb-sbt" % "@V.semanticdbSbt" cross CrossVersion.full
+              )
+            )
+
+        @li
+          Run @code{my210project/scalafix Sbt1}
+        @li
+          Note that the command is @b{scalafix} to run on regular project sources.
+
     @hl.scala
       // before
       x <+= (y in Compile)

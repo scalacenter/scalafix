@@ -99,8 +99,9 @@
             Which version of org.scalameta:semanticdb-scalac to run.
           @sbtkey("scalafixVerbose", "Boolean")
             If true, print out debug information.
+
     @sect{semanticdb-sbt}
-      @b{Experimental}.
+      @experimental
       semanticdb-sbt is a Scala 2.10 compiler plugin that extracts semantic
       information from the sbt compiler. To enable semanticdb-sbt,
 
