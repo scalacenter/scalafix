@@ -32,7 +32,9 @@ $ sbt scalafix-tests/it:test # Slow integration tests running rules on
                              # open source projects.
 
 # For SBT plugin
-$ sbt scalafix-sbt/test     # publishes modules locally and runs scripted (slow)
+$ sbt scalafix-sbt/it:test  # publishes modules locally and runs scripted (slow)
+                            # for hassle-free execution run with version specified
+                            # e.g. -Dscalafix.version=0.5-SNAPSHOT
 $ sbt scalafix-sbt/scripted # only run scripted tests (still slow, but skips
                             # publishLocal for core/cli/nsc scalafix modules)
 ```
