@@ -15,10 +15,11 @@ case class AsInstanceOfDisabled(index: SemanticdbIndex)
   val errorCategory: LintCategory = LintCategory.error(
     """asInstanceOf is unsafe in isolation and violates parametricity when guarded by isInstanceOf.""".stripMargin
   )
- 
+
   override def check(ctx: RuleCtx): Seq[LintMessage] =
     ctx.tree.collect {
-      case ap@ Term.ApplyType(Term.Select(_, s: Term.Name), _) if s.symbol.contains(AsInstanceOfDisabled.disabledSymbol) => 
+      case ap @ Term.ApplyType(Term.Select(_, s: Term.Name), _)
+          if s.symbol.contains(AsInstanceOfDisabled.disabledSymbol) =>
         errorCategory.at(s"$s is disabled", s.pos)
     }
 }
