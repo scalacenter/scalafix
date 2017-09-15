@@ -17,9 +17,14 @@ object ScalafixPlugin extends AutoPlugin {
   object autoImport {
     val scalafix: InputKey[Unit] =
       inputKey[Unit]("Run scalafix rule.")
+    val scalafixTest: InputKey[Unit] =
+      inputKey[Unit]("Run scalafix as a test(without modifying sources).")
     val sbtfix: InputKey[Unit] =
       inputKey[Unit](
         "Run scalafix rule on build sources. Requires the semanticdb-sbt plugin to be enabled globally.")
+    val sbtfixTest: InputKey[Unit] =
+      inputKey[Unit](
+        "Run scalafix rule on build sources as a test(without modifying sources).")
     val scalafixConfig: SettingKey[Option[File]] =
       settingKey[Option[File]](
         ".scalafix.conf file to specify which scalafix rules should run.")
@@ -33,7 +38,8 @@ object ScalafixPlugin extends AutoPlugin {
       settingKey[Boolean]("pass --verbose to scalafix")
     def scalafixSettings: Seq[Def.Setting[_]] =
       scalafixTaskSettings ++
-        scalafixScalacSettings
+        scalafixScalacSettings ++
+        scalafixTestTaskSettings
     val scalafixSourceroot: SettingKey[File] = settingKey[File](
       s"Which sourceroot should be used for .semanticdb files.")
     @deprecated("Renamed to scalafixSourceroot", "0.5.0")
@@ -54,27 +60,10 @@ object ScalafixPlugin extends AutoPlugin {
     cliWrapperMainClass := "scalafix.cli.Cli$",
     scalafixEnabled := true,
     scalafixVerbose := false,
-    sbtfix := Def.inputTaskDyn {
-      // Will currently fail silently if semanticdb-sbt is not enabled.
-      // See https://github.com/scalacenter/scalafix/issues/264
-      val baseDir = baseDirectory.in(ThisBuild).value
-      val sbtDir: File = baseDir./("project")
-      val sbtFiles = baseDir.*("*.sbt").get
-      val extraOptions =
-        "--no-strict-semanticdb" ::
-          "--classpath-auto-roots" ::
-          baseDir./("target").getAbsolutePath ::
-          sbtDir.getAbsolutePath ::
-          Nil
-      scalafixTaskImpl(
-        scalafixParser.parsed,
-        extraOptions,
-        sbtDir +: sbtFiles,
-        "sbt-build",
-        streams.value
-      )
-    }.evaluated,
+    sbtfix := sbtfixImpl().evaluated,
+    sbtfixTest := sbtfixImpl(Seq("--test")).evaluated,
     aggregate.in(sbtfix) := false,
+    aggregate.in(sbtfixTest) := false,
     scalafixSourceroot := baseDirectory.in(ThisBuild).value,
     scalafixVersion := Versions.version,
     scalafixSemanticdbVersion := Versions.scalameta,
@@ -91,6 +80,29 @@ object ScalafixPlugin extends AutoPlugin {
       jars
     }
   )
+
+  private def sbtfixImpl(extraOptions: Seq[String] = Seq()) = {
+    Def.inputTaskDyn {
+      // Will currently fail silently if semanticdb-sbt is not enabled.
+      // See https://github.com/scalacenter/scalafix/issues/264
+      val baseDir = baseDirectory.in(ThisBuild).value
+      val sbtDir: File = baseDir./("project")
+      val sbtFiles = baseDir.*("*.sbt").get
+      val options =
+        "--no-strict-semanticdb" ::
+          "--classpath-auto-roots" ::
+          baseDir./("target").getAbsolutePath ::
+          sbtDir.getAbsolutePath ::
+          Nil ++ extraOptions
+      scalafixTaskImpl(
+        scalafixParser.parsed,
+        options,
+        sbtDir +: sbtFiles,
+        "sbt-build",
+        streams.value
+      )
+    }
+  }
 
   // hack to avoid illegal dynamic reference, can't figure out how to do
   // scalafixParser(baseDirectory.in(ThisBuild).value).parsed
@@ -160,23 +172,33 @@ object ScalafixPlugin extends AutoPlugin {
       }
     }
   )
-  lazy val scalafixTaskSettings = Seq(
-    scalafix.in(Compile) := scalafixTaskImpl(Compile).evaluated,
-    scalafix.in(Test) := scalafixTaskImpl(Test).evaluated,
-    scalafix := scalafixTaskImpl(Compile, Test).evaluated
+  lazy val scalafixTaskSettings: Seq[Def.Setting[InputTask[Unit]]] =
+    configureForCompileAndTest(scalafix, scalafixTaskImpl(_))
+  lazy val scalafixTestTaskSettings: Seq[Def.Setting[InputTask[Unit]]] =
+    configureForCompileAndTest(scalafixTest, scalafixTaskImpl(_, Seq("--test")))
+
+  def configureForCompileAndTest(
+      task: InputKey[Unit],
+      impl: Seq[Configuration] => Def.Initialize[InputTask[Unit]]) = Seq(
+    task.in(Compile) := impl(Seq(Compile)).evaluated,
+    task.in(Test) := impl(Seq(Test)).evaluated,
+    task := impl(Seq(Compile, Test)).evaluated
   )
 
   def scalafixTaskImpl(
-      config: Configuration*): Def.Initialize[InputTask[Unit]] =
+      config: Seq[Configuration],
+      extraOptions: Seq[String] = Seq()): Def.Initialize[InputTask[Unit]] =
     Def.inputTaskDyn {
       scalafixTaskImpl(
         scalafixParser.parsed,
-        ScopeFilter(configurations = inConfigurations(config: _*)))
+        ScopeFilter(configurations = inConfigurations(config: _*)),
+        extraOptions)
     }
 
   def scalafixTaskImpl(
       inputArgs: Seq[String],
-      filter: ScopeFilter): Def.Initialize[Task[Unit]] =
+      filter: ScopeFilter,
+      extraOptions: Seq[String]): Def.Initialize[Task[Unit]] =
     Def.taskDyn {
       compile.all(filter).value // trigger compilation
       val classpath = classDirectory.all(filter).value.asPath
@@ -184,9 +206,10 @@ object ScalafixPlugin extends AutoPlugin {
         unmanagedSourceDirectories.all(filter).value.flatten.collect {
           case p if p.exists() => p.getAbsoluteFile
         }
+      val options: Seq[String] = List("--classpath", classpath) ++ extraOptions
       scalafixTaskImpl(
         inputArgs,
-        List("--classpath", classpath),
+        options,
         directoriesToFix,
         thisProject.value.id,
         streams.value
