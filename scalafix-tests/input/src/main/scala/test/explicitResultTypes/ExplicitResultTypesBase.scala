@@ -1,9 +1,9 @@
 /*
 rules = ExplicitResultTypes
-explicitReturnTypes.memberKind = [Val, Def, Var]
-explicitReturnTypes.memberVisibility = [Public, Protected]
+explicitResultTypes.memberKind = [Val, Def, Var]
+explicitResultTypes.memberVisibility = [Public, Protected]
  */
-package test.explicitReturnTypes
+package test.explicitResultTypes
 
 import scala.language.implicitConversions
 

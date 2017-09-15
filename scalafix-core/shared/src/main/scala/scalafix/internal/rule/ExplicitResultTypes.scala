@@ -33,7 +33,7 @@ case class ExplicitResultTypes(
     this(index, ExplicitResultTypesConfig.default)
   override def init(config: Conf): Configured[Rule] =
     config
-      .getOrElse("explicitReturnTypes")(ExplicitResultTypesConfig.default)
+      .getOrElse("explicitResultTypes")(ExplicitResultTypesConfig.default)
       .map(c => ExplicitResultTypes(index, c))
 
   // Don't explicitly annotate vals when the right-hand body is a single call

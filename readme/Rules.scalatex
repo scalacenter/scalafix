@@ -29,12 +29,12 @@
     @h3{Configuration}
 
     @config
-      explicitReturnTypes.memberKind = [Val, Def, Var]
-      explicitReturnTypes.memberVisibility = [Public, Protected]
+      explicitResultTypes.memberKind = [Val, Def, Var]
+      explicitResultTypes.memberVisibility = [Public, Protected]
       // Experimental, shorten fully qualified names and insert missing imports
       // By default, names are fully qualified and prefixed with _root_.
       unsafeShortenNames = true // false by default.
-      explicitReturnTypes.unsafeShortenNames = true // false by default.
+      explicitResultTypes.unsafeShortenNames = true // false by default.
 
     @h3{Known limitations}
 
@@ -52,7 +52,7 @@
         true with @code{unsafeShortenNames=true}, but may happen by default
         for path dependent types.
 
-  @sect{ExplicitReturnTypes}
+  @sect{ExplicitResultTypes}
     This rule has been renamed into @sect.ref{ExplicitResultTypes}
 
   @sect(RemoveUnusedImports.toString)

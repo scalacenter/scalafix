@@ -1,8 +1,8 @@
 /*
 rules = ExplicitResultTypes
-explicitReturnTypes.unsafeShortenNames = true
+explicitResultTypes.unsafeShortenNames = true
  */
-package test.explicitReturnTypes
+package test.explicitResultTypes
 
 import scala.language.implicitConversions
 

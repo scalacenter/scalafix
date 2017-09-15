@@ -1,7 +1,7 @@
 /*
 rules = ExplicitResultTypes
  */
-package test.explicitReturnTypes
+package test.explicitResultTypes
 
 object ExplicitResultTypesPathDependent {
   class Path {

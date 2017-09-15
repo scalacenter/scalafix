@@ -1,4 +1,4 @@
-package test.explicitReturnTypes
+package test.explicitResultTypes
 
 import scala.language.implicitConversions
 
@@ -44,7 +44,7 @@ object ExplicitResultTypesBase {
     object `->` {
       def unapply[S](in: (S, S)): Option[(S, S)] = Some(in)
     }
-    val `→`: _root_.test.explicitReturnTypes.ExplicitResultTypesBase.unicode.->.type = `->`
+    val `→`: _root_.test.explicitResultTypes.ExplicitResultTypesBase.unicode.->.type = `->`
   }
 }
 
