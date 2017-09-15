@@ -18,7 +18,8 @@ object ScalafixRules {
     Sbt1(index),
     ExplicitResultTypes(index),
     RemoveUnusedImports(index),
-    NoAutoTupling(index)
+    NoAutoTupling(index),
+    NoUnitInsertion(index)
   )
   def all(index: SemanticdbIndex): List[Rule] =
     syntax ++ semantic(index)
