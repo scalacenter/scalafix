@@ -135,7 +135,7 @@
 
     @sect{Patch}
       A "Patch" is a data structure that describes how to produce a diff.
-      Two patches can combined into a single patch with the @code{+} operator.
+      Two patches can be combined into a single patch with the @code{+} operator.
       A patch can also be empty. Patches can either be low-level "token patches",
       that operate on the token level or high-level "tree patches" that operate
       on parsed abstract syntax tree nodes. The public API for patch
@@ -175,7 +175,7 @@
       This means it's not necessary to have experience with Scala compiler internals
       to implement Scalafix rules.
       In fact, Scalafix doesn't even depend on the Scala compiler.
-      Since Scalafix is not tied so a single compiler, this means that Scalafix
+      Since Scalafix is not tied to a single compiler, this means that Scalafix
       rules in theory can work with any Scala compiler, including @dotty and
       IntelliJ Scala Plugin.
 
@@ -192,7 +192,7 @@
       the @lnk("Scalameta documentation", "http://scalameta.org/tutorial/#semanticdb-scalac").
 
     @sect{Token}
-      A token is for example an identifier @code{println}, a delimiter @code{[} @code{)},
+      A token is, for example, an identifier @code{println}, a delimiter @code{[} @code{)},
       or a whitespace character like space or newline.
       In the context of Scalafix, a @code{Token} means the data structure
       @code{scala.meta.Token}.
