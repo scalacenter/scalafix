@@ -1,24 +1,27 @@
+/*
+rules = NoAutoTupling
+ */
 package test
 
-class NoUnitInsertion2 {
+class NoUnitInsertion {
 
-  val x: Option[Unit] = Option(())
+  val x: Option[Unit] = Option()
 
   def a(u: Unit): Unit = u
-  a(())
+  a()
 
   def b(x: Int)(u: Unit): Unit = (x, u)
-  b(2)(())
+  b(2)()
 
   val c: Unit => Unit =
     u => u
-  c(())
+  c()
 
   case class Foo(u: Unit)
-  Foo(())
-  Foo.apply(())
+  Foo()
+  Foo.apply()
 
   case class Bar(i: Int)(u: Unit)
-  Bar.apply(2)(())
+  Bar.apply(2)()
 
 }

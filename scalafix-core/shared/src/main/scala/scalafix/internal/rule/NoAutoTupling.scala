@@ -13,16 +13,29 @@ case class NoAutoTupling(index: SemanticdbIndex)
     ctx.addLeft(args.head.tokens.head, "(") +
       ctx.addRight(args.last.tokens.last, ")")
 
-  override def fix(ctx: RuleCtx): Patch = {
-    val adaptations = index.messages.toIterator.collect {
+  private[this] def insertUnit(ctx: RuleCtx, t: Term.Apply): Patch =
+    ctx.addRight(t.tokens.init.last, "()")
+
+  lazy val unitAdaptations: Set[Position] =
+    index.messages.toIterator.collect {
+      case Message(pos, _, msg)
+          if msg.startsWith("Adaptation of argument list by inserting ()") =>
+        pos
+    }.toSet
+
+  lazy val tupleAdaptations: Set[Position] =
+    index.messages.toIterator.collect {
       case Message(pos, _, msg)
           if msg.startsWith("Adapting argument list by creating a") =>
         pos
     }.toSet
 
+  override def fix(ctx: RuleCtx): Patch = {
     ctx.tree.collect {
-      case t: Term.Apply if adaptations.contains(t.pos) =>
+      case t: Term.Apply if tupleAdaptations.contains(t.pos) =>
         addWrappingParens(ctx, t.args)
+      case t: Term.Apply if t.args.isEmpty && unitAdaptations.contains(t.pos) =>
+        insertUnit(ctx, t)
     }.asPatch
   }
 }
