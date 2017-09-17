@@ -1,5 +1,8 @@
 /*
 rule = Disable
+Disable.disabledSymbols = [
+  "_root_.test.Disable.D#disabledFunction()Z."
+]
 */
 package test
 
@@ -24,4 +27,9 @@ case object Disable {
     def asInstanceOf: O = "test" 
   }
   val yy = AA.asInstanceOf // OK, no errors
+
+  case class D() {
+    def disabledFunction: Boolean = true
+  }
+  val zz = D().disabledFunction // assert: Disable.disabledFunction
 }
