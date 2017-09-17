@@ -19,7 +19,7 @@ object ScalafixRules {
     ExplicitResultTypes(index),
     RemoveUnusedImports(index),
     NoAutoTupling(index),
-    AsInstanceOfDisabled(index)
+    Disable(index)
   )
   def all(index: SemanticdbIndex): List[Rule] =
     syntax ++ semantic(index)
