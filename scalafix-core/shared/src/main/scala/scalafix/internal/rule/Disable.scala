@@ -16,13 +16,14 @@ final case class Disable(index: SemanticdbIndex, configuration: DisableConfig)
     extends SemanticRule(index, "Disable")
     with Product {
 
-  private lazy val errorCategory: LintCategory = 
+  private lazy val errorCategory: LintCategory =
     LintCategory.error(
       """Some constructs are unsafe to use and should be avoided""".stripMargin
     )
 
-  private lazy val disabledSymbol: SymbolMatcher = 
-    SymbolMatcher.exact(Disable.disabledSymbol ::: configuration.disabledSymbols: _*)
+  private lazy val disabledSymbol: SymbolMatcher =
+    SymbolMatcher.exact(
+      Disable.disabledSymbol ::: configuration.disabledSymbols: _*)
 
   override def init(config: Conf): Configured[Rule] =
     config
@@ -31,10 +32,13 @@ final case class Disable(index: SemanticdbIndex, configuration: DisableConfig)
 
   override def check(ctx: RuleCtx): Seq[LintMessage] =
     ctx.index.names.collect {
-      case ResolvedName(pos, disabledSymbol(Symbol.Global(_, signature)), false) =>
+      case ResolvedName(
+          pos,
+          disabledSymbol(Symbol.Global(_, signature)),
+          false) =>
         errorCategory
           .copy(id = signature.name)
-          .at(s"${ signature.name } is disabled", pos)
+          .at(s"${signature.name} is disabled", pos)
     }
 }
 
