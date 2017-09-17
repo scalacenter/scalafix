@@ -1,4 +1,4 @@
-package test.explicitReturnTypes
+package test.explicitResultTypes
 
 import scala.language.implicitConversions
 

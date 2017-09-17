@@ -123,7 +123,7 @@
       To run a rule, users execute @code{scalafix --rules MyRule}.
       Multiple rules can be composed into a single rule.
       For example, the migration for Dotty may involve @sect.ref{ProcedureSyntax},
-      @sect.ref{ExplicitUnit}, @sect.ref{DottyVarArgPattern}, @sect.ref{ExplicitReturnTypes}
+      @sect.ref{ExplicitUnit}, @sect.ref{DottyVarArgPattern}, @sect.ref{ExplicitResultTypes}
       and a few other rules. It is possible to combine all of those rules
       into a single @code{Dotty} rule so users can run
       @code{scalafix --rules Dotty}.
