@@ -1,6 +1,6 @@
 /*
 rules = ExplicitResultTypes
-explicitResultTypes.unsafeShortenNames = true
+ExplicitResultTypes.unsafeShortenNames = true
  */
 package test.explicitResultTypes
 

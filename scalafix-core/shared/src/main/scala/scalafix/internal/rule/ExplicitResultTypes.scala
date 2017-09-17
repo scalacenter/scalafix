@@ -32,8 +32,9 @@ case class ExplicitResultTypes(
   def this(index: SemanticdbIndex) =
     this(index, ExplicitResultTypesConfig.default)
   override def init(config: Conf): Configured[Rule] =
-    config
-      .getOrElse("explicitResultTypes")(ExplicitResultTypesConfig.default)
+    config // Support deprecated explicitReturnTypes config
+      .getOrElse("explicitReturnTypes", "ExplicitResultTypes")(
+        ExplicitResultTypesConfig.default)
       .map(c => ExplicitResultTypes(index, c))
 
   // Don't explicitly annotate vals when the right-hand body is a single call

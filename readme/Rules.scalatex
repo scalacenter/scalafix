@@ -29,12 +29,12 @@
     @h3{Configuration}
 
     @config
-      explicitResultTypes.memberKind = [Val, Def, Var]
-      explicitResultTypes.memberVisibility = [Public, Protected]
+      ExplicitResultTypes.memberKind = [Val, Def, Var]
+      ExplicitResultTypes.memberVisibility = [Public, Protected]
       // Experimental, shorten fully qualified names and insert missing imports
       // By default, names are fully qualified and prefixed with _root_.
       unsafeShortenNames = true // false by default.
-      explicitResultTypes.unsafeShortenNames = true // false by default.
+      ExplicitResultTypes.unsafeShortenNames = true // false by default.
 
     @h3{Known limitations}
 

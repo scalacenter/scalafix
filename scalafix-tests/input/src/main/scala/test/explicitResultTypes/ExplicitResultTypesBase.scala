@@ -1,7 +1,7 @@
 /*
 rules = ExplicitResultTypes
-explicitResultTypes.memberKind = [Val, Def, Var]
-explicitResultTypes.memberVisibility = [Public, Protected]
+ExplicitResultTypes.memberKind = [Val, Def, Var]
+ExplicitResultTypes.memberVisibility = [Public, Protected]
  */
 package test.explicitResultTypes
 
