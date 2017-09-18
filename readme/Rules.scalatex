@@ -322,5 +322,28 @@
         regions of code, track @issue(241) for updates.
         bt1
 
+
+
+  @sect(Disable.toString)
+    @since("0.5.0")
+    This rule reports errors when a "disallowed" symbol is referenced.
+
+    Example:
+    @hl.scala
+      MyCode.scala:7: error: [DisallowSymbol.asInstanceOf] asInstanceOf is disabled.
+        myValue.asInstanceOf[String]
+                ^
+    @h3{Configuration}
+
+    @p
+      By default, this rule does allows all symbols.
+      To disallow a symbol,
+
+    @hl.scala
+      Disable.symbols = [
+        "scala.Option.get"
+        "scala.Any.asInstanceOf"
+      ]
+
   @sect{Planned rules...}
     See @lnk("here", "https://github.com/scalacenter/scalafix/labels/rule").
