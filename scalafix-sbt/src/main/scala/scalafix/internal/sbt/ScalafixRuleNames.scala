@@ -9,10 +9,14 @@ object ScalafixRuleNames {
     "VolatileLazyVal",
     "ProcedureSyntax",
     "ExplicitUnit",
+    "DottyVolatileLazyVal",
     "DottyVarArgPattern",
+    "NoInfer",
     "Sbt1",
     "ExplicitResultTypes",
+    "ExplicitReturnTypes",
     "RemoveUnusedImports",
-    "NoAutoTupling"
+    "NoAutoTupling",
+    "Disable"
   )
 }
