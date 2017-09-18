@@ -2,6 +2,7 @@ package scalafix
 package rule
 
 import scalafix.internal.rule._
+import scalafix.internal.config.DisableConfig
 
 object ScalafixRules {
   val syntax: List[Rule] = List(
@@ -18,7 +19,8 @@ object ScalafixRules {
     Sbt1(index),
     ExplicitResultTypes(index),
     RemoveUnusedImports(index),
-    NoAutoTupling(index)
+    NoAutoTupling(index),
+    Disable(index, DisableConfig.empty)
   )
   def all(index: SemanticdbIndex): List[Rule] =
     syntax ++ semantic(index)
