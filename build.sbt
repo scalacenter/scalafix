@@ -33,9 +33,20 @@ commands += Command.command("ci-slow") { s =>
     s
 }
 
+lazy val adhocRepoUri = sys.props("scalafix.repository.uri")
+lazy val adhocRepoCredentials = sys.props("scalafix.repository.credentials")
+lazy val isCustomRepository = adhocRepoUri != null && adhocRepoCredentials != null
+
 lazy val publishSettings = Seq(
-  publishTo := Some(
-    "releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2"),
+  publishTo := {
+    if (isCustomRepository) Some("adhoc" at adhocRepoUri)
+    else Some("Releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2")
+  },
+  credentials ++= {
+    val credentialsFile = if (adhocRepoCredentials != null) new File(adhocRepoCredentials) else null
+    if (credentialsFile != null) List(new FileCredentials(credentialsFile))
+    else Nil
+  },
   publishArtifact in Test := false,
   licenses := Seq(
     "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
