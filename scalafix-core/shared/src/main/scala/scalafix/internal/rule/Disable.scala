@@ -22,8 +22,7 @@ final case class Disable(index: SemanticdbIndex, configuration: DisableConfig)
     )
 
   private lazy val disabledSymbol: SymbolMatcher =
-    SymbolMatcher.exact(
-      Disable.disabledSymbol ::: configuration.disabledSymbols: _*)
+    SymbolMatcher.normalized(configuration.disabledSymbols: _*)
 
   override def init(config: Conf): Configured[Rule] =
     config
@@ -40,9 +39,4 @@ final case class Disable(index: SemanticdbIndex, configuration: DisableConfig)
           .copy(id = signature.name)
           .at(s"${signature.name} is disabled", pos)
     }
-}
-
-case object Disable {
-  lazy val disabledSymbol: List[Symbol] =
-    Symbol("_root_.scala.Any#asInstanceOf()Ljava/lang/Object;.") :: Nil
 }

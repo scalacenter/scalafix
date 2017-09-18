@@ -1,6 +1,7 @@
 /*
 rule = Disable
 Disable.disabledSymbols = [
+  "_root_.scala.Any#asInstanceOf()Ljava/lang/Object;.",
   "_root_.test.Disable.D#disabledFunction()Z."
 ]
 */
