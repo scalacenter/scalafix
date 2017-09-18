@@ -6,7 +6,7 @@ import Dependencies._
 inThisBuild(
   List(
     organization := "ch.epfl.scala",
-    version := customScalafixVersion.getOrElse(version.value)
+    version := customScalafixVersion.getOrElse(version.value.replace('+', '-'))
   )
 )
 name := {
