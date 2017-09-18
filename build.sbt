@@ -40,10 +40,16 @@ lazy val isCustomRepository = adhocRepoUri != null && adhocRepoCredentials != nu
 lazy val publishSettings = Seq(
   publishTo := {
     if (isCustomRepository) Some("adhoc" at adhocRepoUri)
-    else Some("Releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2")
+    else {
+      val uri = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+      Some("Releases" at uri)
+    }
   },
   credentials ++= {
-    val credentialsFile = if (adhocRepoCredentials != null) new File(adhocRepoCredentials) else null
+    val credentialsFile = {
+      if (adhocRepoCredentials != null) new File(adhocRepoCredentials)
+      else null
+    }
     if (credentialsFile != null) List(new FileCredentials(credentialsFile))
     else Nil
   },
