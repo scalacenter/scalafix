@@ -22,7 +22,7 @@ final case class Disable(index: SemanticdbIndex, configuration: DisableConfig)
     )
 
   private lazy val disabledSymbol: SymbolMatcher =
-    SymbolMatcher.normalized(configuration.disabledSymbols: _*)
+    SymbolMatcher.normalized(configuration.symbols: _*)
 
   override def init(config: Conf): Configured[Rule] =
     config

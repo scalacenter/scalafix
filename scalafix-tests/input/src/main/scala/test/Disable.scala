@@ -1,8 +1,9 @@
 /*
 rule = Disable
-Disable.disabledSymbols = [
-  "_root_.scala.Any#asInstanceOf()Ljava/lang/Object;.",
-  "_root_.test.Disable.D#disabledFunction()Z."
+Disable.symbols = [
+  "scala.Any.asInstanceOf"
+  "scala.Option.get"
+  "test.Disable.D.disabledFunction"
 ]
 */
 package test
@@ -28,9 +29,10 @@ case object Disable {
   trait A {
     type O
   }
-  object AA extends A { 
+  object AA extends A {
     type O = String
-    def asInstanceOf: O = "test" 
+    def asInstanceOf: O = "test"
   }
   val yy = AA.asInstanceOf // OK, no errors
+  Option(1).get // assert: Disable.get
 }
