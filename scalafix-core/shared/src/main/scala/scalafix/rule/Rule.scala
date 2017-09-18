@@ -186,13 +186,13 @@ object Rule {
 
   /** Combine two rules into a single rule */
   def merge(a: Rule, b: Rule): Rule = (a, b) match {
-    case (c1: CompositeRule, c2: CompositeRule) =>
-      new CompositeRule(c1.rules ::: c2.rules)
-    case (c1: CompositeRule, _) =>
-      new CompositeRule(b :: c1.rules)
-    case (_, c2: CompositeRule) =>
-      new CompositeRule(b :: c2.rules)
-    case (_, _) =>
+    case (ac: CompositeRule, bc: CompositeRule) =>
+      new CompositeRule(ac.rules ::: bc.rules)
+    case (ac: CompositeRule, b) =>
+      new CompositeRule(b :: ac.rules)
+    case (a, bc: CompositeRule) =>
+      new CompositeRule(a :: bc.rules)
+    case (a, b) =>
       new CompositeRule(a :: b :: Nil)
   }
 }
