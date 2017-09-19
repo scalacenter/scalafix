@@ -114,6 +114,16 @@ trait PatchOps {
     *
     * String values are treated as Symbol.Global.
     */
-  def replaceSymbols(toReplace: Seq[(String, String)])(
+  def replaceSymbols(toReplace: (String, String)*)(
       implicit index: SemanticdbIndex): Patch
+
+  /** Helper for calling replaceSymbols without needing _*
+    *
+    * Defers work to replaceSymbols((String, String)*). Needs a dummy implicit
+    * to differentiate from replaceSymbols((String, String)*) after type erasure
+    */
+  implicit val noopSeq: Seq[(String, String)] = Seq(("", ""))
+  def replaceSymbols(toReplace: Seq[(String, String)])(
+      implicit noop: Seq[(String, String)],
+      index: SemanticdbIndex): Patch
 }
