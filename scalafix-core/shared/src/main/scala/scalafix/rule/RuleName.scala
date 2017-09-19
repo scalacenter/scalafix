@@ -25,8 +25,10 @@ final case class RuleName(identifiers: List[RuleIdentifier]) {
     if (nonDeprecated.isEmpty) "empty"
     else nonDeprecated.mkString("+")
   def isEmpty: Boolean = identifiers.isEmpty
+
   def +(other: RuleName): RuleName =
-    new RuleName((identifiers :: other.identifiers :: Nil).flatten)
+    new RuleName(identifiers ::: other.identifiers)
+
   override def toString: String = value
   def reportDeprecationWarning(name: String, reporter: ScalafixReporter): Unit = {
     identifiers.foreach { ident =>
