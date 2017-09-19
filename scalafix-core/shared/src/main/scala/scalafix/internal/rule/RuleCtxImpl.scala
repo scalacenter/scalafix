@@ -96,7 +96,7 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
   def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
       implicit index: SemanticdbIndex): Patch =
     TreePatch.ReplaceSymbol(fromSymbol, toSymbol)
-  def replaceSymbols(toReplace: (String, String)*)(
+  def replaceSymbols(toReplace: Seq[(String, String)])(
       implicit index: SemanticdbIndex): Patch =
     toReplace.foldLeft(Patch.empty) {
       case (a, (from, to)) =>
@@ -104,6 +104,7 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
           ScalafixMetaconfigReaders.parseReplaceSymbol(from, to).get
         a + ctx.replaceSymbol(fromSymbol, toSymbol)
     }
+
   def renameSymbol(fromSymbol: Symbol.Global, toName: String)(
       implicit index: SemanticdbIndex): Patch =
     TreePatch.ReplaceSymbol(fromSymbol, Root(Signature.Term(toName)))

@@ -114,6 +114,6 @@ trait PatchOps {
     *
     * String values are treated as Symbol.Global.
     */
-  def replaceSymbols(toReplace: (String, String)*)(
+  def replaceSymbols(toReplace: Seq[(String, String)])(
       implicit index: SemanticdbIndex): Patch
 }
