@@ -111,7 +111,7 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
 
 lazy val allSettings = List(
   version := sys.props.getOrElse("scalafix.version", version.value),
-  stableVersion := version.value.replaceAll("\\+.*", ""),
+  stableVersion := version.value.replaceAll("\\-.*", ""),
   resolvers += Resolver.sonatypeRepo("releases"),
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
   scalacOptions ++= compilerOptions.value,
