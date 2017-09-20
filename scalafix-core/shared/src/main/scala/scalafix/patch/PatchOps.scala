@@ -122,8 +122,7 @@ trait PatchOps {
     * Defers work to replaceSymbols((String, String)*). Needs a dummy implicit
     * to differentiate from replaceSymbols((String, String)*) after type erasure
     */
-  implicit val noopSeq: Seq[(String, String)] = Seq(("", ""))
   def replaceSymbols(toReplace: Seq[(String, String)])(
-      implicit noop: Seq[(String, String)],
+      implicit noop: DummyImplicit,
       index: SemanticdbIndex): Patch
 }
