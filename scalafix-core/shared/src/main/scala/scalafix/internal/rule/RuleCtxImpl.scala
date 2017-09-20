@@ -105,7 +105,7 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
         a + ctx.replaceSymbol(fromSymbol, toSymbol)
     }
   def replaceSymbols(toReplace: Seq[(String, String)])(
-      implicit noop: Seq[(String, String)],
+      implicit noop: DummyImplicit,
       index: SemanticdbIndex): Patch = {
     replaceSymbols(toReplace: _*)
   }
