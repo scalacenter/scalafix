@@ -65,11 +65,17 @@ lazy val publishSettings = Seq(
       "scm:git:git@github.com:scalacenter/scalafix.git"
     )
   ),
-  mimaPreviousArtifacts := Set(
-    organization.value %
-      s"${moduleName.value}_${scalaBinaryVersion.value}" %
-      sys.props.getOrElse("scalafix.stable.version", stableVersion.value)
-  ),
+  mimaPreviousArtifacts := {
+    // NOTE(olafur) shudder, can't figure out simpler way to do the same.
+    val binaryVersion =
+      if (crossVersion.value.isInstanceOf[CrossVersion.Full]) scalaVersion.value
+      else scalaBinaryVersion.value
+    Set(
+      organization.value %
+        s"${moduleName.value}_$binaryVersion" %
+        sys.props.getOrElse("scalafix.stable.version", stableVersion.value)
+    )
+  },
   mimaBinaryIssueFilters ++= Mima.ignoredABIProblems,
   pomExtra :=
     <developers>
@@ -243,6 +249,7 @@ lazy val `scalafix-sbt` = project
       )(state.value)
     },
     moduleName := "sbt-scalafix",
+    mimaPreviousArtifacts := Set.empty,
     scriptedLaunchOpts ++= Seq(
       "-Dplugin.version=" + version.value,
       // .jvmopts is ignored, simulate here
