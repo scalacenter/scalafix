@@ -1,6 +1,11 @@
 import _root_.scalafix.Versions
-updateOptions in ThisBuild := updateOptions.value.withLatestSnapshots(false)
-scalacOptions in ThisBuild += "-Ywarn-adapted-args" // For NoAutoTupling
+inThisBuild(
+  List(
+    updateOptions := updateOptions.value.withLatestSnapshots(false),
+    scalacOptions += "-Ywarn-adapted-args", // For NoAutoTupling
+    resolvers += Resolver.sonatypeRepo("releases")
+  )
+)
 lazy val root = project
   .in(file("."))
   .aggregate(
