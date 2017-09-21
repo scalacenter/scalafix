@@ -32,6 +32,10 @@ commands += Command.command("ci-slow") { s =>
   "scalafix-sbt/it:test" ::
     s
 }
+commands += Command.command("mima") { s =>
+  "very mimaReportBinaryIssues" ::
+    s
+}
 
 lazy val adhocRepoUri = sys.props("scalafix.repository.uri")
 lazy val adhocRepoCredentials = sys.props("scalafix.repository.credentials")
@@ -66,14 +70,13 @@ lazy val publishSettings = Seq(
     )
   ),
   mimaPreviousArtifacts := {
+    val previousArtifactVersion = "0.5.0"
     // NOTE(olafur) shudder, can't figure out simpler way to do the same.
     val binaryVersion =
       if (crossVersion.value.isInstanceOf[CrossVersion.Full]) scalaVersion.value
       else scalaBinaryVersion.value
     Set(
-      organization.value %
-        s"${moduleName.value}_$binaryVersion" %
-        sys.props.getOrElse("scalafix.stable.version", stableVersion.value)
+      organization.value % s"${moduleName.value}_$binaryVersion" % previousArtifactVersion
     )
   },
   mimaBinaryIssueFilters ++= Mima.ignoredABIProblems,
@@ -88,6 +91,8 @@ lazy val publishSettings = Seq(
 )
 
 lazy val noPublish = allSettings ++ Seq(
+  mimaReportBinaryIssues := {},
+  mimaPreviousArtifacts := Set.empty,
   publishArtifact := false,
   publish := {},
   publishLocal := {}
