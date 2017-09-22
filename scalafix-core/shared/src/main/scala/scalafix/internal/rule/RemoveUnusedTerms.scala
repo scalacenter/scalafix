@@ -12,7 +12,7 @@ case class RemoveUnusedTerms(index: SemanticdbIndex)
   private val unusedTerms = {
     val UnusedLocalVal = """local (.*) is never used""".r
     index.messages.toIterator.collect {
-      case Message(pos, _, UnusedLocalVal(_*))  =>
+      case Message(pos, _, UnusedLocalVal(_*)) =>
         pos
     }.toSet
   }
@@ -20,17 +20,23 @@ case class RemoveUnusedTerms(index: SemanticdbIndex)
   private def isUnused(defn: Defn) =
     unusedTerms.contains(defn.pos)
 
-  private def removeLiterals(rhs: Term): String =
-    rhs match {
-      case Lit(_) => ""
-      case r => r.syntax
-    }
-
-  override def fix(ctx: RuleCtx): Patch = {
-    ctx.debugIndex()
-    ctx.tree.collect {
-      case i: Defn.Val if isUnused(i) => ctx.replaceTree(i, removeLiterals(i.rhs))
-      case i: Defn.Var if isUnused(i) => ctx.replaceTree(i, i.rhs.fold("")(removeLiterals))
-    }.asPatch
+  private def removeDeclarationTokens(i: Defn, rhs: Term): Tokens = {
+    val startDef = i.tokens.start
+    val startBody = rhs.tokens.start
+    i.tokens.take(startBody - startDef)
   }
+
+  private def tokensToRemove(defn: Defn): Option[Tokens] = defn match {
+    case i @ Defn.Val(_, _, _, Lit(_)) => Some(i.tokens)
+    case i @ Defn.Val(_, _, _, rhs) => Some(removeDeclarationTokens(i, rhs))
+    case i @ Defn.Var(_, _, _, Some(Lit(_))) => Some(i.tokens)
+    case i @ Defn.Var(_, _, _, rhs) => rhs.map(removeDeclarationTokens(i, _))
+    case _ => None
+  }
+
+  override def fix(ctx: RuleCtx): Patch =
+    ctx.tree.collect {
+      case i: Defn if isUnused(i) =>
+        tokensToRemove(i).fold(Patch.empty)(ctx.removeTokens)
+    }.asPatch
 }
