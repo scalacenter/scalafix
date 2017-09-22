@@ -306,7 +306,8 @@ lazy val testsInput = project
     scalacOptions += s"-P:semanticdb:sourceroot:${sourceDirectory.in(Compile).value}",
     scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
     scalacOptions += "-Ywarn-adapted-args", // For NoAutoTupling
-    scalacOptions += "-Ywarn-unused", // For RemoveUnusedImports and RemoveUnusedTerms
+    scalacOptions += "-Ywarn-unused-import", // For RemoveUnusedImports
+    scalacOptions += "-Ywarn-unused", // For RemoveUnusedTerms
     logLevel := Level.Error, // avoid flood of compiler warnings
     // TODO: Remove once scala-xml-quote is merged into scala-xml
     resolvers += Resolver.bintrayRepo("allanrenucci", "maven"),
