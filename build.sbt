@@ -242,6 +242,7 @@ lazy val `scalafix-sbt` = project
         s
     },
     sbtPlugin := true,
+    crossSbtVersions := Vector(sbt013, sbt1),
     libraryDependencies ++= Seq(
       "io.get-coursier" %% "coursier" % coursier.util.Properties.version,
       "io.get-coursier" %% "coursier-cache" % coursier.util.Properties.version
