@@ -146,8 +146,9 @@ object ScalafixPlugin extends AutoPlugin {
 
   lazy val scalafixScalacSettings: Seq[Def.Setting[_]] = Def.settings(
     scalacOptions ++= {
+      val options = scalafixScalacOptions.value
       if (isSupportedScalaVersion.value) {
-        scalafixScalacOptions.value
+        options
       } else {
         Nil
       }
