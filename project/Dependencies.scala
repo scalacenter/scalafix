@@ -11,6 +11,8 @@ object Dependencies {
   def scala210 = "2.10.6"
   def scala211 = "2.11.11"
   def scala212 = "2.12.3"
+  def sbt013 = "0.13.6"
+  def sbt1 = "1.0.2"
   def ciScalaVersion = sys.env.get("CI_SCALA_VERSION")
 
   var testClasspath: String = "empty"
