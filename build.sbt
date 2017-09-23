@@ -319,6 +319,7 @@ lazy val testsInput = project
     scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
     scalacOptions += "-Ywarn-adapted-args", // For NoAutoTupling
     scalacOptions += "-Ywarn-unused-import", // For RemoveUnusedImports
+    scalacOptions += "-Ywarn-unused", // For RemoveUnusedTerms
     logLevel := Level.Error, // avoid flood of compiler warnings
     // TODO: Remove once scala-xml-quote is merged into scala-xml
     resolvers += Resolver.bintrayRepo("allanrenucci", "maven"),

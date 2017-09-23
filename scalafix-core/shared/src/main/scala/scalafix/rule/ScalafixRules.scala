@@ -19,6 +19,7 @@ object ScalafixRules {
     Sbt1(index),
     ExplicitResultTypes(index),
     RemoveUnusedImports(index),
+    RemoveUnusedTerms(index),
     NoAutoTupling(index),
     Disable(index, DisableConfig.empty)
   )
