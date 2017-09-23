@@ -21,7 +21,7 @@ if [[ "$TRAVIS_SECURE_ENV_VARS" == true && "$CI_PUBLISH" == true ]]; then
   if [ -n "$TRAVIS_TAG" ]; then
     echo "$PGP_SECRET" | base64 --decode | gpg --import
     echo "Tag push, publishing release to Sonatype."
-    sbt "sonatypeOpen scalafix-$TRAVIS_TAG" "very publishSigned" sonatypeReleaseAll
+    sbt "sonatypeOpen scalafix-$TRAVIS_TAG" "^ very publishSigned" sonatypeReleaseAll
   fi
   set-up-ssh
   sbt readme/publish
