@@ -85,7 +85,7 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
     toks(tree).lastOption.fold(Patch.empty)(addRight(_, toAdd))
   def addLeft(tok: Token, toAdd: String): Patch = Add(tok, toAdd, "")
   def addLeft(tree: Tree, toAdd: String): Patch =
-    toks(tree).lastOption.fold(Patch.empty)(addLeft(_, toAdd))
+    toks(tree).headOption.fold(Patch.empty)(addLeft(_, toAdd))
 
   // Semantic patch ops.
   def removeGlobalImport(symbol: Symbol)(
