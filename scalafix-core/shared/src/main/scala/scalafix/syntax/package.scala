@@ -31,10 +31,9 @@ package object syntax {
     @deprecated("Renamed to denotation", "0.5.0")
     def denotOpt: Option[Denotation] = denotation
     def denotation: Option[Denotation] = index.denotation(symbol)
-    def resultType(dialect: Dialect): Option[Type] =
+    def resultType: Option[Type] =
       denotation.flatMap(denot =>
-        DenotationOps.resultType(symbol, denot, dialect))
-    def resultType: Option[Type] = resultType(DenotationOps.defaultDialect)
+        DenotationOps.resultType(symbol, denot, DenotationOps.defaultDialect))
   }
   implicit class XtensionSymbol(symbol: Symbol) {
     def normalized: Symbol = SymbolOps.normalize(symbol)

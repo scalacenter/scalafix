@@ -1,6 +1,7 @@
 package scalafix.tests
 
 import scala.meta._
+import scala.meta.contrib._
 import scalafix.syntax._
 import scalafix.internal.util.DenotationOps
 
@@ -13,19 +14,19 @@ class DenotationOpsTest extends BaseSemanticTest("DenotationOpsTest") {
         for {
           symbol <- t.symbol
           resultType <- symbol.resultType
-        } yield assert(resultType.structure == Type.Name("Boolean").structure)
+        } yield assert(resultType isEqual t"Boolean")
 
       case t @ Pat.Var(Name("y")) =>
         for {
           symbol <- t.symbol
           resultType <- symbol.resultType
-        } yield assert(resultType.structure == Type.Apply(Type.Name("List"), List(Type.Name("String"))).structure)
+        } yield assert(resultType isEqual t"List[String]")
 
       case t: Defn.Def if t.name.value == "m" =>
         for {
           symbol <- t.symbol
           resultType <- symbol.resultType
-        } yield assert(resultType.structure == Type.Apply(Type.Name("List"), List(Type.Name("Int"))).structure)
+        } yield assert(resultType isEqual t"List[String]")
     }
   }
 
