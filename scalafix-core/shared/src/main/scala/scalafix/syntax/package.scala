@@ -8,6 +8,7 @@ import scala.meta.semanticdb.Symbol
 import scala.compat.Platform.EOL
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
 import scalafix.internal.util.SymbolOps
+import scalafix.internal.util.DenotationOps
 import scalafix.util.SymbolMatcher
 import scalafix.util.TreeOps
 
@@ -30,6 +31,9 @@ package object syntax {
     @deprecated("Renamed to denotation", "0.5.0")
     def denotOpt: Option[Denotation] = denotation
     def denotation: Option[Denotation] = index.denotation(symbol)
+    def resultType: Option[Type] =
+      denotation.flatMap(denot =>
+        DenotationOps.resultType(symbol, denot, DenotationOps.defaultDialect))
   }
   implicit class XtensionSymbol(symbol: Symbol) {
     def normalized: Symbol = SymbolOps.normalize(symbol)
