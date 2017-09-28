@@ -66,37 +66,12 @@ case class ExplicitResultTypes(
     case _: Defn.Var => MemberKind.Var
   }
 
-  private val denotDialect =
-    dialects.Scala212.copy(allowMethodTypes = true, allowTypeLambdas = true)
-
-  def parseDenotationInfo(symbol: Symbol, denot: Denotation): Option[Type] = {
-    def getDeclType(tpe: Type): Type = tpe match {
-      case Type.Method(_, tpe) if denot.isDef => tpe
-      case Type.Lambda(_, tpe) if denot.isDef => getDeclType(tpe)
-      case Type.Method((Term.Param(_, _, Some(tpe), _) :: Nil) :: Nil, _)
-          if denot.isVar =>
-        // Workaround for https://github.com/scalameta/scalameta/issues/1100
-        tpe
-      case x =>
-        x
-    }
-    val signature =
-      if (denot.isVal || denot.isDef | denot.isVar) denot.signature
-      else {
-        throw new UnsupportedOperationException(
-          s"Can't parse type for denotation $denot, denot.info=${denot.signature}")
-      }
-    val input = Input.Denotation(signature, symbol)
-    (denotDialect, input).parse[Type].toOption.map(getDeclType)
-  }
-
   override def fix(ctx: RuleCtx): Patch = {
     def defnType(defn: Defn): Option[(Type, Patch)] =
       for {
         name <- defnName(defn)
         symbol <- name.symbol
-        denot <- symbol.denotation
-        typ <- parseDenotationInfo(symbol, denot)
+        typ <- symbol.resultType
       } yield TypeSyntax.prettify(typ, ctx, config.unsafeShortenNames)
     import scala.meta._
     def fix(defn: Defn, body: Term): Patch = {
