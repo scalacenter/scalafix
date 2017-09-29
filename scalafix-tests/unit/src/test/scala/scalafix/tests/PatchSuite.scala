@@ -9,13 +9,6 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import scalafix.internal.rule.ProcedureSyntax
 
-class ErrorSuite extends SyntacticRuleSuite {
-  test("on parse error") {
-    intercept[ParseException] {
-      ProcedureSyntax.apply(Input.String("object A {"))
-    }
-  }
-}
 class PatchSuite extends SyntacticRuleSuite {
 
   val original: String =
@@ -82,5 +75,23 @@ class PatchSuite extends SyntacticRuleSuite {
       |object a {
       |  val x = 2
       |}""".stripMargin
+  )
+
+  val addGlobalImporter: Rule = Rule.syntactic("addGlobalImporter") { ctx =>
+    ctx.addGlobalImport(importer"scala.collection.{mutable => _}")
+  }
+
+  check(
+    addGlobalImporter,
+    "addGlobalImporter is a syntactic patch",
+    """import a.b
+      |
+      |object A
+      |""".stripMargin,
+    """import a.b
+      |import scala.collection.{ mutable => _ }
+      |
+      |object A
+      |""".stripMargin
   )
 }

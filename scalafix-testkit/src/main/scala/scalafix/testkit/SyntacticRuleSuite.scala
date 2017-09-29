@@ -8,11 +8,15 @@ import scalafix.syntax._
 
 import org.scalatest.FunSuiteLike
 
-class SyntacticRuleSuite(defaultRule: Rule = Rule.empty)
+/** Utility to unit test syntactic rules
+  *
+  * @param rule the default rule to use from `check`/`checkDiff`.
+  */
+class SyntacticRuleSuite(rule: Rule = Rule.empty)
     extends FunSuiteLike
     with DiffAssertions {
   def check(name: String, original: String, expected: String): Unit = {
-    check(defaultRule, name, original, expected)
+    check(rule, name, original, expected)
   }
 
   def check(
@@ -28,7 +32,7 @@ class SyntacticRuleSuite(defaultRule: Rule = Rule.empty)
   }
 
   def checkDiff(original: Input, expected: String): Unit = {
-    checkDiff(defaultRule, original, expected)
+    checkDiff(rule, original, expected)
   }
 
   def checkDiff(rule: Rule, original: Input, expected: String): Unit = {

@@ -68,13 +68,13 @@ object ImportPatchOps {
     }
 
   // NOTE(olafur): This method is the simplest/dummest thing I can think of
-  // to convert
   private[scalafix] def superNaiveImportPatchToTokenPatchConverter(
       ctx: RuleCtx,
       importPatches: Seq[ImportPatch])(
       implicit index: SemanticdbIndex): Iterable[Patch] = {
     val allImports = ctx.tree.collect { case i: Import => i }
     val allImporters = allImports.flatMap(_.importers)
+    lazy val allImportersSyntax = allImporters.map(_.syntax)
     val allImportees = allImporters.flatMap(_.importees)
     val allNamedImports = allImportees.collect {
       case Importee.Name(n) if index.names.contains(n.pos) =>
@@ -116,7 +116,8 @@ object ImportPatchOps {
           isAlreadyImported += symbol
           SymbolOps.toImporter(symbol).toList
         case TreePatch.AddGlobalImport(importer)
-            if !allImporters.exists(_.syntax == importer.syntax) =>
+            // best effort deduplication for syntactic addGlobalImport(Importer)
+            if !allImportersSyntax.contains(importer.syntax) =>
           importer :: Nil
         case _ => Nil
       }
