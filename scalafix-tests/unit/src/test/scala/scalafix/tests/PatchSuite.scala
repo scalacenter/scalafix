@@ -76,4 +76,22 @@ class PatchSuite extends SyntacticRuleSuite {
       |  val x = 2
       |}""".stripMargin
   )
+
+  val addGlobalImporter: Rule = Rule.syntactic("addGlobalImporter") { ctx =>
+    ctx.addGlobalImport(importer"scala.collection.{mutable => _}")
+  }
+
+  check(
+    addGlobalImporter,
+    "addGlobalImporter is a syntactic patch",
+    """import a.b
+      |
+      |object A
+      |""".stripMargin,
+    """import a.b
+      |import scala.collection.{ mutable => _ }
+      |
+      |object A
+      |""".stripMargin
+  )
 }
