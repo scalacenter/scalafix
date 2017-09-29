@@ -9,24 +9,27 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import scalafix.internal.rule.ProcedureSyntax
 
-class ErrorSuite extends SyntacticRuleSuite(ProcedureSyntax) {
+class ErrorSuite extends SyntacticRuleSuite {
   test("on parse error") {
     intercept[ParseException] {
       ProcedureSyntax.apply(Input.String("object A {"))
     }
   }
 }
-class PatchSuite
-    extends SyntacticRuleSuite(Rule.syntactic("PatchSuite")(ctx =>
-      ctx.addRight(ctx.tree.tokens.find(_.is[Ident]).get, "bba"))) {
+class PatchSuite extends SyntacticRuleSuite {
 
-  val original =
+  val original: String =
     """// Foobar
       |object a {
       |  val x = 2
       |}""".stripMargin
 
+  val addRightRule: Rule = Rule.syntactic("addRight") { (ctx) =>
+    ctx.addRight(ctx.tree.tokens.find(_.is[Ident]).get, "bba")
+  }
+
   checkDiff(
+    addRightRule,
     Input.String(original),
     """--- Input.String('<// Foobar...>')
       |+++ Input.String('<// Foobar...>')
@@ -39,6 +42,7 @@ class PatchSuite
   )
 
   checkDiff(
+    addRightRule,
     Input.VirtualFile("/label", original),
     """--- /label
       |+++ /label
@@ -53,6 +57,7 @@ class PatchSuite
   val file = File.createTempFile("foo", ".scala")
   Files.write(Paths.get(file.toURI), original.getBytes)
   checkDiff(
+    addRightRule,
     Input.File(file),
     s"""--- ${file.getAbsolutePath}
        |+++ ${file.getAbsolutePath}
@@ -62,5 +67,20 @@ class PatchSuite
        |+object abba {
        |   val x = 2
        | }""".stripMargin
+  )
+
+  val addLeftRule: Rule = Rule.syntactic("addLeft") { (ctx) =>
+    ctx.addLeft(ctx.tree, "object Foo {}\n")
+  }
+
+  check(
+    addLeftRule,
+    "addLeft adds the string before the first tree token",
+    original,
+    """object Foo {}
+      |// Foobar
+      |object a {
+      |  val x = 2
+      |}""".stripMargin
   )
 }
