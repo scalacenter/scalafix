@@ -147,32 +147,10 @@ object Patch {
       ctx: RuleCtx,
       index: Option[SemanticdbIndex]
   ): String = {
-    val patches = underlying(p)
-    val semanticPatches = patches.collect { case tp: TreePatch => tp }
-    val result = index match {
-      case Some(x: SemanticdbIndex) =>
-        semanticApply(p)(ctx, x)
-      case _ =>
-        if (semanticPatches.nonEmpty)
-          throw Failure.Unsupported(
-            s"Semantic patches are not supported without a SemanticdbIndex: $semanticPatches")
-        syntaxApply(ctx, underlying(p).collect {
-          case tp: TokenPatch => tp
-        })
-    }
-    result
+    treePatchApply(p)(ctx, index.getOrElse(SemanticdbIndex.empty))
   }
 
-  private def syntaxApply(ctx: RuleCtx, patches: Iterable[TokenPatch]): String = {
-    val patchMap = patches
-      .groupBy(x => TokenOps.hash(x.tok))
-      .mapValues(_.reduce(merge).newTok)
-    ctx.tokens.toIterator
-      .map(tok => patchMap.getOrElse(TokenOps.hash(tok), tok.syntax))
-      .mkString
-  }
-
-  private def semanticApply(
+  private def treePatchApply(
       patch: Patch)(implicit ctx: RuleCtx, index: SemanticdbIndex): String = {
     val base = underlying(patch)
     val moveSymbol = underlying(
@@ -195,7 +173,18 @@ object Patch {
               s"Expected TokenPatch, got $els")
         }
     }
-    syntaxApply(ctx, importTokenPatches ++ tokenPatches)
+    tokenPatchApply(ctx, importTokenPatches ++ tokenPatches)
+  }
+
+  private def tokenPatchApply(
+      ctx: RuleCtx,
+      patches: Iterable[TokenPatch]): String = {
+    val patchMap = patches
+      .groupBy(x => TokenOps.hash(x.tok))
+      .mapValues(_.reduce(merge).newTok)
+    ctx.tokens.toIterator
+      .map(tok => patchMap.getOrElse(TokenOps.hash(tok), tok.syntax))
+      .mkString
   }
 
   private def underlying(patch: Patch): Seq[Patch] = {
