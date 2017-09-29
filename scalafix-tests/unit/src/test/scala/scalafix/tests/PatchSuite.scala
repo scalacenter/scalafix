@@ -9,13 +9,6 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import scalafix.internal.rule.ProcedureSyntax
 
-class ErrorSuite extends SyntacticRuleSuite {
-  test("on parse error") {
-    intercept[ParseException] {
-      ProcedureSyntax.apply(Input.String("object A {"))
-    }
-  }
-}
 class PatchSuite extends SyntacticRuleSuite {
 
   val original: String =
