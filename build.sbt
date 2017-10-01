@@ -1,6 +1,7 @@
 import scalajsbundler.util.JSON._
 import sbt.ScriptedPlugin
 import sbt.ScriptedPlugin._
+import microsites._
 import Dependencies._
 
 inThisBuild(
@@ -439,6 +440,38 @@ lazy val integration = project
     reflect,
     testkit
   )
+
+lazy val websiteSettings = Seq(
+  micrositeName := "scalafix",
+  micrositeDescription := "A rewrite and linting tool for Scala",
+  micrositeBaseUrl := "scalafix",
+  micrositeDocumentationUrl := "docs",
+  micrositeHighlightTheme := "atom-one-light",
+  micrositeHomepage := "https://scalacenter.github.io/scalafix/",
+  micrositeOrganizationHomepage := "https://scala.epfl.ch/",
+  micrositeTwitterCreator := "@scala_lang",
+  micrositeGithubOwner := "scalacenter",
+  micrositeGithubRepo := "scalafix",
+  micrositeGithubToken := sys.env.get("GITHUB_TOKEN"),
+  micrositePushSiteWith := GitHub4s,
+  ghpagesNoJekyll := false,
+  micrositeGitterChannel := true,
+  micrositeFooterText := None,
+  micrositeConfigYaml := ConfigYml(
+    yamlCustomProperties = Map(
+      "scala212" -> scala212,
+      "scala211" -> scala211,
+      "stableVersion" -> (stableVersion in coreJVM).value, // TODO(gabro): there must be a simpler way...
+      "scalametaVersion" -> scalametaV,
+      "supportedScalaVersions" -> Seq(scala211, scala212),  // TODO(gabro): how to reference the one defined in buildInfoKeys?
+      "coursierVersion" -> coursier.util.Properties.version // TODO(gabro): how to reference the one defined in buildInfoKeys?
+    )
+  )
+)
+
+lazy val website = project
+  .enablePlugins(MicrositesPlugin)
+  .settings(websiteSettings)
 
 lazy val readme = scalatex
   .ScalatexReadme(
