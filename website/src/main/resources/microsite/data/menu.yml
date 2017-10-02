@@ -13,5 +13,8 @@ options:
   - title: FAQ
     url: docs/faq.html
 
+  - title: Changelog
+    url: docs/changelog.html
+
   - title: Links
     url: docs/links.html
