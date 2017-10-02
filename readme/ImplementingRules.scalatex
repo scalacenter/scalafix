@@ -109,7 +109,7 @@
 
   @sect{Example rules}
     The Scalafix repository contains several example rules and tests,
-    see @lnk("here", "https://github.com/scalacenter/scalafix/tree/master/scalafix-core/src/main/scala/scalafix/rule").
+    see @lnk("here", "https://github.com/scalacenter/scalafix/tree/master/scalafix-core/shared/src/main/scala/scalafix/rule").
     These examples may serve as inspiration for your rule.
 
   @sect{Vocabulary}
@@ -118,7 +118,7 @@
     @sect{Rule}
       A rule is a small program/function that can produce diffs.
       To implement a rule, you extend the
-      @lnk("Rule", "https://github.com/scalacenter/scalafix/blob/master/scalafix-core/src/main/scala/scalafix/rule/Rule.scala")
+      @lnk("Rule", "https://github.com/scalacenter/scalafix/blob/master/scalafix-core/shared/src/main/scala/scalafix/rule/Rule.scala")
       class.
       To run a rule, users execute @code{scalafix --rules MyRule}.
       Multiple rules can be composed into a single rule.
