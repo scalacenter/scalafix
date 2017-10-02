@@ -487,12 +487,36 @@ lazy val websiteSettings = Seq(
       "supportedScalaVersions" -> Seq(scala211, scala212), // TODO(gabro): how to reference the one defined in buildInfoKeys?
       "coursierVersion" -> coursier.util.Properties.version // TODO(gabro): how to reference the one defined in buildInfoKeys?
     )
-  )
+  ),
+  fork in tut := true
+)
+
+lazy val docsMappingsAPIDir = settingKey[String]("Name of subdirectory in site target directory for api docs")
+
+lazy val unidocSettings = Seq(
+  autoAPIMappings := true,
+  apiURL := Some(url("https://scalacenter.github.io/docs/api/")),
+  docsMappingsAPIDir := "docs/api",
+  addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), docsMappingsAPIDir),
+  unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(testkit),
+  scalacOptions in (ScalaUnidoc, unidoc) ++= Seq(
+    "-Xfatal-warnings",
+    "-doc-source-url", scmInfo.value.get.browseUrl + "/tree/master€{FILE_PATH}.scala",
+    "-sourcepath", baseDirectory.in(LocalRootProject).value.getAbsolutePath,
+    "-skip-packages", "ammonite:org:scala:scalafix.tests:scalafix.internal"
+  ),
+  fork in (ScalaUnidoc, unidoc) := true
 )
 
 lazy val website = project
   .enablePlugins(MicrositesPlugin)
-  .settings(websiteSettings)
+  .enablePlugins(ScalaUnidocPlugin)
+  .settings(
+    allSettings,
+    websiteSettings,
+    unidocSettings
+  )
+  .dependsOn(testkit)
 
 lazy val readme = scalatex
   .ScalatexReadme(
