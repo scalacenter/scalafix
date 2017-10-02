@@ -10,6 +10,15 @@ options:
       - title: scalafix-cli
         url: docs/installation/cli.html
 
+  - title: Rules
+    url: docs/rules/index.html
+    menu_section: Rules
+    nested_options:
+      - title: ExplicitResultTypes
+        url: docs/rules/ExplicitResultTypes.html
+      - title: RemoveUnusedImports
+        url: docs/rules/RemoveUnusedImports.html
+
   - title: FAQ
     url: docs/faq.html
 
