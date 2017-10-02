@@ -459,6 +459,9 @@ lazy val websiteSettings = Seq(
   micrositeFooterText := None,
   micrositeConfigYaml := ConfigYml(
     yamlCustomProperties = Map(
+      "githubOwner" -> micrositeGithubOwner.value,
+      "githubRepo" -> micrositeGithubRepo.value,
+      "docsUrl" -> micrositeDocumentationUrl.value,
       "scala212" -> scala212,
       "scala211" -> scala211,
       "stableVersion" -> (stableVersion in coreJVM).value, // TODO(gabro): there must be a simpler way...
