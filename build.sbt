@@ -457,6 +457,22 @@ lazy val websiteSettings = Seq(
   ghpagesNoJekyll := false,
   micrositeGitterChannel := true,
   micrositeFooterText := None,
+  micrositeFooterText := Some(
+    """
+      |<p>© 2017 <a href="https://github.com/scalacenter/scalafix#team">The Scalafix Maintainers</a></p>
+      |<p style="font-size: 80%; margin-top: 10px">Website built with <a href="https://47deg.github.io/sbt-microsites/">sbt-microsites © 2016 47 Degrees</a></p>
+      |""".stripMargin
+  ),
+  micrositePalette := Map(
+    "brand-primary"     -> "#0D2B35",
+    "brand-secondary"   -> "#203F4A",
+    "brand-tertiary"    -> "#0D2B35",
+    "gray-dark"         -> "#453E46",
+    "gray"              -> "#837F84",
+    "gray-light"        -> "#E3E2E3",
+    "gray-lighter"      -> "#F4F3F4",
+    "white-color"       -> "#FFFFFF"
+  ),
   micrositeConfigYaml := ConfigYml(
     yamlCustomProperties = Map(
       "githubOwner" -> micrositeGithubOwner.value,
@@ -468,7 +484,7 @@ lazy val websiteSettings = Seq(
       "scala211" -> scala211,
       "stableVersion" -> (stableVersion in coreJVM).value, // TODO(gabro): there must be a simpler way...
       "scalametaVersion" -> scalametaV,
-      "supportedScalaVersions" -> Seq(scala211, scala212),  // TODO(gabro): how to reference the one defined in buildInfoKeys?
+      "supportedScalaVersions" -> Seq(scala211, scala212), // TODO(gabro): how to reference the one defined in buildInfoKeys?
       "coursierVersion" -> coursier.util.Properties.version // TODO(gabro): how to reference the one defined in buildInfoKeys?
     )
   )
