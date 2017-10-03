@@ -2,7 +2,7 @@
 layout: docs
 title: ExplicitResultTypes
 ---
-## ExplicitResultTypes
+# ExplicitResultTypes
 
 ### ⚠️ Experimental
 Dotty requires implicit `val` and `def` to explicitly annotate result types.

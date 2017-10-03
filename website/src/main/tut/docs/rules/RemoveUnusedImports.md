@@ -2,7 +2,7 @@
 layout: docs
 title: RemoveUnusedImports
 ---
-## RemoveUnusedImports
+# RemoveUnusedImports
 
 This rule acts upon "Unused import" warnings emitted by the Scala compiler. See [slick/slick/pulls#1736](https://github.com/slick/slick/pull/1736) for an example diff from running `sbt "scalafix RemoveUnusedImports"`.
 

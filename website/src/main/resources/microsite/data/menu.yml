@@ -18,6 +18,26 @@ options:
         url: docs/rules/ExplicitResultTypes.html
       - title: RemoveUnusedImports
         url: docs/rules/RemoveUnusedImports.html
+      - title: RemoveXmlLiterals
+        url: docs/rules/RemoveXmlLiterals.html
+      - title: ProcedureSyntax
+        url: docs/rules/ProcedureSyntax.html
+      - title: DottyVolatileLazyVal
+        url: docs/rules/DottyVolatileLazyVal.html
+      - title: ExplicitUnit
+        url: docs/rules/ExplicitUnit.html
+      - title: DottyVarArgPattern
+        url: docs/rules/DottyVarArgPattern.html
+      - title: NoAutoTupling
+        url: docs/rules/NoAutoTupling.html
+      - title: NoValInForComprehension
+        url: docs/rules/NoValInForComprehension.html
+      - title: Sbt1
+        url: docs/rules/Sbt1.html
+      - title: NoInfer
+        url: docs/rules/NoInfer.html
+      - title: Disable
+        url: docs/rules/Disable.html
 
   - title: FAQ
     url: docs/faq.html
