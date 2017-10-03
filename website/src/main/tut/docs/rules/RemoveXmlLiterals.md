@@ -6,7 +6,6 @@ title: RemoveXmlLiterals
 
 This rules replaces XML literals with a `xml""` interpolator from [scala-xml-quote](https://github.com/densh/scala-xml-quote) project.
 
-{% raw %}
 ```scala
 // tries to use single quote when possible
 <div>{bar}</div>
@@ -24,8 +23,7 @@ xml"""<div>
 x match { case <a></a> => }
 x match { case <a></a> => }
 
-// replaces escaped {{ with single curly brace {
-<div>{{</div>
+// replaces escaped {% raw %}{{{% endraw %} with single curly brace {
+<div>{% raw %}{{{% endraw %}</div>
 xml"<div>{</div>"
 ```
-{% endraw %}
