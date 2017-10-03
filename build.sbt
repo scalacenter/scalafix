@@ -468,7 +468,7 @@ lazy val websiteSettings = Seq(
     "brand-secondary"   -> "#203F4A",
     "brand-tertiary"    -> "#0D2B35",
     "gray-dark"         -> "#453E46",
-    "gray"              -> "#837F84",
+    "gray"              -> "rgba(0,0,0,.8)",
     "gray-light"        -> "#E3E2E3",
     "gray-lighter"      -> "#F4F3F4",
     "white-color"       -> "#FFFFFF"
