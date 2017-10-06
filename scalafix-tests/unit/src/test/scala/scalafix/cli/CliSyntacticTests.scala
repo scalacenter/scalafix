@@ -82,7 +82,10 @@ class CliSyntacticTests extends BaseCliTest {
     ),
     expectedLayout = s"""/foobar.scala
                         |$original""".stripMargin,
-    expectedExit = ExitStatus.LinterError
+    expectedExit = ExitStatus.LinterError,
+    outputAssert = { out =>
+      assert(out.contains("Error!"))
+    }
   )
 
   check(
