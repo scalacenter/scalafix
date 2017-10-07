@@ -515,13 +515,30 @@ lazy val unidocSettings = Seq(
   fork in (ScalaUnidoc, unidoc) := true
 )
 
+val micrositePlugins: TaskKey[Unit] = taskKey[Unit]("Create microsite plugins")
+
 lazy val website = project
   .enablePlugins(MicrositesPlugin)
   .enablePlugins(ScalaUnidocPlugin)
   .settings(
     allSettings,
     websiteSettings,
-    unidocSettings
+    unidocSettings,
+    micrositePlugins := {
+      import sbtorgpolicies.io.FileWriter
+      val fw = new FileWriter
+      val micrositePluginDirectory = ((resourceDirectory in Compile).value / "microsite" / "plugins").getAbsolutePath
+      val resourceManagedPluginDir = ((resourceManaged in Compile).value / "jekyll" / "_plugins").getAbsolutePath
+      fw.copyFilesRecursively(micrositePluginDirectory, resourceManagedPluginDir)
+    },
+    makeMicrosite := Def.sequential(
+      microsite,
+      tut,
+      micrositeTutExtraMdFiles,
+      micrositePlugins,
+      makeSite,
+      micrositeConfig
+    ).value
   )
   .dependsOn(testkit)
 
