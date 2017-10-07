@@ -9,7 +9,7 @@ title: Sbt1
 
 To fix the sbt build sources of your build use __sbtfix___:
 
-- Install {% doc_ref sbt-scalafix %}#semanticdb-sbt //TODO(gabro)
+- Install {% doc_ref sbt-scalafix, semanticdb-sbt %}
 
 - Start a new sbt shell session or inside an active shell run `> reload`
 

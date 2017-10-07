@@ -58,7 +58,7 @@ git diff // should produce a diff
 | Name | Type | Description
 |------|------|-------------
 | `scalafix <rule>..` | `Unit` | Run scalafix on project sources. See {% doc_ref Rules %} or use tab completion to explore supported rules.
-| `sbtfix <rule>..` | `Unit` | Run scalafix on the build sources, `*.sbt` and `project/*`. __Note__: Requires {% doc_ref sbt-scalafix %} // TODO(gabro) enabled globally for semantic rules.
+| `sbtfix <rule>..` | `Unit` | Run scalafix on the build sources, `*.sbt` and `project/*`. __Note__: Requires {% doc_ref sbt-scalafix, semanticdb-sbt %} enabled globally for semantic rules.
 | `scalafixEnabled` | `Boolean` | `true` by default. If `false`, then sbt-scalafix will not enable the [semanticdb-scalac](http://scalameta.org/tutorial/#SemanticDB) plugin.
 | `scalafixSourceRoot` | `File` | The root directory of this project.
 | `scalafixScalacOptions` | `Seq[String]` | Necessary Scala compiler settings for scalafix to work.

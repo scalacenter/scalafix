@@ -22,7 +22,7 @@ triggered by `-Yrangepos`. Other tools like the presentation compiler (ENSIME/Sc
 If you use sbt-coursier, make sure you are on version {{ site.coursierVersion }}.
 
 ### Scalafix doesn't do anything
-- If you use {% doc_ref sbt-scalafix %}, try {% doc_ref sbt-scalafix %} // TODO(gabro)
+- If you use {% doc_ref sbt-scalafix %}, try {% doc_ref sbt-scalafix, Verify sbt installation %}
 - Make sure that you are running at least one rule.
 - Make sure that you are using a supported Scala version: {{ site.supportedScalaVersions | join: ", " }}.
 

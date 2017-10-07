@@ -3,7 +3,7 @@ module Jekyll
 
     def initialize(tag_name, docTitle, tokens)
       super
-      @docTitle = docTitle.strip
+      @docTitle, @hash = docTitle.split(',').map(&:strip)
     end
 
     def render(context)
@@ -19,7 +19,9 @@ module Jekyll
       if opt.nil? then
         raise ArgumentError, "Could not find a document titled '#{@docTitle}'"
       else
-        "[#{opt['title']}](#{baseurl}/#{opt['url']})"
+        hash = if @hash.nil? then "" else "##{@hash.gsub(' ', '-').downcase}" end
+        name = @hash || opt['title']
+        "[#{name}](#{baseurl}/#{opt['url']}#{hash})"
       end
     end
   end
