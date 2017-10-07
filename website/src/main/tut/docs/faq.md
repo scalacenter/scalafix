@@ -4,7 +4,7 @@ title: FAQ
 ---
 
 # FAQ
-If you have any questions, don't hesitate to ask on [gitter](javascript:window.gitter.chat.defaultChat.toggleChat(true)).
+If you have any questions, don't hesitate to ask on {% gitter %}.
 
 ## Troubleshooting
 ### I get resolution errors for org.scalameta:semanticdb-scalac

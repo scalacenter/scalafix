@@ -37,7 +37,7 @@ things are easier to do on the tree level.
 The Patch API is constantly evolving and we regularly add more
 utility methods to accomplish common tasks.
 If you experience that it's difficult to implement something that
-seems simple then don't hesitate to ask on [gitter](javascript:window.gitter.chat.defaultChat.toggleChat(true)).
+seems simple then don't hesitate to ask on {% gitter %}.
 
 ## LintMessage
 Rules are able to emit "lint messages" with info/warn/error severity
