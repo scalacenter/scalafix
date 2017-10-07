@@ -39,6 +39,23 @@ options:
       - title: Disable
         url: docs/rules/Disable.html
 
+  - title: Creating your own rule
+    url: docs/creating-your-own-rule/index.html
+    menu_section: Creating your own rule
+    nested_options:
+      - title: Before your begin
+        url: docs/creating-your-own-rule/before-you-begin.html
+      - title: Giter8 template
+        url: docs/creating-your-own-rule/giter-template.html
+      - title: scalafix-textkit
+        url: docs/creating-your-own-rule/scalafix-testkit.html
+      - title: Example rules
+        url: docs/creating-your-own-rule/example-rules.html
+      - title: Vocabulary
+        url: docs/creating-your-own-rule/vocabulary.html
+      - title: Sharing your rule
+        url: docs/creating-your-own-rule/sharing-your-rule.html
+
   - title: FAQ
     url: docs/faq.html
 
