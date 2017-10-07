@@ -39,6 +39,9 @@ options:
       - title: Disable
         url: docs/rules/Disable.html
 
+  - title: Configuration
+    url: docs/configuration.html
+
   - title: Creating your own rule
     url: docs/creating-your-own-rule/index.html
     menu_section: Creating your own rule

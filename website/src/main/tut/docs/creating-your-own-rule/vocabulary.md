@@ -56,7 +56,7 @@ def rule(ctx: RuleCtx): Patch = {
 A LintCategory is group of lint messages of the same kind.
 A LintCategory has a default severity level (info/warn/error) at which
 it will be reported. Scalafix users can override the default severity
-with @sect.ref{lint}.
+with {% doc_ref Configuration, lint %}.
 
 ## Scalameta
 Scalafix uses [Scalameta](http://scalameta.org/) to implement
