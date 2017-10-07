@@ -25,4 +25,4 @@ println(MyRule.Uppercase("object Hello { println('world) }"))
 ```
 
 The semantic API requires a more complicated setup. Please
-use @sect.ref{scalacenter/scalafix.g8}.
+use {% doc_ref Giter8 template %}.

@@ -17,6 +17,6 @@ cd scalafix
 sbt tests/test
 ```
 
-Note that the `scalafix` directory is a self-contained sbt build and can be put into the root directory of your repo. The tests are written using @sect.ref{scalafix-testkit}.
+Note that the `scalafix` directory is a self-contained sbt build and can be put into the root directory of your repo. The tests are written using [scalafix-testkit]({{ site.baseurl }}{% link docs/creating-your-own-rule/scalafix-testkit.md %}).
 
 

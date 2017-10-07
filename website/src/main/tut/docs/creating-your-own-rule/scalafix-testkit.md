@@ -28,7 +28,7 @@ scalafix-testkit features include:
 
 - Test failures are reported as unified diffs from the obtained output of the rule and the expected output in the `output` project.
 
-- Assert that a @sect.ref{LintMessage} is expected at a particular line by suffixing the line with the comment `// assert: <LintCategory>`. The test fails if there exist reported lint messages that have no associated assertion in the input file. For an example, see the NoInfer test suite:
+- Assert that a [LintMessage]({{ site.baseurl }}{% link docs/creating-your-own-rule/vocabulary.md %}#lintmessage) is expected at a particular line by suffixing the line with the comment `// assert: <LintCategory>`. The test fails if there exist reported lint messages that have no associated assertion in the input file. For an example, see the NoInfer test suite:
 
 ```scala
 val x = List(1, "")// assert: NoInfer.any

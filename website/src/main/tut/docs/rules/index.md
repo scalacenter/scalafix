@@ -16,7 +16,7 @@ Here's a list of the currently implemented rules:
   - [{{ rule.title }}]({{ rule.title }}.html)
 {% endfor %}
 
-To create custom rules, see @sect.ref{scalafix-core}.
+To create custom rules, see {% doc_ref scalafix-core %}.
 
 ## Planned rules
 See [here](https://github.com/scalacenter/scalafix/labels/rule).

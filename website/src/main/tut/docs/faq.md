@@ -22,12 +22,12 @@ triggered by `-Yrangepos`. Other tools like the presentation compiler (ENSIME/Sc
 If you use sbt-coursier, make sure you are on version {{ site.coursierVersion }}.
 
 ### Scalafix doesn't do anything
-- If you use @sect.ref{sbt-scalafix}, try @sect.ref{Verify sbt installation}.
+- If you use {% doc_ref sbt-scalafix %}, try {% doc_ref sbt-scalafix %} // TODO(gabro)
 - Make sure that you are running at least one rule.
 - Make sure that you are using a supported Scala version: {{ site.supportedScalaVersions | join: ", " }}.
 
 ### RemoveUnusedImports does not remove unused imports
-Make sure that you followed the instructions in @sect.ref{RemoveUnusedImports} regarding scalac options.
+Make sure that you followed the instructions in {% doc_ref RemoveUnusedImports %} regarding scalac options.
 
 ## Features
 ### IDE support

@@ -1,6 +1,7 @@
 ---
 layout: docs
 title: DottyVarArgPattern
+tag: rule
 ---
 
 # DottyVarArgPattern
