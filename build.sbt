@@ -102,6 +102,13 @@ lazy val noPublish = allSettings ++ Seq(
 lazy val stableVersion =
   settingKey[String]("Version of latest release to Maven.")
 
+inThisBuild(Seq(
+  version := sys.props.getOrElse("scalafix.version", version.value),
+  stableVersion := version.value.replaceAll("\\-.*", "")
+))
+
+lazy val supportedScalaVersions = List(scala211, scala212)
+
 lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
   buildInfoKeys := Seq[BuildInfoKey](
     name,
@@ -112,7 +119,7 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
     "scalameta" -> scalametaV,
     "semanticdbSbt" -> semanticdbSbt,
     scalaVersion,
-    "supportedScalaVersions" -> Seq(scala211, scala212),
+    "supportedScalaVersions" -> supportedScalaVersions,
     "scala211" -> scala211,
     "scala212" -> scala212,
     sbtVersion
@@ -122,8 +129,8 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
 )
 
 lazy val allSettings = List(
-  version := sys.props.getOrElse("scalafix.version", version.value),
-  stableVersion := version.value.replaceAll("\\-.*", ""),
+  version := version.value,
+  stableVersion := stableVersion.value,
   resolvers += Resolver.sonatypeRepo("releases"),
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
   scalacOptions ++= compilerOptions.value,
@@ -482,10 +489,10 @@ lazy val websiteSettings = Seq(
       "callToActionUrl" -> micrositeDocumentationUrl.value,
       "scala212" -> scala212,
       "scala211" -> scala211,
-      "stableVersion" -> (stableVersion in coreJVM).value, // TODO(gabro): there must be a simpler way...
+      "stableVersion" -> stableVersion.value,
       "scalametaVersion" -> scalametaV,
-      "supportedScalaVersions" -> Seq(scala211, scala212), // TODO(gabro): how to reference the one defined in buildInfoKeys?
-      "coursierVersion" -> coursier.util.Properties.version // TODO(gabro): how to reference the one defined in buildInfoKeys?
+      "supportedScalaVersions" -> supportedScalaVersions,
+      "coursierVersion" -> coursier.util.Properties.version
     )
   ),
   fork in tut := true
