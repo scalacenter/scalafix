@@ -16,7 +16,7 @@ if (width > 500 && nav) {
   const basePath = `https://github.com/${repo}/edit/${branch}/website/src/main/tut/${docsUrl}`;
   const target = `${basePath}/${relativePath}`;
   const editLink = document.createElement('li');
-  const text = 'EDIT THIS PAGE ON GITHUB';
+  const text = 'EDIT THIS PAGE';
   editLink.innerHTML = `<a href='${target}' target='_blank'><span>${text}</span></a>`
   document.querySelector('.nav .pull-right').appendChild(editLink);
   nav.appendChild(editLink);
