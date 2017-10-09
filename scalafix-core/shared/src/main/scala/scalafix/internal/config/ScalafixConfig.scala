@@ -1,6 +1,7 @@
 package scalafix
 package internal.config
 
+import java.io.OutputStream
 import java.io.PrintStream
 import scala.meta._
 import scala.meta.dialects.Scala211
@@ -22,6 +23,13 @@ case class ScalafixConfig(
     reporter = reporter.reset,
     lint = lint.copy(
       reporter = lint.reporter.reset
+    )
+  )
+
+  def withFreshReporters(outStream: OutputStream): ScalafixConfig = copy(
+    reporter = reporter.reset(outStream),
+    lint = lint.copy(
+      reporter = lint.reporter.reset(outStream)
     )
   )
 

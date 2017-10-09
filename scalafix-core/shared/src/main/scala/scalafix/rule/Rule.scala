@@ -9,7 +9,6 @@ import scalafix.syntax._
 import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.Configured
-import org.scalameta.logger
 
 /** A Scalafix Rule.
   *
@@ -70,13 +69,12 @@ abstract class Rule(ruleName: RuleName) { self =>
   final def andThen(other: Rule): Rule = merge(other)
 
   /** Returns string output of applying this single patch. */
-  final def apply(ctx: RuleCtx): String = apply(ctx, fix(ctx))
+  final def apply(ctx: RuleCtx): String = apply(ctx, fixWithName(ctx))
   final def apply(
       input: Input,
       config: ScalafixConfig = ScalafixConfig.default): String = {
     val ctx = RuleCtx(config.dialect(input).parse[Source].get, config)
-    val patch = fix(ctx)
-    apply(ctx, patch)
+    apply(ctx, fixWithName(ctx))
   }
   final def apply(input: String): String = apply(Input.String(input))
   final def apply(ctx: RuleCtx, patch: Patch): String = {
