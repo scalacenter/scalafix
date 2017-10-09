@@ -168,8 +168,6 @@ lazy val core = crossProject
     allSettings,
     publishSettings,
     buildInfoSettings,
-    addCompilerPlugin(
-      "org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
     libraryDependencies ++= List(
       scalameta.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
