@@ -6,27 +6,30 @@ import scala.meta.tokens.Token._
 
 trait Whitespace
 object Whitespace {
-  implicit val WhitespaceClassifier: Classifier[Token, Whitespace] =
-    new Classifier[Token, Whitespace] {
-      override def apply(token: Token): Boolean =
-        token.is[Space] || token.is[Tab] || token.is[Newline] || token.is[FF]
+  def unapply(token: Token): Boolean =
+    token.is[Space] || token.is[Tab] || token.is[Newline] || token.is[FF]
+  implicit def classifier[T <: Token]: Classifier[T, Whitespace] =
+    new Classifier[T, Whitespace] {
+      override def apply(token: T): Boolean = unapply(token)
     }
 }
 
 trait Trivia
 object Trivia {
-  implicit val TriviaClassifier: Classifier[Token, Trivia] =
-    new Classifier[Token, Trivia] {
-      override def apply(token: Token): Boolean =
-        token.is[Whitespace] || token.is[Comment]
+  def unapply(token: Token): Boolean =
+    token.is[Whitespace] || token.is[Comment]
+  implicit def classifier[T <: Token]: Classifier[T, Trivia] =
+    new Classifier[T, Trivia] {
+      override def apply(token: T): Boolean = unapply(token)
     }
 }
 
 trait Newline
 object Newline {
-  implicit val NewlineClassifier: Classifier[Token, Newline] =
-    new Classifier[Token, Newline] {
-      override def apply(token: Token): Boolean =
-        token.is[LF] || token.is[CR]
+  def unapply(token: Token): Boolean =
+    token.is[LF] || token.is[CR]
+  implicit def classifier[T <: Token]: Classifier[T, Newline] =
+    new Classifier[T, Newline] {
+      override def apply(token: T): Boolean = unapply(token)
     }
 }
