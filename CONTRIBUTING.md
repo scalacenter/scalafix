@@ -60,7 +60,13 @@ jekyll serve
 open http://localhost:4000/scalafix/
 ```
 
-All documentation is written in markdown, using [Liquid templates](https://jekyllrb.com/docs/templates/). We also have a few custom Liquid tags that you can use.
+All documentation is written in markdown, using [Liquid templates](https://jekyllrb.com/docs/templates/).
+
+### Side menu
+If you add/remove/move a docs (sub)section, you may want to edit the side menu. You'll find it [here](https://github.com/gabro/scalafix/blob/microsite/website/src/main/resources/microsite/data/menu.yml).
+
+### Custom tags
+We also have a few custom Liquid tags that you can use.
 
 If you need to link to a page in the docs, you can use the `doc_ref` tag, for example:
 
@@ -80,6 +86,14 @@ If you need to link to a vocabulary term you can use the `vocabulary_ref` tag, f
 
 ```md
 {% vocabulary_ref Patch %}
+// Expands to: /scalafix/docs/creating-your-own-rule/vocabulary.html#patch
+```
+
+If you need to link to a page in the apidocs you can use the `apidocs_ref` tag, for example:
+
+```md
+{% apidocs_ref scalafix.patch.PatchOps %}
+// Expands to: /scalafix/docs/api/scalafix/patch/PatchOps.scala
 ```
 
 ## TL;DR
