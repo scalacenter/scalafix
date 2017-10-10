@@ -451,7 +451,7 @@ lazy val integration = project
 
 lazy val websiteSettings = Seq(
   micrositeName := "scalafix",
-  micrositeDescription := "A rewrite and linting tool for Scala",
+  micrositeDescription := "Rewrite and linting tool for Scala",
   micrositeBaseUrl := "scalafix",
   micrositeDocumentationUrl := "docs",
   micrositeHighlightTheme := "atom-one-light",
