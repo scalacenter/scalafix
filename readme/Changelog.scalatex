@@ -1,6 +1,0 @@
-@import Main._
-@import scalafix.Readme._
-@import scalafix.Versions
-
-@sect{Changelog}
-  Changelogs are now published in @lnk("GitHub releases", "https://github.com/scalacenter/scalafix/releases")

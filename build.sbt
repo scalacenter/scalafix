@@ -524,30 +524,6 @@ lazy val website = project
   )
   .dependsOn(testkit, coreJVM, cli)
 
-lazy val readme = scalatex
-  .ScalatexReadme(
-    projectId = "readme",
-    wd = file(""),
-    url = "https://github.com/scalacenter/scalafix/tree/master",
-    source = "Readme")
-  .settings(
-    noPublish,
-    git.remoteRepo := "git@github.com:scalacenter/scalafix.git",
-    siteSourceDirectory := target.value / "scalatex",
-    publish := {
-      ghpagesPushSite
-        .dependsOn(run.in(Compile).toTask(" --validate-links"))
-        .value
-    },
-    scalacOptions ~= (_.filterNot(_ == "-Xlint")),
-    test := run.in(Compile).toTask(" --validate-links").value,
-    libraryDependencies ++= Seq(
-      "com.twitter" %% "util-eval" % "6.42.0"
-    )
-  )
-  .dependsOn(coreJVM, cli)
-  .enablePlugins(GhpagesPlugin)
-
 lazy val is210Only = Seq(
   scalaVersion := scala210,
   crossScalaVersions := Seq(scala210),
