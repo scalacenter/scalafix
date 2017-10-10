@@ -24,7 +24,7 @@ if [[ "$TRAVIS_SECURE_ENV_VARS" == true && "$CI_PUBLISH" == true ]]; then
     sbt "sonatypeOpen scalafix-$TRAVIS_TAG" "^ very publishSigned" sonatypeReleaseAll
   fi
   set-up-ssh
-  sbt readme/publish
+  sbt website/publishMicrosite
 else
   echo "Skipping publish, branch=$TRAVIS_BRANCH"
 fi
