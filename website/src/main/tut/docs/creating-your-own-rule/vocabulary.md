@@ -27,10 +27,7 @@ Two patches can be combined into a single patch with the `+` operator.
 A patch can also be empty. Patches can either be low-level "token patches",
 that operate on the token level or high-level "tree patches" that operate
 on parsed abstract syntax tree nodes. The public API for patch
-operations is available in `PatchOps.scala`.
-
-// TODO(gabro): Should we include the `PatchOps` source, or can we link to the apidocs?
-// @hl.ref(wd/"scalafix-core"/"shared"/"src"/"main"/"scala"/"scalafix"/"patch"/"PatchOps.scala", start = "trait PatchOps")
+operations is available in {% apidocs_ref scalafix.patch.PatchOps %}.
 
 Some things are typically easier to do on the token level and other
 things are easier to do on the tree level.

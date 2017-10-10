@@ -505,9 +505,8 @@ lazy val unidocSettings = Seq(
   apiURL := Some(url("https://scalacenter.github.io/docs/api/")),
   docsMappingsAPIDir := "docs/api",
   addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), docsMappingsAPIDir),
-  unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(testkit),
+  unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(testkit, coreJVM),
   scalacOptions in (ScalaUnidoc, unidoc) ++= Seq(
-    "-Xfatal-warnings",
     "-doc-source-url", scmInfo.value.get.browseUrl + "/tree/master€{FILE_PATH}.scala",
     "-sourcepath", baseDirectory.in(LocalRootProject).value.getAbsolutePath,
     "-skip-packages", "ammonite:org:scala:scalafix.tests:scalafix.internal"
@@ -523,7 +522,7 @@ lazy val website = project
     websiteSettings,
     unidocSettings
   )
-  .dependsOn(testkit)
+  .dependsOn(testkit, coreJVM)
 
 lazy val readme = scalatex
   .ScalatexReadme(
