@@ -102,10 +102,11 @@ lazy val noPublish = allSettings ++ Seq(
 lazy val stableVersion =
   settingKey[String]("Version of latest release to Maven.")
 
-inThisBuild(Seq(
-  version := sys.props.getOrElse("scalafix.version", version.value),
-  stableVersion := version.value.replaceAll("\\-.*", "")
-))
+inThisBuild(
+  Seq(
+    version := sys.props.getOrElse("scalafix.version", version.value),
+    stableVersion := version.value.replaceAll("\\-.*", "")
+  ))
 
 lazy val supportedScalaVersions = List(scala211, scala212)
 
@@ -469,14 +470,14 @@ lazy val websiteSettings = Seq(
       |""".stripMargin
   ),
   micrositePalette := Map(
-    "brand-primary"     -> "#0D2B35",
-    "brand-secondary"   -> "#203F4A",
-    "brand-tertiary"    -> "#0D2B35",
-    "gray-dark"         -> "#453E46",
-    "gray"              -> "rgba(0,0,0,.8)",
-    "gray-light"        -> "#E3E2E3",
-    "gray-lighter"      -> "#F4F3F4",
-    "white-color"       -> "#FFFFFF"
+    "brand-primary" -> "#0D2B35",
+    "brand-secondary" -> "#203F4A",
+    "brand-tertiary" -> "#0D2B35",
+    "gray-dark" -> "#453E46",
+    "gray" -> "rgba(0,0,0,.8)",
+    "gray-light" -> "#E3E2E3",
+    "gray-lighter" -> "#F4F3F4",
+    "white-color" -> "#FFFFFF"
   ),
   micrositeConfigYaml := ConfigYml(
     yamlCustomProperties = Map(
@@ -496,18 +497,24 @@ lazy val websiteSettings = Seq(
   fork in tut := true
 )
 
-lazy val docsMappingsAPIDir = settingKey[String]("Name of subdirectory in site target directory for api docs")
+lazy val docsMappingsAPIDir = settingKey[String](
+  "Name of subdirectory in site target directory for api docs")
 
 lazy val unidocSettings = Seq(
   autoAPIMappings := true,
   apiURL := Some(url("https://scalacenter.github.io/docs/api/")),
   docsMappingsAPIDir := "docs/api",
-  addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), docsMappingsAPIDir),
+  addMappingsToSiteDir(
+    mappings in (ScalaUnidoc, packageDoc),
+    docsMappingsAPIDir),
   unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(testkit, coreJVM),
   scalacOptions in (ScalaUnidoc, unidoc) ++= Seq(
-    "-doc-source-url", scmInfo.value.get.browseUrl + "/tree/master€{FILE_PATH}.scala",
-    "-sourcepath", baseDirectory.in(LocalRootProject).value.getAbsolutePath,
-    "-skip-packages", "ammonite:org:scala:scalafix.tests:scalafix.internal"
+    "-doc-source-url",
+    scmInfo.value.get.browseUrl + "/tree/master€{FILE_PATH}.scala",
+    "-sourcepath",
+    baseDirectory.in(LocalRootProject).value.getAbsolutePath,
+    "-skip-packages",
+    "ammonite:org:scala:scalafix.tests:scalafix.internal"
   ),
   fork in (ScalaUnidoc, unidoc) := true
 )
