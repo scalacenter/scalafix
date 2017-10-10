@@ -522,7 +522,7 @@ lazy val website = project
     websiteSettings,
     unidocSettings
   )
-  .dependsOn(testkit, coreJVM)
+  .dependsOn(testkit, coreJVM, cli)
 
 lazy val readme = scalatex
   .ScalatexReadme(
