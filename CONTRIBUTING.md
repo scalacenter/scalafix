@@ -41,21 +41,59 @@ $ sbt scalafix-sbt/scripted # only run scripted tests (still slow, but skips
 
 ## Documentation
 
-The scalafix documentation uses [scalatex](http://www.lihaoyi.com/Scalatex/).
+The scalafix documentation website uses [sbt-microsite](https://47deg.github.io/sbt-microsites/).
 
-To build the docs:
+You'll need Jekyll to build the website. You can follow the installation instructions
+[here](https://jekyllrb.com/docs/installation/).
+
+Once you have Jekyll, build the website with:
 
 ```sh
-sbt "~readme/run"
+sbt website/makeMicrosite
 ```
 
-To view the docs:
+To view the website in your browser:
 
 ```sh
-open readme/target/scalatex/index.html
-# OR, for automatic reload on every change
-browser-sync start --server --files "readme/target/scalatex/**"
-open http://localhost:3000/readme/target/scalatex/
+cd website/target/site
+jekyll serve
+open http://localhost:4000/scalafix/
+```
+
+All documentation is written in markdown, using [Liquid templates](https://jekyllrb.com/docs/templates/).
+
+### Side menu
+If you add/remove/move a docs (sub)section, you may want to edit the side menu. You'll find it [here](https://github.com/gabro/scalafix/blob/microsite/website/src/main/resources/microsite/data/menu.yml).
+
+### Custom tags
+We also have a few custom Liquid tags that you can use.
+
+If you need to link to a page in the docs, you can use the `doc_ref` tag, for example:
+
+```c
+{% doc_ref Before your begin %}
+// Expands to: /scalafix/docs/creating-your-own-rule/before-you-begin.html
+```
+
+You can also link to a specific section of the page:
+
+```c
+{% doc_ref Before your begin, What diff do you want to make %}
+// Expands to: /scalafix/docs/creating-your-own-rule/before-you-begin.html#what-diff-you-want-to-make
+```
+
+If you need to link to a vocabulary term you can use the `vocabulary_ref` tag, for example:
+
+```md
+{% vocabulary_ref Patch %}
+// Expands to: /scalafix/docs/creating-your-own-rule/vocabulary.html#patch
+```
+
+If you need to link to a page in the apidocs you can use the `apidocs_ref` tag, for example:
+
+```md
+{% apidocs_ref scalafix.patch.PatchOps %}
+// Expands to: /scalafix/docs/api/scalafix/patch/PatchOps.scala
 ```
 
 ## TL;DR

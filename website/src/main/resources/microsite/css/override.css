@@ -1,0 +1,42 @@
+a {
+  color: orange
+}
+
+.jumbotron {
+  background-image: none;
+}
+
+.technologies {
+  display: none;
+}
+
+#wrapper {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 1200px;
+}
+
+#sidebar-wrapper {
+  left: initial;
+}
+
+.header-anchor-link {
+  margin-left: -20px;
+  padding-right: 5px;
+  opacity: 0;
+  font-size: 17px;
+  color: grey;
+
+  transition: opacity 0.2s ease-in-out 0.1s;
+  -webkit-transition: opacity 0.2s ease-in-out 0.1s;
+  -moz-transition: opacity 0.2s ease-in-out 0.1s;
+  -ms-transition: opacity 0.2s ease-in-out 0.1s;
+}
+
+h2:hover .header-anchor-link,
+h3:hover .header-anchor-link,
+h4:hover .header-anchor-link,
+h5:hover .header-anchor-link,
+h6:hover .header-anchor-link {
+  opacity: 1;
+}
