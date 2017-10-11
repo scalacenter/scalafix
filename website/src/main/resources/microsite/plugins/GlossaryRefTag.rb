@@ -9,7 +9,7 @@ module Jekyll
     def render(context)
       baseurl = context['site']['baseurl']
       docsurl = context['site']['docsUrl']
-      "[#{@term}](#{baseurl}/#{docsurl}/developers/glossary##{@term.downcase})"
+      "[#{@term}](#{baseurl}/#{docsurl}/rule-authors/glossary##{@term.downcase})"
     end
   end
 end

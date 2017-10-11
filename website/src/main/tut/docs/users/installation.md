@@ -146,4 +146,4 @@ println(Uppercase("object Hello { println('world) }"))
 ```
 
 The semantic API requires a more complicated setup.
-Please see {% doc_ref Developers %}.
+Please see {% doc_ref Rule Authors %}.

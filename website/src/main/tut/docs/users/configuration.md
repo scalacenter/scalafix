@@ -107,6 +107,6 @@ patches.replaceSymbols = [
 debug.printSymbols = true
 ```
 
-To build custom rules see {% doc_ref Developers %}.
+To build custom rules see {% doc_ref Rule Authors %}.
 
 

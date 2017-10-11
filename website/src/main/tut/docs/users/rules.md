@@ -18,7 +18,7 @@ Here's a list of the currently implemented rules:
   - [{{ rule }}]({{ site.baseurl }}/docs/rules/{{ rule }})
 {% endfor %}
 
-To create custom rules, see {% doc_ref Developers %}.
+To create custom rules, see {% doc_ref Rule Authors %}.
 
 ## Planned rules
 See [here](https://github.com/scalacenter/scalafix/labels/rule).

@@ -12,16 +12,16 @@ options:
       - title: FAQ
         url: docs/users/faq
 
-  - title: Developers
-    url: docs/developers/setup
-    menu_section: Developers
+  - title: Rule Authors
+    url: docs/rule-authors/setup
+    menu_section: Rule Authors
     nested_options:
       - title: Setup
-        url: docs/developers/setup
+        url: docs/rule-authors/setup
       - title: Tutorial
-        url: docs/developers/tutorial
+        url: docs/rule-authors/tutorial
       - title: Glossary
-        url: docs/developers/glossary
+        url: docs/rule-authors/glossary
       - title: API Docs
         url: docs/api/
 
