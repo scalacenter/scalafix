@@ -1,9 +1,27 @@
 ---
 layout: docs
-title: scalafix-testkit
+title: Setup
 ---
 
-# scalafix-testkit
+To develop custom scalafix rules, you will first need to create an sbt project.
+
+## scalacenter/scalafix.g8
+
+Run the following commands to generate a skeleton project:
+
+```sh
+cd reponame # The project you want to implement rules for.
+
+# --rule= should ideally match the GitHub repo name, to make
+# it possible for users to run `scalafix "github:org/reponame/v1.0"`
+sbt new scalacenter/scalafix.g8 --rule="reponame" --version="v1.0"
+cd scalafix
+sbt tests/test
+```
+
+Note that the `scalafix` directory is a self-contained sbt build and can be put into the root directory of your repo. The tests are written using {% doc_ref Setup, scalafix-testkit %}.
+
+## scalafix-testkit
 scalafix-testkit is a module to help you write/run/debug/test scalafix rules.
 
 The scalacenter/scalafix.g8 template boilerplate already setups a project which uses scalafix-testkit.
@@ -28,7 +46,7 @@ scalafix-testkit features include:
 
 - Test failures are reported as unified diffs from the obtained output of the rule and the expected output in the `output` project.
 
-- Assert that a [LintMessage]({{ site.baseurl }}{% link docs/creating-your-own-rule/vocabulary.md %}#lintmessage) is expected at a particular line by suffixing the line with the comment `// assert: <LintCategory>`. The test fails if there exist reported lint messages that have no associated assertion in the input file. For an example, see the NoInfer test suite:
+- Assert that a {% glossary_ref LintMessage %} is expected at a particular line by suffixing the line with the comment `// assert: <LintCategory>`. The test fails if there exist reported lint messages that have no associated assertion in the input file. For an example, see the NoInfer test suite:
 
 ```scala
 val x = List(1, "")// assert: NoInfer.any

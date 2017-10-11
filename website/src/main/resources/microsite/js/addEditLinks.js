@@ -7,12 +7,12 @@ const nav = document.querySelector('.nav .pull-right')
 if (width > 500 && nav) {
   const baseUrl = '{{ site.baseurl }}';
   const docsUrl = '{{ site.docsUrl }}';
-  let relativePath = window.location.pathname.replace(`${baseUrl}/${docsUrl}/`, '').replace('.html', '.md');
+  let relativePath = window.location.pathname.replace(`${baseUrl}/${docsUrl}/`, '') + ".md";
   if (relativePath === '') {
     relativePath = 'index.md'
   }
   const repo = '{{ site.githubOwner }}/{{ site.githubRepo }}';
-  const branch = 'microsite';
+  const branch = 'master';
   const basePath = `https://github.com/${repo}/edit/${branch}/website/src/main/tut/${docsUrl}`;
   const target = `${basePath}/${relativePath}`;
   const editLink = document.createElement('li');

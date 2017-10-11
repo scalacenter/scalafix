@@ -81,14 +81,20 @@ lazy val publishSettings = Seq(
     )
   },
   mimaBinaryIssueFilters ++= Mima.ignoredABIProblems,
-  pomExtra :=
-    <developers>
-      <developer>
-        <id>olafurpg</id>
-        <name>Ólafur Páll Geirsson</name>
-        <url>https://geirsson.com</url>
-      </developer>
-    </developers>
+  developers ++= List(
+    Developer(
+      "gabro",
+      "Gabriele Petronella",
+      "gabriele@buildo.io",
+      url("https://buildo.io")
+    ),
+    Developer(
+      "olafurpg",
+      "Ólafur Páll Geirsson",
+      "olafurpg@gmail.com",
+      url("https://geirsson.com")
+    )
+  )
 )
 
 lazy val noPublish = allSettings ++ Seq(
@@ -453,7 +459,7 @@ lazy val websiteSettings = Seq(
   micrositeName := "scalafix",
   micrositeDescription := "Rewrite and linting tool for Scala",
   micrositeBaseUrl := "scalafix",
-  micrositeDocumentationUrl := "docs",
+  micrositeDocumentationUrl := "docs/users/installation",
   micrositeHighlightTheme := "atom-one-light",
   micrositeHomepage := "https://scalacenter.github.io/scalafix/",
   micrositeOrganizationHomepage := "https://scala.epfl.ch/",
@@ -483,8 +489,8 @@ lazy val websiteSettings = Seq(
     yamlCustomProperties = Map(
       "githubOwner" -> micrositeGithubOwner.value,
       "githubRepo" -> micrositeGithubRepo.value,
-      "docsUrl" -> micrositeDocumentationUrl.value,
-      "callToActionText" -> "View Documentation",
+      "docsUrl" -> "docs",
+      "callToActionText" -> "Get started",
       "callToActionUrl" -> micrositeDocumentationUrl.value,
       "scala212" -> scala212,
       "scala211" -> scala211,
