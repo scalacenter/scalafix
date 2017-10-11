@@ -12,7 +12,8 @@ The following sections explain useful vocabulary when working with Scalafix.
 {:toc}
 
 ## Rule
-A rule is a small program/function that can produce diffs.
+A rule is a small program/function that can analyze your code, report
+messages and automatically fix problems.
 To implement a rule, you extend the
 [Rule](https://github.com/scalacenter/scalafix/blob/master/scalafix-core/src/main/scala/scalafix/rule/Rule.scala)
 class.

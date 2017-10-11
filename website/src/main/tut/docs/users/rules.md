@@ -5,6 +5,8 @@ title: Rules
 
 # Rules
 
+A Scalafix rule is a small program that can analyze your source code,
+report messages and automatically fix problems.
 Scalafix comes with a few rules out-of-the-box.
 These rules have been chosen to meet the long-term goal of scalafix to
 [clarify the Scala to Dotty migration path](http://scala-lang.org/blog/2016/05/30/scala-center-advisory-board.html#the-first-meeting).
