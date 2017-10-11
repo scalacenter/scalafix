@@ -81,14 +81,20 @@ lazy val publishSettings = Seq(
     )
   },
   mimaBinaryIssueFilters ++= Mima.ignoredABIProblems,
-  pomExtra :=
-    <developers>
-      <developer>
-        <id>olafurpg</id>
-        <name>Ólafur Páll Geirsson</name>
-        <url>https://geirsson.com</url>
-      </developer>
-    </developers>
+  developers ++= List(
+    Developer(
+      "gabro",
+      "Gabriele Petronella",
+      "gabriele@buildo.io",
+      url("https://buildo.io")
+    ),
+    Developer(
+      "olafurpg",
+      "Ólafur Páll Geirsson",
+      "olafurpg@gmail.com",
+      url("https://geirsson.com")
+    )
+  )
 )
 
 lazy val noPublish = allSettings ++ Seq(
