@@ -529,7 +529,7 @@ lazy val website = project
   .enablePlugins(MicrositesPlugin)
   .enablePlugins(ScalaUnidocPlugin)
   .settings(
-    allSettings,
+    noPublish,
     websiteSettings,
     unidocSettings
   )
