@@ -5,11 +5,11 @@ title: Sbt1
 
 # Sbt1
 
-### ⚠️ Experimental
+**⚠️ Experimental**
 
 To fix the sbt build sources of your build use __sbtfix___:
 
-- Install {% doc_ref sbt-scalafix, semanticdb-sbt %}
+- Install {% doc_ref Installation, semanticdb-sbt %}
 
 - Start a new sbt shell session or inside an active shell run `> reload`
 
@@ -26,7 +26,7 @@ To fix sources of an sbt 0.13 plugin use __scalafix__:
     lazy val my210project = project.settings(
       scalaVersion := "2.10.6", // semanticdb-sbt only supports 2.10.6
       addCompilerPlugin(
-        "org.scalameta" % "semanticdb-sbt" % "@V.semanticdbSbt" cross CrossVersion.full
+        "org.scalameta" % "semanticdb-sbt" % "{{ site.semanticdbSbt }}" cross CrossVersion.full
       )
     )
     ```

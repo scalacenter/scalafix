@@ -4,24 +4,28 @@ title: Configuration
 ---
 
 # Configuration
+{:.no_toc}
 
 Scalafix reads configuration from a file using
 [HOCON](https://github.com/typesafehub/config) syntax.
 The convention is to keep a file `.scalafix.conf` into the root directory of your project.
 Configuration is not needed or is optional for most rules, so you may not need to create a `.scalafix.conf`.
 
-## Rules
-You can either run a default rule that comes with Scalafix or a custom rule that you write yourself.
+* TOC
+{:toc}
 
-### Default rules
-The following rules come built into Scalafix.
+## rules
+Configure which rule to run with `rules = [ ... ]`.
+Scalafix comes with a small set of built-in rules.
 
-{% assign rules = site.data.menu.options | where: "title","Rules" %}
 ```scala
+// Built in rules
 rules = [
-{% for rule in rules[0].nested_options %}  {{ rule.title }}
+{% for rule in site.data.rules.rules %}  {{ rule }}
 {% endfor %}]
 ```
+
+You have several options to load custom rules.
 
 ### class:
 If a scalafix rule is already on the classpath, you can classload it with the `scala:` protocol.
@@ -56,7 +60,7 @@ rule = "github:typelevel/cats/v1.0.0"
 
 ### replace:
 
-#### ️⚠️ Experimental
+⚠️ Experimental
 
 To replace usage of one class/object/trait/def with another.
 Note, does not move definitions like "Move" does in an IDE. This
@@ -74,7 +78,7 @@ rule = "replace:com.company.App.start/init"
 ```
 
 ## lint
-Override the default severity level of a {% vocabulary_ref LintMessage %} with `lint`
+Override the default severity level of a {% glossary_ref LintMessage %} with `lint`
 
 ```scala
 // Assuming 'Foo' is a rule and 'warningID'/'errorID' are LintCategory IDs.
@@ -103,6 +107,6 @@ patches.replaceSymbols = [
 debug.printSymbols = true
 ```
 
-For more advanced use-cases, see {% doc_ref Creating your own rule %}.
+To build custom rules see {% doc_ref Developers %}.
 
 

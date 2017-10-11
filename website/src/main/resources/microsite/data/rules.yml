@@ -1,0 +1,13 @@
+rules:
+- ExplicitResultTypes
+- RemoveUnusedImports
+- RemoveXmlLiterals
+- ProcedureSyntax
+- DottyVolatileLazyVal
+- ExplicitUnit
+- DottyVarArgPattern
+- NoAutoTupling
+- NoValInForComprehension
+- Sbt1
+- NoInfer
+- Disable

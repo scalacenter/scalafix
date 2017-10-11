@@ -1,9 +1,16 @@
 ---
 layout: docs
-title: Before your begin
+title: Tutorial
 ---
 
-# Before your begin
+Welcome to the tutorial on writing custom Scalafix rules.
+This tutorial is still a work-in-progress, and does not go into
+much technical details on how to implement rules.
+
+* TOC
+{:toc}
+
+## Before you begin
 Before you dive right into the code of your rule, it might be good to answer the following questions first.
 
 ### What diff do you want to make?
@@ -20,3 +27,24 @@ Is your rule specific to a particular codebase? Or is the rule intended to be us
 
 ### How often will your rule run?
 Are you writing a one-off migration script or will your rule run on every pull request? A rule that runs on every pull request should ideally have some unit tests and be documented so that other people can help maintain the rule.
+
+## API Docs
+
+- {% apidocs_ref scalafix.patch.PatchOps %}
+
+## Example rules
+The Scalafix repository contains several example rules and tests, see [here](https://github.com/scalacenter/scalafix/tree/master/scalafix-core/shared/src/main/scala/scalafix/internal/rule).
+These examples may serve as inspiration for your rule.
+
+## Sharing your rule
+You have implemented a rule, you have tests, it works,
+and now you want to share it with the world. Congrats!
+
+There are several ways to share a rule if the rule is contained in a single file and uses no external dependencies:
+
+- If you used the {% doc_ref Setup, scalacenter/scalafix.g8 %} to build your project, push your rule to github and tell users to run `scalafix github:$org/$reponame/$version`.
+
+- otherwise, tell users to use the {% doc_ref Configuration, http %} protocol, `scalafix --rules https://gist....` where the url points to the plaintext contents of your rule.
+
+- If your rule uses a custom library, then it's a bit tricky to share it. See [#201](https://github.com/{{ site.githubOwner }}/{{ site.githubRepo }}/issues/201) for more updates.
+

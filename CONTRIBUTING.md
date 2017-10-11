@@ -82,10 +82,10 @@ You can also link to a specific section of the page:
 // Expands to: /scalafix/docs/creating-your-own-rule/before-you-begin.html#what-diff-you-want-to-make
 ```
 
-If you need to link to a vocabulary term you can use the `vocabulary_ref` tag, for example:
+If you need to link to a vocabulary term you can use the `glossary_ref` tag, for example:
 
 ```md
-{% vocabulary_ref Patch %}
+{% glossary_ref Patch %}
 // Expands to: /scalafix/docs/creating-your-own-rule/vocabulary.html#patch
 ```
 

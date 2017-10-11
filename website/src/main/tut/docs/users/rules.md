@@ -11,9 +11,9 @@ These rules have been chosen to meet the long-term goal of scalafix to
 
 Here's a list of the currently implemented rules:
 
-{% assign rules = site.data.menu.options | where:"title","Rules" %}
-{% for rule in rules[0].nested_options %}
-  - [{{ rule.title }}]({{ rule.title }}.html)
+{% assign rules = site.data.rules.rules %}
+{% for rule in rules %}
+  - [{{ rule }}]({{ site.baseurl }}/docs/rules/{{ rule }})
 {% endfor %}
 
 To create custom rules, see {% doc_ref Developers %}.

@@ -4,7 +4,8 @@ title: ExplicitResultTypes
 ---
 # ExplicitResultTypes
 
-### ⚠️ Experimental
+**⚠️ Experimental**
+
 Dotty requires implicit `val` and `def` to explicitly annotate result types.
 This rewrite inserts the inferred type from the compiler for implicit definitions that are missing an explicit result type.
 
