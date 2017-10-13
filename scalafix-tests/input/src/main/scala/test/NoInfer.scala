@@ -1,5 +1,8 @@
 /*
 rule = NoInfer
+noInfer.extraSymbols = [
+  "_root_.test.NoInfer.B#"
+]
 */
 package test
 
@@ -14,4 +17,6 @@ case object NoInfer {
   }
   case class A()
   List(NoInfer, A())// assert: NoInfer.product
+  case class B()
+  List(B())// assert: NoInfer.b
 }
