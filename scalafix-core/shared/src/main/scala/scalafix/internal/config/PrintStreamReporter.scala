@@ -1,5 +1,6 @@
 package scalafix.internal.config
 
+import java.io.OutputStream
 import scala.meta.Position
 import scala.meta.internal.inputs.XtensionPositionFormatMessage
 import java.io.PrintStream
@@ -32,6 +33,8 @@ case class PrintStreamReporter(
     }
   private val _errorCount = new AtomicInteger()
   override def reset: PrintStreamReporter = copy()
+  override def reset(os: OutputStream): ScalafixReporter =
+    copy(outStream = new PrintStream(os))
 
   override def report(message: String, position: Position, severity: Severity)(
       implicit ctx: LogContext): Unit = {

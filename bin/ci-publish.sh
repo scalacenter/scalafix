@@ -15,16 +15,25 @@ set-up-ssh() {
   ssh-add ${DEPLOY_KEY_FILE}
 }
 
+set-up-jekyll() {
+  rvm use 2.2.3 --install --fuzzy
+  gem update --system
+  gem install sass
+  gem install jekyll -v 3.2.1
+  export PATH=${PATH}:./vendor/bundle
+}
+
 if [[ "$TRAVIS_SECURE_ENV_VARS" == true && "$CI_PUBLISH" == true ]]; then
   echo "Publishing..."
   git log | head -n 20
   if [ -n "$TRAVIS_TAG" ]; then
     echo "$PGP_SECRET" | base64 --decode | gpg --import
     echo "Tag push, publishing release to Sonatype."
-    sbt "sonatypeOpen scalafix-$TRAVIS_TAG" "very publishSigned" sonatypeReleaseAll
+    sbt "sonatypeOpen scalafix-$TRAVIS_TAG" "^ very publishSigned" sonatypeReleaseAll
   fi
   set-up-ssh
-  sbt readme/publish
+  set-up-jekyll
+  sbt website/publishMicrosite
 else
   echo "Skipping publish, branch=$TRAVIS_BRANCH"
 fi

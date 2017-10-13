@@ -1,6 +1,7 @@
 import scalajsbundler.util.JSON._
 import sbt.ScriptedPlugin
 import sbt.ScriptedPlugin._
+import microsites._
 import Dependencies._
 
 inThisBuild(
@@ -30,6 +31,10 @@ commands += Command.command("ci-fast") { s =>
 }
 commands += Command.command("ci-slow") { s =>
   "scalafix-sbt/it:test" ::
+    s
+}
+commands += Command.command("mima") { s =>
+  "very mimaReportBinaryIssues" ::
     s
 }
 
@@ -66,28 +71,35 @@ lazy val publishSettings = Seq(
     )
   ),
   mimaPreviousArtifacts := {
+    val previousArtifactVersion = "0.5.0"
     // NOTE(olafur) shudder, can't figure out simpler way to do the same.
     val binaryVersion =
       if (crossVersion.value.isInstanceOf[CrossVersion.Full]) scalaVersion.value
       else scalaBinaryVersion.value
     Set(
-      organization.value %
-        s"${moduleName.value}_$binaryVersion" %
-        sys.props.getOrElse("scalafix.stable.version", stableVersion.value)
+      organization.value % s"${moduleName.value}_$binaryVersion" % previousArtifactVersion
     )
   },
   mimaBinaryIssueFilters ++= Mima.ignoredABIProblems,
-  pomExtra :=
-    <developers>
-      <developer>
-        <id>olafurpg</id>
-        <name>Ólafur Páll Geirsson</name>
-        <url>https://geirsson.com</url>
-      </developer>
-    </developers>
+  developers ++= List(
+    Developer(
+      "gabro",
+      "Gabriele Petronella",
+      "gabriele@buildo.io",
+      url("https://buildo.io")
+    ),
+    Developer(
+      "olafurpg",
+      "Ólafur Páll Geirsson",
+      "olafurpg@gmail.com",
+      url("https://geirsson.com")
+    )
+  )
 )
 
 lazy val noPublish = allSettings ++ Seq(
+  mimaReportBinaryIssues := {},
+  mimaPreviousArtifacts := Set.empty,
   publishArtifact := false,
   publish := {},
   publishLocal := {}
@@ -95,6 +107,14 @@ lazy val noPublish = allSettings ++ Seq(
 
 lazy val stableVersion =
   settingKey[String]("Version of latest release to Maven.")
+
+inThisBuild(
+  Seq(
+    version := sys.props.getOrElse("scalafix.version", version.value),
+    stableVersion := version.value.replaceAll("\\-.*", "")
+  ))
+
+lazy val supportedScalaVersions = List(scala211, scala212)
 
 lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
   buildInfoKeys := Seq[BuildInfoKey](
@@ -106,7 +126,7 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
     "scalameta" -> scalametaV,
     "semanticdbSbt" -> semanticdbSbt,
     scalaVersion,
-    "supportedScalaVersions" -> Seq(scala211, scala212),
+    "supportedScalaVersions" -> supportedScalaVersions,
     "scala211" -> scala211,
     "scala212" -> scala212,
     sbtVersion
@@ -116,8 +136,8 @@ lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
 )
 
 lazy val allSettings = List(
-  version := sys.props.getOrElse("scalafix.version", version.value),
-  stableVersion := version.value.replaceAll("\\-.*", ""),
+  version := version.value,
+  stableVersion := stableVersion.value,
   resolvers += Resolver.sonatypeRepo("releases"),
   triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
   scalacOptions ++= compilerOptions.value,
@@ -163,8 +183,6 @@ lazy val core = crossProject
     allSettings,
     publishSettings,
     buildInfoSettings,
-    addCompilerPlugin(
-      "org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
     libraryDependencies ++= List(
       scalameta.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
@@ -237,6 +255,7 @@ lazy val `scalafix-sbt` = project
         s
     },
     sbtPlugin := true,
+    crossSbtVersions := Vector(sbt013, sbt1),
     libraryDependencies ++= Seq(
       "io.get-coursier" %% "coursier" % coursier.util.Properties.version,
       "io.get-coursier" %% "coursier-cache" % coursier.util.Properties.version
@@ -314,6 +333,7 @@ lazy val testsInput = project
     scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
     scalacOptions += "-Ywarn-adapted-args", // For NoAutoTupling
     scalacOptions += "-Ywarn-unused-import", // For RemoveUnusedImports
+    scalacOptions += "-Ywarn-unused", // For RemoveUnusedTerms
     logLevel := Level.Error, // avoid flood of compiler warnings
     // TODO: Remove once scala-xml-quote is merged into scala-xml
     resolvers += Resolver.bintrayRepo("allanrenucci", "maven"),
@@ -435,29 +455,85 @@ lazy val integration = project
     testkit
   )
 
-lazy val readme = scalatex
-  .ScalatexReadme(
-    projectId = "readme",
-    wd = file(""),
-    url = "https://github.com/scalacenter/scalafix/tree/master",
-    source = "Readme")
+lazy val websiteSettings = Seq(
+  micrositeName := "scalafix",
+  micrositeDescription := "Rewrite and linting tool for Scala",
+  micrositeBaseUrl := "scalafix",
+  micrositeDocumentationUrl := "docs/users/installation",
+  micrositeHighlightTheme := "atom-one-light",
+  micrositeHomepage := "https://scalacenter.github.io/scalafix/",
+  micrositeOrganizationHomepage := "https://scala.epfl.ch/",
+  micrositeTwitterCreator := "@scala_lang",
+  micrositeGithubOwner := "scalacenter",
+  micrositeGithubRepo := "scalafix",
+  ghpagesNoJekyll := false,
+  micrositeGitterChannel := true,
+  micrositeFooterText := None,
+  micrositeFooterText := Some(
+    """
+      |<p>© 2017 <a href="https://github.com/scalacenter/scalafix#team">The Scalafix Maintainers</a></p>
+      |<p style="font-size: 80%; margin-top: 10px">Website built with <a href="https://47deg.github.io/sbt-microsites/">sbt-microsites © 2016 47 Degrees</a></p>
+      |""".stripMargin
+  ),
+  micrositePalette := Map(
+    "brand-primary" -> "#0D2B35",
+    "brand-secondary" -> "#203F4A",
+    "brand-tertiary" -> "#0D2B35",
+    "gray-dark" -> "#453E46",
+    "gray" -> "rgba(0,0,0,.8)",
+    "gray-light" -> "#E3E2E3",
+    "gray-lighter" -> "#F4F3F4",
+    "white-color" -> "#FFFFFF"
+  ),
+  micrositeConfigYaml := ConfigYml(
+    yamlCustomProperties = Map(
+      "githubOwner" -> micrositeGithubOwner.value,
+      "githubRepo" -> micrositeGithubRepo.value,
+      "docsUrl" -> "docs",
+      "callToActionText" -> "Get started",
+      "callToActionUrl" -> micrositeDocumentationUrl.value,
+      "scala212" -> scala212,
+      "scala211" -> scala211,
+      "stableVersion" -> stableVersion.value,
+      "scalametaVersion" -> scalametaV,
+      "supportedScalaVersions" -> supportedScalaVersions,
+      "coursierVersion" -> coursier.util.Properties.version
+    )
+  ),
+  fork in tut := true
+)
+
+lazy val docsMappingsAPIDir = settingKey[String](
+  "Name of subdirectory in site target directory for api docs")
+
+lazy val unidocSettings = Seq(
+  autoAPIMappings := true,
+  apiURL := Some(url("https://scalacenter.github.io/docs/api/")),
+  docsMappingsAPIDir := "docs/api",
+  addMappingsToSiteDir(
+    mappings in (ScalaUnidoc, packageDoc),
+    docsMappingsAPIDir),
+  unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(testkit, coreJVM),
+  scalacOptions in (ScalaUnidoc, unidoc) ++= Seq(
+    "-doc-source-url",
+    scmInfo.value.get.browseUrl + "/tree/master€{FILE_PATH}.scala",
+    "-sourcepath",
+    baseDirectory.in(LocalRootProject).value.getAbsolutePath,
+    "-skip-packages",
+    "ammonite:org:scala:scalafix.tests:scalafix.internal"
+  ),
+  fork in (ScalaUnidoc, unidoc) := true
+)
+
+lazy val website = project
+  .enablePlugins(MicrositesPlugin)
+  .enablePlugins(ScalaUnidocPlugin)
   .settings(
     noPublish,
-    git.remoteRepo := "git@github.com:scalacenter/scalafix.git",
-    siteSourceDirectory := target.value / "scalatex",
-    publish := {
-      ghpagesPushSite
-        .dependsOn(run.in(Compile).toTask(" --validate-links"))
-        .value
-    },
-    scalacOptions ~= (_.filterNot(_ == "-Xlint")),
-    test := run.in(Compile).toTask(" --validate-links").value,
-    libraryDependencies ++= Seq(
-      "com.twitter" %% "util-eval" % "6.42.0"
-    )
+    websiteSettings,
+    unidocSettings
   )
-  .dependsOn(coreJVM, cli)
-  .enablePlugins(GhpagesPlugin)
+  .dependsOn(testkit, coreJVM, cli)
 
 lazy val is210Only = Seq(
   scalaVersion := scala210,

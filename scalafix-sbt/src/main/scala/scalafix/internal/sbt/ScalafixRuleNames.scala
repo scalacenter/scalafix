@@ -16,6 +16,7 @@ object ScalafixRuleNames {
     "ExplicitResultTypes",
     "ExplicitReturnTypes",
     "RemoveUnusedImports",
+    "RemoveUnusedTerms",
     "NoAutoTupling",
     "Disable"
   )

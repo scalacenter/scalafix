@@ -6,7 +6,8 @@ object Mima {
     // See https://github.com/typesafehub/migration-manager/wiki/sbt-plugin#basic-usage
     Seq(
       ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "scalafix.patch.PatchOps.replaceSymbols")
+        "scalafix.patch.PatchOps.replaceSymbols"),
+      ProblemFilters.exclude[Problem]("scalafix.internal.*")
     )
   }
 }

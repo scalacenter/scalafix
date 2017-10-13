@@ -80,11 +80,15 @@ sealed abstract case class CliRunner(
       display.taskProgress(msg, progress)
       code
     }
+    val exit: ExitStatus = {
+      val code = exitCode.get()
+      if (config.lint.reporter.hasErrors) {
+        ExitStatus.merge(ExitStatus.LinterError, code)
+      } else code
+    }
+    display.completedTask(msg, exit == ExitStatus.Ok)
     display.stop()
-    val exit = exitCode.get()
-    if (config.lint.reporter.hasErrors) {
-      ExitStatus.merge(ExitStatus.LinterError, exit)
-    } else exit
+    exit
   }
 
   // safeguard to verify that the original file contents have not changed since the
@@ -450,7 +454,7 @@ object CliRunner {
       }
     val resolvedConfig: Configured[ScalafixConfig] =
       resolvedRuleAndConfig.map {
-        case (_, config) => config.withFreshReporters
+        case (_, config) => config.withFreshReporters(common.out)
       }
 
     val resolvedPathReplace: Configured[AbsolutePath => AbsolutePath] = try {

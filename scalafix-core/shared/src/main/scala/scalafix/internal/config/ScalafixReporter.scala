@@ -1,5 +1,6 @@
 package scalafix.internal.config
 
+import java.io.OutputStream
 import scala.meta.Position
 import scalafix.internal.util.Severity
 import metaconfig.ConfDecoder
@@ -11,6 +12,7 @@ trait ScalafixReporter {
 
   /** Clear any internal mutable state */
   private[scalafix] def reset: ScalafixReporter
+  private[scalafix] def reset(outputStream: OutputStream): ScalafixReporter
 
   /** Returns the number of reported errors */
   def errorCount: Int

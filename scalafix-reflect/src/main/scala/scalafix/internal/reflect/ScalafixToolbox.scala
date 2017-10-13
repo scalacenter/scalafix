@@ -63,9 +63,22 @@ class Compiler() {
   settings.outputDirs.setSingleOutput(target)
   getClass.getClassLoader match {
     case u: URLClassLoader =>
-      settings.classpath.value = u.getURLs
-        .map(x => URLDecoder.decode(x.getPath, "UTF-8"))
-        .mkString(File.pathSeparator)
+      val paths = u.getURLs.toList.map(u => {
+        if (u.getProtocol.startsWith("bootstrap")) {
+          import java.io._
+          import java.nio.file._
+          val stream = u.openStream
+          val tmp = File.createTempFile("bootstrap-" + u.getPath, ".jar")
+          Files.copy(
+            stream,
+            Paths.get(tmp.getAbsolutePath),
+            StandardCopyOption.REPLACE_EXISTING)
+          tmp.getAbsolutePath
+        } else {
+          URLDecoder.decode(u.getPath, "UTF-8")
+        }
+      })
+      settings.classpath.value = paths.mkString(File.pathSeparator)
     case _ => ""
   }
   lazy val reporter = new StoreReporter
