@@ -17,12 +17,12 @@ name := {
 
 lazy val crossVersions = Seq(scala211, scala212)
 
-// Custom scalafix release command. Tried sbt-release but didn't play well with sbt-doge.
-commands += Command.command("release") { s =>
+commands += Command.command("ci-release") { s =>
   "clean" ::
     "very publishSigned" ::
-    "sonatypeRelease" ::
-    "gitPushTag" ::
+    "^^ 1.0.2 " ::
+    "scalafix-sbt/publishSigned" ::
+    "sonatypeReleaseAll" ::
     s
 }
 commands += Command.command("ci-fast") { s =>

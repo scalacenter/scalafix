@@ -15,7 +15,7 @@ The following sections explain useful vocabulary when working with Scalafix.
 A rule is a small program/function that can analyze your code, report
 messages and automatically fix problems.
 To implement a rule, you extend the
-[Rule](https://github.com/scalacenter/scalafix/blob/master/scalafix-core/src/main/scala/scalafix/rule/Rule.scala)
+{% apidocs_ref scalafix.rule.Rule %}
 class.
 To run a rule, users execute `scalafix --rules MyRule`.
 Multiple rules can be composed into a single rule.
