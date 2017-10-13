@@ -116,4 +116,13 @@ trait PatchOps {
     */
   def replaceSymbols(toReplace: (String, String)*)(
       implicit index: SemanticdbIndex): Patch
+
+  /** Helper for calling replaceSymbols without needing _*
+    *
+    * Defers work to replaceSymbols((String, String)*). Needs a dummy implicit
+    * to differentiate from replaceSymbols((String, String)*) after type erasure
+    */
+  def replaceSymbols(toReplace: Seq[(String, String)])(
+      implicit noop: DummyImplicit,
+      index: SemanticdbIndex): Patch
 }

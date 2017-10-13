@@ -104,6 +104,11 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
           ScalafixMetaconfigReaders.parseReplaceSymbol(from, to).get
         a + ctx.replaceSymbol(fromSymbol, toSymbol)
     }
+  def replaceSymbols(toReplace: Seq[(String, String)])(
+      implicit noop: DummyImplicit,
+      index: SemanticdbIndex): Patch = {
+    replaceSymbols(toReplace: _*)
+  }
   def renameSymbol(fromSymbol: Symbol.Global, toName: String)(
       implicit index: SemanticdbIndex): Patch =
     TreePatch.ReplaceSymbol(fromSymbol, Root(Signature.Term(toName)))

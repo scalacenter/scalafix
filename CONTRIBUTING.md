@@ -39,6 +39,10 @@ $ sbt scalafix-sbt/scripted # only run scripted tests (still slow, but skips
                             # publishLocal for core/cli/nsc scalafix modules)
 ```
 
+## Formatting
+
+Be sure to run `scalafmt` (available in the root folder) to ensure code formatting. You can read more about it at http://scalafmt.org
+
 ## Documentation
 
 The scalafix documentation website uses [sbt-microsite](https://47deg.github.io/sbt-microsites/).
