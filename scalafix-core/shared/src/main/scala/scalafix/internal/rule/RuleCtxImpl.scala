@@ -74,6 +74,10 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
   def replaceToken(token: Token, toReplace: String): Patch =
     Add(token, "", toReplace, keepTok = false)
   def removeTokens(tokens: Tokens): Patch =
+    doRemoveTokens(tokens)
+  def removeTokens(tokens: Iterable[Token]): Patch =
+    doRemoveTokens(tokens)
+  private def doRemoveTokens(tokens: Iterable[Token]): Patch =
     tokens.foldLeft(Patch.empty)(_ + TokenPatch.Remove(_))
   def removeToken(token: Token): Patch = Add(token, "", "", keepTok = false)
   def replaceTree(from: Tree, to: String): Patch = {
