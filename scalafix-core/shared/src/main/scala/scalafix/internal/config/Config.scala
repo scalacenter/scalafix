@@ -8,10 +8,10 @@ trait Config[A] {
 }
 
 object Config {
-  
+
   def apply[A](xs: List[Symbol]): Config[A] =
     new Config[A] { val symbols = xs }
-  
+
   def empty[A]: Config[A] =
     apply[A](Nil)
 

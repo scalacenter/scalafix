@@ -13,7 +13,7 @@ import scalafix.internal.config.Config
 final case class NoInfer(index: SemanticdbIndex, configuration: Config[NoInfer])
     extends SemanticRule(index, "NoInfer")
     with Product {
-  
+
   private lazy val error: LintCategory =
     LintCategory.error(
       """The Scala compiler sometimes infers a too generic type such as Any.
@@ -22,14 +22,15 @@ final case class NoInfer(index: SemanticdbIndex, configuration: Config[NoInfer])
     )
 
   private lazy val noInferSymbol: SymbolMatcher =
-    if(configuration.symbols.isEmpty) SymbolMatcher.exact(NoInfer.badSymbols: _*)
+    if (configuration.symbols.isEmpty)
+      SymbolMatcher.exact(NoInfer.badSymbols: _*)
     else SymbolMatcher.exact(configuration.symbols: _*)
 
   override def init(config: Conf): Configured[Rule] =
     config
       .getOrElse[Config[NoInfer]]("NoInfer")(Config.empty)(Config.decoder)
       .map(NoInfer(index, _))
-  
+
   override def check(ctx: RuleCtx): Seq[LintMessage] =
     ctx.index.synthetics.flatMap {
       case Synthetic(pos, _, names) =>
