@@ -3,7 +3,7 @@ rule = NoInfer
 */
 package test
 
-case object NoInfer {
+case object NoInferDefaults {
   val x = List(1, "")// assert: NoInfer.any
   x.map(x => x -> x)// assert: NoInfer.any
   List[Any](1, "") // OK, not reported message
@@ -13,5 +13,5 @@ case object NoInfer {
     case _: Any =>
   }
   case class A()
-  List(NoInfer, A())// assert: NoInfer.product
+  List(NoInferDefaults, A())// assert: NoInfer.product
 }

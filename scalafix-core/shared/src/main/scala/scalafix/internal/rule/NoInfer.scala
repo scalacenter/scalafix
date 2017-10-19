@@ -1,28 +1,40 @@
 package scalafix.internal.rule
 
 import scala.meta._
+import metaconfig.{Conf, Configured}
 import scalafix.lint.LintCategory
 import scalafix.lint.LintMessage
-import scalafix.rule.RuleCtx
+import scalafix.rule.{Rule, RuleCtx}
 import scalafix.rule.SemanticRule
 import scalafix.util.SemanticdbIndex
 import scalafix.util.SymbolMatcher
+import scalafix.internal.config.Config
 
-case class NoInfer(index: SemanticdbIndex)
+final case class NoInfer(index: SemanticdbIndex, configuration: Config[NoInfer])
     extends SemanticRule(index, "NoInfer")
     with Product {
-  private val badSymbol = SymbolMatcher.exact(NoInfer.badSymbols: _*)
-  val error: LintCategory =
+  
+  private lazy val error: LintCategory =
     LintCategory.error(
       """The Scala compiler sometimes infers a too generic type such as Any.
         |If this is intended behavior, then the type should be explicitly type
         |annotated in the source.""".stripMargin
     )
+
+  private lazy val noInferSymbol: SymbolMatcher =
+    if(configuration.symbols.isEmpty) SymbolMatcher.exact(NoInfer.badSymbols: _*)
+    else SymbolMatcher.exact(configuration.symbols: _*)
+
+  override def init(config: Conf): Configured[Rule] =
+    config
+      .getOrElse[Config[NoInfer]]("NoInfer")(Config.empty)(Config.decoder)
+      .map(NoInfer(index, _))
+  
   override def check(ctx: RuleCtx): Seq[LintMessage] =
     ctx.index.synthetics.flatMap {
       case Synthetic(pos, _, names) =>
         names.collect {
-          case ResolvedName(_, badSymbol(Symbol.Global(_, signature)), _) =>
+          case ResolvedName(_, noInferSymbol(Symbol.Global(_, signature)), _) =>
             val categoryId = signature.name.toLowerCase()
             error
               .copy(id = categoryId)
