@@ -27,7 +27,7 @@ By default the rule reports on the following types:
 - `AnyVal`
 - `Product`
 
-To signal when inferring specific types not in the default, something like the below can be created:
+It's possible to configure which types should not be inferred. In .scalafix.conf:
 
 ```scala
 NoInfer.symbols = [
