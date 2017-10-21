@@ -3,7 +3,7 @@ package scalafix.internal.config
 import metaconfig.ConfDecoder
 import org.langmeta._
 
-trait TargetSymbolsConfig {
+sealed trait TargetSymbolsConfig {
   val symbols: List[Symbol]
 }
 
