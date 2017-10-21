@@ -25,6 +25,7 @@ class SymbolMatcherTest extends BaseSemanticTest("SymbolMatcherTest") {
     assert(term.matches(Symbol("_root_.Foo.a#"))) // type
     assert(term.matches(Symbol("_root_.Foo#a(I)I."))) // method
     assert(term.matches(Symbol("_root_.Buz.;_root_.Foo.a#"))) // multi
+    assert(!term.matches(Symbol("_root_.Foo.a.apply()LFoo/a;."))) // apply
   }
 
 }

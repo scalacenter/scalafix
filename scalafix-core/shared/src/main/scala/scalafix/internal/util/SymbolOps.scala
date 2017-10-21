@@ -54,10 +54,6 @@ object SymbolOps {
       Symbol.Multi(syms.map(normalize))
     case Symbol.Global(sym, Signature.Term("package")) =>
       normalize(sym)
-    case Symbol.Global(
-        Symbol.Global(sym, Signature.Term(name)),
-        Signature.Method("apply", _)) =>
-      Symbol.Global(sym, Signature.Term(name))
     case Symbol.Global(sym, sig) =>
       Symbol.Global(normalize(sym), Signature.Term(sig.name))
     case x => x
