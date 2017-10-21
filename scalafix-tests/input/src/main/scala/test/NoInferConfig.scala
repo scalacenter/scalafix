@@ -10,7 +10,7 @@ package test
 case object NoInferConfig {
   case class B()
   List(B.apply) // assert: NoInfer.b
-  List[B](B()) // assert: NoInfer.apply
+  List[B](B()) // OK, B is not ifferred here
   def sum[A](a: A, b: String): String = { a + b } // assert: NoInfer.any2stringadd
   new Object() + "abc" // assert: NoInfer.any2stringadd
   val x = List(1, "") // OK, the config clears the defaults
