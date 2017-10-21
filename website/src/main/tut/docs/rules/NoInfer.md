@@ -1,18 +1,14 @@
 ---
 layout: docs
 title: NoInfer
+tag: rule
 ---
 
 # NoInfer
 
 _Since 0.5.0_
 
-This rule reports errors when the compiler inferred one of the following types:
-
-- `Serializable`
-- `Any`
-- `AnyVal`
-- `Product`
+This rule reports errors when the compiler infers certain types.
 
 Example:
 
@@ -22,6 +18,34 @@ MyCode.scala:7: error: [NoInfer.any] Inferred Any
             ^
 ```
 
-## Known limitations}
+## Configuration
 
-- Scalafix does not yet expose an way to disable rules across regions of code, track [#241](https://github.com/{{ site.githubOwner}}/{{ site.githubRepo}}/issues/241) for updates.
+By default the rule reports on the following types:
+
+- `Serializable`
+- `Any`
+- `AnyVal`
+- `Product`
+
+To signal when inferring specific types not in the default, something like the below can be created:
+
+```scala
+NoInfer.symbols = [
+  "scala.Predef.any2stringadd"
+]
+```
+
+and it would report 
+
+```scala
+MyCode.scala:7: error: [NoInfer.any2stringadd] Inferred any2stringadd
+  def sum[A](a: A, b: String): String = { a + b }
+                                          ^
+```
+
+**Note:** when a configuration for NoInfer is given it completely overwrites the defaults so they have to be explicitely added to the list of symbols if needed.
+
+
+## Known limitations
+
+- Scalafix does not yet expose a way to disable rules across regions of code, track [issue #241 for updates](https://github.com/scalacenter/scalafix/issues/241).
