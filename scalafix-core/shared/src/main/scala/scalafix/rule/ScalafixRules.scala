@@ -2,7 +2,7 @@ package scalafix
 package rule
 
 import scalafix.internal.rule._
-import scalafix.internal.config.Config
+import scalafix.internal.config.TargetSymbolsConfig
 
 object ScalafixRules {
   val syntax: List[Rule] = List(
@@ -15,13 +15,13 @@ object ScalafixRules {
     DottyVarArgPattern
   )
   def semantic(index: SemanticdbIndex): List[Rule] = List(
-    NoInfer(index, Config.empty),
+    NoInfer(index, TargetSymbolsConfig.empty),
     Sbt1(index),
     ExplicitResultTypes(index),
     RemoveUnusedImports(index),
     RemoveUnusedTerms(index),
     NoAutoTupling(index),
-    Disable(index, Config.empty)
+    Disable(index, TargetSymbolsConfig.empty)
   )
   def all(index: SemanticdbIndex): List[Rule] =
     syntax ++ semantic(index)

@@ -3,20 +3,20 @@ package scalafix.internal.config
 import metaconfig.ConfDecoder
 import org.langmeta._
 
-trait Config[A] {
+trait TargetSymbolsConfig {
   val symbols: List[Symbol]
 }
 
-object Config {
+object TargetSymbolsConfig {
 
-  def apply[A](xs: List[Symbol]): Config[A] =
-    new Config[A] { val symbols = xs }
+  def apply(xs: List[Symbol]): TargetSymbolsConfig =
+    new TargetSymbolsConfig { val symbols = xs }
 
-  def empty[A]: Config[A] =
-    apply[A](Nil)
+  def empty: TargetSymbolsConfig =
+    apply(Nil)
 
-  def decoder[A]: ConfDecoder[Config[A]] =
-    ConfDecoder.instanceF[Config[A]] {
-      _.getOrElse[List[Symbol.Global]]("symbols")(Nil) map apply[A]
+  def decoder: ConfDecoder[TargetSymbolsConfig] =
+    ConfDecoder.instanceF[TargetSymbolsConfig] {
+      _.getOrElse[List[Symbol.Global]]("symbols")(Nil) map apply
     }
 }

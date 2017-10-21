@@ -8,9 +8,9 @@ import scalafix.rule.{Rule, RuleCtx}
 import scalafix.rule.SemanticRule
 import scalafix.util.SemanticdbIndex
 import scalafix.util.SymbolMatcher
-import scalafix.internal.config.Config
+import scalafix.internal.config.TargetSymbolsConfig
 
-final case class NoInfer(index: SemanticdbIndex, configuration: Config[NoInfer])
+final case class NoInfer(index: SemanticdbIndex, configuration: TargetSymbolsConfig)
     extends SemanticRule(index, "NoInfer")
     with Product {
 
@@ -28,7 +28,7 @@ final case class NoInfer(index: SemanticdbIndex, configuration: Config[NoInfer])
 
   override def init(config: Conf): Configured[Rule] =
     config
-      .getOrElse[Config[NoInfer]]("NoInfer")(Config.empty)(Config.decoder)
+      .getOrElse[TargetSymbolsConfig]("NoInfer")(TargetSymbolsConfig.empty)(TargetSymbolsConfig.decoder)
       .map(NoInfer(index, _))
 
   override def check(ctx: RuleCtx): Seq[LintMessage] =
