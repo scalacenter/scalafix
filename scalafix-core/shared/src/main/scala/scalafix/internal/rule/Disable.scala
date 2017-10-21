@@ -11,7 +11,9 @@ import scalafix.util.SymbolMatcher
 import scalafix.internal.config.TargetSymbolsConfig
 import scalafix.syntax._
 
-final case class Disable(index: SemanticdbIndex, configuration: TargetSymbolsConfig)
+final case class Disable(
+    index: SemanticdbIndex,
+    configuration: TargetSymbolsConfig)
     extends SemanticRule(index, "Disable")
     with Product {
 
@@ -25,7 +27,8 @@ final case class Disable(index: SemanticdbIndex, configuration: TargetSymbolsCon
 
   override def init(config: Conf): Configured[Rule] =
     config
-      .getOrElse[TargetSymbolsConfig]("Disable")(TargetSymbolsConfig.empty)(TargetSymbolsConfig.decoder)
+      .getOrElse[TargetSymbolsConfig]("Disable")(TargetSymbolsConfig.empty)(
+        TargetSymbolsConfig.decoder)
       .map(Disable(index, _))
 
   override def check(ctx: RuleCtx): Seq[LintMessage] =

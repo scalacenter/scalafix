@@ -10,7 +10,9 @@ import scalafix.util.SemanticdbIndex
 import scalafix.util.SymbolMatcher
 import scalafix.internal.config.TargetSymbolsConfig
 
-final case class NoInfer(index: SemanticdbIndex, configuration: TargetSymbolsConfig)
+final case class NoInfer(
+    index: SemanticdbIndex,
+    configuration: TargetSymbolsConfig)
     extends SemanticRule(index, "NoInfer")
     with Product {
 
@@ -23,12 +25,13 @@ final case class NoInfer(index: SemanticdbIndex, configuration: TargetSymbolsCon
 
   private lazy val noInferSymbol: SymbolMatcher =
     if (configuration.symbols.isEmpty)
-      SymbolMatcher.exact(NoInfer.badSymbols: _*)
-    else SymbolMatcher.exact(configuration.symbols: _*)
+      SymbolMatcher.normalized(NoInfer.badSymbols: _*)
+    else SymbolMatcher.normalized(configuration.symbols: _*)
 
   override def init(config: Conf): Configured[Rule] =
     config
-      .getOrElse[TargetSymbolsConfig]("NoInfer")(TargetSymbolsConfig.empty)(TargetSymbolsConfig.decoder)
+      .getOrElse[TargetSymbolsConfig]("NoInfer")(TargetSymbolsConfig.empty)(
+        TargetSymbolsConfig.decoder)
       .map(NoInfer(index, _))
 
   override def check(ctx: RuleCtx): Seq[LintMessage] =
@@ -46,10 +49,10 @@ final case class NoInfer(index: SemanticdbIndex, configuration: TargetSymbolsCon
 
 case object NoInfer {
   lazy val badSymbols: List[Symbol] = List(
-    Symbol("_root_.java.io.Serializable#"),
-    Symbol("_root_.scala.Any#"),
-    Symbol("_root_.scala.AnyVal#"),
-    Symbol("_root_.scala.Product#")
+    Symbol("_root_.java.io.Serializable."),
+    Symbol("_root_.scala.Any."),
+    Symbol("_root_.scala.AnyVal."),
+    Symbol("_root_.scala.Product.")
   )
 
   def badSymbolNames: List[String] = badSymbols.collect {
