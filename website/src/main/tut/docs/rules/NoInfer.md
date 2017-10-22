@@ -1,7 +1,6 @@
 ---
 layout: docs
 title: NoInfer
-tag: rule
 ---
 
 # NoInfer
