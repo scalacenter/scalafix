@@ -7,6 +7,8 @@ object Mima {
     Seq(
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "scalafix.patch.PatchOps.replaceSymbols"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "scalafix.patch.PatchOps.removeTokens"),
       ProblemFilters.exclude[Problem]("scalafix.internal.*")
     )
   }

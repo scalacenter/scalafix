@@ -29,6 +29,7 @@ trait PatchOps {
 
   /** Replace all tokens with empty string. */
   def removeTokens(tokens: Tokens): Patch
+  def removeTokens(tokens: Iterable[Token]): Patch
 
   /** Replace single token with empty string. */
   def removeToken(token: Token): Patch
