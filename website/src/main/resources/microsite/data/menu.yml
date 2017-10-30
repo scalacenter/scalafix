@@ -23,5 +23,5 @@ options:
       - title: Glossary
         url: docs/rule-authors/glossary
       - title: API Docs
-        url: docs/api/
+        url: docs/api/scalafix/
 
