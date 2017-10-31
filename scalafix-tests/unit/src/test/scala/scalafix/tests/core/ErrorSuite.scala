@@ -1,4 +1,4 @@
-package scalafix.tests
+package scalafix.tests.core
 
 import scala.meta.ParseException
 import scalafix.internal.rule.ProcedureSyntax

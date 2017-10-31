@@ -1,6 +1,7 @@
-package scalafix.cli
+package scalafix.tests.cli
 
 import scala.collection.immutable.Seq
+import scalafix.cli._
 import scalafix.internal.rule._
 
 class CliSyntacticTests extends BaseCliTest {
@@ -77,7 +78,7 @@ class CliSyntacticTests extends BaseCliTest {
                         |$original""".stripMargin,
     args = Seq(
       "-r",
-      "scala:scalafix.cli.TestRules.LintError",
+      "scala:scalafix.tests.cli.TestRules.LintError",
       "foobar.scala"
     ),
     expectedLayout = s"""/foobar.scala
@@ -96,7 +97,7 @@ class CliSyntacticTests extends BaseCliTest {
       "--config-str",
       "lint.error=LintWarning.warning",
       "-r",
-      "scala:scalafix.cli.TestRules.LintWarning",
+      "scala:scalafix.tests.cli.TestRules.LintWarning",
       "foobar.scala"
     ),
     expectedLayout = s"""/foobar.scala

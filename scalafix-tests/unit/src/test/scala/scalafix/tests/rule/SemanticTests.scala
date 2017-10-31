@@ -1,11 +1,12 @@
-package scalafix
-package tests
+package scalafix.tests.rule
 
 import scala.meta._
-import scala.meta.semanticdb.SemanticdbSbt
-import scalafix.testkit._
 import scala.meta.internal.io.PathIO
-import SemanticTests._
+import scala.meta.semanticdb.SemanticdbSbt
+import scalafix.SemanticdbIndex
+import scalafix.testkit._
+import scalafix.tests.BuildInfo
+import scalafix.tests.rule.SemanticTests._
 
 class SemanticTests
     extends SemanticRuleSuite(

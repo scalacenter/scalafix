@@ -1,4 +1,4 @@
-package scalafix.cli
+package scalafix.tests.cli
 
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
@@ -6,17 +6,20 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import scala.collection.immutable.Seq
+import scala.meta.internal.io.FileIO
+import scalafix.cli.Cli
+import scalafix.cli.CliCommand
+import scalafix.cli.ExitStatus
 import scalafix.internal.cli.CommonOptions
 import scalafix.internal.cli.ScalafixOptions
+import scalafix.internal.rule.RemoveUnusedImports
 import scalafix.test.StringFS
 import scalafix.testkit.DiffAssertions
-import scalafix.tests.BuildInfo
-import scala.meta.AbsolutePath
-import ammonite.ops
-import scala.meta.io.RelativePath
-import scalafix.internal.rule.RemoveUnusedImports
 import scalafix.testkit.SemanticRuleSuite
-import scala.meta.internal.io.FileIO
+import scalafix.tests.BuildInfo
+import ammonite.ops
+import org.langmeta.io.AbsolutePath
+import org.langmeta.io.RelativePath
 import org.scalatest.FunSuite
 
 // extend this class to run custom cli tests.

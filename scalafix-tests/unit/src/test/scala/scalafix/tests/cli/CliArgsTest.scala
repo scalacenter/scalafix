@@ -1,4 +1,4 @@
-package scalafix.cli
+package scalafix.tests.cli
 
 import scala.collection.immutable.Seq
 import scalafix.cli.CliCommand.PrintAndExit

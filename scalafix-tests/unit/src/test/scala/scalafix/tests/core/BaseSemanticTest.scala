@@ -1,7 +1,8 @@
-package scalafix.tests
+package scalafix.tests.core
 
 import scala.meta._
 import scalafix.syntax._
+import scalafix.tests.BuildInfo
 import scalafix.util.SemanticdbIndex
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite

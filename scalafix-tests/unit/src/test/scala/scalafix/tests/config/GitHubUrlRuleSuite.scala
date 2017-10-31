@@ -1,5 +1,4 @@
-package scalafix
-package tests
+package scalafix.tests.config
 
 import scalafix.internal.reflect.ScalafixCompilerDecoder._
 import metaconfig.Conf
