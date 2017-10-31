@@ -16,6 +16,12 @@ final case class LintMessage(
     position: Position,
     category: LintCategory
 ) {
+
+  def id(owner: RuleName): String = {
+    val suffix = if (category.id.isEmpty) "" else s".${category.id}"
+    owner.value + suffix
+  }
+
   def format(owner: RuleName, explain: Boolean): String = {
     val explanation =
       if (explain)
@@ -24,7 +30,7 @@ final case class LintMessage(
            |${category.explanation}
            |""".stripMargin
       else ""
-    val id = if (category.id.isEmpty) "" else s".${category.id}"
-    s"[${owner.value}$id] $message$explanation"
+
+    s"[${id(owner)}] $message$explanation"
   }
 }

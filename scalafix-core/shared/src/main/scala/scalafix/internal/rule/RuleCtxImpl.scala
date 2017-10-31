@@ -7,6 +7,8 @@ import scalafix.LintMessage
 import scalafix._
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.config.ScalafixMetaconfigReaders
+import scalafix.internal.patch.EscapeHatch
+import scalafix.internal.util.Severity
 import scalafix.internal.util.SymbolOps.Root
 import scalafix.patch.LintPatch
 import scalafix.patch.TokenPatch
@@ -22,7 +24,6 @@ import scalafix.util.SemanticdbIndex
 import scalafix.util.TokenList
 import org.scalameta.FileLine
 import org.scalameta.logger
-
 case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
   ctx =>
   def syntax: String =
@@ -36,6 +37,12 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
   lazy val comments: AssociatedComments = AssociatedComments(tokens)
   lazy val input: Input = tokens.head.input
 
+  val escapeHatch = EscapeHatch(tree)
+  escapeHatch.anchorErrors.foreach(
+    error =>
+      config.lint.reporter
+        .handleMessage(error.msg, error.position, Severity.Error))
+
   // Debug utilities
   def index(implicit index: SemanticdbIndex): SemanticdbIndex =
     index.withDocuments(index.documents.filter(_.input == input))
@@ -48,18 +55,28 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
     logger.elem(values: _*)
   }
 
-  def printLintMessage(msg: LintMessage, owner: RuleName): Unit = {
+  def reportLintMessage(msg: LintMessage, owner: RuleName): Boolean = {
     val key = msg.category.key(owner)
-    if (config.lint.ignore.matches(key)) ()
+    if (config.lint.ignore.matches(key)) false
     else {
       val category = config.lint
         .getConfiguredSeverity(key)
         .getOrElse(msg.category.severity)
-      config.lint.reporter.handleMessage(
-        msg.format(owner, config.lint.explain),
-        msg.position,
-        category.toSeverity
-      )
+
+      val ruleName = msg.id(owner)
+      val position = msg.position
+
+      val isEscaped = escapeHatch.isEnabled(ruleName, position)
+
+      if (isEscaped) false
+      else {
+        config.lint.reporter.handleMessage(
+          msg.format(owner, config.lint.explain),
+          msg.position,
+          category.toSeverity
+        )
+        true
+      }
     }
   }
 

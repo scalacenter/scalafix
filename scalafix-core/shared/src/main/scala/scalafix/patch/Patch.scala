@@ -119,15 +119,20 @@ object Patch {
 
   private[scalafix] def reportLintMessages(
       patches: Map[RuleName, Patch],
-      ctx: RuleCtx): Unit = {
+      ctx: RuleCtx): Boolean = {
+
+    var reported = false
+
     patches.foreach {
       case (name, patch) =>
         Patch.lintMessages(patch).foreach { msg =>
           // Set the lint message owner. This allows us to distinguish
           // LintCategory with the same id from different rules.
-          ctx.printLintMessage(msg, name)
+          reported = reported || ctx.reportLintMessage(msg, name)
         }
     }
+
+    reported
   }
   private[scalafix] def lintMessages(patch: Patch): List[LintMessage] = {
     val builder = List.newBuilder[LintMessage]
