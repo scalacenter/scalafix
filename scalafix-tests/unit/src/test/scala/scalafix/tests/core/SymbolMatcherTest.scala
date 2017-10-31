@@ -1,4 +1,4 @@
-package scalafix.tests
+package scalafix.tests.core
 
 import scala.meta._
 import scalafix.syntax._

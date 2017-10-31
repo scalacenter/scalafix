@@ -18,30 +18,34 @@ If you experience any issues, don't hesitate to ask on Gitter.
 
 ## Testing
 
-```sh
-# For rules.
-$ sbt scalafix-tests/test # Fast unit tests for rules with access to semantic api.
-                          # See core/src/main/resources/ExplicitImplicit for
-                          # how to write more unit tests.
-                          # You can prefix a test name with "ONLY" to only run
-                          # that single test.
-$ sbt scalafix-core/test  # Fast unit tests without access to semantic api.
-                          # I recommend you use scalafix-nsc/test for rule tests.
-                          # For anything but rules, put the tests in core.
-$ sbt scalafix-tests/it:test # Slow integration tests running rules on
-                             # open source projects.
+Start an sbt shell with `$ sbt`.
+The commands below assume you have a running sbt shell.
 
-# For SBT plugin
-$ sbt scalafix-sbt/it:test  # publishes modules locally and runs scripted (slow)
-                            # for hassle-free execution run with version specified
-                            # e.g. -Dscalafix.version=0.5-SNAPSHOT
-$ sbt scalafix-sbt/scripted # only run scripted tests (still slow, but skips
-                            # publishLocal for core/cli/nsc scalafix modules)
+```sh
+> unit/test # Fast unit tests for rules, cli, core. Contains a lot
+            # of different test suites, so it's recommended to use testOnly.
+> unit/testOnly scalafix.tests.rule.* # Only run tests for rules, using scalafix-testkit.
+> unit/testOnly scalafix.tests.core.* # Only run tests for core APIs.
+> unit/testOnly scalafix.tests.cli.*  # Only run tests for the command line interface.
+
+# SBT plugin
+# (recommended) start the sbt shell with a SNAPSHOT scalafix version:
+# $ sbt -Dscalafix.version=0.5-SNAPSHOT
+> scalafix-sbt/it:test  # publishes modules locally and runs scripted (slow).
+                        # Only needed once per changed in core/cli modules.
+> scalafix-sbt/scripted # only run scripted tests (still slow, but skips
+                        # publishLocal for core/cli modules)
 ```
+
+Unit tests for rules are written using scalafix-testkit, read more about
+it here:
+https://scalacenter.github.io/scalafix/docs/rule-authors/setup#scalafix-testkit
 
 ## Formatting
 
-Be sure to run `scalafmt` (available in the root folder) to ensure code formatting. You can read more about it at http://scalafmt.org
+Be sure to run `scalafmt` (available in the root folder) to ensure code formatting.
+`./scalafmt --diff` formats only the files that have changed from the master branch.
+You can read more about it at http://scalafmt.org
 
 ## Documentation
 

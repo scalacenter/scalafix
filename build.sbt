@@ -429,32 +429,6 @@ lazy val unit = project
     testkit
   )
 
-lazy val integration = project
-  .in(file("scalafix-tests/integration"))
-  .configs(IntegrationTest)
-  .settings(
-    noPublish,
-    Defaults.itSettings,
-    test.in(IntegrationTest) := {
-      test
-        .in(IntegrationTest)
-        .dependsOn(
-          publishLocal.in(coreJVM),
-          publishLocal.in(cli),
-          publishLocal.in(reflect),
-          publishLocal.in(`scalafix-sbt`)
-        )
-        .value
-    },
-    libraryDependencies += scalatest.value % IntegrationTest
-  )
-  .dependsOn(
-    testsInput,
-    coreJVM,
-    reflect,
-    testkit
-  )
-
 lazy val websiteSettings = Seq(
   micrositeName := "scalafix",
   micrositeDescription := "Rewrite and linting tool for Scala",

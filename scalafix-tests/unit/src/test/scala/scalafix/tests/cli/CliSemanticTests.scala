@@ -1,10 +1,11 @@
-package scalafix.cli
+package scalafix.tests.cli
 
 import scala.collection.immutable.Seq
+import scalafix.cli._
 import scalafix.internal.cli.CommonOptions
 import scalafix.tests.BuildInfo
 
-class CliSemanticTest extends BaseCliTest {
+class CliSemanticTests extends BaseCliTest {
 
   checkSemantic(
     name = "--classpath inference error",

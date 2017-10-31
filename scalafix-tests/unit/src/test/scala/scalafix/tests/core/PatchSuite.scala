@@ -1,13 +1,12 @@
-package scalafix
-package tests
+package scalafix.tests.core
 
-import scala.meta._
-import scala.meta.tokens.Token.Ident
-import scalafix.testkit.SyntacticRuleSuite
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
-import scalafix.internal.rule.ProcedureSyntax
+import scala.meta._
+import scala.meta.tokens.Token.Ident
+import scalafix.Rule
+import scalafix.testkit.SyntacticRuleSuite
 
 class PatchSuite extends SyntacticRuleSuite {
 

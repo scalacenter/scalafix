@@ -1,8 +1,9 @@
-package scalafix.cli
+package scalafix.tests.cli
 
 import java.io.File
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
+import scalafix.cli.CliRunner
 import org.scalatest.FunSuite
 
 class AutoClasspathSuite extends FunSuite {

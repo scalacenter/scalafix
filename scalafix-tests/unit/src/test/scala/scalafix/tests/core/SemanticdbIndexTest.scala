@@ -1,8 +1,8 @@
-package scalafix.tests
+package scalafix.tests.core
 
 import scala.meta._
-import scalafix.util.SymbolMatcher
 import scalafix.syntax._
+import scalafix.util.SymbolMatcher
 
 class SemanticdbIndexTest extends BaseSemanticTest("SemanticdbIndexTest") {
 

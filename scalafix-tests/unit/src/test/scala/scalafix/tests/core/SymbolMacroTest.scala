@@ -1,7 +1,7 @@
-package scalafix.tests
+package scalafix.tests.core
 
-import scalafix.internal.util.SymbolGlobal
 import scala.meta._
+import scalafix.internal.util.SymbolGlobal
 import org.scalatest.FunSuite
 
 class SymbolMacroTest extends FunSuite {

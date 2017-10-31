@@ -1,4 +1,4 @@
-package scalafix.cli
+package scalafix.tests.cli
 
 import scalafix.lint.LintCategory
 import scalafix.rule.Rule
