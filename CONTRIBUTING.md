@@ -41,6 +41,17 @@ Unit tests for rules are written using scalafix-testkit, read more about
 it here:
 https://scalacenter.github.io/scalafix/docs/rule-authors/setup#scalafix-testkit
 
+```
+scalafix-tests
+├── input         # Source files to be fixed by default rules
+├── input-sbt     # Source files to be fixed by Sbt1 rule
+├── output        # Expected output from running default rules
+├── output-dotty  # Expected output from running Dotty-specific rules
+├── output-sbt    # Expected output from running Sbt1 rule
+├── shared        # Source files that are compiled semanticdb, used in BaseSemanticTest.
+└── unit          # Unit test suites.
+```
+
 ## Formatting
 
 Be sure to run `scalafmt` (available in the root folder) to ensure code formatting.
