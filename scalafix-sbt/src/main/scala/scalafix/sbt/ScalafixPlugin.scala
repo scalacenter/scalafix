@@ -107,7 +107,8 @@ object ScalafixPlugin extends AutoPlugin {
   // hack to avoid illegal dynamic reference, can't figure out how to do
   // scalafixParser(baseDirectory.in(ThisBuild).value).parsed
   private def workingDirectory = file(sys.props("user.dir"))
-  private val scalafixParser = ScalafixCompletions.parser(workingDirectory)
+  private val scalafixParser =
+    ScalafixCompletions.parser(workingDirectory.toPath)
   private val isSupportedScalaVersion = Def.setting {
     CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, 11 | 12)) => true

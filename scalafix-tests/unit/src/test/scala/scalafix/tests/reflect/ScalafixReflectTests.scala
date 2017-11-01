@@ -2,7 +2,6 @@ package scalafix.tests.reflect
 
 import scalafix.internal.config.LazySemanticdbIndex
 import scalafix.internal.reflect.ScalafixCompilerDecoder
-import scalafix.reflect.ScalafixReflect
 import scalafix.rule.Rule
 import scalafix.tests.BuildInfo
 import metaconfig.Conf
