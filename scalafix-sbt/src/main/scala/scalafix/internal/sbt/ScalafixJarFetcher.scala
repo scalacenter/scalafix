@@ -1,7 +1,7 @@
 package scalafix.internal.sbt
 
+import java.io.File
 import java.io.OutputStreamWriter
-import sbt.File
 
 private[scalafix] object ScalafixJarFetcher {
   def fetchJars(org: String, artifact: String, version: String): List[File] =

@@ -278,17 +278,20 @@ object CliRunner {
 
     implicit val workingDirectory: AbsolutePath = common.workingPath
 
+    def toClasspath(cp: String): List[AbsolutePath] =
+      cp.split(File.pathSeparator)
+        .iterator
+        .map(path => AbsolutePath(path)(common.workingPath))
+        .toList
+
     def resolveClasspath: Configured[Classpath] =
       classpath match {
         case Some(cp) =>
-          val paths = cp.split(File.pathSeparator).map { path =>
-            AbsolutePath(path)(common.workingPath)
-          }
-          Ok(Classpath(paths.toList))
+          val paths = toClasspath(cp)
+          Ok(Classpath(paths))
         case None =>
-          val roots =
-            cli.classpathAutoRoots.fold(List(cli.common.workingPath))(cp =>
-              Classpath(cp).shallow)
+          val roots = cli.classpathAutoRoots.fold(
+            cli.common.workingPath :: Nil)(toClasspath)
           val cp = autoClasspath(roots)
           if (verbose) {
             common.err.println(s"Automatic classpath=$cp")
@@ -351,7 +354,8 @@ object CliRunner {
       new LazySemanticdbIndex(
         resolveDatabase,
         diagnostic,
-        cli.common.workingPath)
+        cli.common.workingPath,
+        cli.toolClasspath.map(toClasspath).getOrElse(Nil))
 
     // expands a single file into a list of files.
     def expand(matcher: FilterMatcher)(path: AbsolutePath): Seq[FixFile] = {

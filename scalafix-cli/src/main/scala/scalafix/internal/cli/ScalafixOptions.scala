@@ -58,13 +58,16 @@ case class ScalafixOptions(
         "semanticdb-scalac compiler plugin and are necessary for semantic rules " +
         "like ExplicitResultTypes to function."
     )
-    @ValueDescription("entry1.jar:entry2.jar:target/scala-2.12/classes")
+    @ValueDescription("entry1.jar:entry2.jar:target/scala-2.12/classes/")
     classpath: Option[String] = None,
     @HelpMessage(
       "Automatically infer --classpath starting from these directories. " +
         "Ignored if --classpath is provided.")
-    @ValueDescription("target:project/target")
     classpathAutoRoots: Option[String] = None,
+    @HelpMessage(
+      "Additional classpath to use when classloading/compiling rules")
+    @ValueDescription("entry1.jar:entry2.jar:target/scala-2.12/classes/")
+    toolClasspath: Option[String] = None,
     @HelpMessage("Disable validation when loading semanticdb files.")
     noStrictSemanticdb: Boolean = false,
     @HelpMessage(
