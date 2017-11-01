@@ -5,7 +5,7 @@ import scalafix.cli.CliCommand.PrintAndExit
 import scalafix.cli.CliCommand.RunScalafix
 import scalafix.internal.rule.ProcedureSyntax
 
-class CliArgsTest extends BaseCliTest {
+object CliArgsTest extends BaseCliTest {
   test("--zsh") {
     val obtained = parse(Seq("--zsh"))
     assert(obtained.isOk)

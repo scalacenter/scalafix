@@ -2,9 +2,10 @@ package scalafix.tests.core
 
 import scala.meta._
 import scalafix.internal.util.SymbolGlobal
-import org.scalatest.FunSuite
+import scalafix.testkit.ScalafixTest
+import utest.compileError
 
-class SymbolMacroTest extends FunSuite {
+object SymbolMacroTest extends ScalafixTest {
 
   test("compile OK") {
     val expected = Symbol("_root_.a.")
@@ -15,10 +16,9 @@ class SymbolMacroTest extends FunSuite {
   }
 
   test("compile error") {
-    assertCompiles("""SymbolGlobal("a")""")
-    assertDoesNotCompile("""SymbolGlobal("a.;b.")""")
-    assertDoesNotCompile("""SymbolGlobal(scala.compat.Platform.EOL)""")
-    assertDoesNotCompile("""SymbolGlobal("foo@1..2")""")
+    compileError("""SymbolGlobal("a.;b.")""")
+    compileError("""SymbolGlobal(scala.compat.Platform.EOL)""")
+    compileError("""SymbolGlobal("foo@1..2")""")
   }
 
 }

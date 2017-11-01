@@ -1,4 +1,4 @@
-package sbtfix
+package test
 
 import sbt._
 

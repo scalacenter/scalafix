@@ -4,7 +4,7 @@ import scala.meta._
 import scalafix.syntax._
 import scalafix.util.SymbolMatcher
 
-class SymbolMatcherTest extends BaseSemanticTest("SymbolMatcherTest") {
+object SymbolMatcherTest extends BaseSemanticTest("SymbolMatcherTest") {
 
   test("matches/unapply") {
     val symbolMatcher =

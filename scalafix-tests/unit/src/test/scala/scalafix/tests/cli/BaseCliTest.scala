@@ -15,15 +15,15 @@ import scalafix.internal.cli.ScalafixOptions
 import scalafix.internal.rule.RemoveUnusedImports
 import scalafix.test.StringFS
 import scalafix.testkit.DiffAssertions
+import scalafix.testkit.ScalafixTest
 import scalafix.testkit.SemanticRuleSuite
 import scalafix.tests.BuildInfo
 import ammonite.ops
 import org.langmeta.io.AbsolutePath
 import org.langmeta.io.RelativePath
-import org.scalatest.FunSuite
 
 // extend this class to run custom cli tests.
-trait BaseCliTest extends FunSuite with DiffAssertions {
+trait BaseCliTest extends ScalafixTest {
   val original: String =
     """|object Main {
        |  def foo() {

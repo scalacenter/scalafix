@@ -6,15 +6,11 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.rule.RuleCtx
 import scalafix.syntax._
 
-import org.scalatest.FunSuiteLike
-
 /** Utility to unit test syntactic rules
   *
   * @param rule the default rule to use from `check`/`checkDiff`.
   */
-class SyntacticRuleSuite(rule: Rule = Rule.empty)
-    extends FunSuiteLike
-    with DiffAssertions {
+class SyntacticRuleSuite(rule: Rule = Rule.empty) extends ScalafixTest {
   def check(name: String, original: String, expected: String): Unit = {
     check(rule, name, original, expected)
   }

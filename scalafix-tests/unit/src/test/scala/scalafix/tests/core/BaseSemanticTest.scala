@@ -2,14 +2,11 @@ package scalafix.tests.core
 
 import scala.meta._
 import scalafix.syntax._
+import scalafix.testkit.ScalafixTest
 import scalafix.tests.BuildInfo
 import scalafix.util.SemanticdbIndex
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.FunSuite
 
-abstract class BaseSemanticTest(filename: String)
-    extends FunSuite
-    with BeforeAndAfterAll {
+abstract class BaseSemanticTest(filename: String) extends ScalafixTest {
   private var _db: SemanticdbIndex = _
   private var _doc: Document = _
   implicit def index: SemanticdbIndex = _db

@@ -23,6 +23,7 @@ object Dependencies {
 
   def scalameta = Def.setting("org.scalameta" %%% "contrib" % scalametaV)
   def scalatest = Def.setting("org.scalatest" %%% "scalatest" % "3.0.0")
+  def utest = Def.setting("com.lihaoyi" %%% "utest" % "0.6.0")
 
   def testsDeps = List(
     // integration property tests

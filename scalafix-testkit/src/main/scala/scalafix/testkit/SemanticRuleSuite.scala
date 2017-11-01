@@ -1,14 +1,11 @@
 package scalafix
 package testkit
 
-import scala.collection.mutable
+import java.io.File
 import scalafix.syntax._
 import scala.meta._
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
 import org.scalameta.logger
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.FunSuite
-import org.scalatest.exceptions.TestFailedException
 import scala.util.matching.Regex
 import scalafix.rule.RuleName
 import org.langmeta.internal.ScalafixLangmetaHacks
@@ -32,9 +29,7 @@ object SemanticRuleSuite {
 abstract class SemanticRuleSuite(
     val index: SemanticdbIndex,
     val expectedOutputSourceroot: Seq[AbsolutePath]
-) extends FunSuite
-    with DiffAssertions
-    with BeforeAndAfterAll { self =>
+) extends ScalafixTest { self =>
   def this(
       index: SemanticdbIndex,
       inputSourceroot: AbsolutePath,
@@ -92,12 +87,11 @@ abstract class SemanticRuleSuite(
     val uncoveredAsserts = diff(lintAssertions, lintMessages)
     uncoveredAsserts.foreach {
       case (pos, key) =>
-        throw new TestFailedException(
+        throw new Exception(
           ScalafixLangmetaHacks.formatMessage(
             pos,
             "error",
-            s"Message '$key' was not reported here!"),
-          0
+            s"Message '$key' was not reported here!")
         )
     }
 
@@ -113,13 +107,14 @@ abstract class SemanticRuleSuite(
         }
         .mkString("\n\n")
       throw new TestFailedException(
-        s"Uncaught linter messages! To fix this problem\n$explanation",
-        0)
+        s"Uncaught linter messages! To fix this problem\n$explanation"
+      )
     }
   }
 
   def runOn(diffTest: DiffTest): Unit = {
-    test(diffTest.name) {
+    val suffix = "scala/test/".replace('/', File.separatorChar)
+    test(diffTest.name.stripPrefix(suffix).stripSuffix(".scala")) {
       val (rule, config) = diffTest.config.apply()
       val ctx: RuleCtx = RuleCtx(
         config.dialect(diffTest.original).parse[Source].get,
@@ -163,17 +158,7 @@ abstract class SemanticRuleSuite(
     }
   }
 
-  override def afterAll(): Unit = {
-    val onlyTests = testsToRun.filter(_.isOnly).toList
-    if (sys.env.contains("CI") && onlyTests.nonEmpty) {
-      sys.error(
-        s"sys.env('CI') is set and the following tests are marked as ONLY: " +
-          s"${onlyTests.map(_.filename).mkString(", ")}")
-    }
-    super.afterAll()
-  }
-  lazy val testsToRun =
-    DiffTest.testToRun(DiffTest.fromSemanticdbIndex(index))
+  lazy val testsToRun: Seq[DiffTest] = DiffTest.fromSemanticdbIndex(index)
   def runAllTests(): Unit = {
     testsToRun.foreach(runOn)
   }

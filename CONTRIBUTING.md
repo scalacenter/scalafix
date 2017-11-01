@@ -20,13 +20,13 @@ If you experience any issues, don't hesitate to ask on Gitter.
 
 Start an sbt shell with `$ sbt`.
 The commands below assume you have a running sbt shell.
-
 ```sh
-> unit/test # Fast unit tests for rules, cli, core. Contains a lot
+> unit/test # unit tests for rules, cli, core. Contains a lot
             # of different test suites, so it's recommended to use testOnly.
-> unit/testOnly scalafix.tests.rule.* # Only run tests for rules, using scalafix-testkit.
-> unit/testOnly scalafix.tests.core.* # Only run tests for core APIs.
-> unit/testOnly scalafix.tests.cli.*  # Only run tests for the command line interface.
+> unit/testOnly -- scalafix.tests.rule # run all rule tests, using scalafix-testkit.
+> unit/testOnly -- scalafix.tests.rule.RemoveUnusedImports # only test single rule
+> unit/testOnly -- scalafix.tests.core # Only run tests for core APIs.
+> unit/testOnly -- scalafix.tests.cli  # Only run tests for the command line interface.
 
 # SBT plugin
 # (recommended) start the sbt shell with a SNAPSHOT scalafix version:
@@ -37,9 +37,7 @@ The commands below assume you have a running sbt shell.
                         # publishLocal for core/cli modules)
 ```
 
-Unit tests for rules are written using scalafix-testkit, read more about
-it here:
-https://scalacenter.github.io/scalafix/docs/rule-authors/setup#scalafix-testkit
+Unit tests for rules are written using [utest](https://github.com/lihaoyi/utest) and [scalafix-testkit](https://scalacenter.github.io/scalafix/docs/rule-authors/setup#scalafix-testkit).
 
 ```
 scalafix-tests

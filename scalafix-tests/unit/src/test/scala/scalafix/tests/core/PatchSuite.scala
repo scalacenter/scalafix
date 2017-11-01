@@ -8,7 +8,7 @@ import scala.meta.tokens.Token.Ident
 import scalafix.Rule
 import scalafix.testkit.SyntacticRuleSuite
 
-class PatchSuite extends SyntacticRuleSuite {
+object PatchSuite extends SyntacticRuleSuite {
 
   val original: String =
     """// Foobar
