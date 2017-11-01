@@ -115,7 +115,7 @@ class ClassloadRule[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
 }
 
 object ClassloadRule {
-  lazy val defaultClassloader = getClass.getClassLoader
+  def defaultClassloader: ClassLoader = getClass.getClassLoader
   def apply(
       fqn: String,
       args: Class[_] => Seq[AnyRef],

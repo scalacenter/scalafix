@@ -256,10 +256,7 @@ lazy val `scalafix-sbt` = project
     },
     sbtPlugin := true,
     crossSbtVersions := Vector(sbt013, sbt1),
-    libraryDependencies ++= Seq(
-      "io.get-coursier" %% "coursier" % coursier.util.Properties.version,
-      "io.get-coursier" %% "coursier-cache" % coursier.util.Properties.version
-    ),
+    libraryDependencies ++= coursierDeps,
     testQuick := {}, // these test are slow.
     test.in(IntegrationTest) := {
       RunSbtCommand(
@@ -306,6 +303,11 @@ lazy val testsDeps = List(
   "com.typesafe.slick" %% "slick" % "3.2.0-M2",
   "com.chuusai" %% "shapeless" % "2.3.2",
   "org.scalacheck" %% "scalacheck" % "1.13.4"
+)
+
+lazy val coursierDeps = Seq(
+  "io.get-coursier" %% "coursier" % coursier.util.Properties.version,
+  "io.get-coursier" %% "coursier-cache" % coursier.util.Properties.version
 )
 
 lazy val semanticdbSettings = Seq(
@@ -393,6 +395,9 @@ lazy val unit = project
     javaOptions := Nil,
     buildInfoPackage := "scalafix.tests",
     buildInfoObject := "BuildInfo",
+    sources.in(Test) +=
+      sourceDirectory.in(`scalafix-sbt`, Compile).value /
+        "scala" / "scalafix" / "internal" / "sbt" / "ScalafixJarFetcher.scala",
     compileInputs.in(Compile, compile) :=
       compileInputs
         .in(Compile, compile)
@@ -421,6 +426,7 @@ lazy val unit = project
       "semanticClasspath" -> classDirectory.in(testsInput, Compile).value,
       "sharedClasspath" -> classDirectory.in(testsShared, Compile).value
     ),
+    libraryDependencies ++= coursierDeps,
     libraryDependencies ++= testsDeps
   )
   .enablePlugins(BuildInfoPlugin)
@@ -539,6 +545,7 @@ def setId(project: Project): Project = {
     .copy(base = file(newId))
     .settings(moduleName := newId)
 }
+
 def customScalafixVersion = sys.props.get("scalafix.version")
 
 inScope(Global)(

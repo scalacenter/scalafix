@@ -12,20 +12,20 @@ import org.langmeta.io.AbsolutePath
 // the moment we instantiate the rule.
 //type LazySemanticdbIndex = RuleKind => Option[SemanticdbIndex]
 class LazySemanticdbIndex(
-    f: RuleKind => Option[SemanticdbIndex],
-    val reporter: ScalafixReporter,
-    val workingDirectory: AbsolutePath
+    f: RuleKind => Option[SemanticdbIndex] = _ => None,
+    val reporter: ScalafixReporter = ScalafixReporter.default,
+    // The working directory when compiling file:relativepath/
+    val workingDirectory: AbsolutePath = AbsolutePath.workingDirectory,
+    // Additional classpath entries to use when compiling/classloading rules.
+    val toolClasspath: List[AbsolutePath] = Nil
 ) extends Function[RuleKind, Option[SemanticdbIndex]] {
   override def apply(v1: RuleKind): Option[SemanticdbIndex] = f(v1)
 }
 
 object LazySemanticdbIndex {
-  lazy val empty = new LazySemanticdbIndex(
-    _ => None,
-    ScalafixReporter.default,
-    AbsolutePath.workingDirectory)
+  lazy val empty = new LazySemanticdbIndex()
   def apply(
       f: RuleKind => Option[SemanticdbIndex],
       cwd: AbsolutePath = AbsolutePath.workingDirectory): LazySemanticdbIndex =
-    new LazySemanticdbIndex(f, ScalafixReporter.default, cwd)
+    new LazySemanticdbIndex(f, ScalafixReporter.default, cwd, Nil)
 }
