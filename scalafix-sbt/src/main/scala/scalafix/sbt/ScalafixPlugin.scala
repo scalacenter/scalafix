@@ -28,6 +28,19 @@ object ScalafixPlugin extends AutoPlugin {
     val scalafixConfig: SettingKey[Option[File]] =
       settingKey[Option[File]](
         ".scalafix.conf file to specify which scalafix rules should run.")
+
+    /** Configures the scalafix/scalafixTest commands to run in configs. */
+    def scalafixConfigure(configs: Configuration*): Seq[Setting[_]] =
+      List(
+        configureForConfigurations(
+          configs,
+          scalafix,
+          c => scalafixTaskImpl(c, Nil)),
+        configureForConfigurations(
+          configs,
+          scalafixTest,
+          c => scalafixTaskImpl(c, Seq("--test")))
+      ).flatten
     val scalafixEnabled: SettingKey[Boolean] =
       settingKey[Boolean](
         "If false, scalafix will not enable the semanticdb-scalac compiler plugin, which is necessary for semantic rules.")
@@ -174,18 +187,27 @@ object ScalafixPlugin extends AutoPlugin {
       }
     }
   )
+
   lazy val scalafixTaskSettings: Seq[Def.Setting[InputTask[Unit]]] =
-    configureForCompileAndTest(scalafix, scalafixTaskImpl(_))
+    configureForCompileAndTest(scalafix, c => scalafixTaskImpl(c))
   lazy val scalafixTestTaskSettings: Seq[Def.Setting[InputTask[Unit]]] =
-    configureForCompileAndTest(scalafixTest, scalafixTaskImpl(_, Seq("--test")))
+    configureForCompileAndTest(
+      scalafixTest,
+      c => scalafixTaskImpl(c, Seq("--test")))
+
+  def configureForConfigurations(
+      configurations: Seq[Configuration],
+      task: InputKey[Unit],
+      impl: Seq[Configuration] => Def.Initialize[InputTask[Unit]]
+  ): Seq[Def.Setting[InputTask[Unit]]] =
+    (task := impl(configurations).evaluated) +:
+      configurations.map(c => task.in(c) := impl(Seq(c)).evaluated)
 
   def configureForCompileAndTest(
       task: InputKey[Unit],
-      impl: Seq[Configuration] => Def.Initialize[InputTask[Unit]]) = Seq(
-    task.in(Compile) := impl(Seq(Compile)).evaluated,
-    task.in(Test) := impl(Seq(Test)).evaluated,
-    task := impl(Seq(Compile, Test)).evaluated
-  )
+      impl: Seq[Configuration] => Def.Initialize[InputTask[Unit]]
+  ): Seq[Def.Setting[InputTask[Unit]]] =
+    configureForConfigurations(List(Compile, Test), task, impl)
 
   def scalafixTaskImpl(
       config: Seq[Configuration],
