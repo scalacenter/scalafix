@@ -17,9 +17,11 @@ import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
+import org.langmeta.io.AbsolutePath
 
 object ScalafixCompilerDecoder {
-  def baseCompilerDecoder(index: LazySemanticdbIndex): ConfDecoder[Rule] =
+  def baseCompilerDecoder(index: LazySemanticdbIndex): ConfDecoder[Rule] = {
+    implicit val cwd: AbsolutePath = index.workingDirectory
     ConfDecoder.instance[Rule] {
       case FromSourceRule(rule) =>
         rule match {
@@ -27,6 +29,7 @@ object ScalafixCompilerDecoder {
           case err @ NotOk(_) => err
         }
     }
+  }
 
   object UrlRule {
     def unapply(arg: Conf.Str): Option[Configured[URL]] = arg match {
@@ -83,11 +86,14 @@ object ScalafixCompilerDecoder {
   }
 
   object FileRule {
-    def unapply(arg: Conf.Str): Option[File] = arg match {
-      case UriRule("file", uri) =>
-        Option(new File(uri.getSchemeSpecificPart).getAbsoluteFile)
-      case _ => None
-    }
+    def unapply(arg: Conf.Str)(
+        implicit cwd: AbsolutePath): Option[AbsolutePath] =
+      arg match {
+        case UriRule("file", uri) =>
+          val path = AbsolutePath(Paths.get(uri.getSchemeSpecificPart))
+          Option(path)
+        case _ => None
+      }
   }
 
   object FromSourceRule {
@@ -103,7 +109,8 @@ object ScalafixCompilerDecoder {
           tmp
         }
       )
-    def unapply(arg: Conf.Str): Option[Configured[Input]] = arg match {
+    def unapply(arg: Conf.Str)(
+        implicit cwd: AbsolutePath): Option[Configured[Input]] = arg match {
       case FileRule(file) =>
         // NOgg
         Option(Ok(Input.File(file)))
