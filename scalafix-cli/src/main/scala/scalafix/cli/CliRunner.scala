@@ -348,7 +348,10 @@ object CliRunner {
       else computeAndCacheDatabase()
     }
     private val lazySemanticdbIndex: LazySemanticdbIndex =
-      new LazySemanticdbIndex(resolveDatabase, diagnostic)
+      new LazySemanticdbIndex(
+        resolveDatabase,
+        diagnostic,
+        cli.common.workingPath)
 
     // expands a single file into a list of files.
     def expand(matcher: FilterMatcher)(path: AbsolutePath): Seq[FixFile] = {

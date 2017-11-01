@@ -405,6 +405,7 @@ lazy val unit = project
         )
         .value,
     buildInfoKeys := Seq[BuildInfoKey](
+      "baseDirectory" -> baseDirectory.in(ThisBuild).value,
       "inputSourceroot" ->
         sourceDirectory.in(testsInput, Compile).value,
       "inputSbtSourceroot" ->
