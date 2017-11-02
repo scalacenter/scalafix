@@ -2,7 +2,9 @@ import sbt.ScriptedPlugin
 import sbt.ScriptedPlugin._
 import Dependencies._
 
-version.in(ThisBuild) ~= (_.replace('+', '-'))
+version.in(ThisBuild) ~= { old: String =>
+  sys.props.getOrElse("scalafix.version", old.replace('+', '-'))
+}
 name := "scalafixRoot"
 onLoadMessage := s"Welcome to Scalafix ${version.value}"
 noPublish
