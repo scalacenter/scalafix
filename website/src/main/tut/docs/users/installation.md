@@ -29,19 +29,21 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "{{ site.stableVersion }}")
 > scalafix file:rules/MyRule.scala       // run local custom rule
 > scalafix github:org/repo/v1            // run library migration rule
 
-// (optional) permanently enable scalafix in build.sbt
+// (optional, to avoid need for scalafixEnable) permanently enable scalafix in build.sbt
 // ===> build.sbt
 scalaVersion := "{{ site.scala212 }}" // {{ site.scala211 }} is also supported.
-scalacOptions ++= scalalafixScalacOptions.value
-libraryDependencies ++= scalalafixLibraryDependencies.value
 
-// Enable scalafix in configurations, Test and Compile are enabled by default.
+// If you get "-Yrangepos is required" error or "Missing compiler plugin semanticdb",
+// This setting must appear after scalacOptions and libraryDependencies.
+scalafixSettings
+
+// To configure for custom configurations like IntegrationTest
 scalafixConfigure(Compile, Test, IntegrationTest)
-
 ```
 
 ### Verify installation
-To verify the installation, check that the scalacOptions include -Xplugin-require:semanticdb.
+To verify the installation, check that scalacOptions and libraryDependecies
+contain the values below.
 
 ```scala
 > show scalacOptions
