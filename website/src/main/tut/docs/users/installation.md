@@ -27,6 +27,10 @@ scalacOptions ++= List(...) // change := to ++=
 scalacOptions := List(...)                    // keep unchanged
 scalacOptions ++= scalafixScalacOptions.value // add this line
 
+// enable scalafix in custom configurations, only Test and Compile are
+// enabled by default.
+scalafixConfigure(Compile, Test, IntegrationTest)
+
 // ===> sbt shell (example usage)
 > scalafix                               // Run .scalafix.conf rules
 > scalafix RemoveUnusedImports           // Run specific rule
