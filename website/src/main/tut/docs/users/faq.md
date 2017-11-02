@@ -10,6 +10,115 @@ If you have any questions, don't hesitate to ask on {% gitter %}.
 * TOC
 {:toc}
 
+## How does Scalafix compare with alternatives?
+
+There are many alternative tools to Scalafix, that each make different
+tradeoffs with regards to Scala 2.x fidelity, easy of writing custom
+analyses, performance, integrations and feature support.
+The table below provides a rough comparison, below are more detailed
+explanations.
+
+|              | Scalafix       | IntelliJ Scala | Scala Refactoring | WartRemover    | ScalaStyle  |
+| -------      | --------       | -------------- | ----------------- | -----------    | ----------  |
+| Syntax model | Scalameta      | IntelliJ Scala | Scala Compiler    | Scala Compiler | Scalariform |
+| Typechecker  | Scala Compiler | IntelliJ Scala | Scala Compiler    | Scala Compiler | n/a         |
+| Linting      | Yes            | Yes            | Yes               | Yes            | Yes         |
+| Refactoring  | Yes            | Yes            | Yes               | No             | No          |
+
+### IntelliJ Scala
+
+The IntelliJ Scala Plugin is probably the most used IDE for Scala development,
+supporting a wide range of features to browse/edit/refactor Scala code.
+
+* Scalafix uses the Scala 2.x compiler to resolve symbols/types while
+  the IntelliJ Scala plugin uses it's own own typechecker.
+  This means that if a project compiles with the Scala compiler,
+  then scalafix can analyze the source code (assuming no conflicting compiler plugins).
+  The IntelliJ Scala typechecker is known to produce false red squigglies.
+  It depends on what Scala features you use whether the IntelliJ Scala can analyze
+  your source code.
+* Scalafix is primarily aimed to be used in batch-mode through a console interface
+  while IntelliJ is primarily aimed for interactive use in the IntelliJ IDE.
+* IntelliJ Scala contains a lot more rules ("inspections" in IntelliJ terms),
+  including sophisticated refactorings such as "Organize imports" and
+  "Move class" that Scalafix does not currently support.
+
+
+The IntelliJ Scala Plugin will reportedly soon release a "Migrators API",
+according to this release: https://blog.jetbrains.com/scala/2016/11/11/intellij-idea-2016-3-rc-scala-js-scala-meta-and-more/
+We look forward to see more of it!
+
+### WartRemover
+[WartRemover](http://www.wartremover.org/) is a flexible scala linter.
+
+- Scalafix runs *after* compilation as a separate tool,
+  WartRemover runs during compilation as a compiler plugin.
+- Compilation overhead of the semanticdb-scalac compiler plugin (that Scalafix requires)
+  is ~20-30%, which is likely higher than the WartRemover compiler plugin (I haven't measured).
+  Performance in semanticdb-scalac will be addressed in future releases.
+- WartRemover has more linter rules out of the box than Scalafix.
+- It is easier to write/test/share/run new/custom rules with Scalafix.
+  The Scalafix API does not require familiarity with scalac compiler internals.
+- Scalafix is a linter and refactoring tool, which means Scalafix rules
+  can automatically fix some discovered problems. WartRemover is only a linter, it
+  does not support automatic fixing.
+- Scalafix supports syntactic rules without going through the compiler,
+  this means that WartRemover rules like Null, Throw, FinalVal, asInstanceOf,
+  ExplicitImplicitTypes, Var, While can run faster outside of compilation
+  if implemented with Scalafix.
+
+### Scalastyle
+
+[Scalastyle](http://www.scalastyle.org/) is a Scala style checker.
+
+* Scalastyle has a lot more rules than Scalafix out of the box.
+* Scalafix supports semantic and syntactic rules while Scalastyle supports only syntactic rules.
+  This means that Scalafix rules know more about the types/symbols in your source code.
+  For example, Scalafix rules can tell if `get` in `x.get` comes from `Option[T].get` or from another class that happens to also have a `.get` method.
+  Scalastyle is purely syntactic, which means it does not support rules that need information about types/symbols.
+* Scalastyle runs as a separate tool outside of compilation, just like Scalafix.
+* Scalafix rules uses the [Scalameta](http://scalameta.org/) AST while Scalastyle rules use
+
+### Scala Refactoring?
+
+[Scala Refactoring](https://github.com/scala-ide/scala-refactoring) is a library providing automated refactoring support for Scala.
+
+* Scalafix rules uses the [Scalameta](http://scalameta.org/) AST while Scala
+  Refactoring uses the Scala 2.x compiler AST.
+  The Scalameta AST encodes more syntactic details from the original
+  source file, includin for comprehensions, infix operators and
+  primary constructors. Example:
+```scala
+// scalameta AST
+case class A(b: Int, c: String) {
+  for {
+    char <- c
+    if char == 'a'
+    i <- (1 to char.toInt)
+  } yield i
+  val d, List(e: Int) = List(1)
+}
+// Scala Compiler AST
+package <empty> {
+  case class A extends scala.Product with scala.Serializable {
+    <caseaccessor> <paramaccessor> val b: Int = _;
+    <caseaccessor> <paramaccessor> val c: String = _;
+    def <init>(b: Int, c: String) = {
+      super.<init>();
+      ()
+    };
+    c.withFilter(((char) => char.$eq$eq('a'))).flatMap(((char) => 1.to(char.toInt).map(((i) => i))));
+    val d = List(1);
+    val e: Int = List(1): @scala.unchecked match {
+      case List((e @ (_: Int))) => e
+    }
+  }
+}
+```
+* Scalafix and Scala Refactoring both use the Scala 2.x compiler to
+  resolve symbols/types.
+* It is easier to write/test/share/run new/custom Scalafix rules.
+  The Scalafix API does not require familiarity with Scala 2.x compiler internals.
 ## I get resolution errors for org.scalameta:semanticdb-scalac
 Make sure you are using a supported Scala version: {{ site.supportedScalaVersions | join: ", " }}.
 Note, the version must match exactly, including the last number.
