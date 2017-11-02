@@ -171,7 +171,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     version := sys.props
       .get("scalafix.version")
       .getOrElse(version.value.replace('+', '-')),
-    stableVersion := version.value.replaceAll("\\-.*", ""),
+    stableVersion := version.in(ThisBuild).value.replaceAll("\\-.*", ""),
     scalaVersion := ciScalaVersion.getOrElse(scala212),
     crossScalaVersions := crossVersions,
     scalacOptions ++= compilerOptions,
