@@ -4,7 +4,7 @@ import scala.collection.immutable.Seq
 import scalafix.cli._
 import scalafix.internal.rule._
 
-class CliSyntacticTests extends BaseCliTest {
+object CliSyntacticTests extends BaseCliTest {
 
   check(
     name = "fix file",

@@ -5,7 +5,7 @@ import scalafix.cli._
 import scalafix.internal.cli.CommonOptions
 import scalafix.tests.BuildInfo
 
-class CliSemanticTests extends BaseCliTest {
+object CliSemanticTests extends BaseCliTest {
 
   checkSemantic(
     name = "--classpath inference error",

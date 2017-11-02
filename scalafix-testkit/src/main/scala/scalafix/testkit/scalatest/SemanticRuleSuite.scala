@@ -1,14 +1,18 @@
-package scalafix
-package testkit
+package scalafix.testkit.scalatest
 
-import scala.meta._
+import scalafix.SemanticdbIndex
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
-@deprecated("Moved to scalafix.testkit.scalatest.SemanticRuleSuite", "0.5.4")
+import scalafix.testkit.BaseSemanticRuleSuite
+import org.langmeta.io.AbsolutePath
+import org.langmeta.io.Classpath
+import org.langmeta.io.Sourcepath
+import org.langmeta.semanticdb.Database
+
 abstract class SemanticRuleSuite(
     val index: SemanticdbIndex,
     val expectedOutputSourceroot: Seq[AbsolutePath]
 ) extends BaseSemanticRuleSuite
-    with BaseScalafixSuite {
+    with ScalafixSuite {
   def this(
       index: SemanticdbIndex,
       inputSourceroot: AbsolutePath,

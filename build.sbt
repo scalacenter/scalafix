@@ -120,7 +120,8 @@ lazy val testkit = project
       semanticdb,
       ammonite,
       googleDiff,
-      scalatest.value
+      scalatest.value,
+      utest.value
     )
   )
   .dependsOn(
@@ -202,6 +203,7 @@ lazy val unit = project
     noPublish,
     fork := false,
     javaOptions := Nil,
+    testFrameworks := new TestFramework("scalafix.testkit.utest.Framework") :: Nil,
     buildInfoPackage := "scalafix.tests",
     buildInfoObject := "BuildInfo",
     sources.in(Test) +=

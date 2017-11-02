@@ -8,13 +8,12 @@ import scalafix.internal.config.LazySemanticdbIndex
 import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.internal.reflect.RuleCompiler
 import scalafix.internal.reflect.ScalafixCompilerDecoder
+import scalafix.testkit.utest.ScalafixTest
 import metaconfig.Conf
 import org.langmeta.inputs.Input
 import org.langmeta.io.AbsolutePath
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.FunSuite
 
-class ToolClasspathTests extends FunSuite with BeforeAndAfterAll {
+object ToolClasspathTests extends ScalafixTest {
   var scalafmtClasspath: List[AbsolutePath] = _
   override def beforeAll(): Unit = {
     val scalaBinaryVersion =

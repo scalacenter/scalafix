@@ -3,14 +3,14 @@ package scalafix.tests.reflect
 import scalafix.internal.config.LazySemanticdbIndex
 import scalafix.internal.reflect.ScalafixCompilerDecoder
 import scalafix.rule.Rule
+import scalafix.testkit.utest.ScalafixTest
 import scalafix.tests.BuildInfo
 import metaconfig.Conf
 import metaconfig.ConfDecoder
 import org.langmeta.io.AbsolutePath
 import org.langmeta.io.RelativePath
-import org.scalatest.FunSuite
 
-class ScalafixReflectTests extends FunSuite {
+object ScalafixReflectTests extends ScalafixTest {
   val cwd: AbsolutePath = AbsolutePath(BuildInfo.baseDirectory)
     .resolve("scalafix-tests")
     .resolve("unit")

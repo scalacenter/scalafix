@@ -4,9 +4,9 @@ import java.io.File
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
 import scalafix.cli.CliRunner
-import org.scalatest.FunSuite
+import scalafix.testkit.utest.ScalafixTest
 
-class AutoClasspathSuite extends FunSuite {
+object AutoClasspathSuite extends ScalafixTest {
   test("--classpath=auto") {
     val tmp = File.createTempFile("foo", "bar")
     assert(tmp.delete())

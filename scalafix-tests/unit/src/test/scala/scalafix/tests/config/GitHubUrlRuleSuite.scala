@@ -1,12 +1,12 @@
 package scalafix.tests.config
 
 import scalafix.internal.reflect.ScalafixCompilerDecoder._
+import scalafix.testkit.utest.ScalafixTest
 import metaconfig.Conf
 import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
-import org.scalatest.FunSuite
 
-class GitHubUrlRuleSuite extends FunSuite {
+object GitHubUrlRuleSuite extends ScalafixTest {
   def check(original: String, expected: String, ok: Boolean = true): Unit = {
     test((if (ok) "" else "FAIL ") + original) {
       Conf.Str(original) match {

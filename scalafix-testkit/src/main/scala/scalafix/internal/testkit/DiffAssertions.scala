@@ -1,18 +1,16 @@
-package scalafix.testkit
+package scalafix.internal.testkit
 
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.TimeZone
 
-import org.scalatest.FunSuiteLike
-import org.scalatest.exceptions.TestFailedException
-
-trait DiffAssertions extends FunSuiteLike {
+object DiffAssertions {
 
   def assertEqual[A](a: A, b: A): Unit = {
-    assert(a === b)
+    assert(a == b)
   }
+
   def header[T](t: T): String = {
     val line = s"=" * (t.toString.length + 3)
     s"$line\n=> $t\n$line"
@@ -23,9 +21,11 @@ trait DiffAssertions extends FunSuiteLike {
       expected: String,
       obtained: String,
       diff: String)
-      extends TestFailedException(
-        title + "\n" + error2message(obtained, expected),
-        3)
+      extends Exception(
+        title + "\n" + error2message(obtained, expected)
+      ) {
+    override def getStackTrace: Array[StackTraceElement] = Array.empty
+  }
 
   def error2message(obtained: String, expected: String): String = {
     val sb = new StringBuilder
@@ -41,6 +41,7 @@ trait DiffAssertions extends FunSuiteLike {
          """.stripMargin('#'))
     sb.toString()
   }
+
   def assertNoDiff(
       obtained: String,
       expected: String,
@@ -84,9 +85,4 @@ trait DiffAssertions extends FunSuiteLike {
       format.format(new Date(0L))
     }
   }
-  import scala.collection.mutable.{HashMap => _}
-//  import scala.collection.mutable.{HashMap => _}
-//  import scala.collection.mutable._
-  import Predef.{any2stringadd => _}
-  any2stringadd("")
 }

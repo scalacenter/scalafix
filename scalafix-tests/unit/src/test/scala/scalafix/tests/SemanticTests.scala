@@ -1,24 +1,12 @@
-package scalafix.tests.rule
+package scalafix.tests
 
-import scala.meta._
+import scala.meta.AbsolutePath
+import scala.meta.Classpath
+import scala.meta.Database
+import scala.meta.Sourcepath
 import scala.meta.internal.io.PathIO
 import scala.meta.semanticdb.SemanticdbSbt
 import scalafix.SemanticdbIndex
-import scalafix.testkit._
-import scalafix.tests.BuildInfo
-import scalafix.tests.rule.SemanticTests._
-
-class SemanticTests
-    extends SemanticRuleSuite(
-      index,
-      Seq(
-        AbsolutePath(BuildInfo.outputSourceroot),
-        AbsolutePath(BuildInfo.outputSbtSourceroot),
-        AbsolutePath(BuildInfo.outputDottySourceroot)
-      )
-    ) {
-  runAllTests()
-}
 
 object SemanticTests {
   def index: SemanticdbIndex = SemanticdbIndex.load(

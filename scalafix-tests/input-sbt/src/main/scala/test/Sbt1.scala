@@ -1,7 +1,7 @@
 /*
 rule = Sbt1
  */
-package sbtfix
+package test
 
 import sbt._
 
