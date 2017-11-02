@@ -8,7 +8,7 @@ import scalafix.internal.config.LazySemanticdbIndex
 import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.internal.reflect.RuleCompiler
 import scalafix.internal.reflect.ScalafixCompilerDecoder
-import scalafix.testkit.ScalafixTest
+import scalafix.testkit.utest.ScalafixTest
 import metaconfig.Conf
 import org.langmeta.inputs.Input
 import org.langmeta.io.AbsolutePath

@@ -6,7 +6,7 @@ import java.nio.file.Paths
 import scala.meta._
 import scala.meta.tokens.Token.Ident
 import scalafix.Rule
-import scalafix.testkit.SyntacticRuleSuite
+import scalafix.testkit.utest._
 
 object PatchSuite extends SyntacticRuleSuite {
 

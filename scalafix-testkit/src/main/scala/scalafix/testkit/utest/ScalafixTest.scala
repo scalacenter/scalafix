@@ -1,25 +1,25 @@
-package scalafix.testkit
+package scalafix.testkit.utest
 
 import scala.language.experimental.macros
 
 import scala.reflect.ClassTag
-import utest._
-import utest.asserts.Asserts
-import utest.framework._
+import scalafix.testkit
+import _root_.utest._
+import _root_.utest.asserts.Asserts
+import _root_.utest.framework._
+import org.scalameta.FileLine
 
-trait ScalafixTest extends TestSuite {
-  class TestFailedException(msg: String) extends Exception(msg)
+abstract class ScalafixTest extends TestSuite with testkit.BaseScalafixSuite {
   def beforeAll(): Unit = ()
   def afterAll(): Unit = ()
   def intercept[T: ClassTag](exprs: Unit): T = macro Asserts.interceptProxy[T]
   def assert(exprs: Boolean*): Unit = macro Asserts.assertProxy
-  def assertNoDiff(
-      obtained: String,
-      expected: String,
-      title: String = ""
-  ): Boolean = DiffAssertions.assertNoDiff(obtained, expected, title)
   override def utestAfterAll(): Unit = afterAll()
   private val myTests = IndexedSeq.newBuilder[(String, () => Unit)]
+
+  override def scalafixTest(name: String)(fun: => Any)(
+      implicit pos: FileLine): Unit =
+    this.test(name)(fun)
   def test(name: String)(fun: => Any): Unit = {
     myTests += (name -> (() => fun))
   }

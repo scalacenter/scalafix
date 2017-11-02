@@ -1,8 +1,8 @@
-package scalafix.testkit
+package scalafix.internal.testkit
 
 import scala.meta._
-import scalafix.SemanticdbIndex
 import scalafix.Rule
+import scalafix.SemanticdbIndex
 import scalafix.internal.config.LazySemanticdbIndex
 import scalafix.internal.config.ScalafixConfig
 import scalafix.reflect.ScalafixReflect

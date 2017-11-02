@@ -14,9 +14,8 @@ import scalafix.internal.cli.CommonOptions
 import scalafix.internal.cli.ScalafixOptions
 import scalafix.internal.rule.RemoveUnusedImports
 import scalafix.test.StringFS
-import scalafix.testkit.DiffAssertions
-import scalafix.testkit.ScalafixTest
-import scalafix.testkit.SemanticRuleSuite
+import scalafix.testkit.BaseSemanticRuleSuite
+import scalafix.testkit.utest.ScalafixTest
 import scalafix.tests.BuildInfo
 import ammonite.ops
 import org.langmeta.io.AbsolutePath
@@ -54,7 +53,7 @@ trait BaseCliTest extends ScalafixTest {
       expectedExit: ExitStatus,
       outputAssert: String => Unit = _ => ()
   ): Unit = {
-    test(name) {
+    scalafixTest(name) {
       val out = new ByteArrayOutputStream()
       val root = StringFS.string2dir(originalLayout)
       val exit =
@@ -80,7 +79,7 @@ trait BaseCliTest extends ScalafixTest {
       expectedExit: ExitStatus,
       outputAssert: String => Unit = _ => ()
   ): Unit = {
-    test(name) {
+    scalafixTest(name) {
       val fileIsFixed = expectedExit.isOk
       val tmp = Files.createTempDirectory("scalafix")
       val out = new ByteArrayOutputStream()
@@ -103,7 +102,7 @@ trait BaseCliTest extends ScalafixTest {
           FileIO.slurp(
             AbsolutePath(root.toNIO).resolve(removeImportsPath),
             StandardCharsets.UTF_8)
-        if (fileIsFixed) SemanticRuleSuite.stripTestkitComments(fixed)
+        if (fileIsFixed) BaseSemanticRuleSuite.stripTestkitComments(fixed)
         else fixed
       }
       val expected =

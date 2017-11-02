@@ -1,6 +1,6 @@
 package scalafix.tests
 
-import scalafix.testkit.SemanticRuleSuite
+import scalafix.testkit.utest.SemanticRuleSuite
 import scalafix.tests.SemanticTests.index
 import org.langmeta.io.AbsolutePath
 

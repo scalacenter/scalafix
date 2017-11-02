@@ -1,4 +1,4 @@
-package scalafix.testkit
+package scalafix.internal.testkit
 
 import java.io.File
 import java.text.SimpleDateFormat

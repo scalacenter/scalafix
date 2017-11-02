@@ -4,7 +4,7 @@ import java.io.File
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
 import scalafix.cli.CliRunner
-import scalafix.testkit.ScalafixTest
+import scalafix.testkit.utest.ScalafixTest
 
 object AutoClasspathSuite extends ScalafixTest {
   test("--classpath=auto") {

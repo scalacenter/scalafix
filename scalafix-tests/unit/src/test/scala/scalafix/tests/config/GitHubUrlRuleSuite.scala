@@ -1,7 +1,7 @@
 package scalafix.tests.config
 
 import scalafix.internal.reflect.ScalafixCompilerDecoder._
-import scalafix.testkit.ScalafixTest
+import scalafix.testkit.utest.ScalafixTest
 import metaconfig.Conf
 import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok

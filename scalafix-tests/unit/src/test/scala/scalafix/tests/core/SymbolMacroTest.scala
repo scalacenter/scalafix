@@ -2,7 +2,7 @@ package scalafix.tests.core
 
 import scala.meta._
 import scalafix.internal.util.SymbolGlobal
-import scalafix.testkit.ScalafixTest
+import scalafix.testkit.utest.ScalafixTest
 import utest.compileError
 
 object SymbolMacroTest extends ScalafixTest {

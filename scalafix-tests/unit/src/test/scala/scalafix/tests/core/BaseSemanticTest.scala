@@ -2,7 +2,7 @@ package scalafix.tests.core
 
 import scala.meta._
 import scalafix.syntax._
-import scalafix.testkit.ScalafixTest
+import scalafix.testkit.utest.ScalafixTest
 import scalafix.tests.BuildInfo
 import scalafix.util.SemanticdbIndex
 
