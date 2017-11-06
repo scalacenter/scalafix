@@ -85,7 +85,7 @@ abstract class SemanticRuleSuite(
     val lintMessages = patches.toSeq.flatMap {
       case (name, patch) =>
         Patch
-          .lintMessages(patch)
+          .lintMessages(patch, ctx, name)
           .map(lint => lint.position -> lint.category.key(name))
     }
 
@@ -104,22 +104,21 @@ abstract class SemanticRuleSuite(
     val uncoveredMessages = diff(lintMessages, lintAssertions)
     if (uncoveredMessages.nonEmpty) {
 
-      val reported = Patch.reportLintMessages(patches, ctx)
-      if (reported) {
-        val explanation = uncoveredMessages
-          .groupBy(_._2)
-          .map {
-            case (key, positions) =>
-              s"""Append to lines: ${positions
-                   .map(_._1.startLine)
-                   .mkString(", ")}
-                 |   // assert: $key""".stripMargin
-          }
-          .mkString("\n\n")
-        throw new TestFailedException(
-          s"Uncaught linter messages! To fix this problem\n$explanation",
-          0)
-      }
+      Patch.printLintMessages(patches, ctx)
+
+      val explanation = uncoveredMessages
+        .groupBy(_._2)
+        .map {
+          case (key, positions) =>
+            s"""Append to lines: ${positions
+                 .map(_._1.startLine)
+                 .mkString(", ")}
+               |   // assert: $key""".stripMargin
+        }
+        .mkString("\n\n")
+      throw new TestFailedException(
+        s"Uncaught linter messages! To fix this problem\n$explanation",
+        0)
     }
   }
 

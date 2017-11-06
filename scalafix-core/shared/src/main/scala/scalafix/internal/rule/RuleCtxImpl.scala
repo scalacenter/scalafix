@@ -37,11 +37,7 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
   lazy val comments: AssociatedComments = AssociatedComments(tokens)
   lazy val input: Input = tokens.head.input
 
-  val escapeHatch = EscapeHatch(tree)
-  escapeHatch.anchorErrors.foreach(
-    error =>
-      config.lint.reporter
-        .handleMessage(error.msg, error.position, Severity.Error))
+  lazy val escapeHatch = EscapeHatch(tree)
 
   // Debug utilities
   def index(implicit index: SemanticdbIndex): SemanticdbIndex =
@@ -55,28 +51,19 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
     logger.elem(values: _*)
   }
 
-  def reportLintMessage(msg: LintMessage, owner: RuleName): Boolean = {
+  def printLintMessage(msg: LintMessage, owner: RuleName): Unit = {
     val key = msg.category.key(owner)
-    if (config.lint.ignore.matches(key)) false
+    if (config.lint.ignore.matches(key)) ()
     else {
       val category = config.lint
         .getConfiguredSeverity(key)
         .getOrElse(msg.category.severity)
 
-      val ruleName = msg.id(owner)
-      val position = msg.position
-
-      val isEscaped = escapeHatch.isEnabled(ruleName, position)
-
-      if (isEscaped) false
-      else {
-        config.lint.reporter.handleMessage(
-          msg.format(owner, config.lint.explain),
-          msg.position,
-          category.toSeverity
-        )
-        true
-      }
+      config.lint.reporter.handleMessage(
+        msg.format(owner, config.lint.explain),
+        msg.position,
+        category.toSeverity
+      )
     }
   }
 

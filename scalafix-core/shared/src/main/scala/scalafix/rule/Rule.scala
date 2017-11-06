@@ -82,7 +82,7 @@ abstract class Rule(ruleName: RuleName) { self =>
   }
   final def apply(ctx: RuleCtx, patches: Map[RuleName, Patch]): String = {
     val result = Patch(patches.values.asPatch, ctx, semanticOption)
-    Patch.reportLintMessages(patches, ctx)
+    Patch.printLintMessages(patches, ctx)
     result
   }
 
