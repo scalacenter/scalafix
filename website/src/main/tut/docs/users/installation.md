@@ -129,6 +129,69 @@ Once the scalafix cli is installed, consult the --help page for further usage in
 ```tut:evaluated:plain
 println(scalafix.cli.Cli.helpMessage)
 ```
+## scalafix with scala-maven-plugin based project
+
+There is some gotcha you will have to take care of when using scalafix-cli with a maven based project.
+
+### semanticdb installation
+
+Nothing is automatic here, so you will have to download `semanticdb` which correspond to you *exact* scala version, down to minor. 
+For example, for scala `2.12.3`:
+
+```
+coursier fetch --intransitive org.scalameta:semanticdb-scalac_2.12.3:2.0.1
+```
+
+You can also use `wget` or a simalar tool to retrieve the jar from `https://repo1.maven.org/maven2/org/scalameta/semanticdb-scalac_2.12.3/2.0.1/semanticdb-scalac_2.12.3-2.0.1-javadoc.jar`. 
+
+### Compile your project with semanticdb support
+
+Let say the `semanticdb-scalac_2.12.3-2.0.1.jar` is available in `PLUGINS/semanticdb-scalac_2.12.3-2.0.1.jar` path on your file system. 
+
+You need to recompile your project with some more flags, as follow: 
+
+```
+mvn clean test -DskipTests=true -DaddScalacArgs="-Yrangepos|-Xplugin-require:semanticdb|-Xplugin:PLUGIN/semanticdb-scalac_2.12.3-2.0.1.jar|-Ywarn-unused-import"
+```
+
+Here, we compile both main sources and tests to have semantic information generated for all of them, but we skip test execution because it is not the point of that compilation. 
+The added flags for scala are given with the `addScalaArgs` option (see http://davidb.github.io/scala-maven-plugin/help-mojo.html#addScalacArgs):
+
+- `-Yrangepos` is mandatory for `semanticdb` information gathering, 
+- `-Xplugin-require:semanticdb` tells scalac to fails if it can't load the `semanticdb` plugin, 
+- `-Xplugin:PLUGIN/semanticdb-scalac_2.12.3-2.0.1.jar` give the path where the `semanticdb` jar can be found, 
+- `-Ywarn-unused-import` is not mandatory, but needed for rule `RemoveUnusedImports` below. 
+
+After compilation, you must have a `target/classes/META-INF/semanticdb/`
+
+*Important note*: you will need to recompile to get up to date `semanticdb` information after each modification. 
+
+### Run scalafix-cli
+
+Install and use `scala-fix` as explained above. One important note is that you need to give `--sourceroot` with the root path the same as the path where you ran your `mvn clent test` command. This may be confusing when you are on a multi-module project. 
+For example, if your project is: 
+
+```
+somepath/scalaProject
+ |- moduleA
+ |    |- src/{main, test}/scala
+ |    `- target
+ `- moduleB
+      |- src/{main, test}/scala
+      `- target
+```
+
+If you compile at `scalaProject` level, you will need to invoke scalafix with: 
+
+```
+scalafix --rules RemoveUnusedImports --sourceroot /path/to/somepath/scalaProject
+```
+
+But if you compiled at `moduleA` level only, you will need to use: 
+
+``
+scalafix --rules RemoveUnusedImports --sourceroot /path/to/somepath/scalaProject/moduleA
+```
 
 ## scalafix-core
 Scalafix can be used as a library to run custom rules.
