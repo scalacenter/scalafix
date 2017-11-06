@@ -27,7 +27,7 @@ object ScalafixEnable {
     briefHelp =
       "Configure libraryDependencies, scalaVersion and scalacOptions for scalafix.",
     detail = """1. enables the semanticdb-scalac compiler plugin
-               |2. sets scalaVersion to latest supporteed supported by scalafix
+               |2. sets scalaVersion to latest Scala version supported by scalafix
                |3. add -Yrangepos to scalacOptions""".stripMargin
   ) { s =>
     val extracted = Project.extract(s)
