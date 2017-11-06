@@ -11,39 +11,39 @@ Currently, Scalafix does not provide any IDE integrations with IntelliJ/ENSIME.
 {:toc}
 
 ## sbt-scalafix
-The sbt-plugin is the recommended integration for semantic rules.
+The sbt-plugin is the recommended integration to run semantic rules like RemoveUnusedImports or ExplicitResultTypes.
 
 ```scala
 // ===> project/plugins.sbt
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "{{ site.stableVersion }}")
 
-// ===> build.sbt
-scalaVersion := "{{ site.scala212 }}" // {{ site.scala211 }} is also supported.
-// if scalacOptions is defined with append `++=`, do nothing.
-// if scalacOptions is defined like this: scalacOptions := List(...),
-// then do one of the following
-scalacOptions ++= List(...) // change := to ++=
-// or
-scalacOptions := List(...)                    // keep unchanged
-scalacOptions ++= scalafixScalacOptions.value // add this line
-
-// enable scalafix in custom configurations, only Test and Compile are
-// enabled by default.
-scalafixConfigure(Compile, Test, IntegrationTest)
-
-// ===> sbt shell (example usage)
-> scalafix                               // Run .scalafix.conf rules
-> scalafix RemoveUnusedImports           // Run specific rule
+// ===> sbt shell
+> scalafixEnable // Setup scalafix for active session.
+                 // Not needed if build.sbt is configured like below.
+> scalafix                               // Run all rules configured in .scalafix.conf
+> scalafix RemoveUnusedImports           // Run only RemoveUnusedImports rule
 > myProject/scalafix RemoveUnusedImports // Run rule in one project only
 > test:scalafix RemoveUnusedImports      // Run rule in single configuration
 > scalafix ExplicitR<TAB>                // use tab completion
 > scalafix replace:com.foobar/com.buzbaz // refactor (experimental)
 > scalafix file:rules/MyRule.scala       // run local custom rule
 > scalafix github:org/repo/v1            // run library migration rule
+
+// (optional, to avoid need for scalafixEnable) permanently enable scalafix in build.sbt
+// ===> build.sbt
+scalaVersion := "{{ site.scala212 }}" // {{ site.scala211 }} is also supported.
+
+// If you get "-Yrangepos is required" error or "Missing compiler plugin semanticdb",
+// This setting must appear after scalacOptions and libraryDependencies.
+scalafixSettings
+
+// To configure for custom configurations like IntegrationTest
+scalafixConfigure(Compile, Test, IntegrationTest)
 ```
 
 ### Verify installation
-To verify the installation, check that the scalacOptions include -Xplugin-require:semanticdb
+To verify the installation, check that scalacOptions and libraryDependecies
+contain the values below.
 
 ```scala
 > show scalacOptions
@@ -70,7 +70,6 @@ git diff // should produce a diff
 |------|------|-------------
 | `scalafix <rule>..` | `Unit` | Run scalafix on project sources. See {% doc_ref Rules %} or use tab completion to explore supported rules.
 | `sbtfix <rule>..` | `Unit` | Run scalafix on the build sources, `*.sbt` and `project/*`. __Note__: Requires semanticdb-sbt enabled globally for semantic rules.
-| `scalafixEnabled` | `Boolean` | `true` by default. If `false`, then sbt-scalafix will not enable the [semanticdb-scalac](http://scalameta.org/tutorial/#SemanticDB) plugin.
 | `scalafixSourceRoot` | `File` | The root directory of this project.
 | `scalafixScalacOptions` | `Seq[String]` | Necessary Scala compiler settings for scalafix to work.
 | `scalafixVersion` | `String` | Which version of scalafix-cli to run.
@@ -85,14 +84,17 @@ semanticdb-sbt is a Scala 2.10 compiler plugin that extracts semantic
 information from the sbt compiler. To enable semanticdb-sbt,
 
 ```scala
-// ~/.sbt/0.13/plugins/plugins.sbt
-addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "{{ site.stableVersion }}")
-// ~/.sbt/0.13/build.sbt
-import scalafix.sbt.ScalafixPlugin.autoImport._
-sbtfixSettings // enable semanticdb-sbt for sbt metabuilds.
+// project/plugins.sbt
+addCompilerPlugin("org.scalameta" % "semanticdb-sbt" % "{{ site.semanticdbSbtVersion }}" cross CrossVersion.full)
 ```
 
-__Note__. This integration is new, you can expect to face problems from enabling sbt-scalafix globally. In particular, sbt-scalafix does not at the moment support older versions of 2.11 than {{ site.scala211 }} and 2.12 than {{ site.scala212 }}. It's possible to disable sbt-scalafix with `scalafixEnabled := false`. Please report back on your experience.
+Once enabled, you can run scalafix rules against `project/*.scala` and `*.sbt`
+files with
+
+```scala
+> reload // rebuild semanticdb for *.sbt and project/*.scala sources
+> sbtfix Sbt1
+```
 
 ## scalafix-cli
 
@@ -103,7 +105,7 @@ The recommended way to install the scalafix command-line interface is with
 ### Coursier
 ```sh
 // coursier
-coursier bootstrap ch.epfl.scala:scalafix-cli_@{{ site.scalaVersion }}:{{ site.stableVersion }} -f --main scalafix.cli.Cli -o scalafix
+coursier bootstrap ch.epfl.scala:scalafix-cli_{{ site.scala212 }}:{{ site.stableVersion }} -f --main scalafix.cli.Cli -o scalafix
 ./scalafix --help
 ```
 

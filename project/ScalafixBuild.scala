@@ -153,6 +153,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
           "scala211" -> scala211,
           "stableVersion" -> stableVersion.value,
           "scalametaVersion" -> scalametaV,
+          "semanticdbSbtVersion" -> semanticdbSbt,
           "supportedScalaVersions" -> supportedScalaVersions,
           "coursierVersion" -> coursier.util.Properties.version
         )
@@ -168,9 +169,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   lazy val isCustomRepository = adhocRepoUri != null && adhocRepoCredentials != null
 
   override def globalSettings: Seq[Def.Setting[_]] = List(
-    version := sys.props
-      .get("scalafix.version")
-      .getOrElse(version.value.replace('+', '-')),
     stableVersion := version.in(ThisBuild).value.replaceAll("\\-.*", ""),
     scalaVersion := ciScalaVersion.getOrElse(scala212),
     crossScalaVersions := crossVersions,
