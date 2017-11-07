@@ -37,7 +37,7 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
   lazy val comments: AssociatedComments = AssociatedComments(tokens)
   lazy val input: Input = tokens.head.input
 
-  lazy val escapeHatch = EscapeHatch(tree)
+  lazy val escapeHatch = EscapeHatch(tree, comments)
 
   // Debug utilities
   def index(implicit index: SemanticdbIndex): SemanticdbIndex =
