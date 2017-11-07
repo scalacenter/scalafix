@@ -17,10 +17,6 @@ final case class LintCategory(
     explanation: String,
     severity: LintSeverity
 ) {
-  def key(owner: RuleName): String =
-    if (owner.isEmpty) id
-    else if (id.isEmpty) owner.value
-    else s"${owner.value}.$id"
   private def noExplanation: LintCategory =
     new LintCategory(id, explanation, severity)
   def at(message: String, position: Position): LintMessage =
@@ -29,6 +25,15 @@ final case class LintCategory(
     LintMessage(message, Position.None, this)
   def at(position: Position): LintMessage =
     LintMessage(explanation, position, noExplanation)
+
+  private[scalafix] def withOwner(owner: RuleName): LintCategory = {
+    val nextId =
+      if (owner.isEmpty) id
+      else if (id.isEmpty) owner.value
+      else s"${owner.value}.$id"
+
+    copy(id = nextId)
+  }
 }
 
 object LintCategory {

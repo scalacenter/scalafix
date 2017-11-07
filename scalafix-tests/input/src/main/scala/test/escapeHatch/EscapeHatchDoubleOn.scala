@@ -1,16 +1,16 @@
 /*
 rules = [
-  "class:scalafix.test.EscapeHatchDummyLinterA",
+  "class:scalafix.test.EscapeHatchDummyLinter",
 ]
 */
 
-//scalafix:off 
-package test
+// scalafix:off 
+package test.escapeHatch
 
-// scalafix:off EscapeHatchDummyLinterA
-// scalafix:off EscapeHatchDummyLinterA
-// scalafix:on EscapeHatchDummyLinterA
+// scalafix:off EscapeHatchDummyLinter
+// scalafix:off EscapeHatchDummyLinter
+// scalafix:on EscapeHatchDummyLinter
 
 object EscapeHatchDoubleOn {
-  object A // assert: EscapeHatchDummyLinterA
+  object Dummy // assert: EscapeHatchDummyLinter
 }

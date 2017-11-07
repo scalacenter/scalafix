@@ -1,12 +1,12 @@
 /*
 rules = [
-  "class:scalafix.test.EscapeHatchDummyLinterA",
+  "class:scalafix.test.EscapeHatchDummyLinter",
 ]
 */
 
-//scalafix:off EscapeHatchDummyLinterA
-package test
+// scalafix:off EscapeHatchDummyLinter
+package test.escapeHatch
 
 object EscapeHatchEOF {
-  object A
+  object Dummy
 }

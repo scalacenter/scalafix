@@ -118,43 +118,30 @@ object Patch {
     case _ => throw Failure.TokenPatchMergeError(a, b)
   }
 
-  private[scalafix] def printLintMessages(
-      patches: Map[RuleName, Patch],
-      ctx: RuleCtx): Unit = {
-
-    patches.foreach {
-      case (name, patch) =>
-        Patch.lintMessages(patch, ctx, name).foreach { msg =>
-          // Set the lint message owner. This allows us to distinguish
-          // LintCategory with the same id from different rules.
-          ctx.printLintMessage(msg, name)
-        }
-    }
-  }
   private[scalafix] def lintMessages(
-      patch: Patch,
-      ctx: RuleCtx,
-      owner: RuleName): List[LintMessage] = {
+      patches: Map[RuleName, Patch],
+      ctx: RuleCtx): List[LintMessage] = {
+
     val builder = List.newBuilder[LintMessage]
-    foreach(patch) {
-      case LintPatch(lint) => {
 
+    // TODO(olaf): Remove this cast
+    val ctxImpl = ctx.asInstanceOf[RuleCtxImpl]
+
+    def addPatch(owner: RuleName, patch: Patch): Unit = foreach(patch) {
+      case LintPatch(orphanLint) => {
+        val lint = orphanLint.withOwner(owner)
         val isEnabled =
-          ctx match {
-            case impl: RuleCtxImpl => {
-              val ruleName = lint.category.key(owner)
-              val position = lint.position
-              impl.escapeHatch.isEnabled(ruleName, position)
-            }
-            case _ => true
-          }
-
+          ctxImpl.escapeHatch.isEnabled(lint.id, lint.position)
         if (isEnabled) {
           builder += lint
         }
       }
-      case _ =>
+      case _ => ()
     }
+    patches.map {
+      case (owner, patch) => addPatch(owner, patch)
+    }
+    ctxImpl.escapeHatch.unusedEscapes.foreach(builder += _)
     builder.result()
   }
 

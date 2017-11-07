@@ -82,12 +82,11 @@ abstract class SemanticRuleSuite(
       case tok @ Token.Comment(SemanticRuleSuite.LintAssertion(key)) =>
         tok.pos -> key
     }
-    val lintMessages = patches.toSeq.flatMap {
-      case (name, patch) =>
-        Patch
-          .lintMessages(patch, ctx, name)
-          .map(lint => lint.position -> lint.category.key(name))
-    }
+
+    val lintMessages =
+      Patch
+        .lintMessages(patches, ctx)
+        .map(lint => lint.position -> lint.category.id)
 
     val uncoveredAsserts = diff(lintAssertions, lintMessages)
     uncoveredAsserts.foreach {
@@ -103,9 +102,7 @@ abstract class SemanticRuleSuite(
 
     val uncoveredMessages = diff(lintMessages, lintAssertions)
     if (uncoveredMessages.nonEmpty) {
-
-      Patch.printLintMessages(patches, ctx)
-
+      Patch.lintMessages(patches, ctx).foreach(ctx.printLintMessage)
       val explanation = uncoveredMessages
         .groupBy(_._2)
         .map {

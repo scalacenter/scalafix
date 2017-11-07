@@ -17,26 +17,6 @@ object EscapeHatchDummyLinter extends Rule("EscapeHatchDummyLinter") {
   }
 }
 
-object EscapeHatchDummyLinterA extends Rule("EscapeHatchDummyLinterA") {
-  val error = LintCategory.error("Bam A!")
-
-  override def check(ctx: RuleCtx): Seq[LintMessage] = {
-    ctx.tree.collect {
-      case tree @ q"A" => error.at(tree.pos)
-    }
-  }
-}
-
-object EscapeHatchDummyLinterB extends Rule("EscapeHatchDummyLinterB") {
-  val error = LintCategory.error("Bam B!")
-
-  override def check(ctx: RuleCtx): Seq[LintMessage] = {
-    ctx.tree.collect {
-      case tree @ q"B" => error.at(tree.pos)
-    }
-  }
-}
-
 object EscapeHatchNoNulls extends Rule("EscapeHatchNoNulls") {
   val error = LintCategory.error("Nulls are not allowed.")
   override def check(ctx: RuleCtx): List[LintMessage] = ctx.tree.collect {

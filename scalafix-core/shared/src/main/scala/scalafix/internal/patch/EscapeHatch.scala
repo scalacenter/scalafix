@@ -2,16 +2,27 @@ package scalafix
 package internal.patch
 
 import scalafix.internal.config.FilterMatcher
+import scalafix.lint.LintMessage
 
 import scala.meta._
 import scala.meta.tokens.Token
-import scala.meta.contrib.AssociatedComments
+import scala.meta.contrib._
 
+import scala.collection.mutable
 import scala.collection.immutable.TreeMap
 
+/* EscapeHatch is an algorithm to selectively disable rules
+ *
+ * Rules are disable via comments with a specific syntax
+ * scalafix:off or scalafix:on disable or enable rules until the end of file
+ * scalafix:ok disable rules on an associated expression
+ * a list of rules seperated by commas can be provided to selectively
+ * enable or disable rules otherwise all rules are affected
+ */
 class EscapeHatch(
     enableRules: TreeMap[Int, FilterMatcher],
-    disableRules: TreeMap[Int, FilterMatcher]) {
+    disableRules: TreeMap[Int, FilterMatcher],
+    val unusedEscapes: List[LintMessage]) {
 
   def isEnabled(rule: String, position: Position): Boolean =
     !isDisabled(rule, position)
@@ -36,7 +47,7 @@ class EscapeHatch(
 }
 
 object EscapeHatch {
-  private sealed trait Escape
+  private sealed abstract class Escape
   private object Escape {
     case class UntilEOF(position: Position, rules: String, toogle: Toogle)
         extends Escape
@@ -53,38 +64,51 @@ object EscapeHatch {
   private val FilterEnable = "\\s?scalafix:on\\s?(.*)".r
   private val FilterExpression = "\\s?scalafix:ok\\s?(.*)".r
 
+  private def splitRules(rules: String): Set[String] =
+    rules.split("\\s+").toSet
+
   def apply(tree: Tree, associatedComments: AssociatedComments): EscapeHatch = {
-    val blocks: List[Escape] =
-      tree.tokens.collect {
-        case comment @ Token.Comment(FilterDisable(rules)) => {
-          Escape.UntilEOF(comment.pos, rules, Toogle.Disable)
-        }
-        case comment @ Token.Comment(FilterEnable(rules)) => {
-          Escape.UntilEOF(comment.pos, rules, Toogle.Enable)
-        }
-      }.toList
+    val escapes = List.newBuilder[Escape]
 
-    val expressions: List[Escape] =
-      tree.collect {
-        case t => {
-          val trailing = associatedComments.trailing(t)
-          val leading = associatedComments.leading(t)
+    var currentlyDisabledRules = Set.empty[String]
+    val unusedEscapes = List.newBuilder[LintMessage]
+    val unusedScalafixComment = LintCategory.error("UnusedScalafixOn", "exp")
 
-          (trailing ++ leading).toList.flatMap {
-            _ match {
-              case Token.Comment(FilterExpression(rules)) => {
-                List(Escape.Expression(t.pos, rules))
-              }
-              case _ => Nil
-            }
-          }
-        }
-      }.flatten
+    tree.tokens.foreach {
+      case comment @ Token.Comment(FilterDisable(rules)) =>
+        escapes += Escape.UntilEOF(comment.pos, rules, Toogle.Disable)
+        currentlyDisabledRules = currentlyDisabledRules ++ splitRules(rules)
 
-    EscapeHatch(blocks ++ expressions)
+      case comment @ Token.Comment(FilterEnable(rules)) =>
+        escapes += Escape.UntilEOF(comment.pos, rules, Toogle.Enable)
+
+        val enabledRules = splitRules(rules)
+        val enabledNotDisabled = enabledRules -- currentlyDisabledRules
+        enabledNotDisabled.foreach(rule =>
+          unusedEscapes += unusedScalafixComment.at(comment.pos))
+
+        val reEnabled = currentlyDisabledRules -- enabledRules
+
+      case _ => ()
+    }
+
+    def addExpression(t: Tree)(comment: Token.Comment): Unit = comment match {
+      case Token.Comment(FilterExpression(rules)) =>
+        escapes += Escape.Expression(t.pos, rules)
+      case _ => ()
+    }
+
+    tree.foreach { t =>
+      associatedComments.trailing(t).foreach(addExpression(t))
+      associatedComments.leading(t).foreach(addExpression(t))
+    }
+
+    EscapeHatch(escapes.result(), unusedEscapes.result())
   }
 
-  private def apply(comments: List[Escape]): EscapeHatch = {
+  private def apply(
+      comments: List[Escape],
+      unusedEscapes: List[LintMessage]): EscapeHatch = {
     val enableRules = TreeMap.newBuilder[Int, FilterMatcher]
     val disableRules = TreeMap.newBuilder[Int, FilterMatcher]
 
@@ -93,33 +117,31 @@ object EscapeHatch {
         FilterMatcher.matchEverything
       } else {
         FilterMatcher(
-          includes = rules.split("\\s+").toSeq,
+          includes = splitRules(rules).toSeq,
           excludes = Seq()
         )
       }
     }
 
     comments.foreach {
-      case Escape.Expression(position, rules) => {
+      case Escape.Expression(position, rules) =>
         val ruleMatcher = matcher(rules)
-
         disableRules += (position.start -> ruleMatcher)
         enableRules += (position.end -> ruleMatcher)
-      }
-      case Escape.UntilEOF(position, rules, toogle) => {
+
+      case Escape.UntilEOF(position, rules, toogle) =>
         val toogles =
           toogle match {
             case Toogle.Disable => disableRules
             case Toogle.Enable => enableRules
           }
-
         toogles += (position.start -> matcher(rules))
-      }
     }
 
     new EscapeHatch(
       enableRules = enableRules.result(),
-      disableRules = disableRules.result()
+      disableRules = disableRules.result(),
+      unusedEscapes = unusedEscapes
     )
   }
 }
