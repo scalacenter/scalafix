@@ -137,7 +137,7 @@ It is possible to use scalafix with scala-maven-plugin but it requires a custom 
 
 First, download the `semanticdb-scalac` compiler plugin which corresponds to your exact scala version of your project, down to the patch number.
 
-To begin with, it's recommended to install the coursier command line interfact https://github.com/coursier/coursier.
+To begin with, it's recommended to install the coursier command line interface https://github.com/coursier/coursier.
 
 ```
 wget https://github.com/coursier/coursier/raw/master/coursier && chmod +x coursier && ./coursier --help
@@ -152,11 +152,11 @@ coursier fetch --intransitive org.scalameta:semanticdb-scalac_{{ site.scala212 }
 
 You can also use `wget` or a simalar tool to retrieve the jar from `https://repo1.maven.org/maven2/org/scalameta/semanticdb-scalac_{{ site.scala212 }}/{{ site.scalametaVersion }}/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}-javadoc.jar`. 
 
-### Compile source with semanticdb
+### Compile sources with semanticdb
 
-Let say the `semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar` is available in `PLUGINS/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar` path on your file system. 
+Let's say the `semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar` is available in `PLUGINS/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar` path on your file system. 
 
-Recompile your project with some more flags, as follow: 
+Recompile your project using `-DaddScalacArgs` as follow: 
 
 ```
 mvn clean test -DskipTests=true -DaddScalacArgs="-Yrangepos|-Xplugin-require:semanticdb|-Xplugin:PLUGIN/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar|-Ywarn-unused-import"
@@ -165,20 +165,21 @@ mvn clean test -DskipTests=true -DaddScalacArgs="-Yrangepos|-Xplugin-require:sem
 Here, we compile both main sources and tests to have semantic information generated for all of them, but we skip test execution because it is not the point of that compilation. 
 The added flags for scala are given with the `addScalaArgs` option (see http://davidb.github.io/scala-maven-plugin/help-mojo.html#addScalacArgs):
 
-- `-Yrangepos` is mandatory for `semanticdb` information gathering, 
-- `-Xplugin-require:semanticdb` tells scalac to fails if it can't load the `semanticdb` plugin, 
+- `-Yrangepos` is required for `semanticdb` to function properly,
 - `-Xplugin:PLUGIN/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar` give the path where the `semanticdb` jar can be found, 
-- `-Ywarn-unused-import` is not mandatory, but it is needed for rule `RemoveUnusedImports` in below example. In general, you should always look specific mandatory `scalac` flags for configured rules. 
+- (optional) `-Xplugin-require:semanticdb` tells scalac to fails if it can't load the `semanticdb` plugin, 
+- (optional) `-Ywarn-unused-import` is required for the `RemoveUnusedImports` rule. If you don't run `RemoveUnusedImports` you can skip this flag. Consult the scalafix documentation for each rule to see which flags it requires.
+- (optional) Customize the --sourceroot with `-P:semanticdb:sourceroot:/path/to/sourceroot` (more details below)
 
-After compilation, double check that there exists a directory `target/classes/META-INF/semanticdb/` containing files with the `.semanticdb extension.
+After compilation, double check that there exists a directory `target/classes/META-INF/semanticdb/` containing files with the `.semanticdb` extension.
 
-*Important note*: you will need to recompile to get up to date `semanticdb` information after each modification. 
-
-You can also specify the sourceroot with `-P:semanticdb:sourceroot:/path/to/sourceroot`. 
+*Important note*: you will need to recompile to get up-to-date `semanticdb` information after each modification. 
 
 ### Run scalafix-cli
 
-Install and use `scalafix` as explained above. One important note is that you need to give `--sourceroot` with the root path the same as the path where you ran your `mvn clent test` command. This may be confusing when you are on a multi-module project. 
+Install and use `scalafix` as explained above.
+One important note is that you need to give `--sourceroot` with the root path the same as the path where you ran your `mvn clent test` command.
+This may be confusing when you are on a multi-module project. 
 For example, if your project is: 
 
 ```
