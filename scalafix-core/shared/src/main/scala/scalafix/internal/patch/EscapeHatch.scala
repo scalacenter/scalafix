@@ -68,11 +68,32 @@ object EscapeHatch {
     rules.split("\\s+").toSet
 
   def apply(tree: Tree, associatedComments: AssociatedComments): EscapeHatch = {
-    val escapes = List.newBuilder[Escape]
+    class FastHashComment(comment: Token.Comment) {
+      override def hashCode: Int =
+        comment.pos.start
 
+      override def equals(other: Any): Boolean =
+        comment.eq(other.asInstanceOf[Object])
+    }
+
+    val escapes = List.newBuilder[Escape]
     var currentlyDisabledRules = Set.empty[String]
     val unusedEscapes = List.newBuilder[LintMessage]
     val unusedScalafixComment = LintCategory.error("UnusedScalafixOn", "exp")
+    val visitedFilterExpression = mutable.Set.empty[FastHashComment]
+
+    def addExpression(t: Tree)(comment: Token.Comment): Unit = comment match {
+      case Token.Comment(FilterExpression(rules)) =>
+        escapes += Escape.Expression(t.pos, rules)
+        visitedFilterExpression += new FastHashComment(comment)
+
+      case _ => ()
+    }
+
+    tree.foreach { t =>
+      associatedComments.trailing(t).foreach(addExpression(t))
+      associatedComments.leading(t).foreach(addExpression(t))
+    }
 
     tree.tokens.foreach {
       case comment @ Token.Comment(FilterDisable(rules)) =>
@@ -89,18 +110,29 @@ object EscapeHatch {
 
         val reEnabled = currentlyDisabledRules -- enabledRules
 
-      case _ => ()
-    }
+      case comment @ Token.Comment(FilterExpression(rules)) =>
+        // At the end of object/trait/class the AssociatedComments is
+        // not trailing or leading for example:
+        //
+        // object Dummy { // scalafix:ok EscapeHatchDummyLinter
+        //   1
+        // }
+        // we just keep track of visited Escape.Expression
 
-    def addExpression(t: Tree)(comment: Token.Comment): Unit = comment match {
-      case Token.Comment(FilterExpression(rules)) =>
-        escapes += Escape.Expression(t.pos, rules)
-      case _ => ()
-    }
+        val fastComment = new FastHashComment(comment)
+        if (!visitedFilterExpression.contains(fastComment)) {
 
-    tree.foreach { t =>
-      associatedComments.trailing(t).foreach(addExpression(t))
-      associatedComments.leading(t).foreach(addExpression(t))
+          val pos =
+            Position.Range(
+              comment.pos.input,
+              comment.pos.start - comment.pos.startColumn,
+              comment.pos.end
+            )
+
+          escapes += Escape.Expression(pos, rules)
+        }
+
+      case _ => ()
     }
 
     EscapeHatch(escapes.result(), unusedEscapes.result())

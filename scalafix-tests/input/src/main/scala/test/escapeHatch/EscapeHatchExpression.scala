@@ -43,4 +43,12 @@ object EscapeHatchExpression {
     1 + "foo",
     a.get
   ) // scalafix:ok NoInfer.any2stringadd, Disable.get
+
+  object A {
+    object F {
+      object Dummy { // scalafix:ok EscapeHatchDummyLinter
+        1
+      }
+    }
+  }
 }
