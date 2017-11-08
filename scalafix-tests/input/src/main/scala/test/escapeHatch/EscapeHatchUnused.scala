@@ -1,4 +1,4 @@
-/*
+/* ONLY
 rules = [
   "class:scalafix.test.EscapeHatchDummyLinter",
 ]
@@ -8,12 +8,24 @@ package test.escapeHatch
 
 object EscapeHatchUnused {
 
-  object ok /* scalafix:ok EscapeHatchDummyLinter */ // assert: UnusedScalafixOk
+  // positive tests
 
-  /* scalafix:on EscapeHatchDummyLinter */ // assert: UnusedScalafixSupression
+  // scalafix:off EscapeHatchDummyLinter
+  val bDummy = 1
+  // scalafix:on EscapeHatchDummyLinter
 
-  val ok2 = 1
+
+  // negative tests
+
+  // Matching but not triggered
 
   /* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSupression
 
+  /* scalafix:on EscapeHatchDummyLinter */
+
+  // Not matching because of a typo
+
+  /* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSupression
+
+  /* scalafix:on EscapeHatchDummyLinterTypo */ // assert: UnusedScalafixSupression
 }

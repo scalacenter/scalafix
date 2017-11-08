@@ -127,7 +127,7 @@ object Patch {
 
     val builder = List.newBuilder[LintMessage]
     patches.map {
-      case (owner, patch) => 
+      case (owner, patch) =>
         foreach(patch) {
           case LintPatch(orphanLint) =>
             builder += orphanLint.withOwner(owner)
