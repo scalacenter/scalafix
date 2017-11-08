@@ -200,7 +200,7 @@ scalafix --rules RemoveUnusedImports --sourceroot /path/to/somepath/scalaProject
 
 But if you compiled at `moduleA` level only, you will need to use: 
 
-``
+```
 scalafix --rules RemoveUnusedImports --sourceroot /path/to/somepath/scalaProject/moduleA
 ```
 
