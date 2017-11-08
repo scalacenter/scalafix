@@ -122,27 +122,21 @@ object Patch {
       patches: Map[RuleName, Patch],
       ctx: RuleCtx): List[LintMessage] = {
 
-    val builder = List.newBuilder[LintMessage]
-
     // TODO(olaf): Remove this cast
     val ctxImpl = ctx.asInstanceOf[RuleCtxImpl]
 
-    def addPatch(owner: RuleName, patch: Patch): Unit = foreach(patch) {
-      case LintPatch(orphanLint) => {
-        val lint = orphanLint.withOwner(owner)
-        val isEnabled =
-          ctxImpl.escapeHatch.isEnabled(lint.id, lint.position)
-        if (isEnabled) {
-          builder += lint
-        }
-      }
-      case _ => ()
-    }
+    val builder = List.newBuilder[LintMessage]
     patches.map {
-      case (owner, patch) => addPatch(owner, patch)
+      case (owner, patch) => 
+        foreach(patch) {
+          case LintPatch(orphanLint) =>
+            builder += orphanLint.withOwner(owner)
+          case _ => ()
+        }
     }
-    ctxImpl.escapeHatch.unusedEscapes.foreach(builder += _)
-    builder.result()
+
+    val messages = builder.result()
+    ctxImpl.escapeHatch.filter(messages)
   }
 
   // Patch.apply and Patch.lintMessages package private. Feel free to use them

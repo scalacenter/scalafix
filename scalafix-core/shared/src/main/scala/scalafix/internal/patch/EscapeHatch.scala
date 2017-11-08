@@ -24,21 +24,23 @@ class EscapeHatch(
     disableRules: TreeMap[Int, FilterMatcher],
     val unusedEscapes: List[LintMessage]) {
 
-  def isEnabled(rule: String, position: Position): Boolean =
-    !isDisabled(rule, position)
+
+  def filter(lints: List[LintMessage]): List[LintMessage] = {
+    lints.filterNot(isDisabled) ++ unusedEscapes
+  }
 
   // a rule r is disabled in position p if there is a
   // comment disabling r at position p1 < p
   // and there is no comment enabling r in position p2 where p1 < p2 < p.
-  def isDisabled(rule: String, position: Position): Boolean = {
-    disableRules.to(position.start).exists {
+  private def isDisabled(message: LintMessage): Boolean = {
+    disableRules.to(message.position.start).exists {
       case (disablePosition, disableRule) => {
-        disableRule.matches(rule) && {
+        disableRule.matches(message.id) && {
           !enableRules
-            .range(disablePosition, position.start)
+            .range(disablePosition, message.position.start)
             .values
             .exists(
-              _.matches(rule)
+              _.matches(message.id)
             )
         }
       }
@@ -79,7 +81,7 @@ object EscapeHatch {
     val escapes = List.newBuilder[Escape]
     var currentlyDisabledRules = Set.empty[String]
     val unusedEscapes = List.newBuilder[LintMessage]
-    val unusedScalafixComment = LintCategory.error("UnusedScalafixOn", "exp")
+    val unusedScalafixComment = LintCategory.error("UnusedScalafixSupression", "exp")
     val visitedFilterExpression = mutable.Set.empty[FastHashComment]
 
     def addExpression(t: Tree)(comment: Token.Comment): Unit = comment match {
@@ -106,7 +108,8 @@ object EscapeHatch {
         val enabledRules = splitRules(rules)
         val enabledNotDisabled = enabledRules -- currentlyDisabledRules
         enabledNotDisabled.foreach(rule =>
-          unusedEscapes += unusedScalafixComment.at(comment.pos))
+          unusedEscapes += unusedScalafixComment.at(comment.pos)
+        )
 
         val reEnabled = currentlyDisabledRules -- enabledRules
 

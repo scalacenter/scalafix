@@ -62,16 +62,6 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
       msg.position,
       category.toSeverity
     )
-    //
-    // if (config.lint.ignore.matches(key)) ()
-    // else {
-
-    //   config.lint.reporter.handleMessage(
-    //     msg.format(owner, config.lint.explain),
-    //     msg.position,
-    //     category.toSeverity
-    //   )
-    // }
   }
 
   def lint(msg: LintMessage): Patch =
