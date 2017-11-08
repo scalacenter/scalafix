@@ -129,6 +129,80 @@ Once the scalafix cli is installed, consult the --help page for further usage in
 ```tut:evaluated:plain
 println(scalafix.cli.Cli.helpMessage)
 ```
+## Maven
+
+It is possible to use scalafix with scala-maven-plugin but it requires a custom setup since there is no scalafix specific Maven plugin.
+
+### Install semanticdb compiler plugin
+
+First, download the `semanticdb-scalac` compiler plugin which corresponds to your exact scala version of your project, down to the patch number.
+
+To begin with, it's recommended to install the coursier command line interface https://github.com/coursier/coursier.
+
+```
+wget https://github.com/coursier/coursier/raw/master/coursier && chmod +x coursier && ./coursier --help
+```
+
+Coursier is a tool to download and launch library artifacts.
+Once you have coursier installed, assuming you are on {{ site.scala212 }}:
+
+```
+coursier fetch --intransitive org.scalameta:semanticdb-scalac_{{ site.scala212 }}:{{ site.scalametaVersion }}
+```
+
+You can also use `wget` or a simalar tool to retrieve the jar from `https://repo1.maven.org/maven2/org/scalameta/semanticdb-scalac_{{ site.scala212 }}/{{ site.scalametaVersion }}/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}-javadoc.jar`. 
+
+### Compile sources with semanticdb
+
+Let's say the `semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar` is available in `PLUGINS/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar` path on your file system. 
+
+Recompile your project using `-DaddScalacArgs` as follow: 
+
+```
+mvn clean test -DskipTests=true -DaddScalacArgs="-Yrangepos|-Xplugin-require:semanticdb|-Xplugin:PLUGIN/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar|-Ywarn-unused-import"
+```
+
+Here, we compile both main sources and tests to have semantic information generated for all of them, but we skip test execution because it is not the point of that compilation. 
+The added flags for scala are given with the `addScalaArgs` option (see http://davidb.github.io/scala-maven-plugin/help-mojo.html#addScalacArgs):
+
+- `-Yrangepos` is required for `semanticdb` to function properly,
+- `-Xplugin:PLUGIN/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar` give the path where the `semanticdb` jar can be found, 
+- (optional) `-Xplugin-require:semanticdb` tells scalac to fails if it can't load the `semanticdb` plugin, 
+- (optional) `-Ywarn-unused-import` is required for the `RemoveUnusedImports` rule. If you don't run `RemoveUnusedImports` you can skip this flag. Consult the scalafix documentation for each rule to see which flags it requires.
+- (optional) Customize the --sourceroot with `-P:semanticdb:sourceroot:/path/to/sourceroot` (more details below)
+
+After compilation, double check that there exists a directory `target/classes/META-INF/semanticdb/` containing files with the `.semanticdb` extension.
+
+*Important note*: you will need to recompile to get up-to-date `semanticdb` information after each modification. 
+
+### Run scalafix-cli
+
+Install and use `scalafix` as explained above.
+One important note is that you need to give `--sourceroot` with the root path the same as the path where you ran your `mvn clent test` command.
+This may be confusing when you are on a multi-module project. 
+For example, if your project is: 
+
+```
+somepath/scalaProject
+ |- moduleA
+ |    |- src/{main, test}/scala
+ |    `- target
+ `- moduleB
+      |- src/{main, test}/scala
+      `- target
+```
+
+If you compile at `scalaProject` level, you will need to invoke scalafix with: 
+
+```
+scalafix --rules RemoveUnusedImports --sourceroot /path/to/somepath/scalaProject
+```
+
+But if you compiled at `moduleA` level only, you will need to use: 
+
+``
+scalafix --rules RemoveUnusedImports --sourceroot /path/to/somepath/scalaProject/moduleA
+```
 
 ## scalafix-core
 Scalafix can be used as a library to run custom rules.
