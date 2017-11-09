@@ -2,6 +2,7 @@
 rules = [
   Disable
   NoInfer
+  "class:scalafix.test.EscapeHatchDummyLinter"
 ]
 
 Disable.symbols = [
@@ -13,6 +14,9 @@ NoInfer.symbols = [
 ]
 */
 
+// rules can be selectively disabled by providing a list of rule
+// ids separated by commas
+
 package test.escapeHatch
 
 object EscapeHatchMultipleRules {
@@ -20,6 +24,7 @@ object EscapeHatchMultipleRules {
   // scalafix:off NoInfer.any2stringadd, Disable.get
   1 + "foo"
 
+  val aDummy = 0 // assert: EscapeHatchDummyLinter
 
   val a: Option[Int] = Some(1)
   a.get

@@ -6,6 +6,8 @@ rules = [
 
 package test.escapeHatch
 
+// Unused disable, enable or expressions are reported as a warning
+
 object EscapeHatchUnused {
 
 // Positive Tests (should not report unused)

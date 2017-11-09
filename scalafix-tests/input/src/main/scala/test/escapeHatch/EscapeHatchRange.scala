@@ -6,6 +6,8 @@ rules = [
  */
 package test.escapeHatch
 
+// different rule can overlap
+
 object EscapeHatchRange {
   null // assert: EscapeHatchNoNulls
   val aDummy = 0 // assert: EscapeHatchDummyLinter

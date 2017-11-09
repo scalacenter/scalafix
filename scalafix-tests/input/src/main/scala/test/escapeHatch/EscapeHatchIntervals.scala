@@ -4,6 +4,8 @@ rules = [
 ]
 */
 
+// Off and On can be used to create a block that disables a rule
+
 package test
 
 object EscapeHatchIntervals {

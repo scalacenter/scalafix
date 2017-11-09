@@ -14,6 +14,10 @@ NoInfer.symbols = [
 ]
 */
 
+// `scalafix:ok` can be used to disable expressions
+// it can be attached to an expressions that spans multiple lines
+// or inside the first line of the template of an object/class/trait
+
 package test
 
 object EscapeHatchExpression {

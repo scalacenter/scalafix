@@ -34,8 +34,7 @@ class EscapeHatch(
   // a rule r is disabled in position p if there is a
   // comment disabling r at position p1 < p
   // and there is no comment enabling r in position p2 where p1 < p2 < p.
-  private def isEnabled(
-      message: LintMessage): (Boolean, Option[EscapeFilter]) = {
+  private def isEnabled(message: LintMessage): (Boolean, Option[EscapeFilter]) = {
 
     var culprit = Option.empty[EscapeFilter]
 
@@ -75,9 +74,7 @@ class EscapeHatch(
         filteredLints += lint
       }
 
-      culprit.foreach(escape =>
-        usedEscapes += escape.offset
-      )
+      culprit.foreach(escape => usedEscapes += escape.offset)
     }
 
     val unusedDisableWarning =
@@ -86,9 +83,8 @@ class EscapeHatch(
         "This comment does not disable any rule"
       )
 
-    val unusedEscapesWarning = 
-      (disableRules -- usedEscapes)
-        .values
+    val unusedEscapesWarning =
+      (disableRules -- usedEscapes).values
         .map(unused => unusedDisableWarning.at(unused.anchorPosition.value))
 
     filteredLints.result() ++ unusedEnable ++ unusedEscapesWarning
@@ -97,9 +93,9 @@ class EscapeHatch(
 
 object EscapeHatch {
   private[EscapeHatch] case class EscapeFilter(
-    matcher: FilterMatcher,
-    anchorPosition: AnchorPosition,
-    offset: EscapeOffset
+      matcher: FilterMatcher,
+      anchorPosition: AnchorPosition,
+      offset: EscapeOffset
   ) {
     def matches(id: String): Boolean =
       matcher.matches(id)
@@ -124,21 +120,21 @@ object EscapeHatch {
   private sealed abstract class Escape
   private object Escape {
     case class UntilEOF(
-      anchorPosition: AnchorPosition,
-      rules: String,
-      toogle: Toogle
+        anchorPosition: AnchorPosition,
+        rules: String,
+        toogle: Toogle
     ) extends Escape
 
     case class Expression(
-      expressionPosition: ExpressionPosition,
-      anchorPosition: AnchorPosition,
-      rules: String
+        expressionPosition: ExpressionPosition,
+        anchorPosition: AnchorPosition,
+        rules: String
     ) extends Escape
 
     case class ExpressionLine(
-      expressionPosition: ExpressionPosition, 
-      anchorPosition: AnchorPosition,
-      rules: String
+        expressionPosition: ExpressionPosition,
+        anchorPosition: AnchorPosition,
+        rules: String
     ) extends Escape
   }
 
@@ -148,10 +144,11 @@ object EscapeHatch {
     case object Enable extends Toogle
   }
 
-
   private val unusedScalafixSupressionId = "UnusedScalafixSupression"
 
-  private[scalafix] def unusedScalafixSupression(idSuffix: String, explain: String) =
+  private[scalafix] def unusedScalafixSupression(
+      idSuffix: String,
+      explain: String) =
     LintCategory.warning(unusedScalafixSupressionId + idSuffix, explain)
 
   private val unusedEnableWarning =
@@ -173,7 +170,10 @@ object EscapeHatch {
     val visitedFilterExpression = mutable.Set.empty[AnchorPosition]
 
     var currentlyDisabledRules = Set.empty[String]
-    def trackUnusedRules(rules: String, toogle: Toogle, anchorPosition: AnchorPosition): Unit = {
+    def trackUnusedRules(
+        rules: String,
+        toogle: Toogle,
+        anchorPosition: AnchorPosition): Unit = {
       val toogledRules = splitRules(rules)
 
       toogle match {
@@ -183,10 +183,9 @@ object EscapeHatch {
         case Toogle.Enable =>
           val enabledRules = splitRules(rules)
           val enabledNotDisabled = enabledRules -- currentlyDisabledRules
-          
+
           enabledNotDisabled.foreach(
-            rule =>
-              unusedEnable += unusedEnableWarning.at(anchorPosition.value)
+            rule => unusedEnable += unusedEnableWarning.at(anchorPosition.value)
           )
       }
     }
@@ -204,12 +203,12 @@ object EscapeHatch {
           val anchorPosition = AnchorPosition(comment.pos)
           if (!visitedFilterExpression.contains(anchorPosition)) {
             escapes += Escape.Expression(
-              ExpressionPosition(t.pos), 
+              ExpressionPosition(t.pos),
               anchorPosition,
               rules
             )
             visitedFilterExpression += anchorPosition
-          }    
+          }
 
         case _ => ()
       }
@@ -246,11 +245,12 @@ object EscapeHatch {
         if (!visitedFilterExpression.contains(anchorPosition)) {
           // we approximate the position of the expression to the whole line
           val expressionPosition =
-            ExpressionPosition(Position.Range(
-              comment.pos.input,
-              comment.pos.start - comment.pos.startColumn,
-              comment.pos.end
-            ))
+            ExpressionPosition(
+              Position.Range(
+                comment.pos.input,
+                comment.pos.start - comment.pos.startColumn,
+                comment.pos.end
+              ))
 
           escapes += Escape.ExpressionLine(
             expressionPosition = expressionPosition,
@@ -282,11 +282,17 @@ object EscapeHatch {
       }
     }
 
-    def enable(offset: EscapeOffset, anchor: AnchorPosition, rules: String): Unit = {
+    def enable(
+        offset: EscapeOffset,
+        anchor: AnchorPosition,
+        rules: String): Unit = {
       enableRules += (offset -> EscapeFilter(matcher(rules), anchor, offset))
     }
 
-    def disable(offset: EscapeOffset, anchor: AnchorPosition, rules: String): Unit = {
+    def disable(
+        offset: EscapeOffset,
+        anchor: AnchorPosition,
+        rules: String): Unit = {
       disableRules += (offset -> EscapeFilter(matcher(rules), anchor, offset))
     }
 
