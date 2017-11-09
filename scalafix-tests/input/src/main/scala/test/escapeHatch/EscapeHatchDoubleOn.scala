@@ -3,12 +3,14 @@ rules = [
   "class:scalafix.test.EscapeHatchDummyLinter",
 ]
 */
-
-// scalafix:off 
 package test.escapeHatch
 
-// scalafix:off EscapeHatchDummyLinter
-// scalafix:off EscapeHatchDummyLinter
+// On and Off anchor set the filter independently 
+// of how many time it was turned off
+
+/* scalafix:off */ // assert: UnusedScalafixSupressionDisable
+/* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSupressionDisable
+/* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSupressionDisable
 // scalafix:on EscapeHatchDummyLinter
 
 object EscapeHatchDoubleOn {

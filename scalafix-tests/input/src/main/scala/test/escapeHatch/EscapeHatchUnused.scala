@@ -1,4 +1,4 @@
-/* ONLY
+/*
 rules = [
   "class:scalafix.test.EscapeHatchDummyLinter",
 ]
@@ -8,24 +8,44 @@ package test.escapeHatch
 
 object EscapeHatchUnused {
 
-  // positive tests
+// Positive Tests (should not report unused)
 
   // scalafix:off EscapeHatchDummyLinter
-  val bDummy = 1
+  val aDummy = 1
   // scalafix:on EscapeHatchDummyLinter
 
+  val bDummy = 1 // scalafix:ok EscapeHatchDummyLinter
 
-  // negative tests
+  val cDummy = (
+    1,
+    2
+  ) // scalafix:ok EscapeHatchDummyLinter
 
-  // Matching but not triggered
+  object BDummy { // scalafix:ok EscapeHatchDummyLinter
+    val a = 1
+  }
 
-  /* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSupression
+// Negative Tests (should report unused)
 
+  /* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSupressionDisable
+  // ...
   /* scalafix:on EscapeHatchDummyLinter */
 
-  // Not matching because of a typo
 
-  /* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSupression
+  /* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSupressionDisable
+  // ...
+  /* scalafix:on EscapeHatchDummyLinterTypo */ // assert: UnusedScalafixSupressionEnable
 
-  /* scalafix:on EscapeHatchDummyLinterTypo */ // assert: UnusedScalafixSupression
+  val ok = 1 /* scalafix:ok EscapeHatchDummyLinter */ // assert: UnusedScalafixSupressionDisable
+
+  val okMultiLine = (
+    1,
+    2
+  ) /* scalafix:ok EscapeHatchDummyLinter */ // assert: UnusedScalafixSupressionDisable
+
+  object Ok { /* scalafix:ok EscapeHatchDummyLinter */ // assert: UnusedScalafixSupressionDisable
+    val a = 1
+  }
 }
+
+// UnusedScalafixSupression

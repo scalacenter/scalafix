@@ -14,7 +14,7 @@ object EscapeHatchIntervals {
 
   val bDummy = 0
 
-  // scalafix:off EscapeHatchDummyLinter
+  /* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSupressionDisable
 
   val cDummy = 0
 

@@ -24,5 +24,5 @@ object EscapeHatchMultipleRules {
   val a: Option[Int] = Some(1)
   a.get
 
-   /* scalafix:on NoInfer.any2stringadd, Disable.gets */ // assert: UnusedScalafixSupression
+  /* scalafix:on NoInfer.any2stringadd, Disable.get */
 }

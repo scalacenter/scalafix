@@ -27,9 +27,7 @@ object EscapeHatchExpression {
 
   val cDummy = 0 // assert: EscapeHatchDummyLinter
 
-  1 + "foo" // scalafix:ok
-
-  1 + "foo" // scalafix:ok NoInfer.any2stringadd
+  Some(1) + "foo" // scalafix:ok NoInfer.any2stringadd
 
   val a: Option[Int] = Some(1)
 
