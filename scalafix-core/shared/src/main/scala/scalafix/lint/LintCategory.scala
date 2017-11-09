@@ -1,6 +1,8 @@
 package scalafix.lint
 
 import scalafix.rule.RuleName
+import scalafix.internal.config.LintConfig
+
 import scala.meta.inputs.Position
 
 /** A unique identifier for one kind of a linter message.
@@ -26,14 +28,26 @@ final case class LintCategory(
   def at(position: Position): LintMessage =
     LintMessage(explanation, position, noExplanation)
 
-  private[scalafix] def withOwner(owner: RuleName): LintCategory = {
-    val nextId =
-      if (owner.isEmpty) id
-      else if (id.isEmpty) owner.value
-      else s"${owner.value}.$id"
+  @deprecated("use withOwner(owner: RuleName): LintCategory", "0.5.4")
+  def key(owner: RuleName): String =
+    deprecatedKey(owner)
 
-    copy(id = nextId)
+  def withOwner(owner: RuleName): LintCategory =
+    copy(id = deprecatedKey(owner))
+
+  def withConfig(config: LintConfig): LintCategory = {
+    val newSeverity =
+      config
+        .getConfiguredSeverity(id)
+        .getOrElse(severity)
+
+    copy(severity = newSeverity)
   }
+
+  private def deprecatedKey(owner: RuleName): String =
+    if (owner.isEmpty) id
+    else if (id.isEmpty) owner.value
+    else s"${owner.value}.$id"
 }
 
 object LintCategory {

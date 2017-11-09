@@ -10,15 +10,14 @@ object Mima {
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "scalafix.patch.PatchOps.removeTokens"),
       ProblemFilters.exclude[Problem]("scalafix.internal.*"),
+      // marked private[scalafix]
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "scalafix.rule.RuleCtx.printLintMessage"),
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "scalafix.patch.Patch.reportLintMessages"),
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "scalafix.patch.Patch.lintMessages"),
       ProblemFilters.exclude[DirectMissingMethodProblem](
-        "scalafix.lint.LintCategory.key"),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "scalafix.rule.RuleCtx.printLintMessage"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem](
         "scalafix.rule.RuleCtx.printLintMessage")
     )
   }

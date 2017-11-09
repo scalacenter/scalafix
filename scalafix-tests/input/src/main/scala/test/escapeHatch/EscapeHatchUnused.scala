@@ -29,25 +29,23 @@ object EscapeHatchUnused {
 
 // Negative Tests (should report unused)
 
-  /* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSupressionDisable
+  /* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSupression.Disable
   // ...
   /* scalafix:on EscapeHatchDummyLinter */
 
 
-  /* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSupressionDisable
+  /* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSupression.Disable
   // ...
-  /* scalafix:on EscapeHatchDummyLinterTypo */ // assert: UnusedScalafixSupressionEnable
+  /* scalafix:on EscapeHatchDummyLinterTypo */ // assert: UnusedScalafixSupression.Enable
 
-  val ok = 1 /* scalafix:ok EscapeHatchDummyLinter */ // assert: UnusedScalafixSupressionDisable
+  val ok = 1 /* scalafix:ok EscapeHatchDummyLinter */ // assert: UnusedScalafixSupression.Disable
 
   val okMultiLine = (
     1,
     2
-  ) /* scalafix:ok EscapeHatchDummyLinter */ // assert: UnusedScalafixSupressionDisable
+  ) /* scalafix:ok EscapeHatchDummyLinter */ // assert: UnusedScalafixSupression.Disable
 
-  object Ok { /* scalafix:ok EscapeHatchDummyLinter */ // assert: UnusedScalafixSupressionDisable
+  object Ok { /* scalafix:ok EscapeHatchDummyLinter */ // assert: UnusedScalafixSupression.Disable
     val a = 1
   }
 }
-
-// UnusedScalafixSupression

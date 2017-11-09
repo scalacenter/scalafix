@@ -113,9 +113,11 @@ To build custom rules see {% doc_ref Rule Authors %}.
 
 ## Per source file
 
-It's possible to supress false positives in the source code itself to have a more fine grain on what to report and what not to report. There is two techniques you could use to disable linting: disable/enable until end of file or disable per expression.
+It's possible to supress false positives linter message over source file regions using comments. This provides fine grained control over what to report
 
-### Enable or Disable until the EOF
+There are two alternative way to supress linter messages with a single expression using scalafix:ok or with scalafix:off/on to toogle until the end of file.
+
+### Enable or Disable until the end of file
 
 ```scala
 

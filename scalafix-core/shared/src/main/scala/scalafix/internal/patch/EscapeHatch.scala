@@ -3,6 +3,7 @@ package internal.patch
 
 import scalafix.internal.config.FilterMatcher
 import scalafix.lint.LintMessage
+import scalafix.rule.RuleName
 
 import scala.meta._
 import scala.meta.tokens.Token
@@ -13,7 +14,7 @@ import scala.collection.immutable.TreeMap
 
 /* EscapeHatch is an algorithm to selectively disable rules
  *
- * Rules are disable via comments with a specific syntax
+ * Rules are disabled via comments with a specific syntax
  * scalafix:off or scalafix:on disable or enable rules until the end of file
  * scalafix:ok disable rules on an associated expression
  * a list of rules seperated by commas can be provided to selectively
@@ -63,6 +64,9 @@ class EscapeHatch(
     (!isDisabled, culprit)
   }
 
+  /* This method disable rules based on the escape hatch comments
+   * and report any unused escapes
+   */
   def filter(lints: List[LintMessage]): List[LintMessage] = {
     val usedEscapes = mutable.Set.empty[EscapeOffset]
     val filteredLints = List.newBuilder[LintMessage]
@@ -78,10 +82,12 @@ class EscapeHatch(
     }
 
     val unusedDisableWarning =
-      EscapeHatch.unusedScalafixSupression(
-        "Disable",
-        "This comment does not disable any rule"
-      )
+      LintCategory
+        .warning(
+          "Disable",
+          "This comment does not disable any rule"
+        )
+        .withOwner(unusedScalafixSupression)
 
     val unusedEscapesWarning =
       (disableRules -- usedEscapes).values
@@ -144,18 +150,20 @@ object EscapeHatch {
     case object Enable extends Toogle
   }
 
-  private val unusedScalafixSupressionId = "UnusedScalafixSupression"
+  private val unusedScalafixSupression = RuleName("UnusedScalafixSupression")
 
-  private[scalafix] def unusedScalafixSupression(
-      idSuffix: String,
-      explain: String) =
-    LintCategory.warning(unusedScalafixSupressionId + idSuffix, explain)
+  // private[scalafix] def unusedScalafixSupression(
+  //     idSuffix: String,
+  //     explain: String) =
+  //   LintCategory.warning(unusedScalafixSupressionId + idSuffix, explain)
 
   private val unusedEnableWarning =
-    unusedScalafixSupression(
-      "Enable",
-      "This comment would enable a rule that was not disabled (eg: typo in the rules)"
-    )
+    LintCategory
+      .warning(
+        "Enable",
+        "This comment would enable a rule that was not disabled (eg: typo in the rules)"
+      )
+      .withOwner(unusedScalafixSupression)
 
   private val FilterDisable = "\\s?scalafix:off\\s?(.*)".r
   private val FilterEnable = "\\s?scalafix:on\\s?(.*)".r
@@ -215,54 +223,72 @@ object EscapeHatch {
     }
 
     tree.tokens.foreach {
-      // matches off anchors
-      //
-      // // scalafix:off RuleA
-      // ...
-      //
-      case comment @ Token.Comment(FilterDisable(rules)) =>
-        val position = AnchorPosition(comment.pos)
-        escapes += Escape.UntilEOF(position, rules, Toogle.Disable)
-        trackUnusedRules(rules, Toogle.Disable, position)
+      case comment @ Token.Comment(rawComment) => {
+        rawComment match {
+          // matches off anchors
+          //
+          // // scalafix:off RuleA
+          // ...
+          //
+          case FilterDisable(rules) => {
+            val position = AnchorPosition(comment.pos)
+            escapes += Escape.UntilEOF(position, rules, Toogle.Disable)
+            trackUnusedRules(rules, Toogle.Disable, position)
+          }
 
-      // matches on anchors
-      //
-      // ...
-      // // scalafix:on RuleA
-      //
-      case comment @ Token.Comment(FilterEnable(rules)) =>
-        val position = AnchorPosition(comment.pos)
-        escapes += Escape.UntilEOF(position, rules, Toogle.Enable)
-        trackUnusedRules(rules, Toogle.Enable, position)
+          // matches on anchors
+          //
+          // ...
+          // // scalafix:on RuleA
+          //
+          case FilterEnable(rules) => {
+            val position = AnchorPosition(comment.pos)
+            escapes += Escape.UntilEOF(position, rules, Toogle.Enable)
+            trackUnusedRules(rules, Toogle.Enable, position)
+          }
+          // matches expressions not handled by AssociatedComments
+          //
+          // object Dummy { // scalafix:ok EscapeHatchDummyLinter
+          //   1
+          // }
+          case FilterExpression(rules) => {
+            val anchorPosition = AnchorPosition(comment.pos)
+            if (!visitedFilterExpression.contains(anchorPosition)) {
+              // we approximate the position of the expression to the whole line
+              val expressionPosition =
+                ExpressionPosition(
+                  Position.Range(
+                    comment.pos.input,
+                    comment.pos.start - comment.pos.startColumn,
+                    comment.pos.end
+                  ))
 
-      // matches expressions not handled by AssociatedComments
-      //
-      // object Dummy { // scalafix:ok EscapeHatchDummyLinter
-      //   1
-      // }
-      case comment @ Token.Comment(FilterExpression(rules)) =>
-        val anchorPosition = AnchorPosition(comment.pos)
-        if (!visitedFilterExpression.contains(anchorPosition)) {
-          // we approximate the position of the expression to the whole line
-          val expressionPosition =
-            ExpressionPosition(
-              Position.Range(
-                comment.pos.input,
-                comment.pos.start - comment.pos.startColumn,
-                comment.pos.end
-              ))
-
-          escapes += Escape.ExpressionLine(
-            expressionPosition = expressionPosition,
-            anchorPosition = anchorPosition,
-            rules = rules
-          )
+              escapes += Escape.ExpressionLine(
+                expressionPosition = expressionPosition,
+                anchorPosition = anchorPosition,
+                rules = rules
+              )
+            }
+          }
+          case _ => ()
         }
 
+      }
       case _ => ()
     }
 
     EscapeHatch(escapes.result(), unusedEnable.result())
+  }
+
+  private def matcher(rules: String): FilterMatcher = {
+    if (rules.isEmpty) {
+      FilterMatcher.matchEverything
+    } else {
+      FilterMatcher(
+        includes = splitRules(rules).toSeq,
+        excludes = Seq()
+      )
+    }
   }
 
   private def apply(
@@ -270,17 +296,6 @@ object EscapeHatch {
       unusedEnable: List[LintMessage]): EscapeHatch = {
     val enableRules = TreeMap.newBuilder[EscapeOffset, EscapeFilter]
     val disableRules = TreeMap.newBuilder[EscapeOffset, EscapeFilter]
-
-    def matcher(rules: String): FilterMatcher = {
-      if (rules.isEmpty) {
-        FilterMatcher.matchEverything
-      } else {
-        FilterMatcher(
-          includes = splitRules(rules).toSeq,
-          excludes = Seq()
-        )
-      }
-    }
 
     def enable(
         offset: EscapeOffset,

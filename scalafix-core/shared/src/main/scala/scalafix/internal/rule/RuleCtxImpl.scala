@@ -51,16 +51,12 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
   }
 
   def printLintMessage(msg: LintMessage): Unit = {
-    val key = msg.category.id
-
-    val category = config.lint
-      .getConfiguredSeverity(key)
-      .getOrElse(msg.category.severity)
+    val category = msg.category.withConfig(config.lint)
 
     config.lint.reporter.handleMessage(
       msg.format(config.lint.explain),
       msg.position,
-      category.toSeverity
+      category.severity.toSeverity
     )
   }
 

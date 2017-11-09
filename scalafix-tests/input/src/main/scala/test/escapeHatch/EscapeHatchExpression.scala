@@ -18,7 +18,7 @@ NoInfer.symbols = [
 // it can be attached to an expressions that spans multiple lines
 // or inside the first line of the template of an object/class/trait
 
-package test
+package test.escapeHatch
 
 object EscapeHatchExpression {
 

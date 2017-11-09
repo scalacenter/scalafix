@@ -8,9 +8,9 @@ package test.escapeHatch
 // On and Off anchor set the filter independently 
 // of how many time it was turned off
 
-/* scalafix:off */ // assert: UnusedScalafixSupressionDisable
-/* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSupressionDisable
-/* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSupressionDisable
+/* scalafix:off */ // assert: UnusedScalafixSupression.Disable
+/* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSupression.Disable
+/* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSupression.Disable
 // scalafix:on EscapeHatchDummyLinter
 
 object EscapeHatchDoubleOn {
