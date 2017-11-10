@@ -6,12 +6,12 @@ jdk:
 env:
   matrix:
   - CI_TEST: ci-fast
-    CI_SCALA_VERSION: 2.11.11
+    CI_SCALA_VERSION: 2.11.12
   - CI_TEST: ci-fast
-    CI_SCALA_VERSION: 2.12.3
+    CI_SCALA_VERSION: 2.12.4
     CI_PUBLISH: true
   - CI_TEST: ci-slow
-    CI_SCALA_VERSION: 2.11.11
+    CI_SCALA_VERSION: 2.11.12
   - CI_TEST: scalafmt
   - CI_TEST: mima
 
