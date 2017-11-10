@@ -152,11 +152,6 @@ object EscapeHatch {
 
   private val unusedScalafixSupression = RuleName("UnusedScalafixSupression")
 
-  // private[scalafix] def unusedScalafixSupression(
-  //     idSuffix: String,
-  //     explain: String) =
-  //   LintCategory.warning(unusedScalafixSupressionId + idSuffix, explain)
-
   private val unusedEnableWarning =
     LintCategory
       .warning(
