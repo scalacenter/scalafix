@@ -82,7 +82,10 @@ abstract class Rule(ruleName: RuleName) { self =>
   }
   final def apply(ctx: RuleCtx, patches: Map[RuleName, Patch]): String = {
     val result = Patch(patches.values.asPatch, ctx, semanticOption)
-    Patch.reportLintMessages(patches, ctx)
+    // This overload of apply if purely for convenience
+    // Use fixWithName to iterate over LintMessage
+    // without printing to the console
+    Patch.lintMessages(patches, ctx).foreach(ctx.printLintMessage)
     result
   }
 

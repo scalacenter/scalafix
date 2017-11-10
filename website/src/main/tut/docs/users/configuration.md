@@ -6,15 +6,17 @@ title: Configuration
 # Configuration
 {:.no_toc}
 
+* TOC
+{:toc}
+
+## Per project
+
 Scalafix reads configuration from a file using
 [HOCON](https://github.com/typesafehub/config) syntax.
 The convention is to keep a file `.scalafix.conf` into the root directory of your project.
 Configuration is not needed or is optional for most rules, so you may not need to create a `.scalafix.conf`.
 
-* TOC
-{:toc}
-
-## rules
+### rules
 Configure which rule to run with `rules = [ ... ]`.
 Scalafix comes with a small set of built-in rules.
 
@@ -27,21 +29,21 @@ rules = [
 
 You have several options to load custom rules.
 
-### class:
+#### class:
 If a scalafix rule is already on the classpath, you can classload it with the `scala:` protocol.
 
 ```scala
 rule = "class:scalafix.internal.rule.ProcedureSyntax"
 ```
 
-### file:
+#### file:
 If a rule is written in a single file on local disk, you can load it with the `file:` protocol.
 
 ```scala
 rule = "file:readme/MyRule.scala" // from local file
 ```
 
-### http:
+#### http:
 If a rule is written in a single source file on the internet, you can load it with the `https:`
 or `http:` protocol
 
@@ -49,7 +51,7 @@ or `http:` protocol
 rule = "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/f5fe47495c9b6e3ce0960b766ffa75be6d6768b2/DummyRule.scala"
 ```
 
-### github:
+#### github:
 If a rule is written in a single file and you use GitHub, you can use the `github:` protocol for
 sharing your rule
 
@@ -58,7 +60,7 @@ rule = "github:typelevel/cats/v1.0.0"
 // expands into "https://raw.githubusercontent.com/typelevel/cats/master/scalafix/rules/src/main/scala/fix/Cats_v1_0_0.scala"
 ```
 
-### replace:
+#### replace:
 
 ⚠️ Experimental
 
@@ -77,7 +79,7 @@ To rename a method
 rule = "replace:com.company.App.start/init"
 ```
 
-## lint
+### lint
 Override the default severity level of a {% glossary_ref LintMessage %} with `lint`
 
 ```scala
@@ -89,7 +91,7 @@ lint.ignore = [ Foo.errorID ] // don't report Foo.errorID
 lint.explain = true // print out detailed explanation for lint messages.
 ```
 
-## patches
+### patches
 For simple use-cases, it's possible to write custom rules directly in `.scalafix.conf`.
 
 ```scala
@@ -109,4 +111,40 @@ debug.printSymbols = true
 
 To build custom rules see {% doc_ref Rule Authors %}.
 
+## Per source file
 
+It's possible to supress false positives linter message over source file regions using comments. This provides fine grained control over what to report
+
+There are two alternative way to supress linter messages with a single expression using scalafix:ok or with scalafix:off/on to toogle until the end of file.
+
+### Enable or Disable until the end of file
+
+```scala
+
+// scalafix:off
+foo(null)
+1.asInstanceOf[String]
+// scalafix:on
+
+```
+
+### Disable for an expression
+
+```scala
+List(1, "") // scalafix:ok
+```
+
+### Selectively disabling rules
+
+Both technique above can selectively disable a list of rules. You can provide the list of rules to be disabled, separated by `,`.
+
+```scala
+// scalafix:off Disable.null, Disable.asInstanceOf
+foo(null)
+1.asInstanceOf[String]
+// scalafix:on
+```
+
+```scala
+List(1, "") // scalafix:ok NoInfer.any
+```

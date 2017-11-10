@@ -16,7 +16,11 @@ final case class LintMessage(
     position: Position,
     category: LintCategory
 ) {
-  def format(owner: RuleName, explain: Boolean): String = {
+  @deprecated("Use format(explain: Boolean) instead", "0.5.4")
+  def format(owner: RuleName, explain: Boolean): String =
+    format(explain)
+
+  def format(explain: Boolean): String = {
     val explanation =
       if (explain)
         s"""
@@ -24,7 +28,12 @@ final case class LintMessage(
            |${category.explanation}
            |""".stripMargin
       else ""
-    val id = if (category.id.isEmpty) "" else s".${category.id}"
-    s"[${owner.value}$id] $message$explanation"
+
+    s"[${category.id}] $message$explanation"
   }
+
+  def id: String = category.id
+
+  def withOwner(owner: RuleName): LintMessage =
+    copy(category = category.withOwner(owner))
 }

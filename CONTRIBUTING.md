@@ -115,6 +115,14 @@ If you need to link to a page in the apidocs you can use the `apidocs_ref` tag, 
 // Expands to: /scalafix/docs/api/scalafix/patch/PatchOps.scala
 ```
 
+## Binary Compatibility
+
+To avoid breaking binary compatiblity we use the Migration Manage for Scala or [Mima](https://github.com/lightbend/migration-manager) for short.
+
+Anything under the package `scalafix.internal._` does not have compatibility restrictions.
+
+Run `sbt mimaReportBinaryIssues` to check for any compatibility issues.
+
 ## TL;DR
 
 If you are unsure about anything, don't hesitate to ask in the [gitter channel](https://gitter.im/scalacenter/scalafix).

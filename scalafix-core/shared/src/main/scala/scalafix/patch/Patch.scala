@@ -13,6 +13,7 @@ import scalafix.internal.patch.ImportPatchOps
 import scalafix.internal.patch.ReplaceSymbolOps
 import scalafix.internal.util.Failure
 import scalafix.internal.util.TokenOps
+import scalafix.internal.rule.RuleCtxImpl
 import scalafix.lint.LintMessage
 import scalafix.patch.TreePatch.ReplaceSymbol
 import scalafix.rule.RuleName
@@ -117,26 +118,25 @@ object Patch {
     case _ => throw Failure.TokenPatchMergeError(a, b)
   }
 
-  private[scalafix] def reportLintMessages(
+  private[scalafix] def lintMessages(
       patches: Map[RuleName, Patch],
-      ctx: RuleCtx): Unit = {
-    patches.foreach {
-      case (name, patch) =>
-        Patch.lintMessages(patch).foreach { msg =>
-          // Set the lint message owner. This allows us to distinguish
-          // LintCategory with the same id from different rules.
-          ctx.printLintMessage(msg, name)
+      ctx: RuleCtx): List[LintMessage] = {
+
+    // TODO(olaf): Remove this cast
+    val ctxImpl = ctx.asInstanceOf[RuleCtxImpl]
+
+    val builder = List.newBuilder[LintMessage]
+    patches.map {
+      case (owner, patch) =>
+        foreach(patch) {
+          case LintPatch(orphanLint) =>
+            builder += orphanLint.withOwner(owner)
+          case _ => ()
         }
     }
-  }
-  private[scalafix] def lintMessages(patch: Patch): List[LintMessage] = {
-    val builder = List.newBuilder[LintMessage]
-    foreach(patch) {
-      case LintPatch(lint) =>
-        builder += lint
-      case _ =>
-    }
-    builder.result()
+
+    val messages = builder.result()
+    ctxImpl.escapeHatch.filter(messages)
   }
 
   // Patch.apply and Patch.lintMessages package private. Feel free to use them
