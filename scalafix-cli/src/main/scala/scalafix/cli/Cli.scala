@@ -203,20 +203,21 @@ object ScalafixRuleNames {
         PrintAndExit(helpMessage, ExitStatus.Ok)
       case Right((WithHelp(usage @ true, _, _), _, _)) =>
         PrintAndExit(usageMessage, ExitStatus.Ok)
-      case Right((WithHelp(_, _, options), _, _)) if options.version =>
+      case Right((WithHelp(_, _, Right(options)), _, _)) if options.version =>
         PrintAndExit(
           s"${withHelp.appName} ${withHelp.appVersion}",
           ExitStatus.Ok)
-      case Right((WithHelp(_, _, options), _, _)) if options.bash =>
+      case Right((WithHelp(_, _, Right(options)), _, _)) if options.bash =>
         PrintAndExit(bashCompletions, ExitStatus.Ok)
-      case Right((WithHelp(_, _, options), _, _)) if options.zsh =>
+      case Right((WithHelp(_, _, Right(options)), _, _)) if options.zsh =>
         PrintAndExit(zshCompletions, ExitStatus.Ok)
-      case Right((WithHelp(_, _, options), _, _)) if options.sbt.nonEmpty =>
+      case Right((WithHelp(_, _, Right(options)), _, _))
+          if options.sbt.nonEmpty =>
         val path = AbsolutePath(options.sbt.get).toNIO
         Files.createDirectories(path.getParent)
         Files.write(path, sbtCompletions.getBytes)
         PrintAndExit(s"Sbt completions installed in $path", ExitStatus.Ok)
-      case Right((WithHelp(_, _, options), extraFiles, _)) =>
+      case Right((WithHelp(_, _, Right(options)), extraFiles, _)) =>
         parseOptions(
           options.copy(
             common = common,
