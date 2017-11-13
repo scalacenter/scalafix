@@ -8,12 +8,13 @@ import scalafix.rule.{Rule, RuleCtx}
 import scalafix.lint.LintMessage
 import scalafix.lint.LintCategory
 import scalafix.util.SymbolMatcher
+import scalafix.internal.config.DisableConfig
 import scalafix.internal.config.TargetSymbolsConfig
 import scalafix.syntax._
 
 final case class Disable(
     index: SemanticdbIndex,
-    configuration: TargetSymbolsConfig)
+    config: DisableConfig)
     extends SemanticRule(index, "Disable")
     with Product {
 
@@ -23,13 +24,14 @@ final case class Disable(
     )
 
   private lazy val disabledSymbol: SymbolMatcher =
-    SymbolMatcher.normalized(configuration.symbols: _*)
+    SymbolMatcher.normalized(config.symbols: _*)
 
-  override def init(config: Conf): Configured[Rule] =
+  override def init(config: Conf): Configured[Rule] = {
     config
-      .getOrElse[TargetSymbolsConfig]("Disable")(TargetSymbolsConfig.empty)(
-        TargetSymbolsConfig.decoder)
+      .getOrElse[DisableConfig]("Disable")(DisableConfig.empty)(
+        DisableConfig.reader)
       .map(Disable(index, _))
+  }
 
   override def check(ctx: RuleCtx): Seq[LintMessage] =
     ctx.index.names.collect {
