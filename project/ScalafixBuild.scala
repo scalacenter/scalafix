@@ -263,9 +263,10 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       val previousArtifactVersion = "0.5.0"
       // NOTE(olafur) shudder, can't figure out simpler way to do the same.
       val binaryVersion =
-        if (crossVersion.value.isInstanceOf[CrossVersion.Full])
-          PreviousScalaVersion(scalaVersion.value)
-        else scalaBinaryVersion.value
+        if (crossVersion.value.isInstanceOf[CrossVersion.Full]) {
+          val version = scalaVersion.value
+          PreviousScalaVersion.getOrElse(version, version)
+        } else scalaBinaryVersion.value
       Set(
         organization.value % s"${moduleName.value}_$binaryVersion" % previousArtifactVersion
       )
