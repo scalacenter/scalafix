@@ -2,7 +2,7 @@ package scalafix
 package rule
 
 import scalafix.internal.rule._
-import scalafix.internal.config.TargetSymbolsConfig
+import scalafix.internal.config.{DisableConfig, TargetSymbolsConfig}
 
 object ScalafixRules {
   val syntax: List[Rule] = List(
@@ -21,7 +21,7 @@ object ScalafixRules {
     RemoveUnusedImports(index),
     RemoveUnusedTerms(index),
     NoAutoTupling(index),
-    Disable(index, TargetSymbolsConfig.empty)
+    Disable(index, DisableConfig.empty)
   )
   def all(index: SemanticdbIndex): List[Rule] =
     syntax ++ semantic(index)
