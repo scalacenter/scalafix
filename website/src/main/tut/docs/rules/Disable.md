@@ -36,13 +36,15 @@ This rule reports errors when a "disallowed" keyword is referenced.
 
 Example:
  
+```scala
 MyCode.scala:7: error: [Disable.null] Some constructs are unsafe to use and should be avoided
   null
   ^
+```
 
 ## Configuration
 
-The following Scala Keywords are supported:
+The following Scala keywords are supported:
 
 Disable.keywords = [
   "null"
