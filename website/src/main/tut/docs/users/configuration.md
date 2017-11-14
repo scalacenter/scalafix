@@ -113,11 +113,11 @@ To build custom rules see {% doc_ref Rule Authors %}.
 
 ## Per source file
 
-It's possible to supress false positives linter message over source file regions using comments. This provides fine grained control over what to report
+It's possible to suppress false positives linter message over source file regions using comments. It provides fine-grained control over what to report
 
-There are two alternative way to supress linter messages with a single expression using scalafix:ok or with scalafix:off/on to toogle until the end of file.
+There are two alternative way to suppress linter messages with a single expression using scalafix:ok or with scalafix:off/on to toggle until the end of file.
 
-### Enable or Disable until the end of file
+#### Enable or Disable until the end of a file
 
 ```scala
 
@@ -128,7 +128,7 @@ foo(null)
 
 ```
 
-### Disable for an expression
+#### Disable for an expression
 
 ```scala
 List(1, "") // scalafix:ok
@@ -136,7 +136,7 @@ List(1, "") // scalafix:ok
 
 ### Selectively disabling rules
 
-Both technique above can selectively disable a list of rules. You can provide the list of rules to be disabled, separated by `,`.
+Both techniques above can selectively disable a list of rules. You can provide the list of rules to be disabled, separated by `,`.
 
 ```scala
 // scalafix:off Disable.null, Disable.asInstanceOf
