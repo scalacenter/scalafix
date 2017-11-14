@@ -14,24 +14,25 @@ case class DisableConfig(
         case (a, b) => DisableConfig(a, b)
       }
     }
+
+  val keywordsSet: Set[String] = keywords.map(_.show).toSet
 }
 
 object DisableConfig {
   val empty = DisableConfig()
   implicit val reader: ConfDecoder[DisableConfig] = empty.reader
 
-  sealed trait Keyword
+  sealed trait Keyword { def show: String }
   object Keyword {
-
-    case object Null extends Keyword
-    case object Var extends Keyword
-    case object While extends Keyword
-    case object Throw extends Keyword
-    case object Return extends Keyword
+    case object Null extends Keyword { def show: String = "null" }
+    case object Var extends Keyword { def show: String = "var" }
+    case object While extends Keyword { def show: String = "while" }
+    case object Throw extends Keyword { def show: String = "throw" }
+    case object Return extends Keyword { def show: String = "return" }
 
     def all = List(Null, Var, While, Throw, Return)
 
     implicit val readerKeyword: ConfDecoder[Keyword] =
-      ReaderUtil.fromMap(all.map(x => x.toString.toLowerCase -> x).toMap)
+      ReaderUtil.fromMap(all.map(x => x.show -> x).toMap)
   }
 }

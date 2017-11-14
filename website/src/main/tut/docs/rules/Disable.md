@@ -12,7 +12,7 @@ This rule reports errors when a "disallowed" symbol is referenced.
 Example:
 
 ```scala
-MyCode.scala:7: error: [DisallowSymbol.asInstanceOf] asInstanceOf is disabled.
+MyCode.scala:7: error: [Disable.asInstanceOf] asInstanceOf is disabled.
   myValue.asInstanceOf[String]
           ^
 ```
@@ -27,3 +27,27 @@ Disable.symbols = [
   "scala.Any.asInstanceOf"
 ]
 ```
+
+_Since 0.5.4_
+
+# Disable.keywords
+
+This rule reports errors when a "disallowed" keyword is referenced.
+
+Example:
+ 
+MyCode.scala:7: error: [Disable.null] Some constructs are unsafe to use and should be avoided
+  null
+  ^
+
+## Configuration
+
+The following Scala Keywords are supported:
+
+Disable.keywords = [
+  "null"
+  "return"
+  "throw"
+  "var"
+  "while"
+]
