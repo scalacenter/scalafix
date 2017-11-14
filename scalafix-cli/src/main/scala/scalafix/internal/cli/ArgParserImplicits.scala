@@ -8,9 +8,9 @@ import caseapp.core.Parser
 
 object ArgParserImplicits {
   implicit val inputStreamRead: ArgParser[InputStream] =
-    ArgParser.instance[InputStream](_ => Right(System.in))
+    ArgParser.instance[InputStream]("stdin")(_ => Right(System.in))
   implicit val printStreamRead: ArgParser[PrintStream] =
-    ArgParser.instance[PrintStream](_ => Right(System.out))
+    ArgParser.instance[PrintStream]("stdout")(_ => Right(System.out))
   val OptionsParser: Parser[ScalafixOptions] = Parser.apply[ScalafixOptions]
   val OptionsMessages: Messages[ScalafixOptions] = Messages[ScalafixOptions]
 }

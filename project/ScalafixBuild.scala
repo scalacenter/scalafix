@@ -253,14 +253,20 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     )
   )
 
+  private val PreviousScalaVersion = Map(
+    "2.11.12" -> "2.11.11",
+    "2.12.4" -> "2.12.3"
+  )
+
   override def projectSettings: Seq[Def.Setting[_]] = List(
     mimaPreviousArtifacts := {
       val previousArtifactVersion = "0.5.0"
       // NOTE(olafur) shudder, can't figure out simpler way to do the same.
       val binaryVersion =
-        if (crossVersion.value.isInstanceOf[CrossVersion.Full])
-          scalaVersion.value
-        else scalaBinaryVersion.value
+        if (crossVersion.value.isInstanceOf[CrossVersion.Full]) {
+          val version = scalaVersion.value
+          PreviousScalaVersion.getOrElse(version, version)
+        } else scalaBinaryVersion.value
       Set(
         organization.value % s"${moduleName.value}_$binaryVersion" % previousArtifactVersion
       )

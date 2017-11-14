@@ -66,7 +66,7 @@ lazy val cli = project
     assemblyJarName in assembly := "scalafix.jar",
     libraryDependencies ++= Seq(
       "org.scalameta" %% "semanticdb-sbt-runtime" % semanticdbSbt,
-      "com.github.alexarchambault" %% "case-app" % "1.1.3",
+      "com.github.alexarchambault" %% "case-app" % "1.2.0",
       "org.typelevel" %% "paiges-core" % "0.2.0",
       "com.martiansoftware" % "nailgun-server" % "0.9.1"
     )
