@@ -1,0 +1,37 @@
+package scalafix.internal.rule
+
+import scala.meta._
+import metaconfig.{Conf, Configured}
+import scalafix.rule.SemanticRule
+import scalafix.util.SemanticdbIndex
+import scalafix.rule.{Rule, RuleCtx}
+import scalafix.lint.LintMessage
+import scalafix.lint.LintCategory
+import scalafix.util.SymbolMatcher
+import scalafix.internal.config.{DisableSyntaxConfig, DisabledKeyword}
+import scalafix.syntax._
+
+final case class DisableSyntax(config: DisableSyntaxConfig) extends Rule("DisableSyntax") {
+  override def init(config: Conf): Configured[Rule] =
+    config.getOrElse("disableSyntax", "DisableSyntax")(DisableSyntaxConfig.default)
+          .map(DisableSyntax(_))
+
+  override def check(ctx: RuleCtx): Seq[LintMessage] = {
+    ctx.tree.tokens.collect {
+      case token @ DisabledKeyword(keyword) if config.isDisabled(keyword) =>
+        error(keyword, token)
+      case token @ Token.Tab() if config.tab =>
+        error("tab", token)
+      case token @ Token.Semicolon() if config.semicolon =>
+        error("semicolon", token)      
+      case token @ Token.Xml.Start() if config.xml =>
+        error("xml", token)
+    }.toSeq
+  }
+
+  private val errorCategory: LintCategory =
+    LintCategory.error("Some constructs are unsafe to use and should be avoided")
+
+  private def error(keyword: String, token: Token): LintMessage = 
+    errorCategory.copy(id = keyword).at(s"$keyword is disabled", token.pos)
+}

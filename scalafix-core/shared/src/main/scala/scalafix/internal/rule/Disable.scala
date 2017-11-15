@@ -14,8 +14,7 @@ import scalafix.syntax._
 final case class Disable(
     index: SemanticdbIndex,
     configuration: TargetSymbolsConfig)
-    extends SemanticRule(index, "Disable")
-    with Product {
+    extends SemanticRule(index, "Disable") {
 
   private lazy val errorCategory: LintCategory =
     LintCategory.error(

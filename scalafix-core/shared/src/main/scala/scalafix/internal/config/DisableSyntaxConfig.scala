@@ -4,13 +4,29 @@ import metaconfig.{Conf, ConfError, ConfDecoder, Configured}
 import org.langmeta._
 import MetaconfigPendingUpstream.XtensionConfScalafix
 
+import scala.meta.tokens.Token
+
 case class DisableSyntaxConfig(
-    keywords: Set[DisabledKeyword] = Set()
+    keywords: Set[DisabledKeyword] = Set(),
+    tab: Boolean = false,
+    semicolon: Boolean = false,
+    xml: Boolean = false
 ) {
   implicit val reader: ConfDecoder[DisableSyntaxConfig] =
-    ConfDecoder.instanceF[DisableSyntaxConfig](
-      _.getField(keywords).map(DisableSyntaxConfig(_))
+    ConfDecoder.instanceF[DisableSyntaxConfig](c =>
+      (
+        c.getField(keywords) |@|
+          c.getField(tab) |@|
+          c.getField(semicolon) |@|
+          c.getField(xml)
+      ).map {
+        case (((a, b), c), d) =>
+          DisableSyntaxConfig(a, b, c, d)
+      }
     )
+
+  def isDisabled(keyword: String): Boolean =
+    keywords.contains(DisabledKeyword(keyword))
 }
 
 object DisableSyntaxConfig {
@@ -21,6 +37,54 @@ object DisableSyntaxConfig {
 case class DisabledKeyword(keyword: String)
 
 object DisabledKeyword {
+  def unapply(token: Token): Option[String] = {
+    import Token._
+
+    token match {
+      case KwAbstract()  => Some("abstract")
+      case KwCase()      => Some("case")
+      case KwCatch()     => Some("catch")
+      case KwClass()     => Some("class")
+      case KwDef()       => Some("def")
+      case KwDo()        => Some("do")
+      case KwElse()      => Some("else")
+      case KwEnum()      => Some("enum")
+      case KwExtends()   => Some("extends")
+      case KwFalse()     => Some("false")
+      case KwFinal()     => Some("final")
+      case KwFinally()   => Some("finally")
+      case KwFor()       => Some("for")
+      case KwForsome()   => Some("forSome")
+      case KwIf()        => Some("if")
+      case KwImplicit()  => Some("implicit")
+      case KwImport()    => Some("import")
+      case KwLazy()      => Some("lazy")
+      case KwMatch()     => Some("match")
+      case KwMacro()     => Some("macro")
+      case KwNew()       => Some("new")
+      case KwNull()      => Some("null")
+      case KwObject()    => Some("object")
+      case KwOverride()  => Some("override")
+      case KwPackage()   => Some("package")
+      case KwPrivate()   => Some("private")
+      case KwProtected() => Some("protected")
+      case KwReturn()    => Some("return")
+      case KwSealed()    => Some("sealed")
+      case KwSuper()     => Some("super")
+      case KwThis()      => Some("this")
+      case KwThrow()     => Some("throw")
+      case KwTrait()     => Some("trait")
+      case KwTrue()      => Some("true")
+      case KwTry()       => Some("try")
+      case KwType()      => Some("type")
+      case KwVal()       => Some("val")
+      case KwVar()       => Some("var")
+      case KwWhile()     => Some("while")
+      case KwWith()      => Some("with")
+      case KwYield()     => Some("yield")
+      case _             => None
+    }
+  }
   private val keywords = List(
     "abstract",
     "case",
@@ -65,6 +129,13 @@ object DisabledKeyword {
     "yield"
   )
   private val keywordsSet = keywords.toSet
+
+  // per file:
+  //   Space    Space
+  //   Tab      Tab
+  //   CR       CarriageReturn
+  //   LF       LineFeed
+  //   FF       FormFeed
 
   implicit val reader: ConfDecoder[DisabledKeyword] =
     new ConfDecoder[DisabledKeyword] {
