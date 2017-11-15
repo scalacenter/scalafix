@@ -4,32 +4,78 @@ import org.scalatest.FunSuite
 
 import scala.meta.inputs.Input
 
+import metaconfig.Configured
 import metaconfig.Configured.NotOk
 import metaconfig.ConfError
 
 import scalafix.internal.config.MetaconfigParser
-import scalafix.internal.config.DisableSyntaxConfig
+import scalafix.internal.config.{DisableSyntaxConfig, DisabledKeyword}
 
 class DisableSyntaxConfigSuite extends FunSuite {
-  test("invalid keywords") {
-    val input = Input.String(
+  test("Warn about invalid keywords") {
+    val rawConfig =
       """|keywords = [
          |  banana
          |]
          |""".stripMargin
-    )
-    val obtained = 
-      MetaconfigParser.parser.fromInput(input).andThen(conf =>
-        DisableSyntaxConfig.reader.read(conf)
-      )
+    val errorMessage = "banana is not in our supported keywords."
+    assertError(rawConfig, errorMessage)
+  }
 
-    val error =
+  test("Provide suggestions when typos are present in keywords") {
+    val rawConfig =
+      """|keywords = [
+         |  overide
+         |]
+         |""".stripMargin
+    val errorMessage =
+      "overide is not in our supported keywords. (Did you mean: override?)"
+    assertError(rawConfig, errorMessage)
+  }
+
+  test("Warn about wrong types") {
+    val rawConfig =
+      """|keywords = [
+         |  42
+         |]
+         |""".stripMargin
+    val errorMessage =
       """|Type mismatch;
-         |  found    : String (value: "banana")
-         |  expected : String, one of: bar | foo""".stripMargin
+         |  found    : Number (value: 42)
+         |  expected : String""".stripMargin
+    assertError(rawConfig, errorMessage)
+  }
 
-    val expected = NotOk(ConfError.msg(error))
+  test("Handles non-string types") {
+    val rawConfig =
+      """|keywords = [
+         |  null
+         |  false
+         |  true
+         |]
+         |""".stripMargin
 
+    val obtained = read(rawConfig).get
+    val expected = DisableSyntaxConfig(
+      Set(
+        DisabledKeyword("null"),
+        DisabledKeyword("false"),
+        DisabledKeyword("true")
+      ))
+
+    assert(obtained == expected)
+  }
+
+  def read(rawConfig: String): Configured[DisableSyntaxConfig] = {
+    val input = Input.String(rawConfig)
+    MetaconfigParser.parser
+      .fromInput(input)
+      .andThen(conf => DisableSyntaxConfig.reader.read(conf))
+  }
+
+  def assertError(rawConfig: String, errorMessage: String): Unit = {
+    val obtained = read(rawConfig)
+    val expected = NotOk(ConfError.msg(errorMessage))
     assert(obtained == expected)
   }
 }
