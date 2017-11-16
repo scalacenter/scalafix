@@ -78,10 +78,8 @@ lazy val cli = project
   )
 
 lazy val `scalafix-sbt` = project
-  .configs(IntegrationTest)
   .settings(
     is210Only,
-    Defaults.itSettings,
     buildInfoSettings,
     ScriptedPlugin.scriptedSettings,
     commands += Command.command(
@@ -95,12 +93,13 @@ lazy val `scalafix-sbt` = project
     crossSbtVersions := Vector(sbt013, sbt1),
     libraryDependencies ++= coursierDeps,
     testQuick := {}, // these test are slow.
-    test.in(IntegrationTest) := {
-      RunSbtCommand(
-        s"; plz $scala212 publishLocal " +
-          "; very scalafix-sbt/scripted"
-      )(state.value)
-    },
+    publishLocal := publishLocal
+      .dependsOn(
+        publishLocal in diffJVM,
+        publishLocal in coreJVM,
+        publishLocal in reflect,
+        publishLocal in cli)
+      .value,
     moduleName := "sbt-scalafix",
     mimaPreviousArtifacts := Set.empty,
     scriptedLaunchOpts ++= Seq(
