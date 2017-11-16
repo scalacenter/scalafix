@@ -1,5 +1,5 @@
 /*
-rule = Disable
+rules = Disable
 Disable.symbols = [
   "scala.Any.asInstanceOf"
   "scala.Option.get"
