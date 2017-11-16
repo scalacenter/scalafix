@@ -245,6 +245,12 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         url("https://buildo.io")
       ),
       Developer(
+        "MasseGuillaume",
+        "Guillaume Massé",
+        "???",
+        url("???")
+      ),
+      Developer(
         "olafurpg",
         "Ólafur Páll Geirsson",
         "olafurpg@gmail.com",
