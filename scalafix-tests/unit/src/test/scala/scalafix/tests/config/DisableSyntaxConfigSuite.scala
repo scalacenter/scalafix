@@ -57,11 +57,12 @@ class DisableSyntaxConfigSuite extends FunSuite {
 
     val obtained = read(rawConfig).get
     val expected = DisableSyntaxConfig(
-      Set(
+      keywords = Set(
         DisabledKeyword("null"),
         DisabledKeyword("false"),
         DisabledKeyword("true")
-      ))
+      )
+    )
 
     assert(obtained == expected)
   }
