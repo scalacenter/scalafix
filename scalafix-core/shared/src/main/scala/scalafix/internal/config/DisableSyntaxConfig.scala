@@ -39,10 +39,8 @@ object DisableSyntaxConfig {
 object Keyword {
   def unapply(token: Token): Option[String] = {
     val prefix = token.productPrefix
-    if (prefix.take(2) == "Kw") {
-      val kw = prefix.drop(2).toLowerCase
-      if (set.contains(kw)) Some(kw)
-      else None
+    if (kwSet.contains(prefix)) {
+      Some(prefix.drop(2).toLowerCase)
     } else {
       None
     }
@@ -91,6 +89,7 @@ object Keyword {
     "yield"
   )
   val set = all.toSet
+  private val kwSet = all.map(kw => s"Kw${kw.capitalize}").toSet
 }
 
 case class DisabledKeyword(keyword: String)
