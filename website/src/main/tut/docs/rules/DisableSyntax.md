@@ -7,7 +7,8 @@ title: Disable
 
 _Since 0.5.4_
 
-This rule reports errors when a "disallowed" syntax is used.
+This rule reports errors when a "disallowed" syntax is used. We take advantage of the ScalaMeta parser to quickly
+scan the source code. This rules like the other syntaxtic rules does not require any compilation.
 
 Example:
 
@@ -19,7 +20,7 @@ MyCode.scala:7: error: [DisableSyntax.xml] xml is disabled.
 
 ## Configuration
 
-By default, this rule does allows all syntax.
+By default, this rule does not disable syntax.
 
 It contains the following elements:
 
@@ -34,51 +35,14 @@ To disallow a syntax:
 ```
 DisableSyntax {
   keywords = [
-    abstract
-    case
-    catch
-    class
-    def
-    do
-    else
-    enum
-    extends
-    false
-    final
-    finally
-    for
-    forSome
-    if
-    implicit
-    import
-    lazy
-    match
-    macro
-    new
     null
-    object
-    override
-    package
-    private
-    protected
     return
-    sealed
-    super
-    this
     throw
-    trait
-    true
-    try
-    type
-    val
     var
-    while
-    with
-    yield
   ]
-  carriageReturn = true
-  semicolons = true
-  tabs = true
-  xml = true
+  noCarriageReturn = true
+  noSemicolons = true
+  noTabs = true
+  noXml = true
 }
 ```

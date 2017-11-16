@@ -24,14 +24,14 @@ final case class DisableSyntax(
     ctx.tree.tokens.collect {
       case token @ Keyword(keyword) if config.isDisabled(keyword) =>
         error(keyword, token)
-      case token @ Token.Semicolon() if config.semicolons =>
+      case token @ Token.Semicolon() if config.noSemicolons =>
         error("semicolon", token)
-      case token @ Token.Tab() if config.tabs =>
+      case token @ Token.Tab() if config.noTabs =>
         error("tab", token)
-      case token @ Token.Xml.Start() if config.xml =>
+      case token @ Token.Xml.Start() if config.noXml =>
         error("xml", token)
-      case token @ Token.CR() if config.carriageReturn =>
-        error("carriage return (<CR>)", token)
+      case token @ Token.CR() if config.noCarriageReturn =>
+        error("carriage return", token)
     }.toSeq
   }
 

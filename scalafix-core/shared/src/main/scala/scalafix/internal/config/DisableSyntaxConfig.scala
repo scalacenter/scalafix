@@ -7,21 +7,21 @@ import MetaconfigPendingUpstream.XtensionConfScalafix
 import scala.meta.tokens.Token
 
 case class DisableSyntaxConfig(
-    carriageReturn: Boolean = false,
+    noCarriageReturn: Boolean = false,
     keywords: Set[DisabledKeyword] = Set(),
-    semicolons: Boolean = false,
-    tabs: Boolean = false,
-    xml: Boolean = false
+    noSemicolons: Boolean = false,
+    noTabs: Boolean = false,
+    noXml: Boolean = false
 ) {
   implicit val reader: ConfDecoder[DisableSyntaxConfig] =
     ConfDecoder.instanceF[DisableSyntaxConfig](
       c =>
         (
-          c.getField(carriageReturn) |@|
+          c.getField(noCarriageReturn) |@|
             c.getField(keywords) |@|
-            c.getField(semicolons) |@|
-            c.getField(tabs) |@|
-            c.getField(xml)
+            c.getField(noSemicolons) |@|
+            c.getField(noTabs) |@|
+            c.getField(noXml)
         ).map {
           case ((((a, b), c), d), e) =>
             DisableSyntaxConfig(a, b, c, d, e)
