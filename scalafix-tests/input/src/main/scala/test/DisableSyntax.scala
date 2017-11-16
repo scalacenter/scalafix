@@ -7,11 +7,10 @@ DisableSyntax {
     return
     throw
   ]
-  tab = true
-  semicolon = true
+  tabs = true
+  semicolons = true
   xml = true
 }
-
 */
 package test
 

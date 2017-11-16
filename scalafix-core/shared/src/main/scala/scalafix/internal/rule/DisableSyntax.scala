@@ -11,7 +11,7 @@ import scalafix.util.SymbolMatcher
 import scalafix.internal.config.{DisableSyntaxConfig, DisabledKeyword}
 import scalafix.syntax._
 
-final case class DisableSyntax(config: DisableSyntaxConfig) extends Rule("DisableSyntax") {
+final case class DisableSyntax(config: DisableSyntaxConfig = DisableSyntaxConfig()) extends Rule("DisableSyntax") with Product {
   override def init(config: Conf): Configured[Rule] =
     config.getOrElse("disableSyntax", "DisableSyntax")(DisableSyntaxConfig.default)
           .map(DisableSyntax(_))
@@ -20,9 +20,9 @@ final case class DisableSyntax(config: DisableSyntaxConfig) extends Rule("Disabl
     ctx.tree.tokens.collect {
       case token @ DisabledKeyword(keyword) if config.isDisabled(keyword) =>
         error(keyword, token)
-      case token @ Token.Tab() if config.tab =>
+      case token @ Token.Tab() if config.tabs =>
         error("tab", token)
-      case token @ Token.Semicolon() if config.semicolon =>
+      case token @ Token.Semicolon() if config.semicolons =>
         error("semicolon", token)      
       case token @ Token.Xml.Start() if config.xml =>
         error("xml", token)

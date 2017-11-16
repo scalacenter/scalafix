@@ -8,16 +8,16 @@ import scala.meta.tokens.Token
 
 case class DisableSyntaxConfig(
     keywords: Set[DisabledKeyword] = Set(),
-    tab: Boolean = false,
-    semicolon: Boolean = false,
+    tabs: Boolean = false,
+    semicolons: Boolean = false,
     xml: Boolean = false
 ) {
   implicit val reader: ConfDecoder[DisableSyntaxConfig] =
     ConfDecoder.instanceF[DisableSyntaxConfig](c =>
       (
         c.getField(keywords) |@|
-          c.getField(tab) |@|
-          c.getField(semicolon) |@|
+          c.getField(tabs) |@|
+          c.getField(semicolons) |@|
           c.getField(xml)
       ).map {
         case (((a, b), c), d) =>
