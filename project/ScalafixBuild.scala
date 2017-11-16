@@ -192,7 +192,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         s
     },
     commands += Command.command("ci-slow") { s =>
-      "scalafix-sbt/it:test" ::
+      "scalafix-sbt/scripted" ::
         s
     },
     commands += Command.command("mima") { s =>
