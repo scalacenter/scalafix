@@ -19,7 +19,6 @@ import scalafix.util.TokenOps
 import metaconfig.Conf
 import metaconfig.Configured
 
-
 case class ExplicitResultTypes(
     index: SemanticdbIndex,
     config: ExplicitResultTypesConfig = ExplicitResultTypesConfig.default)
@@ -97,8 +96,12 @@ case class ExplicitResultTypes(
     def treeSyntax(tree: Tree): String =
       ScalafixScalametaHacks.resetOrigin(tree).syntax
 
-    def isRuleCandidate[D <: Defn](defn: D, nm: Name, mods: Traversable[Mod], body: Term, printLocalTypes: Boolean)(
-        implicit ev: Extract[D, Mod]): Boolean = {
+    def isRuleCandidate[D <: Defn](
+        defn: D,
+        nm: Name,
+        mods: Traversable[Mod],
+        body: Term,
+        printLocalTypes: Boolean)(implicit ev: Extract[D, Mod]): Boolean = {
       import config._
 
       def matchesMemberVisibility(): Boolean =
@@ -121,7 +124,7 @@ case class ExplicitResultTypes(
         case None => false
       }
 
-      isImplicit && (if(printLocalTypes) !isLocal else true) || {
+      isImplicit && (if (printLocalTypes) !isLocal else true) || {
         hasParentWihTemplate &&
         !defn.hasMod(mod"implicit") &&
         !matchesSimpleDefinition() &&
@@ -132,15 +135,15 @@ case class ExplicitResultTypes(
 
     ctx.tree.collect {
       case t @ Defn.Val(mods, Seq(Pat.Var(name)), None, body)
-          if isRuleCandidate(t,name, mods, body,config.skipLocalImplicits) =>
+          if isRuleCandidate(t, name, mods, body, config.skipLocalImplicits) =>
         fix(t, body)
 
       case t @ Defn.Var(mods, Seq(Pat.Var(name)), None, Some(body))
-          if isRuleCandidate(t,name, mods, body,config.skipLocalImplicits) =>
+          if isRuleCandidate(t, name, mods, body, config.skipLocalImplicits) =>
         fix(t, body)
 
       case t @ Defn.Def(mods, name, _, _, None, body)
-          if isRuleCandidate(t,name, mods, body,config.skipLocalImplicits) =>
+          if isRuleCandidate(t, name, mods, body, config.skipLocalImplicits) =>
         fix(t, body)
     }.asPatch
   }
