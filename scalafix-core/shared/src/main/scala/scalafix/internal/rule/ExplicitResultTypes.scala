@@ -19,6 +19,7 @@ import scalafix.util.TokenOps
 import metaconfig.Conf
 import metaconfig.Configured
 
+
 case class ExplicitResultTypes(
     index: SemanticdbIndex,
     config: ExplicitResultTypesConfig = ExplicitResultTypesConfig.default)
@@ -36,6 +37,9 @@ case class ExplicitResultTypes(
       .getOrElse("explicitReturnTypes", "ExplicitResultTypes")(
         ExplicitResultTypesConfig.default)
       .map(c => ExplicitResultTypes(index, c))
+
+  //FIXME
+  implicit val i = index
 
   // Don't explicitly annotate vals when the right-hand body is a single call
   // to `implicitly`. Prevents ambiguous implicit. Not annotating in such cases,
@@ -96,7 +100,7 @@ case class ExplicitResultTypes(
     def treeSyntax(tree: Tree): String =
       ScalafixScalametaHacks.resetOrigin(tree).syntax
 
-    def isRuleCandidate[D <: Defn](defn: D, mods: Traversable[Mod], body: Term)(
+    def isRuleCandidate[D <: Defn](defn: D, nm: Name, mods: Traversable[Mod], body: Term, printLocalTypes: Boolean)(
         implicit ev: Extract[D, Mod]): Boolean = {
       import config._
 
@@ -112,11 +116,16 @@ case class ExplicitResultTypes(
       def isImplicit: Boolean =
         defn.hasMod(mod"implicit") && !isImplicitly(body)
 
-      def isLocal: Boolean =
+      def hasParentWihTemplate: Boolean =
         defn.parent.exists(_.is[Template])
 
-      isImplicit || {
-        isLocal &&
+      def isLocal = nm.symbol match {
+        case Some(value) => value.isInstanceOf[scala.meta.Symbol.Local]
+        case None => false
+      }
+
+      isImplicit && (if(printLocalTypes) !isLocal else true) || {
+        hasParentWihTemplate &&
         !defn.hasMod(mod"implicit") &&
         !matchesSimpleDefinition() &&
         matchesMemberKind() &&
@@ -125,16 +134,16 @@ case class ExplicitResultTypes(
     }
 
     ctx.tree.collect {
-      case t @ Defn.Val(mods, _, None, body)
-          if isRuleCandidate(t, mods, body) =>
+      case t @ Defn.Val(mods, Seq(Pat.Var(name)), None, body)
+          if isRuleCandidate(t,name, mods, body,true) =>
         fix(t, body)
 
-      case t @ Defn.Var(mods, _, None, Some(body))
-          if isRuleCandidate(t, mods, body) =>
+      case t @ Defn.Var(mods, Seq(Pat.Var(name)), None, Some(body))
+          if isRuleCandidate(t,name, mods, body,true) =>
         fix(t, body)
 
-      case t @ Defn.Def(mods, _, _, _, None, body)
-          if isRuleCandidate(t, mods, body) =>
+      case t @ Defn.Def(mods, name, _, _, None, body)
+          if isRuleCandidate(t,name, mods, body,true) =>
         fix(t, body)
     }.asPatch
   }
