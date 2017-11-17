@@ -7,14 +7,19 @@ title: Disable
 
 _Since 0.5.4_
 
-This rule reports errors when a "disallowed" syntax is used. We take advantage of the ScalaMeta parser to quickly
-scan the source code. This rules like the other syntaxtic rules does not require any compilation.
+This rule reports errors when a "disallowed" syntax is used. This is a syntactic rule, which means it does not require compilation to run unlike the `Disable` rule.
 
 Example:
 
 ```scala
 MyCode.scala:7: error: [DisableSyntax.xml] xml is disabled.
   <a>xml</a>
+  ^
+```
+
+```scala
+MyCode.scala:10: error: [DisableSyntax.keywords.return] return is disabled.
+  return
   ^
 ```
 
