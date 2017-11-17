@@ -1,9 +1,19 @@
-/*
+/* ONLY
 rules = Disable
 Disable.symbols = [
   "scala.Any.asInstanceOf"
-  "scala.Option.get"
   "test.Disable.D.disabledFunction"
+  {
+    symbol = "scala.Option.get"
+    message = 
+"""|Option.get is the root of all evils
+   |
+   |If you really want to do this do:
+   |// scalafix:off Option.get
+   |Option(1).get
+   |// scalafix:on Option.get"""
+
+  }
 ]
 */
 package test
