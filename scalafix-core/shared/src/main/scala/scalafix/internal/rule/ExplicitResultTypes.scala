@@ -38,9 +38,6 @@ case class ExplicitResultTypes(
         ExplicitResultTypesConfig.default)
       .map(c => ExplicitResultTypes(index, c))
 
-  //FIXME
-  implicit val i = index
-
   // Don't explicitly annotate vals when the right-hand body is a single call
   // to `implicitly`. Prevents ambiguous implicit. Not annotating in such cases,
   // this a common trick employed implicit-heavy code to workaround SI-2712.
@@ -135,15 +132,15 @@ case class ExplicitResultTypes(
 
     ctx.tree.collect {
       case t @ Defn.Val(mods, Seq(Pat.Var(name)), None, body)
-          if isRuleCandidate(t,name, mods, body,true) =>
+          if isRuleCandidate(t,name, mods, body,config.skipLocalImplicits) =>
         fix(t, body)
 
       case t @ Defn.Var(mods, Seq(Pat.Var(name)), None, Some(body))
-          if isRuleCandidate(t,name, mods, body,true) =>
+          if isRuleCandidate(t,name, mods, body,config.skipLocalImplicits) =>
         fix(t, body)
 
       case t @ Defn.Def(mods, name, _, _, None, body)
-          if isRuleCandidate(t,name, mods, body,true) =>
+          if isRuleCandidate(t,name, mods, body,config.skipLocalImplicits) =>
         fix(t, body)
     }.asPatch
   }
