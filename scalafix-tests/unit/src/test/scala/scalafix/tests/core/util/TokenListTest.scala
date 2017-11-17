@@ -6,19 +6,12 @@ import scalafix.util.TokenList
 
 class TokenListTest extends FunSuite {
 
-  test("Prev breaks if it is given the firstToken") {
-    val tokens = "".tokenize.get // this contains two tokens: beginningOfFile and endOfFile
-    val firstToken = tokens.head
-    val tokenList = new TokenList(tokens)
-    assertThrows[java.lang.ArrayIndexOutOfBoundsException](tokenList.prev(firstToken))
-  }
-
-  test("Prev2 returns the firstToken when is given the firstToken") {
+  test("Prev returns the firstToken when is given the firstToken") {
     val tokens = "".tokenize.get // this contains two tokens: beginningOfFile and endOfFile
     val firstToken = tokens.last
     val tokenList = new TokenList(tokens)
-    assert(tokenList.prev2(firstToken) == firstToken)
-    assert(tokenList.prev2(tokens.last) == firstToken)
+    assert(tokenList.prev(firstToken) == firstToken)
+    assert(tokenList.prev(tokens.last) == firstToken)
   }
 
   test("Slice gives an empty list with same token as inputs") {
