@@ -1,16 +1,14 @@
 /*
 rules = DisableSyntax
-DisableSyntax {
-  keywords = [
-    var
-    null
-    return
-    throw
-  ]
-  noTabs = true
-  noSemicolons = true
-  noXml = true
-}
+DisableSyntax.keywords = [
+  var
+  null
+  return
+  throw
+]
+DisableSyntax.noTabs = true
+DisableSyntax.noSemicolons = true
+DisableSyntax.noXml = true
 */
 package test
 

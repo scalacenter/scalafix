@@ -32,15 +32,13 @@ It contains the following elements:
 To disallow a syntax:
 
 ```
-DisableSyntax {
-  keywords = [
-    null
-    return
-    throw
-    var
-  ]
-  noSemicolons = true
-  noTabs = true
-  noXml = true
-}
+DisableSyntax.keywords = [
+  var
+  null
+  return
+  throw
+]
+DisableSyntax.noTabs = true
+DisableSyntax.noSemicolons = true
+DisableSyntax.noXml = true
 ```
