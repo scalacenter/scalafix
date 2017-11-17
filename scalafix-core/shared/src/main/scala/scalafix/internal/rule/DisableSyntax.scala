@@ -23,15 +23,13 @@ final case class DisableSyntax(
   override def check(ctx: RuleCtx): Seq[LintMessage] = {
     ctx.tree.tokens.collect {
       case token @ Keyword(keyword) if config.isDisabled(keyword) =>
-        error(keyword, token)
+        error(s"keywords.$keyword", token)
       case token @ Token.Semicolon() if config.noSemicolons =>
-        error("semicolon", token)
+        error("noSemicolons", token)
       case token @ Token.Tab() if config.noTabs =>
-        error("tab", token)
+        error("noTabs", token)
       case token @ Token.Xml.Start() if config.noXml =>
-        error("xml", token)
-      case token @ Token.CR() if config.noCarriageReturn =>
-        error("carriage return", token)
+        error("noXml", token)
     }.toSeq
   }
 

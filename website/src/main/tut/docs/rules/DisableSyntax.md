@@ -25,7 +25,6 @@ By default, this rule does not disable syntax.
 It contains the following elements:
 
 * keywords such as: `null, throw, var, return`
-* carriage return aka <CR> (windows uses <CR><LF>)
 * semicolons (`;`)
 * tabs
 * xml literals
@@ -40,7 +39,6 @@ DisableSyntax {
     throw
     var
   ]
-  noCarriageReturn = true
   noSemicolons = true
   noTabs = true
   noXml = true

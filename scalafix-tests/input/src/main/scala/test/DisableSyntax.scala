@@ -7,19 +7,20 @@ DisableSyntax {
     return
     throw
   ]
-  tabs = true
-  semicolons = true
-  xml = true
+  noTabs = true
+  noSemicolons = true
+  noXml = true
 }
 */
 package test
 
 case object DisableSyntax {
-  var a = 1                 // assert: DisableSyntax.var
-  null                      // assert: DisableSyntax.null
-  def foo: Unit = return    // assert: DisableSyntax.return
-  throw new Exception("ok") // assert: DisableSyntax.throw
+  var a = 1                 // assert: DisableSyntax.keywords.var
+  null                      // assert: DisableSyntax.keywords.null
+  def foo: Unit = return    // assert: DisableSyntax.keywords.return
+  throw new Exception("ok") // assert: DisableSyntax.keywords.throw
 
-  "semicolon";              // assert: DisableSyntax.semicolon
-  <a>xml</a>                // assert: DisableSyntax.xml
+  "semicolon";              // assert: DisableSyntax.noSemicolons
+  <a>xml</a>                // assert: DisableSyntax.noXml
+	                          // assert: DisableSyntax.noTabs
 }

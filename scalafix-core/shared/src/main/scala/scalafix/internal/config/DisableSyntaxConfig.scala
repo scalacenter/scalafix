@@ -7,7 +7,7 @@ import MetaconfigPendingUpstream.XtensionConfScalafix
 import scala.meta.tokens.Token
 
 case class DisableSyntaxConfig(
-    noCarriageReturn: Boolean = false,
+    noCarriageReturns: Boolean = false,
     keywords: Set[DisabledKeyword] = Set(),
     noSemicolons: Boolean = false,
     noTabs: Boolean = false,
@@ -17,7 +17,7 @@ case class DisableSyntaxConfig(
     ConfDecoder.instanceF[DisableSyntaxConfig](
       c =>
         (
-          c.getField(noCarriageReturn) |@|
+          c.getField(noCarriageReturns) |@|
             c.getField(keywords) |@|
             c.getField(noSemicolons) |@|
             c.getField(noTabs) |@|
