@@ -1,6 +1,5 @@
 package scalafix.internal.rule
 
-import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.contrib._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
