@@ -53,7 +53,7 @@ class TokenList(tokens: Tokens) {
 
   def prev(token: Token): Token = {
     tok2idx.get(token) match {
-      case Some(i) if tokens.length > i - 1 =>
+      case Some(i) if i > 0 =>
         tokens(i - 1)
       case _ => token
     }
