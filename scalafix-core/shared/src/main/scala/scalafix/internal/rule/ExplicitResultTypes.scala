@@ -1,6 +1,5 @@
 package scalafix.internal.rule
 
-import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.contrib._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
@@ -47,8 +46,8 @@ case class ExplicitResultTypes(
   }
 
   def defnName(defn: Defn): Option[Name] = Option(defn).collect {
-    case Defn.Val(_, Seq(Pat.Var(name)), _, _) => name
-    case Defn.Var(_, Seq(Pat.Var(name)), _, _) => name
+    case Defn.Val(_, Pat.Var(name) :: Nil, _, _) => name
+    case Defn.Var(_, Pat.Var(name) :: Nil, _, _) => name
     case Defn.Def(_, name, _, _, _, _) => name
   }
 
@@ -96,8 +95,11 @@ case class ExplicitResultTypes(
     def treeSyntax(tree: Tree): String =
       ScalafixScalametaHacks.resetOrigin(tree).syntax
 
-    def isRuleCandidate[D <: Defn](defn: D, mods: Traversable[Mod], body: Term)(
-        implicit ev: Extract[D, Mod]): Boolean = {
+    def isRuleCandidate[D <: Defn](
+        defn: D,
+        nm: Name,
+        mods: Traversable[Mod],
+        body: Term)(implicit ev: Extract[D, Mod]): Boolean = {
       import config._
 
       def matchesMemberVisibility(): Boolean =
@@ -112,11 +114,17 @@ case class ExplicitResultTypes(
       def isImplicit: Boolean =
         defn.hasMod(mod"implicit") && !isImplicitly(body)
 
-      def isLocal: Boolean =
+      def hasParentWihTemplate: Boolean =
         defn.parent.exists(_.is[Template])
 
-      isImplicit || {
-        isLocal &&
+      def isLocal =
+        if (config.skipLocalImplicits) nm.symbol match {
+          case Some(value) => value.isInstanceOf[scala.meta.Symbol.Local]
+          case None => false
+        } else false
+
+      isImplicit && !isLocal || {
+        hasParentWihTemplate &&
         !defn.hasMod(mod"implicit") &&
         !matchesSimpleDefinition() &&
         matchesMemberKind() &&
@@ -125,16 +133,16 @@ case class ExplicitResultTypes(
     }
 
     ctx.tree.collect {
-      case t @ Defn.Val(mods, _, None, body)
-          if isRuleCandidate(t, mods, body) =>
+      case t @ Defn.Val(mods, Pat.Var(name) :: Nil, None, body)
+          if isRuleCandidate(t, name, mods, body) =>
         fix(t, body)
 
-      case t @ Defn.Var(mods, _, None, Some(body))
-          if isRuleCandidate(t, mods, body) =>
+      case t @ Defn.Var(mods, Pat.Var(name) :: Nil, None, Some(body))
+          if isRuleCandidate(t, name, mods, body) =>
         fix(t, body)
 
-      case t @ Defn.Def(mods, _, _, _, None, body)
-          if isRuleCandidate(t, mods, body) =>
+      case t @ Defn.Def(mods, name, _, _, None, body)
+          if isRuleCandidate(t, name, mods, body) =>
         fix(t, body)
     }.asPatch
   }

@@ -19,11 +19,23 @@ implicit val tt = liftedType
 implicit val tt: TypedType[R] = liftedType
 ```
 
+But for local implicit `val` and `def` it's not needed and will not be added by default. 
+
+```scala
+def foo = {
+  // this is OK
+  implicit val localImplicit = 2
+}
+```
+
 ### Configuration
 
 ```scala
-ExplicitResultTypes.memberKind = [Val, Def, Var]
-ExplicitResultTypes.memberVisibility = [Public, Protected]
+ExplicitResultTypes.memberKind = [Val, Def, Var] // empty by default
+ExplicitResultTypes.memberVisibility = [Public, Protected] // empty by default
+ExplicitResultTypes.skipSimpleDefinitions = false // true by default
+ExplicitResultTypes.skipLocalImplicits = false // true by default
+    
 // Experimental, shorten fully qualified names and insert missing imports
 // By default, names are fully qualified and prefixed with _root_.
 unsafeShortenNames = true // false by default.

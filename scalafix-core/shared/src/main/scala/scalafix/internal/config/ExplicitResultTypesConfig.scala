@@ -7,6 +7,7 @@ case class ExplicitResultTypesConfig(
     memberKind: List[MemberKind] = Nil,
     memberVisibility: List[MemberVisibility] = Nil,
     skipSimpleDefinitions: Boolean = true,
+    skipLocalImplicits: Boolean = true,
     // Experimental, still blocked by https://github.com/scalameta/scalameta/issues/1099
     // to work for defs. May insert names that conflicts with existing names in scope.
     // Use at your own risk.
@@ -18,10 +19,11 @@ case class ExplicitResultTypesConfig(
         c.getField(memberKind) |@|
           c.getField(memberVisibility) |@|
           c.getField(skipSimpleDefinitions) |@|
+          c.getField(skipLocalImplicits) |@|
           c.getField(unsafeShortenNames)
       ).map {
-        case (((a, b), c), d) =>
-          ExplicitResultTypesConfig(a, b, c, d)
+        case ((((a, b), c), d), e) =>
+          ExplicitResultTypesConfig(a, b, c, d, e)
       }
     }
 }

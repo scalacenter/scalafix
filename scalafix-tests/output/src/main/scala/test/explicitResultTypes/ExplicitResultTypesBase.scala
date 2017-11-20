@@ -35,7 +35,7 @@ object ExplicitResultTypesBase {
     def `x `: _root_.scala.Int = "abc".length
   }
   locally {
-    implicit val Implicit: _root_.scala.concurrent.Future[_root_.scala.Int] = scala.concurrent.Future.successful(2)
+    implicit val Implicit = scala.concurrent.Future.successful(2)
     val Var = scala.concurrent.Future.successful(2)
     val Val = scala.concurrent.Future.successful(2)
     def Def = scala.concurrent.Future.successful(2)
