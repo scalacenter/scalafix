@@ -3,12 +3,14 @@ package scalafix.sbt
 import org.scalameta.BuildInfo
 import sbt._, Keys._
 
+import scalafix.internal.sbt.SBTCompat
+
 /** Command to automatically enable semanticdb-scalac for shell session */
 object ScalafixEnable {
   import ScalafixPlugin.autoImport._
-  lazy val partialToFullScalaVersion: Map[(Int, Int), String] = (for {
+  lazy val partialToFullScalaVersion: Map[(Long, Long), String] = (for {
     v <- BuildInfo.supportedScalaVersions
-    p <- CrossVersion.partialVersion(v).toList
+    p <- SBTCompat.CrossVersion.partialVersion(v).toList
   } yield p -> v).toMap
 
   def projectsWithMatchingScalaVersion(
@@ -17,7 +19,7 @@ object ScalafixEnable {
     for {
       p <- extracted.structure.allProjectRefs
       version <- scalaVersion.in(p).get(extracted.structure.data).toList
-      partialVersion <- CrossVersion.partialVersion(version).toList
+      partialVersion <- SBTCompat.CrossVersion.partialVersion(version).toList
       fullVersion <- partialToFullScalaVersion.get(partialVersion).toList
     } yield p -> fullVersion
   }

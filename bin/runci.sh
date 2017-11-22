@@ -7,7 +7,10 @@ case "$TEST" in
     ./scalafmt --test
     ;;
   * )
-    sbt $TEST
+    sbt \
+      "-no-colors" \
+      "^^ $CI_SBT_VERSION" \
+      $TEST
     ;;
 esac
 
