@@ -8,6 +8,30 @@ import java.util.TimeZone
 import org.scalatest.FunSuiteLike
 import org.scalatest.exceptions.TestFailedException
 
+object DiffAssertions {
+  def compareContents(original: String, revised: String): String = {
+    compareContents(original.trim.split("\n"), revised.trim.split("\n"))
+  }
+
+  def compareContents(original: Seq[String], revised: Seq[String]): String = {
+    import collection.JavaConverters._
+    val diff = difflib.DiffUtils.diff(original.asJava, revised.asJava)
+    if (diff.getDeltas.isEmpty) ""
+    else
+      difflib.DiffUtils
+        .generateUnifiedDiff(
+          "original",
+          "revised",
+          original.asJava,
+          diff,
+          1
+        )
+        .asScala
+        .drop(3)
+        .mkString("\n")
+  }
+}
+
 trait DiffAssertions extends FunSuiteLike {
 
   def assertEqual[A](a: A, b: A): Unit = {
@@ -54,27 +78,11 @@ trait DiffAssertions extends FunSuiteLike {
 
   def trailingSpace(str: String): String = str.replaceAll(" \n", "∙\n")
 
-  def compareContents(original: String, revised: String): String = {
-    compareContents(original.trim.split("\n"), revised.trim.split("\n"))
-  }
+  def compareContents(original: String, revised: String): String =
+    DiffAssertions.compareContents(original, revised)
 
-  def compareContents(original: Seq[String], revised: Seq[String]): String = {
-    import collection.JavaConverters._
-    val diff = difflib.DiffUtils.diff(original.asJava, revised.asJava)
-    if (diff.getDeltas.isEmpty) ""
-    else
-      difflib.DiffUtils
-        .generateUnifiedDiff(
-          "original",
-          "revised",
-          original.asJava,
-          diff,
-          1
-        )
-        .asScala
-        .drop(3)
-        .mkString("\n")
-  }
+  def compareContents(original: Seq[String], revised: Seq[String]): String =
+    DiffAssertions.compareContents(original, revised)
 
   def fileModificationTimeOrEpoch(file: File): String = {
     val format = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss Z")

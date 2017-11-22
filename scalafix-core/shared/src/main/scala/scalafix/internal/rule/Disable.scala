@@ -1,15 +1,15 @@
 package scalafix.internal.rule
 
-import scala.meta._
 import metaconfig.{Conf, Configured}
-import scalafix.rule.SemanticRule
-import scalafix.util.SemanticdbIndex
-import scalafix.rule.{Rule, RuleCtx}
-import scalafix.lint.LintMessage
-import scalafix.lint.LintCategory
-import scalafix.util.SymbolMatcher
+import scala.meta._
 import scalafix.internal.config.DisableConfig
+import scalafix.lint.LintCategory
+import scalafix.lint.LintMessage
+import scalafix.rule.SemanticRule
+import scalafix.rule.{Rule, RuleCtx}
 import scalafix.syntax._
+import scalafix.util.SemanticdbIndex
+import scalafix.util.SymbolMatcher
 
 final case class Disable(index: SemanticdbIndex, config: DisableConfig)
     extends SemanticRule(index, "Disable") {
@@ -20,7 +20,7 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
     )
 
   private lazy val disabledSymbol: SymbolMatcher =
-    SymbolMatcher.normalized(config.symbols: _*)
+    SymbolMatcher.normalized(config.allSymbols: _*)
 
   override def init(config: Conf): Configured[Rule] =
     config
@@ -31,10 +31,17 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
     ctx.index.names.collect {
       case ResolvedName(
           pos,
-          disabledSymbol(Symbol.Global(_, signature)),
-          false) =>
+          disabledSymbol(symbol @ Symbol.Global(_, signature)),
+          false) => {
+
+        val message =
+          config
+            .customMessage(symbol)
+            .getOrElse(s"${signature.name} is disabled")
+
         errorCategory
           .copy(id = signature.name)
-          .at(s"${signature.name} is disabled", pos)
+          .at(message, pos)
+      }
     }
 }

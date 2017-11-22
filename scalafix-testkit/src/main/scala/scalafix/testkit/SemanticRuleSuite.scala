@@ -9,21 +9,30 @@ import org.scalameta.logger
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 import org.scalatest.exceptions.TestFailedException
-import scala.util.matching.Regex
+
 import scalafix.rule.RuleName
 import org.langmeta.internal.ScalafixLangmetaHacks
 
+import scala.util.matching.Regex
+
 object SemanticRuleSuite {
-  val LintAssertion: Regex = " assert: (.*)".r
+
+  @deprecated(
+    "Use scalafix.testkit.EndOfLineAssertExtractor.AssertRegex insteed",
+    "0.5.4")
+  val LintAssertion: Regex = EndOfLineAssertExtractor.AssertRegex
+
   def stripTestkitComments(input: String): String =
     stripTestkitComments(input.tokenize.get)
+
   def stripTestkitComments(tokens: Tokens): String = {
     val configComment = tokens.find { x =>
       x.is[Token.Comment] && x.syntax.startsWith("/*")
     }.get
     tokens.filter {
       case `configComment` => false
-      case Token.Comment(LintAssertion(key)) => false
+      case EndOfLineAssertExtractor(_) => false
+      case MultiLineAssertExtractor(_) => false
       case _ => true
     }.mkString
   }
@@ -69,53 +78,14 @@ abstract class SemanticRuleSuite(
       patches: Map[RuleName, Patch],
       tokens: Tokens): Unit = {
 
-    type Msg = (Position, String)
+    val reportedLintMessages = Patch.lintMessages(patches, ctx)
+    val expectedLintMessages = CommentAssertion.extract(tokens)
+    val diff = AssertDiff(reportedLintMessages, expectedLintMessages)
 
-    def matches(a: Msg)(b: Msg) =
-      a._1.startLine == b._1.startLine &&
-        a._2 == b._2
+    if (diff.isFailure) {
 
-    def diff(a: Seq[Msg], b: Seq[Msg]) =
-      a.filter(x => !b.exists(matches(x)))
-
-    val lintAssertions = tokens.collect {
-      case tok @ Token.Comment(SemanticRuleSuite.LintAssertion(key)) =>
-        tok.pos -> key
-    }
-
-    val lintMessages =
-      Patch
-        .lintMessages(patches, ctx)
-        .map(lint => lint.position -> lint.category.id)
-
-    val uncoveredAsserts = diff(lintAssertions, lintMessages)
-    uncoveredAsserts.foreach {
-      case (pos, key) =>
-        throw new TestFailedException(
-          ScalafixLangmetaHacks.formatMessage(
-            pos,
-            "error",
-            s"Message '$key' was not reported here!"),
-          0
-        )
-    }
-
-    val uncoveredMessages = diff(lintMessages, lintAssertions)
-    if (uncoveredMessages.nonEmpty) {
-      Patch.lintMessages(patches, ctx).foreach(ctx.printLintMessage)
-      val explanation = uncoveredMessages
-        .groupBy(_._2)
-        .map {
-          case (key, positions) =>
-            s"""Append to lines: ${positions
-                 .map(_._1.startLine)
-                 .mkString(", ")}
-               |   // assert: $key""".stripMargin
-        }
-        .mkString("\n\n")
-      throw new TestFailedException(
-        s"Uncaught linter messages! To fix this problem\n$explanation",
-        0)
+      println(diff.toString)
+      throw new TestFailedException("see above", 0)
     }
   }
 

@@ -52,4 +52,10 @@ package object scalafix {
   implicit class XtensionOptionPatch(patch: Option[Patch]) {
     def asPatch: Patch = patch.getOrElse(Patch.empty)
   }
+
+  private[scalafix] implicit class XtensionString(val value: String)
+      extends AnyVal {
+    def isMultiline: Boolean =
+      value.indexOf('\n') != -1
+  }
 }
