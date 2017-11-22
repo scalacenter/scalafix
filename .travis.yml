@@ -7,13 +7,25 @@ env:
   matrix:
   - CI_TEST: ci-fast
     CI_SCALA_VERSION: 2.11.11
+    CI_SBT_VERSION: 0.13.16
+
   - CI_TEST: ci-fast
     CI_SCALA_VERSION: 2.12.3
+    CI_SBT_VERSION: 0.13.16
     CI_PUBLISH: true
+
   - CI_TEST: ci-slow
     CI_SCALA_VERSION: 2.12.3
-  - CI_TEST: scalafmt
+    CI_SBT_VERSION: 0.13.16
+
+  - CI_TEST: ci-slow
+    CI_SCALA_VERSION: 2.12.3
+    CI_SBT_VERSION: 1.0.3
+
   - CI_TEST: mima
+    CI_SBT_VERSION: 0.13.16
+
+  - CI_TEST: scalafmt
 
 cache:
   directories:

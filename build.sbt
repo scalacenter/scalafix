@@ -1,6 +1,7 @@
 import sbt.ScriptedPlugin
 import sbt.ScriptedPlugin._
 import Dependencies._
+import CrossVersion.partialVersion
 
 version.in(ThisBuild) ~= { old: String =>
   sys.props.getOrElse("scalafix.version", old.replace('+', '-'))
@@ -91,6 +92,16 @@ lazy val `scalafix-sbt` = project
     },
     sbtPlugin := true,
     crossSbtVersions := Vector(sbt013, sbt1),
+    scalaVersion := {
+      val crossSbtVersion = (sbtVersion in pluginCrossBuild).value
+      partialVersion(crossSbtVersion) match {
+        case Some((0, 13)) => scala210
+        case Some((1, _)) => scala212
+        case _ =>
+          throw new Exception(
+            s"unexpected sbt version: $crossSbtVersion (supported: 0.13.x or 1.X)")
+      }
+    },
     libraryDependencies ++= coursierDeps,
     testQuick := {}, // these test are slow.
     publishLocal := publishLocal
