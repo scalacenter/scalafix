@@ -90,7 +90,7 @@ lazy val `scalafix-sbt` = project
         s
     },
     sbtPlugin := true,
-    crossSbtVersions := Vector(sbt013, sbt1),
+    crossSbtVersions := Vector(sbt013),
     libraryDependencies ++= coursierDeps,
     testQuick := {}, // these test are slow.
     publishLocal := publishLocal
