@@ -71,9 +71,6 @@ class AssertDeltaSuite() extends FunSuite {
     val expected =
       """|===========> Mismatch  <===========
          |
-         |(A lint message was reported on a line with an assert but it
-         |does not fully matches.)
-         |
          |Obtained: foo/bar/Disable.scala:2: error: [Disable.get]: 
          |Option.get is the root of all evils
          |  Option(1).get /* assert: Disable.get
@@ -103,8 +100,6 @@ class AssertDeltaSuite() extends FunSuite {
          |
          |===========> Unexpected <===========
          |
-         |(A lint message was reported but not expected.)
-         |
          |foo/bar/Disable.scala:11: error: [Disable.get]: 
          |Option.get is the root of all evils
          |  Option(4).get
@@ -126,8 +121,6 @@ class AssertDeltaSuite() extends FunSuite {
          |
          |===========> Unreported <===========
          |
-         |(There is an assert but no lint message was reported)
-         |
          |foo/bar/Disable.scala:9: error: 
          |  3 // assert: Disable.get
          |    ^
@@ -145,6 +138,12 @@ class AssertDeltaSuite() extends FunSuite {
          |    ^
          |""".stripMargin
 
-    assert(expected == obtained)
+    val diffStr =
+      DiffAssertions.compareContents(
+        expected,
+        obtained
+      )
+
+    assert(diffStr.isEmpty)
   }
 }

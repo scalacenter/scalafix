@@ -52,7 +52,7 @@ scalafix-testkit features include:
 val x = List(1, "")// assert: NoInfer.any
 ```
 
-It's also possible to assert the offset position and the message with a multiline comment:
+It's also possible to assert the offset position and the message contents with a multiline comment:
 
 ```scala
 Option(1).get /* assert: Disable.get

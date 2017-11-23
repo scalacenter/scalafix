@@ -5,24 +5,7 @@ import scala.meta._
 import scala.util.matching.Regex
 import org.langmeta.internal.ScalafixLangmetaHacks
 
-sealed trait CommentAssertion {
-  def position: Position
-  def key: String
-  def formattedMessage: String
-}
-object CommentAssertion {
-  def extract(tokens: Tokens): List[CommentAssertion] = {
-    tokens.collect {
-      case EndOfLineAssertExtractor(singleline) =>
-        singleline
-
-      case MultiLineAssertExtractor(multiline) =>
-        multiline
-    }.toList
-  }
-}
-
-// EndOfLineAssert are the bread and butter of testkit they
+// CommentAssertion are the bread and butter of testkit they
 // assert the line position and the category id of the lint message.
 //
 // For example:
@@ -30,39 +13,16 @@ object CommentAssertion {
 // ```scala
 // Option(1).get // assert: Disable.get
 // ```
-case class EndOfLineAssert(anchorPosition: Position, key: String)
-    extends CommentAssertion {
-  def position: Position = anchorPosition
-
-  def formattedMessage: String =
-    ScalafixLangmetaHacks.formatMessage(
-      anchorPosition,
-      "error",
-      ""
-    )
-}
-object EndOfLineAssertExtractor {
-  val AssertRegex: Regex = " assert: (.*)".r
-  def unapply(token: Token): Option[EndOfLineAssert] = {
-    token match {
-      case Token.Comment(AssertRegex(key)) =>
-        Some(EndOfLineAssert(token.pos, key))
-      case _ =>
-        None
-    }
-  }
-}
-
-// MultiLineAssert are useful two visually show the lint message
-// it adds an assertion on the message body and the carret position
-// of the lint message.
+//
+// You can also use the multiline variant. This isuseful two visually
+// show the lint message it adds an assertion on the message body and
+// the caret position of the lint message.
 //
 // For example:
 //
 // ```scala
 // Option(1).get /* assert: Disable.get
 //           ^
-//
 // Option.get is the root of all evilz
 //
 // If you must Option.get, wrap the code block with
@@ -70,25 +30,60 @@ object EndOfLineAssertExtractor {
 // ...
 // // scalafix:on Option.get
 // */
-case class MultiLineAssert(
+case class CommentAssertion(
     anchorPosition: Position,
-    carretPosition: Position,
     key: String,
-    expectedMessage: String)
-    extends CommentAssertion {
-  def position: Position = anchorPosition
+    caretPosition: Option[Position],
+    expectedMessage: Option[String]) {
 
   def formattedMessage: String =
     ScalafixLangmetaHacks.formatMessage(
-      carretPosition,
+      caretPosition.getOrElse(anchorPosition),
       "error",
-      "\n" + expectedMessage
+      expectedMessage.map("\n" + _).getOrElse("")
     )
 }
+
+object CommentAssertion {
+  def extract(tokens: Tokens): List[CommentAssertion] = {
+    tokens.collect {
+      case Token.Comment(CommentAssertion(assert)) =>
+        assert
+    }.toList
+  }
+  def unapply(comment: String): Option[CommentAssertion] =
+    comment match {
+      case EndOfLineAssertExtractor(singleline) =>
+        Some(singleline)
+      case MultiLineAssertExtractor(multiline) =>
+        Some(multiline)
+      case _ =>
+        None
+    }
+}
+
+object EndOfLineAssertExtractor {
+  val AssertRegex: Regex = " assert: (.*)".r
+  def unapply(token: Token): Option[CommentAssertion] = {
+    token match {
+      case Token.Comment(AssertRegex(key)) =>
+        Some(
+          CommentAssertion(
+            anchorPosition = token.pos,
+            key = key,
+            caretPosition = None,
+            expectedMessage = None
+          ))
+      case _ =>
+        None
+    }
+  }
+}
+
 object MultiLineAssertExtractor {
   private val assertMessage = " assert:"
 
-  def unapply(token: Token): Option[MultiLineAssert] = {
+  def unapply(token: Token): Option[CommentAssertion] = {
     token match {
       case Token.Comment(content)
           if content.startsWith(assertMessage) &&
@@ -104,20 +99,21 @@ object MultiLineAssertExtractor {
                 "the rule name should be on the first line of the assert")
           }
 
-        val carretOffset = lines(1).indexOf('^')
-        if (carretOffset == -1)
+        val caretOffset = lines(1).indexOf('^')
+        if (caretOffset == -1)
           throw new Exception("^ should be on the second line of the assert")
-        val offset = carretOffset - token.pos.startColumn
-        val carretStart = token.pos.start + offset
+        val offset = caretOffset - token.pos.startColumn
+        val caretStart = token.pos.start + offset
         val message = lines.drop(2).mkString("\n")
 
         Some(
-          MultiLineAssert(
+          CommentAssertion(
             anchorPosition = token.pos,
-            carretPosition =
-              Position.Range(token.pos.input, carretStart, carretStart),
             key = key,
-            expectedMessage = message
+            caretPosition = Some(
+              Position.Range(token.pos.input, caretStart, caretStart)
+            ),
+            expectedMessage = Some(message)
           ))
       }
       case _ => None
@@ -138,35 +134,37 @@ case class AssertDelta(assert: CommentAssertion, lintMessage: LintMessage) {
     lintKey == key
 
   private val isSameLine: Boolean =
-    sameLine(assert.position)
+    sameLine(assert.anchorPosition)
 
   private val isCorrect: Boolean =
-    assert match {
-      case EndOfLineAssert(anchorPosition, key) =>
-        sameLine(anchorPosition) && sameKey(key)
-      case MultiLineAssert(_, carretPosition, key, message) =>
-        (carretPosition.start == lintMessage.position.start) &&
-          sameKey(key) &&
-          (message.trim == lintMessage.message.trim)
-    }
+    sameKey(assert.key) &&
+      (assert.caretPosition match {
+        case Some(carPos) =>
+          (carPos.start == lintMessage.position.start) &&
+            (assert.expectedMessage
+              .map(_.trim == lintMessage.message.trim)
+              .getOrElse(true))
+        case None =>
+          sameLine(assert.anchorPosition)
+      })
 
   def isMismatch: Boolean = isSameLine && !isCorrect
 
   def isWrong: Boolean = !isSameLine
 
   def similarity: String = {
-    val pos = assert.position
+    val pos = assert.anchorPosition
 
-    val carretDiff =
-      assert match {
-        case MultiLineAssert(_, carretPosition, _, _) =>
-          if (carretPosition.start != lintMessage.position.start) {
+    val caretDiff =
+      assert.caretPosition
+        .map { carPos =>
+          if (carPos.start != lintMessage.position.start) {
             val line =
               Position
                 .Range(pos.input, pos.start - pos.startColumn, pos.start)
                 .text
 
-            val assertCarret = (" " * carretPosition.startColumn) + "^-- asserted"
+            val assertCarret = (" " * carPos.startColumn) + "^-- asserted"
             val lintCarret = (" " * lintMessage.position.startColumn) + "^-- reported"
 
             List(
@@ -177,8 +175,8 @@ case class AssertDelta(assert: CommentAssertion, lintMessage: LintMessage) {
           } else {
             Nil
           }
-        case _ => Nil
-      }
+        }
+        .getOrElse(Nil)
 
     val keyDiff =
       if (!sameKey(assert.key)) {
@@ -191,19 +189,19 @@ case class AssertDelta(assert: CommentAssertion, lintMessage: LintMessage) {
       }
 
     val messageDiff =
-      assert match {
-        case MultiLineAssert(_, _, _, message) =>
-          List(
-            DiffAssertions.compareContents(
-              message,
-              lintMessage.message
-            )
-          )
-        case _ => Nil
-      }
+      assert.expectedMessage
+        .map(
+          message =>
+            List(
+              DiffAssertions.compareContents(
+                message,
+                lintMessage.message
+              )
+          ))
+        .getOrElse(Nil)
 
     val result =
-      carretDiff ++
+      caretDiff ++
         keyDiff ++
         messageDiff
 
@@ -218,7 +216,7 @@ case class AssertDelta(assert: CommentAssertion, lintMessage: LintMessage) {
 //  * unreported: the developper added an assert but no linting was reported
 //  * unexpected: a linting was reported but the developper did not asserted it
 //  * missmatch: the developper added an assert and a linting wal reported but they partialy match
-//            for example, the carret on a multiline assert may be on the wrong offset.
+//            for example, the caret on a multiline assert may be on the wrong offset.
 case class AssertDiff(
     unreported: List[CommentAssertion],
     unexpected: List[LintMessage],
@@ -250,9 +248,6 @@ case class AssertDiff(
       else {
         """|===========> Mismatch  <===========
            |
-           |(A lint message was reported on a line with an assert but it
-           |does not fully matches.)
-           |
            |""".stripMargin
       }
 
@@ -278,8 +273,6 @@ case class AssertDiff(
       else {
         """|===========> Unexpected <===========
            |
-           |(A lint message was reported but not expected.)
-           |
            |""".stripMargin
       }
 
@@ -298,14 +291,12 @@ case class AssertDiff(
       else {
         """|===========> Unreported <===========
            |
-           |(There is an assert but no lint message was reported)
-           |
            |""".stripMargin
       }
 
     val showUnreported =
       unreported
-        .sortBy(_.position.startLine)
+        .sortBy(_.anchorPosition.startLine)
         .map(_.formattedMessage)
         .mkString(
           unreportedBanner,
@@ -326,7 +317,7 @@ case class AssertDiff(
 // ```scala
 // //   (R1)                 (A1)
 // Option(1).get /* assert: Disable.get
-//     ^ (*: carret on wrong offset)
+//     ^ (*: caret on wrong offset)
 //
 // Option.get is the root of all evils
 //
