@@ -30,13 +30,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       publish := {},
       publishLocal := {}
     )
-    lazy val crossVersions = Seq(scala211, scala212)
     lazy val supportedScalaVersions = List(scala211, scala212)
-    lazy val is210Only = Seq(
-      scalaVersion := scala210,
-      crossScalaVersions := Seq(scala210),
-      scalacOptions -= warnUnusedImports
-    )
     lazy val isFullCrossVersion = Seq(
       crossVersion := CrossVersion.full
     )
@@ -51,14 +45,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       "-feature",
       "-unchecked"
     )
-
-    // Sets scalafix- prefix to moduleName and base file
-    def setId(project: Project): Project = {
-      val newId = "scalafix-" + project.id
-      project
-        .copy(base = file(newId))
-        .settings(moduleName := newId)
-    }
 
     lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
       buildInfoKeys := Seq[BuildInfoKey](
@@ -77,6 +63,12 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       ),
       buildInfoPackage := "scalafix",
       buildInfoObject := "Versions"
+    )
+
+    lazy val testsInputOutputSetting = Seq(
+      // TODO: Remove once scala-xml-quote is merged into scala-xml
+      resolvers += Resolver.bintrayRepo("allanrenucci", "maven"),
+      libraryDependencies ++= testsDeps
     )
 
     lazy val semanticdbSettings = Seq(
@@ -170,8 +162,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
 
   override def globalSettings: Seq[Def.Setting[_]] = List(
     stableVersion := version.in(ThisBuild).value.replaceAll("\\-.*", ""),
-    scalaVersion := ciScalaVersion.getOrElse(scala212),
-    crossScalaVersions := crossVersions,
     scalacOptions ++= compilerOptions,
     scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
     libraryDependencies += scalatest.value % Test,
@@ -181,21 +171,27 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
     commands += Command.command("ci-release") { s =>
       "clean" ::
-        "very publishSigned" ::
+        "scalafix/publishSigned" ::
+        "scalafix211/publishSigned" ::
         "scalafix-sbt/publishSigned" ::
         "sonatypeReleaseAll" ::
-        s
-    },
-    commands += Command.command("ci-fast") { s =>
-      "test" ::
         s
     },
     commands += Command.command("ci-slow") { s =>
       "scalafix-sbt/scripted" ::
         s
     },
+    commands += Command.command("ci-fast-212") { s =>
+      "test" ::
+        s
+    },
+    commands += Command.command("ci-fast-211") { s =>
+      "test" ::
+        s
+    },
     commands += Command.command("mima") { s =>
-      "very mimaReportBinaryIssues" ::
+      "scalafix/mimaReportBinaryIssues" ::
+        "scalafix211/mimaReportBinaryIssues" ::
         s
     },
     publishTo := {

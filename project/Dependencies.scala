@@ -13,9 +13,10 @@ object Dependencies {
   // as well as https://github.com/scala/bug/issues/10609
   def scala211 = "2.11.11"
   def scala212 = "2.12.3"
+  val currentScalaVersion = scala212
+
   def sbt013 = "0.13.6"
-  def sbt1 = "1.0.2"
-  def ciScalaVersion = sys.env.get("CI_SCALA_VERSION")
+  def sbt1 = "1.0.3" // blocked by https://github.com/scalameta/scalameta/issues/1157
 
   var testClasspath: String = "empty"
   def semanticdb: ModuleID = "org.scalameta" % "semanticdb-scalac" % scalametaV cross CrossVersion.full
