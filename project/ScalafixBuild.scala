@@ -182,7 +182,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     commands += Command.command("ci-release") { s =>
       "clean" ::
         "very publishSigned" ::
-        "^^ 1.0.2 " ::
         "scalafix-sbt/publishSigned" ::
         "sonatypeReleaseAll" ::
         s
