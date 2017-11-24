@@ -40,7 +40,17 @@ trait ScalafixMetaconfigReaders {
   }
   implicit lazy val dialectReader: ConfDecoder[Dialect] = {
     import scala.meta.dialects._
-    ReaderUtil.oneOf[Dialect](Scala211, Sbt0137, Dotty, Paradise211)
+    import ScalafixConfig.{DefaultDialect => Default}
+    ReaderUtil.oneOf[Dialect](
+      Default,
+      Scala211,
+      Scala212,
+      Sbt0137,
+      Sbt1,
+      Dotty,
+      Paradise211,
+      Paradise212
+    )
   }
 
   object UriRuleString {
