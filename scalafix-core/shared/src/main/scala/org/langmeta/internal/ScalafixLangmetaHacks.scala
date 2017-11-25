@@ -5,7 +5,10 @@ import org.langmeta._
 
 object ScalafixLangmetaHacks {
   // Workaround for https://github.com/scalameta/scalameta/issues/1115
-  def formatMessage(pos: Position, severity: String, message: String): String = {
+  def formatMessage(
+      pos: Position,
+      severity: String,
+      message: String): String = {
     if (pos != Position.None) {
       val input = pos.input
       val header =

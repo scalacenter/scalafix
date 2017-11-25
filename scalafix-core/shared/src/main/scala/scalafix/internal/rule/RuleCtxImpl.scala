@@ -41,11 +41,14 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
   // Debug utilities
   def index(implicit index: SemanticdbIndex): SemanticdbIndex =
     index.withDocuments(index.documents.filter(_.input == input))
-  def debugIndex()(implicit index: SemanticdbIndex, fileLine: FileLine): Unit = {
+  def debugIndex()(
+      implicit index: SemanticdbIndex,
+      fileLine: FileLine): Unit = {
     val db = this.index(index)
     debug(sourcecode.Text(db.documents.head, "index"))
   }
-  def debug(values: sourcecode.Text[Any]*)(implicit fileLine: FileLine): Unit = {
+  def debug(values: sourcecode.Text[Any]*)(
+      implicit fileLine: FileLine): Unit = {
     // alias for org.scalameta.logger.
     logger.elem(values: _*)
   }

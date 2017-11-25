@@ -35,7 +35,8 @@ class EscapeHatch(
   // a rule r is disabled in position p if there is a
   // comment disabling r at position p1 < p
   // and there is no comment enabling r in position p2 where p1 < p2 < p.
-  private def isEnabled(message: LintMessage): (Boolean, Option[EscapeFilter]) = {
+  private def isEnabled(
+      message: LintMessage): (Boolean, Option[EscapeFilter]) = {
 
     var culprit = Option.empty[EscapeFilter]
 

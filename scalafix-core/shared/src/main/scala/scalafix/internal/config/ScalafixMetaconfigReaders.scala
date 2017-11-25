@@ -203,7 +203,8 @@ trait ScalafixMetaconfigReaders {
   def ruleConfDecoderSyntactic(
       singleRuleDecoder: ConfDecoder[Rule]): ConfDecoder[Rule] =
     ruleConfDecoder(singleRuleDecoder)
-  def ruleConfDecoder(singleRuleDecoder: ConfDecoder[Rule]): ConfDecoder[Rule] = {
+  def ruleConfDecoder(
+      singleRuleDecoder: ConfDecoder[Rule]): ConfDecoder[Rule] = {
     ConfDecoder.instance[Rule] {
       case Conf.Lst(values) =>
         MetaconfigPendingUpstream

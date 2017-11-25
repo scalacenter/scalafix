@@ -30,7 +30,9 @@ final case class RuleName(identifiers: List[RuleIdentifier]) {
     new RuleName(identifiers ::: other.identifiers)
 
   override def toString: String = value
-  def reportDeprecationWarning(name: String, reporter: ScalafixReporter): Unit = {
+  def reportDeprecationWarning(
+      name: String,
+      reporter: ScalafixReporter): Unit = {
     identifiers.foreach { ident =>
       if (ident.value == name) {
         ident.deprecated.foreach { d =>
