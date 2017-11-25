@@ -5,62 +5,144 @@ import Dependencies._
 version.in(ThisBuild) ~= { old: String =>
   sys.props.getOrElse("scalafix.version", old.replace('+', '-'))
 }
-name := "scalafixRoot"
-onLoadMessage := s"Welcome to Scalafix ${version.value}"
-noPublish
 
-lazy val diff = crossProject
-  .in(file("scalafix-diff"))
+lazy val scalaFixedProjects: List[ProjectReference] =
+  List(
+    `scalafix-sbt`,
+    testsInputSbt,
+    testsOutputDotty,
+    testsOutputSbt,
+    website
+  )
+
+lazy val scala212Projects: List[ProjectReference] =
+  List(
+    cli212,
+    core212JS,
+    core212JVM,
+    diff212JS,
+    diff212JVM,
+    reflect212,
+    testkit212,
+    testsInput212,
+    testsOutput212,
+    testsShared212,
+    unit212
+  )
+
+lazy val allScala212Projects: List[ProjectReference] =
+  scala212Projects ++ scalaFixedProjects
+
+lazy val scala212ProjectsDependencies: List[ClasspathDep[ProjectReference]] =
+  scala212Projects.map(ClasspathDependency(_, None))
+
+lazy val scala211Projects: List[ProjectReference] =
+  List(
+    cli211,
+    core211JS,
+    core211JVM,
+    diff211JS,
+    diff211JVM,
+    reflect211,
+    testkit211,
+    testsInput211,
+    testsOutput211,
+    testsShared211,
+    unit211
+  )
+
+lazy val allScala211Projects: List[ProjectReference] =
+  scala211Projects ++ scalaFixedProjects
+
+lazy val scala211ProjectsDependencies: List[ClasspathDep[ProjectReference]] =
+  scala211Projects.map(ClasspathDependency(_, None))
+
+lazy val scalafix = project
+  .in(file("."))
   .settings(
+    moduleName := "scalafixRoot",
+    onLoadMessage := s"Welcome to Scalafix ${version.value}",
+    noPublish,
+    scalaVersion := scala212
+  )
+  .aggregate(allScala212Projects: _*)
+  .dependsOn(scala212ProjectsDependencies: _*)
+
+lazy val scalafix211 = project
+  .in(file(".scalafix211"))
+  .settings(
+    moduleName := "scalafix211",
+    noPublish,
+    scalaVersion := scala211
+  )
+  .aggregate(allScala211Projects: _*)
+  .dependsOn(scala211ProjectsDependencies: _*)
+
+val diff = MultiScalaCrossProject(
+  "diff",
+  _.settings(
     moduleName := "scalafix-diff",
     description := "JVM/JS library to build unified diffs."
-  )
-  .jvmSettings(
-    libraryDependencies += googleDiff
-  )
-  .jsSettings(
-    allJSSettings,
-    npmDependencies in Compile += "diff" -> "3.2.0"
-  )
-  .jsConfigure(_.enablePlugins(ScalaJSBundlerPlugin))
-lazy val diffJS = diff.js
-lazy val diffJVM = diff.jvm
+  ).jvmSettings(
+      libraryDependencies += googleDiff
+    )
+    .jsSettings(
+      allJSSettings,
+      npmDependencies in Compile += "diff" -> "3.2.0"
+    )
+    .jsConfigure(_.enablePlugins(ScalaJSBundlerPlugin))
+)
 
-lazy val core = crossProject
-  .in(file("scalafix-core"))
-  .settings(
-    moduleName := "scalafix-core",
+val diff211 = diff(scala211)
+val diff212 = diff(scala212)
+
+lazy val diff211JVM = diff211.jvm
+lazy val diff211JS = diff211.js
+lazy val diff212JVM = diff212.jvm
+lazy val diff212JS = diff212.js
+
+val core = MultiScalaCrossProject(
+  "core",
+  _.settings(
     buildInfoSettings,
     libraryDependencies ++= List(
       scalameta.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
     )
-  )
-  .jvmSettings(
-    libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV
-  )
-  .jsSettings(
-    libraryDependencies += "com.geirsson" %%% "metaconfig-hocon" % metaconfigV
-  )
-  .enablePlugins(BuildInfoPlugin)
-  .dependsOn(diff)
-lazy val coreJS = core.js
-lazy val coreJVM = core.jvm
+  ).jvmSettings(
+      libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV
+    )
+    .jsSettings(
+      libraryDependencies += "com.geirsson" %%% "metaconfig-hocon" % metaconfigV
+    )
+    .enablePlugins(BuildInfoPlugin)
+)
 
-lazy val reflect = project
-  .configure(setId)
-  .settings(
+val core211 = core(scala211, _.dependsOn(diff211))
+val core212 = core(scala212, _.dependsOn(diff212))
+
+lazy val core211JVM = core211.jvm
+lazy val core211JS = core211.js
+lazy val core212JVM = core212.jvm
+lazy val core212JS = core212.js
+
+val reflect = MultiScalaProject(
+  "reflect",
+  _.settings(
     isFullCrossVersion,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
     )
   )
-  .dependsOn(coreJVM)
+)
 
-lazy val cli = project
-  .configure(setId)
-  .settings(
+lazy val reflect211 = reflect(scala211, _.dependsOn(core211JVM))
+lazy val reflect212 = reflect(scala212, _.dependsOn(core212JVM))
+
+val cli = MultiScalaProject(
+  "cli",
+  _.settings(
     isFullCrossVersion,
     mainClass in assembly := Some("scalafix.cli.Cli"),
     assemblyJarName in assembly := "scalafix.jar",
@@ -71,15 +153,14 @@ lazy val cli = project
       "com.martiansoftware" % "nailgun-server" % "0.9.1"
     )
   )
-  .dependsOn(
-    coreJVM,
-    reflect,
-    testkit % Test
-  )
+)
+lazy val cli211 =
+  cli(scala211, _.dependsOn(core211JVM, reflect211, testkit211 % Test))
+lazy val cli212 =
+  cli(scala212, _.dependsOn(core212JVM, reflect212, testkit212 % Test))
 
 lazy val `scalafix-sbt` = project
   .settings(
-    is210Only,
     buildInfoSettings,
     ScriptedPlugin.scriptedSettings,
     commands += Command.command(
@@ -90,15 +171,16 @@ lazy val `scalafix-sbt` = project
         s
     },
     sbtPlugin := true,
-    crossSbtVersions := Vector(sbt013),
     libraryDependencies ++= coursierDeps,
     testQuick := {}, // these test are slow.
+    // scripted tests needs scalafix 2.12
+    // semanticdb-scala will generate the semantic db for both scala 2.11 and scala 2.12
     publishLocal := publishLocal
       .dependsOn(
-        publishLocal in diffJVM,
-        publishLocal in coreJVM,
-        publishLocal in reflect,
-        publishLocal in cli)
+        publishLocal in diff212JVM,
+        publishLocal in core212JVM,
+        publishLocal in reflect212,
+        publishLocal in cli212)
       .value,
     moduleName := "sbt-scalafix",
     mimaPreviousArtifacts := Set.empty,
@@ -113,9 +195,9 @@ lazy val `scalafix-sbt` = project
   )
   .enablePlugins(BuildInfoPlugin)
 
-lazy val testkit = project
-  .configure(setId)
-  .settings(
+val testkit = MultiScalaProject(
+  "testkit",
+  _.settings(
     isFullCrossVersion,
     libraryDependencies ++= Seq(
       semanticdb,
@@ -123,46 +205,54 @@ lazy val testkit = project
       googleDiff,
       scalatest.value
     )
-  )
-  .dependsOn(
-    coreJVM,
-    reflect
-  )
+  ))
 
-lazy val testsShared = project
-  .in(file("scalafix-tests/shared"))
-  .settings(
+lazy val testkit211 = testkit(scala211, _.dependsOn(core211JVM, reflect211))
+lazy val testkit212 = testkit(scala212, _.dependsOn(core212JVM, reflect212))
+
+val testsShared = TestProject(
+  "shared",
+  _.settings(
     semanticdbSettings,
     noPublish
-  )
+  ))
 
-lazy val testsInput = project
-  .in(file("scalafix-tests/input"))
-  .settings(
-    noPublish,
-    semanticdbSettings,
-    scalacOptions += s"-P:semanticdb:sourceroot:${sourceDirectory.in(Compile).value}",
-    scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
-    scalacOptions += "-Ywarn-adapted-args", // For NoAutoTupling
-    scalacOptions += "-Ywarn-unused-import", // For RemoveUnusedImports
-    scalacOptions += "-Ywarn-unused", // For RemoveUnusedTerms
-    logLevel := Level.Error, // avoid flood of compiler warnings
-    // TODO: Remove once scala-xml-quote is merged into scala-xml
-    resolvers += Resolver.bintrayRepo("allanrenucci", "maven"),
-    libraryDependencies ++= testsDeps
-  )
-  .dependsOn(testsShared)
+lazy val testsShared211 = testsShared(scala211)
+lazy val testsShared212 = testsShared(scala212)
 
-lazy val testsOutput = project
-  .in(file("scalafix-tests/output"))
-  .settings(
+val testsInput = TestProject(
+  "input",
+  (project, srcMain) =>
+    project.settings(
+      noPublish,
+      semanticdbSettings,
+      scalacOptions += {
+        val sourceroot = baseDirectory.in(ThisBuild).value / srcMain
+        s"-P:semanticdb:sourceroot:$sourceroot"
+      },
+      scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
+      scalacOptions += "-Ywarn-adapted-args", // For NoAutoTupling
+      scalacOptions += "-Ywarn-unused-import", // For RemoveUnusedImports
+      scalacOptions += "-Ywarn-unused", // For RemoveUnusedTerms
+      logLevel := Level.Error, // avoid flood of compiler warnings
+      testsInputOutputSetting
+  )
+)
+
+lazy val testsInput211 = testsInput(scala211, _.dependsOn(testsShared211))
+lazy val testsInput212 = testsInput(scala212, _.dependsOn(testsShared212))
+
+val testsOutput = TestProject(
+  "output",
+  _.settings(
     noPublish,
     semanticdbSettings,
     scalacOptions -= warnUnusedImports,
-    resolvers := resolvers.in(testsInput).value,
-    libraryDependencies := libraryDependencies.in(testsInput).value
-  )
-  .dependsOn(testsShared)
+    testsInputOutputSetting
+  ))
+
+val testsOutput211 = testsOutput(scala211, _.dependsOn(testsShared211))
+val testsOutput212 = testsOutput(scala212, _.dependsOn(testsShared212))
 
 lazy val testsOutputDotty = project
   .in(file("scalafix-tests/output-dotty"))
@@ -182,9 +272,14 @@ lazy val testsInputSbt = project
     noPublish,
     logLevel := Level.Error, // avoid flood of deprecation warnings.
     scalacOptions += "-Xplugin-require:semanticdb-sbt",
-    is210Only,
     sbtPlugin := true,
-    scalacOptions += s"-P:semanticdb-sbt:sourceroot:${sourceDirectory.in(Compile).value}",
+    scalacOptions += {
+      val sourceroot =
+        baseDirectory
+          .in(ThisBuild)
+          .value / "scalafix-tests" / "input-sbt" / "src" / "main"
+      s"-P:semanticdb-sbt:sourceroot:$sourceroot"
+    },
     addCompilerPlugin(
       "org.scalameta" % "semanticdb-sbt" % semanticdbSbt cross CrossVersion.full)
   )
@@ -193,69 +288,127 @@ lazy val testsOutputSbt = project
   .in(file("scalafix-tests/output-sbt"))
   .settings(
     noPublish,
-    is210Only,
     sbtPlugin := true
   )
 
-lazy val unit = project
-  .in(file("scalafix-tests/unit"))
-  .settings(
-    noPublish,
-    fork := false,
-    javaOptions := Nil,
-    buildInfoPackage := "scalafix.tests",
-    buildInfoObject := "BuildInfo",
-    sources.in(Test) +=
-      sourceDirectory.in(`scalafix-sbt`, Compile).value /
-        "scala" / "scalafix" / "internal" / "sbt" / "ScalafixJarFetcher.scala",
-    compileInputs.in(Compile, compile) :=
-      compileInputs
-        .in(Compile, compile)
-        .dependsOn(
-          compile.in(testsInput, Compile),
-          compile.in(testsInputSbt, Compile),
-          compile.in(testsOutputSbt, Compile),
-          compile.in(testsOutputDotty, Compile),
-          compile.in(testsOutput, Compile)
-        )
-        .value,
-    buildInfoKeys := Seq[BuildInfoKey](
-      "baseDirectory" -> baseDirectory.in(ThisBuild).value,
-      "inputSourceroot" ->
-        sourceDirectory.in(testsInput, Compile).value,
-      "inputSbtSourceroot" ->
-        sourceDirectory.in(testsInputSbt, Compile).value,
-      "outputSourceroot" ->
-        sourceDirectory.in(testsOutput, Compile).value,
-      "outputDottySourceroot" ->
-        sourceDirectory.in(testsOutputDotty, Compile).value,
-      "outputSbtSourceroot" ->
-        sourceDirectory.in(testsOutputSbt, Compile).value,
-      "testsInputResources" -> resourceDirectory.in(testsInput, Compile).value,
-      "semanticSbtClasspath" -> classDirectory.in(testsInputSbt, Compile).value,
-      "semanticClasspath" -> classDirectory.in(testsInput, Compile).value,
-      "sharedClasspath" -> classDirectory.in(testsShared, Compile).value
-    ),
-    libraryDependencies ++= coursierDeps,
-    libraryDependencies ++= testsDeps
+def unit(
+    scalav: String,
+    cli: Project,
+    testkit: Project,
+    testsInput: Project,
+    testsInputMulti: MultiScalaProject,
+    testsInputSbt: Project,
+    testsOutput: Project,
+    testsOutputMulti: MultiScalaProject,
+    testsOutputDotty: Project,
+    testsOutputSbt: Project,
+    testsShared: Project): Project = {
+
+  val unitMultiProject =
+    MultiScalaProject(
+      "unit",
+      s"scalafix-tests/unit",
+      _.settings(
+        noPublish,
+        fork := false,
+        javaOptions := Nil,
+        buildInfoPackage := "scalafix.tests",
+        buildInfoObject := "BuildInfo",
+        sources.in(Test) +=
+          sourceDirectory.in(`scalafix-sbt`, Compile).value /
+            "scala" / "scalafix" / "internal" / "sbt" / "ScalafixJarFetcher.scala",
+        libraryDependencies ++= coursierDeps ++ testsDeps
+      ).enablePlugins(BuildInfoPlugin)
+    )
+
+  unitMultiProject(
+    scalav,
+    _.settings(
+      compileInputs.in(Compile, compile) := {
+        compileInputs
+          .in(Compile, compile)
+          .dependsOn(
+            compile.in(testsInput, Compile),
+            compile.in(testsInputSbt, Compile),
+            compile.in(testsOutputSbt, Compile),
+            compile.in(testsOutputDotty, Compile),
+            compile.in(testsOutput, Compile)
+          )
+          .value
+      },
+      buildInfoKeys := Seq[BuildInfoKey](
+        "baseDirectory" ->
+          baseDirectory.in(ThisBuild).value,
+        "inputSourceroot" ->
+          baseDirectory.in(ThisBuild).value / testsInputMulti.srcMain,
+        "outputSourceroot" ->
+          baseDirectory.in(ThisBuild).value / testsOutputMulti.srcMain,
+        "testsInputResources" ->
+          baseDirectory
+            .in(ThisBuild)
+            .value / testsInputMulti.srcMain / "resources",
+        "inputSbtSourceroot" ->
+          sourceDirectory.in(testsInputSbt, Compile).value,
+        "outputDottySourceroot" ->
+          sourceDirectory.in(testsOutputDotty, Compile).value,
+        "outputSbtSourceroot" ->
+          sourceDirectory.in(testsOutputSbt, Compile).value,
+        "semanticSbtClasspath" ->
+          classDirectory.in(testsInputSbt, Compile).value,
+        "semanticClasspath" ->
+          classDirectory.in(testsInput, Compile).value,
+        "sharedClasspath" ->
+          classDirectory.in(testsShared, Compile).value
+      )
+    ).dependsOn(
+      testsInput,
+      cli,
+      testkit
+    )
   )
-  .enablePlugins(BuildInfoPlugin)
-  .dependsOn(
-    testsInput,
-    cli,
-    testkit
-  )
+}
+
+lazy val unit211 = unit(
+  scala211,
+  cli211,
+  testkit211,
+  testsInput211,
+  testsInput,
+  testsInputSbt,
+  testsOutput211,
+  testsOutput,
+  testsOutputDotty,
+  testsOutputSbt,
+  testsShared211
+)
+
+lazy val unit212 = unit(
+  scala212,
+  cli212,
+  testkit212,
+  testsInput212,
+  testsInput,
+  testsInputSbt,
+  testsOutput212,
+  testsOutput,
+  testsOutputDotty,
+  testsOutputSbt,
+  testsShared212
+)
 
 lazy val website = project
   .enablePlugins(MicrositesPlugin)
   .enablePlugins(ScalaUnidocPlugin)
   .settings(
+    scalaVersion := scala212,
     noPublish,
     websiteSettings,
     unidocSettings,
-    unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(testkit, coreJVM)
+    unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(
+      testkit212,
+      core212JVM)
   )
-  .dependsOn(testkit, coreJVM, cli)
+  .dependsOn(testkit212, core212JVM, cli212)
 
 inScope(Global)(
   Seq(
