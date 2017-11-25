@@ -47,24 +47,17 @@ case class CommentAssertion(
 object CommentAssertion {
   def extract(tokens: Tokens): List[CommentAssertion] = {
     tokens.collect {
-      case Token.Comment(CommentAssertion(assert)) =>
-        assert
+      case EndOfLineAssertExtractor(singleline) =>
+        singleline
+      case MultiLineAssertExtractor(multiline) =>
+        multiline
     }.toList
   }
-  def unapply(comment: String): Option[CommentAssertion] =
-    comment match {
-      case EndOfLineAssertExtractor(singleline) =>
-        Some(singleline)
-      case MultiLineAssertExtractor(multiline) =>
-        Some(multiline)
-      case _ =>
-        None
-    }
 }
 
 object EndOfLineAssertExtractor {
   val AssertRegex: Regex = " assert: (.*)".r
-  def unapply(token: Token): Option[CommentAssertion] = {
+  def unapply(token: Token.Comment): Option[CommentAssertion] = {
     token match {
       case Token.Comment(AssertRegex(key)) =>
         Some(
@@ -83,7 +76,7 @@ object EndOfLineAssertExtractor {
 object MultiLineAssertExtractor {
   private val assertMessage = " assert:"
 
-  def unapply(token: Token): Option[CommentAssertion] = {
+  def unapply(token: Token.Comment): Option[CommentAssertion] = {
     token match {
       case Token.Comment(content)
           if content.startsWith(assertMessage) &&
