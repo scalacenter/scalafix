@@ -46,8 +46,28 @@ scalafix-testkit features include:
 
 - Test failures are reported as unified diffs from the obtained output of the rule and the expected output in the `output` project.
 
-- Assert that a {% glossary_ref LintMessage %} is expected at a particular line by suffixing the line with the comment `// assert: <LintCategory>`. The test fails if there exist reported lint messages that have no associated assertion in the input file. For an example, see the NoInfer test suite:
+- Assert that a {% glossary_ref LintMessage %} is expected at a particular line by suffixing the line with the comment `// assert: <LintCategory>`. For an example, see the NoInfer test suite:
 
 ```scala
 val x = List(1, "")// assert: NoInfer.any
 ```
+
+It's also possible to assert the offset position and the message contents with a multiline comment:
+
+```scala
+Option(1).get /* assert: Disable.get
+          ^
+Option.get is the root of all evils
+
+If you must Option.get, wrap the code block with
+// scalafix:off Option.get
+...
+// scalafix:on Option.get
+*/
+```
+
+- The test can fail if:
+  - An assert was added but it was not reported by the linter (unreported)
+  - A lint message was reported but it was not asserted (unexpected)
+  - An assert was added and a message was reported on that line but it does not
+    match the message exactly. For example the offset can be wrong by a few column or you can have a typo in your assert message.

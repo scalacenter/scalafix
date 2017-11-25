@@ -2,8 +2,17 @@
 rules = Disable
 Disable.symbols = [
   "scala.Any.asInstanceOf"
-  "scala.Option.get"
   "test.Disable.D.disabledFunction"
+  {
+    symbol = "scala.Option.get"
+    message =
+      """|Option.get is the root of all evils
+         |
+         |If you must Option.get, wrap the code block with
+         |// scalafix:off Option.get
+         |...
+         |// scalafix:on Option.get"""
+  }
 ]
 */
 package test
@@ -34,5 +43,13 @@ case object Disable {
     def asInstanceOf: O = "test"
   }
   val yy = AA.asInstanceOf // OK, no errors
-  Option(1).get // assert: Disable.get
+  Option(1).get /* assert: Disable.get
+            ^
+Option.get is the root of all evils
+
+If you must Option.get, wrap the code block with
+// scalafix:off Option.get
+...
+// scalafix:on Option.get
+*/
 }
