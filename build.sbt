@@ -2,6 +2,10 @@ import sbt.ScriptedPlugin
 import sbt.ScriptedPlugin._
 import Dependencies._
 
+version.in(ThisBuild) ~= { old: String =>
+  sys.props.getOrElse("scalafix.version", old.replace('+', '-'))
+}
+
 lazy val scalaFixedProjects: List[ProjectReference] =
   List(
     `scalafix-sbt`,
@@ -56,7 +60,7 @@ lazy val scala211ProjectsDependencies: List[ClasspathDep[ProjectReference]] =
 lazy val scalafix = project
   .in(file("."))
   .settings(
-    moduleName := "root",
+    moduleName := "scalafixRoot",
     onLoadMessage := s"Welcome to Scalafix ${version.value}",
     noPublish,
     scalaVersion := scala212
