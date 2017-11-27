@@ -66,11 +66,34 @@ class UnifiedSpec extends FunSuite {
     }
   }
 
+  class PeekableSource[T](it: Iterator[T]) {
+    private def getNext(): Option[T] = {
+      if (it.hasNext) Some(it.next())
+      else None
+    }
+    private def setPeeker(): Unit = peeker = getNext()
+    private var peeker: Option[T] = None
+    setPeeker()
+
+    def hasNext: Boolean = !peeker.isEmpty || it.hasNext
+    def next(): T = {
+      val ret = peeker
+      setPeeker()
+      ret.get
+    }
+    def peek: Option[T] = peeker
+    def drop(n: Int): Unit = {
+      it.drop(n - 1)
+      setPeeker()
+    }
+  }
+
   test("boom") {
     import scala.io.Source
-    val source =
-      Source.fromURL(getClass.getClassLoader.getResource("./git.diff"))
-    val lines = source.getLines
+    val source = Source.fromURL(
+      getClass.getClassLoader.getResource("./git.diff")
+    )
+    val lines = new PeekableSource(source.getLines)
 
     val Command = "^diff --git a/(.*) b/(.*)$".r
     val Deleted = "^deleted file mode [0-9]{6}$".r
@@ -79,12 +102,11 @@ class UnifiedSpec extends FunSuite {
     val Index2 = "^index [a-z0-9]{8}..[a-z0-9]{8} [0-9]{6}$".r
     val OriginalFile = "--- (.*)$".r
     val RevisedFile = "^\\+\\+\\+ (.*)$".r
-    val ChunkHeader = "^@@ -(\\d+)(,(\\d+))? \\+(\\d+)(,(\\d+))? @@(.*)$".r
-
     val NoNewLine = "\\ No newline at end of file".r
 
     def accept(regex: Regex): Unit = {
       val line = lines.next()
+      // println(s"accept $line || $regex")
       if (regex.findFirstIn(line).isEmpty) {
         throw new Exception(s"Unexpected: $line")
       }
@@ -100,7 +122,7 @@ class UnifiedSpec extends FunSuite {
           accept(Index)
           accept(OriginalFile)
           accept(RevisedFile)
-          lines.next match {
+          lines.next() match {
             case ChunkExtractor(Chunk(_, originalCount, _, _)) =>
               skip(originalCount)
             case line =>
@@ -112,9 +134,9 @@ class UnifiedSpec extends FunSuite {
           accept(Index)
           accept(OriginalFile)
           accept(RevisedFile)
-          lines.next match {
+          lines.next() match {
             case ChunkExtractor(Chunk(_, originalCount, _, revisedCount)) => {
-              println(s"added file: $p1")
+              println(p1)
               skip(originalCount + revisedCount)
             }
             case line =>
@@ -124,14 +146,21 @@ class UnifiedSpec extends FunSuite {
         case Index2() => {
           accept(OriginalFile)
           accept(RevisedFile)
-          lines.next match {
-            case ChunkExtractor(_) => {
-              // println(s"got 2 $a $b $c $d $rest")
-              // skip(b + d - 1)
-            }
-            case line => {
-              // println(p1)
-              throw new Exception(s"expected ChunkHeader, got '$line'")
+          println(p1)
+
+          var hasChunks = true
+          while (hasChunks) {
+            lines.peek match {
+              case Some(
+                  ChunkExtractor(
+                    Chunk(_, originalCount, revisedLine, revisedCount))) => {
+                println(s"  chunk: $revisedLine, $revisedCount")
+                skip(originalCount + revisedCount + 1)
+                hasChunks = true
+              }
+              case _ => {
+                hasChunks = false
+              }
             }
           }
         }
