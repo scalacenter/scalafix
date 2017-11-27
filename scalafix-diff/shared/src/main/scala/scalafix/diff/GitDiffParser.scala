@@ -62,6 +62,27 @@ private[diff] class PeekableSource[T](it: Iterator[T]) {
   }
 }
 
+object GitDiffParser {
+  def show(diffs: List[GitDiff]): Unit = {
+    println("== New Files ==")
+    diffs.foreach {
+      case NewFile(path) => println(path)
+      case _ => ()
+    }
+
+    println("== Modified Files ==")
+    diffs.foreach {
+      case ModifiedFile(path, changes) => {
+        println(path)
+        changes.foreach {
+          case Range(start, offset) => println(s"  [$start, ${start + offset}]")
+        }
+      }
+      case _ => ()
+    }
+  }
+}
+
 class GitDiffParser(input: Iterator[String]) {
   private val lines = new PeekableSource(input)
 
@@ -116,6 +137,7 @@ class GitDiffParser(input: Iterator[String]) {
 
     ranges.result()
   }
+
   def parse(): List[GitDiff] = {
     val diffs = List.newBuilder[GitDiff]
 

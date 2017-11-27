@@ -3,6 +3,7 @@ package cli
 
 import java.io.File
 import java.io.OutputStreamWriter
+import java.lang.ProcessBuilder
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
@@ -19,8 +20,9 @@ import scala.meta.inputs.Input
 import scala.meta.internal.inputs._
 import scala.meta.io.AbsolutePath
 import scala.meta.semanticdb.SemanticdbSbt
-import scala.util.Try
 import scala.util.control.NonFatal
+import scala.util.Try
+import scalafix.diff.{GitDiff, GitDiffParser}
 import scalafix.internal.cli.CommonOptions
 import scalafix.internal.cli.FixFile
 import scalafix.internal.cli.ScalafixOptions
@@ -46,7 +48,8 @@ sealed abstract case class CliRunner(
     config: ScalafixConfig,
     rule: Rule,
     inputs: Seq[FixFile],
-    replacePath: AbsolutePath => AbsolutePath
+    replacePath: AbsolutePath => AbsolutePath,
+    diffs: Option[List[GitDiff]]
 ) {
   val sbtConfig: ScalafixConfig = config.copy(dialect = dialects.Sbt0137)
   val writeMode: WriteMode =
@@ -242,7 +245,8 @@ object CliRunner {
           config = config,
           rule = rule,
           replacePath = replace,
-          inputs = inputs
+          inputs = inputs,
+          diffs = builder.diffs
         ) {}
     }
   }
@@ -526,5 +530,32 @@ object CliRunner {
           }
       }
 
+    val diffs: Option[List[GitDiff]] = {
+      println(s"Diffs: ${cli.diff} ${cli.diffBranch}")
+      if (cli.diff || cli.diffBranch.nonEmpty) {
+        val baseBranch = cli.diffBranch.getOrElse("master")
+
+        // -U0 = unified, 0 context lines
+        val builder =
+          new ProcessBuilder("git", "diff", "-U0", baseBranch, "HEAD")
+        builder.redirectErrorStream(true)
+        val process = builder.start()
+        val input = process.getInputStream()
+
+        val diffParser = new GitDiffParser(
+          scala.io.Source.fromInputStream(input).getLines)
+        val diffs = diffParser.parse()
+        input.close()
+
+        GitDiffParser.show(diffs)
+
+        val exitValue = process.waitFor()
+        assert(exitValue == 0, s"git diff exited with value $exitValue")
+
+        Some(diffs)
+      } else {
+        None
+      }
+    }
   }
 }

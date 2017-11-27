@@ -27,25 +27,6 @@ class GitDiffParserSpec extends FunSuite {
     }
   }
 
-  def show(diffs: List[GitDiff]): Unit = {
-    println("== New Files ==")
-    diffs.foreach {
-      case NewFile(path) => println(path)
-      case _ => ()
-    }
-
-    println("== Modified Files ==")
-    diffs.foreach {
-      case ModifiedFile(path, changes) => {
-        println(path)
-        changes.foreach {
-          case Range(start, offset) => println(s"  [$start, ${start + offset}]")
-        }
-      }
-      case _ => ()
-    }
-  }
-
   test("parse tests") {
     (1 to 2).foreach { i =>
       val source = Source.fromURL(
@@ -54,7 +35,7 @@ class GitDiffParserSpec extends FunSuite {
       val gitDiffparser = new GitDiffParser(source.getLines)
       val diffs = gitDiffparser.parse()
       assert(!diffs.isEmpty)
-      // show(diffs)
+      // GitDiffParser.show(diffs)
       source.close()
     }
   }
