@@ -20,7 +20,11 @@ trait MultiScala {
       unmanagedSourceDirectories in Compile +=
         (baseDirectory in ThisBuild).value / base / sub / "src" / "main" / "scala",
       unmanagedSourceDirectories in Test +=
-        (baseDirectory in ThisBuild).value / base / sub / "src" / "test" / "scala"
+        (baseDirectory in ThisBuild).value / base / sub / "src" / "test" / "scala",
+      unmanagedResourceDirectories in Compile +=
+        (baseDirectory in ThisBuild).value / base / sub / "src" / "main" / "resources",
+      unmanagedResourceDirectories in Test +=
+        (baseDirectory in ThisBuild).value / base / sub / "src" / "test" / "resources"
     )
   }
 
@@ -29,7 +33,11 @@ trait MultiScala {
       unmanagedSourceDirectories in Compile +=
         (baseDirectory in ThisBuild).value / base / "src" / "main" / "scala",
       unmanagedSourceDirectories in Test +=
-        (baseDirectory in ThisBuild).value / base / "src" / "test" / "scala"
+        (baseDirectory in ThisBuild).value / base / "src" / "test" / "scala",
+      unmanagedResourceDirectories in Compile +=
+        (baseDirectory in ThisBuild).value / base / "src" / "main" / "resources",
+      unmanagedResourceDirectories in Test +=
+        (baseDirectory in ThisBuild).value / base / "src" / "test" / "resources"
     )
   }
 }
