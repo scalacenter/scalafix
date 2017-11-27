@@ -1,0 +1,132 @@
+diff --git a/scalafix-core/shared/src/main/scala/scalafix/internal/config/DisableConfig.scala b/scalafix-core/shared/src/main/scala/scalafix/internal/config/DisableConfig.scala
+deleted file mode 100644
+index 7940ad4b..00000000
+--- a/scalafix-core/shared/src/main/scala/scalafix/internal/config/DisableConfig.scala
++++ /dev/null
+@@ -1,18 +0,0 @@
+-package scalafix.internal.config
+-
+-import metaconfig.ConfDecoder
+-import org.langmeta.Symbol
+-
+-import MetaconfigPendingUpstream.XtensionConfScalafix
+-
+-case class DisableConfig(symbols: List[Symbol.Global] = Nil) {
+-  implicit val reader: ConfDecoder[DisableConfig] =
+-    ConfDecoder.instanceF[DisableConfig](
+-      _.getField(symbols).map(DisableConfig(_))
+-    )
+-}
+-
+-object DisableConfig {
+-  val default = DisableConfig()
+-  implicit val reader: ConfDecoder[DisableConfig] = default.reader
+-}
+\ No newline at end of file
+diff --git a/scalafix-core/shared/src/main/scala/scalafix/internal/config/NoInferConfig.scala b/scalafix-core/shared/src/main/scala/scalafix/internal/config/NoInferConfig.scala
+deleted file mode 100644
+index ada7374f..00000000
+--- a/scalafix-core/shared/src/main/scala/scalafix/internal/config/NoInferConfig.scala
++++ /dev/null
+@@ -1,18 +0,0 @@
+-package scalafix.internal.config
+-
+-import metaconfig.ConfDecoder
+-import org.langmeta.Symbol
+-
+-import MetaconfigPendingUpstream.XtensionConfScalafix
+-
+-case class NoInferConfig(symbols: List[Symbol.Global] = Nil) {
+-  implicit val reader: ConfDecoder[NoInferConfig] =
+-    ConfDecoder.instanceF[NoInferConfig](
+-      _.getField(symbols).map(NoInferConfig(_))
+-    )
+-}
+-
+-object NoInferConfig {
+-  val default = NoInferConfig()
+-  implicit val reader: ConfDecoder[NoInferConfig] = default.reader
+-}
+\ No newline at end of file
+diff --git a/scalafix-core/shared/src/main/scala/scalafix/internal/config/TargetSymbolsConfig.scala b/scalafix-core/shared/src/main/scala/scalafix/internal/config/TargetSymbolsConfig.scala
+new file mode 100644
+index 00000000..e96c5a5d
+--- /dev/null
++++ b/scalafix-core/shared/src/main/scala/scalafix/internal/config/TargetSymbolsConfig.scala
+@@ -0,0 +1,22 @@
++package scalafix.internal.config
++
++import metaconfig.ConfDecoder
++import org.langmeta._
++
++sealed trait TargetSymbolsConfig {
++  val symbols: List[Symbol]
++}
++
++object TargetSymbolsConfig {
++
++  def apply(xs: List[Symbol]): TargetSymbolsConfig =
++    new TargetSymbolsConfig { val symbols = xs }
++
++  def empty: TargetSymbolsConfig =
++    apply(Nil)
++
++  def decoder: ConfDecoder[TargetSymbolsConfig] =
++    ConfDecoder.instanceF[TargetSymbolsConfig] {
++      _.getOrElse[List[Symbol.Global]]("symbols")(Nil) map apply
++    }
++}
+diff --git a/scalafix-core/shared/src/main/scala/scalafix/internal/rule/Disable.scala b/scalafix-core/shared/src/main/scala/scalafix/internal/rule/Disable.scala
+index 3d346163..ae28510c 100644
+--- a/scalafix-core/shared/src/main/scala/scalafix/internal/rule/Disable.scala
++++ b/scalafix-core/shared/src/main/scala/scalafix/internal/rule/Disable.scala
+@@ -11 +11 @@ import scalafix.util.SymbolMatcher
+-import scalafix.internal.config.DisableConfig
++import scalafix.internal.config.TargetSymbolsConfig
+@@ -14 +14,3 @@ import scalafix.syntax._
+-final case class Disable(index: SemanticdbIndex, config: DisableConfig)
++final case class Disable(
++    index: SemanticdbIndex,
++    configuration: TargetSymbolsConfig)
+@@ -23 +25 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
+-    SymbolMatcher.normalized(config.symbols: _*)
++    SymbolMatcher.normalized(configuration.symbols: _*)
+@@ -27 +29,2 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
+-      .getOrElse("disable", "Disable")(DisableConfig.default)
++      .getOrElse[TargetSymbolsConfig]("Disable")(TargetSymbolsConfig.empty)(
++        TargetSymbolsConfig.decoder)
+diff --git a/scalafix-core/shared/src/main/scala/scalafix/internal/rule/NoInfer.scala b/scalafix-core/shared/src/main/scala/scalafix/internal/rule/NoInfer.scala
+index 8a463077..36a9f299 100644
+--- a/scalafix-core/shared/src/main/scala/scalafix/internal/rule/NoInfer.scala
++++ b/scalafix-core/shared/src/main/scala/scalafix/internal/rule/NoInfer.scala
+@@ -11 +11 @@ import scalafix.util.SymbolMatcher
+-import scalafix.internal.config.NoInferConfig
++import scalafix.internal.config.TargetSymbolsConfig
+@@ -13 +13,3 @@ import scalafix.internal.config.NoInferConfig
+-final case class NoInfer(index: SemanticdbIndex, config: NoInferConfig)
++final case class NoInfer(
++    index: SemanticdbIndex,
++    configuration: TargetSymbolsConfig)
+@@ -25 +27 @@ final case class NoInfer(index: SemanticdbIndex, config: NoInferConfig)
+-    if (config.symbols.isEmpty)
++    if (configuration.symbols.isEmpty)
+@@ -27 +29 @@ final case class NoInfer(index: SemanticdbIndex, config: NoInferConfig)
+-    else SymbolMatcher.normalized(config.symbols: _*)
++    else SymbolMatcher.normalized(configuration.symbols: _*)
+@@ -31 +33,2 @@ final case class NoInfer(index: SemanticdbIndex, config: NoInferConfig)
+-      .getOrElse("noInfer", "NoInfer")(NoInferConfig.default)
++      .getOrElse[TargetSymbolsConfig]("NoInfer")(TargetSymbolsConfig.empty)(
++        TargetSymbolsConfig.decoder)
+diff --git a/scalafix-core/shared/src/main/scala/scalafix/rule/ScalafixRules.scala b/scalafix-core/shared/src/main/scala/scalafix/rule/ScalafixRules.scala
+index 3589cabf..4c1076b2 100644
+--- a/scalafix-core/shared/src/main/scala/scalafix/rule/ScalafixRules.scala
++++ b/scalafix-core/shared/src/main/scala/scalafix/rule/ScalafixRules.scala
+@@ -5 +5 @@ import scalafix.internal.rule._
+-import scalafix.internal.config._
++import scalafix.internal.config.TargetSymbolsConfig
+@@ -19 +19 @@ object ScalafixRules {
+-    NoInfer(index, NoInferConfig.default),
++    NoInfer(index, TargetSymbolsConfig.empty),
+@@ -25 +25 @@ object ScalafixRules {
+-    Disable(index, DisableConfig.default)
++    Disable(index, TargetSymbolsConfig.empty)
