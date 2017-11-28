@@ -10,7 +10,7 @@ import scala.meta.dialects.Scala212
 
 import scalafix.lint.{LintMessage, LintSeverity}
 
-class AssertDeltaSuite() extends FunSuite {
+class AssertDeltaSuite() extends FunSuite with DiffAssertions {
   test("associate assert and reported message") {
     val input = Input.VirtualFile(
       path = "foo/bar/Disable.scala",
@@ -66,32 +66,30 @@ class AssertDeltaSuite() extends FunSuite {
 
     val obtained = diff.toString
 
-    // println(obtained)
-
     val expected =
       """|===========> Mismatch  <===========
          |
-         |Obtained: foo/bar/Disable.scala:2: error: [Disable.get]: 
+         |Obtained: foo/bar/Disable.scala:2:13: error: [Disable.get]:
          |Option.get is the root of all evils
          |  Option(1).get /* assert: Disable.get
          |            ^
-         |Expected: foo/bar/Disable.scala:2: error: 
+         |Expected: foo/bar/Disable.scala:2:14: error:
          |Option.get is the root of all evils
          |  Option(1).get /* assert: Disable.get
          |             ^
          |Diff:
-         |  Option(1).get 
+         |  Option(1).get
          |             ^-- asserted
          |            ^-- reported
          |
          |
          |---------------------------------------
          |
-         |Obtained: foo/bar/Disable.scala:7: error: [Disable.get]: 
+         |Obtained: foo/bar/Disable.scala:7:13: error: [Disable.get]:
          |Option.get is the root of all evils
          |  Option(2).get // assert: Disable.foo
          |            ^
-         |Expected: foo/bar/Disable.scala:7: error: 
+         |Expected: foo/bar/Disable.scala:7:17: error:
          |  Option(2).get // assert: Disable.foo
          |                ^
          |Diff:
@@ -100,50 +98,44 @@ class AssertDeltaSuite() extends FunSuite {
          |
          |===========> Unexpected <===========
          |
-         |foo/bar/Disable.scala:11: error: [Disable.get]: 
+         |foo/bar/Disable.scala:11:13: error: [Disable.get]:
          |Option.get is the root of all evils
          |  Option(4).get
          |            ^
          |
          |---------------------------------------
          |
-         |foo/bar/Disable.scala:15: error: [Disable.get]: 
+         |foo/bar/Disable.scala:15:13: error: [Disable.get]:
          |Option.get is the root of all evils
          |  Option(6).get
          |            ^
          |
          |---------------------------------------
          |
-         |foo/bar/Disable.scala:19: error: [Disable.get]: 
+         |foo/bar/Disable.scala:19:13: error: [Disable.get]:
          |Option.get is the root of all evils
          |  Option(8).get
          |            ^
          |
          |===========> Unreported <===========
          |
-         |foo/bar/Disable.scala:9: error: 
+         |foo/bar/Disable.scala:9:5: error:
          |  3 // assert: Disable.get
          |    ^
          |
          |---------------------------------------
          |
-         |foo/bar/Disable.scala:13: error: 
+         |foo/bar/Disable.scala:13:5: error:
          |  5 // assert: Disable.get
          |    ^
          |
          |---------------------------------------
          |
-         |foo/bar/Disable.scala:17: error: 
+         |foo/bar/Disable.scala:17:5: error:
          |  7 // assert: Disable.get
          |    ^
          |""".stripMargin
 
-    val diffStr =
-      DiffAssertions.compareContents(
-        expected,
-        obtained
-      )
-
-    assert(diffStr.isEmpty)
+    assertNoDiff(expected, obtained.replaceAllLiterally(" \n", "\n"))
   }
 }
