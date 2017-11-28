@@ -89,8 +89,8 @@ class GitDiffParser(input: Iterator[String]) {
   private val Command = "^diff --git a/(.*) b/(.*)$".r
   private val Deleted = "^deleted file mode [0-9]{6}$".r
   private val New = "^new file mode [0-9]{6}$".r
-  private val Index = "^index [a-z0-9]{8}..[a-z0-9]{8}$".r
-  private val Index2 = "^index [a-z0-9]{8}..[a-z0-9]{8} [0-9]{6}$".r
+  private val Index = "^index [a-z0-9]{1,40}..[a-z0-9]{1,40}$".r
+  private val Index2 = "^index [a-z0-9]{1,40}..[a-z0-9]{1,40} [0-9]{6}$".r
   private val Similarity = "similarity index \\d{2}%".r
   private val OriginalFile = "--- (.*)$".r
   private val RevisedFile = "^\\+\\+\\+ (.*)$".r
@@ -169,6 +169,7 @@ class GitDiffParser(input: Iterator[String]) {
             case line =>
               throw new Exception(s"expected HunkHeader, got '$line'")
           }
+          optional(NoNewLine)
         }
         case Index2() => {
           diffs += ModifiedFile(revisedPath, acceptHunks())

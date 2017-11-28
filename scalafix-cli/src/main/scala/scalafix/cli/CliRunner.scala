@@ -543,7 +543,7 @@ object CliRunner {
         val baseBranch = cli.diffBranch.getOrElse("master")
         // -U0 = unified, 0 context lines
         val builder =
-          new ProcessBuilder("git", "diff", "-U0", baseBranch, "HEAD")
+          new ProcessBuilder("git", "diff", "-U0", baseBranch)
         builder.redirectErrorStream(true)
         builder.directory(common.workingPath.toFile)
         val process = builder.start()

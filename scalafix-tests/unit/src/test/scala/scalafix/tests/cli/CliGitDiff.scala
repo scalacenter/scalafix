@@ -41,12 +41,16 @@ class CliGitDiff() extends FunSuite with DiffAssertions {
     git.add(confFile)
     git.commit()
 
+    git.checkout("pr-1")
+
     fs.add(
       newCode,
       """|object NewCode {
          |  // New code, no vars
          |  var a = 1
          |}""".stripMargin)
+    git.add(newCode)
+    git.commit()
 
     val obtained = cli.run("--diff")
 
@@ -58,6 +62,9 @@ class CliGitDiff() extends FunSuite with DiffAssertions {
 
     assertNoDiff(obtained, expected)
   }
+
+  // gitTest("it should handle stdin") { (fs, git, cli) =>
+  // }
 
   def gitTest(name: String)(body: (Fs, Git, Cli) => Unit): Unit = {
     test(name) {
@@ -72,6 +79,8 @@ class CliGitDiff() extends FunSuite with DiffAssertions {
   class Fs() {
     val workingDirectory: Path =
       Files.createTempDirectory("scalafix")
+
+    // workingDirectory.toFile.deleteOnExit()
 
     def add(filename: String, content: String): Unit =
       write(filename, content, StandardOpenOption.CREATE_NEW)
@@ -110,6 +119,9 @@ class CliGitDiff() extends FunSuite with DiffAssertions {
 
     def rm(filename: String): Unit =
       git(s"rm $filename")
+
+    def checkout(branch: String): Unit =
+      git(s"checkout -b $branch")
 
     def commit(): Unit = {
       git(s"commit -m 'r$revision'")

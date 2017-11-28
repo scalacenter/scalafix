@@ -156,7 +156,7 @@ case class ScalafixOptions(
          |
          |scalafix --diff
          |scalafix --diff-branch=master
-         |scalafix --diff-stdin < git diff master HEAD
+         |scalafix --diff-stdin < git diff -U0 master
          |
          |all produce the same result""".stripMargin
     )
