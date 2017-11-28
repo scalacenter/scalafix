@@ -71,11 +71,11 @@ class AssertDeltaSuite() extends FunSuite {
     val expected =
       """|===========> Mismatch  <===========
          |
-         |Obtained: foo/bar/Disable.scala:2:13 error: [Disable.get]:
+         |Obtained: foo/bar/Disable.scala:2:13: error: [Disable.get]:
          |Option.get is the root of all evils
          |  Option(1).get /* assert: Disable.get
          |            ^
-         |Expected: foo/bar/Disable.scala:2:13 error:
+         |Expected: foo/bar/Disable.scala:2:13: error:
          |Option.get is the root of all evils
          |  Option(1).get /* assert: Disable.get
          |             ^
@@ -87,11 +87,11 @@ class AssertDeltaSuite() extends FunSuite {
          |
          |---------------------------------------
          |
-         |Obtained: foo/bar/Disable.scala:7:13 error: [Disable.get]:
+         |Obtained: foo/bar/Disable.scala:7:13: error: [Disable.get]:
          |Option.get is the root of all evils
          |  Option(2).get // assert: Disable.foo
          |            ^
-         |Expected: foo/bar/Disable.scala:7:13 error:
+         |Expected: foo/bar/Disable.scala:7:13: error:
          |  Option(2).get // assert: Disable.foo
          |                ^
          |Diff:
@@ -100,40 +100,40 @@ class AssertDeltaSuite() extends FunSuite {
          |
          |===========> Unexpected <===========
          |
-         |foo/bar/Disable.scala:11:13 error: [Disable.get]:
+         |foo/bar/Disable.scala:11:13: error: [Disable.get]:
          |Option.get is the root of all evils
          |  Option(4).get
          |            ^
          |
          |---------------------------------------
          |
-         |foo/bar/Disable.scala:15:13 error: [Disable.get]:
+         |foo/bar/Disable.scala:15:13: error: [Disable.get]:
          |Option.get is the root of all evils
          |  Option(6).get
          |            ^
          |
          |---------------------------------------
          |
-         |foo/bar/Disable.scala:19:13 error: [Disable.get]:
+         |foo/bar/Disable.scala:19:13: error: [Disable.get]:
          |Option.get is the root of all evils
          |  Option(8).get
          |            ^
          |
          |===========> Unreported <===========
          |
-         |foo/bar/Disable.scala:9:5 error:
+         |foo/bar/Disable.scala:9:5: error:
          |  3 // assert: Disable.get
          |    ^
          |
          |---------------------------------------
          |
-         |foo/bar/Disable.scala:13:5 error:
+         |foo/bar/Disable.scala:13:5: error:
          |  5 // assert: Disable.get
          |    ^
          |
          |---------------------------------------
          |
-         |foo/bar/Disable.scala:17:5 error:
+         |foo/bar/Disable.scala:17:5: error:
          |  7 // assert: Disable.get
          |    ^
          |""".stripMargin
