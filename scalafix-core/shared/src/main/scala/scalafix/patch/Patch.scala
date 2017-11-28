@@ -136,7 +136,8 @@ object Patch {
     }
 
     val messages = builder.result()
-    ctxImpl.escapeHatch.filter(messages)
+
+    ctx.filterLintMessage(messages)
   }
 
   // Patch.apply and Patch.lintMessages package private. Feel free to use them

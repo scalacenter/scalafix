@@ -10,6 +10,8 @@ import scala.meta.dialects.Scala212
 import scala.meta.parsers.Parse
 import metaconfig._
 
+import scalafix.diff.GitDiff
+
 case class ScalafixConfig(
     parser: Parse[_ <: Tree] = Parse.parseSource,
     debug: DebugConfig = DebugConfig(),
@@ -18,7 +20,8 @@ case class ScalafixConfig(
     reporter: ScalafixReporter = ScalafixReporter.default,
     patches: ConfigRulePatches = ConfigRulePatches.default,
     dialect: Dialect = ScalafixConfig.DefaultDialect,
-    lint: LintConfig = LintConfig.default
+    lint: LintConfig = LintConfig.default,
+    diffs: Option[List[GitDiff]] = None
 ) {
 
   def withFreshReporters: ScalafixConfig = copy(

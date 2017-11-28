@@ -111,7 +111,9 @@ sealed abstract case class CliRunner(
 
   def unsafeHandleInput(input: FixFile): ExitStatus = {
     val inputConfig =
-      if (input.original.label.endsWith(".sbt")) sbtConfig else config
+      if (input.original.label.endsWith(".sbt")) sbtConfig
+      else config
+
     inputConfig.dialect(input.toParse).parse[Source] match {
       case parsers.Parsed.Error(pos, message, _) =>
         if (cli.quietParseErrors && !input.passedExplicitly) {
@@ -123,7 +125,7 @@ sealed abstract case class CliRunner(
           ExitStatus.ParseError
         }
       case parsers.Parsed.Success(tree) =>
-        val ctx = RuleCtx(tree, config)
+        val ctx = RuleCtx(tree, config.copy(diffs = diffs))
         val fixed = rule.apply(ctx)
         writeMode match {
           case WriteMode.Stdout =>
@@ -531,11 +533,10 @@ object CliRunner {
 
     private def runDiff(input: InputStream): List[GitDiff] = {
       val diffParser = new GitDiffParser(
-        scala.io.Source.fromInputStream(input).getLines
+        scala.io.Source.fromInputStream(input).getLines,
+        common.workingPath.toNIO
       )
-      val diffs = diffParser.parse()
-      GitDiffParser.show(diffs)
-      diffs
+      diffParser.parse()
     }
 
     val diffs: Option[List[GitDiff]] = {

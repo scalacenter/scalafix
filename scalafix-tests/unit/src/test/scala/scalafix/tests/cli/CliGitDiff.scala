@@ -31,7 +31,7 @@ class CliGitDiff() extends FunSuite with DiffAssertions {
       oldCode,
       """|object OldCode {
          |  // This is old code, where var's blossom
-         |  var a = 1
+         |  var oldVar = 1
          |}""".stripMargin)
     git.add(oldCode)
     fs.add(
@@ -47,24 +47,24 @@ class CliGitDiff() extends FunSuite with DiffAssertions {
       newCode,
       """|object NewCode {
          |  // New code, no vars
-         |  var a = 1
+         |  var newVar = 1
          |}""".stripMargin)
     git.add(newCode)
     git.commit()
 
-    val obtained = cli.run("--diff")
+    val obtained = noColor(cli.run("--diff"))
 
     val expected =
       s"""|$newCodeAbsPath:3: error: [DisableSyntax.keywords.var] keywords.var is disabled
-          |  var a = 1
+          |  var newVar = 1
           |  ^
           |""".stripMargin
 
     assertNoDiff(obtained, expected)
   }
 
-  // gitTest("it should handle stdin") { (fs, git, cli) =>
-  // }
+  def noColor(in: String): String =
+    in.replaceAll("\u001B\\[[;\\d]*m", "")
 
   def gitTest(name: String)(body: (Fs, Git, Cli) => Unit): Unit = {
     test(name) {
@@ -80,7 +80,7 @@ class CliGitDiff() extends FunSuite with DiffAssertions {
     val workingDirectory: Path =
       Files.createTempDirectory("scalafix")
 
-    // workingDirectory.toFile.deleteOnExit()
+    workingDirectory.toFile.deleteOnExit()
 
     def add(filename: String, content: String): Unit =
       write(filename, content, StandardOpenOption.CREATE_NEW)
@@ -135,12 +135,12 @@ class CliGitDiff() extends FunSuite with DiffAssertions {
       builder.directory(workingDirectory.toFile)
       builder.redirectErrorStream(true)
       val process = builder.start()
-      val input = process.getInputStream()
-      scala.io.Source
-        .fromInputStream(input)
-        .getLines
-        .foreach(line => println(line))
-      input.close()
+      // val input = process.getInputStream()
+      // scala.io.Source
+      //   .fromInputStream(input)
+      //   .getLines
+      //   .foreach(line => println(line))
+      // input.close()
 
       val exitValue = process.waitFor()
       val ExitCodeDiff = 1

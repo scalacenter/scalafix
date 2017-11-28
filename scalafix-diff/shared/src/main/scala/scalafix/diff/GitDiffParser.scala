@@ -2,11 +2,13 @@ package scalafix.diff
 
 import scala.util.matching.Regex
 
+import java.nio.file.Path
+
 case class Range(start: Int, length: Int)
 
 sealed trait GitDiff
-case class NewFile(path: String) extends GitDiff
-case class ModifiedFile(path: String, changes: List[Range]) extends GitDiff
+case class NewFile(path: Path) extends GitDiff
+case class ModifiedFile(path: Path, changes: List[Range]) extends GitDiff
 
 private[diff] case class Hunk(
     originalLine: Int,
@@ -83,7 +85,7 @@ object GitDiffParser {
   }
 }
 
-class GitDiffParser(input: Iterator[String]) {
+class GitDiffParser(input: Iterator[String], workingDir: Path) {
   private val lines = new PeekableSource(input)
 
   private val Command = "^diff --git a/(.*) b/(.*)$".r
@@ -97,6 +99,9 @@ class GitDiffParser(input: Iterator[String]) {
   private val RenameFrom = "^rename from (.*)$".r
   private val RenameTo = "^rename to (.*)$".r
   private val NoNewLine = "\\ No newline at end of file"
+
+  def path(relative: String): Path =
+    workingDir.resolve(relative)
 
   private def accept(regex: Regex): Unit = {
     val line = lines.next()
@@ -163,7 +168,7 @@ class GitDiffParser(input: Iterator[String]) {
           accept(RevisedFile)
           lines.next() match {
             case HunkExtractor(Hunk(_, originalCount, _, revisedCount)) => {
-              diffs += NewFile(revisedPath)
+              diffs += NewFile(path(revisedPath))
               skip(originalCount + revisedCount)
             }
             case line =>
@@ -172,13 +177,13 @@ class GitDiffParser(input: Iterator[String]) {
           optional(NoNewLine)
         }
         case Index2() => {
-          diffs += ModifiedFile(revisedPath, acceptHunks())
+          diffs += ModifiedFile(path(revisedPath), acceptHunks())
         }
         case Similarity() => {
           accept(RenameFrom)
           accept(RenameTo)
           accept(Index2)
-          diffs += ModifiedFile(revisedPath, acceptHunks())
+          diffs += ModifiedFile(path(revisedPath), acceptHunks())
         }
         case line => throw new Exception(s"other: '$line'")
       }

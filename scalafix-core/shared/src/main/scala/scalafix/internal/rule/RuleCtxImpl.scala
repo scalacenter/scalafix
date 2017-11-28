@@ -37,6 +37,7 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
   lazy val comments: AssociatedComments = AssociatedComments(tokens)
   lazy val input: Input = tokens.head.input
   lazy val escapeHatch = EscapeHatch(tree, comments)
+  lazy val diffDisable = config.diffs.map(diffs => new DiffDisable(diffs))
 
   // Debug utilities
   def index(implicit index: SemanticdbIndex): SemanticdbIndex =
@@ -51,6 +52,16 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
       implicit fileLine: FileLine): Unit = {
     // alias for org.scalameta.logger.
     logger.elem(values: _*)
+  }
+
+  def filterLintMessage(lints: List[LintMessage]): List[LintMessage] = {
+    val lints0 = escapeHatch.filter(lints)
+
+    diffDisable
+      .map(
+        _.filter(lints0)
+      )
+      .getOrElse(lints0)
   }
 
   def printLintMessage(msg: LintMessage): Unit = {
