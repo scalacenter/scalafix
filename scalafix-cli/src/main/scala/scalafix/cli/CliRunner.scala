@@ -1,8 +1,7 @@
 package scalafix
 package cli
 
-import java.io.File
-import java.io.OutputStreamWriter
+import java.io.{File, OutputStreamWriter, InputStream}
 import java.lang.ProcessBuilder
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
@@ -530,29 +529,40 @@ object CliRunner {
           }
       }
 
+    private def runDiff(input: InputStream): List[GitDiff] = {
+      val diffParser = new GitDiffParser(
+        scala.io.Source.fromInputStream(input).getLines
+      )
+      val diffs = diffParser.parse()
+      GitDiffParser.show(diffs)
+      diffs
+    }
+
     val diffs: Option[List[GitDiff]] = {
-      println(s"Diffs: ${cli.diff} ${cli.diffBranch}")
       if (cli.diff || cli.diffBranch.nonEmpty) {
         val baseBranch = cli.diffBranch.getOrElse("master")
-
         // -U0 = unified, 0 context lines
         val builder =
           new ProcessBuilder("git", "diff", "-U0", baseBranch, "HEAD")
         builder.redirectErrorStream(true)
+        builder.directory(common.workingPath.toFile)
         val process = builder.start()
         val input = process.getInputStream()
-
-        val diffParser = new GitDiffParser(
-          scala.io.Source.fromInputStream(input).getLines)
-        val diffs = diffParser.parse()
+        val diffs = runDiff(input)
         input.close()
-
-        GitDiffParser.show(diffs)
-
         val exitValue = process.waitFor()
-        assert(exitValue == 0, s"git diff exited with value $exitValue")
+        val ExitCodeDiff = 1
+        val ExitCodeNoDiff = 0
+
+        assert(
+          exitValue == ExitCodeDiff ||
+            exitValue == ExitCodeNoDiff,
+          s"git diff exited with value $exitValue"
+        )
 
         Some(diffs)
+      } else if (cli.diffStdin) {
+        Some(runDiff(System.in))
       } else {
         None
       }
