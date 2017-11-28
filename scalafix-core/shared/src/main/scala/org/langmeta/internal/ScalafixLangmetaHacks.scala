@@ -11,8 +11,10 @@ object ScalafixLangmetaHacks {
       message: String): String = {
     if (pos != Position.None) {
       val input = pos.input
+      val startLine = pos.startLine + 1
+      val startColumn = pos.startColumn + 1
       val header =
-        s"${input.syntax}:${pos.startLine + 1}: $severity: $message"
+        s"${input.syntax}:$startLine:$startColumn $severity: $message"
       val line = {
         val start = input.lineToOffset(pos.startLine)
         val notEof = start < input.chars.length
