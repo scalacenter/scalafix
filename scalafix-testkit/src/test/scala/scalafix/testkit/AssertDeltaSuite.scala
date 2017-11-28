@@ -10,7 +10,7 @@ import scala.meta.dialects.Scala212
 
 import scalafix.lint.{LintMessage, LintSeverity}
 
-class AssertDeltaSuite() extends FunSuite {
+class AssertDeltaSuite() extends FunSuite with DiffAssertions {
   test("associate assert and reported message") {
     val input = Input.VirtualFile(
       path = "foo/bar/Disable.scala",
@@ -66,8 +66,6 @@ class AssertDeltaSuite() extends FunSuite {
 
     val obtained = diff.toString
 
-    // println(obtained)
-
     val expected =
       """|===========> Mismatch  <===========
          |
@@ -75,7 +73,7 @@ class AssertDeltaSuite() extends FunSuite {
          |Option.get is the root of all evils
          |  Option(1).get /* assert: Disable.get
          |            ^
-         |Expected: foo/bar/Disable.scala:2:13: error:
+         |Expected: foo/bar/Disable.scala:2:14: error:
          |Option.get is the root of all evils
          |  Option(1).get /* assert: Disable.get
          |             ^
@@ -91,7 +89,7 @@ class AssertDeltaSuite() extends FunSuite {
          |Option.get is the root of all evils
          |  Option(2).get // assert: Disable.foo
          |            ^
-         |Expected: foo/bar/Disable.scala:7:13: error:
+         |Expected: foo/bar/Disable.scala:7:17: error:
          |  Option(2).get // assert: Disable.foo
          |                ^
          |Diff:
@@ -138,12 +136,6 @@ class AssertDeltaSuite() extends FunSuite {
          |    ^
          |""".stripMargin
 
-    val diffStr =
-      DiffAssertions.compareContents(
-        expected,
-        obtained
-      )
-
-    assert(diffStr.isEmpty)
+    assertNoDiff(expected, obtained.replaceAllLiterally(" \n", "\n"))
   }
 }
