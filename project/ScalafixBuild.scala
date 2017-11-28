@@ -177,7 +177,13 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "sonatypeReleaseAll" ::
         s
     },
-    commands += Command.command("ci-slow") { s =>
+    commands += Command.command("ci-sbt") { s =>
+      // Don't run tests on sbt 1.0, blocked by
+      // https://github.com/scalameta/scalameta/issues/1157
+      s"^^ $sbt1 scalafix-sbt/publishLocal" ::
+        s
+    },
+    commands += Command.command("ci-sbt-sbt013") { s =>
       "scalafix-sbt/scripted" ::
         s
     },
