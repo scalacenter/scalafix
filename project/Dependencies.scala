@@ -16,7 +16,7 @@ object Dependencies {
   val currentScalaVersion = scala212
 
   def sbt013 = "0.13.6"
-  def sbt1 = "1.0.3" // blocked by https://github.com/scalameta/scalameta/issues/1157
+  def sbt1 = "1.0.4"
 
   var testClasspath: String = "empty"
   def semanticdb: ModuleID = "org.scalameta" % "semanticdb-scalac" % scalametaV cross CrossVersion.full
