@@ -174,6 +174,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "scalafix/publishSigned" ::
         "scalafix211/publishSigned" ::
         "scalafix-sbt/publishSigned" ::
+        s"^^ $sbt1 scalafix-sbt/publishSigned" ::
         "sonatypeReleaseAll" ::
         s
     },
