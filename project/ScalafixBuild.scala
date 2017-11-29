@@ -179,8 +179,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         s
     },
     commands += Command.command("ci-sbt") { s =>
-      // Don't run tests on sbt 1.0, blocked by
-      // https://github.com/scalameta/scalameta/issues/1157
+      // scripted tests don't work in sbt 1.0 yet because we run Sbt1
       s"^^ $sbt1 scalafix-sbt/publishLocal" ::
         s
     },
