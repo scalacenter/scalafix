@@ -69,7 +69,7 @@ git diff // should produce a diff
 | Name | Type | Description
 |------|------|-------------
 | `scalafix <rule>..` | `Unit` | Run scalafix on project sources. See {% doc_ref Rules %} or use tab completion to explore supported rules.
-| `sbtfix <rule>..` | `Unit` | Run scalafix on the build sources, `*.sbt` and `project/*`. __Note__: Only supports syntactic rules for sbt 1.0. Requires semanticdb-sbt to run semantic rules for sbt 0.13.
+| `sbtfix <rule>..` | `Unit` | Run scalafix on the build sources, `*.sbt` and `project/*`. __Note__: Only supports syntactic rules.
 | `scalafixSourceRoot` | `File` | The root directory of this project.
 | `scalafixScalacOptions` | `Seq[String]` | Necessary Scala compiler settings for scalafix to work.
 | `scalafixVersion` | `String` | Which version of scalafix-cli to run.
@@ -82,19 +82,18 @@ git diff // should produce a diff
 
 semanticdb-sbt is a Scala 2.10 compiler plugin that extracts semantic
 information from the sbt compiler.
-Note. semanticdb-sbt is only intended to be used with sbt 0.13, it does not
-support sbt 1.0. To enable semanticdb-sbt,
+Note. semanticdb-sbt only works for *.scala files, it does not
+support *.sbt files.
 
 ```scala
 // project/plugins.sbt
 addCompilerPlugin("org.scalameta" % "semanticdb-sbt" % "{{ site.semanticdbSbtVersion }}" cross CrossVersion.full)
 ```
 
-Once enabled, you can run scalafix rules against `project/*.scala` and `*.sbt`
-files with
+Once enabled, you can run scalafix rules against `project/*.scala`:
 
 ```scala
-> reload // rebuild semanticdb for *.sbt and project/*.scala sources
+> reload // rebuild semanticdb for project/*.scala sources
 > sbtfix Sbt1
 ```
 

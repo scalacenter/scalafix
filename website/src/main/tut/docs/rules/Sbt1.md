@@ -8,7 +8,8 @@ title: Sbt1
 **⚠️ Experimental**
 
 Upgrade deprecated sbt 0.13 syntax to sbt 1.0 compatible syntax.
-Note. This rule is only intended to be used with sbt 0.13, there is no
+Note. This rule is only intended to be used with *.scala files for sbt 0.13.
+This rule does not work for *.sbt files and there is no
 need to run this rule if you are already using sbt 1.0.
 
 To fix the sbt build sources of your build use __sbtfix___:
