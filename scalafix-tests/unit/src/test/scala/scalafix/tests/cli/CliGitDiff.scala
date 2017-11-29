@@ -24,8 +24,6 @@ class CliGitDiff() extends FunSuite with DiffAssertions {
     val newCode = "new.scala"
     val newCodeAbsPath = fs.absPath(newCode)
 
-    val confFile = ".scalafix.conf"
-
     git.init()
     fs.add(
       oldCode,
@@ -34,11 +32,7 @@ class CliGitDiff() extends FunSuite with DiffAssertions {
          |  var oldVar = 1
          |}""".stripMargin)
     git.add(oldCode)
-    fs.add(
-      confFile,
-      """|rules = DisableSyntax
-         |DisableSyntax.keywords = [var]""".stripMargin)
-    git.add(confFile)
+    addConf(fs, git)
     git.commit()
 
     git.checkout("pr-1")
@@ -52,7 +46,7 @@ class CliGitDiff() extends FunSuite with DiffAssertions {
     git.add(newCode)
     git.commit()
 
-    val obtained = noColor(cli.run("--diff"))
+    val obtained = runDiff(cli)
 
     val expected =
       s"""|$newCodeAbsPath:3: error: [DisableSyntax.keywords.var] keywords.var is disabled
@@ -63,10 +57,69 @@ class CliGitDiff() extends FunSuite with DiffAssertions {
     assertNoDiff(obtained, expected)
   }
 
-  def noColor(in: String): String =
+  gitTest("it should handle modification") { (fs, git, cli) =>
+    val oldCode = "old.scala"
+    val oldCodeAbsPath = fs.absPath(oldCode)
+
+    git.init()
+    fs.add(
+      oldCode,
+      """|object OldCode {
+         |  // This is old code, where var's blossom
+         |  var oldVar = 1
+         |}""".stripMargin)
+    git.add(oldCode)
+    addConf(fs, git)
+    git.commit()
+
+    git.checkout("pr-1")
+    fs.replace(
+      oldCode,
+      """|object OldCode {
+         |  // This is old code, where var's blossom
+         |  var oldVar = 1
+         |  // It's not ok to add new vars
+         |  var newVar = 2
+         |}""".stripMargin
+    )
+    git.add(oldCode)
+    git.commit()
+
+    val obtained = runDiff(cli)
+
+    val expected =
+      s"""|$oldCodeAbsPath:5: error: [DisableSyntax.keywords.var] keywords.var is disabled
+          |  var newVar = 2
+          |  ^
+          |""".stripMargin
+
+    assertNoDiff(obtained, expected)
+  }
+
+  // gitTest("it should handle rename") { (fs, git, cli)
+
+  // }
+
+  // gitTest("it should handle deletion") { (fs, git, cli)
+
+  // }
+
+  private def runDiff(cli: Cli): String =
+    noColor(cli.run("--diff"))
+
+  private def addConf(fs: Fs, git: Git): Unit = {
+    val confFile = ".scalafix.conf"
+    fs.add(
+      confFile,
+      """|rules = DisableSyntax
+         |DisableSyntax.keywords = [var]""".stripMargin)
+    git.add(confFile)
+  }
+
+  private def noColor(in: String): String =
     in.replaceAll("\u001B\\[[;\\d]*m", "")
 
-  def gitTest(name: String)(body: (Fs, Git, Cli) => Unit): Unit = {
+  private def gitTest(name: String)(body: (Fs, Git, Cli) => Unit): Unit = {
     test(name) {
       val fs = new Fs()
       val git = new Git(fs.workingDirectory)
@@ -76,7 +129,7 @@ class CliGitDiff() extends FunSuite with DiffAssertions {
     }
   }
 
-  class Fs() {
+  private class Fs() {
     val workingDirectory: Path =
       Files.createTempDirectory("scalafix")
 
@@ -87,6 +140,11 @@ class CliGitDiff() extends FunSuite with DiffAssertions {
 
     def append(filename: String, content: String): Unit =
       write(filename, content, StandardOpenOption.APPEND)
+
+    def replace(filename: String, content: String): Unit = {
+      rm(filename)
+      add(filename, content)
+    }
 
     def rm(filename: String): Unit =
       Files.delete(path(filename))
@@ -108,7 +166,7 @@ class CliGitDiff() extends FunSuite with DiffAssertions {
       workingDirectory.resolve(filename)
   }
 
-  class Git(workingDirectory: Path) {
+  private class Git(workingDirectory: Path) {
     private var revision = 0
 
     def init(): Unit =
@@ -154,7 +212,7 @@ class CliGitDiff() extends FunSuite with DiffAssertions {
     }
   }
 
-  class Cli(workingDirectory: Path) {
+  private class Cli(workingDirectory: Path) {
     def run(args: String*): String = {
       val baos = new ByteArrayOutputStream()
       val ps = new PrintStream(baos)
