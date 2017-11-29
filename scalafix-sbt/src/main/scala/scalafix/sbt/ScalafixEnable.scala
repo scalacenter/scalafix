@@ -6,9 +6,16 @@ import sbt._, Keys._
 /** Command to automatically enable semanticdb-scalac for shell session */
 object ScalafixEnable {
   import ScalafixPlugin.autoImport._
-  lazy val partialToFullScalaVersion: Map[(Int, Int), String] = (for {
+
+  /** sbt 1.0 and 0.13 compatible implementation of partialVersion */
+  private def partialVersion(version: String): Option[(Long, Long)] =
+    CrossVersion.partialVersion(version).map {
+      case (a, b) => (a.toLong, b.toLong)
+    }
+
+  lazy val partialToFullScalaVersion: Map[(Long, Long), String] = (for {
     v <- BuildInfo.supportedScalaVersions
-    p <- CrossVersion.partialVersion(v).toList
+    p <- partialVersion(v).toList
   } yield p -> v).toMap
 
   def projectsWithMatchingScalaVersion(
@@ -17,7 +24,7 @@ object ScalafixEnable {
     for {
       p <- extracted.structure.allProjectRefs
       version <- scalaVersion.in(p).get(extracted.structure.data).toList
-      partialVersion <- CrossVersion.partialVersion(version).toList
+      partialVersion <- partialVersion(version).toList
       fullVersion <- partialToFullScalaVersion.get(partialVersion).toList
     } yield p -> fullVersion
   }
