@@ -96,13 +96,47 @@ class CliGitDiff() extends FunSuite with DiffAssertions {
     assertNoDiff(obtained, expected)
   }
 
-  // gitTest("it should handle rename") { (fs, git, cli)
+  gitTest("it should handle rename") { (fs, git, cli) =>
+    val oldCode = "old.scala"
+    val newCode = "new.scala"
+    val newCodeAbsPath = fs.absPath(newCode)
 
-  // }
+    git.init()
+    fs.add(
+      oldCode,
+      """|object OldCode {
+         |  // This is old code, where var's blossom
+         |  var oldVar = 1
+         |}""".stripMargin)
+    git.add(oldCode)
+    addConf(fs, git)
+    git.commit()
 
-  // gitTest("it should handle deletion") { (fs, git, cli)
+    git.checkout("pr-1")
+    fs.replace(
+      oldCode,
+      """|object OldCode {
+         |  // This is old code, where var's blossom
+         |  var oldVar = 1
+         |  // It's not ok to add new vars
+         |  var newVar = 2
+         |}""".stripMargin
+    )
+    fs.mv(oldCode, newCode)
+    git.add(oldCode)
+    git.add(newCode)
+    git.commit()
 
-  // }
+    val obtained = runDiff(cli)
+
+    val expected =
+      s"""|$newCodeAbsPath:5: error: [DisableSyntax.keywords.var] keywords.var is disabled
+          |  var newVar = 2
+          |  ^
+          |""".stripMargin
+
+    assertNoDiff(obtained, expected)
+  }
 
   private def runDiff(cli: Cli): String =
     noColor(cli.run("--diff"))
