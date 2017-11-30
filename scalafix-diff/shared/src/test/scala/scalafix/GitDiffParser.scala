@@ -1,5 +1,6 @@
 package scalafix.diff
 
+import java.nio.file.Paths
 import org.scalatest.FunSuite
 import scala.io.Source
 
@@ -32,7 +33,7 @@ class GitDiffParserSpec extends FunSuite {
       val source = Source.fromURL(
         getClass.getClassLoader.getResource(s"./git$i.diff")
       )
-      val gitDiffparser = new GitDiffParser(source.getLines)
+      val gitDiffparser = new GitDiffParser(source.getLines, Paths.get("."))
       val diffs = gitDiffparser.parse()
       assert(!diffs.isEmpty)
       // GitDiffParser.show(diffs)
