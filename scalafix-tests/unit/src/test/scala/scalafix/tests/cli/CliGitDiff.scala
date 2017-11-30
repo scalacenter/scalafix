@@ -235,14 +235,7 @@ class CliGitDiff() extends FunSuite with DiffAssertions {
       // input.close()
 
       val exitValue = process.waitFor()
-      val ExitCodeDiff = 1
-      val ExitCodeNoDiff = 0
-
-      assert(
-        exitValue == ExitCodeDiff ||
-          exitValue == ExitCodeNoDiff,
-        s"git diff exited with value $exitValue"
-      )
+      assert(exitValue == 0, s"git diff exited with value $exitValue")
     }
   }
 

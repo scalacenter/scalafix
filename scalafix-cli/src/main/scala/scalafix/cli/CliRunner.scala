@@ -35,6 +35,7 @@ import scalafix.internal.config.RuleKind
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.util.Failure
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
+import scalafix.internal.rule.DiffDisable
 import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
 import metaconfig.Configured.Ok
@@ -48,7 +49,7 @@ sealed abstract case class CliRunner(
     rule: Rule,
     inputs: Seq[FixFile],
     replacePath: AbsolutePath => AbsolutePath,
-    diffs: Option[List[GitDiff]]
+    diffDisable: Option[DiffDisable]
 ) {
   val sbtConfig: ScalafixConfig = config.copy(dialect = dialects.Sbt0137)
   val writeMode: WriteMode =
@@ -125,8 +126,21 @@ sealed abstract case class CliRunner(
           ExitStatus.ParseError
         }
       case parsers.Parsed.Success(tree) =>
-        val ctx = RuleCtx(tree, config.copy(diffs = diffs))
-        val fixed = rule.apply(ctx)
+        val ctx = RuleCtx(tree, config)
+        val (fixed, messages0) = rule.applyAndLint(ctx)
+
+        val messages =
+          diffDisable.fold(messages0)(_.filter(messages0))
+
+        messages.foreach { msg =>
+          val category = msg.category.withConfig(config.lint)
+          config.lint.reporter.handleMessage(
+            msg.format(config.lint.explain),
+            msg.position,
+            category.severity.toSeverity
+          )
+        }
+
         writeMode match {
           case WriteMode.Stdout =>
             common.out.write(fixed.getBytes)
@@ -247,7 +261,7 @@ object CliRunner {
           rule = rule,
           replacePath = replace,
           inputs = inputs,
-          diffs = builder.diffs
+          diffDisable = builder.diffDisable
         ) {}
     }
   }
@@ -539,34 +553,37 @@ object CliRunner {
       diffParser.parse()
     }
 
-    val diffs: Option[List[GitDiff]] = {
-      if (cli.diff || cli.diffBranch.nonEmpty) {
-        val baseBranch = cli.diffBranch.getOrElse("master")
-        // -U0 = unified, 0 context lines
-        val builder =
-          new ProcessBuilder("git", "diff", "-U0", baseBranch)
-        builder.redirectErrorStream(true)
-        builder.directory(common.workingPath.toFile)
-        val process = builder.start()
-        val input = process.getInputStream()
-        val diffs = runDiff(input)
-        input.close()
-        val exitValue = process.waitFor()
-        val ExitCodeDiff = 1
-        val ExitCodeNoDiff = 0
+    val diffDisable: Option[DiffDisable] = {
+      val diffs =
+        if (cli.diff || cli.diffBranch.nonEmpty) {
+          val baseBranch = cli.diffBranch.getOrElse("master")
+          // -U0 = unified, 0 context lines
+          val builder =
+            new ProcessBuilder("git", "diff", "-U0", baseBranch)
+          builder.redirectErrorStream(true)
+          builder.directory(common.workingPath.toFile)
+          val process = builder.start()
+          val input = process.getInputStream()
+          val diffs = runDiff(input)
+          input.close()
+          val exitValue = process.waitFor()
+          val ExitCodeDiff = 1
+          val ExitCodeNoDiff = 0
 
-        assert(
-          exitValue == ExitCodeDiff ||
-            exitValue == ExitCodeNoDiff,
-          s"git diff exited with value $exitValue"
-        )
+          assert(
+            exitValue == ExitCodeDiff ||
+              exitValue == ExitCodeNoDiff,
+            s"git diff exited with value $exitValue"
+          )
 
-        Some(diffs)
-      } else if (cli.diffStdin) {
-        Some(runDiff(System.in))
-      } else {
-        None
-      }
+          Some(diffs)
+        } else if (cli.diffStdin) {
+          Some(runDiff(System.in))
+        } else {
+          None
+        }
+
+      diffs.map(ds => new DiffDisable(ds))
     }
   }
 }

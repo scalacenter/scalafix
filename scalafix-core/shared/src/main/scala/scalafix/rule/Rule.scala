@@ -69,7 +69,8 @@ abstract class Rule(ruleName: RuleName) { self =>
   final def andThen(other: Rule): Rule = merge(other)
 
   /** Returns string output of applying this single patch. */
-  final def apply(ctx: RuleCtx): String = apply(ctx, fixWithName(ctx))
+  final def apply(ctx: RuleCtx): String =
+    apply(ctx, fixWithName(ctx))
   final def apply(
       input: Input,
       config: ScalafixConfig = ScalafixConfig.default): String = {
@@ -77,16 +78,15 @@ abstract class Rule(ruleName: RuleName) { self =>
     apply(ctx, fixWithName(ctx))
   }
   final def apply(input: String): String = apply(Input.String(input))
-  final def apply(ctx: RuleCtx, patch: Patch): String = {
+  final def apply(ctx: RuleCtx, patch: Patch): String =
     apply(ctx, Map(name -> patch))
-  }
-  final def apply(ctx: RuleCtx, patches: Map[RuleName, Patch]): String = {
-    val result = Patch(patches.values.asPatch, ctx, semanticOption)
-    // This overload of apply if purely for convenience
-    // Use fixWithName to iterate over LintMessage
-    // without printing to the console
-    Patch.lintMessages(patches, ctx).foreach(ctx.printLintMessage)
-    result
+  final def apply(ctx: RuleCtx, patches: Map[RuleName, Patch]): String =
+    Patch(patches.values.asPatch, ctx, semanticOption)
+  final def applyAndLint(ctx: RuleCtx): (String, List[LintMessage]) = {
+    val patches = fixWithName(ctx)
+    val fixed = Patch(patches.values.asPatch, ctx, semanticOption)
+    val messages = Patch.lintMessages(patches, ctx)
+    (fixed, messages)
   }
 
   /** Returns unified diff from applying this patch */

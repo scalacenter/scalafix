@@ -20,8 +20,7 @@ case class ScalafixConfig(
     reporter: ScalafixReporter = ScalafixReporter.default,
     patches: ConfigRulePatches = ConfigRulePatches.default,
     dialect: Dialect = ScalafixConfig.DefaultDialect,
-    lint: LintConfig = LintConfig.default,
-    diffs: Option[List[GitDiff]] = None
+    lint: LintConfig = LintConfig.default
 ) {
 
   def withFreshReporters: ScalafixConfig = copy(
