@@ -1,91 +1,14 @@
-package scalafix.diff
-
-import scala.util.matching.Regex
+package scalafix.internal.diff
 
 import java.nio.file.Path
 
-case class Range(start: Int, length: Int)
+import scalafix.diff.{GitChange, GitDiff, NewFile, ModifiedFile}
 
-sealed trait GitDiff
-case class NewFile(path: Path) extends GitDiff
-case class ModifiedFile(path: Path, changes: List[Range]) extends GitDiff
+import scala.util.matching.Regex
 
-private[diff] case class Hunk(
-    originalLine: Int,
-    originalCount: Int,
-    revisedLine: Int,
-    revisedCount: Int)
-
-private[diff] object HunkExtractor {
-  private val HunkHeader =
-    "^@@ -(\\d+)(,(\\d+))? \\+(\\d+)(,(\\d+))? @@(.*)$".r
-  def unapply(line: String): Option[Hunk] = {
-    line match {
-      case HunkHeader(
-          originalLine,
-          _,
-          originalCount,
-          revisedLine,
-          _,
-          revisedCount,
-          _) => {
-        Some(
-          Hunk(
-            originalLine.toInt,
-            Option(originalCount).map(_.toInt).getOrElse(1),
-            revisedLine.toInt,
-            Option(revisedCount).map(_.toInt).getOrElse(1)
-          ))
-      }
-      case _ => None
-    }
-  }
-}
-
-private[diff] class PeekableSource[T](it: Iterator[T]) {
-  private def getNext(): Option[T] = {
-    if (it.hasNext) Some(it.next())
-    else None
-  }
-  private def setPeeker(): Unit = peeker = getNext()
-  private var peeker: Option[T] = None
-  setPeeker()
-
-  def hasNext: Boolean = !peeker.isEmpty || it.hasNext
-  def next(): T = {
-    val ret = peeker
-    setPeeker()
-    ret.get
-  }
-  def peek: Option[T] = peeker
-  def drop(n: Int): Unit = {
-    it.drop(n - 1)
-    setPeeker()
-  }
-}
-
-object GitDiffParser {
-  def show(diffs: List[GitDiff]): Unit = {
-    println("== New Files ==")
-    diffs.foreach {
-      case NewFile(path) => println(path)
-      case _ => ()
-    }
-
-    println("== Modified Files ==")
-    diffs.foreach {
-      case ModifiedFile(path, changes) => {
-        println(path)
-        changes.foreach {
-          case Range(start, offset) => println(s"  [$start, ${start + offset}]")
-        }
-      }
-      case _ => ()
-    }
-  }
-}
-
-class GitDiffParser(input: Iterator[String], workingDir: Path) {
+private[scalafix] class GitDiffParser(
+    input: Iterator[String],
+    workingDir: Path) {
   private val lines = new PeekableSource(input)
 
   private val Command = "^diff --git a/(.*) b/(.*)$".r
@@ -118,8 +41,8 @@ class GitDiffParser(input: Iterator[String], workingDir: Path) {
 
   private def skip(n: Int): Unit = lines.drop(n)
 
-  private def acceptHunks(): List[Range] = {
-    val ranges = List.newBuilder[Range]
+  private def acceptHunks(): List[GitChange] = {
+    val changes = List.newBuilder[GitChange]
     accept(OriginalFile)
     accept(RevisedFile)
 
@@ -131,7 +54,7 @@ class GitDiffParser(input: Iterator[String], workingDir: Path) {
           skip(originalCount + revisedCount + 1)
           hasHunks = true
           if (revisedCount > 0) {
-            ranges += Range(revisedLine, revisedCount)
+            changes += GitChange(revisedLine, revisedCount)
           }
         }
         case _ => {
@@ -140,7 +63,7 @@ class GitDiffParser(input: Iterator[String], workingDir: Path) {
       }
     }
 
-    ranges.result()
+    changes.result()
   }
 
   def parse(): List[GitDiff] = {

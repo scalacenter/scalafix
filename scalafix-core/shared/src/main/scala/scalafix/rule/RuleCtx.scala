@@ -51,6 +51,7 @@ trait RuleCtx extends PatchOps {
   // Private scalafix methods, subject for removal without notice.
   private[scalafix] def toks(t: Tree): Tokens
   private[scalafix] def config: ScalafixConfig
+  private[scalafix] def printLintMessage(msg: LintMessage): Unit
   private[scalafix] def filterLintMessage(
       lints: List[LintMessage]): List[LintMessage]
 

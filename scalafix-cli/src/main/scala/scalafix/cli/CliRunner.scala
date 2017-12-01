@@ -21,7 +21,6 @@ import scala.meta.io.AbsolutePath
 import scala.meta.semanticdb.SemanticdbSbt
 import scala.util.control.NonFatal
 import scala.util.Try
-import scalafix.diff.{GitDiff, GitDiffParser}
 import scalafix.internal.cli.CommonOptions
 import scalafix.internal.cli.FixFile
 import scalafix.internal.cli.ScalafixOptions
@@ -545,45 +544,34 @@ object CliRunner {
           }
       }
 
-    private def runDiff(input: InputStream): List[GitDiff] = {
-      val diffParser = new GitDiffParser(
-        scala.io.Source.fromInputStream(input).getLines,
-        common.workingPath.toNIO
-      )
-      diffParser.parse()
-    }
-
     val diffDisable: Option[DiffDisable] = {
-      val diffs =
-        if (cli.diff || cli.diffBranch.nonEmpty) {
-          val baseBranch = cli.diffBranch.getOrElse("master")
-          // -U0 = unified, 0 context lines
-          val builder =
-            new ProcessBuilder("git", "diff", "-U0", baseBranch)
-          builder.redirectErrorStream(true)
-          builder.directory(common.workingPath.toFile)
-          val process = builder.start()
-          val input = process.getInputStream()
-          val diffs = runDiff(input)
-          input.close()
-          val exitValue = process.waitFor()
-          val ExitCodeDiff = 1
-          val ExitCodeNoDiff = 0
+      if (cli.diff || cli.diffBranch.nonEmpty) {
+        val baseBranch = cli.diffBranch.getOrElse("master")
+        // -U0 = unified, 0 context lines
+        val builder =
+          new ProcessBuilder("git", "diff", "-U0", baseBranch)
+        builder.redirectErrorStream(true)
+        builder.directory(common.workingPath.toFile)
+        val process = builder.start()
+        val input = process.getInputStream()
+        val diffDisable = DiffDisable(input, common.workingPath.toNIO)
+        input.close()
+        val exitValue = process.waitFor()
+        val ExitCodeDiff = 1
+        val ExitCodeNoDiff = 0
 
-          assert(
-            exitValue == ExitCodeDiff ||
-              exitValue == ExitCodeNoDiff,
-            s"git diff exited with value $exitValue"
-          )
+        assert(
+          exitValue == ExitCodeDiff ||
+            exitValue == ExitCodeNoDiff,
+          s"git diff exited with value $exitValue"
+        )
 
-          Some(diffs)
-        } else if (cli.diffStdin) {
-          Some(runDiff(System.in))
-        } else {
-          None
-        }
-
-      diffs.map(ds => new DiffDisable(ds))
+        Some(diffDisable)
+      } else if (cli.diffStdin) {
+        Some(DiffDisable(System.in, common.workingPath.toNIO))
+      } else {
+        None
+      }
     }
   }
 }

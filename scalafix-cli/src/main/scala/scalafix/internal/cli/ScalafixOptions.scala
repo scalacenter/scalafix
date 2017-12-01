@@ -152,14 +152,7 @@ case class ScalafixOptions(
       "If set, only apply scalafix to added and edited files in git diff against a provided branch.")
     diffBranch: Option[String] = None,
     @HelpMessage(
-      """|If set, only scalafix to added and edited files in a git diff provided in the stdin
-         |
-         |scalafix --diff
-         |scalafix --diff-branch=master
-         |scalafix --diff-stdin < git diff -U0 master
-         |
-         |all produce the same result""".stripMargin
-    )
+      "If set, only scalafix to added and edited files in a git diff provided in the stdin")
     diffStdin: Boolean = false
 ) {
   def classpathRoots: List[AbsolutePath] =

@@ -44,7 +44,7 @@ object Cli {
         |  - otherwise, Scalafix will automatically look for META-INF/semanticdb directories from the
         |    current working directory.
         |- when --diff, --diff-branch or --diff-stdin is set it will parse the git diff and only
-        |  apply on additions
+        |  apply on modified or added lines
         |
         |  Those command will have the same effect:
         |    scalafix --diff

@@ -18,7 +18,7 @@ import scalafix.cli
 import scalafix.internal.cli.CommonOptions
 import scalafix.testkit.DiffAssertions
 
-class CliGitDiff() extends FunSuite with DiffAssertions {
+class CliGitDiffTests() extends FunSuite with DiffAssertions {
   gitTest("it should handle addition") { (fs, git, cli) =>
     val oldCode = "old.scala"
     val newCode = "new.scala"

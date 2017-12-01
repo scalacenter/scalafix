@@ -6,7 +6,7 @@ class IntervalSet(range: BitSet) {
   def contains(elem: Int): Boolean =
     range.contains(elem)
 
-  def intersect(start: Int, end: Int): Boolean = {
+  def intersects(start: Int, end: Int): Boolean = {
     val otherRange = BitSet((start to end): _*)
     (range & otherRange).nonEmpty
   }

@@ -53,6 +53,16 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
     logger.elem(values: _*)
   }
 
+  def printLintMessage(msg: LintMessage): Unit = {
+    val category = msg.category.withConfig(config.lint)
+
+    config.lint.reporter.handleMessage(
+      msg.format(config.lint.explain),
+      msg.position,
+      category.severity.toSeverity
+    )
+  }
+
   def filterLintMessage(lints: List[LintMessage]): List[LintMessage] =
     escapeHatch.filter(lints)
 

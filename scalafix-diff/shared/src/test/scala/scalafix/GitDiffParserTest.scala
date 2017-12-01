@@ -1,10 +1,10 @@
-package scalafix.diff
+package scalafix.internal.diff
 
 import java.nio.file.Paths
 import org.scalatest.FunSuite
 import scala.io.Source
 
-class GitDiffParserSpec extends FunSuite {
+class GitDiffParserTest extends FunSuite {
 
   test("parse chunks") {
     val hunkHeaders = List(
