@@ -6,6 +6,8 @@ import scalafix.diff.{GitChange, GitDiff, NewFile, ModifiedFile}
 
 import scala.util.matching.Regex
 
+class GitParseException(msg: String) extends Exception(msg)
+
 private[scalafix] class GitDiffParser(
     input: Iterator[String],
     workingDir: Path) {
@@ -81,7 +83,7 @@ private[scalafix] class GitDiffParser(
             case HunkExtractor(Hunk(_, originalCount, _, _)) =>
               skip(originalCount)
             case line =>
-              throw new Exception(s"expected HunkHeader, got '$line'")
+              throw new GitParseException(s"expected HunkHeader, got '$line'")
           }
           optional(NoNewLine)
         }
@@ -95,7 +97,7 @@ private[scalafix] class GitDiffParser(
               skip(originalCount + revisedCount)
             }
             case line =>
-              throw new Exception(s"expected HunkHeader, got '$line'")
+              throw new GitParseException(s"expected HunkHeader, got '$line'")
           }
           optional(NoNewLine)
         }
@@ -110,7 +112,7 @@ private[scalafix] class GitDiffParser(
             diffs += ModifiedFile(path(revisedPath), acceptHunks())
           }
         }
-        case line => throw new Exception(s"other: '$line'")
+        case line => throw new GitParseException(s"unexpected: '$line'")
       }
     }
     diffs.result()
