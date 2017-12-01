@@ -5,16 +5,18 @@ jdk:
 - oraclejdk8
 env:
   matrix:
-  - CI_TEST: ci-fast-211
+  # - CI_TEST: ci-fast-211
 
-  - CI_TEST: ci-fast-212
-    CI_PUBLISH: true
+  # - CI_TEST: ci-fast-212
+  #   CI_PUBLISH: true
 
-  - CI_TEST: ci-slow
+  # - CI_TEST: ci-slow
 
-  - CI_TEST: scalafmt
+  # - CI_TEST: scalafmt
 
-  - CI_TEST: mima
+  # - CI_TEST: mima
+
+  - CI_DEBUG: debug-cred
 
 cache:
   directories:

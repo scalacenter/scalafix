@@ -410,6 +410,11 @@ lazy val website = project
   )
   .dependsOn(testkit212, core212JVM, cli212)
 
+TaskKey[Unit]("debug-cred") := {
+  println(sys.env.get("SONATYPE_USERNAME"))
+  println(sys.env.get("SONATYPE_PASSWORD"))
+}
+  
 inScope(Global)(
   Seq(
     credentials ++= (for {
