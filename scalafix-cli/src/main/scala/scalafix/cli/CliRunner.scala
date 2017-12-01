@@ -1,8 +1,8 @@
 package scalafix
 package cli
 
-import java.io.File
-import java.io.OutputStreamWriter
+import java.io.{File, OutputStreamWriter, InputStream}
+import java.lang.ProcessBuilder
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
@@ -19,8 +19,8 @@ import scala.meta.inputs.Input
 import scala.meta.internal.inputs._
 import scala.meta.io.AbsolutePath
 import scala.meta.semanticdb.SemanticdbSbt
-import scala.util.Try
 import scala.util.control.NonFatal
+import scala.util.Try
 import scalafix.internal.cli.CommonOptions
 import scalafix.internal.cli.FixFile
 import scalafix.internal.cli.ScalafixOptions
@@ -34,6 +34,7 @@ import scalafix.internal.config.RuleKind
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.util.Failure
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
+import scalafix.internal.rule.DiffDisable
 import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
 import metaconfig.Configured.Ok
@@ -46,7 +47,8 @@ sealed abstract case class CliRunner(
     config: ScalafixConfig,
     rule: Rule,
     inputs: Seq[FixFile],
-    replacePath: AbsolutePath => AbsolutePath
+    replacePath: AbsolutePath => AbsolutePath,
+    diffDisable: Option[DiffDisable]
 ) {
   val sbtConfig: ScalafixConfig = config.copy(dialect = dialects.Sbt0137)
   val writeMode: WriteMode =
@@ -109,7 +111,9 @@ sealed abstract case class CliRunner(
 
   def unsafeHandleInput(input: FixFile): ExitStatus = {
     val inputConfig =
-      if (input.original.label.endsWith(".sbt")) sbtConfig else config
+      if (input.original.label.endsWith(".sbt")) sbtConfig
+      else config
+
     inputConfig.dialect(input.toParse).parse[Source] match {
       case parsers.Parsed.Error(pos, message, _) =>
         if (cli.quietParseErrors && !input.passedExplicitly) {
@@ -122,7 +126,20 @@ sealed abstract case class CliRunner(
         }
       case parsers.Parsed.Success(tree) =>
         val ctx = RuleCtx(tree, config)
-        val fixed = rule.apply(ctx)
+        val (fixed, messages0) = rule.applyAndLint(ctx)
+
+        val messages =
+          diffDisable.fold(messages0)(_.filter(messages0))
+
+        messages.foreach { msg =>
+          val category = msg.category.withConfig(config.lint)
+          config.lint.reporter.handleMessage(
+            msg.format(config.lint.explain),
+            msg.position,
+            category.severity.toSeverity
+          )
+        }
+
         writeMode match {
           case WriteMode.Stdout =>
             common.out.write(fixed.getBytes)
@@ -242,7 +259,8 @@ object CliRunner {
           config = config,
           rule = rule,
           replacePath = replace,
-          inputs = inputs
+          inputs = inputs,
+          diffDisable = builder.diffDisable
         ) {}
     }
   }
@@ -526,5 +544,34 @@ object CliRunner {
           }
       }
 
+    val diffDisable: Option[DiffDisable] = {
+      if (cli.diff || cli.diffBranch.nonEmpty) {
+        val baseBranch = cli.diffBranch.getOrElse("master")
+        // -U0 = unified, 0 context lines
+        val builder =
+          new ProcessBuilder("git", "diff", "-U0", baseBranch)
+        builder.redirectErrorStream(true)
+        builder.directory(common.workingPath.toFile)
+        val process = builder.start()
+        val input = process.getInputStream()
+        val diffDisable = DiffDisable(input, common.workingPath.toNIO)
+        input.close()
+        val exitValue = process.waitFor()
+        val ExitCodeDiff = 1
+        val ExitCodeNoDiff = 0
+
+        assert(
+          exitValue == ExitCodeDiff ||
+            exitValue == ExitCodeNoDiff,
+          s"git diff exited with value $exitValue"
+        )
+
+        Some(diffDisable)
+      } else if (cli.diffStdin) {
+        Some(DiffDisable(System.in, common.workingPath.toNIO))
+      } else {
+        None
+      }
+    }
   }
 }

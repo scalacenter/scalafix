@@ -122,9 +122,6 @@ object Patch {
       patches: Map[RuleName, Patch],
       ctx: RuleCtx): List[LintMessage] = {
 
-    // TODO(olaf): Remove this cast
-    val ctxImpl = ctx.asInstanceOf[RuleCtxImpl]
-
     val builder = List.newBuilder[LintMessage]
     patches.map {
       case (owner, patch) =>
@@ -135,8 +132,7 @@ object Patch {
         }
     }
 
-    val messages = builder.result()
-    ctxImpl.escapeHatch.filter(messages)
+    ctx.filterLintMessage(builder.result())
   }
 
   // Patch.apply and Patch.lintMessages package private. Feel free to use them

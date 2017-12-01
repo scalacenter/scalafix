@@ -10,6 +10,8 @@ import scala.meta.dialects.Scala212
 import scala.meta.parsers.Parse
 import metaconfig._
 
+import scalafix.diff.GitDiff
+
 case class ScalafixConfig(
     parser: Parse[_ <: Tree] = Parse.parseSource,
     debug: DebugConfig = DebugConfig(),

@@ -1,0 +1,2099 @@
+diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md
+index babf82ea..b1fee4ce 100644
+--- a/CONTRIBUTING.md
++++ b/CONTRIBUTING.md
+@@ -20,0 +21,3 @@ If you experience any issues, don't hesitate to ask on Gitter.
++Start an sbt shell with `$ sbt`.
++The commands below assume you have a running sbt shell.
++
+@@ -22,18 +25,28 @@ If you experience any issues, don't hesitate to ask on Gitter.
+-# For rules.
+-$ sbt scalafix-tests/test # Fast unit tests for rules with access to semantic api.
+-                          # See core/src/main/resources/ExplicitImplicit for
+-                          # how to write more unit tests.
+-                          # You can prefix a test name with "ONLY" to only run
+-                          # that single test.
+-$ sbt scalafix-core/test  # Fast unit tests without access to semantic api.
+-                          # I recommend you use scalafix-nsc/test for rule tests.
+-                          # For anything but rules, put the tests in core.
+-$ sbt scalafix-tests/it:test # Slow integration tests running rules on
+-                             # open source projects.
+-
+-# For SBT plugin
+-$ sbt scalafix-sbt/it:test  # publishes modules locally and runs scripted (slow)
+-                            # for hassle-free execution run with version specified
+-                            # e.g. -Dscalafix.version=0.5-SNAPSHOT
+-$ sbt scalafix-sbt/scripted # only run scripted tests (still slow, but skips
+-                            # publishLocal for core/cli/nsc scalafix modules)
++> unit/test # Fast unit tests for rules, cli, core. Contains a lot
++            # of different test suites, so it's recommended to use testOnly.
++> unit/testOnly scalafix.tests.rule.* # Only run tests for rules, using scalafix-testkit.
++> unit/testOnly scalafix.tests.core.* # Only run tests for core APIs.
++> unit/testOnly scalafix.tests.cli.*  # Only run tests for the command line interface.
++
++# SBT plugin
++# (recommended) start the sbt shell with a SNAPSHOT scalafix version:
++# $ sbt -Dscalafix.version=0.5-SNAPSHOT
++> scalafix-sbt/it:test  # publishes modules locally and runs scripted (slow).
++                        # Only needed once per changed in core/cli modules.
++> scalafix-sbt/scripted # only run scripted tests (still slow, but skips
++                        # publishLocal for core/cli modules)
++```
++
++Unit tests for rules are written using scalafix-testkit, read more about
++it here:
++https://scalacenter.github.io/scalafix/docs/rule-authors/setup#scalafix-testkit
++
++```
++scalafix-tests
++├── input         # Source files to be fixed by default rules
++├── input-sbt     # Source files to be fixed by Sbt1 rule
++├── output        # Expected output from running default rules
++├── output-dotty  # Expected output from running Dotty-specific rules
++├── output-sbt    # Expected output from running Sbt1 rule
++├── shared        # Source files that are compiled semanticdb, used in BaseSemanticTest.
++└── unit          # Unit test suites.
+@@ -44 +57,3 @@ $ sbt scalafix-sbt/scripted # only run scripted tests (still slow, but skips
+-Be sure to run `scalafmt` (available in the root folder) to ensure code formatting. You can read more about it at http://scalafmt.org
++Be sure to run `scalafmt` (available in the root folder) to ensure code formatting.
++`./scalafmt --diff` formats only the files that have changed from the master branch.
++You can read more about it at http://scalafmt.org
+diff --git a/build.sbt b/build.sbt
+index fe7767ea..408a76d3 100644
+--- a/build.sbt
++++ b/build.sbt
+@@ -1 +0,0 @@
+-import scalajsbundler.util.JSON._
+@@ -4 +2,0 @@ import sbt.ScriptedPlugin._
+-import microsites._
+@@ -7,157 +5,2 @@ import Dependencies._
+-inThisBuild(
+-  List(
+-    organization := "ch.epfl.scala",
+-    version := customScalafixVersion.getOrElse(version.value.replace('+', '-'))
+-  )
+-)
+-name := {
+-  println(s"Welcome to scalafix ${version.value}")
+-  "scalafixRoot"
+-}
+-
+-lazy val crossVersions = Seq(scala211, scala212)
+-
+-commands += Command.command("ci-release") { s =>
+-  "clean" ::
+-    "very publishSigned" ::
+-    "^^ 1.0.2 " ::
+-    "scalafix-sbt/publishSigned" ::
+-    "sonatypeReleaseAll" ::
+-    s
+-}
+-commands += Command.command("ci-fast") { s =>
+-  "test" ::
+-    s
+-}
+-commands += Command.command("ci-slow") { s =>
+-  "scalafix-sbt/it:test" ::
+-    s
+-}
+-commands += Command.command("mima") { s =>
+-  "very mimaReportBinaryIssues" ::
+-    s
+-}
+-
+-lazy val adhocRepoUri = sys.props("scalafix.repository.uri")
+-lazy val adhocRepoCredentials = sys.props("scalafix.repository.credentials")
+-lazy val isCustomRepository = adhocRepoUri != null && adhocRepoCredentials != null
+-
+-lazy val publishSettings = Seq(
+-  publishTo := {
+-    if (isCustomRepository) Some("adhoc" at adhocRepoUri)
+-    else {
+-      val uri = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+-      Some("Releases" at uri)
+-    }
+-  },
+-  credentials ++= {
+-    val credentialsFile = {
+-      if (adhocRepoCredentials != null) new File(adhocRepoCredentials)
+-      else null
+-    }
+-    if (credentialsFile != null) List(new FileCredentials(credentialsFile))
+-    else Nil
+-  },
+-  publishArtifact in Test := false,
+-  licenses := Seq(
+-    "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+-  homepage := Some(url("https://github.com/scalacenter/scalafix")),
+-  autoAPIMappings := true,
+-  apiURL := Some(url("https://scalacenter.github.io/scalafix/")),
+-  scmInfo := Some(
+-    ScmInfo(
+-      url("https://github.com/scalacenter/scalafix"),
+-      "scm:git:git@github.com:scalacenter/scalafix.git"
+-    )
+-  ),
+-  mimaPreviousArtifacts := {
+-    val previousArtifactVersion = "0.5.0"
+-    // NOTE(olafur) shudder, can't figure out simpler way to do the same.
+-    val binaryVersion =
+-      if (crossVersion.value.isInstanceOf[CrossVersion.Full]) scalaVersion.value
+-      else scalaBinaryVersion.value
+-    Set(
+-      organization.value % s"${moduleName.value}_$binaryVersion" % previousArtifactVersion
+-    )
+-  },
+-  mimaBinaryIssueFilters ++= Mima.ignoredABIProblems,
+-  developers ++= List(
+-    Developer(
+-      "gabro",
+-      "Gabriele Petronella",
+-      "gabriele@buildo.io",
+-      url("https://buildo.io")
+-    ),
+-    Developer(
+-      "olafurpg",
+-      "Ólafur Páll Geirsson",
+-      "olafurpg@gmail.com",
+-      url("https://geirsson.com")
+-    )
+-  )
+-)
+-
+-lazy val noPublish = allSettings ++ Seq(
+-  mimaReportBinaryIssues := {},
+-  mimaPreviousArtifacts := Set.empty,
+-  publishArtifact := false,
+-  publish := {},
+-  publishLocal := {}
+-)
+-
+-lazy val stableVersion =
+-  settingKey[String]("Version of latest release to Maven.")
+-
+-inThisBuild(
+-  Seq(
+-    version := sys.props.getOrElse("scalafix.version", version.value),
+-    stableVersion := version.value.replaceAll("\\-.*", "")
+-  ))
+-
+-lazy val supportedScalaVersions = List(scala211, scala212)
+-
+-lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
+-  buildInfoKeys := Seq[BuildInfoKey](
+-    name,
+-    version,
+-    stableVersion,
+-    "coursier" -> coursier.util.Properties.version,
+-    "nightly" -> version.value,
+-    "scalameta" -> scalametaV,
+-    "semanticdbSbt" -> semanticdbSbt,
+-    scalaVersion,
+-    "supportedScalaVersions" -> supportedScalaVersions,
+-    "scala211" -> scala211,
+-    "scala212" -> scala212,
+-    sbtVersion
+-  ),
+-  buildInfoPackage := "scalafix",
+-  buildInfoObject := "Versions"
+-)
+-
+-lazy val allSettings = List(
+-  version := version.value,
+-  stableVersion := stableVersion.value,
+-  resolvers += Resolver.sonatypeRepo("releases"),
+-  triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
+-  scalacOptions ++= compilerOptions.value,
+-  scalacOptions in (Compile, console) := compilerOptions.value :+ "-Yrepl-class-based",
+-  libraryDependencies += scalatest.value % Test,
+-  testOptions in Test += Tests.Argument("-oD"),
+-  scalaVersion := ciScalaVersion.getOrElse(scala212),
+-  crossScalaVersions := crossVersions,
+-  updateOptions := updateOptions.value.withCachedResolution(true)
+-)
+-
+-lazy val allJSSettings = List(
+-  additionalNpmConfig.in(Compile) := Map("private" -> bool(true))
+-)
+-
+-allSettings
+-
+-gitPushTag := {
+-  val tag = s"v${version.value}"
+-  assert(!tag.endsWith("SNAPSHOT"))
+-  import sys.process._
+-  Seq("git", "tag", "-a", tag, "-m", tag).!!
+-  Seq("git", "push", "--tags").!!
++version.in(ThisBuild) ~= { old: String =>
++  sys.props.getOrElse("scalafix.version", old.replace('+', '-'))
+@@ -164,0 +8,3 @@ gitPushTag := {
++name := "scalafixRoot"
++onLoadMessage := s"Welcome to Scalafix ${version.value}"
++noPublish
+@@ -166,2 +12,2 @@ gitPushTag := {
+-lazy val reflect = project
+-  .configure(setId)
++lazy val diff = crossProject
++  .in(file("scalafix-diff"))
+@@ -169,7 +15,2 @@ lazy val reflect = project
+-    allSettings,
+-    publishSettings,
+-    isFullCrossVersion,
+-    libraryDependencies ++= Seq(
+-      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
+-      "org.scala-lang" % "scala-reflect" % scalaVersion.value
+-    )
++    moduleName := "scalafix-diff",
++    description := "JVM/JS library to build unified diffs."
+@@ -177 +18,10 @@ lazy val reflect = project
+-  .dependsOn(coreJVM)
++  .jvmSettings(
++    libraryDependencies += googleDiff
++  )
++  .jsSettings(
++    allJSSettings,
++    npmDependencies in Compile += "diff" -> "3.2.0"
++  )
++  .jsConfigure(_.enablePlugins(ScalaJSBundlerPlugin))
++lazy val diffJS = diff.js
++lazy val diffJVM = diff.jvm
+@@ -183,2 +32,0 @@ lazy val core = crossProject
+-    allSettings,
+-    publishSettings,
+@@ -202,2 +50,2 @@ lazy val coreJVM = core.jvm
+-lazy val diff = crossProject
+-  .in(file("scalafix-diff"))
++lazy val reflect = project
++  .configure(setId)
+@@ -205,10 +53,5 @@ lazy val diff = crossProject
+-    moduleName := "scalafix-diff",
+-    allSettings,
+-    publishSettings
+-  )
+-  .jvmSettings(
+-    libraryDependencies += googleDiff
+-  )
+-  .jsSettings(
+-    allJSSettings,
+-    npmDependencies in Compile += "diff" -> "3.2.0"
++    isFullCrossVersion,
++    libraryDependencies ++= Seq(
++      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
++      "org.scala-lang" % "scala-reflect" % scalaVersion.value
++    )
+@@ -216,3 +59 @@ lazy val diff = crossProject
+-  .jsConfigure(_.enablePlugins(ScalaJSBundlerPlugin))
+-lazy val diffJS = diff.js
+-lazy val diffJVM = diff.jvm
++  .dependsOn(coreJVM)
+@@ -223,2 +63,0 @@ lazy val cli = project
+-    allSettings,
+-    publishSettings,
+@@ -244 +82,0 @@ lazy val `scalafix-sbt` = project
+-    allSettings,
+@@ -246,2 +83,0 @@ lazy val `scalafix-sbt` = project
+-    publishSettings,
+-    buildInfoSettings,
+@@ -248,0 +85 @@ lazy val `scalafix-sbt` = project
++    buildInfoSettings,
+@@ -259,4 +96 @@ lazy val `scalafix-sbt` = project
+-    libraryDependencies ++= Seq(
+-      "io.get-coursier" %% "coursier" % coursier.util.Properties.version,
+-      "io.get-coursier" %% "coursier-cache" % coursier.util.Properties.version
+-    ),
++    libraryDependencies ++= coursierDeps,
+@@ -286 +119,0 @@ lazy val testkit = project
+-    allSettings,
+@@ -288 +120,0 @@ lazy val testkit = project
+-    publishSettings,
+@@ -301,19 +132,0 @@ lazy val testkit = project
+-lazy val testsDeps = List(
+-  // integration property tests
+-  "org.renucci" %% "scala-xml-quote" % "0.1.4",
+-  "org.typelevel" %% "catalysts-platform" % "0.0.5",
+-  "org.typelevel" %% "cats-core" % "0.9.0",
+-  "com.typesafe.slick" %% "slick" % "3.2.0-M2",
+-  "com.chuusai" %% "shapeless" % "2.3.2",
+-  "org.scalacheck" %% "scalacheck" % "1.13.4"
+-)
+-
+-lazy val semanticdbSettings = Seq(
+-  scalacOptions ++= List(
+-    "-Yrangepos",
+-    "-Xplugin-require:semanticdb"
+-  ),
+-  addCompilerPlugin(
+-    "org.scalameta" % "semanticdb-scalac" % scalametaV cross CrossVersion.full)
+-)
+-
+@@ -395,0 +209,3 @@ lazy val unit = project
++    sources.in(Test) +=
++      sourceDirectory.in(`scalafix-sbt`, Compile).value /
++        "scala" / "scalafix" / "internal" / "sbt" / "ScalafixJarFetcher.scala",
+@@ -407,0 +224 @@ lazy val unit = project
++      "baseDirectory" -> baseDirectory.in(ThisBuild).value,
+@@ -422,0 +240 @@ lazy val unit = project
++    libraryDependencies ++= coursierDeps,
+@@ -432,96 +249,0 @@ lazy val unit = project
+-lazy val integration = project
+-  .in(file("scalafix-tests/integration"))
+-  .configs(IntegrationTest)
+-  .settings(
+-    noPublish,
+-    Defaults.itSettings,
+-    test.in(IntegrationTest) := {
+-      test
+-        .in(IntegrationTest)
+-        .dependsOn(
+-          publishLocal.in(coreJVM),
+-          publishLocal.in(cli),
+-          publishLocal.in(reflect),
+-          publishLocal.in(`scalafix-sbt`)
+-        )
+-        .value
+-    },
+-    libraryDependencies += scalatest.value % IntegrationTest
+-  )
+-  .dependsOn(
+-    testsInput,
+-    coreJVM,
+-    reflect,
+-    testkit
+-  )
+-
+-lazy val websiteSettings = Seq(
+-  micrositeName := "scalafix",
+-  micrositeDescription := "Rewrite and linting tool for Scala",
+-  micrositeBaseUrl := "scalafix",
+-  micrositeDocumentationUrl := "docs/users/installation",
+-  micrositeHighlightTheme := "atom-one-light",
+-  micrositeHomepage := "https://scalacenter.github.io/scalafix/",
+-  micrositeOrganizationHomepage := "https://scala.epfl.ch/",
+-  micrositeTwitterCreator := "@scala_lang",
+-  micrositeGithubOwner := "scalacenter",
+-  micrositeGithubRepo := "scalafix",
+-  ghpagesNoJekyll := false,
+-  micrositeGitterChannel := true,
+-  micrositeFooterText := None,
+-  micrositeFooterText := Some(
+-    """
+-      |<p>© 2017 <a href="https://github.com/scalacenter/scalafix#team">The Scalafix Maintainers</a></p>
+-      |<p style="font-size: 80%; margin-top: 10px">Website built with <a href="https://47deg.github.io/sbt-microsites/">sbt-microsites © 2016 47 Degrees</a></p>
+-      |""".stripMargin
+-  ),
+-  micrositePalette := Map(
+-    "brand-primary" -> "#0D2B35",
+-    "brand-secondary" -> "#203F4A",
+-    "brand-tertiary" -> "#0D2B35",
+-    "gray-dark" -> "#453E46",
+-    "gray" -> "rgba(0,0,0,.8)",
+-    "gray-light" -> "#E3E2E3",
+-    "gray-lighter" -> "#F4F3F4",
+-    "white-color" -> "#FFFFFF"
+-  ),
+-  micrositeConfigYaml := ConfigYml(
+-    yamlCustomProperties = Map(
+-      "githubOwner" -> micrositeGithubOwner.value,
+-      "githubRepo" -> micrositeGithubRepo.value,
+-      "docsUrl" -> "docs",
+-      "callToActionText" -> "Get started",
+-      "callToActionUrl" -> micrositeDocumentationUrl.value,
+-      "scala212" -> scala212,
+-      "scala211" -> scala211,
+-      "stableVersion" -> stableVersion.value,
+-      "scalametaVersion" -> scalametaV,
+-      "supportedScalaVersions" -> supportedScalaVersions,
+-      "coursierVersion" -> coursier.util.Properties.version
+-    )
+-  ),
+-  fork in tut := true
+-)
+-
+-lazy val docsMappingsAPIDir = settingKey[String](
+-  "Name of subdirectory in site target directory for api docs")
+-
+-lazy val unidocSettings = Seq(
+-  autoAPIMappings := true,
+-  apiURL := Some(url("https://scalacenter.github.io/docs/api/")),
+-  docsMappingsAPIDir := "docs/api",
+-  addMappingsToSiteDir(
+-    mappings in (ScalaUnidoc, packageDoc),
+-    docsMappingsAPIDir),
+-  unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(testkit, coreJVM),
+-  scalacOptions in (ScalaUnidoc, unidoc) ++= Seq(
+-    "-doc-source-url",
+-    scmInfo.value.get.browseUrl + "/tree/master€{FILE_PATH}.scala",
+-    "-sourcepath",
+-    baseDirectory.in(LocalRootProject).value.getAbsolutePath,
+-    "-skip-packages",
+-    "ammonite:org:scala:scalafix.tests:scalafix.internal"
+-  ),
+-  fork in (ScalaUnidoc, unidoc) := true
+-)
+-
+@@ -534 +256,2 @@ lazy val website = project
+-    unidocSettings
++    unidocSettings,
++    unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(testkit, coreJVM)
+@@ -537,46 +259,0 @@ lazy val website = project
+-
+-lazy val is210Only = Seq(
+-  scalaVersion := scala210,
+-  crossScalaVersions := Seq(scala210),
+-  scalacOptions -= warnUnusedImports
+-)
+-
+-lazy val isFullCrossVersion = Seq(
+-  crossVersion := CrossVersion.full
+-)
+-
+-lazy val warnUnusedImports = "-Ywarn-unused-import"
+-lazy val compilerOptions = Def.setting {
+-  Seq(
+-    "-deprecation",
+-    "-encoding",
+-    "UTF-8",
+-    "-feature",
+-    "-unchecked"
+-  )
+-}
+-
+-lazy val gitPushTag = taskKey[Unit]("Push to git tag")
+-
+-def setId(project: Project): Project = {
+-  val newId = "scalafix-" + project.id
+-  project
+-    .copy(base = file(newId))
+-    .settings(moduleName := newId)
+-}
+-def customScalafixVersion = sys.props.get("scalafix.version")
+-
+-inScope(Global)(
+-  Seq(
+-    credentials ++= (for {
+-      username <- sys.env.get("SONATYPE_USERNAME")
+-      password <- sys.env.get("SONATYPE_PASSWORD")
+-    } yield
+-      Credentials(
+-        "Sonatype Nexus Repository Manager",
+-        "oss.sonatype.org",
+-        username,
+-        password)).toSeq,
+-    PgpKeys.pgpPassphrase := sys.env.get("PGP_PASSPHRASE").map(_.toCharArray())
+-  )
+-)
+diff --git a/project/Dependencies.scala b/project/Dependencies.scala
+index fb6e300e..ab3f4cc6 100644
+--- a/project/Dependencies.scala
++++ b/project/Dependencies.scala
+@@ -25,0 +26,15 @@ object Dependencies {
++
++  def testsDeps = List(
++    // integration property tests
++    "org.renucci" %% "scala-xml-quote" % "0.1.4",
++    "org.typelevel" %% "catalysts-platform" % "0.0.5",
++    "org.typelevel" %% "cats-core" % "0.9.0",
++    "com.typesafe.slick" %% "slick" % "3.2.0-M2",
++    "com.chuusai" %% "shapeless" % "2.3.2",
++    "org.scalacheck" %% "scalacheck" % "1.13.4"
++  )
++
++  def coursierDeps = Seq(
++    "io.get-coursier" %% "coursier" % coursier.util.Properties.version,
++    "io.get-coursier" %% "coursier-cache" % coursier.util.Properties.version
++  )
+diff --git a/project/ScalafixBuild.scala b/project/ScalafixBuild.scala
+new file mode 100644
+index 00000000..141b0542
+--- /dev/null
++++ b/project/ScalafixBuild.scala
+@@ -0,0 +1,270 @@
++import Dependencies._
++import com.typesafe.sbt.pgp.PgpKeys
++import sbt._
++import sbt.Keys._
++import sbt.plugins.JvmPlugin
++import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
++import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin.autoImport._
++import scalajsbundler.util.JSON._
++import tut.TutPlugin.autoImport._
++import microsites.MicrositesPlugin.autoImport._
++import sbtunidoc.BaseUnidocPlugin.autoImport._
++import sbtunidoc.ScalaUnidocPlugin.autoImport._
++import com.typesafe.sbt.site.SitePlugin.autoImport._
++import microsites.ConfigYml
++import sbtbuildinfo.BuildInfoKey
++import sbtbuildinfo.BuildInfoPlugin.autoImport._
++import com.typesafe.sbt.sbtghpages.GhpagesKeys
++import sbt.Def
++
++object ScalafixBuild extends AutoPlugin with GhpagesKeys {
++  override def trigger = allRequirements
++  override def requires = JvmPlugin
++  object autoImport {
++    lazy val stableVersion =
++      settingKey[String]("Version of latest release to Maven.")
++    lazy val noPublish = Seq(
++      mimaReportBinaryIssues := {},
++      mimaPreviousArtifacts := Set.empty,
++      publishArtifact := false,
++      publish := {},
++      publishLocal := {}
++    )
++    lazy val crossVersions = Seq(scala211, scala212)
++    lazy val supportedScalaVersions = List(scala211, scala212)
++    lazy val is210Only = Seq(
++      scalaVersion := scala210,
++      crossScalaVersions := Seq(scala210),
++      scalacOptions -= warnUnusedImports
++    )
++    lazy val isFullCrossVersion = Seq(
++      crossVersion := CrossVersion.full
++    )
++    lazy val allJSSettings = List(
++      additionalNpmConfig.in(Compile) := Map("private" -> bool(true))
++    )
++    lazy val warnUnusedImports = "-Ywarn-unused-import"
++    lazy val compilerOptions = Seq(
++      "-deprecation",
++      "-encoding",
++      "UTF-8",
++      "-feature",
++      "-unchecked"
++    )
++
++    // Sets scalafix- prefix to moduleName and base file
++    def setId(project: Project): Project = {
++      val newId = "scalafix-" + project.id
++      project
++        .copy(base = file(newId))
++        .settings(moduleName := newId)
++    }
++
++    lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
++      buildInfoKeys := Seq[BuildInfoKey](
++        name,
++        version,
++        stableVersion,
++        "coursier" -> coursier.util.Properties.version,
++        "nightly" -> version.value,
++        "scalameta" -> scalametaV,
++        "semanticdbSbt" -> semanticdbSbt,
++        scalaVersion,
++        "supportedScalaVersions" -> supportedScalaVersions,
++        "scala211" -> scala211,
++        "scala212" -> scala212,
++        sbtVersion
++      ),
++      buildInfoPackage := "scalafix",
++      buildInfoObject := "Versions"
++    )
++
++    lazy val semanticdbSettings = Seq(
++      scalacOptions ++= List(
++        "-Yrangepos",
++        "-Xplugin-require:semanticdb"
++      ),
++      addCompilerPlugin(
++        "org.scalameta" % "semanticdb-scalac" % scalametaV cross CrossVersion.full)
++    )
++
++    // =======
++    // Website
++    // =======
++    lazy val docsMappingsAPIDir = settingKey[String](
++      "Name of subdirectory in site target directory for api docs")
++    lazy val unidocSettings = Seq(
++      autoAPIMappings := true,
++      apiURL := Some(url("https://scalacenter.github.io/docs/api/")),
++      docsMappingsAPIDir := "docs/api",
++      addMappingsToSiteDir(
++        mappings in (ScalaUnidoc, packageDoc),
++        docsMappingsAPIDir
++      ),
++      scalacOptions in (ScalaUnidoc, unidoc) ++= Seq(
++        "-doc-source-url",
++        scmInfo.value.get.browseUrl + "/tree/master€{FILE_PATH}.scala",
++        "-sourcepath",
++        baseDirectory.in(LocalRootProject).value.getAbsolutePath,
++        "-skip-packages",
++        "ammonite:org:scala:scalafix.tests:scalafix.internal"
++      ),
++      fork in (ScalaUnidoc, unidoc) := true
++    )
++
++    lazy val websiteSettings = Seq(
++      micrositeName := "scalafix",
++      micrositeDescription := "Rewrite and linting tool for Scala",
++      micrositeBaseUrl := "scalafix",
++      micrositeDocumentationUrl := "docs/users/installation",
++      micrositeHighlightTheme := "atom-one-light",
++      micrositeHomepage := "https://scalacenter.github.io/scalafix/",
++      micrositeOrganizationHomepage := "https://scala.epfl.ch/",
++      micrositeTwitterCreator := "@scala_lang",
++      micrositeGithubOwner := "scalacenter",
++      micrositeGithubRepo := "scalafix",
++      ghpagesNoJekyll := false,
++      micrositeGitterChannel := true,
++      micrositeFooterText := None,
++      micrositeFooterText := Some(
++        """
++          |<p>© 2017 <a href="https://github.com/scalacenter/scalafix#team">The Scalafix Maintainers</a></p>
++          |<p style="font-size: 80%; margin-top: 10px">Website built with <a href="https://47deg.github.io/sbt-microsites/">sbt-microsites © 2016 47 Degrees</a></p>
++          |""".stripMargin
++      ),
++      micrositePalette := Map(
++        "brand-primary" -> "#0D2B35",
++        "brand-secondary" -> "#203F4A",
++        "brand-tertiary" -> "#0D2B35",
++        "gray-dark" -> "#453E46",
++        "gray" -> "rgba(0,0,0,.8)",
++        "gray-light" -> "#E3E2E3",
++        "gray-lighter" -> "#F4F3F4",
++        "white-color" -> "#FFFFFF"
++      ),
++      micrositeConfigYaml := ConfigYml(
++        yamlCustomProperties = Map(
++          "githubOwner" -> micrositeGithubOwner.value,
++          "githubRepo" -> micrositeGithubRepo.value,
++          "docsUrl" -> "docs",
++          "callToActionText" -> "Get started",
++          "callToActionUrl" -> micrositeDocumentationUrl.value,
++          "scala212" -> scala212,
++          "scala211" -> scala211,
++          "stableVersion" -> stableVersion.value,
++          "scalametaVersion" -> scalametaV,
++          "semanticdbSbtVersion" -> semanticdbSbt,
++          "supportedScalaVersions" -> supportedScalaVersions,
++          "coursierVersion" -> coursier.util.Properties.version
++        )
++      ),
++      fork in tut := true
++    )
++  }
++  import autoImport._
++
++  // Custom settings to publish scalafix forks to alternative maven repo.
++  lazy val adhocRepoUri = sys.props("scalafix.repository.uri")
++  lazy val adhocRepoCredentials = sys.props("scalafix.repository.credentials")
++  lazy val isCustomRepository = adhocRepoUri != null && adhocRepoCredentials != null
++
++  override def globalSettings: Seq[Def.Setting[_]] = List(
++    stableVersion := version.in(ThisBuild).value.replaceAll("\\-.*", ""),
++    scalaVersion := ciScalaVersion.getOrElse(scala212),
++    crossScalaVersions := crossVersions,
++    scalacOptions ++= compilerOptions,
++    scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
++    libraryDependencies += scalatest.value % Test,
++    testOptions in Test += Tests.Argument("-oD"),
++    updateOptions := updateOptions.value.withCachedResolution(true),
++    resolvers += Resolver.sonatypeRepo("releases"),
++    triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
++    commands += Command.command("ci-release") { s =>
++      "clean" ::
++        "very publishSigned" ::
++        "^^ 1.0.2 " ::
++        "scalafix-sbt/publishSigned" ::
++        "sonatypeReleaseAll" ::
++        s
++    },
++    commands += Command.command("ci-fast") { s =>
++      "test" ::
++        s
++    },
++    commands += Command.command("ci-slow") { s =>
++      "scalafix-sbt/it:test" ::
++        s
++    },
++    commands += Command.command("mima") { s =>
++      "very mimaReportBinaryIssues" ::
++        s
++    },
++    credentials ++= (for {
++      username <- sys.env.get("SONATYPE_USERNAME")
++      password <- sys.env.get("SONATYPE_PASSWORD")
++    } yield
++      Credentials(
++        "Sonatype Nexus Repository Manager",
++        "oss.sonatype.org",
++        username,
++        password)).toSeq,
++    PgpKeys.pgpPassphrase := sys.env.get("PGP_PASSPHRASE").map(_.toCharArray()),
++    publishTo := {
++      if (isCustomRepository) Some("adhoc" at adhocRepoUri)
++      else {
++        val uri = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
++        Some("Releases" at uri)
++      }
++    },
++    credentials ++= {
++      val credentialsFile = {
++        if (adhocRepoCredentials != null) new File(adhocRepoCredentials)
++        else null
++      }
++      if (credentialsFile != null) List(new FileCredentials(credentialsFile))
++      else Nil
++    },
++    publishArtifact in Test := false,
++    licenses := Seq(
++      "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
++    homepage := Some(url("https://github.com/scalacenter/scalafix")),
++    autoAPIMappings := true,
++    apiURL := Some(url("https://scalacenter.github.io/scalafix/")),
++    scmInfo := Some(
++      ScmInfo(
++        url("https://github.com/scalacenter/scalafix"),
++        "scm:git:git@github.com:scalacenter/scalafix.git"
++      )
++    ),
++    organization := "ch.epfl.scala",
++    developers ++= List(
++      Developer(
++        "gabro",
++        "Gabriele Petronella",
++        "gabriele@buildo.io",
++        url("https://buildo.io")
++      ),
++      Developer(
++        "olafurpg",
++        "Ólafur Páll Geirsson",
++        "olafurpg@gmail.com",
++        url("https://geirsson.com")
++      )
++    )
++  )
++
++  override def projectSettings: Seq[Def.Setting[_]] = List(
++    mimaPreviousArtifacts := {
++      val previousArtifactVersion = "0.5.0"
++      // NOTE(olafur) shudder, can't figure out simpler way to do the same.
++      val binaryVersion =
++        if (crossVersion.value.isInstanceOf[CrossVersion.Full])
++          scalaVersion.value
++        else scalaBinaryVersion.value
++      Set(
++        organization.value % s"${moduleName.value}_$binaryVersion" % previousArtifactVersion
++      )
++    },
++    mimaBinaryIssueFilters ++= Mima.ignoredABIProblems
++  )
++}
+diff --git a/project/plugins.sbt b/project/plugins.sbt
+index 191592bc..694b09bb 100644
+--- a/project/plugins.sbt
++++ b/project/plugins.sbt
+@@ -7 +7 @@ addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "1.1")
+-addSbtPlugin("com.dwijnand" % "sbt-dynver" % "1.2.0")
++addSbtPlugin("com.dwijnand" % "sbt-dynver" % "2.0.0")
+@@ -15 +15 @@ addSbtPlugin("org.scala-js" % "sbt-scalajs" % "0.6.18")
+-addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.7.0")
++addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.9.0")
+diff --git a/scalafix-cli/src/main/scala/scalafix/cli/CliRunner.scala b/scalafix-cli/src/main/scala/scalafix/cli/CliRunner.scala
+index a3b50b6d..f96700f1 100644
+--- a/scalafix-cli/src/main/scala/scalafix/cli/CliRunner.scala
++++ b/scalafix-cli/src/main/scala/scalafix/cli/CliRunner.scala
+@@ -280,0 +281,6 @@ object CliRunner {
++    def toClasspath(cp: String): List[AbsolutePath] =
++      cp.split(File.pathSeparator)
++        .iterator
++        .map(path => AbsolutePath(path)(common.workingPath))
++        .toList
++
+@@ -284,4 +290,2 @@ object CliRunner {
+-          val paths = cp.split(File.pathSeparator).map { path =>
+-            AbsolutePath(path)(common.workingPath)
+-          }
+-          Ok(Classpath(paths.toList))
++          val paths = toClasspath(cp)
++          Ok(Classpath(paths))
+@@ -289,3 +293,2 @@ object CliRunner {
+-          val roots =
+-            cli.classpathAutoRoots.fold(List(cli.common.workingPath))(cp =>
+-              Classpath(cp).shallow)
++          val roots = cli.classpathAutoRoots.fold(
++            cli.common.workingPath :: Nil)(toClasspath)
+@@ -351 +354,5 @@ object CliRunner {
+-      new LazySemanticdbIndex(resolveDatabase, diagnostic)
++      new LazySemanticdbIndex(
++        resolveDatabase,
++        diagnostic,
++        cli.common.workingPath,
++        cli.toolClasspath.map(toClasspath).getOrElse(Nil))
+diff --git a/scalafix-cli/src/main/scala/scalafix/internal/cli/ScalafixOptions.scala b/scalafix-cli/src/main/scala/scalafix/internal/cli/ScalafixOptions.scala
+index 700e66ce..9506fd43 100644
+--- a/scalafix-cli/src/main/scala/scalafix/internal/cli/ScalafixOptions.scala
++++ b/scalafix-cli/src/main/scala/scalafix/internal/cli/ScalafixOptions.scala
+@@ -61 +61 @@ case class ScalafixOptions(
+-    @ValueDescription("entry1.jar:entry2.jar:target/scala-2.12/classes")
++    @ValueDescription("entry1.jar:entry2.jar:target/scala-2.12/classes/")
+@@ -66 +65,0 @@ case class ScalafixOptions(
+-    @ValueDescription("target:project/target")
+@@ -67,0 +67,4 @@ case class ScalafixOptions(
++    @HelpMessage(
++      "Additional classpath to use when classloading/compiling rules")
++    @ValueDescription("entry1.jar:entry2.jar:target/scala-2.12/classes/")
++    toolClasspath: Option[String] = None,
+diff --git a/scalafix-core/shared/src/main/scala/scalafix/internal/config/LazySemanticdbIndex.scala b/scalafix-core/shared/src/main/scala/scalafix/internal/config/LazySemanticdbIndex.scala
+index 86fd710a..68141c45 100644
+--- a/scalafix-core/shared/src/main/scala/scalafix/internal/config/LazySemanticdbIndex.scala
++++ b/scalafix-core/shared/src/main/scala/scalafix/internal/config/LazySemanticdbIndex.scala
+@@ -3,0 +4 @@ import scalafix.SemanticdbIndex
++import org.langmeta.io.AbsolutePath
+@@ -14,3 +15,7 @@ class LazySemanticdbIndex(
+-    f: RuleKind => Option[SemanticdbIndex],
+-    val reporter: ScalafixReporter)
+-    extends Function[RuleKind, Option[SemanticdbIndex]] {
++    f: RuleKind => Option[SemanticdbIndex] = _ => None,
++    val reporter: ScalafixReporter = ScalafixReporter.default,
++    // The working directory when compiling file:relativepath/
++    val workingDirectory: AbsolutePath = AbsolutePath.workingDirectory,
++    // Additional classpath entries to use when compiling/classloading rules.
++    val toolClasspath: List[AbsolutePath] = Nil
++) extends Function[RuleKind, Option[SemanticdbIndex]] {
+@@ -21,3 +26,5 @@ object LazySemanticdbIndex {
+-  lazy val empty = new LazySemanticdbIndex(_ => None, ScalafixReporter.default)
+-  def apply(f: RuleKind => Option[SemanticdbIndex]): LazySemanticdbIndex =
+-    new LazySemanticdbIndex(f, ScalafixReporter.default)
++  lazy val empty = new LazySemanticdbIndex()
++  def apply(
++      f: RuleKind => Option[SemanticdbIndex],
++      cwd: AbsolutePath = AbsolutePath.workingDirectory): LazySemanticdbIndex =
++    new LazySemanticdbIndex(f, ScalafixReporter.default, cwd, Nil)
+diff --git a/scalafix-core/shared/src/main/scala/scalafix/internal/config/ScalafixMetaconfigReaders.scala b/scalafix-core/shared/src/main/scala/scalafix/internal/config/ScalafixMetaconfigReaders.scala
+index 91763098..d3b45ba1 100644
+--- a/scalafix-core/shared/src/main/scala/scalafix/internal/config/ScalafixMetaconfigReaders.scala
++++ b/scalafix-core/shared/src/main/scala/scalafix/internal/config/ScalafixMetaconfigReaders.scala
+@@ -3,0 +4 @@ package internal.config
++import java.io.File
+@@ -16,0 +18,2 @@ import java.net.URI
++import java.net.URL
++import java.net.URLClassLoader
+@@ -27,0 +31 @@ import scalafix.patch.TreePatch
++import org.scalameta.logger
+@@ -135 +139,8 @@ trait ScalafixMetaconfigReaders {
+-        ClassloadRule(fqn, classloadRule(index))
++        val classloader =
++          if (index.toolClasspath.isEmpty) ClassloadRule.defaultClassloader
++          else {
++            val urls =
++              index.toolClasspath.iterator.map(_.toURI.toURL).toArray
++            new URLClassLoader(urls, ClassloadRule.defaultClassloader)
++          }
++        ClassloadRule(fqn, classloadRule(index), classloader)
+diff --git a/scalafix-core/shared/src/main/scala/scalafix/internal/util/ClassloadRule.scala b/scalafix-core/shared/src/main/scala/scalafix/internal/util/ClassloadRule.scala
+index b99050e6..bdc8fa43 100644
+--- a/scalafix-core/shared/src/main/scala/scalafix/internal/util/ClassloadRule.scala
++++ b/scalafix-core/shared/src/main/scala/scalafix/internal/util/ClassloadRule.scala
+@@ -118 +118 @@ object ClassloadRule {
+-  lazy val defaultClassloader = getClass.getClassLoader
++  def defaultClassloader: ClassLoader = getClass.getClassLoader
+diff --git a/scalafix-reflect/src/main/scala/scalafix/internal/reflect/ScalafixCompilerDecoder.scala b/scalafix-reflect/src/main/scala/scalafix/internal/reflect/ScalafixCompilerDecoder.scala
+index beda7679..fc2fad9c 100644
+--- a/scalafix-reflect/src/main/scala/scalafix/internal/reflect/ScalafixCompilerDecoder.scala
++++ b/scalafix-reflect/src/main/scala/scalafix/internal/reflect/ScalafixCompilerDecoder.scala
+@@ -19,0 +20 @@ import metaconfig.Configured.Ok
++import org.langmeta.io.AbsolutePath
+@@ -22 +23,2 @@ object ScalafixCompilerDecoder {
+-  def baseCompilerDecoder(index: LazySemanticdbIndex): ConfDecoder[Rule] =
++  def baseCompilerDecoder(index: LazySemanticdbIndex): ConfDecoder[Rule] = {
++    implicit val cwd: AbsolutePath = index.workingDirectory
+@@ -29,0 +32 @@ object ScalafixCompilerDecoder {
++  }
+@@ -86,5 +89,8 @@ object ScalafixCompilerDecoder {
+-    def unapply(arg: Conf.Str): Option[File] = arg match {
+-      case UriRule("file", uri) =>
+-        Option(new File(uri.getSchemeSpecificPart).getAbsoluteFile)
+-      case _ => None
+-    }
++    def unapply(arg: Conf.Str)(
++        implicit cwd: AbsolutePath): Option[AbsolutePath] =
++      arg match {
++        case UriRule("file", uri) =>
++          val path = AbsolutePath(Paths.get(uri.getSchemeSpecificPart))
++          Option(path)
++        case _ => None
++      }
+@@ -106 +112,2 @@ object ScalafixCompilerDecoder {
+-    def unapply(arg: Conf.Str): Option[Configured[Input]] = arg match {
++    def unapply(arg: Conf.Str)(
++        implicit cwd: AbsolutePath): Option[Configured[Input]] = arg match {
+diff --git a/scalafix-reflect/src/main/scala/scalafix/internal/reflect/ScalafixToolbox.scala b/scalafix-reflect/src/main/scala/scalafix/internal/reflect/ScalafixToolbox.scala
+index dcd2e888..dea311a6 100644
+--- a/scalafix-reflect/src/main/scala/scalafix/internal/reflect/ScalafixToolbox.scala
++++ b/scalafix-reflect/src/main/scala/scalafix/internal/reflect/ScalafixToolbox.scala
+@@ -5,0 +6 @@ import java.net.URLDecoder
++import java.util.function
+@@ -10,0 +12 @@ import scala.tools.nsc.Settings
++import scala.tools.nsc.io.AbstractFile
+@@ -17,0 +20 @@ import scalafix.rule.Rule
++import metaconfig.ConfDecoder
+@@ -25 +28,6 @@ class ScalafixToolbox {
+-  private val compiler = new Compiler()
++  private val compilerCache =
++    new java.util.concurrent.ConcurrentHashMap[String, RuleCompiler]()
++  private val newCompiler: function.Function[String, RuleCompiler] =
++    new function.Function[String, RuleCompiler] {
++      override def apply(classpath: String) = new RuleCompiler(classpath)
++    }
+@@ -41,0 +50,8 @@ class ScalafixToolbox {
++      val cp = RuleCompiler.defaultClasspath + (
++        if (index.toolClasspath.isEmpty) ""
++        else {
++          File.pathSeparator +
++            index.toolClasspath.mkString(File.pathSeparator)
++        }
++      )
++      val compiler = compilerCache.computeIfAbsent(cp, newCompiler)
+@@ -58,2 +74,28 @@ class ScalafixToolbox {
+-class Compiler() {
+-  val target = new VirtualDirectory("(memory)", None)
++object RuleCompiler {
++  def defaultClasspath: String = {
++    getClass.getClassLoader match {
++      case u: URLClassLoader =>
++        val paths = u.getURLs.toList.map(u => {
++          if (u.getProtocol.startsWith("bootstrap")) {
++            import java.io._
++            import java.nio.file._
++            val stream = u.openStream
++            val tmp = File.createTempFile("bootstrap-" + u.getPath, ".jar")
++            Files.copy(
++              stream,
++              Paths.get(tmp.getAbsolutePath),
++              StandardCopyOption.REPLACE_EXISTING)
++            tmp.getAbsolutePath
++          } else {
++            URLDecoder.decode(u.getPath, "UTF-8")
++          }
++        })
++        paths.mkString(File.pathSeparator)
++      case _ => ""
++    }
++  }
++}
++
++class RuleCompiler(
++    classpath: String,
++    target: AbstractFile = new VirtualDirectory("(memory)", None)) {
+@@ -64,20 +106 @@ class Compiler() {
+-  getClass.getClassLoader match {
+-    case u: URLClassLoader =>
+-      val paths = u.getURLs.toList.map(u => {
+-        if (u.getProtocol.startsWith("bootstrap")) {
+-          import java.io._
+-          import java.nio.file._
+-          val stream = u.openStream
+-          val tmp = File.createTempFile("bootstrap-" + u.getPath, ".jar")
+-          Files.copy(
+-            stream,
+-            Paths.get(tmp.getAbsolutePath),
+-            StandardCopyOption.REPLACE_EXISTING)
+-          tmp.getAbsolutePath
+-        } else {
+-          URLDecoder.decode(u.getPath, "UTF-8")
+-        }
+-      })
+-      settings.classpath.value = paths.mkString(File.pathSeparator)
+-    case _ => ""
+-  }
++  settings.classpath.value = classpath
+@@ -85 +107,0 @@ class Compiler() {
+-
+@@ -87 +108,0 @@ class Compiler() {
+-
+diff --git a/scalafix-sbt/src/main/scala/scalafix/internal/sbt/ScalafixCompletions.scala b/scalafix-sbt/src/main/scala/scalafix/internal/sbt/ScalafixCompletions.scala
+index 4cd37b77..b6cc057a 100644
+--- a/scalafix-sbt/src/main/scala/scalafix/internal/sbt/ScalafixCompletions.scala
++++ b/scalafix-sbt/src/main/scala/scalafix/internal/sbt/ScalafixCompletions.scala
+@@ -3,0 +4,2 @@ import java.io.File
++import java.nio.file.Path
++import java.nio.file.Paths
+@@ -12,2 +14,23 @@ object ScalafixCompletions {
+-  private def uri(protocol: String) =
+-    token(protocol + ":") ~> NotQuoted.map(x => s"$protocol:$x")
++  private def toAbsolutePath(path: Path, cwd: Path): Path = {
++    if (path.isAbsolute) path
++    else cwd.resolve(path)
++  }.normalize()
++
++  // Extend FileExamples to tab complete when the prefix is an absolute path or `..`
++  private class AbsolutePathExamples(cwd: Path, prefix: String = "")
++      extends FileExamples(cwd.toFile, prefix) {
++    override def withAddedPrefix(addedPrefix: String): FileExamples = {
++      val nextPrefix =
++        if (addedPrefix.startsWith(".")) addedPrefix
++        else prefix + addedPrefix
++      val (b, p) = AbsolutePathCompleter.mkBase(nextPrefix, cwd)
++      new AbsolutePathExamples(b, p)
++    }
++  }
++  private object AbsolutePathCompleter {
++    def mkBase(prefix: String, fallback: Path): (Path, String) = {
++      val path = toAbsolutePath(Paths.get(prefix), fallback)
++      if (prefix.endsWith(File.separator)) path -> ""
++      else path.getParent -> path.getFileName.toString
++    }
++  }
+@@ -15 +38 @@ object ScalafixCompletions {
+-  private def fileRule(base: File): Parser[String] =
++  private def fileRule(cwd: Path): Parser[String] =
+@@ -18,2 +41,8 @@ object ScalafixCompletions {
+-        .examples(new FileExamples(base))
+-        .map(f => s"file:${new File(base, f).getAbsolutePath}")
++        .examples(new AbsolutePathExamples(cwd))
++        .map { f =>
++          val path = toAbsolutePath(Paths.get(f), cwd).toString
++          "file:" + path
++        }
++
++  private def uri(protocol: String) =
++    token(protocol + ":") ~> NotQuoted.map(x => s"$protocol:$x")
+@@ -24 +53 @@ object ScalafixCompletions {
+-  def parser(base: File): Parser[Seq[String]] = {
++  def parser(cwd: Path): Parser[Seq[String]] = {
+@@ -27 +56 @@ object ScalafixCompletions {
+-        fileRule(base) |
++        fileRule(cwd) |
+diff --git a/scalafix-sbt/src/main/scala/scalafix/internal/sbt/ScalafixJarFetcher.scala b/scalafix-sbt/src/main/scala/scalafix/internal/sbt/ScalafixJarFetcher.scala
+index d481ebff..47f82518 100644
+--- a/scalafix-sbt/src/main/scala/scalafix/internal/sbt/ScalafixJarFetcher.scala
++++ b/scalafix-sbt/src/main/scala/scalafix/internal/sbt/ScalafixJarFetcher.scala
+@@ -2,0 +3 @@ package scalafix.internal.sbt
++import java.io.File
+@@ -4 +4,0 @@ import java.io.OutputStreamWriter
+-import sbt.File
+diff --git a/scalafix-sbt/src/main/scala/scalafix/sbt/ScalafixEnable.scala b/scalafix-sbt/src/main/scala/scalafix/sbt/ScalafixEnable.scala
+new file mode 100644
+index 00000000..0ddafb05
+--- /dev/null
++++ b/scalafix-sbt/src/main/scala/scalafix/sbt/ScalafixEnable.scala
+@@ -0,0 +1,57 @@
++package scalafix.sbt
++
++import org.scalameta.BuildInfo
++import sbt._, Keys._
++
++/** Command to automatically enable semanticdb-scalac for shell session */
++object ScalafixEnable {
++  import ScalafixPlugin.autoImport._
++  lazy val partialToFullScalaVersion: Map[(Int, Int), String] = (for {
++    v <- BuildInfo.supportedScalaVersions
++    p <- CrossVersion.partialVersion(v).toList
++  } yield p -> v).toMap
++
++  def projectsWithMatchingScalaVersion(
++      state: State): Seq[(ProjectRef, String)] = {
++    val extracted = Project.extract(state)
++    for {
++      p <- extracted.structure.allProjectRefs
++      version <- scalaVersion.in(p).get(extracted.structure.data).toList
++      partialVersion <- CrossVersion.partialVersion(version).toList
++      fullVersion <- partialToFullScalaVersion.get(partialVersion).toList
++    } yield p -> fullVersion
++  }
++
++  lazy val command = Command.command(
++    "scalafixEnable",
++    briefHelp =
++      "Configure libraryDependencies, scalaVersion and scalacOptions for scalafix.",
++    detail = """1. enables the semanticdb-scalac compiler plugin
++               |2. sets scalaVersion to latest Scala version supported by scalafix
++               |3. add -Yrangepos to scalacOptions""".stripMargin
++  ) { s =>
++    val extracted = Project.extract(s)
++    val settings: Seq[Setting[_]] = for {
++      (p, fullVersion) <- projectsWithMatchingScalaVersion(s)
++      isEnabled = libraryDependencies
++        .in(p)
++        .get(extracted.structure.data)
++        .exists(_.exists(_.name == "semanticdb-scalac"))
++      if !isEnabled
++      setting <- List(
++        scalaVersion.in(p) := fullVersion,
++        scalacOptions.in(p) ++= List(
++          "-Yrangepos",
++          s"-Xplugin-require:semanticdb",
++          s"-P:semanticdb:sourceroot:${scalafixSourceroot.value.getAbsolutePath}"
++        ),
++        libraryDependencies.in(p) += compilerPlugin(
++          "org.scalameta" % "semanticdb-scalac" %
++            scalafixSemanticdbVersion.value cross CrossVersion.full)
++      )
++    } yield setting
++
++    val semanticdbInstalled = extracted.append(settings, s)
++    semanticdbInstalled
++  }
++}
+diff --git a/scalafix-sbt/src/main/scala/scalafix/sbt/ScalafixPlugin.scala b/scalafix-sbt/src/main/scala/scalafix/sbt/ScalafixPlugin.scala
+index 07171e4d..56cfb7a4 100644
+--- a/scalafix-sbt/src/main/scala/scalafix/sbt/ScalafixPlugin.scala
++++ b/scalafix-sbt/src/main/scala/scalafix/sbt/ScalafixPlugin.scala
+@@ -11,0 +12 @@ import scalafix.internal.sbt.ScalafixJarFetcher
++import org.scalameta.BuildInfo
+@@ -31,12 +31,0 @@ object ScalafixPlugin extends AutoPlugin {
+-    val scalafixEnabled: SettingKey[Boolean] =
+-      settingKey[Boolean](
+-        "If false, scalafix will not enable the semanticdb-scalac compiler plugin, which is necessary for semantic rules.")
+-    def scalafixScalacOptions: Def.Initialize[Seq[String]] =
+-      ScalafixPlugin.scalafixScalacOptions
+-    def sbtfixSettings: Seq[Def.Setting[_]] = ScalafixPlugin.sbtfixSettings
+-    val scalafixVerbose: SettingKey[Boolean] =
+-      settingKey[Boolean]("pass --verbose to scalafix")
+-    def scalafixSettings: Seq[Def.Setting[_]] =
+-      scalafixTaskSettings ++
+-        scalafixScalacSettings ++
+-        scalafixTestTaskSettings
+@@ -45,2 +33,0 @@ object ScalafixPlugin extends AutoPlugin {
+-    @deprecated("Renamed to scalafixSourceroot", "0.5.0")
+-    val scalametaSourceroot: SettingKey[File] = scalafixSourceroot
+@@ -52,0 +40,40 @@ object ScalafixPlugin extends AutoPlugin {
++    val scalafixVerbose: SettingKey[Boolean] =
++      settingKey[Boolean]("pass --verbose to scalafix")
++
++    def scalafixConfigure(configs: Configuration*): Seq[Setting[_]] =
++      List(
++        configureForConfigurations(
++          configs,
++          scalafix,
++          c => scalafixTaskImpl(c, Nil)),
++        configureForConfigurations(
++          configs,
++          scalafixTest,
++          c => scalafixTaskImpl(c, Seq("--test")))
++      ).flatten
++
++    /** Add -Yrangepos and semanticdb sourceroot to scalacOptions. */
++    def scalafixScalacOptions: Def.Initialize[Seq[String]] =
++      ScalafixPlugin.scalafixScalacOptions
++
++    /** Add semanticdb-scalac compiler plugin to libraryDependencies. */
++    def scalafixLibraryDependencies: Def.Initialize[List[ModuleID]] =
++      ScalafixPlugin.scalafixLibraryDependencies
++
++    /** Enable semanticdb-sbt for all projects with id *-build. */
++    def sbtfixSettings: Seq[Def.Setting[_]] =
++      ScalafixPlugin.sbtfixSettings
++
++    /** Settings that must appear after scalacOptions and libraryDependencies */
++    def scalafixSettings: Seq[Def.Setting[_]] = List(
++      scalacOptions ++= scalafixScalacOptions.value,
++      libraryDependencies ++= scalafixLibraryDependencies.value
++    )
++
++    // TODO(olafur) remove this in 0.6.0, replaced
++    val scalafixEnabled: SettingKey[Boolean] =
++      settingKey[Boolean](
++        "No longer used. Use the scalafixEnable command or manually configure " +
++          "scalacOptions/libraryDependecies/scalaVersion")
++    @deprecated("Renamed to scalafixSourceroot", "0.5.0")
++    val scalametaSourceroot: SettingKey[File] = scalafixSourceroot
+@@ -57 +84,4 @@ object ScalafixPlugin extends AutoPlugin {
+-  override def projectSettings: Seq[Def.Setting[_]] = scalafixSettings
++  override def projectSettings: Seq[Def.Setting[_]] =
++    scalafixSettings ++ // TODO(olafur) remove this line in 0.6.0
++      scalafixTaskSettings ++
++      scalafixTestTaskSettings
+@@ -62,0 +93 @@ object ScalafixPlugin extends AutoPlugin {
++    commands += ScalafixEnable.command,
+@@ -110,7 +141,2 @@ object ScalafixPlugin extends AutoPlugin {
+-  private val scalafixParser = ScalafixCompletions.parser(workingDirectory)
+-  private val isSupportedScalaVersion = Def.setting {
+-    CrossVersion.partialVersion(scalaVersion.value) match {
+-      case Some((2, 11 | 12)) => true
+-      case _ => false
+-    }
+-  }
++  private val scalafixParser =
++    ScalafixCompletions.parser(workingDirectory.toPath)
+@@ -122,0 +149,6 @@ object ScalafixPlugin extends AutoPlugin {
++  private val isSupportedScalaVersion = Def.setting {
++    CrossVersion.partialVersion(scalaVersion.value) match {
++      case Some((2, 11 | 12)) => true
++      case _ => false
++    }
++  }
+@@ -123,0 +156,8 @@ object ScalafixPlugin extends AutoPlugin {
++  lazy val scalafixLibraryDependencies: Def.Initialize[List[ModuleID]] =
++    Def.setting {
++      if (scalafixEnabled.value && isSupportedScalaVersion.value) {
++        compilerPlugin(
++          "org.scalameta" % "semanticdb-scalac" % scalafixSemanticdbVersion.value cross CrossVersion.full
++        ) :: Nil
++      } else Nil
++    }
+@@ -125,2 +165 @@ object ScalafixPlugin extends AutoPlugin {
+-    if (!scalafixEnabled.value) Nil
+-    else {
++    if (scalafixEnabled.value && isSupportedScalaVersion.value) {
+@@ -132 +171 @@ object ScalafixPlugin extends AutoPlugin {
+-    }
++    } else Nil
+@@ -147,29 +185,0 @@ object ScalafixPlugin extends AutoPlugin {
+-  lazy val scalafixScalacSettings: Seq[Def.Setting[_]] = Def.settings(
+-    scalacOptions ++= {
+-      val options = scalafixScalacOptions.value
+-      if (isSupportedScalaVersion.value) {
+-        options
+-      } else {
+-        Nil
+-      }
+-    },
+-    libraryDependencies ++= {
+-      if (isSupportedScalaVersion.value && scalafixEnabled.value) {
+-        // Only add compiler plugin in 2.11 and 2.12 projects.
+-        if (!Versions.supportedScalaVersions.contains(scalaVersion.value)) {
+-          val supportedVersion =
+-            Versions.supportedScalaVersions.mkString(", ")
+-          logger.warn(
+-            s"Unsupported ${thisProject.value.id}/scalaVersion ${scalaVersion.value}. " +
+-              s"Please upgrade to one of: $supportedVersion")
+-        }
+-        val semanticdb =
+-          "org.scalameta" %
+-            "semanticdb-scalac" %
+-            scalafixSemanticdbVersion.value cross CrossVersion.full
+-        compilerPlugin(semanticdb) :: Nil
+-      } else {
+-        Nil
+-      }
+-    }
+-  )
+@@ -177 +187,4 @@ object ScalafixPlugin extends AutoPlugin {
+-    configureForCompileAndTest(scalafix, scalafixTaskImpl(_))
++    configureForConfigurations(
++      List(Compile, Test),
++      scalafix,
++      c => scalafixTaskImpl(c))
+@@ -179 +192,4 @@ object ScalafixPlugin extends AutoPlugin {
+-    configureForCompileAndTest(scalafixTest, scalafixTaskImpl(_, Seq("--test")))
++    configureForConfigurations(
++      List(Compile, Test),
++      scalafixTest,
++      c => scalafixTaskImpl(c, Seq("--test")))
+@@ -180,0 +197,3 @@ object ScalafixPlugin extends AutoPlugin {
++  @deprecated(
++    "Use configureForConfiguration(List(Compile, Test), ...) instead",
++    "0.5.4")
+@@ -183,5 +202,12 @@ object ScalafixPlugin extends AutoPlugin {
+-      impl: Seq[Configuration] => Def.Initialize[InputTask[Unit]]) = Seq(
+-    task.in(Compile) := impl(Seq(Compile)).evaluated,
+-    task.in(Test) := impl(Seq(Test)).evaluated,
+-    task := impl(Seq(Compile, Test)).evaluated
+-  )
++      impl: Seq[Configuration] => Def.Initialize[InputTask[Unit]]
++  ): Seq[Def.Setting[InputTask[Unit]]] =
++    configureForConfigurations(List(Compile, Test), task, impl)
++
++  /** Configure scalafix/scalafixTest tasks for given configurations */
++  def configureForConfigurations(
++      configurations: Seq[Configuration],
++      task: InputKey[Unit],
++      impl: Seq[Configuration] => Def.Initialize[InputTask[Unit]]
++  ): Seq[Def.Setting[InputTask[Unit]]] =
++    (task := impl(configurations).evaluated) +:
++      configurations.map(c => task.in(c) := impl(Seq(c)).evaluated)
+diff --git a/scalafix-sbt/src/sbt-test/sbt-scalafix/cross-build/build.sbt b/scalafix-sbt/src/sbt-test/sbt-scalafix/cross-build/build.sbt
+index 42bfa8e0..31c76466 100644
+--- a/scalafix-sbt/src/sbt-test/sbt-scalafix/cross-build/build.sbt
++++ b/scalafix-sbt/src/sbt-test/sbt-scalafix/cross-build/build.sbt
+@@ -20 +20,7 @@ lazy val scala211 = project.settings(scalaVersion := Versions.scala211)
+-lazy val scala212 = project.settings(scalaVersion := Versions.scala212)
++lazy val scala212 = project
++  .configs(IntegrationTest)
++  .settings(
++    Defaults.itSettings,
++    scalafixConfigure(Test, Compile, IntegrationTest),
++    scalaVersion := Versions.scala212
++  )
+@@ -47 +53,5 @@ TaskKey[Unit]("check") := {
+-    Seq(scala210, scala211, scala212, customSourceroot).flatMap { project =>
++    assertContentMatches(
++      "scala212/src/it/scala/Main.scala",
++      expected
++    ) +:
++      Seq(scala210, scala211, scala212, customSourceroot).flatMap { project =>
+diff --git a/scalafix-sbt/src/sbt-test/sbt-scalafix/cross-build/project/build.properties b/scalafix-sbt/src/sbt-test/sbt-scalafix/cross-build/project/build.properties
+deleted file mode 120000
+index 206f5e2e..00000000
+--- a/scalafix-sbt/src/sbt-test/sbt-scalafix/cross-build/project/build.properties
++++ /dev/null
+@@ -1 +0,0 @@
+-../../../../test-project-template/project/build.properties
+\ No newline at end of file
+diff --git a/scalafix-sbt/src/sbt-test/sbt-scalafix/cross-build/scala212/src/it/scala/Main.scala b/scalafix-sbt/src/sbt-test/sbt-scalafix/cross-build/scala212/src/it/scala/Main.scala
+new file mode 100644
+index 00000000..4abc907d
+--- /dev/null
++++ b/scalafix-sbt/src/sbt-test/sbt-scalafix/cross-build/scala212/src/it/scala/Main.scala
+@@ -0,0 +1,7 @@
++object Main {
++  def foo(a: (Int, String)) = a
++  foo(1, "str")
++  def main(args: Array[String]) {
++    println(1)
++  }
++}
+diff --git a/scalafix-sbt/src/sbt-test/sbt-scalafix/scalafixEnable/build.sbt b/scalafix-sbt/src/sbt-test/sbt-scalafix/scalafixEnable/build.sbt
+new file mode 100644
+index 00000000..395465ad
+--- /dev/null
++++ b/scalafix-sbt/src/sbt-test/sbt-scalafix/scalafixEnable/build.sbt
+@@ -0,0 +1,29 @@
++val V = _root_.scalafix.Versions
++
++lazy val scala210 = project.settings(
++  scalaVersion := "2.10.4",
++  libraryDependencies := Nil,
++  scalacOptions := Nil
++)
++
++lazy val overridesSettings = project.settings(
++  scalaVersion := "2.12.0",
++  libraryDependencies := Nil,
++  scalacOptions := Nil
++)
++
++lazy val isEnabled = project.settings(
++  scalaVersion := V.scala212
++)
++
++TaskKey[Unit]("check") := {
++  assert(scalaVersion.in(scala210).value == "2.10.4")
++  assert(scalaVersion.in(overridesSettings).value == V.scala212)
++
++  assert(libraryDependencies.in(overridesSettings).value.nonEmpty)
++  assert(libraryDependencies.in(scala210).value.isEmpty)
++
++  assert(scalacOptions.in(overridesSettings).value.contains("-Yrangepos"))
++  assert(scalacOptions.in(isEnabled).value.count(_ == "-Yrangepos") == 1)
++  assert(scalacOptions.in(scala210).value.isEmpty)
++}
+diff --git a/scalafix-sbt/src/sbt-test/sbt-scalafix/scalafixEnable/project/plugins.sbt b/scalafix-sbt/src/sbt-test/sbt-scalafix/scalafixEnable/project/plugins.sbt
+new file mode 100644
+index 00000000..843726fa
+--- /dev/null
++++ b/scalafix-sbt/src/sbt-test/sbt-scalafix/scalafixEnable/project/plugins.sbt
+@@ -0,0 +1 @@
++addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % sys.props("plugin.version"))
+diff --git a/scalafix-sbt/src/sbt-test/sbt-scalafix/scalafixEnable/project/project/plugins.sbt b/scalafix-sbt/src/sbt-test/sbt-scalafix/scalafixEnable/project/project/plugins.sbt
+new file mode 100644
+index 00000000..843726fa
+--- /dev/null
++++ b/scalafix-sbt/src/sbt-test/sbt-scalafix/scalafixEnable/project/project/plugins.sbt
+@@ -0,0 +1 @@
++addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % sys.props("plugin.version"))
+diff --git a/scalafix-sbt/src/sbt-test/sbt-scalafix/scalafixEnable/test b/scalafix-sbt/src/sbt-test/sbt-scalafix/scalafixEnable/test
+new file mode 100644
+index 00000000..1cf1e129
+--- /dev/null
++++ b/scalafix-sbt/src/sbt-test/sbt-scalafix/scalafixEnable/test
+@@ -0,0 +1,3 @@
++-> check
++> scalafixEnable
++> check
+diff --git a/scalafix-sbt/src/test/scala/scalafix/internal/sbt/ScalafixCompletionsTest.scala b/scalafix-sbt/src/test/scala/scalafix/internal/sbt/ScalafixCompletionsTest.scala
+new file mode 100644
+index 00000000..71849141
+--- /dev/null
++++ b/scalafix-sbt/src/test/scala/scalafix/internal/sbt/ScalafixCompletionsTest.scala
+@@ -0,0 +1,23 @@
++package scalafix.internal.sbt
++
++import java.nio.file.Paths
++import org.scalatest.FunSuite
++import sbt.complete.Parser
++
++class ScalafixCompletionsTest extends FunSuite {
++  val cwd = Paths.get("").toAbsolutePath
++  println(cwd)
++  val parser = ScalafixCompletions.parser(cwd)
++  val expected = Set("-diff", "-testkit", "-sbt", "-core", "-cli")
++  def check(path: String): Unit = {
++    test(path) {
++      val completions = Parser.completions(parser, " file:" + path, 0)
++      val obtained = completions.get.map(_.append).intersect(expected)
++      assert(obtained == expected)
++    }
++  }
++
++  check("scalafix") // relative path
++  check(cwd.resolve("scalafix").toString) // absolute path
++  check(Paths.get("..").resolve("scalafix").resolve("scalafix").toString)
++}
+diff --git a/scalafix-tests/integration/src/it/scala/scalafix/tests/ProjectTests.scala b/scalafix-tests/integration/src/it/scala/scalafix/tests/ProjectTests.scala
+deleted file mode 100644
+index 12cc574e..00000000
+--- a/scalafix-tests/integration/src/it/scala/scalafix/tests/ProjectTests.scala
++++ /dev/null
+@@ -1,28 +0,0 @@
+-package scalafix.tests
+-
+-import scalafix.SemanticdbIndex
+-import scalafix.internal.rule.ExplicitResultTypes
+-import scalafix.internal.rule.ProcedureSyntax
+-import scalafix.internal.rule.RemoveUnusedImports
+-import scalafix.rule.ProcedureSyntax
+-import scalafix.rule.RemoveUnusedImports
+-import scalafix.rule.ScalafixRules
+-
+-class Slick
+-    extends IntegrationPropertyTest(
+-      ItTest(
+-        name = "slick",
+-        repo = "https://github.com/slick/slick.git",
+-        rules = Seq(
+-          ProcedureSyntax.name,
+-          ExplicitResultTypes(ScalafixRules.emptyDatabase).name,
+-          RemoveUnusedImports(ScalafixRules.emptyDatabase).name
+-        ),
+-        hash = "bd3c24be419ff2791c123067668c81e7de858915",
+-        addCoursier = false,
+-        commands =
+-          Command.enableWarnUnusedImports +:
+-            Command.default
+-      ),
+-      skip = false
+-    )
+diff --git a/scalafix-tests/integration/src/it/scala/scalafix/tests/URLConfiguration.scala b/scalafix-tests/integration/src/it/scala/scalafix/tests/URLConfiguration.scala
+deleted file mode 100644
+index e8bf6903..00000000
+--- a/scalafix-tests/integration/src/it/scala/scalafix/tests/URLConfiguration.scala
++++ /dev/null
+@@ -1,21 +0,0 @@
+-package scalafix.tests
+-
+-import scalafix.SemanticdbIndex
+-import scalafix.reflect.ScalafixReflect
+-import metaconfig.Conf
+-import org.scalatest.FunSuite
+-
+-class URLConfiguration extends FunSuite {
+-  import scalafix.internal.config.ScalafixConfig
+-  val url =
+-    "https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/84dc2450844531d3aeb81d4f3e1dc741abf920c3/ExampleRule.scala"
+-  test("compile from URL works") {
+-
+-    val index = Some(SemanticdbIndex(Nil))
+-    val obtained =
+-      ScalafixReflect
+-        .fromLazySemanticdbIndex(_ => index)
+-        .read(Conf.Str(url))
+-    assert(obtained.get.name.contains("Rule2"))
+-  }
+-}
+diff --git a/scalafix-tests/unit/src/test/scala/scalafix/cli/AutoClasspathSuite.scala b/scalafix-tests/unit/src/test/scala/scalafix/tests/cli/AutoClasspathSuite.scala
+similarity index 94%
+rename from scalafix-tests/unit/src/test/scala/scalafix/cli/AutoClasspathSuite.scala
+rename to scalafix-tests/unit/src/test/scala/scalafix/tests/cli/AutoClasspathSuite.scala
+index 85bba632..1caa2351 100644
+--- a/scalafix-tests/unit/src/test/scala/scalafix/cli/AutoClasspathSuite.scala
++++ b/scalafix-tests/unit/src/test/scala/scalafix/tests/cli/AutoClasspathSuite.scala
+@@ -1 +1 @@
+-package scalafix.cli
++package scalafix.tests.cli
+@@ -5,0 +6 @@ import scala.meta.io.Classpath
++import scalafix.cli.CliRunner
+diff --git a/scalafix-tests/unit/src/test/scala/scalafix/cli/BaseCliTest.scala b/scalafix-tests/unit/src/test/scala/scalafix/tests/cli/BaseCliTest.scala
+similarity index 94%
+rename from scalafix-tests/unit/src/test/scala/scalafix/cli/BaseCliTest.scala
+rename to scalafix-tests/unit/src/test/scala/scalafix/tests/cli/BaseCliTest.scala
+index 990afae6..4c3e8dec 100644
+--- a/scalafix-tests/unit/src/test/scala/scalafix/cli/BaseCliTest.scala
++++ b/scalafix-tests/unit/src/test/scala/scalafix/tests/cli/BaseCliTest.scala
+@@ -1 +1 @@
+-package scalafix.cli
++package scalafix.tests.cli
+@@ -8,0 +9,4 @@ import scala.collection.immutable.Seq
++import scala.meta.internal.io.FileIO
++import scalafix.cli.Cli
++import scalafix.cli.CliCommand
++import scalafix.cli.ExitStatus
+@@ -10,0 +15 @@ import scalafix.internal.cli.ScalafixOptions
++import scalafix.internal.rule.RemoveUnusedImports
+@@ -12,0 +18 @@ import scalafix.testkit.DiffAssertions
++import scalafix.testkit.SemanticRuleSuite
+@@ -14 +19,0 @@ import scalafix.tests.BuildInfo
+-import scala.meta.AbsolutePath
+@@ -16,4 +21,2 @@ import ammonite.ops
+-import scala.meta.io.RelativePath
+-import scalafix.internal.rule.RemoveUnusedImports
+-import scalafix.testkit.SemanticRuleSuite
+-import scala.meta.internal.io.FileIO
++import org.langmeta.io.AbsolutePath
++import org.langmeta.io.RelativePath
+diff --git a/scalafix-tests/unit/src/test/scala/scalafix/cli/CliArgsTest.scala b/scalafix-tests/unit/src/test/scala/scalafix/tests/cli/CliArgsTest.scala
+similarity index 98%
+rename from scalafix-tests/unit/src/test/scala/scalafix/cli/CliArgsTest.scala
+rename to scalafix-tests/unit/src/test/scala/scalafix/tests/cli/CliArgsTest.scala
+index 6f5f453c..9fa3c949 100644
+--- a/scalafix-tests/unit/src/test/scala/scalafix/cli/CliArgsTest.scala
++++ b/scalafix-tests/unit/src/test/scala/scalafix/tests/cli/CliArgsTest.scala
+@@ -1 +1 @@
+-package scalafix.cli
++package scalafix.tests.cli
+diff --git a/scalafix-tests/unit/src/test/scala/scalafix/cli/CliSemanticTest.scala b/scalafix-tests/unit/src/test/scala/scalafix/tests/cli/CliSemanticTests.scala
+similarity index 95%
+rename from scalafix-tests/unit/src/test/scala/scalafix/cli/CliSemanticTest.scala
+rename to scalafix-tests/unit/src/test/scala/scalafix/tests/cli/CliSemanticTests.scala
+index ce0d7ca1..f536845f 100644
+--- a/scalafix-tests/unit/src/test/scala/scalafix/cli/CliSemanticTest.scala
++++ b/scalafix-tests/unit/src/test/scala/scalafix/tests/cli/CliSemanticTests.scala
+@@ -1 +1 @@
+-package scalafix.cli
++package scalafix.tests.cli
+@@ -3,0 +4 @@ import scala.collection.immutable.Seq
++import scalafix.cli._
+@@ -7 +8 @@ import scalafix.tests.BuildInfo
+-class CliSemanticTest extends BaseCliTest {
++class CliSemanticTests extends BaseCliTest {
+diff --git a/scalafix-tests/unit/src/test/scala/scalafix/cli/CliSyntacticTests.scala b/scalafix-tests/unit/src/test/scala/scalafix/tests/cli/CliSyntacticTests.scala
+similarity index 97%
+rename from scalafix-tests/unit/src/test/scala/scalafix/cli/CliSyntacticTests.scala
+rename to scalafix-tests/unit/src/test/scala/scalafix/tests/cli/CliSyntacticTests.scala
+index 1f8f8aff..d1eddde5 100644
+--- a/scalafix-tests/unit/src/test/scala/scalafix/cli/CliSyntacticTests.scala
++++ b/scalafix-tests/unit/src/test/scala/scalafix/tests/cli/CliSyntacticTests.scala
+@@ -1 +1 @@
+-package scalafix.cli
++package scalafix.tests.cli
+@@ -3,0 +4 @@ import scala.collection.immutable.Seq
++import scalafix.cli._
+@@ -80 +81 @@ class CliSyntacticTests extends BaseCliTest {
+-      "scala:scalafix.cli.TestRules.LintError",
++      "scala:scalafix.tests.cli.TestRules.LintError",
+@@ -99 +100 @@ class CliSyntacticTests extends BaseCliTest {
+-      "scala:scalafix.cli.TestRules.LintWarning",
++      "scala:scalafix.tests.cli.TestRules.LintWarning",
+diff --git a/scalafix-tests/unit/src/test/scala/scalafix/cli/TestRules.scala b/scalafix-tests/unit/src/test/scala/scalafix/tests/cli/TestRules.scala
+similarity index 93%
+rename from scalafix-tests/unit/src/test/scala/scalafix/cli/TestRules.scala
+rename to scalafix-tests/unit/src/test/scala/scalafix/tests/cli/TestRules.scala
+index 85ef9d55..c786e5e8 100644
+--- a/scalafix-tests/unit/src/test/scala/scalafix/cli/TestRules.scala
++++ b/scalafix-tests/unit/src/test/scala/scalafix/tests/cli/TestRules.scala
+@@ -1 +1 @@
+-package scalafix.cli
++package scalafix.tests.cli
+diff --git a/scalafix-tests/unit/src/test/scala/scalafix/tests/GitHubUrlRuleSuite.scala b/scalafix-tests/unit/src/test/scala/scalafix/tests/config/GitHubUrlRuleSuite.scala
+similarity index 98%
+rename from scalafix-tests/unit/src/test/scala/scalafix/tests/GitHubUrlRuleSuite.scala
+rename to scalafix-tests/unit/src/test/scala/scalafix/tests/config/GitHubUrlRuleSuite.scala
+index 21cc69b4..8a0bb811 100644
+--- a/scalafix-tests/unit/src/test/scala/scalafix/tests/GitHubUrlRuleSuite.scala
++++ b/scalafix-tests/unit/src/test/scala/scalafix/tests/config/GitHubUrlRuleSuite.scala
+@@ -1,2 +1 @@
+-package scalafix
+-package tests
++package scalafix.tests.config
+diff --git a/scalafix-tests/unit/src/test/scala/scalafix/tests/BaseSemanticTest.scala b/scalafix-tests/unit/src/test/scala/scalafix/tests/core/BaseSemanticTest.scala
+similarity index 93%
+rename from scalafix-tests/unit/src/test/scala/scalafix/tests/BaseSemanticTest.scala
+rename to scalafix-tests/unit/src/test/scala/scalafix/tests/core/BaseSemanticTest.scala
+index 87ebe8c2..bbb3da13 100644
+--- a/scalafix-tests/unit/src/test/scala/scalafix/tests/BaseSemanticTest.scala
++++ b/scalafix-tests/unit/src/test/scala/scalafix/tests/core/BaseSemanticTest.scala
+@@ -1 +1 @@
+-package scalafix.tests
++package scalafix.tests.core
+@@ -4,0 +5 @@ import scalafix.syntax._
++import scalafix.tests.BuildInfo
+diff --git a/scalafix-tests/unit/src/test/scala/scalafix/tests/DenotationOpsTest.scala b/scalafix-tests/unit/src/test/scala/scalafix/tests/core/DenotationOpsTest.scala
+similarity index 92%
+rename from scalafix-tests/unit/src/test/scala/scalafix/tests/DenotationOpsTest.scala
+rename to scalafix-tests/unit/src/test/scala/scalafix/tests/core/DenotationOpsTest.scala
+index 4ca30f4d..676473c1 100644
+--- a/scalafix-tests/unit/src/test/scala/scalafix/tests/DenotationOpsTest.scala
++++ b/scalafix-tests/unit/src/test/scala/scalafix/tests/core/DenotationOpsTest.scala
+@@ -1 +1 @@
+-package scalafix.tests
++package scalafix.tests.core
+@@ -6 +5,0 @@ import scalafix.syntax._
+-import scalafix.internal.util.DenotationOps
+diff --git a/scalafix-tests/unit/src/test/scala/scalafix/tests/ErrorSuite.scala b/scalafix-tests/unit/src/test/scala/scalafix/tests/core/ErrorSuite.scala
+similarity index 92%
+rename from scalafix-tests/unit/src/test/scala/scalafix/tests/ErrorSuite.scala
+rename to scalafix-tests/unit/src/test/scala/scalafix/tests/core/ErrorSuite.scala
+index 341a22d0..5da0da32 100644
+--- a/scalafix-tests/unit/src/test/scala/scalafix/tests/ErrorSuite.scala
++++ b/scalafix-tests/unit/src/test/scala/scalafix/tests/core/ErrorSuite.scala
+@@ -1 +1 @@
+-package scalafix.tests
++package scalafix.tests.core
+diff --git a/scalafix-tests/unit/src/test/scala/scalafix/tests/PatchSuite.scala b/scalafix-tests/unit/src/test/scala/scalafix/tests/core/PatchSuite.scala
+similarity index 96%
+rename from scalafix-tests/unit/src/test/scala/scalafix/tests/PatchSuite.scala
+rename to scalafix-tests/unit/src/test/scala/scalafix/tests/core/PatchSuite.scala
+index 606b9188..9144ad7c 100644
+--- a/scalafix-tests/unit/src/test/scala/scalafix/tests/PatchSuite.scala
++++ b/scalafix-tests/unit/src/test/scala/scalafix/tests/core/PatchSuite.scala
+@@ -1,2 +1 @@
+-package scalafix
+-package tests
++package scalafix.tests.core
+@@ -4,3 +2,0 @@ package tests
+-import scala.meta._
+-import scala.meta.tokens.Token.Ident
+-import scalafix.testkit.SyntacticRuleSuite
+@@ -10 +6,4 @@ import java.nio.file.Paths
+-import scalafix.internal.rule.ProcedureSyntax
++import scala.meta._
++import scala.meta.tokens.Token.Ident
++import scalafix.Rule
++import scalafix.testkit.SyntacticRuleSuite
+diff --git a/scalafix-tests/unit/src/test/scala/scalafix/tests/SemanticdbIndexTest.scala b/scalafix-tests/unit/src/test/scala/scalafix/tests/core/SemanticdbIndexTest.scala
+similarity index 98%
+rename from scalafix-tests/unit/src/test/scala/scalafix/tests/SemanticdbIndexTest.scala
+rename to scalafix-tests/unit/src/test/scala/scalafix/tests/core/SemanticdbIndexTest.scala
+index 4f28e4bc..af19d4f0 100644
+--- a/scalafix-tests/unit/src/test/scala/scalafix/tests/SemanticdbIndexTest.scala
++++ b/scalafix-tests/unit/src/test/scala/scalafix/tests/core/SemanticdbIndexTest.scala
+@@ -1 +1 @@
+-package scalafix.tests
++package scalafix.tests.core
+@@ -4 +3,0 @@ import scala.meta._
+-import scalafix.util.SymbolMatcher
+@@ -5,0 +5 @@ import scalafix.syntax._
++import scalafix.util.SymbolMatcher
+diff --git a/scalafix-tests/unit/src/test/scala/scalafix/tests/SymbolMacroTest.scala b/scalafix-tests/unit/src/test/scala/scalafix/tests/core/SymbolMacroTest.scala
+similarity index 95%
+rename from scalafix-tests/unit/src/test/scala/scalafix/tests/SymbolMacroTest.scala
+rename to scalafix-tests/unit/src/test/scala/scalafix/tests/core/SymbolMacroTest.scala
+index 9e04c95f..6a93ca9d 100644
+--- a/scalafix-tests/unit/src/test/scala/scalafix/tests/SymbolMacroTest.scala
++++ b/scalafix-tests/unit/src/test/scala/scalafix/tests/core/SymbolMacroTest.scala
+@@ -1 +1 @@
+-package scalafix.tests
++package scalafix.tests.core
+@@ -3 +2,0 @@ package scalafix.tests
+-import scalafix.internal.util.SymbolGlobal
+@@ -4,0 +4 @@ import scala.meta._
++import scalafix.internal.util.SymbolGlobal
+diff --git a/scalafix-tests/unit/src/test/scala/scalafix/tests/SymbolMatcherTest.scala b/scalafix-tests/unit/src/test/scala/scalafix/tests/core/SymbolMatcherTest.scala
+similarity index 97%
+rename from scalafix-tests/unit/src/test/scala/scalafix/tests/SymbolMatcherTest.scala
+rename to scalafix-tests/unit/src/test/scala/scalafix/tests/core/SymbolMatcherTest.scala
+index d8f259da..78dd6991 100644
+--- a/scalafix-tests/unit/src/test/scala/scalafix/tests/SymbolMatcherTest.scala
++++ b/scalafix-tests/unit/src/test/scala/scalafix/tests/core/SymbolMatcherTest.scala
+@@ -1 +1 @@
+-package scalafix.tests
++package scalafix.tests.core
+diff --git a/scalafix-tests/unit/src/test/scala/scalafix/tests/reflect/ScalafixReflectTests.scala b/scalafix-tests/unit/src/test/scala/scalafix/tests/reflect/ScalafixReflectTests.scala
+new file mode 100644
+index 00000000..f8bb249b
+--- /dev/null
++++ b/scalafix-tests/unit/src/test/scala/scalafix/tests/reflect/ScalafixReflectTests.scala
+@@ -0,0 +1,35 @@
++package scalafix.tests.reflect
++
++import scalafix.internal.config.LazySemanticdbIndex
++import scalafix.internal.reflect.ScalafixCompilerDecoder
++import scalafix.rule.Rule
++import scalafix.tests.BuildInfo
++import metaconfig.Conf
++import metaconfig.ConfDecoder
++import org.langmeta.io.AbsolutePath
++import org.langmeta.io.RelativePath
++import org.scalatest.FunSuite
++
++class ScalafixReflectTests extends FunSuite {
++  val cwd: AbsolutePath = AbsolutePath(BuildInfo.baseDirectory)
++    .resolve("scalafix-tests")
++    .resolve("unit")
++    .resolve("src")
++    .resolve("main")
++    .resolve("scala")
++    .resolve("scalafix")
++    .resolve("test")
++  val relpath = RelativePath("DummyLinter.scala")
++  val abspath: AbsolutePath = cwd.resolve(relpath)
++  val decoder: ConfDecoder[Rule] = ScalafixCompilerDecoder.baseCompilerDecoder(
++    LazySemanticdbIndex(_ => None, cwd))
++  val expected = "DummyLinter"
++  test("absolute path resolves as is") {
++    val obtained = decoder.read(Conf.Str(s"file:$abspath")).get.name.value
++    assert(expected == obtained)
++  }
++  test("relative resolves from custom working directory") {
++    val obtained = decoder.read(Conf.Str(s"file:$relpath")).get.name.value
++    assert(expected == obtained)
++  }
++}
+diff --git a/scalafix-tests/unit/src/test/scala/scalafix/tests/reflect/ToolClasspathTests.scala b/scalafix-tests/unit/src/test/scala/scalafix/tests/reflect/ToolClasspathTests.scala
+new file mode 100644
+index 00000000..3b2700ac
+--- /dev/null
++++ b/scalafix-tests/unit/src/test/scala/scalafix/tests/reflect/ToolClasspathTests.scala
+@@ -0,0 +1,77 @@
++package scalafix.tests.reflect
++
++import java.io.File
++import java.nio.file.Files
++import scala.reflect.io.Directory
++import scala.reflect.io.PlainDirectory
++import scalafix.internal.config.LazySemanticdbIndex
++import scalafix.internal.config.ScalafixMetaconfigReaders
++import scalafix.internal.reflect.RuleCompiler
++import scalafix.internal.reflect.ScalafixCompilerDecoder
++import metaconfig.Conf
++import org.langmeta.inputs.Input
++import org.langmeta.io.AbsolutePath
++import org.scalatest.BeforeAndAfterAll
++import org.scalatest.FunSuite
++
++class ToolClasspathTests extends FunSuite with BeforeAndAfterAll {
++  var scalafmtClasspath: List[AbsolutePath] = _
++  override def beforeAll(): Unit = {
++    val scalaBinaryVersion =
++      scala.util.Properties.versionNumberString
++        .split("\\.")
++        .take(2)
++        .mkString(".")
++    val jars: List[File] = scalafix.internal.sbt.ScalafixJarFetcher.fetchJars(
++      "com.geirsson",
++      "scalafmt-core_" + scalaBinaryVersion,
++      "1.2.0"
++    )
++    scalafmtClasspath = jars.map(AbsolutePath(_))
++  }
++
++  test("--tool-classpath is respected when compiling from source") {
++    val scalafmtRewrite =
++      """
++        |import org.scalafmt._
++        |import scalafix._
++        |
++        |object FormatRule extends Rule("FormatRule") {
++        |  override def fix(ctx: RuleCtx): Patch = {
++        |    val formatted = Scalafmt.format(ctx.tokens.mkString).get
++        |    ctx.addLeft(ctx.tokens.last, formatted)
++        |  }
++        |}
++      """.stripMargin
++    val tmp = Files.createTempFile("scalafix", "FormatRule.scala")
++    Files.write(tmp, scalafmtRewrite.getBytes)
++    val index =
++      new LazySemanticdbIndex(toolClasspath = scalafmtClasspath)
++    val decoder = ScalafixCompilerDecoder.baseCompilerDecoder(index)
++    val obtained = decoder.read(Conf.Str(s"file:$tmp")).get
++    val expected = "FormatRule"
++    assert(obtained.name.value == expected)
++  }
++
++  test("--tool-classpath is respected during classloading") {
++    // Couldn't figure out how to test this.
++    val rewrite =
++      """package custom
++        |import scalafix._
++        |class CustomRule extends Rule("CustomRule")
++      """.stripMargin
++    val tmp = Files.createTempDirectory("scalafix")
++    val compiler = new RuleCompiler(
++      RuleCompiler.defaultClasspath,
++      new PlainDirectory(new Directory(tmp.toFile)))
++    compiler.compile(Input.VirtualFile("CustomRule.scala", rewrite))
++    val index =
++      new LazySemanticdbIndex(toolClasspath = AbsolutePath(tmp) :: Nil)
++    val decoder = ScalafixMetaconfigReaders.classloadRuleDecoder(index)
++    val obtained = decoder.read(Conf.Str(s"class:custom.CustomRule")).get
++    val expected = "CustomRule"
++    assert(obtained.name.value == expected)
++    assert(decoder.read(Conf.Str("class:does.not.Exist")).isNotOk)
++  }
++
++}
+diff --git a/scalafix-tests/unit/src/test/scala/scalafix/tests/SemanticTests.scala b/scalafix-tests/unit/src/test/scala/scalafix/tests/rule/SemanticTests.scala
+similarity index 87%
+rename from scalafix-tests/unit/src/test/scala/scalafix/tests/SemanticTests.scala
+rename to scalafix-tests/unit/src/test/scala/scalafix/tests/rule/SemanticTests.scala
+index 3e9d14d7..0c7d1a8b 100644
+--- a/scalafix-tests/unit/src/test/scala/scalafix/tests/SemanticTests.scala
++++ b/scalafix-tests/unit/src/test/scala/scalafix/tests/rule/SemanticTests.scala
+@@ -1,2 +1 @@
+-package scalafix
+-package tests
++package scalafix.tests.rule
+@@ -4,0 +4 @@ import scala.meta._
++import scala.meta.internal.io.PathIO
+@@ -5,0 +6 @@ import scala.meta.semanticdb.SemanticdbSbt
++import scalafix.SemanticdbIndex
+@@ -7,2 +8,2 @@ import scalafix.testkit._
+-import scala.meta.internal.io.PathIO
+-import SemanticTests._
++import scalafix.tests.BuildInfo
++import scalafix.tests.rule.SemanticTests._
+diff --git a/website/src/main/tut/docs/users/faq.md b/website/src/main/tut/docs/users/faq.md
+index c0d6375e..3e094327 100644
+--- a/website/src/main/tut/docs/users/faq.md
++++ b/website/src/main/tut/docs/users/faq.md
+@@ -12,0 +13,130 @@ If you have any questions, don't hesitate to ask on {% gitter %}.
++## How does Scalafix compare with alternatives?
++
++There are many alternative tools to Scalafix, that each make different
++tradeoffs with regards to Scala 2.x fidelity, ease of writing custom
++analyses, interactivity, performance, integrations and feature support.
++The table below provides a rough comparison, below are more detailed
++explanations.
++
++|              | Scalafix       | IntelliJ Scala | Scala Refactoring | WartRemover    | ScalaStyle  |
++| -------      | --------       | -------------- | ----------------- | -----------    | ----------  |
++| Syntax model | Scalameta      | IntelliJ Scala | Scala Compiler    | Scala Compiler | Scalariform |
++| Typechecker  | Scala Compiler | IntelliJ Scala | Scala Compiler    | Scala Compiler | n/a         |
++| Linting      | Yes            | Yes            | Yes               | Yes            | Yes         |
++| Refactoring  | Yes            | Yes            | Yes               | No             | No          |
++
++### IntelliJ Scala
++
++The IntelliJ Scala Plugin is probably the most used IDE for Scala development,
++supporting a wide range of features to browse/edit/refactor Scala code.
++
++* Scalafix uses the Scala 2.x compiler to resolve symbols/types while
++  the IntelliJ Scala plugin uses it's own own typechecker.
++  This means that if a project compiles with the Scala compiler,
++  then scalafix can analyze the source code (assuming no conflicting compiler plugins).
++  The IntelliJ Scala typechecker is known to produce false red squigglies.
++  It depends on what Scala features you use whether the IntelliJ Scala can analyze
++  your source code.
++* Scalafix is primarily aimed to be used in batch-mode through a console interface
++  while IntelliJ is primarily aimed for interactive use in the IntelliJ IDE.
++* IntelliJ Scala contains a lot more rules ("inspections" in IntelliJ terms),
++  including sophisticated refactorings such as "Organize imports" and
++  "Move class" that Scalafix does not currently support.
++
++
++The IntelliJ Scala Plugin will reportedly soon release a "Migrators API",
++according to this release: https://blog.jetbrains.com/scala/2016/11/11/intellij-idea-2016-3-rc-scala-js-scala-meta-and-more/
++We look forward to see more of it!
++
++### WartRemover
++[WartRemover](http://www.wartremover.org/) is a flexible scala linter.
++
++- Scalafix runs *after* compilation as a separate tool,
++  WartRemover runs during compilation as a compiler plugin.
++- Compilation overhead of the semanticdb-scalac compiler plugin (that Scalafix requires)
++  is ~20-30%, which is likely higher than the WartRemover compiler plugin (I haven't measured).
++  Performance in semanticdb-scalac will be addressed in future releases.
++- WartRemover has more linter rules out of the box than Scalafix.
++- It is easier to write/test/share/run new/custom rules with Scalafix.
++  The Scalafix API does not require familiarity with scalac compiler internals.
++- Scalafix is a linter and refactoring tool, which means Scalafix rules
++  can automatically fix some discovered problems. WartRemover is only a linter, it
++  does not support automatic fixing.
++- Scalafix supports syntactic rules without going through the compiler,
++  this means that WartRemover rules like Null, Throw, FinalVal, asInstanceOf,
++  ExplicitImplicitTypes, Var, While can run faster outside of compilation
++  if implemented with Scalafix.
++
++### Scalastyle
++
++[Scalastyle](http://www.scalastyle.org/) is a Scala style checker.
++
++* Scalastyle has a lot more rules than Scalafix out of the box.
++* Scalafix supports semantic and syntactic rules while Scalastyle supports only syntactic rules.
++  Semantic Scalafix rules know more about the types/symbols in your source code.
++  For example, a semantic rules can tell if `get` in `x.get` comes from `Option[T].get` or from another class that happens to also have a `.get` method.
++  Scalastyle is purely syntactic, which means it does not support rules that need information about types/symbols.
++* Scalastyle runs as a separate tool outside of compilation, just like Scalafix.
++
++### Scala Refactoring?
++
++[Scala Refactoring](https://github.com/scala-ide/scala-refactoring) is a library providing automated refactoring support for Scala.
++
++* Scalafix rules uses the [Scalameta](http://scalameta.org/) AST while Scala
++  Refactoring uses the Scala 2.x compiler AST.
++  The Scalameta AST encodes more syntactic details from the original
++  source file, including for-comprehensions, infix operators and
++  primary constructors. Example:
++```scala
++// scalameta AST
++case class A(b: Int, c: String) {
++  for {
++    char <- c
++    if char == 'a'
++    i <- (1 to char.toInt)
++  } yield i
++  val d, List(e: Int) = List(1)
++}
++// Scala Compiler AST
++package <empty> {
++  case class A extends scala.Product with scala.Serializable {
++    <caseaccessor> <paramaccessor> val b: Int = _;
++    <caseaccessor> <paramaccessor> val c: String = _;
++    def <init>(b: Int, c: String) = {
++      super.<init>();
++      ()
++    };
++    c.withFilter(((char) => char.$eq$eq('a'))).flatMap(((char) => 1.to(char.toInt).map(((i) => i))));
++    val d = List(1);
++    val e: Int = List(1): @scala.unchecked match {
++      case List((e @ (_: Int))) => e
++    }
++  }
++}
++```
++* Scala Refactoring requires a live instance of scala-compiler while
++  scalafix-core does not depend on scala-compiler. Scalafix only depends
++  on [SemanticDB](http://scalameta.org/tutorial/#SemanticDB). This has
++  positive and negative implications, for example
++  - Scala Refactoring has always access to the full compiler APIs,
++    while changes to the Scalafix semantic API may require changing the
++    Scalameta SemanticDB schema.
++  - scalafix-core cross-builds to Scala.js, you can interactively explore
++    the Scalameta ASTs in the browser on [astexplorer.net](https://astexplorer.net/#/gist/f0816de84a02654b8242de5822e672a2/8a7007dd2b292b955e005704f5823c24fab9bfeb).
++  - The edit/run/debug cycle when developing Scalafix rules can be very fast
++    if you have a pre-built SemanticDB.
++    For example, in
++    [olafur/scala-experiments](https://github.com/olafurpg/scala-experiments)
++    you can run semantic analysis on a corpus of 2.5M LOC in under 5 seconds
++    (more complicated analyses can take 1-2 minutes).
++    You can use that corpus to fuzz your Scalafix rules.
++    In Scala Refactoring, you must always re-compile sources to test
++    new changes in the rule you are developing.
++  - scala-compiler APIs expose internals of the Scala compiler, which
++    requires a certain level of expertise to accomplish even fairly
++    simple tasks. It is easy to get cryptic compiler errors in scala-compiler
++    if you accidentally break some assumed invariants.
++    SemanticDB on the other hand is a plain data schema, essentially
++    a small hierarchy of case classes. The entire schema is defined in
++    [60 lines of protobuf](https://github.com/scalameta/scalameta/blob/master/langmeta/shared/src/main/protobuf/semanticdb.proto).
++
+diff --git a/website/src/main/tut/docs/users/installation.md b/website/src/main/tut/docs/users/installation.md
+index bf9d962e..1a4e1fe2 100644
+--- a/website/src/main/tut/docs/users/installation.md
++++ b/website/src/main/tut/docs/users/installation.md
+@@ -14 +14 @@ Currently, Scalafix does not provide any IDE integrations with IntelliJ/ENSIME.
+-The sbt-plugin is the recommended integration for semantic rules.
++The sbt-plugin is the recommended integration to run semantic rules like RemoveUnusedImports or ExplicitResultTypes.
+@@ -20,13 +20,5 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "{{ site.stableVersion }}")
+-// ===> build.sbt
+-scalaVersion := "{{ site.scala212 }}" // {{ site.scala211 }} is also supported.
+-// if scalacOptions is defined with append `++=`, do nothing.
+-// if scalacOptions is defined like this: scalacOptions := List(...),
+-// then do one of the following
+-scalacOptions ++= List(...) // change := to ++=
+-// or
+-scalacOptions := List(...)                    // keep unchanged
+-scalacOptions ++= scalafixScalacOptions.value // add this line
+-
+-// ===> sbt shell (example usage)
+-> scalafix                               // Run .scalafix.conf rules
+-> scalafix RemoveUnusedImports           // Run specific rule
++// ===> sbt shell
++> scalafixEnable // Setup scalafix for active session.
++                 // Not needed if build.sbt is configured like below.
++> scalafix                               // Run all rules configured in .scalafix.conf
++> scalafix RemoveUnusedImports           // Run only RemoveUnusedImports rule
+@@ -38,0 +31,11 @@ scalacOptions ++= scalafixScalacOptions.value // add this line
++
++// (optional, to avoid need for scalafixEnable) permanently enable scalafix in build.sbt
++// ===> build.sbt
++scalaVersion := "{{ site.scala212 }}" // {{ site.scala211 }} is also supported.
++
++// If you get "-Yrangepos is required" error or "Missing compiler plugin semanticdb",
++// This setting must appear after scalacOptions and libraryDependencies.
++scalafixSettings
++
++// To configure for custom configurations like IntegrationTest
++scalafixConfigure(Compile, Test, IntegrationTest)
+@@ -42 +45,2 @@ scalacOptions ++= scalafixScalacOptions.value // add this line
+-To verify the installation, check that the scalacOptions include -Xplugin-require:semanticdb
++To verify the installation, check that scalacOptions and libraryDependecies
++contain the values below.
+@@ -69 +72,0 @@ git diff // should produce a diff
+-| `scalafixEnabled` | `Boolean` | `true` by default. If `false`, then sbt-scalafix will not enable the [semanticdb-scalac](http://scalameta.org/tutorial/#SemanticDB) plugin.
+@@ -84,5 +87,2 @@ information from the sbt compiler. To enable semanticdb-sbt,
+-// ~/.sbt/0.13/plugins/plugins.sbt
+-addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "{{ site.stableVersion }}")
+-// ~/.sbt/0.13/build.sbt
+-import scalafix.sbt.ScalafixPlugin.autoImport._
+-sbtfixSettings // enable semanticdb-sbt for sbt metabuilds.
++// project/plugins.sbt
++addCompilerPlugin("org.scalameta" % "semanticdb-sbt" % "{{ site.semanticdbSbtVersion }}" cross CrossVersion.full)
+@@ -91 +91,7 @@ sbtfixSettings // enable semanticdb-sbt for sbt metabuilds.
+-__Note__. This integration is new, you can expect to face problems from enabling sbt-scalafix globally. In particular, sbt-scalafix does not at the moment support older versions of 2.11 than {{ site.scala211 }} and 2.12 than {{ site.scala212 }}. It's possible to disable sbt-scalafix with `scalafixEnabled := false`. Please report back on your experience.
++Once enabled, you can run scalafix rules against `project/*.scala` and `*.sbt`
++files with
++
++```scala
++> reload // rebuild semanticdb for *.sbt and project/*.scala sources
++> sbtfix Sbt1
++```
+@@ -102 +108 @@ The recommended way to install the scalafix command-line interface is with
+-coursier bootstrap ch.epfl.scala:scalafix-cli_@{{ site.scalaVersion }}:{{ site.stableVersion }} -f --main scalafix.cli.Cli -o scalafix
++coursier bootstrap ch.epfl.scala:scalafix-cli_{{ site.scala212 }}:{{ site.stableVersion }} -f --main scalafix.cli.Cli -o scalafix
+@@ -125,0 +132,74 @@ println(scalafix.cli.Cli.helpMessage)
++## Maven
++
++It is possible to use scalafix with scala-maven-plugin but it requires a custom setup since there is no scalafix specific Maven plugin.
++
++### Install semanticdb compiler plugin
++
++First, download the `semanticdb-scalac` compiler plugin which corresponds to your exact scala version of your project, down to the patch number.
++
++To begin with, it's recommended to install the coursier command line interface https://github.com/coursier/coursier.
++
++```
++wget https://github.com/coursier/coursier/raw/master/coursier && chmod +x coursier && ./coursier --help
++```
++
++Coursier is a tool to download and launch library artifacts.
++Once you have coursier installed, assuming you are on {{ site.scala212 }}:
++
++```
++coursier fetch --intransitive org.scalameta:semanticdb-scalac_{{ site.scala212 }}:{{ site.scalametaVersion }}
++```
++
++You can also use `wget` or a simalar tool to retrieve the jar from `https://repo1.maven.org/maven2/org/scalameta/semanticdb-scalac_{{ site.scala212 }}/{{ site.scalametaVersion }}/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}-javadoc.jar`. 
++
++### Compile sources with semanticdb
++
++Let's say the `semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar` is available in `PLUGINS/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar` path on your file system. 
++
++Recompile your project using `-DaddScalacArgs` as follow: 
++
++```
++mvn clean test -DskipTests=true -DaddScalacArgs="-Yrangepos|-Xplugin-require:semanticdb|-Xplugin:PLUGIN/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar|-Ywarn-unused-import"
++```
++
++Here, we compile both main sources and tests to have semantic information generated for all of them, but we skip test execution because it is not the point of that compilation. 
++The added flags for scala are given with the `addScalaArgs` option (see http://davidb.github.io/scala-maven-plugin/help-mojo.html#addScalacArgs):
++
++- `-Yrangepos` is required for `semanticdb` to function properly,
++- `-Xplugin:PLUGIN/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar` give the path where the `semanticdb` jar can be found, 
++- (optional) `-Xplugin-require:semanticdb` tells scalac to fails if it can't load the `semanticdb` plugin, 
++- (optional) `-Ywarn-unused-import` is required for the `RemoveUnusedImports` rule. If you don't run `RemoveUnusedImports` you can skip this flag. Consult the scalafix documentation for each rule to see which flags it requires.
++- (optional) Customize the --sourceroot with `-P:semanticdb:sourceroot:/path/to/sourceroot` (more details below)
++
++After compilation, double check that there exists a directory `target/classes/META-INF/semanticdb/` containing files with the `.semanticdb` extension.
++
++*Important note*: you will need to recompile to get up-to-date `semanticdb` information after each modification. 
++
++### Run scalafix-cli
++
++Install and use `scalafix` as explained above.
++One important note is that you need to give `--sourceroot` with the root path the same as the path where you ran your `mvn clent test` command.
++This may be confusing when you are on a multi-module project. 
++For example, if your project is: 
++
++```
++somepath/scalaProject
++ |- moduleA
++ |    |- src/{main, test}/scala
++ |    `- target
++ `- moduleB
++      |- src/{main, test}/scala
++      `- target
++```
++
++If you compile at `scalaProject` level, you will need to invoke scalafix with: 
++
++```
++scalafix --rules RemoveUnusedImports --sourceroot /path/to/somepath/scalaProject
++```
++
++But if you compiled at `moduleA` level only, you will need to use: 
++
++```
++scalafix --rules RemoveUnusedImports --sourceroot /path/to/somepath/scalaProject/moduleA
++```

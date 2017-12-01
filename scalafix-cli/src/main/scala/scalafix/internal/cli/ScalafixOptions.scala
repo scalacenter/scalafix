@@ -144,7 +144,16 @@ case class ScalafixOptions(
     @HelpMessage("""Print out sbt completion parser to argument.""".stripMargin)
     @ValueDescription("scalafix-sbt/src/main/scala/Completions.scala")
     @Hidden
-    sbt: Option[String] = None
+    sbt: Option[String] = None,
+    @HelpMessage(
+      "If set, only apply scalafix to added and edited files in git diff against master.")
+    diff: Boolean = false,
+    @HelpMessage(
+      "If set, only apply scalafix to added and edited files in git diff against a provided branch.")
+    diffBranch: Option[String] = None,
+    @HelpMessage(
+      "If set, only scalafix to added and edited files in a git diff provided in the stdin")
+    diffStdin: Boolean = false
 ) {
   def classpathRoots: List[AbsolutePath] =
     classpathAutoRoots.fold(List(common.workingPath))(cp =>

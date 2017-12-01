@@ -10,9 +10,14 @@ object Mima {
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "scalafix.patch.PatchOps.removeTokens"),
       ProblemFilters.exclude[Problem]("scalafix.internal.*"),
+      // marked sealed abstract
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "scalafix.cli.CliRunner.this"),
       // marked private[scalafix]
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "scalafix.rule.RuleCtx.printLintMessage"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "scalafix.rule.RuleCtx.filterLintMessage"),
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "scalafix.patch.Patch.reportLintMessages"),
       ProblemFilters.exclude[DirectMissingMethodProblem](
