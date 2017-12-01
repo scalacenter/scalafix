@@ -16,7 +16,7 @@ env:
 
   # - CI_TEST: mima
 
-  - CI_DEBUG: debug-cred
+  - CI_TEST: debug-cred
 
 cache:
   directories:
