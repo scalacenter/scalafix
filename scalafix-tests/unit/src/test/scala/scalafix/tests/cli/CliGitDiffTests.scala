@@ -49,7 +49,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     val obtained = runDiff(cli)
 
     val expected =
-      s"""|$newCodeAbsPath:3: error: [DisableSyntax.keywords.var] keywords.var is disabled
+      s"""|$newCodeAbsPath:3:3: error: [DisableSyntax.keywords.var] keywords.var is disabled
           |  var newVar = 1
           |  ^
           |""".stripMargin
@@ -88,7 +88,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     val obtained = runDiff(cli)
 
     val expected =
-      s"""|$oldCodeAbsPath:5: error: [DisableSyntax.keywords.var] keywords.var is disabled
+      s"""|$oldCodeAbsPath:5:3: error: [DisableSyntax.keywords.var] keywords.var is disabled
           |  var newVar = 2
           |  ^
           |""".stripMargin
@@ -130,7 +130,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     val obtained = runDiff(cli)
 
     val expected =
-      s"""|$newCodeAbsPath:5: error: [DisableSyntax.keywords.var] keywords.var is disabled
+      s"""|$newCodeAbsPath:5:3: error: [DisableSyntax.keywords.var] keywords.var is disabled
           |  var newVar = 2
           |  ^
           |""".stripMargin
