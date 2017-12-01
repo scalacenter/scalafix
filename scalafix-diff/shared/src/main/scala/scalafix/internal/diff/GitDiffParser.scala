@@ -16,7 +16,7 @@ private[scalafix] class GitDiffParser(
   private val New = "^new file mode [0-9]{6}$".r
   private val Index = "^index [a-z0-9]{1,40}..[a-z0-9]{1,40}$".r
   private val Index2 = "^index [a-z0-9]{1,40}..[a-z0-9]{1,40} [0-9]{6}$".r
-  private val Similarity = "similarity index \\d{2,3}%".r
+  private val Similarity = "similarity index (\\d{2,3})%".r
   private val OriginalFile = "--- (.*)$".r
   private val RevisedFile = "^\\+\\+\\+ (.*)$".r
   private val RenameFrom = "^rename from (.*)$".r
@@ -102,11 +102,13 @@ private[scalafix] class GitDiffParser(
         case Index2() => {
           diffs += ModifiedFile(path(revisedPath), acceptHunks())
         }
-        case Similarity() => {
+        case Similarity(percentage) => {
           accept(RenameFrom)
           accept(RenameTo)
-          accept(Index2)
-          diffs += ModifiedFile(path(revisedPath), acceptHunks())
+          if (percentage != "100") {
+            accept(Index2)
+            diffs += ModifiedFile(path(revisedPath), acceptHunks())
+          }
         }
         case line => throw new Exception(s"other: '$line'")
       }

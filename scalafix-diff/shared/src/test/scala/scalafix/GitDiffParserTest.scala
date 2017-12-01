@@ -28,15 +28,27 @@ class GitDiffParserTest extends FunSuite {
     }
   }
 
+  test("100% similarity") {
+    val diff =
+      """|diff --git a/A.scala b/B.scala
+         |similarity index 100%
+         |rename from A.scala
+         |rename to B.scala""".stripMargin
+
+    val itt = Source.fromString(diff).getLines
+    val gitDiffparser = new GitDiffParser(itt, Paths.get("."))
+    val diffs = gitDiffparser.parse()
+
+  }
+
   test("parse tests") {
-    (1 to 2).foreach { i =>
+    (1 to 3).foreach { i =>
       val source = Source.fromURL(
         getClass.getClassLoader.getResource(s"./git$i.diff")
       )
       val gitDiffparser = new GitDiffParser(source.getLines, Paths.get("."))
       val diffs = gitDiffparser.parse()
       assert(!diffs.isEmpty)
-      // GitDiffParser.show(diffs)
       source.close()
     }
   }
