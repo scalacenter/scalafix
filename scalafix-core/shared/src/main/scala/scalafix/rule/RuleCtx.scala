@@ -52,6 +52,9 @@ trait RuleCtx extends PatchOps {
   private[scalafix] def toks(t: Tree): Tokens
   private[scalafix] def config: ScalafixConfig
   private[scalafix] def printLintMessage(msg: LintMessage): Unit
+  private[scalafix] def filterLintMessage(
+      lints: List[LintMessage]): List[LintMessage]
+
 }
 
 object RuleCtx {

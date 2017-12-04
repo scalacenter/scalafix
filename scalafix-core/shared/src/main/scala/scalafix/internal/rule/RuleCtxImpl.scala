@@ -63,6 +63,9 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
     )
   }
 
+  def filterLintMessage(lints: List[LintMessage]): List[LintMessage] =
+    escapeHatch.filter(lints)
+
   def lint(msg: LintMessage): Patch =
     LintPatch(msg)
 

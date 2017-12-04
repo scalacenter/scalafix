@@ -18,7 +18,13 @@ object Mima {
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "scalafix.patch.Patch.lintMessages"),
       ProblemFilters.exclude[DirectMissingMethodProblem](
-        "scalafix.rule.RuleCtx.printLintMessage")
+        "scalafix.rule.RuleCtx.printLintMessage"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "scalafix.rule.RuleCtx.filterLintMessage"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "scalafix.cli.CliRunner.this"
+      )
     )
   }
 }
