@@ -5,7 +5,7 @@ import java.nio.file.Path
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
-import org.eclipse.jgit.diff.DiffEntry
+import org.eclipse.jgit.diff.DiffEntry.ChangeType._
 import org.eclipse.jgit.diff.DiffFormatter
 import org.eclipse.jgit.patch.FileHeader
 import org.eclipse.jgit.lib.ObjectReader
@@ -32,40 +32,29 @@ object JGitDiff {
     val oldTree1 = ref(repository, s"refs/heads/$baseBranch")
     val newTree1 = new FileTreeIterator(repository)
 
-    val diffs = List.newBuilder[GitDiff]
-
     def path(relative: String): Path =
       workingDir.resolve(relative)
 
-    def edits(file: FileHeader): Unit = {
-      val changes = List.newBuilder[GitChange]
-      file.toEditList.asScala.foreach { edit =>
-        changes += GitChange(edit.getBeginB, edit.getEndB)
-      }
-      diffs += ModifiedFile(path(file.getNewPath), changes.result())
+    def edits(file: FileHeader): ModifiedFile = {
+      val changes =
+        file.toEditList.asScala.map(edit =>
+          GitChange(edit.getBeginB, edit.getEndB))
+
+      ModifiedFile(path(file.getNewPath), changes.toList)
     }
 
-    getDiff(repository, oldTree1, newTree1).foreach { file =>
+    getDiff(repository, oldTree1, newTree1).flatMap(file =>
       file.getChangeType match {
-        case DiffEntry.ChangeType.ADD => diffs += NewFile(path(file.getNewPath))
-        case DiffEntry.ChangeType.MODIFY => edits(file)
-        case DiffEntry.ChangeType.RENAME => edits(file)
-        case DiffEntry.ChangeType.COPY => edits(file)
-        case DiffEntry.ChangeType.DELETE => ()
-      }
-    }
-
-    diffs.result()
+        case ADD => List(NewFile(path(file.getNewPath)))
+        case MODIFY => List(edits(file))
+        case RENAME => List(edits(file))
+        case COPY => List(edits(file))
+        case DELETE => Nil
+    })
   }
 
   private def ref(repository: Repository, ref: String): AbstractTreeIterator =
     iterator(repository, _.parseCommit(repository.exactRef(ref).getObjectId()))
-
-  // could be handy in future
-  private def commit(
-      repository: Repository,
-      objectId: String): AbstractTreeIterator =
-    iterator(repository, _.parseCommit(ObjectId.fromString(objectId)))
 
   private def iterator(
       repository: Repository,

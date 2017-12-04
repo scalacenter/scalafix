@@ -19,7 +19,7 @@ import scalafix.internal.cli.CommonOptions
 import scalafix.testkit.DiffAssertions
 
 class CliGitDiffTests() extends FunSuite with DiffAssertions {
-  gitTest("it should handle addition") { (fs, git, cli) =>
+  gitTest("addition") { (fs, git, cli) =>
     val oldCode = "old.scala"
     val newCode = "new.scala"
     val newCodeAbsPath = fs.absPath(newCode)
@@ -57,7 +57,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     assertNoDiff(obtained, expected)
   }
 
-  gitTest("it should handle modification") { (fs, git, cli) =>
+  gitTest("modification") { (fs, git, cli) =>
     val oldCode = "old.scala"
     val oldCodeAbsPath = fs.absPath(oldCode)
 
@@ -98,7 +98,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     assertNoDiff(obtained, expected)
   }
 
-  gitTest("it should handle rename") { (fs, git, cli) =>
+  gitTest("rename") { (fs, git, cli) =>
     val oldCode = "old.scala"
     val newCode = "new.scala"
     val newCodeAbsPath = fs.absPath(newCode)
