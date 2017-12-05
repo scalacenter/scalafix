@@ -432,10 +432,9 @@ object CliRunner {
           else common.workingPath :: Nil
         val allFiles = paths.toVector.flatMap(expand(pathMatcher))
 
-        val allFilesExcludingDiffs = 
-          diffDisable.fold(allFiles)(diff => 
-            allFiles.filterNot(fixFile => diff.isDisabled(fixFile.original))
-          )
+        val allFilesExcludingDiffs =
+          diffDisable.fold(allFiles)(diff =>
+            allFiles.filterNot(fixFile => diff.isDisabled(fixFile.original)))
 
         if (allFilesExcludingDiffs.isEmpty) {
           ConfError

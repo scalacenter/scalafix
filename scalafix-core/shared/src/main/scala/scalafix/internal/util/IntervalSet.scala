@@ -26,7 +26,7 @@ object IntervalSet {
     xs.foreach {
       case (start, end) => {
         var i = start
-        while(i <= end) {
+        while (i <= end) {
           val idx = i / n
           mask.update(
             idx,
