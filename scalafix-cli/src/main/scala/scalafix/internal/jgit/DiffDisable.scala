@@ -32,6 +32,9 @@ class DiffDisable(diffs: List[GitDiff]) {
     }
   }.toMap
 
+  def isDisabled(file: Input): Boolean =
+    !(newFiles.contains(file) || modifiedFiles.contains(file))
+
   def filter(lints: List[LintMessage]): List[LintMessage] = {
     def isAddition(lint: LintMessage): Boolean =
       newFiles.contains(lint.position.input)

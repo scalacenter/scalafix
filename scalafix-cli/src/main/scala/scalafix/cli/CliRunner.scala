@@ -415,20 +415,35 @@ object CliRunner {
           .notOk
     }
 
+    val diffDisable: Option[DiffDisable] = {
+      if (cli.diff || cli.diffBranch.nonEmpty) {
+        val baseBranch = cli.diffBranch.getOrElse("master")
+        Some(DiffDisable(common.workingPath.toNIO, baseBranch))
+      } else {
+        None
+      }
+    }
+
     val fixFiles: Configured[Seq[FixFile]] =
       resolvedPathMatcher.andThen { pathMatcher =>
         val paths =
           if (cli.files.nonEmpty) cli.files.map(AbsolutePath(_))
           // If no files are provided, assume cwd.
           else common.workingPath :: Nil
-        val result = paths.toVector.flatMap(expand(pathMatcher))
-        if (result.isEmpty) {
+        val allFiles = paths.toVector.flatMap(expand(pathMatcher))
+
+        val allFilesExcludingDiffs = 
+          diffDisable.fold(allFiles)(diff => 
+            allFiles.filterNot(fixFile => diff.isDisabled(fixFile.original))
+          )
+
+        if (allFilesExcludingDiffs.isEmpty) {
           ConfError
             .msg(
               s"No files to fix! Missing at least one .scala or .sbt file from: " +
                 paths.mkString(", "))
             .notOk
-        } else Ok(result)
+        } else Ok(allFilesExcludingDiffs)
       }
 
     val resolvedConfigInput: Configured[Input] =
@@ -543,14 +558,5 @@ object CliRunner {
             file.copy(semanticFile = labeled)
           }
       }
-
-    val diffDisable: Option[DiffDisable] = {
-      if (cli.diff || cli.diffBranch.nonEmpty) {
-        val baseBranch = cli.diffBranch.getOrElse("master")
-        Some(DiffDisable(common.workingPath.toNIO, baseBranch))
-      } else {
-        None
-      }
-    }
   }
 }
