@@ -1,6 +1,6 @@
 package scalafix.internal.util
 
-import scala.collection.BitSet
+import scala.collection.immutable.BitSet
 
 class IntervalSet(range: BitSet) {
   def contains(elem: Int): Boolean =
@@ -16,12 +16,26 @@ object IntervalSet {
   def apply(intervals: (Int, Int)*): IntervalSet =
     apply(intervals.toList)
 
-  def apply(intervals: List[(Int, Int)]): IntervalSet = {
-    val range = BitSet.newBuilder
-    intervals.foreach {
-      case (start, end) =>
-        range ++= BitSet((start to end): _*)
+  def apply(intervals: List[(Int, Int)]): IntervalSet =
+    new IntervalSet(fromRange(intervals))
+
+  private def fromRange(xs: List[(Int, Int)]): BitSet = {
+    val n = 64
+    val max = xs.maxBy(_._2)._2
+    val mask = Array.ofDim[Long](max / n + 1)
+    xs.foreach {
+      case (start, end) => {
+        var i = start
+        while(i <= end) {
+          val idx = i / n
+          mask.update(
+            idx,
+            mask(idx) | (1L << (i - (idx * n)))
+          )
+          i += 1
+        }
+      }
     }
-    new IntervalSet(range.result)
+    BitSet.fromBitMaskNoCopy(mask)
   }
 }
