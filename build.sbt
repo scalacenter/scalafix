@@ -193,7 +193,6 @@ lazy val `scalafix-sbt` = project
     scriptedLaunchOpts ++= Seq(
       "-Dplugin.version=" + version.value,
       // .jvmopts is ignored, simulate here
-      "-XX:MaxPermSize=256m",
       "-Xmx2g",
       "-Xss2m"
     ),
