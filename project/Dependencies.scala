@@ -12,7 +12,7 @@ object Dependencies {
   // https://travis-ci.org/scalacenter/scalafix/jobs/303142842#L4658
   // as well as https://github.com/scala/bug/issues/10609
   def scala211 = "2.11.11"
-  def scala212 = "2.12.3"
+  def scala212 = "2.12.4"
   val currentScalaVersion = scala212
 
   def sbt013 = "0.13.6"
