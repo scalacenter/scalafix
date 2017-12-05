@@ -170,6 +170,12 @@ lazy val `scalafix-sbt` = project
       "cli/run --sbt scalafix-sbt/src/main/scala/scalafix/internal/sbt/ScalafixRewriteNames.scala" ::
         s
     },
+    scalaVersion := {
+      CrossVersion.binarySbtVersion(scriptedSbt.value) match {
+        case "0.13" => scala210
+        case _ => scala212
+      }
+    },
     sbtPlugin := true,
     libraryDependencies ++= coursierDeps,
     testQuick := {}, // these test are slow.
@@ -187,7 +193,6 @@ lazy val `scalafix-sbt` = project
     scriptedLaunchOpts ++= Seq(
       "-Dplugin.version=" + version.value,
       // .jvmopts is ignored, simulate here
-      "-XX:MaxPermSize=256m",
       "-Xmx2g",
       "-Xss2m"
     ),

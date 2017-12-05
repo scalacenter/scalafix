@@ -174,10 +174,16 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "scalafix/publishSigned" ::
         "scalafix211/publishSigned" ::
         "scalafix-sbt/publishSigned" ::
+        s"^^ $sbt1 scalafix-sbt/publishSigned" ::
         "sonatypeReleaseAll" ::
         s
     },
-    commands += Command.command("ci-slow") { s =>
+    commands += Command.command("ci-sbt") { s =>
+      // scripted tests don't work in sbt 1.0 yet because we run Sbt1
+      s"^^ $sbt1 scalafix-sbt/publishLocal" ::
+        s
+    },
+    commands += Command.command("ci-sbt-sbt013") { s =>
       "scalafix-sbt/scripted" ::
         s
     },
