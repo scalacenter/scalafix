@@ -160,59 +160,15 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   lazy val adhocRepoCredentials = sys.props("scalafix.repository.credentials")
   lazy val isCustomRepository = adhocRepoUri != null && adhocRepoCredentials != null
 
-  private val PreviousScalaVersion = Map(
-    "2.11.12" -> "2.11.11",
-    "2.12.4" -> "2.12.3"
-  )
-
-  override def buildSettings: Seq[Def.Setting[_]] = List(
-    licenses := Seq(
-      "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
-    homepage := Some(url("https://github.com/scalacenter/scalafix")),
-    autoAPIMappings := true,
-    apiURL := Some(url("https://scalacenter.github.io/scalafix/")),
-    scmInfo := Some(
-      ScmInfo(
-        url("https://github.com/scalacenter/scalafix"),
-        "scm:git:git@github.com:scalacenter/scalafix.git"
-      )
-    ),
-    organization := "ch.epfl.scala",
-    developers ++= List(
-      Developer(
-        "gabro",
-        "Gabriele Petronella",
-        "gabriele@buildo.io",
-        url("https://buildo.io")
-      ),
-      Developer(
-        "MasseGuillaume",
-        "Guillaume Massé",
-        "masgui@gmail.com",
-        url("https://github.com/MasseGuillaume")
-      ),
-      Developer(
-        "olafurpg",
-        "Ólafur Páll Geirsson",
-        "olafurpg@gmail.com",
-        url("https://geirsson.com")
-      )
-    ),
-    publishTo := {
-      if (isCustomRepository) Some("adhoc" at adhocRepoUri)
-      else {
-        val uri = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-        Some("Releases" at uri)
-      }
-    },
-    credentials ++= {
-      val credentialsFile = {
-        if (adhocRepoCredentials != null) new File(adhocRepoCredentials)
-        else null
-      }
-      if (credentialsFile != null) List(new FileCredentials(credentialsFile))
-      else Nil
-    },
+  override def globalSettings: Seq[Def.Setting[_]] = List(
+    stableVersion := version.in(ThisBuild).value.replaceAll("\\-.*", ""),
+    scalacOptions ++= compilerOptions,
+    scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
+    libraryDependencies += scalatest.value % Test,
+    testOptions in Test += Tests.Argument("-oD"),
+    updateOptions := updateOptions.value.withCachedResolution(true),
+    resolvers += Resolver.sonatypeRepo("releases"),
+    triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
     commands += Command.command("ci-release") { s =>
       "clean" ::
         "scalafix/publishSigned" ::
@@ -244,18 +200,62 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "scalafix211/mimaReportBinaryIssues" ::
         s
     },
-    resolvers += Resolver.sonatypeRepo("releases"),
-    triggeredMessage in ThisBuild := Watched.clearWhenTriggered
+    credentials ++= {
+      val credentialsFile = {
+        if (adhocRepoCredentials != null) new File(adhocRepoCredentials)
+        else null
+      }
+      if (credentialsFile != null) List(new FileCredentials(credentialsFile))
+      else Nil
+    },
+    publishArtifact in Test := false,
+    licenses := Seq(
+      "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+    homepage := Some(url("https://github.com/scalacenter/scalafix")),
+    autoAPIMappings := true,
+    apiURL := Some(url("https://scalacenter.github.io/scalafix/")),
+    organization := "ch.epfl.scala",
+    developers ++= List(
+      Developer(
+        "gabro",
+        "Gabriele Petronella",
+        "gabriele@buildo.io",
+        url("https://buildo.io")
+      ),
+      Developer(
+        "MasseGuillaume",
+        "Guillaume Massé",
+        "masgui@gmail.com",
+        url("https://github.com/MasseGuillaume")
+      ),
+      Developer(
+        "olafurpg",
+        "Ólafur Páll Geirsson",
+        "olafurpg@gmail.com",
+        url("https://geirsson.com")
+      )
+    )
+  )
+
+  private val PreviousScalaVersion = Map(
+    "2.11.12" -> "2.11.11",
+    "2.12.4" -> "2.12.3"
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
-    stableVersion := version.in(ThisBuild).value.replaceAll("\\-.*", ""),
-    scalacOptions ++= compilerOptions,
-    scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
-    libraryDependencies += scalatest.value % Test,
-    testOptions in Test += Tests.Argument("-oD"),
-    updateOptions := updateOptions.value.withCachedResolution(true),
-    publishArtifact in Test := false,
+    publishTo := {
+      if (isCustomRepository) Some("adhoc" at adhocRepoUri)
+      else {
+        val uri = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+        Some("Releases" at uri)
+      }
+    },
+    scmInfo := Some(
+      ScmInfo(
+        url("https://github.com/scalacenter/scalafix"),
+        "scm:git:git@github.com:scalacenter/scalafix.git"
+      )
+    ),
     mimaPreviousArtifacts := {
       val previousArtifactVersion = "0.5.0"
       // NOTE(olafur) shudder, can't figure out simpler way to do the same.
