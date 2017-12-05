@@ -123,6 +123,51 @@ Anything under the package `scalafix.internal._` does not have compatibility res
 
 Run `sbt mimaReportBinaryIssues` to check for any compatibility issues.
 
+## Publish setup
+
+Scalafix is setup to publish automatically when we publish a tag on GitHub. You should not have to worry
+about this part. For completeness, this is how it was set up:
+
+### Register on Sonatype
+
+Follow https://github.com/scalacenter/sbt-release-early/wiki/How-to-release-with-Sonatype#release-with-sonatype
+
+You now have:
+
+* SONATYPE_PASSWORD
+* SONATYPE_USERNAME
+
+Ask us to be added to the ch.epfl.scala group
+
+### Setup gpg
+
+```bash
+gpg --version # make shure it's 1.X (not 2.X)
+gpg --gen-key # with an empty passphrase
+gpg --armor --export-secret-keys | base64 -w 0 | xclip -i # This is PGP_SECRET
+gpg --list-keys
+
+# For example
+# /home/gui/.gnupg/pubring.gpg
+# ----------------------------
+# pub   2048R/6EBD580D 2017-12-04
+# uid                  GMGMGM
+# sub   2048R/135A5E9E 2017-12-04
+
+gpg --keyserver hkp://pool.sks-keyservers.net --send-keys <YOUR KEY ID>
+
+# For example: gpg --keyserver hkp://pool.sks-keyservers.net --send-keys 6EBD580D
+```
+
+### Setup travis
+
+Setup the project at https://travis-ci.org/scalacenter/scalafix/settings with
+
+SONATYPE_PASSWORD
+SONATYPE_USERNAME
+PGP_PASSPHRASE (empty)
+PGP_SECRET
+
 ## TL;DR
 
 If you are unsure about anything, don't hesitate to ask in the [gitter channel](https://gitter.im/scalacenter/scalafix).
