@@ -151,7 +151,8 @@ val cli = MultiScalaProject(
       "com.github.alexarchambault" %% "case-app" % "1.2.0",
       "org.typelevel" %% "paiges-core" % "0.2.0",
       "com.martiansoftware" % "nailgun-server" % "0.9.1",
-      "org.eclipse.jgit" % "org.eclipse.jgit" % "4.5.4.201711221230-r"
+      "org.eclipse.jgit" % "org.eclipse.jgit" % "4.5.4.201711221230-r",
+      "ch.qos.logback" % "logback-classic" % "1.2.3"
     )
   )
 )
