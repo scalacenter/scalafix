@@ -29,7 +29,18 @@ object JGitDiff {
     val repository =
       builder.readEnvironment().setWorkTree(workingDir.toFile).build()
 
-    val oldTree1 = ref(repository, s"refs/heads/$baseBranch")
+    val baseBranchRef = s"refs/heads/$baseBranch"
+    val git = new Git(repository)
+    val branches = git.branchList().call()
+    if (branches.isEmpty) {
+      throw new Exception(s"$workingDir is not a git repository")
+    }
+    val baseBranchExists = branches.asScala.exists(_.getName() == baseBranchRef)
+    if (!baseBranchExists) {
+      throw new Exception(s"Cannot find git branch $baseBranch")
+    }
+
+    val oldTree1 = ref(repository, baseBranchRef)
     val newTree1 = new FileTreeIterator(repository)
 
     def path(relative: String): Path =
@@ -54,7 +65,12 @@ object JGitDiff {
   }
 
   private def ref(repository: Repository, ref: String): AbstractTreeIterator =
-    iterator(repository, _.parseCommit(repository.exactRef(ref).getObjectId()))
+    iterator(
+      repository,
+      _.parseCommit(
+        repository.exactRef(ref).getObjectId()
+      )
+    )
 
   private def iterator(
       repository: Repository,

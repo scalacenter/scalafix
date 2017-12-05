@@ -140,16 +140,48 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     assertNoDiff(obtained, expected)
   }
 
-  private def runDiff(cli: Cli): String =
-    noColor(cli.run("--non-interactive", "--diff"))
+  gitTest("not a branch") { (fs, git, cli) =>
+    val a = "a.scala"
+    fs.add(a, "object A")
+    git.add(a)
+    addConf(fs, git)
+    git.commit()
 
+    val tag = "v0.5.6"
+    git.tag(tag, "yay!")
+
+    val obtained =  runDiff(cli, s"--diff-branch=$tag")
+    val expected = s"error: java.lang.Exception: Cannot find git branch $tag"
+
+    assert(obtained.startsWith(expected))
+  }
+
+  test("not a git repo") {
+    val fs = new Fs()
+    addConf(fs)
+    val cli = new Cli(fs.workingDirectory)
+    val obtained = runDiff(cli)
+    val expected = 
+      s"error: java.lang.Exception: ${fs.workingDirectory} is not a git repository"
+
+    assert(obtained.startsWith(expected))
+
+  }
+
+  private def runDiff(cli: Cli, args: String*): String =
+    noColor(cli.run("--non-interactive" :: "--diff" :: args.toList))
+
+  private val confFile = ".scalafix.conf"
   private def addConf(fs: Fs, git: Git): Unit = {
-    val confFile = ".scalafix.conf"
+    addConf(fs)
+    git.add(confFile)
+  }
+
+  private def addConf(fs: Fs): Unit = {
     fs.add(
       confFile,
       """|rules = DisableSyntax
          |DisableSyntax.keywords = [var]""".stripMargin)
-    git.add(confFile)
   }
 
   private def noColor(in: String): String =
@@ -217,6 +249,9 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     def checkout(branch: String): Unit =
       git.checkout().setCreateBranch(true).setName(branch).call()
 
+    def tag(name: String, message: String): Unit =
+      git.tag().setName(name).setMessage(message).call()
+
     def commit(): Unit = {
       git.commit().setMessage(s"r$revision").call()
       revision += 1
@@ -224,7 +259,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
   }
 
   private class Cli(workingDirectory: Path) {
-    def run(args: String*): String = {
+    def run(args: List[String]): String = {
       val baos = new ByteArrayOutputStream()
       val ps = new PrintStream(baos)
       val exit = cli.Cli.runMain(
