@@ -7,7 +7,15 @@ import scalafix._
 import scalafix.rule.RuleCtx
 import scalafix.rule.SemanticRule
 
-case class Sbt1(index: SemanticdbIndex) extends SemanticRule(index, "Sbt1") {
+case class Sbt1(index: SemanticdbIndex)
+    extends SemanticRule(
+      index,
+      "Sbt1"
+    ) {
+
+  override def description: String =
+    "Rewrite to convert sbt 0.12 deprecated operators like <++= into sbt 0.13 :=/.value syntax"
+
   override def fix(ctx: RuleCtx): Patch = {
     sealed abstract class SbtOperator {
       val operator: String

@@ -21,6 +21,9 @@ final case class NoInfer(index: SemanticdbIndex, config: NoInferConfig)
         |annotated in the source.""".stripMargin
     )
 
+  override def description: String =
+    "Linter for types that the Scala compiler cannot infer."
+
   private lazy val noInferSymbol: SymbolMatcher =
     if (config.symbols.isEmpty)
       SymbolMatcher.normalized(NoInfer.badSymbols: _*)

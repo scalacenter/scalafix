@@ -7,6 +7,10 @@ import scalafix.rule.Rule
 import scalafix.rule.RuleCtx
 
 case object NoValInForComprehension extends Rule("NoValInForComprehension") {
+
+  override def description: String =
+    "Rewrite that removes redundant val inside for-comprehensions"
+
   override def fix(ctx: RuleCtx): Patch = {
     ctx.tree.collect {
       case v: Enumerator.Val =>

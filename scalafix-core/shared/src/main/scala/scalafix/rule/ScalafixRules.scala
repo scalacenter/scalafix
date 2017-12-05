@@ -34,5 +34,14 @@ object ScalafixRules {
   lazy val syntacticNames: List[String] = syntaxName2rule.keys.toList
   lazy val semanticNames: List[String] =
     semantic(SemanticdbIndex.empty).flatMap(_.allNames)
-  def allNames: List[String] = syntaxName2rule.keys.toList ++ semanticNames
+  def allNames: List[String] = syntacticNames ++ semanticNames
+
+  lazy val syntacticNamesDescriptions: List[(String, String)] =
+    syntaxName2rule.toList.map { case (name, rule) => (name, rule.description) }
+  lazy val semanticNamesDescriptions: List[(String, String)] =
+    semantic(SemanticdbIndex.empty).flatMap(rule =>
+      rule.allNames.map(name => (name, rule.description)))
+  def allNamesDescriptions: List[(String, String)] =
+    syntacticNamesDescriptions ++ semanticNamesDescriptions
+
 }

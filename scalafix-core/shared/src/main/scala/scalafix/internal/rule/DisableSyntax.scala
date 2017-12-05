@@ -14,6 +14,9 @@ final case class DisableSyntax(
     extends Rule("DisableSyntax")
     with Product {
 
+  override def description: String =
+    "Linter that reports an error on a configurable set of keywords and syntax."
+
   override def init(config: Conf): Configured[Rule] =
     config
       .getOrElse("disableSyntax", "DisableSyntax")(DisableSyntaxConfig.default)

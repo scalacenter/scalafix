@@ -9,6 +9,9 @@ import scalafix.rule.Rule
 import scalafix.rule.RuleCtx
 
 case object ProcedureSyntax extends Rule("ProcedureSyntax") {
+  override def description: String =
+    "Rewrite that inserts explicit : Unit = for soon-to-be-deprecated procedure syntax def foo { ... }"
+
   override def fix(ctx: RuleCtx): Patch = {
     val patches: Seq[Patch] = ctx.tree.collect {
       case t: Defn.Def

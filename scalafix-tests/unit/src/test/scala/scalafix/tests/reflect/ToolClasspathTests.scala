@@ -37,6 +37,7 @@ class ToolClasspathTests extends FunSuite with BeforeAndAfterAll {
         |import scalafix._
         |
         |object FormatRule extends Rule("FormatRule") {
+        |  override def description: String = "FormatRuleDescription"
         |  override def fix(ctx: RuleCtx): Patch = {
         |    val formatted = Scalafmt.format(ctx.tokens.mkString).get
         |    ctx.addLeft(ctx.tokens.last, formatted)
@@ -49,8 +50,9 @@ class ToolClasspathTests extends FunSuite with BeforeAndAfterAll {
       new LazySemanticdbIndex(toolClasspath = scalafmtClasspath)
     val decoder = ScalafixCompilerDecoder.baseCompilerDecoder(index)
     val obtained = decoder.read(Conf.Str(s"file:$tmp")).get
-    val expected = "FormatRule"
-    assert(obtained.name.value == expected)
+    val expectedName = "FormatRule"
+    val expectedDescription = "FormatRuleDescription"
+    assert(obtained.name.value == expectedName)
   }
 
   test("--tool-classpath is respected during classloading") {
@@ -69,8 +71,9 @@ class ToolClasspathTests extends FunSuite with BeforeAndAfterAll {
       new LazySemanticdbIndex(toolClasspath = AbsolutePath(tmp) :: Nil)
     val decoder = ScalafixMetaconfigReaders.classloadRuleDecoder(index)
     val obtained = decoder.read(Conf.Str(s"class:custom.CustomRule")).get
-    val expected = "CustomRule"
-    assert(obtained.name.value == expected)
+    val expectedName = "CustomRule"
+    val expectedDescription = ""
+    assert(obtained.name.value == expectedName)
     assert(decoder.read(Conf.Str("class:does.not.Exist")).isNotOk)
   }
 

@@ -7,7 +7,14 @@ import scalafix.rule.RuleCtx
 import scalafix.rule.SemanticRule
 
 case class RemoveUnusedImports(index: SemanticdbIndex)
-    extends SemanticRule(index, "RemoveUnusedImports") {
+    extends SemanticRule(
+      index,
+      "RemoveUnusedImports"
+    ) {
+
+  override def description: String =
+    "Rewrite that removes unused imports reported by the compiler under -Xwarn-unused-import."
+
   private val unusedImports = index.messages.toIterator.collect {
     case Message(pos, _, "Unused import") =>
       pos

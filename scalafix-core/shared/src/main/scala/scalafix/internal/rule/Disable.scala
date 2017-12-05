@@ -19,6 +19,9 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
       """Some constructs are unsafe to use and should be avoided""".stripMargin
     )
 
+  override def description: String =
+    "Linter that reports an error on a configurable set of symbols."
+
   private lazy val disabledSymbol: SymbolMatcher =
     SymbolMatcher.normalized(config.allSymbols: _*)
 
