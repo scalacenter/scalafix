@@ -160,62 +160,12 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   lazy val adhocRepoCredentials = sys.props("scalafix.repository.credentials")
   lazy val isCustomRepository = adhocRepoUri != null && adhocRepoCredentials != null
 
-  override def globalSettings: Seq[Def.Setting[_]] = List(
-    stableVersion := version.in(ThisBuild).value.replaceAll("\\-.*", ""),
-    scalacOptions ++= compilerOptions,
-    scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
-    libraryDependencies += scalatest.value % Test,
-    testOptions in Test += Tests.Argument("-oD"),
-    updateOptions := updateOptions.value.withCachedResolution(true),
-    resolvers += Resolver.sonatypeRepo("releases"),
-    triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
-    commands += Command.command("ci-release") { s =>
-      "clean" ::
-        "scalafix/publishSigned" ::
-        "scalafix211/publishSigned" ::
-        "scalafix-sbt/publishSigned" ::
-        s"^^ $sbt1 scalafix-sbt/publishSigned" ::
-        "sonatypeReleaseAll" ::
-        s
-    },
-    commands += Command.command("ci-sbt") { s =>
-      // scripted tests don't work in sbt 1.0 yet because we run Sbt1
-      s"^^ $sbt1 scalafix-sbt/publishLocal" ::
-        s
-    },
-    commands += Command.command("ci-sbt-sbt013") { s =>
-      "scalafix-sbt/scripted" ::
-        s
-    },
-    commands += Command.command("ci-fast-212") { s =>
-      "test" ::
-        s
-    },
-    commands += Command.command("ci-fast-211") { s =>
-      "test" ::
-        s
-    },
-    commands += Command.command("mima") { s =>
-      "scalafix/mimaReportBinaryIssues" ::
-        "scalafix211/mimaReportBinaryIssues" ::
-        s
-    },
-    publishTo := {
-      if (isCustomRepository) Some("adhoc" at adhocRepoUri)
-      else {
-        val uri = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-        Some("Releases" at uri)
-      }
-    },
-    credentials ++= {
-      val credentialsFile = {
-        if (adhocRepoCredentials != null) new File(adhocRepoCredentials)
-        else null
-      }
-      if (credentialsFile != null) List(new FileCredentials(credentialsFile))
-      else Nil
-    },
-    publishArtifact in Test := false,
+  private val PreviousScalaVersion = Map(
+    "2.11.12" -> "2.11.11",
+    "2.12.4" -> "2.12.3"
+  )
+
+  override def buildSettings: Seq[Def.Setting[_]] = List(
     licenses := Seq(
       "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     homepage := Some(url("https://github.com/scalacenter/scalafix")),
@@ -247,15 +197,65 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "olafurpg@gmail.com",
         url("https://geirsson.com")
       )
-    )
-  )
-
-  private val PreviousScalaVersion = Map(
-    "2.11.12" -> "2.11.11",
-    "2.12.4" -> "2.12.3"
+    ),
+    publishTo := {
+      if (isCustomRepository) Some("adhoc" at adhocRepoUri)
+      else {
+        val uri = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+        Some("Releases" at uri)
+      }
+    },
+    credentials ++= {
+      val credentialsFile = {
+        if (adhocRepoCredentials != null) new File(adhocRepoCredentials)
+        else null
+      }
+      if (credentialsFile != null) List(new FileCredentials(credentialsFile))
+      else Nil
+    },
+    commands += Command.command("ci-release") { s =>
+      "clean" ::
+        "scalafix/publishSigned" ::
+        "scalafix211/publishSigned" ::
+        "scalafix-sbt/publishSigned" ::
+        s"^^ $sbt1 scalafix-sbt/publishSigned" ::
+        "sonatypeReleaseAll" ::
+        s
+    },
+    commands += Command.command("ci-sbt") { s =>
+      // scripted tests don't work in sbt 1.0 yet because we run Sbt1
+      s"^^ $sbt1 scalafix-sbt/publishLocal" ::
+        s
+    },
+    commands += Command.command("ci-sbt-sbt013") { s =>
+      "scalafix-sbt/scripted" ::
+        s
+    },
+    commands += Command.command("ci-fast-212") { s =>
+      "scalafix/test" ::
+        s
+    },
+    commands += Command.command("ci-fast-211") { s =>
+      "scalafix211/test" ::
+        s
+    },
+    commands += Command.command("mima") { s =>
+      "scalafix/mimaReportBinaryIssues" ::
+        "scalafix211/mimaReportBinaryIssues" ::
+        s
+    },
+    resolvers += Resolver.sonatypeRepo("releases"),
+    triggeredMessage in ThisBuild := Watched.clearWhenTriggered
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
+    stableVersion := version.in(ThisBuild).value.replaceAll("\\-.*", ""),
+    scalacOptions ++= compilerOptions,
+    scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
+    libraryDependencies += scalatest.value % Test,
+    testOptions in Test += Tests.Argument("-oD"),
+    updateOptions := updateOptions.value.withCachedResolution(true),
+    publishArtifact in Test := false,
     mimaPreviousArtifacts := {
       val previousArtifactVersion = "0.5.0"
       // NOTE(olafur) shudder, can't figure out simpler way to do the same.
