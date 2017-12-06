@@ -417,9 +417,9 @@ object CliRunner {
     }
 
     val diffDisable: Configured[Option[DiffDisable]] = {
-      if (cli.diff || cli.diffBranch.nonEmpty) {
-        val baseBranch = cli.diffBranch.getOrElse("master")
-        DiffDisable(common.workingPath.toNIO, baseBranch).map(Some(_))
+      if (cli.diff || cli.diffBase.nonEmpty) {
+        val diffBase = cli.diffBase.getOrElse("master")
+        DiffDisable(common.workingPath.toNIO, diffBase).map(Some(_))
       } else {
         Configured.Ok(None)
       }

@@ -140,22 +140,6 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     assertNoDiff(obtained, expected)
   }
 
-  gitTest("not a branch") { (fs, git, cli) =>
-    val a = "a.scala"
-    fs.add(a, "object A")
-    git.add(a)
-    addConf(fs, git)
-    git.commit()
-
-    val tag = "v0.5.6"
-    git.tag(tag, "yay!")
-
-    val obtained = runDiff(cli, s"--diff-branch=$tag")
-    val expected = s"error: Cannot find git branch $tag"
-
-    assert(obtained.startsWith(expected))
-  }
-
   test("not a git repo") {
     val fs = new Fs()
     addConf(fs)
@@ -165,7 +149,6 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
       s"error: ${fs.workingDirectory} is not a git repository"
 
     assert(obtained.startsWith(expected))
-
   }
 
   private def runDiff(cli: Cli, args: String*): String =

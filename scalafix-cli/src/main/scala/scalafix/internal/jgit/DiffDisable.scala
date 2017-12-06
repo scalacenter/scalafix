@@ -15,8 +15,8 @@ import scalafix.internal.util.IntervalSet
 import scalafix.LintMessage
 
 object DiffDisable {
-  def apply(workingDir: Path, baseBranch: String): Configured[DiffDisable] = {
-    JGitDiff(workingDir, baseBranch).map(diffs => new DiffDisable(diffs))
+  def apply(workingDir: Path, diffBase: String): Configured[DiffDisable] = {
+    JGitDiff(workingDir, diffBase).map(diffs => new DiffDisable(diffs))
   }
 }
 
