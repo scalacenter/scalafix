@@ -37,7 +37,8 @@ object JGitDiff {
 
     if (isGitRepository(workingDir)) {
       val builder = new FileRepositoryBuilder()
-      val repository = builder.readEnvironment().setWorkTree(workingDir.toFile).build()
+      val repository =
+        builder.readEnvironment().setWorkTree(workingDir.toFile).build()
 
       resolve(repository, diffBase) match {
         case Right(id) => {
@@ -52,7 +53,7 @@ object JGitDiff {
 
             ModifiedFile(path(file.getNewPath), changes.toList)
           }
-          val diffs = 
+          val diffs =
             getDiff(repository, oldTree, newTree).flatMap(file =>
               file.getChangeType match {
                 case ADD => List(NewFile(path(file.getNewPath)))
@@ -71,7 +72,9 @@ object JGitDiff {
     }
   }
 
-  private def resolve(repo: Repository, revstr: String): Either[String, ObjectId] = {
+  private def resolve(
+      repo: Repository,
+      revstr: String): Either[String, ObjectId] = {
     try {
       Option(repo.resolve(revstr)) match {
         case Some(id) => Right(id)
@@ -79,7 +82,7 @@ object JGitDiff {
       }
     } catch {
       case ambiguous: AmbiguousObjectException => {
-        val out = 
+        val out =
           s"$revstr is ambiguous. Possible candidates: " ::
             ambiguous.getCandidates.asScala.toList
 
@@ -91,10 +94,12 @@ object JGitDiff {
   }
 
   private def isGitRepository(workingDir: Path): Boolean =
-    RepositoryCache.FileKey.isGitRepository(workingDir.resolve(DOT_GIT).toFile, FS.DETECTED)
+    RepositoryCache.FileKey
+      .isGitRepository(workingDir.resolve(DOT_GIT).toFile, FS.DETECTED)
 
-
-  private def iterator(repository: Repository, id: ObjectId): AbstractTreeIterator = {
+  private def iterator(
+      repository: Repository,
+      id: ObjectId): AbstractTreeIterator = {
     val walk = new RevWalk(repository)
     val tree = walk.parseTree(id)
     val treeParser = new CanonicalTreeParser()

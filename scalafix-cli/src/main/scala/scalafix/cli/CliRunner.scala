@@ -244,7 +244,7 @@ object CliRunner {
         builder.resolvedConfig |@|
         builder.diffDisable
     ).map {
-      case ((((sourceroot, replace), inputs), config), diffDisable)=>
+      case ((((sourceroot, replace), inputs), config), diffDisable) =>
         if (options.verbose) {
           options.diagnostic.info(
             s"""|Config:
@@ -444,8 +444,7 @@ object CliRunner {
                 paths.mkString(", "))
             .notOk
         } else Ok(allFilesExcludingDiffs)
-      }
-    )
+    })
 
     val resolvedConfigInput: Configured[Input] =
       (config, configStr) match {
