@@ -2,8 +2,6 @@ package scalafix.internal.rule
 
 import scala.meta._
 import metaconfig.{Conf, Configured}
-import scalafix.rule.SemanticRule
-import scalafix.util.SemanticdbIndex
 import scalafix.rule.{Rule, RuleCtx}
 import scalafix.lint.LintMessage
 import scalafix.lint.LintCategory
@@ -15,6 +13,7 @@ final case class DisableSyntax(
     config: DisableSyntaxConfig = DisableSyntaxConfig())
     extends Rule("DisableSyntax")
     with Product {
+
   override def init(config: Conf): Configured[Rule] =
     config
       .getOrElse("disableSyntax", "DisableSyntax")(DisableSyntaxConfig.default)
