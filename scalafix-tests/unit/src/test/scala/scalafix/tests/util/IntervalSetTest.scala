@@ -16,6 +16,10 @@ class IntervalSetTest() extends FunSuite {
     assert(set.contains(4))
     assert(set.contains(5))
     assert(!set.contains(6))
+
+    val empty = IntervalSet()
+    assert(!empty.contains(0))
+    assert(!empty.contains(1))
   }
 
   test("intersects") {
@@ -45,5 +49,9 @@ class IntervalSetTest() extends FunSuite {
     out(9,9) //                   + |
     out(0,0) // +                   |
     // format:on
+
+    val empty = IntervalSet()
+    assert(!empty.intersects(0, 0))
+    assert(!empty.intersects(0, 1))
   }
 }

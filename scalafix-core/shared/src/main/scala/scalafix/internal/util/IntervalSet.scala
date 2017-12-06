@@ -20,22 +20,26 @@ object IntervalSet {
     new IntervalSet(fromRange(intervals))
 
   private def fromRange(xs: List[(Int, Int)]): BitSet = {
-    val n = 64
-    val max = xs.maxBy(_._2)._2
-    val mask = Array.ofDim[Long](max / n + 1)
-    xs.foreach {
-      case (start, end) => {
-        var i = start
-        while (i <= end) {
-          val idx = i / n
-          mask.update(
-            idx,
-            mask(idx) | (1L << (i - (idx * n)))
-          )
-          i += 1
+    if (xs.isEmpty) {
+      BitSet()
+    } else {
+      val n = 64
+      val max = xs.maxBy(_._2)._2
+      val mask = Array.ofDim[Long](max / n + 1)
+      xs.foreach {
+        case (start, end) => {
+          var i = start
+          while (i <= end) {
+            val idx = i / n
+            mask.update(
+              idx,
+              mask(idx) | (1L << (i - (idx * n)))
+            )
+            i += 1
+          }
         }
       }
+      BitSet.fromBitMaskNoCopy(mask)
     }
-    BitSet.fromBitMaskNoCopy(mask)
   }
 }
