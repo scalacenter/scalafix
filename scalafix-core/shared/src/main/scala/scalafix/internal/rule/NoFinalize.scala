@@ -13,7 +13,7 @@ case object NoFinalize extends Rule("NoFinalize") {
   override def check(ctx: RuleCtx): Seq[LintMessage] = {
     ctx.tree.collect {
       case defn: Defn.Def if isFinalized(defn) => error(defn.name.pos)
-    }.toSeq
+    }
   }
 
   private val errorCategory: LintCategory =
@@ -23,12 +23,11 @@ case object NoFinalize extends Rule("NoFinalize") {
   private def error(pos: Position): LintMessage = errorCategory.at(pos)
 
   private def isFinalized(defn: Defn.Def): Boolean = {
-    val unit = Type.Name("Unit")
-    import defn._
-    mods.exists(_.isEqual(Mod.Override())) &&
-    defn.name.value == "finalize" &&
-    tparams == Nil &&
-    paramss == List(Nil) &&
-    decltpe.map(_.isEqual(unit)).getOrElse(true)
+    defn match {
+      case q"override def finalize(): Unit = $_" => true
+      case q"override protected def finalize(): Unit = $_" => true
+      case q"override protected def finalize() = $_" => true
+      case _ => false
+    }
   }
 }
