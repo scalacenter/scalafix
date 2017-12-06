@@ -241,9 +241,10 @@ object CliRunner {
       builder.resolvedSourceroot |@|
         builder.resolvedPathReplace |@|
         builder.fixFilesWithSemanticdbIndex |@|
-        builder.resolvedConfig
+        builder.resolvedConfig |@|
+        builder.diffDisable
     ).map {
-      case (((sourceroot, replace), inputs), config) =>
+      case ((((sourceroot, replace), inputs), config), diffDisable)=>
         if (options.verbose) {
           options.diagnostic.info(
             s"""|Config:
@@ -260,7 +261,7 @@ object CliRunner {
           rule = rule,
           replacePath = replace,
           inputs = inputs,
-          diffDisable = builder.diffDisable
+          diffDisable = diffDisable
         ) {}
     }
   }
@@ -415,16 +416,16 @@ object CliRunner {
           .notOk
     }
 
-    val diffDisable: Option[DiffDisable] = {
+    val diffDisable: Configured[Option[DiffDisable]] = {
       if (cli.diff || cli.diffBranch.nonEmpty) {
         val baseBranch = cli.diffBranch.getOrElse("master")
-        Some(DiffDisable(common.workingPath.toNIO, baseBranch))
+        DiffDisable(common.workingPath.toNIO, baseBranch).map(Some(_))
       } else {
-        None
+        Configured.Ok(None)
       }
     }
 
-    val fixFiles: Configured[Seq[FixFile]] =
+    val fixFiles: Configured[Seq[FixFile]] = diffDisable.andThen(diffDisable0 =>
       resolvedPathMatcher.andThen { pathMatcher =>
         val paths =
           if (cli.files.nonEmpty) cli.files.map(AbsolutePath(_))
@@ -433,7 +434,7 @@ object CliRunner {
         val allFiles = paths.toVector.flatMap(expand(pathMatcher))
 
         val allFilesExcludingDiffs =
-          diffDisable.fold(allFiles)(diff =>
+          diffDisable0.fold(allFiles)(diff =>
             allFiles.filterNot(fixFile => diff.isDisabled(fixFile.original)))
 
         if (allFilesExcludingDiffs.isEmpty) {
@@ -444,6 +445,7 @@ object CliRunner {
             .notOk
         } else Ok(allFilesExcludingDiffs)
       }
+    )
 
     val resolvedConfigInput: Configured[Input] =
       (config, configStr) match {

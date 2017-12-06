@@ -1,5 +1,7 @@
 package scalafix.internal.jgit
 
+import metaconfig.Configured
+
 import java.nio.file.Path
 import java.io.InputStream
 
@@ -13,8 +15,8 @@ import scalafix.internal.util.IntervalSet
 import scalafix.LintMessage
 
 object DiffDisable {
-  def apply(workingDir: Path, baseBranch: String): DiffDisable = {
-    new DiffDisable(JGitDiff(workingDir, baseBranch))
+  def apply(workingDir: Path, baseBranch: String): Configured[DiffDisable] = {
+    JGitDiff(workingDir, baseBranch).map(diffs => new DiffDisable(diffs))
   }
 }
 

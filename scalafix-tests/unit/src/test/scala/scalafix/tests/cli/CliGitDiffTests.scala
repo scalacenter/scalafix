@@ -151,7 +151,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     git.tag(tag, "yay!")
 
     val obtained = runDiff(cli, s"--diff-branch=$tag")
-    val expected = s"error: java.lang.Exception: Cannot find git branch $tag"
+    val expected = s"error: Cannot find git branch $tag"
 
     assert(obtained.startsWith(expected))
   }
@@ -162,7 +162,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     val cli = new Cli(fs.workingDirectory)
     val obtained = runDiff(cli)
     val expected =
-      s"error: java.lang.Exception: ${fs.workingDirectory} is not a git repository"
+      s"error: ${fs.workingDirectory} is not a git repository"
 
     assert(obtained.startsWith(expected))
 

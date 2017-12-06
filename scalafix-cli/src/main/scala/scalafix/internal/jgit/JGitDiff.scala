@@ -21,10 +21,13 @@ import org.eclipse.jgit.treewalk.AbstractTreeIterator
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.treewalk.FileTreeIterator
 import org.eclipse.jgit.util.io.NullOutputStream
+
 import scala.collection.JavaConverters._
 
+import metaconfig.{ConfError, Configured}
+
 object JGitDiff {
-  def apply(workingDir: Path, baseBranch: String): List[GitDiff] = {
+  def apply(workingDir: Path, baseBranch: String): Configured[List[GitDiff]] = {
     val builder = new FileRepositoryBuilder()
     val repository =
       builder.readEnvironment().setWorkTree(workingDir.toFile).build()
@@ -32,36 +35,40 @@ object JGitDiff {
     val baseBranchRef = s"refs/heads/$baseBranch"
     val git = new Git(repository)
     val branches = git.branchList().call()
-    if (branches.isEmpty) {
-      throw new Exception(s"$workingDir is not a git repository")
+
+    if (!branches.isEmpty) {
+      val baseBranchExists = branches.asScala.exists(_.getName() == baseBranchRef)
+      if (baseBranchExists) {
+        val oldTree1 = ref(repository, baseBranchRef)
+        val newTree1 = new FileTreeIterator(repository)
+
+        def path(relative: String): Path =
+          workingDir.resolve(relative)
+
+        def edits(file: FileHeader): ModifiedFile = {
+          val changes =
+            file.toEditList.asScala.map(edit =>
+              GitChange(edit.getBeginB, edit.getEndB))
+
+          ModifiedFile(path(file.getNewPath), changes.toList)
+        }
+        val diffs = 
+          getDiff(repository, oldTree1, newTree1).flatMap(file =>
+            file.getChangeType match {
+              case ADD => List(NewFile(path(file.getNewPath)))
+              case MODIFY => List(edits(file))
+              case RENAME => List(edits(file))
+              case COPY => List(edits(file))
+              case DELETE => Nil
+          })
+
+        Configured.Ok(diffs)
+      } else {
+        ConfError.msg(s"Cannot find git branch $baseBranch").notOk
+      }
+    } else {
+      ConfError.msg(s"$workingDir is not a git repository").notOk
     }
-    val baseBranchExists = branches.asScala.exists(_.getName() == baseBranchRef)
-    if (!baseBranchExists) {
-      throw new Exception(s"Cannot find git branch $baseBranch")
-    }
-
-    val oldTree1 = ref(repository, baseBranchRef)
-    val newTree1 = new FileTreeIterator(repository)
-
-    def path(relative: String): Path =
-      workingDir.resolve(relative)
-
-    def edits(file: FileHeader): ModifiedFile = {
-      val changes =
-        file.toEditList.asScala.map(edit =>
-          GitChange(edit.getBeginB, edit.getEndB))
-
-      ModifiedFile(path(file.getNewPath), changes.toList)
-    }
-
-    getDiff(repository, oldTree1, newTree1).flatMap(file =>
-      file.getChangeType match {
-        case ADD => List(NewFile(path(file.getNewPath)))
-        case MODIFY => List(edits(file))
-        case RENAME => List(edits(file))
-        case COPY => List(edits(file))
-        case DELETE => Nil
-    })
   }
 
   private def ref(repository: Repository, ref: String): AbstractTreeIterator =
