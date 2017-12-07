@@ -10,24 +10,16 @@ import scalafix.lint.LintMessage
 import scalafix.lint.LintCategory
 
 case object NoFinalize extends Rule("NoFinalize") {
+  private val error =
+    LintCategory.error(
+      explain = """|there is no guarantee that finalize will be called and 
+                   |overriding finalize incurs a performance penalty""".stripMargin
+    )
+
   override def check(ctx: RuleCtx): Seq[LintMessage] = {
     ctx.tree.collect {
-      case defn: Defn.Def if isFinalized(defn) => error(defn.name.pos)
-    }
-  }
-
-  private val errorCategory: LintCategory =
-    LintCategory.error(
-      "finalizer may be never called and have a severe performance penalty")
-
-  private def error(pos: Position): LintMessage = errorCategory.at(pos)
-
-  private def isFinalized(defn: Defn.Def): Boolean = {
-    defn match {
-      case q"override def finalize(): Unit = $_" => true
-      case q"override protected def finalize(): Unit = $_" => true
-      case q"override protected def finalize() = $_" => true
-      case _ => false
+      case Defn.Def(_, name @ q"finalize", _, Nil | Nil :: Nil, _, _) =>
+        error.at("finalize should not be used", name.pos)
     }
   }
 }

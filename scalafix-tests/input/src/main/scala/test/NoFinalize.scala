@@ -13,14 +13,18 @@ case object NoFinalize {
     override protected def finalize(): Unit = () // assert: NoFinalize
   }
 
-  class InferedUnit {
+  class InferedUnit1 {
     override protected def finalize() = () // assert: NoFinalize
+  }
+
+  class InferedUnit {
+    override def finalize() = () // assert: NoFinalize
   }
 
   class Example {
     override protected def finalize() = () /* assert: NoFinalize
                            ^
-    finalizer may be never called and have a severe performance penalty
+    finalize should not be used
     */
   }
 
