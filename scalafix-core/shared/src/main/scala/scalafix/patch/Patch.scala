@@ -201,7 +201,7 @@ object Patch {
       case _: LintPatch => hasLintMessage = true
       case _ => onlyLint = false
     }
-    hasLintMessage && onlyLint
+    patch.isEmpty || hasLintMessage && onlyLint
   }
 
   private def foreach(patch: Patch)(f: Patch => Unit): Unit = {

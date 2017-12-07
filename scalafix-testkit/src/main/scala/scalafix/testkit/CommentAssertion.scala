@@ -353,24 +353,41 @@ object AssertDiff {
               .to[IndexedSeq])
         .to[IndexedSeq]
 
-    val matrix =
-      new Matrix(
-        array = data,
-        rows = expectedLintMessages.size - 1,
-        columns = reportedLintMessages.size - 1
-      )
+    if (reportedLintMessages.nonEmpty && expectedLintMessages.nonEmpty) {
+      val matrix =
+        new Matrix(
+          array = data,
+          rows = expectedLintMessages.size - 1,
+          columns = reportedLintMessages.size - 1
+        )
 
-    AssertDiff(
-      unreported = matrix.rows
-        .filter(_.forall(_.isWrong))
-        .flatMap(_.headOption.map(_.assert))
-        .toList,
-      unexpected = matrix.columns
-        .filter(_.forall(_.isWrong))
-        .flatMap(_.headOption.map(_.lintMessage))
-        .toList,
-      missmatch = matrix.cells.filter(_.isMismatch).toList
-    )
+      val unreported =
+        matrix.rows
+          .filter(_.forall(_.isWrong))
+          .flatMap(_.headOption.map(_.assert))
+          .toList
+
+      val unexpected =
+        matrix.columns
+          .filter(_.forall(_.isWrong))
+          .flatMap(_.headOption.map(_.lintMessage))
+          .toList
+
+      val missmatch =
+        matrix.cells.filter(_.isMismatch).toList
+
+      AssertDiff(
+        unreported = unreported,
+        unexpected = unexpected,
+        missmatch = missmatch
+      )
+    } else {
+      AssertDiff(
+        unreported = expectedLintMessages,
+        unexpected = reportedLintMessages,
+        missmatch = List()
+      )
+    }
   }
 }
 
