@@ -62,7 +62,7 @@ sealed abstract case class CliRunner(
     val display = new TermDisplay(
       new OutputStreamWriter(
         if (cli.stdout) cli.common.err else cli.common.out),
-      fallbackMode = cli.nonInteractive || TermDisplay.defaultFallbackMode)
+      fallbackMode = true)
     if (inputs.length > 10) display.init()
     val msg = cli.projectIdPrefix + s"Running ${rule.name}"
     display.startTask(msg, common.workingDirectoryFile)
