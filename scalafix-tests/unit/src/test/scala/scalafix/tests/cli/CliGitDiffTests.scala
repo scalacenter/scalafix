@@ -151,6 +151,79 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     assert(obtained.startsWith(expected))
   }
 
+  gitTest("custom base") { (fs, git, cli) =>
+    val oldCode = "old.scala"
+    val newCode = "new.scala"
+    val newCodeAbsPath = fs.absPath(newCode)
+
+    fs.add(
+      oldCode,
+      """|object OldCode {
+         |  // This is old code, where var's blossom
+         |  var oldVar = 1
+         |}""".stripMargin)
+    git.add(oldCode)
+    addConf(fs, git)
+    git.commit()
+
+    val baseBranch = "2.10.X"
+
+    git.checkout(baseBranch)
+    git.deleteBranch("master")
+
+    git.checkout("pr-1")
+    fs.replace(
+      oldCode,
+      """|object OldCode {
+         |  // This is old code, where var's blossom
+         |  var oldVar = 1
+         |  // It's not ok to add new vars
+         |  var newVar = 2
+         |}""".stripMargin
+    )
+    fs.mv(oldCode, newCode)
+    git.add(oldCode)
+    git.add(newCode)
+    git.commit()
+
+    val obtained = runDiff(cli, s"--diff-base=$baseBranch")
+
+    val expected =
+      s"""|Running DisableSyntax
+          |$newCodeAbsPath:5:3: error: [DisableSyntax.keywords.var] keywords.var is disabled
+          |  var newVar = 2
+          |  ^
+          |""".stripMargin
+
+    assertNoDiff(obtained, expected)
+  }
+
+  gitTest("#483 unkown git hash") { (fs, git, cli) =>
+    val oldCode = "old.scala"
+
+    fs.add(
+      oldCode,
+      """|object OldCode {
+         |  // This is old code, where var's blossom
+         |  var oldVar = 1
+         |}""".stripMargin)
+    git.add(oldCode)
+    addConf(fs, git)
+    git.commit()
+
+    val nonExistingHash = "7777777777777777777777777777777777777777"
+    val obtained = runDiff(cli, s"--diff-base=$nonExistingHash")
+    val expected =
+      s"error: '$nonExistingHash' unknown revision or path not in the working tree."
+    assert(obtained.startsWith(expected))
+
+    val wrongHashFormat = "777"
+    val obtained2 = runDiff(cli, s"--diff-base=$wrongHashFormat")
+    val expected2 =
+      s"error: '$wrongHashFormat' unknown revision or path not in the working tree."
+    assert(obtained2.startsWith(expected2))
+  }
+
   private def runDiff(cli: Cli, args: String*): String =
     noColor(cli.run("--non-interactive" :: "--diff" :: args.toList))
 
@@ -234,6 +307,9 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
 
     def tag(name: String, message: String): Unit =
       git.tag().setName(name).setMessage(message).call()
+
+    def deleteBranch(branch: String): Unit =
+      git.branchDelete().setBranchNames(branch).call()
 
     def commit(): Unit = {
       git.commit().setMessage(s"r$revision").call()

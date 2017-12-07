@@ -12,6 +12,7 @@ import org.eclipse.jgit.diff.DiffFormatter
 import org.eclipse.jgit.errors.AmbiguousObjectException
 import org.eclipse.jgit.errors.IncorrectObjectTypeException
 import org.eclipse.jgit.errors.RevisionSyntaxException
+import org.eclipse.jgit.errors.MissingObjectException
 import org.eclipse.jgit.patch.FileHeader
 import org.eclipse.jgit.lib.ObjectReader
 import org.eclipse.jgit.lib.Ref
@@ -42,28 +43,32 @@ object JGitDiff {
 
       resolve(repository, diffBase) match {
         case Right(id) => {
-          val oldTree = iterator(repository, id)
-          val newTree = new FileTreeIterator(repository)
-          def path(relative: String): Path = workingDir.resolve(relative)
+          iterator(repository, id) match {
+            case Right(oldTree) => {
+              val newTree = new FileTreeIterator(repository)
+              def path(relative: String): Path = workingDir.resolve(relative)
 
-          def edits(file: FileHeader): ModifiedFile = {
-            val changes =
-              file.toEditList.asScala.map(edit =>
-                GitChange(edit.getBeginB, edit.getEndB))
+              def edits(file: FileHeader): ModifiedFile = {
+                val changes =
+                  file.toEditList.asScala.map(edit =>
+                    GitChange(edit.getBeginB, edit.getEndB))
 
-            ModifiedFile(path(file.getNewPath), changes.toList)
+                ModifiedFile(path(file.getNewPath), changes.toList)
+              }
+              val diffs =
+                getDiff(repository, oldTree, newTree).flatMap(file =>
+                  file.getChangeType match {
+                    case ADD => List(NewFile(path(file.getNewPath)))
+                    case MODIFY => List(edits(file))
+                    case RENAME => List(edits(file))
+                    case COPY => List(edits(file))
+                    case DELETE => Nil
+                })
+
+              Configured.Ok(diffs)
+            }
+            case Left(msg) => ConfError.msg(msg).notOk
           }
-          val diffs =
-            getDiff(repository, oldTree, newTree).flatMap(file =>
-              file.getChangeType match {
-                case ADD => List(NewFile(path(file.getNewPath)))
-                case MODIFY => List(edits(file))
-                case RENAME => List(edits(file))
-                case COPY => List(edits(file))
-                case DELETE => Nil
-            })
-
-          Configured.Ok(diffs)
         }
         case Left(msg) => ConfError.msg(msg).notOk
       }
@@ -72,13 +77,16 @@ object JGitDiff {
     }
   }
 
+  private def unknown[T](id: String): Left[String, T] =
+    Left(s"'$id' unknown revision or path not in the working tree.")
+
   private def resolve(
       repo: Repository,
       revstr: String): Either[String, ObjectId] = {
     try {
       Option(repo.resolve(revstr)) match {
         case Some(id) => Right(id)
-        case None => Left(s"cannot resolve $revstr")
+        case None => unknown(revstr)
       }
     } catch {
       case ambiguous: AmbiguousObjectException => {
@@ -99,14 +107,19 @@ object JGitDiff {
 
   private def iterator(
       repository: Repository,
-      id: ObjectId): AbstractTreeIterator = {
-    val walk = new RevWalk(repository)
-    val tree = walk.parseTree(id)
-    val treeParser = new CanonicalTreeParser()
-    val reader = repository.newObjectReader()
-    treeParser.reset(reader, tree.getId())
-    walk.dispose()
-    treeParser
+      id: ObjectId): Either[String, AbstractTreeIterator] = {
+    try {
+      val walk = new RevWalk(repository)
+      val tree = walk.parseTree(id)
+      val treeParser = new CanonicalTreeParser()
+      val reader = repository.newObjectReader()
+      treeParser.reset(reader, tree.getId())
+      walk.dispose()
+      Right(treeParser)
+    } catch {
+      case missing: MissingObjectException =>
+        unknown(id.getName)
+    }
   }
 
   private def getDiff(
