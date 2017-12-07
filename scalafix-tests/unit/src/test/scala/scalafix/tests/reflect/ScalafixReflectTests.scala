@@ -23,13 +23,14 @@ class ScalafixReflectTests extends FunSuite {
   val abspath: AbsolutePath = cwd.resolve(relpath)
   val decoder: ConfDecoder[Rule] = ScalafixCompilerDecoder.baseCompilerDecoder(
     LazySemanticdbIndex(_ => None, cwd))
-  val expected = "DummyLinter"
+  val expectedName = "DummyLinter"
+  val expectedDescription = ""
   test("absolute path resolves as is") {
-    val obtained = decoder.read(Conf.Str(s"file:$abspath")).get.name.value
-    assert(expected == obtained)
+    val rule = decoder.read(Conf.Str(s"file:$abspath")).get
+    assert(expectedName == rule.name.value)
   }
   test("relative resolves from custom working directory") {
-    val obtained = decoder.read(Conf.Str(s"file:$relpath")).get.name.value
-    assert(expected == obtained)
+    val rule = decoder.read(Conf.Str(s"file:$relpath")).get
+    assert(expectedName == rule.name.value)
   }
 }

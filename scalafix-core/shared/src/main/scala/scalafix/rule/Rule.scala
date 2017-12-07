@@ -112,6 +112,10 @@ abstract class Rule(ruleName: RuleName) { self =>
 
   final override def toString: String = name.toString
   final def name: RuleName = ruleName
+
+  /** A single sentence summary of what this rule does. */
+  def description: String = ""
+
   // NOTE. This is kind of hacky and hopefully we can find a better workaround.
   // The challenge is the following:
   // - a.andThen(b) needs to work for mixing semantic + syntactic rules.
@@ -139,6 +143,9 @@ object Rule {
         .flipSeq(rules.map(_.init(config)))
         .map(x => new CompositeRule(x.toList))
     }
+    override def description: String =
+      rules.map(rule => s"${rule.name}: ${rule.description}").mkString("\n")
+
     override def check(ctx: RuleCtx): Seq[LintMessage] =
       rules.flatMap(_.check(ctx))
     override def fixWithName(ctx: RuleCtx): Map[RuleName, Patch] =

@@ -27,7 +27,12 @@ case class ExplicitResultTypes(
         .withDeprecatedName(
           "ExplicitReturnTypes",
           "Renamed to ExplicitResultTypes",
-          "0.5")) {
+          "0.5")
+    ) {
+
+  override def description: String =
+    "Rewrite that inserts explicit type annotations for def/val/var"
+
   def this(index: SemanticdbIndex) =
     this(index, ExplicitResultTypesConfig.default)
   override def init(config: Conf): Configured[Rule] =

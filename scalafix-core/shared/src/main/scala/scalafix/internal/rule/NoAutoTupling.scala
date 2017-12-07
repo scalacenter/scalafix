@@ -7,7 +7,13 @@ import scalafix.rule.RuleCtx
 import scalafix.rule.SemanticRule
 
 case class NoAutoTupling(index: SemanticdbIndex)
-    extends SemanticRule(index, "NoAutoTupling") {
+    extends SemanticRule(
+      index,
+      "NoAutoTupling"
+    ) {
+
+  override def description: String =
+    "Rewrite that inserts explicit tuples for adapted argument lists for compatibility with -Yno-adapted-args"
 
   private[this] def addWrappingParens(ctx: RuleCtx, args: Seq[Term]): Patch =
     ctx.addLeft(args.head.tokens.head, "(") +

@@ -22,6 +22,10 @@ import scalafix.rule.RuleCtx
  * until we know how to rule `case <a>{ns @ _*}</a>`.
  */
 case object RemoveXmlLiterals extends Rule("RemoveXmlLiterals") {
+
+  override def description: String =
+    "Rewrite that converts xml literals into interpolators for use with densh/scala-xml-quote"
+
   val singleBracesEscape = LintCategory.warning(
     "singleBracesEscape",
     """Single braces don't need be escaped with {{ and }} inside xml interpolators, unlike xml literals.

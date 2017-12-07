@@ -13,6 +13,8 @@ case object DottyVolatileLazyVal
           name = "VolatileLazyVal",
           message = "Use DottyVolatileLazyVal instead.",
           since = "0.5.0")) {
+  override def description: String =
+    "Rewrite all lazy vals to Dotty's volatile ones for safe publishing (default semantics of pre-Dotty Scala)"
   private object NonVolatileLazyVal {
     def unapply(defn: Defn.Val): Option[Token] = {
       defn.mods.collectFirst {

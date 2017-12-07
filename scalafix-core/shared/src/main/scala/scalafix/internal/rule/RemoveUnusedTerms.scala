@@ -9,6 +9,9 @@ import scalafix.rule.SemanticRule
 case class RemoveUnusedTerms(index: SemanticdbIndex)
     extends SemanticRule(index, "RemoveUnusedTerms") {
 
+  override def description: String =
+    "Rewrite that removes unused locals/privates by -Ywarn-unused:locals/privates"
+
   private val unusedTerms = {
     val UnusedLocalVal = """local (.*) is never used""".r
     index.messages.toIterator.collect {
