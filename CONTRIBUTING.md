@@ -168,6 +168,38 @@ SONATYPE_USERNAME
 PGP_PASSPHRASE (empty)
 PGP_SECRET
 
+## Releasing
+
+- [ ] Releases > "Draft a new release"
+- [ ] Write changelog, linking to each merged PR and attributing contributor,
+      following a similar format as previous release notes.
+- [ ] "Publish release", this pushes a tag and triggers the CI to release to sonatype.
+- [ ] after CI releases, double check the end of logs of the entry where CI_PUBLISH=true.
+      You have to expand the after_success section.
+- [ ] after sonatype release is completed, double check after ~30 minutes that the artifacts
+      have synced to maven by running this command:
+
+          coursier fetch ch.epfl.scala:scalafix-core_2.12:VERSION
+
+- [ ] once the artifacts are synced to maven, go to the scalafix repo and update the `scalafix` binary
+      with the following command and open a PR to the scalafix repo.
+
+         coursier bootstrap ch.epfl.scala:scalafix-cli_2.12.3:VERSION -f --main scalafix.cli.Cli -o scalafix -f
+
+If everything went smoothly, congrats!
+
+If something goes wrong for any reason making the artifacts not reach maven, delete the pushed tag with 
+the following command
+
+```sh
+TAG=??? # for example "v0.5.3"
+git tag -d $TAG
+git push origin :refs/tags/$TAG
+```
+
+It's important that the latest tag always has an accompanying release on Maven.
+If there is no release matching the latest tag then the docs will point to scalafix artifacts that cannot be resolved.
+
 ## TL;DR
 
 If you are unsure about anything, don't hesitate to ask in the [gitter channel](https://gitter.im/scalacenter/scalafix).
