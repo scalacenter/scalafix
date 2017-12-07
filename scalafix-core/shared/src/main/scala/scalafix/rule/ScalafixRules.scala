@@ -11,6 +11,7 @@ object ScalafixRules {
     RemoveXmlLiterals,
     ExplicitUnit,
     NoValInForComprehension,
+    NoFinalize,
     DottyKeywords,
     DottyVarArgPattern,
     DisableSyntax()

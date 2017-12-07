@@ -1,7 +1,9 @@
 ---
 layout: docs
-title: Disable
+title: DisableSyntax
 ---
+
+** syntactic **
 
 # DisableSyntax
 
