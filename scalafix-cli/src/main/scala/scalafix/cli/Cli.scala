@@ -43,6 +43,12 @@ object Cli {
         |  - if --classpath and --sourceroot are provided, then those are used to find .semanticdb files
         |  - otherwise, Scalafix will automatically look for META-INF/semanticdb directories from the
         |    current working directory.
+        |- when --diff or --diff-branch is set it will parse the git diff and only
+        |  apply on modified or added lines
+        |
+        |  Those command will have the same effect:
+        |    scalafix --diff
+        |    scalafix --diff-branch=master
         |
         |Examples (semantic):
         |  $$ scalafix # automatically finds .semanticdb files and runs rule configured in .scalafix.conf.

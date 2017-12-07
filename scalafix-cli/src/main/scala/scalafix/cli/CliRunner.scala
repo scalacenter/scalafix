@@ -1,8 +1,8 @@
 package scalafix
 package cli
 
-import java.io.File
-import java.io.OutputStreamWriter
+import java.io.{File, OutputStreamWriter, InputStream}
+import java.lang.ProcessBuilder
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
@@ -19,8 +19,8 @@ import scala.meta.inputs.Input
 import scala.meta.internal.inputs._
 import scala.meta.io.AbsolutePath
 import scala.meta.semanticdb.SemanticdbSbt
-import scala.util.Try
 import scala.util.control.NonFatal
+import scala.util.Try
 import scalafix.internal.cli.CommonOptions
 import scalafix.internal.cli.FixFile
 import scalafix.internal.cli.ScalafixOptions
@@ -32,6 +32,7 @@ import scalafix.internal.config.LazySemanticdbIndex
 import scalafix.internal.config.MetaconfigPendingUpstream
 import scalafix.internal.config.RuleKind
 import scalafix.internal.config.ScalafixConfig
+import scalafix.internal.jgit.DiffDisable
 import scalafix.internal.util.Failure
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
 import scalafix.reflect.ScalafixReflect
@@ -46,7 +47,8 @@ sealed abstract case class CliRunner(
     config: ScalafixConfig,
     rule: Rule,
     inputs: Seq[FixFile],
-    replacePath: AbsolutePath => AbsolutePath
+    replacePath: AbsolutePath => AbsolutePath,
+    diffDisable: Option[DiffDisable]
 ) {
   val sbtConfig: ScalafixConfig = config.copy(dialect = dialects.Sbt0137)
   val writeMode: WriteMode =
@@ -109,7 +111,9 @@ sealed abstract case class CliRunner(
 
   def unsafeHandleInput(input: FixFile): ExitStatus = {
     val inputConfig =
-      if (input.original.label.endsWith(".sbt")) sbtConfig else config
+      if (input.original.label.endsWith(".sbt")) sbtConfig
+      else config
+
     inputConfig.dialect(input.toParse).parse[Source] match {
       case parsers.Parsed.Error(pos, message, _) =>
         if (cli.quietParseErrors && !input.passedExplicitly) {
@@ -122,7 +126,20 @@ sealed abstract case class CliRunner(
         }
       case parsers.Parsed.Success(tree) =>
         val ctx = RuleCtx(tree, config)
-        val fixed = rule.apply(ctx)
+        val (fixed, messages0) = rule.applyAndLint(ctx)
+
+        val messages =
+          diffDisable.fold(messages0)(_.filter(messages0))
+
+        messages.foreach { msg =>
+          val category = msg.category.withConfig(config.lint)
+          config.lint.reporter.handleMessage(
+            msg.format(config.lint.explain),
+            msg.position,
+            category.severity.toSeverity
+          )
+        }
+
         writeMode match {
           case WriteMode.Stdout =>
             common.out.write(fixed.getBytes)
@@ -224,9 +241,10 @@ object CliRunner {
       builder.resolvedSourceroot |@|
         builder.resolvedPathReplace |@|
         builder.fixFilesWithSemanticdbIndex |@|
-        builder.resolvedConfig
+        builder.resolvedConfig |@|
+        builder.diffDisable
     ).map {
-      case (((sourceroot, replace), inputs), config) =>
+      case ((((sourceroot, replace), inputs), config), diffDisable) =>
         if (options.verbose) {
           options.diagnostic.info(
             s"""|Config:
@@ -242,7 +260,8 @@ object CliRunner {
           config = config,
           rule = rule,
           replacePath = replace,
-          inputs = inputs
+          inputs = inputs,
+          diffDisable = diffDisable
         ) {}
     }
   }
@@ -397,21 +416,35 @@ object CliRunner {
           .notOk
     }
 
-    val fixFiles: Configured[Seq[FixFile]] =
+    val diffDisable: Configured[Option[DiffDisable]] = {
+      if (cli.diff || cli.diffBase.nonEmpty) {
+        val diffBase = cli.diffBase.getOrElse("master")
+        DiffDisable(common.workingPath.toNIO, diffBase).map(Some(_))
+      } else {
+        Configured.Ok(None)
+      }
+    }
+
+    val fixFiles: Configured[Seq[FixFile]] = diffDisable.andThen(diffDisable0 =>
       resolvedPathMatcher.andThen { pathMatcher =>
         val paths =
           if (cli.files.nonEmpty) cli.files.map(AbsolutePath(_))
           // If no files are provided, assume cwd.
           else common.workingPath :: Nil
-        val result = paths.toVector.flatMap(expand(pathMatcher))
-        if (result.isEmpty) {
+        val allFiles = paths.toVector.flatMap(expand(pathMatcher))
+
+        val allFilesExcludingDiffs =
+          diffDisable0.fold(allFiles)(diff =>
+            allFiles.filterNot(fixFile => diff.isDisabled(fixFile.original)))
+
+        if (allFilesExcludingDiffs.isEmpty) {
           ConfError
             .msg(
               s"No files to fix! Missing at least one .scala or .sbt file from: " +
                 paths.mkString(", "))
             .notOk
-        } else Ok(result)
-      }
+        } else Ok(allFilesExcludingDiffs)
+    })
 
     val resolvedConfigInput: Configured[Input] =
       (config, configStr) match {
@@ -525,6 +558,5 @@ object CliRunner {
             file.copy(semanticFile = labeled)
           }
       }
-
   }
 }
