@@ -233,7 +233,7 @@ object ScalafixPlugin extends AutoPlugin {
         sources <- unmanagedSources.all(filter).value
         source <- sources
         if source.exists()
-        if canFormat(source)
+        if canFix(source)
       } yield source
       val options: Seq[String] = List("--classpath", classpath) ++ extraOptions
       scalafixTaskImpl(
@@ -294,7 +294,7 @@ object ScalafixPlugin extends AutoPlugin {
     }
   }
 
-  def canFormat(file: File): Boolean = {
+  private def canFix(file: File): Boolean = {
     val path = file.getPath
     path.endsWith(".scala") ||
     path.endsWith(".sbt")
