@@ -25,7 +25,7 @@ final case class DisableSyntax(
   override def check(ctx: RuleCtx): Seq[LintMessage] = {
     ctx.tree.tokens.collect {
       case token @ Keyword(keyword) if config.isDisabled(keyword) =>
-        error(s"keywords.$keyword", token)
+        errorCategory.copy(id = s"keywords.$keyword").at(s"$keyword is disabled", token.pos)
       case token @ Token.Semicolon() if config.noSemicolons =>
         error("noSemicolons", token)
       case token @ Token.Tab() if config.noTabs =>
