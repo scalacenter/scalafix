@@ -12,14 +12,14 @@ class IntervalSet(range: BitSet) {
   }
 
   override def toString: String = {
-    val intervals = 
-      if(range.isEmpty) Nil
+    val intervals =
+      if (range.isEmpty) Nil
       else {
         var cur = range.head
         var start = cur
         val interval = List.newBuilder[(Int, Int)]
-        range.tail.foreach{bit =>
-          if(cur + 1 != bit) {
+        range.tail.foreach { bit =>
+          if (cur + 1 != bit) {
             interval += ((start, cur))
             start = bit
           }
@@ -29,8 +29,9 @@ class IntervalSet(range: BitSet) {
         interval.result()
       }
 
-    val is = intervals.map{ case (start, end) =>
-      s"[$start, $end]"
+    val is = intervals.map {
+      case (start, end) =>
+        s"[$start, $end]"
     }
 
     s"""IntervalSet(${is.mkString(", ")})"""

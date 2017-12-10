@@ -1,4 +1,4 @@
-/* ONLY
+/*
 rules = DisableSyntax
 DisableSyntax.keywords = [
   var
@@ -9,11 +9,19 @@ DisableSyntax.keywords = [
 DisableSyntax.noTabs = true
 DisableSyntax.noSemicolons = true
 DisableSyntax.noXml = true
+DisableSyntax.regex = [
+  {
+    pattern = "[P|p]imp"
+    message = "Please consider a less offensive word such as Extension"
+  }
+  "Await\\.result"
+]
 */
 package test
 
 import scala.concurrent._
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 case object DisableSyntax {
 
@@ -31,10 +39,10 @@ case object DisableSyntax {
   <a>xml</a>                // assert: DisableSyntax.noXml
 	                          // assert: DisableSyntax.noTabs
 
-  // implicit class StringPimp(value: String) { // assert: DisableSyntax.regex.pimp
-  //   def -(other: String): String = s"$value - $other"
-  // }
+  implicit class StringPimp(value: String) { // assert: DisableSyntax.[P|p]imp
+    def -(other: String): String = s"$value - $other"
+  }
 
-  // // actually 7.5 million years
-  // Await.result(Future(42), 75.days) // assert: DisableSyntax.regex.Await.result
+  // actually 7.5 million years
+  Await.result(Future(42), 75.days) // assert: DisableSyntax.Await\.result
 }
