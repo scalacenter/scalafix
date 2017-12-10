@@ -10,16 +10,39 @@ class IntervalSet(range: BitSet) {
     val otherRange = BitSet((start to end): _*)
     (range & otherRange).nonEmpty
   }
+
+  override def toString: String = {
+    val intervals = 
+      if(range.isEmpty) Nil
+      else {
+        var cur = range.head
+        var start = cur
+        val interval = List.newBuilder[(Int, Int)]
+        range.tail.foreach{bit =>
+          if(cur + 1 != bit) {
+            interval += ((start, cur))
+            start = bit
+          }
+          cur = bit
+        }
+        interval += ((start, cur))
+        interval.result()
+      }
+
+    val is = intervals.map{ case (start, end) =>
+      s"[$start, $end]"
+    }
+
+    s"""IntervalSet(${is.mkString(", ")})"""
+
+  }
 }
 
 object IntervalSet {
-  def apply(intervals: (Int, Int)*): IntervalSet =
-    apply(intervals.toList)
-
-  def apply(intervals: List[(Int, Int)]): IntervalSet =
+  def apply(intervals: Seq[(Int, Int)]): IntervalSet =
     new IntervalSet(fromRange(intervals))
 
-  private def fromRange(xs: List[(Int, Int)]): BitSet = {
+  private def fromRange(xs: Seq[(Int, Int)]): BitSet = {
     if (xs.isEmpty) {
       BitSet()
     } else {
