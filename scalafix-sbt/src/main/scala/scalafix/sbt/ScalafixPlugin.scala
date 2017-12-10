@@ -229,15 +229,17 @@ object ScalafixPlugin extends AutoPlugin {
     Def.taskDyn {
       compile.all(filter).value // trigger compilation
       val classpath = classDirectory.all(filter).value.asPath
-      val directoriesToFix: Seq[File] =
-        unmanagedSourceDirectories.all(filter).value.flatten.collect {
-          case p if p.exists() => p.getAbsoluteFile
-        }
+      val sourcesToFix = for {
+        sources <- unmanagedSources.all(filter).value
+        source <- sources
+        if source.exists()
+        if canFix(source)
+      } yield source
       val options: Seq[String] = List("--classpath", classpath) ++ extraOptions
       scalafixTaskImpl(
         inputArgs,
         options,
-        directoriesToFix,
+        sourcesToFix,
         thisProject.value.id,
         streams.value
       )
@@ -285,11 +287,17 @@ object ScalafixPlugin extends AutoPlugin {
             )
         }
         val finalArgs = args ++ files.map(_.getAbsolutePath)
-        val nonBaseArgs = finalArgs.filterNot(baseArgs).mkString(" ")
+        val nonBaseArgs = args.filterNot(baseArgs).mkString(" ")
         log.info(s"Running scalafix $nonBaseArgs")
         main.main(finalArgs.toArray)
       }
     }
+  }
+
+  private def canFix(file: File): Boolean = {
+    val path = file.getPath
+    path.endsWith(".scala") ||
+    path.endsWith(".sbt")
   }
 
   private[scalafix] implicit class XtensionFormatClasspath(paths: Seq[File]) {

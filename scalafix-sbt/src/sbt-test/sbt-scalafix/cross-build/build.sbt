@@ -9,6 +9,7 @@ inThisBuild(
 lazy val root = project
   .in(file("."))
   .aggregate(
+    javaProject,
     customSourceroot,
     scala211,
     scala210,
@@ -27,6 +28,9 @@ lazy val scala212 = project
 lazy val customSourceroot = project.settings(
   scalaVersion := Versions.scala212,
   scalafixSourceroot := sourceDirectory.value
+)
+lazy val javaProject = project.settings(
+  scalaVersion := Versions.scala212
 )
 
 TaskKey[Unit]("check") := {
