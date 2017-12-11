@@ -56,8 +56,7 @@ If you must Option.get, wrap the code block with
 ...
 // scalafix:on Option.get
 */
-  val l: ListBuffer[Int] =
-    scala.collection.mutable.ListBuffer.empty[Int] // scalafix:ok Disable.ListBuffer
+  val l: ListBuffer[Int] = scala.collection.mutable.ListBuffer.empty[Int] // assert: Disable.ListBuffer
   List(1) + "any2stringadd" /* assert: Disable.any2stringadd
   ^
 any2stringadd is disabled and it got inferred as `scala.Predef.any2stringadd[List[Int]](*)`
