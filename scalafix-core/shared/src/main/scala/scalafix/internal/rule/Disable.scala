@@ -30,21 +30,34 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
       .getOrElse("disable", "Disable")(DisableConfig.default)
       .map(Disable(index, _))
 
-  override def check(ctx: RuleCtx): Seq[LintMessage] =
-    ctx.index.names.collect {
+  override def check(ctx: RuleCtx): Seq[LintMessage] = {
+    val buffer = List.newBuilder[LintMessage]
+    def add(name: ResolvedName): Unit = name match {
       case ResolvedName(
           pos,
           disabledSymbol(symbol @ Symbol.Global(_, signature)),
-          false) => {
-
-        val message =
-          config
-            .customMessage(symbol)
-            .getOrElse(s"${signature.name} is disabled")
-
-        errorCategory
+          false) =>
+        val (details, caret) = pos.input match {
+          case synthetic @ Input.Synthetic(_, input, start, end) =>
+            // For synthetics the caret should point to the original position
+            // but display the inferred code.
+            s" and it got inferred as `${synthetic.text}`" ->
+              Position.Range(input, start, end)
+          case _ =>
+            "" -> pos
+        }
+        val message = config
+          .customMessage(symbol)
+          .getOrElse(s"${signature.name} is disabled$details")
+        buffer += errorCategory
           .copy(id = signature.name)
-          .at(message, pos)
-      }
+          .at(message, caret)
+      case _ =>
     }
+    ctx.index.documents.foreach { document =>
+      document.names.foreach(add)
+      document.synthetics.foreach(_.names.foreach(add))
+    }
+    buffer.result()
+  }
 }

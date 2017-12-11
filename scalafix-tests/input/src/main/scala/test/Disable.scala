@@ -13,9 +13,13 @@ Disable.symbols = [
          |...
          |// scalafix:on Option.get"""
   }
+  "scala.collection.mutable.ListBuffer"
+  "scala.Predef.any2stringadd"
 ]
 */
 package test
+
+import scala.collection.mutable.ListBuffer
 
 case object Disable {
 
@@ -52,4 +56,10 @@ If you must Option.get, wrap the code block with
 ...
 // scalafix:on Option.get
 */
+  val l: ListBuffer[Int] =
+    scala.collection.mutable.ListBuffer.empty[Int] // scalafix:ok Disable.ListBuffer
+  List(1) + "any2stringadd" /* assert: Disable.any2stringadd
+  ^
+any2stringadd is disabled and it got inferred as `scala.Predef.any2stringadd[List[Int]](*)`
+  */
 }
