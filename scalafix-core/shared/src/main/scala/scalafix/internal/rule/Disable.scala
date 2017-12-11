@@ -31,33 +31,32 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
       .map(Disable(index, _))
 
   override def check(ctx: RuleCtx): Seq[LintMessage] = {
-    val buffer = List.newBuilder[LintMessage]
-    def add(name: ResolvedName): Unit = name match {
-      case ResolvedName(
-          pos,
-          disabledSymbol(symbol @ Symbol.Global(_, signature)),
-          false) =>
-        val (details, caret) = pos.input match {
-          case synthetic @ Input.Synthetic(_, input, start, end) =>
-            // For synthetics the caret should point to the original position
-            // but display the inferred code.
-            s" and it got inferred as `${synthetic.text}`" ->
-              Position.Range(input, start, end)
-          case _ =>
-            "" -> pos
-        }
-        val message = config
-          .customMessage(symbol)
-          .getOrElse(s"${signature.name} is disabled$details")
-        buffer += errorCategory
-          .copy(id = signature.name)
-          .at(message, caret)
-      case _ =>
+    for {
+      document <- ctx.index.documents.view
+      ResolvedName(
+        pos,
+        disabledSymbol(symbol @ Symbol.Global(_, signature)),
+        false
+      ) <- {
+        document.names.view ++
+          document.synthetics.view.flatMap(_.names)
+      }
+    } yield {
+      val (details, caret) = pos.input match {
+        case synthetic @ Input.Synthetic(_, input, start, end) =>
+          // For synthetics the caret should point to the original position
+          // but display the inferred code.
+          s" and it got inferred as `${synthetic.text}`" ->
+            Position.Range(input, start, end)
+        case _ =>
+          "" -> pos
+      }
+      val message = config
+        .customMessage(symbol)
+        .getOrElse(s"${signature.name} is disabled$details")
+      errorCategory
+        .copy(id = signature.name)
+        .at(message, caret)
     }
-    ctx.index.documents.foreach { document =>
-      document.names.foreach(add)
-      document.synthetics.foreach(_.names.foreach(add))
-    }
-    buffer.result()
   }
 }
