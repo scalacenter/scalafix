@@ -6,9 +6,8 @@ import org.scalactic.source.Position
 import scalafix.internal.util.IntervalSet
 
 class IntervalSetTest() extends FunSuite {
-
   test("contains") {
-    val set = IntervalSet((1, 2), (4, 5))
+    val set = IntervalSet(Seq((1, 2), (4, 5)))
     assert(!set.contains(0))
     assert(set.contains(1))
     assert(set.contains(2))
@@ -17,13 +16,13 @@ class IntervalSetTest() extends FunSuite {
     assert(set.contains(5))
     assert(!set.contains(6))
 
-    val empty = IntervalSet()
+    val empty = IntervalSet(Seq())
     assert(!empty.contains(0))
     assert(!empty.contains(1))
   }
 
   test("intersects") {
-    val set = IntervalSet((1, 2), (5, 8))
+    val set = IntervalSet(Seq((1, 2), (5, 8)))
     def in(start: Int, end: Int)(implicit pos: Position): Unit =
       assert(set.intersects(start, end))
     def out(start: Int, end: Int)(implicit pos: Position): Unit =
@@ -50,7 +49,7 @@ class IntervalSetTest() extends FunSuite {
     out(0,0) // +                   |
     // format:on
 
-    val empty = IntervalSet()
+    val empty = IntervalSet(Seq())
     assert(!empty.intersects(0, 0))
     assert(!empty.intersects(0, 1))
   }

@@ -6,11 +6,14 @@ import MetaconfigPendingUpstream.XtensionConfScalafix
 
 import scala.meta.tokens.Token
 
+import java.util.regex.{Pattern, PatternSyntaxException}
+
 case class DisableSyntaxConfig(
     keywords: Set[DisabledKeyword] = Set(),
     noSemicolons: Boolean = false,
     noTabs: Boolean = false,
-    noXml: Boolean = false
+    noXml: Boolean = false,
+    regex: List[CustomMessage[Pattern]] = Nil
 ) {
   implicit val reader: ConfDecoder[DisableSyntaxConfig] =
     ConfDecoder.instanceF[DisableSyntaxConfig](
@@ -19,11 +22,25 @@ case class DisableSyntaxConfig(
           c.getField(keywords) |@|
             c.getField(noSemicolons) |@|
             c.getField(noTabs) |@|
-            c.getField(noXml)
+            c.getField(noXml) |@|
+            c.getField(regex)
         ).map {
-          case (((a, b), c), d) =>
-            DisableSyntaxConfig(a, b, c, d)
+          case ((((a, b), c), d), e) =>
+            DisableSyntaxConfig(a, b, c, d, e)
       })
+
+  implicit val patternReader: ConfDecoder[Pattern] = {
+    ConfDecoder.stringConfDecoder.flatMap(pattern =>
+      try {
+        Configured.Ok(Pattern.compile(pattern, Pattern.MULTILINE))
+      } catch {
+        case ex: PatternSyntaxException =>
+          Configured.NotOk(ConfError.msg(ex.getMessage))
+    })
+  }
+
+  implicit val customMessageReader: ConfDecoder[CustomMessage[Pattern]] =
+    CustomMessage.decoder(field = "pattern")
 
   def isDisabled(keyword: String): Boolean =
     keywords.contains(DisabledKeyword(keyword))
