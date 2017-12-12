@@ -51,11 +51,18 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
         case _ =>
           "" -> pos
       }
-      val message = config
-        .customMessage(symbol)
+      val custom = config.customMessage(symbol)
+
+      val message = custom
+        .flatMap(_.message)
         .getOrElse(s"${signature.name} is disabled$details")
+
+      val id = custom
+        .flatMap(_.id)
+        .getOrElse(signature.name)
+
       errorCategory
-        .copy(id = signature.name)
+        .copy(id = id)
         .at(message, caret)
     }
   }

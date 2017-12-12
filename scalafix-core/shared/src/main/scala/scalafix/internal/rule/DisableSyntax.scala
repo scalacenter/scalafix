@@ -35,7 +35,7 @@ final case class DisableSyntax(
       while (matcher.find()) {
         regexLintMessages +=
           errorCategory
-            .copy(id = pattern)
+            .copy(id = regex.id.getOrElse(pattern))
             .at(message, pos(matcher.start))
       }
     }
