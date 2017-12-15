@@ -37,11 +37,15 @@ case class NoAutoTupling(index: SemanticdbIndex)
     }.toSet
 
   override def fix(ctx: RuleCtx): Patch = {
-    ctx.tree.collect {
-      case t: Term.Apply if tupleAdaptations.contains(t.pos) =>
-        addWrappingParens(ctx, t.args)
-      case t: Term.Apply if t.args.isEmpty && unitAdaptations.contains(t.pos) =>
-        insertUnit(ctx, t)
-    }.asPatch
+    ctx.tree
+      .collect {
+        case t: Term.Apply if tupleAdaptations.contains(t.pos) =>
+          addWrappingParens(ctx, t.args)
+        case t: Term.Apply
+            if t.args.isEmpty && unitAdaptations.contains(t.pos) =>
+          insertUnit(ctx, t)
+      }
+      .map(_.atomic)
+      .asPatch
   }
 }

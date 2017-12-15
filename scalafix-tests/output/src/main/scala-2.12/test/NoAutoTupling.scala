@@ -12,6 +12,7 @@ class NoAutoTupling2 {
 
   def d(x: (Int, Boolean))(y: (String, List[Int])) = (x, y)
   d((2, true))(("foo", 1 :: 2 :: Nil))
+  d(2, true)("foo", 1 :: 2 :: Nil) // scalafix:ok NoAutoTupling
 
   def e(x: (Int, Boolean))(s: List[String], c: Char)(y: (String, List[Int])) = (x, y)
   e((2, true))("a" :: "b" :: Nil, 'z')(("foo", 1 :: 2 :: Nil))

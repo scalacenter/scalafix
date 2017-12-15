@@ -27,7 +27,7 @@ case object ProcedureSyntax extends Rule("ProcedureSyntax") {
             .slice(defEnd, bodyStart)
             .find(_.is[RightParen])
             .getOrElse(defEnd)
-        ctx.addRight(closingParen, s": Unit =")
+        ctx.addRight(closingParen, s": Unit =").atomic
     }
     patches.asPatch
   }

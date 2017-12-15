@@ -60,5 +60,6 @@ class RemoveXmlLiterals {
     null match { case <a>{_*}</a> => }
   }
 
+  <div></div> // scalafix:ok RemoveXmlLiterals
 }
 

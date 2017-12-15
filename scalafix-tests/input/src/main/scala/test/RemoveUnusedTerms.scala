@@ -11,6 +11,7 @@ object RemoveUnusedTerms {
     var b = 0
     var bb = println(0)
     println(1)
+    val xy = 42 // scalafix:ok RemoveUnusedTerms
   }
 
   val cc = 0

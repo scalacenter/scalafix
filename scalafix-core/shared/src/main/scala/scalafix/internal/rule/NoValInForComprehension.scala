@@ -16,7 +16,7 @@ case object NoValInForComprehension extends Rule("NoValInForComprehension") {
       case v: Enumerator.Val =>
         val valTokens =
           v.tokens.takeWhile(t => t.syntax == "val" || t.is[Whitespace])
-        valTokens.map(ctx.removeToken).asPatch
+        valTokens.map(ctx.removeToken).asPatch.atomic
     }.asPatch
   }
 

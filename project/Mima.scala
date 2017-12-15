@@ -13,6 +13,10 @@ object Mima {
       // marked private[scalafix]
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "scalafix.rule.RuleCtx.printLintMessage"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "scalafix.rule.RuleCtx.filter"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "scalafix.patch.Patch.apply"),
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "scalafix.patch.Patch.reportLintMessages"),
       ProblemFilters.exclude[DirectMissingMethodProblem](

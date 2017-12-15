@@ -14,6 +14,7 @@ import scalafix.rule.RuleCtx
  *   <div>{ "Hello" }</div>
  *
  *   // after:
+ *   import scala.xml.quote._
  *   xml"<div>${ "Hello" }</div>"
  * }}}
  *
@@ -119,9 +120,11 @@ case object RemoveXmlLiterals extends Rule("RemoveXmlLiterals") {
       case xml @ Term.Xml(parts, _) =>
         val tripleQuoted = isMultiLine(xml) || parts.exists(
           containsEscapeSequence)
-        patchXml(xml, tripleQuoted)
+        patchXml(xml, tripleQuoted).atomic
     }.asPatch
 
+    // NB if all patches are not yet escaped here
+    // it can be empty and only have the import
     if (patch.nonEmpty) patch + importXmlQuote
     else patch
   }

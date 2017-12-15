@@ -4,6 +4,7 @@ package internal.patch
 import scalafix.internal.config.FilterMatcher
 import scalafix.lint.LintMessage
 import scalafix.rule.RuleName
+import scalafix.patch._
 
 import scala.meta._
 import scala.meta.tokens.Token
@@ -36,23 +37,23 @@ class EscapeHatch(
   // comment disabling r at position p1 < p
   // and there is no comment enabling r in position p2 where p1 < p2 < p.
   private def isEnabled(
-      message: LintMessage): (Boolean, Option[EscapeFilter]) = {
-
+      name: String,
+      start: Int): (Boolean, Option[EscapeFilter]) = {
     var culprit = Option.empty[EscapeFilter]
 
     val isDisabled =
-      disableRules.to(EscapeOffset(message.position.start)).exists {
+      disableRules.to(EscapeOffset(start)).exists {
         case (disableOffset, disableFilter) => {
-          val isDisabled = disableFilter.matches(message.id)
+          val isDisabled = disableFilter.matches(name)
           if (isDisabled) {
             culprit = Some(disableFilter)
           }
           isDisabled && {
             !enableRules
-              .range(disableOffset, EscapeOffset(message.position.start))
+              .range(disableOffset, EscapeOffset(start))
               .values
               .exists { enableFilter =>
-                val isEnabled = enableFilter.matches(message.id)
+                val isEnabled = enableFilter.matches(name)
                 if (isEnabled) {
                   culprit = Some(enableFilter)
                 }
@@ -65,22 +66,50 @@ class EscapeHatch(
     (!isDisabled, culprit)
   }
 
-  /* This method disable rules based on the escape hatch comments
-   * and report any unused escapes
-   */
-  def filter(lints: List[LintMessage]): List[LintMessage] = {
+  def filter(
+      patchesByName: Map[RuleName, Patch],
+      ctx: RuleCtx,
+      index: SemanticdbIndex): (Patch, List[LintMessage]) = {
     val usedEscapes = mutable.Set.empty[EscapeOffset]
-    val filteredLints = List.newBuilder[LintMessage]
+    val lintMessages = List.newBuilder[LintMessage]
 
-    lints.foreach { lint =>
-      val (isLintEnabled, culprit) = isEnabled(lint)
+    def loop(name: RuleName, patch: Patch): Patch = patch match {
+      case AtomicPatch(underlying) =>
+        val hasEscape = {
+          val patches = Patch.treePatchApply(underlying)(ctx, index)
+          patches.exists { tp =>
+            val (isPatchEnabled, culprit) =
+              isEnabled(name.toString, tp.tok.pos.start)
+            culprit.foreach(escape => usedEscapes += escape.offset)
+            !isPatchEnabled
+          }
+        }
 
-      if (isLintEnabled) {
-        filteredLints += lint
-      }
+        if (hasEscape) EmptyPatch
+        else loop(name, underlying)
 
-      culprit.foreach(escape => usedEscapes += escape.offset)
+      case Concat(a, b) =>
+        Concat(loop(name, a), loop(name, b))
+
+      case LintPatch(orphanLint) =>
+        val lint = orphanLint.withOwner(name)
+        val (isLintEnabled, culprit) = isEnabled(lint.id, lint.position.start)
+        culprit.foreach(escape => usedEscapes += escape.offset)
+
+        if (isLintEnabled) {
+          lintMessages += lint
+        }
+
+        EmptyPatch
+
+      case e => e
     }
+
+    val patches =
+      patchesByName.map {
+        case (name, patch) =>
+          loop(name, patch)
+      }.asPatch
 
     val unusedDisableWarning =
       LintCategory
@@ -94,7 +123,9 @@ class EscapeHatch(
       (disableRules -- usedEscapes).values
         .map(unused => unusedDisableWarning.at(unused.anchorPosition.value))
 
-    filteredLints.result() ++ unusedEnable ++ unusedEscapesWarning
+    val filteredLints = lintMessages.result()
+
+    (patches, filteredLints ++ unusedEnable ++ unusedEscapesWarning)
   }
 }
 
