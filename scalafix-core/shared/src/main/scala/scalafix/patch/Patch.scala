@@ -48,12 +48,16 @@ sealed abstract class Patch {
   def ++(other: Iterable[Patch]): Patch = other.foldLeft(this)(_ + _)
   def isEmpty: Boolean = this == EmptyPatch
   def nonEmpty: Boolean = !isEmpty
+
+  /** Skip this entire patch if a part of it is disabled with // scalafix:off */
+  def atomic: Patch = AtomicPatch(this)
 }
 
 //////////////////////////////
 // Low-level patches
 //////////////////////////////
 trait LowLevelPatch
+
 abstract class TokenPatch(val tok: Token, val newTok: String)
     extends Patch
     with LowLevelPatch {
@@ -92,6 +96,7 @@ private[scalafix] object TreePatch {
 }
 
 // implementation detail
+private[scalafix] case class AtomicPatch(underlying: Patch) extends Patch
 private[scalafix] case class LintPatch(message: LintMessage) extends Patch
 private[scalafix] case class Concat(a: Patch, b: Patch) extends Patch
 private[scalafix] case object EmptyPatch extends Patch with LowLevelPatch
@@ -118,36 +123,23 @@ object Patch {
     case _ => throw Failure.TokenPatchMergeError(a, b)
   }
 
-  private[scalafix] def lintMessages(
-      patches: Map[RuleName, Patch],
-      ctx: RuleCtx): List[LintMessage] = {
-
-    val builder = List.newBuilder[LintMessage]
-    patches.map {
-      case (owner, patch) =>
-        foreach(patch) {
-          case LintPatch(orphanLint) =>
-            builder += orphanLint.withOwner(owner)
-          case _ => ()
-        }
-    }
-
-    ctx.filterLintMessage(builder.result())
-  }
-
   // Patch.apply and Patch.lintMessages package private. Feel free to use them
   // for your application, but please ask on the Gitter channel to see if we
   // can expose a better api for your use case.
   private[scalafix] def apply(
-      p: Patch,
+      patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
       ctx: RuleCtx,
       index: Option[SemanticdbIndex]
-  ): String = {
-    treePatchApply(p)(ctx, index.getOrElse(SemanticdbIndex.empty))
+  ): (String, List[LintMessage]) = {
+    val idx = index.getOrElse(SemanticdbIndex.empty)
+    val (patch, lints) = ctx.filter(patchesByName, idx)
+    val patches = treePatchApply(patch)(ctx, idx)
+    (tokenPatchApply(ctx, patches), lints)
   }
 
-  private def treePatchApply(
-      patch: Patch)(implicit ctx: RuleCtx, index: SemanticdbIndex): String = {
+  def treePatchApply(patch: Patch)(
+      implicit ctx: RuleCtx,
+      index: SemanticdbIndex): Iterable[TokenPatch] = {
     val base = underlying(patch)
     val moveSymbol = underlying(
       ReplaceSymbolOps.naiveMoveSymbolPatch(base.collect {
@@ -157,9 +149,12 @@ object Patch {
     val tokenPatches = patches.collect { case e: TokenPatch => e }
     val importPatches = patches.collect { case e: ImportPatch => e }
     val importTokenPatches = {
-      val result = ImportPatchOps.superNaiveImportPatchToTokenPatchConverter(
-        ctx,
-        importPatches)
+      val result =
+        ImportPatchOps.superNaiveImportPatchToTokenPatchConverter(
+          ctx,
+          importPatches
+        )
+
       Patch
         .underlying(result.asPatch)
         .collect {
@@ -169,7 +164,7 @@ object Patch {
               s"Expected TokenPatch, got $els")
         }
     }
-    tokenPatchApply(ctx, importTokenPatches ++ tokenPatches)
+    importTokenPatches ++ tokenPatches
   }
 
   private def tokenPatchApply(
@@ -187,6 +182,7 @@ object Patch {
     val builder = Seq.newBuilder[Patch]
     foreach(patch) {
       case _: LintPatch =>
+        ()
       case els =>
         builder += els
     }
@@ -209,7 +205,10 @@ object Patch {
       case Concat(a, b) =>
         loop(a)
         loop(b)
-      case EmptyPatch => // do nothing
+      case EmptyPatch =>
+        ()
+      case AtomicPatch(underlying) =>
+        loop(underlying)
       case els =>
         f(els)
     }

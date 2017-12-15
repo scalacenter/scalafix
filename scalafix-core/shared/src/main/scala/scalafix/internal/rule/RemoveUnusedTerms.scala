@@ -40,6 +40,8 @@ case class RemoveUnusedTerms(index: SemanticdbIndex)
   override def fix(ctx: RuleCtx): Patch =
     ctx.tree.collect {
       case i: Defn if isUnused(i) =>
-        tokensToRemove(i).fold(Patch.empty)(ctx.removeTokens)
+        tokensToRemove(i)
+          .fold(Patch.empty)(token => ctx.removeTokens(token))
+          .atomic
     }.asPatch
 }

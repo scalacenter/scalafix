@@ -13,7 +13,7 @@ case object ExplicitUnit extends Rule("ExplicitUnit") {
   override def fix(ctx: RuleCtx): Patch = {
     ctx.tree.collect {
       case t: Decl.Def if t.decltpe.tokens.isEmpty =>
-        ctx.addRight(t.tokens.last, s": Unit")
+        ctx.addRight(t.tokens.last, s": Unit").atomic
     }.asPatch
   }
 }

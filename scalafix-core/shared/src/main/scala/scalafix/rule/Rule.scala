@@ -81,18 +81,16 @@ abstract class Rule(ruleName: RuleName) { self =>
   final def apply(ctx: RuleCtx, patch: Patch): String =
     apply(ctx, Map(name -> patch))
   final def apply(ctx: RuleCtx, patches: Map[RuleName, Patch]): String = {
-    val result = Patch(patches.values.asPatch, ctx, semanticOption)
     // This overload of apply if purely for convenience
-    // Use fixWithName to iterate over LintMessage
-    // without printing to the console
-    Patch.lintMessages(patches, ctx).foreach(ctx.printLintMessage)
-    result
+    // Use `applyAndLint` to iterate over LintMessage without printing to the console
+    val (fixed, lintMessages) = Patch(patches, ctx, semanticOption)
+    lintMessages.foreach(ctx.printLintMessage)
+    fixed
   }
   final def applyAndLint(ctx: RuleCtx): (String, List[LintMessage]) = {
     val patches = fixWithName(ctx)
-    val fixed = Patch(patches.values.asPatch, ctx, semanticOption)
-    val messages = Patch.lintMessages(patches, ctx)
-    (fixed, messages)
+    val (fixed, lintMessages) = Patch(patches, ctx, semanticOption)
+    (fixed, lintMessages)
   }
 
   /** Returns unified diff from applying this patch */

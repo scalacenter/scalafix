@@ -28,6 +28,6 @@ case class RemoveUnusedImports(index: SemanticdbIndex)
   }
   override def fix(ctx: RuleCtx): Patch =
     ctx.tree.collect {
-      case i: Importee if isUnused(i) => ctx.removeImportee(i)
+      case i: Importee if isUnused(i) => ctx.removeImportee(i).atomic
     }.asPatch
 }

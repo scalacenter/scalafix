@@ -72,23 +72,6 @@ abstract class SemanticRuleSuite(
       case "Scala212" => "scala-2.12"
     }
 
-  private def assertLintMessagesAreReported(
-      rule: Rule,
-      ctx: RuleCtx,
-      patches: Map[RuleName, Patch],
-      tokens: Tokens): Unit = {
-
-    val reportedLintMessages = Patch.lintMessages(patches, ctx)
-    val expectedLintMessages = CommentAssertion.extract(tokens)
-    val diff = AssertDiff(reportedLintMessages, expectedLintMessages)
-
-    if (diff.isFailure) {
-
-      println(diff.toString)
-      throw new TestFailedException("see above", 0)
-    }
-  }
-
   def runOn(diffTest: DiffTest): Unit = {
     test(diffTest.name) {
       val (rule, config) = diffTest.config.apply()
@@ -97,9 +80,10 @@ abstract class SemanticRuleSuite(
         config.copy(dialect = diffTest.document.dialect)
       )
       val patches = rule.fixWithName(ctx)
-      assertLintMessagesAreReported(rule, ctx, patches, ctx.tokens)
+      val (obtainedWithComment, obtainedLintMessages) =
+        Patch.apply(patches, ctx, rule.semanticOption)
+
       val patch = patches.values.asPatch
-      val obtainedWithComment = Patch.apply(patch, ctx, rule.semanticOption)
       val tokens = obtainedWithComment.tokenize.get
       val obtained = SemanticRuleSuite.stripTestkitComments(tokens)
       val candidateOutputFiles = expectedOutputSourceroot.flatMap { root =>
@@ -121,7 +105,24 @@ abstract class SemanticRuleSuite(
                  |$tried""".stripMargin)
           }
         }
-      assertNoDiff(obtained, expected)
+
+      val expectedLintMessages = CommentAssertion.extract(ctx.tokens)
+      val diff = AssertDiff(obtainedLintMessages, expectedLintMessages)
+
+      if (diff.isFailure) {
+        println("###########> Lint       <###########")
+        println(diff.toString)
+      }
+
+      val result = compareContents(obtained, expected)
+      if (result.nonEmpty) {
+        println("###########> Diff       <###########")
+        println(error2message(obtained, expected))
+      }
+
+      if (result.nonEmpty || diff.isFailure) {
+        throw new TestFailedException("see above", 0)
+      }
     }
   }
 

@@ -95,7 +95,7 @@ case class ExplicitResultTypes(
           else ""
         }
       } yield ctx.addRight(replace, s"$space: ${treeSyntax(typ)}") + patch
-    }.asPatch
+    }.asPatch.atomic
 
     def treeSyntax(tree: Tree): String =
       ScalafixScalametaHacks.resetOrigin(tree).syntax

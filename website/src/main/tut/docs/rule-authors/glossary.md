@@ -42,6 +42,9 @@ utility methods to accomplish common tasks.
 If you experience that it's difficult to implement something that
 seems simple then don't hesitate to ask on {% gitter %}.
 
+It's possible to escape parts of a Patch with `// scalafix:ok`. If you want to treat
+a Patch as a transaction use `.atomic`.
+
 ## LintMessage
 Rules are able to emit "lint messages" with info/warn/error severity
 using `ctx.lint(lintCategory.at(String/Position)): Patch`.
