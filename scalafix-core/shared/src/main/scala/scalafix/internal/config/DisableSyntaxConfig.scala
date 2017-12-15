@@ -1,6 +1,5 @@
-package scalafix.internal.config
-
-import scalafix.config.CustomMessage
+package scalafix
+package internal.config
 
 import metaconfig.{Conf, ConfError, ConfDecoder, Configured}
 import org.langmeta._

@@ -1,6 +1,5 @@
-package scalafix.internal.config
-
-import scalafix.config.CustomMessage
+package scalafix
+package internal.config
 
 import metaconfig.ConfDecoder
 import MetaconfigPendingUpstream.XtensionConfScalafix
