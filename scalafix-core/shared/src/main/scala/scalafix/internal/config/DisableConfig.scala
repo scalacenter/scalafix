@@ -1,4 +1,5 @@
-package scalafix.internal.config
+package scalafix
+package internal.config
 
 import metaconfig.ConfDecoder
 import MetaconfigPendingUpstream.XtensionConfScalafix
@@ -8,14 +9,13 @@ import scalafix.internal.util.SymbolOps
 case class DisableConfig(symbols: List[CustomMessage[Symbol.Global]] = Nil) {
   def allSymbols = symbols.map(_.value)
 
-  private val messageBySymbol: Map[String, String] =
+  private val messageBySymbol: Map[String, CustomMessage[Symbol.Global]] =
     symbols
-      .flatMap(custom =>
-        custom.message.map(message =>
-          (SymbolOps.normalize(custom.value).syntax, message)))
+      .map(custom => (SymbolOps.normalize(custom.value).syntax, custom))
       .toMap
 
-  def customMessage(symbol: Symbol.Global): Option[String] =
+  def customMessage(
+      symbol: Symbol.Global): Option[CustomMessage[Symbol.Global]] =
     messageBySymbol.get(SymbolOps.normalize(symbol).syntax)
 
   implicit val customMessageReader: ConfDecoder[CustomMessage[Symbol.Global]] =

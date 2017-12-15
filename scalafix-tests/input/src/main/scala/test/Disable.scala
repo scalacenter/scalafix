@@ -5,6 +5,7 @@ Disable.symbols = [
   "test.Disable.D.disabledFunction"
   {
     symbol = "scala.Option.get"
+    id = "Option.get"
     message =
       """|Option.get is the root of all evils
          |
@@ -47,7 +48,7 @@ case object Disable {
     def asInstanceOf: O = "test"
   }
   val yy = AA.asInstanceOf // OK, no errors
-  Option(1).get /* assert: Disable.get
+  Option(1).get /* assert: Disable.Option.get
             ^
 Option.get is the root of all evils
 

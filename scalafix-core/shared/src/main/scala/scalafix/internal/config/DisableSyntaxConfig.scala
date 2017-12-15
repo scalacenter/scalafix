@@ -1,4 +1,5 @@
-package scalafix.internal.config
+package scalafix
+package internal.config
 
 import metaconfig.{Conf, ConfError, ConfDecoder, Configured}
 import org.langmeta._

@@ -34,6 +34,9 @@ package object scalafix {
   @deprecated("Renamed to Rule", "0.5.0")
   val Rewrite = rule.Rule
 
+  type CustomMessage[T] = scalafix.config.CustomMessage[T]
+  val CustomMessage = scalafix.config.CustomMessage
+
   type SemanticRule = rule.SemanticRule
   type Rule = rule.Rule
   val Rule = rule.Rule

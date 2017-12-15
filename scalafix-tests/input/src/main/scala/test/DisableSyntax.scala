@@ -11,6 +11,7 @@ DisableSyntax.noSemicolons = true
 DisableSyntax.noXml = true
 DisableSyntax.regex = [
   {
+    id = offensive
     pattern = "[P|p]imp"
     message = "Please consider a less offensive word such as Extension"
   }
@@ -39,7 +40,7 @@ case object DisableSyntax {
   <a>xml</a>                // assert: DisableSyntax.noXml
 	                          // assert: DisableSyntax.noTabs
 
-  implicit class StringPimp(value: String) { // assert: DisableSyntax.[P|p]imp
+  implicit class StringPimp(value: String) { // assert: DisableSyntax.offensive
     def -(other: String): String = s"$value - $other"
   }
 
