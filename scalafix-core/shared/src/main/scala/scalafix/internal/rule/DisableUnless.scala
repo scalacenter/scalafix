@@ -3,16 +3,54 @@ package scalafix.internal.rule
 import metaconfig.{Conf, Configured}
 
 import scala.meta._
-import scala.meta.transversers.{Transformer, Traverser}
+import scala.meta.transversers.Traverser
 import scalafix._
 import scalafix.internal.config.DisableUnlessConfig
+import scalafix.internal.util.SymbolOps
 import scalafix.lint.LintCategory
 import scalafix.rule.RuleCtx
 import scalafix.util.SymbolMatcher
 
-final case class DisableUnless(index: SemanticdbIndex,
-                               config: DisableUnlessConfig)
+object DisableUnless {
+
+  /**
+    * Searches for specific nodes in Tree and adds result of searching to the list.
+    * Also passes context through tree traversal.
+    * fn can either return a value. that stops the searching, or change the context.
+    */
+  class SearcherWithContext[T, U](initContext: U)(
+      fn: PartialFunction[(Tree, U), Either[T, U]])
+      extends Traverser {
+    private var context: U = initContext
+    private val buf = scala.collection.mutable.ListBuffer[T]()
+    // it can be immutable...
+
+    override def apply(tree: Tree): Unit = {
+      if (fn.isDefinedAt((tree, context))) {
+        fn((tree, context)) match {
+          case Left(res) =>
+            buf += res
+          case Right(newContext) =>
+            val oldContext = context
+            context = newContext
+            super.apply(tree)
+            context = oldContext
+        }
+      } else {
+        super.apply(tree)
+      }
+    }
+
+    def result: List[T] = buf.toList
+  }
+}
+
+final case class DisableUnless(
+    index: SemanticdbIndex,
+    config: DisableUnlessConfig)
     extends SemanticRule(index, "DisableUnless") {
+
+  import DisableUnless._
 
   private lazy val errorCategory: LintCategory =
     LintCategory.error(
@@ -24,42 +62,52 @@ final case class DisableUnless(index: SemanticdbIndex,
       .getOrElse("disableUnless", "DisableUnless")(DisableUnlessConfig.default)
       .map(DisableUnless(index, _))
 
-  private lazy val disabledSymbol: SymbolMatcher =
-    SymbolMatcher.normalized(config.allSymbols: _*)
   private lazy val disabledBlock: SymbolMatcher =
     SymbolMatcher.normalized(config.allBlocks: _*)
 
   override def check(ctx: RuleCtx): Seq[LintMessage] = {
-    def search[T](tree: Tree)(fn: PartialFunction[Tree, Option[T]]): List[T] = {
-      val buf = scala.collection.mutable.ListBuffer[T]()
-      object traverser extends Traverser {
-        override def apply(tree: Tree): Unit = {
-          if (fn.isDefinedAt(tree)) {
-            fn(tree).foreach(buf.+=)
-          } else {
-            super.apply(tree)
-          }
-        }
-      }
-      traverser(tree)
-      buf.toList
+    def filterBlockedSymbolsInBlock(
+        blockedSymbols: List[Symbol.Global],
+        block: Tree): List[Symbol.Global] = {
+      val Some(symbolBlock: Symbol.Global) = ctx.index.symbol(block)
+      blockedSymbols.filter(sym =>
+        !config.symbolsInBlock(symbolBlock).contains(sym))
     }
 
-    search(ctx.tree) {
-      case Term.Apply(Term.Select(disabledBlock(_), Term.Name("apply")), _) =>
-        None
-      case Term.Apply(disabledBlock(_), _) =>
-        None
-      case disabledSymbol(t) =>
+    def treeIsBlocked(
+        tree: Tree,
+        blockedSymbols: List[Symbol.Global]): Boolean =
+      ctx.index.symbol(tree) match {
+        case Some(s: Symbol.Global) =>
+          blockedSymbols.exists(SymbolOps.isSameNormalized(_, s))
+        case _ => false
+      }
+
+    val searcher = new SearcherWithContext(config.allSymbols)({
+      case (
+          Term.Apply(Term.Select(disabledBlock(block), Term.Name("apply")), _),
+          blockedSymbols) =>
+        Right(filterBlockedSymbolsInBlock(blockedSymbols, block)) // <Block>.apply
+      case (Term.Apply(disabledBlock(block), _), blockedSymbols) =>
+        Right(filterBlockedSymbolsInBlock(blockedSymbols, block)) // <Block>(...)
+      case (_: Defn.Def, _) =>
+        Right(config.allSymbols) // reset blocked symbols in def
+      case (_: Term.Function, _) =>
+        Right(config.allSymbols) // reset blocked symbols in (...) => (...)
+      case (t, blockedSymbols) if treeIsBlocked(t, blockedSymbols) =>
         val Some(symbol @ Symbol.Global(_, signature)) = ctx.index.symbol(t)
         val message = config
           .customMessage(symbol)
           .getOrElse(s"${signature.name} is disabled")
-        Some(
+
+        Left(
           errorCategory
             .copy(id = signature.name)
             .at(message, t.pos)
         )
-    }
+    })
+
+    searcher(ctx.tree)
+    searcher.result
   }
 }
