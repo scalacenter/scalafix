@@ -2,7 +2,6 @@ package scalafix
 package internal.config
 
 import metaconfig.{Conf, ConfError, ConfDecoder, Configured}
-import org.langmeta._
 import MetaconfigPendingUpstream.XtensionConfScalafix
 
 import scala.meta.tokens.Token

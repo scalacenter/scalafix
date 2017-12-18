@@ -209,8 +209,6 @@ object EscapeHatch {
         rules: String,
         toogle: Toogle,
         anchorPosition: AnchorPosition): Unit = {
-      val toogledRules = splitRules(rules)
-
       toogle match {
         case Toogle.Disable =>
           currentlyDisabledRules = currentlyDisabledRules ++ splitRules(rules)

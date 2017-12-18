@@ -3,13 +3,10 @@ package scalafix.internal.jgit
 import metaconfig.Configured
 
 import java.nio.file.Path
-import java.io.InputStream
 
 import org.langmeta.inputs.Input
 
 import scala.collection.mutable.StringBuilder
-
-import scala.io.Source
 
 import scalafix.internal.util.IntervalSet
 import scalafix.LintMessage

@@ -1,8 +1,7 @@
 package scalafix
 package cli
 
-import java.io.{File, OutputStreamWriter, InputStream}
-import java.lang.ProcessBuilder
+import java.io.{File, OutputStreamWriter}
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
@@ -39,7 +38,6 @@ import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
 import metaconfig.Configured.Ok
 import metaconfig._
-import org.scalameta.logger
 
 sealed abstract case class CliRunner(
     sourceroot: AbsolutePath,

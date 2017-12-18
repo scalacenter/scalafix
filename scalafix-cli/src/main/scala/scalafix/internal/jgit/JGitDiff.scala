@@ -5,8 +5,6 @@ import java.nio.file.Path
 import org.eclipse.jgit.util.FS
 import org.eclipse.jgit.lib.RepositoryCache
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.diff.DiffEntry.ChangeType._
 import org.eclipse.jgit.diff.DiffFormatter
 import org.eclipse.jgit.errors.AmbiguousObjectException
@@ -14,14 +12,8 @@ import org.eclipse.jgit.errors.IncorrectObjectTypeException
 import org.eclipse.jgit.errors.RevisionSyntaxException
 import org.eclipse.jgit.errors.MissingObjectException
 import org.eclipse.jgit.patch.FileHeader
-import org.eclipse.jgit.lib.ObjectReader
-import org.eclipse.jgit.lib.Ref
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.lib.ObjectId
-import org.eclipse.jgit.lib.ProgressMonitor
-import org.eclipse.jgit.dircache.DirCacheIterator
-import org.eclipse.jgit.revwalk.RevCommit
-import org.eclipse.jgit.revwalk.RevTree
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.treewalk.AbstractTreeIterator
 import org.eclipse.jgit.treewalk.CanonicalTreeParser

@@ -1,15 +1,11 @@
 package scalafix.internal.rule
 
 import scala.meta._
-import scala.meta.tokens.Token.Comment
 import metaconfig.{Conf, Configured}
 import scalafix.rule.{Rule, RuleCtx}
 import scalafix.lint.LintMessage
 import scalafix.lint.LintCategory
-import scalafix.util.SymbolMatcher
-import scalafix.internal.util.IntervalSet
 import scalafix.internal.config.{DisableSyntaxConfig, Keyword}
-import scalafix.syntax._
 
 final case class DisableSyntax(
     config: DisableSyntaxConfig = DisableSyntaxConfig())

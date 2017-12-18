@@ -1,11 +1,7 @@
 package scalafix
 package config
 
-import metaconfig.{Conf, ConfError, ConfDecoder, Configured, Metaconfig}
-import org.langmeta._
-import scalafix.internal.config.MetaconfigPendingUpstream.XtensionConfScalafix
-
-import scala.language.implicitConversions
+import metaconfig.{Conf, ConfDecoder}
 
 class CustomMessage[T](
     val value: T,

@@ -7,7 +7,6 @@ import scalafix.lint.LintCategory
 import scalafix.lint.LintMessage
 import scalafix.rule.SemanticRule
 import scalafix.rule.{Rule, RuleCtx}
-import scalafix.syntax._
 import scalafix.util.SemanticdbIndex
 import scalafix.util.SymbolMatcher
 

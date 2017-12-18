@@ -3,7 +3,6 @@ package scalafix.internal.util
 import scala.language.experimental.macros
 
 import scala.reflect.macros.blackbox.Context
-import scala.util.control.NonFatal
 import scala.{meta => m}
 import scalafix.internal.config.ScalafixMetaconfigReaders
 import metaconfig.Conf

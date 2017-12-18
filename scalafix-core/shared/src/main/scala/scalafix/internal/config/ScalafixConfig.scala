@@ -1,8 +1,6 @@
 package scalafix
 package internal.config
 
-import scala.language.existentials
-
 import java.io.OutputStream
 import java.io.PrintStream
 import scala.meta._

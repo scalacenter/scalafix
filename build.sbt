@@ -201,6 +201,7 @@ lazy val `scalafix-sbt` = project
     scriptedBufferLog := false
   )
   .enablePlugins(BuildInfoPlugin)
+  .disablePlugins(ScalafixPlugin)
 
 val testkit = MultiScalaProject(
   "testkit",
@@ -254,7 +255,10 @@ val testsOutput = TestProject(
   _.settings(
     noPublish,
     semanticdbSettings,
-    scalacOptions -= warnUnusedImports,
+    scalacOptions --= List(
+      warnUnusedImports,
+      "-Xlint"
+    ),
     testsInputOutputSetting
   ))
 
@@ -272,6 +276,7 @@ lazy val testsOutputDotty = project
     libraryDependencies := libraryDependencies.value.map(_.withDottyCompat()),
     scalacOptions := Nil
   )
+  .disablePlugins(ScalafixPlugin)
 
 lazy val testsInputSbt = project
   .in(file("scalafix-tests/input-sbt"))
@@ -290,6 +295,7 @@ lazy val testsInputSbt = project
     addCompilerPlugin(
       "org.scalameta" % "semanticdb-sbt" % semanticdbSbt cross CrossVersion.full)
   )
+  .disablePlugins(ScalafixPlugin)
 
 lazy val testsOutputSbt = project
   .in(file("scalafix-tests/output-sbt"))
@@ -297,6 +303,7 @@ lazy val testsOutputSbt = project
     noPublish,
     sbtPlugin := true
   )
+  .disablePlugins(ScalafixPlugin)
 
 def unit(
     scalav: String,

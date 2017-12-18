@@ -8,7 +8,6 @@ import scalafix._
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.internal.patch.EscapeHatch
-import scalafix.internal.util.Severity
 import scalafix.internal.util.SymbolOps.Root
 import scalafix.patch.LintPatch
 import scalafix.patch.TokenPatch

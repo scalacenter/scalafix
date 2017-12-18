@@ -13,7 +13,6 @@ import scalafix.rule.RuleCtx
 import scalafix.syntax._
 import scalafix.util.Newline
 import scala.meta._
-import org.scalameta.logger
 
 object ImportPatchOps {
   object symbols {

@@ -55,8 +55,8 @@ class MultiScalaCrossProject(
     extends MultiScala {
   def apply(
       scalaV: String,
-      configurePerScala: CrossProject => CrossProject = x => x)
-    : CrossProject = {
+      configurePerScala: CrossProject => CrossProject = x => x
+  ): CrossProject = {
     val projectId = projectIdPerScala(name, scalaV)
     val fullName = s"scalafix-$name"
     val src = srcCross(fullName) _
@@ -126,7 +126,7 @@ object TestProject {
     MultiScalaProject(
       s"tests${sub.capitalize}",
       base(sub),
-      configure
+      configure.andThen(_.disablePlugins(scalafix.sbt.ScalafixPlugin))
     )
 
 }

@@ -2,7 +2,6 @@ package scalafix.internal.config
 
 import java.io.OutputStream
 import scala.meta.Position
-import scala.meta.internal.inputs.XtensionPositionFormatMessage
 import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicInteger
 import scalafix.internal.util.Severity
