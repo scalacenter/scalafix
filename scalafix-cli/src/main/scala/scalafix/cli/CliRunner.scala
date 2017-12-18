@@ -123,11 +123,11 @@ sealed abstract case class CliRunner(
           ExitStatus.ParseError
         }
       case parsers.Parsed.Success(tree) =>
-        val ctx = RuleCtx(tree, config)
-        val (fixed, messages0) = rule.applyAndLint(ctx)
+        val isEnabledByGitDiff: Option[Position => Boolean] =
+          diffDisable.map(d => pos => d.isEnabled(pos))
 
-        val messages =
-          diffDisable.fold(messages0)(_.filter(messages0))
+        val ctx = RuleCtx(tree, config, isEnabledByGitDiff)
+        val (fixed, messages) = rule.applyAndLint(ctx)
 
         messages.foreach { msg =>
           val category = msg.category.withConfig(config.lint)

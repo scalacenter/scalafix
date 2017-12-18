@@ -4,7 +4,8 @@ import metaconfig.Configured
 
 import java.nio.file.Path
 
-import org.langmeta.inputs.Input
+import scala.meta.inputs.Input
+import scala.meta.Position
 
 import scala.collection.mutable.StringBuilder
 
@@ -34,21 +35,25 @@ class DiffDisable(diffs: List[GitDiff]) {
   def isDisabled(file: Input): Boolean =
     !(newFiles.contains(file) || modifiedFiles.contains(file))
 
-  def filter(lints: List[LintMessage]): List[LintMessage] = {
-    def isAddition(lint: LintMessage): Boolean =
-      newFiles.contains(lint.position.input)
+  def isEnabled(position: Position): Boolean = {
+    def isAddition: Boolean =
+      newFiles.contains(position.input)
 
-    def isModification(lint: LintMessage): Boolean =
+    def isModification: Boolean = {
+      val startLine = position.startLine
+      val endLine = position.endLine
       modifiedFiles
-        .get(lint.position.input)
+        .get(position.input)
         .fold(false)(
           interval =>
             interval.intersects(
-              lint.position.startLine,
-              lint.position.endLine
-          ))
+              startLine,
+              endLine
+          )
+        )
+    }
 
-    lints.filter(lint => isAddition(lint) || isModification(lint))
+    isAddition || isModification
   }
 
   override def toString: String = {

@@ -60,7 +60,14 @@ trait RuleCtx extends PatchOps {
 
 object RuleCtx {
   def apply(tree: Tree): RuleCtx =
-    apply(tree, ScalafixConfig.default)
+    apply(tree, ScalafixConfig.default, None)
+
   private[scalafix] def apply(tree: Tree, config: ScalafixConfig): RuleCtx =
-    RuleCtxImpl(tree, config)
+    apply(tree, config, None)
+
+  private[scalafix] def apply(
+      tree: Tree,
+      config: ScalafixConfig,
+      isEnabledByGitDiff: Option[Position => Boolean] = None): RuleCtx =
+    RuleCtxImpl(tree, config, isEnabledByGitDiff)
 }

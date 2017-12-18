@@ -23,7 +23,11 @@ import scalafix.util.SemanticdbIndex
 import scalafix.util.TokenList
 import org.scalameta.FileLine
 import org.scalameta.logger
-case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
+case class RuleCtxImpl(
+    tree: Tree,
+    config: ScalafixConfig,
+    isEnabledByGitDiff: Option[Position => Boolean])
+    extends RuleCtx {
   ctx =>
   def syntax: String =
     s"""${tree.input.syntax}
@@ -65,7 +69,7 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
   def filter(
       patchesByName: Map[RuleName, Patch],
       index: SemanticdbIndex): (Patch, List[LintMessage]) =
-    escapeHatch.filter(patchesByName, this, index)
+    escapeHatch.filter(patchesByName, this, index, isEnabledByGitDiff)
 
   def lint(msg: LintMessage): Patch =
     LintPatch(msg)

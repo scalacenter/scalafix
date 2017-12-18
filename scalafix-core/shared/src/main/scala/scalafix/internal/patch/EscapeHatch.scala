@@ -69,23 +69,40 @@ class EscapeHatch(
   def filter(
       patchesByName: Map[RuleName, Patch],
       ctx: RuleCtx,
-      index: SemanticdbIndex): (Patch, List[LintMessage]) = {
+      index: SemanticdbIndex,
+      isEnabledByGitDiff: Option[Position => Boolean])
+    : (Patch, List[LintMessage]) = {
     val usedEscapes = mutable.Set.empty[EscapeOffset]
     val lintMessages = List.newBuilder[LintMessage]
 
+    def disabledByGitDiff(position: Position): Boolean = {
+      isEnabledByGitDiff match {
+        // --diff is provided, check if in aditions or modifications
+        case Some(fun) => !fun(position)
+        // --diff not provided, it's enabled
+        case None => false
+      }
+    }
+
+    def disabledByEscape(name: String, start: Int): Boolean = {
+      // check if part of on/off/ok blocks
+      val (isPatchEnabled, culprit) = isEnabled(name, start)
+      // to track unused on/off/ok
+      culprit.foreach(escape => usedEscapes += escape.offset)
+      !isPatchEnabled
+    }
+
     def loop(name: RuleName, patch: Patch): Patch = patch match {
       case AtomicPatch(underlying) =>
-        val hasEscape = {
+        val hasDisabledPatch = {
           val patches = Patch.treePatchApply(underlying)(ctx, index)
           patches.exists { tp =>
-            val (isPatchEnabled, culprit) =
-              isEnabled(name.toString, tp.tok.pos.start)
-            culprit.foreach(escape => usedEscapes += escape.offset)
-            !isPatchEnabled
+            disabledByGitDiff(tp.tok.pos) ||
+            disabledByEscape(name.toString, tp.tok.pos.start)
           }
         }
 
-        if (hasEscape) EmptyPatch
+        if (hasDisabledPatch) EmptyPatch
         else loop(name, underlying)
 
       case Concat(a, b) =>
@@ -93,10 +110,12 @@ class EscapeHatch(
 
       case LintPatch(orphanLint) =>
         val lint = orphanLint.withOwner(name)
-        val (isLintEnabled, culprit) = isEnabled(lint.id, lint.position.start)
-        culprit.foreach(escape => usedEscapes += escape.offset)
 
-        if (isLintEnabled) {
+        val isLintDisabled =
+          disabledByGitDiff(lint.position) ||
+            disabledByEscape(lint.id, lint.position.start)
+
+        if (!isLintDisabled) {
           lintMessages += lint
         }
 
