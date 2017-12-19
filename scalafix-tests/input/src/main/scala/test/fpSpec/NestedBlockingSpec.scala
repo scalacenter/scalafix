@@ -5,13 +5,11 @@ rules = [
 
 DisableUnless.symbols = [
   {
-    mode = "outside"
     block = "test.fpSpec.NestedBlockingSpec.IO"
     symbol = "scala.Predef.println"
     message = "println has side-effects"
   }
   {
-    mode = "outside"
     block = "scala.Option"
     symbol = "test.fpSpec.NestedBlockingSpec.dangerousFunction"
     message = "the function may return null"
