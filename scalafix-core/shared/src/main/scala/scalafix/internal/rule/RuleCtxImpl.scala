@@ -32,7 +32,7 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
   override def toString: String = syntax
   def toks(t: Tree): Tokens = t.tokens(config.dialect)
   lazy val tokens: Tokens = tree.tokens(config.dialect)
-  lazy val tokenList: TokenList = new TokenList(tokens)
+  lazy val tokenList: TokenList = TokenList(tokens)
   lazy val matchingParens: MatchingParens = MatchingParens(tokens)
   lazy val comments: AssociatedComments = AssociatedComments(tokens)
   lazy val input: Input = tokens.head.input

@@ -24,11 +24,14 @@ object Mima {
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "scalafix.rule.RuleCtx.printLintMessage"),
       ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "scalafix.rule.RuleCtx.filterLintMessage"
-      ),
+        "scalafix.rule.RuleCtx.filterLintMessage"),
       ProblemFilters.exclude[DirectMissingMethodProblem](
-        "scalafix.cli.CliRunner.this"
-      )
+        "scalafix.cli.CliRunner.this"),
+      ProblemFilters.exclude[FinalClassProblem]("scalafix.util.TokenList"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "scalafix.util.TokenList.leadingSpaces"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "scalafix.util.TokenList.trailingSpaces")
     )
   }
 }
