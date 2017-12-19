@@ -268,16 +268,12 @@ object ScalafixPlugin extends AutoPlugin {
             scalafixConfig.value
               .map(x => "--config" :: x.getAbsolutePath :: Nil)
               .getOrElse(Nil)
-          val ruleArgs =
-            if (inputArgs.nonEmpty)
-              inputArgs.flatMap("-r" :: _ :: Nil)
-            else Nil
+
           val sourceroot = scalafixSourceroot.value.getAbsolutePath
           // only fix unmanaged sources, skip code generated files.
           verbose ++
             config ++
-            ruleArgs ++
-            baseArgs ++
+            inputArgs ++
             options ++
             List(
               "--sourceroot",

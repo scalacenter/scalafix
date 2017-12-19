@@ -154,7 +154,7 @@ val cli = MultiScalaProject(
       "com.github.alexarchambault" %% "case-app" % "1.2.0",
       "org.typelevel" %% "paiges-core" % "0.2.0",
       "com.martiansoftware" % "nailgun-server" % "0.9.1",
-      "org.eclipse.jgit" % "org.eclipse.jgit" % "4.5.4.201711221230-r",
+      jgit,
       "ch.qos.logback" % "logback-classic" % "1.2.3"
     )
   )
@@ -182,7 +182,7 @@ lazy val `scalafix-sbt` = project
       }
     },
     sbtPlugin := true,
-    libraryDependencies ++= coursierDeps,
+    libraryDependencies ++= jgit +: coursierDeps,
     testQuick := {}, // these test are slow.
     // scripted tests needs scalafix 2.12
     // semanticdb-scala will generate the semantic db for both scala 2.11 and scala 2.12
