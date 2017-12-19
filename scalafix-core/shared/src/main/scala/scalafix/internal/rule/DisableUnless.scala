@@ -25,23 +25,28 @@ object DisableUnless {
     private val buf = scala.collection.mutable.ListBuffer[T]()
     // it can be immutable...
 
-    override def apply(tree: Tree): Unit = {
-      if (fn.isDefinedAt((tree, context))) {
-        fn((tree, context)) match {
-          case Left(res) =>
-            buf += res
-          case Right(newContext) =>
-            val oldContext = context
-            context = newContext
-            super.apply(tree)
-            context = oldContext
-        }
-      } else {
-        super.apply(tree)
+    private val liftedFn = fn.lift
+
+    override protected def apply(tree: Tree): Unit = {
+      liftedFn((tree, context)) match {
+        case Some(Left(res)) =>
+          buf += res
+        case Some(Right(newContext)) =>
+          val oldContext = context
+          context = newContext
+          super.apply(tree)
+          context = oldContext
+        case None =>
+          super.apply(tree)
       }
     }
 
-    def result: List[T] = buf.toList
+    def result(tree: Tree): List[T] = {
+      context = initContext
+      buf.clear()
+      apply(tree)
+      buf.toList
+    }
   }
 }
 
@@ -83,7 +88,7 @@ final case class DisableUnless(
         case _ => false
       }
 
-    val searcher = new SearcherWithContext(config.allSymbols)({
+    new SearcherWithContext(config.allSymbols)({
       case (
           Term.Apply(Term.Select(disabledBlock(block), Term.Name("apply")), _),
           blockedSymbols) =>
@@ -105,9 +110,6 @@ final case class DisableUnless(
             .copy(id = signature.name)
             .at(message, t.pos)
         )
-    })
-
-    searcher(ctx.tree)
-    searcher.result
+    }).result(ctx.tree)
   }
 }
