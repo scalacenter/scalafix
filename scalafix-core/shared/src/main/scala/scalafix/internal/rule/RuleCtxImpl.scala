@@ -7,6 +7,7 @@ import scalafix.LintMessage
 import scalafix._
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.config.ScalafixMetaconfigReaders
+import scalafix.internal.diff.DiffDisable
 import scalafix.internal.patch.EscapeHatch
 import scalafix.internal.util.SymbolOps.Root
 import scalafix.patch.LintPatch
@@ -21,12 +22,14 @@ import scalafix.syntax._
 import scalafix.util.MatchingParens
 import scalafix.util.SemanticdbIndex
 import scalafix.util.TokenList
+
 import org.scalameta.FileLine
 import org.scalameta.logger
+
 case class RuleCtxImpl(
     tree: Tree,
     config: ScalafixConfig,
-    isEnabledByGitDiff: Option[Position => Boolean])
+    diffDisable: DiffDisable)
     extends RuleCtx {
   ctx =>
   def syntax: String =
@@ -69,7 +72,7 @@ case class RuleCtxImpl(
   def filter(
       patchesByName: Map[RuleName, Patch],
       index: SemanticdbIndex): (Patch, List[LintMessage]) =
-    escapeHatch.filter(patchesByName, this, index, isEnabledByGitDiff)
+    escapeHatch.filter(patchesByName, this, index, diffDisable)
 
   def lint(msg: LintMessage): Patch =
     LintPatch(msg)

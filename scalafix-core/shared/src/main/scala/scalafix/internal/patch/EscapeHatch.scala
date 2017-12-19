@@ -5,6 +5,7 @@ import scalafix.internal.config.FilterMatcher
 import scalafix.lint.LintMessage
 import scalafix.rule.RuleName
 import scalafix.patch._
+import scalafix.internal.diff.DiffDisable
 
 import scala.meta._
 import scala.meta.tokens.Token
@@ -70,19 +71,9 @@ class EscapeHatch(
       patchesByName: Map[RuleName, Patch],
       ctx: RuleCtx,
       index: SemanticdbIndex,
-      isEnabledByGitDiff: Option[Position => Boolean])
-    : (Patch, List[LintMessage]) = {
+      diff: DiffDisable): (Patch, List[LintMessage]) = {
     val usedEscapes = mutable.Set.empty[EscapeOffset]
     val lintMessages = List.newBuilder[LintMessage]
-
-    def disabledByGitDiff(position: Position): Boolean = {
-      isEnabledByGitDiff match {
-        // --diff is provided, check if in aditions or modifications
-        case Some(fun) => !fun(position)
-        // --diff not provided, it's enabled
-        case None => false
-      }
-    }
 
     def disabledByEscape(name: String, start: Int): Boolean = {
       // check if part of on/off/ok blocks
@@ -97,8 +88,9 @@ class EscapeHatch(
         val hasDisabledPatch = {
           val patches = Patch.treePatchApply(underlying)(ctx, index)
           patches.exists { tp =>
-            disabledByGitDiff(tp.tok.pos) ||
-            disabledByEscape(name.toString, tp.tok.pos.start)
+            val byGit = diff.isDisabled(tp.tok.pos)
+            val byEscape = disabledByEscape(name.toString, tp.tok.pos.start)
+            byGit || byEscape
           }
         }
 
@@ -111,9 +103,10 @@ class EscapeHatch(
       case LintPatch(orphanLint) =>
         val lint = orphanLint.withOwner(name)
 
-        val isLintDisabled =
-          disabledByGitDiff(lint.position) ||
-            disabledByEscape(lint.id, lint.position.start)
+        val byGit = diff.isDisabled(lint.position)
+        val byEscape = disabledByEscape(lint.id, lint.position.start)
+
+        val isLintDisabled = byGit || byEscape
 
         if (!isLintDisabled) {
           lintMessages += lint

@@ -31,7 +31,8 @@ import scalafix.internal.config.LazySemanticdbIndex
 import scalafix.internal.config.MetaconfigPendingUpstream
 import scalafix.internal.config.RuleKind
 import scalafix.internal.config.ScalafixConfig
-import scalafix.internal.jgit.DiffDisable
+import scalafix.internal.diff.DiffDisable
+import scalafix.internal.jgit.JGitDiff
 import scalafix.internal.util.Failure
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
 import scalafix.reflect.ScalafixReflect
@@ -46,7 +47,7 @@ sealed abstract case class CliRunner(
     rule: Rule,
     inputs: Seq[FixFile],
     replacePath: AbsolutePath => AbsolutePath,
-    diffDisable: Option[DiffDisable]
+    diffDisable: DiffDisable
 ) {
   val sbtConfig: ScalafixConfig = config.copy(dialect = dialects.Sbt0137)
   val writeMode: WriteMode =
@@ -123,10 +124,7 @@ sealed abstract case class CliRunner(
           ExitStatus.ParseError
         }
       case parsers.Parsed.Success(tree) =>
-        val isEnabledByGitDiff: Option[Position => Boolean] =
-          diffDisable.map(d => pos => d.isEnabled(pos))
-
-        val ctx = RuleCtx(tree, config, isEnabledByGitDiff)
+        val ctx = RuleCtx(tree, config, diffDisable)
         val (fixed, messages) = rule.applyAndLint(ctx)
 
         messages.foreach { msg =>
@@ -414,12 +412,12 @@ object CliRunner {
           .notOk
     }
 
-    val diffDisable: Configured[Option[DiffDisable]] = {
+    val diffDisable: Configured[DiffDisable] = {
       if (cli.diff || cli.diffBase.nonEmpty) {
         val diffBase = cli.diffBase.getOrElse("master")
-        DiffDisable(common.workingPath.toNIO, diffBase).map(Some(_))
+        JGitDiff(common.workingPath.toNIO, diffBase)
       } else {
-        Configured.Ok(None)
+        Configured.Ok(DiffDisable.empty)
       }
     }
 
@@ -432,8 +430,8 @@ object CliRunner {
         val allFiles = paths.toVector.flatMap(expand(pathMatcher))
 
         val allFilesExcludingDiffs =
-          diffDisable0.fold(allFiles)(diff =>
-            allFiles.filterNot(fixFile => diff.isDisabled(fixFile.original)))
+          allFiles.filterNot(fixFile =>
+            diffDisable0.isDisabled(fixFile.original))
 
         if (allFilesExcludingDiffs.isEmpty) {
           ConfError

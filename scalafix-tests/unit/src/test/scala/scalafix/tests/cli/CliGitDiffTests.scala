@@ -223,18 +223,6 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
 
   gitTest("works on Patch") { (fs, git, cli) =>
     val code = "code.scala"
-    def show(): Unit = {
-      println("---")
-      println(
-        fs.read(code)
-          .split("\n")
-          .zipWithIndex
-          .map {
-            case (l, i) => s"$i: $l"
-          }
-          .mkString("\n"))
-    }
-
     val foo1 =
       """|object A {
          |  def foo() {}
@@ -381,7 +369,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     def run(ok: Boolean, args: List[String]): String = {
       val baos = new ByteArrayOutputStream()
       val ps = new PrintStream(baos)
-      cli.Cli.runMain(
+      val exit = cli.Cli.runMain(
         args.to[Seq],
         CommonOptions(
           workingDirectory = workingDirectory.toAbsolutePath.toString,
@@ -390,7 +378,10 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
         )
       )
       val output = new String(baos.toByteArray(), StandardCharsets.UTF_8)
-      assert(exit.isOk == ok, output)
+      assert(
+        exit.isOk == ok,
+        s"Expected OK exit status, obtained $exit. Details $output"
+      )
       output
     }
   }
