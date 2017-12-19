@@ -6,7 +6,7 @@ import scala.meta.tokens.Token
 import scala.meta.tokens.Tokens
 
 /** Helper to traverse tokens as a doubly linked list.  */
-class TokenList(tokens: Tokens) {
+final class TokenList private (tokens: Tokens) {
   def trailing(token: Token): SeqView[Token, IndexedSeq[Token]] =
     tokens.view(tok2idx(token), tokens.length).drop(1)
   def leading(token: Token): SeqView[Token, IndexedSeq[Token]] =
@@ -59,4 +59,13 @@ class TokenList(tokens: Tokens) {
     }
   }
 
+  def leadingSpaces(token: Token): SeqView[Token, IndexedSeq[Token]] =
+    leading(token).takeWhile(_.is[Token.Space])
+
+  def trailingSpaces(token: Token): SeqView[Token, IndexedSeq[Token]] =
+    trailing(token).takeWhile(_.is[Token.Space])
+}
+
+object TokenList {
+  def apply(tokens: Tokens): TokenList = new TokenList(tokens)
 }
