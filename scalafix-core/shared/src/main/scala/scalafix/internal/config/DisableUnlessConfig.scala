@@ -7,12 +7,7 @@ import org.langmeta.Symbol
 import scalafix.internal.config.MetaconfigPendingUpstream.XtensionConfScalafix
 import scalafix.internal.util._
 
-sealed trait UnlessMode
-case object UnlessInside extends UnlessMode
-case object UnlessOutside extends UnlessMode
-
 case class UnlessConfig(
-    mode: UnlessMode,
     block: Symbol.Global,
     symbol: Symbol.Global,
     message: Option[String])
@@ -21,20 +16,15 @@ object UnlessConfig {
   implicit val decoder: ConfDecoder[UnlessConfig] =
     ConfDecoder.instanceF[UnlessConfig] { c =>
       (
-        (c.get[String]("mode") match {
-          case Ok("inside") => Ok(UnlessInside)
-          case Ok("outside") => Ok(UnlessOutside)
-          case _ => Ok(UnlessInside)
-        }) |@|
-          c.get[Symbol.Global]("block") |@|
-          c.get[Symbol.Global]("symbol") |@|
-          (c.get[String]("message") match {
-            case Ok(s) => Ok(Some(s))
-            case NotOk(_) => Ok(None)
-          })
+        c.get[Symbol.Global]("block") |@|
+        c.get[Symbol.Global]("symbol") |@|
+        (c.get[String]("message") match {
+          case Ok(s) => Ok(Some(s))
+          case NotOk(_) => Ok(None)
+        })
         // weird construction, maybe there is a better way?
         // can we add fold[B](ok: T => B)(notOk: => B): Configured[T]?
-      ).map { case (((a, b), c), d) => UnlessConfig(a, b, c, d) }
+      ).map { case ((a, b), c) => UnlessConfig(a, b, c) }
     }
 }
 
