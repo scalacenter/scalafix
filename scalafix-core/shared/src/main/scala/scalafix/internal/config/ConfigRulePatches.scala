@@ -25,5 +25,5 @@ case class ConfigRulePatches(
 }
 
 object ConfigRulePatches {
-  val default = ConfigRulePatches()
+  val default: ConfigRulePatches = ConfigRulePatches()
 }

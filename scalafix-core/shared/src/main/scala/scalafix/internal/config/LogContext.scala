@@ -12,5 +12,5 @@ object LogContext {
       implicit line: sourcecode.Line,
       file: sourcecode.File,
       enclosing: sourcecode.Enclosing
-  ) = LogContext(line, file, enclosing)
+  ): LogContext = LogContext(line, file, enclosing)
 }

@@ -65,7 +65,7 @@ case class ScalafixConfig(
 
 object ScalafixConfig {
 
-  lazy val default = ScalafixConfig()
+  lazy val default: ScalafixConfig = ScalafixConfig()
   implicit lazy val ScalafixConfigDecoder: ConfDecoder[ScalafixConfig] =
     default.reader
 

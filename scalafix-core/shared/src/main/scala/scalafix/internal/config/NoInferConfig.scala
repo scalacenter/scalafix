@@ -13,6 +13,6 @@ case class NoInferConfig(symbols: List[Symbol.Global] = Nil) {
 }
 
 object NoInferConfig {
-  val default = NoInferConfig()
+  val default: NoInferConfig = NoInferConfig()
   implicit val reader: ConfDecoder[NoInferConfig] = default.reader
 }

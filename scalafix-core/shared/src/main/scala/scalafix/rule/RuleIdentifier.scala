@@ -11,6 +11,6 @@ final case class RuleIdentifier(
 }
 
 object RuleIdentifier {
-  def apply(value: String) =
+  def apply(value: String): RuleIdentifier =
     new RuleIdentifier(value, None)
 }

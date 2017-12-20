@@ -29,7 +29,7 @@ case class ExplicitResultTypesConfig(
 }
 
 object ExplicitResultTypesConfig {
-  val default = ExplicitResultTypesConfig()
+  val default: ExplicitResultTypesConfig = ExplicitResultTypesConfig()
   implicit val reader: ConfDecoder[ExplicitResultTypesConfig] = default.reader
 }
 
@@ -38,7 +38,8 @@ object MemberVisibility {
   case object Public extends MemberVisibility
   case object Protected extends MemberVisibility
   case object Private extends MemberVisibility
-  def all = List(Public, Protected, Private)
+  def all: List[MemberVisibility] =
+    List(Public, Protected, Private)
   implicit val readerMemberVisibility: ConfDecoder[MemberVisibility] =
     ReaderUtil.fromMap(all.map(x => x.toString -> x).toMap)
 }
@@ -48,7 +49,8 @@ object MemberKind {
   case object Def extends MemberKind
   case object Val extends MemberKind
   case object Var extends MemberKind
-  def all = List(Def, Val, Var)
+  def all: List[MemberKind] =
+    List(Def, Val, Var)
   implicit val readerMemberKind: ConfDecoder[MemberKind] =
     ReaderUtil.fromMap(all.map(x => x.toString -> x).toMap)
 }

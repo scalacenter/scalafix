@@ -16,10 +16,10 @@ import scala.meta._
 
 object ImportPatchOps {
   object symbols {
-    val Scala = Symbol("_root_.scala.")
-    val Predef = Symbol("_root_.scala.Predef.")
-    val Java = Symbol("_root_.java.lang.")
-    val Immutable = Symbol("_root_.scala.collection.immutable.")
+    val Scala: Symbol = Symbol("_root_.scala.")
+    val Predef: Symbol = Symbol("_root_.scala.Predef.")
+    val Java: Symbol = Symbol("_root_.java.lang.")
+    val Immutable: Symbol = Symbol("_root_.scala.collection.immutable.")
   }
 
   def isPredef(symbol: Symbol): Boolean = {

@@ -47,7 +47,7 @@ case class DisableSyntaxConfig(
 }
 
 object DisableSyntaxConfig {
-  val default = DisableSyntaxConfig()
+  val default: DisableSyntaxConfig = DisableSyntaxConfig()
   implicit val reader: ConfDecoder[DisableSyntaxConfig] = default.reader
 }
 
@@ -60,7 +60,7 @@ object Keyword {
       None
     }
   }
-  val all = List(
+  val all: List[String] = List(
     "abstract",
     "case",
     "catch",
@@ -103,7 +103,7 @@ object Keyword {
     "with",
     "yield"
   )
-  val set = all.toSet
+  val set: Set[String] = all.toSet
   private val kwSet = all.map(kw => s"Kw${kw.capitalize}").toSet
 }
 
