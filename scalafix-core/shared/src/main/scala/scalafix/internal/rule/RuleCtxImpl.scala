@@ -8,7 +8,6 @@ import scalafix._
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.internal.patch.EscapeHatch
-import scalafix.internal.util.Severity
 import scalafix.internal.util.SymbolOps.Root
 import scalafix.patch.LintPatch
 import scalafix.patch.TokenPatch
@@ -36,7 +35,7 @@ case class RuleCtxImpl(tree: Tree, config: ScalafixConfig) extends RuleCtx {
   lazy val matchingParens: MatchingParens = MatchingParens(tokens)
   lazy val comments: AssociatedComments = AssociatedComments(tokens)
   lazy val input: Input = tokens.head.input
-  lazy val escapeHatch = EscapeHatch(tree, comments)
+  lazy val escapeHatch: EscapeHatch = EscapeHatch(tree, comments)
 
   // Debug utilities
   def index(implicit index: SemanticdbIndex): SemanticdbIndex =

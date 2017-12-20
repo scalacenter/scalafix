@@ -23,7 +23,7 @@ class LazySemanticdbIndex(
 }
 
 object LazySemanticdbIndex {
-  lazy val empty = new LazySemanticdbIndex()
+  lazy val empty: LazySemanticdbIndex = new LazySemanticdbIndex()
   def apply(
       f: RuleKind => Option[SemanticdbIndex],
       cwd: AbsolutePath = AbsolutePath.workingDirectory): LazySemanticdbIndex =

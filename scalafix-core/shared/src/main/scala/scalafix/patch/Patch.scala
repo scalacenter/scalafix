@@ -13,10 +13,8 @@ import scalafix.internal.patch.ImportPatchOps
 import scalafix.internal.patch.ReplaceSymbolOps
 import scalafix.internal.util.Failure
 import scalafix.internal.util.TokenOps
-import scalafix.internal.rule.RuleCtxImpl
 import scalafix.lint.LintMessage
 import scalafix.patch.TreePatch.ReplaceSymbol
-import scalafix.rule.RuleName
 import org.scalameta.logger
 
 /** A data structure that can produce a .patch file.

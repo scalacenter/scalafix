@@ -1,9 +1,7 @@
 package scalafix.internal.rule
 
 import scala.meta._
-import scala.meta.contrib._
 
-import metaconfig.{Conf, Configured}
 import scalafix.rule.Rule
 import scalafix.rule.RuleCtx
 import scalafix.lint.LintMessage

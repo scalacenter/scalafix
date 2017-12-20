@@ -1,9 +1,10 @@
 package scalafix.internal.util
 
 import scala.meta._
+import scala.meta.Dialect
 
 object DenotationOps {
-  val defaultDialect =
+  val defaultDialect: Dialect =
     dialects.Scala212.copy(allowMethodTypes = true, allowTypeLambdas = true)
 
   def resultType(

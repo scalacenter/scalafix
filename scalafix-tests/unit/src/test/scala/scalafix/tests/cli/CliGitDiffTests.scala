@@ -1,19 +1,15 @@
 package scalafix.tests.cli
 
-import java.lang.ProcessBuilder
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.io.PrintStream
 import java.nio.charset.StandardCharsets
 import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Paths, Path, StandardOpenOption}
+import java.nio.file.{Files, Path, StandardOpenOption}
 
-import org.scalactic.source.Position
 import org.scalatest._
 import org.scalatest.FunSuite
 
 import scala.collection.immutable.Seq
-import scala.util._
 import scalafix.cli
 import scalafix.internal.cli.CommonOptions
 import scalafix.testkit.DiffAssertions
@@ -321,7 +317,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     def run(args: List[String]): String = {
       val baos = new ByteArrayOutputStream()
       val ps = new PrintStream(baos)
-      val exit = cli.Cli.runMain(
+      cli.Cli.runMain(
         args.to[Seq],
         CommonOptions(
           workingDirectory = workingDirectory.toAbsolutePath.toString,

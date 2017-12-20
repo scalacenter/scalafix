@@ -5,6 +5,7 @@ import scala.meta._
 import scalafix.Patch
 import scalafix.rule.Rule
 import scalafix.rule.RuleCtx
+import scalafix.lint.LintCategory
 
 /* Rule Xml literals to Xml interpolators.
  *
@@ -27,7 +28,7 @@ case object RemoveXmlLiterals extends Rule("RemoveXmlLiterals") {
   override def description: String =
     "Rewrite that converts xml literals into interpolators for use with densh/scala-xml-quote"
 
-  val singleBracesEscape = LintCategory.warning(
+  val singleBracesEscape: LintCategory = LintCategory.warning(
     "singleBracesEscape",
     """Single braces don't need be escaped with {{ and }} inside xml interpolators, unlike xml literals.
       |For example <x>{{</x> is identical to xml"<x>{</x>". This Rule will replace all occurrences of

@@ -1,7 +1,6 @@
 package scalafix
 package internal.config
 
-import java.io.File
 import scala.meta.Ref
 import scala.meta._
 import scala.meta.parsers.Parse
@@ -15,7 +14,6 @@ import scalafix.internal.util.ClassloadRule
 import java.io.OutputStream
 import java.io.PrintStream
 import java.net.URI
-import java.net.URL
 import java.net.URLClassLoader
 import java.util.regex.Pattern
 import scala.collection.immutable.Seq
@@ -28,7 +26,6 @@ import metaconfig.Configured.Ok
 import scalafix.internal.config.MetaconfigParser.{parser => hoconParser}
 import scalafix.internal.rule.ConfigRule
 import scalafix.patch.TreePatch
-import org.scalameta.logger
 
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
 // A collection of metaconfig.Reader instances that are shared across

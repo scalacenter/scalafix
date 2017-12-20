@@ -17,7 +17,6 @@ import scalafix.internal.config.LazySemanticdbIndex
 import scalafix.internal.config.classloadRule
 import scalafix.internal.util.ClassloadRule
 import scalafix.rule.Rule
-import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
 

@@ -32,5 +32,5 @@ case class LintConfig(
 }
 
 object LintConfig {
-  lazy val default = LintConfig()
+  lazy val default: LintConfig = LintConfig()
 }

@@ -51,7 +51,6 @@ class ToolClasspathTests extends FunSuite with BeforeAndAfterAll {
     val decoder = ScalafixCompilerDecoder.baseCompilerDecoder(index)
     val obtained = decoder.read(Conf.Str(s"file:$tmp")).get
     val expectedName = "FormatRule"
-    val expectedDescription = "FormatRuleDescription"
     assert(obtained.name.value == expectedName)
   }
 
@@ -72,7 +71,6 @@ class ToolClasspathTests extends FunSuite with BeforeAndAfterAll {
     val decoder = ScalafixMetaconfigReaders.classloadRuleDecoder(index)
     val obtained = decoder.read(Conf.Str(s"class:custom.CustomRule")).get
     val expectedName = "CustomRule"
-    val expectedDescription = ""
     assert(obtained.name.value == expectedName)
     assert(decoder.read(Conf.Str("class:does.not.Exist")).isNotOk)
   }

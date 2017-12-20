@@ -1,5 +1,6 @@
 package scalafix.internal.config
 
 object MetaconfigParser {
-  implicit val parser = metaconfig.hocon.hoconMetaconfigParser
+  implicit val parser: metaconfig.MetaconfigParser =
+    metaconfig.hocon.hoconMetaconfigParser
 }

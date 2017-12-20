@@ -39,6 +39,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     )
     lazy val warnUnusedImports = "-Ywarn-unused-import"
     lazy val compilerOptions = Seq(
+      "-Xlint",
       "-deprecation",
       "-encoding",
       "UTF-8",
@@ -189,6 +190,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     },
     commands += Command.command("ci-fast-212") { s =>
       "scalafix/test" ::
+        "scalafix/scalafixTest" :: // run scalafix checks
         s
     },
     commands += Command.command("ci-fast-211") { s =>

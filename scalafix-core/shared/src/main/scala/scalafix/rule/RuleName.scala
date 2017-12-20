@@ -53,6 +53,6 @@ object RuleName {
       "Write the name explicitly as a string instead.",
     "0.5.0")
   implicit def generate(name: sourcecode.Name): RuleName = RuleName(name.value)
-  final val empty = new RuleName(Nil)
-  def apply(name: String) = new RuleName(RuleIdentifier(name) :: Nil)
+  final val empty: RuleName = new RuleName(Nil)
+  def apply(name: String): RuleName = new RuleName(RuleIdentifier(name) :: Nil)
 }

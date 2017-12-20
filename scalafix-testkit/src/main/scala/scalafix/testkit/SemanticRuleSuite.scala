@@ -1,7 +1,6 @@
 package scalafix
 package testkit
 
-import scala.collection.mutable
 import scalafix.syntax._
 import scala.meta._
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
@@ -9,9 +8,6 @@ import org.scalameta.logger
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 import org.scalatest.exceptions.TestFailedException
-
-import scalafix.rule.RuleName
-import org.langmeta.internal.ScalafixLangmetaHacks
 
 import scala.util.matching.Regex
 

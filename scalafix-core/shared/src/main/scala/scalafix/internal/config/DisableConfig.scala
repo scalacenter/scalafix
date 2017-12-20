@@ -7,7 +7,7 @@ import org.langmeta.Symbol
 import scalafix.internal.util.SymbolOps
 
 case class DisableConfig(symbols: List[CustomMessage[Symbol.Global]] = Nil) {
-  def allSymbols = symbols.map(_.value)
+  def allSymbols: List[Symbol.Global] = symbols.map(_.value)
 
   private val messageBySymbol: Map[String, CustomMessage[Symbol.Global]] =
     symbols
@@ -28,6 +28,6 @@ case class DisableConfig(symbols: List[CustomMessage[Symbol.Global]] = Nil) {
 }
 
 object DisableConfig {
-  val default = DisableConfig()
+  val default: DisableConfig = DisableConfig()
   implicit val reader: ConfDecoder[DisableConfig] = default.reader
 }
