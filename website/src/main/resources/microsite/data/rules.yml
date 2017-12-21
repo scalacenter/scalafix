@@ -6,7 +6,6 @@ rules:
 - DottyVolatileLazyVal
 - ExplicitUnit
 - DottyVarArgPattern
-- DottyAutoTuplingFunctionArgs
 - NoAutoTupling
 - NoValInForComprehension
 - Sbt1

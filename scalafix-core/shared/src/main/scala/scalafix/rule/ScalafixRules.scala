@@ -14,7 +14,6 @@ object ScalafixRules {
     NoFinalize,
     DottyKeywords,
     DottyVarArgPattern,
-    DottyAutoTuplingFunctionArgs,
     DisableSyntax()
   )
   def semantic(index: SemanticdbIndex): List[Rule] = List(
