@@ -27,7 +27,7 @@ object DisableUnless {
 
     private val liftedFn = fn.lift
 
-    override protected def apply(tree: Tree): Unit = {
+    override def apply(tree: Tree): Unit = {
       liftedFn((tree, context)) match {
         case Some(Left(res)) =>
           buf += res
