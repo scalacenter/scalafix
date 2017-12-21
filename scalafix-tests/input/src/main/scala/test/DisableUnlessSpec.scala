@@ -16,9 +16,9 @@ DisableUnless.symbols = [
   }
 ]
 */
-package test.fpSpec
+package test
 
-object NestedBlockingSpec {
+object DisableUnlessSpec {
   object IO { // IO we deserve
     def apply[T](run: => T): Nothing = ???
   }
