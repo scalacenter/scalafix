@@ -5,20 +5,20 @@ rules = [
 
 DisableUnless.symbols = [
   {
-    block = "test.fpSpec.NestedBlockingSpec.IO"
+    block = "test.DisableUnless.IO"
     symbol = "scala.Predef.println"
     message = "println has side-effects"
   }
   {
     block = "scala.Option"
-    symbol = "test.fpSpec.NestedBlockingSpec.dangerousFunction"
+    symbol = "test.DisableUnless.dangerousFunction"
     message = "the function may return null"
   }
 ]
 */
 package test
 
-object DisableUnlessSpec {
+object DisableUnless {
   object IO { // IO we deserve
     def apply[T](run: => T): Nothing = ???
   }
