@@ -15,8 +15,9 @@ object Dependencies {
   def scala212 = "2.12.4"
   val currentScalaVersion = scala212
 
-  def sbt013 = "0.13.6"
+  def sbt013 = "0.13.16"
   def sbt1 = "1.0.4"
+  val currentSbtVersion = sbt1
 
   val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % "4.5.4.201711221230-r"
 

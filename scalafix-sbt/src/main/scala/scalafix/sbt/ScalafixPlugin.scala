@@ -1,7 +1,5 @@
 package scalafix.sbt
 
-import scala.language.reflectiveCalls
-
 import scalafix.Versions
 import sbt.File
 import sbt.Keys._
@@ -9,7 +7,6 @@ import sbt._
 import sbt.plugins.JvmPlugin
 import scalafix.internal.sbt.ScalafixCompletions
 import scalafix.internal.sbt.ScalafixJarFetcher
-import org.scalameta.BuildInfo
 import sbt.Def
 
 object ScalafixPlugin extends AutoPlugin {
@@ -138,12 +135,6 @@ object ScalafixPlugin extends AutoPlugin {
   private def workingDirectory = file(sys.props("user.dir"))
   private val scalafixParser =
     ScalafixCompletions.parser(workingDirectory.toPath)
-  private object logger {
-    def warn(msg: String): Unit = {
-      println(
-        s"[${scala.Console.YELLOW}warn${scala.Console.RESET}] scalafix - $msg")
-    }
-  }
   private val isSupportedScalaVersion = Def.setting {
     CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, 11 | 12)) => true
@@ -274,6 +265,7 @@ object ScalafixPlugin extends AutoPlugin {
           verbose ++
             config ++
             inputArgs ++
+            baseArgs ++
             options ++
             List(
               "--sourceroot",

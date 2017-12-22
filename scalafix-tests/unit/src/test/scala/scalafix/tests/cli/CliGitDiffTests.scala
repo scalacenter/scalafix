@@ -9,11 +9,13 @@ import java.nio.file.{Files, Path, StandardOpenOption}
 import org.scalatest._
 import org.scalatest.FunSuite
 
-import scala.collection.JavaConverters._
 import scala.collection.immutable.Seq
+import scala.util._
+
 import scalafix.cli
 import scalafix.internal.cli.CommonOptions
 import scalafix.testkit.DiffAssertions
+import scalafix.internal.tests.utils.{Fs, Git}
 
 class CliGitDiffTests() extends FunSuite with DiffAssertions {
   gitTest("addition") { (fs, git, cli) =>
@@ -298,70 +300,6 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
       val cli = new Cli(fs.workingDirectory)
 
       body(fs, git, cli)
-    }
-  }
-
-  private class Fs() {
-    val workingDirectory: Path =
-      Files.createTempDirectory("scalafix")
-
-    workingDirectory.toFile.deleteOnExit()
-
-    def add(filename: String, content: String): Unit =
-      write(filename, content, StandardOpenOption.CREATE_NEW)
-
-    def append(filename: String, content: String): Unit =
-      write(filename, content, StandardOpenOption.APPEND)
-
-    def replace(filename: String, content: String): Unit = {
-      rm(filename)
-      add(filename, content)
-    }
-
-    def rm(filename: String): Unit =
-      Files.delete(path(filename))
-
-    def mv(src: String, dst: String): Unit =
-      Files.move(path(src), path(dst))
-
-    def read(src: String): String =
-      Files.readAllLines(path(src)).asScala.mkString("\n")
-
-    def absPath(filename: String): String =
-      path(filename).toAbsolutePath.toString
-
-    private def write(
-        filename: String,
-        content: String,
-        op: StandardOpenOption): Unit = {
-      Files.write(path(filename), content.getBytes, op)
-    }
-
-    private def path(filename: String): Path =
-      workingDirectory.resolve(filename)
-  }
-
-  private class Git(workingDirectory: Path) {
-    import org.eclipse.jgit.api.{Git => JGit}
-
-    private val git = JGit.init().setDirectory(workingDirectory.toFile).call()
-    private var revision = 0
-
-    def add(filename: String): Unit =
-      git.add().addFilepattern(filename).call()
-
-    def rm(filename: String): Unit =
-      git.rm().addFilepattern(filename).call()
-
-    def checkout(branch: String): Unit =
-      git.checkout().setCreateBranch(true).setName(branch).call()
-
-    def deleteBranch(branch: String): Unit =
-      git.branchDelete().setBranchNames(branch).call()
-
-    def commit(): Unit = {
-      git.commit().setMessage(s"r$revision").call()
-      revision += 1
     }
   }
 

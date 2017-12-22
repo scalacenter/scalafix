@@ -11,7 +11,6 @@ version.in(ThisBuild) ~= { old: String =>
 
 lazy val scalaFixedProjects: List[ProjectReference] =
   List(
-    `scalafix-sbt`,
     testsInputSbt,
     testsOutputDotty,
     testsOutputSbt,
@@ -20,6 +19,7 @@ lazy val scalaFixedProjects: List[ProjectReference] =
 
 lazy val scala212Projects: List[ProjectReference] =
   List(
+    scalafixSbt1,
     cli212,
     core212JS,
     core212JVM,
@@ -159,13 +159,11 @@ val cli = MultiScalaProject(
     )
   )
 )
-lazy val cli211 =
-  cli(scala211, _.dependsOn(core211JVM, reflect211, testkit211 % Test))
-lazy val cli212 =
-  cli(scala212, _.dependsOn(core212JVM, reflect212, testkit212 % Test))
+lazy val cli211 = cli(scala211, _.dependsOn(core211JVM, reflect211, testkit211 % Test))
+lazy val cli212 = cli(scala212, _.dependsOn(core212JVM, reflect212, testkit212 % Test))
 
-lazy val `scalafix-sbt` = project
-  .settings(
+val scalafixSbt = MultiSbtProject("sbt",
+  _.settings(
     buildInfoSettings,
     ScriptedPlugin.scriptedSettings,
     commands += Command.command(
@@ -205,6 +203,14 @@ lazy val `scalafix-sbt` = project
   )
   .enablePlugins(BuildInfoPlugin)
   .disablePlugins(ScalafixPlugin)
+)
+lazy val scalafixSbt1 = scalafixSbt(scala212, sbt1, _.dependsOn(testUtils212 % Test))
+lazy val scalafixSbt013 = scalafixSbt(scala210, sbt013, _.dependsOn(testUtils210 % Test))
+
+val testUtils = MultiScalaProject("test-utils", _.settings( libraryDependencies += jgit ))
+lazy val testUtils210 = testUtils(scala210)
+lazy val testUtils211 = testUtils(scala211)
+lazy val testUtils212 = testUtils(scala212)
 
 val testkit = MultiScalaProject(
   "testkit",
@@ -312,6 +318,7 @@ def unit(
     scalav: String,
     cli: Project,
     testkit: Project,
+    testUtils: Project,
     testsInput: Project,
     testsInputMulti: MultiScalaProject,
     testsInputSbt: Project,
@@ -331,9 +338,7 @@ def unit(
         javaOptions := Nil,
         buildInfoPackage := "scalafix.tests",
         buildInfoObject := "BuildInfo",
-        sources.in(Test) +=
-          sourceDirectory.in(`scalafix-sbt`, Compile).value /
-            "scala" / "scalafix" / "internal" / "sbt" / "ScalafixJarFetcher.scala",
+        sources.in(Test) += (baseDirectory.in(ThisBuild)).value / "scalafix-sbt" / "src" / "main" / "scala" / "scalafix" / "internal" / "sbt" / "ScalafixJarFetcher.scala",
         libraryDependencies ++= coursierDeps ++ testsDeps
       ).enablePlugins(BuildInfoPlugin)
     )
@@ -380,7 +385,8 @@ def unit(
     ).dependsOn(
       testsInput,
       cli,
-      testkit
+      testkit,
+      testUtils
     )
   )
 }
@@ -389,6 +395,7 @@ lazy val unit211 = unit(
   scala211,
   cli211,
   testkit211,
+  testUtils211,
   testsInput211,
   testsInput,
   testsInputSbt,
@@ -403,6 +410,7 @@ lazy val unit212 = unit(
   scala212,
   cli212,
   testkit212,
+  testUtils212,
   testsInput212,
   testsInput,
   testsInputSbt,
