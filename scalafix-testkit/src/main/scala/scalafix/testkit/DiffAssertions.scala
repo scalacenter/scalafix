@@ -92,9 +92,4 @@ trait DiffAssertions extends FunSuiteLike {
       format.format(new Date(0L))
     }
   }
-  import scala.collection.mutable.{HashMap => _}
-//  import scala.collection.mutable.{HashMap => _}
-//  import scala.collection.mutable._
-  import Predef.{any2stringadd => _}
-  any2stringadd("")
 }

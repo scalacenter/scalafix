@@ -4,13 +4,12 @@ import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.nio.charset.StandardCharsets
 import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Path, StandardOpenOption}
+import java.nio.file.Path
 
 import org.scalatest._
 import org.scalatest.FunSuite
 
 import scala.collection.immutable.Seq
-import scala.util._
 
 import scalafix.cli
 import scalafix.internal.cli.CommonOptions

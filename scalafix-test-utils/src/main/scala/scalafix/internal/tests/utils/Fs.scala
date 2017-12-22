@@ -4,11 +4,13 @@ import java.nio.file.{Files, Path, StandardOpenOption}
 import scala.collection.JavaConverters._
 
 class Fs() {
-
   val workingDirectory: Path =
     Files.createTempDirectory("scalafix")
 
   workingDirectory.toFile.deleteOnExit()
+
+  def mkdir(dirname: String): Unit =
+    Files.createDirectory(path(dirname))
 
   def add(filename: String, content: String): Unit =
     write(filename, content, StandardOpenOption.CREATE_NEW)

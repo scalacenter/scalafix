@@ -118,10 +118,8 @@ object MultiSbtProject {
     new MultiSbtProject(name, s"scalafix-$name", configure)
 }
 
-class MultiSbtProject(
-    name: String,
-    base: String,
-    configure: Project => Project) extends MultiScala {
+class MultiSbtProject(name: String, base: String, configure: Project => Project)
+    extends MultiScala {
 
   def srcMain: String = s"$base/src/main"
   def apply(

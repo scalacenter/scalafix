@@ -159,10 +159,13 @@ val cli = MultiScalaProject(
     )
   )
 )
-lazy val cli211 = cli(scala211, _.dependsOn(core211JVM, reflect211, testkit211 % Test))
-lazy val cli212 = cli(scala212, _.dependsOn(core212JVM, reflect212, testkit212 % Test))
+lazy val cli211 =
+  cli(scala211, _.dependsOn(core211JVM, reflect211, testkit211 % Test))
+lazy val cli212 =
+  cli(scala212, _.dependsOn(core212JVM, reflect212, testkit212 % Test))
 
-val scalafixSbt = MultiSbtProject("sbt",
+val scalafixSbt = MultiSbtProject(
+  "sbt",
   _.settings(
     buildInfoSettings,
     ScriptedPlugin.scriptedSettings,
@@ -200,14 +203,16 @@ val scalafixSbt = MultiSbtProject("sbt",
       "-Xss2m"
     ),
     scriptedBufferLog := false
-  )
-  .enablePlugins(BuildInfoPlugin)
-  .disablePlugins(ScalafixPlugin)
+  ).enablePlugins(BuildInfoPlugin)
+    .disablePlugins(ScalafixPlugin)
 )
-lazy val scalafixSbt1 = scalafixSbt(scala212, sbt1, _.dependsOn(testUtils212 % Test))
-lazy val scalafixSbt013 = scalafixSbt(scala210, sbt013, _.dependsOn(testUtils210 % Test))
+lazy val scalafixSbt1 =
+  scalafixSbt(scala212, sbt1, _.dependsOn(testUtils212 % Test))
+lazy val scalafixSbt013 =
+  scalafixSbt(scala210, sbt013, _.dependsOn(testUtils210 % Test))
 
-val testUtils = MultiScalaProject("test-utils", _.settings( libraryDependencies += jgit ))
+val testUtils =
+  MultiScalaProject("test-utils", _.settings(libraryDependencies += jgit))
 lazy val testUtils210 = testUtils(scala210)
 lazy val testUtils211 = testUtils(scala211)
 lazy val testUtils212 = testUtils(scala212)
@@ -338,7 +343,9 @@ def unit(
         javaOptions := Nil,
         buildInfoPackage := "scalafix.tests",
         buildInfoObject := "BuildInfo",
-        sources.in(Test) += (baseDirectory.in(ThisBuild)).value / "scalafix-sbt" / "src" / "main" / "scala" / "scalafix" / "internal" / "sbt" / "ScalafixJarFetcher.scala",
+        sources.in(Test) += (baseDirectory
+          .in(ThisBuild))
+          .value / "scalafix-sbt" / "src" / "main" / "scala" / "scalafix" / "internal" / "sbt" / "ScalafixJarFetcher.scala",
         libraryDependencies ++= coursierDeps ++ testsDeps
       ).enablePlugins(BuildInfoPlugin)
     )
@@ -434,6 +441,7 @@ lazy val website = project
       core212JVM)
   )
   .dependsOn(testkit212, core212JVM, cli212)
+  .disablePlugins(ScalafixPlugin)
 
 inScope(Global)(
   Seq(

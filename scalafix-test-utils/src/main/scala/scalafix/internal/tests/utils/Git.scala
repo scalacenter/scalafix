@@ -17,8 +17,8 @@ class Git(workingDirectory: Path) {
   def checkout(branch: String): Unit =
     git.checkout().setCreateBranch(true).setName(branch).call()
 
-  def tag(name: String, message: String): Unit =
-    git.tag().setName(name).setMessage(message).call()
+  def tag(name: String): Unit =
+    git.tag().setName(name).call()
 
   def deleteBranch(branch: String): Unit =
     git.branchDelete().setBranchNames(branch).call()
