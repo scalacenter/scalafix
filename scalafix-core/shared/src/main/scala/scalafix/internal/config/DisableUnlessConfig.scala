@@ -17,11 +17,11 @@ object UnlessConfig {
     ConfDecoder.instanceF[UnlessConfig] { c =>
       (
         c.get[Symbol.Global]("block") |@|
-        c.get[Symbol.Global]("symbol") |@|
-        (c.get[String]("message") match {
-          case Ok(s) => Ok(Some(s))
-          case NotOk(_) => Ok(None)
-        })
+          c.get[Symbol.Global]("symbol") |@|
+          (c.get[String]("message") match {
+            case Ok(s) => Ok(Some(s))
+            case NotOk(_) => Ok(None)
+          })
         // weird construction, maybe there is a better way?
         // can we add fold[B](ok: T => B)(notOk: => B): Configured[T]?
       ).map { case ((a, b), c) => UnlessConfig(a, b, c) }
