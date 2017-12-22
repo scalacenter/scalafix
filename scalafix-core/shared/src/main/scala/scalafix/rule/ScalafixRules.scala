@@ -23,8 +23,7 @@ object ScalafixRules {
     RemoveUnusedImports(index),
     RemoveUnusedTerms(index),
     NoAutoTupling(index),
-    Disable(index, DisableConfig.default),
-    DisableVariantTypes(index)
+    Disable(index, DisableConfig.default)
   )
   def all(index: SemanticdbIndex): List[Rule] =
     syntax ++ semantic(index)
