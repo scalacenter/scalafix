@@ -16,10 +16,10 @@ final case class DisableVariantTypes(index: SemanticdbIndex)
   override def check(ctx: RuleCtx): Seq[LintMessage] = {
     ctx.tree.collect {
       case t @ Type.Param(mods, _, _, _, _, _)
-          if mods.contains(Mod.Covariant()) =>
+          if mods.exists(_.is[Mod.Covariant]) =>
         errorCategory.copy(id = "Covariant").at(t.pos)
       case t @ Type.Param(mods, _, _, _, _, _)
-          if mods.contains(Mod.Contravariant()) =>
+          if mods.exists(_.is[Mod.Contravariant]) =>
         errorCategory.copy(id = "Contravariant").at(t.pos)
     }
   }
