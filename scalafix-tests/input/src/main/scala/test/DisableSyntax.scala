@@ -57,4 +57,20 @@ case object DisableSyntax {
 
   trait TraitCo[+T]            // assert: DisableSyntax.covariant
   type TypeCo[+T] = TraitCo[T] // assert: DisableSyntax.covariant
+
+  class Foo {
+    def bar(x: Int = 42) = 1 // assert: DisableSyntax.defaultArgs
+  }
+
+  trait FooT {
+    def bar(x: Int = 42) = 2 // assert: DisableSyntax.defaultArgs
+  }
+
+  trait FooTT {
+    def bar(x: Int) = 3
+  }
+
+  val fooT = new FooTT {
+    override def bar(x: Int = 42) = 4 // assert: DisableSyntax.defaultArgs
+  }
 }

@@ -20,7 +20,7 @@ final case class DisableSyntax(
       .getOrElse("disableSyntax", "DisableSyntax")(DisableSyntaxConfig.default)
       .map(DisableSyntax(_))
 
-  override def check(ctx: RuleCtx): Seq[LintMessage] = {
+  private def checkRegex(ctx: RuleCtx): Seq[LintMessage] = {
     def pos(offset: Int): Position =
       Position.Range(ctx.input, offset, offset)
     val regexLintMessages = Seq.newBuilder[LintMessage]
@@ -35,38 +35,58 @@ final case class DisableSyntax(
             .at(message, pos(matcher.start))
       }
     }
-    val tokensLintMessage =
-      ctx.tree.tokens.collect {
-        case token @ Keyword(keyword) if config.isDisabled(keyword) =>
-          errorCategory
-            .copy(id = s"keywords.$keyword")
-            .at(s"$keyword is disabled", token.pos)
-        case token @ Token.Semicolon() if config.noSemicolons =>
-          error("noSemicolons", token)
-        case token @ Token.Tab() if config.noTabs =>
-          error("noTabs", token)
-        case token @ Token.Xml.Start() if config.noXml =>
-          error("noXml", token)
-      }.toSeq
-    val treeLintMessages =
-      ctx.tree.collect {
-        case t @ mod"+" if config.noCovariantTypes =>
-          errorCategory
-            .copy(id = "covariant")
-            .at(
-              "Covariant types could lead to error-prone situations.",
-              t.pos
-            )
-        case t @ mod"-" if config.noContravariantTypes =>
-          errorCategory
-            .copy(id = "contravariant")
-            .at(
-              "Contravariant types could lead to error-prone situations.",
-              t.pos
-            )
-      }
+    regexLintMessages.result()
+  }
 
-    treeLintMessages ++ tokensLintMessage ++ regexLintMessages.result()
+  private def checkTokens(ctx: RuleCtx): Seq[LintMessage] = {
+    ctx.tree.tokens.collect {
+      case token @ Keyword(keyword) if config.isDisabled(keyword) =>
+        errorCategory
+          .copy(id = s"keywords.$keyword")
+          .at(s"$keyword is disabled", token.pos)
+      case token @ Token.Semicolon() if config.noSemicolons =>
+        error("noSemicolons", token)
+      case token @ Token.Tab() if config.noTabs =>
+        error("noTabs", token)
+      case token @ Token.Xml.Start() if config.noXml =>
+        error("noXml", token)
+    }
+  }
+
+  private def checkTree(ctx: RuleCtx): Seq[LintMessage] = {
+    def isMethod(d: Defn.Def): Boolean =
+      (for {
+        dp <- d.parent
+        dpp <- dp.parent
+      } yield
+        dpp.is[Defn.Class] || dpp.is[Defn.Trait] || dpp.is[Term.NewAnonymous])
+        .getOrElse(false)
+
+    ctx.tree.collect {
+      case t @ mod"+" if config.noCovariantTypes =>
+        errorCategory
+          .copy(id = "covariant")
+          .at(
+            "Covariant types could lead to error-prone situations.",
+            t.pos
+          )
+      case t @ mod"-" if config.noContravariantTypes =>
+        errorCategory
+          .copy(id = "contravariant")
+          .at(
+            "Contravariant types could lead to error-prone situations.",
+            t.pos
+          )
+      case t @ Defn.Def(_, _, _, params, _, _)
+          if params.exists(_.exists(_.default.isDefined)) && isMethod(t) =>
+        errorCategory
+          .copy(id = "defaultArgs")
+          .at("Default args makes it hard to use methods as functions.", t.pos)
+    }
+  }
+
+  override def check(ctx: RuleCtx): Seq[LintMessage] = {
+    checkTree(ctx) ++ checkTokens(ctx) ++ checkRegex(ctx)
   }
 
   private val errorCategory: LintCategory =
