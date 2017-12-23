@@ -73,4 +73,9 @@ case object DisableSyntax {
   val fooT = new FooTT {
     override def bar(x: Int = 42) = 4 // assert: DisableSyntax.defaultArgs
   }
+
+  def bar(x: Int = 42) = 5 // ok
+  def foobar = {
+    def foobarfoo(x: Int = 42) = 6 // ok
+  }
 }
