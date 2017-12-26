@@ -54,6 +54,19 @@ final case class DisableSyntax(
   }
 
   private def checkTree(ctx: RuleCtx): Seq[LintMessage] = {
+    def isInAbstractThing(d: Defn.Val): Boolean =
+      (for {
+        dp <- d.parent
+        dpp <- dp.parent
+      } yield
+        dpp match {
+          case Defn.Class(mods, _, _, _, _)
+              if mods.exists(_.is[Mod.Abstract]) =>
+            true
+          case _: Defn.Trait => true
+          case _ => false
+        }).getOrElse(false)
+
     def isMethod(d: Defn.Def): Boolean =
       (for {
         dp <- d.parent
@@ -78,10 +91,17 @@ final case class DisableSyntax(
             t.pos
           )
       case t @ Defn.Def(_, _, _, params, _, _)
-          if params.exists(_.exists(_.default.isDefined)) && isMethod(t) =>
+          if params.exists(_.exists(_.default.isDefined)) &&
+            isMethod(t) && config.noDefaultArgs =>
         errorCategory
           .copy(id = "defaultArgs")
           .at("Default args makes it hard to use methods as functions.", t.pos)
+      case t: Defn.Val if isInAbstractThing(t) && config.noValInAbstract =>
+        errorCategory
+          .copy(id = "valInAbstract")
+          .at(
+            "val definitions in traits/abstract classes may cause initialization bugs",
+            t.pos)
     }
   }
 

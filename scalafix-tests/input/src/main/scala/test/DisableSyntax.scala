@@ -11,6 +11,8 @@ DisableSyntax.noSemicolons = true
 DisableSyntax.noXml = true
 DisableSyntax.noCovariantTypes = true
 DisableSyntax.noContravariantTypes = true
+DisableSyntax.noDefaultArgs = true
+DisableSyntax.noValInAbstract = true
 DisableSyntax.regex = [
   {
     id = offensive
@@ -77,5 +79,21 @@ case object DisableSyntax {
   def bar(x: Int = 42) = 5 // ok
   def foobar = {
     def foobarfoo(x: Int = 42) = 6 // ok
+  }
+
+  abstract class AbstractThing {
+    val noooo = "yes" // assert: DisableSyntax.valInAbstract
+  }
+
+  trait AbstractInterface {
+    val superImportantConst = 42 * 42 * 42 // assert: DisableSyntax.valInAbstract
+  }
+
+  class RealThing extends AbstractThing {
+    val itsok = "indeed" // ok
+  }
+
+  val anon = new AbstractThing {
+    val itsalsook = "indeed" // ok
   }
 }
