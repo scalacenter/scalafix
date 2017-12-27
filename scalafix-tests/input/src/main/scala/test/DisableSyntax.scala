@@ -13,6 +13,7 @@ DisableSyntax.noCovariantTypes = true
 DisableSyntax.noContravariantTypes = true
 DisableSyntax.noDefaultArgs = true
 DisableSyntax.noValInAbstract = true
+DisableSyntax.noImplicitObject = true
 DisableSyntax.regex = [
   {
     id = offensive
@@ -96,4 +97,6 @@ case object DisableSyntax {
   val anon = new AbstractThing {
     val itsalsook = "indeed" // ok
   }
+
+  implicit object FooImplicit extends Foo {} // assert: DisableSyntax.implicitObject
 }

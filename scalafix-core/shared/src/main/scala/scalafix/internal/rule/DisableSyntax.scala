@@ -102,6 +102,11 @@ final case class DisableSyntax(
           .at(
             "val definitions in traits/abstract classes may cause initialization bugs",
             t.pos)
+      case t @ Defn.Object(mods, _, _)
+          if mods.exists(_.is[Mod.Implicit]) && config.noImplicitObject =>
+        errorCategory
+          .copy(id = "implicitObject")
+          .at("implicit objects may cause implicit resolution errors", t.pos)
     }
   }
 

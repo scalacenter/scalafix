@@ -17,6 +17,7 @@ case class DisableSyntaxConfig(
     noContravariantTypes: Boolean = false,
     noDefaultArgs: Boolean = false,
     noValInAbstract: Boolean = false,
+    noImplicitObject: Boolean = false,
     regex: List[CustomMessage[Pattern]] = Nil
 ) {
   implicit val reader: ConfDecoder[DisableSyntaxConfig] =
@@ -31,10 +32,11 @@ case class DisableSyntaxConfig(
             c.getField(noContravariantTypes) |@|
             c.getField(noDefaultArgs) |@|
             c.getField(noValInAbstract) |@|
+            c.getField(noImplicitObject) |@|
             c.getField(regex)
         ).map {
-          case ((((((((a, b), c), d), e), f), g), i) j) =>
-            DisableSyntaxConfig(a, b, c, d, e, f, g, i)
+          case (((((((((a, b), c), d), e), f), g), i), j), k) =>
+            DisableSyntaxConfig(a, b, c, d, e, f, g, i, k)
       })
 
   implicit val patternReader: ConfDecoder[Pattern] = {
