@@ -9,8 +9,10 @@ import scala.meta.tokens.Tokens
 final class TokenList private (tokens: Tokens) {
   def trailing(token: Token): SeqView[Token, IndexedSeq[Token]] =
     tokens.view(tok2idx(token) + 1, tokens.length)
+
   def leading(token: Token): SeqView[Token, IndexedSeq[Token]] =
     tokens.view(0, tok2idx(token)).reverse
+
   private[this] val tok2idx = {
     val map = Map.newBuilder[Token, Int]
     var i = 0
@@ -21,20 +23,11 @@ final class TokenList private (tokens: Tokens) {
     map
       .result()
       .withDefault(t =>
-        throw new NoSuchElementException("token not found: " + t))
+        throw new NoSuchElementException(s"token not found: $t"))
   }
 
-  def find(start: Token)(f: Token => Boolean): Option[Token] = {
-    def loop(curr: Token): Option[Token] = {
-      if (f(curr)) Option(curr)
-      else {
-        val iter = next(curr)
-        if (iter == curr) None // reached EOF
-        else loop(iter)
-      }
-    }
-    loop(next(start))
-  }
+  def find(start: Token)(p: Token => Boolean): Option[Token] =
+    tokens.drop(tok2idx(start)).find(p)
 
   def slice(from: Token, to: Token): SeqView[Token, IndexedSeq[Token]] =
     tokens.view(tok2idx(from), tok2idx(to))

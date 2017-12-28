@@ -16,9 +16,11 @@ class TokenListTest extends FunSuite {
       |}""".stripMargin.tokenize.get
   val tokenList = TokenList(tokens)
 
+  val unknownToken = new Token.EOF(Input.None, Scala211)
+
   test("leading returns all preceding tokens") {
     val Some(bar) = tokens.find {
-      case Token.Ident(name) if name == "Bar" => true
+      case Token.Ident("Bar") => true
       case _ => false
     }
 
@@ -28,18 +30,18 @@ class TokenListTest extends FunSuite {
   }
 
   test("leading returns empty seq if there is no preceding tokens") {
-    assert(tokenList.leading(tokens.head).isEmpty)
+    assert(tokenList.leading(tokens.head) == Seq())
   }
 
   test("leading fails if input token does not exist") {
     assertThrows[NoSuchElementException] {
-      tokenList.leading(new Token.EOF(Input.None, Scala211))
+      tokenList.leading(unknownToken)
     }
   }
 
   test("trailing returns all following tokens") {
     val Some(baz) = tokens.find {
-      case Token.Ident(name) if name == "baz" => true
+      case Token.Ident("baz") => true
       case _ => false
     }
 
@@ -49,12 +51,30 @@ class TokenListTest extends FunSuite {
   }
 
   test("trailing returns empty seq if there is no following tokens") {
-    assert(tokenList.trailing(tokens.last).isEmpty)
+    assert(tokenList.trailing(tokens.last) == Seq())
   }
 
   test("trailing fails if input token does not exist") {
     assertThrows[NoSuchElementException] {
-      tokenList.trailing(new Token.EOF(Input.None, Scala211))
+      tokenList.trailing(unknownToken)
+    }
+  }
+
+  test("find returns first token following `start` matching the predicate") {
+    assert(tokenList.find(tokens.head)(_.is[Token.EOF]) == Some(tokens.last))
+  }
+
+  test("find returns `start` token if it matches predicate") {
+    assert(tokenList.find(tokens.head)(_.is[Token.BOF]) == Some(tokens.head))
+  }
+
+  test("find returns none if token matching predicate comes before `start`") {
+    assert(tokenList.find(tokens.last)(_.is[Token.BOF]) == None)
+  }
+
+  test("find fails if `start` token does not exist") {
+    assertThrows[NoSuchElementException] {
+      tokenList.find(unknownToken)(_.is[Token.BOF])
     }
   }
 
@@ -79,22 +99,22 @@ class TokenListTest extends FunSuite {
   }
 
   test("slice returns empty seq if `from` and `to` tokens are the same object") {
-    assert(tokenList.slice(tokens.head, tokens.head).isEmpty)
+    assert(tokenList.slice(tokens.head, tokens.head) == Seq())
   }
 
   test("slice returns empty seq if `from` comes after `to`") {
-    assert(tokenList.slice(tokens.last, tokens.head).isEmpty)
+    assert(tokenList.slice(tokens.last, tokens.head) == Seq())
   }
 
   test("slice fails if `from` token does not exist") {
     assertThrows[NoSuchElementException] {
-      tokenList.slice(tokens.head, new Token.EOF(Input.None, Scala211))
+      tokenList.slice(tokens.head, unknownToken)
     }
   }
 
   test("slice fails if `to` token does not exist") {
     assertThrows[NoSuchElementException] {
-      tokenList.slice(new Token.EOF(Input.None, Scala211), tokens.last)
+      tokenList.slice(unknownToken, tokens.last)
     }
   }
 
