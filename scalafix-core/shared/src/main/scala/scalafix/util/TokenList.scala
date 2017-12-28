@@ -8,9 +8,9 @@ import scala.meta.tokens.Tokens
 /** Helper to traverse tokens as a doubly linked list.  */
 final class TokenList private (tokens: Tokens) {
   def trailing(token: Token): SeqView[Token, IndexedSeq[Token]] =
-    tokens.view(tok2idx(token), tokens.length).drop(1)
+    tokens.view(tok2idx(token) + 1, tokens.length)
   def leading(token: Token): SeqView[Token, IndexedSeq[Token]] =
-    tokens.view(0, tok2idx(token)).drop(1).reverse
+    tokens.view(0, tok2idx(token)).reverse
   private[this] val tok2idx = {
     val map = Map.newBuilder[Token, Int]
     var i = 0
