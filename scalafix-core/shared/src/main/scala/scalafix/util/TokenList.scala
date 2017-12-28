@@ -18,7 +18,10 @@ final class TokenList private (tokens: Tokens) {
       map += (tok -> i)
       i += 1
     }
-    map.result()
+    map
+      .result()
+      .withDefault(t =>
+        throw new NoSuchElementException("token not found: " + t))
   }
 
   def find(start: Token)(f: Token => Boolean): Option[Token] = {
@@ -33,15 +36,8 @@ final class TokenList private (tokens: Tokens) {
     loop(next(start))
   }
 
-  def slice(from: Token, to: Token): Seq[Token] = {
-    val builder = Seq.newBuilder[Token]
-    var curr = next(from)
-    while (curr.start < to.start) {
-      builder += curr
-      curr = next(curr)
-    }
-    builder.result()
-  }
+  def slice(from: Token, to: Token): SeqView[Token, IndexedSeq[Token]] =
+    tokens.view(tok2idx(from), tok2idx(to))
 
   def next(token: Token): Token = {
     tok2idx.get(token) match {
