@@ -13,6 +13,6 @@ package test.escapeHatch
 /* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSuppression.Disable
 // scalafix:on EscapeHatchDummyLinter
 
-object EscapeHatchDoubleOn {
+object AnchorDoubleOn {
   object Dummy // assert: EscapeHatchDummyLinter
 }

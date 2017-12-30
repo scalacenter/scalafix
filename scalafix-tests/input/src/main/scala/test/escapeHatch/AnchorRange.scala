@@ -8,7 +8,7 @@ package test.escapeHatch
 
 // different rule can overlap
 
-object EscapeHatchRange {
+object AnchorRange {
   null // assert: EscapeHatchNoNulls
   val aDummy = 0 // assert: EscapeHatchDummyLinter
   // scalafix:off EscapeHatchDummyLinter

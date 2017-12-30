@@ -19,7 +19,7 @@ NoInfer.symbols = [
 
 package test.escapeHatch
 
-object EscapeHatchMultipleRules {
+object AnchorMultipleRules {
 
   // scalafix:off NoInfer.any2stringadd, Disable.get
   1 + "foo"

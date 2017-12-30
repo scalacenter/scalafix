@@ -8,7 +8,7 @@ package test.escapeHatch
 
 // Unused disable, enable or expressions are reported as a warning
 
-object EscapeHatchUnused {
+object AnchorUnused {
 
 // Positive Tests (should not report unused)
 

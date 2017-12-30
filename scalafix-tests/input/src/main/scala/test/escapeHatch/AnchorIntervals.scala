@@ -8,7 +8,7 @@ rules = [
 
 package test
 
-object EscapeHatchIntervals {
+object AnchorIntervals {
 
   val aDummy = 0 // assert: EscapeHatchDummyLinter
 

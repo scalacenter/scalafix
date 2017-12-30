@@ -22,7 +22,7 @@ import scala.collection.mutable.{
 
 import scala.concurrent.duration.Duration
 
-object EscapeHatchPatches {
+object AnchorPatches {
   def d1s = Duration(1, "s")
   def d2s = Duration(2, "s") // scalafix:ok ExplicitResultTypes
 }

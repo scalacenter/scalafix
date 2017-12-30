@@ -9,6 +9,6 @@ rules = [
 // scalafix:off EscapeHatchDummyLinter
 package test.escapeHatch
 
-object EscapeHatchEOF {
+object AnchorEOF {
   object Dummy
 }

@@ -20,7 +20,7 @@ NoInfer.symbols = [
 
 package test.escapeHatch
 
-object EscapeHatchExpression {
+object AnchorExpression {
 
   val aDummy = 0 // assert: EscapeHatchDummyLinter
 

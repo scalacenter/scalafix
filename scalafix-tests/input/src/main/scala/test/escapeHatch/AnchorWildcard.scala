@@ -9,7 +9,7 @@ package test.escapeHatch
 // when `scalafix:on|off|ok` does not have a rule list
 // it affects every rules
 
-object EscapeHatchWildcard {
+object AnchorWildcard {
   // null // assert: EscapeHatchNoNulls
   val aDummy = 0 // assert: EscapeHatchDummyLinter
 
