@@ -123,9 +123,9 @@ To build custom rules see {% doc_ref Rule Authors %}.
 
 ## Per source file
 
-It's possible to supress false positives linter message over source file regions using comments. This provides fine grained control over what to report
+It's possible to suppress false positives linter message over source file regions using comments. This provides fine grained control over what to report
 
-There are two alternative way to supress linter messages with a single expression using scalafix:ok or with scalafix:off/on to toogle until the end of file.
+There are two alternative way to suppress linter messages with a single expression using scalafix:ok or with scalafix:off/on to toggle until the end of file.
 
 ### Enable or Disable until the end of file
 

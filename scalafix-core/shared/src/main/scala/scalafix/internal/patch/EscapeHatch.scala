@@ -129,7 +129,7 @@ class EscapeHatch(
           "Disable",
           "This comment does not disable any rule"
         )
-        .withOwner(unusedScalafixSupression)
+        .withOwner(unusedScalafixSuppression)
 
     val unusedEscapesWarning =
       (disableRules -- usedEscapes).values
@@ -174,7 +174,7 @@ object EscapeHatch {
     case class UntilEOF(
         anchorPosition: AnchorPosition,
         rules: String,
-        toogle: Toogle
+        toggle: Toggle
     ) extends Escape
 
     case class Expression(
@@ -190,13 +190,13 @@ object EscapeHatch {
     ) extends Escape
   }
 
-  private sealed abstract class Toogle
-  private object Toogle {
-    case object Disable extends Toogle
-    case object Enable extends Toogle
+  private sealed abstract class Toggle
+  private object Toggle {
+    case object Disable extends Toggle
+    case object Enable extends Toggle
   }
 
-  private val unusedScalafixSupression = RuleName("UnusedScalafixSupression")
+  private val unusedScalafixSuppression = RuleName("UnusedScalafixSuppression")
 
   private val unusedEnableWarning =
     LintCategory
@@ -204,7 +204,7 @@ object EscapeHatch {
         "Enable",
         "This comment would enable a rule that was not disabled (eg: typo in the rules)"
       )
-      .withOwner(unusedScalafixSupression)
+      .withOwner(unusedScalafixSuppression)
 
   private val FilterDisable = "\\s?scalafix:off\\s?(.*)".r
   private val FilterEnable = "\\s?scalafix:on\\s?(.*)".r
@@ -221,18 +221,18 @@ object EscapeHatch {
     var currentlyDisabledRules = Set.empty[String]
     def trackUnusedRules(
         rules: String,
-        toogle: Toogle,
+        toggle: Toggle,
         anchorPosition: AnchorPosition): Unit = {
-      toogle match {
-        case Toogle.Disable =>
+      toggle match {
+        case Toggle.Disable =>
           currentlyDisabledRules = currentlyDisabledRules ++ splitRules(rules)
 
-        case Toogle.Enable =>
+        case Toggle.Enable =>
           val enabledRules = splitRules(rules)
           val enabledNotDisabled = enabledRules -- currentlyDisabledRules
 
           enabledNotDisabled.foreach(
-            rule => unusedEnable += unusedEnableWarning.at(anchorPosition.value)
+            _ => unusedEnable += unusedEnableWarning.at(anchorPosition.value)
           )
       }
     }
@@ -271,8 +271,8 @@ object EscapeHatch {
           //
           case FilterDisable(rules) => {
             val position = AnchorPosition(comment.pos)
-            escapes += Escape.UntilEOF(position, rules, Toogle.Disable)
-            trackUnusedRules(rules, Toogle.Disable, position)
+            escapes += Escape.UntilEOF(position, rules, Toggle.Disable)
+            trackUnusedRules(rules, Toggle.Disable, position)
           }
 
           // matches on anchors
@@ -282,8 +282,8 @@ object EscapeHatch {
           //
           case FilterEnable(rules) => {
             val position = AnchorPosition(comment.pos)
-            escapes += Escape.UntilEOF(position, rules, Toogle.Enable)
-            trackUnusedRules(rules, Toogle.Enable, position)
+            escapes += Escape.UntilEOF(position, rules, Toggle.Enable)
+            trackUnusedRules(rules, Toggle.Enable, position)
           }
           // matches expressions not handled by AssociatedComments
           //
@@ -331,7 +331,7 @@ object EscapeHatch {
   }
 
   private def apply(
-      comments: List[Escape],
+      escapes: List[Escape],
       unusedEnable: List[LintMessage]): EscapeHatch = {
     val enableRules = TreeMap.newBuilder[EscapeOffset, EscapeFilter]
     val disableRules = TreeMap.newBuilder[EscapeOffset, EscapeFilter]
@@ -350,7 +350,7 @@ object EscapeHatch {
       disableRules += (offset -> EscapeFilter(matcher(rules), anchor, offset))
     }
 
-    comments.foreach {
+    escapes.foreach {
       case Escape.Expression(expressionPos, anchorPos, rules) =>
         disable(EscapeOffset(expressionPos.value.start), anchorPos, rules)
         enable(EscapeOffset(expressionPos.value.end), anchorPos, rules)
@@ -359,12 +359,12 @@ object EscapeHatch {
         disable(EscapeOffset(expressionPos.value.start), anchorPos, rules)
         enable(EscapeOffset(expressionPos.value.end), anchorPos, rules)
 
-      case Escape.UntilEOF(anchorPos, rules, toogle) =>
-        toogle match {
-          case Toogle.Disable =>
+      case Escape.UntilEOF(anchorPos, rules, toggle) =>
+        toggle match {
+          case Toggle.Disable =>
             disable(EscapeOffset(anchorPos.value.start), anchorPos, rules)
 
-          case Toogle.Enable =>
+          case Toggle.Enable =>
             enable(EscapeOffset(anchorPos.value.end), anchorPos, rules)
         }
     }
