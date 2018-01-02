@@ -54,60 +54,88 @@ final case class DisableSyntax(
   }
 
   private def checkTree(ctx: RuleCtx): Seq[LintMessage] = {
-    def isInAbstractThing(d: Defn.Val): Boolean =
-      (for {
-        dp <- d.parent
-        dpp <- dp.parent
-      } yield
-        dpp match {
-          case Defn.Class(mods, _, _, _, _)
+    object AbstractWithVals {
+      def unapply(t: Tree): Option[List[Defn.Val]] = {
+        val stats = t match {
+          case Defn.Class(mods, _, _, _, templ)
               if mods.exists(_.is[Mod.Abstract]) =>
-            true
-          case _: Defn.Trait => true
-          case _ => false
-        }).getOrElse(false)
+            templ.stats
+          case Defn.Trait(_, _, _, _, templ) => templ.stats
+          case _ => List.empty
+        }
+        val vals = stats.flatMap {
+          case v: Defn.Val => Some(v)
+          case _ => None
+        }
+        if (vals.isEmpty) None else Some(vals)
+      }
+    }
 
-    def isMethod(d: Defn.Def): Boolean =
-      (for {
-        dp <- d.parent
-        dpp <- dp.parent
-      } yield
-        dpp.is[Defn.Class] || dpp.is[Defn.Trait] || dpp.is[Term.NewAnonymous])
-        .getOrElse(false)
+    object WithMethods {
+      def unapply(t: Tree): Option[List[Defn.Def]] = {
+        val stats = t match {
+          case Defn.Class(_, _, _, _, templ) => templ.stats
+          case Defn.Trait(_, _, _, _, templ) => templ.stats
+          case Term.NewAnonymous(templ) => templ.stats
+          case _ => List.empty
+        }
+        val methods = stats.flatMap {
+          case d: Defn.Def => Some(d)
+          case _ => None
+        }
+        if (methods.isEmpty) None else Some(methods)
+      }
+    }
+
+    def hasDefaultArgs(d: Defn.Def): Boolean =
+      d.paramss.exists(_.exists(_.default.isDefined))
 
     ctx.tree.collect {
       case t @ mod"+" if config.noCovariantTypes =>
-        errorCategory
-          .copy(id = "covariant")
-          .at(
-            "Covariant types could lead to error-prone situations.",
-            t.pos
-          )
+        Seq(
+          errorCategory
+            .copy(id = "covariant")
+            .at(
+              "Covariant types could lead to error-prone situations.",
+              t.pos
+            )
+        )
       case t @ mod"-" if config.noContravariantTypes =>
-        errorCategory
-          .copy(id = "contravariant")
-          .at(
-            "Contravariant types could lead to error-prone situations.",
-            t.pos
-          )
-      case t @ Defn.Def(_, _, _, params, _, _)
-          if params.exists(_.exists(_.default.isDefined)) &&
-            isMethod(t) && config.noDefaultArgs =>
-        errorCategory
-          .copy(id = "defaultArgs")
-          .at("Default args makes it hard to use methods as functions.", t.pos)
-      case t: Defn.Val if isInAbstractThing(t) && config.noValInAbstract =>
-        errorCategory
-          .copy(id = "valInAbstract")
-          .at(
-            "val definitions in traits/abstract classes may cause initialization bugs",
-            t.pos)
+        Seq(
+          errorCategory
+            .copy(id = "contravariant")
+            .at(
+              "Contravariant types could lead to error-prone situations.",
+              t.pos
+            )
+        )
+      case t @ WithMethods(methods)
+          if methods.exists(hasDefaultArgs) && config.noDefaultArgs =>
+        methods
+          .filter(hasDefaultArgs)
+          .map(
+            m =>
+              errorCategory
+                .copy(id = "defaultArgs")
+                .at(
+                  "Default args makes it hard to use methods as functions.",
+                  m.pos))
+      case t @ AbstractWithVals(vals) if config.noValInAbstract =>
+        vals.map(
+          v =>
+            errorCategory
+              .copy(id = "valInAbstract")
+              .at(
+                "val definitions in traits/abstract classes may cause initialization bugs",
+                v.pos))
       case t @ Defn.Object(mods, _, _)
           if mods.exists(_.is[Mod.Implicit]) && config.noImplicitObject =>
-        errorCategory
-          .copy(id = "implicitObject")
-          .at("implicit objects may cause implicit resolution errors", t.pos)
-    }
+        Seq(
+          errorCategory
+            .copy(id = "implicitObject")
+            .at("implicit objects may cause implicit resolution errors", t.pos)
+        )
+    }.flatten
   }
 
   override def check(ctx: RuleCtx): Seq[LintMessage] = {
