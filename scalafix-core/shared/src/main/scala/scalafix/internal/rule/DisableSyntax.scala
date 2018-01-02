@@ -90,6 +90,9 @@ final case class DisableSyntax(
     def hasDefaultArgs(d: Defn.Def): Boolean =
       d.paramss.exists(_.exists(_.default.isDefined))
 
+    def hasNonImplicitParam(d: Defn.Def): Boolean =
+      d.paramss.exists(_.exists(_.mods.forall(!_.is[Mod.Implicit])))
+
     ctx.tree.collect {
       case t @ mod"+" if config.noCovariantTypes =>
         Seq(
@@ -134,6 +137,17 @@ final case class DisableSyntax(
           errorCategory
             .copy(id = "implicitObject")
             .at("implicit objects may cause implicit resolution errors", t.pos)
+        )
+      case t @ Defn.Def(mods, _, _, paramss, _, _)
+          if mods.exists(_.is[Mod.Implicit]) &&
+            hasNonImplicitParam(t) &&
+            config.noImplicitConversion =>
+        Seq(
+          errorCategory
+            .copy(id = "implicitConversion")
+            .at(
+              "implicit conversions weaken type safety and always can be replaced by explicit conversions",
+              t.pos)
         )
     }.flatten
   }
