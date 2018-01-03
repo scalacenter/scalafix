@@ -23,7 +23,6 @@ object DisableUnless {
       extends Traverser {
     private var context: U = initContext
     private val buf = scala.collection.mutable.ListBuffer[T]()
-    // it can be immutable...
 
     private val liftedFn = fn.lift
 
