@@ -9,7 +9,8 @@ DisableSyntax.keywords = [
 DisableSyntax.noTabs = true
 DisableSyntax.noSemicolons = true
 DisableSyntax.noXml = true
-DisableSyntax.noVariantTypes = true
+DisableSyntax.noCovariantTypes = true
+DisableSyntax.noContravariantTypes = true
 DisableSyntax.regex = [
   {
     pattern = "[P|p]imp"

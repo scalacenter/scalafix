@@ -54,14 +54,14 @@ final case class DisableSyntax(
       }.toSeq
     val treeLintMessages =
       ctx.tree.collect {
-        case t @ mod"+" if config.noVariantTypes =>
+        case t @ mod"+" if config.noCovariantTypes =>
           errorCategory
             .copy(id = "covariant")
             .at(
               "Covariant types could lead to error-prone situations.",
               t.pos
             )
-        case t @ mod"-" if config.noVariantTypes =>
+        case t @ mod"-" if config.noContravariantTypes =>
           errorCategory
             .copy(id = "contravariant")
             .at(
