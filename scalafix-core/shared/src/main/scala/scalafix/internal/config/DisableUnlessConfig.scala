@@ -1,7 +1,6 @@
 package scalafix.internal.config
 
-import metaconfig.ConfDecoder
-import metaconfig.Configured.{NotOk, Ok}
+import metaconfig.{Conf, ConfDecoder, ConfError, Configured}
 import org.langmeta.Symbol
 
 import scalafix.internal.config.MetaconfigPendingUpstream.XtensionConfScalafix
@@ -14,12 +13,14 @@ case class UnlessConfig(
 
 object UnlessConfig {
   implicit val decoder: ConfDecoder[UnlessConfig] =
-    ConfDecoder.instanceF[UnlessConfig] { c =>
-      (
-        c.get[Symbol.Global]("block") |@|
+    ConfDecoder.instanceF[UnlessConfig] {
+      case c: Conf.Obj =>
+        (c.get[Symbol.Global]("block") |@|
           c.get[Symbol.Global]("symbol") |@|
-          c.getOption[String]("message")
-      ).map { case ((a, b), c) => UnlessConfig(a, b, c) }
+          c.getOption[String]("message")).map {
+          case ((a, b), c) => UnlessConfig(a, b, c)
+        }
+      case _ => Configured.NotOk(ConfError.msg("Wrong config format"))
     }
 }
 
