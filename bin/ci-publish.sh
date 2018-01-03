@@ -26,10 +26,13 @@ set-up-jekyll() {
 if [[ "$TRAVIS_SECURE_ENV_VARS" == true && "$CI_PUBLISH" == true ]]; then
   echo "Publishing..."
   git log | head -n 20
+  echo "$PGP_SECRET" | base64 --decode | gpg --import
   if [ -n "$TRAVIS_TAG" ]; then
-    echo "$PGP_SECRET" | base64 --decode | gpg --import
-    echo "Tag push, publishing release to Sonatype."
+    echo "Tag push, publishing stable release to Sonatype."
     sbt ci-release sonatypeReleaseAll
+  else
+    echo "Merge, publishing snapshot to Sonatype."
+    sbt -Dscalafix.snapshot=true ci-release
   fi
   set-up-ssh
   set-up-jekyll

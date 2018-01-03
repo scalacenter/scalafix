@@ -176,7 +176,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "scalafix211/publishSigned" ::
         "scalafix-sbt/publishSigned" ::
         s"^^ $sbt1 scalafix-sbt/publishSigned" ::
-        "sonatypeReleaseAll" ::
         s
     },
     commands += Command.command("ci-sbt") { s =>
@@ -245,12 +244,10 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
-    publishTo := {
-      if (isCustomRepository) Some("adhoc" at adhocRepoUri)
-      else {
-        val uri = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-        Some("Releases" at uri)
-      }
+    publishTo := Some {
+      if (isCustomRepository) "adhoc" at adhocRepoUri
+      else if (isSnapshot.value) Opts.resolver.sonatypeSnapshots
+      else Opts.resolver.sonatypeStaging
     },
     scmInfo := Some(
       ScmInfo(

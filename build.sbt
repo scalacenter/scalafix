@@ -3,7 +3,10 @@ import sbt.ScriptedPlugin._
 import Dependencies._
 
 version.in(ThisBuild) ~= { old: String =>
-  sys.props.getOrElse("scalafix.version", old.replace('+', '-'))
+  val suffix =
+    if (sys.props.contains("scalafix.snapshot")) "-SNAPSHOT"
+    else ""
+  sys.props.getOrElse("scalafix.version", old.replace('+', '-') + suffix)
 }
 
 lazy val scalaFixedProjects: List[ProjectReference] =
