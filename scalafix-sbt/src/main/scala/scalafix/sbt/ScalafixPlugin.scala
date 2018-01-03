@@ -114,8 +114,6 @@ object ScalafixPlugin extends AutoPlugin {
 
   private def sbtfixImpl(extraOptions: Seq[String] = Seq()) = {
     Def.inputTaskDyn {
-      // Will currently fail silently if semanticdb-sbt is not enabled.
-      // See https://github.com/scalacenter/scalafix/issues/264
       val baseDir = baseDirectory.in(ThisBuild).value
       val sbtDir: File = baseDir./("project")
       val sbtFiles = baseDir.*("*.sbt").get
