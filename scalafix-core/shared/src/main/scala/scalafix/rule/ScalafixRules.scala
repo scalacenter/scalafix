@@ -25,7 +25,8 @@ object ScalafixRules {
     RemoveUnusedTerms(index),
     NoAutoTupling(index),
     Disable(index, DisableConfig.default),
-    DisableUnless(index, DisableUnlessConfig.default)
+    DisableUnless(index, DisableUnlessConfig.default),
+    LeakingSealed(index)
   )
   def all(index: SemanticdbIndex): List[Rule] =
     syntax ++ semantic(index)
