@@ -2,6 +2,7 @@ package scalafix.internal.reflect
 
 import scala.collection.immutable.Seq
 import scala.meta._
+import scalafix.internal.config.ScalafixConfig.DefaultDialect
 import metaconfig.ConfError
 import metaconfig.Configured
 
@@ -27,7 +28,7 @@ object RuleInstrumentation {
         case _ => false
       }
     }
-    (dialects.Scala211, code).parse[Source] match {
+    (DefaultDialect, code).parse[Source] match {
       case parsers.Parsed.Error(pos, msg, details) =>
         ConfError.parseError(pos, msg).notOk
       case parsers.Parsed.Success(ast) =>
