@@ -29,7 +29,7 @@ final class TokenList private (tokens: Tokens) {
   def find(start: Token)(p: Token => Boolean): Option[Token] =
     tokens.drop(tok2idx(start)).find(p)
 
-  def slice(from: Token, to: Token): SeqView[Token, IndexedSeq[Token]] =
+  def slice(from: Token, to: Token): Seq[Token] =
     tokens.view(tok2idx(from), tok2idx(to))
 
   def next(token: Token): Token = {

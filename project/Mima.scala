@@ -31,9 +31,7 @@ object Mima {
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "scalafix.util.TokenList.leadingSpaces"),
       ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "scalafix.util.TokenList.trailingSpaces"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem](
-        "scalafix.util.TokenList.slice")
+        "scalafix.util.TokenList.trailingSpaces")
     )
   }
 }
