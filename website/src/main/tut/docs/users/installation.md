@@ -237,3 +237,20 @@ println(Uppercase("object Hello { println('world) }"))
 
 The semantic API requires a more complicated setup.
 Please see {% doc_ref Rule Authors %}.
+
+## SNAPSHOT
+
+Our CI publishes a snapshot release to Sonatype on every merge into master.
+Each snapshot release has a unique version number, jars don't get overwritten.
+To find the latest snapshot version number, go to <https://oss.sonatype.org/content/repositories/snapshots/ch/epfl/scala/scalafix-core_2.12/>
+and select the version number at the bottom, the one with the latest "Last Modified".
+Once you have found the version number, adapting the version number
+
+```
+// If using sbt-scalafix, add to project/plugins.sbt
+resolvers += Resolver.sonatypeRepo("snapshots")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "{{ site.version }}-SNAPSHOT")
+
+// If using scalafix-cli, launch with coursier
+coursier launch ch.epfl.scala:scalafix-cli_{{ site.scala212 }}:{{ site.version }}-SNAPSHOT -r sonatype:snapshots --main scalafix.cli.Cli -- --help
+```
