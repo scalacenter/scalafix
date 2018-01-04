@@ -2,16 +2,25 @@ package scalafix.internal.sbt
 
 import java.io.File
 import java.io.OutputStreamWriter
+import coursier.MavenRepository
 
 private[scalafix] object ScalafixJarFetcher {
+  private val SonatypeSnapshots: MavenRepository =
+    MavenRepository("https://oss.sonatype.org/content/repositories/snapshots")
+  private val MavenCentral: MavenRepository =
+    MavenRepository("https://repo1.maven.org/maven2")
+
   def fetchJars(org: String, artifact: String, version: String): List[File] =
     this.synchronized {
       import coursier._
       val start = Resolution(Set(Dependency(Module(org, artifact), version)))
-      val repositories = Seq(
-        Cache.ivy2Local,
-        MavenRepository("https://repo1.maven.org/maven2")
-      )
+      val repositories: List[Repository] = List(
+        Some(Cache.ivy2Local),
+        Some(MavenCentral),
+        if (version.endsWith("-SNAPSHOT")) Some(SonatypeSnapshots)
+        else None
+      ).flatten
+
       val logger = new TermDisplay(new OutputStreamWriter(System.err), true)
       logger.init()
       val fetch = Fetch.from(repositories, Cache.fetch(logger = Some(logger)))
