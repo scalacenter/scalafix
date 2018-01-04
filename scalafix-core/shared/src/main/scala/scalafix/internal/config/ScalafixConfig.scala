@@ -77,7 +77,7 @@ object ScalafixConfig {
     // Are extractor varargs specified using colons, i.e. is `case Extractor(xs: _*)` legal or not?
     allowColonForExtractorVarargs = true,
     // Are inline vals and defs supported by this dialect?
-    allowInlineMods = true,
+    allowInlineMods = false,
     // Are literal types allowed, i.e. is `val a : 42 = 42` legal or not?
     allowLiteralTypes = true,
     // Are `|` (union types) supported by this dialect?
