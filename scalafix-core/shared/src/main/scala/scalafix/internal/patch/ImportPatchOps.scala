@@ -4,6 +4,7 @@ package internal.patch
 import scala.annotation.tailrec
 import scala.collection.immutable.Seq
 import scala.collection.mutable
+import scala.meta._
 import scalafix.internal.util.SymbolOps
 import scalafix.patch.Patch
 import scalafix.patch.TokenPatch
@@ -12,7 +13,6 @@ import scalafix.patch.TreePatch.ImportPatch
 import scalafix.rule.RuleCtx
 import scalafix.syntax._
 import scalafix.util.Newline
-import scala.meta._
 
 object ImportPatchOps {
   object symbols {
@@ -188,9 +188,11 @@ object ImportPatchOps {
       allImports.filter(_.importers.forall(isRemovedImporter))
     def remove(toRemove: Tree) = {
       val tokens = ctx.toks(toRemove)
-      def removeFirstComma(lst: Iterable[Token]) = {
+      def removeFirstComma(lst: Iterable[Token]): Iterable[Patch] = {
         lst
           .takeWhile {
+            case lf @ Token.LF() if ctx.tokenList.prev(lf).is[Token.Comma] =>
+              true
             case Token.Space() => true
             case comma @ Token.Comma() =>
               if (!isRemovedComma.contains(comma)) {
