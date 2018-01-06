@@ -35,6 +35,7 @@ It contains the following elements:
 * semicolons (`;`)
 * tabs
 * xml literals
+* covariant and contravariant type parameters 
 
 To disallow a syntax:
 
@@ -48,4 +49,6 @@ DisableSyntax.keywords = [
 DisableSyntax.noTabs = true
 DisableSyntax.noSemicolons = true
 DisableSyntax.noXml = true
+DisableSyntax.noCovariantTypes = true
+DisableSyntax.noContravariantTypes = true
 ```
