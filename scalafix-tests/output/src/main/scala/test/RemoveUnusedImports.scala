@@ -7,9 +7,7 @@ import scala.util.{Success => Successful}
 import scala.concurrent.ExecutionContext
 import scala.runtime.{RichBoolean}
 import scala.concurrent.// formatting caveat
-
-
-  TimeoutException
+TimeoutException
 
 //import scala.concurrent.{
 //    CancellationException

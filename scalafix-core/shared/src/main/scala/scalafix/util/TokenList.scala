@@ -8,9 +8,11 @@ import scala.meta.tokens.Tokens
 /** Helper to traverse tokens as a doubly linked list.  */
 final class TokenList private (tokens: Tokens) {
   def trailing(token: Token): SeqView[Token, IndexedSeq[Token]] =
-    tokens.view(tok2idx(token), tokens.length).drop(1)
+    tokens.view(tok2idx(token) + 1, tokens.length)
+
   def leading(token: Token): SeqView[Token, IndexedSeq[Token]] =
-    tokens.view(0, tok2idx(token)).drop(1).reverse
+    tokens.view(0, tok2idx(token)).reverse
+
   private[this] val tok2idx = {
     val map = Map.newBuilder[Token, Int]
     var i = 0
@@ -18,31 +20,24 @@ final class TokenList private (tokens: Tokens) {
       map += (tok -> i)
       i += 1
     }
-    map.result()
+    map
+      .result()
+      .withDefault(t =>
+        throw new NoSuchElementException(s"token not found: $t"))
   }
 
-  def find(start: Token)(f: Token => Boolean): Option[Token] = {
-    def loop(curr: Token): Option[Token] = {
-      if (f(curr)) Option(curr)
-      else {
-        val iter = next(curr)
-        if (iter == curr) None // reached EOF
-        else loop(iter)
-      }
-    }
-    loop(next(start))
-  }
+  def find(start: Token)(p: Token => Boolean): Option[Token] =
+    tokens.drop(tok2idx(start)).find(p)
 
-  def slice(from: Token, to: Token): Seq[Token] = {
-    val builder = Seq.newBuilder[Token]
-    var curr = next(from)
-    while (curr.start < to.start) {
-      builder += curr
-      curr = next(curr)
-    }
-    builder.result()
-  }
+  def slice(from: Token, to: Token): Seq[Token] =
+    tokens.view(tok2idx(from), tok2idx(to))
 
+  /** Returns the next/trailing token or the original token if none exists.
+    *
+    * @note You need to guard against infinite recursion if iterating through
+    *       a list of tokens using this method. This method does not fail
+    *       with an exception.
+    */
   def next(token: Token): Token = {
     tok2idx.get(token) match {
       case Some(i) if tokens.length > i + 1 =>
@@ -51,6 +46,12 @@ final class TokenList private (tokens: Tokens) {
     }
   }
 
+  /** Returns the previous/leading token or the original token if none exists.
+    *
+    * @note You need to guard against infinite recursion if iterating through
+    *       a list of tokens using this method. This method does not fail
+    *       with an exception.
+    */
   def prev(token: Token): Token = {
     tok2idx.get(token) match {
       case Some(i) if i > 0 =>

@@ -11,6 +11,7 @@ Currently, Scalafix does not provide any IDE integrations with IntelliJ/ENSIME.
 {:toc}
 
 ## sbt-scalafix
+
 The sbt-plugin is the recommended integration to run semantic rules like RemoveUnusedImports or ExplicitResultTypes.
 
 ```scala
@@ -42,6 +43,7 @@ scalafixConfigure(Compile, Test, IntegrationTest)
 ```
 
 ### Verify installation
+
 To verify the installation, check that scalacOptions and libraryDependecies
 contain the values below.
 
@@ -55,6 +57,7 @@ contain the values below.
 ```
 
 ### Example project
+
 For a minimal example project using sbt-scalafix, see the [scalacenter/scalafix-sbt-example](https://github.com/scalacenter/scalafix-sbt-example) repository.
 
 ```scala
@@ -66,24 +69,25 @@ git diff // should produce a diff
 
 ### Settings and tasks
 
-| Name | Type | Description
-|------|------|-------------
-| `scalafix <rule>..` | `Unit` | Run scalafix on project sources. See {% doc_ref Rules %} or use tab completion to explore supported rules.
-| `sbtfix <rule>..` | `Unit` | Run scalafix on the build sources, `*.sbt` and `project/*`. __Note__: Only supports syntactic rules.
-| `scalafixSourceRoot` | `File` | The root directory of this project.
-| `scalafixScalacOptions` | `Seq[String]` | Necessary Scala compiler settings for scalafix to work.
-| `scalafixVersion` | `String` | Which version of scalafix-cli to run.
-| `scalafixScalaVersion` | `String` | Which Scala version of scalafix-cli to run.
-| `scalafixSemanticdbVersion` | `String` | Which version of org.scalameta:semanticdb-scalac to run.
-| `scalafixVerbose` | `Boolean` | If `true`, print out debug information.
+| Name                        | Type          | Description                                                                                                |
+| --------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------- |
+| `scalafix <rule>..`         | `Unit`        | Run scalafix on project sources. See {% doc_ref Rules %} or use tab completion to explore supported rules. |
+| `sbtfix <rule>..`           | `Unit`        | Run scalafix on the build sources, `*.sbt` and `project/*`. **Note**: Only supports syntactic rules.       |
+| `scalafixSourceRoot`        | `File`        | The root directory of this project.                                                                        |
+| `scalafixScalacOptions`     | `Seq[String]` | Necessary Scala compiler settings for scalafix to work.                                                    |
+| `scalafixVersion`           | `String`      | Which version of scalafix-cli to run.                                                                      |
+| `scalafixScalaVersion`      | `String`      | Which Scala version of scalafix-cli to run.                                                                |
+| `scalafixSemanticdbVersion` | `String`      | Which version of org.scalameta:semanticdb-scalac to run.                                                   |
+| `scalafixVerbose`           | `Boolean`     | If `true`, print out debug information.                                                                    |
 
 ### semanticdb-sbt
+
 **⚠️ Experimental**
 
 semanticdb-sbt is a Scala 2.10 compiler plugin that extracts semantic
 information from the sbt compiler.
-Note. semanticdb-sbt only works for *.scala files, it does not
-support *.sbt files.
+Note. semanticdb-sbt only works for `*.scala` files, it does not
+support `*.sbt` files.
 
 ```scala
 // project/plugins.sbt
@@ -102,8 +106,8 @@ Once enabled, you can run scalafix rules against `project/*.scala`:
 The recommended way to install the scalafix command-line interface is with
 [coursier](https://github.com/coursier/coursier#command-line).
 
-
 ### Coursier
+
 ```sh
 // coursier
 coursier bootstrap ch.epfl.scala:scalafix-cli_{{ site.scala212 }}:{{ site.stableVersion }} -f --main scalafix.cli.Cli -o scalafix
@@ -111,6 +115,7 @@ coursier bootstrap ch.epfl.scala:scalafix-cli_{{ site.scala212 }}:{{ site.stable
 ```
 
 ### Homebrew
+
 ```sh
 // homebrew
 brew install --HEAD olafurpg/scalafmt/scalafix
@@ -118,6 +123,7 @@ scalafix --help
 ```
 
 ### wget
+
 ```sh
 // wget
 wget -O scalafix https://github.com/scalacenter/scalafix/blob/master/scalafix?raw=true
@@ -127,9 +133,11 @@ wget -O scalafix https://github.com/scalacenter/scalafix/blob/master/scalafix?ra
 Once the scalafix cli is installed, consult the --help page for further usage instructions.
 
 ### --help
+
 ```tut:evaluated:plain
 println(scalafix.cli.Cli.helpMessage)
 ```
+
 ## Maven
 
 It is possible to use scalafix with scala-maven-plugin but it requires a custom setup since there is no scalafix specific Maven plugin.
@@ -166,15 +174,15 @@ mvn clean test -DskipTests=true -DaddScalacArgs="-Yrangepos|-Xplugin-require:sem
 Here, we compile both main sources and tests to have semantic information generated for all of them, but we skip test execution because it is not the point of that compilation.
 The added flags for scala are given with the `addScalaArgs` option (see http://davidb.github.io/scala-maven-plugin/help-mojo.html#addScalacArgs):
 
-- `-Yrangepos` is required for `semanticdb` to function properly,
-- `-Xplugin:PLUGIN/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar` give the path where the `semanticdb` jar can be found,
-- (optional) `-Xplugin-require:semanticdb` tells scalac to fails if it can't load the `semanticdb` plugin,
-- (optional) `-Ywarn-unused-import` is required for the `RemoveUnusedImports` rule. If you don't run `RemoveUnusedImports` you can skip this flag. Consult the scalafix documentation for each rule to see which flags it requires.
-- (optional) Customize the --sourceroot with `-P:semanticdb:sourceroot:/path/to/sourceroot` (more details below)
+* `-Yrangepos` is required for `semanticdb` to function properly,
+* `-Xplugin:PLUGIN/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar` give the path where the `semanticdb` jar can be found,
+* (optional) `-Xplugin-require:semanticdb` tells scalac to fails if it can't load the `semanticdb` plugin,
+* (optional) `-Ywarn-unused-import` is required for the `RemoveUnusedImports` rule. If you don't run `RemoveUnusedImports` you can skip this flag. Consult the scalafix documentation for each rule to see which flags it requires.
+* (optional) Customize the --sourceroot with `-P:semanticdb:sourceroot:/path/to/sourceroot` (more details below)
 
 After compilation, double check that there exists a directory `target/classes/META-INF/semanticdb/` containing files with the `.semanticdb` extension.
 
-*Important note*: you will need to recompile to get up-to-date `semanticdb` information after each modification.
+_Important note_: you will need to recompile to get up-to-date `semanticdb` information after each modification.
 
 ### Run scalafix-cli
 
@@ -206,6 +214,7 @@ scalafix --rules RemoveUnusedImports --sourceroot /path/to/somepath/scalaProject
 ```
 
 ## scalafix-core
+
 Scalafix can be used as a library to run custom rules.
 
 ```scala
@@ -228,3 +237,20 @@ println(Uppercase("object Hello { println('world) }"))
 
 The semantic API requires a more complicated setup.
 Please see {% doc_ref Rule Authors %}.
+
+## SNAPSHOT
+
+Our CI publishes a snapshot release to Sonatype on every merge into master.
+Each snapshot release has a unique version number, jars don't get overwritten.
+To find the latest snapshot version number, go to <https://oss.sonatype.org/content/repositories/snapshots/ch/epfl/scala/scalafix-core_2.12/>
+and select the version number at the bottom, the one with the latest "Last Modified".
+Once you have found the version number, adapting the version number
+
+```
+// If using sbt-scalafix, add to project/plugins.sbt
+resolvers += Resolver.sonatypeRepo("snapshots")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "{{ site.version }}-SNAPSHOT")
+
+// If using scalafix-cli, launch with coursier
+coursier launch ch.epfl.scala:scalafix-cli_{{ site.scala212 }}:{{ site.version }}-SNAPSHOT -r sonatype:snapshots --main scalafix.cli.Cli -- --help
+```
