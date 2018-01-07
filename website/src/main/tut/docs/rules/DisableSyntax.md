@@ -3,8 +3,6 @@ layout: docs
 title: DisableSyntax
 ---
 
-** syntactic **
-
 # DisableSyntax
 
 _Since 0.5.4_

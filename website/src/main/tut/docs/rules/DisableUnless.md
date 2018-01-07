@@ -3,8 +3,6 @@ layout: docs
 title: DisableUnless
 ---
 
-** syntactic **
-
 # DisableUnless
 
 _Since 0.5.7-67-5b643194-SNAPSHOT_

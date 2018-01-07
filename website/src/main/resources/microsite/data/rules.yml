@@ -11,3 +11,5 @@ rules:
 - Sbt1
 - NoInfer
 - Disable
+- DisableSyntax
+- DisableUnless
