@@ -57,9 +57,24 @@ case class NonUnitStatements(index: SemanticdbIndex)
           .at(s"Type $fullType is not Unit", stat.pos)
       }
 
+    def actualStats(defName: Term.Name, stats: List[Stat]): List[Stat] = {
+      val fullTypeOpt = defName.symbol
+        .flatMap(t => t.resultType)
+        .map(TypeSyntax.prettify(_, ctx, false))
+      fullTypeOpt match {
+        case Some((tpe, _)) if tpe.isEqual(t"_root_.scala.Unit") => stats
+        case _ => stats.dropRight(1)
+      }
+    }
+
     ctx.tree.collect {
       case Template(_, _, _, stats) => statsToErrors(stats)
-      case Block(stats) => statsToErrors(stats)
+      case Defn.Val(_, Pat.Var(name) :: Nil, _, Block(stats)) =>
+        statsToErrors(actualStats(name, stats))
+      case Defn.Var(_, Pat.Var(name) :: Nil, _, Some(Block(stats))) =>
+        statsToErrors(actualStats(name, stats))
+      case Defn.Def(_, name, _, _, _, Block(stats)) =>
+        statsToErrors(actualStats(name, stats))
     }.flatten
   }
 }

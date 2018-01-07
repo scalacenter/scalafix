@@ -37,9 +37,30 @@ object NonUnitStatements {
   List(1, 2, 3).map(_ * 2) // assert: NonUnitStatements.That
   // scala collections ¯\_(ツ)_/¯
 
-  val c = {
+  def f = {
     val a = 1
-    val b = 2
-    123 // assert: NonUnitStatements._root_.scala.Int
+    val b = 3
+    a + b
+  }
+
+  def fUnit: Unit = {
+    val a = 1
+    val b = 3
+    a + b // assert: NonUnitStatements._root_.scala.Int
+  }
+
+  var g: Int = {
+    f // assert: NonUnitStatements._root_.scala.Int
+    fUnit
+    123
+  }
+
+  val h = {
+    val c = 123
+    val d = {
+      val ff = f
+      ff + c
+    }
+    d
   }
 }
