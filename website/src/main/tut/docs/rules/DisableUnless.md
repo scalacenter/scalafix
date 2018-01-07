@@ -5,7 +5,7 @@ title: DisableUnless
 
 # DisableUnless
 
-_Since 0.5.7-67-5b643194-SNAPSHOT_
+_Since 0.5.8_
 
 This rule bans usages of "disabled" symbols unless in a "safe" block. 
 

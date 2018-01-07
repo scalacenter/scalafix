@@ -28,11 +28,15 @@ object NonUnitStatements {
   System.gc()     // ok
   f(a)            // assert: NonUnitStatements._root_.scala.Int
   a + b           // assert: NonUnitStatements._root_.scala.Int
-  a :: List(b)    // assert: NonUnitStatements._root_.scala.collection.immutable.List[B]
   123             // assert: NonUnitStatements._root_.scala.Int
   A.foo.bar(b)    // assert: NonUnitStatements._root_.scala.Int
   A.foo           // assert: NonUnitStatements._root_.test.NonUnitStatements.A.Foo
   A.unitFoo       // ok
+
+  a :: List(b)             // assert: NonUnitStatements._root_.scala.collection.immutable.List[B]
+  List(1, 2, 3).map(_ * 2) // assert: NonUnitStatements.That
+  // scala collections ¯\_(ツ)_/¯
+
   val c = {
     val a = 1
     val b = 2

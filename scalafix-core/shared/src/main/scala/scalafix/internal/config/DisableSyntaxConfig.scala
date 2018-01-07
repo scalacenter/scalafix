@@ -37,8 +37,8 @@ case class DisableSyntaxConfig(
             c.getField(noImplicitConversion) |@|
             c.getField(regex)
         ).map {
-          case (((((((((((a, b), c), d), e), f), g), i), j), k), l), m) =>
-            DisableSyntaxConfig(a, b, c, d, e, f, g, i, k, l, m)
+          case ((((((((((a, b), c), d), e), f), g), i), j), k), l) =>
+            DisableSyntaxConfig(a, b, c, d, e, f, g, i, j, k, l)
       })
 
   implicit val patternReader: ConfDecoder[Pattern] = {
