@@ -30,8 +30,8 @@ final case class LeakingSealed(index: SemanticdbIndex)
             mods.forall(m => !m.is[Mod.Final] && !m.is[Mod.Sealed]) =>
         error.at("Not final/sealed class", t.pos)
       case t @ Defn.Trait(mods, _, _, _, templ)
-        if templ.inits.exists(i => isSealed(i.tpe)) &&
-          mods.forall(m => !m.is[Mod.Final] && !m.is[Mod.Sealed]) =>
+          if templ.inits.exists(i => isSealed(i.tpe)) &&
+            mods.forall(m => !m.is[Mod.Final] && !m.is[Mod.Sealed]) =>
         error.at("Not final/sealed trait", t.pos)
     }
   }
