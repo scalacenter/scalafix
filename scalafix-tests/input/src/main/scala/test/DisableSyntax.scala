@@ -67,11 +67,13 @@ case object DisableSyntax {
   }
 
   trait FooT {
-    def bar(x: Int = 42) = 2 // assert: DisableSyntax.defaultArgs
+    def bar(x: Int = 42) = ???           // assert: DisableSyntax.defaultArgs
+    def foo(a: Int)(b: Int = 1) = ???    // assert: DisableSyntax.defaultArgs
+    def foobar(a: Int, b: Int = 1) = ??? // assert: DisableSyntax.defaultArgs
   }
 
   trait FooTT {
-    def bar(x: Int) = 3
+    def bar(x: Int) = 3 // ok
   }
 
   val fooT = new FooTT {
@@ -82,6 +84,8 @@ case object DisableSyntax {
   def foobar = {
     def foobarfoo(x: Int = 42) = 6 // ok
   }
+
+  class Buzz(val a: Int = 1) // ok
 
   abstract class AbstractThing {
     val noooo = "yes" // assert: DisableSyntax.valInAbstract

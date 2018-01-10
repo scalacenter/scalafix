@@ -63,4 +63,13 @@ object DiscardedValues {
     }
     d
   }
+
+  trait FooT
+  new FooT {
+    42 // assert: DiscardedValues._root_.scala.Int
+  }
+  class FooC
+  new FooC {
+    42 // assert: DiscardedValues._root_.scala.Int
+  }
 }
