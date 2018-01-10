@@ -25,7 +25,7 @@ object ScalafixRules {
     NoAutoTupling(index),
     Disable(index, DisableConfig.default),
     DisableUnless(index, DisableUnlessConfig.default),
-    NonUnitStatements(index)
+    DiscardedValues(index)
   )
   def all(index: SemanticdbIndex): List[Rule] =
     syntax ++ semantic(index)

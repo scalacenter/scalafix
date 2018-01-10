@@ -9,8 +9,8 @@ import scalafix.rule.{RuleCtx, RuleName, SemanticRule}
 import scalafix.syntax._
 import scala.meta.contrib.implicits.Equality._
 
-case class NonUnitStatements(index: SemanticdbIndex)
-    extends SemanticRule(index, RuleName("NonUnitStatements")) {
+case class DiscardedValues(index: SemanticdbIndex)
+    extends SemanticRule(index, RuleName("DiscardedValues")) {
 
   override def description: String =
     "This rule ensures that statements should only return Unit"
