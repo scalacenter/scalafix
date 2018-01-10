@@ -5,7 +5,7 @@ title: DisableUnless
 
 # DisableUnless
 
-_Since 0.5.7-67-5b643194-SNAPSHOT_
+_Since 0.5.8_
 
 This rule bans usages of "disabled" symbols unless in a "safe" block. 
 
@@ -48,14 +48,14 @@ object Test {
   }
 
   
-  println("hi") // assert: DisableUnless.println
+  println("hi") // not ok
   
   IO {
     println("hi") // ok
   }
   
   IO {
-    def sideEffect(i: Int) = println("not good!") // assert: DisableUnless.println
-    (i: Int) => println("also not good!") // assert: DisableUnless.println
+    def sideEffect(i: Int) = println("not good!") // not ok
+    (i: Int) => println("also not good!") // not ok
   }
 ```
