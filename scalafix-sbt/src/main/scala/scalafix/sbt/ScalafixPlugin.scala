@@ -4,6 +4,7 @@ import scalafix.Versions
 import sbt.File
 import sbt.Keys._
 import sbt._
+import sbt.complete.Parser
 import sbt.plugins.JvmPlugin
 import scalafix.internal.sbt.ScalafixCompletions
 import scalafix.internal.sbt.ScalafixJarFetcher
@@ -14,6 +15,8 @@ object ScalafixPlugin extends AutoPlugin {
   override def requires: Plugins = JvmPlugin
   object autoImport {
     val scalafix: InputKey[Unit] =
+      inputKey[Unit]("Run scalafix rule.")
+    val scalafixCli: InputKey[Unit] =
       inputKey[Unit]("Run scalafix rule.")
     val scalafixTest: InputKey[Unit] =
       inputKey[Unit]("Run scalafix as a test(without modifying sources).")
@@ -42,11 +45,15 @@ object ScalafixPlugin extends AutoPlugin {
         configureForConfigurations(
           configs,
           scalafix,
-          c => scalafixTaskImpl(c, Nil)),
+          c => scalafixTaskImpl(c, scalafixParserCompat, Nil)),
+        configureForConfigurations(
+          configs,
+          scalafixCli,
+          c => scalafixTaskImpl(c, scalafixParser, Nil)),
         configureForConfigurations(
           configs,
           scalafixTest,
-          c => scalafixTaskImpl(c, Seq("--test")))
+          c => scalafixTaskImpl(c, scalafixParserCompat, Seq("--test")))
       ).flatten
 
     /** Add -Yrangepos and semanticdb sourceroot to scalacOptions. */
@@ -81,6 +88,7 @@ object ScalafixPlugin extends AutoPlugin {
   override def projectSettings: Seq[Def.Setting[_]] =
     scalafixSettings ++ // TODO(olafur) remove this line in 0.6.0
       scalafixTaskSettings ++
+      scalafixCliTaskSettings ++
       scalafixTestTaskSettings
   override def globalSettings: Seq[Def.Setting[_]] = Seq(
     scalafixConfig := Option(file(".scalafix.conf")).filter(_.isFile),
@@ -133,8 +141,12 @@ object ScalafixPlugin extends AutoPlugin {
   // hack to avoid illegal dynamic reference, can't figure out how to do
   // scalafixParser(baseDirectory.in(ThisBuild).value).parsed
   private def workingDirectory = file(sys.props("user.dir"))
+
   private val scalafixParser =
-    ScalafixCompletions.parser(workingDirectory.toPath)
+    ScalafixCompletions.parser(workingDirectory.toPath, compat = false)
+  private val scalafixParserCompat =
+    ScalafixCompletions.parser(workingDirectory.toPath, compat = true)
+
   private val isSupportedScalaVersion = Def.setting {
     CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, 11 | 12)) => true
@@ -172,16 +184,24 @@ object ScalafixPlugin extends AutoPlugin {
     }
   )
 
+  // TODO: remove when we can break binary compat
   lazy val scalafixTaskSettings: Seq[Def.Setting[InputTask[Unit]]] =
     configureForConfigurations(
       List(Compile, Test),
       scalafix,
-      c => scalafixTaskImpl(c))
+      c => scalafixTaskImpl(c, scalafixParserCompat))
+
+  lazy val scalafixCliTaskSettings: Seq[Def.Setting[InputTask[Unit]]] =
+    configureForConfigurations(
+      List(Compile, Test),
+      scalafixCli,
+      c => scalafixTaskImpl(c, scalafixParser))
+
   lazy val scalafixTestTaskSettings: Seq[Def.Setting[InputTask[Unit]]] =
     configureForConfigurations(
       List(Compile, Test),
       scalafixTest,
-      c => scalafixTaskImpl(c, Seq("--test")))
+      c => scalafixTaskImpl(c, scalafixParserCompat, Seq("--test")))
 
   @deprecated(
     "Use configureForConfiguration(List(Compile, Test), ...) instead",
@@ -203,10 +223,11 @@ object ScalafixPlugin extends AutoPlugin {
 
   def scalafixTaskImpl(
       config: Seq[Configuration],
+      parser: Parser[Seq[String]],
       extraOptions: Seq[String] = Seq()): Def.Initialize[InputTask[Unit]] =
     Def.inputTaskDyn {
       scalafixTaskImpl(
-        scalafixParser.parsed,
+        parser.parsed,
         ScopeFilter(configurations = inConfigurations(config: _*)),
         extraOptions)
     }

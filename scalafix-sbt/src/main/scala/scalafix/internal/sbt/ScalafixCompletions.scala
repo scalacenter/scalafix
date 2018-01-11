@@ -92,7 +92,7 @@ object ScalafixCompletions {
     )
   }
 
-  def parser(cwd: Path): Parser[Seq[String]] = {
+  def parser(cwd: Path, compat: Boolean): Parser[Seq[String]] = {
     val pathParser: P = token(filepathParser(cwd))
     val pathRegexParser: P = mapOrFail(pathParser) { regex =>
       Pattern.compile(regex); regex
@@ -131,7 +131,7 @@ object ScalafixCompletions {
     val verbose: P = "--verbose"
     val zsh: P = "--zsh"
 
-    val all =
+    val base =
       bash |
         classpath |
         classpathAutoRoots |
@@ -157,6 +157,12 @@ object ScalafixCompletions {
         version |
         verbose |
         zsh
+
+    val rest =
+      if (compat) ruleParser
+      else filepathParser(cwd)
+
+    val all = base | rest
 
     (token(Space) ~> all).* <~ SpaceClass.*
   }

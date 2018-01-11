@@ -1,6 +1,5 @@
 package scalafix.internal.sbt
 
-import java.nio.file.Paths
 import org.scalatest.FunSuite
 import sbt.complete.Parser
 import sbt.complete.Completion
@@ -25,7 +24,9 @@ class ScalafixCompletionsTest extends FunSuite {
   }
   git.tag("v0.1.0")
 
-  val parser = ScalafixCompletions.parser(fs.workingDirectory.toAbsolutePath)
+  val parser = ScalafixCompletions.parser(
+    fs.workingDirectory.toAbsolutePath,
+    compat = false)
   val space = " "
 
   def check(name: String)(assertCompletions: List[Completion] => Unit): Unit = {
@@ -52,9 +53,18 @@ class ScalafixCompletionsTest extends FunSuite {
   def isSha1(in: String): Boolean =
     AbbreviatedObjectId.isId(in)
 
+  test("compat") {
+    val parser = ScalafixCompletions.parser(
+      fs.workingDirectory.toAbsolutePath,
+      compat = true)
+    val completions = Parser.completions(parser, " ", 0).get
+    val obtained = completions.toList.sortBy(_.display)
+    assert(obtained.exists(_.display.startsWith("file:")))
+  }
+
   check("all") { completions =>
-    val obtained = completions.map(_.display)
-    val expected = List(
+    val obtained = completions.map(_.display).toSet
+    val expected = Set(
       "",
       "--bash",
       "--classpath",
@@ -83,7 +93,7 @@ class ScalafixCompletionsTest extends FunSuite {
       "--zsh"
     )
 
-    assert(obtained == expected)
+    assert((expected -- obtained).isEmpty)
   }
   check2("--classpath ba") { (appends, displays) =>
     assert(displays.contains("bar"))
