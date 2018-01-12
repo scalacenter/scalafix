@@ -1,7 +1,9 @@
 package scalafix.internal.rule
 
-import scala.meta.internal.semanticdb._
-import scala.meta.internal.semanticdb._
+// import scala.meta.internal.semanticdb._
+// import scala.meta.interactive.InteractiveSemanticdb
+
+import scalafix.syntax._
 
 import scala.meta._
 import scalafix.Patch
@@ -9,11 +11,7 @@ import scalafix.SemanticdbIndex
 import scalafix.rule.RuleCtx
 import scalafix.rule.SemanticRule
 
-import scala.reflect.io.VirtualDirectory
-import scala.tools.nsc.Settings
-import scala.tools.nsc.interactive.Global
-import scala.tools.nsc.interactive.Response
-import scala.tools.nsc.reporters.StoreReporter
+// import scala.tools.nsc.interactive.Response
 
 /*
 http://www.scala-lang.org/files/archive/spec/2.12/06-expressions.html#sam-conversion
@@ -61,6 +59,9 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
     extends SemanticRule(index, "SingleAbstractMethod") {
   override def description: String = ???
   override def fix(ctx: RuleCtx): Patch = {
+
+    println(ctx.index.database)
+
     object Sam {
       def unapply(tree: Tree): Option[(Term.Function, Type)] = {
         tree match {
@@ -76,122 +77,57 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
                     _,
                     List(params),
                     _,
-                    body
-                  )
+                    body)))) => {
+
+              // println(tpe.pos.start)
+              // println(tpe.pos.end)
+              // val d = ctx.index.denotation(tpe).get
+              // println(d.names)
+              // println(d)
+              // println(d.flags)
+              // println(d.name)
+              // println(d.signature)
+              // d.names.foreach(println)
+              // d.members.foreach(println)
+            
+              Some(
+                (
+                  Term.Function(params.map(_.copy(decltpe = None)), body),
+                  tpe
                 )
               )
-              ) => {
-            Some(
-              (
-                Term.Function(params.map(_.copy(decltpe = None)), body),
-                tpe
-              )
-            )
           }
           case _ => None
         }
       }
     }
 
-    val compiler = {
-      val vd = new VirtualDirectory("(memory)", None)
-      val settings = new Settings
-      settings.outputDirs.setSingleOutput(vd)
-      settings.classpath.value = index.classpath.toString
-      val scalacOptions = List.empty[String]
-      settings.processArgumentString(
-        ("-Ypresentation-any-thread" :: scalacOptions).mkString(" ")
-      )
-      new Global(settings, new StoreReporter)
-    }
-
-    lazy val databaseOps: DatabaseOps {
-      val global: compiler.type
-    } = new DatabaseOps {
-      val global: compiler.type = compiler
-    }
-    import databaseOps._
-
-    def addCompilationUnit(
-        global: Global,
-        code: String): global.RichCompilationUnit = {
-      val unit = global.newCompilationUnit(code, "bar.scala")
-      val richUnit = new global.RichCompilationUnit(unit.source)
-      global.unitOfFile(richUnit.source.file) = richUnit
-      richUnit
-    }
-
-    def ask[A](f: Response[A] => Unit): Response[A] = {
-      val r = new Response[A]
-      f(r)
-      r
-    }
-
-    val unit = addCompilationUnit(compiler, ctx.input.text)
-
     collectOnce(ctx.tree) {
-      case anon @ Sam(lambda, tpe) => {
+      case term @ Defn.Val(mods, List(Pat.Var(name)), _, Sam(lambda, tpe)) =>
+        ctx.replaceTree(
+          term,
+          Defn.Val(mods, List(Pat.Var(name)), Some(tpe), lambda).show[Syntax])
 
-        
-        
-        println(anon.show[Syntax])
-
-        val pos = compiler.rangePos(unit.source, tpe.pos.start, tpe.pos.start, tpe.pos.start)
-        val res = ask[compiler.Tree](r ⇒ compiler.askTypeAt(pos, r)).get
-
-        val isSam = 
-          res match {
-            case Left(r) =>
-              val symbol = ctx.index.symbol(tpe).get
-              r.tpe.baseClasses.map(c => (c, c.toSemantic)).find{ case (bc, s) =>
-                // println(s)
-                // println(bc == symbol)
-                // println(bc.tpe.decls.forall(_.isAbstract))
-                bc == symbol
-              } match {
-                case Some((bc, _)) => bc.tpe.decls.forall(_.isAbstract)
-                case _ => false
-              }
-            case _ => false
-          }
-
-        println(isSam)
-
+      case in @ init"TimerTask" => {
+        in.denotation.get.members.foreach(m =>
+          println(m.isAbstract)
+        )
         Patch.empty
       }
-    }
+
+      // case t: Defn.Class
+
+      // case v: Defn.Val =>
+      //   println(v.show[Syntax])
+      //   val d = ctx.index.denotation(v.pats.head).get
+      //   val s2 = ctx.index.symbol(d.names.head.position).get
+      //   val d2 = ctx.index.denotation(s2).get
+      //   println(d2)
+        
 
 
-    
-
-
-    Patch.empty
-    // collectOnce(ctx.tree) {
-    //   case term @ Defn.Var(
-    //         mods,
-    //         List(Pat.Var(name)),
-    //         _,
-    //         Some(Sam(lambda, tpe))) =>
-    //     ctx.replaceTree(
-    //       term,
-    //       Defn
-    //         .Var(mods, List(Pat.Var(name)), Some(tpe), Some(lambda))
-    //         .show[Syntax])
-
-    //   case term @ Defn.Val(mods, List(Pat.Var(name)), _, Sam(lambda, tpe)) =>
-    //     ctx.replaceTree(
-    //       term,
-    //       Defn.Val(mods, List(Pat.Var(name)), Some(tpe), lambda).show[Syntax])
-
-    //   case term @ Defn.Def(mods, name, tparams, paramss, _, Sam(lambda, tpe)) =>
-    //     ctx.replaceTree(
-    //       term,
-    //       Defn.Def(mods, name, tparams, paramss, Some(tpe), lambda).show[Syntax]
-    //     )
-
-    //   case anon @ Sam(lambda, tpe) =>
-    //     ctx.replaceTree(anon, lambda.show[Syntax])
-    // }.asPatch
+      //   Patch.empty
+    }.asPatch
   }
 
   private def collectOnce[T](tree: Tree)(

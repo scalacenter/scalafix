@@ -1,13 +1,12 @@
 package test
 
 import java.util.TimerTask
-import java.lang.Runnable
 
-object A {
-  val foo = new Runnable {
-    def run(): Unit = println("Run!")
-  }
-  val bar = new TimerTask {
-    def run(): Unit = println("Run!") 
-  }
+class Foo(a: String) extends TimerTask {
+  def run(): Unit = println(a)
+}
+
+class SingleAbstractMethod {
+  val bar: TimerTask = () => println("Run!")
+  val boo = new Foo("t")
 }
