@@ -38,11 +38,16 @@ object SemanticTests {
       AbsolutePath(BuildInfo.inputSbtSourceroot)
     )
   )
-  def classpath: Classpath = Classpath(
-    List(
-      AbsolutePath(BuildInfo.semanticSbtClasspath),
-      AbsolutePath(BuildInfo.semanticClasspath)
-    )
-  )
+  def classpath: Classpath = {
+    val dependencies = BuildInfo.dependencyClasspath
+      .map(file => AbsolutePath(file.toString))
+      .toList
 
+    Classpath(
+      List(
+        AbsolutePath(BuildInfo.semanticSbtClasspath),
+        AbsolutePath(BuildInfo.semanticClasspath)
+      ) ::: dependencies
+    )
+  }
 }

@@ -110,7 +110,8 @@ val core = MultiScalaCrossProject(
     buildInfoSettings,
     libraryDependencies ++= List(
       scalameta.value,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided,
+      "org.scala-lang" % "scala-compiler" % scalaVersion.value
     )
   ).jvmSettings(
       libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV
@@ -237,14 +238,18 @@ val testsInput = TestProject(
     project.settings(
       noPublish,
       semanticdbSettings,
-      scalacOptions += {
+      libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value,
+      scalacOptions ++= {
         val sourceroot = baseDirectory.in(ThisBuild).value / srcMain
-        s"-P:semanticdb:sourceroot:$sourceroot"
+        Seq(
+          s"-P:semanticdb:sourceroot:$sourceroot",
+          "-Ywarn-adapted-args", // For NoAutoTupling,
+          "-Ywarn-unused-import", // For RemoveUnusedImports,
+          "-Ywarn-unused", // For RemoveUnusedTerms
+          "-P:semanticdb:members:all"
+        )
       },
       scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
-      scalacOptions += "-Ywarn-adapted-args", // For NoAutoTupling
-      scalacOptions += "-Ywarn-unused-import", // For RemoveUnusedImports
-      scalacOptions += "-Ywarn-unused", // For RemoveUnusedTerms
       logLevel := Level.Error, // avoid flood of compiler warnings
       testsInputOutputSetting
   )
@@ -375,7 +380,10 @@ def unit(
         "semanticClasspath" ->
           classDirectory.in(testsInput, Compile).value,
         "sharedClasspath" ->
-          classDirectory.in(testsShared, Compile).value
+          classDirectory.in(testsShared, Compile).value,
+        BuildInfoKey.map(dependencyClasspath.in(testsInput, Compile)) {
+          case (_, v) => "dependencyClasspath" -> v.map(_.data)
+        }
       )
     ).dependsOn(
       testsInput,
