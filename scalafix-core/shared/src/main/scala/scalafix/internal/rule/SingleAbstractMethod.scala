@@ -1,5 +1,8 @@
 package scalafix.internal.rule
 
+import scala.meta.internal.semanticdb._
+import scala.meta.internal.semanticdb._
+
 import scala.meta._
 import scalafix.Patch
 import scalafix.SemanticdbIndex
@@ -78,16 +81,6 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
                 )
               )
               ) => {
-            // if (tree.show[Syntax] == """new Runnable() { def run(): Unit = println("Hello, Thread!") }""") {
-            println("---")
-            val denotation = index.denotation(tpe).get
-            println(denotation.flags)
-            println(denotation.name)
-            println(denotation.signature)
-            denotation.names.foreach(println)
-            denotation.members.foreach(println)
-            // }
-
             Some(
               (
                 Term.Function(params.map(_.copy(decltpe = None)), body),
@@ -112,6 +105,13 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
       new Global(settings, new StoreReporter)
     }
 
+    lazy val databaseOps: DatabaseOps {
+      val global: compiler.type
+    } = new DatabaseOps {
+      val global: compiler.type = compiler
+    }
+    import databaseOps._
+
     def addCompilationUnit(
         global: Global,
         code: String): global.RichCompilationUnit = {
@@ -127,17 +127,43 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
       r
     }
 
-    val unit = addCompilationUnit(compiler, "object A { }")
-    // reload seems to be necessary before askLoadedType.
-    ask[Unit](r => compiler.askReload(unit.source :: Nil, r)).get
-    val compiledTree =
-      ask[compiler.Tree](r => compiler.askLoadedTyped(unit.source, r)).get(1000)
-    val tree2 = compiledTree match {
-      case Some(Left(t)) => t
-      case Some(Right(ex)) => throw ex
-      case None =>
-        throw new IllegalArgumentException("Presentation compiler timed out")
+    val unit = addCompilationUnit(compiler, ctx.input.text)
+
+    collectOnce(ctx.tree) {
+      case anon @ Sam(lambda, tpe) => {
+
+        
+        
+        println(anon.show[Syntax])
+
+        val pos = compiler.rangePos(unit.source, tpe.pos.start, tpe.pos.start, tpe.pos.start)
+        val res = ask[compiler.Tree](r ⇒ compiler.askTypeAt(pos, r)).get
+
+        val isSam = 
+          res match {
+            case Left(r) =>
+              val symbol = ctx.index.symbol(tpe).get
+              r.tpe.baseClasses.map(c => (c, c.toSemantic)).find{ case (bc, s) =>
+                // println(s)
+                // println(bc == symbol)
+                // println(bc.tpe.decls.forall(_.isAbstract))
+                bc == symbol
+              } match {
+                case Some((bc, _)) => bc.tpe.decls.forall(_.isAbstract)
+                case _ => false
+              }
+            case _ => false
+          }
+
+        println(isSam)
+
+        Patch.empty
+      }
     }
+
+
+    
+
 
     Patch.empty
     // collectOnce(ctx.tree) {
