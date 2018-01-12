@@ -2,6 +2,8 @@ package scalafix.internal.jgit
 
 import java.nio.file.Path
 
+import scalafix.internal.diff._
+
 import org.eclipse.jgit.util.FS
 import org.eclipse.jgit.lib.RepositoryCache
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
@@ -26,7 +28,7 @@ import scala.collection.JavaConverters._
 import metaconfig.{ConfError, Configured}
 
 object JGitDiff {
-  def apply(workingDir: Path, diffBase: String): Configured[List[GitDiff]] = {
+  def apply(workingDir: Path, diffBase: String): Configured[DiffDisable] = {
 
     if (isGitRepository(workingDir)) {
       val builder = new FileRepositoryBuilder()
@@ -57,7 +59,7 @@ object JGitDiff {
                     case DELETE => Nil
                 })
 
-              Configured.Ok(diffs)
+              Configured.Ok(DiffDisable(diffs))
             }
             case Left(msg) => ConfError.msg(msg).notOk
           }

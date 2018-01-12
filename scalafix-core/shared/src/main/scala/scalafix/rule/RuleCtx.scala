@@ -4,6 +4,7 @@ import scala.meta._
 import scala.meta.contrib.AssociatedComments
 import scala.meta.tokens.Tokens
 import scalafix.internal.config.ScalafixConfig
+import scalafix.internal.diff.DiffDisable
 import scalafix.internal.rule.RuleCtxImpl
 import scalafix.patch.PatchOps
 import scalafix.util.MatchingParens
@@ -60,7 +61,14 @@ trait RuleCtx extends PatchOps {
 
 object RuleCtx {
   def apply(tree: Tree): RuleCtx =
-    apply(tree, ScalafixConfig.default)
+    apply(tree, ScalafixConfig.default, DiffDisable.empty)
+
   private[scalafix] def apply(tree: Tree, config: ScalafixConfig): RuleCtx =
-    RuleCtxImpl(tree, config)
+    apply(tree, config, DiffDisable.empty)
+
+  private[scalafix] def apply(
+      tree: Tree,
+      config: ScalafixConfig,
+      diffDisable: DiffDisable): RuleCtx =
+    RuleCtxImpl(tree, config, diffDisable)
 }

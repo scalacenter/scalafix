@@ -1,23 +1,28 @@
-package scalafix.internal.jgit
+package scalafix.internal.diff
 
-import metaconfig.Configured
-
-import java.nio.file.Path
-
-import org.langmeta.inputs.Input
+import scala.meta.inputs.Input
+import scala.meta.Position
 
 import scala.collection.mutable.StringBuilder
 
 import scalafix.internal.util.IntervalSet
-import scalafix.LintMessage
 
 object DiffDisable {
-  def apply(workingDir: Path, diffBase: String): Configured[DiffDisable] = {
-    JGitDiff(workingDir, diffBase).map(diffs => new DiffDisable(diffs))
-  }
+  def empty: DiffDisable = EmptyDiff
+  def apply(diffs: List[GitDiff]): DiffDisable = new FullDiffDisable(diffs)
 }
 
-class DiffDisable(diffs: List[GitDiff]) {
+sealed trait DiffDisable {
+  def isDisabled(position: Position): Boolean
+  def isDisabled(file: Input): Boolean
+}
+
+private object EmptyDiff extends DiffDisable {
+  def isDisabled(position: Position): Boolean = false
+  def isDisabled(file: Input): Boolean = false
+}
+
+private class FullDiffDisable(diffs: List[GitDiff]) extends DiffDisable {
   private val newFiles: Set[Input] = diffs.collect {
     case NewFile(path) => Input.File(path)
   }.toSet
@@ -34,21 +39,25 @@ class DiffDisable(diffs: List[GitDiff]) {
   def isDisabled(file: Input): Boolean =
     !(newFiles.contains(file) || modifiedFiles.contains(file))
 
-  def filter(lints: List[LintMessage]): List[LintMessage] = {
-    def isAddition(lint: LintMessage): Boolean =
-      newFiles.contains(lint.position.input)
+  def isDisabled(position: Position): Boolean = {
+    def isAddition: Boolean =
+      newFiles.contains(position.input)
 
-    def isModification(lint: LintMessage): Boolean =
+    def isModification: Boolean = {
+      val startLine = position.startLine
+      val endLine = position.endLine
       modifiedFiles
-        .get(lint.position.input)
+        .get(position.input)
         .fold(false)(
           interval =>
             interval.intersects(
-              lint.position.startLine,
-              lint.position.endLine
-          ))
+              startLine,
+              endLine
+          )
+        )
+    }
 
-    lints.filter(lint => isAddition(lint) || isModification(lint))
+    !(isAddition || isModification)
   }
 
   override def toString: String = {
