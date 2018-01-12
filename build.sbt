@@ -111,7 +111,9 @@ val core = MultiScalaCrossProject(
     libraryDependencies ++= List(
       scalameta.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided,
-      "org.scala-lang" % "scala-compiler" % scalaVersion.value
+      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
+      "org.scalameta" %% "semanticdb-scalac" % scalametaV cross CrossVersion.full
+
     )
   ).jvmSettings(
       libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV
