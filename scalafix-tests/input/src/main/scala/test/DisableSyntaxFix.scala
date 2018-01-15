@@ -1,11 +1,11 @@
 /*
-rules = FixSyntax
-FixSyntax.removeFinalVal = true
-FixSyntax.addFinalCaseClass = true
+rules = DisableSyntax
+DisableSyntax.noFinalVal = true
+DisableSyntax.noNonFinalCaseClass = true
  */
 package test
 
-object FixSyntax {
+object DisableSyntaxFix {
   final implicit val a = 1
   implicit final val b = 1
   final val c = 1

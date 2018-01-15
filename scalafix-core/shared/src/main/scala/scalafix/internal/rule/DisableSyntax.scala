@@ -2,6 +2,8 @@ package scalafix.internal.rule
 
 import scala.meta._
 import metaconfig.{Conf, Configured}
+
+import scalafix.Patch
 import scalafix.rule.{Rule, RuleCtx}
 import scalafix.lint.LintMessage
 import scalafix.lint.LintCategory
@@ -154,6 +156,26 @@ final case class DisableSyntax(
 
   override def check(ctx: RuleCtx): Seq[LintMessage] = {
     checkTree(ctx) ++ checkTokens(ctx) ++ checkRegex(ctx)
+  }
+
+  override def fix(ctx: RuleCtx): Patch = {
+    ctx.tree.collect {
+      case t @ Defn.Class(mods, _, _, _, _)
+        if config.noNonFinalCaseClass &&
+          mods.exists(_.is[Mod.Case]) &&
+          !mods.exists(_.is[Mod.Final]) =>
+        ctx.addLeft(t, "final ")
+      case t @ Defn.Val(mods, _, _, _)
+        if config.noFinalVal &&
+          mods.exists(_.is[Mod.Final]) =>
+        val finalTokens = mods.find(_.is[Mod.Final]).get.tokens
+        ctx.removeTokens(
+          t.tokens.filter(
+            token =>
+              token.start >= finalTokens(0).start &&
+                token.end <= finalTokens.last.end + 1)
+        ) // remove one space after final
+    }.asPatch
   }
 
   private val errorCategory: LintCategory =

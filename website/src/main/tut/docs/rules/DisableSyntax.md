@@ -39,6 +39,11 @@ It contains the following elements:
 * implicit objects (_Since 0.5.8_)
 * implicit conversions (implicit def with non-implicit parameters) (_Since 0.5.8_)
 
+There're also rules that rewrite syntax:
+
+* transforming `final val` to `val` (It breaks incremental compilation, see more <https://github.com/sbt/zinc/issues/227>) (_Since 0.5.8_)
+* transforming `case class` to `final case class` (_Since 0.5.8_)
+ 
 To disallow a syntax:
 
 ```
@@ -57,4 +62,6 @@ DisableSyntax.noDefaultArgs = true
 DisableSyntax.noValInAbstract = true
 DisableSyntax.noImplicitObject = true
 DisableSyntax.noImplicitConversion = true
+DisableSyntax.noFinalVal = true
+DisableSyntax.noNonFinalCaseClass = true
 ```

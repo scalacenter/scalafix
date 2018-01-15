@@ -13,5 +13,4 @@ rules:
 - Disable
 - DisableSyntax
 - DisableUnless
-- FixSyntax
 - LeakingSealed
