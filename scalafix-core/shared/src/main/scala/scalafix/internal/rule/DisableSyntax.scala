@@ -161,13 +161,13 @@ final case class DisableSyntax(
   override def fix(ctx: RuleCtx): Patch = {
     ctx.tree.collect {
       case t @ Defn.Class(mods, _, _, _, _)
-        if config.noNonFinalCaseClass &&
-          mods.exists(_.is[Mod.Case]) &&
-          !mods.exists(_.is[Mod.Final]) =>
+          if config.noNonFinalCaseClass &&
+            mods.exists(_.is[Mod.Case]) &&
+            !mods.exists(_.is[Mod.Final]) =>
         ctx.addLeft(t, "final ")
       case t @ Defn.Val(mods, _, _, _)
-        if config.noFinalVal &&
-          mods.exists(_.is[Mod.Final]) =>
+          if config.noFinalVal &&
+            mods.exists(_.is[Mod.Final]) =>
         val finalTokens = mods.find(_.is[Mod.Final]).get.tokens
         ctx.removeTokens(
           t.tokens.filter(
