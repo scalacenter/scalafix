@@ -13,6 +13,4 @@ rules:
 - Disable
 - DisableSyntax
 - DisableUnless
-- FixSyntax
-- LeakingSealed
 - NonUnitStatements
