@@ -24,14 +24,16 @@ final case class LeakingSealed(index: SemanticdbIndex)
     def isSealed(tpe: Type): Boolean =
       ctx.index.denotation(tpe).exists(_.isSealed)
 
+    def isDescendantNotSealed(mods: List[Mod], templ: Template): Boolean =
+      templ.inits.exists(i => isSealed(i.tpe)) &&
+        mods.forall(m => !m.is[Mod.Final] && !m.is[Mod.Sealed])
+
     ctx.tree.collect {
       case t @ Defn.Class(mods, _, _, _, templ)
-          if templ.inits.exists(i => isSealed(i.tpe)) &&
-            mods.forall(m => !m.is[Mod.Final] && !m.is[Mod.Sealed]) =>
+          if isDescendantNotSealed(mods, templ) =>
         error.at("Not final/sealed class", t.pos)
       case t @ Defn.Trait(mods, _, _, _, templ)
-          if templ.inits.exists(i => isSealed(i.tpe)) &&
-            mods.forall(m => !m.is[Mod.Final] && !m.is[Mod.Sealed]) =>
+          if isDescendantNotSealed(mods, templ) =>
         error.at("Not final/sealed trait", t.pos)
     }
   }

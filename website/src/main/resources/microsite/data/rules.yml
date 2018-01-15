@@ -15,4 +15,3 @@ rules:
 - DisableUnless
 - FixSyntax
 - LeakingSealed
-- NonUnitStatements
