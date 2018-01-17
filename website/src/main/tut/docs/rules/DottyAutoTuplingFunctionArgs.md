@@ -10,10 +10,11 @@ _Since v0.5.8_
 Removes pattern-matching decomposition if function arguments can be automatically tupled. See [http://dotty.epfl.ch/docs/reference/auto-parameter-tupling.html](http://dotty.epfl.ch/docs/reference/auto-parameter-tupling.html)
 
 ```scala
+val ranges: List[(Int, Int)] = ((1, 5), (9, 11))
 // before
-xs.map { case (x, y) => x + y }
+ranges.map { case (start, end) => end - start }
 // after
-xs.map((x, y) => x + y)
+ranges.map((start, end) => end - start)
 ```
 
 Auto-tupling is a language feature only supported in Dotty. Therefore, the code produced by this rewrite does not compile with Scala 2.x.
