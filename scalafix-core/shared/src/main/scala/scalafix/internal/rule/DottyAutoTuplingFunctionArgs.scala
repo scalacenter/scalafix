@@ -2,11 +2,12 @@ package scalafix.internal.rule
 
 import scala.meta._
 import scala.meta.tokens.Token._
-import scalafix.Patch
-import scalafix.rule.{Rule, RuleCtx}
+import scalafix._
+import scalafix.syntax._
+import scalafix.util.SymbolMatcher
 
-case object DottyAutoTuplingFunctionArgs
-    extends Rule("DottyAutoTuplingFunctionArgs") {
+case class DottyAutoTuplingFunctionArgs(index: SemanticdbIndex)
+    extends SemanticRule(index, "DottyAutoTuplingFunctionArgs") {
   override def description: String =
     "Rewrite that removes pattern-matching decomposition if function arguments can be automatically tupled in Dotty."
 
@@ -37,11 +38,28 @@ case object DottyAutoTuplingFunctionArgs
         }).asPatch
     }.asPatch
 
+  private val ScalaAny = SymbolMatcher.exact(Symbol("_root_.scala.Any#"))
+  private def isMaybeAny(name: Term.Name): Boolean =
+    (for {
+      symbol <- name.symbol
+      tpe <- symbol.resultType
+    } yield ScalaAny.matches(tpe)).getOrElse(true)
+
+  // See https://github.com/scalacenter/scalafix/issues/521 why we
+  // skip the rewrite in this case.
+  private def allNamesAreAny(args: List[Pat]): Boolean = args.forall {
+    case Pat.Var(name) => isMaybeAny(name)
+    case _ => true
+  }
+
   private def canBeAutoTupled(pf: Term.PartialFunction): Boolean =
     pf.cases match {
-      case Case(Pat.Tuple(args), None, _) :: Nil
-          if args.forall(a => a.is[Pat.Var] || a.is[Pat.Wildcard]) =>
-        true
+      case Case(Pat.Tuple(args), None, _) :: Nil =>
+        args.forall {
+          case Pat.Var(_) => true
+          case Pat.Wildcard() => true
+          case _ => false
+        } && !allNamesAreAny(args)
       case _ => false
     }
 

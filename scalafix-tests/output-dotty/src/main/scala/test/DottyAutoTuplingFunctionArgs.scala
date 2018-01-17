@@ -30,4 +30,8 @@ object DottyAutoTuplingFunctionArgs {
   def foo(xs: List[(A, A)]) = xs.map {
     case (x: B, y: A) => 1
   } // typed parameters not matching tuple element types
+  def any(xs: List[Any]): List[Int] = xs.map { case (x, y) => 1 }
+  def anyIntPair(xs: List[(Int, Any)]): List[Int] = xs.map((x, y) => 1)
+  def anyAnyPair(xs: List[(Any, Any)]): List[Int] = xs.map { case (x, y) => 1 } // false negative
+  def tparam[T](xs: List[T]): List[Int] = xs.map { case (x, y) => 1 }
 }

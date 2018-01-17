@@ -20,4 +20,4 @@ Auto-tupling is a language feature only supported in Dotty. Therefore, the code 
 
 ## Caveats
 
-- [#521](https://github.com/scalacenter/scalafix/issues/521) - the rewrite has false positives, be sure to manually verify that the sources compile with Dotty after running the rewrite.
+- the rewrite has false negatives, meaning it may not trigger for cases where the rewrite would still be safe. In particular, the rewrite ignores cases when all deconstructed arguments are `Any`.
