@@ -76,7 +76,6 @@ class ScalafixCompletionsTest extends FunSuite {
       "--exclude",
       "--help",
       "--no-strict-semanticdb",
-      "--no-sys-exit",
       "--non-interactive",
       "--out-from",
       "--out-to",

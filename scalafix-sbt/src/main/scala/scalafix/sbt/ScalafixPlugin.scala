@@ -45,15 +45,30 @@ object ScalafixPlugin extends AutoPlugin {
         configureForConfigurations(
           configs,
           scalafix,
-          c => scalafixTaskImpl(c, scalafixParserCompat, Nil)),
+          c =>
+            scalafixTaskImpl(
+              c,
+              scalafixParserCompat,
+              compat = true,
+              extraOptions = Nil)),
         configureForConfigurations(
           configs,
           scalafixCli,
-          c => scalafixTaskImpl(c, scalafixParser, Nil)),
+          c =>
+            scalafixTaskImpl(
+              c,
+              scalafixParser,
+              compat = false,
+              extraOptions = Nil)),
         configureForConfigurations(
           configs,
           scalafixTest,
-          c => scalafixTaskImpl(c, scalafixParserCompat, Seq("--test")))
+          c =>
+            scalafixTaskImpl(
+              c,
+              scalafixParserCompat,
+              compat = true,
+              extraOptions = Seq("--test")))
       ).flatten
 
     /** Add -Yrangepos and semanticdb sourceroot to scalacOptions. */
@@ -96,8 +111,8 @@ object ScalafixPlugin extends AutoPlugin {
     scalafixEnabled := true,
     scalafixVerbose := false,
     commands += ScalafixEnable.command,
-    sbtfix := sbtfixImpl().evaluated,
-    sbtfixTest := sbtfixImpl(Seq("--test")).evaluated,
+    sbtfix := sbtfixImpl(compat = true).evaluated,
+    sbtfixTest := sbtfixImpl(compat = true, extraOptions = Seq("--test")).evaluated,
     aggregate.in(sbtfix) := false,
     aggregate.in(sbtfixTest) := false,
     scalafixSourceroot := baseDirectory.in(ThisBuild).value,
@@ -117,7 +132,7 @@ object ScalafixPlugin extends AutoPlugin {
     }
   )
 
-  private def sbtfixImpl(extraOptions: Seq[String] = Seq()) = {
+  private def sbtfixImpl(compat: Boolean, extraOptions: Seq[String] = Seq()) = {
     Def.inputTaskDyn {
       val baseDir = baseDirectory.in(ThisBuild).value
       val sbtDir: File = baseDir./("project")
@@ -130,6 +145,7 @@ object ScalafixPlugin extends AutoPlugin {
           Nil ++ extraOptions
       scalafixTaskImpl(
         scalafixParser.parsed,
+        compat,
         options,
         sbtDir +: sbtFiles,
         "sbt-build",
@@ -189,19 +205,30 @@ object ScalafixPlugin extends AutoPlugin {
     configureForConfigurations(
       List(Compile, Test),
       scalafix,
-      c => scalafixTaskImpl(c, scalafixParserCompat))
+      c =>
+        scalafixTaskImpl(
+          c,
+          scalafixParserCompat,
+          compat = true,
+          extraOptions = Nil))
 
   lazy val scalafixCliTaskSettings: Seq[Def.Setting[InputTask[Unit]]] =
     configureForConfigurations(
       List(Compile, Test),
       scalafixCli,
-      c => scalafixTaskImpl(c, scalafixParser))
+      c =>
+        scalafixTaskImpl(c, scalafixParser, compat = false, extraOptions = Nil))
 
   lazy val scalafixTestTaskSettings: Seq[Def.Setting[InputTask[Unit]]] =
     configureForConfigurations(
       List(Compile, Test),
       scalafixTest,
-      c => scalafixTaskImpl(c, scalafixParserCompat, Seq("--test")))
+      c =>
+        scalafixTaskImpl(
+          c,
+          scalafixParserCompat,
+          compat = false,
+          extraOptions = Seq("--test")))
 
   @deprecated(
     "Use configureForConfiguration(List(Compile, Test), ...) instead",
@@ -224,16 +251,19 @@ object ScalafixPlugin extends AutoPlugin {
   def scalafixTaskImpl(
       config: Seq[Configuration],
       parser: Parser[Seq[String]],
+      compat: Boolean,
       extraOptions: Seq[String] = Seq()): Def.Initialize[InputTask[Unit]] =
     Def.inputTaskDyn {
       scalafixTaskImpl(
         parser.parsed,
+        compat,
         ScopeFilter(configurations = inConfigurations(config: _*)),
         extraOptions)
     }
 
   def scalafixTaskImpl(
       inputArgs: Seq[String],
+      compat: Boolean,
       filter: ScopeFilter,
       extraOptions: Seq[String]): Def.Initialize[Task[Unit]] =
     Def.taskDyn {
@@ -248,6 +278,7 @@ object ScalafixPlugin extends AutoPlugin {
       val options: Seq[String] = List("--classpath", classpath) ++ extraOptions
       scalafixTaskImpl(
         inputArgs,
+        compat,
         options,
         sourcesToFix,
         thisProject.value.id,
@@ -257,6 +288,7 @@ object ScalafixPlugin extends AutoPlugin {
 
   def scalafixTaskImpl(
       inputArgs: Seq[String],
+      compat: Boolean,
       options: Seq[String],
       files: Seq[File],
       projectId: String,
@@ -281,11 +313,15 @@ object ScalafixPlugin extends AutoPlugin {
               .map(x => "--config" :: x.getAbsolutePath :: Nil)
               .getOrElse(Nil)
 
+          val inputArgs0 =
+            if (compat) "--rules" +: inputArgs
+            else inputArgs
+
           val sourceroot = scalafixSourceroot.value.getAbsolutePath
           // only fix unmanaged sources, skip code generated files.
           verbose ++
             config ++
-            inputArgs ++
+            inputArgs0 ++
             baseArgs ++
             options ++
             List(

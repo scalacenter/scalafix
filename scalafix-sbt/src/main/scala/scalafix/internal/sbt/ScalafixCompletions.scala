@@ -17,7 +17,12 @@ object ScalafixCompletions {
   private def repsep(rep: P, sep: String): P =
     DefaultParsers.repsep(rep, sep: P).map(_.mkString(sep))
   private def arg(key: String, value: P): P =
-    (key ~ space ~ value).map { case a ~ b ~ c => a + b + c }
+    (key ~ space ~ value).map { case a ~ _ ~ c => a + " " + c }
+  private def arg(key: String, shortKey: String, value: P): P =
+    ((key | hide(shortKey)) ~ space ~ value).map {
+      case a ~ _ ~ c => a + " " + c
+    }
+
   private def mapOrFail[S, T](p: Parser[S])(f: S => T): Parser[T] =
     p.flatMap(s =>
       try { success(f(s)) } catch { case NonFatal(e) => failure(e.toString) })
@@ -48,7 +53,11 @@ object ScalafixCompletions {
       def mkBase(prefix: String, fallback: Path): (Path, String) = {
         val path = toAbsolutePath(Paths.get(prefix), fallback)
         if (prefix.endsWith(File.separator)) path -> ""
-        else path.getParent -> path.getFileName.toString
+        else {
+          if (path.getFileName != null)
+            path.getParent -> path.getFileName.toString
+          else fallback -> ""
+        }
       }
     }
 
@@ -92,6 +101,8 @@ object ScalafixCompletions {
     )
   }
 
+  def hide(p: P): P = p.examples()
+
   def parser(cwd: Path, compat: Boolean): Parser[Seq[String]] = {
     val pathParser: P = token(filepathParser(cwd))
     val pathRegexParser: P = mapOrFail(pathParser) { regex =>
@@ -108,18 +119,18 @@ object ScalafixCompletions {
     val bash: P = "--bash"
     val classpath: P = arg("--classpath", classpathParser)
     val classpathAutoRoots: P = arg("--classpath-auto-roots", classpathParser)
-    val config: P = arg("--config", pathParser)
+    val config: P = arg("--config", "-c", pathParser)
     val configStr: P = arg("--config-str", string.examples())
     val diff: P = "--diff"
     val diffBase: P = arg("--diff-base", gitDiffParser(cwd))
     val exclude: P = arg("--exclude", pathRegexParser)
+    val files: P = arg("--files", "-f", pathParser)
     val noStrictSemanticdb: P = "--no-strict-semanticdb"
-    val noSysExit: P = "--no-sys-exit"
     val nonInteractive: P = "--non-interactive"
     val outFrom: P = arg("--out-from", pathRegexParser)
     val outTo: P = arg("--out-to", pathRegexParser)
     val quietParseErrors: P = "--quiet-parse-errors"
-    val rules: P = arg("--rules", ruleParser)
+    val rules: P = arg("--rules", "-r", ruleParser)
     val singleThread: P = "--single-thread"
     val sourceroot: P = arg("--sourceroot", pathParser)
     val stdout: P = "--stdout"
@@ -127,7 +138,7 @@ object ScalafixCompletions {
     val toolClasspath: P = arg("--tool-classpath", classpathParser)
     val usage: P = "--usage"
     val help: P = "--help"
-    val version: P = "--version"
+    val version: P = "--version" | hide("-v")
     val verbose: P = "--verbose"
     val zsh: P = "--zsh"
 
@@ -140,8 +151,8 @@ object ScalafixCompletions {
         diff |
         diffBase |
         exclude |
+        files |
         noStrictSemanticdb |
-        noSysExit |
         nonInteractive |
         outFrom |
         outTo |
@@ -162,8 +173,10 @@ object ScalafixCompletions {
       if (compat) ruleParser
       else filepathParser(cwd)
 
-    val all = base | rest
-
-    (token(Space) ~> all).* <~ SpaceClass.*
+    (((token(Space) ~> base).* ~ (token(Space) ~> rest).?)).map {
+      case a ~ b => {
+        (a ++ b.toSeq).flatMap(_.split(" ").toSeq)
+      }
+    }
   }
 }
