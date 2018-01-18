@@ -12,7 +12,7 @@ Key features of Scalafix include:
   individual space characters.
 
 - __Extensible__: Implement your own custom Scalafix rules.
-  Jumpstart with our [scalacenter/scalafix.g8](#scalafix.g8) template,
+  Jumpstart with our [scalacenter/scalafix.g8][scalafix.g8] template,
   which sets up a minimal sbt project with testing scaffolding.
 
 - __Accessible__: Scalafix enables novices to implement advanced rules
@@ -35,3 +35,4 @@ The project follows the Advisory Board proposal: [Clarification of Scala to Dott
 - December 12 2016: See the [talk about scalafix at Scala eXchange](https://skillsmatter.com/skillscasts/9117-smooth-migrations-to-dotty-with-scalafix#video) at Scala eXchange (requires login)
 - October 24 2016: Read the [v0.1 release announcement](http://www.scala-lang.org/blog/2016/10/24/scalafix.html) at scala-lang.org
 
+[scalafix.g8]: https://github.com/scalacenter/scalafix.g8
