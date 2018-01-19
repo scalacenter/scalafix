@@ -49,4 +49,11 @@ DisableSyntax.noSemicolons = true
 DisableSyntax.noXml = true
 DisableSyntax.noCovariantTypes = true
 DisableSyntax.noContravariantTypes = true
+DisableSyntax.regex = [
+  {
+    id = "offensive"
+    pattern = "[P|p]imp"
+    message = "Please consider a less offensive word such as Extension"
+  }
+]
 ```
