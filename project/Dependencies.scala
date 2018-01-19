@@ -3,7 +3,7 @@ import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 /* scalafmt: { maxColumn = 120 }*/
 
 object Dependencies {
-  val scalametaV = "2.1.2"
+  val scalametaV = "2.1.6"
   val metaconfigV = "0.5.4"
   def semanticdbSbt = "0.4.0"
   def dotty = "0.1.1-bin-20170530-f8f52cc-NIGHTLY"
@@ -11,7 +11,7 @@ object Dependencies {
   // NOTE(olafur) downgraded from 2.11.12 and 2.12.4 because of non-reproducible error
   // https://travis-ci.org/scalacenter/scalafix/jobs/303142842#L4658
   // as well as https://github.com/scala/bug/issues/10609
-  def scala211 = "2.11.11"
+  def scala211 = "2.11.12"
   def scala212 = "2.12.4"
   val currentScalaVersion = scala212
 

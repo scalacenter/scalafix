@@ -10,6 +10,7 @@ object ExplicitResultTypesBase {
   protected val d = 1.0f
   protected def e(a: Int, b: Double): _root_.scala.Double = a + b
   protected var f: _root_.scala.Int => _root_.scala.Int = (x: Int) => x + 1
+  val f0: () => _root_.scala.Int = () => 42
   private val g = 1
   private def h(a: Int) = ""
   private var i = 22

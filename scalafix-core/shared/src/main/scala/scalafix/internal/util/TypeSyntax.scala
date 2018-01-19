@@ -13,7 +13,7 @@ object TypeSyntax {
       implicit index: SemanticdbIndex): (Type, Patch) = {
 
     val functionN: SymbolMatcher = SymbolMatcher.exact(
-      1.to(22).map(i => Symbol(s"_root_.scala.Function$i#")): _*
+      0.to(22).map(i => Symbol(s"_root_.scala.Function$i#")): _*
     )
     val tupleN: SymbolMatcher = SymbolMatcher.exact(
       1.to(22).map(i => Symbol(s"_root_.scala.Tuple$i#")): _*
@@ -33,7 +33,7 @@ object TypeSyntax {
       }
     }
 
-    def stableRef(sym: Symbol): (Patch, Tree) = {
+    def stableRef(sym: Symbol.Global): (Patch, Tree) = {
       var patch = Patch.empty
       def loop[T: ClassTag](symbol: Symbol): T = {
         val result = symbol match {
@@ -87,10 +87,12 @@ object TypeSyntax {
         case Type.Apply(tupleN(_), args) =>
           val rargs = apply_![Type](args)
           Type.Tuple(rargs)
-        case Name(_) :&&: index.Symbol(sym) =>
+        case Name(_) :&&: index.Symbol(sym: Symbol.Global) =>
           val (addImport, t) = stableRef(sym)
           patch += addImport
           t
+        case Type.Select(Term.This(_), _) =>
+          tree
         case Type.Select(qual, name) =>
           Type.Select(apply_![Term.Ref](qual), name)
         case els =>
