@@ -1,17 +1,12 @@
 package scalafix.internal.rule
 
-import metaconfig.{Conf, Configured}
-
 import scala.meta._
-import scalafix.internal.config.MissingFinalConfig
 import scalafix.lint.LintCategory
 import scalafix.patch.Patch
-import scalafix.rule.{Rule, RuleCtx}
+import scalafix.rule.RuleCtx
 import scalafix.{SemanticRule, SemanticdbIndex}
 
-final case class MissingFinal(
-    index: SemanticdbIndex,
-    config: MissingFinalConfig)
+final case class MissingFinal(index: SemanticdbIndex)
     extends SemanticRule(
       index,
       "MissingFinal"
@@ -19,11 +14,6 @@ final case class MissingFinal(
 
   override def description: String =
     "Rule that checks for or adds final modifier in corresponding places"
-
-  override def init(config: Conf): Configured[Rule] =
-    config
-      .getOrElse("missingFinal", "MissingFinal")(MissingFinalConfig.default)
-      .map(MissingFinal(index, _))
 
   private lazy val error: LintCategory =
     LintCategory.error(
@@ -52,35 +42,21 @@ final case class MissingFinal(
       case t @ Defn.Class(mods, _, _, _, _)
           if mods.exists(_.is[Mod.Case]) &&
             !mods.exists(_.is[Mod.Final]) =>
-        if (config.finalCaseClass) {
-          addFinal(mods, t)
-        } else {
-          ctx.lint(
-            error
-              .copy(id = "case class")
-              .at("Case class should have final modifier", t.pos)
-          )
-        }
+        addFinal(mods, t)
       case t @ Defn.Class(mods, _, _, _, templ)
           if leaksSealedParent(mods, templ) =>
-        if (config.finalClass) {
-          addFinal(mods, t)
-        } else {
-          ctx.lint(
-            error
-              .copy(id = "class")
-              .at(
-                "Class that extends sealed parent should have final modifier",
-                t.pos)
-          )
-        }
+        ctx.lint(
+          error
+            .copy(id = "class")
+            .at("Class extends sealed parent", t.pos)
+        )
       case t @ Defn.Trait(mods, _, _, _, templ)
           if leaksSealedParent(mods, templ) =>
-          ctx.lint(
-            error
-              .copy(id = "trait")
-              .at("Trait extends sealed parent", t.pos)
-          )
+        ctx.lint(
+          error
+            .copy(id = "trait")
+            .at("Trait extends sealed parent", t.pos)
+        )
     }.asPatch
   }
 }
