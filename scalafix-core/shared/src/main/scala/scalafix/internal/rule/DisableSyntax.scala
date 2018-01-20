@@ -118,21 +118,21 @@ final case class DisableSyntax(
           if methods.exists(hasDefaultArgs) && config.noDefaultArgs =>
         methods
           .filter(hasDefaultArgs)
-          .map(
-            m =>
-              errorCategory
-                .copy(id = "defaultArgs")
-                .at(
-                  "Default args makes it hard to use methods as functions.",
-                  m.pos))
-      case t @ AbstractWithVals(vals) if config.noValInAbstract =>
-        vals.map(
-          v =>
+          .map { m =>
             errorCategory
-              .copy(id = "valInAbstract")
+              .copy(id = "defaultArgs")
               .at(
-                "val definitions in traits/abstract classes may cause initialization bugs",
-                v.pos))
+                "Default args makes it hard to use methods as functions.",
+                m.pos)
+          }
+      case t @ AbstractWithVals(vals) if config.noValInAbstract =>
+        vals.map { v =>
+          errorCategory
+            .copy(id = "valInAbstract")
+            .at(
+              "val definitions in traits/abstract classes may cause initialization bugs",
+              v.pos)
+        }
       case t @ Defn.Object(mods, _, _)
           if mods.exists(_.is[Mod.Implicit]) && config.noImplicitObject =>
         Seq(
@@ -154,28 +154,22 @@ final case class DisableSyntax(
     }.flatten
   }
 
-  override def check(ctx: RuleCtx): Seq[LintMessage] = {
-    checkTree(ctx) ++ checkTokens(ctx) ++ checkRegex(ctx)
-  }
-
-  override def fix(ctx: RuleCtx): Patch = {
+  private def fixTree(ctx: RuleCtx): Patch = {
     ctx.tree.collect {
-      case t @ Defn.Class(mods, _, _, _, _)
-          if config.noNonFinalCaseClass &&
-            mods.exists(_.is[Mod.Case]) &&
-            !mods.exists(_.is[Mod.Final]) =>
-        ctx.addLeft(t, "final ")
       case t @ Defn.Val(mods, _, _, _)
           if config.noFinalVal &&
             mods.exists(_.is[Mod.Final]) =>
-        val finalTokens = mods.find(_.is[Mod.Final]).get.tokens
-        ctx.removeTokens(
-          t.tokens.filter(
-            token =>
-              token.start >= finalTokens(0).start &&
-                token.end <= finalTokens.last.end + 1)
-        ) // remove one space after final
+        val finalTokens =
+          mods.find(_.is[Mod.Final]).map(_.tokens.toList).getOrElse(List.empty)
+        ctx.removeTokens(finalTokens) +
+          ctx.removeTokens(finalTokens.flatMap(ctx.tokenList.trailingSpaces))
     }.asPatch
+  }
+
+  override def fix(ctx: RuleCtx): Patch = {
+    val lints =
+      (checkTree(ctx) ++ checkTokens(ctx) ++ checkRegex(ctx)).map(ctx.lint)
+    fixTree(ctx) ++ lints
   }
 
   private val errorCategory: LintCategory =

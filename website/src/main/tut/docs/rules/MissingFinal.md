@@ -1,11 +1,31 @@
 ---
 layout: docs
-title: DisableSyntax
+title: MissingFinal
 ---
 
-# DisableSyntax
+# MissingFinal
 
-_Since 0.5.4_
+_Since 0.5.8_
+
+This rule checks for or adds final modifier in corresponding places.
+It has two use cases:
+- Check that descendants of a sealed types are final or sealed. And add `final` modifier to classes. 
+
+It disallows the following situation:
+
+`file 1:`
+```scala
+sealed trait t
+trait a extends t // error: leaking sealed
+class c extends t // error: leaking sealed
+final class e extends t // ok
+```
+
+`file 2:`
+```scala
+trait b extends a // error: leaking sealed
+class d extends c // error: leaking sealed                  
+```
 
 This rule reports errors when a "disallowed" syntax is used. This is a syntactic rule, which means it does not require compilation to run unlike the `Disable` rule.
 
