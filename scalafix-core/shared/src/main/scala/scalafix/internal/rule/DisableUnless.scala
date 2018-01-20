@@ -67,7 +67,7 @@ final case class DisableUnless(
       .map(DisableUnless(index, _))
 
   private lazy val disabledBlock: SymbolMatcher =
-    SymbolMatcher.normalized(config.allBlocks: _*)
+    SymbolMatcher.normalized(config.allUnless: _*)
 
   override def check(ctx: RuleCtx): Seq[LintMessage] = {
     def filterBlockedSymbolsInBlock(
@@ -75,7 +75,7 @@ final case class DisableUnless(
         block: Tree): List[Symbol.Global] = {
       val Some(symbolBlock: Symbol.Global) = ctx.index.symbol(block)
       blockedSymbols.filter(sym =>
-        !config.symbolsInBlock(symbolBlock).contains(sym))
+        !config.symbolsInUnless(symbolBlock).contains(sym))
     }
 
     def treeIsBlocked(
