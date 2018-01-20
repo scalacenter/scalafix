@@ -14,7 +14,7 @@ within the given "safe" blocks are banned again, to avoid leakage.
 
 ## Configuration
 
-By default, this rule does allows all symbols. To disallow a symbols in a block:
+By default, this rule does allows all symbols. To disallow symbols in a block:
 ```
 DisableUnless.symbols = [
   {
