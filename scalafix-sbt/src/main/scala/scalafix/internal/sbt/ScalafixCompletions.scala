@@ -169,14 +169,15 @@ object ScalafixCompletions {
         verbose |
         zsh
 
-    val rest =
-      if (compat) ruleParser
-      else filepathParser(cwd)
-
-    (((token(Space) ~> base).* ~ (token(Space) ~> rest).?)).map {
-      case a ~ b => {
-        (a ++ b.toSeq).flatMap(_.split(" ").toSeq)
-      }
+    if (compat) {
+      (token(Space) ~> token(ruleParser)).* <~ SpaceClass.*
+    } else {
+      (((token(Space) ~> base).* ~ (token(Space) ~> filepathParser(cwd)).?))
+        .map {
+          case a ~ b => {
+            (a ++ b.toSeq).flatMap(_.split(" ").toSeq)
+          }
+        }
     }
   }
 }

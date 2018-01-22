@@ -62,6 +62,21 @@ class ScalafixCompletionsTest extends FunSuite {
     assert(obtained.exists(_.display.startsWith("file:")))
   }
 
+  test("compat multiple") {
+    val parser = ScalafixCompletions.parser(
+      fs.workingDirectory.toAbsolutePath,
+      compat = true)
+    val completions =
+      Parser.completions(parser, " RemoveUnusedImports Remo", 0).get
+    val obtained = completions.toList.map(_.display).toSet
+    val expected = Set(
+      "RemoveUnusedImports",
+      "RemoveUnusedTerms",
+      "RemoveXmlLiterals"
+    )
+    assert((expected -- obtained).isEmpty)
+  }
+
   check("all") { completions =>
     val obtained = completions.map(_.display).toSet
     val expected = Set(
