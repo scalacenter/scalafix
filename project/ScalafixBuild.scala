@@ -250,6 +250,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       else if (isSnapshot.value) Opts.resolver.sonatypeSnapshots
       else Opts.resolver.sonatypeStaging
     },
+    resolvers += Opts.resolver.sonatypeSnapshots,
     scmInfo := Some(
       ScmInfo(
         url("https://github.com/scalacenter/scalafix"),

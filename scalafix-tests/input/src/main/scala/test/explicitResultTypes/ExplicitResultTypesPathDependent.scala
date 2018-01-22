@@ -11,4 +11,9 @@ object ExplicitResultTypesPathDependent {
     def gimme(yy: x.C) = ???; gimme(y)
   }
   implicit val b = new Path().x
+  trait Foo[T] {
+    type Self
+    def bar: Self
+  }
+  implicit def foo[T] = null.asInstanceOf[Foo[T]].bar
 }

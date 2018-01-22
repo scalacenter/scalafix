@@ -95,6 +95,8 @@ object TypeSyntax {
           tree
         case Type.Select(qual, name) =>
           Type.Select(apply_![Term.Ref](qual), name)
+        case Type.Project(qual, name) =>
+          Type.Project(apply_![Type](qual), name)
         case els =>
           super.apply(els)
       }
