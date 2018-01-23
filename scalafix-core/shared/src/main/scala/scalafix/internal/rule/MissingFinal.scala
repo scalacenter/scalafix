@@ -13,7 +13,7 @@ final case class MissingFinal(index: SemanticdbIndex)
     ) {
 
   override def description: String =
-    "Rule that checks for or adds final modifier in corresponding places"
+    "Rule that checks for or adds final modifier in the corresponding places"
 
   private lazy val error: LintCategory =
     LintCategory.error(
