@@ -2,6 +2,8 @@ package scalafix.internal.config
 
 import scalafix.lint.LintSeverity
 import metaconfig.ConfDecoder
+import metaconfig.generic
+import metaconfig.generic.Surface
 
 case class LintConfig(
     reporter: ScalafixReporter = ScalafixReporter.default,
@@ -11,18 +13,6 @@ case class LintConfig(
     warning: FilterMatcher = FilterMatcher.matchNothing,
     error: FilterMatcher = FilterMatcher.matchNothing
 ) {
-  val reader: ConfDecoder[LintConfig] =
-    ConfDecoder.instanceF[LintConfig] { c =>
-      (
-        c.getOrElse("reporter")(reporter) |@|
-          c.getOrElse("explain")(explain) |@|
-          c.getOrElse("ignore")(ignore) |@|
-          c.getOrElse("info")(info) |@|
-          c.getOrElse("warning")(warning) |@|
-          c.getOrElse("error")(error)
-      ).map { case (((((a, b), c), d), e), f) => LintConfig(a, b, c, d, e, f) }
-    }
-
   def getConfiguredSeverity(key: String): Option[LintSeverity] =
     Option(key).collect {
       case error() => LintSeverity.Error
@@ -32,5 +22,8 @@ case class LintConfig(
 }
 
 object LintConfig {
+  implicit val surface: Surface[LintConfig] = generic.deriveSurface[LintConfig]
   lazy val default: LintConfig = LintConfig()
+  implicit val decoder: ConfDecoder[LintConfig] =
+    generic.deriveDecoder[LintConfig](default)
 }

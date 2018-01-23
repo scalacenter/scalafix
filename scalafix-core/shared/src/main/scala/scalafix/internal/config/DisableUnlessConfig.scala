@@ -22,7 +22,7 @@ object UnlessConfig {
           c.get[List[CustomMessage[Symbol.Global]]]("symbols")).map {
           case (a, b) => UnlessConfig(a, b)
         }
-      case _ => Configured.NotOk(ConfError.msg("Wrong config format"))
+      case _ => Configured.NotOk(ConfError.message("Wrong config format"))
     }
 }
 

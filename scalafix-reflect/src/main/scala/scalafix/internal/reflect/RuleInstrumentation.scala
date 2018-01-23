@@ -53,7 +53,7 @@ object RuleInstrumentation {
         }
         loop(Vector.empty, ast)
         val x = result.result()
-        if (x.isEmpty) ConfError.msg(s"Found no rules in input $code").notOk
+        if (x.isEmpty) ConfError.message(s"Found no rules in input $code").notOk
         else Configured.Ok(x)
     }
   }

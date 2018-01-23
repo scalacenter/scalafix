@@ -162,10 +162,7 @@ trait ScalafixMetaconfigReaders {
   def baseSyntacticRuleDecoder: ConfDecoder[Rule] =
     baseRuleDecoders(LazySemanticdbIndex.empty)
   def baseRuleDecoders(index: LazySemanticdbIndex): ConfDecoder[Rule] = {
-    MetaconfigPendingUpstream.orElse(
-      defaultRuleDecoder(index),
-      classloadRuleDecoder(index)
-    )
+    defaultRuleDecoder(index).orElse(classloadRuleDecoder(index))
   }
   def configFromInput(
       input: Input,
@@ -246,7 +243,7 @@ trait ScalafixMetaconfigReaders {
     case x if ev.runtimeClass.isInstance(x) =>
       Configured.Ok(x.asInstanceOf[To])
     case x =>
-      ConfError.msg(s"Expected Ref, got ${x.getClass}").notOk
+      ConfError.message(s"Expected Ref, got ${x.getClass}").notOk
   }
   implicit lazy val importerReader: ConfDecoder[Importer] =
     parseReader[Importer]

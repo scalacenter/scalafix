@@ -27,7 +27,7 @@ object ReaderUtil {
             val extraMsg = additionalMessage.applyOrElse(x, (_: String) => "")
             val msg =
               s"Unknown input '$x'. Expected one of: $available. $extraMsg"
-            Configured.NotOk(ConfError.msg(msg))
+            Configured.NotOk(ConfError.message(msg))
         }
     }
 }

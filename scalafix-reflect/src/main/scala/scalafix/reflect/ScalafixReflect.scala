@@ -15,9 +15,8 @@ object ScalafixReflect {
 
   def fromLazySemanticdbIndex(index: LazySemanticdbIndex): ConfDecoder[Rule] =
     ruleConfDecoder(
-      MetaconfigPendingUpstream.orElse(
-        ScalafixCompilerDecoder.baseCompilerDecoder(index),
-        baseRuleDecoders(index)
-      )
+      ScalafixCompilerDecoder
+        .baseCompilerDecoder(index)
+        .orElse(baseRuleDecoders(index))
     )
 }
