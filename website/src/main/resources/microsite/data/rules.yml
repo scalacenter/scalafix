@@ -13,3 +13,4 @@ rules:
 - Disable
 - DisableSyntax
 - DisableUnless
+- LeakingImplicitClassVal
