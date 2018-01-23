@@ -4,15 +4,17 @@ import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.nio.charset.StandardCharsets
 import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Path, StandardOpenOption}
+import java.nio.file.Path
 
 import org.scalatest._
 import org.scalatest.FunSuite
 
 import scala.collection.immutable.Seq
+
 import scalafix.cli
 import scalafix.internal.cli.CommonOptions
 import scalafix.testkit.DiffAssertions
+import scalafix.internal.tests.utils.{Fs, Git}
 
 class CliGitDiffTests() extends FunSuite with DiffAssertions {
   gitTest("addition") { (fs, git, cli) =>
@@ -220,8 +222,59 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     assert(obtained2.startsWith(expected2))
   }
 
+  gitTest("works on Patch") { (fs, git, cli) =>
+    val code = "code.scala"
+    val foo1 =
+      """|object A {
+         |  def foo() {}
+         |}
+         |""".stripMargin
+
+    val bar1 =
+      """|object B {
+         |  def bar() {}
+         |}
+         |""".stripMargin
+
+    val bar2 =
+      """|object B {
+         |  def bar(): Unit = {}
+         |}
+         |""".stripMargin
+
+    fs.add(code, foo1)
+    git.add(code)
+    fs.add(confFile, "rules = ProcedureSyntax")
+    git.add(confFile)
+    git.commit()
+
+    git.checkout("pr-1")
+    fs.replace(
+      code,
+      s"""|$foo1
+          |
+          |$bar1""".stripMargin
+    )
+    git.add(code)
+    git.commit()
+
+    runDiffOk(cli)
+    val obtained = fs.read(code)
+    val expected =
+      s"""|$foo1
+          |
+          |$bar2""".stripMargin // only bar is modified
+    assertNoDiff(obtained, expected)
+  }
+
   private def runDiff(cli: Cli, args: String*): String =
-    noColor(cli.run("--non-interactive" :: "--diff" :: args.toList))
+    runDiff0(cli, false, args.toList)
+
+  private def runDiffOk(cli: Cli, args: String*): String =
+    runDiff0(cli, true, args.toList)
+
+  private def runDiff0(cli: Cli, ok: Boolean, args: List[String]): String =
+    noColor(cli.run(ok, "--non-interactive" :: "--diff" :: args))
 
   private val confFile = ".scalafix.conf"
   private def addConf(fs: Fs, git: Git): Unit = {
@@ -249,75 +302,11 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     }
   }
 
-  private class Fs() {
-    val workingDirectory: Path =
-      Files.createTempDirectory("scalafix")
-
-    workingDirectory.toFile.deleteOnExit()
-
-    def add(filename: String, content: String): Unit =
-      write(filename, content, StandardOpenOption.CREATE_NEW)
-
-    def append(filename: String, content: String): Unit =
-      write(filename, content, StandardOpenOption.APPEND)
-
-    def replace(filename: String, content: String): Unit = {
-      rm(filename)
-      add(filename, content)
-    }
-
-    def rm(filename: String): Unit =
-      Files.delete(path(filename))
-
-    def mv(src: String, dst: String): Unit =
-      Files.move(path(src), path(dst))
-
-    def absPath(filename: String): String =
-      path(filename).toAbsolutePath.toString
-
-    private def write(
-        filename: String,
-        content: String,
-        op: StandardOpenOption): Unit = {
-      Files.write(path(filename), content.getBytes, op)
-    }
-
-    private def path(filename: String): Path =
-      workingDirectory.resolve(filename)
-  }
-
-  private class Git(workingDirectory: Path) {
-    import org.eclipse.jgit.api.{Git => JGit}
-
-    private val git = JGit.init().setDirectory(workingDirectory.toFile).call()
-    private var revision = 0
-
-    def add(filename: String): Unit =
-      git.add().addFilepattern(filename).call()
-
-    def rm(filename: String): Unit =
-      git.rm().addFilepattern(filename).call()
-
-    def checkout(branch: String): Unit =
-      git.checkout().setCreateBranch(true).setName(branch).call()
-
-    def tag(name: String, message: String): Unit =
-      git.tag().setName(name).setMessage(message).call()
-
-    def deleteBranch(branch: String): Unit =
-      git.branchDelete().setBranchNames(branch).call()
-
-    def commit(): Unit = {
-      git.commit().setMessage(s"r$revision").call()
-      revision += 1
-    }
-  }
-
   private class Cli(workingDirectory: Path) {
-    def run(args: List[String]): String = {
+    def run(ok: Boolean, args: List[String]): String = {
       val baos = new ByteArrayOutputStream()
       val ps = new PrintStream(baos)
-      cli.Cli.runMain(
+      val exit = cli.Cli.runMain(
         args.to[Seq],
         CommonOptions(
           workingDirectory = workingDirectory.toAbsolutePath.toString,
@@ -326,6 +315,10 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
         )
       )
       val output = new String(baos.toByteArray(), StandardCharsets.UTF_8)
+      assert(
+        exit.isOk == ok,
+        s"Expected OK exit status, obtained $exit. Details $output"
+      )
       output
     }
   }

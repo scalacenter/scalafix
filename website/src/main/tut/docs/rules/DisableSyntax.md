@@ -62,4 +62,11 @@ DisableSyntax.noValInAbstract = true
 DisableSyntax.noImplicitObject = true
 DisableSyntax.noImplicitConversion = true
 DisableSyntax.noFinalVal = true
+DisableSyntax.regex = [
+  {
+    id = "offensive"
+    pattern = "[P|p]imp"
+    message = "Please consider a less offensive word such as Extension"
+  }
+]
 ```

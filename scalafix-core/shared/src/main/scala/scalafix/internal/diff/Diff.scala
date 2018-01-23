@@ -1,4 +1,4 @@
-package scalafix.internal.jgit
+package scalafix.internal.diff
 
 import java.nio.file.Path
 

@@ -48,14 +48,14 @@ object Test {
   }
 
   
-  println("hi") // assert: DisableUnless.println
+  println("hi") // not ok
   
   IO {
     println("hi") // ok
   }
   
   IO {
-    def sideEffect(i: Int) = println("not good!") // assert: DisableUnless.println
-    (i: Int) => println("also not good!") // assert: DisableUnless.println
+    def sideEffect(i: Int) = println("not good!") // not ok
+    (i: Int) => println("also not good!") // not ok
   }
 ```
