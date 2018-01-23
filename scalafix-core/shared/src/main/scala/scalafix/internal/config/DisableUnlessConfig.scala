@@ -3,36 +3,23 @@ package scalafix.internal.config
 import metaconfig.{Conf, ConfDecoder, ConfError, Configured}
 import org.langmeta.Symbol
 
+import scalafix.CustomMessage
 import scalafix.internal.config.MetaconfigPendingUpstream.XtensionConfScalafix
 import scalafix.internal.util._
 
-case class UnlessConfigSymbol(symbol: Symbol.Global, message: Option[String])
-
-object UnlessConfigSymbol {
-  implicit val decoder: ConfDecoder[UnlessConfigSymbol] =
-    ConfDecoder.instanceF[UnlessConfigSymbol] {
-      case c: Conf.Obj =>
-        (c.get[Symbol.Global]("symbol") |@|
-          c.getOption[String]("message")).map {
-          case (a, b) => UnlessConfigSymbol(a, b)
-        }
-      case els =>
-        implicitly[ConfDecoder[Symbol.Global]]
-          .read(els)
-          .map(UnlessConfigSymbol(_, None))
-    }
-}
-
 case class UnlessConfig(
     unless: Symbol.Global,
-    symbols: List[UnlessConfigSymbol])
+    symbols: List[CustomMessage[Symbol.Global]])
 
 object UnlessConfig {
-  implicit val decoder: ConfDecoder[UnlessConfig] =
+  implicit val customMessageReader: ConfDecoder[CustomMessage[Symbol.Global]] =
+    CustomMessage.decoder(field = "symbol")
+
+  implicit val reader: ConfDecoder[UnlessConfig] =
     ConfDecoder.instanceF[UnlessConfig] {
       case c: Conf.Obj =>
         (c.get[Symbol.Global]("unless") |@|
-          c.get[List[UnlessConfigSymbol]]("symbols")).map {
+          c.get[List[CustomMessage[Symbol.Global]]]("symbols")).map {
           case (a, b) => UnlessConfig(a, b)
         }
       case _ => Configured.NotOk(ConfError.msg("Wrong config format"))
@@ -40,13 +27,12 @@ object UnlessConfig {
 }
 
 case class DisableUnlessConfig(symbols: List[UnlessConfig] = Nil) {
-  import UnlessConfig._
 
-  @inline private def normalizeSymbol(symbol: Symbol.Global): String =
+  private def normalizeSymbol(symbol: Symbol.Global): String =
     SymbolOps.normalize(symbol).syntax
 
   def allUnless: List[Symbol.Global] = symbols.map(_.unless)
-  def allSymbols: List[Symbol.Global] = symbols.flatMap(_.symbols.map(_.symbol))
+  def allSymbols: List[Symbol.Global] = symbols.flatMap(_.symbols.map(_.value))
 
   private val messageBySymbol: Map[String, String] =
     (for {
@@ -54,12 +40,12 @@ case class DisableUnlessConfig(symbols: List[UnlessConfig] = Nil) {
       s <- u.symbols
       message <- s.message
     } yield {
-      normalizeSymbol(s.symbol) -> message
+      normalizeSymbol(s.value) -> message
     }).toMap
 
   private val symbolsByUnless: Map[String, List[Symbol.Global]] =
     symbols
-      .map(u => normalizeSymbol(u.unless) -> u.symbols.map(_.symbol))
+      .map(u => normalizeSymbol(u.unless) -> u.symbols.map(_.value))
       .groupBy(_._1)
       .mapValues(_.flatMap(_._2))
 
