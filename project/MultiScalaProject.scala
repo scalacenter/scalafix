@@ -113,6 +113,37 @@ class MultiScalaProject(
   }
 }
 
+object MultiSbtProject {
+  def apply(name: String, configure: Project => Project): MultiSbtProject =
+    new MultiSbtProject(name, s"scalafix-$name", configure)
+}
+
+class MultiSbtProject(name: String, base: String, configure: Project => Project)
+    extends MultiScala {
+
+  def srcMain: String = s"$base/src/main"
+  def apply(
+      scalaV: String,
+      sbtV: String,
+      configurePerSbt: Project => Project = x => x): Project = {
+    val fullName = s"scalafix-$name"
+    val projectId: String =
+      if (sbtV != Dependencies.currentSbtVersion) {
+        s"$fullName${majorMinor(sbtV)}"
+      } else fullName
+    val resultingProject =
+      Project(id = projectId, base = file(s".cross/$projectId"))
+        .settings(
+          scalaVersion := scalaV,
+          sbtVersion in pluginCrossBuild := sbtV,
+          moduleName := fullName
+        )
+        .settings(srcFull(base))
+
+    configurePerSbt(configure(resultingProject))
+  }
+}
+
 object TestProject {
   private def base(sub: String): String =
     s"scalafix-tests/$sub"

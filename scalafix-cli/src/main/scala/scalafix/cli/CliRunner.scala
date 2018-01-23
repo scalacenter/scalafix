@@ -484,7 +484,7 @@ object CliRunner {
         case (rule, _) =>
           if (rule.name.isEmpty)
             ConfError
-              .msg("No rule was provided! Use --rule to specify a rule.")
+              .msg("No rule was provided! Use --rules to specify a rule.")
               .notOk
           else Ok(rule)
       }
