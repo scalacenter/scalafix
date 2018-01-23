@@ -40,37 +40,6 @@ object ScalafixPlugin extends AutoPlugin {
     val scalafixVerbose: SettingKey[Boolean] =
       settingKey[Boolean]("pass --verbose to scalafix")
 
-    def scalafixConfigure(configs: Configuration*): Seq[Setting[_]] =
-      List(
-        configureForConfigurations(
-          configs,
-          scalafix,
-          c =>
-            scalafixTaskImpl(
-              c,
-              scalafixParserCompat,
-              compat = true,
-              extraOptions = Nil)),
-        configureForConfigurations(
-          configs,
-          scalafixCli,
-          c =>
-            scalafixTaskImpl(
-              c,
-              scalafixParser,
-              compat = false,
-              extraOptions = Nil)),
-        configureForConfigurations(
-          configs,
-          scalafixTest,
-          c =>
-            scalafixTaskImpl(
-              c,
-              scalafixParserCompat,
-              compat = true,
-              extraOptions = Seq("--test")))
-      ).flatten
-
     /** Add -Yrangepos and semanticdb sourceroot to scalacOptions. */
     def scalafixScalacOptions: Def.Initialize[Seq[String]] =
       ScalafixPlugin.scalafixScalacOptions
@@ -101,10 +70,8 @@ object ScalafixPlugin extends AutoPlugin {
   import autoImport._
 
   override def projectSettings: Seq[Def.Setting[_]] =
-    scalafixSettings ++ // TODO(olafur) remove this line in 0.6.0
-      scalafixTaskSettings ++
-      scalafixCliTaskSettings ++
-      scalafixTestTaskSettings
+    Seq(Compile, Test).flatMap(inConfig(_)(scalafixConfigSettings))
+
   override def globalSettings: Seq[Def.Setting[_]] = Seq(
     scalafixConfig := Option(file(".scalafix.conf")).filter(_.isFile),
     cliWrapperMainClass := "scalafix.cli.Cli$",
@@ -198,55 +165,12 @@ object ScalafixPlugin extends AutoPlugin {
       if (isMetabuild) compilerPlugin(sbthost) :: Nil
       else Nil
     }
-  )
 
-  // TODO: remove when we can break binary compat
-  lazy val scalafixTaskSettings: Seq[Def.Setting[InputTask[Unit]]] =
-    configureForConfigurations(
-      List(Compile, Test),
-      scalafix,
-      c =>
-        scalafixTaskImpl(
-          c,
-          scalafixParserCompat,
-          compat = true,
-          extraOptions = Nil))
-
-  lazy val scalafixCliTaskSettings: Seq[Def.Setting[InputTask[Unit]]] =
-    configureForConfigurations(
-      List(Compile, Test),
-      scalafixCli,
-      c =>
-        scalafixTaskImpl(c, scalafixParser, compat = false, extraOptions = Nil))
-
-  lazy val scalafixTestTaskSettings: Seq[Def.Setting[InputTask[Unit]]] =
-    configureForConfigurations(
-      List(Compile, Test),
-      scalafixTest,
-      c =>
-        scalafixTaskImpl(
-          c,
-          scalafixParserCompat,
-          compat = false,
-          extraOptions = Seq("--test")))
-
-  @deprecated(
-    "Use configureForConfiguration(List(Compile, Test), ...) instead",
-    "0.5.4")
-  def configureForCompileAndTest(
-      task: InputKey[Unit],
-      impl: Seq[Configuration] => Def.Initialize[InputTask[Unit]]
-  ): Seq[Def.Setting[InputTask[Unit]]] =
-    configureForConfigurations(List(Compile, Test), task, impl)
-
-  /** Configure scalafix/scalafixTest tasks for given configurations */
-  def configureForConfigurations(
-      configurations: Seq[Configuration],
-      task: InputKey[Unit],
-      impl: Seq[Configuration] => Def.Initialize[InputTask[Unit]]
-  ): Seq[Def.Setting[InputTask[Unit]]] =
-    (task := impl(configurations).evaluated) +:
-      configurations.map(c => task.in(c) := impl(Seq(c)).evaluated)
+  lazy val scalafixConfigSettings: Seq[Def.Setting[_]] = scalafixSettings ++
+    Seq(
+      scalafix := scalafixTaskImpl(Seq(configuration.value)),
+      scalafixTest := scalafixTaskImpl(Seq(configuration.value), Seq("--test"))
+    )
 
   def scalafixTaskImpl(
       config: Seq[Configuration],
