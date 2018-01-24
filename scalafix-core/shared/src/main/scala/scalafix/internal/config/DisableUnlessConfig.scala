@@ -3,52 +3,57 @@ package scalafix.internal.config
 import metaconfig.{Conf, ConfDecoder, ConfError, Configured}
 import org.langmeta.Symbol
 
+import scalafix.CustomMessage
 import scalafix.internal.config.MetaconfigPendingUpstream.XtensionConfScalafix
 import scalafix.internal.util._
 
 case class UnlessConfig(
-    block: Symbol.Global,
-    symbol: Symbol.Global,
-    message: Option[String])
+    unless: Symbol.Global,
+    symbols: List[CustomMessage[Symbol.Global]])
 
 object UnlessConfig {
-  implicit val decoder: ConfDecoder[UnlessConfig] =
+  implicit val customMessageReader: ConfDecoder[CustomMessage[Symbol.Global]] =
+    CustomMessage.decoder(field = "symbol")
+
+  implicit val reader: ConfDecoder[UnlessConfig] =
     ConfDecoder.instanceF[UnlessConfig] {
       case c: Conf.Obj =>
-        (c.get[Symbol.Global]("block") |@|
-          c.get[Symbol.Global]("symbol") |@|
-          c.getOption[String]("message")).map {
-          case ((a, b), c) => UnlessConfig(a, b, c)
+        (c.get[Symbol.Global]("unless") |@|
+          c.get[List[CustomMessage[Symbol.Global]]]("symbols")).map {
+          case (a, b) => UnlessConfig(a, b)
         }
       case _ => Configured.NotOk(ConfError.msg("Wrong config format"))
     }
 }
 
 case class DisableUnlessConfig(symbols: List[UnlessConfig] = Nil) {
-  import UnlessConfig._
 
-  def allSymbols: List[Symbol.Global] = symbols.map(_.symbol)
-  def allBlocks: List[Symbol.Global] = symbols.map(_.block)
+  private def normalizeSymbol(symbol: Symbol.Global): String =
+    SymbolOps.normalize(symbol).syntax
+
+  def allUnless: List[Symbol.Global] = symbols.map(_.unless)
+  def allSymbols: List[Symbol.Global] = symbols.flatMap(_.symbols.map(_.value))
 
   private val messageBySymbol: Map[String, String] =
     (for {
       u <- symbols
-      message <- u.message
+      s <- u.symbols
+      message <- s.message
     } yield {
-      SymbolOps.normalize(u.symbol).syntax -> message
+      normalizeSymbol(s.value) -> message
     }).toMap
 
-  private val symbolsInBlock_ : Map[String, List[Symbol.Global]] =
+  private val symbolsByUnless: Map[String, List[Symbol.Global]] =
     symbols
-      .map(u => SymbolOps.normalize(u.block).syntax -> u.symbol)
+      .map(u => normalizeSymbol(u.unless) -> u.symbols.map(_.value))
       .groupBy(_._1)
-      .mapValues(_.map(_._2))
+      .mapValues(_.flatMap(_._2))
 
-  def symbolsInBlock(block: Symbol.Global): List[Symbol.Global] =
-    symbolsInBlock_.getOrElse(SymbolOps.normalize(block).syntax, List.empty)
+  def symbolsInUnless(unless: Symbol.Global): List[Symbol.Global] =
+    symbolsByUnless.getOrElse(normalizeSymbol(unless), List.empty)
 
   def customMessage(symbol: Symbol.Global): Option[String] =
-    messageBySymbol.get(SymbolOps.normalize(symbol).syntax)
+    messageBySymbol.get(normalizeSymbol(symbol))
 
   implicit val reader: ConfDecoder[DisableUnlessConfig] =
     ConfDecoder.instanceF[DisableUnlessConfig](

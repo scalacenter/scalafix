@@ -5,14 +5,23 @@ rules = [
 
 DisableUnless.symbols = [
   {
-    block = "test.DisableUnless.IO"
-    symbol = "scala.Predef.println"
-    message = "println has side-effects"
+    unless = "test.DisableUnless.IO"
+    symbols = [
+      {
+        symbol = "scala.Predef.println"
+        message = "println has side-effects"
+      }
+      "java.lang.System.currentTimeMillis"
+    ]
   }
   {
-    block = "scala.Option"
-    symbol = "test.DisableUnless.dangerousFunction"
-    message = "the function may return null"
+    unless = "scala.Option"
+    symbols = [
+      {
+        symbol = "test.DisableUnless.dangerousFunction"
+        message = "the function may return null"
+      }
+    ]
   }
 ]
 */
@@ -24,6 +33,7 @@ object DisableUnless {
   }
 
   println("hi") // assert: DisableUnless.println
+  System.currentTimeMillis() // assert: DisableUnless.currentTimeMillis
   IO.apply {
     println("hi") // ok
   }
@@ -34,6 +44,7 @@ object DisableUnless {
   IO {
     {
       println("hi") // ok
+      System.currentTimeMillis() // ok
     }
   }
   IO {

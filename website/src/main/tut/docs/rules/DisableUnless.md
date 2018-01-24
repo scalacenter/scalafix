@@ -14,26 +14,36 @@ within the given "safe" blocks are banned again, to avoid leakage.
 
 ## Configuration
 
-By default, this rule does allows all symbols. To disallow a symbol in a block:
+By default, this rule does allows all symbols. To disallow symbols in a block:
 ```
 DisableUnless.symbols = [
   {
-    block = "scala.Option"
-    symbol = "dangerousFunction"
-    message = "the function may return null"
+      unless = "scala.Option"
+      symbols = [
+        {
+          symbol = "test.DisableUnless.dangerousFunction"
+          message = "the function may return null"
+        }
+        "test.DisableUnless.anotherFunction"
+      ]
   }
 ]
 ```
-Message is optional parameter and could be used to provide custom errors. 
+You can use objects or regular strings to specify blocked symbols, 
+`message` is optional parameter and could be used to provide custom errors. 
 
 ## Example
 With the given config:
 ```
 DisableUnless.symbols = [
   {
-    block = "test.Test.IO"
-    symbol = "scala.Predef.println"
-    message = "println has side-effects"
+      unless = "test.DisableUnless.IO"
+      symbols = [
+        {
+          symbol = "scala.Predef.println"
+          message = "println has side-effects"
+        }
+      ]
   }
 ]
 ```
