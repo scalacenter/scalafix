@@ -13,7 +13,7 @@ object TypeSyntax {
       implicit index: SemanticdbIndex): (Type, Patch) = {
 
     val functionN: SymbolMatcher = SymbolMatcher.exact(
-      1.to(22).map(i => Symbol(s"_root_.scala.Function$i#")): _*
+      0.to(22).map(i => Symbol(s"_root_.scala.Function$i#")): _*
     )
     val tupleN: SymbolMatcher = SymbolMatcher.exact(
       1.to(22).map(i => Symbol(s"_root_.scala.Tuple$i#")): _*
@@ -33,21 +33,33 @@ object TypeSyntax {
       }
     }
 
-    def stableRef(sym: Symbol): (Patch, Tree) = {
+    /**
+      * Returns a scala.meta.Tree given a scala.meta.Symbol.
+      *
+      * Before: _root_.scala.Predef.Set#
+      * After: Type.Select(Term.Select(Term.Name("scala"), Term.Name("Predef")),
+      *                    Type.Name("Set"))
+      */
+    def symbolToTree(sym: Symbol.Global): (Patch, Tree) = {
       var patch = Patch.empty
       def loop[T: ClassTag](symbol: Symbol): T = {
         val result = symbol match {
+          // base case, symbol `_root_.`  becomes `_root_` term
           case Symbol.Global(Symbol.None, Signature.Term(name)) =>
             Term.Name(name)
+          // symbol `A#B#`  becomes `A#B` type
           case Symbol.Global(owner @ SymbolType(), Signature.Type(name)) =>
             Type.Project(loop[Type](owner), Type.Name(name))
+          // symbol `A#B#`  becomes `A#B` type
           case Symbol.Global(owner, Signature.Term(name)) =>
+            // TODO(olafur) implement lookup utility to query what symbol signature resolves to.
             if (shortenNames && isStable(owner)) {
               patch += ctx.addGlobalImport(symbol)
               Term.Name(name)
             } else {
               Term.Select(loop[Term.Ref](owner), Term.Name(name))
             }
+          // symbol `a.B#`  becomes `a.B` type
           case Symbol.Global(owner, Signature.Type(name)) =>
             if (shortenNames && isStable(owner)) {
               patch += ctx.addGlobalImport(symbol)
@@ -81,18 +93,41 @@ object TypeSyntax {
           case els => typeMismatch(els, ev)
         }
       override def apply(tree: Tree): Tree = tree match {
+        // before: Function2[A, B]
+        // after: A => B
         case Type.Apply(functionN(_), args) =>
           val rargs = apply_![Type](args)
           Type.Function(rargs.init, rargs.last)
+        // before: Tuple[A, B]
+        // after: (A, B)
         case Type.Apply(tupleN(_), args) =>
           val rargs = apply_![Type](args)
           Type.Tuple(rargs)
-        case Name(_) :&&: index.Symbol(sym) =>
-          val (addImport, t) = stableRef(sym)
+        // before: HashSet (which resolves to _root_.scala.collection.mutable.HashSet in SemanticdbIndex)
+        // after (if shortenNames=false):
+        //   _root_.scala.collection.mutable.HashSet
+        // after (if shortenNames=true):
+        //   import scala.collection.mutable.HashSet
+        //   HashSet
+        case Name(_) :&&: index.Symbol(sym: Symbol.Global) =>
+          val (addImport, t) = symbolToTree(sym)
           patch += addImport
           t
+        // before: A.this.B
+        // after: A.this.B
+        case Type.Select(Term.This(_), _) =>
+          tree
+        // Given:
+        //   val term: com.Bar
+        //   val x: term.Tpe = ???
+        // avoid `term.com.Bar#Tpe` by not recursing on Tpe.
         case Type.Select(qual, name) =>
           Type.Select(apply_![Term.Ref](qual), name)
+        // Given:
+        //   val x: A#B = ???
+        // don't recurse on B
+        case Type.Project(qual, name) =>
+          Type.Project(apply_![Type](qual), name)
         case els =>
           super.apply(els)
       }

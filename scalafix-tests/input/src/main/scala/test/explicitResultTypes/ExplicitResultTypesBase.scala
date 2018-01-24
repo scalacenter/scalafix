@@ -15,6 +15,7 @@ object ExplicitResultTypesBase {
   protected val d = 1.0f
   protected def e(a: Int, b: Double) = a + b
   protected var f = (x: Int) => x + 1
+  val f0 = () => 42
   private val g = 1
   private def h(a: Int) = ""
   private var i = 22
