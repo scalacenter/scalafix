@@ -76,7 +76,7 @@ class DisableSyntaxConfigSuite extends FunSuite {
 
   def assertError(rawConfig: String, errorMessage: String): Unit = {
     val obtained = read(rawConfig)
-    val expected = NotOk(ConfError.msg(errorMessage))
+    val expected = NotOk(ConfError.message(errorMessage))
     assert(obtained == expected)
   }
 }

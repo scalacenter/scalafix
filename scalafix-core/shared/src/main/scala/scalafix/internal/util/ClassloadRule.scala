@@ -124,7 +124,7 @@ object ClassloadRule {
       new ClassloadRule[Rule](classloader).classloadRule(fqn, args)
     result match {
       case Success(e) => Configured.Ok(e)
-      case util.Failure(e) => Configured.NotOk(ConfError.msg(e.toString))
+      case util.Failure(e) => Configured.NotOk(ConfError.message(e.toString))
     }
   }
 }

@@ -28,7 +28,6 @@ import scalafix.internal.cli.WriteMode
 import scalafix.internal.config.Class2Hocon
 import scalafix.internal.config.FilterMatcher
 import scalafix.internal.config.LazySemanticdbIndex
-import scalafix.internal.config.MetaconfigPendingUpstream
 import scalafix.internal.config.RuleKind
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
@@ -39,6 +38,7 @@ import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
 import metaconfig.Configured.Ok
 import metaconfig._
+import metaconfig.ConfError
 
 sealed abstract case class CliRunner(
     sourceroot: AbsolutePath,
@@ -314,7 +314,7 @@ object CliRunner {
           if (cp.shallow.nonEmpty) Ok(cp)
           else {
             ConfError
-              .msg(
+              .message(
                 "Unable to infer --classpath containing .semanticdb files. " +
                   "Is the semanticdb compiler plugin installed?")
               .notOk
@@ -327,7 +327,9 @@ object CliRunner {
         .getOrElse(common.workingPath)
       if (result.isDirectory) Ok(result)
       else {
-        ConfError.msg(s"Invalid --sourceroot $result is not a directory!").notOk
+        ConfError
+          .message(s"Invalid --sourceroot $result is not a directory!")
+          .notOk
       }
     }
 
@@ -351,7 +353,7 @@ object CliRunner {
             if (db.documents.nonEmpty) Ok(db)
             else {
               ConfError
-                .msg("Missing SemanticdbIndex, found no semanticdb files!")
+                .message("Missing SemanticdbIndex, found no semanticdb files!")
                 .notOk
             }
         }
@@ -359,7 +361,7 @@ object CliRunner {
       if (cachedDatabase.isEmpty) {
         cachedDatabase = Some(result)
       }
-      Some(MetaconfigPendingUpstream.get_!(result))
+      Some(result.get)
     }
     private def resolveDatabase(kind: RuleKind): Option[SemanticdbIndex] = {
       if (kind.isSyntactic) None
@@ -407,7 +409,7 @@ object CliRunner {
     } catch {
       case e: PatternSyntaxException =>
         ConfError
-          .msg(
+          .message(
             s"Invalid '${e.getPattern}' for  --include/--exclude. ${e.getMessage}")
           .notOk
     }
@@ -435,7 +437,7 @@ object CliRunner {
 
         if (allFilesExcludingDiffs.isEmpty) {
           ConfError
-            .msg(
+            .message(
               s"No files to fix! Missing at least one .scala or .sbt file from: " +
                 paths.mkString(", "))
             .notOk
@@ -446,12 +448,12 @@ object CliRunner {
       (config, configStr) match {
         case (Some(x), Some(y)) =>
           ConfError
-            .msg(s"Can't configure both --config $x and --config-str $y")
+            .message(s"Can't configure both --config $x and --config-str $y")
             .notOk
         case (Some(configPath), _) =>
           val path = AbsolutePath(configPath)
           if (path.isFile) Ok(Input.File(path))
-          else ConfError.msg(s"--config $path is not a file").notOk
+          else ConfError.message(s"--config $path is not a file").notOk
         case (_, Some(configString)) =>
           Ok(Input.String(configString))
         case _ =>
@@ -484,7 +486,7 @@ object CliRunner {
         case (rule, _) =>
           if (rule.name.isEmpty)
             ConfError
-              .msg("No rule was provided! Use --rules to specify a rule.")
+              .message("No rule was provided! Use --rules to specify a rule.")
               .notOk
           else Ok(rule)
       }
@@ -503,16 +505,16 @@ object CliRunner {
           Ok(replacePath _)
         case (Some(from), _) =>
           ConfError
-            .msg(s"--out-from $from must be accompanied with --out-to")
+            .message(s"--out-from $from must be accompanied with --out-to")
             .notOk
         case (_, Some(to)) =>
           ConfError
-            .msg(s"--out-to $to must be accompanied with --out-from")
+            .message(s"--out-to $to must be accompanied with --out-from")
             .notOk
       }
     } catch {
       case e: PatternSyntaxException =>
-        ConfError.msg(s"Invalid regex '$outFrom'! ${e.getMessage}").notOk
+        ConfError.message(s"Invalid regex '$outFrom'! ${e.getMessage}").notOk
     }
 
     val semanticInputs: Configured[Map[AbsolutePath, Input.VirtualFile]] = {

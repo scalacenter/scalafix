@@ -436,6 +436,7 @@ lazy val website = project
     noPublish,
     websiteSettings,
     unidocSettings,
+    libraryDependencies += "com.geirsson" %% "metaconfig-docs" % metaconfigV,
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(
       testkit212,
       core212JVM)

@@ -1,36 +1,37 @@
 package scalafix.internal.config
 
 import metaconfig._
-import MetaconfigPendingUpstream.XtensionConfScalafix
+import metaconfig.generic.Surface
+import metaconfig.annotation._
 
 case class ExplicitResultTypesConfig(
+    @Description("Enable/disable this rule for defs, vals or vars.")
+    @ExampleValue("[Def, Val, Var]")
     memberKind: List[MemberKind] = Nil,
+    @Description("Enable/disable this rule for private/protected members.")
+    @ExampleValue("[Public, Protected]")
     memberVisibility: List[MemberVisibility] = Nil,
+    @Description(
+      "If false, insert explicit result types even for simple definitions like `val x = 2`")
     skipSimpleDefinitions: Boolean = true,
+    @Description(
+      "If false, insert explicit result types even for locally defined implicit vals")
     skipLocalImplicits: Boolean = true,
     // Experimental, still blocked by https://github.com/scalameta/scalameta/issues/1099
     // to work for defs. May insert names that conflicts with existing names in scope.
     // Use at your own risk.
+    @Description(
+      "If true, does a best-effort at inserting short names and add missing imports. " +
+        "WARNING. This feature is currently implemented in a naive way and it contains many bugs.")
     unsafeShortenNames: Boolean = false
-) {
-  implicit val reader: ConfDecoder[ExplicitResultTypesConfig] =
-    ConfDecoder.instanceF[ExplicitResultTypesConfig] { c =>
-      (
-        c.getField(memberKind) |@|
-          c.getField(memberVisibility) |@|
-          c.getField(skipSimpleDefinitions) |@|
-          c.getField(skipLocalImplicits) |@|
-          c.getField(unsafeShortenNames)
-      ).map {
-        case ((((a, b), c), d), e) =>
-          ExplicitResultTypesConfig(a, b, c, d, e)
-      }
-    }
-}
+)
 
 object ExplicitResultTypesConfig {
   val default: ExplicitResultTypesConfig = ExplicitResultTypesConfig()
-  implicit val reader: ConfDecoder[ExplicitResultTypesConfig] = default.reader
+  implicit val reader: ConfDecoder[ExplicitResultTypesConfig] =
+    generic.deriveDecoder[ExplicitResultTypesConfig](default)
+  implicit val surface: Surface[ExplicitResultTypesConfig] =
+    generic.deriveSurface[ExplicitResultTypesConfig]
 }
 
 sealed trait MemberVisibility

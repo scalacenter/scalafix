@@ -76,9 +76,9 @@ object ScalafixCompilerDecoder {
       case GitHubFallback(invalid) =>
         Some(
           ConfError
-            .msg(s"""Invalid url 'github:$invalid'. Valid formats are:
-                    |- github:org/repo/version
-                    |- github:org/repo/version?sha=branch""".stripMargin)
+            .message(s"""Invalid url 'github:$invalid'. Valid formats are:
+                        |- github:org/repo/version
+                        |- github:org/repo/version?sha=branch""".stripMargin)
             .notOk)
       case _ => None
     }

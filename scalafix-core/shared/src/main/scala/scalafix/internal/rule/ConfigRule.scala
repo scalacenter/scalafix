@@ -16,7 +16,7 @@ object ConfigRule {
       getSemanticdbIndex(RuleKind.Semantic) match {
         case None =>
           ConfError
-            .msg(".scalafix.conf patches require the Semantic API.")
+            .message(".scalafix.conf patches require the Semantic API.")
             .notOk
         case Some(index) =>
           val rule = Rule.constant(

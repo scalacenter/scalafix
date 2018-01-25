@@ -19,7 +19,7 @@ implicit val tt = liftedType
 implicit val tt: TypedType[R] = liftedType
 ```
 
-But for local implicit `val` and `def` it's not needed and will not be added by default. 
+But for local implicit `val` and `def` it's not needed and will not be added by default.
 
 ```scala
 def foo = {
@@ -30,16 +30,15 @@ def foo = {
 
 ### Configuration
 
-```scala
-ExplicitResultTypes.memberKind = [Val, Def, Var] // empty by default
-ExplicitResultTypes.memberVisibility = [Public, Protected] // empty by default
-ExplicitResultTypes.skipSimpleDefinitions = false // true by default
-ExplicitResultTypes.skipLocalImplicits = false // true by default
-    
-// Experimental, shorten fully qualified names and insert missing imports
-// By default, names are fully qualified and prefixed with _root_.
-unsafeShortenNames = true // false by default.
-ExplicitResultTypes.unsafeShortenNames = true // false by default.
+This rule has several different options.
+
+```tut:invisible
+import scalafix.internal.config._
+```
+```tut:passthrough
+println(
+scalafix.website.rule("ExplicitResultTypes", ExplicitResultTypesConfig.default)
+)
 ```
 
 ### Known limitations

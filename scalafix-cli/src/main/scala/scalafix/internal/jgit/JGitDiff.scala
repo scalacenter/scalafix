@@ -61,13 +61,13 @@ object JGitDiff {
 
               Configured.Ok(DiffDisable(diffs))
             }
-            case Left(msg) => ConfError.msg(msg).notOk
+            case Left(msg) => ConfError.message(msg).notOk
           }
         }
-        case Left(msg) => ConfError.msg(msg).notOk
+        case Left(msg) => ConfError.message(msg).notOk
       }
     } else {
-      ConfError.msg(s"$workingDir is not a git repository").notOk
+      ConfError.message(s"$workingDir is not a git repository").notOk
     }
   }
 

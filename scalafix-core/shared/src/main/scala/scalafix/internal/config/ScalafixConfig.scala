@@ -7,6 +7,7 @@ import scala.meta._
 import scala.meta.dialects.Scala212
 import scala.meta.parsers.Parse
 import metaconfig._
+import metaconfig.generic.Surface
 
 case class ScalafixConfig(
     parser: Parse[_ <: Tree] = Parse.parseSource,
@@ -34,26 +35,7 @@ case class ScalafixConfig(
   )
 
   val reader: ConfDecoder[ScalafixConfig] =
-    ConfDecoder.instanceF[ScalafixConfig] { conf =>
-      import conf._
-      (
-        getOrElse("fatalWarnings")(fatalWarnings) |@|
-          getOrElse("reporter")(reporter) |@|
-          getOrElse("patches")(patches)(patches.reader) |@|
-          getOrElse("dialect")(dialect) |@|
-          getOrElse("lint")(lint)(lint.reader)
-      ).map {
-        case ((((a, b), c), d), e) =>
-          copy(
-            fatalWarnings = a,
-            reporter = b,
-            patches = c,
-            dialect = d,
-            lint = e
-          )
-      }
-
-    }
+    ScalafixConfig.decoder(this)
 
   def withOut(out: PrintStream): ScalafixConfig = copy(
     reporter = reporter match {
@@ -66,8 +48,12 @@ case class ScalafixConfig(
 object ScalafixConfig {
 
   lazy val default: ScalafixConfig = ScalafixConfig()
+  def decoder(default: ScalafixConfig): ConfDecoder[ScalafixConfig] =
+    generic.deriveDecoder[ScalafixConfig](default)
+  implicit lazy val surface: Surface[ScalafixConfig] =
+    generic.deriveSurface[ScalafixConfig]
   implicit lazy val ScalafixConfigDecoder: ConfDecoder[ScalafixConfig] =
-    default.reader
+    decoder(default)
 
   val DefaultDialect: Dialect = Scala212.copy(
     // Are `&` intersection types supported by this dialect?

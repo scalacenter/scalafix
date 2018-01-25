@@ -121,7 +121,7 @@ class RuleCompiler(
     val errors = reporter.infos.collect {
       case reporter.Info(pos, msg, reporter.ERROR) =>
         ConfError
-          .msg(msg)
+          .message(msg)
           .atPos(
             if (pos.isDefined) m.Position.Range(input, pos.start, pos.end)
             else m.Position.None

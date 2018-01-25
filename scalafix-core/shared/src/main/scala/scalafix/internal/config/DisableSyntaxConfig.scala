@@ -39,7 +39,7 @@ case class DisableSyntaxConfig(
         Configured.Ok(Pattern.compile(pattern, Pattern.MULTILINE))
       } catch {
         case ex: PatternSyntaxException =>
-          Configured.NotOk(ConfError.msg(ex.getMessage))
+          Configured.NotOk(ConfError.message(ex.getMessage))
     })
   }
 
@@ -144,7 +144,7 @@ object DisabledKeyword {
       if (relativeDistance < 0.20) s" (Did you mean: $closestKeyword?)"
       else ""
 
-    ConfError.msg(s"$keyword is not in our supported keywords.$didYouMean")
+    ConfError.message(s"$keyword is not in our supported keywords.$didYouMean")
   }
 
   /** Levenshtein distance. Implementation based on Wikipedia's algorithm. */
