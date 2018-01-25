@@ -4,10 +4,29 @@ package internal.config
 import metaconfig.ConfDecoder
 import org.langmeta.Symbol
 import scalafix.internal.util.SymbolOps
+import metaconfig.annotation.Description
+import metaconfig.annotation.ExampleValue
 import metaconfig.generic
 import metaconfig.generic.Surface
 
-case class DisableConfig(symbols: List[CustomMessage[Symbol.Global]] = Nil) {
+case class DisableConfig(
+    @Description("The list of symbols to disable.")
+    @ExampleValue(
+      """[
+        |  # With custom message (recommended)
+        |  {
+        |    symbol = "scala.Predef.any2stringadd"
+        |    message = "Use explicit toString before calling +"
+        |  }
+        |  {
+        |    symbol = "scala.Any"
+        |    message = "Explicitly type annotate Any if this is intentional"
+        |  }
+        |  # Without custom message (discouraged)
+        |  "com.Lib.implicitConversion"
+        |]""".stripMargin)
+    symbols: List[CustomMessage[Symbol.Global]] = Nil
+) {
   def allSymbols: List[Symbol.Global] = symbols.map(_.value)
 
   private val messageBySymbol: Map[String, CustomMessage[Symbol.Global]] =
