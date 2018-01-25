@@ -70,8 +70,9 @@ object ScalafixPlugin extends AutoPlugin {
   import autoImport._
 
   override def projectSettings: Seq[Def.Setting[_]] =
-    Seq(Compile, Test).flatMap(inConfig(_)(scalafixConfigSettings))
-
+    scalafixSettings ++
+      Seq(Compile, Test).flatMap(inConfig(_)(scalafixConfigSettings))
+  
   override def globalSettings: Seq[Def.Setting[_]] = Seq(
     scalafixConfig := Option(file(".scalafix.conf")).filter(_.isFile),
     cliWrapperMainClass := "scalafix.cli.Cli$",

@@ -1,12 +1,25 @@
 # compile should not affect scalafix
 > compile
--> scalafixTest ProcedureSyntax
-> scalafix ProcedureSyntax
-> scalafixTest ProcedureSyntax
-> javaProject/scalafix ProcedureSyntax
+
+-> compile:scalafixTest ProcedureSyntax
+-> test:scalafixTest ProcedureSyntax
+-> it:scalafixTest ProcedureSyntax
+
+> compile:scalafix ProcedureSyntax
+> test:scalafix ProcedureSyntax
+> it:scalafix ProcedureSyntax
+
+> compile:scalafixTest ProcedureSyntax
+> test:scalafixTest ProcedureSyntax
+> it:scalafixTest ProcedureSyntax
+
+> javaProject/compile:scalafix ProcedureSyntax
 # Should fail because 2.10 has no semanticdb
 # Other >2.10 projects should succeed
--> scalafix
+-> compile:scalafix
+-> test:scalafix
+-> it:scalafix
+
 -> sbtfixTest Sbt1
 > sbtfix Sbt1
 > sbtfixTest Sbt1
