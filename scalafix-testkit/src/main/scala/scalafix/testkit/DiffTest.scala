@@ -24,9 +24,23 @@ object DiffTest {
   private val PrefixRegex = "\\s+(ONLY|SKIP)".r
   private def stripPrefix(str: String) = PrefixRegex.replaceFirstIn(str, "")
 
-  def fromSemanticdbIndex(index: SemanticdbIndex): Seq[DiffTest] =
+  def fromSemanticdbIndex(index: SemanticdbIndex): Seq[DiffTest] = {
     index.documents.map { document =>
-      val input @ Input.VirtualFile(label, code) = document.input
+      val input = document.input
+      val (label, code) =
+        document.input match {
+          case Input.VirtualFile(label, code) => (label, code)
+          case file: Input.File => {
+            val relative = index.sourcepath.shallow
+              .find(sourceroot => file.path.toNIO.startsWith(sourceroot.toNIO))
+               .map(root => file.path.toRelative(root))
+                 .getOrElse(throw new Exception(s"${file.path} is not relative to any sourcroot"))
+
+            (relative.toString(), file.text)
+          }
+          case _ => throw new Exception("unexpected")
+        }
+
       val relpath = RelativePath(label)
       val config: () => (Rule, ScalafixConfig) = { () =>
         input.tokenize.get
@@ -54,6 +68,7 @@ object DiffTest {
         isOnly = code.contains("ONLY")
       )
     }
+  }
 
   def testToRun(tests: Seq[DiffTest]): Seq[DiffTest] = {
     val onlyOne = tests.exists(_.isOnly)
