@@ -9,8 +9,6 @@ DisableSyntax.keywords = [
 DisableSyntax.noTabs = true
 DisableSyntax.noSemicolons = true
 DisableSyntax.noXml = true
-DisableSyntax.noCovariantTypes = true
-DisableSyntax.noContravariantTypes = true
 DisableSyntax.regex = [
   {
     id = offensive
@@ -48,13 +46,4 @@ case object DisableSyntax {
 
   // actually 7.5 million years
   Await.result(Future(42), 75.days) // assert: DisableSyntax.Await\.result
-
-  class Co[+T](t: T) // assert: DisableSyntax.covariant
-  class Contra[-T](t: T) // assert: DisableSyntax.contravariant
-
-  class Pro[-A,             // assert: DisableSyntax.contravariant
-            +B](a: A, b: B) // assert: DisableSyntax.covariant
-
-  trait TraitCo[+T]            // assert: DisableSyntax.covariant
-  type TypeCo[+T] = TraitCo[T] // assert: DisableSyntax.covariant
 }

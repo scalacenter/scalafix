@@ -33,8 +33,16 @@ It contains the following elements:
 * semicolons (`;`)
 * tabs
 * xml literals
-* covariant and contravariant type parameters 
+* covariant and contravariant type parameters (_Since 0.5.8_)
+* default args in methods (_Since 0.5.8_)
+* val definitions in traits and abstract classes (_Since 0.5.8_)
+* implicit objects (_Since 0.5.8_)
+* implicit conversions (implicit def with non-implicit parameters) (_Since 0.5.8_)
 
+There're also rules that rewrite syntax:
+
+* transforming `final val` to `val` (It breaks incremental compilation, see more <https://github.com/sbt/zinc/issues/227>) (_Since 0.5.8_)
+ 
 To disallow a syntax:
 
 ```
@@ -49,6 +57,11 @@ DisableSyntax.noSemicolons = true
 DisableSyntax.noXml = true
 DisableSyntax.noCovariantTypes = true
 DisableSyntax.noContravariantTypes = true
+DisableSyntax.noDefaultArgs = true
+DisableSyntax.noValInAbstract = true
+DisableSyntax.noImplicitObject = true
+DisableSyntax.noImplicitConversion = true
+DisableSyntax.noFinalVal = true
 DisableSyntax.regex = [
   {
     id = "offensive"
