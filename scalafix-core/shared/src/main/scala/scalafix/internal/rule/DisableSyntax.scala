@@ -73,22 +73,6 @@ final case class DisableSyntax(
       }
     }
 
-    object WithMethods {
-      def unapply(t: Tree): Option[List[Defn.Def]] = {
-        val stats = t match {
-          case Defn.Class(_, _, _, _, templ) => templ.stats
-          case Defn.Trait(_, _, _, _, templ) => templ.stats
-          case Term.NewAnonymous(templ) => templ.stats
-          case _ => List.empty
-        }
-        val methods = stats.flatMap {
-          case d: Defn.Def => Some(d)
-          case _ => None
-        }
-        if (methods.isEmpty) None else Some(methods)
-      }
-    }
-
     def hasDefaultArgs(d: Defn.Def): Boolean =
       d.paramss.exists(_.exists(_.default.isDefined))
 
@@ -114,17 +98,14 @@ final case class DisableSyntax(
               t.pos
             )
         )
-      case t @ WithMethods(methods)
-          if methods.exists(hasDefaultArgs) && config.noDefaultArgs =>
-        methods
-          .filter(hasDefaultArgs)
-          .map { m =>
-            errorCategory
-              .copy(id = "defaultArgs")
-              .at(
-                "Default args makes it hard to use methods as functions.",
-                m.pos)
-          }
+      case d: Defn.Def if hasDefaultArgs(d) && config.noDefaultArgs =>
+        Seq(
+          errorCategory
+            .copy(id = "defaultArgs")
+            .at(
+              "Default args makes it hard to use methods as functions.",
+              d.pos)
+        )
       case t @ AbstractWithVals(vals) if config.noValInAbstract =>
         vals.map { v =>
           errorCategory

@@ -29,6 +29,10 @@ object DisableSyntaxMoreRules {
     def foobar(a: Int, b: Int = 1) = ??? // assert: DisableSyntax.defaultArgs
   }
 
+  object FooO {
+    def bar(x: Int = 42) = ??? // assert: DisableSyntax.defaultArgs
+  }
+
   trait FooTT {
     def bar(x: Int) = 3 // ok
   }
@@ -37,9 +41,9 @@ object DisableSyntaxMoreRules {
     override def bar(x: Int = 42) = 4 // assert: DisableSyntax.defaultArgs
   }
 
-  def bar(x: Int = 42) = 5 // ok
+  def bar(x: Int = 42) = 5 // assert: DisableSyntax.defaultArgs
   def foobar = {
-    def foobarfoo(x: Int = 42) = 6 // ok
+    def foobarfoo(x: Int = 42) = 6 // assert: DisableSyntax.defaultArgs
   }
 
   class Buzz(val a: Int = 1) // ok
