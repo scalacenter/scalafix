@@ -34,7 +34,7 @@ It contains the following elements:
 * tabs
 * xml literals
 * covariant and contravariant type parameters (_Since 0.5.8_)
-* default args in methods (_Since 0.5.8_)
+* default args in methods (e.g. any `def`) (_Since 0.5.8_)
 * val definitions in traits and abstract classes (_Since 0.5.8_)
 * implicit objects (_Since 0.5.8_)
 * implicit conversions (implicit def with non-implicit parameters) (_Since 0.5.8_)
