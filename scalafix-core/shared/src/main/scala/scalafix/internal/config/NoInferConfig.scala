@@ -5,7 +5,7 @@ import org.langmeta.Symbol
 import metaconfig.generic
 import metaconfig.generic.Surface
 
-case class NoInferConfig(symbols: List[Symbol.Global] = Nil) {}
+case class NoInferConfig(symbols: List[Symbol.Global] = Nil)
 
 object NoInferConfig {
   implicit val surface: Surface[NoInferConfig] =

@@ -219,14 +219,13 @@ trait ScalafixMetaconfigReaders {
     case Conf.Str(str) => Configured.Ok(FilterMatcher.mkRegexp(List(str)))
     case ConfStrLst(values) => Configured.Ok(FilterMatcher.mkRegexp(values))
   }
-  private val fallbackFilterMatcher = FilterMatcher(Nil, Nil)
   implicit val FilterMatcherReader: ConfDecoder[FilterMatcher] =
     ConfDecoder.instance[FilterMatcher] {
       case Conf.Str(str) => Configured.Ok(FilterMatcher(str))
       case ConfStrLst(values) =>
         Configured.Ok(FilterMatcher(values, Nil))
       case els =>
-        fallbackFilterMatcher.reader.read(els)
+        FilterMatcher.matchNothing.reader.read(els)
     }
 
   def parseReader[T](implicit parse: Parse[T]): ConfDecoder[T] =
@@ -296,4 +295,5 @@ trait ScalafixMetaconfigReaders {
     })
     ReaderUtil.oneOf[PrintStream](empty)
   }
+
 }

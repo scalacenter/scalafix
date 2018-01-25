@@ -2,6 +2,8 @@ package scalafix
 package config
 
 import metaconfig.{Conf, ConfDecoder}
+import scala.meta.Symbol
+import scalafix.internal.config.ScalafixMetaconfigReaders._
 
 class CustomMessage[T](
     val value: T,
@@ -9,6 +11,8 @@ class CustomMessage[T](
     val id: Option[String])
 
 object CustomMessage {
+  implicit val SymbolDecoder: ConfDecoder[CustomMessage[Symbol.Global]] =
+    decoder[Symbol.Global](field = "symbol")
   def decoder[T](field: String)(
       implicit ev: ConfDecoder[T]): ConfDecoder[CustomMessage[T]] =
     ConfDecoder.instance[CustomMessage[T]] {

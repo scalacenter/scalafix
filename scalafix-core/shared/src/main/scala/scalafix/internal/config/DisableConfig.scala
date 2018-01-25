@@ -2,9 +2,10 @@ package scalafix
 package internal.config
 
 import metaconfig.ConfDecoder
-import MetaconfigPendingUpstream.XtensionConfScalafix
 import org.langmeta.Symbol
 import scalafix.internal.util.SymbolOps
+import metaconfig.generic
+import metaconfig.generic.Surface
 
 case class DisableConfig(symbols: List[CustomMessage[Symbol.Global]] = Nil) {
   def allSymbols: List[Symbol.Global] = symbols.map(_.value)
@@ -17,17 +18,12 @@ case class DisableConfig(symbols: List[CustomMessage[Symbol.Global]] = Nil) {
   def customMessage(
       symbol: Symbol.Global): Option[CustomMessage[Symbol.Global]] =
     messageBySymbol.get(SymbolOps.normalize(symbol).syntax)
-
-  implicit val customMessageReader: ConfDecoder[CustomMessage[Symbol.Global]] =
-    CustomMessage.decoder(field = "symbol")
-
-  implicit val reader: ConfDecoder[DisableConfig] =
-    ConfDecoder.instanceF[DisableConfig](
-      _.getField(symbols).map(DisableConfig(_))
-    )
 }
 
 object DisableConfig {
   val default: DisableConfig = DisableConfig()
-  implicit val reader: ConfDecoder[DisableConfig] = default.reader
+  implicit val surface: Surface[DisableConfig] =
+    generic.deriveSurface[DisableConfig]
+  implicit val decoder: ConfDecoder[DisableConfig] =
+    generic.deriveDecoder[DisableConfig](default)
 }

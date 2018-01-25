@@ -12,9 +12,8 @@ case class UnlessConfig(
     symbols: List[CustomMessage[Symbol.Global]])
 
 object UnlessConfig {
-  implicit val customMessageReader: ConfDecoder[CustomMessage[Symbol.Global]] =
-    CustomMessage.decoder(field = "symbol")
-
+  // NOTE(olafur): metaconfig.generic.deriveDecoder requires a default base values.
+  // Here we require all fields to be provided by the user so we write the decoder manually.
   implicit val reader: ConfDecoder[UnlessConfig] =
     ConfDecoder.instanceF[UnlessConfig] {
       case c: Conf.Obj =>
