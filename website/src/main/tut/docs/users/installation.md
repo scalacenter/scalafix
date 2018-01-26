@@ -38,7 +38,7 @@ scalaVersion := "{{ site.scala212 }}" // {{ site.scala211 }} is also supported.
 
 // If you get "-Yrangepos is required" error or "Missing compiler plugin semanticdb",
 // This setting must appear after scalacOptions and libraryDependencies.
-scalafixSettings 
+scalafixSettings
 // or scalafixLibraryDependencies (Add semanticdb-scalac compiler plugin to libraryDependencies.)
 // & scalacOptions bellow
 
@@ -78,7 +78,7 @@ git diff // should produce a diff
 
 | Name                        | Type          | Description                                                                                                                               |
 | --------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------|
-| `scalafixCli <args>         | `Unit`        | Invoke scalafix command line interface directly. See {% doc_ref Installation, cli %} or use tab completion to explore supported arguments |
+| `scalafixCli <args>`         | `Unit`        | Invoke scalafix command line interface directly. See {% doc_ref Installation, cli %} or use tab completion to explore supported arguments |
 | `scalafix <rule>..`         | `Unit`        | Run scalafix on project sources. See {% doc_ref Rules %} or use tab completion to explore supported rules.                                |
 | `scalafixTest <rule>..`     | `Unit`        | Similar to the above task with the --test parameter                                                                                       |
 | `sbtfix <rule>..`           | `Unit`        | Run scalafix on the build sources, `*.sbt` and `project/*`. **Note**: Only supports syntactic rules.                                      |
