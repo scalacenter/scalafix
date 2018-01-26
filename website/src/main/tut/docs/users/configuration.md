@@ -26,8 +26,10 @@ rules = [
   ExplicitResultTypes
   // custom rule on local disk
   "file:rules/MyRule.scala"
+  // custom rule from library on GitHub
+  "github:typelevel/cats/v1.0.0"
   // custom rule shared as a gist
-  "https://gist.githubusercontent.com/olafurpg/24607c9832d2f2c4b8b18aef89125061/raw/e60375343cc0039cca85da2457755fc466b4d616/libz.scala"
+  "https://git.io/vNXDG"
   // ...
 ]
 ```
