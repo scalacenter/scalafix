@@ -20,13 +20,24 @@ object DisableSyntaxMoreRules {
   type TypeCo[+T] = TraitCo[T] // assert: DisableSyntax.covariant
 
   class Foo {
-    def bar(x: Int = 42) = 1 // assert: DisableSyntax.defaultArgs
+    def bar(x: Int = 42) = 1 /* assert: DisableSyntax.defaultArgs
+                   ^
+Default args makes it hard to use methods as functions.
+*/
   }
 
   trait FooT {
     def bar(x: Int = 42) = ???           // assert: DisableSyntax.defaultArgs
     def foo(a: Int)(b: Int = 1) = ???    // assert: DisableSyntax.defaultArgs
     def foobar(a: Int, b: Int = 1) = ??? // assert: DisableSyntax.defaultArgs
+
+    def muli(
+      a: Int = 1, // assert: DisableSyntax.defaultArgs
+      b: Int = 2  // assert: DisableSyntax.defaultArgs
+    )(
+      c: Int = 3, // assert: DisableSyntax.defaultArgs
+      d: Int = 4  // assert: DisableSyntax.defaultArgs
+    ) = ???
   }
 
   trait FooTT {
@@ -37,9 +48,9 @@ object DisableSyntaxMoreRules {
     override def bar(x: Int = 42) = 4 // assert: DisableSyntax.defaultArgs
   }
 
-  def bar(x: Int = 42) = 5 // ok
+  def bar(x: Int = 42) = 5 // assert: DisableSyntax.defaultArgs
   def foobar = {
-    def foobarfoo(x: Int = 42) = 6 // ok
+    def foobarfoo(x: Int = 42) = 6 // assert: DisableSyntax.defaultArgs
   }
 
   class Buzz(val a: Int = 1) // ok
