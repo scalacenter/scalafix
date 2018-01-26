@@ -6,19 +6,16 @@ title: Rules
 # Rules
 
 A Scalafix rule is a small program that can analyze your source code,
-report messages and automatically fix problems.
-Scalafix comes with a few rules out-of-the-box.
-These rules have been chosen to meet the long-term goal of scalafix to
-[clarify the Scala to Dotty migration path](http://scala-lang.org/blog/2016/05/30/scala-center-advisory-board.html#the-first-meeting).
+report messages and sometimes automatically fix problems.
+The following rules come pre-installed with Scalafix.
+The "Semantic" column indicates whether the rule requires compilation before running.
+Non-semantic rules can run directly from the command line interface without compilation.
 
-Here's a list of the currently implemented rules:
+```tut:passthrough
+println(scalafix.website.allRulesTable)
+```
 
-{% assign rules = site.data.rules.rules %}
-{% for rule in rules %}
-  - [{{ rule }}]({{ site.baseurl }}/docs/rules/{{ rule }})
-{% endfor %}
-
-To create custom rules, see {% doc_ref Rule Authors %}.
+To learn how to extend Scalafix with custom rules, see {% doc_ref Rule Authors %}.
 
 ## Planned rules
 See [here](https://github.com/scalacenter/scalafix/labels/rule).

@@ -56,6 +56,9 @@ final case class DisableUnless(
 
   import DisableUnless._
 
+  override def description: String =
+    """Linter that bans usage of "disabled" symbols unless they appear in a "safe" block."""
+
   private lazy val errorCategory: LintCategory =
     LintCategory.error(
       """Some constructs are unsafe to use and should be avoided""".stripMargin

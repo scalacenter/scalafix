@@ -2,7 +2,6 @@ package scalafix.internal.rule
 
 import scala.meta._
 import metaconfig.{Conf, Configured}
-
 import scalafix.Patch
 import scalafix.rule.{Rule, RuleCtx}
 import scalafix.lint.LintMessage
@@ -95,7 +94,7 @@ final case class DisableSyntax(
     def hasNonImplicitParam(d: Defn.Def): Boolean =
       d.paramss.exists(_.exists(_.mods.forall(!_.is[Mod.Implicit])))
 
-    ctx.tree.collect {
+    val DefaultMatcher: PartialFunction[Tree, Seq[LintMessage]] = {
       case t @ mod"+" if config.noCovariantTypes =>
         Seq(
           errorCategory
@@ -151,7 +150,9 @@ final case class DisableSyntax(
               "implicit conversions weaken type safety and always can be replaced by explicit conversions",
               t.pos)
         )
-    }.flatten
+    }
+    val FinalizeMatcher = DisableSyntax.FinalizeMatcher("noFinalize")
+    ctx.tree.collect(DefaultMatcher.orElse(FinalizeMatcher)).flatten
   }
 
   private def fixTree(ctx: RuleCtx): Patch = {
@@ -178,4 +179,20 @@ final case class DisableSyntax(
 
   private def error(keyword: String, token: Token): LintMessage =
     errorCategory.copy(id = keyword).at(s"$keyword is disabled", token.pos)
+}
+
+object DisableSyntax {
+
+  private val FinalizeError =
+    LintCategory.error(
+      explain = """|there is no guarantee that finalize will be called and
+                   |overriding finalize incurs a performance penalty""".stripMargin
+    )
+
+  def FinalizeMatcher(id: String): PartialFunction[Tree, List[LintMessage]] = {
+    case Defn.Def(_, name @ q"finalize", _, Nil | Nil :: Nil, _, _) =>
+      FinalizeError
+        .copy(id = id)
+        .at("finalize should not be used", name.pos) :: Nil
+  }
 }
