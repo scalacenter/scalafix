@@ -4,8 +4,11 @@ package scalafix.internal.sbt
 object ScalafixRuleNames {
   def all: List[String] = List(
     "DottyKeywords",
+    "DisableSyntax",
+    "NoFinalize",
     "NoValInForComprehension",
     "RemoveXmlLiterals",
+    "LeakingImplicitClassVal",
     "VolatileLazyVal",
     "ProcedureSyntax",
     "ExplicitUnit",
@@ -18,6 +21,8 @@ object ScalafixRuleNames {
     "RemoveUnusedImports",
     "RemoveUnusedTerms",
     "NoAutoTupling",
-    "Disable"
+    "Disable",
+    "DisableUnless",
+    "MissingFinal"
   )
 }
