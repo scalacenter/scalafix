@@ -1,11 +1,13 @@
 package scalafix
 
+import java.nio.file.Files
 import scalafix.rule.ScalafixRules
 import scalatags.Text
 import metaconfig.generic.Setting
 import metaconfig.generic.Settings
 import scalatags.Text.all._
 import scala.meta._
+import org.langmeta.internal.io.PathIO
 
 package object website {
 
@@ -20,7 +22,20 @@ package object website {
       .all(SemanticdbIndex.empty)
       .filterNot(_.name.isDeprecated)
       .sortBy(_.name.value)
+
     val rows: List[Text.TypedTag[String]] = rules.map { rule =>
+      val docPath = PathIO.workingDirectory
+        .resolve("website")
+        .resolve("src")
+        .resolve("main")
+        .resolve("tut")
+        .resolve("docs")
+        .resolve("rules")
+        .resolve(rule.name.value + ".md")
+      if (!Files.exists(docPath.toNIO)) {
+        sys.error(
+          s"Missing documentation for rule ${rule.name.value} in path $docPath")
+      }
       val semantic = if (rule.isInstanceOf[SemanticRule]) "✅" else ""
       tr(
         td(semantic),
