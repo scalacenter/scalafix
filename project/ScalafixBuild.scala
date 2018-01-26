@@ -176,7 +176,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "scalafix211/publishSigned" ::
         "scalafix-sbt013/publishSigned" ::
         "scalafix-sbt/publishSigned" ::
-        "sonatypeReleaseAll" ::
         s
     },
     commands += Command.command("ci-sbt") { s =>
