@@ -73,16 +73,14 @@ final case class DisableSyntax(
     }
 
     object DefaultArgs {
-      def unapply(t: Tree): Option[List[Token]] = {
+      def unapply(t: Tree): Option[List[Term]] = {
         t match {
           case d: Defn.Def => {
             val defaults =
               for {
                 params <- d.paramss
                 param <- params
-                default <- {
-                  param.tokens.collect { case eqs: Token.Equals => eqs }
-                } if param.default.isDefined
+                default <- param.default.toList
               } yield default
 
             Some(defaults)
