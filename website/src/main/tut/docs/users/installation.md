@@ -21,14 +21,16 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "{{ site.stableVersion }}")
 // ===> sbt shell
 > scalafixEnable // Setup scalafix for active session.
                  // Not needed if build.sbt is configured like below.
-> scalafix                               // Run all rules configured in .scalafix.conf
-> scalafix RemoveUnusedImports           // Run only RemoveUnusedImports rule
-> myProject/scalafix RemoveUnusedImports // Run rule in one project only
-> test:scalafix RemoveUnusedImports      // Run rule in single configuration
-> scalafix ExplicitR<TAB>                // use tab completion
-> scalafix replace:com.foobar/com.buzbaz // refactor (experimental)
-> scalafix file:rules/MyRule.scala       // run local custom rule
-> scalafix github:org/repo/v1            // run library migration rule
+> scalafixCli                                            // Run all rules configured in .scalafix.conf
+> scalafixCli --rule RemoveUnusedImports                 // Run only RemoveUnusedImports rule
+> myProject/scalafixCli --rule RemoveUnusedImports       // Run rule in one project only
+> test:scalafixCli --rule RemoveUnusedImports            // Run rule in single configuration
+> scalafixCli --rule ExplicitR<TAB>                      // Use tab completion
+> scalafixCli --rule replace:com.foobar/com.buzbaz       // Refactor (experimental)
+> scalafixCli --rule file:rules/MyRule.scala             // Run local custom rule
+> scalafixCli --rule github:org/repo/v1                  // Run library migration rule
+> scalafixCli --test                                     // Make sure no files needs to be fixed
+
 
 // (optional, to avoid need for scalafixEnable) permanently enable scalafix in build.sbt
 // ===> build.sbt
@@ -36,7 +38,12 @@ scalaVersion := "{{ site.scala212 }}" // {{ site.scala211 }} is also supported.
 
 // If you get "-Yrangepos is required" error or "Missing compiler plugin semanticdb",
 // This setting must appear after scalacOptions and libraryDependencies.
-scalafixSettings
+scalafixSettings 
+// or scalafixLibraryDependencies (Add semanticdb-scalac compiler plugin to libraryDependencies.)
+// & scalacOptions bellow
+
+// Similarly for sbt builds
+sbtfixSettings
 
 // To configure for custom configurations like IntegrationTest
 scalafixConfigure(Compile, Test, IntegrationTest)
@@ -69,16 +76,22 @@ git diff // should produce a diff
 
 ### Settings and tasks
 
-| Name                        | Type          | Description                                                                                                |
-| --------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------- |
-| `scalafix <rule>..`         | `Unit`        | Run scalafix on project sources. See {% doc_ref Rules %} or use tab completion to explore supported rules. |
-| `sbtfix <rule>..`           | `Unit`        | Run scalafix on the build sources, `*.sbt` and `project/*`. **Note**: Only supports syntactic rules.       |
-| `scalafixSourceRoot`        | `File`        | The root directory of this project.                                                                        |
-| `scalafixScalacOptions`     | `Seq[String]` | Necessary Scala compiler settings for scalafix to work.                                                    |
-| `scalafixVersion`           | `String`      | Which version of scalafix-cli to run.                                                                      |
-| `scalafixScalaVersion`      | `String`      | Which Scala version of scalafix-cli to run.                                                                |
-| `scalafixSemanticdbVersion` | `String`      | Which version of org.scalameta:semanticdb-scalac to run.                                                   |
-| `scalafixVerbose`           | `Boolean`     | If `true`, print out debug information.                                                                    |
+| Name                        | Type          | Description                                                                                                                               |
+| --------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------|
+| `scalafixCli <args>         | `Unit`        | Invoke scalafix command line interface directly. See {% doc_ref Installation, cli %} or use tab completion to explore supported arguments |
+| `scalafix <rule>..`         | `Unit`        | Run scalafix on project sources. See {% doc_ref Rules %} or use tab completion to explore supported rules.                                |
+| `scalafixTest <rule>..`     | `Unit`        | Similar to the above task with the --test parameter                                                                                       |
+| `sbtfix <rule>..`           | `Unit`        | Run scalafix on the build sources, `*.sbt` and `project/*`. **Note**: Only supports syntactic rules.                                      |
+| `sbtfixTest <rule>..`       | `Unit`        | Similar to the above task with the --test parameter                                                                                       |
+| `scalafixConfig`            | `Option[File]`| .scalafix.conf file to specify which scalafix rules should run.                                                                           |
+| `scalafixScalacOptions`     | `Seq[String]` | Necessary Scala compiler settings for scalafix to work.                                                                                   |
+| `scalafixScalaVersion`      | `String`      | Which Scala version of scalafix-cli to run.                                                                                               |
+| `scalafixSemanticdbVersion` | `String`      | Which version of org.scalameta:semanticdb-scalac to run.                                                                                  |
+| `scalafixSourceRoot`        | `File`        | The root directory of this project.                                                                                                       |
+| `scalafixVerbose`           | `Boolean`     | If `true`, print out debug information.                                                                                                   |
+| `scalafixVersion`           | `String`      | Which version of scalafix-cli to run.                                                                                                     |
+| `scalafixEnabled`           | `Boolean`     | Deprecated. Use the scalafixEnable command or manually configure scalacOptions/libraryDependecies/scalaVersion                            |
+| `scalametaSourceroot`       | `File`        | Deprecated. Renamed to `scalafixSourceroot`                                                                                               |
 
 ### semanticdb-sbt
 
