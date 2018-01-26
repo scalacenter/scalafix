@@ -17,20 +17,30 @@ The convention is to keep a file `.scalafix.conf` into the root directory of you
 Configuration is not needed or is optional for most rules, so you may not need to create a `.scalafix.conf`.
 
 ### rules
-Configure which rule to run with `rules = [ ... ]`.
-Scalafix comes with a small set of built-in rules.
+Configure which rule to run with `rules = [ ... ]`, for example
 
 ```scala
 // Built in rules
 rules = [
-{% for rule in site.data.rules.rules %}  {{ rule }}
-{% endfor %}]
+  // pre-installed rule from scalafix
+  ExplicitResultTypes
+  // custom rule on local disk
+  "file:rules/MyRule.scala"
+  // custom rule shared as a gist
+  "https://gist.githubusercontent.com/olafurpg/24607c9832d2f2c4b8b18aef89125061/raw/e60375343cc0039cca85da2457755fc466b4d616/libz.scala"
+  // ...
+]
 ```
 
-You have several options to load custom rules.
+Rules are referenced using URI syntax.
+By default, a URI with no scheme such as `ExplicitResultTypes`
+is interpreted as a built-in Scalafix rule.
+See [here](rules) for the complete list of built-in Scalafix rules.
+Scalafix supports loading custom rules with the following URI schemes:
+`class:`, `file:`, `http:` and `github:`.
 
 #### class:
-If a scalafix rule is already on the classpath, you can classload it with the `scala:` protocol.
+If a scalafix rule is already on the classpath, you can classload it with the `class:` protocol.
 
 ```scala
 rule = "class:scalafix.internal.rule.ProcedureSyntax"
@@ -40,7 +50,7 @@ rule = "class:scalafix.internal.rule.ProcedureSyntax"
 If a rule is written in a single file on local disk, you can load it with the `file:` protocol.
 
 ```scala
-rule = "file:readme/MyRule.scala" // from local file
+rule = "file:readme/MyRule.scala" // from local file on disk
 ```
 
 #### http:
@@ -61,8 +71,6 @@ rule = "github:typelevel/cats/v1.0.0"
 ```
 
 #### replace:
-
-⚠️ Experimental
 
 To replace usage of one class/object/trait/def with another.
 Note, does not move definitions like "Move" does in an IDE. This
