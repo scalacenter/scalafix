@@ -71,7 +71,7 @@ class DisableSyntaxConfigSuite extends FunSuite {
     val input = Input.String(rawConfig)
     MetaconfigParser.parser
       .fromInput(input)
-      .andThen(conf => DisableSyntaxConfig.reader.read(conf))
+      .andThen(conf => DisableSyntaxConfig.decoder.read(conf))
   }
 
   def assertError(rawConfig: String, errorMessage: String): Unit = {

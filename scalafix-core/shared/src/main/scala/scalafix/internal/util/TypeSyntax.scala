@@ -33,13 +33,13 @@ object TypeSyntax {
       }
     }
 
-    /**
-      * Returns a scala.meta.Tree given a scala.meta.Symbol.
-      *
-      * Before: _root_.scala.Predef.Set#
-      * After: Type.Select(Term.Select(Term.Name("scala"), Term.Name("Predef")),
-      *                    Type.Name("Set"))
-      */
+    /*
+     * Returns a scala.meta.Tree given a scala.meta.Symbol.
+     *
+     * Before: _root_.scala.Predef.Set#
+     * After: Type.Select(Term.Select(Term.Name("scala"), Term.Name("Predef")),
+     *                    Type.Name("Set"))
+     */
     def symbolToTree(sym: Symbol.Global): (Patch, Tree) = {
       var patch = Patch.empty
       def loop[T: ClassTag](symbol: Symbol): T = {

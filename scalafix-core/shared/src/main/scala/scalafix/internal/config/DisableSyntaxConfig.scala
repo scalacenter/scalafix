@@ -1,60 +1,57 @@
 package scalafix
 package internal.config
 
-import metaconfig.{Conf, ConfError, ConfDecoder, Configured}
-import MetaconfigPendingUpstream.XtensionConfScalafix
-
+import java.util.regex.Pattern
 import scala.meta.tokens.Token
-
-import java.util.regex.{Pattern, PatternSyntaxException}
+import metaconfig.generic
+import metaconfig.generic.Surface
+import metaconfig.Conf
+import metaconfig.ConfDecoder
+import metaconfig.ConfError
+import metaconfig.Configured
+import metaconfig.annotation.Description
+import metaconfig.annotation.ExampleValue
 
 case class DisableSyntaxConfig(
+    @Description("Report error on usage of a given set of keywords.")
+    @ExampleValue("[return, null]")
     keywords: Set[DisabledKeyword] = Set(),
+    @Description("Report error on semicolon characters.")
     noSemicolons: Boolean = false,
+    @Description("Report error on tab characters.")
     noTabs: Boolean = false,
+    @Description("Report error on xml literals.")
     noXml: Boolean = false,
+    @Description("Report error on covariant type parameters.")
     noCovariantTypes: Boolean = false,
+    @Description("Report error on contravariant type parameters.")
     noContravariantTypes: Boolean = false,
+    @Description("Report error on method parameters with default arguments.")
     noDefaultArgs: Boolean = false,
+    @Description("Report error on vals inside abstract class/trait.")
     noValInAbstract: Boolean = false,
+    @Description("Report error on object with `implicit` modifier.")
     noImplicitObject: Boolean = false,
+    @Description("Report error on method that define an implicit conversion. ")
     noImplicitConversion: Boolean = false,
+    @Description(
+      "Remove `final` modifier for val definitions, " +
+        "see [motivation](https://github.com/sbt/zinc/issues/227)")
     noFinalVal: Boolean = false,
+    @Description("Reports error when finalize is overridden.")
+    noFinalize: Boolean = false,
+    @Description(
+      "Report error if the text contents of a source file matches a given regex.")
+    @ExampleValue(
+      """|[
+         |  {
+         |    id = "offensive"
+         |    pattern = "[P|p]imp"
+         |    message = "Please consider a less offensive word such as 'extension' or 'enrichment'"
+         |  }
+         |]""".stripMargin)
     regex: List[CustomMessage[Pattern]] = Nil
 ) {
-  implicit val reader: ConfDecoder[DisableSyntaxConfig] =
-    ConfDecoder.instanceF[DisableSyntaxConfig](
-      c =>
-        (
-          c.getField(keywords) |@|
-            c.getField(noSemicolons) |@|
-            c.getField(noTabs) |@|
-            c.getField(noXml) |@|
-            c.getField(noCovariantTypes) |@|
-            c.getField(noContravariantTypes) |@|
-            c.getField(noDefaultArgs) |@|
-            c.getField(noValInAbstract) |@|
-            c.getField(noImplicitObject) |@|
-            c.getField(noImplicitConversion) |@|
-            c.getField(noFinalVal) |@|
-            c.getField(regex)
-        ).map {
-          case (((((((((((a, b), c), d), e), f), g), i), j), k), l), m) =>
-            DisableSyntaxConfig(a, b, c, d, e, f, g, i, j, k, l, m)
-      })
-
-  implicit val patternReader: ConfDecoder[Pattern] = {
-    ConfDecoder.stringConfDecoder.flatMap(pattern =>
-      try {
-        Configured.Ok(Pattern.compile(pattern, Pattern.MULTILINE))
-      } catch {
-        case ex: PatternSyntaxException =>
-          Configured.NotOk(ConfError.message(ex.getMessage))
-    })
-  }
-
-  implicit val customMessageReader: ConfDecoder[CustomMessage[Pattern]] =
-    CustomMessage.decoder(field = "pattern")
 
   def isDisabled(keyword: String): Boolean =
     keywords.contains(DisabledKeyword(keyword))
@@ -62,7 +59,10 @@ case class DisableSyntaxConfig(
 
 object DisableSyntaxConfig {
   val default: DisableSyntaxConfig = DisableSyntaxConfig()
-  implicit val reader: ConfDecoder[DisableSyntaxConfig] = default.reader
+  implicit val surface: Surface[DisableSyntaxConfig] =
+    generic.deriveSurface[DisableSyntaxConfig]
+  implicit val decoder: ConfDecoder[DisableSyntaxConfig] =
+    generic.deriveDecoder[DisableSyntaxConfig](default)
 }
 
 object Keyword {

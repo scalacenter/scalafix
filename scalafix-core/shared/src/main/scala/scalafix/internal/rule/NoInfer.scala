@@ -26,7 +26,7 @@ final case class NoInfer(index: SemanticdbIndex, config: NoInferConfig)
 
   private lazy val noInferSymbol: SymbolMatcher =
     if (config.symbols.isEmpty)
-      SymbolMatcher.normalized(NoInfer.badSymbols: _*)
+      SymbolMatcher.normalized(NoInferConfig.badSymbols: _*)
     else SymbolMatcher.normalized(config.symbols: _*)
 
   override def init(config: Conf): Configured[Rule] =
@@ -48,14 +48,8 @@ final case class NoInfer(index: SemanticdbIndex, config: NoInferConfig)
 }
 
 case object NoInfer {
-  lazy val badSymbols: List[Symbol] = List(
-    Symbol("_root_.java.io.Serializable."),
-    Symbol("_root_.scala.Any."),
-    Symbol("_root_.scala.AnyVal."),
-    Symbol("_root_.scala.Product.")
-  )
 
-  def badSymbolNames: List[String] = badSymbols.collect {
+  def badSymbolNames: List[String] = NoInferConfig.badSymbols.collect {
     case Symbol.Global(_, signature) => signature.name
   }
 }

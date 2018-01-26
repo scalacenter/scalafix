@@ -9,6 +9,7 @@ DisableSyntax.keywords = [
 DisableSyntax.noTabs = true
 DisableSyntax.noSemicolons = true
 DisableSyntax.noXml = true
+DisableSyntax.noFinalize = true
 DisableSyntax.regex = [
   {
     id = offensive
@@ -46,4 +47,6 @@ case object DisableSyntax {
 
   // actually 7.5 million years
   Await.result(Future(42), 75.days) // assert: DisableSyntax.Await\.result
+
+  override def finalize(): Unit = println("exit") // assert: DisableSyntax.noFinalize
 }

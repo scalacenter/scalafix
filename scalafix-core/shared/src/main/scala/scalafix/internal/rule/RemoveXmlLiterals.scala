@@ -41,13 +41,13 @@ case object RemoveXmlLiterals extends Rule("RemoveXmlLiterals") {
     def isMultiLine(xml: Term.Xml) =
       xml.pos.startLine != xml.pos.endLine
 
-    /** Contains '"' or '\' */
+    /* Contains '"' or '\' */
     def containsEscapeSequence(xmlPart: Lit) = {
       val Lit(value: String) = xmlPart
       value.exists(c => c == '\"' || c == '\\')
     }
 
-    /** Rule xml literal to interpolator */
+    /* Rule xml literal to interpolator */
     def patchXml(xml: Term.Xml, tripleQuoted: Boolean) = {
 
       // We don't want to patch inner xml literals multiple times
@@ -66,7 +66,7 @@ case object RemoveXmlLiterals extends Rule("RemoveXmlLiterals") {
         }
       }
 
-      /** Substitute {{ by { and }} by } */
+      /* Substitute {{ by { and }} by } */
       def patchEscapedBraces(tok: Token.Xml.Part) = {
 
         val patched = tok.value
@@ -103,7 +103,7 @@ case object RemoveXmlLiterals extends Rule("RemoveXmlLiterals") {
       }.asPatch
     }
 
-    /** add `import scala.xml.quote._` */
+    /* add `import scala.xml.quote._` */
     def importXmlQuote = {
       val nextToken = {
         def loop(tree: Tree): Token = tree match {

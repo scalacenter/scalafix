@@ -1,23 +1,22 @@
 package scalafix.internal.rule
 
 import scala.meta._
-
 import scalafix.rule.Rule
 import scalafix.rule.RuleCtx
 import scalafix.lint.LintMessage
-import scalafix.lint.LintCategory
+import scalafix.rule.RuleName
 
-case object NoFinalize extends Rule("NoFinalize") {
-  private val error =
-    LintCategory.error(
-      explain = """|there is no guarantee that finalize will be called and 
-                   |overriding finalize incurs a performance penalty""".stripMargin
-    )
+case object NoFinalize
+    extends Rule(
+      RuleName.deprecated(
+        "NoFinalize",
+        "Use DisableSyntax.noFinalize instead",
+        "0.5.8")) {
+
+  override def description: String =
+    "Deprecated, use DisableSyntax.noFinalize instead."
 
   override def check(ctx: RuleCtx): Seq[LintMessage] = {
-    ctx.tree.collect {
-      case Defn.Def(_, name @ q"finalize", _, Nil | Nil :: Nil, _, _) =>
-        error.at("finalize should not be used", name.pos)
-    }
+    ctx.tree.collect(DisableSyntax.FinalizeMatcher("")).flatten
   }
 }

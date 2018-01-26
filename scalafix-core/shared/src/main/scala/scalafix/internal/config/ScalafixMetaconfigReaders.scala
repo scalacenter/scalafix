@@ -16,6 +16,7 @@ import java.io.PrintStream
 import java.net.URI
 import java.net.URLClassLoader
 import java.util.regex.Pattern
+import java.util.regex.PatternSyntaxException
 import scala.collection.immutable.Seq
 import scala.util.control.NonFatal
 import metaconfig.Conf
@@ -295,5 +296,18 @@ trait ScalafixMetaconfigReaders {
     })
     ReaderUtil.oneOf[PrintStream](empty)
   }
+
+  implicit lazy val PatternDecoder: ConfDecoder[Pattern] = {
+    ConfDecoder.stringConfDecoder.flatMap(pattern =>
+      try {
+        Configured.Ok(Pattern.compile(pattern, Pattern.MULTILINE))
+      } catch {
+        case ex: PatternSyntaxException =>
+          Configured.NotOk(ConfError.message(ex.getMessage))
+    })
+  }
+
+  implicit lazy val CustomMessagePattern: ConfDecoder[CustomMessage[Pattern]] =
+    CustomMessage.decoder(field = "pattern")
 
 }

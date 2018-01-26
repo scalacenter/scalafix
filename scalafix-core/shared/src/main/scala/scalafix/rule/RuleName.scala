@@ -9,6 +9,8 @@ import scalafix.util.Deprecated
 final case class RuleName(identifiers: List[RuleIdentifier]) {
   private def nonDeprecated = identifiers.filter(n => n.deprecated.isEmpty)
 
+  def isDeprecated: Boolean = identifiers.forall(_.deprecated.isDefined)
+
   def withDeprecatedName(
       name: String,
       message: String,
@@ -22,7 +24,8 @@ final case class RuleName(identifiers: List[RuleIdentifier]) {
   def withOldName(name: String, message: String, since: String): RuleName =
     withDeprecatedName(name, message, since)
   def value: String =
-    if (nonDeprecated.isEmpty) "empty"
+    if (isDeprecated) identifiers.mkString("+")
+    else if (nonDeprecated.isEmpty) "empty"
     else nonDeprecated.mkString("+")
   def isEmpty: Boolean = identifiers.isEmpty
 
@@ -45,6 +48,9 @@ final case class RuleName(identifiers: List[RuleIdentifier]) {
 }
 
 object RuleName {
+
+  def deprecated(name: String, message: String, since: String): RuleName =
+    new RuleName(RuleIdentifier(name, Some(Deprecated(message, since))) :: Nil)
   implicit def stringToRuleName(name: String): RuleName =
     RuleName(name)
 
