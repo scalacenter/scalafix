@@ -18,7 +18,8 @@
 # Other >2.10 projects should succeed
 -> compile:scalafix
 -> test:scalafix
--> it:scalafix
+# it config exists only for 2.12
+> it:scalafix
 
 -> sbtfixTest Sbt1
 > sbtfix Sbt1

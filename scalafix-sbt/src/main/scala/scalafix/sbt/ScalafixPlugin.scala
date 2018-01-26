@@ -72,7 +72,7 @@ object ScalafixPlugin extends AutoPlugin {
   override def projectSettings: Seq[Def.Setting[_]] =
     scalafixSettings ++
       Seq(Compile, Test).flatMap(inConfig(_)(scalafixConfigSettings))
-  
+
   override def globalSettings: Seq[Def.Setting[_]] = Seq(
     scalafixConfig := Option(file(".scalafix.conf")).filter(_.isFile),
     cliWrapperMainClass := "scalafix.cli.Cli$",
@@ -166,37 +166,36 @@ object ScalafixPlugin extends AutoPlugin {
       if (isMetabuild) compilerPlugin(sbthost) :: Nil
       else Nil
     }
+  )
 
   lazy val scalafixConfigSettings: Seq[Def.Setting[_]] = scalafixSettings ++
     Seq(
-      scalafix := scalafixTaskImpl(Seq(configuration.value)),
-      scalafixTest := scalafixTaskImpl(Seq(configuration.value), Seq("--test"))
+      scalafix := scalafixTaskImpl(scalafixParserCompat, compat = true).evaluated,
+      scalafixTest := scalafixTaskImpl(
+        scalafixParserCompat,
+        compat = true,
+        Seq("--test")).evaluated,
+      scalafixCli := scalafixTaskImpl(scalafixParser, compat = false).evaluated
     )
 
   def scalafixTaskImpl(
-      config: Seq[Configuration],
       parser: Parser[Seq[String]],
       compat: Boolean,
       extraOptions: Seq[String] = Seq()): Def.Initialize[InputTask[Unit]] =
     Def.inputTaskDyn {
-      scalafixTaskImpl(
-        parser.parsed,
-        compat,
-        ScopeFilter(configurations = inConfigurations(config: _*)),
-        extraOptions)
+      scalafixTaskImpl(parser.parsed, compat, extraOptions)
     }
 
   def scalafixTaskImpl(
       inputArgs: Seq[String],
       compat: Boolean,
-      filter: ScopeFilter,
       extraOptions: Seq[String]): Def.Initialize[Task[Unit]] =
     Def.taskDyn {
-      compile.all(filter).value // trigger compilation
-      val classpath = classDirectory.all(filter).value.asPath
+      compile.value // trigger compilation
+      val classDir = classDirectory.value
+      val classpath = if (classDir.exists()) classDir.toString else ""
       val sourcesToFix = for {
-        sources <- unmanagedSources.all(filter).value
-        source <- sources
+        source <- unmanagedSources.value
         if source.exists()
         if canFix(source)
       } yield source
@@ -266,12 +265,5 @@ object ScalafixPlugin extends AutoPlugin {
     val path = file.getPath
     path.endsWith(".scala") ||
     path.endsWith(".sbt")
-  }
-
-  private[scalafix] implicit class XtensionFormatClasspath(paths: Seq[File]) {
-    def asPath: String =
-      paths.toIterator
-        .collect { case f if f.exists() => f.getAbsolutePath }
-        .mkString(java.io.File.pathSeparator)
   }
 }
