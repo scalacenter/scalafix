@@ -184,7 +184,7 @@ PGP_SECRET
 - [ ] once the artifacts are synced to maven, go to the scalafix repo and update the `scalafix` binary
       with the following command and open a PR to the scalafix repo.
 
-         coursier bootstrap ch.epfl.scala:scalafix-cli_2.12.3:VERSION -f --main scalafix.cli.Cli -o scalafix -f
+         coursier bootstrap ch.epfl.scala:scalafix-cli_2.12.4:VERSION -f --main scalafix.cli.Cli -o scalafix -f
 
 If everything went smoothly, congrats!
 
