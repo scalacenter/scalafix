@@ -3,7 +3,7 @@ package scalafix.util
 import scala.meta._
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
 
-/** An index for looking up data in a [[scala.meta.Database]]. */
+/** An index for looking up data in a scala.meta.Database. */
 trait SemanticdbIndex {
 
   /** List of source files that built this SemanticdbIndex. */

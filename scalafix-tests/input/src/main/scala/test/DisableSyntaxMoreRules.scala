@@ -20,13 +20,24 @@ object DisableSyntaxMoreRules {
   type TypeCo[+T] = TraitCo[T] // assert: DisableSyntax.covariant
 
   class Foo {
-    def bar(x: Int = 42) = 1 // assert: DisableSyntax.defaultArgs
+    def bar(x: Int = 42) = 1 /* assert: DisableSyntax.defaultArgs
+                     ^
+Default args makes it hard to use methods as functions.
+*/
   }
 
   trait FooT {
     def bar(x: Int = 42) = ???           // assert: DisableSyntax.defaultArgs
     def foo(a: Int)(b: Int = 1) = ???    // assert: DisableSyntax.defaultArgs
     def foobar(a: Int, b: Int = 1) = ??? // assert: DisableSyntax.defaultArgs
+
+    def muli(
+      a: Int = 1, // assert: DisableSyntax.defaultArgs
+      b: Int = 2  // assert: DisableSyntax.defaultArgs
+    )(
+      c: Int = 3, // assert: DisableSyntax.defaultArgs
+      d: Int = 4  // assert: DisableSyntax.defaultArgs
+    ) = ???
   }
 
   object FooO {
@@ -45,6 +56,16 @@ object DisableSyntaxMoreRules {
   def foobar = {
     def foobarfoo(x: Int = 42) = 6 // assert: DisableSyntax.defaultArgs
   }
+
+  class Bar { type Foo = Int; def foo = 42 }
+  def foo(a: { type Foo = Int; def foo: Foo } = new Bar): Int = a.foo /* assert: DisableSyntax.defaultArgs
+                                                ^
+Default args makes it hard to use methods as functions.
+*/
+  def foo2(a: { type Foo = Int; def foo: Foo } = {val a = new Bar; a}): Int = a.foo /* assert: DisableSyntax.defaultArgs
+                                                 ^
+Default args makes it hard to use methods as functions.
+*/
 
   class Buzz(val a: Int = 1) // ok
 

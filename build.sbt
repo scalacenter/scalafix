@@ -173,7 +173,7 @@ val scalafixSbt = MultiSbtProject(
       "installCompletions",
       "Code generates names of scalafix rules.",
       "") { s =>
-      "cli/run --sbt scalafix-sbt/src/main/scala/scalafix/internal/sbt/ScalafixRewriteNames.scala" ::
+      "cli/run --sbt scalafix-sbt/src/main/scala/scalafix/internal/sbt/ScalafixRuleNames.scala" ::
         s
     },
     scalaVersion := {
