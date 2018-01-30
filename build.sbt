@@ -168,7 +168,6 @@ val scalafixSbt = MultiSbtProject(
   "sbt",
   _.settings(
     buildInfoSettings,
-    ScriptedPlugin.scriptedSettings,
     commands += Command.command(
       "installCompletions",
       "Code generates names of scalafix rules.",

@@ -144,7 +144,7 @@ object ScalafixPlugin extends AutoPlugin {
           sbtDir.getAbsolutePath ::
           Nil ++ extraOptions
       scalafixTaskImpl(
-        scalafixParser.parsed,
+        scalafixParserCompat.parsed,
         compat,
         options,
         sbtDir +: sbtFiles,
@@ -227,7 +227,7 @@ object ScalafixPlugin extends AutoPlugin {
         scalafixTaskImpl(
           c,
           scalafixParserCompat,
-          compat = false,
+          compat = true,
           extraOptions = Seq("--test")))
 
   @deprecated(
