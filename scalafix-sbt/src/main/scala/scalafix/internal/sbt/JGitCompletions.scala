@@ -13,8 +13,9 @@ import java.nio.file.Path
 import scala.collection.JavaConverters._
 
 class JGitCompletion(cwd: Path) {
-  private val isGitRepository = RepositoryCache.FileKey
-    .isGitRepository(cwd.resolve(DOT_GIT).toFile, FS.DETECTED)
+  private val isGitRepository =
+    RepositoryCache.FileKey
+      .isGitRepository(cwd.resolve(DOT_GIT).toFile, FS.DETECTED)
 
   private val (refList, refs) =
     if (isGitRepository) {

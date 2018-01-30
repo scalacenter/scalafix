@@ -53,21 +53,25 @@ class ScalafixCompletionsTest extends FunSuite {
   def isSha1(in: String): Boolean =
     AbbreviatedObjectId.isId(in)
 
-  test("compat") {
-    val parser = ScalafixCompletions.parser(
-      fs.workingDirectory.toAbsolutePath,
-      compat = true)
-    val completions = Parser.completions(parser, " ", 0).get
-    val obtained = completions.toList.sortBy(_.display)
-    assert(obtained.exists(_.display.startsWith("file:")))
+  def compat(name: String)(
+      assertCompletions: List[Completion] => Unit): Unit = {
+    val option =
+      if (name == "all") ""
+      else name
+
+    test(s"compat $name") {
+      val parser = ScalafixCompletions.parser(
+        fs.workingDirectory.toAbsolutePath,
+        compat = true)
+      val completions = Parser.completions(parser, " " + option, 0).get
+      assertCompletions(completions.toList.sortBy(_.display))
+    }
   }
 
-  test("compat multiple") {
-    val parser = ScalafixCompletions.parser(
-      fs.workingDirectory.toAbsolutePath,
-      compat = true)
-    val completions =
-      Parser.completions(parser, " RemoveUnusedImports Remo", 0).get
+  compat("all") { completions =>
+    assert(completions.exists(_.display.startsWith("file:")))
+  }
+  compat("RemoveUnusedImports Remo") { completions =>
     val obtained = completions.toList.map(_.display).toSet
     val expected = Set(
       "RemoveUnusedImports",
@@ -76,7 +80,6 @@ class ScalafixCompletionsTest extends FunSuite {
     )
     assert((expected -- obtained).isEmpty)
   }
-
   check("all") { completions =>
     val obtained = completions.map(_.display).toSet
     val expected = Set(
