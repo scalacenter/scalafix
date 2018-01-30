@@ -186,6 +186,8 @@ PGP_SECRET
 
          coursier bootstrap ch.epfl.scala:scalafix-cli_2.12.4:VERSION -f --main scalafix.cli.Cli -o scalafix -f
 
+- [ ] update the scalafix version in this build [project/plugins.sbt](project/plugins.sbt)
+
 If everything went smoothly, congrats!
 
 If something goes wrong for any reason making the artifacts not reach maven, delete the pushed tag with 
