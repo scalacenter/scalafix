@@ -2,7 +2,6 @@ scalafix
 [![Latest version](https://index.scala-lang.org/scalacenter/scalafix/scalafix-core/latest.svg)](https://index.scala-lang.org/scalacenter/scalafix/scalafix-core)
 [![Build Status](https://travis-ci.org/scalacenter/scalafix.svg?branch=master)](https://travis-ci.org/scalacenter/scalafix)
 [![Join the chat at https://gitter.im/scalacenter/scalafix](https://badges.gitter.im/scalacenter/scalafix.svg)](https://gitter.im/scalacenter/scalafix)
-
 ========
 
 Rewrite and linting tool for Scala.
