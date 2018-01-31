@@ -8,8 +8,6 @@ environment:
 
   matrix:
     - CI_TEST: ci-fast-212
-    # - CI_TEST: ci-fast-211 to shave some time 
-    - CI_TEST: ci-sbt
     - CI_TEST: ci-sbt013
 
 install:

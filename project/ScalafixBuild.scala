@@ -200,12 +200,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       "scalafix211/test" ::
         s
     },
-    commands += Command.command("ci-sbt-windows") { s =>
-      // scripted tests don't work in sbt 1.0 yet because we run Sbt1
-      "scalafix-sbt/publishLocal" ::
-        testSkipWindows("scalafix-sbt") ::
-        s
-    },
     commands += Command.command("ci-sbt013-windows") { s =>
       "scalafix-sbt013/scripted" ::
         testSkipWindows("scalafix-sbt013") ::
@@ -213,10 +207,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     },
     commands += Command.command("ci-fast-212-windows") { s =>
       testSkipWindows("scalafix") ::
-        s
-    },
-    commands += Command.command("ci-fast-211-windows") { s =>
-      testSkipWindows("scalafix211") ::
         s
     },
     commands += Command.command("mima") { s =>

@@ -16,7 +16,7 @@ env:
 
   - CI_TEST: scalafmt
 
-  - CI_TEST: scalafixTest
+  - CI_TEST: scalafix/scalafixTest
 
   - CI_TEST: mima
 
