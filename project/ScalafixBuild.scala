@@ -161,11 +161,14 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   lazy val adhocRepoCredentials = sys.props("scalafix.repository.credentials")
   lazy val isCustomRepository = adhocRepoUri != null && adhocRepoCredentials != null
 
+  def testSkipWindows(projectName: String): String =
+    s"$projectName/testOnly -- -l scalafix.internal.tests.utils.SkipWindows"
+
   override def globalSettings: Seq[Def.Setting[_]] = List(
     stableVersion := version.in(ThisBuild).value.replaceAll("\\-.*", ""),
     scalacOptions ++= compilerOptions,
     scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
-    libraryDependencies += scalatest.value % Test,
+    libraryDependencies += scalatest % Test,
     testOptions in Test += Tests.Argument("-oD"),
     updateOptions := updateOptions.value.withCachedResolution(true),
     resolvers += Resolver.sonatypeRepo("releases"),
@@ -181,19 +184,39 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     commands += Command.command("ci-sbt") { s =>
       // scripted tests don't work in sbt 1.0 yet because we run Sbt1
       "scalafix-sbt/publishLocal" ::
+        "scalafix-sbt/test" ::
         s
     },
-    commands += Command.command("ci-sbt-sbt013") { s =>
+    commands += Command.command("ci-sbt013") { s =>
       "scalafix-sbt013/scripted" ::
+        "scalafix-sbt013/test" ::
         s
     },
     commands += Command.command("ci-fast-212") { s =>
       "scalafix/test" ::
-        "scalafix/scalafixTest" :: // run scalafix checks
         s
     },
     commands += Command.command("ci-fast-211") { s =>
       "scalafix211/test" ::
+        s
+    },
+    commands += Command.command("ci-sbt-windows") { s =>
+      // scripted tests don't work in sbt 1.0 yet because we run Sbt1
+      "scalafix-sbt/publishLocal" ::
+        testSkipWindows("scalafix-sbt") ::
+        s
+    },
+    commands += Command.command("ci-sbt013-windows") { s =>
+      "scalafix-sbt013/scripted" ::
+        testSkipWindows("scalafix-sbt013") ::
+        s
+    },
+    commands += Command.command("ci-fast-212-windows") { s =>
+      testSkipWindows("scalafix") ::
+        s
+    },
+    commands += Command.command("ci-fast-211-windows") { s =>
+      testSkipWindows("scalafix211") ::
         s
     },
     commands += Command.command("mima") { s =>
