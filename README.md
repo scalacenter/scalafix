@@ -1,6 +1,7 @@
 scalafix
 [![Latest version](https://index.scala-lang.org/scalacenter/scalafix/scalafix-core/latest.svg)](https://index.scala-lang.org/scalacenter/scalafix/scalafix-core)
-[![Build Status](https://travis-ci.org/scalacenter/scalafix.svg?branch=master)](https://travis-ci.org/scalacenter/scalafix)
+[![Travis Build Status](https://travis-ci.org/scalacenter/scalafix.svg?branch=master)](https://travis-ci.org/scalacenter/scalafix)
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/laoidnw0txrcxmxa/branch/master?svg=true)](https://ci.appveyor.com/project/scalacenter/scalafix/branch/master)
 [![Join the chat at https://gitter.im/scalacenter/scalafix](https://badges.gitter.im/scalacenter/scalafix.svg)](https://gitter.im/scalacenter/scalafix)
 ========
 
