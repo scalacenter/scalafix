@@ -25,5 +25,9 @@
 > sbtfix Sbt1
 > sbtfixTest Sbt1
 > check
-> scala212/scalafix
-> scala212/scalafixTest
+> scala212/compile:scalafix
+> scala212/test:scalafix
+> scala212/it:scalafix
+> scala212/compile:scalafixTest
+> scala212/test:scalafixTest
+> scala212/it:scalafixTest
