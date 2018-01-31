@@ -112,7 +112,7 @@ object ScalafixPlugin extends AutoPlugin {
           sbtDir.getAbsolutePath ::
           Nil ++ extraOptions
       scalafixTaskImpl(
-        scalafixParser.parsed,
+        scalafixParserCompat.parsed,
         compat,
         options,
         sbtDir +: sbtFiles,
@@ -238,7 +238,7 @@ object ScalafixPlugin extends AutoPlugin {
               .getOrElse(Nil)
 
           val inputArgs0 =
-            if (compat) "--rules" +: inputArgs
+            if (compat && inputArgs.nonEmpty) "--rules" +: inputArgs
             else inputArgs
 
           val sourceroot = scalafixSourceroot.value.getAbsolutePath

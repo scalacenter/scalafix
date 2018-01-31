@@ -38,20 +38,22 @@ case class DisableUnlessConfig(
     @Description("The list of disable unless configurations")
     @ExampleValue("""[
                     |  {
-                    |      unless = "com.IO"
-                    |      symbols = [
-                    |        {
-                    |          symbol = "scala.Predef.println"
-                    |          message = "println has side-effects"
-                    |        }
-                    |      ]
+                    |    unless = "com.IO"
+                    |    symbols = [
+                    |      {
+                    |        symbol = "scala.Predef.println"
+                    |        message = "println has side-effects"
+                    |       }
+                    |    ]
                     |  }
                     |  {
-                    |    unless = "scala.util.Try"
-                    |    {
-                    |      symbol = "scala.Option.get"
-                    |      message = "the function may throw an exception"
-                    |    }
+                    |     unless = "scala.util.Try"
+                    |     symbols = [
+                    |       {
+                    |          symbol = "scala.Option.get"
+                    |          message = "the function may throw an exception"
+                    |       }
+                    |     ]
                     |  }
                     |]""".stripMargin)
     symbols: List[UnlessConfig] = Nil
