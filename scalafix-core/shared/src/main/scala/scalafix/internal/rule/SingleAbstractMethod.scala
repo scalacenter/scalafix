@@ -66,17 +66,18 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
       def unapply(tree: Tree): Option[(Term.Function, Type)] = {
         tree match {
           case Term.NewAnonymous(
-            Template(
-              _,
-              List(Init(clazz, _, _)),
-              _,
-              List(Defn.Def(_, method, _, List(params), _, body))
-            )
-          ) =>
+              Template(
+                _,
+                List(Init(clazz, _, _)),
+                _,
+                List(Defn.Def(_, method, _, List(params), _, body))
+              )
+              ) =>
             val singleAbstractOverride =
               (for {
                 definition <- index.denotation(method)
-                overrideSymbol <- definition.overrides.headOption if definition.overrides.size == 1
+                overrideSymbol <- definition.overrides.headOption
+                if definition.overrides.size == 1
                 overrideDefinition <- index.denotation(overrideSymbol)
               } yield overrideDefinition.isAbstract).getOrElse(false)
 
@@ -88,12 +89,12 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
               } yield denfinition.members.size == 1).getOrElse(false)
 
             if (singleAbstractOverride && singleMember) {
-               Some(
-                 (
-                   Term.Function(params.map(_.copy(decltpe = None)), body),
-                   clazz
-                 )
-               )
+              Some(
+                (
+                  Term.Function(params.map(_.copy(decltpe = None)), body),
+                  clazz
+                )
+              )
             } else {
               None
             }
@@ -107,22 +108,48 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
       case term @ Defn.Val(mods, List(Pat.Var(name)), tpe0, Sam(lambda, tpe)) =>
         ctx.replaceTree(
           term,
-          Defn.Val(mods, List(Pat.Var(name)), Some(tpe0.getOrElse(tpe)), lambda).show[Syntax]
+          Defn
+            .Val(mods, List(Pat.Var(name)), Some(tpe0.getOrElse(tpe)), lambda)
+            .show[Syntax]
         )
-      case term @ Defn.Var(mods, List(Pat.Var(name)), tpe0, Some(Sam(lambda, tpe))) =>
+      case term @ Defn.Var(
+            mods,
+            List(Pat.Var(name)),
+            tpe0,
+            Some(Sam(lambda, tpe))) =>
         ctx.replaceTree(
           term,
-          Defn.Var(mods, List(Pat.Var(name)), Some(tpe0.getOrElse(tpe)), Some(lambda)).show[Syntax]
+          Defn
+            .Var(
+              mods,
+              List(Pat.Var(name)),
+              Some(tpe0.getOrElse(tpe)),
+              Some(lambda))
+            .show[Syntax]
         )
-      case term @ Defn.Def(mods, name, tparams, paramss, decltpe, Sam(lambda, tpe)) =>
+      case term @ Defn.Def(
+            mods,
+            name,
+            tparams,
+            paramss,
+            decltpe,
+            Sam(lambda, tpe)) =>
         ctx.replaceTree(
           term,
-          Defn.Def(mods, name, tparams, paramss, Some(decltpe.getOrElse(tpe)), lambda).show[Syntax]
+          Defn
+            .Def(
+              mods,
+              name,
+              tparams,
+              paramss,
+              Some(decltpe.getOrElse(tpe)),
+              lambda)
+            .show[Syntax]
         )
 
       case tree @ Sam(lambda, _) =>
         ctx.replaceTree(
-          tree ,
+          tree,
           lambda.show[Syntax]
         )
 

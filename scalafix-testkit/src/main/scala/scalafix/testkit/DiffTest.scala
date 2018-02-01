@@ -33,8 +33,9 @@ object DiffTest {
           case file: Input.File => {
             val relative = index.sourcepath.shallow
               .find(sourceroot => file.path.toNIO.startsWith(sourceroot.toNIO))
-               .map(root => file.path.toRelative(root))
-                 .getOrElse(throw new Exception(s"${file.path} is not relative to any sourcroot"))
+              .map(root => file.path.toRelative(root))
+              .getOrElse(throw new Exception(
+                s"${file.path} is not relative to any sourcroot"))
 
             (relative.toString(), file.text)
           }
