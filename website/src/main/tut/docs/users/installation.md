@@ -12,6 +12,13 @@ Currently, Scalafix does not provide any IDE integrations with IntelliJ/ENSIME.
 
 ## sbt-scalafix
 
+_Since 0.6.0_
+
+_Later this plugin has `scalafixConfigure` method to configure scalafix for custom configuration like IntegrationTest. 
+Since 0.6.0 version it now sticks to more canonical way for such configurations. 
+The plugin has `scalafixConfigSettings` that can be imported to every configuration by `inConfig(_)`. 
+`Compile` and `Test` configurations import them by default._
+
 The sbt-plugin is the recommended integration to run semantic rules like RemoveUnusedImports or ExplicitResultTypes.
 
 ```scala
@@ -21,15 +28,16 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "{{ site.stableVersion }}")
 // ===> sbt shell
 > scalafixEnable // Setup scalafix for active session.
                  // Not needed if build.sbt is configured like below.
-> scalafixCli                                            // Run all rules configured in .scalafix.conf
-> scalafixCli --rule RemoveUnusedImports                 // Run only RemoveUnusedImports rule
-> myProject/scalafixCli --rule RemoveUnusedImports       // Run rule in one project only
-> test:scalafixCli --rule RemoveUnusedImports            // Run rule in single configuration
-> scalafixCli --rule ExplicitR<TAB>                      // Use tab completion
-> scalafixCli --rule replace:com.foobar/com.buzbaz       // Refactor (experimental)
-> scalafixCli --rule file:rules/MyRule.scala             // Run local custom rule
-> scalafixCli --rule github:org/repo/v1                  // Run library migration rule
-> scalafixCli --test                                     // Make sure no files needs to be fixed
+> compile:scalafixCli                                            // Run all rules configured in .scalafix.conf 
+                                                                 // for compile configuration
+> compile:scalafixCli --rule RemoveUnusedImports                 // Run only RemoveUnusedImports rule
+> myProject/compile:scalafixCli --rule RemoveUnusedImports       // Run rule in one project only
+> test:scalafixCli --rule RemoveUnusedImports                    // Run rule in test configuration
+> compile:scalafixCli --rule ExplicitR<TAB>                      // Use tab completion
+> compile:scalafixCli --rule replace:com.foobar/com.buzbaz       // Refactor (experimental)
+> compile:scalafixCli --rule file:rules/MyRule.scala             // Run local custom rule
+> compile:scalafixCli --rule github:org/repo/v1                  // Run library migration rule
+> compile:scalafixCli --test                                     // Make sure no files needs to be fixed
 
 
 // (optional, to avoid need for scalafixEnable) permanently enable scalafix in build.sbt
@@ -46,7 +54,7 @@ scalafixSettings
 sbtfixSettings
 
 // To configure for custom configurations like IntegrationTest
-scalafixConfigure(Compile, Test, IntegrationTest)
+inConfig(IntegrationTest)(scalafixConfigSettings)
 ```
 
 ### Verify installation
@@ -70,7 +78,7 @@ For a minimal example project using sbt-scalafix, see the [scalacenter/scalafix-
 ```scala
 git clone https://github.com/olafurpg/scalafix-sbt-example
 cd scalafix-sbt-example
-sbt "scalafix RemoveUnusedImports"
+sbt "compile:scalafix RemoveUnusedImports"
 git diff // should produce a diff
 ```
 

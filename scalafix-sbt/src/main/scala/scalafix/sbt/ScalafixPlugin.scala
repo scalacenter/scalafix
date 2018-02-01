@@ -65,6 +65,16 @@ object ScalafixPlugin extends AutoPlugin {
           "scalacOptions/libraryDependecies/scalaVersion")
     @deprecated("Renamed to scalafixSourceroot", "0.5.0")
     val scalametaSourceroot: SettingKey[File] = scalafixSourceroot
+
+    lazy val scalafixConfigSettings: Seq[Def.Setting[_]] = scalafixSettings ++
+      Seq(
+        scalafix := scalafixTaskImpl(scalafixParserCompat, compat = true).evaluated,
+        scalafixTest := scalafixTaskImpl(
+          scalafixParserCompat,
+          compat = true,
+          Seq("--test")).evaluated,
+        scalafixCli := scalafixTaskImpl(scalafixParser, compat = false).evaluated
+      )
   }
   import scalafix.internal.sbt.CliWrapperPlugin.autoImport._
   import autoImport._
@@ -167,16 +177,6 @@ object ScalafixPlugin extends AutoPlugin {
       else Nil
     }
   )
-
-  lazy val scalafixConfigSettings: Seq[Def.Setting[_]] = scalafixSettings ++
-    Seq(
-      scalafix := scalafixTaskImpl(scalafixParserCompat, compat = true).evaluated,
-      scalafixTest := scalafixTaskImpl(
-        scalafixParserCompat,
-        compat = true,
-        Seq("--test")).evaluated,
-      scalafixCli := scalafixTaskImpl(scalafixParser, compat = false).evaluated
-    )
 
   def scalafixTaskImpl(
       parser: Parser[Seq[String]],

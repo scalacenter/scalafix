@@ -26,7 +26,7 @@ lazy val scala212 = project
   .configs(IntegrationTest)
   .settings(
     Defaults.itSettings,
-    inConfig(IntegrationTest)(ScalafixPlugin.scalafixConfigSettings),
+    inConfig(IntegrationTest)(scalafixConfigSettings),
     scalaVersion := Versions.scala212
   )
 lazy val customSourceroot = project.settings(

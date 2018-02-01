@@ -6,11 +6,15 @@
 -> it:scalafixTest ProcedureSyntax
 
 > compile:scalafix ProcedureSyntax
-> test:scalafix ProcedureSyntax
-> it:scalafix ProcedureSyntax
-
 > compile:scalafixTest ProcedureSyntax
+-> test:scalafixTest ProcedureSyntax
+-> it:scalafixTest ProcedureSyntax
+
+> test:scalafix ProcedureSyntax
 > test:scalafixTest ProcedureSyntax
+-> it:scalafixTest ProcedureSyntax
+
+> it:scalafix ProcedureSyntax
 > it:scalafixTest ProcedureSyntax
 
 > javaProject/compile:scalafix ProcedureSyntax
