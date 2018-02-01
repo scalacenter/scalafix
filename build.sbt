@@ -110,7 +110,6 @@ val core = MultiScalaCrossProject(
     libraryDependencies ++= List(
       scalameta.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided,
-      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scalameta" %% "semanticdb-scalac" % scalametaV cross CrossVersion.full
     )
   ).jvmSettings(
