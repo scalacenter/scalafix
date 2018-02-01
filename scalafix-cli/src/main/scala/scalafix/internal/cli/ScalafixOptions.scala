@@ -5,6 +5,7 @@ import java.io.InputStream
 import java.io.PrintStream
 import scala.meta._
 import scala.meta.io.AbsolutePath
+import scalafix.internal.config.OutputFormat
 import scalafix.internal.config.PrintStreamReporter
 import scalafix.internal.config.ScalafixReporter
 import scalafix.internal.rule.ProcedureSyntax
@@ -150,7 +151,8 @@ case class ScalafixOptions(
     diff: Boolean = false,
     @HelpMessage(
       "If set, only apply scalafix to added and edited files in git diff against a provided branch, commit or tag. (defaults to master)")
-    diffBase: Option[String] = None
+    diffBase: Option[String] = None,
+    format: Option[OutputFormat] = None
 ) {
   def classpathRoots: List[AbsolutePath] =
     classpathAutoRoots.fold(List(common.workingPath))(cp =>

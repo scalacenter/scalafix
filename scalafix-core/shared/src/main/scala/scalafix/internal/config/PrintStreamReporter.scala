@@ -7,33 +7,41 @@ import java.util.concurrent.atomic.AtomicInteger
 import scalafix.internal.util.Severity
 import metaconfig._
 import org.langmeta.internal.ScalafixLangmetaHacks
+import MetaconfigPendingUpstream._
 
 /** A ScalafixReporter that emits messages to a PrintStream. */
 case class PrintStreamReporter(
     outStream: PrintStream,
     minSeverity: Severity,
     filter: FilterMatcher,
-    includeLoggerName: Boolean)
-    extends ScalafixReporter {
+    includeLoggerName: Boolean,
+    format: OutputFormat
+) extends ScalafixReporter {
   val reader: ConfDecoder[ScalafixReporter] =
     ConfDecoder.instanceF[ScalafixReporter] { c =>
       (
-        c.getOrElse("minSeverity")(minSeverity) |@|
-          c.getOrElse("filter")(filter) |@|
-          c.getOrElse("includeLoggerName")(includeLoggerName)
+        c.getField(minSeverity) |@|
+          c.getField(filter) |@|
+          c.getField(includeLoggerName) |@|
+          c.getField(format)
       ).map {
-        case ((a, b), c) =>
+        case (((a, b), c), d) =>
           copy(
             minSeverity = a,
             filter = b,
-            includeLoggerName = c
+            includeLoggerName = c,
+            format = d
           )
       }
     }
   private val _errorCount = new AtomicInteger()
   override def reset: PrintStreamReporter = copy()
-  override def reset(os: OutputStream): ScalafixReporter =
-    copy(outStream = new PrintStream(os))
+  override def reset(os: OutputStream): ScalafixReporter = os match {
+    case ps: PrintStream => copy(outStream = ps)
+    case _ => copy(outStream = new PrintStream(os))
+  }
+  override def withFormat(format: OutputFormat): ScalafixReporter =
+    copy(format = format)
 
   override def report(message: String, position: Position, severity: Severity)(
       implicit ctx: LogContext): Unit = {
@@ -42,9 +50,15 @@ case class PrintStreamReporter(
     }
     val enclosing =
       if (includeLoggerName) s"(${ctx.enclosing.value}) " else ""
-    outStream.println(
-      ScalafixLangmetaHacks
-        .formatMessage(position, enclosing + severity.toString, message))
+    val gutter = format match {
+      case OutputFormat.Default => ""
+      case OutputFormat.Sbt => s"[$severity] "
+    }
+    val formatted = ScalafixLangmetaHacks.formatMessage(
+      position,
+      enclosing + severity.toString,
+      message)
+    outStream.println(gutter + formatted)
   }
 
   /** Returns true if this reporter has seen an error */
