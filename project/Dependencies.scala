@@ -28,7 +28,7 @@ object Dependencies {
   def googleDiff = "com.googlecode.java-diff-utils" % "diffutils" % "1.3.0"
 
   def scalameta = Def.setting("org.scalameta" %%% "contrib" % scalametaV)
-  def scalatest = Def.setting("org.scalatest" %%% "scalatest" % "3.0.0")
+  val scalatest = "org.scalatest" %% "scalatest" % "3.0.0"
 
   def testsDeps = List(
     // integration property tests

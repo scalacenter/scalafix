@@ -15,9 +15,10 @@ import scalafix.cli
 import scalafix.internal.cli.CommonOptions
 import scalafix.testkit.DiffAssertions
 import scalafix.internal.tests.utils.{Fs, Git}
+import scalafix.internal.tests.utils.SkipWindows
 
 class CliGitDiffTests() extends FunSuite with DiffAssertions {
-  gitTest("addition") { (fs, git, cli) =>
+  gitTest("addition", SkipWindows) { (fs, git, cli) =>
     val oldCode = "old.scala"
     val newCode = "new.scala"
     val newCodeAbsPath = fs.absPath(newCode)
@@ -55,7 +56,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     assertNoDiff(obtained, expected)
   }
 
-  gitTest("modification") { (fs, git, cli) =>
+  gitTest("modification", SkipWindows) { (fs, git, cli) =>
     val oldCode = "old.scala"
     val oldCodeAbsPath = fs.absPath(oldCode)
 
@@ -96,7 +97,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     assertNoDiff(obtained, expected)
   }
 
-  gitTest("rename") { (fs, git, cli) =>
+  gitTest("rename", SkipWindows) { (fs, git, cli) =>
     val oldCode = "old.scala"
     val newCode = "new.scala"
     val newCodeAbsPath = fs.absPath(newCode)
@@ -149,7 +150,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     assert(obtained.startsWith(expected))
   }
 
-  gitTest("custom base") { (fs, git, cli) =>
+  gitTest("custom base", SkipWindows) { (fs, git, cli) =>
     val oldCode = "old.scala"
     val newCode = "new.scala"
     val newCodeAbsPath = fs.absPath(newCode)
@@ -292,8 +293,9 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
   private def noColor(in: String): String =
     in.replaceAll("\u001B\\[[;\\d]*m", "")
 
-  private def gitTest(name: String)(body: (Fs, Git, Cli) => Unit): Unit = {
-    test(name) {
+  private def gitTest(name: String, testTags: Tag*)(
+      body: (Fs, Git, Cli) => Unit): Unit = {
+    test(name, testTags: _*) {
       val fs = new Fs()
       val git = new Git(fs.workingDirectory)
       val cli = new Cli(fs.workingDirectory)

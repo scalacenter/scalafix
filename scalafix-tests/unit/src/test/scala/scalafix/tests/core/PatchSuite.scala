@@ -7,6 +7,7 @@ import scala.meta._
 import scala.meta.tokens.Token.Ident
 import scalafix.Rule
 import scalafix.testkit.SyntacticRuleSuite
+import scalafix.internal.tests.utils.SkipWindows
 
 class PatchSuite extends SyntacticRuleSuite {
 
@@ -30,7 +31,8 @@ class PatchSuite extends SyntacticRuleSuite {
       |-object a {
       |+object abba {
       |   val x = 2
-      | }""".stripMargin
+      | }""".stripMargin,
+    SkipWindows
   )
 
   checkDiff(
