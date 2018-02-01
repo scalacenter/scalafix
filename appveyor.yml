@@ -8,7 +8,7 @@ environment:
 
   matrix:
     - CI_TEST: ci-fast-212
-    - CI_TEST: ci-sbt013
+    # - CI_TEST: ci-sbt013 SkipWindows
 
 install:
   - SET PATH=%JAVA_HOME%\bin;%PATH%
@@ -22,6 +22,7 @@ build_script:
 test_script:
   - sbt "%CI_TEST%-windows"
 
+# see CONTRIBUTING.md#AppVeyor
 cache:
   - '%USERPROFILE%\.ivy2\cache'
   - '%USERPROFILE%\.sbt'
