@@ -11,12 +11,16 @@ trait A { def f(a: Int): Int }
 trait B { def f(a: Int): Int }
 
 class SingleAbstractMethod {
-  val runnable1: Runnable = () => println("Run!")
-  var runnable2: Runnable = () => println("Run!")
-  def runnable3: Runnable = () => println("Run!")
-  val doer: WithParams = (a, b) => a + b
-  new Thread(() => println("Hello, Thread!"))
-  val bar = new TimerTask { def run(): Unit = println("Run!") }
-  val boo = new Foo("t")
-  val baz = new A with B { def f(a: Int): Int = a}
+  val runnable1: Runnable = () => println("runnable1!")
+  var runnable2: Runnable = () => println("runnable2!")
+  def runnable3: Runnable = () => println("runnable3!")
+  val runnable4: Runnable = () => {
+    val runnable5: Runnable = () => println("runnable5!")
+  }
+  val withParams: WithParams = (a, b) => a + b
+  new Thread(() => println("anon1!"))
+  new Thread(() => println("anon2!"))
+  val timer = new TimerTask { def run(): Unit = println("timer!") }
+  val foo = new Foo("t")
+  val ab = new A with B { def f(a: Int): Int = a}
 }

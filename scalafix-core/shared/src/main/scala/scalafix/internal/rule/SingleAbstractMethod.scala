@@ -6,22 +6,29 @@ import scalafix.SemanticdbIndex
 import scalafix.rule.RuleCtx
 import scalafix.rule.SemanticRule
 
+import scala.collection.mutable
+
 // SAM conversion: http://www.scala-lang.org/files/archive/spec/2.12/06-expressions.html#sam-conversion
 case class SingleAbstractMethod(index: SemanticdbIndex)
     extends SemanticRule(index, "SingleAbstractMethod") {
   override def description: String = ???
   override def fix(ctx: RuleCtx): Patch = {
+    val visited = mutable.Set.empty[Tree]
     object Sam {
       def unapply(tree: Tree): Option[(Term.Function, Type)] = {
         tree match {
           case Term.NewAnonymous(
-              Template(
-                _,
-                List(Init(clazz, _, _)),
-                _,
-                List(Defn.Def(_, method, _, List(params), _, body))
-              )
-              ) =>
+                Template(
+                  _,
+                  List(Init(clazz, _, _)),
+                  _,
+                  List(Defn.Def(_, method, _, List(params), _, body))
+                )
+              ) if !visited.contains(tree) =>
+
+            println(s"visited: $tree")
+            visited += tree
+
             val singleAbstractOverride =
               (for {
                 definition <- index.denotation(method)
@@ -52,8 +59,9 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
       }
     }
 
-    collectOnce(ctx.tree) {
+    ctx.tree.collect {
       case term @ Defn.Val(mods, List(Pat.Var(name)), tpe0, Sam(lambda, tpe)) =>
+        println(name)
         ctx.replaceTree(
           term,
           Defn
@@ -65,6 +73,7 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
             List(Pat.Var(name)),
             tpe0,
             Some(Sam(lambda, tpe))) =>
+        println(name)
         ctx.replaceTree(
           term,
           Defn
@@ -82,6 +91,7 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
             paramss,
             decltpe,
             Sam(lambda, tpe)) =>
+        println(name)
         ctx.replaceTree(
           term,
           Defn
@@ -96,27 +106,12 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
         )
 
       case tree @ Sam(lambda, _) =>
+        println("\\x")
         ctx.replaceTree(
           tree,
           lambda.syntax
         )
 
     }.asPatch
-  }
-
-  private def collectOnce[T](tree: Tree)(
-      fn: PartialFunction[Tree, T]): List[T] = {
-    val liftedFn = fn.lift
-    val buf = scala.collection.mutable.ListBuffer[T]()
-    object traverser extends Traverser {
-      override def apply(tree: Tree): Unit = {
-        liftedFn(tree) match {
-          case Some(t) => buf += t
-          case None => super.apply(tree)
-        }
-      }
-    }
-    traverser(tree)
-    buf.toList
   }
 }
