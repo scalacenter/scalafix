@@ -265,7 +265,7 @@ val testsInput = TestProject(
           "-Ywarn-adapted-args", // For NoAutoTupling,
           "-Ywarn-unused-import", // For RemoveUnusedImports,
           "-Ywarn-unused", // For RemoveUnusedTerms
-          "-P:semanticdb:mode:slim",
+          "-P:semanticdb:mode:fat",
           "-P:semanticdb:members:all",
           "-P:semanticdb:denotations:all", // For SingleAbstractMethod
           "-P:semanticdb:overrides:all", // For SingleAbstractMethod
