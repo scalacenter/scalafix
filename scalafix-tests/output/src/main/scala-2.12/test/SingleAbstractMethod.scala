@@ -1,12 +1,22 @@
 package test
 
 import java.util.TimerTask
+import java.lang.Runnable
 
+trait WithParams { def doit(a: Int, b: Int): Int }
 class Foo(a: String) extends TimerTask {
   def run(): Unit = println(a)
 }
+trait A { def f(a: Int): Int }
+trait B { def f(a: Int): Int }
 
 class SingleAbstractMethod {
-  val bar: TimerTask = () => println("Run!")
+  val runnable1: Runnable = () => println("Run!")
+  var runnable2: Runnable = () => println("Run!")
+  def runnable3: Runnable = () => println("Run!")
+  val doer: WithParams = (a, b) => a + b
+  new Thread(() => println("Hello, Thread!"))
+  val bar = new TimerTask { def run(): Unit = println("Run!") }
   val boo = new Foo("t")
+  val baz = new A with B { def f(a: Int): Int = a}
 }

@@ -266,10 +266,14 @@ val testsInput = TestProject(
           "-Ywarn-adapted-args", // For NoAutoTupling,
           "-Ywarn-unused-import", // For RemoveUnusedImports,
           "-Ywarn-unused", // For RemoveUnusedTerms
-          "-P:semanticdb:members:all"
+          "-P:semanticdb:mode:slim",
+          "-P:semanticdb:members:all",
+          "-P:semanticdb:denotations:all", // For SingleAbstractMethod
+          "-P:semanticdb:overrides:all", // For SingleAbstractMethod
+          "-P:semanticdb:synthetics:all"
         )
       },
-      scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
+      scalacOptions -= "-Yno-adapted-args",
       logLevel := Level.Error, // avoid flood of compiler warnings
       testsInputOutputSetting
   )

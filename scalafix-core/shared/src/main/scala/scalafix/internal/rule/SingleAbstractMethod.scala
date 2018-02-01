@@ -1,17 +1,10 @@
 package scalafix.internal.rule
 
-// import scala.meta.internal.semanticdb._
-// import scala.meta.interactive.InteractiveSemanticdb
-
-import scalafix.syntax._
-
 import scala.meta._
 import scalafix.Patch
 import scalafix.SemanticdbIndex
 import scalafix.rule.RuleCtx
 import scalafix.rule.SemanticRule
-
-// import scala.tools.nsc.interactive.Response
 
 /*
 http://www.scala-lang.org/files/archive/spec/2.12/06-expressions.html#sam-conversion
@@ -60,73 +53,79 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
   override def description: String = ???
   override def fix(ctx: RuleCtx): Patch = {
 
-    println(ctx.index.database)
+    // extract the top name position java.util.TimerTask => TimerTask
+    def parentNamePosition(tpe: Type): Option[Position] = {
+      tpe match {
+        case Type.Select(_, name) => Some(name.pos)
+        case name: Type.Name => Some(name.pos)
+        case _ => None
+      }
+    }
 
     object Sam {
       def unapply(tree: Tree): Option[(Term.Function, Type)] = {
         tree match {
           case Term.NewAnonymous(
-              Template(
-                _,
-                List(Init(tpe @ Type.Name(className), _, _)),
-                _,
-                List(
-                  Defn.Def(
-                    _,
-                    Term.Name(methodName),
-                    _,
-                    List(params),
-                    _,
-                    body)))) => {
+            Template(
+              _,
+              List(Init(clazz, _, _)),
+              _,
+              List(Defn.Def(_, method, _, List(params), _, body))
+            )
+          ) =>
+            val singleAbstractOverride =
+              (for {
+                definition <- index.denotation(method)
+                overrideSymbol <- definition.overrides.headOption if definition.overrides.size == 1
+                overrideDefinition <- index.denotation(overrideSymbol)
+              } yield overrideDefinition.isAbstract).getOrElse(false)
 
-              // println(tpe.pos.start)
-              // println(tpe.pos.end)
-              // val d = ctx.index.denotation(tpe).get
-              // println(d.names)
-              // println(d)
-              // println(d.flags)
-              // println(d.name)
-              // println(d.signature)
-              // d.names.foreach(println)
-              // d.members.foreach(println)
-            
-              Some(
-                (
-                  Term.Function(params.map(_.copy(decltpe = None)), body),
-                  tpe
-                )
-              )
-          }
+            val singleMember =
+              (for {
+                position <- parentNamePosition(clazz)
+                symbol <- index.symbol(position)
+                denfinition <- index.denotation(symbol)
+              } yield denfinition.members.size == 1).getOrElse(false)
+
+            if (singleAbstractOverride && singleMember) {
+               Some(
+                 (
+                   Term.Function(params.map(_.copy(decltpe = None)), body),
+                   clazz
+                 )
+               )
+            } else {
+              None
+            }
+
           case _ => None
         }
       }
     }
 
     collectOnce(ctx.tree) {
-      case term @ Defn.Val(mods, List(Pat.Var(name)), _, Sam(lambda, tpe)) =>
+      case term @ Defn.Val(mods, List(Pat.Var(name)), tpe0, Sam(lambda, tpe)) =>
         ctx.replaceTree(
           term,
-          Defn.Val(mods, List(Pat.Var(name)), Some(tpe), lambda).show[Syntax])
-
-      case in @ init"TimerTask" => {
-        in.denotation.get.members.foreach(m =>
-          println(m.isAbstract)
+          Defn.Val(mods, List(Pat.Var(name)), Some(tpe0.getOrElse(tpe)), lambda).show[Syntax]
         )
-        Patch.empty
-      }
+      case term @ Defn.Var(mods, List(Pat.Var(name)), tpe0, Some(Sam(lambda, tpe))) =>
+        ctx.replaceTree(
+          term,
+          Defn.Var(mods, List(Pat.Var(name)), Some(tpe0.getOrElse(tpe)), Some(lambda)).show[Syntax]
+        )
+      case term @ Defn.Def(mods, name, tparams, paramss, decltpe, Sam(lambda, tpe)) =>
+        ctx.replaceTree(
+          term,
+          Defn.Def(mods, name, tparams, paramss, Some(decltpe.getOrElse(tpe)), lambda).show[Syntax]
+        )
 
-      // case t: Defn.Class
+      case tree @ Sam(lambda, _) =>
+        ctx.replaceTree(
+          tree ,
+          lambda.show[Syntax]
+        )
 
-      // case v: Defn.Val =>
-      //   println(v.show[Syntax])
-      //   val d = ctx.index.denotation(v.pats.head).get
-      //   val s2 = ctx.index.symbol(d.names.head.position).get
-      //   val d2 = ctx.index.denotation(s2).get
-      //   println(d2)
-        
-
-
-      //   Patch.empty
     }.asPatch
   }
 

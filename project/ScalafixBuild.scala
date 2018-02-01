@@ -171,7 +171,10 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     libraryDependencies += scalatest % Test,
     testOptions in Test += Tests.Argument("-oD"),
     updateOptions := updateOptions.value.withCachedResolution(true),
-    resolvers += Resolver.sonatypeRepo("releases"),
+    resolvers ++= Seq(
+      Resolver.sonatypeRepo("releases"),
+      Resolver.sonatypeRepo("snapshots")
+    ),
     triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
     commands += Command.command("ci-release") { s =>
       "clean" ::
@@ -257,6 +260,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
+    scalacOptions.in(Compile, console) --= Seq(warnUnusedImports, "-Xlint"),
+    scalacOptions.in(Test, console) --= Seq(warnUnusedImports, "-Xlint"),
     publishTo := Some {
       if (isCustomRepository) "adhoc" at adhocRepoUri
       else if (isSnapshot.value) Opts.resolver.sonatypeSnapshots
