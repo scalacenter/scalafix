@@ -46,14 +46,15 @@ object DiffTest {
               s"Missing scalafix configuration inside comment at top of file $relpath",
               0))
         }
-        Seq(DiffTest(
-          filename = relpath,
-          original = input,
-          document = document,
-          config = config,
-          isSkip = code.contains("SKIP"),
-          isOnly = code.contains("ONLY")
-        ))
+        Seq(
+          DiffTest(
+            filename = relpath,
+            original = input,
+            document = document,
+            config = config,
+            isSkip = code.contains("SKIP"),
+            isOnly = code.contains("ONLY")
+          ))
       } else {
         Seq()
       }
