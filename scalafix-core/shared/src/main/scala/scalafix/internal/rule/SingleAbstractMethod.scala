@@ -2,6 +2,9 @@ package scalafix.internal.rule
 
 import scala.meta._
 import scala.meta.Token._
+
+import scala.meta.internal.tokens.TokenInfo
+
 import scalafix.Patch
 import scalafix.SemanticdbIndex
 import scalafix.rule.RuleCtx
@@ -49,52 +52,51 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
     class PatchBuilder(tokens: Tokens) {
       private val itt = tokens.iterator
       private val patches = List.newBuilder[Patch]
-      def skip(f: Token => Boolean, kw: String): Unit =
-        doOp(itt.find(f), _ => (), kw)
-      def remove(f: Token => Boolean, kw: String): Unit =
-        doRemove(itt.find(f), kw)
-      def removeLast(f: Token => Boolean, kw: String): Unit = {
+      def find[T <: Token : TokenInfo]: Option[Token] =
+        itt.find(_.is[T](implicitly[TokenInfo[T]]))
+      def remove[T <: Token : TokenInfo]: Unit = 
+        doRemove(find[T])
+      def removeLast[T <: Token : TokenInfo]: Unit = {
         var last: Option[Token] = None
         while (itt.hasNext) {
-          last = itt.find(f)
+          last = find[T]
         }
-        doRemove(last, kw)
+        doRemove(last)
       }
-      def addRight(f: Token => Boolean, toAdd: String, kw: String): Unit =
-        doOp(itt.find(f), tt => patches += ctx.addRight(tt, toAdd), kw)
-      def doRemove(t: Option[Token], kw: String): Unit =
-        doOp(t, tt => patches += ctx.removeToken(tt), kw)
-      def doOp(t: Option[Token], op: Token => Unit, kw: String): Unit = {
+      def addRight[T <: Token : TokenInfo](toAdd: String): Unit =
+        doOp(find[T], tt => patches += ctx.addRight(tt, toAdd))
+      def doRemove[T <: Token](t: Option[Token])(implicit ev: TokenInfo[T]): Unit =
+        doOp(t, tt => patches += ctx.removeToken(tt))
+      def doOp[T <: Token](t: Option[Token], op: Token => Unit)(implicit ev: TokenInfo[T]): Unit =
         t match {
           case Some(t) => op(t)
           case _ =>
             throw new Exception(
-              s"""|cannot find $kw
+              s"""|cannot find ${ev.name}
                   |Tokens:
                   |$tokens""".stripMargin
             )
         }
-      }
       def result(): Patch = Patch.fromIterable(patches.result())
     }
 
     def patchSam(builder: PatchBuilder, keepClassName: Boolean): Patch = {
       // new X(){def m(a: A, b: B, c: C): D = <body> }
-      builder.remove(_.is[KwNew], "new")
+      builder.remove[KwNew]
       if (!keepClassName) {
-        builder.remove(_.is[Ident], "<ident>") // X
+        builder.remove[Ident]
       } else {
-        builder.addRight(_.is[Ident], " =", "<ident>") // X =
+        builder.addRight[Ident](" =")
       }
       // BUG: () are optionnals
       // val c1 = new C() { def f(a: Int): Int = a }
 
-      builder.remove(_.is[LeftParen], "(")
-      builder.remove(_.is[RightParen], ")")
+      builder.remove[LeftParen]
+      builder.remove[RightParen]
 
-      builder.remove(_.is[LeftBrace], "{")
-      builder.remove(_.is[KwDef], "def")
-      builder.remove(_.is[Ident], "<ident>") // methodName
+      builder.remove[LeftBrace]
+      builder.remove[KwDef]
+      builder.remove[Ident]
       // TODO: it's possible to remove the types in the parameter list
       // val withParams: WithParams = (a, b) => a + b
 
@@ -104,11 +106,11 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
       // BUG: the RightParen is optionnal
       // val runnable1 = new Runnable(){ def run: Unit = println("runnable1!") }
 
-      builder.addRight(_.is[RightParen], " => ", ")") // ) ends the parameter list
-      builder.remove(_.is[Colon], ":")
-      builder.remove(_.is[Ident], "<ident>") // D
-      builder.remove(_.is[Equals], "=")
-      builder.removeLast(_.is[RightBrace], "}")
+      builder.addRight[RightParen](" => ")
+      builder.remove[Colon]
+      builder.remove[Ident]
+      builder.remove[Equals]
+      builder.removeLast[RightBrace]
       builder.result()
     }
 
@@ -117,8 +119,8 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
         // val v = new X(){def m(a: A, b: B, c: C): D = <body> }
         // val v: X = (a: A, b: B, c: C) => <body>
         val builder = new PatchBuilder(tokens)
-        builder.addRight(_.is[Ident], ":", "<ident>")
-        builder.remove(_.is[Equals], "=")
+        builder.addRight[Ident](":")
+        builder.remove[Equals]
         patchSam(builder, keepClassName = true)
       } else {
         // trait B { def f(a: Int): Int }
