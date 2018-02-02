@@ -112,6 +112,9 @@ abstract class SemanticRuleSuite(
 
       val result = compareContents(obtained, expected)
       if (result.nonEmpty) {
+        println("###########> Obtained       <###########")
+        println(obtained)
+
         println("###########> Diff       <###########")
         println(error2message(obtained, expected))
       }
