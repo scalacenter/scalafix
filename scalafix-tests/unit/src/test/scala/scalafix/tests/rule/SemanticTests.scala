@@ -40,7 +40,8 @@ object SemanticTests {
   )
   def classpath: Classpath = Classpath(
     List(
-      AbsolutePath(BuildInfo.semanticSbtClasspath),
+      // TODO: Figure out whether this is necessary.
+      // AbsolutePath(BuildInfo.semanticSbtClasspath),
       AbsolutePath(BuildInfo.semanticClasspath)
     )
   )
