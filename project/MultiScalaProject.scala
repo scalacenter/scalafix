@@ -161,7 +161,7 @@ object TestProject {
     MultiScalaProject(
       s"tests${sub.capitalize}",
       base(sub),
-      configure.andThen(_.disablePlugins(scalafix.sbt.ScalafixPlugin))
+      configure//.andThen(_.disablePlugins(scalafix.sbt.ScalafixPlugin))
     )
 
 }
