@@ -13,6 +13,7 @@ class Foo(a: String) extends TimerTask {
 trait A { def f(a: Int): Int }
 trait B { def f(a: Int): Int }
 trait C extends B
+trait D { def m: Int }
 
 class SingleAbstractMethod {
   val runnable1 = new Runnable(){ def run(): Unit = println("runnable1!") }
@@ -25,12 +26,15 @@ class SingleAbstractMethod {
       }
     }
   }
+  def runnable6 = new Runnable(){ def run: Unit = println("runnable6!") }
+  def runnable7 = new Runnable(){ def run { println("runnable7!") } }
   val withParams = new WithParams() { def doit(a: Int, b: Int): Int = a + b }
   new Thread(new Runnable(){ def run(): Unit = println("anon1!")} )
   new Thread(new Runnable(){ def run(): Unit = println("anon2!")} )
   val timer = new TimerTask { def run(): Unit = println("timer!") }
   val foo = new Foo("t")
   val ab = new A with B { def f(a: Int): Int = a }
-  val c1 = new C() { def f(a: Int): Int = a }
+  val c1 = new C { def f(a: Int): Int = a }
   val c2: B = new C { def f(a: Int): Int = a }
+  val d = new D { def m: Int = 42 }
 }

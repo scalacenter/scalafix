@@ -49,22 +49,63 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
         case _ => false
       }
 
+    class PeekableIterator[T](iterator: Iterator[T]) extends Iterator[T] {
+      private var exhausted: Boolean = false
+      private var slot: Option[T] = None
+      private def fill(): Unit = {
+        if (!(exhausted || slot.isDefined)) {
+          if (iterator.hasNext) {
+            slot = Some(iterator.next())
+          } else {
+            exhausted = true
+            slot = None
+          }
+        }
+      }
+      override def hasNext: Boolean = {
+        if (exhausted) {
+          false
+        } else {
+          if (slot.isDefined) true
+          else iterator.hasNext
+        }
+      }
+      def peek(): Option[T] = {
+        fill()
+        if (exhausted) None
+        else slot
+      }
+      def next: T = {
+        if (!hasNext) throw new NoSuchElementException()
+        val out = slot.getOrElse(iterator.next)
+        slot = None
+        out
+      }
+    }
+
     class PatchBuilder(tokens: Tokens) {
-      private val itt = tokens.iterator
+      private val iterator = new PeekableIterator(tokens.iterator)
       private val patches = List.newBuilder[Patch]
+      def next: Token = iterator.next
       def find[T <: Token : TokenInfo]: Option[Token] =
-        itt.find(_.is[T](implicitly[TokenInfo[T]]))
+        iterator.find(_.is[T](implicitly[TokenInfo[T]]))
       def remove[T <: Token : TokenInfo]: Unit = 
         doRemove(find[T])
+      def remove(t: Token): Unit =
+        patches += ctx.removeToken(t)
+      def removeOptional[T <: Token : TokenInfo]: Unit = 
+        if (iterator.peek.forall(_.is[T])) remove[T]
       def removeLast[T <: Token : TokenInfo]: Unit = {
         var last: Option[Token] = None
-        while (itt.hasNext) {
+        while (iterator.hasNext) {
           last = find[T]
         }
         doRemove(last)
       }
       def addRight[T <: Token : TokenInfo](toAdd: String): Unit =
         doOp(find[T], tt => patches += ctx.addRight(tt, toAdd))
+      def addLeft(t: Token, what: String): Unit = 
+        patches += ctx.addLeft(t, what)
       def doRemove[T <: Token](t: Option[Token])(implicit ev: TokenInfo[T]): Unit =
         doOp(t, tt => patches += ctx.removeToken(tt))
       def doOp[T <: Token](t: Option[Token], op: Token => Unit)(implicit ev: TokenInfo[T]): Unit =
@@ -81,37 +122,46 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
     }
 
     def patchSam(builder: PatchBuilder, keepClassName: Boolean): Patch = {
+      import builder._
+
       // new X(){def m(a: A, b: B, c: C): D = <body> }
-      builder.remove[KwNew]
+      remove[KwNew]
       if (!keepClassName) {
-        builder.remove[Ident]
+        remove[Ident]
       } else {
-        builder.addRight[Ident](" =")
+        addRight[Ident](" =") // class name
       }
-      // BUG: () are optionnals
-      // val c1 = new C() { def f(a: Int): Int = a }
+      removeOptional[LeftParen]
+      removeOptional[RightParen]
 
-      builder.remove[LeftParen]
-      builder.remove[RightParen]
+      remove[LeftBrace]
+      remove[KwDef]
+      remove[Ident] // method name
 
-      builder.remove[LeftBrace]
-      builder.remove[KwDef]
-      builder.remove[Ident]
       // TODO: it's possible to remove the types in the parameter list
       // val withParams: WithParams = (a, b) => a + b
 
       // TODO: it's possible to remove the () when it has only one argument
       // val a: A = x => x
 
-      // BUG: the RightParen is optionnal
-      // val runnable1 = new Runnable(){ def run: Unit = println("runnable1!") }
+      // It's possible to have an empty parameter list
+      val token = next
+      if(token.is[Colon]) {
+        remove(token)
+        remove[Ident] // return type
+      } else {
+        // BUG: It's possible to have an empty return type
 
-      builder.addRight[RightParen](" => ")
-      builder.remove[Colon]
-      builder.remove[Ident]
-      builder.remove[Equals]
-      builder.removeLast[RightBrace]
-      builder.result()
+      }
+      
+      // BUG: It's possible to have procedure syntax
+      remove[Equals]
+
+      val body = next
+      addLeft(body, " => ")
+      
+      removeLast[RightBrace]
+      result()
     }
 
     def patchSamDefn(hasDecltpe: Boolean, tokens: Tokens): Patch = {
@@ -119,8 +169,10 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
         // val v = new X(){def m(a: A, b: B, c: C): D = <body> }
         // val v: X = (a: A, b: B, c: C) => <body>
         val builder = new PatchBuilder(tokens)
-        builder.addRight[Ident](":")
-        builder.remove[Equals]
+        import builder._
+
+        addRight[Ident](":")
+        remove[Equals]
         patchSam(builder, keepClassName = true)
       } else {
         // trait B { def f(a: Int): Int }
