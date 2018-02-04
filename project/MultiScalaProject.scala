@@ -1,6 +1,7 @@
 import sbt._
 import sbt.Keys._
 import org.scalajs.sbtplugin.cross.{CrossProject, CrossType}
+import sbt.ScriptedPlugin.sbtTestDirectory
 
 import java.io.File
 
@@ -131,12 +132,15 @@ class MultiSbtProject(name: String, base: String, configure: Project => Project)
       if (sbtV != Dependencies.currentSbtVersion) {
         s"$fullName${majorMinor(sbtV)}"
       } else fullName
+
     val resultingProject =
       Project(id = projectId, base = file(s".cross/$projectId"))
+        .settings(ScriptedPlugin.scriptedSettings)
         .settings(
           scalaVersion := scalaV,
           sbtVersion in pluginCrossBuild := sbtV,
-          moduleName := fullName
+          moduleName := fullName,
+          sbtTestDirectory := file(s"$base/src/sbt-test")
         )
         .settings(srcFull(base))
 

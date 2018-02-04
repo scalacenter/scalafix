@@ -6,7 +6,7 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.rule.RuleCtx
 import scalafix.syntax._
 
-import org.scalatest.FunSuiteLike
+import org.scalatest.{FunSuiteLike, Tag}
 
 /** Utility to unit test syntactic rules
   *
@@ -24,7 +24,16 @@ class SyntacticRuleSuite(rule: Rule = Rule.empty)
       name: String,
       original: String,
       expected: String): Unit = {
-    test(name) {
+    check(rule, name, original, expected, Seq(): _*)
+  }
+
+  def check(
+      rule: Rule,
+      name: String,
+      original: String,
+      expected: String,
+      testTags: Tag*): Unit = {
+    test(name, testTags: _*) {
       import scala.meta._
       val obtained = rule.apply(Input.String(original))
       assertNoDiff(obtained, expected)
@@ -32,11 +41,23 @@ class SyntacticRuleSuite(rule: Rule = Rule.empty)
   }
 
   def checkDiff(original: Input, expected: String): Unit = {
-    checkDiff(rule, original, expected)
+    checkDiff(rule, original, expected, Seq(): _*)
+  }
+
+  def checkDiff(original: Input, expected: String, testTags: Tag*): Unit = {
+    checkDiff(rule, original, expected, testTags: _*)
   }
 
   def checkDiff(rule: Rule, original: Input, expected: String): Unit = {
-    test(original.label) {
+    checkDiff(rule, original, expected, Seq(): _*)
+  }
+
+  def checkDiff(
+      rule: Rule,
+      original: Input,
+      expected: String,
+      testTags: Tag*): Unit = {
+    test(original.label, testTags: _*) {
       val ctx = RuleCtx(original.parse[Source].get, ScalafixConfig.default)
       val obtained = rule.diff(ctx)
       assert(obtained == expected)

@@ -168,6 +168,17 @@ SONATYPE_USERNAME
 PGP_PASSPHRASE (empty)
 PGP_SECRET
 
+### AppVeyor
+
+The cache is limited to 1GB.
+It's not possible to delete the cache via the ui: https://github.com/appveyor/ci/issues/985
+To delete via curl, get your token at https://ci.appveyor.com/api-token
+
+```bash
+export APPVEYOR_TOKEN="<your-api-token>"
+curl -vvv -H "Authorization: Bearer $APPVEYOR_TOKEN" -XDELETE https://ci.appveyor.com/api/projects/scalacenter/scalafix/buildcache
+```
+
 ## Releasing
 
 - [ ] Releases > "Draft a new release"
@@ -185,6 +196,8 @@ PGP_SECRET
       with the following command and open a PR to the scalafix repo.
 
          coursier bootstrap ch.epfl.scala:scalafix-cli_2.12.4:VERSION -f --main scalafix.cli.Cli -o scalafix -f
+
+- [ ] update the scalafix version in this build [project/plugins.sbt](project/plugins.sbt)
 
 If everything went smoothly, congrats!
 

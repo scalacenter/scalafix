@@ -6,6 +6,8 @@ import sbt.complete.Completion
 
 import org.eclipse.jgit.lib.AbbreviatedObjectId
 import scalafix.internal.tests.utils.{Fs, Git}
+import scalafix.internal.tests.utils.SkipWindows
+import org.scalatest.Tag
 
 class ScalafixCompletionsTest extends FunSuite {
   val fs = new Fs()
@@ -29,20 +31,21 @@ class ScalafixCompletionsTest extends FunSuite {
     compat = false)
   val space = " "
 
-  def check(name: String)(assertCompletions: List[Completion] => Unit): Unit = {
+  def check(name: String, testTags: Tag*)(
+      assertCompletions: List[Completion] => Unit): Unit = {
     val option =
       if (name == "all") ""
       else name
 
-    test(name) {
+    test(name, testTags: _*) {
       val completions = Parser.completions(parser, " " + option, 0).get
       assertCompletions(completions.toList.sortBy(_.display))
     }
   }
 
-  def check2(name: String)(
+  def check2(name: String, testTags: Tag*)(
       assertCompletions: (List[String], List[String]) => Unit): Unit = {
-    check(name) { completions =>
+    check(name, testTags: _*) { completions =>
       val appends = completions.map(_.append)
       val displays = completions.map(_.display)
 
@@ -53,21 +56,25 @@ class ScalafixCompletionsTest extends FunSuite {
   def isSha1(in: String): Boolean =
     AbbreviatedObjectId.isId(in)
 
-  test("compat") {
-    val parser = ScalafixCompletions.parser(
-      fs.workingDirectory.toAbsolutePath,
-      compat = true)
-    val completions = Parser.completions(parser, " ", 0).get
-    val obtained = completions.toList.sortBy(_.display)
-    assert(obtained.exists(_.display.startsWith("file:")))
+  def compat(name: String, testTags: Tag*)(
+      assertCompletions: List[Completion] => Unit): Unit = {
+    val option =
+      if (name == "all") ""
+      else name
+
+    test(s"compat $name", testTags: _*) {
+      val parser = ScalafixCompletions.parser(
+        fs.workingDirectory.toAbsolutePath,
+        compat = true)
+      val completions = Parser.completions(parser, " " + option, 0).get
+      assertCompletions(completions.toList.sortBy(_.display))
+    }
   }
 
-  test("compat multiple") {
-    val parser = ScalafixCompletions.parser(
-      fs.workingDirectory.toAbsolutePath,
-      compat = true)
-    val completions =
-      Parser.completions(parser, " RemoveUnusedImports Remo", 0).get
+  compat("all") { completions =>
+    assert(completions.exists(_.display.startsWith("file:")))
+  }
+  compat("RemoveUnusedImports Remo") { completions =>
     val obtained = completions.toList.map(_.display).toSet
     val expected = Set(
       "RemoveUnusedImports",
@@ -76,8 +83,7 @@ class ScalafixCompletionsTest extends FunSuite {
     )
     assert((expected -- obtained).isEmpty)
   }
-
-  check("all") { completions =>
+  check("all", SkipWindows) { completions =>
     val obtained = completions.map(_.display).toSet
     val expected = Set(
       "",
@@ -109,26 +115,26 @@ class ScalafixCompletionsTest extends FunSuite {
 
     assert((expected -- obtained).isEmpty)
   }
-  check2("--classpath ba") { (appends, displays) =>
+  check2("--classpath ba", SkipWindows) { (appends, displays) =>
     assert(displays.contains("bar"))
     assert(appends.contains("r"))
   }
-  check2("--classpath bar") { (appends, displays) =>
+  check2("--classpath bar", SkipWindows) { (appends, displays) =>
     assert(displays.contains(":"))
     assert(appends.contains(":"))
   }
-  check2("--classpath bar:") { (appends, displays) =>
+  check2("--classpath bar:", SkipWindows) { (appends, displays) =>
     assert(displays.contains("foo"))
     assert(appends.contains("foo"))
   }
-  check2("--classpath-auto-roots" + space) { (appends, displays) =>
+  check2("--classpath-auto-roots" + space, SkipWindows) { (appends, displays) =>
     assert(displays.contains("foo"))
     assert(appends.contains("foo"))
   }
-  check2("--config" + space) { (appends, displays) =>
+  check2("--config" + space, SkipWindows) { (appends, displays) =>
     assert(displays.contains("my.conf"))
   }
-  check("--diff-base" + space) { completions =>
+  check("--diff-base" + space, SkipWindows) { completions =>
     val displays = completions.map(_.display)
 
     // branches
@@ -144,19 +150,19 @@ class ScalafixCompletionsTest extends FunSuite {
       assert(completion.display.endsWith("ago)"))
     }
   }
-  check2("--exclude" + space) { (appends, displays) =>
+  check2("--exclude" + space, SkipWindows) { (appends, displays) =>
     assert(displays.contains("foo"))
     assert(appends.contains("foo"))
   }
-  check2("--out-from" + space) { (appends, displays) =>
+  check2("--out-from" + space, SkipWindows) { (appends, displays) =>
     assert(displays.contains("foo"))
     assert(appends.contains("foo"))
   }
-  check2("--out-to" + space) { (appends, displays) =>
+  check2("--out-to" + space, SkipWindows) { (appends, displays) =>
     assert(displays.contains("foo"))
     assert(appends.contains("foo"))
   }
-  check2("--rules" + space) { (_, displays) =>
+  check2("--rules" + space, SkipWindows) { (_, displays) =>
     // built-in
     assert(displays.contains("NoInfer"))
 
@@ -168,24 +174,24 @@ class ScalafixCompletionsTest extends FunSuite {
     assert(displays.contains("replace:"))
     assert(displays.contains("scala:"))
   }
-  check2("--rules file:bar/../") { (appends, displays) =>
+  check2("--rules file:bar/../", SkipWindows) { (appends, displays) =>
     // resolve parent directories
     assert(appends.contains("foo"))
     assert(displays.contains("bar/../foo"))
   }
-  check2("--sourceroot" + space) { (appends, displays) =>
+  check2("--sourceroot" + space, SkipWindows) { (appends, displays) =>
     assert(displays.contains("bar"))
     assert(appends.contains("bar"))
   }
-  check2("--tool-classpath ba") { (appends, displays) =>
+  check2("--tool-classpath ba", SkipWindows) { (appends, displays) =>
     assert(displays.contains("bar"))
     assert(appends.contains("r"))
   }
-  check2("--tool-classpath bar") { (appends, displays) =>
+  check2("--tool-classpath bar", SkipWindows) { (appends, displays) =>
     assert(displays.contains(":"))
     assert(appends.contains(":"))
   }
-  check2("--tool-classpath bar:") { (appends, displays) =>
+  check2("--tool-classpath bar:", SkipWindows) { (appends, displays) =>
     assert(displays.contains("buzz"))
     assert(appends.contains("buzz"))
   }

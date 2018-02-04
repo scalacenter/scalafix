@@ -19,7 +19,6 @@ lazy val scalaFixedProjects: List[ProjectReference] =
 
 lazy val scala212Projects: List[ProjectReference] =
   List(
-    scalafixSbt1,
     cli212,
     core212JS,
     core212JVM,
@@ -168,7 +167,6 @@ val scalafixSbt = MultiSbtProject(
   "sbt",
   _.settings(
     buildInfoSettings,
-    ScriptedPlugin.scriptedSettings,
     commands += Command.command(
       "installCompletions",
       "Code generates names of scalafix rules.",
@@ -211,8 +209,15 @@ lazy val scalafixSbt1 =
 lazy val scalafixSbt013 =
   scalafixSbt(scala210, sbt013, _.dependsOn(testUtils210 % Test))
 
-val testUtils =
-  MultiScalaProject("test-utils", _.settings(libraryDependencies += jgit))
+val testUtils = MultiScalaProject(
+  "test-utils",
+  _.settings(
+    libraryDependencies ++= Seq(
+      jgit,
+      scalatest
+    )
+  )
+)
 lazy val testUtils210 = testUtils(scala210)
 lazy val testUtils211 = testUtils(scala211)
 lazy val testUtils212 = testUtils(scala212)
@@ -225,12 +230,15 @@ val testkit = MultiScalaProject(
       semanticdb,
       ammonite,
       googleDiff,
-      scalatest.value
+      scalatest
     )
-  ))
+  )
+)
 
-lazy val testkit211 = testkit(scala211, _.dependsOn(core211JVM, reflect211))
-lazy val testkit212 = testkit(scala212, _.dependsOn(core212JVM, reflect212))
+lazy val testkit211 =
+  testkit(scala211, _.dependsOn(core211JVM, reflect211, testUtils211))
+lazy val testkit212 =
+  testkit(scala212, _.dependsOn(core212JVM, reflect212, testUtils212))
 
 val testsShared = TestProject(
   "shared",
