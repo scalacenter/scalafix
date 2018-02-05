@@ -5,8 +5,10 @@ rules = [
   NoInfer
 ]
 
-Disable.symbols = [
-  "scala.Option.get"
+Disable.parts = [
+  {
+    symbols = ["scala.Option.get"]
+  }
 ]
 
 NoInfer.symbols = [

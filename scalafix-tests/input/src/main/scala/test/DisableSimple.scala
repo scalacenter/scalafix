@@ -1,28 +1,38 @@
 /*
 rules = Disable
-Disable.symbols = [
-  "scala.Any.asInstanceOf"
-  "test.Disable.D.disabledFunction"
+Disable.parts = [
   {
-    symbol = "scala.Option.get"
-    id = "Option.get"
-    message =
-      """|Option.get is the root of all evils
-         |
-         |If you must Option.get, wrap the code block with
-         |// scalafix:off Option.get
-         |...
-         |// scalafix:on Option.get"""
+    symbols = [
+      "scala.Any.asInstanceOf"
+      "test.DisableSimple.D.disabledFunction"
+      {
+        symbol = "scala.Option.get"
+        id = "Option.get"
+        message =
+          """|Option.get is the root of all evils
+             |
+             |If you must Option.get, wrap the code block with
+             |// scalafix:off Option.get
+             |...
+             |// scalafix:on Option.get"""
+      }
+      "scala.collection.mutable.ListBuffer"
+    ]
   }
-  "scala.collection.mutable.ListBuffer"
-  "scala.Predef.any2stringadd"
+   {
+    unlessSynthetic = true
+    symbols = [
+
+      "scala.Predef.any2stringadd"
+    ]
+  }
 ]
 */
 package test
 
 import scala.collection.mutable.ListBuffer
 
-case object Disable {
+case object DisableSimple {
 
   case class B()
   val y = B().asInstanceOf[String] // assert: Disable.asInstanceOf
@@ -31,7 +41,7 @@ case object Disable {
   val w = List(1, 2, 3).asInstanceOf[Seq[String]] // assert: Disable.asInstanceOf
 
   case class D() {
-    def disabledFunction: Boolean = true
+    def disabledFunction: Boolean = true // assert: Disable.disabledFunction
   }
   val zz = D().disabledFunction // assert: Disable.disabledFunction
 
@@ -49,7 +59,7 @@ case object Disable {
   }
   val yy = AA.asInstanceOf // OK, no errors
   Option(1).get /* assert: Disable.Option.get
-            ^
+  ^
 Option.get is the root of all evils
 
 If you must Option.get, wrap the code block with
