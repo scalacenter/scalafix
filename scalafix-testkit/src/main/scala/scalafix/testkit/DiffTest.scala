@@ -27,7 +27,7 @@ object DiffTest {
   def fromSemanticdbIndex(index: SemanticdbIndex): Seq[DiffTest] =
     index.documents.flatMap { document =>
       val input @ Input.VirtualFile(label, code) = document.input
-      if (!label.startsWith("scalafix-tests/shared")) {
+      if (!label.startsWith("scalafix-tests")) {
         val relpath = RelativePath(label)
         val config: () => (Rule, ScalafixConfig) = { () =>
           input.tokenize.get
