@@ -203,7 +203,7 @@ val scalafixSbt = MultiSbtProject(
     ),
     scriptedBufferLog := false
   ).enablePlugins(BuildInfoPlugin)
-    // .disablePlugins(ScalafixPlugin)
+  // .disablePlugins(ScalafixPlugin)
 )
 lazy val scalafixSbt1 =
   scalafixSbt(scala212, sbt1, _.dependsOn(testUtils212 % Test))
@@ -307,7 +307,7 @@ lazy val testsOutputDotty = project
     libraryDependencies := libraryDependencies.value.map(_.withDottyCompat()),
     scalacOptions := Nil
   )
-  // .disablePlugins(ScalafixPlugin)
+// .disablePlugins(ScalafixPlugin)
 
 lazy val testsInputSbt = project
   .in(file("scalafix-tests/input-sbt"))
@@ -326,7 +326,7 @@ lazy val testsInputSbt = project
     addCompilerPlugin(
       "org.scalameta" % "semanticdb-sbt" % semanticdbSbt cross CrossVersion.full)
   )
-  // .disablePlugins(ScalafixPlugin)
+// .disablePlugins(ScalafixPlugin)
 
 lazy val testsOutputSbt = project
   .in(file("scalafix-tests/output-sbt"))
@@ -334,7 +334,7 @@ lazy val testsOutputSbt = project
     noPublish,
     sbtPlugin := true
   )
-  // .disablePlugins(ScalafixPlugin)
+// .disablePlugins(ScalafixPlugin)
 
 def unit(
     scalav: String,
@@ -462,7 +462,7 @@ lazy val website = project
       core212JVM)
   )
   .dependsOn(testkit212, core212JVM, cli212)
-  // .disablePlugins(ScalafixPlugin)
+// .disablePlugins(ScalafixPlugin)
 
 inScope(Global)(
   Seq(

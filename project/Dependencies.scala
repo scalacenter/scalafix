@@ -3,7 +3,7 @@ import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 /* scalafmt: { maxColumn = 120 }*/
 
 object Dependencies {
-  val scalametaV = "3.0.0"
+  val scalametaV = "3.1.0"
   val metaconfigV = "0.6.0-RC1"
   def semanticdbSbt = "0.5.0"
   def dotty = "0.1.1-bin-20170530-f8f52cc-NIGHTLY"

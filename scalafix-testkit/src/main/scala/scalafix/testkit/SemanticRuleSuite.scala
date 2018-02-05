@@ -110,7 +110,7 @@ abstract class SemanticRuleSuite(
         println(diff.toString)
       }
 
-      val result = 
+      val result =
         if (expected.startsWith("// SKIP")) ""
         else compareContents(obtained, expected)
 
