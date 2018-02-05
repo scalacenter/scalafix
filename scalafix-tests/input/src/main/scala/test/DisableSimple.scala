@@ -17,12 +17,12 @@ Disable.parts = [
              |// scalafix:on Option.get"""
       }
       "scala.collection.mutable.ListBuffer"
+      "scala.collection.mutable"
     ]
   }
    {
     unlessSynthetic = true
     symbols = [
-
       "scala.Predef.any2stringadd"
     ]
   }
@@ -30,9 +30,9 @@ Disable.parts = [
 */
 package test
 
-import scala.collection.mutable.ListBuffer
-
 case object DisableSimple {
+  import scala.collection.mutable.ListBuffer // ok
+  import scala.collection.mutable.BitSet // ok
 
   case class B()
   val y = B().asInstanceOf[String] // assert: Disable.asInstanceOf

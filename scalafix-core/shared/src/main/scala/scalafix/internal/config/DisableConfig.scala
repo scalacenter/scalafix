@@ -45,7 +45,13 @@ object DisablePart {
 case class DisableConfig(
     @Description("The list of disable configurations")
     @ExampleValue("""[
-                    |  {
+                    |  { // default mode
+                    |    symbols = [
+                    |      "scala.Any.asInstanceOf"
+                    |    ]
+                    |  }
+                    |  { // unlessSynthetic mode
+                    |    unlessSynthetic = true
                     |    symbols = [
                     |      {
                     |        symbol = "scala.Predef.any2stringadd"
@@ -53,7 +59,7 @@ case class DisableConfig(
                     |      }
                     |    ]
                     |  }
-                    |  {
+                    |  { // unlessInsideBlock mode
                     |    unlessInsideBlock = "com.IO"
                     |    symbols = [
                     |      {
@@ -62,9 +68,8 @@ case class DisableConfig(
                     |      }
                     |    ]
                     |  }
-                    |  {
+                    |  { // unlessInsideBlock mode
                     |     unlessInsideBlock = "scala.util.Try"
-                    |     unlessSynthetic = true
                     |     symbols = [
                     |       {
                     |          symbol = "scala.Option.get"
