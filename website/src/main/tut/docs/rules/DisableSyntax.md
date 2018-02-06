@@ -27,7 +27,7 @@ MyCode.scala:10: error: [DisableSyntax.keywords.return] return is disabled.
 
 ## Configuration
 
-By default, this rule does not disable any particular syntax,		
+By default, this rule does not disable any particular syntax,
 every setting is opt-in.
 
 ```tut:invisible
