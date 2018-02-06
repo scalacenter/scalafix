@@ -1,7 +1,7 @@
 # compile should not affect scalafix
 > compile
 
--> scalafixTests ProcedureSyntax
+-> scalafixTest ProcedureSyntax
 -> compile:scalafixTest ProcedureSyntax
 -> test:scalafixTest ProcedureSyntax
 -> it:scalafixTest ProcedureSyntax

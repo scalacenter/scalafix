@@ -68,12 +68,18 @@ object ScalafixPlugin extends AutoPlugin {
 
     lazy val scalafixConfigSettings: Seq[Def.Setting[_]] = scalafixSettings ++
       Seq(
-        scalafix := scalafixTaskImpl(scalafixParserCompat, compat = true).evaluated,
+        scalafix := scalafixTaskImpl(
+          scalafixParserCompat,
+          compat = true,
+          Seq("--format", "sbt")).evaluated,
         scalafixTest := scalafixTaskImpl(
           scalafixParserCompat,
           compat = true,
-          Seq("--test")).evaluated,
-        scalafixCli := scalafixTaskImpl(scalafixParser, compat = false).evaluated
+          Seq("--test", "--format", "sbt")).evaluated,
+        scalafixCli := scalafixTaskImpl(
+          scalafixParser,
+          compat = false,
+          Seq("--format", "sbt")).evaluated
       )
   }
   import scalafix.internal.sbt.CliWrapperPlugin.autoImport._
