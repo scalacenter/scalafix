@@ -166,13 +166,15 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
       remove[Ident] // method name
 
       def patchParams(hasParams: Boolean): (Token, Boolean) = {
-
         find(
           t =>
-            t.is[LeftParen] || t.is[Colon] || t.is[LeftBrace] || t
-              .is[Equals]) match {
+            t.is[LeftParen] || 
+            t.is[Colon] || 
+            t.is[LeftBrace] ||
+            t.is[Equals]) match {
           case Some(t) => {
             if (t.is[LeftParen]) {
+              // parameter list
               val open = t
               var i = 0
               var cur = next
@@ -183,6 +185,7 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
                 i += 1
                 cur = next
               }
+              // (a) becomes a
               if (i == 1) {
                 remove(open)
                 remove(cur)
