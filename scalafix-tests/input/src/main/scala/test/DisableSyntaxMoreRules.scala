@@ -40,10 +40,6 @@ Default args makes it hard to use methods as functions.
     ) = ???
   }
 
-  object FooO {
-    def bar(x: Int = 42) = ??? // assert: DisableSyntax.defaultArgs
-  }
-
   trait FooTT {
     def bar(x: Int) = 3 // ok
   }
