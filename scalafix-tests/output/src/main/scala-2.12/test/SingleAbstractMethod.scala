@@ -34,5 +34,5 @@ class SingleAbstractMethod {
   val ab = new A with B { def f(a: Int): String = "ab" }
   val c1: C =  a => "c1" 
   val c2: B = new C { def f(a: Int): String = "c2" }
-  val d: D =  () => "d" 
+  val d = new D { def m: String = "d" }
 }

@@ -20,6 +20,8 @@ trait MultiScala {
     Seq(
       unmanagedSourceDirectories in Compile +=
         (baseDirectory in ThisBuild).value / base / sub / "src" / "main" / "scala",
+      unmanagedSourceDirectories in Compile +=
+        (baseDirectory in ThisBuild).value / base / sub / "src" / "main" / ("scala-" + scalaBinaryVersion.value),
       unmanagedSourceDirectories in Test +=
         (baseDirectory in ThisBuild).value / base / sub / "src" / "test" / "scala",
       unmanagedResourceDirectories in Compile +=
@@ -33,6 +35,8 @@ trait MultiScala {
     Seq(
       unmanagedSourceDirectories in Compile +=
         (baseDirectory in ThisBuild).value / base / "src" / "main" / "scala",
+      unmanagedSourceDirectories in Compile +=
+        (baseDirectory in ThisBuild).value / base / "src" / "main" / ("scala-" + scalaBinaryVersion.value),
       unmanagedSourceDirectories in Test +=
         (baseDirectory in ThisBuild).value / base / "src" / "test" / "scala",
       unmanagedResourceDirectories in Compile +=
