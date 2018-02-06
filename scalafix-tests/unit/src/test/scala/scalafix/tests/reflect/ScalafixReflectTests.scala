@@ -2,6 +2,7 @@ package scalafix.tests.reflect
 
 import scalafix.internal.config.LazySemanticdbIndex
 import scalafix.internal.reflect.ScalafixCompilerDecoder
+import scalafix.internal.tests.utils.SkipWindows
 import scalafix.rule.Rule
 import scalafix.tests.BuildInfo
 import metaconfig.Conf
@@ -25,7 +26,7 @@ class ScalafixReflectTests extends FunSuite {
     LazySemanticdbIndex(_ => None, cwd))
   val expectedName = "DummyLinter"
   val expectedDescription = ""
-  test("absolute path resolves as is") {
+  test("absolute path resolves as is", SkipWindows) {
     val rule = decoder.read(Conf.Str(s"file:$abspath")).get
     assert(expectedName == rule.name.value)
   }

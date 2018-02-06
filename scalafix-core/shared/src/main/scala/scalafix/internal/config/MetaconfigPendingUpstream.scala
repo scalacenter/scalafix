@@ -27,4 +27,8 @@ object MetaconfigPendingUpstream {
     def getField[T: ConfDecoder](e: sourcecode.Text[T]): Configured[T] =
       conf.getOrElse(e.source)(e.value)
   }
+  implicit class XtensionConfiguredScalafix(`_`: Configured.type) {
+    def fromEither[T](either: Either[String, T]): Configured[T] =
+      either.fold(ConfError.message(_).notOk, Configured.ok)
+  }
 }

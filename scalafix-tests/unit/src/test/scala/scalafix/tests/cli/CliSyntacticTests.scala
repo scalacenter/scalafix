@@ -3,6 +3,7 @@ package scalafix.tests.cli
 import scala.collection.immutable.Seq
 import scalafix.cli._
 import scalafix.internal.rule._
+import scalafix.internal.util.Severity
 
 class CliSyntacticTests extends BaseCliTest {
 
@@ -243,5 +244,24 @@ class CliSyntacticTests extends BaseCliTest {
                        |object a { def foo { println(1) } }
                        |""".stripMargin,
     expectedExit = ExitStatus.Ok
+  )
+
+  check(
+    name = "--format sbt",
+    originalLayout = s"""/foobar.scala
+                        |$original""".stripMargin,
+    args = Seq(
+      "--format",
+      "sbt",
+      "-r",
+      "scala:scalafix.tests.cli.TestRules.LintError",
+      "foobar.scala"
+    ),
+    expectedLayout = s"""/foobar.scala
+                        |$original""".stripMargin,
+    expectedExit = ExitStatus.LinterError,
+    outputAssert = { out =>
+      assert(out.contains(s"\n[${Severity.Error}] "))
+    }
   )
 }

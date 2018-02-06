@@ -13,6 +13,7 @@ import scalafix.cli.ExitStatus
 import scalafix.internal.cli.CommonOptions
 import scalafix.internal.cli.ScalafixOptions
 import scalafix.internal.rule.RemoveUnusedImports
+import scalafix.internal.tests.utils.SkipWindows
 import scalafix.test.StringFS
 import scalafix.testkit.DiffAssertions
 import scalafix.testkit.SemanticRuleSuite
@@ -80,7 +81,7 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
       expectedExit: ExitStatus,
       outputAssert: String => Unit = _ => ()
   ): Unit = {
-    test(name) {
+    test(name, SkipWindows) {
       val fileIsFixed = expectedExit.isOk
       val tmp = Files.createTempDirectory("scalafix")
       val out = new ByteArrayOutputStream()

@@ -9,9 +9,10 @@ import scala.meta.parsers.Parse
 import scala.meta.dialects.Scala212
 
 import scalafix.lint.{LintMessage, LintSeverity}
+import scalafix.internal.tests.utils.SkipWindows
 
 class AssertDeltaSuite() extends FunSuite with DiffAssertions {
-  test("associate assert and reported message") {
+  test("associate assert and reported message", SkipWindows) {
     val input = Input.VirtualFile(
       path = "foo/bar/Disable.scala",
       value = """|case object Disable {

@@ -474,10 +474,10 @@ object CliRunner {
         val configured = resolvedConfigInput.andThen(input =>
           ScalafixConfig.fromInput(input, lazySemanticdbIndex, rules)(decoder))
         configured.map { configuration =>
-          // TODO(olafur) implement withFilter on Configured
           val (finalRule, scalafixConfig) = configuration
-          val finalConfig = scalafixConfig.withOut(common.err)
-          finalRule -> finalConfig
+          val withOut = scalafixConfig.withOut(common.err)
+          val withFormat = cli.format.fold(withOut)(withOut.withFormat)
+          finalRule -> withFormat
         }
       }
     }
