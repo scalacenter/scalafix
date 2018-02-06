@@ -11,3 +11,5 @@
 > sbtfix Sbt1
 > sbtfixTest Sbt1
 > check
+> scala212/scalafix
+> scala212/scalafixTest

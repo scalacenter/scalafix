@@ -3,9 +3,9 @@ import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 /* scalafmt: { maxColumn = 120 }*/
 
 object Dependencies {
-  val scalametaV = "2.1.7"
+  val scalametaV = "3.0.0"
   val metaconfigV = "0.6.0-RC1"
-  def semanticdbSbt = "0.4.0"
+  def semanticdbSbt = "0.5.0"
   def dotty = "0.1.1-bin-20170530-f8f52cc-NIGHTLY"
   def scala210 = "2.10.6"
   // NOTE(olafur) downgraded from 2.11.12 and 2.12.4 because of non-reproducible error
@@ -28,7 +28,7 @@ object Dependencies {
   def googleDiff = "com.googlecode.java-diff-utils" % "diffutils" % "1.3.0"
 
   def scalameta = Def.setting("org.scalameta" %%% "contrib" % scalametaV)
-  def scalatest = Def.setting("org.scalatest" %%% "scalatest" % "3.0.0")
+  val scalatest = "org.scalatest" %% "scalatest" % "3.0.0"
 
   def testsDeps = List(
     // integration property tests

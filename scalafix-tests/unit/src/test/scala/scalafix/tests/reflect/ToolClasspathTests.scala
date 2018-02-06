@@ -8,6 +8,7 @@ import scalafix.internal.config.LazySemanticdbIndex
 import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.internal.reflect.RuleCompiler
 import scalafix.internal.reflect.ScalafixCompilerDecoder
+import scalafix.internal.tests.utils.SkipWindows
 import metaconfig.Conf
 import org.langmeta.inputs.Input
 import org.langmeta.io.AbsolutePath
@@ -30,7 +31,7 @@ class ToolClasspathTests extends FunSuite with BeforeAndAfterAll {
     scalafmtClasspath = jars.map(AbsolutePath(_))
   }
 
-  test("--tool-classpath is respected when compiling from source") {
+  test("--tool-classpath is respected when compiling from source", SkipWindows) {
     val scalafmtRewrite =
       """
         |import org.scalafmt._
