@@ -1,4 +1,4 @@
-/* ONLY
+/*
 rule = SingleAbstractMethod
  */
 package test
