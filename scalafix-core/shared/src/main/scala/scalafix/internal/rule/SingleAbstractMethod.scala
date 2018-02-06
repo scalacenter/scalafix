@@ -50,6 +50,21 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
         case _ => false
       }
 
+    def getMods(tree: Tree): List[Mod] = {
+      tree match {
+        case Term.NewAnonymous(
+            Template(
+              _,
+              _,
+              _,
+              List(Defn.Def(mods, _, _, _, _, _))
+            )
+            ) =>
+          mods
+        case _ => Nil
+      }
+    }
+
     class PeekableIterator[T](iterator: Iterator[T]) extends Iterator[T] {
       private var exhausted: Boolean = false
       private var slot: Option[T] = None
@@ -126,8 +141,13 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
       def result(): Patch = Patch.fromIterable(patches.result())
     }
 
-    def patchSam(builder: PatchBuilder, keepClassName: Boolean): Patch = {
+    def patchSam(
+        builder: PatchBuilder,
+        mods: List[Mod],
+        keepClassName: Boolean): Patch = {
       import builder._
+
+      mods.foreach(_.tokens.foreach(remove))
 
       // new X(){def m(a: A, b: B, c: C): D = <body> }
       remove[KwNew]
@@ -199,7 +219,10 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
       result()
     }
 
-    def patchSamDefn(hasDecltpe: Boolean, tokens: Tokens): Patch = {
+    def patchSamDefn(
+        hasDecltpe: Boolean,
+        tokens: Tokens,
+        mods: List[Mod]): Patch = {
       if (!hasDecltpe) {
         val builder = new PatchBuilder(tokens)
         import builder._
@@ -207,7 +230,7 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
         addRight[Ident](":")
         remove[Equals]
         removeOptional[Space]
-        patchSam(builder, keepClassName = true)
+        patchSam(builder, mods, keepClassName = true)
       } else {
         // trait B { def f(a: Int): Int }
         // trait C extends B
@@ -223,13 +246,19 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
 
     ctx.tree.collect {
       case term: Defn.Val if isSam(term.rhs) =>
-        patchSamDefn(term.decltpe.nonEmpty, term.tokens)
+        patchSamDefn(term.decltpe.nonEmpty, term.tokens, getMods(term.rhs))
       case term: Defn.Var if term.rhs.map(isSam).getOrElse(false) =>
-        patchSamDefn(term.decltpe.nonEmpty, term.tokens)
+        patchSamDefn(
+          term.decltpe.nonEmpty,
+          term.tokens,
+          term.rhs.map(getMods).getOrElse(Nil))
       case term: Defn.Def if isSam(term.body) =>
-        patchSamDefn(term.decltpe.nonEmpty, term.tokens)
+        patchSamDefn(term.decltpe.nonEmpty, term.tokens, getMods(term.body))
       case term: Term.NewAnonymous if isSam(term) =>
-        patchSam(new PatchBuilder(term.tokens), keepClassName = false)
+        patchSam(
+          new PatchBuilder(term.tokens),
+          getMods(term),
+          keepClassName = false)
 
     }.asPatch
   }

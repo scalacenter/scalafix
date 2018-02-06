@@ -1,4 +1,4 @@
-/*
+/* ONLY
 rule = SingleAbstractMethod
  */
 package test
@@ -28,6 +28,7 @@ class SingleAbstractMethod {
   }
   val runnable6 = new Runnable(){ def run: Unit = println("runnable6!") }
   val runnable7 = new Runnable(){ def run { println("runnable7!") } }
+  val runnable8 = new Runnable { override def run = println("runnable8!") }
   val withParams = new WithParams() { def doit(a: Int, b: Int): Int = a + b }
   new Thread(new Runnable(){ def run(): Unit = println("anon1!")})
   new Thread(new Runnable(){ def run(): Unit = println("anon2!")})

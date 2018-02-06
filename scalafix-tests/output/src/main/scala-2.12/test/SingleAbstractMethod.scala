@@ -25,6 +25,7 @@ class SingleAbstractMethod {
   
   val runnable6: Runnable = () => println("runnable6!") 
   val runnable7: Runnable =  () => { println("runnable7!") } 
+  val runnable8: Runnable =    () =>  println("runnable8!") 
   val withParams: WithParams =  (a, b) => a + b 
   new Thread( () => println("anon1!"))
   new Thread( () => println("anon2!"))
