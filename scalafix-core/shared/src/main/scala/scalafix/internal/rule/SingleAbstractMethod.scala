@@ -12,6 +12,8 @@ import scalafix.rule.SemanticRule
 
 import scala.collection.mutable
 
+import scalafix.syntax._
+
 // SAM conversion: http://www.scala-lang.org/files/archive/spec/2.12/06-expressions.html#sam-conversion
 case class SingleAbstractMethod(index: SemanticdbIndex)
     extends SemanticRule(index, "SingleAbstractMethod") {
@@ -37,7 +39,10 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
               overrideSymbol <- definition.overrides.headOption
               if definition.overrides.size == 1
               overrideDefinition <- index.denotation(overrideSymbol)
-            } yield overrideDefinition.isAbstract).getOrElse(false)
+            } yield {
+              overrideDefinition.isAbstract &&
+              overrideDefinition.signature.startsWith("(") // https://github.com/scala/bug/issues/10555
+            }).getOrElse(false)
 
           val singleMember =
             (for {
@@ -168,10 +173,10 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
       def patchParams(hasParams: Boolean): (Token, Boolean) = {
         find(
           t =>
-            t.is[LeftParen] || 
-            t.is[Colon] || 
-            t.is[LeftBrace] ||
-            t.is[Equals]) match {
+            t.is[LeftParen] ||
+              t.is[Colon] ||
+              t.is[LeftBrace] ||
+              t.is[Equals]) match {
           case Some(t) => {
             if (t.is[LeftParen]) {
               // parameter list
