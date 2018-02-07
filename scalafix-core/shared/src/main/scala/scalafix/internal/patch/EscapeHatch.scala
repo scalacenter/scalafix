@@ -6,66 +6,30 @@ import scalafix.lint.LintMessage
 import scalafix.rule.RuleName
 import scalafix.patch._
 import scalafix.internal.diff.DiffDisable
-
 import scala.meta._
 import scala.meta.tokens.Token
 import scala.meta.contrib._
-
 import scala.collection.mutable
 import scala.collection.immutable.TreeMap
+import scalafix.internal.patch.EscapeHatch._
 
-/* EscapeHatch is an algorithm to selectively disable rules
- *
- * Rules are disabled via comments with a specific syntax
- * scalafix:off or scalafix:on disable or enable rules until the end of file
- * scalafix:ok disable rules on an associated expression
- * a list of rules seperated by commas can be provided to selectively
- * enable or disable rules otherwise all rules are affected
- *
- * enableRules and disableRules contains the offset at which you
- * start applying a filter
- *
- * unusedEnable contains the unused scalafix:on
- */
-class EscapeHatch(
-    enableRules: TreeMap[EscapeHatch.EscapeOffset, EscapeHatch.EscapeFilter],
-    disableRules: TreeMap[EscapeHatch.EscapeOffset, EscapeHatch.EscapeFilter],
-    unusedEnable: List[LintMessage]) {
-
-  import EscapeHatch._
-
-  // a rule r is disabled in position p if there is a
-  // comment disabling r at position p1 < p
-  // and there is no comment enabling r in position p2 where p1 < p2 < p.
-  private def isEnabled(
-      name: RuleName,
-      start: Int): (Boolean, Option[EscapeFilter]) = {
-    var culprit = Option.empty[EscapeFilter]
-
-    val isDisabled =
-      disableRules.to(EscapeOffset(start)).exists {
-        case (disableOffset, disableFilter) => {
-          val isDisabled = disableFilter.matches(name)
-          if (isDisabled) {
-            culprit = Some(disableFilter)
-          }
-          isDisabled && {
-            !enableRules
-              .range(disableOffset, EscapeOffset(start))
-              .values
-              .exists { enableFilter =>
-                val isEnabled = enableFilter.matches(name)
-                if (isEnabled) {
-                  culprit = Some(enableFilter)
-                }
-                isEnabled
-              }
-          }
-        }
-      }
-
-    (!isDisabled, culprit)
-  }
+// TODO update scaladocs
+/** EscapeHatch is an algorithm to selectively disable rules
+  *
+  * Rules are disabled via comments with a specific syntax
+  * `scalafix:off` or `scalafix:on` disable or enable rules until the end of file
+  * `scalafix:ok` disable rules on an associated expression
+  * a list of rules separated by commas can be provided to selectively
+  * enable or disable rules otherwise all rules are affected
+  *
+  * enableRules and disableRules contains the offset at which you
+  * start applying a filter
+  *
+  * unusedEnable contains the unused `scalafix:on`
+  */
+class EscapeHatch private (
+    anchoredEscapes: AnchoredEscapes,
+    annotatedEscapes: AnnotatedEscapes) {
 
   def filter(
       patchesByName: Map[RuleName, Patch],
@@ -75,13 +39,16 @@ class EscapeHatch(
     val usedEscapes = mutable.Set.empty[EscapeOffset]
     val lintMessages = List.newBuilder[LintMessage]
 
-    def disabledByEscape(name: RuleName, start: Int): Boolean = {
-      // check if part of on/off/ok blocks
-      val (isPatchEnabled, culprit) = isEnabled(name, start)
-      // to track unused on/off/ok
-      culprit.foreach(escape => usedEscapes += escape.offset)
-      !isPatchEnabled
-    }
+    def disabledByEscape(name: RuleName, start: Int): Boolean =
+      annotatedEscapes.isEnabled(name, start) match {
+        case (false, Some(culprit)) => true // TODO keep track of culprit
+        case _ =>
+          // check if part of on/off/ok blocks
+          val (enabled, culprit) = anchoredEscapes.isEnabled(name, start)
+          // to track unused on/off/ok
+          culprit.foreach(escape => usedEscapes += escape.startOffset)
+          !enabled
+      }
 
     def loop(name: RuleName, patch: Patch): Patch = patch match {
       case AtomicPatch(underlying) =>
@@ -129,250 +96,327 @@ class EscapeHatch(
           "Disable",
           "This comment does not disable any rule"
         )
-        .withOwner(unusedScalafixSuppression)
+        .withOwner(UnusedScalafixSuppression)
 
     val unusedEscapesWarning =
-      (disableRules -- usedEscapes).values
-        .map(unused => unusedDisableWarning.at(unused.anchorPosition.value))
+      (anchoredEscapes.disableRules -- usedEscapes).values
+        .map(unused => unusedDisableWarning.at(unused.escapePosition))
 
     val filteredLints = lintMessages.result()
 
-    (patches, filteredLints ++ unusedEnable ++ unusedEscapesWarning)
+    (
+      patches,
+      filteredLints ++ anchoredEscapes.unusedEnable ++ unusedEscapesWarning)
   }
 }
 
+// TODO visibility of members
 object EscapeHatch {
-  private[EscapeHatch] case class EscapeFilter(
+
+  case class EscapeFilter(
       matcher: FilterMatcher,
-      anchorPosition: AnchorPosition,
-      offset: EscapeOffset
-  ) {
+      escapePosition: Position,
+      startOffset: EscapeOffset,
+      endOffset: Option[EscapeOffset] = None) {
     def matches(id: RuleName): Boolean =
-      id.identifiers.exists(i => matches(i.value))
-    def matches(id: String): Boolean =
-      matcher.matches(id)
+      id.identifiers.exists(i => matcher.matches(i.value))
   }
 
-  // escape offset are the offset at witch a filter is effective
-  private[EscapeHatch] case class EscapeOffset(offset: Int)
+  case class EscapeOffset(offset: Int)
 
   object EscapeOffset {
     implicit val ordering: Ordering[EscapeOffset] = Ordering.by(_.offset)
   }
 
-  // anchors are comments containing scalafix:[on|off|ok]
-  private[EscapeHatch] case class AnchorPosition(value: Position) {
-    override def hashCode: Int = value.start
-  }
+  private val UnusedScalafixSuppression = RuleName("UnusedScalafixSuppression")
 
-  private[EscapeHatch] case class ExpressionPosition(value: Position) {
-    override def hashCode: Int = value.start
-  }
+  private val UnusedEnableWarning = LintCategory
+    .warning(
+      "Enable",
+      "This comment would enable a rule that was not disabled (eg: typo in the rules)"
+    )
+    .withOwner(UnusedScalafixSuppression)
 
-  private sealed abstract class Escape
-  private object Escape {
-    case class UntilEOF(
-        anchorPosition: AnchorPosition,
-        rules: String,
-        toggle: Toggle
-    ) extends Escape
+  def splitRules(rules: String): Set[String] = rules.split("\\s+").toSet
 
-    case class Expression(
-        expressionPosition: ExpressionPosition,
-        anchorPosition: AnchorPosition,
-        rules: String
-    ) extends Escape
+  def apply(tree: Tree, associatedComments: AssociatedComments): EscapeHatch =
+    new EscapeHatch(
+      AnchoredEscapes(tree, associatedComments),
+      AnnotatedEscapes(tree)
+    )
 
-    case class ExpressionLine(
-        expressionPosition: ExpressionPosition,
-        anchorPosition: AnchorPosition,
-        rules: String
-    ) extends Escape
-  }
-
-  private sealed abstract class Toggle
-  private object Toggle {
-    case object Disable extends Toggle
-    case object Enable extends Toggle
-  }
-
-  private val unusedScalafixSuppression = RuleName("UnusedScalafixSuppression")
-
-  private val unusedEnableWarning =
-    LintCategory
-      .warning(
-        "Enable",
-        "This comment would enable a rule that was not disabled (eg: typo in the rules)"
-      )
-      .withOwner(unusedScalafixSuppression)
-
-  private val FilterDisable = "\\s?scalafix:off\\s?(.*)".r
-  private val FilterEnable = "\\s?scalafix:on\\s?(.*)".r
-  private val FilterExpression = "\\s?scalafix:ok\\s?(.*)".r
-
-  private def splitRules(rules: String): Set[String] =
-    rules.split("\\s+").toSet
-
-  def apply(tree: Tree, associatedComments: AssociatedComments): EscapeHatch = {
-    val escapes = List.newBuilder[Escape]
-    val unusedEnable = List.newBuilder[LintMessage]
-    val visitedFilterExpression = mutable.Set.empty[AnchorPosition]
-
-    var currentlyDisabledRules = Set.empty[String]
-    def trackUnusedRules(
-        rules: String,
-        toggle: Toggle,
-        anchorPosition: AnchorPosition): Unit = {
-      toggle match {
-        case Toggle.Disable =>
-          currentlyDisabledRules = currentlyDisabledRules ++ splitRules(rules)
-
-        case Toggle.Enable =>
-          val enabledRules = splitRules(rules)
-          val enabledNotDisabled = enabledRules -- currentlyDisabledRules
-
-          enabledNotDisabled.foreach(
-            _ => unusedEnable += unusedEnableWarning.at(anchorPosition.value)
-          )
-      }
-    }
-
-    tree.foreach { t =>
-      associatedComments.trailing(t).foreach {
-        // matches simple expressions
-        //
-        // val a = (
-        //   1,
-        //   2
-        // ) // scalafix:ok RuleA
-        //
-        case comment @ Token.Comment(FilterExpression(rules)) =>
-          val anchorPosition = AnchorPosition(comment.pos)
-          if (!visitedFilterExpression.contains(anchorPosition)) {
-            escapes += Escape.Expression(
-              ExpressionPosition(t.pos),
-              anchorPosition,
-              rules
-            )
-            visitedFilterExpression += anchorPosition
-          }
-
-        case _ => ()
-      }
-    }
-
-    tree.tokens.foreach {
-      case comment @ Token.Comment(rawComment) => {
-        rawComment match {
-          // matches off anchors
-          //
-          // // scalafix:off RuleA
-          // ...
-          //
-          case FilterDisable(rules) => {
-            val position = AnchorPosition(comment.pos)
-            escapes += Escape.UntilEOF(position, rules, Toggle.Disable)
-            trackUnusedRules(rules, Toggle.Disable, position)
-          }
-
-          // matches on anchors
-          //
-          // ...
-          // // scalafix:on RuleA
-          //
-          case FilterEnable(rules) => {
-            val position = AnchorPosition(comment.pos)
-            escapes += Escape.UntilEOF(position, rules, Toggle.Enable)
-            trackUnusedRules(rules, Toggle.Enable, position)
-          }
-          // matches expressions not handled by AssociatedComments
-          //
-          // object Dummy { // scalafix:ok EscapeHatchDummyLinter
-          //   1
-          // }
-          case FilterExpression(rules) => {
-            val anchorPosition = AnchorPosition(comment.pos)
-            if (!visitedFilterExpression.contains(anchorPosition)) {
-              // we approximate the position of the expression to the whole line
-              val expressionPosition =
-                ExpressionPosition(
-                  Position.Range(
-                    comment.pos.input,
-                    comment.pos.start - comment.pos.startColumn,
-                    comment.pos.end
-                  ))
-
-              escapes += Escape.ExpressionLine(
-                expressionPosition = expressionPosition,
-                anchorPosition = anchorPosition,
-                rules = rules
-              )
-            }
-          }
-          case _ => ()
-        }
-
-      }
-      case _ => ()
-    }
-
-    EscapeHatch(escapes.result(), unusedEnable.result())
-  }
-
-  private def matcher(rules: String): FilterMatcher = {
-    if (rules.isEmpty) {
-      FilterMatcher.matchEverything
-    } else {
+  def matcher(rules: String): FilterMatcher =
+    if (rules.isEmpty) FilterMatcher.matchEverything
+    else
       FilterMatcher(
         includes = splitRules(rules).toSeq,
         excludes = Seq()
       )
+
+  /**
+    * TODO Rules from SuppressWarnings annotations.
+    */
+  class AnnotatedEscapes private (
+      val escapeRules: TreeMap[EscapeOffset, EscapeFilter]) {
+
+    // TODO support 'all'
+    // TODO support rules with 'scalafix:' prefix
+    def isEnabled(
+        ruleName: RuleName,
+        position: Int): (Boolean, Option[EscapeFilter]) = {
+      val maybeDisabled = escapeRules.to(EscapeOffset(position)).find {
+        case (_, f @ EscapeFilter(_, _, _, Some(to)))
+            if f.matches(ruleName) && to.offset >= position =>
+          true
+        case _ => false
+      }
+
+      maybeDisabled match {
+        case Some((_, filter)) => (false, Some(filter))
+        case None => (true, None)
+      }
     }
   }
 
-  private def apply(
-      escapes: List[Escape],
-      unusedEnable: List[LintMessage]): EscapeHatch = {
-    val enableRules = TreeMap.newBuilder[EscapeOffset, EscapeFilter]
-    val disableRules = TreeMap.newBuilder[EscapeOffset, EscapeFilter]
+  object AnnotatedEscapes {
+    private val SuppressWarnings = "SuppressWarnings"
 
-    def enable(
-        offset: EscapeOffset,
-        anchor: AnchorPosition,
-        rules: String): Unit = {
-      enableRules += (offset -> EscapeFilter(matcher(rules), anchor, offset))
-    }
+    def apply(tree: Tree): AnnotatedEscapes = {
+      val builder = TreeMap.newBuilder[EscapeOffset, EscapeFilter]
 
-    def disable(
-        offset: EscapeOffset,
-        anchor: AnchorPosition,
-        rules: String): Unit = {
-      disableRules += (offset -> EscapeFilter(matcher(rules), anchor, offset))
-    }
+      def addAnnotatedEscape(t: Tree, mods: List[Mod]): Unit = {
+        val startOffset = EscapeOffset(t.pos.start)
+        val endOffset = EscapeOffset(t.pos.end)
+        val ruleMatcher = matcher(extractRules(mods).mkString(" "))
+        builder += (startOffset -> EscapeFilter(
+          ruleMatcher,
+          t.pos, // TODO exact position of the annotation
+          startOffset,
+          Some(endOffset)))
+      }
 
-    escapes.foreach {
-      case Escape.Expression(expressionPos, anchorPos, rules) =>
-        disable(EscapeOffset(expressionPos.value.start), anchorPos, rules)
-        enable(EscapeOffset(expressionPos.value.end), anchorPos, rules)
-
-      case Escape.ExpressionLine(expressionPos, anchorPos, rules) =>
-        disable(EscapeOffset(expressionPos.value.start), anchorPos, rules)
-        enable(EscapeOffset(expressionPos.value.end), anchorPos, rules)
-
-      case Escape.UntilEOF(anchorPos, rules, toggle) =>
-        toggle match {
-          case Toggle.Disable =>
-            disable(EscapeOffset(anchorPos.value.start), anchorPos, rules)
-
-          case Toggle.Enable =>
-            enable(EscapeOffset(anchorPos.value.end), anchorPos, rules)
+      def hasSuppressWarnings(mods: List[Mod]): Boolean =
+        mods.exists {
+          case Mod.Annot(Init(Type.Name(SuppressWarnings), _, _)) => true
+          case _ => false
         }
-    }
 
-    new EscapeHatch(
-      enableRules = enableRules.result(),
-      disableRules = disableRules.result(),
-      unusedEnable = unusedEnable
-    )
+      def extractRules(mods: List[Mod]): Set[String] =
+        mods.flatMap {
+          case Mod.Annot(
+              Init(
+                Type.Name(SuppressWarnings),
+                _,
+                (Term.Apply(Term.Name("Array"), rules) :: Nil) :: Nil)) =>
+            rules.map { case Lit.String(rule) => rule }
+
+          case _ => Nil
+        }.toSet
+
+      tree.foreach {
+        case t @ Defn.Class(mods, _, _, _, _) if hasSuppressWarnings(mods) =>
+          addAnnotatedEscape(t, mods)
+
+        case t @ Defn.Object(mods, _, _) if hasSuppressWarnings(mods) =>
+          addAnnotatedEscape(t, mods)
+
+        case t @ Defn.Trait(mods, _, _, _, _) if hasSuppressWarnings(mods) =>
+          addAnnotatedEscape(t, mods)
+
+        case t @ Defn.Type(mods, _, _, _) if hasSuppressWarnings(mods) =>
+          addAnnotatedEscape(t, mods)
+
+        case t @ Defn.Def(mods, _, _, _, _, _) if hasSuppressWarnings(mods) =>
+          addAnnotatedEscape(t, mods)
+
+        case t @ Defn.Val(mods, _, _, _) if hasSuppressWarnings(mods) =>
+          addAnnotatedEscape(t, mods)
+
+        case t @ Defn.Var(mods, _, _, _) if hasSuppressWarnings(mods) =>
+          addAnnotatedEscape(t, mods)
+
+        case t @ Term.Param(mods, _, _, _) if hasSuppressWarnings(mods) =>
+          addAnnotatedEscape(t, mods)
+
+        case t @ Ctor.Primary(mods, _, _) if hasSuppressWarnings(mods) =>
+          addAnnotatedEscape(t, mods)
+
+        case t @ Ctor.Secondary(mods, _, _, _, _)
+            if hasSuppressWarnings(mods) =>
+          addAnnotatedEscape(t, mods)
+
+        case _ => ()
+      }
+
+      new AnnotatedEscapes(builder.result())
+    }
+  }
+
+  /**
+    * TODO Rules from comments.
+    */
+  class AnchoredEscapes private (
+      val enableRules: TreeMap[EscapeOffset, EscapeFilter],
+      val disableRules: TreeMap[EscapeOffset, EscapeFilter],
+      val unusedEnable: List[LintMessage]) {
+
+    /**
+      * a rule r is disabled in position p if there is a comment disabling r at
+      * position p1 < p and there is no comment enabling r in position p2 where p1 < p2 < p.
+      */
+    def isEnabled(
+        ruleName: RuleName,
+        position: Int): (Boolean, Option[EscapeFilter]) = {
+      var culprit = Option.empty[EscapeFilter]
+
+      val isDisabled =
+        disableRules.to(EscapeOffset(position)).exists {
+          case (disableOffset, disableFilter) => {
+            val isDisabled = disableFilter.matches(ruleName)
+            if (isDisabled) culprit = Some(disableFilter)
+
+            isDisabled && {
+              !enableRules
+                .range(disableOffset, EscapeOffset(position))
+                .values
+                .exists { enableFilter =>
+                  val isEnabled = enableFilter.matches(ruleName)
+                  if (isEnabled) {
+                    culprit = Some(enableFilter)
+                  }
+                  isEnabled
+                }
+            }
+          }
+        }
+
+      (!isDisabled, culprit)
+    }
+  }
+
+  object AnchoredEscapes {
+    private val FilterDisable = "\\s?scalafix:off\\s?(.*)".r
+    private val FilterEnable = "\\s?scalafix:on\\s?(.*)".r
+    private val FilterExpression = "\\s?scalafix:ok\\s?(.*)".r
+
+    def apply(
+        tree: Tree,
+        associatedComments: AssociatedComments): AnchoredEscapes = {
+      val enableBuilder = TreeMap.newBuilder[EscapeOffset, EscapeFilter]
+      val disableBuilder = TreeMap.newBuilder[EscapeOffset, EscapeFilter]
+      val unusedAnchoredEnable = List.newBuilder[LintMessage]
+      val visitedFilterExpression = mutable.Set.empty[Position]
+      var currentlyDisabledRules = Set.empty[String]
+
+      def enable(
+          offset: EscapeOffset,
+          anchor: Position,
+          rules: String): Unit = {
+        val filter = EscapeFilter(matcher(rules), anchor, offset)
+        enableBuilder += (offset -> filter)
+      }
+
+      def disable(
+          offset: EscapeOffset,
+          anchor: Position,
+          rules: String): Unit = {
+        val filter = EscapeFilter(matcher(rules), anchor, offset)
+        disableBuilder += (offset -> filter)
+      }
+
+      def trackUnusedRules(
+          anchorPos: Position,
+          rules: String,
+          enabled: Boolean): Unit =
+        if (enabled) {
+          val enabledRules = splitRules(rules)
+          val enabledNotDisabled = enabledRules -- currentlyDisabledRules
+
+          enabledNotDisabled.foreach(
+            _ =>
+              unusedAnchoredEnable += UnusedEnableWarning
+                .at(anchorPos) // TODO unusedEnableWarning
+          )
+        } else {
+          currentlyDisabledRules = currentlyDisabledRules ++ splitRules(rules)
+        }
+
+      tree.foreach { t =>
+        associatedComments.trailing(t).foreach {
+          // matches simple expressions
+          //
+          // val a = (
+          //   1,
+          //   2
+          // ) // scalafix:ok RuleA
+          //
+          case comment @ Token.Comment(FilterExpression(rules)) =>
+            val anchorPos = comment.pos
+            if (!visitedFilterExpression.contains(anchorPos)) {
+              disable(EscapeOffset(t.pos.start), anchorPos, rules)
+              enable(EscapeOffset(t.pos.end), anchorPos, rules)
+              visitedFilterExpression += anchorPos
+            }
+
+          case _ => ()
+        }
+      }
+
+      tree.tokens.foreach {
+        case comment @ Token.Comment(rawComment) => {
+          rawComment match {
+            // matches off anchors
+            //
+            // // scalafix:off RuleA
+            // ...
+            //
+            case FilterDisable(rules) => {
+              val anchorPos = comment.pos
+              disable(EscapeOffset(anchorPos.start), anchorPos, rules)
+              trackUnusedRules(anchorPos, rules, enabled = false)
+            }
+
+            // matches on anchors
+            //
+            // ...
+            // // scalafix:on RuleA
+            //
+            case FilterEnable(rules) => {
+              val anchorPos = comment.pos
+              enable(EscapeOffset(anchorPos.start), anchorPos, rules)
+              trackUnusedRules(anchorPos, rules, enabled = true)
+            }
+
+            // matches expressions not handled by AssociatedComments
+            //
+            // object Dummy { // scalafix:ok EscapeHatchDummyLinter
+            //   1
+            // }
+            case FilterExpression(rules) => {
+              val anchorPos = comment.pos
+              if (!visitedFilterExpression.contains(anchorPos)) {
+                // we approximate the position of the expression to the whole line
+                val position = Position.Range(
+                  anchorPos.input,
+                  anchorPos.start - anchorPos.startColumn,
+                  anchorPos.end
+                )
+                disable(EscapeOffset(position.start), anchorPos, rules)
+                enable(EscapeOffset(position.end), anchorPos, rules)
+              }
+            }
+
+            case _ => ()
+          }
+
+        }
+        case _ => ()
+      }
+
+      new AnchoredEscapes(
+        enableBuilder.result(),
+        disableBuilder.result(),
+        unusedAnchoredEnable.result())
+    }
   }
 }
