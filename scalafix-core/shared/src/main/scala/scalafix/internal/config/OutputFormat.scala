@@ -1,10 +1,8 @@
 package scalafix.internal.config
 
-import metaconfig.Conf
-import metaconfig.ConfDecoder
-import metaconfig.ConfError
-import metaconfig.Configured
-import MetaconfigPendingUpstream._
+import metaconfig.{Conf, ConfDecoder, Configured}
+
+import scalafix.internal.config.MetaconfigPendingUpstream._
 
 sealed abstract class OutputFormat
 object OutputFormat {
