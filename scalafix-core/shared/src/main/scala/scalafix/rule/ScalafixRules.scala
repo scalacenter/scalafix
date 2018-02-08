@@ -27,7 +27,7 @@ object ScalafixRules {
     Disable(index, DisableConfig.default),
     DisableUnless(index, DisableUnlessConfig.default),
     MissingFinal(index),
-    SingleAbstractMethod(index)
+    ConvertSingleAbstractMethod(index)
   )
   def all(index: SemanticdbIndex): List[Rule] =
     syntax ++ semantic(index)

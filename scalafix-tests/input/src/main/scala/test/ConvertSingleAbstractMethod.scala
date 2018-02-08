@@ -1,5 +1,5 @@
 /*
-rule = SingleAbstractMethod
+rule = ConvertSingleAbstractMethod
  */
 package test
 
@@ -15,7 +15,7 @@ trait B { def f(a: Int): String }
 trait C extends B
 trait D { def m: String }
 
-class SingleAbstractMethod {
+class ConvertSingleAbstractMethod {
   val runnable1 = new Runnable(){ def run(): Unit = println("runnable1!") }
   var runnable2 = new Runnable(){ def run(): Unit = println("runnable2!") }
   def runnable3 = new Runnable(){ def run(): Unit = println("runnable3!") }

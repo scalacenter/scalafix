@@ -27,37 +27,33 @@ object DiffTest {
   def fromSemanticdbIndex(index: SemanticdbIndex): Seq[DiffTest] =
     index.documents.flatMap { document =>
       val input @ Input.VirtualFile(label, code) = document.input
-      if (!label.startsWith("scalafix-tests")) {
-        val relpath = RelativePath(label)
-        val config: () => (Rule, ScalafixConfig) = { () =>
-          input.tokenize.get
-            .collectFirst {
-              case Token.Comment(comment) =>
-                val decoder =
-                  ScalafixReflect.fromLazySemanticdbIndex(
-                    LazySemanticdbIndex(_ => Some(index)))
-                ScalafixConfig
-                  .fromInput(
-                    Input.VirtualFile(label, stripPrefix(comment)),
-                    LazySemanticdbIndex(_ => Some(index)))(decoder)
-                  .get
-            }
-            .getOrElse(throw new TestFailedException(
-              s"Missing scalafix configuration inside comment at top of file $relpath",
-              0))
-        }
-        Seq(
-          DiffTest(
-            filename = relpath,
-            original = input,
-            document = document,
-            config = config,
-            isSkip = code.contains("SKIP"),
-            isOnly = code.contains("ONLY")
-          ))
-      } else {
-        Seq()
+      val relpath = RelativePath(label)
+      val config: () => (Rule, ScalafixConfig) = { () =>
+        input.tokenize.get
+          .collectFirst {
+            case Token.Comment(comment) =>
+              val decoder =
+                ScalafixReflect.fromLazySemanticdbIndex(
+                  LazySemanticdbIndex(_ => Some(index)))
+              ScalafixConfig
+                .fromInput(
+                  Input.VirtualFile(label, stripPrefix(comment)),
+                  LazySemanticdbIndex(_ => Some(index)))(decoder)
+                .get
+          }
+          .getOrElse(throw new TestFailedException(
+            s"Missing scalafix configuration inside comment at top of file $relpath",
+            0))
       }
+      Seq(
+        DiffTest(
+          filename = relpath,
+          original = input,
+          document = document,
+          config = config,
+          isSkip = code.contains("SKIP"),
+          isOnly = code.contains("ONLY")
+        ))
     }
 
   def testToRun(tests: Seq[DiffTest]): Seq[DiffTest] = {

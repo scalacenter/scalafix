@@ -3,8 +3,6 @@ package scalafix.internal.rule
 import scala.meta._
 import scala.meta.Token._
 
-import scala.meta.internal.tokens.TokenInfo
-
 import scalafix.Patch
 import scalafix.SemanticdbIndex
 import scalafix.rule.RuleCtx
@@ -12,11 +10,50 @@ import scalafix.rule.SemanticRule
 
 import scala.collection.mutable
 
-import scalafix.syntax._
+import scalafix.internal.util.PatchBuilder
 
-// SAM conversion: http://www.scala-lang.org/files/archive/spec/2.12/06-expressions.html#sam-conversion
-case class SingleAbstractMethod(index: SemanticdbIndex)
-    extends SemanticRule(index, "SingleAbstractMethod") {
+/* 
+see http://www.scala-lang.org/files/archive/spec/2.12/06-expressions.html#sam-conversion
+
+SAM Conversion
+
+An expression (p1, ..., pN) => body of function type (T1, ..., TN) => T is 
+sam-convertible to the expected type S if the following holds:
+
+* [ ] SAM1: the class C of S declares an abstract method m with signature (p1: A1, ..., pN: AN): R;
+* [ ] SAM2: besides m, C must not declare or inherit any other deferred value members;
+* [ ] SAM3: the method m must have a single argument list;
+* [ ] SAM4: there must be a type U that is a subtype of S, so that the expression 
+            new U { final def m(p1: A1, ..., pN: AN): R = body } is well-typed 
+            (conforming to the expected type S);
+* [ ] SAM5: for the purpose of scoping, m should be considered a static member
+            (U's members are not in scope in body);
+* [ ] SAM6: (A1, ..., AN) => R is a subtype of (T1, ..., TN) => T
+            (satisfying this condition drives type inference of unknown type parameters in S);
+
+Note that a function literal that targets a SAM is not necessarily compiled to
+the above instance creation expression. This is platform-dependent.
+
+It follows that:
+
+* [ ] SAM7:  if class C defines a constructor, it must be accessible and must define exactly one,
+             empty, argument list;
+* [ ] SAM8:  class C cannot be final or sealed (for simplicity we ignore the possibility of SAM
+             conversion in the same compilation unit as the sealed class);
+* [ ] SAM9:  m cannot be polymorphic;
+* [ ] SAM10: it must be possible to derive a fully-defined type U from S by inferring any unknown
+             type parameters of C.
+
+Finally, we impose some implementation restrictions (these may be lifted in future releases):
+
+* [ ] SAM11: C must not be nested or local (it must not capture its environment, as that results in a zero-argument constructor)
+* [ ] SAM12: C's constructor must not have an implicit argument list (this simplifies type inference);
+* [ ] SAM13: C must not declare a self type (this simplifies type inference);
+* [ ] SAM14: C must not be @specialized.
+
+*/
+case class ConvertSingleAbstractMethod(index: SemanticdbIndex)
+    extends SemanticRule(index, "ConvertSingleAbstractMethod") {
   override def description: String = ???
   override def fix(ctx: RuleCtx): Patch = {
     val visited = mutable.Set.empty[Tree]
@@ -31,6 +68,7 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
             )
             )
             if !visited.contains(tree) && (paramss.size == 1 || paramss.size == 0) =>
+
           visited += tree
 
           val singleAbstractOverride =
@@ -70,82 +108,6 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
       }
     }
 
-    class PeekableIterator[T](iterator: Iterator[T]) extends Iterator[T] {
-      private var exhausted: Boolean = false
-      private var slot: Option[T] = None
-      private def fill(): Unit = {
-        if (!(exhausted || slot.isDefined)) {
-          if (iterator.hasNext) {
-            slot = Some(iterator.next())
-          } else {
-            exhausted = true
-            slot = None
-          }
-        }
-      }
-      override def hasNext: Boolean = {
-        if (exhausted) {
-          false
-        } else {
-          if (slot.isDefined) true
-          else iterator.hasNext
-        }
-      }
-      def peek(): Option[T] = {
-        fill()
-        if (exhausted) None
-        else slot
-      }
-      def next: T = {
-        if (!hasNext) throw new NoSuchElementException()
-        val out = slot.getOrElse(iterator.next)
-        slot = None
-        out
-      }
-    }
-
-    class PatchBuilder(tokens: Tokens) {
-      private val iterator = new PeekableIterator(tokens.iterator)
-      private val patches = List.newBuilder[Patch]
-      def next: Token = iterator.next
-      def find[T <: Token: TokenInfo]: Option[Token] =
-        iterator.find(_.is[T](implicitly[TokenInfo[T]]))
-      def find(f: Token => Boolean): Option[Token] =
-        iterator.find(f)
-      def remove[T <: Token: TokenInfo]: Unit =
-        doRemove(find[T])
-      def remove(t: Token): Unit =
-        patches += ctx.removeToken(t)
-      def removeOptional[T <: Token: TokenInfo]: Unit =
-        if (iterator.peek.forall(_.is[T])) remove[T]
-      def removeLast[T <: Token: TokenInfo]: Unit = {
-        var last: Option[Token] = None
-        while (iterator.hasNext) {
-          last = find[T]
-        }
-        doRemove(last)
-      }
-      def addRight[T <: Token: TokenInfo](toAdd: String): Unit =
-        doOp(find[T], tt => patches += ctx.addRight(tt, toAdd))
-      def addLeft(t: Token, what: String): Unit =
-        patches += ctx.addLeft(t, what)
-      def doRemove[T <: Token](t: Option[Token])(
-          implicit ev: TokenInfo[T]): Unit =
-        doOp(t, tt => patches += ctx.removeToken(tt))
-      def doOp[T <: Token](t: Option[Token], op: Token => Unit)(
-          implicit ev: TokenInfo[T]): Unit =
-        t match {
-          case Some(t) => op(t)
-          case _ =>
-            throw new Exception(
-              s"""|cannot find ${ev.name}
-                  |Tokens:
-                  |$tokens""".stripMargin
-            )
-        }
-      def result(): Patch = Patch.fromIterable(patches.result())
-    }
-
     def patchSam(
         builder: PatchBuilder,
         mods: List[Mod],
@@ -171,12 +133,11 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
       remove[Ident] // method name
 
       def patchParams(hasParams: Boolean): (Token, Boolean) = {
-        find(
-          t =>
+        find { t =>
             t.is[LeftParen] ||
               t.is[Colon] ||
               t.is[LeftBrace] ||
-              t.is[Equals]) match {
+              t.is[Equals] } match {
           case Some(t) => {
             if (t.is[LeftParen]) {
               // parameter list
@@ -232,7 +193,7 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
         tokens: Tokens,
         mods: List[Mod]): Patch = {
       if (!hasDecltpe) {
-        val builder = new PatchBuilder(tokens)
+        val builder = new PatchBuilder(tokens, ctx)
         import builder._
 
         addRight[Ident](":")
@@ -264,7 +225,7 @@ case class SingleAbstractMethod(index: SemanticdbIndex)
         patchSamDefn(term.decltpe.nonEmpty, term.tokens, getMods(term.body))
       case term: Term.NewAnonymous if isSam(term) =>
         patchSam(
-          new PatchBuilder(term.tokens),
+          new PatchBuilder(term.tokens, ctx),
           getMods(term),
           keepClassName = false)
 

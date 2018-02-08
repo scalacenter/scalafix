@@ -12,7 +12,7 @@ trait B { def f(a: Int): String }
 trait C extends B
 trait D { def m: String }
 
-class SingleAbstractMethod {
+class ConvertSingleAbstractMethod {
   val runnable1: Runnable = () => println("runnable1!") 
   var runnable2: Runnable = () => println("runnable2!") 
   def runnable3: Runnable = () => println("runnable3!") 

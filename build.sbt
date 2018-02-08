@@ -267,8 +267,8 @@ val testsInput = TestProject(
           "-Ywarn-unused", // For RemoveUnusedTerms
           "-P:semanticdb:mode:fat",
           "-P:semanticdb:members:all",
-          "-P:semanticdb:denotations:all", // For SingleAbstractMethod
-          "-P:semanticdb:overrides:all", // For SingleAbstractMethod
+          "-P:semanticdb:denotations:all", // For ConvertSingleAbstractMethod
+          "-P:semanticdb:overrides:all", // For ConvertSingleAbstractMethod
           "-P:semanticdb:synthetics:all"
         )
       },
