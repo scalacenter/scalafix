@@ -38,4 +38,23 @@ class ConvertSingleAbstractMethod {
   val c1 = new C { def f(a: Int): String = "c1" }
   val c2: B = new C { def f(a: Int): String = "c2" }
   val d = new D { def m: String = "d" }
+  object Variance {
+    class A
+    class R
+    class T extends R { def mt: Int = 1 }
+    trait C { def m(a: A): R }
+    val u = new C { def m(a: A): T = new T } // typeOf[u] =/= C
+    u.m(new A).mt
+    // if we do the sam convertion here, we get a contradiction: typeOf[u] =:= C
+  }
+  object DogStory {
+    trait Animal { def sound(): String }
+    class Dog extends Animal {
+      def sound() = "Woof"
+      def barks: Boolean = true
+    }
+    trait Animals { def animal(): Animal }
+    val animals = new Animals { def animal(): Dog = new Dog }
+    animals.animal().barks
+  }
 }

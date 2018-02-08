@@ -17,6 +17,13 @@ see http://www.scala-lang.org/files/archive/spec/2.12/06-expressions.html#sam-co
 
 SAM Conversion
 
+```
+trait C { def m (p1: A1, ..., pn: AN): R } // ()
+type S = C
+type U <: S // (SAM4)
+val x = new U { def m(x1: T1, ..., xn: TN): T }
+```
+
 An expression (p1, ..., pN) => body of function type (T1, ..., TN) => T is 
 sam-convertible to the expected type S if the following holds:
 
@@ -28,7 +35,7 @@ sam-convertible to the expected type S if the following holds:
             (conforming to the expected type S);
 * [ ] SAM5: for the purpose of scoping, m should be considered a static member
             (U's members are not in scope in body);
-* [ ] SAM6: (A1, ..., AN) => R is a subtype of (T1, ..., TN) => T
+* [ ] SAM6: FunctionN[A1, ..., AN, R] <: FunctionN[T1, ..., TN, T]
             (satisfying this condition drives type inference of unknown type parameters in S);
 
 Note that a function literal that targets a SAM is not necessarily compiled to
