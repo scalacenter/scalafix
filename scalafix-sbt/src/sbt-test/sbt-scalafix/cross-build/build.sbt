@@ -16,13 +16,17 @@ lazy val root = project
     scala212
   )
 
-lazy val scala210 = project.settings(scalaVersion := "2.10.5")
-lazy val scala211 = project.settings(scalaVersion := Versions.scala211)
+lazy val scala210 = project.settings(
+  scalaVersion := "2.10.5"
+)
+lazy val scala211 = project.settings(
+  scalaVersion := Versions.scala211
+)
 lazy val scala212 = project
   .configs(IntegrationTest)
   .settings(
     Defaults.itSettings,
-    scalafixConfigure(Test, Compile, IntegrationTest),
+    inConfig(IntegrationTest)(scalafixConfigSettings),
     scalaVersion := Versions.scala212
   )
 lazy val customSourceroot = project.settings(

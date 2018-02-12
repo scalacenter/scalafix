@@ -13,6 +13,7 @@ trait ScalafixReporter {
   /** Clear any internal mutable state */
   private[scalafix] def reset: ScalafixReporter
   private[scalafix] def reset(outputStream: OutputStream): ScalafixReporter
+  private[scalafix] def withFormat(format: OutputFormat): ScalafixReporter
 
   /** Returns the number of reported errors */
   def errorCount: Int
@@ -55,7 +56,8 @@ object ScalafixReporter {
     Console.out,
     Severity.Info,
     FilterMatcher.matchEverything,
-    includeLoggerName = false
+    includeLoggerName = false,
+    format = OutputFormat.Default
   )
   implicit val scalafixReporterReader: ConfDecoder[ScalafixReporter] =
     default.reader

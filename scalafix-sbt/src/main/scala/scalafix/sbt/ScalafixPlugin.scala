@@ -40,37 +40,6 @@ object ScalafixPlugin extends AutoPlugin {
     val scalafixVerbose: SettingKey[Boolean] =
       settingKey[Boolean]("pass --verbose to scalafix")
 
-    def scalafixConfigure(configs: Configuration*): Seq[Setting[_]] =
-      List(
-        configureForConfigurations(
-          configs,
-          scalafix,
-          c =>
-            scalafixTaskImpl(
-              c,
-              scalafixParserCompat,
-              compat = true,
-              extraOptions = Nil)),
-        configureForConfigurations(
-          configs,
-          scalafixCli,
-          c =>
-            scalafixTaskImpl(
-              c,
-              scalafixParser,
-              compat = false,
-              extraOptions = Nil)),
-        configureForConfigurations(
-          configs,
-          scalafixTest,
-          c =>
-            scalafixTaskImpl(
-              c,
-              scalafixParserCompat,
-              compat = true,
-              extraOptions = Seq("--test")))
-      ).flatten
-
     /** Add -Yrangepos and semanticdb sourceroot to scalacOptions. */
     def scalafixScalacOptions: Def.Initialize[Seq[String]] =
       ScalafixPlugin.scalafixScalacOptions
@@ -96,15 +65,30 @@ object ScalafixPlugin extends AutoPlugin {
           "scalacOptions/libraryDependecies/scalaVersion")
     @deprecated("Renamed to scalafixSourceroot", "0.5.0")
     val scalametaSourceroot: SettingKey[File] = scalafixSourceroot
+
+    lazy val scalafixConfigSettings: Seq[Def.Setting[_]] = scalafixSettings ++
+      Seq(
+        scalafix := scalafixTaskImpl(
+          scalafixParserCompat,
+          compat = true,
+          Seq("--format", "sbt")).evaluated,
+        scalafixTest := scalafixTaskImpl(
+          scalafixParserCompat,
+          compat = true,
+          Seq("--test", "--format", "sbt")).evaluated,
+        scalafixCli := scalafixTaskImpl(
+          scalafixParser,
+          compat = false,
+          Seq("--format", "sbt")).evaluated
+      )
   }
   import scalafix.internal.sbt.CliWrapperPlugin.autoImport._
   import autoImport._
 
   override def projectSettings: Seq[Def.Setting[_]] =
-    scalafixSettings ++ // TODO(olafur) remove this line in 0.6.0
-      scalafixTaskSettings ++
-      scalafixCliTaskSettings ++
-      scalafixTestTaskSettings
+    scalafixSettings ++
+      Seq(Compile, Test).flatMap(inConfig(_)(scalafixConfigSettings))
+
   override def globalSettings: Seq[Def.Setting[_]] = Seq(
     scalafixConfig := Option(file(".scalafix.conf")).filter(_.isFile),
     cliWrapperMainClass := "scalafix.cli.Cli$",
@@ -200,78 +184,24 @@ object ScalafixPlugin extends AutoPlugin {
     }
   )
 
-  // TODO: remove when we can break binary compat
-  lazy val scalafixTaskSettings: Seq[Def.Setting[InputTask[Unit]]] =
-    configureForConfigurations(
-      List(Compile, Test),
-      scalafix,
-      c =>
-        scalafixTaskImpl(
-          c,
-          scalafixParserCompat,
-          compat = true,
-          extraOptions = Nil))
-
-  lazy val scalafixCliTaskSettings: Seq[Def.Setting[InputTask[Unit]]] =
-    configureForConfigurations(
-      List(Compile, Test),
-      scalafixCli,
-      c =>
-        scalafixTaskImpl(c, scalafixParser, compat = false, extraOptions = Nil))
-
-  lazy val scalafixTestTaskSettings: Seq[Def.Setting[InputTask[Unit]]] =
-    configureForConfigurations(
-      List(Compile, Test),
-      scalafixTest,
-      c =>
-        scalafixTaskImpl(
-          c,
-          scalafixParserCompat,
-          compat = true,
-          extraOptions = Seq("--test")))
-
-  @deprecated(
-    "Use configureForConfiguration(List(Compile, Test), ...) instead",
-    "0.5.4")
-  def configureForCompileAndTest(
-      task: InputKey[Unit],
-      impl: Seq[Configuration] => Def.Initialize[InputTask[Unit]]
-  ): Seq[Def.Setting[InputTask[Unit]]] =
-    configureForConfigurations(List(Compile, Test), task, impl)
-
-  /** Configure scalafix/scalafixTest tasks for given configurations */
-  def configureForConfigurations(
-      configurations: Seq[Configuration],
-      task: InputKey[Unit],
-      impl: Seq[Configuration] => Def.Initialize[InputTask[Unit]]
-  ): Seq[Def.Setting[InputTask[Unit]]] =
-    (task := impl(configurations).evaluated) +:
-      configurations.map(c => task.in(c) := impl(Seq(c)).evaluated)
-
   def scalafixTaskImpl(
-      config: Seq[Configuration],
       parser: Parser[Seq[String]],
       compat: Boolean,
       extraOptions: Seq[String] = Seq()): Def.Initialize[InputTask[Unit]] =
     Def.inputTaskDyn {
-      scalafixTaskImpl(
-        parser.parsed,
-        compat,
-        ScopeFilter(configurations = inConfigurations(config: _*)),
-        extraOptions)
+      scalafixTaskImpl(parser.parsed, compat, extraOptions)
     }
 
   def scalafixTaskImpl(
       inputArgs: Seq[String],
       compat: Boolean,
-      filter: ScopeFilter,
       extraOptions: Seq[String]): Def.Initialize[Task[Unit]] =
     Def.taskDyn {
-      compile.all(filter).value // trigger compilation
-      val classpath = classDirectory.all(filter).value.asPath
+      compile.value // trigger compilation
+      val classDir = classDirectory.value
+      val classpath = if (classDir.exists()) classDir.toString else ""
       val sourcesToFix = for {
-        sources <- unmanagedSources.all(filter).value
-        source <- sources
+        source <- unmanagedSources.value
         if source.exists()
         if canFix(source)
       } yield source
@@ -341,12 +271,5 @@ object ScalafixPlugin extends AutoPlugin {
     val path = file.getPath
     path.endsWith(".scala") ||
     path.endsWith(".sbt")
-  }
-
-  private[scalafix] implicit class XtensionFormatClasspath(paths: Seq[File]) {
-    def asPath: String =
-      paths.toIterator
-        .collect { case f if f.exists() => f.getAbsolutePath }
-        .mkString(java.io.File.pathSeparator)
   }
 }

@@ -37,12 +37,18 @@ case class ScalafixConfig(
   val reader: ConfDecoder[ScalafixConfig] =
     ScalafixConfig.decoder(this)
 
-  def withOut(out: PrintStream): ScalafixConfig = copy(
-    reporter = reporter match {
-      case r: PrintStreamReporter => r.copy(outStream = out)
-      case _ => ScalafixReporter.default.copy(outStream = out)
-    }
-  )
+  def transformReporter(
+      f: ScalafixReporter => ScalafixReporter): ScalafixConfig =
+    copy(
+      reporter = f(reporter),
+      lint = lint.copy(reporter = f(lint.reporter))
+    )
+
+  def withOut(out: PrintStream): ScalafixConfig =
+    transformReporter(_.reset(out))
+
+  def withFormat(format: OutputFormat): ScalafixConfig =
+    transformReporter(_.withFormat(format))
 }
 
 object ScalafixConfig {
