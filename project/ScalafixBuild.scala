@@ -165,7 +165,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     s"$projectName/testOnly -- -l scalafix.internal.tests.utils.SkipWindows"
 
   override def globalSettings: Seq[Def.Setting[_]] = List(
-    stableVersion := version.in(ThisBuild).value.replaceAll("\\-.*", ""),
+    stableVersion := "0.5.10", // hardcoded while we iterate through v0.6 milestones.
     scalacOptions ++= compilerOptions,
     scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
     libraryDependencies += scalatest % Test,
