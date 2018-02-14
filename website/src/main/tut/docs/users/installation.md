@@ -22,13 +22,13 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "{{ site.stableVersion }}")
 > scalafixEnable // Setup scalafix for active session.
                  // Not needed if build.sbt is configured like below.
 > scalafixCli                                            // Run all rules configured in .scalafix.conf
-> scalafixCli --rule RemoveUnusedImports                 // Run only RemoveUnusedImports rule
+> scalafixCli --rules RemoveUnusedImports                 // Run only RemoveUnusedImports rule
 > myProject/scalafixCli --rule RemoveUnusedImports       // Run rule in one project only
 > test:scalafixCli --rule RemoveUnusedImports            // Run rule in single configuration
-> scalafixCli --rule ExplicitR<TAB>                      // Use tab completion
-> scalafixCli --rule replace:com.foobar/com.buzbaz       // Refactor (experimental)
-> scalafixCli --rule file:rules/MyRule.scala             // Run local custom rule
-> scalafixCli --rule github:org/repo/v1                  // Run library migration rule
+> scalafixCli --rules ExplicitR<TAB>                      // Use tab completion
+> scalafixCli --rules replace:com.foobar/com.buzbaz       // Refactor (experimental)
+> scalafixCli --rules file:rules/MyRule.scala             // Run local custom rule
+> scalafixCli --rules github:org/repo/v1                  // Run library migration rule
 > scalafixCli --test                                     // Make sure no files needs to be fixed
 
 
