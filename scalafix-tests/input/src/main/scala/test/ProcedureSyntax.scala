@@ -17,4 +17,7 @@ object ProcedureSyntax {
     println(1)
   }
   def main() /* unit */ {}
+  def bar(args: (Int, Int)) {
+    println(1)
+  }
 }

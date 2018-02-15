@@ -24,7 +24,7 @@ case object ProcedureSyntax extends Rule("ProcedureSyntax") {
         } yield lastParam.tokens.last).getOrElse(t.name.tokens.last)
         val closingParen =
           ctx.tokenList
-            .slice(defEnd, bodyStart)
+            .slice(ctx.tokenList.next(defEnd), bodyStart)
             .find(_.is[RightParen])
             .getOrElse(defEnd)
         ctx.addRight(closingParen, s": Unit =").atomic
