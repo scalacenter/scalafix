@@ -123,7 +123,7 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
         Right(config.allSymbols) // reset blocked symbols in def
       case (_: Term.Function, _) =>
         Right(config.allSymbols) // reset blocked symbols in (...) => (...)
-      case (t, blockedSymbols) if treeIsBlocked(t, blockedSymbols) =>
+      case (t: Name, blockedSymbols) if treeIsBlocked(t, blockedSymbols) =>
         val Some(symbol @ Symbol.Global(_, signature)) = ctx.index.symbol(t)
         Left(
           createLintMessage(

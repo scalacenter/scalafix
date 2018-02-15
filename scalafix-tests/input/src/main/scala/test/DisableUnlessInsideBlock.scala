@@ -3,7 +3,7 @@ rules = [
   Disable
 ]
 
-Disable.parts = [
+Disable.unlessInsideBlock = [
   {
     unless = "test.DisableUnlessInsideBlock.IO"
     symbols = [
@@ -15,7 +15,7 @@ Disable.parts = [
     ]
   }
   {
-    unlessInsideBlock = "scala.Option"
+    unless = "scala.Option"
     symbols = [
       {
         symbol = "test.DisableUnlessInsideBlock.dangerousFunction"

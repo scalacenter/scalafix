@@ -1,31 +1,23 @@
 /*
 rules = Disable
-Disable.parts = [
+Disable.symbols = [
+  "scala.Any.asInstanceOf"
+  "test.DisableSimple.D.disabledFunction"
   {
-    symbols = [
-      "scala.Any.asInstanceOf"
-      "test.DisableSimple.D.disabledFunction"
-      {
-        symbol = "scala.Option.get"
-        id = "Option.get"
-        message =
-          """|Option.get is the root of all evils
-             |
-             |If you must Option.get, wrap the code block with
-             |// scalafix:off Option.get
-             |...
-             |// scalafix:on Option.get"""
-      }
-      "scala.collection.mutable.ListBuffer"
-      "scala.collection.mutable"
-    ]
+    symbol = "scala.Option.get"
+    id = "Option.get"
+    message =
+      """|Option.get is the root of all evils
+         |
+         |If you must Option.get, wrap the code block with
+         |// scalafix:off Option.get
+         |...
+         |// scalafix:on Option.get"""
   }
-   {
-    unlessSynthetic = true
-    symbols = [
-      "scala.Predef.any2stringadd"
-    ]
-  }
+  "scala.collection.mutable"
+]
+Disable.unlessSynthetic = [
+  "scala.Predef.any2stringadd"
 ]
 */
 package test
@@ -59,7 +51,7 @@ case object DisableSimple {
   }
   val yy = AA.asInstanceOf // OK, no errors
   Option(1).get /* assert: Disable.Option.get
-  ^
+            ^
 Option.get is the root of all evils
 
 If you must Option.get, wrap the code block with
@@ -67,7 +59,7 @@ If you must Option.get, wrap the code block with
 ...
 // scalafix:on Option.get
 */
-  val l: ListBuffer[Int] = scala.collection.mutable.ListBuffer.empty[Int] // assert: Disable.ListBuffer
+  val l: ListBuffer[Int] = scala.collection.mutable.ListBuffer.empty[Int] // assert: Disable.mutable
   List(1) + "any2stringadd" /* assert: Disable.any2stringadd
   ^
 any2stringadd is disabled and it got inferred as `scala.Predef.any2stringadd[List[Int]](*)`
