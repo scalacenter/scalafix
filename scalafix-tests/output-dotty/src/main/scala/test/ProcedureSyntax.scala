@@ -17,4 +17,5 @@ object ProcedureSyntax {
   def bar(args: (Int, Int)): Unit = {
     println(1)
   }
+  def baz[A]: Unit = { println("baz[A]") }
 }

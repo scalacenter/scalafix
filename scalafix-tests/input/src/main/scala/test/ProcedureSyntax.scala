@@ -20,4 +20,5 @@ object ProcedureSyntax {
   def bar(args: (Int, Int)) {
     println(1)
   }
+  def baz[A] { println("baz[A]") }
 }
