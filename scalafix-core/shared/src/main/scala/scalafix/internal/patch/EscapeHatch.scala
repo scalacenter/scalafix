@@ -11,6 +11,7 @@ import scala.meta.tokens.Token
 import scala.meta.contrib._
 import scala.collection.mutable
 import scala.collection.immutable.TreeMap
+import scala.collection.mutable.ListBuffer
 import scalafix.internal.patch.EscapeHatch._
 
 // TODO update scaladocs
@@ -157,22 +158,21 @@ object EscapeHatch {
     * TODO Rules from SuppressWarnings annotations.
     */
   class AnnotatedEscapes private (
-      val escapeRules: TreeMap[EscapeOffset, EscapeFilter]) {
+      val escapeTree: TreeMap[EscapeOffset, List[EscapeFilter]]) {
 
-    // TODO support 'all'
     // TODO support rules with 'scalafix:' prefix
     def isEnabled(
         ruleName: RuleName,
         position: Int): (Boolean, Option[EscapeFilter]) = {
-      val maybeDisabled = escapeRules.to(EscapeOffset(position)).find {
-        case (_, f @ EscapeFilter(_, _, _, Some(to)))
-            if f.matches(ruleName) && to.offset >= position =>
+      val escapesUpToPos = escapeTree.to(EscapeOffset(position)).values.flatten
+      val maybeEscapeFilter = escapesUpToPos.find {
+        case f @ EscapeFilter(_, _, _, Some(end))
+            if f.matches(ruleName) && end.offset >= position =>
           true
         case _ => false
       }
-
-      maybeDisabled match {
-        case Some((_, filter)) => (false, Some(filter))
+      maybeEscapeFilter match {
+        case Some(filter) => (false, Some(filter))
         case None => (true, None)
       }
     }
@@ -180,19 +180,29 @@ object EscapeHatch {
 
   object AnnotatedEscapes {
     private val SuppressWarnings = "SuppressWarnings"
+    private val SuppressAll = "all"
 
     def apply(tree: Tree): AnnotatedEscapes = {
-      val builder = TreeMap.newBuilder[EscapeOffset, EscapeFilter]
+      val builder = TreeMap.newBuilder[EscapeOffset, List[EscapeFilter]]
 
       def addAnnotatedEscape(t: Tree, mods: List[Mod]): Unit = {
-        val startOffset = EscapeOffset(t.pos.start)
-        val endOffset = EscapeOffset(t.pos.end)
-        val ruleMatcher = matcher(extractRules(mods).mkString(" "))
-        builder += (startOffset -> EscapeFilter(
-          ruleMatcher,
-          t.pos, // TODO exact position of the annotation
-          startOffset,
-          Some(endOffset)))
+        val start = EscapeOffset(t.pos.start)
+        val end = EscapeOffset(t.pos.end)
+        val (matchAll, matchOne) =
+          extractRules(mods).partition(_._1 == SuppressAll)
+        var filters = ListBuffer.empty[EscapeFilter]
+
+        // 'all' should come before individual rules so that we can warn unused rules later
+        for ((_, rulePos) <- matchAll) {
+          val matcher = FilterMatcher.matchEverything
+          filters += EscapeFilter(matcher, rulePos, start, Some(end))
+        }
+        for ((rule, rulePos) <- matchOne) {
+          val matcher = FilterMatcher(rule)
+          filters += EscapeFilter(matcher, rulePos, start, Some(end))
+        }
+
+        builder += (start -> filters.result())
       }
 
       def hasSuppressWarnings(mods: List[Mod]): Boolean =
@@ -201,17 +211,17 @@ object EscapeHatch {
           case _ => false
         }
 
-      def extractRules(mods: List[Mod]): Set[String] =
+      def extractRules(mods: List[Mod]): List[(String, Position)] =
         mods.flatMap {
           case Mod.Annot(
               Init(
                 Type.Name(SuppressWarnings),
                 _,
-                (Term.Apply(Term.Name("Array"), rules) :: Nil) :: Nil)) =>
-            rules.map { case Lit.String(rule) => rule }
+                List(Term.Apply(Term.Name("Array"), rules) :: Nil))) =>
+            rules.map { case lit @ Lit.String(rule) => (rule, lit.pos) }
 
           case _ => Nil
-        }.toSet
+        }
 
       tree.foreach {
         case t @ Defn.Class(mods, _, _, _, _) if hasSuppressWarnings(mods) =>
@@ -324,6 +334,7 @@ object EscapeHatch {
         disableBuilder += (offset -> filter)
       }
 
+      // TODO move it elsewhere?
       def trackUnusedRules(
           anchorPos: Position,
           rules: String,
@@ -333,9 +344,7 @@ object EscapeHatch {
           val enabledNotDisabled = enabledRules -- currentlyDisabledRules
 
           enabledNotDisabled.foreach(
-            _ =>
-              unusedAnchoredEnable += UnusedEnableWarning
-                .at(anchorPos) // TODO unusedEnableWarning
+            _ => unusedAnchoredEnable += UnusedEnableWarning.at(anchorPos)
           )
         } else {
           currentlyDisabledRules = currentlyDisabledRules ++ splitRules(rules)
