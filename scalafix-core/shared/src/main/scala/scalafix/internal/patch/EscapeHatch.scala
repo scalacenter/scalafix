@@ -99,6 +99,7 @@ class EscapeHatch private (
         )
         .withOwner(UnusedScalafixSuppression)
 
+    // TODO warn unused only for rules with the 'scalafix:' prefix
     val unusedEscapesWarning =
       (anchoredEscapes.disableRules -- usedEscapes).values
         .map(unused => unusedDisableWarning.at(unused.escapePosition))
@@ -138,21 +139,11 @@ object EscapeHatch {
     )
     .withOwner(UnusedScalafixSuppression)
 
-  def splitRules(rules: String): Set[String] = rules.split("\\s+").toSet
-
   def apply(tree: Tree, associatedComments: AssociatedComments): EscapeHatch =
     new EscapeHatch(
       AnchoredEscapes(tree, associatedComments),
       AnnotatedEscapes(tree)
     )
-
-  def matcher(rules: String): FilterMatcher =
-    if (rules.isEmpty) FilterMatcher.matchEverything
-    else
-      FilterMatcher(
-        includes = splitRules(rules).toSeq,
-        excludes = Seq()
-      )
 
   /**
     * TODO Rules from SuppressWarnings annotations.
@@ -160,18 +151,16 @@ object EscapeHatch {
   class AnnotatedEscapes private (
       val escapeTree: TreeMap[EscapeOffset, List[EscapeFilter]]) {
 
-    // TODO support rules with 'scalafix:' prefix
     def isEnabled(
         ruleName: RuleName,
         position: Int): (Boolean, Option[EscapeFilter]) = {
       val escapesUpToPos = escapeTree.to(EscapeOffset(position)).values.flatten
-      val maybeEscapeFilter = escapesUpToPos.find {
+      val maybeFilter = escapesUpToPos.find {
         case f @ EscapeFilter(_, _, _, Some(end))
-            if f.matches(ruleName) && end.offset >= position =>
-          true
+          if f.matches(ruleName) && end.offset >= position => true
         case _ => false
       }
-      maybeEscapeFilter match {
+      maybeFilter match {
         case Some(filter) => (false, Some(filter))
         case None => (true, None)
       }
@@ -181,15 +170,22 @@ object EscapeHatch {
   object AnnotatedEscapes {
     private val SuppressWarnings = "SuppressWarnings"
     private val SuppressAll = "all"
+    private val OptionalRulePrefix = "scalafix:"
 
     def apply(tree: Tree): AnnotatedEscapes = {
       val builder = TreeMap.newBuilder[EscapeOffset, List[EscapeFilter]]
 
+      def hasSuppressWarnings(mods: List[Mod]): Boolean =
+        mods.exists {
+          case Mod.Annot(Init(Type.Name(SuppressWarnings), _, _)) => true
+          case _ => false
+        }
+
       def addAnnotatedEscape(t: Tree, mods: List[Mod]): Unit = {
         val start = EscapeOffset(t.pos.start)
         val end = EscapeOffset(t.pos.end)
-        val (matchAll, matchOne) =
-          extractRules(mods).partition(_._1 == SuppressAll)
+        val rules = extractRules(mods)
+        val (matchAll, matchOne) = rules.partition(_._1 == SuppressAll)
         var filters = ListBuffer.empty[EscapeFilter]
 
         // 'all' should come before individual rules so that we can warn unused rules later
@@ -198,18 +194,13 @@ object EscapeHatch {
           filters += EscapeFilter(matcher, rulePos, start, Some(end))
         }
         for ((rule, rulePos) <- matchOne) {
-          val matcher = FilterMatcher(rule)
+          val unprefixedRuleName = rule.stripPrefix(OptionalRulePrefix)
+          val matcher = FilterMatcher(unprefixedRuleName)
           filters += EscapeFilter(matcher, rulePos, start, Some(end))
         }
 
         builder += (start -> filters.result())
       }
-
-      def hasSuppressWarnings(mods: List[Mod]): Boolean =
-        mods.exists {
-          case Mod.Annot(Init(Type.Name(SuppressWarnings), _, _)) => true
-          case _ => false
-        }
 
       def extractRules(mods: List[Mod]): List[(String, Position)] =
         mods.flatMap {
@@ -333,6 +324,16 @@ object EscapeHatch {
         val filter = EscapeFilter(matcher(rules), anchor, offset)
         disableBuilder += (offset -> filter)
       }
+
+      def matcher(rules: String): FilterMatcher =
+        if (rules.isEmpty) FilterMatcher.matchEverything
+        else
+          FilterMatcher(
+            includes = splitRules(rules).toSeq,
+            excludes = Seq()
+          )
+
+      def splitRules(rules: String): Set[String] = rules.split("\\s+").toSet
 
       // TODO move it elsewhere?
       def trackUnusedRules(
