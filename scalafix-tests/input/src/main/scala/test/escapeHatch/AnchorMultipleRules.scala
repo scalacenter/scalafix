@@ -22,7 +22,7 @@ package test.escapeHatch
 object AnchorMultipleRules {
 
   // scalafix:off NoInfer.any2stringadd, Disable.get
-  1 + "foo"
+  Some(1) + "foo"
 
   val aDummy = 0 // assert: EscapeHatchDummyLinter
 

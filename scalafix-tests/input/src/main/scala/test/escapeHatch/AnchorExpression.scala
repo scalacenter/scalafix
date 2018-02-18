@@ -37,7 +37,7 @@ object AnchorExpression {
 
   (
     null,
-    1 + "foo",
+    Some(1) + "foo",
     a.get
   ) // scalafix:ok NoInfer.any2stringadd, Disable.get
 
