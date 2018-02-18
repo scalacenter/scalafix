@@ -18,4 +18,5 @@ object ProcedureSyntax {
     println(1)
   }
   def baz[A]: Unit = { println("baz[A]") }
+  trait Decl { def unit: Unit }
 }

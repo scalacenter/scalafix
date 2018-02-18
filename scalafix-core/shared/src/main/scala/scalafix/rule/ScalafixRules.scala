@@ -9,7 +9,6 @@ object ScalafixRules {
     ProcedureSyntax,
     DottyVolatileLazyVal,
     RemoveXmlLiterals,
-    ExplicitUnit,
     NoValInForComprehension,
     NoFinalize,
     DottyKeywords,

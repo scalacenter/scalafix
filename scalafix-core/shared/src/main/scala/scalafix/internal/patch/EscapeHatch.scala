@@ -38,7 +38,7 @@ class EscapeHatch(
   // comment disabling r at position p1 < p
   // and there is no comment enabling r in position p2 where p1 < p2 < p.
   private def isEnabled(
-      name: String,
+      name: RuleName,
       start: Int): (Boolean, Option[EscapeFilter]) = {
     var culprit = Option.empty[EscapeFilter]
 
@@ -75,7 +75,7 @@ class EscapeHatch(
     val usedEscapes = mutable.Set.empty[EscapeOffset]
     val lintMessages = List.newBuilder[LintMessage]
 
-    def disabledByEscape(name: String, start: Int): Boolean = {
+    def disabledByEscape(name: RuleName, start: Int): Boolean = {
       // check if part of on/off/ok blocks
       val (isPatchEnabled, culprit) = isEnabled(name, start)
       // to track unused on/off/ok
@@ -89,7 +89,7 @@ class EscapeHatch(
           val patches = Patch.treePatchApply(underlying)(ctx, index)
           patches.exists { tp =>
             val byGit = diff.isDisabled(tp.tok.pos)
-            val byEscape = disabledByEscape(name.toString, tp.tok.pos.start)
+            val byEscape = disabledByEscape(name, tp.tok.pos.start)
             byGit || byEscape
           }
         }
@@ -147,6 +147,8 @@ object EscapeHatch {
       anchorPosition: AnchorPosition,
       offset: EscapeOffset
   ) {
+    def matches(id: RuleName): Boolean =
+      id.identifiers.exists(i => matches(i.value))
     def matches(id: String): Boolean =
       matcher.matches(id)
   }
