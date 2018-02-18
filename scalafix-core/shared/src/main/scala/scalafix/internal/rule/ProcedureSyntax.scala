@@ -4,6 +4,7 @@ import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.tokens.Token.LeftBrace
 import scala.meta.tokens.Token.RightParen
+import scala.meta.tokens.Token.RightBracket
 import scalafix.Patch
 import scalafix.rule.Rule
 import scalafix.rule.RuleCtx
@@ -22,12 +23,17 @@ case object ProcedureSyntax extends Rule("ProcedureSyntax") {
           lastParmList <- t.paramss.lastOption
           lastParam <- lastParmList.lastOption
         } yield lastParam.tokens.last).getOrElse(t.name.tokens.last)
-        val closingParen =
-          ctx.tokenList
-            .slice(ctx.tokenList.next(defEnd), bodyStart)
-            .find(_.is[RightParen])
-            .getOrElse(defEnd)
-        ctx.addRight(closingParen, s": Unit =").atomic
+        val tokens =
+          ctx.tokenList.slice(ctx.tokenList.next(defEnd), bodyStart)
+        val closingBracketOrParen =
+          tokens
+            .find(_.is[RightBracket])
+            .getOrElse(
+              tokens
+                .find(_.is[RightParen])
+                .getOrElse(defEnd)
+            )
+        ctx.addRight(closingBracketOrParen, s": Unit =").atomic
     }
     patches.asPatch
   }
