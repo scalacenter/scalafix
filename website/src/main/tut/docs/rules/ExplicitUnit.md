@@ -5,6 +5,9 @@ title: ExplicitUnit
 
 # ExplicitUnit
 
+NOTE. This rule is deprecated since v0.6.0.
+Use {% rule_ref ProcedureSyntax %} instead.
+
 Adds an explicit `Unit` return type to `def` declarations without a result type:
 
 ```scala
