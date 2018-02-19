@@ -22,8 +22,9 @@ object DenotationOps {
         x
     }
     val signature =
-      if (denot.isVal || denot.isDef | denot.isVar) denot.signature
-      else {
+      if (denot.isVal || denot.isDef || denot.isGetter || denot.isSetter || denot.isVar) {
+        denot.signature
+      } else {
         throw new UnsupportedOperationException(
           s"Can't parse type for denotation $denot, denot.info=${denot.signature}")
       }
