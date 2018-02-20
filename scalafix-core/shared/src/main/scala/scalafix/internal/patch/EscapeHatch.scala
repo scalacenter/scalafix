@@ -95,15 +95,15 @@ class EscapeHatch private (
     // we don't want to show unused warnings for non-Scalafix rules
     val prefixedEscapes =
       annotatedEscapes.disableEscapes
-      .filter { escape =>
-        val ruleName = escape.source.text
-        ruleName.startsWith(AnnotatedEscapes.OptionalRulePrefix)
-      }
+        .filter { escape =>
+          val ruleName = escape.cause.text
+          ruleName.startsWith(AnnotatedEscapes.OptionalRulePrefix)
+        }
 
     val unusedDisableEscapeWarning =
       (prefixedEscapes ++ anchoredEscapes.disableEscapes)
         .filterNot(usedEscapes)
-        .map(unused => unusedDisableWarning.at(unused.source))
+        .map(unused => unusedDisableWarning.at(unused.cause))
     val unusedEnableEscapeWarnings =
       anchoredEscapes.unusedEnable.map(anchorPos =>
         unusedEnableWarning.at(anchorPos))
@@ -116,25 +116,24 @@ class EscapeHatch private (
   }
 }
 
-// TODO visibility of members
 object EscapeHatch {
 
   private val UnusedScalafixSuppression = RuleName("UnusedScalafixSuppression")
 
   private type EscapeTree = TreeMap[EscapeOffset, List[EscapeFilter]]
 
-  case class EscapeFilter(
+  private case class EscapeFilter(
       matcher: FilterMatcher,
-      source: Position,
+      cause: Position,
       startOffset: EscapeOffset,
       endOffset: Option[EscapeOffset] = None) {
     def matches(id: RuleName): Boolean =
       id.identifiers.exists(i => matcher.matches(i.value))
   }
 
-  case class EscapeOffset(offset: Int)
+  private case class EscapeOffset(offset: Int)
 
-  object EscapeOffset {
+  private object EscapeOffset {
     implicit val ordering: Ordering[EscapeOffset] = Ordering.by(_.offset)
   }
 
@@ -154,7 +153,7 @@ object EscapeHatch {
     *
     * Use the keyword "all" to suppress all rules.
     */
-  class AnnotatedEscapes private (escapeTree: EscapeTree) {
+  private class AnnotatedEscapes private (escapeTree: EscapeTree) {
 
     def isEnabled(
         ruleName: RuleName,
@@ -175,7 +174,7 @@ object EscapeHatch {
     def disableEscapes: Iterable[EscapeFilter] = escapeTree.values.flatten
   }
 
-  object AnnotatedEscapes {
+  private object AnnotatedEscapes {
     private val SuppressWarnings = "SuppressWarnings"
     private val SuppressAll = "all"
     val OptionalRulePrefix = "scalafix:"
@@ -276,7 +275,7 @@ object EscapeHatch {
     *
     * `unusedEnable` contains the unused `scalafix:on`
     */
-  class AnchoredEscapes private (
+  private class AnchoredEscapes private (
       enabling: EscapeTree,
       disabling: EscapeTree,
       val unusedEnable: List[Position]) {
@@ -316,7 +315,7 @@ object EscapeHatch {
     def disableEscapes: Iterable[EscapeFilter] = disabling.values.flatten
   }
 
-  object AnchoredEscapes {
+  private object AnchoredEscapes {
     private val FilterDisable = "\\s?scalafix:off\\s?(.*)".r
     private val FilterEnable = "\\s?scalafix:on\\s?(.*)".r
     private val FilterExpression = "\\s?scalafix:ok\\s?(.*)".r
@@ -360,7 +359,7 @@ object EscapeHatch {
       }
 
       def splitRules(rules: String): List[String] =
-        rules.trim.split(",\\s*").toList
+        rules.split(",\\s*").map(_.trim).toList
 
       def rulesExactPosition(
           rules: List[String],
