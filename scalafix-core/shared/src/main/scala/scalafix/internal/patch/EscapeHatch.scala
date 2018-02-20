@@ -14,19 +14,11 @@ import scala.collection.immutable.TreeMap
 import scala.collection.mutable.ListBuffer
 import scalafix.internal.patch.EscapeHatch._
 
-// TODO update scaladocs
-/** EscapeHatch is an algorithm to selectively disable rules
-  *
-  * Rules are disabled via comments with a specific syntax
-  * `scalafix:off` or `scalafix:on` disable or enable rules until the end of file
-  * `scalafix:ok` disable rules on an associated expression
-  * a list of rules separated by commas can be provided to selectively
-  * enable or disable rules otherwise all rules are affected
-  *
-  * enableRules and disableRules contains the offset at which you
-  * start applying a filter
-  *
-  * unusedEnable contains the unused `scalafix:on`
+/** EscapeHatch is an algorithm to selectively disable rules. There
+  * are two mechanisms to do so: anchored comments and the
+  * standard `@SuppressWarnings` annotation. The latter takes
+  * precedence over the former in case there are overlaps.
+  * See `AnchoredEscapes` and `AnnotatedEscapes` for more details.
   */
 class EscapeHatch private (
     anchoredEscapes: AnchoredEscapes,
@@ -88,12 +80,11 @@ class EscapeHatch private (
     val patches =
       patchesByName.map { case (name, patch) => loop(name, patch) }.asPatch
 
-    val unusedDisableWarning =
-      LintCategory
-        .warning(
-          "Disable",
-          "Rule(s) don't need to be disabled at this position. This can be removed!")
-        .withOwner(UnusedScalafixSuppression)
+    val unusedDisableWarning = LintCategory
+      .warning(
+        "Disable",
+        "Rule(s) don't need to be disabled at this position. This can be removed!")
+      .withOwner(UnusedScalafixSuppression)
     val unusedEnableWarning = LintCategory
       .warning(
         "Enable",
@@ -145,8 +136,15 @@ object EscapeHatch {
       AnnotatedEscapes(tree)
     )
 
-  /**
-    * TODO Rules from SuppressWarnings annotations.
+  /** Rules are disabled via standard `@SuppressWarnings` annotations. The
+    * annotation can be placed in class, object, trait, type, def, val, var,
+    * parameters and constructor definitions.
+    *
+    * Rules can be optionally prefixed with `scalafix:`. Besides helping to
+    * users to understand where the rules are coming from, it also allows
+    * Scalafix to warn when there are rules unnecessarily being suppressed.
+    *
+    * Use the keyword "all" to suppress all rules.
     */
   class AnnotatedEscapes private (escapeTree: EscapeTree) {
 
@@ -253,8 +251,15 @@ object EscapeHatch {
     }
   }
 
-  /**
-    * TODO Rules from comments.
+  /** Rules are disabled via comments with a specific syntax:
+    * `scalafix:off` or `scalafix:on` disable or enable rules until the end of file
+    * `scalafix:ok` disable rules on an associated expression
+    * a list of rules separated by commas can be provided to selectively
+    * enable or disable rules otherwise all rules are affected
+    *
+    * `enabling` and `enabling` contain the offset at which you start applying a filter
+    *
+    * `unusedEnable` contains the unused `scalafix:on`
     */
   class AnchoredEscapes private (
       enabling: EscapeTree,
