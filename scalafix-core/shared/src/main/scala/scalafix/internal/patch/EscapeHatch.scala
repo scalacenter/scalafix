@@ -32,13 +32,14 @@ class EscapeHatch private (
     val usedEscapes = mutable.Set.empty[EscapeFilter]
     val lintMessages = List.newBuilder[LintMessage]
 
-    def disabledByEscape(name: RuleName, start: Int): Boolean =
+    def isDisabledByEscape(name: RuleName, start: Int): Boolean =
+      // annotatedEscapes takes precedence over anchoredEscapes
       annotatedEscapes.isEnabled(name, start) match {
-        case (false, Some(culprit)) => true // TODO keep track of culprit
+        case (false, Some(culprit)) => // if disabled, there must be a escape
+          usedEscapes += culprit
+          true
         case _ =>
-          // check if part of on/off/ok blocks
           val (enabled, culprit) = anchoredEscapes.isEnabled(name, start)
-          // to track unused on/off/ok
           culprit.foreach(escape => usedEscapes += escape)
           !enabled
       }
@@ -49,7 +50,7 @@ class EscapeHatch private (
           val patches = Patch.treePatchApply(underlying)(ctx, index)
           patches.exists { tp =>
             val byGit = diff.isDisabled(tp.tok.pos)
-            val byEscape = disabledByEscape(name, tp.tok.pos.start)
+            val byEscape = isDisabledByEscape(name, tp.tok.pos.start)
             byGit || byEscape
           }
         }
@@ -64,7 +65,7 @@ class EscapeHatch private (
         val lint = orphanLint.withOwner(name)
 
         val byGit = diff.isDisabled(lint.position)
-        val byEscape = disabledByEscape(lint.id, lint.position.start)
+        val byEscape = isDisabledByEscape(lint.id, lint.position.start)
 
         val isLintDisabled = byGit || byEscape
 
@@ -91,9 +92,16 @@ class EscapeHatch private (
         "Rule(s) not disabled at this position. This can be removed!")
       .withOwner(UnusedScalafixSuppression)
 
-    // TODO warn unused only for rules with the 'scalafix:' prefix
+    // we don't want to show unused warnings for non-Scalafix rules
+    val prefixedEscapes =
+      annotatedEscapes.disableEscapes
+      .filter { escape =>
+        val ruleName = escape.source.text
+        ruleName.startsWith(AnnotatedEscapes.OptionalRulePrefix)
+      }
+
     val unusedDisableEscapeWarning =
-      anchoredEscapes.disableEscapes
+      (prefixedEscapes ++ anchoredEscapes.disableEscapes)
         .filterNot(usedEscapes)
         .map(unused => unusedDisableWarning.at(unused.source))
     val unusedEnableEscapeWarnings =
@@ -163,12 +171,14 @@ object EscapeHatch {
         case None => (true, None)
       }
     }
+
+    def disableEscapes: Iterable[EscapeFilter] = escapeTree.values.flatten
   }
 
   object AnnotatedEscapes {
     private val SuppressWarnings = "SuppressWarnings"
     private val SuppressAll = "all"
-    private val OptionalRulePrefix = "scalafix:"
+    val OptionalRulePrefix = "scalafix:"
 
     def apply(tree: Tree): AnnotatedEscapes = {
       val builder = TreeMap.newBuilder[EscapeOffset, List[EscapeFilter]]
@@ -207,7 +217,12 @@ object EscapeHatch {
                 Type.Name(SuppressWarnings),
                 _,
                 List(Term.Apply(Term.Name("Array"), rules) :: Nil))) =>
-            rules.map { case lit @ Lit.String(rule) => (rule, lit.pos) }
+            rules.map {
+              case lit @ Lit.String(rule) =>
+                val lo = lit.pos.start + 1 // drop leading quote
+                val hi = lit.pos.end - 1 // drop trailing quote
+                (rule, Position.Range(lit.pos.input, lo, hi))
+            }
 
           case _ => Nil
         }
@@ -371,13 +386,14 @@ object EscapeHatch {
         val rulesToPos = rulesExactPosition(splitRules(rules), anchor)
 
         if (enabled) {
-          if (currentlyDisabledRules.isEmpty && rulesToPos.isEmpty) {
+          if (currentlyDisabledRules.isEmpty && rulesToPos.isEmpty) { // wildcard
             unusedAnchoredEnable += anchor.pos
           } else {
             val disabledRules = currentlyDisabledRules.keySet
             rulesToPos.foreach {
               case (rule, pos) if !disabledRules(rule) =>
                 unusedAnchoredEnable += pos
+              case _ => ()
             }
           }
         } else {
@@ -413,27 +429,25 @@ object EscapeHatch {
             // // scalafix:off RuleA
             // ...
             //
-            case FilterDisable(rules) => {
+            case FilterDisable(rules) =>
               disable(EscapeOffset(comment.pos.start), comment, rules)
               trackUnusedRules(comment, rules, enabled = false)
-            }
 
             // matches on anchors
             //
             // ...
             // // scalafix:on RuleA
             //
-            case FilterEnable(rules) => {
+            case FilterEnable(rules) =>
               enable(EscapeOffset(comment.pos.start), comment, rules)
               trackUnusedRules(comment, rules, enabled = true)
-            }
 
             // matches expressions not handled by AssociatedComments
             //
             // object Dummy { // scalafix:ok EscapeHatchDummyLinter
             //   1
             // }
-            case FilterExpression(rules) => {
+            case FilterExpression(rules) =>
               if (!visitedFilterExpression.contains(comment.pos)) {
                 // we approximate the position of the expression to the whole line
                 val position = Position.Range(
@@ -444,7 +458,6 @@ object EscapeHatch {
                 disable(EscapeOffset(position.start), comment, rules)
                 enable(EscapeOffset(position.end), comment, rules)
               }
-            }
 
             case _ => ()
           }
