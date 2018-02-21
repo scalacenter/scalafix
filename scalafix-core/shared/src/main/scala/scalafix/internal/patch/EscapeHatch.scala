@@ -359,7 +359,7 @@ object EscapeHatch {
       }
 
       def splitRules(rules: String): List[String] =
-        rules.split(",\\s*").map(_.trim).toList
+        rules.trim.split("\\s*,\\s*").toList
 
       def rulesExactPosition(
           rules: List[String],
