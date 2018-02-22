@@ -4,11 +4,11 @@ import metaconfig.{Conf, Configured}
 
 import scala.meta._
 import scala.meta.transversers.Traverser
-import scalafix.config.CustomMessage
-import scalafix.internal.config.DisableConfig
+import scalafix.internal.config.{DisableConfig, DisabledSymbol}
+import scalafix.internal.util.SymbolOps
 import scalafix.lint.{LintCategory, LintMessage}
 import scalafix.rule.{Rule, RuleCtx, SemanticRule}
-import scalafix.util.{SemanticdbIndex, SymbolMatcher}
+import scalafix.util.SemanticdbIndex
 
 object Disable {
 
@@ -46,6 +46,36 @@ object Disable {
       buf.toList
     }
   }
+
+  def matchDisabledSymbol(disabledSymbol: DisabledSymbol, symbol: Symbol)(
+      implicit index: SemanticdbIndex): Boolean =
+    disabledSymbol match {
+      case DisabledSymbol(Some(s), _, _, banHierarchy, _) =>
+        SymbolOps.isSameNormalized(symbol, s) || (
+          banHierarchy &&
+            index
+              .denotation(symbol)
+              .exists(_.overrides.exists(SymbolOps.isSameNormalized(symbol, _)))
+        )
+      case d @ DisabledSymbol(None, _, _, _, Some(_)) =>
+        d.compiledRegex.exists(_.findFirstIn(symbol.toString).isDefined)
+      case DisabledSymbol(None, _, _, _, None) =>
+        true // weird case, but it has some logic
+    }
+
+  final class DisableSymbolMatcher(symbols: List[DisabledSymbol])(
+      implicit index: SemanticdbIndex) {
+    def findMatch(symbol: Symbol): Option[DisabledSymbol] =
+      symbols.find(matchDisabledSymbol(_, symbol))
+
+    def unapply(tree: Tree): Option[(Tree, DisabledSymbol)] =
+      index
+        .symbol(tree)
+        .flatMap(findMatch(_).map(ds => (tree, ds)))
+
+    def unapply(symbol: Symbol): Option[(Symbol, DisabledSymbol)] =
+      findMatch(symbol).map(ds => (symbol, ds))
+  }
 }
 
 final case class Disable(index: SemanticdbIndex, config: DisableConfig)
@@ -61,31 +91,24 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
   override def description: String =
     "Linter that reports an error on a configurable set of symbols."
 
-  private lazy val disabledSymbolInSynthetics: SymbolMatcher =
-    SymbolMatcher.normalized(config.allSymbolsInSynthetics: _*)
-
-  private lazy val disabledBlock: SymbolMatcher =
-    SymbolMatcher.normalized(config.allUnlessBlocks: _*)
-
   override def init(config: Conf): Configured[Rule] =
     config
       .getOrElse("disable", "Disable")(DisableConfig.default)
       .map(Disable(index, _))
 
+  private val safeBlock = new DisableSymbolMatcher(config.allSafeBlocks)
+  private val disabledSymbolInSynthetics =
+    new DisableSymbolMatcher(config.ifSynthetic)
+
   private def createLintMessage(
       symbol: Symbol.Global,
-      signature: Signature,
-      custom: Option[CustomMessage[Symbol.Global]],
+      disabled: DisabledSymbol,
       pos: Position,
       details: String = ""): LintMessage = {
-    val message = config
-      .customMessage(symbol)
-      .flatMap(_.message)
-      .getOrElse(s"${signature.name} is disabled$details")
+    val message = disabled.message.getOrElse(
+      s"${symbol.signature.name} is disabled$details")
 
-    val id = custom
-      .flatMap(_.id)
-      .getOrElse(signature.name)
+    val id = disabled.id.getOrElse(symbol.signature.name)
 
     errorCategory
       .copy(id = id)
@@ -94,38 +117,42 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
 
   private def checkTree(ctx: RuleCtx): Seq[LintMessage] = {
     def filterBlockedSymbolsInBlock(
-        blockedSymbols: List[Symbol.Global],
-        block: Tree): List[Symbol.Global] = {
+        blockedSymbols: List[DisabledSymbol],
+        block: Tree): List[DisabledSymbol] =
       ctx.index.symbol(block) match {
         case Some(symbolBlock: Symbol.Global) =>
-          blockedSymbols.filter(sym =>
-            !config.symbolsInSafeBlock(symbolBlock).contains(sym))
+          val symbolsInMatchedBlocks =
+            config.unlessInside.flatMap(
+              u =>
+                if (matchDisabledSymbol(u.safeBlock, symbolBlock)) u.symbols
+                else List.empty)
+          val res = blockedSymbols.filterNot(symbolsInMatchedBlocks.contains)
+          res
         case _ => blockedSymbols
       }
-    }
 
-    new ContextTraverser(config.allSymbols)({
+    new ContextTraverser(config.allDisabledSymbols)({
       case (_: Import, _) => Right(List.empty)
       case (
-          Term.Apply(Term.Select(disabledBlock(block), Term.Name("apply")), _),
+          Term
+            .Apply(Term.Select(block @ safeBlock(_, _), Term.Name("apply")), _),
           blockedSymbols) =>
         Right(filterBlockedSymbolsInBlock(blockedSymbols, block)) // <Block>.apply
-      case (Term.Apply(disabledBlock(block), _), blockedSymbols) =>
+      case (Term.Apply(block @ safeBlock(_, _), _), blockedSymbols) =>
         Right(filterBlockedSymbolsInBlock(blockedSymbols, block)) // <Block>(...)
       case (_: Defn.Def, _) =>
-        Right(config.allSymbols) // reset blocked symbols in def
+        Right(config.allDisabledSymbols) // reset blocked symbols in def
       case (_: Term.Function, _) =>
-        Right(config.allSymbols) // reset blocked symbols in (...) => (...)
-      case (t: Name, blockedSymbols) => {
-        val isBlocked = SymbolMatcher.normalized(blockedSymbols: _*)
+        Right(config.allDisabledSymbols) // reset blocked symbols in (...) => (...)
+      case (t: Name, blockedSymbols) =>
+        val isBlocked = new DisableSymbolMatcher(blockedSymbols)
         ctx.index.symbol(t) match {
-          case Some(isBlocked(s: Symbol.Global)) =>
+          case Some(isBlocked(s: Symbol.Global, disabled)) =>
             Left(
-              createLintMessage(s, s.signature, config.customMessage(s), t.pos)
+              createLintMessage(s, disabled, t.pos)
             )
           case _ => Right(blockedSymbols)
         }
-      }
     }).result(ctx.tree)
   }
 
@@ -134,7 +161,7 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
       document <- ctx.index.documents.view
       ResolvedName(
         pos,
-        disabledSymbolInSynthetics(symbol @ Symbol.Global(_, signature)),
+        disabledSymbolInSynthetics(symbol @ Symbol.Global(_, _), disabled),
         false
       ) <- document.synthetics.view.flatMap(_.names)
     } yield {
@@ -147,12 +174,7 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
         case _ =>
           "" -> pos
       }
-      createLintMessage(
-        symbol,
-        signature,
-        config.customMessage(symbol),
-        caret,
-        details)
+      createLintMessage(symbol, disabled, caret, details)
     }
   }
 
