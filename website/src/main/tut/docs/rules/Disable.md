@@ -5,6 +5,46 @@ title: Disable
 
 # Disable
 
+_Since 0.5.0_
+
+This rule reports errors when a "disallowed" symbol is referenced.
+
+Example:
+
+```scala
+MyCode.scala:7: error: [DisallowSymbol.asInstanceOf] asInstanceOf is disabled.
+  myValue.asInstanceOf[String]
+          ^
+```
+
+## Configuration
+
+This rule has several different options.
+
+<table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>symbols</code></td><td>List[scalafix.CustomMessage[org.langmeta.Symbol.Global]]</td><td>The list of symbols to disable.</td></tr></tbody></table>#### Defaults
+
+```
+Disable.symbols = []
+```
+
+#### Examples
+
+```
+Disable.symbols = [
+  # With custom message (recommended)
+  {
+    symbol = "scala.Predef.any2stringadd"
+    message = "Use explicit toString before calling +"
+  }
+  {
+    symbol = "scala.Any"
+    message = "Explicitly type annotate Any if this is intentional"
+  }
+  # Without custom message (discouraged)
+  "com.Lib.implicitConversion"
+]
+```
+
 _Since 0.6.0_
 
 This rule reports errors when a "disallowed" symbol is referenced.
@@ -30,51 +70,22 @@ MyCode.scala:7: error: [DisallowSymbol.asInstanceOf] asInstanceOf is disabled.
 
 This rule has several different options.
 
-#### UnlessInsideBlock
-
-<table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>unless</code></td><td>Symbol</td><td>The symbol that indicates a 'safe' block.</td></tr><tr><td><code>symbols</code></td><td>List[Message[Symbol]]</td><td>The unsafe symbols that are banned unless inside a 'safe' block</td></tr></tbody></table>
-#### DisableConfig
-
-<table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>symbols</code></td><td>List[Message[Symbol]]</td><td>The list of symbols to disable only in the actual sources.</td></tr><tr><td><code>unlessSynthetic</code></td><td>List[Message[Symbol]]</td><td>The list of symbols to disable, also blocks symbols in the generated code</td></tr><tr><td><code>unlessInsideBlock</code></td><td>List[UnlessInsideBlock]</td><td>The list of symbols to disable unless they are in the given block.</td></tr></tbody></table>
-#### Defaults
-
+```tut:invisible
+import scalafix.internal.config._
 ```
-DisableConfig.symbols = []
-DisableConfig.unlessSynthetic = []
-DisableConfig.unlessInsideBlock = []
-```
-
-
-#### Examples
-
-```
-DisableConfig.symbols =
-[
-  {
-    symbol = "scala.Any.asInstanceOf"
-    message = "use patter-matching instead"
-  }
-]
-DisableConfig.unlessSynthetic =
-[
-  {
-    symbol = "scala.Predef.any2stringadd"
-    message = "use explicit toString be calling +"
-  }
-]
-DisableConfig.unlessInsideBlock =
-[
-  {
-    unless = "scala.util.Try"
-    symbols = [
-      {
-        symbol = "scala.Option.get"
-        message = "the function may throw an exception"
-      }
-    ]
-  }
-]
-
+```tut:passthrough
+println(
+scalafix.website.config[UnlessInsideBlock]("UnlessInsideBlock")
+)
+println(
+scalafix.website.config[DisableConfig]("DisableConfig")
+)
+println(
+scalafix.website.defaults("DisableConfig", DisableConfig.default)
+)
+println(
+scalafix.website.examples[DisableConfig]("DisableConfig")
+)
 ```
 
 The the example configuration above, Scalafix will report the following warnings:
@@ -91,29 +102,4 @@ object Test {
     Option.empty[Int].get // ok
   }
 }
-```
-
-_Since 0.5.0_
-
-This rule reports errors when a "disallowed" symbol is referenced.
-
-Example:
-
-```scala
-MyCode.scala:7: error: [DisallowSymbol.asInstanceOf] asInstanceOf is disabled.
-  myValue.asInstanceOf[String]
-          ^
-```
-
-## Configuration
-
-This rule has several different options.
-
-```tut:invisible
-import scalafix.internal.config._
-```
-```tut:passthrough
-println(
-scalafix.website.rule("Disable", DisableConfig.default)
-)
 ```

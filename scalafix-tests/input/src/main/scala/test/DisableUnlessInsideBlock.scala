@@ -5,7 +5,7 @@ rules = [
 
 Disable.unlessInsideBlock = [
   {
-    unless = "test.DisableUnlessInsideBlock.IO"
+    safeBlock = "test.DisableUnlessInsideBlock.IO"
     symbols = [
       {
         symbol = "scala.Predef.println"
@@ -15,7 +15,7 @@ Disable.unlessInsideBlock = [
     ]
   }
   {
-    unless = "scala.Option"
+    safeBlock = "scala.Option"
     symbols = [
       {
         symbol = "test.DisableUnlessInsideBlock.dangerousFunction"

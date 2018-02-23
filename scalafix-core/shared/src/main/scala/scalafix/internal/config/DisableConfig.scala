@@ -10,7 +10,7 @@ import metaconfig.generic.Surface
 
 case class UnlessInsideBlock(
     @Description("The symbol that indicates a 'safe' block.")
-    unless: Symbol.Global,
+    safeBlock: Symbol.Global,
     @Description(
       "The unsafe symbols that are banned unless inside a 'safe' block")
     symbols: List[CustomMessage[Symbol.Global]])
@@ -23,7 +23,7 @@ object UnlessInsideBlock {
   implicit val reader: ConfDecoder[UnlessInsideBlock] =
     ConfDecoder.instanceF[UnlessInsideBlock] {
       case c: Conf.Obj =>
-        (c.get[Symbol.Global]("unless") |@|
+        (c.get[Symbol.Global]("safeBlock") |@|
           c.get[List[CustomMessage[Symbol.Global]]]("symbols")).map {
           case (a, b) => UnlessInsideBlock(a, b)
         }
@@ -37,7 +37,7 @@ case class DisableConfig(
                     |[
                     |  {
                     |    symbol = "scala.Any.asInstanceOf"
-                    |    message = "use patter-matching instead"
+                    |    message = "use pattern-matching instead"
                     |  }
                     |]""".stripMargin)
     symbols: List[CustomMessage[Symbol.Global]] = Nil,
@@ -50,13 +50,13 @@ case class DisableConfig(
                     |    message = "use explicit toString be calling +"
                     |  }
                     |]""".stripMargin)
-    unlessSynthetic: List[CustomMessage[Symbol.Global]] = Nil,
+    ifSynthetic: List[CustomMessage[Symbol.Global]] = Nil,
     @Description(
       "The list of symbols to disable unless they are in the given block.")
     @ExampleValue("""
                     |[
                     |  {
-                    |    unless = "scala.util.Try"
+                    |    safeBlock = "scala.util.Try"
                     |    symbols = [
                     |      {
                     |        symbol = "scala.Option.get"
@@ -72,25 +72,25 @@ case class DisableConfig(
     SymbolOps.normalize(symbol).syntax
 
   lazy val allUnlessBlocks: List[Symbol.Global] =
-    unlessInsideBlock.map(_.unless)
+    unlessInsideBlock.map(_.safeBlock)
   private lazy val allCustomMessages: List[CustomMessage[Symbol.Global]] =
-    symbols ++ unlessSynthetic ++ unlessInsideBlock.flatMap(_.symbols)
+    symbols ++ ifSynthetic ++ unlessInsideBlock.flatMap(_.symbols)
   lazy val allSymbols: List[Symbol.Global] = allCustomMessages.map(_.value)
   lazy val allSymbolsInSynthetics: List[Symbol.Global] =
-    unlessSynthetic.map(_.value)
+    ifSynthetic.map(_.value)
 
   private val syntheticSymbols: Set[String] =
-    unlessSynthetic.map(u => normalizeSymbol(u.value)).toSet
+    ifSynthetic.map(u => normalizeSymbol(u.value)).toSet
 
   private val messageBySymbol: Map[String, CustomMessage[Symbol.Global]] =
     allCustomMessages.map(m => normalizeSymbol(m.value) -> m).toMap
 
   private val symbolsByUnless: Map[String, List[Symbol.Global]] =
     unlessInsideBlock
-      .groupBy(u => normalizeSymbol(u.unless))
+      .groupBy(u => normalizeSymbol(u.safeBlock))
       .mapValues(_.flatMap(_.symbols.map(_.value)))
 
-  def symbolsInUnlessBlock(unless: Symbol.Global): List[Symbol.Global] =
+  def symbolsInSafeBlock(unless: Symbol.Global): List[Symbol.Global] =
     symbolsByUnless.getOrElse(normalizeSymbol(unless), List.empty)
 
   def customMessage(

@@ -5,10 +5,6 @@ title: DisableUnless
 
 # DisableUnless
 
-_Since 0.6.0_
-
-This rule was merge into `Disable`. See `Disable` docs for more details.
-
 _Since 0.5.8_
 
 This rule bans usages of "disabled" symbols unless they appear in a "safe" block.
@@ -48,3 +44,7 @@ object Test {
   }
 }
 ```
+
+_Since 0.6.0_
+
+NOTE. This rule is deprecated and from v0.6.0 onwards will be merged into the {% rule_ref Disable %} rule.

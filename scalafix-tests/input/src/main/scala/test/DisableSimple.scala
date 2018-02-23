@@ -16,7 +16,7 @@ Disable.symbols = [
   }
   "scala.collection.mutable"
 ]
-Disable.unlessSynthetic = [
+Disable.ifSynthetic = [
   "scala.Predef.any2stringadd"
 ]
 */

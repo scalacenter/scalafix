@@ -14,15 +14,15 @@ import scalafix.util.{SemanticdbIndex, SymbolMatcher}
 object Disable {
 
   /**
-    * Searches for specific nodes in Tree and adds result of searching to the list.
-    * Also passes context through tree traversal.
-    * fn can either return a value. that stops the searching, or change the context.
+    * A tree traverser to collect values with a custom context.
+    * At every tree node, either builds a new Context or returns a new Value to accumulate.
+    * To collect all accumulated values, use result(Tree).
     */
-  class SearcherWithContext[T, U](initContext: U)(
-      fn: PartialFunction[(Tree, U), Either[T, U]])
+  class ContextTraverser[Value, Context](initContext: Context)(
+      fn: PartialFunction[(Tree, Context), Either[Value, Context]])
       extends Traverser {
-    private var context: U = initContext
-    private val buf = scala.collection.mutable.ListBuffer[T]()
+    private var context: Context = initContext
+    private val buf = scala.collection.mutable.ListBuffer[Value]()
 
     private val liftedFn = fn.lift
 
@@ -40,7 +40,7 @@ object Disable {
       }
     }
 
-    def result(tree: Tree): List[T] = {
+    def result(tree: Tree): List[Value] = {
       context = initContext
       buf.clear()
       apply(tree)
@@ -97,21 +97,15 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
     def filterBlockedSymbolsInBlock(
         blockedSymbols: List[Symbol.Global],
         block: Tree): List[Symbol.Global] = {
-      val Some(symbolBlock: Symbol.Global) = ctx.index.symbol(block)
-      blockedSymbols.filter(sym =>
-        !config.symbolsInUnlessBlock(symbolBlock).contains(sym))
+      ctx.index.symbol(block) match {
+        case Some(symbolBlock: Symbol.Global) =>
+          blockedSymbols.filter(sym =>
+            !config.symbolsInSafeBlock(symbolBlock).contains(sym))
+        case _ => blockedSymbols
+      }
     }
 
-    def treeIsBlocked(
-        tree: Tree,
-        blockedSymbols: List[Symbol.Global]): Boolean =
-      ctx.index.symbol(tree) match {
-        case Some(s: Symbol.Global) =>
-          blockedSymbols.exists(SymbolOps.isSameNormalized(_, s))
-        case _ => false
-      }
-
-    new SearcherWithContext(config.allSymbols)({
+    new ContextTraverser(config.allSymbols)({
       case (_: Import, _) => Right(List.empty)
       case (
           Term.Apply(Term.Select(disabledBlock(block), Term.Name("apply")), _),
@@ -123,15 +117,16 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
         Right(config.allSymbols) // reset blocked symbols in def
       case (_: Term.Function, _) =>
         Right(config.allSymbols) // reset blocked symbols in (...) => (...)
-      case (t: Name, blockedSymbols) if treeIsBlocked(t, blockedSymbols) =>
-        val Some(symbol @ Symbol.Global(_, signature)) = ctx.index.symbol(t)
-        Left(
-          createLintMessage(
-            symbol,
-            signature,
-            config.customMessage(symbol),
-            t.pos)
-        )
+      case (t: Name, blockedSymbols) => {
+        val isBlocked = SymbolMatcher.normalized(blockedSymbols: _*)
+        ctx.index.symbol(t) match {
+          case Some(isBlocked(s: Symbol.Global)) =>
+            Left(
+              createLintMessage(s, s.signature, config.customMessage(s), t.pos)
+            )
+          case _ => Right(blockedSymbols)
+        }
+      }
     }).result(ctx.tree)
   }
 
