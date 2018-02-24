@@ -1,7 +1,7 @@
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.6.1")
 addSbtPlugin(
   "io.get-coursier" % "sbt-coursier" % coursier.util.Properties.version)
-addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.0.0")
+addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.1.0")
 addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "1.1")
 addSbtPlugin("com.dwijnand" % "sbt-dynver" % "2.0.0")
 addSbtPlugin("ch.epfl.lamp" % "sbt-dotty" % "0.1.1")
