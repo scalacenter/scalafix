@@ -6,7 +6,6 @@ import scala.meta._
 import scala.meta.transversers.Traverser
 import scalafix.config.CustomMessage
 import scalafix.internal.config.DisableConfig
-import scalafix.internal.util.SymbolOps
 import scalafix.lint.{LintCategory, LintMessage}
 import scalafix.rule.{Rule, RuleCtx, SemanticRule}
 import scalafix.util.{SemanticdbIndex, SymbolMatcher}
