@@ -2,11 +2,9 @@ package scalafix
 package internal.config
 
 import metaconfig._
-import org.langmeta.Symbol
-
-import scalafix.internal.util.SymbolOps
 import metaconfig.annotation.{Description, ExampleValue}
 import metaconfig.generic.Surface
+import org.langmeta.Symbol
 
 import scala.util.matching.Regex
 

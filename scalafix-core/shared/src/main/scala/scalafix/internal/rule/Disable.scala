@@ -51,10 +51,6 @@ object Disable {
       implicit index: SemanticdbIndex): Boolean =
     disabledSymbol match {
       case DisabledSymbol(Some(s), _, _, banHierarchy, _) =>
-        if (banHierarchy) {
-          println(symbol)
-          println(index.denotation(symbol).map(_.overrides))
-        }
         SymbolOps.isSameNormalized(symbol, s) || (
           banHierarchy &&
             index
