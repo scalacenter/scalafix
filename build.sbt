@@ -109,7 +109,8 @@ val core = MultiScalaCrossProject(
     buildInfoSettings,
     libraryDependencies ++= List(
       scalameta.value,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided,
+      "org.scalameta" %% "semanticdb-scalac" % scalametaV cross CrossVersion.full
     )
   ).jvmSettings(
       libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV
@@ -202,7 +203,7 @@ val scalafixSbt = MultiSbtProject(
     ),
     scriptedBufferLog := false
   ).enablePlugins(BuildInfoPlugin)
-    .disablePlugins(ScalafixPlugin)
+  // .disablePlugins(ScalafixPlugin)
 )
 lazy val scalafixSbt1 =
   scalafixSbt(scala212, sbt1, _.dependsOn(testUtils212 % Test))
@@ -256,14 +257,22 @@ val testsInput = TestProject(
     project.settings(
       noPublish,
       semanticdbSettings,
-      scalacOptions += {
+      libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value,
+      scalacOptions ++= {
         val sourceroot = baseDirectory.in(ThisBuild).value / srcMain
-        s"-P:semanticdb:sourceroot:$sourceroot"
+        Seq(
+          s"-P:semanticdb:sourceroot:$sourceroot",
+          "-Ywarn-adapted-args", // For NoAutoTupling,
+          "-Ywarn-unused-import", // For RemoveUnusedImports,
+          "-Ywarn-unused", // For RemoveUnusedTerms
+          "-P:semanticdb:mode:fat",
+          "-P:semanticdb:members:all",
+          "-P:semanticdb:denotations:all", // For ConvertSingleAbstractMethod
+          "-P:semanticdb:overrides:all", // For ConvertSingleAbstractMethod
+          "-P:semanticdb:synthetics:all"
+        )
       },
-      scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
-      scalacOptions += "-Ywarn-adapted-args", // For NoAutoTupling
-      scalacOptions += "-Ywarn-unused-import", // For RemoveUnusedImports
-      scalacOptions += "-Ywarn-unused", // For RemoveUnusedTerms
+      scalacOptions -= "-Yno-adapted-args",
       logLevel := Level.Error, // avoid flood of compiler warnings
       testsInputOutputSetting
   )
@@ -298,7 +307,7 @@ lazy val testsOutputDotty = project
     libraryDependencies := libraryDependencies.value.map(_.withDottyCompat()),
     scalacOptions := Nil
   )
-  .disablePlugins(ScalafixPlugin)
+// .disablePlugins(ScalafixPlugin)
 
 lazy val testsInputSbt = project
   .in(file("scalafix-tests/input-sbt"))
@@ -317,7 +326,7 @@ lazy val testsInputSbt = project
     addCompilerPlugin(
       "org.scalameta" % "semanticdb-sbt" % semanticdbSbt cross CrossVersion.full)
   )
-  .disablePlugins(ScalafixPlugin)
+// .disablePlugins(ScalafixPlugin)
 
 lazy val testsOutputSbt = project
   .in(file("scalafix-tests/output-sbt"))
@@ -325,7 +334,7 @@ lazy val testsOutputSbt = project
     noPublish,
     sbtPlugin := true
   )
-  .disablePlugins(ScalafixPlugin)
+// .disablePlugins(ScalafixPlugin)
 
 def unit(
     scalav: String,
@@ -395,7 +404,10 @@ def unit(
         "semanticClasspath" ->
           classDirectory.in(testsInput, Compile).value,
         "sharedClasspath" ->
-          classDirectory.in(testsShared, Compile).value
+          classDirectory.in(testsShared, Compile).value,
+        BuildInfoKey.map(dependencyClasspath.in(testsInput, Compile)) {
+          case (_, v) => "dependencyClasspath" -> v.map(_.data)
+        }
       )
     ).dependsOn(
       testsInput,
@@ -450,7 +462,7 @@ lazy val website = project
       core212JVM)
   )
   .dependsOn(testkit212, core212JVM, cli212)
-  .disablePlugins(ScalafixPlugin)
+// .disablePlugins(ScalafixPlugin)
 
 inScope(Global)(
   Seq(

@@ -25,7 +25,7 @@ object DiffTest {
   private def stripPrefix(str: String) = PrefixRegex.replaceFirstIn(str, "")
 
   def fromSemanticdbIndex(index: SemanticdbIndex): Seq[DiffTest] =
-    index.documents.map { document =>
+    index.documents.flatMap { document =>
       val input @ Input.VirtualFile(label, code) = document.input
       val relpath = RelativePath(label)
       val config: () => (Rule, ScalafixConfig) = { () =>
@@ -45,14 +45,15 @@ object DiffTest {
             s"Missing scalafix configuration inside comment at top of file $relpath",
             0))
       }
-      DiffTest(
-        filename = relpath,
-        original = input,
-        document = document,
-        config = config,
-        isSkip = code.contains("SKIP"),
-        isOnly = code.contains("ONLY")
-      )
+      Seq(
+        DiffTest(
+          filename = relpath,
+          original = input,
+          document = document,
+          config = config,
+          isSkip = code.contains("SKIP"),
+          isOnly = code.contains("ONLY")
+        ))
     }
 
   def testToRun(tests: Seq[DiffTest]): Seq[DiffTest] = {
