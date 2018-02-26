@@ -226,6 +226,10 @@ But if you compiled at `moduleA` level only, you will need to use:
 scalafix --rules RemoveUnusedImports --sourceroot /path/to/somepath/scalaProject/moduleA
 ```
 
+## Pants
+
+Scalafix support is built into Pants and will run scalafmt after running scalafix rewrite rules to maintain your target formatting.  Usage instructions can be found at https://www.pantsbuild.org/scala.html 
+
 ## scalafix-core
 
 Scalafix can be used as a library to run custom rules.
