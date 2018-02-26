@@ -66,15 +66,15 @@ case class DisableConfig(
                     |  }
                     |]
       """.stripMargin)
-    unlessInsideBlock: List[UnlessInsideBlock] = Nil
+    unlessInside: List[UnlessInsideBlock] = Nil
 ) {
   private def normalizeSymbol(symbol: Symbol.Global): String =
     SymbolOps.normalize(symbol).syntax
 
   lazy val allUnlessBlocks: List[Symbol.Global] =
-    unlessInsideBlock.map(_.safeBlock)
+    unlessInside.map(_.safeBlock)
   private lazy val allCustomMessages: List[CustomMessage[Symbol.Global]] =
-    symbols ++ ifSynthetic ++ unlessInsideBlock.flatMap(_.symbols)
+    symbols ++ ifSynthetic ++ unlessInside.flatMap(_.symbols)
   lazy val allSymbols: List[Symbol.Global] = allCustomMessages.map(_.value)
   lazy val allSymbolsInSynthetics: List[Symbol.Global] =
     ifSynthetic.map(_.value)
@@ -86,7 +86,7 @@ case class DisableConfig(
     allCustomMessages.map(m => normalizeSymbol(m.value) -> m).toMap
 
   private val symbolsByUnless: Map[String, List[Symbol.Global]] =
-    unlessInsideBlock
+    unlessInside
       .groupBy(u => normalizeSymbol(u.safeBlock))
       .mapValues(_.flatMap(_.symbols.map(_.value)))
 

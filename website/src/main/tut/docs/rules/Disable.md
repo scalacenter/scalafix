@@ -55,7 +55,7 @@ It has several different modes:
 In this mode rule bans usages of "disallowed" symbols unless they appear in a "safe" block.
 Any inner blocks (e.g. anonymous functions or classes)
 within the given "safe" blocks are banned again, to avoid leakage.
-- `unlessSynthetic` This mode allows to block symbols in the generated code,
+- `ifSynthetic` This mode allows to block symbols in the generated code,
 for example expanded macros.
 
 Example:
@@ -95,7 +95,7 @@ import scala.util.Try
 object Test {
   val z = 1.asInstanceOf[String] // default mode, not ok
 
-  List(1) + "any2stringadd" // unlessSynthetic mode, not ok
+  List(1) + "any2stringadd" // ifSynthetic mode, not ok
 
   Option.empty[Int].get //  unlessInsideBlock mode, not ok
   Try {

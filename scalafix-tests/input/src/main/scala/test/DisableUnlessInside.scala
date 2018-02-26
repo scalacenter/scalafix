@@ -3,9 +3,9 @@ rules = [
   Disable
 ]
 
-Disable.unlessInsideBlock = [
+Disable.unlessInside = [
   {
-    safeBlock = "test.DisableUnlessInsideBlock.IO"
+    safeBlock = "test.DisableUnlessInside.IO"
     symbols = [
       {
         symbol = "scala.Predef.println"
@@ -18,7 +18,7 @@ Disable.unlessInsideBlock = [
     safeBlock = "scala.Option"
     symbols = [
       {
-        symbol = "test.DisableUnlessInsideBlock.dangerousFunction"
+        symbol = "test.DisableUnlessInside.dangerousFunction"
         message = "the function may return null"
       }
     ]
@@ -27,7 +27,7 @@ Disable.unlessInsideBlock = [
 */
 package test
 
-object DisableUnlessInsideBlock {
+object DisableUnlessInside {
   object IO { // IO we deserve
     def apply[T](run: => T): Nothing = ???
   }
