@@ -1,18 +1,18 @@
 package scalafix
 package internal.patch
 
-import scalafix.internal.config.FilterMatcher
-import scalafix.lint.LintMessage
-import scalafix.rule.RuleName
-import scalafix.patch._
-import scalafix.internal.diff.DiffDisable
-import scala.meta._
-import scala.meta.tokens.Token
-import scala.meta.contrib._
-import scala.collection.mutable
 import scala.collection.immutable.TreeMap
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+import scala.meta._
+import scala.meta.contrib._
+import scala.meta.tokens.Token
+import scalafix.internal.config.FilterMatcher
+import scalafix.internal.diff.DiffDisable
 import scalafix.internal.patch.EscapeHatch._
+import scalafix.lint.LintMessage
+import scalafix.patch._
+import scalafix.rule.RuleName
 
 /** EscapeHatch is an algorithm to selectively disable rules. There
   * are two mechanisms to do so: anchored comments and the
@@ -182,12 +182,6 @@ object EscapeHatch {
     def apply(tree: Tree): AnnotatedEscapes = {
       val builder = TreeMap.newBuilder[EscapeOffset, List[EscapeFilter]]
 
-      def hasSuppressWarnings(mods: List[Mod]): Boolean =
-        mods.exists {
-          case Mod.Annot(Init(Type.Name(SuppressWarnings), _, _)) => true
-          case _ => false
-        }
-
       def addAnnotatedEscape(t: Tree, mods: List[Mod]): Unit = {
         val start = EscapeOffset(t.pos.start)
         val end = EscapeOffset(t.pos.end)
@@ -208,23 +202,6 @@ object EscapeHatch {
 
         builder += (start -> filters.result())
       }
-
-      def extractRules(mods: List[Mod]): List[(String, Position)] =
-        mods.flatMap {
-          case Mod.Annot(
-              Init(
-                Type.Name(SuppressWarnings),
-                _,
-                List(Term.Apply(Term.Name("Array"), rules) :: Nil))) =>
-            rules.map {
-              case lit @ Lit.String(rule) =>
-                val lo = lit.pos.start + 1 // drop leading quote
-                val hi = lit.pos.end - 1 // drop trailing quote
-                (rule, Position.Range(lit.pos.input, lo, hi))
-            }
-
-          case _ => Nil
-        }
 
       tree.foreach {
         case t @ Defn.Class(mods, _, _, _, _) if hasSuppressWarnings(mods) =>
@@ -262,6 +239,42 @@ object EscapeHatch {
       }
 
       new AnnotatedEscapes(builder.result())
+    }
+
+    private def hasSuppressWarnings(mods: List[Mod]): Boolean =
+      mods.exists {
+        case Mod.Annot(Init(Type.Name(SuppressWarnings), _, _)) => true
+        case Mod.Annot(
+            Init(Type.Select(_, Type.Name(SuppressWarnings)), _, _)) =>
+          true
+        case _ => false
+      }
+
+    private def extractRules(mods: List[Mod]): List[(String, Position)] = {
+      def process(rules: List[Term]) = rules.map {
+        case lit @ Lit.String(rule) =>
+          val lo = lit.pos.start + 1 // drop leading quote
+          val hi = lit.pos.end - 1 // drop trailing quote
+          (rule, Position.Range(lit.pos.input, lo, hi))
+      }
+
+      mods.flatMap {
+        case Mod.Annot(
+            Init(
+              Type.Name(SuppressWarnings),
+              _,
+              List(Term.Apply(Term.Name("Array"), rules) :: Nil))) =>
+          process(rules)
+
+        case Mod.Annot(
+            Init(
+              Type.Select(_, Type.Name(SuppressWarnings)),
+              _,
+              List(Term.Apply(Term.Name("Array"), rules) :: Nil))) =>
+          process(rules)
+
+        case _ => Nil
+      }
     }
   }
 
