@@ -1,6 +1,6 @@
 /*
 rules = [
-  "class:scalafix.test.EscapeHatchDummyLinter",
+  "class:scalafix.test.NoDummy",
 ]
 */
 package test.escapeHatch
@@ -9,10 +9,10 @@ package test.escapeHatch
 // of how many time it was turned off
 
 /* scalafix:off */ // assert: UnusedScalafixSuppression.Disable
-/* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSuppression.Disable
-/* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSuppression.Disable
-// scalafix:on EscapeHatchDummyLinter
+/* scalafix:off NoDummy */ // assert: UnusedScalafixSuppression.Disable
+/* scalafix:off NoDummy */ // assert: UnusedScalafixSuppression.Disable
+// scalafix:on NoDummy
 
 object AnchorDoubleOn {
-  object Dummy // assert: EscapeHatchDummyLinter
+  object Dummy // assert: NoDummy
 }

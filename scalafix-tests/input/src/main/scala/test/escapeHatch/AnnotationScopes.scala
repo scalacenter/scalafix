@@ -1,6 +1,6 @@
 /*
 rules = [
-  "class:scalafix.test.EscapeHatchDummyLinter"
+  "class:scalafix.test.NoDummy"
 ]
 */
 package test.escapeHatch
@@ -8,54 +8,54 @@ package test.escapeHatch
 object AnnotationScopes {
 
   // No suppressing
-  type DummyType_0 = Any // assert: EscapeHatchDummyLinter
+  type DummyType_0 = Any // assert: NoDummy
 
-  trait DummyTrait_0 { // assert: EscapeHatchDummyLinter
-    def aDummy = () // assert: EscapeHatchDummyLinter
+  trait DummyTrait_0 { // assert: NoDummy
+    def aDummy = () // assert: NoDummy
   }
 
-  object DummyObject_0 { // assert: EscapeHatchDummyLinter
-    def aDummy = () // assert: EscapeHatchDummyLinter
+  object DummyObject_0 { // assert: NoDummy
+    def aDummy = () // assert: NoDummy
   }
 
-  class DummyClass_0( // assert: EscapeHatchDummyLinter
-                 val aDummy: Int, // assert: EscapeHatchDummyLinter
-                 val bDummy: Int) { // assert: EscapeHatchDummyLinter
+  class DummyClass_0( // assert: NoDummy
+                 val aDummy: Int, // assert: NoDummy
+                 val bDummy: Int) { // assert: NoDummy
 
-    val cDummy = 0 // assert: EscapeHatchDummyLinter
-    var dDummy = 0 // assert: EscapeHatchDummyLinter
+    val cDummy = 0 // assert: NoDummy
+    var dDummy = 0 // assert: NoDummy
 
-    def this(eDummy: String, // assert: EscapeHatchDummyLinter
-             fDummy: String) { // assert: EscapeHatchDummyLinter
-      this(eDummy.toInt, fDummy.toInt) // assert: EscapeHatchDummyLinter
+    def this(eDummy: String, // assert: NoDummy
+             fDummy: String) { // assert: NoDummy
+      this(eDummy.toInt, fDummy.toInt) // assert: NoDummy
     }
 
-    def gDummy( // assert: EscapeHatchDummyLinter
-              hDummy: Int, // assert: EscapeHatchDummyLinter
-              iDummy: Int): Unit = { // assert: EscapeHatchDummyLinter
-      val jDummy = 0 // assert: EscapeHatchDummyLinter
-      var hDummy = 0 // assert: EscapeHatchDummyLinter
+    def gDummy( // assert: NoDummy
+              hDummy: Int, // assert: NoDummy
+              iDummy: Int): Unit = { // assert: NoDummy
+      val jDummy = 0 // assert: NoDummy
+      var hDummy = 0 // assert: NoDummy
     }
   }
 
   // Type
-  @SuppressWarnings(Array("EscapeHatchDummyLinter"))
+  @SuppressWarnings(Array("NoDummy"))
   type DummyType_1 = Any
 
   // Trait
-  @SuppressWarnings(Array("EscapeHatchDummyLinter"))
+  @SuppressWarnings(Array("NoDummy"))
   trait DummyTrait_1 {
     def aDummy = ()
   }
 
   // Object
-  @SuppressWarnings(Array("EscapeHatchDummyLinter"))
+  @SuppressWarnings(Array("NoDummy"))
   object DummyObject_1 {
     def aDummy = ()
   }
 
   // Class
-  @SuppressWarnings(Array("EscapeHatchDummyLinter"))
+  @SuppressWarnings(Array("NoDummy"))
   class DummyClass_1(val aDummy: Int, val bDummy: Int) {
 
     val cDummy = 0
@@ -72,125 +72,125 @@ object AnnotationScopes {
   }
 
   // Primary constructor
-  class DummyClass_2 @SuppressWarnings(Array("EscapeHatchDummyLinter"))( // assert: EscapeHatchDummyLinter
+  class DummyClass_2 @SuppressWarnings(Array("NoDummy"))( // assert: NoDummy
                  val aDummy: Int, val bDummy: Int) {
 
-    val cDummy = 0 // assert: EscapeHatchDummyLinter
-    var dDummy = 0 // assert: EscapeHatchDummyLinter
+    val cDummy = 0 // assert: NoDummy
+    var dDummy = 0 // assert: NoDummy
 
-    def this(eDummy: String, // assert: EscapeHatchDummyLinter
-             fDummy: String) { // assert: EscapeHatchDummyLinter
-      this(eDummy.toInt, fDummy.toInt) // assert: EscapeHatchDummyLinter
+    def this(eDummy: String, // assert: NoDummy
+             fDummy: String) { // assert: NoDummy
+      this(eDummy.toInt, fDummy.toInt) // assert: NoDummy
     }
 
-    def gDummy( // assert: EscapeHatchDummyLinter
-                hDummy: Int, // assert: EscapeHatchDummyLinter
-                iDummy: Int): Unit = { // assert: EscapeHatchDummyLinter
-      val jDummy = 0 // assert: EscapeHatchDummyLinter
-      var hDummy = 0 // assert: EscapeHatchDummyLinter
+    def gDummy( // assert: NoDummy
+                hDummy: Int, // assert: NoDummy
+                iDummy: Int): Unit = { // assert: NoDummy
+      val jDummy = 0 // assert: NoDummy
+      var hDummy = 0 // assert: NoDummy
     }
   }
 
   // Primary constructor parameter
-  class DummyClass_3( // assert: EscapeHatchDummyLinter
-                 @SuppressWarnings(Array("EscapeHatchDummyLinter")) val aDummy: Int,
-                 val bDummy: Int) { // assert: EscapeHatchDummyLinter
+  class DummyClass_3( // assert: NoDummy
+                 @SuppressWarnings(Array("NoDummy")) val aDummy: Int,
+                 val bDummy: Int) { // assert: NoDummy
 
-    val cDummy = 0 // assert: EscapeHatchDummyLinter
-    var dDummy = 0 // assert: EscapeHatchDummyLinter
+    val cDummy = 0 // assert: NoDummy
+    var dDummy = 0 // assert: NoDummy
 
-    def this(eDummy: String, // assert: EscapeHatchDummyLinter
-             fDummy: String) { // assert: EscapeHatchDummyLinter
-      this(eDummy.toInt, fDummy.toInt) // assert: EscapeHatchDummyLinter
+    def this(eDummy: String, // assert: NoDummy
+             fDummy: String) { // assert: NoDummy
+      this(eDummy.toInt, fDummy.toInt) // assert: NoDummy
     }
 
-    def gDummy( // assert: EscapeHatchDummyLinter
-                hDummy: Int, // assert: EscapeHatchDummyLinter
-                iDummy: Int): Unit = { // assert: EscapeHatchDummyLinter
-      val jDummy = 0 // assert: EscapeHatchDummyLinter
-      var hDummy = 0 // assert: EscapeHatchDummyLinter
+    def gDummy( // assert: NoDummy
+                hDummy: Int, // assert: NoDummy
+                iDummy: Int): Unit = { // assert: NoDummy
+      val jDummy = 0 // assert: NoDummy
+      var hDummy = 0 // assert: NoDummy
     }
   }
 
   // Field
-  class DummyClass_4( // assert: EscapeHatchDummyLinter
-                 val aDummy: Int, // assert: EscapeHatchDummyLinter
-                 val bDummy: Int) { // assert: EscapeHatchDummyLinter
+  class DummyClass_4( // assert: NoDummy
+                 val aDummy: Int, // assert: NoDummy
+                 val bDummy: Int) { // assert: NoDummy
 
-    @SuppressWarnings(Array("EscapeHatchDummyLinter"))
+    @SuppressWarnings(Array("NoDummy"))
     val cDummy = 0
-    @SuppressWarnings(Array("EscapeHatchDummyLinter"))
+    @SuppressWarnings(Array("NoDummy"))
     var dDummy = 0
 
-    def this(eDummy: String, // assert: EscapeHatchDummyLinter
-             fDummy: String) { // assert: EscapeHatchDummyLinter
-      this(eDummy.toInt, fDummy.toInt) // assert: EscapeHatchDummyLinter
+    def this(eDummy: String, // assert: NoDummy
+             fDummy: String) { // assert: NoDummy
+      this(eDummy.toInt, fDummy.toInt) // assert: NoDummy
     }
 
-    def gDummy( // assert: EscapeHatchDummyLinter
-                hDummy: Int, // assert: EscapeHatchDummyLinter
-                iDummy: Int): Unit = { // assert: EscapeHatchDummyLinter
-      val jDummy = 0 // assert: EscapeHatchDummyLinter
-      var hDummy = 0 // assert: EscapeHatchDummyLinter
+    def gDummy( // assert: NoDummy
+                hDummy: Int, // assert: NoDummy
+                iDummy: Int): Unit = { // assert: NoDummy
+      val jDummy = 0 // assert: NoDummy
+      var hDummy = 0 // assert: NoDummy
     }
   }
 
   // Secondary constructor
-  class DummyClass_5( // assert: EscapeHatchDummyLinter
-                 val aDummy: Int, // assert: EscapeHatchDummyLinter
-                 val bDummy: Int) { // assert: EscapeHatchDummyLinter
+  class DummyClass_5( // assert: NoDummy
+                 val aDummy: Int, // assert: NoDummy
+                 val bDummy: Int) { // assert: NoDummy
 
-    val cDummy = 0 // assert: EscapeHatchDummyLinter
-    var dDummy = 0 // assert: EscapeHatchDummyLinter
+    val cDummy = 0 // assert: NoDummy
+    var dDummy = 0 // assert: NoDummy
 
-    @SuppressWarnings(Array("EscapeHatchDummyLinter"))
+    @SuppressWarnings(Array("NoDummy"))
     def this(eDummy: String, fDummy: String) {
       this(eDummy.toInt, fDummy.toInt)
     }
 
-    def gDummy( // assert: EscapeHatchDummyLinter
-                hDummy: Int, // assert: EscapeHatchDummyLinter
-                iDummy: Int): Unit = { // assert: EscapeHatchDummyLinter
-      val jDummy = 0 // assert: EscapeHatchDummyLinter
-      var hDummy = 0 // assert: EscapeHatchDummyLinter
+    def gDummy( // assert: NoDummy
+                hDummy: Int, // assert: NoDummy
+                iDummy: Int): Unit = { // assert: NoDummy
+      val jDummy = 0 // assert: NoDummy
+      var hDummy = 0 // assert: NoDummy
     }
   }
 
   // Secondary constructor parameter
-  class DummyClass_6( // assert: EscapeHatchDummyLinter
-                 val aDummy: Int, // assert: EscapeHatchDummyLinter
-                 val bDummy: Int) { // assert: EscapeHatchDummyLinter
+  class DummyClass_6( // assert: NoDummy
+                 val aDummy: Int, // assert: NoDummy
+                 val bDummy: Int) { // assert: NoDummy
 
-    val cDummy = 0 // assert: EscapeHatchDummyLinter
-    var dDummy = 0 // assert: EscapeHatchDummyLinter
+    val cDummy = 0 // assert: NoDummy
+    var dDummy = 0 // assert: NoDummy
 
-    def this(@SuppressWarnings(Array("EscapeHatchDummyLinter")) eDummy: String,
-             fDummy: String) { // assert: EscapeHatchDummyLinter
-      this(eDummy.toInt, fDummy.toInt) // assert: EscapeHatchDummyLinter
+    def this(@SuppressWarnings(Array("NoDummy")) eDummy: String,
+             fDummy: String) { // assert: NoDummy
+      this(eDummy.toInt, fDummy.toInt) // assert: NoDummy
     }
 
-    def gDummy( // assert: EscapeHatchDummyLinter
-                hDummy: Int, // assert: EscapeHatchDummyLinter
-                iDummy: Int): Unit = { // assert: EscapeHatchDummyLinter
-      val jDummy = 0 // assert: EscapeHatchDummyLinter
-      var hDummy = 0 // assert: EscapeHatchDummyLinter
+    def gDummy( // assert: NoDummy
+                hDummy: Int, // assert: NoDummy
+                iDummy: Int): Unit = { // assert: NoDummy
+      val jDummy = 0 // assert: NoDummy
+      var hDummy = 0 // assert: NoDummy
     }
   }
 
   // Method
-  class DummyClass_7( // assert: EscapeHatchDummyLinter
-                 val aDummy: Int, // assert: EscapeHatchDummyLinter
-                 val bDummy: Int) { // assert: EscapeHatchDummyLinter
+  class DummyClass_7( // assert: NoDummy
+                 val aDummy: Int, // assert: NoDummy
+                 val bDummy: Int) { // assert: NoDummy
 
-    val cDummy = 0 // assert: EscapeHatchDummyLinter
-    var dDummy = 0 // assert: EscapeHatchDummyLinter
+    val cDummy = 0 // assert: NoDummy
+    var dDummy = 0 // assert: NoDummy
 
-    def this(eDummy: String, // assert: EscapeHatchDummyLinter
-             fDummy: String) { // assert: EscapeHatchDummyLinter
-      this(eDummy.toInt, fDummy.toInt) // assert: EscapeHatchDummyLinter
+    def this(eDummy: String, // assert: NoDummy
+             fDummy: String) { // assert: NoDummy
+      this(eDummy.toInt, fDummy.toInt) // assert: NoDummy
     }
 
-    @SuppressWarnings(Array("EscapeHatchDummyLinter"))
+    @SuppressWarnings(Array("NoDummy"))
     def gDummy(hDummy: Int, iDummy: Int): Unit = {
       val jDummy = 0
       var hDummy = 0
@@ -198,52 +198,52 @@ object AnnotationScopes {
   }
 
   // Method parameter
-  class DummyClass_8( // assert: EscapeHatchDummyLinter
-                 val aDummy: Int, // assert: EscapeHatchDummyLinter
-                 val bDummy: Int) { // assert: EscapeHatchDummyLinter
+  class DummyClass_8( // assert: NoDummy
+                 val aDummy: Int, // assert: NoDummy
+                 val bDummy: Int) { // assert: NoDummy
 
-    val cDummy = 0 // assert: EscapeHatchDummyLinter
-    var dDummy = 0 // assert: EscapeHatchDummyLinter
+    val cDummy = 0 // assert: NoDummy
+    var dDummy = 0 // assert: NoDummy
 
-    def this(eDummy: String, // assert: EscapeHatchDummyLinter
-             fDummy: String) { // assert: EscapeHatchDummyLinter
-      this(eDummy.toInt, fDummy.toInt) // assert: EscapeHatchDummyLinter
+    def this(eDummy: String, // assert: NoDummy
+             fDummy: String) { // assert: NoDummy
+      this(eDummy.toInt, fDummy.toInt) // assert: NoDummy
     }
 
-    def gDummy( // assert: EscapeHatchDummyLinter
-                @SuppressWarnings(Array("EscapeHatchDummyLinter")) hDummy: Int,
-                iDummy: Int): Unit = { // assert: EscapeHatchDummyLinter
-      val jDummy = 0 // assert: EscapeHatchDummyLinter
-      var hDummy = 0 // assert: EscapeHatchDummyLinter
+    def gDummy( // assert: NoDummy
+                @SuppressWarnings(Array("NoDummy")) hDummy: Int,
+                iDummy: Int): Unit = { // assert: NoDummy
+      val jDummy = 0 // assert: NoDummy
+      var hDummy = 0 // assert: NoDummy
     }
   }
 
   // Local variable
-  class DummyClass_9( // assert: EscapeHatchDummyLinter
-                 val aDummy: Int, // assert: EscapeHatchDummyLinter
-                 val bDummy: Int) { // assert: EscapeHatchDummyLinter
+  class DummyClass_9( // assert: NoDummy
+                 val aDummy: Int, // assert: NoDummy
+                 val bDummy: Int) { // assert: NoDummy
 
-    val cDummy = 0 // assert: EscapeHatchDummyLinter
-    var dDummy = 0 // assert: EscapeHatchDummyLinter
+    val cDummy = 0 // assert: NoDummy
+    var dDummy = 0 // assert: NoDummy
 
-    def this(eDummy: String, // assert: EscapeHatchDummyLinter
-             fDummy: String) { // assert: EscapeHatchDummyLinter
-      this(eDummy.toInt, fDummy.toInt) // assert: EscapeHatchDummyLinter
+    def this(eDummy: String, // assert: NoDummy
+             fDummy: String) { // assert: NoDummy
+      this(eDummy.toInt, fDummy.toInt) // assert: NoDummy
     }
 
-    def gDummy( // assert: EscapeHatchDummyLinter
-                hDummy: Int, // assert: EscapeHatchDummyLinter
-                iDummy: Int): Unit = { // assert: EscapeHatchDummyLinter
-      @SuppressWarnings(Array("EscapeHatchDummyLinter"))
+    def gDummy( // assert: NoDummy
+                hDummy: Int, // assert: NoDummy
+                iDummy: Int): Unit = { // assert: NoDummy
+      @SuppressWarnings(Array("NoDummy"))
       val jDummy = 0
-      @SuppressWarnings(Array("EscapeHatchDummyLinter"))
+      @SuppressWarnings(Array("NoDummy"))
       var hDummy = 0
     }
   }
 
   // nested scopes
   def outter = {
-    @SuppressWarnings(Array("EscapeHatchDummyLinter"))
+    @SuppressWarnings(Array("NoDummy"))
     def aDummy1 = {
       def aDummy11 = {
         def aDummy111 = ()
@@ -252,8 +252,8 @@ object AnnotationScopes {
       }
     }
 
-    def aDummy2 = { // assert: EscapeHatchDummyLinter
-      @SuppressWarnings(Array("EscapeHatchDummyLinter"))
+    def aDummy2 = { // assert: NoDummy
+      @SuppressWarnings(Array("NoDummy"))
       def aDummy21 = {
         def aDummy211 = ()
         def aDummy212 = ()
@@ -261,12 +261,12 @@ object AnnotationScopes {
       }
     }
 
-    def aDummy3 = { // assert: EscapeHatchDummyLinter
-      def aDummy31 = { // assert: EscapeHatchDummyLinter
-        @SuppressWarnings(Array("EscapeHatchDummyLinter"))
+    def aDummy3 = { // assert: NoDummy
+      def aDummy31 = { // assert: NoDummy
+        @SuppressWarnings(Array("NoDummy"))
         def aDummy311 = ()
-        def aDummy312 = () // assert: EscapeHatchDummyLinter
-        def aDummy313 = () // assert: EscapeHatchDummyLinter
+        def aDummy312 = () // assert: NoDummy
+        def aDummy313 = () // assert: NoDummy
       }
     }
   }

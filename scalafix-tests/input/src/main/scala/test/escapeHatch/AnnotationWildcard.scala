@@ -1,8 +1,8 @@
 /*
 rules = [
   Disable
-  "class:scalafix.test.EscapeHatchDummyLinter"
-  "class:scalafix.test.EscapeHatchNoNulls"
+  "class:scalafix.test.NoDummy"
+  "class:scalafix.test.NoNull"
 ]
 
 Disable.symbols = [
@@ -13,8 +13,8 @@ package test.escapeHatch
 
 object AnnotationWildcard {
 
-  def aDummy0(x: Option[Any]): Unit = { // assert: EscapeHatchDummyLinter
-    val y = null // assert: EscapeHatchNoNulls
+  def aDummy0(x: Option[Any]): Unit = { // assert: NoDummy
+    val y = null // assert: NoNull
     val z = x.get // assert: Disable.get
   }
 

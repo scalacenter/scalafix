@@ -1,7 +1,7 @@
 /*
 rules = [
-  "class:scalafix.test.EscapeHatchDummyLinter"
-  "class:scalafix.test.EscapeHatchNoNulls"
+  "class:scalafix.test.NoDummy"
+  "class:scalafix.test.NoNull"
 ]
 */
 package test.escapeHatch
@@ -10,14 +10,14 @@ package test.escapeHatch
 // it affects every rules
 
 object AnchorWildcard {
-  // null // assert: EscapeHatchNoNulls
-  val aDummy = 0 // assert: EscapeHatchDummyLinter
+  // null // assert: NoNull
+  val aDummy = 0 // assert: NoDummy
 
   // scalafix:off
   null
   val bDummy = 0
   // scalafix:on
 
-  // null // assert: EscapeHatchNoNulls
-  val cDummy = 0 // assert: EscapeHatchDummyLinter
+  // null // assert: NoNull
+  val cDummy = 0 // assert: NoDummy
 }

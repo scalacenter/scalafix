@@ -1,6 +1,6 @@
 /*
 rules = [
-  "class:scalafix.test.EscapeHatchDummyLinter"
+  "class:scalafix.test.NoDummy"
 ]
 */
 
@@ -10,21 +10,21 @@ package test
 
 object AnchorIntervals {
 
-  val aDummy = 0 // assert: EscapeHatchDummyLinter
+  val aDummy = 0 // assert: NoDummy
 
-  // scalafix:off EscapeHatchDummyLinter
+  // scalafix:off NoDummy
 
   val bDummy = 0
 
-  /* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSuppression.Disable
+  /* scalafix:off NoDummy */ // assert: UnusedScalafixSuppression.Disable
 
   val cDummy = 0
 
-  // scalafix:on EscapeHatchDummyLinter
+  // scalafix:on NoDummy
 
-  val dDummy = 0 // assert: EscapeHatchDummyLinter
+  val dDummy = 0 // assert: NoDummy
 
-  // scalafix:off EscapeHatchDummyLinter
+  // scalafix:off NoDummy
 
   val eDummy = 0
 }

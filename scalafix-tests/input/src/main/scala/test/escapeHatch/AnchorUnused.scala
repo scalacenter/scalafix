@@ -1,6 +1,6 @@
 /*
 rules = [
-  "class:scalafix.test.EscapeHatchDummyLinter",
+  "class:scalafix.test.NoDummy",
 ]
 */
 
@@ -12,40 +12,40 @@ object AnchorUnused {
 
 // Positive Tests (should not report unused)
 
-  // scalafix:off EscapeHatchDummyLinter
+  // scalafix:off NoDummy
   val aDummy = 1
-  // scalafix:on EscapeHatchDummyLinter
+  // scalafix:on NoDummy
 
-  val bDummy = 1 // scalafix:ok EscapeHatchDummyLinter
+  val bDummy = 1 // scalafix:ok NoDummy
 
   val cDummy = (
     1,
     2
-  ) // scalafix:ok EscapeHatchDummyLinter
+  ) // scalafix:ok NoDummy
 
-  object BDummy { // scalafix:ok EscapeHatchDummyLinter
+  object BDummy { // scalafix:ok NoDummy
     val a = 1
   }
 
 // Negative Tests (should report unused)
 
-  /* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSuppression.Disable
+  /* scalafix:off NoDummy */ // assert: UnusedScalafixSuppression.Disable
   // ...
-  /* scalafix:on EscapeHatchDummyLinter */
+  /* scalafix:on NoDummy */
 
 
-  /* scalafix:off EscapeHatchDummyLinter */ // assert: UnusedScalafixSuppression.Disable
+  /* scalafix:off NoDummy */ // assert: UnusedScalafixSuppression.Disable
   // ...
-  /* scalafix:on EscapeHatchDummyLinterTypo */ // assert: UnusedScalafixSuppression.Enable
+  /* scalafix:on NoDummyTypo */ // assert: UnusedScalafixSuppression.Enable
 
-  val ok = 1 /* scalafix:ok EscapeHatchDummyLinter */ // assert: UnusedScalafixSuppression.Disable
+  val ok = 1 /* scalafix:ok NoDummy */ // assert: UnusedScalafixSuppression.Disable
 
   val okMultiLine = (
     1,
     2
-  ) /* scalafix:ok EscapeHatchDummyLinter */ // assert: UnusedScalafixSuppression.Disable
+  ) /* scalafix:ok NoDummy */ // assert: UnusedScalafixSuppression.Disable
 
-  object Ok { /* scalafix:ok EscapeHatchDummyLinter */ // assert: UnusedScalafixSuppression.Disable
+  object Ok { /* scalafix:ok NoDummy */ // assert: UnusedScalafixSuppression.Disable
     val a = 1
   }
 }

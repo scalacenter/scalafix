@@ -1,12 +1,12 @@
 /*
 rules = [
-  "class:scalafix.test.EscapeHatchDummyLinter",
+  "class:scalafix.test.NoDummy",
 ]
 */
 
 // An anchor disable rules until the end of a file
 
-// scalafix:off EscapeHatchDummyLinter
+// scalafix:off NoDummy
 package test.escapeHatch
 
 object AnchorEOF {

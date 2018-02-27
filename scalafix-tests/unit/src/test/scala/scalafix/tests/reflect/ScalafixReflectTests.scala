@@ -20,11 +20,11 @@ class ScalafixReflectTests extends FunSuite {
     .resolve("scala")
     .resolve("scalafix")
     .resolve("test")
-  val relpath = RelativePath("DummyLinter.scala")
+  val relpath = RelativePath("NoDummy.scala")
   val abspath: AbsolutePath = cwd.resolve(relpath)
   val decoder: ConfDecoder[Rule] = ScalafixCompilerDecoder.baseCompilerDecoder(
     LazySemanticdbIndex(_ => None, cwd))
-  val expectedName = "DummyLinter"
+  val expectedName = "NoDummy"
   val expectedDescription = ""
   test("absolute path resolves as is", SkipWindows) {
     val rule = decoder.read(Conf.Str(s"file:$abspath")).get

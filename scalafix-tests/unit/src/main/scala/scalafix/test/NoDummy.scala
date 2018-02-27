@@ -7,19 +7,12 @@ import scalafix.RuleCtx
 
 import scala.meta._
 
-object EscapeHatchDummyLinter extends Rule("EscapeHatchDummyLinter") {
+object NoDummy extends Rule("NoDummy") {
   val error = LintCategory.error("Dummy!")
 
   override def check(ctx: RuleCtx): Seq[LintMessage] = {
     ctx.tree.collect {
       case tree @ Name(name) if name.contains("Dummy") => error.at(tree.pos)
     }
-  }
-}
-
-object EscapeHatchNoNulls extends Rule("EscapeHatchNoNulls") {
-  val error = LintCategory.error("Nulls are not allowed.")
-  override def check(ctx: RuleCtx): List[LintMessage] = ctx.tree.collect {
-    case nil @ q"null" => error.at(nil.pos)
   }
 }

@@ -1,8 +1,8 @@
 /*
 rules = [
   Disable
-  "class:scalafix.test.EscapeHatchDummyLinter"
-  "class:scalafix.test.EscapeHatchNoNulls"
+  "class:scalafix.test.NoDummy"
+  "class:scalafix.test.NoNull"
 ]
 
 Disable.symbols = [
@@ -13,13 +13,13 @@ package test.escapeHatch
 
 object AnnotationMultipleRules {
 
-  def aDummy0(x: Option[Any]): Unit = { // assert: EscapeHatchDummyLinter
-    val y = null // assert: EscapeHatchNoNulls
+  def aDummy0(x: Option[Any]): Unit = { // assert: NoDummy
+    val y = null // assert: NoNull
     val z = x.get // assert: Disable.get
   }
 
   // single annotation
-  @SuppressWarnings(Array("Disable.get", "EscapeHatchDummyLinter", "EscapeHatchNoNulls"))
+  @SuppressWarnings(Array("Disable.get", "NoDummy", "NoNull"))
   def aDummy1(x: Option[Any]): Unit = {
     val y = null
     val z = x.get
@@ -27,17 +27,17 @@ object AnnotationMultipleRules {
 
   // annotations in same element
   @SuppressWarnings(Array("Disable.get"))
-  @SuppressWarnings(Array("EscapeHatchDummyLinter"))
-  @SuppressWarnings(Array("EscapeHatchNoNulls"))
+  @SuppressWarnings(Array("NoDummy"))
+  @SuppressWarnings(Array("NoNull"))
   def aDummy2(x: Option[Any]): Unit = {
     val y = null
     val z = x.get
   }
 
   // annotations in individual elements
-  @SuppressWarnings(Array("EscapeHatchDummyLinter"))
+  @SuppressWarnings(Array("NoDummy"))
   def aDummy3(x: Option[Any]): Unit = {
-    @SuppressWarnings(Array("EscapeHatchNoNulls"))
+    @SuppressWarnings(Array("NoNull"))
     val y = null
     @SuppressWarnings(Array("Disable.get"))
     val z = x.get

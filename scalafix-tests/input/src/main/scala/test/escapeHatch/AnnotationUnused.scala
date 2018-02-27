@@ -1,27 +1,27 @@
 /*
 rules = [
-  "class:scalafix.test.EscapeHatchDummyLinter"
-  "class:scalafix.test.EscapeHatchNoNulls"
+  "class:scalafix.test.NoDummy"
+  "class:scalafix.test.NoNull"
 ]
 */
 package test.escapeHatch
 
 object AnnotationUnused {
 
-  @SuppressWarnings(Array("scalafix:EscapeHatchDummyLinter")) // assert: UnusedScalafixSuppression.Disable
+  @SuppressWarnings(Array("scalafix:NoDummy")) // assert: UnusedScalafixSuppression.Disable
   def a = ()
 
-  @SuppressWarnings(Array("scalafix:EscapeHatchDummyLinter", "EscapeHatchNoNulls")) // assert: UnusedScalafixSuppression.Disable
+  @SuppressWarnings(Array("scalafix:NoDummy", "NoNull")) // assert: UnusedScalafixSuppression.Disable
   def b = ()
 
-  @SuppressWarnings(Array("scalafix:EscapeHatchDummyLinter")) // assert: UnusedScalafixSuppression.Disable
-  @SuppressWarnings(Array("scalafix:EscapeHatchNoNulls")) // assert: UnusedScalafixSuppression.Disable
+  @SuppressWarnings(Array("scalafix:NoDummy")) // assert: UnusedScalafixSuppression.Disable
+  @SuppressWarnings(Array("scalafix:NoNull")) // assert: UnusedScalafixSuppression.Disable
   val c = 0
 
-  @SuppressWarnings(Array("EscapeHatchDummyLinter", "EscapeHatchNoNulls")) // OK, not prefixed
+  @SuppressWarnings(Array("NoDummy", "NoNull")) // OK, not prefixed
   def d = ()
 
-  @SuppressWarnings(Array("scalafix:EscapeHatchDummyLinter")) // assert: UnusedScalafixSuppression.Disable
+  @SuppressWarnings(Array("scalafix:NoDummy")) // assert: UnusedScalafixSuppression.Disable
   object Foo {
 
     @SuppressWarnings(Array("all")) // OK, not prefixed

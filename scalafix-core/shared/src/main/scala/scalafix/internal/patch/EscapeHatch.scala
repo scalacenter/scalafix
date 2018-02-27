@@ -443,7 +443,7 @@ object EscapeHatch {
 
             // matches expressions not handled by AssociatedComments
             //
-            // object Dummy { // scalafix:ok EscapeHatchDummyLinter
+            // object Dummy { // scalafix:ok NoDummy
             //   1
             // }
             case FilterExpression(rules) =>
