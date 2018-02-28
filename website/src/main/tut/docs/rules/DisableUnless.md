@@ -16,23 +16,7 @@ within the given "safe" blocks are banned again, to avoid leakage.
 
 By default, this rule does allows all symbols.
 
-```tut:invisible
-import scalafix.internal.config._
-```
-```tut:passthrough
-println(
-scalafix.website.config[UnlessConfig]("UnlessConfig")
-)
-println(
-scalafix.website.config[DisableUnlessConfig]("DisableUnlessConfig")
-)
-println(
-scalafix.website.defaults("DisableUnless", DisableUnlessConfig.default)
-)
-println(
-scalafix.website.examples[DisableUnlessConfig]("DisableUnless")
-)
-```
+
 
 The the example configuration above, Scalafix will report the following warnings:
 ```scala
@@ -60,3 +44,7 @@ object Test {
   }
 }
 ```
+
+_Since 0.6.0_
+
+NOTE. This rule is deprecated and from v0.6.0 onwards will be merged into the {% rule_ref Disable %} rule.

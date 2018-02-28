@@ -5,9 +5,7 @@ rules = [
   NoInfer
 ]
 
-Disable.symbols = [
-  "scala.Option.get"
-]
+Disable.symbols = ["scala.Option.get"]
 
 NoInfer.symbols = [
   "scala.Predef.any2stringadd"
