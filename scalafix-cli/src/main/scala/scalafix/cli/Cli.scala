@@ -18,6 +18,7 @@ import com.martiansoftware.nailgun.NGContext
 import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
 import org.typelevel.paiges.Doc
+import org.apache.commons.text.StringEscapeUtils
 
 object Cli {
   private def wrap(msg: String) = Doc.paragraph(msg).render(70)
@@ -79,9 +80,8 @@ object Cli {
       }
       val description = arg.helpMessage
         .map { x =>
-          val escaped = x.message
-            .replaceAll("\n *", " ")
-            .replaceAllLiterally(":", "\\:")
+          val escaped =
+            StringEscapeUtils.escapeXSI(x.message.replaceAll("\\s+", " "))
           s"$assign[$escaped]"
         }
         .getOrElse("")
@@ -105,7 +105,12 @@ object Cli {
   }
 
   def zshNames: String =
-    ScalafixRules.allNames.map(x => s""""$x"""").mkString(" \\\n  ")
+    ScalafixRules.allNamesDescriptions
+      .map {
+        case (name, description) =>
+          s""""$name[${StringEscapeUtils.escapeXSI(description)}]""""
+      }
+      .mkString(" \\\n  ")
 
   def sbtNames: String =
     ScalafixRules.allNames.map(x => s""""$x"""").mkString(",\n    ")
@@ -141,7 +146,7 @@ typeset -A opt_args
 local context state line
 
 _rule_names () {
-   compadd $zshNames
+   _values "rules" $zshNames
 }
 
 local -a scalafix_opts

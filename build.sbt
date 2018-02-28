@@ -154,7 +154,8 @@ val cli = MultiScalaProject(
       "org.typelevel" %% "paiges-core" % "0.2.0",
       "com.martiansoftware" % "nailgun-server" % "0.9.1",
       jgit,
-      "ch.qos.logback" % "logback-classic" % "1.2.3"
+      "ch.qos.logback" % "logback-classic" % "1.2.3",
+      "org.apache.commons" % "commons-text" % "1.2"
     )
   )
 )
