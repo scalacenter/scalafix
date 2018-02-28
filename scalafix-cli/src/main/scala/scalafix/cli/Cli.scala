@@ -80,9 +80,8 @@ object Cli {
       }
       val description = arg.helpMessage
         .map { x =>
-          val escaped = x.message
-            .replaceAll("\n *", " ")
-            .replaceAllLiterally(":", "\\:")
+          val escaped =
+            StringEscapeUtils.escapeXSI(x.message.replaceAll("\\s+", " "))
           s"$assign[$escaped]"
         }
         .getOrElse("")
