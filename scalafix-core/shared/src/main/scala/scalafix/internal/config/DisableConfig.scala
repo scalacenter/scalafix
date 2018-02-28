@@ -32,7 +32,9 @@ object UnlessInsideBlock {
 }
 
 case class DisableConfig(
-    @Description("The list of symbols to disable only in the actual sources.")
+    @Description("List of symbols to disable if written explicitly in source." +
+      " Does not report an error for inferred symbols in macro expanded code " +
+      "or implicits.")
     @ExampleValue("""
                     |[
                     |  {
@@ -42,7 +44,7 @@ case class DisableConfig(
                     |]""".stripMargin)
     symbols: List[CustomMessage[Symbol.Global]] = Nil,
     @Description(
-      "The list of symbols to disable, also blocks symbols in the generated code")
+      "List of symbols to disable if inferred. Does not report an error for symbols written explicitly in source code.")
     @ExampleValue("""
                     |[
                     |  {
@@ -52,7 +54,7 @@ case class DisableConfig(
                     |]""".stripMargin)
     ifSynthetic: List[CustomMessage[Symbol.Global]] = Nil,
     @Description(
-      "The list of symbols to disable unless they are in the given block.")
+      "List of symbols to disable unless they are in the given block.")
     @ExampleValue("""
                     |[
                     |  {
