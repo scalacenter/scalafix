@@ -205,5 +205,14 @@ List(1, "") // scalafix:ok NoInfer.any
 &nbsp;
 
 **Note:** Suppression via comments and `@SuppressWarnings` can be combined in the same source file. Be mindful not to 
-introduce overlaps between the two as it can cause confusion. Scalafix gracefully handles overlaps by given 
-precedence to the `@SuppressWarnings` annotation.
+introduce overlaps between the two as it can cause confusion and counter-intuitive behavior. Scalafix handles overlaps 
+by giving precedence to the `@SuppressWarnings` annotation:
+
+```scala
+@SuppressWarnings(Array("scalafix:Disable.null"))
+def overlap(): Unit = {
+  val a = null
+  // scalafix:on Disable.null
+  val b = null // rule is still disabled because the annotation takes precedence over the comment
+}
+```
