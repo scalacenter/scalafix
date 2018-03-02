@@ -7,7 +7,7 @@ Disable.symbols = [
   }
 ]
 
-Disable.unlessInsideBlock = [
+Disable.unlessInside = [
   {
     safeBlock = "test.DisableRegex.IO"
     symbols = [
