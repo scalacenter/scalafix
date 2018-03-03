@@ -113,7 +113,12 @@ object Cli {
       .mkString(" \\\n  ")
 
   def sbtNames: String =
-    ScalafixRules.allNames.map(x => s""""$x"""").mkString(",\n    ")
+    ScalafixRules.allNamesDescriptions
+      .map {
+        case (name, description) =>
+          s"""("$name", "${StringEscapeUtils.escapeJava(description)}")"""
+      }
+      .mkString(",\n    ")
 
   def bashCompletions: String =
     s"""
@@ -167,7 +172,7 @@ return 0
 package scalafix.internal.sbt
 
 object ScalafixRuleNames {
-  def all: List[String] = List(
+  def all: List[(String, String)] = List(
     $sbtNames
   )
 }

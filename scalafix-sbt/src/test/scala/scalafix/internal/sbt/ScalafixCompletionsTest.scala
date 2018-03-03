@@ -3,11 +3,19 @@ package scalafix.internal.sbt
 import org.scalatest.FunSuite
 import sbt.complete.Parser
 import sbt.complete.Completion
+import sbt.scalafixsbt.JLineAccess
 
 import org.eclipse.jgit.lib.AbbreviatedObjectId
 import scalafix.internal.tests.utils.{Fs, Git}
 import scalafix.internal.tests.utils.SkipWindows
 import org.scalatest.Tag
+
+trait MockJLineAccess extends JLineAccess {
+  override def terminalWidth: Int = 60
+}
+object ScalafixCompletions
+    extends ScalafixCompletionsComponent
+    with MockJLineAccess
 
 class ScalafixCompletionsTest extends FunSuite {
   val fs = new Fs()
@@ -75,11 +83,16 @@ class ScalafixCompletionsTest extends FunSuite {
     assert(completions.exists(_.display.startsWith("file:")))
   }
   compat("RemoveUnusedImports Remo") { completions =>
+    val termWidth = ScalafixCompletions.terminalWidth
+    val ruleMap = ScalafixRuleNames.all.toMap
     val obtained = completions.toList.map(_.display).toSet
     val expected = Set(
-      "RemoveUnusedImports",
-      "RemoveUnusedTerms",
-      "RemoveXmlLiterals"
+      s"RemoveUnusedImports -- ${ruleMap.getOrElse("RemoveUnusedImports", "")}"
+        .take(termWidth),
+      s"RemoveUnusedTerms   -- ${ruleMap.getOrElse("RemoveUnusedTerms", "")}"
+        .take(termWidth),
+      s"RemoveXmlLiterals   -- ${ruleMap.getOrElse("RemoveXmlLiterals", "")}"
+        .take(termWidth)
     )
     assert((expected -- obtained).isEmpty)
   }
@@ -164,7 +177,7 @@ class ScalafixCompletionsTest extends FunSuite {
   }
   check2("--rules" + space, SkipWindows) { (_, displays) =>
     // built-in
-    assert(displays.contains("NoInfer"))
+    assert(displays.map(_.startsWith("NoInfer")).reduceLeft(_ || _))
 
     // protocols
     assert(displays.contains("file:"))

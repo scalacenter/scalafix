@@ -183,6 +183,11 @@ val scalafixSbt = MultiSbtProject(
     },
     sbtPlugin := true,
     libraryDependencies ++= jgit +: coursierDeps,
+    libraryDependencies += Defaults.sbtPluginExtra(
+      "com.dwijnand" % "sbt-compat" % "1.2.6",
+      (sbtBinaryVersion in pluginCrossBuild).value,
+      (scalaBinaryVersion in update).value
+    ),
     testQuick := {}, // these test are slow.
     // scripted tests needs scalafix 2.12
     // semanticdb-scala will generate the semantic db for both scala 2.11 and scala 2.12
