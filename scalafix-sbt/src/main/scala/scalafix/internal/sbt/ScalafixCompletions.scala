@@ -11,7 +11,9 @@ import sbt.complete._
 import sbt.complete.DefaultParsers._
 import sbt.scalafixsbt.JLineAccess
 
-object ScalafixCompletions {
+object ScalafixCompletions extends ScalafixCompletionsComponent with JLineAccess
+
+trait ScalafixCompletionsComponent { self: JLineAccess =>
   private type P = Parser[String]
   private val space: P = token(Space).map(_.toString)
   private val string: P = StringBasic
@@ -68,7 +70,7 @@ object ScalafixCompletions {
   }
 
   private val namedRule: P = {
-    val terminalWidth = JLineAccess.terminalWidth
+    val termWidth = terminalWidth
     token(
       NotQuoted,
       TokenCompletions.fixed(
@@ -84,7 +86,7 @@ object ScalafixCompletions {
               case (name, description) =>
                 val spaces = " " * (maxRuleNameLen - name.length)
                 new Token(
-                  display = s"$name$spaces -- $description".take(terminalWidth),
+                  display = s"$name$spaces -- $description".take(termWidth),
                   append = name.stripPrefix(seen)
                 )
             }
