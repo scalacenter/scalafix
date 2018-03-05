@@ -20,6 +20,8 @@ object ScalafixPlugin extends AutoPlugin {
       inputKey[Unit]("Run scalafix rule.")
     val scalafixTest: InputKey[Unit] =
       inputKey[Unit]("Run scalafix as a test(without modifying sources).")
+    val scalafixSuppress: InputKey[Unit] =
+      inputKey[Unit]("Run scalafix and suppress the errors by placing comments.")
     val sbtfix: InputKey[Unit] =
       inputKey[Unit](
         "Run scalafix rule on build sources. Requires the semanticdb-sbt plugin to be enabled globally.")
@@ -79,8 +81,12 @@ object ScalafixPlugin extends AutoPlugin {
         scalafixCli := scalafixTaskImpl(
           scalafixParser,
           compat = false,
-          Seq("--format", "sbt")).evaluated
-      )
+          Seq("--format", "sbt")).evaluated,
+        scalafixSuppress := scalafixTaskImpl(
+          scalafixParser,
+          compat = true,
+          Seq("--suppress", "--format", "sbt")).evaluated
+        )
   }
   import scalafix.internal.sbt.CliWrapperPlugin.autoImport._
   import autoImport._
