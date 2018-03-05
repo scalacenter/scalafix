@@ -1,0 +1,5 @@
+-> compile:scalafixTest
+> compile:scalafixSuppress
+> compile:scalafixTest
+
+> check
