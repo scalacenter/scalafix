@@ -9,11 +9,13 @@ TaskKey[Unit]("check") := {
   val assertContentMatches: ((String, String) => Boolean) =
     ScalafixTestUtility.assertContentMatches(s) _
 
-  assertContentMatches(
-    "suppress/src/main/scala/Main.scala",
-    """
-      |object Main {
-      |  println(1 + 2.asInstanceOf/* scalafix: ok */[Double])
-      |}
-    """.stripMargin)
+  assert(
+    assertContentMatches(
+      "suppress/src/main/scala/Main.scala",
+      """
+        |object Main {
+        |  println(1 + 2.asInstanceOf/* scalafix:ok */[Double])
+        |}
+    """.stripMargin
+    ))
 }
