@@ -42,9 +42,6 @@ scalafixSettings
 // or scalafixLibraryDependencies (Add semanticdb-scalac compiler plugin to libraryDependencies.)
 // & scalacOptions bellow
 
-// Similarly for sbt builds
-sbtfixSettings
-
 // To configure for custom configurations like IntegrationTest
 scalafixConfigure(Compile, Test, IntegrationTest)
 ```
@@ -81,8 +78,6 @@ git diff // should produce a diff
 | `scalafixCli <args>`         | `Unit`        | Invoke scalafix command line interface directly. See {% doc_ref Installation, cli %} or use tab completion to explore supported arguments |
 | `scalafix <rule>..`         | `Unit`        | Run scalafix on project sources. See {% doc_ref Rules %} or use tab completion to explore supported rules.                                |
 | `scalafixTest <rule>..`     | `Unit`        | Similar to the above task with the --test parameter                                                                                       |
-| `sbtfix <rule>..`           | `Unit`        | Run scalafix on the build sources, `*.sbt` and `project/*`. **Note**: Only supports syntactic rules.                                      |
-| `sbtfixTest <rule>..`       | `Unit`        | Similar to the above task with the --test parameter                                                                                       |
 | `scalafixConfig`            | `Option[File]`| .scalafix.conf file to specify which scalafix rules should run.                                                                           |
 | `scalafixScalacOptions`     | `Seq[String]` | Necessary Scala compiler settings for scalafix to work.                                                                                   |
 | `scalafixScalaVersion`      | `String`      | Which Scala version of scalafix-cli to run.                                                                                               |
@@ -92,27 +87,6 @@ git diff // should produce a diff
 | `scalafixVersion`           | `String`      | Which version of scalafix-cli to run.                                                                                                     |
 | `scalafixEnabled`           | `Boolean`     | Deprecated. Use the scalafixEnable command or manually configure scalacOptions/libraryDependecies/scalaVersion                            |
 | `scalametaSourceroot`       | `File`        | Deprecated. Renamed to `scalafixSourceroot`                                                                                               |
-
-### semanticdb-sbt
-
-**⚠️ Experimental**
-
-semanticdb-sbt is a Scala 2.10 compiler plugin that extracts semantic
-information from the sbt compiler.
-Note. semanticdb-sbt only works for `*.scala` files, it does not
-support `*.sbt` files.
-
-```scala
-// project/plugins.sbt
-addCompilerPlugin("org.scalameta" % "semanticdb-sbt" % "{{ site.semanticdbSbtVersion }}" cross CrossVersion.full)
-```
-
-Once enabled, you can run scalafix rules against `project/*.scala`:
-
-```scala
-> reload // rebuild semanticdb for project/*.scala sources
-> sbtfix Sbt1
-```
 
 ## scalafix-cli
 
