@@ -12,7 +12,8 @@ object NoDummy extends Rule("NoDummy") {
 
   override def check(ctx: RuleCtx): Seq[LintMessage] = {
     ctx.tree.collect {
-      case tree @ Name(name) if name.contains("Dummy") => error.at(tree.pos)
+      case tree @ Name(name) if name.toLowerCase.contains("dummy") =>
+        error.at(tree.pos)
     }
   }
 }

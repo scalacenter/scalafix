@@ -13,6 +13,7 @@ import scalafix.internal.patch.EscapeHatch._
 import scalafix.lint.LintMessage
 import scalafix.patch._
 import scalafix.rule.RuleName
+import scalafix.util.TreeExtractors.Mods
 
 /** EscapeHatch is an algorithm to selectively disable rules. There
   * are two mechanisms to do so: anchored comments and the
@@ -90,8 +91,8 @@ class EscapeHatch private (
         }
     val unusedDisable =
       (prefixedEscapes ++ anchoredEscapes.disableEscapes)
-      .filterNot(usedEscapes)
-      .map(_.cause)
+        .filterNot(usedEscapes)
+        .map(_.cause)
 
     val unusedWarnings =
       (unusedDisable ++ anchoredEscapes.unusedEnable)
@@ -192,37 +193,8 @@ object EscapeHatch {
       }
 
       tree.foreach {
-        case t @ Defn.Class(mods, _, _, _, _) if hasSuppressWarnings(mods) =>
+        case t @ Mods(mods) if hasSuppressWarnings(mods) =>
           addAnnotatedEscape(t, mods)
-
-        case t @ Defn.Object(mods, _, _) if hasSuppressWarnings(mods) =>
-          addAnnotatedEscape(t, mods)
-
-        case t @ Defn.Trait(mods, _, _, _, _) if hasSuppressWarnings(mods) =>
-          addAnnotatedEscape(t, mods)
-
-        case t @ Defn.Type(mods, _, _, _) if hasSuppressWarnings(mods) =>
-          addAnnotatedEscape(t, mods)
-
-        case t @ Defn.Def(mods, _, _, _, _, _) if hasSuppressWarnings(mods) =>
-          addAnnotatedEscape(t, mods)
-
-        case t @ Defn.Val(mods, _, _, _) if hasSuppressWarnings(mods) =>
-          addAnnotatedEscape(t, mods)
-
-        case t @ Defn.Var(mods, _, _, _) if hasSuppressWarnings(mods) =>
-          addAnnotatedEscape(t, mods)
-
-        case t @ Term.Param(mods, _, _, _) if hasSuppressWarnings(mods) =>
-          addAnnotatedEscape(t, mods)
-
-        case t @ Ctor.Primary(mods, _, _) if hasSuppressWarnings(mods) =>
-          addAnnotatedEscape(t, mods)
-
-        case t @ Ctor.Secondary(mods, _, _, _, _)
-            if hasSuppressWarnings(mods) =>
-          addAnnotatedEscape(t, mods)
-
         case _ => ()
       }
 
@@ -422,7 +394,7 @@ object EscapeHatch {
       }
 
       tree.tokens.foreach {
-        case comment @ Token.Comment(rawComment) => {
+        case comment @ Token.Comment(rawComment) =>
           rawComment match {
             // matches off anchors
             //
@@ -462,7 +434,6 @@ object EscapeHatch {
             case _ => ()
           }
 
-        }
         case _ => ()
       }
 

@@ -5,18 +5,27 @@ rules = [
 */
 package test.escapeHatch
 
+import scala.language.experimental.macros
+
 object AnnotationScopes {
 
   // No suppressing
   type DummyType_0 = Any // assert: NoDummy
 
   trait DummyTrait_0 { // assert: NoDummy
-    def aDummy = () // assert: NoDummy
+    def aDummy: Unit // assert: NoDummy
+    val bDummy: Int // assert: NoDummy
+    var cDummy: Int // assert: NoDummy
+    type Dummy // assert: NoDummy
   }
 
   object DummyObject_0 { // assert: NoDummy
     def aDummy = () // assert: NoDummy
   }
+
+  class Foo_0[DummyTypeParam] // assert: NoDummy
+
+  def dummyMacro_0: Unit = macro ??? // assert: NoDummy
 
   class DummyClass_0( // assert: NoDummy
                  val aDummy: Int, // assert: NoDummy
@@ -44,9 +53,26 @@ object AnnotationScopes {
 
   // Trait
   @SuppressWarnings(Array("NoDummy"))
-  trait DummyTrait_1 {
-    def aDummy = ()
+  trait DummyTrait_1
+
+  // Def/val/var/type declaration
+  trait DummyTrait_2 { // assert: NoDummy
+    @SuppressWarnings(Array("NoDummy"))
+    def aDummy: Unit
+    @SuppressWarnings(Array("NoDummy"))
+    val bDummy: Int
+    @SuppressWarnings(Array("NoDummy"))
+    var cDummy: Int
+    @SuppressWarnings(Array("NoDummy"))
+    type Dummy
   }
+
+  // Type parameter
+  class Foo_1[@SuppressWarnings(Array("NoDummy")) DummyTypeParam]
+
+  // Macro
+  @SuppressWarnings(Array("NoDummy"))
+  def dummyMacro_1: Unit = macro ???
 
   // Object
   @SuppressWarnings(Array("NoDummy"))
