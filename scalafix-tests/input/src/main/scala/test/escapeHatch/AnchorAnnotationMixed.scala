@@ -19,7 +19,7 @@ object AnchorAnnotationMixed {
   @SuppressWarnings(Array("NoDummy"))
   def aDummy1(x: Option[Any]): Unit = {
     val bDummy = 0
-    val cDummy = 0 /* scalafix:ok NoDummy */ // assert: UnusedScalafixSuppression.Disable
+    val cDummy = 0 /* scalafix:ok NoDummy */ // assert: UnusedScalafixSuppression
     val foo = null // scalafix:ok NoNull
   }
 
@@ -37,7 +37,7 @@ object AnchorAnnotationMixed {
 
 
   // Overlap - annotated method enclosed by anchors
-  /* scalafix:off NoDummy */ // assert: UnusedScalafixSuppression.Disable
+  /* scalafix:off NoDummy */ // assert: UnusedScalafixSuppression
   @SuppressWarnings(Array("NoDummy"))
   def aDummy3(x: Option[Any]): Unit = {
     val bDummy = 0
@@ -51,7 +51,7 @@ object AnchorAnnotationMixed {
   // Overlap - anchors enclosed by annotated method
   @SuppressWarnings(Array("NoDummy"))
   def aDummy4(x: Option[Any]): Unit = {
-    /* scalafix:off NoDummy */ // assert: UnusedScalafixSuppression.Disable
+    /* scalafix:off NoDummy */ // assert: UnusedScalafixSuppression
     val bDummy = 0
     // scalafix:on NoDummy
     val cDummy = 0 // NOTE: still OFF because it is within method

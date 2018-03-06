@@ -16,7 +16,7 @@ object AnchorIntervals {
 
   val bDummy = 0
 
-  /* scalafix:off NoDummy */ // assert: UnusedScalafixSuppression.Disable
+  /* scalafix:off NoDummy */ // assert: UnusedScalafixSuppression
 
   val cDummy = 0
 

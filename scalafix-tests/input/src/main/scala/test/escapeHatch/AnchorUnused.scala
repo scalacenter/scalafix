@@ -29,23 +29,23 @@ object AnchorUnused {
 
 // Negative Tests (should report unused)
 
-  /* scalafix:off NoDummy */ // assert: UnusedScalafixSuppression.Disable
+  /* scalafix:off NoDummy */ // assert: UnusedScalafixSuppression
   // ...
   /* scalafix:on NoDummy */
 
 
-  /* scalafix:off NoDummy */ // assert: UnusedScalafixSuppression.Disable
+  /* scalafix:off NoDummy */ // assert: UnusedScalafixSuppression
   // ...
-  /* scalafix:on NoDummyTypo */ // assert: UnusedScalafixSuppression.Enable
+  /* scalafix:on NoDummyTypo */ // assert: UnusedScalafixSuppression
 
-  val ok = 1 /* scalafix:ok NoDummy */ // assert: UnusedScalafixSuppression.Disable
+  val ok = 1 /* scalafix:ok NoDummy */ // assert: UnusedScalafixSuppression
 
   val okMultiLine = (
     1,
     2
-  ) /* scalafix:ok NoDummy */ // assert: UnusedScalafixSuppression.Disable
+  ) /* scalafix:ok NoDummy */ // assert: UnusedScalafixSuppression
 
-  object Ok { /* scalafix:ok NoDummy */ // assert: UnusedScalafixSuppression.Disable
+  object Ok { /* scalafix:ok NoDummy */ // assert: UnusedScalafixSuppression
     val a = 1
   }
 }

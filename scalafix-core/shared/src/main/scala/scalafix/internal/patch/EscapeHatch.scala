@@ -81,17 +81,6 @@ class EscapeHatch private (
     val patches =
       patchesByName.map { case (name, patch) => loop(name, patch) }.asPatch
 
-    val unusedDisableWarning = LintCategory
-      .warning(
-        "Disable",
-        "Rule(s) don't need to be disabled at this position. This can be removed!")
-      .withOwner(UnusedScalafixSuppression)
-    val unusedEnableWarning = LintCategory
-      .warning(
-        "Enable",
-        "Rule(s) not disabled at this position. This can be removed!")
-      .withOwner(UnusedScalafixSuppression)
-
     // we don't want to show unused warnings for non-Scalafix rules
     val prefixedEscapes =
       annotatedEscapes.disableEscapes
@@ -99,19 +88,15 @@ class EscapeHatch private (
           val ruleName = escape.cause.text
           ruleName.startsWith(AnnotatedEscapes.OptionalRulePrefix)
         }
-
-    val unusedDisableEscapeWarning =
+    val unusedDisable =
       (prefixedEscapes ++ anchoredEscapes.disableEscapes)
-        .filterNot(usedEscapes)
-        .map(unused => unusedDisableWarning.at(unused.cause))
-    val unusedEnableEscapeWarnings =
-      anchoredEscapes.unusedEnable.map(anchorPos =>
-        unusedEnableWarning.at(anchorPos))
-    val warnings =
-      lintMessages.result() ++
-        unusedEnableEscapeWarnings ++
-        unusedDisableEscapeWarning
+      .filterNot(usedEscapes)
+      .map(_.cause)
 
+    val unusedWarnings =
+      (unusedDisable ++ anchoredEscapes.unusedEnable)
+        .map(UnusedWarning.at)
+    val warnings = lintMessages.result() ++ unusedWarnings
     (patches, warnings)
   }
 }
@@ -119,6 +104,9 @@ class EscapeHatch private (
 object EscapeHatch {
 
   private val UnusedScalafixSuppression = RuleName("UnusedScalafixSuppression")
+  private val UnusedWarning = LintCategory
+    .warning("", "This comment has no effect and can be removed")
+    .withOwner(UnusedScalafixSuppression)
 
   private type EscapeTree = TreeMap[EscapeOffset, List[EscapeFilter]]
 
