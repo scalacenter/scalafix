@@ -1,11 +1,11 @@
 /*
 rules = [
-  DisableUnless
+  Disable
 ]
 
-DisableUnless.symbols = [
+Disable.unlessInside = [
   {
-    unless = "test.DisableUnless.IO"
+    safeBlock = "test.DisableUnlessInside.IO"
     symbols = [
       {
         symbol = "scala.Predef.println"
@@ -15,10 +15,10 @@ DisableUnless.symbols = [
     ]
   }
   {
-    unless = "scala.Option"
+    safeBlock = "scala.Option"
     symbols = [
       {
-        symbol = "test.DisableUnless.dangerousFunction"
+        symbol = "test.DisableUnlessInside.dangerousFunction"
         message = "the function may return null"
       }
     ]
@@ -27,13 +27,13 @@ DisableUnless.symbols = [
 */
 package test
 
-object DisableUnless {
+object DisableUnlessInside {
   object IO { // IO we deserve
     def apply[T](run: => T): Nothing = ???
   }
 
-  println("hi") // assert: DisableUnless.println
-  System.currentTimeMillis() // assert: DisableUnless.currentTimeMillis
+  println("hi") // assert: Disable.println
+  System.currentTimeMillis() // assert: Disable.currentTimeMillis
   IO.apply {
     println("hi") // ok
   }
@@ -55,12 +55,12 @@ object DisableUnless {
     }
   }
   IO {
-    def sideEffect(i: Int) = println("not good!") // assert: DisableUnless.println
-    (i: Int) => println("also not good!") // assert: DisableUnless.println
+    def sideEffect(i: Int) = println("not good!") // assert: Disable.println
+    (i: Int) => println("also not good!") // assert: Disable.println
   }
   IO {
     class SideEffect {
-      def oooops = println("I may escape!") // assert: DisableUnless.println
+      def oooops = println("I may escape!") // assert: Disable.println
     }
 
     new SideEffect() // ok
@@ -68,11 +68,11 @@ object DisableUnless {
 
 
   class Foo
-  def dangerousFunction(): Foo = null // assert: DisableUnless.dangerousFunction
+  def dangerousFunction(): Foo = null // assert: Disable.dangerousFunction
 
-  dangerousFunction() // assert: DisableUnless.dangerousFunction
+  dangerousFunction() // assert: Disable.dangerousFunction
   Option {
-    println("not here") // assert: DisableUnless.println
+    println("not here") // assert: Disable.println
     dangerousFunction() // ok
   }
   Option.apply(dangerousFunction()) // ok

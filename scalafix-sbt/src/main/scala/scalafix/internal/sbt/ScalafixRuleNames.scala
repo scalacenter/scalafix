@@ -2,27 +2,28 @@
 package scalafix.internal.sbt
 
 object ScalafixRuleNames {
-  def all: List[String] = List(
-    "DottyKeywords",
-    "DisableSyntax",
-    "NoFinalize",
-    "NoValInForComprehension",
-    "RemoveXmlLiterals",
-    "LeakingImplicitClassVal",
-    "VolatileLazyVal",
-    "ProcedureSyntax",
-    "ExplicitUnit",
-    "DottyVolatileLazyVal",
-    "DottyVarArgPattern",
-    "NoInfer",
-    "Sbt1",
-    "ExplicitResultTypes",
-    "ExplicitReturnTypes",
-    "RemoveUnusedImports",
-    "RemoveUnusedTerms",
-    "NoAutoTupling",
-    "Disable",
-    "DisableUnless",
-    "MissingFinal"
+  def all: List[(String, String)] = List(
+    ("DottyKeywords", "Rewrite that replaces enum and inline with `enum` and `inline` for compatibility with Dotty"),
+    ("DisableSyntax", "Linter that reports an error on a configurable set of keywords and syntax."),
+    ("NoFinalize", "Deprecated, use DisableSyntax.noFinalize instead."),
+    ("NoValInForComprehension", "Rewrite that removes redundant val inside for-comprehensions"),
+    ("RemoveXmlLiterals", "Rewrite that converts xml literals into interpolators for use with densh/scala-xml-quote"),
+    ("LeakingImplicitClassVal", "Add private access modifier to val parameters of implicit value classes in order to prevent public access"),
+    ("VolatileLazyVal", "Rewrite all lazy vals to Dotty's volatile ones for safe publishing (default semantics of pre-Dotty Scala)"),
+    ("ProcedureSyntax", "Rewrite that inserts explicit : Unit = for soon-to-be-deprecated procedure syntax def foo { ... }"),
+    ("ExplicitUnit", "Rewrite that inserts explicit : Unit = for soon-to-be-deprecated procedure syntax def foo { ... }"),
+    ("DottyVolatileLazyVal", "Rewrite all lazy vals to Dotty's volatile ones for safe publishing (default semantics of pre-Dotty Scala)"),
+    ("DottyVarArgPattern", "Rewrite to convert :_* vararg pattern syntax to @ syntax supported in Dotty."),
+    ("NoInfer", "Linter for types that the Scala compiler cannot infer."),
+    ("Sbt1", "Rewrite to convert sbt 0.12 deprecated operators like <++= into sbt 0.13 :=/.value syntax"),
+    ("ExplicitResultTypes", "Rewrite that inserts explicit type annotations for def/val/var"),
+    ("ExplicitReturnTypes", "Rewrite that inserts explicit type annotations for def/val/var"),
+    ("RemoveUnusedImports", "Rewrite that removes unused imports reported by the compiler under -Xwarn-unused-import."),
+    ("RemoveUnusedTerms", "Rewrite that removes unused locals/privates by -Ywarn-unused:locals/privates"),
+    ("NoAutoTupling", "Rewrite that inserts explicit tuples for adapted argument lists for compatibility with -Yno-adapted-args"),
+    ("Disable", "Linter that reports an error on a configurable set of symbols."),
+    ("DisableUnless", "Linter that bans usage of \"disabled\" symbols unless they appear in a \"safe\" block."),
+    ("MissingFinal", "Rule that checks for or adds final modifier in the corresponding places")
   )
 }
+
