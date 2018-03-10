@@ -60,11 +60,9 @@ object DisabledSymbol {
               Configured.notOk(
                 ConfError.message("Symbol and regex are both specified."))
             case (((a @ Some(_), b), c), None) =>
-              Configured.ok(
-                DisabledSymbol(a, b.map(normalizeMessage), c, None))
+              Configured.ok(DisabledSymbol(a, b.map(normalizeMessage), c, None))
             case (((None, b), c), d @ Some(_)) =>
-              Configured.ok(
-                DisabledSymbol(None, b.map(normalizeMessage), c, d))
+              Configured.ok(DisabledSymbol(None, b.map(normalizeMessage), c, d))
             case (((None, b), c), None) =>
               Configured.notOk(
                 ConfError.message("Symbol and regex are both not specified."))
