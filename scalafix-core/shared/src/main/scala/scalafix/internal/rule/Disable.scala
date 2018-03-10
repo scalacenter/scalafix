@@ -5,7 +5,6 @@ import metaconfig.{Conf, Configured}
 import scala.meta._
 import scala.meta.transversers.Traverser
 import scalafix.internal.config.{DisableConfig, DisabledSymbol}
-import scalafix.internal.util.SymbolOps
 import scalafix.lint.{LintCategory, LintMessage}
 import scalafix.rule.{Rule, RuleCtx, SemanticRule}
 import scalafix.util.SemanticdbIndex
