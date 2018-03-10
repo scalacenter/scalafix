@@ -8,5 +8,5 @@ object WriteMode {
   case object WriteFile extends WriteMode
   case object Stdout extends WriteMode
   case object Test extends WriteMode
-  case object Supress extends WriteMode
+  case object AutoSuppressLinterErrors extends WriteMode
 }

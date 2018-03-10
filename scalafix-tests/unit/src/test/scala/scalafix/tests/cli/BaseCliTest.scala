@@ -81,7 +81,7 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
       name,
       "/a.scala\n" + originalFile,
       Seq(
-        "--suppress",
+        "--auto-suppress-linter-errors",
         "-r",
         rule,
         "a.scala"

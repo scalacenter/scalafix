@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.function.UnaryOperator
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
+
 import scala.meta._
 import scala.meta.inputs.Input
 import scala.meta.internal.inputs._
@@ -32,8 +33,11 @@ import scalafix.internal.config.RuleKind
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.jgit.JGitDiff
-import scalafix.internal.util.Failure
-import scalafix.internal.util.EagerInMemorySemanticdbIndex
+import scalafix.internal.util.{
+  EagerInMemorySemanticdbIndex,
+  Failure,
+  SuppressOps
+}
 import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
 import metaconfig.Configured.Ok
@@ -52,7 +56,7 @@ sealed abstract case class CliRunner(
   val sbtConfig: ScalafixConfig = config.copy(dialect = dialects.Sbt0137)
   val writeMode: WriteMode =
     if (cli.stdout) WriteMode.Stdout
-    else if (cli.suppress) WriteMode.Supress
+    else if (cli.autoSuppressLinterErrors) WriteMode.AutoSuppressLinterErrors
     else if (cli.test) WriteMode.Test
     else WriteMode.WriteFile
   val common: CommonOptions = cli.common
@@ -124,9 +128,7 @@ sealed abstract case class CliRunner(
       val outFile = replacePath(input.original.path)
       if (isUpToDate(input)) {
         Files.createDirectories(outFile.toNIO.getParent)
-        Files.write(
-          outFile.toNIO,
-          fixed.getBytes(input.original.charset))
+        Files.write(outFile.toNIO, fixed.getBytes(input.original.charset))
         ExitStatus.Ok
       } else {
         cli.diagnostic.error(
@@ -157,8 +159,8 @@ sealed abstract case class CliRunner(
       case parsers.Parsed.Success(tree) =>
         val ctx = RuleCtx(tree, config, diffDisable)
         writeMode match {
-          case WriteMode.Supress =>
-            val fixed = rule.applyAndSuppress(ctx)
+          case WriteMode.AutoSuppressLinterErrors =>
+            val fixed = SuppressOps.applyAndSuppress(rule, ctx)
             writeToFile(fixed)
           case WriteMode.Stdout =>
             val (fixed, messages) = rule.applyAndLint(ctx)
@@ -184,10 +186,10 @@ sealed abstract case class CliRunner(
               common.out.println(diff)
               ExitStatus.TestFailed
             }
-            case WriteMode.WriteFile =>
-              val (fixed, messages) = rule.applyAndLint(ctx)
-              reportLintErrors(messages)
-              writeToFile(fixed)
+          case WriteMode.WriteFile =>
+            val (fixed, messages) = rule.applyAndLint(ctx)
+            reportLintErrors(messages)
+            writeToFile(fixed)
         }
     }
   }

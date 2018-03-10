@@ -10,8 +10,6 @@ import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.Configured
 
-import scalafix.util.SuppressOps
-
 /** A Scalafix Rule.
   *
   * To provide automatic fixes for this rule, override the `fix` method. Example:
@@ -91,18 +89,6 @@ abstract class Rule(ruleName: RuleName) { self =>
   }
   final def applyAndLint(ctx: RuleCtx): (String, List[LintMessage]) =
     Patch(fixWithName(ctx), ctx, semanticOption)
-
-  final def applyAndSuppress(ctx: RuleCtx): String = {
-    val (patch, lintMessages) = ctx.filter(
-      fixWithName(ctx),
-      semanticOption.getOrElse(SemanticdbIndex.empty)
-    )
-    val suppressPatch =
-      SuppressOps.addComments(ctx, lintMessages.map(_.position))
-    val (fixed, _) =
-      Patch(Map(name -> (patch + suppressPatch)), ctx, semanticOption)
-    fixed
-  }
 
   /** Returns unified diff from applying this patch */
   final def diff(ctx: RuleCtx): String =

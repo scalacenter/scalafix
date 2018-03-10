@@ -93,8 +93,9 @@ case class ScalafixOptions(
     @HelpMessage(
       "Exit non-zero code if files have not been fixed. Won't write to files.")
     test: Boolean = false,
-    @HelpMessage("Write to files. In case of linter error adds a comment to suppress the error.")
-    suppress: Boolean = false,
+    @HelpMessage(
+      "Write to files. In case of linter error adds a comment to suppress the error.")
+    autoSuppressLinterErrors: Boolean = false,
     @HelpMessage(
       "Regex that is passed as first argument to fileToFix.replaceAll(outFrom, outTo)"
     )

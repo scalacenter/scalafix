@@ -6,11 +6,9 @@ val suppress = project.settings(
 
 TaskKey[Unit]("check") := {
   val s = streams.value
-  val assertContentMatches: ((String, String) => Boolean) =
-    ScalafixTestUtility.assertContentMatches(s) _
 
   assert(
-    assertContentMatches(
+    ScalafixTestUtility.assertContentMatches(s)(
       "suppress/src/main/scala/Main.scala",
       """
         |object Main {
