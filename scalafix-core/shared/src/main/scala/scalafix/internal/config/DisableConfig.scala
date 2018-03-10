@@ -7,6 +7,7 @@ import metaconfig.generic.Surface
 import org.langmeta.Symbol
 
 import scala.util.matching.Regex
+import scalafix.internal.util.SymbolOps
 
 case class DisabledSymbol(
     @Description("Symbol to ban.")
@@ -16,13 +17,36 @@ case class DisabledSymbol(
     @Description("Custom id for error messages.")
     id: Option[String],
     @Description(
-      "When true all overrides of the symbol are also banned. Works only with symbol field, not regex. Doesn't work in unlessSynthetic mode.")
-    banHierarchy: Boolean,
+      "If true, additionally ban references " +
+        "to methods that override of this symbol. " +
+        "Works only with the symbol option, not regex.")
+    banOverrides: Boolean,
     @Description(
-      "Regex to ban instead of one symbol. When symbol field is specified, this field is ignored.")
-    regex: Option[String]) {
+      "Regex to ban instead of one symbol. " +
+        "Supports exclude and include regexes." +
+        "Symbol option is forbidden when regex is specified.")
+    @ExampleValue("""
+                    |{
+                    |  include = "java.io.*"
+                    |  exclude = "java.io.InputStream"
+                    |}""".stripMargin)
+    regex: Option[FilterMatcher]) {
 
-  lazy val compiledRegex: Option[Regex] = regex.map(_.r)
+  def matches(symbol: Symbol)(implicit index: SemanticdbIndex): Boolean = {
+    this.symbol match {
+      case Some(s) => SymbolOps.isSameNormalized(symbol, s) || (
+        banOverrides &&
+          index
+            .denotation(symbol)
+            .exists(_.overrides.exists(SymbolOps.isSameNormalized(symbol, _)))
+        )
+      case None =>
+        regex match {
+          case Some(r) => r.matches(symbol.toString)
+          case None => sys.error("impossible")
+        }
+    }
+  }
 }
 
 object DisabledSymbol {
@@ -41,13 +65,21 @@ object DisabledSymbol {
         (c.getOption[Symbol.Global]("symbol") |@|
           c.getOption[String]("message") |@|
           c.getOption[String]("id") |@|
-          c.getOrElse[Boolean]("banHierarchy")(false) |@|
-          c.getOption[String]("regex"))
-          .map {
-            case ((((a @ Some(_), b), c), d), _) =>
-              DisabledSymbol(a, b.map(normalizeMessage), c, d, None)
-            case ((((None, b), c), d), e) =>
-              DisabledSymbol(None, b.map(normalizeMessage), c, d, e)
+          c.getOrElse[Boolean]("banOverrides")(false) |@|
+          c.getOption[FilterMatcher]("regex"))
+          .andThen {
+            case ((((Some(_), b), c), d), Some(_)) =>
+              Configured.notOk(
+                ConfError.message("Symbol and regex are both specified."))
+            case ((((a @ Some(_), b), c), d), None) =>
+              Configured.ok(
+                DisabledSymbol(a, b.map(normalizeMessage), c, d, None))
+            case ((((None, b), c), d), e @ Some(_)) =>
+              Configured.ok(
+                DisabledSymbol(None, b.map(normalizeMessage), c, d, e))
+            case ((((None, b), c), d), None) =>
+              Configured.notOk(
+                ConfError.message("Symbol and regex are both not specified."))
           }
       case s: Conf.Str =>
         symbolGlobalReader

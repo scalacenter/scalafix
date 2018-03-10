@@ -12,7 +12,10 @@ Disable.unlessInside = [
     safeBlock = "test.DisableRegex.IO"
     symbols = [
       {
-        regex = "java.io.*"
+        regex = {
+          includes = "java.io.*"
+          excludes = "java.io.InputStream"
+        }
         message = "input/output are only allowed within IO block"
       }
     ]
@@ -35,4 +38,5 @@ object DisableRegex {
   IO {
     System.out.println("[IMPORTANT MESSAGE]") // ok
   }
+  System.in.read() // ok
 }
