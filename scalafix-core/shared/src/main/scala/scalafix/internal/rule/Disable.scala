@@ -47,26 +47,10 @@ object Disable {
     }
   }
 
-  def matchDisabledSymbol(disabledSymbol: DisabledSymbol, symbol: Symbol)(
-      implicit index: SemanticdbIndex): Boolean =
-    disabledSymbol match {
-      case DisabledSymbol(Some(s), _, _, banHierarchy, _) =>
-        SymbolOps.isSameNormalized(symbol, s) || (
-          banHierarchy &&
-            index
-              .denotation(symbol)
-              .exists(_.overrides.exists(SymbolOps.isSameNormalized(symbol, _)))
-        )
-      case d @ DisabledSymbol(None, _, _, _, Some(_)) =>
-        d.compiledRegex.exists(_.findFirstIn(symbol.toString).isDefined)
-      case DisabledSymbol(None, _, _, _, None) =>
-        true // weird case, but it has some logic
-    }
-
   final class DisableSymbolMatcher(symbols: List[DisabledSymbol])(
       implicit index: SemanticdbIndex) {
     def findMatch(symbol: Symbol): Option[DisabledSymbol] =
-      symbols.find(matchDisabledSymbol(_, symbol))
+      symbols.find(_.matches(symbol))
 
     def unapply(tree: Tree): Option[(Tree, DisabledSymbol)] =
       index
@@ -124,7 +108,7 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
           val symbolsInMatchedBlocks =
             config.unlessInside.flatMap(
               u =>
-                if (matchDisabledSymbol(u.safeBlock, symbolBlock)) u.symbols
+                if (u.safeBlock.matches(symbolBlock)) u.symbols
                 else List.empty)
           val res = blockedSymbols.filterNot(symbolsInMatchedBlocks.contains)
           res
