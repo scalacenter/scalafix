@@ -6,7 +6,6 @@ import metaconfig.annotation.{Description, ExampleValue}
 import metaconfig.generic.Surface
 import org.langmeta.Symbol
 
-import scala.util.matching.Regex
 import scalafix.internal.util.SymbolOps
 
 case class DisabledSymbol(
