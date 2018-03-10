@@ -33,11 +33,12 @@ case class DisabledSymbol(
 
   def matches(symbol: Symbol)(implicit index: SemanticdbIndex): Boolean = {
     this.symbol match {
-      case Some(s) => SymbolOps.isSameNormalized(symbol, s) || (
-        banOverrides &&
-          index
-            .denotation(symbol)
-            .exists(_.overrides.exists(SymbolOps.isSameNormalized(symbol, _)))
+      case Some(s) =>
+        SymbolOps.isSameNormalized(symbol, s) || (
+          banOverrides &&
+            index
+              .denotation(symbol)
+              .exists(_.overrides.exists(SymbolOps.isSameNormalized(symbol, _)))
         )
       case None =>
         regex match {
