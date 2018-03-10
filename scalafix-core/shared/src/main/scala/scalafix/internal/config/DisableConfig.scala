@@ -6,6 +6,7 @@ import metaconfig.annotation.{Description, ExampleValue}
 import metaconfig.generic.Surface
 import org.langmeta.Symbol
 
+import scala.util.matching.Regex
 import scalafix.internal.util.SymbolOps
 
 case class DisabledSymbol(
@@ -15,6 +16,11 @@ case class DisabledSymbol(
     message: Option[String],
     @Description("Custom id for error messages.")
     id: Option[String],
+    @Description(
+      "If true, additionally ban references " +
+        "to methods that override of this symbol. " +
+        "Works only with the symbol option, not regex.")
+    banOverrides: Boolean,
     @Description(
       "Regex to ban instead of one symbol. " +
         "Supports exclude and include regexes." +
@@ -26,9 +32,14 @@ case class DisabledSymbol(
                     |}""".stripMargin)
     regex: Option[FilterMatcher]) {
 
-  def matches(symbol: Symbol): Boolean = {
+  def matches(symbol: Symbol)(implicit index: SemanticdbIndex): Boolean = {
     this.symbol match {
-      case Some(s) => SymbolOps.isSameNormalized(symbol, s)
+      case Some(s) => SymbolOps.isSameNormalized(symbol, s) || (
+        banOverrides &&
+          index
+            .denotation(symbol)
+            .exists(_.overrides.exists(SymbolOps.isSameNormalized(symbol, _)))
+        )
       case None =>
         regex match {
           case Some(r) => r.matches(symbol.toString)
@@ -54,25 +65,26 @@ object DisabledSymbol {
         (c.getOption[Symbol.Global]("symbol") |@|
           c.getOption[String]("message") |@|
           c.getOption[String]("id") |@|
+          c.getOrElse[Boolean]("banOverrides")(false) |@|
           c.getOption[FilterMatcher]("regex"))
           .andThen {
-            case (((Some(_), b), c), Some(_)) =>
+            case ((((Some(_), b), c), d), Some(_)) =>
               Configured.notOk(
                 ConfError.message("Symbol and regex are both specified."))
-            case (((a @ Some(_), b), c), None) =>
+            case ((((a @ Some(_), b), c), d), None) =>
               Configured.ok(
-                DisabledSymbol(a, b.map(normalizeMessage), c, None))
-            case (((None, b), c), d @ Some(_)) =>
+                DisabledSymbol(a, b.map(normalizeMessage), c, d, None))
+            case ((((None, b), c), d), e @ Some(_)) =>
               Configured.ok(
-                DisabledSymbol(None, b.map(normalizeMessage), c, d))
-            case (((None, b), c), None) =>
+                DisabledSymbol(None, b.map(normalizeMessage), c, d, e))
+            case ((((None, b), c), d), None) =>
               Configured.notOk(
                 ConfError.message("Symbol and regex are both not specified."))
           }
       case s: Conf.Str =>
         symbolGlobalReader
           .read(s)
-          .map(sym => DisabledSymbol(Some(sym), None, None, None))
+          .map(sym => DisabledSymbol(Some(sym), None, None, false, None))
       case _ => Configured.NotOk(ConfError.message("Wrong config format"))
     }
 }
