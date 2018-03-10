@@ -104,10 +104,9 @@ class EscapeHatch private (
 
 object EscapeHatch {
 
-  private val UnusedScalafixSuppression = RuleName("UnusedScalafixSuppression")
   private val UnusedWarning = LintCategory
-    .warning("", "This comment has no effect and can be removed")
-    .withOwner(UnusedScalafixSuppression)
+    .warning("", "Unused Scalafix suppression. This can be removed")
+    .withOwner(RuleName("UnusedScalafixSuppression"))
 
   private type EscapeTree = TreeMap[EscapeOffset, List[EscapeFilter]]
 
