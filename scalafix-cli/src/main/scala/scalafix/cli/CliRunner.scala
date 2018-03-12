@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.function.UnaryOperator
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
+
 import scala.meta._
 import scala.meta.inputs.Input
 import scala.meta.internal.inputs._
@@ -32,8 +33,11 @@ import scalafix.internal.config.RuleKind
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.jgit.JGitDiff
-import scalafix.internal.util.Failure
-import scalafix.internal.util.EagerInMemorySemanticdbIndex
+import scalafix.internal.util.{
+  EagerInMemorySemanticdbIndex,
+  Failure,
+  SuppressOps
+}
 import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
 import metaconfig.Configured.Ok
@@ -52,6 +56,7 @@ sealed abstract case class CliRunner(
   val sbtConfig: ScalafixConfig = config.copy(dialect = dialects.Sbt0137)
   val writeMode: WriteMode =
     if (cli.stdout) WriteMode.Stdout
+    else if (cli.autoSuppressLinterErrors) WriteMode.AutoSuppressLinterErrors
     else if (cli.test) WriteMode.Test
     else WriteMode.WriteFile
   val common: CommonOptions = cli.common
@@ -109,6 +114,34 @@ sealed abstract case class CliRunner(
     }
 
   def unsafeHandleInput(input: FixFile): ExitStatus = {
+    def reportLintErrors(messages: List[LintMessage]): Unit =
+      messages.foreach { msg =>
+        val category = msg.category.withConfig(config.lint)
+        config.lint.reporter.handleMessage(
+          msg.format(config.lint.explain),
+          msg.position,
+          category.severity.toSeverity
+        )
+      }
+
+    def writeToFile(fixed: String): ExitStatus = {
+      val outFile = replacePath(input.original.path)
+      if (isUpToDate(input)) {
+        Files.createDirectories(outFile.toNIO.getParent)
+        Files.write(outFile.toNIO, fixed.getBytes(input.original.charset))
+        ExitStatus.Ok
+      } else {
+        cli.diagnostic.error(
+          s"Stale semanticdb for ${CliRunner.pretty(outFile)}, skipping rule. Please recompile.")
+        if (cli.verbose) {
+          val diff =
+            Patch.unifiedDiff(input.semanticFile.get, input.original)
+          common.err.println(diff)
+        }
+        ExitStatus.StaleSemanticDB
+      }
+    }
+
     val inputConfig =
       if (input.original.label.endsWith(".sbt")) sbtConfig
       else config
@@ -125,22 +158,18 @@ sealed abstract case class CliRunner(
         }
       case parsers.Parsed.Success(tree) =>
         val ctx = RuleCtx(tree, config, diffDisable)
-        val (fixed, messages) = rule.applyAndLint(ctx)
-
-        messages.foreach { msg =>
-          val category = msg.category.withConfig(config.lint)
-          config.lint.reporter.handleMessage(
-            msg.format(config.lint.explain),
-            msg.position,
-            category.severity.toSeverity
-          )
-        }
-
         writeMode match {
+          case WriteMode.AutoSuppressLinterErrors =>
+            val fixed = SuppressOps.applyAndSuppress(rule, ctx)
+            writeToFile(fixed)
           case WriteMode.Stdout =>
+            val (fixed, messages) = rule.applyAndLint(ctx)
+            reportLintErrors(messages)
             common.out.write(fixed.getBytes)
             ExitStatus.Ok
           case WriteMode.Test =>
+            val (fixed, messages) = rule.applyAndLint(ctx)
+            reportLintErrors(messages)
             val isUnchanged =
               input.original.path.readAllBytes
                 .sameElements(fixed.getBytes(input.original.charset))
@@ -158,21 +187,9 @@ sealed abstract case class CliRunner(
               ExitStatus.TestFailed
             }
           case WriteMode.WriteFile =>
-            val outFile = replacePath(input.original.path)
-            if (isUpToDate(input)) {
-              Files.createDirectories(outFile.toNIO.getParent)
-              Files.write(outFile.toNIO, fixed.getBytes(input.original.charset))
-              ExitStatus.Ok
-            } else {
-              cli.diagnostic.error(
-                s"Stale semanticdb for ${CliRunner.pretty(outFile)}, skipping rule. Please recompile.")
-              if (cli.verbose) {
-                val diff =
-                  Patch.unifiedDiff(input.semanticFile.get, input.original)
-                common.err.println(diff)
-              }
-              ExitStatus.StaleSemanticDB
-            }
+            val (fixed, messages) = rule.applyAndLint(ctx)
+            reportLintErrors(messages)
+            writeToFile(fixed)
         }
     }
   }

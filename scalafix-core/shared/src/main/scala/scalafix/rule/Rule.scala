@@ -87,11 +87,8 @@ abstract class Rule(ruleName: RuleName) { self =>
     lintMessages.foreach(ctx.printLintMessage)
     fixed
   }
-  final def applyAndLint(ctx: RuleCtx): (String, List[LintMessage]) = {
-    val patches = fixWithName(ctx)
-    val (fixed, lintMessages) = Patch(patches, ctx, semanticOption)
-    (fixed, lintMessages)
-  }
+  final def applyAndLint(ctx: RuleCtx): (String, List[LintMessage]) =
+    Patch(fixWithName(ctx), ctx, semanticOption)
 
   /** Returns unified diff from applying this patch */
   final def diff(ctx: RuleCtx): String =

@@ -72,6 +72,37 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
     }
   }
 
+  def checkSuppress(
+      name: String,
+      originalFile: String,
+      rule: String,
+      expectedFile: String): Unit = {
+    check(
+      name,
+      "/a.scala\n" + originalFile,
+      Seq(
+        "--auto-suppress-linter-errors",
+        "-r",
+        rule,
+        "a.scala"
+      ),
+      "/a.scala\n" + expectedFile,
+      ExitStatus.Ok
+    )
+    check(
+      "check " + name,
+      "/a.scala\n" + expectedFile,
+      Seq(
+        "--test",
+        "-r",
+        rule,
+        "a.scala"
+      ),
+      "/a.scala\n" + expectedFile,
+      ExitStatus.Ok
+    )
+  }
+
   val semanticRoot: RelativePath = RelativePath("scala").resolve("test")
   val removeImportsPath: RelativePath =
     semanticRoot.resolve("RemoveUnusedImports.scala")

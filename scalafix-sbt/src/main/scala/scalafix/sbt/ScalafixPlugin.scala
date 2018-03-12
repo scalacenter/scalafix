@@ -20,6 +20,11 @@ object ScalafixPlugin extends AutoPlugin {
       inputKey[Unit]("Run scalafix rule.")
     val scalafixTest: InputKey[Unit] =
       inputKey[Unit]("Run scalafix as a test(without modifying sources).")
+    val scalafixAutoSuppressLinterErrors: InputKey[Unit] =
+      inputKey[Unit](
+        "Run scalafix and automatically suppress linter errors " +
+          "by inserting /* scalafix:ok */ comments into the source code. " +
+          "Useful when migrating an existing large codebase with many linter errors.")
     val sbtfix: InputKey[Unit] =
       inputKey[Unit](
         "Run scalafix rule on build sources. Requires the semanticdb-sbt plugin to be enabled globally.")
@@ -79,7 +84,11 @@ object ScalafixPlugin extends AutoPlugin {
         scalafixCli := scalafixTaskImpl(
           scalafixParser,
           compat = false,
-          Seq("--format", "sbt")).evaluated
+          Seq("--format", "sbt")).evaluated,
+        scalafixAutoSuppressLinterErrors := scalafixTaskImpl(
+          scalafixParser,
+          compat = true,
+          Seq("--auto-suppress-linter-errors", "--format", "sbt")).evaluated
       )
   }
   import scalafix.internal.sbt.CliWrapperPlugin.autoImport._
