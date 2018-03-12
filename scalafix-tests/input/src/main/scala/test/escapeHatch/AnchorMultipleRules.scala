@@ -2,7 +2,7 @@
 rules = [
   Disable
   NoInfer
-  "class:scalafix.test.EscapeHatchDummyLinter"
+  "class:scalafix.test.NoDummy"
 ]
 
 Disable.symbols = ["scala.Option.get"]
@@ -17,12 +17,12 @@ NoInfer.symbols = [
 
 package test.escapeHatch
 
-object EscapeHatchMultipleRules {
+object AnchorMultipleRules {
 
   // scalafix:off NoInfer.any2stringadd, Disable.get
-  1 + "foo"
+  Some(1) + "foo"
 
-  val aDummy = 0 // assert: EscapeHatchDummyLinter
+  val aDummy = 0 // assert: NoDummy
 
   val a: Option[Int] = Some(1)
   a.get

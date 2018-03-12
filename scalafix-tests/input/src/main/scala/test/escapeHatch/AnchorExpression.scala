@@ -1,6 +1,6 @@
 /*
 rules = [
-  "class:scalafix.test.EscapeHatchDummyLinter"
+  "class:scalafix.test.NoDummy"
   Disable
   NoInfer
 ]
@@ -18,16 +18,16 @@ NoInfer.symbols = [
 
 package test.escapeHatch
 
-object EscapeHatchExpression {
+object AnchorExpression {
 
-  val aDummy = 0 // assert: EscapeHatchDummyLinter
+  val aDummy = 0 // assert: NoDummy
 
   val bDummy = (
     0,
     1
-  ) // scalafix:ok EscapeHatchDummyLinter
+  ) // scalafix:ok NoDummy
 
-  val cDummy = 0 // assert: EscapeHatchDummyLinter
+  val cDummy = 0 // assert: NoDummy
 
   Some(1) + "foo" // scalafix:ok NoInfer.any2stringadd
 
@@ -35,13 +35,13 @@ object EscapeHatchExpression {
 
   (
     null,
-    1 + "foo",
+    Some(1) + "foo",
     a.get
   ) // scalafix:ok NoInfer.any2stringadd, Disable.get
 
   object A {
     object F {
-      object Dummy { // scalafix:ok EscapeHatchDummyLinter
+      object Dummy { // scalafix:ok NoDummy
         1
       }
     }

@@ -6,17 +6,16 @@ title: Configuration
 # Configuration
 {:.no_toc}
 
-* TOC
-{:toc}
-
-## Per project
 
 Scalafix reads configuration from a file using
 [HOCON](https://github.com/typesafehub/config) syntax.
 The convention is to keep a file `.scalafix.conf` into the root directory of your project.
 Configuration is not needed or is optional for most rules, so you may not need to create a `.scalafix.conf`.
 
-### rules
+* TOC
+{:toc}
+
+## rules
 Configure which rule to run with `rules = [ ... ]`, for example
 
 ```scala
@@ -89,7 +88,7 @@ To rename a method
 rule = "replace:com.company.App.start/init"
 ```
 
-### lint
+## lint
 Override the default severity level of a {% glossary_ref LintMessage %} with `lint`
 
 ```scala
@@ -101,7 +100,7 @@ lint.ignore = [ Foo.errorID ] // don't report Foo.errorID
 lint.explain = true // print out detailed explanation for lint messages.
 ```
 
-### patches
+## patches
 For simple use-cases, it's possible to write custom rules directly in `.scalafix.conf`.
 
 ```scala
@@ -121,32 +120,76 @@ debug.printSymbols = true
 
 To build custom rules see {% doc_ref Rule Authors %}.
 
-## Per source file
 
-It's possible to supress false positives linter message over source file regions using comments. This provides fine grained control over what to report
+## Suppressing rules
 
-There are two alternative way to supress linter messages with a single expression using scalafix:ok or with scalafix:off/on to toogle until the end of file.
+Sometimes there are legitimate reasons for violating a given rule. In order to cater for that, Scalafix provides 
+two methods for suppressing rules over a particular region of code. 
 
-### Enable or Disable until the end of file
+&nbsp;
+
+#### `@SuppressWarnings` annotation
+The `java.lang.SupppressWarnings` is a standard way to suppress messages from the compiler and is used by many linters. 
+Scalafix supports this annotation in any definition where the Scala language allows it to be placed (classes, traits, 
+objects, types, methods, constructors, parameters, vals and vars).
+
+One or more rules can be specified in the `@SuppressWarnings` annotation. Although not mandatory, it's recommended
+to prefix the rule names with `scalafix:` so that they can be easily identified. Another reason for prefixing is that 
+Scalafix can report warnings for unused/redundant rules.
 
 ```scala
-
-// scalafix:off
-foo(null)
-1.asInstanceOf[String]
-// scalafix:on
-
+@SuppressWarnings(Array("scalafix:Disable.null", "scalafix:Disable.asInstanceOf"))
+def foo: Unit = {
+    foo(null)
+    1.asInstanceOf[String]
+}
 ```
 
-### Disable for an expression
+A convenient way to disable all rules is to inform the standard keyword `all` in the annotation:
+
+```scala
+@SuppressWarnings(Array("all"))
+def foo: Unit = {
+    foo(null)
+    1.asInstanceOf[String]
+}
+```
+
+**Note:** The `@SuppressWarnings` annotation is detected without compilation. Any annotation matching the syntax 
+`@SuppressWarnings(..)` regardless if it's `java.lang.SupressWarnings` or not will trigger the suppression mechanism. 
+This is done in order to support `@SuppressWarnings` for syntactic rules like `DisableSyntax`.
+
+&nbsp;
+
+#### Comments
+
+Comments allow code to be targeted more precisely than annotations. It's possible to target from a single line of code to a 
+region (e.g. a group of methods) or the entire source file. Moreover, there are things that simply cannot be annotated 
+in Scala (e.g. a class name: you would have to disable the rule for the entire class). For such scenarios, comments 
+can be the best or the only choice.
+
+There are two alternatives to suppress rules via comments: single expression using `scalafix:ok` and regions using the 
+`scalafix:off`/`scalafix:on` toggles.
+
+- single expression
 
 ```scala
 List(1, "") // scalafix:ok
 ```
 
-### Selectively disabling rules
 
-Both technique above can selectively disable a list of rules. You can provide the list of rules to be disabled, separated by `,`.
+- region
+
+```scala
+// scalafix:off
+foo(null)
+1.asInstanceOf[String]
+// scalafix:on
+```
+
+
+Both techniques can selectively disable a list of rules. You can provide the list of rules to be disabled separated by 
+commas:
 
 ```scala
 // scalafix:off Disable.null, Disable.asInstanceOf
@@ -157,4 +200,19 @@ foo(null)
 
 ```scala
 List(1, "") // scalafix:ok NoInfer.any
+```
+
+&nbsp;
+
+**Note:** Suppression via comments and `@SuppressWarnings` can be combined in the same source file. Be mindful not to 
+introduce overlaps between the two as it can cause confusion and counter-intuitive behavior. Scalafix handles overlaps 
+by giving precedence to the `@SuppressWarnings` annotation:
+
+```scala
+@SuppressWarnings(Array("scalafix:Disable.null"))
+def overlap(): Unit = {
+  val a = null
+  // scalafix:on Disable.null
+  val b = null // rule is still disabled because the annotation takes precedence over the comment
+}
 ```
