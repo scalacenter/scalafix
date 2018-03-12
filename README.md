@@ -29,7 +29,7 @@ The current maintainers (people who can merge pull requests) are:
 - Eugene Burmako - [`@xeno-by`](https://github.com/xeno-by)
 - Shane Delmore - [`@ShaneDelmore`](https://github.com/ShaneDelmore)
 - Gabriele Petronella - [`@gabro`](https://github.com/gabro)
-- Guillaume Massé - [`@@MasseGuillaume`](https://github.com/@MasseGuillaume)
+- Guillaume Massé - [`@MasseGuillaume`](https://github.com/MasseGuillaume)
 
 ## Contributing
 
