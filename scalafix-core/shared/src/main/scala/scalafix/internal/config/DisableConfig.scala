@@ -21,8 +21,11 @@ case class DisabledSymbol(
         "Symbol option is forbidden when regex is specified.")
     @ExampleValue("""
                     |{
-                    |  include = "java.io.*"
-                    |  exclude = "java.io.InputStream"
+                    |  includes = [
+                    |    "java.io.*"
+                    |    "scala.io.*"
+                    |  ]
+                    |  excludes = "java.io.InputStream"
                     |}""".stripMargin)
     regex: Option[FilterMatcher]) {
 
@@ -58,14 +61,14 @@ object DisabledSymbol {
           .andThen {
             case (((Some(_), b), c), Some(_)) =>
               Configured.notOk(
-                ConfError.message("Symbol and regex are both specified."))
+                ConfError.message("Cannot specify both symbol and regex, only one of them is allowed."))
             case (((a @ Some(_), b), c), None) =>
               Configured.ok(DisabledSymbol(a, b.map(normalizeMessage), c, None))
             case (((None, b), c), d @ Some(_)) =>
               Configured.ok(DisabledSymbol(None, b.map(normalizeMessage), c, d))
             case (((None, b), c), None) =>
               Configured.notOk(
-                ConfError.message("Symbol and regex are both not specified."))
+                ConfError.message("Either symbol or regex must be specified."))
           }
       case s: Conf.Str =>
         symbolGlobalReader
