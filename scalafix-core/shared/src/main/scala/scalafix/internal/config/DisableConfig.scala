@@ -60,8 +60,8 @@ object DisabledSymbol {
           c.getOption[FilterMatcher]("regex"))
           .andThen {
             case (((Some(_), b), c), Some(_)) =>
-              Configured.notOk(
-                ConfError.message("Cannot specify both symbol and regex, only one of them is allowed."))
+              Configured.notOk(ConfError.message(
+                "Cannot specify both symbol and regex, only one of them is allowed."))
             case (((a @ Some(_), b), c), None) =>
               Configured.ok(DisabledSymbol(a, b.map(normalizeMessage), c, None))
             case (((None, b), c), d @ Some(_)) =>
