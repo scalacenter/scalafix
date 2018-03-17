@@ -59,7 +59,7 @@ final case class OrphanImplicits(index: SemanticdbIndex)
                   if mods.exists(_.is[Mod.Implicit]) =>
                 handleImplicit(tpe, obj, t.pos)
             }.flatten
-          case None => List.empty
+          case _ => List.empty
         }
     }.flatten
   }
