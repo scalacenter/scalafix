@@ -2,18 +2,88 @@ package scalafix
 package internal.config
 
 import metaconfig._
+import metaconfig.annotation.{Description, ExampleValue}
+import metaconfig.generic.Surface
 import org.langmeta.Symbol
 
 import scalafix.internal.util.SymbolOps
-import metaconfig.annotation.{Description, ExampleValue}
-import metaconfig.generic.Surface
+
+case class DisabledSymbol(
+    @Description("Symbol to ban.")
+    symbol: Option[Symbol.Global],
+    @Description("Custom message.")
+    message: Option[String],
+    @Description("Custom id for error messages.")
+    id: Option[String],
+    @Description(
+      "Regex to ban instead of one symbol. " +
+        "Supports exclude and include regexes." +
+        "Symbol option is forbidden when regex is specified.")
+    @ExampleValue("""
+                    |{
+                    |  includes = [
+                    |    "java.io.*"
+                    |    "scala.io.*"
+                    |  ]
+                    |  excludes = "java.io.InputStream"
+                    |}""".stripMargin)
+    regex: Option[FilterMatcher]) {
+
+  def matches(symbol: Symbol): Boolean = {
+    this.symbol match {
+      case Some(s) => SymbolOps.isSameNormalized(symbol, s)
+      case None =>
+        regex match {
+          case Some(r) => r.matches(symbol.toString)
+          case None => sys.error("impossible")
+        }
+    }
+  }
+}
+
+object DisabledSymbol {
+  implicit val surface: Surface[DisabledSymbol] =
+    generic.deriveSurface[DisabledSymbol]
+
+  private def normalizeMessage(msg: String): String =
+    if (msg.isMultiline) {
+      "\n" + msg.stripMargin
+    } else {
+      msg
+    }
+  implicit val reader: ConfDecoder[DisabledSymbol] =
+    ConfDecoder.instanceF[DisabledSymbol] {
+      case c: Conf.Obj =>
+        (c.getOption[Symbol.Global]("symbol") |@|
+          c.getOption[String]("message") |@|
+          c.getOption[String]("id") |@|
+          c.getOption[FilterMatcher]("regex"))
+          .andThen {
+            case (((Some(_), b), c), Some(_)) =>
+              Configured.notOk(ConfError.message(
+                "Cannot specify both symbol and regex, only one of them is allowed."))
+            case (((a @ Some(_), b), c), None) =>
+              Configured.ok(DisabledSymbol(a, b.map(normalizeMessage), c, None))
+            case (((None, b), c), d @ Some(_)) =>
+              Configured.ok(DisabledSymbol(None, b.map(normalizeMessage), c, d))
+            case (((None, b), c), None) =>
+              Configured.notOk(
+                ConfError.message("Either symbol or regex must be specified."))
+          }
+      case s: Conf.Str =>
+        symbolGlobalReader
+          .read(s)
+          .map(sym => DisabledSymbol(Some(sym), None, None, None))
+      case _ => Configured.NotOk(ConfError.message("Wrong config format"))
+    }
+}
 
 case class UnlessInsideBlock(
     @Description("The symbol that indicates a 'safe' block.")
-    safeBlock: Symbol.Global,
+    safeBlock: DisabledSymbol,
     @Description(
       "The unsafe symbols that are banned unless inside a 'safe' block")
-    symbols: List[CustomMessage[Symbol.Global]])
+    symbols: List[DisabledSymbol])
 
 object UnlessInsideBlock {
   implicit val surface: Surface[UnlessInsideBlock] =
@@ -23,8 +93,8 @@ object UnlessInsideBlock {
   implicit val reader: ConfDecoder[UnlessInsideBlock] =
     ConfDecoder.instanceF[UnlessInsideBlock] {
       case c: Conf.Obj =>
-        (c.get[Symbol.Global]("safeBlock") |@|
-          c.get[List[CustomMessage[Symbol.Global]]]("symbols")).map {
+        (c.get[DisabledSymbol]("safeBlock") |@|
+          c.get[List[DisabledSymbol]]("symbols")).map {
           case (a, b) => UnlessInsideBlock(a, b)
         }
       case _ => Configured.NotOk(ConfError.message("Wrong config format"))
@@ -42,7 +112,7 @@ case class DisableConfig(
                     |    message = "use pattern-matching instead"
                     |  }
                     |]""".stripMargin)
-    symbols: List[CustomMessage[Symbol.Global]] = Nil,
+    symbols: List[DisabledSymbol] = Nil,
     @Description(
       "List of symbols to disable if inferred. Does not report an error for symbols written explicitly in source code.")
     @ExampleValue("""
@@ -52,7 +122,7 @@ case class DisableConfig(
                     |    message = "use explicit toString be calling +"
                     |  }
                     |]""".stripMargin)
-    ifSynthetic: List[CustomMessage[Symbol.Global]] = Nil,
+    ifSynthetic: List[DisabledSymbol] = Nil,
     @Description(
       "List of symbols to disable unless they are in the given block.")
     @ExampleValue("""
@@ -70,38 +140,10 @@ case class DisableConfig(
       """.stripMargin)
     unlessInside: List[UnlessInsideBlock] = Nil
 ) {
-  private def normalizeSymbol(symbol: Symbol.Global): String =
-    SymbolOps.normalize(symbol).syntax
-
-  lazy val allUnlessBlocks: List[Symbol.Global] =
+  lazy val allSafeBlocks: List[DisabledSymbol] =
     unlessInside.map(_.safeBlock)
-  private lazy val allCustomMessages: List[CustomMessage[Symbol.Global]] =
+  lazy val allDisabledSymbols: List[DisabledSymbol] =
     symbols ++ ifSynthetic ++ unlessInside.flatMap(_.symbols)
-  lazy val allSymbols: List[Symbol.Global] = allCustomMessages.map(_.value)
-  lazy val allSymbolsInSynthetics: List[Symbol.Global] =
-    ifSynthetic.map(_.value)
-
-  private val syntheticSymbols: Set[String] =
-    ifSynthetic.map(u => normalizeSymbol(u.value)).toSet
-
-  private val messageBySymbol: Map[String, CustomMessage[Symbol.Global]] =
-    allCustomMessages.map(m => normalizeSymbol(m.value) -> m).toMap
-
-  private val symbolsByUnless: Map[String, List[Symbol.Global]] =
-    unlessInside
-      .groupBy(u => normalizeSymbol(u.safeBlock))
-      .mapValues(_.flatMap(_.symbols.map(_.value)))
-
-  def symbolsInSafeBlock(unless: Symbol.Global): List[Symbol.Global] =
-    symbolsByUnless.getOrElse(normalizeSymbol(unless), List.empty)
-
-  def customMessage(
-      symbol: Symbol.Global): Option[CustomMessage[Symbol.Global]] =
-    messageBySymbol.get(normalizeSymbol(symbol))
-
-  def isSynthetic(symbol: Symbol.Global): Boolean = {
-    syntheticSymbols.contains(normalizeSymbol(symbol))
-  }
 }
 
 object DisableConfig {
