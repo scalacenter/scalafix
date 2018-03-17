@@ -1,7 +1,7 @@
 package scalafix.internal.rule
 
 import scala.meta._
-import scalafix.internal.util.{ContextTraverser, SymbolOps}
+import scalafix.internal.util.SymbolOps
 import scalafix.lint.LintCategory
 import scalafix.rule.RuleCtx
 import scalafix.util.SemanticdbIndex
@@ -11,56 +11,56 @@ final case class OrphanImplicits(index: SemanticdbIndex)
     extends Rule("OrphanImplicits") {
 
   override def description: String =
-    "Linter bans definitions of implicits F[G] unless they are on the companion of the F or the G"
+    "Linter that reports an error on implicit instances of shape F[G] " +
+      "that do not belong in the companion objects of F or G."
 
   private lazy val errorCategory: LintCategory =
     LintCategory.error("Orphan implicits should be avoided")
 
   override def check(ctx: RuleCtx): Seq[LintMessage] = {
-    def symbolsFromType(tpe: Type): List[Symbol.Global] = tpe match {
-      case t: Type.Name =>
-        index.symbol(t) match {
-          case Some(s: Symbol.Global) => List(s)
-          case _ => List.empty
-        }
-      case Type.Apply(tpe, args) =>
-        symbolsFromType(tpe) ::: args.flatMap(symbolsFromType)
-      // only Apply and Name for now
-      case _ => List.empty
-    }
 
     def handleImplicit(
         tpe: Type,
-        objs: List[Symbol.Global],
-        pos: Position): Either[LintMessage, List[Symbol.Global]] = {
-      val symbols = symbolsFromType(tpe)
-      if (symbols.exists(
-          s => objs.exists(o => SymbolOps.isSameNormalized(o, s)))) {
-        Right(objs)
-      } else {
-        Left(
+        obj: Symbol.Global,
+        pos: Position): Option[LintMessage] = {
+
+      val tpeSymbols = tpe match {
+        case Type.Apply(t, Seq(arg)) =>
+          Seq(index.symbol(t), index.symbol(arg)).flatten
+        case _ => Seq.empty
+      }
+
+      if (tpeSymbols.nonEmpty && !tpeSymbols.exists(
+          SymbolOps.isSameNormalized(obj, _)
+        )) {
+        Some(
           errorCategory
             .at(
               s"""Orphan implicits are not allowed.
                  |You should put this definition to one of the following objects:
-                 |${symbols.mkString(", ")}
+                 |${tpeSymbols.mkString(", ")}
                 """.stripMargin,
               pos
             ))
+      } else {
+        None
       }
     }
-    new ContextTraverser[LintMessage, List[Symbol.Global]](List.empty)({
-      case (Defn.Object(_, name, _), objs) =>
+
+    ctx.tree.collect {
+      case Defn.Object(_, name, templ) =>
         index.symbol(name) match {
-          case Some(s @ Symbol.Global(_, _)) => Right(s :: objs)
-          case None => Right(objs)
+          case Some(obj @ Symbol.Global(_, _)) =>
+            templ.stats.collect {
+              case t @ Defn.Val(mods, _, Some(tpe), _)
+                  if mods.exists(_.is[Mod.Implicit]) =>
+                handleImplicit(tpe, obj, t.pos)
+              case t @ Defn.Def(mods, _, _, _, Some(tpe), _)
+                  if mods.exists(_.is[Mod.Implicit]) =>
+                handleImplicit(tpe, obj, t.pos)
+            }.flatten
+          case None => List.empty
         }
-      case (t @ Defn.Val(mods, _, Some(tpe), _), objs)
-          if mods.exists(_.is[Mod.Implicit]) =>
-        handleImplicit(tpe, objs, t.pos)
-      case (t @ Defn.Def(mods, _, _, _, Some(tpe), _), objs)
-          if mods.exists(_.is[Mod.Implicit]) =>
-        handleImplicit(tpe, objs, t.pos)
-    }).result(ctx.tree)
+    }.flatten
   }
 }
