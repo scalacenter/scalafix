@@ -28,7 +28,8 @@ object DisableRegex {
   import scala.collection.mutable._ // ok
   import scala.collection.mutable   // ok
   val buffer = new ListBuffer[Int]() // assert: Disable.ListBuffer
-  val abc = new mutable.HashMap[String, String]() // scalafix:ok Disable.mutable Disable.HashMap
+  val abc = new mutable  // assert: Disable.mutable
+    .HashMap[String, String]() // assert: Disable.HashMap
 
   object IO { // IO we deserve
     def apply[T](run: => T): Nothing = ???
