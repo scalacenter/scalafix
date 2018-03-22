@@ -9,14 +9,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 import org.scalatest.exceptions.TestFailedException
 
-import scala.util.matching.Regex
-
 object SemanticRuleSuite {
-
-  @deprecated(
-    "Use scalafix.testkit.EndOfLineAssertExtractor.AssertRegex insteed",
-    "0.5.4")
-  val LintAssertion: Regex = EndOfLineAssertExtractor.AssertRegex
 
   def stripTestkitComments(input: String): String =
     stripTestkitComments(input.tokenize.get)

@@ -12,8 +12,6 @@ import scalafix.util.TreeOps
 package object syntax {
   implicit class XtensionRefSymbolOpt(tree: Tree)(
       implicit index: SemanticdbIndex) {
-    @deprecated("Renamed to symbol", "0.5.0")
-    def symbolOpt: Option[Symbol] = symbol
     def symbol: Option[Symbol] = index.symbol(tree.pos)
     def denotation: Option[Denotation] = index.denotation(tree)
   }
@@ -25,8 +23,6 @@ package object syntax {
   }
   implicit class XtensionSymbolSemanticdbIndex(symbol: Symbol)(
       implicit index: SemanticdbIndex) {
-    @deprecated("Renamed to denotation", "0.5.0")
-    def denotOpt: Option[Denotation] = denotation
     def denotation: Option[Denotation] = index.denotation(symbol)
     def resultType: Option[Type] =
       denotation.flatMap(denot =>

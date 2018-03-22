@@ -28,10 +28,6 @@ final case class LintCategory(
   def at(position: Position): LintMessage =
     LintMessage(explanation, position, noExplanation)
 
-  @deprecated("use withOwner(owner: RuleName): LintCategory", "0.5.4")
-  def key(owner: RuleName): String =
-    deprecatedKey(owner)
-
   def withOwner(owner: RuleName): LintCategory =
     copy(id = deprecatedKey(owner))
 

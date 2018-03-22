@@ -37,10 +37,6 @@ trait PatchOps {
   /** Replace all tokens of tree contents with toReplace. */
   def replaceTree(tree: Tree, toReplace: String): Patch
 
-  @deprecated("Use replaceTree instead", "0.5.0")
-  def rename(name: Name, toReplace: String): Patch =
-    replaceTree(name, toReplace)
-
   /** Add the string toAdd to the right side of token, while keeping token. */
   def addRight(token: Token, toAdd: String): Patch
 

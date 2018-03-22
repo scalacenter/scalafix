@@ -34,9 +34,6 @@ trait RuleCtx extends PatchOps {
   /** Find matching open/close pairs of parens/braces/brackets. **/
   def matchingParens: MatchingParens
 
-  @deprecated("Renamed to matchingParens", "0.5.0")
-  def matching: MatchingParens = matchingParens
-
   /** Traverse tokens as a doubly linked list. **/
   def tokenList: TokenList
 

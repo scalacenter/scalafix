@@ -20,9 +20,6 @@ final case class RuleName(identifiers: List[RuleIdentifier]) {
     this.+(
       RuleName(RuleIdentifier(name, Some(Deprecated(message, since))) :: Nil))
   }
-  @deprecated("Renamed to withDeprecatedName", "0.5.0")
-  def withOldName(name: String, message: String, since: String): RuleName =
-    withDeprecatedName(name, message, since)
   def value: String =
     if (isDeprecated) identifiers.mkString("+")
     else if (nonDeprecated.isEmpty) "empty"
@@ -54,11 +51,6 @@ object RuleName {
   implicit def stringToRuleName(name: String): RuleName =
     RuleName(name)
 
-  @deprecated(
-    "Rule names will soon no longer be automatically generated with macros. " +
-      "Write the name explicitly as a string instead.",
-    "0.5.0")
-  implicit def generate(name: sourcecode.Name): RuleName = RuleName(name.value)
   final val empty: RuleName = new RuleName(Nil)
   def apply(name: String): RuleName = new RuleName(RuleIdentifier(name) :: Nil)
 }
