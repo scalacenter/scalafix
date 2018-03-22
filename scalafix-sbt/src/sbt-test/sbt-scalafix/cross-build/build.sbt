@@ -10,7 +10,6 @@ lazy val root = project
   .in(file("."))
   .aggregate(
     javaProject,
-    customSourceroot,
     scala211,
     scala210,
     scala212
@@ -34,11 +33,6 @@ lazy val scala212 = project
         .filterNot(_.getAbsolutePath.contains("IgnoreMe")),
     scalaVersion := Versions.scala212
   )
-lazy val customSourceroot = project.settings(
-  scalaVersion := Versions.scala212,
-  scalacOptions += "-P:semanticdb:sourceroot:" + sourceDirectory.value.getAbsolutePath,
-  scalafixSourceroot := sourceDirectory.value
-)
 lazy val javaProject = project.settings(
   scalaVersion := Versions.scala212
 )
@@ -78,7 +72,7 @@ TaskKey[Unit]("check") := {
       "scala212/src/it/scala/Main.scala",
       expected
     ) +:
-      Seq(scala210, scala211, scala212, customSourceroot).flatMap { project =>
+      Seq(scala210, scala211, scala212).flatMap { project =>
       val prefix = project.id
       Seq(
         assertContentMatches(
