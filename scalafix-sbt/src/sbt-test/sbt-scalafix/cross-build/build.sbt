@@ -27,6 +27,11 @@ lazy val scala212 = project
   .settings(
     Defaults.itSettings,
     inConfig(IntegrationTest)(scalafixConfigSettings),
+    unmanagedSources.in(Compile, scalafix) :=
+      unmanagedSources
+        .in(Compile)
+        .value
+        .filterNot(_.getAbsolutePath.contains("IgnoreMe")),
     scalaVersion := Versions.scala212
   )
 lazy val customSourceroot = project.settings(
@@ -41,6 +46,12 @@ TaskKey[Unit]("check") := {
   val s = streams.value
   val assertContentMatches: ((String, String) => Boolean) =
     ScalafixTestUtility.assertContentMatches(s) _
+  val ignoreMeOriginal =
+    """
+      |object IgnoreMe {
+      |  def main(args: Array[String]) { println(args) }
+      |}
+    """.stripMargin
   val expected =
     """object Main {
       |  def foo(a: (Int, String)) = a
@@ -59,6 +70,10 @@ TaskKey[Unit]("check") := {
 
   val results: Seq[Boolean] =
     assertContentMatches(
+      "scala212/src/main/scala/IgnoreMe.scala",
+      ignoreMeOriginal
+    ) +:
+      assertContentMatches(
       "scala212/src/it/scala/Main.scala",
       expected
     ) +:
