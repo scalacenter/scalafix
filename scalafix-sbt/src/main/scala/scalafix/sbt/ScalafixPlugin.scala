@@ -68,8 +68,6 @@ object ScalafixPlugin extends AutoPlugin {
       settingKey[Boolean](
         "No longer used. Use the scalafixEnable command or manually configure " +
           "scalacOptions/libraryDependecies/scalaVersion")
-    @deprecated("Renamed to scalafixSourceroot", "0.5.0")
-    val scalametaSourceroot: SettingKey[File] = scalafixSourceroot
 
     lazy val scalafixConfigSettings: Seq[Def.Setting[_]] = scalafixSettings ++
       Seq(

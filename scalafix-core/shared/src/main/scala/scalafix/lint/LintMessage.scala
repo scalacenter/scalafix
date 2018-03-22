@@ -16,9 +16,6 @@ final case class LintMessage(
     position: Position,
     category: LintCategory
 ) {
-  @deprecated("Use format(explain: Boolean) instead", "0.5.4")
-  def format(owner: RuleName, explain: Boolean): String =
-    format(explain)
 
   def format(explain: Boolean): String = {
     val explanation =

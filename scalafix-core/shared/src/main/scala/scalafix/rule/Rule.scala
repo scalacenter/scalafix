@@ -65,8 +65,6 @@ abstract class Rule(ruleName: RuleName) { self =>
 
   /** Combine this rule with another rule. */
   final def merge(other: Rule): Rule = Rule.merge(this, other)
-  @deprecated("Renamed to merge.", "0.5.0")
-  final def andThen(other: Rule): Rule = merge(other)
 
   /** Returns string output of applying this single patch. */
   final def apply(ctx: RuleCtx): String =
@@ -121,12 +119,6 @@ abstract class Rule(ruleName: RuleName) { self =>
 abstract class SemanticRule(index: SemanticdbIndex, name: RuleName)
     extends Rule(name) {
   implicit val ImplicitSemanticdbIndex: SemanticdbIndex = index
-  @deprecated("Renamed to index.", "0.5.0")
-  protected def mirror: SemanticdbIndex = index
-  @deprecated("Renamed to index.", "0.5.0")
-  protected def sctx: SemanticdbIndex = index
-  @deprecated("Renamed to index.", "0.5.0")
-  protected def semanticCtx: SemanticdbIndex = index
   override def semanticOption: Option[SemanticdbIndex] = Some(index)
 }
 
