@@ -36,6 +36,7 @@ lazy val scala212 = project
   )
 lazy val customSourceroot = project.settings(
   scalaVersion := Versions.scala212,
+  scalacOptions += "-P:semanticdb:sourceroot:" + sourceDirectory.value.getAbsolutePath,
   scalafixSourceroot := sourceDirectory.value
 )
 lazy val javaProject = project.settings(
