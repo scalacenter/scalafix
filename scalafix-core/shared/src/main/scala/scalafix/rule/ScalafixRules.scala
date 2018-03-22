@@ -18,7 +18,6 @@ object ScalafixRules {
   )
   def semantic(index: SemanticdbIndex): List[Rule] = List(
     NoInfer(index, NoInferConfig.default),
-    Sbt1(index),
     ExplicitResultTypes(index),
     RemoveUnusedImports(index),
     RemoveUnusedTerms(index),

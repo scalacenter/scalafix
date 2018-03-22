@@ -11,9 +11,7 @@ version.in(ThisBuild) ~= { old: String =>
 
 lazy val scalaFixedProjects: List[ProjectReference] =
   List(
-    testsInputSbt,
     testsOutputDotty,
-    testsOutputSbt,
     website
   )
 
@@ -149,7 +147,6 @@ val cli = MultiScalaProject(
     mainClass in assembly := Some("scalafix.cli.Cli"),
     assemblyJarName in assembly := "scalafix.jar",
     libraryDependencies ++= Seq(
-      "org.scalameta" %% "semanticdb-sbt-runtime" % semanticdbSbt,
       "com.github.alexarchambault" %% "case-app" % "1.2.0",
       "org.typelevel" %% "paiges-core" % "0.2.0",
       "com.martiansoftware" % "nailgun-server" % "0.9.1",
@@ -306,33 +303,6 @@ lazy val testsOutputDotty = project
   )
   .disablePlugins(ScalafixPlugin)
 
-lazy val testsInputSbt = project
-  .in(file("scalafix-tests/input-sbt"))
-  .settings(
-    noPublish,
-    logLevel := Level.Error, // avoid flood of deprecation warnings.
-    scalacOptions += "-Xplugin-require:semanticdb-sbt",
-    sbtPlugin := true,
-    scalacOptions += {
-      val sourceroot =
-        baseDirectory
-          .in(ThisBuild)
-          .value / "scalafix-tests" / "input-sbt" / "src" / "main"
-      s"-P:semanticdb-sbt:sourceroot:$sourceroot"
-    },
-    addCompilerPlugin(
-      "org.scalameta" % "semanticdb-sbt" % semanticdbSbt cross CrossVersion.full)
-  )
-  .disablePlugins(ScalafixPlugin)
-
-lazy val testsOutputSbt = project
-  .in(file("scalafix-tests/output-sbt"))
-  .settings(
-    noPublish,
-    sbtPlugin := true
-  )
-  .disablePlugins(ScalafixPlugin)
-
 def unit(
     scalav: String,
     cli: Project,
@@ -340,11 +310,9 @@ def unit(
     testUtils: Project,
     testsInput: Project,
     testsInputMulti: MultiScalaProject,
-    testsInputSbt: Project,
     testsOutput: Project,
     testsOutputMulti: MultiScalaProject,
     testsOutputDotty: Project,
-    testsOutputSbt: Project,
     testsShared: Project): Project = {
 
   val unitMultiProject =
@@ -372,8 +340,6 @@ def unit(
           .in(Compile, compile)
           .dependsOn(
             compile.in(testsInput, Compile),
-            compile.in(testsInputSbt, Compile),
-            compile.in(testsOutputSbt, Compile),
             compile.in(testsOutputDotty, Compile),
             compile.in(testsOutput, Compile)
           )
@@ -390,14 +356,8 @@ def unit(
           baseDirectory
             .in(ThisBuild)
             .value / testsInputMulti.srcMain / "resources",
-        "inputSbtSourceroot" ->
-          sourceDirectory.in(testsInputSbt, Compile).value,
         "outputDottySourceroot" ->
           sourceDirectory.in(testsOutputDotty, Compile).value,
-        "outputSbtSourceroot" ->
-          sourceDirectory.in(testsOutputSbt, Compile).value,
-        "semanticSbtClasspath" ->
-          classDirectory.in(testsInputSbt, Compile).value,
         "semanticClasspath" ->
           classDirectory.in(testsInput, Compile).value,
         "sharedClasspath" ->
@@ -419,11 +379,9 @@ lazy val unit211 = unit(
   testUtils211,
   testsInput211,
   testsInput,
-  testsInputSbt,
   testsOutput211,
   testsOutput,
   testsOutputDotty,
-  testsOutputSbt,
   testsShared211
 )
 
@@ -434,11 +392,9 @@ lazy val unit212 = unit(
   testUtils212,
   testsInput212,
   testsInput,
-  testsInputSbt,
   testsOutput212,
   testsOutput,
   testsOutputDotty,
-  testsOutputSbt,
   testsShared212
 )
 

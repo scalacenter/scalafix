@@ -27,10 +27,10 @@ object ScalafixPlugin extends AutoPlugin {
           "Useful when migrating an existing large codebase with many linter errors.")
     val sbtfix: InputKey[Unit] =
       inputKey[Unit](
-        "Run scalafix rule on build sources. Requires the semanticdb-sbt plugin to be enabled globally.")
+        "Run syntactic scalafix rule on build sources. Note, semantic rewrites are not supported.")
     val sbtfixTest: InputKey[Unit] =
       inputKey[Unit](
-        "Run scalafix rule on build sources as a test(without modifying sources).")
+        "Run syntactic scalafix rule on build sources as a test(without modifying sources).")
     val scalafixConfig: SettingKey[Option[File]] =
       settingKey[Option[File]](
         ".scalafix.conf file to specify which scalafix rules should run.")
@@ -53,9 +53,8 @@ object ScalafixPlugin extends AutoPlugin {
     def scalafixLibraryDependencies: Def.Initialize[List[ModuleID]] =
       ScalafixPlugin.scalafixLibraryDependencies
 
-    /** Enable semanticdb-sbt for all projects with id *-build. */
-    def sbtfixSettings: Seq[Def.Setting[_]] =
-      ScalafixPlugin.sbtfixSettings
+    @deprecated("This setting is no longer used", "0.6.0")
+    def sbtfixSettings: Seq[Def.Setting[_]] = Nil
 
     /** Settings that must appear after scalacOptions and libraryDependencies */
     def scalafixSettings: Seq[Def.Setting[_]] = List(
@@ -178,18 +177,6 @@ object ScalafixPlugin extends AutoPlugin {
       )
     } else Nil
   }
-
-  lazy val sbtfixSettings: Seq[Def.Setting[_]] = Def.settings(
-    libraryDependencies ++= {
-      val sbthost = "org.scalameta" % "semanticdb-sbt" % Versions.semanticdbSbt cross CrossVersion.full
-      val isMetabuild = {
-        val p = thisProject.value
-        p.id.endsWith("-build") && p.base.getName == "project"
-      }
-      if (isMetabuild) compilerPlugin(sbthost) :: Nil
-      else Nil
-    }
-  )
 
   def scalafixTaskImpl(
       parser: Parser[Seq[String]],

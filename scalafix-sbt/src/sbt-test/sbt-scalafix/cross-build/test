@@ -28,9 +28,9 @@
 # it config exists only for 2.12
 > it:scalafix
 
--> sbtfixTest Sbt1
-> sbtfix Sbt1
-> sbtfixTest Sbt1
+-> sbtfixTest file:rules/Sbtfix.scala
+> sbtfix file:rules/Sbtfix.scala
+> sbtfixTest file:rules/Sbtfix.scala
 > check
 > scala212/compile:scalafix
 > scala212/test:scalafix
