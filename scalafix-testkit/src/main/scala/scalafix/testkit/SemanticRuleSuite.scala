@@ -9,8 +9,6 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 import org.scalatest.exceptions.TestFailedException
 
-import scala.util.matching.Regex
-
 object SemanticRuleSuite {
 
   def stripTestkitComments(input: String): String =
