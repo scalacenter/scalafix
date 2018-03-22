@@ -18,7 +18,6 @@ import scala.meta._
 import scala.meta.inputs.Input
 import scala.meta.internal.inputs._
 import scala.meta.io.AbsolutePath
-import scala.meta.semanticdb.SemanticdbSbt
 import scala.util.control.NonFatal
 import scala.util.Try
 import scalafix.internal.cli.CommonOptions
@@ -358,9 +357,7 @@ object CliRunner {
       val result: Configured[SemanticdbIndex] = cachedDatabase.getOrElse {
         (resolveClasspath |@| resolvedSourceroot).andThen {
           case (classpath, root) =>
-            val patched = SemanticdbSbt.patchDatabase(
-              Database.load(classpath, Sourcepath(root)),
-              root)
+            val patched = Database.load(classpath, Sourcepath(root))
             val db =
               EagerInMemorySemanticdbIndex(patched, Sourcepath(root), classpath)
             if (verbose) {
@@ -550,7 +547,7 @@ object CliRunner {
                   checkExists(key)
                   key -> input
                 case input @ Input.File(path, _) =>
-                  // Some semanticdbs may have Input.File, for example in semanticdb-sbt.
+                  // Some semanticdbs may have Input.File.
                   checkExists(path)
                   val contents = new String(input.chars)
                   path -> Input.VirtualFile(path.toString(), contents)

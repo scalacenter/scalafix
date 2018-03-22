@@ -83,13 +83,7 @@ TaskKey[Unit]("check") := {
   assert(
     assertContentMatches(
       "sbtfix-me.sbt",
-      """
-        |lazy val x = {
-        |  unmanagedSourceDirectories.in(Compile) += Def.setting(file("nested")).value
-        |  "x"
-        |}
-        |
-        |unmanagedSourceDirectories.in(Compile) += Def.setting(file("top")).value
+      """// sbtfixed
         |""".stripMargin
     )
   )

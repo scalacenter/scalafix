@@ -55,7 +55,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "coursier" -> coursier.util.Properties.version,
         "nightly" -> version.value,
         "scalameta" -> scalametaV,
-        "semanticdbSbt" -> semanticdbSbt,
         scalaVersion,
         "supportedScalaVersions" -> supportedScalaVersions,
         "scala211" -> scala211,
@@ -146,7 +145,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
           "scala211" -> scala211,
           "stableVersion" -> stableVersion.value,
           "scalametaVersion" -> scalametaV,
-          "semanticdbSbtVersion" -> semanticdbSbt,
           "supportedScalaVersions" -> supportedScalaVersions,
           "coursierVersion" -> coursier.util.Properties.version
         )

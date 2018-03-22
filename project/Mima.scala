@@ -6,6 +6,8 @@ object Mima {
     // To learn more about mima, see:
     // See https://github.com/typesafehub/migration-manager/wiki/sbt-plugin#basic-usage
     Seq(
+      // removed semanticdb-sbt
+      ProblemFilters.exclude[DirectMissingMethodProblem]("scalafix.Versions.semanticdbSbt"),
       // @deprecated
       ProblemFilters.exclude[DirectMissingMethodProblem]("scalafix.package.Mirror"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("scalafix.package.Rewrite"),

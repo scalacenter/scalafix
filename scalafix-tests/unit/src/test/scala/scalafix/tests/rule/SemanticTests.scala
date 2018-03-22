@@ -1,8 +1,6 @@
 package scalafix.tests.rule
 
 import scala.meta._
-import scala.meta.internal.io.PathIO
-import scala.meta.semanticdb.SemanticdbSbt
 import scalafix.SemanticdbIndex
 import scalafix.testkit._
 import scalafix.tests.BuildInfo
@@ -13,7 +11,6 @@ class SemanticTests
       index,
       Seq(
         AbsolutePath(BuildInfo.outputSourceroot),
-        AbsolutePath(BuildInfo.outputSbtSourceroot),
         AbsolutePath(BuildInfo.outputDottySourceroot)
       )
     ) {
@@ -22,25 +19,20 @@ class SemanticTests
 
 object SemanticTests {
   def index: SemanticdbIndex = SemanticdbIndex.load(
-    SemanticdbSbt.patchDatabase(
-      Database.load(
-        classpath,
-        sourcepath
-      ),
-      PathIO.workingDirectory
+    Database.load(
+      classpath,
+      sourcepath
     ),
     sourcepath,
     classpath
   )
   def sourcepath: Sourcepath = Sourcepath(
     List(
-      AbsolutePath(BuildInfo.inputSourceroot),
-      AbsolutePath(BuildInfo.inputSbtSourceroot)
+      AbsolutePath(BuildInfo.inputSourceroot)
     )
   )
   def classpath: Classpath = Classpath(
     List(
-      AbsolutePath(BuildInfo.semanticSbtClasspath),
       AbsolutePath(BuildInfo.semanticClasspath)
     )
   )

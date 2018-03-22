@@ -15,7 +15,6 @@ object ScalafixRuleNames {
     ("DottyVolatileLazyVal", "Rewrite all lazy vals to Dotty's volatile ones for safe publishing (default semantics of pre-Dotty Scala)"),
     ("DottyVarArgPattern", "Rewrite to convert :_* vararg pattern syntax to @ syntax supported in Dotty."),
     ("NoInfer", "Linter for types that the Scala compiler cannot infer."),
-    ("Sbt1", "Rewrite to convert sbt 0.12 deprecated operators like <++= into sbt 0.13 :=/.value syntax"),
     ("ExplicitResultTypes", "Rewrite that inserts explicit type annotations for def/val/var"),
     ("ExplicitReturnTypes", "Rewrite that inserts explicit type annotations for def/val/var"),
     ("RemoveUnusedImports", "Rewrite that removes unused imports reported by the compiler under -Xwarn-unused-import."),
