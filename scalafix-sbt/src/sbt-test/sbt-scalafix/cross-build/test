@@ -1,4 +1,3 @@
-> scalafixEnable
 # compile should not affect scalafix
 > compile
 

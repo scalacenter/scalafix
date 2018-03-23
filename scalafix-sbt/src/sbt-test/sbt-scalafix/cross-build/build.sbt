@@ -6,6 +6,12 @@ inThisBuild(
     resolvers += Resolver.sonatypeRepo("releases")
   )
 )
+
+lazy val scalafixSettings = List(
+  addCompilerPlugin(scalafixSemanticdb),
+  scalacOptions += "-Yrangepos"
+)
+
 lazy val root = project
   .in(file("."))
   .aggregate(
@@ -19,7 +25,8 @@ lazy val scala210 = project.settings(
   scalaVersion := "2.10.5"
 )
 lazy val scala211 = project.settings(
-  scalaVersion := Versions.scala211
+  scalaVersion := Versions.scala211,
+  scalafixSettings
 )
 lazy val scala212 = project
   .configs(IntegrationTest)
@@ -31,10 +38,12 @@ lazy val scala212 = project
         .in(Compile)
         .value
         .filterNot(_.getAbsolutePath.contains("IgnoreMe")),
-    scalaVersion := Versions.scala212
+    scalaVersion := Versions.scala212,
+    scalafixSettings
   )
 lazy val javaProject = project.settings(
-  scalaVersion := Versions.scala212
+  scalaVersion := Versions.scala212,
+  scalafixSettings
 )
 
 TaskKey[Unit]("check") := {
