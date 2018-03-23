@@ -76,7 +76,7 @@ object ScalafixPlugin extends AutoPlugin {
     @deprecated("This setting is no longer used", "0.6.0")
     def sbtfixSettings: Seq[Def.Setting[_]] = Nil
     @deprecated(
-      "Use addCompilerPlugin(semanticdb-scalac) and scalacOptions += -Yrangepos instead",
+      "Use addCompilerPlugin(scalafixSemanticdb) and scalacOptions += \"-Yrangepos\" instead",
       "0.6.0")
     def scalafixSettings: Seq[Def.Setting[_]] = List(
       scalacOptions ++= scalafixScalacOptions.value,
