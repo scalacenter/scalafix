@@ -1,4 +1,3 @@
-import sbt.ScriptedPlugin
 import sbt.ScriptedPlugin._
 import Dependencies._
 
@@ -147,6 +146,7 @@ val cli = MultiScalaProject(
     mainClass in assembly := Some("scalafix.cli.Cli"),
     assemblyJarName in assembly := "scalafix.jar",
     libraryDependencies ++= Seq(
+      metacp,
       "com.github.alexarchambault" %% "case-app" % "1.2.0",
       "org.typelevel" %% "paiges-core" % "0.2.0",
       "com.martiansoftware" % "nailgun-server" % "0.9.1",
@@ -207,10 +207,18 @@ val scalafixSbt = MultiSbtProject(
   ).enablePlugins(BuildInfoPlugin)
     .disablePlugins(ScalafixPlugin)
 )
-lazy val scalafixSbt1 =
-  scalafixSbt(scala212, sbt1, _.dependsOn(testUtils212 % Test))
-lazy val scalafixSbt013 =
-  scalafixSbt(scala210, sbt013, _.dependsOn(testUtils210 % Test))
+lazy val scalafixSbt1 = scalafixSbt(
+  scala212,
+  sbt1,
+  _.dependsOn(testUtils212 % Test)
+)
+lazy val scalafixSbt013 = scalafixSbt(
+  scala210,
+  sbt013,
+  _.settings(
+    scalacOptions -= warnUnusedImports
+  ).dependsOn(testUtils210 % Test)
+)
 
 val testUtils = MultiScalaProject(
   "test-utils",
@@ -221,7 +229,12 @@ val testUtils = MultiScalaProject(
     )
   )
 )
-lazy val testUtils210 = testUtils(scala210)
+lazy val testUtils210 = testUtils(
+  scala210,
+  _.settings(
+    scalacOptions -= warnUnusedImports
+  )
+)
 lazy val testUtils211 = testUtils(scala211)
 lazy val testUtils212 = testUtils(scala212)
 
@@ -259,10 +272,13 @@ val testsInput = TestProject(
     project.settings(
       noPublish,
       semanticdbSettings,
-      scalacOptions += {
-        val sourceroot = baseDirectory.in(ThisBuild).value / srcMain
-        s"-P:semanticdb:sourceroot:$sourceroot"
-      },
+      scalacOptions ++= List(
+        {
+          val sourceroot = baseDirectory.in(ThisBuild).value / srcMain
+          s"-P:semanticdb:sourceroot:$sourceroot"
+        },
+        s"-P:semanticdb:denotations:all"
+      ),
       scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
       scalacOptions += "-Ywarn-adapted-args", // For NoAutoTupling
       scalacOptions += "-Ywarn-unused-import", // For RemoveUnusedImports
@@ -325,8 +341,8 @@ def unit(
         javaOptions := Nil,
         buildInfoPackage := "scalafix.tests",
         buildInfoObject := "BuildInfo",
-        sources.in(Test) += (baseDirectory
-          .in(ThisBuild))
+        sources.in(Test) += baseDirectory
+          .in(ThisBuild)
           .value / "scalafix-sbt" / "src" / "main" / "scala" / "scalafix" / "internal" / "sbt" / "ScalafixJarFetcher.scala",
         libraryDependencies ++= coursierDeps ++ testsDeps
       ).enablePlugins(BuildInfoPlugin)

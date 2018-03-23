@@ -55,12 +55,20 @@ case class ScalafixOptions(
     sourceroot: Option[String] = None,
     @HelpMessage(
       "java.io.File.pathSeparator separated list of directories or jars containing " +
-        "'.semanticdb' files. The 'semanticdb' files are emitted by the " +
+        "'.semanticdb' files. SemanticDB files are emitted by the " +
         "semanticdb-scalac compiler plugin and are necessary for semantic rules " +
         "like ExplicitResultTypes to function."
     )
     @ValueDescription("entry1.jar:entry2.jar:target/scala-2.12/classes/")
-    classpath: Option[String] = None,
+    @ExtraName("classpath")
+    classDirectory: Option[String] = None,
+    @HelpMessage(
+      "java.io.File.pathSeparator separated list of directories or jars for dependencies. " +
+        "Does not need to contain SemanticDB files. " +
+        "Required for semantic rules like ExplicitResultTypes to work."
+    )
+    @ValueDescription("entry1.jar:entry2.jar:target/scala-2.12/classes/")
+    dependencyClasspath: Option[String] = None,
     @HelpMessage(
       "Automatically infer --classpath starting from these directories. " +
         "Ignored if --classpath is provided.")

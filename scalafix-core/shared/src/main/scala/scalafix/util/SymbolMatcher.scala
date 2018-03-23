@@ -27,8 +27,9 @@ final class SymbolMatcher(
   def matches(tree: Tree): Boolean = {
     index.symbol(tree).fold(false)(matches)
   }
-  def matches(symbol: Symbol): Boolean =
+  def matches(symbol: Symbol): Boolean = {
     symbols.exists(x => isEqual(x, symbol))
+  }
 
   // Returns Option[Tree] to aid composing multiple unapplies, example:
   // case myMethod(Name(n)) =>

@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.function.UnaryOperator
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
-
 import scala.meta._
 import scala.meta.inputs.Input
 import scala.meta.internal.inputs._
@@ -42,6 +41,7 @@ import scalafix.syntax._
 import metaconfig.Configured.Ok
 import metaconfig._
 import metaconfig.ConfError
+import scalafix.internal.cli.ClasspathOps
 
 sealed abstract case class CliRunner(
     sourceroot: AbsolutePath,
@@ -89,7 +89,11 @@ sealed abstract case class CliRunner(
       val code = exitCode.get()
       if (config.lint.reporter.hasErrors) {
         ExitStatus.merge(ExitStatus.LinterError, code)
-      } else code
+      } else if (config.reporter.hasErrors) {
+        ExitStatus.merge(ExitStatus.UnexpectedError, code)
+      } else {
+        code
+      }
     }
     display.completedTask(msg, exit == ExitStatus.Ok)
     display.stop()
@@ -315,8 +319,8 @@ object CliRunner {
         .map(path => AbsolutePath(path)(common.workingPath))
         .toList
 
-    def resolveClasspath: Configured[Classpath] =
-      classpath match {
+    def resolveClasspath: Configured[Classpath] = {
+      classDirectory match {
         case Some(cp) =>
           val paths = toClasspath(cp)
           Ok(Classpath(paths))
@@ -336,6 +340,7 @@ object CliRunner {
               .notOk
           }
       }
+    }
 
     val resolvedSourceroot: Configured[AbsolutePath] = {
       val result = sourceroot
@@ -357,9 +362,17 @@ object CliRunner {
       val result: Configured[SemanticdbIndex] = cachedDatabase.getOrElse {
         (resolveClasspath |@| resolvedSourceroot).andThen {
           case (classpath, root) =>
-            val patched = Database.load(classpath, Sourcepath(root))
-            val db =
-              EagerInMemorySemanticdbIndex(patched, Sourcepath(root), classpath)
+            val index = Database.load(classpath, Sourcepath(root))
+            val deps = dependencyClasspath.map(toClasspath).getOrElse(Nil)
+            val symbolTable = ClasspathOps.newSymbolTable(
+              Classpath(classpath.shallow ++ deps),
+              common.out)
+            val db = EagerInMemorySemanticdbIndex(
+              index,
+              Sourcepath(root),
+              classpath,
+              symbolTable
+            )
             if (verbose) {
               common.err.println(
                 s"Loaded database with ${db.documents.length} documents.")

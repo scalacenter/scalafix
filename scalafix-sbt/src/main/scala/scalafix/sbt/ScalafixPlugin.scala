@@ -193,13 +193,21 @@ object ScalafixPlugin extends AutoPlugin {
     Def.taskDyn {
       compile.value // trigger compilation
       val classDir = classDirectory.value
+      val deps = dependencyClasspath.value
+        .map(_.data)
+        .mkString(java.io.File.pathSeparator)
       val classpath = if (classDir.exists()) classDir.toString else ""
       val sourcesToFix = for {
         source <- unmanagedSources.in(scalafix).value
         if source.exists()
         if canFix(source)
       } yield source
-      val options: Seq[String] = List("--classpath", classpath) ++ extraOptions
+      val options: Seq[String] = List(
+        "--classpath",
+        classpath,
+        "--dependency-classpath",
+        deps
+      ) ++ extraOptions
       scalafixTaskImpl(
         inputArgs,
         compat,

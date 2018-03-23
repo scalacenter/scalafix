@@ -15,9 +15,7 @@ object SemanticRuleSuite {
     stripTestkitComments(input.tokenize.get)
 
   def stripTestkitComments(tokens: Tokens): String = {
-    val configComment = tokens.find { x =>
-      x.is[Token.Comment] && x.syntax.startsWith("/*")
-    }.get
+    val configComment = findTestkitComment(tokens)
     tokens.filter {
       case `configComment` => false
       case EndOfLineAssertExtractor(_) => false
@@ -25,6 +23,19 @@ object SemanticRuleSuite {
       case _ => true
     }.mkString
   }
+
+  def findTestkitComment(tokens: Tokens): Token = {
+    tokens
+      .find { x =>
+        x.is[Token.Comment] && x.syntax.startsWith("/*")
+      }
+      .getOrElse {
+        val input = tokens.headOption.fold("the file")(_.input.toString)
+        throw new IllegalArgumentException(
+          s"Missing /* */ comment at the top of $input")
+      }
+  }
+
 }
 
 abstract class SemanticRuleSuite(
@@ -59,6 +70,7 @@ abstract class SemanticRuleSuite(
     Option(dialect).collect {
       case "Scala211" => "scala-2.11"
       case "Scala212" => "scala-2.12"
+      case "Scala" => "scala-2.12"
     }
 
   def runOn(diffTest: DiffTest): Unit = {

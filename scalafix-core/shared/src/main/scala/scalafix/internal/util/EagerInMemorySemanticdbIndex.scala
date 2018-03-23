@@ -1,25 +1,40 @@
 package scalafix
 package internal.util
 
+import scala.collection.mutable
 import scala.meta._
+import scala.{meta => m}
 
 case class EagerInMemorySemanticdbIndex(
     database: Database,
     sourcepath: Sourcepath,
-    classpath: Classpath)
-    extends SemanticdbIndex {
+    classpath: Classpath,
+    table: SymbolTable = SymbolTable.empty
+) extends SemanticdbIndex {
   override def toString: String =
     s"$productPrefix($sourcepath, $classpath, database.size=${database.documents.length})"
   override def hashCode(): Int = database.hashCode()
-  private lazy val _denots: Map[Symbol, Denotation] = {
-    val builder = Map.newBuilder[Symbol, Denotation]
+  private lazy val _denots: mutable.Map[Symbol, Denotation] = {
+    val builder = mutable.Map.empty[Symbol, Denotation]
     database.symbols.foreach(r => builder += (r.symbol -> r.denotation))
     builder.result()
   }
-  private lazy val _names: Map[Position, ResolvedName] = {
-    val builder = Map.newBuilder[Position, ResolvedName]
-    def add(r: ResolvedName) = {
-      builder += (r.position -> r)
+  private lazy val _names: mutable.Map[Position, ResolvedName] = {
+    val builder = mutable.Map.empty[Position, ResolvedName]
+    def add(r: ResolvedName): Unit = {
+      builder.get(r.position) match {
+        case Some(conflict) =>
+          conflict.symbol match {
+            case m.Symbol.Multi(syms) =>
+              builder(r.position) =
+                conflict.copy(symbol = m.Symbol.Multi(r.symbol :: syms))
+            case sym =>
+              builder(r.position) =
+                conflict.copy(symbol = m.Symbol.Multi(r.symbol :: sym :: Nil))
+          }
+        case _ =>
+          builder(r.position) = r
+      }
     }
     database.documents.foreach { entry =>
       entry.names.foreach(add)
