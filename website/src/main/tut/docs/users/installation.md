@@ -88,6 +88,16 @@ git diff // should produce a diff
 | `scalafixEnabled`           | `Boolean`     | Deprecated. Use the scalafixEnable command or manually configure scalacOptions/libraryDependecies/scalaVersion                            |
 | `scalametaSourceroot`       | `File`        | Deprecated. Renamed to `scalafixSourceroot`                                                                                               |
 
+
+### FAQ
+{: #sbt-faq}
+
+* How to exclude/add files that are processed by the `scalafix` task?
+
+```
+unmanagedSources.in(Compile, scalafix) := unmanagedSources.in(Compile).value.filter(file => ...)
+```
+
 ## scalafix-cli
 
 The recommended way to install the scalafix command-line interface is with
