@@ -21,7 +21,7 @@ This rule bans definitions of implicits F[G] unless they are on the companion of
   }
 
   object Bar {
-    implicit val foo: Foo = ??? // error
+    implicit val foo: Foo = ??? // ok, it's not A[B] form
     implicit val barFoo: Bar[Foo] = ??? // ok
   }
 ```

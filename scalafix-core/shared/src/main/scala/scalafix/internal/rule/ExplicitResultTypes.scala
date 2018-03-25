@@ -8,7 +8,7 @@ import scalafix.SemanticdbIndex
 import scalafix.internal.config.ExplicitResultTypesConfig
 import scalafix.internal.config.MemberKind
 import scalafix.internal.config.MemberVisibility
-import scalafix.internal.util.TypeSyntax
+import scalafix.internal.util.{TreeOps, TypeSyntax}
 import scalafix.rule.Rule
 import scalafix.rule.RuleCtx
 import scalafix.rule.RuleName
@@ -50,12 +50,6 @@ case class ExplicitResultTypes(
     case _ => false
   }
 
-  def defnName(defn: Defn): Option[Name] = Option(defn).collect {
-    case Defn.Val(_, Pat.Var(name) :: Nil, _, _) => name
-    case Defn.Var(_, Pat.Var(name) :: Nil, _, _) => name
-    case Defn.Def(_, name, _, _, _, _) => name
-  }
-
   def visibility(mods: Traversable[Mod]): MemberVisibility =
     mods
       .collectFirst {
@@ -73,7 +67,7 @@ case class ExplicitResultTypes(
   override def fix(ctx: RuleCtx): Patch = {
     def defnType(defn: Defn): Option[(Type, Patch)] =
       for {
-        name <- defnName(defn)
+        name <- TreeOps.defnName(defn)
         symbol <- name.symbol
         typ <- symbol.resultType
       } yield TypeSyntax.prettify(typ, ctx, config.unsafeShortenNames)

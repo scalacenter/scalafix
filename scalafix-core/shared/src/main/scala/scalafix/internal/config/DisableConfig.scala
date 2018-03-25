@@ -9,16 +9,18 @@ import org.langmeta.Symbol
 import scalafix.internal.util.SymbolOps
 
 case class DisabledSymbol(
-    @Description("Symbol to ban.")
+    @ExampleValue("scala.sys.process.Process")
+    @Description(
+      "A single symbol to ban. Cannot be used together with the regex option.")
     symbol: Option[Symbol.Global],
     @Description("Custom message.")
     message: Option[String],
     @Description("Custom id for error messages.")
     id: Option[String],
     @Description(
-      "Regex to ban instead of one symbol. " +
-        "Supports exclude and include regexes." +
-        "Symbol option is forbidden when regex is specified.")
+      "Regex to ban symbols matching a given include/exclude patterns." +
+        "Cannot be used together with the symbol option." +
+        "Include and exclude filters can be either a list of regex strings or a single regex string.")
     @ExampleValue("""
                     |{
                     |  includes = [

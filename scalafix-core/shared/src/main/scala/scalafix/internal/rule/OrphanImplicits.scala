@@ -1,21 +1,20 @@
 package scalafix.internal.rule
 
 import scala.meta._
-import scalafix.internal.util.SymbolOps
-import scalafix.lint.LintCategory
+import scalafix.internal.util.{SymbolOps, TreeOps}
 import scalafix.rule.RuleCtx
-import scalafix.util.SemanticdbIndex
-import scalafix.{LintMessage, Rule}
+import scalafix.syntax._
+import scalafix.{LintCategory, LintMessage, SemanticRule, SemanticdbIndex}
 
 final case class OrphanImplicits(index: SemanticdbIndex)
-    extends Rule("OrphanImplicits") {
+    extends SemanticRule(index, "OrphanImplicits") {
 
   override def description: String =
     "Linter that reports an error on implicit instances of shape F[G] " +
-      "that do not belong in the companion objects of F or G."
+      "that do not belong to the companion object of F or G."
 
   private lazy val errorCategory: LintCategory =
-    LintCategory.error("Orphan implicits should be avoided")
+    LintCategory.error("")
 
   override def check(ctx: RuleCtx): Seq[LintMessage] = {
 
@@ -26,6 +25,7 @@ final case class OrphanImplicits(index: SemanticdbIndex)
 
       val tpeSymbols = tpe match {
         case Type.Apply(t, Seq(arg)) =>
+          println(tpe)
           Seq(index.symbol(t), index.symbol(arg)).flatten
         case _ => Seq.empty
       }
@@ -37,7 +37,7 @@ final case class OrphanImplicits(index: SemanticdbIndex)
           errorCategory
             .at(
               s"""Orphan implicits are not allowed.
-                 |You should put this definition to one of the following objects:
+                 |This definition is only allowed in one of the following objects:
                  |${tpeSymbols.mkString(", ")}
                 """.stripMargin,
               pos
@@ -46,18 +46,38 @@ final case class OrphanImplicits(index: SemanticdbIndex)
         None
       }
     }
+    def handleDefn(
+        mods: List[Mod],
+        tpe: Option[Type],
+        d: Defn,
+        obj: Symbol.Global): Option[LintMessage] = {
+      if (mods.exists(_.is[Mod.Implicit])) {
+        tpe match {
+          case Some(t) => handleImplicit(t, obj, d.pos)
+          case None =>
+            for {
+              name <- TreeOps.defnName(d)
+              symbol <- name.symbol
+              tpe <- symbol.resultType
+              res <- handleImplicit(tpe, obj, d.pos)
+            } yield res
+        }
+      } else {
+        None
+      }
+    }
 
     ctx.tree.collect {
-      case Defn.Object(_, name, templ) =>
-        index.symbol(name) match {
-          case Some(obj @ Symbol.Global(_, _)) =>
+      case Defn.Object(_, name @ index.Symbol(sym), templ) =>
+        sym match {
+          case obj: Symbol.Global =>
             templ.stats.collect {
-              case t @ Defn.Val(mods, _, Some(tpe), _)
-                  if mods.exists(_.is[Mod.Implicit]) =>
-                handleImplicit(tpe, obj, t.pos)
-              case t @ Defn.Def(mods, _, _, _, Some(tpe), _)
-                  if mods.exists(_.is[Mod.Implicit]) =>
-                handleImplicit(tpe, obj, t.pos)
+              case t @ Defn.Val(mods, _, tpe, _) =>
+                handleDefn(mods, tpe, t, obj)
+              case t @ Defn.Var(mods, _, tpe, _) =>
+                handleDefn(mods, tpe, t, obj)
+              case t @ Defn.Def(mods, _, _, _, tpe, _) =>
+                handleDefn(mods, tpe, t, obj)
             }.flatten
           case _ => List.empty
         }
