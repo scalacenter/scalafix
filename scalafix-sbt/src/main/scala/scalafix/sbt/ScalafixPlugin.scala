@@ -195,7 +195,7 @@ object ScalafixPlugin extends AutoPlugin {
       val classDir = classDirectory.value
       val classpath = if (classDir.exists()) classDir.toString else ""
       val sourcesToFix = for {
-        source <- unmanagedSources.value
+        source <- unmanagedSources.in(scalafix).value
         if source.exists()
         if canFix(source)
       } yield source
