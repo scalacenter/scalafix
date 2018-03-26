@@ -10,7 +10,7 @@ case class RemoveUnusedTerms(index: SemanticdbIndex)
     extends SemanticRule(index, "RemoveUnusedTerms") {
 
   override def description: String =
-    "Rewrite that removes unused locals/privates by -Ywarn-unused:locals/privates"
+    "Rewrite that removes unused locals or privates by -Ywarn-unused:locals,privates"
 
   private val unusedTerms = {
     val UnusedLocalVal = """local (.*) is never used""".r
