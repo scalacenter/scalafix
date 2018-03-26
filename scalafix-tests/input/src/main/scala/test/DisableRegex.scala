@@ -27,9 +27,15 @@ package test
 object DisableRegex {
   import scala.collection.mutable._ // ok
   import scala.collection.mutable   // ok
-  val buffer = new ListBuffer[Int]() // assert: Disable.<init>
-  val abc = new mutable  // assert: Disable.mutable
-    .HashMap[String, String]() // assert: Disable.<init>
+
+  @SuppressWarnings(Array("Disable.ListBuffer"))
+  @SuppressWarnings(Array("Disable.<init>"))
+  val buffer = new ListBuffer[Int]()
+
+  @SuppressWarnings(Array("Disable.mutable"))
+  @SuppressWarnings(Array("Disable.HashMap"))
+  @SuppressWarnings(Array("Disable.<init>"))
+  val abc = new mutable.HashMap[String, String]()
 
   object IO { // IO we deserve
     def apply[T](run: => T): Nothing = ???
