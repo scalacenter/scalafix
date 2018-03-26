@@ -29,6 +29,7 @@ object DisableRegex {
   import scala.collection.mutable   // ok
 
   @SuppressWarnings(Array("Disable.ListBuffer"))
+  @SuppressWarnings(Array("Disable.<init>"))
   val buffer = new ListBuffer[Int]()
 
   @SuppressWarnings(Array("Disable.mutable"))
