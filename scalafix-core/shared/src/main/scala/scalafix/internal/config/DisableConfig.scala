@@ -54,7 +54,7 @@ object DisabledSymbol {
       msg
     }
   implicit val reader: ConfDecoder[DisabledSymbol] =
-    ConfDecoder.instanceF[DisabledSymbol] {
+    ConfDecoder.instance[DisabledSymbol] {
       case c: Conf.Obj =>
         (c.getOption[Symbol.Global]("symbol") |@|
           c.getOption[String]("message") |@|
@@ -76,7 +76,6 @@ object DisabledSymbol {
         symbolGlobalReader
           .read(s)
           .map(sym => DisabledSymbol(Some(sym), None, None, None))
-      case _ => Configured.NotOk(ConfError.message("Wrong config format"))
     }
 }
 

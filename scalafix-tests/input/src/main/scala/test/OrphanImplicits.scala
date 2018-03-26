@@ -19,6 +19,8 @@ This definition is only allowed in one of the following objects:
 _root_.scala.package.List#, _root_.test.OrphanImplicits.Foo#
 */
     implicit val listFoo2 = List(FooImpl) // assert: OrphanImplicits
+    type ListFoo = List[Foo]
+    implicit val listFoo3: ListFoo = List(FooImpl) // ok
 
     implicit val either: Either[String, Int] = ??? // ok, because it has 2 type params
 

@@ -22,7 +22,6 @@ final case class OrphanImplicits(index: SemanticdbIndex)
         tpe: Type,
         obj: Symbol.Global,
         pos: Position): Option[LintMessage] = {
-
       val tpeSymbols = tpe match {
         case Type.Apply(t, Seq(arg)) =>
           Seq(index.symbol(t), index.symbol(arg)).flatten
@@ -47,39 +46,30 @@ final case class OrphanImplicits(index: SemanticdbIndex)
     }
     def handleDefn(
         mods: List[Mod],
-        tpe: Option[Type],
         d: Defn,
         obj: Symbol.Global): Option[LintMessage] = {
       if (mods.exists(_.is[Mod.Implicit])) {
-        tpe match {
-          case Some(t) => handleImplicit(t, obj, d.pos)
-          case None =>
-            for {
-              name <- TreeOps.defnName(d)
-              symbol <- name.symbol
-              tpe <- symbol.resultType
-              res <- handleImplicit(tpe, obj, d.pos)
-            } yield res
-        }
+        for {
+          name <- TreeOps.defnName(d)
+          symbol <- name.symbol
+          tpe <- symbol.resultType
+          res <- handleImplicit(tpe, obj, d.pos)
+        } yield res
       } else {
         None
       }
     }
 
     ctx.tree.collect {
-      case Defn.Object(_, name @ index.Symbol(sym), templ) =>
-        sym match {
-          case obj: Symbol.Global =>
-            templ.stats.collect {
-              case t @ Defn.Val(mods, _, tpe, _) =>
-                handleDefn(mods, tpe, t, obj)
-              case t @ Defn.Var(mods, _, tpe, _) =>
-                handleDefn(mods, tpe, t, obj)
-              case t @ Defn.Def(mods, _, _, _, tpe, _) =>
-                handleDefn(mods, tpe, t, obj)
-            }.flatten
-          case _ => List.empty
-        }
+      case Defn.Object(_, name @ index.Symbol(obj: Symbol.Global), templ) =>
+        templ.stats.collect {
+          case t @ Defn.Val(mods, _, _, _) =>
+            handleDefn(mods, t, obj)
+          case t @ Defn.Var(mods, _, _, _) =>
+            handleDefn(mods, t, obj)
+          case t @ Defn.Def(mods, _, _, _, tpe, _) =>
+            handleDefn(mods, t, obj)
+        }.flatten
     }.flatten
   }
 }

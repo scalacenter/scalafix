@@ -5,6 +5,7 @@ import metaconfig.{Conf, Configured}
 import scala.meta._
 import scala.meta.transversers.Traverser
 import scalafix.internal.config.{DisableConfig, DisabledSymbol}
+import scalafix.internal.util.SymbolOps
 import scalafix.lint.{LintCategory, LintMessage}
 import scalafix.rule.{Rule, RuleCtx, SemanticRule}
 import scalafix.util.SemanticdbIndex
@@ -131,9 +132,11 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
         val isBlocked = new DisableSymbolMatcher(blockedSymbols)
         ctx.index.symbol(t) match {
           case Some(isBlocked(s: Symbol.Global, disabled)) =>
-            Left(
-              createLintMessage(s, disabled, t.pos)
-            )
+            SymbolOps.normalize(s) match {
+              case g: Symbol.Global =>
+                Left(createLintMessage(s, disabled, t.pos))
+              case _ => Right(blockedSymbols)
+            }
           case _ => Right(blockedSymbols)
         }
     }).result(ctx.tree)
