@@ -25,7 +25,6 @@ final case class OrphanImplicits(index: SemanticdbIndex)
 
       val tpeSymbols = tpe match {
         case Type.Apply(t, Seq(arg)) =>
-          println(tpe)
           Seq(index.symbol(t), index.symbol(arg)).flatten
         case _ => Seq.empty
       }
