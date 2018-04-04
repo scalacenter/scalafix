@@ -78,13 +78,13 @@ println(
 scalafix.website.config[UnlessInsideBlock]("UnlessInsideBlock")
 )
 println(
-scalafix.website.config[DisableConfig]("Disable")
+scalafix.website.config[DisableConfig]("DisableConfig")
 )
 println(
-scalafix.website.defaults("Disable", DisableConfig.default)
+scalafix.website.defaults("DisableConfig", DisableConfig.default)
 )
 println(
-scalafix.website.examples[DisableConfig]("Disable")
+scalafix.website.examples[DisableConfig]("DisableConfig")
 )
 ```
 
