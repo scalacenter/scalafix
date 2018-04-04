@@ -23,8 +23,8 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "{{ site.stableVersion }}")
                  // Not needed if build.sbt is configured like below.
 > scalafixCli                                         // Run all rules configured in .scalafix.conf
 > scalafixCli --rules RemoveUnusedImports             // Run only RemoveUnusedImports rule
-> myProject/scalafixCli --rule RemoveUnusedImports    // Run rule in one project only
-> test:scalafixCli --rule RemoveUnusedImports         // Run rule in single configuration
+> myProject/scalafixCli --rules RemoveUnusedImports    // Run rule in one project only
+> test:scalafixCli --rules RemoveUnusedImports         // Run rule in single configuration
 > scalafixCli --rules ExplicitR<TAB>                  // Use tab completion
 > scalafixCli --rules replace:com.foobar/com.buzbaz   // Refactor (experimental)
 > scalafixCli --rules file:rules/MyRule.scala         // Run local custom rule
