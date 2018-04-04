@@ -1,7 +1,7 @@
 package scalafix.internal.util
 
+import java.io.IOException
 import scala.meta.internal.semanticdb3.Scala.Symbols
-import java.io.InputStream
 import java.net.URI
 import java.nio.file.FileSystem
 import java.nio.file.FileSystemAlreadyExistsException
@@ -13,6 +13,7 @@ import org.langmeta.io.Classpath
 import scala.collection.concurrent.TrieMap
 import scala.meta.internal.semanticdb3.Scala._
 import scala.meta.internal.{semanticdb3 => s}
+import scala.util.control.NonFatal
 
 /**
   * Implementation of SymbolTable that lazily loads symbols on demand.
@@ -59,7 +60,10 @@ class LazySymbolTable(mclasspath: Classpath) extends SymbolTable {
     }
   }
 
-  private def loadIndex(root: AbsolutePath, in: InputStream): Unit = {
+  private def loadIndex(root: AbsolutePath): Unit = {
+    val path = root.resolve("META-INF").resolve("semanticdb.semanticidx")
+    if (!Files.isRegularFile(path.toNIO)) return
+    val in = Files.newInputStream(path.toNIO)
     val index =
       try s.Index.parseFrom(in)
       finally in.close()
@@ -72,14 +76,9 @@ class LazySymbolTable(mclasspath: Classpath) extends SymbolTable {
 
   private def loadSemanticdbIndex(root: AbsolutePath): Unit = {
     if (root.isDirectory) {
-      loadIndex(root, Files.newInputStream(root.resolve(semanticIdx).toNIO))
+      loadIndex(root)
     } else if (PathIO.extension(root.toNIO) == "jar") {
-      withJarFileSystem(root) { jarRoot =>
-        loadIndex(
-          jarRoot,
-          Files.newInputStream(jarRoot.resolve(semanticIdx).toNIO)
-        )
-      }
+      withJarFileSystem(root)(loadIndex)
     } else {
       throw new IllegalArgumentException(root.toString())
     }
@@ -91,7 +90,12 @@ class LazySymbolTable(mclasspath: Classpath) extends SymbolTable {
     // NOTE(olafur): We don't fs.close() because that can affect another place where `FileSystems.getFileSystems`
     // was used due to a `FileSystemAlreadyExistsException`. I don't know what the best solution is for reading the
     // same zip file from multiple concurrent places.
-    f(AbsolutePath(fs.getPath("/")))
+    try {
+      f(AbsolutePath(fs.getPath("/")))
+    } catch {
+      case NonFatal(e) =>
+        throw new IOException(path.toString, e)
+    }
   }
 
   private def newJarFileSystem(path: AbsolutePath): FileSystem = {
