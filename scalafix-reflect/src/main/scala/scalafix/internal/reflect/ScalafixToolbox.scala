@@ -2,7 +2,7 @@ package scalafix.internal.reflect
 
 import java.io.File
 import java.net.URLClassLoader
-import java.net.URLDecoder
+import java.nio.file.Paths
 import java.util.function
 import scala.meta.inputs.Input
 import scala.reflect.internal.util.AbstractFileClassLoader
@@ -19,6 +19,7 @@ import scalafix.internal.util.ClassloadRule
 import scalafix.rule.Rule
 import metaconfig.ConfError
 import metaconfig.Configured
+import org.langmeta.io.AbsolutePath
 
 object ScalafixToolbox extends ScalafixToolbox
 class ScalafixToolbox {
@@ -71,28 +72,34 @@ class ScalafixToolbox {
 }
 
 object RuleCompiler {
+
   def defaultClasspath: String = {
+    defaultClasspathPaths.mkString(File.pathSeparator)
+  }
+
+  def defaultClasspathPaths: List[AbsolutePath] = {
     getClass.getClassLoader match {
       case u: URLClassLoader =>
-        val paths = u.getURLs.toList.map(u => {
+        val paths = u.getURLs.iterator.map { u =>
           if (u.getProtocol.startsWith("bootstrap")) {
-            import java.io._
             import java.nio.file._
             val stream = u.openStream
-            val tmp = File.createTempFile("bootstrap-" + u.getPath, ".jar")
-            Files.copy(
-              stream,
-              Paths.get(tmp.getAbsolutePath),
-              StandardCopyOption.REPLACE_EXISTING)
-            tmp.getAbsolutePath
+            val tmp = Files.createTempFile("bootstrap-" + u.getPath, ".jar")
+            Files.copy(stream, tmp, StandardCopyOption.REPLACE_EXISTING)
+            AbsolutePath(tmp)
           } else {
-            URLDecoder.decode(u.getPath, "UTF-8")
+            AbsolutePath(Paths.get(u.toURI))
           }
-        })
-        paths.mkString(File.pathSeparator)
-      case _ => ""
+        }
+        paths.toList
+      case obtained =>
+        throw new IllegalStateException(
+          s"Classloader mismatch\n" +
+            s"Expected: this.getClass.getClassloader.isInstanceOf[URLClassLoader]\n" +
+            s"Obtained: $obtained")
     }
   }
+
 }
 
 class RuleCompiler(

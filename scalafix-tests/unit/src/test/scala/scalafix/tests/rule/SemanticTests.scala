@@ -23,8 +23,8 @@ class SemanticTests
 object SemanticTests {
   def defaultClasspath = Classpath(
     classpath.shallow ++
-      Classpath(RuleCompiler.defaultClasspath).shallow
-        .filter(_.toString().contains("scala-library"))
+      RuleCompiler.defaultClasspathPaths.filter(path =>
+        path.toNIO.getFileName.toString.contains("scala-library"))
   )
   def index: SemanticdbIndex = EagerInMemorySemanticdbIndex(
     Database.load(
