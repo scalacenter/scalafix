@@ -24,7 +24,7 @@ import scala.util.control.NonFatal
 class LazySymbolTable(mclasspath: Classpath) extends SymbolTable {
 
   // Map from symbols to the paths to their corresponding semanticdb file where they are stored.
-  private val unloadedSymbols = TrieMap.empty[String, AbsolutePath]
+  private val notYetLoadedSymbols = TrieMap.empty[String, AbsolutePath]
   private val loadedSymbols = TrieMap.empty[String, s.SymbolInformation]
   private val semanticdb = "META-INF/semanticdb"
   private val semanticIdx = "META-INF/semanticdb.semanticidx"
@@ -45,7 +45,7 @@ class LazySymbolTable(mclasspath: Classpath) extends SymbolTable {
   }
 
   private def loadSymbolFromClasspath(symbol: String): Unit = {
-    val toLoad = unloadedSymbols.get(symbol)
+    val toLoad = notYetLoadedSymbols.get(symbol)
     if (toLoad.isDefined) {
       val in = toLoad.get.toNIO.toUri.toURL.openStream()
       val semanticdb =
@@ -56,7 +56,7 @@ class LazySymbolTable(mclasspath: Classpath) extends SymbolTable {
           loadedSymbols.put(info.symbol, info)
         }
       }
-      unloadedSymbols.remove(symbol)
+      notYetLoadedSymbols.remove(symbol)
     }
   }
 
@@ -68,7 +68,7 @@ class LazySymbolTable(mclasspath: Classpath) extends SymbolTable {
       try s.Index.parseFrom(in)
       finally in.close()
     index.toplevels.foreach { toplevel =>
-      unloadedSymbols.put(
+      notYetLoadedSymbols.put(
         toplevel.symbol,
         root.resolve(semanticdb).resolve(toplevel.uri))
     }
@@ -87,9 +87,6 @@ class LazySymbolTable(mclasspath: Classpath) extends SymbolTable {
   private def withJarFileSystem[T](path: AbsolutePath)(
       f: AbsolutePath => T): T = {
     val fs = newJarFileSystem(path)
-    // NOTE(olafur): We don't fs.close() because that can affect another place where `FileSystems.getFileSystems`
-    // was used due to a `FileSystemAlreadyExistsException`. I don't know what the best solution is for reading the
-    // same zip file from multiple concurrent places.
     try {
       f(AbsolutePath(fs.getPath("/")))
     } catch {

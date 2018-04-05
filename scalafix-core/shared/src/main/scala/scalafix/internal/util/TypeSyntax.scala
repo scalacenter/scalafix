@@ -10,7 +10,6 @@ import scala.util.control.NonFatal
 import scalafix._
 import scalafix.internal.util.SymbolOps.SymbolType
 import org.langmeta.semanticdb.Symbol
-import scala.meta.internal.semanticdb3.SingletonType.{Tag => x}
 import scala.meta.internal.semanticdb3.SymbolInformation.{Kind => k}
 import scala.meta.internal.semanticdb3.SymbolInformation.{Property => p}
 import scala.meta.internal.semanticdb3.Type.{Tag => t}
@@ -24,7 +23,7 @@ object TypeSyntax {
       shortenNames: Boolean,
       pos: Position)(implicit index: SemanticdbIndex): Option[(Type, Patch)] = {
     try {
-      val table = index.asInstanceOf[EagerInMemorySemanticdbIndex].table
+      val table = index.asInstanceOf[EagerInMemorySemanticdbIndex]
       Some(new TypeSyntax(stpe, ctx, shortenNames, pos, table).prettify())
     } catch {
       case NonFatal(e) =>
@@ -88,12 +87,12 @@ class TypeSyntax private (
     ctx: RuleCtx,
     shortenNames: Boolean,
     pos: Position,
-    _table: SymbolTable
+    table: EagerInMemorySemanticdbIndex
 )(implicit index: SemanticdbIndex) {
-  val table = new CombinedSymbolTable(index, _table)
 
   def fail(any: GeneratedMessage): Nothing = sys.error(any.toProtoString)
 
+  // This method suffers from the same problems as symbolToTree, see comment below.
   def isStable(symbol: Symbol): Boolean = {
     def loop(symbol: Symbol): Boolean = symbol match {
       case Symbol.None => true
@@ -115,26 +114,26 @@ class TypeSyntax private (
   def widen(tpe: s.Type): s.Type = {
     tpe.tag match {
       case t.SINGLETON_TYPE =>
-        import s.SingletonType.{Tag => x}
+        import s.SingletonType.Tag
         val singletonType = tpe.singletonType.get
         singletonType.tag match {
-          case x.SYMBOL =>
+          case Tag.SYMBOL =>
             index.denotation(Symbol(singletonType.symbol)).get.tpeInternal.get
-          case x.BOOLEAN => ref("scala.Boolean#")
-          case x.BYTE => ref("scala.Byte#")
-          case x.CHAR => ref("scala.Char#")
-          case x.DOUBLE => ref("scala.Double#")
-          case x.FLOAT => ref("scala.Float#")
-          case x.INT => ref("scala.Int#")
-          case x.LONG => ref("scala.Long#")
-          case x.NULL => ref("scala.Null#")
-          case x.SHORT => ref("scala.Short#")
-          case x.STRING => ref("java.lang.String#")
-          case x.UNIT => ref("scala.Unit#")
-          case x.SUPER => tpe
-          case x.THIS => tpe
-          case x.UNKNOWN_SINGLETON => tpe
-          case x.Unrecognized(_) => tpe
+          case Tag.BOOLEAN => ref("scala.Boolean#")
+          case Tag.BYTE => ref("scala.Byte#")
+          case Tag.CHAR => ref("scala.Char#")
+          case Tag.DOUBLE => ref("scala.Double#")
+          case Tag.FLOAT => ref("scala.Float#")
+          case Tag.INT => ref("scala.Int#")
+          case Tag.LONG => ref("scala.Long#")
+          case Tag.NULL => ref("scala.Null#")
+          case Tag.SHORT => ref("scala.Short#")
+          case Tag.STRING => ref("java.lang.String#")
+          case Tag.UNIT => ref("scala.Unit#")
+          case Tag.SUPER => tpe
+          case Tag.THIS => tpe
+          case Tag.UNKNOWN_SINGLETON => tpe
+          case Tag.Unrecognized(_) => tpe
         }
       // TODO: handle non-singleton widening.
       case _ => tpe
@@ -201,15 +200,16 @@ class TypeSyntax private (
 
   def toTermRef(tpe: s.Type): Term.Ref = tpe.tag match {
     case t.SINGLETON_TYPE =>
+      import s.SingletonType.Tag
       val singleton = tpe.singletonType.get
       def name = Term.Name(table.info(singleton.symbol).name)
       singleton.tag match {
-        case x.SYMBOL =>
+        case Tag.SYMBOL =>
           singleton.prefix match {
             case Some(qual) => Term.Select(toTermRef(qual), name)
             case _ => name
           }
-        case x.THIS =>
+        case Tag.THIS =>
           assert(singleton.prefix.isEmpty, singleton.prefix.get.toProtoString)
           Term.This(name)
         case _ =>
@@ -348,9 +348,10 @@ class TypeSyntax private (
           }
       }
     case t.SINGLETON_TYPE =>
+      import s.SingletonType.Tag
       val singleton = tpe.singletonType.get
       singleton.tag match {
-        case x.SYMBOL =>
+        case Tag.SYMBOL =>
           val info = table.info(singleton.symbol)
           info.kind match {
             case k.LOCAL => Type.Singleton(Term.Name(info.name))
@@ -372,7 +373,7 @@ class TypeSyntax private (
                   fail(singleton)
               }
           }
-        case x.THIS =>
+        case Tag.THIS =>
           assert(singleton.prefix.isEmpty, singleton.prefix.get.toProtoString)
           val name = Name.Indeterminate(table.info(singleton.symbol).name)
           Type.Singleton(Term.This(name))

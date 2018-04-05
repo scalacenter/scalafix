@@ -55,20 +55,28 @@ case class ScalafixOptions(
     sourceroot: Option[String] = None,
     @HelpMessage(
       "java.io.File.pathSeparator separated list of directories or jars containing " +
-        "'.semanticdb' files. SemanticDB files are emitted by the " +
+        "META-INF/semanticdb/**/*.semanticdb files. SemanticDB files are emitted by the " +
         "semanticdb-scalac compiler plugin and are necessary for semantic rules " +
         "like ExplicitResultTypes to function."
     )
     @ValueDescription("entry1.jar:entry2.jar:target/scala-2.12/classes/")
-    @ExtraName("classpath")
-    classDirectory: Option[String] = None,
+    classpath: Option[String] = None,
     @HelpMessage(
-      "java.io.File.pathSeparator separated list of directories or jars for dependencies. " +
-        "Does not need to contain SemanticDB files. " +
-        "Required for semantic rules like ExplicitResultTypes to work."
+      "Same as --classpath except for dependencies that do not need to be compiled with SemanticDB. " +
+        "Must be accompanied with --classpath. " +
+        "This option is required for rules like ExplicitResultTypes to lookup symbol information from the classpath." +
+        "This option is processed with metacp and produced artifacts are globally cached using --metacp-cache-dir"
     )
     @ValueDescription("entry1.jar:entry2.jar:target/scala-2.12/classes/")
     dependencyClasspath: Option[String] = None,
+    @HelpMessage(
+      "Global cache location to persist metacp artifacts produced by analyzing --dependency-classpath. " +
+        "The default location depends on the OS and is computed with https://github.com/soc/directories-jvm " +
+        "using the project name 'semanticdb'. " +
+        "On macOS the default cache directory is ~/Library/Caches/semanticdb. ")
+    metacpCacheDir: Option[String] = None,
+    @HelpMessage("Set this flag to disable parallel processing with metacp.")
+    metacpNoPar: Boolean = false,
     @HelpMessage(
       "Automatically infer --classpath starting from these directories. " +
         "Ignored if --classpath is provided.")

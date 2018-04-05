@@ -320,7 +320,7 @@ object CliRunner {
         .toList
 
     def resolveClasspath: Configured[Classpath] = {
-      classDirectory match {
+      classpath match {
         case Some(cp) =>
           val paths = toClasspath(cp)
           Ok(Classpath(paths))
@@ -365,23 +365,34 @@ object CliRunner {
             val index = Database.load(classpath, Sourcepath(root))
             val deps = dependencyClasspath.map(toClasspath).getOrElse(Nil)
             val symbolTable = ClasspathOps.newSymbolTable(
-              Classpath(classpath.shallow ++ deps),
-              common.out)
-            val db = EagerInMemorySemanticdbIndex(
-              index,
-              Sourcepath(root),
-              classpath,
-              symbolTable
-            )
-            if (verbose) {
-              common.err.println(
-                s"Loaded database with ${db.documents.length} documents.")
-            }
-            if (db.documents.nonEmpty) Ok(db)
-            else {
-              ConfError
-                .message("Missing SemanticdbIndex, found no semanticdb files!")
-                .notOk
+              classpath = Classpath(classpath.shallow ++ deps),
+              cacheDirectory = metacpCacheDir.map(AbsolutePath(_)),
+              parallel = !metacpNoPar,
+              out = common.out)
+            symbolTable match {
+              case None =>
+                ConfError
+                  .message(
+                    "Failed to load symbol table from --dependency-classpath")
+                  .notOk
+              case Some(symtab) =>
+                val db = EagerInMemorySemanticdbIndex(
+                  index,
+                  Sourcepath(root),
+                  classpath,
+                  symtab
+                )
+                if (verbose) {
+                  common.err.println(
+                    s"Loaded database with ${db.documents.length} documents.")
+                }
+                if (db.documents.nonEmpty) Ok(db)
+                else {
+                  ConfError
+                    .message(
+                      "Missing SemanticdbIndex, found no semanticdb files!")
+                    .notOk
+                }
             }
         }
       }

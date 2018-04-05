@@ -4,6 +4,8 @@ package internal.util
 import scala.collection.mutable
 import scala.meta._
 import scala.{meta => m}
+import org.langmeta.internal.semanticdb._
+import scala.meta.internal.{semanticdb3 => s}
 
 case class EagerInMemorySemanticdbIndex(
     database: Database,
@@ -69,4 +71,26 @@ case class EagerInMemorySemanticdbIndex(
   override def names: Seq[ResolvedName] = _names.values.toSeq
   def withDocuments(documents: Seq[Document]): SemanticdbIndex =
     copy(database = Database(documents))
+
+  private def denotationToSymbolInformation(
+      symbol: String,
+      denot: Denotation): s.SymbolInformation = {
+    s.SymbolInformation(
+      symbol = symbol,
+      language = s.Language.SCALA,
+      kind = s.SymbolInformation.Kind.fromValue(denot.skind.value),
+      properties = denot.sproperties,
+      name = denot.name,
+      tpe = denot.tpeInternal
+    )
+  }
+
+  private[scalafix] def info(symbol: String): s.SymbolInformation =
+    table.info(symbol).getOrElse {
+      denotationToSymbolInformation(
+        symbol,
+        denotation(m.Symbol(symbol))
+          .getOrElse(throw new NoSuchElementException(symbol))
+      )
+    }
 }

@@ -1,7 +1,9 @@
 package scalafix.internal.cli
 
 import java.io.File
+import java.io.OutputStream
 import java.io.PrintStream
+import org.langmeta.io.AbsolutePath
 import scala.meta.Classpath
 import scala.meta.metacp
 import scalafix.internal.util.LazySymbolTable
@@ -13,27 +15,38 @@ object ClasspathOps {
     case (k, v) if k.endsWith(".boot.class.path") => Classpath(v)
   }
 
-  /**
-    * Process classpath with metacp to build semanticdbs of global symbols.
-    *
-    * @param sclasspath Regular classpath to process.
-    * @param out The output stream to print out error messages.
-    */
-  def toMetaClasspath(sclasspath: Classpath, out: PrintStream): Classpath = {
+  val devNull = new PrintStream(new OutputStream {
+    override def write(b: Int): Unit = ()
+  })
+
+  /** Process classpath with metacp to build semanticdbs of global symbols. **/
+  def toMetaClasspath(
+      sclasspath: Classpath,
+      cacheDirectory: Option[AbsolutePath],
+      parallel: Boolean, // unused until we upgrade scalameta for https://github.com/scalameta/scalameta/pull/1474
+      out: PrintStream): Option[Classpath] = {
     val withJDK = Classpath(
       bootClasspath.fold(sclasspath.shallow)(_.shallow ::: sclasspath.shallow))
-    val settings = metacp
-      .Settings()
+    val default = metacp.Settings()
+    val settings = default
       .withClasspath(withJDK)
       .withScalaLibrarySynthetics(true)
-    val reporter = metacp.Reporter().withOut(out)
-    val mclasspath = scala.meta.cli.Metacp.process(settings, reporter).get
+      .withCacheDir(cacheDirectory.getOrElse(default.cacheDir))
+    val reporter = metacp
+      .Reporter()
+      .withOut(devNull) // out prints classpath of proccessed classpath, which is not relevant for scalafix.
+      .withErr(out)
+    val mclasspath = scala.meta.cli.Metacp.process(settings, reporter)
     mclasspath
   }
 
-  def newSymbolTable(classpath: Classpath, out: PrintStream): SymbolTable = {
-    val mclasspath = toMetaClasspath(classpath, out)
-    new LazySymbolTable(mclasspath)
+  def newSymbolTable(
+      classpath: Classpath,
+      cacheDirectory: Option[AbsolutePath] = None,
+      parallel: Boolean = true,
+      out: PrintStream = System.out): Option[SymbolTable] = {
+    toMetaClasspath(classpath, cacheDirectory, parallel, out)
+      .map(new LazySymbolTable(_))
   }
 
   def getCurrentClasspath: String = {

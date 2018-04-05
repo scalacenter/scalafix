@@ -8,7 +8,6 @@ import scalafix.tests.BuildInfo
 import scalafix.tests.rule.SemanticTests._
 import scalafix.internal.cli.ClasspathOps
 import scalafix.internal.reflect.RuleCompiler
-import scalafix.internal.util.LazySymbolTable
 
 class SemanticTests
     extends SemanticRuleSuite(
@@ -34,8 +33,9 @@ object SemanticTests {
     ),
     sourcepath,
     classpath,
-    new LazySymbolTable(
-      ClasspathOps.toMetaClasspath(defaultClasspath, System.out))
+    ClasspathOps.newSymbolTable(defaultClasspath).getOrElse {
+      sys.error("Failed to load symbol table")
+    }
   )
   def sourcepath: Sourcepath = Sourcepath(
     List(
