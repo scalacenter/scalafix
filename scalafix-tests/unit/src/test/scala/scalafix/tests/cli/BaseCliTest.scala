@@ -167,7 +167,7 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
           ).resolve(path),
           StandardCharsets.UTF_8
         )
-      assert(exit == expectedExit)
+      assert(exit == expectedExit, s"$exit != $expectedExit. Out: $out")
       outputAssert(out.toString())
       if (expectedExit.isOk) {
         assertNoDiff(obtained, expected)
