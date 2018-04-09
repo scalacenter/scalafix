@@ -75,7 +75,9 @@ case class ScalafixOptions(
         "using the project name 'semanticdb'. " +
         "On macOS the default cache directory is ~/Library/Caches/semanticdb. ")
     metacpCacheDir: Option[String] = None,
-    @HelpMessage("Set this flag to disable parallel processing with metacp.")
+    @HelpMessage(
+      "Set this flag to disable parallel processing with metacp. " +
+        "Metacp uses the standard library parallel collections, which may enter deadlocks.")
     metacpNoPar: Boolean = false,
     @HelpMessage(
       "Automatically infer --classpath starting from these directories. " +
