@@ -8,7 +8,7 @@ import scalafix.SemanticdbIndex
 import scalafix.internal.config.ExplicitResultTypesConfig
 import scalafix.internal.config.MemberKind
 import scalafix.internal.config.MemberVisibility
-import scalafix.internal.util.{TreeOps, TypeSyntax}
+import scalafix.internal.util.TypeSyntax
 import scalafix.rule.Rule
 import scalafix.rule.RuleCtx
 import scalafix.rule.RuleName
