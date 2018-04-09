@@ -17,6 +17,7 @@ import scalafix.syntax._
 import scalafix.util.TokenOps
 import metaconfig.Conf
 import metaconfig.Configured
+import org.langmeta.internal.semanticdb.XtensionDenotationsInternal
 
 case class ExplicitResultTypes(
     index: SemanticdbIndex,
@@ -50,6 +51,12 @@ case class ExplicitResultTypes(
     case _ => false
   }
 
+  def defnName(defn: Defn): Option[Name] = Option(defn).collect {
+    case Defn.Val(_, Pat.Var(name) :: Nil, _, _) => name
+    case Defn.Var(_, Pat.Var(name) :: Nil, _, _) => name
+    case Defn.Def(_, name, _, _, _, _) => name
+  }
+
   def visibility(mods: Traversable[Mod]): MemberVisibility =
     mods
       .collectFirst {
@@ -67,10 +74,17 @@ case class ExplicitResultTypes(
   override def fix(ctx: RuleCtx): Patch = {
     def defnType(defn: Defn): Option[(Type, Patch)] =
       for {
-        name <- TreeOps.defnName(defn)
-        symbol <- name.symbol
-        typ <- symbol.resultType
-      } yield TypeSyntax.prettify(typ, ctx, config.unsafeShortenNames)
+        name <- defnName(defn)
+        denot <- name.denotation
+        tpe <- denot.tpeInternal
+        // Skip existential types for now since they cause problems.
+        if !tpe.tag.isExistentialType
+        result <- TypeSyntax.prettify(
+          tpe,
+          ctx,
+          config.unsafeShortenNames,
+          name.pos)
+      } yield result
     import scala.meta._
     def fix(defn: Defn, body: Term): Patch = {
       val lst = ctx.tokenList

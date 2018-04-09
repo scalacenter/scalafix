@@ -23,8 +23,8 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "{{ site.stableVersion }}")
                  // Not needed if build.sbt is configured like below.
 > scalafixCli                                         // Run all rules configured in .scalafix.conf
 > scalafixCli --rules RemoveUnusedImports             // Run only RemoveUnusedImports rule
-> myProject/scalafixCli --rule RemoveUnusedImports    // Run rule in one project only
-> test:scalafixCli --rule RemoveUnusedImports         // Run rule in single configuration
+> myProject/scalafixCli --rules RemoveUnusedImports    // Run rule in one project only
+> test:scalafixCli --rules RemoveUnusedImports         // Run rule in single configuration
 > scalafixCli --rules ExplicitR<TAB>                  // Use tab completion
 > scalafixCli --rules replace:com.foobar/com.buzbaz   // Refactor (experimental)
 > scalafixCli --rules file:rules/MyRule.scala         // Run local custom rule
@@ -32,19 +32,19 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "{{ site.stableVersion }}")
 > scalafixCli --test                                  // Make sure no files needs to be fixed
 
 
-// (optional, to avoid need for scalafixEnable) permanently enable scalafix in build.sbt
+// (optional) to avoid running scalafixEnable every time, permanently enable scalafix in build.sbt
 // ===> build.sbt
 scalaVersion := "{{ site.scala212 }}" // {{ site.scala211 }} is also supported.
-
-// If you get "-Yrangepos is required" error or "Missing compiler plugin semanticdb",
-// This setting must appear after scalacOptions and libraryDependencies.
-scalafixSettings
-// or scalafixLibraryDependencies (Add semanticdb-scalac compiler plugin to libraryDependencies.)
-// & scalacOptions bellow
-
-// To configure for custom configurations like IntegrationTest
-scalafixConfigure(Compile, Test, IntegrationTest)
+addCompilerPlugin(scalafixSemanticdb)
+scalacOptions += "-Yrangepos"
 ```
+
+Notes. 
+* The `semanticdb-scalac` compiler plugin is required to run semantic Scalafix rules like {% rule_ref Disable %}.
+* The `semanticdb-scalac` compiler plugin is not required to run syntactic rules like {% rule_ref DisableSyntax %}.
+* The `semanticdb-scalac` compiler plugin produces `*.semanticdb` files in the target `META-INF/semanticdb/` directory.
+* The compilation overhead of `semanticdb-scalac` depends on the compiler settings used, but by default it is around 30% 
+  over regular compilation.
 
 ### Verify installation
 
@@ -54,8 +54,6 @@ contain the values below.
 ```scala
 > show scalacOptions
 [info] * -Yrangepos                   // required
-[info] * -Xplugin-require:semanticdb  // recommended
-[info] * -P:semanticdb:sourceroot:/x  // recommended
 > show libraryDependencies
 [info] * org.scalameta:semanticdb-scalac:{{ site.scalametaVersion }}:plugin->default(compile)
 ```
@@ -87,6 +85,16 @@ git diff // should produce a diff
 | `scalafixVersion`           | `String`      | Which version of scalafix-cli to run.                                                                                                     |
 | `scalafixEnabled`           | `Boolean`     | Deprecated. Use the scalafixEnable command or manually configure scalacOptions/libraryDependecies/scalaVersion                            |
 | `scalametaSourceroot`       | `File`        | Deprecated. Renamed to `scalafixSourceroot`                                                                                               |
+
+
+### FAQ
+{: #sbt-faq}
+
+* How to exclude/add files that are processed by the `scalafix` task?
+
+```
+unmanagedSources.in(Compile, scalafix) := unmanagedSources.in(Compile).value.filter(file => ...)
+```
 
 ## scalafix-cli
 

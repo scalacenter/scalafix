@@ -2,9 +2,12 @@ package scalafix.tests.rule
 
 import scala.meta._
 import scalafix.SemanticdbIndex
+import scalafix.internal.util.EagerInMemorySemanticdbIndex
 import scalafix.testkit._
 import scalafix.tests.BuildInfo
 import scalafix.tests.rule.SemanticTests._
+import scalafix.internal.cli.ClasspathOps
+import scalafix.internal.reflect.RuleCompiler
 
 class SemanticTests
     extends SemanticRuleSuite(
@@ -18,13 +21,21 @@ class SemanticTests
 }
 
 object SemanticTests {
-  def index: SemanticdbIndex = SemanticdbIndex.load(
+  def defaultClasspath = Classpath(
+    classpath.shallow ++
+      RuleCompiler.defaultClasspathPaths.filter(path =>
+        path.toNIO.getFileName.toString.contains("scala-library"))
+  )
+  def index: SemanticdbIndex = EagerInMemorySemanticdbIndex(
     Database.load(
       classpath,
       sourcepath
     ),
     sourcepath,
-    classpath
+    classpath,
+    ClasspathOps.newSymbolTable(defaultClasspath).getOrElse {
+      sys.error("Failed to load symbol table")
+    }
   )
   def sourcepath: Sourcepath = Sourcepath(
     List(

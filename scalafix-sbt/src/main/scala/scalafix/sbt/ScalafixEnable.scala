@@ -49,8 +49,7 @@ object ScalafixEnable {
         scalaVersion.in(p) := fullVersion,
         scalacOptions.in(p) ++= List(
           "-Yrangepos",
-          s"-Xplugin-require:semanticdb",
-          s"-P:semanticdb:sourceroot:${scalafixSourceroot.value.getAbsolutePath}"
+          s"-Xplugin-require:semanticdb"
         ),
         libraryDependencies.in(p) += compilerPlugin(
           "org.scalameta" % "semanticdb-scalac" %

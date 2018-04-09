@@ -3,7 +3,8 @@ package scalafix.tests.cli
 import scala.collection.immutable.Seq
 import scalafix.cli._
 import scalafix.internal.cli.CommonOptions
-import scalafix.tests.BuildInfo
+import scalafix.internal.rule.ExplicitResultTypes
+import scalafix.tests.rule.SemanticTests
 
 class CliSemanticTests extends BaseCliTest {
 
@@ -20,7 +21,7 @@ class CliSemanticTests extends BaseCliTest {
     name = "--classpath explicit is OK",
     args = Seq(
       "--classpath",
-      BuildInfo.semanticClasspath.getAbsolutePath
+      semanticClasspath
     ),
     expectedExit = ExitStatus.Ok
   )
@@ -31,7 +32,7 @@ class CliSemanticTests extends BaseCliTest {
       "--sourceroot",
       "bogus",
       "--classpath",
-      BuildInfo.semanticClasspath.getAbsolutePath
+      semanticClasspath
     ),
     expectedExit = ExitStatus.InvalidCommandLineOption,
     outputAssert = msg => assert(msg.contains("Invalid --sourceroot"))
@@ -43,7 +44,7 @@ class CliSemanticTests extends BaseCliTest {
       "--sourceroot",
       CommonOptions.default.workingDirectory,
       "--classpath",
-      BuildInfo.semanticClasspath.getAbsolutePath
+      semanticClasspath
     ),
     expectedExit = ExitStatus.InvalidCommandLineOption,
     outputAssert = msg => {
@@ -63,7 +64,7 @@ class CliSemanticTests extends BaseCliTest {
         .resolve("main")
         .toString(),
       "--classpath",
-      BuildInfo.semanticClasspath.getAbsolutePath
+      semanticClasspath
     ),
     expectedExit = ExitStatus.InvalidCommandLineOption,
     outputAssert = msg => {
@@ -72,4 +73,27 @@ class CliSemanticTests extends BaseCliTest {
       assert(msg.contains("Is --sourceroot correct?"))
     }
   )
+
+  checkSemantic(
+    name = "explicit result types OK",
+    args = Seq(
+      "--classpath",
+      SemanticTests.defaultClasspath.syntax
+    ),
+    expectedExit = ExitStatus.Ok,
+    rule = ExplicitResultTypes.toString(),
+    path = explicitResultTypesPath
+  )
+
+  checkSemantic(
+    name = "unexpected error for incomplete classpath",
+    args = Seq(
+      "--classpath",
+      semanticClasspath // missing scala-library
+    ),
+    expectedExit = ExitStatus.UnexpectedError,
+    rule = ExplicitResultTypes.toString(),
+    path = explicitResultTypesPath
+  )
+
 }

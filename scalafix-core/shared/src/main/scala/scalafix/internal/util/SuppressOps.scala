@@ -9,8 +9,9 @@ import scalafix.rule.RuleCtx
 import scalafix.util.SemanticdbIndex
 
 object SuppressOps {
-  @tailrec
+
   /** Binary searches for the last leading token before `pos` */
+  @tailrec
   private def findClosestLeadingToken(
       tokens: Tokens,
       pos: Position): Option[Token] = {

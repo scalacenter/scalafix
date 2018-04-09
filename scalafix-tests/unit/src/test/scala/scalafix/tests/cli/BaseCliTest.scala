@@ -106,11 +106,29 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
   val semanticRoot: RelativePath = RelativePath("scala").resolve("test")
   val removeImportsPath: RelativePath =
     semanticRoot.resolve("RemoveUnusedImports.scala")
+  val explicitResultTypesPath: RelativePath =
+    semanticRoot
+      .resolve("explicitResultTypes")
+      .resolve("ExplicitResultTypesBase.scala")
+  val semanticClasspath =
+    BuildInfo.semanticClasspath.getAbsolutePath
+
+  def writeTestkitConfiguration(root: Path, path: Path): Unit = {
+    import scala.meta._
+    val code = new String(Files.readAllBytes(path), StandardCharsets.UTF_8)
+    val comment = SemanticRuleSuite.findTestkitComment(code.tokenize.get)
+    Files.write(
+      root.resolve(".scalafix.conf"),
+      comment.syntax.stripPrefix("/*").stripSuffix("*/").getBytes()
+    )
+  }
   def checkSemantic(
       name: String,
       args: Seq[String],
       expectedExit: ExitStatus,
-      outputAssert: String => Unit = _ => ()
+      outputAssert: String => Unit = _ => (),
+      rule: String = RemoveUnusedImports.toString(),
+      path: RelativePath = removeImportsPath
   ): Unit = {
     test(name, SkipWindows) {
       val fileIsFixed = expectedExit.isOk
@@ -119,21 +137,24 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
       tmp.toFile.deleteOnExit()
       val root = ops.Path(tmp) / "input"
       ops.cp(ops.Path(BuildInfo.inputSourceroot.toPath), root)
+      val rootNIO = root.toNIO
+      writeTestkitConfiguration(rootNIO, rootNIO.resolve(path.toNIO))
       val exit = Cli.runMain(
         args ++ Seq(
           "-r",
-          RemoveUnusedImports.toString(),
-          removeImportsPath.toString()
+          rule,
+          path.toString()
         ),
         default.common.copy(
           workingDirectory = root.toString(),
-          out = new PrintStream(out)
+          out = new PrintStream(out),
+          err = new PrintStream(out)
         )
       )
       val obtained = {
         val fixed =
           FileIO.slurp(
-            AbsolutePath(root.toNIO).resolve(removeImportsPath),
+            AbsolutePath(root.toNIO).resolve(path),
             StandardCharsets.UTF_8)
         if (fileIsFixed) SemanticRuleSuite.stripTestkitComments(fixed)
         else fixed
@@ -143,12 +164,14 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
           AbsolutePath(
             if (fileIsFixed) BuildInfo.outputSourceroot
             else BuildInfo.inputSourceroot
-          ).resolve(removeImportsPath),
+          ).resolve(path),
           StandardCharsets.UTF_8
         )
-      assert(exit == expectedExit)
-      assertNoDiff(obtained, expected)
+      assert(exit == expectedExit, s"$exit != $expectedExit. Out: $out")
       outputAssert(out.toString())
+      if (expectedExit.isOk) {
+        assertNoDiff(obtained, expected)
+      }
     }
   }
 

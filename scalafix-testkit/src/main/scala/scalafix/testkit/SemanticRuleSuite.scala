@@ -15,9 +15,7 @@ object SemanticRuleSuite {
     stripTestkitComments(input.tokenize.get)
 
   def stripTestkitComments(tokens: Tokens): String = {
-    val configComment = tokens.find { x =>
-      x.is[Token.Comment] && x.syntax.startsWith("/*")
-    }.get
+    val configComment = findTestkitComment(tokens)
     tokens.filter {
       case `configComment` => false
       case EndOfLineAssertExtractor(_) => false
@@ -25,6 +23,19 @@ object SemanticRuleSuite {
       case _ => true
     }.mkString
   }
+
+  def findTestkitComment(tokens: Tokens): Token = {
+    tokens
+      .find { x =>
+        x.is[Token.Comment] && x.syntax.startsWith("/*")
+      }
+      .getOrElse {
+        val input = tokens.headOption.fold("the file")(_.input.toString)
+        throw new IllegalArgumentException(
+          s"Missing /* */ comment at the top of $input")
+      }
+  }
+
 }
 
 abstract class SemanticRuleSuite(
@@ -55,11 +66,11 @@ abstract class SemanticRuleSuite(
       expectedOutputSourceroot
     )
 
-  private def dialectToPath(dialect: String): Option[String] =
-    Option(dialect).collect {
-      case "Scala211" => "scala-2.11"
-      case "Scala212" => "scala-2.12"
-    }
+  def scalaVersion = scala.util.Properties.versionNumberString
+  private def scalaVersionDirectory: Option[String] =
+    if (scalaVersion.startsWith("2.11")) Some("scala-2.11")
+    else if (scalaVersion.startsWith("2.12")) Some("scala-2.12")
+    else None
 
   def runOn(diffTest: DiffTest): Unit = {
     test(diffTest.name) {
@@ -76,10 +87,11 @@ abstract class SemanticRuleSuite(
       val tokens = obtainedWithComment.tokenize.get
       val obtained = SemanticRuleSuite.stripTestkitComments(tokens)
       val candidateOutputFiles = expectedOutputSourceroot.flatMap { root =>
-        val scalaSpecificFilename =
-          dialectToPath(diffTest.document.language).toList.map(path =>
-            root.resolve(RelativePath(
-              diffTest.filename.toString().replaceFirst("scala", path))))
+        val scalaSpecificFilename = scalaVersionDirectory.toList.map { path =>
+          root.resolve(
+            RelativePath(
+              diffTest.filename.toString().replaceFirst("scala", path)))
+        }
         root.resolve(diffTest.filename) :: scalaSpecificFilename
       }
       val expected = candidateOutputFiles

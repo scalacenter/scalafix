@@ -46,16 +46,15 @@ class SemanticdbIndexTest extends BaseSemanticTest("SemanticdbIndexTest") {
   }
 
   test("symbol(Importee.Rename)") {
-    val success =
-      SymbolMatcher.exact(
-        Symbol("_root_.scala.util.Success.;_root_.scala.util.Success#"))
+    val success = SymbolMatcher.normalized(Symbol("_root_.scala.util.Success#"))
     var hasAssert = false
     source.collect {
       case importee @ Importee.Rename(name @ Name("Success"), _) =>
         assert(index.symbol(importee) == index.symbol(name))
-        assert(importee.matches(success))
+        assert(success.matches(importee))
         hasAssert = true
     }
     assert(hasAssert)
   }
+
 }
