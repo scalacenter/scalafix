@@ -3,7 +3,7 @@ import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 /* scalafmt: { maxColumn = 120 }*/
 
 object Dependencies {
-  val scalametaV = "3.3.1"
+  val scalametaV = "3.7.2"
   val metaconfigV = "0.6.0-RC1"
   def dotty = "0.1.1-bin-20170530-f8f52cc-NIGHTLY"
   def scala210 = "2.10.6"
@@ -26,6 +26,7 @@ object Dependencies {
   def ammonite = "com.lihaoyi" %% "ammonite-ops" % "0.9.0"
   def googleDiff = "com.googlecode.java-diff-utils" % "diffutils" % "1.3.0"
 
+  def metacp = "org.scalameta" %% "metacp" % scalametaV
   def scalameta = Def.setting("org.scalameta" %%% "contrib" % scalametaV)
   val scalatest = "org.scalatest" %% "scalatest" % "3.0.0"
 

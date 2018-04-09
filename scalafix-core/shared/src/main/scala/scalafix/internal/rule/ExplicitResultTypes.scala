@@ -17,6 +17,7 @@ import scalafix.syntax._
 import scalafix.util.TokenOps
 import metaconfig.Conf
 import metaconfig.Configured
+import org.langmeta.internal.semanticdb.XtensionDenotationsInternal
 
 case class ExplicitResultTypes(
     index: SemanticdbIndex,
@@ -74,9 +75,16 @@ case class ExplicitResultTypes(
     def defnType(defn: Defn): Option[(Type, Patch)] =
       for {
         name <- defnName(defn)
-        symbol <- name.symbol
-        typ <- symbol.resultType
-      } yield TypeSyntax.prettify(typ, ctx, config.unsafeShortenNames)
+        denot <- name.denotation
+        tpe <- denot.tpeInternal
+        // Skip existential types for now since they cause problems.
+        if !tpe.tag.isExistentialType
+        result <- TypeSyntax.prettify(
+          tpe,
+          ctx,
+          config.unsafeShortenNames,
+          name.pos)
+      } yield result
     import scala.meta._
     def fix(defn: Defn, body: Term): Patch = {
       val lst = ctx.tokenList

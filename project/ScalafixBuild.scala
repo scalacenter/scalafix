@@ -39,7 +39,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     )
     lazy val warnUnusedImports = "-Ywarn-unused-import"
     lazy val compilerOptions = Seq(
-      "-Xlint",
+      warnUnusedImports,
       "-deprecation",
       "-encoding",
       "UTF-8",
