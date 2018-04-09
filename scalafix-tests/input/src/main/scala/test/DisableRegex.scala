@@ -29,12 +29,9 @@ object DisableRegex {
   import scala.collection.mutable   // ok
 
   @SuppressWarnings(Array("Disable.ListBuffer"))
-  @SuppressWarnings(Array("Disable.<init>"))
   val buffer = new ListBuffer[Int]()
 
-  @SuppressWarnings(Array("Disable.mutable"))
   @SuppressWarnings(Array("Disable.HashMap"))
-  @SuppressWarnings(Array("Disable.<init>"))
   val abc = new mutable.HashMap[String, String]()
 
   object IO { // IO we deserve

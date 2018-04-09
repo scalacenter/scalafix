@@ -115,8 +115,32 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
         case _ => blockedSymbols
       }
 
+    def skipTermSelect(term: Term): Boolean = term match {
+      case _: Term.Name => true
+      case Term.Select(q, _) => skipTermSelect(q)
+      case _ => false
+    }
+
+    def handleName(t: Name, blockedSymbols: List[DisabledSymbol])
+      : Either[LintMessage, List[DisabledSymbol]] = {
+      val isBlocked = new DisableSymbolMatcher(blockedSymbols)
+      ctx.index.symbol(t) match {
+        case Some(isBlocked(s: Symbol.Global, disabled)) =>
+          SymbolOps.normalize(s) match {
+            case g: Symbol.Global if g.signature.name != "<init>" =>
+              Left(createLintMessage(g, disabled, t.pos))
+            case _ => Right(blockedSymbols)
+          }
+        case _ => Right(blockedSymbols)
+      }
+    }
+
     new ContextTraverser(config.allDisabledSymbols)({
       case (_: Import, _) => Right(List.empty)
+      case (Term.Select(q, name), blockedSymbols) if skipTermSelect(q) =>
+        handleName(name, blockedSymbols)
+      case (Type.Select(q, name), blockedSymbols) if skipTermSelect(q) =>
+        handleName(name, blockedSymbols)
       case (
           Term
             .Apply(Term.Select(block @ safeBlock(_, _), Term.Name("apply")), _),
@@ -129,16 +153,7 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
       case (_: Term.Function, _) =>
         Right(config.allDisabledSymbols) // reset blocked symbols in (...) => (...)
       case (t: Name, blockedSymbols) =>
-        val isBlocked = new DisableSymbolMatcher(blockedSymbols)
-        ctx.index.symbol(t) match {
-          case Some(isBlocked(s: Symbol.Global, disabled)) =>
-            SymbolOps.normalize(s) match {
-              case g: Symbol.Global =>
-                Left(createLintMessage(s, disabled, t.pos))
-              case _ => Right(blockedSymbols)
-            }
-          case _ => Right(blockedSymbols)
-        }
+        handleName(t, blockedSymbols)
     }).result(ctx.tree)
   }
 
