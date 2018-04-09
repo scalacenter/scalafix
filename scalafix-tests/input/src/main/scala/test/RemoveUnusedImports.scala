@@ -23,6 +23,7 @@ import scala.concurrent.{ // formatting caveat
 //  , ExecutionException
 //  , TimeoutException // ERROR
 //}
+import scala.util, util.Sorting._, util.Sorting
 
 object RemoveUnusedImports {
   import Future._
@@ -34,4 +35,5 @@ object RemoveUnusedImports {
   ExecutionContext.defaultReporter
   new RichBoolean(true)
   new TimeoutException
+  Sorting.quickSort(List(2, 1, 3).toArray)
 }

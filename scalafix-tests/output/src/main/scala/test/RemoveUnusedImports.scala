@@ -14,6 +14,7 @@ TimeoutException
 //  , ExecutionException
 //  , TimeoutException // ERROR
 //}
+import scala.util, util.Sorting
 
 object RemoveUnusedImports {
   val NonFatal(a) = new Exception
@@ -24,4 +25,5 @@ object RemoveUnusedImports {
   ExecutionContext.defaultReporter
   new RichBoolean(true)
   new TimeoutException
+  Sorting.quickSort(List(2, 1, 3).toArray)
 }
