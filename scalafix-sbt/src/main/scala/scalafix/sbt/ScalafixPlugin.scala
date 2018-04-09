@@ -19,7 +19,8 @@ object ScalafixPlugin extends AutoPlugin {
     val scalafixCli: InputKey[Unit] =
       inputKey[Unit]("Run scalafix rule.")
     val scalafixTest: InputKey[Unit] =
-      inputKey[Unit]("Run scalafix as a test(without modifying sources).")
+      inputKey[Unit](
+        "Runs scalafix failing the build if sources would change. Does not modify files.")
     val scalafixAutoSuppressLinterErrors: InputKey[Unit] =
       inputKey[Unit](
         "Run scalafix and automatically suppress linter errors " +
@@ -30,82 +31,73 @@ object ScalafixPlugin extends AutoPlugin {
         "Run syntactic scalafix rule on build sources. Note, semantic rewrites are not supported.")
     val sbtfixTest: InputKey[Unit] =
       inputKey[Unit](
-        "Run syntactic scalafix rule on build sources as a test(without modifying sources).")
+        "Run scalafix on build sources failing the build if source would change. Does not modify files.")
     val scalafixConfig: SettingKey[Option[File]] =
       settingKey[Option[File]](
         ".scalafix.conf file to specify which scalafix rules should run.")
-    val scalafixSourceroot: SettingKey[File] = settingKey[File](
-      s"Which sourceroot should be used for .semanticdb files.")
     val scalafixVersion: SettingKey[String] = settingKey[String](
       s"Which scalafix version to run. Default is ${Versions.version}.")
     val scalafixScalaVersion: SettingKey[String] = settingKey[String](
       s"Which scala version to run scalafix from. Default is ${Versions.scala212}.")
     val scalafixSemanticdbVersion: SettingKey[String] = settingKey[String](
       s"Which version of semanticdb to use. Default is ${Versions.scalameta}.")
+    val scalafixSemanticdb =
+      "org.scalameta" % "semanticdb-scalac" % Versions.scalameta cross CrossVersion.full
     val scalafixVerbose: SettingKey[Boolean] =
       settingKey[Boolean]("pass --verbose to scalafix")
 
-    /** Add -Yrangepos and semanticdb sourceroot to scalacOptions. */
-    def scalafixScalacOptions: Def.Initialize[Seq[String]] =
-      ScalafixPlugin.scalafixScalacOptions
-
-    /** Add semanticdb-scalac compiler plugin to libraryDependencies. */
-    def scalafixLibraryDependencies: Def.Initialize[List[ModuleID]] =
-      ScalafixPlugin.scalafixLibraryDependencies
+    lazy val scalafixConfigSettings: Seq[Def.Setting[_]] = Seq(
+      scalafix := scalafixTaskImpl(
+        scalafixParserCompat,
+        compat = true,
+        Seq("--format", "sbt")).evaluated,
+      scalafixTest := scalafixTaskImpl(
+        scalafixParserCompat,
+        compat = true,
+        Seq("--test", "--format", "sbt")).evaluated,
+      scalafixCli := scalafixTaskImpl(
+        scalafixParser,
+        compat = false,
+        Seq("--format", "sbt")).evaluated,
+      scalafixAutoSuppressLinterErrors := scalafixTaskImpl(
+        scalafixParser,
+        compat = true,
+        Seq("--auto-suppress-linter-errors", "--format", "sbt")).evaluated
+    )
 
     @deprecated("This setting is no longer used", "0.6.0")
+    val scalafixSourceroot: SettingKey[File] = settingKey[File]("Unused")
+    @deprecated("Use scalacOptions += -Yrangepos instead", "0.6.0")
+    def scalafixScalacOptions: Def.Initialize[Seq[String]] =
+      ScalafixPlugin.scalafixScalacOptions
+    @deprecated("Use addCompilerPlugin(semanticdb-scalac) instead", "0.6.0")
+    def scalafixLibraryDependencies: Def.Initialize[List[ModuleID]] =
+      ScalafixPlugin.scalafixLibraryDependencies
+    @deprecated("This setting is no longer used", "0.6.0")
     def sbtfixSettings: Seq[Def.Setting[_]] = Nil
-
-    /** Settings that must appear after scalacOptions and libraryDependencies */
+    @deprecated(
+      "Use addCompilerPlugin(scalafixSemanticdb) and scalacOptions += \"-Yrangepos\" instead",
+      "0.6.0")
     def scalafixSettings: Seq[Def.Setting[_]] = List(
       scalacOptions ++= scalafixScalacOptions.value,
       libraryDependencies ++= scalafixLibraryDependencies.value
     )
-
-    // TODO(olafur) remove this in 0.6.0, replaced
-    val scalafixEnabled: SettingKey[Boolean] =
-      settingKey[Boolean](
-        "No longer used. Use the scalafixEnable command or manually configure " +
-          "scalacOptions/libraryDependecies/scalaVersion")
-
-    lazy val scalafixConfigSettings: Seq[Def.Setting[_]] = scalafixSettings ++
-      Seq(
-        scalafix := scalafixTaskImpl(
-          scalafixParserCompat,
-          compat = true,
-          Seq("--format", "sbt")).evaluated,
-        scalafixTest := scalafixTaskImpl(
-          scalafixParserCompat,
-          compat = true,
-          Seq("--test", "--format", "sbt")).evaluated,
-        scalafixCli := scalafixTaskImpl(
-          scalafixParser,
-          compat = false,
-          Seq("--format", "sbt")).evaluated,
-        scalafixAutoSuppressLinterErrors := scalafixTaskImpl(
-          scalafixParser,
-          compat = true,
-          Seq("--auto-suppress-linter-errors", "--format", "sbt")).evaluated
-      )
   }
   import scalafix.internal.sbt.CliWrapperPlugin.autoImport._
   import autoImport._
 
   override def projectSettings: Seq[Def.Setting[_]] =
-    scalafixSettings ++
-      Seq(Compile, Test).flatMap(inConfig(_)(scalafixConfigSettings))
+    Seq(Compile, Test).flatMap(inConfig(_)(scalafixConfigSettings))
 
   override def globalSettings: Seq[Def.Setting[_]] = Seq(
     scalafixConfig := Option(file(".scalafix.conf")).filter(_.isFile),
     cliWrapperMainClass := "scalafix.cli.Cli$",
-    scalafixEnabled := true,
     scalafixVerbose := false,
     commands += ScalafixEnable.command,
     sbtfix := sbtfixImpl(compat = true).evaluated,
     sbtfixTest := sbtfixImpl(compat = true, extraOptions = Seq("--test")).evaluated,
     aggregate.in(sbtfix) := false,
     aggregate.in(sbtfixTest) := false,
-    scalafixSourceroot := baseDirectory.in(ThisBuild).value,
     scalafixVersion := Versions.version,
     scalafixSemanticdbVersion := Versions.scalameta,
     scalafixScalaVersion := Versions.scala212,
@@ -162,18 +154,17 @@ object ScalafixPlugin extends AutoPlugin {
 
   lazy val scalafixLibraryDependencies: Def.Initialize[List[ModuleID]] =
     Def.setting {
-      if (scalafixEnabled.value && isSupportedScalaVersion.value) {
+      if (isSupportedScalaVersion.value) {
         compilerPlugin(
           "org.scalameta" % "semanticdb-scalac" % scalafixSemanticdbVersion.value cross CrossVersion.full
         ) :: Nil
       } else Nil
     }
   lazy val scalafixScalacOptions: Def.Initialize[Seq[String]] = Def.setting {
-    if (scalafixEnabled.value && isSupportedScalaVersion.value) {
+    if (isSupportedScalaVersion.value) {
       Seq(
         "-Yrangepos",
-        s"-Xplugin-require:semanticdb",
-        s"-P:semanticdb:sourceroot:${scalafixSourceroot.value.getAbsolutePath}"
+        s"-Xplugin-require:semanticdb"
       )
     } else Nil
   }
@@ -249,17 +240,12 @@ object ScalafixPlugin extends AutoPlugin {
             if (compat && inputArgs.nonEmpty) "--rules" +: inputArgs
             else inputArgs
 
-          val sourceroot = scalafixSourceroot.value.getAbsolutePath
           // only fix unmanaged sources, skip code generated files.
           verbose ++
             config ++
             inputArgs0 ++
             baseArgs ++
-            options ++
-            List(
-              "--sourceroot",
-              sourceroot
-            )
+            options
         }
         val finalArgs = args ++ files.map(_.getAbsolutePath)
         val nonBaseArgs = args.filterNot(baseArgs).mkString(" ")
