@@ -13,6 +13,9 @@ import scala.meta.internal.{semanticdb3 => s}
 /**
   * Implementation of SymbolTable that lazily loads symbols on demand.
   *
+  * @note Credits to the rsc symbol table implementation
+  *       https://github.com/twitter/rsc/blob/c82ce2ee68729e2cbcca7c96a164a303a152a43c/rsc/src/main/scala/rsc/symtab/Loaders.scala
+  *       that was a source of inspiration for the implementation of this class.
   * @param mclasspath The classpath to load symbols from. Needs to be pre-processed by metacp,
   *                   see ClasspathOps.toMclasspath in scalafix-cli.
   */
