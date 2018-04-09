@@ -36,7 +36,8 @@ if [[ "$TRAVIS_SECURE_ENV_VARS" == true && "$CI_PUBLISH" == true ]]; then
   fi
   set-up-ssh
   set-up-jekyll
-  sbt website/publishMicrosite
+  # TODO(olafur): Re-enable doc publishing once 0.6 final is out.
+  # sbt website/publishMicrosite
 else
   echo "Skipping publish, branch=$TRAVIS_BRANCH"
 fi
