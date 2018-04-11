@@ -47,6 +47,11 @@ object ScalafixPlugin extends AutoPlugin {
         "The default location depends on the OS and is computed with https://github.com/soc/directories-jvm " +
         "using the project name 'semanticdb'. " +
         "On macOS the default cache directory is ~/Library/Caches/semanticdb. ")
+    val scalafixParallel: SettingKey[Boolean] = settingKey(
+      "If false (default), run scalafix in single-threaded mode. " +
+        "If true, allow scalafix to utilize available CPUs. " +
+        "Default is false because sbt automatically parallelizes across projects and configurations."
+    )
     val scalafixSemanticdb =
       "org.scalameta" % "semanticdb-scalac" % Versions.scalameta cross CrossVersion.full
     val scalafixVerbose: SettingKey[Boolean] =
@@ -123,6 +128,7 @@ object ScalafixPlugin extends AutoPlugin {
     scalafixSemanticdbVersion := Versions.scalameta,
     scalafixScalaVersion := Versions.scala212,
     scalafixMetacpCacheDirectory := None,
+    scalafixParallel := false,
     cliWrapperClasspath := {
       val jars = cachedCoursierJars.computeIfAbsent(
         scalafixScalaVersion.value -> scalafixVersion.value,
@@ -284,6 +290,10 @@ object ScalafixPlugin extends AutoPlugin {
           "--no-sys-exit",
           "--non-interactive"
         )
+
+        if (!scalafixParallel.value) {
+          args += "--no-parallel"
+        }
 
         args ++= files.iterator.map(_.getAbsolutePath)
 

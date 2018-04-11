@@ -44,7 +44,7 @@ class CliArgsTest extends BaseCliTest {
     assert(!runner.writeMode.isWriteFile)
     assert(runner.config.fatalWarnings)
     assert(obtained.verbose)
-    assert(obtained.singleThread)
+    assert(obtained.noParallel)
     assert(
       obtained.files == List(
         "build.sbt",
