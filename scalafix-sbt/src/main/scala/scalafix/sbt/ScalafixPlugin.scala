@@ -220,41 +220,53 @@ object ScalafixPlugin extends AutoPlugin {
     if (files.isEmpty) Def.task(())
     else {
       Def.task {
-        val log = streams.log
-        val verbose = if (scalafixVerbose.value) "--verbose" :: Nil else Nil
-        val main = cliWrapperMain.value
-        val baseArgs = Set[String](
+        val args = Array.newBuilder[String]
+
+        if (scalafixVerbose.value) {
+          args += "--verbose"
+        }
+
+        scalafixMetacpCacheDirectory.value match {
+          case Some(dir) =>
+            args += (
+              "--metacp-cache-dir",
+              dir.absolutePath
+            )
+          case _ =>
+        }
+
+        scalafixConfig.value match {
+          case Some(x) =>
+            args += (
+              "--config",
+              x.getAbsolutePath
+            )
+          case _ =>
+        }
+
+        if (compat && inputArgs.nonEmpty) {
+          args += "--rules"
+        }
+        args ++= inputArgs
+        args ++= options
+
+        val nonBaseArgs = args.result().mkString(" ")
+        if (scalafixVerbose.value) {
+          streams.log.info(s"Running scalafix $nonBaseArgs")
+        } else if (files.lengthCompare(1) > 0) {
+          streams.log.info(s"Running scalafix on ${files.size} Scala sources")
+        }
+
+        args += (
           "--project-id",
           projectId,
           "--no-sys-exit",
           "--non-interactive"
         )
-        val args: Seq[String] = {
-          // run scalafix rules
-          val config =
-            scalafixConfig.value
-              .map(x => "--config" :: x.getAbsolutePath :: Nil)
-              .getOrElse(Nil)
 
-          val inputArgs0 =
-            if (compat && inputArgs.nonEmpty) "--rules" +: inputArgs
-            else inputArgs
+        args ++= files.iterator.map(_.getAbsolutePath)
 
-          // only fix unmanaged sources, skip code generated files.
-          verbose ++
-            config ++
-            inputArgs0 ++
-            baseArgs ++
-            options
-        }
-        val finalArgs = args ++ files.map(_.getAbsolutePath)
-        val nonBaseArgs = args.filterNot(baseArgs).mkString(" ")
-        if (scalafixVerbose.value) {
-          log.info(s"Running scalafix $nonBaseArgs")
-        } else if (files.lengthCompare(1) > 0) {
-          log.info(s"Running scalafix on ${files.size} Scala sources")
-        }
-        main.main(finalArgs.toArray)
+        cliWrapperMain.value.main(args.result())
       }
     }
   }
