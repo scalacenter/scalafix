@@ -1,6 +1,5 @@
 package scalafix.internal.sbt
 
-import java.net.URL
 import java.net.URLClassLoader
 import java.util
 import sbt.AutoPlugin
@@ -34,12 +33,13 @@ object CliWrapperPlugin extends AutoPlugin {
   import autoImport._
   private val cachedScalafixMain =
     util.Collections.synchronizedMap(
-      new util.HashMap[(Seq[URL], String), HasMain]())
+      new util.HashMap[(Seq[File], String), HasMain]())
   private val computeClassloader =
-    new util.function.Function[(Seq[URL], String), HasMain] {
-      override def apply(t: (Seq[URL], String)): HasMain = {
-        val (classpath, cliWrapperMainClass) = t
-        val classloader = new URLClassLoader(classpath.toArray, null)
+    new util.function.Function[(Seq[File], String), HasMain] {
+      override def apply(t: (Seq[File], String)): HasMain = {
+        val (classpathFiles, cliWrapperMainClass) = t
+        val classpath = classpathFiles.iterator.map(_.toURI.toURL).toArray
+        val classloader = new URLClassLoader(classpath, null)
         val clazz = classloader.loadClass(cliWrapperMainClass)
         val constructor = clazz.getDeclaredConstructor()
         constructor.setAccessible(true)
@@ -50,9 +50,8 @@ object CliWrapperPlugin extends AutoPlugin {
 
   override def globalSettings: Seq[Def.Setting[_]] = Seq(
     cliWrapperMain := {
-      val cp = cliWrapperClasspath.value.map(_.toURI.toURL)
       val main = cachedScalafixMain.computeIfAbsent(
-        cp -> cliWrapperMainClass.value,
+        cliWrapperClasspath.value -> cliWrapperMainClass.value,
         computeClassloader
       )
       main
