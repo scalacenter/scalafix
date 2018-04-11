@@ -1,5 +1,6 @@
 package scalafix.sbt
 
+import java.util
 import scalafix.Versions
 import sbt.File
 import sbt.Keys._
@@ -94,6 +95,21 @@ object ScalafixPlugin extends AutoPlugin {
   override def projectSettings: Seq[Def.Setting[_]] =
     Seq(Compile, Test).flatMap(inConfig(_)(scalafixConfigSettings))
 
+  private val cachedCoursierJars =
+    util.Collections.synchronizedMap(
+      new util.HashMap[(String, String), Seq[File]])
+  private val fetchScalafixJars =
+    new util.function.Function[(String, String), Seq[File]] {
+      override def apply(t: (String, String)): Seq[File] = {
+        val (scalafixScalaVersion, scalafixVersion) = t
+        ScalafixJarFetcher.fetchJars(
+          "ch.epfl.scala",
+          s"scalafix-cli_$scalafixScalaVersion",
+          scalafixVersion
+        )
+      }
+    }
+
   override def globalSettings: Seq[Def.Setting[_]] = Seq(
     scalafixConfig := Option(file(".scalafix.conf")).filter(_.isFile),
     cliWrapperMainClass := "scalafix.cli.Cli$",
@@ -108,10 +124,9 @@ object ScalafixPlugin extends AutoPlugin {
     scalafixScalaVersion := Versions.scala212,
     scalafixMetacpCacheDirectory := None,
     cliWrapperClasspath := {
-      val jars = ScalafixJarFetcher.fetchJars(
-        "ch.epfl.scala",
-        s"scalafix-cli_${scalafixScalaVersion.value}",
-        scalafixVersion.value
+      val jars = cachedCoursierJars.computeIfAbsent(
+        scalafixScalaVersion.value -> scalafixVersion.value,
+        fetchScalafixJars
       )
       if (jars.isEmpty) {
         throw new MessageOnlyException("Unable to download scalafix-cli jars!")
