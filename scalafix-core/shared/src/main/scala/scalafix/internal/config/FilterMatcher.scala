@@ -18,8 +18,8 @@ case class FilterMatcher(
         }
       case c =>
         (
-          c.getOrElse("include")(includeFilters) |@|
-            c.getOrElse("exclude")(excludeFilters)
+          c.getOrElse("include", "includes")(includeFilters) |@|
+            c.getOrElse("exclude", "excludes")(excludeFilters)
         ).map { case (a, b) => FilterMatcher(a, b) }
     }
   def matches(file: AbsolutePath): Boolean = matches(file.toString())
