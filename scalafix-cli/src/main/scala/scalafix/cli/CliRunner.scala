@@ -62,10 +62,12 @@ sealed abstract case class CliRunner(
   implicit val workingDirectory: AbsolutePath = common.workingPath
 
   def run(): ExitStatus = {
-    val display = new TermDisplay(
-      new OutputStreamWriter(
-        if (cli.stdout) cli.common.err else cli.common.out),
-      fallbackMode = true)
+    val outStream =
+      if (!cli.verbose) ClasspathOps.devNull
+      else if (cli.stdout) cli.common.err
+      else cli.common.out
+    val display =
+      new TermDisplay(new OutputStreamWriter(outStream), fallbackMode = true)
     if (inputs.length > 10) display.init()
     val msg = cli.projectIdPrefix + s"Running ${rule.name}"
     display.startTask(msg, common.workingDirectoryFile)

@@ -261,7 +261,7 @@ class CliSyntacticTests extends BaseCliTest {
                         |$original""".stripMargin,
     expectedExit = ExitStatus.LinterError,
     outputAssert = { out =>
-      assert(out.contains(s"\n[${Severity.Error}] "))
+      assert(out.contains(s"[${Severity.Error}] "))
     }
   )
 }
