@@ -5,6 +5,9 @@ Disable.symbols = [
     regex = "scala.collection.mutable.*"
     message = "use immutable structures"
   }
+  {
+    regex = ".*.toString"
+  }
 ]
 
 Disable.unlessInside = [
@@ -33,6 +36,9 @@ object DisableRegex {
 
   @SuppressWarnings(Array("Disable.HashMap"))
   val abc = new mutable.HashMap[String, String]()
+
+  @SuppressWarnings(Array("Disable.ListBuffer", "Disable.iterator", "Disable.toString"))
+  val buffer2 = new mutable.ListBuffer[Int]().iterator.toString
 
   object IO { // IO we deserve
     def apply[T](run: => T): Nothing = ???

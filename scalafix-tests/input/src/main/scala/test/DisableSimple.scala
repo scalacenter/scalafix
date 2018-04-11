@@ -15,6 +15,8 @@ Disable.symbols = [
          |// scalafix:on Option.get"""
   }
   "scala.collection.mutable"
+  "scala.collection.immutable.List.drop"
+  "scala.collection.LinearSeqOptimized.length"
 ]
 Disable.ifSynthetic = [
   "scala.Predef.any2stringadd"
@@ -64,4 +66,7 @@ If you must Option.get, wrap the code block with
   ^
 any2stringadd is disabled and it got inferred as `scala.Predef.any2stringadd[List[Int]](*)`
   */
+
+  @SuppressWarnings(Array("Disable.drop", "Disable.length"))
+  val _ = List(1, 2 ,3).drop(2).filter(_ > 3).reverse.length
 }
