@@ -41,6 +41,11 @@ object ScalafixPlugin extends AutoPlugin {
       s"Which scala version to run scalafix from. Default is ${Versions.scala212}.")
     val scalafixSemanticdbVersion: SettingKey[String] = settingKey[String](
       s"Which version of semanticdb to use. Default is ${Versions.scalameta}.")
+    val scalafixMetacpCacheDirectory: SettingKey[Option[File]] = settingKey(
+      "Global cache location to persist metacp artifacts produced by analyzing --dependency-classpath. " +
+        "The default location depends on the OS and is computed with https://github.com/soc/directories-jvm " +
+        "using the project name 'semanticdb'. " +
+        "On macOS the default cache directory is ~/Library/Caches/semanticdb. ")
     val scalafixSemanticdb =
       "org.scalameta" % "semanticdb-scalac" % Versions.scalameta cross CrossVersion.full
     val scalafixVerbose: SettingKey[Boolean] =
@@ -101,6 +106,7 @@ object ScalafixPlugin extends AutoPlugin {
     scalafixVersion := Versions.version,
     scalafixSemanticdbVersion := Versions.scalameta,
     scalafixScalaVersion := Versions.scala212,
+    scalafixMetacpCacheDirectory := None,
     cliWrapperClasspath := {
       val jars = ScalafixJarFetcher.fetchJars(
         "ch.epfl.scala",
