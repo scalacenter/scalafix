@@ -249,7 +249,11 @@ object ScalafixPlugin extends AutoPlugin {
         }
         val finalArgs = args ++ files.map(_.getAbsolutePath)
         val nonBaseArgs = args.filterNot(baseArgs).mkString(" ")
-        log.info(s"Running scalafix $nonBaseArgs")
+        if (scalafixVerbose.value) {
+          log.info(s"Running scalafix $nonBaseArgs")
+        } else if (files.lengthCompare(1) > 0) {
+          log.info(s"Running scalafix on ${files.size} Scala sources")
+        }
         main.main(finalArgs.toArray)
       }
     }
