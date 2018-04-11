@@ -3,6 +3,7 @@ package scalafix.internal.sbt
 import java.io.File
 import java.io.OutputStreamWriter
 import coursier.MavenRepository
+import scala.concurrent.duration.Duration
 
 private[scalafix] object ScalafixJarFetcher {
   private val SonatypeSnapshots: MavenRepository =
@@ -23,7 +24,13 @@ private[scalafix] object ScalafixJarFetcher {
 
       val logger = new TermDisplay(new OutputStreamWriter(System.err), true)
       logger.init()
-      val fetch = Fetch.from(repositories, Cache.fetch(logger = Some(logger)))
+      val fetch = Fetch.from(
+        repositories,
+        Cache.fetch(
+          logger = Some(logger),
+          ttl = Cache.defaultTtl.orElse(Some(Duration.Inf))
+        )
+      )
       val resolution = start.process.run(fetch).unsafePerformSync
       val errors = resolution.metadataErrors
       if (errors.nonEmpty) {
