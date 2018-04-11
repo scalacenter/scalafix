@@ -75,8 +75,8 @@ sealed abstract case class CliRunner(
     val exitCode = new AtomicReference(ExitStatus.Ok)
     val counter = new AtomicInteger()
     val inputsToFix =
-      if (cli.singleThread) inputs
-      else inputs.toVector.par
+      if (cli.parallel && inputs.lengthCompare(15) > 0) inputs.par
+      else inputs
     inputsToFix.foreach { input =>
       val code = safeHandleInput(input)
       val progress = counter.incrementAndGet()
@@ -369,7 +369,7 @@ object CliRunner {
             val symbolTable = ClasspathOps.newSymbolTable(
               classpath = Classpath(classpath.shallow ++ deps),
               cacheDirectory = metacpCacheDir.map(AbsolutePath(_)),
-              parallel = !metacpNoPar,
+              parallel = metacpParallel && parallel,
               out = common.out)
             symbolTable match {
               case None =>

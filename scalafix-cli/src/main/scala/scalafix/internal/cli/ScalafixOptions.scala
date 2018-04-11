@@ -76,9 +76,11 @@ case class ScalafixOptions(
         "On macOS the default cache directory is ~/Library/Caches/semanticdb. ")
     metacpCacheDir: Option[String] = None,
     @HelpMessage(
-      "Set this flag to disable parallel processing with metacp. " +
-        "Metacp uses the standard library parallel collections, which may enter deadlocks.")
-    metacpNoPar: Boolean = false,
+      "If true, runs metacp in single-threaded mode. If false (default), use all available cores in metacp. " +
+        "See --metacp-cache-dir to learn more about metacp. " +
+        "Metacp uses the standard library parallel collections, which may enter deadlocks."
+    )
+    noMetacpParallel: Boolean = false,
     @HelpMessage(
       "Automatically infer --classpath starting from these directories. " +
         "Ignored if --classpath is provided.")
@@ -130,8 +132,13 @@ case class ScalafixOptions(
     @ValueDescription("core Foobar.scala")
     exclude: List[String] = Nil,
     @HelpMessage(
-      "If true, run on single thread. If false (default), use all available cores")
-    singleThread: Boolean = false,
+      "If true, run on single thread. If false (default), use all available cores. " +
+        "If true, enables --no-metacp-parallel as well. " +
+        "Difference between this flag and --no-metacp-parallel is that this flag additionally makes the main " +
+        "scalafix loop for fixing source files single-threaded."
+    )
+    @ExtraName("singleThread")
+    noParallel: Boolean = false,
     // NOTE: This option could be avoided by adding another entrypoint like 'Cli.safeMain'
     // or SafeCli.main. However, I opted for a cli flag since that plays nicely
     // with default 'run.in(Compile).toTask("--no-sys-exit").value' in sbt.
@@ -175,6 +182,8 @@ case class ScalafixOptions(
     diffBase: Option[String] = None,
     format: Option[OutputFormat] = None
 ) {
+  def metacpParallel: Boolean = !noMetacpParallel
+  def parallel: Boolean = !noParallel
   def classpathRoots: List[AbsolutePath] =
     classpathAutoRoots.fold(List(common.workingPath))(cp =>
       Classpath(cp).shallow)
