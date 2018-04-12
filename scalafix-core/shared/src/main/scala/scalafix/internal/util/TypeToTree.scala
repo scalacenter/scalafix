@@ -1,11 +1,14 @@
 package scalafix.internal.util
 
+import java.lang.invoke.MethodHandles
+import scala.collection.mutable
 import scala.meta._
 import scala.meta.internal.semanticdb3.Scala._
 import scala.meta.internal.semanticdb3.SymbolInformation.{Kind => k}
 import scala.meta.internal.semanticdb3.SymbolInformation.{Property => p}
 import scala.meta.internal.semanticdb3.Type.{Tag => t}
 import scala.meta.internal.{semanticdb3 => s}
+import scala.util.control.NonFatal
 import scalafix.internal.util.TypeSyntax._
 import scalapb.GeneratedMessage
 
@@ -60,6 +63,12 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
     def toTypeName: Type.Name = Type.Name(info(sym).name)
   }
 
+  private implicit class XtensionIterator(syms: Iterator[String]) {
+    def scollect[T](f: PartialFunction[s.SymbolInformation, T]): List[T] =
+      syms.map(info).collect(f).toList
+    def smap[T](f: s.SymbolInformation => T): List[T] =
+      syms.map(info).map(f).toList
+  }
   private implicit class XtensionSymbols(syms: Seq[String]) {
     def scollect[T](f: PartialFunction[s.SymbolInformation, T]): List[T] =
       syms.iterator.map(info).collect(f).toList
@@ -107,18 +116,27 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
 
   def toTree(info: s.SymbolInformation): Result = {
     val tree = info.kind match {
+      // Workaround for https://github.com/scalameta/scalameta/issues/1494
+      case k.METHOD | k.FIELD if info.tpe.isEmpty =>
+        // Dummy value
+        Defn.Val(
+          Nil,
+          Pat.Var(Term.Name(info.name)) :: Nil,
+          None,
+          q"???"
+        )
       case k.FIELD =>
         if (info.is(p.FINAL)) {
           Decl.Val(
             toMods(info),
             Pat.Var(Term.Name(info.name)) :: Nil,
-            toType(info.tpe.get)
+            toType(info.typ)
           )
         } else {
           Decl.Var(
             toMods(info),
             Pat.Var(Term.Name(info.name)) :: Nil,
-            toType(info.tpe.get)
+            toType(info.typ)
           )
         }
       case _ =>
@@ -150,9 +168,27 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
               )
             }
           case t.CLASS_INFO_TYPE =>
-            val Some(s.ClassInfoType(typeParameters, parents, declarations)) =
-              info.typ.classInfoType
+            val classInfo = info.typ.classInfoType.get
+            val declarations =
+              classInfo.declarations.iterator.filter(sym =>
+                !sym.contains("$anon"))
+            val typeParameters = classInfo.typeParameters
+            val parents = classInfo.parents
             val isCaseClass = info.is(p.CASE)
+            def objectDecls =
+              declarations
+                .filter { sym =>
+                  // drop inaccessible ctor due to https://github.com/scalameta/scalameta/issues/1493
+                  !sym.endsWith("`<init>`().")
+                }
+                .map(this.info)
+                .collect {
+                  case i
+                      if !i.kind.isConstructor &&
+                        !i.isVarSetter =>
+                    toStat(i)
+                }
+                .toList
 
             def inits =
               parents.iterator
@@ -190,6 +226,29 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
                             !i.isVarSetter =>
                         toStat(i)
                     }
+                  )
+                )
+              case k.OBJECT =>
+                Defn.Object(
+                  toMods(info),
+                  Term.Name(info.name),
+                  Template(
+                    Nil,
+                    inits,
+                    Self(Name(""), None),
+                    objectDecls
+                  )
+                )
+              case k.PACKAGE_OBJECT =>
+                Pkg.Object(
+                  toMods(info),
+                  // TODO: is this name correct?
+                  Term.Name(info.name),
+                  Template(
+                    Nil,
+                    inits,
+                    Self(Name(""), None),
+                    objectDecls
                   )
                 )
               case k.CLASS =>
@@ -270,7 +329,12 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
     )
 
   def toStat(info: s.SymbolInformation): Stat = {
-    toTree(info).tree.asInstanceOf[Stat]
+    try {
+      toTree(info).tree.asInstanceOf[Stat]
+    } catch {
+      case e: NoSuchElementException =>
+        q"throw new IllegalArgumentException(${e.getMessage})"
+    }
   }
 
   def fail(tree: Tree): Nothing =
@@ -335,85 +399,155 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
       } else if (owner.kind.isObject || info.language.isJava) {
         Type.Select(toTermRef(owner), name)
       } else if (owner.kind.isClass || owner.kind.isTrait) {
-        Type.Project(toType(owner.typ), name)
+        Type.Project(toTypeRef(owner), name)
       } else {
         fail(info)
       }
     }
   }
 
-  def toType(tpe: s.Type): Type =
-    tpe.tag match {
-      case t.TYPE_REF =>
-        val Some(s.TypeRef(prefix, symbol, typeArguments)) = tpe.typeRef
-        def name = symbol.toTypeName
-        def targs =
-          typeArguments.iterator.map {
-            case T.Wildcard() => Type.Placeholder(Type.Bounds(None, None))
-            case targ => toType(targ)
-          }.toList
-        symbol match {
-          case FunctionN() =>
-            val params :+ res = targs
-            Type.Function(params, res)
-          case TupleN() =>
-            Type.Tuple(targs)
-          case _ =>
-            val qual: Type.Ref = prefix match {
-              case Some(pre) =>
-                if (pre.tag.isSingletonType) {
-                  Type.Select(toTermRef(pre), name)
-                } else {
-                  Type.Project(toType(pre), name)
-                }
+  def toType(tpe: s.Type): Type = tpe.tag match {
+    case t.TYPE_REF =>
+      val Some(s.TypeRef(prefix, symbol, typeArguments)) = tpe.typeRef
+      def name = symbol.toTypeName
+      def targs =
+        typeArguments.iterator.map {
+          case T.Wildcard() => Type.Placeholder(Type.Bounds(None, None))
+          case targ =>
+            targ.typeRef match {
+              case Some(ref) if placeholders.contains(ref.symbol) =>
+                Type.Placeholder(Type.Bounds(None, None))
               case _ =>
-                if (shorten.isNameOnly) {
-                  name
-                } else {
-                  toTypeRef(info(symbol))
-                }
+                toType(targ)
             }
-            if (typeArguments.isEmpty) qual
-            else Type.Apply(qual, targs)
-        }
-      case t.SINGLETON_TYPE =>
-        import s.SingletonType.Tag
-        val singleton = tpe.singletonType.get
-        singleton.tag match {
-          case Tag.SYMBOL =>
-            val info = this.info(singleton.symbol)
-            if (info.kind.isParameter || info.isVal || info.kind.isObject) {
-              Type.Singleton(toTermRef(info))
-            } else {
-              val tpe = info.typ
-              tpe.tag match {
-                case t.METHOD_TYPE =>
-                  val ret = tpe.methodType.get.returnType.get
-                  toType(ret)
-                case _ =>
-                  fail(tpe)
+        }.toList
+      symbol match {
+        case FunctionN() if typeArguments.lengthCompare(1) > 0 =>
+          val params :+ res = targs
+          Type.Function(params, res)
+        case TupleN() if typeArguments.lengthCompare(1) > 0 =>
+          Type.Tuple(targs)
+        case _ =>
+          val qual: Type.Ref = prefix match {
+            case Some(pre) =>
+              if (pre.tag.isSingletonType) {
+                Type.Select(toTermRef(pre), name)
+              } else {
+                Type.Project(toType(pre), name)
               }
+            case _ =>
+              if (shorten.isNameOnly) {
+                name
+              } else {
+                toTypeRef(info(symbol))
+              }
+          }
+          if (typeArguments.isEmpty) qual
+          else Type.Apply(qual, targs)
+      }
+    case t.SINGLETON_TYPE =>
+      import s.SingletonType.Tag
+      val singleton = tpe.singletonType.get
+      def info = this.info(singleton.symbol)
+      singleton.tag match {
+        case Tag.SYMBOL =>
+          val info = this.info(singleton.symbol)
+          if (info.kind.isParameter || info.isVal || info.kind.isObject) {
+            Type.Singleton(toTermRef(info))
+          } else {
+            val tpe = info.typ
+            tpe.tag match {
+              case t.METHOD_TYPE =>
+                val ret = tpe.methodType.get.returnType.get
+                toType(ret)
+              case _ =>
+                fail(tpe)
             }
-          case Tag.THIS | Tag.SUPER =>
-            fail(tpe)
-          case _ =>
-            toType(tpe.widen)
-        }
-      case t.EXISTENTIAL_TYPE =>
-        // Unsupported
-        fail(tpe)
-      case t.REPEATED_TYPE =>
-        Type.Repeated(toType(tpe.repeatedType.get.tpe.get))
-      case _ =>
-        fail(tpe)
-    }
+          }
+        case Tag.THIS =>
+          Type.Select(
+            Term.This(Name.Anonymous()),
+            Type.Name(info.name)
+          )
+        case Tag.SUPER =>
+          // TODO: prefix
+          Type.Select(
+            Term.Super(Name.Anonymous(), Name.Anonymous()),
+            Type.Name(info.name)
+          )
+        case _ =>
+          toType(tpe.widen)
+      }
+    case t.EXISTENTIAL_TYPE =>
+      val existential = tpe.existentialType.get
+      withPlaceholders(existential.typeParameters) { () =>
+        toType(existential.tpe.get)
+      }
+    case t.REPEATED_TYPE =>
+      Type.Repeated(toType(tpe.repeatedType.get.tpe.get))
+    case t.BY_NAME_TYPE =>
+      Type.ByName(toType(tpe.byNameType.get.tpe.get))
+    case t.ANNOTATED_TYPE =>
+      val Some(s.AnnotatedType(annots, Some(underlying))) = tpe.annotatedType
+      if (annots.isEmpty) toType(underlying)
+      else {
+        Type.Annotate(
+          toType(underlying),
+          annots.iterator.map { annot =>
+            toModAnnot(annot.tpe.get)
+          }.toList
+        )
+      }
+    case t.STRUCTURAL_TYPE =>
+      val structural = tpe.structuralType.get
+      // TODO: handle local decls, here we widen the type which may cause compilation errors
+      // if the refinement declarations are referenced via scala.language.reflectiveCalls.
+      val declarations =
+        structural.declarations.filterNot(_.startsWith("local"))
+      declarations match {
+        case Nil =>
+          toType(structural.tpe.get)
+        case decls =>
+          val tpe = structural.tpe match {
+            case Some(T.AnyRef()) => None
+            case els => els.map(toType)
+          }
+          Type.Refine(
+            tpe,
+            decls.iterator
+              .map(info)
+              .filterNot(_.isVarSetter)
+              .map(toStat)
+              .toList
+          )
+      }
+    case t.WITH_TYPE =>
+      val Some(s.WithType(types)) = tpe.withType
+      val (head, tail) = types.head match {
+        case T.AnyRef() if types.lengthCompare(1) > 0 =>
+          types(1) -> types.iterator.drop(2)
+        case head =>
+          head -> types.iterator.drop(1)
+      }
+      tail.foldLeft(toType(head)) {
+        case (accum, next) => Type.With(accum, toType(next))
+      }
+    case _ =>
+      fail(tpe)
+  }
 
-  private val typePlaceholder = "localPlaceholder"
-  private val typePlaceholderType = ref("localPlaceholder")
+  // HACK(olafur) to avoid passing around explicit placeholder everywhere. I'm lazy.
+  def withPlaceholders[T](holders: Iterable[String])(f: () => T): T = {
+    placeholders ++= holders
+    val result = f()
+    placeholders --= holders
+    result
+  }
+  private val placeholders = mutable.Set.empty[String]
 
-  def isPlaceholder(sym: String): Boolean =
-    sym.startsWith("local") ||
-      sym.contains("$")
+  def toModAnnot(tpe: s.Type): Mod.Annot = {
+    Mod.Annot(toInit(tpe))
+  }
 
   def toTermParam(info: s.SymbolInformation): Term.Param = {
     Term.Param(

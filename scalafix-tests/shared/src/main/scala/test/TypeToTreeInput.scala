@@ -2,6 +2,8 @@ package test
 
 import java.util.Map
 import scala.collection.immutable.TreeMap
+import scala.language.higherKinds
+import scala.language.reflectiveCalls
 
 trait TypeToTreeInput {
   type A
@@ -22,7 +24,13 @@ trait TypeToTreeInput {
   def n(arg: String): arg.type
   def o(arg: TypeToTreeInputBox.type): arg.Nested
   var p: Int
+  def q(byName: => String): String
+  def r(vararg: String*): String
+  def s[c[x] <: Seq[x]](e: c[String]): c[Int]
+  type S = Functor[({ type T[A] = Either[Int, A] })#T]
 }
+
+trait Functor[C[_]]
 
 trait TypeParams[A, B >: String <: CharSequence]
 trait ParentsTrait extends Comparable[Int] with AutoCloseable

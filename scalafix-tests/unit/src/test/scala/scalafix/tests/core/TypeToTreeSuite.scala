@@ -1,7 +1,9 @@
 package scalafix.tests.core
 
 import org.langmeta.internal.io.PlatformFileIO
+import org.scalatest.exceptions.TestFailedException
 import scala.meta.internal.semanticdb3.Index
+import scala.util.control.NonFatal
 import scala.{meta => m}
 import scalafix.internal.cli.ClasspathOps
 import scalafix.internal.reflect.RuleCompiler
@@ -9,7 +11,7 @@ import scalafix.internal.util.LazySymbolTable
 import scalafix.internal.util.Shorten
 import scalafix.internal.util.TypeToTree
 
-class TypeToTreeSuite extends BaseSemanticTest("TypeToTreeInput") {
+class BaseTypeToTreeSuite extends BaseSemanticTest("TypeToTreeInput") {
   super.beforeAll()
   val dir: m.AbsolutePath =
     m.AbsolutePath(scalafix.tests.BuildInfo.sharedClasspath)
@@ -17,6 +19,7 @@ class TypeToTreeSuite extends BaseSemanticTest("TypeToTreeInput") {
     .toMetaClasspath(
       m.Classpath(
         dir :: RuleCompiler.defaultClasspathPaths.filter { path =>
+          path.isFile ||
           path.toNIO.getFileName.toString.contains("scala-library")
         }
       )
@@ -24,21 +27,34 @@ class TypeToTreeSuite extends BaseSemanticTest("TypeToTreeInput") {
     .get
   val table = new LazySymbolTable(mclasspath)
   val pretty = new TypeToTree(table, Shorten.Readable)
-//  val m.Source(m.Pkg(_, stats) :: Nil) = source
-//  stats.collect {
-//    case _: m.Defn.Object => // blocked by https://github.com/scalameta/scalameta/issues/1480
-//    case expected: m.Member =>
-//      val name = expected.name.value
-//      ignore(s"${expected.productPrefix} - $name") {
-//        val info = table.info(s"test.$name#").get
-//        val obtained = pretty.toTree(info).tree
-//        assertNoDiff(obtained.syntax, expected.syntax)
-//      }
-//  }
+}
+
+class TypeToTreeSuite extends BaseTypeToTreeSuite {
+
+  val m.Source(m.Pkg(_, stats) :: Nil) = source
+  stats.collect {
+    case _: m.Defn.Object => // blocked by https://github.com/scalameta/scalameta/issues/1480
+    case expected: m.Member =>
+      val name = expected.name.value
+      test(s"${expected.productPrefix} - $name") {
+        val info = table.info(s"test.$name#").get
+        val obtained = pretty.toTree(info).tree
+        assertNoDiff(obtained.syntax, expected.syntax)
+      }
+  }
+
+}
+class TypeToTreeFuzzSuite extends BaseTypeToTreeSuite {
+  // Workaround for https://github.com/scalameta/scalameta/issues/1491
+  val isKnownBug = Set(
+    "java.util.jar.Attributes.Name#",
+    "java.lang.Thread.UncaughtExceptionHandler#",
+    "java.lang.invoke.MethodHandles.Lookup#",
+    "java.util.concurrent.ForkJoinPool."
+  )
 
   for {
     entry <- mclasspath.shallow
-    if entry.toString().contains("rt-")
   } {
     test(entry.toNIO.getFileName.toString) {
       if (entry.isFile) {
@@ -50,7 +66,13 @@ class TypeToTreeSuite extends BaseSemanticTest("TypeToTreeInput") {
           val index = Index.parseFrom(indexPath)
           index.toplevels.foreach { toplevel =>
             val info = table.info(toplevel.symbol).get
-            val obtained = pretty.toTree(info).tree
+            scala.tools.nsc.interpreter.StdReplTags
+              try pretty.toTree(info).tree
+              catch {
+                case e: NoSuchElementException if isKnownBug(e.getMessage) =>
+                case NonFatal(e) =>
+                  throw new IllegalArgumentException(info.toProtoString, e)
+              }
           }
         }
       }
