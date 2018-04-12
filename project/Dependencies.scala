@@ -14,7 +14,7 @@ object Dependencies {
   def scala212 = "2.12.4"
   val currentScalaVersion = scala212
 
-  def sbt013 = "0.13.16"
+  def sbt013 = "0.13.17"
   def sbt1 = "1.0.4"
   val currentSbtVersion = sbt1
 
