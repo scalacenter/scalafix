@@ -67,12 +67,14 @@ class TypeToTreeFuzzSuite extends BaseTypeToTreeSuite {
           index.toplevels.foreach { toplevel =>
             val info = table.info(toplevel.symbol).get
             scala.tools.nsc.interpreter.StdReplTags
-              try pretty.toTree(info).tree
-              catch {
-                case e: NoSuchElementException if isKnownBug(e.getMessage) =>
-                case NonFatal(e) =>
-                  throw new IllegalArgumentException(info.toProtoString, e)
-              }
+            try pretty.toTree(info).tree
+            catch {
+              case e: NoSuchElementException if isKnownBug(e.getMessage) =>
+              case e: NoSuchElementException =>
+                fail(e.getMessage)
+              case NonFatal(e) =>
+                fail(info.toProtoString, e)
+            }
           }
         }
       }
