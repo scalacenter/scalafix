@@ -64,6 +64,7 @@ object TypeSyntax {
     object Any extends TypeRefExtractor("scala.Any#")
     object Product extends TypeRefExtractor("scala.Product#")
     object Serializable extends TypeRefExtractor("scala.Serializable#")
+    object Wildcard extends TypeRefExtractor("local_wildcard")
   }
 
   def isFunctionN(symbol: String): Boolean = {

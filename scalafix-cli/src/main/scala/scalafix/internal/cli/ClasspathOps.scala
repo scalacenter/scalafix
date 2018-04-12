@@ -22,9 +22,9 @@ object ClasspathOps {
   /** Process classpath with metacp to build semanticdbs of global symbols. **/
   def toMetaClasspath(
       sclasspath: Classpath,
-      cacheDirectory: Option[AbsolutePath],
-      parallel: Boolean, // unused until we upgrade scalameta for https://github.com/scalameta/scalameta/pull/1474
-      out: PrintStream): Option[Classpath] = {
+      cacheDirectory: Option[AbsolutePath] = None,
+      parallel: Boolean = true, // unused until we upgrade scalameta for https://github.com/scalameta/scalameta/pull/1474
+      out: PrintStream = devNull): Option[Classpath] = {
     val (processed, toProcess) = sclasspath.shallow.partition { path =>
       path.isDirectory &&
       path.resolve("META-INF").resolve("semanticdb.semanticidx").isFile
