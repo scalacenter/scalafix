@@ -3,7 +3,7 @@ package test
 import java.util.Map
 import scala.collection.immutable.TreeMap
 
-trait TypeToTreeInput[A, B >: String <: CharSequence] {
+trait TypeToTreeInput {
   type A
   val a: Int
   val b: String
@@ -13,12 +13,26 @@ trait TypeToTreeInput[A, B >: String <: CharSequence] {
   val e2: Int => Int
   val f: Map.Entry[Int, Int]
   val g: TypeToTreeInput.this.A
-  val h: TypeToTreeInput[Long, String]
+  val h: TypeToTreeInput
   val i: TypeToTreeInput.this.h.A
   def j[T]: TypeToTreeInputBox[T]#A
   val k: Either[List[Long], Long]
   val l: TypeToTreeInputBox.Nested
+  val m: Either.type
+  def n(arg: String): arg.type
+  def o(arg: TypeToTreeInputBox.type): arg.Nested
+  var p: Int
 }
+
+trait TypeParams[A, B >: String <: CharSequence]
+trait ParentsTrait extends Comparable[Int] with AutoCloseable
+class ClassExtendsTrait extends Serializable
+class ClassExtendsClass(y: Int) extends ClassExtendsTrait with Serializable
+case class CaseClass()
+
+abstract class AbstractClass
+final class FinalClass
+sealed abstract class SealedAbstractClass
 
 trait TypeToTreeInputBox[T] { type A }
 object TypeToTreeInputBox {

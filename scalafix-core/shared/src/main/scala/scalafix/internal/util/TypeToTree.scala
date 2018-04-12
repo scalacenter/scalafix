@@ -103,7 +103,7 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
             Pat.Var(Term.Name(info.name)) :: Nil,
             toType(ret)
           )
-        } else if (info.isVar && info.isVarSetter) {
+        } else if (info.isVar && !info.isVarSetter) {
           Decl.Var(
             toMods(info),
             Pat.Var(Term.Name(info.name)) :: Nil,
@@ -123,6 +123,26 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
       case t.CLASS_INFO_TYPE =>
         val Some(s.ClassInfoType(typeParameters, parents, declarations)) =
           info.typ.classInfoType
+        val isCaseClass = info.is(p.CASE)
+
+        def inits =
+          parents.iterator
+            .filterNot {
+              case T.AnyRef() | T.Any() => true
+              case parent =>
+                if (isCaseClass) {
+                  parent match {
+                    case T.Product() | T.Serializable() =>
+                      true
+                    case _ =>
+                      false
+                  }
+                } else {
+                  false
+                }
+            }
+            .map(toInit)
+            .toList
 
         info.kind match {
           case k.TRAIT =>
@@ -133,10 +153,12 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
               Ctor.Primary(Nil, Name(""), Nil),
               Template(
                 Nil,
-                Nil,
+                inits,
                 Self(Name(""), None),
                 declarations.scollect {
-                  case i if !i.kind.isConstructor =>
+                  case i
+                      if !i.kind.isConstructor &&
+                        !i.isVarSetter =>
                     toStat(i)
                 }
               )
@@ -145,38 +167,52 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
             val decls = declarations.map(this.info)
             val primaryConstructor = decls.collectFirst {
               case i if i.kind.isConstructor && i.is(p.PRIMARY) =>
+                i
+            }
+            val ctor = primaryConstructor match {
+              case Some(i) =>
                 toStat(i) match {
                   case d: Decl.Def =>
+                    val paramss = d.paramss match {
+                      case Nil :: Nil if !info.is(p.CASE) => Nil
+                      case els => els
+                    }
+
                     Ctor.Primary(
                       toMods(i),
                       Name.Anonymous(),
-                      d.paramss
+                      paramss
                     )
                   case els =>
                     fail(els)
                 }
+              case _ =>
+                Ctor.Primary(Nil, Name(""), Nil)
             }
+
+            def isSyntheticMember(m: s.SymbolInformation) =
+              isCaseClass == caseClassMethods(m.name)
             Defn.Class(
               toMods(info),
               Type.Name(info.name),
               typeParameters.smap(toTypeParam),
-              primaryConstructor.getOrElse(
-                Ctor.Primary(Nil, Name(""), Nil)
-              ),
+              ctor,
               Template(
                 Nil,
-                Nil,
+                inits,
                 Self(Name(""), None),
                 declarations.scollect {
                   case i
                       if !i.kind.isConstructor &&
-                        !i.kind.isField =>
+                        !i.kind.isField &&
+                        !i.isVarSetter &&
+                        !isSyntheticMember(i) =>
                     toStat(i)
                 }
               )
             )
-          case k.OBJECT =>
-            ???
+          case _ =>
+            fail(info)
         }
       case t.TYPE_TYPE =>
         val Some(s.TypeType(typeParameters, lo, hi)) = info.typ.typeType
@@ -192,10 +228,15 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
     Result(tree, Nil)
   }
 
+  def toInit(tpe: s.Type): Init = {
+    // Can't support term arguments
+    Init(toType(tpe), Name.Anonymous(), Nil)
+  }
+
   def toTypeBounds(lo: Option[s.Type], hi: Option[s.Type]): Type.Bounds =
     Type.Bounds(
-      lo.filterNot(T.Nothing.matches).map(toType(_)),
-      hi.filterNot(T.Any.matches).map(toType(_))
+      lo.filterNot(T.Nothing.matches).map(toType),
+      hi.filterNot(T.Any.matches).map(toType)
     )
 
   def toStat(info: s.SymbolInformation): Stat = {
@@ -207,21 +248,24 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
   def fail(any: GeneratedMessage): Nothing = sys.error(any.toProtoString)
 
   def toTermRef(curr: s.SymbolInformation): Term.Ref = {
-    shorten match {
-      case Shorten.UpToRoot =>
-        if (curr.symbol.isRootPackage) Term.Name("_root_")
-        else Term.Select(toTermRef(info(curr.owner)), Term.Name(curr.name))
-      case Shorten.NameOnly =>
-        Term.Name(curr.name)
-      case Shorten.Readable =>
-        val owner = info(curr.owner)
-        if (owner.kind.isPackageObject ||
-          owner.kind.isPackage ||
-          (owner.kind.isObject && curr.kind.isType)) {
+    if (curr.kind.isParameter) Term.Name(curr.name)
+    else {
+      shorten match {
+        case Shorten.UpToRoot =>
+          if (curr.symbol.isRootPackage) Term.Name("_root_")
+          else Term.Select(toTermRef(info(curr.owner)), Term.Name(curr.name))
+        case Shorten.NameOnly =>
           Term.Name(curr.name)
-        } else {
-          Term.Select(toTermRef(owner), Term.Name(curr.name))
-        }
+        case Shorten.Readable =>
+          val owner = info(curr.owner)
+          if (owner.kind.isPackageObject ||
+            owner.kind.isPackage ||
+            (owner.kind.isObject && curr.kind.isType)) {
+            Term.Name(curr.name)
+          } else {
+            Term.Select(toTermRef(owner), Term.Name(curr.name))
+          }
+      }
     }
   }
 
@@ -246,17 +290,34 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
       fail(tpe)
   }
 
-  def toType(tpe: s.Type, placeholders: Set[String] = Set.empty): Type =
+  def toTypeRef(info: s.SymbolInformation): Type.Ref = {
+    def name = Type.Name(info.name)
+    if (info.kind.isTypeParameter) {
+      name
+    } else {
+      val owner = this.info(info.owner)
+      if (shorten.isReadable && (
+          owner.kind.isPackage ||
+          owner.kind.isPackageObject ||
+          (owner.kind.isObject && info.kind.isType)
+        )) {
+        name
+      } else if (owner.kind.isObject || info.language.isJava) {
+        Type.Select(toTermRef(owner), name)
+      } else if (owner.kind.isClass || owner.kind.isTrait) {
+        Type.Project(toType(owner.typ), name)
+      } else {
+        fail(info)
+      }
+    }
+  }
+
+  def toType(tpe: s.Type): Type =
     tpe.tag match {
       case t.TYPE_REF =>
         val Some(s.TypeRef(prefix, symbol, typeArguments)) = tpe.typeRef
         def name = symbol.toTypeName
-        def targs =
-          typeArguments.iterator.map {
-            case `typePlaceholderType` =>
-              Type.Placeholder(Type.Bounds(None, None))
-            case targ => toType(targ)
-          }.toList
+        def targs = typeArguments.iterator.map(toType).toList
         symbol match {
           case FunctionN() =>
             val params :+ res = targs
@@ -274,25 +335,8 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
               case _ =>
                 if (shorten.isNameOnly) name
                 else {
-                  val curr = info(symbol)
-                  if (curr.kind.isTypeParameter) {
-                    name
-                  } else {
-                    val owner = info(curr.owner)
-                    if (shorten.isReadable && (
-                        owner.kind.isPackage ||
-                        owner.kind.isPackageObject ||
-                        (owner.kind.isObject && curr.kind.isType)
-                      )) {
-                      name
-                    } else if (owner.kind.isObject || curr.language.isJava) {
-                      Type.Select(toTermRef(owner), name)
-                    } else if (owner.kind.isClass || owner.kind.isTrait) {
-                      Type.Project(toType(owner.typ), name)
-                    } else {
-                      fail(curr)
-                    }
-                  }
+                  toTypeRef(info(symbol))
+
                 }
             }
             if (typeArguments.isEmpty) qual
@@ -302,8 +346,22 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
         import s.SingletonType.Tag
         val singleton = tpe.singletonType.get
         singleton.tag match {
-          case Tag.SYMBOL | Tag.THIS | Tag.SUPER =>
-            ???
+          case Tag.SYMBOL =>
+            val info = this.info(singleton.symbol)
+            if (info.kind.isParameter || info.isVal || info.kind.isObject) {
+              Type.Singleton(toTermRef(info))
+            } else {
+              val tpe = info.typ
+              tpe.tag match {
+                case t.METHOD_TYPE =>
+                  val ret = tpe.methodType.get.returnType.get
+                  toType(ret)
+                case _ =>
+                  fail(tpe)
+              }
+            }
+          case Tag.THIS | Tag.SUPER =>
+            fail(tpe)
           case _ =>
             toType(tpe.widen)
         }
@@ -353,16 +411,29 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
   def toMods(info: s.SymbolInformation): List[Mod] = {
     val buf = List.newBuilder[Mod]
     info.accessibility.foreach { accessibility =>
+      // TODO: within
       if (accessibility.tag.isPrivate) buf += Mod.Private(Name.Anonymous())
       if (accessibility.tag.isProtected) buf += Mod.Protected(Name.Anonymous())
-    // TODO: within
     }
+    if (info.is(p.SEALED)) buf += Mod.Sealed()
     if (info.kind.isClass && info.is(p.ABSTRACT)) buf += Mod.Abstract()
     if (info.is(p.FINAL)) buf += Mod.Final()
     if (info.is(p.IMPLICIT)) buf += Mod.Implicit()
-    if (info.is(p.SEALED)) buf += Mod.Sealed()
     if (info.kind.isClass && info.is(p.CASE)) buf += Mod.Case()
     buf.result()
   }
+
+  // TODO: workaround for https://github.com/scalameta/scalameta/issues/1492
+  val caseClassMethods = Set(
+    "copy",
+    "productPrefix",
+    "productArity",
+    "productElement",
+    "productIterator",
+    "canEqual",
+    "hashCode",
+    "toString",
+    "equals"
+  )
 
 }
