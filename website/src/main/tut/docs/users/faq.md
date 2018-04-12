@@ -164,5 +164,15 @@ Make sure that you followed the instructions in {% rule_ref RemoveUnusedImports 
 
 ## IDE support
 Scalafix has no IDE support at the moment.
-If you are interested in contributing IDE support for IntelliJ/ENSIME/vscode,
-please reach out on {% gitter %}!
+If you are interested in contributing IDE support, please reach out on {% gitter %}!
+
+## sbt runs out of memory
+
+You can control the level of concurrency of the sbt `Task`s with the `Scalafix` [`Tag`](https://www.scala-sbt.org/1.x/docs/Parallel-Execution.html) and the level of concurrency inside scalafix with the `scalafixParallel` setting.
+
+For example, to restrict scalafix to one task at a time but to use all available cores, use 
+
+```scala
+concurrentRestrictions in Global += Tags.limit(Scalafix, 1)
+scalafixParallel in Global := true
+```
