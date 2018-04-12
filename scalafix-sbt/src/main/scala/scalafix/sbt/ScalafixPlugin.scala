@@ -15,7 +15,7 @@ object ScalafixPlugin extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
   override def requires: Plugins = JvmPlugin
   object autoImport {
-    val Linting = Tags.Tag("linting")
+    val Scalafix = Tags.Tag("scalafix")
 
     val scalafix: InputKey[Unit] =
       inputKey[Unit]("Run scalafix rule.")
@@ -63,20 +63,20 @@ object ScalafixPlugin extends AutoPlugin {
       scalafix := scalafixTaskImpl(
         scalafixParserCompat,
         compat = true,
-        Seq("--format", "sbt")).tag(Linting).evaluated,
+        Seq("--format", "sbt")).tag(Scalafix).evaluated,
       scalafixTest := scalafixTaskImpl(
         scalafixParserCompat,
         compat = true,
-        Seq("--test", "--format", "sbt")).tag(Linting).evaluated,
+        Seq("--test", "--format", "sbt")).tag(Scalafix).evaluated,
       scalafixCli := scalafixTaskImpl(
         scalafixParser,
         compat = false,
-        Seq("--format", "sbt")).tag(Linting).evaluated,
+        Seq("--format", "sbt")).tag(Scalafix).evaluated,
       scalafixAutoSuppressLinterErrors := scalafixTaskImpl(
         scalafixParser,
         compat = true,
         Seq("--auto-suppress-linter-errors", "--format", "sbt"))
-        .tag(Linting)
+        .tag(Scalafix)
         .evaluated
     )
 
