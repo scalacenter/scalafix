@@ -38,7 +38,7 @@ abstract class IntegrationPropertyTest(t: ItTest, skip: Boolean = false)
     rm(t.workingPath / ".jvmopts") // avoid jvm "Conflicting collector combinations"
     write.over(
       t.workingPath / "project" / "build.properties",
-      "sbt.version=0.13.13\n"
+      "sbt.version=0.13.17\n"
     )
     write.append(
       t.workingPath / ".jvmopts",
