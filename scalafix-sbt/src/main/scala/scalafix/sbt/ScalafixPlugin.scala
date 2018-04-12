@@ -75,7 +75,9 @@ object ScalafixPlugin extends AutoPlugin {
       scalafixAutoSuppressLinterErrors := scalafixTaskImpl(
         scalafixParser,
         compat = true,
-        Seq("--auto-suppress-linter-errors", "--format", "sbt")).tag(Linting).evaluated
+        Seq("--auto-suppress-linter-errors", "--format", "sbt"))
+        .tag(Linting)
+        .evaluated
     )
 
     @deprecated("This setting is no longer used", "0.6.0")
