@@ -15,6 +15,8 @@ object ScalafixPlugin extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
   override def requires: Plugins = JvmPlugin
   object autoImport {
+    val Linting = Tags.Tag("linting")
+
     val scalafix: InputKey[Unit] =
       inputKey[Unit]("Run scalafix rule.")
     val scalafixCli: InputKey[Unit] =
@@ -61,19 +63,19 @@ object ScalafixPlugin extends AutoPlugin {
       scalafix := scalafixTaskImpl(
         scalafixParserCompat,
         compat = true,
-        Seq("--format", "sbt")).evaluated,
+        Seq("--format", "sbt")).tag(Linting).evaluated,
       scalafixTest := scalafixTaskImpl(
         scalafixParserCompat,
         compat = true,
-        Seq("--test", "--format", "sbt")).evaluated,
+        Seq("--test", "--format", "sbt")).tag(Linting).evaluated,
       scalafixCli := scalafixTaskImpl(
         scalafixParser,
         compat = false,
-        Seq("--format", "sbt")).evaluated,
+        Seq("--format", "sbt")).tag(Linting).evaluated,
       scalafixAutoSuppressLinterErrors := scalafixTaskImpl(
         scalafixParser,
         compat = true,
-        Seq("--auto-suppress-linter-errors", "--format", "sbt")).evaluated
+        Seq("--auto-suppress-linter-errors", "--format", "sbt")).tag(Linting).evaluated
     )
 
     @deprecated("This setting is no longer used", "0.6.0")
