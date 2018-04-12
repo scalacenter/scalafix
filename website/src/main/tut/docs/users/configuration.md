@@ -138,7 +138,7 @@ to prefix the rule names with `scalafix:` so that they can be easily identified.
 Scalafix can report warnings for unused/redundant rules.
 
 ```scala
-@SuppressWarnings(Array("scalafix:Disable.null", "scalafix:Disable.asInstanceOf"))
+@SuppressWarnings(Array("scalafix:DisableSyntax.keywords.null", "scalafix:Disable.asInstanceOf"))
 def foo: Unit = {
     foo(null)
     1.asInstanceOf[String]
@@ -192,7 +192,7 @@ Both techniques can selectively disable a list of rules. You can provide the lis
 commas:
 
 ```scala
-// scalafix:off Disable.null, Disable.asInstanceOf
+// scalafix:off DisableSyntax.keywords.null, Disable.asInstanceOf
 foo(null)
 1.asInstanceOf[String]
 // scalafix:on
@@ -209,10 +209,10 @@ introduce overlaps between the two as it can cause confusion and counter-intuiti
 by giving precedence to the `@SuppressWarnings` annotation:
 
 ```scala
-@SuppressWarnings(Array("scalafix:Disable.null"))
+@SuppressWarnings(Array("scalafix:DisableSyntax.keywords.null"))
 def overlap(): Unit = {
   val a = null
-  // scalafix:on Disable.null
+  // scalafix:on DisableSyntax.keywords.null
   val b = null // rule is still disabled because the annotation takes precedence over the comment
 }
 ```
