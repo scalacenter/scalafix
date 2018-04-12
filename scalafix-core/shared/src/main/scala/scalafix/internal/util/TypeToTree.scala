@@ -1,22 +1,13 @@
 package scalafix.internal.util
 
-import java.io.PrintWriter
-import java.io.StringWriter
-import org.langmeta.internal.semanticdb._
 import scala.meta._
-import scala.meta.internal.{semanticdb3 => s}
-import scala.reflect.ClassTag
-import scala.util.control.NonFatal
-import scalafix._
-import scalafix.internal.util.SymbolOps.SymbolType
-import org.langmeta.semanticdb.Symbol
+import scala.meta.internal.semanticdb3.Scala._
 import scala.meta.internal.semanticdb3.SymbolInformation.{Kind => k}
 import scala.meta.internal.semanticdb3.SymbolInformation.{Property => p}
 import scala.meta.internal.semanticdb3.Type.{Tag => t}
-import TypeSyntax._
+import scala.meta.internal.{semanticdb3 => s}
+import scalafix.internal.util.TypeSyntax._
 import scalapb.GeneratedMessage
-import TypeSyntax._
-import scala.meta.internal.semanticdb3.Scala._
 
 case class Result(tree: Tree, imports: List[String])
 
@@ -57,15 +48,18 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
   }
 
   private implicit class XtensionSymbols(syms: Seq[String]) {
+    def scollect[T](f: PartialFunction[s.SymbolInformation, T]): List[T] =
+      syms.iterator.map(info).collect(f).toList
     def smap[T](f: s.SymbolInformation => T): List[T] =
       syms.iterator.map(info).map(f).toList
   }
 
+  def ref(sym: String): s.Type = {
+    s.Type(s.Type.Tag.TYPE_REF, typeRef = Some(s.TypeRef(symbol = sym)))
+  }
+
   private implicit class XtensionSchemaType(tpe: s.Type) {
     def widen: s.Type = {
-      def ref(sym: String): s.Type = {
-        s.Type(s.Type.Tag.TYPE_REF, typeRef = Some(s.TypeRef(symbol = sym)))
-      }
       tpe.tag match {
         case t.SINGLETON_TYPE =>
           import s.SingletonType.Tag
@@ -105,65 +99,111 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
           info.typ.methodType
         if (info.isVal) {
           Decl.Val(
-            mods(info),
+            toMods(info),
             Pat.Var(Term.Name(info.name)) :: Nil,
             toType(ret)
           )
         } else if (info.isVar && info.isVarSetter) {
           Decl.Var(
-            mods(info),
+            toMods(info),
             Pat.Var(Term.Name(info.name)) :: Nil,
             toType(ret)
           )
         } else {
           Decl.Def(
-            mods(info),
+            toMods(info),
             Term.Name(info.name),
-            tparams.smap(tparam),
-            paramss.iterator.map(params => params.symbols.smap(param)).toList,
+            tparams.smap(toTypeParam),
+            paramss.iterator
+              .map(params => params.symbols.smap(toTermParam))
+              .toList,
             toType(ret)
           )
         }
       case t.CLASS_INFO_TYPE =>
         val Some(s.ClassInfoType(typeParameters, parents, declarations)) =
           info.typ.classInfoType
+
         info.kind match {
           case k.TRAIT =>
             Defn.Trait(
-              mods(info),
+              toMods(info),
               Type.Name(info.name),
-              Nil, // TODO
+              typeParameters.smap(toTypeParam),
               Ctor.Primary(Nil, Name(""), Nil),
               Template(
                 Nil,
                 Nil,
                 Self(Name(""), None),
-                declarations.smap(toStat)
+                declarations.scollect {
+                  case i if !i.kind.isConstructor =>
+                    toStat(i)
+                }
               )
             )
+          case k.CLASS =>
+            val decls = declarations.map(this.info)
+            val primaryConstructor = decls.collectFirst {
+              case i if i.kind.isConstructor && i.is(p.PRIMARY) =>
+                toStat(i) match {
+                  case d: Decl.Def =>
+                    Ctor.Primary(
+                      toMods(i),
+                      Name.Anonymous(),
+                      d.paramss
+                    )
+                  case els =>
+                    fail(els)
+                }
+            }
+            Defn.Class(
+              toMods(info),
+              Type.Name(info.name),
+              typeParameters.smap(toTypeParam),
+              primaryConstructor.getOrElse(
+                Ctor.Primary(Nil, Name(""), Nil)
+              ),
+              Template(
+                Nil,
+                Nil,
+                Self(Name(""), None),
+                declarations.scollect {
+                  case i
+                      if !i.kind.isConstructor &&
+                        !i.kind.isField =>
+                    toStat(i)
+                }
+              )
+            )
+          case k.OBJECT =>
+            ???
         }
       case t.TYPE_TYPE =>
         val Some(s.TypeType(typeParameters, lo, hi)) = info.typ.typeType
         Decl.Type(
-          mods(info),
+          toMods(info),
           Type.Name(info.name),
-          typeParameters.smap(tparam),
+          typeParameters.smap(toTypeParam),
           toTypeBounds(lo, hi)
         )
+      case _ =>
+        fail(info)
     }
     Result(tree, Nil)
   }
 
   def toTypeBounds(lo: Option[s.Type], hi: Option[s.Type]): Type.Bounds =
     Type.Bounds(
-      lo.filterNot(T.Nothing.matches).map(toType),
-      hi.filterNot(T.Any.matches).map(toType)
+      lo.filterNot(T.Nothing.matches).map(toType(_)),
+      hi.filterNot(T.Any.matches).map(toType(_))
     )
 
   def toStat(info: s.SymbolInformation): Stat = {
     toTree(info).tree.asInstanceOf[Stat]
   }
 
+  def fail(tree: Tree): Nothing =
+    sys.error(tree.syntax + s"\n\n${tree.structure}")
   def fail(any: GeneratedMessage): Nothing = sys.error(any.toProtoString)
 
   def toTermRef(curr: s.SymbolInformation): Term.Ref = {
@@ -206,12 +246,17 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
       fail(tpe)
   }
 
-  def toType(tpe: s.Type): Type = {
+  def toType(tpe: s.Type, placeholders: Set[String] = Set.empty): Type =
     tpe.tag match {
       case t.TYPE_REF =>
         val Some(s.TypeRef(prefix, symbol, typeArguments)) = tpe.typeRef
         def name = symbol.toTypeName
-        def targs = typeArguments.iterator.map(toType).toList
+        def targs =
+          typeArguments.iterator.map {
+            case `typePlaceholderType` =>
+              Type.Placeholder(Type.Bounds(None, None))
+            case targ => toType(targ)
+          }.toList
         symbol match {
           case FunctionN() =>
             val params :+ res = targs
@@ -236,6 +281,7 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
                     val owner = info(curr.owner)
                     if (shorten.isReadable && (
                         owner.kind.isPackage ||
+                        owner.kind.isPackageObject ||
                         (owner.kind.isObject && curr.kind.isType)
                       )) {
                       name
@@ -252,10 +298,30 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
             if (typeArguments.isEmpty) qual
             else Type.Apply(qual, targs)
         }
+      case t.SINGLETON_TYPE =>
+        import s.SingletonType.Tag
+        val singleton = tpe.singletonType.get
+        singleton.tag match {
+          case Tag.SYMBOL | Tag.THIS | Tag.SUPER =>
+            ???
+          case _ =>
+            toType(tpe.widen)
+        }
+      case t.EXISTENTIAL_TYPE =>
+        // Unsupported
+        fail(tpe)
+      case _ =>
+        fail(tpe)
     }
-  }
 
-  def param(info: s.SymbolInformation): Term.Param = {
+  private val typePlaceholder = "localPlaceholder"
+  private val typePlaceholderType = ref("localPlaceholder")
+
+  def isPlaceholder(sym: String): Boolean =
+    sym.startsWith("local") ||
+      sym.contains("$")
+
+  def toTermParam(info: s.SymbolInformation): Term.Param = {
     Term.Param(
       Nil,
       Term.Name(info.name),
@@ -264,19 +330,27 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
     )
   }
 
-  def tparam(info: s.SymbolInformation): Type.Param = {
+  def toTypeParam(info: s.SymbolInformation): Type.Param = {
     require(info.kind.isTypeParameter, info.toProtoString)
+    val tpe = info.typ
+    val bounds = tpe.tag match {
+      case t.TYPE_TYPE =>
+        val Some(s.TypeType(_, lo, hi)) = tpe.typeType
+        toTypeBounds(lo, hi)
+      case _ =>
+        Type.Bounds(None, None)
+    }
     Type.Param(
       mods = Nil,
       name = Type.Name(info.name),
       tparams = Nil,
-      tbounds = Type.Bounds(None, None),
+      tbounds = bounds,
       vbounds = Nil,
       cbounds = Nil
     )
   }
 
-  def mods(info: s.SymbolInformation): List[Mod] = {
+  def toMods(info: s.SymbolInformation): List[Mod] = {
     val buf = List.newBuilder[Mod]
     info.accessibility.foreach { accessibility =>
       if (accessibility.tag.isPrivate) buf += Mod.Private(Name.Anonymous())

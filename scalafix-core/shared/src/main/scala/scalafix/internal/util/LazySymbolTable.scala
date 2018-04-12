@@ -55,10 +55,6 @@ class LazySymbolTable(mclasspath: Classpath) extends SymbolTable {
         finally in.close()
       semanticdb.documents.foreach { document =>
         document.symbols.foreach { info =>
-          if (info.symbol.contains("#f().")) {
-            pprint.log(toLoad.get)
-            pprint.log(info.toProtoString)
-          }
           loadedSymbols.put(info.symbol, info)
         }
       }
@@ -89,9 +85,6 @@ class LazySymbolTable(mclasspath: Classpath) extends SymbolTable {
           try s.Index.parseFrom(in)
           finally in.close()
         index.toplevels.foreach { toplevel =>
-          if (toplevel.symbol.contains("java.util.Map#")) {
-            pprint.log(toplevel)
-          }
           notYetLoadedSymbols.put(
             toplevel.symbol,
             Compressed(jar, toplevel.uri)
