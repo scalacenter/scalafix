@@ -1,6 +1,5 @@
 package scalafix.internal.util
 
-import java.lang.invoke.MethodHandles
 import scala.collection.mutable
 import scala.meta._
 import scala.meta.internal.semanticdb3.Scala._
@@ -8,7 +7,6 @@ import scala.meta.internal.semanticdb3.SymbolInformation.{Kind => k}
 import scala.meta.internal.semanticdb3.SymbolInformation.{Property => p}
 import scala.meta.internal.semanticdb3.Type.{Tag => t}
 import scala.meta.internal.{semanticdb3 => s}
-import scala.util.control.NonFatal
 import scalafix.internal.util.TypeSyntax._
 import scalapb.GeneratedMessage
 
@@ -304,12 +302,20 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
             }
           case t.TYPE_TYPE =>
             val Some(s.TypeType(typeParameters, lo, hi)) = info.typ.typeType
-            Decl.Type(
-              toMods(info),
-              Type.Name(info.name),
-              typeParameters.smap(toTypeParam),
-              toTypeBounds(lo, hi)
-            )
+            if (lo.nonEmpty && lo == hi) {
+              Defn.Type(
+                toMods(info),
+                Type.Name(info.name),
+                typeParameters.smap(toTypeParam),
+                toType(lo.get)
+              )
+            } else
+              Decl.Type(
+                toMods(info),
+                Type.Name(info.name),
+                typeParameters.smap(toTypeParam),
+                toTypeBounds(lo, hi)
+              )
           case _ =>
             fail(info)
         }
@@ -532,6 +538,22 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
       tail.foldLeft(toType(head)) {
         case (accum, next) => Type.With(accum, toType(next))
       }
+    case t.UNIVERSAL_TYPE =>
+      val Some(s.UniversalType(typeParameters, Some(underlying))) =
+        tpe.universalType
+      val universalName = t"T"
+      Type.Project(
+        Type.Refine(
+          None,
+          Defn.Type(
+            Nil,
+            universalName,
+            typeParameters.smap(toTypeParam),
+            toType(underlying)
+          ) :: Nil
+        ),
+        universalName
+      )
     case _ =>
       fail(tpe)
   }
@@ -561,18 +583,25 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
   def toTypeParam(info: s.SymbolInformation): Type.Param = {
     require(info.kind.isTypeParameter, info.toProtoString)
     val tpe = info.typ
-    val bounds = tpe.tag match {
+    val (tparams, bounds) = tpe.tag match {
       case t.TYPE_TYPE =>
-        val Some(s.TypeType(_, lo, hi)) = tpe.typeType
-        toTypeBounds(lo, hi)
+        val Some(s.TypeType(typeParameters, lo, hi)) = tpe.typeType
+        typeParameters.iterator.map { sym =>
+          if (sym.endsWith("[_]")) {
+            Type.Param(Nil, Name(""), Nil, Type.Bounds(None, None), Nil, Nil)
+          } else {
+            toTypeParam(this.info(sym))
+          }
+        }.toList -> toTypeBounds(lo, hi)
       case _ =>
-        Type.Bounds(None, None)
+        Nil -> Type.Bounds(None, None)
     }
     Type.Param(
-      mods = Nil,
+      toMods(info),
       name = Type.Name(info.name),
-      tparams = Nil,
+      tparams = tparams,
       tbounds = bounds,
+      // TODO: re-sugar context and view bounds
       vbounds = Nil,
       cbounds = Nil
     )
@@ -581,7 +610,7 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
   def toMods(info: s.SymbolInformation): List[Mod] = {
     val buf = List.newBuilder[Mod]
     info.accessibility.foreach { accessibility =>
-      // TODO: within
+      // TODO: private[within]
       if (accessibility.tag.isPrivate) buf += Mod.Private(Name.Anonymous())
       if (accessibility.tag.isProtected) buf += Mod.Protected(Name.Anonymous())
     }
