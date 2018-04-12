@@ -9,7 +9,6 @@ import scala.meta.internal.{semanticdb3 => s}
   * is not part of the public API. Expect breaking changes.
   */
 trait SymbolTable {
-
   def info(symbol: String): Option[s.SymbolInformation]
 }
 

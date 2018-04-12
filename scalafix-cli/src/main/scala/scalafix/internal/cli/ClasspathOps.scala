@@ -25,8 +25,12 @@ object ClasspathOps {
       cacheDirectory: Option[AbsolutePath],
       parallel: Boolean, // unused until we upgrade scalameta for https://github.com/scalameta/scalameta/pull/1474
       out: PrintStream): Option[Classpath] = {
+    val (processed, toProcess) = sclasspath.shallow.partition { path =>
+      path.isDirectory &&
+      path.resolve("META-INF").resolve("semanticdb.semanticidx").isFile
+    }
     val withJDK = Classpath(
-      bootClasspath.fold(sclasspath.shallow)(_.shallow ::: sclasspath.shallow))
+      bootClasspath.fold(sclasspath.shallow)(_.shallow ::: toProcess))
     val default = metacp.Settings()
     val settings = default
       .withClasspath(withJDK)
@@ -37,7 +41,7 @@ object ClasspathOps {
       .withOut(devNull) // out prints classpath of proccessed classpath, which is not relevant for scalafix.
       .withErr(out)
     val mclasspath = scala.meta.cli.Metacp.process(settings, reporter)
-    mclasspath
+    mclasspath.map(x => Classpath(x.shallow ++ processed))
   }
 
   def newSymbolTable(
