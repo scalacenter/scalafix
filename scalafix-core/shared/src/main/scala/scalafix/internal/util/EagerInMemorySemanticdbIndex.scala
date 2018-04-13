@@ -12,7 +12,8 @@ case class EagerInMemorySemanticdbIndex(
     sourcepath: Sourcepath,
     classpath: Classpath,
     table: SymbolTable = SymbolTable.empty
-) extends SemanticdbIndex {
+) extends SemanticdbIndex
+    with SymbolTable {
   override def toString: String =
     s"$productPrefix($sourcepath, $classpath, database.size=${database.documents.length})"
   override def hashCode(): Int = database.hashCode()
@@ -85,12 +86,9 @@ case class EagerInMemorySemanticdbIndex(
     )
   }
 
-  private[scalafix] def info(symbol: String): s.SymbolInformation =
-    table.info(symbol).getOrElse {
-      denotationToSymbolInformation(
-        symbol,
-        denotation(m.Symbol(symbol))
-          .getOrElse(throw new NoSuchElementException(symbol))
-      )
+  override def info(symbol: String): Option[s.SymbolInformation] =
+    table.info(symbol).orElse {
+      denotation(m.Symbol(symbol)).map(denot =>
+        denotationToSymbolInformation(symbol, denot))
     }
 }

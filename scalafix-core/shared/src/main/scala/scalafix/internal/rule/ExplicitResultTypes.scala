@@ -8,7 +8,6 @@ import scalafix.SemanticdbIndex
 import scalafix.internal.config.ExplicitResultTypesConfig
 import scalafix.internal.config.MemberKind
 import scalafix.internal.config.MemberVisibility
-import scalafix.internal.util.TypeSyntax
 import scalafix.rule.Rule
 import scalafix.rule.RuleCtx
 import scalafix.rule.RuleName
@@ -18,6 +17,11 @@ import scalafix.util.TokenOps
 import metaconfig.Conf
 import metaconfig.Configured
 import org.langmeta.internal.semanticdb.XtensionDenotationsInternal
+import scala.util.Try
+import scala.util.control.NonFatal
+import scalafix.internal.util.EagerInMemorySemanticdbIndex
+import scalafix.internal.util.Shorten
+import scalafix.internal.util.TypeToTree
 
 case class ExplicitResultTypes(
     index: SemanticdbIndex,
@@ -72,19 +76,17 @@ case class ExplicitResultTypes(
   }
 
   override def fix(ctx: RuleCtx): Patch = {
+    val pretty = new TypeToTree(
+      index.asInstanceOf[EagerInMemorySemanticdbIndex],
+      if (config.unsafeShortenNames) Shorten.Readable
+      else Shorten.ToRoot)
     def defnType(defn: Defn): Option[(Type, Patch)] =
       for {
         name <- defnName(defn)
         denot <- name.denotation
         tpe <- denot.tpeInternal
-        // Skip existential types for now since they cause problems.
-        if !tpe.tag.isExistentialType
-        result <- TypeSyntax.prettify(
-          tpe,
-          ctx,
-          config.unsafeShortenNames,
-          name.pos)
-      } yield result
+        result <- Try(pretty.toType(tpe)).toOption
+      } yield result -> Patch.empty
     import scala.meta._
     def fix(defn: Defn, body: Term): Patch = {
       val lst = ctx.tokenList

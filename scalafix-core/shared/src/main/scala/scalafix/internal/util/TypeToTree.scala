@@ -8,27 +8,68 @@ import scala.meta.internal.semanticdb3.SymbolInformation.{Property => p}
 import scala.meta.internal.semanticdb3.Type.{Tag => t}
 import scala.meta.internal.{semanticdb3 => s}
 import scala.util.control.NonFatal
-import scalafix.internal.util.TypeSyntax._
 import scalapb.GeneratedMessage
 
 case class Result(tree: Tree, imports: List[String])
 
 sealed abstract class Shorten {
   def isReadable: Boolean = this == Shorten.Readable
-  def isUpToRoot: Boolean = this == Shorten.UpToRoot
+  def isUpToRoot: Boolean = this == Shorten.ToRoot
   def isNameOnly: Boolean = this == Shorten.NameOnly
 }
 object Shorten {
 
-  /** Fully quality up to _root_ package */
-  case object UpToRoot extends Shorten
+  /** Fully quality up to and including _root_ package */
+  case object ToRoot extends Shorten
 
-  /** Optimize for human-readability */
+  /** Optimize for human-readability
+    *
+    * In general, tries to quality up to the closest enclosing package but with special handling in
+    * a couple of other cases like type aliases inside of objects.
+    */
   case object Readable extends Shorten
 
   /** Discard prefix and use short name only */
   case object NameOnly extends Shorten
 
+}
+object T {
+  abstract class TypeRefExtractor(sym: String) {
+    def matches(tpe: s.Type): Boolean = tpe.tag match {
+      case t.TYPE_REF =>
+        tpe.typeRef.exists(_.symbol == sym)
+      case t.WITH_TYPE =>
+        tpe.withType.exists { x =>
+          x.types.lengthCompare(1) == 0 &&
+          unapply(x.types.head)
+        }
+      case _ =>
+        false
+    }
+    def unapply(tpe: s.Type): Boolean = matches(tpe)
+  }
+  object AnyRef extends TypeRefExtractor("scala.AnyRef#")
+  object Nothing extends TypeRefExtractor("scala.Nothing#")
+  object Any extends TypeRefExtractor("scala.Any#")
+  object Product extends TypeRefExtractor("scala.Product#")
+  object Serializable extends TypeRefExtractor("scala.Serializable#")
+  object Wildcard extends TypeRefExtractor("local_wildcard")
+  def isFunctionN(symbol: String): Boolean = {
+    symbol.startsWith("scala.Function") &&
+    symbol.endsWith("#")
+  }
+
+  def isTupleN(symbol: String): Boolean = {
+    symbol.startsWith("scala.Tuple") &&
+    symbol.endsWith("#")
+  }
+
+  object FunctionN {
+    def unapply(symbol: String): Boolean = isFunctionN(symbol)
+  }
+  object TupleN {
+    def unapply(symbol: String): Boolean = isTupleN(symbol)
+  }
 }
 
 class TypeToTree(table: SymbolTable, shorten: Shorten) {
@@ -333,7 +374,6 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
   }
 
   def toInit(tpe: s.Type): Init = {
-    // Can't support term arguments
     val fixed = tpe.tag match {
       case t.TYPE_REF =>
         val ref = tpe.typeRef.get
@@ -359,7 +399,12 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
       case _ =>
         tpe
     }
-    Init(toType(fixed), Name.Anonymous(), Nil)
+    Init(
+      toType(fixed),
+      Name.Anonymous(),
+      // Can't support term arguments
+      Nil
+    )
   }
 
   def toTypeBounds(lo: Option[s.Type], hi: Option[s.Type]): Type.Bounds =
@@ -399,7 +444,7 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
     if (curr.kind.isParameter) Term.Name(curr.name)
     else {
       shorten match {
-        case Shorten.UpToRoot =>
+        case Shorten.ToRoot =>
           if (curr.symbol.isRootPackage) Term.Name("_root_")
           else Term.Select(toTermRef(info(curr.owner)), Term.Name(curr.name))
         case Shorten.NameOnly =>
@@ -476,10 +521,10 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
             }
         }.toList
       symbol match {
-        case FunctionN() if typeArguments.lengthCompare(1) > 0 =>
+        case T.FunctionN() if typeArguments.lengthCompare(1) > 0 =>
           val params :+ res = targs
           Type.Function(params, res)
-        case TupleN() if typeArguments.lengthCompare(1) > 0 =>
+        case T.TupleN() if typeArguments.lengthCompare(1) > 0 =>
           Type.Tuple(targs)
         case _ =>
           val qual: Type.Ref = prefix match {
