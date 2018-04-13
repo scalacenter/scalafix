@@ -14,13 +14,13 @@ case class Result(tree: Tree, imports: List[String])
 
 sealed abstract class Shorten {
   def isReadable: Boolean = this == Shorten.Readable
-  def isUpToRoot: Boolean = this == Shorten.ToRoot
+  def isFullyQualified: Boolean = this == Shorten.FullyQualified
   def isNameOnly: Boolean = this == Shorten.NameOnly
 }
 object Shorten {
 
   /** Fully quality up to and including _root_ package */
-  case object ToRoot extends Shorten
+  case object FullyQualified extends Shorten
 
   /** Optimize for human-readability
     *
@@ -444,7 +444,7 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
     if (curr.kind.isParameter) Term.Name(curr.name)
     else {
       shorten match {
-        case Shorten.ToRoot =>
+        case Shorten.FullyQualified =>
           if (curr.symbol.isRootPackage) Term.Name("_root_")
           else Term.Select(toTermRef(info(curr.owner)), Term.Name(curr.name))
         case Shorten.NameOnly =>
@@ -485,7 +485,7 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
 
   def toTypeRef(info: s.SymbolInformation): Type.Ref = {
     def name = Type.Name(info.name)
-    if (info.kind.isTypeParameter) {
+    if (shorten.isNameOnly || info.kind.isTypeParameter) {
       name
     } else {
       val owner = this.info(info.owner)
@@ -495,7 +495,9 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
           (owner.kind.isObject && info.kind.isType)
         )) {
         name
-      } else if (owner.kind.isObject || info.language.isJava) {
+      } else if (owner.kind.isPackage ||
+        owner.kind.isObject ||
+        info.language.isJava) {
         Type.Select(toTermRef(owner), name)
       } else if (owner.kind.isClass || owner.kind.isTrait) {
         Type.Project(toTypeRef(owner), name)

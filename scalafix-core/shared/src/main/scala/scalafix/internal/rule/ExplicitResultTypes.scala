@@ -17,7 +17,6 @@ import scalafix.util.TokenOps
 import metaconfig.Conf
 import metaconfig.Configured
 import org.langmeta.internal.semanticdb.XtensionDenotationsInternal
-import scala.util.Try
 import scala.util.control.NonFatal
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
 import scalafix.internal.util.Shorten
@@ -76,16 +75,33 @@ case class ExplicitResultTypes(
   }
 
   override def fix(ctx: RuleCtx): Patch = {
+    val table = index.asInstanceOf[EagerInMemorySemanticdbIndex]
     val pretty = new TypeToTree(
-      index.asInstanceOf[EagerInMemorySemanticdbIndex],
+      table,
       if (config.unsafeShortenNames) Shorten.Readable
-      else Shorten.ToRoot)
+      else Shorten.FullyQualified)
     def defnType(defn: Defn): Option[(Type, Patch)] =
       for {
         name <- defnName(defn)
-        denot <- name.denotation
-        tpe <- denot.tpeInternal
-        result <- Try(pretty.toType(tpe)).toOption
+        sym <- name.symbol
+        info <- table.info(sym.syntax)
+        result <- {
+          try {
+            import scala.meta.internal.{semanticdb3 => s}
+            pretty.toTree(info)
+            val tpe = info.tpe.get.tag match {
+              case s.Type.Tag.METHOD_TYPE =>
+                info.tpe.get.methodType.get.returnType.get
+              case _ => info.tpe.get
+            }
+            Some(pretty.toType(tpe))
+          } catch {
+            case NonFatal(e) =>
+              e.setStackTrace(e.getStackTrace.take(30))
+              e.printStackTrace()
+              None
+          }
+        }
       } yield result -> Patch.empty
     import scala.meta._
     def fix(defn: Defn, body: Term): Patch = {

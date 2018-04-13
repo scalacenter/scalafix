@@ -276,8 +276,7 @@ val testsInput = TestProject(
         {
           val sourceroot = baseDirectory.in(ThisBuild).value / srcMain
           s"-P:semanticdb:sourceroot:$sourceroot"
-        },
-        s"-P:semanticdb:denotations:all"
+        }
       ),
       scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
       scalacOptions += "-Ywarn-adapted-args", // For NoAutoTupling
