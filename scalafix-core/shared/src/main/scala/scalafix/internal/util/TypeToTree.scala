@@ -317,13 +317,14 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
                 typeParameters.smap(toTypeParam),
                 toType(lo.get)
               )
-            } else
+            } else {
               Decl.Type(
                 toMods(info),
                 Type.Name(info.name),
                 typeParameters.smap(toTypeParam),
                 toTypeBounds(lo, hi)
               )
+            }
           case _ =>
             fail(info)
         }
@@ -368,20 +369,31 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
     )
 
   def toStat(info: s.SymbolInformation): Option[Stat] = {
-    try {
-      Some(toTree(info).tree.asInstanceOf[Stat])
-    } catch {
-      case e: NoSuchElementException =>
-        None
-      case NonFatal(e) =>
-        e.printStackTrace()
-        None
+    if (info.symbol.contains("$anon")) {
+      // Skip these for now, anonymous classes slip into a handful of public signatures and I'm not sure what is
+      // best to do with them.
+      None
+    } else {
+      try {
+        Some(toTree(info).tree.asInstanceOf[Stat])
+      } catch {
+        case e: NoSuchElementException =>
+          None
+        case NonFatal(e) =>
+          e.printStackTrace()
+          None
+      }
     }
   }
 
+  case class TypeToTreeError(msg: String, cause: Option[Throwable] = None)
+      extends Exception(msg, cause.orNull)
   def fail(tree: Tree): Nothing =
-    sys.error(tree.syntax + s"\n\n${tree.structure}")
-  def fail(any: GeneratedMessage): Nothing = sys.error(any.toProtoString)
+    throw TypeToTreeError(tree.syntax + s"\n\n${tree.structure}")
+  def fail(any: GeneratedMessage): Nothing =
+    throw TypeToTreeError(any.toProtoString)
+  def fail(any: GeneratedMessage, cause: Throwable): Nothing =
+    throw TypeToTreeError(any.toProtoString, Some(cause))
 
   def toTermRef(curr: s.SymbolInformation): Term.Ref = {
     if (curr.kind.isParameter) Term.Name(curr.name)
