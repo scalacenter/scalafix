@@ -23,7 +23,7 @@ object ClasspathOps {
   def toMetaClasspath(
       sclasspath: Classpath,
       cacheDirectory: Option[AbsolutePath] = None,
-      parallel: Boolean = true, // unused until we upgrade scalameta for https://github.com/scalameta/scalameta/pull/1474
+      parallel: Boolean = true,
       out: PrintStream = devNull): Option[Classpath] = {
     val (processed, toProcess) = sclasspath.shallow.partition { path =>
       path.isDirectory &&
@@ -36,6 +36,7 @@ object ClasspathOps {
       .withClasspath(withJDK)
       .withScalaLibrarySynthetics(true)
       .withCacheDir(cacheDirectory.getOrElse(default.cacheDir))
+      .withPar(parallel)
     val reporter = metacp
       .Reporter()
       .withOut(devNull) // out prints classpath of proccessed classpath, which is not relevant for scalafix.
