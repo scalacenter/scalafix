@@ -16,7 +16,6 @@ import scalafix.syntax._
 import scalafix.util.TokenOps
 import metaconfig.Conf
 import metaconfig.Configured
-import org.langmeta.internal.semanticdb.XtensionDenotationsInternal
 import scala.annotation.tailrec
 import scala.util.control.NonFatal
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
@@ -109,8 +108,8 @@ case class ExplicitResultTypes(
             case NonFatal(e) =>
               // Silently discard failures from producing a new type.
               // Errors are most likely caused by known upstream issue that have been reported in Scalameta.
-              e.setStackTrace(e.getStackTrace.take(30))
-              e.printStackTrace()
+//              e.setStackTrace(e.getStackTrace.take(30))
+//              e.printStackTrace()
               None
           }
         }

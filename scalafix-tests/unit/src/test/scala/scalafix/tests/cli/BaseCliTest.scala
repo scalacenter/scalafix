@@ -122,13 +122,24 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
       comment.syntax.stripPrefix("/*").stripSuffix("*/").getBytes()
     )
   }
+
+  case class Result(
+      exit: ExitStatus,
+      original: String,
+      obtained: String,
+      expected: String)
   def checkSemantic(
       name: String,
       args: Seq[String],
       expectedExit: ExitStatus,
       outputAssert: String => Unit = _ => (),
       rule: String = RemoveUnusedImports.toString(),
-      path: RelativePath = removeImportsPath
+      path: RelativePath = removeImportsPath,
+      assertObtained: Result => Unit = { result =>
+        if (result.exit.isOk) {
+          assertNoDiff(result.obtained, result.expected)
+        }
+      }
   ): Unit = {
     test(name, SkipWindows) {
       val fileIsFixed = expectedExit.isOk
@@ -151,6 +162,9 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
           err = new PrintStream(out)
         )
       )
+      val original = FileIO.slurp(
+        AbsolutePath(BuildInfo.inputSourceroot).resolve(path),
+        StandardCharsets.UTF_8)
       val obtained = {
         val fixed =
           FileIO.slurp(
@@ -160,18 +174,17 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
         else fixed
       }
       val expected =
-        FileIO.slurp(
-          AbsolutePath(
-            if (fileIsFixed) BuildInfo.outputSourceroot
-            else BuildInfo.inputSourceroot
-          ).resolve(path),
-          StandardCharsets.UTF_8
-        )
+        if (fileIsFixed) {
+          FileIO.slurp(
+            AbsolutePath(BuildInfo.outputSourceroot).resolve(path),
+            StandardCharsets.UTF_8)
+        } else {
+          original
+        }
       assert(exit == expectedExit, s"$exit != $expectedExit. Out: $out")
       outputAssert(out.toString())
-      if (expectedExit.isOk) {
-        assertNoDiff(obtained, expected)
-      }
+      val result = Result(exit, original, obtained, expected)
+      assertObtained(result)
     }
   }
 
