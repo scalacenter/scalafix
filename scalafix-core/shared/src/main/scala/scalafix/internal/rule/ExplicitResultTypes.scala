@@ -1,5 +1,7 @@
 package scalafix.internal.rule
 
+import java.io.PrintWriter
+import java.io.StringWriter
 import scala.meta._
 import scala.meta.contrib._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
@@ -106,10 +108,16 @@ case class ExplicitResultTypes(
             Some(pretty.toType(tpe))
           } catch {
             case NonFatal(e) =>
-              // Silently discard failures from producing a new type.
-              // Errors are most likely caused by known upstream issue that have been reported in Scalameta.
-//              e.setStackTrace(e.getStackTrace.take(30))
-//              e.printStackTrace()
+              if (config.fatalWarnings) {
+                val sw = new StringWriter()
+                sw.append(info.toProtoString)
+                  .append("\n")
+                e.printStackTrace(new PrintWriter(sw))
+                ctx.config.reporter.error(sw.toString, name.pos)
+              } else {
+                // Silently discard failures from producing a new type.
+                // Errors are most likely caused by known upstream issue that have been reported in Scalameta.
+              }
               None
           }
         }
