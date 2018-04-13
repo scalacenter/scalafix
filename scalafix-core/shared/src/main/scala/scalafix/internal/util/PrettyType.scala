@@ -128,6 +128,8 @@ class PrettyType(table: SymbolTable, shorten: Shorten) {
           toType(info.typ)
         )
       }
+    case k.PACKAGE =>
+      toTermRef(info)
     case _ =>
       info.typ.tag match {
         case t.METHOD_TYPE =>
