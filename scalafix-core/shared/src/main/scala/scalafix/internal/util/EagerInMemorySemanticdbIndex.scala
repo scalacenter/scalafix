@@ -76,7 +76,7 @@ case class EagerInMemorySemanticdbIndex(
   private def denotationToSymbolInformation(
       symbol: String,
       denot: Denotation,
-      owner: String,
+      owner: String
   ): s.SymbolInformation = {
     s.SymbolInformation(
       symbol = symbol,

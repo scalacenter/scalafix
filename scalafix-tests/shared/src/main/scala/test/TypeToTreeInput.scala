@@ -1,10 +1,8 @@
 package test
 
-import java.nio.file.Path
 import java.util.Map
 import scala.collection.immutable.TreeMap
 import scala.language.higherKinds
-import scala.language.reflectiveCalls
 
 trait TypeToTreeInput {
   type A
