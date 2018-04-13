@@ -333,13 +333,32 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
 
   def toInit(tpe: s.Type): Init = {
     // Can't support term arguments
-    try Init(toType(tpe), Name.Anonymous(), Nil)
-    catch {
-      case NonFatal(e) if !e.isInstanceOf[NoSuchElementException] =>
-        e.setStackTrace(e.getStackTrace.take(20))
-        e.printStackTrace()
-        init"A"
+    val fixed = tpe.tag match {
+      case t.TYPE_REF =>
+        val ref = tpe.typeRef.get
+        val newTypeArguments = ref.typeArguments.map { targ =>
+          targ.tag match {
+            case t.REPEATED_TYPE =>
+              // Workaround for https://github.com/scalameta/scalameta/issues/1497
+              s.Type(
+                tag = s.Type.Tag.TYPE_REF,
+                typeRef = Some(
+                  s.TypeRef(
+                    prefix = None,
+                    symbol = "scala.collection.Seq#",
+                    typeArguments = targ.repeatedType.get.tpe.get :: Nil
+                  )
+                )
+              )
+            case _ =>
+              targ
+          }
+        }
+        tpe.copy(typeRef = Some(ref.copy(typeArguments = newTypeArguments)))
+      case _ =>
+        tpe
     }
+    Init(toType(fixed), Name.Anonymous(), Nil)
   }
 
   def toTypeBounds(lo: Option[s.Type], hi: Option[s.Type]): Type.Bounds =

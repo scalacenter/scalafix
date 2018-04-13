@@ -1,5 +1,6 @@
 package test
 
+import java.nio.file.Path
 import java.util.Map
 import scala.collection.immutable.TreeMap
 import scala.language.higherKinds
@@ -29,6 +30,8 @@ trait TypeToTreeInput {
   def s[c[x] <: Seq[x]](e: c[String]): c[Int]
   type S = Functor[({ type T[A] = Either[Int, A] })#T]
 }
+
+case class Repeated(a: AnyRef*)
 
 trait Functor[C[_]]
 

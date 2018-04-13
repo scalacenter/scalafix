@@ -52,6 +52,8 @@ class TypeToTreeFuzzSuite extends BaseTypeToTreeSuite {
     "java.lang.invoke.MethodHandles.Lookup#",
     "java.util.concurrent.ForkJoinPool."
   )
+  ammonite.ops.LsSeq
+  slick.ast.SimpleTableIdentitySymbol
 
   for {
     entry <- mclasspath.shallow
