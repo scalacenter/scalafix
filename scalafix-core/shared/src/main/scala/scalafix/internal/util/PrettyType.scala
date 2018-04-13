@@ -10,9 +10,36 @@ import scala.meta.internal.{semanticdb3 => s}
 import scala.util.control.NonFatal
 import scalapb.GeneratedMessage
 
-case class Result(tree: Tree, imports: List[String])
+case class PrettyResult[T <: Tree](tree: T, imports: List[String])
 
-class PrettyType(table: SymbolTable, shorten: Shorten) {
+object PrettyType {
+
+  def toTree(
+      info: s.SymbolInformation,
+      table: SymbolTable,
+      shorten: Shorten
+  ): PrettyResult[Tree] = {
+    val pretty = unsafeInstance(table, shorten)
+    val result = pretty.toTree(info)
+    PrettyResult(result, pretty.getImports())
+  }
+
+  def toType(
+      tpe: s.Type,
+      table: SymbolTable,
+      shorten: Shorten
+  ): PrettyResult[Type] = {
+    val pretty = unsafeInstance(table, shorten)
+    val result = pretty.toType(tpe)
+    PrettyResult(result, pretty.getImports())
+  }
+
+  def unsafeInstance(table: SymbolTable, shorten: Shorten): PrettyType =
+    new PrettyType(table, shorten)
+
+}
+
+class PrettyType private (table: SymbolTable, shorten: Shorten) {
 
   // TODO: workaround for https://github.com/scalameta/scalameta/issues/1492
   private val caseClassMethods = Set(
@@ -26,7 +53,7 @@ class PrettyType(table: SymbolTable, shorten: Shorten) {
     "toString",
     "equals"
   )
-  private val imports = List.newBuilder[String]
+  private[this] val imports = List.newBuilder[String]
 
   def getImports(): List[String] = {
     val result = imports.result()

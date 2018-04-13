@@ -26,7 +26,6 @@ class BasePrettyTypeSuite extends BaseSemanticTest("TypeToTreeInput") {
     )
     .get
   val table = new LazySymbolTable(mclasspath)
-  val pretty = new PrettyType(table, Shorten.Readable)
 }
 
 class PrettyTypeSuite extends BasePrettyTypeSuite {
@@ -38,7 +37,7 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
       val name = expected.name.value
       test(s"${expected.productPrefix} - $name") {
         val info = table.info(s"test.$name#").get
-        val obtained = pretty.toTree(info)
+        val obtained = PrettyType.toTree(info, table, Shorten.Readable).tree
         assertNoDiff(obtained.syntax, expected.syntax)
       }
   }
@@ -59,8 +58,7 @@ class PrettyTypeFuzzSuite extends BasePrettyTypeSuite {
           val index = Index.parseFrom(indexPath)
           index.toplevels.foreach { toplevel =>
             val info = table.info(toplevel.symbol).get
-            scala.tools.nsc.interpreter.StdReplTags
-            try pretty.toTree(info)
+            try PrettyType.toTree(info, table, Shorten.Readable)
             catch {
               case e: NoSuchElementException =>
                 // Workaround for https://github.com/scalameta/scalameta/issues/1491

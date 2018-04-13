@@ -88,10 +88,9 @@ case class ExplicitResultTypes(
 
   override def fix(ctx: RuleCtx): Patch = {
     val table = index.asInstanceOf[EagerInMemorySemanticdbIndex]
-    val pretty = new PrettyType(
-      table,
+    val shorten =
       if (config.unsafeShortenNames) Shorten.Readable
-      else Shorten.FullyQualified)
+      else Shorten.FullyQualified
     def defnType(defn: Defn): Option[(Type, Patch)] =
       for {
         name <- defnName(defn)
@@ -105,7 +104,7 @@ case class ExplicitResultTypes(
                 info.tpe.get.methodType.get.returnType.get
               case _ => info.tpe.get
             }
-            Some(pretty.toType(tpe))
+            Some(PrettyType.toType(tpe, table, shorten))
           } catch {
             case NonFatal(e) =>
               if (config.fatalWarnings) {
@@ -122,7 +121,7 @@ case class ExplicitResultTypes(
           }
         }
       } yield {
-        val addGlobalImports = pretty.getImports().map { s =>
+        val addGlobalImports = result.imports.map { s =>
           val symbol = Symbol(s)
           if (config.unsafeShortenNames && isOwner(symbol, defnSymbol)) {
             Patch.empty
@@ -130,7 +129,7 @@ case class ExplicitResultTypes(
             ctx.addGlobalImport(symbol)
           }
         }
-        result -> addGlobalImports.asPatch
+        result.tree -> addGlobalImports.asPatch
       }
     import scala.meta._
     def fix(defn: Defn, body: Term): Patch = {
