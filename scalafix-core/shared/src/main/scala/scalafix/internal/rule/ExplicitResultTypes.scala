@@ -17,10 +17,11 @@ import scalafix.util.TokenOps
 import metaconfig.Conf
 import metaconfig.Configured
 import org.langmeta.internal.semanticdb.XtensionDenotationsInternal
+import scala.annotation.tailrec
 import scala.util.control.NonFatal
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
 import scalafix.internal.util.Shorten
-import scalafix.internal.util.TypeToTree
+import scalafix.internal.util.PrettyType
 
 case class ExplicitResultTypes(
     index: SemanticdbIndex,
@@ -74,21 +75,30 @@ case class ExplicitResultTypes(
     case _: Defn.Var => MemberKind.Var
   }
 
+  @tailrec private def isOwner(owner: Symbol, symbol: Symbol): Boolean =
+    if (symbol == owner) true
+    else {
+      symbol match {
+        case Symbol.None => false
+        case Symbol.Global(qual, _) => isOwner(owner, qual)
+        case _ => false
+      }
+    }
+
   override def fix(ctx: RuleCtx): Patch = {
     val table = index.asInstanceOf[EagerInMemorySemanticdbIndex]
-    val pretty = new TypeToTree(
+    val pretty = new PrettyType(
       table,
       if (config.unsafeShortenNames) Shorten.Readable
       else Shorten.FullyQualified)
     def defnType(defn: Defn): Option[(Type, Patch)] =
       for {
         name <- defnName(defn)
-        sym <- name.symbol
-        info <- table.info(sym.syntax)
+        defnSymbol <- name.symbol
+        info <- table.info(defnSymbol.syntax)
         result <- {
           try {
             import scala.meta.internal.{semanticdb3 => s}
-            pretty.toTree(info)
             val tpe = info.tpe.get.tag match {
               case s.Type.Tag.METHOD_TYPE =>
                 info.tpe.get.methodType.get.returnType.get
@@ -97,12 +107,24 @@ case class ExplicitResultTypes(
             Some(pretty.toType(tpe))
           } catch {
             case NonFatal(e) =>
+              // Silently discard failures from producing a new type.
+              // Errors are most likely caused by known upstream issue that have been reported in Scalameta.
               e.setStackTrace(e.getStackTrace.take(30))
               e.printStackTrace()
               None
           }
         }
-      } yield result -> Patch.empty
+      } yield {
+        val addGlobalImports = pretty.getImports().map { s =>
+          val symbol = Symbol(s)
+          if (config.unsafeShortenNames && isOwner(symbol, defnSymbol)) {
+            Patch.empty
+          } else {
+            ctx.addGlobalImport(symbol)
+          }
+        }
+        result -> addGlobalImports.asPatch
+      }
     import scala.meta._
     def fix(defn: Defn, body: Term): Patch = {
       val lst = ctx.tokenList

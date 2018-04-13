@@ -75,9 +75,12 @@ case class EagerInMemorySemanticdbIndex(
 
   private def denotationToSymbolInformation(
       symbol: String,
-      denot: Denotation): s.SymbolInformation = {
+      denot: Denotation,
+      owner: String,
+  ): s.SymbolInformation = {
     s.SymbolInformation(
       symbol = symbol,
+      owner = owner,
       language = s.Language.SCALA,
       kind = s.SymbolInformation.Kind.fromValue(denot.skind.value),
       properties = denot.sproperties,
@@ -88,7 +91,13 @@ case class EagerInMemorySemanticdbIndex(
 
   override def info(symbol: String): Option[s.SymbolInformation] =
     table.info(symbol).orElse {
-      denotation(m.Symbol(symbol)).map(denot =>
-        denotationToSymbolInformation(symbol, denot))
+      val msym = m.Symbol(symbol)
+      denotation(msym).map(denot =>
+        denotationToSymbolInformation(symbol, denot, {
+          msym match {
+            case m.Symbol.Global(owner, _) => owner.syntax
+            case _ => ""
+          }
+        }))
     }
 }

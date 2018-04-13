@@ -12,70 +12,10 @@ import scalapb.GeneratedMessage
 
 case class Result(tree: Tree, imports: List[String])
 
-sealed abstract class Shorten {
-  def isReadable: Boolean = this == Shorten.Readable
-  def isFullyQualified: Boolean = this == Shorten.FullyQualified
-  def isNameOnly: Boolean = this == Shorten.NameOnly
-}
-object Shorten {
-
-  /** Fully quality up to and including _root_ package */
-  case object FullyQualified extends Shorten
-
-  /** Optimize for human-readability
-    *
-    * In general, tries to quality up to the closest enclosing package but with special handling in
-    * a couple of other cases like type aliases inside of objects.
-    */
-  case object Readable extends Shorten
-
-  /** Discard prefix and use short name only */
-  case object NameOnly extends Shorten
-
-}
-object T {
-  abstract class TypeRefExtractor(sym: String) {
-    def matches(tpe: s.Type): Boolean = tpe.tag match {
-      case t.TYPE_REF =>
-        tpe.typeRef.exists(_.symbol == sym)
-      case t.WITH_TYPE =>
-        tpe.withType.exists { x =>
-          x.types.lengthCompare(1) == 0 &&
-          unapply(x.types.head)
-        }
-      case _ =>
-        false
-    }
-    def unapply(tpe: s.Type): Boolean = matches(tpe)
-  }
-  object AnyRef extends TypeRefExtractor("scala.AnyRef#")
-  object Nothing extends TypeRefExtractor("scala.Nothing#")
-  object Any extends TypeRefExtractor("scala.Any#")
-  object Product extends TypeRefExtractor("scala.Product#")
-  object Serializable extends TypeRefExtractor("scala.Serializable#")
-  object Wildcard extends TypeRefExtractor("local_wildcard")
-  def isFunctionN(symbol: String): Boolean = {
-    symbol.startsWith("scala.Function") &&
-    symbol.endsWith("#")
-  }
-
-  def isTupleN(symbol: String): Boolean = {
-    symbol.startsWith("scala.Tuple") &&
-    symbol.endsWith("#")
-  }
-
-  object FunctionN {
-    def unapply(symbol: String): Boolean = isFunctionN(symbol)
-  }
-  object TupleN {
-    def unapply(symbol: String): Boolean = isTupleN(symbol)
-  }
-}
-
-class TypeToTree(table: SymbolTable, shorten: Shorten) {
+class PrettyType(table: SymbolTable, shorten: Shorten) {
 
   // TODO: workaround for https://github.com/scalameta/scalameta/issues/1492
-  val caseClassMethods = Set(
+  private val caseClassMethods = Set(
     "copy",
     "productPrefix",
     "productArity",
@@ -86,6 +26,13 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
     "toString",
     "equals"
   )
+  private val imports = List.newBuilder[String]
+
+  def getImports(): List[String] = {
+    val result = imports.result()
+    imports.clear()
+    result
+  }
 
   private implicit class XtensionSymbolInformationProperties(
       info: s.SymbolInformation) {
@@ -157,220 +104,218 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
     table.info(sym).getOrElse(throw new NoSuchElementException(sym))
   }
 
-  def toTree(info: s.SymbolInformation): Result = {
-    val tree = info.kind match {
-      // Workaround for https://github.com/scalameta/scalameta/issues/1494
-      case k.METHOD | k.FIELD if info.tpe.isEmpty =>
-        // Dummy value
-        Defn.Val(
-          Nil,
+  def toTree(info: s.SymbolInformation): Tree = info.kind match {
+    // Workaround for https://github.com/scalameta/scalameta/issues/1494
+    case k.METHOD | k.FIELD if info.tpe.isEmpty =>
+      // Dummy value
+      Defn.Val(
+        Nil,
+        Pat.Var(Term.Name(info.name)) :: Nil,
+        None,
+        q"???"
+      )
+    case k.FIELD =>
+      if (info.is(p.FINAL)) {
+        Decl.Val(
+          toMods(info),
           Pat.Var(Term.Name(info.name)) :: Nil,
-          None,
-          q"???"
+          toType(info.typ)
         )
-      case k.FIELD =>
-        if (info.is(p.FINAL)) {
-          Decl.Val(
-            toMods(info),
-            Pat.Var(Term.Name(info.name)) :: Nil,
-            toType(info.typ)
-          )
-        } else {
-          Decl.Var(
-            toMods(info),
-            Pat.Var(Term.Name(info.name)) :: Nil,
-            toType(info.typ)
-          )
-        }
-      case _ =>
-        info.typ.tag match {
-          case t.METHOD_TYPE =>
-            val Some(s.MethodType(tparams, paramss, Some(ret))) =
-              info.typ.methodType
-            if (info.isVal) {
-              Decl.Val(
+      } else {
+        Decl.Var(
+          toMods(info),
+          Pat.Var(Term.Name(info.name)) :: Nil,
+          toType(info.typ)
+        )
+      }
+    case _ =>
+      info.typ.tag match {
+        case t.METHOD_TYPE =>
+          val Some(s.MethodType(tparams, paramss, Some(ret))) =
+            info.typ.methodType
+          if (info.isVal) {
+            Decl.Val(
+              toMods(info),
+              Pat.Var(Term.Name(info.name)) :: Nil,
+              toType(ret)
+            )
+          } else if (info.isVar && !info.isVarSetter) {
+            Decl.Var(
+              toMods(info),
+              Pat.Var(Term.Name(info.name)) :: Nil,
+              toType(ret)
+            )
+          } else {
+            Decl.Def(
+              toMods(info),
+              Term.Name(info.name),
+              tparams.smap(toTypeParam),
+              paramss.iterator
+                .map(params => params.symbols.smap(toTermParam))
+                .toList,
+              toType(ret)
+            )
+          }
+        case t.CLASS_INFO_TYPE =>
+          val classInfo = info.typ.classInfoType.get
+          val declarations =
+            classInfo.declarations.iterator.filter(sym =>
+              !sym.contains("$anon"))
+          val typeParameters = classInfo.typeParameters
+          val parents = classInfo.parents
+          val isCaseClass = info.is(p.CASE)
+          def objectDecls =
+            declarations
+              .filter { sym =>
+                // drop inaccessible ctor due to https://github.com/scalameta/scalameta/issues/1493
+                !sym.endsWith("`<init>`().")
+              }
+              .map(this.info)
+              .flatMap {
+                case i
+                    if !i.kind.isConstructor &&
+                      !i.isVarSetter =>
+                  toStat(i)
+                case _ =>
+                  Nil
+              }
+              .toList
+
+          def inits =
+            parents.iterator
+              .filterNot {
+                case TypeExtractors.AnyRef() | TypeExtractors.Any() => true
+                case parent =>
+                  if (isCaseClass) {
+                    parent match {
+                      case TypeExtractors.Product() |
+                          TypeExtractors.Serializable() =>
+                        true
+                      case _ =>
+                        false
+                    }
+                  } else {
+                    false
+                  }
+              }
+              .map(toInit)
+              .toList
+
+          info.kind match {
+            case k.TRAIT | k.INTERFACE =>
+              Defn.Trait(
                 toMods(info),
-                Pat.Var(Term.Name(info.name)) :: Nil,
-                toType(ret)
+                Type.Name(info.name),
+                typeParameters.smap(toTypeParam),
+                Ctor.Primary(Nil, Name(""), Nil),
+                Template(
+                  Nil,
+                  inits,
+                  Self(Name(""), None),
+                  declarations.sflatcollect {
+                    case i
+                        if !i.kind.isConstructor &&
+                          !i.isVarSetter =>
+                      toStat(i)
+                  }
+                )
               )
-            } else if (info.isVar && !info.isVarSetter) {
-              Decl.Var(
-                toMods(info),
-                Pat.Var(Term.Name(info.name)) :: Nil,
-                toType(ret)
-              )
-            } else {
-              Decl.Def(
+            case k.OBJECT =>
+              Defn.Object(
                 toMods(info),
                 Term.Name(info.name),
-                tparams.smap(toTypeParam),
-                paramss.iterator
-                  .map(params => params.symbols.smap(toTermParam))
-                  .toList,
-                toType(ret)
+                Template(
+                  Nil,
+                  inits,
+                  Self(Name(""), None),
+                  objectDecls
+                )
               )
-            }
-          case t.CLASS_INFO_TYPE =>
-            val classInfo = info.typ.classInfoType.get
-            val declarations =
-              classInfo.declarations.iterator.filter(sym =>
-                !sym.contains("$anon"))
-            val typeParameters = classInfo.typeParameters
-            val parents = classInfo.parents
-            val isCaseClass = info.is(p.CASE)
-            def objectDecls =
-              declarations
-                .filter { sym =>
-                  // drop inaccessible ctor due to https://github.com/scalameta/scalameta/issues/1493
-                  !sym.endsWith("`<init>`().")
-                }
-                .map(this.info)
-                .flatMap {
-                  case i
-                      if !i.kind.isConstructor &&
-                        !i.isVarSetter =>
-                    toStat(i)
-                  case _ =>
-                    Nil
-                }
-                .toList
-
-            def inits =
-              parents.iterator
-                .filterNot {
-                  case T.AnyRef() | T.Any() => true
-                  case parent =>
-                    if (isCaseClass) {
-                      parent match {
-                        case T.Product() | T.Serializable() =>
-                          true
-                        case _ =>
-                          false
+            case k.PACKAGE_OBJECT =>
+              Pkg.Object(
+                toMods(info),
+                // TODO: is this name correct?
+                Term.Name(info.name),
+                Template(
+                  Nil,
+                  inits,
+                  Self(Name(""), None),
+                  objectDecls
+                )
+              )
+            case k.CLASS =>
+              val decls = declarations.map(this.info)
+              val primaryConstructor = decls.collectFirst {
+                case i if i.kind.isConstructor && i.is(p.PRIMARY) =>
+                  i
+              }
+              val ctor = primaryConstructor match {
+                case Some(i) =>
+                  toStat(i) match {
+                    case Some(d: Decl.Def) =>
+                      val paramss = d.paramss match {
+                        case Nil :: Nil if !info.is(p.CASE) => Nil
+                        case els => els
                       }
-                    } else {
-                      false
-                    }
-                }
-                .map(toInit)
-                .toList
 
-            info.kind match {
-              case k.TRAIT | k.INTERFACE =>
-                Defn.Trait(
-                  toMods(info),
-                  Type.Name(info.name),
-                  typeParameters.smap(toTypeParam),
-                  Ctor.Primary(Nil, Name(""), Nil),
-                  Template(
-                    Nil,
-                    inits,
-                    Self(Name(""), None),
-                    declarations.sflatcollect {
-                      case i
-                          if !i.kind.isConstructor &&
-                            !i.isVarSetter =>
-                        toStat(i)
-                    }
-                  )
-                )
-              case k.OBJECT =>
-                Defn.Object(
-                  toMods(info),
-                  Term.Name(info.name),
-                  Template(
-                    Nil,
-                    inits,
-                    Self(Name(""), None),
-                    objectDecls
-                  )
-                )
-              case k.PACKAGE_OBJECT =>
-                Pkg.Object(
-                  toMods(info),
-                  // TODO: is this name correct?
-                  Term.Name(info.name),
-                  Template(
-                    Nil,
-                    inits,
-                    Self(Name(""), None),
-                    objectDecls
-                  )
-                )
-              case k.CLASS =>
-                val decls = declarations.map(this.info)
-                val primaryConstructor = decls.collectFirst {
-                  case i if i.kind.isConstructor && i.is(p.PRIMARY) =>
-                    i
-                }
-                val ctor = primaryConstructor match {
-                  case Some(i) =>
-                    toStat(i) match {
-                      case Some(d: Decl.Def) =>
-                        val paramss = d.paramss match {
-                          case Nil :: Nil if !info.is(p.CASE) => Nil
-                          case els => els
-                        }
+                      Ctor.Primary(
+                        toMods(i),
+                        Name.Anonymous(),
+                        paramss
+                      )
+                    case Some(els) =>
+                      fail(els)
+                    case None =>
+                      Ctor.Primary(Nil, Name(""), Nil)
+                  }
+                case _ =>
+                  Ctor.Primary(Nil, Name(""), Nil)
+              }
 
-                        Ctor.Primary(
-                          toMods(i),
-                          Name.Anonymous(),
-                          paramss
-                        )
-                      case Some(els) =>
-                        fail(els)
-                      case None =>
-                        Ctor.Primary(Nil, Name(""), Nil)
-                    }
-                  case _ =>
-                    Ctor.Primary(Nil, Name(""), Nil)
-                }
-
-                def isSyntheticMember(m: s.SymbolInformation) =
-                  isCaseClass == caseClassMethods(m.name)
-                Defn.Class(
-                  toMods(info),
-                  Type.Name(info.name),
-                  typeParameters.smap(toTypeParam),
-                  ctor,
-                  Template(
-                    Nil,
-                    inits,
-                    Self(Name(""), None),
-                    declarations.sflatcollect {
-                      case i
-                          if !i.kind.isConstructor &&
-                            !i.kind.isField &&
-                            !i.isVarSetter &&
-                            !isSyntheticMember(i) =>
-                        toStat(i)
-                    }
-                  )
-                )
-              case _ =>
-                fail(info)
-            }
-          case t.TYPE_TYPE =>
-            val Some(s.TypeType(typeParameters, lo, hi)) = info.typ.typeType
-            if (lo.nonEmpty && lo == hi) {
-              Defn.Type(
+              def isSyntheticMember(m: s.SymbolInformation) =
+                isCaseClass == caseClassMethods(m.name)
+              Defn.Class(
                 toMods(info),
                 Type.Name(info.name),
                 typeParameters.smap(toTypeParam),
-                toType(lo.get)
+                ctor,
+                Template(
+                  Nil,
+                  inits,
+                  Self(Name(""), None),
+                  declarations.sflatcollect {
+                    case i
+                        if !i.kind.isConstructor &&
+                          !i.kind.isField &&
+                          !i.isVarSetter &&
+                          !isSyntheticMember(i) =>
+                      toStat(i)
+                  }
+                )
               )
-            } else {
-              Decl.Type(
-                toMods(info),
-                Type.Name(info.name),
-                typeParameters.smap(toTypeParam),
-                toTypeBounds(lo, hi)
-              )
-            }
-          case _ =>
-            fail(info)
-        }
-    }
-    Result(tree, Nil)
+            case _ =>
+              fail(info)
+          }
+        case t.TYPE_TYPE =>
+          val Some(s.TypeType(typeParameters, lo, hi)) = info.typ.typeType
+          if (lo.nonEmpty && lo == hi) {
+            Defn.Type(
+              toMods(info),
+              Type.Name(info.name),
+              typeParameters.smap(toTypeParam),
+              toType(lo.get)
+            )
+          } else {
+            Decl.Type(
+              toMods(info),
+              Type.Name(info.name),
+              typeParameters.smap(toTypeParam),
+              toTypeBounds(lo, hi)
+            )
+          }
+        case _ =>
+          fail(info)
+      }
   }
 
   def toInit(tpe: s.Type): Init = {
@@ -409,8 +354,8 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
 
   def toTypeBounds(lo: Option[s.Type], hi: Option[s.Type]): Type.Bounds =
     Type.Bounds(
-      lo.filterNot(T.Nothing.matches).map(toType),
-      hi.filterNot(T.Any.matches).map(toType)
+      lo.filterNot(TypeExtractors.Nothing.matches).map(toType),
+      hi.filterNot(TypeExtractors.Any.matches).map(toType)
     )
 
   def toStat(info: s.SymbolInformation): Option[Stat] = {
@@ -420,7 +365,7 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
       None
     } else {
       try {
-        Some(toTree(info).tree.asInstanceOf[Stat])
+        Some(toTree(info).asInstanceOf[Stat])
       } catch {
         case e: NoSuchElementException =>
           None
@@ -440,23 +385,30 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
   def fail(any: GeneratedMessage, cause: Throwable): Nothing =
     throw TypeToTreeError(any.toProtoString, Some(cause))
 
-  def toTermRef(curr: s.SymbolInformation): Term.Ref = {
-    if (curr.kind.isParameter) Term.Name(curr.name)
+  def toTermRef(info: s.SymbolInformation): Term.Ref = {
+    if (info.kind.isParameter) Term.Name(info.name)
     else {
       shorten match {
         case Shorten.FullyQualified =>
-          if (curr.symbol.isRootPackage) Term.Name("_root_")
-          else Term.Select(toTermRef(info(curr.owner)), Term.Name(curr.name))
+          if (info.symbol.isRootPackage) {
+            Term.Name("_root_")
+          } else if (info.owner.isEmpty) {
+            fail(info)
+          } else {
+            Term.Select(toTermRef(this.info(info.owner)), Term.Name(info.name))
+          }
         case Shorten.NameOnly =>
-          Term.Name(curr.name)
+          imports += info.symbol
+          Term.Name(info.name)
         case Shorten.Readable =>
-          val owner = info(curr.owner)
+          val owner = this.info(info.owner)
           if (owner.kind.isPackageObject ||
             owner.kind.isPackage ||
-            (owner.kind.isObject && curr.kind.isType)) {
-            Term.Name(curr.name)
+            (owner.kind.isObject && info.kind.isType)) {
+            imports += info.symbol
+            Term.Name(info.name)
           } else {
-            Term.Select(toTermRef(owner), Term.Name(curr.name))
+            Term.Select(toTermRef(owner), Term.Name(info.name))
           }
       }
     }
@@ -494,6 +446,7 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
           owner.kind.isPackageObject ||
           (owner.kind.isObject && info.kind.isType)
         )) {
+        imports += info.symbol
         name
       } else if (owner.kind.isPackage ||
         owner.kind.isObject ||
@@ -513,7 +466,8 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
       def name = symbol.toTypeName
       def targs =
         typeArguments.iterator.map {
-          case T.Wildcard() => Type.Placeholder(Type.Bounds(None, None))
+          case TypeExtractors.Wildcard() =>
+            Type.Placeholder(Type.Bounds(None, None))
           case targ =>
             targ.typeRef match {
               case Some(ref) if placeholders.contains(ref.symbol) =>
@@ -523,10 +477,10 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
             }
         }.toList
       symbol match {
-        case T.FunctionN() if typeArguments.lengthCompare(1) > 0 =>
+        case TypeExtractors.FunctionN() if typeArguments.lengthCompare(0) > 0 =>
           val params :+ res = targs
           Type.Function(params, res)
-        case T.TupleN() if typeArguments.lengthCompare(1) > 0 =>
+        case TypeExtractors.TupleN() if typeArguments.lengthCompare(1) > 0 =>
           Type.Tuple(targs)
         case _ =>
           val qual: Type.Ref = prefix match {
@@ -610,7 +564,7 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
           toType(structural.tpe.get)
         case decls =>
           val tpe = structural.tpe match {
-            case Some(T.AnyRef()) => None
+            case Some(TypeExtractors.AnyRef()) => None
             case els => els.map(toType)
           }
           Type.Refine(
@@ -625,7 +579,7 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
     case t.WITH_TYPE =>
       val Some(s.WithType(types)) = tpe.withType
       val (head, tail) = types.head match {
-        case T.AnyRef() if types.lengthCompare(1) > 0 =>
+        case TypeExtractors.AnyRef() if types.lengthCompare(1) > 0 =>
           types(1) -> types.iterator.drop(2)
         case head =>
           head -> types.iterator.drop(1)

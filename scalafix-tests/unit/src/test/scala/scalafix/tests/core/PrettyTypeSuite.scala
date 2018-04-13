@@ -9,9 +9,9 @@ import scalafix.internal.cli.ClasspathOps
 import scalafix.internal.reflect.RuleCompiler
 import scalafix.internal.util.LazySymbolTable
 import scalafix.internal.util.Shorten
-import scalafix.internal.util.TypeToTree
+import scalafix.internal.util.PrettyType
 
-class BaseTypeToTreeSuite extends BaseSemanticTest("TypeToTreeInput") {
+class BasePrettyTypeSuite extends BaseSemanticTest("TypeToTreeInput") {
   super.beforeAll()
   val dir: m.AbsolutePath =
     m.AbsolutePath(scalafix.tests.BuildInfo.sharedClasspath)
@@ -26,10 +26,10 @@ class BaseTypeToTreeSuite extends BaseSemanticTest("TypeToTreeInput") {
     )
     .get
   val table = new LazySymbolTable(mclasspath)
-  val pretty = new TypeToTree(table, Shorten.Readable)
+  val pretty = new PrettyType(table, Shorten.Readable)
 }
 
-class TypeToTreeSuite extends BaseTypeToTreeSuite {
+class PrettyTypeSuite extends BasePrettyTypeSuite {
 
   val m.Source(m.Pkg(_, stats) :: Nil) = source
   stats.collect {
@@ -38,13 +38,13 @@ class TypeToTreeSuite extends BaseTypeToTreeSuite {
       val name = expected.name.value
       test(s"${expected.productPrefix} - $name") {
         val info = table.info(s"test.$name#").get
-        val obtained = pretty.toTree(info).tree
+        val obtained = pretty.toTree(info)
         assertNoDiff(obtained.syntax, expected.syntax)
       }
   }
 
 }
-class TypeToTreeFuzzSuite extends BaseTypeToTreeSuite {
+class PrettyTypeFuzzSuite extends BasePrettyTypeSuite {
 
   for {
     entry <- mclasspath.shallow
@@ -60,7 +60,7 @@ class TypeToTreeFuzzSuite extends BaseTypeToTreeSuite {
           index.toplevels.foreach { toplevel =>
             val info = table.info(toplevel.symbol).get
             scala.tools.nsc.interpreter.StdReplTags
-            try pretty.toTree(info).tree
+            try pretty.toTree(info)
             catch {
               case e: NoSuchElementException =>
                 // Workaround for https://github.com/scalameta/scalameta/issues/1491
