@@ -7,6 +7,7 @@ import scala.meta.internal.semanticdb3.SymbolInformation.{Kind => k}
 import scala.meta.internal.semanticdb3.SymbolInformation.{Property => p}
 import scala.meta.internal.semanticdb3.Type.{Tag => t}
 import scala.meta.internal.{semanticdb3 => s}
+import scala.util.control.NonFatal
 import scalafix.internal.util.TypeSyntax._
 import scalapb.GeneratedMessage
 
@@ -64,6 +65,9 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
   private implicit class XtensionIterator(syms: Iterator[String]) {
     def scollect[T](f: PartialFunction[s.SymbolInformation, T]): List[T] =
       syms.map(info).collect(f).toList
+    def sflatcollect[T](
+        f: PartialFunction[s.SymbolInformation, Iterable[T]]): List[T] =
+      syms.map(info).collect(f).flatten.toList
     def smap[T](f: s.SymbolInformation => T): List[T] =
       syms.map(info).map(f).toList
   }
@@ -180,11 +184,13 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
                   !sym.endsWith("`<init>`().")
                 }
                 .map(this.info)
-                .collect {
+                .flatMap {
                   case i
                       if !i.kind.isConstructor &&
                         !i.isVarSetter =>
                     toStat(i)
+                  case _ =>
+                    Nil
                 }
                 .toList
 
@@ -218,7 +224,7 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
                     Nil,
                     inits,
                     Self(Name(""), None),
-                    declarations.scollect {
+                    declarations.sflatcollect {
                       case i
                           if !i.kind.isConstructor &&
                             !i.isVarSetter =>
@@ -258,7 +264,7 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
                 val ctor = primaryConstructor match {
                   case Some(i) =>
                     toStat(i) match {
-                      case d: Decl.Def =>
+                      case Some(d: Decl.Def) =>
                         val paramss = d.paramss match {
                           case Nil :: Nil if !info.is(p.CASE) => Nil
                           case els => els
@@ -269,8 +275,10 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
                           Name.Anonymous(),
                           paramss
                         )
-                      case els =>
+                      case Some(els) =>
                         fail(els)
+                      case None =>
+                        Ctor.Primary(Nil, Name(""), Nil)
                     }
                   case _ =>
                     Ctor.Primary(Nil, Name(""), Nil)
@@ -287,7 +295,7 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
                     Nil,
                     inits,
                     Self(Name(""), None),
-                    declarations.scollect {
+                    declarations.sflatcollect {
                       case i
                           if !i.kind.isConstructor &&
                             !i.kind.isField &&
@@ -325,7 +333,13 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
 
   def toInit(tpe: s.Type): Init = {
     // Can't support term arguments
-    Init(toType(tpe), Name.Anonymous(), Nil)
+    try Init(toType(tpe), Name.Anonymous(), Nil)
+    catch {
+      case NonFatal(e) if !e.isInstanceOf[NoSuchElementException] =>
+        e.setStackTrace(e.getStackTrace.take(20))
+        e.printStackTrace()
+        init"A"
+    }
   }
 
   def toTypeBounds(lo: Option[s.Type], hi: Option[s.Type]): Type.Bounds =
@@ -334,12 +348,15 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
       hi.filterNot(T.Any.matches).map(toType)
     )
 
-  def toStat(info: s.SymbolInformation): Stat = {
+  def toStat(info: s.SymbolInformation): Option[Stat] = {
     try {
-      toTree(info).tree.asInstanceOf[Stat]
+      Some(toTree(info).tree.asInstanceOf[Stat])
     } catch {
       case e: NoSuchElementException =>
-        q"throw new IllegalArgumentException(${e.getMessage})"
+        None
+      case NonFatal(e) =>
+        e.printStackTrace()
+        None
     }
   }
 
@@ -523,7 +540,7 @@ class TypeToTree(table: SymbolTable, shorten: Shorten) {
             decls.iterator
               .map(info)
               .filterNot(_.isVarSetter)
-              .map(toStat)
+              .flatMap(toStat)
               .toList
           )
       }

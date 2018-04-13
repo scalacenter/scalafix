@@ -1,8 +1,8 @@
 package scalafix.tests.core
 
 import org.langmeta.internal.io.PlatformFileIO
-import org.scalatest.exceptions.TestFailedException
 import scala.meta.internal.semanticdb3.Index
+import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
 import scala.{meta => m}
 import scalafix.internal.cli.ClasspathOps
@@ -73,7 +73,7 @@ class TypeToTreeFuzzSuite extends BaseTypeToTreeSuite {
               case e: NoSuchElementException =>
                 fail(e.getMessage)
               case NonFatal(e) =>
-                fail(info.toProtoString, e)
+                throw new IllegalArgumentException(info.toProtoString, e) with NoStackTrace
             }
           }
         }
