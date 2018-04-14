@@ -18,7 +18,6 @@ import scalafix.syntax._
 import scalafix.util.TokenOps
 import metaconfig.Conf
 import metaconfig.Configured
-import scala.annotation.tailrec
 import scala.util.control.NonFatal
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
 import scalafix.internal.util.PrettyResult
@@ -76,15 +75,6 @@ case class ExplicitResultTypes(
     case _: Defn.Def => MemberKind.Def
     case _: Defn.Var => MemberKind.Var
   }
-  @tailrec private def isOwner(owner: Symbol, symbol: Symbol): Boolean =
-    if (symbol == owner) true
-    else {
-      symbol match {
-        case Symbol.None => false
-        case Symbol.Global(qual, _) => isOwner(owner, qual)
-        case _ => false
-      }
-    }
   import scala.meta.internal.{semanticdb3 => s}
   def toType(
       ctx: RuleCtx,
@@ -130,11 +120,7 @@ case class ExplicitResultTypes(
       } yield {
         val addGlobalImports = result.imports.map { s =>
           val symbol = Symbol(s)
-          if (config.unsafeShortenNames && isOwner(symbol, defnSymbol)) {
-            Patch.empty
-          } else {
-            ctx.addGlobalImport(symbol)
-          }
+          ctx.addGlobalImport(symbol)
         }
         result.tree -> addGlobalImports.asPatch
       }
