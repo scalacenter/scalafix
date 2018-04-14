@@ -10,5 +10,6 @@ object MissingFinalRewrite {
   object FooBar {
     case class Foo(s: String)
   }
+  abstract case class Baz(baz: String)
   case class LeaveMeAlone(x: Int) // scalafix:ok MissingFinal
 }

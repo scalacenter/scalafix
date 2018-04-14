@@ -38,10 +38,13 @@ final case class MissingFinal(index: SemanticdbIndex)
           }
       }).atomic
 
+    def isNonFinalConcreteCaseClass(mods: List[Mod]) =
+      mods.exists(_.is[Mod.Case]) &&
+        !mods.exists(m => m.is[Mod.Final] || m.is[Mod.Abstract])
+
     ctx.tree.collect {
       case t @ Defn.Class(mods, _, _, _, _)
-          if mods.exists(_.is[Mod.Case]) &&
-            !mods.exists(_.is[Mod.Final]) =>
+          if isNonFinalConcreteCaseClass(mods) =>
         addFinal(mods, t)
       case t @ Defn.Class(mods, _, _, _, templ)
           if leaksSealedParent(mods, templ) =>
