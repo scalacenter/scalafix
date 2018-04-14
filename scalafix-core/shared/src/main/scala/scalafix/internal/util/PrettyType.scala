@@ -17,7 +17,7 @@ object PrettyType {
   def toTree(
       info: s.SymbolInformation,
       table: SymbolTable,
-      shorten: Shorten
+      shorten: QualifyStrategy
   ): PrettyResult[Tree] = {
     val pretty = unsafeInstance(table, shorten)
     val result = pretty.toTree(info)
@@ -27,19 +27,19 @@ object PrettyType {
   def toType(
       tpe: s.Type,
       table: SymbolTable,
-      shorten: Shorten
+      shorten: QualifyStrategy
   ): PrettyResult[Type] = {
     val pretty = unsafeInstance(table, shorten)
     val result = pretty.toType(tpe)
     PrettyResult(result, pretty.getImports())
   }
 
-  def unsafeInstance(table: SymbolTable, shorten: Shorten): PrettyType =
+  def unsafeInstance(table: SymbolTable, shorten: QualifyStrategy): PrettyType =
     new PrettyType(table, shorten)
 
 }
 
-class PrettyType private (table: SymbolTable, shorten: Shorten) {
+class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
 
   // TODO: workaround for https://github.com/scalameta/scalameta/issues/1492
   private val caseClassMethods = Set(
@@ -418,7 +418,7 @@ class PrettyType private (table: SymbolTable, shorten: Shorten) {
     if (info.kind.isParameter) Term.Name(info.name)
     else {
       shorten match {
-        case Shorten.FullyQualified =>
+        case QualifyStrategy.Full =>
           if (info.symbol.isRootPackage) {
             Term.Name("_root_")
           } else if (info.owner.isEmpty) {
@@ -426,10 +426,10 @@ class PrettyType private (table: SymbolTable, shorten: Shorten) {
           } else {
             Term.Select(toTermRef(this.info(info.owner)), Term.Name(info.name))
           }
-        case Shorten.NameOnly =>
+        case QualifyStrategy.Name =>
           imports += info.symbol
           Term.Name(info.name)
-        case Shorten.Readable =>
+        case QualifyStrategy.Readable =>
           val owner = this.info(info.owner)
           if (owner.kind.isPackageObject ||
             owner.kind.isPackage ||
@@ -466,7 +466,7 @@ class PrettyType private (table: SymbolTable, shorten: Shorten) {
 
   def toTypeRef(info: s.SymbolInformation): Type.Ref = {
     def name = Type.Name(info.name)
-    if (shorten.isNameOnly || info.kind.isTypeParameter) {
+    if (shorten.isName || info.kind.isTypeParameter) {
       name
     } else {
       val owner = this.info(info.owner)
@@ -520,7 +520,7 @@ class PrettyType private (table: SymbolTable, shorten: Shorten) {
                 Type.Project(toType(pre), name)
               }
             case _ =>
-              if (shorten.isNameOnly) {
+              if (shorten.isName) {
                 name
               } else {
                 toTypeRef(info(symbol))

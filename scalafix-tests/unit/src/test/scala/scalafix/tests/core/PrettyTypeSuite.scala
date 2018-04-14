@@ -8,7 +8,7 @@ import scala.{meta => m}
 import scalafix.internal.cli.ClasspathOps
 import scalafix.internal.reflect.RuleCompiler
 import scalafix.internal.util.LazySymbolTable
-import scalafix.internal.util.Shorten
+import scalafix.internal.util.QualifyStrategy
 import scalafix.internal.util.PrettyType
 
 class BasePrettyTypeSuite extends BaseSemanticTest("TypeToTreeInput") {
@@ -37,7 +37,8 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
       val name = expected.name.value
       test(s"${expected.productPrefix} - $name") {
         val info = table.info(s"test.$name#").get
-        val obtained = PrettyType.toTree(info, table, Shorten.Readable).tree
+        val obtained =
+          PrettyType.toTree(info, table, QualifyStrategy.Readable).tree
         assertNoDiff(obtained.syntax, expected.syntax)
       }
   }
@@ -58,7 +59,7 @@ class PrettyTypeFuzzSuite extends BasePrettyTypeSuite {
           val index = Index.parseFrom(indexPath)
           index.toplevels.foreach { toplevel =>
             val info = table.info(toplevel.symbol).get
-            try PrettyType.toTree(info, table, Shorten.Readable)
+            try PrettyType.toTree(info, table, QualifyStrategy.Readable)
             catch {
               case e: NoSuchElementException =>
                 // Workaround for https://github.com/scalameta/scalameta/issues/1491

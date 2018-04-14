@@ -21,7 +21,8 @@ import metaconfig.Configured
 import scala.annotation.tailrec
 import scala.util.control.NonFatal
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
-import scalafix.internal.util.Shorten
+import scalafix.internal.util.PrettyResult
+import scalafix.internal.util.QualifyStrategy
 import scalafix.internal.util.PrettyType
 
 case class ExplicitResultTypes(
@@ -75,7 +76,6 @@ case class ExplicitResultTypes(
     case _: Defn.Def => MemberKind.Def
     case _: Defn.Var => MemberKind.Var
   }
-
   @tailrec private def isOwner(owner: Symbol, symbol: Symbol): Boolean =
     if (symbol == owner) true
     else {
@@ -85,41 +85,48 @@ case class ExplicitResultTypes(
         case _ => false
       }
     }
+  import scala.meta.internal.{semanticdb3 => s}
+  def toType(
+      ctx: RuleCtx,
+      pos: Position,
+      info: s.SymbolInformation): Option[PrettyResult[Type]] = {
+    try {
+      val tpe = info.tpe.get.tag match {
+        case s.Type.Tag.METHOD_TYPE =>
+          info.tpe.get.methodType.get.returnType.get
+        case _ => info.tpe.get
+      }
+      Some(
+        PrettyType.toType(
+          tpe,
+          index.asInstanceOf[EagerInMemorySemanticdbIndex],
+          if (config.unsafeShortenNames) QualifyStrategy.Readable
+          else QualifyStrategy.Full
+        ))
+    } catch {
+      case NonFatal(e) =>
+        if (config.fatalWarnings) {
+          val sw = new StringWriter()
+          sw.append(info.toProtoString)
+            .append("\n")
+          e.printStackTrace(new PrintWriter(sw))
+          ctx.config.reporter.error(sw.toString, pos)
+        } else {
+          // Silently discard failures from producing a new type.
+          // Errors are most likely caused by known upstream issue that have been reported in Scalameta.
+        }
+        None
+    }
+  }
 
   override def fix(ctx: RuleCtx): Patch = {
     val table = index.asInstanceOf[EagerInMemorySemanticdbIndex]
-    val shorten =
-      if (config.unsafeShortenNames) Shorten.Readable
-      else Shorten.FullyQualified
     def defnType(defn: Defn): Option[(Type, Patch)] =
       for {
         name <- defnName(defn)
         defnSymbol <- name.symbol
         info <- table.info(defnSymbol.syntax)
-        result <- {
-          try {
-            import scala.meta.internal.{semanticdb3 => s}
-            val tpe = info.tpe.get.tag match {
-              case s.Type.Tag.METHOD_TYPE =>
-                info.tpe.get.methodType.get.returnType.get
-              case _ => info.tpe.get
-            }
-            Some(PrettyType.toType(tpe, table, shorten))
-          } catch {
-            case NonFatal(e) =>
-              if (config.fatalWarnings) {
-                val sw = new StringWriter()
-                sw.append(info.toProtoString)
-                  .append("\n")
-                e.printStackTrace(new PrintWriter(sw))
-                ctx.config.reporter.error(sw.toString, name.pos)
-              } else {
-                // Silently discard failures from producing a new type.
-                // Errors are most likely caused by known upstream issue that have been reported in Scalameta.
-              }
-              None
-          }
-        }
+        result <- toType(ctx, name.pos, info)
       } yield {
         val addGlobalImports = result.imports.map { s =>
           val symbol = Symbol(s)
