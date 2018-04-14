@@ -210,13 +210,11 @@ object EscapeHatch {
       }
 
     private def extractRules(mods: List[Mod]): List[(String, Position)] = {
-      def process(rules: List[Term]) = rules.flatMap {
+      def process(rules: List[Term]) = rules.collect {
         case lit @ Lit.String(rule) =>
           val lo = lit.pos.start + 1 // drop leading quote
           val hi = lit.pos.end - 1 // drop trailing quote
-          Some(rule -> Position.Range(lit.pos.input, lo, hi))
-
-        case _ => None
+          rule -> Position.Range(lit.pos.input, lo, hi)
       }
 
       mods.flatMap {

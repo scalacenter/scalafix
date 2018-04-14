@@ -29,14 +29,14 @@ final case class MissingFinal(index: SemanticdbIndex)
         mods.forall(m => !m.is[Mod.Final] && !m.is[Mod.Sealed])
 
     def addFinal(mods: Seq[Mod], d: Defn): Patch =
-      mods.find(!_.is[Mod.Annot]) match {
+      (mods.find(!_.is[Mod.Annot]) match {
         case Some(mod) => ctx.addLeft(mod, "final ")
         case None =>
           mods.lastOption match {
             case Some(lastMod) => ctx.addRight(lastMod, " final")
             case None => ctx.addLeft(d, "final ")
           }
-      }
+      }).atomic
 
     ctx.tree.collect {
       case t @ Defn.Class(mods, _, _, _, _)

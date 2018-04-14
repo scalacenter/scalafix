@@ -7,4 +7,5 @@ object MissingFinalRewrite {
   object FooBar {
     final case class Foo(s: String)
   }
+  case class LeaveMeAlone(x: Int) // scalafix:ok MissingFinal
 }

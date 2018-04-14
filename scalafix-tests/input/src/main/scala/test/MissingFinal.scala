@@ -4,15 +4,18 @@ rules = MissingFinal
 package test
 
 object MissingFinal {
-  sealed trait S
-  class A extends S // assert: MissingFinal.class
-  class B extends S // assert: MissingFinal.class
-  trait C extends S // assert: MissingFinal.trait
-  final class D extends S // ok
-  sealed class E extends S // ok
-  sealed trait F extends S // ok
+  sealed trait Sealed
+  trait NotSealed
 
-  trait NotS // ok
-  class G extends NotS // ok
-  trait H extends NotS // ok
+  class A extends Sealed // assert: MissingFinal.class
+  class B extends Sealed // assert: MissingFinal.class
+  trait C extends Sealed // assert: MissingFinal.trait
+  final class D extends Sealed // ok - class is already final
+  sealed class E extends Sealed // ok - class is also sealed
+  sealed trait F extends Sealed // ok - trait is also sealed
+  @SuppressWarnings(Array("scalafix:MissingFinal"))
+  class G extends Sealed // ok - rule is suppressed
+
+  class H extends NotSealed // ok - not leaking sealed
+  trait I extends NotSealed // ok - not leaking sealed
 }
