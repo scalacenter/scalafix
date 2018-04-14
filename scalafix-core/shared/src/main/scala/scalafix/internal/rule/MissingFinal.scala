@@ -1,5 +1,6 @@
 package scalafix.internal.rule
 
+import scala.annotation.tailrec
 import scala.meta._
 import scalafix.lint.LintCategory
 import scalafix.patch.Patch
@@ -42,9 +43,20 @@ final case class MissingFinal(index: SemanticdbIndex)
       mods.exists(_.is[Mod.Case]) &&
         !mods.exists(m => m.is[Mod.Final] || m.is[Mod.Abstract])
 
+    def holdsOuterReference(t: Defn.Class) = {
+      @tailrec
+      def loop(parent: Option[Tree]): Boolean = parent match {
+        case Some(t: Template) => loop(t.parent)
+        case Some(t: Defn.Object) => loop(t.parent)
+        case Some(_: Defn.Class) | Some(_: Defn.Trait) => true
+        case _ => false
+      }
+      loop(t.parent)
+    }
+
     ctx.tree.collect {
       case t @ Defn.Class(mods, _, _, _, _)
-          if isNonFinalConcreteCaseClass(mods) =>
+          if isNonFinalConcreteCaseClass(mods) && !holdsOuterReference(t) =>
         addFinal(mods, t)
       case t @ Defn.Class(mods, _, _, _, templ)
           if leaksSealedParent(mods, templ) =>

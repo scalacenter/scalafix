@@ -9,4 +9,53 @@ object MissingFinalRewrite {
   }
   abstract case class Baz(baz: String)
   case class LeaveMeAlone(x: Int) // scalafix:ok MissingFinal
+
+  // scenarios where case class may/may not hold reference to an outer class
+
+  class Outer1 {
+    case class Inner1()
+  }
+
+  class Outer2 {
+    { final case class Inner2() }
+  }
+
+  trait Outer3 {
+    case class Inner3()
+  }
+
+  trait Outer4 {
+    def foo() = {
+      final case class Inner4()
+      "foo"
+    }
+  }
+
+  object Outer5 {
+    final case class Inner5()
+  }
+
+  class Outer6 {
+    object Outer61 {
+      object Outer611 {
+        case class Inner6()
+      }
+    }
+  }
+
+  trait Outer7 {
+    object Outer71 {
+      object Outer711 {
+        case class Inner7()
+      }
+    }
+  }
+
+  object Outer8 {
+    object Outer81 {
+      object Outer811 {
+        final case class Inner8()
+      }
+    }
+  }
 }
