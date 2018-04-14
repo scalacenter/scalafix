@@ -23,7 +23,12 @@ case class ExplicitResultTypesConfig(
     @Description(
       "If true, does a best-effort at inserting short names and add missing imports. " +
         "WARNING. This feature is currently implemented in a naive way and it contains many bugs.")
-    unsafeShortenNames: Boolean = false
+    unsafeShortenNames: Boolean = false,
+    @Description(
+      "If true, report and fail unexpected errors. " +
+        "If false, silently ignore errors to produce an explicit result type."
+    )
+    fatalWarnings: Boolean = false
 )
 
 object ExplicitResultTypesConfig {

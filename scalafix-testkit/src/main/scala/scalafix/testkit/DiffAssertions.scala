@@ -71,7 +71,10 @@ trait DiffAssertions extends FunSuiteLike {
       title: String = ""): Boolean = {
     val result = compareContents(obtained, expected)
     if (result.isEmpty) true
-    else {
+    else if (obtained.lines.toList == expected.lines.toList) {
+      // Ignore \r\n and \n differences
+      true
+    } else {
       throw DiffFailure(title, expected, obtained, result)
     }
   }

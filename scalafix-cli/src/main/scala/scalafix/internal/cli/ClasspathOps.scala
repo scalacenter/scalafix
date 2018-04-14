@@ -22,22 +22,27 @@ object ClasspathOps {
   /** Process classpath with metacp to build semanticdbs of global symbols. **/
   def toMetaClasspath(
       sclasspath: Classpath,
-      cacheDirectory: Option[AbsolutePath],
-      parallel: Boolean, // unused until we upgrade scalameta for https://github.com/scalameta/scalameta/pull/1474
-      out: PrintStream): Option[Classpath] = {
+      cacheDirectory: Option[AbsolutePath] = None,
+      parallel: Boolean = true,
+      out: PrintStream = devNull): Option[Classpath] = {
+    val (processed, toProcess) = sclasspath.shallow.partition { path =>
+      path.isDirectory &&
+      path.resolve("META-INF").resolve("semanticdb.semanticidx").isFile
+    }
     val withJDK = Classpath(
-      bootClasspath.fold(sclasspath.shallow)(_.shallow ::: sclasspath.shallow))
+      bootClasspath.fold(sclasspath.shallow)(_.shallow ::: toProcess))
     val default = metacp.Settings()
     val settings = default
       .withClasspath(withJDK)
       .withScalaLibrarySynthetics(true)
       .withCacheDir(cacheDirectory.getOrElse(default.cacheDir))
+      .withPar(parallel)
     val reporter = metacp
       .Reporter()
       .withOut(devNull) // out prints classpath of proccessed classpath, which is not relevant for scalafix.
       .withErr(out)
     val mclasspath = scala.meta.cli.Metacp.process(settings, reporter)
-    mclasspath
+    mclasspath.map(x => Classpath(x.shallow ++ processed))
   }
 
   def newSymbolTable(

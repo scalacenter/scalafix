@@ -70,6 +70,7 @@ class LazySymbolTable(mclasspath: Classpath) extends SymbolTable {
         val index =
           try s.Index.parseFrom(in)
           finally in.close()
+        indexPackages(index)
         index.toplevels.foreach { toplevel =>
           notYetLoadedSymbols.put(
             toplevel.symbol,
@@ -84,6 +85,7 @@ class LazySymbolTable(mclasspath: Classpath) extends SymbolTable {
         val index =
           try s.Index.parseFrom(in)
           finally in.close()
+        indexPackages(index)
         index.toplevels.foreach { toplevel =>
           notYetLoadedSymbols.put(
             toplevel.symbol,
@@ -93,6 +95,17 @@ class LazySymbolTable(mclasspath: Classpath) extends SymbolTable {
       }
     } else {
       throw new IllegalArgumentException(root.toString())
+    }
+  }
+
+  private def indexPackages(index: s.Index): Unit = {
+    index.packages.foreach { pkg =>
+      loadedSymbols(pkg.symbol) = s.SymbolInformation(
+        name = pkg.symbol.desc.name,
+        symbol = pkg.symbol,
+        owner = pkg.symbol.owner,
+        kind = s.SymbolInformation.Kind.PACKAGE
+      )
     }
   }
 

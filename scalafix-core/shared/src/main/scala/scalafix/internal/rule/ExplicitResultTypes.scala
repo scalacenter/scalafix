@@ -1,5 +1,7 @@
 package scalafix.internal.rule
 
+import java.io.PrintWriter
+import java.io.StringWriter
 import scala.meta._
 import scala.meta.contrib._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
@@ -8,7 +10,6 @@ import scalafix.SemanticdbIndex
 import scalafix.internal.config.ExplicitResultTypesConfig
 import scalafix.internal.config.MemberKind
 import scalafix.internal.config.MemberVisibility
-import scalafix.internal.util.TypeSyntax
 import scalafix.rule.Rule
 import scalafix.rule.RuleCtx
 import scalafix.rule.RuleName
@@ -17,7 +18,11 @@ import scalafix.syntax._
 import scalafix.util.TokenOps
 import metaconfig.Conf
 import metaconfig.Configured
-import org.langmeta.internal.semanticdb.XtensionDenotationsInternal
+import scala.util.control.NonFatal
+import scalafix.internal.util.EagerInMemorySemanticdbIndex
+import scalafix.internal.util.PrettyResult
+import scalafix.internal.util.QualifyStrategy
+import scalafix.internal.util.PrettyType
 
 case class ExplicitResultTypes(
     index: SemanticdbIndex,
@@ -70,21 +75,55 @@ case class ExplicitResultTypes(
     case _: Defn.Def => MemberKind.Def
     case _: Defn.Var => MemberKind.Var
   }
+  import scala.meta.internal.{semanticdb3 => s}
+  def toType(
+      ctx: RuleCtx,
+      pos: Position,
+      info: s.SymbolInformation): Option[PrettyResult[Type]] = {
+    try {
+      val tpe = info.tpe.get.tag match {
+        case s.Type.Tag.METHOD_TYPE =>
+          info.tpe.get.methodType.get.returnType.get
+        case _ => info.tpe.get
+      }
+      Some(
+        PrettyType.toType(
+          tpe,
+          index.asInstanceOf[EagerInMemorySemanticdbIndex],
+          if (config.unsafeShortenNames) QualifyStrategy.Readable
+          else QualifyStrategy.Full
+        ))
+    } catch {
+      case NonFatal(e) =>
+        if (config.fatalWarnings) {
+          val sw = new StringWriter()
+          sw.append(info.toProtoString)
+            .append("\n")
+          e.printStackTrace(new PrintWriter(sw))
+          ctx.config.reporter.error(sw.toString, pos)
+        } else {
+          // Silently discard failures from producing a new type.
+          // Errors are most likely caused by known upstream issue that have been reported in Scalameta.
+        }
+        None
+    }
+  }
 
   override def fix(ctx: RuleCtx): Patch = {
+    val table = index.asInstanceOf[EagerInMemorySemanticdbIndex]
     def defnType(defn: Defn): Option[(Type, Patch)] =
       for {
         name <- defnName(defn)
-        denot <- name.denotation
-        tpe <- denot.tpeInternal
-        // Skip existential types for now since they cause problems.
-        if !tpe.tag.isExistentialType
-        result <- TypeSyntax.prettify(
-          tpe,
-          ctx,
-          config.unsafeShortenNames,
-          name.pos)
-      } yield result
+        defnSymbol <- name.symbol
+        info <- table.info(defnSymbol.syntax)
+        result <- toType(ctx, name.pos, info)
+      } yield {
+        val addGlobalImports = result.imports.map { s =>
+          val symbol = Symbol(s)
+          ctx.addGlobalImport(symbol)
+        }
+        result.tree -> addGlobalImports.asPatch
+      }
     import scala.meta._
     def fix(defn: Defn, body: Term): Patch = {
       val lst = ctx.tokenList

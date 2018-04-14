@@ -6,15 +6,17 @@ import scalafix.tests.BuildInfo
 import scalafix.util.SemanticdbIndex
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
+import scalafix.testkit.DiffAssertions
 
 abstract class BaseSemanticTest(filename: String)
     extends FunSuite
-    with BeforeAndAfterAll {
+    with BeforeAndAfterAll
+    with DiffAssertions {
   private var _db: SemanticdbIndex = _
   private var _doc: Document = _
   implicit def index: SemanticdbIndex = _db
-  def docs: Document = _doc
-  def source: Source = docs.input.parse[Source].get
+  def doc: Document = _doc
+  def source: Source = doc.input.parse[Source].get
 
   override def beforeAll(): Unit = {
     _db =

@@ -86,14 +86,18 @@ class CliSemanticTests extends BaseCliTest {
   )
 
   checkSemantic(
-    name = "unexpected error for incomplete classpath",
+    name = "incomplete classpath does not result in error exit code",
     args = Seq(
       "--classpath",
       semanticClasspath // missing scala-library
     ),
-    expectedExit = ExitStatus.UnexpectedError,
+    // Errors in ExplicitResultTypes are suppressed.
+    expectedExit = ExitStatus.Ok,
     rule = ExplicitResultTypes.toString(),
-    path = explicitResultTypesPath
+    path = explicitResultTypesPath,
+    assertObtained = { _ =>
+      // Do nothing
+    }
   )
 
 }

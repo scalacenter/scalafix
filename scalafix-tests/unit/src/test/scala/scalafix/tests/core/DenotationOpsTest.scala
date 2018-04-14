@@ -7,7 +7,7 @@ import scalafix.syntax._
 class DenotationOpsTest extends BaseSemanticTest("DenotationOpsTest") {
 
   test("resultType") {
-    val source = docs.input.parse[Source].get
+    val source = doc.input.parse[Source].get
     source.collect {
       case t @ Pat.Var(Name("x")) =>
         for {
