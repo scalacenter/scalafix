@@ -20,12 +20,6 @@ a {
   left: initial;
 }
 
-table {
-  display: block;
-  overflow-x: auto;
-  white-space: nowrap;
-}
-
 .header-anchor-link {
   margin-left: -20px;
   padding-right: 5px;
@@ -45,4 +39,19 @@ h4:hover .header-anchor-link,
 h5:hover .header-anchor-link,
 h6:hover .header-anchor-link {
   opacity: 1;
+}
+
+h1 {
+  word-wrap: break-word;
+}
+code {
+  word-break: break-word;
+  word-wrap: break-word;
+  display: initial;
+  overflow-x: scroll;
+}
+table {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
 }
