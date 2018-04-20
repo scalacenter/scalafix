@@ -58,4 +58,12 @@ object MissingFinalRewrite {
       }
     }
   }
+
+  object Outer9 {
+    class Outer91 {
+      object Outer911 {
+        case class Inner9()
+      }
+    }
+  }
 }

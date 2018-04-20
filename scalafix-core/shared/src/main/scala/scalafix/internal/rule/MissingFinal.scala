@@ -1,7 +1,7 @@
 package scalafix.internal.rule
 
-import scala.annotation.tailrec
 import scala.meta._
+import scala.meta.transversers.Traverser
 import scalafix.lint.LintCategory
 import scalafix.patch.Patch
 import scalafix.rule.RuleCtx
@@ -43,35 +43,53 @@ final case class MissingFinal(index: SemanticdbIndex)
       mods.exists(_.is[Mod.Case]) &&
         !mods.exists(m => m.is[Mod.Final] || m.is[Mod.Abstract])
 
-    def holdsOuterReference(t: Defn.Class) = {
-      @tailrec
-      def loop(parent: Option[Tree]): Boolean = parent match {
-        case Some(t: Template) => loop(t.parent)
-        case Some(t: Defn.Object) => loop(t.parent)
-        case Some(_: Defn.Class) | Some(_: Defn.Trait) => true
-        case _ => false
-      }
-      loop(t.parent)
-    }
-
-    ctx.tree.collect {
-      case t @ Defn.Class(mods, _, _, _, _)
-          if isNonFinalConcreteCaseClass(mods) && !holdsOuterReference(t) =>
-        addFinal(mods, t)
-      case t @ Defn.Class(mods, _, _, _, templ)
+    collect(ctx.tree) {
+      case (t @ Defn.Class(mods, _, _, _, _), parentPropagatesOuterRef)
+          if isNonFinalConcreteCaseClass(mods) && !parentPropagatesOuterRef =>
+        (Some(addFinal(mods, t)), PropagatesOuterRef)
+      case (t @ Defn.Class(mods, _, _, _, templ), _)
           if leaksSealedParent(mods, templ) =>
-        ctx.lint(
+        val lint = ctx.lint(
           error
             .copy(id = "class")
-            .at("Class extends sealed parent", t.pos)
-        )
-      case t @ Defn.Trait(mods, _, _, _, templ)
+            .at("Class extends sealed parent", t.pos))
+        (Some(lint), PropagatesOuterRef)
+      case (t @ Defn.Trait(mods, _, _, _, templ), _)
           if leaksSealedParent(mods, templ) =>
-        ctx.lint(
+        val lint = ctx.lint(
           error
             .copy(id = "trait")
-            .at("Trait extends sealed parent", t.pos)
-        )
+            .at("Trait extends sealed parent", t.pos))
+        (Some(lint), PropagatesOuterRef)
+      case (_: Defn.Class | _: Defn.Trait, _) => (None, PropagatesOuterRef)
+      case (_: Defn.Object | _: Template, outerRef) => (None, outerRef)
+      case _ => (None, NoOuterRef)
     }.asPatch
+  }
+
+  private val PropagatesOuterRef = true
+  private val NoOuterRef = false
+
+  private def collect(tree: Tree)(
+      fn: (Tree, Boolean) => (Option[Patch], Boolean)): List[Patch] = {
+    val buf = scala.collection.mutable.ListBuffer[Patch]()
+    var outerRef = NoOuterRef
+
+    object traverser extends Traverser {
+      override def apply(tree: Tree): Unit = {
+        val prev = outerRef
+        fn(tree, prev) match {
+          case (Some(patch), outer) =>
+            buf += patch
+            outerRef = outer
+          case (None, outer) =>
+            outerRef = outer
+        }
+        super.apply(tree)
+        outerRef = prev
+      }
+    }
+    traverser(tree)
+    buf.toList
   }
 }
