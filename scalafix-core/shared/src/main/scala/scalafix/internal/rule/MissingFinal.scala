@@ -64,23 +64,23 @@ final case class MissingFinal(index: SemanticdbIndex)
       case (_: Defn.Class | _: Defn.Trait, _) => (None, PropagatesOuterRef)
       case (_: Defn.Object | _: Template, outerRef) => (None, outerRef)
       case _ => (None, NoOuterRef)
-    }.asPatch
+    }
   }
 
   private val PropagatesOuterRef = true
   private val NoOuterRef = false
 
   private def collect(tree: Tree)(
-      fn: (Tree, Boolean) => (Option[Patch], Boolean)): List[Patch] = {
-    val buf = scala.collection.mutable.ListBuffer[Patch]()
+      fn: (Tree, Boolean) => (Option[Patch], Boolean)): Patch = {
+    var patch = Patch.empty
     var outerRef = NoOuterRef
 
     object traverser extends Traverser {
       override def apply(tree: Tree): Unit = {
         val prev = outerRef
         fn(tree, prev) match {
-          case (Some(patch), outer) =>
-            buf += patch
+          case (Some(p), outer) =>
+            patch += p
             outerRef = outer
           case (None, outer) =>
             outerRef = outer
@@ -90,6 +90,6 @@ final case class MissingFinal(index: SemanticdbIndex)
       }
     }
     traverser(tree)
-    buf.toList
+    patch
   }
 }
