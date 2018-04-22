@@ -41,15 +41,19 @@ h6:hover .header-anchor-link {
   opacity: 1;
 }
 
-h1 {
+h1,
+h2,
+p {
   word-wrap: break-word;
 }
+
 code {
   word-break: break-word;
   word-wrap: break-word;
   display: initial;
   overflow-x: scroll;
 }
+
 table {
   display: block;
   overflow-x: auto;

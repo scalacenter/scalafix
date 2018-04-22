@@ -45,7 +45,7 @@ supporting a wide range of features to browse/edit/refactor Scala code.
 
 
 The IntelliJ Scala Plugin will reportedly soon release a "Migrators API",
-according to this release: https://blog.jetbrains.com/scala/2016/11/11/intellij-idea-2016-3-rc-scala-js-scala-meta-and-more/
+according to this release: https://blog.jetbrains.com/scala/2016/11/11/intellij-idea-2016-3-rc-scala-js-scala-meta-and-more/ .
 We look forward to see more of it!
 
 ### WartRemover
