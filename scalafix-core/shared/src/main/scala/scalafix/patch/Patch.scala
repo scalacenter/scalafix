@@ -108,7 +108,7 @@ object Patch {
   /** A patch that does no diff/rule */
   val empty: Patch = EmptyPatch
 
-  private def merge(a: TokenPatch, b: TokenPatch): TokenPatch = (a, b) match {
+  def merge(a: TokenPatch, b: TokenPatch): TokenPatch = (a, b) match {
     case (add1: Add, add2: Add) =>
       Add(
         add1.tok,
