@@ -694,7 +694,8 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
     }
     if (info.is(p.SEALED)) buf += Mod.Sealed()
     if (info.kind.isClass && info.is(p.ABSTRACT)) buf += Mod.Abstract()
-    if (info.is(p.FINAL)) buf += Mod.Final()
+    if (info.is(p.FINAL) && !info.kind.isObject && !info.kind.isPackageObject)
+      buf += Mod.Final()
     if (info.is(p.IMPLICIT)) buf += Mod.Implicit()
     if (info.kind.isClass && info.is(p.CASE)) buf += Mod.Case()
     buf.result()
