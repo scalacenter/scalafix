@@ -300,7 +300,10 @@ trait ScalafixMetaconfigReaders {
   implicit lazy val PatternDecoder: ConfDecoder[Pattern] = {
     ConfDecoder.stringConfDecoder.flatMap(pattern =>
       try {
-        Configured.Ok(Pattern.compile(pattern, Pattern.MULTILINE))
+        val prefix = if (pattern.startsWith("^")) "" else "^"
+        val suffix = if (pattern.endsWith("$")) "" else "$"
+        val strict = prefix + pattern + suffix
+        Configured.Ok(Pattern.compile(strict, Pattern.MULTILINE))
       } catch {
         case ex: PatternSyntaxException =>
           Configured.NotOk(ConfError.message(ex.getMessage))
