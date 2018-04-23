@@ -231,6 +231,12 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     organization := "ch.epfl.scala",
     developers ++= List(
       Developer(
+        "xeno-by",
+        "Eugene Burmako",
+        "eugene.burmako@gmail.com",
+        url("http://xeno.by")
+      ),
+      Developer(
         "gabro",
         "Gabriele Petronella",
         "gabriele@buildo.io",
@@ -247,6 +253,18 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "Ólafur Páll Geirsson",
         "olafurpg@gmail.com",
         url("https://geirsson.com")
+      ),
+      Developer(
+        "marcelocenerine",
+        "Marcelo Cenerino",
+        "marcelocenerine@gmail.com",
+        url("https://github.com/marcelocenerine")
+      ),
+      Developer(
+        "ShaneDelmore",
+        "Shane Delmore",
+        "eugene.burmako@gmail.com",
+        url("http://delmore.io")
       )
     )
   )
