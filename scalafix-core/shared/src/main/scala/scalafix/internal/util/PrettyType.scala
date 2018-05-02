@@ -40,7 +40,7 @@ object PrettyType {
 }
 
 class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
-
+  import Implicits.XtensionSymbolInformationProperties
   // TODO: workaround for https://github.com/scalameta/scalameta/issues/1492
   private val caseClassMethods = Set(
     "copy",
@@ -61,17 +61,6 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
     result
   }
 
-  private implicit class XtensionSymbolInformationProperties(
-      info: s.SymbolInformation) {
-    def typ: s.Type =
-      info.tpe.getOrElse(throw new IllegalArgumentException(info.toProtoString))
-    def is(property: s.SymbolInformation.Property): Boolean =
-      (info.properties & property.value) != 0
-    def isVal: Boolean = is(p.VAL)
-    def isVar: Boolean = is(p.VAR)
-    def isVarSetter: Boolean =
-      isVar && info.name.endsWith("_=")
-  }
   private implicit class XtensionSymbolInfo(sym: String) {
     def toTermName: Term.Name = Term.Name(info(sym).name)
     def toTypeName: Type.Name = Type.Name(info(sym).name)

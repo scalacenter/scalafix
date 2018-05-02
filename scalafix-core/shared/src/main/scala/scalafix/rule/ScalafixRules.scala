@@ -20,6 +20,7 @@ object ScalafixRules {
     NoInfer(index, NoInferConfig.default),
     ExplicitResultTypes(index),
     RemoveUnusedImports(index),
+    MatchingUnsealedTrait(index),
     RemoveUnusedTerms(index),
     NoAutoTupling(index),
     Disable(index, DisableConfig.default),
