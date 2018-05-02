@@ -41,6 +41,9 @@ case class DisableSyntaxConfig(
     @Description("Reports error when finalize is overridden.")
     noFinalize: Boolean = false,
     @Description(
+      "Report error when pattern matching in val assignment with non-tuple patterns.")
+    noValPatterns: Boolean = false,
+    @Description(
       "Report error if the text contents of a source file matches a given regex.")
     @ExampleValue(
       """|[

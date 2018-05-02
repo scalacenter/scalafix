@@ -19,13 +19,13 @@ DisableSyntax.regex = [
   "Await\\.result"
 ]
 */
-package test
+package test.disableSyntax
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 
-case object DisableSyntax {
+case object DisableSyntaxBase {
 
 
   null /* assert: DisableSyntax.keywords.null
@@ -49,4 +49,6 @@ case object DisableSyntax {
   Await.result(Future(42), 75.days) // assert: DisableSyntax.Await\.result
 
   override def finalize(): Unit = println("exit") // assert: DisableSyntax.noFinalize
+
+  val Right(notFound) = 1.asInstanceOf[Either[String, String]]
 }
