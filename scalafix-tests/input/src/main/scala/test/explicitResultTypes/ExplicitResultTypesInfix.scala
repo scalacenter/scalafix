@@ -11,4 +11,7 @@ trait \/[A, B]
 object ExplicitResultTypesInfix {
   val ab = null.asInstanceOf[Int \/ String]
   def foo = ab
+
+  case class :+:[T1, T2]()
+  def bar = :+:[Double, Long]()
 }
