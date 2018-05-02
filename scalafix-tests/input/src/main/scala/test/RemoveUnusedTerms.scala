@@ -15,4 +15,12 @@ object RemoveUnusedTerms {
   }
 
   val cc = 0
+
+  Some(1) match {
+      case Some(x) => 2
+  }
+
+  List(1) match {
+      case List(x @ _*) => 1
+  }
 }
