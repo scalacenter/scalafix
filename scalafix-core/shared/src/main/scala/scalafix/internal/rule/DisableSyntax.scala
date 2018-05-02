@@ -90,10 +90,26 @@ final case class DisableSyntax(
       }
     }
 
+    object NoValPatterns {
+      def unapply(t: Tree): Option[Tree] = t match {
+        case v: Defn.Val =>
+          v.pats.find(prohibited)
+        case _ => None
+      }
+
+      def prohibited(v: Pat): Boolean = v match {
+        case _: Pat.Tuple => false
+        case _: Pat.Var => false
+        case _ => true
+      }
+    }
+
     def hasNonImplicitParam(d: Defn.Def): Boolean =
       d.paramss.exists(_.exists(_.mods.forall(!_.is[Mod.Implicit])))
 
     val DefaultMatcher: PartialFunction[Tree, Seq[LintMessage]] = {
+      case NoValPatterns(v) if config.noValPatterns =>
+        Seq(noValPatternCategory.at(v.pos))
       case t @ mod"+" if config.noCovariantTypes =>
         Seq(
           errorCategory
@@ -173,6 +189,12 @@ final case class DisableSyntax(
   private val errorCategory: LintCategory =
     LintCategory.error(
       "Some constructs are unsafe to use and should be avoided")
+
+  private val noValPatternCategory: LintCategory =
+    LintCategory.error(
+      id = "noValPatterns",
+      explain = "Pattern matching in val assignment can result in match error, " +
+        "use \"_ match { ... }\" with a fallback case instead.")
 
   private def error(keyword: String, token: Token): LintMessage =
     errorCategory.copy(id = keyword).at(s"$keyword is disabled", token.pos)
