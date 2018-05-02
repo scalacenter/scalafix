@@ -48,10 +48,6 @@ case class RemoveUnusedTerms(index: SemanticdbIndex)
     case _ => None
   }
 
-  private def addBinding(term: Pat.Var): Option[Tokens] = term match {
-    case _ => None
-  }
-
   override def fix(ctx: RuleCtx): Patch =
     ctx.tree.collect {
       case i: Pat.Var if isUnusedPatternTerm(i) =>
