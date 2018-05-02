@@ -526,8 +526,13 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
                 toTypeRef(info(symbol))
               }
           }
-          if (typeArguments.isEmpty) qual
-          else Type.Apply(qual, targs)
+          (qual, targs) match {
+            case (q, Nil) => q
+            case (name: Type.Name, Seq(lhs, rhs))
+                if !Character.isJavaIdentifierPart(name.value.head) =>
+              Type.ApplyInfix(lhs, name, rhs)
+            case (q, targs) => Type.Apply(q, targs)
+          }
       }
     case t.SINGLETON_TYPE =>
       import s.SingletonType.Tag
