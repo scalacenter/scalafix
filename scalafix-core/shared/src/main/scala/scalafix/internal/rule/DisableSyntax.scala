@@ -93,11 +93,13 @@ final case class DisableSyntax(
     object NoValPatterns {
       def unapply(t: Tree): Option[Tree] = t match {
         case v: Defn.Val =>
-          v.pats.find(prohibited)
+          v.pats.find(isProhibited)
+        case v: Defn.Var =>
+          v.pats.find(isProhibited)
         case _ => None
       }
 
-      def prohibited(v: Pat): Boolean = v match {
+      def isProhibited(v: Pat): Boolean = v match {
         case _: Pat.Tuple => false
         case _: Pat.Var => false
         case _ => true

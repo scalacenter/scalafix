@@ -6,6 +6,7 @@ package test.disableSyntax
 
 case object DisableSyntaxNoValPatterns {
   val Right(notFound) = 1.asInstanceOf[Either[String, String]] // assert: DisableSyntax.noValPatterns
+  var Right(shame) = 1.asInstanceOf[Either[String, String]]  // assert: DisableSyntax.noValPatterns
   val itWorks = Left("42")
   val (works, works2) = (1, 1)
   val ((works3, works4), works5) = ((1, 1), 1)
