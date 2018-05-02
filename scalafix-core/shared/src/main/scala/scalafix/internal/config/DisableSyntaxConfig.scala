@@ -32,7 +32,7 @@ case class DisableSyntaxConfig(
     noValInAbstract: Boolean = false,
     @Description("Report error on object with `implicit` modifier.")
     noImplicitObject: Boolean = false,
-    @Description("Report error on method that define an implicit conversion. ")
+    @Description("Report error on method that define an implicit conversion.")
     noImplicitConversion: Boolean = false,
     @Description(
       "Remove `final` modifier for val definitions, " +

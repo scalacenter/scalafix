@@ -11,6 +11,7 @@ object ScalafixRuleNames {
     ("LeakingImplicitClassVal", "Add private access modifier to val parameters of implicit value classes in order to prevent public access"),
     ("VolatileLazyVal", "Rewrite all lazy vals to Dotty's volatile ones for safe publishing (default semantics of pre-Dotty Scala)"),
     ("ProcedureSyntax", "Rewrite that inserts explicit : Unit = for soon-to-be-deprecated procedure syntax def foo { ... }"),
+    ("NoSomeConstructor", "Rewrite that replaces Some() constructor by Option() constructor"),
     ("ExplicitUnit", "Rewrite that inserts explicit : Unit = for soon-to-be-deprecated procedure syntax def foo { ... }"),
     ("DottyVolatileLazyVal", "Rewrite all lazy vals to Dotty's volatile ones for safe publishing (default semantics of pre-Dotty Scala)"),
     ("DottyVarArgPattern", "Rewrite to convert :_* vararg pattern syntax to @ syntax supported in Dotty."),
