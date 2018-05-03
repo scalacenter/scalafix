@@ -198,6 +198,13 @@ object Patch {
     patch.isEmpty || hasLintMessage && onlyLint
   }
 
+  private[scalafix] def isAllTokenPatchAtomic(patch: Patch): Boolean =
+    patch match {
+      case Concat(a, b) => isAllTokenPatchAtomic(a) && isAllTokenPatchAtomic(b)
+      case _: AtomicPatch | _: LintPatch | _: EmptyPatch.type => true
+      case _ => false
+    }
+
   private def foreach(patch: Patch)(f: Patch => Unit): Unit = {
     def loop(patch: Patch): Unit = patch match {
       case Concat(a, b) =>

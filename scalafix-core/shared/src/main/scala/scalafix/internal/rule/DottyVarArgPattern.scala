@@ -16,7 +16,7 @@ case object DottyVarArgPattern extends Rule("DottyVarArgPattern") {
           .leading(bind.tokens.last)
           .collectFirst {
             case tok @ Token.At() =>
-              ctx.replaceToken(tok, ":")
+              ctx.replaceToken(tok, ":").atomic
           }
           .asPatch
     }

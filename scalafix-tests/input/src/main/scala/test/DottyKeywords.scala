@@ -6,6 +6,7 @@ package fix
 object DottyKeywords {
   // This is enum
   val enum = "enum"
+  def enum(inline: Int): Unit = ???  // scalafix:ok DottyKeywords
   val inline = "inline"
   @inline def foo(a: Int) = a
   @scala.inline def buz(a: Int) = a
