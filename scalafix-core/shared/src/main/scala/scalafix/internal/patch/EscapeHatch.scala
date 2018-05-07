@@ -8,6 +8,7 @@ import scala.collection.mutable.ListBuffer
 import scala.meta._
 import scala.meta.contrib._
 import scala.meta.tokens.Token
+import scala.meta.tokens.Token.Comment
 import scalafix.internal.config.FilterMatcher
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.patch.EscapeHatch._
@@ -147,12 +148,12 @@ object EscapeHatch {
         .getOrElse(true -> None)
     }
 
-    def unusedEscapes(used: collection.Set[EscapeFilter]): List[Position] =
+    def unusedEscapes(used: collection.Set[EscapeFilter]): Set[Position] =
       escapeTree.valuesIterator.flatten.collect {
         case f @ EscapeFilter(_, rulePos, _, _)
             if !used(f) && rulePos.text.startsWith(OptionalRulePrefix) => // only report unused warnings for Scalafix rules
           rulePos
-      }.toList
+      }.toSet
   }
 
   private object AnnotatedEscapes {
@@ -275,8 +276,9 @@ object EscapeHatch {
       loop(disables.toList, None)
     }
 
-    def unusedEscapes(used: collection.Set[EscapeFilter]): List[Position] =
-      unused ++ disabling.valuesIterator.flatten.filterNot(used).map(_.cause)
+    def unusedEscapes(used: collection.Set[EscapeFilter]): Set[Position] =
+      unused.toSet ++
+        disabling.valuesIterator.flatten.filterNot(used).map(_.cause)
   }
 
   private object AnchoredEscapes {
@@ -287,53 +289,39 @@ object EscapeHatch {
     def apply(
         tree: Tree,
         associatedComments: AssociatedComments): AnchoredEscapes = {
-      val enableBuilder = TreeMap.newBuilder[EscapeOffset, List[EscapeFilter]]
-      val disableBuilder = TreeMap.newBuilder[EscapeOffset, List[EscapeFilter]]
-      val unusedAnchoredEnable = List.newBuilder[Position]
+      val enable = TreeMap.newBuilder[EscapeOffset, List[EscapeFilter]]
+      val disable = TreeMap.newBuilder[EscapeOffset, List[EscapeFilter]]
       val visitedFilterExpression = mutable.Set.empty[Position]
-      var currentlyDisabledRules = Map.empty[String, Position]
-
-      def enable(
-          rules: String,
-          start: EscapeOffset,
-          anchor: Token.Comment): Unit =
-        enableBuilder += (start -> makeFilters(start, None, anchor, rules))
-
-      def disable(
-          rules: String,
-          start: EscapeOffset,
-          end: Option[EscapeOffset],
-          anchor: Token.Comment): Unit =
-        disableBuilder += (start -> makeFilters(start, end, anchor, rules))
+      val onOffTracker = new OnOffTracker
 
       def makeFilters(
+          rulesPos: List[(String, Position)],
           start: EscapeOffset,
           end: Option[EscapeOffset],
-          anchor: Token.Comment,
-          rules: String): List[EscapeFilter] = {
-        val splitRules0 = splitRules(rules)
-
-        if (splitRules0.isEmpty) { // wildcard
+          anchor: Comment): List[EscapeFilter] = {
+        if (rulesPos.isEmpty) { // wildcard
           List(
             EscapeFilter(FilterMatcher.matchEverything, anchor.pos, start, end))
         } else {
-          rulesWithPosition(splitRules0, anchor).map {
+          rulesPos.map {
             case (rule, pos) =>
               EscapeFilter(FilterMatcher(rule), pos, start, end)
           }
         }
       }
 
-      def splitRules(rules: String): List[String] =
-        rules.trim.split("\\s*,\\s*").toList
+      def splitRules(rules: String): List[String] = {
+        val trimmed = rules.trim
+        if (trimmed.isEmpty) Nil else trimmed.split("\\s*,\\s*").toList
+      }
 
       def rulesWithPosition(
-          rules: List[String],
-          anchor: Token.Comment): List[(String, Position)] = {
+          rules: String,
+          anchor: Comment): List[(String, Position)] = {
         val rulesToPos = ListBuffer.empty[(String, Position)]
         var fromIdx = 0
 
-        for (rule <- rules) {
+        for (rule <- splitRules(rules)) {
           val idx = anchor.text.indexOf(rule, fromIdx)
           val startPos = anchor.start + idx
           val endPos = startPos + rule.length
@@ -342,28 +330,6 @@ object EscapeHatch {
           rulesToPos += (rule -> pos)
         }
         rulesToPos.result()
-      }
-
-      def trackUnusedRules(
-          anchor: Token.Comment,
-          rules: String,
-          enabled: Boolean): Unit = {
-        val rulesToPos = rulesWithPosition(splitRules(rules), anchor)
-
-        if (enabled) {
-          if (currentlyDisabledRules.isEmpty && rulesToPos.isEmpty) { // wildcard
-            unusedAnchoredEnable += anchor.pos
-          } else {
-            val disabledRules = currentlyDisabledRules.keySet
-            rulesToPos.foreach {
-              case (rule, pos) if !disabledRules(rule) =>
-                unusedAnchoredEnable += pos
-              case _ => ()
-            }
-          }
-        } else {
-          currentlyDisabledRules ++= rulesToPos
-        }
       }
 
       tree.foreach { t =>
@@ -377,9 +343,10 @@ object EscapeHatch {
           //
           case comment @ Token.Comment(FilterExpression(rules)) =>
             if (!visitedFilterExpression.contains(comment.pos)) {
+              val rulesPos = rulesWithPosition(rules, comment)
               val start = EscapeOffset(t.pos.start)
               val end = Some(EscapeOffset(t.pos.end))
-              disable(rules, start, end, comment)
+              disable += (start -> makeFilters(rulesPos, start, end, comment))
               visitedFilterExpression += comment.pos
             }
 
@@ -396,9 +363,10 @@ object EscapeHatch {
             // ...
             //
             case FilterDisable(rules) =>
+              val rulesPos = rulesWithPosition(rules, comment)
               val start = EscapeOffset(comment.pos.start)
-              disable(rules, start, end = None, comment)
-              trackUnusedRules(comment, rules, enabled = false)
+              disable += (start -> makeFilters(rulesPos, start, None, comment))
+              onOffTracker.trackOff(rulesPos, comment)
 
             // matches on anchors
             //
@@ -406,8 +374,10 @@ object EscapeHatch {
             // // scalafix:on RuleA
             //
             case FilterEnable(rules) =>
-              enable(rules, EscapeOffset(comment.pos.start), comment)
-              trackUnusedRules(comment, rules, enabled = true)
+              val rulesPos = rulesWithPosition(rules, comment)
+              val start = EscapeOffset(comment.pos.start)
+              enable += (start -> makeFilters(rulesPos, start, None, comment))
+              onOffTracker.trackOn(rulesPos, comment)
 
             // matches expressions not handled by AssociatedComments
             //
@@ -416,11 +386,12 @@ object EscapeHatch {
             // }
             case FilterExpression(rules) =>
               if (!visitedFilterExpression.contains(comment.pos)) {
+                val rulesPos = rulesWithPosition(rules, comment)
                 // we approximate the position of the expression to the whole line
                 val start =
                   EscapeOffset(comment.pos.start - comment.pos.startColumn)
                 val end = Some(EscapeOffset(comment.pos.end))
-                disable(rules, start, end, comment)
+                disable += (start -> makeFilters(rulesPos, start, end, comment))
               }
 
             case _ => ()
@@ -430,9 +401,77 @@ object EscapeHatch {
       }
 
       new AnchoredEscapes(
-        enableBuilder.result(),
-        disableBuilder.result(),
-        unusedAnchoredEnable.result())
+        enable.result(),
+        disable.result(),
+        onOffTracker.allUnused)
     }
+  }
+
+  /**
+    * Keep track of what rules are ON or OFF while the `scalafix:on|off` comments
+    * are being parsed from the top to the bottom of the source file. This makes
+    * it possible to identify unused escape comments and duplicate rules.
+    *
+    * This code does not know upfront what rules are configured for a given file.
+    * Therefore, it uses a placeholder to represent "all".
+    */
+  private class OnOffTracker {
+    private trait Selection
+    private case object AllRules extends Selection
+    private case class SomeRules(names: Set[String] = Set()) extends Selection
+
+    private val unused = List.newBuilder[Position]
+    private var currentlyOn: Selection = AllRules
+    private var currentlyOff: Selection = SomeRules()
+
+    def trackOn(rulesPos: List[(String, Position)], anchor: Comment): Unit = {
+      val (off, on) = update(rulesPos, anchor, currentlyOff, currentlyOn)
+      currentlyOff = off
+      currentlyOn = on
+    }
+
+    def trackOff(rulesPos: List[(String, Position)], anchor: Comment): Unit = {
+      val (on, off) = update(rulesPos, anchor, currentlyOn, currentlyOff)
+      currentlyOn = on
+      currentlyOff = off
+    }
+
+    private def update(
+        rulesPos: List[(String, Position)],
+        anchor: Comment,
+        source: Selection,
+        target: Selection): (Selection, Selection) =
+      rulesPos match {
+        case Nil => // wildcard
+          (source, target) match {
+            case (SomeRules(src), AllRules) if src.isEmpty =>
+              unused += anchor.pos // everything is already in the target state
+            case _ =>
+          }
+          (SomeRules(), AllRules)
+
+        case _ => // specific rules
+          (source, target) match {
+            case (AllRules, SomeRules(tgt)) =>
+              var newTgt = tgt
+              rulesPos.foreach {
+                case (rule, pos) =>
+                  if (!newTgt(rule)) newTgt += rule else unused += pos
+              }
+              (AllRules, SomeRules(newTgt))
+
+            case (SomeRules(src), AllRules) =>
+              var newSrc = src
+              rulesPos.foreach {
+                case (rule, pos) =>
+                  if (newSrc(rule)) newSrc -= rule else unused += pos
+              }
+              (SomeRules(newSrc), AllRules)
+
+            case _ => sys.error("invalid state") // should never reach here
+          }
+      }
+
+    def allUnused: List[Position] = unused.result()
   }
 }

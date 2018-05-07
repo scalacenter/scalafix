@@ -115,7 +115,7 @@ object AnchorOverlapping {
   // -----------------------------------------------------------------------------
 
   {
-    /* scalafix:on */ // FIXME bug - this should be reported as unused
+    /* scalafix:on */ // assert: UnusedScalafixSuppression
     val dummy = 0
     null
   } // scalafix:ok
