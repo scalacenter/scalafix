@@ -82,21 +82,9 @@ class EscapeHatch private (
 
     val patches =
       patchesByName.map { case (name, patch) => loop(name, patch) }.asPatch
-
-    // we don't want to show unused warnings for non-Scalafix rules
-    val prefixedEscapes =
-      annotatedEscapes.disableEscapes
-        .filter { escape =>
-          val ruleName = escape.cause.text
-          ruleName.startsWith(AnnotatedEscapes.OptionalRulePrefix)
-        }
-    val unusedDisable =
-      (prefixedEscapes ++ anchoredEscapes.disableEscapes)
-        .filterNot(usedEscapes)
-        .map(_.cause)
-
     val unusedWarnings =
-      (unusedDisable ++ anchoredEscapes.unusedEnable)
+      (annotatedEscapes.unusedEscapes(usedEscapes) ++
+        anchoredEscapes.unusedEscapes(usedEscapes))
         .map(UnusedWarning.at)
     val warnings = lintMessages.result() ++ unusedWarnings
     (patches, warnings)
@@ -143,6 +131,7 @@ object EscapeHatch {
     * Use the keyword "all" to suppress all rules.
     */
   private class AnnotatedEscapes private (escapeTree: EscapeTree) {
+    import AnnotatedEscapes._
 
     def isEnabled(
         ruleName: RuleName,
@@ -158,13 +147,18 @@ object EscapeHatch {
         .getOrElse(true -> None)
     }
 
-    def disableEscapes: Iterable[EscapeFilter] = escapeTree.values.flatten
+    def unusedEscapes(used: collection.Set[EscapeFilter]): List[Position] =
+      escapeTree.valuesIterator.flatten.collect {
+        case f @ EscapeFilter(_, rulePos, _, _)
+            if !used(f) && rulePos.text.startsWith(OptionalRulePrefix) => // only report unused warnings for Scalafix rules
+          rulePos
+      }.toList
   }
 
   private object AnnotatedEscapes {
     private val SuppressWarnings = "SuppressWarnings"
     private val SuppressAll = "all"
-    val OptionalRulePrefix = "scalafix:"
+    private val OptionalRulePrefix = "scalafix:"
 
     def apply(tree: Tree): AnnotatedEscapes = {
       val escapes =
@@ -238,12 +232,12 @@ object EscapeHatch {
     *
     * `enabling` and `enabling` contain the offset at which you start applying a filter
     *
-    * `unusedEnable` contains the unused `scalafix:on`
+    * `unused` contains the position of unused `scalafix:on|off`
     */
   private class AnchoredEscapes private (
       enabling: EscapeTree,
       disabling: EscapeTree,
-      val unusedEnable: List[Position]) {
+      unused: List[Position]) {
 
     /**
       * a rule r is disabled in position p if there is a comment disabling r at
@@ -281,7 +275,8 @@ object EscapeHatch {
       loop(disables.toList, None)
     }
 
-    def disableEscapes: Iterable[EscapeFilter] = disabling.values.flatten
+    def unusedEscapes(used: collection.Set[EscapeFilter]): List[Position] =
+      unused ++ disabling.valuesIterator.flatten.filterNot(used).map(_.cause)
   }
 
   private object AnchoredEscapes {
