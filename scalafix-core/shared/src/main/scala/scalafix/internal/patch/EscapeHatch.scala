@@ -136,9 +136,9 @@ object EscapeHatch {
     * annotation can be placed in class, object, trait, type, def, val, var,
     * parameters and constructor definitions.
     *
-    * Rules can be optionally prefixed with `scalafix:`. Besides helping to
+    * Rules can be optionally prefixed with `scalafix:`. Besides helping
     * users to understand where the rules are coming from, it also allows
-    * Scalafix to warn when there are rules unnecessarily being suppressed.
+    * Scalafix to warn unused suppression.
     *
     * Use the keyword "all" to suppress all rules.
     */
@@ -147,17 +147,15 @@ object EscapeHatch {
     def isEnabled(
         ruleName: RuleName,
         position: Int): (Boolean, Option[EscapeFilter]) = {
-      val escapesUpToPos = escapeTree.to(EscapeOffset(position)).values.flatten
-      val maybeFilter = escapesUpToPos.find {
-        case f @ EscapeFilter(_, _, _, Some(end))
-            if f.matches(ruleName) && end.offset >= position =>
-          true
-        case _ => false
-      }
-      maybeFilter match {
-        case Some(filter) => (false, Some(filter))
-        case None => (true, None)
-      }
+      val escapesUpToPos =
+        escapeTree.to(EscapeOffset(position)).valuesIterator.flatten
+      escapesUpToPos
+        .collectFirst {
+          case f @ EscapeFilter(_, _, _, Some(end))
+              if f.matches(ruleName) && end.offset >= position =>
+            (false, Some(f))
+        }
+        .getOrElse(true -> None)
     }
 
     def disableEscapes: Iterable[EscapeFilter] = escapeTree.values.flatten
@@ -169,36 +167,29 @@ object EscapeHatch {
     val OptionalRulePrefix = "scalafix:"
 
     def apply(tree: Tree): AnnotatedEscapes = {
-      val builder = TreeMap.newBuilder[EscapeOffset, List[EscapeFilter]]
+      val escapes =
+        tree.collect {
+          case t @ Mods(mods) if hasSuppressWarnings(mods) =>
+            val start = EscapeOffset(t.pos.start)
+            val end = EscapeOffset(t.pos.end)
+            val rules = extractRules(mods)
+            val (matchAll, matchOne) = rules.partition(_._1 == SuppressAll)
+            val filters = ListBuffer.empty[EscapeFilter]
 
-      def addAnnotatedEscape(t: Tree, mods: List[Mod]): Unit = {
-        val start = EscapeOffset(t.pos.start)
-        val end = EscapeOffset(t.pos.end)
-        val rules = extractRules(mods)
-        val (matchAll, matchOne) = rules.partition(_._1 == SuppressAll)
-        val filters = ListBuffer.empty[EscapeFilter]
+            // 'all' should come before individual rules so that we can warn unused rules later
+            for ((_, rulePos) <- matchAll) {
+              val matcher = FilterMatcher.matchEverything
+              filters += EscapeFilter(matcher, rulePos, start, Some(end))
+            }
+            for ((rule, rulePos) <- matchOne) {
+              val unprefixedRuleName = rule.stripPrefix(OptionalRulePrefix)
+              val matcher = FilterMatcher(unprefixedRuleName)
+              filters += EscapeFilter(matcher, rulePos, start, Some(end))
+            }
 
-        // 'all' should come before individual rules so that we can warn unused rules later
-        for ((_, rulePos) <- matchAll) {
-          val matcher = FilterMatcher.matchEverything
-          filters += EscapeFilter(matcher, rulePos, start, Some(end))
+            (start, filters.result())
         }
-        for ((rule, rulePos) <- matchOne) {
-          val unprefixedRuleName = rule.stripPrefix(OptionalRulePrefix)
-          val matcher = FilterMatcher(unprefixedRuleName)
-          filters += EscapeFilter(matcher, rulePos, start, Some(end))
-        }
-
-        builder += (start -> filters.result())
-      }
-
-      tree.foreach {
-        case t @ Mods(mods) if hasSuppressWarnings(mods) =>
-          addAnnotatedEscape(t, mods)
-        case _ => ()
-      }
-
-      new AnnotatedEscapes(builder.result())
+      new AnnotatedEscapes(TreeMap(escapes: _*))
     }
 
     private def hasSuppressWarnings(mods: List[Mod]): Boolean =
