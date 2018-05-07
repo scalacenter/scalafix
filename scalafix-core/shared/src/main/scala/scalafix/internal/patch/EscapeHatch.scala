@@ -204,8 +204,9 @@ object EscapeHatch {
     private def extractRules(mods: List[Mod]): List[(String, Position)] = {
       def process(rules: List[Term]) = rules.collect {
         case lit @ Lit.String(rule) =>
-          val lo = lit.pos.start + 1 // drop leading quote
-          val hi = lit.pos.end - 1 // drop trailing quote
+          // get the exact position of the rule name
+          val lo = lit.pos.start + lit.pos.text.indexOf(rule)
+          val hi = lo + rule.length
           rule -> Position.Range(lit.pos.input, lo, hi)
       }
 
