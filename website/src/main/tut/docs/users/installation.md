@@ -154,10 +154,10 @@ wget https://github.com/coursier/coursier/raw/master/coursier && chmod +x coursi
 Then, once you have coursier installed, assuming you are on {{ site.scala212 }}, download the plugin:
 
 ```
-coursier fetch --intransitive org.scalameta:semanticdb-scalac_{{ site.scala212 }}:{{ site.scalametaVersion }}
+coursier fetch --intransitive org.scalameta:semanticdb-scalac_{{ site.scala212 }}:2.1.7
 ```
 
-Alternatively, you can also use `wget` or a simalar tool to retrieve the jar from `https://repo1.maven.org/maven2/org/scalameta/semanticdb-scalac_{{ site.scala212 }}/{{ site.scalametaVersion }}/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar`.
+Alternatively, you can also use `wget` or a simalar tool to retrieve the jar from `https://repo1.maven.org/maven2/org/scalameta/semanticdb-scalac_{{ site.scala212 }}/2.1.7/semanticdb-scalac_{{ site.scala212 }}-2.1.7.jar`.
 
 If you prefer using maven profile instead of manual download, add the following snippet to your maven `pom.xml`:
 
@@ -174,7 +174,7 @@ If you prefer using maven profile instead of manual download, add the following 
             <compilerPlugin>
               <groupId>org.scalameta</groupId>
               <artifactId>semanticdb-scalac_{{ site.scala212 }}</artifactId>
-              <version>{{ site.scalametaVersion }}</version>
+              <version>2.1.7</version>
             </compilerPlugin>
           </compilerPlugins>
           <addScalacArgs>-Yrangepos|-Ywarn-unused-import</addScalacArgs>
@@ -189,12 +189,12 @@ If you prefer using maven profile instead of manual download, add the following 
 
 If you installed the semanticdb plugin manually, you have to locate it first.
 
-Let's say the `semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar` is available in `PLUGINS/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar` path on your file system.
+Let's say the `semanticdb-scalac_{{ site.scala212 }}-2.1.7.jar` is available in `PLUGINS/semanticdb-scalac_{{ site.scala212 }}-2.1.7.jar` path on your file system.
 
 Then, recompile your project using `-DaddScalacArgs` as follows:
 
 ```
-mvn clean test -DskipTests=true -DaddScalacArgs="-Yrangepos|-Xplugin-require:semanticdb|-Xplugin:PLUGIN/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar|-Ywarn-unused-import"
+mvn clean test -DskipTests=true -DaddScalacArgs="-Yrangepos|-Xplugin-require:semanticdb|-Xplugin:PLUGIN/semanticdb-scalac_{{ site.scala212 }}-2.1.7.jar|-Ywarn-unused-import"
 ```
 
 If you used maven profile instead, you can do the following:
@@ -207,7 +207,7 @@ We compile both main sources and tests to have semantic information generated fo
 The added flags for scala are given with the `addScalaArgs` option (see http://davidb.github.io/scala-maven-plugin/help-mojo.html#addScalacArgs):
 
 * `-Yrangepos` is required for `semanticdb` to function properly,
-* `-Xplugin:PLUGIN/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar` give the path where the `semanticdb` jar can be found,
+* `-Xplugin:PLUGIN/semanticdb-scalac_{{ site.scala212 }}-2.1.7.jar` give the path where the `semanticdb` jar can be found,
 * (optional) `-Xplugin-require:semanticdb` tells scalac to fails if it can't load the `semanticdb` plugin,
 * (optional) `-Ywarn-unused-import` is required for the `RemoveUnusedImports` rule. If you don't run `RemoveUnusedImports` you can skip this flag. Consult the scalafix documentation for each rule to see which flags it requires.
 * (optional) Customize the --sourceroot with `-P:semanticdb:sourceroot:/path/to/sourceroot` (more details below)
