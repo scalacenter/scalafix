@@ -4,7 +4,7 @@ import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 
 object Dependencies {
   val scalametaV = "3.7.4"
-  val metaconfigV = "0.6.0-RC1"
+  val metaconfigV = "0.7.2"
   def dotty = "0.1.1-bin-20170530-f8f52cc-NIGHTLY"
   def scala210 = "2.10.6"
   // NOTE(olafur) downgraded from 2.11.12 and 2.12.4 because of non-reproducible error
