@@ -13,10 +13,9 @@ case class RemoveUnusedTerms(index: SemanticdbIndex)
     "Rewrite that removes unused locals or privates by -Ywarn-unused:locals,privates"
 
   private val unusedTerms = {
-    val UnusedLocalVal = """local (.*) is never used""".r
-    index.messages.toIterator.collect {
-      case Message(pos, _, UnusedLocalVal(_*)) =>
-        pos
+    val UnusedPrivateLocalVal = """(local|private) (.*) is never used""".r
+    index.messages.collect {
+      case Message(pos, _, UnusedPrivateLocalVal(_*)) => pos
     }.toSet
   }
 
@@ -34,6 +33,7 @@ case class RemoveUnusedTerms(index: SemanticdbIndex)
     case i @ Defn.Val(_, _, _, rhs) => Some(removeDeclarationTokens(i, rhs))
     case i @ Defn.Var(_, _, _, Some(Lit(_))) => Some(i.tokens)
     case i @ Defn.Var(_, _, _, rhs) => rhs.map(removeDeclarationTokens(i, _))
+    case i: Defn.Def => Some(i.tokens)
     case _ => None
   }
 
@@ -41,7 +41,7 @@ case class RemoveUnusedTerms(index: SemanticdbIndex)
     ctx.tree.collect {
       case i: Defn if isUnused(i) =>
         tokensToRemove(i)
-          .fold(Patch.empty)(token => ctx.removeTokens(token))
+          .fold(Patch.empty)(ctx.removeTokens)
           .atomic
     }.asPatch
 }

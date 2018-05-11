@@ -8,8 +8,12 @@ object RemoveUnusedTerms {
     
     println(0)
     println(1)
+    
+    
     val xy = 42 // scalafix:ok RemoveUnusedTerms
   }
 
-  val cc = 0
+  val dd = 0
+  def f(x: Int) = "unused"
+  
 }

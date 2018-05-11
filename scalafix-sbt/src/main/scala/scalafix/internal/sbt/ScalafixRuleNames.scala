@@ -18,7 +18,7 @@ object ScalafixRuleNames {
     ("ExplicitResultTypes", "Rewrite that inserts explicit type annotations for def/val/var"),
     ("ExplicitReturnTypes", "Rewrite that inserts explicit type annotations for def/val/var"),
     ("RemoveUnusedImports", "Rewrite that removes unused imports reported by the compiler under -Xwarn-unused-import."),
-    ("RemoveUnusedTerms", "Rewrite that removes unused locals/privates by -Ywarn-unused:locals/privates"),
+    ("RemoveUnusedTerms", "Rewrite that removes unused locals/privates by -Ywarn-unused:locals,privates"),
     ("NoAutoTupling", "Rewrite that inserts explicit tuples for adapted argument lists for compatibility with -Yno-adapted-args"),
     ("Disable", "Linter that reports an error on a configurable set of symbols."),
     ("DisableUnless", "Linter that bans usage of \"disabled\" symbols unless they appear in a \"safe\" block."),
