@@ -12,6 +12,20 @@ import metaconfig.internal.ConfGet
 
 // TODO(olafur) contribute upstream to metaconfig.
 object MetaconfigPendingUpstream {
+  def traverse[T](lst: List[Configured[T]]): Configured[List[T]] = {
+    val buf = List.newBuilder[T]
+    var err = List.newBuilder[ConfError]
+    lst.foreach {
+      case Configured.Ok(value) =>
+        buf += value
+      case Configured.NotOk(e) =>
+        err += e
+    }
+    ConfError(err.result()) match {
+      case Some(error) => error.notOk
+      case _ => Configured.ok(buf.result())
+    }
+  }
   def flipSeq[T](lst: Seq[Configured[T]]): Configured[Seq[T]] = {
     lst.foldLeft(Configured.Ok(Seq.empty[T]): Configured[Seq[T]]) {
       case (res, configured) =>

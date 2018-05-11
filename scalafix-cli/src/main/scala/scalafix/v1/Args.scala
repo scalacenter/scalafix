@@ -7,32 +7,27 @@ import java.nio.file.FileSystems
 import java.nio.file.PathMatcher
 import metaconfig._
 import metaconfig.generic.Surface
+import metaconfig.internal.ConfGet
 import org.langmeta.internal.io.FileIO
+import scala.meta.Input
 import scala.meta.Source
 import scala.meta.internal.io.PathIO
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
 import scala.meta.parsers.Parsed
-import scalafix.internal.v1.Rules
-import scala.meta.Input
 import scalafix.internal.cli.ClasspathOps
 import scalafix.internal.cli.WriteMode
+import scalafix.internal.util.SymbolTable
+import scalafix.internal.v1.Rules
+import scalafix.reflect.ScalafixReflectV1
+import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 
-case class Args(
-    rules: Rules = Rules(),
-    classpath: Classpath = Classpath(Nil),
-    ls: Ls = Ls.Find,
-    cwd: AbsolutePath = PathIO.workingDirectory,
-    sourceroot: AbsolutePath = PathIO.workingDirectory,
-    files: List[PathMatcher] = Nil,
-    out: PrintStream = System.out,
-    parser: MetaParser = MetaParser(),
-    charset: Charset = StandardCharsets.UTF_8,
-    stdout: Boolean = false,
-    test: Boolean = false,
-    metacpCacheDir: List[AbsolutePath] = Nil,
-    metacpParallel: Boolean = false
+case class ValidatedArgs(
+    args: Args,
+    symtab: SymbolTable,
+    rules: Rules
 ) {
+  import args._
 
   val mode: WriteMode =
     // TODO: suppress
@@ -53,17 +48,80 @@ case class Args(
   def matches(path: AbsolutePath): Boolean =
     Args.baseMatcher.matches(path.toNIO) &&
       files.forall(_.matches(path.toNIO))
+
+}
+
+case class Args(
+    rules: List[String] = Nil,
+    config: List[AbsolutePath] = Nil,
+    classpath: Classpath = Classpath(Nil),
+    ls: Ls = Ls.Find,
+    cwd: AbsolutePath = PathIO.workingDirectory,
+    sourceroot: AbsolutePath = PathIO.workingDirectory,
+    files: List[PathMatcher] = Nil,
+    out: PrintStream = System.out,
+    parser: MetaParser = MetaParser(),
+    charset: Charset = StandardCharsets.UTF_8,
+    stdout: Boolean = false,
+    test: Boolean = false,
+    metacpCacheDir: List[AbsolutePath] = Nil,
+    metacpParallel: Boolean = false
+) {
+
+  def configuredSymtab: Configured[SymbolTable] = {
+    ClasspathOps.newSymbolTable(
+      classpath = classpath,
+      cacheDirectory = metacpCacheDir.headOption,
+      parallel = metacpParallel,
+      out = out
+    ) match {
+      case Some(symtab) =>
+        Configured.ok(symtab)
+      case _ =>
+        ConfError.message("Unable to load symbol table").notOk
+    }
+  }
+
+  def configuredRules: Configured[Rules] = {
+    val rulesConf = Conf.Lst(rules.map(Conf.fromString))
+    config match {
+      case Nil => ScalafixReflectV1.decoder.read(rulesConf)
+      case file :: _ =>
+        val input = metaconfig.Input.File(file.toNIO)
+        Conf.parseInput(input).andThen { fileConf =>
+          val finalRules: Configured[Conf] =
+            if (rules.isEmpty) {
+              ConfGet.getKey(fileConf, "rules" :: "rule" :: Nil) match {
+                case Some(c) => Configured.ok(c)
+                case _ => ConfError.message("No rule provided").notOk
+              }
+            } else {
+              Configured.ok(rulesConf)
+            }
+          finalRules.andThen { rulesConf =>
+            ScalafixReflectV1.decoder
+              .read(rulesConf)
+              .andThen(_.withConfig(fileConf))
+          }
+        }
+    }
+  }
+
+  def validate: Configured[ValidatedArgs] = {
+    (configuredSymtab |@| configuredRules).map {
+      case (symtab, rulez) =>
+        ValidatedArgs(this, symtab, rulez)
+    }
+  }
 }
 
 object Args {
-  val baseMatcher = FileSystems.getDefault.getPathMatcher("glob:**.{scala,sbt}")
-  val scalaMatcher = FileSystems.getDefault.getPathMatcher("glob:*.sbt")
+  val baseMatcher: PathMatcher =
+    FileSystems.getDefault.getPathMatcher("glob:**.{scala,sbt}")
 
   implicit val surface: Surface[Args] = generic.deriveSurface
   implicit val decoder: ConfDecoder[Args] = generic.deriveDecoder(Args())
 
-  implicit val rulesDecoder: ConfDecoder[Rules] = // TODO
-    ConfDecoder.instanceF[Rules](_ => Configured.ok(Rules(Nil)))
   implicit val charsetDecoder: ConfDecoder[Charset] =
     ConfDecoder.stringConfDecoder.map(name => Charset.forName(name))
   implicit val classpathDecoder: ConfDecoder[Classpath] =

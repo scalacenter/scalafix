@@ -11,6 +11,9 @@ final case class RuleName(identifiers: List[RuleIdentifier]) {
 
   def isDeprecated: Boolean = identifiers.forall(_.deprecated.isDefined)
 
+  def matches(name: String): Boolean =
+    identifiers.exists(_.value == name)
+
   def withDeprecatedName(
       name: String,
       message: String,
