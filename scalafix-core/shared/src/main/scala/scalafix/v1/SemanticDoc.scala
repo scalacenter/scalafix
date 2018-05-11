@@ -11,14 +11,20 @@ import scalafix.internal.util.SymbolTable
 import scalafix.util.MatchingParens
 import scalafix.util.TokenList
 import scala.meta.internal.{semanticdb3 => s}
+import scalafix.internal.patch.DeprecatedSemanticdbIndex
 import scalafix.internal.v1._
+import scalafix.util.SemanticdbIndex
+
+trait SemanticContext
 
 final class SemanticDoc private[scalafix] (
     val doc: Doc,
     // privates
     private[scalafix] val sdoc: s.TextDocument,
     private[scalafix] val symtab: SymbolTable
-) {
+) extends SemanticContext {
+
+  def toLegacy: SemanticdbIndex = new DeprecatedSemanticdbIndex(this)
 
   // =============
   // Syntactic API
@@ -30,31 +36,13 @@ final class SemanticDoc private[scalafix] (
   def tokenList: TokenList = doc.tokenList
   def comments: AssociatedComments = doc.comments
 
-  // TODO: remove
-  def toks(tree: Tree): Tokens = doc.toks(tree)
-
   // ============
   // Semantic API
   // ============
   def symbol(tree: Tree): Sym = {
-    val result = symbols(tree)
+    val result = symbols(TreePos.symbol(tree))
     if (!result.hasNext) Sym.None
     else result.next() // Discard multi symbols
-  }
-
-  def symbols(tree: Tree): Iterator[Sym] = {
-    val pos = TreePos.symbol(tree)
-    tree.syntax
-    val result = occurrences.getOrDefault(
-      s.Range(
-        startLine = pos.startLine,
-        startCharacter = pos.startColumn,
-        endLine = pos.endLine,
-        endCharacter = pos.endColumn
-      ),
-      Nil
-    )
-    result.iterator.map(Sym(_))
   }
 
   def info(tree: Tree): Sym.Info = info(symbol(tree))
@@ -76,6 +64,20 @@ final class SemanticDoc private[scalafix] (
   // ========
   // Privates
   // ========
+
+  private[scalafix] def symbols(pos: Position): Iterator[Sym] = {
+    val result = occurrences.getOrDefault(
+      s.Range(
+        startLine = pos.startLine,
+        startCharacter = pos.startColumn,
+        endLine = pos.endLine,
+        endCharacter = pos.endColumn
+      ),
+      Nil
+    )
+    result.iterator.map(Sym(_))
+
+  }
   private[scalafix] def config = doc.config
   private[scalafix] val locals = sdoc.symbols.iterator.collect {
     case info

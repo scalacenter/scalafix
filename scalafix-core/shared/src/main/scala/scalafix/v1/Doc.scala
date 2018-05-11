@@ -1,14 +1,14 @@
 package scalafix.v1
 
-import org.langmeta.io.AbsolutePath
-import scala.meta.Dialect
 import scala.meta.Input
 import scala.meta.Tokens
 import scala.meta.Tree
 import scala.meta.contrib.AssociatedComments
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
+import scalafix.internal.patch.DeprecatedRuleCtx
 import scalafix.internal.patch.EscapeHatch
+import scalafix.rule.RuleCtx
 import scalafix.util.MatchingParens
 import scalafix.util.TokenList
 
@@ -24,8 +24,10 @@ final class Doc private[scalafix] (
     private[scalafix] val escapeHatch: EscapeHatch,
     private[scalafix] val diffDisable: DiffDisable
 ) {
+  def toLegacy: RuleCtx = new DeprecatedRuleCtx(this)
   def toks(tree: Tree): Tokens = tree.tokens(config.dialect)
 }
+
 object Doc {
   def fromTree(tree: Tree): Doc = {
     Doc(tree, DiffDisable.empty, ScalafixConfig.default)
