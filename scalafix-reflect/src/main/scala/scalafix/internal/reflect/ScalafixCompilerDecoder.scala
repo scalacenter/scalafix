@@ -5,7 +5,7 @@ import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import scala.meta.Input
+import metaconfig.Input
 import scalafix.rule.Rule
 import scalafix.internal.config.LazySemanticdbIndex
 import scalafix.internal.config.ScalafixMetaconfigReaders.UriRule
@@ -112,7 +112,7 @@ object ScalafixCompilerDecoder {
         implicit cwd: AbsolutePath): Option[Configured[Input]] = arg match {
       case FileRule(file) =>
         // NOgg
-        Option(Ok(Input.File(file)))
+        Option(Ok(Input.File(file.toNIO)))
       case UrlRule(Ok(url)) =>
         try {
           val code = FileOps.readURL(url)

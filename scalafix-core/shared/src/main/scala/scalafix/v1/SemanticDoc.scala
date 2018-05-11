@@ -105,10 +105,10 @@ final class SemanticDoc private[scalafix] (
 
 object SemanticDoc {
   def fromPath(
+      doc: Doc,
       path: RelativePath,
       classpath: Classpath,
-      symtab: SymbolTable,
-      dialect: Dialect
+      symtab: SymbolTable
   ): SemanticDoc = {
     val reluri = path.toRelativeURI.toString
     classpath.resolveSemanticdb(path) match {
@@ -121,9 +121,6 @@ object SemanticDoc {
           throw new IllegalArgumentException(
             s"No TextDocument for relative path $reluri in $abspath")
         }
-        val input = Input.VirtualFile(abspath.toString(), sdoc.text)
-        val tree = (dialect, input).parse[Source].get
-        val doc = Doc(tree)
         new SemanticDoc(doc, sdoc, symtab)
       case _ =>
         throw new IllegalArgumentException(

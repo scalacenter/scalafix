@@ -7,6 +7,7 @@ import scala.meta._
 import scala.meta.dialects.Scala212
 import scala.meta.parsers.Parse
 import metaconfig._
+import metaconfig.Input
 import metaconfig.generic.Surface
 
 case class ScalafixConfig(
@@ -94,7 +95,7 @@ object ScalafixConfig {
   def auto(workingDirectory: AbsolutePath): Option[Input] = {
     val file = workingDirectory.resolve(".scalafix.conf")
     if (file.isFile && file.toFile.exists())
-      Some(Input.File(file))
+      Some(Input.File(file.toNIO))
     else None
   }
 

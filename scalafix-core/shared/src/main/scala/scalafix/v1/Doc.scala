@@ -1,5 +1,7 @@
 package scalafix.v1
 
+import org.langmeta.io.AbsolutePath
+import scala.meta.Dialect
 import scala.meta.Input
 import scala.meta.Tokens
 import scala.meta.Tree
@@ -25,7 +27,7 @@ final class Doc private[scalafix] (
   def toks(tree: Tree): Tokens = tree.tokens(config.dialect)
 }
 object Doc {
-  def apply(tree: Tree): Doc = {
+  def fromTree(tree: Tree): Doc = {
     Doc(tree, DiffDisable.empty, ScalafixConfig.default)
   }
   def apply(

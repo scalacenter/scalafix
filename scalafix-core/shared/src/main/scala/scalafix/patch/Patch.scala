@@ -16,6 +16,7 @@ import scalafix.internal.util.TokenOps
 import scalafix.lint.LintMessage
 import scalafix.patch.TreePatch.ReplaceSymbol
 import org.scalameta.logger
+import scalafix.v1.Doc
 
 /** A data structure that can produce a .patch file.
   *
@@ -135,14 +136,25 @@ object Patch {
     (tokenPatchApply(ctx, patches), lints)
   }
 
+//  private[scalafix] def apply(
+//      patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
+//      doc: Doc
+//  ): (String, List[LintMessage]) = {
+//    val idx = SemanticdbIndex.empty
+//    doc.escapeHatch.filter(patchesByName, )
+//    val (patch, lints) = ctx.filter(patchesByName, idx)
+//    val patches = treePatchApply(patch)(ctx, idx)
+//    (tokenPatchApply(ctx, patches), lints)
+//  }
+
   def treePatchApply(patch: Patch)(
-      implicit ctx: RuleCtx,
+      ctx: RuleCtx,
       index: SemanticdbIndex): Iterable[TokenPatch] = {
     val base = underlying(patch)
     val moveSymbol = underlying(
       ReplaceSymbolOps.naiveMoveSymbolPatch(base.collect {
         case m: ReplaceSymbol => m
-      }))
+      })(ctx, index))
     val patches = base.filterNot(_.isInstanceOf[ReplaceSymbol]) ++ moveSymbol
     val tokenPatches = patches.collect { case e: TokenPatch => e }
     val importPatches = patches.collect { case e: ImportPatch => e }
@@ -151,7 +163,7 @@ object Patch {
         ImportPatchOps.superNaiveImportPatchToTokenPatchConverter(
           ctx,
           importPatches
-        )
+        )(index)
 
       Patch
         .underlying(result.asPatch)

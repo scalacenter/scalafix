@@ -4,7 +4,6 @@ import java.io.File
 import java.net.URLClassLoader
 import java.nio.file.Paths
 import java.util.function
-import scala.meta.inputs.Input
 import scala.reflect.internal.util.AbstractFileClassLoader
 import scala.reflect.internal.util.BatchSourceFile
 import scala.tools.nsc.Global
@@ -12,13 +11,15 @@ import scala.tools.nsc.Settings
 import scala.tools.nsc.io.AbstractFile
 import scala.tools.nsc.io.VirtualDirectory
 import scala.tools.nsc.reporters.StoreReporter
-import scala.{meta => m}
+import scalafix.internal.config.MetaconfigPendingUpstream._
 import scalafix.internal.config.LazySemanticdbIndex
 import scalafix.internal.config.classloadRule
 import scalafix.internal.util.ClassloadRule
 import scalafix.rule.Rule
 import metaconfig.ConfError
 import metaconfig.Configured
+import metaconfig.Input
+import metaconfig.Position
 import org.langmeta.io.AbsolutePath
 
 object ScalafixToolbox extends ScalafixToolbox
@@ -57,7 +58,7 @@ class ScalafixToolbox {
       val compiler = compilerCache.computeIfAbsent(cp, newCompiler)
       (
         compiler.compile(code) |@|
-          RuleInstrumentation.getRuleFqn(code)
+          RuleInstrumentation.getRuleFqn(code.toMeta)
       ).andThen {
         case (classloader, names) =>
           names.foldLeft(Configured.ok(Rule.empty)) {
@@ -130,8 +131,8 @@ class RuleCompiler(
         ConfError
           .message(msg)
           .atPos(
-            if (pos.isDefined) m.Position.Range(input, pos.start, pos.end)
-            else m.Position.None
+            if (pos.isDefined) Position.Range(input, pos.start, pos.end)
+            else Position.None
           )
           .notOk
     }
