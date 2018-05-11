@@ -1,15 +1,15 @@
 package scalafix.internal.reflect
 
 import scala.collection.immutable.Seq
-import scala.meta._
 import scalafix.internal.config.ScalafixConfig.DefaultDialect
+import scala.meta._
 import metaconfig.ConfError
 import metaconfig.Configured
+import scalafix.internal.config.MetaconfigPendingUpstream._
 
 object RuleInstrumentation {
 
   def getRuleFqn(code: Input): Configured[Seq[String]] = {
-    import scala.meta._
     object ExtendsRule {
       def unapply(templ: Template): Boolean = templ match {
         case Template(_, init"Rewrite" :: _, _, _) => true
@@ -30,7 +30,7 @@ object RuleInstrumentation {
     }
     (DefaultDialect, code).parse[Source] match {
       case parsers.Parsed.Error(pos, msg, details) =>
-        ConfError.parseError(pos, msg).notOk
+        ConfError.parseError(pos.toMetaconfig, msg).notOk
       case parsers.Parsed.Success(ast) =>
         val result = List.newBuilder[String]
         def add(name: Vector[String]): Unit = {
