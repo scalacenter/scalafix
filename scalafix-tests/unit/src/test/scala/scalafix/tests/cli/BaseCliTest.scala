@@ -22,6 +22,7 @@ import ammonite.ops
 import org.langmeta.io.AbsolutePath
 import org.langmeta.io.RelativePath
 import org.scalatest.FunSuite
+import scalafix.v1.Main
 
 // extend this class to run custom cli tests.
 trait BaseCliTest extends FunSuite with DiffAssertions {
@@ -58,13 +59,8 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
     test(name) {
       val out = new ByteArrayOutputStream()
       val root = StringFS.string2dir(originalLayout)
-      val exit =
-        Cli.runMain(
-          args,
-          default.common.copy(
-            workingDirectory = root.toString(),
-            out = new PrintStream(out)
-          ))
+
+      val exit = Main.run(args, root.toNIO, new PrintStream(out))
       val obtained = StringFS.dir2string(root)
       assert(exit == expectedExit)
       assertNoDiff(obtained, expectedLayout)

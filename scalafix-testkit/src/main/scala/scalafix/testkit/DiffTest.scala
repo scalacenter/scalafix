@@ -37,7 +37,7 @@ object DiffTest {
                   LazySemanticdbIndex(_ => Some(index)))
               ScalafixConfig
                 .fromInput(
-                  Input.VirtualFile(label, stripPrefix(comment)),
+                  metaconfig.Input.VirtualFile(label, stripPrefix(comment)),
                   LazySemanticdbIndex(_ => Some(index)))(decoder)
                 .get
           }

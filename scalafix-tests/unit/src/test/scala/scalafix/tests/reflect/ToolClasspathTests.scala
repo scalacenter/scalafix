@@ -66,7 +66,7 @@ class ToolClasspathTests extends FunSuite with BeforeAndAfterAll {
     val compiler = new RuleCompiler(
       RuleCompiler.defaultClasspath,
       new PlainDirectory(new Directory(tmp.toFile)))
-    compiler.compile(Input.VirtualFile("CustomRule.scala", rewrite))
+    compiler.compile(metaconfig.Input.VirtualFile("CustomRule.scala", rewrite))
     val index =
       new LazySemanticdbIndex(toolClasspath = AbsolutePath(tmp) :: Nil)
     val decoder = ScalafixMetaconfigReaders.classloadRuleDecoder(index)

@@ -1,6 +1,8 @@
 package scalafix.internal.v1
 
-import scalafix.patch.Patch
+import metaconfig.Conf
+import metaconfig.Configured
+import scalafix.internal.config.MetaconfigPendingUpstream
 import scalafix.v1.Doc
 import scalafix.v1.Rule
 import scalafix.v1.SemanticDoc
@@ -10,6 +12,10 @@ import scalafix.v1.SyntacticRule
 case class Rules(rules: List[Rule] = Nil) {
   def isEmpty: Boolean = rules.isEmpty
   def isSemantic: Boolean = semanticRules.nonEmpty
+  def withConfig(conf: Conf): Configured[Rules] =
+    MetaconfigPendingUpstream
+      .traverse(rules.map(_.withConfig(conf)))
+      .map(Rules(_))
   def semanticRules: List[SemanticRule] = rules.collect {
     case s: SemanticRule => s
   }
@@ -29,4 +35,8 @@ case class Rules(rules: List[Rule] = Nil) {
 //    )
     ???
   }
+}
+
+object Rules {
+  val defaults: List[Rule] = Nil
 }
