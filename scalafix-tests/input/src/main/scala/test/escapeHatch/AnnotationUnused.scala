@@ -21,6 +21,9 @@ object AnnotationUnused {
   @SuppressWarnings(Array("NoDummy", "NoNull")) // OK, not prefixed
   def d = ()
 
+  @SuppressWarnings(Array("""scalafix:NoDummy""")) // assert: UnusedScalafixSuppression
+  def tripleQuotes = ()
+
   @SuppressWarnings(Array("scalafix:NoDummy")) // assert: UnusedScalafixSuppression
   object Foo {
 
