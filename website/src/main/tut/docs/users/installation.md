@@ -7,6 +7,13 @@ To run scalafix on your project, you must first install the Scalafix sbt plugin
 or command line interface.
 Currently, Scalafix does not provide any IDE integrations with IntelliJ/ENSIME.
 
+Here's a version compatibility table for reference:
+
+| Scalafix Version   | Scalameta(SemanticDB) Version | Scala Version                             |
+| ------------------ | ----------------------------- | ----------------------------------------- |
+| 0.5.10             | 2.1.7                         | 2.11.12 / 2.12.4                          |
+| {{ site.version }} | {{ site.scalametaVersion }}   | {{ site.scala211 }} / {{ site.scala212 }} | 
+
 * TOC
 {:toc}
 
@@ -139,34 +146,71 @@ It is possible to use scalafix with scala-maven-plugin but it requires a custom 
 
 ### Install semanticdb compiler plugin
 
-First, download the `semanticdb-scalac` compiler plugin which corresponds to your exact scala version of your project, down to the patch number.
+You can either install the semanticdb compiler plugin manually or let maven resolve the dependency for you.
 
-To begin with, it's recommended to install the coursier command line interface https://github.com/coursier/coursier.
+To install the plugin manually, first, download the `semanticdb-scalac` compiler plugin which corresponds to the exact scala version of your project(down to the patch number).
+
+It's recommended to do it via the [coursier command line interface](https://github.com/coursier/coursier) which simplifies downloading and launching library artifacts.
+
+To install coursier:
 
 ```
 wget https://github.com/coursier/coursier/raw/master/coursier && chmod +x coursier && ./coursier --help
 ```
 
-Coursier is a tool to download and launch library artifacts.
-Once you have coursier installed, assuming you are on {{ site.scala212 }}:
+Then, once you have coursier installed, assuming you are on {{ site.scala212 }}, download the plugin:
 
 ```
 coursier fetch --intransitive org.scalameta:semanticdb-scalac_{{ site.scala212 }}:{{ site.scalametaVersion }}
 ```
 
-You can also use `wget` or a simalar tool to retrieve the jar from `https://repo1.maven.org/maven2/org/scalameta/semanticdb-scalac_{{ site.scala212 }}/{{ site.scalametaVersion }}/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}-javadoc.jar`.
+Alternatively, you can also use `wget` or a similar tool to retrieve the jar from `https://repo1.maven.org/maven2/org/scalameta/semanticdb-scalac_{{ site.scala212 }}/{{ site.scalametaVersion }}/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar`.
+
+If you prefer using maven profile instead of manual download, add the following snippet to your maven `pom.xml`:
+
+```
+<profile>
+  <id>scalafix</id>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>net.alchim31.maven</groupId>
+        <artifactId>scala-maven-plugin</artifactId>
+        <configuration>
+          <compilerPlugins>
+            <compilerPlugin>
+              <groupId>org.scalameta</groupId>
+              <artifactId>semanticdb-scalac_{{ site.scala212 }}</artifactId>
+              <version>{{ site.scalametaVersion }}</version>
+            </compilerPlugin>
+          </compilerPlugins>
+          <addScalacArgs>-Yrangepos|-Ywarn-unused-import</addScalacArgs>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</profile>
+```
 
 ### Compile sources with semanticdb
 
+If you installed the semanticdb plugin manually, you have to locate it first.
+
 Let's say the `semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar` is available in `PLUGINS/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar` path on your file system.
 
-Recompile your project using `-DaddScalacArgs` as follow:
+Then, recompile your project using `-DaddScalacArgs` as follows:
 
 ```
 mvn clean test -DskipTests=true -DaddScalacArgs="-Yrangepos|-Xplugin-require:semanticdb|-Xplugin:PLUGIN/semanticdb-scalac_{{ site.scala212 }}-{{ site.scalametaVersion }}.jar|-Ywarn-unused-import"
 ```
 
-Here, we compile both main sources and tests to have semantic information generated for all of them, but we skip test execution because it is not the point of that compilation.
+If you used maven profile instead, you can do the following:
+
+```
+mvn clean test -DskipTests=true -P scalafix
+```
+
+We compile both main sources and tests to have semantic information generated for all of them, but we skip test execution because it is not the point of that compilation.
 The added flags for scala are given with the `addScalaArgs` option (see http://davidb.github.io/scala-maven-plugin/help-mojo.html#addScalacArgs):
 
 * `-Yrangepos` is required for `semanticdb` to function properly,
