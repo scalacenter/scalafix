@@ -202,6 +202,17 @@ foo(null)
 List(1, "") // scalafix:ok NoInfer.any
 ```
 
+Optionally, you can include an arbitrary description at the end of any suppression comment, following a semicolon. The
+description is only for informational purposes and will be completely ignored by Scalafix:
+
+
+```scala
+var x: Int = 0 // scalafix:ok DisableSyntax.keywords.var; I need mutability
+
+// scalafix:off; temporarily disabling all rules until the code below gets refactored
+```
+
+
 &nbsp;
 
 **Note:** Suppression via comments and `@SuppressWarnings` can be combined in the same source file. Be mindful not to 
