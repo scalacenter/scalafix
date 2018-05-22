@@ -23,6 +23,7 @@ import scalafix.internal.util.SymbolTable
 import scalafix.internal.v1.Rules
 import scalafix.reflect.ScalafixReflectV1
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
+import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.util.ClassloadRule
 
 case class ValidatedArgs(
@@ -70,7 +71,8 @@ case class Args(
     stdout: Boolean = false,
     test: Boolean = false,
     metacpCacheDir: List[AbsolutePath] = Nil,
-    metacpParallel: Boolean = false
+    metacpParallel: Boolean = false,
+    settings: ScalafixConfig = ScalafixConfig()
 ) {
 
   def configuredSymtab: Configured[SymbolTable] = {
@@ -126,7 +128,11 @@ case class Args(
   def validate: Configured[ValidatedArgs] = {
     (configuredSymtab |@| configuredRules).map {
       case (symtab, rulez) =>
-        ValidatedArgs(this, symtab, rulez)
+        ValidatedArgs(
+          this.copy(settings = settings.withFreshReporters(out)),
+          symtab,
+          rulez
+        )
     }
   }
 }

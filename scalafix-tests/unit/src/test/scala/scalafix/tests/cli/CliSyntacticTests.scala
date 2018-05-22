@@ -95,8 +95,8 @@ class CliSyntacticTests extends BaseCliTest {
     originalLayout = s"""/foobar.scala
                         |$original""".stripMargin,
     args = Seq(
-      "--config-str",
-      "lint.error=LintWarning.warning",
+      "--settings.lint.error",
+      "LintWarning.warning",
       "-r",
       "scala:scalafix.tests.cli.LintWarning",
       "foobar.scala"
