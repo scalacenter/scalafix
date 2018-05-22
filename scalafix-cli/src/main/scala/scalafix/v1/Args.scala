@@ -20,6 +20,7 @@ import scala.meta.io.Classpath
 import scala.meta.parsers.Parsed
 import scalafix.internal.cli.ClasspathOps
 import scalafix.internal.cli.WriteMode
+import scalafix.internal.config.OutputFormat
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.util.ClassloadRule
 import scalafix.internal.util.SymbolTable
@@ -73,7 +74,8 @@ case class Args(
     test: Boolean = false,
     metacpCacheDir: List[AbsolutePath] = Nil,
     metacpParallel: Boolean = false,
-    settings: ScalafixConfig = ScalafixConfig()
+    settings: ScalafixConfig = ScalafixConfig(),
+    format: OutputFormat = OutputFormat.Default
 ) {
 
   def withOut(out: PrintStream): Args = copy(
@@ -135,7 +137,11 @@ case class Args(
     (configuredSymtab |@| configuredRules).map {
       case (symtab, rulez) =>
         ValidatedArgs(
-          this,
+          this.copy(
+            settings = settings.withFormat(
+              format
+            )
+          ),
           symtab,
           rulez
         )
