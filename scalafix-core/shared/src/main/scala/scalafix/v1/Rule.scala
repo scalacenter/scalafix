@@ -6,6 +6,7 @@ import scalafix.Patch
 import scalafix.rule.RuleName
 
 abstract class Rule(val name: RuleName) {
+  override def toString: String = name.toString
   def description: String = ""
   def withConfig(conf: Conf): Configured[Rule] = Configured.ok(this)
 }

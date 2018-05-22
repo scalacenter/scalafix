@@ -114,4 +114,5 @@ class LazySymbolTable(mclasspath: Classpath) extends SymbolTable {
       extends SemanticdbEntry
   private case class Compressed(jarFile: JarFile, entry: String)
       extends SemanticdbEntry
+
 }

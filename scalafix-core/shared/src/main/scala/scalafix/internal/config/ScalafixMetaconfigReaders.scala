@@ -126,7 +126,7 @@ trait ScalafixMetaconfigReaders {
     index(kind).toList
   }
 
-  private lazy val SlashSeparated = "([^/]+)/(.*)".r
+  lazy val SlashSeparated: Regex = "([^/]+)/(.*)".r
 
   private def requireSemanticSemanticdbIndex[T](
       index: LazySemanticdbIndex,

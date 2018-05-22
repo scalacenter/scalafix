@@ -1,15 +1,15 @@
 package scalafix.reflect
 
 import metaconfig.Conf
-import scalafix.SemanticdbIndex
-import scalafix.Rule
-import scalafix.internal.config._
-import scalafix.internal.reflect.ScalafixCompilerDecoder
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
-import scalafix.v1
+import scalafix.Rule
+import scalafix.SemanticdbIndex
+import scalafix.internal.config._
+import scalafix.internal.reflect.ScalafixCompilerDecoder
 import scalafix.internal.v1.Rules
+import scalafix.v1
 
 object ScalafixReflect {
   def syntactic: ConfDecoder[Rule] =
@@ -26,28 +26,51 @@ object ScalafixReflect {
     )
 }
 object ScalafixReflectV1 { self =>
-  def read(rule: String): Configured[v1.Rule] =
-  // TODO: handle github: class: file:
+  def read(rule: String, classloader: ClassLoader): Configured[v1.Rule] =
+    // TODO: handle github: class: file:
     Rules.defaults.find(_.name.matches(rule)) match {
       case Some(r) => Configured.ok(r)
-      case _ => ConfError.message(s"Invalid rule name $rule").notOk
+      case _ =>
+        Conf.Str(rule) match {
+          case UriRuleString("scala" | "class", fqn) =>
+            tryClassload(classloader, fqn) match {
+              case Some(cls) =>
+                Configured.ok(cls.newInstance().asInstanceOf[v1.Rule])
+              case _ =>
+                ConfError.message(s"Class not found: $fqn").notOk
+            }
+        }
     }
-  def decoder: ConfDecoder[Rules] = new ConfDecoder[Rules] {
-    override def read(conf: Conf): Configured[Rules] = conf match {
-      case str: Conf.Str =>
-        read(Conf.Lst(str :: Nil))
-      case Conf.Lst(values) =>
-        val decoded = values.map {
-          case Conf.Str(value) =>
-            self.read(value)
-          case err =>
-            ConfError.typeMismatch("String", err).notOk
+
+  def tryClassload(classloader: ClassLoader, fqn: String): Option[Class[_]] = {
+    try Some(classloader.loadClass(fqn))
+    catch {
+      case _: ClassNotFoundException =>
+        try Some(classloader.loadClass(fqn + "$"))
+        catch {
+          case _: ClassNotFoundException =>
+            None
         }
-        MetaconfigPendingUpstream.flipSeq(decoded).map { rules =>
-          Rules(rules.toList)
-        }
-      case els =>
-        ConfError.typeMismatch("Either[String, List[String]]", els).notOk
     }
   }
+
+  def decoder(classloader: ClassLoader): ConfDecoder[Rules] =
+    new ConfDecoder[Rules] {
+      override def read(conf: Conf): Configured[Rules] = conf match {
+        case str: Conf.Str =>
+          read(Conf.Lst(str :: Nil))
+        case Conf.Lst(values) =>
+          val decoded = values.map {
+            case Conf.Str(value) =>
+              self.read(value, classloader)
+            case err =>
+              ConfError.typeMismatch("String", err).notOk
+          }
+          MetaconfigPendingUpstream.flipSeq(decoded).map { rules =>
+            Rules(rules.toList)
+          }
+        case els =>
+          ConfError.typeMismatch("Either[String, List[String]]", els).notOk
+      }
+    }
 }
