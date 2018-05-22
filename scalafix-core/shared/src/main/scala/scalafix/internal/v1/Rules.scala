@@ -2,7 +2,13 @@ package scalafix.internal.v1
 
 import metaconfig.Conf
 import metaconfig.Configured
+import scalafix.internal.config.DisableConfig
 import scalafix.internal.config.MetaconfigPendingUpstream
+import scalafix.internal.config.NoInferConfig
+import scalafix.internal.rule._
+import scalafix.rule
+import scalafix.rule.ScalafixRules
+import scalafix.util.SemanticdbIndex
 import scalafix.v1.Doc
 import scalafix.v1.Rule
 import scalafix.v1.SemanticDoc
@@ -38,5 +44,24 @@ case class Rules(rules: List[Rule] = Nil) {
 }
 
 object Rules {
-  val defaults: List[Rule] = Nil
+  def defaults: List[Rule] = legacyRules
+  val legacyRules: List[LegacyRule] = {
+    val semantics = List[SemanticdbIndex => scalafix.Rule](
+      index => NoInfer(index, NoInferConfig.default),
+      index => ExplicitResultTypes(index),
+      index => RemoveUnusedImports(index),
+      index => RemoveUnusedTerms(index),
+      index => NoAutoTupling(index),
+      index => Disable(index, DisableConfig.default),
+      index => MissingFinal(index)
+    )
+    val syntax: List[SemanticdbIndex => rule.Rule] =
+      ScalafixRules.syntax.map(rule => { index: SemanticdbIndex =>
+        rule
+      })
+    (semantics ++ syntax).map { fn =>
+      val name = fn(SemanticdbIndex.empty).name
+      new LegacyRule(name, fn)
+    }
+  }
 }

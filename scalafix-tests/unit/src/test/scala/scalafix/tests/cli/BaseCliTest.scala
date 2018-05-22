@@ -62,7 +62,7 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
 
       val exit = Main.run(args, root.toNIO, new PrintStream(out))
       val obtained = StringFS.dir2string(root)
-      assert(exit == expectedExit)
+      assert(exit == expectedExit, out.toString)
       assertNoDiff(obtained, expectedLayout)
       outputAssert(out.toString)
     }
