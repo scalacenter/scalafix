@@ -6,8 +6,13 @@ import scalafix.SemanticdbIndex
 import scalafix.internal.v1.TreePos
 import scalafix.v1.SemanticDoc
 import DeprecatedSemanticdbIndex.DeprecationMessage
+import scala.meta.internal.semanticdb3.SymbolInformation
+import scalafix.internal.util.SymbolTable
+import scalafix.v1.Sym
 
-class DeprecatedSemanticdbIndex(doc: SemanticDoc) extends SemanticdbIndex {
+class DeprecatedSemanticdbIndex(doc: SemanticDoc)
+    extends SemanticdbIndex
+    with SymbolTable {
 
   @deprecated(DeprecationMessage, "0.6.0")
   final override def sourcepath: Sourcepath =
@@ -39,6 +44,12 @@ class DeprecatedSemanticdbIndex(doc: SemanticDoc) extends SemanticdbIndex {
   @deprecated(DeprecationMessage, "0.6.0")
   final override def denotation(tree: Tree): Option[Denotation] =
     symbol(tree).flatMap(denotation)
+
+  override def info(symbol: String): Option[SymbolInformation] = {
+    val info = doc.info(Sym(symbol))
+    if (info.isNone) None
+    else Some(info.info)
+  }
 }
 
 object DeprecatedSemanticdbIndex {

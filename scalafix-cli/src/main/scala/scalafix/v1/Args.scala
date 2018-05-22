@@ -1,17 +1,23 @@
 package scalafix.v1
 
 import java.io.PrintStream
+import java.net.URI
 import java.net.URLClassLoader
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.PathMatcher
+import java.nio.file.Paths
+import java.util.regex.Pattern
+import java.util.regex.PatternSyntaxException
+import metaconfig.Configured._
 import metaconfig._
 import metaconfig.annotation.ExtraName
 import metaconfig.generic.Surface
 import metaconfig.internal.ConfGet
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 import org.langmeta.internal.io.FileIO
+import org.langmeta.io.RelativePath
 import scala.meta.Input
 import scala.meta.Source
 import scala.meta.internal.io.PathIO
@@ -30,7 +36,8 @@ import scalafix.reflect.ScalafixReflectV1
 case class ValidatedArgs(
     args: Args,
     symtab: SymbolTable,
-    rules: Rules
+    rules: Rules,
+    pathReplace: AbsolutePath => AbsolutePath
 ) {
   import args._
 
@@ -50,9 +57,10 @@ case class ValidatedArgs(
     dialect(input).parse[Source]
   }
 
-  def matches(path: AbsolutePath): Boolean =
+  def matches(path: RelativePath): Boolean =
     Args.baseMatcher.matches(path.toNIO) &&
-      files.forall(_.matches(path.toNIO))
+      files.forall(_.matches(path.toNIO)) &&
+      args.exclude.forall(!_.matches(path.toNIO))
 
 }
 
@@ -64,7 +72,8 @@ case class Args(
     classpath: Classpath = Classpath(Nil),
     ls: Ls = Ls.Find,
     cwd: AbsolutePath = PathIO.workingDirectory,
-    sourceroot: AbsolutePath = PathIO.workingDirectory,
+    sourceroot: List[AbsolutePath] = Nil,
+    @ExtraName("remainingArgs")
     files: List[PathMatcher] = Nil,
     exclude: List[PathMatcher] = Nil,
     out: PrintStream = System.out,
@@ -75,8 +84,12 @@ case class Args(
     metacpCacheDir: List[AbsolutePath] = Nil,
     metacpParallel: Boolean = false,
     settings: ScalafixConfig = ScalafixConfig(),
-    format: OutputFormat = OutputFormat.Default
+    format: OutputFormat = OutputFormat.Default,
+    outFrom: List[String] = Nil,
+    outTo: List[String] = Nil
 ) {
+
+  def sourcerootPath: AbsolutePath = sourceroot.headOption.getOrElse(cwd)
 
   def withOut(out: PrintStream): Args = copy(
     out = out,
@@ -133,9 +146,43 @@ case class Args(
     }
   }
 
+  def resolvedPathReplace: Configured[AbsolutePath => AbsolutePath] =
+    (outFrom, outTo) match {
+      case (Nil, Nil) => Ok(identity[AbsolutePath])
+      case (from :: Nil, to :: Nil) =>
+        try {
+          val outFromPattern = Pattern.compile(from)
+          def replacePath(file: AbsolutePath): AbsolutePath = AbsolutePath(
+            Paths.get(
+              URI.create(
+                "file:" +
+                  outFromPattern.matcher(file.toURI.getPath).replaceAll(to))
+            )
+          )
+          Ok(replacePath _)
+        } catch {
+          case e: PatternSyntaxException =>
+            ConfError
+              .message(s"Invalid regex '$outFrom'! ${e.getMessage}")
+              .notOk
+        }
+      case (from :: Nil, _) =>
+        ConfError
+          .message(s"--out-from $from must be accompanied with --out-to")
+          .notOk
+      case (_, to :: Nil) =>
+        ConfError
+          .message(s"--out-to $to must be accompanied with --out-from")
+          .notOk
+    }
+
   def validate: Configured[ValidatedArgs] = {
-    (configuredSymtab |@| configuredRules).map {
-      case (symtab, rulez) =>
+    (
+      configuredSymtab |@|
+        configuredRules |@|
+        resolvedPathReplace
+    ).map {
+      case ((symtab, rulez), pathReplace) =>
         ValidatedArgs(
           this.copy(
             settings = settings.withFormat(
@@ -143,7 +190,8 @@ case class Args(
             )
           ),
           symtab,
-          rulez
+          rulez,
+          pathReplace
         )
     }
   }
