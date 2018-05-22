@@ -28,7 +28,9 @@ object Main {
               file: Path,
               attrs: BasicFileAttributes): FileVisitResult = {
             val path = AbsolutePath(file)
-            if (args.matches(path)) {
+            val relpath = path.toRelative(args.args.sourceroot).toNIO
+            if (args.matches(path) &&
+              args.args.exclude.forall(!_.matches(relpath))) {
               buf += path
             }
             FileVisitResult.CONTINUE
