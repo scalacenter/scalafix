@@ -76,6 +76,11 @@ case class Args(
     settings: ScalafixConfig = ScalafixConfig()
 ) {
 
+  def withOut(out: PrintStream): Args = copy(
+    out = out,
+    settings = settings.withFreshReporters(out)
+  )
+
   def configuredSymtab: Configured[SymbolTable] = {
     ClasspathOps.newSymbolTable(
       classpath = classpath,
@@ -101,7 +106,7 @@ case class Args(
 
   def configuredRules: Configured[Rules] = {
     val rulesConf = Conf.Lst(rules.map(Conf.fromString))
-    val decoder = ScalafixReflectV1.decoder(getClassloader)
+    val decoder = ScalafixReflectV1.decoder(settings.reporter, getClassloader)
     config match {
       case Nil =>
         decoder.read(rulesConf)
@@ -130,7 +135,7 @@ case class Args(
     (configuredSymtab |@| configuredRules).map {
       case (symtab, rulez) =>
         ValidatedArgs(
-          this.copy(settings = settings.withFreshReporters(out)),
+          this,
           symtab,
           rulez
         )

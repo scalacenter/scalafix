@@ -144,7 +144,7 @@ object Main {
         println(c)
         c.as[Args]
       })
-      .map(_.copy(out = out))
+      .map(_.withOut(out))
       .andThen(_.validate) match {
       case Configured.Ok(validated) =>
         if (validated.rules.isEmpty) {
