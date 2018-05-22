@@ -10,6 +10,7 @@ import metaconfig._
 import metaconfig.annotation.ExtraName
 import metaconfig.generic.Surface
 import metaconfig.internal.ConfGet
+import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 import org.langmeta.internal.io.FileIO
 import scala.meta.Input
 import scala.meta.Source
@@ -19,12 +20,11 @@ import scala.meta.io.Classpath
 import scala.meta.parsers.Parsed
 import scalafix.internal.cli.ClasspathOps
 import scalafix.internal.cli.WriteMode
+import scalafix.internal.config.ScalafixConfig
+import scalafix.internal.util.ClassloadRule
 import scalafix.internal.util.SymbolTable
 import scalafix.internal.v1.Rules
 import scalafix.reflect.ScalafixReflectV1
-import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
-import scalafix.internal.config.ScalafixConfig
-import scalafix.internal.util.ClassloadRule
 
 case class ValidatedArgs(
     args: Args,
@@ -65,6 +65,7 @@ case class Args(
     cwd: AbsolutePath = PathIO.workingDirectory,
     sourceroot: AbsolutePath = PathIO.workingDirectory,
     files: List[PathMatcher] = Nil,
+    exclude: List[PathMatcher] = Nil,
     out: PrintStream = System.out,
     parser: MetaParser = MetaParser(),
     charset: Charset = StandardCharsets.UTF_8,
