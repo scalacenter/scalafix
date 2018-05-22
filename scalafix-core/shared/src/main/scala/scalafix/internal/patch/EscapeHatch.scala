@@ -282,9 +282,12 @@ object EscapeHatch {
   }
 
   private object AnchoredEscapes {
-    private val FilterDisable = "\\s?scalafix:off\\s?(.*)".r
-    private val FilterEnable = "\\s?scalafix:on\\s?(.*)".r
-    private val FilterExpression = "\\s?scalafix:ok\\s?(.*)".r
+    private val FilterDisable = regex("off")
+    private val FilterEnable = regex("on")
+    private val FilterExpression = regex("ok")
+
+    private def regex(anchor: String) =
+      s"\\s?scalafix:$anchor\\s?(.*?)(?:;.*)?".r
 
     def apply(
         tree: Tree,

@@ -52,7 +52,7 @@ object AnchorUnused {
   // ...
   /* scalafix:on NoDummyTypo */ // assert: UnusedScalafixSuppression
 
-  /* scalafix:on NoDummy */ // turn rule back to ON
+  // scalafix:on NoDummy; turn rule back to ON
 
 
 
@@ -77,7 +77,7 @@ object AnchorUnused {
   // Test case: redundant/duplicate ON/OFF
   // -----------------------------------------------------------------------------
 
-  /* scalafix:off */ // turn all rules off before start
+  // scalafix:off; turn all rules off before start
 
   val fDummy = null // ensure rule is OFF
 
