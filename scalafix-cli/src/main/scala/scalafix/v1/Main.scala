@@ -21,6 +21,7 @@ object Main {
   def files(args: ValidatedArgs): Seq[AbsolutePath] = args.args.ls match {
     case Ls.Find =>
       val buf = ArrayBuffer.empty[AbsolutePath]
+      pprint.log(args.args.files)
       Files.walkFileTree(
         args.args.cwd.toNIO,
         new SimpleFileVisitor[Path] {
@@ -28,9 +29,8 @@ object Main {
               file: Path,
               attrs: BasicFileAttributes): FileVisitResult = {
             val path = AbsolutePath(file)
-            val relpath = path.toRelative(args.args.sourceroot).toNIO
-            if (args.matches(path) &&
-              args.args.exclude.forall(!_.matches(relpath))) {
+            val relpath = path.toRelative(args.args.sourcerootPath)
+            if (args.matches(relpath)) {
               buf += path
             }
             FileVisitResult.CONTINUE
@@ -95,13 +95,13 @@ object Main {
 
         val (fixed, messages) =
           if (args.rules.isSemantic) {
-            val relpath = file.toRelative(args.args.sourceroot)
-            val sdoc =
-              SemanticDoc.fromPath(
-                doc,
-                relpath,
-                args.args.classpath,
-                args.symtab)
+            val relpath = file.toRelative(args.args.sourcerootPath)
+            val sdoc = SemanticDoc.fromPath(
+              doc,
+              relpath,
+              args.args.classpath,
+              args.symtab
+            )
             args.rules.semanticPatch(sdoc)
           } else {
             args.rules.syntacticPatch(doc)
@@ -116,7 +116,9 @@ object Main {
             ExitStatus.Ok
           case WriteMode.WriteFile =>
             if (fixed != input.text) {
-              Files.write(file.toNIO, fixed.getBytes(args.args.charset))
+              val toFix = args.pathReplace(file).toNIO
+              Files.createDirectories(toFix.getParent)
+              Files.write(toFix, fixed.getBytes(args.args.charset))
             }
             ExitStatus.Ok
           case WriteMode.AutoSuppressLinterErrors =>
@@ -136,6 +138,7 @@ object Main {
 
   def run(args: ValidatedArgs): ExitStatus = {
     val files = this.files(args)
+    pprint.log(files)
     var exit = ExitStatus.Ok
     files.foreach { file =>
       val next = handleFile(args, file)

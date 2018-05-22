@@ -46,7 +46,6 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
     workingDirectory = cwd.toString
   )
 
-
   val semanticRoot: RelativePath = RelativePath("scala").resolve("test")
   val removeImportsPath: RelativePath =
     semanticRoot.resolve("RemoveUnusedImports.scala")
@@ -156,17 +155,14 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
       ops.cp(ops.Path(BuildInfo.inputSourceroot.toPath), root)
       val rootNIO = root.toNIO
       writeTestkitConfiguration(rootNIO, rootNIO.resolve(path.toNIO))
-      val exit = Cli.runMain(
+      val exit = Main.run(
         args ++ Seq(
           "-r",
           rule,
           path.toString()
         ),
-        default.common.copy(
-          workingDirectory = root.toString(),
-          out = new PrintStream(out),
-          err = new PrintStream(out)
-        )
+        root.toNIO,
+        new PrintStream(out)
       )
       val original = FileIO.slurp(
         AbsolutePath(BuildInfo.inputSourceroot).resolve(path),
