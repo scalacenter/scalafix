@@ -31,7 +31,8 @@ object ExitStatus {
       MissingSemanticApi,
       StaleSemanticDB,
       TestFailed,
-      LinterError
+      LinterError,
+      NoFilesError
     : ExitStatus = generateExitStatus
   // format: on
   lazy val all: List[ExitStatus] = allInternal.toList
