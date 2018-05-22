@@ -216,8 +216,8 @@ class CliSyntacticTests extends BaseCliTest {
                          |package a;
                          |class A
                          |""".stripMargin,
-    expectedExit = ExitStatus.InvalidCommandLineOption, { output =>
-      assert(output.contains("No files to fix!") && output.contains("dir"))
+    expectedExit = ExitStatus.NoFilesError, { output =>
+      assert(output.contains("No files to fix"))
     }
   )
 

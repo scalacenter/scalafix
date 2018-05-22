@@ -55,11 +55,18 @@ object Main {
     ex.printStackTrace(out)
   }
 
-  def adjustExitCode(args: Args, code: ExitStatus): ExitStatus = {
+  def adjustExitCode(
+      args: Args,
+      code: ExitStatus,
+      files: Seq[AbsolutePath]
+  ): ExitStatus = {
     if (args.settings.lint.reporter.hasErrors) {
       ExitStatus.merge(ExitStatus.LinterError, code)
     } else if (args.settings.reporter.hasErrors) {
       ExitStatus.merge(ExitStatus.UnexpectedError, code)
+    } else if (files.isEmpty) {
+      args.settings.reporter.error("No files to fix")
+      ExitStatus.merge(ExitStatus.NoFilesError, code)
     } else {
       code
     }
@@ -134,7 +141,7 @@ object Main {
       val next = handleFile(args, file)
       exit = ExitStatus.merge(exit, next)
     }
-    adjustExitCode(args.args, exit)
+    adjustExitCode(args.args, exit, files)
   }
 
   def run(args: Seq[String], cwd: Path, out: PrintStream): ExitStatus =
