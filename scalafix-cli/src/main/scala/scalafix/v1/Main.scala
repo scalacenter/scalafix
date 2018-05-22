@@ -14,6 +14,7 @@ import scala.util.control.NonFatal
 import scalafix.cli.ExitStatus
 import scalafix.internal.cli.CliParser
 import scalafix.internal.cli.WriteMode
+import scalafix.lint.LintMessage
 
 object Main {
 
@@ -52,6 +53,26 @@ object Main {
     ex.printStackTrace(out)
   }
 
+  def adjustExitCode(args: Args, code: ExitStatus): ExitStatus = {
+    if (args.settings.lint.reporter.hasErrors) {
+      ExitStatus.merge(ExitStatus.LinterError, code)
+    } else if (args.settings.reporter.hasErrors) {
+      ExitStatus.merge(ExitStatus.UnexpectedError, code)
+    } else {
+      code
+    }
+  }
+
+  def reportLintErrors(args: Args, messages: List[LintMessage]): Unit =
+    messages.foreach { msg =>
+      val category = msg.category.withConfig(args.settings.lint)
+      args.settings.lint.reporter.handleMessage(
+        msg.format(args.settings.lint.explain),
+        msg.position,
+        category.severity.toSeverity
+      )
+    }
+
   def unsafeHandleFile(args: ValidatedArgs, file: AbsolutePath): ExitStatus = {
     val input = args.input(file)
     args.parse(input) match {
@@ -63,7 +84,7 @@ object Main {
 
         pprint.log(args.rules)
 
-        val (fixed, lintMessages) =
+        val (fixed, messages) =
           if (args.rules.isSemantic) {
             val relpath = file.toRelative(args.args.sourceroot)
             val sdoc =
@@ -76,28 +97,21 @@ object Main {
           } else {
             args.rules.syntacticPatch(doc)
           }
-
-        if (lintMessages.nonEmpty) {
-          lintMessages.foreach { msg =>
-            args.args.out.println(msg.format(false))
-          }
-          ExitStatus.LinterError
-        } else {
-          args.mode match {
-            case WriteMode.Test =>
-              if (fixed == input.text) ExitStatus.Ok
-              else ExitStatus.TestFailed
-            case WriteMode.Stdout =>
-              args.args.out.println(fixed)
-              ExitStatus.Ok
-            case WriteMode.WriteFile =>
-              if (fixed != input.text) {
-                Files.write(file.toNIO, fixed.getBytes(args.args.charset))
-              }
-              ExitStatus.Ok
-            case WriteMode.AutoSuppressLinterErrors =>
-              ???
-          }
+        reportLintErrors(args.args, messages)
+        args.mode match {
+          case WriteMode.Test =>
+            if (fixed == input.text) ExitStatus.Ok
+            else ExitStatus.TestFailed
+          case WriteMode.Stdout =>
+            args.args.out.println(fixed)
+            ExitStatus.Ok
+          case WriteMode.WriteFile =>
+            if (fixed != input.text) {
+              Files.write(file.toNIO, fixed.getBytes(args.args.charset))
+            }
+            ExitStatus.Ok
+          case WriteMode.AutoSuppressLinterErrors =>
+            ???
         }
     }
   }
@@ -118,7 +132,7 @@ object Main {
       val next = handleFile(args, file)
       exit = ExitStatus.merge(exit, next)
     }
-    exit
+    adjustExitCode(args.args, exit)
   }
 
   def run(args: Seq[String], cwd: Path, out: PrintStream): ExitStatus =
@@ -128,6 +142,7 @@ object Main {
         println(c)
         c.as[Args]
       })
+      .map(_.copy(out = out))
       .andThen(_.validate) match {
       case Configured.Ok(validated) =>
         if (validated.rules.isEmpty) {
