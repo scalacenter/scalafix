@@ -25,8 +25,11 @@ object ScalafixReflect {
         .orElse(baseRuleDecoders(index))
     )
 }
-object ScalafixReflectV1 { self =>
-  def read(rule: String, classloader: ClassLoader): Configured[v1.Rule] =
+object ScalafixReflectV1 {
+
+  def readSingleRule(
+      rule: String,
+      classloader: ClassLoader): Configured[v1.Rule] =
     // TODO: handle github: class: file:
     Rules.defaults.find(_.name.matches(rule)) match {
       case Some(r) => Configured.ok(r)
@@ -54,7 +57,9 @@ object ScalafixReflectV1 { self =>
     }
   }
 
-  def decoder(classloader: ClassLoader): ConfDecoder[Rules] =
+  def decoder(
+      reporter: ScalafixReporter,
+      classloader: ClassLoader): ConfDecoder[Rules] =
     new ConfDecoder[Rules] {
       override def read(conf: Conf): Configured[Rules] = conf match {
         case str: Conf.Str =>
@@ -62,7 +67,10 @@ object ScalafixReflectV1 { self =>
         case Conf.Lst(values) =>
           val decoded = values.map {
             case Conf.Str(value) =>
-              self.read(value, classloader)
+              readSingleRule(value, classloader).map { r =>
+                r.name.reportDeprecationWarning(value, reporter)
+                r
+              }
             case err =>
               ConfError.typeMismatch("String", err).notOk
           }
@@ -73,4 +81,5 @@ object ScalafixReflectV1 { self =>
           ConfError.typeMismatch("Either[String, List[String]]", els).notOk
       }
     }
+
 }
