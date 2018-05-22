@@ -6,8 +6,8 @@ import scalafix.util.SemanticdbIndex
 import scalafix.v1.SemanticDoc
 import scalafix.v1.SemanticRule
 
-class LegacyRule(name: RuleName, fn: SemanticdbIndex => scalafix.Rule)
-  extends SemanticRule(name) {
+class LegacySemanticRule(name: RuleName, fn: SemanticdbIndex => scalafix.Rule)
+    extends SemanticRule(name) {
   override def fix(implicit doc: SemanticDoc): Patch = {
     val ctx = doc.doc.toLegacy
     val rule = fn(doc.toLegacy)

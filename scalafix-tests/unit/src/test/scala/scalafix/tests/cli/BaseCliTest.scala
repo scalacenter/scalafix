@@ -46,6 +46,17 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
     workingDirectory = cwd.toString
   )
 
+
+  val semanticRoot: RelativePath = RelativePath("scala").resolve("test")
+  val removeImportsPath: RelativePath =
+    semanticRoot.resolve("RemoveUnusedImports.scala")
+  val explicitResultTypesPath: RelativePath =
+    semanticRoot
+      .resolve("explicitResultTypes")
+      .resolve("ExplicitResultTypesBase.scala")
+  val semanticClasspath: String =
+    BuildInfo.semanticClasspath.getAbsolutePath
+
   val default = ScalafixOptions(common = devNull)
 
   def check(
@@ -60,7 +71,16 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
       val out = new ByteArrayOutputStream()
       val root = StringFS.string2dir(originalLayout)
 
-      val exit = Main.run(args, root.toNIO, new PrintStream(out))
+      val exit = Main.run(
+        Array(
+          "--sourceroot",
+          root.toString(),
+          "--classpath",
+          semanticClasspath
+        ) ++ args,
+        root.toNIO,
+        new PrintStream(out)
+      )
       val obtained = StringFS.dir2string(root)
       assert(exit == expectedExit, out.toString)
       assertNoDiff(obtained, expectedLayout)
@@ -98,16 +118,6 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
       ExitStatus.Ok
     )
   }
-
-  val semanticRoot: RelativePath = RelativePath("scala").resolve("test")
-  val removeImportsPath: RelativePath =
-    semanticRoot.resolve("RemoveUnusedImports.scala")
-  val explicitResultTypesPath: RelativePath =
-    semanticRoot
-      .resolve("explicitResultTypes")
-      .resolve("ExplicitResultTypesBase.scala")
-  val semanticClasspath =
-    BuildInfo.semanticClasspath.getAbsolutePath
 
   def writeTestkitConfiguration(root: Path, path: Path): Unit = {
     import scala.meta._

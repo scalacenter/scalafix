@@ -1,6 +1,7 @@
 package scalafix.v1
 
 import java.io.PrintStream
+import java.net.URLClassLoader
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
@@ -22,6 +23,7 @@ import scalafix.internal.util.SymbolTable
 import scalafix.internal.v1.Rules
 import scalafix.reflect.ScalafixReflectV1
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
+import scalafix.internal.util.ClassloadRule
 
 case class ValidatedArgs(
     args: Args,
@@ -56,6 +58,7 @@ case class Args(
     @ExtraName("r")
     rules: List[String] = Nil,
     config: List[AbsolutePath] = Nil,
+    toolClasspath: List[AbsolutePath] = Nil,
     classpath: Classpath = Classpath(Nil),
     ls: Ls = Ls.Find,
     cwd: AbsolutePath = PathIO.workingDirectory,
@@ -84,10 +87,21 @@ case class Args(
     }
   }
 
+  def getClassloader: ClassLoader =
+    if (toolClasspath.isEmpty) ClassloadRule.defaultClassloader
+    else {
+      new URLClassLoader(
+        toolClasspath.iterator.map(_.toURI.toURL).toArray,
+        ClassloadRule.defaultClassloader
+      )
+    }
+
   def configuredRules: Configured[Rules] = {
     val rulesConf = Conf.Lst(rules.map(Conf.fromString))
+    val decoder = ScalafixReflectV1.decoder(getClassloader)
     config match {
-      case Nil => ScalafixReflectV1.decoder.read(rulesConf)
+      case Nil =>
+        decoder.read(rulesConf)
       case file :: _ =>
         val input = metaconfig.Input.File(file.toNIO)
         Conf.parseInput(input).andThen { fileConf =>
@@ -101,7 +115,7 @@ case class Args(
               Configured.ok(rulesConf)
             }
           finalRules.andThen { rulesConf =>
-            ScalafixReflectV1.decoder
+            decoder
               .read(rulesConf)
               .andThen(_.withConfig(fileConf))
           }

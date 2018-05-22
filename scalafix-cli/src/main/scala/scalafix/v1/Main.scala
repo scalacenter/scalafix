@@ -61,7 +61,9 @@ object Main {
       case Parsed.Success(tree) =>
         val doc = Doc.fromTree(tree)
 
-        val fixed: String =
+        pprint.log(args.rules)
+
+        val (fixed, lintMessages) =
           if (args.rules.isSemantic) {
             val relpath = file.toRelative(args.args.sourceroot)
             val sdoc =
@@ -75,22 +77,28 @@ object Main {
             args.rules.syntacticPatch(doc)
           }
 
-        args.mode match {
-          case WriteMode.Test =>
-            if (fixed == input.text) ExitStatus.Ok
-            else ExitStatus.TestFailed
-          case WriteMode.Stdout =>
-            args.args.out.println(fixed)
-            ExitStatus.Ok
-          case WriteMode.WriteFile =>
-            if (fixed != input.text) {
-              Files.write(file.toNIO, fixed.getBytes(args.args.charset))
-            }
-            ExitStatus.Ok
-          case WriteMode.AutoSuppressLinterErrors =>
-            ???
+        if (lintMessages.nonEmpty) {
+          lintMessages.foreach { msg =>
+            args.args.out.println(msg.format(false))
+          }
+          ExitStatus.LinterError
+        } else {
+          args.mode match {
+            case WriteMode.Test =>
+              if (fixed == input.text) ExitStatus.Ok
+              else ExitStatus.TestFailed
+            case WriteMode.Stdout =>
+              args.args.out.println(fixed)
+              ExitStatus.Ok
+            case WriteMode.WriteFile =>
+              if (fixed != input.text) {
+                Files.write(file.toNIO, fixed.getBytes(args.args.charset))
+              }
+              ExitStatus.Ok
+            case WriteMode.AutoSuppressLinterErrors =>
+              ???
+          }
         }
-
     }
   }
 
@@ -116,7 +124,10 @@ object Main {
   def run(args: Seq[String], cwd: Path, out: PrintStream): ExitStatus =
     CliParser
       .parseArgs[Args](args.toList)
-      .andThen(c => c.as[Args])
+      .andThen(c => {
+        println(c)
+        c.as[Args]
+      })
       .andThen(_.validate) match {
       case Configured.Ok(validated) =>
         if (validated.rules.isEmpty) {
