@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.PathMatcher
 import metaconfig._
+import metaconfig.annotation.ExtraName
 import metaconfig.generic.Surface
 import metaconfig.internal.ConfGet
 import org.langmeta.internal.io.FileIO
@@ -52,6 +53,7 @@ case class ValidatedArgs(
 }
 
 case class Args(
+    @ExtraName("r")
     rules: List[String] = Nil,
     config: List[AbsolutePath] = Nil,
     classpath: Classpath = Classpath(Nil),

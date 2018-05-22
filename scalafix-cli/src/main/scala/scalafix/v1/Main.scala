@@ -14,6 +14,7 @@ import scala.meta.parsers.Parsed
 import scala.util.control.NonFatal
 import scalafix.cli.ExitStatus
 import scalafix.internal.cli.ClasspathOps
+import scalafix.internal.cli.CliParser
 import scalafix.internal.cli.WriteMode
 import scalafix.internal.util.SymbolTable
 
@@ -105,9 +106,9 @@ object Main {
   }
 
   def run(args: Seq[String], cwd: Path, out: PrintStream): ExitStatus =
-    Conf
-      .parseCliArgs[Args](args.toList)
-      .andThen(_.as[Args])
+    CliParser
+      .parseArgs[Args](args.toList)
+      .andThen(c => c.as[Args])
       .andThen(_.validate) match {
       case Configured.Ok(validated) =>
         if (validated.rules.isEmpty) {
