@@ -6,17 +6,14 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
-import metaconfig.Conf
 import metaconfig.Configured
 import org.langmeta.io.AbsolutePath
 import scala.collection.mutable.ArrayBuffer
 import scala.meta.parsers.Parsed
 import scala.util.control.NonFatal
 import scalafix.cli.ExitStatus
-import scalafix.internal.cli.ClasspathOps
 import scalafix.internal.cli.CliParser
 import scalafix.internal.cli.WriteMode
-import scalafix.internal.util.SymbolTable
 
 object Main {
 
@@ -44,11 +41,22 @@ object Main {
     run(args, AbsolutePath.workingDirectory.toNIO, System.out)
   }
 
+  def handleException(ex: Throwable, out: PrintStream): Unit = {
+    val st = ex.getStackTrace.filterNot { e =>
+      e.getClassName.startsWith("java.lang.Thread") ||
+      e.getClassName.startsWith("java.util.concurrent.") ||
+      e.getClassName.startsWith("org.scalatest") ||
+      e.getClassName.startsWith("sbt.")
+    }
+    ex.setStackTrace(st)
+    ex.printStackTrace(out)
+  }
+
   def unsafeHandleFile(args: ValidatedArgs, file: AbsolutePath): ExitStatus = {
     val input = args.input(file)
     args.parse(input) match {
       case Parsed.Error(_, _, ex) =>
-        ex.printStackTrace(args.args.out)
+        handleException(ex, args.args.out)
         ExitStatus.ParseError
       case Parsed.Success(tree) =>
         val doc = Doc.fromTree(tree)
@@ -90,7 +98,7 @@ object Main {
     try unsafeHandleFile(args, file)
     catch {
       case NonFatal(e) =>
-        e.printStackTrace(args.args.out)
+        handleException(e, args.args.out)
         ExitStatus.UnexpectedError
     }
   }
