@@ -7,6 +7,9 @@ import scalafix.SemanticdbIndex
 import scalafix.internal.v1.TreePos
 import scalafix.v1.SemanticDoc
 import DeprecatedSemanticdbIndex.DeprecationMessage
+import java.io.ByteArrayInputStream
+import java.io.InputStream
+import java.nio.charset.StandardCharsets
 import org.langmeta.internal.ScalafixLangmetaHacks
 import scala.meta.internal.semanticdb3.SymbolInformation
 import scala.meta.internal.semanticdb3.Accessibility.{Tag => a}
@@ -34,18 +37,14 @@ class DeprecatedSemanticdbIndex(val doc: SemanticDoc)
     throw new UnsupportedOperationException
   @deprecated(DeprecationMessage, "0.6.0")
   final override def synthetics: Seq[Synthetic] =
-    throw new UnsupportedOperationException
+    doc.sdoc.synthetics.map(s =>
+      DeprecatedSemanticdbIndex.syntheticToLegacy(doc, s))
   @deprecated(DeprecationMessage, "0.6.0")
   final override def documents: Seq[Document] =
     throw new UnsupportedOperationException
   @deprecated(DeprecationMessage, "0.6.0")
   override final def messages: Seq[Message] = doc.sdoc.diagnostics.map { diag =>
-    val pos = diag.range match {
-      case Some(r) =>
-        ScalafixLangmetaHacks.positionFromRange(doc.input, r)
-      case _ =>
-        Position.None
-    }
+    val pos = ScalafixLangmetaHacks.positionFromRange(doc.input, diag.range)
     val severity = diag.severity match {
       case s.Diagnostic.Severity.INFORMATION => Severity.Info
       case s.Diagnostic.Severity.WARNING => Severity.Warning
@@ -74,10 +73,23 @@ class DeprecatedSemanticdbIndex(val doc: SemanticDoc)
   final override def denotation(symbol: Symbol): Option[Denotation] = {
     val info = doc.info(Sym(symbol.syntax))
     if (info.isNone) None
-    else Some(infoToDenotation(info.info))
+    else Some(DeprecatedSemanticdbIndex.infoToDenotation(info.info))
   }
+  @deprecated(DeprecationMessage, "0.6.0")
+  final override def denotation(tree: Tree): Option[Denotation] =
+    symbol(tree).flatMap(denotation)
 
-  private def infoToDenotation(info: s.SymbolInformation): Denotation = {
+  override def info(symbol: String): Option[SymbolInformation] = {
+    val info = doc.info(Sym(symbol))
+    if (info.isNone) None
+    else Some(info.info)
+  }
+}
+
+object DeprecatedSemanticdbIndex {
+  final val DeprecationMessage = "Use SemanticDoc instead"
+
+  def infoToDenotation(info: s.SymbolInformation): Denotation = {
     val dflags = {
       var dflags = 0L
       def dflip(dbit: Long) = dflags ^= dbit
@@ -133,17 +145,48 @@ class DeprecatedSemanticdbIndex(val doc: SemanticDoc)
     )
   }
 
-  @deprecated(DeprecationMessage, "0.6.0")
-  final override def denotation(tree: Tree): Option[Denotation] =
-    symbol(tree).flatMap(denotation)
-
-  override def info(symbol: String): Option[SymbolInformation] = {
-    val info = doc.info(Sym(symbol))
-    if (info.isNone) None
-    else Some(info.info)
+  // Input.Synthetic is gone so we hack it here by extending java.io.InputStream and
+  // piggy backing on Input.Stream.
+  final case class InputSynthetic(
+      value: String,
+      input: Input,
+      start: Int,
+      end: Int
+  ) extends InputStream {
+    val in = new ByteArrayInputStream(value.getBytes(StandardCharsets.UTF_8))
+    override def read(): Int = in.read()
   }
-}
 
-object DeprecatedSemanticdbIndex {
-  final val DeprecationMessage = "Use SemanticDoc instead"
+  def occurrenceToLegacy(
+      doc: SemanticDoc,
+      input: Input,
+      occurrence: s.SymbolOccurrence): ResolvedName = {
+    val pos = ScalafixLangmetaHacks.positionFromRange(input, occurrence.range)
+    ResolvedName(
+      pos,
+      Symbol(occurrence.symbol),
+      isDefinition = occurrence.role.isDefinition
+    )
+  }
+
+  def syntheticToLegacy(doc: SemanticDoc, synthetic: s.Synthetic): Synthetic = {
+    val pos =
+      ScalafixLangmetaHacks.positionFromRange(doc.input, synthetic.range)
+    val names: List[ResolvedName] = synthetic.text match {
+      case Some(td) =>
+        val input = Input.Stream(
+          InputSynthetic(td.text, doc.input, pos.start, pos.end),
+          StandardCharsets.UTF_8)
+        td.occurrences.iterator
+          .map(o => occurrenceToLegacy(doc, input, o))
+          .toList
+      case _ =>
+        Nil
+    }
+    Synthetic(
+      pos,
+      synthetic.text.fold("")(_.text),
+      names
+    )
+  }
 }
