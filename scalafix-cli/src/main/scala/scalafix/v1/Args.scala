@@ -1,5 +1,6 @@
 package scalafix.v1
 
+import java.io.File
 import java.io.PrintStream
 import java.net.URI
 import java.net.URLClassLoader
@@ -64,7 +65,6 @@ case class ValidatedArgs(
 
   def matches(path: RelativePath): Boolean =
     Args.baseMatcher.matches(path.toNIO) &&
-      files.forall(_.matches(path.toNIO)) &&
       args.exclude.forall(!_.matches(path.toNIO))
 
 }
@@ -80,7 +80,7 @@ case class Args(
     ls: Ls = Ls.Find,
     sourceroot: Option[AbsolutePath] = None,
     @ExtraName("remainingArgs")
-    files: List[PathMatcher] = Nil,
+    files: List[AbsolutePath] = Nil,
     exclude: List[PathMatcher] = Nil,
     parser: MetaParser = MetaParser(),
     charset: Charset = StandardCharsets.UTF_8,
@@ -245,17 +245,25 @@ object Args {
   val default = new Args(PathIO.workingDirectory, System.out)
 
   implicit val surface: Surface[Args] = generic.deriveSurface
-  def decoder(cwd: AbsolutePath, out: PrintStream): ConfDecoder[Args] =
+  def decoder(cwd: AbsolutePath, out: PrintStream): ConfDecoder[Args] = {
+    implicit val classpathDecoder: ConfDecoder[Classpath] =
+      ConfDecoder.stringConfDecoder.map { cp =>
+        Classpath(
+          cp.split(File.pathSeparator)
+            .iterator
+            .map(path => AbsolutePath(path)(cwd))
+            .toList
+        )
+      }
+    implicit val absolutePathDecoder: ConfDecoder[AbsolutePath] =
+      ConfDecoder.stringConfDecoder.map(AbsolutePath(_)(cwd))
     generic.deriveDecoder(Args(cwd, out))
+  }
 
   implicit val confDecoder: ConfDecoder[Conf] = // TODO: upstream
-    ConfDecoder.instanceF[Conf](Configured.ok)
+    ConfDecoder.instanceF[Conf](c => Configured.ok(c))
   implicit val charsetDecoder: ConfDecoder[Charset] =
     ConfDecoder.stringConfDecoder.map(name => Charset.forName(name))
-  implicit val classpathDecoder: ConfDecoder[Classpath] =
-    ConfDecoder.stringConfDecoder.map(Classpath(_))
-  implicit val absolutePathDecoder: ConfDecoder[AbsolutePath] =
-    ConfDecoder.stringConfDecoder.map(AbsolutePath(_))
   implicit val printStreamDecoder: ConfDecoder[PrintStream] =
     ConfDecoder.stringConfDecoder.map(_ => System.out)
   implicit val pathMatcherDecoder: ConfDecoder[PathMatcher] =

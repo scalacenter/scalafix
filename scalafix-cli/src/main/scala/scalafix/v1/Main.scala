@@ -7,6 +7,7 @@ import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 import metaconfig.Configured
+import org.langmeta.internal.io.FileIO
 import org.langmeta.io.AbsolutePath
 import scala.collection.mutable.ArrayBuffer
 import scala.meta.parsers.Parsed
@@ -21,21 +22,24 @@ object Main {
   def files(args: ValidatedArgs): Seq[AbsolutePath] = args.args.ls match {
     case Ls.Find =>
       val buf = ArrayBuffer.empty[AbsolutePath]
-      Files.walkFileTree(
-        args.sourceroot.toNIO,
-        new SimpleFileVisitor[Path] {
-          override def visitFile(
-              file: Path,
-              attrs: BasicFileAttributes): FileVisitResult = {
-            val path = AbsolutePath(file)
-            val relpath = path.toRelative(args.sourceroot)
-            if (args.matches(relpath)) {
-              buf += path
-            }
-            FileVisitResult.CONTINUE
+      val visitor = new SimpleFileVisitor[Path] {
+        override def visitFile(
+            file: Path,
+            attrs: BasicFileAttributes): FileVisitResult = {
+          val path = AbsolutePath(file)
+          val relpath = path.toRelative(args.sourceroot)
+          if (args.matches(relpath)) {
+            buf += path
           }
+          FileVisitResult.CONTINUE
         }
-      )
+      }
+
+      val roots =
+        if (args.args.files.isEmpty) args.sourceroot :: Nil
+        else args.args.files
+
+      roots.foreach(root => Files.walkFileTree(root.toNIO, visitor))
       buf.result()
   }
 
@@ -137,6 +141,7 @@ object Main {
 
   def run(args: ValidatedArgs): ExitStatus = {
     val files = this.files(args)
+    val all = FileIO.listAllFilesRecursively(args.sourceroot)
     var exit = ExitStatus.Ok
     files.foreach { file =>
       val next = handleFile(args, file)

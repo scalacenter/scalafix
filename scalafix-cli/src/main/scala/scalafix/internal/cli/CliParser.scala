@@ -30,7 +30,15 @@ object CliParser {
               case flag :: flags =>
                 settings.get(flag, flags) match {
                   case None =>
-                    ConfError.invalidFields(camel :: Nil, settings.names).notOk
+                    settings.get(flag) match {
+                      // TODO: upstream special handling for metaconfig.Conf fields.
+                      case Some(setting) if setting.tpe == "metaconfig.Conf" =>
+                        loop(curr, tail, Flag(camel, setting))
+                      case _ =>
+                        ConfError
+                          .invalidFields(camel :: Nil, settings.names)
+                          .notOk
+                    }
                   case Some(setting) =>
                     if (setting.isBoolean) {
                       val newCurr = add(camel, Conf.fromBoolean(true))
