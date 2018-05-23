@@ -141,6 +141,7 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
       outputAssert: String => Unit = _ => (),
       rule: String = RemoveUnusedImports.toString(),
       path: RelativePath = removeImportsPath,
+      files: String = removeImportsPath.toString(),
       assertObtained: Result => Unit = { result =>
         if (result.exit.isOk) {
           assertNoDiff(result.obtained, result.expected)
@@ -160,7 +161,7 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
         args ++ Seq(
           "-r",
           rule,
-          path.toString()
+          files
         ),
         root.toNIO,
         new PrintStream(out)
@@ -185,7 +186,8 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
           original
         }
       assert(exit == expectedExit, s"$exit != $expectedExit. Out: $out")
-      outputAssert(out.toString())
+      val output = fansi.Str(out.toString()).plainText
+      outputAssert(output)
       val result = Result(exit, original, obtained, expected)
       assertObtained(result)
     }

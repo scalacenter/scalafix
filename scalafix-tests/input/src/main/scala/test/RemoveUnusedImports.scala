@@ -3,21 +3,15 @@ rule = RemoveUnusedImports
  */
 package test
 
-import scala.collection.mutable
-import scala.util.control.{ NonFatal, Breaks }
-import scala.concurrent.{Await, Future}
-import scala.util.{Properties, DynamicVariable, Try}
-import scala.util.{Success => Successful, Random}
-import scala.collection.mutable.{Set ⇒ MutableSet, Map ⇒ MutableMap}
-import scala.collection.mutable.{Seq => MutableSeq}
-import scala.sys.process._
-import scala.concurrent.{CancellationException, ExecutionException, ExecutionContext}
+import scala.util.control.NonFatal
+import scala.concurrent.Future
+import scala.util.{Properties, Try}
+import scala.util.{Success => Successful}
+import scala.concurrent.ExecutionContext
 import scala.runtime.{RichBoolean}
-import scala.concurrent.{ // formatting caveat
-  CancellationException,
-  ExecutionException,
-  TimeoutException
-}
+import scala.concurrent.// formatting caveat
+TimeoutException
+
 //import scala.concurrent.{
 //    CancellationException
 //  , ExecutionException
@@ -25,7 +19,6 @@ import scala.concurrent.{ // formatting caveat
 //}
 
 object RemoveUnusedImports {
-  import Future._
   val NonFatal(a) = new Exception
   Future.successful(1)
   println(Properties.ScalaCompilerVersion)

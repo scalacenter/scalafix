@@ -106,6 +106,19 @@ final class SemanticDoc private[scalafix] (
 }
 
 object SemanticDoc {
+  sealed abstract class Error(msg: String) extends Exception(msg)
+  object Error {
+    final case class MissingSemanticdb(
+        relpath: RelativePath,
+        classpath: Classpath)
+        extends Error(s"No SemanticDB associated with $relpath")
+    final case class MissingTextDocument(
+        reluri: String,
+        semanticdb: AbsolutePath)
+        extends Error(
+          s"No TextDocument associated with uri $reluri in $semanticdb")
+  }
+
   def fromPath(
       doc: Doc,
       path: RelativePath,
@@ -120,13 +133,11 @@ object SemanticDoc {
           try s.TextDocuments.parseFrom(in).documents
           finally in.close()
         val sdoc = sdocs.find(_.uri == reluri).getOrElse {
-          throw new IllegalArgumentException(
-            s"No TextDocument for relative path $reluri in $abspath")
+          throw Error.MissingTextDocument(reluri, abspath)
         }
         new SemanticDoc(doc, sdoc, symtab)
       case _ =>
-        throw new IllegalArgumentException(
-          s"No SemanticDB $path in classpath $classpath")
+        throw Error.MissingSemanticdb(path, classpath)
     }
   }
 }
