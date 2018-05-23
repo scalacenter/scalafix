@@ -21,7 +21,6 @@ object Main {
   def files(args: ValidatedArgs): Seq[AbsolutePath] = args.args.ls match {
     case Ls.Find =>
       val buf = ArrayBuffer.empty[AbsolutePath]
-      pprint.log(args.args.files)
       Files.walkFileTree(
         args.args.cwd.toNIO,
         new SimpleFileVisitor[Path] {
@@ -56,27 +55,27 @@ object Main {
   }
 
   def adjustExitCode(
-      args: Args,
+      args: ValidatedArgs,
       code: ExitStatus,
       files: Seq[AbsolutePath]
   ): ExitStatus = {
-    if (args.settings.lint.reporter.hasErrors) {
+    if (args.config.lint.reporter.hasErrors) {
       ExitStatus.merge(ExitStatus.LinterError, code)
-    } else if (args.settings.reporter.hasErrors) {
+    } else if (args.config.reporter.hasErrors) {
       ExitStatus.merge(ExitStatus.UnexpectedError, code)
     } else if (files.isEmpty) {
-      args.settings.reporter.error("No files to fix")
+      args.config.reporter.error("No files to fix")
       ExitStatus.merge(ExitStatus.NoFilesError, code)
     } else {
       code
     }
   }
 
-  def reportLintErrors(args: Args, messages: List[LintMessage]): Unit =
+  def reportLintErrors(args: ValidatedArgs, messages: List[LintMessage]): Unit =
     messages.foreach { msg =>
-      val category = msg.category.withConfig(args.settings.lint)
-      args.settings.lint.reporter.handleMessage(
-        msg.format(args.settings.lint.explain),
+      val category = msg.category.withConfig(args.config.lint)
+      args.config.lint.reporter.handleMessage(
+        msg.format(args.config.lint.explain),
         msg.position,
         category.severity.toSeverity
       )
@@ -91,8 +90,6 @@ object Main {
       case Parsed.Success(tree) =>
         val doc = Doc.fromTree(tree)
 
-        pprint.log(args.rules)
-
         val (fixed, messages) =
           if (args.rules.isSemantic) {
             val relpath = file.toRelative(args.args.sourcerootPath)
@@ -106,7 +103,7 @@ object Main {
           } else {
             args.rules.syntacticPatch(doc)
           }
-        reportLintErrors(args.args, messages)
+        reportLintErrors(args, messages)
         args.mode match {
           case WriteMode.Test =>
             if (fixed == input.text) ExitStatus.Ok
@@ -138,23 +135,20 @@ object Main {
 
   def run(args: ValidatedArgs): ExitStatus = {
     val files = this.files(args)
-    pprint.log(files)
     var exit = ExitStatus.Ok
     files.foreach { file =>
       val next = handleFile(args, file)
       exit = ExitStatus.merge(exit, next)
     }
-    adjustExitCode(args.args, exit, files)
+    adjustExitCode(args, exit, files)
   }
 
   def run(args: Seq[String], cwd: Path, out: PrintStream): ExitStatus =
     CliParser
       .parseArgs[Args](args.toList)
       .andThen(c => {
-        println(c)
-        c.as[Args]
+        c.as[Args](Args.decoder(AbsolutePath(cwd), out))
       })
-      .map(_.withOut(out))
       .andThen(_.validate) match {
       case Configured.Ok(validated) =>
         if (validated.rules.isEmpty) {

@@ -122,9 +122,10 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
     import scala.meta._
     val code = new String(Files.readAllBytes(path), StandardCharsets.UTF_8)
     val comment = SemanticRuleSuite.findTestkitComment(code.tokenize.get)
+    val content = comment.syntax.stripPrefix("/*").stripSuffix("*/")
     Files.write(
       root.resolve(".scalafix.conf"),
-      comment.syntax.stripPrefix("/*").stripSuffix("*/").getBytes()
+      content.getBytes(StandardCharsets.UTF_8)
     )
   }
 
