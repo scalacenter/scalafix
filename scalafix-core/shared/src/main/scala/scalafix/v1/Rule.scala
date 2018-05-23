@@ -18,3 +18,10 @@ abstract class SyntacticRule(name: RuleName) extends Rule(name) {
 abstract class SemanticRule(name: RuleName) extends Rule(name) {
   def fix(implicit doc: SemanticDoc): Patch = Patch.empty
 }
+
+object SemanticRule {
+  def constant(name: RuleName, patch: Patch): SemanticRule =
+    new SemanticRule(name) {
+      override def fix(implicit doc: SemanticDoc): Patch = patch
+    }
+}

@@ -3,7 +3,6 @@ package scalafix.tests.cli
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.nio.charset.StandardCharsets
-import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 
 import org.scalatest._
@@ -304,15 +303,12 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     def run(ok: Boolean, args: List[String]): String = {
       val baos = new ByteArrayOutputStream()
       val ps = new PrintStream(baos)
-      val exit = cli.Cli.runMain(
-        args.to[Seq],
-        CommonOptions(
-          workingDirectory = workingDirectory.toAbsolutePath.toString,
-          out = ps,
-          err = ps
-        )
+      val exit = scalafix.v1.Main.run(
+        args,
+        workingDirectory,
+        ps
       )
-      val output = new String(baos.toByteArray(), StandardCharsets.UTF_8)
+      val output = new String(baos.toByteArray, StandardCharsets.UTF_8)
       assert(
         exit.isOk == ok,
         s"Expected OK exit status, obtained $exit. Details $output"

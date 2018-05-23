@@ -61,6 +61,14 @@ case class Args(
       "Automatically infer --classpath starting from these directories. " +
         "Ignored if --classpath is provided.")
     autoClasspathRoots: List[AbsolutePath] = Nil,
+    @Description(
+      "If set, only apply scalafix to added and edited files in git diff against master.")
+    diff: Boolean = false,
+    @Description(
+      "If set, only apply scalafix to added and edited files in git diff against a provided branch, commit or tag. (defaults to master)")
+    diffBase: Option[String] = None,
+    @Description("Don't use fancy progress bar.")
+    nonInteractive: Boolean = false
 ) {
 
   def configuredSymtab: Configured[SymbolTable] = {
@@ -125,7 +133,7 @@ case class Args(
         Conf.Lst(rules.map(Conf.fromString))
       }
     val decoder =
-      ScalafixReflectV1.decoder(scalafixConfig.reporter, getClassloader)
+      ScalafixReflectV1.decoder(scalafixConfig, getClassloader)
     decoder.read(rulesConf).andThen { rules =>
       if (rules.isEmpty) ConfError.message("No rules provided").notOk
       else rules.withConfig(base)

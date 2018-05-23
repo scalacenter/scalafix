@@ -4,6 +4,7 @@ import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
+import scalafix.Patch
 import scalafix.Rule
 import scalafix.SemanticdbIndex
 import scalafix.internal.config._
@@ -12,7 +13,10 @@ import scalafix.internal.util.ClassloadRule
 import scalafix.internal.v1.LegacySemanticRule
 import scalafix.internal.v1.LegacySyntacticRule
 import scalafix.internal.v1.Rules
+import scalafix.patch.TreePatch
 import scalafix.v1
+import scalafix.v1.SemanticDoc
+import scalafix.v1.SemanticRule
 
 object ScalafixReflect {
   def syntactic: ConfDecoder[Rule] =
@@ -33,7 +37,7 @@ object ScalafixReflectV1 {
   def readSingleRule(
       rule: String,
       classloader: ClassLoader): Configured[v1.Rule] =
-    // TODO: handle github: class: file:
+    // TODO: handle github: file:
     Rules.defaults.find(_.name.matches(rule)) match {
       case Some(r) => Configured.ok(r)
       case _ =>
@@ -46,12 +50,9 @@ object ScalafixReflectV1 {
                 ConfError.message(s"Class not found: $fqn").notOk
             }
           case UriRuleString("replace", replace @ SlashSeparated(from, to)) =>
-//            requireSemanticSemanticdbIndex(index, replace) { m =>
-//              parseReplaceSymbol(from, to)
-//                .map(TreePatch.ReplaceSymbol.tupled)
-//                .map(p => Rule.constant(replace, p, m))
-//            }
-            ???
+            parseReplaceSymbol(from, to)
+              .map(TreePatch.ReplaceSymbol.tupled)
+              .map(p => scalafix.v1.SemanticRule.constant(replace, p))
         }
     }
 
@@ -91,10 +92,10 @@ object ScalafixReflectV1 {
   }
 
   def decoder(): ConfDecoder[Rules] =
-    decoder(ScalafixReporter.default, ClassloadRule.defaultClassloader)
+    decoder(ScalafixConfig.default, ClassloadRule.defaultClassloader)
 
   def decoder(
-      reporter: ScalafixReporter,
+      config: ScalafixConfig,
       classloader: ClassLoader): ConfDecoder[Rules] =
     new ConfDecoder[Rules] {
       override def read(conf: Conf): Configured[Rules] = conf match {
@@ -104,14 +105,20 @@ object ScalafixReflectV1 {
           val decoded = values.map {
             case Conf.Str(value) =>
               readSingleRule(value, classloader).map { r =>
-                r.name.reportDeprecationWarning(value, reporter)
+                r.name.reportDeprecationWarning(value, config.reporter)
                 r
               }
             case err =>
               ConfError.typeMismatch("String", err).notOk
           }
           MetaconfigPendingUpstream.flipSeq(decoded).map { rules =>
-            Rules(rules.toList)
+            config.patches.all match {
+              case Nil => Rules(rules.toList)
+              case patches =>
+                val hardcodedRule =
+                  SemanticRule.constant(".scalafix.conf", patches.asPatch)
+                Rules(hardcodedRule :: rules.toList)
+            }
           }
         case els =>
           ConfError.typeMismatch("Either[String, List[String]]", els).notOk
