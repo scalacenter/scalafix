@@ -37,6 +37,7 @@ case class ValidatedArgs(
     args: Args,
     symtab: SymbolTable,
     rules: Rules,
+    config: ScalafixConfig,
     pathReplace: AbsolutePath => AbsolutePath
 ) {
   import args._
@@ -65,36 +66,31 @@ case class ValidatedArgs(
 }
 
 case class Args(
+    cwd: AbsolutePath,
+    out: PrintStream,
     @ExtraName("r")
     rules: List[String] = Nil,
-    config: List[AbsolutePath] = Nil,
+    config: Option[AbsolutePath] = None,
     toolClasspath: List[AbsolutePath] = Nil,
     classpath: Classpath = Classpath(Nil),
     ls: Ls = Ls.Find,
-    cwd: AbsolutePath = PathIO.workingDirectory,
     sourceroot: List[AbsolutePath] = Nil,
     @ExtraName("remainingArgs")
     files: List[PathMatcher] = Nil,
     exclude: List[PathMatcher] = Nil,
-    out: PrintStream = System.out,
     parser: MetaParser = MetaParser(),
     charset: Charset = StandardCharsets.UTF_8,
     stdout: Boolean = false,
     test: Boolean = false,
     metacpCacheDir: List[AbsolutePath] = Nil,
     metacpParallel: Boolean = false,
-    settings: ScalafixConfig = ScalafixConfig(),
+    settings: Conf = Conf.Obj.empty,
     format: OutputFormat = OutputFormat.Default,
-    outFrom: List[String] = Nil,
-    outTo: List[String] = Nil
+    outFrom: Option[String] = None,
+    outTo: Option[String] = None
 ) {
 
   def sourcerootPath: AbsolutePath = sourceroot.headOption.getOrElse(cwd)
-
-  def withOut(out: PrintStream): Args = copy(
-    out = out,
-    settings = settings.withFreshReporters(out)
-  )
 
   def configuredSymtab: Configured[SymbolTable] = {
     ClasspathOps.newSymbolTable(
@@ -119,37 +115,56 @@ case class Args(
       )
     }
 
-  def configuredRules: Configured[Rules] = {
-    val rulesConf = Conf.Lst(rules.map(Conf.fromString))
-    val decoder = ScalafixReflectV1.decoder(settings.reporter, getClassloader)
-    config match {
-      case Nil =>
-        decoder.read(rulesConf)
-      case file :: _ =>
-        val input = metaconfig.Input.File(file.toNIO)
-        Conf.parseInput(input).andThen { fileConf =>
-          val finalRules: Configured[Conf] =
-            if (rules.isEmpty) {
-              ConfGet.getKey(fileConf, "rules" :: "rule" :: Nil) match {
-                case Some(c) => Configured.ok(c)
-                case _ => ConfError.message("No rule provided").notOk
-              }
-            } else {
-              Configured.ok(rulesConf)
-            }
-          finalRules.andThen { rulesConf =>
-            decoder
-              .read(rulesConf)
-              .andThen(_.withConfig(fileConf))
-          }
+  def baseConfig: Configured[(Conf, ScalafixConfig)] = {
+    val toRead: Option[AbsolutePath] = config.orElse {
+      val defaultPath = cwd.resolve(".scalafix.conf")
+      if (defaultPath.isFile) Some(defaultPath)
+      else None
+    }
+    val base = toRead match {
+      case Some(file) =>
+        if (file.isFile) {
+          val input = metaconfig.Input.File(file.toNIO)
+          Conf.parseInput(input)
+        } else {
+          ConfError.fileDoesNotExist(file.toNIO).notOk
         }
+      case _ =>
+        Configured.ok(Conf.Obj.empty)
+    }
+    base.andThen { b =>
+      val applied = Conf.applyPatch(b, settings)
+      applied.as[ScalafixConfig].map { scalafixConfig =>
+        applied -> scalafixConfig.withOut(out)
+      }
+    }
+  }
+
+  def configuredRules(
+      base: Conf,
+      scalafixConfig: ScalafixConfig
+  ): Configured[Rules] = {
+    val rulesConf =
+      if (rules.isEmpty) {
+        ConfGet.getKey(base, "rules" :: "rule" :: Nil) match {
+          case Some(c) => c
+          case _ => Conf.Lst(Nil)
+        }
+      } else {
+        Conf.Lst(rules.map(Conf.fromString))
+      }
+    val decoder =
+      ScalafixReflectV1.decoder(scalafixConfig.reporter, getClassloader)
+    decoder.read(rulesConf).andThen { rules =>
+      if (rules.isEmpty) ConfError.message("No rules provided").notOk
+      else rules.withConfig(base)
     }
   }
 
   def resolvedPathReplace: Configured[AbsolutePath => AbsolutePath] =
     (outFrom, outTo) match {
-      case (Nil, Nil) => Ok(identity[AbsolutePath])
-      case (from :: Nil, to :: Nil) =>
+      case (None, None) => Ok(identity[AbsolutePath])
+      case (Some(from), Some(to)) =>
         try {
           val outFromPattern = Pattern.compile(from)
           def replacePath(file: AbsolutePath): AbsolutePath = AbsolutePath(
@@ -166,33 +181,35 @@ case class Args(
               .message(s"Invalid regex '$outFrom'! ${e.getMessage}")
               .notOk
         }
-      case (from :: Nil, _) =>
+      case (Some(from), _) =>
         ConfError
           .message(s"--out-from $from must be accompanied with --out-to")
           .notOk
-      case (_, to :: Nil) =>
+      case (_, Some(to)) =>
         ConfError
           .message(s"--out-to $to must be accompanied with --out-from")
           .notOk
     }
 
   def validate: Configured[ValidatedArgs] = {
-    (
-      configuredSymtab |@|
-        configuredRules |@|
-        resolvedPathReplace
-    ).map {
-      case ((symtab, rulez), pathReplace) =>
-        ValidatedArgs(
-          this.copy(
-            settings = settings.withFormat(
-              format
+    baseConfig.andThen {
+      case (base, scalafixConfig) =>
+        (
+          configuredSymtab |@|
+            configuredRules(base, scalafixConfig) |@|
+            resolvedPathReplace
+        ).map {
+          case ((symtab, rulez), pathReplace) =>
+            ValidatedArgs(
+              this,
+              symtab,
+              rulez,
+              scalafixConfig.withFormat(
+                format
+              ),
+              pathReplace
             )
-          ),
-          symtab,
-          rulez,
-          pathReplace
-        )
+        }
     }
   }
 }
@@ -200,10 +217,14 @@ case class Args(
 object Args {
   val baseMatcher: PathMatcher =
     FileSystems.getDefault.getPathMatcher("glob:**.{scala,sbt}")
+  val default = new Args(PathIO.workingDirectory, System.out)
 
   implicit val surface: Surface[Args] = generic.deriveSurface
-  implicit val decoder: ConfDecoder[Args] = generic.deriveDecoder(Args())
+  def decoder(cwd: AbsolutePath, out: PrintStream): ConfDecoder[Args] =
+    generic.deriveDecoder(Args(cwd, out))
 
+  implicit val confDecoder: ConfDecoder[Conf] = // TODO: upstream
+    ConfDecoder.instanceF[Conf](Configured.ok)
   implicit val charsetDecoder: ConfDecoder[Charset] =
     ConfDecoder.stringConfDecoder.map(name => Charset.forName(name))
   implicit val classpathDecoder: ConfDecoder[Classpath] =
@@ -215,4 +236,12 @@ object Args {
   implicit val pathMatcherDecoder: ConfDecoder[PathMatcher] =
     ConfDecoder.stringConfDecoder.map(glob =>
       FileSystems.getDefault.getPathMatcher("glob:" + glob))
+}
+
+case class ScalafixFileConfig(rules: Conf, other: Conf)
+object ScalafixFileConfig {
+  val empty = ScalafixFileConfig(
+    Conf.Obj.empty,
+    Conf.Obj.empty
+  )
 }

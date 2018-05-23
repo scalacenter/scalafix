@@ -113,8 +113,6 @@ object SemanticDoc {
       symtab: SymbolTable
   ): SemanticDoc = {
     val reluri = path.toRelativeURI.toString
-    pprint.log(path)
-    pprint.log(reluri)
     classpath.resolveSemanticdb(path) match {
       case Some(abspath) =>
         val in = Files.newInputStream(abspath.toNIO)
