@@ -2,9 +2,10 @@ package scalafix.util
 
 import scala.meta._
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
+import scalafix.v1.SemanticContext
 
 /** An index for looking up data in a scala.meta.Database. */
-trait SemanticdbIndex {
+trait SemanticdbIndex extends SemanticContext {
 
   /** List of source files that built this SemanticdbIndex. */
   def sourcepath: Sourcepath

@@ -22,6 +22,7 @@ import ammonite.ops
 import org.langmeta.io.AbsolutePath
 import org.langmeta.io.RelativePath
 import org.scalatest.FunSuite
+import scalafix.v1.Main
 
 // extend this class to run custom cli tests.
 trait BaseCliTest extends FunSuite with DiffAssertions {
@@ -45,6 +46,16 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
     workingDirectory = cwd.toString
   )
 
+  val semanticRoot: RelativePath = RelativePath("scala").resolve("test")
+  val removeImportsPath: RelativePath =
+    semanticRoot.resolve("RemoveUnusedImports.scala")
+  val explicitResultTypesPath: RelativePath =
+    semanticRoot
+      .resolve("explicitResultTypes")
+      .resolve("ExplicitResultTypesBase.scala")
+  val semanticClasspath: String =
+    BuildInfo.semanticClasspath.getAbsolutePath
+
   val default = ScalafixOptions(common = devNull)
 
   def check(
@@ -58,15 +69,19 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
     test(name) {
       val out = new ByteArrayOutputStream()
       val root = StringFS.string2dir(originalLayout)
-      val exit =
-        Cli.runMain(
-          args,
-          default.common.copy(
-            workingDirectory = root.toString(),
-            out = new PrintStream(out)
-          ))
+
+      val exit = Main.run(
+        Array(
+          "--sourceroot",
+          root.toString(),
+          "--classpath",
+          semanticClasspath
+        ) ++ args,
+        root.toNIO,
+        new PrintStream(out)
+      )
       val obtained = StringFS.dir2string(root)
-      assert(exit == expectedExit)
+      assert(exit == expectedExit, out.toString)
       assertNoDiff(obtained, expectedLayout)
       outputAssert(out.toString)
     }
@@ -103,23 +118,14 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
     )
   }
 
-  val semanticRoot: RelativePath = RelativePath("scala").resolve("test")
-  val removeImportsPath: RelativePath =
-    semanticRoot.resolve("RemoveUnusedImports.scala")
-  val explicitResultTypesPath: RelativePath =
-    semanticRoot
-      .resolve("explicitResultTypes")
-      .resolve("ExplicitResultTypesBase.scala")
-  val semanticClasspath =
-    BuildInfo.semanticClasspath.getAbsolutePath
-
   def writeTestkitConfiguration(root: Path, path: Path): Unit = {
     import scala.meta._
     val code = new String(Files.readAllBytes(path), StandardCharsets.UTF_8)
     val comment = SemanticRuleSuite.findTestkitComment(code.tokenize.get)
+    val content = comment.syntax.stripPrefix("/*").stripSuffix("*/")
     Files.write(
       root.resolve(".scalafix.conf"),
-      comment.syntax.stripPrefix("/*").stripSuffix("*/").getBytes()
+      content.getBytes(StandardCharsets.UTF_8)
     )
   }
 
@@ -135,6 +141,7 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
       outputAssert: String => Unit = _ => (),
       rule: String = RemoveUnusedImports.toString(),
       path: RelativePath = removeImportsPath,
+      files: String = removeImportsPath.toString(),
       assertObtained: Result => Unit = { result =>
         if (result.exit.isOk) {
           assertNoDiff(result.obtained, result.expected)
@@ -150,17 +157,14 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
       ops.cp(ops.Path(BuildInfo.inputSourceroot.toPath), root)
       val rootNIO = root.toNIO
       writeTestkitConfiguration(rootNIO, rootNIO.resolve(path.toNIO))
-      val exit = Cli.runMain(
+      val exit = Main.run(
         args ++ Seq(
           "-r",
           rule,
-          path.toString()
+          files
         ),
-        default.common.copy(
-          workingDirectory = root.toString(),
-          out = new PrintStream(out),
-          err = new PrintStream(out)
-        )
+        root.toNIO,
+        new PrintStream(out)
       )
       val original = FileIO.slurp(
         AbsolutePath(BuildInfo.inputSourceroot).resolve(path),
@@ -182,7 +186,8 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
           original
         }
       assert(exit == expectedExit, s"$exit != $expectedExit. Out: $out")
-      outputAssert(out.toString())
+      val output = fansi.Str(out.toString()).plainText
+      outputAssert(output)
       val result = Result(exit, original, obtained, expected)
       assertObtained(result)
     }

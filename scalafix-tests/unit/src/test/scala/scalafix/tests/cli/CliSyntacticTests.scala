@@ -79,7 +79,7 @@ class CliSyntacticTests extends BaseCliTest {
                         |$original""".stripMargin,
     args = Seq(
       "-r",
-      "scala:scalafix.tests.cli.TestRules.LintError",
+      "scala:scalafix.tests.cli.LintError",
       "foobar.scala"
     ),
     expectedLayout = s"""/foobar.scala
@@ -95,10 +95,10 @@ class CliSyntacticTests extends BaseCliTest {
     originalLayout = s"""/foobar.scala
                         |$original""".stripMargin,
     args = Seq(
-      "--config-str",
-      "lint.error=LintWarning.warning",
+      "--settings.lint.error",
+      "LintWarning.warning",
       "-r",
-      "scala:scalafix.tests.cli.TestRules.LintWarning",
+      "scala:scalafix.tests.cli.LintWarning",
       "foobar.scala"
     ),
     expectedLayout = s"""/foobar.scala
@@ -216,8 +216,8 @@ class CliSyntacticTests extends BaseCliTest {
                          |package a;
                          |class A
                          |""".stripMargin,
-    expectedExit = ExitStatus.InvalidCommandLineOption, { output =>
-      assert(output.contains("No files to fix!") && output.contains("dir"))
+    expectedExit = ExitStatus.NoFilesError, { output =>
+      assert(output.contains("No files to fix"))
     }
   )
 
@@ -254,7 +254,7 @@ class CliSyntacticTests extends BaseCliTest {
       "--format",
       "sbt",
       "-r",
-      "scala:scalafix.tests.cli.TestRules.LintError",
+      "scala:scalafix.tests.cli.LintError",
       "foobar.scala"
     ),
     expectedLayout = s"""/foobar.scala

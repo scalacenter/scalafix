@@ -126,7 +126,7 @@ trait ScalafixMetaconfigReaders {
     index(kind).toList
   }
 
-  private lazy val SlashSeparated = "([^/]+)/(.*)".r
+  lazy val SlashSeparated: Regex = "([^/]+)/(.*)".r
 
   private def requireSemanticSemanticdbIndex[T](
       index: LazySemanticdbIndex,
@@ -166,7 +166,7 @@ trait ScalafixMetaconfigReaders {
     defaultRuleDecoder(index).orElse(classloadRuleDecoder(index))
   }
   def configFromInput(
-      input: Input,
+      input: metaconfig.Input,
       index: LazySemanticdbIndex,
       extraRules: List[String])(
       implicit decoder: ConfDecoder[Rule]
@@ -234,7 +234,8 @@ trait ScalafixMetaconfigReaders {
       str.parse[T] match {
         case parsers.Parsed.Success(x) => Configured.Ok(x)
         case parsers.Parsed.Error(pos, msg, _) =>
-          ConfError.parseError(pos, msg).notOk
+          import MetaconfigPendingUpstream._
+          ConfError.parseError(pos.toMetaconfig, msg).notOk
       }
     }
 

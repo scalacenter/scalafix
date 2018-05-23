@@ -28,10 +28,11 @@ object ExitStatus {
       ParseError,
       ScalafixError,
       InvalidCommandLineOption,
-      MissingSemanticApi,
+      MissingSemanticDB,
       StaleSemanticDB,
       TestFailed,
-      LinterError
+      LinterError,
+      NoFilesError
     : ExitStatus = generateExitStatus
   // format: on
   lazy val all: List[ExitStatus] = allInternal.toList

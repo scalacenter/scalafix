@@ -14,7 +14,6 @@ import java.util.function.UnaryOperator
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 import scala.meta._
-import scala.meta.inputs.Input
 import scala.meta.internal.inputs._
 import scala.meta.io.AbsolutePath
 import scala.util.control.NonFatal
@@ -24,13 +23,13 @@ import scalafix.internal.cli.FixFile
 import scalafix.internal.cli.ScalafixOptions
 import scalafix.internal.cli.TermDisplay
 import scalafix.internal.cli.WriteMode
-import scalafix.internal.config.Class2Hocon
 import scalafix.internal.config.FilterMatcher
 import scalafix.internal.config.LazySemanticdbIndex
 import scalafix.internal.config.RuleKind
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.jgit.JGitDiff
+import scalafix.internal.config.MetaconfigPendingUpstream._
 import scalafix.internal.util.{
   EagerInMemorySemanticdbIndex,
   Failure,
@@ -39,7 +38,7 @@ import scalafix.internal.util.{
 import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
 import metaconfig.Configured.Ok
-import metaconfig._
+import metaconfig.{Input => _, _}
 import metaconfig.ConfError
 import scalafix.internal.cli.ClasspathOps
 
@@ -265,9 +264,7 @@ object CliRunner {
       case ((((sourceroot, replace), inputs), config), diffDisable) =>
         if (options.verbose) {
           options.diagnostic.info(
-            s"""|Config:
-                |${Class2Hocon(config)}
-                |Rule:
+            s"""|Rule:
                 |$rule
                 |""".stripMargin
           )
@@ -500,7 +497,8 @@ object CliRunner {
           Ok(
             ScalafixConfig
               .auto(common.workingPath)
-              .getOrElse(Input.String("")))
+              .getOrElse(metaconfig.Input.String("")))
+            .map(_.toMeta)
       }
 
     // ScalafixConfig and Rule
@@ -512,7 +510,8 @@ object CliRunner {
       val decoder = ScalafixReflect.fromLazySemanticdbIndex(lazySemanticdbIndex)
       fixFiles.andThen { inputs =>
         val configured = resolvedConfigInput.andThen(input =>
-          ScalafixConfig.fromInput(input, lazySemanticdbIndex, rules)(decoder))
+          ScalafixConfig
+            .fromInput(input.toMetaconfig, lazySemanticdbIndex, rules)(decoder))
         configured.map { configuration =>
           val (finalRule, scalafixConfig) = configuration
           val withOut = scalafixConfig.withOut(common.err)
