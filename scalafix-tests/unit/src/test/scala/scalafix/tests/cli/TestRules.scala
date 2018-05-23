@@ -5,7 +5,6 @@ import scalafix.lint.LintCategory
 import scalafix.v1.Doc
 import scalafix.v1.SyntacticRule
 
-
 class LintError extends SyntacticRule("LintError") {
   override def fix(implicit doc: Doc): Patch = {
     val failure = LintCategory.error("failure", "Error!")

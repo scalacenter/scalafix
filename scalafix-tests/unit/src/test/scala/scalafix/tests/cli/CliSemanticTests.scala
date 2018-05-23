@@ -21,7 +21,7 @@ class CliSemanticTests extends BaseCliTest {
   checkSemantic(
     name = "--auto-classpath ok",
     args = List(
-      "--cwd",
+      "--auto-classpath-roots",
       PathIO.workingDirectory.toString(),
       "--auto-classpath"
     ),
@@ -29,7 +29,7 @@ class CliSemanticTests extends BaseCliTest {
   )
 
   checkSemantic(
-    name = "--sourceroot is not a file",
+    name = "--sourceroot not ok",
     args = Seq(
       "--sourceroot",
       "bogus",
@@ -37,21 +37,9 @@ class CliSemanticTests extends BaseCliTest {
       semanticClasspath
     ),
     expectedExit = ExitStatus.InvalidCommandLineOption,
-    outputAssert = msg => assert(msg.contains("Invalid --sourceroot"))
-  )
-
-  checkSemantic(
-    name = "--sourceroot points to non-existing file",
-    args = Seq(
-      "--sourceroot",
-      CommonOptions.default.workingDirectory,
-      "--classpath",
-      semanticClasspath
-    ),
-    expectedExit = ExitStatus.InvalidCommandLineOption,
     outputAssert = msg => {
-      assert(msg.contains("is not a file"))
-      assert(msg.contains("Is --sourceroot correct?"))
+      assert(msg.contains("--sourceroot"))
+      assert(msg.contains("bogus"))
     }
   )
 
@@ -69,7 +57,7 @@ class CliSemanticTests extends BaseCliTest {
       "--classpath",
       semanticClasspath
     ),
-    files = s"**/${removeImportsPath.toNIO.getFileName.toString}",
+    files = s"**${removeImportsPath.toNIO.getFileName.toString}",
     expectedExit = ExitStatus.MissingSemanticDB,
     outputAssert = msg => {
       assert(msg.contains("No SemanticDB associated with"))
