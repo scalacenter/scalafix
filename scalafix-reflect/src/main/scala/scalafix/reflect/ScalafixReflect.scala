@@ -9,6 +9,8 @@ import scalafix.SemanticdbIndex
 import scalafix.internal.config._
 import scalafix.internal.reflect.ScalafixCompilerDecoder
 import scalafix.internal.util.ClassloadRule
+import scalafix.internal.v1.LegacySemanticRule
+import scalafix.internal.v1.LegacySyntacticRule
 import scalafix.internal.v1.Rules
 import scalafix.v1
 
@@ -38,8 +40,8 @@ object ScalafixReflectV1 {
         Conf.Str(rule) match {
           case UriRuleString("scala" | "class", fqn) =>
             tryClassload(classloader, fqn) match {
-              case Some(cls) =>
-                Configured.ok(cls.newInstance().asInstanceOf[v1.Rule])
+              case Some(r) =>
+                Configured.ok(r)
               case _ =>
                 ConfError.message(s"Class not found: $fqn").notOk
             }
@@ -53,12 +55,35 @@ object ScalafixReflectV1 {
         }
     }
 
-  def tryClassload(classloader: ClassLoader, fqn: String): Option[Class[_]] = {
-    try Some(classloader.loadClass(fqn))
-    catch {
-      case _: ClassNotFoundException =>
-        try Some(classloader.loadClass(fqn + "$"))
-        catch {
+  private lazy val legacySemanticRuleClass = classOf[scalafix.rule.SemanticRule]
+  private lazy val legacyRuleClass = classOf[scalafix.rule.Rule]
+  def toRule(cls: Class[_]): v1.Rule = {
+    if (legacySemanticRuleClass.isAssignableFrom(cls)) {
+      val fn: SemanticdbIndex => Rule = { index =>
+        val ctor = cls.getDeclaredConstructor(classOf[SemanticdbIndex])
+        ctor.setAccessible(true)
+        ctor.newInstance(SemanticdbIndex.empty).asInstanceOf[scalafix.Rule]
+      }
+      new LegacySemanticRule(fn(SemanticdbIndex.empty).name, fn)
+    } else if (legacyRuleClass.isAssignableFrom(cls)) {
+      val ctor = cls.getDeclaredConstructor()
+      ctor.setAccessible(true)
+      new LegacySyntacticRule(ctor.newInstance().asInstanceOf[Rule])
+    } else {
+      val ctor = cls.getDeclaredConstructor()
+      ctor.setAccessible(true)
+      cls.newInstance().asInstanceOf[v1.Rule]
+    }
+  }
+
+  def tryClassload(classloader: ClassLoader, fqn: String): Option[v1.Rule] = {
+    try {
+      Some(toRule(classloader.loadClass(fqn)))
+    } catch {
+      case _: ClassNotFoundException | _: NoSuchMethodException =>
+        try {
+          Some(toRule(classloader.loadClass(fqn + "$")))
+        } catch {
           case _: ClassNotFoundException =>
             None
         }

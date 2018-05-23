@@ -1,6 +1,5 @@
-// comment
 
 package test2
 
-import scala.collection.{ immutable, mutable }
+import scala.collection.immutable
 object FqnRule
