@@ -40,6 +40,7 @@ class DeprecatedRuleCtx(doc: Doc) extends RuleCtx with DeprecatedPatchOps {
   }
   override private[scalafix] def filter(
       patchesByName: Map[RuleName, Patch],
-      index: SemanticdbIndex) =
+      index: SemanticdbIndex) = {
     doc.escapeHatch.filter(patchesByName, this, index, doc.diffDisable)
+  }
 }

@@ -9,6 +9,7 @@ import scala.meta.Source
 import scala.meta.parsers.Parsed
 import scalafix.internal.cli.WriteMode
 import scalafix.internal.config.ScalafixConfig
+import scalafix.internal.diff.DiffDisable
 import scalafix.internal.util.SymbolTable
 import scalafix.internal.v1.Rules
 
@@ -19,7 +20,8 @@ case class ValidatedArgs(
     config: ScalafixConfig,
     classpath: Classpath,
     sourceroot: AbsolutePath,
-    pathReplace: AbsolutePath => AbsolutePath
+    pathReplace: AbsolutePath => AbsolutePath,
+    diffDisable: DiffDisable
 ) {
   import args._
 

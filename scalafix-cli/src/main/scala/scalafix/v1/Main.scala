@@ -15,6 +15,7 @@ import scala.util.control.NonFatal
 import scalafix.cli.ExitStatus
 import scalafix.internal.cli.CliParser
 import scalafix.internal.cli.WriteMode
+import scalafix.internal.config.ScalafixReporter
 import scalafix.lint.LintMessage
 
 object Main {
@@ -99,7 +100,7 @@ object Main {
         handleException(ex, args.args.out)
         ExitStatus.ParseError
       case Parsed.Success(tree) =>
-        val doc = Doc.fromTree(tree)
+        val doc = Doc(tree, args.diffDisable, args.config)
         val (fixed, messages) =
           if (args.rules.isSemantic) {
             val relpath = file.toRelative(args.sourceroot)
@@ -177,7 +178,7 @@ object Main {
           run(adjusted)
         }
       case Configured.NotOk(err) =>
-        out.println(err)
+        ScalafixReporter.default.copy(outStream = out).error(err.toString())
         ExitStatus.InvalidCommandLineOption
     }
 }

@@ -8,10 +8,6 @@ import java.nio.file.Path
 import org.scalatest._
 import org.scalatest.FunSuite
 
-import scala.collection.immutable.Seq
-
-import scalafix.cli
-import scalafix.internal.cli.CommonOptions
 import scalafix.testkit.DiffAssertions
 import scalafix.internal.tests.utils.{Fs, Git}
 import scalafix.internal.tests.utils.SkipWindows
@@ -181,7 +177,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     git.add(newCode)
     git.commit()
 
-    val obtained = runDiff(cli, s"--diff-base=$baseBranch")
+    val obtained = runDiff(cli, "--diff-base", baseBranch)
 
     val expected =
       s"""|$newCodeAbsPath:5:3: error: [DisableSyntax.keywords.var] var is disabled
@@ -205,14 +201,14 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     addConf(fs, git)
     git.commit()
 
-    val nonExistingHash = "7777777777777777777777777777777777777777"
-    val obtained = runDiff(cli, s"--diff-base=$nonExistingHash")
+    val nonExistingHash = "a777777777777777777777777777777777777777"
+    val obtained = runDiff(cli, "--diff-base", nonExistingHash)
     val expected =
       s"error: '$nonExistingHash' unknown revision or path not in the working tree."
     assert(obtained.startsWith(expected))
 
-    val wrongHashFormat = "777"
-    val obtained2 = runDiff(cli, s"--diff-base=$wrongHashFormat")
+    val wrongHashFormat = "a777"
+    val obtained2 = runDiff(cli, "--diff-base", wrongHashFormat)
     val expected2 =
       s"error: '$wrongHashFormat' unknown revision or path not in the working tree."
     assert(obtained2.startsWith(expected2))
@@ -311,7 +307,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
       val output = new String(baos.toByteArray, StandardCharsets.UTF_8)
       assert(
         exit.isOk == ok,
-        s"Expected OK exit status, obtained $exit. Details $output"
+        s"Expected exit status isOk=$ok, obtained $exit. Details $output"
       )
       output
     }

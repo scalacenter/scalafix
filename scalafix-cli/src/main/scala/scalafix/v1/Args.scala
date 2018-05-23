@@ -24,6 +24,8 @@ import scala.meta.io.Classpath
 import scalafix.cli.CliRunner
 import scalafix.internal.config.OutputFormat
 import scalafix.internal.config.ScalafixConfig
+import scalafix.internal.diff.DiffDisable
+import scalafix.internal.jgit.JGitDiff
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.util.ClassloadRule
 import scalafix.internal.util.SymbolTable
@@ -170,6 +172,15 @@ case class Args(
           .notOk
     }
 
+  def configuredDiffDisable: Configured[DiffDisable] = {
+    if (diff || diffBase.nonEmpty) {
+      val diffBase = this.diffBase.getOrElse("master")
+      JGitDiff(cwd.toNIO, diffBase)
+    } else {
+      Configured.Ok(DiffDisable.empty)
+    }
+  }
+
   def configuredSourceroot: Configured[AbsolutePath] = {
     val path = sourceroot.getOrElse(cwd)
     if (path.isDirectory) Configured.ok(path)
@@ -192,9 +203,10 @@ case class Args(
           configuredSourceroot |@|
             configuredSymtab |@|
             configuredRules(base, scalafixConfig) |@|
-            resolvedPathReplace
+            resolvedPathReplace |@|
+            configuredDiffDisable
         ).map {
-          case (((root, symtab), rulez), pathReplace) =>
+          case ((((root, symtab), rulez), pathReplace), diffDisable) =>
             ValidatedArgs(
               this,
               symtab,
@@ -204,7 +216,8 @@ case class Args(
               ),
               validatedClasspath,
               root,
-              pathReplace
+              pathReplace,
+              diffDisable
             )
         }
     }
