@@ -24,6 +24,7 @@ import scala.meta.internal.io.PathIO
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
 import scala.meta.parsers.Parsed
+import scalafix.cli.CliRunner
 import scalafix.internal.cli.ClasspathOps
 import scalafix.internal.cli.WriteMode
 import scalafix.internal.config.OutputFormat
@@ -38,6 +39,7 @@ case class ValidatedArgs(
     symtab: SymbolTable,
     rules: Rules,
     config: ScalafixConfig,
+    classpath: Classpath,
     pathReplace: AbsolutePath => AbsolutePath
 ) {
   import args._
@@ -84,6 +86,7 @@ case class Args(
     test: Boolean = false,
     metacpCacheDir: List[AbsolutePath] = Nil,
     metacpParallel: Boolean = false,
+    autoClasspath: Boolean = false,
     settings: Conf = Conf.Obj.empty,
     format: OutputFormat = OutputFormat.Default,
     outFrom: Option[String] = None,
@@ -200,6 +203,9 @@ case class Args(
             resolvedPathReplace
         ).map {
           case ((symtab, rulez), pathReplace) =>
+            val finalClasspath =
+              if (autoClasspath) CliRunner.autoClasspath(cwd :: Nil)
+              else classpath
             ValidatedArgs(
               this,
               symtab,
@@ -207,6 +213,7 @@ case class Args(
               scalafixConfig.withFormat(
                 format
               ),
+              finalClasspath,
               pathReplace
             )
         }

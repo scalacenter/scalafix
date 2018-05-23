@@ -95,7 +95,7 @@ object Main {
             val sdoc = SemanticDoc.fromPath(
               doc,
               relpath,
-              args.args.classpath,
+              args.classpath,
               args.symtab
             )
             args.rules.semanticPatch(sdoc)
