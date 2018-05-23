@@ -33,6 +33,12 @@ class DeprecatedSemanticdbIndex(doc: SemanticDoc)
   final override def names: Seq[ResolvedName] =
     throw new UnsupportedOperationException
   @deprecated(DeprecationMessage, "0.6.0")
+  final override def synthetics: Seq[Synthetic] =
+    throw new UnsupportedOperationException
+  @deprecated(DeprecationMessage, "0.6.0")
+  final override def documents: Seq[Document] =
+    throw new UnsupportedOperationException
+  @deprecated(DeprecationMessage, "0.6.0")
   override final def messages: Seq[Message] = doc.sdoc.diagnostics.map { diag =>
     val pos = diag.range match {
       case Some(r) =>

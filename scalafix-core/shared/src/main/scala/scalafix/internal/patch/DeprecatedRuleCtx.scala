@@ -22,7 +22,7 @@ class DeprecatedRuleCtx(doc: Doc) extends RuleCtx with DeprecatedPatchOps {
   override def tokenList: TokenList = doc.tokenList
   override def comments: AssociatedComments = doc.comments
   override def index(implicit index: SemanticdbIndex): SemanticdbIndex =
-    throw new UnsupportedOperationException("Use `index` instead")
+    index
   override def debugIndex()(
       implicit index: SemanticdbIndex,
       fileLine: FileLine): Unit =
