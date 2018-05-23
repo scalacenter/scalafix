@@ -148,7 +148,6 @@ object Main {
 
   def run(args: ValidatedArgs): ExitStatus = {
     val files = this.files(args)
-    val all = FileIO.listAllFilesRecursively(args.sourceroot)
     var exit = ExitStatus.Ok
     files.foreach { file =>
       val next = handleFile(args, file)

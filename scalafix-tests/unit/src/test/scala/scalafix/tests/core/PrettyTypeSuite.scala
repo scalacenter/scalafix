@@ -1,6 +1,7 @@
 package scalafix.tests.core
 
 import org.langmeta.internal.io.PlatformFileIO
+import org.scalatest.Ignore
 import scala.meta.internal.semanticdb3.Index
 import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
@@ -44,6 +45,9 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
   }
 
 }
+
+// This test is slow, no need to run it on every PR
+@Ignore
 class PrettyTypeFuzzSuite extends BasePrettyTypeSuite {
 
   for {
