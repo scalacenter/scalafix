@@ -23,7 +23,7 @@ final case class MissingFinal(index: SemanticdbIndex)
 
   override def fix(ctx: RuleCtx): Patch = {
     def isSealed(tpe: Type): Boolean =
-      ctx.index.denotation(tpe).exists(_.isSealed)
+      index.denotation(tpe).exists(_.isSealed)
 
     def leaksSealedParent(mods: List[Mod], templ: Template): Boolean =
       templ.inits.exists(i => isSealed(i.tpe)) &&

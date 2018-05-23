@@ -6,7 +6,7 @@ import scala.meta.internal.semanticdb3.Index
 import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
 import scala.{meta => m}
-import scalafix.internal.cli.ClasspathOps
+import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.reflect.RuleCompiler
 import scalafix.internal.util.LazySymbolTable
 import scalafix.internal.util.QualifyStrategy

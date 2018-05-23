@@ -7,12 +7,17 @@ import scalafix.internal.config.LazySemanticdbIndex
 import scalafix.internal.config.ScalafixConfig
 import scalafix.reflect.ScalafixReflect
 import org.scalatest.exceptions.TestFailedException
+import scalafix.internal.config.ScalafixReporter
+import scalafix.internal.util.ClassloadRule
+import scalafix.internal.v1.Rules
+import scalafix.reflect.ScalafixReflectV1
+import scalafix.v1.SemanticDoc
 
 case class DiffTest(
     filename: RelativePath,
     original: Input,
     document: Document,
-    config: () => (Rule, ScalafixConfig),
+    config: () => (Rules, SemanticDoc),
     isSkip: Boolean,
     isOnly: Boolean) {
   def name: String = filename.toString()
@@ -28,18 +33,16 @@ object DiffTest {
     index.documents.map { document =>
       val input @ Input.VirtualFile(label, code) = document.input
       val relpath = RelativePath(label)
-      val config: () => (Rule, ScalafixConfig) = { () =>
+      val config: () => (Rules, SemanticDoc) = { () =>
         input.tokenize.get
           .collectFirst {
             case Token.Comment(comment) =>
-              val decoder =
-                ScalafixReflect.fromLazySemanticdbIndex(
-                  LazySemanticdbIndex(_ => Some(index)))
-              ScalafixConfig
-                .fromInput(
-                  metaconfig.Input.VirtualFile(label, stripPrefix(comment)),
-                  LazySemanticdbIndex(_ => Some(index)))(decoder)
-                .get
+//              ScalafixConfig
+//                .fromInput(
+//                  metaconfig.Input.VirtualFile(label, stripPrefix(comment)),
+//                  LazySemanticdbIndex(_ => Some(index)))(decoder)
+//                .get
+              ???
           }
           .getOrElse(throw new TestFailedException(
             s"Missing scalafix configuration inside comment at top of file $relpath",

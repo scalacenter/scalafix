@@ -1,4 +1,4 @@
-package scalafix.internal.cli
+package scalafix.internal.reflect
 
 import java.io.File
 import java.io.OutputStream

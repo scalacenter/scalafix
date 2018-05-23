@@ -8,6 +8,7 @@ import scalafix.Rule
 import scalafix.SemanticdbIndex
 import scalafix.internal.config._
 import scalafix.internal.reflect.ScalafixCompilerDecoder
+import scalafix.internal.util.ClassloadRule
 import scalafix.internal.v1.Rules
 import scalafix.v1
 
@@ -42,6 +43,13 @@ object ScalafixReflectV1 {
               case _ =>
                 ConfError.message(s"Class not found: $fqn").notOk
             }
+          case UriRuleString("replace", replace @ SlashSeparated(from, to)) =>
+//            requireSemanticSemanticdbIndex(index, replace) { m =>
+//              parseReplaceSymbol(from, to)
+//                .map(TreePatch.ReplaceSymbol.tupled)
+//                .map(p => Rule.constant(replace, p, m))
+//            }
+            ???
         }
     }
 
@@ -56,6 +64,9 @@ object ScalafixReflectV1 {
         }
     }
   }
+
+  def decoder(): ConfDecoder[Rules] =
+    decoder(ScalafixReporter.default, ClassloadRule.defaultClassloader)
 
   def decoder(
       reporter: ScalafixReporter,

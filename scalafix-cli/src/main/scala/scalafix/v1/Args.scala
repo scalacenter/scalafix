@@ -22,9 +22,9 @@ import scala.meta.internal.io.PathIO
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
 import scalafix.cli.CliRunner
-import scalafix.internal.cli.ClasspathOps
 import scalafix.internal.config.OutputFormat
 import scalafix.internal.config.ScalafixConfig
+import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.util.ClassloadRule
 import scalafix.internal.util.SymbolTable
 import scalafix.internal.v1.Rules

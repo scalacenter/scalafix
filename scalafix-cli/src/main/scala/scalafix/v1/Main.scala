@@ -159,9 +159,9 @@ object Main {
   def run(args: Seq[String], cwd: Path, out: PrintStream): ExitStatus =
     CliParser
       .parseArgs[Args](args.toList)
-      .andThen(c => {
+      .andThen { c =>
         c.as[Args](Args.decoder(AbsolutePath(cwd), out))
-      })
+      }
       .andThen(_.validate) match {
       case Configured.Ok(validated) =>
         if (validated.rules.isEmpty) {

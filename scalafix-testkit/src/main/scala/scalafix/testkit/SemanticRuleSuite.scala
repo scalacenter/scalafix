@@ -1,13 +1,13 @@
 package scalafix
 package testkit
 
-import scalafix.syntax._
-import scala.meta._
-import scalafix.internal.util.EagerInMemorySemanticdbIndex
-import org.scalameta.logger
+import java.nio.charset.StandardCharsets
+import org.langmeta.internal.io.FileIO
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 import org.scalatest.exceptions.TestFailedException
+import scala.meta._
+import scalafix.internal.reflect.ClasspathOps
 
 object SemanticRuleSuite {
 
@@ -39,32 +39,12 @@ object SemanticRuleSuite {
 }
 
 abstract class SemanticRuleSuite(
-    val index: SemanticdbIndex,
+    val sourceroot: AbsolutePath,
+    val classpath: Classpath,
     val expectedOutputSourceroot: Seq[AbsolutePath]
 ) extends FunSuite
     with DiffAssertions
     with BeforeAndAfterAll { self =>
-  def this(
-      index: SemanticdbIndex,
-      inputSourceroot: AbsolutePath,
-      expectedOutputSourceroot: Seq[AbsolutePath]
-  ) = this(
-    index,
-    expectedOutputSourceroot
-  )
-  def this(
-      database: Database,
-      inputSourceroot: AbsolutePath,
-      expectedOutputSourceroot: Seq[AbsolutePath]
-  ) =
-    this(
-      EagerInMemorySemanticdbIndex(
-        database,
-        Sourcepath(inputSourceroot),
-        Classpath(Nil)),
-      inputSourceroot,
-      expectedOutputSourceroot
-    )
 
   def scalaVersion = scala.util.Properties.versionNumberString
   private def scalaVersionDirectory: Option[String] =
@@ -72,19 +52,12 @@ abstract class SemanticRuleSuite(
     else if (scalaVersion.startsWith("2.12")) Some("scala-2.12")
     else None
 
-  def runOn(diffTest: DiffTest): Unit = {
-    test(diffTest.name) {
-      val (rule, config) = diffTest.config.apply()
-      val ctx: RuleCtx = RuleCtx(
-        config.dialect(diffTest.original).parse[Source].get,
-        config.copy(dialect = diffTest.document.dialect)
-      )
-      val patches = rule.fixWithName(ctx)
-      val (obtainedWithComment, obtainedLintMessages) =
-        Patch.apply(patches, ctx, rule.semanticOption)
+  def runOn(diffTest: RuleTest): Unit = {
+    test(diffTest.filename.toString()) {
+      val (rule, sdoc) = diffTest.run.apply().get
+      val (fixed, messages) = rule.semanticPatch(sdoc, suppress = false)
 
-      val patch = patches.values.asPatch
-      val tokens = obtainedWithComment.tokenize.get
+      val tokens = fixed.tokenize.get
       val obtained = SemanticRuleSuite.stripTestkitComments(tokens)
       val candidateOutputFiles = expectedOutputSourceroot.flatMap { root =>
         val scalaSpecificFilename = scalaVersionDirectory.toList.map { path =>
@@ -95,11 +68,14 @@ abstract class SemanticRuleSuite(
         root.resolve(diffTest.filename) :: scalaSpecificFilename
       }
       val expected = candidateOutputFiles
-        .collectFirst { case f if f.isFile => f.readAllBytes }
-        .map(new String(_))
+        .collectFirst {
+          case f if f.isFile =>
+            FileIO.slurp(f, StandardCharsets.UTF_8)
+        }
         .getOrElse {
-          if (Patch.isOnlyLintMessages(patch)) obtained // linter
-          else {
+          if (fixed == sdoc.input.text) {
+            obtained // linter
+          } else {
             val tried = candidateOutputFiles.mkString("\n")
             sys.error(
               s"""Missing expected output file for test ${diffTest.filename}. Tried:
@@ -107,8 +83,8 @@ abstract class SemanticRuleSuite(
           }
         }
 
-      val expectedLintMessages = CommentAssertion.extract(ctx.tokens)
-      val diff = AssertDiff(obtainedLintMessages, expectedLintMessages)
+      val expectedLintMessages = CommentAssertion.extract(sdoc.tokens)
+      val diff = AssertDiff(messages, expectedLintMessages)
 
       if (diff.isFailure) {
         println("###########> Lint       <###########")
@@ -127,26 +103,12 @@ abstract class SemanticRuleSuite(
     }
   }
 
-  /** Helper method to print out index for individual files */
-  def debugFile(filename: String): Unit = {
-    index.documents.foreach { entry =>
-      if (entry.input.label.contains(filename)) {
-        logger.elem(entry)
-      }
-    }
+  lazy val testsToRun = {
+    val symtab = ClasspathOps
+      .newSymbolTable(classpath, parallel = false)
+      .getOrElse { sys.error("Failed to load symbol table") }
+    RuleTest.fromDirectory(sourceroot, classpath, symtab)
   }
-
-  override def afterAll(): Unit = {
-    val onlyTests = testsToRun.filter(_.isOnly).toList
-    if (sys.env.contains("CI") && onlyTests.nonEmpty) {
-      sys.error(
-        s"sys.env('CI') is set and the following tests are marked as ONLY: " +
-          s"${onlyTests.map(_.filename).mkString(", ")}")
-    }
-    super.afterAll()
-  }
-  lazy val testsToRun =
-    DiffTest.testToRun(DiffTest.fromSemanticdbIndex(index))
   def runAllTests(): Unit = {
     testsToRun.foreach(runOn)
   }

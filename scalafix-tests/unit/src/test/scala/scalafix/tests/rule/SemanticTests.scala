@@ -2,16 +2,17 @@ package scalafix.tests.rule
 
 import scala.meta._
 import scalafix.SemanticdbIndex
+import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
 import scalafix.testkit._
 import scalafix.tests.BuildInfo
 import scalafix.tests.rule.SemanticTests._
-import scalafix.internal.cli.ClasspathOps
 import scalafix.internal.reflect.RuleCompiler
 
 class SemanticTests
     extends SemanticRuleSuite(
-      index,
+      AbsolutePath(BuildInfo.inputSourceroot),
+      defaultClasspath,
       Seq(
         AbsolutePath(BuildInfo.outputSourceroot),
         AbsolutePath(BuildInfo.outputDottySourceroot)

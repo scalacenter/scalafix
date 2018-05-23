@@ -130,6 +130,7 @@ val reflect = MultiScalaProject(
   _.settings(
     isFullCrossVersion,
     libraryDependencies ++= Seq(
+      metacp,
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
     )
@@ -146,7 +147,6 @@ val cli = MultiScalaProject(
     mainClass in assembly := Some("scalafix.cli.Cli"),
     assemblyJarName in assembly := "scalafix.jar",
     libraryDependencies ++= Seq(
-      metacp,
       "com.github.alexarchambault" %% "case-app" % "1.2.0",
       "org.typelevel" %% "paiges-core" % "0.2.0",
       "com.martiansoftware" % "nailgun-server" % "0.9.1",
