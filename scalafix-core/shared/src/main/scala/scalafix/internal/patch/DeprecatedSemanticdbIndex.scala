@@ -16,7 +16,7 @@ import scala.meta.internal.{semanticdb3 => s}
 import scalafix.internal.util.SymbolTable
 import scalafix.v1.Sym
 
-class DeprecatedSemanticdbIndex(doc: SemanticDoc)
+class DeprecatedSemanticdbIndex(val doc: SemanticDoc)
     extends SemanticdbIndex
     with SymbolTable {
 
@@ -61,7 +61,11 @@ class DeprecatedSemanticdbIndex(doc: SemanticDoc)
 
   @deprecated(DeprecationMessage, "0.6.0")
   final override def symbol(position: Position): Option[Symbol] =
-    doc.symbols(position).toList.headOption.map(s => m.Symbol(s.value))
+    doc.symbols(position).toList.map(s => m.Symbol(s.value)) match {
+      case Nil => None
+      case head :: Nil => Some(head)
+      case multi => Some(m.Symbol.Multi(multi))
+    }
   @deprecated(DeprecationMessage, "0.6.0")
   final override def symbol(tree: Tree): Option[Symbol] =
     symbol(TreePos.symbol(tree))
