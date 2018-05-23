@@ -10,19 +10,20 @@ import scalafix.tests.rule.SemanticTests
 class CliSemanticTests extends BaseCliTest {
 
   checkSemantic(
-    name = "--classpath inference error",
-    args = Nil,
-    expectedExit = ExitStatus.InvalidCommandLineOption,
-    outputAssert = output => {
-      assert(output.contains("Unable to infer --classpath"))
-    }
-  )
-
-  checkSemantic(
-    name = "--classpath explicit is OK",
+    name = "--classpath ok",
     args = Seq(
       "--classpath",
       semanticClasspath
+    ),
+    expectedExit = ExitStatus.Ok
+  )
+
+  checkSemantic(
+    name = "--auto-classpath ok",
+    args = List(
+      "--cwd",
+      PathIO.workingDirectory.toString(),
+      "--auto-classpath"
     ),
     expectedExit = ExitStatus.Ok
   )
