@@ -39,7 +39,11 @@ object Main {
         if (args.args.files.isEmpty) args.sourceroot :: Nil
         else args.args.files
 
-      roots.foreach(root => Files.walkFileTree(root.toNIO, visitor))
+      roots.foreach { root =>
+        if (root.isFile) buf += root
+        else if (root.isDirectory) Files.walkFileTree(root.toNIO, visitor)
+        else args.config.reporter.error(s"$root is not a file")
+      }
       buf.result()
   }
 
@@ -102,11 +106,13 @@ object Main {
               args.classpath,
               args.symtab
             )
-            args.rules.semanticPatch(sdoc)
+            args.rules.semanticPatch(sdoc, args.args.autoSuppressLinterErrors)
           } else {
-            args.rules.syntacticPatch(doc)
+            args.rules.syntacticPatch(doc, args.args.autoSuppressLinterErrors)
           }
-        reportLintErrors(args, messages)
+        if (!args.args.autoSuppressLinterErrors) {
+          reportLintErrors(args, messages)
+        }
         args.mode match {
           case WriteMode.Test =>
             if (fixed == input.text) ExitStatus.Ok
@@ -121,8 +127,6 @@ object Main {
               Files.write(toFix, fixed.getBytes(args.args.charset))
             }
             ExitStatus.Ok
-          case WriteMode.AutoSuppressLinterErrors =>
-            ???
         }
     }
   }

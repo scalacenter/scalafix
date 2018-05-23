@@ -55,6 +55,9 @@ case class Args(
     outFrom: Option[String] = None,
     outTo: Option[String] = None,
     @Description(
+      "Write to files. In case of linter error adds a comment to suppress the error.")
+    autoSuppressLinterErrors: Boolean = false,
+    @Description(
       "Automatically infer --classpath starting from these directories. " +
         "Ignored if --classpath is provided.")
     autoClasspathRoots: List[AbsolutePath] = Nil,

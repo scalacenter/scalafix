@@ -3,7 +3,6 @@ package scalafix.tests.cli
 import org.langmeta.internal.io.PathIO
 import scala.collection.immutable.Seq
 import scalafix.cli._
-import scalafix.internal.cli.CommonOptions
 import scalafix.internal.rule.ExplicitResultTypes
 import scalafix.tests.rule.SemanticTests
 
@@ -44,20 +43,8 @@ class CliSemanticTests extends BaseCliTest {
   )
 
   checkSemantic(
-    name = "wrong --sourceroot results in MissingSemanticDB",
-    args = Seq(
-      "--sourceroot",
-      PathIO.workingDirectory
-        .resolve("scalafix-tests")
-        .resolve("input")
-        .resolve("src")
-        .resolve("main")
-        .resolve("scala")
-        .toString(),
-      "--classpath",
-      semanticClasspath
-    ),
-    files = s"**${removeImportsPath.toNIO.getFileName.toString}",
+    name = "MissingSemanticDB",
+    args = Nil, // no --classpath
     expectedExit = ExitStatus.MissingSemanticDB,
     outputAssert = msg => {
       assert(msg.contains("No SemanticDB associated with"))

@@ -29,23 +29,11 @@ object SuppressOps {
     }
   }
 
-  final def applyAndSuppress(rule: Rule, ctx: RuleCtx): String = {
-    val (patch, lintMessages) = ctx.filter(
-      rule.fixWithName(ctx),
-      rule.semanticOption.getOrElse(SemanticdbIndex.empty)
-    )
-    val suppressPatch =
-      addComments(ctx, lintMessages.map(_.position))
-    val (fixed, _) =
-      Patch(Map(rule.name -> (patch + suppressPatch)), ctx, rule.semanticOption)
-    fixed
-  }
-
-  def addComments(ctx: RuleCtx, positions: List[Position]): Patch =
+  def addComments(tokens: Tokens, positions: List[Position]): Patch =
     positions
       .map(pos =>
-        findClosestLeadingToken(ctx.tokens, pos) match {
-          case Some(token) => ctx.addRight(token, "/* scalafix:ok */")
+        findClosestLeadingToken(tokens, pos) match {
+          case Some(token) => Patch.addRight(token, "/* scalafix:ok */")
           case _ => Patch.empty
       })
       .asPatch

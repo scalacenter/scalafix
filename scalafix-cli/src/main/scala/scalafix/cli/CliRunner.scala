@@ -54,7 +54,7 @@ sealed abstract case class CliRunner(
   val sbtConfig: ScalafixConfig = config.copy(dialect = dialects.Sbt0137)
   val writeMode: WriteMode =
     if (cli.stdout) WriteMode.Stdout
-    else if (cli.autoSuppressLinterErrors) WriteMode.AutoSuppressLinterErrors
+//    else if (cli.autoSuppressLinterErrors) WriteMode.AutoSuppressLinterErrors
     else if (cli.test) WriteMode.Test
     else WriteMode.WriteFile
   val common: CommonOptions = cli.common
@@ -163,9 +163,6 @@ sealed abstract case class CliRunner(
       case parsers.Parsed.Success(tree) =>
         val ctx = RuleCtx(tree, config, diffDisable)
         writeMode match {
-          case WriteMode.AutoSuppressLinterErrors =>
-            val fixed = SuppressOps.applyAndSuppress(rule, ctx)
-            writeToFile(fixed)
           case WriteMode.Stdout =>
             val (fixed, messages) = rule.applyAndLint(ctx)
             reportLintErrors(messages)

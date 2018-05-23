@@ -81,9 +81,10 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
         new PrintStream(out)
       )
       val obtained = StringFS.dir2string(root)
-      assert(exit == expectedExit, out.toString)
+      val output = fansi.Str(out.toString).plainText
+      assert(exit == expectedExit, output)
       assertNoDiff(obtained, expectedLayout)
-      outputAssert(out.toString)
+      outputAssert(output)
     }
   }
 
@@ -185,8 +186,8 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
         } else {
           original
         }
-      assert(exit == expectedExit, s"$exit != $expectedExit. Out: $out")
       val output = fansi.Str(out.toString()).plainText
+      assert(exit == expectedExit, output)
       outputAssert(output)
       val result = Result(exit, original, obtained, expected)
       assertObtained(result)

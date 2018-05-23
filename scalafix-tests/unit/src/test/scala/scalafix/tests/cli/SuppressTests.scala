@@ -2,21 +2,25 @@ package scalafix.tests.cli
 
 import scala.meta.{Defn, Lit}
 import scalafix.lint.LintCategory
-import scalafix.rule.Rule
+import scalafix.patch.Patch
+import scalafix.v1.Doc
+import scalafix.v1.SyntacticRule
 
-object SuppressRules {
-  val NoVars: Rule = Rule.linter("NoVars") { ctx =>
+class NoVars extends SyntacticRule("NoVars") {
+  override def fix(implicit doc: Doc): Patch = {
     val error = LintCategory.error("No vars!")
-    ctx.tree.collect {
-      case v @ Defn.Var(_, _, _, _) => error.at("no vars", v.pos)
-    }
+    doc.tree.collect {
+      case v @ Defn.Var(_, _, _, _) => Patch.lint(error.at("no vars", v.pos))
+    }.asPatch
   }
+}
 
-  val NoInts: Rule = Rule.linter("NoInts") { ctx =>
+class NoInts extends SyntacticRule("NoInts") {
+  override def fix(implicit doc: Doc): Patch = {
     val error = LintCategory.error("No ints!")
-    ctx.tree.collect {
-      case i @ Lit.Int(_) => error.at("no ints", i.pos)
-    }
+    doc.tree.collect {
+      case i @ Lit.Int(_) => Patch.lint(error.at("no ints", i.pos))
+    }.asPatch
   }
 }
 
@@ -28,7 +32,7 @@ class SuppressTests extends BaseCliTest {
                      |  var a = 1
                      |}
                    """.stripMargin,
-    rule = "scala:scalafix.tests.cli.SuppressRules.NoVars",
+    rule = "scala:scalafix.tests.cli.NoVars",
     expectedFile = """
                      |object A {
                      |  var/* scalafix:ok */ a = 1
@@ -43,7 +47,7 @@ class SuppressTests extends BaseCliTest {
                      |  var a = 1
                      |}
                    """.stripMargin,
-    rule = "scala:scalafix.tests.cli.SuppressRules.NoInts",
+    rule = "scala:scalafix.tests.cli.NoInts",
     expectedFile = """
                      |object A {
                      |  var a = 1/* scalafix:ok */

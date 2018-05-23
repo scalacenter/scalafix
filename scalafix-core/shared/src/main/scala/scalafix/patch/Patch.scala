@@ -18,6 +18,7 @@ import org.scalameta.logger
 import scala.meta.Token
 import scala.meta.tokens.Tokens
 import scalafix.internal.config.ScalafixMetaconfigReaders
+import scalafix.internal.util.SuppressOps
 import scalafix.internal.util.SymbolOps.Root
 import scalafix.patch.TreePatch.AddGlobalImport
 import scalafix.patch.TreePatch.RemoveGlobalImport
@@ -189,11 +190,18 @@ object Patch {
   private[scalafix] def apply(
       patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
       ctx: RuleCtx,
-      index: Option[SemanticdbIndex]
+      index: Option[SemanticdbIndex],
+      suppress: Boolean = false
   ): (String, List[LintMessage]) = {
     val idx = index.getOrElse(SemanticdbIndex.empty)
     val (patch, lints) = ctx.filter(patchesByName, idx)
-    val patches = treePatchApply(patch)(ctx, idx)
+    val finalPatch =
+      if (suppress) {
+        patch + SuppressOps.addComments(ctx.tokens, lints.map(_.position))
+      } else {
+        patch
+      }
+    val patches = treePatchApply(finalPatch)(ctx, idx)
     (tokenPatchApply(ctx, patches), lints)
   }
 
@@ -201,14 +209,14 @@ object Patch {
       patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
       doc: Doc
   ): (String, List[LintMessage]) = {
-    apply(patchesByName, doc.toLegacy, None)
+    apply(patchesByName, doc.toLegacy, None, suppress = false)
   }
 
   private[scalafix] def semantic(
       patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
       doc: SemanticDoc
   ): (String, List[LintMessage]) = {
-    apply(patchesByName, doc.doc.toLegacy, Some(doc.toLegacy))
+    apply(patchesByName, doc.doc.toLegacy, Some(doc.toLegacy), suppress = false)
   }
 
   def treePatchApply(patch: Patch)(
