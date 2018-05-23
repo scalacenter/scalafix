@@ -40,8 +40,11 @@ object Main {
         else args.args.files
 
       roots.foreach { root =>
-        if (root.isFile) buf += root
-        else if (root.isDirectory) Files.walkFileTree(root.toNIO, visitor)
+        if (root.isFile) {
+          if (args.matches(root.toRelative(args.args.cwd))) {
+            buf += root
+          }
+        } else if (root.isDirectory) Files.walkFileTree(root.toNIO, visitor)
         else args.config.reporter.error(s"$root is not a file")
       }
       buf.result()

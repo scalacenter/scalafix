@@ -117,7 +117,7 @@ class CliSyntacticTests extends BaseCliTest {
                          |$original""".stripMargin,
     args = Seq(
       "--exclude",
-      "ignoreme.scala",
+      "**ignoreme.scala",
       "-r",
       ProcedureSyntax.toString,
       "ignoreme.scala",
@@ -261,7 +261,7 @@ class CliSyntacticTests extends BaseCliTest {
                         |$original""".stripMargin,
     expectedExit = ExitStatus.LinterError,
     outputAssert = { out =>
-      assert(out.contains(s"[${Severity.Error}] "))
+      assert(out.contains("[error] "))
     }
   )
 }

@@ -40,7 +40,8 @@ case class ValidatedArgs(
   }
 
   def matches(path: RelativePath): Boolean =
-    Args.baseMatcher.matches(path.toNIO) &&
+    Args.baseMatcher.matches(path.toNIO) && {
       args.exclude.forall(!_.matches(path.toNIO))
+    }
 
 }
