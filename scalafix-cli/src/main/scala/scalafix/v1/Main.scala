@@ -22,7 +22,7 @@ object Main {
     case Ls.Find =>
       val buf = ArrayBuffer.empty[AbsolutePath]
       Files.walkFileTree(
-        args.args.cwd.toNIO,
+        args.args.sourcerootPath.toNIO,
         new SimpleFileVisitor[Path] {
           override def visitFile(
               file: Path,
@@ -61,7 +61,7 @@ object Main {
   ): ExitStatus = {
     if (args.config.lint.reporter.hasErrors) {
       ExitStatus.merge(ExitStatus.LinterError, code)
-    } else if (args.config.reporter.hasErrors) {
+    } else if (args.config.reporter.hasErrors && code.isOk) {
       ExitStatus.merge(ExitStatus.UnexpectedError, code)
     } else if (files.isEmpty) {
       args.config.reporter.error("No files to fix")
@@ -89,7 +89,6 @@ object Main {
         ExitStatus.ParseError
       case Parsed.Success(tree) =>
         val doc = Doc.fromTree(tree)
-
         val (fixed, messages) =
           if (args.rules.isSemantic) {
             val relpath = file.toRelative(args.args.sourcerootPath)
@@ -127,6 +126,9 @@ object Main {
   def handleFile(args: ValidatedArgs, file: AbsolutePath): ExitStatus = {
     try unsafeHandleFile(args, file)
     catch {
+      case e: SemanticDoc.Error.MissingSemanticdb =>
+        args.config.reporter.error(e.getMessage)
+        ExitStatus.MissingSemanticDB
       case NonFatal(e) =>
         handleException(e, args.args.out)
         ExitStatus.UnexpectedError

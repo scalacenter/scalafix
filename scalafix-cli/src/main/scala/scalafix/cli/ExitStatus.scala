@@ -28,7 +28,7 @@ object ExitStatus {
       ParseError,
       ScalafixError,
       InvalidCommandLineOption,
-      MissingSemanticApi,
+      MissingSemanticDB,
       StaleSemanticDB,
       TestFailed,
       LinterError,

@@ -74,7 +74,7 @@ case class Args(
     toolClasspath: List[AbsolutePath] = Nil,
     classpath: Classpath = Classpath(Nil),
     ls: Ls = Ls.Find,
-    sourceroot: List[AbsolutePath] = Nil,
+    sourceroot: Option[AbsolutePath] = None,
     @ExtraName("remainingArgs")
     files: List[PathMatcher] = Nil,
     exclude: List[PathMatcher] = Nil,
@@ -90,7 +90,7 @@ case class Args(
     outTo: Option[String] = None
 ) {
 
-  def sourcerootPath: AbsolutePath = sourceroot.headOption.getOrElse(cwd)
+  def sourcerootPath: AbsolutePath = sourceroot.getOrElse(cwd)
 
   def configuredSymtab: Configured[SymbolTable] = {
     ClasspathOps.newSymbolTable(
