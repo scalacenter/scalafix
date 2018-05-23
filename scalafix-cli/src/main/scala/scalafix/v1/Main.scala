@@ -22,13 +22,13 @@ object Main {
     case Ls.Find =>
       val buf = ArrayBuffer.empty[AbsolutePath]
       Files.walkFileTree(
-        args.args.sourcerootPath.toNIO,
+        args.sourceroot.toNIO,
         new SimpleFileVisitor[Path] {
           override def visitFile(
               file: Path,
               attrs: BasicFileAttributes): FileVisitResult = {
             val path = AbsolutePath(file)
-            val relpath = path.toRelative(args.args.sourcerootPath)
+            val relpath = path.toRelative(args.sourceroot)
             if (args.matches(relpath)) {
               buf += path
             }
@@ -91,7 +91,7 @@ object Main {
         val doc = Doc.fromTree(tree)
         val (fixed, messages) =
           if (args.rules.isSemantic) {
-            val relpath = file.toRelative(args.args.sourcerootPath)
+            val relpath = file.toRelative(args.sourceroot)
             val sdoc = SemanticDoc.fromPath(
               doc,
               relpath,

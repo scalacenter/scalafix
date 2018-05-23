@@ -12,6 +12,7 @@ import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 import metaconfig.Configured._
 import metaconfig._
+import metaconfig.annotation.Description
 import metaconfig.annotation.ExtraName
 import metaconfig.generic.Surface
 import metaconfig.internal.ConfGet
@@ -40,6 +41,7 @@ case class ValidatedArgs(
     rules: Rules,
     config: ScalafixConfig,
     classpath: Classpath,
+    sourceroot: AbsolutePath,
     pathReplace: AbsolutePath => AbsolutePath
 ) {
   import args._
@@ -90,10 +92,12 @@ case class Args(
     settings: Conf = Conf.Obj.empty,
     format: OutputFormat = OutputFormat.Default,
     outFrom: Option[String] = None,
-    outTo: Option[String] = None
+    outTo: Option[String] = None,
+    @Description(
+      "Automatically infer --classpath starting from these directories. " +
+        "Ignored if --classpath is provided.")
+    autoClasspathRoots: List[AbsolutePath] = Nil,
 ) {
-
-  def sourcerootPath: AbsolutePath = sourceroot.getOrElse(cwd)
 
   def configuredSymtab: Configured[SymbolTable] = {
     ClasspathOps.newSymbolTable(
@@ -194,18 +198,31 @@ case class Args(
           .notOk
     }
 
+  def configuredSourceroot: Configured[AbsolutePath] = {
+    val path = sourceroot.getOrElse(cwd)
+    if (path.isDirectory) Configured.ok(path)
+    else Configured.error(s"--sourceroot $path is not a directory")
+  }
+
+  def validatedClasspath: Classpath = {
+    if (autoClasspath && classpath.shallow.isEmpty) {
+      val roots =
+        if (autoClasspathRoots.isEmpty) cwd :: Nil
+        else autoClasspathRoots
+      CliRunner.autoClasspath(roots)
+    } else classpath
+  }
+
   def validate: Configured[ValidatedArgs] = {
     baseConfig.andThen {
       case (base, scalafixConfig) =>
         (
-          configuredSymtab |@|
+          configuredSourceroot |@|
+            configuredSymtab |@|
             configuredRules(base, scalafixConfig) |@|
             resolvedPathReplace
         ).map {
-          case ((symtab, rulez), pathReplace) =>
-            val finalClasspath =
-              if (autoClasspath) CliRunner.autoClasspath(cwd :: Nil)
-              else classpath
+          case (((root, symtab), rulez), pathReplace) =>
             ValidatedArgs(
               this,
               symtab,
@@ -213,7 +230,8 @@ case class Args(
               scalafixConfig.withFormat(
                 format
               ),
-              finalClasspath,
+              validatedClasspath,
+              root,
               pathReplace
             )
         }

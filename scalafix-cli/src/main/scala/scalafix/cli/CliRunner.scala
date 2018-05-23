@@ -510,7 +510,8 @@ object CliRunner {
       val decoder = ScalafixReflect.fromLazySemanticdbIndex(lazySemanticdbIndex)
       fixFiles.andThen { inputs =>
         val configured = resolvedConfigInput.andThen(input =>
-          ScalafixConfig.fromInput(input.toMetaconfig, lazySemanticdbIndex, rules)(decoder))
+          ScalafixConfig
+            .fromInput(input.toMetaconfig, lazySemanticdbIndex, rules)(decoder))
         configured.map { configuration =>
           val (finalRule, scalafixConfig) = configuration
           val withOut = scalafixConfig.withOut(common.err)
