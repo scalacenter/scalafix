@@ -6,10 +6,11 @@ import scala.meta.internal.{semanticdb3 => s}
 
 object ScalafixLangmetaHacks {
 
-  def positionFromRange(input: Input, range: Option[s.Range]): Position = range match {
-    case Some(r) => positionFromRange(input, r)
-    case _ => Position.None
-  }
+  def positionFromRange(input: Input, range: Option[s.Range]): Position =
+    range match {
+      case Some(r) => positionFromRange(input, r)
+      case _ => Position.None
+    }
   def positionFromRange(input: Input, range: s.Range): Position = {
     val start = input.lineToOffset(range.startLine) + range.startCharacter
     val end = input.lineToOffset(range.endLine) + range.endCharacter

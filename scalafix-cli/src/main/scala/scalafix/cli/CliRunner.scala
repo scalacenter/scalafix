@@ -30,7 +30,11 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.jgit.JGitDiff
 import scalafix.internal.config.MetaconfigPendingUpstream._
-import scalafix.internal.util.{EagerInMemorySemanticdbIndex, Failure, SuppressOps}
+import scalafix.internal.util.{
+  EagerInMemorySemanticdbIndex,
+  Failure,
+  SuppressOps
+}
 import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
 import metaconfig.Configured.Ok
