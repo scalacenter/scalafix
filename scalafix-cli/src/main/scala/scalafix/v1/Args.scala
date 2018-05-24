@@ -30,7 +30,6 @@ import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.util.ClassloadRule
 import scalafix.internal.util.SymbolTable
 import scalafix.internal.v1.Rules
-import scalafix.reflect.ScalafixReflectV1
 
 case class Args(
     cwd: AbsolutePath,
@@ -136,7 +135,7 @@ case class Args(
         Conf.Lst(rules.map(Conf.fromString))
       }
     val decoder =
-      ScalafixReflectV1.decoder(scalafixConfig, getClassloader)
+      RuleDecoder.decoder(scalafixConfig, getClassloader)
     decoder.read(rulesConf).andThen { rules =>
       if (rules.isEmpty) ConfError.message("No rules provided").notOk
       else rules.withConfig(base)
@@ -189,7 +188,7 @@ case class Args(
   }
 
   def validatedClasspath: Classpath = {
-    if (autoClasspath && classpath.shallow.isEmpty) {
+    if (autoClasspath && classpath.entries.isEmpty) {
       val roots =
         if (autoClasspathRoots.isEmpty) cwd :: Nil
         else autoClasspathRoots

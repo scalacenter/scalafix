@@ -10,17 +10,17 @@ import scalafix.v1
 import scala.meta._
 import scalafix.internal.util.SymbolTable
 import scalafix.internal.v1.Rules
-import scalafix.reflect.ScalafixReflectV1
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.util.ClassloadRule
+import scalafix.v1.RuleDecoder
 
 case class RuleTest(
     filename: RelativePath,
     run: () => Configured[(Rules, v1.SemanticDoc)]
 )
 object RuleTest {
-  val decoder = ScalafixReflectV1.decoder()
+  val decoder = RuleDecoder.decoder()
 
   def fromDirectory(
       dir: AbsolutePath,
@@ -46,7 +46,7 @@ object RuleTest {
             val conf = Conf.parseString(rel.toString(), syntax).get
             val config = conf.as[ScalafixConfig]
             config.andThen(scalafixConfig => {
-              val decoder = ScalafixReflectV1
+              val decoder = RuleDecoder
                 .decoder(scalafixConfig, ClassloadRule.defaultClassloader)
               val rulesConf =
                 ConfGet
