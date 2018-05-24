@@ -13,7 +13,7 @@ final case class Document(
     symbols: List[ResolvedSymbol],
     synthetics: List[Synthetic]
 ) {
-  
+
   def syntax: String = {
     val lines = scala.collection.mutable.ListBuffer[String]()
     def appendSection(name: String, section: Seq[String]): Unit = {
