@@ -282,7 +282,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
   }
 
   private def noColor(in: String): String =
-    in.replaceAll("\u001B\\[[;\\d]*m", "")
+    fansi.Str(in).plainText
 
   private def gitTest(name: String, testTags: Tag*)(
       body: (Fs, Git, Cli) => Unit): Unit = {
@@ -312,4 +312,6 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
       output
     }
   }
+
 }
+

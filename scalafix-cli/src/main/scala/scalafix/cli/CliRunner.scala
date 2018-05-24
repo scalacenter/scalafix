@@ -1,7 +1,8 @@
 package scalafix
 package cli
 
-import java.io.{File, OutputStreamWriter}
+import java.io.File
+import java.io.OutputStreamWriter
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
@@ -13,11 +14,14 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.function.UnaryOperator
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
+import metaconfig.ConfError
+import metaconfig.Configured.Ok
+import metaconfig.{Input => _, _}
 import scala.meta._
 import scala.meta.internal.inputs._
 import scala.meta.io.AbsolutePath
-import scala.util.control.NonFatal
 import scala.util.Try
+import scala.util.control.NonFatal
 import scalafix.internal.cli.CommonOptions
 import scalafix.internal.cli.FixFile
 import scalafix.internal.cli.ScalafixOptions
@@ -25,22 +29,16 @@ import scalafix.internal.cli.TermDisplay
 import scalafix.internal.cli.WriteMode
 import scalafix.internal.config.FilterMatcher
 import scalafix.internal.config.LazySemanticdbIndex
+import scalafix.internal.config.MetaconfigPendingUpstream._
 import scalafix.internal.config.RuleKind
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.jgit.JGitDiff
-import scalafix.internal.config.MetaconfigPendingUpstream._
-import scalafix.internal.util.{
-  EagerInMemorySemanticdbIndex,
-  Failure,
-  SuppressOps
-}
+import scalafix.internal.reflect.ClasspathOps
+import scalafix.internal.util.EagerInMemorySemanticdbIndex
+import scalafix.internal.util.Failure
 import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
-import metaconfig.Configured.Ok
-import metaconfig.{Input => _, _}
-import metaconfig.ConfError
-import scalafix.internal.reflect.ClasspathOps
 
 sealed abstract case class CliRunner(
     sourceroot: AbsolutePath,

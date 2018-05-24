@@ -3,6 +3,8 @@ package banana.rule
 import scala.meta._
 import scala.meta.contrib._
 import scalafix._
+import scalafix.v1.Doc
+import scalafix.v1.SemanticDoc
 
 case class FqnRule(index: SemanticdbIndex)
     extends SemanticRule(index, "FqnRule") {
@@ -26,4 +28,16 @@ case object PatchTokenWithEmptyRange extends Rule("PatchTokenWithEmptyRange") {
         ctx.addRight(tok, "a")
     }
   }.asPatch
+}
+
+class SemanticRuleV1 extends v1.SemanticRule("SemanticRuleV1") {
+  override def fix(implicit doc: SemanticDoc): Patch = {
+    Patch.addRight(doc.tree, "\nobject SemanticRuleV1")
+  }
+}
+
+class SyntacticRuleV1 extends v1.SyntacticRule("SyntacticRuleV1") {
+  override def fix(implicit doc: Doc): Patch = {
+    Patch.addRight(doc.tree, "\nobject SyntacticRuleV1")
+  }
 }
