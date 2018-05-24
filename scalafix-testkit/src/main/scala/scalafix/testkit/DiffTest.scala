@@ -3,14 +3,8 @@ package scalafix.testkit
 import scalafix._
 import scala.meta._
 import scalafix.SemanticdbIndex
-import scalafix.internal.config.LazySemanticdbIndex
-import scalafix.internal.config.ScalafixConfig
-import scalafix.reflect.ScalafixReflect
 import org.scalatest.exceptions.TestFailedException
-import scalafix.internal.config.ScalafixReporter
-import scalafix.internal.util.ClassloadRule
 import scalafix.internal.v1.Rules
-import scalafix.reflect.ScalafixReflectV1
 import scalafix.v1.SemanticDoc
 
 case class DiffTest(

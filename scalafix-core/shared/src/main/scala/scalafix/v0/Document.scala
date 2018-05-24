@@ -3,7 +3,6 @@ package scalafix.v0
 import scala.compat.Platform.EOL
 import scala.math.Ordering
 import scala.meta.inputs._
-import scala.meta.internal.inputs._
 
 final case class Document(
     input: Input,

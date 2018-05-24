@@ -1,9 +1,6 @@
 package scalafix.tests.rule
 
 import scala.meta._
-import scalafix.SemanticdbIndex
-import scalafix.internal.reflect.ClasspathOps
-import scalafix.internal.util.EagerInMemorySemanticdbIndex
 import scalafix.testkit._
 import scalafix.tests.BuildInfo
 import scalafix.tests.rule.SemanticTests._
@@ -23,7 +20,7 @@ class SemanticTests
 
 object SemanticTests {
   def defaultClasspath = Classpath(
-    classpath.shallow ++
+    classpath.entries ++
       RuleCompiler.defaultClasspathPaths.filter(path =>
         path.toNIO.getFileName.toString.contains("scala-library"))
   )

@@ -2,8 +2,6 @@ package scalafix.tests.config
 
 import org.scalatest.FunSuite
 
-import scala.meta.inputs.Input
-
 import metaconfig.Configured
 import metaconfig.Configured.NotOk
 import metaconfig.ConfError

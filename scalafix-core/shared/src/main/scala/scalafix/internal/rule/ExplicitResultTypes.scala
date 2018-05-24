@@ -19,7 +19,6 @@ import scalafix.util.TokenOps
 import metaconfig.Conf
 import metaconfig.Configured
 import scala.util.control.NonFatal
-import scalafix.internal.util.EagerInMemorySemanticdbIndex
 import scalafix.internal.util.PrettyResult
 import scalafix.internal.util.QualifyStrategy
 import scalafix.internal.util.PrettyType

@@ -4,9 +4,7 @@ import scala.meta.inputs.Position
 
 import scala.annotation.tailrec
 import scala.meta.tokens.{Token, Tokens}
-import scalafix.{Patch, Rule}
-import scalafix.rule.RuleCtx
-import scalafix.util.SemanticdbIndex
+import scalafix.Patch
 
 object SuppressOps {
 

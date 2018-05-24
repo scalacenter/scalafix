@@ -35,7 +35,6 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.jgit.JGitDiff
 import scalafix.internal.reflect.ClasspathOps
-import scalafix.internal.util.EagerInMemorySemanticdbIndex
 import scalafix.internal.util.Failure
 import scalafix.internal.v0.LegacyInMemorySemanticdbIndex
 import scalafix.reflect.ScalafixReflect
@@ -326,7 +325,7 @@ object CliRunner {
           if (verbose) {
             common.err.println(s"Automatic classpath=$cp")
           }
-          if (cp.shallow.nonEmpty) Ok(cp)
+          if (cp.entries.nonEmpty) Ok(cp)
           else {
             ConfError
               .message(
@@ -359,7 +358,7 @@ object CliRunner {
           case (classpath, root) =>
             val deps = dependencyClasspath.map(toClasspath).getOrElse(Nil)
             val symbolTable = ClasspathOps.newSymbolTable(
-              classpath = Classpath(classpath.shallow ++ deps),
+              classpath = Classpath(classpath.entries ++ deps),
               cacheDirectory = metacpCacheDir.map(AbsolutePath(_)),
               parallel = metacpParallel && parallel,
               out = common.out)
