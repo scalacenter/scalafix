@@ -14,9 +14,9 @@ import scalafix.internal.v1.LegacySemanticRule
 import scalafix.internal.v1.LegacySyntacticRule
 import scalafix.internal.v1.Rules
 import scalafix.patch.TreePatch
-import scalafix.v1
-import scalafix.v1.SemanticDoc
-import scalafix.v1.SemanticRule
+import scala.meta
+import scala.meta.SemanticDoc
+import scala.meta.SemanticRule
 
 object ScalafixReflect {
   def syntactic: ConfDecoder[Rule] =

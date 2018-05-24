@@ -5,7 +5,6 @@ import scala.{meta => m}
 import scala.{meta => d}
 import scalafix.SemanticdbIndex
 import scalafix.internal.v1.TreePos
-import scalafix.v1.SemanticDoc
 import DeprecatedSemanticdbIndex.DeprecationMessage
 import java.io.ByteArrayInputStream
 import java.io.InputStream
@@ -18,6 +17,7 @@ import scala.meta.internal.semanticdb3.SymbolInformation.{Kind => k}
 import scala.meta.internal.{semanticdb3 => s}
 import scalafix.internal.util.SymbolTable
 import scalafix.v1.Sym
+import scalafix.v1.SemanticDoc
 
 class DeprecatedSemanticdbIndex(val doc: SemanticDoc)
     extends SemanticdbIndex

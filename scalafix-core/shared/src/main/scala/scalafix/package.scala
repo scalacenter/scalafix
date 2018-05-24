@@ -33,4 +33,30 @@ package object scalafix {
     def isMultiline: Boolean =
       value.indexOf('\n') != -1
   }
+
+  // inlined langmeta APIs
+
+  type Database = scalafix.v0.Database
+  val Database = scalafix.v0.Database
+
+  type Document = scalafix.v0.Document
+  val Document = scalafix.v0.Document
+
+  type Synthetic = scalafix.v0.Synthetic
+  val Synthetic = scalafix.v0.Synthetic
+
+  type Message = scalafix.v0.Message
+  val Message = scalafix.v0.Message
+
+  type Severity = scalafix.v0.Severity
+  val Severity = scalafix.v0.Severity
+
+  type Denotation = scalafix.v0.Denotation
+  val Denotation = scalafix.v0.Denotation
+
+  type ResolvedName = scalafix.v0.ResolvedName
+  val ResolvedName = scalafix.v0.ResolvedName
+
+  type ResolvedSymbol = scalafix.v0.ResolvedSymbol
+  val ResolvedSymbol = scalafix.v0.ResolvedSymbol
 }

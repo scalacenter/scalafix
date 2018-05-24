@@ -3,8 +3,8 @@ package scalafix.tests.cli
 import scala.meta.{Defn, Lit}
 import scalafix.lint.LintCategory
 import scalafix.patch.Patch
-import scalafix.v1.Doc
-import scalafix.v1.SyntacticRule
+import scala.meta.Doc
+import scala.meta.SyntacticRule
 
 class NoVars extends SyntacticRule("NoVars") {
   override def fix(implicit doc: Doc): Patch = {

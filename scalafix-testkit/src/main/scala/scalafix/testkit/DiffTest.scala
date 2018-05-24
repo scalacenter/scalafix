@@ -11,7 +11,7 @@ import scalafix.internal.config.ScalafixReporter
 import scalafix.internal.util.ClassloadRule
 import scalafix.internal.v1.Rules
 import scalafix.reflect.ScalafixReflectV1
-import scalafix.v1.SemanticDoc
+import scala.meta.SemanticDoc
 
 case class DiffTest(
     filename: RelativePath,

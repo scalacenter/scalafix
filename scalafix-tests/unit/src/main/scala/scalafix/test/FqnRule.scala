@@ -3,8 +3,8 @@ package banana.rule
 import scala.meta._
 import scala.meta.contrib._
 import scalafix._
-import scalafix.v1.Doc
-import scalafix.v1.SemanticDoc
+import scala.meta.Doc
+import scala.meta.SemanticDoc
 
 case class FqnRule(index: SemanticdbIndex)
     extends SemanticRule(index, "FqnRule") {

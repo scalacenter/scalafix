@@ -2,8 +2,8 @@ package scalafix.tests.cli
 
 import scalafix.Patch
 import scalafix.lint.LintCategory
-import scalafix.v1.Doc
-import scalafix.v1.SyntacticRule
+import scala.meta.Doc
+import scala.meta.SyntacticRule
 
 class LintError extends SyntacticRule("LintError") {
   override def fix(implicit doc: Doc): Patch = {

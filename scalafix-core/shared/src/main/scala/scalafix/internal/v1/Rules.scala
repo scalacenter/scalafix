@@ -12,11 +12,11 @@ import scalafix.lint.LintMessage
 import scalafix.patch.Patch
 import scalafix.rule.ScalafixRules
 import scalafix.util.SemanticdbIndex
-import scalafix.v1.Doc
-import scalafix.v1.Rule
-import scalafix.v1.SemanticDoc
-import scalafix.v1.SemanticRule
-import scalafix.v1.SyntacticRule
+import scala.meta.Doc
+import scala.meta.Rule
+import scala.meta.SemanticDoc
+import scala.meta.SemanticRule
+import scala.meta.SyntacticRule
 
 case class Rules(rules: List[Rule] = Nil) {
   def isEmpty: Boolean = rules.isEmpty
