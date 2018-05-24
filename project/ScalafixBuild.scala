@@ -222,7 +222,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       if (credentialsFile != null) List(new FileCredentials(credentialsFile))
       else Nil
     },
-    publishArtifact in Test := false,
+    publishArtifact.in(Test) := false,
     licenses := Seq(
       "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     homepage := Some(url("https://github.com/scalacenter/scalafix")),

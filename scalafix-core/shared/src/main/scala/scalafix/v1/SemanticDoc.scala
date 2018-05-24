@@ -24,6 +24,7 @@ final class SemanticDoc private[scalafix] (
     private[scalafix] val symtab: SymbolTable
 ) extends SemanticContext {
 
+  override def toString: String = s"SemanticDoc(${input.syntax})"
   def toLegacy: SemanticdbIndex = new DeprecatedSemanticdbIndex(this)
 
   // =============

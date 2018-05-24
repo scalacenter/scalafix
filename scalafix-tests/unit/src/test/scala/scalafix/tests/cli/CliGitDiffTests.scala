@@ -4,10 +4,9 @@ import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
-
 import org.scalatest._
 import org.scalatest.FunSuite
-
+import scalafix.cli.ExitStatus
 import scalafix.testkit.DiffAssertions
 import scalafix.internal.tests.utils.{Fs, Git}
 import scalafix.internal.tests.utils.SkipWindows
@@ -39,7 +38,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     git.add(newCode)
     git.commit()
 
-    val obtained = runDiff(cli)
+    val obtained = runDiff(cli, ExitStatus.LinterError)
 
     val expected =
       s"""|$newCodeAbsPath:3:3: error: [DisableSyntax.keywords.var] var is disabled
@@ -79,7 +78,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     git.add(oldCode)
     git.commit()
 
-    val obtained = runDiff(cli)
+    val obtained = runDiff(cli, ExitStatus.LinterError)
 
     val expected =
       s"""|$oldCodeAbsPath:7:3: error: [DisableSyntax.keywords.var] var is disabled
@@ -120,7 +119,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     git.add(newCode)
     git.commit()
 
-    val obtained = runDiff(cli)
+    val obtained = runDiff(cli, ExitStatus.LinterError)
 
     val expected =
       s"""|$newCodeAbsPath:5:3: error: [DisableSyntax.keywords.var] var is disabled
@@ -135,9 +134,8 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     val fs = new Fs()
     addConf(fs)
     val cli = new Cli(fs.workingDirectory)
-    val obtained = runDiff(cli)
-    val expected =
-      s"error: ${fs.workingDirectory} is not a git repository"
+    val obtained = runDiff(cli, ExitStatus.InvalidCommandLineOption)
+    val expected = s"error: ${fs.workingDirectory} is not a git repository"
 
     assert(obtained.startsWith(expected))
   }
@@ -177,7 +175,8 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     git.add(newCode)
     git.commit()
 
-    val obtained = runDiff(cli, "--diff-base", baseBranch)
+    val obtained =
+      runDiff(cli, ExitStatus.LinterError, "--diff-base", baseBranch)
 
     val expected =
       s"""|$newCodeAbsPath:5:3: error: [DisableSyntax.keywords.var] var is disabled
@@ -202,13 +201,21 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     git.commit()
 
     val nonExistingHash = "a777777777777777777777777777777777777777"
-    val obtained = runDiff(cli, "--diff-base", nonExistingHash)
+    val obtained = runDiff(
+      cli,
+      ExitStatus.InvalidCommandLineOption,
+      "--diff-base",
+      nonExistingHash)
     val expected =
       s"error: '$nonExistingHash' unknown revision or path not in the working tree."
     assert(obtained.startsWith(expected))
 
     val wrongHashFormat = "a777"
-    val obtained2 = runDiff(cli, "--diff-base", wrongHashFormat)
+    val obtained2 = runDiff(
+      cli,
+      ExitStatus.InvalidCommandLineOption,
+      "--diff-base",
+      wrongHashFormat)
     val expected2 =
       s"error: '$wrongHashFormat' unknown revision or path not in the working tree."
     assert(obtained2.startsWith(expected2))
@@ -250,7 +257,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     git.add(code)
     git.commit()
 
-    runDiffOk(cli)
+    runDiff(cli, ExitStatus.Ok)
     val obtained = fs.read(code)
     val expected =
       s"""|$foo1
@@ -259,14 +266,15 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     assertNoDiff(obtained, expected)
   }
 
-  private def runDiff(cli: Cli, args: String*): String =
-    runDiff0(cli, false, args.toList)
-
-  private def runDiffOk(cli: Cli, args: String*): String =
-    runDiff0(cli, true, args.toList)
-
-  private def runDiff0(cli: Cli, ok: Boolean, args: List[String]): String =
-    noColor(cli.run(ok, "--non-interactive" :: "--diff" :: args))
+  private def runDiff(cli: Cli, expected: ExitStatus, args: String*): String =
+    noColor(
+      cli.run(
+        expected,
+        "--non-interactive" ::
+          "--diff" ::
+          args.toList
+      )
+    )
 
   private val confFile = ".scalafix.conf"
   private def addConf(fs: Fs, git: Git): Unit = {
@@ -290,13 +298,12 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
       val fs = new Fs()
       val git = new Git(fs.workingDirectory)
       val cli = new Cli(fs.workingDirectory)
-
       body(fs, git, cli)
     }
   }
 
   private class Cli(workingDirectory: Path) {
-    def run(ok: Boolean, args: List[String]): String = {
+    def run(expected: ExitStatus, args: List[String]): String = {
       val baos = new ByteArrayOutputStream()
       val ps = new PrintStream(baos)
       val exit = scalafix.v1.Main.run(
@@ -305,12 +312,8 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
         ps
       )
       val output = new String(baos.toByteArray, StandardCharsets.UTF_8)
-      assert(
-        exit.isOk == ok,
-        s"Expected exit status isOk=$ok, obtained $exit. Details $output"
-      )
+      assert(exit == expected, output)
       output
     }
   }
-
 }

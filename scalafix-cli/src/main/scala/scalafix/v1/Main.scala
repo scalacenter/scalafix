@@ -7,7 +7,6 @@ import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 import metaconfig.Configured
-import scala.meta.internal.io.FileIO
 import scala.meta.io.AbsolutePath
 import scala.collection.mutable.ArrayBuffer
 import scala.meta.parsers.Parsed
@@ -114,6 +113,7 @@ object Main {
           } else {
             args.rules.syntacticPatch(doc, args.args.autoSuppressLinterErrors)
           }
+
         if (!args.args.autoSuppressLinterErrors) {
           reportLintErrors(args, messages)
         }

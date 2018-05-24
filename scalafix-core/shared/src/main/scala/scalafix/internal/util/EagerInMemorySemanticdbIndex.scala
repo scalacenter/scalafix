@@ -5,6 +5,7 @@ import scala.collection.mutable
 import scala.meta._
 import scala.{meta => m}
 import scala.meta.internal.{semanticdb3 => s}
+import scalafix.internal.v0._
 
 case class EagerInMemorySemanticdbIndex(
     database: Database,

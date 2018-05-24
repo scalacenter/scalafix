@@ -24,6 +24,7 @@ final class Doc private[scalafix] (
     private[scalafix] val escapeHatch: EscapeHatch,
     private[scalafix] val diffDisable: DiffDisable
 ) {
+  override def toString: String = s"Doc(${input.syntax})"
   def toLegacy: RuleCtx = new DeprecatedRuleCtx(this)
   def toks(tree: Tree): Tokens = tree.tokens(config.dialect)
 }

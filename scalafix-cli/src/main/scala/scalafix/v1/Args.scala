@@ -70,7 +70,8 @@ case class Args(
       "If set, only apply scalafix to added and edited files in git diff against a provided branch, commit or tag. (defaults to master)")
     diffBase: Option[String] = None,
     @Description("Don't use fancy progress bar.")
-    nonInteractive: Boolean = false
+    nonInteractive: Boolean = false,
+    verbose: Boolean = false
 ) {
 
   def configuredSymtab: Configured[SymbolTable] = {
