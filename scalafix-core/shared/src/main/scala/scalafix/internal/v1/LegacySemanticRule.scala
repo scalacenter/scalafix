@@ -19,8 +19,8 @@ class LegacySemanticRule(name: RuleName, fn: SemanticdbIndex => scalafix.Rule)
     }
   }
   override def fix(implicit doc: SemanticDoc): Patch = {
-    val ctx = doc.doc.toLegacy
-    val rule = fn(doc.toLegacy).init(this.conf).get
+    val ctx = doc.doc.toRuleCtx
+    val rule = fn(doc.toSemanticdbIndex).init(this.conf).get
     rule.fix(ctx) + LegacyRule.lints(ctx, rule)
   }
 }

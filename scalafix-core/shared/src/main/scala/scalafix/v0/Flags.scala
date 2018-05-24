@@ -3,13 +3,7 @@ package scalafix.v0
 trait Flags {
   final val VAL: Long = 1L << 0
   final val VAR: Long = 1L << 1
-  @deprecated("Use `METHOD` instead.", "3.6.0")
-  final val DEF: Long = METHOD
   final val METHOD: Long = 1L << 2
-  @deprecated("Use `PRIMARY | CTOR` instead.", "3.6.0")
-  final val PRIMARYCTOR: Long = 1L << 3
-  @deprecated("Use `~PRIMARY` and `CTOR` instead.", "3.6.0")
-  final val SECONDARYCTOR: Long = 1L << 4
   final val MACRO: Long = 1L << 5
   final val TYPE: Long = 1L << 6
   final val PARAM: Long = 1L << 7
@@ -31,10 +25,6 @@ trait Flags {
   final val CONTRAVARIANT: Long = 1L << 23
   final val INLINE: Long = 1L << 24
   final val JAVADEFINED: Long = 1L << 25
-  @deprecated("Use `METHOD | VAL` instead.", "3.6.0")
-  final val GETTER: Long = 1L << 26
-  @deprecated("Use `METHOD | VAR` instead.", "3.6.0")
-  final val SETTER: Long = 1L << 27
   final val SELFPARAM: Long = 1L << 28
   final val INTERFACE: Long = 1L << 29
   final val LOCAL: Long = 1L << 30

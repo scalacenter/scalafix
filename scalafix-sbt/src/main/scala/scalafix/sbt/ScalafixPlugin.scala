@@ -121,7 +121,7 @@ object ScalafixPlugin extends AutoPlugin {
 
   override def globalSettings: Seq[Def.Setting[_]] = Seq(
     scalafixConfig := Option(file(".scalafix.conf")).filter(_.isFile),
-    cliWrapperMainClass := "scalafix.cli.Cli$",
+    cliWrapperMainClass := "scalafix.v1.Main$",
     scalafixVerbose := false,
     commands += ScalafixEnable.command,
     sbtfix := sbtfixImpl(compat = true).evaluated,

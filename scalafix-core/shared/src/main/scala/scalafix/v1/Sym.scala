@@ -39,11 +39,6 @@ object Sym {
     }
   }
 
-  object Root {
-    def unapply(sym: Sym): Boolean =
-      sym.isRootPackage
-  }
-
   object Local {
     def unapply(sym: Sym): Option[Sym] =
       if (sym.isLocal) Some(sym) else scala.None
@@ -82,18 +77,20 @@ object Sym {
   }
 
   final class Kind private[Sym] (info: s.SymbolInformation) {
-    def isClass: Boolean = k.isClass
-    def isObject: Boolean = k.isObject
-    def isTrait: Boolean = k.isTrait
-    def isMethod: Boolean = k.isMethod
     def isField: Boolean = k.isField
-    def isMacro: Boolean = k.isMacro
+    def isMethod: Boolean = k.isMethod
     def isConstructor: Boolean = k.isConstructor
+    def isMacro: Boolean = k.isMacro
     def isType: Boolean = k.isType
     def isParameter: Boolean = k.isParameter
+    def isSelfParameter: Boolean = k.isSelfParameter
     def isTypeParameter: Boolean = k.isTypeParameter
     def isPackage: Boolean = k.isPackage
     def isPackageObject: Boolean = k.isPackageObject
+    def isClass: Boolean = k.isClass
+    def isObject: Boolean = k.isObject
+    def isTrait: Boolean = k.isTrait
+    def isInterface: Boolean = k.isInterface
 
     override def toString: String = s"Sym.Kind(${info.symbol})"
 
@@ -135,9 +132,9 @@ object Sym {
 
   final class Matcher private (doc: SemanticDoc, syms: Seq[Sym]) {
     def matches(sym: Sym): Boolean =
-      syms.contains(sym) // TODO: handle normalization
+      syms.contains(sym)
     def matches(tree: Tree): Boolean =
-      syms.contains(doc.symbol(tree)) // TODO: handle normalization
+      syms.contains(doc.symbol(tree))
 
     def unapply(sym: Sym): Boolean = matches(sym)
     def unapply(tree: Tree): Boolean = matches(tree)

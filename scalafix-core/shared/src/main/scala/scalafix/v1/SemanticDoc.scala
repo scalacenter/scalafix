@@ -11,11 +11,10 @@ import scalafix.internal.util.SymbolTable
 import scalafix.util.MatchingParens
 import scalafix.util.TokenList
 import scala.meta.internal.{semanticdb3 => s}
-import scalafix.internal.patch.DeprecatedSemanticdbIndex
+import scalafix.internal.patch.DocSemanticdbIndex
 import scalafix.internal.v1._
+import scalafix.rule.RuleCtx
 import scalafix.util.SemanticdbIndex
-
-trait SemanticContext
 
 final class SemanticDoc private[scalafix] (
     val doc: Doc,
@@ -25,7 +24,12 @@ final class SemanticDoc private[scalafix] (
 ) extends SemanticContext {
 
   override def toString: String = s"SemanticDoc(${input.syntax})"
-  def toLegacy: SemanticdbIndex = new DeprecatedSemanticdbIndex(this)
+
+  // ==========
+  // Legacy API
+  // ==========
+  def toRuleCtx: RuleCtx = doc.toRuleCtx
+  def toSemanticdbIndex: SemanticdbIndex = new DocSemanticdbIndex(this)
 
   // =============
   // Syntactic API
@@ -46,7 +50,6 @@ final class SemanticDoc private[scalafix] (
     else result.next() // Discard multi symbols
   }
 
-  def info(tree: Tree): Sym.Info = info(symbol(tree))
   def info(sym: Sym): Sym.Info = {
     if (sym.isNone) {
       Sym.Info.empty

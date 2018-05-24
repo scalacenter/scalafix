@@ -208,8 +208,9 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         s
     },
     commands += Command.command("mima") { s =>
-      "scalafix/mimaReportBinaryIssues" ::
-        "scalafix211/mimaReportBinaryIssues" ::
+      // Disabled until v0.6.0 stable
+      // "scalafix/mimaReportBinaryIssues" ::
+      //   "scalafix211/mimaReportBinaryIssues" ::
         s
     },
     // There is flakyness in CliGitDiffTests and CliSemanticTests

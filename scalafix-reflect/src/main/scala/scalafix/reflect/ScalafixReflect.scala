@@ -1,19 +1,10 @@
 package scalafix.reflect
 
-import metaconfig.Conf
 import metaconfig.ConfDecoder
-import metaconfig.ConfError
-import metaconfig.Configured
 import scalafix.Rule
 import scalafix.SemanticdbIndex
 import scalafix.internal.config._
 import scalafix.internal.reflect.ScalafixCompilerDecoder
-import scalafix.internal.util.ClassloadRule
-import scalafix.internal.v1.LegacySemanticRule
-import scalafix.internal.v1.LegacySyntacticRule
-import scalafix.internal.v1.Rules
-import scalafix.patch.TreePatch
-import scalafix.v1
 
 object ScalafixReflect {
   def syntactic: ConfDecoder[Rule] =

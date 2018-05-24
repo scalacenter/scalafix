@@ -13,8 +13,8 @@ object DenotationOps {
       denot: Denotation,
       dialect: Dialect): Option[Type] = {
     def getDeclType(tpe: Type): Type = tpe match {
-      case Type.Method(_, tpe) if denot.isDef => tpe
-      case Type.Lambda(_, tpe) if denot.isDef => getDeclType(tpe)
+      case Type.Method(_, tpe) if denot.isMethod => tpe
+      case Type.Lambda(_, tpe) if denot.isMethod => getDeclType(tpe)
       case Type.Method((Term.Param(_, _, Some(tpe), _) :: Nil) :: Nil, _)
           if denot.isVar =>
         // Workaround for https://github.com/scalameta/scalameta/issues/1100
@@ -23,7 +23,7 @@ object DenotationOps {
         x
     }
     val signature =
-      if (denot.isVal || denot.isDef || denot.isGetter || denot.isSetter || denot.isVar) {
+      if (denot.isVal || denot.isMethod || denot.isVar) {
         denot.signature
       } else {
         throw new UnsupportedOperationException(

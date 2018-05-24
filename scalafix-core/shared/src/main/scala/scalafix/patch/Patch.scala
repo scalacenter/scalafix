@@ -209,14 +209,14 @@ object Patch {
       patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
       doc: Doc
   ): (String, List[LintMessage]) = {
-    apply(patchesByName, doc.toLegacy, None, suppress = false)
+    apply(patchesByName, doc.toRuleCtx, None, suppress = false)
   }
 
   private[scalafix] def semantic(
       patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
       doc: SemanticDoc
   ): (String, List[LintMessage]) = {
-    apply(patchesByName, doc.doc.toLegacy, Some(doc.toLegacy), suppress = false)
+    apply(patchesByName, doc.doc.toRuleCtx, Some(doc.toSemanticdbIndex), suppress = false)
   }
 
   def treePatchApply(patch: Patch)(

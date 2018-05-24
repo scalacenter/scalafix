@@ -53,7 +53,7 @@ case class Rules(rules: List[Rule] = Nil) {
       case rule: SyntacticRule =>
         rule.name -> rule.fix(doc.doc)
     }.toMap
-    scalafix.Patch.apply(fixes, doc.doc.toLegacy, Some(doc.toLegacy), suppress)
+    scalafix.Patch.apply(fixes, doc.doc.toRuleCtx, Some(doc.toSemanticdbIndex), suppress)
   }
 
   def syntacticPatch(
@@ -63,7 +63,7 @@ case class Rules(rules: List[Rule] = Nil) {
     val fixes = syntacticRules.iterator.map { rule =>
       rule.name -> rule.fix(doc)
     }.toMap
-    scalafix.Patch.apply(fixes, doc.toLegacy, None, suppress)
+    scalafix.Patch.apply(fixes, doc.toRuleCtx, None, suppress)
   }
 }
 

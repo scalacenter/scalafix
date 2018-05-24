@@ -4,29 +4,32 @@ import scala.meta._
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
 import scalafix.v1.SemanticContext
 import scalafix.v0._
+import SemanticdbIndex.DeprecationMessage
 
 /** An index for looking up data in a scala.meta.Database. */
 trait SemanticdbIndex extends SemanticContext {
 
   /** Classpath built this SemanticdbIndex. */
+  @deprecated(DeprecationMessage, "0.6.0")
   def classpath: Classpath
 
   /** The underlying raw database. */
   def database: Database
 
-  /** Get all Input for this index. */
-  def inputs: Seq[Input] = documents.map(_.input)
-
-  /** Shorthand for scala.meta.Database.documents */
+  /** Get all documents in this index */
   def documents: Seq[Document] = database.documents
 
-  /** Shorthand for scala.meta.Database.messages */
+  /** Get all Input in this index. */
+  def inputs: Seq[Input] = documents.map(_.input)
+
+
+  /** Get all messages in this index. */
   def messages: Seq[Message] = database.messages
 
-  /** Shorthand for scala.meta.Database.symbols */
+  /** Get all symbols in this index. */
   def symbols: Seq[ResolvedSymbol] = database.symbols
 
-  /** Shorthand for scala.meta.Database.synthetics */
+  /** Get all synthetics in this index. */
   def synthetics: Seq[Synthetic] = database.synthetics
 
   /** The resolved names in this database.
@@ -57,6 +60,7 @@ trait SemanticdbIndex extends SemanticContext {
   def denotation(tree: Tree): Option[Denotation]
 
   /** Build new SemanticdbIndex with only these documents. */
+  @deprecated(DeprecationMessage, "0.6.0")
   def withDocuments(documents: Seq[Document]): SemanticdbIndex
 
   object Symbol {
@@ -66,6 +70,7 @@ trait SemanticdbIndex extends SemanticContext {
 }
 
 object SemanticdbIndex {
+  final val DeprecationMessage = "No longer supported"
   val empty: SemanticdbIndex =
     EagerInMemorySemanticdbIndex(Database(Nil), Classpath(Nil))
 

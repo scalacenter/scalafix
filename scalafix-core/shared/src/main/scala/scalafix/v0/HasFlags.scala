@@ -7,17 +7,7 @@ trait HasFlags {
 
   def isVal: Boolean = hasFlag(VAL)
   def isVar: Boolean = hasFlag(VAR)
-  @deprecated("Use `isMethod` instead.", "3.6.0")
-  def isDef: Boolean = isMethod
   def isMethod: Boolean = hasFlag(METHOD)
-  @deprecated("Use `isDef && isVal` instead.", "3.6.0")
-  def isGetter: Boolean = hasFlag(GETTER)
-  @deprecated("Use `isDef && isVar` instead.", "3.6.0")
-  def isSetter: Boolean = hasFlag(SETTER)
-  @deprecated("Use `isPrimary && isCtor` instead.", "3.6.0")
-  def isPrimaryCtor: Boolean = hasFlag(PRIMARYCTOR)
-  @deprecated("Use `!isPrimary && isCtor` instead.", "3.6.0")
-  def isSecondaryCtor: Boolean = hasFlag(SECONDARYCTOR)
   def isMacro: Boolean = hasFlag(MACRO)
   def isType: Boolean = hasFlag(TYPE)
   def isParam: Boolean = hasFlag(PARAM)

@@ -3,9 +3,7 @@ package scalafix.internal.patch
 import scala.meta._
 import scala.{meta => m}
 import scalafix.v0.{Flags => d}
-import scalafix.SemanticdbIndex
 import scalafix.internal.v1.TreePos
-import DeprecatedSemanticdbIndex.DeprecationMessage
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
@@ -20,63 +18,70 @@ import scalafix.v1.Sym
 import scalafix.v1.SemanticDoc
 import scalafix.v0._
 
-trait CrashingSemanticdbIndex extends SemanticdbIndex {
-  @deprecated(DeprecationMessage, "0.6.0")
-  final override def classpath: Classpath =
-    throw new UnsupportedOperationException
-  @deprecated(DeprecationMessage, "0.6.0")
-  final override def database: Database =
-    throw new UnsupportedOperationException
-  @deprecated(DeprecationMessage, "0.6.0")
-  final override def names: Seq[ResolvedName] =
-    throw new UnsupportedOperationException
-  @deprecated(DeprecationMessage, "0.6.0")
-  final override def documents: Seq[Document] =
-    throw new UnsupportedOperationException
-  @deprecated(DeprecationMessage, "0.6.0")
-  final override def withDocuments(documents: Seq[Document]): SemanticdbIndex =
-    throw new UnsupportedOperationException
-}
+import DocSemanticdbIndex._
 
-class DeprecatedSemanticdbIndex(val doc: SemanticDoc)
+class DocSemanticdbIndex(val doc: SemanticDoc)
     extends CrashingSemanticdbIndex
     with SymbolTable {
 
-  @deprecated(DeprecationMessage, "0.6.0")
-  final override def synthetics: Seq[Synthetic] =
-    doc.sdoc.synthetics.map(s =>
-      DeprecatedSemanticdbIndex.syntheticToLegacy(doc, s))
-  @deprecated(DeprecationMessage, "0.6.0")
-  override final def messages: Seq[Message] = doc.sdoc.diagnostics.map { diag =>
-    val pos = ScalafixLangmetaHacks.positionFromRange(doc.input, diag.range)
-    val severity = diag.severity match {
-      case s.Diagnostic.Severity.INFORMATION => Severity.Info
-      case s.Diagnostic.Severity.WARNING => Severity.Warning
-      case s.Diagnostic.Severity.ERROR => Severity.Error
-      case s.Diagnostic.Severity.HINT => Severity.Hint
-      case _ => throw new IllegalArgumentException(diag.severity.toString())
-    }
-    Message(pos, severity, diag.message)
-  }
+  override def inputs: Seq[m.Input] =
+    doc.input :: Nil
 
-  @deprecated(DeprecationMessage, "0.6.0")
+  final override def database: Database =
+    Database(documents)
+
+  final override def documents: Seq[Document] =
+    Document(
+      doc.input,
+      doc.sdoc.language.toString(),
+      names = this.names.toList,
+      messages = this.messages.toList,
+      symbols = this.symbols.toList,
+      synthetics = this.synthetics.toList
+    ) :: Nil
+
+  final override def names: Seq[ResolvedName] =
+    doc.sdoc.occurrences.map { o =>
+      occurrenceToLegacy(doc, doc.input, o)
+    }
+  final override def symbols: Seq[ResolvedSymbol] =
+    doc.sdoc.symbols.map { s =>
+      ResolvedSymbol(
+        m.Symbol(s.symbol),
+        infoToDenotation(s)
+      )
+    }
+  final override def synthetics: Seq[Synthetic] =
+    doc.sdoc.synthetics.map { s =>
+      DocSemanticdbIndex.syntheticToLegacy(doc, s)
+    }
+  override final def messages: Seq[Message] =
+    doc.sdoc.diagnostics.map { diag =>
+      val pos = ScalafixLangmetaHacks.positionFromRange(doc.input, diag.range)
+      val severity = diag.severity match {
+        case s.Diagnostic.Severity.INFORMATION => Severity.Info
+        case s.Diagnostic.Severity.WARNING => Severity.Warning
+        case s.Diagnostic.Severity.ERROR => Severity.Error
+        case s.Diagnostic.Severity.HINT => Severity.Hint
+        case _ => throw new IllegalArgumentException(diag.severity.toString())
+      }
+      Message(pos, severity, diag.message)
+    }
+
   final override def symbol(position: Position): Option[Symbol] =
     doc.symbols(position).toList.map(s => m.Symbol(s.value)) match {
       case Nil => None
       case head :: Nil => Some(head)
       case multi => Some(m.Symbol.Multi(multi))
     }
-  @deprecated(DeprecationMessage, "0.6.0")
   final override def symbol(tree: Tree): Option[Symbol] =
     symbol(TreePos.symbol(tree))
 
-  @deprecated(DeprecationMessage, "0.6.0")
   final override def denotation(symbol: Symbol): Option[Denotation] = {
     val info = doc.info(Sym(symbol.syntax))
     if (info.isNone) None
-    else Some(DeprecatedSemanticdbIndex.infoToDenotation(info.info))
+    else Some(DocSemanticdbIndex.infoToDenotation(info.info))
   }
-  @deprecated(DeprecationMessage, "0.6.0")
   final override def denotation(tree: Tree): Option[Denotation] =
     symbol(tree).flatMap(denotation)
 
@@ -87,8 +92,7 @@ class DeprecatedSemanticdbIndex(val doc: SemanticDoc)
   }
 }
 
-object DeprecatedSemanticdbIndex {
-  final val DeprecationMessage = "Use SemanticDoc instead"
+object DocSemanticdbIndex {
 
   def infoToDenotation(info: s.SymbolInformation): Denotation = {
     val dflags = {
@@ -191,4 +195,5 @@ object DeprecatedSemanticdbIndex {
       names
     )
   }
+
 }

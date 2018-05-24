@@ -5,12 +5,14 @@ import scala.meta.internal.io._
 import scala.meta.internal.{semanticdb3 => s}
 import scala.{meta => m}
 import scalafix.internal.patch.CrashingSemanticdbIndex
-import scalafix.internal.patch.DeprecatedSemanticdbIndex
+import scalafix.internal.patch.DocSemanticdbIndex
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.util.SymbolTable
 import scalafix.internal.v1.TreePos
 import scalafix.util.SemanticdbIndex
+import scalafix.v0.Database
 import scalafix.v0.Denotation
+import scalafix.v0.ResolvedName
 import scalafix.v1
 
 case class LegacyInMemorySemanticdbIndex(index: Map[String, SemanticdbIndex])
@@ -18,7 +20,7 @@ case class LegacyInMemorySemanticdbIndex(index: Map[String, SemanticdbIndex])
 
   override def inputs: Seq[m.Input] = {
     index.values.collect {
-      case s: DeprecatedSemanticdbIndex =>
+      case s: DocSemanticdbIndex =>
         s.doc.input
     }.toSeq
   }
@@ -50,6 +52,12 @@ case class LegacyInMemorySemanticdbIndex(index: Map[String, SemanticdbIndex])
   }
   override def denotation(tree: Tree): Option[Denotation] =
     index(tree.pos.input.syntax).denotation(tree)
+
+  override def database: Database =
+    Database(documents)
+
+  override def names: Seq[ResolvedName] =
+    index.values.iterator.flatMap(_.names).toSeq
 }
 
 object LegacyInMemorySemanticdbIndex {
@@ -73,7 +81,7 @@ object LegacyInMemorySemanticdbIndex {
               val tree = input.parse[Source].get
               val doc = v1.Doc.fromTree(tree)
               val sdoc = new v1.SemanticDoc(doc, textDocument, symtab)
-              buf += (textDocument.uri -> sdoc.toLegacy)
+              buf += (textDocument.uri -> sdoc.toSemanticdbIndex)
             }
           }
         }

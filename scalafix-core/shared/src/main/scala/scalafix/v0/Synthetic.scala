@@ -7,8 +7,7 @@ final case class Synthetic(
     position: Position,
     text: String,
     names: List[ResolvedName]) {
-//  def input = Input.Synthetic(text, position.input, position.start, position.end)
-  def syntax = {
+  def syntax: String = {
     val s_names = ResolvedName.syntax(names)
     s"[${position.start}..${position.end}): $text$s_names"
   }

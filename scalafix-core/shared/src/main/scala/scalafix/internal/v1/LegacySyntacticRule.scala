@@ -17,7 +17,7 @@ class LegacySyntacticRule(rule: scalafix.Rule)
     }
   }
   override def fix(implicit doc: Doc): Patch = {
-    val ctx = doc.toLegacy
+    val ctx = doc.toRuleCtx
     configuredRule.fix(ctx) + LegacyRule.lints(ctx, configuredRule)
   }
 }
