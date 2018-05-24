@@ -212,8 +212,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "scalafix211/mimaReportBinaryIssues" ::
         s
     },
-    // Workaround for https://github.com/scalameta/scalameta/issues/1479
-    parallelExecution.in(test) := !scala.util.Properties.isWin,
+    // There is flakyness in CliGitDiffTests and CliSemanticTests
+    parallelExecution.in(Test) := false,
     credentials ++= {
       val credentialsFile = {
         if (adhocRepoCredentials != null) new File(adhocRepoCredentials)
