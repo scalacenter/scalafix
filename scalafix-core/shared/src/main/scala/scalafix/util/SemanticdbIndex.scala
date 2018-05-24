@@ -3,6 +3,7 @@ package scalafix.util
 import scala.meta._
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
 import scalafix.v1.SemanticContext
+import scalafix.v0._
 
 /** An index for looking up data in a scala.meta.Database. */
 trait SemanticdbIndex extends SemanticContext {
@@ -64,10 +65,4 @@ trait SemanticdbIndex extends SemanticContext {
 object SemanticdbIndex {
   val empty: SemanticdbIndex =
     EagerInMemorySemanticdbIndex(Database(Nil), Classpath(Nil))
-  def load(classpath: Classpath): SemanticdbIndex =
-    EagerInMemorySemanticdbIndex(Database.load(classpath), classpath)
-  def load(database: Database, classpath: Classpath): SemanticdbIndex =
-    EagerInMemorySemanticdbIndex(database, classpath)
-  def load(bytes: Array[Byte]): SemanticdbIndex =
-    empty.withDocuments(Database.load(bytes).documents)
 }

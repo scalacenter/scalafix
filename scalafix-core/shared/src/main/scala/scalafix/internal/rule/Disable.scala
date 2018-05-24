@@ -1,6 +1,7 @@
 package scalafix.internal.rule
 
 import metaconfig.{Conf, Configured}
+import scalafix._
 import scala.meta._
 import scala.meta.transversers.Traverser
 import scalafix.internal.config.{DisableConfig, DisabledSymbol}

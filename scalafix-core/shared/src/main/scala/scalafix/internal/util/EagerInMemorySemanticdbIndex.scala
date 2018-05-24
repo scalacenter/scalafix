@@ -4,7 +4,6 @@ package internal.util
 import scala.collection.mutable
 import scala.meta._
 import scala.{meta => m}
-import scala.meta.internal.semanticdb._
 import scala.meta.internal.{semanticdb3 => s}
 
 case class EagerInMemorySemanticdbIndex(
@@ -84,7 +83,7 @@ case class EagerInMemorySemanticdbIndex(
       kind = s.SymbolInformation.Kind.fromValue(denot.skind.value),
       properties = denot.sproperties,
       name = denot.name,
-      tpe = denot.tpeInternal
+      tpe = denot.tpe
     )
   }
 

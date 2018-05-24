@@ -3,9 +3,9 @@ package scalafix.internal.v1
 import metaconfig.Conf
 import metaconfig.Configured
 import scalafix.Patch
-import scala.meta.Doc
-import scala.meta.Rule
-import scala.meta.SyntacticRule
+import scalafix.v1.Doc
+import scalafix.v1.Rule
+import scalafix.v1.SyntacticRule
 
 class LegacySyntacticRule(rule: scalafix.Rule)
     extends SyntacticRule(rule.name) {

@@ -2,6 +2,7 @@ package scalafix.internal.util
 
 import scala.meta._
 import scala.meta.Dialect
+import scalafix._
 
 object DenotationOps {
   val defaultDialect: Dialect =
@@ -28,7 +29,7 @@ object DenotationOps {
         throw new UnsupportedOperationException(
           s"Can't parse type for denotation $denot, denot.info=${denot.signature}")
       }
-    val input = Input.Denotation(signature, symbol)
+    val input = Input.VirtualFile(symbol.syntax, signature)
     (dialect, input).parse[Type].toOption.map(getDeclType)
   }
 }

@@ -2,7 +2,7 @@ package scalafix.internal.patch
 
 import scala.meta._
 import scala.{meta => m}
-import scala.{meta => d}
+import scalafix.v0.{Flags => d}
 import scalafix.SemanticdbIndex
 import scalafix.internal.v1.TreePos
 import DeprecatedSemanticdbIndex.DeprecationMessage
@@ -18,11 +18,13 @@ import scala.meta.internal.{semanticdb3 => s}
 import scalafix.internal.util.SymbolTable
 import scalafix.v1.Sym
 import scalafix.v1.SemanticDoc
+import scalafix.v0._
 
 class DeprecatedSemanticdbIndex(val doc: SemanticDoc)
     extends SemanticdbIndex
     with SymbolTable {
 
+  // Unsupported methods
   @deprecated(DeprecationMessage, "0.6.0")
   final override def classpath: Classpath =
     throw new UnsupportedOperationException
@@ -33,12 +35,16 @@ class DeprecatedSemanticdbIndex(val doc: SemanticDoc)
   final override def names: Seq[ResolvedName] =
     throw new UnsupportedOperationException
   @deprecated(DeprecationMessage, "0.6.0")
+  final override def documents: Seq[Document] =
+    throw new UnsupportedOperationException
+  @deprecated(DeprecationMessage, "0.6.0")
+  final override def withDocuments(documents: Seq[Document]): SemanticdbIndex =
+    throw new UnsupportedOperationException
+
+  @deprecated(DeprecationMessage, "0.6.0")
   final override def synthetics: Seq[Synthetic] =
     doc.sdoc.synthetics.map(s =>
       DeprecatedSemanticdbIndex.syntheticToLegacy(doc, s))
-  @deprecated(DeprecationMessage, "0.6.0")
-  final override def documents: Seq[Document] =
-    throw new UnsupportedOperationException
   @deprecated(DeprecationMessage, "0.6.0")
   override final def messages: Seq[Message] = doc.sdoc.diagnostics.map { diag =>
     val pos = ScalafixLangmetaHacks.positionFromRange(doc.input, diag.range)
@@ -51,9 +57,6 @@ class DeprecatedSemanticdbIndex(val doc: SemanticDoc)
     }
     Message(pos, severity, diag.message)
   }
-  @deprecated(DeprecationMessage, "0.6.0")
-  final override def withDocuments(documents: Seq[Document]): SemanticdbIndex =
-    throw new UnsupportedOperationException
 
   @deprecated(DeprecationMessage, "0.6.0")
   final override def symbol(position: Position): Option[Symbol] =
@@ -138,7 +141,8 @@ object DeprecatedSemanticdbIndex {
       dflags,
       info.name,
       "",
-      Nil
+      Nil,
+      None
     )
   }
 

@@ -5,6 +5,7 @@ import scalafix.Patch
 import scalafix.SemanticdbIndex
 import scalafix.rule.RuleCtx
 import scalafix.rule.SemanticRule
+import scalafix._
 
 case class RemoveUnusedTerms(index: SemanticdbIndex)
     extends SemanticRule(index, "RemoveUnusedTerms") {
