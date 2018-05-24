@@ -1,6 +1,6 @@
 package scalafix.internal.util
 
-import org.langmeta.inputs.Position
+import scala.meta.inputs.Position
 
 import scala.annotation.tailrec
 import scala.meta.tokens.{Token, Tokens}

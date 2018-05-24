@@ -10,8 +10,8 @@ import scalafix.internal.reflect.RuleCompiler
 import scalafix.internal.reflect.ScalafixCompilerDecoder
 import scalafix.internal.tests.utils.SkipWindows
 import metaconfig.Conf
-import org.langmeta.inputs.Input
-import org.langmeta.io.AbsolutePath
+import scala.meta.inputs.Input
+import scala.meta.io.AbsolutePath
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 

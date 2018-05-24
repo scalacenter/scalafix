@@ -2,8 +2,8 @@ package scalafix.v1
 
 import java.nio.file.Files
 import java.util
-import org.langmeta.io.Classpath
-import org.langmeta.io.RelativePath
+import scala.meta.io.Classpath
+import scala.meta.io.RelativePath
 import scala.collection.mutable.ListBuffer
 import scala.meta._
 import scala.meta.contrib.AssociatedComments

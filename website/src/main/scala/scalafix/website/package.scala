@@ -7,7 +7,7 @@ import metaconfig.generic.Setting
 import metaconfig.generic.Settings
 import scalatags.Text.all._
 import scala.meta._
-import org.langmeta.internal.io.PathIO
+import scala.meta.internal.io.PathIO
 
 package object website {
 
@@ -94,7 +94,7 @@ package object website {
       td(
         // TODO(olafur) hack! Replace with ShowType[T] typeclass.
         setting.field.tpe
-          .replace("org.langmeta.Symbol.Global", "Symbol")
+          .replace("scala.meta.Symbol.Global", "Symbol")
           .replace("java.util.regex.", "")
           .replace("scalafix.CustomMessage", "Message")
           .replace("scalafix.internal.config.", "")

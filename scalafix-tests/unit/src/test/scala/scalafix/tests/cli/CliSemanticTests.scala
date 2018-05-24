@@ -1,6 +1,6 @@
 package scalafix.tests.cli
 
-import org.langmeta.internal.io.PathIO
+import scala.meta.internal.io.PathIO
 import scala.collection.immutable.Seq
 import scalafix.cli._
 import scalafix.internal.rule.ExplicitResultTypes

@@ -3,7 +3,7 @@ package scalafix.internal.reflect
 import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
-import org.langmeta.io.AbsolutePath
+import scala.meta.io.AbsolutePath
 import scala.meta.Classpath
 import scala.meta.metacp
 import scalafix.internal.util.LazySymbolTable

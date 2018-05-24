@@ -4,7 +4,7 @@ package internal.config
 import metaconfig._
 import metaconfig.annotation.{Description, ExampleValue}
 import metaconfig.generic.Surface
-import org.langmeta.Symbol
+import scala.meta.Symbol
 
 import scalafix.internal.util.SymbolOps
 

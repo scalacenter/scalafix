@@ -1,7 +1,7 @@
 package scalafix.v1
 
-import org.langmeta.internal.io.FileIO
-import org.langmeta.io.RelativePath
+import scala.meta.internal.io.FileIO
+import scala.meta.io.RelativePath
 import scala.meta.Input
 import scala.meta.AbsolutePath
 import scala.meta.Classpath

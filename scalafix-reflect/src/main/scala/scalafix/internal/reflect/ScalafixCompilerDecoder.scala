@@ -16,7 +16,7 @@ import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
-import org.langmeta.io.AbsolutePath
+import scala.meta.io.AbsolutePath
 
 object ScalafixCompilerDecoder {
   def baseCompilerDecoder(index: LazySemanticdbIndex): ConfDecoder[Rule] = {

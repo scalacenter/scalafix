@@ -29,19 +29,12 @@ object SemanticTests {
   )
   def index: SemanticdbIndex = EagerInMemorySemanticdbIndex(
     Database.load(
-      classpath,
-      sourcepath
+      classpath
     ),
-    sourcepath,
     classpath,
     ClasspathOps.newSymbolTable(defaultClasspath).getOrElse {
       sys.error("Failed to load symbol table")
     }
-  )
-  def sourcepath: Sourcepath = Sourcepath(
-    List(
-      AbsolutePath(BuildInfo.inputSourceroot)
-    )
   )
   def classpath: Classpath = Classpath(
     List(

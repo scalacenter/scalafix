@@ -3,9 +3,9 @@ package scalafix.internal
 import java.net.URI
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import org.langmeta.io.AbsolutePath
-import org.langmeta.io.Classpath
-import org.langmeta.io.RelativePath
+import scala.meta.io.AbsolutePath
+import scala.meta.io.Classpath
+import scala.meta.io.RelativePath
 import scala.collection.JavaConverters._
 
 package object v1 {

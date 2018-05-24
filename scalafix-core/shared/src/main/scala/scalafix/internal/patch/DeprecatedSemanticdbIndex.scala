@@ -10,7 +10,7 @@ import DeprecatedSemanticdbIndex.DeprecationMessage
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
-import org.langmeta.internal.ScalafixLangmetaHacks
+import scala.meta.internal.ScalafixLangmetaHacks
 import scala.meta.internal.semanticdb3.SymbolInformation
 import scala.meta.internal.semanticdb3.Accessibility.{Tag => a}
 import scala.meta.internal.semanticdb3.SymbolInformation.{Property => p}
@@ -23,9 +23,6 @@ class DeprecatedSemanticdbIndex(val doc: SemanticDoc)
     extends SemanticdbIndex
     with SymbolTable {
 
-  @deprecated(DeprecationMessage, "0.6.0")
-  final override def sourcepath: Sourcepath =
-    throw new UnsupportedOperationException
   @deprecated(DeprecationMessage, "0.6.0")
   final override def classpath: Classpath =
     throw new UnsupportedOperationException

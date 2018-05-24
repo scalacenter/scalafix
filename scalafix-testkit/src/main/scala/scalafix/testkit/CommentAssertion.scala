@@ -3,7 +3,7 @@ package testkit
 
 import scala.meta._
 import scala.util.matching.Regex
-import org.langmeta.internal.ScalafixLangmetaHacks
+import scala.meta.internal.ScalafixLangmetaHacks
 
 // CommentAssertion are the bread and butter of testkit they
 // assert the line position and the category id of the lint message.

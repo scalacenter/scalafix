@@ -1,6 +1,6 @@
 package scalafix.tests.core
 
-import org.langmeta.internal.io.PlatformFileIO
+import scala.meta.internal.io.PlatformFileIO
 import org.scalatest.Ignore
 import scala.meta.internal.semanticdb3.Index
 import scala.util.control.NoStackTrace

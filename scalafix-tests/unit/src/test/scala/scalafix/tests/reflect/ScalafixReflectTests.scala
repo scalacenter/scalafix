@@ -7,8 +7,8 @@ import scalafix.rule.Rule
 import scalafix.tests.BuildInfo
 import metaconfig.Conf
 import metaconfig.ConfDecoder
-import org.langmeta.io.AbsolutePath
-import org.langmeta.io.RelativePath
+import scala.meta.io.AbsolutePath
+import scala.meta.io.RelativePath
 import org.scalatest.FunSuite
 
 class ScalafixReflectTests extends FunSuite {

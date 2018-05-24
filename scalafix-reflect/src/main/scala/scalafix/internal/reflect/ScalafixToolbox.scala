@@ -20,7 +20,7 @@ import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Input
 import metaconfig.Position
-import org.langmeta.io.AbsolutePath
+import scala.meta.io.AbsolutePath
 
 object ScalafixToolbox extends ScalafixToolbox
 class ScalafixToolbox {

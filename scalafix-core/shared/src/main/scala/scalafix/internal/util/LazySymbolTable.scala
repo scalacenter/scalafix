@@ -2,9 +2,9 @@ package scalafix.internal.util
 
 import java.nio.file.Files
 import java.util.jar.JarFile
-import org.langmeta.internal.io.PathIO
-import org.langmeta.io.AbsolutePath
-import org.langmeta.io.Classpath
+import scala.meta.internal.io.PathIO
+import scala.meta.io.AbsolutePath
+import scala.meta.io.Classpath
 import scala.collection.concurrent.TrieMap
 import scala.meta.internal.semanticdb3.Scala.Symbols
 import scala.meta.internal.semanticdb3.Scala._

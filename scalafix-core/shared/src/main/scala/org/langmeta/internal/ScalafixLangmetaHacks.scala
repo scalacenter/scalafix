@@ -1,7 +1,7 @@
-package org.langmeta.internal
+package scala.meta.internal
 
 import scala.compat.Platform.EOL
-import org.langmeta._
+import scala.meta._
 import scala.meta.internal.{semanticdb3 => s}
 
 object ScalafixLangmetaHacks {

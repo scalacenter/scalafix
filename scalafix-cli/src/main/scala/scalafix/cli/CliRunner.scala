@@ -356,7 +356,7 @@ object CliRunner {
       val result: Configured[SemanticdbIndex] = cachedDatabase.getOrElse {
         (resolveClasspath |@| resolvedSourceroot).andThen {
           case (classpath, root) =>
-            val index = Database.load(classpath, Sourcepath(root))
+            val index = Database.load(classpath)
             val deps = dependencyClasspath.map(toClasspath).getOrElse(Nil)
             val symbolTable = ClasspathOps.newSymbolTable(
               classpath = Classpath(classpath.shallow ++ deps),
@@ -372,7 +372,6 @@ object CliRunner {
               case Some(symtab) =>
                 val db = EagerInMemorySemanticdbIndex(
                   index,
-                  Sourcepath(root),
                   classpath,
                   symtab
                 )

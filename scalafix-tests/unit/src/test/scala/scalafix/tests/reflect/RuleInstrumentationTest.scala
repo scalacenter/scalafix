@@ -3,7 +3,7 @@ package scalafix.tests.reflect
 import org.scalatest.FunSuite
 import scalafix.internal.reflect.RuleInstrumentation
 import metaconfig.Configured
-import org.langmeta.inputs.Input
+import scala.meta.inputs.Input
 
 class RuleInstrumentationTest extends FunSuite {
   def check(name: String, original: String, expected: List[String]): Unit = {

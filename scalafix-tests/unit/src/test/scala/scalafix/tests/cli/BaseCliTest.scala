@@ -19,8 +19,8 @@ import scalafix.testkit.DiffAssertions
 import scalafix.testkit.SemanticRuleSuite
 import scalafix.tests.BuildInfo
 import ammonite.ops
-import org.langmeta.io.AbsolutePath
-import org.langmeta.io.RelativePath
+import scala.meta.io.AbsolutePath
+import scala.meta.io.RelativePath
 import org.scalatest.FunSuite
 import scalafix.v1.Main
 

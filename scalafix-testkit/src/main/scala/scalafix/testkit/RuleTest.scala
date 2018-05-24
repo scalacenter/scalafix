@@ -4,8 +4,8 @@ import java.nio.charset.StandardCharsets
 import metaconfig.Conf
 import metaconfig.Configured
 import metaconfig.internal.ConfGet
-import org.langmeta.internal.io.FileIO
-import org.langmeta.internal.io.PathIO
+import scala.meta.internal.io.FileIO
+import scala.meta.internal.io.PathIO
 import scalafix.v1._
 import scala.meta._
 import scalafix.internal.util.SymbolTable

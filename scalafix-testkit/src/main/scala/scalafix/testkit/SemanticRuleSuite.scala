@@ -2,7 +2,7 @@ package scalafix
 package testkit
 
 import java.nio.charset.StandardCharsets
-import org.langmeta.internal.io.FileIO
+import scala.meta.internal.io.FileIO
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 import org.scalatest.exceptions.TestFailedException

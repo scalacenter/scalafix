@@ -3,7 +3,7 @@ package scalafix.tests.core
 import scala.meta.ParseException
 import scalafix.internal.rule.ProcedureSyntax
 import scalafix.testkit.SyntacticRuleSuite
-import org.langmeta.inputs.Input
+import scala.meta.inputs.Input
 
 class ErrorSuite extends SyntacticRuleSuite {
   test("on parse error") {
