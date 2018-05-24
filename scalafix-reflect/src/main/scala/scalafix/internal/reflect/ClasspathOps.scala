@@ -25,12 +25,12 @@ object ClasspathOps {
       cacheDirectory: Option[AbsolutePath] = None,
       parallel: Boolean = true,
       out: PrintStream = devNull): Option[Classpath] = {
-    val (processed, toProcess) = sclasspath.shallow.partition { path =>
+    val (processed, toProcess) = sclasspath.entries.partition { path =>
       path.isDirectory &&
       path.resolve("META-INF").resolve("semanticdb.semanticidx").isFile
     }
     val withJDK = Classpath(
-      bootClasspath.fold(sclasspath.shallow)(_.shallow ::: toProcess))
+      bootClasspath.fold(sclasspath.entries)(_.entries ::: toProcess))
     val default = metacp.Settings()
     val settings = default
       .withClasspath(withJDK)
@@ -42,7 +42,7 @@ object ClasspathOps {
       .withOut(devNull) // out prints classpath of proccessed classpath, which is not relevant for scalafix.
       .withErr(out)
     val mclasspath = scala.meta.cli.Metacp.process(settings, reporter)
-    mclasspath.map(x => Classpath(x.shallow ++ processed))
+    mclasspath.map(x => Classpath(x.entries ++ processed))
   }
 
   def newSymbolTable(

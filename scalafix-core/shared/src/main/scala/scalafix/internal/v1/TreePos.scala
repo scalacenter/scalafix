@@ -16,6 +16,7 @@ object TreePos {
         name.pos
       }
     case m: Member => symbol(m.name)
+    case t: Term.Select => symbol(t.name)
     case t: Term.Interpolate => symbol(t.prefix)
     case t: Term.Apply => symbol(t.fun)
     case t: Term.ApplyInfix => symbol(t.op)
@@ -45,10 +46,7 @@ object TreePos {
     case t: Importee.Name => symbol(t.name)
     case Importer(_, i :: Nil) => symbol(i)
     case t: Init => symbol(t.tpe)
-    case t: Ctor.Primary => symbol(t.name)
-    case t: Ctor.Secondary => symbol(t.name)
     case t: Mod.Annot => symbol(t.init)
     case _ => tree.pos
   }
-
 }

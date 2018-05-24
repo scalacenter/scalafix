@@ -51,7 +51,7 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
 class PrettyTypeFuzzSuite extends BasePrettyTypeSuite {
 
   for {
-    entry <- mclasspath.shallow
+    entry <- mclasspath.entries
   } {
     test(entry.toNIO.getFileName.toString) {
       if (entry.isFile) {

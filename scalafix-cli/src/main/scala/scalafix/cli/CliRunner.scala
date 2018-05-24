@@ -37,6 +37,7 @@ import scalafix.internal.jgit.JGitDiff
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
 import scalafix.internal.util.Failure
+import scalafix.internal.v0.LegacyInMemorySemanticdbIndex
 import scalafix.reflect.ScalafixReflect
 import scalafix.syntax._
 
@@ -356,7 +357,6 @@ object CliRunner {
       val result: Configured[SemanticdbIndex] = cachedDatabase.getOrElse {
         (resolveClasspath |@| resolvedSourceroot).andThen {
           case (classpath, root) =>
-            val index = Database.load(classpath)
             val deps = dependencyClasspath.map(toClasspath).getOrElse(Nil)
             val symbolTable = ClasspathOps.newSymbolTable(
               classpath = Classpath(classpath.shallow ++ deps),
@@ -370,8 +370,7 @@ object CliRunner {
                     "Failed to load symbol table from --dependency-classpath")
                   .notOk
               case Some(symtab) =>
-                val db = EagerInMemorySemanticdbIndex(
-                  index,
+                val db = LegacyInMemorySemanticdbIndex.load(
                   classpath,
                   symtab
                 )

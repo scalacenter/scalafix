@@ -6,13 +6,14 @@ import scala.meta.inputs._
 import scala.meta.internal.inputs._
 
 final case class Document(
-  input: Input,
-  language: String,
-  names: List[ResolvedName],
-  messages: List[Message],
-  symbols: List[ResolvedSymbol],
-  synthetics: List[Synthetic]
+    input: Input,
+    language: String,
+    names: List[ResolvedName],
+    messages: List[Message],
+    symbols: List[ResolvedSymbol],
+    synthetics: List[Synthetic]
 ) {
+  
   def syntax: String = {
     val lines = scala.collection.mutable.ListBuffer[String]()
     def appendSection(name: String, section: Seq[String]): Unit = {

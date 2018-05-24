@@ -314,4 +314,3 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
   }
 
 }
-

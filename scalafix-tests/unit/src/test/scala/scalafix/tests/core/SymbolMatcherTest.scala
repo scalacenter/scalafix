@@ -9,7 +9,6 @@ class SymbolMatcherTest extends BaseSemanticTest("SymbolMatcherTest") {
   ignore("matches/unapply") {
     val symbolMatcher =
       SymbolMatcher.exact(Symbol("_root_.test.SymbolMatcherTest."))
-    val source = doc.input.parse[Source].get
     val assertions = source.collect {
       case symbolMatcher(t @ Name(_)) =>
         assert(t.is[Term.Name])

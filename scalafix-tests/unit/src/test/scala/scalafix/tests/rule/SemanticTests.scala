@@ -27,15 +27,6 @@ object SemanticTests {
       RuleCompiler.defaultClasspathPaths.filter(path =>
         path.toNIO.getFileName.toString.contains("scala-library"))
   )
-  def index: SemanticdbIndex = EagerInMemorySemanticdbIndex(
-    Database.load(
-      classpath
-    ),
-    classpath,
-    ClasspathOps.newSymbolTable(defaultClasspath).getOrElse {
-      sys.error("Failed to load symbol table")
-    }
-  )
   def classpath: Classpath = Classpath(
     List(
       AbsolutePath(BuildInfo.semanticClasspath)

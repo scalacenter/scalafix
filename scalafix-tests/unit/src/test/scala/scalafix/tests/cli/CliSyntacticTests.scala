@@ -3,7 +3,6 @@ package scalafix.tests.cli
 import scala.collection.immutable.Seq
 import scalafix.cli._
 import scalafix.internal.rule._
-import scalafix.internal.util.Severity
 
 class CliSyntacticTests extends BaseCliTest {
 

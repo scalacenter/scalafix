@@ -6,7 +6,7 @@ import metaconfig.Configured
 import metaconfig.internal.ConfGet
 import scala.meta.internal.io.FileIO
 import scala.meta.internal.io.PathIO
-import scala.meta._
+import scalafix.v1
 import scala.meta._
 import scalafix.internal.util.SymbolTable
 import scalafix.internal.v1.Rules
@@ -17,7 +17,7 @@ import scalafix.internal.util.ClassloadRule
 
 case class RuleTest(
     filename: RelativePath,
-    run: () => Configured[(Rules, SemanticDoc)]
+    run: () => Configured[(Rules, v1.SemanticDoc)]
 )
 object RuleTest {
   val decoder = ScalafixReflectV1.decoder()
@@ -39,8 +39,8 @@ object RuleTest {
               rel.toString(),
               FileIO.slurp(dir.resolve(rel), StandardCharsets.UTF_8))
             val tree = input.parse[Source].get
-            val doc = Doc.fromTree(tree)
-            val sdoc = SemanticDoc.fromPath(doc, rel, classpath, symtab)
+            val doc = v1.Doc.fromTree(tree)
+            val sdoc = v1.SemanticDoc.fromPath(doc, rel, classpath, symtab)
             val comment = SemanticRuleSuite.findTestkitComment(tree.tokens)
             val syntax = comment.syntax.stripPrefix("/*").stripSuffix("*/")
             val conf = Conf.parseString(rel.toString(), syntax).get
@@ -61,5 +61,4 @@ object RuleTest {
         )
       }
   }
-
 }

@@ -20,11 +20,7 @@ import scalafix.v1.Sym
 import scalafix.v1.SemanticDoc
 import scalafix.v0._
 
-class DeprecatedSemanticdbIndex(val doc: SemanticDoc)
-    extends SemanticdbIndex
-    with SymbolTable {
-
-  // Unsupported methods
+trait CrashingSemanticdbIndex extends SemanticdbIndex {
   @deprecated(DeprecationMessage, "0.6.0")
   final override def classpath: Classpath =
     throw new UnsupportedOperationException
@@ -40,6 +36,11 @@ class DeprecatedSemanticdbIndex(val doc: SemanticDoc)
   @deprecated(DeprecationMessage, "0.6.0")
   final override def withDocuments(documents: Seq[Document]): SemanticdbIndex =
     throw new UnsupportedOperationException
+}
+
+class DeprecatedSemanticdbIndex(val doc: SemanticDoc)
+    extends CrashingSemanticdbIndex
+    with SymbolTable {
 
   @deprecated(DeprecationMessage, "0.6.0")
   final override def synthetics: Seq[Synthetic] =

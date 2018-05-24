@@ -14,6 +14,9 @@ trait SemanticdbIndex extends SemanticContext {
   /** The underlying raw database. */
   def database: Database
 
+  /** Get all Input for this index. */
+  def inputs: Seq[Input] = documents.map(_.input)
+
   /** Shorthand for scala.meta.Database.documents */
   def documents: Seq[Document] = database.documents
 
@@ -65,4 +68,10 @@ trait SemanticdbIndex extends SemanticContext {
 object SemanticdbIndex {
   val empty: SemanticdbIndex =
     EagerInMemorySemanticdbIndex(Database(Nil), Classpath(Nil))
+
+  @deprecated(
+    "Use scalafix.internal.v0.LegacyInMemorySemanticdbIndex from scalafix-reflect instead",
+    "0.6.0")
+  def load(classpath: Classpath): SemanticdbIndex =
+    throw new UnsupportedOperationException
 }
