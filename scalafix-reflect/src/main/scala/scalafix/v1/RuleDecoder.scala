@@ -77,7 +77,7 @@ object RuleDecoder {
       val fn: SemanticdbIndex => v0.Rule = { index =>
         val ctor = cls.getDeclaredConstructor(classOf[SemanticdbIndex])
         ctor.setAccessible(true)
-        ctor.newInstance(SemanticdbIndex.empty).asInstanceOf[v0.Rule]
+        ctor.newInstance(index).asInstanceOf[v0.Rule]
       }
       new LegacySemanticRule(fn(SemanticdbIndex.empty).name, fn)
     } else if (legacyRuleClass.isAssignableFrom(cls)) {
