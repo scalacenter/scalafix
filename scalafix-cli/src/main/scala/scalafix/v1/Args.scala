@@ -48,8 +48,12 @@ case class Args(
     charset: Charset = StandardCharsets.UTF_8,
     stdout: Boolean = false,
     test: Boolean = false,
+    noSysExit: Boolean = false,
+    projectId: Option[String] = None,
     metacpCacheDir: List[AbsolutePath] = Nil,
     metacpParallel: Boolean = false,
+    noStrictSemanticdb: Boolean = false,
+    noParallel: Boolean = false,
     autoClasspath: Boolean = false,
     settings: Conf = Conf.Obj.empty,
     format: OutputFormat = OutputFormat.Default,
@@ -61,6 +65,7 @@ case class Args(
     @Description(
       "Automatically infer --classpath starting from these directories. " +
         "Ignored if --classpath is provided.")
+    @ExtraName("classpathAutoRoots")
     autoClasspathRoots: List[AbsolutePath] = Nil,
     @Description(
       "If set, only apply scalafix to added and edited files in git diff against master.")

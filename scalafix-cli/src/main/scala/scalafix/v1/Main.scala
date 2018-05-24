@@ -10,6 +10,7 @@ import metaconfig.Configured
 import scala.meta.io.AbsolutePath
 import scala.collection.mutable.ArrayBuffer
 import scala.meta.parsers.Parsed
+import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
 import scalafix.cli.ExitStatus
 import scalafix.internal.cli.CliParser
@@ -50,8 +51,17 @@ object Main {
       buf.result()
   }
 
+  class NonZeroExitCode(code: ExitStatus)
+      extends Exception(code.toString)
+      with NoStackTrace
+
   def main(args: Array[String]): Unit = {
-    run(args, AbsolutePath.workingDirectory.toNIO, System.out)
+    val exit = run(args, AbsolutePath.workingDirectory.toNIO, System.out)
+    if (!args.contains("--no-sys-exit")) {
+      sys.exit(exit.code)
+    } else if (!exit.isOk) {
+      throw new NonZeroExitCode(exit)
+    }
   }
 
   def handleException(ex: Throwable, out: PrintStream): Unit = {

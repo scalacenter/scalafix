@@ -214,11 +214,9 @@ object ScalafixPlugin extends AutoPlugin {
       extraOptions: Seq[String]): Def.Initialize[Task[Unit]] =
     Def.taskDyn {
       compile.value // trigger compilation
-      val classDir = classDirectory.value
-      val deps = dependencyClasspath.value
-        .map(_.data)
-        .mkString(java.io.File.pathSeparator)
-      val classpath = if (classDir.exists()) classDir.toString else ""
+      val scalafixClasspath =
+        classDirectory.value +:
+          dependencyClasspath.value.map(_.data)
       val sourcesToFix = for {
         source <- unmanagedSources.in(scalafix).value
         if source.exists()
@@ -226,9 +224,7 @@ object ScalafixPlugin extends AutoPlugin {
       } yield source
       val options: Seq[String] = List(
         "--classpath",
-        classpath,
-        "--dependency-classpath",
-        deps
+        scalafixClasspath.mkString(java.io.File.pathSeparator)
       ) ++ extraOptions
       scalafixTaskImpl(
         inputArgs,

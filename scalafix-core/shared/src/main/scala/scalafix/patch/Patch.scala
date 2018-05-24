@@ -216,7 +216,11 @@ object Patch {
       patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
       doc: SemanticDoc
   ): (String, List[LintMessage]) = {
-    apply(patchesByName, doc.doc.toRuleCtx, Some(doc.toSemanticdbIndex), suppress = false)
+    apply(
+      patchesByName,
+      doc.doc.toRuleCtx,
+      Some(doc.toSemanticdbIndex),
+      suppress = false)
   }
 
   def treePatchApply(patch: Patch)(

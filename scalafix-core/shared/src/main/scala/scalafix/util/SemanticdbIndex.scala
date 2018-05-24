@@ -22,7 +22,6 @@ trait SemanticdbIndex extends SemanticContext {
   /** Get all Input in this index. */
   def inputs: Seq[Input] = documents.map(_.input)
 
-
   /** Get all messages in this index. */
   def messages: Seq[Message] = database.messages
 
