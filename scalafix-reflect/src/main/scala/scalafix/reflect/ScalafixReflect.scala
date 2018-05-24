@@ -29,6 +29,7 @@ object ScalafixReflect {
         .orElse(baseRuleDecoders(index))
     )
 }
+
 object ScalafixReflectV1 {
 
   def readSingleRule(
@@ -52,41 +53,6 @@ object ScalafixReflectV1 {
               .map(p => scalafix.v1.SemanticRule.constant(replace, p))
         }
     }
-
-  private lazy val legacySemanticRuleClass = classOf[scalafix.rule.SemanticRule]
-  private lazy val legacyRuleClass = classOf[scalafix.rule.Rule]
-  def toRule(cls: Class[_]): v1.Rule = {
-    if (legacySemanticRuleClass.isAssignableFrom(cls)) {
-      val fn: SemanticdbIndex => Rule = { index =>
-        val ctor = cls.getDeclaredConstructor(classOf[SemanticdbIndex])
-        ctor.setAccessible(true)
-        ctor.newInstance(SemanticdbIndex.empty).asInstanceOf[scalafix.Rule]
-      }
-      new LegacySemanticRule(fn(SemanticdbIndex.empty).name, fn)
-    } else if (legacyRuleClass.isAssignableFrom(cls)) {
-      val ctor = cls.getDeclaredConstructor()
-      ctor.setAccessible(true)
-      new LegacySyntacticRule(ctor.newInstance().asInstanceOf[Rule])
-    } else {
-      val ctor = cls.getDeclaredConstructor()
-      ctor.setAccessible(true)
-      cls.newInstance().asInstanceOf[v1.Rule]
-    }
-  }
-
-  def tryClassload(classloader: ClassLoader, fqn: String): Option[v1.Rule] = {
-    try {
-      Some(toRule(classloader.loadClass(fqn)))
-    } catch {
-      case _: ClassNotFoundException | _: NoSuchMethodException =>
-        try {
-          Some(toRule(classloader.loadClass(fqn + "$")))
-        } catch {
-          case _: ClassNotFoundException =>
-            None
-        }
-    }
-  }
 
   def decoder(): ConfDecoder[Rules] =
     decoder(ScalafixConfig.default, ClassloadRule.defaultClassloader)
@@ -121,5 +87,42 @@ object ScalafixReflectV1 {
           ConfError.typeMismatch("Either[String, List[String]]", els).notOk
       }
     }
+
+  private lazy val legacySemanticRuleClass = classOf[scalafix.rule.SemanticRule]
+  private lazy val legacyRuleClass = classOf[scalafix.rule.Rule]
+  private def toRule(cls: Class[_]): v1.Rule = {
+    if (legacySemanticRuleClass.isAssignableFrom(cls)) {
+      val fn: SemanticdbIndex => Rule = { index =>
+        val ctor = cls.getDeclaredConstructor(classOf[SemanticdbIndex])
+        ctor.setAccessible(true)
+        ctor.newInstance(SemanticdbIndex.empty).asInstanceOf[scalafix.Rule]
+      }
+      new LegacySemanticRule(fn(SemanticdbIndex.empty).name, fn)
+    } else if (legacyRuleClass.isAssignableFrom(cls)) {
+      val ctor = cls.getDeclaredConstructor()
+      ctor.setAccessible(true)
+      new LegacySyntacticRule(ctor.newInstance().asInstanceOf[Rule])
+    } else {
+      val ctor = cls.getDeclaredConstructor()
+      ctor.setAccessible(true)
+      cls.newInstance().asInstanceOf[v1.Rule]
+    }
+  }
+
+  private def tryClassload(
+      classloader: ClassLoader,
+      fqn: String): Option[v1.Rule] = {
+    try {
+      Some(toRule(classloader.loadClass(fqn)))
+    } catch {
+      case _: ClassNotFoundException | _: NoSuchMethodException =>
+        try {
+          Some(toRule(classloader.loadClass(fqn + "$")))
+        } catch {
+          case _: ClassNotFoundException =>
+            None
+        }
+    }
+  }
 
 }
