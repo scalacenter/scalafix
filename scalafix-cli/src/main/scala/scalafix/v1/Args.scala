@@ -3,7 +3,6 @@ package scalafix.v1
 import java.io.File
 import java.io.PrintStream
 import java.net.URI
-import java.net.URLClassLoader
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
@@ -27,7 +26,6 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.jgit.JGitDiff
 import scalafix.internal.reflect.ClasspathOps
-import scalafix.internal.util.ClassloadRule
 import scalafix.internal.util.SymbolTable
 import scalafix.internal.v1.Rules
 
@@ -92,15 +90,6 @@ case class Args(
     }
   }
 
-  def getClassloader: ClassLoader =
-    if (toolClasspath.isEmpty) ClassloadRule.defaultClassloader
-    else {
-      new URLClassLoader(
-        toolClasspath.iterator.map(_.toURI.toURL).toArray,
-        ClassloadRule.defaultClassloader
-      )
-    }
-
   def baseConfig: Configured[(Conf, ScalafixConfig)] = {
     val toRead: Option[AbsolutePath] = config.orElse {
       val defaultPath = cwd.resolve(".scalafix.conf")
@@ -139,8 +128,12 @@ case class Args(
       } else {
         Conf.Lst(rules.map(Conf.fromString))
       }
-    val decoder =
-      RuleDecoder.decoder(scalafixConfig, getClassloader)
+    val decoderSettings = RuleDecoder
+      .Settings()
+      .withConfig(scalafixConfig)
+      .withToolClasspath(toolClasspath)
+      .withCwd(cwd)
+    val decoder = RuleDecoder.decoder(decoderSettings)
     decoder.read(rulesConf).andThen { rules =>
       if (rules.isEmpty) ConfError.message("No rules provided").notOk
       else rules.withConfig(base)

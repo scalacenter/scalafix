@@ -1,15 +1,14 @@
 package scalafix.tests.reflect
 
-import scalafix.internal.config.LazySemanticdbIndex
-import scalafix.internal.reflect.ScalafixCompilerDecoder
 import scalafix.internal.tests.utils.SkipWindows
-import scalafix.rule.Rule
+import scalafix.internal.v1.Rules
 import scalafix.tests.BuildInfo
 import metaconfig.Conf
 import metaconfig.ConfDecoder
 import scala.meta.io.AbsolutePath
 import scala.meta.io.RelativePath
 import org.scalatest.FunSuite
+import scalafix.v1.RuleDecoder
 
 class ScalafixReflectTests extends FunSuite {
   val cwd: AbsolutePath = AbsolutePath(BuildInfo.baseDirectory)
@@ -22,16 +21,16 @@ class ScalafixReflectTests extends FunSuite {
     .resolve("test")
   val relpath = RelativePath("NoDummy.scala")
   val abspath: AbsolutePath = cwd.resolve(relpath)
-  val decoder: ConfDecoder[Rule] = ScalafixCompilerDecoder.baseCompilerDecoder(
-    LazySemanticdbIndex(_ => None, cwd))
+  val decoderSettings = RuleDecoder.Settings().withCwd(cwd)
+  val decoder: ConfDecoder[Rules] = RuleDecoder.decoder(decoderSettings)
   val expectedName = "NoDummy"
   val expectedDescription = ""
   test("absolute path resolves as is", SkipWindows) {
-    val rule = decoder.read(Conf.Str(s"file:$abspath")).get
-    assert(expectedName == rule.name.value)
+    val rules = decoder.read(Conf.Str(s"file:$abspath")).get
+    assert(expectedName == rules.name.value)
   }
   test("relative resolves from custom working directory") {
-    val rule = decoder.read(Conf.Str(s"file:$relpath")).get
-    assert(expectedName == rule.name.value)
+    val rules = decoder.read(Conf.Str(s"file:$relpath")).get
+    assert(expectedName == rules.name.value)
   }
 }

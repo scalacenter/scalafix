@@ -46,8 +46,9 @@ object RuleTest {
             val conf = Conf.parseString(rel.toString(), syntax).get
             val config = conf.as[ScalafixConfig]
             config.andThen(scalafixConfig => {
-              val decoder = RuleDecoder
-                .decoder(scalafixConfig, ClassloadRule.defaultClassloader)
+              val decoderSettings =
+                RuleDecoder.Settings().withConfig(scalafixConfig)
+              val decoder = RuleDecoder.decoder(decoderSettings)
               val rulesConf =
                 ConfGet
                   .getKey(conf, "rules" :: "rule" :: Nil)

@@ -1,6 +1,5 @@
 package scalafix.internal.config
 
-import scala.collection.immutable.Seq
 import scala.{meta => m}
 import metaconfig.Input
 import metaconfig.Position
@@ -12,7 +11,7 @@ import metaconfig.internal.ConfGet
 
 // TODO(olafur) contribute upstream to metaconfig.
 object MetaconfigPendingUpstream {
-  def traverse[T](lst: List[Configured[T]]): Configured[List[T]] = {
+  def traverse[T](lst: Seq[Configured[T]]): Configured[List[T]] = {
     val buf = List.newBuilder[T]
     var err = List.newBuilder[ConfError]
     lst.foreach {
@@ -58,8 +57,14 @@ object MetaconfigPendingUpstream {
     def getField[T: ConfDecoder](e: sourcecode.Text[T]): Configured[T] =
       conf.getOrElse(e.source)(e.value)
   }
-  implicit class XtensionConfiguredScalafix(`_`: Configured.type) {
+  implicit class XtensionConfiguredCompanionScalafix(`_`: Configured.type) {
     def fromEither[T](either: Either[String, T]): Configured[T] =
       either.fold(ConfError.message(_).notOk, Configured.ok)
+  }
+  implicit class XtensionConfiguredScalafix[T](configured: Configured[T]) {
+    def foreach(f: T => Unit): Unit = configured match {
+      case Configured.Ok(value) => f(value)
+      case _ =>
+    }
   }
 }

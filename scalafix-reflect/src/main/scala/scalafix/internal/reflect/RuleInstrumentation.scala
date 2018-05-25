@@ -12,10 +12,19 @@ object RuleInstrumentation {
   def getRuleFqn(code: Input): Configured[Seq[String]] = {
     object ExtendsRule {
       def unapply(templ: Template): Boolean = templ match {
+
+        // v0
         case Template(_, init"Rewrite" :: _, _, _) => true
         case Template(_, init"Rule($_)" :: _, _, _) => true
         case Template(_, init"SemanticRewrite($_)" :: _, _, _) => true
         case Template(_, init"SemanticRule($_, $_)" :: _, _, _) => true
+
+        // v1
+        case Template(_, init"SemanticRule($_)" :: _, _, _) => true
+        case Template(_, init"v1.SemanticRule($_)" :: _, _, _) => true
+        case Template(_, init"SyntacticRule($_)" :: _, _, _) => true
+        case Template(_, init"v1.SyntacticRule($_)" :: _, _, _) => true
+
         case _ => false
       }
     }
@@ -42,11 +51,7 @@ object RuleInstrumentation {
             stats.foreach(s => loop(prefix :+ ref.syntax, s))
           case Defn.Object(_, name, ExtendsRule()) =>
             add(prefix :+ name.syntax)
-          case Defn.Object(_, name, _) =>
-            tree.children.foreach(s => loop(prefix :+ name.syntax, s))
           case Defn.Class(_, name, _, _, ExtendsRule()) =>
-            add(prefix :+ name.syntax)
-          case Defn.Val(_, Pat.Var(name) :: Nil, _, LambdaRule()) =>
             add(prefix :+ name.syntax)
           case _ =>
             tree.children.foreach(s => loop(prefix, s))

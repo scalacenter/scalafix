@@ -10,6 +10,7 @@ import scalafix.internal.rule._
 import scalafix.internal.util.SuppressOps
 import scalafix.lint.LintMessage
 import scalafix.patch.Patch
+import scalafix.rule.RuleName
 import scalafix.rule.ScalafixRules
 import scalafix.util.SemanticdbIndex
 import scalafix.v1.Doc
@@ -19,6 +20,8 @@ import scalafix.v1.SemanticRule
 import scalafix.v1.SyntacticRule
 
 case class Rules(rules: List[Rule] = Nil) {
+
+  def name: RuleName = RuleName(rules.flatMap(_.name.identifiers))
   def isEmpty: Boolean = rules.isEmpty
   def isSemantic: Boolean = semanticRules.nonEmpty
   def withConfig(conf: Conf): Configured[Rules] =

@@ -3,11 +3,9 @@ package rule
 
 import scala.meta._
 import scalafix.internal.config.MetaconfigPendingUpstream
-import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.internal.config.ScalafixConfig
 import scalafix.syntax._
 import metaconfig.Conf
-import metaconfig.ConfDecoder
 import metaconfig.Configured
 
 /** A Scalafix Rule.
@@ -146,9 +144,6 @@ object Rule {
         }
         .getOrElse(None)
   }
-  val syntaxRuleConfDecoder: ConfDecoder[Rule] =
-    ScalafixMetaconfigReaders.ruleConfDecoderSyntactic(
-      ScalafixMetaconfigReaders.baseSyntacticRuleDecoder)
   lazy val empty: Rule = new Rule(RuleName.empty) {}
   def emptyConfigured: Configured[Rule] = Configured.Ok(empty)
   def emptyFromSemanticdbIndexOpt(index: Option[SemanticdbIndex]): Rule =

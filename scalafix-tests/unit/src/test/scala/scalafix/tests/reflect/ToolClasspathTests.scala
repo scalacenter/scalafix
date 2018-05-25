@@ -4,15 +4,13 @@ import java.io.File
 import java.nio.file.Files
 import scala.reflect.io.Directory
 import scala.reflect.io.PlainDirectory
-import scalafix.internal.config.LazySemanticdbIndex
-import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.internal.reflect.RuleCompiler
-import scalafix.internal.reflect.ScalafixCompilerDecoder
 import scalafix.internal.tests.utils.SkipWindows
 import metaconfig.Conf
 import scala.meta.io.AbsolutePath
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
+import scalafix.v1.RuleDecoder
 
 class ToolClasspathTests extends FunSuite with BeforeAndAfterAll {
   var scalafmtClasspath: List[AbsolutePath] = _
@@ -46,16 +44,15 @@ class ToolClasspathTests extends FunSuite with BeforeAndAfterAll {
       """.stripMargin
     val tmp = Files.createTempFile("scalafix", "FormatRule.scala")
     Files.write(tmp, scalafmtRewrite.getBytes)
-    val index =
-      new LazySemanticdbIndex(toolClasspath = scalafmtClasspath)
-    val decoder = ScalafixCompilerDecoder.baseCompilerDecoder(index)
+    val decoderSettings =
+      RuleDecoder.Settings().withToolClasspath(scalafmtClasspath)
+    val decoder = RuleDecoder.decoder(decoderSettings)
     val obtained = decoder.read(Conf.Str(s"file:$tmp")).get
     val expectedName = "FormatRule"
     assert(obtained.name.value == expectedName)
   }
 
   test("--tool-classpath is respected during classloading") {
-    // Couldn't figure out how to test this.
     val rewrite =
       """package custom
         |import scalafix._
@@ -66,9 +63,9 @@ class ToolClasspathTests extends FunSuite with BeforeAndAfterAll {
       RuleCompiler.defaultClasspath,
       new PlainDirectory(new Directory(tmp.toFile)))
     compiler.compile(metaconfig.Input.VirtualFile("CustomRule.scala", rewrite))
-    val index =
-      new LazySemanticdbIndex(toolClasspath = AbsolutePath(tmp) :: Nil)
-    val decoder = ScalafixMetaconfigReaders.classloadRuleDecoder(index)
+    val decoderSettings =
+      RuleDecoder.Settings().withToolClasspath(AbsolutePath(tmp) :: Nil)
+    val decoder = RuleDecoder.decoder(decoderSettings)
     val obtained = decoder.read(Conf.Str(s"class:custom.CustomRule")).get
     val expectedName = "CustomRule"
     assert(obtained.name.value == expectedName)

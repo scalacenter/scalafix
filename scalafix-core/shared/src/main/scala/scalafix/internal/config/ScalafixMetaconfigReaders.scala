@@ -10,11 +10,9 @@ import scala.util.Try
 import scala.util.matching.Regex
 import scalafix.patch.TreePatch._
 import scalafix.rule.ScalafixRules
-import scalafix.internal.util.ClassloadRule
 import java.io.OutputStream
 import java.io.PrintStream
 import java.net.URI
-import java.net.URLClassLoader
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 import scala.collection.immutable.Seq
@@ -26,7 +24,6 @@ import metaconfig.Configured
 import metaconfig.Configured.Ok
 import scalafix.internal.config.MetaconfigParser.{parser => hoconParser}
 import scalafix.internal.rule.ConfigRule
-import scalafix.patch.TreePatch
 
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
 // A collection of metaconfig.Reader instances that are shared across
@@ -142,23 +139,7 @@ trait ScalafixMetaconfigReaders {
       symbolGlobalReader.read(Conf.Str(to))
 
   def classloadRuleDecoder(index: LazySemanticdbIndex): ConfDecoder[Rule] =
-    ConfDecoder.instance[Rule] {
-      case UriRuleString("scala" | "class", fqn) =>
-        val classloader =
-          if (index.toolClasspath.isEmpty) ClassloadRule.defaultClassloader
-          else {
-            val urls =
-              index.toolClasspath.iterator.map(_.toURI.toURL).toArray
-            new URLClassLoader(urls, ClassloadRule.defaultClassloader)
-          }
-        ClassloadRule(fqn, classloadRule(index), classloader)
-      case UriRuleString("replace", replace @ SlashSeparated(from, to)) =>
-        requireSemanticSemanticdbIndex(index, replace) { m =>
-          parseReplaceSymbol(from, to)
-            .map(TreePatch.ReplaceSymbol.tupled)
-            .map(p => Rule.constant(replace, p, m))
-        }
-    }
+    throw new UnsupportedOperationException
 
   def baseSyntacticRuleDecoder: ConfDecoder[Rule] =
     baseRuleDecoders(LazySemanticdbIndex.empty)

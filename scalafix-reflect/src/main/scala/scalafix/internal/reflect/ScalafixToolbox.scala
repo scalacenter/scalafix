@@ -25,7 +25,9 @@ import scala.meta.io.AbsolutePath
 object ScalafixToolbox extends ScalafixToolbox
 class ScalafixToolbox {
   private val ruleCache =
-    new java.util.concurrent.ConcurrentHashMap[Input, Configured[Rule]]()
+    new java.util.concurrent.ConcurrentHashMap[
+      Input,
+      Configured[CompiledRules]]()
   private val compilerCache =
     new java.util.concurrent.ConcurrentHashMap[String, RuleCompiler]()
   private val newCompiler: function.Function[String, RuleCompiler] =
@@ -33,9 +35,13 @@ class ScalafixToolbox {
       override def apply(classpath: String) = new RuleCompiler(classpath)
     }
 
-  def getRule(code: Input, index: LazySemanticdbIndex): Configured[Rule] =
+  case class CompiledRules(classloader: ClassLoader, fqns: Seq[String])
+
+  def getRule(
+      code: Input,
+      toolClasspath: List[AbsolutePath]): Configured[CompiledRules] =
     ruleCache.getOrDefault(code, {
-      val uncached = getRuleUncached(code, index)
+      val uncached = getRuleUncached(code, toolClasspath)
       uncached match {
         case toCache @ Configured.Ok(_) =>
           ruleCache.put(code, toCache)
@@ -46,29 +52,17 @@ class ScalafixToolbox {
 
   def getRuleUncached(
       code: Input,
-      index: LazySemanticdbIndex): Configured[Rule] =
+      toolClasspath: List[AbsolutePath]): Configured[CompiledRules] =
     synchronized {
-      val cp = RuleCompiler.defaultClasspath + (
-        if (index.toolClasspath.isEmpty) ""
-        else {
-          File.pathSeparator +
-            index.toolClasspath.mkString(File.pathSeparator)
-        }
+      val cp = RuleCompiler.defaultClasspathPaths ++ toolClasspath
+      val compiler = compilerCache.computeIfAbsent(
+        cp.mkString(File.pathSeparator),
+        newCompiler
       )
-      val compiler = compilerCache.computeIfAbsent(cp, newCompiler)
       (
         compiler.compile(code) |@|
           RuleInstrumentation.getRuleFqn(code.toMeta)
-      ).andThen {
-        case (classloader, names) =>
-          names.foldLeft(Configured.ok(Rule.empty)) {
-            case (rule, fqn) =>
-              val args = classloadRule(index)
-              rule
-                .product(ClassloadRule(fqn, args, classloader))
-                .map { case (a, b) => a.merge(b) }
-          }
-      }
+      ).map(CompiledRules.tupled.apply)
     }
 }
 
