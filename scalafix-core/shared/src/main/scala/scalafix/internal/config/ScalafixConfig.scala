@@ -5,13 +5,12 @@ import java.io.OutputStream
 import java.io.PrintStream
 import scala.meta._
 import scala.meta.dialects.Scala212
-import scala.meta.parsers.Parse
 import metaconfig._
 import metaconfig.Input
 import metaconfig.generic.Surface
 
 case class ScalafixConfig(
-    parser: Parse[_ <: Tree] = Parse.parseSource,
+    parser: ParserConfig = ParserConfig(),
     debug: DebugConfig = DebugConfig(),
     groupImportsByPrefix: Boolean = true,
     fatalWarnings: Boolean = true,

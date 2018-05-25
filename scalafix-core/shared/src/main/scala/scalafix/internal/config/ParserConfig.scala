@@ -1,11 +1,11 @@
-package scalafix.v1
+package scalafix.internal.config
 
 import java.nio.file.FileSystems
 import java.nio.file.PathMatcher
 import metaconfig._
 import scala.meta.Dialect
 
-case class MetaParser(
+case class ParserConfig(
     trailingCommas: Boolean = true,
     inlineKeyword: Boolean = false
 ) {
@@ -22,11 +22,11 @@ case class MetaParser(
 
 }
 
-object MetaParser {
+object ParserConfig {
   val sbtMatcher: PathMatcher =
     FileSystems.getDefault.getPathMatcher("glob:*.sbt")
-  implicit val surface: generic.Surface[MetaParser] =
+  implicit val surface: generic.Surface[ParserConfig] =
     generic.deriveSurface
-  implicit val decoder: ConfDecoder[MetaParser] =
-    generic.deriveDecoder(MetaParser())
+  implicit val codec: ConfCodec[ParserConfig] =
+    generic.deriveCodec(ParserConfig())
 }

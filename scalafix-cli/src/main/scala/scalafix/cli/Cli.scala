@@ -195,7 +195,7 @@ object ScalafixRuleNames {
     CliRunner.fromOptions(options) match {
       case Ok(runner) => RunScalafix(runner)
       case NotOk(err) =>
-        PrintAndExit(err.toString(), ExitStatus.InvalidCommandLineOption)
+        PrintAndExit(err.toString(), ExitStatus.CommandLineError)
     }
   def main(args: Array[String]): Unit = {
     val exit = runMain(args.to[Seq], CommonOptions())
@@ -214,7 +214,7 @@ object ScalafixRuleNames {
     import CliCommand._
     OptionsParser.withHelp.detailedParse(args) match {
       case Left(err) =>
-        PrintAndExit(err, ExitStatus.InvalidCommandLineOption)
+        PrintAndExit(err, ExitStatus.CommandLineError)
       case Right((WithHelp(_, help @ true, _), _, _)) =>
         PrintAndExit(helpMessage, ExitStatus.Ok)
       case Right((WithHelp(usage @ true, _, _), _, _)) =>
@@ -260,7 +260,7 @@ object ScalafixRuleNames {
     // This one accummulates a lot of garbage, scalameta needs to get rid of it.
     PlatformTokenizerCache.megaCache.clear()
     if (commonOptions.cliArg.hasErrors) {
-      ExitStatus.merge(ExitStatus.InvalidCommandLineOption, result)
+      ExitStatus.merge(ExitStatus.CommandLineError, result)
     } else {
       result
     }

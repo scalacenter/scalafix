@@ -1,5 +1,6 @@
 package scalafix.v1
 
+import scala.language.higherKinds
 import java.io.File
 import java.io.PrintStream
 import java.net.URI
@@ -17,6 +18,8 @@ import metaconfig.annotation.ExtraName
 import metaconfig.generic.Surface
 import metaconfig.internal.ConfGet
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
+import pprint.TPrint
+import scala.annotation.StaticAnnotation
 import scala.meta.internal.io.PathIO
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
@@ -29,58 +32,106 @@ import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.util.SymbolTable
 import scalafix.internal.v1.Rules
 
+class Section(val name: String) extends StaticAnnotation
+
 case class Args(
-    cwd: AbsolutePath,
-    out: PrintStream,
+    @Section("Common options")
+    @Description(
+      "Scalafix rules to run, for example ExplicitResultTypes. " +
+        "The syntax for rules is documented in https://scalacenter.github.io/scalafix/docs/users/configuration#rules")
     @ExtraName("r")
     rules: List[String] = Nil,
-    config: Option[AbsolutePath] = None,
-    toolClasspath: List[AbsolutePath] = Nil,
-    classpath: Classpath = Classpath(Nil),
-    ls: Ls = Ls.Find,
-    sourceroot: Option[AbsolutePath] = None,
+    @Description("Files or directories (recursively visited) to fix.")
     @ExtraName("remainingArgs")
     files: List[AbsolutePath] = Nil,
-    exclude: List[PathMatcher] = Nil,
-    parser: MetaParser = MetaParser(),
-    charset: Charset = StandardCharsets.UTF_8,
-    stdout: Boolean = false,
+    @Description(
+      "File path to a .scalafix.conf configuration file. " +
+        "Defaults to .scalafix.conf in the current working directory, if any.")
+    config: Option[AbsolutePath] = None,
+    @Description(
+      "Check that all files have been fixed with scalafix, exiting with non-zero code on violations. " +
+        "Won't write to files.")
     test: Boolean = false,
-    noSysExit: Boolean = false,
-    projectId: Option[String] = None,
-    metacpCacheDir: List[AbsolutePath] = Nil,
-    metacpParallel: Boolean = false,
-    noStrictSemanticdb: Boolean = false,
-    noParallel: Boolean = false,
+    @Description("Print fixed output to stdout instead of writing in-place.")
+    stdout: Boolean = false,
+    @Description(
+      "If set, only apply scalafix to added and edited files in git diff against the master branch.")
+    diff: Boolean = false,
+    @Description(
+      "If set, only apply scalafix to added and edited files in git diff against a provided branch, commit or tag.")
+    diffBase: Option[String] = None,
+    @Description("Print out additional diagnostics while running scalafix.")
+    verbose: Boolean = false,
+    @Description("Print out this help message and exit")
+    @ExtraName("h")
+    help: Boolean = false,
+    @Description("Print out version number and exit")
+    @ExtraName("v")
+    version: Boolean = false,
+    @Section("Semantic options")
+    @Description(
+      "Full classpath of the files to fix, required for semantic rules. " +
+        "The source files that should be fixed must be compiled with semanticdb-scalac. " +
+        "Dependencies are required by rules like ExplicitResultTypes, but the dependencies do not " +
+        "need to be compiled with semanticdb-scalac."
+    )
+    classpath: Classpath = Classpath(Nil),
+    @Description("Absolute path passed to semanticdb with -P:semanticdb:sourceroot:<path>. " +
+      "Relative filenames persisted in the Semantic DB are absolutized by the " +
+      "sourceroot. Defaults to current working directory if not provided.")
+    sourceroot: Option[AbsolutePath] = None,
+    @Description(
+      "Global cache location to persist metacp artifacts produced by analyzing --dependency-classpath. " +
+        "The default location depends on the OS and is computed with https://github.com/soc/directories-jvm " +
+        "using the project name 'semanticdb'. " +
+        "On macOS the default cache directory is ~/Library/Caches/semanticdb. ")
+    metacpCacheDir: Option[AbsolutePath] = None,
+    @Description(
+      "If set, automatically infer the --classpath flag by scanning for directories with META-INF/semanticdb")
     autoClasspath: Boolean = false,
+    @Description("Additional directories to scan for --auto-classpath")
+    @ExtraName("classpathAutoRoots")
+    autoClasspathRoots: List[AbsolutePath] = Nil,
+    @Section("Less common options")
+    @Description(
+      "Unix-style glob for files to exclude from fixing. " +
+        "The glob syntax is defined by `nio.FileSystem.getPathMatcher`.")
+    exclude: List[PathMatcher] = Nil,
+    @Description(
+      "Additional classpath for compiling and classloading custom rules.")
+    toolClasspath: Classpath = Classpath(Nil),
+    @Description("The encoding to use for reading/writing files")
+    charset: Charset = StandardCharsets.UTF_8,
+    @Description("If set, throw exception in the end instead of System.exit")
+    noSysExit: Boolean = false,
+    @Description("Don't error on stale semanticdb files.")
+    noStaleSemanticdb: Boolean = false,
+    @Description("Custom settings to override .scalafix.conf")
     settings: Conf = Conf.Obj.empty,
+    @Description(
+      "The format for console output, if sbt prepends [error] prefix")
     format: OutputFormat = OutputFormat.Default,
+    @Description(
+      "Regex that is passed as first argument to fileToFix.replaceAll(outFrom, outTo)")
     outFrom: Option[String] = None,
+    @Description(
+      "Replacement string that is passed as second argument to fileToFix.replaceAll(outFrom, outTo)")
     outTo: Option[String] = None,
     @Description(
       "Write to files. In case of linter error adds a comment to suppress the error.")
     autoSuppressLinterErrors: Boolean = false,
-    @Description(
-      "Automatically infer --classpath starting from these directories. " +
-        "Ignored if --classpath is provided.")
-    @ExtraName("classpathAutoRoots")
-    autoClasspathRoots: List[AbsolutePath] = Nil,
-    @Description(
-      "If set, only apply scalafix to added and edited files in git diff against master.")
-    diff: Boolean = false,
-    @Description(
-      "If set, only apply scalafix to added and edited files in git diff against a provided branch, commit or tag. (defaults to master)")
-    diffBase: Option[String] = None,
-    @Description("Don't use fancy progress bar.")
-    nonInteractive: Boolean = false,
-    verbose: Boolean = false
+    @Description("The current working directory")
+    cwd: AbsolutePath,
+    @Hidden
+    out: PrintStream,
+    @Hidden
+    ls: Ls = Ls.Find
 ) {
 
   def configuredSymtab: Configured[SymbolTable] = {
     ClasspathOps.newSymbolTable(
       classpath = classpath,
       cacheDirectory = metacpCacheDir.headOption,
-      parallel = metacpParallel,
       out = out
     ) match {
       case Some(symtab) =>
@@ -131,13 +182,10 @@ case class Args(
     val decoderSettings = RuleDecoder
       .Settings()
       .withConfig(scalafixConfig)
-      .withToolClasspath(toolClasspath)
+      .withToolClasspath(toolClasspath.entries)
       .withCwd(cwd)
     val decoder = RuleDecoder.decoder(decoderSettings)
-    decoder.read(rulesConf).andThen { rules =>
-      if (rules.isEmpty) ConfError.message("No rules provided").notOk
-      else rules.withConfig(base)
-    }
+    decoder.read(rulesConf).andThen(_.withConfig(base))
   }
 
   def resolvedPathReplace: Configured[AbsolutePath => AbsolutePath] =
@@ -225,9 +273,8 @@ case class Args(
 object Args {
   val baseMatcher: PathMatcher =
     FileSystems.getDefault.getPathMatcher("glob:**.{scala,sbt}")
-  val default = new Args(PathIO.workingDirectory, System.out)
+  val default = new Args(cwd = PathIO.workingDirectory, out = System.out)
 
-  implicit val surface: Surface[Args] = generic.deriveSurface
   def decoder(cwd: AbsolutePath, out: PrintStream): ConfDecoder[Args] = {
     implicit val classpathDecoder: ConfDecoder[Classpath] =
       ConfDecoder.stringConfDecoder.map { cp =>
@@ -240,11 +287,10 @@ object Args {
       }
     implicit val absolutePathDecoder: ConfDecoder[AbsolutePath] =
       ConfDecoder.stringConfDecoder.map(AbsolutePath(_)(cwd))
-    generic.deriveDecoder(Args(cwd, out))
+    val base = new Args(cwd = cwd, out = out)
+    generic.deriveDecoder(base)
   }
 
-  implicit val confDecoder: ConfDecoder[Conf] = // TODO: upstream
-    ConfDecoder.instanceF[Conf](c => Configured.ok(c))
   implicit val charsetDecoder: ConfDecoder[Charset] =
     ConfDecoder.stringConfDecoder.map(name => Charset.forName(name))
   implicit val printStreamDecoder: ConfDecoder[PrintStream] =
@@ -252,6 +298,41 @@ object Args {
   implicit val pathMatcherDecoder: ConfDecoder[PathMatcher] =
     ConfDecoder.stringConfDecoder.map(glob =>
       FileSystems.getDefault.getPathMatcher("glob:" + glob))
+
+  implicit val confEncoder: ConfEncoder[Conf] =
+    ConfEncoder.ConfEncoder
+  implicit val pathEncoder: ConfEncoder[AbsolutePath] =
+    ConfEncoder.StringEncoder.contramap(_.toString())
+  implicit val classpathEncoder: ConfEncoder[Classpath] =
+    ConfEncoder.StringEncoder.contramap(_.toString())
+  implicit val charsetEncoder: ConfEncoder[Charset] =
+    ConfEncoder.StringEncoder.contramap(_.name())
+  implicit val printStreamEncoder: ConfEncoder[PrintStream] =
+    ConfEncoder.StringEncoder.contramap(_ => "<stdout>")
+  implicit val pathMatcherEncoder: ConfEncoder[PathMatcher] =
+    ConfEncoder.StringEncoder.contramap(_.toString)
+
+  implicit val argsEncoder: ConfEncoder[Args] = generic.deriveEncoder
+  implicit val absolutePathPrint: TPrint[AbsolutePath] =
+    TPrint.make[AbsolutePath](_ => "<path>")
+  implicit val pathMatcherPrint: TPrint[PathMatcher] =
+    TPrint.make[PathMatcher](_ => "<glob>")
+  implicit val confPrint: TPrint[Conf] =
+    TPrint.make[Conf](implicit cfg => TPrint.implicitly[ScalafixConfig].render)
+  implicit val outputFormat: TPrint[OutputFormat] =
+    TPrint.make[OutputFormat](implicit cfg =>
+      OutputFormat.all.map(_.toString.toLowerCase).mkString("<", "|", ">"))
+  implicit def optionPrint[T](
+      implicit ev: pprint.TPrint[T]): TPrint[Option[T]] =
+    TPrint.make { implicit cfg =>
+      ev.render
+    }
+  implicit def iterablePrint[C[x] <: Iterable[x], T](
+      implicit ev: pprint.TPrint[T]): TPrint[C[T]] =
+    TPrint.make { implicit cfg =>
+      s"[${ev.render} ...]"
+    }
+  implicit val argsSurface: Surface[Args] = generic.deriveSurface
 }
 
 case class ScalafixFileConfig(rules: Conf, other: Conf)

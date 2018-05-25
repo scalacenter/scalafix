@@ -1,7 +1,7 @@
 package scalafix.internal.config
 
+import metaconfig.ConfEncoder
 import metaconfig.{Conf, ConfDecoder, Configured}
-
 import scalafix.internal.config.MetaconfigPendingUpstream._
 
 sealed abstract class OutputFormat
@@ -19,6 +19,8 @@ object OutputFormat {
     all.find(_.toString.equalsIgnoreCase(arg))
   case object Default extends OutputFormat
   case object Sbt extends OutputFormat
+  implicit val encoder: ConfEncoder[OutputFormat] =
+    ConfEncoder.StringEncoder.contramap[OutputFormat](_.toString.toLowerCase)
   implicit val decoder: ConfDecoder[OutputFormat] =
     ConfDecoder.instance[OutputFormat] {
       case Conf.Str(str) => Configured.fromEither(OutputFormat(str))

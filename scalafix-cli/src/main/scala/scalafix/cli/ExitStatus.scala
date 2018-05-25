@@ -27,10 +27,10 @@ object ExitStatus {
       UnexpectedError,
       ParseError,
       ScalafixError,
-      InvalidCommandLineOption,
-      MissingSemanticDB,
-      StaleSemanticDB,
-      TestFailed,
+      CommandLineError,
+      MissingSemanticdbError,
+      StaleSemanticdbError,
+      TestError,
       LinterError,
       NoFilesError
     : ExitStatus = generateExitStatus

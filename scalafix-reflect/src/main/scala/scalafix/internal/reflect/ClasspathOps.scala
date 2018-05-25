@@ -23,7 +23,7 @@ object ClasspathOps {
   def toMetaClasspath(
       sclasspath: Classpath,
       cacheDirectory: Option[AbsolutePath] = None,
-      parallel: Boolean = true,
+      parallel: Boolean = false,
       out: PrintStream = devNull): Option[Classpath] = {
     val (processed, toProcess) = sclasspath.entries.partition { path =>
       path.isDirectory &&
@@ -48,7 +48,7 @@ object ClasspathOps {
   def newSymbolTable(
       classpath: Classpath,
       cacheDirectory: Option[AbsolutePath] = None,
-      parallel: Boolean = true,
+      parallel: Boolean = false,
       out: PrintStream = System.out): Option[SymbolTable] = {
     toMetaClasspath(classpath, cacheDirectory, parallel, out)
       .map(new LazySymbolTable(_))

@@ -150,12 +150,6 @@ object ScalafixPlugin extends AutoPlugin {
       val baseDir = baseDirectory.in(ThisBuild).value
       val sbtDir: File = baseDir./("project")
       val sbtFiles = baseDir.*("*.sbt").get
-      val options =
-        "--no-strict-semanticdb" ::
-          "--classpath-auto-roots" ::
-          baseDir./("target").getAbsolutePath ::
-          sbtDir.getAbsolutePath ::
-          Nil ++ extraOptions
       scalafixTaskImpl(
         scalafixParserCompat.parsed,
         compat,
@@ -284,16 +278,7 @@ object ScalafixPlugin extends AutoPlugin {
           streams.log.info(s"Running scalafix on ${files.size} Scala sources")
         }
 
-        args += (
-          "--project-id",
-          projectId,
-          "--no-sys-exit",
-          "--non-interactive"
-        )
-
-        if (!scalafixParallel.value) {
-          args += "--no-parallel"
-        }
+        args += "--no-sys-exit"
 
         args ++= files.iterator.map(_.getAbsolutePath)
 

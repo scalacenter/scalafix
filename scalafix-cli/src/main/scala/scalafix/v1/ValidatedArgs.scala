@@ -37,7 +37,7 @@ case class ValidatedArgs(
 
   def parse(input: Input): Parsed[Source] = {
     import scala.meta._
-    val dialect = parser.dialectForFile(input.syntax)
+    val dialect = config.parser.dialectForFile(input.syntax)
     dialect(input).parse[Source]
   }
 

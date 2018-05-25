@@ -130,6 +130,13 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
     )
   }
 
+  def slurp(path: AbsolutePath): String =
+    FileIO.slurp(path, StandardCharsets.UTF_8)
+  def slurpInput(path: RelativePath): String =
+    slurp(AbsolutePath(BuildInfo.inputSourceroot.toPath).resolve(path))
+  def slurpOutput(path: RelativePath): String =
+    slurp(AbsolutePath(BuildInfo.outputSourceroot.toPath).resolve(path))
+
   case class Result(
       exit: ExitStatus,
       original: String,
@@ -139,6 +146,7 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
       name: String,
       args: Seq[String],
       expectedExit: ExitStatus,
+      preprocess: AbsolutePath => Unit = _ => (),
       outputAssert: String => Unit = _ => (),
       rule: String = RemoveUnusedImports.toString(),
       path: RelativePath = removeImportsPath,
@@ -158,6 +166,7 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
       ops.cp(ops.Path(BuildInfo.inputSourceroot.toPath), root)
       val rootNIO = root.toNIO
       writeTestkitConfiguration(rootNIO, rootNIO.resolve(path.toNIO))
+      preprocess(AbsolutePath(rootNIO))
       val exit = Main.run(
         args ++ Seq(
           "-r",
@@ -167,25 +176,22 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
         root.toNIO,
         new PrintStream(out)
       )
-      val original = FileIO.slurp(
-        AbsolutePath(BuildInfo.inputSourceroot).resolve(path),
-        StandardCharsets.UTF_8)
+      val original = slurpInput(path)
       val obtained = {
         val fixed =
           FileIO.slurp(
             AbsolutePath(root.toNIO).resolve(path),
             StandardCharsets.UTF_8)
-        if (fileIsFixed) SemanticRuleSuite.stripTestkitComments(fixed)
-        else fixed
+        if (fileIsFixed && fixed.startsWith("/*")) {
+          SemanticRuleSuite.stripTestkitComments(fixed)
+        } else {
+          fixed
+        }
+
       }
       val expected =
-        if (fileIsFixed) {
-          FileIO.slurp(
-            AbsolutePath(BuildInfo.outputSourceroot).resolve(path),
-            StandardCharsets.UTF_8)
-        } else {
-          original
-        }
+        if (fileIsFixed) slurpOutput(path)
+        else original
       val output = fansi.Str(out.toString()).plainText
       assert(exit == expectedExit, output)
       outputAssert(output)

@@ -134,7 +134,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     val fs = new Fs()
     addConf(fs)
     val cli = new Cli(fs.workingDirectory)
-    val obtained = runDiff(cli, ExitStatus.InvalidCommandLineOption)
+    val obtained = runDiff(cli, ExitStatus.CommandLineError)
     val expected = s"error: ${fs.workingDirectory} is not a git repository"
 
     assert(obtained.startsWith(expected))
@@ -201,21 +201,15 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     git.commit()
 
     val nonExistingHash = "a777777777777777777777777777777777777777"
-    val obtained = runDiff(
-      cli,
-      ExitStatus.InvalidCommandLineOption,
-      "--diff-base",
-      nonExistingHash)
+    val obtained =
+      runDiff(cli, ExitStatus.CommandLineError, "--diff-base", nonExistingHash)
     val expected =
       s"error: '$nonExistingHash' unknown revision or path not in the working tree."
     assert(obtained.startsWith(expected))
 
     val wrongHashFormat = "a777"
-    val obtained2 = runDiff(
-      cli,
-      ExitStatus.InvalidCommandLineOption,
-      "--diff-base",
-      wrongHashFormat)
+    val obtained2 =
+      runDiff(cli, ExitStatus.CommandLineError, "--diff-base", wrongHashFormat)
     val expected2 =
       s"error: '$wrongHashFormat' unknown revision or path not in the working tree."
     assert(obtained2.startsWith(expected2))

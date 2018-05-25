@@ -6,17 +6,25 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
+import metaconfig.Conf
+import metaconfig.ConfEncoder
 import metaconfig.Configured
+import metaconfig.annotation.Inline
+import metaconfig.generic.Setting
+import metaconfig.generic.Settings
+import metaconfig.internal.Case
 import scala.meta.io.AbsolutePath
 import scala.collection.mutable.ArrayBuffer
 import scala.meta.parsers.Parsed
 import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
+import scalafix.Versions
 import scalafix.cli.ExitStatus
-import scalafix.internal.cli.CliParser
 import scalafix.internal.cli.WriteMode
 import scalafix.internal.config.ScalafixReporter
 import scalafix.lint.LintMessage
+import org.typelevel.paiges.{Doc => D}
+import scalafix.diff.DiffUtils
 
 object Main {
 
@@ -51,8 +59,11 @@ object Main {
       buf.result()
   }
 
-  class NonZeroExitCode(code: ExitStatus)
+  final class NonZeroExitCode(code: ExitStatus)
       extends Exception(code.toString)
+      with NoStackTrace
+  final class StaleSemanticDB(val path: AbsolutePath, val diff: String)
+      extends Exception(s"Stale SemanticDB\n$diff")
       with NoStackTrace
 
   def main(args: Array[String]): Unit = {
@@ -119,7 +130,21 @@ object Main {
               args.classpath,
               args.symtab
             )
-            args.rules.semanticPatch(sdoc, args.args.autoSuppressLinterErrors)
+            val (fix, messages) =
+              args.rules.semanticPatch(sdoc, args.args.autoSuppressLinterErrors)
+            val isStaleSemanticDB = input.text != sdoc.sdoc.text
+            val fixDoesNotMatchInput = input.text != fix
+            if (isStaleSemanticDB && fixDoesNotMatchInput) {
+              val diff = DiffUtils.unifiedDiff(
+                file.toString() + "-ondisk",
+                file.toString() + "-semanticdb",
+                input.text.lines.toList,
+                sdoc.sdoc.text.lines.toList,
+                3
+              )
+              throw new StaleSemanticDB(file, diff)
+            }
+            (fix, messages)
           } else {
             args.rules.syntacticPatch(doc, args.args.autoSuppressLinterErrors)
           }
@@ -130,7 +155,7 @@ object Main {
         args.mode match {
           case WriteMode.Test =>
             if (fixed == input.text) ExitStatus.Ok
-            else ExitStatus.TestFailed
+            else ExitStatus.TestError
           case WriteMode.Stdout =>
             args.args.out.println(fixed)
             ExitStatus.Ok
@@ -150,7 +175,13 @@ object Main {
     catch {
       case e: SemanticDoc.Error.MissingSemanticdb =>
         args.config.reporter.error(e.getMessage)
-        ExitStatus.MissingSemanticDB
+        ExitStatus.MissingSemanticdbError
+      case e: StaleSemanticDB =>
+        if (args.args.noStaleSemanticdb) ExitStatus.Ok
+        else {
+          args.config.reporter.error(e.getMessage)
+          ExitStatus.StaleSemanticdbError
+        }
       case NonFatal(e) =>
         handleException(e, args.args.out)
         ExitStatus.UnexpectedError
@@ -167,17 +198,98 @@ object Main {
     adjustExitCode(args, exit, files)
   }
 
-  def run(args: Seq[String], cwd: Path, out: PrintStream): ExitStatus =
-    CliParser
-      .parseArgs[Args](args.toList)
-      .andThen { c =>
-        c.as[Args](Args.decoder(AbsolutePath(cwd), out))
+  def version =
+    s"Scalafix ${Versions.version}"
+  def usage =
+    """|Usage: scalafix [options] [<path> ...]
+       |""".stripMargin
+  def description =
+    D.paragraph(
+      """|Scalafix is a refactoring and linting tool.
+         |Scalafix supports both syntactic and semantic linter and rewrite rules.
+         |Syntactic rules can run on source code without compilation.
+         |Semantic rules can run on source code that has been compiled with the
+         |SemanticDB compiler plugin.
+         |""".stripMargin
+    )
+
+  def options(width: Int): String = {
+    val sb = new StringBuilder()
+    val settings = Settings[Args]
+    val default = ConfEncoder[Args].writeObj(Args.default)
+    def printOption(setting: Setting, value: Conf): Unit = {
+      if (setting.annotations.exists(_.isInstanceOf[Hidden])) return
+      setting.annotations.foreach {
+        case section: Section =>
+          sb.append("\n")
+            .append(section.name)
+            .append(":\n")
+        case _ =>
       }
+      val name = Case.camelToKebab(setting.name)
+      sb.append("\n")
+        .append("  --")
+        .append(name)
+      setting.extraNames.foreach { name =>
+        if (name.length == 1) {
+          sb.append(" | -")
+            .append(Case.camelToKebab(name))
+        }
+      }
+      if (!setting.isBoolean) {
+        sb.append(" ")
+          .append(setting.tpe)
+          .append(" (default: ")
+          .append(value.toString())
+          .append(")")
+      }
+      sb.append("\n")
+      setting.description.foreach { description =>
+        sb.append("    ")
+          .append(D.paragraph(description).nested(4).render(width))
+          .append('\n')
+      }
+    }
+
+    settings.settings.zip(default.values).foreach {
+      case (setting, (_, value)) =>
+        if (setting.annotations.exists(_.isInstanceOf[Inline])) {
+          for {
+            underlying <- setting.underlying.toList
+            (field, (_, fieldDefault)) <- underlying.settings.zip(
+              value.asInstanceOf[Conf.Obj].values)
+          } {
+            printOption(field, fieldDefault)
+          }
+        } else {
+          printOption(setting, value)
+        }
+    }
+    sb.toString()
+  }
+
+  def helpMessage(out: PrintStream, width: Int): Unit = {
+    out.println(version)
+    out.println(usage)
+    out.println(description.render(width))
+    out.println(options(width))
+  }
+
+  def run(args: Seq[String], cwd: Path, out: PrintStream): ExitStatus =
+    Conf
+      .parseCliArgs[Args](args.toList)
+      .andThen(c => c.as[Args](Args.decoder(AbsolutePath(cwd), out)))
       .andThen(_.validate) match {
       case Configured.Ok(validated) =>
-        if (validated.rules.isEmpty) {
+        if (validated.args.help) {
+          helpMessage(out, 80)
+          ExitStatus.Ok
+        } else if (validated.args.version) {
+          out.println(Versions.version)
+          ExitStatus.Ok
+        } else if (validated.rules.isEmpty) {
           out.println("Missing --rules")
-          ExitStatus.InvalidCommandLineOption
+          ExitStatus.CommandLineError
         } else {
           val adjusted = validated.copy(
             args = validated.args.copy(
@@ -189,6 +301,6 @@ object Main {
         }
       case Configured.NotOk(err) =>
         ScalafixReporter.default.copy(outStream = out).error(err.toString())
-        ExitStatus.InvalidCommandLineOption
+        ExitStatus.CommandLineError
     }
 }

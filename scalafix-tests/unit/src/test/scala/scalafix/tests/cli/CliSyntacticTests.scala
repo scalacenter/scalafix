@@ -7,6 +7,19 @@ import scalafix.internal.rule._
 class CliSyntacticTests extends BaseCliTest {
 
   check(
+    name = "--help",
+    originalLayout = "",
+    args = Seq("--help"),
+    expectedLayout = "",
+    expectedExit = ExitStatus.Ok,
+    outputAssert = { out =>
+      println(out)
+      assert(out.startsWith("Scalafix"))
+      assert(out.contains("--rules"))
+    }
+  )
+
+  check(
     name = "fix file",
     originalLayout = s"""/hello.scala
                         |$original
@@ -41,7 +54,7 @@ class CliSyntacticTests extends BaseCliTest {
     originalLayout = s"/foobar.scala\n",
     args = Seq("unknown-file.scala"),
     expectedLayout = "/foobar.scala",
-    expectedExit = ExitStatus.InvalidCommandLineOption
+    expectedExit = ExitStatus.CommandLineError
   )
 
   check(
@@ -49,7 +62,7 @@ class CliSyntacticTests extends BaseCliTest {
     originalLayout = s"/foobar.scala\n",
     args = Seq("foobar.scala"),
     expectedLayout = "/foobar.scala",
-    expectedExit = ExitStatus.InvalidCommandLineOption
+    expectedExit = ExitStatus.CommandLineError
   )
 
   check(
@@ -59,7 +72,7 @@ class CliSyntacticTests extends BaseCliTest {
     args = Seq("--test", "-r", ProcedureSyntax.toString, "foobar.scala"),
     expectedLayout = s"""/foobar.scala
                         |$original""".stripMargin,
-    expectedExit = ExitStatus.TestFailed
+    expectedExit = ExitStatus.TestError
   )
 
   check(

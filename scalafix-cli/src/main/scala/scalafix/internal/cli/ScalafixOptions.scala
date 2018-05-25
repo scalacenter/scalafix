@@ -186,7 +186,7 @@ case class ScalafixOptions(
   def parallel: Boolean = !noParallel
   def classpathRoots: List[AbsolutePath] =
     classpathAutoRoots.fold(List(common.workingPath))(cp =>
-      Classpath(cp).shallow)
+      Classpath(cp).entries)
   def projectIdPrefix: String = projectId.fold("")(id => s"[$id] ")
   lazy val diagnostic: ScalafixReporter =
     ScalafixReporter.default.copy(

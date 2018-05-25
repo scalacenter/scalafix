@@ -140,7 +140,7 @@ sealed abstract case class CliRunner(
             Patch.unifiedDiff(input.semanticFile.get, input.original)
           common.err.println(diff)
         }
-        ExitStatus.StaleSemanticDB
+        ExitStatus.StaleSemanticdbError
       }
     }
 
@@ -183,7 +183,7 @@ sealed abstract case class CliRunner(
                   )
                 )
               common.out.println(diff)
-              ExitStatus.TestFailed
+              ExitStatus.TestError
             }
           case WriteMode.WriteFile =>
             val (fixed, messages) = rule.applyAndLint(ctx)
