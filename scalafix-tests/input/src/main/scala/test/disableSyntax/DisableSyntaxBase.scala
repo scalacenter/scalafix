@@ -37,9 +37,17 @@ case object DisableSyntaxBase {
   def foo: Unit = return    // assert: DisableSyntax.keywords.return
   throw new Exception("ok") // assert: DisableSyntax.keywords.throw
 
-  "semicolon";              // assert: DisableSyntax.noSemicolons
-  <a>xml</a>                // assert: DisableSyntax.noXml
-	                          // assert: DisableSyntax.noTabs
+  "semicolon"; /* assert: DisableSyntax.noSemicolons
+             ^
+  semicolons are disabled */
+
+  <a>xml</a>   /* assert: DisableSyntax.noXml
+  ^
+  xml literals are disabled */
+
+	             /* assert: DisableSyntax.noTabs
+^
+  tabs are disabled */
 
   implicit class StringPimp(value: String) { // assert: DisableSyntax.offensive
     def -(other: String): String = s"$value - $other"

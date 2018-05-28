@@ -46,11 +46,15 @@ final case class DisableSyntax(
           .copy(id = s"keywords.$keyword")
           .at(s"$keyword is disabled", token.pos)
       case token @ Token.Semicolon() if config.noSemicolons =>
-        error("noSemicolons", token)
+        errorCategory
+          .copy(id = "noSemicolons")
+          .at("semicolons are disabled", token.pos)
       case token @ Token.Tab() if config.noTabs =>
-        error("noTabs", token)
+        errorCategory.copy(id = "noTabs").at("tabs are disabled", token.pos)
       case token @ Token.Xml.Start() if config.noXml =>
-        error("noXml", token)
+        errorCategory
+          .copy(id = "noXml")
+          .at("xml literals are disabled", token.pos)
     }
   }
 
@@ -197,9 +201,6 @@ final case class DisableSyntax(
       id = "noValPatterns",
       explain = "Pattern matching in val assignment can result in match error, " +
         "use \"_ match { ... }\" with a fallback case instead.")
-
-  private def error(keyword: String, token: Token): LintMessage =
-    errorCategory.copy(id = keyword).at(s"$keyword is disabled", token.pos)
 }
 
 object DisableSyntax {
