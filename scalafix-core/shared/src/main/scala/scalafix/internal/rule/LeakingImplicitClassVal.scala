@@ -22,7 +22,7 @@ case object LeakingImplicitClassVal extends Rule("LeakingImplicitClassVal") {
         val optPatch = for {
           anchorMod <- pMods.find(!_.is[Mod.Annot])
           if !pMods.exists(m => m.is[Mod.Private] || m.is[Mod.Protected])
-        } yield ctx.addLeft(anchorMod, "private ")
+        } yield ctx.addLeft(anchorMod, "private ").atomic
         optPatch.asPatch
 
     }.asPatch

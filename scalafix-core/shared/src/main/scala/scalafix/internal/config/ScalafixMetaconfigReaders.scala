@@ -156,7 +156,7 @@ trait ScalafixMetaconfigReaders {
         requireSemanticSemanticdbIndex(index, replace) { m =>
           parseReplaceSymbol(from, to)
             .map(TreePatch.ReplaceSymbol.tupled)
-            .map(p => Rule.constant(replace, p, m))
+            .map(p => Rule.constant(replace, p.atomic, m))
         }
     }
 
@@ -192,7 +192,7 @@ trait ScalafixMetaconfigReaders {
       (
         c.get[Symbol.Global]("from") |@|
           c.get[Symbol.Global]("to")
-      ).map { case (a, b) => ReplaceSymbol(a, b) }
+      ).map { case (a, b) => ReplaceSymbol(a, b).atomic }
     }
 
   def ruleConfDecoderSyntactic(

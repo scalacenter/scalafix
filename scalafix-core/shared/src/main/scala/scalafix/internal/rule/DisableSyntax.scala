@@ -176,19 +176,22 @@ final case class DisableSyntax(
 
   private def fixTree(ctx: RuleCtx): Patch = {
     ctx.tree.collect {
-      case t @ Defn.Val(mods, _, _, _)
+      case Defn.Val(mods, _, _, _)
           if config.noFinalVal &&
             mods.exists(_.is[Mod.Final]) =>
         val finalTokens =
           mods.find(_.is[Mod.Final]).map(_.tokens.toList).getOrElse(List.empty)
-        ctx.removeTokens(finalTokens) +
-          ctx.removeTokens(finalTokens.flatMap(ctx.tokenList.trailingSpaces))
+        ctx.removeTokens(finalTokens).atomic +
+          ctx
+            .removeTokens(finalTokens.flatMap(ctx.tokenList.trailingSpaces))
+            .atomic
     }.asPatch
   }
 
   override def fix(ctx: RuleCtx): Patch = {
     val lints =
-      (checkTree(ctx) ++ checkTokens(ctx) ++ checkRegex(ctx)).map(ctx.lint)
+      (checkTree(ctx) ++ checkTokens(ctx) ++ checkRegex(ctx))
+        .map(ctx.lint(_).atomic)
     fixTree(ctx) ++ lints
   }
 

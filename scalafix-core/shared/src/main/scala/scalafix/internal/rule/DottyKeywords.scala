@@ -14,8 +14,8 @@ case object DottyKeywords extends Rule("DottyKeywords") {
   override def fix(ctx: RuleCtx): Patch =
     ctx.tree.collect {
       case name @ Name("enum") =>
-        ctx.replaceTree(name, s"`enum`")
+        ctx.replaceTree(name, s"`enum`").atomic
       case name @ Name("inline") if !name.parents.exists(_.is[Mod.Annot]) =>
-        ctx.replaceTree(name, s"`inline`")
+        ctx.replaceTree(name, s"`inline`").atomic
     }.asPatch
 }

@@ -3,6 +3,7 @@ package testkit
 
 import scalafix.syntax._
 import scala.meta._
+
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
 import org.scalameta.logger
 import org.scalatest.BeforeAndAfterAll
@@ -106,6 +107,12 @@ abstract class SemanticRuleSuite(
                  |$tried""".stripMargin)
           }
         }
+
+      if (!Patch.isAllTokenPatchAtomic(patch))
+        sys.error(
+          s"One or more rules used by test ${diffTest.filename} emit non-atomic " +
+            "top level patches. To fix this, please use `.atomic` on individual or group " +
+            "of patches that need to be atomically applied.")
 
       val expectedLintMessages = CommentAssertion.extract(ctx.tokens)
       val diff = AssertDiff(obtainedLintMessages, expectedLintMessages)

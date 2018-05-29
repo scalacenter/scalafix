@@ -28,7 +28,7 @@ case object DottyVolatileLazyVal
   override def fix(ctx: RuleCtx): Patch = {
     ctx.tree.collect {
       case NonVolatileLazyVal(tok) =>
-        ctx.addLeft(tok, s"@volatile ")
+        ctx.addLeft(tok, s"@volatile ").atomic
     }.asPatch
   }
 }

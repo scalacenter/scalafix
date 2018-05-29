@@ -114,7 +114,7 @@ case object RemoveXmlLiterals extends Rule("RemoveXmlLiterals") {
         loop(ctx.tree)
       }
 
-      ctx.addLeft(nextToken, "import scala.xml.quote._\n")
+      ctx.addLeft(nextToken, "import scala.xml.quote._\n").atomic
     }
 
     val patch = ctx.tree.collect {
