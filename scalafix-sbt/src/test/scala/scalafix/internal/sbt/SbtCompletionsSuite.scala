@@ -100,30 +100,22 @@ class SbtCompletionsSuite extends FunSuite {
     val obtained = completions.map(_.display).toSet
     val expected = Set(
       "",
-      "--bash",
       "--classpath",
-      "--classpath-auto-roots",
       "--config",
-      "--config-str",
       "--diff",
       "--diff-base",
       "--exclude",
       "--help",
-      "--no-strict-semanticdb",
       "--non-interactive",
       "--out-from",
       "--out-to",
-      "--quiet-parse-errors",
       "--rules",
-      "--single-thread",
       "--sourceroot",
       "--stdout",
       "--test",
       "--tool-classpath",
-      "--usage",
       "--verbose",
-      "--version",
-      "--zsh"
+      "--version"
     )
 
     assert((expected -- obtained).isEmpty)
@@ -137,10 +129,6 @@ class SbtCompletionsSuite extends FunSuite {
     assert(appends.contains(":"))
   }
   check2("--classpath bar:", SkipWindows) { (appends, displays) =>
-    assert(displays.contains("foo"))
-    assert(appends.contains("foo"))
-  }
-  check2("--classpath-auto-roots" + space, SkipWindows) { (appends, displays) =>
     assert(displays.contains("foo"))
     assert(appends.contains("foo"))
   }
