@@ -2,7 +2,7 @@ package scalafix.internal.util
 
 import scala.meta._
 import scala.meta.Dialect
-import scalafix._
+import scalafix.v0._
 
 object DenotationOps {
   val defaultDialect: Dialect =

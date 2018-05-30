@@ -32,7 +32,7 @@ class ToolClasspathTests extends FunSuite with BeforeAndAfterAll {
     val scalafmtRewrite =
       """
         |import org.scalafmt._
-        |import scalafix._
+        |import scalafix.v0._
         |
         |object FormatRule extends Rule("FormatRule") {
         |  override def description: String = "FormatRuleDescription"
@@ -55,7 +55,7 @@ class ToolClasspathTests extends FunSuite with BeforeAndAfterAll {
   test("--tool-classpath is respected during classloading") {
     val rewrite =
       """package custom
-        |import scalafix._
+        |import scalafix.v0._
         |class CustomRule extends Rule("CustomRule")
       """.stripMargin
     val tmp = Files.createTempDirectory("scalafix")

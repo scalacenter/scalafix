@@ -1,7 +1,7 @@
 package scalafix.internal.rule
 
 import scala.meta._
-import scalafix._
+import scalafix.v0._
 import metaconfig.{Conf, Configured}
 import scalafix.lint.LintCategory
 import scalafix.lint.LintMessage

@@ -1,6 +1,6 @@
 package scalafix.internal.rule
 
-import scalafix._
+import scalafix.v0._
 import scalafix.internal.config._
 import scalafix.rule.Rule
 import metaconfig.ConfError

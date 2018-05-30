@@ -6,7 +6,7 @@ import scala.meta._
 import scala.meta.contrib.AssociatedComments
 import scala.meta.tokens.Tokens
 import scalafix.LintMessage
-import scalafix._
+import scalafix.v0._
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.patch.DeprecatedPatchOps

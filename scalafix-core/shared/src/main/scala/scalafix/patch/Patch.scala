@@ -33,7 +33,7 @@ import scalafix.v1.SemanticDoc
   * For example, `Rule.syntactic(ctx => ctx.addLeft(ctx.tree.tokens.head): Patch)`
   *
   * Patches can be composed with Patch.+ and Patch.++. A Seq[Patch] can be combined
-  * into a single patch with `Seq[Patch](...).asPatch` with `import scalafix._`.
+  * into a single patch with `Seq[Patch](...).asPatch` with `import scalafix.v0._`.
   *
   * Patches are split into low-level token patches and high-level tree patches.
   * A token patch works on scala.meta.Token and provides surgical precision over

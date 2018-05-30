@@ -1,6 +1,6 @@
 package scalafix.tests.core
 
-import scalafix._
+import scalafix.v0._
 import scala.meta._
 import scalafix.syntax._
 import scalafix.tests.BuildInfo

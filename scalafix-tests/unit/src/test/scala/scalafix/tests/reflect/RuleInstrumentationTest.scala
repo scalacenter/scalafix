@@ -18,7 +18,7 @@ class RuleInstrumentationTest extends FunSuite {
     "lenient dialect is supported",
     """
       |package a
-      |import scalafix._
+      |import scalafix.v0._
       |object MyRule extends Rule("MyRule") {
       |  List(
       |    1,

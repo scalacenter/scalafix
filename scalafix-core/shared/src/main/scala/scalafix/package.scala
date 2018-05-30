@@ -1,7 +1,7 @@
 package object scalafix extends scalafix.internal.util.ScalafixSyntax {
 
   private final val DeprecationMessage =
-    "import scalafix.v0._ instead of import scalafix._"
+    "import scalafix.v0._ instead of import scalafix.v0._"
 
   @deprecated(DeprecationMessage, "0.6.0")
   type SemanticdbIndex = scalafix.util.SemanticdbIndex
