@@ -1,6 +1,5 @@
 package scalafix.tests.cli
 
-import scala.collection.immutable.Seq
 import scalafix.cli._
 import scalafix.internal.rule._
 
@@ -9,7 +8,7 @@ class CliSyntacticTests extends BaseCliTest {
   check(
     name = "--help",
     originalLayout = "",
-    args = Seq("--help"),
+    args = Array("--help"),
     expectedLayout = "",
     expectedExit = ExitStatus.Ok,
     outputAssert = { out =>
@@ -24,7 +23,7 @@ class CliSyntacticTests extends BaseCliTest {
     originalLayout = s"""/hello.scala
                         |$original
                         |""".stripMargin,
-    args = Seq("-r", ProcedureSyntax.toString, "hello.scala"),
+    args = Array("-r", ProcedureSyntax.toString, "hello.scala"),
     expectedLayout = s"""/hello.scala
                         |$expected
                         |""".stripMargin,
@@ -37,7 +36,7 @@ class CliSyntacticTests extends BaseCliTest {
                          |$original
                          |/dir/b.scala
                          |$original""".stripMargin,
-    args = Seq(
+    args = Array(
       "-r",
       ProcedureSyntax.toString,
       "dir"
@@ -52,7 +51,7 @@ class CliSyntacticTests extends BaseCliTest {
   check(
     name = "file not found",
     originalLayout = s"/foobar.scala\n",
-    args = Seq("unknown-file.scala"),
+    args = Array("unknown-file.scala"),
     expectedLayout = "/foobar.scala",
     expectedExit = ExitStatus.CommandLineError
   )
@@ -60,7 +59,7 @@ class CliSyntacticTests extends BaseCliTest {
   check(
     name = "empty rule",
     originalLayout = s"/foobar.scala\n",
-    args = Seq("foobar.scala"),
+    args = Array("foobar.scala"),
     expectedLayout = "/foobar.scala",
     expectedExit = ExitStatus.CommandLineError
   )
@@ -69,7 +68,7 @@ class CliSyntacticTests extends BaseCliTest {
     name = "--test error",
     originalLayout = s"""/foobar.scala
                         |$original""".stripMargin,
-    args = Seq("--test", "-r", ProcedureSyntax.toString, "foobar.scala"),
+    args = Array("--test", "-r", ProcedureSyntax.toString, "foobar.scala"),
     expectedLayout = s"""/foobar.scala
                         |$original""".stripMargin,
     expectedExit = ExitStatus.TestError
@@ -79,7 +78,7 @@ class CliSyntacticTests extends BaseCliTest {
     name = "--test OK",
     originalLayout = s"""/foobar.scala
                         |$expected""".stripMargin,
-    args = Seq("--test", "-r", ProcedureSyntax.toString, "foobar.scala"),
+    args = Array("--test", "-r", ProcedureSyntax.toString, "foobar.scala"),
     expectedLayout = s"""/foobar.scala
                         |$expected""".stripMargin,
     expectedExit = ExitStatus.Ok
@@ -89,7 +88,7 @@ class CliSyntacticTests extends BaseCliTest {
     name = "linter error",
     originalLayout = s"""/foobar.scala
                         |$original""".stripMargin,
-    args = Seq(
+    args = Array(
       "-r",
       "scala:scalafix.tests.cli.LintError",
       "foobar.scala"
@@ -106,7 +105,7 @@ class CliSyntacticTests extends BaseCliTest {
     name = "linter warning promoted to error",
     originalLayout = s"""/foobar.scala
                         |$original""".stripMargin,
-    args = Seq(
+    args = Array(
       "--settings.lint.error",
       "LintWarning.warning",
       "-r",
@@ -127,7 +126,7 @@ class CliSyntacticTests extends BaseCliTest {
                          |$original
                          |/fixme.scala
                          |$original""".stripMargin,
-    args = Seq(
+    args = Array(
       "--exclude",
       "**ignoreme.scala",
       "-r",
@@ -147,7 +146,7 @@ class CliSyntacticTests extends BaseCliTest {
     originalLayout = s"""|/a.scala
                          |$original
                          |""".stripMargin,
-    args = Seq(
+    args = Array(
       "--stdout",
       "-r",
       ProcedureSyntax.toString,
@@ -160,18 +159,28 @@ class CliSyntacticTests extends BaseCliTest {
   )
 
   check(
-    name = "parse errors return exit code",
+    name = "ParseError",
     originalLayout = s"""|/a.scala
                          |objec bar
                          |""".stripMargin,
-    args = Seq(
+    args = Array(
       "-r",
       ProcedureSyntax.toString,
       "a.scala"
     ),
     expectedLayout = s"""|/a.scala
                          |objec bar""".stripMargin,
-    expectedExit = ExitStatus.ParseError
+    expectedExit = ExitStatus.ParseError,
+    outputAssert = { out =>
+      assert(
+        out.endsWith(
+          """|a.scala:1:1: error: expected class or object definition
+             |objec bar
+             |^
+             |""".stripMargin
+        )
+      )
+    }
   )
 
   check(
@@ -180,7 +189,7 @@ class CliSyntacticTests extends BaseCliTest {
                          |def foo { println(1) }
                          |lazy val bar = project
                          |""".stripMargin,
-    args = Seq(
+    args = Array(
       "-r",
       ProcedureSyntax.toString,
       "a.sbt"
@@ -199,7 +208,7 @@ class CliSyntacticTests extends BaseCliTest {
                          |  @volatile lazy val x = 2
                          |}
                          |""".stripMargin,
-    args = Seq(
+    args = Array(
       "-r",
       "VolatileLazyVal",
       "a.scala"
@@ -219,7 +228,7 @@ class CliSyntacticTests extends BaseCliTest {
                          |package a;
                          |class A
                          |""".stripMargin,
-    args = Seq(
+    args = Array(
       "-r",
       ProcedureSyntax.toString,
       "dir"
@@ -239,7 +248,7 @@ class CliSyntacticTests extends BaseCliTest {
                        |/src/shared/a.scala
                        |object a { def foo { println(1) } }
                        |""".stripMargin,
-    args = List(
+    args = Array(
       "-r",
       ProcedureSyntax.toString,
       "--out-from",
@@ -262,7 +271,7 @@ class CliSyntacticTests extends BaseCliTest {
     name = "--format sbt",
     originalLayout = s"""/foobar.scala
                         |$original""".stripMargin,
-    args = Seq(
+    args = Array(
       "--format",
       "sbt",
       "-r",

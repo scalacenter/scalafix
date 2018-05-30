@@ -264,9 +264,9 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     noColor(
       cli.run(
         expected,
-        "--non-interactive" ::
-          "--diff" ::
-          args.toList
+        "--non-interactive" +:
+          "--diff" +:
+          args.toArray
       )
     )
 
@@ -297,7 +297,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
   }
 
   private class Cli(workingDirectory: Path) {
-    def run(expected: ExitStatus, args: List[String]): String = {
+    def run(expected: ExitStatus, args: Array[String]): String = {
       val baos = new ByteArrayOutputStream()
       val ps = new PrintStream(baos)
       val exit = scalafix.v1.Main.run(

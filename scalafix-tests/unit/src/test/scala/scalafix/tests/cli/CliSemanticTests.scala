@@ -3,7 +3,6 @@ package scalafix.tests.cli
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import scala.meta.internal.io.PathIO
-import scala.collection.immutable.Seq
 import scala.meta.internal.io.FileIO
 import scalafix.cli._
 import scalafix.internal.rule.ExplicitResultTypes
@@ -13,7 +12,7 @@ class CliSemanticTests extends BaseCliTest {
 
   checkSemantic(
     name = "--classpath ok",
-    args = Seq(
+    args = Array(
       "--classpath",
       semanticClasspath
     ),
@@ -22,7 +21,7 @@ class CliSemanticTests extends BaseCliTest {
 
   checkSemantic(
     name = "--auto-classpath ok",
-    args = List(
+    args = Array(
       "--auto-classpath-roots",
       PathIO.workingDirectory.toString(),
       "--auto-classpath"
@@ -32,7 +31,7 @@ class CliSemanticTests extends BaseCliTest {
 
   checkSemantic(
     name = "--sourceroot not ok",
-    args = Seq(
+    args = Array(
       "--sourceroot",
       "bogus",
       "--classpath",
@@ -47,7 +46,7 @@ class CliSemanticTests extends BaseCliTest {
 
   checkSemantic(
     name = "MissingSemanticDB",
-    args = Nil, // no --classpath
+    args = Array(), // no --classpath
     expectedExit = ExitStatus.MissingSemanticdbError,
     outputAssert = { out =>
       assert(out.contains("No SemanticDB associated with"))
@@ -57,7 +56,7 @@ class CliSemanticTests extends BaseCliTest {
 
   checkSemantic(
     name = "StaleSemanticDB",
-    args = Seq(
+    args = Array(
       "--classpath",
       SemanticTests.defaultClasspath.syntax
     ),
@@ -80,7 +79,7 @@ class CliSemanticTests extends BaseCliTest {
 
   checkSemantic(
     name = "StaleSemanticDB fix matches input",
-    args = Seq(
+    args = Array(
       "--classpath",
       SemanticTests.defaultClasspath.syntax
     ),
@@ -100,7 +99,7 @@ class CliSemanticTests extends BaseCliTest {
 
   checkSemantic(
     name = "explicit result types OK",
-    args = Seq(
+    args = Array(
       "--classpath",
       SemanticTests.defaultClasspath.syntax
     ),
@@ -112,7 +111,7 @@ class CliSemanticTests extends BaseCliTest {
 
   checkSemantic(
     name = "incomplete classpath does not result in error exit code",
-    args = Seq(
+    args = Array(
       "--classpath",
       semanticClasspath // missing scala-library
     ),

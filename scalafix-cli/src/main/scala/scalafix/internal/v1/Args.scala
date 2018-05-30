@@ -1,4 +1,4 @@
-package scalafix.v1
+package scalafix.internal.v1
 
 import scala.language.higherKinds
 import java.io.File
@@ -13,8 +13,7 @@ import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 import metaconfig.Configured._
 import metaconfig._
-import metaconfig.annotation.Description
-import metaconfig.annotation.ExtraName
+import metaconfig.annotation._
 import metaconfig.generic.Surface
 import metaconfig.internal.ConfGet
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
@@ -30,7 +29,7 @@ import scalafix.internal.diff.DiffDisable
 import scalafix.internal.jgit.JGitDiff
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.util.SymbolTable
-import scalafix.internal.v1.Rules
+import scalafix.v1.RuleDecoder
 
 class Section(val name: String) extends StaticAnnotation
 

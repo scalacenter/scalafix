@@ -61,7 +61,7 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
   def check(
       name: String,
       originalLayout: String,
-      args: Seq[String],
+      args: Array[String],
       expectedLayout: String,
       expectedExit: ExitStatus,
       outputAssert: String => Unit = _ => ()
@@ -96,7 +96,7 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
     check(
       name,
       "/a.scala\n" + originalFile,
-      Seq(
+      Array(
         "--auto-suppress-linter-errors",
         "-r",
         rule,
@@ -108,7 +108,7 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
     check(
       "check " + name,
       "/a.scala\n" + expectedFile,
-      Seq(
+      Array(
         "--test",
         "-r",
         rule,
@@ -144,7 +144,7 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
       expected: String)
   def checkSemantic(
       name: String,
-      args: Seq[String],
+      args: Array[String],
       expectedExit: ExitStatus,
       preprocess: AbsolutePath => Unit = _ => (),
       outputAssert: String => Unit = _ => (),

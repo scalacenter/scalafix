@@ -1,4 +1,4 @@
-package scalafix.v1
+package scalafix.internal.v1
 
 import scala.meta.internal.io.FileIO
 import scala.meta.io.RelativePath
