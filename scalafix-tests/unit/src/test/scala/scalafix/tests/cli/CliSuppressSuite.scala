@@ -24,7 +24,7 @@ class NoInts extends SyntacticRule("NoInts") {
   }
 }
 
-class SuppressTests extends BaseCliTest {
+class CliSuppressSuite extends BaseCliSuite {
   checkSuppress(
     name = "suppress vars",
     originalFile = """

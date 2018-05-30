@@ -3,7 +3,6 @@ package scalafix.v0
 import scala.meta._
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
 import scalafix.v1.SemanticContext
-import scalafix.v0._
 import SemanticdbIndex.DeprecationMessage
 
 /** An index for looking up data in a scala.meta.Database. */

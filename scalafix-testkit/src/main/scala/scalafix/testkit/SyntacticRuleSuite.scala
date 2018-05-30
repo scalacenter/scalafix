@@ -1,20 +1,20 @@
 package scalafix.testkit
 
+import org.scalatest.FunSuiteLike
+import org.scalatest.Tag
 import scala.meta._
-import scalafix.internal.config.ScalafixConfig
-import scalafix.rule.RuleCtx
 import scalafix.syntax._
-import scalafix.v0.Rule
-
-import org.scalatest.{FunSuiteLike, Tag}
+import scalafix.v0._
 
 /** Utility to unit test syntactic rules
   *
   * @param rule the default rule to use from `check`/`checkDiff`.
   */
+@deprecated("Use SemanticRuleSuite instead", "0.6.0")
 class SyntacticRuleSuite(rule: Rule = Rule.empty)
     extends FunSuiteLike
     with DiffAssertions {
+
   def check(name: String, original: String, expected: String): Unit = {
     check(rule, name, original, expected)
   }
@@ -58,7 +58,7 @@ class SyntacticRuleSuite(rule: Rule = Rule.empty)
       expected: String,
       testTags: Tag*): Unit = {
     test(original.label, testTags: _*) {
-      val ctx = RuleCtx(original.parse[Source].get, ScalafixConfig.default)
+      val ctx = RuleCtx(original.parse[Source].get)
       val obtained = rule.diff(ctx)
       assert(obtained == expected)
     }

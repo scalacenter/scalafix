@@ -10,7 +10,7 @@ import org.scalatest.FunSuite
 import scalafix.internal.v0.LegacyInMemorySemanticdbIndex
 import scalafix.testkit.DiffAssertions
 
-abstract class BaseSemanticTest(filename: String)
+abstract class BaseSemanticSuite(filename: String)
     extends FunSuite
     with BeforeAndAfterAll
     with DiffAssertions {

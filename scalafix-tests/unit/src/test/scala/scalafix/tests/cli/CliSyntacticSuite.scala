@@ -3,7 +3,7 @@ package scalafix.tests.cli
 import scalafix.cli._
 import scalafix.internal.rule._
 
-class CliSyntacticTests extends BaseCliTest {
+class CliSyntacticSuite extends BaseCliSuite {
 
   check(
     name = "--help",

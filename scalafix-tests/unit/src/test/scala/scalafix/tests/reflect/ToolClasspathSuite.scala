@@ -12,7 +12,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 import scalafix.v1.RuleDecoder
 
-class ToolClasspathTests extends FunSuite with BeforeAndAfterAll {
+class ToolClasspathSuite extends FunSuite with BeforeAndAfterAll {
   var scalafmtClasspath: List[AbsolutePath] = _
   override def beforeAll(): Unit = {
     val scalaBinaryVersion =

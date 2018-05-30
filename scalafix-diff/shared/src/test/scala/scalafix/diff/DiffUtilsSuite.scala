@@ -2,7 +2,7 @@ package scalafix.diff
 
 import org.scalatest.FunSuite
 
-class DiffUtilsTest extends FunSuite {
+class DiffUtilsSuite extends FunSuite {
 
   val originalFileName = "SomeFile.scala"
   val revisedFileName = "SomeFileRenamed.scala"

@@ -21,7 +21,7 @@ import org.scalatest.FunSuite
 import scalafix.v1.Main
 
 // extend this class to run custom cli tests.
-trait BaseCliTest extends FunSuite with DiffAssertions {
+trait BaseCliSuite extends FunSuite with DiffAssertions {
   val original: String =
     """|object Main {
        |  def foo() {

@@ -3,10 +3,10 @@ package scalafix.tests.rule
 import scala.meta._
 import scalafix.testkit._
 import scalafix.tests.BuildInfo
-import scalafix.tests.rule.SemanticTests._
+import scalafix.tests.rule.RuleSuite._
 import scalafix.internal.reflect.RuleCompiler
 
-class SemanticTests
+class RuleSuite
     extends SemanticRuleSuite(
       AbsolutePath(BuildInfo.inputSourceroot),
       defaultClasspath,
@@ -18,7 +18,7 @@ class SemanticTests
   runAllTests()
 }
 
-object SemanticTests {
+object RuleSuite {
   def defaultClasspath = Classpath(
     classpath.entries ++
       RuleCompiler.defaultClasspathPaths.filter(path =>

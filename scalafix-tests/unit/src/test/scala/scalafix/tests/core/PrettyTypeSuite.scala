@@ -12,7 +12,7 @@ import scalafix.internal.util.LazySymbolTable
 import scalafix.internal.util.QualifyStrategy
 import scalafix.internal.util.PrettyType
 
-class BasePrettyTypeSuite extends BaseSemanticTest("TypeToTreeInput") {
+class BasePrettyTypeSuite extends BaseSemanticSuite("TypeToTreeInput") {
   super.beforeAll()
   val dir: m.AbsolutePath =
     m.AbsolutePath(scalafix.tests.BuildInfo.sharedClasspath)

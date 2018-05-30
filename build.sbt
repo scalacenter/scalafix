@@ -243,8 +243,7 @@ val testkit = MultiScalaProject(
     libraryDependencies ++= Seq(
       semanticdb,
       ammonite,
-      googleDiff,
-      scalatest
+      googleDiff
     )
   )
 )

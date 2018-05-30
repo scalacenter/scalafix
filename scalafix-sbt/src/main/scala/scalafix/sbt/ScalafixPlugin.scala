@@ -153,7 +153,7 @@ object ScalafixPlugin extends AutoPlugin {
       scalafixTaskImpl(
         scalafixParserCompat.parsed,
         compat,
-        options,
+        extraOptions,
         sbtDir +: sbtFiles,
         "sbt-build",
         streams.value

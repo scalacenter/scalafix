@@ -6,9 +6,9 @@ import scala.meta.internal.io.PathIO
 import scala.meta.internal.io.FileIO
 import scalafix.cli._
 import scalafix.internal.rule.ExplicitResultTypes
-import scalafix.tests.rule.SemanticTests
+import scalafix.tests.rule.RuleSuite
 
-class CliSemanticTests extends BaseCliTest {
+class CliSemanticSuite extends BaseCliSuite {
 
   checkSemantic(
     name = "--classpath ok",
@@ -58,7 +58,7 @@ class CliSemanticTests extends BaseCliTest {
     name = "StaleSemanticDB",
     args = Array(
       "--classpath",
-      SemanticTests.defaultClasspath.syntax
+      RuleSuite.defaultClasspath.syntax
     ),
     preprocess = { root =>
       val path = root.resolve(explicitResultTypesPath)
@@ -81,7 +81,7 @@ class CliSemanticTests extends BaseCliTest {
     name = "StaleSemanticDB fix matches input",
     args = Array(
       "--classpath",
-      SemanticTests.defaultClasspath.syntax
+      RuleSuite.defaultClasspath.syntax
     ),
     preprocess = { root =>
       val expectedOutput = slurpOutput(explicitResultTypesPath)
@@ -101,7 +101,7 @@ class CliSemanticTests extends BaseCliTest {
     name = "explicit result types OK",
     args = Array(
       "--classpath",
-      SemanticTests.defaultClasspath.syntax
+      RuleSuite.defaultClasspath.syntax
     ),
     expectedExit = ExitStatus.Ok,
     rule = ExplicitResultTypes.toString(),

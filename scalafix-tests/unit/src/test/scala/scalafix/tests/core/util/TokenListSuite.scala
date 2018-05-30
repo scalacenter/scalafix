@@ -6,7 +6,7 @@ import scala.meta._
 import scala.meta.dialects.Scala211
 import scalafix.util.TokenList
 
-class TokenListTest extends FunSuite {
+class TokenListSuite extends FunSuite {
 
   val tokens =
     """package foo

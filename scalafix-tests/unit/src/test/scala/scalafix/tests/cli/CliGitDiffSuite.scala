@@ -11,7 +11,7 @@ import scalafix.testkit.DiffAssertions
 import scalafix.internal.tests.utils.{Fs, Git}
 import scalafix.internal.tests.utils.SkipWindows
 
-class CliGitDiffTests() extends FunSuite with DiffAssertions {
+class CliGitDiffSuite extends FunSuite with DiffAssertions {
   gitTest("addition", SkipWindows) { (fs, git, cli) =>
     val oldCode = "old.scala"
     val newCode = "new.scala"

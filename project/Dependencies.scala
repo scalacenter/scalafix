@@ -28,7 +28,7 @@ object Dependencies {
 
   def metacp = "org.scalameta" %% "metacp" % scalametaV
   def scalameta = Def.setting("org.scalameta" %%% "contrib" % scalametaV)
-  val scalatest = "org.scalatest" %% "scalatest" % "3.0.0"
+  def scalatest = "org.scalatest" %% "scalatest" % "3.2.0-SNAP10"
 
   def testsDeps = List(
     // integration property tests

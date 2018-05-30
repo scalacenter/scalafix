@@ -4,7 +4,7 @@ import scala.meta._
 import scala.meta.contrib._
 import scalafix.syntax._
 
-class DenotationOpsTest extends BaseSemanticTest("DenotationOpsTest") {
+class DenotationOpsSuite extends BaseSemanticSuite("DenotationOpsTest") {
 
   test("resultType") {
     source.collect {

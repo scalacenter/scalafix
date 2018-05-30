@@ -10,7 +10,7 @@ import scala.meta.io.RelativePath
 import org.scalatest.FunSuite
 import scalafix.v1.RuleDecoder
 
-class ScalafixReflectTests extends FunSuite {
+class RuleDecoderSuite extends FunSuite {
   val cwd: AbsolutePath = AbsolutePath(BuildInfo.baseDirectory)
     .resolve("scalafix-tests")
     .resolve("unit")

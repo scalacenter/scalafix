@@ -17,7 +17,7 @@ object ScalafixCompletions
     extends ScalafixCompletionsComponent
     with MockJLineAccess
 
-class ScalafixCompletionsTest extends FunSuite {
+class SbtCompletionsSuite extends FunSuite {
   val fs = new Fs()
   val git = new Git(fs.workingDirectory)
   fs.mkdir("foo")
