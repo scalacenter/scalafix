@@ -22,7 +22,6 @@ import scala.annotation.StaticAnnotation
 import scala.meta.internal.io.PathIO
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
-import scalafix.cli.CliRunner
 import scalafix.internal.config.OutputFormat
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
@@ -260,7 +259,7 @@ case class Args(
       val roots =
         if (autoClasspathRoots.isEmpty) cwd :: Nil
         else autoClasspathRoots
-      CliRunner.autoClasspath(roots)
+      ClasspathOps.autoClasspath(roots)
     } else classpath
   }
 

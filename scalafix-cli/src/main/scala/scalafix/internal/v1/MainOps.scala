@@ -23,7 +23,6 @@ import scala.util.control.NonFatal
 import scalafix.Versions
 import scalafix.cli.ExitStatus
 import scalafix.diff.DiffUtils
-import scalafix.internal.cli.WriteMode
 import scalafix.lint.LintMessage
 import scalafix.v1.Doc
 import scalafix.v1.SemanticDoc
@@ -142,31 +141,31 @@ object MainOps {
         if (!args.args.autoSuppressLinterErrors) {
           reportLintErrors(args, messages)
         }
-        args.mode match {
-          case WriteMode.Test =>
-            if (fixed == input.text) {
-              ExitStatus.Ok
-            } else {
-              val diff = DiffUtils.unifiedDiff(
-                file.toString(),
-                "<expected fix>",
-                input.text.lines.toList,
-                fixed.lines.toList,
-                3
-              )
-              args.args.out.println(diff)
-              ExitStatus.TestError
-            }
-          case WriteMode.Stdout =>
-            args.args.out.println(fixed)
+
+        if (args.args.test) {
+          if (fixed == input.text) {
             ExitStatus.Ok
-          case WriteMode.WriteFile =>
-            if (fixed != input.text) {
-              val toFix = args.pathReplace(file).toNIO
-              Files.createDirectories(toFix.getParent)
-              Files.write(toFix, fixed.getBytes(args.args.charset))
-            }
-            ExitStatus.Ok
+          } else {
+            val diff = DiffUtils.unifiedDiff(
+              file.toString(),
+              "<expected fix>",
+              input.text.lines.toList,
+              fixed.lines.toList,
+              3
+            )
+            args.args.out.println(diff)
+            ExitStatus.TestError
+          }
+        } else if (args.args.stdout) {
+          args.args.out.println(fixed)
+          ExitStatus.Ok
+        } else {
+          if (fixed != input.text) {
+            val toFix = args.pathReplace(file).toNIO
+            Files.createDirectories(toFix.getParent)
+            Files.write(toFix, fixed.getBytes(args.args.charset))
+          }
+          ExitStatus.Ok
         }
     }
   }

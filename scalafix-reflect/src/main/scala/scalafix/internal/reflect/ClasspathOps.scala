@@ -3,6 +3,12 @@ package scalafix.internal.reflect
 import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
+import java.nio.file.FileVisitResult
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.SimpleFileVisitor
+import java.nio.file.attribute.BasicFileAttributes
 import scala.meta.io.AbsolutePath
 import scala.meta.Classpath
 import scala.meta.metacp
@@ -60,5 +66,32 @@ object ClasspathOps {
         url.getURLs.map(_.getFile).mkString(File.pathSeparator)
       case _ => ""
     }
+  }
+
+  private val META_INF = Paths.get("META-INF")
+  private val SEMANTICDB = Paths.get("semanticdb")
+
+  private def isTargetroot(path: Path): Boolean = {
+    path.toFile.isDirectory &&
+    path.resolve(META_INF).toFile.isDirectory &&
+    path.resolve(META_INF).resolve(SEMANTICDB).toFile.isDirectory
+  }
+
+  def autoClasspath(roots: List[AbsolutePath]): Classpath = {
+    val buffer = List.newBuilder[AbsolutePath]
+    val visitor = new SimpleFileVisitor[Path] {
+      override def preVisitDirectory(
+          dir: Path,
+          attrs: BasicFileAttributes): FileVisitResult = {
+        if (isTargetroot(dir)) {
+          buffer += AbsolutePath(dir)
+          FileVisitResult.SKIP_SUBTREE
+        } else {
+          FileVisitResult.CONTINUE
+        }
+      }
+    }
+    roots.foreach(x => Files.walkFileTree(x.toNIO, visitor))
+    Classpath(buffer.result())
   }
 }

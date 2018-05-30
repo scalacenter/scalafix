@@ -12,7 +12,6 @@ class CliSyntacticTests extends BaseCliTest {
     expectedLayout = "",
     expectedExit = ExitStatus.Ok,
     outputAssert = { out =>
-      println(out)
       assert(out.startsWith("Scalafix"))
       assert(out.contains("--rules"))
     }

@@ -147,7 +147,6 @@ val cli = MultiScalaProject(
     mainClass in assembly := Some("scalafix.v1.Main"),
     assemblyJarName in assembly := "scalafix.jar",
     libraryDependencies ++= Seq(
-      "com.github.alexarchambault" %% "case-app" % "1.2.0",
       "com.martiansoftware" % "nailgun-server" % "0.9.1",
       jgit,
       "ch.qos.logback" % "logback-classic" % "1.2.3",

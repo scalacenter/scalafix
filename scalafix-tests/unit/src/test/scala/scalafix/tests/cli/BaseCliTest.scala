@@ -7,11 +7,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import scala.collection.immutable.Seq
 import scala.meta.internal.io.FileIO
-import scalafix.cli.Cli
-import scalafix.cli.CliCommand
 import scalafix.cli.ExitStatus
-import scalafix.internal.cli.CommonOptions
-import scalafix.internal.cli.ScalafixOptions
 import scalafix.internal.rule.RemoveUnusedImports
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.test.StringFS
@@ -40,11 +36,6 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
        |""".stripMargin
   val cwd: Path = Files.createTempDirectory("scalafix-cli")
   val ps = new PrintStream(new ByteArrayOutputStream())
-  val devNull = CommonOptions(
-    out = ps,
-    err = ps,
-    workingDirectory = cwd.toString
-  )
 
   val semanticRoot: RelativePath = RelativePath("scala").resolve("test")
   val removeImportsPath: RelativePath =
@@ -55,8 +46,6 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
       .resolve("ExplicitResultTypesBase.scala")
   val semanticClasspath: String =
     BuildInfo.semanticClasspath.getAbsolutePath
-
-  val default = ScalafixOptions(common = devNull)
 
   def check(
       name: String,
@@ -200,6 +189,4 @@ trait BaseCliTest extends FunSuite with DiffAssertions {
     }
   }
 
-  def parse(args: Seq[String]): CliCommand =
-    Cli.parse(args, CommonOptions.default)
 }
