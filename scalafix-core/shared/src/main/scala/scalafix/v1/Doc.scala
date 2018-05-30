@@ -8,7 +8,7 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.patch.DeprecatedRuleCtx
 import scalafix.internal.patch.EscapeHatch
-import scalafix.rule.RuleCtx
+import scalafix.v0.RuleCtx
 import scalafix.util.MatchingParens
 import scalafix.util.TokenList
 

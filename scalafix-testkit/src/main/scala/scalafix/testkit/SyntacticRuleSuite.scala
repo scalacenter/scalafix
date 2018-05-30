@@ -1,10 +1,10 @@
-package scalafix
-package testkit
+package scalafix.testkit
 
 import scala.meta._
 import scalafix.internal.config.ScalafixConfig
 import scalafix.rule.RuleCtx
 import scalafix.syntax._
+import scalafix.v0.Rule
 
 import org.scalatest.{FunSuiteLike, Tag}
 

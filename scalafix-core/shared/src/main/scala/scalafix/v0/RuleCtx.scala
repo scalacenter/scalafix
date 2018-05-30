@@ -1,4 +1,4 @@
-package scalafix.rule
+package scalafix.v0
 
 import scala.meta._
 import scala.meta.contrib.AssociatedComments
@@ -8,11 +8,9 @@ import scalafix.internal.diff.DiffDisable
 import scalafix.internal.rule.RuleCtxImpl
 import scalafix.patch.PatchOps
 import scalafix.util.MatchingParens
-import scalafix.util.SemanticdbIndex
 import scalafix.util.TokenList
 import org.scalameta.FileLine
-import scalafix.lint.LintMessage
-import scalafix.patch.Patch
+import scalafix.rule.RuleName
 
 trait RuleCtx extends PatchOps {
 
@@ -54,8 +52,8 @@ trait RuleCtx extends PatchOps {
   private[scalafix] def printLintMessage(msg: LintMessage): Unit
 
   private[scalafix] def filter(
-      patchesByName: Map[RuleName, Patch],
-      index: SemanticdbIndex): (Patch, List[LintMessage])
+                                patchesByName: Map[RuleName, Patch],
+                                index: SemanticdbIndex): (Patch, List[LintMessage])
 }
 
 object RuleCtx {
@@ -66,8 +64,8 @@ object RuleCtx {
     apply(tree, config, DiffDisable.empty)
 
   private[scalafix] def apply(
-      tree: Tree,
-      config: ScalafixConfig,
-      diffDisable: DiffDisable): RuleCtx =
+                               tree: Tree,
+                               config: ScalafixConfig,
+                               diffDisable: DiffDisable): RuleCtx =
     RuleCtxImpl(tree, config, diffDisable)
 }
