@@ -2,34 +2,33 @@ package banana.rule
 
 import scala.meta._
 import scala.meta.contrib._
-import scalafix._
+import scalafix.patch.Patch
+import scalafix.util.SymbolMatcher
+import scalafix.v0
+import scalafix.v1
 
-case class FqnRule(index: SemanticdbIndex)
-    extends SemanticRule(index, "FqnRule") {
-  override def fix(ctx: RuleCtx): Patch =
-    ctx.addGlobalImport(importer"scala.collection.immutable")
+case class FqnRule(index: v0.SemanticdbIndex)
+    extends v0.SemanticRule(index, "FqnRule") {
+  override def fix(ctx: v0.RuleCtx): Patch =
+    ctx.addGlobalImport(importer"scala.collection.immutable") + {
+      val fqnRule = SymbolMatcher.exact(Symbol("test.FqnRule."))
+      ctx.tree.collect {
+        case fqnRule(t: Term.Name) =>
+          ctx.addLeft(t, "/* matched */ ")
+      }.asPatch
+    }
 }
 
-case object FqnRule2 extends Rule("FqnRule2") {
-  override def fix(ctx: RuleCtx): Patch =
+case object FqnRule2 extends v0.Rule("FqnRule2") {
+  override def fix(ctx: v0.RuleCtx): Patch =
     ctx.tree.collectFirst {
       case n: Name => ctx.replaceTree(n, n.value + "2")
     }.asPatch
 }
 
-object LambdaRules {
-  val syntax: Rule = Rule.syntactic("syntax") { ctx =>
-    ctx.addLeft(ctx.tokens.head, "// comment\n")
-  }
-
-  val semantic = Rule.semantic("semantic") { implicit index => ctx =>
-    ctx.addGlobalImport(importer"scala.collection.mutable")
-  }
-
-}
-
-case object PatchTokenWithEmptyRange extends Rule("PatchTokenWithEmptyRange") {
-  override def fix(ctx: RuleCtx): Patch = {
+case object PatchTokenWithEmptyRange
+    extends v0.Rule("PatchTokenWithEmptyRange") {
+  override def fix(ctx: v0.RuleCtx): Patch = {
     ctx.tokens.collect {
       case tok @ Token.Interpolation.SpliceEnd() =>
         ctx.addRight(tok, "a")
@@ -37,4 +36,16 @@ case object PatchTokenWithEmptyRange extends Rule("PatchTokenWithEmptyRange") {
         ctx.addRight(tok, "a")
     }
   }.asPatch
+}
+
+class SemanticRuleV1 extends v1.SemanticRule("SemanticRuleV1") {
+  override def fix(implicit doc: v1.SemanticDoc): Patch = {
+    Patch.addRight(doc.tree, "\nobject SemanticRuleV1")
+  }
+}
+
+class SyntacticRuleV1 extends v1.SyntacticRule("SyntacticRuleV1") {
+  override def fix(implicit doc: v1.Doc): Patch = {
+    Patch.addRight(doc.tree, "\nobject SyntacticRuleV1")
+  }
 }

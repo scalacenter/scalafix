@@ -1,10 +1,7 @@
 package scalafix.internal.rule
 
 import scala.meta._
-import scalafix.Patch
-import scalafix.rule.Rule
-import scalafix.rule.RuleCtx
-import scalafix.rule.RuleName
+import scalafix.v0._
 
 case object DottyVolatileLazyVal
     extends Rule(

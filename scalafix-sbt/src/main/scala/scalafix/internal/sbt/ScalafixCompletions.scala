@@ -144,68 +144,52 @@ trait ScalafixCompletionsComponent { self: JLineAccess =>
     val ruleParser = namedRule | fileRule | uri("github") | uri("replace") | uri(
       "http") | uri("https") | uri("scala")
 
-    val bash: P = "--bash"
     val classpath: P = arg("--classpath", classpathParser)
-    val classpathAutoRoots: P = arg("--classpath-auto-roots", classpathParser)
+    val autoClasspath: P = "--auto-classpath"
     val config: P = arg("--config", "-c", pathParser)
-    val configStr: P = arg("--config-str", string.examples())
     val diff: P = "--diff"
     val diffBase: P = arg("--diff-base", gitDiffParser(cwd))
     val exclude: P = arg("--exclude", pathRegexParser)
     val files: P = arg("--files", "-f", pathParser)
-    val noStrictSemanticdb: P = "--no-strict-semanticdb"
     val nonInteractive: P = "--non-interactive"
     val outFrom: P = arg("--out-from", pathRegexParser)
     val outTo: P = arg("--out-to", pathRegexParser)
-    val quietParseErrors: P = "--quiet-parse-errors"
     val rules: P = arg("--rules", "-r", ruleParser)
-    val singleThread: P = "--single-thread"
     val sourceroot: P = arg("--sourceroot", pathParser)
     val stdout: P = "--stdout"
     val test: P = "--test"
     val toolClasspath: P = arg("--tool-classpath", classpathParser)
-    val usage: P = "--usage"
     val help: P = "--help"
     val version: P = "--version" | hide("-v")
     val verbose: P = "--verbose"
-    val zsh: P = "--zsh"
 
     val base =
-      bash |
-        classpath |
-        classpathAutoRoots |
+      classpath |
+        autoClasspath |
         config |
-        configStr |
         diff |
         diffBase |
         exclude |
         files |
-        noStrictSemanticdb |
         nonInteractive |
         outFrom |
         outTo |
-        quietParseErrors |
         rules |
-        singleThread |
         sourceroot |
         stdout |
         test |
         toolClasspath |
-        usage |
         help |
         version |
-        verbose |
-        zsh
+        verbose
 
     if (compat) {
       (token(Space) ~> token(ruleParser)).* <~ SpaceClass.*
     } else {
-      (((token(Space) ~> base).* ~ (token(Space) ~> filepathParser(cwd)).?))
-        .map {
-          case a ~ b => {
-            (a ++ b.toSeq).flatMap(_.split(" ").toSeq)
-          }
-        }
+      ((token(Space) ~> base).* ~ (token(Space) ~> filepathParser(cwd)).?).map {
+        case a ~ b =>
+          (a ++ b.toSeq).flatMap(_.split(" ").toSeq)
+      }
     }
   }
 }

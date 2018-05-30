@@ -3,10 +3,10 @@ Contributing
 
 ## Modules
 
-- `scalafix-core/` data structures and algorithms for scalafix rules.
+- `scalafix-core/` data structures and algorithms for scalafix rules
+- `scalafix-reflect/` JVM-only utilities to compile and classload custom rules
 - `scalafix-cli/` command-line interface
 - `scalafix-sbt/` SBT plugin
-- `scalafix-nsc/` Scalafix compiler plugin for scalac (codename `nsc` stands for "new Scala compiler")
 - `scalafix-tests/` project for running unit and integration tests.
 - `readme` documentation page
 

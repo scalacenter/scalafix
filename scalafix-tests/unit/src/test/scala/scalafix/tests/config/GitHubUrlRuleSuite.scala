@@ -1,10 +1,10 @@
 package scalafix.tests.config
 
-import scalafix.internal.reflect.ScalafixCompilerDecoder._
 import metaconfig.Conf
 import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
 import org.scalatest.FunSuite
+import scalafix.internal.reflect.GitHubUrlRule
 
 class GitHubUrlRuleSuite extends FunSuite {
   def check(original: String, expected: String, ok: Boolean = true): Unit = {

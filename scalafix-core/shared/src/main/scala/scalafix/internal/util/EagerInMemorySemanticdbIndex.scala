@@ -1,21 +1,24 @@
-package scalafix
-package internal.util
+package scalafix.internal.util
 
 import scala.collection.mutable
 import scala.meta._
 import scala.{meta => m}
-import org.langmeta.internal.semanticdb._
 import scala.meta.internal.{semanticdb3 => s}
+import scalafix.internal.v0._
+import scalafix.util.SemanticdbIndex
+import scalafix.v0.Database
+import scalafix.v0.Denotation
+import scalafix.v0.Document
+import scalafix.v0.ResolvedName
 
 case class EagerInMemorySemanticdbIndex(
     database: Database,
-    sourcepath: Sourcepath,
     classpath: Classpath,
     table: SymbolTable = SymbolTable.empty
 ) extends SemanticdbIndex
     with SymbolTable {
   override def toString: String =
-    s"$productPrefix($sourcepath, $classpath, database.size=${database.documents.length})"
+    s"$productPrefix($classpath, database.size=${database.documents.length})"
   override def hashCode(): Int = database.hashCode()
   private lazy val _denots: mutable.Map[Symbol, Denotation] = {
     val builder = mutable.Map.empty[Symbol, Denotation]
@@ -85,7 +88,7 @@ case class EagerInMemorySemanticdbIndex(
       kind = s.SymbolInformation.Kind.fromValue(denot.skind.value),
       properties = denot.sproperties,
       name = denot.name,
-      tpe = denot.tpeInternal
+      tpe = denot.tpe
     )
   }
 

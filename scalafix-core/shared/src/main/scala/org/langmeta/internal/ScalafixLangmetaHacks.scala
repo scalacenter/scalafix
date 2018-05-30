@@ -1,9 +1,21 @@
-package org.langmeta.internal
+package scala.meta.internal
 
 import scala.compat.Platform.EOL
-import org.langmeta._
+import scala.meta._
+import scala.meta.internal.{semanticdb3 => s}
 
 object ScalafixLangmetaHacks {
+
+  def positionFromRange(input: Input, range: Option[s.Range]): Position =
+    range match {
+      case Some(r) => positionFromRange(input, r)
+      case _ => Position.None
+    }
+  def positionFromRange(input: Input, range: s.Range): Position = {
+    val start = input.lineToOffset(range.startLine) + range.startCharacter
+    val end = input.lineToOffset(range.endLine) + range.endCharacter
+    Position.Range(input, start, end)
+  }
   // Workaround for https://github.com/scalameta/scalameta/issues/1115
   def formatMessage(
       pos: Position,

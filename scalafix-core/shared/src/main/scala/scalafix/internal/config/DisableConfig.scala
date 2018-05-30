@@ -1,10 +1,9 @@
-package scalafix
-package internal.config
+package scalafix.internal.config
 
 import metaconfig._
 import metaconfig.annotation.{Description, ExampleValue}
 import metaconfig.generic.Surface
-import org.langmeta.Symbol
+import scala.meta.Symbol
 
 import scalafix.internal.util.SymbolOps
 
@@ -48,7 +47,7 @@ object DisabledSymbol {
     generic.deriveSurface[DisabledSymbol]
 
   private def normalizeMessage(msg: String): String =
-    if (msg.isMultiline) {
+    if (msg.contains("\n")) {
       "\n" + msg.stripMargin
     } else {
       msg

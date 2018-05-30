@@ -1,9 +1,7 @@
 package scalafix.internal.rule
 
-import scala.meta.quasiquotes.XtensionQuasiquoteInit
-import scala.meta.{Ctor, Defn, Mod, Template, Term}
-import scalafix.rule.RuleCtx
-import scalafix.{Patch, Rule}
+import scala.meta._
+import scalafix.v0._
 
 case object LeakingImplicitClassVal extends Rule("LeakingImplicitClassVal") {
 

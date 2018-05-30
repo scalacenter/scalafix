@@ -1,16 +1,16 @@
-package scalafix
-package internal.config
+package scalafix.internal.config
 
 import java.io.OutputStream
 import java.io.PrintStream
 import scala.meta._
 import scala.meta.dialects.Scala212
-import scala.meta.parsers.Parse
 import metaconfig._
+import metaconfig.Input
 import metaconfig.generic.Surface
+import scalafix.rule.Rule
 
 case class ScalafixConfig(
-    parser: Parse[_ <: Tree] = Parse.parseSource,
+    parser: ParserConfig = ParserConfig(),
     debug: DebugConfig = DebugConfig(),
     groupImportsByPrefix: Boolean = true,
     fatalWarnings: Boolean = true,
@@ -94,7 +94,7 @@ object ScalafixConfig {
   def auto(workingDirectory: AbsolutePath): Option[Input] = {
     val file = workingDirectory.resolve(".scalafix.conf")
     if (file.isFile && file.toFile.exists())
-      Some(Input.File(file))
+      Some(Input.File(file.toNIO))
     else None
   }
 

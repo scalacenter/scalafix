@@ -1,7 +1,7 @@
 package scalafix.internal.config
 
-import scalafix.SemanticdbIndex
-import org.langmeta.io.AbsolutePath
+import scalafix.v0.SemanticdbIndex
+import scala.meta.io.AbsolutePath
 
 // The challenge when loading a rule is that 1) if it's semantic it needs a
 // index constructor argument and 2) we don't know upfront if it's semantic.

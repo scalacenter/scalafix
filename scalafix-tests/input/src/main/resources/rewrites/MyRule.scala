@@ -1,6 +1,6 @@
 package foo.bar
 
-import scalafix._
+import scalafix.v0._
 import scala.meta._
 
 case object MyRule extends Rule {

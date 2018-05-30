@@ -3,8 +3,8 @@ package scalafix.tests.cli
 import java.io.File
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
-import scalafix.cli.CliRunner
 import org.scalatest.FunSuite
+import scalafix.internal.reflect.ClasspathOps
 
 class AutoClasspathSuite extends FunSuite {
   test("--classpath=auto") {
@@ -18,8 +18,8 @@ class AutoClasspathSuite extends FunSuite {
     assert(semanticdb.toFile.mkdirs())
     assert(semanticdb2.toFile.mkdirs())
     assert(fakesemanticdb.toFile.mkdirs())
-    val obtained = CliRunner.autoClasspath(List(AbsolutePath(tmp)))
+    val obtained = ClasspathOps.autoClasspath(List(AbsolutePath(tmp)))
     val expected = Classpath(List(target, target2).map(AbsolutePath.apply))
-    assert(obtained.shallow.toSet == expected.shallow.toSet)
+    assert(obtained.entries.toSet == expected.entries.toSet)
   }
 }

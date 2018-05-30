@@ -23,31 +23,31 @@ private object EmptyDiff extends DiffDisable {
 }
 
 private class FullDiffDisable(diffs: List[GitDiff]) extends DiffDisable {
-  private val newFiles: Set[Input] = diffs.collect {
-    case NewFile(path) => Input.File(path)
+  private val newFiles: Set[String] = diffs.collect {
+    case NewFile(path) => path.toAbsolutePath.toString
   }.toSet
 
-  private val modifiedFiles: Map[Input, IntervalSet] = diffs.collect {
+  private val modifiedFiles: Map[String, IntervalSet] = diffs.collect {
     case ModifiedFile(path, changes) => {
       val ranges = changes.map {
         case GitChange(start, end) => (start, end)
       }
-      Input.File(path) -> IntervalSet(ranges)
+      path.toAbsolutePath.toString -> IntervalSet(ranges)
     }
   }.toMap
 
   def isDisabled(file: Input): Boolean =
-    !(newFiles.contains(file) || modifiedFiles.contains(file))
+    !(newFiles.contains(file.syntax) || modifiedFiles.contains(file.syntax))
 
   def isDisabled(position: Position): Boolean = {
     def isAddition: Boolean =
-      newFiles.contains(position.input)
+      newFiles.contains(position.input.syntax)
 
     def isModification: Boolean = {
       val startLine = position.startLine
       val endLine = position.endLine
       modifiedFiles
-        .get(position.input)
+        .get(position.input.syntax)
         .fold(false)(
           interval =>
             interval.intersects(

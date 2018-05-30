@@ -1,7 +1,7 @@
 package scalafix.test
 
 import scala.meta._
-import scalafix.{LintCategory, LintMessage, Rule, RuleCtx}
+import scalafix.v0._
 
 object NoNull extends Rule("NoNull") {
   val error = LintCategory.error("Nulls are not allowed.")

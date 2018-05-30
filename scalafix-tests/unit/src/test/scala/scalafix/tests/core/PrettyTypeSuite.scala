@@ -1,17 +1,18 @@
 package scalafix.tests.core
 
-import org.langmeta.internal.io.PlatformFileIO
+import scala.meta.internal.io.PlatformFileIO
+import org.scalatest.Ignore
 import scala.meta.internal.semanticdb3.Index
 import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
 import scala.{meta => m}
-import scalafix.internal.cli.ClasspathOps
+import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.reflect.RuleCompiler
 import scalafix.internal.util.LazySymbolTable
 import scalafix.internal.util.QualifyStrategy
 import scalafix.internal.util.PrettyType
 
-class BasePrettyTypeSuite extends BaseSemanticTest("TypeToTreeInput") {
+class BasePrettyTypeSuite extends BaseSemanticSuite("TypeToTreeInput") {
   super.beforeAll()
   val dir: m.AbsolutePath =
     m.AbsolutePath(scalafix.tests.BuildInfo.sharedClasspath)
@@ -44,10 +45,13 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
   }
 
 }
+
+// This test is slow, no need to run it on every PR
+@Ignore
 class PrettyTypeFuzzSuite extends BasePrettyTypeSuite {
 
   for {
-    entry <- mclasspath.shallow
+    entry <- mclasspath.entries
   } {
     test(entry.toNIO.getFileName.toString) {
       if (entry.isFile) {

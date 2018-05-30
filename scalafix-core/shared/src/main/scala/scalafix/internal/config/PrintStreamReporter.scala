@@ -6,7 +6,7 @@ import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicInteger
 import scalafix.internal.util.Severity
 import metaconfig._
-import org.langmeta.internal.ScalafixLangmetaHacks
+import scala.meta.internal.ScalafixLangmetaHacks
 import MetaconfigPendingUpstream._
 
 /** A ScalafixReporter that emits messages to a PrintStream. */

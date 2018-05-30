@@ -166,7 +166,10 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     stableVersion := "0.5.10", // hardcoded while we iterate through v0.6 milestones.
     scalacOptions ++= compilerOptions,
     scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
-    libraryDependencies += scalatest % Test,
+    libraryDependencies ++= List(
+      scalacheck % Test,
+      scalatest % Test
+    ),
     testOptions in Test += Tests.Argument("-oD"),
     updateOptions := updateOptions.value.withCachedResolution(true),
     resolvers += Resolver.sonatypeRepo("releases"),
@@ -208,12 +211,13 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         s
     },
     commands += Command.command("mima") { s =>
-      "scalafix/mimaReportBinaryIssues" ::
-        "scalafix211/mimaReportBinaryIssues" ::
-        s
+      // Disabled until v0.6.0 stable
+      // "scalafix/mimaReportBinaryIssues" ::
+      //   "scalafix211/mimaReportBinaryIssues" ::
+      s
     },
-    // Workaround for https://github.com/scalameta/scalameta/issues/1479
-    parallelExecution.in(test) := !scala.util.Properties.isWin,
+    // There is flakyness in CliGitDiffTests and CliSemanticTests
+    parallelExecution.in(Test) := false,
     credentials ++= {
       val credentialsFile = {
         if (adhocRepoCredentials != null) new File(adhocRepoCredentials)
@@ -222,7 +226,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       if (credentialsFile != null) List(new FileCredentials(credentialsFile))
       else Nil
     },
-    publishArtifact in Test := false,
+    publishArtifact.in(Test) := false,
     licenses := Seq(
       "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     homepage := Some(url("https://github.com/scalacenter/scalafix")),

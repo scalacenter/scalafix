@@ -12,16 +12,18 @@ object StringFS {
     */
   def string2dir(layout: String): AbsolutePath = {
     val root = Files.createTempDirectory("root")
-    layout.split("(?=\n/)").foreach { row =>
-      row.stripPrefix("\n").split("\n", 2).toList match {
-        case path :: contents :: Nil =>
-          val file = root.resolve(path.stripPrefix("/"))
-          file.getParent.toFile.mkdirs()
-          Files.write(file, contents.getBytes)
-        case els =>
-          throw new IllegalArgumentException(
-            s"Unable to split argument info path/contents! \n$els")
+    if (!layout.isEmpty) {
+      layout.split("(?=\n/)").foreach { row =>
+        row.stripPrefix("\n").split("\n", 2).toList match {
+          case path :: contents :: Nil =>
+            val file = root.resolve(path.stripPrefix("/"))
+            file.getParent.toFile.mkdirs()
+            Files.write(file, contents.getBytes)
+          case els =>
+            throw new IllegalArgumentException(
+              s"Unable to split argument info path/contents! \n$els")
 
+        }
       }
     }
     AbsolutePath(root)

@@ -2,9 +2,7 @@ package scalafix.internal.rule
 
 import scala.meta._
 import scala.meta.contrib._
-import scalafix.Patch
-import scalafix.rule.Rule
-import scalafix.rule.RuleCtx
+import scalafix.v0._
 
 case object NoValInForComprehension extends Rule("NoValInForComprehension") {
 

@@ -1,5 +1,4 @@
-package scalafix
-package internal.config
+package scalafix.internal.config
 
 import java.util.regex.Pattern
 import scala.meta.tokens.Token
@@ -11,6 +10,7 @@ import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.annotation.Description
 import metaconfig.annotation.ExampleValue
+import scalafix.config.CustomMessage
 
 case class DisableSyntaxConfig(
     @Description("Report error on usage of a given set of keywords.")

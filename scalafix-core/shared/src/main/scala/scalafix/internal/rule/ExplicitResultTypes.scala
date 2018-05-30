@@ -1,12 +1,10 @@
 package scalafix.internal.rule
 
-import java.io.PrintWriter
-import java.io.StringWriter
 import scala.meta._
 import scala.meta.contrib._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
-import scalafix.Patch
-import scalafix.SemanticdbIndex
+import scalafix.patch.Patch
+import scalafix.v0.SemanticdbIndex
 import scalafix.internal.config.ExplicitResultTypesConfig
 import scalafix.internal.config.MemberKind
 import scalafix.internal.config.MemberVisibility
@@ -18,11 +16,11 @@ import scalafix.syntax._
 import scalafix.util.TokenOps
 import metaconfig.Conf
 import metaconfig.Configured
-import scala.util.control.NonFatal
-import scalafix.internal.util.EagerInMemorySemanticdbIndex
 import scalafix.internal.util.PrettyResult
 import scalafix.internal.util.QualifyStrategy
 import scalafix.internal.util.PrettyType
+import scalafix.internal.util.SymbolTable
+import scalafix.v1.MissingSymbolException
 
 case class ExplicitResultTypes(
     index: SemanticdbIndex,
@@ -76,31 +74,36 @@ case class ExplicitResultTypes(
     case _: Defn.Var => MemberKind.Var
   }
   import scala.meta.internal.{semanticdb3 => s}
+  def unsafeToType(
+      ctx: RuleCtx,
+      pos: Position,
+      symbol: Symbol
+  ): PrettyResult[Type] = {
+    val info = index.asInstanceOf[SymbolTable].info(symbol.syntax).get
+    val tpe = info.tpe.get.tag match {
+      case s.Type.Tag.METHOD_TYPE =>
+        info.tpe.get.methodType.get.returnType.get
+      case _ => info.tpe.get
+    }
+    PrettyType.toType(
+      tpe,
+      index.asInstanceOf[SymbolTable],
+      if (config.unsafeShortenNames) QualifyStrategy.Readable
+      else QualifyStrategy.Full
+    )
+  }
+
   def toType(
       ctx: RuleCtx,
       pos: Position,
-      info: s.SymbolInformation): Option[PrettyResult[Type]] = {
+      symbol: Symbol
+  ): Option[PrettyResult[Type]] = {
     try {
-      val tpe = info.tpe.get.tag match {
-        case s.Type.Tag.METHOD_TYPE =>
-          info.tpe.get.methodType.get.returnType.get
-        case _ => info.tpe.get
-      }
-      Some(
-        PrettyType.toType(
-          tpe,
-          index.asInstanceOf[EagerInMemorySemanticdbIndex],
-          if (config.unsafeShortenNames) QualifyStrategy.Readable
-          else QualifyStrategy.Full
-        ))
+      Some(unsafeToType(ctx, pos, symbol))
     } catch {
-      case NonFatal(e) =>
+      case e: MissingSymbolException =>
         if (config.fatalWarnings) {
-          val sw = new StringWriter()
-          sw.append(info.toProtoString)
-            .append("\n")
-          e.printStackTrace(new PrintWriter(sw))
-          ctx.config.reporter.error(sw.toString, pos)
+          ctx.config.reporter.error(e.getMessage, pos)
         } else {
           // Silently discard failures from producing a new type.
           // Errors are most likely caused by known upstream issue that have been reported in Scalameta.
@@ -110,13 +113,12 @@ case class ExplicitResultTypes(
   }
 
   override def fix(ctx: RuleCtx): Patch = {
-    val table = index.asInstanceOf[EagerInMemorySemanticdbIndex]
+    val table = index.asInstanceOf[SymbolTable]
     def defnType(defn: Defn): Option[(Type, Patch)] =
       for {
         name <- defnName(defn)
         defnSymbol <- name.symbol
-        info <- table.info(defnSymbol.syntax)
-        result <- toType(ctx, name.pos, info)
+        result <- toType(ctx, name.pos, defnSymbol)
       } yield {
         val addGlobalImports = result.imports.map { s =>
           val symbol = Symbol(s)

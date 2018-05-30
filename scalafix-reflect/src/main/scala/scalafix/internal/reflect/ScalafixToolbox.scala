@@ -4,7 +4,6 @@ import java.io.File
 import java.net.URLClassLoader
 import java.nio.file.Paths
 import java.util.function
-import scala.meta.inputs.Input
 import scala.reflect.internal.util.AbstractFileClassLoader
 import scala.reflect.internal.util.BatchSourceFile
 import scala.tools.nsc.Global
@@ -12,19 +11,19 @@ import scala.tools.nsc.Settings
 import scala.tools.nsc.io.AbstractFile
 import scala.tools.nsc.io.VirtualDirectory
 import scala.tools.nsc.reporters.StoreReporter
-import scala.{meta => m}
-import scalafix.internal.config.LazySemanticdbIndex
-import scalafix.internal.config.classloadRule
-import scalafix.internal.util.ClassloadRule
-import scalafix.rule.Rule
+import scalafix.internal.config.MetaconfigPendingUpstream._
 import metaconfig.ConfError
 import metaconfig.Configured
-import org.langmeta.io.AbsolutePath
+import metaconfig.Input
+import metaconfig.Position
+import scala.meta.io.AbsolutePath
 
 object ScalafixToolbox extends ScalafixToolbox
 class ScalafixToolbox {
   private val ruleCache =
-    new java.util.concurrent.ConcurrentHashMap[Input, Configured[Rule]]()
+    new java.util.concurrent.ConcurrentHashMap[
+      Input,
+      Configured[CompiledRules]]()
   private val compilerCache =
     new java.util.concurrent.ConcurrentHashMap[String, RuleCompiler]()
   private val newCompiler: function.Function[String, RuleCompiler] =
@@ -32,9 +31,13 @@ class ScalafixToolbox {
       override def apply(classpath: String) = new RuleCompiler(classpath)
     }
 
-  def getRule(code: Input, index: LazySemanticdbIndex): Configured[Rule] =
+  case class CompiledRules(classloader: ClassLoader, fqns: Seq[String])
+
+  def getRule(
+      code: Input,
+      toolClasspath: List[AbsolutePath]): Configured[CompiledRules] =
     ruleCache.getOrDefault(code, {
-      val uncached = getRuleUncached(code, index)
+      val uncached = getRuleUncached(code, toolClasspath)
       uncached match {
         case toCache @ Configured.Ok(_) =>
           ruleCache.put(code, toCache)
@@ -45,29 +48,17 @@ class ScalafixToolbox {
 
   def getRuleUncached(
       code: Input,
-      index: LazySemanticdbIndex): Configured[Rule] =
+      toolClasspath: List[AbsolutePath]): Configured[CompiledRules] =
     synchronized {
-      val cp = RuleCompiler.defaultClasspath + (
-        if (index.toolClasspath.isEmpty) ""
-        else {
-          File.pathSeparator +
-            index.toolClasspath.mkString(File.pathSeparator)
-        }
+      val cp = RuleCompiler.defaultClasspathPaths ++ toolClasspath
+      val compiler = compilerCache.computeIfAbsent(
+        cp.mkString(File.pathSeparator),
+        newCompiler
       )
-      val compiler = compilerCache.computeIfAbsent(cp, newCompiler)
       (
         compiler.compile(code) |@|
-          RuleInstrumentation.getRuleFqn(code)
-      ).andThen {
-        case (classloader, names) =>
-          names.foldLeft(Configured.ok(Rule.empty)) {
-            case (rule, fqn) =>
-              val args = classloadRule(index)
-              rule
-                .product(ClassloadRule(fqn, args, classloader))
-                .map { case (a, b) => a.merge(b) }
-          }
-      }
+          RuleInstrumentation.getRuleFqn(code.toMeta)
+      ).map(CompiledRules.tupled.apply)
     }
 }
 
@@ -130,8 +121,8 @@ class RuleCompiler(
         ConfError
           .message(msg)
           .atPos(
-            if (pos.isDefined) m.Position.Range(input, pos.start, pos.end)
-            else m.Position.None
+            if (pos.isDefined) Position.Range(input, pos.start, pos.end)
+            else Position.None
           )
           .notOk
     }

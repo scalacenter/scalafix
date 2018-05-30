@@ -1,22 +1,20 @@
 package scalafix.reflect
 
-import scalafix.SemanticdbIndex
-import scalafix.Rule
-import scalafix.internal.config._
-import scalafix.internal.reflect.ScalafixCompilerDecoder
 import metaconfig.ConfDecoder
+import scalafix.internal.config._
+import scalafix.v0
 
 object ScalafixReflect {
-  def syntactic: ConfDecoder[Rule] =
-    fromLazySemanticdbIndex(LazySemanticdbIndex.empty)
+  @deprecated("Use scalafix.v1.RuleDecoder.decoder() instead", "0.6.0")
+  def syntactic: ConfDecoder[v0.Rule] =
+    throw new UnsupportedOperationException
 
-  def semantic(index: SemanticdbIndex): ConfDecoder[Rule] =
-    fromLazySemanticdbIndex(LazySemanticdbIndex(_ => Some(index)))
+  @deprecated("Use scalafix.v1.RuleDecoder.decoder() instead", "0.6.0")
+  def semantic(index: v0.SemanticdbIndex): ConfDecoder[v0.Rule] =
+    throw new UnsupportedOperationException
 
-  def fromLazySemanticdbIndex(index: LazySemanticdbIndex): ConfDecoder[Rule] =
-    ruleConfDecoder(
-      ScalafixCompilerDecoder
-        .baseCompilerDecoder(index)
-        .orElse(baseRuleDecoders(index))
-    )
+  @deprecated("Use scalafix.v1.RuleDecoder.decoder() instead", "0.6.0")
+  def fromLazySemanticdbIndex(
+      index: LazySemanticdbIndex): ConfDecoder[v0.Rule] =
+    throw new UnsupportedOperationException
 }

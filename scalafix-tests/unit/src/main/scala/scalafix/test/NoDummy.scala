@@ -1,10 +1,6 @@
 package scalafix.test
 
-import scalafix.LintCategory
-import scalafix.LintMessage
-import scalafix.Rule
-import scalafix.RuleCtx
-
+import scalafix.v0._
 import scala.meta._
 
 object NoDummy extends Rule("NoDummy") {

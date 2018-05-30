@@ -130,6 +130,7 @@ val reflect = MultiScalaProject(
   _.settings(
     isFullCrossVersion,
     libraryDependencies ++= Seq(
+      metacp,
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
     )
@@ -143,12 +144,9 @@ val cli = MultiScalaProject(
   "cli",
   _.settings(
     isFullCrossVersion,
-    mainClass in assembly := Some("scalafix.cli.Cli"),
+    mainClass in assembly := Some("scalafix.v1.Main"),
     assemblyJarName in assembly := "scalafix.jar",
     libraryDependencies ++= Seq(
-      metacp,
-      "com.github.alexarchambault" %% "case-app" % "1.2.0",
-      "org.typelevel" %% "paiges-core" % "0.2.0",
       "com.martiansoftware" % "nailgun-server" % "0.9.1",
       jgit,
       "ch.qos.logback" % "logback-classic" % "1.2.3",
@@ -246,6 +244,7 @@ val testkit = MultiScalaProject(
       semanticdb,
       ammonite,
       googleDiff,
+      scalacheck,
       scalatest
     )
   )

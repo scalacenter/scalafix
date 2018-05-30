@@ -2,7 +2,7 @@ package scalafix.internal.config
 
 import metaconfig.ConfDecoder
 import metaconfig.annotation._
-import org.langmeta.Symbol
+import scala.meta.Symbol
 import metaconfig.generic
 import metaconfig.generic.Surface
 

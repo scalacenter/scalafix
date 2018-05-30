@@ -1,14 +1,13 @@
 package scalafix.internal.rule
 
 import metaconfig.{Conf, Configured}
-
 import scala.meta._
 import scala.meta.transversers.Traverser
 import scalafix.internal.config.{DisableConfig, DisabledSymbol}
+import scalafix.internal.patch.DocSemanticdbIndex.InputSynthetic
 import scalafix.internal.util.SymbolOps
 import scalafix.lint.{LintCategory, LintMessage}
-import scalafix.rule.{Rule, RuleCtx, SemanticRule}
-import scalafix.util.SemanticdbIndex
+import scalafix.v0._
 
 object Disable {
 
@@ -159,18 +158,18 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
 
   private def checkSynthetics(ctx: RuleCtx): Seq[LintMessage] = {
     for {
-      document <- ctx.index.documents.view
+      synthetic <- ctx.index.synthetics.view
       ResolvedName(
         pos,
         disabledSymbolInSynthetics(symbol @ Symbol.Global(_, _), disabled),
         false
-      ) <- document.synthetics.view.flatMap(_.names)
+      ) <- synthetic.names
     } yield {
       val (details, caret) = pos.input match {
-        case synthetic @ Input.Synthetic(_, input, start, end) =>
+        case synth @ Input.Stream(InputSynthetic(_, input, start, end), _) =>
           // For synthetics the caret should point to the original position
           // but display the inferred code.
-          s" and it got inferred as `${synthetic.text}`" ->
+          s" and it got inferred as `${synth.text}`" ->
             Position.Range(input, start, end)
         case _ =>
           "" -> pos

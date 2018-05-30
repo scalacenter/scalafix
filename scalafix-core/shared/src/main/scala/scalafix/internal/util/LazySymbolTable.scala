@@ -2,9 +2,9 @@ package scalafix.internal.util
 
 import java.nio.file.Files
 import java.util.jar.JarFile
-import org.langmeta.internal.io.PathIO
-import org.langmeta.io.AbsolutePath
-import org.langmeta.io.Classpath
+import scala.meta.internal.io.PathIO
+import scala.meta.io.AbsolutePath
+import scala.meta.io.Classpath
 import scala.collection.concurrent.TrieMap
 import scala.meta.internal.semanticdb3.Scala.Symbols
 import scala.meta.internal.semanticdb3.Scala._
@@ -25,7 +25,7 @@ class LazySymbolTable(mclasspath: Classpath) extends SymbolTable {
   private val notYetLoadedSymbols = TrieMap.empty[String, SemanticdbEntry]
   private val loadedSymbols = TrieMap.empty[String, s.SymbolInformation]
 
-  mclasspath.shallow.foreach(loadSemanticdbIndex)
+  mclasspath.entries.foreach(loadSemanticdbIndex)
 
   override def info(symbol: String): Option[s.SymbolInformation] = {
     var result = loadedSymbols.get(symbol)
@@ -114,4 +114,5 @@ class LazySymbolTable(mclasspath: Classpath) extends SymbolTable {
       extends SemanticdbEntry
   private case class Compressed(jarFile: JarFile, entry: String)
       extends SemanticdbEntry
+
 }

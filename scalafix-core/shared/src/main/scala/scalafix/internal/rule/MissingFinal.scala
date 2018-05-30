@@ -1,11 +1,7 @@
 package scalafix.internal.rule
 
 import scala.meta._
-import scala.meta.transversers.Traverser
-import scalafix.lint.LintCategory
-import scalafix.patch.Patch
-import scalafix.rule.RuleCtx
-import scalafix.{SemanticRule, SemanticdbIndex}
+import scalafix.v0._
 
 final case class MissingFinal(index: SemanticdbIndex)
     extends SemanticRule(
@@ -23,7 +19,7 @@ final case class MissingFinal(index: SemanticdbIndex)
 
   override def fix(ctx: RuleCtx): Patch = {
     def isSealed(tpe: Type): Boolean =
-      ctx.index.denotation(tpe).exists(_.isSealed)
+      index.denotation(tpe).exists(_.isSealed)
 
     def leaksSealedParent(mods: List[Mod], templ: Template): Boolean =
       templ.inits.exists(i => isSealed(i.tpe)) &&

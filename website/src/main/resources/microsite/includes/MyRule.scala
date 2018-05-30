@@ -1,4 +1,4 @@
-import scalafix._
+import scalafix.v0._
 import scala.meta._
 
 case object Uppercase extends Rule("Uppercase") {

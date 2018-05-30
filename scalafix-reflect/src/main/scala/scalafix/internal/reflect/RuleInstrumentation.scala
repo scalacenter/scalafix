@@ -1,21 +1,30 @@
 package scalafix.internal.reflect
 
 import scala.collection.immutable.Seq
-import scala.meta._
 import scalafix.internal.config.ScalafixConfig.DefaultDialect
+import scala.meta._
 import metaconfig.ConfError
 import metaconfig.Configured
+import scalafix.internal.config.MetaconfigPendingUpstream._
 
 object RuleInstrumentation {
 
   def getRuleFqn(code: Input): Configured[Seq[String]] = {
-    import scala.meta._
     object ExtendsRule {
       def unapply(templ: Template): Boolean = templ match {
+
+        // v0
         case Template(_, init"Rewrite" :: _, _, _) => true
         case Template(_, init"Rule($_)" :: _, _, _) => true
         case Template(_, init"SemanticRewrite($_)" :: _, _, _) => true
         case Template(_, init"SemanticRule($_, $_)" :: _, _, _) => true
+
+        // v1
+        case Template(_, init"SemanticRule($_)" :: _, _, _) => true
+        case Template(_, init"v1.SemanticRule($_)" :: _, _, _) => true
+        case Template(_, init"SyntacticRule($_)" :: _, _, _) => true
+        case Template(_, init"v1.SyntacticRule($_)" :: _, _, _) => true
+
         case _ => false
       }
     }
@@ -30,7 +39,7 @@ object RuleInstrumentation {
     }
     (DefaultDialect, code).parse[Source] match {
       case parsers.Parsed.Error(pos, msg, details) =>
-        ConfError.parseError(pos, msg).notOk
+        ConfError.parseError(pos.toMetaconfig, msg).notOk
       case parsers.Parsed.Success(ast) =>
         val result = List.newBuilder[String]
         def add(name: Vector[String]): Unit = {
@@ -42,11 +51,7 @@ object RuleInstrumentation {
             stats.foreach(s => loop(prefix :+ ref.syntax, s))
           case Defn.Object(_, name, ExtendsRule()) =>
             add(prefix :+ name.syntax)
-          case Defn.Object(_, name, _) =>
-            tree.children.foreach(s => loop(prefix :+ name.syntax, s))
           case Defn.Class(_, name, _, _, ExtendsRule()) =>
-            add(prefix :+ name.syntax)
-          case Defn.Val(_, Pat.Var(name) :: Nil, _, LambdaRule()) =>
             add(prefix :+ name.syntax)
           case _ =>
             tree.children.foreach(s => loop(prefix, s))

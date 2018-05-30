@@ -1,5 +1,4 @@
-package scalafix
-package config
+package scalafix.config
 
 import metaconfig.{Conf, ConfDecoder}
 import scala.meta.Symbol
@@ -23,7 +22,7 @@ object CustomMessage {
           case ((value, message0), id) =>
             val message =
               message0.map(msg =>
-                if (msg.isMultiline) {
+                if (msg.contains("\n")) {
                   "\n" + msg.stripMargin
                 } else {
                   msg

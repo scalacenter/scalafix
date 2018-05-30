@@ -1,5 +1,4 @@
-package scalafix
-package internal.patch
+package scalafix.internal.patch
 
 import scala.annotation.tailrec
 import scala.collection.immutable.TreeMap
@@ -9,11 +8,15 @@ import scala.meta._
 import scala.meta.contrib._
 import scala.meta.tokens.Token
 import scala.meta.tokens.Token.Comment
+import scalafix.v0._
 import scalafix.internal.config.FilterMatcher
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.patch.EscapeHatch._
 import scalafix.lint.LintMessage
-import scalafix.patch._
+import scalafix.patch.AtomicPatch
+import scalafix.patch.Concat
+import scalafix.patch.EmptyPatch
+import scalafix.patch.LintPatch
 import scalafix.rule.RuleName
 import scalafix.util.TreeExtractors.Mods
 

@@ -3,8 +3,8 @@ import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 /* scalafmt: { maxColumn = 120 }*/
 
 object Dependencies {
-  val scalametaV = "3.7.4"
-  val metaconfigV = "0.6.0-RC1"
+  val scalametaV = "4.0.0-M1"
+  val metaconfigV = "0.8.3"
   def dotty = "0.1.1-bin-20170530-f8f52cc-NIGHTLY"
   def scala210 = "2.10.6"
   // NOTE(olafur) downgraded from 2.11.12 and 2.12.4 because of non-reproducible error
@@ -28,7 +28,8 @@ object Dependencies {
 
   def metacp = "org.scalameta" %% "metacp" % scalametaV
   def scalameta = Def.setting("org.scalameta" %%% "contrib" % scalametaV)
-  val scalatest = "org.scalatest" %% "scalatest" % "3.0.0"
+  def scalatest = "org.scalatest" %% "scalatest" % "3.2.0-SNAP10"
+  def scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.0"
 
   def testsDeps = List(
     // integration property tests
@@ -37,7 +38,7 @@ object Dependencies {
     "org.typelevel" %% "cats-core" % "0.9.0",
     "com.typesafe.slick" %% "slick" % "3.2.0-M2",
     "com.chuusai" %% "shapeless" % "2.3.2",
-    "org.scalacheck" %% "scalacheck" % "1.13.4"
+    scalacheck
   )
 
   def coursierDeps = Seq(

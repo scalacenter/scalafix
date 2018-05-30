@@ -121,7 +121,7 @@ object ScalafixPlugin extends AutoPlugin {
 
   override def globalSettings: Seq[Def.Setting[_]] = Seq(
     scalafixConfig := Option(file(".scalafix.conf")).filter(_.isFile),
-    cliWrapperMainClass := "scalafix.cli.Cli$",
+    cliWrapperMainClass := "scalafix.v1.Main$",
     scalafixVerbose := false,
     commands += ScalafixEnable.command,
     sbtfix := sbtfixImpl(compat = true).evaluated,
@@ -150,16 +150,10 @@ object ScalafixPlugin extends AutoPlugin {
       val baseDir = baseDirectory.in(ThisBuild).value
       val sbtDir: File = baseDir./("project")
       val sbtFiles = baseDir.*("*.sbt").get
-      val options =
-        "--no-strict-semanticdb" ::
-          "--classpath-auto-roots" ::
-          baseDir./("target").getAbsolutePath ::
-          sbtDir.getAbsolutePath ::
-          Nil ++ extraOptions
       scalafixTaskImpl(
         scalafixParserCompat.parsed,
         compat,
-        options,
+        extraOptions,
         sbtDir +: sbtFiles,
         "sbt-build",
         streams.value
@@ -214,11 +208,9 @@ object ScalafixPlugin extends AutoPlugin {
       extraOptions: Seq[String]): Def.Initialize[Task[Unit]] =
     Def.taskDyn {
       compile.value // trigger compilation
-      val classDir = classDirectory.value
-      val deps = dependencyClasspath.value
-        .map(_.data)
-        .mkString(java.io.File.pathSeparator)
-      val classpath = if (classDir.exists()) classDir.toString else ""
+      val scalafixClasspath =
+        classDirectory.value +:
+          dependencyClasspath.value.map(_.data)
       val sourcesToFix = for {
         source <- unmanagedSources.in(scalafix).value
         if source.exists()
@@ -226,9 +218,7 @@ object ScalafixPlugin extends AutoPlugin {
       } yield source
       val options: Seq[String] = List(
         "--classpath",
-        classpath,
-        "--dependency-classpath",
-        deps
+        scalafixClasspath.mkString(java.io.File.pathSeparator)
       ) ++ extraOptions
       scalafixTaskImpl(
         inputArgs,
@@ -288,16 +278,7 @@ object ScalafixPlugin extends AutoPlugin {
           streams.log.info(s"Running scalafix on ${files.size} Scala sources")
         }
 
-        args += (
-          "--project-id",
-          projectId,
-          "--no-sys-exit",
-          "--non-interactive"
-        )
-
-        if (!scalafixParallel.value) {
-          args += "--no-parallel"
-        }
+        args += "--no-sys-exit"
 
         args ++= files.iterator.map(_.getAbsolutePath)
 
