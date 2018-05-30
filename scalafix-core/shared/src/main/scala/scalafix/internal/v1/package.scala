@@ -25,7 +25,7 @@ package object v1 extends ScalafixSyntax {
 
   implicit class XtensionClasspathScalafix(cp: Classpath) {
     def resolveSemanticdb(path: RelativePath): Option[AbsolutePath] = {
-      cp.shallow.iterator
+      cp.entries.iterator
         .filter(_.isDirectory)
         .map(
           _.resolve("META-INF")

@@ -5,9 +5,9 @@ import scala.meta.Input
 import scala.meta.Tree
 import scala.meta.contrib.AssociatedComments
 import scala.meta.tokens.Tokens
-import scalafix.LintMessage
-import scalafix.Patch
-import scalafix.RuleCtx
+import scalafix.v0.LintMessage
+import scalafix.v0.Patch
+import scalafix.v0.RuleCtx
 import scalafix.rule.RuleName
 import scalafix.util.MatchingParens
 import scalafix.util.SemanticdbIndex

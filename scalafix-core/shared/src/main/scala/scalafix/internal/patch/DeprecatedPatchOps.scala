@@ -6,11 +6,9 @@ import scala.meta.Symbol
 import scala.meta.Token
 import scala.meta.Tree
 import scala.meta.tokens.Tokens
-import scalafix.LintMessage
-import scalafix.Patch
+import scalafix.v0._
 import scalafix.patch.PatchOps
 import DeprecatedPatchOps.DeprecationMessage
-import scalafix.SemanticdbIndex
 
 trait DeprecatedPatchOps extends PatchOps {
   @deprecated(DeprecationMessage, "0.6.0")

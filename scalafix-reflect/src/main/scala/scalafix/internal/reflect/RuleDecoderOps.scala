@@ -11,30 +11,27 @@ import metaconfig.Configured.Ok
 import metaconfig.Input
 import scala.collection.concurrent.TrieMap
 import scala.meta.io.AbsolutePath
-import scalafix.SemanticdbIndex
 import scalafix.internal.config.ScalafixMetaconfigReaders.UriRule
 import scalafix.internal.util.FileOps
 import scalafix.internal.v1.LegacySemanticRule
 import scalafix.internal.v1.LegacySyntacticRule
-import scalafix.rule.Rule
-import scalafix.rule.SemanticRule
 import scalafix.v0
 import scalafix.v1
 
 object RuleDecoderOps {
 
-  val legacySemanticRuleClass: Class[SemanticRule] =
+  val legacySemanticRuleClass: Class[v0.SemanticRule] =
     classOf[scalafix.rule.SemanticRule]
-  val legacyRuleClass: Class[Rule] =
+  val legacyRuleClass: Class[v0.Rule] =
     classOf[scalafix.rule.Rule]
   def toRule(cls: Class[_]): v1.Rule = {
     if (legacySemanticRuleClass.isAssignableFrom(cls)) {
-      val fn: SemanticdbIndex => v0.Rule = { index =>
-        val ctor = cls.getDeclaredConstructor(classOf[SemanticdbIndex])
+      val fn: v0.SemanticdbIndex => v0.Rule = { index =>
+        val ctor = cls.getDeclaredConstructor(classOf[v0.SemanticdbIndex])
         ctor.setAccessible(true)
         ctor.newInstance(index).asInstanceOf[v0.Rule]
       }
-      new LegacySemanticRule(fn(SemanticdbIndex.empty).name, fn)
+      new LegacySemanticRule(fn(v0.SemanticdbIndex.empty).name, fn)
     } else if (legacyRuleClass.isAssignableFrom(cls)) {
       val ctor = cls.getDeclaredConstructor()
       ctor.setAccessible(true)

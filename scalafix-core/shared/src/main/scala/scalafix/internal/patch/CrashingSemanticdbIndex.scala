@@ -1,7 +1,7 @@
 package scalafix.internal.patch
 
 import scala.meta.Classpath
-import scalafix.SemanticdbIndex
+import scalafix.v0.SemanticdbIndex
 import scalafix.v0.Document
 
 trait CrashingSemanticdbIndex extends SemanticdbIndex {

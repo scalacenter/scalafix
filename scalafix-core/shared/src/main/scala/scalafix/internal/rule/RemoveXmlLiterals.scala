@@ -2,10 +2,6 @@ package scalafix.internal.rule
 
 import scalafix.v0._
 import scala.meta._
-import scalafix.Patch
-import scalafix.rule.Rule
-import scalafix.rule.RuleCtx
-import scalafix.lint.LintCategory
 
 /* Rule Xml literals to Xml interpolators.
  *

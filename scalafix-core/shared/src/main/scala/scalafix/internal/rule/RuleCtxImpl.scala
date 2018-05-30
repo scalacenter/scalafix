@@ -5,15 +5,13 @@ import org.scalameta.logger
 import scala.meta._
 import scala.meta.contrib.AssociatedComments
 import scala.meta.tokens.Tokens
-import scalafix.LintMessage
 import scalafix.v0._
+import scalafix.syntax._
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.patch.DeprecatedPatchOps
 import scalafix.internal.patch.EscapeHatch
-import scalafix.rule.RuleCtx
 import scalafix.rule.RuleName
-import scalafix.syntax._
 import scalafix.util.MatchingParens
 import scalafix.util.SemanticdbIndex
 import scalafix.util.TokenList
