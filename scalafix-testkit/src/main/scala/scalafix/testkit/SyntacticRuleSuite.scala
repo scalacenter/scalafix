@@ -10,7 +10,6 @@ import scalafix.v0._
   *
   * @param rule the default rule to use from `check`/`checkDiff`.
   */
-@deprecated("Use SemanticRuleSuite instead", "0.6.0")
 class SyntacticRuleSuite(rule: Rule = Rule.empty)
     extends FunSuiteLike
     with DiffAssertions {

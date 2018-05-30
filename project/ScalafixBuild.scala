@@ -166,7 +166,10 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     stableVersion := "0.5.10", // hardcoded while we iterate through v0.6 milestones.
     scalacOptions ++= compilerOptions,
     scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
-    libraryDependencies += scalatest % Test,
+    libraryDependencies ++= List(
+      scalacheck % Test,
+      scalatest % Test
+    ),
     testOptions in Test += Tests.Argument("-oD"),
     updateOptions := updateOptions.value.withCachedResolution(true),
     resolvers += Resolver.sonatypeRepo("releases"),

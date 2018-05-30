@@ -29,6 +29,7 @@ object Dependencies {
   def metacp = "org.scalameta" %% "metacp" % scalametaV
   def scalameta = Def.setting("org.scalameta" %%% "contrib" % scalametaV)
   def scalatest = "org.scalatest" %% "scalatest" % "3.2.0-SNAP10"
+  def scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.0"
 
   def testsDeps = List(
     // integration property tests
@@ -37,7 +38,7 @@ object Dependencies {
     "org.typelevel" %% "cats-core" % "0.9.0",
     "com.typesafe.slick" %% "slick" % "3.2.0-M2",
     "com.chuusai" %% "shapeless" % "2.3.2",
-    "org.scalacheck" %% "scalacheck" % "1.13.4"
+    scalacheck
   )
 
   def coursierDeps = Seq(
