@@ -92,6 +92,22 @@ case class Args(
     @Description("Additional directories to scan for --auto-classpath")
     @ExtraName("classpathAutoRoots")
     autoClasspathRoots: List[AbsolutePath] = Nil,
+    @Section("Tab completions")
+    @Description(
+      """Print out bash tab completions. To install:
+        |```
+        |scalafix --bash > /usr/local/etc/bash_completion.d/scalafix # Mac
+        |scalafix --bash > /etc/bash_completion.d/scalafix           # Linux
+        |```
+        |""".stripMargin)
+    bash: Boolean = false,
+    @Description(
+      """Print out zsh tab completions. To install:
+        |```
+        |scalafix --zsh > /usr/local/share/zsh/site-functions/_scalafix
+        |```
+        |""".stripMargin)
+    zsh: Boolean = false,
     @Section("Less common options")
     @Description(
       "Unix-style glob for files to exclude from fixing. " +

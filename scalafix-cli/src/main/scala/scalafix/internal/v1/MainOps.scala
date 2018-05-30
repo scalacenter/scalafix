@@ -1,6 +1,5 @@
 package scalafix.internal.v1
 
-
 import java.io.PrintStream
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
@@ -16,6 +15,7 @@ import metaconfig.generic.Settings
 import metaconfig.internal.Case
 import org.typelevel.paiges.{Doc => D}
 import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.ListBuffer
 import scala.meta.io.AbsolutePath
 import scala.meta.parsers.Parsed
 import scala.util.control.NoStackTrace
@@ -203,6 +203,30 @@ object MainOps {
          |""".stripMargin
     )
 
+  /** Line wrap prose while keeping markdown code fences unchanged. */
+  def markdownish(text: String): D = {
+    val buf = ListBuffer.empty[String]
+    val paragraphs = ListBuffer.empty[D]
+    var insideCodeFence = false
+    def flush(): Unit = {
+      if (insideCodeFence) {
+        paragraphs += D.intercalate(D.line, buf.map(D.text))
+      } else {
+        paragraphs += D.paragraph(buf.mkString("\n"))
+      }
+      buf.clear()
+    }
+    text.lines.foreach { line =>
+      if (line.startsWith("```")) {
+        flush()
+        insideCodeFence = !insideCodeFence
+      }
+      buf += line
+    }
+    flush()
+    D.intercalate(D.line, paragraphs)
+  }
+
   def options(width: Int): String = {
     val sb = new StringBuilder()
     val settings = Settings[Args]
@@ -236,7 +260,7 @@ object MainOps {
       sb.append("\n")
       setting.description.foreach { description =>
         sb.append("    ")
-          .append(D.paragraph(description).nested(4).render(width))
+          .append(markdownish(description).nested(4).render(width))
           .append('\n')
       }
     }
