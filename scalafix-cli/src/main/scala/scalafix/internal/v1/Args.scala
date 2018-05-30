@@ -94,21 +94,23 @@ case class Args(
     autoClasspathRoots: List[AbsolutePath] = Nil,
     @Section("Tab completions")
     @Description(
-      """Print out bash tab completions. To install:
-        |```
-        |scalafix --bash > /usr/local/etc/bash_completion.d/scalafix # Mac, requires "brew install bash-completion"
-        |scalafix --bash > /etc/bash_completion.d/scalafix           # Linux
-        |```
-        |""".stripMargin)
+      """|Print out bash tab completions. To install:
+         |```
+         |scalafix --bash > /usr/local/etc/bash_completion.d/scalafix # macOS, requires "brew install bash-completion"
+         |scalafix --bash > /etc/bash_completion.d/scalafix           # Linux
+         |```
+         |""".stripMargin
+    )
     bash: Boolean = false,
     @Description(
-      """Print out zsh tab completions. To install:
-        |```
-        |scalafix --zsh > /usr/local/share/zsh/site-functions/_scalafix
-        |unfunction _scalafix
-        |autoload -U _scalafix-nightly
-        |```
-        |""".stripMargin)
+      """|Print out zsh tab completions. To install:
+         |```
+         |scalafix --zsh > /usr/local/share/zsh/site-functions/_scalafix
+         |unfunction _scalafix
+         |autoload -U _scalafix
+         |```
+         |""".stripMargin
+    )
     zsh: Boolean = false,
     @Section("Less common options")
     @Description(
@@ -126,14 +128,13 @@ case class Args(
     noStaleSemanticdb: Boolean = false,
     @Description("Custom settings to override .scalafix.conf")
     settings: Conf = Conf.Obj.empty,
-    @Description(
-      "The format for console output, if sbt prepends [error] prefix")
+    @Description("The format for console output")
     format: OutputFormat = OutputFormat.Default,
     @Description(
-      "Regex that is passed as first argument to fileToFix.replaceAll(outFrom, outTo)")
+      "Write fixed output to custom location instead of in-place. Regex is passed as first argument to file.replaceAll(--out-from, --out-to), requires --out-to.")
     outFrom: Option[String] = None,
     @Description(
-      "Replacement string that is passed as second argument to fileToFix.replaceAll(outFrom, outTo)")
+      "Companion of --out-from, string that is passed as second argument to fileToFix.replaceAll(--out-from, --out-to)")
     outTo: Option[String] = None,
     @Description(
       "Insert /* scalafix:ok */ suppressions instead of reporting linter errors.")

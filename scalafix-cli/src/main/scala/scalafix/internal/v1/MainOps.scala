@@ -144,8 +144,19 @@ object MainOps {
         }
         args.mode match {
           case WriteMode.Test =>
-            if (fixed == input.text) ExitStatus.Ok
-            else ExitStatus.TestError
+            if (fixed == input.text) {
+              ExitStatus.Ok
+            } else {
+              val diff = DiffUtils.unifiedDiff(
+                file.toString(),
+                "<expected fix>",
+                input.text.lines.toList,
+                fixed.lines.toList,
+                3
+              )
+              args.args.out.println(diff)
+              ExitStatus.TestError
+            }
           case WriteMode.Stdout =>
             args.args.out.println(fixed)
             ExitStatus.Ok
@@ -182,6 +193,9 @@ object MainOps {
     val files = this.files(args)
     var exit = ExitStatus.Ok
     files.foreach { file =>
+      if (args.args.verbose) {
+        args.config.reporter.info(s"Processing $file")
+      }
       val next = handleFile(args, file)
       exit = ExitStatus.merge(exit, next)
     }
@@ -190,10 +204,10 @@ object MainOps {
 
   def version =
     s"Scalafix ${Versions.version}"
-  def usage =
+  def usage: String =
     """|Usage: scalafix [options] [<path> ...]
        |""".stripMargin
-  def description =
+  def description: D =
     D.paragraph(
       """|Scalafix is a refactoring and linting tool.
          |Scalafix supports both syntactic and semantic linter and rewrite rules.

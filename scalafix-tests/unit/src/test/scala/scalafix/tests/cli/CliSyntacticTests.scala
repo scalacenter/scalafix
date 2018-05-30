@@ -87,13 +87,26 @@ class CliSyntacticTests extends BaseCliTest {
   )
 
   check(
-    name = "--test error",
+    name = "TestError",
     originalLayout = s"""/foobar.scala
                         |$original""".stripMargin,
     args = Array("--test", "-r", ProcedureSyntax.toString, "foobar.scala"),
     expectedLayout = s"""/foobar.scala
                         |$original""".stripMargin,
-    expectedExit = ExitStatus.TestError
+    expectedExit = ExitStatus.TestError,
+    outputAssert = { out =>
+      assert(
+        out.endsWith(
+          """|<expected fix>
+             |@@ -1,4 +1,4 @@
+             | object Main {
+             |-  def foo() {
+             |+  def foo(): Unit = {
+             |   }
+             | }
+             |""".stripMargin
+        ))
+    }
   )
 
   check(
