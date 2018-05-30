@@ -1,5 +1,6 @@
 package scalafix.testkit
 
+import java.io.File
 import java.nio.charset.StandardCharsets
 import scala.meta.internal.io.FileIO
 import org.scalatest.BeforeAndAfterAll
@@ -7,47 +8,38 @@ import org.scalatest.FunSuite
 import org.scalatest.exceptions.TestFailedException
 import scala.meta._
 import scalafix.internal.reflect.ClasspathOps
+import scalafix.internal.reflect.RuleCompiler
 import scalafix.internal.testkit.AssertDiff
 import scalafix.internal.testkit.CommentAssertion
 import scalafix.internal.testkit.EndOfLineAssertExtractor
 import scalafix.internal.testkit.MultiLineAssertExtractor
 
-object SemanticRuleSuite {
-
-  def stripTestkitComments(input: String): String =
-    stripTestkitComments(input.tokenize.get)
-
-  def stripTestkitComments(tokens: Tokens): String = {
-    val configComment = findTestkitComment(tokens)
-    tokens.filter {
-      case `configComment` => false
-      case EndOfLineAssertExtractor(_) => false
-      case MultiLineAssertExtractor(_) => false
-      case _ => true
-    }.mkString
-  }
-
-  def findTestkitComment(tokens: Tokens): Token = {
-    tokens
-      .find { x =>
-        x.is[Token.Comment] && x.syntax.startsWith("/*")
-      }
-      .getOrElse {
-        val input = tokens.headOption.fold("the file")(_.input.toString)
-        throw new IllegalArgumentException(
-          s"Missing /* */ comment at the top of $input")
-      }
-  }
-
-}
-
+/**
+  * Construct a test suite for running semantic Scalafix rules.
+  *
+  * @param inputClassDirectory The class directory of the input sources. This directory should contain a
+  *                            META-INF/semanticd sub-directory with SemanticDB files.
+  * @param inputSourceroot The source directory of the input sources. This directory should contain Scala code to
+  *                        be fixed by Scalafix.
+  * @param outputSourceroot The source directories of the expected output sources. These directories should contain
+  *                         Scala source files with the expected output after running Scalafix. When multiple directories
+  *                         are provided, the first directory that contains a source files with a matching relative path
+  *                         in inputSourceroot is used.
+  */
 abstract class SemanticRuleSuite(
-    val sourceroot: AbsolutePath,
-    val classpath: Classpath,
-    val expectedOutputSourceroot: Seq[AbsolutePath]
+    inputClassDirectory: File,
+    inputSourceroot: File,
+    outputSourceroot: Seq[File]
 ) extends FunSuite
     with DiffAssertions
     with BeforeAndAfterAll { self =>
+
+  private val sourceroot: AbsolutePath =
+    AbsolutePath(inputSourceroot)
+  private val classpath: Classpath =
+    SemanticRuleSuite.defaultClasspath(AbsolutePath(inputClassDirectory))
+  private val expectedOutputSourceroot: Seq[AbsolutePath] =
+    outputSourceroot.map(AbsolutePath(_))
 
   private def scalaVersion: String = scala.util.Properties.versionNumberString
   private def scalaVersionDirectory: Option[String] =
@@ -115,4 +107,38 @@ abstract class SemanticRuleSuite(
   def runAllTests(): Unit = {
     testsToRun.foreach(runOn)
   }
+}
+
+object SemanticRuleSuite {
+  def defaultClasspath(classDirectory: AbsolutePath) = Classpath(
+    classDirectory ::
+      RuleCompiler.defaultClasspathPaths.filter(path =>
+      path.toNIO.getFileName.toString.contains("scala-library"))
+  )
+
+  def stripTestkitComments(input: String): String =
+    stripTestkitComments(input.tokenize.get)
+
+  def stripTestkitComments(tokens: Tokens): String = {
+    val configComment = findTestkitComment(tokens)
+    tokens.filter {
+      case `configComment` => false
+      case EndOfLineAssertExtractor(_) => false
+      case MultiLineAssertExtractor(_) => false
+      case _ => true
+    }.mkString
+  }
+
+  def findTestkitComment(tokens: Tokens): Token = {
+    tokens
+      .find { x =>
+        x.is[Token.Comment] && x.syntax.startsWith("/*")
+      }
+      .getOrElse {
+        val input = tokens.headOption.fold("the file")(_.input.toString)
+        throw new IllegalArgumentException(
+          s"Missing /* */ comment at the top of $input")
+      }
+  }
+
 }
