@@ -12,7 +12,8 @@ case class ParserConfig(
 
   private val dialect = scala.meta.dialects.Scala212.copy(
     allowTrailingCommas = trailingCommas,
-    allowInlineIdents = inlineKeyword
+    allowInlineMods = inlineKeyword,
+    allowInlineIdents = !inlineKeyword
   )
   private val sbtDialect = dialect.copy(allowToplevelTerms = true)
 

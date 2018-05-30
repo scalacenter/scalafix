@@ -42,6 +42,7 @@ case class Args(
     rules: List[String] = Nil,
     @Description("Files or directories (recursively visited) to fix.")
     @ExtraName("remainingArgs")
+    @ExtraName("f")
     files: List[AbsolutePath] = Nil,
     @Description(
       "File path to a .scalafix.conf configuration file. " +
@@ -117,7 +118,7 @@ case class Args(
       "Replacement string that is passed as second argument to fileToFix.replaceAll(outFrom, outTo)")
     outTo: Option[String] = None,
     @Description(
-      "Write to files. In case of linter error adds a comment to suppress the error.")
+      "Insert /* scalafix:ok */ suppressions instead of reporting linter errors.")
     autoSuppressLinterErrors: Boolean = false,
     @Description("The current working directory")
     cwd: AbsolutePath,
@@ -130,7 +131,7 @@ case class Args(
   def configuredSymtab: Configured[SymbolTable] = {
     ClasspathOps.newSymbolTable(
       classpath = classpath,
-      cacheDirectory = metacpCacheDir.headOption,
+      cacheDirectory = metacpCacheDir,
       out = out
     ) match {
       case Some(symtab) =>
