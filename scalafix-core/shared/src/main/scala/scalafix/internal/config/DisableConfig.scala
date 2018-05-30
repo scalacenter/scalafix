@@ -1,5 +1,4 @@
-package scalafix
-package internal.config
+package scalafix.internal.config
 
 import metaconfig._
 import metaconfig.annotation.{Description, ExampleValue}

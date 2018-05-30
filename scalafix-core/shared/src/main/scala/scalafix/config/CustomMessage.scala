@@ -1,5 +1,4 @@
-package scalafix
-package config
+package scalafix.config
 
 import metaconfig.{Conf, ConfDecoder}
 import scala.meta.Symbol

@@ -1,5 +1,4 @@
-package scalafix
-package rule
+package scalafix.rule
 
 import scala.meta._
 import scalafix.internal.config.MetaconfigPendingUpstream
@@ -7,6 +6,9 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.syntax._
 import metaconfig.Conf
 import metaconfig.Configured
+import scalafix.lint.LintMessage
+import scalafix.patch.Patch
+import scalafix.util.SemanticdbIndex
 
 /** A Scalafix Rule.
   *
@@ -138,11 +140,9 @@ object Rule {
     override def fix(ctx: RuleCtx): Patch =
       Patch.empty ++ rules.map(_.fix(ctx))
     override def semanticOption: Option[SemanticdbIndex] =
-      rules
-        .collectFirst {
-          case r if r.semanticOption.isDefined => r.semanticOption
-        }
-        .getOrElse(None)
+      rules.collectFirst {
+        case r if r.semanticOption.isDefined => r.semanticOption
+      }.flatten
   }
   lazy val empty: Rule = new Rule(RuleName.empty) {}
   def emptyConfigured: Configured[Rule] = Configured.Ok(empty)

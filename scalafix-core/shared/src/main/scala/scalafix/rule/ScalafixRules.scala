@@ -1,8 +1,8 @@
-package scalafix
-package rule
+package scalafix.rule
 
 import scalafix.internal.rule._
 import scalafix.internal.config._
+import scalafix.util.SemanticdbIndex
 
 object ScalafixRules {
   val syntax: List[Rule] = List(

@@ -1,5 +1,4 @@
-package scalafix
-package testkit
+package scalafix.testkit
 
 import java.nio.charset.StandardCharsets
 import scala.meta.internal.io.FileIO
@@ -105,7 +104,7 @@ abstract class SemanticRuleSuite(
 
   lazy val testsToRun = {
     val symtab = ClasspathOps
-      .newSymbolTable(classpath, parallel = false)
+      .newSymbolTable(classpath)
       .getOrElse { sys.error("Failed to load symbol table") }
     RuleTest.fromDirectory(sourceroot, classpath, symtab)
   }

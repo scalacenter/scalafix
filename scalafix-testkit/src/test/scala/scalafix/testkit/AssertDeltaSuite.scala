@@ -1,15 +1,13 @@
-package scalafix
-package testkit
+package scalafix.testkit
 
 import org.scalatest.FunSuite
-
 import scala.meta.Position
 import scala.meta.inputs.Input
 import scala.meta.parsers.Parse
 import scala.meta.dialects.Scala212
-
 import scalafix.lint.{LintMessage, LintSeverity}
 import scalafix.internal.tests.utils.SkipWindows
+import scalafix.lint.LintCategory
 
 class AssertDeltaSuite() extends FunSuite with DiffAssertions {
   test("associate assert and reported message", SkipWindows) {

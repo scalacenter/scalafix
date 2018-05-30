@@ -111,6 +111,7 @@ case class Args(
          |""".stripMargin
     )
     zsh: Boolean = false,
+    // TODO: --sbt
     @Section("Less common options")
     @Description(
       "Unix-style glob for files to exclude from fixing. " +

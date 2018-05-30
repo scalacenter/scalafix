@@ -1,7 +1,8 @@
-package scalafix
-package patch
+package scalafix.patch
 
 import scala.meta._
+import scalafix.lint.LintMessage
+import scalafix.util.SemanticdbIndex
 
 trait PatchOps {
 

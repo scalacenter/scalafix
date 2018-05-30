@@ -1,5 +1,4 @@
-package scalafix
-package internal.config
+package scalafix.internal.config
 
 import java.io.OutputStream
 import java.io.PrintStream
@@ -8,6 +7,7 @@ import scala.meta.dialects.Scala212
 import metaconfig._
 import metaconfig.Input
 import metaconfig.generic.Surface
+import scalafix.rule.Rule
 
 case class ScalafixConfig(
     parser: ParserConfig = ParserConfig(),

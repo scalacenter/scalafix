@@ -1,11 +1,15 @@
-package scalafix
-package internal.util
+package scalafix.internal.util
 
 import scala.collection.mutable
 import scala.meta._
 import scala.{meta => m}
 import scala.meta.internal.{semanticdb3 => s}
 import scalafix.internal.v0._
+import scalafix.util.SemanticdbIndex
+import scalafix.v0.Database
+import scalafix.v0.Denotation
+import scalafix.v0.Document
+import scalafix.v0.ResolvedName
 
 case class EagerInMemorySemanticdbIndex(
     database: Database,

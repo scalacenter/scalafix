@@ -1,5 +1,4 @@
-package scalafix
-package util
+package scalafix.util
 
 import scala.meta.Symbol
 import scala.meta.Tree

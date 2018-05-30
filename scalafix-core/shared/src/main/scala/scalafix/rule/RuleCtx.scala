@@ -1,5 +1,5 @@
-package scalafix
-package rule
+package scalafix.rule
+
 import scala.meta._
 import scala.meta.contrib.AssociatedComments
 import scala.meta.tokens.Tokens
@@ -11,6 +11,8 @@ import scalafix.util.MatchingParens
 import scalafix.util.SemanticdbIndex
 import scalafix.util.TokenList
 import org.scalameta.FileLine
+import scalafix.lint.LintMessage
+import scalafix.patch.Patch
 
 trait RuleCtx extends PatchOps {
 

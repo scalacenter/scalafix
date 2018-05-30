@@ -1,5 +1,4 @@
-package scalafix
-package patch
+package scalafix.patch
 
 import scala.collection.immutable.Seq
 import scala.meta._
@@ -22,6 +21,7 @@ import scalafix.internal.util.SuppressOps
 import scalafix.internal.util.SymbolOps.Root
 import scalafix.patch.TreePatch.AddGlobalImport
 import scalafix.patch.TreePatch.RemoveGlobalImport
+import scalafix.rule.RuleCtx
 import scalafix.util.SemanticdbIndex
 import scalafix.v1.Doc
 import scalafix.v1.SemanticContext
