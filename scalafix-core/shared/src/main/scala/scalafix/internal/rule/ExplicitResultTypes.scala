@@ -3,8 +3,8 @@ package scalafix.internal.rule
 import scala.meta._
 import scala.meta.contrib._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
-import scalafix.Patch
-import scalafix.SemanticdbIndex
+import scalafix.patch.Patch
+import scalafix.v0.SemanticdbIndex
 import scalafix.internal.config.ExplicitResultTypesConfig
 import scalafix.internal.config.MemberKind
 import scalafix.internal.config.MemberVisibility

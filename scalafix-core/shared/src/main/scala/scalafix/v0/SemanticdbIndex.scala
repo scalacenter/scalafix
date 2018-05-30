@@ -1,4 +1,4 @@
-package scalafix.util
+package scalafix.v0
 
 import scala.meta._
 import scalafix.internal.util.EagerInMemorySemanticdbIndex
