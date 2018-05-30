@@ -18,10 +18,12 @@ import ammonite.ops
 import scala.meta.io.AbsolutePath
 import scala.meta.io.RelativePath
 import org.scalatest.FunSuite
+import scala.meta.io.Classpath
 import scalafix.v1.Main
 
 // extend this class to run custom cli tests.
 trait BaseCliSuite extends FunSuite with DiffAssertions {
+
   val original: String =
     """|object Main {
        |  def foo() {
@@ -46,6 +48,9 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
       .resolve("ExplicitResultTypesBase.scala")
   val semanticClasspath: String =
     BuildInfo.semanticClasspath.getAbsolutePath
+  def defaultClasspath: Classpath =
+    SemanticRuleSuite.defaultClasspath(
+      AbsolutePath(BuildInfo.semanticClasspath))
 
   def check(
       name: String,
