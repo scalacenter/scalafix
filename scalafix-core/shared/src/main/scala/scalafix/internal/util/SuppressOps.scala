@@ -1,10 +1,9 @@
 package scalafix.internal.util
 
 import scala.meta.inputs.Position
-
 import scala.annotation.tailrec
 import scala.meta.tokens.{Token, Tokens}
-import scalafix.Patch
+import scalafix.patch.Patch
 
 object SuppressOps {
 

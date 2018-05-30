@@ -3,13 +3,9 @@ package scalafix.internal.rule
 import metaconfig.Conf
 import metaconfig.Configured
 import scala.meta._
-import scalafix.Patch
+import scalafix.v0._
 import scalafix.internal.config.DisableSyntaxConfig
 import scalafix.internal.config.Keyword
-import scalafix.lint.LintCategory
-import scalafix.lint.LintMessage
-import scalafix.rule.Rule
-import scalafix.rule.RuleCtx
 
 final case class DisableSyntax(
     config: DisableSyntaxConfig = DisableSyntaxConfig())

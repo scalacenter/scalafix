@@ -36,7 +36,7 @@ case class RuleCtxImpl(
 
   // Debug utilities
   def index(implicit index: SemanticdbIndex): SemanticdbIndex =
-    index.withDocuments(index.documents.filter(_.input == input))
+    index
   def debugIndex()(
       implicit index: SemanticdbIndex,
       fileLine: FileLine): Unit = {

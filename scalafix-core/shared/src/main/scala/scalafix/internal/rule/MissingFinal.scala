@@ -1,11 +1,7 @@
 package scalafix.internal.rule
 
 import scala.meta._
-import scala.meta.transversers.Traverser
-import scalafix.lint.LintCategory
-import scalafix.patch.Patch
-import scalafix.rule.RuleCtx
-import scalafix.{SemanticRule, SemanticdbIndex}
+import scalafix.v0._
 
 final case class MissingFinal(index: SemanticdbIndex)
     extends SemanticRule(

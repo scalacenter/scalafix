@@ -2,7 +2,6 @@ package scalafix.testkit
 
 import scalafix.v0._
 import scala.meta._
-import scalafix.SemanticdbIndex
 import org.scalatest.exceptions.TestFailedException
 import scalafix.internal.v1.Rules
 import scalafix.v1.SemanticDoc

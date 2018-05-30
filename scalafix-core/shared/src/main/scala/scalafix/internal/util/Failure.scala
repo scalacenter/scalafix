@@ -1,10 +1,8 @@
 package scalafix.internal.util
 
-import scalafix.Patch
-import scalafix.SemanticdbIndex
+import scalafix.v0.Patch
+import scalafix.v0.SemanticdbIndex
 
-// TODO(olafur) this signature makes no sense. We should try to avoid exception
-// try/catch dodgeball court whenever possible.
 sealed abstract class Failure(val ex: Throwable)
     extends Exception(ex.getMessage) {
   override def getCause: Throwable = ex

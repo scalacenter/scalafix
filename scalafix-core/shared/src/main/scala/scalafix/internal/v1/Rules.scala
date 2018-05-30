@@ -9,9 +9,10 @@ import scalafix.internal.config.NoInferConfig
 import scalafix.internal.rule._
 import scalafix.internal.util.SuppressOps
 import scalafix.lint.LintMessage
+import scalafix.patch.Patch
 import scalafix.rule.RuleName
 import scalafix.rule.ScalafixRules
-import scalafix.util.SemanticdbIndex
+import scalafix.v0
 import scalafix.v1.Doc
 import scalafix.v1.Rule
 import scalafix.v1.SemanticDoc
@@ -81,7 +82,7 @@ object Rules {
   }
 
   val legacySemanticRules: List[LegacySemanticRule] = {
-    val semantics = List[SemanticdbIndex => scalafix.Rule](
+    val semantics = List[v0.SemanticdbIndex => v0.Rule](
       index => NoInfer(index, NoInferConfig.default),
       index => ExplicitResultTypes(index),
       index => RemoveUnusedImports(index),
@@ -91,7 +92,7 @@ object Rules {
       index => MissingFinal(index)
     )
     semantics.map { fn =>
-      val name = fn(SemanticdbIndex.empty).name
+      val name = fn(v0.SemanticdbIndex.empty).name
       new LegacySemanticRule(name, fn)
     }
   }

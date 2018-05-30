@@ -1,6 +1,6 @@
 package scalafix.internal.config
 
-import scalafix.Patch
+import scalafix.patch.Patch
 import scalafix.patch.TreePatch.AddGlobalImport
 import scalafix.patch.TreePatch.ReplaceSymbol
 import scalafix.patch.TreePatch.RemoveGlobalImport

@@ -11,9 +11,9 @@ import scalafix.util.TreeOps
 
 package object syntax {
   implicit class XtensionRefSymbolOpt(tree: Tree)(
-      implicit index: SemanticdbIndex) {
+      implicit index: v0.SemanticdbIndex) {
     def symbol: Option[Symbol] = index.symbol(tree.pos)
-    def denotation: Option[Denotation] = index.denotation(tree)
+    def denotation: Option[v0.Denotation] = index.denotation(tree)
   }
   implicit class XtensionParsedOpt[T](parsed: Parsed[T]) {
     def toOption: Option[T] = parsed match {
@@ -22,8 +22,8 @@ package object syntax {
     }
   }
   implicit class XtensionSymbolSemanticdbIndex(symbol: Symbol)(
-      implicit index: SemanticdbIndex) {
-    def denotation: Option[Denotation] = index.denotation(symbol)
+      implicit index: v0.SemanticdbIndex) {
+    def denotation: Option[v0.Denotation] = index.denotation(symbol)
     def resultType: Option[Type] =
       denotation.flatMap(denot =>
         DenotationOps.resultType(symbol, denot, DenotationOps.defaultDialect))
@@ -31,7 +31,7 @@ package object syntax {
   implicit class XtensionSymbol(symbol: Symbol) {
     def normalized: Symbol = SymbolOps.normalize(symbol)
   }
-  implicit class XtensionDocument(document: Document) {
+  implicit class XtensionDocument(document: v0.Document) {
     def dialect: Dialect = ScalafixScalametaHacks.dialect(document.language)
   }
   implicit class XtensionTreeScalafix(tree: Tree) {

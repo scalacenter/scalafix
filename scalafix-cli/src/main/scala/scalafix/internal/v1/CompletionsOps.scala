@@ -54,7 +54,6 @@ object CompletionsOps {
       }
       .mkString(" \\\n  ")
 
-
   def bashCompletions: String =
     s"""
 _scalafix()

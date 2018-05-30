@@ -1,11 +1,7 @@
 package scalafix.internal.rule
 
 import scala.meta._
-import scala.meta.tokens.Token.LeftBrace
-import scalafix.Patch
-import scalafix.rule.Rule
-import scalafix.rule.RuleCtx
-import scalafix.rule.RuleName
+import scalafix.v0._
 import scalafix.util.Trivia
 
 case object ProcedureSyntax
@@ -26,7 +22,7 @@ case object ProcedureSyntax
         ctx.addRight(t.tokens.last, s": Unit").atomic
       case t: Defn.Def
           if t.decltpe.exists(_.tokens.isEmpty) &&
-            t.body.tokens.head.is[LeftBrace] =>
+            t.body.tokens.head.is[Token.LeftBrace] =>
         val fixed = for {
           bodyStart <- t.body.tokens.headOption
           toAdd <- ctx.tokenList.leading(bodyStart).find(!_.is[Trivia])

@@ -1,5 +1,4 @@
-package scalafix
-package internal.config
+package scalafix.internal.config
 
 import scala.meta.Ref
 import scala.meta._
@@ -24,6 +23,7 @@ import metaconfig.Configured
 import metaconfig.Configured.Ok
 import scalafix.internal.config.MetaconfigParser.{parser => hoconParser}
 import scalafix.internal.rule.ConfigRule
+import scalafix.v0._
 
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
 // A collection of metaconfig.Reader instances that are shared across

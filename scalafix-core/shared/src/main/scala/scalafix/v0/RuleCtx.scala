@@ -10,7 +10,6 @@ import scalafix.patch.PatchOps
 import scalafix.util.MatchingParens
 import scalafix.util.TokenList
 import org.scalameta.FileLine
-import scalafix.rule.RuleName
 
 trait RuleCtx extends PatchOps {
 
@@ -52,8 +51,8 @@ trait RuleCtx extends PatchOps {
   private[scalafix] def printLintMessage(msg: LintMessage): Unit
 
   private[scalafix] def filter(
-                                patchesByName: Map[RuleName, Patch],
-                                index: SemanticdbIndex): (Patch, List[LintMessage])
+      patchesByName: Map[RuleName, Patch],
+      index: SemanticdbIndex): (Patch, List[LintMessage])
 }
 
 object RuleCtx {
@@ -64,8 +63,8 @@ object RuleCtx {
     apply(tree, config, DiffDisable.empty)
 
   private[scalafix] def apply(
-                               tree: Tree,
-                               config: ScalafixConfig,
-                               diffDisable: DiffDisable): RuleCtx =
+      tree: Tree,
+      config: ScalafixConfig,
+      diffDisable: DiffDisable): RuleCtx =
     RuleCtxImpl(tree, config, diffDisable)
 }

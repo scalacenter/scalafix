@@ -2,8 +2,6 @@ package scalafix.v1
 
 import metaconfig.Conf
 import metaconfig.Configured
-import scalafix.Patch
-import scalafix.rule.RuleName
 
 abstract class Rule(val name: RuleName) {
   override def toString: String = name.toString

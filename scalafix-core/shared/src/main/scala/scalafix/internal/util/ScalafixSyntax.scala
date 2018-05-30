@@ -14,4 +14,13 @@ trait ScalafixSyntax {
   implicit class XtensionOptionPatch(patch: Option[Patch]) {
     def asPatch: Patch = patch.getOrElse(Patch.empty)
   }
+
+  type LintCategory = scalafix.lint.LintCategory
+  val LintCategory = scalafix.lint.LintCategory
+
+  type LintMessage = scalafix.lint.LintMessage
+
+  type CustomMessage[T] = scalafix.config.CustomMessage[T]
+  val CustomMessage = scalafix.config.CustomMessage
+
 }

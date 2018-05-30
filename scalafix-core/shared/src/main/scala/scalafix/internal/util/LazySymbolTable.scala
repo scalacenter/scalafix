@@ -25,7 +25,7 @@ class LazySymbolTable(mclasspath: Classpath) extends SymbolTable {
   private val notYetLoadedSymbols = TrieMap.empty[String, SemanticdbEntry]
   private val loadedSymbols = TrieMap.empty[String, s.SymbolInformation]
 
-  mclasspath.shallow.foreach(loadSemanticdbIndex)
+  mclasspath.entries.foreach(loadSemanticdbIndex)
 
   override def info(symbol: String): Option[s.SymbolInformation] = {
     var result = loadedSymbols.get(symbol)

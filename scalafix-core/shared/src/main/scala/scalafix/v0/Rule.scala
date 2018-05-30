@@ -6,7 +6,6 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.syntax._
 import metaconfig.Conf
 import metaconfig.Configured
-import scalafix.rule.RuleName
 
 /** A Scalafix Rule.
   *

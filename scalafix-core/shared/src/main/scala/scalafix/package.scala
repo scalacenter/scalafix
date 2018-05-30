@@ -14,24 +14,11 @@ package object scalafix extends scalafix.internal.util.ScalafixSyntax {
   val RuleCtx = rule.RuleCtx
 
   @deprecated(DeprecationMessage, "0.6.0")
-  type CustomMessage[T] = scalafix.config.CustomMessage[T]
-  @deprecated(DeprecationMessage, "0.6.0")
-  val CustomMessage = scalafix.config.CustomMessage
-
-  @deprecated(DeprecationMessage, "0.6.0")
   type SemanticRule = rule.SemanticRule
   @deprecated(DeprecationMessage, "0.6.0")
   type Rule = rule.Rule
   @deprecated(DeprecationMessage, "0.6.0")
   val Rule = rule.Rule
-
-  @deprecated(DeprecationMessage, "0.6.0")
-  type LintCategory = scalafix.lint.LintCategory
-  @deprecated(DeprecationMessage, "0.6.0")
-  val LintCategory = scalafix.lint.LintCategory
-
-  @deprecated(DeprecationMessage, "0.6.0")
-  type LintMessage = scalafix.lint.LintMessage
 
   // inlined langmeta APIs
 

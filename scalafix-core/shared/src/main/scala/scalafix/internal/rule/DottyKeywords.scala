@@ -1,9 +1,7 @@
 package scalafix.internal.rule
 
 import scala.meta._
-import scalafix.Patch
-import scalafix.rule.Rule
-import scalafix.rule.RuleCtx
+import scalafix.v0._
 import scalafix.syntax._
 
 case object DottyKeywords extends Rule("DottyKeywords") {

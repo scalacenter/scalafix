@@ -1,10 +1,6 @@
 package scalafix.internal.rule
 
 import scala.meta._
-import scalafix.Patch
-import scalafix.SemanticdbIndex
-import scalafix.rule.RuleCtx
-import scalafix.rule.SemanticRule
 import scalafix.v0._
 
 case class RemoveUnusedImports(index: SemanticdbIndex)
