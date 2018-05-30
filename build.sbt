@@ -244,6 +244,7 @@ val testkit = MultiScalaProject(
       semanticdb,
       ammonite,
       googleDiff,
+      scalacheck,
       scalatest
     )
   )
