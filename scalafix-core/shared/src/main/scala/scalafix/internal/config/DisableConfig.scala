@@ -48,7 +48,7 @@ object DisabledSymbol {
     generic.deriveSurface[DisabledSymbol]
 
   private def normalizeMessage(msg: String): String =
-    if (msg.isMultiline) {
+    if (msg.contains("\n")) {
       "\n" + msg.stripMargin
     } else {
       msg

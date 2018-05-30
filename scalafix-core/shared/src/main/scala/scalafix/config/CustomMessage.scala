@@ -23,7 +23,7 @@ object CustomMessage {
           case ((value, message0), id) =>
             val message =
               message0.map(msg =>
-                if (msg.isMultiline) {
+                if (msg.contains("\n")) {
                   "\n" + msg.stripMargin
                 } else {
                   msg

@@ -7,8 +7,9 @@ import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
 import scala.meta.io.RelativePath
 import scala.collection.JavaConverters._
+import scalafix.internal.util.ScalafixSyntax
 
-package object v1 {
+package object v1 extends ScalafixSyntax {
 
   implicit class XtensionRelativePathScalafix(path: RelativePath) {
     // TODO: replace with RelativePath.toURI once https://github.com/scalameta/scalameta/issues/1523 is fixed

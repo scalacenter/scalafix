@@ -1,5 +1,4 @@
-package scalafix
-package internal.patch
+package scalafix.internal.patch
 
 import scala.annotation.tailrec
 import scala.collection.immutable.Seq
@@ -13,6 +12,7 @@ import scalafix.patch.TreePatch.ImportPatch
 import scalafix.rule.RuleCtx
 import scalafix.syntax._
 import scalafix.util.Newline
+import scalafix.util.SemanticdbIndex
 
 object ImportPatchOps {
   object symbols {

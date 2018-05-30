@@ -1,6 +1,6 @@
 package scalafix
 
-package object v0 {
+package object v0 extends scalafix.internal.util.ScalafixSyntax {
   type SemanticdbIndex = scalafix.util.SemanticdbIndex
   val SemanticdbIndex = scalafix.util.SemanticdbIndex
 
@@ -13,9 +13,6 @@ package object v0 {
   type SemanticRule = rule.SemanticRule
   type Rule = rule.Rule
   val Rule = rule.Rule
-
-  type Patch = patch.Patch
-  val Patch = patch.Patch
 
   type LintCategory = scalafix.lint.LintCategory
   val LintCategory = scalafix.lint.LintCategory

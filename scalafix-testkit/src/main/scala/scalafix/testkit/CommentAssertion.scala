@@ -80,7 +80,7 @@ object MultiLineAssertExtractor {
     token match {
       case Token.Comment(content)
           if content.startsWith(assertMessage) &&
-            content.isMultiline => {
+            content.contains("\n") => {
 
         val lines = content.split('\n')
 
