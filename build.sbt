@@ -251,9 +251,9 @@ val testkit = MultiScalaProject(
 )
 
 lazy val testkit211 =
-  testkit(scala211, _.dependsOn(core211JVM, reflect211, testUtils211))
+  testkit(scala211, _.dependsOn(core211JVM, reflect211))
 lazy val testkit212 =
-  testkit(scala212, _.dependsOn(core212JVM, reflect212, testUtils212))
+  testkit(scala212, _.dependsOn(core212JVM, reflect212))
 
 val testsShared = TestProject(
   "shared",
