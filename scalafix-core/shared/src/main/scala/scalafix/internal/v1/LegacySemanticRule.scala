@@ -2,7 +2,6 @@ package scalafix.internal.v1
 
 import metaconfig.Conf
 import metaconfig.Configured
-import scalafix.Patch
 import scalafix.rule.RuleName
 import scalafix.util.SemanticdbIndex
 import scalafix.v1.Rule

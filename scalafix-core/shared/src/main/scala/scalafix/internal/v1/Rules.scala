@@ -9,7 +9,6 @@ import scalafix.internal.config.NoInferConfig
 import scalafix.internal.rule._
 import scalafix.internal.util.SuppressOps
 import scalafix.lint.LintMessage
-import scalafix.patch.Patch
 import scalafix.rule.RuleName
 import scalafix.rule.ScalafixRules
 import scalafix.util.SemanticdbIndex

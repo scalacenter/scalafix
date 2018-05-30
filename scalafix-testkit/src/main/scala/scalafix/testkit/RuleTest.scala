@@ -12,7 +12,6 @@ import scalafix.internal.util.SymbolTable
 import scalafix.internal.v1.Rules
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 import scalafix.internal.config.ScalafixConfig
-import scalafix.internal.util.ClassloadRule
 import scalafix.v1.RuleDecoder
 
 case class RuleTest(

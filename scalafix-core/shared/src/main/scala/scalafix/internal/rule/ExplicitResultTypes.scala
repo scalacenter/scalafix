@@ -1,7 +1,5 @@
 package scalafix.internal.rule
 
-import java.io.PrintWriter
-import java.io.StringWriter
 import scala.meta._
 import scala.meta.contrib._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
@@ -18,8 +16,6 @@ import scalafix.syntax._
 import scalafix.util.TokenOps
 import metaconfig.Conf
 import metaconfig.Configured
-import scala.meta.internal.ScalafixLangmetaHacks
-import scala.util.control.NonFatal
 import scalafix.internal.util.PrettyResult
 import scalafix.internal.util.QualifyStrategy
 import scalafix.internal.util.PrettyType

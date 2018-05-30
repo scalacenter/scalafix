@@ -12,10 +12,6 @@ import scala.tools.nsc.io.AbstractFile
 import scala.tools.nsc.io.VirtualDirectory
 import scala.tools.nsc.reporters.StoreReporter
 import scalafix.internal.config.MetaconfigPendingUpstream._
-import scalafix.internal.config.LazySemanticdbIndex
-import scalafix.internal.config.classloadRule
-import scalafix.internal.util.ClassloadRule
-import scalafix.rule.Rule
 import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Input
