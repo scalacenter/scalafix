@@ -18,11 +18,13 @@ import scalafix.syntax._
 import scalafix.util.TokenOps
 import metaconfig.Conf
 import metaconfig.Configured
+import scala.meta.internal.ScalafixLangmetaHacks
 import scala.util.control.NonFatal
 import scalafix.internal.util.PrettyResult
 import scalafix.internal.util.QualifyStrategy
 import scalafix.internal.util.PrettyType
 import scalafix.internal.util.SymbolTable
+import scalafix.v1.MissingSymbolException
 
 case class ExplicitResultTypes(
     index: SemanticdbIndex,
@@ -76,31 +78,36 @@ case class ExplicitResultTypes(
     case _: Defn.Var => MemberKind.Var
   }
   import scala.meta.internal.{semanticdb3 => s}
+  def unsafeToType(
+      ctx: RuleCtx,
+      pos: Position,
+      symbol: Symbol
+  ): PrettyResult[Type] = {
+    val info = index.asInstanceOf[SymbolTable].info(symbol.syntax).get
+    val tpe = info.tpe.get.tag match {
+      case s.Type.Tag.METHOD_TYPE =>
+        info.tpe.get.methodType.get.returnType.get
+      case _ => info.tpe.get
+    }
+    PrettyType.toType(
+      tpe,
+      index.asInstanceOf[SymbolTable],
+      if (config.unsafeShortenNames) QualifyStrategy.Readable
+      else QualifyStrategy.Full
+    )
+  }
+
   def toType(
       ctx: RuleCtx,
       pos: Position,
-      info: s.SymbolInformation): Option[PrettyResult[Type]] = {
+      symbol: Symbol
+  ): Option[PrettyResult[Type]] = {
     try {
-      val tpe = info.tpe.get.tag match {
-        case s.Type.Tag.METHOD_TYPE =>
-          info.tpe.get.methodType.get.returnType.get
-        case _ => info.tpe.get
-      }
-      Some(
-        PrettyType.toType(
-          tpe,
-          index.asInstanceOf[SymbolTable],
-          if (config.unsafeShortenNames) QualifyStrategy.Readable
-          else QualifyStrategy.Full
-        ))
+      Some(unsafeToType(ctx, pos, symbol))
     } catch {
-      case NonFatal(e) =>
+      case e: MissingSymbolException =>
         if (config.fatalWarnings) {
-          val sw = new StringWriter()
-          sw.append(info.toProtoString)
-            .append("\n")
-          e.printStackTrace(new PrintWriter(sw))
-          ctx.config.reporter.error(sw.toString, pos)
+          ctx.config.reporter.error(e.getMessage, pos)
         } else {
           // Silently discard failures from producing a new type.
           // Errors are most likely caused by known upstream issue that have been reported in Scalameta.
@@ -115,8 +122,7 @@ case class ExplicitResultTypes(
       for {
         name <- defnName(defn)
         defnSymbol <- name.symbol
-        info <- table.info(defnSymbol.syntax)
-        result <- toType(ctx, name.pos, info)
+        result <- toType(ctx, name.pos, defnSymbol)
       } yield {
         val addGlobalImports = result.imports.map { s =>
           val symbol = Symbol(s)
