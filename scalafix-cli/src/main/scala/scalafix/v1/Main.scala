@@ -44,6 +44,12 @@ object Main {
         } else if (validated.args.version) {
           out.println(Versions.version)
           ExitStatus.Ok
+        } else if (validated.args.bash) {
+          out.println(CompletionsOps.bashCompletions)
+          ExitStatus.Ok
+        } else if (validated.args.zsh) {
+          out.println(CompletionsOps.zshCompletions)
+          ExitStatus.Ok
         } else if (validated.rules.isEmpty) {
           out.println("Missing --rules")
           ExitStatus.CommandLineError

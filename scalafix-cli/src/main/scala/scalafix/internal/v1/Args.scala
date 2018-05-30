@@ -96,7 +96,7 @@ case class Args(
     @Description(
       """Print out bash tab completions. To install:
         |```
-        |scalafix --bash > /usr/local/etc/bash_completion.d/scalafix # Mac
+        |scalafix --bash > /usr/local/etc/bash_completion.d/scalafix # Mac, requires "brew install bash-completion"
         |scalafix --bash > /etc/bash_completion.d/scalafix           # Linux
         |```
         |""".stripMargin)
@@ -105,6 +105,8 @@ case class Args(
       """Print out zsh tab completions. To install:
         |```
         |scalafix --zsh > /usr/local/share/zsh/site-functions/_scalafix
+        |unfunction _scalafix
+        |autoload -U _scalafix-nightly
         |```
         |""".stripMargin)
     zsh: Boolean = false,

@@ -19,6 +19,28 @@ class CliSyntacticTests extends BaseCliTest {
   )
 
   check(
+    name = "--zsh",
+    originalLayout = "",
+    args = Array("--zsh"),
+    expectedLayout = "",
+    expectedExit = ExitStatus.Ok,
+    outputAssert = { out =>
+      assert(out.contains("local -a scalafix_opts"))
+    }
+  )
+
+  check(
+    name = "--bash",
+    originalLayout = "",
+    args = Array("--bash"),
+    expectedLayout = "",
+    expectedExit = ExitStatus.Ok,
+    outputAssert = { out =>
+      assert(out.contains("complete -F _scalafix scalafix"))
+    }
+  )
+
+  check(
     name = "fix file",
     originalLayout = s"""/hello.scala
                         |$original
