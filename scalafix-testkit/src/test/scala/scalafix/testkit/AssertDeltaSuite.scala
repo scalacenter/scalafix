@@ -5,6 +5,8 @@ import scala.meta.Position
 import scala.meta.inputs.Input
 import scala.meta.parsers.Parse
 import scala.meta.dialects.Scala212
+import scalafix.internal.testkit.AssertDiff
+import scalafix.internal.testkit.CommentAssertion
 import scalafix.lint.{LintMessage, LintSeverity}
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.lint.LintCategory

@@ -1,9 +1,10 @@
-package scalafix
-package testkit
+package scalafix.internal.testkit
 
 import scala.meta._
-import scala.util.matching.Regex
+import scalafix.v0._
 import scala.meta.internal.ScalafixLangmetaHacks
+import scala.util.matching.Regex
+import scalafix.testkit.DiffAssertions
 
 // CommentAssertion are the bread and butter of testkit they
 // assert the line position and the category id of the lint message.
@@ -134,9 +135,9 @@ case class AssertDelta(assert: CommentAssertion, lintMessage: LintMessage) {
       (assert.caretPosition match {
         case Some(carPos) =>
           (carPos.start == lintMessage.position.start) &&
-            (assert.expectedMessage
+            assert.expectedMessage
               .map(_.trim == lintMessage.message.trim)
-              .getOrElse(true))
+              .getOrElse(true)
         case None =>
           sameLine(assert.anchorPosition)
       })

@@ -14,12 +14,13 @@ import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 import scalafix.internal.config.ScalafixConfig
 import scalafix.v1.RuleDecoder
 
-case class RuleTest(
-    filename: RelativePath,
-    run: () => Configured[(Rules, v1.SemanticDoc)]
+final class RuleTest(
+    val filename: RelativePath,
+    val run: () => Configured[(Rules, v1.SemanticDoc)]
 )
+
 object RuleTest {
-  val decoder = RuleDecoder.decoder()
+  private val decoder = RuleDecoder.decoder()
 
   def fromDirectory(
       dir: AbsolutePath,
@@ -32,7 +33,7 @@ object RuleTest {
         p.toNIO.startsWith("scala") &&
           PathIO.extension(p.toNIO) == "scala")
       .map { rel =>
-        RuleTest(
+        new RuleTest(
           rel, { () =>
             val input = Input.VirtualFile(
               rel.toString(),

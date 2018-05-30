@@ -7,6 +7,10 @@ import org.scalatest.FunSuite
 import org.scalatest.exceptions.TestFailedException
 import scala.meta._
 import scalafix.internal.reflect.ClasspathOps
+import scalafix.internal.testkit.AssertDiff
+import scalafix.internal.testkit.CommentAssertion
+import scalafix.internal.testkit.EndOfLineAssertExtractor
+import scalafix.internal.testkit.MultiLineAssertExtractor
 
 object SemanticRuleSuite {
 
@@ -45,7 +49,7 @@ abstract class SemanticRuleSuite(
     with DiffAssertions
     with BeforeAndAfterAll { self =>
 
-  def scalaVersion = scala.util.Properties.versionNumberString
+  private def scalaVersion: String = scala.util.Properties.versionNumberString
   private def scalaVersionDirectory: Option[String] =
     if (scalaVersion.startsWith("2.11")) Some("scala-2.11")
     else if (scalaVersion.startsWith("2.12")) Some("scala-2.12")

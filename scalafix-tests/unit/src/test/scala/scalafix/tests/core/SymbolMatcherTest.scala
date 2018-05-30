@@ -6,7 +6,7 @@ import scalafix.util.SymbolMatcher
 
 class SymbolMatcherTest extends BaseSemanticTest("SymbolMatcherTest") {
 
-  ignore("matches/unapply") {
+  test("matches/unapply") {
     val symbolMatcher =
       SymbolMatcher.exact(Symbol("_root_.test.SymbolMatcherTest."))
     val assertions = source.collect {
