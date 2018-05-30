@@ -142,6 +142,9 @@ case class Args(
     @Description("The current working directory")
     cwd: AbsolutePath,
     @Hidden
+    @Description("No longer used")
+    nonInteractive: Boolean = false,
+    @Hidden
     out: PrintStream,
     @Hidden
     ls: Ls = Ls.Find

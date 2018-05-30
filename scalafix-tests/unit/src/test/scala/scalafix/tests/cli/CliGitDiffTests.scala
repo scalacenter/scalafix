@@ -264,8 +264,7 @@ class CliGitDiffTests() extends FunSuite with DiffAssertions {
     noColor(
       cli.run(
         expected,
-        "--non-interactive" +:
-          "--diff" +:
+        "--diff" +:
           args.toArray
       )
     )
