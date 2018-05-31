@@ -70,7 +70,7 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
         new PrintStream(out)
       )
       val obtained = StringFS.dir2string(root)
-      val output = fansi.Str(out.toString).plainText
+      val output = fansi.Str(out.toString).plainText.replaceAll("\r\n", "\n")
       assert(exit == expectedExit, output)
       assertNoDiff(obtained, expectedLayout)
       outputAssert(output)
