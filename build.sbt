@@ -271,12 +271,10 @@ val testsInput = TestProject(
     project.settings(
       noPublish,
       semanticdbSettings,
-      scalacOptions ++= List(
-        {
-          val sourceroot = baseDirectory.in(ThisBuild).value / srcMain
-          s"-P:semanticdb:sourceroot:$sourceroot"
-        }
-      ),
+      scalacOptions += {
+        val sourceroot = baseDirectory.in(ThisBuild).value / srcMain / "scala"
+        s"-P:semanticdb:sourceroot:$sourceroot"
+      },
       scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
       scalacOptions += "-Ywarn-adapted-args", // For NoAutoTupling
       scalacOptions += "-Ywarn-unused-import", // For RemoveUnusedImports
@@ -291,15 +289,20 @@ lazy val testsInput212 = testsInput(scala212, _.dependsOn(testsShared212))
 
 val testsOutput = TestProject(
   "output",
-  _.settings(
-    noPublish,
-    semanticdbSettings,
-    scalacOptions --= List(
-      warnUnusedImports,
-      "-Xlint"
-    ),
-    testsInputOutputSetting
-  ))
+  (project, srcMain) =>
+    project.settings(
+      noPublish,
+      semanticdbSettings,
+      unmanagedSourceDirectories.in(Compile) +=
+        baseDirectory.in(ThisBuild).value / srcMain /
+          s"scala-${scalaBinaryVersion.value}",
+      scalacOptions --= List(
+        warnUnusedImports,
+        "-Xlint"
+      ),
+      testsInputOutputSetting
+  )
+)
 
 val testsOutput211 = testsOutput(scala211, _.dependsOn(testsShared211))
 val testsOutput212 = testsOutput(scala212, _.dependsOn(testsShared212))
@@ -358,6 +361,37 @@ def unit(
             compile.in(testsOutput, Compile)
           )
           .value
+      },
+      resourceGenerators.in(Test) += Def.task {
+        // copy-pasted code from ScalafixTestkitPlugin to avoid cyclic dependencies between build and sbt-scalafix.
+        val props = new java.util.Properties()
+
+        def put(key: String, files: Seq[File]): Unit =
+          props.put(
+            key,
+            files.iterator
+              .filter(_.exists())
+              .mkString(java.io.File.pathSeparator)
+          )
+
+        put(
+          "inputClasspath",
+          fullClasspath.in(testsInput, Compile).value.map(_.data)
+        )
+        put(
+          "inputSourceDirectories",
+          sourceDirectories.in(testsInput, Compile).value
+        )
+        put(
+          "outputSourceDirectories",
+          sourceDirectories.in(testsOutput, Compile).value ++
+            sourceDirectories.in(testsOutputDotty, Compile).value
+        )
+        val out =
+          managedResourceDirectories.in(Test).value.head /
+            "scalafix-testkit.properties"
+        IO.write(props, "Input data for scalafix testkit", out)
+        List(out)
       },
       buildInfoKeys := Seq[BuildInfoKey](
         "baseDirectory" ->
