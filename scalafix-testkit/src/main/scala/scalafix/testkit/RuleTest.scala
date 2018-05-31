@@ -26,40 +26,34 @@ object RuleTest {
       dir: AbsolutePath,
       classpath: Classpath,
       symtab: SymbolTable): Seq[RuleTest] = {
-    FileIO
-      .listAllFilesRecursively(dir)
-      .files
-      .filter(p =>
-        p.toNIO.startsWith("scala") &&
-          PathIO.extension(p.toNIO) == "scala")
-      .map { rel =>
-        new RuleTest(
-          rel, { () =>
-            val input = Input.VirtualFile(
-              rel.toString(),
-              FileIO.slurp(dir.resolve(rel), StandardCharsets.UTF_8))
-            val tree = input.parse[Source].get
-            val doc = v1.Doc.fromTree(tree)
-            val sdoc = v1.SemanticDoc.fromPath(doc, rel, classpath, symtab)
-            val comment = SemanticRuleSuite.findTestkitComment(tree.tokens)
-            val syntax = comment.syntax.stripPrefix("/*").stripSuffix("*/")
-            val conf = Conf.parseString(rel.toString(), syntax).get
-            val config = conf.as[ScalafixConfig]
-            config.andThen(scalafixConfig => {
-              val decoderSettings =
-                RuleDecoder.Settings().withConfig(scalafixConfig)
-              val decoder = RuleDecoder.decoder(decoderSettings)
-              val rulesConf =
-                ConfGet
-                  .getKey(conf, "rules" :: "rule" :: Nil)
-                  .getOrElse(Conf.Lst(Nil))
-              decoder
-                .read(rulesConf)
-                .andThen(_.withConfig(conf))
-                .map(_ -> sdoc)
-            })
-          }
-        )
-      }
+    FileIO.listAllFilesRecursively(dir).files.map { rel =>
+      new RuleTest(
+        rel, { () =>
+          val input = Input.VirtualFile(
+            rel.toString(),
+            FileIO.slurp(dir.resolve(rel), StandardCharsets.UTF_8))
+          val tree = input.parse[Source].get
+          val doc = v1.Doc.fromTree(tree)
+          val sdoc = v1.SemanticDoc.fromPath(doc, rel, classpath, symtab)
+          val comment = SemanticRuleSuite.findTestkitComment(tree.tokens)
+          val syntax = comment.syntax.stripPrefix("/*").stripSuffix("*/")
+          val conf = Conf.parseString(rel.toString(), syntax).get
+          val config = conf.as[ScalafixConfig]
+          config.andThen(scalafixConfig => {
+            val decoderSettings =
+              RuleDecoder.Settings().withConfig(scalafixConfig)
+            val decoder = RuleDecoder.decoder(decoderSettings)
+            val rulesConf =
+              ConfGet
+                .getKey(conf, "rules" :: "rule" :: Nil)
+                .getOrElse(Conf.Lst(Nil))
+            decoder
+              .read(rulesConf)
+              .andThen(_.withConfig(conf))
+              .map(_ -> sdoc)
+          })
+        }
+      )
+    }
   }
 }

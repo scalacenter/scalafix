@@ -1,46 +1,35 @@
 package scalafix.testkit
 
-import java.io.File
 import java.nio.charset.StandardCharsets
-import scala.meta.internal.io.FileIO
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 import org.scalatest.exceptions.TestFailedException
 import scala.meta._
+import scala.meta.internal.io.FileIO
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.reflect.RuleCompiler
 import scalafix.internal.testkit.AssertDiff
 import scalafix.internal.testkit.CommentAssertion
 import scalafix.internal.testkit.EndOfLineAssertExtractor
 import scalafix.internal.testkit.MultiLineAssertExtractor
+import scalafix.v0.SemanticdbIndex
 
-/**
-  * Construct a test suite for running semantic Scalafix rules.
-  *
-  * @param inputClassDirectory The class directory of the input sources. This directory should contain a
-  *                            META-INF/semanticd sub-directory with SemanticDB files.
-  * @param inputSourceroot The source directory of the input sources. This directory should contain Scala code to
-  *                        be fixed by Scalafix.
-  * @param outputSourceroot The source directories of the expected output sources. These directories should contain
-  *                         Scala source files with the expected output after running Scalafix. When multiple directories
-  *                         are provided, the first directory that contains a source files with a matching relative path
-  *                         in inputSourceroot is used.
-  */
-abstract class SemanticRuleSuite(
-    inputClassDirectory: File,
-    inputSourceroot: File,
-    outputSourceroot: Seq[File]
-) extends FunSuite
+/** Construct a test suite for running semantic Scalafix rules. */
+abstract class SemanticRuleSuite
+    extends FunSuite
     with DiffAssertions
     with BeforeAndAfterAll { self =>
 
-  private val sourceroot: AbsolutePath =
-    AbsolutePath(inputSourceroot)
-  private val classpath: Classpath =
-    SemanticRuleSuite.defaultClasspath(AbsolutePath(inputClassDirectory))
-  private val expectedOutputSourceroot: Seq[AbsolutePath] =
-    outputSourceroot.map(AbsolutePath(_))
+  @deprecated(
+    "Use empty constructor instead. Arguments are passed as resource 'scalafix-testkit.properties'",
+    "0.6.0")
+  def this(
+      index: SemanticdbIndex,
+      inputSourceroot: AbsolutePath,
+      expectedOutputSourceroot: Seq[AbsolutePath]
+  ) = this()
 
+  val props: TestkitProperties = TestkitProperties.loadFromResources()
   private def scalaVersion: String = scala.util.Properties.versionNumberString
   private def scalaVersionDirectory: Option[String] =
     if (scalaVersion.startsWith("2.11")) Some("scala-2.11")
@@ -54,7 +43,7 @@ abstract class SemanticRuleSuite(
 
       val tokens = fixed.tokenize.get
       val obtained = SemanticRuleSuite.stripTestkitComments(tokens)
-      val candidateOutputFiles = expectedOutputSourceroot.flatMap { root =>
+      val candidateOutputFiles = props.outputSourceDirectories.flatMap { root =>
         val scalaSpecificFilename = scalaVersionDirectory.toList.map { path =>
           root.resolve(
             RelativePath(
@@ -100,9 +89,11 @@ abstract class SemanticRuleSuite(
 
   lazy val testsToRun = {
     val symtab = ClasspathOps
-      .newSymbolTable(classpath)
+      .newSymbolTable(props.inputClasspath)
       .getOrElse { sys.error("Failed to load symbol table") }
-    RuleTest.fromDirectory(sourceroot, classpath, symtab)
+    props.inputSourceDirectories.flatMap { dir =>
+      RuleTest.fromDirectory(dir, props.inputClasspath, symtab)
+    }
   }
   def runAllTests(): Unit = {
     testsToRun.foreach(runOn)
