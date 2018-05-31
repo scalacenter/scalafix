@@ -1,5 +1,5 @@
 import sbt._
-import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
+import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 /* scalafmt: { maxColumn = 120 }*/
 
 object Dependencies {
@@ -7,11 +7,8 @@ object Dependencies {
   val metaconfigV = "0.8.3"
   def dotty = "0.1.1-bin-20170530-f8f52cc-NIGHTLY"
   def scala210 = "2.10.6"
-  // NOTE(olafur) downgraded from 2.11.12 and 2.12.4 because of non-reproducible error
-  // https://travis-ci.org/scalacenter/scalafix/jobs/303142842#L4658
-  // as well as https://github.com/scala/bug/issues/10609
   def scala211 = "2.11.12"
-  def scala212 = "2.12.4"
+  def scala212 = "2.12.6"
   val currentScalaVersion = scala212
 
   def sbt013 = "0.13.17"
