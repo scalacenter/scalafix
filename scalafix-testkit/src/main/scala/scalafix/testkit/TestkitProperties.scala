@@ -21,7 +21,7 @@ import scala.meta.Classpath
 final class TestkitProperties(
     val inputClasspath: Classpath,
     val inputSourceDirectories: List[AbsolutePath],
-    val outputSourceDirectories: List[AbsolutePath],
+    val outputSourceDirectories: List[AbsolutePath]
 ) {
   def inputSourceDirectory: AbsolutePath =
     inputSourceDirectories.head
