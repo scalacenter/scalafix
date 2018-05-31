@@ -15,10 +15,15 @@ import scalafix.testkit.DiffAssertions
 import scalafix.testkit.SemanticRuleSuite
 import scalafix.tests.BuildInfo
 import ammonite.ops
+import java.nio.file.FileVisitResult
+import java.nio.file.SimpleFileVisitor
+import java.nio.file.StandardCopyOption
+import java.nio.file.attribute.BasicFileAttributes
 import scala.meta.io.AbsolutePath
 import scala.meta.io.RelativePath
 import org.scalatest.FunSuite
 import scala.meta.io.Classpath
+import scalafix.testkit.TestkitProperties
 import scalafix.v1.Main
 
 // extend this class to run custom cli tests.
@@ -39,18 +44,16 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
   val cwd: Path = Files.createTempDirectory("scalafix-cli")
   val ps = new PrintStream(new ByteArrayOutputStream())
 
-  val semanticRoot: RelativePath = RelativePath("scala").resolve("test")
+  val semanticRoot: RelativePath = RelativePath("test")
   val removeImportsPath: RelativePath =
     semanticRoot.resolve("RemoveUnusedImports.scala")
   val explicitResultTypesPath: RelativePath =
     semanticRoot
       .resolve("explicitResultTypes")
       .resolve("ExplicitResultTypesBase.scala")
-  val semanticClasspath: String =
-    BuildInfo.semanticClasspath.getAbsolutePath
-  def defaultClasspath: Classpath =
-    SemanticRuleSuite.defaultClasspath(
-      AbsolutePath(BuildInfo.semanticClasspath))
+  val props = TestkitProperties.loadFromResources()
+  def defaultClasspath: String =
+    props.inputClasspath.syntax
 
   def check(
       name: String,
@@ -65,12 +68,7 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
       val root = StringFS.string2dir(originalLayout)
 
       val exit = Main.run(
-        Array(
-          "--sourceroot",
-          root.toString(),
-          "--classpath",
-          semanticClasspath
-        ) ++ args,
+        args,
         root.toNIO,
         new PrintStream(out)
       )
@@ -113,13 +111,15 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
     )
   }
 
-  def writeTestkitConfiguration(root: Path, path: Path): Unit = {
+  def writeTestkitConfiguration(
+      root: AbsolutePath,
+      path: AbsolutePath): Unit = {
     import scala.meta._
-    val code = new String(Files.readAllBytes(path), StandardCharsets.UTF_8)
+    val code = slurp(path)
     val comment = SemanticRuleSuite.findTestkitComment(code.tokenize.get)
     val content = comment.syntax.stripPrefix("/*").stripSuffix("*/")
     Files.write(
-      root.resolve(".scalafix.conf"),
+      root.resolve(".scalafix.conf").toNIO,
       content.getBytes(StandardCharsets.UTF_8)
     )
   }
@@ -127,9 +127,33 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
   def slurp(path: AbsolutePath): String =
     FileIO.slurp(path, StandardCharsets.UTF_8)
   def slurpInput(path: RelativePath): String =
-    slurp(AbsolutePath(BuildInfo.inputSourceroot.toPath).resolve(path))
+    slurp(props.inputSourceDirectory.resolve(path))
   def slurpOutput(path: RelativePath): String =
-    slurp(AbsolutePath(BuildInfo.outputSourceroot.toPath).resolve(path))
+    slurp(props.outputSourceDirectory.resolve(path))
+
+  def copyRecursively(source: AbsolutePath, target: AbsolutePath): Unit = {
+    Files.walkFileTree(
+      source.toNIO,
+      new SimpleFileVisitor[Path] {
+        override def preVisitDirectory(
+            dir: Path,
+            attrs: BasicFileAttributes): FileVisitResult = {
+          val rel = source.toNIO.relativize(dir)
+          Files.createDirectories(target.toNIO.resolve(rel))
+          super.preVisitDirectory(dir, attrs)
+        }
+        override def visitFile(
+            file: Path,
+            attrs: BasicFileAttributes): FileVisitResult = {
+          Files.copy(
+            file,
+            target.toNIO.resolve(source.toNIO.relativize(file)),
+            StandardCopyOption.REPLACE_EXISTING)
+          super.visitFile(file, attrs)
+        }
+      }
+    )
+  }
 
   case class Result(
       exit: ExitStatus,
@@ -153,14 +177,14 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
   ): Unit = {
     test(name, SkipWindows) {
       val fileIsFixed = expectedExit.isOk
-      val tmp = Files.createTempDirectory("scalafix")
+      val tmp = AbsolutePath(Files.createTempDirectory("scalafix"))
       val out = new ByteArrayOutputStream()
       tmp.toFile.deleteOnExit()
-      val root = ops.Path(tmp) / "input"
-      ops.cp(ops.Path(BuildInfo.inputSourceroot.toPath), root)
-      val rootNIO = root.toNIO
-      writeTestkitConfiguration(rootNIO, rootNIO.resolve(path.toNIO))
-      preprocess(AbsolutePath(rootNIO))
+      val root = tmp
+      copyRecursively(props.inputSourceDirectory, tmp)
+      val rootNIO = root
+      writeTestkitConfiguration(rootNIO, rootNIO.resolve(path))
+      preprocess(root)
       val exit = Main.run(
         args ++ Seq(
           "-r",
@@ -172,10 +196,7 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
       )
       val original = slurpInput(path)
       val obtained = {
-        val fixed =
-          FileIO.slurp(
-            AbsolutePath(root.toNIO).resolve(path),
-            StandardCharsets.UTF_8)
+        val fixed = slurp(root.resolve(path))
         if (fileIsFixed && fixed.startsWith("/*")) {
           SemanticRuleSuite.stripTestkitComments(fixed)
         } else {

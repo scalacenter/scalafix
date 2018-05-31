@@ -23,6 +23,10 @@ final class TestkitProperties(
     val inputSourceDirectories: List[AbsolutePath],
     val outputSourceDirectories: List[AbsolutePath],
 ) {
+  def inputSourceDirectory: AbsolutePath =
+    inputSourceDirectories.head
+  def outputSourceDirectory: AbsolutePath =
+    outputSourceDirectories.head
   override def toString: String = {
     val map = Map(
       "inputSourceDirectories" -> inputSourceDirectories,

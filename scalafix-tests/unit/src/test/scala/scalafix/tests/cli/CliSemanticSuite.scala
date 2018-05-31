@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import scala.meta.internal.io.PathIO
 import scala.meta.internal.io.FileIO
+import scala.meta.io.Classpath
 import scalafix.cli._
 import scalafix.internal.rule.ExplicitResultTypes
 
@@ -13,7 +14,7 @@ class CliSemanticSuite extends BaseCliSuite {
     name = "--classpath ok",
     args = Array(
       "--classpath",
-      semanticClasspath
+      defaultClasspath
     ),
     expectedExit = ExitStatus.Ok
   )
@@ -34,7 +35,7 @@ class CliSemanticSuite extends BaseCliSuite {
       "--sourceroot",
       "bogus",
       "--classpath",
-      semanticClasspath
+      defaultClasspath
     ),
     expectedExit = ExitStatus.CommandLineError,
     outputAssert = { out =>
@@ -57,7 +58,7 @@ class CliSemanticSuite extends BaseCliSuite {
     name = "StaleSemanticDB",
     args = Array(
       "--classpath",
-      defaultClasspath.syntax
+      defaultClasspath
     ),
     preprocess = { root =>
       val path = root.resolve(explicitResultTypesPath)
@@ -80,7 +81,7 @@ class CliSemanticSuite extends BaseCliSuite {
     name = "StaleSemanticDB fix matches input",
     args = Array(
       "--classpath",
-      defaultClasspath.syntax
+      defaultClasspath
     ),
     preprocess = { root =>
       val expectedOutput = slurpOutput(explicitResultTypesPath)
@@ -100,7 +101,7 @@ class CliSemanticSuite extends BaseCliSuite {
     name = "explicit result types OK",
     args = Array(
       "--classpath",
-      defaultClasspath.syntax
+      defaultClasspath
     ),
     expectedExit = ExitStatus.Ok,
     rule = ExplicitResultTypes.toString(),
@@ -112,7 +113,9 @@ class CliSemanticSuite extends BaseCliSuite {
     name = "incomplete classpath does not result in error exit code",
     args = Array(
       "--classpath",
-      semanticClasspath // missing scala-library
+      Classpath(
+        props.inputClasspath.entries
+          .filterNot(_.toString().contains("scala-library"))).syntax
     ),
     // Errors in ExplicitResultTypes are suppressed.
     expectedExit = ExitStatus.Ok,
