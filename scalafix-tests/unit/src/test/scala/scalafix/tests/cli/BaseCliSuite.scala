@@ -13,8 +13,6 @@ import scalafix.internal.tests.utils.SkipWindows
 import scalafix.test.StringFS
 import scalafix.testkit.DiffAssertions
 import scalafix.testkit.SemanticRuleSuite
-import scalafix.tests.BuildInfo
-import ammonite.ops
 import java.nio.file.FileVisitResult
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.StandardCopyOption
@@ -22,7 +20,6 @@ import java.nio.file.attribute.BasicFileAttributes
 import scala.meta.io.AbsolutePath
 import scala.meta.io.RelativePath
 import org.scalatest.FunSuite
-import scala.meta.io.Classpath
 import scalafix.testkit.TestkitProperties
 import scalafix.v1.Main
 

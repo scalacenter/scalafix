@@ -5,7 +5,6 @@ import metaconfig.Conf
 import metaconfig.Configured
 import metaconfig.internal.ConfGet
 import scala.meta.internal.io.FileIO
-import scala.meta.internal.io.PathIO
 import scalafix.v1
 import scala.meta._
 import scalafix.internal.util.SymbolTable
