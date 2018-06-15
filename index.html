@@ -1,0 +1,50 @@
+<html><head><title>scalafix: Home</title><meta charset="utf-8" /><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="ch.epfl.scala" /><meta name="description" content="Rewrite and linting tool for Scala" /><meta name="og:image" content="/scalafix/img/poster.png" /><meta name="og:title" content="scalafix: Home" /><meta name="og:site_name" content="scalafix" /><meta name="og:url" content="https://scalacenter.github.io/scalafix/" /><meta name="og:type" content="website" /><meta name="og:description" content="Rewrite and linting tool for Scala" /><link rel="icon" type="image/png" href="/scalafix/img/favicon.png" /><meta name="twitter:title" content="scalafix: Home" /><meta name="twitter:image" content="https://scalacenter.github.io/scalafix/img/poster.png" /><meta name="twitter:description" content="Rewrite and linting tool for Scala" /><meta name="twitter:card" content="summary_large_image" /><meta name="twitter:creator" content="@scala_lang" /><link rel="icon" type="image/png" sizes="16x16" href="/scalafix/img/favicon16x16.png" /><link rel="icon" type="image/png" sizes="24x24" href="/scalafix/img/favicon24x24.png" /><link rel="icon" type="image/png" sizes="32x32" href="/scalafix/img/favicon32x32.png" /><link rel="icon" type="image/png" sizes="48x48" href="/scalafix/img/favicon48x48.png" /><link rel="icon" type="image/png" sizes="57x57" href="/scalafix/img/favicon57x57.png" /><link rel="icon" type="image/png" sizes="60x60" href="/scalafix/img/favicon60x60.png" /><link rel="icon" type="image/png" sizes="64x64" href="/scalafix/img/favicon64x64.png" /><link rel="icon" type="image/png" sizes="70x70" href="/scalafix/img/favicon70x70.png" /><link rel="icon" type="image/png" sizes="72x72" href="/scalafix/img/favicon72x72.png" /><link rel="icon" type="image/png" sizes="76x76" href="/scalafix/img/favicon76x76.png" /><link rel="icon" type="image/png" sizes="96x96" href="/scalafix/img/favicon96x96.png" /><link rel="icon" type="image/png" sizes="114x114" href="/scalafix/img/favicon114x114.png" /><link rel="icon" type="image/png" sizes="120x120" href="/scalafix/img/favicon120x120.png" /><link rel="icon" type="image/png" sizes="128x128" href="/scalafix/img/favicon128x128.png" /><link rel="icon" type="image/png" sizes="144x144" href="/scalafix/img/favicon144x144.png" /><link rel="icon" type="image/png" sizes="150x150" href="/scalafix/img/favicon150x150.png" /><link rel="icon" type="image/png" sizes="152x152" href="/scalafix/img/favicon152x152.png" /><link rel="icon" type="image/png" sizes="196x196" href="/scalafix/img/favicon196x196.png" /><link rel="icon" type="image/png" sizes="310x310" href="/scalafix/img/favicon310x310.png" /><link rel="icon" type="image/png" sizes="310x150" href="/scalafix/img/favicon310x150.png" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" /><link rel="stylesheet" href="/scalafix/highlight/styles/atom-one-light.css" /><link rel="stylesheet" href="/scalafix/css/style.css" /><link rel="stylesheet" href="/scalafix/css/palette.css" /><link rel="stylesheet" href="/scalafix/css/codemirror.css" /><link rel="stylesheet" href="/scalafix/css/override.css" /></head><body><header id="site-header"><div class="navbar-wrapper"><div class="container"><div class="row"><div class="col-xs-6"><a href="/scalafix/" class="brand"><div class="icon-wrapper"><span>scalafix</span></div></a></div><div class="col-xs-6"><nav class="text-right"><ul class=""><li><a href="https://github.com/scalacenter/scalafix"><i class="fa fa-github"></i><span class="hidden-xs">GitHub</span></a></li><li><a href="docs/users/installation"><i class="fa fa-file-text"></i><span class="hidden-xs">Documentation</span></a></li></ul></nav></div></div></div></div><div class="jumbotron"><div class="container"><h1 class="text-center">Rewrite and linting tool for Scala</h1><h2></h2><p class="text-center"><a href="https://github.com/scalacenter/scalafix" class="btn btn-outline-inverse">View on GitHub</a></p></div></div><div><ul class="horizontalNav">                                                              </ul></div></header><main id="site-main"><section class="use"><div class="container"><div id="content"><p>Scalafix is a rewrite and linting tool for Scala.
+Key features of Scalafix include:</p>
+
+<ul>
+  <li>
+    <p><strong>Fidelity</strong>: Scalafix supports formatting-aware rewriting
+of Scala code. Every detail in the source file is represented
+with rich data structures and full position information, down to
+individual space characters.</p>
+  </li>
+  <li>
+    <p><strong>Extensible</strong>: Implement your own custom Scalafix rules.
+Jumpstart with our <a href="https://github.com/scalacenter/scalafix.g8">scalacenter/scalafix.g8</a> template,
+which sets up a minimal sbt project with testing scaffolding.</p>
+  </li>
+  <li>
+    <p><strong>Accessible</strong>: Scalafix enables novices to implement advanced rules
+without learning compiler internals.</p>
+  </li>
+  <li>
+    <p><strong>Portable</strong>: Scalafix works with a wide range of Scala dialects (sbt,
+Scala 2.x, Dotty) and runs on JVM, Node.js and in the browser.</p>
+  </li>
+</ul>
+
+<p>Scalafix is developed at the <a href="https://scala.epfl.ch">Scala Center</a> with the goal to help automate
+migration between different Scala compiler and library versions.
+The project follows the Advisory Board proposal: <a href="http://scala-lang.org/blog/2016/05/30/scala-center-advisory-board.html#the-first-meeting">Clarification of Scala to Dotty migration path</a></p>
+
+<h2 id="links">Links</h2>
+
+<ul>
+  <li>September 19th 2017: <a href="https://www.youtube.com/watch?v=uaMWvkCJM_E">Scalafix workshop</a> at Scala World (<a href="https://speakerdeck.com/gabro/move-fast-and-fix-things">slides</a>)</li>
+  <li>September 11th 2017: <a href="http://www.scala-lang.org/blog/2017/09/11/scalafix-v0.5.html">Catch bugs with Scalafix</a> at scala-lang.org</li>
+  <li>May 3rd 2017: <a href="https://vimeo.com/channels/flatmap2017/216469977">Move fast and refactor with scalafix</a> at flatMap(Oslo)</li>
+  <li>March 2nd 2017: <a href="https://www.youtube.com/watch?v=7I18pJ6orrI">Refactoring with scalafix and scalameta</a> at Scalasphere</li>
+  <li>February 27 2017: <a href="http://www.scala-lang.org/blog/2017/02/27/scalafix-v0.3.html">Refactor with scalafix v0.3</a> at scala-lang.org</li>
+  <li>December 12 2016: See the <a href="https://skillsmatter.com/skillscasts/9117-smooth-migrations-to-dotty-with-scalafix#video">talk about scalafix at Scala eXchange</a> at Scala eXchange (requires login)</li>
+  <li>October 24 2016: Read the <a href="http://www.scala-lang.org/blog/2016/10/24/scalafix.html">v0.1 release announcement</a> at scala-lang.org</li>
+</ul>
+
+</div></div></section><section class="technologies"><div class="container"><div class="row"></div></div></section></main><footer id="site-footer"><div class="container"><div class="row"><div class="col-xs-6"><p>scalafix is designed and developed by <a href="https://scala.epfl.ch/" target="_blank">ch.epfl.scala</a></p></div><div class="col-xs-6"><p class="text-right"><a href="https://github.com/scalacenter/scalafix"><span class="fa fa-github"></span>View on GitHub</a></p></div></div><div class="row"><div class="col-xs-6">
+<p>© 2017 <a href="https://github.com/scalacenter/scalafix#team">The Scalafix Maintainers</a></p>
+<p style="font-size: 80%; margin-top: 10px">Website built with <a href="https://47deg.github.io/sbt-microsites/">sbt-microsites © 2016 47 Degrees</a></p>
+</div></div></div></footer><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/scalafix/highlight/highlight.pack.js"></script><script>hljs.configure({
+languages:['scala','java','bash']
+});
+hljs.initHighlighting();
+             </script><script src="/scalafix/js/addEditLinks.js"></script><script src="/scalafix/js/addSectionLinks.js"></script><script src="/scalafix/js/setCallToAction.js"></script><script src="/scalafix/js/removeSocialMediaLinks.js"></script><script>((window.gitter = {}).chat = {}).options = {
+room: 'scalacenter/scalafix'};</script><script src="https://sidecar.gitter.im/dist/sidecar.v1.js"></script></body></html>
