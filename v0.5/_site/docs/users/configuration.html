@@ -1,0 +1,179 @@
+<html><head><title>scalafix: Configuration</title><meta charset="utf-8" /><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="ch.epfl.scala" /><meta name="description" content="Rewrite and linting tool for Scala" /><meta name="og:image" content="/scalafix/img/poster.png" /><meta name="og:title" content="scalafix: Configuration" /><meta name="og:site_name" content="scalafix" /><meta name="og:url" content="https://scalacenter.github.io/scalafix/" /><meta name="og:type" content="website" /><meta name="og:description" content="Rewrite and linting tool for Scala" /><link rel="icon" type="image/png" href="/scalafix/img/favicon.png" /><meta name="twitter:title" content="scalafix: Configuration" /><meta name="twitter:image" content="https://scalacenter.github.io/scalafix/img/poster.png" /><meta name="twitter:description" content="Rewrite and linting tool for Scala" /><meta name="twitter:card" content="summary_large_image" /><meta name="twitter:creator" content="@scala_lang" /><link rel="icon" type="image/png" sizes="16x16" href="/scalafix/img/favicon16x16.png" /><link rel="icon" type="image/png" sizes="24x24" href="/scalafix/img/favicon24x24.png" /><link rel="icon" type="image/png" sizes="32x32" href="/scalafix/img/favicon32x32.png" /><link rel="icon" type="image/png" sizes="48x48" href="/scalafix/img/favicon48x48.png" /><link rel="icon" type="image/png" sizes="57x57" href="/scalafix/img/favicon57x57.png" /><link rel="icon" type="image/png" sizes="60x60" href="/scalafix/img/favicon60x60.png" /><link rel="icon" type="image/png" sizes="64x64" href="/scalafix/img/favicon64x64.png" /><link rel="icon" type="image/png" sizes="70x70" href="/scalafix/img/favicon70x70.png" /><link rel="icon" type="image/png" sizes="72x72" href="/scalafix/img/favicon72x72.png" /><link rel="icon" type="image/png" sizes="76x76" href="/scalafix/img/favicon76x76.png" /><link rel="icon" type="image/png" sizes="96x96" href="/scalafix/img/favicon96x96.png" /><link rel="icon" type="image/png" sizes="114x114" href="/scalafix/img/favicon114x114.png" /><link rel="icon" type="image/png" sizes="120x120" href="/scalafix/img/favicon120x120.png" /><link rel="icon" type="image/png" sizes="128x128" href="/scalafix/img/favicon128x128.png" /><link rel="icon" type="image/png" sizes="144x144" href="/scalafix/img/favicon144x144.png" /><link rel="icon" type="image/png" sizes="150x150" href="/scalafix/img/favicon150x150.png" /><link rel="icon" type="image/png" sizes="152x152" href="/scalafix/img/favicon152x152.png" /><link rel="icon" type="image/png" sizes="196x196" href="/scalafix/img/favicon196x196.png" /><link rel="icon" type="image/png" sizes="310x310" href="/scalafix/img/favicon310x310.png" /><link rel="icon" type="image/png" sizes="310x150" href="/scalafix/img/favicon310x150.png" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" /><link rel="stylesheet" href="/scalafix/highlight/styles/atom-one-light.css" /><link rel="stylesheet" href="/scalafix/css/style.css" /><link rel="stylesheet" href="/scalafix/css/palette.css" /><link rel="stylesheet" href="/scalafix/css/codemirror.css" /><link rel="stylesheet" href="/scalafix/css/override.css" /></head><body class="docs"><div id="wrapper"><div id="sidebar-wrapper"><ul id="sidebar" class="sidebar-nav"><li class="sidebar-brand"><a href="/scalafix/" class="brand"><div class="brand-wrapper"><span>scalafix</span></div></a></li> <li><a href="/scalafix/docs/users/installation" class="">Users</a> <ul class="sub_section"> <li><a href="/scalafix/docs/users/installation" class="">Installation</a></li> <li><a href="/scalafix/docs/users/rules" class="">Rules</a></li> <li><a href="/scalafix/docs/users/configuration" class=" active ">Configuration</a></li> <li><a href="/scalafix/docs/users/faq" class="">FAQ</a></li></ul></li> <li><a href="/scalafix/docs/rule-authors/setup" class="">Rule Authors</a> <ul class="sub_section"> <li><a href="/scalafix/docs/rule-authors/setup" class="">Setup</a></li> <li><a href="/scalafix/docs/rule-authors/tutorial" class="">Tutorial</a></li> <li><a href="/scalafix/docs/rule-authors/glossary" class="">Glossary</a></li> <li><a href="/scalafix/docs/api/scalafix/" class="">API Docs</a></li></ul></li></ul></div><div id="page-content-wrapper"><div class="nav"><div class="container-fluid"><div class="row"><div class="col-lg-12"><div class="action-menu pull-left clearfix"><a href="#menu-toggle" id="menu-toggle"><i class="fa fa-bars" aria-hidden="true"></i></a></div><ul class="pull-right"><li id="gh-eyes-item" class="hidden-xs"><a href="https://github.com/scalacenter/scalafix"><i class="fa fa-eye"></i><span>WATCH<span id="eyes" class="label label-default">--</span></span></a></li><li id="gh-stars-item" class="hidden-xs"><a href="https://github.com/scalacenter/scalafix"><i class="fa fa-star-o"></i><span>STARS<span id="stars" class="label label-default">--</span></span></a></li><li><a href="#" onclick="shareSiteTwitter('scalafix Rewrite and linting tool for Scala');"><i class="fa fa-twitter"></i></a></li><li><a href="#" onclick="shareSiteFacebook('scalafix Rewrite and linting tool for Scala');"><i class="fa fa-facebook"></i></a></li><li><a href="#" onclick="shareSiteGoogle();"><i class="fa fa-google-plus"></i></a></li></ul></div></div></div></div><div id="content" data-github-owner="scalacenter" data-github-repo="scalafix"><div class="content-wrapper"><section><h1 class="no_toc" id="configuration">Configuration</h1>
+
+<ul id="markdown-toc">
+  <li><a href="#per-project" id="markdown-toc-per-project">Per project</a>    <ul>
+      <li><a href="#rules" id="markdown-toc-rules">rules</a>        <ul>
+          <li><a href="#class" id="markdown-toc-class">class:</a></li>
+          <li><a href="#file" id="markdown-toc-file">file:</a></li>
+          <li><a href="#http" id="markdown-toc-http">http:</a></li>
+          <li><a href="#github" id="markdown-toc-github">github:</a></li>
+          <li><a href="#replace" id="markdown-toc-replace">replace:</a></li>
+        </ul>
+      </li>
+      <li><a href="#lint" id="markdown-toc-lint">lint</a></li>
+      <li><a href="#patches" id="markdown-toc-patches">patches</a></li>
+    </ul>
+  </li>
+  <li><a href="#per-source-file" id="markdown-toc-per-source-file">Per source file</a>    <ul>
+      <li><a href="#enable-or-disable-until-the-end-of-file" id="markdown-toc-enable-or-disable-until-the-end-of-file">Enable or Disable until the end of file</a></li>
+      <li><a href="#disable-for-an-expression" id="markdown-toc-disable-for-an-expression">Disable for an expression</a></li>
+      <li><a href="#selectively-disabling-rules" id="markdown-toc-selectively-disabling-rules">Selectively disabling rules</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="per-project">Per project</h2>
+
+<p>Scalafix reads configuration from a file using
+<a href="https://github.com/typesafehub/config">HOCON</a> syntax.
+The convention is to keep a file <code class="highlighter-rouge">.scalafix.conf</code> into the root directory of your project.
+Configuration is not needed or is optional for most rules, so you may not need to create a <code class="highlighter-rouge">.scalafix.conf</code>.</p>
+
+<h3 id="rules">rules</h3>
+<p>Configure which rule to run with <code class="highlighter-rouge">rules = [ ... ]</code>, for example</p>
+
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="c1">// Built in rules
+</span><span class="n">rules</span> <span class="k">=</span> <span class="o">[</span>
+  <span class="kt">//</span> <span class="kt">pre-installed</span> <span class="kt">rule</span> <span class="kt">from</span> <span class="kt">scalafix</span>
+  <span class="kt">ExplicitResultTypes</span>
+  <span class="kt">//</span> <span class="kt">custom</span> <span class="kt">rule</span> <span class="kt">on</span> <span class="kt">local</span> <span class="kt">disk</span>
+  <span class="err">"</span><span class="kt">file:rules/MyRule.scala</span><span class="err">"</span>
+  <span class="kt">//</span> <span class="kt">custom</span> <span class="kt">rule</span> <span class="kt">from</span> <span class="kt">library</span> <span class="kt">on</span> <span class="kt">GitHub</span>
+  <span class="err">"</span><span class="kt">github:</span><span class="k">type</span><span class="kt">level/cats/v1.</span><span class="err">0</span><span class="kt">.</span><span class="err">0"</span>
+  <span class="kt">//</span> <span class="kt">custom</span> <span class="kt">rule</span> <span class="kt">shared</span> <span class="kt">as</span> <span class="kt">a</span> <span class="kt">gist</span>
+  <span class="err">"</span><span class="kt">https://git.io/vNXDG</span><span class="err">"</span>
+  <span class="kt">//</span> <span class="kt">...</span>
+<span class="o">]</span>
+</code></pre>
+</div>
+
+<p>Rules are referenced using URI syntax.
+By default, a URI with no scheme such as <code class="highlighter-rouge">ExplicitResultTypes</code>
+is interpreted as a built-in Scalafix rule.
+See <a href="rules">here</a> for the complete list of built-in Scalafix rules.
+Scalafix supports loading custom rules with the following URI schemes:
+<code class="highlighter-rouge">class:</code>, <code class="highlighter-rouge">file:</code>, <code class="highlighter-rouge">http:</code> and <code class="highlighter-rouge">github:</code>.</p>
+
+<h4 id="class">class:</h4>
+<p>If a scalafix rule is already on the classpath, you can classload it with the <code class="highlighter-rouge">class:</code> protocol.</p>
+
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">rule</span> <span class="k">=</span> <span class="s">"class:scalafix.internal.rule.ProcedureSyntax"</span>
+</code></pre>
+</div>
+
+<h4 id="file">file:</h4>
+<p>If a rule is written in a single file on local disk, you can load it with the <code class="highlighter-rouge">file:</code> protocol.</p>
+
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">rule</span> <span class="k">=</span> <span class="s">"file:readme/MyRule.scala"</span> <span class="c1">// from local file on disk
+</span></code></pre>
+</div>
+
+<h4 id="http">http:</h4>
+<p>If a rule is written in a single source file on the internet, you can load it with the <code class="highlighter-rouge">https:</code>
+or <code class="highlighter-rouge">http:</code> protocol</p>
+
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">rule</span> <span class="k">=</span> <span class="s">"https://gist.githubusercontent.com/olafurpg/fc6f43a695ac996bd02000f45ed02e63/raw/f5fe47495c9b6e3ce0960b766ffa75be6d6768b2/DummyRule.scala"</span>
+</code></pre>
+</div>
+
+<h4 id="github">github:</h4>
+<p>If a rule is written in a single file and you use GitHub, you can use the <code class="highlighter-rouge">github:</code> protocol for
+sharing your rule</p>
+
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">rule</span> <span class="k">=</span> <span class="s">"github:typelevel/cats/v1.0.0"</span>
+<span class="c1">// expands into "https://raw.githubusercontent.com/typelevel/cats/master/scalafix/rules/src/main/scala/fix/Cats_v1_0_0.scala"
+</span></code></pre>
+</div>
+
+<h4 id="replace">replace:</h4>
+
+<p>To replace usage of one class/object/trait/def with another.
+Note, does not move definitions like “Move” does in an IDE. This
+only moves use-sites.</p>
+
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">rule</span> <span class="k">=</span> <span class="s">"replace:com.company.App/io.company.App"</span>
+<span class="c1">// From sbt shell: &gt; scalafix replace:from/to
+</span></code></pre>
+</div>
+
+<p>To rename a method</p>
+
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">rule</span> <span class="k">=</span> <span class="s">"replace:com.company.App.start/init"</span>
+</code></pre>
+</div>
+
+<h3 id="lint">lint</h3>
+<p>Override the default severity level of a <a href="/scalafix/docs/rule-authors/glossary#lintmessage">LintMessage</a> with <code class="highlighter-rouge">lint</code></p>
+
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="c1">// Assuming 'Foo' is a rule and 'warningID'/'errorID' are LintCategory IDs.
+</span><span class="n">lint</span><span class="o">.</span><span class="n">error</span> <span class="k">=</span> <span class="o">[</span> <span class="kt">Foo.warningID</span> <span class="o">]</span> <span class="c1">// promote Foo.warnigID to an error
+</span><span class="n">lint</span><span class="o">.</span><span class="n">warning</span> <span class="k">=</span> <span class="o">[</span> <span class="kt">Foo.errorID</span> <span class="o">]</span> <span class="c1">// demote Foo.errorID to a warning
+</span><span class="n">lint</span><span class="o">.</span><span class="n">info</span> <span class="k">=</span> <span class="o">[</span> <span class="kt">Foo.errorID</span> <span class="o">]</span> <span class="c1">// demote Foo.errorID to info
+</span><span class="n">lint</span><span class="o">.</span><span class="n">ignore</span> <span class="k">=</span> <span class="o">[</span> <span class="kt">Foo.errorID</span> <span class="o">]</span> <span class="c1">// don't report Foo.errorID
+</span><span class="n">lint</span><span class="o">.</span><span class="n">explain</span> <span class="k">=</span> <span class="kc">true</span> <span class="c1">// print out detailed explanation for lint messages.
+</span></code></pre>
+</div>
+
+<h3 id="patches">patches</h3>
+<p>For simple use-cases, it’s possible to write custom rules directly in <code class="highlighter-rouge">.scalafix.conf</code>.</p>
+
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">patches</span><span class="o">.</span><span class="n">removeGlobalImports</span> <span class="k">=</span> <span class="o">[</span>
+  <span class="err">"</span><span class="kt">scala.collection.mutable</span><span class="err">"</span> <span class="kt">//</span> <span class="kt">scala.meta.Importee</span>
+<span class="o">]</span>
+<span class="n">patches</span><span class="o">.</span><span class="n">addGlobalImports</span> <span class="k">=</span> <span class="o">[</span>
+  <span class="err">"</span><span class="kt">scala.collection.immutable</span><span class="err">"</span>
+<span class="o">]</span>
+<span class="n">patches</span><span class="o">.</span><span class="n">replaceSymbols</span> <span class="k">=</span> <span class="o">[</span>
+  <span class="o">{</span> <span class="kt">from</span> <span class="kt">=</span> <span class="err">"</span><span class="kt">scala.collection.mutable.ListBuffer</span><span class="err">"</span>
+    <span class="kt">to</span>   <span class="kt">=</span> <span class="err">"</span><span class="kt">com.geirsson.mutable.CoolBuffer</span><span class="err">"</span> <span class="o">}</span>
+<span class="o">]</span>
+<span class="c1">// Helper to see which symbols appear in your source files
+</span><span class="n">debug</span><span class="o">.</span><span class="n">printSymbols</span> <span class="k">=</span> <span class="kc">true</span>
+</code></pre>
+</div>
+
+<p>To build custom rules see <a href="/scalafix/docs/rule-authors/setup">Rule Authors</a>.</p>
+
+<h2 id="per-source-file">Per source file</h2>
+
+<p>It’s possible to supress false positives linter message over source file regions using comments. This provides fine grained control over what to report</p>
+
+<p>There are two alternative way to supress linter messages with a single expression using scalafix:ok or with scalafix:off/on to toogle until the end of file.</p>
+
+<h3 id="enable-or-disable-until-the-end-of-file">Enable or Disable until the end of file</h3>
+
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code>
+<span class="c1">// scalafix:off
+</span><span class="n">foo</span><span class="o">(</span><span class="kc">null</span><span class="o">)</span>
+<span class="mf">1.</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span>
+<span class="c1">// scalafix:on
+</span>
+</code></pre>
+</div>
+
+<h3 id="disable-for-an-expression">Disable for an expression</h3>
+
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="nc">List</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="s">""</span><span class="o">)</span> <span class="c1">// scalafix:ok
+</span></code></pre>
+</div>
+
+<h3 id="selectively-disabling-rules">Selectively disabling rules</h3>
+
+<p>Both technique above can selectively disable a list of rules. You can provide the list of rules to be disabled, separated by <code class="highlighter-rouge">,</code>.</p>
+
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="c1">// scalafix:off Disable.null, Disable.asInstanceOf
+</span><span class="n">foo</span><span class="o">(</span><span class="kc">null</span><span class="o">)</span>
+<span class="mf">1.</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span>
+<span class="c1">// scalafix:on
+</span></code></pre>
+</div>
+
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="nc">List</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="s">""</span><span class="o">)</span> <span class="c1">// scalafix:ok NoInfer.any
+</span></code></pre>
+</div>
+</section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/scalafix/highlight/highlight.pack.js"></script><script>hljs.configure({
+languages:['scala','java','bash']
+});
+hljs.initHighlighting();
+             </script><script src="/scalafix/js/addEditLinks.js"></script><script src="/scalafix/js/addSectionLinks.js"></script><script src="/scalafix/js/setCallToAction.js"></script><script src="/scalafix/js/removeSocialMediaLinks.js"></script><script>((window.gitter = {}).chat = {}).options = {
+room: 'scalacenter/scalafix'};</script><script src="https://sidecar.gitter.im/dist/sidecar.v1.js"></script><script src="/scalafix/js/main.js"></script></body></html>
