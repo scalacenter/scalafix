@@ -38,14 +38,14 @@ Currently, Scalafix does not provide any IDE integrations with IntelliJ/ENSIME.<
 </span><span class="o">&gt;</span> <span class="n">scalafixEnable</span> <span class="c1">// Setup scalafix for active session.
 </span>                 <span class="c1">// Not needed if build.sbt is configured like below.
 </span><span class="o">&gt;</span> <span class="n">scalafixCli</span>                                            <span class="c1">// Run all rules configured in .scalafix.conf
-</span><span class="o">&gt;</span> <span class="n">scalafixCli</span> <span class="o">--</span><span class="n">rule</span> <span class="nc">RemoveUnusedImports</span>                 <span class="c1">// Run only RemoveUnusedImports rule
-</span><span class="o">&gt;</span> <span class="n">myProject</span><span class="o">/</span><span class="n">scalafixCli</span> <span class="o">--</span><span class="n">rule</span> <span class="nc">RemoveUnusedImports</span>       <span class="c1">// Run rule in one project only
-</span><span class="o">&gt;</span> <span class="n">test</span><span class="k">:</span><span class="kt">scalafixCli</span> <span class="kt">--rule</span> <span class="kt">RemoveUnusedImports</span>            <span class="c1">// Run rule in single configuration
-</span><span class="o">&gt;</span> <span class="n">scalafixCli</span> <span class="o">--</span><span class="n">rule</span> <span class="nc">ExplicitR</span><span class="o">&lt;</span><span class="nc">TAB</span><span class="o">&gt;</span>                      <span class="c1">// Use tab completion
-</span><span class="o">&gt;</span> <span class="n">scalafixCli</span> <span class="o">--</span><span class="n">rule</span> <span class="n">replace</span><span class="k">:</span><span class="kt">com.foobar/com.buzbaz</span>       <span class="c1">// Refactor (experimental)
-</span><span class="o">&gt;</span> <span class="n">scalafixCli</span> <span class="o">--</span><span class="n">rule</span> <span class="n">file</span><span class="k">:</span><span class="kt">rules/MyRule.scala</span>             <span class="c1">// Run local custom rule
-</span><span class="o">&gt;</span> <span class="n">scalafixCli</span> <span class="o">--</span><span class="n">rule</span> <span class="n">github</span><span class="k">:</span><span class="kt">org/repo/v1</span>                  <span class="c1">// Run library migration rule
-</span><span class="o">&gt;</span> <span class="n">scalafixCli</span> <span class="o">--</span><span class="n">test</span>                                     <span class="c1">// Make sure no files needs to be fixed
+</span><span class="o">&gt;</span> <span class="n">scalafixCli</span> <span class="o">--</span><span class="n">rules</span> <span class="nc">RemoveUnusedImports</span>                 <span class="c1">// Run only RemoveUnusedImports rule
+</span><span class="o">&gt;</span> <span class="n">myProject</span><span class="o">/</span><span class="n">scalafixCli</span> <span class="o">--</span><span class="n">rules</span> <span class="nc">RemoveUnusedImports</span>       <span class="c1">// Run rule in one project only
+</span><span class="o">&gt;</span> <span class="n">test</span><span class="k">:</span><span class="kt">scalafixCli</span> <span class="kt">--rules</span> <span class="kt">RemoveUnusedImports</span>            <span class="c1">// Run rule in single configuration
+</span><span class="o">&gt;</span> <span class="n">scalafixCli</span> <span class="o">--</span><span class="n">rules</span> <span class="nc">ExplicitR</span><span class="o">&lt;</span><span class="nc">TAB</span><span class="o">&gt;</span>                      <span class="c1">// Use tab completion
+</span><span class="o">&gt;</span> <span class="n">scalafixCli</span> <span class="o">--</span><span class="n">rules</span> <span class="n">replace</span><span class="k">:</span><span class="kt">com.foobar/com.buzbaz</span>       <span class="c1">// Refactor (experimental)
+</span><span class="o">&gt;</span> <span class="n">scalafixCli</span> <span class="o">--</span><span class="n">rules</span> <span class="n">file</span><span class="k">:</span><span class="kt">rules/MyRule.scala</span>             <span class="c1">// Run local custom rule
+</span><span class="o">&gt;</span> <span class="n">scalafixCli</span> <span class="o">--</span><span class="n">rules</span> <span class="n">github</span><span class="k">:</span><span class="kt">org/repo/v1</span>                  <span class="c1">// Run library migration rule
+</span><span class="o">&gt;</span> <span class="n">scalafixCli</span> <span class="o">--</span><span class="n">test</span>                                      <span class="c1">// Make sure no files needs to be fixed
 </span>
 
 <span class="c1">// (optional, to avoid need for scalafixEnable) permanently enable scalafix in build.sbt
@@ -229,7 +229,7 @@ wget -O scalafix https://github.com/scalacenter/scalafix/blob/master/scalafix?ra
 
 <h3 id="help">–help</h3>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>scalafix 0.5.10-20180615-2202
+<div class="highlighter-rouge"><pre class="highlight"><code>scalafix 0.5.10-20180618-1437
 Usage: scalafix [options] [&lt;file&gt;...]
   --usage  
         Print usage and exit
@@ -465,10 +465,10 @@ Once you have found the version number, adapting the version number</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>// If using sbt-scalafix, add to project/plugins.sbt
 resolvers += Resolver.sonatypeRepo("snapshots")
-addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.5.10-20180615-2202-SNAPSHOT")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.5.10-20180618-1437-SNAPSHOT")
 
 // If using scalafix-cli, launch with coursier
-coursier launch ch.epfl.scala:scalafix-cli_2.12.4:0.5.10-20180615-2202-SNAPSHOT -r sonatype:snapshots --main scalafix.cli.Cli -- --help
+coursier launch ch.epfl.scala:scalafix-cli_2.12.4:0.5.10-20180618-1437-SNAPSHOT -r sonatype:snapshots --main scalafix.cli.Cli -- --help
 </code></pre>
 </div>
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/scalafix/highlight/highlight.pack.js"></script><script>hljs.configure({

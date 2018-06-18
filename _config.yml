@@ -13,7 +13,7 @@ collections:
     output: true
 stableVersion: 0.5.10
 scala211: 2.11.12
-version: 0.5.10-20180615-2202
+version: 0.5.10-20180618-1437
 scalametaVersion: 2.1.7
 callToActionUrl: docs/users/installation
 callToActionText: Get started
