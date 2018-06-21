@@ -3,7 +3,7 @@ package scalafix.internal.config
 import scala.meta.Ref
 import scala.meta._
 import scala.meta.parsers.Parse
-import scala.meta.semanticdb.Symbol
+import scalafix.v0.Symbol
 import scala.reflect.ClassTag
 import scala.util.Try
 import scala.util.matching.Regex
