@@ -4,6 +4,7 @@ import scala.meta._
 import scala.meta.contrib._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
 import scalafix.patch.Patch
+import scalafix.v0.Symbol
 import scalafix.v0.SemanticdbIndex
 import scalafix.internal.config.ExplicitResultTypesConfig
 import scalafix.internal.config.MemberKind

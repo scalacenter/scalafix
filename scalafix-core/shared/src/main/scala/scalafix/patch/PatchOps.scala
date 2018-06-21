@@ -1,6 +1,7 @@
 package scalafix.patch
 
 import scala.meta._
+import scalafix.v0.Symbol
 import scalafix.lint.LintMessage
 import scalafix.util.SemanticdbIndex
 

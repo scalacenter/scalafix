@@ -26,6 +26,8 @@ import scalafix.util.SemanticdbIndex
 import scalafix.v1.Doc
 import scalafix.v1.SemanticContext
 import scalafix.v1.SemanticDoc
+import scalafix.v0.Signature
+import scalafix.v0.Symbol
 
 /** A data structure that can produce a .patch file.
   *

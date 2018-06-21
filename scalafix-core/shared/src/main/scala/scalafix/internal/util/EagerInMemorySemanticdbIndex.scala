@@ -6,10 +6,8 @@ import scala.{meta => m}
 import scala.meta.internal.{semanticdb => s}
 import scalafix.internal.v0._
 import scalafix.util.SemanticdbIndex
-import scalafix.v0.Database
-import scalafix.v0.Denotation
-import scalafix.v0.Document
-import scalafix.v0.ResolvedName
+import scalafix.v0._
+import scalafix.v0
 
 case class EagerInMemorySemanticdbIndex(
     database: Database,
@@ -31,12 +29,12 @@ case class EagerInMemorySemanticdbIndex(
       builder.get(r.position) match {
         case Some(conflict) =>
           conflict.symbol match {
-            case m.Symbol.Multi(syms) =>
+            case v0.Symbol.Multi(syms) =>
               builder(r.position) =
-                conflict.copy(symbol = m.Symbol.Multi(r.symbol :: syms))
+                conflict.copy(symbol = v0.Symbol.Multi(r.symbol :: syms))
             case sym =>
               builder(r.position) =
-                conflict.copy(symbol = m.Symbol.Multi(r.symbol :: sym :: Nil))
+                conflict.copy(symbol = v0.Symbol.Multi(r.symbol :: sym :: Nil))
           }
         case _ =>
           builder(r.position) = r
@@ -94,11 +92,11 @@ case class EagerInMemorySemanticdbIndex(
 
   override def info(symbol: String): Option[s.SymbolInformation] =
     table.info(symbol).orElse {
-      val msym = m.Symbol(symbol)
+      val msym = v0.Symbol(symbol)
       denotation(msym).map(denot =>
         denotationToSymbolInformation(symbol, denot, {
           msym match {
-            case m.Symbol.Global(owner, _) => owner.syntax
+            case v0.Symbol.Global(owner, _) => owner.syntax
             case _ => ""
           }
         }))

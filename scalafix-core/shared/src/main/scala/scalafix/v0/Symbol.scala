@@ -17,7 +17,7 @@ object Symbol {
 
   final case class Local(id: String) extends Symbol {
     override def toString = syntax
-    override def syntax = Symbols.Local(id)
+    override def syntax = id
     override def structure = s"""Symbol.Local("$id")"""
   }
 

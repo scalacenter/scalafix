@@ -1,6 +1,7 @@
 package scalafix.internal.util
 
 import scala.meta._
+import scalafix.v0._
 
 object SymbolOps {
   object SignatureName {

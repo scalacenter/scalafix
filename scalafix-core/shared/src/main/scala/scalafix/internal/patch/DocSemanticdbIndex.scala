@@ -16,6 +16,7 @@ import scala.meta.internal.{semanticdb => s}
 import scalafix.internal.util.SymbolTable
 import scalafix.v1.Sym
 import scalafix.v1.SemanticDoc
+import scalafix.v0
 import scalafix.v0._
 
 import DocSemanticdbIndex._
@@ -47,7 +48,7 @@ class DocSemanticdbIndex(val doc: SemanticDoc)
   final override def symbols: Seq[ResolvedSymbol] =
     doc.sdoc.symbols.map { s =>
       ResolvedSymbol(
-        m.Symbol(s.symbol),
+        v0.Symbol(s.symbol),
         infoToDenotation(s)
       )
     }
@@ -69,10 +70,10 @@ class DocSemanticdbIndex(val doc: SemanticDoc)
     }
 
   final override def symbol(position: Position): Option[Symbol] =
-    doc.symbols(position).toList.map(s => m.Symbol(s.value)) match {
+    doc.symbols(position).toList.map(s => v0.Symbol(s.value)) match {
       case Nil => None
       case head :: Nil => Some(head)
-      case multi => Some(m.Symbol.Multi(multi))
+      case multi => Some(v0.Symbol.Multi(multi))
     }
   final override def symbol(tree: Tree): Option[Symbol] =
     symbol(TreePos.symbol(tree))

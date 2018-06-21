@@ -3,7 +3,6 @@ package scalafix.v0
 import scala.compat.Platform.EOL
 import scala.meta.inputs._
 import scala.meta.internal.inputs._
-import scalafix.v0.Symbol
 
 final case class ResolvedName(
     position: Position,

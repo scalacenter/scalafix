@@ -59,7 +59,7 @@ object Sym {
   ) {
     def isNone: Boolean = info.symbol.isEmpty
     def sym: Sym = new Sym(info.symbol)
-    def owner: Sym = new Sym(info.owner)
+    def owner: Sym = new Sym(info.symbol).owner
     def name: String = info.name
     def kind: Kind = new Kind(info)
     def props: Properties = new Properties(info.properties)
@@ -70,7 +70,7 @@ object Sym {
 
     // privates
     private[scalafix] def tpe: s.Type =
-      info.tpe.getOrElse(s.Type())
+      info.tpe.getOrElse(s.NoType)
   }
   object Info {
     val empty = new Sym.Info(s.SymbolInformation())
