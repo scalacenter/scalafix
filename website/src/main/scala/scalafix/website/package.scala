@@ -94,7 +94,7 @@ package object website {
       td(
         // TODO(olafur) hack! Replace with ShowType[T] typeclass.
         setting.field.tpe
-          .replace("scala.meta.Symbol.Global", "Symbol")
+          .replace("scalafix.v0.Symbol.Global", "Symbol")
           .replace("java.util.regex.", "")
           .replace("scalafix.CustomMessage", "Message")
           .replace("scalafix.internal.config.", "")

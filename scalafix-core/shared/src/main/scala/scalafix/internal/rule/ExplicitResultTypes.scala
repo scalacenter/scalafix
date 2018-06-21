@@ -173,7 +173,7 @@ case class ExplicitResultTypes(
 
       def isLocal =
         if (config.skipLocalImplicits) nm.symbol match {
-          case Some(value) => value.isInstanceOf[scala.meta.Symbol.Local]
+          case Some(value) => value.isInstanceOf[scalafix.v0.Symbol.Local]
           case None => false
         } else false
 

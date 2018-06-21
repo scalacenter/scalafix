@@ -1,6 +1,6 @@
 package scalafix.v0
 
-import scala.meta.Symbol
+import scalafix.v0.Symbol
 
 final case class ResolvedSymbol(symbol: Symbol, denotation: Denotation) {
   def syntax = s"${symbol.syntax} => ${denotation.syntax}"
