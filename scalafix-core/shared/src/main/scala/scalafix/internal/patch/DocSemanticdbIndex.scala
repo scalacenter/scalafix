@@ -148,7 +148,7 @@ object DocSemanticdbIndex {
       info.name,
       "",
       Nil,
-      None
+      s.NoSignature
     )
   }
 

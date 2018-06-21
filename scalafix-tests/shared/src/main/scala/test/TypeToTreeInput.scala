@@ -13,9 +13,9 @@ trait TypeToTreeInput {
   val e: (Int, Int)
   val e2: Int => Int
   val f: Map.Entry[Int, Int]
-  val g: TypeToTreeInput.this.A
+  val g: TypeToTreeInput#A
   val h: TypeToTreeInput
-  val i: TypeToTreeInput.this.h.A
+  val i: h.A
   def j[T]: TypeToTreeInputBox[T]#A
   val k: Either[List[Long], Long]
   val l: TypeToTreeInputBox.Nested

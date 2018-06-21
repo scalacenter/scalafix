@@ -175,7 +175,8 @@ val scalafixSbt = MultiSbtProject(
     commands += Command.command(
       "installCompletions",
       "Code generates names of scalafix rules.",
-      "") { s =>
+      ""
+    ) { s =>
       "cli/run --sbt scalafix-sbt/src/main/scala/scalafix/internal/sbt/ScalafixRuleNames.scala" ::
         s
     },
@@ -200,7 +201,8 @@ val scalafixSbt = MultiSbtProject(
         publishLocal in diff212JVM,
         publishLocal in core212JVM,
         publishLocal in reflect212,
-        publishLocal in cli212)
+        publishLocal in cli212
+      )
       .value,
     moduleName := "sbt-scalafix",
     mimaPreviousArtifacts := Set.empty,
@@ -270,7 +272,8 @@ val testsShared = TestProject(
   _.settings(
     semanticdbSettings,
     noPublish
-  ))
+  )
+)
 
 lazy val testsShared211 = testsShared(scala211)
 lazy val testsShared212 = testsShared(scala212)
@@ -291,7 +294,7 @@ val testsInput = TestProject(
       scalacOptions += "-Ywarn-unused", // For RemoveUnusedTerms
       logLevel := Level.Error, // avoid flood of compiler warnings
       testsInputOutputSetting
-  )
+    )
 )
 
 lazy val testsInput211 = testsInput(scala211, _.dependsOn(testsShared211))
@@ -311,7 +314,7 @@ val testsOutput = TestProject(
         "-Xlint"
       ),
       testsInputOutputSetting
-  )
+    )
 )
 
 val testsOutput211 = testsOutput(scala211, _.dependsOn(testsShared211))
@@ -340,7 +343,8 @@ def unit(
     testsOutput: Project,
     testsOutputMulti: MultiScalaProject,
     testsOutputDotty: Project,
-    testsShared: Project): Project = {
+    testsShared: Project
+): Project = {
 
   val unitMultiProject =
     MultiScalaProject(
@@ -468,7 +472,8 @@ lazy val website = project
     libraryDependencies += "com.geirsson" %% "metaconfig-docs" % metaconfigV,
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(
       testkit212,
-      core212JVM)
+      core212JVM
+    )
   )
   .dependsOn(testkit212, core212JVM, cli212)
   .disablePlugins(ScalafixPlugin)
@@ -483,7 +488,8 @@ inScope(Global)(
         "Sonatype Nexus Repository Manager",
         "oss.sonatype.org",
         username,
-        password)).toSeq,
+        password
+      )).toSeq,
     PgpKeys.pgpPassphrase := sys.env.get("PGP_PASSPHRASE").map(_.toCharArray())
   )
 )

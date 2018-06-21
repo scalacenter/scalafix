@@ -1,6 +1,5 @@
 package scalafix.v0
 
-import scalafix.v0.Symbol
 import scala.meta.Tree
 import scalafix.internal.util.SymbolOps
 

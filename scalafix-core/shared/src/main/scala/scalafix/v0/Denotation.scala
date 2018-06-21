@@ -7,7 +7,7 @@ final case class Denotation(
     name: String,
     signature: String,
     names: List[ResolvedName],
-    private[scalafix] val tpe: Option[s.Type]
+    private[scalafix] val tpe: s.Signature
 ) extends HasFlags
     with Product
     with Serializable {

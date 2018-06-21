@@ -13,6 +13,7 @@ import scalafix.util.SemanticdbIndex
 import scalafix.v0.Database
 import scalafix.v0.Denotation
 import scalafix.v0.ResolvedName
+import scalafix.v0
 import scalafix.v1
 
 case class LegacyInMemorySemanticdbIndex(index: Map[String, SemanticdbIndex])
@@ -25,23 +26,23 @@ case class LegacyInMemorySemanticdbIndex(index: Map[String, SemanticdbIndex])
     }.toSeq
   }
 
-  override def symbol(position: Position): Option[Symbol] = {
+  override def symbol(position: Position): Option[v0.Symbol] = {
     val key = position.input.syntax
     index(key).symbol(position) match {
-      case Some(m.Symbol.Local(id)) =>
-        Some(m.Symbol.Local(s"$key-$id"))
+      case Some(v0.Symbol.Local(id)) =>
+        Some(v0.Symbol.Local(s"$key-$id"))
       case s => s
     }
   }
-  override def symbol(tree: Tree): Option[Symbol] =
+  override def symbol(tree: Tree): Option[v0.Symbol] =
     symbol(TreePos.symbol(tree))
-  override def denotation(symbol: Symbol): Option[Denotation] = symbol match {
-    case m.Symbol.Local(id) =>
+  override def denotation(symbol: v0.Symbol): Option[Denotation] = symbol match {
+    case v0.Symbol.Local(id) =>
       val dash = id.indexOf('-')
       if (dash >= 0) {
         val key = id.substring(0, dash)
         val local = id.substring(dash + 1)
-        index(key).denotation(m.Symbol.Local(local))
+        index(key).denotation(v0.Symbol.Local(local))
       } else {
         throw new IllegalArgumentException(
           s"unexpected local symbol format $id")

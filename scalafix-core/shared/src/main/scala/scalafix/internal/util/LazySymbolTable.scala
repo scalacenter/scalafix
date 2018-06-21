@@ -103,7 +103,6 @@ class LazySymbolTable(mclasspath: Classpath) extends SymbolTable {
       loadedSymbols(pkg.symbol) = s.SymbolInformation(
         name = pkg.symbol.desc.name,
         symbol = pkg.symbol,
-        owner = pkg.symbol.owner,
         kind = s.SymbolInformation.Kind.PACKAGE
       )
     }

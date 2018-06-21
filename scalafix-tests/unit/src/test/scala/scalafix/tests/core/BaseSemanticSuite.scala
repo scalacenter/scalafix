@@ -18,7 +18,10 @@ abstract class BaseSemanticSuite(filename: String)
   private var _input: Input = _
   implicit def index: SemanticdbIndex = _db
   def input: Input = _input
-  def source: Source = input.parse[Source].get
+  def source: Source = {
+    require(input.text.nonEmpty, input.structure)
+    input.parse[Source].get
+  }
 
   override def beforeAll(): Unit = {
     _db = LegacyInMemorySemanticdbIndex.load(

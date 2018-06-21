@@ -67,10 +67,6 @@ object Sym {
       new Accessibility(info.accessibility.getOrElse(s.Accessibility()))
 
     override def toString: String = s"Sym.Info(${info.symbol})"
-
-    // privates
-    private[scalafix] def tpe: s.Type =
-      info.tpe.getOrElse(s.NoType)
   }
   object Info {
     val empty = new Sym.Info(s.SymbolInformation())

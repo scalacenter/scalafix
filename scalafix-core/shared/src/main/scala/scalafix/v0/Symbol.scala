@@ -2,6 +2,7 @@ package scalafix.v0
 
 import scala.compat.Platform.EOL
 import scala.meta.internal.semanticdb.Scala._
+import scalafix.internal.util.SymbolOps.Root
 
 sealed trait Symbol extends Product {
   def syntax: String
@@ -10,27 +11,32 @@ sealed trait Symbol extends Product {
 
 object Symbol {
   case object None extends Symbol {
-    override def toString = syntax
-    override def syntax = Symbols.None
+    override def toString: String = syntax
+    override def syntax: String = Symbols.None
     override def structure = s"""Symbol.None"""
   }
 
   final case class Local(id: String) extends Symbol {
-    override def toString = syntax
-    override def syntax = id
+    override def toString: String = syntax
+    override def syntax: String = id
     override def structure = s"""Symbol.Local("$id")"""
   }
 
   final case class Global(owner: Symbol, signature: Signature) extends Symbol {
-    override def toString = syntax
-    override def syntax = Symbols.Global(owner.syntax, signature.syntax)
-    override def structure = s"""Symbol.Global(${owner.structure}, ${signature.structure})"""
+    override def toString: String = syntax
+    override def syntax: String = this match {
+      case Root(sig) => sig.syntax
+      case _ => owner.syntax + signature.syntax
+    }
+    override def structure =
+      s"""Symbol.Global(${owner.structure}, ${signature.structure})"""
   }
 
   final case class Multi(symbols: List[Symbol]) extends Symbol {
-    override def toString = syntax
-    override def syntax = symbols.mkString(";")
-    override def structure = s"""Symbol.Multi(${symbols.map(_.structure).mkString(", ")})"""
+    override def toString: String = syntax
+    override def syntax: String = symbols.mkString(";")
+    override def structure =
+      s"""Symbol.Multi(${symbols.map(_.structure).mkString(", ")})"""
   }
 
   // NOTE: The implementation is really tedious, and something like Fastparse
@@ -47,7 +53,7 @@ object Symbol {
 
       val BOF = '\u0000'
       val EOF = '\u001A'
-      var currChar = BOF
+      var currChar: Char = BOF
       def readChar(): Char = {
         if (i >= s.length) {
           if (i == s.length) {
@@ -144,8 +150,3 @@ object Symbol {
   }
   def unapply(sym: String): Option[Symbol] = scala.util.Try(apply(sym)).toOption
 }
-
-
-
-
-

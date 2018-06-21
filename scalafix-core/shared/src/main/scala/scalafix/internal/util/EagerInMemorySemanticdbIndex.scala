@@ -2,7 +2,6 @@ package scalafix.internal.util
 
 import scala.collection.mutable
 import scala.meta._
-import scala.{meta => m}
 import scala.meta.internal.{semanticdb => s}
 import scalafix.internal.v0._
 import scalafix.util.SemanticdbIndex
@@ -81,12 +80,11 @@ case class EagerInMemorySemanticdbIndex(
   ): s.SymbolInformation = {
     s.SymbolInformation(
       symbol = symbol,
-      owner = owner,
       language = s.Language.SCALA,
       kind = s.SymbolInformation.Kind.fromValue(denot.skind.value),
       properties = denot.sproperties,
       name = denot.name,
-      tpe = denot.tpe
+      signature = denot.tpe
     )
   }
 
