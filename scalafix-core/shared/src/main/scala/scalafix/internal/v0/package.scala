@@ -1,9 +1,9 @@
 package scalafix.internal
 
 import scalafix.v0.{Flags => d}
-import scala.meta.internal.{semanticdb3 => s}
-import scala.meta.internal.semanticdb3.SymbolInformation.{Property => p}
-import scala.meta.internal.semanticdb3.SymbolInformation.{Kind => k}
+import scala.meta.internal.{semanticdb => s}
+import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
+import scala.meta.internal.semanticdb.SymbolInformation.{Kind => k}
 import scalafix.v0.Denotation
 
 package object v0 {

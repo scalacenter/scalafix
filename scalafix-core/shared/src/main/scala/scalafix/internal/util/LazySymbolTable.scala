@@ -6,9 +6,9 @@ import scala.meta.internal.io.PathIO
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
 import scala.collection.concurrent.TrieMap
-import scala.meta.internal.semanticdb3.Scala.Symbols
-import scala.meta.internal.semanticdb3.Scala._
-import scala.meta.internal.{semanticdb3 => s}
+import scala.meta.internal.semanticdb.Scala.Symbols
+import scala.meta.internal.semanticdb.Scala._
+import scala.meta.internal.{semanticdb => s}
 
 /**
   * Implementation of SymbolTable that lazily loads symbols on demand.

@@ -8,11 +8,11 @@ import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import scala.meta.internal.ScalafixLangmetaHacks
-import scala.meta.internal.semanticdb3.SymbolInformation
-import scala.meta.internal.semanticdb3.Accessibility.{Tag => a}
-import scala.meta.internal.semanticdb3.SymbolInformation.{Property => p}
-import scala.meta.internal.semanticdb3.SymbolInformation.{Kind => k}
-import scala.meta.internal.{semanticdb3 => s}
+import scala.meta.internal.semanticdb.SymbolInformation
+import scala.meta.internal.semanticdb.Accessibility.{Tag => a}
+import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
+import scala.meta.internal.semanticdb.SymbolInformation.{Kind => k}
+import scala.meta.internal.{semanticdb => s}
 import scalafix.internal.util.SymbolTable
 import scalafix.v1.Sym
 import scalafix.v1.SemanticDoc

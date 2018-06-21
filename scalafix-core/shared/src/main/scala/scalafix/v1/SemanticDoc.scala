@@ -10,7 +10,7 @@ import scala.meta.contrib.AssociatedComments
 import scalafix.internal.util.SymbolTable
 import scalafix.util.MatchingParens
 import scalafix.util.TokenList
-import scala.meta.internal.{semanticdb3 => s}
+import scala.meta.internal.{semanticdb => s}
 import scalafix.internal.patch.DocSemanticdbIndex
 import scalafix.internal.v1._
 import scalafix.rule.RuleCtx

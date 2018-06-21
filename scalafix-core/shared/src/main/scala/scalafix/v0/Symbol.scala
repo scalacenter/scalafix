@@ -1,7 +1,7 @@
 package scalafix.v0
 
 import scala.compat.Platform.EOL
-import scala.meta.internal.semanticdb3.Scala._
+import scala.meta.internal.semanticdb.Scala._
 
 sealed trait Symbol extends Product {
   def syntax: String

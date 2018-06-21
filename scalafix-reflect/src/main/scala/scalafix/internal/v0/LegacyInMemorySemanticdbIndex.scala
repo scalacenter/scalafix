@@ -2,7 +2,7 @@ package scalafix.internal.v0
 
 import scala.meta._
 import scala.meta.internal.io._
-import scala.meta.internal.{semanticdb3 => s}
+import scala.meta.internal.{semanticdb => s}
 import scala.{meta => m}
 import scalafix.internal.patch.CrashingSemanticdbIndex
 import scalafix.internal.patch.DocSemanticdbIndex

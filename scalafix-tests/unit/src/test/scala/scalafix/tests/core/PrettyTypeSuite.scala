@@ -2,7 +2,7 @@ package scalafix.tests.core
 
 import scala.meta.internal.io.PlatformFileIO
 import org.scalatest.Ignore
-import scala.meta.internal.semanticdb3.Index
+import scala.meta.internal.semanticdb.Index
 import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
 import scala.{meta => m}

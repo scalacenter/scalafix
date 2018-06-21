@@ -1,6 +1,6 @@
 package scalafix.v0
 
-import scala.meta.internal.semanticdb3.Scala.{Descriptor => d}
+import scala.meta.internal.semanticdb.Scala.{Descriptor => d}
 
 sealed trait Signature {
   def name: String

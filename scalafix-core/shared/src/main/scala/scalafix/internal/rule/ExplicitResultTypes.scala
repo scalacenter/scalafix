@@ -73,7 +73,7 @@ case class ExplicitResultTypes(
     case _: Defn.Def => MemberKind.Def
     case _: Defn.Var => MemberKind.Var
   }
-  import scala.meta.internal.{semanticdb3 => s}
+  import scala.meta.internal.{semanticdb => s}
   def unsafeToType(
       ctx: RuleCtx,
       pos: Position,

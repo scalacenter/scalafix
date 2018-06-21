@@ -1,9 +1,9 @@
 package scalafix.v1
 
 import scala.meta.Tree
-import scala.meta.internal.{semanticdb3 => s}
-import scala.meta.internal.semanticdb3.SymbolInformation.{Property => p}
-import scala.meta.internal.semanticdb3.Scala._
+import scala.meta.internal.{semanticdb => s}
+import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
+import scala.meta.internal.semanticdb.Scala._
 
 final class Sym private (val value: String) {
   def isNone: Boolean = value.isNone

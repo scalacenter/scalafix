@@ -1,7 +1,7 @@
 package scalafix.internal.util
 
-import scala.meta.internal.{semanticdb3 => s}
-import scala.meta.internal.semanticdb3.Type.{Tag => t}
+import scala.meta.internal.{semanticdb => s}
+import scala.meta.internal.semanticdb.Type.{Tag => t}
 
 object TypeExtractors {
   abstract class TypeRefExtractor(sym: String) {
