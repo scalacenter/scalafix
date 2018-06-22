@@ -140,7 +140,10 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
   }
 
   private def info(sym: String): s.SymbolInformation = {
-    table.info(sym).getOrElse(throw new NoSuchElementException(sym))
+    table
+      .info(sym)
+      .orElse(hardlinks.get(sym))
+      .getOrElse(throw new NoSuchElementException(sym))
   }
 
   def toTree(info: s.SymbolInformation): Tree = info.kind match {
@@ -486,7 +489,7 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
         typeArguments.iterator.map {
           case TypeExtractors.Wildcard() =>
             Type.Placeholder(Type.Bounds(None, None))
-          case ref: s.TypeRef if placeholders.contains(ref.symbol) =>
+          case ref: s.TypeRef if hardlinks.contains(ref.symbol) =>
             Type.Placeholder(Type.Bounds(None, None))
           case targ =>
             toType(targ)
@@ -544,12 +547,10 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
       )
     case s.ConstantType(_) =>
       toType(tpe.widen)
-    case s.ExistentialType(tpe, declarations) =>
-      ???
-//      val existential = tpe.existentialType.get
-//      withPlaceholders(existential.) { () =>
-//        toType(existential.tpe.get)
-//      }
+    case s.ExistentialType(underlying, Some(declarations)) =>
+      withHardlinks(declarations.hardlinks) { () =>
+        toType(underlying)
+      }
     case s.RepeatedType(tpe) =>
       Type.Repeated(toType(tpe))
     case s.ByNameType(tpe) =>
@@ -564,23 +565,21 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
           }.toList
         )
       }
-    case s.StructuralType(stpe, Some(scope)) =>
+    case s.StructuralType(underlying, Some(scope)) =>
       // TODO: handle local decls, here we widen the type which may cause compilation errors
       // if the refinement declarations are referenced via scala.language.reflectiveCalls.
-      val declarations =
-        scope.symlinks.filterNot(_.startsWith("local"))
+      val declarations = scope.infos.filterNot(_.symbol.isLocal)
       declarations match {
         case Nil =>
-          toType(tpe)
+          toType(underlying)
         case decls =>
-          val tpe = stpe match {
+          val tpe = underlying match {
             case TypeExtractors.AnyRef() => None
             case els => Some(toType(els))
           }
           Type.Refine(
             tpe,
             decls.iterator
-              .map(info)
               .filterNot(_.isVarSetter)
               .flatMap(toStat)
               .toList
@@ -614,14 +613,16 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
       fail(tpe)
   }
 
-  // HACK(olafur) to avoid passing around explicit placeholder everywhere. I'm lazy.
-  def withPlaceholders[T](holders: Iterable[String])(f: () => T): T = {
-    placeholders ++= holders
+  // HACK(olafur) to avoid passing around custom scope everywhere. I'm lazy.
+  def withHardlinks[T](
+      holders: Iterable[s.SymbolInformation]
+  )(f: () => T): T = {
+    hardlinks ++= holders.iterator.map(i => i.symbol -> i)
     val result = f()
-    placeholders --= holders
+    hardlinks --= holders.iterator.map(_.symbol)
     result
   }
-  private val placeholders = mutable.Set.empty[String]
+  private val hardlinks = mutable.Map.empty[String, s.SymbolInformation]
 
   def toModAnnot(tpe: s.Type): Mod.Annot = {
     Mod.Annot(toInit(tpe))

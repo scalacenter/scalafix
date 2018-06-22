@@ -47,7 +47,7 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
 }
 
 // This test is slow, no need to run it on every PR
-@Ignore
+//@Ignore
 class PrettyTypeFuzzSuite extends BasePrettyTypeSuite {
 
   for {
