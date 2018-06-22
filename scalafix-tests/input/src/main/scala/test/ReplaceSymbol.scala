@@ -18,9 +18,9 @@ patches.replaceSymbols = [
   { from = "_root_.scala.collection.TraversableOnce.mkString."
     to = "unsafeMkString" }
   // non-normalized symbol renames single method overload
-  { from = "_root_.java.lang.String#substring(Int)."
+  { from = "_root_.java.lang.String#substring()."
     to = "substringFrom" }
-  { from = "_root_.java.lang.String#substring(Int,Int)."
+  { from = "_root_.java.lang.String#substring(+1)."
     to = "substringBetween" }
 ]
  */

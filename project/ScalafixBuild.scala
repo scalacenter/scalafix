@@ -75,6 +75,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       scalacOptions ++= List(
         "-Yrangepos",
         "-Xplugin-require:semanticdb",
+        "-P:semanticdb:synthetics:on",
         "-P:semanticdb:text:on"
       ),
       addCompilerPlugin(
