@@ -1,5 +1,26 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
+inThisBuild(List(
+  organization := "com.github.masseguillaume",
+  homepage := Some(url("https://github.com/MasseGuillaume/scalameta-structure")),
+  licenses := Seq(
+    "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
+  ),
+  developers := List(
+    Developer(
+      "MasseGuillaume",
+      "Guillaume Massé",
+      "masgui@gmail.com",
+      url("https://github.com/MasseGuillaume")
+    )
+  ),
+  scmInfo := Some(
+    ScmInfo(
+      url("https://github.com/MasseGuillaume/scalameta-structure"),
+      s"scm:git:git@github.com:MasseGuillaume/scalameta-structure.git"
+    )
+  )
+))
 
 lazy val `scalameta-structure` =
   project
@@ -14,7 +35,7 @@ lazy val structure = crossProject(JSPlatform, JVMPlatform)//, NativePlatform)
   .withoutSuffixFor(JVMPlatform)
   .crossType(CrossType.Pure)
   .settings(
-    organization := "com.github.masseguillaume",
+    
     moduleName := "scalameta-structure",
     version := "0.1.0",
 
@@ -32,23 +53,6 @@ lazy val structure = crossProject(JSPlatform, JVMPlatform)//, NativePlatform)
       "-deprecation",
       "-encoding", "UTF-8",
       "-unchecked"
-    ),
-    licenses := Seq(
-      "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
-    ),
-    developers := List(
-      Developer(
-        "MasseGuillaume",
-        "Guillaume Massé",
-        "masgui@gmail.com",
-        url("https://github.com/MasseGuillaume")
-      )
-    ),
-    scmInfo := Some(
-      ScmInfo(
-        url("https://github.com/MasseGuillaume/scalameta-structure"),
-        s"scm:git:git@github.com:MasseGuillaume/scalameta-structure.git"
-      )
     )
   )
 
