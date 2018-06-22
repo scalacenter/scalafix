@@ -12,7 +12,8 @@ env:
 
   - CI_TEST: scalafmt
 
-  - CI_TEST: scalafix/scalafixTest
+  # Disabled until sbt-scalafix upgrades courser https://github.com/scalacenter/scalafix/issues/751
+  # - CI_TEST: scalafix/scalafixTest
 
   - CI_TEST: mima
 

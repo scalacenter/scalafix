@@ -95,7 +95,10 @@ val diff = MultiScalaCrossProject(
       allJSSettings,
       npmDependencies in Compile += "diff" -> "3.2.0"
     )
-    .jsConfigure(_.enablePlugins(ScalaJSBundlerPlugin))
+    .jsConfigure(
+      _.enablePlugins(ScalaJSBundlerPlugin)
+        .disablePlugins(ScalafixPlugin)
+    )
 )
 
 val diff211 = diff(scala211)
@@ -121,6 +124,7 @@ val core = MultiScalaCrossProject(
     .jsSettings(
       libraryDependencies += "com.geirsson" %%% "metaconfig-hocon" % metaconfigV
     )
+    .jsConfigure(_.disablePlugins(ScalafixPlugin))
     .enablePlugins(BuildInfoPlugin)
 )
 
