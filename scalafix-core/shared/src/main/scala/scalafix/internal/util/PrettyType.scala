@@ -489,8 +489,6 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
         typeArguments.iterator.map {
           case TypeExtractors.Wildcard() =>
             Type.Placeholder(Type.Bounds(None, None))
-          case ref: s.TypeRef if hardlinks.contains(ref.symbol) =>
-            Type.Placeholder(Type.Bounds(None, None))
           case targ =>
             toType(targ)
         }.toList
@@ -551,13 +549,14 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
       withHardlinks(declarations.hardlinks) { () =>
         toType(underlying)
       }
-    case s.RepeatedType(tpe) =>
-      Type.Repeated(toType(tpe))
-    case s.ByNameType(tpe) =>
-      Type.ByName(toType(tpe))
+    case s.RepeatedType(underlying) =>
+      Type.Repeated(toType(underlying))
+    case s.ByNameType(underlying) =>
+      Type.ByName(toType(underlying))
     case s.AnnotatedType(annots, underlying) =>
-      if (annots.isEmpty) toType(underlying)
-      else {
+      if (!annots.exists(_.tpe.isDefined)) {
+        toType(underlying)
+      } else {
         Type.Annotate(
           toType(underlying),
           annots.iterator.map { annot =>
@@ -597,23 +596,24 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
       }
     case s.UniversalType(Some(typeParameters), underlying) =>
       val universalName = t"T"
-      Type.Project(
-        Type.Refine(
-          None,
-          Defn.Type(
-            Nil,
-            universalName,
-            typeParameters.smap(toTypeParam),
-            toType(underlying)
-          ) :: Nil
-        ),
-        universalName
-      )
+      withHardlinks(typeParameters.hardlinks) { () =>
+        Type.Project(
+          Type.Refine(
+            None,
+            Defn.Type(
+              Nil,
+              universalName,
+              typeParameters.smap(toTypeParam),
+              toType(underlying)
+            ) :: Nil
+          ),
+          universalName
+        )
+      }
     case _ =>
       fail(tpe)
   }
 
-  // HACK(olafur) to avoid passing around custom scope everywhere. I'm lazy.
   def withHardlinks[T](
       holders: Iterable[s.SymbolInformation]
   )(f: () => T): T = {
@@ -641,13 +641,26 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
     require(info.kind.isTypeParameter, info.toProtoString)
     val (tparams, bounds) = info.signature match {
       case s.TypeSignature(Some(typeParameters), lo, hi) =>
-        typeParameters.symlinks.iterator.map { sym =>
-          if (sym.endsWith("[_]")) {
-            Type.Param(Nil, Name(""), Nil, Type.Bounds(None, None), Nil, Nil)
+        val params =
+          if (typeParameters.symlinks.isEmpty) {
+            typeParameters.hardlinks.map(toTypeParam).toList
           } else {
-            toTypeParam(this.info(sym))
+            typeParameters.symlinks.iterator.map { sym =>
+              if (sym.endsWith("[_]")) {
+                Type.Param(
+                  Nil,
+                  Name(""),
+                  Nil,
+                  Type.Bounds(None, None),
+                  Nil,
+                  Nil
+                )
+              } else {
+                toTypeParam(this.info(sym))
+              }
+            }.toList
           }
-        }.toList -> toTypeBounds(lo, hi)
+        params -> toTypeBounds(lo, hi)
       case _ =>
         Nil -> Type.Bounds(None, None)
     }

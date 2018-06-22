@@ -1,7 +1,6 @@
 package scalafix.tests.core
 
 import scala.meta.internal.io.PlatformFileIO
-import org.scalatest.Ignore
 import scala.meta.internal.semanticdb.Index
 import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
@@ -53,7 +52,7 @@ class PrettyTypeFuzzSuite extends BasePrettyTypeSuite {
   for {
     entry <- mclasspath.entries
   } {
-    test(entry.toNIO.getFileName.toString) {
+    ignore(entry.toNIO.getFileName.toString) {
       if (entry.isFile) {
         PlatformFileIO.withJarFileSystem(entry, create = false) { root =>
           val indexPath = root
