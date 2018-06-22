@@ -1,18 +1,33 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
 
-lazy val structure = crossProject(JSPlatform, JVMPlatform, NativePlatform)
+lazy val `scalameta-structure` =
+  project
+    .in(file("."))
+    .settings(
+      publishLocal := {},
+      publish := {}
+    )
+    .aggregate(structureJS, structureJVM)//, structureNative)
+
+lazy val structure = crossProject(JSPlatform, JVMPlatform)//, NativePlatform)
   .withoutSuffixFor(JVMPlatform)
   .crossType(CrossType.Pure)
   .settings(
+    organization := "com.github.masseguillaume",
+    moduleName := "scalameta-structure",
+    version := "0.1.0",
+
+    // scalaVersion := "2.11.12",
+    scalaVersion := "2.12.6",
+
     libraryDependencies ++= List(
       "org.typelevel" %%% "paiges-cats" % "0.2.1",
-      "org.scalameta" %%% "scalameta"   % "4.0.0-M3",
+      "org.scalameta" %%% "scalameta"   % "2.1.7",
+      // "org.scalameta" %%% "scalameta"   % "4.0.0-M4",
       "com.lihaoyi"   %%% "utest"       % "0.6.3"    % Test
     ),
     testFrameworks += new TestFramework("utest.runner.Framework"),
-    version := "0.1.0",
-    scalaVersion := "2.12.6",
     scalacOptions ++= Seq(
       "-deprecation",
       "-encoding", "UTF-8",
@@ -40,4 +55,4 @@ lazy val structure = crossProject(JSPlatform, JVMPlatform, NativePlatform)
 
 lazy val structureJS     = structure.js
 lazy val structureJVM    = structure.jvm
-lazy val structureNative = structure.native
+// lazy val structureNative = structure.native

@@ -15,14 +15,16 @@ trait TreeStructureUtils {
   }
 
   // workarround to for polymorphic methods with default parameter
-  sealed trait CanPretty
   case class TreeCanPretty(tree: Tree) extends CanPretty
   case class ListTreeCanPretty(tree: List[Tree]) extends CanPretty
   case class OptionTreeCanPretty(tree: Option[Tree]) extends CanPretty
 
-  implicit def treeCanPretty(tree: Tree): CanPretty = TreeCanPretty(tree)
-  implicit def listTreeCanPretty(tree: List[Tree]): CanPretty = ListTreeCanPretty(tree)
-  implicit def optionTreeCanPretty(tree: Option[Tree]): CanPretty = OptionTreeCanPretty(tree)
+  sealed trait CanPretty
+  object CanPretty {
+    implicit def treeCanPretty[T <: Tree](tree: T): CanPretty = TreeCanPretty(tree)
+    implicit def listTreeCanPretty(tree: List[Tree]): CanPretty = ListTreeCanPretty(tree)
+    implicit def optionTreeCanPretty(tree: Option[Tree]): CanPretty = OptionTreeCanPretty(tree)    
+  }
 
   private def prettyTree(tree: Tree, showFieldNames: Boolean): String = {
     prettyDoc(tree, showFieldNames).render(1)
