@@ -1,6 +1,5 @@
 package scalafix.v1
 
-import java.nio.file.Files
 import java.util
 import scala.meta.io.Classpath
 import scala.meta.io.RelativePath
@@ -131,14 +130,7 @@ object SemanticDoc {
     val reluri = path.toRelativeURI.toString
     classpath.resolveSemanticdb(path) match {
       case Some(abspath) =>
-        val in = Files.newInputStream(abspath.toNIO)
-        val sdocs =
-          try {
-            s.TextDocuments
-              .parseFrom(in)
-              .mergeDiagnosticOnlyDocuments
-              .documents
-          } finally in.close()
+        val sdocs = s.TextDocuments.parseFromFile(abspath).documents
         val sdoc = sdocs.find(_.uri == reluri).getOrElse {
           throw Error.MissingTextDocument(reluri, abspath)
         }

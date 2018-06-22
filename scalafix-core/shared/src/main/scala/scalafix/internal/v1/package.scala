@@ -10,7 +10,6 @@ import scala.meta.io.RelativePath
 import scala.collection.JavaConverters._
 import scala.meta.inputs.Input
 import scala.meta.internal.{semanticdb => s}
-import scalafix.internal.v1.FingerprintOps
 
 package object v1 {
 
@@ -54,6 +53,20 @@ package object v1 {
       input
     }
   }
+
+  implicit class XtensionTextDocumentsCompanionFix(`_`: s.TextDocuments.type) {
+    def parseFromFile(file: AbsolutePath): s.TextDocuments = {
+      val in = Files.newInputStream(file.toNIO)
+      val sdocs =
+        try {
+          s.TextDocuments
+            .parseFrom(in)
+            .mergeDiagnosticOnlyDocuments
+        } finally in.close()
+      sdocs
+    }
+  }
+
   implicit class XtensionTextDocumentsFix(sdocs: s.TextDocuments) {
 
     def mergeDiagnosticOnlyDocuments: s.TextDocuments = {

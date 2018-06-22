@@ -85,9 +85,7 @@ object LegacyInMemorySemanticdbIndex {
         )
         files.foreach { file =>
           if (PathIO.extension(file.toNIO) == "semanticdb") {
-            val textDocument = s.TextDocuments
-              .parseFrom(file.readAllBytes)
-              .mergeDiagnosticOnlyDocuments
+            val textDocument = s.TextDocuments.parseFromFile(file)
             textDocument.documents.foreach { textDocument =>
               val input = textDocument.input(sourceuri)
               val tree = input.parse[Source].get
