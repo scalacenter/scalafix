@@ -7,7 +7,7 @@ import scalafix.internal.v1.TreePos
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
-import scala.meta.internal.ScalafixLangmetaHacks
+import scala.meta.internal.ScalametaInternals
 import scala.meta.internal.semanticdb.SymbolInformation
 import scala.meta.internal.semanticdb.Accessibility.{Tag => a}
 import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
@@ -58,7 +58,7 @@ class DocSemanticdbIndex(val doc: SemanticDoc)
     }
   override final def messages: Seq[Message] =
     doc.sdoc.diagnostics.map { diag =>
-      val pos = ScalafixLangmetaHacks.positionFromRange(doc.input, diag.range)
+      val pos = ScalametaInternals.positionFromRange(doc.input, diag.range)
       val severity = diag.severity match {
         case s.Diagnostic.Severity.INFORMATION => Severity.Info
         case s.Diagnostic.Severity.WARNING => Severity.Warning
@@ -168,7 +168,7 @@ object DocSemanticdbIndex {
       doc: SemanticDoc,
       input: Input,
       occurrence: s.SymbolOccurrence): ResolvedName = {
-    val pos = ScalafixLangmetaHacks.positionFromRange(input, occurrence.range)
+    val pos = ScalametaInternals.positionFromRange(input, occurrence.range)
     ResolvedName(
       pos,
       Symbol(occurrence.symbol),
@@ -178,7 +178,7 @@ object DocSemanticdbIndex {
 
   def syntheticToLegacy(doc: SemanticDoc, synthetic: s.Synthetic): Synthetic = {
     val pos =
-      ScalafixLangmetaHacks.positionFromRange(doc.input, synthetic.range)
+      ScalametaInternals.positionFromRange(doc.input, synthetic.range)
     val names: List[ResolvedName] = synthetic.text match {
       case Some(td) =>
         val input = Input.Stream(

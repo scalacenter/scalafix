@@ -5,7 +5,9 @@ import scala.meta._
 import scala.meta.internal.semanticdb.Scala._
 import scala.meta.internal.semanticdb.SymbolInformation.{Kind => k}
 import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
+import scala.meta.internal.semanticdb.Accessibility.{Tag => a}
 import scala.meta.internal.{semanticdb => s}
+import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
 import scalapb.GeneratedMessage
 
@@ -16,9 +18,10 @@ object PrettyType {
   def toTree(
       info: s.SymbolInformation,
       table: SymbolTable,
-      shorten: QualifyStrategy
+      shorten: QualifyStrategy,
+      fatalErrors: Boolean
   ): PrettyResult[Tree] = {
-    val pretty = unsafeInstance(table, shorten)
+    val pretty = unsafeInstance(table, shorten, fatalErrors)
     val result = pretty.toTree(info)
     PrettyResult(result, pretty.getImports())
   }
@@ -26,19 +29,28 @@ object PrettyType {
   def toType(
       tpe: s.Type,
       table: SymbolTable,
-      shorten: QualifyStrategy
+      shorten: QualifyStrategy,
+      fatalErrors: Boolean
   ): PrettyResult[Type] = {
-    val pretty = unsafeInstance(table, shorten)
+    val pretty = unsafeInstance(table, shorten, fatalErrors)
     val result = pretty.toType(tpe)
     PrettyResult(result, pretty.getImports())
   }
 
-  def unsafeInstance(table: SymbolTable, shorten: QualifyStrategy): PrettyType =
-    new PrettyType(table, shorten)
+  def unsafeInstance(
+      table: SymbolTable,
+      shorten: QualifyStrategy,
+      fatalErrors: Boolean
+  ): PrettyType =
+    new PrettyType(table, shorten, fatalErrors)
 
 }
 
-class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
+class PrettyType private (
+    table: SymbolTable,
+    shorten: QualifyStrategy,
+    fatalErrors: Boolean
+) {
 
   // TODO: workaround for https://github.com/scalameta/scalameta/issues/1492
   private val isCaseClassMethod = Set(
@@ -64,12 +76,14 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
       info: s.SymbolInformation
   ) {
     def owner: String = info.symbol.owner
-    def tpe: s.Type = {
+    def valueType: s.Type = {
       info.signature match {
         case s.ValueSignature(tpe) =>
           tpe
         case _ =>
-          throw new IllegalArgumentException(info.toProtoString)
+          throw new IllegalArgumentException(
+            s"Expected ValueSignature. Obtained: ${info.toProtoString}"
+          )
       }
     }
     def is(property: s.SymbolInformation.Property): Boolean =
@@ -80,6 +94,7 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
       isVar && info.name.endsWith("_=")
   }
   private implicit class XtensionSymbolInfo(sym: String) {
+    def toIndeterminateName: Name = Name(info(sym).name)
     def toTermName: Term.Name = Term.Name(info(sym).name)
     def toTypeName: Type.Name = Type.Name(info(sym).name)
   }
@@ -117,7 +132,7 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
     def widen: s.Type = {
       tpe match {
         case s.SingleType(_, symbol) =>
-          info(symbol).tpe
+          info(symbol).valueType
         case s.ConstantType(constant) =>
           constant match {
             case _: s.UnitConstant => ref("scala.Unit#")
@@ -133,8 +148,8 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
             case _: s.NullConstant => ref("scala.Null#")
             case s.NoConstant => tpe
           }
-        // TODO: handle non-singleton widening.
-        case _ => tpe
+        case _ =>
+          tpe
       }
     }
   }
@@ -161,13 +176,13 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
         Decl.Val(
           toMods(info),
           Pat.Var(Term.Name(info.name)) :: Nil,
-          toType(info.tpe)
+          toType(info.valueType)
         )
       } else {
         Decl.Var(
           toMods(info),
           Pat.Var(Term.Name(info.name)) :: Nil,
-          toType(info.tpe)
+          toType(info.valueType)
         )
       }
     case k.PACKAGE =>
@@ -208,21 +223,15 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
             )
           }
         case s.ClassSignature(Some(tparams), parents, self, Some(decls)) =>
-          val declarations =
-            decls.infos.filter(info => !info.symbol.contains("$anon"))
+          val declarations = decls.infos
           val isCaseClass = info.is(p.CASE)
           def objectDecls: List[Stat] =
-            declarations
-              .filter { info =>
-                // drop inaccessible ctor due to https://github.com/scalameta/scalameta/issues/1493
-                !info.symbol.endsWith("`<init>`().")
-              }
-              .flatMap {
-                case i if !i.kind.isConstructor && !i.isVarSetter =>
-                  toStat(i)
-                case _ =>
-                  Nil
-              }
+            declarations.flatMap {
+              case i if !i.kind.isConstructor && !i.isVarSetter =>
+                toStat(i)
+              case _ =>
+                Nil
+            }
 
           def inits: List[Init] =
             parents.iterator
@@ -276,7 +285,6 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
             case k.PACKAGE_OBJECT =>
               Pkg.Object(
                 toMods(info),
-                // TODO: is this name correct?
                 Term.Name(info.name),
                 Template(
                   Nil,
@@ -292,6 +300,7 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
                     toTree(i) match {
                       case ctor @ Ctor.Primary(_, _, Nil :: Nil)
                           if !info.is(p.CASE) =>
+                        // Remove redudant () for non-case classes: class Foo
                         ctor.copy(paramss = Nil)
                       case e: Ctor.Primary => e
                     }
@@ -317,7 +326,6 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
                   Self(Name(""), None),
                   declarations.flatMap { i =>
                     if (!i.kind.isConstructor &&
-                      !i.kind.isField &&
                       !i.isVarSetter &&
                       !isSyntheticMember(i)) toStat(i)
                     else Nil
@@ -391,14 +399,12 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
       try {
         Some(toTree(info).asInstanceOf[Stat])
       } catch {
-        case _: NoSuchElementException =>
-          None
         case NonFatal(e) =>
-          e.setStackTrace(e.getStackTrace.filter { e =>
-            e.getClassName.startsWith("scalafix")
-          })
-          e.printStackTrace()
-          None
+          if (fatalErrors) {
+            throw new Exception(info.toProtoString, e) with NoStackTrace
+          } else {
+            None
+          }
       }
     }
   }
@@ -453,6 +459,8 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
       }
     case s.ThisType(symbol) =>
       Term.This(symbol.toTermName)
+    case s.TypeRef(s.NoType, symbol, Nil) =>
+      symbol.toTermName
     case _ =>
       fail(tpe)
   }
@@ -506,8 +514,7 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
               } else {
                 toTypeRef(info(symbol))
               }
-            case _: s.SingleType | _: s.ThisType | _: s.SuperType |
-                _: s.ConstantType =>
+            case _: s.SingleType | _: s.ThisType | _: s.SuperType =>
               Type.Select(toTermRef(prefix), name)
             case _ =>
               Type.Project(toType(prefix), name)
@@ -538,7 +545,7 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
         Type.Name(this.info(symbol).name)
       )
     case s.SuperType(prefix @ _, symbol) =>
-      // TODO: prefix
+      // TODO: print prefix https://github.com/scalacenter/scalafix/issues/758
       Type.Select(
         Term.Super(Name.Anonymous(), Name.Anonymous()),
         Type.Name(this.info(symbol).name)
@@ -565,24 +572,24 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
         )
       }
     case s.StructuralType(underlying, Some(scope)) =>
-      // TODO: handle local decls, here we widen the type which may cause compilation errors
-      // if the refinement declarations are referenced via scala.language.reflectiveCalls.
-      val declarations = scope.infos.filterNot(_.symbol.isLocal)
-      declarations match {
-        case Nil =>
-          toType(underlying)
-        case decls =>
-          val tpe = underlying match {
-            case TypeExtractors.AnyRef() => None
-            case els => Some(toType(els))
-          }
-          Type.Refine(
-            tpe,
-            decls.iterator
-              .filterNot(_.isVarSetter)
-              .flatMap(toStat)
-              .toList
-          )
+      withHardlinks(scope.hardlinks) { () =>
+        val declarations = scope.infos.filterNot(_.symbol.isLocal)
+        declarations match {
+          case Nil =>
+            toType(underlying)
+          case decls =>
+            val tpe = underlying match {
+              case TypeExtractors.AnyRef() => None
+              case els => Some(toType(els))
+            }
+            Type.Refine(
+              tpe,
+              decls.iterator
+                .filterNot(_.isVarSetter)
+                .flatMap(toStat)
+                .toList
+            )
+        }
       }
     case s.WithType(types) =>
       val (head, tail) = types.head match {
@@ -632,7 +639,7 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
     Term.Param(
       Nil,
       Term.Name(info.name),
-      Some(toType(info.tpe)),
+      Some(toType(info.valueType)),
       None
     )
   }
@@ -669,7 +676,7 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
       name = Type.Name(info.name),
       tparams = tparams,
       tbounds = bounds,
-      // TODO: re-sugar context and view bounds
+      // TODO: re-sugar context and view bounds https://github.com/scalacenter/scalafix/issues/759
       vbounds = Nil,
       cbounds = Nil
     )
@@ -678,9 +685,21 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
   def toMods(info: s.SymbolInformation): List[Mod] = {
     val buf = List.newBuilder[Mod]
     info.accessibility.foreach { accessibility =>
-      // TODO: private[within]
-      if (accessibility.tag.isPrivate) buf += Mod.Private(Name.Anonymous())
-      if (accessibility.tag.isProtected) buf += Mod.Protected(Name.Anonymous())
+      accessibility.tag match {
+        case a.PRIVATE =>
+          buf += Mod.Private(Name.Anonymous())
+        case a.PRIVATE_WITHIN =>
+          buf += Mod.Private(accessibility.symbol.toIndeterminateName)
+        case a.PRIVATE_THIS =>
+          buf += Mod.Private(Term.This(Name.Anonymous()))
+        case a.PROTECTED =>
+          buf += Mod.Protected(Name.Anonymous())
+        case a.PROTECTED_WITHIN =>
+          buf += Mod.Protected(accessibility.symbol.toIndeterminateName)
+        case a.PROTECTED_THIS =>
+          buf += Mod.Protected(Term.This(Name.Anonymous()))
+        case _ =>
+      }
     }
     if (info.is(p.SEALED)) buf += Mod.Sealed()
     if (info.kind.isClass && info.is(p.ABSTRACT)) buf += Mod.Abstract()

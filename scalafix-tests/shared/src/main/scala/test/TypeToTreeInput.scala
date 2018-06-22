@@ -27,6 +27,12 @@ trait TypeToTreeInput {
   def r(vararg: String*): String
   def s[c[x] <: Seq[x]](e: c[String]): c[Int]
   type S = Functor[({ type T[A] = Either[Int, A] })#T]
+  private def t1: Unit = ()
+  private[test] def t2: Unit
+  private[this] def t3: Unit = ()
+  protected def t4: Unit
+  protected[test] def t5: Unit
+  protected[this] def t6: Unit = ()
 }
 
 case class Repeated(a: AnyRef*)
@@ -46,6 +52,10 @@ sealed abstract class SealedAbstractClass
 trait TypeToTreeInputBox[T] { type A }
 object TypeToTreeInputBox {
   class Nested
+  def a(b: Int): Int = b
+}
+package object pkg {
+  def a: Int = 1
 }
 
 class TypeToTreeClass private (x: Int)(y: String)

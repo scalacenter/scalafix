@@ -6,7 +6,7 @@ import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicInteger
 import scalafix.internal.util.Severity
 import metaconfig._
-import scala.meta.internal.ScalafixLangmetaHacks
+import scala.meta.internal.ScalametaInternals
 import MetaconfigPendingUpstream._
 
 /** A ScalafixReporter that emits messages to a PrintStream. */
@@ -54,7 +54,7 @@ case class PrintStreamReporter(
       case OutputFormat.Default => ""
       case OutputFormat.Sbt => s"[$severity] "
     }
-    val formatted = ScalafixLangmetaHacks.formatMessage(
+    val formatted = ScalametaInternals.formatMessage(
       position,
       enclosing + severity.toString,
       message)

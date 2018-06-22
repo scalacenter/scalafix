@@ -95,7 +95,8 @@ case class ExplicitResultTypes(
       tpe,
       index.asInstanceOf[SymbolTable],
       if (config.unsafeShortenNames) QualifyStrategy.Readable
-      else QualifyStrategy.Full
+      else QualifyStrategy.Full,
+      fatalErrors = config.fatalWarnings
     )
   }
 
