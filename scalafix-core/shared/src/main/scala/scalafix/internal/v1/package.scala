@@ -63,6 +63,14 @@ package object v1 {
             .parseFrom(in)
             .mergeDiagnosticOnlyDocuments
         } finally in.close()
+      sdocs.documents.foreach { doc =>
+        require(
+          doc.schema.isSemanticdb4,
+          s"$file " +
+            s"Expected TextDocument.schema=SEMANTICDB4. " +
+            s"Obtained ${doc.schema}"
+        )
+      }
       sdocs
     }
   }
