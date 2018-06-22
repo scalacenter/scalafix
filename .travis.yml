@@ -10,10 +10,6 @@ env:
   - CI_TEST: ci-fast-212
     CI_PUBLISH: true
 
-  - CI_TEST: ci-sbt
-
-  - CI_TEST: ci-sbt013
-
   - CI_TEST: scalafmt
 
   - CI_TEST: scalafix/scalafixTest
