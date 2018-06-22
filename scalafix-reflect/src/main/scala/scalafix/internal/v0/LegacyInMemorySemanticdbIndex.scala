@@ -36,21 +36,22 @@ case class LegacyInMemorySemanticdbIndex(index: Map[String, SemanticdbIndex])
   }
   override def symbol(tree: Tree): Option[v0.Symbol] =
     symbol(TreePos.symbol(tree))
-  override def denotation(symbol: v0.Symbol): Option[Denotation] = symbol match {
-    case v0.Symbol.Local(id) =>
-      val dash = id.indexOf('-')
-      if (dash >= 0) {
-        val key = id.substring(0, dash)
-        val local = id.substring(dash + 1)
-        index(key).denotation(v0.Symbol.Local(local))
-      } else {
-        throw new IllegalArgumentException(
-          s"unexpected local symbol format $id")
-      }
-    case _ =>
-      // global symbol, use any SemanticDoc
-      index.head._2.denotation(symbol)
-  }
+  override def denotation(symbol: v0.Symbol): Option[Denotation] =
+    symbol match {
+      case v0.Symbol.Local(id) =>
+        val dash = id.indexOf('-')
+        if (dash >= 0) {
+          val key = id.substring(0, dash)
+          val local = id.substring(dash + 1)
+          index(key).denotation(v0.Symbol.Local(local))
+        } else {
+          throw new IllegalArgumentException(
+            s"unexpected local symbol format $id")
+        }
+      case _ =>
+        // global symbol, use any SemanticDoc
+        index.head._2.denotation(symbol)
+    }
   override def denotation(tree: Tree): Option[Denotation] =
     index(tree.pos.input.syntax).denotation(tree)
 

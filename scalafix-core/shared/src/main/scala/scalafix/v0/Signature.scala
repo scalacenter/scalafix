@@ -21,7 +21,8 @@ object Signature {
     override def toString: String = syntax
   }
 
-  final case class Method(name: String, disambiguator: String) extends Signature {
+  final case class Method(name: String, disambiguator: String)
+      extends Signature {
     @deprecated("Use `disambiguator` instead.", "3.3.0")
     def jvmSignature: String = disambiguator
     override def syntax: String = d.Method(name, disambiguator).toString
@@ -42,7 +43,8 @@ object Signature {
   }
 
   final case class Self(name: String) extends Signature {
-    override def syntax = throw new UnsupportedOperationException("No longer supported.")
+    override def syntax =
+      throw new UnsupportedOperationException("No longer supported.")
     override def structure = s"""Signature.Self("$name")"""
     override def toString: String = syntax
   }

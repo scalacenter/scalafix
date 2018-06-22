@@ -233,7 +233,7 @@ val testsInput = TestProject(
       scalacOptions += "-Ywarn-unused", // For RemoveUnusedTerms
       logLevel := Level.Error, // avoid flood of compiler warnings
       testsInputOutputSetting
-    )
+  )
 )
 
 lazy val testsInput211 = testsInput(scala211, _.dependsOn(testsShared211))
@@ -253,7 +253,7 @@ val testsOutput = TestProject(
         "-Xlint"
       ),
       testsInputOutputSetting
-    )
+  )
 )
 
 val testsOutput211 = testsOutput(scala211, _.dependsOn(testsShared211))
