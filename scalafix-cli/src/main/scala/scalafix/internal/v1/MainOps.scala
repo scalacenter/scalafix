@@ -1,11 +1,16 @@
 package scalafix.internal.v1
 
 import java.io.PrintStream
+import java.nio.ByteBuffer
+import java.nio.CharBuffer
+import java.nio.charset.StandardCharsets
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
+import java.security.MessageDigest
+import javax.xml.bind.DatatypeConverter
 import metaconfig.Conf
 import metaconfig.ConfEncoder
 import metaconfig.annotation.Hidden
@@ -16,6 +21,8 @@ import metaconfig.internal.Case
 import org.typelevel.paiges.{Doc => D}
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.ListBuffer
+import scala.meta.inputs.Input
+import scala.meta.internal.semanticdb.TextDocument
 import scala.meta.io.AbsolutePath
 import scala.meta.parsers.Parsed
 import scala.util.control.NoStackTrace
@@ -35,7 +42,8 @@ object MainOps {
       val visitor = new SimpleFileVisitor[Path] {
         override def visitFile(
             file: Path,
-            attrs: BasicFileAttributes): FileVisitResult = {
+            attrs: BasicFileAttributes
+        ): FileVisitResult = {
           val path = AbsolutePath(file)
           val relpath = path.toRelative(args.sourceroot)
           if (args.matches(relpath)) {
@@ -102,6 +110,47 @@ object MainOps {
       )
     }
 
+  def assertFreshSemanticDB(
+      input: Input,
+      file: AbsolutePath,
+      fix: String,
+      doc: TextDocument
+  ): Unit = {
+    if (input.text == fix) {
+      // Fix is a no-op, ignore. This frequently happens in cross-built modules
+      // where the JVM project fixes sources and the Scala.js project becomes stale.
+      ()
+    } else if (doc.md5.isEmpty) {
+      throw new IllegalArgumentException("-P:semanticdb:md5:on is required.")
+    } else {
+      val inputMD5 = FingerprintOps.md5(
+        StandardCharsets.UTF_8.encode(CharBuffer.wrap(input.chars))
+      )
+      if (inputMD5 == doc.md5) {
+        () // OK!
+      } else {
+        val diff = if (doc.text.isEmpty) {
+          DiffUtils.unifiedDiff(
+            input.syntax + "-ondisk-md5-fingerprint",
+            input.syntax + "-semanticdb-md5-fingerprint",
+            inputMD5 :: Nil,
+            doc.md5 :: Nil,
+            1
+          )
+        } else {
+          DiffUtils.unifiedDiff(
+            input.syntax + "-ondisk",
+            input.syntax + "-semanticdb",
+            input.text.lines.toList,
+            doc.text.lines.toList,
+            3
+          )
+        }
+        throw new StaleSemanticDB(file, diff)
+      }
+    }
+  }
+
   def unsafeHandleFile(args: ValidatedArgs, file: AbsolutePath): ExitStatus = {
     val input = args.input(file)
     args.parse(input) match {
@@ -121,18 +170,7 @@ object MainOps {
             )
             val (fix, messages) =
               args.rules.semanticPatch(sdoc, args.args.autoSuppressLinterErrors)
-            val isStaleSemanticDB = input.text != sdoc.sdoc.text
-            val fixDoesNotMatchInput = input.text != fix
-            if (isStaleSemanticDB && fixDoesNotMatchInput) {
-              val diff = DiffUtils.unifiedDiff(
-                file.toString() + "-ondisk",
-                file.toString() + "-semanticdb",
-                input.text.lines.toList,
-                sdoc.sdoc.text.lines.toList,
-                3
-              )
-              throw new StaleSemanticDB(file, diff)
-            }
+            assertFreshSemanticDB(input, file, fix, sdoc.sdoc)
             (fix, messages)
           } else {
             args.rules.syntacticPatch(doc, args.args.autoSuppressLinterErrors)
@@ -283,8 +321,8 @@ object MainOps {
         if (setting.annotations.exists(_.isInstanceOf[Inline])) {
           for {
             underlying <- setting.underlying.toList
-            (field, (_, fieldDefault)) <- underlying.settings.zip(
-              value.asInstanceOf[Conf.Obj].values)
+            (field, (_, fieldDefault)) <- underlying.settings
+              .zip(value.asInstanceOf[Conf.Obj].values)
           } {
             printOption(field, fieldDefault)
           }

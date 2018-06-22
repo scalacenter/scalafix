@@ -363,6 +363,9 @@ def unit(
           sourceDirectory.in(testsOutputDotty, Compile).value,
         "semanticClasspath" ->
           classDirectory.in(testsInput, Compile).value,
+        "sharedSourceroot" ->
+          baseDirectory.in(ThisBuild).value /
+            "scalafix-tests" / "shared" / "src" / "main",
         "sharedClasspath" ->
           classDirectory.in(testsShared, Compile).value
       )

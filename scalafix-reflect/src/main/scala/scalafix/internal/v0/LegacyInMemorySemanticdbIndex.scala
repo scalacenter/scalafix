@@ -15,6 +15,7 @@ import scalafix.v0.Denotation
 import scalafix.v0.ResolvedName
 import scalafix.v0
 import scalafix.v1
+import scalafix.internal.v1._
 
 case class LegacyInMemorySemanticdbIndex(index: Map[String, SemanticdbIndex])
     extends CrashingSemanticdbIndex {
@@ -46,7 +47,8 @@ case class LegacyInMemorySemanticdbIndex(index: Map[String, SemanticdbIndex])
           index(key).denotation(v0.Symbol.Local(local))
         } else {
           throw new IllegalArgumentException(
-            s"unexpected local symbol format $id")
+            s"unexpected local symbol format $id"
+          )
         }
       case _ =>
         // global symbol, use any SemanticDoc
@@ -64,22 +66,30 @@ case class LegacyInMemorySemanticdbIndex(index: Map[String, SemanticdbIndex])
 
 object LegacyInMemorySemanticdbIndex {
 
-  def load(classpath: Classpath): SemanticdbIndex = {
+  def load(classpath: Classpath, sourceroot: AbsolutePath): SemanticdbIndex = {
     val symtab = ClasspathOps.newSymbolTable(classpath).get
-    load(classpath, symtab)
+    load(classpath, symtab, sourceroot)
   }
 
-  def load(classpath: Classpath, symtab: SymbolTable): SemanticdbIndex = {
+  def load(
+      classpath: Classpath,
+      symtab: SymbolTable,
+      sourceroot: AbsolutePath
+  ): SemanticdbIndex = {
+    val sourceuri = sourceroot.toURI
     val buf = Map.newBuilder[String, SemanticdbIndex]
     classpath.entries.foreach { entry =>
       if (entry.isDirectory) {
         val files = FileIO.listAllFilesRecursively(
-          entry.resolve("META-INF").resolve("semanticdb"))
+          entry.resolve("META-INF").resolve("semanticdb")
+        )
         files.foreach { file =>
           if (PathIO.extension(file.toNIO) == "semanticdb") {
-            val textDocument = s.TextDocuments.parseFrom(file.readAllBytes)
+            val textDocument = s.TextDocuments
+              .parseFrom(file.readAllBytes)
+              .mergeDiagnosticOnlyDocuments
             textDocument.documents.foreach { textDocument =>
-              val input = Input.VirtualFile(textDocument.uri, textDocument.text)
+              val input = textDocument.input(sourceuri)
               val tree = input.parse[Source].get
               val doc = v1.Doc.fromTree(tree)
               val sdoc = new v1.SemanticDoc(doc, textDocument, symtab)

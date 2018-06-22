@@ -118,7 +118,8 @@ object SemanticDoc {
         reluri: String,
         semanticdb: AbsolutePath)
         extends Error(
-          s"No TextDocument associated with uri $reluri in $semanticdb")
+          s"No TextDocument associated with uri $reluri in $semanticdb"
+        )
   }
 
   def fromPath(
@@ -132,8 +133,12 @@ object SemanticDoc {
       case Some(abspath) =>
         val in = Files.newInputStream(abspath.toNIO)
         val sdocs =
-          try s.TextDocuments.parseFrom(in).documents
-          finally in.close()
+          try {
+            s.TextDocuments
+              .parseFrom(in)
+              .mergeDiagnosticOnlyDocuments
+              .documents
+          } finally in.close()
         val sdoc = sdocs.find(_.uri == reluri).getOrElse {
           throw Error.MissingTextDocument(reluri, abspath)
         }
