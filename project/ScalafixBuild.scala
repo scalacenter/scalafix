@@ -219,7 +219,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       s
     },
     // There is flakyness in CliGitDiffTests and CliSemanticTests
-//    parallelExecution.in(Test) := false,
+    parallelExecution.in(Test) := false,
     credentials ++= {
       val credentialsFile = {
         if (adhocRepoCredentials != null) new File(adhocRepoCredentials)
