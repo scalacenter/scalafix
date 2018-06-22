@@ -13,32 +13,21 @@ inThisBuild(List(
       "masgui@gmail.com",
       url("https://github.com/MasseGuillaume")
     )
-  ),
-  scmInfo := Some(
-    ScmInfo(
-      url("https://github.com/MasseGuillaume/scalameta-structure"),
-      s"scm:git:git@github.com:MasseGuillaume/scalameta-structure.git"
-    )
   )
 ))
 
 lazy val `scalameta-structure` =
   project
     .in(file("."))
-    .settings(
-      publishLocal := {},
-      publish := {}
-    )
+    .settings(skip in publish := true)
     .aggregate(structureJS, structureJVM)//, structureNative)
 
 lazy val structure = crossProject(JSPlatform, JVMPlatform)//, NativePlatform)
   .withoutSuffixFor(JVMPlatform)
   .crossType(CrossType.Pure)
   .settings(
-    
     moduleName := "scalameta-structure",
-    version := "0.1.0",
-
+    
     // scalaVersion := "2.11.12",
     scalaVersion := "2.12.6",
 
