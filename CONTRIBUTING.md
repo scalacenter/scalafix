@@ -6,7 +6,6 @@ Contributing
 - `scalafix-core/` data structures and algorithms for scalafix rules
 - `scalafix-reflect/` JVM-only utilities to compile and classload custom rules
 - `scalafix-cli/` command-line interface
-- `scalafix-sbt/` SBT plugin
 - `scalafix-tests/` project for running unit and integration tests.
 - `readme` documentation page
 
@@ -27,14 +26,6 @@ The commands below assume you have a running sbt shell.
 > unit/testOnly scalafix.tests.rule.* # Only run tests for rules, using scalafix-testkit.
 > unit/testOnly scalafix.tests.core.* # Only run tests for core APIs.
 > unit/testOnly scalafix.tests.cli.*  # Only run tests for the command line interface.
-
-# SBT plugin
-# (recommended) start the sbt shell with a SNAPSHOT scalafix version:
-# $ sbt -Dscalafix.version=0.5-SNAPSHOT
-> scalafix-sbt/it:test  # publishes modules locally and runs scripted (slow).
-                        # Only needed once per changed in core/cli modules.
-> scalafix-sbt/scripted # only run scripted tests (still slow, but skips
-                        # publishLocal for core/cli modules)
 ```
 
 Unit tests for rules are written using scalafix-testkit, read more about

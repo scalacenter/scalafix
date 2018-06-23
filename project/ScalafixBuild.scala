@@ -179,19 +179,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       "clean" ::
         "scalafix/publishSigned" ::
         "scalafix211/publishSigned" ::
-        "scalafix-sbt013/publishSigned" ::
-        "scalafix-sbt/publishSigned" ::
-        s
-    },
-    commands += Command.command("ci-sbt") { s =>
-      // scripted tests don't work in sbt 1.0 yet because we run Sbt1
-      "scalafix-sbt/publishLocal" ::
-        "scalafix-sbt/test" ::
-        s
-    },
-    commands += Command.command("ci-sbt013") { s =>
-      "scalafix-sbt013/scripted" ::
-        "scalafix-sbt013/test" ::
         s
     },
     commands += Command.command("ci-fast-212") { s =>
@@ -200,11 +187,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     },
     commands += Command.command("ci-fast-211") { s =>
       "scalafix211/test" ::
-        s
-    },
-    commands += Command.command("ci-sbt013-windows") { s =>
-      "scalafix-sbt013/scripted" ::
-        testSkipWindows("scalafix-sbt013") ::
         s
     },
     commands += Command.command("ci-fast-212-windows") { s =>
