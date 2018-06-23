@@ -2,7 +2,7 @@ package scalafix.internal.patch
 
 import scala.meta.Importee
 import scala.meta.Importer
-import scala.meta.Symbol
+import scalafix.v0.Symbol
 import scala.meta.Token
 import scala.meta.Tree
 import scala.meta.tokens.Tokens

@@ -1,9 +1,9 @@
 package scalafix.v1
 
 import scala.meta.Tree
-import scala.meta.internal.{semanticdb3 => s}
-import scala.meta.internal.semanticdb3.SymbolInformation.{Property => p}
-import scala.meta.internal.semanticdb3.Scala._
+import scala.meta.internal.{semanticdb => s}
+import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
+import scala.meta.internal.semanticdb.Scala._
 
 final class Sym private (val value: String) {
   def isNone: Boolean = value.isNone
@@ -59,7 +59,7 @@ object Sym {
   ) {
     def isNone: Boolean = info.symbol.isEmpty
     def sym: Sym = new Sym(info.symbol)
-    def owner: Sym = new Sym(info.owner)
+    def owner: Sym = new Sym(info.symbol).owner
     def name: String = info.name
     def kind: Kind = new Kind(info)
     def props: Properties = new Properties(info.properties)
@@ -67,10 +67,6 @@ object Sym {
       new Accessibility(info.accessibility.getOrElse(s.Accessibility()))
 
     override def toString: String = s"Sym.Info(${info.symbol})"
-
-    // privates
-    private[scalafix] def tpe: s.Type =
-      info.tpe.getOrElse(s.Type())
   }
   object Info {
     val empty = new Sym.Info(s.SymbolInformation())

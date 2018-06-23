@@ -1,18 +1,14 @@
 package scalafix.internal.util
 
-import scala.meta.internal.{semanticdb3 => s}
-import scala.meta.internal.semanticdb3.Type.{Tag => t}
+import scala.meta.internal.{semanticdb => s}
 
 object TypeExtractors {
   abstract class TypeRefExtractor(sym: String) {
-    def matches(tpe: s.Type): Boolean = tpe.tag match {
-      case t.TYPE_REF =>
-        tpe.typeRef.exists(_.symbol == sym)
-      case t.WITH_TYPE =>
-        tpe.withType.exists { x =>
-          x.types.lengthCompare(1) == 0 &&
-          unapply(x.types.head)
-        }
+    def matches(tpe: s.Type): Boolean = tpe match {
+      case s.TypeRef(_, symbol, _) => sym == symbol
+      case s.WithType(types) =>
+        types.lengthCompare(1) == 0 &&
+          unapply(types.head)
       case _ =>
         false
     }

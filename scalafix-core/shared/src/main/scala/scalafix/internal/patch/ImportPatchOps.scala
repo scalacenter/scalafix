@@ -4,6 +4,8 @@ import scala.annotation.tailrec
 import scala.collection.immutable.Seq
 import scala.collection.mutable
 import scala.meta._
+import scalafix.v0.Symbol
+import scalafix.v0.Signature
 import scalafix.internal.util.SymbolOps
 import scalafix.patch.Patch
 import scalafix.patch.TokenPatch

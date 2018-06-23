@@ -30,20 +30,22 @@ object ClasspathOps {
       sclasspath: Classpath,
       cacheDirectory: Option[AbsolutePath] = None,
       parallel: Boolean = false,
-      out: PrintStream = devNull): Option[Classpath] = {
+      out: PrintStream = devNull
+  ): Option[Classpath] = {
     val (processed, toProcess) = sclasspath.entries.partition { path =>
       path.isDirectory &&
       path.resolve("META-INF").resolve("semanticdb.semanticidx").isFile
     }
     val withJDK = Classpath(
-      bootClasspath.fold(sclasspath.entries)(_.entries ::: toProcess))
+      bootClasspath.fold(sclasspath.entries)(_.entries ::: toProcess)
+    )
     val default = metacp.Settings()
     val settings = default
       .withClasspath(withJDK)
       .withScalaLibrarySynthetics(true)
       .withCacheDir(cacheDirectory.getOrElse(default.cacheDir))
       .withPar(parallel)
-    val reporter = metacp
+    val reporter = scala.meta.cli
       .Reporter()
       .withOut(devNull) // out prints classpath of proccessed classpath, which is not relevant for scalafix.
       .withErr(out)
@@ -55,7 +57,8 @@ object ClasspathOps {
       classpath: Classpath,
       cacheDirectory: Option[AbsolutePath] = None,
       parallel: Boolean = false,
-      out: PrintStream = System.out): Option[SymbolTable] = {
+      out: PrintStream = System.out
+  ): Option[SymbolTable] = {
     toMetaClasspath(classpath, cacheDirectory, parallel, out)
       .map(new LazySymbolTable(_))
   }
@@ -82,7 +85,8 @@ object ClasspathOps {
     val visitor = new SimpleFileVisitor[Path] {
       override def preVisitDirectory(
           dir: Path,
-          attrs: BasicFileAttributes): FileVisitResult = {
+          attrs: BasicFileAttributes
+      ): FileVisitResult = {
         if (isTargetroot(dir)) {
           buffer += AbsolutePath(dir)
           FileVisitResult.SKIP_SUBTREE

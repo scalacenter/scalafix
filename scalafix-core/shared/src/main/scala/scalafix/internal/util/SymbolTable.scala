@@ -1,6 +1,6 @@
 package scalafix.internal.util
 
-import scala.meta.internal.{semanticdb3 => s}
+import scala.meta.internal.{semanticdb => s}
 
 /**
   * A table to lookup information about symbols.

@@ -6,9 +6,9 @@ import scala.meta.internal.io.PathIO
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
 import scala.collection.concurrent.TrieMap
-import scala.meta.internal.semanticdb3.Scala.Symbols
-import scala.meta.internal.semanticdb3.Scala._
-import scala.meta.internal.{semanticdb3 => s}
+import scala.meta.internal.semanticdb.Scala.Symbols
+import scala.meta.internal.semanticdb.Scala._
+import scala.meta.internal.{semanticdb => s}
 
 /**
   * Implementation of SymbolTable that lazily loads symbols on demand.
@@ -103,7 +103,6 @@ class LazySymbolTable(mclasspath: Classpath) extends SymbolTable {
       loadedSymbols(pkg.symbol) = s.SymbolInformation(
         name = pkg.symbol.desc.name,
         symbol = pkg.symbol,
-        owner = pkg.symbol.owner,
         kind = s.SymbolInformation.Kind.PACKAGE
       )
     }

@@ -1,13 +1,13 @@
 package scalafix.v0
 
-import scala.meta.internal.{semanticdb3 => s}
+import scala.meta.internal.{semanticdb => s}
 
 final case class Denotation(
     flags: Long,
     name: String,
     signature: String,
     names: List[ResolvedName],
-    private[scalafix] val tpe: Option[s.Type]
+    private[scalafix] val tpe: s.Signature
 ) extends HasFlags
     with Product
     with Serializable {

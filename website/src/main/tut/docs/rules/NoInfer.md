@@ -9,6 +9,10 @@ _Since 0.5.0_
 
 This rule reports errors when the compiler infers certain types.
 
+To use this rule:
+
+- Enable the compiler option `-P:semanticdb:synthetics:on`
+
 By default, no symbols are disabled.
 If the rule is configured to disable `scala.Any` and `Predef.any2stringadd`:
 

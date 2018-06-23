@@ -72,8 +72,9 @@ class CliSemanticSuite extends BaseCliSuite {
     files = explicitResultTypesPath.toString(),
     outputAssert = { out =>
       assert(out.contains("Stale SemanticDB"))
-      assert(out.contains(explicitResultTypesPath.toString + "-ondisk"))
-      assert(out.contains("-// comment"))
+      assert(
+        out.contains(
+          explicitResultTypesPath.toString + "-ondisk-md5-fingerprint"))
     }
   )
 

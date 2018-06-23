@@ -4,6 +4,7 @@ import scala.meta._
 import scala.meta.contrib._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
 import scalafix.patch.Patch
+import scalafix.v0.Symbol
 import scalafix.v0.SemanticdbIndex
 import scalafix.internal.config.ExplicitResultTypesConfig
 import scalafix.internal.config.MemberKind
@@ -24,14 +25,15 @@ import scalafix.v1.MissingSymbolException
 
 case class ExplicitResultTypes(
     index: SemanticdbIndex,
-    config: ExplicitResultTypesConfig = ExplicitResultTypesConfig.default)
-    extends SemanticRule(
+    config: ExplicitResultTypesConfig = ExplicitResultTypesConfig.default
+) extends SemanticRule(
       index,
       RuleName("ExplicitResultTypes")
         .withDeprecatedName(
           "ExplicitReturnTypes",
           "Renamed to ExplicitResultTypes",
-          "0.5")
+          "0.5"
+        )
     ) {
 
   override def description: String =
@@ -42,7 +44,8 @@ case class ExplicitResultTypes(
   override def init(config: Conf): Configured[Rule] =
     config // Support deprecated explicitReturnTypes config
       .getOrElse("explicitReturnTypes", "ExplicitResultTypes")(
-        ExplicitResultTypesConfig.default)
+        ExplicitResultTypesConfig.default
+      )
       .map(c => ExplicitResultTypes(index, c))
 
   // Don't explicitly annotate vals when the right-hand body is a single call
@@ -73,23 +76,27 @@ case class ExplicitResultTypes(
     case _: Defn.Def => MemberKind.Def
     case _: Defn.Var => MemberKind.Var
   }
-  import scala.meta.internal.{semanticdb3 => s}
+  import scala.meta.internal.{semanticdb => s}
   def unsafeToType(
       ctx: RuleCtx,
       pos: Position,
       symbol: Symbol
   ): PrettyResult[Type] = {
     val info = index.asInstanceOf[SymbolTable].info(symbol.syntax).get
-    val tpe = info.tpe.get.tag match {
-      case s.Type.Tag.METHOD_TYPE =>
-        info.tpe.get.methodType.get.returnType.get
-      case _ => info.tpe.get
+    val tpe = info.signature match {
+      case method: s.MethodSignature =>
+        method.returnType
+      case value: s.ValueSignature =>
+        value.tpe
+      case els =>
+        throw new IllegalArgumentException(s"Unsupported signature $els")
     }
     PrettyType.toType(
       tpe,
       index.asInstanceOf[SymbolTable],
       if (config.unsafeShortenNames) QualifyStrategy.Readable
-      else QualifyStrategy.Full
+      else QualifyStrategy.Full,
+      fatalErrors = config.fatalWarnings
     )
   }
 
@@ -136,8 +143,9 @@ case class ExplicitResultTypes(
         // Left-hand side tokens in definition.
         // Example: `val x = ` from `val x = rhs.banana`
         lhsTokens = slice(start, end)
-        replace <- lhsTokens.reverseIterator.find(x =>
-          !x.is[Token.Equals] && !x.is[Trivia])
+        replace <- lhsTokens.reverseIterator.find(
+          x => !x.is[Token.Equals] && !x.is[Trivia]
+        )
         (typ, patch) <- defnType(defn)
         space = {
           if (TokenOps.needsLeadingSpaceBeforeColon(replace)) " "
@@ -153,7 +161,8 @@ case class ExplicitResultTypes(
         defn: D,
         nm: Name,
         mods: Traversable[Mod],
-        body: Term)(implicit ev: Extract[D, Mod]): Boolean = {
+        body: Term
+    )(implicit ev: Extract[D, Mod]): Boolean = {
       import config._
 
       def matchesMemberVisibility(): Boolean =
@@ -173,7 +182,7 @@ case class ExplicitResultTypes(
 
       def isLocal =
         if (config.skipLocalImplicits) nm.symbol match {
-          case Some(value) => value.isInstanceOf[scala.meta.Symbol.Local]
+          case Some(value) => value.isInstanceOf[scalafix.v0.Symbol.Local]
           case None => false
         } else false
 

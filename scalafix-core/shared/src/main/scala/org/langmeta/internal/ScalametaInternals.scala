@@ -2,9 +2,13 @@ package scala.meta.internal
 
 import scala.compat.Platform.EOL
 import scala.meta._
-import scala.meta.internal.{semanticdb3 => s}
+import scala.meta.internal.trees.Origin
+import scala.meta.internal.{semanticdb => s}
 
-object ScalafixLangmetaHacks {
+object ScalametaInternals {
+
+  def withOrigin[T <: Tree](tree: T, origin: Origin): T =
+    tree.withOrigin(origin)
 
   def positionFromRange(input: Input, range: Option[s.Range]): Position =
     range match {

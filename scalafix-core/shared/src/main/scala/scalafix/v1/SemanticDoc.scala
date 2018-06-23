@@ -1,6 +1,5 @@
 package scalafix.v1
 
-import java.nio.file.Files
 import java.util
 import scala.meta.io.Classpath
 import scala.meta.io.RelativePath
@@ -10,7 +9,7 @@ import scala.meta.contrib.AssociatedComments
 import scalafix.internal.util.SymbolTable
 import scalafix.util.MatchingParens
 import scalafix.util.TokenList
-import scala.meta.internal.{semanticdb3 => s}
+import scala.meta.internal.{semanticdb => s}
 import scalafix.internal.patch.DocSemanticdbIndex
 import scalafix.internal.v1._
 import scalafix.rule.RuleCtx
@@ -118,7 +117,8 @@ object SemanticDoc {
         reluri: String,
         semanticdb: AbsolutePath)
         extends Error(
-          s"No TextDocument associated with uri $reluri in $semanticdb")
+          s"No TextDocument associated with uri $reluri in $semanticdb"
+        )
   }
 
   def fromPath(
@@ -130,10 +130,7 @@ object SemanticDoc {
     val reluri = path.toRelativeURI.toString
     classpath.resolveSemanticdb(path) match {
       case Some(abspath) =>
-        val in = Files.newInputStream(abspath.toNIO)
-        val sdocs =
-          try s.TextDocuments.parseFrom(in).documents
-          finally in.close()
+        val sdocs = s.TextDocuments.parseFromFile(abspath).documents
         val sdoc = sdocs.find(_.uri == reluri).getOrElse {
           throw Error.MissingTextDocument(reluri, abspath)
         }

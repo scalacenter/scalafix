@@ -2,11 +2,12 @@ package scalafix.internal.util
 
 import scala.collection.mutable
 import scala.meta._
-import scala.meta.internal.semanticdb3.Scala._
-import scala.meta.internal.semanticdb3.SymbolInformation.{Kind => k}
-import scala.meta.internal.semanticdb3.SymbolInformation.{Property => p}
-import scala.meta.internal.semanticdb3.Type.{Tag => t}
-import scala.meta.internal.{semanticdb3 => s}
+import scala.meta.internal.semanticdb.Scala._
+import scala.meta.internal.semanticdb.SymbolInformation.{Kind => k}
+import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
+import scala.meta.internal.semanticdb.Accessibility.{Tag => a}
+import scala.meta.internal.{semanticdb => s}
+import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
 import scalapb.GeneratedMessage
 
@@ -17,9 +18,10 @@ object PrettyType {
   def toTree(
       info: s.SymbolInformation,
       table: SymbolTable,
-      shorten: QualifyStrategy
+      shorten: QualifyStrategy,
+      fatalErrors: Boolean
   ): PrettyResult[Tree] = {
-    val pretty = unsafeInstance(table, shorten)
+    val pretty = unsafeInstance(table, shorten, fatalErrors)
     val result = pretty.toTree(info)
     PrettyResult(result, pretty.getImports())
   }
@@ -27,22 +29,31 @@ object PrettyType {
   def toType(
       tpe: s.Type,
       table: SymbolTable,
-      shorten: QualifyStrategy
+      shorten: QualifyStrategy,
+      fatalErrors: Boolean
   ): PrettyResult[Type] = {
-    val pretty = unsafeInstance(table, shorten)
+    val pretty = unsafeInstance(table, shorten, fatalErrors)
     val result = pretty.toType(tpe)
     PrettyResult(result, pretty.getImports())
   }
 
-  def unsafeInstance(table: SymbolTable, shorten: QualifyStrategy): PrettyType =
-    new PrettyType(table, shorten)
+  def unsafeInstance(
+      table: SymbolTable,
+      shorten: QualifyStrategy,
+      fatalErrors: Boolean
+  ): PrettyType =
+    new PrettyType(table, shorten, fatalErrors)
 
 }
 
-class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
+class PrettyType private (
+    table: SymbolTable,
+    shorten: QualifyStrategy,
+    fatalErrors: Boolean
+) {
 
   // TODO: workaround for https://github.com/scalameta/scalameta/issues/1492
-  private val caseClassMethods = Set(
+  private val isCaseClassMethod = Set(
     "copy",
     "productPrefix",
     "productArity",
@@ -62,9 +73,19 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
   }
 
   private implicit class XtensionSymbolInformationProperties(
-      info: s.SymbolInformation) {
-    def typ: s.Type =
-      info.tpe.getOrElse(throw new IllegalArgumentException(info.toProtoString))
+      info: s.SymbolInformation
+  ) {
+    def owner: String = info.symbol.owner
+    def valueType: s.Type = {
+      info.signature match {
+        case s.ValueSignature(tpe) =>
+          tpe
+        case _ =>
+          throw new IllegalArgumentException(
+            s"Expected ValueSignature. Obtained: ${info.toProtoString}"
+          )
+      }
+    }
     def is(property: s.SymbolInformation.Property): Boolean =
       (info.properties & property.value) != 0
     def isVal: Boolean = is(p.VAL)
@@ -73,6 +94,7 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
       isVar && info.name.endsWith("_=")
   }
   private implicit class XtensionSymbolInfo(sym: String) {
+    def toIndeterminateName: Name = Name(info(sym).name)
     def toTermName: Term.Name = Term.Name(info(sym).name)
     def toTypeName: Type.Name = Type.Name(info(sym).name)
   }
@@ -81,10 +103,19 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
     def scollect[T](f: PartialFunction[s.SymbolInformation, T]): List[T] =
       syms.map(info).collect(f).toList
     def sflatcollect[T](
-        f: PartialFunction[s.SymbolInformation, Iterable[T]]): List[T] =
+        f: PartialFunction[s.SymbolInformation, Iterable[T]]
+    ): List[T] =
       syms.map(info).collect(f).flatten.toList
     def smap[T](f: s.SymbolInformation => T): List[T] =
       syms.map(info).map(f).toList
+  }
+  private implicit class XtensionScopeHardlinks(scope: s.Scope) {
+    def infos: List[s.SymbolInformation] =
+      if (scope.hardlinks.isEmpty) scope.symlinks.iterator.map(info).toList
+      else scope.hardlinks.toList
+    def smap[T](f: s.SymbolInformation => T): List[T] =
+      if (scope.hardlinks.isEmpty) scope.symlinks.smap(f)
+      else scope.hardlinks.iterator.map(f).toList
   }
   private implicit class XtensionSymbols(syms: Seq[String]) {
     def scollect[T](f: PartialFunction[s.SymbolInformation, T]): List[T] =
@@ -94,46 +125,45 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
   }
 
   def ref(sym: String): s.Type = {
-    s.Type(s.Type.Tag.TYPE_REF, typeRef = Some(s.TypeRef(symbol = sym)))
+    s.TypeRef(symbol = sym)
   }
 
   private implicit class XtensionSchemaType(tpe: s.Type) {
     def widen: s.Type = {
-      tpe.tag match {
-        case t.SINGLETON_TYPE =>
-          import s.SingletonType.Tag
-          val singletonType = tpe.singletonType.get
-          singletonType.tag match {
-            case Tag.SYMBOL => info(singletonType.symbol).typ
-            case Tag.BOOLEAN => ref("scala.Boolean#")
-            case Tag.BYTE => ref("scala.Byte#")
-            case Tag.CHAR => ref("scala.Char#")
-            case Tag.DOUBLE => ref("scala.Double#")
-            case Tag.FLOAT => ref("scala.Float#")
-            case Tag.INT => ref("scala.Int#")
-            case Tag.LONG => ref("scala.Long#")
-            case Tag.NULL => ref("scala.Null#")
-            case Tag.SHORT => ref("scala.Short#")
-            case Tag.STRING => ref("java.lang.String#")
-            case Tag.UNIT => ref("scala.Unit#")
-            case Tag.SUPER => tpe
-            case Tag.THIS => tpe
-            case Tag.UNKNOWN_SINGLETON => tpe
-            case Tag.Unrecognized(_) => tpe
+      tpe match {
+        case s.SingleType(_, symbol) =>
+          info(symbol).valueType
+        case s.ConstantType(constant) =>
+          constant match {
+            case _: s.UnitConstant => ref("scala.Unit#")
+            case _: s.BooleanConstant => ref("scala.Boolean#")
+            case _: s.ByteConstant => ref("scala.Byte#")
+            case _: s.ShortConstant => ref("scala.Short#")
+            case _: s.CharConstant => ref("scala.Char#")
+            case _: s.IntConstant => ref("scala.Int#")
+            case _: s.LongConstant => ref("scala.Long#")
+            case _: s.FloatConstant => ref("scala.Float#")
+            case _: s.DoubleConstant => ref("scala.Double#")
+            case _: s.StringConstant => ref("java.lang.String#")
+            case _: s.NullConstant => ref("scala.Null#")
+            case s.NoConstant => tpe
           }
-        // TODO: handle non-singleton widening.
-        case _ => tpe
+        case _ =>
+          tpe
       }
     }
   }
 
   private def info(sym: String): s.SymbolInformation = {
-    table.info(sym).getOrElse(throw new NoSuchElementException(sym))
+    table
+      .info(sym)
+      .orElse(hardlinks.get(sym))
+      .getOrElse(throw new NoSuchElementException(sym))
   }
 
   def toTree(info: s.SymbolInformation): Tree = info.kind match {
     // Workaround for https://github.com/scalameta/scalameta/issues/1494
-    case k.METHOD | k.FIELD if info.tpe.isEmpty =>
+    case k.METHOD | k.FIELD if info.signature.isEmpty =>
       // Dummy value
       Defn.Val(
         Nil,
@@ -146,22 +176,21 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
         Decl.Val(
           toMods(info),
           Pat.Var(Term.Name(info.name)) :: Nil,
-          toType(info.typ)
+          toType(info.valueType)
         )
       } else {
         Decl.Var(
           toMods(info),
           Pat.Var(Term.Name(info.name)) :: Nil,
-          toType(info.typ)
+          toType(info.valueType)
         )
       }
     case k.PACKAGE =>
       toTermRef(info)
     case _ =>
-      info.typ.tag match {
-        case t.METHOD_TYPE =>
-          val Some(s.MethodType(tparams, paramss, Some(ret))) =
-            info.typ.methodType
+      info.signature match {
+        case s.MethodSignature(Some(tparams), paramss, returnType) =>
+          val ret = unwrapRepeatedType(returnType)
           if (info.isVal) {
             Decl.Val(
               toMods(info),
@@ -174,6 +203,14 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
               Pat.Var(Term.Name(info.name)) :: Nil,
               toType(ret)
             )
+          } else if (info.kind.isConstructor) {
+            Ctor.Primary(
+              toMods(info),
+              Name(""),
+              paramss.iterator
+                .map(params => params.symbols.smap(toTermParam))
+                .toList
+            )
           } else {
             Decl.Def(
               toMods(info),
@@ -185,32 +222,18 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
               toType(ret)
             )
           }
-        case t.CLASS_INFO_TYPE =>
-          val classInfo = info.typ.classInfoType.get
-          val declarations =
-            classInfo.declarations.iterator.filter(sym =>
-              !sym.contains("$anon"))
-          val typeParameters = classInfo.typeParameters
-          val parents = classInfo.parents
+        case s.ClassSignature(Some(tparams), parents, self, Some(decls)) =>
+          val declarations = decls.infos
           val isCaseClass = info.is(p.CASE)
-          def objectDecls =
-            declarations
-              .filter { sym =>
-                // drop inaccessible ctor due to https://github.com/scalameta/scalameta/issues/1493
-                !sym.endsWith("`<init>`().")
-              }
-              .map(this.info)
-              .flatMap {
-                case i
-                    if !i.kind.isConstructor &&
-                      !i.isVarSetter =>
-                  toStat(i)
-                case _ =>
-                  Nil
-              }
-              .toList
+          def objectDecls: List[Stat] =
+            declarations.flatMap {
+              case i if !i.kind.isConstructor && !i.isVarSetter =>
+                toStat(i)
+              case _ =>
+                Nil
+            }
 
-          def inits =
+          def inits: List[Init] =
             parents.iterator
               .filterNot {
                 case TypeExtractors.AnyRef() | TypeExtractors.Any() => true
@@ -235,17 +258,16 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
               Defn.Trait(
                 toMods(info),
                 Type.Name(info.name),
-                typeParameters.smap(toTypeParam),
+                tparams.smap(toTypeParam),
                 Ctor.Primary(Nil, Name(""), Nil),
                 Template(
                   Nil,
                   inits,
                   Self(Name(""), None),
-                  declarations.sflatcollect {
-                    case i
-                        if !i.kind.isConstructor &&
-                          !i.isVarSetter =>
-                      toStat(i)
+                  declarations.flatMap { i =>
+                    if (!i.kind.isConstructor &&
+                      !i.isVarSetter) toStat(i)
+                    else Nil
                   }
                 )
               )
@@ -263,7 +285,6 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
             case k.PACKAGE_OBJECT =>
               Pkg.Object(
                 toMods(info),
-                // TODO: is this name correct?
                 Term.Name(info.name),
                 Template(
                   Nil,
@@ -273,66 +294,54 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
                 )
               )
             case k.CLASS =>
-              val decls = declarations.map(this.info)
-              val primaryConstructor = decls.collectFirst {
-                case i if i.kind.isConstructor && i.is(p.PRIMARY) =>
-                  i
-              }
-              val ctor = primaryConstructor match {
-                case Some(i) =>
-                  toStat(i) match {
-                    case Some(d: Decl.Def) =>
-                      val paramss = d.paramss match {
-                        case Nil :: Nil if !info.is(p.CASE) => Nil
-                        case els => els
-                      }
-
-                      Ctor.Primary(
-                        toMods(i),
-                        Name.Anonymous(),
-                        paramss
-                      )
-                    case Some(els) =>
-                      fail(els)
-                    case None =>
-                      Ctor.Primary(Nil, Name(""), Nil)
-                  }
-                case _ =>
+              val ctor: Ctor.Primary = declarations
+                .collectFirst {
+                  case i if i.kind.isConstructor && i.is(p.PRIMARY) =>
+                    toTree(i) match {
+                      case ctor @ Ctor.Primary(_, _, Nil :: Nil)
+                          if !info.is(p.CASE) =>
+                        // Remove redudant () for non-case classes: class Foo
+                        ctor.copy(paramss = Nil)
+                      case e: Ctor.Primary => e
+                    }
+                }
+                .getOrElse {
                   Ctor.Primary(Nil, Name(""), Nil)
-              }
+                }
 
-              def isSyntheticMember(m: s.SymbolInformation) =
-                isCaseClass == caseClassMethods(m.name)
+              // FIXME: Workaround for https://github.com/scalameta/scalameta/issues/1492
+              val isCtorName = ctor.paramss.flatMap(_.map(_.name.value)).toSet
+              def isSyntheticMember(m: s.SymbolInformation): Boolean =
+                (isCaseClass && isCaseClassMethod(m.name)) ||
+                  isCtorName(m.name)
+
               Defn.Class(
                 toMods(info),
                 Type.Name(info.name),
-                typeParameters.smap(toTypeParam),
+                tparams.smap(toTypeParam),
                 ctor,
                 Template(
                   Nil,
                   inits,
                   Self(Name(""), None),
-                  declarations.sflatcollect {
-                    case i
-                        if !i.kind.isConstructor &&
-                          !i.kind.isField &&
-                          !i.isVarSetter &&
-                          !isSyntheticMember(i) =>
-                      toStat(i)
+                  declarations.flatMap { i =>
+                    if (!i.kind.isConstructor &&
+                      !i.isVarSetter &&
+                      !isSyntheticMember(i)) toStat(i)
+                    else Nil
                   }
                 )
               )
             case _ =>
               fail(info)
           }
-        case t.TYPE_TYPE =>
-          val Some(s.TypeType(typeParameters, lo, hi)) = info.typ.typeType
+        case s.TypeSignature(Some(typeParameters), lo, hi) =>
           if (lo.nonEmpty && lo == hi) {
             Defn.Type(
               toMods(info),
               Type.Name(info.name),
               typeParameters.smap(toTypeParam),
-              toType(lo.get)
+              toType(lo)
             )
           } else {
             Decl.Type(
@@ -347,29 +356,23 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
       }
   }
 
+  def unwrapRepeatedType(tpe: s.Type): s.Type = tpe match {
+    case s.RepeatedType(targ) =>
+      // Workaround for https://github.com/scalameta/scalameta/issues/1497
+      s.TypeRef(
+        prefix = s.NoType,
+        symbol = "scala.collection.Seq#",
+        typeArguments = targ :: Nil
+      )
+    case targ =>
+      targ
+  }
+
   def toInit(tpe: s.Type): Init = {
-    val fixed = tpe.tag match {
-      case t.TYPE_REF =>
-        val ref = tpe.typeRef.get
-        val newTypeArguments = ref.typeArguments.map { targ =>
-          targ.tag match {
-            case t.REPEATED_TYPE =>
-              // Workaround for https://github.com/scalameta/scalameta/issues/1497
-              s.Type(
-                tag = s.Type.Tag.TYPE_REF,
-                typeRef = Some(
-                  s.TypeRef(
-                    prefix = None,
-                    symbol = "scala.collection.Seq#",
-                    typeArguments = targ.repeatedType.get.tpe.get :: Nil
-                  )
-                )
-              )
-            case _ =>
-              targ
-          }
-        }
-        tpe.copy(typeRef = Some(ref.copy(typeArguments = newTypeArguments)))
+    val fixed = tpe match {
+      case ref: s.TypeRef =>
+        val newTypeArguments = ref.typeArguments.map(unwrapRepeatedType)
+        ref.copy(typeArguments = newTypeArguments)
       case _ =>
         tpe
     }
@@ -381,10 +384,10 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
     )
   }
 
-  def toTypeBounds(lo: Option[s.Type], hi: Option[s.Type]): Type.Bounds =
+  def toTypeBounds(lo: s.Type, hi: s.Type): Type.Bounds =
     Type.Bounds(
-      lo.filterNot(TypeExtractors.Nothing.matches).map(toType),
-      hi.filterNot(TypeExtractors.Any.matches).map(toType)
+      Some(lo).filterNot(TypeExtractors.Nothing.matches).map(toType),
+      Some(hi).filterNot(TypeExtractors.Any.matches).map(toType)
     )
 
   def toStat(info: s.SymbolInformation): Option[Stat] = {
@@ -396,17 +399,22 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
       try {
         Some(toTree(info).asInstanceOf[Stat])
       } catch {
-        case e: NoSuchElementException =>
-          None
         case NonFatal(e) =>
-          e.printStackTrace()
-          None
+          if (fatalErrors) {
+            throw new Exception(info.toProtoString, e) with NoStackTrace
+          } else {
+            None
+          }
       }
     }
   }
 
   case class TypeToTreeError(msg: String, cause: Option[Throwable] = None)
       extends Exception(msg, cause.orNull)
+  def fail(sig: s.Signature): Nothing =
+    fail(sig.toSignatureMessage)
+  def fail(tpe: s.Type): Nothing =
+    fail(tpe.toTypeMessage)
   def fail(tree: Tree): Nothing =
     throw TypeToTreeError(tree.syntax + s"\n\n${tree.structure}")
   def fail(any: GeneratedMessage): Nothing =
@@ -443,23 +451,16 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
     }
   }
 
-  def toTermRef(tpe: s.Type): Term.Ref = tpe.tag match {
-    case t.SINGLETON_TYPE =>
-      import s.SingletonType.Tag
-      val singleton = tpe.singletonType.get
-      def name = singleton.symbol.toTermName
-      singleton.tag match {
-        case Tag.SYMBOL =>
-          singleton.prefix match {
-            case Some(qual) => Term.Select(toTermRef(qual), name)
-            case _ => name
-          }
-        case Tag.THIS =>
-          assert(singleton.prefix.isEmpty, singleton.prefix.get.toProtoString)
-          Term.This(name)
-        case _ =>
-          fail(tpe)
+  def toTermRef(tpe: s.Type): Term.Ref = tpe match {
+    case s.SingleType(prefix, symbol) =>
+      prefix match {
+        case s.NoType => symbol.toTermName
+        case qual => Term.Select(toTermRef(qual), symbol.toTermName)
       }
+    case s.ThisType(symbol) =>
+      Term.This(symbol.toTermName)
+    case s.TypeRef(s.NoType, symbol, Nil) =>
+      symbol.toTermName
     case _ =>
       fail(tpe)
   }
@@ -489,21 +490,15 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
     }
   }
 
-  def toType(tpe: s.Type): Type = tpe.tag match {
-    case t.TYPE_REF =>
-      val Some(s.TypeRef(prefix, symbol, typeArguments)) = tpe.typeRef
-      def name = symbol.toTypeName
-      def targs =
+  def toType(tpe: s.Type): Type = tpe match {
+    case s.TypeRef(prefix, symbol, typeArguments) =>
+      def name: Type.Name = symbol.toTypeName
+      def targs: List[Type] =
         typeArguments.iterator.map {
           case TypeExtractors.Wildcard() =>
             Type.Placeholder(Type.Bounds(None, None))
           case targ =>
-            targ.typeRef match {
-              case Some(ref) if placeholders.contains(ref.symbol) =>
-                Type.Placeholder(Type.Bounds(None, None))
-              case _ =>
-                toType(targ)
-            }
+            toType(targ)
         }.toList
       symbol match {
         case TypeExtractors.FunctionN() if typeArguments.lengthCompare(0) > 0 =>
@@ -513,18 +508,16 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
           Type.Tuple(targs)
         case _ =>
           val qual: Type.Ref = prefix match {
-            case Some(pre) =>
-              if (pre.tag.isSingletonType) {
-                Type.Select(toTermRef(pre), name)
-              } else {
-                Type.Project(toType(pre), name)
-              }
-            case _ =>
+            case s.NoType =>
               if (shorten.isName) {
                 name
               } else {
                 toTypeRef(info(symbol))
               }
+            case _: s.SingleType | _: s.ThisType | _: s.SuperType =>
+              Type.Select(toTermRef(prefix), name)
+            case _ =>
+              Type.Project(toType(prefix), name)
           }
           (qual, targs) match {
             case (q, Nil) => q
@@ -534,84 +527,71 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
             case (q, targs) => Type.Apply(q, targs)
           }
       }
-    case t.SINGLETON_TYPE =>
-      import s.SingletonType.Tag
-      val singleton = tpe.singletonType.get
-      def info = this.info(singleton.symbol)
-      singleton.tag match {
-        case Tag.SYMBOL =>
-          val info = this.info(singleton.symbol)
-          if (info.kind.isParameter || info.isVal || info.kind.isObject) {
-            Type.Singleton(toTermRef(info))
-          } else {
-            val tpe = info.typ
-            tpe.tag match {
-              case t.METHOD_TYPE =>
-                val ret = tpe.methodType.get.returnType.get
-                toType(ret)
-              case _ =>
-                fail(tpe)
-            }
-          }
-        case Tag.THIS =>
-          Type.Select(
-            Term.This(Name.Anonymous()),
-            Type.Name(info.name)
-          )
-        case Tag.SUPER =>
-          // TODO: prefix
-          Type.Select(
-            Term.Super(Name.Anonymous(), Name.Anonymous()),
-            Type.Name(info.name)
-          )
-        case _ =>
-          toType(tpe.widen)
+    case s.SingleType(_, symbol) =>
+      val info = this.info(symbol)
+      if (info.kind.isParameter || info.isVal || info.kind.isObject) {
+        Type.Singleton(toTermRef(info))
+      } else {
+        info.signature match {
+          case s.MethodSignature(_, _, returnType) =>
+            toType(returnType)
+          case els =>
+            fail(els)
+        }
       }
-    case t.EXISTENTIAL_TYPE =>
-      val existential = tpe.existentialType.get
-      withPlaceholders(existential.typeParameters) { () =>
-        toType(existential.tpe.get)
+    case s.ThisType(symbol) =>
+      Type.Select(
+        Term.This(Name.Anonymous()),
+        Type.Name(this.info(symbol).name)
+      )
+    case s.SuperType(prefix @ _, symbol) =>
+      // TODO: print prefix https://github.com/scalacenter/scalafix/issues/758
+      Type.Select(
+        Term.Super(Name.Anonymous(), Name.Anonymous()),
+        Type.Name(this.info(symbol).name)
+      )
+    case s.ConstantType(_) =>
+      toType(tpe.widen)
+    case s.ExistentialType(underlying, Some(declarations)) =>
+      withHardlinks(declarations.hardlinks) { () =>
+        toType(underlying)
       }
-    case t.REPEATED_TYPE =>
-      Type.Repeated(toType(tpe.repeatedType.get.tpe.get))
-    case t.BY_NAME_TYPE =>
-      Type.ByName(toType(tpe.byNameType.get.tpe.get))
-    case t.ANNOTATED_TYPE =>
-      val Some(s.AnnotatedType(annots, Some(underlying))) = tpe.annotatedType
-      if (annots.isEmpty) toType(underlying)
-      else {
+    case s.RepeatedType(underlying) =>
+      Type.Repeated(toType(underlying))
+    case s.ByNameType(underlying) =>
+      Type.ByName(toType(underlying))
+    case s.AnnotatedType(annots, underlying) =>
+      if (!annots.exists(_.tpe.isDefined)) {
+        toType(underlying)
+      } else {
         Type.Annotate(
           toType(underlying),
           annots.iterator.map { annot =>
-            toModAnnot(annot.tpe.get)
+            toModAnnot(annot.tpe)
           }.toList
         )
       }
-    case t.STRUCTURAL_TYPE =>
-      val structural = tpe.structuralType.get
-      // TODO: handle local decls, here we widen the type which may cause compilation errors
-      // if the refinement declarations are referenced via scala.language.reflectiveCalls.
-      val declarations =
-        structural.declarations.filterNot(_.startsWith("local"))
-      declarations match {
-        case Nil =>
-          toType(structural.tpe.get)
-        case decls =>
-          val tpe = structural.tpe match {
-            case Some(TypeExtractors.AnyRef()) => None
-            case els => els.map(toType)
-          }
-          Type.Refine(
-            tpe,
-            decls.iterator
-              .map(info)
-              .filterNot(_.isVarSetter)
-              .flatMap(toStat)
-              .toList
-          )
+    case s.StructuralType(underlying, Some(scope)) =>
+      withHardlinks(scope.hardlinks) { () =>
+        val declarations = scope.infos.filterNot(_.symbol.isLocal)
+        declarations match {
+          case Nil =>
+            toType(underlying)
+          case decls =>
+            val tpe = underlying match {
+              case TypeExtractors.AnyRef() => None
+              case els => Some(toType(els))
+            }
+            Type.Refine(
+              tpe,
+              decls.iterator
+                .filterNot(_.isVarSetter)
+                .flatMap(toStat)
+                .toList
+            )
+        }
       }
-    case t.WITH_TYPE =>
-      val Some(s.WithType(types)) = tpe.withType
+    case s.WithType(types) =>
       val (head, tail) = types.head match {
         case TypeExtractors.AnyRef() if types.lengthCompare(1) > 0 =>
           types(1) -> types.iterator.drop(2)
@@ -621,34 +601,35 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
       tail.foldLeft(toType(head)) {
         case (accum, next) => Type.With(accum, toType(next))
       }
-    case t.UNIVERSAL_TYPE =>
-      val Some(s.UniversalType(typeParameters, Some(underlying))) =
-        tpe.universalType
+    case s.UniversalType(Some(typeParameters), underlying) =>
       val universalName = t"T"
-      Type.Project(
-        Type.Refine(
-          None,
-          Defn.Type(
-            Nil,
-            universalName,
-            typeParameters.smap(toTypeParam),
-            toType(underlying)
-          ) :: Nil
-        ),
-        universalName
-      )
+      withHardlinks(typeParameters.hardlinks) { () =>
+        Type.Project(
+          Type.Refine(
+            None,
+            Defn.Type(
+              Nil,
+              universalName,
+              typeParameters.smap(toTypeParam),
+              toType(underlying)
+            ) :: Nil
+          ),
+          universalName
+        )
+      }
     case _ =>
       fail(tpe)
   }
 
-  // HACK(olafur) to avoid passing around explicit placeholder everywhere. I'm lazy.
-  def withPlaceholders[T](holders: Iterable[String])(f: () => T): T = {
-    placeholders ++= holders
+  def withHardlinks[T](
+      holders: Iterable[s.SymbolInformation]
+  )(f: () => T): T = {
+    hardlinks ++= holders.iterator.map(i => i.symbol -> i)
     val result = f()
-    placeholders --= holders
+    hardlinks --= holders.iterator.map(_.symbol)
     result
   }
-  private val placeholders = mutable.Set.empty[String]
+  private val hardlinks = mutable.Map.empty[String, s.SymbolInformation]
 
   def toModAnnot(tpe: s.Type): Mod.Annot = {
     Mod.Annot(toInit(tpe))
@@ -658,24 +639,35 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
     Term.Param(
       Nil,
       Term.Name(info.name),
-      Some(toType(info.typ)),
+      Some(toType(info.valueType)),
       None
     )
   }
 
   def toTypeParam(info: s.SymbolInformation): Type.Param = {
     require(info.kind.isTypeParameter, info.toProtoString)
-    val tpe = info.typ
-    val (tparams, bounds) = tpe.tag match {
-      case t.TYPE_TYPE =>
-        val Some(s.TypeType(typeParameters, lo, hi)) = tpe.typeType
-        typeParameters.iterator.map { sym =>
-          if (sym.endsWith("[_]")) {
-            Type.Param(Nil, Name(""), Nil, Type.Bounds(None, None), Nil, Nil)
+    val (tparams, bounds) = info.signature match {
+      case s.TypeSignature(Some(typeParameters), lo, hi) =>
+        val params =
+          if (typeParameters.symlinks.isEmpty) {
+            typeParameters.hardlinks.map(toTypeParam).toList
           } else {
-            toTypeParam(this.info(sym))
+            typeParameters.symlinks.iterator.map { sym =>
+              if (sym.endsWith("[_]")) {
+                Type.Param(
+                  Nil,
+                  Name(""),
+                  Nil,
+                  Type.Bounds(None, None),
+                  Nil,
+                  Nil
+                )
+              } else {
+                toTypeParam(this.info(sym))
+              }
+            }.toList
           }
-        }.toList -> toTypeBounds(lo, hi)
+        params -> toTypeBounds(lo, hi)
       case _ =>
         Nil -> Type.Bounds(None, None)
     }
@@ -684,7 +676,7 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
       name = Type.Name(info.name),
       tparams = tparams,
       tbounds = bounds,
-      // TODO: re-sugar context and view bounds
+      // TODO: re-sugar context and view bounds https://github.com/scalacenter/scalafix/issues/759
       vbounds = Nil,
       cbounds = Nil
     )
@@ -693,9 +685,21 @@ class PrettyType private (table: SymbolTable, shorten: QualifyStrategy) {
   def toMods(info: s.SymbolInformation): List[Mod] = {
     val buf = List.newBuilder[Mod]
     info.accessibility.foreach { accessibility =>
-      // TODO: private[within]
-      if (accessibility.tag.isPrivate) buf += Mod.Private(Name.Anonymous())
-      if (accessibility.tag.isProtected) buf += Mod.Protected(Name.Anonymous())
+      accessibility.tag match {
+        case a.PRIVATE =>
+          buf += Mod.Private(Name.Anonymous())
+        case a.PRIVATE_WITHIN =>
+          buf += Mod.Private(accessibility.symbol.toIndeterminateName)
+        case a.PRIVATE_THIS =>
+          buf += Mod.Private(Term.This(Name.Anonymous()))
+        case a.PROTECTED =>
+          buf += Mod.Protected(Name.Anonymous())
+        case a.PROTECTED_WITHIN =>
+          buf += Mod.Protected(accessibility.symbol.toIndeterminateName)
+        case a.PROTECTED_THIS =>
+          buf += Mod.Protected(Term.This(Name.Anonymous()))
+        case _ =>
+      }
     }
     if (info.is(p.SEALED)) buf += Mod.Sealed()
     if (info.kind.isClass && info.is(p.ABSTRACT)) buf += Mod.Abstract()

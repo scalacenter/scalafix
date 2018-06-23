@@ -6,7 +6,7 @@ import scalatags.Text
 import metaconfig.generic.Setting
 import metaconfig.generic.Settings
 import scalatags.Text.all._
-import scala.meta._
+import scalafix.v0._
 import scala.meta.internal.io.PathIO
 
 package object website {
@@ -19,7 +19,7 @@ package object website {
 
   def allRulesTable: String = {
     val rules = ScalafixRules
-      .all(SemanticdbIndex.empty)
+      .all(v0.SemanticdbIndex.empty)
       .filterNot(_.name.isDeprecated)
       .sortBy(_.name.value)
 
@@ -34,9 +34,10 @@ package object website {
         .resolve(rule.name.value + ".md")
       if (!Files.exists(docPath.toNIO)) {
         sys.error(
-          s"Missing documentation for rule ${rule.name.value} in path $docPath")
+          s"Missing documentation for rule ${rule.name.value} in path $docPath"
+        )
       }
-      val semantic = if (rule.isInstanceOf[SemanticRule]) "✅" else ""
+      val semantic = if (rule.isInstanceOf[v0.SemanticRule]) "✅" else ""
       tr(
         td(semantic),
         td(ruleLink(rule.name.value)),
@@ -68,9 +69,9 @@ package object website {
         .toString()
     case _ => any.toString
   }
-  private def flat[T](default: T)(
-      implicit settings: Settings[T],
-      ev: T <:< Product): List[(Setting, Any)] = {
+  private def flat[T](
+      default: T
+  )(implicit settings: Settings[T], ev: T <:< Product): List[(Setting, Any)] = {
     settings.settings
       .zip(default.productIterator.toIterable)
       .flatMap {
@@ -94,7 +95,7 @@ package object website {
       td(
         // TODO(olafur) hack! Replace with ShowType[T] typeclass.
         setting.field.tpe
-          .replace("scala.meta.Symbol.Global", "Symbol")
+          .replace("scalafix.v0.Symbol.Global", "Symbol")
           .replace("java.util.regex.", "")
           .replace("scalafix.CustomMessage", "Message")
           .replace("scalafix.internal.config.", "")
@@ -123,9 +124,10 @@ package object website {
     s"#### $name\n\n" +
       html(settings.settings)
 
-  def defaults[T](ruleName: String, default: T)(
-      implicit settings: Settings[T],
-      ev: T <:< Product): String =
+  def defaults[T](
+      ruleName: String,
+      default: T
+  )(implicit settings: Settings[T], ev: T <:< Product): String =
     defaults[T](ruleName, flat(default))
 
   def defaults[T](ruleName: String, all: List[(Setting, Any)]): String = {
@@ -167,9 +169,10 @@ package object website {
     }
   }
 
-  def rule[T](ruleName: String, default: T)(
-      implicit settings: Settings[T],
-      ev: T <:< Product): String = {
+  def rule[T](
+      ruleName: String,
+      default: T
+  )(implicit settings: Settings[T], ev: T <:< Product): String = {
     val sb = new StringBuilder
     val all = flat(default)
     sb.append(html(all.map(_._1)))

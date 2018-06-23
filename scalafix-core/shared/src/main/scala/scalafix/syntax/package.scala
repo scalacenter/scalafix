@@ -1,7 +1,7 @@
 package scalafix
 
 import scala.meta._
-import scala.meta.semanticdb.Symbol
+import scalafix.v0.Symbol
 import scala.compat.Platform.EOL
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
 import scalafix.internal.util.SymbolOps

@@ -95,7 +95,10 @@ val diff = MultiScalaCrossProject(
       allJSSettings,
       npmDependencies in Compile += "diff" -> "3.2.0"
     )
-    .jsConfigure(_.enablePlugins(ScalaJSBundlerPlugin))
+    .jsConfigure(
+      _.enablePlugins(ScalaJSBundlerPlugin)
+        .disablePlugins(ScalafixPlugin)
+    )
 )
 
 val diff211 = diff(scala211)
@@ -121,6 +124,7 @@ val core = MultiScalaCrossProject(
     .jsSettings(
       libraryDependencies += "com.geirsson" %%% "metaconfig-hocon" % metaconfigV
     )
+    .jsConfigure(_.disablePlugins(ScalafixPlugin))
     .enablePlugins(BuildInfoPlugin)
 )
 
@@ -168,65 +172,6 @@ lazy val cli211 =
 lazy val cli212 =
   cli(scala212, _.dependsOn(core212JVM, reflect212, testkit212 % Test))
 
-val scalafixSbt = MultiSbtProject(
-  "sbt",
-  _.settings(
-    buildInfoSettings,
-    commands += Command.command(
-      "installCompletions",
-      "Code generates names of scalafix rules.",
-      "") { s =>
-      "cli/run --sbt scalafix-sbt/src/main/scala/scalafix/internal/sbt/ScalafixRuleNames.scala" ::
-        s
-    },
-    scalaVersion := {
-      CrossVersion.binarySbtVersion(scriptedSbt.value) match {
-        case "0.13" => scala210
-        case _ => scala212
-      }
-    },
-    sbtPlugin := true,
-    libraryDependencies ++= jgit +: coursierDeps,
-    libraryDependencies += Defaults.sbtPluginExtra(
-      "com.dwijnand" % "sbt-compat" % "1.2.6",
-      (sbtBinaryVersion in pluginCrossBuild).value,
-      (scalaBinaryVersion in update).value
-    ),
-    testQuick := {}, // these test are slow.
-    // scripted tests needs scalafix 2.12
-    // semanticdb-scala will generate the semantic db for both scala 2.11 and scala 2.12
-    publishLocal := publishLocal
-      .dependsOn(
-        publishLocal in diff212JVM,
-        publishLocal in core212JVM,
-        publishLocal in reflect212,
-        publishLocal in cli212)
-      .value,
-    moduleName := "sbt-scalafix",
-    mimaPreviousArtifacts := Set.empty,
-    scriptedLaunchOpts ++= Seq(
-      "-Dplugin.version=" + version.value,
-      // .jvmopts is ignored, simulate here
-      "-Xmx2g",
-      "-Xss2m"
-    ),
-    scriptedBufferLog := false
-  ).enablePlugins(BuildInfoPlugin)
-    .disablePlugins(ScalafixPlugin)
-)
-lazy val scalafixSbt1 = scalafixSbt(
-  scala212,
-  sbt1,
-  _.dependsOn(testUtils212 % Test)
-)
-lazy val scalafixSbt013 = scalafixSbt(
-  scala210,
-  sbt013,
-  _.settings(
-    scalacOptions -= warnUnusedImports
-  ).dependsOn(testUtils210 % Test)
-)
-
 val testUtils = MultiScalaProject(
   "test-utils",
   _.settings(
@@ -270,7 +215,8 @@ val testsShared = TestProject(
   _.settings(
     semanticdbSettings,
     noPublish
-  ))
+  )
+)
 
 lazy val testsShared211 = testsShared(scala211)
 lazy val testsShared212 = testsShared(scala212)
@@ -340,7 +286,8 @@ def unit(
     testsOutput: Project,
     testsOutputMulti: MultiScalaProject,
     testsOutputDotty: Project,
-    testsShared: Project): Project = {
+    testsShared: Project
+): Project = {
 
   val unitMultiProject =
     MultiScalaProject(
@@ -353,9 +300,6 @@ def unit(
         javaOptions := Nil,
         buildInfoPackage := "scalafix.tests",
         buildInfoObject := "BuildInfo",
-        sources.in(Test) += baseDirectory
-          .in(ThisBuild)
-          .value / "scalafix-sbt" / "src" / "main" / "scala" / "scalafix" / "internal" / "sbt" / "ScalafixJarFetcher.scala",
         libraryDependencies ++= coursierDeps ++ testsDeps
       ).enablePlugins(BuildInfoPlugin)
     )
@@ -419,6 +363,9 @@ def unit(
           sourceDirectory.in(testsOutputDotty, Compile).value,
         "semanticClasspath" ->
           classDirectory.in(testsInput, Compile).value,
+        "sharedSourceroot" ->
+          baseDirectory.in(ThisBuild).value /
+            "scalafix-tests" / "shared" / "src" / "main",
         "sharedClasspath" ->
           classDirectory.in(testsShared, Compile).value
       )
@@ -468,7 +415,8 @@ lazy val website = project
     libraryDependencies += "com.geirsson" %% "metaconfig-docs" % metaconfigV,
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(
       testkit212,
-      core212JVM)
+      core212JVM
+    )
   )
   .dependsOn(testkit212, core212JVM, cli212)
   .disablePlugins(ScalafixPlugin)
@@ -483,7 +431,8 @@ inScope(Global)(
         "Sonatype Nexus Repository Manager",
         "oss.sonatype.org",
         username,
-        password)).toSeq,
+        password
+      )).toSeq,
     PgpKeys.pgpPassphrase := sys.env.get("PGP_PASSPHRASE").map(_.toCharArray())
   )
 )

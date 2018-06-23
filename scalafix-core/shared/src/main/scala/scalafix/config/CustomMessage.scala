@@ -1,7 +1,7 @@
 package scalafix.config
 
 import metaconfig.{Conf, ConfDecoder}
-import scala.meta.Symbol
+import scalafix.v0.Symbol
 import scalafix.internal.config.ScalafixMetaconfigReaders._
 
 class CustomMessage[T](

@@ -2,7 +2,7 @@ package scalafix.internal.testkit
 
 import scala.meta._
 import scalafix.v0._
-import scala.meta.internal.ScalafixLangmetaHacks
+import scala.meta.internal.ScalametaInternals
 import scala.util.matching.Regex
 import scalafix.testkit.DiffAssertions
 
@@ -38,7 +38,7 @@ case class CommentAssertion(
     expectedMessage: Option[String]) {
 
   def formattedMessage: String =
-    ScalafixLangmetaHacks.formatMessage(
+    ScalametaInternals.formatMessage(
       caretPosition.getOrElse(anchorPosition),
       "error",
       expectedMessage.map("\n" + _).getOrElse("")
@@ -227,7 +227,7 @@ case class AssertDiff(
     val nl = "\n"
 
     def formatLintMessage(lintMessage: LintMessage): String = {
-      ScalafixLangmetaHacks.formatMessage(
+      ScalametaInternals.formatMessage(
         lintMessage.position,
         s"error: [${lintMessage.category.id}]",
         nl + lintMessage.message

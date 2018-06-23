@@ -74,7 +74,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     lazy val semanticdbSettings = Seq(
       scalacOptions ++= List(
         "-Yrangepos",
-        "-Xplugin-require:semanticdb"
+        "-Xplugin-require:semanticdb",
+        "-P:semanticdb:synthetics:on"
       ),
       addCompilerPlugin(
         "org.scalameta" % "semanticdb-scalac" % scalametaV cross CrossVersion.full)

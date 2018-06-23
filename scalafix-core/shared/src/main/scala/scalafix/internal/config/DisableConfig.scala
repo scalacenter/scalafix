@@ -3,7 +3,7 @@ package scalafix.internal.config
 import metaconfig._
 import metaconfig.annotation.{Description, ExampleValue}
 import metaconfig.generic.Surface
-import scala.meta.Symbol
+import scalafix.v0.Symbol
 
 import scalafix.internal.util.SymbolOps
 
@@ -113,8 +113,9 @@ case class DisableConfig(
                     |  }
                     |]""".stripMargin)
     symbols: List[DisabledSymbol] = Nil,
-    @Description(
-      "List of symbols to disable if inferred. Does not report an error for symbols written explicitly in source code.")
+    @Description("List of symbols to disable if inferred. " +
+      "Does not report an error for symbols written explicitly in source code. " +
+      "NOTE: Requires the compiler option -P:semanticdb:synthetics:on.")
     @ExampleValue("""
                     |[
                     |  {

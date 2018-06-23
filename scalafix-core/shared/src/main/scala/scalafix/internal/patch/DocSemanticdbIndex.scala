@@ -7,15 +7,16 @@ import scalafix.internal.v1.TreePos
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
-import scala.meta.internal.ScalafixLangmetaHacks
-import scala.meta.internal.semanticdb3.SymbolInformation
-import scala.meta.internal.semanticdb3.Accessibility.{Tag => a}
-import scala.meta.internal.semanticdb3.SymbolInformation.{Property => p}
-import scala.meta.internal.semanticdb3.SymbolInformation.{Kind => k}
-import scala.meta.internal.{semanticdb3 => s}
+import scala.meta.internal.ScalametaInternals
+import scala.meta.internal.semanticdb.SymbolInformation
+import scala.meta.internal.semanticdb.Accessibility.{Tag => a}
+import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
+import scala.meta.internal.semanticdb.SymbolInformation.{Kind => k}
+import scala.meta.internal.{semanticdb => s}
 import scalafix.internal.util.SymbolTable
 import scalafix.v1.Sym
 import scalafix.v1.SemanticDoc
+import scalafix.v0
 import scalafix.v0._
 
 import DocSemanticdbIndex._
@@ -47,7 +48,7 @@ class DocSemanticdbIndex(val doc: SemanticDoc)
   final override def symbols: Seq[ResolvedSymbol] =
     doc.sdoc.symbols.map { s =>
       ResolvedSymbol(
-        m.Symbol(s.symbol),
+        v0.Symbol(s.symbol),
         infoToDenotation(s)
       )
     }
@@ -57,7 +58,7 @@ class DocSemanticdbIndex(val doc: SemanticDoc)
     }
   override final def messages: Seq[Message] =
     doc.sdoc.diagnostics.map { diag =>
-      val pos = ScalafixLangmetaHacks.positionFromRange(doc.input, diag.range)
+      val pos = ScalametaInternals.positionFromRange(doc.input, diag.range)
       val severity = diag.severity match {
         case s.Diagnostic.Severity.INFORMATION => Severity.Info
         case s.Diagnostic.Severity.WARNING => Severity.Warning
@@ -69,10 +70,10 @@ class DocSemanticdbIndex(val doc: SemanticDoc)
     }
 
   final override def symbol(position: Position): Option[Symbol] =
-    doc.symbols(position).toList.map(s => m.Symbol(s.value)) match {
+    doc.symbols(position).toList.map(s => v0.Symbol(s.value)) match {
       case Nil => None
       case head :: Nil => Some(head)
-      case multi => Some(m.Symbol.Multi(multi))
+      case multi => Some(v0.Symbol.Multi(multi))
     }
   final override def symbol(tree: Tree): Option[Symbol] =
     symbol(TreePos.symbol(tree))
@@ -147,7 +148,7 @@ object DocSemanticdbIndex {
       info.name,
       "",
       Nil,
-      None
+      s.NoSignature
     )
   }
 
@@ -167,7 +168,7 @@ object DocSemanticdbIndex {
       doc: SemanticDoc,
       input: Input,
       occurrence: s.SymbolOccurrence): ResolvedName = {
-    val pos = ScalafixLangmetaHacks.positionFromRange(input, occurrence.range)
+    val pos = ScalametaInternals.positionFromRange(input, occurrence.range)
     ResolvedName(
       pos,
       Symbol(occurrence.symbol),
@@ -177,7 +178,7 @@ object DocSemanticdbIndex {
 
   def syntheticToLegacy(doc: SemanticDoc, synthetic: s.Synthetic): Synthetic = {
     val pos =
-      ScalafixLangmetaHacks.positionFromRange(doc.input, synthetic.range)
+      ScalametaInternals.positionFromRange(doc.input, synthetic.range)
     val names: List[ResolvedName] = synthetic.text match {
       case Some(td) =>
         val input = Input.Stream(

@@ -1,6 +1,0 @@
-> scalafixEnable
--> compile:scalafixTest
-> compile:scalafixAutoSuppressLinterErrors
-> compile:scalafixTest
-
-> check
