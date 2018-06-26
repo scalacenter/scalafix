@@ -79,7 +79,7 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
       .getOrElse("disable", "Disable")(DisableConfig.default)
       .map(Disable(index, _))
 
-  private val safeBlock = new DisableSymbolMatcher(config.allSafeBlocks)
+  private val safeBlocks = new DisableSymbolMatcher(config.allSafeBlocks)
   private val disabledSymbolInSynthetics =
     new DisableSymbolMatcher(config.ifSynthetic)
 
@@ -107,7 +107,7 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
           val symbolsInMatchedBlocks =
             config.unlessInside.flatMap(
               u =>
-                if (u.safeBlock.matches(symbolBlock)) u.symbols
+                if (u.safeBlocks.exists(_.matches(symbolBlock))) u.symbols
                 else List.empty)
           val res = blockedSymbols.filterNot(symbolsInMatchedBlocks.contains)
           res
@@ -142,10 +142,12 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
         handleName(name, blockedSymbols)
       case (
           Term
-            .Apply(Term.Select(block @ safeBlock(_, _), Term.Name("apply")), _),
+            .Apply(
+              Term.Select(block @ safeBlocks(_, _), Term.Name("apply")),
+              _),
           blockedSymbols) =>
         Right(filterBlockedSymbolsInBlock(blockedSymbols, block)) // <Block>.apply
-      case (Term.Apply(block @ safeBlock(_, _), _), blockedSymbols) =>
+      case (Term.Apply(block @ safeBlocks(_, _), _), blockedSymbols) =>
         Right(filterBlockedSymbolsInBlock(blockedSymbols, block)) // <Block>(...)
       case (_: Defn.Def, _) =>
         Right(config.allDisabledSymbols) // reset blocked symbols in def

@@ -79,8 +79,8 @@ object DisabledSymbol {
 }
 
 case class UnlessInsideBlock(
-    @Description("The symbol that indicates a 'safe' block.")
-    safeBlock: DisabledSymbol,
+    @Description("The symbols that represent 'safe' blocks.")
+    safeBlocks: List[DisabledSymbol],
     @Description(
       "The unsafe symbols that are banned unless inside a 'safe' block")
     symbols: List[DisabledSymbol])
@@ -90,10 +90,17 @@ object UnlessInsideBlock {
     generic.deriveSurface[UnlessInsideBlock]
   // NOTE(olafur): metaconfig.generic.deriveDecoder requires a default base values.
   // Here we require all fields to be provided by the user so we write the decoder manually.
+  val safeBlocksReader = ConfDecoder.instanceF[List[DisabledSymbol]] { conf =>
+    val toRead = conf match {
+      case str @ Conf.Str(_) => Conf.Lst(str)
+      case e => e
+    }
+    ConfDecoder[List[DisabledSymbol]].read(toRead)
+  }
   implicit val reader: ConfDecoder[UnlessInsideBlock] =
     ConfDecoder.instanceF[UnlessInsideBlock] {
       case c: Conf.Obj =>
-        (c.get[DisabledSymbol]("safeBlock") |@|
+        (c.get[List[DisabledSymbol]]("safeBlocks")(safeBlocksReader) |@|
           c.get[List[DisabledSymbol]]("symbols")).map {
           case (a, b) => UnlessInsideBlock(a, b)
         }
@@ -129,7 +136,7 @@ case class DisableConfig(
     @ExampleValue("""
                     |[
                     |  {
-                    |    safeBlock = "scala.util.Try"
+                    |    safeBlocks = [ "scala.util.Try" ]
                     |    symbols = [
                     |      {
                     |        symbol = "scala.Option.get"
@@ -142,7 +149,7 @@ case class DisableConfig(
     unlessInside: List[UnlessInsideBlock] = Nil
 ) {
   lazy val allSafeBlocks: List[DisabledSymbol] =
-    unlessInside.map(_.safeBlock)
+    unlessInside.flatMap(_.safeBlocks)
   lazy val allDisabledSymbols: List[DisabledSymbol] =
     symbols ++ ifSynthetic ++ unlessInside.flatMap(_.symbols)
 }
