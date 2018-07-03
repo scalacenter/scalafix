@@ -12,7 +12,7 @@ Disable.symbols = [
 
 Disable.unlessInside = [
   {
-    safeBlock = "test.DisableRegex.IO"
+    safeBlocks = "test.DisableRegex.IO"
     symbols = [
       {
         regex = {
