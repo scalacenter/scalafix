@@ -5,7 +5,7 @@ rules = [
 
 Disable.unlessInside = [
   {
-    safeBlocks = "test.DisableUnlessInside.IO"
+    safeBlock = "test.DisableUnlessInside.IO"
     symbols = [
       {
         symbol = "scala.Predef.println"
@@ -15,7 +15,7 @@ Disable.unlessInside = [
     ]
   }
   {
-    safeBlocks = "scala.Option"
+    safeBlocks = [ "scala.Option", "scala.util.Try" ]
     symbols = [
       {
         symbol = "test.DisableUnlessInside.dangerousFunction"
@@ -72,6 +72,10 @@ object DisableUnlessInside {
 
   dangerousFunction() // assert: Disable.dangerousFunction
   Option {
+    println("not here") // assert: Disable.println
+    dangerousFunction() // ok
+  }
+  util.Try {
     println("not here") // assert: Disable.println
     dangerousFunction() // ok
   }

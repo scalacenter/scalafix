@@ -4,7 +4,6 @@ import metaconfig._
 import metaconfig.annotation.{Description, ExampleValue}
 import metaconfig.generic.Surface
 import scalafix.v0.Symbol
-
 import scalafix.internal.util.SymbolOps
 
 case class DisabledSymbol(
@@ -88,19 +87,20 @@ case class UnlessInsideBlock(
 object UnlessInsideBlock {
   implicit val surface: Surface[UnlessInsideBlock] =
     generic.deriveSurface[UnlessInsideBlock]
+  val safeBlocksReader: ConfDecoder[List[DisabledSymbol]] =
+    ConfDecoder.instanceF[List[DisabledSymbol]] { conf =>
+      val toRead = conf match {
+        case str @ Conf.Str(_) => Conf.Lst(str)
+        case e => e
+      }
+      ConfDecoder[List[DisabledSymbol]].read(toRead)
+    }
   // NOTE(olafur): metaconfig.generic.deriveDecoder requires a default base values.
   // Here we require all fields to be provided by the user so we write the decoder manually.
-  val safeBlocksReader = ConfDecoder.instanceF[List[DisabledSymbol]] { conf =>
-    val toRead = conf match {
-      case str @ Conf.Str(_) => Conf.Lst(str)
-      case e => e
-    }
-    ConfDecoder[List[DisabledSymbol]].read(toRead)
-  }
   implicit val reader: ConfDecoder[UnlessInsideBlock] =
     ConfDecoder.instanceF[UnlessInsideBlock] {
       case c: Conf.Obj =>
-        (c.get[List[DisabledSymbol]]("safeBlocks")(safeBlocksReader) |@|
+        (c.get("safeBlocks", "safeBlock")(safeBlocksReader) |@|
           c.get[List[DisabledSymbol]]("symbols")).map {
           case (a, b) => UnlessInsideBlock(a, b)
         }
