@@ -29,7 +29,7 @@ if [[ "$TRAVIS_SECURE_ENV_VARS" == true && "$CI_PUBLISH" == true ]]; then
   echo "$PGP_SECRET" | base64 --decode | gpg --import
   if [ -n "$TRAVIS_TAG" ]; then
     echo "Tag push, publishing stable release to Sonatype."
-    sbt ci-release sonatypeReleaseAll
+    sbt ci-release sonatypeRelease
   else
     echo "Merge, publishing snapshot to Sonatype."
     sbt -Dscalafix.snapshot=true ci-release
