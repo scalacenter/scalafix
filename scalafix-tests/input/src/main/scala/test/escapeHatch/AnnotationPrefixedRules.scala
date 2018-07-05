@@ -18,9 +18,7 @@ object AnnotationPrefixedRules {
     val z = x.get // assert: Disable.get
   }
 
-  @SuppressWarnings(Array("scalafix:Disable.get"))
-  @SuppressWarnings(Array("scalafix:NoDummy"))
-  @SuppressWarnings(Array("scalafix:NoNull"))
+  @SuppressWarnings(Array("scalafix:Disable.get", "scalafix:NoDummy", "scalafix:NoNull"))
   def aDummy1(x: Option[Any]): Unit = {
     val y = null
     val z = x.get

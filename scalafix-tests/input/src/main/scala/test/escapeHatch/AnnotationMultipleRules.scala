@@ -25,18 +25,9 @@ object AnnotationMultipleRules {
     val z = x.get
   }
 
-  // annotations in same element
-  @SuppressWarnings(Array("Disable.get"))
-  @SuppressWarnings(Array("NoDummy"))
-  @SuppressWarnings(Array("NoNull"))
-  def aDummy2(x: Option[Any]): Unit = {
-    val y = null
-    val z = x.get
-  }
-
   // annotations in individual elements
   @SuppressWarnings(Array("NoDummy"))
-  def aDummy3(x: Option[Any]): Unit = {
+  def aDummy2(x: Option[Any]): Unit = {
     @SuppressWarnings(Array("NoNull"))
     val y = null
     @SuppressWarnings(Array("Disable.get"))
