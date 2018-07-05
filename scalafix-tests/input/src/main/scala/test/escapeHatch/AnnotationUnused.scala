@@ -14,8 +14,7 @@ object AnnotationUnused {
   @SuppressWarnings(Array("scalafix:NoDummy", "NoNull")) // assert: UnusedScalafixSuppression
   def b = ()
 
-  @SuppressWarnings(Array("scalafix:NoDummy")) // assert: UnusedScalafixSuppression
-  @SuppressWarnings(Array("scalafix:NoNull")) // assert: UnusedScalafixSuppression
+  @SuppressWarnings(Array("scalafix:NoDummy", "scalafix:NoNull")) // assert: UnusedScalafixSuppression
   val c = 0
 
   @SuppressWarnings(Array("NoDummy", "NoNull")) // OK, not prefixed

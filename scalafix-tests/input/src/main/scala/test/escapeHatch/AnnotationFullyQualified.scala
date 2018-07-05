@@ -12,8 +12,7 @@ package test.escapeHatch
 
 object AnnotationFullyQualified {
 
-  @java.lang.SuppressWarnings(Array("scalafix:NoDummy"))
-  @java.lang.SuppressWarnings(Array("scalafix:NoNull"))
+  @java.lang.SuppressWarnings(Array("scalafix:NoNull", "scalafix:NoDummy"))
   def aDummy(x: Option[Any]): Unit = {
     val y = null
   }
