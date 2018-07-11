@@ -7,7 +7,7 @@ import scala.{meta => m}
 import scalafix.internal.patch.CrashingSemanticdbIndex
 import scalafix.internal.patch.DocSemanticdbIndex
 import scalafix.internal.reflect.ClasspathOps
-import scalafix.internal.util.SymbolTable
+import scala.meta.internal.symtab.SymbolTable
 import scalafix.internal.v1.TreePos
 import scalafix.util.SemanticdbIndex
 import scalafix.v0.Database
@@ -17,8 +17,10 @@ import scalafix.v0
 import scalafix.v1
 import scalafix.internal.v1._
 
-case class LegacyInMemorySemanticdbIndex(index: Map[String, SemanticdbIndex])
-    extends CrashingSemanticdbIndex {
+case class LegacyInMemorySemanticdbIndex(index: Map[String, SemanticdbIndex], symtab: SymbolTable)
+    extends CrashingSemanticdbIndex with SymbolTable {
+
+  def info(symbol: String): Option[s.SymbolInformation] = symtab.info(symbol)
 
   override def inputs: Seq[m.Input] = {
     index.values.collect {
@@ -97,7 +99,7 @@ object LegacyInMemorySemanticdbIndex {
         }
       }
     }
-    LegacyInMemorySemanticdbIndex(buf.result())
+    LegacyInMemorySemanticdbIndex(buf.result(), symtab)
   }
 
 }

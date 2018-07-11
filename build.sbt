@@ -1,4 +1,3 @@
-import sbt.ScriptedPlugin._
 import Dependencies._
 
 version.in(ThisBuild) ~= { old: String =>
@@ -7,11 +6,6 @@ version.in(ThisBuild) ~= { old: String =>
     else ""
   sys.props.getOrElse("scalafix.version", old.replace('+', '-') + suffix)
 }
-
-lazy val scalafixSettings = List(
-  addCompilerPlugin(scalafixSemanticdb),
-  scalacOptions += "-Yrangepos"
-)
 
 lazy val scalaFixedProjects: List[ProjectReference] =
   List(
@@ -86,8 +80,7 @@ val diff = MultiScalaCrossProject(
   "diff",
   _.settings(
     moduleName := "scalafix-diff",
-    description := "JVM/JS library to build unified diffs.",
-    scalafixSettings
+    description := "JVM/JS library to build unified diffs."
   ).jvmSettings(
       libraryDependencies += googleDiff
     )
@@ -97,7 +90,6 @@ val diff = MultiScalaCrossProject(
     )
     .jsConfigure(
       _.enablePlugins(ScalaJSBundlerPlugin)
-        .disablePlugins(ScalafixPlugin)
     )
 )
 
@@ -113,9 +105,9 @@ val core = MultiScalaCrossProject(
   "core",
   _.settings(
     buildInfoSettings,
-    scalafixSettings,
     libraryDependencies ++= List(
       scalameta.value,
+      symtab,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
     )
   ).jvmSettings(
@@ -124,7 +116,6 @@ val core = MultiScalaCrossProject(
     .jsSettings(
       libraryDependencies += "com.geirsson" %%% "metaconfig-hocon" % metaconfigV
     )
-    .jsConfigure(_.disablePlugins(ScalafixPlugin))
     .enablePlugins(BuildInfoPlugin)
 )
 
@@ -140,7 +131,6 @@ val reflect = MultiScalaProject(
   "reflect",
   _.settings(
     isFullCrossVersion,
-    scalafixSettings,
     libraryDependencies ++= Seq(
       metacp,
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
@@ -156,7 +146,6 @@ val cli = MultiScalaProject(
   "cli",
   _.settings(
     isFullCrossVersion,
-    scalafixSettings,
     mainClass in assembly := Some("scalafix.v1.Main"),
     assemblyJarName in assembly := "scalafix.jar",
     libraryDependencies ++= Seq(
@@ -194,7 +183,6 @@ val testkit = MultiScalaProject(
   "testkit",
   _.settings(
     isFullCrossVersion,
-    scalafixSettings,
     libraryDependencies ++= Seq(
       semanticdb,
       googleDiff,
@@ -269,7 +257,6 @@ lazy val testsOutputDotty = project
     libraryDependencies := libraryDependencies.value.map(_.withDottyCompat()),
     scalacOptions := Nil
   )
-  .disablePlugins(ScalafixPlugin)
 
 def unit(
     scalav: String,
@@ -290,7 +277,6 @@ def unit(
       s"scalafix-tests/unit",
       _.settings(
         noPublish,
-        scalafixSettings,
         fork := false,
         javaOptions := Nil,
         buildInfoPackage := "scalafix.tests",
@@ -419,7 +405,6 @@ lazy val website = project
     )
   )
   .dependsOn(testkit212, core212JVM, cli212)
-  .disablePlugins(ScalafixPlugin)
 
 inScope(Global)(
   Seq(

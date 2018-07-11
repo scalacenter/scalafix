@@ -1,7 +1,6 @@
 package scalafix.internal.v1
 
 import java.io.PrintStream
-import java.nio.ByteBuffer
 import java.nio.CharBuffer
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileVisitResult
@@ -9,8 +8,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
-import java.security.MessageDigest
-import javax.xml.bind.DatatypeConverter
 import metaconfig.Conf
 import metaconfig.ConfEncoder
 import metaconfig.annotation.Hidden

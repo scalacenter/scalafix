@@ -21,17 +21,17 @@ object ReplaceSymbolOps {
   def naiveMoveSymbolPatch(moveSymbols: Seq[ReplaceSymbol])(
       implicit ctx: RuleCtx,
       index: SemanticdbIndex): Patch = {
-    val moves: Map[Symbol, Symbol.Global] =
+    val moves: Map[String, Symbol.Global] =
       moveSymbols.toIterator.flatMap {
         case ReplaceSymbol(
-            term @ Symbol.Global(qual, Signature.Method(name, _)),
+            term @ Symbol.Global(_, Signature.Method(_, _)),
             to) =>
-          (term -> to) :: Nil
+          (term.syntax -> to) :: Nil
         case ReplaceSymbol(
             term @ Symbol.Global(qual, Signature.Term(name)),
             to) =>
-          (term -> to) ::
-            (Symbol.Global(qual, Signature.Type(name)) -> to) ::
+          (term.syntax -> to) ::
+            (Symbol.Global(qual, Signature.Type(name)).syntax -> to) ::
             Nil
       }.toMap
     def loop(ref: Ref, sym: Symbol): (Patch, Symbol) = {
@@ -40,7 +40,7 @@ object ReplaceSymbolOps {
         case (a @ Name(_), Symbol.Global(Symbol.None, SignatureName(b))) =>
           ctx.replaceTree(a, b) -> Symbol.None
         // ref is shorter
-        case (a @ Name(_), sym @ Symbol.Global(qual, SignatureName(b))) =>
+        case (a @ Name(_), sym @ Symbol.Global(_, SignatureName(b))) =>
           ctx.replaceTree(a, b) -> sym
         // ref is longer
         case (
@@ -55,6 +55,11 @@ object ReplaceSymbolOps {
           (patch + ctx.replaceTree(a, b)) -> toImport
       }
     }
+    object Moved {
+      def unapply(arg: Symbol): Option[Symbol.Global] = {
+        moves.get(arg.syntax).orElse(moves.get(arg.normalized.syntax))
+      }
+    }
     object Move {
       def unapply(name: Name): Option[Symbol.Global] = {
         val result = name.symbol.toIterator
@@ -63,8 +68,7 @@ object ReplaceSymbolOps {
             case els => els :: Nil
           }
           .collectFirst {
-            case x if moves.contains(x) => moves(x)
-            case x if moves.contains(x.normalized) => moves(x.normalized)
+            case Moved(out) => out
           }
         result
       }

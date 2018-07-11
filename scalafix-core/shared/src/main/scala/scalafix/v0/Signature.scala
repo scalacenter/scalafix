@@ -21,6 +21,12 @@ object Signature {
     override def toString: String = syntax
   }
 
+  final case class Package(name: String) extends Signature {
+    override def syntax: String = d.Package(name).toString
+    override def structure = s"""Signature.Package("$name")"""
+    override def toString: String = syntax
+  }
+
   final case class Method(name: String, disambiguator: String)
       extends Signature {
     @deprecated("Use `disambiguator` instead.", "3.3.0")

@@ -4,7 +4,7 @@ import metaconfig.Conf
 import metaconfig.internal.ConfGet
 import scalafix.v1
 import scala.meta._
-import scalafix.internal.util.SymbolTable
+import scala.meta.internal.symtab.SymbolTable
 import scalafix.internal.v1.Rules
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 import scalafix.internal.config.ScalafixConfig

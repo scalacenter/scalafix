@@ -3,7 +3,7 @@ import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 /* scalafmt: { maxColumn = 120 }*/
 
 object Dependencies {
-  val scalametaV = "4.0.0-M4"
+  val scalametaV = "4.0.0-M4-194-4947ce29-SNAPSHOT"
   val metaconfigV = "0.8.3"
   def dotty = "0.1.1-bin-20170530-f8f52cc-NIGHTLY"
   def scala210 = "2.10.6"
@@ -24,6 +24,7 @@ object Dependencies {
 
   def metacp = "org.scalameta" %% "metacp" % scalametaV
   def scalameta = Def.setting("org.scalameta" %%% "contrib" % scalametaV)
+  def symtab = "org.scalameta" %% "symtab" % scalametaV
   def scalatest = "org.scalatest" %% "scalatest" % "3.2.0-SNAP10"
   def scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.0"
 

@@ -9,7 +9,7 @@ import scala.meta.Source
 import scala.meta.parsers.Parsed
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
-import scalafix.internal.util.SymbolTable
+import scala.meta.internal.symtab.SymbolTable
 
 case class ValidatedArgs(
     args: Args,

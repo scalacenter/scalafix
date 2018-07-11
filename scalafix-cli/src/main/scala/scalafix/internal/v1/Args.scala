@@ -27,7 +27,7 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.jgit.JGitDiff
 import scalafix.internal.reflect.ClasspathOps
-import scalafix.internal.util.SymbolTable
+import scala.meta.internal.symtab.SymbolTable
 import scalafix.v1.RuleDecoder
 
 class Section(val name: String) extends StaticAnnotation

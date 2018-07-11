@@ -8,6 +8,7 @@ object SymbolOps {
     def unapply(arg: Signature): Option[String] = arg match {
       case Signature.Term(a) => Some(a)
       case Signature.Type(a) => Some(a)
+      case Signature.Package(a) => Some(a)
       case _ => None
     }
   }
@@ -19,15 +20,16 @@ object SymbolOps {
   }
   object Root {
     def apply(): Symbol.Global =
-      Symbol.Global(Symbol.None, Signature.Term("_root_"))
+      Symbol.Global(Symbol.None, Signature.Package("_root_"))
     def apply(signature: Signature): Symbol.Global =
       Symbol.Global(apply(), signature)
     def unapply(arg: Symbol): Option[Signature] = arg match {
       case Symbol.Global(
-          Symbol.Global(Symbol.None, Signature.Term("_root_")),
+          Symbol.Global(Symbol.None, Signature.Package("_root_")),
           sig) =>
         Some(sig)
-      case _ => None
+      case _ =>
+        None
     }
   }
   def toTermRef(symbol: Symbol): Term.Ref = {

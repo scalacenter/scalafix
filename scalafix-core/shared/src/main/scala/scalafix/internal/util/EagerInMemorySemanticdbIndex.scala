@@ -3,6 +3,7 @@ package scalafix.internal.util
 import scala.collection.mutable
 import scala.meta._
 import scala.meta.internal.{semanticdb => s}
+import scala.meta.internal.symtab._
 import scalafix.internal.v0._
 import scalafix.util.SemanticdbIndex
 import scalafix.v0._
@@ -11,7 +12,7 @@ import scalafix.v0
 case class EagerInMemorySemanticdbIndex(
     database: Database,
     classpath: Classpath,
-    table: SymbolTable = SymbolTable.empty
+    table: SymbolTable = AggregateSymbolTable(Nil)
 ) extends SemanticdbIndex
     with SymbolTable {
   override def toString: String =

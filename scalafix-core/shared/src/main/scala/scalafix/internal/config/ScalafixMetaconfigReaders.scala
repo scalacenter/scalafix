@@ -254,7 +254,6 @@ trait ScalafixMetaconfigReaders {
                 .notOk
           }
         var toParse = path
-        if (!path.startsWith("_")) toParse = s"_root_.$toParse"
         if (!path.endsWith(".") && !path.endsWith("#")) toParse += "."
         parseSymbol(toParse).andThen(symbolGlobal)
     }
@@ -262,7 +261,7 @@ trait ScalafixMetaconfigReaders {
     importerReader.map(AddGlobalImport.apply)
   implicit lazy val RemoveGlobalImportReader: ConfDecoder[RemoveGlobalImport] =
     termRefReader.flatMap { ref =>
-      parseSymbol(s"_root_.$ref.").map { s =>
+      parseSymbol(ref.syntax + ".").map { s =>
         RemoveGlobalImport(s)
       }
     }

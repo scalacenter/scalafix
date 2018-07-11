@@ -25,8 +25,15 @@ object Symbol {
   final case class Global(owner: Symbol, signature: Signature) extends Symbol {
     override def toString: String = syntax
     override def syntax: String = this match {
-      case Root(sig) => sig.syntax
-      case _ => owner.syntax + signature.syntax
+      case Root(sig) =>
+        sig.syntax
+      case Symbol.Global(
+          Symbol.Global(Symbol.None, Signature.Term("_root_")),
+          sig) =>
+        // For legacy reasons, we special case the `_root_.` term symbol.
+        sig.syntax
+      case _ =>
+        owner.syntax + signature.syntax
     }
     override def structure =
       s"""Symbol.Global(${owner.structure}, ${signature.structure})"""
@@ -34,7 +41,7 @@ object Symbol {
 
   final case class Multi(symbols: List[Symbol]) extends Symbol {
     override def toString: String = syntax
-    override def syntax: String = symbols.mkString(";")
+    override def syntax: String = symbols.mkString(";", ";", "")
     override def structure =
       s"""Symbol.Multi(${symbols.map(_.structure).mkString(", ")})"""
   }
@@ -88,8 +95,8 @@ object Symbol {
 
       def parseSymbol(owner: Symbol): Symbol = {
         def global(signature: Signature): Symbol.Global = {
-          if (owner == Symbol.None && signature != Signature.Term("_root_")) {
-            val root = Symbol.Global(Symbol.None, Signature.Term("_root_"))
+          if (owner == Symbol.None && signature != Signature.Package("_root_")) {
+            val root = Symbol.Global(Symbol.None, Signature.Package("_root_"))
             Symbol.Global(root, signature)
           } else {
             Symbol.Global(owner, signature)
@@ -122,6 +129,9 @@ object Symbol {
           } else if (currChar == '.') {
             readChar()
             parseSymbol(global(Signature.Term(name)))
+          } else if (currChar == '/') {
+            readChar()
+            parseSymbol(global(Signature.Package(name)))
           } else if (currChar == '(') {
             val start = i - 1
             while (readChar() != ')') {
@@ -148,5 +158,6 @@ object Symbol {
     }
     naiveParser.entryPoint()
   }
-  def unapply(sym: String): Option[Symbol] = scala.util.Try(apply(sym)).toOption
+  def unapply(sym: String)(implicit index: SemanticdbIndex): Option[Symbol] =
+    scala.util.Try(apply(sym)).toOption
 }

@@ -9,7 +9,7 @@ class SymbolMatcherSuite extends BaseSemanticSuite("SymbolMatcherTest") {
 
   test("matches/unapply") {
     val symbolMatcher =
-      SymbolMatcher.exact(Symbol("_root_.test.SymbolMatcherTest."))
+      SymbolMatcher.exact(Symbol("test/SymbolMatcherTest."))
     val assertions = source.collect {
       case symbolMatcher(t @ Name(_)) =>
         assert(t.is[Term.Name])
@@ -21,10 +21,10 @@ class SymbolMatcherSuite extends BaseSemanticSuite("SymbolMatcherTest") {
   }
 
   test("normalized") {
-    val term = SymbolMatcher.normalized(Symbol("_root_.Foo.a."))
-    assert(term.matches(Symbol("_root_.Foo.a#"))) // type
-    assert(term.matches(Symbol("_root_.Foo#a(Int)."))) // method
-    assert(!term.matches(Symbol("_root_.Foo.a.apply()."))) // apply
+    val term = SymbolMatcher.normalized(Symbol("Foo.a."))
+    assert(term.matches(Symbol("Foo.a#"))) // type
+    assert(term.matches(Symbol("Foo#a()."))) // method
+    assert(!term.matches(Symbol("Foo.a.apply()."))) // apply
   }
 
 }

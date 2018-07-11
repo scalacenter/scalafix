@@ -141,11 +141,12 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
       case (Type.Select(q, name), blockedSymbols) if skipTermSelect(q) =>
         handleName(name, blockedSymbols)
       case (
-          Term
-            .Apply(
-              Term.Select(block @ safeBlocks(_, _), Term.Name("apply")),
-              _),
-          blockedSymbols) =>
+          Term.Apply(
+            Term.Select(block @ safeBlocks(_, _), Term.Name("apply")),
+            _
+          ),
+          blockedSymbols
+          ) =>
         Right(filterBlockedSymbolsInBlock(blockedSymbols, block)) // <Block>.apply
       case (Term.Apply(block @ safeBlocks(_, _), _), blockedSymbols) =>
         Right(filterBlockedSymbolsInBlock(blockedSymbols, block)) // <Block>(...)

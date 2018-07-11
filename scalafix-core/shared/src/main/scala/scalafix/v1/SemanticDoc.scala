@@ -5,7 +5,7 @@ import scala.meta.io.RelativePath
 import scala.collection.mutable.ListBuffer
 import scala.meta._
 import scala.meta.contrib.AssociatedComments
-import scalafix.internal.util.SymbolTable
+import scala.meta.internal.symtab.SymbolTable
 import scalafix.util.MatchingParens
 import scalafix.util.TokenList
 import scala.meta.internal.{semanticdb => s}
@@ -56,8 +56,10 @@ final class SemanticDoc private[scalafix] (
         locals.getOrElse(sym.value, throw new MissingSymbolException(sym))
       )
     } else {
-      new Sym.Info(
-        symtab.info(sym.value).getOrElse(throw new MissingSymbolException(sym)))
+      symtab.info(sym.value) match {
+        case Some(x) => new Sym.Info(x)
+        case _ => Sym.Info.empty
+      }
     }
   }
 

@@ -31,7 +31,8 @@ case class DisabledSymbol(
 
   def matches(symbol: Symbol): Boolean = {
     this.symbol match {
-      case Some(s) => SymbolOps.isSameNormalized(symbol, s)
+      case Some(s) =>
+        SymbolOps.isSameNormalized(symbol, s)
       case None =>
         regex match {
           case Some(r) => r.matches(symbol.toString)

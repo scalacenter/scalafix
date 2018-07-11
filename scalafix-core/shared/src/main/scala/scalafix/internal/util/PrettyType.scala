@@ -2,6 +2,7 @@ package scalafix.internal.util
 
 import scala.collection.mutable
 import scala.meta._
+import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.semanticdb.Scala._
 import scala.meta.internal.semanticdb.SymbolInformation.{Kind => k}
 import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
@@ -82,7 +83,7 @@ class PrettyType private (
           tpe
         case _ =>
           throw new IllegalArgumentException(
-            s"Expected ValueSignature. Obtained: ${info.toProtoString}"
+            s"Expected ValueSignature. Obtained: ${info.toString}"
           )
       }
     }
@@ -361,7 +362,7 @@ class PrettyType private (
       // Workaround for https://github.com/scalameta/scalameta/issues/1497
       s.TypeRef(
         prefix = s.NoType,
-        symbol = "scala.collection.Seq#",
+        symbol = "scala/collection/Seq#",
         typeArguments = targ :: Nil
       )
     case targ =>
@@ -401,7 +402,7 @@ class PrettyType private (
       } catch {
         case NonFatal(e) =>
           if (fatalErrors) {
-            throw new Exception(info.toProtoString, e) with NoStackTrace
+            throw new Exception(info.toString, e) with NoStackTrace
           } else {
             None
           }
@@ -418,9 +419,9 @@ class PrettyType private (
   def fail(tree: Tree): Nothing =
     throw TypeToTreeError(tree.syntax + s"\n\n${tree.structure}")
   def fail(any: GeneratedMessage): Nothing =
-    throw TypeToTreeError(any.toProtoString)
+    throw TypeToTreeError(any.toString)
   def fail(any: GeneratedMessage, cause: Throwable): Nothing =
-    throw TypeToTreeError(any.toProtoString, Some(cause))
+    throw TypeToTreeError(any.toString, Some(cause))
 
   def toTermRef(info: s.SymbolInformation): Term.Ref = {
     if (info.kind.isParameter) Term.Name(info.name)
@@ -510,6 +511,8 @@ class PrettyType private (
           val qual: Type.Ref = prefix match {
             case s.NoType =>
               if (shorten.isName) {
+                name
+              } else if (symbol.isLocal) {
                 name
               } else {
                 toTypeRef(info(symbol))
@@ -645,7 +648,7 @@ class PrettyType private (
   }
 
   def toTypeParam(info: s.SymbolInformation): Type.Param = {
-    require(info.kind.isTypeParameter, info.toProtoString)
+    require(info.kind.isTypeParameter, info.toString)
     val (tparams, bounds) = info.signature match {
       case s.TypeSignature(Some(typeParameters), lo, hi) =>
         val params =

@@ -1,9 +1,10 @@
 package scalafix.v0
 
 import scala.meta._
-import scalafix.internal.util.EagerInMemorySemanticdbIndex
+import scala.meta.internal.symtab.SymbolTable
 import scalafix.v1.SemanticContext
 import SemanticdbIndex.DeprecationMessage
+import scala.meta.internal.semanticdb.SymbolInformation
 
 /** An index for looking up data in a scala.meta.Database. */
 trait SemanticdbIndex extends SemanticContext {
@@ -70,7 +71,17 @@ trait SemanticdbIndex extends SemanticContext {
 object SemanticdbIndex {
   final val DeprecationMessage = "No longer supported"
   val empty: SemanticdbIndex =
-    EagerInMemorySemanticdbIndex(Database(Nil), Classpath(Nil))
+    new SemanticdbIndex with SymbolTable {
+      override def info(symbol: String): Option[SymbolInformation] = None
+      override def classpath: Classpath = Classpath(Nil)
+      override def database: Database = Database(Nil)
+      override def names: Seq[ResolvedName] = Nil
+      override def symbol(position: _root_.scala.meta.Position): Option[Symbol] = None
+      override def symbol(tree: Tree): Option[Symbol] = None
+      override def denotation(symbol: Symbol): Option[Denotation] = None
+      override def denotation(tree: Tree): Option[Denotation] = None
+      override def withDocuments(documents: Seq[Document]): SemanticdbIndex = this
+    }
 
   @deprecated(
     "Use scalafix.internal.v0.LegacyInMemorySemanticdbIndex from scalafix-reflect instead",

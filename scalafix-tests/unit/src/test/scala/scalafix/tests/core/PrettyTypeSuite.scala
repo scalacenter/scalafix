@@ -1,15 +1,18 @@
 package scalafix.tests.core
 
 import scala.meta.internal.ScalametaInternals
+import scala.meta.internal.io.PathIO
 import scala.meta.internal.io.PlatformFileIO
-import scala.meta.internal.semanticdb.Index
 import scala.meta.internal.trees.Origin
+import scala.meta.internal.symtab._
+import scala.meta.internal.metacp._
+import scala.meta.internal.classpath.ClasspathIndex
 import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
 import scala.{meta => m}
-import scalafix.internal.reflect.ClasspathOps
-import scalafix.internal.reflect.RuleCompiler
-import scalafix.internal.util.LazySymbolTable
+import scala.meta.internal.semanticdb.Scala._
+import scala.meta.internal.semanticdb.SymbolInformation
+import scala.meta.io.AbsolutePath
 import scalafix.internal.util.QualifyStrategy
 import scalafix.internal.util.PrettyType
 
@@ -17,17 +20,8 @@ class BasePrettyTypeSuite extends BaseSemanticSuite("TypeToTreeInput") {
   super.beforeAll()
   val dir: m.AbsolutePath =
     m.AbsolutePath(scalafix.tests.BuildInfo.sharedClasspath)
-  val mclasspath = ClasspathOps
-    .toMetaClasspath(
-      m.Classpath(
-        dir :: RuleCompiler.defaultClasspathPaths.filter { path =>
-          path.isFile ||
-          path.toNIO.getFileName.toString.contains("scala-library")
-        }
-      )
-    )
-    .get
-  val table = new LazySymbolTable(mclasspath)
+  val classpath = Classpaths.withDirectory(dir)
+  val table = GlobalSymbolTable(classpath)
 }
 
 class PrettyTypeSuite extends BasePrettyTypeSuite {
@@ -42,14 +36,16 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
       val name = expected.name.value
       test(s"${expected.productPrefix} - $name") {
         val suffix: String = expected match {
-          case _: m.Defn.Object => "."
-          case _: m.Pkg.Object => ".package."
-          case _ => "#"
+          case _: m.Defn.Object => s"$name."
+          case _: m.Pkg.Object => s"$name/package."
+          case _ => s"$name#"
         }
-        val info = table.info(s"test.$name$suffix").get
+        val sym = s"test/$suffix"
+        val info =
+          table.info(sym).getOrElse(throw new NoSuchElementException(sym))
         val obtained =
           PrettyType
-            .toTree(info, table, QualifyStrategy.Readable, fatalErrors = false)
+            .toTree(info, table, QualifyStrategy.Readable, fatalErrors = true)
             .tree
         val expectedSyntax =
           // TODO: Remove withOrigin after https://github.com/scalameta/scalameta/issues/1526
@@ -62,40 +58,77 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
 
 class PrettyTypeFuzzSuite extends BasePrettyTypeSuite {
 
+  val classpathIndex = ClasspathIndex(classpath)
+
+  def checkToplevel(toplevel: SymbolInformation): Unit = {
+    val info = table.info(toplevel.symbol).get
+    try {
+      PrettyType.toTree(
+        info,
+        table,
+        QualifyStrategy.Readable,
+        fatalErrors = false
+      )
+    } catch {
+      case e: NoSuchElementException
+          // FIXME
+          if e.getMessage.endsWith("_#") ||
+            e.getMessage.endsWith("`?0`#") ||
+            e.getMessage.endsWith("`1`#") ||
+            e.getMessage.endsWith("`2`#") =>
+        ()
+      case NonFatal(e) =>
+        throw new IllegalArgumentException(toplevel.toProtoString, e)
+        with NoStackTrace
+    }
+  }
+
+  def checkPath(file: AbsolutePath): Unit = {
+    val node = file.toClassNode
+    ClassfileInfos
+      .fromClassNode(node, classpathIndex)
+      .foreach { classfile =>
+        classfile.infos.foreach { toplevel =>
+          if (toplevel.symbol.owner.isPackage) {
+            checkToplevel(toplevel)
+          }
+        }
+      }
+  }
+
+  def ignore(path: AbsolutePath): Boolean = {
+    val uri = path.toURI.toString
+    uri.contains("scala/tools/nsc/interpreter/jline") ||
+    uri.contains("AntTask") ||
+    uri.contains("org/scalatest/testng") ||
+    uri.contains("org/scalatest/selenium") ||
+    uri.contains("org/scalatest/mockito") ||
+    uri.contains("org/scalatest/easymock") ||
+    uri.contains("org/scalatest/jmock") ||
+    uri.contains("org/scalatest/junit")
+  }
+
   for {
-    entry <- mclasspath.entries
+    entry <- classpath.entries
+    if entry.isFile
   } {
     // ignore these test  by default because they are slow and
     // there is no need to run them on every PR.
     ignore(entry.toNIO.getFileName.toString) {
-      if (entry.isFile) {
-        PlatformFileIO.withJarFileSystem(entry, create = false) { root =>
-          val indexPath = root
-            .resolve("META-INF")
-            .resolve("semanticdb.semanticidx")
-            .readAllBytes
-          val index = Index.parseFrom(indexPath)
-          index.toplevels.foreach { toplevel =>
-            val info = table.info(toplevel.symbol).get
-            try PrettyType.toTree(
-              info,
-              table,
-              QualifyStrategy.Readable,
-              fatalErrors = false
-            )
-            catch {
-              case e: NoSuchElementException =>
-                // Workaround for https://github.com/scalameta/scalameta/issues/1491
-                // It's not clear how to fix that issue.
-                cancel(e.getMessage)
-              case NonFatal(e) =>
-                throw new IllegalArgumentException(info.toProtoString, e)
-                with NoStackTrace
+      PlatformFileIO.withJarFileSystem(entry, create = false) { root =>
+        val files = PlatformFileIO.listAllFilesRecursively(root)
+        files.foreach { file =>
+          if (PathIO.extension(file.toNIO) == "class" && !ignore(file)) {
+            try {
+              checkPath(file)
+            } catch {
+              case scala.meta.internal.classpath.MissingSymbolException(e) =>
+                pprint.log(file)
+                ()
             }
           }
         }
       }
-
     }
   }
 }

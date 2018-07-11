@@ -13,7 +13,7 @@ import scala.meta.internal.semanticdb.Accessibility.{Tag => a}
 import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
 import scala.meta.internal.semanticdb.SymbolInformation.{Kind => k}
 import scala.meta.internal.{semanticdb => s}
-import scalafix.internal.util.SymbolTable
+import scala.meta.internal.symtab.SymbolTable
 import scalafix.v1.Sym
 import scalafix.v1.SemanticDoc
 import scalafix.v0

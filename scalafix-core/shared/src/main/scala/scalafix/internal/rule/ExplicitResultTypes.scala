@@ -20,7 +20,7 @@ import metaconfig.Configured
 import scalafix.internal.util.PrettyResult
 import scalafix.internal.util.QualifyStrategy
 import scalafix.internal.util.PrettyType
-import scalafix.internal.util.SymbolTable
+import scala.meta.internal.symtab.SymbolTable
 import scalafix.v1.MissingSymbolException
 
 case class ExplicitResultTypes(

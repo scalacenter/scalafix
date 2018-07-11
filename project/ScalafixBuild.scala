@@ -173,7 +173,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     ),
     testOptions in Test += Tests.Argument("-oD"),
     updateOptions := updateOptions.value.withCachedResolution(true),
-    resolvers += Resolver.sonatypeRepo("releases"),
     triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
     commands += Command.command("ci-release") { s =>
       "clean" ::
@@ -262,6 +261,11 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
+    resolvers ++= List(
+      Resolver.sonatypeRepo("snapshots"),
+      Resolver.sonatypeRepo("releases"),
+      Resolver.mavenLocal
+    ),
     publishTo := Some {
       if (isCustomRepository) "adhoc" at adhocRepoUri
       else if (isSnapshot.value) Opts.resolver.sonatypeSnapshots

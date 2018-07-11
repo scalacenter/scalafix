@@ -13,8 +13,7 @@ import java.nio.file.attribute.BasicFileAttributes
 import scala.meta.io.AbsolutePath
 import scala.meta.Classpath
 import scala.meta.metacp
-import scalafix.internal.util.LazySymbolTable
-import scalafix.internal.util.SymbolTable
+import scala.meta.internal.symtab._
 
 object ClasspathOps {
 
@@ -44,7 +43,6 @@ object ClasspathOps {
     val settings = default
       .withClasspath(withJDK)
       .withScalaLibrarySynthetics(true)
-      .withCacheDir(cacheDirectory.getOrElse(default.cacheDir))
       .withPar(parallel)
     val reporter = scala.meta.cli
       .Reporter()
@@ -60,8 +58,9 @@ object ClasspathOps {
       parallel: Boolean = false,
       out: PrintStream = System.out
   ): Option[SymbolTable] = {
-    toMetaClasspath(classpath, cacheDirectory, parallel, out)
-      .map(new LazySymbolTable(_))
+    bootClasspath.map { jdk =>
+      GlobalSymbolTable(classpath ++ jdk)
+    }
   }
 
   def getCurrentClasspath: String = {
