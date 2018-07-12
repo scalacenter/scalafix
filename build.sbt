@@ -227,10 +227,6 @@ val testsInput = TestProject(
     project.settings(
       noPublish,
       semanticdbSettings,
-      scalacOptions += {
-        val sourceroot = baseDirectory.in(ThisBuild).value / srcMain / "scala"
-        s"-P:semanticdb:sourceroot:$sourceroot"
-      },
       scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
       scalacOptions += "-Ywarn-adapted-args", // For NoAutoTupling
       scalacOptions += "-Ywarn-unused-import", // For RemoveUnusedImports

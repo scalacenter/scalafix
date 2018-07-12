@@ -112,12 +112,11 @@ object SemanticDoc {
     final case class MissingSemanticdb(
         relpath: RelativePath,
         classpath: Classpath)
-        extends Error(s"No SemanticDB associated with $relpath")
+        extends Error(s"No SemanticDB associated with $relpath in: ${classpath.entries.mkString("\n")}")
     final case class MissingTextDocument(
-        reluri: String,
-        semanticdb: AbsolutePath)
+        reluri: String)
         extends Error(
-          s"No TextDocument associated with uri $reluri in $semanticdb"
+          s"No TextDocument associated with uri $reluri in semanticdb"
         )
   }
 
@@ -128,15 +127,16 @@ object SemanticDoc {
       symtab: SymbolTable
   ): SemanticDoc = {
     val reluri = path.toRelativeURI.toString
-    classpath.resolveSemanticdb(path) match {
-      case Some(abspath) =>
-        val sdocs = s.TextDocuments.parseFromFile(abspath).documents
+    val urls = classpath.entries.map(_.toNIO.toUri.toURL).toArray
+    val semanticdbLoader = new java.net.URLClassLoader(urls)
+    val semanticDbRelativeLocation = s"META-INF/semanticdb/$path.semanticdb"
+    Option(semanticdbLoader.getResourceAsStream(semanticDbRelativeLocation))
+      .map{inputStream =>
+        val sdocs = s.TextDocuments.parseFrom(inputStream).documents
         val sdoc = sdocs.find(_.uri == reluri).getOrElse {
-          throw Error.MissingTextDocument(reluri, abspath)
+          throw Error.MissingTextDocument(reluri)
         }
         new SemanticDoc(doc, sdoc, symtab)
-      case _ =>
-        throw Error.MissingSemanticdb(path, classpath)
-    }
+      }.getOrElse(throw Error.MissingSemanticdb(path, classpath))
   }
 }

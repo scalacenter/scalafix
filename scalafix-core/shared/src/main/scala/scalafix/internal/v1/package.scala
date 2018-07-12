@@ -5,7 +5,6 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
 import scala.meta.io.AbsolutePath
-import scala.meta.io.Classpath
 import scala.meta.io.RelativePath
 import scala.collection.JavaConverters._
 import scala.meta.inputs.Input
@@ -20,19 +19,6 @@ package object v1 {
         new URI(null, null, path.getFileName.toString, null).toString
       }
       URI.create(reluri.mkString("/"))
-    }
-  }
-
-  implicit class XtensionClasspathScalafix(cp: Classpath) {
-    def resolveSemanticdb(path: RelativePath): Option[AbsolutePath] = {
-      cp.entries.iterator
-        .filter(_.isDirectory)
-        .map(
-          _.resolve("META-INF")
-            .resolve("semanticdb")
-            .resolve(path.toString() + ".semanticdb")
-        )
-        .collectFirst { case p if p.isFile => p }
     }
   }
 
