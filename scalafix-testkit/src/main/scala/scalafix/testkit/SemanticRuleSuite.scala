@@ -92,7 +92,7 @@ abstract class SemanticRuleSuite
       .newSymbolTable(props.inputClasspath)
       .getOrElse { sys.error("Failed to load symbol table") }
     props.inputSourceDirectories.flatMap { dir =>
-      RuleTest.fromDirectory(dir, props.inputClasspath, symtab)
+      RuleTest.fromDirectory(props.inputOffset, dir, props.inputClasspath, symtab)
     }
   }
   def runAllTests(): Unit = {

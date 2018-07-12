@@ -21,11 +21,14 @@ final class RuleTest(
 object RuleTest {
   private val decoder = RuleDecoder.decoder()
 
+  private val isCandidateTestFile: RelativePath => Boolean = _.toString.endsWith(".scala")
+
   def fromDirectory(
+      offset: RelativePath,
       dir: AbsolutePath,
       classpath: Classpath,
       symtab: SymbolTable): Seq[RuleTest] = {
-    FileIO.listAllFilesRecursively(dir).files.map { rel =>
+    FileIO.listAllFilesRecursively(dir).files.collect { case rel if isCandidateTestFile(rel) =>
       new RuleTest(
         rel, { () =>
           val input = Input.VirtualFile(
@@ -33,7 +36,7 @@ object RuleTest {
             FileIO.slurp(dir.resolve(rel), StandardCharsets.UTF_8))
           val tree = input.parse[Source].get
           val doc = v1.Doc.fromTree(tree)
-          val sdoc = v1.SemanticDoc.fromPath(doc, rel, classpath, symtab)
+          val sdoc = v1.SemanticDoc.fromPath(doc, offset.resolve(rel), classpath, symtab)
           val comment = SemanticRuleSuite.findTestkitComment(tree.tokens)
           val syntax = comment.syntax.stripPrefix("/*").stripSuffix("*/")
           val conf = Conf.parseString(rel.toString(), syntax).get
