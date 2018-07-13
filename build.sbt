@@ -197,7 +197,6 @@ val testkit = MultiScalaProject(
     scalafixSettings,
     libraryDependencies ++= Seq(
       semanticdb,
-      ammonite,
       googleDiff,
       scalacheck,
       scalatest
