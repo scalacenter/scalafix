@@ -1,5 +1,6 @@
 package scalafix.testkit
 
+import java.net.URLClassLoader
 import java.nio.charset.StandardCharsets
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
@@ -91,8 +92,9 @@ abstract class SemanticRuleSuite
     val symtab = ClasspathOps
       .newSymbolTable(props.inputClasspath)
       .getOrElse { sys.error("Failed to load symbol table") }
+    val classLoader = ClasspathOps.toClassLoader(props.inputClasspath)
     props.inputSourceDirectories.flatMap { dir =>
-      RuleTest.fromDirectory(props.inputOffset, dir, props.inputClasspath, symtab)
+      RuleTest.fromDirectory(props.inputOffset, dir, classLoader, symtab)
     }
   }
   def runAllTests(): Unit = {

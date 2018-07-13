@@ -264,6 +264,9 @@ case class Args(
     } else classpath
   }
 
+  def classLoader: ClassLoader =
+    ClasspathOps.toClassLoader(validatedClasspath)
+
   def validate: Configured[ValidatedArgs] = {
     baseConfig.andThen {
       case (base, scalafixConfig) =>
@@ -282,7 +285,7 @@ case class Args(
               scalafixConfig.withFormat(
                 format
               ),
-              validatedClasspath,
+              classLoader,
               root,
               pathReplace,
               diffDisable

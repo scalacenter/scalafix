@@ -1,6 +1,7 @@
 package scalafix.testkit
 
 import java.nio.charset.StandardCharsets
+import java.nio.file.FileSystems
 import metaconfig.Conf
 import metaconfig.Configured
 import metaconfig.internal.ConfGet
@@ -19,16 +20,17 @@ final class RuleTest(
 )
 
 object RuleTest {
-  private val decoder = RuleDecoder.decoder()
-
-  private val isCandidateTestFile: RelativePath => Boolean = _.toString.endsWith(".scala")
+  private val isScalaFile =
+    FileSystems.getDefault.getPathMatcher("glob:**.scala")
 
   def fromDirectory(
       offset: RelativePath,
       dir: AbsolutePath,
-      classpath: Classpath,
+      classLoader: ClassLoader,
       symtab: SymbolTable): Seq[RuleTest] = {
-    FileIO.listAllFilesRecursively(dir).files.collect { case rel if isCandidateTestFile(rel) =>
+    val scalaFiles =
+      FileIO.listAllFilesRecursively(dir).files.filter(isScalaFile.matches(_))
+    scalaFiles.map { rel =>
       new RuleTest(
         rel, { () =>
           val input = Input.VirtualFile(
@@ -36,7 +38,8 @@ object RuleTest {
             FileIO.slurp(dir.resolve(rel), StandardCharsets.UTF_8))
           val tree = input.parse[Source].get
           val doc = v1.Doc.fromTree(tree)
-          val sdoc = v1.SemanticDoc.fromPath(doc, offset.resolve(rel), classpath, symtab)
+          val sdoc = v1.SemanticDoc
+            .fromPath(doc, offset.resolve(rel), classLoader, symtab)
           val comment = SemanticRuleSuite.findTestkitComment(tree.tokens)
           val syntax = comment.syntax.stripPrefix("/*").stripSuffix("*/")
           val conf = Conf.parseString(rel.toString(), syntax).get

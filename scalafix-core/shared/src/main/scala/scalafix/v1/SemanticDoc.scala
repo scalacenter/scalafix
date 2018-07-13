@@ -109,34 +109,31 @@ final class SemanticDoc private[scalafix] (
 object SemanticDoc {
   sealed abstract class Error(msg: String) extends Exception(msg)
   object Error {
-    final case class MissingSemanticdb(
-        relpath: RelativePath,
-        classpath: Classpath)
-        extends Error(s"No SemanticDB associated with $relpath in: ${classpath.entries.mkString("\n")}")
-    final case class MissingTextDocument(
-        reluri: String)
-        extends Error(
-          s"No TextDocument associated with uri $reluri in semanticdb"
-        )
+    final case class MissingSemanticdb(relpath: RelativePath)
+        extends Error(s"SemanticDB not found: $relpath")
+    final case class MissingTextDocument(reluri: String)
+        extends Error(s"TextDocument.uri not found: $reluri")
   }
 
   def fromPath(
       doc: Doc,
       path: RelativePath,
-      classpath: Classpath,
+      classLoader: ClassLoader,
       symtab: SymbolTable
   ): SemanticDoc = {
     val reluri = path.toRelativeURI.toString
-    val urls = classpath.entries.map(_.toNIO.toUri.toURL).toArray
-    val semanticdbLoader = new java.net.URLClassLoader(urls)
-    val semanticDbRelativeLocation = s"META-INF/semanticdb/$path.semanticdb"
-    Option(semanticdbLoader.getResourceAsStream(semanticDbRelativeLocation))
-      .map{inputStream =>
-        val sdocs = s.TextDocuments.parseFrom(inputStream).documents
+    val semanticdbReluri = s"META-INF/semanticdb/$path.semanticdb"
+    Option(classLoader.getResourceAsStream(semanticdbReluri)) match {
+      case Some(inputStream) =>
+        val sdocs =
+          try s.TextDocuments.parseFrom(inputStream).documents
+          finally inputStream.close()
         val sdoc = sdocs.find(_.uri == reluri).getOrElse {
           throw Error.MissingTextDocument(reluri)
         }
         new SemanticDoc(doc, sdoc, symtab)
-      }.getOrElse(throw Error.MissingSemanticdb(path, classpath))
+      case None =>
+        throw Error.MissingSemanticdb(path)
+    }
   }
 }

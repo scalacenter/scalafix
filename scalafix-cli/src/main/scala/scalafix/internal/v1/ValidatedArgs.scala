@@ -16,7 +16,7 @@ case class ValidatedArgs(
     symtab: SymbolTable,
     rules: Rules,
     config: ScalafixConfig,
-    classpath: Classpath,
+    classLoader: ClassLoader,
     sourceroot: AbsolutePath,
     pathReplace: AbsolutePath => AbsolutePath,
     diffDisable: DiffDisable
