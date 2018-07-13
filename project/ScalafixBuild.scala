@@ -250,8 +250,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       Developer(
         "ShaneDelmore",
         "Shane Delmore",
-        "eugene.burmako@gmail.com",
-        url("http://delmore.io")
+        "shane@delmore.io",
+        url("https://github.com/shanedelmore")
       )
     )
   )

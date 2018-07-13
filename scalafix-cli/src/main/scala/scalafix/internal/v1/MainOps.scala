@@ -165,7 +165,7 @@ object MainOps {
             val sdoc = SemanticDoc.fromPath(
               doc,
               relpath,
-              args.classpath,
+              args.classLoader,
               args.symtab
             )
             val (fix, messages) =

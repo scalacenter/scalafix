@@ -174,16 +174,22 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
   ): Unit = {
     test(name, SkipWindows) {
       val fileIsFixed = expectedExit.isOk
-      val tmp = AbsolutePath(Files.createTempDirectory("scalafix"))
+      val cwd = Files.createTempDirectory("scalafix")
+      val inputSourceDirectory =
+        cwd.resolve("scalafix-tests/input/src/main/scala/")
+      Files.createDirectories(inputSourceDirectory)
+      val root = AbsolutePath(inputSourceDirectory)
       val out = new ByteArrayOutputStream()
-      tmp.toFile.deleteOnExit()
-      val root = tmp
-      copyRecursively(props.inputSourceDirectory, tmp)
+      root.toFile.deleteOnExit()
+      copyRecursively(source = props.inputSourceDirectory, target = root)
       val rootNIO = root
       writeTestkitConfiguration(rootNIO, rootNIO.resolve(path))
       preprocess(root)
+      val sourceroot =
+        if (args.contains("--sourceroot")) Array[String]()
+        else Array("--sourceroot", cwd.toString)
       val exit = Main.run(
-        args ++ Seq(
+        args ++ sourceroot ++ Seq(
           "-r",
           rule,
           files

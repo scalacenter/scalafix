@@ -20,7 +20,6 @@ object Dependencies {
   var testClasspath: String = "empty"
   def semanticdb: ModuleID = "org.scalameta" % "semanticdb-scalac" % scalametaV cross CrossVersion.full
   def metaconfig: ModuleID = "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV
-  def ammonite = "com.lihaoyi" %% "ammonite-ops" % "0.9.0"
   def googleDiff = "com.googlecode.java-diff-utils" % "diffutils" % "1.3.0"
 
   def metacp = "org.scalameta" %% "metacp" % scalametaV

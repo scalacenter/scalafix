@@ -15,10 +15,12 @@ import scalafix.internal.testkit.MultiLineAssertExtractor
 import scalafix.v0.SemanticdbIndex
 
 /** Construct a test suite for running semantic Scalafix rules. */
-abstract class SemanticRuleSuite
+abstract class SemanticRuleSuite(val props: TestkitProperties)
     extends FunSuite
     with DiffAssertions
     with BeforeAndAfterAll { self =>
+
+  def this() = this(TestkitProperties.loadFromResources())
 
   @deprecated(
     "Use empty constructor instead. Arguments are passed as resource 'scalafix-testkit.properties'",
@@ -29,7 +31,6 @@ abstract class SemanticRuleSuite
       expectedOutputSourceroot: Seq[AbsolutePath]
   ) = this()
 
-  val props: TestkitProperties = TestkitProperties.loadFromResources()
   private def scalaVersion: String = scala.util.Properties.versionNumberString
   private def scalaVersionDirectory: Option[String] =
     if (scalaVersion.startsWith("2.11")) Some("scala-2.11")
@@ -37,35 +38,23 @@ abstract class SemanticRuleSuite
     else None
 
   def runOn(diffTest: RuleTest): Unit = {
-    test(diffTest.filename.toString()) {
-      val (rule, sdoc) = diffTest.run.apply().get
+    test(diffTest.path.testName) {
+      val (rule, sdoc) = diffTest.run.apply()
       val (fixed, messages) = rule.semanticPatch(sdoc, suppress = false)
 
       val tokens = fixed.tokenize.get
       val obtained = SemanticRuleSuite.stripTestkitComments(tokens)
-      val candidateOutputFiles = props.outputSourceDirectories.flatMap { root =>
-        val scalaSpecificFilename = scalaVersionDirectory.toList.map { path =>
-          root.resolve(
-            RelativePath(
-              diffTest.filename.toString().replaceFirst("scala", path)))
-        }
-        root.resolve(diffTest.filename) :: scalaSpecificFilename
-      }
-      val expected = candidateOutputFiles
-        .collectFirst {
-          case f if f.isFile =>
-            FileIO.slurp(f, StandardCharsets.UTF_8)
-        }
-        .getOrElse {
+      val expected = diffTest.path.resolveOutput(props) match {
+        case Right(file) =>
+          FileIO.slurp(file, StandardCharsets.UTF_8)
+        case Left(err) =>
           if (fixed == sdoc.input.text) {
-            obtained // linter
+            // rule is a linter, no need for an output file.
+            obtained
           } else {
-            val tried = candidateOutputFiles.mkString("\n")
-            sys.error(
-              s"""Missing expected output file for test ${diffTest.filename}. Tried:
-                 |$tried""".stripMargin)
+            fail(err)
           }
-        }
+      }
 
       val expectedLintMessages = CommentAssertion.extract(sdoc.tokens)
       val diff = AssertDiff(messages, expectedLintMessages)
@@ -91,8 +80,10 @@ abstract class SemanticRuleSuite
     val symtab = ClasspathOps
       .newSymbolTable(props.inputClasspath)
       .getOrElse { sys.error("Failed to load symbol table") }
-    props.inputSourceDirectories.flatMap { dir =>
-      RuleTest.fromDirectory(dir, props.inputClasspath, symtab)
+    val classLoader = ClasspathOps.toClassLoader(props.inputClasspath)
+    val tests = TestkitPath.fromProperties(props)
+    tests.map { test =>
+      RuleTest.fromPath(test, classLoader, symtab)
     }
   }
   def runAllTests(): Unit = {

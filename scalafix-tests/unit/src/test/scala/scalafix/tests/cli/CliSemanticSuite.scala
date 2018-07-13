@@ -49,7 +49,7 @@ class CliSemanticSuite extends BaseCliSuite {
     args = Array(), // no --classpath
     expectedExit = ExitStatus.MissingSemanticdbError,
     outputAssert = { out =>
-      assert(out.contains("No SemanticDB associated with"))
+      assert(out.contains("SemanticDB not found: "))
       assert(out.contains(removeImportsPath.toNIO.getFileName.toString))
     }
   )

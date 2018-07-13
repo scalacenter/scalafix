@@ -1,7 +1,6 @@
 package scalafix.v1
 
 import java.util
-import scala.meta.io.Classpath
 import scala.meta.io.RelativePath
 import scala.collection.mutable.ListBuffer
 import scala.meta._
@@ -109,34 +108,31 @@ final class SemanticDoc private[scalafix] (
 object SemanticDoc {
   sealed abstract class Error(msg: String) extends Exception(msg)
   object Error {
-    final case class MissingSemanticdb(
-        relpath: RelativePath,
-        classpath: Classpath)
-        extends Error(s"No SemanticDB associated with $relpath")
-    final case class MissingTextDocument(
-        reluri: String,
-        semanticdb: AbsolutePath)
-        extends Error(
-          s"No TextDocument associated with uri $reluri in $semanticdb"
-        )
+    final case class MissingSemanticdb(reluri: String)
+        extends Error(s"SemanticDB not found: $reluri")
+    final case class MissingTextDocument(reluri: String)
+        extends Error(s"TextDocument.uri not found: $reluri")
   }
 
   def fromPath(
       doc: Doc,
       path: RelativePath,
-      classpath: Classpath,
+      classLoader: ClassLoader,
       symtab: SymbolTable
   ): SemanticDoc = {
-    val reluri = path.toRelativeURI.toString
-    classpath.resolveSemanticdb(path) match {
-      case Some(abspath) =>
-        val sdocs = s.TextDocuments.parseFromFile(abspath).documents
+    val semanticdbReluri = s"META-INF/semanticdb/$path.semanticdb"
+    Option(classLoader.getResourceAsStream(semanticdbReluri)) match {
+      case Some(inputStream) =>
+        val sdocs =
+          try s.TextDocuments.parseFrom(inputStream).documents
+          finally inputStream.close()
+        val reluri = path.toRelativeURI.toString
         val sdoc = sdocs.find(_.uri == reluri).getOrElse {
-          throw Error.MissingTextDocument(reluri, abspath)
+          throw Error.MissingTextDocument(reluri)
         }
         new SemanticDoc(doc, sdoc, symtab)
-      case _ =>
-        throw Error.MissingSemanticdb(path, classpath)
+      case None =>
+        throw Error.MissingSemanticdb(semanticdbReluri)
     }
   }
 }

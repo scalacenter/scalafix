@@ -197,7 +197,6 @@ val testkit = MultiScalaProject(
     scalafixSettings,
     libraryDependencies ++= Seq(
       semanticdb,
-      ammonite,
       googleDiff,
       scalacheck,
       scalatest
@@ -227,10 +226,6 @@ val testsInput = TestProject(
     project.settings(
       noPublish,
       semanticdbSettings,
-      scalacOptions += {
-        val sourceroot = baseDirectory.in(ThisBuild).value / srcMain / "scala"
-        s"-P:semanticdb:sourceroot:$sourceroot"
-      },
       scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
       scalacOptions += "-Ywarn-adapted-args", // For NoAutoTupling
       scalacOptions += "-Ywarn-unused-import", // For RemoveUnusedImports
@@ -321,13 +316,18 @@ def unit(
         // copy-pasted code from ScalafixTestkitPlugin to avoid cyclic dependencies between build and sbt-scalafix.
         val props = new java.util.Properties()
 
-        def put(key: String, files: Seq[File]): Unit =
-          props.put(
-            key,
-            files.iterator
-              .filter(_.exists())
-              .mkString(java.io.File.pathSeparator)
+        def put(key: String, files: Seq[File]): Unit = {
+          val value = files.iterator
+            .filter(_.exists())
+            .mkString(java.io.File.pathSeparator)
+          val inputScalaVersion = scalaBinaryVersion.in(testsInput).value
+          val outputScalaVersion = scalaBinaryVersion.value
+          val adjustedValue = value.replace(
+            s"scala-$inputScalaVersion",
+            s"scala-$outputScalaVersion"
           )
+          props.put(key, adjustedValue)
+        }
 
         put(
           "inputClasspath",

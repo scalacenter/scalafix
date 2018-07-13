@@ -3,6 +3,7 @@ package scalafix.internal.reflect
 import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
+import java.net.URLClassLoader
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
@@ -97,5 +98,10 @@ object ClasspathOps {
     }
     roots.foreach(x => Files.walkFileTree(x.toNIO, visitor))
     Classpath(buffer.result())
+  }
+
+  def toClassLoader(classpath: Classpath): ClassLoader = {
+    val urls = classpath.entries.map(_.toNIO.toUri.toURL).toArray
+    new URLClassLoader(urls, null)
   }
 }
