@@ -320,8 +320,12 @@ def unit(
           val value = files.iterator
             .filter(_.exists())
             .mkString(java.io.File.pathSeparator)
-          val scalaName = s"scala-${scalaBinaryVersion.value}"
-          val adjustedValue = value.replace("scala-2.12", scalaName)
+          val inputScalaVersion = scalaBinaryVersion.in(testsInput).value
+          val outputScalaVersion = scalaBinaryVersion.value
+          val adjustedValue = value.replace(
+            s"scala-$inputScalaVersion",
+            s"scala-$outputScalaVersion"
+          )
           props.put(key, adjustedValue)
         }
 
