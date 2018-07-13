@@ -2,7 +2,7 @@ package scalafix.testkit
 
 import scala.meta.AbsolutePath
 import scala.meta.Classpath
-import scala.meta.RelativePath
+import scala.meta.internal.io.PathIO
 
 /**
   * Input arguments to run scalafix testkit rules.
@@ -23,20 +23,18 @@ final class TestkitProperties(
     val inputClasspath: Classpath,
     val inputSourceDirectories: List[AbsolutePath],
     val outputSourceDirectories: List[AbsolutePath],
-    val sourceRoot: AbsolutePath
+    val sourceroot: AbsolutePath
 ) {
   def inputSourceDirectory: AbsolutePath =
     inputSourceDirectories.head
   def outputSourceDirectory: AbsolutePath =
     outputSourceDirectories.head
-  def inputOffset: RelativePath = inputSourceDirectory.toRelative(sourceRoot)
-  def outputOffset: RelativePath = outputSourceDirectory.toRelative(sourceRoot)
   override def toString: String = {
     val map = Map(
       "inputSourceDirectories" -> inputSourceDirectories,
       "outputSourceDirectories" -> outputSourceDirectories,
       "inputClasspath" -> inputClasspath.syntax,
-      "sourceRoot" -> sourceRoot
+      "sourceroot" -> sourceroot
     )
     pprint.PPrinter.BlackWhite.tokenize(map).mkString
   }
@@ -56,11 +54,15 @@ object TestkitProperties {
       val sprops = props.asScala
       try props.load(in)
       finally in.close()
+      val sourceroot = sprops.get("sourceroot") match {
+        case Some(root) => AbsolutePath(root)
+        case None => PathIO.workingDirectory
+      }
       new TestkitProperties(
         Classpath(sprops("inputClasspath")),
         Classpath(sprops("inputSourceDirectories")).entries,
         Classpath(sprops("outputSourceDirectories")).entries,
-        Classpath(sprops.getOrElse("sourceRoot", default = "")).entries.head
+        sourceroot
       )
     }
   }

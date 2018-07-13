@@ -1,7 +1,6 @@
 package scalafix.v1
 
 import java.util
-import scala.meta.io.Classpath
 import scala.meta.io.RelativePath
 import scala.collection.mutable.ListBuffer
 import scala.meta._
@@ -109,8 +108,8 @@ final class SemanticDoc private[scalafix] (
 object SemanticDoc {
   sealed abstract class Error(msg: String) extends Exception(msg)
   object Error {
-    final case class MissingSemanticdb(relpath: RelativePath)
-        extends Error(s"SemanticDB not found: $relpath")
+    final case class MissingSemanticdb(reluri: String)
+        extends Error(s"SemanticDB not found: $reluri")
     final case class MissingTextDocument(reluri: String)
         extends Error(s"TextDocument.uri not found: $reluri")
   }
@@ -121,19 +120,19 @@ object SemanticDoc {
       classLoader: ClassLoader,
       symtab: SymbolTable
   ): SemanticDoc = {
-    val reluri = path.toRelativeURI.toString
     val semanticdbReluri = s"META-INF/semanticdb/$path.semanticdb"
     Option(classLoader.getResourceAsStream(semanticdbReluri)) match {
       case Some(inputStream) =>
         val sdocs =
           try s.TextDocuments.parseFrom(inputStream).documents
           finally inputStream.close()
+        val reluri = path.toRelativeURI.toString
         val sdoc = sdocs.find(_.uri == reluri).getOrElse {
           throw Error.MissingTextDocument(reluri)
         }
         new SemanticDoc(doc, sdoc, symtab)
       case None =>
-        throw Error.MissingSemanticdb(path)
+        throw Error.MissingSemanticdb(semanticdbReluri)
     }
   }
 }

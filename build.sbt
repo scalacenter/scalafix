@@ -317,13 +317,14 @@ def unit(
         // copy-pasted code from ScalafixTestkitPlugin to avoid cyclic dependencies between build and sbt-scalafix.
         val props = new java.util.Properties()
 
-        def put(key: String, files: Seq[File]): Unit =
-          props.put(
-            key,
-            files.iterator
-              .filter(_.exists())
-              .mkString(java.io.File.pathSeparator)
-          )
+        def put(key: String, files: Seq[File]): Unit = {
+          val value = files.iterator
+            .filter(_.exists())
+            .mkString(java.io.File.pathSeparator)
+          val scalaName = s"scala-${scalaBinaryVersion.value}"
+          val adjustedValue = value.replace("scala-2.12", scalaName)
+          props.put(key, adjustedValue)
+        }
 
         put(
           "inputClasspath",
