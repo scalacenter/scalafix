@@ -2,7 +2,6 @@ package scalafix.internal.v1
 
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
-import java.io.PrintWriter
 import java.nio.CharBuffer
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileVisitResult
@@ -28,7 +27,7 @@ import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
 import scalafix.Versions
 import scalafix.cli.ExitStatus
-import scalafix.diff.DiffUtils
+import scalafix.internal.diff.DiffUtils
 import scalafix.lint.LintMessage
 import scalafix.v1.Doc
 import scalafix.v1.SemanticDoc

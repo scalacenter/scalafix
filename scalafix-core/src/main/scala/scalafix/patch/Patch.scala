@@ -6,7 +6,7 @@ import scalafix.syntax._
 import scalafix.patch.TokenPatch.Add
 import scalafix.patch.TokenPatch.Remove
 import scalafix.patch.TreePatch.ImportPatch
-import scalafix.diff.DiffUtils
+import scalafix.internal.diff.DiffUtils
 import scalafix.internal.patch.ImportPatchOps
 import scalafix.internal.patch.ReplaceSymbolOps
 import scalafix.internal.util.Failure
