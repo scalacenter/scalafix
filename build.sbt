@@ -8,24 +8,18 @@ inThisBuild(
 )
 
 lazy val core = project
-  .in(file("scalafix-core/shared"))
+  .in(file("scalafix-core"))
   .settings(
     buildInfoSettings,
     libraryDependencies ++= List(
       scalameta,
       symtab,
+      googleDiff,
       "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
     )
   )
   .enablePlugins(BuildInfoPlugin)
-  .dependsOn(diff)
-
-lazy val diff = project
-  .in(file("scalafix-diff/jvm"))
-  .settings(
-    libraryDependencies += googleDiff
-  )
 
 lazy val reflect = project
   .in(file("scalafix-reflect"))

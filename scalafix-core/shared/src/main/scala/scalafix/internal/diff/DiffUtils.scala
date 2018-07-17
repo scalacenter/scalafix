@@ -1,4 +1,4 @@
-package scalafix.diff
+package scalafix.internal.diff
 
 import difflib.{DiffUtils => DU}
 import scala.collection.JavaConverters._
