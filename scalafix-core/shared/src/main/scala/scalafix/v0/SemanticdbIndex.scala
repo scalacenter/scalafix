@@ -76,11 +76,13 @@ object SemanticdbIndex {
       override def classpath: Classpath = Classpath(Nil)
       override def database: Database = Database(Nil)
       override def names: Seq[ResolvedName] = Nil
-      override def symbol(position: _root_.scala.meta.Position): Option[Symbol] = None
+      override def symbol(
+          position: _root_.scala.meta.Position): Option[Symbol] = None
       override def symbol(tree: Tree): Option[Symbol] = None
       override def denotation(symbol: Symbol): Option[Denotation] = None
       override def denotation(tree: Tree): Option[Denotation] = None
-      override def withDocuments(documents: Seq[Document]): SemanticdbIndex = this
+      override def withDocuments(documents: Seq[Document]): SemanticdbIndex =
+        this
     }
 
   @deprecated(

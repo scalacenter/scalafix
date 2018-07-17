@@ -1,8 +1,10 @@
 package scalafix.testkit
 
+import java.nio.file.Files
 import scala.meta.AbsolutePath
 import scala.meta.Classpath
 import scala.meta.internal.io.PathIO
+import scala.meta.io.RelativePath
 
 /**
   * Input arguments to run scalafix testkit rules.
@@ -25,10 +27,22 @@ final class TestkitProperties(
     val outputSourceDirectories: List[AbsolutePath],
     val sourceroot: AbsolutePath
 ) {
-  def inputSourceDirectory: AbsolutePath =
-    inputSourceDirectories.head
-  def outputSourceDirectory: AbsolutePath =
-    outputSourceDirectories.head
+  def resolveInput(path: RelativePath): AbsolutePath =
+    resolveFrom(inputSourceDirectories, path)
+  def resolveOutput(path: RelativePath): AbsolutePath =
+    resolveFrom(outputSourceDirectories, path)
+  private def resolveFrom(
+      directories: List[AbsolutePath],
+      path: RelativePath): AbsolutePath = {
+    outputSourceDirectories
+      .collectFirst {
+        case dir if Files.exists(dir.resolve(path).toNIO) =>
+          dir.resolve(path)
+      }
+      .getOrElse {
+        throw new NoSuchElementException(path.toString())
+      }
+  }
   override def toString: String = {
     val map = Map(
       "inputSourceDirectories" -> inputSourceDirectories,

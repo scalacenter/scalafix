@@ -17,8 +17,11 @@ import scalafix.v0
 import scalafix.v1
 import scalafix.internal.v1._
 
-case class LegacyInMemorySemanticdbIndex(index: Map[String, SemanticdbIndex], symtab: SymbolTable)
-    extends CrashingSemanticdbIndex with SymbolTable {
+case class LegacyInMemorySemanticdbIndex(
+    index: Map[String, SemanticdbIndex],
+    symtab: SymbolTable)
+    extends CrashingSemanticdbIndex
+    with SymbolTable {
 
   def info(symbol: String): Option[s.SymbolInformation] = symtab.info(symbol)
 
@@ -59,8 +62,10 @@ case class LegacyInMemorySemanticdbIndex(index: Map[String, SemanticdbIndex], sy
   override def denotation(tree: Tree): Option[Denotation] =
     index(tree.pos.input.syntax).denotation(tree)
 
-  override def database: Database =
-    Database(documents)
+  override def documents: Seq[v0.Document] =
+    throw new UnsupportedOperationException()
+
+  override def database: Database = throw new UnsupportedOperationException()
 
   override def names: Seq[ResolvedName] =
     index.values.iterator.flatMap(_.names).toSeq

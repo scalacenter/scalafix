@@ -21,7 +21,7 @@ import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.Ok
-import scalafix.internal.config.MetaconfigParser.{parser => hoconParser}
+import metaconfig.typesafeconfig._
 import scalafix.internal.rule.ConfigRule
 import scalafix.v0._
 
@@ -152,7 +152,7 @@ trait ScalafixMetaconfigReaders {
       extraRules: List[String])(
       implicit decoder: ConfDecoder[Rule]
   ): Configured[(Rule, ScalafixConfig)] = {
-    hoconParser.fromInput(input).andThen { conf =>
+    metaconfig.Conf.parseInput(input).andThen { conf =>
       scalafixConfigConfDecoder(decoder, extraRules)
         .read(conf)
         .andThen {

@@ -4,7 +4,6 @@ import scala.meta.internal.io.FileIO
 import scala.meta.io.RelativePath
 import scala.meta.Input
 import scala.meta.AbsolutePath
-import scala.meta.Classpath
 import scala.meta.Source
 import scala.meta.parsers.Parsed
 import scalafix.internal.config.ScalafixConfig
