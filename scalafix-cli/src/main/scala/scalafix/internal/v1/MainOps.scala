@@ -1,7 +1,7 @@
 package scalafix.internal.v1
 
+import java.io.ByteArrayOutputStream
 import java.io.PrintStream
-import java.nio.ByteBuffer
 import java.nio.CharBuffer
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileVisitResult
@@ -9,8 +9,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
-import java.security.MessageDigest
-import javax.xml.bind.DatatypeConverter
 import metaconfig.Conf
 import metaconfig.ConfEncoder
 import metaconfig.annotation.Hidden
@@ -29,7 +27,7 @@ import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
 import scalafix.Versions
 import scalafix.cli.ExitStatus
-import scalafix.diff.DiffUtils
+import scalafix.internal.diff.DiffUtils
 import scalafix.lint.LintMessage
 import scalafix.v1.Doc
 import scalafix.v1.SemanticDoc
@@ -338,6 +336,11 @@ object MainOps {
     out.println(usage)
     out.println(description.render(width))
     out.println(options(width))
+  }
+  def helpMessage(width: Int): String = {
+    val baos = new ByteArrayOutputStream()
+    helpMessage(new PrintStream(baos), width)
+    baos.toString(StandardCharsets.UTF_8.name())
   }
 
 }

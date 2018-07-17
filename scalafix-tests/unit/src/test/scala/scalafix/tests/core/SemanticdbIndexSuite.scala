@@ -9,7 +9,7 @@ class SemanticdbIndexSuite extends BaseSemanticSuite("SemanticdbIndexTest") {
 
   test("symbol(Importee.Name)") {
     val mutable =
-      SymbolMatcher.exact(Symbol("_root_.scala.collection.mutable."))
+      SymbolMatcher.exact(Symbol("scala/collection/mutable/"))
     var hasAssert = false
     source.collect {
       case importee @ Importee.Name(name @ Name("mutable")) =>
@@ -22,7 +22,7 @@ class SemanticdbIndexSuite extends BaseSemanticSuite("SemanticdbIndexTest") {
 
   test("symbol(Type.Select)") {
     val listBuffer =
-      SymbolMatcher.exact(Symbol("_root_.scala.collection.mutable.ListBuffer#"))
+      SymbolMatcher.exact(Symbol("scala/collection/mutable/ListBuffer#"))
     var hasAssert = false
     source.collect {
       case select @ Type.Select(_, name @ Type.Name("ListBuffer")) =>
@@ -35,7 +35,7 @@ class SemanticdbIndexSuite extends BaseSemanticSuite("SemanticdbIndexTest") {
 
   test("symbol(Term.Select)") {
     val listBuffer =
-      SymbolMatcher.exact(Symbol("_root_.scala.collection.mutable.ListBuffer."))
+      SymbolMatcher.exact(Symbol("scala/collection/mutable/ListBuffer."))
     var hasAssert = false
     source.collect {
       case select @ Term.Select(_, name @ Term.Name("ListBuffer")) =>
@@ -47,7 +47,7 @@ class SemanticdbIndexSuite extends BaseSemanticSuite("SemanticdbIndexTest") {
   }
 
   test("symbol(Importee.Rename)") {
-    val success = SymbolMatcher.normalized(Symbol("_root_.scala.util.Success#"))
+    val success = SymbolMatcher.normalized(Symbol("scala/util/Success#"))
     var hasAssert = false
     source.collect {
       case importee @ Importee.Rename(name @ Name("Success"), _) =>

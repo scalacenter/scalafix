@@ -22,8 +22,9 @@ abstract class BaseSemanticSuite(filename: String)
   }
 
   override def beforeAll(): Unit = {
+    val dir = AbsolutePath(scalafix.tests.BuildInfo.sharedClasspath)
     _db = LegacyInMemorySemanticdbIndex.load(
-      Classpath(AbsolutePath(scalafix.tests.BuildInfo.sharedClasspath)),
+      Classpaths.withDirectory(dir),
       PathIO.workingDirectory
     )
     _input = _db.inputs

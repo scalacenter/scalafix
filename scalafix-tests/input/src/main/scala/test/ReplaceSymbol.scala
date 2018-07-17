@@ -15,12 +15,12 @@ patches.replaceSymbols = [
   { from = "scala.math.sqrt"
     to = "com.geirsson.fastmath.sqrt" }
   // normalized symbol renames all overloaded methods
-  { from = "_root_.scala.collection.TraversableOnce.mkString."
+  { from = "scala.collection.TraversableOnce.mkString."
     to = "unsafeMkString" }
   // non-normalized symbol renames single method overload
-  { from = "_root_.java.lang.String#substring()."
+  { from = "java/lang/String#substring()."
     to = "substringFrom" }
-  { from = "_root_.java.lang.String#substring(+1)."
+  { from = "java/lang/String#substring(+1)."
     to = "substringBetween" }
 ]
  */

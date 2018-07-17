@@ -1,11 +1,8 @@
 import Dependencies._
-import com.typesafe.sbt.pgp.PgpKeys
 import sbt._
 import sbt.Keys._
 import sbt.plugins.JvmPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
-import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin.autoImport._
-import scalajsbundler.util.JSON._
 import tut.TutPlugin.autoImport._
 import microsites.MicrositesPlugin.autoImport._
 import sbtunidoc.BaseUnidocPlugin.autoImport._
@@ -33,9 +30,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     lazy val supportedScalaVersions = List(scala211, scala212)
     lazy val isFullCrossVersion = Seq(
       crossVersion := CrossVersion.full
-    )
-    lazy val allJSSettings = List(
-      additionalNpmConfig.in(Compile) := Map("private" -> bool(true))
     )
     lazy val warnUnusedImports = "-Ywarn-unused-import"
     lazy val compilerOptions = Seq(
@@ -160,9 +154,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   lazy val adhocRepoCredentials = sys.props("scalafix.repository.credentials")
   lazy val isCustomRepository = adhocRepoUri != null && adhocRepoCredentials != null
 
-  def testSkipWindows(projectName: String): String =
-    s"$projectName/testOnly -- -l scalafix.internal.tests.utils.SkipWindows"
-
   override def globalSettings: Seq[Def.Setting[_]] = List(
     stableVersion := "0.5.10", // hardcoded while we iterate through v0.6 milestones.
     scalacOptions ++= compilerOptions,
@@ -171,9 +162,13 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       scalacheck % Test,
       scalatest % Test
     ),
+    resolvers ++= List(
+      Resolver.sonatypeRepo("snapshots"),
+      Resolver.sonatypeRepo("releases"),
+      Resolver.mavenLocal
+    ),
     testOptions in Test += Tests.Argument("-oD"),
     updateOptions := updateOptions.value.withCachedResolution(true),
-    resolvers += Resolver.sonatypeRepo("releases"),
     triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
     commands += Command.command("ci-release") { s =>
       "clean" ::
@@ -181,16 +176,19 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "scalafix211/publishSigned" ::
         s
     },
-    commands += Command.command("ci-fast-212") { s =>
-      "scalafix/test" ::
+    commands += Command.command("ci-212") { s =>
+      "++2.12.6" ::
+        "unit/test" ::
         s
     },
-    commands += Command.command("ci-fast-211") { s =>
-      "scalafix211/test" ::
+    commands += Command.command("ci-211") { s =>
+      "++2.11.12" ::
+        "unit/test" ::
         s
     },
-    commands += Command.command("ci-fast-212-windows") { s =>
-      testSkipWindows("scalafix") ::
+    commands += Command.command("ci-212-windows") { s =>
+      "++2.12.6" ::
+        s"unit/testOnly -- -l scalafix.internal.tests.utils.SkipWindows" ::
         s
     },
     commands += Command.command("mima") { s =>

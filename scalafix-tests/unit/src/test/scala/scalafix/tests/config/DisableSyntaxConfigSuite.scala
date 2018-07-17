@@ -5,8 +5,8 @@ import org.scalatest.FunSuite
 import metaconfig.Configured
 import metaconfig.Configured.NotOk
 import metaconfig.ConfError
+import metaconfig.typesafeconfig._
 
-import scalafix.internal.config.MetaconfigParser
 import scalafix.internal.config.{DisableSyntaxConfig, DisabledKeyword}
 
 class DisableSyntaxConfigSuite extends FunSuite {
@@ -67,8 +67,8 @@ class DisableSyntaxConfigSuite extends FunSuite {
 
   def read(rawConfig: String): Configured[DisableSyntaxConfig] = {
     val input = metaconfig.Input.String(rawConfig)
-    MetaconfigParser.parser
-      .fromInput(input)
+    metaconfig.Conf
+      .parseInput(input)
       .andThen(conf => DisableSyntaxConfig.decoder.read(conf))
   }
 

@@ -11,7 +11,7 @@ case class FqnRule(index: v0.SemanticdbIndex)
     extends v0.SemanticRule(index, "FqnRule") {
   override def fix(ctx: v0.RuleCtx): Patch =
     ctx.addGlobalImport(importer"scala.collection.immutable") + {
-      val fqnRule = SymbolMatcher.exact(v0.Symbol("test.FqnRule."))
+      val fqnRule = SymbolMatcher.exact(v0.Symbol("test/FqnRule."))
       ctx.tree.collect {
         case fqnRule(t: Term.Name) =>
           ctx.addLeft(t, "/* matched */ ")

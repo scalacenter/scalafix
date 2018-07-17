@@ -124,9 +124,9 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
   def slurp(path: AbsolutePath): String =
     FileIO.slurp(path, StandardCharsets.UTF_8)
   def slurpInput(path: RelativePath): String =
-    slurp(props.inputSourceDirectory.resolve(path))
+    slurp(props.resolveInput(path))
   def slurpOutput(path: RelativePath): String =
-    slurp(props.outputSourceDirectory.resolve(path))
+    slurp(props.resolveOutput(path))
 
   def copyRecursively(source: AbsolutePath, target: AbsolutePath): Unit = {
     Files.walkFileTree(
@@ -181,7 +181,7 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
       val root = AbsolutePath(inputSourceDirectory)
       val out = new ByteArrayOutputStream()
       root.toFile.deleteOnExit()
-      copyRecursively(source = props.inputSourceDirectory, target = root)
+      copyRecursively(source = props.inputSourceDirectories.head, target = root)
       val rootNIO = root
       writeTestkitConfiguration(rootNIO, rootNIO.resolve(path))
       preprocess(root)

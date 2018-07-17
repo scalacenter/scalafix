@@ -7,7 +7,7 @@ import scala.{meta => m}
 import scalafix.internal.patch.CrashingSemanticdbIndex
 import scalafix.internal.patch.DocSemanticdbIndex
 import scalafix.internal.reflect.ClasspathOps
-import scalafix.internal.util.SymbolTable
+import scala.meta.internal.symtab.SymbolTable
 import scalafix.internal.v1.TreePos
 import scalafix.util.SemanticdbIndex
 import scalafix.v0.Database
@@ -17,8 +17,13 @@ import scalafix.v0
 import scalafix.v1
 import scalafix.internal.v1._
 
-case class LegacyInMemorySemanticdbIndex(index: Map[String, SemanticdbIndex])
-    extends CrashingSemanticdbIndex {
+case class LegacyInMemorySemanticdbIndex(
+    index: Map[String, SemanticdbIndex],
+    symtab: SymbolTable)
+    extends CrashingSemanticdbIndex
+    with SymbolTable {
+
+  def info(symbol: String): Option[s.SymbolInformation] = symtab.info(symbol)
 
   override def inputs: Seq[m.Input] = {
     index.values.collect {
@@ -57,8 +62,10 @@ case class LegacyInMemorySemanticdbIndex(index: Map[String, SemanticdbIndex])
   override def denotation(tree: Tree): Option[Denotation] =
     index(tree.pos.input.syntax).denotation(tree)
 
-  override def database: Database =
-    Database(documents)
+  override def documents: Seq[v0.Document] =
+    throw new UnsupportedOperationException()
+
+  override def database: Database = throw new UnsupportedOperationException()
 
   override def names: Seq[ResolvedName] =
     index.values.iterator.flatMap(_.names).toSeq
@@ -97,7 +104,7 @@ object LegacyInMemorySemanticdbIndex {
         }
       }
     }
-    LegacyInMemorySemanticdbIndex(buf.result())
+    LegacyInMemorySemanticdbIndex(buf.result(), symtab)
   }
 
 }
