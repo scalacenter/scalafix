@@ -154,9 +154,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   lazy val adhocRepoCredentials = sys.props("scalafix.repository.credentials")
   lazy val isCustomRepository = adhocRepoUri != null && adhocRepoCredentials != null
 
-  def testSkipWindows(projectName: String): String =
-    s"$projectName/testOnly -- -l scalafix.internal.tests.utils.SkipWindows"
-
   override def globalSettings: Seq[Def.Setting[_]] = List(
     stableVersion := "0.5.10", // hardcoded while we iterate through v0.6 milestones.
     scalacOptions ++= compilerOptions,
@@ -179,19 +176,19 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "scalafix211/publishSigned" ::
         s
     },
-    commands += Command.command("ci-fast-212") { s =>
-      "++2.11.12" ::
-        "unit/test" ::
-        "website/makeMicrosite" ::
-        s
-    },
-    commands += Command.command("ci-fast-211") { s =>
+    commands += Command.command("ci-212") { s =>
       "++2.12.6" ::
         "unit/test" ::
         s
     },
-    commands += Command.command("ci-fast-212-windows") { s =>
-      testSkipWindows("scalafix") ::
+    commands += Command.command("ci-211") { s =>
+      "++2.11.12" ::
+        "unit/test" ::
+        s
+    },
+    commands += Command.command("ci-212-windows") { s =>
+      "++2.12.6" ::
+        s"unit/testOnly -- -l scalafix.internal.tests.utils.SkipWindows" ::
         s
     },
     commands += Command.command("mima") { s =>

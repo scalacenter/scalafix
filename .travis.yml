@@ -12,9 +12,9 @@ jobs:
     - env: TEST="scalafmt"
       script: ./scalafmt --test
     - env: TEST="2.11"
-      script: sbt ci-fast-211
+      script: sbt ci-211
     - env: TEST="2.12"
-      script: sbt ci-fast-212
+      script: sbt ci-212
     # Disabled until stable v0.6
     # - env: TEST="mima"
     #   script: sbt mima

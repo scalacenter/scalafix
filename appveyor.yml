@@ -7,8 +7,7 @@ environment:
   APPVEYOR_CACHE_ENTRY_ZIP_ARGS: "-t7z -m0=lzma -mx=9"
 
   matrix:
-    - CI_TEST: ci-fast-212
-    # - CI_TEST: ci-sbt013 SkipWindows
+    - CI_TEST: ci-212
 
 install:
   - SET PATH=%JAVA_HOME%\bin;%PATH%
@@ -20,7 +19,7 @@ build_script:
   - sbt compile
   
 test_script:
-  - sbt "%CI_TEST%-windows"
+  - sbt ci-212-windows
 
 # see CONTRIBUTING.md#AppVeyor
 cache:
