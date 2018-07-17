@@ -12,7 +12,7 @@ lazy val core = project
   .settings(
     buildInfoSettings,
     libraryDependencies ++= List(
-      scalameta.value,
+      scalameta,
       symtab,
       "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
@@ -94,7 +94,8 @@ lazy val testsOutputDotty = project
     SettingKey[Boolean]("ide-skip-project") := true,
     scalaVersion := dotty,
     crossScalaVersions := List(dotty),
-    libraryDependencies := libraryDependencies.value.map(_.withDottyCompat()),
+    libraryDependencies := libraryDependencies.value.map(
+      _.withDottyCompat(scalaVersion.value)),
     scalacOptions := Nil
   )
 

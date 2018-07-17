@@ -1,6 +1,8 @@
 package scalafix.internal.v1
 
+import java.io.ByteArrayOutputStream
 import java.io.PrintStream
+import java.io.PrintWriter
 import java.nio.CharBuffer
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileVisitResult
@@ -335,6 +337,11 @@ object MainOps {
     out.println(usage)
     out.println(description.render(width))
     out.println(options(width))
+  }
+  def helpMessage(width: Int): String = {
+    val baos = new ByteArrayOutputStream()
+    helpMessage(new PrintStream(baos), width)
+    baos.toString(StandardCharsets.UTF_8.name())
   }
 
 }

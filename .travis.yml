@@ -3,19 +3,23 @@ script:
 - "./bin/runci.sh $CI_TEST"
 jdk:
 - oraclejdk8
-env:
-  matrix:
-  - CI_TEST: ci-fast-211
-
-  - CI_TEST: ci-fast-212
-    CI_PUBLISH: true
-
-  - CI_TEST: scalafmt
-
-  # Disabled until sbt-scalafix upgrades courser https://github.com/scalacenter/scalafix/issues/751
-  # - CI_TEST: scalafix/scalafixTest
-
-  - CI_TEST: mima
+stages:
+  - name: test
+  - name: release
+    if: (branch = master AND type = push) OR (tag IS present)
+jobs:
+  include:
+    - env: TEST="scalafmt"
+      script: ./scalafmt --test
+    - env: TEST="2.11"
+      script: sbt ci-fast-211
+    - env: TEST="2.12"
+      script: sbt ci-fast-212
+    # Disabled until stable v0.6
+    # - env: TEST="mima"
+    #   script: sbt mima
+    - stage: release
+      script: sbt ci-release
 
 cache:
   directories:
@@ -32,6 +36,3 @@ before_cache:
 - find $HOME/.ivy2/cache -name "ivydata-*.properties" -type f -delete
 - find $HOME/.ivy2/cache -name "*scalafix*.xml" -type f -delete
 - rm -rf $HOME/.ivy2/local
-
-after_success:
-- "./bin/ci-publish.sh"

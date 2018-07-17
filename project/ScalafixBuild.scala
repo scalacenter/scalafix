@@ -1,11 +1,8 @@
 import Dependencies._
-import com.typesafe.sbt.pgp.PgpKeys
 import sbt._
 import sbt.Keys._
 import sbt.plugins.JvmPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
-import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin.autoImport._
-import scalajsbundler.util.JSON._
 import tut.TutPlugin.autoImport._
 import microsites.MicrositesPlugin.autoImport._
 import sbtunidoc.BaseUnidocPlugin.autoImport._
@@ -33,9 +30,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     lazy val supportedScalaVersions = List(scala211, scala212)
     lazy val isFullCrossVersion = Seq(
       crossVersion := CrossVersion.full
-    )
-    lazy val allJSSettings = List(
-      additionalNpmConfig.in(Compile) := Map("private" -> bool(true))
     )
     lazy val warnUnusedImports = "-Ywarn-unused-import"
     lazy val compilerOptions = Seq(
@@ -171,6 +165,11 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       scalacheck % Test,
       scalatest % Test
     ),
+    resolvers ++= List(
+      Resolver.sonatypeRepo("snapshots"),
+      Resolver.sonatypeRepo("releases"),
+      Resolver.mavenLocal
+    ),
     testOptions in Test += Tests.Argument("-oD"),
     updateOptions := updateOptions.value.withCachedResolution(true),
     triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
@@ -181,11 +180,14 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         s
     },
     commands += Command.command("ci-fast-212") { s =>
-      "scalafix/test" ::
+      "++2.11.12" ::
+        "unit/test" ::
+        "website/makeMicrosite" ::
         s
     },
     commands += Command.command("ci-fast-211") { s =>
-      "scalafix211/test" ::
+      "++2.12.6" ::
+        "unit/test" ::
         s
     },
     commands += Command.command("ci-fast-212-windows") { s =>
@@ -261,11 +263,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
-    resolvers ++= List(
-      Resolver.sonatypeRepo("snapshots"),
-      Resolver.sonatypeRepo("releases"),
-      Resolver.mavenLocal
-    ),
     publishTo := Some {
       if (isCustomRepository) "adhoc" at adhocRepoUri
       else if (isSnapshot.value) Opts.resolver.sonatypeSnapshots
