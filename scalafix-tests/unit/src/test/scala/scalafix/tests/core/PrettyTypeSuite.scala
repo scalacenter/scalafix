@@ -61,8 +61,10 @@ class PrettyTypeFuzzSuite extends BasePrettyTypeSuite {
   val classpathIndex = ClasspathIndex(classpath)
 
   def checkToplevel(toplevel: SymbolInformation): Unit = {
-    val info = table.info(toplevel.symbol).get
     try {
+      val info = table.info(toplevel.symbol).getOrElse {
+        throw new NoSuchElementException(toplevel.symbol)
+      }
       PrettyType.toTree(
         info,
         table,
@@ -73,6 +75,10 @@ class PrettyTypeFuzzSuite extends BasePrettyTypeSuite {
       case e: NoSuchElementException
           // FIXME
           if e.getMessage.endsWith("_#") ||
+            // contains weird macro-generated symbols like MacroTreeBuilder#`_956.type`#
+            e.getMessage.contains("MacroTreeBuilder") ||
+            e.getMessage.contains("javax/servlet/http/HttpServlet#") ||
+            e.getMessage.contains("javax/servlet/ServletContextListener#") ||
             e.getMessage.endsWith("`?0`#") ||
             e.getMessage.endsWith("`1`#") ||
             e.getMessage.endsWith("`2`#") =>
@@ -98,8 +104,11 @@ class PrettyTypeFuzzSuite extends BasePrettyTypeSuite {
 
   def ignore(path: AbsolutePath): Boolean = {
     val uri = path.toURI.toString
+    uri.contains("package-info") ||
     uri.contains("scala/tools/nsc/interpreter/jline") ||
-    uri.contains("AntTask") ||
+    uri.contains("scala/tools/ant/") ||
+    uri.contains("org/scalatest/tools/HtmlReporter") ||
+    uri.contains("org/scalatest/tools/ScalaTestAntTask") ||
     uri.contains("org/scalatest/testng") ||
     uri.contains("org/scalatest/selenium") ||
     uri.contains("org/scalatest/mockito") ||
@@ -124,7 +133,6 @@ class PrettyTypeFuzzSuite extends BasePrettyTypeSuite {
             } catch {
               case scala.meta.internal.classpath.MissingSymbolException(e) =>
                 pprint.log(file)
-                ()
             }
           }
         }
