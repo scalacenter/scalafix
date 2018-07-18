@@ -7,6 +7,8 @@ inThisBuild(
   )
 )
 
+noPublish
+
 lazy val core = project
   .in(file("scalafix-core"))
   .settings(
