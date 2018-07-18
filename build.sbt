@@ -10,6 +10,7 @@ inThisBuild(
 lazy val core = project
   .in(file("scalafix-core"))
   .settings(
+    moduleName := "scalafix-core",
     buildInfoSettings,
     libraryDependencies ++= List(
       scalameta,
@@ -24,6 +25,7 @@ lazy val core = project
 lazy val reflect = project
   .in(file("scalafix-reflect"))
   .settings(
+    moduleName := "scalafix-reflect",
     isFullCrossVersion,
     libraryDependencies ++= Seq(
       metacp,
@@ -36,6 +38,7 @@ lazy val reflect = project
 lazy val cli = project
   .in(file("scalafix-cli"))
   .settings(
+    moduleName := "scalafix-cli",
     isFullCrossVersion,
     mainClass in assembly := Some("scalafix.v1.Main"),
     assemblyJarName in assembly := "scalafix.jar",
@@ -96,6 +99,7 @@ lazy val testsOutputDotty = project
 lazy val testkit = project
   .in(file("scalafix-testkit"))
   .settings(
+    moduleName := "scalafix-testkit",
     isFullCrossVersion,
     libraryDependencies ++= Seq(
       semanticdb,
