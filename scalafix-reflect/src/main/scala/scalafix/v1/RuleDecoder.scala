@@ -1,6 +1,7 @@
 package scalafix.v1
 
 import java.net.URLClassLoader
+import java.util.ServiceLoader
 import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
@@ -17,6 +18,7 @@ import scalafix.internal.util.ClassloadRule
 import scalafix.internal.v1.Rules
 import scalafix.patch.TreePatch
 import scalafix.v1
+import scala.collection.JavaConverters._
 
 /** One-stop shop for loading scalafix rules from strings. */
 object RuleDecoder {
@@ -34,7 +36,6 @@ object RuleDecoder {
       rule: String,
       settings: Settings
   ): List[Configured[v1.Rule]] = {
-    val FromSource = new FromSourceRule(settings.cwd)
     lazy val classloader =
       if (settings.toolClasspath.isEmpty) ClassloadRule.defaultClassloader
       else {
@@ -43,47 +44,63 @@ object RuleDecoder {
           ClassloadRule.defaultClassloader
         )
       }
-    Rules.defaults.find(_.name.matches(rule)) match {
-      case Some(r) => Configured.ok(r) :: Nil
-      case _ =>
-        Conf.Str(rule) match {
-          // Patch.replaceSymbols(from , to)
-          case UriRuleString("replace", replace @ SlashSeparated(from, to)) =>
-            val constant = parseReplaceSymbol(from, to)
-              .map(TreePatch.ReplaceSymbol.tupled)
-              .map(p => scalafix.v1.SemanticRule.constant(replace, p))
-            constant :: Nil
-          // Classload rule from classloader
-          case UriRuleString("scala" | "class", fqn) =>
-            tryClassload(classloader, fqn) match {
-              case Some(r) =>
-                Configured.ok(r) :: Nil
-              case _ =>
-                ConfError.message(s"Class not found: $fqn").notOk :: Nil
-            }
-          // Compile rules from source with file/github/http protocols
-          case FromSource(input) =>
-            input match {
+    val customRules =
+      ServiceLoader.load(classOf[v1.Rule], classloader)
+    val allRules =
+      Iterator(Rules.defaults.iterator, customRules.iterator().asScala).flatten
+    allRules.find(_.name.matches(rule)) match {
+      case Some(r) =>
+        Configured.ok(r) :: Nil
+      case None =>
+        fromStringURI(rule, classloader, settings)
+    }
+  }
+
+  // Attempts to load a rule as if it was a URI, for example 'class:FQN' or 'github:org/repo/v1'
+  private def fromStringURI(
+      rule: String,
+      classloader: ClassLoader,
+      settings: Settings
+  ): List[Configured[v1.Rule]] = {
+    val FromSource = new FromSourceRule(settings.cwd)
+    Conf.Str(rule) match {
+      // Patch.replaceSymbols(from, to)
+      case UriRuleString("replace", replace @ SlashSeparated(from, to)) =>
+        val constant = parseReplaceSymbol(from, to)
+          .map(TreePatch.ReplaceSymbol.tupled)
+          .map(p => scalafix.v1.SemanticRule.constant(replace, p))
+        constant :: Nil
+      // Classload rule from classloader
+      case UriRuleString("scala" | "class", fqn) =>
+        tryClassload(classloader, fqn) match {
+          case Some(r) =>
+            Configured.ok(r) :: Nil
+          case _ =>
+            ConfError.message(s"Class not found: $fqn").notOk :: Nil
+        }
+      // Compile rules from source with file/github/http protocols
+      case FromSource(input) =>
+        input match {
+          case Configured.NotOk(err) => err.notOk :: Nil
+          case Configured.Ok(code) =>
+            ScalafixToolbox.getRule(code, settings.toolClasspath) match {
               case Configured.NotOk(err) => err.notOk :: Nil
-              case Configured.Ok(code) =>
-                ScalafixToolbox.getRule(code, settings.toolClasspath) match {
-                  case Configured.NotOk(err) => err.notOk :: Nil
-                  case Configured.Ok(CompiledRules(loader, names)) =>
-                    val x = names.iterator.map { fqn =>
-                      tryClassload(loader, fqn) match {
-                        case Some(r) =>
-                          Configured.ok(r)
-                        case _ =>
-                          ConfError
-                            .message(s"Failed to classload rule $fqn")
-                            .notOk
-                      }
-                    }.toList
-                    x
-                }
+              case Configured.Ok(CompiledRules(loader, names)) =>
+                val x = names.iterator.map { fqn =>
+                  tryClassload(loader, fqn) match {
+                    case Some(r) =>
+                      Configured.ok(r)
+                    case _ =>
+                      ConfError
+                        .message(s"Failed to classload rule $fqn")
+                        .notOk
+                  }
+                }.toList
+                x
             }
         }
-
+      case _ =>
+        Configured.error(s"Unknown rule '$rule'") :: Nil
     }
   }
 

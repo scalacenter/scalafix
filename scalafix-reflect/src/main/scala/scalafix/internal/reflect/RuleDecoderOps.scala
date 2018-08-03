@@ -25,6 +25,7 @@ object RuleDecoderOps {
   val legacyRuleClass: Class[v0.Rule] =
     classOf[scalafix.rule.Rule]
   def toRule(cls: Class[_]): v1.Rule = {
+    assertNotOutdatedScalafixRule(cls)
     if (legacySemanticRuleClass.isAssignableFrom(cls)) {
       val fn: v0.SemanticdbIndex => v0.Rule = { index =>
         val ctor = cls.getDeclaredConstructor(classOf[v0.SemanticdbIndex])
@@ -40,6 +41,18 @@ object RuleDecoderOps {
       val ctor = cls.getDeclaredConstructor()
       ctor.setAccessible(true)
       cls.newInstance().asInstanceOf[v1.Rule]
+    }
+  }
+
+  def assertNotOutdatedScalafixRule(cls: Class[_]): Unit = {
+    cls.getSuperclass.getName match {
+      case "scalafix.rule.Rule" | "scalafix.rule.SemanticRule" =>
+        // Custom rule is using 0.5 API that is not supported here.
+        throw new IllegalArgumentException(
+          "Outdated Scalafix rule, please upgrade to the latest Scalafix version"
+        )
+      case _ =>
+        ()
     }
   }
 
