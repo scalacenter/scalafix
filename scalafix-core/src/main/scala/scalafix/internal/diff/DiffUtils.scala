@@ -10,11 +10,11 @@ object DiffUtils {
       originalLines: List[String],
       revisedLines: List[String],
       contextSize: Int): String = {
-    val patch = DU.diff(originalLines.toSeq.asJava, revisedLines.toSeq.asJava)
+    val patch = DU.diff(originalLines.asJava, revisedLines.asJava)
     val diff = DU.generateUnifiedDiff(
       originalFileName,
       revisedFileName,
-      originalLines.toSeq.asJava,
+      originalLines.asJava,
       patch,
       contextSize)
     diff.asScala.mkString("\n")

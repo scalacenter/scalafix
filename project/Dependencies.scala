@@ -22,6 +22,7 @@ object Dependencies {
   def googleDiff = "com.googlecode.java-diff-utils" % "diffutils" % "1.3.0"
 
   def metacp = "org.scalameta" %% "metacp" % scalametaV
+  def semanticdbPluginLibrary = "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
   def scalameta = "org.scalameta" %% "contrib" % scalametaV
   def symtab = "org.scalameta" %% "symtab" % scalametaV
   def scalatest = "org.scalatest" %% "scalatest" % "3.2.0-SNAP10"

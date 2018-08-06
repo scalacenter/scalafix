@@ -8,21 +8,17 @@ import scala.reflect.ClassTag
 import scala.util.Try
 import scala.util.matching.Regex
 import scalafix.patch.TreePatch._
-import scalafix.rule.ScalafixRules
 import java.io.OutputStream
 import java.io.PrintStream
 import java.net.URI
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
-import scala.collection.immutable.Seq
 import scala.util.control.NonFatal
 import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.Ok
-import metaconfig.typesafeconfig._
-import scalafix.internal.rule.ConfigRule
 import scalafix.v0._
 
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
@@ -93,80 +89,15 @@ trait ScalafixMetaconfigReaders {
         ruleDecoder.read(combinedRules).map(rule => rule -> config)
     }
 
-  def defaultRuleDecoder(
-      getSemanticdbIndex: LazySemanticdbIndex): ConfDecoder[Rule] =
-    ConfDecoder.instance[Rule] {
-      case conf @ Conf.Str(value) if !value.contains(":") =>
-        val isSyntactic = ScalafixRules.syntacticNames.contains(value)
-        val kind = RuleKind(syntactic = isSyntactic)
-        val index = getSemanticdbIndex(kind)
-        val names: Map[String, Rule] =
-          ScalafixRules.syntaxName2rule ++
-            index.fold(Map.empty[String, Rule])(ScalafixRules.name2rule)
-        val result = ReaderUtil.fromMap(names).read(conf)
-        result match {
-          case Ok(rule) =>
-            rule.name
-              .reportDeprecationWarning(value, getSemanticdbIndex.reporter)
-          case _ =>
-        }
-        result
-    }
-
   private lazy val semanticRuleClass = classOf[SemanticRule]
 
-  def classloadRule(
-      index: LazySemanticdbIndex): Class[_] => Seq[SemanticdbIndex] = { cls =>
-    val kind =
-      if (semanticRuleClass.isAssignableFrom(cls)) RuleKind.Semantic
-      else RuleKind.Syntactic
-    index(kind).toList
-  }
-
   lazy val SlashSeparated: Regex = "([^/]+)/(.*)".r
-
-  private def requireSemanticSemanticdbIndex[T](
-      index: LazySemanticdbIndex,
-      what: String)(f: SemanticdbIndex => Configured[T]): Configured[T] = {
-    index(RuleKind.Semantic).fold(
-      Configured.error(s"$what requires the semantic API."): Configured[T])(f)
-  }
 
   def parseReplaceSymbol(
       from: String,
       to: String): Configured[(Symbol.Global, Symbol.Global)] =
     symbolGlobalReader.read(Conf.Str(from)) |@|
       symbolGlobalReader.read(Conf.Str(to))
-
-  def classloadRuleDecoder(index: LazySemanticdbIndex): ConfDecoder[Rule] =
-    throw new UnsupportedOperationException
-
-  def baseSyntacticRuleDecoder: ConfDecoder[Rule] =
-    baseRuleDecoders(LazySemanticdbIndex.empty)
-  def baseRuleDecoders(index: LazySemanticdbIndex): ConfDecoder[Rule] = {
-    defaultRuleDecoder(index).orElse(classloadRuleDecoder(index))
-  }
-  def configFromInput(
-      input: metaconfig.Input,
-      index: LazySemanticdbIndex,
-      extraRules: List[String])(
-      implicit decoder: ConfDecoder[Rule]
-  ): Configured[(Rule, ScalafixConfig)] = {
-    metaconfig.Conf.parseInput(input).andThen { conf =>
-      scalafixConfigConfDecoder(decoder, extraRules)
-        .read(conf)
-        .andThen {
-          // Initialize configuration
-          case (rule, config) => rule.init(conf).map(_ -> config)
-        }
-        .andThen {
-          case (rule, config) =>
-            ConfigRule(config.patches, index).map { configRule =>
-              configRule.fold(rule -> config)(rule.merge(_) -> config)
-            }
-        }
-    }
-  }
 
   implicit lazy val ReplaceSymbolReader: ConfDecoder[ReplaceSymbol] =
     ConfDecoder.instanceF[ReplaceSymbol] { c =>

@@ -19,6 +19,7 @@ import scala.meta.tokens.Tokens
 import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.internal.util.SuppressOps
 import scalafix.internal.util.SymbolOps.Root
+import scalafix.lint.LintDiagnostic
 import scalafix.patch.TreePatch.AddGlobalImport
 import scalafix.patch.TreePatch.RemoveGlobalImport
 import scalafix.rule.RuleCtx
@@ -194,9 +195,15 @@ object Patch {
       ctx: RuleCtx,
       index: Option[SemanticdbIndex],
       suppress: Boolean = false
-  ): (String, List[LintMessage]) = {
+  ): (String, List[LintDiagnostic]) = {
     val idx = index.getOrElse(SemanticdbIndex.empty)
-    val (patch, lints) = ctx.filter(patchesByName, idx)
+    val (patch, lints) = ctx.escapeHatch.filter(
+      patchesByName,
+      ctx,
+      idx,
+      ctx.diffDisable,
+      ctx.config
+    )
     val finalPatch =
       if (suppress) {
         patch + SuppressOps.addComments(ctx.tokens, lints.map(_.position))
@@ -210,14 +217,14 @@ object Patch {
   private[scalafix] def syntactic(
       patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
       doc: Doc
-  ): (String, List[LintMessage]) = {
+  ): (String, List[LintDiagnostic]) = {
     apply(patchesByName, doc.toRuleCtx, None, suppress = false)
   }
 
   private[scalafix] def semantic(
       patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
       doc: SemanticDoc
-  ): (String, List[LintMessage]) = {
+  ): (String, List[LintDiagnostic]) = {
     apply(
       patchesByName,
       doc.doc.toRuleCtx,

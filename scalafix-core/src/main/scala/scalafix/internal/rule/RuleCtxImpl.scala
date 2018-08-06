@@ -11,7 +11,6 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.patch.DeprecatedPatchOps
 import scalafix.internal.patch.EscapeHatch
-import scalafix.rule.RuleName
 import scalafix.util.MatchingParens
 import scalafix.util.SemanticdbIndex
 import scalafix.util.TokenList
@@ -48,20 +47,5 @@ case class RuleCtxImpl(
     // alias for org.scalameta.logger.
     logger.elem(values: _*)
   }
-
-  def printLintMessage(msg: LintMessage): Unit = {
-    val category = msg.category.withConfig(config.lint)
-
-    config.lint.reporter.handleMessage(
-      msg.format(config.lint.explain),
-      msg.position,
-      category.severity.toSeverity
-    )
-  }
-
-  def filter(
-      patchesByName: Map[RuleName, Patch],
-      index: SemanticdbIndex): (Patch, List[LintMessage]) =
-    escapeHatch.filter(patchesByName, this, index, diffDisable)
 
 }

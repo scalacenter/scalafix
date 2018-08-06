@@ -5,13 +5,17 @@ import scala.meta.Position
 import scala.meta.dialects.Scala212
 import scala.meta.inputs.Input
 import scala.meta.parsers.Parse
+import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.testkit.AssertDiff
 import scalafix.internal.testkit.CommentAssertion
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.lint.LintCategory
+import scalafix.lint.LintDiagnostic
 import scalafix.lint.LintMessage
 import scalafix.lint.LintSeverity
+import scalafix.rule.RuleName
 import scalafix.testkit.DiffAssertions
+import scalafix.internal.util.LintSyntax._
 
 class AssertDeltaSuite() extends FunSuite with DiffAssertions {
   test("associate assert and reported message", SkipWindows) {
@@ -39,16 +43,16 @@ class AssertDeltaSuite() extends FunSuite with DiffAssertions {
                  |}""".stripMargin
     )
 
-    def disable(offset: Int): LintMessage =
+    def disable(offset: Int): LintDiagnostic =
       LintMessage(
         message = "Option.get is the root of all evils",
         position = Position.Range(input, offset, offset),
         category = LintCategory(
-          id = "Disable.get",
+          id = "get",
           explanation = "",
           severity = LintSeverity.Error
         )
-      )
+      ).toDiagnostic(RuleName("Disable"), ScalafixConfig.default)
 
     // start offset of all `.get`
     val reportedLintMessages = List(
@@ -81,7 +85,7 @@ class AssertDeltaSuite() extends FunSuite with DiffAssertions {
          |  Option(1).get /* assert: Disable.get
          |             ^
          |Diff:
-         |  Option(1).get
+         |  Option(1).get /* assert: Disable.get
          |             ^-- asserted
          |            ^-- reported
          |
@@ -92,9 +96,9 @@ class AssertDeltaSuite() extends FunSuite with DiffAssertions {
          |Option.get is the root of all evils
          |  Option(2).get // assert: Disable.foo
          |            ^
-         |Expected: foo/bar/Disable.scala:7:17: error:
+         |Expected: foo/bar/Disable.scala:7:17: error
          |  Option(2).get // assert: Disable.foo
-         |                ^
+         |                ^^^^^^^^^^^^^^^^^^^^^^
          |Diff:
          |-Disable.foo
          |+Disable.get
@@ -122,23 +126,23 @@ class AssertDeltaSuite() extends FunSuite with DiffAssertions {
          |
          |===========> Unreported <===========
          |
-         |foo/bar/Disable.scala:9:5: error:
+         |foo/bar/Disable.scala:9:5: error
          |  3 // assert: Disable.get
-         |    ^
+         |    ^^^^^^^^^^^^^^^^^^^^^^
          |
          |---------------------------------------
          |
-         |foo/bar/Disable.scala:13:5: error:
+         |foo/bar/Disable.scala:13:5: error
          |  5 // assert: Disable.get
-         |    ^
+         |    ^^^^^^^^^^^^^^^^^^^^^^
          |
          |---------------------------------------
          |
-         |foo/bar/Disable.scala:17:5: error:
+         |foo/bar/Disable.scala:17:5: error
          |  7 // assert: Disable.get
-         |    ^
+         |    ^^^^^^^^^^^^^^^^^^^^^^
          |""".stripMargin
 
-    assertNoDiff(expected, obtained.replaceAllLiterally(" \n", "\n"))
+    assertNoDiff(expected, obtained)
   }
 }

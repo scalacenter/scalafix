@@ -6,6 +6,7 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.syntax._
 import metaconfig.Conf
 import metaconfig.Configured
+import scalafix.lint.LintDiagnostic
 
 /** A Scalafix Rule.
   *
@@ -78,11 +79,11 @@ abstract class Rule(ruleName: RuleName) { self =>
   final def apply(ctx: RuleCtx, patches: Map[RuleName, Patch]): String = {
     // This overload of apply if purely for convenience
     // Use `applyAndLint` to iterate over LintMessage without printing to the console
-    val (fixed, lintMessages) = Patch(patches, ctx, semanticOption)
-    lintMessages.foreach(ctx.printLintMessage)
+    val (fixed, diagnostics) = Patch(patches, ctx, semanticOption)
+    diagnostics.foreach(diag => ctx.config.reporter.lint(diag))
     fixed
   }
-  final def applyAndLint(ctx: RuleCtx): (String, List[LintMessage]) =
+  final def applyAndLint(ctx: RuleCtx): (String, List[LintDiagnostic]) =
     Patch(fixWithName(ctx), ctx, semanticOption)
 
   /** Returns unified diff from applying this patch */

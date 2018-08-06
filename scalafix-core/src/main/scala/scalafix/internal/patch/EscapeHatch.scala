@@ -10,15 +10,17 @@ import scala.meta.tokens.Token
 import scala.meta.tokens.Token.Comment
 import scalafix.v0._
 import scalafix.internal.config.FilterMatcher
+import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.patch.EscapeHatch._
-import scalafix.lint.LintMessage
+import scalafix.lint.LintDiagnostic
 import scalafix.patch.AtomicPatch
 import scalafix.patch.Concat
 import scalafix.patch.EmptyPatch
 import scalafix.patch.LintPatch
 import scalafix.rule.RuleName
 import scalafix.util.TreeExtractors.Mods
+import scalafix.internal.util.LintSyntax._
 
 /** EscapeHatch is an algorithm to selectively disable rules. There
   * are two mechanisms to do so: anchored comments and the
@@ -34,9 +36,11 @@ class EscapeHatch private (
       patchesByName: Map[RuleName, Patch],
       ctx: RuleCtx,
       index: SemanticdbIndex,
-      diff: DiffDisable): (Patch, List[LintMessage]) = {
+      diff: DiffDisable,
+      config: ScalafixConfig
+  ): (Patch, List[LintDiagnostic]) = {
     val usedEscapes = mutable.Set.empty[EscapeFilter]
-    val lintMessages = List.newBuilder[LintMessage]
+    val lintMessages = List.newBuilder[LintDiagnostic]
 
     def isDisabledByEscape(name: RuleName, start: Int): Boolean =
       // annotatedEscapes takes precedence over anchoredEscapes
@@ -67,16 +71,15 @@ class EscapeHatch private (
       case Concat(a, b) =>
         Concat(loop(name, a), loop(name, b))
 
-      case LintPatch(orphanLint) =>
-        val lint = orphanLint.withOwner(name)
-
+      case LintPatch(lint) =>
         val byGit = diff.isDisabled(lint.position)
-        val byEscape = isDisabledByEscape(lint.id, lint.position.start)
+        val id = lint.fullStringID(name)
+        val byEscape = isDisabledByEscape(id, lint.position.start)
 
         val isLintDisabled = byGit || byEscape
 
         if (!isLintDisabled) {
-          lintMessages += lint
+          lintMessages += lint.toDiagnostic(name, config)
         }
 
         EmptyPatch
@@ -84,12 +87,14 @@ class EscapeHatch private (
       case e => e
     }
 
-    val patches =
-      patchesByName.map { case (name, patch) => loop(name, patch) }.asPatch
+    val patches = patchesByName.map {
+      case (name, patch) => loop(name, patch)
+    }.asPatch
     val unusedWarnings =
       (annotatedEscapes.unusedEscapes(usedEscapes) ++
-        anchoredEscapes.unusedEscapes(usedEscapes))
-        .map(UnusedWarning.at)
+        anchoredEscapes.unusedEscapes(usedEscapes)).map { pos =>
+        UnusedScalafixSuppression.at(pos).toDiagnostic(UnusedName, config)
+      }
     val warnings = lintMessages.result() ++ unusedWarnings
     (patches, warnings)
   }
@@ -97,9 +102,9 @@ class EscapeHatch private (
 
 object EscapeHatch {
 
-  private val UnusedWarning = LintCategory
-    .warning("", "Unused Scalafix suppression. This can be removed")
-    .withOwner(RuleName("UnusedScalafixSuppression"))
+  private val UnusedScalafixSuppression =
+    LintCategory.warning("", "Unused Scalafix suppression. This can be removed")
+  private val UnusedName = RuleName("UnusedScalafixSuppression")
 
   private type EscapeTree = TreeMap[EscapeOffset, List[EscapeFilter]]
 

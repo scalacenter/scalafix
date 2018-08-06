@@ -10,6 +10,7 @@ import scalafix.patch.PatchOps
 import scalafix.util.MatchingParens
 import scalafix.util.TokenList
 import org.scalameta.FileLine
+import scalafix.internal.patch.EscapeHatch
 
 trait RuleCtx extends PatchOps {
 
@@ -48,11 +49,8 @@ trait RuleCtx extends PatchOps {
   // Private scalafix methods, subject for removal without notice.
   private[scalafix] def toks(t: Tree): Tokens
   private[scalafix] def config: ScalafixConfig
-  private[scalafix] def printLintMessage(msg: LintMessage): Unit
-
-  private[scalafix] def filter(
-      patchesByName: Map[RuleName, Patch],
-      index: SemanticdbIndex): (Patch, List[LintMessage])
+  private[scalafix] def escapeHatch: EscapeHatch
+  private[scalafix] def diffDisable: DiffDisable
 }
 
 object RuleCtx {

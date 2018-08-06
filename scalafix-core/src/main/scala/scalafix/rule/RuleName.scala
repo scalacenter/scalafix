@@ -1,7 +1,6 @@
 package scalafix.rule
 
 import scala.language.implicitConversions
-
 import scalafix.internal.config.ScalafixReporter
 import scalafix.util.Deprecated
 

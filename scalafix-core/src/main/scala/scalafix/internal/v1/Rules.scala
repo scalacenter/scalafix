@@ -8,6 +8,7 @@ import scalafix.internal.config.MetaconfigPendingUpstream
 import scalafix.internal.config.NoInferConfig
 import scalafix.internal.rule._
 import scalafix.internal.util.SuppressOps
+import scalafix.lint.LintDiagnostic
 import scalafix.lint.LintMessage
 import scalafix.patch.Patch
 import scalafix.rule.RuleName
@@ -49,7 +50,7 @@ case class Rules(rules: List[Rule] = Nil) {
 
   def semanticPatch(
       doc: SemanticDoc,
-      suppress: Boolean): (String, List[LintMessage]) = {
+      suppress: Boolean): (String, List[LintDiagnostic]) = {
     val fixes = rules.iterator.map {
       case rule: SemanticRule =>
         rule.name -> rule.fix(doc)
@@ -65,7 +66,7 @@ case class Rules(rules: List[Rule] = Nil) {
 
   def syntacticPatch(
       doc: Doc,
-      suppress: Boolean): (String, List[LintMessage]) = {
+      suppress: Boolean): (String, List[LintDiagnostic]) = {
     require(!isSemantic, semanticRules.map(_.name).mkString("+"))
     val fixes = syntacticRules.iterator.map { rule =>
       rule.name -> rule.fix(doc)

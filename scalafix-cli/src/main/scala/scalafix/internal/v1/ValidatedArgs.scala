@@ -18,7 +18,8 @@ case class ValidatedArgs(
     classLoader: ClassLoader,
     sourceroot: AbsolutePath,
     pathReplace: AbsolutePath => AbsolutePath,
-    diffDisable: DiffDisable
+    diffDisable: DiffDisable,
+    callback: DelegatingMainCallback
 ) {
 
   def input(file: AbsolutePath): Input = {

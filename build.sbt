@@ -9,6 +9,20 @@ inThisBuild(
 
 noPublish
 
+lazy val interfaces = project
+  .in(file("scalafix-interfaces"))
+  .settings(
+    javaHome.in(Compile) := {
+      // force javac to fork by setting javaHome to get error messages during compilation,
+      // see https://github.com/sbt/zinc/issues/520
+      Some(file(sys.props("java.home")).getParentFile)
+    },
+    moduleName := "scalafix-interfaces",
+    crossVersion := CrossVersion.disabled,
+    crossScalaVersions := List(scala212),
+    autoScalaLibrary := false
+  )
+
 lazy val core = project
   .in(file("scalafix-core"))
   .settings(
@@ -51,7 +65,7 @@ lazy val cli = project
       "org.apache.commons" % "commons-text" % "1.2"
     )
   )
-  .dependsOn(reflect)
+  .dependsOn(reflect, interfaces)
 
 lazy val testsShared = project
   .in(file("scalafix-tests/shared"))
@@ -123,6 +137,7 @@ lazy val unit = project
     libraryDependencies ++= coursierDeps ++ testsDeps,
     libraryDependencies ++= List(
       jgit,
+      semanticdbPluginLibrary,
       scalatest
     ),
     compileInputs.in(Compile, compile) := {

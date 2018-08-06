@@ -44,15 +44,22 @@ class CliSemanticSuite extends BaseCliSuite {
     }
   )
 
-  checkSemantic(
-    name = "MissingSemanticDB",
-    args = Array(), // no --classpath
-    expectedExit = ExitStatus.MissingSemanticdbError,
-    outputAssert = { out =>
-      assert(out.contains("SemanticDB not found: "))
-      assert(out.contains(removeImportsPath.toNIO.getFileName.toString))
-    }
-  )
+  test("MissingSemanticDB") {
+    val cwd = Files.createTempDirectory("scalafix")
+    val name = "MissingSemanticDB.scala"
+    Files.createFile(cwd.resolve(name))
+    val (out, exit) = runMain(
+      Array(
+        "-r",
+        "RemoveUnusedImports",
+        name
+      ),
+      cwd
+    )
+    assert(exit.is(ExitStatus.MissingSemanticdbError), exit.toString)
+    assert(out.contains("SemanticDB not found: "))
+    assert(out.contains(name))
+  }
 
   checkSemantic(
     name = "StaleSemanticDB",

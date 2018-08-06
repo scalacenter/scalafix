@@ -4,6 +4,7 @@ import scala.language.higherKinds
 import java.io.File
 import java.io.PrintStream
 import java.net.URI
+import java.net.URLClassLoader
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
@@ -22,12 +23,14 @@ import scala.annotation.StaticAnnotation
 import scala.meta.internal.io.PathIO
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
-import scalafix.internal.config.OutputFormat
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.jgit.JGitDiff
 import scalafix.internal.reflect.ClasspathOps
 import scala.meta.internal.symtab.SymbolTable
+import scalafix.interfaces.ScalafixMainCallback
+import scalafix.internal.config.PrintStreamReporter
+import scalafix.internal.interfaces.MainCallbackImpl
 import scalafix.v1.RuleDecoder
 
 class Section(val name: String) extends StaticAnnotation
@@ -80,12 +83,6 @@ case class Args(
       "sourceroot. Defaults to current working directory if not provided.")
     sourceroot: Option[AbsolutePath] = None,
     @Description(
-      "Global cache location to persist metacp artifacts produced by analyzing --dependency-classpath. " +
-        "The default location depends on the OS and is computed with https://github.com/soc/directories-jvm " +
-        "using the project name 'semanticdb'. " +
-        "On macOS the default cache directory is ~/Library/Caches/semanticdb. ")
-    metacpCacheDir: Option[AbsolutePath] = None,
-    @Description(
       "If set, automatically infer the --classpath flag by scanning for directories with META-INF/semanticdb")
     autoClasspath: Boolean = false,
     @Description("Additional directories to scan for --auto-classpath")
@@ -119,7 +116,7 @@ case class Args(
     exclude: List[PathMatcher] = Nil,
     @Description(
       "Additional classpath for compiling and classloading custom rules.")
-    toolClasspath: Classpath = Classpath(Nil),
+    toolClasspath: URLClassLoader = ClasspathOps.thisClassLoader,
     @Description("The encoding to use for reading/writing files")
     charset: Charset = StandardCharsets.UTF_8,
     @Description("If set, throw exception in the end instead of System.exit")
@@ -128,8 +125,6 @@ case class Args(
     noStaleSemanticdb: Boolean = false,
     @Description("Custom settings to override .scalafix.conf")
     settings: Conf = Conf.Obj.empty,
-    @Description("The format for console output")
-    format: OutputFormat = OutputFormat.Default,
     @Description(
       "Write fixed output to custom location instead of in-place. Regex is passed as first argument to file.replaceAll(--out-from, --out-to), requires --out-to.")
     outFrom: Option[String] = None,
@@ -147,13 +142,16 @@ case class Args(
     @Hidden
     out: PrintStream,
     @Hidden
-    ls: Ls = Ls.Find
+    ls: Ls = Ls.Find,
+    @Hidden
+    callback: ScalafixMainCallback
 ) {
+
+  override def toString: String = ConfEncoder[Args].write(this).toString()
 
   def configuredSymtab: Configured[SymbolTable] = {
     ClasspathOps.newSymbolTable(
       classpath = classpath,
-      cacheDirectory = metacpCacheDir,
       out = out
     ) match {
       case Some(symtab) =>
@@ -163,7 +161,7 @@ case class Args(
     }
   }
 
-  def baseConfig: Configured[(Conf, ScalafixConfig)] = {
+  def baseConfig: Configured[(Conf, ScalafixConfig, DelegatingMainCallback)] = {
     val toRead: Option[AbsolutePath] = config.orElse {
       val defaultPath = cwd.resolve(".scalafix.conf")
       if (defaultPath.isFile) Some(defaultPath)
@@ -183,7 +181,9 @@ case class Args(
     base.andThen { b =>
       val applied = Conf.applyPatch(b, settings)
       applied.as[ScalafixConfig].map { scalafixConfig =>
-        applied -> scalafixConfig.withOut(out)
+        val delegator = new DelegatingMainCallback(callback)
+        val reporter = MainCallbackImpl.fromJava(delegator)
+        (applied, scalafixConfig.copy(reporter = reporter), delegator)
       }
     }
   }
@@ -204,7 +204,7 @@ case class Args(
     val decoderSettings = RuleDecoder
       .Settings()
       .withConfig(scalafixConfig)
-      .withToolClasspath(toolClasspath.entries)
+      .withToolClasspath(toolClasspath)
       .withCwd(cwd)
     val decoder = RuleDecoder.decoder(decoderSettings)
     decoder.read(rulesConf).andThen(_.withConfig(base))
@@ -261,15 +261,16 @@ case class Args(
         if (autoClasspathRoots.isEmpty) cwd :: Nil
         else autoClasspathRoots
       ClasspathOps.autoClasspath(roots)
-    } else classpath
+    } else {
+      classpath
+    }
   }
 
-  def classLoader: ClassLoader =
-    ClasspathOps.toClassLoader(validatedClasspath)
+  def classLoader: ClassLoader = ClasspathOps.toClassLoader(validatedClasspath)
 
   def validate: Configured[ValidatedArgs] = {
     baseConfig.andThen {
-      case (base, scalafixConfig) =>
+      case (base, scalafixConfig, delegator) =>
         (
           configuredSourceroot |@|
             configuredSymtab |@|
@@ -282,13 +283,12 @@ case class Args(
               this,
               symtab,
               rulez,
-              scalafixConfig.withFormat(
-                format
-              ),
+              scalafixConfig,
               classLoader,
               root,
               pathReplace,
-              diffDisable
+              diffDisable,
+              delegator
             )
         }
     }
@@ -298,21 +298,26 @@ case class Args(
 object Args {
   val baseMatcher: PathMatcher =
     FileSystems.getDefault.getPathMatcher("glob:**.{scala,sbt}")
-  val default = new Args(cwd = PathIO.workingDirectory, out = System.out)
+  val default: Args = default(PathIO.workingDirectory, System.out)
+  def default(cwd: AbsolutePath, out: PrintStream): Args = {
+    val callback = MainCallbackImpl.fromScala(PrintStreamReporter(out))
+    new Args(cwd = cwd, out = out, callback = callback)
+  }
 
-  def decoder(cwd: AbsolutePath, out: PrintStream): ConfDecoder[Args] = {
+  def decoder(base: Args): ConfDecoder[Args] = {
     implicit val classpathDecoder: ConfDecoder[Classpath] =
       ConfDecoder.stringConfDecoder.map { cp =>
         Classpath(
           cp.split(File.pathSeparator)
             .iterator
-            .map(path => AbsolutePath(path)(cwd))
+            .map(path => AbsolutePath(path)(base.cwd))
             .toList
         )
       }
+    implicit val classLoaderDecoder: ConfDecoder[URLClassLoader] =
+      ConfDecoder[Classpath].map(ClasspathOps.toClassLoader)
     implicit val absolutePathDecoder: ConfDecoder[AbsolutePath] =
-      ConfDecoder.stringConfDecoder.map(AbsolutePath(_)(cwd))
-    val base = new Args(cwd = cwd, out = out)
+      ConfDecoder.stringConfDecoder.map(AbsolutePath(_)(base.cwd))
     generic.deriveDecoder(base)
   }
 
@@ -323,6 +328,8 @@ object Args {
   implicit val pathMatcherDecoder: ConfDecoder[PathMatcher] =
     ConfDecoder.stringConfDecoder.map(glob =>
       FileSystems.getDefault.getPathMatcher("glob:" + glob))
+  implicit val callbackDecoder: ConfDecoder[ScalafixMainCallback] =
+    ConfDecoder.stringConfDecoder.map(_ => MainCallbackImpl.default)
 
   implicit val confEncoder: ConfEncoder[Conf] =
     ConfEncoder.ConfEncoder
@@ -330,11 +337,15 @@ object Args {
     ConfEncoder.StringEncoder.contramap(_.toString())
   implicit val classpathEncoder: ConfEncoder[Classpath] =
     ConfEncoder.StringEncoder.contramap(_.toString())
+  implicit val classLoaderEncoder: ConfEncoder[URLClassLoader] =
+    ConfEncoder.StringEncoder.contramap(_.toString())
   implicit val charsetEncoder: ConfEncoder[Charset] =
     ConfEncoder.StringEncoder.contramap(_.name())
   implicit val printStreamEncoder: ConfEncoder[PrintStream] =
     ConfEncoder.StringEncoder.contramap(_ => "<stdout>")
   implicit val pathMatcherEncoder: ConfEncoder[PathMatcher] =
+    ConfEncoder.StringEncoder.contramap(_.toString)
+  implicit val callbackEncoder: ConfEncoder[ScalafixMainCallback] =
     ConfEncoder.StringEncoder.contramap(_.toString)
 
   implicit val argsEncoder: ConfEncoder[Args] = generic.deriveEncoder
@@ -344,9 +355,6 @@ object Args {
     TPrint.make[PathMatcher](_ => "<glob>")
   implicit val confPrint: TPrint[Conf] =
     TPrint.make[Conf](implicit cfg => TPrint.implicitly[ScalafixConfig].render)
-  implicit val outputFormat: TPrint[OutputFormat] =
-    TPrint.make[OutputFormat](implicit cfg =>
-      OutputFormat.all.map(_.toString.toLowerCase).mkString("<", "|", ">"))
   implicit def optionPrint[T](
       implicit ev: pprint.TPrint[T]): TPrint[Option[T]] =
     TPrint.make { implicit cfg =>
