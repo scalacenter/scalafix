@@ -4,6 +4,7 @@ import java.io.PrintStream
 import java.net.URLClassLoader
 import java.nio.charset.Charset
 import java.nio.file.Path
+import java.nio.file.PathMatcher
 import java.util
 import metaconfig.Conf
 import scala.meta.io.AbsolutePath
@@ -29,6 +30,10 @@ final case class ScalafixMainArgsImpl(args: Args = Args.default)
       args = args.copy(
         files = paths.asScala.iterator.map(AbsolutePath(_)(args.cwd)).toList)
     )
+
+  override def withExcludedPaths(
+      matchers: util.List[PathMatcher]): ScalafixMainArgs =
+    copy(args = args.copy(exclude = matchers.asScala.toList))
 
   override def withWorkingDirectory(path: Path): ScalafixMainArgs = {
     require(path.isAbsolute, s"working directory must be relative: $path")

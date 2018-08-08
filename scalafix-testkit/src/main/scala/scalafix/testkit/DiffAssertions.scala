@@ -48,7 +48,7 @@ trait DiffAssertions extends FunSuiteLike {
       obtained: String,
       diff: String)
       extends TestFailedException(
-        title + "\n--- expected\n+++obtained\n" + error2message(
+        title + "\n--- expected\n+++ obtained\n" + error2message(
           obtained,
           expected),
         3)

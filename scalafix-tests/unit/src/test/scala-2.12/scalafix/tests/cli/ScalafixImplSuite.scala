@@ -7,6 +7,7 @@ import java.io.PrintStream
 import java.net.URLClassLoader
 import java.nio.channels.Channels
 import java.nio.charset.StandardCharsets
+import java.nio.file.FileSystems
 import java.nio.file.Files
 import org.scalatest.FunSuite
 import scalafix.Versions
@@ -83,6 +84,7 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
     Files.createDirectories(d)
     Files.createDirectories(src)
     val semicolon = src.resolve("Semicolon.scala")
+    val excluded = semicolon.resolveSibling("Excluded.scala")
     // This rule is published to Maven Central to simplify testing --tool-classpath.
     val toolClasspathJars = ScalafixJarFetcher.fetchJars(
       "com.geirsson",
@@ -94,15 +96,21 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
     Files.createFile(semicolon)
     // Assert that non-ascii characters read into "?"
     val charset = StandardCharsets.US_ASCII
-    Files.write(
-      semicolon,
+    val contents =
       """|
-         |object A {
+         |object Semicolon {
          |  val a = 1; // みりん þæö
          |  implicit val b = List(1)
          |  def main { println(42) }
          |}
-         |""".stripMargin.getBytes(charset)
+         |""".stripMargin
+    Files.write(
+      semicolon,
+      contents.getBytes(charset)
+    )
+    Files.write(
+      excluded,
+      contents.replace("object Semicolon", "object Excluded").getBytes(charset)
     )
     val scalacOptions = Array[String](
       "-Yrangepos",
@@ -113,7 +121,8 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
       s"-P:semanticdb:sourceroot:$src",
       "-d",
       d.toString,
-      semicolon.toString
+      semicolon.toString,
+      excluded.toString
     )
     val compileSucceeded = scala.tools.nsc.Main.process(scalacOptions)
     assert(compileSucceeded)
@@ -132,7 +141,12 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
       .withClasspath(List(d, scalaLibrary.toNIO).asJava)
       .withSourceroot(src)
       .withWorkingDirectory(cwd)
-      .withPaths(List(relativePath).asJava)
+      .withPaths(List(relativePath.getParent).asJava)
+      .withExcludedPaths(
+        List(
+          FileSystems.getDefault.getPathMatcher("glob:**Excluded.scala")
+        ).asJava
+      )
       .withMainCallback(callback)
       .withRules(
         List(
@@ -177,7 +191,7 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
       """|--- src/Semicolon.scala
          |+++ <expected fix>
          |@@ -1,6 +1,7 @@
-         | object A {
+         | object Semicolon {
          |   val a = 1; // ??? ???
          |-  implicit val b = List(1)
          |-  def main { println(42) }

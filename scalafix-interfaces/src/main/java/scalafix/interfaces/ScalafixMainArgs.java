@@ -4,6 +4,7 @@ import java.io.PrintStream;
 import java.net.URLClassLoader;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.util.List;
 
 /**
@@ -32,10 +33,19 @@ public interface ScalafixMainArgs {
     ScalafixMainArgs withToolClasspath(URLClassLoader toolClasspath);
 
     /**
-     * @param paths Files and directories to run Scalafix on. Directories are recursively expanded
-     *              for files matching the patterns <code>*.scala</code> and <code>*.sbt</code>.
+     * @param paths Files and directories to run Scalafix on. The ability to pass in directories
+     *              is primarily supported to make it ergonomic to invoke the command-line interface.
+     *              It's recommended to only pass in files with this API. Directories are recursively
+     *              expanded for files matching the patterns <code>*.scala</code> and <code>*.sbt</code>
+     *              and files that do not match the path matchers provided in {@link #withExcludedPaths(List)}.
      */
     ScalafixMainArgs withPaths(List<Path> paths);
+
+    /**
+     * @param matchers Optional list of path matchers to exclude files when expanding directories
+     *                 in {@link #withPaths(List)}.
+     */
+    ScalafixMainArgs withExcludedPaths(List<PathMatcher> matchers);
 
     /**
      * @param path The working directory of where to invoke the command-line interface.
