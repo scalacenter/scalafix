@@ -134,7 +134,7 @@ lazy val unit = project
     javaOptions := Nil,
     buildInfoPackage := "scalafix.tests",
     buildInfoObject := "BuildInfo",
-    libraryDependencies ++= coursierDeps ++ testsDeps,
+    libraryDependencies ++= testsDeps,
     libraryDependencies ++= List(
       jgit,
       semanticdbPluginLibrary,

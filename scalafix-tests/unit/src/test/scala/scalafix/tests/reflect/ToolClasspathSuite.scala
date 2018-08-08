@@ -1,11 +1,11 @@
 package scalafix.tests.reflect
 
-import java.io.File
 import java.nio.file.Files
 import scala.reflect.io.Directory
 import scala.reflect.io.PlainDirectory
 import scalafix.internal.reflect.RuleCompiler
 import scalafix.internal.tests.utils.SkipWindows
+import com.geirsson.coursiersmall._
 import metaconfig.Conf
 import scala.meta.io.AbsolutePath
 import org.scalatest.BeforeAndAfterAll
@@ -20,11 +20,12 @@ class ToolClasspathSuite extends FunSuite with BeforeAndAfterAll {
         .split("\\.")
         .take(2)
         .mkString(".")
-    val jars: List[File] = scalafix.internal.sbt.ScalafixJarFetcher.fetchJars(
+    val dependency = new Dependency(
       "com.geirsson",
       "scalafmt-core_" + scalaBinaryVersion,
-      "1.2.0"
-    )
+      "1.2.0")
+    val settings = new Settings().withDependencies(List(dependency))
+    val jars = CoursierSmall.fetch(settings)
     scalafmtClasspath = jars.map(AbsolutePath(_))
   }
 

@@ -30,6 +30,7 @@ object Dependencies {
 
   def testsDeps = List(
     // integration property tests
+    "com.geirsson" %% "coursier-small" % "1.0.0-M4",
     "org.renucci" %% "scala-xml-quote" % "0.1.4",
     "org.typelevel" %% "catalysts-platform" % "0.0.5",
     "org.typelevel" %% "cats-core" % "0.9.0",

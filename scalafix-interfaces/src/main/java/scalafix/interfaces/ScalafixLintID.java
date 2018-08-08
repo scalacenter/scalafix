@@ -10,14 +10,15 @@ package scalafix.interfaces;
 public interface ScalafixLintID {
 
     /**
-     * @return The name of the rule that produced this diagnostic.
+     * @return The name of the rule that produced this diagnostic. For example, "Disable".
      */
     String ruleName();
 
     /**
      * @return the sub-category within this rule, if any.
      * Empty if the rule only reports diagnostics of a single
-     * category.
+     * category. For example, "get" when the full lint ID
+     * is "Disable.get".
      */
     String categoryID();
 

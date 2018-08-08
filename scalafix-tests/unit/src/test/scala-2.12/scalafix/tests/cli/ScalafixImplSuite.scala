@@ -1,5 +1,8 @@
 package scalafix.tests.cli
 
+import com.geirsson.coursiersmall.CoursierSmall
+import com.geirsson.coursiersmall.Dependency
+import com.geirsson.coursiersmall.Settings
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -22,7 +25,7 @@ import scalafix.interfaces.ScalafixMainCallback
 import scalafix.interfaces.ScalafixMainMode
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.reflect.RuleCompiler
-import scalafix.internal.sbt.ScalafixJarFetcher
+import scalafix.test.StringFS
 import scalafix.testkit.DiffAssertions
 
 class ScalafixImplSuite extends FunSuite with DiffAssertions {
@@ -78,40 +81,38 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
   test("runMain") {
     // This is a full integration test that stresses the full breadth of the scalafix-interfaces API
     val api = i.Scalafix.classloadInstance(this.getClass.getClassLoader)
-    val cwd = Files.createTempDirectory("scalafix")
+    // Assert that non-ascii characters read into "?"
+    val charset = StandardCharsets.US_ASCII
+    val cwd = StringFS
+      .string2dir(
+        """|/src/Semicolon.scala
+           |
+           |object Semicolon {
+           |  val a = 1; // みりん þæö
+           |  implicit val b = List(1)
+           |  def main { println(42) }
+           |}
+           |
+           |/src/Excluded.scala
+           |object Excluded {
+           |  val a = 1;
+           |}
+      """.stripMargin,
+        charset
+      )
+      .toNIO
     val d = cwd.resolve("out")
     val src = cwd.resolve("src")
     Files.createDirectories(d)
-    Files.createDirectories(src)
     val semicolon = src.resolve("Semicolon.scala")
-    val excluded = semicolon.resolveSibling("Excluded.scala")
+    val excluded = src.resolve("Excluded.scala")
+    val dependency =
+      new Dependency("com.geirsson", "example-scalafix-rule_2.12", "1.1.0")
+    val settings = new Settings().withDependencies(List(dependency))
     // This rule is published to Maven Central to simplify testing --tool-classpath.
-    val toolClasspathJars = ScalafixJarFetcher.fetchJars(
-      "com.geirsson",
-      "example-scalafix-rule_2.12",
-      "1.1.0"
-    )
+    val toolClasspathJars = CoursierSmall.fetch(settings)
     val toolClasspath = ClasspathOps.toClassLoader(
       Classpath(toolClasspathJars.map(jar => AbsolutePath(jar))))
-    Files.createFile(semicolon)
-    // Assert that non-ascii characters read into "?"
-    val charset = StandardCharsets.US_ASCII
-    val contents =
-      """|
-         |object Semicolon {
-         |  val a = 1; // みりん þæö
-         |  implicit val b = List(1)
-         |  def main { println(42) }
-         |}
-         |""".stripMargin
-    Files.write(
-      semicolon,
-      contents.getBytes(charset)
-    )
-    Files.write(
-      excluded,
-      contents.replace("object Semicolon", "object Excluded").getBytes(charset)
-    )
     val scalacOptions = Array[String](
       "-Yrangepos",
       s"-Xplugin:${semanticdbPluginPath()}",

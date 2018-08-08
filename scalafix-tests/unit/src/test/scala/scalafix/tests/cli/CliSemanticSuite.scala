@@ -50,6 +50,7 @@ class CliSemanticSuite extends BaseCliSuite {
     Files.createFile(cwd.resolve(name))
     val (out, exit) = runMain(
       Array(
+        // no --classpath
         "-r",
         "RemoveUnusedImports",
         name
