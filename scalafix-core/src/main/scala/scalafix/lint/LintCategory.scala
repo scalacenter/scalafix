@@ -29,7 +29,7 @@ final case class LintCategory(
     LintMessage(explanation, position, noExplanation)
 
   def withOwner(owner: RuleName): LintCategory =
-    copy(id = deprecatedKey(owner))
+    copy(id = fullId(owner))
 
   def withConfig(config: LintConfig): LintCategory = {
     val newSeverity =
@@ -40,7 +40,7 @@ final case class LintCategory(
     copy(severity = newSeverity)
   }
 
-  private def deprecatedKey(owner: RuleName): String =
+  def fullId(owner: RuleName): String =
     if (owner.isEmpty) id
     else if (id.isEmpty) owner.value
     else s"${owner.value}.$id"

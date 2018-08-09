@@ -6,7 +6,6 @@ import metaconfig.generic
 import metaconfig.generic.Surface
 
 case class LintConfig(
-    reporter: ScalafixReporter = ScalafixReporter.default,
     explain: Boolean = false,
     ignore: FilterMatcher = FilterMatcher.matchNothing,
     info: FilterMatcher = FilterMatcher.matchNothing,

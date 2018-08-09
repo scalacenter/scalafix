@@ -210,7 +210,7 @@ class CliSyntacticSuite extends BaseCliSuite {
         out.endsWith(
           """|a.scala:1:1: error: expected class or object definition
              |objec bar
-             |^
+             |^^^^^
              |""".stripMargin
         )
       )
@@ -301,22 +301,4 @@ class CliSyntacticSuite extends BaseCliSuite {
     expectedExit = ExitStatus.Ok
   )
 
-  check(
-    name = "--format sbt",
-    originalLayout = s"""/foobar.scala
-                        |$original""".stripMargin,
-    args = Array(
-      "--format",
-      "sbt",
-      "-r",
-      "scala:scalafix.tests.cli.LintError",
-      "foobar.scala"
-    ),
-    expectedLayout = s"""/foobar.scala
-                        |$original""".stripMargin,
-    expectedExit = ExitStatus.LinterError,
-    outputAssert = { out =>
-      assert(out.contains("[error] "))
-    }
-  )
 }

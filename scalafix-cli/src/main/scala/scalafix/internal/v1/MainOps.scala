@@ -11,6 +11,7 @@ import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 import metaconfig.Conf
 import metaconfig.ConfEncoder
+import metaconfig.Configured
 import metaconfig.annotation.Hidden
 import metaconfig.annotation.Inline
 import metaconfig.generic.Setting
@@ -27,12 +28,44 @@ import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
 import scalafix.Versions
 import scalafix.cli.ExitStatus
+import scalafix.internal.config.PrintStreamReporter
 import scalafix.internal.diff.DiffUtils
-import scalafix.lint.LintMessage
+import scalafix.lint.LintDiagnostic
 import scalafix.v1.Doc
 import scalafix.v1.SemanticDoc
 
 object MainOps {
+
+  def run(args: Array[String], base: Args): ExitStatus = {
+    val out = base.out
+    Conf
+      .parseCliArgs[Args](args.toList)
+      .andThen(c => c.as[Args](Args.decoder(base)))
+      .andThen(_.validate) match {
+      case Configured.Ok(validated) =>
+        if (validated.args.help) {
+          MainOps.helpMessage(out, 80)
+          ExitStatus.Ok
+        } else if (validated.args.version) {
+          out.println(Versions.version)
+          ExitStatus.Ok
+        } else if (validated.args.bash) {
+          out.println(CompletionsOps.bashCompletions)
+          ExitStatus.Ok
+        } else if (validated.args.zsh) {
+          out.println(CompletionsOps.zshCompletions)
+          ExitStatus.Ok
+        } else if (validated.rules.isEmpty) {
+          out.println("Missing --rules")
+          ExitStatus.CommandLineError
+        } else {
+          MainOps.run(validated)
+        }
+      case Configured.NotOk(err) =>
+        PrintStreamReporter(out = out).error(err.toString())
+        ExitStatus.CommandLineError
+    }
+  }
 
   def files(args: ValidatedArgs): Seq[AbsolutePath] = args.args.ls match {
     case Ls.Find =>
@@ -86,9 +119,9 @@ object MainOps {
       code: ExitStatus,
       files: Seq[AbsolutePath]
   ): ExitStatus = {
-    if (args.config.lint.reporter.hasErrors) {
+    if (args.callback.hasLintErrors) {
       ExitStatus.merge(ExitStatus.LinterError, code)
-    } else if (args.config.reporter.hasErrors && code.isOk) {
+    } else if (args.callback.hasErrors && code.isOk) {
       ExitStatus.merge(ExitStatus.UnexpectedError, code)
     } else if (files.isEmpty) {
       args.config.reporter.error("No files to fix")
@@ -98,14 +131,11 @@ object MainOps {
     }
   }
 
-  def reportLintErrors(args: ValidatedArgs, messages: List[LintMessage]): Unit =
-    messages.foreach { msg =>
-      val category = msg.category.withConfig(args.config.lint)
-      args.config.lint.reporter.handleMessage(
-        msg.format(args.config.lint.explain),
-        msg.position,
-        category.severity.toSeverity
-      )
+  def reportLintErrors(
+      args: ValidatedArgs,
+      messages: List[LintDiagnostic]): Unit =
+    messages.foreach { diag =>
+      args.config.reporter.lint(diag)
     }
 
   def assertFreshSemanticDB(
@@ -175,7 +205,9 @@ object MainOps {
           }
 
         if (!args.args.autoSuppressLinterErrors) {
-          reportLintErrors(args, messages)
+          messages.foreach { diag =>
+            args.config.reporter.lint(diag)
+          }
         }
 
         if (args.args.test) {

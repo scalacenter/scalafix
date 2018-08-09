@@ -43,7 +43,7 @@ class CliGitDiffSuite extends FunSuite with DiffAssertions {
     val expected =
       s"""|$newCodeAbsPath:3:3: error: [DisableSyntax.keywords.var] var is disabled
           |  var newVar = 1
-          |  ^
+          |  ^^^
           |""".stripMargin
 
     assertNoDiff(obtained, expected)
@@ -83,7 +83,7 @@ class CliGitDiffSuite extends FunSuite with DiffAssertions {
     val expected =
       s"""|$oldCodeAbsPath:7:3: error: [DisableSyntax.keywords.var] var is disabled
           |  var newVar = 2
-          |  ^
+          |  ^^^
           |""".stripMargin
 
     assertNoDiff(obtained, expected)
@@ -124,7 +124,7 @@ class CliGitDiffSuite extends FunSuite with DiffAssertions {
     val expected =
       s"""|$newCodeAbsPath:5:3: error: [DisableSyntax.keywords.var] var is disabled
           |  var newVar = 2
-          |  ^
+          |  ^^^
           |""".stripMargin
 
     assertNoDiff(obtained, expected)
@@ -181,7 +181,7 @@ class CliGitDiffSuite extends FunSuite with DiffAssertions {
     val expected =
       s"""|$newCodeAbsPath:5:3: error: [DisableSyntax.keywords.var] var is disabled
           |  var newVar = 2
-          |  ^
+          |  ^^^
           |""".stripMargin
 
     assertNoDiff(obtained, expected)

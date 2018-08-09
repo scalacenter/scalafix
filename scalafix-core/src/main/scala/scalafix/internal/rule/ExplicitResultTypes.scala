@@ -82,7 +82,10 @@ case class ExplicitResultTypes(
       pos: Position,
       symbol: Symbol
   ): PrettyResult[Type] = {
-    val info = index.asInstanceOf[SymbolTable].info(symbol.syntax).get
+    val info = index
+      .asInstanceOf[SymbolTable]
+      .info(symbol.syntax)
+      .getOrElse(throw new NoSuchElementException(symbol.syntax))
     val tpe = info.signature match {
       case method: s.MethodSignature =>
         method.returnType

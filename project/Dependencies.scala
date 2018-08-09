@@ -22,6 +22,7 @@ object Dependencies {
   def googleDiff = "com.googlecode.java-diff-utils" % "diffutils" % "1.3.0"
 
   def metacp = "org.scalameta" %% "metacp" % scalametaV
+  def semanticdbPluginLibrary = "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
   def scalameta = "org.scalameta" %% "contrib" % scalametaV
   def symtab = "org.scalameta" %% "symtab" % scalametaV
   def scalatest = "org.scalatest" %% "scalatest" % "3.2.0-SNAP10"
@@ -29,6 +30,7 @@ object Dependencies {
 
   def testsDeps = List(
     // integration property tests
+    "com.geirsson" %% "coursier-small" % "1.0.0-M4",
     "org.renucci" %% "scala-xml-quote" % "0.1.4",
     "org.typelevel" %% "catalysts-platform" % "0.0.5",
     "org.typelevel" %% "cats-core" % "0.9.0",

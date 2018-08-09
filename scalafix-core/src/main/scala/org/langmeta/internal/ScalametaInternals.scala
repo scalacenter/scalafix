@@ -15,11 +15,21 @@ object ScalametaInternals {
       case Some(r) => positionFromRange(input, r)
       case _ => Position.None
     }
+
   def positionFromRange(input: Input, range: s.Range): Position = {
-    val start = input.lineToOffset(range.startLine) + range.startCharacter
-    val end = input.lineToOffset(range.endLine) + range.endCharacter
+    val inputEnd = Position.Range(input, input.chars.length, input.chars.length)
+    def lineLength(line: Int): Int = {
+      val isLastLine = line == inputEnd.startLine
+      if (isLastLine) inputEnd.endColumn
+      else input.lineToOffset(line + 1) - input.lineToOffset(line) - 1
+    }
+    val start = input.lineToOffset(range.startLine) +
+      math.min(range.startCharacter, lineLength(range.startLine))
+    val end = input.lineToOffset(range.endLine) +
+      math.min(range.endCharacter, lineLength(range.endLine))
     Position.Range(input, start, end)
   }
+
   // Workaround for https://github.com/scalameta/scalameta/issues/1115
   def formatMessage(
       pos: Position,

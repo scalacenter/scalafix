@@ -28,7 +28,6 @@ object ClasspathOps {
   /** Process classpath with metacp to build semanticdbs of global symbols. **/
   def toMetaClasspath(
       sclasspath: Classpath,
-      cacheDirectory: Option[AbsolutePath] = None,
       parallel: Boolean = false,
       out: PrintStream = devNull
   ): Option[Classpath] = {
@@ -54,7 +53,6 @@ object ClasspathOps {
 
   def newSymbolTable(
       classpath: Classpath,
-      cacheDirectory: Option[AbsolutePath] = None,
       parallel: Boolean = false,
       out: PrintStream = System.out
   ): Option[SymbolTable] = {
@@ -63,12 +61,14 @@ object ClasspathOps {
     }
   }
 
+  def thisClassLoader: URLClassLoader =
+    this.getClass.getClassLoader.asInstanceOf[URLClassLoader]
   def getCurrentClasspath: String = {
-    Thread.currentThread.getContextClassLoader match {
-      case url: java.net.URLClassLoader =>
-        url.getURLs.map(_.getFile).mkString(File.pathSeparator)
-      case _ => ""
-    }
+    this.getClass.getClassLoader
+      .asInstanceOf[URLClassLoader]
+      .getURLs
+      .map(_.getFile)
+      .mkString(File.pathSeparator)
   }
 
   private val META_INF = Paths.get("META-INF")
@@ -99,8 +99,8 @@ object ClasspathOps {
     Classpath(buffer.result())
   }
 
-  def toClassLoader(classpath: Classpath): ClassLoader = {
+  def toClassLoader(classpath: Classpath): URLClassLoader = {
     val urls = classpath.entries.map(_.toNIO.toUri.toURL).toArray
-    new URLClassLoader(urls, null)
+    new URLClassLoader(urls, this.getClass.getClassLoader)
   }
 }

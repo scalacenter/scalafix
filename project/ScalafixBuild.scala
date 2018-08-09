@@ -23,9 +23,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     lazy val noPublish = Seq(
       mimaReportBinaryIssues := {},
       mimaPreviousArtifacts := Set.empty,
-      publishArtifact := false,
-      publish := {},
-      publishLocal := {}
+      skip in publish := true
     )
     lazy val supportedScalaVersions = List(scala211, scala212)
     lazy val isFullCrossVersion = Seq(
@@ -33,6 +31,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     )
     lazy val warnUnusedImports = "-Ywarn-unused-import"
     lazy val compilerOptions = Seq(
+      "-target:jvm-1.8",
       warnUnusedImports,
       "-deprecation",
       "-encoding",

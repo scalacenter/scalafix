@@ -14,11 +14,12 @@ import scalafix.internal.reflect.RuleDecoderOps.FromSourceRule
 import scalafix.internal.reflect.RuleDecoderOps.tryClassload
 import scalafix.internal.reflect.ScalafixToolbox
 import scalafix.internal.reflect.ScalafixToolbox.CompiledRules
-import scalafix.internal.util.ClassloadRule
 import scalafix.internal.v1.Rules
 import scalafix.patch.TreePatch
 import scalafix.v1
 import scala.collection.JavaConverters._
+import scala.meta.io.Classpath
+import scalafix.internal.reflect.ClasspathOps
 
 /** One-stop shop for loading scalafix rules from strings. */
 object RuleDecoder {
@@ -34,32 +35,21 @@ object RuleDecoder {
     */
   def fromString(
       rule: String,
+      allRules: List[v1.Rule],
       settings: Settings
   ): List[Configured[v1.Rule]] = {
-    lazy val classloader =
-      if (settings.toolClasspath.isEmpty) ClassloadRule.defaultClassloader
-      else {
-        new URLClassLoader(
-          settings.toolClasspath.iterator.map(_.toURI.toURL).toArray,
-          ClassloadRule.defaultClassloader
-        )
-      }
-    val customRules =
-      ServiceLoader.load(classOf[v1.Rule], classloader)
-    val allRules =
-      Iterator(Rules.defaults.iterator, customRules.iterator().asScala).flatten
     allRules.find(_.name.matches(rule)) match {
       case Some(r) =>
         Configured.ok(r) :: Nil
       case None =>
-        fromStringURI(rule, classloader, settings)
+        fromStringURI(rule, settings.toolClasspath, settings)
     }
   }
 
   // Attempts to load a rule as if it was a URI, for example 'class:FQN' or 'github:org/repo/v1'
   private def fromStringURI(
       rule: String,
-      classloader: ClassLoader,
+      classloader: URLClassLoader,
       settings: Settings
   ): List[Configured[v1.Rule]] = {
     val FromSource = new FromSourceRule(settings.cwd)
@@ -109,13 +99,17 @@ object RuleDecoder {
 
   def decoder(settings: Settings): ConfDecoder[Rules] =
     new ConfDecoder[Rules] {
+      private val customRules =
+        ServiceLoader.load(classOf[v1.Rule], settings.toolClasspath)
+      private val allRules =
+        List(Rules.defaults.iterator, customRules.iterator().asScala).flatten
       override def read(conf: Conf): Configured[Rules] = conf match {
         case str: Conf.Str =>
           read(Conf.Lst(str :: Nil))
         case Conf.Lst(values) =>
           val decoded = values.flatMap {
             case Conf.Str(value) =>
-              fromString(value, settings).map { rule =>
+              fromString(value, allRules, settings).map { rule =>
                 rule.foreach(
                   _.name
                     .reportDeprecationWarning(value, settings.config.reporter))
@@ -154,7 +148,7 @@ object RuleDecoder {
     */
   final class Settings private (
       val config: ScalafixConfig,
-      val toolClasspath: List[AbsolutePath],
+      val toolClasspath: URLClassLoader,
       val cwd: AbsolutePath
   ) {
 
@@ -163,6 +157,10 @@ object RuleDecoder {
     }
 
     def withToolClasspath(value: List[AbsolutePath]): Settings = {
+      copy(toolClasspath = ClasspathOps.toClassLoader(Classpath(value)))
+    }
+
+    def withToolClasspath(value: URLClassLoader): Settings = {
       copy(toolClasspath = value)
     }
 
@@ -172,7 +170,7 @@ object RuleDecoder {
 
     private def copy(
         config: ScalafixConfig = this.config,
-        toolClasspath: List[AbsolutePath] = this.toolClasspath,
+        toolClasspath: URLClassLoader = this.toolClasspath,
         cwd: AbsolutePath = this.cwd
     ): Settings =
       new Settings(
@@ -185,7 +183,7 @@ object RuleDecoder {
     def apply(): Settings =
       new Settings(
         ScalafixConfig.default,
-        Nil,
+        ClasspathOps.thisClassLoader,
         PathIO.workingDirectory
       )
   }

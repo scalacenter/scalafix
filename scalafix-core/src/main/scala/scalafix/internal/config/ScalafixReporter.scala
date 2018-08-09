@@ -1,64 +1,29 @@
 package scalafix.internal.config
 
-import java.io.OutputStream
-import scala.meta.Position
-import scalafix.internal.util.Severity
 import metaconfig.ConfDecoder
+import metaconfig.ConfEncoder
+import scala.meta.Position
+import scalafix.lint.LintDiagnostic
+import scalafix.lint.LintSeverity
 
 trait ScalafixReporter {
-
-  /** Returns true if this reporter has seen an error */
-  def hasErrors: Boolean = errorCount > 0
-
-  /** Clear any internal mutable state */
-  private[scalafix] def reset: ScalafixReporter
-  private[scalafix] def reset(outputStream: OutputStream): ScalafixReporter
-  private[scalafix] def withFormat(format: OutputFormat): ScalafixReporter
-
-  /** Returns the number of reported errors */
-  def errorCount: Int
-
-  /** Messages with severity < minSeverity are skipped. */
-  def minSeverity: Severity
-
-  /** Messages whose enclosing scope don't match filter.matches are skipped. */
-  def filter: FilterMatcher
-
-  /** Present the message to the user.
-    *
-    * In a command-line interface, this might mean "print message to console".
-    * In an IDE, this might mean putting red/yellow squiggly marks under code.
-    */
-  protected def report(message: String, position: Position, severity: Severity)(
-      implicit ctx: LogContext): Unit
-
-  private[scalafix] def handleMessage(
+  private[scalafix] def report(
       message: String,
       position: Position,
-      severity: Severity)(implicit ctx: LogContext): Unit =
-    if (severity >= minSeverity && filter.matches(ctx.enclosing.value)) {
-      report(message, position, severity)
-    } else {
-      () // do nothing
-    }
-
-  // format: off
-  final def trace(message: String, position: Position = Position.None)(implicit ctx: LogContext): Unit = handleMessage(message, position, Severity.Trace)
-  final def debug(message: String, position: Position = Position.None)(implicit ctx: LogContext): Unit = handleMessage(message, position, Severity.Debug)
-  final def info (message: String, position: Position = Position.None)(implicit ctx: LogContext): Unit = handleMessage(message, position, Severity.Info)
-  final def warn (message: String, position: Position = Position.None)(implicit ctx: LogContext): Unit = handleMessage(message, position, Severity.Warn)
-  final def error(message: String, position: Position = Position.None)(implicit ctx: LogContext): Unit = handleMessage(message, position, Severity.Error)
-  // format: on
+      severity: LintSeverity): Unit
+  private[scalafix] def lint(d: LintDiagnostic): Unit
+  final def info(message: String, position: Position = Position.None): Unit =
+    report(message, position, LintSeverity.Info)
+  final def warn(message: String, position: Position = Position.None): Unit =
+    report(message, position, LintSeverity.Warning)
+  final def error(message: String, position: Position = Position.None): Unit =
+    report(message, position, LintSeverity.Error)
 }
 
 object ScalafixReporter {
-  val default: PrintStreamReporter = PrintStreamReporter(
-    Console.out,
-    Severity.Info,
-    FilterMatcher.matchEverything,
-    includeLoggerName = false,
-    format = OutputFormat.Default
-  )
-  implicit val scalafixReporterReader: ConfDecoder[ScalafixReporter] =
-    default.reader
+  def default: ScalafixReporter = PrintStreamReporter.default
+  implicit val decoder: ConfDecoder[ScalafixReporter] =
+    ConfDecoder.stringConfDecoder.map(_ => default)
+  implicit val encoder: ConfEncoder[ScalafixReporter] =
+    ConfEncoder.StringEncoder.contramap(_ => "<reporter>")
 }

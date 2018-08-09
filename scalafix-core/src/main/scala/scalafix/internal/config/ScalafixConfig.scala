@@ -1,13 +1,9 @@
 package scalafix.internal.config
 
-import java.io.OutputStream
-import java.io.PrintStream
 import scala.meta._
 import scala.meta.dialects.Scala212
 import metaconfig._
-import metaconfig.Input
 import metaconfig.generic.Surface
-import scalafix.rule.Rule
 
 case class ScalafixConfig(
     parser: ParserConfig = ParserConfig(),
@@ -20,35 +16,9 @@ case class ScalafixConfig(
     lint: LintConfig = LintConfig.default
 ) {
 
-  def withFreshReporters: ScalafixConfig = copy(
-    reporter = reporter.reset,
-    lint = lint.copy(
-      reporter = lint.reporter.reset
-    )
-  )
-
-  def withFreshReporters(outStream: OutputStream): ScalafixConfig = copy(
-    reporter = reporter.reset(outStream),
-    lint = lint.copy(
-      reporter = lint.reporter.reset(outStream)
-    )
-  )
-
   val reader: ConfDecoder[ScalafixConfig] =
     ScalafixConfig.decoder(this)
 
-  def transformReporter(
-      f: ScalafixReporter => ScalafixReporter): ScalafixConfig =
-    copy(
-      reporter = f(reporter),
-      lint = lint.copy(reporter = f(lint.reporter))
-    )
-
-  def withOut(out: PrintStream): ScalafixConfig =
-    transformReporter(_.reset(out))
-
-  def withFormat(format: OutputFormat): ScalafixConfig =
-    transformReporter(_.withFormat(format))
 }
 
 object ScalafixConfig {
@@ -89,21 +59,5 @@ object ScalafixConfig {
     // might go ahead and drop support completely.
     allowXmlLiterals = true
   )
-
-  /** Returns config from current working directory, if .scalafix.conf exists. */
-  def auto(workingDirectory: AbsolutePath): Option[Input] = {
-    val file = workingDirectory.resolve(".scalafix.conf")
-    if (file.isFile && file.toFile.exists())
-      Some(Input.File(file.toNIO))
-    else None
-  }
-
-  def fromInput(
-      input: Input,
-      index: LazySemanticdbIndex,
-      extraRules: List[String] = Nil)(
-      implicit decoder: ConfDecoder[Rule]
-  ): Configured[(Rule, ScalafixConfig)] =
-    configFromInput(input, index, extraRules)
 
 }

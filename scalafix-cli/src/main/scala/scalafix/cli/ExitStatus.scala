@@ -4,6 +4,7 @@ import scala.collection.mutable
 
 sealed abstract case class ExitStatus(code: Int, name: String) {
   def isOk: Boolean = code == ExitStatus.Ok.code
+  def is(exit: ExitStatus): Boolean = (code & exit.code) != 0
   override def toString: String = s"$name=$code"
 }
 
@@ -26,7 +27,6 @@ object ExitStatus {
   val Ok,
       UnexpectedError,
       ParseError,
-      ScalafixError,
       CommandLineError,
       MissingSemanticdbError,
       StaleSemanticdbError,

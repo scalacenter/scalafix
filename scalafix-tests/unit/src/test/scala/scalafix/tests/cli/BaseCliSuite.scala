@@ -218,4 +218,10 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
     }
   }
 
+  def runMain(args: Array[String], cwd: Path): (String, ExitStatus) = {
+    val out = new ByteArrayOutputStream()
+    val exit = Main.run(args, cwd, new PrintStream(out))
+    (fansi.Str(out.toString()).plainText, exit)
+  }
+
 }
