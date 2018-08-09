@@ -178,6 +178,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     commands += Command.command("ci-212") { s =>
       "++2.12.6" ::
         "unit/test" ::
+        "interfaces/doc" ::
         s
     },
     commands += Command.command("ci-211") { s =>

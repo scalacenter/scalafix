@@ -36,27 +36,27 @@ public interface Scalafix {
     String mainHelp(int screenWidth);
 
     /**
-     * @return The release version of the current Scalafix API instance.
+     * The release version of the current Scalafix API instance.
      */
     String scalafixVersion();
 
     /**
-     * @return The recommended Scalameta version to match the current Scalafix API instance.
+     * The recommended Scalameta version to match the current Scalafix API instance.
      */
     String scalametaVersion();
 
     /**
-     * @return The exact Scala versions that are supported by the recommended {@link #scalametaVersion()}
+     * The exact Scala versions that are supported by the recommended {@link #scalametaVersion()}
      */
     String[] supportedScalaVersions();
 
     /**
-     * @return The most recent Scala 2.11 version in {@link #supportedScalaVersions()}
+     * The most recent Scala 2.11 version in {@link #supportedScalaVersions()}
      */
     String scala211();
 
     /**
-     * @return The most recent Scala 2.12 version in {@link #supportedScalaVersions()}
+     * The most recent Scala 2.12 version in {@link #supportedScalaVersions()}
      */
     String scala212();
 

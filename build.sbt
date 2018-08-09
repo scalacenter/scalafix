@@ -9,14 +9,21 @@ inThisBuild(
 
 noPublish
 
+// force javac to fork by setting javaHome to get error messages during compilation,
+// see https://github.com/sbt/zinc/issues/520
+def inferJavaHome() =
+  Some(file(System.getProperty("java.home")).getParentFile)
+
 lazy val interfaces = project
   .in(file("scalafix-interfaces"))
   .settings(
-    javaHome.in(Compile) := {
-      // force javac to fork by setting javaHome to get error messages during compilation,
-      // see https://github.com/sbt/zinc/issues/520
-      Some(file(sys.props("java.home")).getParentFile)
-    },
+    javacOptions.in(Compile) ++= List(
+      "-Xlint:all",
+      "-Werror"
+    ),
+    javacOptions.in(Compile, doc) := List("-Xdoclint:none"),
+    javaHome.in(Compile) := inferJavaHome(),
+    javaHome.in(Compile, doc) := inferJavaHome(),
     moduleName := "scalafix-interfaces",
     crossVersion := CrossVersion.disabled,
     crossScalaVersions := List(scala212),
