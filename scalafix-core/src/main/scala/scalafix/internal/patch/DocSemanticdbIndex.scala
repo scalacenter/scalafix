@@ -9,7 +9,6 @@ import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import scala.meta.internal.ScalametaInternals
 import scala.meta.internal.semanticdb.SymbolInformation
-import scala.meta.internal.semanticdb.Accessibility.{Tag => a}
 import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
 import scala.meta.internal.semanticdb.SymbolInformation.{Kind => k}
 import scala.meta.internal.{semanticdb => s}
@@ -18,8 +17,8 @@ import scalafix.v1.Sym
 import scalafix.v1.SemanticDoc
 import scalafix.v0
 import scalafix.v0._
-
 import DocSemanticdbIndex._
+import scalafix.internal.v0.LegacyCodePrinter
 
 class DocSemanticdbIndex(val doc: SemanticDoc)
     extends CrashingSemanticdbIndex
@@ -133,10 +132,12 @@ object DocSemanticdbIndex {
       if (stest(p.STATIC)) dflip(d.STATIC)
       if (stest(p.PRIMARY)) dflip(d.PRIMARY)
       if (stest(p.ENUM)) dflip(d.ENUM)
-      info.accessibility.map(_.tag) match {
-        case Some(a.PRIVATE | a.PRIVATE_THIS | a.PRIVATE_WITHIN) =>
+      info.access match {
+        case _: s.PrivateAccess | _: s.PrivateThisAccess |
+            _: s.PrivateWithinAccess =>
           dflip(d.PRIVATE)
-        case Some(a.PROTECTED | a.PROTECTED_THIS | a.PROTECTED_WITHIN) =>
+        case _: s.ProtectedAccess | _: s.ProtectedThisAccess |
+            _: s.ProtectedWithinAccess =>
           dflip(d.PROTECTED)
         case _ =>
           ()
@@ -179,22 +180,7 @@ object DocSemanticdbIndex {
   def syntheticToLegacy(doc: SemanticDoc, synthetic: s.Synthetic): Synthetic = {
     val pos =
       ScalametaInternals.positionFromRange(doc.input, synthetic.range)
-    val names: List[ResolvedName] = synthetic.text match {
-      case Some(td) =>
-        val input = Input.Stream(
-          InputSynthetic(td.text, doc.input, pos.start, pos.end),
-          StandardCharsets.UTF_8)
-        td.occurrences.iterator
-          .map(o => occurrenceToLegacy(doc, input, o))
-          .toList
-      case _ =>
-        Nil
-    }
-    Synthetic(
-      pos,
-      synthetic.text.fold("")(_.text),
-      names
-    )
+    new LegacyCodePrinter().toLegacy(synthetic, doc, pos)
   }
 
 }

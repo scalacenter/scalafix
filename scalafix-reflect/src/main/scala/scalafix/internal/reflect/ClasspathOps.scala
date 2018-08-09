@@ -10,10 +10,9 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
-import scala.meta.io.AbsolutePath
 import scala.meta.Classpath
-import scala.meta.metacp
 import scala.meta.internal.symtab._
+import scala.meta.io.AbsolutePath
 
 object ClasspathOps {
 
@@ -24,32 +23,6 @@ object ClasspathOps {
   val devNull = new PrintStream(new OutputStream {
     override def write(b: Int): Unit = ()
   })
-
-  /** Process classpath with metacp to build semanticdbs of global symbols. **/
-  def toMetaClasspath(
-      sclasspath: Classpath,
-      parallel: Boolean = false,
-      out: PrintStream = devNull
-  ): Option[Classpath] = {
-    val (processed, toProcess) = sclasspath.entries.partition { path =>
-      path.isDirectory &&
-      path.resolve("META-INF").resolve("semanticdb.semanticidx").isFile
-    }
-    val withJDK = Classpath(
-      bootClasspath.fold(sclasspath.entries)(_.entries ::: toProcess)
-    )
-    val default = metacp.Settings()
-    val settings = default
-      .withClasspath(withJDK)
-      .withScalaLibrarySynthetics(true)
-      .withPar(parallel)
-    val reporter = scala.meta.cli
-      .Reporter()
-      .withOut(devNull) // out prints classpath of proccessed classpath, which is not relevant for scalafix.
-      .withErr(out)
-    val mclasspath = scala.meta.cli.Metacp.process(settings, reporter)
-    mclasspath.map(x => Classpath(x.entries ++ processed))
-  }
 
   def newSymbolTable(
       classpath: Classpath,
