@@ -64,7 +64,7 @@ If you must Option.get, wrap the code block with
   val l: ListBuffer[Int] = scala.collection.mutable.ListBuffer.empty[Int] // assert: Disable.mutable
   List(1) + "any2stringadd" /* assert: Disable.any2stringadd
   ^
-any2stringadd is disabled and it got inferred as `scala.Predef.any2stringadd[List[Int]](*)`
+any2stringadd is disabled and it got inferred as `any2stringadd[List[Int]](*)`
   */
 
   @SuppressWarnings(Array("Disable.drop", "Disable.length"))
