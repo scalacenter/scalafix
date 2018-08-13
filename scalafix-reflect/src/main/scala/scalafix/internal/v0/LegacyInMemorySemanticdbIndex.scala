@@ -13,6 +13,7 @@ import scalafix.util.SemanticdbIndex
 import scalafix.v0.Database
 import scalafix.v0.Denotation
 import scalafix.v0.ResolvedName
+import scalafix.v0.Synthetic
 import scalafix.v0
 import scalafix.v1
 import scalafix.internal.v1._
@@ -62,6 +63,9 @@ case class LegacyInMemorySemanticdbIndex(
   override def denotation(tree: Tree): Option[Denotation] =
     index(tree.pos.input.syntax).denotation(tree)
 
+  def synthetics(input: Input): Seq[Synthetic] =
+    index(input.syntax).synthetics
+
   override def documents: Seq[v0.Document] =
     throw new UnsupportedOperationException()
 
@@ -73,7 +77,9 @@ case class LegacyInMemorySemanticdbIndex(
 
 object LegacyInMemorySemanticdbIndex {
 
-  def load(classpath: Classpath, sourceroot: AbsolutePath): SemanticdbIndex = {
+  def load(
+      classpath: Classpath,
+      sourceroot: AbsolutePath): LegacyInMemorySemanticdbIndex = {
     val symtab = ClasspathOps.newSymbolTable(classpath).get
     load(classpath, symtab, sourceroot)
   }
@@ -82,7 +88,7 @@ object LegacyInMemorySemanticdbIndex {
       classpath: Classpath,
       symtab: SymbolTable,
       sourceroot: AbsolutePath
-  ): SemanticdbIndex = {
+  ): LegacyInMemorySemanticdbIndex = {
     val sourceuri = sourceroot.toURI
     val buf = Map.newBuilder[String, SemanticdbIndex]
     classpath.entries.foreach { entry =>

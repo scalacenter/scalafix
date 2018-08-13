@@ -15,7 +15,9 @@ class LegacyCodePrinter() {
   private val buf = List.newBuilder[PositionedSymbol]
   private val text = new StringBuilder
   private def emit(symbol: String): Unit = {
-    emitCode(symbol.desc.name, symbol)
+    val owner = symbol.owner.replaceAllLiterally("/", ".")
+    val name = symbol.desc.name
+    emitCode(owner + name, symbol)
   }
   private def emitCode(code: String, sym: String): Unit = {
     val start = text.length
@@ -30,12 +32,12 @@ class LegacyCodePrinter() {
       text.append(start)
       var first = true
       trees.foreach { tree =>
-        fn(tree)
         if (first) {
           first = false
         } else {
           text.append(", ")
         }
+        fn(tree)
       }
       text.append(end)
     }
