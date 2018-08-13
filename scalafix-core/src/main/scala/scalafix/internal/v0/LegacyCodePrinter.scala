@@ -3,6 +3,7 @@ package scalafix.internal.v0
 import java.nio.charset.StandardCharsets
 import scala.meta.inputs.Input
 import scala.meta.inputs.Position
+import scala.meta.internal.ScalametaInternals
 import scala.meta.internal.semanticdb.Scala._
 import scala.meta.internal.{semanticdb => s}
 import scalafix.internal.patch.DocSemanticdbIndex.InputSynthetic
@@ -161,10 +162,68 @@ class LegacyCodePrinter() {
       mkString("[", targs, "]")(pprint)
   }
 
-  def toLegacy(
-      synthetic: s.Synthetic,
-      doc: SemanticDoc,
-      pos: Position): v0.Synthetic = {
+  def toLegacy(synthetics: Seq[s.Synthetic], doc: SemanticDoc): v0.Synthetic = {
+    val pos =
+      ScalametaInternals.positionFromRange(doc.input, synthetics.head.range)
+
+    synthetics.toList match {
+      case List(a, b) =>
+        val l = new LegacyCodePrinter().toLegacy(a, doc)
+        val r = new LegacyCodePrinter().toLegacy(b, doc)
+
+        (a.tree, b.tree) match {
+          case (at: s.ApplyTree, tat: s.TypeApplyTree) =>
+            val mergedText = r.text + l.text.drop(1)
+
+            val input = Input.Stream(
+              InputSynthetic(mergedText, doc.input, pos.start, pos.end),
+              StandardCharsets.UTF_8
+            )
+
+            val offset = r.text.size - 1
+            val leftNames =
+              l.names
+                .drop(1)
+                .map(
+                  n =>
+                    n.copy(
+                      position = Position.Range(
+                        input,
+                        n.position.start + offset,
+                        n.position.end + offset)))
+
+            val rightNames =
+              r.names.map(
+                n =>
+                  n.copy(position =
+                    Position.Range(input, n.position.start, n.position.end)))
+
+            v0.Synthetic(pos, mergedText, rightNames ++ leftNames)
+
+          case _ =>
+            throw new Exception(
+              s"""|cannot merge synthetics:
+                  |$l
+                  |$r""".stripMargin
+            )
+        }
+      case List(a) => new LegacyCodePrinter().toLegacy(a, doc)
+      case _ =>
+        val res = synthetics
+          .map(s => new LegacyCodePrinter().toLegacy(s, doc))
+          .mkString("\n")
+        throw new Exception(
+          s"""|cannot merge synthetics:
+              |$res""".stripMargin
+        )
+
+    }
+  }
+
+  def toLegacy(synthetic: s.Synthetic, doc: SemanticDoc): v0.Synthetic = {
+
+    val pos = ScalametaInternals.positionFromRange(doc.input, synthetic.range)
+
     loop(synthetic.tree)
     val input = Input.Stream(
       InputSynthetic(text.result(), doc.input, pos.start, pos.end),

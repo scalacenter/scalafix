@@ -51,10 +51,16 @@ class DocSemanticdbIndex(val doc: SemanticDoc)
         infoToDenotation(s)
       )
     }
-  final override def synthetics: Seq[Synthetic] =
-    doc.sdoc.synthetics.map { s =>
-      DocSemanticdbIndex.syntheticToLegacy(doc, s)
-    }
+  final override def synthetics: Seq[Synthetic] = {
+    val byRange = doc.sdoc.synthetics.groupBy(_.range)
+    val noRange = byRange
+      .get(None)
+      .map(_.map(DocSemanticdbIndex.syntheticToLegacy(doc)))
+      .getOrElse(Seq())
+    val withRange = (byRange - None).values.map(ss =>
+      DocSemanticdbIndex.syntheticToLegacy(doc, ss))
+    noRange ++ withRange
+  }
   override final def messages: Seq[Message] =
     doc.sdoc.diagnostics.map { diag =>
       val pos = ScalametaInternals.positionFromRange(doc.input, diag.range)
@@ -177,10 +183,14 @@ object DocSemanticdbIndex {
     )
   }
 
-  def syntheticToLegacy(doc: SemanticDoc, synthetic: s.Synthetic): Synthetic = {
-    val pos =
-      ScalametaInternals.positionFromRange(doc.input, synthetic.range)
-    new LegacyCodePrinter().toLegacy(synthetic, doc, pos)
+  def syntheticToLegacy(doc: SemanticDoc)(synthetic: s.Synthetic): Synthetic = {
+    new LegacyCodePrinter().toLegacy(synthetic, doc)
+  }
+
+  def syntheticToLegacy(
+      doc: SemanticDoc,
+      synthetics: Seq[s.Synthetic]): Synthetic = {
+    new LegacyCodePrinter().toLegacy(synthetics, doc)
   }
 
 }
