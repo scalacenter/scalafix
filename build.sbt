@@ -116,7 +116,8 @@ lazy val testsOutputDotty = project
     crossScalaVersions := List(dotty),
     libraryDependencies := libraryDependencies.value.map(
       _.withDottyCompat(scalaVersion.value)),
-    scalacOptions := Nil
+    scalacOptions := Nil,
+    coverageEnabled := false
   )
 
 lazy val testkit = project
