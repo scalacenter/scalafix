@@ -16,9 +16,7 @@ class LegacyCodePrinter() {
   private val buf = List.newBuilder[PositionedSymbol]
   private val text = new StringBuilder
   private def emit(symbol: String): Unit = {
-    val owner = symbol.owner.replaceAllLiterally("/", ".")
-    val name = symbol.desc.name
-    emitCode(owner + name, symbol)
+    emitCode(symbol.desc.name, symbol)
   }
   private def emitCode(code: String, sym: String): Unit = {
     val start = text.length
