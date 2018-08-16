@@ -6,11 +6,13 @@ final case class Denotation(
     flags: Long,
     name: String,
     signature: String,
-    names: List[ResolvedName],
-    private[scalafix] val tpe: s.Signature
+    names: List[ResolvedName]
 ) extends HasFlags
     with Product
     with Serializable {
+
+  override def toString: String = syntax
+
   def syntax: String = {
     val s_info = if (signature != "") ": " + signature else ""
     val s_names = ResolvedName.syntax(names)

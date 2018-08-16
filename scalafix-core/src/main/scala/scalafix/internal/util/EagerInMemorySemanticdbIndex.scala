@@ -84,8 +84,7 @@ case class EagerInMemorySemanticdbIndex(
       language = s.Language.SCALA,
       kind = s.SymbolInformation.Kind.fromValue(denot.skind.value),
       properties = denot.sproperties,
-      name = denot.name,
-      signature = denot.tpe
+      name = denot.name
     )
   }
 
