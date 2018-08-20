@@ -77,6 +77,7 @@ trait DiffAssertions extends FunSuiteLike {
       // Ignore \r\n and \n differences
       true
     } else {
+      println(obtained)
       throw DiffFailure(title, expected, obtained, result)
     }
   }

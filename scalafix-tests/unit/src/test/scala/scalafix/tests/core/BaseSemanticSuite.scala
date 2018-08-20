@@ -33,7 +33,7 @@ abstract class BaseSemanticSuite(filename: String)
       }
       .getOrElse {
         throw new IllegalArgumentException(
-          s"No $filename.semanticdb file found! Files are ${_db.documents.map(_.input.label)}"
+          s"No $filename.semanticdb file found!"
         )
       }
   }

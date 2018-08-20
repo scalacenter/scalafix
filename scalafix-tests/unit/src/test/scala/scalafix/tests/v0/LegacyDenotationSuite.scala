@@ -1,9 +1,9 @@
-package scalafix.tests.core
+package scalafix.tests.v0
 
 import scala.meta._
-import System.{lineSeparator => nl}
+import scalafix.tests.core.BaseSemanticSuite
 
-class V0DenotationSuite extends BaseSemanticSuite("V0DenotationTest") {
+class LegacyDenotationSuite extends BaseSemanticSuite("LegacyDenotationTest") {
   test("convert methods") {
     object TestDenotation {
       private val denotations = Map(
@@ -28,21 +28,19 @@ class V0DenotationSuite extends BaseSemanticSuite("V0DenotationTest") {
       )
       def unapply(n: Term.Name): Option[String] = denotations.get(n.syntax)
     }
-    val converted =
-      source
-        .collect {
-          case tree @ TestDenotation(expected) =>
-            index
-              .denotation(tree)
-              .map(obtained => (obtained.toString, expected))
-        }
-        .flatten
-        .toSet
-        .toList
+    val converted = source
+      .collect {
+        case tree @ TestDenotation(expected) =>
+          index
+            .denotation(tree)
+            .map(obtained => (obtained.toString, expected))
+      }
+      .flatten
+      .distinct
 
     val (obtained, expected) = converted.unzip
 
-    def show(xs: List[String]): String = xs.mkString(nl)
+    def show(xs: List[String]): String = xs.mkString("\n")
 
     assertNoDiff(show(obtained), show(expected))
   }
