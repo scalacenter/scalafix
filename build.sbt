@@ -78,7 +78,8 @@ lazy val testsShared = project
   .in(file("scalafix-tests/shared"))
   .settings(
     semanticdbSettings,
-    noPublish
+    noPublish,
+    coverageEnabled := false
   )
 
 lazy val testsInput = project
@@ -91,7 +92,8 @@ lazy val testsInput = project
     scalacOptions += "-Ywarn-unused-import", // For RemoveUnusedImports
     scalacOptions += "-Ywarn-unused", // For RemoveUnusedTerms
     logLevel := Level.Error, // avoid flood of compiler warnings
-    testsInputOutputSetting
+    testsInputOutputSetting,
+    coverageEnabled := false
   )
 
 lazy val testsOutput = project
@@ -103,7 +105,8 @@ lazy val testsOutput = project
       warnUnusedImports,
       "-Xlint"
     ),
-    testsInputOutputSetting
+    testsInputOutputSetting,
+    coverageEnabled := false
   )
 
 lazy val testsOutputDotty = project
