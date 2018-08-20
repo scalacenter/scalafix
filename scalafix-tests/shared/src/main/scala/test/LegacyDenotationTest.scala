@@ -5,7 +5,7 @@ import scala.collection.mutable.{
   Set
 } // Challenge to make sure the scoping is correct
 
-class V0DenotationTest(
+class LegacyDenotationTest(
     iset: immutable.Set[Int],
     cset: collection.Set[Int],
     imap: immutable.Map[Int, Int],
