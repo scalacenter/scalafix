@@ -10,6 +10,7 @@ import scala.meta.internal.{semanticdb => s}
 import scalafix.internal.patch.DocSemanticdbIndex.InputSynthetic
 import scalafix.v0
 import scalafix.v0.ResolvedName
+import scalafix.v1
 import scalafix.v1.SemanticDoc
 
 class LegacyCodePrinter(doc: SemanticDoc) {
@@ -66,7 +67,7 @@ class LegacyCodePrinter(doc: SemanticDoc) {
           mkString("(", scope.symbols, ")") { symbol =>
             emit(symbol)
             text.append(": ")
-            pprint(doc.link(scalafix.v1.Sym(symbol)))
+            pprint(doc.info(v1.Sym(symbol)).info.signature)
           }
         }
         pprint(sig.returnType)

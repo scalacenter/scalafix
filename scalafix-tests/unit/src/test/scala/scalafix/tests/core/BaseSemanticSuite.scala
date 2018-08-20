@@ -7,7 +7,6 @@ import scala.meta.internal.io.PathIO
 import scalafix.internal.v0.LegacyInMemorySemanticdbIndex
 import scalafix.syntax._
 import scalafix.testkit.DiffAssertions
-import scalafix.util.SemanticdbIndex
 
 abstract class BaseSemanticSuite(filename: String)
     extends FunSuite
