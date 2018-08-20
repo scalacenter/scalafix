@@ -13,9 +13,9 @@ abstract class BaseSemanticSuite(filename: String)
     extends FunSuite
     with BeforeAndAfterAll
     with DiffAssertions {
-  private var _db: SemanticdbIndex = _
+  private var _db: LegacyInMemorySemanticdbIndex = _
   private var _input: Input = _
-  implicit def index: SemanticdbIndex = _db
+  implicit def index: LegacyInMemorySemanticdbIndex = _db
   def input: Input = _input
   def source: Source = {
     input.parse[Source].get

@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets
 import scala.meta._
 import scala.meta.inputs.Input
 import scala.meta.inputs.Position
+import scala.meta.internal.ScalametaInternals
 import scala.meta.internal.semanticdb.Scala._
 import scala.meta.internal.{semanticdb => s}
 import scalafix.internal.patch.DocSemanticdbIndex.InputSynthetic
@@ -25,7 +26,8 @@ class LegacyCodePrinter(doc: SemanticDoc) {
     buf += PositionedSymbol(v0.Symbol(sym), start, end)
   }
   private def mkString[T](start: String, trees: Seq[T], end: String)(
-      fn: T => Unit): Unit = {
+      fn: T => Unit
+  ): Unit = {
     if (trees.isEmpty) ()
     else {
       text.append(start)
@@ -188,11 +190,13 @@ class LegacyCodePrinter(doc: SemanticDoc) {
       mkString("[", targs, "]")(pprint)
   }
 
-  def convertSynthetic(synthetic: s.Synthetic, pos: Position): v0.Synthetic = {
+  def convertSynthetic(synthetic: s.Synthetic): v0.Synthetic = {
+    val pos = ScalametaInternals.positionFromRange(doc.input, synthetic.range)
     loop(synthetic.tree)
     val input = Input.Stream(
       InputSynthetic(text.result(), doc.input, pos.start, pos.end),
-      StandardCharsets.UTF_8)
+      StandardCharsets.UTF_8
+    )
     val names = buf.result().map { sym =>
       val symPos = Position.Range(input, sym.start, sym.end)
       ResolvedName(symPos, sym.symbol, isDefinition = false)
@@ -203,7 +207,8 @@ class LegacyCodePrinter(doc: SemanticDoc) {
   def convertDenotation(
       signature: s.Signature,
       dflags: Long,
-      name: String): v0.Denotation = {
+      name: String
+  ): v0.Denotation = {
 
     pprint(signature)
 

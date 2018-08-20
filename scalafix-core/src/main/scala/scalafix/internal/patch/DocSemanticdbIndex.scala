@@ -51,10 +51,11 @@ class DocSemanticdbIndex(val doc: SemanticDoc)
         infoToDenotation(doc, s)
       )
     }
-  final override def synthetics: Seq[Synthetic] =
+  final override def synthetics: Seq[Synthetic] = {
     doc.sdoc.synthetics.map { s =>
       DocSemanticdbIndex.syntheticToLegacy(doc, s)
     }
+  }
   override final def messages: Seq[Message] =
     doc.sdoc.diagnostics.map { diag =>
       val pos = ScalametaInternals.positionFromRange(doc.input, diag.range)
@@ -179,9 +180,6 @@ object DocSemanticdbIndex {
   }
 
   def syntheticToLegacy(doc: SemanticDoc, synthetic: s.Synthetic): Synthetic = {
-    val pos =
-      ScalametaInternals.positionFromRange(doc.input, synthetic.range)
-    new LegacyCodePrinter(doc).convertSynthetic(synthetic, pos)
+    new LegacyCodePrinter(doc).convertSynthetic(synthetic)
   }
-
 }
