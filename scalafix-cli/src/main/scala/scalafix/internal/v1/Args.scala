@@ -92,8 +92,10 @@ case class Args(
     @Description(
       """|Print out bash tab completions. To install:
          |```
-         |scalafix --bash > /usr/local/etc/bash_completion.d/scalafix # macOS, requires "brew install bash-completion"
-         |scalafix --bash > /etc/bash_completion.d/scalafix           # Linux
+         |# macOS, requires "brew install bash-completion"
+         |scalafix --bash > /usr/local/etc/bash_completion.d/scalafix
+         |# Linux
+         |scalafix --bash > /etc/bash_completion.d/scalafix
          |```
          |""".stripMargin
     )
@@ -336,9 +338,9 @@ object Args {
   implicit val pathEncoder: ConfEncoder[AbsolutePath] =
     ConfEncoder.StringEncoder.contramap(_.toString())
   implicit val classpathEncoder: ConfEncoder[Classpath] =
-    ConfEncoder.StringEncoder.contramap(_.toString())
+    ConfEncoder.StringEncoder.contramap(_ => "<classpath>")
   implicit val classLoaderEncoder: ConfEncoder[URLClassLoader] =
-    ConfEncoder.StringEncoder.contramap(_.toString())
+    ConfEncoder.StringEncoder.contramap(_ => "<classloader>")
   implicit val charsetEncoder: ConfEncoder[Charset] =
     ConfEncoder.StringEncoder.contramap(_.name())
   implicit val printStreamEncoder: ConfEncoder[PrintStream] =

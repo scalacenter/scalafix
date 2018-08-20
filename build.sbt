@@ -117,8 +117,8 @@ lazy val testsOutputDotty = project
     SettingKey[Boolean]("ide-skip-project") := true,
     scalaVersion := dotty,
     crossScalaVersions := List(dotty),
-    libraryDependencies := libraryDependencies.value.map(
-      _.withDottyCompat(scalaVersion.value)),
+    libraryDependencies := libraryDependencies.value
+      .map(_.withDottyCompat(scalaVersion.value)),
     scalacOptions := Nil,
     coverageEnabled := false
   )
@@ -219,18 +219,18 @@ lazy val unit = project
     testkit
   )
 
-lazy val website = project
-  .enablePlugins(MicrositesPlugin)
-  .enablePlugins(ScalaUnidocPlugin)
+lazy val docs = project
+  .in(file("scalafix-docs"))
   .settings(
+    noMima,
+    skip in publish := true,
+    moduleName := "scalafix-docs",
+    mainClass.in(Compile) := Some("docs.Main"),
     scalaVersion := scala212,
-    noPublish,
-    websiteSettings,
-    unidocSettings,
-    libraryDependencies += "com.geirsson" %% "metaconfig-docs" % metaconfigV,
-    unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(
-      testkit,
-      core
+    libraryDependencies ++= List(
+      "com.geirsson" %% "metaconfig-docs" % metaconfigV,
+      "com.geirsson" % "mdoc" % "0.4.0" cross CrossVersion.full,
     )
   )
   .dependsOn(testkit, core, cli)
+  .enablePlugins(DocusaurusPlugin)

@@ -1,0 +1,35 @@
+{
+  "docs": {
+    "Users": ["users/installation", "users/configuration", "users/faq"],
+    "Rule Authors": [
+      "rule-authors/setup",
+      "rule-authors/tutorial",
+      "rule-authors/glossary"
+    ]
+  },
+  "rules": {
+    "Overview": ["rules/overview"],
+    "Semantic": [
+      "rules/Disable",
+      "rules/ExplicitResultTypes",
+      "rules/MissingFinal",
+      "rules/NoAutoTupling",
+      "rules/NoInfer",
+      "rules/RemoveUnusedImports",
+      "rules/RemoveUnusedTerms"
+    ],
+    "Syntactic": [
+      "rules/DisableSyntax",
+      "rules/DisableUnless",
+      "rules/DottyKeywords",
+      "rules/DottyVarArgPattern",
+      "rules/DottyVolatileLazyVal",
+      "rules/ExplicitUnit",
+      "rules/NoFinalize",
+      "rules/LeakingImplicitClassVal",
+      "rules/NoValInForComprehension",
+      "rules/ProcedureSyntax",
+      "rules/RemoveXmlLiterals"
+    ]
+  }
+}

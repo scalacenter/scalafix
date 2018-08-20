@@ -26,15 +26,7 @@ import scalafix.v1.MissingSymbolException
 case class ExplicitResultTypes(
     index: SemanticdbIndex,
     config: ExplicitResultTypesConfig = ExplicitResultTypesConfig.default
-) extends SemanticRule(
-      index,
-      RuleName("ExplicitResultTypes")
-        .withDeprecatedName(
-          "ExplicitReturnTypes",
-          "Renamed to ExplicitResultTypes",
-          "0.5"
-        )
-    ) {
+) extends SemanticRule(index, "ExplicitResultTypes") {
 
   override def description: String =
     "Rewrite that inserts explicit type annotations for def/val/var"

@@ -1,5 +1,4 @@
-Contributing
-===========
+# Contributing
 
 ## Modules
 
@@ -11,14 +10,14 @@ Contributing
 
 ## Setting up an IDE
 
-I use IntelliJ myself but run all tests from the SBT console.
-I've tried to make the project compile from IntelliJ IDEA.
-If you experience any issues, don't hesitate to ask on Gitter.
+I use IntelliJ myself but run all tests from the SBT console. I've tried to make
+the project compile from IntelliJ IDEA. If you experience any issues, don't
+hesitate to ask on Gitter.
 
 ## Testing
 
-Start an sbt shell with `$ sbt`.
-The commands below assume you have a running sbt shell.
+Start an sbt shell with `$ sbt`. The commands below assume you have a running
+sbt shell.
 
 ```sh
 > unit/test # Fast unit tests for rules, cli, core. Contains a lot
@@ -28,8 +27,8 @@ The commands below assume you have a running sbt shell.
 > unit/testOnly scalafix.tests.cli.*  # Only run tests for the command line interface.
 ```
 
-Unit tests for rules are written using scalafix-testkit, read more about
-it here:
+Unit tests for rules are written using scalafix-testkit, read more about it
+here:
 https://scalacenter.github.io/scalafix/docs/rule-authors/setup#scalafix-testkit
 
 ```
@@ -45,88 +44,62 @@ scalafix-tests
 
 ## Formatting
 
-Be sure to run `scalafmt` (available in the root folder) to ensure code formatting.
-`./scalafmt --diff` formats only the files that have changed from the master branch.
-You can read more about it at http://scalafmt.org
+Be sure to run `scalafmt` (available in the root folder) to ensure code
+formatting. `./scalafmt --diff` formats only the files that have changed from
+the master branch. You can read more about it at http://scalafmt.org
 
 ## Documentation
 
-The scalafix documentation website uses [sbt-microsite](https://47deg.github.io/sbt-microsites/).
+The scalafix documentation website uses [Docusaurus](https://docusaurus.io/) and
+[mdoc](https://github.com/olafurpg/mdoc).
 
-You'll need Jekyll to build the website. You can follow the installation instructions
-[here](https://jekyllrb.com/docs/installation/).
+First, make sure you have the [yarn](https://yarnpkg.com/en/) package manager
+installed installed.
 
-Once you have Jekyll, build the website with:
-
-```sh
-sbt website/makeMicrosite
-```
-
-To view the website in your browser:
+Next, start sbt and compile the markdown documentation. The documentation will
+re-generate on file save.
 
 ```sh
-cd website/target/site
-jekyll serve
-open http://localhost:4000/scalafix/
+$ sbt
+> docs/run -w
 ```
 
-All documentation is written in markdown, using [Liquid templates](https://jekyllrb.com/docs/templates/).
+To view the website in your browser, start the Docusaurus live reload server
 
-### Side menu
-If you add/remove/move a docs (sub)section, you may want to edit the side menu. You'll find it [here](https://github.com/gabro/scalafix/blob/microsite/website/src/main/resources/microsite/data/menu.yml).
-
-### Custom tags
-We also have a few custom Liquid tags that you can use.
-
-If you need to link to a page in the docs, you can use the `doc_ref` tag, for example:
-
-```c
-{% doc_ref Before your begin %}
-// Expands to: /scalafix/docs/creating-your-own-rule/before-you-begin.html
+```sh
+cd website
+yarn install
+yarn start
 ```
 
-You can also link to a specific section of the page:
-
-```c
-{% doc_ref Before your begin, What diff do you want to make %}
-// Expands to: /scalafix/docs/creating-your-own-rule/before-you-begin.html#what-diff-you-want-to-make
-```
-
-If you need to link to a vocabulary term you can use the `glossary_ref` tag, for example:
-
-```md
-{% glossary_ref Patch %}
-// Expands to: /scalafix/docs/creating-your-own-rule/vocabulary.html#patch
-```
-
-If you need to link to a page in the apidocs you can use the `apidocs_ref` tag, for example:
-
-```md
-{% apidocs_ref scalafix.patch.PatchOps %}
-// Expands to: /scalafix/docs/api/scalafix/patch/PatchOps.scala
-```
+Consult the Docusaurus website for instructions on how to customize the sidebar
+or tweak the landing page.
 
 ## Binary Compatibility
 
-To avoid breaking binary compatiblity we use the Migration Manage for Scala or [Mima](https://github.com/lightbend/migration-manager) for short.
+To avoid breaking binary compatiblity we use the Migration Manage for Scala or
+[Mima](https://github.com/lightbend/migration-manager) for short.
 
-Anything under the package `scalafix.internal._` does not have compatibility restrictions.
+Anything under the package `scalafix.internal._` does not have compatibility
+restrictions.
 
 Run `sbt mimaReportBinaryIssues` to check for any compatibility issues.
 
 ## Publish setup
 
-Scalafix is setup to publish automatically when we publish a tag on GitHub. You should not have to worry
-about this part. For completeness, this is how it was set up:
+Scalafix is setup to publish automatically when we publish a tag on GitHub. You
+should not have to worry about this part. For completeness, this is how it was
+set up:
 
 ### Register on Sonatype
 
-Follow https://github.com/scalacenter/sbt-release-early/wiki/How-to-release-with-Sonatype#release-with-sonatype
+Follow
+https://github.com/scalacenter/sbt-release-early/wiki/How-to-release-with-Sonatype#release-with-sonatype
 
 You now have:
 
-* SONATYPE_PASSWORD
-* SONATYPE_USERNAME
+- SONATYPE_PASSWORD
+- SONATYPE_USERNAME
 
 Ask us to be added to the ch.epfl.scala group
 
@@ -154,16 +127,13 @@ gpg --keyserver hkp://pool.sks-keyservers.net --send-keys <YOUR KEY ID>
 
 Setup the project at https://travis-ci.org/scalacenter/scalafix/settings with
 
-SONATYPE_PASSWORD
-SONATYPE_USERNAME
-PGP_PASSPHRASE (empty)
-PGP_SECRET
+SONATYPE_PASSWORD SONATYPE_USERNAME PGP_PASSPHRASE (empty) PGP_SECRET
 
 ### AppVeyor
 
-The cache is limited to 1GB.
-It's not possible to delete the cache via the ui: https://github.com/appveyor/ci/issues/985
-To delete via curl, get your token at https://ci.appveyor.com/api-token
+The cache is limited to 1GB. It's not possible to delete the cache via the ui:
+https://github.com/appveyor/ci/issues/985 To delete via curl, get your token at
+https://ci.appveyor.com/api-token
 
 ```bash
 export APPVEYOR_TOKEN="<your-api-token>"
@@ -175,25 +145,28 @@ curl -vvv -H "Authorization: Bearer $APPVEYOR_TOKEN" -XDELETE https://ci.appveyo
 - [ ] Releases > "Draft a new release"
 - [ ] Write changelog, linking to each merged PR and attributing contributor,
       following a similar format as previous release notes.
-- [ ] "Publish release", this pushes a tag and triggers the CI to release to sonatype.
-- [ ] after CI releases, double check the end of logs of the entry where CI_PUBLISH=true.
-      You have to expand the after_success section.
-- [ ] after sonatype release is completed, double check after ~30 minutes that the artifacts
-      have synced to maven by running this command:
+- [ ] "Publish release", this pushes a tag and triggers the CI to release to
+      sonatype.
+- [ ] after CI releases, double check the end of logs of the entry where
+      CI_PUBLISH=true. You have to expand the after_success section.
+- [ ] after sonatype release is completed, double check after ~30 minutes that
+      the artifacts have synced to maven by running this command:
 
           coursier fetch ch.epfl.scala:scalafix-core_2.12:VERSION
 
-- [ ] once the artifacts are synced to maven, go to the scalafix repo and update the `scalafix` binary
-      with the following command and open a PR to the scalafix repo.
+- [ ] once the artifacts are synced to maven, go to the scalafix repo and update
+      the `scalafix` binary with the following command and open a PR to the
+      scalafix repo.
 
          coursier bootstrap ch.epfl.scala:scalafix-cli_2.12.4:VERSION -f --main scalafix.cli.Cli -o scalafix -f
 
-- [ ] update the scalafix version in this build [project/plugins.sbt](project/plugins.sbt)
+- [ ] update the scalafix version in this build
+      [project/plugins.sbt](project/plugins.sbt)
 
 If everything went smoothly, congrats!
 
-If something goes wrong for any reason making the artifacts not reach maven, delete the pushed tag with 
-the following command
+If something goes wrong for any reason making the artifacts not reach maven,
+delete the pushed tag with the following command
 
 ```sh
 TAG=??? # for example "v0.5.3"
@@ -202,8 +175,10 @@ git push origin :refs/tags/$TAG
 ```
 
 It's important that the latest tag always has an accompanying release on Maven.
-If there is no release matching the latest tag then the docs will point to scalafix artifacts that cannot be resolved.
+If there is no release matching the latest tag then the docs will point to
+scalafix artifacts that cannot be resolved.
 
 ## TL;DR
 
-If you are unsure about anything, don't hesitate to ask in the [gitter channel](https://gitter.im/scalacenter/scalafix).
+If you are unsure about anything, don't hesitate to ask in the
+[gitter channel](https://gitter.im/scalacenter/scalafix).
