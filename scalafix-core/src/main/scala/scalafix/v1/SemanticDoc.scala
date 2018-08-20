@@ -67,6 +67,10 @@ final class SemanticDoc private[scalafix] (
   // Privates
   // ========
 
+  private[scalafix] def link(sym: Sym): s.Signature = {
+    symtab.info(sym.value).get.signature
+  }
+
   private[scalafix] def symbols(pos: Position): Iterator[Sym] = {
     val result = occurrences.getOrDefault(
       s.Range(

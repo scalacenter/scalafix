@@ -48,7 +48,7 @@ class DocSemanticdbIndex(val doc: SemanticDoc)
     doc.sdoc.symbols.map { s =>
       ResolvedSymbol(
         v0.Symbol(s.symbol),
-        infoToDenotation(s)
+        infoToDenotation(doc, s)
       )
     }
   final override def synthetics: Seq[Synthetic] =
@@ -80,7 +80,7 @@ class DocSemanticdbIndex(val doc: SemanticDoc)
   final override def denotation(symbol: Symbol): Option[Denotation] = {
     val info = doc.info(Sym(symbol.syntax))
     if (info.isNone) None
-    else Some(DocSemanticdbIndex.infoToDenotation(info.info))
+    else Some(DocSemanticdbIndex.infoToDenotation(doc, info.info))
   }
   final override def denotation(tree: Tree): Option[Denotation] =
     symbol(tree).flatMap(denotation)
@@ -94,7 +94,9 @@ class DocSemanticdbIndex(val doc: SemanticDoc)
 
 object DocSemanticdbIndex {
 
-  def infoToDenotation(info: s.SymbolInformation): Denotation = {
+  def infoToDenotation(
+      doc: SemanticDoc,
+      info: s.SymbolInformation): Denotation = {
     val dflags = {
       var dflags = 0L
       def dflip(dbit: Long) = dflags ^= dbit
@@ -144,12 +146,11 @@ object DocSemanticdbIndex {
       }
       dflags
     }
-    Denotation(
+
+    new LegacyCodePrinter(doc).convertDenotation(
+      info.signature,
       dflags,
-      info.name,
-      "",
-      Nil,
-      s.NoSignature
+      info.name
     )
   }
 
@@ -180,7 +181,7 @@ object DocSemanticdbIndex {
   def syntheticToLegacy(doc: SemanticDoc, synthetic: s.Synthetic): Synthetic = {
     val pos =
       ScalametaInternals.positionFromRange(doc.input, synthetic.range)
-    new LegacyCodePrinter().toLegacy(synthetic, doc, pos)
+    new LegacyCodePrinter(doc).convertSynthetic(synthetic, pos)
   }
 
 }

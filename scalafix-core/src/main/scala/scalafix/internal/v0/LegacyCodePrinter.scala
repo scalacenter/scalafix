@@ -1,6 +1,7 @@
 package scalafix.internal.v0
 
 import java.nio.charset.StandardCharsets
+import scala.meta._
 import scala.meta.inputs.Input
 import scala.meta.inputs.Position
 import scala.meta.internal.semanticdb.Scala._
@@ -10,7 +11,7 @@ import scalafix.v0
 import scalafix.v0.ResolvedName
 import scalafix.v1.SemanticDoc
 
-class LegacyCodePrinter() {
+class LegacyCodePrinter(doc: SemanticDoc) {
   case class PositionedSymbol(symbol: v0.Symbol, start: Int, end: Int)
   private val buf = List.newBuilder[PositionedSymbol]
   private val text = new StringBuilder
@@ -30,21 +31,58 @@ class LegacyCodePrinter() {
       text.append(start)
       var first = true
       trees.foreach { tree =>
-        fn(tree)
         if (first) {
           first = false
         } else {
           text.append(", ")
         }
+        fn(tree)
       }
       text.append(end)
     }
   }
 
-  private def pprint(sig: s.Signature): Unit = sig match {
-    case s.ValueSignature(tpe) =>
-      pprint(tpe)
-    case _ =>
+  private def pprintTypeParameters(scope: Option[s.Scope]): Unit = {
+    scope.foreach { scope =>
+      if (scope.symbols.nonEmpty) {
+        mkString("[", scope.symbols, "]")(emit)
+        text.append(" => ")
+      }
+    }
+  }
+
+  private def pprint(signature: s.Signature): Unit = {
+    signature match {
+      case sig: s.ClassSignature =>
+        // Not supported
+        ()
+
+      case sig: s.MethodSignature =>
+        pprintTypeParameters(sig.typeParameters)
+
+        sig.parameterLists.foreach { scope =>
+          mkString("(", scope.symbols, ")") { symbol =>
+            emit(symbol)
+            text.append(": ")
+            pprint(doc.link(scalafix.v1.Sym(symbol)))
+          }
+        }
+        pprint(sig.returnType)
+
+      case sig: s.TypeSignature =>
+        // Not supported
+        ()
+
+      case sig: s.ValueSignature =>
+        pprint(sig.tpe)
+
+      case _ =>
+    }
+  }
+
+  private def pprint(scope: s.Scope): Unit = {
+    scope.symbols.foreach(emit)
+    scope.hardlinks.foreach(info => pprint(info.signature))
   }
   private def pprint(tpe: s.Type): Unit = tpe match {
     case s.TypeRef(prefix, symbol, typeArguments) =>
@@ -75,23 +113,14 @@ class LegacyCodePrinter() {
       types.foreach(pprint)
     case s.StructuralType(tpe, declarations) =>
       pprint(tpe)
-      declarations.foreach { s =>
-        s.symbols.foreach(emit)
-        s.hardlinks.foreach(info => pprint(info.signature))
-      }
+      declarations.foreach(pprint)
     case s.AnnotatedType(_, tpe) =>
       pprint(tpe)
     case s.ExistentialType(tpe, declarations) =>
       pprint(tpe)
-      declarations.foreach { s =>
-        s.symbols.foreach(emit)
-        s.hardlinks.foreach(info => pprint(info.signature))
-      }
+      declarations.foreach(pprint)
     case s.UniversalType(typeParameters, tpe) =>
-      typeParameters.foreach { s =>
-        s.symbols.foreach(emit)
-        s.hardlinks.foreach(info => pprint(info.signature))
-      }
+      typeParameters.foreach(pprint)
       pprint(tpe)
     case s.ByNameType(tpe) =>
       pprint(tpe)
@@ -159,10 +188,7 @@ class LegacyCodePrinter() {
       mkString("[", targs, "]")(pprint)
   }
 
-  def toLegacy(
-      synthetic: s.Synthetic,
-      doc: SemanticDoc,
-      pos: Position): v0.Synthetic = {
+  def convertSynthetic(synthetic: s.Synthetic, pos: Position): v0.Synthetic = {
     loop(synthetic.tree)
     val input = Input.Stream(
       InputSynthetic(text.result(), doc.input, pos.start, pos.end),
@@ -172,5 +198,28 @@ class LegacyCodePrinter() {
       ResolvedName(symPos, sym.symbol, isDefinition = false)
     }
     v0.Synthetic(pos, input.text, names)
+  }
+
+  def convertDenotation(
+      signature: s.Signature,
+      dflags: Long,
+      name: String): v0.Denotation = {
+
+    pprint(signature)
+
+    val convertedSignature = text.result()
+    val input = Input.String(convertedSignature)
+
+    val names = buf.result().map { sym =>
+      val symPos = Position.Range(input, sym.start, sym.end)
+      ResolvedName(symPos, sym.symbol, isDefinition = false)
+    }
+
+    v0.Denotation(
+      dflags,
+      name,
+      convertedSignature,
+      names
+    )
   }
 }
