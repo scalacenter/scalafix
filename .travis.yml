@@ -16,7 +16,7 @@ jobs:
     - env: TEST="2.12"
       script: sbt ci-212
     - env: TEST="Coverage" CI_COVERAGE="true"
-      script: sbt ";clean;coverage;ci-212;coverageReport"
+      script: sbt ";clean;coverage;ci-212;coverageReport;coverageAggregate"
     # Disabled until stable v0.6
     # - env: TEST="mima"
     #   script: sbt mima
