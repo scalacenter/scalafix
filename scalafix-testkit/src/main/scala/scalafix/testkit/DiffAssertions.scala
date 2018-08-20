@@ -10,7 +10,10 @@ import org.scalatest.exceptions.TestFailedException
 
 object DiffAssertions {
   def compareContents(original: String, revised: String): String = {
-    compareContents(original.trim.split("\n"), revised.trim.split("\n"))
+    "".lines
+    def splitLines(s: String) =
+      s.trim.replaceAllLiterally("\r\n", "\n").split("\n")
+    compareContents(splitLines(original), splitLines(revised))
   }
 
   def compareContents(original: Seq[String], revised: Seq[String]): String = {
@@ -46,12 +49,14 @@ trait DiffAssertions extends FunSuiteLike {
       title: String,
       expected: String,
       obtained: String,
-      diff: String)
-      extends TestFailedException(
+      diff: String
+  ) extends TestFailedException(
         title + "\n--- expected\n+++ obtained\n" + error2message(
           obtained,
-          expected),
-        3)
+          expected
+        ),
+        3
+      )
 
   def error2message(obtained: String, expected: String): String = {
     val sb = new StringBuilder
@@ -70,14 +75,14 @@ trait DiffAssertions extends FunSuiteLike {
   def assertNoDiff(
       obtained: String,
       expected: String,
-      title: String = ""): Boolean = {
+      title: String = ""
+  ): Boolean = {
     val result = compareContents(obtained, expected)
     if (result.isEmpty) true
     else if (obtained.lines.toList == expected.lines.toList) {
       // Ignore \r\n and \n differences
       true
     } else {
-      println(obtained)
       throw DiffFailure(title, expected, obtained, result)
     }
   }
