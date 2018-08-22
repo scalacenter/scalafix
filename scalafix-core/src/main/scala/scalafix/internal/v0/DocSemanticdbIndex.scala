@@ -1,22 +1,19 @@
-package scalafix.internal.patch
+package scalafix.internal.v0
 
 import scala.meta._
-import scala.{meta => m}
-import scalafix.v0.{Flags => d}
-import scalafix.internal.v1.TreePos
-import java.io.ByteArrayInputStream
-import java.io.InputStream
-import java.nio.charset.StandardCharsets
 import scala.meta.internal.ScalametaInternals
 import scala.meta.internal.semanticdb.SymbolInformation
-import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
 import scala.meta.internal.semanticdb.SymbolInformation.{Kind => k}
-import scala.meta.internal.{semanticdb => s}
+import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
 import scala.meta.internal.symtab.SymbolTable
-import scalafix.v1
+import scala.meta.internal.{semanticdb => s}
+import scala.{meta => m}
+import scalafix.internal.patch.CrashingSemanticdbIndex
+import scalafix.internal.v0.DocSemanticdbIndex._
+import scalafix.internal.v1.TreePos
 import scalafix.v0
-import DocSemanticdbIndex._
-import scalafix.internal.v0.LegacyCodePrinter
+import scalafix.v0.{Flags => d}
+import scalafix.v1
 
 class DocSemanticdbIndex(val doc: v1.SemanticDoc)
     extends CrashingSemanticdbIndex
@@ -153,18 +150,6 @@ object DocSemanticdbIndex {
     )
   }
 
-  // Input.Synthetic is gone so we hack it here by extending java.io.InputStream and
-  // piggy backing on Input.Stream.
-  final case class InputSynthetic(
-      value: String,
-      input: Input,
-      start: Int,
-      end: Int
-  ) extends InputStream {
-    val in = new ByteArrayInputStream(value.getBytes(StandardCharsets.UTF_8))
-    override def read(): Int = in.read()
-  }
-
   def occurrenceToLegacy(
       doc: v1.SemanticDoc,
       input: Input,
@@ -177,7 +162,9 @@ object DocSemanticdbIndex {
     )
   }
 
-  def syntheticToLegacy(doc: v1.SemanticDoc, synthetic: s.Synthetic): v0.Synthetic = {
+  def syntheticToLegacy(
+      doc: v1.SemanticDoc,
+      synthetic: s.Synthetic): v0.Synthetic = {
     new LegacyCodePrinter(doc).convertSynthetic(synthetic)
   }
 }

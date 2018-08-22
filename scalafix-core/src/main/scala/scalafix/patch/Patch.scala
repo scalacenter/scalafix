@@ -19,6 +19,8 @@ import scala.meta.tokens.Tokens
 import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.internal.util.SuppressOps
 import scalafix.internal.util.SymbolOps.Root
+import scalafix.internal.v0.DeprecatedRuleCtx
+import scalafix.internal.v0.DocSemanticdbIndex
 import scalafix.lint.LintDiagnostic
 import scalafix.patch.TreePatch.AddGlobalImport
 import scalafix.patch.TreePatch.RemoveGlobalImport
@@ -216,20 +218,22 @@ object Patch {
 
   private[scalafix] def syntactic(
       patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
-      doc: Doc
+      doc: Doc,
+      suppress: Boolean
   ): (String, List[LintDiagnostic]) = {
-    apply(patchesByName, doc.toRuleCtx, None, suppress = false)
+    apply(patchesByName, new DeprecatedRuleCtx(doc), None, suppress)
   }
 
   private[scalafix] def semantic(
       patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
-      doc: SemanticDoc
+      doc: SemanticDoc,
+      suppress: Boolean
   ): (String, List[LintDiagnostic]) = {
     apply(
       patchesByName,
-      doc.doc.toRuleCtx,
-      Some(doc.toSemanticdbIndex),
-      suppress = false)
+      new DeprecatedRuleCtx(doc.doc),
+      Some(new DocSemanticdbIndex(doc)),
+      suppress)
   }
 
   def treePatchApply(patch: Patch)(

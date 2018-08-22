@@ -6,9 +6,7 @@ import scala.meta.Tree
 import scala.meta.contrib.AssociatedComments
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
-import scalafix.internal.patch.DeprecatedRuleCtx
 import scalafix.internal.patch.EscapeHatch
-import scalafix.v0.RuleCtx
 import scalafix.util.MatchingParens
 import scalafix.util.TokenList
 
@@ -19,14 +17,11 @@ final class Doc private[scalafix] (
     val matchingParens: MatchingParens,
     val tokenList: TokenList,
     val comments: AssociatedComments,
-    // privates
     private[scalafix] val config: ScalafixConfig,
     private[scalafix] val escapeHatch: EscapeHatch,
     private[scalafix] val diffDisable: DiffDisable
 ) {
   override def toString: String = s"Doc(${input.syntax})"
-  def toRuleCtx: RuleCtx = new DeprecatedRuleCtx(this)
-  def toks(tree: Tree): Tokens = tree.tokens(config.dialect)
 }
 
 object Doc {

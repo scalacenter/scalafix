@@ -9,45 +9,24 @@ import scala.meta.internal.symtab.SymbolTable
 import scalafix.util.MatchingParens
 import scalafix.util.TokenList
 import scala.meta.internal.{semanticdb => s}
-import scalafix.internal.patch.DocSemanticdbIndex
 import scalafix.internal.v1._
-import scalafix.rule.RuleCtx
-import scalafix.util.SemanticdbIndex
 
 final class SemanticDoc private[scalafix] (
-    val doc: Doc,
-    // privates
+    private[scalafix] val doc: Doc,
     private[scalafix] val sdoc: s.TextDocument,
     private[scalafix] val symtab: SymbolTable
 ) extends SemanticContext {
-
-  override def toString: String = s"SemanticDoc(${input.syntax})"
-
-  // ==========
-  // Legacy API
-  // ==========
-  def toRuleCtx: RuleCtx = doc.toRuleCtx
-  def toSemanticdbIndex: SemanticdbIndex = new DocSemanticdbIndex(this)
-
-  // =============
-  // Syntactic API
-  // =============
   def tree: Tree = doc.tree
   def tokens: Tokens = doc.tokens
   def input: Input = doc.input
   def matchingParens: MatchingParens = doc.matchingParens
   def tokenList: TokenList = doc.tokenList
   def comments: AssociatedComments = doc.comments
-
-  // ============
-  // Semantic API
-  // ============
   def symbol(tree: Tree): Symbol = {
     val result = symbols(TreePos.symbol(tree))
     if (!result.hasNext) Symbol.None
     else result.next() // Discard multi symbols
   }
-
   def info(sym: Symbol): SymbolInfo = {
     if (sym.isNone) {
       SymbolInfo.empty
@@ -104,6 +83,8 @@ final class SemanticDoc private[scalafix] (
     }
     result.asInstanceOf[util.Map[s.Range, Seq[String]]]
   }
+
+  override def toString: String = s"SemanticDoc(${input.syntax})"
 
 }
 

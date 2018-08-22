@@ -1,4 +1,4 @@
-package scalafix.internal.v1
+package scalafix.internal.v0
 
 import metaconfig.Conf
 import metaconfig.Configured
@@ -17,7 +17,7 @@ class LegacySyntacticRule(rule: v0.Rule) extends SyntacticRule(rule.name) {
     }
   }
   override def fix(implicit doc: Doc): Patch = {
-    val ctx = doc.toRuleCtx
+    val ctx = new DeprecatedRuleCtx(doc)
     configuredRule.fix(ctx) + LegacyRule.lints(ctx, configuredRule)
   }
 }

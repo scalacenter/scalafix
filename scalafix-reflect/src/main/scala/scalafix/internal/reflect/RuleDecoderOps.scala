@@ -13,8 +13,8 @@ import scala.collection.concurrent.TrieMap
 import scala.meta.io.AbsolutePath
 import scalafix.internal.config.ScalafixMetaconfigReaders.UriRule
 import scalafix.internal.util.FileOps
-import scalafix.internal.v1.LegacySemanticRule
-import scalafix.internal.v1.LegacySyntacticRule
+import scalafix.internal.v0.LegacySemanticRule
+import scalafix.internal.v0.LegacySyntacticRule
 import scalafix.v0
 import scalafix.v1
 

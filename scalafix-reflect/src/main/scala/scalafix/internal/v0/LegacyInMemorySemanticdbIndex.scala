@@ -5,7 +5,6 @@ import scala.meta.internal.io._
 import scala.meta.internal.{semanticdb => s}
 import scala.{meta => m}
 import scalafix.internal.patch.CrashingSemanticdbIndex
-import scalafix.internal.patch.DocSemanticdbIndex
 import scalafix.internal.reflect.ClasspathOps
 import scala.meta.internal.symtab.SymbolTable
 import scalafix.internal.v1.TreePos
@@ -104,7 +103,7 @@ object LegacyInMemorySemanticdbIndex {
               val tree = input.parse[Source].get
               val doc = v1.Doc.fromTree(tree)
               val sdoc = new v1.SemanticDoc(doc, textDocument, symtab)
-              buf += (textDocument.uri -> sdoc.toSemanticdbIndex)
+              buf += (textDocument.uri -> new DocSemanticdbIndex(sdoc))
             }
           }
         }

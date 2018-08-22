@@ -1,4 +1,4 @@
-package scalafix.internal.v1
+package scalafix.internal.v0
 
 import metaconfig.Conf
 import metaconfig.Configured
@@ -19,8 +19,8 @@ class LegacySemanticRule(name: RuleName, fn: v0.SemanticdbIndex => v0.Rule)
     }
   }
   override def fix(implicit doc: SemanticDoc): Patch = {
-    val ctx = doc.doc.toRuleCtx
-    val rule = fn(doc.toSemanticdbIndex).init(this.conf).get
+    val ctx = new DeprecatedRuleCtx(doc.doc)
+    val rule = fn(new DocSemanticdbIndex(doc)).init(this.conf).get
     rule.fix(ctx) + LegacyRule.lints(ctx, rule)
   }
 }
