@@ -1,22 +1,27 @@
-package scalafix.rule
+package scalafix.internal.v0
 
-import scalafix.internal.rule._
-import scalafix.internal.config._
+import scalafix.internal.config.DisableConfig
+import scalafix.internal.rule.Disable
+import scalafix.internal.rule.DottyKeywords
+import scalafix.internal.rule.DottyVarArgPattern
+import scalafix.internal.rule.DottyVolatileLazyVal
+import scalafix.internal.rule.ExplicitResultTypes
+import scalafix.internal.rule.MissingFinal
+import scalafix.internal.rule.NoAutoTupling
+import scalafix.internal.rule.NoValInForComprehension
+import scalafix.internal.rule.RemoveUnusedImports
+import scalafix.internal.rule.RemoveUnusedTerms
+import scalafix.rule.Rule
 import scalafix.util.SemanticdbIndex
 
-object ScalafixRules {
+object LegacyRules {
   val syntax: List[Rule] = List(
-    ProcedureSyntax,
     DottyVolatileLazyVal,
-    RemoveXmlLiterals,
     NoValInForComprehension,
-    NoFinalize,
     DottyKeywords,
     DottyVarArgPattern,
-    LeakingImplicitClassVal
   )
   def semantic(index: SemanticdbIndex): List[Rule] = List(
-    NoInfer(index, NoInferConfig.default),
     ExplicitResultTypes(index),
     RemoveUnusedImports(index),
     RemoveUnusedTerms(index),

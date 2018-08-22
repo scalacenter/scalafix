@@ -5,16 +5,15 @@ import metaconfig.Configured
 import scala.meta.tokens.Tokens
 import scalafix.internal.config.DisableConfig
 import scalafix.internal.config.MetaconfigPendingUpstream
-import scalafix.internal.config.NoInferConfig
 import scalafix.internal.rule._
 import scalafix.internal.util.SuppressOps
+import scalafix.internal.v0.LegacyRules
 import scalafix.internal.v0.LegacySemanticRule
 import scalafix.internal.v0.LegacySyntacticRule
 import scalafix.lint.LintDiagnostic
 import scalafix.lint.LintMessage
 import scalafix.patch.Patch
 import scalafix.rule.RuleName
-import scalafix.rule.ScalafixRules
 import scalafix.v0
 import scalafix.v1.Doc
 import scalafix.v1.Rule
@@ -74,22 +73,27 @@ case class Rules(rules: List[Rule] = Nil) {
 }
 
 object Rules {
+  def allNames: List[String] = defaults.map(_.name.value)
+  def allNamesDescriptions: List[(String, String)] = defaults.map { rule =>
+    rule.name.value -> rule.description
+  }
   def defaults: List[Rule] =
     syntax ++
       legacySemanticRules ++
       legacySyntacticRules
 
   val syntax: List[Rule] = List(
-    DisableSyntax()
+    ProcedureSyntax,
+    DisableSyntax(),
+    LeakingImplicitClassVal
   )
 
   val legacySyntacticRules: List[LegacySyntacticRule] = {
-    ScalafixRules.syntax.map(rule => new LegacySyntacticRule(rule))
+    LegacyRules.syntax.map(rule => new LegacySyntacticRule(rule))
   }
 
   val legacySemanticRules: List[LegacySemanticRule] = {
     val semantics = List[v0.SemanticdbIndex => v0.Rule](
-      index => NoInfer(index, NoInferConfig.default),
       index => ExplicitResultTypes(index),
       index => RemoveUnusedImports(index),
       index => RemoveUnusedTerms(index),

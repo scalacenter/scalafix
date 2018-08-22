@@ -2,12 +2,12 @@
 rules = [
   "class:scalafix.test.NoDummy"
   Disable
-  NoInfer
+  Disable
 ]
 
 Disable.symbols = ["scala.Option.get"]
 
-NoInfer.symbols = [
+Disable.ifSynthetic = [
   "scala.Predef.any2stringadd"
 ]
 */
@@ -29,7 +29,7 @@ object AnchorExpression {
 
   val cDummy = 0 // assert: NoDummy
 
-  Some(1) + "foo" // scalafix:ok NoInfer.any2stringadd
+  Some(1) + "foo" // scalafix:ok Disable.any2stringadd
 
   val a: Option[Int] = Some(1)
 
@@ -37,7 +37,7 @@ object AnchorExpression {
     null,
     Some(1) + "foo",
     a.get
-  ) // scalafix:ok NoInfer.any2stringadd, Disable.get
+  ) // scalafix:ok Disable.any2stringadd, Disable.get
 
   object A {
     object F {

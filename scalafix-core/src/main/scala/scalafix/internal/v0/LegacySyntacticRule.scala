@@ -10,6 +10,7 @@ import scalafix.v1.SyntacticRule
 
 class LegacySyntacticRule(rule: v0.Rule) extends SyntacticRule(rule.name) {
   private[this] var configuredRule: v0.Rule = rule
+  override def description: String = rule.description
   override def withConfig(conf: Conf): Configured[Rule] = {
     LegacyRule.init(conf, _ => rule).map { ok =>
       configuredRule = ok

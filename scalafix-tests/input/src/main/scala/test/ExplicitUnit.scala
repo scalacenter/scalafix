@@ -1,5 +1,5 @@
 /*
-rules = ExplicitUnit
+rules = ProcedureSyntax
  */
 package test
 
@@ -21,9 +21,6 @@ object ExplicitUnit {
   }
   trait F {
     def x: String // don't touch this
-  }
-  trait Z {
-    def x // scalafix:ok ExplicitUnit
   }
 }
 

@@ -61,8 +61,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     )
 
     lazy val testsInputOutputSetting = Seq(
-      // TODO: Remove once scala-xml-quote is merged into scala-xml
-      resolvers += Resolver.bintrayRepo("allanrenucci", "maven"),
       libraryDependencies ++= testsDeps
     )
 

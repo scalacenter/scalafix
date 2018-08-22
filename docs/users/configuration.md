@@ -174,7 +174,7 @@ foo(null)
 ```
 
 ```scala
-List(1, "") // scalafix:ok NoInfer.any
+List(1, "") // scalafix:ok Disable.Any
 ```
 
 Optionally, you can include an arbitrary description at the end of any
