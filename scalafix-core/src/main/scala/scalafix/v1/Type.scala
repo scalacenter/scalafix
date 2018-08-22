@@ -1,3 +1,282 @@
 package scalafix.v1
 
+import scala.runtime.Statics
 sealed abstract class Type
+
+case object NoType extends Type
+
+final class TypeRef(
+    val prefix: Type,
+    val symbol: Symbol,
+    val typeArguments: List[Type]
+) extends Type {
+  override def toString: String =
+    s"TypeRef($prefix,$symbol,$typeArguments)"
+  override def equals(obj: Any): Boolean =
+    this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
+      case s: TypeRef =>
+        this.prefix == s.prefix &&
+          this.symbol == s.symbol &&
+          this.typeArguments == s.typeArguments
+      case _ => false
+    })
+  override def hashCode(): Int = {
+    var acc = -889275714
+    acc = Statics.mix(acc, Statics.anyHash(prefix))
+    acc = Statics.mix(acc, Statics.anyHash(symbol))
+    acc = Statics.mix(acc, Statics.anyHash(typeArguments))
+    Statics.finalizeHash(acc, 3)
+  }
+}
+
+final class SingleType(
+    val prefix: Type,
+    val symbol: Symbol
+) extends Type {
+  override def toString: String =
+    s"SingleType($prefix,$symbol)"
+  override def equals(obj: Any): Boolean =
+    this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
+      case s: TypeRef =>
+        this.prefix == s.prefix &&
+          this.symbol == s.symbol
+      case _ => false
+    })
+  override def hashCode(): Int = {
+    var acc = -889275714
+    acc = Statics.mix(acc, Statics.anyHash(prefix))
+    acc = Statics.mix(acc, Statics.anyHash(symbol))
+    Statics.finalizeHash(acc, 2)
+  }
+}
+
+final class ThisType(
+    val symbol: Symbol
+) extends Type {
+  override def toString: String =
+    s"ThisType($symbol)"
+  override def equals(obj: Any): Boolean =
+    this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
+      case s: ThisType =>
+        this.symbol == s.symbol
+      case _ => false
+    })
+  override def hashCode(): Int = {
+    var acc = -889275714
+    acc = Statics.mix(acc, Statics.anyHash(symbol))
+    Statics.finalizeHash(acc, 1)
+  }
+}
+
+final class SuperType(
+    val prefix: Type,
+    val symbol: Symbol
+) extends Type {
+  override def toString: String =
+    s"SuperType($prefix,$symbol)"
+  override def equals(obj: Any): Boolean =
+    this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
+      case s: SuperType =>
+        this.prefix == s.prefix &&
+          this.symbol == s.symbol
+      case _ => false
+    })
+  override def hashCode(): Int = {
+    var acc = -889275714
+    acc = Statics.mix(acc, Statics.anyHash(prefix))
+    acc = Statics.mix(acc, Statics.anyHash(symbol))
+    Statics.finalizeHash(acc, 2)
+  }
+}
+
+final class ConstantType(
+    val constant: Constant
+) extends Type {
+  override def toString: String =
+    s"ConstantType($constant)"
+  override def equals(obj: Any): Boolean =
+    this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
+      case s: ConstantType =>
+        this.constant == s.constant
+      case _ => false
+    })
+  override def hashCode(): Int = {
+    var acc = -889275714
+    acc = Statics.mix(acc, Statics.anyHash(constant))
+    Statics.finalizeHash(acc, 1)
+  }
+}
+
+final class IntersectionType(
+    val types: List[Type]
+) extends Type {
+  override def toString: String =
+    s"IntersectionType($types)"
+  override def equals(obj: Any): Boolean =
+    this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
+      case s: IntersectionType =>
+        this.types == s.types
+      case _ => false
+    })
+  override def hashCode(): Int = {
+    var acc = -889275714
+    acc = Statics.mix(acc, Statics.anyHash(types))
+    Statics.finalizeHash(acc, 1)
+  }
+}
+
+final class UnionType(
+    val types: List[Type]
+) extends Type {
+  override def toString: String =
+    s"UnionType($types)"
+  override def equals(obj: Any): Boolean =
+    this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
+      case s: UnionType =>
+        this.types == s.types
+      case _ => false
+    })
+  override def hashCode(): Int = {
+    var acc = -889275714
+    acc = Statics.mix(acc, Statics.anyHash(types))
+    Statics.finalizeHash(acc, 1)
+  }
+}
+
+final class WithType(
+    val types: List[Type]
+) extends Type {
+  override def toString: String =
+    s"WithType($types)"
+  override def equals(obj: Any): Boolean =
+    this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
+      case s: WithType =>
+        this.types == s.types
+      case _ => false
+    })
+  override def hashCode(): Int = {
+    var acc = -889275714
+    acc = Statics.mix(acc, Statics.anyHash(types))
+    Statics.finalizeHash(acc, 1)
+  }
+}
+
+final class StructuralType(
+    val tpe: Type,
+    val declarations: List[SymbolInfo],
+) extends Type {
+  override def toString: String =
+    s"StructuralType($tpe,$declarations)"
+  override def equals(obj: Any): Boolean =
+    this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
+      case s: StructuralType =>
+        this.declarations == s.declarations &&
+          this.tpe == s.tpe
+      case _ => false
+    })
+  override def hashCode(): Int = {
+    var acc = -889275714
+    acc = Statics.mix(acc, Statics.anyHash(declarations))
+    acc = Statics.mix(acc, Statics.anyHash(tpe))
+    Statics.finalizeHash(acc, 2)
+  }
+}
+
+final class AnnotatedType(
+    val annotations: List[Annotation],
+    val tpe: Type
+) extends Type {
+  override def toString: String =
+    s"AnnotatedType($annotations,$tpe)"
+  override def equals(obj: Any): Boolean =
+    this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
+      case s: AnnotatedType =>
+        this.annotations == s.annotations &&
+          this.tpe == s.tpe
+      case _ => false
+    })
+  override def hashCode(): Int = {
+    var acc = -889275714
+    acc = Statics.mix(acc, Statics.anyHash(annotations))
+    acc = Statics.mix(acc, Statics.anyHash(tpe))
+    Statics.finalizeHash(acc, 2)
+  }
+}
+
+final class ExistentialType(
+    val tpe: Type,
+    val declarations: List[SymbolInfo],
+) extends Type {
+  override def toString: String =
+    s"ExistentialType($tpe,$declarations)"
+  override def equals(obj: Any): Boolean =
+    this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
+      case s: ExistentialType =>
+        this.declarations == s.declarations &&
+          this.tpe == s.tpe
+      case _ => false
+    })
+  override def hashCode(): Int = {
+    var acc = -889275714
+    acc = Statics.mix(acc, Statics.anyHash(declarations))
+    acc = Statics.mix(acc, Statics.anyHash(tpe))
+    Statics.finalizeHash(acc, 2)
+  }
+}
+
+final class UniversalType(
+    val tpe: Type,
+    val declarations: List[SymbolInfo],
+) extends Type {
+  override def toString: String =
+    s"UniversalType($tpe,$declarations)"
+  override def equals(obj: Any): Boolean =
+    this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
+      case s: UniversalType =>
+        this.declarations == s.declarations &&
+          this.tpe == s.tpe
+      case _ => false
+    })
+  override def hashCode(): Int = {
+    var acc = -889275714
+    acc = Statics.mix(acc, Statics.anyHash(declarations))
+    acc = Statics.mix(acc, Statics.anyHash(tpe))
+    Statics.finalizeHash(acc, 2)
+  }
+}
+
+final class ByNameType(
+    val tpe: Type
+) extends Type {
+  override def toString: String =
+    s"ByNameType($tpe)"
+  override def equals(obj: Any): Boolean =
+    this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
+      case s: ByNameType =>
+        this.tpe == s.tpe
+      case _ => false
+    })
+  override def hashCode(): Int = {
+    var acc = -889275714
+    acc = Statics.mix(acc, Statics.anyHash(tpe))
+    Statics.finalizeHash(acc, 1)
+  }
+}
+
+final class RepeatedType(
+    val tpe: Type
+) extends Type {
+  override def toString: String =
+    s"RepeatedType($tpe)"
+  override def equals(obj: Any): Boolean =
+    this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
+      case s: ByNameType =>
+        this.tpe == s.tpe
+      case _ => false
+    })
+  override def hashCode(): Int = {
+    var acc = -889275714
+    acc = Statics.mix(acc, Statics.anyHash(tpe))
+    Statics.finalizeHash(acc, 1)
+  }
+}

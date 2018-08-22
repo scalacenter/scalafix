@@ -4,7 +4,7 @@ import scala.runtime.Statics
 
 sealed abstract class Signature
 
-object NoSignature extends Signature
+case object NoSignature extends Signature
 
 final class ClassSignature(
     val typeParameters: List[SymbolInfo],

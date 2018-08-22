@@ -23,4 +23,9 @@ object FromProtobuf {
       PublicAccess
   }
 
+//  def constant(c: s.Constant): Constant = c match {
+//    case s.NoConstant => throw new IllegalArgumentException(c.toString)
+//    case s.NoConstant => throw new IllegalArgumentException(c.toString)
+//  }
+
 }
