@@ -13,7 +13,6 @@ object ScalafixRules {
     NoFinalize,
     DottyKeywords,
     DottyVarArgPattern,
-    DisableSyntax(),
     LeakingImplicitClassVal
   )
   def semantic(index: SemanticdbIndex): List[Rule] = List(

@@ -3,29 +3,29 @@ package scalafix.internal.rule
 import metaconfig.Conf
 import metaconfig.Configured
 import scala.meta._
-import scalafix.v0._
 import scalafix.internal.config.DisableSyntaxConfig
 import scalafix.internal.config.Keyword
+import scalafix.v1._
 
 final case class DisableSyntax(
     config: DisableSyntaxConfig = DisableSyntaxConfig())
-    extends Rule("DisableSyntax")
+    extends SyntacticRule("DisableSyntax")
     with Product {
 
   override def description: String =
     "Linter that reports an error on a configurable set of keywords and syntax."
 
-  override def init(config: Conf): Configured[Rule] =
+  override def withConfig(config: Conf): Configured[Rule] =
     config
       .getOrElse("disableSyntax", "DisableSyntax")(DisableSyntaxConfig.default)
       .map(DisableSyntax(_))
 
-  private def checkRegex(ctx: RuleCtx): Seq[LintMessage] = {
+  private def checkRegex(doc: Doc): Seq[LintMessage] = {
     def pos(offset: Int): Position =
-      Position.Range(ctx.input, offset, offset)
+      Position.Range(doc.input, offset, offset)
     val regexLintMessages = Seq.newBuilder[LintMessage]
     config.regex.foreach { regex =>
-      val matcher = regex.value.matcher(ctx.input.chars)
+      val matcher = regex.value.matcher(doc.input.chars)
       val pattern = regex.value.pattern
       val message = regex.message.getOrElse(s"$pattern is disabled")
       while (matcher.find()) {
@@ -38,8 +38,8 @@ final case class DisableSyntax(
     regexLintMessages.result()
   }
 
-  private def checkTokens(ctx: RuleCtx): Seq[LintMessage] = {
-    ctx.tree.tokens.collect {
+  private def checkTokens(doc: Doc): Seq[LintMessage] = {
+    doc.tree.tokens.collect {
       case token @ Keyword(keyword) if config.isDisabled(keyword) =>
         errorCategory
           .copy(id = s"keywords.$keyword")
@@ -57,7 +57,7 @@ final case class DisableSyntax(
     }
   }
 
-  private def checkTree(ctx: RuleCtx): Seq[LintMessage] = {
+  private def checkTree(doc: Doc): Seq[LintMessage] = {
     object AbstractWithVals {
       def unapply(t: Tree): Option[List[Defn.Val]] = {
         val stats = t match {
@@ -170,25 +170,25 @@ final case class DisableSyntax(
           }
     }
     val FinalizeMatcher = DisableSyntax.FinalizeMatcher("noFinalize")
-    ctx.tree.collect(DefaultMatcher.orElse(FinalizeMatcher)).flatten
+    doc.tree.collect(DefaultMatcher.orElse(FinalizeMatcher)).flatten
   }
 
-  private def fixTree(ctx: RuleCtx): Patch = {
-    ctx.tree.collect {
+  private def fixTree(doc: Doc): Patch = {
+    doc.tree.collect {
       case t @ Defn.Val(mods, _, _, _)
           if config.noFinalVal &&
             mods.exists(_.is[Mod.Final]) =>
         val finalTokens =
           mods.find(_.is[Mod.Final]).map(_.tokens.toList).getOrElse(List.empty)
-        ctx.removeTokens(finalTokens) +
-          ctx.removeTokens(finalTokens.flatMap(ctx.tokenList.trailingSpaces))
+        Patch.removeTokens(finalTokens) +
+          Patch.removeTokens(finalTokens.flatMap(doc.tokenList.trailingSpaces))
     }.asPatch
   }
 
-  override def fix(ctx: RuleCtx): Patch = {
+  override def fix(implicit doc: Doc): Patch = {
     val lints =
-      (checkTree(ctx) ++ checkTokens(ctx) ++ checkRegex(ctx)).map(ctx.lint)
-    fixTree(ctx) ++ lints
+      (checkTree(doc) ++ checkTokens(doc) ++ checkRegex(doc)).map(Patch.lint)
+    fixTree(doc) ++ lints
   }
 
   private val errorCategory: LintCategory =

@@ -74,7 +74,14 @@ case class Rules(rules: List[Rule] = Nil) {
 }
 
 object Rules {
-  def defaults: List[Rule] = legacySemanticRules ++ legacySyntacticRules
+  def defaults: List[Rule] =
+    syntax ++
+      legacySemanticRules ++
+      legacySyntacticRules
+
+  val syntax: List[Rule] = List(
+    DisableSyntax()
+  )
 
   val legacySyntacticRules: List[LegacySyntacticRule] = {
     ScalafixRules.syntax.map(rule => new LegacySyntacticRule(rule))
