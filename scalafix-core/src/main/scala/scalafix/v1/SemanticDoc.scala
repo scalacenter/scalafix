@@ -27,18 +27,13 @@ final class SemanticDoc private[scalafix] (
     if (!result.hasNext) Symbol.None
     else result.next() // Discard multi symbols
   }
-  def info(sym: Symbol): SymbolInfo = {
+  def info(sym: Symbol): Option[SymbolInfo] = {
     if (sym.isNone) {
-      SymbolInfo.empty
+      None
     } else if (sym.isLocal) {
-      new SymbolInfo(
-        locals.getOrElse(sym.value, throw new MissingSymbolException(sym))
-      )
+      locals.get(sym.value).map(new SymbolInfo(_))
     } else {
-      symtab.info(sym.value) match {
-        case Some(x) => new SymbolInfo(x)
-        case _ => SymbolInfo.empty
-      }
+      symtab.info(sym.value).map(new SymbolInfo(_))
     }
   }
 

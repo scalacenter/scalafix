@@ -9,7 +9,7 @@ final class Symbol private (val value: String) {
   def isGlobal: Boolean = value.isGlobal
   def isLocal: Boolean = value.isLocal
   def owner: Symbol = Symbol(value.owner)
-  def info(doc: SemanticDoc): SymbolInfo = doc.info(this)
+  def info(doc: SemanticDoc): Option[SymbolInfo] = doc.info(this)
 
   override def toString: String =
     if (isNone) "Symbol.None"

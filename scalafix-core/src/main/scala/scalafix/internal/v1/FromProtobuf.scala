@@ -6,7 +6,7 @@ import scalafix.v1._
 class FromProtobuf(doc: SemanticDoc) {
 
   def info(sym: String): SymbolInfo =
-    doc.info(Symbol(sym))
+    doc.info(Symbol(sym)).getOrElse(throw new NoSuchElementException(sym))
 
   def sscope(scope: Option[s.Scope]): List[SymbolInfo] = scope match {
     case None => Nil

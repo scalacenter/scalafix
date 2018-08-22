@@ -74,17 +74,15 @@ class DocSemanticdbIndex(val doc: v1.SemanticDoc)
     symbol(TreePos.symbol(tree))
 
   final override def denotation(symbol: v0.Symbol): Option[v0.Denotation] = {
-    val info = doc.info(v1.Symbol(symbol.syntax))
-    if (info.isNone) None
-    else Some(DocSemanticdbIndex.infoToDenotation(doc, info.info))
+    doc.info(v1.Symbol(symbol.syntax)).map { info =>
+      DocSemanticdbIndex.infoToDenotation(doc, info.info)
+    }
   }
   final override def denotation(tree: Tree): Option[v0.Denotation] =
     symbol(tree).flatMap(denotation)
 
   override def info(symbol: String): Option[SymbolInformation] = {
-    val info = doc.info(v1.Symbol(symbol))
-    if (info.isNone) None
-    else Some(info.info)
+    doc.info(v1.Symbol(symbol)).map(_.info)
   }
 }
 
