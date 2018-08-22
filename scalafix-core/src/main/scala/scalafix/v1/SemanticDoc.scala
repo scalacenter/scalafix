@@ -42,23 +42,23 @@ final class SemanticDoc private[scalafix] (
   // ============
   // Semantic API
   // ============
-  def symbol(tree: Tree): Sym = {
+  def symbol(tree: Tree): Symbol = {
     val result = symbols(TreePos.symbol(tree))
-    if (!result.hasNext) Sym.None
+    if (!result.hasNext) Symbol.None
     else result.next() // Discard multi symbols
   }
 
-  def info(sym: Sym): Sym.Info = {
+  def info(sym: Symbol): Symbol.Info = {
     if (sym.isNone) {
-      Sym.Info.empty
+      Symbol.Info.empty
     } else if (sym.isLocal) {
-      new Sym.Info(
+      new Symbol.Info(
         locals.getOrElse(sym.value, throw new MissingSymbolException(sym))
       )
     } else {
       symtab.info(sym.value) match {
-        case Some(x) => new Sym.Info(x)
-        case _ => Sym.Info.empty
+        case Some(x) => new Symbol.Info(x)
+        case _ => Symbol.Info.empty
       }
     }
   }
@@ -67,7 +67,7 @@ final class SemanticDoc private[scalafix] (
   // Privates
   // ========
 
-  private[scalafix] def symbols(pos: Position): Iterator[Sym] = {
+  private[scalafix] def symbols(pos: Position): Iterator[Symbol] = {
     val result = occurrences.getOrDefault(
       s.Range(
         startLine = pos.startLine,
@@ -77,7 +77,7 @@ final class SemanticDoc private[scalafix] (
       ),
       Nil
     )
-    result.iterator.map(Sym(_))
+    result.iterator.map(Symbol(_))
 
   }
   private[scalafix] def config = doc.config

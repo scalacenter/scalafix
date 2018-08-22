@@ -5,49 +5,49 @@ import scala.meta.internal.{semanticdb => s}
 import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
 import scala.meta.internal.semanticdb.Scala._
 
-final class Sym private (val value: String) {
+final class Symbol private(val value: String) {
   def isNone: Boolean = value.isNone
   def isRootPackage: Boolean = value.isRootPackage
   def isEmptyPackage: Boolean = value.isEmptyPackage
   def isGlobal: Boolean = value.isGlobal
   def isLocal: Boolean = value.isLocal
-  def owner: Sym = Sym(value.owner)
-  def info(doc: SemanticDoc): Sym.Info = doc.info(this)
+  def owner: Symbol = Symbol(value.owner)
+  def info(doc: SemanticDoc): Symbol.Info = doc.info(this)
 
   override def toString: String =
     if (isNone) "Sym.None"
     else value
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
-      case s: Sym => value == s.value
+      case s: Symbol => value == s.value
       case _ => false
     })
   override def hashCode(): Int = value.hashCode
 }
 
-object Sym {
-  val RootPackage: Sym = new Sym(Symbols.RootPackage)
-  val EmptyPackage: Sym = new Sym(Symbols.EmptyPackage)
-  val None: Sym = new Sym(Symbols.None)
-  def apply(sym: String): Sym = {
-    if (sym.isEmpty) Sym.None
+object Symbol {
+  val RootPackage: Symbol = new Symbol(Symbols.RootPackage)
+  val EmptyPackage: Symbol = new Symbol(Symbols.EmptyPackage)
+  val None: Symbol = new Symbol(Symbols.None)
+  def apply(sym: String): Symbol = {
+    if (sym.isEmpty) Symbol.None
     else {
       if (!sym.startsWith("local")) {
         sym.desc // assert that it parses as a symbol
       }
-      new Sym(sym)
+      new Symbol(sym)
     }
   }
 
   object Local {
-    def unapply(sym: Sym): Option[Sym] =
+    def unapply(sym: Symbol): Option[Symbol] =
       if (sym.isLocal) Some(sym) else scala.None
   }
 
   object Global {
-    def unapply(sym: Sym): Option[(Sym, Sym)] =
+    def unapply(sym: Symbol): Option[(Symbol, Symbol)] =
       if (sym.isGlobal) {
-        val owner = Sym(sym.value.owner)
+        val owner = Symbol(sym.value.owner)
         Some(owner -> sym)
       } else {
         scala.None
@@ -58,8 +58,8 @@ object Sym {
       private[scalafix] val info: s.SymbolInformation
   ) {
     def isNone: Boolean = info.symbol.isEmpty
-    def sym: Sym = new Sym(info.symbol)
-    def owner: Sym = new Sym(info.symbol).owner
+    def sym: Symbol = new Symbol(info.symbol)
+    def owner: Symbol = new Symbol(info.symbol).owner
     def name: String = info.name
     def kind: Kind = new Kind(info)
     def props: Properties = new Properties(info.properties)
@@ -68,10 +68,10 @@ object Sym {
     override def toString: String = s"Sym.Info(${info.symbol})"
   }
   object Info {
-    val empty = new Sym.Info(s.SymbolInformation())
+    val empty = new Symbol.Info(s.SymbolInformation())
   }
 
-  final class Kind private[Sym] (info: s.SymbolInformation) {
+  final class Kind private[Symbol](info: s.SymbolInformation) {
     def isField: Boolean = k.isField
     def isMethod: Boolean = k.isMethod
     def isConstructor: Boolean = k.isConstructor
@@ -96,7 +96,7 @@ object Sym {
     private[this] def isSetter = info.name.endsWith("_=")
   }
 
-  final class Properties private[Sym] (props: Int) {
+  final class Properties private[Symbol](props: Int) {
     def isAbstract: Boolean = is(p.ABSTRACT)
     def isFinal: Boolean = is(p.FINAL)
     def isSealed: Boolean = is(p.SEALED)
@@ -116,34 +116,34 @@ object Sym {
       (props & property.value) != 0
   }
 
-  final class Access private[Sym] (a: s.Access) {
+  final class Access private[Symbol](a: s.Access) {
     def isPrivate: Boolean = a.isInstanceOf[s.PrivateAccess]
     def isPrivateThis: Boolean = a.isInstanceOf[s.PrivateThisAccess]
-    def privateWithin: Option[Sym] = a match {
-      case s.PrivateWithinAccess(symbol) => Some(Sym(symbol))
+    def privateWithin: Option[Symbol] = a match {
+      case s.PrivateWithinAccess(symbol) => Some(Symbol(symbol))
       case _ => scala.None
     }
     def isProtected: Boolean = a.isInstanceOf[s.ProtectedAccess]
     def isProtectedThis: Boolean = a.isInstanceOf[s.ProtectedThisAccess]
-    def protectedWithin: Option[Sym] = a match {
-      case s.ProtectedWithinAccess(symbol) => Some(Sym(symbol))
+    def protectedWithin: Option[Symbol] = a match {
+      case s.ProtectedWithinAccess(symbol) => Some(Symbol(symbol))
       case _ => scala.None
     }
     def isPublic: Boolean = a.isInstanceOf[s.PublicAccess]
     def isNone: Boolean = a == s.NoAccess
   }
 
-  final class Matcher private (doc: SemanticDoc, syms: Seq[Sym]) {
-    def matches(sym: Sym): Boolean =
+  final class Matcher private (doc: SemanticDoc, syms: Seq[Symbol]) {
+    def matches(sym: Symbol): Boolean =
       syms.contains(sym)
     def matches(tree: Tree): Boolean =
       syms.contains(doc.symbol(tree))
 
-    def unapply(sym: Sym): Boolean = matches(sym)
+    def unapply(sym: Symbol): Boolean = matches(sym)
     def unapply(tree: Tree): Boolean = matches(tree)
   }
   object Matcher {
-    def exact(doc: SemanticDoc, sym: Sym) = new Matcher(doc, sym :: Nil)
-    def exact(doc: SemanticDoc, syms: Seq[Sym]) = new Matcher(doc, syms)
+    def exact(doc: SemanticDoc, sym: Symbol) = new Matcher(doc, sym :: Nil)
+    def exact(doc: SemanticDoc, syms: Seq[Symbol]) = new Matcher(doc, syms)
   }
 }
