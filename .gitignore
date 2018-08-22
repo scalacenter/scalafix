@@ -1,10 +1,8 @@
 *.class
 *.log
 
-gh-pages/
-
 # sbt specific
-.cache*
+.cache
 .history
 .lib/
 dist/*
@@ -17,12 +15,24 @@ project/plugins/project/
 # Scala-IDE specific
 .scala_dependencies
 .worksheet
-.project
-.settings
-.classpath
 
 .idea
 
 # ENSIME specific
 .ensime_cache/
 .ensime
+
+
+node_modules
+
+lib/core/metadata.js
+lib/core/MetadataBlog.js
+
+website/translated_docs
+website/build/
+website/yarn.lock
+website/node_modules
+website/i18n/*
+!website/i18n/en.json
+
+out/

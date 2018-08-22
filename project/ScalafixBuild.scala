@@ -20,11 +20,13 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   object autoImport {
     lazy val stableVersion =
       settingKey[String]("Version of latest release to Maven.")
-    lazy val noPublish = Seq(
+    lazy val noMima = Seq(
       mimaReportBinaryIssues := {},
-      mimaPreviousArtifacts := Set.empty,
-      skip in publish := true
+      mimaPreviousArtifacts := Set.empty
     )
+    lazy val noPublish = Seq(
+      skip in publish := true
+    ) ++ noMima
     lazy val supportedScalaVersions = List(scala211, scala212)
     lazy val isFullCrossVersion = Seq(
       crossVersion := CrossVersion.full
@@ -71,14 +73,16 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "-P:semanticdb:synthetics:on"
       ),
       addCompilerPlugin(
-        "org.scalameta" % "semanticdb-scalac" % scalametaV cross CrossVersion.full)
+        "org.scalameta" % "semanticdb-scalac" % scalametaV cross CrossVersion.full
+      )
     )
 
     // =======
     // Website
     // =======
     lazy val docsMappingsAPIDir = settingKey[String](
-      "Name of subdirectory in site target directory for api docs")
+      "Name of subdirectory in site target directory for api docs"
+    )
     lazy val unidocSettings = Seq(
       autoAPIMappings := true,
       apiURL := Some(url("https://scalacenter.github.io/docs/api/")),
@@ -178,6 +182,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     commands += Command.command("ci-212") { s =>
       "++2.12.6" ::
         "unit/test" ::
+        "docs/run" ::
         "interfaces/doc" ::
         s
     },
@@ -209,7 +214,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     },
     publishArtifact.in(Test) := false,
     licenses := Seq(
-      "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+      "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
+    ),
     homepage := Some(url("https://github.com/scalacenter/scalafix")),
     autoAPIMappings := true,
     apiURL := Some(url("https://scalacenter.github.io/scalafix/")),
