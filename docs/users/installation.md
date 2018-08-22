@@ -20,8 +20,11 @@ The quickest way to get started is to run a **syntactic** rule like
 ```scala
 // project/plugins.sbt
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@VERSION@")
+```
 
-// sbt shell
+From the sbt shell, invoke the `scalafix` task
+
+```
 > myproject/scalafix ProcedureSyntax      // run rule on main sources
 > myproject/test:scalafix ProcedureSyntax // run rule on test sources
 ```
@@ -39,25 +42,23 @@ lazy val myproject = project.settings(
     "-Ywarn-unused-import" // required by `RemoveUnusedImports` rule
   )
 )
-
-// sbt shell
-> myproject/scalafix RemoveUnusedImports      // run rule on main sources
-> myproject/test:scalafix RemoveUnusedImports // run rule on test sources
 ```
 
-Notes.
+Run semantic rules from the sbt shell like normal
 
-- The `semanticdb-scalac` compiler plugin produces
-  [SemanticDB](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md)
-  files in the target directory `META-INF/semanticdb/`. These files are used by
-  Scalafix to understand symbols and types in Scala source code.
-- Beware that the `semanticdb-scalac` compiler plugin adds around 7-25% overhead
-  to compilation. It's recommended to provide generous JVM memory and stack
-  settings in `.jvmopts`:
+```
+> myproject/scalafix RemoveUnusedImports
+```
 
-      -Xss8m
-      -Xms1G
-      -Xmx4G
+Beware that the `semanticdb-scalac` compiler plugin adds around 7-25% overhead
+to compilation. It's recommended to provide generous JVM memory and stack
+settings in `.jvmopts`:
+
+```
+-Xss8m
+-Xms1G
+-Xmx4G
+```
 
 ### Verify installation
 
@@ -78,7 +79,7 @@ For a minimal example project using sbt-scalafix, see the
 repository.
 
 ```scala
-git clone https://github.com/olafurpg/scalafix-sbt-example
+git clone https://github.com/scalacenter/sbt-scalafix-example
 cd scalafix-sbt-example
 sbt "scalafix RemoveUnusedImports"
 git diff // should produce a diff
@@ -86,14 +87,14 @@ git diff // should produce a diff
 
 ### Settings and tasks
 
-| Name                    | Type           | Description                                                                                                                               |
-| ----------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `scalafix <rule>..`     | `Unit`         | Run scalafix on project sources. See [Rules](rules/overview.md) or use tab completion to explore supported rules.                         |
-| `scalafixCli <args>`    | `Unit`         | Invoke scalafix command line interface directly. See {% doc_ref Installation, cli %} or use tab completion to explore supported arguments |
-| `scalafixTest <rule>..` | `Unit`         | Similar to `scalafix` except does not write to files, only reports an error if the task would produce a diff.                             |
-| `sbtfix <rule>..`       | `Unit`         | Run scalafix on the `*.sbt` and `project/*.scala` sources of this build. Only supports syntactic rules.                                   |
-| `sbtfixTest <rule>..`   | `Unit`         | Similar to `sbtfix` except does not write to files, only reports an error if the task would produce a diff.                               |
-| `scalafixConfig`        | `Option[File]` | .scalafix.conf file to specify which scalafix rules should run. Defaults to `.scalafix.conf` in the root directory if it exists.          |
+| Name                    | Type           | Description                                                                                                                      |
+| ----------------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `scalafix <rule>..`     | `Unit`         | Run scalafix on project sources. See [Rules](rules/overview.md) or use tab completion to explore supported rules.                |
+| `scalafixCli <args>`    | `Unit`         | Invoke scalafix command line interface directly. See [--help](#help) use tab completion to explore supported arguments           |
+| `scalafixTest <rule>..` | `Unit`         | Similar to `scalafix` except does not write to files, only reports an error if the task would produce a diff.                    |
+| `sbtfix <rule>..`       | `Unit`         | Run scalafix on the `*.sbt` and `project/*.scala` sources of this build. Only supports syntactic rules.                          |
+| `sbtfixTest <rule>..`   | `Unit`         | Similar to `sbtfix` except does not write to files, only reports an error if the task would produce a diff.                      |
+| `scalafixConfig`        | `Option[File]` | .scalafix.conf file to specify which scalafix rules should run. Defaults to `.scalafix.conf` in the root directory if it exists. |
 
 ### FAQ
 
@@ -105,16 +106,17 @@ unmanagedSources.in(Compile, scalafix) := unmanagedSources.in(Compile).value.fil
 
 ## Command line
 
-The recommended way to install the scalafix command-line interface is with
-[coursier](https://github.com/coursier/coursier#command-line).
+First, install the [Coursier](https://github.com/coursier/coursier#command-line)
+command-line interface.
+
+Next, bootstrap a `scalafix` binary with Coursier
 
 ```sh
-// coursier
 coursier bootstrap ch.epfl.scala:scalafix-cli_@SCALA212@:@VERSION@ -f --main scalafix.cli.Cli -o scalafix
 ./scalafix --help
 ```
 
-### --help
+### Help
 
 ```scala mdoc:--help
 
@@ -122,8 +124,12 @@ coursier bootstrap ch.epfl.scala:scalafix-cli_@SCALA212@:@VERSION@ -f --main sca
 
 ## Maven
 
-It is possible to use scalafix with scala-maven-plugin but it requires a custom
-setup since there is no scalafix specific Maven plugin.
+It is possible to use Scalafix with scala-maven-plugin but it requires a custom
+setup since there exists no official Scalafix plugin for Maven.
+
+⚠️ Help wanted! The setup described here will not work for a few semantic rules
+like `ExplicitResultTypes` that require access to the full classpath of your
+application.
 
 First, add the following snippet to your maven `pom.xml`:
 
@@ -151,9 +157,13 @@ First, add the following snippet to your maven `pom.xml`:
 </profile>
 ```
 
-Make sure to replace `/path/to/root-directory` with the absolute path to the
-root directory of Maven build. This directory must match the directory from
-where you invoke the `scalafix` command-line interface.
+- Make sure to replace `/path/to/root-directory` with the absolute path to the
+  root directory of Maven build. This directory must match the directory from
+  where you invoke the `scalafix` command-line interface.
+- `-Yrangepos` is required for `semanticdb` to function properly,
+- (optional) `-Ywarn-unused-import` is required for the `RemoveUnusedImports`
+  rule. If you don't run `RemoveUnusedImports` you can skip this flag. Consult
+  the Scalafix documentation for each rule to see which flags it requires.
 
 Next, compile your project with the `scalafix` profile
 
@@ -163,37 +173,26 @@ mvn clean test -DskipTests=true -P scalafix
 
 We compile both main sources and tests to have semantic information generated
 for all of them, but we skip test execution because it is not the point of that
-compilation. The added flags for scala are given with the `addScalaArgs` option
-(see http://davidb.github.io/scala-maven-plugin/help-mojo.html#addScalacArgs):
+compilation. For documentation about `addScalaArgs` see
+[here](http://davidb.github.io/scala-maven-plugin/help-mojo.html#addScalacArgs).
 
-- `-Yrangepos` is required for `semanticdb` to function properly,
-- `-Xplugin:PLUGIN/semanticdb-scalac_@SCALA212@-@SCALAMETA@.jar` give the path
-  where the `semanticdb` jar can be found,
-- (optional) `-Xplugin-require:semanticdb` tells scalac to fails if it can't
-  load the `semanticdb` plugin,
-- (optional) `-Ywarn-unused-import` is required for the `RemoveUnusedImports`
-  rule. If you don't run `RemoveUnusedImports` you can skip this flag. Consult
-  the scalafix documentation for each rule to see which flags it requires.
+> Note that will need to recompile to get up-to-date `semanticdb` information
+> after each modification.
 
 After compilation, double check that there exists a directory
 `target/classes/META-INF/semanticdb/` containing files with the `.semanticdb`
 extension.
 
-Note that will need to recompile to get up-to-date `semanticdb` information
-after each modification.
-
-Next, [install the command line](#command-line). Finally, invoke the `scalafix`
-command line interface from the same directory as the value of
+Next, install the [Scalafix command line](#command-line). Finally, invoke the
+`scalafix` command line interface from the same directory as the value of
 `-P:semanticdb:sourceroot:/path/to/root-directory`
 
 ```sh
 scalafix --rules RemoveUnusedImports
 ```
 
-**NOTE**. This setup will not work for some semantic rules like
-`ExplicitResultTypes` that require a complete `--classpath` flag with the full
-classpath of your application. Help with creating a Scalafix Maven plugin or
-updating this guide for how to pass `--classpath` would be appreciated!
+Congrats, if all went well you successfully ran a semantic rule for your Maven
+project.
 
 ## Pants
 

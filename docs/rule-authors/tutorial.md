@@ -63,10 +63,10 @@ it with the world. Congrats!
 There are several ways to share a rule if the rule is contained in a single file
 and uses no external dependencies:
 
-- If you used the {% doc_ref Setup, scalacenter/scalafix.g8 %} to build your
-  project, push your rule to github and tell users to run
+- If you used the `scalacenter/scalafix.g8` to build your project, push your
+  rule to github and tell users to run
   `scalafix github:$org/$reponame/$version`.
 
-- otherwise, tell users to use the {% doc_ref Configuration, http %} protocol,
-  `scalafix --rules https://gist....` where the url points to the plaintext
-  contents of your rule.
+- otherwise, tell users to use the full URL to your rule
+  `scalafix --rules https://rawurl.com/....` where the url points to the
+  plaintext contents of your rule.

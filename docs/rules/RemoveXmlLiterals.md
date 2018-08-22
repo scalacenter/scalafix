@@ -24,7 +24,7 @@ xml"""<div>
 x match { case <a></a> => }
 x match { case <a></a> => }
 
-// replaces escaped {% raw %}{{{% endraw %} with single curly brace {
-<div>{% raw %}{{{% endraw %}</div>
+// replaces escaped {{ with single curly brace {
+<div>{{</div>
 xml"<div>{</div>"
 ```

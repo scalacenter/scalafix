@@ -46,4 +46,4 @@ object Test {
 _Since 0.6.0_
 
 NOTE. This rule is deprecated and from v0.6.0 onwards will be merged into the
-{% rule_ref Disable %} rule.
+`Disable` rule.

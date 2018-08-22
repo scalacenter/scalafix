@@ -21,7 +21,7 @@ sbt tests/test
 
 Note that the `scalafix` directory is a self-contained sbt build and can be put
 into the root directory of your repo. The tests are written using
-{% doc_ref Setup, scalafix-testkit %}.
+`scalafix-testkit`.
 
 ## scalafix-testkit
 
@@ -54,9 +54,9 @@ scalafix-testkit features include:
 - Test failures are reported as unified diffs from the obtained output of the
   rule and the expected output in the `output` project.
 
-- Assert that a {% glossary_ref LintMessage %} is expected at a particular line
-  by suffixing the line with the comment `// assert: <LintCategory>`. For an
-  example, see the NoInfer test suite:
+- Assert that a linter error is expected at a particular line by suffixing the
+  line with the comment `// assert: <LintCategory>`. For an example, see the
+  NoInfer test suite:
 
 ```scala
 val x = List(1, "")// assert: NoInfer.any

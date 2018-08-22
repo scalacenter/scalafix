@@ -228,8 +228,7 @@ lazy val docs = project
     mainClass.in(Compile) := Some("docs.Main"),
     scalaVersion := scala212,
     libraryDependencies ++= List(
-      "com.geirsson" %% "metaconfig-docs" % metaconfigV,
-      "com.geirsson" % "mdoc" % "0.4.0" cross CrossVersion.full,
+      "com.geirsson" %% "metaconfig-docs" % metaconfigV
     )
   )
   .dependsOn(testkit, core, cli)
