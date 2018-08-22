@@ -35,7 +35,7 @@ case class DisableSyntaxConfig(
     @Description("Report error on method that define an implicit conversion. ")
     noImplicitConversion: Boolean = false,
     @Description(
-      "Remove `final` modifier for val definitions, " +
+      "Report error on `final` modifier for val definitions, " +
         "see [motivation](https://github.com/sbt/zinc/issues/227)")
     noFinalVal: Boolean = false,
     @Description("Reports error when finalize is overridden.")

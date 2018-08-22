@@ -113,6 +113,11 @@ final case class DisableSyntax(
       d.paramss.exists(_.exists(_.mods.forall(!_.is[Mod.Implicit])))
 
     val DefaultMatcher: PartialFunction[Tree, Seq[LintMessage]] = {
+      case Defn.Val(mods, _, _, _)
+          if config.noFinalVal &&
+            mods.exists(_.is[Mod.Final]) =>
+        val mod = mods.find(_.is[Mod.Final]).get
+        Seq(noFinalVal.at(mod.pos))
       case NoValPatterns(v) if config.noValPatterns =>
         Seq(noValPatternCategory.at(v.pos))
       case t @ mod"+" if config.noCovariantTypes =>
@@ -173,28 +178,20 @@ final case class DisableSyntax(
     doc.tree.collect(DefaultMatcher.orElse(FinalizeMatcher)).flatten
   }
 
-  private def fixTree(doc: Doc): Patch = {
-    doc.tree.collect {
-      case t @ Defn.Val(mods, _, _, _)
-          if config.noFinalVal &&
-            mods.exists(_.is[Mod.Final]) =>
-        val finalTokens =
-          mods.find(_.is[Mod.Final]).map(_.tokens.toList).getOrElse(List.empty)
-        Patch.removeTokens(finalTokens) +
-          Patch.removeTokens(finalTokens.flatMap(doc.tokenList.trailingSpaces))
-    }.asPatch
-  }
-
   override def fix(implicit doc: Doc): Patch = {
-    val lints =
-      (checkTree(doc) ++ checkTokens(doc) ++ checkRegex(doc)).map(Patch.lint)
-    fixTree(doc) ++ lints
+    (checkTree(doc) ++ checkTokens(doc) ++ checkRegex(doc))
+      .map(Patch.lint)
+      .asPatch
   }
 
   private val errorCategory: LintCategory =
     LintCategory.error(
       "Some constructs are unsafe to use and should be avoided")
 
+  private val noFinalVal: LintCategory =
+    LintCategory.error(
+      id = "noFinalVal",
+      explain = "Final vals cause problems with incremental compilation")
   private val noValPatternCategory: LintCategory =
     LintCategory.error(
       id = "noValPatterns",
