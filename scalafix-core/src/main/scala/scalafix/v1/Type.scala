@@ -225,21 +225,21 @@ final class ExistentialType(
 }
 
 final class UniversalType(
-    val tpe: Type,
-    val declarations: List[SymbolInfo],
+    val typeParameters: List[SymbolInfo],
+    val tpe: Type
 ) extends Type {
   override def toString: String =
-    s"UniversalType($tpe,$declarations)"
+    s"UniversalType($tpe,$typeParameters)"
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: UniversalType =>
-        this.declarations == s.declarations &&
+        this.typeParameters == s.typeParameters &&
           this.tpe == s.tpe
       case _ => false
     })
   override def hashCode(): Int = {
     var acc = -889275714
-    acc = Statics.mix(acc, Statics.anyHash(declarations))
+    acc = Statics.mix(acc, Statics.anyHash(typeParameters))
     acc = Statics.mix(acc, Statics.anyHash(tpe))
     Statics.finalizeHash(acc, 2)
   }

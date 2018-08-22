@@ -15,8 +15,10 @@ final class SymbolInfo private[scalafix] (
   def owner: Symbol = Symbol(info.symbol).owner
   def name: String = info.name
   def kind: SymbolKind = new SymbolKind(info)
+  def signature(implicit doc: SemanticDoc): Signature =
+    new FromProtobuf(doc).ssignature(info.signature)
   def props: SymbolProperties = new SymbolProperties(info.properties)
-  def access: SymbolAccess = FromProtobuf.access(info.access)
+  def access: SymbolAccess = FromProtobuf.saccess(info.access)
 
   override def toString: String = s"SymbolInfo(${info.symbol})"
 }
