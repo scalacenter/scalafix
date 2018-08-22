@@ -15,11 +15,12 @@ final class SymbolProperties private[scalafix] (
   def isCase: Boolean = is(p.CASE)
   def isCovariant: Boolean = is(p.COVARIANT)
   def isContravariant: Boolean = is(p.CONTRAVARIANT)
+  def isVal: Boolean = is(p.VAL)
+  def isVar: Boolean = is(p.VAR)
   def isStatic: Boolean = is(p.STATIC)
   def isPrimary: Boolean = is(p.PRIMARY)
   def isEnum: Boolean = is(p.ENUM)
-  def isVal: Boolean = is(p.VAL)
-  def isVar: Boolean = is(p.VAR)
+  def isDefault: Boolean = is(p.DEFAULT)
 
   // privates
   private[this] def is(property: s.SymbolInformation.Property): Boolean =
@@ -35,11 +36,12 @@ final class SymbolProperties private[scalafix] (
     if (isCase) buf += "case"
     if (isContravariant) buf += "covariant"
     if (isContravariant) buf += "contravariant"
+    if (isVal) buf += "val"
+    if (isVar) buf += "var"
     if (isStatic) buf += "static"
     if (isPrimary) buf += "primary"
     if (isEnum) buf += "enum"
-    if (isVal) buf += "val"
-    if (isVar) buf += "var"
+    if (isDefault) buf += "default"
     buf.mkString("SymbolProperties(", " ", ")")
   }
   override def equals(obj: Any): Boolean =
