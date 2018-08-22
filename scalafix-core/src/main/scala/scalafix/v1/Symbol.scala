@@ -19,7 +19,7 @@ final class Symbol private (val value: String) {
       case s: Symbol => value == s.value
       case _ => false
     })
-  override def hashCode(): Int = value.hashCode
+  override def hashCode(): Int = value.##
 }
 
 object Symbol {

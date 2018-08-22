@@ -1,6 +1,7 @@
 package scalafix.v1
 
 import scala.meta.internal.{semanticdb => s}
+import scalafix.internal.v1.FromProtobuf
 
 object SymbolInfo {
   val empty = new SymbolInfo(s.SymbolInformation())
@@ -15,7 +16,7 @@ final class SymbolInfo private[scalafix] (
   def name: String = info.name
   def kind: SymbolKind = new SymbolKind(info)
   def props: SymbolProperties = new SymbolProperties(info.properties)
-  def access: SymbolAccess = new SymbolAccess(info.access)
+  def access: SymbolAccess = FromProtobuf.access(info.access)
 
-  override def toString: String = s"Sym.Info(${info.symbol})"
+  override def toString: String = s"SymbolInfo(${info.symbol})"
 }
