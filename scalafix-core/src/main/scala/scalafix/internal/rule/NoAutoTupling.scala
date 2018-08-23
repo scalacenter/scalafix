@@ -1,46 +1,46 @@
 package scalafix.internal.rule
 
 import scala.meta._
-import scalafix.v0._
+import scalafix.v1._
 
-case class NoAutoTupling(index: SemanticdbIndex)
+case object NoAutoTupling
     extends SemanticRule(
-      index,
       "NoAutoTupling"
     ) {
 
   override def description: String =
     "Rewrite that inserts explicit tuples for adapted argument lists for compatibility with -Yno-adapted-args"
 
-  private[this] def addWrappingParens(ctx: RuleCtx, args: Seq[Term]): Patch =
-    ctx.addLeft(args.head.tokens.head, "(") +
-      ctx.addRight(args.last.tokens.last, ")")
+  private[this] def addWrappingParens(args: Seq[Term]): Patch =
+    Patch.addLeft(args.head.tokens.head, "(") +
+      Patch.addRight(args.last.tokens.last, ")")
 
-  private[this] def insertUnit(ctx: RuleCtx, t: Term.Apply): Patch =
-    ctx.addRight(t.tokens.init.last, "()")
+  private[this] def insertUnit(t: Term.Apply): Patch =
+    Patch.addRight(t.tokens.init.last, "()")
 
-  lazy val unitAdaptations: Set[Position] =
-    index.messages.toIterator.collect {
-      case Message(pos, _, msg)
-          if msg.startsWith("Adaptation of argument list by inserting ()") =>
-        pos
-    }.toSet
+  override def fix(implicit doc: SemanticDoc): Patch = {
+    val unitAdaptations: Set[Position] =
+      doc.messages.toIterator.collect {
+        case message
+            if message.message.startsWith(
+              "Adaptation of argument list by inserting ()") =>
+          message.position
+      }.toSet
 
-  lazy val tupleAdaptations: Set[Position] =
-    index.messages.toIterator.collect {
-      case Message(pos, _, msg)
-          if msg.startsWith("Adapting argument list by creating a") =>
-        pos
-    }.toSet
-
-  override def fix(ctx: RuleCtx): Patch = {
-    ctx.tree
+    val tupleAdaptations: Set[Position] =
+      doc.messages.toIterator.collect {
+        case message
+            if message.message.startsWith(
+              "Adapting argument list by creating a") =>
+          message.position
+      }.toSet
+    doc.tree
       .collect {
         case t: Term.Apply if tupleAdaptations.contains(t.pos) =>
-          addWrappingParens(ctx, t.args)
+          addWrappingParens(t.args)
         case t: Term.Apply
             if t.args.isEmpty && unitAdaptations.contains(t.pos) =>
-          insertUnit(ctx, t)
+          insertUnit(t)
       }
       .map(_.atomic)
       .asPatch

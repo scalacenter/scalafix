@@ -7,10 +7,7 @@ import scalafix.internal.rule.DottyVarArgPattern
 import scalafix.internal.rule.DottyVolatileLazyVal
 import scalafix.internal.rule.ExplicitResultTypes
 import scalafix.internal.rule.MissingFinal
-import scalafix.internal.rule.NoAutoTupling
 import scalafix.internal.rule.NoValInForComprehension
-import scalafix.internal.rule.RemoveUnusedImports
-import scalafix.internal.rule.RemoveUnusedTerms
 import scalafix.rule.Rule
 import scalafix.util.SemanticdbIndex
 
@@ -23,9 +20,6 @@ object LegacyRules {
   )
   def semantic(index: SemanticdbIndex): List[Rule] = List(
     ExplicitResultTypes(index),
-    RemoveUnusedImports(index),
-    RemoveUnusedTerms(index),
-    NoAutoTupling(index),
     Disable(index, DisableConfig.default),
     MissingFinal(index)
   )

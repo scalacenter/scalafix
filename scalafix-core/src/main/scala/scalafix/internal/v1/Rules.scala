@@ -78,11 +78,14 @@ object Rules {
     rule.name.value -> rule.description
   }
   def defaults: List[Rule] =
-    syntax ++
+    builtin ++
       legacySemanticRules ++
       legacySyntacticRules
 
-  val syntax: List[Rule] = List(
+  val builtin: List[Rule] = List(
+    RemoveUnusedImports,
+    RemoveUnusedTerms,
+    NoAutoTupling,
     ProcedureSyntax,
     DisableSyntax(),
     LeakingImplicitClassVal
@@ -95,9 +98,6 @@ object Rules {
   val legacySemanticRules: List[LegacySemanticRule] = {
     val semantics = List[v0.SemanticdbIndex => v0.Rule](
       index => ExplicitResultTypes(index),
-      index => RemoveUnusedImports(index),
-      index => RemoveUnusedTerms(index),
-      index => NoAutoTupling(index),
       index => Disable(index, DisableConfig.default),
       index => MissingFinal(index)
     )

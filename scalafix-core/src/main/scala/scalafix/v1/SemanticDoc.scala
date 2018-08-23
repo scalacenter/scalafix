@@ -12,6 +12,7 @@ import scalafix.internal.v1._
 final class SemanticDoc private[scalafix] (
     private[scalafix] val internal: InternalSemanticDoc
 ) extends SemanticContext {
+  def messages: List[LintMessage] = internal.messages
   def tree: Tree = internal.doc.tree
   def tokens: Tokens = internal.doc.tokens
   def input: Input = internal.doc.input

@@ -1,30 +1,27 @@
 package scalafix.internal.rule
 
 import scala.meta._
-import scalafix.v0._
+import scalafix.v1._
 
-case class RemoveUnusedImports(index: SemanticdbIndex)
-    extends SemanticRule(
-      index,
-      "RemoveUnusedImports"
-    ) {
+case object RemoveUnusedImports extends SemanticRule("RemoveUnusedImports") {
 
   override def description: String =
     "Rewrite that removes unused imports reported by the compiler under -Xwarn-unused-import."
 
-  private val unusedImports = index.messages.toIterator.collect {
-    case Message(pos, _, "Unused import") =>
-      pos
-  }.toSet
-  private def isUnused(importee: Importee) = {
-    val pos = importee match {
-      case Importee.Rename(name, _) => name.pos
-      case _ => importee.pos
+  override def fix(implicit doc: SemanticDoc): Patch = {
+    val unusedImports = doc.messages.toIterator.collect {
+      case message if message.message == "Unused import" =>
+        message.position
+    }.toSet
+    def isUnused(importee: Importee): Boolean = {
+      val pos = importee match {
+        case Importee.Rename(name, _) => name.pos
+        case _ => importee.pos
+      }
+      unusedImports.contains(pos)
     }
-    unusedImports.contains(pos)
-  }
-  override def fix(ctx: RuleCtx): Patch =
-    ctx.tree.collect {
-      case i: Importee if isUnused(i) => ctx.removeImportee(i).atomic
+    doc.tree.collect {
+      case i: Importee if isUnused(i) => Patch.removeImportee(i).atomic
     }.asPatch
+  }
 }

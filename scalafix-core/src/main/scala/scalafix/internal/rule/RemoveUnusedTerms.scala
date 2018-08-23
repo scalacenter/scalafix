@@ -1,23 +1,13 @@
 package scalafix.internal.rule
 
+import java.util.regex.Pattern
 import scala.meta._
-import scalafix.v0._
+import scalafix.v1._
 
-case class RemoveUnusedTerms(index: SemanticdbIndex)
-    extends SemanticRule(index, "RemoveUnusedTerms") {
+case object RemoveUnusedTerms extends SemanticRule("RemoveUnusedTerms") {
 
   override def description: String =
     "Rewrite that removes unused locals or privates by -Ywarn-unused:locals,privates"
-
-  private val unusedTerms = {
-    val UnusedPrivateLocalVal = """(local|private) (.*) is never used""".r
-    index.messages.collect {
-      case Message(pos, _, UnusedPrivateLocalVal(_*)) => pos
-    }.toSet
-  }
-
-  private def isUnused(defn: Defn) =
-    unusedTerms.contains(defn.pos)
 
   private def removeDeclarationTokens(i: Defn, rhs: Term): Tokens = {
     val startDef = i.tokens.start
@@ -34,11 +24,28 @@ case class RemoveUnusedTerms(index: SemanticdbIndex)
     case _ => None
   }
 
-  override def fix(ctx: RuleCtx): Patch =
-    ctx.tree.collect {
+  private val unusedPrivateLocalVal: Pattern =
+    Pattern.compile("""(local|private) (.*) is never used""")
+
+  def isUnusedPrivate(message: LintMessage): Boolean =
+    unusedPrivateLocalVal.matcher(message.message).matches()
+
+  override def fix(implicit doc: SemanticDoc): Patch = {
+    val unusedTerms = {
+      doc.messages.collect {
+        case message if isUnusedPrivate(message) =>
+          message.position
+      }.toSet
+    }
+
+    def isUnused(defn: Defn) =
+      unusedTerms.contains(defn.pos)
+
+    doc.tree.collect {
       case i: Defn if isUnused(i) =>
         tokensToRemove(i)
-          .fold(Patch.empty)(ctx.removeTokens)
+          .fold(Patch.empty)(Patch.removeTokens)
           .atomic
     }.asPatch
+  }
 }
