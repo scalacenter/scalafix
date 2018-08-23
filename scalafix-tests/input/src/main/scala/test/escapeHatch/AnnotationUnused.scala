@@ -3,6 +3,7 @@ rules = [
   "class:scalafix.test.NoDummy"
   "class:scalafix.test.NoNull"
 ]
+skipParsing = false
 */
 package test.escapeHatch
 

@@ -198,22 +198,27 @@ object Patch {
       index: Option[SemanticdbIndex],
       suppress: Boolean = false
   ): (String, List[LintDiagnostic]) = {
-    val idx = index.getOrElse(SemanticdbIndex.empty)
-    val (patch, lints) = ctx.escapeHatch.filter(
-      patchesByName,
-      ctx,
-      idx,
-      ctx.diffDisable,
-      ctx.config
-    )
-    val finalPatch =
-      if (suppress) {
-        patch + SuppressOps.addComments(ctx.tokens, lints.map(_.position))
-      } else {
-        patch
-      }
-    val patches = treePatchApply(finalPatch)(ctx, idx)
-    (tokenPatchApply(ctx, patches), lints)
+    if (ctx.config.optimization.skipParsingWhenPossible &&
+      patchesByName.values.forall(_.isEmpty)) {
+      (ctx.input.text, Nil)
+    } else {
+      val idx = index.getOrElse(SemanticdbIndex.empty)
+      val (patch, lints) = ctx.escapeHatch.filter(
+        patchesByName,
+        ctx,
+        idx,
+        ctx.diffDisable,
+        ctx.config
+      )
+      val finalPatch =
+        if (suppress) {
+          patch + SuppressOps.addComments(ctx.tokens, lints.map(_.position))
+        } else {
+          patch
+        }
+      val patches = treePatchApply(finalPatch)(ctx, idx)
+      (tokenPatchApply(ctx, patches), lints)
+    }
   }
 
   private[scalafix] def syntactic(

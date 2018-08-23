@@ -2,6 +2,9 @@ package scalafix.tests.cli
 
 import scalafix.cli._
 import scalafix.internal.rule._
+import scalafix.patch.Patch
+import scalafix.v1.Doc
+import scalafix.v1.SyntacticRule
 
 class CliSyntacticSuite extends BaseCliSuite {
 
@@ -301,4 +304,27 @@ class CliSyntacticSuite extends BaseCliSuite {
     expectedExit = ExitStatus.Ok
   )
 
+  check(
+    name = "--settings.optimization.skipParsingWhenPossible",
+    originalLayout = """
+                       |/src/shared/a.scala
+                       |object a {
+                       |""".stripMargin,
+    args = Array(
+      "-r",
+      "class:scalafix.tests.cli.NoOpRule",
+      "--settings.optimization.skipParsingWhenPossible",
+      "true"
+    ),
+    expectedLayout = """
+                       |/src/shared/a.scala
+                       |object a {
+                       |""".stripMargin,
+    expectedExit = ExitStatus.Ok
+  )
+}
+
+class NoOpRule extends SyntacticRule("NoOpRule") {
+  override def fix(implicit doc: Doc): _root_.scalafix.v1.Patch =
+    Patch.empty
 }

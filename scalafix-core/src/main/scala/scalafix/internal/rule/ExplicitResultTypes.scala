@@ -11,7 +11,6 @@ import scalafix.internal.config.MemberKind
 import scalafix.internal.config.MemberVisibility
 import scalafix.rule.Rule
 import scalafix.rule.RuleCtx
-import scalafix.rule.RuleName
 import scalafix.rule.SemanticRule
 import scalafix.syntax._
 import scalafix.util.TokenOps

@@ -49,3 +49,4 @@ class SyntacticRuleV1 extends v1.SyntacticRule("SyntacticRuleV1") {
     Patch.addRight(doc.tree, "\nobject SyntacticRuleV1")
   }
 }
+
