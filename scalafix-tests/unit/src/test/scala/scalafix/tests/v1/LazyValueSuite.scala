@@ -40,24 +40,42 @@ class LazyValueSuite extends FunSuite {
 
     var j = 0
     val b = LazyValue.later { () =>
-      j  += 1
+      j += 1
       a.value + "world"
     }
 
     assert(i == 0)
     assert(j == 0)
 
-    a.value
+    assert(a.value == "Hello ")
     assert(i == 1)
     assert(j == 0)
 
-    b.value
+    assert(b.value == "Hello world")
     assert(i == 1)
     assert(j == 1)
 
-    b.value
+    assert(b.value == "Hello world")
     assert(i == 1)
     assert(j == 1)
+
+  }
+
+  test("exception") {
+    var i = 0
+    val later = LazyValue.later { () =>
+      i += 1
+      sys.error("boom")
+    }
+    assert(i == 0)
+
+    val boom1 = intercept[RuntimeException](later.value)
+    assert(boom1.getMessage == "boom")
+    assert(i == 1)
+
+    val boom2 = intercept[RuntimeException](later.value)
+    assert(boom1 eq boom2, "new exception thrown")
+    assert(i == 1) // exception throwing thunk is evaluated only once
 
   }
 }
