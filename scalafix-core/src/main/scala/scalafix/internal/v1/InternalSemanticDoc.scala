@@ -3,6 +3,7 @@ package scalafix.internal.v1
 import java.util
 import scala.collection.mutable.ListBuffer
 import scala.meta.Position
+import scala.meta.Tree
 import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
 import scalafix.internal.config.ScalafixConfig
@@ -15,6 +16,12 @@ final class InternalSemanticDoc(
     val textDocument: s.TextDocument,
     val symtab: SymbolTable
 ) {
+
+  def symbol(tree: Tree): Symbol = {
+    val result = symbols(TreePos.symbol(tree))
+    if (result.hasNext) result.next() // Discard multi symbols
+    else Symbol.None
+  }
 
   def info(sym: Symbol): Option[SymbolInfo] = {
     if (sym.isNone) {
@@ -39,7 +46,7 @@ final class InternalSemanticDoc(
     result.iterator.map(Symbol(_))
   }
 
-  def config: ScalafixConfig = doc.config
+  def config: ScalafixConfig = doc.internal.config
 
   private[this] val locals = textDocument.symbols.iterator.collect {
     case info

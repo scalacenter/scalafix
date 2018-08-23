@@ -20,10 +20,11 @@ import metaconfig.internal.Case
 import org.typelevel.paiges.{Doc => D}
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.ListBuffer
+import scala.meta.Tree
 import scala.meta.inputs.Input
 import scala.meta.internal.semanticdb.TextDocument
 import scala.meta.io.AbsolutePath
-import scala.meta.parsers.Parsed
+import scala.meta.parsers.ParseException
 import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
 import scalafix.Versions
@@ -181,66 +182,66 @@ object MainOps {
 
   def unsafeHandleFile(args: ValidatedArgs, file: AbsolutePath): ExitStatus = {
     val input = args.input(file)
-    args.parse(input) match {
-      case Parsed.Error(pos, msg, _) =>
-        args.config.reporter.error(msg, pos)
-        ExitStatus.ParseError
-      case Parsed.Success(tree) =>
-        val doc = Doc(tree, args.diffDisable, args.config)
-        val (fixed, messages) =
-          if (args.rules.isSemantic) {
-            val relpath = file.toRelative(args.sourceroot)
-            val sdoc = SemanticDoc.fromPath(
-              doc,
-              relpath,
-              args.classLoader,
-              args.symtab
-            )
-            val (fix, messages) =
-              args.rules.semanticPatch(sdoc, args.args.autoSuppressLinterErrors)
-            assertFreshSemanticDB(input, file, fix, sdoc.internal.textDocument)
-            (fix, messages)
-          } else {
-            args.rules.syntacticPatch(doc, args.args.autoSuppressLinterErrors)
-          }
+    val tree = LazyValue.later { () =>
+      args.parse(input).get: Tree
+    }
+    val doc = Doc(input, tree, args.diffDisable, args.config)
+    val (fixed, messages) =
+      if (args.rules.isSemantic) {
+        val relpath = file.toRelative(args.sourceroot)
+        val sdoc = SemanticDoc.fromPath(
+          doc,
+          relpath,
+          args.classLoader,
+          args.symtab
+        )
+        val (fix, messages) =
+          args.rules.semanticPatch(sdoc, args.args.autoSuppressLinterErrors)
+        assertFreshSemanticDB(input, file, fix, sdoc.internal.textDocument)
+        (fix, messages)
+      } else {
+        args.rules.syntacticPatch(doc, args.args.autoSuppressLinterErrors)
+      }
 
-        if (!args.args.autoSuppressLinterErrors) {
-          messages.foreach { diag =>
-            args.config.reporter.lint(diag)
-          }
-        }
+    if (!args.args.autoSuppressLinterErrors) {
+      messages.foreach { diag =>
+        args.config.reporter.lint(diag)
+      }
+    }
 
-        if (args.args.test) {
-          if (fixed == input.text) {
-            ExitStatus.Ok
-          } else {
-            val diff = DiffUtils.unifiedDiff(
-              file.toString(),
-              "<expected fix>",
-              input.text.lines.toList,
-              fixed.lines.toList,
-              3
-            )
-            args.args.out.println(diff)
-            ExitStatus.TestError
-          }
-        } else if (args.args.stdout) {
-          args.args.out.println(fixed)
-          ExitStatus.Ok
-        } else {
-          if (fixed != input.text) {
-            val toFix = args.pathReplace(file).toNIO
-            Files.createDirectories(toFix.getParent)
-            Files.write(toFix, fixed.getBytes(args.args.charset))
-          }
-          ExitStatus.Ok
-        }
+    if (args.args.test) {
+      if (fixed == input.text) {
+        ExitStatus.Ok
+      } else {
+        val diff = DiffUtils.unifiedDiff(
+          file.toString(),
+          "<expected fix>",
+          input.text.lines.toList,
+          fixed.lines.toList,
+          3
+        )
+        args.args.out.println(diff)
+        ExitStatus.TestError
+      }
+    } else if (args.args.stdout) {
+      args.args.out.println(fixed)
+      ExitStatus.Ok
+    } else {
+      if (fixed != input.text) {
+        val toFix = args.pathReplace(file).toNIO
+        Files.createDirectories(toFix.getParent)
+        Files.write(toFix, fixed.getBytes(args.args.charset))
+      }
+      ExitStatus.Ok
     }
   }
 
   def handleFile(args: ValidatedArgs, file: AbsolutePath): ExitStatus = {
     try unsafeHandleFile(args, file)
     catch {
+      case e: ParseException =>
+        args.config.reporter.error(e.shortMessage, e.pos)
+        ExitStatus.ParseError
       case e: SemanticDoc.Error.MissingSemanticdb =>
         args.config.reporter.error(e.getMessage)
         ExitStatus.MissingSemanticdbError

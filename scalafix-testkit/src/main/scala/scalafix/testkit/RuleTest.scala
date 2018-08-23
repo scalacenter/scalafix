@@ -16,7 +16,7 @@ final class RuleTest(
 )
 
 object RuleTest {
-  def fromPath(
+  private[scalafix] def fromPath(
       test: TestkitPath,
       classLoader: ClassLoader,
       symtab: SymbolTable): RuleTest = {

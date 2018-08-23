@@ -25,8 +25,9 @@ class DeprecatedRuleCtx(doc: Doc) extends RuleCtx with DeprecatedPatchOps {
       implicit index: SemanticdbIndex,
       fileLine: FileLine): Unit =
     throw new UnsupportedOperationException
-  override private[scalafix] def toks(t: Tree) = t.tokens(doc.config.dialect)
-  override private[scalafix] def config = doc.config
-  override private[scalafix] def escapeHatch = doc.escapeHatch
-  override private[scalafix] def diffDisable = doc.diffDisable
+  override private[scalafix] def toks(t: Tree) =
+    t.tokens(doc.internal.config.dialect)
+  override private[scalafix] def config = doc.internal.config
+  override private[scalafix] def escapeHatch = doc.internal.escapeHatch.value
+  override private[scalafix] def diffDisable = doc.internal.diffDisable
 }

@@ -18,11 +18,6 @@ final class SemanticDoc private[scalafix] (
   def matchingParens: MatchingParens = internal.doc.matchingParens
   def tokenList: TokenList = internal.doc.tokenList
   def comments: AssociatedComments = internal.doc.comments
-  def symbol(tree: Tree): Symbol = {
-    val result = internal.symbols(TreePos.symbol(tree))
-    if (result.hasNext) result.next() // Discard multi symbols
-    else Symbol.None
-  }
   override def toString: String = s"SemanticDoc(${input.syntax})"
 }
 
@@ -35,7 +30,7 @@ object SemanticDoc {
         extends Error(s"TextDocument.uri not found: $reluri")
   }
 
-  def fromPath(
+  private[scalafix] def fromPath(
       doc: Doc,
       path: RelativePath,
       classLoader: ClassLoader,
