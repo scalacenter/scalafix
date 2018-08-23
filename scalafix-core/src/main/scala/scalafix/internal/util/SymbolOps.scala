@@ -1,7 +1,10 @@
 package scalafix.internal.util
 
 import scala.meta._
+import scala.meta.internal.ScalametaInternals
 import scalafix.v0._
+import scalafix.v1
+import scala.meta.internal.semanticdb.Scala._
 
 object SymbolOps {
   object SignatureName {
@@ -51,6 +54,19 @@ object SymbolOps {
             List(Importee.Name(Name.Indeterminate(name)))))
       case _ => None
     }
+  }
+  def normalize(sym: v1.Symbol): v1.Symbol = {
+    val sb = new StringBuilder()
+    def loop(symbol: String): Unit = {
+      if (symbol.isNone || symbol.isRootPackage) ()
+      else {
+        val (owner, desc) = ScalametaInternals.symbolOwnerAndDescriptor(symbol)
+        loop(owner)
+        sb.append(".").append(desc.name)
+      }
+    }
+    loop(sym.value)
+    v1.Symbol(sb.toString())
   }
   def normalize(symbol: Symbol): Symbol = symbol match {
     case Symbol.Multi(syms) =>
