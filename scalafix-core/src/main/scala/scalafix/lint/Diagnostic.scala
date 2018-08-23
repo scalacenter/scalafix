@@ -7,15 +7,15 @@ import scalafix.rule.RuleName
   *
   * It's idiomatic to implement a custom class that extends this trait for each
   * unique category of linting messages. For example, if you have an "unused code"
-  * linter then you might want to create a <code>class UnusedCode extends LintMessage</code>
+  * linter then you might want to create a <code>class UnusedCode extends Diagnostic</code>
   * class with the appropriate context.
   *
   * Expensive values such as the message and explanation can be computed on-demand.
   *
-  * @note for a LintMessage that is associated with a specific rule use
-  *       [[scalafix.lint.LintDiagnostic]].
+  * @note for a Diagnostic that is associated with a specific rule use
+  *       [[scalafix.lint.RuleDiagnostic]].
   */
-trait LintMessage {
+trait Diagnostic {
 
   /** The main message of this diagnostic. */
   def message: String
@@ -29,7 +29,7 @@ trait LintMessage {
   /** String ID for the category of this lint message.
     *
     * A linter diagnostic is keyed by two unique values:
-    * - the rule name (which is not available in a LintMessage
+    * - the rule name (which is not available in a Diagnostic
     * - the category ID (this value)
     *
     * The categoryID may be empty, in which case the category of this message will be uniquely
@@ -43,14 +43,14 @@ trait LintMessage {
 
 }
 
-object LintMessage {
+object Diagnostic {
 
-  /** Construct an eager instance of a LintMessage. */
+  /** Construct an eager instance of a Diagnostic. */
   def apply(
       message: String,
       position: Position,
-      category: LintCategory): EagerLintMessage = {
-    EagerLintMessage(message, position, category)
+      category: LintCategory): EagerDiagnostic = {
+    EagerDiagnostic(message, position, category)
   }
 
   /** An observation of a LintCategory at a particular position.
@@ -61,11 +61,11 @@ object LintMessage {
     *                 For an empty position use Position.None.
     * @param category the LintCategory associated with this message.
     */
-  final case class EagerLintMessage(
+  final case class EagerDiagnostic(
       message: String,
       position: Position,
       category: LintCategory
-  ) extends LintMessage {
+  ) extends Diagnostic {
     def format(explain: Boolean): String = {
       val explanation =
         if (explain)
@@ -80,7 +80,7 @@ object LintMessage {
 
     def id: String = category.id
 
-    def withOwner(owner: RuleName): EagerLintMessage =
+    def withOwner(owner: RuleName): EagerDiagnostic =
       copy(category = category.withOwner(owner))
 
     override def severity: LintSeverity = category.severity

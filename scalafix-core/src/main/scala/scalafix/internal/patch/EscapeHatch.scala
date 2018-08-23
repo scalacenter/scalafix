@@ -13,7 +13,7 @@ import scalafix.internal.config.FilterMatcher
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.patch.EscapeHatch._
-import scalafix.lint.LintDiagnostic
+import scalafix.lint.RuleDiagnostic
 import scalafix.patch.AtomicPatch
 import scalafix.patch.Concat
 import scalafix.patch.EmptyPatch
@@ -38,9 +38,9 @@ class EscapeHatch private (
       index: SemanticdbIndex,
       diff: DiffDisable,
       config: ScalafixConfig
-  ): (Patch, List[LintDiagnostic]) = {
+  ): (Patch, List[RuleDiagnostic]) = {
     val usedEscapes = mutable.Set.empty[EscapeFilter]
-    val lintMessages = List.newBuilder[LintDiagnostic]
+    val lintMessages = List.newBuilder[RuleDiagnostic]
 
     def isDisabledByEscape(name: RuleName, start: Int): Boolean =
       // annotatedEscapes takes precedence over anchoredEscapes

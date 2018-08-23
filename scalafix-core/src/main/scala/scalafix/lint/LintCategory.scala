@@ -21,12 +21,12 @@ final case class LintCategory(
 ) {
   private def noExplanation: LintCategory =
     new LintCategory(id, explanation, severity)
-  def at(message: String, position: Position): LintMessage =
-    LintMessage(message, position, this)
-  def at(message: String): LintMessage =
-    LintMessage(message, Position.None, this)
-  def at(position: Position): LintMessage =
-    LintMessage(explanation, position, noExplanation)
+  def at(message: String, position: Position): Diagnostic =
+    Diagnostic(message, position, this)
+  def at(message: String): Diagnostic =
+    Diagnostic(message, Position.None, this)
+  def at(position: Position): Diagnostic =
+    Diagnostic(explanation, position, noExplanation)
 
   def withOwner(owner: RuleName): LintCategory =
     copy(id = fullId(owner))

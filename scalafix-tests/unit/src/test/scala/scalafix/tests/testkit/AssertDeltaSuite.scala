@@ -10,8 +10,8 @@ import scalafix.internal.testkit.AssertDiff
 import scalafix.internal.testkit.CommentAssertion
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.lint.LintCategory
-import scalafix.lint.LintDiagnostic
-import scalafix.lint.LintMessage
+import scalafix.lint.RuleDiagnostic
+import scalafix.lint.Diagnostic
 import scalafix.lint.LintSeverity
 import scalafix.rule.RuleName
 import scalafix.testkit.DiffAssertions
@@ -43,8 +43,8 @@ class AssertDeltaSuite() extends FunSuite with DiffAssertions {
                  |}""".stripMargin
     )
 
-    def disable(offset: Int): LintDiagnostic =
-      LintMessage(
+    def disable(offset: Int): RuleDiagnostic =
+      Diagnostic(
         message = "Option.get is the root of all evils",
         position = Position.Range(input, offset, offset),
         category = LintCategory(

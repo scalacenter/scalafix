@@ -20,25 +20,25 @@ final case class DisableSyntax(
       .getOrElse("disableSyntax", "DisableSyntax")(DisableSyntaxConfig.default)
       .map(DisableSyntax(_))
 
-  private def checkRegex(doc: Doc): Seq[LintMessage] = {
+  private def checkRegex(doc: Doc): Seq[Diagnostic] = {
     def pos(offset: Int): Position =
       Position.Range(doc.input, offset, offset)
-    val regexLintMessages = Seq.newBuilder[LintMessage]
+    val regexDiagnostics = Seq.newBuilder[Diagnostic]
     config.regex.foreach { regex =>
       val matcher = regex.value.matcher(doc.input.chars)
       val pattern = regex.value.pattern
       val message = regex.message.getOrElse(s"$pattern is disabled")
       while (matcher.find()) {
-        regexLintMessages +=
+        regexDiagnostics +=
           errorCategory
             .copy(id = regex.id.getOrElse(pattern))
             .at(message, pos(matcher.start))
       }
     }
-    regexLintMessages.result()
+    regexDiagnostics.result()
   }
 
-  private def checkTokens(doc: Doc): Seq[LintMessage] = {
+  private def checkTokens(doc: Doc): Seq[Diagnostic] = {
     doc.tree.tokens.collect {
       case token @ Keyword(keyword) if config.isDisabled(keyword) =>
         errorCategory
@@ -57,7 +57,7 @@ final case class DisableSyntax(
     }
   }
 
-  private def checkTree(doc: Doc): Seq[LintMessage] = {
+  private def checkTree(doc: Doc): Seq[Diagnostic] = {
     object AbstractWithVals {
       def unapply(t: Tree): Option[List[Defn.Val]] = {
         val stats = t match {
@@ -112,7 +112,7 @@ final case class DisableSyntax(
     def hasNonImplicitParam(d: Defn.Def): Boolean =
       d.paramss.exists(_.exists(_.mods.forall(!_.is[Mod.Implicit])))
 
-    val DefaultMatcher: PartialFunction[Tree, Seq[LintMessage]] = {
+    val DefaultMatcher: PartialFunction[Tree, Seq[Diagnostic]] = {
       case Defn.Val(mods, _, _, _)
           if config.noFinalVal &&
             mods.exists(_.is[Mod.Final]) =>
@@ -207,7 +207,7 @@ object DisableSyntax {
                    |overriding finalize incurs a performance penalty""".stripMargin
     )
 
-  def FinalizeMatcher(id: String): PartialFunction[Tree, List[LintMessage]] = {
+  def FinalizeMatcher(id: String): PartialFunction[Tree, List[Diagnostic]] = {
     case Defn.Def(_, name @ q"finalize", _, Nil | Nil :: Nil, _, _) =>
       FinalizeError
         .copy(id = id)

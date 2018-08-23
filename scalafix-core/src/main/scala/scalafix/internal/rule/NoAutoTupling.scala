@@ -20,7 +20,7 @@ case object NoAutoTupling
 
   override def fix(implicit doc: SemanticDoc): Patch = {
     val unitAdaptations: Set[Position] =
-      doc.messages.toIterator.collect {
+      doc.diagnostics.toIterator.collect {
         case message
             if message.message.startsWith(
               "Adaptation of argument list by inserting ()") =>
@@ -28,7 +28,7 @@ case object NoAutoTupling
       }.toSet
 
     val tupleAdaptations: Set[Position] =
-      doc.messages.toIterator.collect {
+      doc.diagnostics.toIterator.collect {
         case message
             if message.message.startsWith(
               "Adapting argument list by creating a") =>

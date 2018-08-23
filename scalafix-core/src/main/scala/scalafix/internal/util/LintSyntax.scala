@@ -1,24 +1,24 @@
 package scalafix.internal.util
 
 import scalafix.internal.config.ScalafixConfig
-import scalafix.lint.LintDiagnostic
+import scalafix.lint.RuleDiagnostic
 import scalafix.lint.LintID
-import scalafix.lint.LintMessage
+import scalafix.lint.Diagnostic
 import scalafix.rule.RuleName
 import scala.meta.inputs.Position
 import scalafix.lint.LintSeverity
 
 object LintSyntax {
 
-  implicit class XtensionLintMessage(msg: LintMessage) {
+  implicit class XtensionDiagnostic(msg: Diagnostic) {
     def fullStringID(name: RuleName): String =
       LintID(name.value, msg.categoryID).fullStringID
 
     def toDiagnostic(
         ruleName: RuleName,
-        config: ScalafixConfig): LintDiagnostic = {
+        config: ScalafixConfig): RuleDiagnostic = {
       val id = LintID(ruleName.value, msg.categoryID)
-      LintDiagnostic(
+      RuleDiagnostic(
         msg,
         ruleName,
         config.lint.getConfiguredSeverity(id.fullStringID)
@@ -26,9 +26,9 @@ object LintSyntax {
     }
   }
 
-  implicit class XtensionLintDiagnostic(msg: LintDiagnostic) {
-    def withMessage(newMessage: String): LintDiagnostic = {
-      new EagerLintDiagnostic(
+  implicit class XtensionRuleDiagnostic(msg: RuleDiagnostic) {
+    def withMessage(newMessage: String): RuleDiagnostic = {
+      new EagerRuleDiagnostic(
         newMessage,
         msg.position,
         msg.severity,
@@ -38,13 +38,13 @@ object LintSyntax {
     }
 
   }
-  final class EagerLintDiagnostic(
+  final class EagerRuleDiagnostic(
       val message: String,
       val position: Position,
       val severity: LintSeverity,
       val explanation: String,
       val id: LintID
-  ) extends LintDiagnostic {
+  ) extends RuleDiagnostic {
     override def toString: String = formattedMessage
   }
 

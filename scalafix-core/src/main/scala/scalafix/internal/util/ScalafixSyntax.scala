@@ -19,7 +19,8 @@ trait ScalafixSyntax {
   type LintCategory = scalafix.lint.LintCategory
   val LintCategory = scalafix.lint.LintCategory
 
-  type LintMessage = scalafix.lint.LintMessage
+  type Diagnostic = scalafix.lint.Diagnostic
+  val Diagnostic = scalafix.lint.Diagnostic
 
   type CustomMessage[T] = scalafix.config.CustomMessage[T]
   val CustomMessage = scalafix.config.CustomMessage

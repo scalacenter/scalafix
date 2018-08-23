@@ -1,6 +1,6 @@
 package scalafix.internal.testkit
 
-import scalafix.lint.LintDiagnostic
+import scalafix.lint.RuleDiagnostic
 import scalafix.internal.util.LintSyntax._
 
 // Example:
@@ -39,7 +39,7 @@ import scalafix.internal.util.LintSyntax._
 //                +-- (∀ wrong = unreported)
 object AssertDiff {
   def apply(
-      reportedLintMessages: List[LintDiagnostic],
+      reportedLintMessages: List[RuleDiagnostic],
       expectedLintMessages: List[CommentAssertion]): AssertDiff = {
 
     val data =
@@ -99,7 +99,7 @@ object AssertDiff {
 //            for example, the caret on a multiline assert may be on the wrong offset.
 case class AssertDiff(
     unreported: List[CommentAssertion],
-    unexpected: List[LintDiagnostic],
+    unexpected: List[RuleDiagnostic],
     mismatch: List[AssertDelta]) {
 
   def isFailure: Boolean =
@@ -112,7 +112,7 @@ case class AssertDiff(
   override def toString: String = {
     val nl = "\n"
 
-    def formatLintDiagnostic(diag: LintDiagnostic): String = {
+    def formatDiagnostic(diag: RuleDiagnostic): String = {
       diag.withMessage("\n" + diag.message).formattedMessage
     }
 
@@ -132,7 +132,7 @@ case class AssertDiff(
         .sortBy(_.lintDiagnostic.position.startLine)
         .map { delta =>
           List(
-            "Obtained: " + formatLintDiagnostic(delta.lintDiagnostic),
+            "Obtained: " + formatDiagnostic(delta.lintDiagnostic),
             "Expected: " + delta.assert.formattedMessage,
             "Diff:",
             delta.similarity
@@ -155,7 +155,7 @@ case class AssertDiff(
     val showUnexpected =
       unexpected
         .sortBy(_.position.startLine)
-        .map(formatLintDiagnostic)
+        .map(formatDiagnostic)
         .mkString(
           unexpectedBanner,
           elementSeparator,

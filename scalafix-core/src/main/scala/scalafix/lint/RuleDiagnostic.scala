@@ -7,12 +7,12 @@ import scalafix.rule.RuleName
 /**
   * A linter messages that has been associated with a rule.
   *
-  * @note The difference between LintDiagnostic and LintMessage is that
-  *       LintMessage is not associated with a rule while LintDiagnostic
+  * @note The difference between RuleDiagnostic and Diagnostic is that
+  *       Diagnostic is not associated with a rule while RuleDiagnostic
   *       interfaces matches closely the ScalafixDiagnostic interface
   *       from the scalafix-interfaces Java-only module.
   */
-trait LintDiagnostic {
+trait RuleDiagnostic {
 
   /** The main message of this diagnostic. */
   def message: String
@@ -42,18 +42,18 @@ trait LintDiagnostic {
   }
 }
 
-object LintDiagnostic {
+object RuleDiagnostic {
   def apply(
-      message: LintMessage,
+      message: Diagnostic,
       rule: RuleName,
-      configuredSeverity: Option[LintSeverity]): LintDiagnostic =
-    new LazyLintDiagnostic(message, rule, configuredSeverity)
+      configuredSeverity: Option[LintSeverity]): RuleDiagnostic =
+    new LazyRuleDiagnostic(message, rule, configuredSeverity)
 
-  final class LazyLintDiagnostic(
-      val lintMessage: LintMessage,
+  final class LazyRuleDiagnostic(
+      val lintMessage: Diagnostic,
       val rule: RuleName,
       val configuredSeverity: Option[LintSeverity]
-  ) extends LintDiagnostic {
+  ) extends RuleDiagnostic {
     override def toString: String = formattedMessage
     override def message: String = lintMessage.message
     override def position: Position = lintMessage.position

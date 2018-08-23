@@ -11,7 +11,7 @@ import scalafix.internal.patch.ImportPatchOps
 import scalafix.internal.patch.ReplaceSymbolOps
 import scalafix.internal.util.Failure
 import scalafix.internal.util.TokenOps
-import scalafix.lint.LintMessage
+import scalafix.lint.Diagnostic
 import scalafix.patch.TreePatch.ReplaceSymbol
 import org.scalameta.logger
 import scala.meta.Token
@@ -21,7 +21,7 @@ import scalafix.internal.util.SuppressOps
 import scalafix.internal.util.SymbolOps.Root
 import scalafix.internal.v0.DeprecatedRuleCtx
 import scalafix.internal.v0.DocSemanticdbIndex
-import scalafix.lint.LintDiagnostic
+import scalafix.lint.RuleDiagnostic
 import scalafix.patch.TreePatch.AddGlobalImport
 import scalafix.patch.TreePatch.RemoveGlobalImport
 import scalafix.rule.RuleCtx
@@ -110,13 +110,13 @@ private[scalafix] object TreePatch {
 
 // implementation detail
 private[scalafix] case class AtomicPatch(underlying: Patch) extends Patch
-private[scalafix] case class LintPatch(message: LintMessage) extends Patch
+private[scalafix] case class LintPatch(message: Diagnostic) extends Patch
 private[scalafix] case class Concat(a: Patch, b: Patch) extends Patch
 private[scalafix] case object EmptyPatch extends Patch with LowLevelPatch
 
 object Patch {
 
-  def lint(msg: LintMessage): Patch =
+  def lint(msg: Diagnostic): Patch =
     LintPatch(msg)
 
   // Syntactic patch ops.
@@ -197,7 +197,7 @@ object Patch {
       ctx: RuleCtx,
       index: Option[SemanticdbIndex],
       suppress: Boolean = false
-  ): (String, List[LintDiagnostic]) = {
+  ): (String, List[RuleDiagnostic]) = {
     if (ctx.config.optimization.skipParsingWhenPossible &&
       patchesByName.values.forall(_.isEmpty)) {
       (ctx.input.text, Nil)
@@ -225,7 +225,7 @@ object Patch {
       patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
       doc: Doc,
       suppress: Boolean
-  ): (String, List[LintDiagnostic]) = {
+  ): (String, List[RuleDiagnostic]) = {
     apply(patchesByName, new DeprecatedRuleCtx(doc), None, suppress)
   }
 
@@ -233,7 +233,7 @@ object Patch {
       patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
       doc: SemanticDoc,
       suppress: Boolean
-  ): (String, List[LintDiagnostic]) = {
+  ): (String, List[RuleDiagnostic]) = {
     apply(
       patchesByName,
       new DeprecatedRuleCtx(doc.internal.doc),

@@ -6,7 +6,7 @@ import scalafix.interfaces.ScalafixMainCallback
 import scalafix.internal.config
 import scalafix.internal.config.ScalafixReporter
 import scalafix.internal.util.LintSyntax
-import scalafix.lint.LintDiagnostic
+import scalafix.lint.RuleDiagnostic
 import scalafix.lint.LintID
 import scalafix.lint.LintSeverity
 
@@ -31,13 +31,13 @@ object MainCallbackImpl {
 
   def fromJava(underlying: ScalafixMainCallback): ScalafixReporter =
     new ScalafixReporter {
-      override def lint(d: LintDiagnostic): Unit = {
+      override def lint(d: RuleDiagnostic): Unit = {
         val diagnostic = ScalafixDiagnosticImpl.fromScala(d)
         underlying.reportDiagnostic(diagnostic)
       }
       def report(msg: String, pos: Position, sev: LintSeverity): Unit = {
         val diagnostic = ScalafixDiagnosticImpl.fromScala(
-          new LintSyntax.EagerLintDiagnostic(msg, pos, sev, "", LintID.empty)
+          new LintSyntax.EagerRuleDiagnostic(msg, pos, sev, "", LintID.empty)
         )
         underlying.reportDiagnostic(diagnostic)
       }

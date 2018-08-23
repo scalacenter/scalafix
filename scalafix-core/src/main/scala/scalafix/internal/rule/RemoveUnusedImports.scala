@@ -9,7 +9,7 @@ case object RemoveUnusedImports extends SemanticRule("RemoveUnusedImports") {
     "Rewrite that removes unused imports reported by the compiler under -Xwarn-unused-import."
 
   override def fix(implicit doc: SemanticDoc): Patch = {
-    val unusedImports = doc.messages.toIterator.collect {
+    val unusedImports = doc.diagnostics.toIterator.collect {
       case message if message.message == "Unused import" =>
         message.position
     }.toSet

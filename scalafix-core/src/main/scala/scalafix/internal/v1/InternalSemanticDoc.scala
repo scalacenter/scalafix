@@ -4,39 +4,13 @@ import java.util
 import scala.collection.mutable.ListBuffer
 import scala.meta.Position
 import scala.meta.Tree
-import scala.meta.inputs.Input
 import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
-import scala.meta.internal.semanticdb.Diagnostic.{Severity => d}
 import scalafix.internal.config.ScalafixConfig
-import scalafix.lint.LintMessage
-import scalafix.lint.LintSeverity
+import scalafix.lint.Diagnostic
 import scalafix.v1.Doc
 import scalafix.v1.Symbol
 import scalafix.v1.SymbolInfo
-
-case class Diagnostic(input: Input, diagnostic: s.Diagnostic)
-    extends LintMessage {
-  override def position: Position = diagnostic.range match {
-    case Some(range) =>
-      Position.Range(
-        input,
-        range.startLine,
-        range.startCharacter,
-        range.endLine,
-        range.endCharacter
-      )
-    case None => Position.None
-  }
-  override def message: String = diagnostic.message
-  override def severity: LintSeverity = diagnostic.severity match {
-    case d.ERROR => LintSeverity.Error
-    case d.WARNING => LintSeverity.Warning
-    case d.INFORMATION => LintSeverity.Info
-    case d.HINT | d.UNKNOWN_SEVERITY | _: d.Unrecognized => LintSeverity.Info
-  }
-
-}
 
 final class InternalSemanticDoc(
     val doc: Doc,
@@ -44,9 +18,9 @@ final class InternalSemanticDoc(
     val symtab: SymbolTable
 ) {
 
-  def messages: List[LintMessage] =
+  def messages: List[Diagnostic] =
     textDocument.diagnostics.iterator.map { diag =>
-      Diagnostic(doc.input, diag)
+      SemanticdbDiagnostic(doc.input, diag)
     }.toList
 
   def symbol(tree: Tree): Symbol = {

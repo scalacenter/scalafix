@@ -10,8 +10,8 @@ import scalafix.internal.util.SuppressOps
 import scalafix.internal.v0.LegacyRules
 import scalafix.internal.v0.LegacySemanticRule
 import scalafix.internal.v0.LegacySyntacticRule
-import scalafix.lint.LintDiagnostic
-import scalafix.lint.LintMessage
+import scalafix.lint.RuleDiagnostic
+import scalafix.lint.Diagnostic
 import scalafix.patch.Patch
 import scalafix.rule.RuleName
 import scalafix.v0
@@ -39,7 +39,7 @@ case class Rules(rules: List[Rule] = Nil) {
 
   def addSuppression(
       tokens: Tokens,
-      messages: List[LintMessage],
+      messages: List[Diagnostic],
       patch: Patch,
       suppress: Boolean): Patch = {
     if (suppress) {
@@ -51,7 +51,7 @@ case class Rules(rules: List[Rule] = Nil) {
 
   def semanticPatch(
       sdoc: SemanticDoc,
-      suppress: Boolean): (String, List[LintDiagnostic]) = {
+      suppress: Boolean): (String, List[RuleDiagnostic]) = {
     val fixes = rules.iterator.map {
       case rule: SemanticRule =>
         rule.name -> rule.fix(sdoc)
@@ -63,7 +63,7 @@ case class Rules(rules: List[Rule] = Nil) {
 
   def syntacticPatch(
       doc: Doc,
-      suppress: Boolean): (String, List[LintDiagnostic]) = {
+      suppress: Boolean): (String, List[RuleDiagnostic]) = {
     require(!isSemantic, semanticRules.map(_.name).mkString("+"))
     val fixes = syntacticRules.iterator.map { rule =>
       rule.name -> rule.fix(doc)

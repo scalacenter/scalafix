@@ -27,12 +27,12 @@ case object RemoveUnusedTerms extends SemanticRule("RemoveUnusedTerms") {
   private val unusedPrivateLocalVal: Pattern =
     Pattern.compile("""(local|private) (.*) is never used""")
 
-  def isUnusedPrivate(message: LintMessage): Boolean =
+  def isUnusedPrivate(message: Diagnostic): Boolean =
     unusedPrivateLocalVal.matcher(message.message).matches()
 
   override def fix(implicit doc: SemanticDoc): Patch = {
     val unusedTerms = {
-      doc.messages.collect {
+      doc.diagnostics.collect {
         case message if isUnusedPrivate(message) =>
           message.position
       }.toSet

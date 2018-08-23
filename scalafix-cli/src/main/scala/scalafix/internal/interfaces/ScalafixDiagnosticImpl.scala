@@ -6,12 +6,12 @@ import scalafix.interfaces.ScalafixDiagnostic
 import scalafix.interfaces.ScalafixLintID
 import scalafix.interfaces.ScalafixPosition
 import scalafix.interfaces.ScalafixSeverity
-import scalafix.lint.LintDiagnostic
+import scalafix.lint.RuleDiagnostic
 import scalafix.lint.LintID
 import scalafix.lint.LintSeverity
 
 object ScalafixDiagnosticImpl {
-  def fromScala(diagnostic: LintDiagnostic): ScalafixDiagnostic =
+  def fromScala(diagnostic: RuleDiagnostic): ScalafixDiagnostic =
     new ScalafixDiagnostic {
       override def severity(): ScalafixSeverity = diagnostic.severity match {
         case LintSeverity.Info => ScalafixSeverity.INFO
@@ -33,8 +33,8 @@ object ScalafixDiagnosticImpl {
         }
     }
 
-  def fromJava(diagnostic: ScalafixDiagnostic): LintDiagnostic =
-    new LintDiagnostic {
+  def fromJava(diagnostic: ScalafixDiagnostic): RuleDiagnostic =
+    new RuleDiagnostic {
       override def message: String = diagnostic.message()
       override def position: Position = {
         if (diagnostic.position().isPresent) {

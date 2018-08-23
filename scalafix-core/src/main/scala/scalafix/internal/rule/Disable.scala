@@ -6,7 +6,7 @@ import scala.meta.transversers.Traverser
 import scalafix.internal.config.{DisableConfig, DisabledSymbol}
 import scalafix.internal.v0.InputSynthetic
 import scalafix.internal.util.SymbolOps
-import scalafix.lint.{LintCategory, LintMessage}
+import scalafix.lint.{LintCategory, Diagnostic}
 import scalafix.v0._
 
 object Disable {
@@ -87,7 +87,7 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
       symbol: Symbol.Global,
       disabled: DisabledSymbol,
       pos: Position,
-      details: String = ""): LintMessage = {
+      details: String = ""): Diagnostic = {
     val message = disabled.message.getOrElse(
       s"${symbol.signature.name} is disabled$details")
 
@@ -98,7 +98,7 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
       .at(message, pos)
   }
 
-  private def checkTree(ctx: RuleCtx): Seq[LintMessage] = {
+  private def checkTree(ctx: RuleCtx): Seq[Diagnostic] = {
     def filterBlockedSymbolsInBlock(
         blockedSymbols: List[DisabledSymbol],
         block: Tree): List[DisabledSymbol] =
@@ -121,7 +121,7 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
     }
 
     def handleName(t: Name, blockedSymbols: List[DisabledSymbol])
-      : Either[LintMessage, List[DisabledSymbol]] = {
+      : Either[Diagnostic, List[DisabledSymbol]] = {
       val isBlocked = new DisableSymbolMatcher(blockedSymbols)
       ctx.index.symbol(t) match {
         case Some(isBlocked(s: Symbol.Global, disabled)) =>
@@ -159,7 +159,7 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
     }).result(ctx.tree)
   }
 
-  private def checkSynthetics(ctx: RuleCtx): Seq[LintMessage] = {
+  private def checkSynthetics(ctx: RuleCtx): Seq[Diagnostic] = {
     for {
       synthetic <- ctx.index.synthetics.view
       ResolvedName(
@@ -181,7 +181,7 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
     }
   }
 
-  override def check(ctx: RuleCtx): Seq[LintMessage] = {
+  override def check(ctx: RuleCtx): Seq[Diagnostic] = {
     checkTree(ctx) ++ checkSynthetics(ctx)
   }
 }

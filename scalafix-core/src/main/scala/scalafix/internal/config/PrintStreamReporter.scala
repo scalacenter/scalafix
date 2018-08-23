@@ -3,14 +3,14 @@ package scalafix.internal.config
 import java.io.PrintStream
 import scala.meta.Position
 import scalafix.internal.util.PositionSyntax._
-import scalafix.lint.LintDiagnostic
+import scalafix.lint.RuleDiagnostic
 import scalafix.lint.LintSeverity
 
 /** A ScalafixReporter that emits messages to a PrintStream. */
 case class PrintStreamReporter(
     out: PrintStream
 ) extends ScalafixReporter {
-  override def lint(d: LintDiagnostic): Unit = {
+  override def lint(d: RuleDiagnostic): Unit = {
     report(s"[${d.id.fullStringID}] ${d.message}", d.position, d.severity)
   }
 
