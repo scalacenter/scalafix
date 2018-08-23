@@ -9,7 +9,7 @@ To develop custom scalafix rules, you will first need to create an sbt project.
 
 Run the following commands to generate a skeleton project:
 
-```sh
+```
 cd reponame # The project you want to implement rules for.
 
 # --rule= should ideally match the GitHub repo name, to make

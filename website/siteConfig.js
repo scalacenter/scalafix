@@ -6,6 +6,7 @@ const repoUrl = "https://github.com/scalacenter/scalafix";
 const siteConfig = {
   title: "Scalafix",
   tagline: "Refactoring and linting tool for Scala",
+
   url: "https://scalacenter.github.io/",
   baseUrl: "/scalafix/",
 
@@ -13,10 +14,10 @@ const siteConfig = {
   projectName: "scalafix",
   organizationName: "scalacenter",
 
-  algolia: {
-    apiKey: "???",
-    indexName: "scalafix"
-  },
+  // algolia: {
+  //   apiKey: "???",
+  //   indexName: "scalafix"
+  // },
 
   // For no header links in the top nav bar -> headerLinks: [],
   headerLinks: [
@@ -53,8 +54,8 @@ const siteConfig = {
   onPageNav: "separate",
 
   /* Open Graph and Twitter card images */
-  ogImage: "img/scalameta-logo.png",
-  twitterImage: "img/scalameta-logo.png",
+  ogImage: "img/scalacenter2x.png",
+  twitterImage: "img/scalacenter2x.png",
 
   editUrl: `${repoUrl}/edit/master/docs/`,
 

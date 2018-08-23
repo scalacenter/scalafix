@@ -24,32 +24,43 @@ package object website {
       .filterNot(_.name.isDeprecated)
       .sortBy(_.name.value)
 
-    val rows: List[Text.TypedTag[String]] = rules.map { rule =>
-      val docPath = PathIO.workingDirectory
-        .resolve("docs")
-        .resolve("rules")
-        .resolve(rule.name.value + ".md")
-      if (!Files.isRegularFile(docPath.toNIO)) {
-        reporter.warning(s"Missing $docPath")
+    val (semantic, syntactic) = rules.partition(_.isInstanceOf[v1.SemanticRule])
+
+    def buildTable(rules: List[v1.Rule]): Text.TypedTag[String] = {
+      val rows: List[Text.TypedTag[String]] = rules.map { rule =>
+        val docPath = PathIO.workingDirectory
+          .resolve("docs")
+          .resolve("rules")
+          .resolve(rule.name.value + ".md")
+        if (!Files.isRegularFile(docPath.toNIO)) {
+          reporter.warning(s"Missing $docPath")
+        }
+        tr(
+          td(ruleLink(rule.name.value)),
+          td(rule.description)
+        )
       }
-      val semantic = if (rule.isInstanceOf[v1.SemanticRule]) "✅" else ""
-      tr(
-        td(semantic),
-        td(ruleLink(rule.name.value)),
-        td(rule.description)
+
+      val header =
+        thead(
+          tr(
+            th("Name"),
+            th("Description")
+          )
+        )
+
+      table(
+        header,
+        tbody(rows)
       )
     }
-    val html = table(
-      thead(
-        tr(
-          th("Semantic"),
-          th("Name"),
-          th("Description")
-        )
-      ),
-      tbody(rows)
-    )
-    html.toString()
+
+    div(
+      h2("Semantic Rules"),
+      buildTable(semantic),
+      h2("Syntactic Rules"),
+      buildTable(syntactic)
+    ).toString
   }
 
   // TODO(olafur) replace this hack with ConfEncoder[T] typeclass.
