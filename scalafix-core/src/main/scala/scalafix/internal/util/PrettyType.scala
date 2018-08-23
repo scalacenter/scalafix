@@ -91,12 +91,12 @@ class PrettyType private (
     def isVal: Boolean = is(p.VAL)
     def isVar: Boolean = is(p.VAR)
     def isVarSetter: Boolean =
-      isVar && info.name.endsWith("_=")
+      isVar && info.displayName.endsWith("_=")
   }
   private implicit class XtensionSymbolInfo(sym: String) {
-    def toIndeterminateName: Name = Name(info(sym).name)
-    def toTermName: Term.Name = Term.Name(info(sym).name)
-    def toTypeName: Type.Name = Type.Name(info(sym).name)
+    def toIndeterminateName: Name = Name(info(sym).displayName)
+    def toTermName: Term.Name = Term.Name(info(sym).displayName)
+    def toTypeName: Type.Name = Type.Name(info(sym).displayName)
   }
 
   private implicit class XtensionIterator(syms: Iterator[String]) {
@@ -167,7 +167,7 @@ class PrettyType private (
       // Dummy value
       Defn.Val(
         Nil,
-        Pat.Var(Term.Name(info.name)) :: Nil,
+        Pat.Var(Term.Name(info.displayName)) :: Nil,
         None,
         q"???"
       )
@@ -175,13 +175,13 @@ class PrettyType private (
       if (info.is(p.FINAL)) {
         Decl.Val(
           toMods(info),
-          Pat.Var(Term.Name(info.name)) :: Nil,
+          Pat.Var(Term.Name(info.displayName)) :: Nil,
           toType(info.valueType)
         )
       } else {
         Decl.Var(
           toMods(info),
-          Pat.Var(Term.Name(info.name)) :: Nil,
+          Pat.Var(Term.Name(info.displayName)) :: Nil,
           toType(info.valueType)
         )
       }
@@ -194,13 +194,13 @@ class PrettyType private (
           if (info.isVal) {
             Decl.Val(
               toMods(info),
-              Pat.Var(Term.Name(info.name)) :: Nil,
+              Pat.Var(Term.Name(info.displayName)) :: Nil,
               toType(ret)
             )
           } else if (info.isVar && !info.isVarSetter) {
             Decl.Var(
               toMods(info),
-              Pat.Var(Term.Name(info.name)) :: Nil,
+              Pat.Var(Term.Name(info.displayName)) :: Nil,
               toType(ret)
             )
           } else if (info.kind.isConstructor) {
@@ -214,7 +214,7 @@ class PrettyType private (
           } else {
             Decl.Def(
               toMods(info),
-              Term.Name(info.name),
+              Term.Name(info.displayName),
               tparams.smap(toTypeParam),
               paramss.iterator
                 .map(params => params.symbols.smap(toTermParam))
@@ -257,7 +257,7 @@ class PrettyType private (
             case k.TRAIT | k.INTERFACE =>
               Defn.Trait(
                 toMods(info),
-                Type.Name(info.name),
+                Type.Name(info.displayName),
                 tparams.smap(toTypeParam),
                 Ctor.Primary(Nil, Name(""), Nil),
                 Template(
@@ -274,7 +274,7 @@ class PrettyType private (
             case k.OBJECT =>
               Defn.Object(
                 toMods(info),
-                Term.Name(info.name),
+                Term.Name(info.displayName),
                 Template(
                   Nil,
                   inits,
@@ -285,7 +285,7 @@ class PrettyType private (
             case k.PACKAGE_OBJECT =>
               Pkg.Object(
                 toMods(info),
-                Term.Name(info.name),
+                Term.Name(info.displayName),
                 Template(
                   Nil,
                   inits,
@@ -312,12 +312,12 @@ class PrettyType private (
               // FIXME: Workaround for https://github.com/scalameta/scalameta/issues/1492
               val isCtorName = ctor.paramss.flatMap(_.map(_.name.value)).toSet
               def isSyntheticMember(m: s.SymbolInformation): Boolean =
-                (isCaseClass && isCaseClassMethod(m.name)) ||
-                  isCtorName(m.name)
+                (isCaseClass && isCaseClassMethod(m.displayName)) ||
+                  isCtorName(m.displayName)
 
               Defn.Class(
                 toMods(info),
-                Type.Name(info.name),
+                Type.Name(info.displayName),
                 tparams.smap(toTypeParam),
                 ctor,
                 Template(
@@ -339,14 +339,14 @@ class PrettyType private (
           if (lo.nonEmpty && lo == hi) {
             Defn.Type(
               toMods(info),
-              Type.Name(info.name),
+              Type.Name(info.displayName),
               typeParameters.smap(toTypeParam),
               toType(lo)
             )
           } else {
             Decl.Type(
               toMods(info),
-              Type.Name(info.name),
+              Type.Name(info.displayName),
               typeParameters.smap(toTypeParam),
               toTypeBounds(lo, hi)
             )
@@ -423,7 +423,7 @@ class PrettyType private (
     throw TypeToTreeError(any.toString, Some(cause))
 
   def toTermRef(info: s.SymbolInformation): Term.Ref = {
-    if (info.kind.isParameter) Term.Name(info.name)
+    if (info.kind.isParameter) Term.Name(info.displayName)
     else {
       shorten match {
         case QualifyStrategy.Full =>
@@ -432,20 +432,22 @@ class PrettyType private (
           } else if (info.owner.isEmpty) {
             fail(info)
           } else {
-            Term.Select(toTermRef(this.info(info.owner)), Term.Name(info.name))
+            Term.Select(
+              toTermRef(this.info(info.owner)),
+              Term.Name(info.displayName))
           }
         case QualifyStrategy.Name =>
           imports += info.symbol
-          Term.Name(info.name)
+          Term.Name(info.displayName)
         case QualifyStrategy.Readable =>
           val owner = this.info(info.owner)
           if (owner.kind.isPackageObject ||
             owner.kind.isPackage ||
             (owner.kind.isObject && info.kind.isType)) {
             imports += info.symbol
-            Term.Name(info.name)
+            Term.Name(info.displayName)
           } else {
-            Term.Select(toTermRef(owner), Term.Name(info.name))
+            Term.Select(toTermRef(owner), Term.Name(info.displayName))
           }
       }
     }
@@ -466,7 +468,7 @@ class PrettyType private (
   }
 
   def toTypeRef(info: s.SymbolInformation): Type.Ref = {
-    def name = Type.Name(info.name)
+    def name = Type.Name(info.displayName)
     if (shorten.isName || info.kind.isTypeParameter) {
       name
     } else {
@@ -544,13 +546,13 @@ class PrettyType private (
     case s.ThisType(symbol) =>
       Type.Select(
         Term.This(Name.Anonymous()),
-        Type.Name(this.info(symbol).name)
+        Type.Name(this.info(symbol).displayName)
       )
     case s.SuperType(prefix @ _, symbol) =>
       // TODO: print prefix https://github.com/scalacenter/scalafix/issues/758
       Type.Select(
         Term.Super(Name.Anonymous(), Name.Anonymous()),
-        Type.Name(this.info(symbol).name)
+        Type.Name(this.info(symbol).displayName)
       )
     case s.ConstantType(_) =>
       toType(tpe.widen)
@@ -640,7 +642,7 @@ class PrettyType private (
   def toTermParam(info: s.SymbolInformation): Term.Param = {
     Term.Param(
       Nil,
-      Term.Name(info.name),
+      Term.Name(info.displayName),
       Some(toType(info.valueType)),
       None
     )
@@ -675,7 +677,7 @@ class PrettyType private (
     }
     Type.Param(
       toMods(info),
-      name = Type.Name(info.name),
+      name = Type.Name(info.displayName),
       tparams = tparams,
       tbounds = bounds,
       // TODO: re-sugar context and view bounds https://github.com/scalacenter/scalafix/issues/759

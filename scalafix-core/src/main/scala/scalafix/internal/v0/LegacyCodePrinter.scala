@@ -16,7 +16,7 @@ class LegacyCodePrinter(doc: SemanticDoc) {
   private val buf = List.newBuilder[PositionedSymbol]
   private val text = new StringBuilder
   private def emit(symbol: String): Unit = {
-    emitCode(symbol.desc.name, symbol)
+    emitCode(symbol.desc.name.value, symbol)
   }
   private def emitCode(code: String, sym: String): Unit = {
     val start = text.length

@@ -144,7 +144,7 @@ object DocSemanticdbIndex {
     new LegacyCodePrinter(doc).convertDenotation(
       info.signature,
       dflags,
-      info.name
+      info.displayName
     )
   }
 

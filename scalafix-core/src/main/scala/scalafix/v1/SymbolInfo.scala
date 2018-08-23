@@ -1,10 +1,5 @@
 package scalafix.v1
 
-import java.io.ByteArrayOutputStream
-import java.io.PrintStream
-import scala.meta.metap
-import scala.meta.cli
-import scala.meta.internal.metap.DocumentPrinter
 import scala.meta.internal.{semanticdb => s}
 import scala.meta.internal.semanticdb._
 import scalafix.internal.v1.FromProtobuf
@@ -15,11 +10,11 @@ import scala.meta.metap.Format
 
 final class SymbolInfo private[scalafix] (
     private[scalafix] val info: s.SymbolInformation
-) {
+) { self =>
 
   def sym: Symbol = Symbol(info.symbol)
   def owner: Symbol = Symbol(info.symbol).owner
-  def name: String = info.name
+  def displayName: String = info.displayName
   def signature(implicit doc: SemanticDoc): Signature =
     new FromProtobuf(doc).ssignature(info.signature)
 
@@ -76,12 +71,11 @@ final class SymbolInfo private[scalafix] (
   }
 
   override def toString: String = {
-    val out = new ByteArrayOutputStream()
-    val settings = metap.Settings().withFormat(Format.Compact)
-    val reporter = cli.Reporter().withOut(new PrintStream(out)).withSilentErr()
-    val doc = s.TextDocument().addSymbols(info)
-    val printer = new DocumentPrinter(settings, reporter, doc)
-    printer.pprint(info)
-    out.toString()
+    val symtab = new scala.meta.internal.metap.PrinterSymtab {
+      def info(symbol: String): Option[SymbolInformation] =
+        if (symbol == self.info.symbol) Some(self.info)
+        else None
+    }
+    s.Print.info(Format.Compact, info, symtab)
   }
 }

@@ -4,21 +4,17 @@ import com.geirsson.coursiersmall.CoursierSmall
 import com.geirsson.coursiersmall.Dependency
 import com.geirsson.coursiersmall.Settings
 import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileOutputStream
 import java.io.PrintStream
 import java.net.URLClassLoader
-import java.nio.channels.Channels
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Files
+import java.nio.file.Paths
 import org.scalatest.FunSuite
-import scalafix.Versions
-import scalafix.{interfaces => i}
 import scala.collection.JavaConverters._
-import scala.meta.internal.semanticdb.scalac.SemanticdbPlugin
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
+import scalafix.Versions
 import scalafix.interfaces.ScalafixDiagnostic
 import scalafix.interfaces.ScalafixException
 import scalafix.interfaces.ScalafixMainCallback
@@ -27,26 +23,18 @@ import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.reflect.RuleCompiler
 import scalafix.test.StringFS
 import scalafix.testkit.DiffAssertions
+import scalafix.{interfaces => i}
 
 class ScalafixImplSuite extends FunSuite with DiffAssertions {
   def semanticdbPluginPath(): String = {
-    // Copy-pasted code from metac command-line tool
-    // https://github.com/scalameta/scalameta/blob/9f15793aae3cb6a00e1e2d6bcbf13e9c234ea91f/semanticdb/metac/src/main/scala/scala/meta/internal/metac/Main.scala#L14-L23
-    val manifestDir = Files.createTempDirectory("semanticdb-scalac_")
-    val resourceUrl =
-      classOf[SemanticdbPlugin].getResource("/scalac-plugin.xml")
-    val resourceChannel = Channels.newChannel(resourceUrl.openStream())
-    val manifestStream = new FileOutputStream(
-      manifestDir.resolve("scalac-plugin.xml").toFile)
-    manifestStream.getChannel.transferFrom(resourceChannel, 0, Long.MaxValue)
-    manifestStream.close()
-    val pluginClasspath = classOf[SemanticdbPlugin].getClassLoader match {
-      case null => manifestDir.toString
-      case cl: URLClassLoader =>
-        cl.getURLs.map(_.getFile).mkString(File.pathSeparator)
-      case cl => sys.error(s"unsupported classloader: $cl")
+    val semanticdbscalac = ClasspathOps.thisClassLoader.getURLs.collectFirst {
+      case url if url.toString.contains("semanticdb-scalac_") =>
+        Paths.get(url.toURI).toString
     }
-    pluginClasspath
+    semanticdbscalac.getOrElse {
+      throw new IllegalStateException(
+        "unable to auto-detect semanticdb-scalac compiler plugin")
+    }
   }
   def scalaLibrary: AbsolutePath =
     RuleCompiler.defaultClasspathPaths
