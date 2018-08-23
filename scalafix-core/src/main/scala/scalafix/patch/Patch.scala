@@ -231,7 +231,7 @@ object Patch {
   ): (String, List[LintDiagnostic]) = {
     apply(
       patchesByName,
-      new DeprecatedRuleCtx(doc.doc),
+      new DeprecatedRuleCtx(doc.internal.doc),
       Some(new DocSemanticdbIndex(doc)),
       suppress)
   }

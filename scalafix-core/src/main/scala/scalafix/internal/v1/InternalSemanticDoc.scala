@@ -1,0 +1,68 @@
+package scalafix.internal.v1
+
+import java.util
+import scala.collection.mutable.ListBuffer
+import scala.meta.Position
+import scala.meta.internal.symtab.SymbolTable
+import scala.meta.internal.{semanticdb => s}
+import scalafix.internal.config.ScalafixConfig
+import scalafix.v1.Doc
+import scalafix.v1.Symbol
+import scalafix.v1.SymbolInfo
+
+final class InternalSemanticDoc(
+    val doc: Doc,
+    val textDocument: s.TextDocument,
+    val symtab: SymbolTable
+) {
+
+  def info(sym: Symbol): Option[SymbolInfo] = {
+    if (sym.isNone) {
+      None
+    } else if (sym.isLocal) {
+      locals.get(sym.value).map(new SymbolInfo(_))
+    } else {
+      symtab.info(sym.value).map(new SymbolInfo(_))
+    }
+  }
+
+  def symbols(pos: Position): Iterator[Symbol] = {
+    val result = occurrences.getOrDefault(
+      s.Range(
+        startLine = pos.startLine,
+        startCharacter = pos.startColumn,
+        endLine = pos.endLine,
+        endCharacter = pos.endColumn
+      ),
+      Nil
+    )
+    result.iterator.map(Symbol(_))
+  }
+
+  def config: ScalafixConfig = doc.config
+
+  private[this] val locals = textDocument.symbols.iterator.collect {
+    case info
+        if info.symbol.startsWith("local") ||
+          info.symbol.contains("$anon") // NOTE(olafur) workaround for a semanticdb-scala issue.
+        =>
+      info.symbol -> info
+  }.toMap
+
+  private[this] val occurrences: util.Map[s.Range, Seq[String]] = {
+    val result = new util.HashMap[s.Range, ListBuffer[String]]()
+    textDocument.occurrences.foreach { o =>
+      if (o.range.isDefined) {
+        val key = o.range.get
+        var buffer = result.get(key)
+        if (buffer == null) {
+          buffer = ListBuffer.empty[String]
+          result.put(key, buffer)
+        }
+        buffer += o.symbol
+      }
+    }
+    result.asInstanceOf[util.Map[s.Range, Seq[String]]]
+  }
+
+}

@@ -65,7 +65,7 @@ class LegacyCodePrinter(doc: SemanticDoc) {
           mkString("(", scope.symbols, ")") { symbol =>
             emit(symbol)
             text.append(": ")
-            pprint(doc.info(v1.Symbol(symbol)).get.info.signature)
+            pprint(doc.internal.info(v1.Symbol(symbol)).get.info.signature)
           }
         }
         pprint(sig.returnType)

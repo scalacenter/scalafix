@@ -50,15 +50,15 @@ case class Rules(rules: List[Rule] = Nil) {
   }
 
   def semanticPatch(
-      doc: SemanticDoc,
+      sdoc: SemanticDoc,
       suppress: Boolean): (String, List[LintDiagnostic]) = {
     val fixes = rules.iterator.map {
       case rule: SemanticRule =>
-        rule.name -> rule.fix(doc)
+        rule.name -> rule.fix(sdoc)
       case rule: SyntacticRule =>
-        rule.name -> rule.fix(doc.doc)
+        rule.name -> rule.fix(sdoc.internal.doc)
     }.toMap
-    scalafix.Patch.semantic(fixes, doc, suppress)
+    scalafix.Patch.semantic(fixes, sdoc, suppress)
   }
 
   def syntacticPatch(

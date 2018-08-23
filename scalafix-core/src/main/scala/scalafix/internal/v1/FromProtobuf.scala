@@ -6,7 +6,9 @@ import scalafix.v1._
 class FromProtobuf(doc: SemanticDoc) {
 
   def info(sym: String): SymbolInfo =
-    doc.info(Symbol(sym)).getOrElse(throw new NoSuchElementException(sym))
+    doc.internal
+      .info(Symbol(sym))
+      .getOrElse(throw new NoSuchElementException(sym))
 
   def sscope(scope: Option[s.Scope]): List[SymbolInfo] = scope match {
     case None => Nil
@@ -122,27 +124,5 @@ class FromProtobuf(doc: SemanticDoc) {
   implicit class RichScopes(scopes: Seq[s.Scope]) {
     def convert: List[List[SymbolInfo]] =
       scopes.iterator.map(s => sscope(Some(s))).toList
-  }
-}
-
-object FromProtobuf {
-
-  def saccess(a: s.Access): SymbolAccess = a match {
-    case s.NoAccess =>
-      NoAccess
-    case s.PrivateAccess() =>
-      PrivateAccess
-    case s.PrivateThisAccess() =>
-      PrivateThisAccess
-    case s.PrivateWithinAccess(sym) =>
-      PrivateWithinAccess(Symbol(sym))
-    case s.ProtectedAccess() =>
-      ProtectedAccess
-    case s.ProtectedThisAccess() =>
-      ProtectedThisAccess
-    case s.ProtectedWithinAccess(sym) =>
-      ProtectedWithinAccess(Symbol(sym))
-    case s.PublicAccess() =>
-      PublicAccess
   }
 }

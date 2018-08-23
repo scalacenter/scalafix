@@ -198,7 +198,7 @@ object MainOps {
             )
             val (fix, messages) =
               args.rules.semanticPatch(sdoc, args.args.autoSuppressLinterErrors)
-            assertFreshSemanticDB(input, file, fix, sdoc.sdoc)
+            assertFreshSemanticDB(input, file, fix, sdoc.internal.textDocument)
             (fix, messages)
           } else {
             args.rules.syntacticPatch(doc, args.args.autoSuppressLinterErrors)

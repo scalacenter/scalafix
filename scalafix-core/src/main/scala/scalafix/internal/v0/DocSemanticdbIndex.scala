@@ -28,7 +28,7 @@ class DocSemanticdbIndex(val doc: v1.SemanticDoc)
   final override def documents: Seq[v0.Document] =
     v0.Document(
       doc.input,
-      doc.sdoc.language.toString(),
+      doc.internal.textDocument.language.toString(),
       names = this.names.toList,
       messages = this.messages.toList,
       symbols = this.symbols.toList,
@@ -36,23 +36,23 @@ class DocSemanticdbIndex(val doc: v1.SemanticDoc)
     ) :: Nil
 
   final override def names: Seq[v0.ResolvedName] =
-    doc.sdoc.occurrences.map { o =>
+    doc.internal.textDocument.occurrences.map { o =>
       occurrenceToLegacy(doc, doc.input, o)
     }
   final override def symbols: Seq[v0.ResolvedSymbol] =
-    doc.sdoc.symbols.map { s =>
+    doc.internal.textDocument.symbols.map { s =>
       v0.ResolvedSymbol(
         v0.Symbol(s.symbol),
         infoToDenotation(doc, s)
       )
     }
   final override def synthetics: Seq[v0.Synthetic] = {
-    doc.sdoc.synthetics.map { s =>
+    doc.internal.textDocument.synthetics.map { s =>
       DocSemanticdbIndex.syntheticToLegacy(doc, s)
     }
   }
   override final def messages: Seq[v0.Message] =
-    doc.sdoc.diagnostics.map { diag =>
+    doc.internal.textDocument.diagnostics.map { diag =>
       val pos = ScalametaInternals.positionFromRange(doc.input, diag.range)
       val severity = diag.severity match {
         case s.Diagnostic.Severity.INFORMATION => v0.Severity.Info
@@ -65,7 +65,7 @@ class DocSemanticdbIndex(val doc: v1.SemanticDoc)
     }
 
   final override def symbol(position: Position): Option[v0.Symbol] =
-    doc.symbols(position).toList.map(s => v0.Symbol(s.value)) match {
+    doc.internal.symbols(position).toList.map(s => v0.Symbol(s.value)) match {
       case Nil => None
       case head :: Nil => Some(head)
       case multi => Some(v0.Symbol.Multi(multi))
@@ -74,7 +74,7 @@ class DocSemanticdbIndex(val doc: v1.SemanticDoc)
     symbol(TreePos.symbol(tree))
 
   final override def denotation(symbol: v0.Symbol): Option[v0.Denotation] = {
-    doc.info(v1.Symbol(symbol.syntax)).map { info =>
+    doc.internal.info(v1.Symbol(symbol.syntax)).map { info =>
       DocSemanticdbIndex.infoToDenotation(doc, info.info)
     }
   }
@@ -82,7 +82,7 @@ class DocSemanticdbIndex(val doc: v1.SemanticDoc)
     symbol(tree).flatMap(denotation)
 
   override def info(symbol: String): Option[SymbolInformation] = {
-    doc.info(v1.Symbol(symbol)).map(_.info)
+    doc.internal.info(v1.Symbol(symbol)).map(_.info)
   }
 }
 

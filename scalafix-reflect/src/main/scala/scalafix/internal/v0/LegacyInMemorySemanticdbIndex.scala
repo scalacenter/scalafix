@@ -102,7 +102,8 @@ object LegacyInMemorySemanticdbIndex {
               val input = textDocument.input(sourceuri)
               val tree = input.parse[Source].get
               val doc = v1.Doc.fromTree(tree)
-              val sdoc = new v1.SemanticDoc(doc, textDocument, symtab)
+              val internal = new InternalSemanticDoc(doc, textDocument, symtab)
+              val sdoc = new v1.SemanticDoc(internal)
               buf += (textDocument.uri -> new DocSemanticdbIndex(sdoc))
             }
           }

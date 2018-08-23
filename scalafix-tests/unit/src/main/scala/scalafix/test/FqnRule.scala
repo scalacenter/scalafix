@@ -40,6 +40,8 @@ case object PatchTokenWithEmptyRange
 
 class SemanticRuleV1 extends v1.SemanticRule("SemanticRuleV1") {
   override def fix(implicit doc: v1.SemanticDoc): Patch = {
+    val i = v1.Symbol("java/lang/Object#").info.get.signature
+    pprint.log(i)
     Patch.addRight(doc.tree, "\nobject SemanticRuleV1")
   }
 }

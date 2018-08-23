@@ -38,6 +38,7 @@ lazy val core = project
     libraryDependencies ++= List(
       scalameta,
       symtab,
+      metap,
       googleDiff,
       "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided

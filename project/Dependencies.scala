@@ -25,6 +25,7 @@ object Dependencies {
   def semanticdbPluginLibrary = "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
   def scalameta = "org.scalameta" %% "contrib" % scalametaV
   def symtab = "org.scalameta" %% "symtab" % scalametaV
+  def metap = "org.scalameta" %% "metap" % scalametaV
   def scalatest = "org.scalatest" %% "scalatest" % "3.2.0-SNAP10"
   def scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.0"
 

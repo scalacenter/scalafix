@@ -1,8 +1,6 @@
 package scalafix.v1
 
-import java.util
 import scala.meta.io.RelativePath
-import scala.collection.mutable.ListBuffer
 import scala.meta._
 import scala.meta.contrib.AssociatedComments
 import scala.meta.internal.symtab.SymbolTable
@@ -12,75 +10,20 @@ import scala.meta.internal.{semanticdb => s}
 import scalafix.internal.v1._
 
 final class SemanticDoc private[scalafix] (
-    private[scalafix] val doc: Doc,
-    private[scalafix] val sdoc: s.TextDocument,
-    private[scalafix] val symtab: SymbolTable
+    private[scalafix] val internal: InternalSemanticDoc
 ) extends SemanticContext {
-  def tree: Tree = doc.tree
-  def tokens: Tokens = doc.tokens
-  def input: Input = doc.input
-  def matchingParens: MatchingParens = doc.matchingParens
-  def tokenList: TokenList = doc.tokenList
-  def comments: AssociatedComments = doc.comments
+  def tree: Tree = internal.doc.tree
+  def tokens: Tokens = internal.doc.tokens
+  def input: Input = internal.doc.input
+  def matchingParens: MatchingParens = internal.doc.matchingParens
+  def tokenList: TokenList = internal.doc.tokenList
+  def comments: AssociatedComments = internal.doc.comments
   def symbol(tree: Tree): Symbol = {
-    val result = symbols(TreePos.symbol(tree))
-    if (!result.hasNext) Symbol.None
-    else result.next() // Discard multi symbols
+    val result = internal.symbols(TreePos.symbol(tree))
+    if (result.hasNext) result.next() // Discard multi symbols
+    else Symbol.None
   }
-  def info(sym: Symbol): Option[SymbolInfo] = {
-    if (sym.isNone) {
-      None
-    } else if (sym.isLocal) {
-      locals.get(sym.value).map(new SymbolInfo(_))
-    } else {
-      symtab.info(sym.value).map(new SymbolInfo(_))
-    }
-  }
-
-  // ========
-  // Privates
-  // ========
-
-  private[scalafix] def symbols(pos: Position): Iterator[Symbol] = {
-    val result = occurrences.getOrDefault(
-      s.Range(
-        startLine = pos.startLine,
-        startCharacter = pos.startColumn,
-        endLine = pos.endLine,
-        endCharacter = pos.endColumn
-      ),
-      Nil
-    )
-    result.iterator.map(Symbol(_))
-
-  }
-  private[scalafix] def config = doc.config
-  private[scalafix] val locals = sdoc.symbols.iterator.collect {
-    case info
-        if info.symbol.startsWith("local") ||
-          info.symbol.contains("$anon") // NOTE(olafur) workaround for a semanticdb-scala issue.
-        =>
-      info.symbol -> info
-  }.toMap
-
-  private[scalafix] val occurrences: util.Map[s.Range, Seq[String]] = {
-    val result = new util.HashMap[s.Range, ListBuffer[String]]()
-    sdoc.occurrences.foreach { o =>
-      if (o.range.isDefined) {
-        val key = o.range.get
-        var buffer = result.get(key)
-        if (buffer == null) {
-          buffer = ListBuffer.empty[String]
-          result.put(key, buffer)
-        }
-        buffer += o.symbol
-      }
-    }
-    result.asInstanceOf[util.Map[s.Range, Seq[String]]]
-  }
-
   override def toString: String = s"SemanticDoc(${input.syntax})"
-
 }
 
 object SemanticDoc {
@@ -108,7 +51,8 @@ object SemanticDoc {
         val sdoc = sdocs.find(_.uri == reluri).getOrElse {
           throw Error.MissingTextDocument(reluri)
         }
-        new SemanticDoc(doc, sdoc, symtab)
+        val impl = new InternalSemanticDoc(doc, sdoc, symtab)
+        new SemanticDoc(impl)
       case None =>
         throw Error.MissingSemanticdb(semanticdbReluri)
     }
