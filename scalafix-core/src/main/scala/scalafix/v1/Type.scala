@@ -1,6 +1,7 @@
 package scalafix.v1
 
 import scala.runtime.Statics
+
 sealed abstract class Type
 
 case object NoType extends Type
@@ -163,7 +164,7 @@ final class WithType(
 
 final class StructuralType(
     val tpe: Type,
-    val declarations: List[SymbolInfo],
+    val declarations: List[SymbolInfo]
 ) extends Type {
   override def toString: String =
     s"StructuralType($tpe,$declarations)"
@@ -205,7 +206,7 @@ final class AnnotatedType(
 
 final class ExistentialType(
     val tpe: Type,
-    val declarations: List[SymbolInfo],
+    val declarations: List[SymbolInfo]
 ) extends Type {
   override def toString: String =
     s"ExistentialType($tpe,$declarations)"

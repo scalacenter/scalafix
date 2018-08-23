@@ -19,7 +19,7 @@ object LegacyRules {
     DottyVolatileLazyVal,
     NoValInForComprehension,
     DottyKeywords,
-    DottyVarArgPattern,
+    DottyVarArgPattern
   )
   def semantic(index: SemanticdbIndex): List[Rule] = List(
     ExplicitResultTypes(index),
