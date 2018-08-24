@@ -7,9 +7,7 @@ import scalafix.internal.config.DisableConfig
 import scalafix.internal.config.MetaconfigPendingUpstream
 import scalafix.internal.rule._
 import scalafix.internal.util.SuppressOps
-import scalafix.internal.v0.LegacyRules
 import scalafix.internal.v0.LegacySemanticRule
-import scalafix.internal.v0.LegacySyntacticRule
 import scalafix.lint.RuleDiagnostic
 import scalafix.lint.Diagnostic
 import scalafix.patch.Patch
@@ -78,14 +76,12 @@ object Rules {
     rule.name.value -> rule.description
   }
   def defaults: List[Rule] =
-    builtin ++
-      legacySemanticRules ++
-      legacySyntacticRules
+    builtin ++ legacySemanticRules
 
   val builtin: List[Rule] = List(
     DottyVolatileLazyVal,
-//    DottyKeywords,
-//    DottyVarArgPattern
+    DottyKeywords,
+    DottyVarArgPattern,
     DisableSyntax(),
     ExplicitResultTypes(),
     MissingFinal,
@@ -96,10 +92,6 @@ object Rules {
     RemoveUnusedTerms,
     LeakingImplicitClassVal
   )
-
-  val legacySyntacticRules: List[LegacySyntacticRule] = {
-    LegacyRules.syntax.map(rule => new LegacySyntacticRule(rule))
-  }
 
   val legacySemanticRules: List[LegacySemanticRule] = {
     val semantics = List[v0.SemanticdbIndex => v0.Rule](
