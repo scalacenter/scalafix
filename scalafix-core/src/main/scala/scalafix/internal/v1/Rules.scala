@@ -85,6 +85,7 @@ object Rules {
   val builtin: List[Rule] = List(
     RemoveUnusedImports,
     RemoveUnusedTerms,
+    MissingFinal,
     ExplicitResultTypes(),
     NoAutoTupling,
     ProcedureSyntax,
@@ -98,8 +99,7 @@ object Rules {
 
   val legacySemanticRules: List[LegacySemanticRule] = {
     val semantics = List[v0.SemanticdbIndex => v0.Rule](
-      index => Disable(index, DisableConfig.default),
-      index => MissingFinal(index)
+      index => Disable(index, DisableConfig.default)
     )
     semantics.map { fn =>
       val name = fn(v0.SemanticdbIndex.empty).name
