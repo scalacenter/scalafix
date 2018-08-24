@@ -254,10 +254,15 @@ object MainOps {
 
   def run(args: ValidatedArgs): ExitStatus = {
     val files = this.files(args)
+    var i = 0
+    val N = files.length
+    val width = N.toString.length
     var exit = ExitStatus.Ok
     files.foreach { file =>
       if (args.args.verbose) {
-        args.config.reporter.info(s"Processing $file")
+        val message = s"Processing (%${width}s/%s) %s".format(i, N, file)
+        args.config.reporter.info(message)
+        i += 1
       }
       val next = handleFile(args, file)
       exit = ExitStatus.merge(exit, next)
