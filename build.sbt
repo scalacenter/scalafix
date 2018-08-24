@@ -228,6 +228,7 @@ lazy val docs = project
     moduleName := "scalafix-docs",
     mainClass.in(Compile) := Some("docs.Main"),
     scalaVersion := scala212,
+    crossScalaVersions := List(scala212),
     libraryDependencies ++= List(
       "com.geirsson" %% "metaconfig-docs" % metaconfigV
     )
