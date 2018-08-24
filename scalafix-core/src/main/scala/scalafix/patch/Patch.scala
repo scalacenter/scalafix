@@ -209,13 +209,7 @@ object Patch {
       (ctx.input.text, Nil)
     } else {
       val idx = index.getOrElse(SemanticdbIndex.empty)
-      val (patch, lints) = ctx.escapeHatch.filter(
-        patchesByName,
-        ctx,
-        idx,
-        ctx.diffDisable,
-        ctx.config
-      )
+      val (patch, lints) = ctx.escapeHatch.filter(patchesByName, ctx, idx)
       val finalPatch =
         if (suppress) {
           patch + SuppressOps.addComments(ctx.tokens, lints.map(_.position))
@@ -311,7 +305,7 @@ object Patch {
     patch.isEmpty || hasLintMessage && onlyLint
   }
 
-  private def foreach(patch: Patch)(f: Patch => Unit): Unit = {
+  private[scalafix] def foreach(patch: Patch)(f: Patch => Unit): Unit = {
     def loop(patch: Patch): Unit = patch match {
       case Concat(a, b) =>
         loop(a)

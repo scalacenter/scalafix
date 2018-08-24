@@ -23,14 +23,13 @@ object DiffAssertions {
     else
       difflib.DiffUtils
         .generateUnifiedDiff(
-          "original",
-          "revised",
+          "expected",
+          "obtained",
           original.asJava,
           diff,
           1
         )
         .asScala
-        .drop(3)
         .mkString("\n")
   }
 }
