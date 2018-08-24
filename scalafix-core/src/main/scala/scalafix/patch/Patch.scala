@@ -31,6 +31,7 @@ import scalafix.v1.SemanticContext
 import scalafix.v1.SemanticDoc
 import scalafix.v0.Signature
 import scalafix.v0.Symbol
+import scalafix.v1
 
 /** A data structure that can produce a .patch file.
   *
@@ -145,6 +146,10 @@ object Patch {
     tree.tokens.headOption.fold(Patch.empty)(addLeft(_, toAdd))
 
   // Semantic patch ops.
+  def removeGlobalImport(symbol: v1.Symbol)(implicit c: SemanticContext): Patch =
+    RemoveGlobalImport(Symbol(symbol.value))
+  def addGlobalImport(symbol: v1.Symbol)(implicit c: SemanticContext): Patch =
+    TreePatch.AddGlobalSymbol(Symbol(symbol.value))
   def removeGlobalImport(symbol: Symbol)(implicit c: SemanticContext): Patch =
     RemoveGlobalImport(symbol)
   def addGlobalImport(symbol: Symbol)(implicit c: SemanticContext): Patch =

@@ -4,15 +4,10 @@ import scala.meta._
 import scala.meta.contrib._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
 import scalafix.patch.Patch
-import scalafix.v0.Symbol
-import scalafix.v0.SemanticdbIndex
+import scalafix.v1.{Type => Tpe, _}
 import scalafix.internal.config.ExplicitResultTypesConfig
 import scalafix.internal.config.MemberKind
 import scalafix.internal.config.MemberVisibility
-import scalafix.rule.Rule
-import scalafix.rule.RuleCtx
-import scalafix.rule.SemanticRule
-import scalafix.syntax._
 import scalafix.util.TokenOps
 import metaconfig.Conf
 import metaconfig.Configured
@@ -23,21 +18,18 @@ import scala.meta.internal.symtab.SymbolTable
 import scalafix.v1.MissingSymbolException
 
 case class ExplicitResultTypes(
-    index: SemanticdbIndex,
     config: ExplicitResultTypesConfig = ExplicitResultTypesConfig.default
-) extends SemanticRule(index, "ExplicitResultTypes") {
+) extends SemanticRule("ExplicitResultTypes") {
 
   override def description: String =
     "Rewrite that inserts explicit type annotations for def/val/var"
 
-  def this(index: SemanticdbIndex) =
-    this(index, ExplicitResultTypesConfig.default)
-  override def init(config: Conf): Configured[Rule] =
+  override def withConfig(config: Conf): Configured[Rule] =
     config // Support deprecated explicitReturnTypes config
       .getOrElse("explicitReturnTypes", "ExplicitResultTypes")(
         ExplicitResultTypesConfig.default
       )
-      .map(c => ExplicitResultTypes(index, c))
+      .map(c => ExplicitResultTypes(c))
 
   // Don't explicitly annotate vals when the right-hand body is a single call
   // to `implicitly`. Prevents ambiguous implicit. Not annotating in such cases,
@@ -69,14 +61,13 @@ case class ExplicitResultTypes(
   }
   import scala.meta.internal.{semanticdb => s}
   def unsafeToType(
-      ctx: RuleCtx,
+      ctx: SemanticDoc,
       pos: Position,
       symbol: Symbol
   ): PrettyResult[Type] = {
-    val info = index
-      .asInstanceOf[SymbolTable]
-      .info(symbol.syntax)
-      .getOrElse(throw new NoSuchElementException(symbol.syntax))
+    val info = ctx.internal.symtab
+      .info(symbol.value)
+      .getOrElse(throw new NoSuchElementException(symbol.value))
     val tpe = info.signature match {
       case method: s.MethodSignature =>
         method.returnType
@@ -87,7 +78,7 @@ case class ExplicitResultTypes(
     }
     PrettyType.toType(
       tpe,
-      index.asInstanceOf[SymbolTable],
+      ctx.internal.symtab,
       if (config.unsafeShortenNames) QualifyStrategy.Readable
       else QualifyStrategy.Full,
       fatalErrors = config.fatalWarnings
@@ -95,16 +86,15 @@ case class ExplicitResultTypes(
   }
 
   def toType(
-      ctx: RuleCtx,
       pos: Position,
       symbol: Symbol
-  ): Option[PrettyResult[Type]] = {
+  )(implicit ctx: SemanticDoc): Option[PrettyResult[Type]] = {
     try {
       Some(unsafeToType(ctx, pos, symbol))
     } catch {
       case e: MissingSymbolException =>
         if (config.fatalWarnings) {
-          ctx.config.reporter.error(e.getMessage, pos)
+          ctx.internal.config.reporter.error(e.getMessage, pos)
         } else {
           // Silently discard failures from producing a new type.
           // Errors are most likely caused by known upstream issue that have been reported in Scalameta.
@@ -113,17 +103,16 @@ case class ExplicitResultTypes(
     }
   }
 
-  override def fix(ctx: RuleCtx): Patch = {
-    val table = index.asInstanceOf[SymbolTable]
+  override def fix(implicit ctx: SemanticDoc): Patch = {
     def defnType(defn: Defn): Option[(Type, Patch)] =
       for {
         name <- defnName(defn)
-        defnSymbol <- name.symbol
-        result <- toType(ctx, name.pos, defnSymbol)
+        defnSymbol <- name.symbol.asNonEmpty
+        result <- toType(name.pos, defnSymbol)
       } yield {
         val addGlobalImports = result.imports.map { s =>
           val symbol = Symbol(s)
-          ctx.addGlobalImport(symbol)
+          Patch.addGlobalImport(symbol)
         }
         result.tree -> addGlobalImports.asPatch
       }
@@ -145,7 +134,7 @@ case class ExplicitResultTypes(
           if (TokenOps.needsLeadingSpaceBeforeColon(replace)) " "
           else ""
         }
-      } yield ctx.addRight(replace, s"$space: ${treeSyntax(typ)}") + patch
+      } yield Patch.addRight(replace, s"$space: ${treeSyntax(typ)}") + patch
     }.asPatch.atomic
 
     def treeSyntax(tree: Tree): String =
@@ -174,11 +163,9 @@ case class ExplicitResultTypes(
       def hasParentWihTemplate: Boolean =
         defn.parent.exists(_.is[Template])
 
-      def isLocal =
-        if (config.skipLocalImplicits) nm.symbol match {
-          case Some(value) => value.isInstanceOf[scalafix.v0.Symbol.Local]
-          case None => false
-        } else false
+      def isLocal: Boolean =
+        if (config.skipLocalImplicits) nm.symbol.isLocal
+        else false
 
       isImplicit && !isLocal || {
         hasParentWihTemplate &&

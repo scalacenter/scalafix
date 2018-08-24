@@ -15,6 +15,9 @@ final class Symbol private (val value: String) {
   def info(implicit doc: SemanticDoc): Option[SymbolInfo] =
     doc.internal.info(this)
   def normalized: Symbol = SymbolOps.normalize(this)
+  def asNonEmpty: Option[Symbol] =
+    if (isNone) None
+    else Some(this)
 
   override def toString: String =
     if (isNone) "Symbol.None"

@@ -5,7 +5,6 @@ import scalafix.internal.rule.Disable
 import scalafix.internal.rule.DottyKeywords
 import scalafix.internal.rule.DottyVarArgPattern
 import scalafix.internal.rule.DottyVolatileLazyVal
-import scalafix.internal.rule.ExplicitResultTypes
 import scalafix.internal.rule.MissingFinal
 import scalafix.internal.rule.NoValInForComprehension
 import scalafix.rule.Rule
@@ -19,7 +18,6 @@ object LegacyRules {
     DottyVarArgPattern
   )
   def semantic(index: SemanticdbIndex): List[Rule] = List(
-    ExplicitResultTypes(index),
     Disable(index, DisableConfig.default),
     MissingFinal(index)
   )
