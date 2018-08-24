@@ -23,6 +23,7 @@ import scala.collection.mutable.ListBuffer
 import scala.meta.Tree
 import scala.meta.inputs.Input
 import scala.meta.internal.semanticdb.TextDocument
+import scala.meta.internal.tokenizers.PlatformTokenizerCache
 import scala.meta.io.AbsolutePath
 import scala.meta.parsers.ParseException
 import scala.util.control.NoStackTrace
@@ -229,8 +230,10 @@ object MainOps {
   }
 
   def handleFile(args: ValidatedArgs, file: AbsolutePath): ExitStatus = {
-    try unsafeHandleFile(args, file)
-    catch {
+    try {
+      PlatformTokenizerCache.megaCache.clear()
+      unsafeHandleFile(args, file)
+    } catch {
       case e: ParseException =>
         args.config.reporter.error(e.shortMessage, e.pos)
         ExitStatus.ParseError
