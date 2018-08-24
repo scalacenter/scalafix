@@ -3,6 +3,7 @@ package scalafix.tests.cli
 import scalafix.cli._
 import scalafix.internal.rule._
 import scalafix.patch.Patch
+import scalafix.rule.RuleName
 import scalafix.v1.Doc
 import scalafix.v1.SyntacticRule
 
@@ -242,21 +243,19 @@ class CliSyntacticSuite extends BaseCliSuite {
     name = "deprecated name emits warning",
     originalLayout = s"""|/a.scala
                          |object a {
-                         |  @volatile lazy val x = 2
                          |}
                          |""".stripMargin,
     args = Array(
       "-r",
-      "VolatileLazyVal",
+      "OldDeprecatedName", // class:scalafix.tests.cli.DeprecatedName
       "a.scala"
     ),
     expectedLayout = s"""|/a.scala
                          |object a {
-                         |  @volatile lazy val x = 2
                          |}
                          |""".stripMargin,
     expectedExit = ExitStatus.Ok,
-    output => assert(output.contains("Use DottyVolatileLazyVal instead"))
+    output => assert(output.contains("Use DeprecatedName instead"))
   )
 
   check(
@@ -325,6 +324,16 @@ class CliSyntacticSuite extends BaseCliSuite {
 }
 
 class NoOpRule extends SyntacticRule("NoOpRule") {
+  override def fix(implicit doc: Doc): _root_.scalafix.v1.Patch =
+    Patch.empty
+}
+
+class DeprecatedName
+    extends SyntacticRule(
+      RuleName("DeprecatedName").withDeprecatedName(
+        "OldDeprecatedName",
+        "Use DeprecatedName instead",
+        "1.0")) {
   override def fix(implicit doc: Doc): _root_.scalafix.v1.Patch =
     Patch.empty
 }

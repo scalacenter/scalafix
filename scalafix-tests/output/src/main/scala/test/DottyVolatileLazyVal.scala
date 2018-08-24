@@ -8,6 +8,8 @@ class DottyVolatileLazyVal {
   class foo {
     @volatile lazy val z = {
       println()
+      lazy val local = 2
+      local
     }
   }
 

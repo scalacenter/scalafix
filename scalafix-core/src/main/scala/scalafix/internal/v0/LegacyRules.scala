@@ -5,14 +5,12 @@ import scalafix.internal.rule.Disable
 import scalafix.internal.rule.DottyKeywords
 import scalafix.internal.rule.DottyVarArgPattern
 import scalafix.internal.rule.DottyVolatileLazyVal
-import scalafix.internal.rule.NoValInForComprehension
 import scalafix.rule.Rule
 import scalafix.util.SemanticdbIndex
 
 object LegacyRules {
   val syntax: List[Rule] = List(
-    DottyVolatileLazyVal,
-    NoValInForComprehension,
+//    DottyVolatileLazyVal,
     DottyKeywords,
     DottyVarArgPattern
   )

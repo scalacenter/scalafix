@@ -83,13 +83,17 @@ object Rules {
       legacySyntacticRules
 
   val builtin: List[Rule] = List(
+    DottyVolatileLazyVal,
+//    DottyKeywords,
+//    DottyVarArgPattern
+    DisableSyntax(),
+    ExplicitResultTypes(),
+    MissingFinal,
+    NoAutoTupling,
+    NoValInForComprehension,
+    ProcedureSyntax,
     RemoveUnusedImports,
     RemoveUnusedTerms,
-    MissingFinal,
-    ExplicitResultTypes(),
-    NoAutoTupling,
-    ProcedureSyntax,
-    DisableSyntax(),
     LeakingImplicitClassVal
   )
 
