@@ -12,7 +12,7 @@ import scalafix.util.TokenList
 import scalafix.v0.RuleCtx
 import scalafix.v1.Doc
 
-class DeprecatedRuleCtx(doc: Doc) extends RuleCtx with DeprecatedPatchOps {
+class LegacyRuleCtx(doc: Doc) extends RuleCtx with DeprecatedPatchOps {
   override def tree: Tree = doc.tree
   override def input: Input = doc.input
   override def tokens: Tokens = doc.tokens

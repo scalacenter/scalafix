@@ -304,22 +304,37 @@ class CliSyntacticSuite extends BaseCliSuite {
   )
 
   check(
-    name = "--settings.optimization.skipSuppressionWhenPossible",
+    name = "skip parser when it's not needed",
     originalLayout = """
                        |/src/shared/a.scala
                        |object a {
                        |""".stripMargin,
     args = Array(
       "-r",
-      "class:scalafix.tests.cli.NoOpRule",
-      "--settings.optimization.skipSuppressionWhenPossible",
-      "true"
+      "NoOpRule"
     ),
     expectedLayout = """
                        |/src/shared/a.scala
                        |object a {
                        |""".stripMargin,
     expectedExit = ExitStatus.Ok
+  )
+
+  check(
+    name = "don't skip parser when there is a suppression",
+    originalLayout = """
+                       |/src/shared/a.scala
+                       |object a { // scalafix:
+                       |""".stripMargin,
+    args = Array(
+      "-r",
+      "NoOpRule"
+    ),
+    expectedLayout = """
+                       |/src/shared/a.scala
+                       |object a { // scalafix:
+                       |""".stripMargin,
+    expectedExit = ExitStatus.ParseError
   )
 }
 

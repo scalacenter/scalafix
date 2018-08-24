@@ -10,8 +10,6 @@ import scala.meta.tokens.Token
 import scala.meta.tokens.Token.Comment
 import scalafix.v0._
 import scalafix.internal.config.FilterMatcher
-import scalafix.internal.config.ScalafixConfig
-import scalafix.internal.diff.DiffDisable
 import scalafix.internal.patch.EscapeHatch._
 import scalafix.lint.RuleDiagnostic
 import scalafix.patch.AtomicPatch
@@ -32,13 +30,33 @@ class EscapeHatch private (
     anchoredEscapes: AnchoredEscapes,
     annotatedEscapes: AnnotatedEscapes) {
 
+  def rawFilter(
+      patchesByName: Map[RuleName, Patch],
+      ctx: RuleCtx): (Patch, List[RuleDiagnostic]) = {
+    var patchBuilder = Patch.empty
+    val diagnostics = List.newBuilder[RuleDiagnostic]
+    patchesByName.foreach {
+      case (rule, rulePatch) =>
+        Patch.foreach(rulePatch) {
+          case LintPatch(message) =>
+            diagnostics += message.toDiagnostic(rule, ctx.config)
+          case rewritePatch =>
+            patchBuilder += rewritePatch
+        }
+    }
+    (patchBuilder, diagnostics.result())
+  }
+
   def filter(
       patchesByName: Map[RuleName, Patch],
       ctx: RuleCtx,
-      index: SemanticdbIndex,
-      diff: DiffDisable,
-      config: ScalafixConfig
+      index: SemanticdbIndex
   ): (Patch, List[RuleDiagnostic]) = {
+    if (!FastPatch.hasSuppression(ctx.input.text) && ctx.diffDisable.isEmpty) {
+      return rawFilter(patchesByName, ctx)
+    }
+    val diff = ctx.diffDisable
+    val config = ctx.config
     val usedEscapes = mutable.Set.empty[EscapeFilter]
     val lintMessages = List.newBuilder[RuleDiagnostic]
 

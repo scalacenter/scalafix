@@ -10,7 +10,6 @@ case class ScalafixConfig(
     debug: DebugConfig = DebugConfig(),
     groupImportsByPrefix: Boolean = true,
     fatalWarnings: Boolean = true,
-    optimization: Optimization = Optimization.default,
     reporter: ScalafixReporter = ScalafixReporter.default,
     patches: ConfigRulePatches = ConfigRulePatches.default,
     dialect: Dialect = ScalafixConfig.DefaultDialect,

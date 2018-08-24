@@ -21,7 +21,7 @@ class LegacySemanticRule(name: RuleName, fn: v0.SemanticdbIndex => v0.Rule)
     }
   }
   override def fix(implicit sdoc: SemanticDoc): Patch = {
-    val ctx = new DeprecatedRuleCtx(sdoc.internal.doc)
+    val ctx = new LegacyRuleCtx(sdoc.internal.doc)
     val rule = fn(new DocSemanticdbIndex(sdoc)).init(this.conf).get
     rule.fix(ctx) + LegacyRule.lints(ctx, rule)
   }

@@ -16,10 +16,11 @@ import scalafix.patch.TreePatch.ReplaceSymbol
 import org.scalameta.logger
 import scala.meta.Token
 import scala.meta.tokens.Tokens
+import scalafix.internal.patch.FastPatch
 import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.internal.util.SuppressOps
 import scalafix.internal.util.SymbolOps.Root
-import scalafix.internal.v0.DeprecatedRuleCtx
+import scalafix.internal.v0.LegacyRuleCtx
 import scalafix.internal.v0.DocSemanticdbIndex
 import scalafix.lint.RuleDiagnostic
 import scalafix.patch.TreePatch.AddGlobalImport
@@ -204,18 +205,11 @@ object Patch {
       index: Option[SemanticdbIndex],
       suppress: Boolean = false
   ): (String, List[RuleDiagnostic]) = {
-    if (ctx.config.optimization.skipSuppressionWhenPossible &&
-      patchesByName.values.forall(_.isEmpty)) {
+    if (FastPatch.shortCircuit(patchesByName, ctx)) {
       (ctx.input.text, Nil)
     } else {
       val idx = index.getOrElse(SemanticdbIndex.empty)
-      val (patch, lints) = ctx.escapeHatch.filter(
-        patchesByName,
-        ctx,
-        idx,
-        ctx.diffDisable,
-        ctx.config
-      )
+      val (patch, lints) = ctx.escapeHatch.filter(patchesByName, ctx, idx)
       val finalPatch =
         if (suppress) {
           patch + SuppressOps.addComments(ctx.tokens, lints.map(_.position))
@@ -232,7 +226,7 @@ object Patch {
       doc: Doc,
       suppress: Boolean
   ): (String, List[RuleDiagnostic]) = {
-    apply(patchesByName, new DeprecatedRuleCtx(doc), None, suppress)
+    apply(patchesByName, new LegacyRuleCtx(doc), None, suppress)
   }
 
   private[scalafix] def semantic(
@@ -242,7 +236,7 @@ object Patch {
   ): (String, List[RuleDiagnostic]) = {
     apply(
       patchesByName,
-      new DeprecatedRuleCtx(doc.internal.doc),
+      new LegacyRuleCtx(doc.internal.doc),
       Some(new DocSemanticdbIndex(doc)),
       suppress)
   }
@@ -311,7 +305,7 @@ object Patch {
     patch.isEmpty || hasLintMessage && onlyLint
   }
 
-  private def foreach(patch: Patch)(f: Patch => Unit): Unit = {
+  private[scalafix] def foreach(patch: Patch)(f: Patch => Unit): Unit = {
     def loop(patch: Patch): Unit = patch match {
       case Concat(a, b) =>
         loop(a)

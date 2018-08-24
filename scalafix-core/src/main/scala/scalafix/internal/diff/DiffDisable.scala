@@ -15,14 +15,17 @@ object DiffDisable {
 sealed trait DiffDisable {
   def isDisabled(position: Position): Boolean
   def isDisabled(file: Input): Boolean
+  def isEmpty: Boolean
 }
 
-private object EmptyDiff extends DiffDisable {
+object EmptyDiff extends DiffDisable {
+  override def isEmpty: Boolean = true
   def isDisabled(position: Position): Boolean = false
   def isDisabled(file: Input): Boolean = false
 }
 
-private class FullDiffDisable(diffs: List[GitDiff]) extends DiffDisable {
+class FullDiffDisable(diffs: List[GitDiff]) extends DiffDisable {
+  override def isEmpty: Boolean = diffs.isEmpty
   private val newFiles: Set[String] = diffs.collect {
     case NewFile(path) => path.toAbsolutePath.toString
   }.toSet
