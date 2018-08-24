@@ -2,20 +2,20 @@ package scalafix.v1
 
 import scala.runtime.Statics
 
-sealed abstract class Type
+sealed abstract class Tpe
 
-case object NoType extends Type
+case object NoTpe extends Tpe
 
-final class TypeRef(
-    val prefix: Type,
+final class TpeRef(
+    val prefix: Tpe,
     val symbol: Symbol,
-    val typeArguments: List[Type]
-) extends Type {
+    val typeArguments: List[Tpe]
+) extends Tpe {
   override def toString: String =
     s"TypeRef($prefix,$symbol,$typeArguments)"
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
-      case s: TypeRef =>
+      case s: TpeRef =>
         this.prefix == s.prefix &&
           this.symbol == s.symbol &&
           this.typeArguments == s.typeArguments
@@ -30,15 +30,15 @@ final class TypeRef(
   }
 }
 
-final class SingleType(
-    val prefix: Type,
+final class SingleTpe(
+    val prefix: Tpe,
     val symbol: Symbol
-) extends Type {
+) extends Tpe {
   override def toString: String =
     s"SingleType($prefix,$symbol)"
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
-      case s: TypeRef =>
+      case s: TpeRef =>
         this.prefix == s.prefix &&
           this.symbol == s.symbol
       case _ => false
@@ -51,14 +51,14 @@ final class SingleType(
   }
 }
 
-final class ThisType(
+final class ThisTpe(
     val symbol: Symbol
-) extends Type {
+) extends Tpe {
   override def toString: String =
     s"ThisType($symbol)"
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
-      case s: ThisType =>
+      case s: ThisTpe =>
         this.symbol == s.symbol
       case _ => false
     })
@@ -69,15 +69,15 @@ final class ThisType(
   }
 }
 
-final class SuperType(
-    val prefix: Type,
+final class SuperTpe(
+    val prefix: Tpe,
     val symbol: Symbol
-) extends Type {
+) extends Tpe {
   override def toString: String =
     s"SuperType($prefix,$symbol)"
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
-      case s: SuperType =>
+      case s: SuperTpe =>
         this.prefix == s.prefix &&
           this.symbol == s.symbol
       case _ => false
@@ -90,14 +90,14 @@ final class SuperType(
   }
 }
 
-final class ConstantType(
+final class ConstantTpe(
     val constant: Constant
-) extends Type {
+) extends Tpe {
   override def toString: String =
     s"ConstantType($constant)"
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
-      case s: ConstantType =>
+      case s: ConstantTpe =>
         this.constant == s.constant
       case _ => false
     })
@@ -108,14 +108,14 @@ final class ConstantType(
   }
 }
 
-final class IntersectionType(
-    val types: List[Type]
-) extends Type {
+final class IntersectionTpe(
+    val types: List[Tpe]
+) extends Tpe {
   override def toString: String =
     s"IntersectionType($types)"
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
-      case s: IntersectionType =>
+      case s: IntersectionTpe =>
         this.types == s.types
       case _ => false
     })
@@ -126,14 +126,14 @@ final class IntersectionType(
   }
 }
 
-final class UnionType(
-    val types: List[Type]
-) extends Type {
+final class UnionTpe(
+    val types: List[Tpe]
+) extends Tpe {
   override def toString: String =
     s"UnionType($types)"
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
-      case s: UnionType =>
+      case s: UnionTpe =>
         this.types == s.types
       case _ => false
     })
@@ -144,14 +144,14 @@ final class UnionType(
   }
 }
 
-final class WithType(
-    val types: List[Type]
-) extends Type {
+final class WithTpe(
+    val types: List[Tpe]
+) extends Tpe {
   override def toString: String =
     s"WithType($types)"
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
-      case s: WithType =>
+      case s: WithTpe =>
         this.types == s.types
       case _ => false
     })
@@ -162,15 +162,15 @@ final class WithType(
   }
 }
 
-final class StructuralType(
-    val tpe: Type,
+final class StructuralTpe(
+    val tpe: Tpe,
     val declarations: List[SymbolInfo]
-) extends Type {
+) extends Tpe {
   override def toString: String =
     s"StructuralType($tpe,$declarations)"
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
-      case s: StructuralType =>
+      case s: StructuralTpe =>
         this.declarations == s.declarations &&
           this.tpe == s.tpe
       case _ => false
@@ -183,15 +183,15 @@ final class StructuralType(
   }
 }
 
-final class AnnotatedType(
+final class AnnotatedTpe(
     val annotations: List[Annotation],
-    val tpe: Type
-) extends Type {
+    val tpe: Tpe
+) extends Tpe {
   override def toString: String =
     s"AnnotatedType($annotations,$tpe)"
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
-      case s: AnnotatedType =>
+      case s: AnnotatedTpe =>
         this.annotations == s.annotations &&
           this.tpe == s.tpe
       case _ => false
@@ -204,15 +204,15 @@ final class AnnotatedType(
   }
 }
 
-final class ExistentialType(
-    val tpe: Type,
+final class ExistentialTpe(
+    val tpe: Tpe,
     val declarations: List[SymbolInfo]
-) extends Type {
+) extends Tpe {
   override def toString: String =
     s"ExistentialType($tpe,$declarations)"
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
-      case s: ExistentialType =>
+      case s: ExistentialTpe =>
         this.declarations == s.declarations &&
           this.tpe == s.tpe
       case _ => false
@@ -225,15 +225,15 @@ final class ExistentialType(
   }
 }
 
-final class UniversalType(
+final class UniversalTpe(
     val typeParameters: List[SymbolInfo],
-    val tpe: Type
-) extends Type {
+    val tpe: Tpe
+) extends Tpe {
   override def toString: String =
     s"UniversalType($tpe,$typeParameters)"
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
-      case s: UniversalType =>
+      case s: UniversalTpe =>
         this.typeParameters == s.typeParameters &&
           this.tpe == s.tpe
       case _ => false
@@ -246,14 +246,14 @@ final class UniversalType(
   }
 }
 
-final class ByNameType(
-    val tpe: Type
-) extends Type {
+final class ByNameTpe(
+    val tpe: Tpe
+) extends Tpe {
   override def toString: String =
     s"ByNameType($tpe)"
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
-      case s: ByNameType =>
+      case s: ByNameTpe =>
         this.tpe == s.tpe
       case _ => false
     })
@@ -264,14 +264,14 @@ final class ByNameType(
   }
 }
 
-final class RepeatedType(
-    val tpe: Type
-) extends Type {
+final class RepeatedTpe(
+    val tpe: Tpe
+) extends Tpe {
   override def toString: String =
     s"RepeatedType($tpe)"
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
-      case s: ByNameType =>
+      case s: ByNameTpe =>
         this.tpe == s.tpe
       case _ => false
     })

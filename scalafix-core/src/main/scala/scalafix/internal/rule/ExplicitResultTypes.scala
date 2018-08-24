@@ -4,7 +4,7 @@ import scala.meta._
 import scala.meta.contrib._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
 import scalafix.patch.Patch
-import scalafix.v1.{Type => Tpe, _}
+import scalafix.v1._
 import scalafix.internal.config.ExplicitResultTypesConfig
 import scalafix.internal.config.MemberKind
 import scalafix.internal.config.MemberVisibility
@@ -14,7 +14,6 @@ import metaconfig.Configured
 import scalafix.internal.util.PrettyResult
 import scalafix.internal.util.QualifyStrategy
 import scalafix.internal.util.PrettyType
-import scala.meta.internal.symtab.SymbolTable
 import scalafix.v1.MissingSymbolException
 
 case class ExplicitResultTypes(

@@ -146,7 +146,8 @@ object Patch {
     tree.tokens.headOption.fold(Patch.empty)(addLeft(_, toAdd))
 
   // Semantic patch ops.
-  def removeGlobalImport(symbol: v1.Symbol)(implicit c: SemanticContext): Patch =
+  def removeGlobalImport(symbol: v1.Symbol)(
+      implicit c: SemanticContext): Patch =
     RemoveGlobalImport(Symbol(symbol.value))
   def addGlobalImport(symbol: v1.Symbol)(implicit c: SemanticContext): Patch =
     TreePatch.AddGlobalSymbol(Symbol(symbol.value))

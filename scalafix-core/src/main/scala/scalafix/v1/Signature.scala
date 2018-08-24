@@ -8,8 +8,8 @@ case object NoSignature extends Signature
 
 final class ClassSignature(
     val typeParameters: List[SymbolInfo],
-    val parents: List[Type],
-    val self: Type,
+    val parents: List[Tpe],
+    val self: Tpe,
     val declarations: List[SymbolInfo]
 ) extends Signature {
   override def toString: String =
@@ -35,7 +35,7 @@ final class ClassSignature(
 final class MethodSignature(
     val typeParameters: List[SymbolInfo],
     val parameterLists: List[List[SymbolInfo]],
-    val returnType: Type
+    val returnType: Tpe
 ) extends Signature {
   override def toString: String =
     s"MethodSignature($typeParameters,$parameterLists,$returnType)"
@@ -57,8 +57,8 @@ final class MethodSignature(
 
 final class TypeSignature(
     val typeParameters: List[SymbolInfo],
-    val lowerBound: Type,
-    val upperBound: Type
+    val lowerBound: Tpe,
+    val upperBound: Tpe
 ) extends Signature {
   override def toString: String =
     s"TypeSignature($typeParameters,$lowerBound,$upperBound)"
@@ -80,7 +80,7 @@ final class TypeSignature(
 }
 
 final class ValueSignature(
-    val tpe: Type
+    val tpe: Tpe
 ) extends Signature {
   override def toString: String =
     s"ValueSignature($tpe)"

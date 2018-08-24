@@ -1,7 +1,7 @@
 package scalafix.internal.rule
 
 import scala.meta._
-import scalafix.v1.{Type => _, _}
+import scalafix.v1._
 
 case object MissingFinal extends SemanticRule("MissingFinal") {
 
