@@ -198,7 +198,7 @@ object Patch {
       index: Option[SemanticdbIndex],
       suppress: Boolean = false
   ): (String, List[RuleDiagnostic]) = {
-    if (ctx.config.optimization.skipParsingWhenPossible &&
+    if (ctx.config.optimization.skipSuppressionWhenPossible &&
       patchesByName.values.forall(_.isEmpty)) {
       (ctx.input.text, Nil)
     } else {

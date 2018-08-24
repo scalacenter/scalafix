@@ -305,7 +305,7 @@ class CliSyntacticSuite extends BaseCliSuite {
   )
 
   check(
-    name = "--settings.optimization.skipParsingWhenPossible",
+    name = "--settings.optimization.skipSuppressionWhenPossible",
     originalLayout = """
                        |/src/shared/a.scala
                        |object a {
@@ -313,7 +313,7 @@ class CliSyntacticSuite extends BaseCliSuite {
     args = Array(
       "-r",
       "class:scalafix.tests.cli.NoOpRule",
-      "--settings.optimization.skipParsingWhenPossible",
+      "--settings.optimization.skipSuppressionWhenPossible",
       "true"
     ),
     expectedLayout = """
