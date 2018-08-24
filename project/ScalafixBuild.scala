@@ -171,12 +171,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     testOptions in Test += Tests.Argument("-oD"),
     updateOptions := updateOptions.value.withCachedResolution(true),
     triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
-    commands += Command.command("ci-release") { s =>
-      "clean" ::
-        "scalafix/publishSigned" ::
-        "scalafix211/publishSigned" ::
-        s
-    },
     commands += Command.command("ci-212") { s =>
       "++2.12.6" ::
         "unit/test" ::
