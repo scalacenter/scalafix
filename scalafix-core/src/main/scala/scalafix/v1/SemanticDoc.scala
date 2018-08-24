@@ -1,110 +1,27 @@
 package scalafix.v1
 
-import java.util
 import scala.meta.io.RelativePath
-import scala.collection.mutable.ListBuffer
 import scala.meta._
 import scala.meta.contrib.AssociatedComments
 import scala.meta.internal.symtab.SymbolTable
 import scalafix.util.MatchingParens
 import scalafix.util.TokenList
 import scala.meta.internal.{semanticdb => s}
-import scalafix.internal.patch.DocSemanticdbIndex
 import scalafix.internal.v1._
-import scalafix.rule.RuleCtx
-import scalafix.util.SemanticdbIndex
 
 final class SemanticDoc private[scalafix] (
-    val doc: Doc,
-    // privates
-    private[scalafix] val sdoc: s.TextDocument,
-    private[scalafix] val symtab: SymbolTable
-) extends SemanticContext {
-
+    private[scalafix] val internal: InternalSemanticDoc
+) extends SemanticContext
+    with Symtab {
+  def diagnostics: List[Diagnostic] = internal.messages
+  def tree: Tree = internal.doc.tree
+  def tokens: Tokens = internal.doc.tokens
+  def input: Input = internal.doc.input
+  def matchingParens: MatchingParens = internal.doc.matchingParens
+  def tokenList: TokenList = internal.doc.tokenList
+  def comments: AssociatedComments = internal.doc.comments
+  override def info(symbol: Symbol): Option[SymbolInfo] = internal.info(symbol)
   override def toString: String = s"SemanticDoc(${input.syntax})"
-
-  // ==========
-  // Legacy API
-  // ==========
-  def toRuleCtx: RuleCtx = doc.toRuleCtx
-  def toSemanticdbIndex: SemanticdbIndex = new DocSemanticdbIndex(this)
-
-  // =============
-  // Syntactic API
-  // =============
-  def tree: Tree = doc.tree
-  def tokens: Tokens = doc.tokens
-  def input: Input = doc.input
-  def matchingParens: MatchingParens = doc.matchingParens
-  def tokenList: TokenList = doc.tokenList
-  def comments: AssociatedComments = doc.comments
-
-  // ============
-  // Semantic API
-  // ============
-  def symbol(tree: Tree): Sym = {
-    val result = symbols(TreePos.symbol(tree))
-    if (!result.hasNext) Sym.None
-    else result.next() // Discard multi symbols
-  }
-
-  def info(sym: Sym): Sym.Info = {
-    if (sym.isNone) {
-      Sym.Info.empty
-    } else if (sym.isLocal) {
-      new Sym.Info(
-        locals.getOrElse(sym.value, throw new MissingSymbolException(sym))
-      )
-    } else {
-      symtab.info(sym.value) match {
-        case Some(x) => new Sym.Info(x)
-        case _ => Sym.Info.empty
-      }
-    }
-  }
-
-  // ========
-  // Privates
-  // ========
-
-  private[scalafix] def symbols(pos: Position): Iterator[Sym] = {
-    val result = occurrences.getOrDefault(
-      s.Range(
-        startLine = pos.startLine,
-        startCharacter = pos.startColumn,
-        endLine = pos.endLine,
-        endCharacter = pos.endColumn
-      ),
-      Nil
-    )
-    result.iterator.map(Sym(_))
-
-  }
-  private[scalafix] def config = doc.config
-  private[scalafix] val locals = sdoc.symbols.iterator.collect {
-    case info
-        if info.symbol.startsWith("local") ||
-          info.symbol.contains("$anon") // NOTE(olafur) workaround for a semanticdb-scala issue.
-        =>
-      info.symbol -> info
-  }.toMap
-
-  private[scalafix] val occurrences: util.Map[s.Range, Seq[String]] = {
-    val result = new util.HashMap[s.Range, ListBuffer[String]]()
-    sdoc.occurrences.foreach { o =>
-      if (o.range.isDefined) {
-        val key = o.range.get
-        var buffer = result.get(key)
-        if (buffer == null) {
-          buffer = ListBuffer.empty[String]
-          result.put(key, buffer)
-        }
-        buffer += o.symbol
-      }
-    }
-    result.asInstanceOf[util.Map[s.Range, Seq[String]]]
-  }
-
 }
 
 object SemanticDoc {
@@ -116,7 +33,7 @@ object SemanticDoc {
         extends Error(s"TextDocument.uri not found: $reluri")
   }
 
-  def fromPath(
+  private[scalafix] def fromPath(
       doc: Doc,
       path: RelativePath,
       classLoader: ClassLoader,
@@ -132,7 +49,8 @@ object SemanticDoc {
         val sdoc = sdocs.find(_.uri == reluri).getOrElse {
           throw Error.MissingTextDocument(reluri)
         }
-        new SemanticDoc(doc, sdoc, symtab)
+        val impl = new InternalSemanticDoc(doc, sdoc, symtab)
+        new SemanticDoc(impl)
       case None =>
         throw Error.MissingSemanticdb(semanticdbReluri)
     }

@@ -6,7 +6,7 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.syntax._
 import metaconfig.Conf
 import metaconfig.Configured
-import scalafix.lint.LintDiagnostic
+import scalafix.lint.RuleDiagnostic
 
 /** A Scalafix Rule.
   *
@@ -26,7 +26,7 @@ import scalafix.lint.LintDiagnostic
   *   // example syntactic linter
   *   object NoNulls extends Rule("NoNulls") {
   *     val error = LintCategory.error("Nulls are not allowed.")
-  *     override def check(ctx: RuleCtx): List[LintMessage] = ctx.tree.collect {
+  *     override def check(ctx: RuleCtx): List[Diagnostic] = ctx.tree.collect {
   *       case nil @ q"null" => error.at(nil.pos)
   *     }
   *   }
@@ -43,7 +43,7 @@ import scalafix.lint.LintDiagnostic
 abstract class Rule(ruleName: RuleName) { self =>
 
   /** Returns linter messages to report violations of this rule. */
-  def check(ctx: RuleCtx): Seq[LintMessage] = Nil
+  def check(ctx: RuleCtx): Seq[Diagnostic] = Nil
 
   /** Returns a patch to fix violations of this rule. */
   def fix(ctx: RuleCtx): Patch = Patch.empty
@@ -78,12 +78,12 @@ abstract class Rule(ruleName: RuleName) { self =>
     apply(ctx, Map(name -> patch))
   final def apply(ctx: RuleCtx, patches: Map[RuleName, Patch]): String = {
     // This overload of apply if purely for convenience
-    // Use `applyAndLint` to iterate over LintMessage without printing to the console
+    // Use `applyAndLint` to iterate over Diagnostic without printing to the console
     val (fixed, diagnostics) = Patch(patches, ctx, semanticOption)
     diagnostics.foreach(diag => ctx.config.reporter.lint(diag))
     fixed
   }
-  final def applyAndLint(ctx: RuleCtx): (String, List[LintDiagnostic]) =
+  final def applyAndLint(ctx: RuleCtx): (String, List[RuleDiagnostic]) =
     Patch(fixWithName(ctx), ctx, semanticOption)
 
   /** Returns unified diff from applying this patch */
@@ -131,7 +131,7 @@ object Rule {
     override def description: String =
       rules.map(rule => s"${rule.name}: ${rule.description}").mkString("\n")
 
-    override def check(ctx: RuleCtx): Seq[LintMessage] =
+    override def check(ctx: RuleCtx): Seq[Diagnostic] =
       rules.flatMap(_.check(ctx))
     override def fixWithName(ctx: RuleCtx): Map[RuleName, Patch] =
       rules.foldLeft(Map.empty[RuleName, Patch])(_ ++ _.fixWithName(ctx))
@@ -152,9 +152,9 @@ object Rule {
     semantic(RuleName.empty.value)(_ => _ => Patch.empty)(index)
 
   /** Creates a linter. */
-  def linter(ruleName: String)(f: RuleCtx => List[LintMessage]): Rule =
+  def linter(ruleName: String)(f: RuleCtx => List[Diagnostic]): Rule =
     new Rule(ruleName) {
-      override def check(ctx: RuleCtx): List[LintMessage] = f(ctx)
+      override def check(ctx: RuleCtx): List[Diagnostic] = f(ctx)
     }
 
   /** Creates a syntactic rule. */

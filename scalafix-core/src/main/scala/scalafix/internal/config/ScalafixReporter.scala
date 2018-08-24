@@ -3,7 +3,7 @@ package scalafix.internal.config
 import metaconfig.ConfDecoder
 import metaconfig.ConfEncoder
 import scala.meta.Position
-import scalafix.lint.LintDiagnostic
+import scalafix.lint.RuleDiagnostic
 import scalafix.lint.LintSeverity
 
 trait ScalafixReporter {
@@ -11,7 +11,7 @@ trait ScalafixReporter {
       message: String,
       position: Position,
       severity: LintSeverity): Unit
-  private[scalafix] def lint(d: LintDiagnostic): Unit
+  private[scalafix] def lint(d: RuleDiagnostic): Unit
   final def info(message: String, position: Position = Position.None): Unit =
     report(message, position, LintSeverity.Info)
   final def warn(message: String, position: Position = Position.None): Unit =

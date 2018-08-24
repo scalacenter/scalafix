@@ -5,7 +5,6 @@ import scala.meta.internal.io._
 import scala.meta.internal.{semanticdb => s}
 import scala.{meta => m}
 import scalafix.internal.patch.CrashingSemanticdbIndex
-import scalafix.internal.patch.DocSemanticdbIndex
 import scalafix.internal.reflect.ClasspathOps
 import scala.meta.internal.symtab.SymbolTable
 import scalafix.internal.v1.TreePos
@@ -81,13 +80,15 @@ object LegacyInMemorySemanticdbIndex {
       classpath: Classpath,
       sourceroot: AbsolutePath): LegacyInMemorySemanticdbIndex = {
     val symtab = ClasspathOps.newSymbolTable(classpath).get
-    load(classpath, symtab, sourceroot)
+    val dialect = dialects.Scala212
+    load(classpath, sourceroot, symtab, dialect)
   }
 
   def load(
       classpath: Classpath,
+      sourceroot: AbsolutePath,
       symtab: SymbolTable,
-      sourceroot: AbsolutePath
+      dialect: Dialect
   ): LegacyInMemorySemanticdbIndex = {
     val sourceuri = sourceroot.toURI
     val buf = Map.newBuilder[String, SemanticdbIndex]
@@ -101,10 +102,10 @@ object LegacyInMemorySemanticdbIndex {
             val textDocument = s.TextDocuments.parseFromFile(file)
             textDocument.documents.foreach { textDocument =>
               val input = textDocument.input(sourceuri)
-              val tree = input.parse[Source].get
-              val doc = v1.Doc.fromTree(tree)
-              val sdoc = new v1.SemanticDoc(doc, textDocument, symtab)
-              buf += (textDocument.uri -> sdoc.toSemanticdbIndex)
+              val doc = v1.Doc.fromInput(input, dialect)
+              val internal = new InternalSemanticDoc(doc, textDocument, symtab)
+              val sdoc = new v1.SemanticDoc(internal)
+              buf += (textDocument.uri -> new DocSemanticdbIndex(sdoc))
             }
           }
         }

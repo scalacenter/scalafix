@@ -1,9 +1,8 @@
-package scalafix.lint
+package scalafix.v0
 
-import scalafix.rule.RuleName
 import scalafix.internal.config.LintConfig
-
 import scala.meta.inputs.Position
+import scalafix.lint.LintSeverity
 
 /** A unique identifier for one kind of a linter message.
   *
@@ -21,11 +20,11 @@ final case class LintCategory(
 ) {
   private def noExplanation: LintCategory =
     new LintCategory(id, explanation, severity)
-  def at(message: String, position: Position): LintMessage =
+  def at(message: String, position: Position): Diagnostic =
     LintMessage(message, position, this)
-  def at(message: String): LintMessage =
+  def at(message: String): Diagnostic =
     LintMessage(message, Position.None, this)
-  def at(position: Position): LintMessage =
+  def at(position: Position): Diagnostic =
     LintMessage(explanation, position, noExplanation)
 
   def withOwner(owner: RuleName): LintCategory =

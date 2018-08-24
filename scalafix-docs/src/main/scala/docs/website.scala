@@ -2,13 +2,13 @@ package scalafix
 
 import java.nio.file.Files
 import mdoc.Reporter
-import scalafix.rule.ScalafixRules
 import scalatags.Text
 import metaconfig.generic.Setting
 import metaconfig.generic.Settings
 import scalatags.Text.all._
 import scalafix.v0._
 import scala.meta.internal.io.PathIO
+import scalafix.internal.v1.Rules
 
 package object website {
 
@@ -19,8 +19,7 @@ package object website {
   }
 
   def allRulesTable(reporter: Reporter): String = {
-    val rules = ScalafixRules
-      .all(v0.SemanticdbIndex.empty)
+    val rules = Rules.defaults
       .filterNot(_.name.isDeprecated)
       .sortBy(_.name.value)
 
@@ -32,7 +31,7 @@ package object website {
       if (!Files.isRegularFile(docPath.toNIO)) {
         reporter.warning(s"Missing $docPath")
       }
-      val semantic = if (rule.isInstanceOf[v0.SemanticRule]) "✅" else ""
+      val semantic = if (rule.isInstanceOf[v1.SemanticRule]) "✅" else ""
       tr(
         td(semantic),
         td(ruleLink(rule.name.value)),

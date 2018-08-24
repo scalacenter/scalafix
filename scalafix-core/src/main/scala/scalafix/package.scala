@@ -1,4 +1,5 @@
-package object scalafix extends scalafix.internal.util.ScalafixSyntax {
+import scalafix.util.Api
+package object scalafix extends Api {
 
   private final val DeprecationMessage =
     "import scalafix.v0._ instead of import scalafix._"

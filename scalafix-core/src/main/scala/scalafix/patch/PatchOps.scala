@@ -2,7 +2,7 @@ package scalafix.patch
 
 import scala.meta._
 import scalafix.v0.Symbol
-import scalafix.lint.LintMessage
+import scalafix.lint.Diagnostic
 import scalafix.util.SemanticdbIndex
 
 trait PatchOps {
@@ -70,7 +70,7 @@ trait PatchOps {
     * id "MyLinter.divisionByZero". A LintCategory has a default severity level
     * (warning, error) that the user can override in .scalafix.conf.
     */
-  def lint(msg: LintMessage): Patch
+  def lint(msg: Diagnostic): Patch
 
   /** Remove importees that resolve to symbol.
     *

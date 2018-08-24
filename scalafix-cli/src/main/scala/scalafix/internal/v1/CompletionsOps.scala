@@ -4,7 +4,6 @@ import metaconfig.generic.Setting
 import metaconfig.generic.Settings
 import metaconfig.internal.Case
 import org.apache.commons.text.StringEscapeUtils
-import scalafix.rule.ScalafixRules
 
 object CompletionsOps {
   private def option(kebab: String): String =
@@ -47,7 +46,7 @@ object CompletionsOps {
   }
 
   private def zshNames: String =
-    ScalafixRules.allNamesDescriptions
+    Rules.allNamesDescriptions
       .map {
         case (name, description) =>
           s""""$name[${StringEscapeUtils.escapeXSI(description)}]""""
@@ -62,7 +61,7 @@ _scalafix()
     COMPREPLY=()
     cur="$${COMP_WORDS[COMP_CWORD]}"
     prev="$${COMP_WORDS[COMP_CWORD-1]}"
-    rules="${ScalafixRules.allNames.mkString(" ")}"
+    rules="${Rules.allNames.mkString(" ")}"
     opts="$bashArgs"
 
     case "$${prev}" in

@@ -1,20 +1,20 @@
 package scalafix.internal.testkit
 
 import scala.meta.Position
-import scalafix.lint.LintDiagnostic
+import scalafix.lint.RuleDiagnostic
 import scalafix.testkit.DiffAssertions
 import scalafix.internal.util.PositionSyntax._
 
 // AssertDelta is used to find which Assert is associated with which LintMessage
 case class AssertDelta(
     assert: CommentAssertion,
-    lintDiagnostic: LintDiagnostic) {
+    lintDiagnostic: RuleDiagnostic) {
 
   private def sameLine(assertPos: Position): Boolean =
     assertPos.startLine == lintDiagnostic.position.startLine
 
   private def sameKey(key: String): Boolean =
-    lintDiagnostic.id.fullStringID == key
+    lintDiagnostic.id.fullID == key
 
   private val isSameLine: Boolean =
     sameLine(assert.anchorPosition)
@@ -60,7 +60,7 @@ case class AssertDelta(
       if (!sameKey(assert.key)) {
         List(
           s"""|-${assert.key}
-              |+${lintDiagnostic.id.fullStringID}""".stripMargin
+              |+${lintDiagnostic.id.fullID}""".stripMargin
         )
       } else {
         Nil

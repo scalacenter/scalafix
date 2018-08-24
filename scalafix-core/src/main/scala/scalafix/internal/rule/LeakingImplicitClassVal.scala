@@ -1,15 +1,16 @@
 package scalafix.internal.rule
 
 import scala.meta._
-import scalafix.v0._
+import scalafix.v1._
 
-case object LeakingImplicitClassVal extends Rule("LeakingImplicitClassVal") {
+case object LeakingImplicitClassVal
+    extends SyntacticRule("LeakingImplicitClassVal") {
 
   override def description: String =
     "Add private access modifier to val parameters of implicit value classes in order to prevent public access"
 
-  override def fix(ctx: RuleCtx): Patch = {
-    ctx.tree.collect {
+  override def fix(implicit doc: Doc): Patch = {
+    doc.tree.collect {
       case Defn.Class(
           cMods,
           _,
@@ -20,9 +21,8 @@ case object LeakingImplicitClassVal extends Rule("LeakingImplicitClassVal") {
         val optPatch = for {
           anchorMod <- pMods.find(!_.is[Mod.Annot])
           if !pMods.exists(m => m.is[Mod.Private] || m.is[Mod.Protected])
-        } yield ctx.addLeft(anchorMod, "private ")
+        } yield Patch.addLeft(anchorMod, "private ")
         optPatch.asPatch
-
     }.asPatch
   }
 }

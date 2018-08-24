@@ -1,13 +1,11 @@
 package scalafix.internal.v0
 
 import java.nio.charset.StandardCharsets
-import scala.meta._
 import scala.meta.inputs.Input
 import scala.meta.inputs.Position
 import scala.meta.internal.ScalametaInternals
 import scala.meta.internal.semanticdb.Scala._
 import scala.meta.internal.{semanticdb => s}
-import scalafix.internal.patch.DocSemanticdbIndex.InputSynthetic
 import scalafix.v0
 import scalafix.v0.ResolvedName
 import scalafix.v1
@@ -18,7 +16,7 @@ class LegacyCodePrinter(doc: SemanticDoc) {
   private val buf = List.newBuilder[PositionedSymbol]
   private val text = new StringBuilder
   private def emit(symbol: String): Unit = {
-    emitCode(symbol.desc.name, symbol)
+    emitCode(symbol.desc.name.value, symbol)
   }
   private def emitCode(code: String, sym: String): Unit = {
     val start = text.length
@@ -67,7 +65,7 @@ class LegacyCodePrinter(doc: SemanticDoc) {
           mkString("(", scope.symbols, ")") { symbol =>
             emit(symbol)
             text.append(": ")
-            pprint(doc.info(v1.Sym(symbol)).info.signature)
+            pprint(doc.internal.info(v1.Symbol(symbol)).get.info.signature)
           }
         }
         pprint(sig.returnType)

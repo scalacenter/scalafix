@@ -1,5 +1,4 @@
-package scalafix.internal.v1
-
+package scalafix.internal.v0
 import metaconfig.Conf
 import metaconfig.Configured
 import scalafix.patch.Patch
@@ -8,7 +7,6 @@ import scalafix.util.SemanticdbIndex
 import scalafix.v0.Rule
 
 object LegacyRule {
-
   def lints(ctx: RuleCtx, rule: Rule): Patch =
     rule.check(ctx).map(ctx.lint).asPatch
   def init(

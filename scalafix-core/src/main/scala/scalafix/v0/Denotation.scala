@@ -1,7 +1,5 @@
 package scalafix.v0
 
-import scala.meta.internal.{semanticdb => s}
-
 final case class Denotation(
     flags: Long,
     name: String,

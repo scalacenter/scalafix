@@ -1,6 +1,6 @@
-package scalafix.internal.util
+package scalafix.util
 
-trait ScalafixSyntax {
+trait Api {
 
   type RuleName = scalafix.rule.RuleName
   val RuleName = scalafix.rule.RuleName
@@ -11,14 +11,13 @@ trait ScalafixSyntax {
   implicit class XtensionSeqPatch(patches: Iterable[Patch]) {
     def asPatch: Patch = Patch.fromIterable(patches)
   }
+
   implicit class XtensionOptionPatch(patch: Option[Patch]) {
     def asPatch: Patch = patch.getOrElse(Patch.empty)
   }
 
-  type LintCategory = scalafix.lint.LintCategory
-  val LintCategory = scalafix.lint.LintCategory
-
-  type LintMessage = scalafix.lint.LintMessage
+  type Diagnostic = scalafix.lint.Diagnostic
+  val Diagnostic = scalafix.lint.Diagnostic
 
   type CustomMessage[T] = scalafix.config.CustomMessage[T]
   val CustomMessage = scalafix.config.CustomMessage

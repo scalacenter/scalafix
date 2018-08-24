@@ -1,25 +1,16 @@
 package scalafix.internal.rule
 
 import scala.meta._
-import scalafix.v0._
+import scalafix.v1._
 
-final case class MissingFinal(index: SemanticdbIndex)
-    extends SemanticRule(
-      index,
-      "MissingFinal"
-    ) {
+case object MissingFinal extends SemanticRule("MissingFinal") {
 
   override def description: String =
     "Rule that checks for or adds final modifier in the corresponding places"
 
-  private lazy val error: LintCategory =
-    LintCategory.error(
-      "Some constructions should have final modifier"
-    )
-
-  override def fix(ctx: RuleCtx): Patch = {
+  override def fix(implicit sdoc: SemanticDoc): Patch = {
     def isSealed(tpe: Type): Boolean = {
-      index.denotation(tpe).exists(_.isSealed)
+      tpe.symbol.info.exists(_.isSealed)
     }
 
     def leaksSealedParent(mods: List[Mod], templ: Template): Boolean =
@@ -28,11 +19,11 @@ final case class MissingFinal(index: SemanticdbIndex)
 
     def addFinal(mods: Seq[Mod], d: Defn): Patch =
       (mods.find(!_.is[Mod.Annot]) match {
-        case Some(mod) => ctx.addLeft(mod, "final ")
+        case Some(mod) => Patch.addLeft(mod, "final ")
         case None =>
           mods.lastOption match {
-            case Some(lastMod) => ctx.addRight(lastMod, " final")
-            case None => ctx.addLeft(d, "final ")
+            case Some(lastMod) => Patch.addRight(lastMod, " final")
+            case None => Patch.addLeft(d, "final ")
           }
       }).atomic
 
@@ -40,23 +31,21 @@ final case class MissingFinal(index: SemanticdbIndex)
       mods.exists(_.is[Mod.Case]) &&
         !mods.exists(m => m.is[Mod.Final] || m.is[Mod.Abstract])
 
-    collect(ctx.tree) {
+    collect(sdoc.tree) {
       case (t @ Defn.Class(mods, _, _, _, _), parentPropagatesOuterRef)
           if isNonFinalConcreteCaseClass(mods) && !parentPropagatesOuterRef =>
         (Some(addFinal(mods, t)), PropagatesOuterRef)
       case (t @ Defn.Class(mods, _, _, _, templ), _)
           if leaksSealedParent(mods, templ) =>
-        val lint = ctx.lint(
-          error
-            .copy(id = "class")
-            .at("Class extends sealed parent", t.pos))
+        val lint = Patch.lint(
+          Diagnostic("class", "Class extends sealed parent", t.pos)
+        )
         (Some(lint), PropagatesOuterRef)
       case (t @ Defn.Trait(mods, _, _, _, templ), _)
           if leaksSealedParent(mods, templ) =>
-        val lint = ctx.lint(
-          error
-            .copy(id = "trait")
-            .at("Trait extends sealed parent", t.pos))
+        val lint = Patch.lint(
+          Diagnostic("trait", "Trait extends sealed parent", t.pos)
+        )
         (Some(lint), PropagatesOuterRef)
       case (_: Defn.Class | _: Defn.Trait, _) => (None, PropagatesOuterRef)
       case (_: Defn.Object | _: Template, outerRef) => (None, outerRef)

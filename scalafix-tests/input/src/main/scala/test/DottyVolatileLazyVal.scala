@@ -11,6 +11,8 @@ class DottyVolatileLazyVal {
   class foo {
     lazy val z = {
       println()
+      lazy val local = 2
+      local
     }
   }
 

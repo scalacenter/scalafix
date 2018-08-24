@@ -1,8 +1,8 @@
 package scalafix.tests.cli
 
 import scala.meta.{Defn, Lit}
-import scalafix.lint.LintCategory
 import scalafix.patch.Patch
+import scalafix.v0.LintCategory
 import scalafix.v1.Doc
 import scalafix.v1.SyntacticRule
 

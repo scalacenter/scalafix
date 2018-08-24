@@ -56,10 +56,10 @@ scalafix-testkit features include:
 
 - Assert that a linter error is expected at a particular line by suffixing the
   line with the comment `// assert: <LintCategory>`. For an example, see the
-  NoInfer test suite:
+  Disable test suite:
 
 ```scala
-val x = List(1, "")// assert: NoInfer.any
+val x = List(1, "")// assert: Disable.Any
 ```
 
 It's also possible to assert the offset position and the message contents with a

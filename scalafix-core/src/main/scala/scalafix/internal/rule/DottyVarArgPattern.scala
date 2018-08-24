@@ -2,19 +2,19 @@ package scalafix.internal.rule
 
 import scala.meta._
 import scala.meta.tokens.Token
-import scalafix.v0._
+import scalafix.v1._
 
-case object DottyVarArgPattern extends Rule("DottyVarArgPattern") {
+case object DottyVarArgPattern extends SyntacticRule("DottyVarArgPattern") {
   override def description: String =
     "Rewrite to convert :_* vararg pattern syntax to @ syntax supported in Dotty."
-  override def fix(ctx: RuleCtx): Patch = {
-    val patches = ctx.tree.collect {
+  override def fix(implicit doc: Doc): Patch = {
+    val patches = doc.tree.collect {
       case bind @ Pat.Bind(_, Pat.SeqWildcard()) =>
-        ctx.tokenList
+        doc.tokenList
           .leading(bind.tokens.last)
           .collectFirst {
             case tok @ Token.At() =>
-              ctx.replaceToken(tok, ":")
+              Patch.replaceToken(tok, ":")
           }
           .asPatch
     }

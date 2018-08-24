@@ -11,7 +11,7 @@ import scalafix.internal.patch.ImportPatchOps
 import scalafix.internal.patch.ReplaceSymbolOps
 import scalafix.internal.util.Failure
 import scalafix.internal.util.TokenOps
-import scalafix.lint.LintMessage
+import scalafix.lint.Diagnostic
 import scalafix.patch.TreePatch.ReplaceSymbol
 import org.scalameta.logger
 import scala.meta.Token
@@ -19,7 +19,9 @@ import scala.meta.tokens.Tokens
 import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.internal.util.SuppressOps
 import scalafix.internal.util.SymbolOps.Root
-import scalafix.lint.LintDiagnostic
+import scalafix.internal.v0.DeprecatedRuleCtx
+import scalafix.internal.v0.DocSemanticdbIndex
+import scalafix.lint.RuleDiagnostic
 import scalafix.patch.TreePatch.AddGlobalImport
 import scalafix.patch.TreePatch.RemoveGlobalImport
 import scalafix.rule.RuleCtx
@@ -29,6 +31,7 @@ import scalafix.v1.SemanticContext
 import scalafix.v1.SemanticDoc
 import scalafix.v0.Signature
 import scalafix.v0.Symbol
+import scalafix.v1
 
 /** A data structure that can produce a .patch file.
   *
@@ -108,13 +111,13 @@ private[scalafix] object TreePatch {
 
 // implementation detail
 private[scalafix] case class AtomicPatch(underlying: Patch) extends Patch
-private[scalafix] case class LintPatch(message: LintMessage) extends Patch
+private[scalafix] case class LintPatch(message: Diagnostic) extends Patch
 private[scalafix] case class Concat(a: Patch, b: Patch) extends Patch
 private[scalafix] case object EmptyPatch extends Patch with LowLevelPatch
 
 object Patch {
 
-  def lint(msg: LintMessage): Patch =
+  def lint(msg: Diagnostic): Patch =
     LintPatch(msg)
 
   // Syntactic patch ops.
@@ -143,6 +146,11 @@ object Patch {
     tree.tokens.headOption.fold(Patch.empty)(addLeft(_, toAdd))
 
   // Semantic patch ops.
+  def removeGlobalImport(symbol: v1.Symbol)(
+      implicit c: SemanticContext): Patch =
+    RemoveGlobalImport(Symbol(symbol.value))
+  def addGlobalImport(symbol: v1.Symbol)(implicit c: SemanticContext): Patch =
+    TreePatch.AddGlobalSymbol(Symbol(symbol.value))
   def removeGlobalImport(symbol: Symbol)(implicit c: SemanticContext): Patch =
     RemoveGlobalImport(symbol)
   def addGlobalImport(symbol: Symbol)(implicit c: SemanticContext): Patch =
@@ -195,41 +203,48 @@ object Patch {
       ctx: RuleCtx,
       index: Option[SemanticdbIndex],
       suppress: Boolean = false
-  ): (String, List[LintDiagnostic]) = {
-    val idx = index.getOrElse(SemanticdbIndex.empty)
-    val (patch, lints) = ctx.escapeHatch.filter(
-      patchesByName,
-      ctx,
-      idx,
-      ctx.diffDisable,
-      ctx.config
-    )
-    val finalPatch =
-      if (suppress) {
-        patch + SuppressOps.addComments(ctx.tokens, lints.map(_.position))
-      } else {
-        patch
-      }
-    val patches = treePatchApply(finalPatch)(ctx, idx)
-    (tokenPatchApply(ctx, patches), lints)
+  ): (String, List[RuleDiagnostic]) = {
+    if (ctx.config.optimization.skipSuppressionWhenPossible &&
+      patchesByName.values.forall(_.isEmpty)) {
+      (ctx.input.text, Nil)
+    } else {
+      val idx = index.getOrElse(SemanticdbIndex.empty)
+      val (patch, lints) = ctx.escapeHatch.filter(
+        patchesByName,
+        ctx,
+        idx,
+        ctx.diffDisable,
+        ctx.config
+      )
+      val finalPatch =
+        if (suppress) {
+          patch + SuppressOps.addComments(ctx.tokens, lints.map(_.position))
+        } else {
+          patch
+        }
+      val patches = treePatchApply(finalPatch)(ctx, idx)
+      (tokenPatchApply(ctx, patches), lints)
+    }
   }
 
   private[scalafix] def syntactic(
       patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
-      doc: Doc
-  ): (String, List[LintDiagnostic]) = {
-    apply(patchesByName, doc.toRuleCtx, None, suppress = false)
+      doc: Doc,
+      suppress: Boolean
+  ): (String, List[RuleDiagnostic]) = {
+    apply(patchesByName, new DeprecatedRuleCtx(doc), None, suppress)
   }
 
   private[scalafix] def semantic(
       patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
-      doc: SemanticDoc
-  ): (String, List[LintDiagnostic]) = {
+      doc: SemanticDoc,
+      suppress: Boolean
+  ): (String, List[RuleDiagnostic]) = {
     apply(
       patchesByName,
-      doc.doc.toRuleCtx,
-      Some(doc.toSemanticdbIndex),
-      suppress = false)
+      new DeprecatedRuleCtx(doc.internal.doc),
+      Some(new DocSemanticdbIndex(doc)),
+      suppress)
   }
 
   def treePatchApply(patch: Patch)(
