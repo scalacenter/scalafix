@@ -11,7 +11,7 @@ case class PrintStreamReporter(
     out: PrintStream
 ) extends ScalafixReporter {
   override def lint(d: RuleDiagnostic): Unit = {
-    report(s"[${d.id.fullStringID}] ${d.message}", d.position, d.severity)
+    report(s"[${d.id.fullID}] ${d.message}", d.position, d.severity)
   }
 
   override private[scalafix] def report(

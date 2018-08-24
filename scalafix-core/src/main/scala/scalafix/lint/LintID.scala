@@ -7,16 +7,16 @@ package scalafix.lint
   * or "noTabs".
   *
   * @param rule the name of the rule that produced this diagnostic.
-  * @param categoryID the sub-category within this rule, if any.
-  *                   Empty if the rule only reports diagnostics of a single
-  *                   category.
+  * @param category the sub-category within this rule, if any.
+  *                 Empty if the rule only reports diagnostics of a single
+  *                 category.
   */
-final case class LintID(rule: String, categoryID: String) {
-  def fullStringID: String =
-    if (categoryID.isEmpty && rule.isEmpty) ""
-    else if (categoryID.isEmpty) rule
-    else if (rule.isEmpty) categoryID
-    else s"$rule.$categoryID"
+final case class LintID(rule: String, category: String) {
+  def fullID: String =
+    if (category.isEmpty && rule.isEmpty) ""
+    else if (category.isEmpty) rule
+    else if (rule.isEmpty) category
+    else s"$rule.$category"
 }
 
 object LintID {

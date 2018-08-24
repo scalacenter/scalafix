@@ -72,7 +72,7 @@ trait DeprecatedPatchOps extends PatchOps {
       implicit index: SemanticdbIndex): Patch =
     Patch.renameSymbol(fromSymbol, toName)
   @deprecated(DeprecationMessage, "0.6.0")
-  final def lint(msg: LintMessage): Patch =
+  final def lint(msg: Diagnostic): Patch =
     Patch.lint(msg)
 }
 

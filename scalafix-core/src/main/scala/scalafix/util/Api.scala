@@ -1,6 +1,6 @@
-package scalafix.internal.util
+package scalafix.util
 
-trait ScalafixSyntax {
+trait Api {
 
   type RuleName = scalafix.rule.RuleName
   val RuleName = scalafix.rule.RuleName
@@ -15,9 +15,6 @@ trait ScalafixSyntax {
   implicit class XtensionOptionPatch(patch: Option[Patch]) {
     def asPatch: Patch = patch.getOrElse(Patch.empty)
   }
-
-  type LintCategory = scalafix.lint.LintCategory
-  val LintCategory = scalafix.lint.LintCategory
 
   type Diagnostic = scalafix.lint.Diagnostic
   val Diagnostic = scalafix.lint.Diagnostic

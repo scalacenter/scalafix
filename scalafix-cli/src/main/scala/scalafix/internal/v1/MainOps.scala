@@ -31,7 +31,6 @@ import scalafix.Versions
 import scalafix.cli.ExitStatus
 import scalafix.internal.config.PrintStreamReporter
 import scalafix.internal.diff.DiffUtils
-import scalafix.lint.RuleDiagnostic
 import scalafix.v1.Doc
 import scalafix.v1.SemanticDoc
 
@@ -131,13 +130,6 @@ object MainOps {
       code
     }
   }
-
-  def reportLintErrors(
-      args: ValidatedArgs,
-      messages: List[RuleDiagnostic]): Unit =
-    messages.foreach { diag =>
-      args.config.reporter.lint(diag)
-    }
 
   def assertFreshSemanticDB(
       input: Input,

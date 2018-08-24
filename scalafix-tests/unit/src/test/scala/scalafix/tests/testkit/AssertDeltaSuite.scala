@@ -9,13 +9,13 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.testkit.AssertDiff
 import scalafix.internal.testkit.CommentAssertion
 import scalafix.internal.tests.utils.SkipWindows
-import scalafix.lint.LintCategory
+import scalafix.v0.LintCategory
 import scalafix.lint.RuleDiagnostic
-import scalafix.lint.Diagnostic
 import scalafix.lint.LintSeverity
 import scalafix.rule.RuleName
 import scalafix.testkit.DiffAssertions
 import scalafix.internal.util.LintSyntax._
+import scalafix.v0.LintMessage
 
 class AssertDeltaSuite() extends FunSuite with DiffAssertions {
   test("associate assert and reported message", SkipWindows) {
@@ -44,7 +44,7 @@ class AssertDeltaSuite() extends FunSuite with DiffAssertions {
     )
 
     def disable(offset: Int): RuleDiagnostic =
-      Diagnostic(
+      LintMessage(
         message = "Option.get is the root of all evils",
         position = Position.Range(input, offset, offset),
         category = LintCategory(

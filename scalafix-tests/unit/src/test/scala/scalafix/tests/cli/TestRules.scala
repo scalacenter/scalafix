@@ -1,5 +1,6 @@
 package scalafix.tests.cli
 
+import scalafix.v0.LintCategory
 import scalafix.v1._
 
 class LintError extends SyntacticRule("LintError") {

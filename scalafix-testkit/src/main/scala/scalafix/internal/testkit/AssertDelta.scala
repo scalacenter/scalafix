@@ -14,7 +14,7 @@ case class AssertDelta(
     assertPos.startLine == lintDiagnostic.position.startLine
 
   private def sameKey(key: String): Boolean =
-    lintDiagnostic.id.fullStringID == key
+    lintDiagnostic.id.fullID == key
 
   private val isSameLine: Boolean =
     sameLine(assert.anchorPosition)
@@ -60,7 +60,7 @@ case class AssertDelta(
       if (!sameKey(assert.key)) {
         List(
           s"""|-${assert.key}
-              |+${lintDiagnostic.id.fullStringID}""".stripMargin
+              |+${lintDiagnostic.id.fullID}""".stripMargin
         )
       } else {
         Nil

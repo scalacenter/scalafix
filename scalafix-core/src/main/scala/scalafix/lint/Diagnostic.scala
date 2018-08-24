@@ -1,7 +1,7 @@
 package scalafix.lint
 
 import scala.meta.Position
-import scalafix.rule.RuleName
+import scalafix.v0
 
 /** A linter message reporting a code style violation.
   *
@@ -45,46 +45,33 @@ trait Diagnostic {
 
 object Diagnostic {
 
+  def apply(
+      id: String,
+      message: String,
+      position: Position,
+      explanation: String = "",
+      severity: LintSeverity = LintSeverity.Error
+  ): Diagnostic = {
+    SimpleDiagnostic(message, position, severity, id, explanation)
+  }
+
   /** Construct an eager instance of a Diagnostic. */
+  @deprecated(
+    "Use Diagnostic(categoryID,message,position,explanation) instead",
+    "0.6.0")
   def apply(
       message: String,
       position: Position,
-      category: LintCategory): EagerDiagnostic = {
-    EagerDiagnostic(message, position, category)
+      category: v0.LintCategory): v0.LintMessage = {
+    v0.LintMessage(message, position, category)
   }
 
-  /** An observation of a LintCategory at a particular position.
-    *
-    * @param message The message to display to the user. If empty, LintID.explanation
-    *                is used instead.
-    * @param position Optionally place a caret under a location in a source file.
-    *                 For an empty position use Position.None.
-    * @param category the LintCategory associated with this message.
-    */
-  final case class EagerDiagnostic(
+  /** Basic diagnostic with eagerly computed message and explanation. */
+  private final case class SimpleDiagnostic(
       message: String,
       position: Position,
-      category: LintCategory
-  ) extends Diagnostic {
-    def format(explain: Boolean): String = {
-      val explanation =
-        if (explain)
-          s"""
-             |Explanation:
-             |${category.explanation}
-             |""".stripMargin
-        else ""
-
-      s"[${category.id}] $message$explanation"
-    }
-
-    def id: String = category.id
-
-    def withOwner(owner: RuleName): EagerDiagnostic =
-      copy(category = category.withOwner(owner))
-
-    override def severity: LintSeverity = category.severity
-    override def categoryID: String = category.id
-    override def explanation: String = category.explanation
-  }
+      override val severity: LintSeverity,
+      override val categoryID: String,
+      override val explanation: String
+  ) extends Diagnostic
 }

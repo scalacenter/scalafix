@@ -5,6 +5,7 @@ import metaconfig.Configured
 import scala.meta._
 import scalafix.internal.config.DisableSyntaxConfig
 import scalafix.internal.config.Keyword
+import scalafix.v0.LintCategory
 import scalafix.v1._
 
 final case class DisableSyntax(
@@ -30,9 +31,11 @@ final case class DisableSyntax(
       val message = regex.message.getOrElse(s"$pattern is disabled")
       while (matcher.find()) {
         regexDiagnostics +=
-          errorCategory
-            .copy(id = regex.id.getOrElse(pattern))
-            .at(message, pos(matcher.start))
+          Diagnostic(
+            id = regex.id.getOrElse(pattern),
+            message = message,
+            position = pos(matcher.start)
+          )
       }
     }
     regexDiagnostics.result()
@@ -41,19 +44,13 @@ final case class DisableSyntax(
   private def checkTokens(doc: Doc): Seq[Diagnostic] = {
     doc.tree.tokens.collect {
       case token @ Keyword(keyword) if config.isDisabled(keyword) =>
-        errorCategory
-          .copy(id = s"keywords.$keyword")
-          .at(s"$keyword is disabled", token.pos)
+        Diagnostic(s"keywords.$keyword", s"$keyword is disabled", token.pos)
       case token @ Token.Semicolon() if config.noSemicolons =>
-        errorCategory
-          .copy(id = "noSemicolons")
-          .at("semicolons are disabled", token.pos)
+        Diagnostic("noSemicolons", "semicolons are disabled", token.pos)
       case token @ Token.Tab() if config.noTabs =>
-        errorCategory.copy(id = "noTabs").at("tabs are disabled", token.pos)
+        Diagnostic("noTabs", "tabs are disabled", token.pos)
       case token @ Token.Xml.Start() if config.noXml =>
-        errorCategory
-          .copy(id = "noXml")
-          .at("xml literals are disabled", token.pos)
+        Diagnostic("noXml", "xml literals are disabled", token.pos)
     }
   }
 
@@ -122,56 +119,52 @@ final case class DisableSyntax(
         Seq(noValPatternCategory.at(v.pos))
       case t @ mod"+" if config.noCovariantTypes =>
         Seq(
-          errorCategory
-            .copy(id = "covariant")
-            .at(
-              "Covariant types could lead to error-prone situations.",
-              t.pos
-            )
+          Diagnostic(
+            "covariant",
+            "Covariant types could lead to error-prone situations.",
+            t.pos
+          )
         )
       case t @ mod"-" if config.noContravariantTypes =>
         Seq(
-          errorCategory
-            .copy(id = "contravariant")
-            .at(
-              "Contravariant types could lead to error-prone situations.",
-              t.pos
-            )
+          Diagnostic(
+            "contravariant",
+            "Contravariant types could lead to error-prone situations.",
+            t.pos
+          )
         )
       case t @ AbstractWithVals(vals) if config.noValInAbstract =>
         vals.map { v =>
-          errorCategory
-            .copy(id = "valInAbstract")
-            .at(
-              "val definitions in traits/abstract classes may cause initialization bugs",
-              v.pos)
+          Diagnostic(
+            "valInAbstract",
+            "val definitions in traits/abstract classes may cause initialization bugs",
+            v.pos)
         }
       case t @ Defn.Object(mods, _, _)
           if mods.exists(_.is[Mod.Implicit]) && config.noImplicitObject =>
         Seq(
-          errorCategory
-            .copy(id = "implicitObject")
-            .at("implicit objects may cause implicit resolution errors", t.pos)
+          Diagnostic(
+            "implicitObject",
+            "implicit objects may cause implicit resolution errors",
+            t.pos)
         )
       case t @ Defn.Def(mods, _, _, paramss, _, _)
           if mods.exists(_.is[Mod.Implicit]) &&
             hasNonImplicitParam(t) &&
             config.noImplicitConversion =>
         Seq(
-          errorCategory
-            .copy(id = "implicitConversion")
-            .at(
-              "implicit conversions weaken type safety and always can be replaced by explicit conversions",
-              t.pos)
+          Diagnostic(
+            "implicitConversion",
+            "implicit conversions weaken type safety and always can be replaced by explicit conversions",
+            t.pos)
         )
       case DefaultArgs(params) if config.noDefaultArgs =>
         params
           .map { m =>
-            errorCategory
-              .copy(id = "defaultArgs")
-              .at(
-                "Default args makes it hard to use methods as functions.",
-                m.pos)
+            Diagnostic(
+              "defaultArgs",
+              "Default args makes it hard to use methods as functions.",
+              m.pos)
           }
     }
     val FinalizeMatcher = DisableSyntax.FinalizeMatcher("noFinalize")
@@ -183,10 +176,6 @@ final case class DisableSyntax(
       .map(Patch.lint)
       .asPatch
   }
-
-  private val errorCategory: LintCategory =
-    LintCategory.error(
-      "Some constructs are unsafe to use and should be avoided")
 
   private val noFinalVal: LintCategory =
     LintCategory.error(
@@ -201,16 +190,17 @@ final case class DisableSyntax(
 
 object DisableSyntax {
 
-  private val FinalizeError =
-    LintCategory.error(
-      explain = """|there is no guarantee that finalize will be called and
-                   |overriding finalize incurs a performance penalty""".stripMargin
-    )
+  private val explanation =
+    """|there is no guarantee that finalize will be called and
+       |overriding finalize incurs a performance penalty""".stripMargin
 
   def FinalizeMatcher(id: String): PartialFunction[Tree, List[Diagnostic]] = {
     case Defn.Def(_, name @ q"finalize", _, Nil | Nil :: Nil, _, _) =>
-      FinalizeError
-        .copy(id = id)
-        .at("finalize should not be used", name.pos) :: Nil
+      Diagnostic(
+        id,
+        "finalize should not be used",
+        name.pos,
+        explanation
+      ) :: Nil
   }
 }

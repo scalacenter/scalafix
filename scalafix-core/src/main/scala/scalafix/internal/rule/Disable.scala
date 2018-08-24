@@ -6,7 +6,6 @@ import scala.meta.transversers.Traverser
 import scalafix.internal.config.{DisableConfig, DisabledSymbol}
 import scalafix.internal.v0.InputSynthetic
 import scalafix.internal.util.SymbolOps
-import scalafix.lint.{LintCategory, Diagnostic}
 import scalafix.v0._
 
 object Disable {
