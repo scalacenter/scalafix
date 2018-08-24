@@ -18,10 +18,6 @@ jobs:
       script: sbt ci-211
     - env: TEST="2.12"
       script: sbt ci-212
-    - env: TEST="Coverage"
-      script:
-        - sbt ";clean;coverage;ci-212;coverageReport;coverageAggregate"
-        - bash <(curl -s https://codecov.io/bash)
 
     # Disabled until stable v0.6
     # - env: TEST="mima"
