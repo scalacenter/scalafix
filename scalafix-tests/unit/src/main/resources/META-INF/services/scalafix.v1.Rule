@@ -1,3 +1,4 @@
 banana.rule.SemanticRuleV1
 banana.rule.SyntacticRuleV1
+scalafix.tests.cli.NoOpRule
 scalafix.tests.cli.DeprecatedName

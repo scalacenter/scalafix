@@ -18,7 +18,7 @@ class LegacySyntacticRule(rule: v0.Rule) extends SyntacticRule(rule.name) {
     }
   }
   override def fix(implicit doc: Doc): Patch = {
-    val ctx = new DeprecatedRuleCtx(doc)
+    val ctx = new LegacyRuleCtx(doc)
     configuredRule.fix(ctx) + LegacyRule.lints(ctx, configuredRule)
   }
 }

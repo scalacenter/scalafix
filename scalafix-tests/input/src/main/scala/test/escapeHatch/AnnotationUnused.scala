@@ -3,7 +3,6 @@ rules = [
   "class:scalafix.test.NoDummy"
   "class:scalafix.test.NoNull"
 ]
-optimization.skipSuppressionWhenPossible = false
 */
 package test.escapeHatch
 
