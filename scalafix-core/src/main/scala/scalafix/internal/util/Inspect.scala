@@ -5,7 +5,7 @@ import org.typelevel.paiges._
 
 import scala.language.implicitConversions
 
-trait TreeStructureUtils {
+trait Inspect {
   def pretty(input: CanPretty, showFieldNames: Boolean = false): String = {
     input match {
       case TreeCanPretty(tree)       => prettyTree(tree, showFieldNames)

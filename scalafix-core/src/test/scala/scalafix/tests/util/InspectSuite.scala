@@ -3,7 +3,7 @@ package structure
 import scala.meta._
 import utest._
 
-object TreeStructureTests extends TestSuite{
+object InspectSuite extends TestSuite{
   val tests = Tests{
     "pretty(t)" - {
       val obtained = pretty(q"a.b.c.d")
