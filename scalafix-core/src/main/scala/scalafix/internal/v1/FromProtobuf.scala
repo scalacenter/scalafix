@@ -3,7 +3,7 @@ package scalafix.internal.v1
 import scala.meta.internal.{semanticdb => s}
 import scalafix.v1._
 
-class FromProtobuf(doc: SemanticDoc) {
+class FromProtobuf()(implicit doc: SemanticDoc) {
 
   def info(sym: String): SymbolInfo =
     doc.internal

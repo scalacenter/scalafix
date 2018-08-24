@@ -36,6 +36,14 @@ object ClasspathOps {
 
   def thisClassLoader: URLClassLoader =
     this.getClass.getClassLoader.asInstanceOf[URLClassLoader]
+  def thisClasspath: Classpath = {
+    Classpath(
+      thisClassLoader.getURLs.iterator
+        .map(url => AbsolutePath(Paths.get(url.toURI)))
+        .toList
+    )
+  }
+  this.getClass.getClassLoader.asInstanceOf[URLClassLoader]
   def getCurrentClasspath: String = {
     this.getClass.getClassLoader
       .asInstanceOf[URLClassLoader]

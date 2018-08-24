@@ -4,6 +4,7 @@ import java.util
 import scala.collection.mutable.ListBuffer
 import scala.meta.Position
 import scala.meta.Tree
+import scala.meta.internal.metap.PrinterSymtab
 import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
 import scalafix.internal.config.ScalafixConfig
@@ -11,13 +12,13 @@ import scalafix.lint.Diagnostic
 import scalafix.v1.Doc
 import scalafix.v1.Symbol
 import scalafix.v1.SymbolInfo
+import scalafix.v1.Symtab
 
 final class InternalSemanticDoc(
     val doc: Doc,
     val textDocument: s.TextDocument,
     val symtab: SymbolTable
-) {
-
+) extends Symtab {
   def messages: List[Diagnostic] =
     textDocument.diagnostics.iterator.map { diag =>
       SemanticdbDiagnostic(doc.input, diag)
@@ -33,9 +34,9 @@ final class InternalSemanticDoc(
     if (sym.isNone) {
       None
     } else if (sym.isLocal) {
-      locals.get(sym.value).map(new SymbolInfo(_))
+      locals.get(sym.value).map(new SymbolInfo(_)(this))
     } else {
-      symtab.info(sym.value).map(new SymbolInfo(_))
+      symtab.info(sym.value).map(new SymbolInfo(_)(this))
     }
   }
 
@@ -53,6 +54,12 @@ final class InternalSemanticDoc(
   }
 
   def config: ScalafixConfig = doc.internal.config
+
+  def printerSymtab: PrinterSymtab =
+    new scala.meta.internal.metap.PrinterSymtab {
+      def info(symbol: String): Option[s.SymbolInformation] =
+        symtab.info(symbol)
+    }
 
   private[this] val locals = textDocument.symbols.iterator.collect {
     case info

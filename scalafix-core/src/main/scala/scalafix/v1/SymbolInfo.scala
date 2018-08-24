@@ -1,5 +1,6 @@
 package scalafix.v1
 
+import scala.meta.internal.metap.PrinterSymtab
 import scala.meta.internal.{semanticdb => s}
 import scala.meta.internal.semanticdb._
 import scalafix.internal.v1.FromProtobuf
@@ -7,13 +8,13 @@ import scala.meta.metap.Format
 
 final class SymbolInfo private[scalafix] (
     private[scalafix] val info: s.SymbolInformation
-) { self =>
+)(implicit symtab: Symtab) { self =>
 
   def sym: Symbol = Symbol(info.symbol)
   def owner: Symbol = Symbol(info.symbol).owner
   def displayName: String = info.displayName
   def signature(implicit doc: SemanticDoc): Signature =
-    new FromProtobuf(doc).ssignature(info.signature)
+    new FromProtobuf().ssignature(info.signature)
 
   def isScala: Boolean = info.isScala
   def isJava: Boolean = info.isJava
@@ -56,11 +57,10 @@ final class SymbolInfo private[scalafix] (
   def within: Option[Symbol] = info.within.map(Symbol(_))
 
   override def toString: String = {
-    val symtab = new scala.meta.internal.metap.PrinterSymtab {
-      def info(symbol: String): Option[SymbolInformation] =
-        if (symbol == self.info.symbol) Some(self.info)
-        else None
+    val printerSymtab = new PrinterSymtab {
+      override def info(symbol: String): Option[SymbolInformation] =
+        symtab.info(Symbol(symbol)).map(_.info)
     }
-    s.Print.info(Format.Compact, info, symtab)
+    s.Print.info(Format.Compact, info, printerSymtab)
   }
 }
