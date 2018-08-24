@@ -37,4 +37,23 @@ class InspectSuite extends FunSuite with DiffAssertions {
          |)""".stripMargin
     assert(obtained == expected)
   }
+
+  test("option") {
+    assertNoDiff(
+      q"def foo: A = ???".decltpe.inspect,
+      """|
+         |Some(Type.Name("A"))
+         |""".stripMargin
+    )
+  }
+
+  test("list") {
+    assertNoDiff(
+      q"foo(a)".args.inspect,
+      """|List(
+         |  Term.Name("a")
+         |)
+         |""".stripMargin
+    )
+  }
 }

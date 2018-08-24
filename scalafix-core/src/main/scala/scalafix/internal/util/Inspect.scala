@@ -5,15 +5,16 @@ import scala.meta._
 import org.typelevel.paiges._
 
 object Inspect {
-  def pretty(tree: Tree, showFieldNames: Boolean): String = {
-    prettyTree(tree, showFieldNames).render(1)
-  }
 
-  private def prettyList(tree: List[Tree], showFieldNames: Boolean): Doc = {
+  def prettyList(tree: List[Tree], showFieldNames: Boolean): Doc = {
     wrapList(tree.map(t => prettyTree(t, showFieldNames)))
   }
 
-  private def prettyTree(tree: Tree, showFieldNames: Boolean): Doc = {
+  def prettyOption(tree: Option[Tree], showFieldNames: Boolean): Doc = {
+    wrapOption(tree.map(t => prettyTree(t, showFieldNames)))
+  }
+
+  def prettyTree(tree: Tree, showFieldNames: Boolean): Doc = {
     tree match {
       case _ if tree.tokens.isEmpty =>
         Doc.empty
