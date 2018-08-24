@@ -56,17 +56,21 @@ object SymbolOps {
     }
   }
   def normalize(sym: v1.Symbol): v1.Symbol = {
-    val sb = new StringBuilder()
-    def loop(symbol: String): Unit = {
-      if (symbol.isNone || symbol.isRootPackage) ()
-      else {
-        val (owner, desc) = ScalametaInternals.symbolOwnerAndDescriptor(symbol)
-        loop(owner)
-        sb.append(".").append(desc.name)
+    if (!sym.isGlobal) sym
+    else {
+      val sb = new StringBuilder()
+      def loop(symbol: String): Unit = {
+        if (symbol.isNone || symbol.isRootPackage) ()
+        else {
+          val (owner, desc) =
+            ScalametaInternals.symbolOwnerAndDescriptor(symbol)
+          loop(owner)
+          sb.append(desc.name).append(".")
+        }
       }
+      loop(sym.value)
+      v1.Symbol(sb.toString())
     }
-    loop(sym.value)
-    v1.Symbol(sb.toString())
   }
   def normalize(symbol: Symbol): Symbol = symbol match {
     case Symbol.Multi(syms) =>

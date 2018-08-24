@@ -1,6 +1,8 @@
 package scalafix.v1
 
+import metaconfig.ConfDecoder
 import scala.meta.internal.semanticdb.Scala._
+import scalafix.internal.util.SymbolOps
 
 final class Symbol private (val value: String) {
   def isNone: Boolean = value.isNone
@@ -9,8 +11,10 @@ final class Symbol private (val value: String) {
   def isGlobal: Boolean = value.isGlobal
   def isLocal: Boolean = value.isLocal
   def owner: Symbol = Symbol(value.owner)
+  def displayName: String = value.desc.name.value
   def info(implicit doc: SemanticDoc): Option[SymbolInfo] =
     doc.internal.info(this)
+  def normalized: Symbol = SymbolOps.normalize(this)
 
   override def toString: String =
     if (isNone) "Symbol.None"
@@ -46,4 +50,9 @@ object Symbol {
         scala.None
       }
   }
+  implicit val decoder: ConfDecoder[Symbol] =
+    ConfDecoder.stringConfDecoder.map { string =>
+      if (string.isGlobal) Symbol(string)
+      else Symbol(string + ".")
+    }
 }
