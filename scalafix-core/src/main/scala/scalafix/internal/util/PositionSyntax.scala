@@ -9,6 +9,11 @@ object PositionSyntax {
   implicit class XtensionPositionsScalafix(private val pos: Position)
       extends AnyVal {
 
+    def contains(other: Position): Boolean = {
+      pos.start <= other.start &&
+      pos.end >= other.end
+    }
+
     /** Returns a formatted string of this position including filename/line/caret. */
     def formatMessage(severity: String, message: String): String = pos match {
       case Position.None =>

@@ -10,6 +10,7 @@ import scala.meta.internal.{semanticdb => s}
 import scalafix.internal.config.ScalafixConfig
 import scalafix.lint.Diagnostic
 import scalafix.v1.Doc
+import scalafix.v1.STree
 import scalafix.v1.Symbol
 import scalafix.v1.SymbolInfo
 import scalafix.v1.Symtab
@@ -19,10 +20,21 @@ final class InternalSemanticDoc(
     val textDocument: s.TextDocument,
     val symtab: SymbolTable
 ) extends Symtab {
-  def messages: List[Diagnostic] =
+
+  def messages: Iterator[Diagnostic] =
     textDocument.diagnostics.iterator.map { diag =>
       SemanticdbDiagnostic(doc.input, diag)
-    }.toList
+    }
+
+  def synthetic(pos: Position): Option[STree] = {
+    val tree = _synthetics.get(
+      s.Range(pos.startLine, pos.startColumn, pos.endLine, pos.endColumn))
+    if (tree == null) {
+      None
+    } else {
+      Some(DocFromProtobuf(this).stree(tree))
+    }
+  }
 
   def symbol(tree: Tree): Symbol = {
     val result = symbols(TreePos.symbol(tree))
@@ -61,7 +73,7 @@ final class InternalSemanticDoc(
         symtab.info(symbol)
     }
 
-  private[this] val locals = textDocument.symbols.iterator.collect {
+  private[this] lazy val locals = textDocument.symbols.iterator.collect {
     case info
         if info.symbol.startsWith("local") ||
           info.symbol.contains("$anon") // NOTE(olafur) workaround for a semanticdb-scala issue.
@@ -69,7 +81,16 @@ final class InternalSemanticDoc(
       info.symbol -> info
   }.toMap
 
-  private[this] val occurrences: util.Map[s.Range, Seq[String]] = {
+  private[this] lazy val _synthetics: util.Map[s.Range, s.Tree] = {
+    val result = new util.HashMap[s.Range, s.Tree]()
+    textDocument.synthetics.foreach { synthetic =>
+      if (synthetic.range.isDefined) {
+        result.put(synthetic.range.get, synthetic.tree)
+      }
+    }
+    result
+  }
+  private[this] lazy val occurrences: util.Map[s.Range, Seq[String]] = {
     val result = new util.HashMap[s.Range, ListBuffer[String]]()
     textDocument.occurrences.foreach { o =>
       if (o.range.isDefined) {

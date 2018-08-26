@@ -101,11 +101,15 @@ object LegacyInMemorySemanticdbIndex {
           if (PathIO.extension(file.toNIO) == "semanticdb") {
             val textDocument = s.TextDocuments.parseFromFile(file)
             textDocument.documents.foreach { textDocument =>
-              val input = textDocument.input(sourceuri)
-              val doc = v1.Doc.fromInput(input, dialect)
-              val internal = new InternalSemanticDoc(doc, textDocument, symtab)
-              val sdoc = new v1.SemanticDoc(internal)
-              buf += (textDocument.uri -> new DocSemanticdbIndex(sdoc))
+              val abspath = textDocument.abspath(sourceuri)
+              if (abspath.isFile) {
+                val input = textDocument.input(abspath)
+                val doc = v1.Doc.fromInput(input, dialect)
+                val internal =
+                  new InternalSemanticDoc(doc, textDocument, symtab)
+                val sdoc = new v1.SemanticDoc(internal)
+                buf += (textDocument.uri -> new DocSemanticdbIndex(sdoc))
+              }
             }
           }
         }

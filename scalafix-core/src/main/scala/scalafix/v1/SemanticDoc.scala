@@ -13,15 +13,28 @@ final class SemanticDoc private[scalafix] (
     private[scalafix] val internal: InternalSemanticDoc
 ) extends SemanticContext
     with Symtab {
-  def diagnostics: List[Diagnostic] = internal.messages
-  def tree: Tree = internal.doc.tree
-  def tokens: Tokens = internal.doc.tokens
-  def input: Input = internal.doc.input
-  def matchingParens: MatchingParens = internal.doc.matchingParens
-  def tokenList: TokenList = internal.doc.tokenList
-  def comments: AssociatedComments = internal.doc.comments
-  override def info(symbol: Symbol): Option[SymbolInfo] = internal.info(symbol)
-  override def toString: String = s"SemanticDoc(${input.syntax})"
+
+  def tree: Tree =
+    internal.doc.internal.tree.value
+  def tokens: Tokens =
+    tree.tokens
+  def input: Input =
+    internal.doc.internal.input
+
+  def matchingParens: MatchingParens =
+    internal.doc.internal.matchingParens.value
+  def tokenList: TokenList =
+    internal.doc.internal.tokenList.value
+  def comments: AssociatedComments =
+    internal.doc.internal.comments.value
+
+  def diagnostics: Iterator[Diagnostic] =
+    internal.messages
+
+  override def info(symbol: Symbol): Option[SymbolInfo] =
+    internal.info(symbol)
+  override def toString: String =
+    s"SemanticDoc(${input.syntax})"
 }
 
 object SemanticDoc {
