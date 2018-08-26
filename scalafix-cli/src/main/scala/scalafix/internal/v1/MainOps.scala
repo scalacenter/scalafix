@@ -38,9 +38,10 @@ import scalafix.v1.SemanticDoc
 object MainOps {
 
   def run(args: Array[String], base: Args): ExitStatus = {
+    val expanded = ArgExpansion.expand(args, base.cwd)
     val out = base.out
     Conf
-      .parseCliArgs[Args](args.toList)
+      .parseCliArgs[Args](expanded)
       .andThen(c => c.as[Args](Args.decoder(base)))
       .andThen(_.validate) match {
       case Configured.Ok(validated) =>

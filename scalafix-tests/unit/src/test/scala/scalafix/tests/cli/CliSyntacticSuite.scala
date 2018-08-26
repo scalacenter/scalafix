@@ -56,6 +56,27 @@ class CliSyntacticSuite extends BaseCliSuite {
   )
 
   check(
+    // same test as above except using @args expansion
+    name = "@args",
+    originalLayout = s"""/hello.scala
+                        |$original
+                        |/scalafix.args
+                        |-r
+                        |ProcedureSyntax
+                        |hello.scala
+                        |""".stripMargin,
+    args = Array("@scalafix.args"),
+    expectedLayout = s"""/hello.scala
+                        |$expected
+                        |/scalafix.args
+                        |-r
+                        |ProcedureSyntax
+                        |hello.scala
+                        |""".stripMargin,
+    expectedExit = ExitStatus.Ok
+  )
+
+  check(
     name = "fix directory",
     originalLayout = s"""|/dir/a.scala
                          |$original
