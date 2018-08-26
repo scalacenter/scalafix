@@ -77,7 +77,7 @@ object TestkitProperties {
         case None => PathIO.workingDirectory
       }
       val scalacOptions = sprops.get("scalacOptions") match {
-        case Some(options) => options.split("|").toList
+        case Some(options) => options.split("\\|").toList
         case None => Nil
       }
       new TestkitProperties(

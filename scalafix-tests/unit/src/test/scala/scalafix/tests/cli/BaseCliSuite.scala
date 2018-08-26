@@ -189,6 +189,8 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
         else Array("--sourceroot", cwd.toString)
       val exit = Main.run(
         args ++ sourceroot ++ Seq(
+          "--scalac-options",
+          "-Ywarn-unused-import",
           "-r",
           rule,
           files

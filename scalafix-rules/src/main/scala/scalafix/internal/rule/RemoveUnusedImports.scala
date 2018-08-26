@@ -13,7 +13,8 @@ class RemoveUnusedImports extends SemanticRule("RemoveUnusedImports") {
     if (config.scalaVersion.startsWith("2.11") &&
       !config.scalacOptions.contains("-Ywarn-unused-import")) {
       Configured.error(
-        "The compiler option -Ywarn-unused-import is required to use RemoveUnusedImports")
+        s"The compiler option -Ywarn-unused-import is required to use RemoveUnusedImports. " +
+          s"Obtained ${config.scalacOptions}")
     } else {
       Configured.ok(this)
     }
