@@ -93,4 +93,10 @@ final case class ScalafixMainArgsImpl(args: Args = Args.default)
     Rules.all(args.toolClasspath).iterator.map(_.name.value).toArray
   }
 
+  override def withScalacOptions(options: util.List[String]): ScalafixMainArgs =
+    copy(args = args.copy(scalacOptions = options.asScala.toList))
+
+  override def withScalaVersion(version: String): ScalafixMainArgs =
+    copy(args = args.copy(scalaVersion = version))
+
 }

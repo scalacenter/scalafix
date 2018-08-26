@@ -208,6 +208,8 @@ lazy val unit = project
         sourceDirectories.in(testsOutput, Compile).value ++
           sourceDirectories.in(testsOutputDotty, Compile).value
       )
+      props.put("scalaVersion", scalaVersion.value)
+      props.put("scalacOptions", scalacOptions.value.mkString("|"))
       val out =
         managedResourceDirectories.in(Test).value.head /
           "scalafix-testkit.properties"

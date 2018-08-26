@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.util.Collections
 import org.scalatest.FunSuite
 import scala.collection.JavaConverters._
 import scala.meta.io.AbsolutePath
@@ -148,6 +149,8 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
       .withPrintStream(new PrintStream(out))
       .withMode(ScalafixMainMode.TEST)
       .withToolClasspath(toolClasspath)
+      .withScalacOptions(Collections.singletonList("-Ywarn-unused-import"))
+      .withScalaVersion("2.11.12")
     val errors = api.runMain(args).toList.map(_.toString).sorted
     val stdout = fansi
       .Str(out.toString(charset.name()))

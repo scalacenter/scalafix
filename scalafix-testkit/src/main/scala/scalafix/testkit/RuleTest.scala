@@ -10,6 +10,7 @@ import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.v1.LazyValue
+import scalafix.v1.Configuration
 import scalafix.v1.RuleDecoder
 
 final class RuleTest(
@@ -19,6 +20,7 @@ final class RuleTest(
 
 object RuleTest {
   private[scalafix] def fromPath(
+      props: TestkitProperties,
       test: TestkitPath,
       classLoader: ClassLoader,
       symtab: SymbolTable): RuleTest = {
@@ -40,11 +42,14 @@ object RuleTest {
       val decoderSettings =
         RuleDecoder.Settings().withConfig(scalafixConfig)
       val decoder = RuleDecoder.decoder(decoderSettings)
-      val rulesConf =
-        ConfGet
-          .getKey(conf, "rules" :: "rule" :: Nil)
-          .getOrElse(Conf.Lst(Nil))
-      val rules = decoder.read(rulesConf).get.withConfig(conf).get
+      val rulesConf = ConfGet
+        .getKey(conf, "rules" :: "rule" :: Nil)
+        .getOrElse(Conf.Lst(Nil))
+      val config = Configuration()
+        .withConf(conf)
+        .withScalaVersion(props.scalaVersion)
+        .withScalacOptions(props.scalacOptions)
+      val rules = decoder.read(rulesConf).get.withConfiguration(config).get
       (rules, sdoc)
     }
 

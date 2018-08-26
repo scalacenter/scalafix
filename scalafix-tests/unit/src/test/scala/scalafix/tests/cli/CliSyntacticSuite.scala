@@ -1,9 +1,12 @@
 package scalafix.tests.cli
 
+import metaconfig.Configured
 import scalafix.cli._
 import scalafix.patch.Patch
 import scalafix.rule.RuleName
+import scalafix.v1.Configuration
 import scalafix.v1.Doc
+import scalafix.v1.Rule
 import scalafix.v1.SyntacticRule
 
 class CliSyntacticSuite extends BaseCliSuite {
@@ -356,6 +359,35 @@ class CliSyntacticSuite extends BaseCliSuite {
                        |""".stripMargin,
     expectedExit = ExitStatus.ParseError
   )
+
+  def checkCommandLineError(
+      name: String,
+      args: Array[String],
+      fn: String => Unit): Unit =
+    check(
+      name = name,
+      originalLayout = "",
+      args = args,
+      expectedLayout = "",
+      expectedExit = ExitStatus.CommandLineError,
+      outputAssert = { out =>
+        fn(out)
+      }
+    )
+
+  checkCommandLineError(
+    "--scala-version error",
+    Array("-r", "Scala2_9", "--scala-version", "2.12.6"), { out =>
+      assert(out.contains("must start with 2.9"))
+    }
+  )
+
+  checkCommandLineError(
+    "--scalac-options error",
+    Array("-r", "Scala2_9", "--scala-version", "2.9.6"), { out =>
+      assert(out.contains("must contain -Ysource:2.9"))
+    }
+  )
 }
 
 class NoOpRule extends SyntacticRule("NoOpRule") {
@@ -371,4 +403,15 @@ class DeprecatedName
         "1.0")) {
   override def fix(implicit doc: Doc): _root_.scalafix.v1.Patch =
     Patch.empty
+}
+
+class Scala2_9 extends SyntacticRule("Scala2_9") {
+  override def withConfiguration(config: Configuration): Configured[Rule] =
+    if (!config.scalaVersion.startsWith("2.9")) {
+      Configured.error("scalaVersion must start with 2.9")
+    } else if (!config.scalacOptions.contains("-Ysource:2.9")) {
+      Configured.error("scalacOptions must contain -Ysource:2.9")
+    } else {
+      Configured.ok(this)
+    }
 }

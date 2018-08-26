@@ -31,6 +31,7 @@ import scala.meta.internal.symtab.SymbolTable
 import scalafix.interfaces.ScalafixMainCallback
 import scalafix.internal.config.PrintStreamReporter
 import scalafix.internal.interfaces.MainCallbackImpl
+import scalafix.v1.Configuration
 import scalafix.v1.RuleDecoder
 
 class Section(val name: String) extends StaticAnnotation
@@ -88,6 +89,12 @@ case class Args(
     @Description("Additional directories to scan for --auto-classpath")
     @ExtraName("classpathAutoRoots")
     autoClasspathRoots: List[AbsolutePath] = Nil,
+    @Description(
+      "The scala compiler options used to compile this --classpath, for example -Ywarn-unused-import")
+    scalacOptions: List[String] = Nil,
+    @Description(
+      "The Scala compiler version that was used to compile this project.")
+    scalaVersion: String = scala.util.Properties.versionNumberString,
     @Section("Tab completions")
     @Description(
       """|Print out bash tab completions. To install:
@@ -209,7 +216,12 @@ case class Args(
       .withToolClasspath(toolClasspath)
       .withCwd(cwd)
     val decoder = RuleDecoder.decoder(decoderSettings)
-    decoder.read(rulesConf).andThen(_.withConfig(base))
+
+    val configuration = Configuration()
+      .withConf(base)
+      .withScalaVersion(scalaVersion)
+      .withScalacOptions(scalacOptions)
+    decoder.read(rulesConf).andThen(_.withConfiguration(configuration))
   }
 
   def resolvedPathReplace: Configured[AbsolutePath => AbsolutePath] =

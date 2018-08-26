@@ -9,7 +9,6 @@ import scalafix.internal.config.ExplicitResultTypesConfig
 import scalafix.internal.config.MemberKind
 import scalafix.internal.config.MemberVisibility
 import scalafix.util.TokenOps
-import metaconfig.Conf
 import metaconfig.Configured
 import scalafix.internal.util.PrettyResult
 import scalafix.internal.util.QualifyStrategy
@@ -24,8 +23,8 @@ case class ExplicitResultTypes(config: ExplicitResultTypesConfig)
   override def description: String =
     "Rewrite that inserts explicit type annotations for def/val/var"
 
-  override def withConfig(config: Conf): Configured[Rule] =
-    config // Support deprecated explicitReturnTypes config
+  override def withConfiguration(config: Configuration): Configured[Rule] =
+    config.conf // Support deprecated explicitReturnTypes config
       .getOrElse("explicitReturnTypes", "ExplicitResultTypes")(
         ExplicitResultTypesConfig.default
       )

@@ -1,12 +1,12 @@
 package scalafix.v1
 
-import metaconfig.Conf
 import metaconfig.Configured
 
 abstract class Rule(val name: RuleName) {
   override def toString: String = name.toString
   def description: String = ""
-  def withConfig(conf: Conf): Configured[Rule] = Configured.ok(this)
+  def withConfiguration(config: Configuration): Configured[Rule] =
+    Configured.ok(this)
 }
 
 abstract class SyntacticRule(name: RuleName) extends Rule(name) {

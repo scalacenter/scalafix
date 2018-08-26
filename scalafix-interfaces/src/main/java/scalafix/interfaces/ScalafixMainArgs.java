@@ -107,6 +107,19 @@ public interface ScalafixMainArgs {
      */
     ScalafixMainArgs withCharset(Charset charset);
 
+    /**
+     * @param version The Scala compiler version used to compile this classpath.
+     *                For example "2.12.6".
+     *
+     */
+    ScalafixMainArgs withScalaVersion(String version);
+
+    /**
+     * @param options The Scala compiler flags used to compile this classpath.
+     *                For example List(-Ywarn-unused-import).
+     */
+    ScalafixMainArgs withScalacOptions(List<String> options);
+
 
     /**
      * The rule names that are valid arguments for {@link #withRules(List) }.
