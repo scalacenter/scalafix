@@ -17,35 +17,35 @@ class FromProtobuf()(implicit doc: SemanticDoc) {
       else sc.infos.iterator.map(i => new SymbolInfo(i)).toList
   }
 
-  def stype(t: s.Type): Tpe = t match {
+  def stype(t: s.Type): SType = t match {
     case s.IntersectionType(types) =>
-      new IntersectionTpe(types.convert)
+      new IntersectionType(types.convert)
     case s.SuperType(prefix, symbol) =>
-      new SuperTpe(prefix.convert, symbol.convert)
+      new SuperType(prefix.convert, symbol.convert)
     case s.ByNameType(tpe) =>
-      new ByNameTpe(tpe.convert)
+      new ByNameType(tpe.convert)
     case s.AnnotatedType(annotations, tpe) =>
-      new AnnotatedTpe(annotations.convert, tpe.convert)
+      new AnnotatedType(annotations.convert, tpe.convert)
     case s.ConstantType(constant) =>
-      new ConstantTpe(sconstant(constant))
+      new ConstantType(sconstant(constant))
     case s.TypeRef(prefix, symbol, typeArguments) =>
-      new TpeRef(prefix.convert, symbol.convert, typeArguments.convert)
+      new TypeRef(prefix.convert, symbol.convert, typeArguments.convert)
     case s.StructuralType(tpe, declarations) =>
-      new StructuralTpe(tpe.convert, declarations.convert)
+      new StructuralType(tpe.convert, declarations.convert)
     case s.RepeatedType(tpe) =>
-      new RepeatedTpe(tpe.convert)
+      new RepeatedType(tpe.convert)
     case s.ThisType(symbol) =>
-      new ThisTpe(symbol.convert)
+      new ThisType(symbol.convert)
     case s.WithType(types) =>
-      new WithTpe(types.convert)
+      new WithType(types.convert)
     case s.UniversalType(typeParameters, tpe) =>
-      new UniversalTpe(typeParameters.convert, tpe.convert)
+      new UniversalType(typeParameters.convert, tpe.convert)
     case s.SingleType(prefix, symbol) =>
-      new SingleTpe(prefix.convert, symbol.convert)
+      new SingleType(prefix.convert, symbol.convert)
     case s.ExistentialType(tpe, declarations) =>
-      new ExistentialTpe(tpe.convert, declarations.convert)
+      new ExistentialType(tpe.convert, declarations.convert)
     case s.UnionType(types) =>
-      new UnionTpe(types.convert)
+      new UnionType(types.convert)
     case s.NoType =>
       NoTpe
   }
@@ -113,10 +113,10 @@ class FromProtobuf()(implicit doc: SemanticDoc) {
     def convert: Symbol = Symbol(sym)
   }
   implicit class RichType(t: s.Type) {
-    def convert: Tpe = stype(t)
+    def convert: SType = stype(t)
   }
   implicit class RichTypes(types: Seq[s.Type]) {
-    def convert: List[Tpe] = types.iterator.map(stype).toList
+    def convert: List[SType] = types.iterator.map(stype).toList
   }
   implicit class RichScope(scope: Option[s.Scope]) {
     def convert: List[SymbolInfo] = sscope(scope)
