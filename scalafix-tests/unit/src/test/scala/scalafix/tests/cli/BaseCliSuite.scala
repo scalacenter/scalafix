@@ -8,7 +8,6 @@ import java.nio.file.Path
 import scala.collection.immutable.Seq
 import scala.meta.internal.io.FileIO
 import scalafix.cli.ExitStatus
-import scalafix.internal.rule.RemoveUnusedImports
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.test.StringFS
 import scalafix.testkit.DiffAssertions
@@ -163,7 +162,7 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
       expectedExit: ExitStatus,
       preprocess: AbsolutePath => Unit = _ => (),
       outputAssert: String => Unit = _ => (),
-      rule: String = RemoveUnusedImports.toString(),
+      rule: String = "RemoveUnusedImports",
       path: RelativePath = removeImportsPath,
       files: String = removeImportsPath.toString(),
       assertObtained: Result => Unit = { result =>

@@ -60,6 +60,14 @@ lazy val core = project
   )
   .enablePlugins(BuildInfoPlugin)
 
+lazy val rules = project
+  .in(file("scalafix-rules"))
+  .settings(
+    moduleName := "scalafix-rules",
+    description := "Built-in Scalafix rules"
+  )
+  .dependsOn(core)
+
 lazy val reflect = project
   .in(file("scalafix-reflect"))
   .settings(
@@ -71,7 +79,7 @@ lazy val reflect = project
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
     )
   )
-  .dependsOn(core)
+  .dependsOn(core, rules)
 
 lazy val cli = project
   .in(file("scalafix-cli"))

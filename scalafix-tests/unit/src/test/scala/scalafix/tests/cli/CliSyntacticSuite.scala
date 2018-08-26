@@ -1,7 +1,6 @@
 package scalafix.tests.cli
 
 import scalafix.cli._
-import scalafix.internal.rule._
 import scalafix.patch.Patch
 import scalafix.rule.RuleName
 import scalafix.v1.Doc
@@ -48,7 +47,7 @@ class CliSyntacticSuite extends BaseCliSuite {
     originalLayout = s"""/hello.scala
                         |$original
                         |""".stripMargin,
-    args = Array("-r", ProcedureSyntax.toString, "hello.scala"),
+    args = Array("-r", "ProcedureSyntax", "hello.scala"),
     expectedLayout = s"""/hello.scala
                         |$expected
                         |""".stripMargin,
@@ -84,7 +83,7 @@ class CliSyntacticSuite extends BaseCliSuite {
                          |$original""".stripMargin,
     args = Array(
       "-r",
-      ProcedureSyntax.toString,
+      "ProcedureSyntax",
       "dir"
     ),
     expectedLayout = s"""|/dir/a.scala
@@ -114,7 +113,7 @@ class CliSyntacticSuite extends BaseCliSuite {
     name = "TestError",
     originalLayout = s"""/foobar.scala
                         |$original""".stripMargin,
-    args = Array("--test", "-r", ProcedureSyntax.toString, "foobar.scala"),
+    args = Array("--test", "-r", "ProcedureSyntax", "foobar.scala"),
     expectedLayout = s"""/foobar.scala
                         |$original""".stripMargin,
     expectedExit = ExitStatus.TestError,
@@ -137,7 +136,7 @@ class CliSyntacticSuite extends BaseCliSuite {
     name = "--test OK",
     originalLayout = s"""/foobar.scala
                         |$expected""".stripMargin,
-    args = Array("--test", "-r", ProcedureSyntax.toString, "foobar.scala"),
+    args = Array("--test", "-r", "ProcedureSyntax", "foobar.scala"),
     expectedLayout = s"""/foobar.scala
                         |$expected""".stripMargin,
     expectedExit = ExitStatus.Ok
@@ -189,7 +188,7 @@ class CliSyntacticSuite extends BaseCliSuite {
       "--exclude",
       "**ignoreme.scala",
       "-r",
-      ProcedureSyntax.toString,
+      "ProcedureSyntax",
       "ignoreme.scala",
       "fixme.scala"
     ),
@@ -208,7 +207,7 @@ class CliSyntacticSuite extends BaseCliSuite {
     args = Array(
       "--stdout",
       "-r",
-      ProcedureSyntax.toString,
+      "ProcedureSyntax",
       "a.scala"
     ),
     expectedLayout = s"""|/a.scala
@@ -224,7 +223,7 @@ class CliSyntacticSuite extends BaseCliSuite {
                          |""".stripMargin,
     args = Array(
       "-r",
-      ProcedureSyntax.toString,
+      "ProcedureSyntax",
       "a.scala"
     ),
     expectedLayout = s"""|/a.scala
@@ -250,7 +249,7 @@ class CliSyntacticSuite extends BaseCliSuite {
                          |""".stripMargin,
     args = Array(
       "-r",
-      ProcedureSyntax.toString,
+      "ProcedureSyntax",
       "a.sbt"
     ),
     expectedLayout = s"""|/a.sbt
@@ -287,7 +286,7 @@ class CliSyntacticSuite extends BaseCliSuite {
                          |""".stripMargin,
     args = Array(
       "-r",
-      ProcedureSyntax.toString,
+      "ProcedureSyntax",
       "dir"
     ),
     expectedLayout = s"""|/dir/a.java
@@ -307,7 +306,7 @@ class CliSyntacticSuite extends BaseCliSuite {
                        |""".stripMargin,
     args = Array(
       "-r",
-      ProcedureSyntax.toString,
+      "ProcedureSyntax",
       "--out-from",
       "shared",
       "--out-to",

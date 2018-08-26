@@ -1,7 +1,6 @@
 package scalafix.v1
 
 import java.net.URLClassLoader
-import java.util.ServiceLoader
 import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
@@ -17,7 +16,6 @@ import scalafix.internal.reflect.ScalafixToolbox.CompiledRules
 import scalafix.internal.v1.Rules
 import scalafix.patch.TreePatch
 import scalafix.v1
-import scala.collection.JavaConverters._
 import scala.meta.io.Classpath
 import scalafix.internal.reflect.ClasspathOps
 
@@ -99,10 +97,7 @@ object RuleDecoder {
 
   def decoder(settings: Settings): ConfDecoder[Rules] =
     new ConfDecoder[Rules] {
-      private val customRules =
-        ServiceLoader.load(classOf[v1.Rule], settings.toolClasspath)
-      private val allRules =
-        List(Rules.defaults.iterator, customRules.iterator().asScala).flatten
+      private val allRules = Rules.all(settings.toolClasspath)
       override def read(conf: Conf): Configured[Rules] = conf match {
         case str: Conf.Str =>
           read(Conf.Lst(str :: Nil))

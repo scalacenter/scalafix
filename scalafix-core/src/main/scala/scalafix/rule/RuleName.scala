@@ -25,7 +25,7 @@ final case class RuleName(identifiers: List[RuleIdentifier]) {
   def value: String =
     if (isDeprecated) identifiers.mkString("+")
     else if (nonDeprecated.isEmpty) "empty"
-    else nonDeprecated.mkString("+")
+    else nonDeprecated.head.value
   def isEmpty: Boolean = identifiers.isEmpty
 
   def +(other: RuleName): RuleName =

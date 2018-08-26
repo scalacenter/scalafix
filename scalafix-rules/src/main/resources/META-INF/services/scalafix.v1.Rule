@@ -1,0 +1,13 @@
+scalafix.internal.rule.DottyVolatileLazyVal
+scalafix.internal.rule.DottyKeywords
+scalafix.internal.rule.DottyVarArgPattern
+scalafix.internal.rule.DisableSyntax
+scalafix.internal.rule.ExplicitResultTypes
+scalafix.internal.rule.MissingFinal
+scalafix.internal.rule.DisableLegacy
+scalafix.internal.rule.NoAutoTupling
+scalafix.internal.rule.NoValInForComprehension
+scalafix.internal.rule.ProcedureSyntax
+scalafix.internal.rule.RemoveUnusedImports
+scalafix.internal.rule.RemoveUnusedTerms
+scalafix.internal.rule.LeakingImplicitClassVal

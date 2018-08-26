@@ -4,7 +4,7 @@ import java.util.regex.Pattern
 import scala.meta._
 import scalafix.v1._
 
-case object RemoveUnusedTerms extends SemanticRule("RemoveUnusedTerms") {
+class RemoveUnusedTerms extends SemanticRule("RemoveUnusedTerms") {
 
   override def description: String =
     "Rewrite that removes unused locals or privates by -Ywarn-unused:locals,privates"

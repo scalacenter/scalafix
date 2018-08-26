@@ -4,7 +4,7 @@ import scala.meta._
 import scalafix.v1._
 import scalafix.util.Trivia
 
-case object ProcedureSyntax extends SyntacticRule("ProcedureSyntax") {
+class ProcedureSyntax extends SyntacticRule("ProcedureSyntax") {
 
   override def description: String =
     "Rewrite that inserts explicit : Unit = for soon-to-be-deprecated procedure syntax def foo { ... }"

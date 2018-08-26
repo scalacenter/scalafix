@@ -3,7 +3,7 @@ package scalafix.internal.rule
 import scala.meta._
 import scalafix.v1._
 
-case object MissingFinal extends SemanticRule("MissingFinal") {
+class MissingFinal extends SemanticRule("MissingFinal") {
 
   override def description: String =
     "Rule that checks for or adds final modifier in the corresponding places"

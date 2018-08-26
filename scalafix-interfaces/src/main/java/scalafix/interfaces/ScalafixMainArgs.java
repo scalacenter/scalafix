@@ -106,4 +106,13 @@ public interface ScalafixMainArgs {
      * @param charset Charset for reading source files from disk. Defaults to UTF-8.
      */
     ScalafixMainArgs withCharset(Charset charset);
+
+
+    /**
+     * The rule names that are valid arguments for {@link #withRules(List) }.
+     *
+     * Takes into account built-in rules as well as the tool classpath provided via
+     * {@link #withToolClasspath(URLClassLoader) }.
+     */
+    String[] validRuleNames();
 }

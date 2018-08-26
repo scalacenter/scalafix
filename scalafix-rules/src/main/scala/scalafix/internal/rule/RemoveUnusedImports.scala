@@ -3,7 +3,7 @@ package scalafix.internal.rule
 import scala.meta._
 import scalafix.v1._
 
-case object RemoveUnusedImports extends SemanticRule("RemoveUnusedImports") {
+class RemoveUnusedImports extends SemanticRule("RemoveUnusedImports") {
 
   override def description: String =
     "Rewrite that removes unused imports reported by the compiler under -Xwarn-unused-import."

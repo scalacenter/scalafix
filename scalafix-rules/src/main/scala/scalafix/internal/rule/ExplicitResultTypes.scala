@@ -16,9 +16,10 @@ import scalafix.internal.util.QualifyStrategy
 import scalafix.internal.util.PrettyType
 import scalafix.v1.MissingSymbolException
 
-case class ExplicitResultTypes(
-    config: ExplicitResultTypesConfig = ExplicitResultTypesConfig.default
-) extends SemanticRule("ExplicitResultTypes") {
+case class ExplicitResultTypes(config: ExplicitResultTypesConfig)
+    extends SemanticRule("ExplicitResultTypes") {
+
+  def this() = this(ExplicitResultTypesConfig.default)
 
   override def description: String =
     "Rewrite that inserts explicit type annotations for def/val/var"

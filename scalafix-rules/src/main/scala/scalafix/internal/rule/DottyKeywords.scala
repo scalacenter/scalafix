@@ -4,7 +4,7 @@ import scala.meta._
 import scalafix.v1._
 import scalafix.syntax._
 
-case object DottyKeywords extends SyntacticRule("DottyKeywords") {
+class DottyKeywords extends SyntacticRule("DottyKeywords") {
 
   override def description: String =
     "Rewrite that replaces enum and inline with `enum` and `inline` for compatibility with Dotty"

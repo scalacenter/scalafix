@@ -1,18 +1,15 @@
 package scalafix.internal.v1
 
+import java.util.ServiceLoader
 import metaconfig.Conf
 import metaconfig.Configured
 import scala.meta.tokens.Tokens
-import scalafix.internal.config.DisableConfig
 import scalafix.internal.config.MetaconfigPendingUpstream
-import scalafix.internal.rule._
 import scalafix.internal.util.SuppressOps
-import scalafix.internal.v0.LegacySemanticRule
 import scalafix.lint.RuleDiagnostic
 import scalafix.lint.Diagnostic
 import scalafix.patch.Patch
 import scalafix.rule.RuleName
-import scalafix.v0
 import scalafix.v1.Doc
 import scalafix.v1.Rule
 import scalafix.v1.SemanticDoc
@@ -71,35 +68,15 @@ case class Rules(rules: List[Rule] = Nil) {
 }
 
 object Rules {
-  def allNames: List[String] = defaults.map(_.name.value)
-  def allNamesDescriptions: List[(String, String)] = defaults.map { rule =>
-    rule.name.value -> rule.description
+  def all(): List[Rule] = {
+    all(Thread.currentThread.getContextClassLoader)
   }
-  def defaults: List[Rule] =
-    builtin ++ legacySemanticRules
-
-  val builtin: List[Rule] = List(
-    DottyVolatileLazyVal,
-    DottyKeywords,
-    DottyVarArgPattern,
-    DisableSyntax(),
-    ExplicitResultTypes(),
-    MissingFinal,
-    NoAutoTupling,
-    NoValInForComprehension,
-    ProcedureSyntax,
-    RemoveUnusedImports,
-    RemoveUnusedTerms,
-    LeakingImplicitClassVal
-  )
-
-  val legacySemanticRules: List[LegacySemanticRule] = {
-    val semantics = List[v0.SemanticdbIndex => v0.Rule](
-      index => Disable(index, DisableConfig.default)
-    )
-    semantics.map { fn =>
-      val name = fn(v0.SemanticdbIndex.empty).name
-      new LegacySemanticRule(name, fn)
-    }
+  def all(classLoader: ClassLoader): List[Rule] = {
+    import scala.collection.JavaConverters._
+    ServiceLoader
+      .load(classOf[Rule], classLoader)
+      .iterator()
+      .asScala
+      .toList
   }
 }

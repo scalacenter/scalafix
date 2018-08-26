@@ -4,8 +4,7 @@ import scala.meta._
 import scala.meta.contrib._
 import scalafix.v1._
 
-case object NoValInForComprehension
-    extends SyntacticRule("NoValInForComprehension") {
+class NoValInForComprehension extends SyntacticRule("NoValInForComprehension") {
 
   override def description: String =
     "Rewrite that removes redundant val inside for-comprehensions"
