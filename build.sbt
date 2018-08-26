@@ -17,6 +17,20 @@ def inferJavaHome() =
 lazy val interfaces = project
   .in(file("scalafix-interfaces"))
   .settings(
+    resourceGenerators.in(Compile) += Def.task {
+      val props = new java.util.Properties()
+      props.put("scalafixVersion", version.value)
+      props.put("scalafixStableVersion", stableVersion.value)
+      props.put("scalametaVersion", scalametaV)
+      props.put("scala212", scala212)
+      props.put("scala211", scala211)
+      val out =
+        managedResourceDirectories.in(Compile).value.head /
+          "scalafix-interfaces.properties"
+      IO.write(props, "Scalafix version constants", out)
+      List(out)
+
+    },
     javacOptions.in(Compile) ++= List(
       "-Xlint:all",
       "-Werror"
