@@ -83,7 +83,7 @@ abstract class SemanticRuleSuite(val props: TestkitProperties)
     val classLoader = ClasspathOps.toClassLoader(props.inputClasspath)
     val tests = TestkitPath.fromProperties(props)
     tests.map { test =>
-      RuleTest.fromPath(test, classLoader, symtab)
+      RuleTest.fromPath(props, test, classLoader, symtab)
     }
   }
   def runAllTests(): Unit = {

@@ -51,6 +51,8 @@ class CliSemanticSuite extends BaseCliSuite {
     val (out, exit) = runMain(
       Array(
         // no --classpath
+        "--scalac-options",
+        "-Ywarn-unused-import",
         "-r",
         "RemoveUnusedImports",
         name

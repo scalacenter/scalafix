@@ -3,6 +3,7 @@ package scalafix.interfaces;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 /**
  * Public API for reflectively invoking Scalafix from a build tool or IDE integration.
@@ -59,6 +60,7 @@ public interface Scalafix {
      * The most recent Scala 2.12 version in {@link #supportedScalaVersions()}
      */
     String scala212();
+
 
 
     /**

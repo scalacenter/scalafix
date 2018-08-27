@@ -5,6 +5,7 @@ import scalafix.interfaces.Scalafix
 import scalafix.interfaces.ScalafixError
 import scalafix.interfaces.ScalafixMainArgs
 import scalafix.internal.v1.MainOps
+import scalafix.internal.v1.Rules
 
 final class ScalafixImpl extends Scalafix {
 
@@ -34,4 +35,5 @@ final class ScalafixImpl extends Scalafix {
     Versions.scala211
   override def scala212(): String =
     Versions.scala212
+
 }

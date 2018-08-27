@@ -3,8 +3,7 @@ package scalafix.internal.rule
 import scala.meta._
 import scalafix.v1._
 
-case object LeakingImplicitClassVal
-    extends SyntacticRule("LeakingImplicitClassVal") {
+class LeakingImplicitClassVal extends SyntacticRule("LeakingImplicitClassVal") {
 
   override def description: String =
     "Add private access modifier to val parameters of implicit value classes in order to prevent public access"

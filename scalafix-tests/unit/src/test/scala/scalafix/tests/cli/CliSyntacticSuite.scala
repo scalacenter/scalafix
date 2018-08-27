@@ -1,10 +1,13 @@
 package scalafix.tests.cli
 
+import metaconfig.Configured
 import scalafix.cli._
-import scalafix.internal.rule._
 import scalafix.patch.Patch
 import scalafix.rule.RuleName
+import scalafix.v1
+import scalafix.v1.Configuration
 import scalafix.v1.Doc
+import scalafix.v1.Rule
 import scalafix.v1.SyntacticRule
 
 class CliSyntacticSuite extends BaseCliSuite {
@@ -48,7 +51,7 @@ class CliSyntacticSuite extends BaseCliSuite {
     originalLayout = s"""/hello.scala
                         |$original
                         |""".stripMargin,
-    args = Array("-r", ProcedureSyntax.toString, "hello.scala"),
+    args = Array("-r", "ProcedureSyntax", "hello.scala"),
     expectedLayout = s"""/hello.scala
                         |$expected
                         |""".stripMargin,
@@ -84,7 +87,7 @@ class CliSyntacticSuite extends BaseCliSuite {
                          |$original""".stripMargin,
     args = Array(
       "-r",
-      ProcedureSyntax.toString,
+      "ProcedureSyntax",
       "dir"
     ),
     expectedLayout = s"""|/dir/a.scala
@@ -114,7 +117,7 @@ class CliSyntacticSuite extends BaseCliSuite {
     name = "TestError",
     originalLayout = s"""/foobar.scala
                         |$original""".stripMargin,
-    args = Array("--test", "-r", ProcedureSyntax.toString, "foobar.scala"),
+    args = Array("--test", "-r", "ProcedureSyntax", "foobar.scala"),
     expectedLayout = s"""/foobar.scala
                         |$original""".stripMargin,
     expectedExit = ExitStatus.TestError,
@@ -137,7 +140,7 @@ class CliSyntacticSuite extends BaseCliSuite {
     name = "--test OK",
     originalLayout = s"""/foobar.scala
                         |$expected""".stripMargin,
-    args = Array("--test", "-r", ProcedureSyntax.toString, "foobar.scala"),
+    args = Array("--test", "-r", "ProcedureSyntax", "foobar.scala"),
     expectedLayout = s"""/foobar.scala
                         |$expected""".stripMargin,
     expectedExit = ExitStatus.Ok
@@ -189,7 +192,7 @@ class CliSyntacticSuite extends BaseCliSuite {
       "--exclude",
       "**ignoreme.scala",
       "-r",
-      ProcedureSyntax.toString,
+      "ProcedureSyntax",
       "ignoreme.scala",
       "fixme.scala"
     ),
@@ -208,7 +211,7 @@ class CliSyntacticSuite extends BaseCliSuite {
     args = Array(
       "--stdout",
       "-r",
-      ProcedureSyntax.toString,
+      "ProcedureSyntax",
       "a.scala"
     ),
     expectedLayout = s"""|/a.scala
@@ -224,7 +227,7 @@ class CliSyntacticSuite extends BaseCliSuite {
                          |""".stripMargin,
     args = Array(
       "-r",
-      ProcedureSyntax.toString,
+      "ProcedureSyntax",
       "a.scala"
     ),
     expectedLayout = s"""|/a.scala
@@ -250,7 +253,7 @@ class CliSyntacticSuite extends BaseCliSuite {
                          |""".stripMargin,
     args = Array(
       "-r",
-      ProcedureSyntax.toString,
+      "ProcedureSyntax",
       "a.sbt"
     ),
     expectedLayout = s"""|/a.sbt
@@ -287,7 +290,7 @@ class CliSyntacticSuite extends BaseCliSuite {
                          |""".stripMargin,
     args = Array(
       "-r",
-      ProcedureSyntax.toString,
+      "ProcedureSyntax",
       "dir"
     ),
     expectedLayout = s"""|/dir/a.java
@@ -307,7 +310,7 @@ class CliSyntacticSuite extends BaseCliSuite {
                        |""".stripMargin,
     args = Array(
       "-r",
-      ProcedureSyntax.toString,
+      "ProcedureSyntax",
       "--out-from",
       "shared",
       "--out-to",
@@ -357,6 +360,35 @@ class CliSyntacticSuite extends BaseCliSuite {
                        |""".stripMargin,
     expectedExit = ExitStatus.ParseError
   )
+
+  def checkCommandLineError(
+      name: String,
+      args: Array[String],
+      fn: String => Unit): Unit =
+    check(
+      name = name,
+      originalLayout = "",
+      args = args,
+      expectedLayout = "",
+      expectedExit = ExitStatus.CommandLineError,
+      outputAssert = { out =>
+        fn(out)
+      }
+    )
+
+  checkCommandLineError(
+    "--scala-version error",
+    Array("-r", "Scala2_9", "--scala-version", "2.12.6"), { out =>
+      assert(out.contains("must start with 2.9"))
+    }
+  )
+
+  checkCommandLineError(
+    "--scalac-options error",
+    Array("-r", "Scala2_9", "--scala-version", "2.9.6"), { out =>
+      assert(out.contains("must contain -Ysource:2.9"))
+    }
+  )
 }
 
 class NoOpRule extends SyntacticRule("NoOpRule") {
@@ -373,3 +405,19 @@ class DeprecatedName
   override def fix(implicit doc: Doc): _root_.scalafix.v1.Patch =
     Patch.empty
 }
+
+class Scala2_9 extends SyntacticRule("Scala2_9") {
+  override def withConfiguration(config: Configuration): Configured[Rule] =
+    if (!config.scalaVersion.startsWith("2.9")) {
+      Configured.error("scalaVersion must start with 2.9")
+    } else if (!config.scalacOptions.contains("-Ysource:2.9")) {
+      Configured.error("scalacOptions must contain -Ysource:2.9")
+    } else {
+      Configured.ok(this)
+    }
+}
+
+class AvailableRule
+    extends v1.SemanticRule(
+      v1.RuleName("AvailableRule")
+        .withDeprecatedName("DeprecatedAvailableRule", "", ""))

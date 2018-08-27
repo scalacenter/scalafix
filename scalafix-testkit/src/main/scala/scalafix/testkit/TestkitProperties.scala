@@ -25,7 +25,9 @@ final class TestkitProperties(
     val inputClasspath: Classpath,
     val inputSourceDirectories: List[AbsolutePath],
     val outputSourceDirectories: List[AbsolutePath],
-    val sourceroot: AbsolutePath
+    val sourceroot: AbsolutePath,
+    val scalaVersion: String,
+    val scalacOptions: List[String]
 ) {
   def resolveInput(path: RelativePath): AbsolutePath =
     resolveFrom(inputSourceDirectories, path)
@@ -48,7 +50,9 @@ final class TestkitProperties(
       "inputSourceDirectories" -> inputSourceDirectories,
       "outputSourceDirectories" -> outputSourceDirectories,
       "inputClasspath" -> inputClasspath.syntax,
-      "sourceroot" -> sourceroot
+      "sourceroot" -> sourceroot,
+      "scalaVersion" -> scalaVersion,
+      "scalacOptions" -> scalacOptions
     )
     pprint.PPrinter.BlackWhite.tokenize(map).mkString
   }
@@ -72,11 +76,20 @@ object TestkitProperties {
         case Some(root) => AbsolutePath(root)
         case None => PathIO.workingDirectory
       }
+      val scalacOptions = sprops.get("scalacOptions") match {
+        case Some(options) => options.split("\\|").toList
+        case None => Nil
+      }
       new TestkitProperties(
         Classpath(sprops("inputClasspath")),
         Classpath(sprops("inputSourceDirectories")).entries,
         Classpath(sprops("outputSourceDirectories")).entries,
-        sourceroot
+        sourceroot,
+        sprops.getOrElseUpdate(
+          "scalaVersion",
+          scala.util.Properties.versionNumberString
+        ),
+        scalacOptions
       )
     }
   }

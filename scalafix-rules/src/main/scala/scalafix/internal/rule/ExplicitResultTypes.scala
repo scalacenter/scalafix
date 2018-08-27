@@ -5,26 +5,23 @@ import scala.meta.contrib._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
 import scalafix.patch.Patch
 import scalafix.v1._
-import scalafix.internal.config.ExplicitResultTypesConfig
-import scalafix.internal.config.MemberKind
-import scalafix.internal.config.MemberVisibility
 import scalafix.util.TokenOps
-import metaconfig.Conf
 import metaconfig.Configured
 import scalafix.internal.util.PrettyResult
 import scalafix.internal.util.QualifyStrategy
 import scalafix.internal.util.PrettyType
 import scalafix.v1.MissingSymbolException
 
-case class ExplicitResultTypes(
-    config: ExplicitResultTypesConfig = ExplicitResultTypesConfig.default
-) extends SemanticRule("ExplicitResultTypes") {
+case class ExplicitResultTypes(config: ExplicitResultTypesConfig)
+    extends SemanticRule("ExplicitResultTypes") {
+
+  def this() = this(ExplicitResultTypesConfig.default)
 
   override def description: String =
     "Rewrite that inserts explicit type annotations for def/val/var"
 
-  override def withConfig(config: Conf): Configured[Rule] =
-    config // Support deprecated explicitReturnTypes config
+  override def withConfiguration(config: Configuration): Configured[Rule] =
+    config.conf // Support deprecated explicitReturnTypes config
       .getOrElse("explicitReturnTypes", "ExplicitResultTypes")(
         ExplicitResultTypesConfig.default
       )

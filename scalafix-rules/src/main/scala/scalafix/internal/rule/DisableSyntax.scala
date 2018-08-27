@@ -1,23 +1,21 @@
 package scalafix.internal.rule
 
-import metaconfig.Conf
 import metaconfig.Configured
 import scala.meta._
-import scalafix.internal.config.DisableSyntaxConfig
-import scalafix.internal.config.Keyword
 import scalafix.v0.LintCategory
 import scalafix.v1._
 
-final case class DisableSyntax(
-    config: DisableSyntaxConfig = DisableSyntaxConfig())
+final case class DisableSyntax(config: DisableSyntaxConfig)
     extends SyntacticRule("DisableSyntax")
     with Product {
+
+  def this() = this(DisableSyntaxConfig())
 
   override def description: String =
     "Linter that reports an error on a configurable set of keywords and syntax."
 
-  override def withConfig(config: Conf): Configured[Rule] =
-    config
+  override def withConfiguration(config: Configuration): Configured[Rule] =
+    config.conf
       .getOrElse("disableSyntax", "DisableSyntax")(DisableSyntaxConfig.default)
       .map(DisableSyntax(_))
 

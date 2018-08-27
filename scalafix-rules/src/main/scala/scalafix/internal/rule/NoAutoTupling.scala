@@ -3,10 +3,7 @@ package scalafix.internal.rule
 import scala.meta._
 import scalafix.v1._
 
-case object NoAutoTupling
-    extends SemanticRule(
-      "NoAutoTupling"
-    ) {
+class NoAutoTupling extends SemanticRule("NoAutoTupling") {
 
   override def description: String =
     "Rewrite that inserts explicit tuples for adapted argument lists for compatibility with -Yno-adapted-args"

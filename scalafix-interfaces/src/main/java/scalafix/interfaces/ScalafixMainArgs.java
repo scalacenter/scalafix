@@ -106,4 +106,26 @@ public interface ScalafixMainArgs {
      * @param charset Charset for reading source files from disk. Defaults to UTF-8.
      */
     ScalafixMainArgs withCharset(Charset charset);
+
+    /**
+     * @param version The Scala compiler version used to compile this classpath.
+     *                For example "2.12.6".
+     *
+     */
+    ScalafixMainArgs withScalaVersion(String version);
+
+    /**
+     * @param options The Scala compiler flags used to compile this classpath.
+     *                For example List(-Ywarn-unused-import).
+     */
+    ScalafixMainArgs withScalacOptions(List<String> options);
+
+
+    /**
+     * The rules that are valid arguments for {@link #withRules(List) }.
+     *
+     * Takes into account built-in rules as well as the tool classpath provided via
+     * {@link #withToolClasspath(URLClassLoader) }.
+     */
+    List<ScalafixRule> availableRules();
 }

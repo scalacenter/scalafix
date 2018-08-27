@@ -19,7 +19,8 @@ package object website {
   }
 
   def allRulesTable(reporter: Reporter): String = {
-    val rules = Rules.defaults
+    val rules = Rules
+      .all()
       .filterNot(_.name.isDeprecated)
       .sortBy(_.name.value)
 

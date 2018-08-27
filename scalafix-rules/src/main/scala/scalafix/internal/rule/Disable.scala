@@ -3,9 +3,9 @@ package scalafix.internal.rule
 import metaconfig.{Conf, Configured}
 import scala.meta._
 import scala.meta.transversers.Traverser
-import scalafix.internal.config.{DisableConfig, DisabledSymbol}
 import scalafix.internal.v0.InputSynthetic
 import scalafix.internal.util.SymbolOps
+import scalafix.internal.v0.LegacySemanticRule
 import scalafix.v0._
 
 object Disable {
@@ -184,3 +184,8 @@ final case class Disable(index: SemanticdbIndex, config: DisableConfig)
     checkTree(ctx) ++ checkSynthetics(ctx)
   }
 }
+
+class DisableLegacy()
+    extends LegacySemanticRule(
+      "Disable",
+      index => Disable(index, DisableConfig.default))

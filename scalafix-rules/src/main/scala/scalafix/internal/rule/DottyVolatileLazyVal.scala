@@ -3,7 +3,7 @@ package scalafix.internal.rule
 import scala.meta._
 import scalafix.v1._
 
-case object DottyVolatileLazyVal extends SyntacticRule("DottyVolatileLazyVal") {
+class DottyVolatileLazyVal extends SyntacticRule("DottyVolatileLazyVal") {
   override def description: String =
     "Rewrite all lazy vals to Dotty's volatile ones for safe publishing (default semantics of pre-Dotty Scala)"
   private object NonVolatileLazyVal {
