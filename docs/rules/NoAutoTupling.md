@@ -29,8 +29,7 @@ Auto-tupling is a feature that can lead to unexpected results, making code to
 compile when one would expect a compiler error instead. Adding explicit tuples
 makes it more obvious.
 
-**Note**. Some auto-tupling cases are left unfixed, namely the ones involving
-constructor application using `new`
+> Some auto-tupling cases are left unfixed, namely the ones involving constructor application using `new`
 
 ```scala
 case class Foo(x: (String, Boolean))

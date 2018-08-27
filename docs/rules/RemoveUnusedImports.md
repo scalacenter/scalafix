@@ -29,8 +29,7 @@ import scala.collection.immutable
 object Foo { immutable.Seq.empty[Int] }
 ```
 
-**Note**. This rule does a best-effort at preserving original formatting. In
-some cases, the rewritten code may be formatted weirdly
+> This rule does a best-effort at preserving original formatting. In some cases, the rewritten code may be formatted weirdly
 
 ```scala
 // before

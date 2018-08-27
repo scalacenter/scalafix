@@ -130,7 +130,7 @@ def foo: Unit = {
 }
 ```
 
-**Note:** The `@SuppressWarnings` annotation is detected without compilation.
+> The `@SuppressWarnings` annotation is detected without compilation.
 Any annotation matching the syntax `@SuppressWarnings(..)` regardless if it's
 `java.lang.SupressWarnings` or not will trigger the suppression mechanism. This
 is done in order to support `@SuppressWarnings` for syntactic rules like
@@ -187,7 +187,7 @@ var x: Int = 0 // scalafix:ok DisableSyntax.keywords.var; I need mutability
 // scalafix:off; temporarily disabling all rules until the code below gets refactored
 ```
 
-**Note:** Suppression via comments and `@SuppressWarnings` can be combined in
+> Suppression via comments and `@SuppressWarnings` can be combined in
 the same source file. Be mindful not to introduce overlaps between the two as it
 can cause confusion and counter-intuitive behavior. Scalafix handles overlaps by
 giving precedence to the `@SuppressWarnings` annotation:
