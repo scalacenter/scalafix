@@ -19,9 +19,12 @@ cd scalafix
 sbt tests/test
 ```
 
-Note that the `scalafix` directory is a self-contained sbt build and can be put
+> The `scalafix` directory is a self-contained sbt build and can be put
 into the root directory of your repo. The tests are written using
 `scalafix-testkit`.
+
+> If you want to run only one rule, you can use the following command: `tests/testOnly *ScalafixTests -- -z TupleN`. See the scalatest documentation section: [Selecting suites and tests](http://www.scalatest.org/user_guide/using_the_runner#selectingSuitesAndTests) for more details.
+
 
 ## scalafix-testkit
 
