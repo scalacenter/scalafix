@@ -133,7 +133,7 @@ class Highlight extends React.Component {
       __html: highlightBlock.highlight(this.props.lang, this.props.children).value
     }
     return (
-      <pre className="{this.props.lang} hljs">
+      <pre className={`${this.props.lang} hljs`}>
         <code dangerouslySetInnerHTML={content}></code>
       </pre>
     )
