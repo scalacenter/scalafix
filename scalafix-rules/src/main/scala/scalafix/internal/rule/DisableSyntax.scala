@@ -2,8 +2,6 @@ package scalafix.internal.rule
 
 import metaconfig.Configured
 import scala.meta._
-import scalafix.internal.config.DisableSyntaxConfig
-import scalafix.internal.config.Keyword
 import scalafix.v0.LintCategory
 import scalafix.v1._
 

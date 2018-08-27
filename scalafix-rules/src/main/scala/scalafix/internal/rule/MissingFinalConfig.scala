@@ -1,4 +1,4 @@
-package scalafix.internal.config
+package scalafix.internal.rule
 
 import metaconfig.ConfDecoder
 import metaconfig.annotation.Description

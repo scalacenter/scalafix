@@ -3,7 +3,6 @@ package scalafix.internal.rule
 import metaconfig.{Conf, Configured}
 import scala.meta._
 import scala.meta.transversers.Traverser
-import scalafix.internal.config.{DisableConfig, DisabledSymbol}
 import scalafix.internal.v0.InputSynthetic
 import scalafix.internal.util.SymbolOps
 import scalafix.internal.v0.LegacySemanticRule

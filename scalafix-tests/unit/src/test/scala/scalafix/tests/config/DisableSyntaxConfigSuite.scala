@@ -1,13 +1,11 @@
 package scalafix.tests.config
 
 import org.scalatest.FunSuite
-
 import metaconfig.Configured
 import metaconfig.Configured.NotOk
 import metaconfig.ConfError
 import metaconfig.typesafeconfig._
-
-import scalafix.internal.config.{DisableSyntaxConfig, DisabledKeyword}
+import scalafix.internal.rule._
 
 class DisableSyntaxConfigSuite extends FunSuite {
   test("Warn about invalid keywords") {

@@ -5,9 +5,6 @@ import scala.meta.contrib._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
 import scalafix.patch.Patch
 import scalafix.v1._
-import scalafix.internal.config.ExplicitResultTypesConfig
-import scalafix.internal.config.MemberKind
-import scalafix.internal.config.MemberVisibility
 import scalafix.util.TokenOps
 import metaconfig.Configured
 import scalafix.internal.util.PrettyResult

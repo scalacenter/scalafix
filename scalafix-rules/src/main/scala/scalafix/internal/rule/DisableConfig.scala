@@ -1,10 +1,11 @@
-package scalafix.internal.config
+package scalafix.internal.rule
 
 import metaconfig._
 import metaconfig.annotation.{Description, ExampleValue}
 import metaconfig.generic.Surface
 import scalafix.v0.Symbol
 import scalafix.internal.util.SymbolOps
+import scalafix.internal.config._
 
 case class DisabledSymbol(
     @ExampleValue("scala.sys.process.Process")
