@@ -61,7 +61,18 @@ sealed abstract class Patch {
   def +(other: Option[Patch]): Patch =
     this.+(other.getOrElse(Patch.empty))
   def ++(other: Iterable[Patch]): Patch = other.foldLeft(this)(_ + _)
+
+  /**
+    * Returns true if this patch is Patch.empty, false otherwise.
+    *
+    * Note, may return false for patches that produce empty diffs. For example, a [[Patch]].replaceSymbol
+    * returns false even if the symbol from is not referenced in the code resulting in an empty diff.
+    */
   def isEmpty: Boolean = this == EmptyPatch
+
+  /**
+    * @see [[Patch.isEmpty]]
+    */
   def nonEmpty: Boolean = !isEmpty
 
   /** Skip this entire patch if a part of it is disabled with // scalafix:off */
