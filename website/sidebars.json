@@ -10,18 +10,13 @@
   "rules": {
     "Overview": ["rules/overview"],
     "Semantic": [
-      "rules/Disable",
       "rules/ExplicitResultTypes",
-      "rules/MissingFinal",
       "rules/NoAutoTupling",
       "rules/RemoveUnusedImports",
       "rules/RemoveUnusedTerms"
     ],
     "Syntactic": [
       "rules/DisableSyntax",
-      "rules/DottyKeywords",
-      "rules/DottyVarArgPattern",
-      "rules/DottyVolatileLazyVal",
       "rules/LeakingImplicitClassVal",
       "rules/NoValInForComprehension",
       "rules/ProcedureSyntax"

@@ -132,20 +132,6 @@ lazy val testsOutput = project
     coverageEnabled := false
   )
 
-lazy val testsOutputDotty = project
-  .in(file("scalafix-tests/output-dotty"))
-  .settings(
-    noPublish,
-    // Skip this project for IntellIJ, see https://youtrack.jetbrains.com/issue/SCL-12237
-    SettingKey[Boolean]("ide-skip-project") := true,
-    scalaVersion := dotty,
-    crossScalaVersions := List(dotty),
-    libraryDependencies := libraryDependencies.value
-      .map(_.withDottyCompat(scalaVersion.value)),
-    scalacOptions := Nil,
-    coverageEnabled := false
-  )
-
 lazy val testkit = project
   .in(file("scalafix-testkit"))
   .settings(
@@ -179,7 +165,6 @@ lazy val unit = project
         .in(Compile, compile)
         .dependsOn(
           compile.in(testsInput, Compile),
-          compile.in(testsOutputDotty, Compile),
           compile.in(testsOutput, Compile)
         )
         .value
@@ -205,8 +190,7 @@ lazy val unit = project
       )
       put(
         "outputSourceDirectories",
-        sourceDirectories.in(testsOutput, Compile).value ++
-          sourceDirectories.in(testsOutputDotty, Compile).value
+        sourceDirectories.in(testsOutput, Compile).value
       )
       props.put("scalaVersion", scalaVersion.value)
       props.put("scalacOptions", scalacOptions.value.mkString("|"))
@@ -225,8 +209,6 @@ lazy val unit = project
         sourceDirectory.in(testsOutput, Compile).value,
       "testsInputResources" ->
         sourceDirectory.in(testsInput, Compile).value / "resources",
-      "outputDottySourceroot" ->
-        sourceDirectory.in(testsOutputDotty, Compile).value,
       "semanticClasspath" ->
         classDirectory.in(testsInput, Compile).value,
       "sharedSourceroot" ->
