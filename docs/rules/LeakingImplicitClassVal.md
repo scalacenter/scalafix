@@ -22,5 +22,5 @@ implicit class XtensionValFixed(private val str: String) extends AnyVal {
 "message".str // does not compile
 ```
 
-Note: This rule only triggers for `val` fields, it ignores other modifiers such
+> This rule only triggers for `val` fields, it ignores other modifiers such
 as `var`.
