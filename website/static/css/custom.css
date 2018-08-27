@@ -1,50 +1,228 @@
-/* your custom css */
-
-.imageAlignSide .blockImage {
-  max-width: 700px;
-  flex: 0 1 700px;
+.terminal_window {
+  margin: 0 auto;
+  tex-align: left;
+  postion: relative;
+  border-radius: 10px;
 }
 
-.container.paddingTop {
-  padding-top: 40px;
+.terminal_window header {
+  background-color: #E0E8F0;
+  height: 30px;
+  border-radius: 8px 8px 0 0;
+  padding-left: 10px;
 }
 
-.container.paddingBottom {
-  padding-bottom: 60px;
+.terminal_window .ci-output {
+  padding: 1.25rem 1.5rem;
 }
 
-@media only screen and (min-device-width: 360px) and (max-device-width: 736px) {
+.terminal_window .terminal_button {
+  width: 12px;
+  height: 12px;
+  margin: 10px 4px 0 0;
+  display: inline-block;
+  border-radius: 8px;
 }
 
-@media only screen and (max-width: 960px) {
-  .wrapper {
-    max-width: 700px;
-  }
-  .imageAlignSide.imageAlignLeft {
-    flex-flow: row wrap-reverse;
-  }
-  .imageAlignSide .blockImage {
-    margin-top: 20px;
-  }
-  .imageAlignLeft .blockImage {
-    margin-right: 0;
-  }
-  .imageAlignRight .blockImage {
-    margin-left: 0;
-  }
+.red_btn {
+  background-color: #E75448;
 }
 
-@media only screen and (min-width: 1024px) {
+.green_btn {
+  background-color: #3BB662;
 }
 
-@media only screen and (max-width: 1023px) {
+.yellow_btn {
+  background-color: #E5C30F;
 }
 
-@media only screen and (min-width: 1400px) {
+.terminal_window {
+  background-color: #0D1F2D;
+  color: #F4FAFF;
+  font-size: 11pt;
 }
 
-@media only screen and (min-width: 1500px) {
-  .wrapper {
-    max-width: 1100px;
-  }
+.terminal_window_full {
+  position: relative;
+
+  margin: 40px auto;
+  height: 220px;
 }
+
+.terminal_text {
+  font-family: Menlo, Monaco, "Consolas", "Courier New", "Courier";
+}
+
+#typed-strings {
+  display: inline-block;
+  postiion: relative;
+}
+
+#typed {
+  font-family: Menlo, Monaco, "Consolas", "Courier New", "Courier";
+  margin-left: 15px;
+}
+
+.navigationSlider {
+  margin-left: auto;
+}
+
+.navigationSlider .slidingNav {
+  position: relative;
+}
+
+.navigationSlider .slidingNav ul {
+  background: none;
+  margin: 0;
+}
+
+.fixedHeaderContainer {
+  flex-shrink: 0;
+}
+
+.navPusher > :first-child {
+  flex-grow: 1;
+}
+
+.navPusher {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+
+.promoSection .button {
+  margin: 10px;
+}
+
+/*.projectTitle em {
+  font-weight: 900;
+}
+
+.projectTitle i,
+.projectTitle em {
+  font-style: normal;
+}
+
+.projectTitle i {
+  font-weight: 100;
+}
+*/
+.projectTitle img {
+  height: 40px;
+}
+
+.projectTitle small {
+  font-size: 24px;
+}
+
+.homeSplashFade .inner {
+  margin: 30px;
+}
+
+a,
+.nav-footer .sitemap a,
+.navigationSlider .slidingNav ul li a,
+.onPageNav a,
+.toc .toggleNav ul li a {
+  text-decoration: underline;
+}
+
+table td,
+table th {
+  border-color: transparent;
+}
+
+table th {
+  border-bottom-color: inherit;
+}
+
+
+/* GitHub CI */
+.travis-logo {
+  height: 100px;
+}
+
+.github-travis {
+  border-bottom-right-radius: 8px;
+  border-bottom-left-radius: 8px;
+
+  display: flex;
+
+  background-color: #fafbfc;
+  border-bottom: 1px solid #e1e4e8;
+  padding: 10px 15px;
+
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
+
+.merge-status-icon {
+  width: 30px;
+  margin-right: 12px;
+  align-self: center;
+  color: #28a745;
+}
+
+.merge-status-icon svg {
+  color: #28a745t;
+  display: block;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.avatar {
+  margin-right: 8px;
+  height: 20px;
+  width: 20px;
+}
+
+.merge-status-icon {
+  align-self: center;
+  fill: currentColor;
+}
+
+.status-text {
+  color: #586069;
+}
+
+.text-emphasized {
+  font-weight: 600;
+  color: #24292e;
+}
+
+.split {
+  clear: both;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.split > * {
+  float: left;
+}
+
+.hljs {
+  overflow-x: hidden;
+}
+
+.terminal_window .hljs,
+.terminal_window_full,
+.split-right {
+  width: 550px;
+}
+
+.terminal_window_full {
+  margin-right: 40px;
+}
+
+.terminal-right {
+  margin-left: 40px;
+  margin-right: 0;
+}
+
+
+.container {
+  margin: 15px;
+}
+

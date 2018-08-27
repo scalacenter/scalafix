@@ -3,7 +3,7 @@
   "localized-strings": {
     "next": "Next",
     "previous": "Previous",
-    "tagline": "Refactoring and linting tool for Scala",
+    "tagline": "Automatic Refactoring",
     "rule-authors/glossary": "Glossary",
     "rule-authors/setup": "Setup",
     "rule-authors/tutorial": "Tutorial",
