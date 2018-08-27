@@ -3,7 +3,7 @@ package scalafix.v1
 import scala.meta.internal.metap.PrinterSymtab
 import scala.meta.internal.{semanticdb => s}
 import scala.meta.internal.semanticdb._
-import scalafix.internal.v1.FromProtobuf
+import scalafix.internal.v1.SymtabFromProtobuf
 import scala.meta.metap.Format
 
 final class SymbolInfo private[scalafix] (
@@ -14,7 +14,7 @@ final class SymbolInfo private[scalafix] (
   def owner: Symbol = Symbol(info.symbol).owner
   def displayName: String = info.displayName
   def signature(implicit doc: SemanticDoc): Signature =
-    new FromProtobuf().ssignature(info.signature)
+    new SymtabFromProtobuf(symtab).ssignature(info.signature)
 
   def isScala: Boolean = info.isScala
   def isJava: Boolean = info.isJava

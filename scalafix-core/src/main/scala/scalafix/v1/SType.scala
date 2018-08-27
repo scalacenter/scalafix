@@ -4,7 +4,7 @@ import scala.runtime.Statics
 
 sealed abstract class SType
 
-case object NoTpe extends SType
+case object NoType extends SType
 
 final class TypeRef(
     val prefix: SType,

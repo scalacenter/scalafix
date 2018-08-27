@@ -1,6 +1,5 @@
 package scalafix.internal.v0
 
-import metaconfig.Conf
 import metaconfig.Configured
 import scalafix.patch.Patch
 import scalafix.v0

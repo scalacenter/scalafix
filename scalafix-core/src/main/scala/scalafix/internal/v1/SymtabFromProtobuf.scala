@@ -3,18 +3,20 @@ package scalafix.internal.v1
 import scala.meta.internal.{semanticdb => s}
 import scalafix.v1._
 
-class FromProtobuf()(implicit doc: SemanticDoc) {
+object SymtabFromProtobuf {
+  def apply(symtab: Symtab): SymtabFromProtobuf =
+    new SymtabFromProtobuf(symtab)
+}
+final class SymtabFromProtobuf(symtab: Symtab) {
 
   def info(sym: String): SymbolInfo =
-    doc.internal
-      .info(Symbol(sym))
-      .getOrElse(throw new NoSuchElementException(sym))
+    symtab.info(Symbol(sym)).getOrElse(throw new NoSuchElementException(sym))
 
   def sscope(scope: Option[s.Scope]): List[SymbolInfo] = scope match {
     case None => Nil
     case Some(sc) =>
       if (sc.hardlinks.isEmpty) sc.symlinks.iterator.map(info).toList
-      else sc.infos.iterator.map(i => new SymbolInfo(i)).toList
+      else sc.infos.iterator.map(i => new SymbolInfo(i)(symtab)).toList
   }
 
   def stype(t: s.Type): SType = t match {
@@ -47,7 +49,7 @@ class FromProtobuf()(implicit doc: SemanticDoc) {
     case s.UnionType(types) =>
       new UnionType(types.convert)
     case s.NoType =>
-      NoTpe
+      NoType
   }
 
   def sconstant(c: s.Constant): Constant = c match {

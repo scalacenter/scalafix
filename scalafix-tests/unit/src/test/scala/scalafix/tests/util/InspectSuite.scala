@@ -18,14 +18,16 @@ class InspectSuite extends FunSuite with DiffAssertions {
          |    Term.Name("c")
          |  ),
          |  Term.Name("d")
-         |)""".stripMargin
-    assert(obtained == expected)
+         |)
+         |""".stripMargin
+    assertNoDiff(obtained, expected)
   }
 
   test("pretty(t, showFieldNames = true)") {
     val obtained = q"a.b.c.d".inspectLabeled
     val expected =
-      """|Term.Select(
+      """|
+         |Term.Select(
          |  qual = Term.Select(
          |    qual = Term.Select(
          |      qual = Term.Name("a"),
@@ -34,8 +36,9 @@ class InspectSuite extends FunSuite with DiffAssertions {
          |    name = Term.Name("c")
          |  ),
          |  name = Term.Name("d")
-         |)""".stripMargin
-    assert(obtained == expected)
+         |)
+         |""".stripMargin
+    assertNoDiff(obtained, expected)
   }
 
   test("option") {

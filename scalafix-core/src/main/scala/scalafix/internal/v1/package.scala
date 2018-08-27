@@ -8,6 +8,7 @@ import scala.meta.io.AbsolutePath
 import scala.meta.io.RelativePath
 import scala.collection.JavaConverters._
 import scala.meta.inputs.Input
+import scala.meta.internal.io.FileIO
 import scala.meta.internal.{semanticdb => s}
 
 package object v1 {
@@ -23,11 +24,12 @@ package object v1 {
   }
 
   implicit class XtensionTextDocumentFix(sdoc: s.TextDocument) {
-    def input(sourceroot: URI): Input = {
+    def abspath(sourceroot: URI): AbsolutePath = {
       val absuri = sourceroot.resolve(URI.create(sdoc.uri))
-      val abspath = Paths.get(absuri)
-      val text =
-        new String(Files.readAllBytes(abspath), StandardCharsets.UTF_8)
+      AbsolutePath(Paths.get(absuri))
+    }
+    def input(abspath: AbsolutePath): Input = {
+      val text = FileIO.slurp(abspath, StandardCharsets.UTF_8)
       val textMD5 = FingerprintOps.md5(text)
       require(
         textMD5 == sdoc.md5,
