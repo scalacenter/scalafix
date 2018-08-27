@@ -59,6 +59,14 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
     assert(help.contains("Usage: scalafix"))
   }
 
+  test("availableRules") {
+    val api = i.Scalafix.classloadInstance(this.getClass.getClassLoader)
+    val rules = api.newMainArgs().availableRules().asScala.map(_.name())
+    assert(rules.contains("DisableSyntax"))
+    assert(rules.contains("AvailableRule"))
+    assert(!rules.contains("DeprecatedAvailableRule"))
+  }
+
   test("error") {
     val cl = new URLClassLoader(Array())
     val ex = intercept[ScalafixException] {

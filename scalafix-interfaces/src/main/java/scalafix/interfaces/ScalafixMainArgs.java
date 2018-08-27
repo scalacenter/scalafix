@@ -122,10 +122,10 @@ public interface ScalafixMainArgs {
 
 
     /**
-     * The rule names that are valid arguments for {@link #withRules(List) }.
+     * The rules that are valid arguments for {@link #withRules(List) }.
      *
      * Takes into account built-in rules as well as the tool classpath provided via
      * {@link #withToolClasspath(URLClassLoader) }.
      */
-    String[] validRuleNames();
+    List<ScalafixRule> availableRules();
 }

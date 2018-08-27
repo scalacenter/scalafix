@@ -6,18 +6,16 @@ import java.nio.charset.Charset
 import java.nio.file.Path
 import java.nio.file.PathMatcher
 import java.util
-import java.util.ServiceLoader
 import metaconfig.Conf
+import scala.collection.JavaConverters._
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
 import scalafix.interfaces.ScalafixMainArgs
 import scalafix.interfaces.ScalafixMainCallback
 import scalafix.interfaces.ScalafixMainMode
+import scalafix.interfaces.ScalafixRule
 import scalafix.internal.v1.Args
-import scala.collection.JavaConverters._
 import scalafix.internal.v1.Rules
-import scalafix.v1
-import scalafix.v1.RuleDecoder
 
 final case class ScalafixMainArgsImpl(args: Args = Args.default)
     extends ScalafixMainArgs {
@@ -89,8 +87,11 @@ final case class ScalafixMainArgsImpl(args: Args = Args.default)
   override def withCharset(charset: Charset): ScalafixMainArgs =
     copy(args = args.copy(charset = charset))
 
-  override def validRuleNames(): Array[String] = {
-    Rules.all(args.toolClasspath).iterator.map(_.name.value).toArray
+  override def availableRules(): util.List[ScalafixRule] = {
+    Rules
+      .all(args.toolClasspath)
+      .map(rule => ScalafixRuleImpl(rule))
+      .asJava
   }
 
   override def withScalacOptions(options: util.List[String]): ScalafixMainArgs =

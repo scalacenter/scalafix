@@ -4,6 +4,7 @@ import metaconfig.Configured
 import scalafix.cli._
 import scalafix.patch.Patch
 import scalafix.rule.RuleName
+import scalafix.v1
 import scalafix.v1.Configuration
 import scalafix.v1.Doc
 import scalafix.v1.Rule
@@ -415,3 +416,8 @@ class Scala2_9 extends SyntacticRule("Scala2_9") {
       Configured.ok(this)
     }
 }
+
+class AvailableRule
+    extends v1.SemanticRule(
+      v1.RuleName("AvailableRule")
+        .withDeprecatedName("DeprecatedAvailableRule", "", ""))
