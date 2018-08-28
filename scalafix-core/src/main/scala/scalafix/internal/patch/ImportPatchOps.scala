@@ -8,7 +8,6 @@ import scalafix.v0.Symbol
 import scalafix.v0.Signature
 import scalafix.internal.util.SymbolOps
 import scalafix.patch.Patch
-import scalafix.patch.TokenPatch
 import scalafix.patch.TreePatch
 import scalafix.patch.TreePatch.ImportPatch
 import scalafix.rule.RuleCtx
@@ -151,14 +150,17 @@ object ImportPatchOps {
       allImporters.toIterator
         .filter(_.importees.forall(isRemovedImportee))
         .toSet
-    def removeSpaces(tokens: scala.Seq[Token]): Patch =
+    def removeSpaces(tokens: scala.Seq[Token]): Patch = {
       tokens
         .takeWhile {
           case Token.Space() => true
+          case Newline() => true
+          case Token.Comma() => true
           case _ => false
         }
-        .map(ctx.removeToken(_))
+        .map(ctx.removeToken)
         .asPatch
+    }
     val curlyBraceRemoves = allImporters.map { importer =>
       val keptImportees = importer.importees.filterNot(isRemovedImportee)
       val hasRemovedImportee = importer.importees.exists(isRemovedImportee)
@@ -185,37 +187,45 @@ object ImportPatchOps {
     }
     // NOTE: keeps track of which comma is removed by which tree to prevent the
     // same comma being removed twice.
-    val isRemovedComma = mutable.Map.empty[Token.Comma, Tree]
     val isRemovedImport =
       allImports.filter(_.importers.forall(isRemovedImporter))
-    def remove(toRemove: Tree) = {
-      val tokens = ctx.toks(toRemove)
-      def removeFirstComma(lst: Iterable[Token]): Iterable[Patch] = {
-        lst
-          .takeWhile {
-            case lf @ Token.LF() if ctx.tokenList.prev(lf).is[Token.Comma] =>
-              true
-            case Token.Space() => true
-            case comma @ Token.Comma() =>
-              if (!isRemovedComma.contains(comma)) {
-                isRemovedComma(comma) = toRemove
-              }
-              true
-            case _ => false
-          }
-          .map(ctx.removeToken(_))
-      }
-      val leadingComma =
-        removeFirstComma(ctx.tokenList.leading(tokens.head))
-      val hadLeadingComma = leadingComma.exists {
-        case TokenPatch.Add(comma: Token.Comma, _, _, keepTok @ false) =>
-          isRemovedComma.get(comma).contains(toRemove)
+    def remove(toRemove: Tree): Patch = {
+      // Imagine "import a.b, c.d, e.f, g.h" where a.b, c.d and g.h are unused.
+      // All unused imports are responible to delete their leading comma but
+      // c.d is additionally responsible for deleting its trailling comma.
+      // The same situation arises for importers: import a.{b, c, d, e} where
+      // b, c and e are unused. In this case, the c import should delete it's
+      // trailing comma.
+      val isResponsibleForTrailingComma = toRemove.parent match {
+        case Some(i: Import) =>
+          val isSingleImporter = i.importers.lengthCompare(1) == 0
+          !isSingleImporter &&
+          i.importers
+            .takeWhile(isRemovedImporter)
+            .lastOption
+            .exists(_ eq toRemove)
+        case Some(i: Importer) =>
+          val isSingleImportee = i.importees.lengthCompare(1) == 0
+          !isSingleImportee &&
+          i.importees
+            .takeWhile(isRemovedImportee)
+            .lastOption
+            .exists(_ eq toRemove)
         case _ => false
       }
+      // Always remove the leading comma
+      val leadingComma =
+        removeUpToFirstComma(ctx.tokenList.leading(toRemove.tokens.head))
+      // Only remove the trailing comma for the first importer, for example
+      // remove the trailing comma for a.b below because it's the first importer:
+      // import a.b, c.d
       val trailingComma =
-        if (hadLeadingComma) List(Patch.empty)
-        else removeFirstComma(ctx.tokenList.trailing(tokens.last))
-      ctx.removeTokens(tokens) ++ trailingComma ++ leadingComma
+        if (isResponsibleForTrailingComma) {
+          removeUpToFirstComma(ctx.tokenList.trailing(toRemove.tokens.last))
+        } else {
+          Nil
+        }
+      Patch.removeTokens(toRemove.tokens) ++ leadingComma ++ trailingComma
     }
 
     val leadingNewlines = isRemovedImport.map { i =>
@@ -226,7 +236,9 @@ object ImportPatchOps {
           !newline && {
             x.is[Token.Space] || {
               val isNewline = x.is[Newline]
-              if (isNewline) newline = true
+              if (isNewline) {
+                newline = true
+              }
               isNewline
             }
         })
@@ -237,9 +249,25 @@ object ImportPatchOps {
     leadingNewlines ++
       curlyBraceRemoves ++
       extraPatches ++
-      (isRemovedImportee ++
-        isRemovedImporter ++
-        isRemovedImport).map(remove)
+      isRemovedImportee.map(remove) ++
+      isRemovedImporter.map(remove) ++
+      isRemovedImport.map(i => Patch.removeTokens(i.tokens))
+  }
+
+  private def removeUpToFirstComma(tokens: Iterable[Token]): List[Patch] = {
+    var stop = false
+    tokens
+      .takeWhile {
+        case _: Token.Space | Newline() => !stop
+        case _: Token.Comma if !stop =>
+          stop = true
+          true
+        case _ => false
+      }
+      .map { token =>
+        Patch.removeToken(token)
+      }
+      .toList
   }
 
 }

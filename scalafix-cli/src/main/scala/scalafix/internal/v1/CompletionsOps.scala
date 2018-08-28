@@ -4,7 +4,6 @@ import metaconfig.generic.Setting
 import metaconfig.generic.Settings
 import metaconfig.internal.Case
 import org.apache.commons.text.StringEscapeUtils
-import scalafix.internal.reflect.ClasspathOps
 
 object CompletionsOps {
   private def option(kebab: String): String =

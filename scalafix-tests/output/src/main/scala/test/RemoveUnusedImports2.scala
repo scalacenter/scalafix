@@ -1,8 +1,6 @@
 package test
 
-import scala.sys.process.
-  FileProcessLogger
-
+import scala.sys.process.FileProcessLogger
 import scala.math.{
   Ordered,
   Pi
