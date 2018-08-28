@@ -54,7 +54,7 @@ class CliSemanticSuite extends BaseCliSuite {
         "--scalac-options",
         "-Ywarn-unused-import",
         "-r",
-        "RemoveUnusedImports",
+        "RemoveUnused",
         name
       ),
       cwd

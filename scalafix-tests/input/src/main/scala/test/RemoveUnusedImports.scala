@@ -1,5 +1,5 @@
 /*
-rule = RemoveUnusedImports
+rule = RemoveUnused
  */
 package test
 

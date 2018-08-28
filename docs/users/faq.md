@@ -161,5 +161,5 @@ triggered by `-Yrangepos`. Other tools like the presentation compiler
 
 ## RemoveUnusedImports does not remove unused imports
 
-Make sure that you have enabled the compiler option `-Ywarn-unused-import` as
-instructed in [RemoveUnusedImports](rules/RemoveUnusedImports.md).
+Make sure that you have enabled the compiler option `-Ywarn-unused` as
+instructed in [RemoveUnused](../rules/RemoveUnused.md).
