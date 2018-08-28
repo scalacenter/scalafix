@@ -7,7 +7,7 @@ import metaconfig.ConfError
 import metaconfig.Configured
 import scala.meta.internal.io.PathIO
 import scala.meta.io.AbsolutePath
-import scalafix.internal.config.MetaconfigPendingUpstream._
+import scalafix.internal.config.MetaconfigOps._
 import scalafix.internal.config._
 import scalafix.internal.reflect.RuleDecoderOps.FromSourceRule
 import scalafix.internal.reflect.RuleDecoderOps.tryClassload
@@ -113,7 +113,7 @@ object RuleDecoder {
             case err =>
               ConfError.typeMismatch("String", err).notOk :: Nil
           }
-          MetaconfigPendingUpstream.traverse(decoded).map { rules =>
+          MetaconfigOps.traverse(decoded).map { rules =>
             settings.config.patches.all match {
               case Nil => Rules(rules)
               case patches =>

@@ -1,7 +1,7 @@
 package scalafix.v0
 
 import scala.meta._
-import scalafix.internal.config.MetaconfigPendingUpstream
+import scalafix.internal.config.MetaconfigOps
 import scalafix.internal.config.ScalafixConfig
 import scalafix.syntax._
 import metaconfig.Conf
@@ -124,7 +124,7 @@ object Rule {
   private[scalafix] class CompositeRule(val rules: List[Rule])
       extends Rule(rules.foldLeft(RuleName.empty)(_ + _.name)) {
     override def init(config: Conf): Configured[Rule] = {
-      MetaconfigPendingUpstream
+      MetaconfigOps
         .flipSeq(rules.map(_.init(config)))
         .map(x => new CompositeRule(x.toList))
     }

@@ -5,7 +5,7 @@ import java.net.URLClassLoader
 import java.util.function
 import metaconfig.Configured
 import metaconfig.Input
-import scalafix.internal.config.MetaconfigPendingUpstream._
+import scalafix.internal.config.MetaconfigOps._
 
 object ScalafixToolbox extends ScalafixToolbox
 class ScalafixToolbox {

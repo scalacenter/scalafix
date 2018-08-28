@@ -3,7 +3,7 @@ package scalafix.internal.v1
 import java.util.ServiceLoader
 import metaconfig.Configured
 import scala.meta.tokens.Tokens
-import scalafix.internal.config.MetaconfigPendingUpstream
+import scalafix.internal.config.MetaconfigOps
 import scalafix.internal.util.SuppressOps
 import scalafix.lint.RuleDiagnostic
 import scalafix.lint.Diagnostic
@@ -22,7 +22,7 @@ case class Rules(rules: List[Rule] = Nil) {
   def isEmpty: Boolean = rules.isEmpty
   def isSemantic: Boolean = semanticRules.nonEmpty
   def withConfiguration(config: Configuration): Configured[Rules] =
-    MetaconfigPendingUpstream
+    MetaconfigOps
       .traverse(rules.map(_.withConfiguration(config)))
       .map(Rules(_))
   def semanticRules: List[SemanticRule] = rules.collect {
