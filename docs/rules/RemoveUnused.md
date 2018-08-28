@@ -83,7 +83,20 @@ import scala.concurrent.
 It's recommended to use a code formatter like
 [Scalafmt](https://scalameta.org/scalafmt/) after running this rule.
 
-## -Ywarn-unused configuration
+## Configuration
+
+By default, this rule does not disable any particular syntax, every setting is
+opt-in.
+
+```scala mdoc:passthrough
+import scalafix.internal.rule._
+```
+
+```scala mdoc:passthrough
+println(scalafix.website.rule("RemoveUnused", RemoveUnusedConfig.default))
+```
+
+## -Ywarn-unused
 
 Consult `scala -Y` in the command-line for more information about using
 `-Ywarn-unused`.

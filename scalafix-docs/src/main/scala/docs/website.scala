@@ -128,15 +128,9 @@ package object website {
     s"\n\n### $name\n\n" +
       html(settings.settings)
 
-  def defaults[T](
-      ruleName: String,
-      default: T
-  )(implicit settings: Settings[T], ev: T <:< Product): String =
-    defaults[T](ruleName, flat(default))
-
   def defaults[T](ruleName: String, all: List[(Setting, Any)]): String = {
     val sb = new StringBuilder
-    sb.append("\n\n### Defaults\n\n```")
+    sb.append("\n\n**Defaults:**\n\n```")
     all.foreach {
       case (setting, default) =>
         sb.append("\n")

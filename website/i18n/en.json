@@ -3,7 +3,7 @@
   "localized-strings": {
     "next": "Next",
     "previous": "Previous",
-    "tagline": "Automatic Refactoring",
+    "tagline": "Refactoring and linting tool for Scala",
     "rule-authors/glossary": "Glossary",
     "rule-authors/setup": "Setup",
     "rule-authors/tutorial": "Tutorial",
@@ -23,6 +23,7 @@
     "rules/NoValInForComprehension": "NoValInForComprehension",
     "rules/overview": "All rules",
     "rules/ProcedureSyntax": "ProcedureSyntax",
+    "rules/RemoveUnused": "RemoveUnused",
     "rules/RemoveUnusedImports": "RemoveUnusedImports",
     "rules/RemoveUnusedTerms": "RemoveUnusedTerms",
     "rules/RemoveXmlLiterals": "RemoveXmlLiterals",

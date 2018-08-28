@@ -6,7 +6,7 @@ import scala.collection.mutable
 import scala.meta._
 import scalafix.v1._
 
-class RemoveUnused
+class RemoveUnused(config: RemoveUnusedConfig)
     extends SemanticRule(
       RuleName("RemoveUnused")
         .withDeprecatedName(
@@ -18,6 +18,8 @@ class RemoveUnused
           "Use RemoveUnused instead",
           "0.6.0")
     ) {
+  // default constructor for reflective classloading
+  def this() = this(RemoveUnusedConfig.default)
 
   override def description: String =
     "Rewrite that removes imports and terms that are reported as unused by the compiler under -Ywarn-unused"
@@ -29,27 +31,42 @@ class RemoveUnused
           "Run `scalac -Ywarn-unused:help` for more details. " +
           s"Obtained ${config.scalacOptions}")
     } else {
-      Configured.ok(this)
+      config.conf
+        .getOrElse("RemoveUnused")(this.config)
+        .map(new RemoveUnused(_))
     }
 
   override def fix(implicit doc: SemanticDoc): Patch = {
     val isUnusedTerm = mutable.Set.empty[Position]
     val isUnusedImport = mutable.Set.empty[Position]
 
-    doc.diagnostics.foreach {
-      case message if message.message == "Unused import" =>
-        isUnusedImport += message.position
-      case message if isUnusedPrivateDiagnostic(message) =>
-        isUnusedTerm += message.position
-      case _ =>
+    doc.diagnostics.foreach { diagnostic =>
+      if (config.imports && diagnostic.message == "Unused import") {
+        isUnusedImport += diagnostic.position
+      } else if (config.privates &&
+        diagnostic.message.startsWith("private") &&
+        diagnostic.message.endsWith("is never used")) {
+        isUnusedTerm += diagnostic.position
+      } else if (config.locals &&
+        diagnostic.message.startsWith("local") &&
+        diagnostic.message.endsWith("is never used")) {
+        isUnusedTerm += diagnostic.position
+      } else {
+        () // ignore
+      }
     }
 
-    doc.tree.collect {
-      case i: Importee if isUnusedImport(importPosition(i)) =>
-        Patch.removeImportee(i).atomic
-      case i: Defn if isUnusedTerm(i.pos) =>
-        defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
-    }.asPatch
+    if (isUnusedImport.isEmpty && isUnusedTerm.isEmpty) {
+      // Optimization: don't traverse if there are no diagnostics to act on.
+      Patch.empty
+    } else {
+      doc.tree.collect {
+        case i: Importee if isUnusedImport(importPosition(i)) =>
+          Patch.removeImportee(i).atomic
+        case i: Defn if isUnusedTerm(i.pos) =>
+          defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
+      }.asPatch
+    }
   }
 
   private val unusedPrivateLocalVal: Pattern =
