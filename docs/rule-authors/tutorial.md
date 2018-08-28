@@ -52,7 +52,7 @@ tests and be documented so that other people can help maintain the rule.
 ## Example rules
 
 The Scalafix repository contains several example rules and tests, see
-[here](https://github.com/scalacenter/scalafix/tree/master/scalafix-core/shared/src/main/scala/scalafix/internal/rule).
+[here](https://github.com/scalacenter/scalafix/tree/master/scalafix-rules/src/main/scala/scalafix/internal/rule).
 These examples may serve as inspiration for your rule.
 
 ## Sharing your rule

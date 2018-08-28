@@ -12,8 +12,7 @@
     "Semantic": [
       "rules/ExplicitResultTypes",
       "rules/NoAutoTupling",
-      "rules/RemoveUnusedImports",
-      "rules/RemoveUnusedTerms"
+      "rules/RemoveUnused"
     ],
     "Syntactic": [
       "rules/DisableSyntax",

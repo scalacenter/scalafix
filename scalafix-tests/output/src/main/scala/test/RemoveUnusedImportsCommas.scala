@@ -2,11 +2,9 @@ package test
 
 import Unused.b, Unused.d
 import scala.util.Failure
-import
-       scala.concurrent.TimeoutException
+import scala.concurrent.TimeoutException
 
-import scala.math.
-   Pi
+import scala.math.Pi
 
 object RemoveUnusedImportsCommas {
   println(b + d + Pi)
