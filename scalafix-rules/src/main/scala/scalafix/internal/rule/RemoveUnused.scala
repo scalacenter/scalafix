@@ -62,7 +62,15 @@ class RemoveUnused(config: RemoveUnusedConfig)
     } else {
       doc.tree.collect {
         case i: Importee if isUnusedImport(importPosition(i)) =>
-          Patch.removeImportee(i).atomic
+          i match {
+            case Importee.Rename(_, to) =>
+              // Unimport the identifier instead of removing the importee since
+              // unused renamed may still impact compilation by shadowing an identifier.
+              // See https://github.com/scalacenter/scalafix/issues/614
+              Patch.replaceTree(to, "_").atomic
+            case _ =>
+              Patch.removeImportee(i).atomic
+          }
         case i: Defn if isUnusedTerm(i.pos) =>
           defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
       }.asPatch
