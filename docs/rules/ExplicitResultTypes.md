@@ -34,7 +34,7 @@ def foo = {
 This rule has several different options.
 
 ```scala mdoc:passthrough
-import scalafix.internal.config._
+import scalafix.internal.rule._
 ```
 
 ```scala mdoc:passthrough

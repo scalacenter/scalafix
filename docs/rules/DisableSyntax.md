@@ -28,7 +28,7 @@ By default, this rule does not disable any particular syntax, every setting is
 opt-in.
 
 ```scala mdoc:passthrough
-import scalafix.internal.config._
+import scalafix.internal.rule._
 ```
 
 ```scala mdoc:passthrough

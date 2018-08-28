@@ -22,6 +22,7 @@ object Main {
       .withStringModifiers(
         List(
           new HelpModifier,
+          new RuleModifier,
           new RulesModifier
         )
       )
