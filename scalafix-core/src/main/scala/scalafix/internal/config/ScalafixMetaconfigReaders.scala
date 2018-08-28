@@ -114,7 +114,7 @@ trait ScalafixMetaconfigReaders {
       singleRuleDecoder: ConfDecoder[Rule]): ConfDecoder[Rule] = {
     ConfDecoder.instance[Rule] {
       case Conf.Lst(values) =>
-        MetaconfigPendingUpstream
+        MetaconfigOps
           .flipSeq(values.map(singleRuleDecoder.read))
           .map(rules => Rule.combine(rules))
       case rule @ Conf.Str(_) => singleRuleDecoder.read(rule)
@@ -146,7 +146,7 @@ trait ScalafixMetaconfigReaders {
       str.parse[T] match {
         case parsers.Parsed.Success(x) => Configured.Ok(x)
         case parsers.Parsed.Error(pos, msg, _) =>
-          import MetaconfigPendingUpstream._
+          import MetaconfigOps._
           ConfError.parseError(pos.toMetaconfig, msg).notOk
       }
     }

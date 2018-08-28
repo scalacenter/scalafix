@@ -9,8 +9,7 @@ import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.internal.ConfGet
 
-// TODO(olafur) contribute upstream to metaconfig.
-object MetaconfigPendingUpstream {
+object MetaconfigOps {
   def traverse[T](lst: Seq[Configured[T]]): Configured[List[T]] = {
     val buf = List.newBuilder[T]
     var err = List.newBuilder[ConfError]

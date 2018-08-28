@@ -5,7 +5,7 @@ import scalafix.internal.config.ScalafixConfig.DefaultDialect
 import scala.meta._
 import metaconfig.ConfError
 import metaconfig.Configured
-import scalafix.internal.config.MetaconfigPendingUpstream._
+import scalafix.internal.config.MetaconfigOps._
 
 object RuleInstrumentation {
 
