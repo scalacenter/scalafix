@@ -1,5 +1,5 @@
 /*
-rule = [RemoveUnusedImports, ExplicitResultTypes]
+rule = [RemoveUnused, ExplicitResultTypes]
 ExplicitResultTypes.memberKind = [Def]
 ExplicitResultTypes.memberVisibility = [Public]
 unsafeShortenNames = true

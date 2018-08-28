@@ -1,19 +1,40 @@
 package scalafix.v1
 
 import scala.runtime.Statics
+import scalafix.internal.util.Pretty
+import scalafix.util.FieldNames
 
-sealed abstract class Signature
+sealed abstract class Signature extends Product with FieldNames {
+  final override def toString: String = Pretty.pretty(this).render(80)
+  final def isEmpty: Boolean = this == NoSignature
+  final def nonEmpty: Boolean = !isEmpty
+}
 
 case object NoSignature extends Signature
 
-final class ClassSignature(
+final class ClassSignature private[scalafix] (
     val typeParameters: List[SymbolInfo],
     val parents: List[SType],
     val self: SType,
     val declarations: List[SymbolInfo]
 ) extends Signature {
-  override def toString: String =
-    s"ClassSignature($typeParameters,$parents,$self,$declarations)"
+  override def productArity: Int = 4
+  override def productPrefix: String = "ClassSignature"
+  override def productElement(n: Int): Any = n match {
+    case 0 => typeParameters
+    case 1 => parents
+    case 2 => self
+    case 3 => declarations
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "typeParameters"
+    case 1 => "parents"
+    case 2 => "self"
+    case 3 => "declarations"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean = that.isInstanceOf[ClassSignature]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: ClassSignature =>
@@ -32,13 +53,26 @@ final class ClassSignature(
   }
 }
 
-final class MethodSignature(
+final class MethodSignature private[scalafix] (
     val typeParameters: List[SymbolInfo],
     val parameterLists: List[List[SymbolInfo]],
     val returnType: SType
 ) extends Signature {
-  override def toString: String =
-    s"MethodSignature($typeParameters,$parameterLists,$returnType)"
+  override def productArity: Int = 3
+  override def productPrefix: String = "MethodSignature"
+  override def productElement(n: Int): Any = n match {
+    case 0 => typeParameters
+    case 1 => parameterLists
+    case 2 => returnType
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "typeParameters"
+    case 1 => "parameterLists"
+    case 2 => "returnType"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean = that.isInstanceOf[MethodSignature]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: MethodSignature =>
@@ -55,13 +89,26 @@ final class MethodSignature(
   }
 }
 
-final class TypeSignature(
+final class TypeSignature private[scalafix] (
     val typeParameters: List[SymbolInfo],
     val lowerBound: SType,
     val upperBound: SType
 ) extends Signature {
-  override def toString: String =
-    s"TypeSignature($typeParameters,$lowerBound,$upperBound)"
+  override def productArity: Int = 3
+  override def productPrefix: String = "TypeSignature"
+  override def productElement(n: Int): Any = n match {
+    case 0 => typeParameters
+    case 1 => lowerBound
+    case 2 => upperBound
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "typeParameters"
+    case 1 => "lowerBound"
+    case 2 => "upperBound"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean = that.isInstanceOf[TypeSignature]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: TypeSignature =>
@@ -79,11 +126,20 @@ final class TypeSignature(
   }
 }
 
-final class ValueSignature(
+final class ValueSignature private[scalafix] (
     val tpe: SType
 ) extends Signature {
-  override def toString: String =
-    s"ValueSignature($tpe)"
+  override def productArity: Int = 1
+  override def productPrefix: String = "ValueSignature"
+  override def productElement(n: Int): Any = n match {
+    case 0 => tpe
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "tpe"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean = that.isInstanceOf[ValueSignature]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: ValueSignature =>

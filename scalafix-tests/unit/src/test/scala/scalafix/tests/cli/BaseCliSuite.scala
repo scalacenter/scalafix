@@ -170,7 +170,7 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
       expectedExit: ExitStatus,
       preprocess: AbsolutePath => Unit = _ => (),
       outputAssert: String => Unit = _ => (),
-      rule: String = "RemoveUnusedImports",
+      rule: String = "RemoveUnused",
       path: RelativePath = removeImportsPath,
       files: String = removeImportsPath.toString(),
       assertObtained: Result => Unit = { result =>

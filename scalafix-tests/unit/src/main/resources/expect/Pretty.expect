@@ -1,0 +1,159 @@
+[6:7..6:17]:      /* test/PrettyTest# */ class PrettyTest extends AnyRef { +4 decls }
+[6:18..6:18]:     /* test/PrettyTest#`<init>`(). */ <primary> def this
+[7:3..7:21]:      *(canBuildFrom[Int])
+[7:3..7:14]:      *[Int,List[Int]]
+[7:3..7:7]:       *.apply[Int]
+[8:3..12:12]:     orig(1.to(10)).flatMap[Int,IndexedSeq[Int]](
+                    { () =>
+                      orig(2.to(20)).withFilter(
+                        { () => orig(i > i) }
+                      ).map[Int,IndexedSeq[Int]]({ () => orig(j) })(
+                        canBuildFrom[Int]
+                      )
+                    }
+                  )(canBuildFrom[Int])
+[9:10..9:11]:     intWrapper(*)
+[10:10..10:11]:   intWrapper(*)
+[13:3..17:15]:    orig(Future(1.to(10)))(global).foreach[Unit](
+                    { () =>
+                      orig(Future(2.to(i.length)))(global).foreach[Unit](
+                        { () => orig(println(j)) }
+                      )(global)
+                    }
+                  )(global)
+[14:10..14:16]:   *.apply[Inclusive]
+[14:17..14:18]:   intWrapper(*)
+[15:10..15:16]:   *.apply[Inclusive]
+[15:17..15:18]:   intWrapper(*)
+[20:9..20:14]:    /* test/PrettyTest#Inner# */ class Inner extends AnyRef { +1 decls }
+[20:14..20:14]:   /* test/PrettyTest#Inner#`<init>`(). */ <primary> def this
+[21:7..21:8]:     /* test/PrettyTest#a. */ val a: PrettyTest
+[22:7..22:8]:     /* test/PrettyTest#b. */ val b: a.Inner
+[24:3..24:9]:     *.apply[AnyRef {
+                    /* local5 */ abstract def bar(/* local6 */ a: Int): Int
+                    /* local7 */ abstract def foo(/* local8 */ a: Int): Int
+                  }]
+[28:3..28:9]:     *.apply[a.Inner]
+[29:3..29:9]:     *.apply[Int with String {}]
+[30:3..30:9]:     *.apply[PrettyTest]
+[37:7..37:10]:    /* test/ann# */ class ann[/* test/ann#[T] */ T] extends Annotation with StaticAnnotation { +2 decls }
+[37:11..37:12]:   /* test/ann#[T] */ T
+[37:13..37:13]:   /* test/ann#`<init>`(). */ <primary> def this
+[37:14..37:15]:   /* test/ann#x. */ private[this] val x: T
+[38:7..38:11]:    /* test/ann1# */ class ann1 extends Annotation with StaticAnnotation { +1 decls }
+[38:12..38:12]:   /* test/ann1#`<init>`(). */ <primary> def this
+[39:7..39:11]:    /* test/ann2# */ class ann2 extends Annotation with StaticAnnotation { +1 decls }
+[39:12..39:12]:   /* test/ann2#`<init>`(). */ <primary> def this
+[41:7..41:8]:     /* test/B# */ class B extends AnyRef { +1 decls }
+[43:7..43:8]:     /* test/C# */ class C extends AnyRef { +1 decls }
+[45:7..45:8]:     /* test/P# */ class P extends AnyRef { +4 decls }
+[45:9..45:9]:     /* test/P#`<init>`(). */ <primary> def this
+[46:9..46:10]:    /* test/P#C# */ class C extends AnyRef { +1 decls }
+[46:10..46:10]:   /* test/P#C#`<init>`(). */ <primary> def this
+[47:9..47:10]:    /* test/P#X# */ class X extends AnyRef { +1 decls }
+[47:10..47:10]:   /* test/P#X#`<init>`(). */ <primary> def this
+[48:7..48:8]:     /* test/P#x. */ val x: X
+[51:7..51:8]:     /* test/T# */ class T extends AnyRef { +4 decls }
+[51:9..51:9]:     /* test/T#`<init>`(). */ <primary> def this
+[52:9..52:10]:    /* test/T#C# */ class C extends AnyRef { +1 decls }
+[52:10..52:10]:   /* test/T#C#`<init>`(). */ <primary> def this
+[53:9..53:10]:    /* test/T#X# */ class X extends AnyRef { +1 decls }
+[53:10..53:10]:   /* test/T#X#`<init>`(). */ <primary> def this
+[54:7..54:8]:     /* test/T#x. */ val x: X
+[57:8..57:12]:    /* test/Test. */ object Test extends AnyRef { +4 decls }
+[58:9..58:10]:    /* test/Test.M# */ class M extends AnyRef { +2 decls }
+[58:11..58:11]:   /* test/Test.M#`<init>`(). */ <primary> def this
+[59:9..59:10]:    /* test/Test.M#m(). */ def m: Int
+[62:9..62:10]:    /* test/Test.N# */ trait N extends AnyRef { +1 decls }
+[63:9..63:10]:    /* test/Test.N#n(). */ def n: Int
+[66:9..66:10]:    /* test/Test.C# */ class C extends M { +36 decls }
+[66:11..66:11]:   /* test/Test.C#`<init>`(). */ <primary> def this
+[67:9..67:10]:    /* test/Test.C#p. */ val p: P
+[68:9..68:10]:    /* test/Test.C#x. */ val x: p.X
+[70:9..70:17]:    /* test/Test.C#typeRef1. */ val typeRef1: C
+[71:9..71:17]:    /* test/Test.C#typeRef2. */ val typeRef2: p.C
+[72:9..72:17]:    /* test/Test.C#typeRef3. */ val typeRef3: T#C
+[73:9..73:17]:    /* test/Test.C#typeRef4. */ val typeRef4: List[Int]
+[75:9..75:20]:    /* test/Test.C#singleType1. */ val singleType1: x.type
+[76:9..76:20]:    /* test/Test.C#singleType2. */ val singleType2: p.x.type
+[77:9..77:15]:    /* test/Test.C#Either. */ val Either: Either.type
+[79:9..79:18]:    /* test/Test.C#thisType1. */ val thisType1: C.this.type
+[80:9..80:18]:    /* test/Test.C#thisType2. */ val thisType2: C.this.type
+[82:9..82:19]:    /* test/Test.C#superType1. */ val superType1: Int
+[83:9..83:19]:    /* test/Test.C#superType2. */ val superType2: Int
+[84:9..84:19]:    /* test/Test.C#superType3. */ val superType3: Int
+[86:9..86:22]:    /* test/Test.C#compoundType1. */ val compoundType1: AnyRef {
+                    /* local0 */ abstract def k: Int
+                  }
+[87:9..87:22]:    /* test/Test.C#compoundType2. */ val compoundType2: M with N {}
+[88:9..88:22]:    /* test/Test.C#compoundType3. */ val compoundType3: M with N {
+                    /* local1 */ abstract def k: Int
+                  }
+[89:9..89:22]:    /* test/Test.C#compoundType4. */ val compoundType4: AnyRef {
+                    /* local2 */ def k: Int
+                  }
+[90:9..90:22]:    /* test/Test.C#compoundType5. */ val compoundType5: M with N {}
+[91:9..91:22]:    /* test/Test.C#compoundType6. */ val compoundType6: M with N {
+                    /* local3 */ def k: Int
+                  }
+[93:9..93:17]:    /* test/Test.C#annType1. */ val annType1: T
+[94:9..94:17]:    /* test/Test.C#annType2. */ val annType2: T
+[96:9..96:25]:    /* test/Test.C#existentialType1. */ val existentialType1:  forSome {
+                    /* local4 */ abstract type T
+                  }
+[97:9..97:25]:    /* test/Test.C#existentialType2. */ val existentialType2: List[] forSome {
+                    /* local5 */ abstract type _
+                  }
+[98:9..98:25]:    /* test/Test.C#existentialType3. */ val existentialType3: Class[] forSome {
+                    /* local6 */ abstract type ?0
+                  }
+[99:9..99:25]:    /* test/Test.C#existentialType4. */ val existentialType4: Class[] forSome {
+                    /* local7 */ abstract type ?0
+                  }
+[101:9..101:20]:  /* test/Test.C#typeLambda1(). */ def typeLambda1[/* test/Test.C#typeLambda1().[M] */ M[/* test/Test.C#typeLambda1().[M][_] */ _]]: Nothing
+[101:21..101:22]: /* test/Test.C#typeLambda1().[M] */ M[/* test/Test.C#typeLambda1().[M][_] */ _]
+[104:12..104:26]: /* test/Test.C#ClassInfoType1. */ object ClassInfoType1 extends AnyRef
+[105:11..105:25]: /* test/Test.C#ClassInfoType2# */ class ClassInfoType2 extends B { +2 decls }
+[105:26..105:26]: /* test/Test.C#ClassInfoType2#`<init>`(). */ <primary> def this
+[105:42..105:43]: /* test/Test.C#ClassInfoType2#x(). */ def x: Int
+[106:11..106:25]: /* test/Test.C#ClassInfoType3# */ trait ClassInfoType3[/* test/Test.C#ClassInfoType3#[T] */ T] extends AnyRef
+[106:26..106:27]: /* test/Test.C#ClassInfoType3#[T] */ T
+[108:12..108:22]: /* test/Test.C#MethodType. */ object MethodType extends AnyRef { +6 decls }
+[109:11..109:13]: /* test/Test.C#MethodType.x1(). */ def x1: Int
+[110:11..110:13]: /* test/Test.C#MethodType.x2(). */ def x2: Int
+[111:11..111:13]: /* test/Test.C#MethodType.m3(). */ def m3: Int
+[112:11..112:13]: /* test/Test.C#MethodType.m4(). */ def m4(): Int
+[113:11..113:13]: /* test/Test.C#MethodType.m5(). */ def m5(/* test/Test.C#MethodType.m5().(x) */ x: Int): Int
+[113:14..113:15]: /* test/Test.C#MethodType.m5().(x) */ x: Int
+[114:11..114:13]: /* test/Test.C#MethodType.m6(). */ def m6[/* test/Test.C#MethodType.m6().[T] */ T](/* test/Test.C#MethodType.m6().(x) */ x: T): T
+[114:14..114:15]: /* test/Test.C#MethodType.m6().[T] */ T
+[114:17..114:18]: /* test/Test.C#MethodType.m6().(x) */ x: T
+[117:12..117:22]: /* test/Test.C#ByNameType. */ object ByNameType extends AnyRef { +1 decls }
+[118:11..118:13]: /* test/Test.C#ByNameType.m1(). */ def m1(/* test/Test.C#ByNameType.m1().(x) */ x: => Int): Int
+[118:14..118:15]: /* test/Test.C#ByNameType.m1().(x) */ x: => Int
+[121:16..121:28]: /* test/Test.C#RepeatedType# */ case class RepeatedType extends AnyRef with Product with Serializable { +11 decls }
+[121:28..121:28]: /* test/Test.C#RepeatedType#`<init>`(). */ <primary> def this
+[121:29..121:30]: /* test/Test.C#RepeatedType#s. */ val s: * String
+[122:11..122:13]: /* test/Test.C#RepeatedType#m1(). */ def m1(/* test/Test.C#RepeatedType#m1().(x) */ x: * Int): Int
+[122:14..122:15]: /* test/Test.C#RepeatedType#m1().(x) */ x: * Int
+[125:12..125:20]: /* test/Test.C#TypeType. */ object TypeType extends AnyRef { +5 decls }
+[126:12..126:14]: /* test/Test.C#TypeType.T1# */ abstract type T1
+[127:11..127:13]: /* test/Test.C#TypeType.m2(). */ def m2[/* test/Test.C#TypeType.m2().[T2] */ T2 = C]: Nothing
+[127:14..127:16]: /* test/Test.C#TypeType.m2().[T2] */ T2 = C
+[128:11..128:13]: /* test/Test.C#TypeType.m3(). */ def m3[/* test/Test.C#TypeType.m3().[M3] */ M3[/* test/Test.C#TypeType.m3().[M3][_] */ _]]: Nothing
+[128:14..128:16]: /* test/Test.C#TypeType.m3().[M3] */ M3[/* test/Test.C#TypeType.m3().[M3][_] */ _]
+[129:12..129:14]: /* test/Test.C#TypeType.T4# */ type T4 = C
+[130:12..130:14]: /* test/Test.C#TypeType.T5# */ type T5[/* test/Test.C#TypeType.T5#[U] */ U] = U
+[130:15..130:16]: /* test/Test.C#TypeType.T5#[U] */ U
+[134:10..134:17]: /* test/Test.Literal. */ object Literal extends AnyRef { +11 decls }
+[135:15..135:18]: /* test/Test.Literal.int. */ final val int: 1
+[136:15..136:19]: /* test/Test.Literal.long. */ final val long: 1L
+[137:15..137:20]: /* test/Test.Literal.float. */ final val float: 1.0f
+[138:15..138:21]: /* test/Test.Literal.double. */ final val double: 2.0d
+[139:15..139:18]: /* test/Test.Literal.nil. */ final val nil: null
+[140:15..140:19]: /* test/Test.Literal.char. */ final val char: 'a'
+[141:15..141:21]: /* test/Test.Literal.string. */ final val string: "a"
+[142:15..142:19]: /* test/Test.Literal.bool. */ final val bool: true
+[143:15..143:19]: /* test/Test.Literal.unit. */ final val unit: Unit
+[144:15..144:23]: /* test/Test.Literal.javaEnum. */ final val javaEnum
+[145:15..145:22]: /* test/Test.Literal.clazzOf. */ final val clazzOf: Class[Option[Int]]

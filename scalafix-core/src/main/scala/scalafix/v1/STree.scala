@@ -1,20 +1,33 @@
 package scalafix.v1
 
 import scala.meta.Tree
-import scala.meta.internal.{semanticdb => s}
 import scala.runtime.Statics
+import scalafix.internal.util.Pretty
+import scalafix.util.FieldNames
 
-sealed abstract class STree
+sealed abstract class STree extends Product with FieldNames {
+  final override def toString: String = Pretty.pretty(this).render(80)
+  final def isEmpty: Boolean = this == NoTree
+  final def nonEmpty: Boolean = !isEmpty
+}
 
 case object NoTree extends STree
 
-final class IdTree(
-    value: s.IdTree,
+final class IdTree private[scalafix] (
     val symbol: Symbol
-)(implicit symtab: Symtab)
+)(implicit doc: SemanticDoc)
     extends STree {
-  override def toString: String =
-    s"IdTree($symbol)"
+  override def productArity: Int = 1
+  override def productPrefix: String = "IdTree"
+  override def productElement(n: Int): Any = n match {
+    case 0 => symbol
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "symbol"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean = that.isInstanceOf[IdTree]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: IdTree =>
@@ -28,148 +41,217 @@ final class IdTree(
   }
 }
 
-final class SelectTree(
-    value: s.SelectTree,
-    val qual: STree,
+final class SelectTree private[scalafix] (
+    val qualifier: STree,
     val id: IdTree
-)(implicit symtab: Symtab)
+)(implicit doc: SemanticDoc)
     extends STree {
-  override def toString: String =
-    s"SelectTree($qual, $id)"
+  override def productArity: Int = 2
+  override def productPrefix: String = "SelectTree"
+  override def productElement(n: Int): Any = n match {
+    case 0 => qualifier
+    case 1 => id
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "qualifier"
+    case 1 => "id"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean = that.isInstanceOf[SelectTree]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: SelectTree =>
-        this.qual == s.qual &&
+        this.qualifier == s.qualifier &&
           this.id == s.id
       case _ => false
     })
   override def hashCode(): Int = {
     var acc = -889275714
-    acc = Statics.mix(acc, Statics.anyHash(qual))
+    acc = Statics.mix(acc, Statics.anyHash(qualifier))
     acc = Statics.mix(acc, Statics.anyHash(id))
     Statics.finalizeHash(acc, 2)
   }
 }
 
-final class ApplyTree(
-    value: s.ApplyTree,
-    val fn: STree,
-    val args: List[STree]
-)(implicit symtab: Symtab)
+final class ApplyTree private[scalafix] (
+    val function: STree,
+    val arguments: List[STree]
+)(implicit doc: SemanticDoc)
     extends STree {
-  override def toString: String =
-    s"ApplyTree($fn, $args)"
+  override def productArity: Int = 2
+  override def productPrefix: String = "ApplyTree"
+  override def productElement(n: Int): Any = n match {
+    case 0 => function
+    case 1 => arguments
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "function"
+    case 1 => "arguments"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean = that.isInstanceOf[ApplyTree]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: ApplyTree =>
-        this.fn == s.fn &&
-          this.args == s.args
+        this.function == s.function &&
+          this.arguments == s.arguments
       case _ => false
     })
   override def hashCode(): Int = {
     var acc = -889275714
-    acc = Statics.mix(acc, Statics.anyHash(fn))
-    acc = Statics.mix(acc, Statics.anyHash(args))
+    acc = Statics.mix(acc, Statics.anyHash(function))
+    acc = Statics.mix(acc, Statics.anyHash(arguments))
     Statics.finalizeHash(acc, 2)
   }
 }
 
-final class TypeApplyTree(
-    value: s.TypeApplyTree,
-    val fn: STree,
-    val targs: List[SType]
-)(implicit symtab: Symtab)
+final class TypeApplyTree private[scalafix] (
+    val function: STree,
+    val typeArguments: List[SType]
+)(implicit doc: SemanticDoc)
     extends STree {
-  override def toString: String =
-    s"TypeApplyTree($fn, $targs)"
+  override def productArity: Int = 2
+  override def productPrefix: String = "TypeApplyTree"
+  override def productElement(n: Int): Any = n match {
+    case 0 => function
+    case 1 => typeArguments
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "function"
+    case 1 => "typeArguments"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean = that.isInstanceOf[TypeApplyTree]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: TypeApplyTree =>
-        this.fn == s.fn &&
-          this.targs == s.targs
+        this.function == s.function &&
+          this.typeArguments == s.typeArguments
       case _ => false
     })
   override def hashCode(): Int = {
     var acc = -889275714
-    acc = Statics.mix(acc, Statics.anyHash(fn))
-    acc = Statics.mix(acc, Statics.anyHash(targs))
+    acc = Statics.mix(acc, Statics.anyHash(function))
+    acc = Statics.mix(acc, Statics.anyHash(typeArguments))
     Statics.finalizeHash(acc, 2)
   }
 }
 
-final class FunctionTree(
-    value: s.FunctionTree,
-    val params: List[IdTree],
-    val term: STree
-)(implicit symtab: Symtab)
+final class FunctionTree private[scalafix] (
+    val parameters: List[IdTree],
+    val body: STree
+)(implicit doc: SemanticDoc)
     extends STree {
-  override def toString: String =
-    s"FunctionTree($params, $term)"
+  override def productArity: Int = 2
+  override def productPrefix: String = "FunctionTree"
+  override def productElement(n: Int): Any = n match {
+    case 0 => parameters
+    case 1 => body
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "parameters"
+    case 1 => "body"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean = that.isInstanceOf[FunctionTree]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: FunctionTree =>
-        this.params == s.params &&
-          this.term == s.term
+        this.parameters == s.parameters &&
+          this.body == s.body
       case _ => false
     })
   override def hashCode(): Int = {
     var acc = -889275714
-    acc = Statics.mix(acc, Statics.anyHash(params))
-    acc = Statics.mix(acc, Statics.anyHash(term))
+    acc = Statics.mix(acc, Statics.anyHash(parameters))
+    acc = Statics.mix(acc, Statics.anyHash(body))
     Statics.finalizeHash(acc, 2)
   }
 }
 
-final class LiteralTree(
-    value: s.LiteralTree,
-    val const: Constant
-)(implicit symtab: Symtab)
+final class LiteralTree private[scalafix] (
+    val constant: Constant
+)(implicit doc: SemanticDoc)
     extends STree {
-  override def toString: String =
-    s"IdTree($const)"
+  override def productArity: Int = 1
+  override def productPrefix: String = "LiteralTree"
+  override def productElement(n: Int): Any = n match {
+    case 0 => constant
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "constant"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean = that.isInstanceOf[LiteralTree]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: LiteralTree =>
-        this.const == s.const
+        this.constant == s.constant
       case _ => false
     })
   override def hashCode(): Int = {
     var acc = -889275714
-    acc = Statics.mix(acc, Statics.anyHash(const))
+    acc = Statics.mix(acc, Statics.anyHash(constant))
     Statics.finalizeHash(acc, 1)
   }
 }
 
-final class MacroExpansionTree(
-    value: s.MacroExpansionTree,
-    val expandee: STree,
+final class MacroExpansionTree private[scalafix] (
+    val beforeExpansion: STree,
     val tpe: SType
-)(implicit symtab: Symtab)
+)(implicit doc: SemanticDoc)
     extends STree {
-  override def toString: String =
-    s"MacroExpansionTree($expandee, $tpe)"
+  override def productArity: Int = 2
+  override def productPrefix: String = "MacroExpansionTree"
+  override def productElement(n: Int): Any = n match {
+    case 0 => beforeExpansion
+    case 1 => tpe
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "beforeExpansion"
+    case 1 => "tpe"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean =
+    that.isInstanceOf[MacroExpansionTree]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: MacroExpansionTree =>
-        this.expandee == s.expandee &&
+        this.beforeExpansion == s.beforeExpansion &&
           this.tpe == s.tpe
       case _ => false
     })
   override def hashCode(): Int = {
     var acc = -889275714
-    acc = Statics.mix(acc, Statics.anyHash(expandee))
+    acc = Statics.mix(acc, Statics.anyHash(beforeExpansion))
     acc = Statics.mix(acc, Statics.anyHash(tpe))
     Statics.finalizeHash(acc, 2)
   }
 }
 
-final class OriginalTree(
-    value: s.OriginalTree,
+final class OriginalTree private[scalafix] (
+    val matchesFullOriginalRange: Boolean,
     val tree: Tree
-)(implicit symtab: Symtab)
+)(implicit doc: SemanticDoc)
     extends STree {
-  override def toString: String =
-    s"OriginalTree($tree)"
+  override def productArity: Int = 1
+  override def productPrefix: String = "OriginalTree"
+  override def productElement(n: Int): Any = n match {
+    case 0 => tree
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "tree"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean =
+    that.isInstanceOf[OriginalTree]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: OriginalTree =>

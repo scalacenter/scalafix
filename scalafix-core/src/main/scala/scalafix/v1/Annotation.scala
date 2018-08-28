@@ -2,7 +2,15 @@ package scalafix.v1
 
 import scala.runtime.Statics
 
-final class Annotation(val tpe: SType) {
+final class Annotation(val tpe: SType) extends Product {
+  override def productArity: Int = 1
+  override def productPrefix: String = "Annotation"
+  override def productElement(n: Int): Any = n match {
+    case 0 => tpe
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean =
+    that.isInstanceOf[Annotation]
   override def toString: String = s"Annotation($tpe)"
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {

@@ -25,9 +25,9 @@ package object v1 extends Api {
   implicit class XtensionSyntheticTree(tree: STree) {
     def symbol(implicit sdoc: SemanticDoc): Option[Symbol] = tree match {
       case t: ApplyTree =>
-        t.fn.symbol
+        t.function.symbol
       case t: TypeApplyTree =>
-        t.fn.symbol
+        t.function.symbol
       case t: SelectTree =>
         Some(t.id.symbol)
       case t: IdTree =>

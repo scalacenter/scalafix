@@ -71,10 +71,17 @@ trait DiffAssertions extends FunSuiteLike {
          """.stripMargin('#'))
     sb.toString()
   }
+  def assertNoDiffOrPrintExpected(
+      obtained: String,
+      expected: String
+  ): Boolean = {
+    assertNoDiff(obtained, expected, printObtained = true)
+  }
   def assertNoDiff(
       obtained: String,
       expected: String,
-      title: String = ""
+      title: String = "",
+      printObtained: Boolean = false
   ): Boolean = {
     val result = compareContents(obtained, expected)
     if (result.isEmpty) true
@@ -82,6 +89,13 @@ trait DiffAssertions extends FunSuiteLike {
       // Ignore \r\n and \n differences
       true
     } else {
+      if (printObtained) {
+        println("\"\"\"|")
+        obtained.lines.foreach { line =>
+          print("   |")
+          println(line)
+        }
+      }
       throw DiffFailure(title, expected, obtained, result)
     }
   }

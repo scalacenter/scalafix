@@ -13,11 +13,18 @@ final class SymbolInfo private[scalafix] (
   def sym: Symbol = Symbol(info.symbol)
   def owner: Symbol = Symbol(info.symbol).owner
   def displayName: String = info.displayName
-  def signature(implicit doc: SemanticDoc): Signature =
+  def signature: Signature =
     new SymtabFromProtobuf(symtab).ssignature(info.signature)
+  def annotations: List[Annotation] =
+    info.annotations.iterator
+      .map(annot => new SymtabFromProtobuf(symtab).sannotation(annot))
+      .toList
 
+  // language
   def isScala: Boolean = info.isScala
   def isJava: Boolean = info.isJava
+
+  // kind
   def isLocal: Boolean = info.isLocal
   def isField: Boolean = info.isField
   def isMethod: Boolean = info.isMethod
@@ -33,6 +40,8 @@ final class SymbolInfo private[scalafix] (
   def isClass: Boolean = info.isClass
   def isInterface: Boolean = info.isInterface
   def isTrait: Boolean = info.isTrait
+
+  // properties
   def isAbstract: Boolean = info.isAbstract
   def isFinal: Boolean = info.isFinal
   def isSealed: Boolean = info.isSealed
@@ -47,6 +56,10 @@ final class SymbolInfo private[scalafix] (
   def isPrimary: Boolean = info.isPrimary
   def isEnum: Boolean = info.isEnum
   def isDefault: Boolean = info.isDefault
+
+  def isSetter: Boolean = displayName.endsWith("_=")
+
+  // access
   def isPrivate: Boolean = info.isPrivate
   def isPrivateThis: Boolean = info.isPrivateThis
   def isPrivateWithin: Boolean = info.isPrivateWithin

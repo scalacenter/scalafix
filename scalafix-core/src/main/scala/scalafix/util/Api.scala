@@ -1,7 +1,7 @@
 package scalafix.util
 
-import scala.meta.Tree
-import scalafix.internal.util.Inspect
+import scalafix.internal.util.ProductLabeledStructure
+import scalafix.internal.util.ProductStructure
 
 trait Api {
 
@@ -25,25 +25,19 @@ trait Api {
   type CustomMessage[T] = scalafix.config.CustomMessage[T]
   val CustomMessage = scalafix.config.CustomMessage
 
-  implicit class XtensionScalafixTreeInspect(tree: Tree) {
-    def inspect: String =
-      Inspect.prettyTree(tree, showFieldNames = false).render(1)
-    def inspectLabeled: String =
-      Inspect.prettyTree(tree, showFieldNames = true).render(1)
-  }
-
-  implicit class XtensionScalafixOptionTreeInspect(tree: Option[Tree]) {
-    def inspect: String =
-      Inspect.prettyOption(tree, showFieldNames = false).render(1)
-    def inspectLabeled: String =
-      Inspect.prettyOption(tree, showFieldNames = true).render(1)
-  }
-
-  implicit class XtensionScalafixListTreeInspect(tree: List[Tree]) {
-    def inspect: String =
-      Inspect.prettyList(tree, showFieldNames = false).render(1)
-    def inspectLabeled: String =
-      Inspect.prettyList(tree, showFieldNames = true).render(1)
+  implicit class XtensionScalafixProductInspect(product: Product) {
+    // NOTE(olafurpg) I can't explain why, but fortunately these methods shadow
+    // `scala.meta.Tree.structure` regardless of how `import scalafix.v1, scala.meta._`.
+    // These structure methods work the same except they implement line wrapping which
+    // makes the output more readable.
+    def structure: String =
+      ProductStructure.structure(product).render(80)
+    def structure(printWidth: Int): String =
+      ProductStructure.structure(product).render(printWidth)
+    def structureLabeled: String =
+      ProductLabeledStructure.structure(product).render(80)
+    def structureLabeled(printWidth: Int): String =
+      ProductLabeledStructure.structure(product).render(printWidth)
   }
 
 }

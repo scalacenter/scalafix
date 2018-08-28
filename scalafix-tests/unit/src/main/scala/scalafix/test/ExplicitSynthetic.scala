@@ -1,11 +1,12 @@
 package scalafix.test
 
 import metaconfig.Configured
-import scalafix.v1._
-import scala.meta._
+import scalafix.v1.SemanticRule
 
 class ExplicitSynthetic(insertInfixTypeParam: Boolean)
     extends SemanticRule("ExplicitSynthetic") {
+  import scalafix.v1._
+  import scala.meta._
 
   def this() = this(insertInfixTypeParam = true)
 
@@ -29,7 +30,7 @@ class ExplicitSynthetic(insertInfixTypeParam: Boolean)
             case tappl: TypeApplyTree => tappl
           }
         } yield {
-          val targs = synthetic.targs.collect {
+          val targs = synthetic.typeArguments.collect {
             // not a generic solution but sufficient for unit tests
             case ref: TypeRef =>
               Type.Name(ref.symbol.displayName)

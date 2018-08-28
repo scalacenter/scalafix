@@ -26,6 +26,9 @@ final class Doc private[scalafix] (
 }
 
 object Doc {
+  def fromInput(input: Input): Doc = {
+    fromInput(input, scala.meta.dialects.Scala212)
+  }
   def fromInput(input: Input, dialect: Dialect): Doc = {
     import scala.meta._
     val tree = LazyValue.later { () =>
