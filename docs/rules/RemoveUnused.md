@@ -17,8 +17,8 @@ To use this rule:
 - Enable the Scala compiler option `-Ywarn-unused`. In sbt, this is done with
   `scalacOptions += "-Ywarn-unused"`.
 - Disable `-Xfatal-warnings`. This is required so the compiler warnings do not
-  fail the build before runing Scalafix. Unfortunately, the Scala compiler does
-  not support finer grained control over the severity level.
+  fail the build before running Scalafix. Unfortunately, it's not possible
+  exclude unused imports from -Xfatal-warnings.
 
 ## Examples
 
@@ -71,13 +71,12 @@ object Main {
 ```scala
 // before
 import scala.concurrent.{
-  CancellationException,
+  CancellationException, // A comment
   TimeoutException
 }
 // after
-import scala.concurrent.
-
-  TimeoutException
+import scala.concurrent. // A comment
+TimeoutException
 ```
 
 It's recommended to use a code formatter like

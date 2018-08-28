@@ -255,12 +255,12 @@ object ImportPatchOps {
   }
 
   private def removeUpToFirstComma(tokens: Iterable[Token]): List[Patch] = {
-    var stop = false
-    tokens
+    var foundComma = false
+    val patch = tokens
       .takeWhile {
-        case _: Token.Space | Newline() => !stop
-        case _: Token.Comma if !stop =>
-          stop = true
+        case _: Token.Space | Newline() => true
+        case _: Token.Comma if !foundComma =>
+          foundComma = true
           true
         case _ => false
       }
@@ -268,6 +268,8 @@ object ImportPatchOps {
         Patch.removeToken(token)
       }
       .toList
+    if (foundComma) patch
+    else Nil
   }
 
 }

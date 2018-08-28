@@ -6,6 +6,7 @@ package test
 import scala.util.control.NonFatal
 import scala.concurrent.Future
 import scala.util.{Properties, Try}
+import scala.math.{ max, min }
 import scala.util.{Success => Successful}
 import scala.concurrent.ExecutionContext
 import scala.runtime.{RichBoolean}
@@ -23,7 +24,7 @@ object RemoveUnusedImports {
   Future.successful(1)
   println(Properties.ScalaCompilerVersion)
   Try(1)
-  Successful(1)
+  Successful(min(1, 2))
   ExecutionContext.defaultReporter
   new RichBoolean(true)
   new TimeoutException
