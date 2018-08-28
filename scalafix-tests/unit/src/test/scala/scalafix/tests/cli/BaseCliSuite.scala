@@ -151,6 +151,14 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
     )
   }
 
+  def sourceDirectory: AbsolutePath =
+    props.inputSourceDirectories
+      .find(dir => dir.toNIO.endsWith("scala")) // Skip scala-2.12
+      .getOrElse {
+        throw new IllegalArgumentException(
+          props.inputSourceDirectories.toString())
+      }
+
   case class Result(
       exit: ExitStatus,
       original: String,
@@ -168,6 +176,7 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
       assertObtained: Result => Unit = { result =>
         if (result.exit.isOk) {
           assertNoDiff(result.obtained, result.expected)
+
         }
       }
   ): Unit = {
@@ -180,7 +189,7 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
       val root = AbsolutePath(inputSourceDirectory)
       val out = new ByteArrayOutputStream()
       root.toFile.deleteOnExit()
-      copyRecursively(source = props.inputSourceDirectories.head, target = root)
+      copyRecursively(source = sourceDirectory, target = root)
       val rootNIO = root
       writeTestkitConfiguration(rootNIO, rootNIO.resolve(path))
       preprocess(root)
