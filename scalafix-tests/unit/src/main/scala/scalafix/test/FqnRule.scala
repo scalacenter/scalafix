@@ -39,13 +39,13 @@ case object PatchTokenWithEmptyRange
 }
 
 class SemanticRuleV1 extends v1.SemanticRule("SemanticRuleV1") {
-  override def fix(implicit doc: v1.SemanticDoc): Patch = {
+  override def fix(implicit doc: v1.SemanticDocument): Patch = {
     Patch.addRight(doc.tree, "\nobject SemanticRuleV1")
   }
 }
 
 class SyntacticRuleV1 extends v1.SyntacticRule("SyntacticRuleV1") {
-  override def fix(implicit doc: v1.Doc): Patch = {
+  override def fix(implicit doc: v1.SyntacticDocument): Patch = {
     Patch.addRight(doc.tree, "\nobject SyntacticRuleV1")
   }
 }

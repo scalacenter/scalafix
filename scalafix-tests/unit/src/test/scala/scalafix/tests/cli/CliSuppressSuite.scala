@@ -3,11 +3,11 @@ package scalafix.tests.cli
 import scala.meta.{Defn, Lit}
 import scalafix.patch.Patch
 import scalafix.v0.LintCategory
-import scalafix.v1.Doc
+import scalafix.v1.SyntacticDocument
 import scalafix.v1.SyntacticRule
 
 class NoVars extends SyntacticRule("NoVars") {
-  override def fix(implicit doc: Doc): Patch = {
+  override def fix(implicit doc: SyntacticDocument): Patch = {
     val error = LintCategory.error("No vars!")
     doc.tree.collect {
       case v @ Defn.Var(_, _, _, _) => Patch.lint(error.at("no vars", v.pos))
@@ -16,7 +16,7 @@ class NoVars extends SyntacticRule("NoVars") {
 }
 
 class NoInts extends SyntacticRule("NoInts") {
-  override def fix(implicit doc: Doc): Patch = {
+  override def fix(implicit doc: SyntacticDocument): Patch = {
     val error = LintCategory.error("No ints!")
     doc.tree.collect {
       case i @ Lit.Int(_) => Patch.lint(error.at("no ints", i.pos))

@@ -18,7 +18,7 @@ class ExplicitSynthetic(insertInfixTypeParam: Boolean)
         insertInfixTypeParam = !config.scalaVersion.startsWith("2.11"))
     )
 
-  override def fix(implicit doc: SemanticDoc): Patch = {
+  override def fix(implicit doc: SemanticDocument): Patch = {
     val patches = doc.tree.collect {
       case Term.Select(_, Term.Name("apply")) =>
         // happens for explicit "List.apply" because Synthetic.symbol returns Some(symbol)

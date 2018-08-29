@@ -7,9 +7,10 @@ import scalafix.v1._
 
 object DocFromProtobuf {
   def convert(synth: s.Synthetic, doc: InternalSemanticDoc): STree =
-    new DocFromProtobuf(synth)(new SemanticDoc(doc)).stree(synth.tree)
+    new DocFromProtobuf(synth)(new SemanticDocument(doc)).stree(synth.tree)
 }
-final class DocFromProtobuf(original: s.Synthetic)(implicit doc: SemanticDoc) {
+final class DocFromProtobuf(original: s.Synthetic)(
+    implicit doc: SemanticDocument) {
   val convert = new SymtabFromProtobuf(doc)
   def stree(t: s.Tree): STree = {
     t match {

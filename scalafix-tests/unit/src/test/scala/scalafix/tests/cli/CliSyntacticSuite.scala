@@ -6,7 +6,7 @@ import scalafix.patch.Patch
 import scalafix.rule.RuleName
 import scalafix.v1
 import scalafix.v1.Configuration
-import scalafix.v1.Doc
+import scalafix.v1.SyntacticDocument
 import scalafix.v1.Rule
 import scalafix.v1.SyntacticRule
 
@@ -392,7 +392,7 @@ class CliSyntacticSuite extends BaseCliSuite {
 }
 
 class NoOpRule extends SyntacticRule("NoOpRule") {
-  override def fix(implicit doc: Doc): _root_.scalafix.v1.Patch =
+  override def fix(implicit doc: SyntacticDocument): _root_.scalafix.v1.Patch =
     Patch.empty
 }
 
@@ -402,7 +402,7 @@ class DeprecatedName
         "OldDeprecatedName",
         "Use DeprecatedName instead",
         "1.0")) {
-  override def fix(implicit doc: Doc): _root_.scalafix.v1.Patch =
+  override def fix(implicit doc: SyntacticDocument): _root_.scalafix.v1.Patch =
     Patch.empty
 }
 

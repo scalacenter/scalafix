@@ -15,7 +15,7 @@ class NoAutoTupling extends SemanticRule("NoAutoTupling") {
   private[this] def insertUnit(t: Term.Apply): Patch =
     Patch.addRight(t.tokens.init.last, "()")
 
-  override def fix(implicit doc: SemanticDoc): Patch = {
+  override def fix(implicit doc: SemanticDocument): Patch = {
     val unitAdaptations: Set[Position] =
       doc.diagnostics.toIterator.collect {
         case message

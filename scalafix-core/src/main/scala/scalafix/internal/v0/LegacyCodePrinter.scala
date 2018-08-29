@@ -9,9 +9,9 @@ import scala.meta.internal.{semanticdb => s}
 import scalafix.v0
 import scalafix.v0.ResolvedName
 import scalafix.v1
-import scalafix.v1.SemanticDoc
+import scalafix.v1.SemanticDocument
 
-class LegacyCodePrinter(doc: SemanticDoc) {
+class LegacyCodePrinter(doc: SemanticDocument) {
   case class PositionedSymbol(symbol: v0.Symbol, start: Int, end: Int)
   private val buf = List.newBuilder[PositionedSymbol]
   private val text = new StringBuilder

@@ -9,20 +9,24 @@ import scalafix.internal.v0.LegacyInMemorySemanticdbIndex
 import scalafix.syntax._
 import scalafix.testkit.DiffAssertions
 import scalafix.tests.BuildInfo
-import scalafix.v1.Doc
-import scalafix.v1.SemanticDoc
+import scalafix.v1.SyntacticDocument
+import scalafix.v1.SemanticDocument
 
 object BaseSemanticSuite {
-  def loadDoc(filename: String): SemanticDoc = {
+  def loadDoc(filename: String): SemanticDocument = {
     val root = AbsolutePath(BuildInfo.sharedSourceroot).resolve("scala/test")
     val abspath = root.resolve(filename)
     val relpath = abspath.toRelative(AbsolutePath(BuildInfo.baseDirectory))
     val input = Input.File(abspath)
-    val doc = Doc.fromInput(input)
+    val doc = SyntacticDocument.fromInput(input)
     val classpath =
       Classpaths.withDirectory(AbsolutePath(BuildInfo.sharedClasspath))
     val symtab = ClasspathOps.newSymbolTable(classpath).get
-    SemanticDoc.fromPath(doc, relpath, ClasspathOps.thisClassLoader, symtab)
+    SemanticDocument.fromPath(
+      doc,
+      relpath,
+      ClasspathOps.thisClassLoader,
+      symtab)
   }
 }
 

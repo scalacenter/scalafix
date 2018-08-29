@@ -36,7 +36,7 @@ class RemoveUnused(config: RemoveUnusedConfig)
         .map(new RemoveUnused(_))
     }
 
-  override def fix(implicit doc: SemanticDoc): Patch = {
+  override def fix(implicit doc: SemanticDocument): Patch = {
     val isUnusedTerm = mutable.Set.empty[Position]
     val isUnusedImport = mutable.Set.empty[Position]
 

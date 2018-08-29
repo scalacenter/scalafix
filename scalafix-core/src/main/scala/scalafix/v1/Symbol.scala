@@ -12,7 +12,7 @@ final class Symbol private (val value: String) {
   def isLocal: Boolean = value.isLocal
   def owner: Symbol = Symbol(value.owner)
   def displayName: String = value.desc.name.value
-  def info(implicit doc: SemanticDoc): Option[SymbolInfo] =
+  def info(implicit doc: SemanticDocument): Option[SymbolInfo] =
     doc.internal.info(this)
   def normalized: Symbol = SymbolOps.normalize(this)
   def asNonEmpty: Option[Symbol] =

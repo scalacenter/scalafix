@@ -9,23 +9,23 @@ import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
 import scala.{meta => m}
 import scalafix.internal.patch.CrashingSemanticdbIndex
-import scalafix.internal.v0.DocSemanticdbIndex._
+import scalafix.internal.v0.LegacySemanticdbIndex._
 import scalafix.internal.v1.TreePos
 import scalafix.v0
 import scalafix.v0.{Flags => d}
 import scalafix.v1
 
-class DocSemanticdbIndex(val doc: v1.SemanticDoc)
+final class LegacySemanticdbIndex(val doc: v1.SemanticDocument)
     extends CrashingSemanticdbIndex
     with SymbolTable {
 
   override def inputs: Seq[m.Input] =
     doc.input :: Nil
 
-  final override def database: v0.Database =
+  override def database: v0.Database =
     v0.Database(documents)
 
-  final override def documents: Seq[v0.Document] =
+  override def documents: Seq[v0.Document] =
     v0.Document(
       doc.input,
       doc.internal.textDocument.language.toString(),
@@ -35,23 +35,23 @@ class DocSemanticdbIndex(val doc: v1.SemanticDoc)
       synthetics = this.synthetics.toList
     ) :: Nil
 
-  final override def names: Seq[v0.ResolvedName] =
+  override def names: Seq[v0.ResolvedName] =
     doc.internal.textDocument.occurrences.map { o =>
       occurrenceToLegacy(doc, doc.input, o)
     }
-  final override def symbols: Seq[v0.ResolvedSymbol] =
+  override def symbols: Seq[v0.ResolvedSymbol] =
     doc.internal.textDocument.symbols.map { s =>
       v0.ResolvedSymbol(
         v0.Symbol(s.symbol),
         infoToDenotation(doc, s)
       )
     }
-  final override def synthetics: Seq[v0.Synthetic] = {
+  override def synthetics: Seq[v0.Synthetic] = {
     doc.internal.textDocument.synthetics.map { s =>
-      DocSemanticdbIndex.syntheticToLegacy(doc, s)
+      LegacySemanticdbIndex.syntheticToLegacy(doc, s)
     }
   }
-  override final def messages: Seq[v0.Message] =
+  override def messages: Seq[v0.Message] =
     doc.internal.textDocument.diagnostics.map { diag =>
       val pos = ScalametaInternals.positionFromRange(doc.input, diag.range)
       val severity = diag.severity match {
@@ -64,21 +64,21 @@ class DocSemanticdbIndex(val doc: v1.SemanticDoc)
       v0.Message(pos, severity, diag.message)
     }
 
-  final override def symbol(position: Position): Option[v0.Symbol] =
+  override def symbol(position: Position): Option[v0.Symbol] =
     doc.internal.symbols(position).toList.map(s => v0.Symbol(s.value)) match {
       case Nil => None
       case head :: Nil => Some(head)
       case multi => Some(v0.Symbol.Multi(multi))
     }
-  final override def symbol(tree: Tree): Option[v0.Symbol] =
+  override def symbol(tree: Tree): Option[v0.Symbol] =
     symbol(TreePos.symbol(tree))
 
-  final override def denotation(symbol: v0.Symbol): Option[v0.Denotation] = {
+  override def denotation(symbol: v0.Symbol): Option[v0.Denotation] = {
     doc.internal.info(v1.Symbol(symbol.syntax)).map { info =>
-      DocSemanticdbIndex.infoToDenotation(doc, info.info)
+      LegacySemanticdbIndex.infoToDenotation(doc, info.info)
     }
   }
-  final override def denotation(tree: Tree): Option[v0.Denotation] =
+  override def denotation(tree: Tree): Option[v0.Denotation] =
     symbol(tree).flatMap(denotation)
 
   override def info(symbol: String): Option[SymbolInformation] = {
@@ -86,10 +86,10 @@ class DocSemanticdbIndex(val doc: v1.SemanticDoc)
   }
 }
 
-object DocSemanticdbIndex {
+object LegacySemanticdbIndex {
 
   def infoToDenotation(
-      doc: v1.SemanticDoc,
+      doc: v1.SemanticDocument,
       info: s.SymbolInformation): v0.Denotation = {
     val dflags = {
       var dflags = 0L
@@ -149,7 +149,7 @@ object DocSemanticdbIndex {
   }
 
   def occurrenceToLegacy(
-      doc: v1.SemanticDoc,
+      doc: v1.SemanticDocument,
       input: Input,
       occurrence: s.SymbolOccurrence): v0.ResolvedName = {
     val pos = ScalametaInternals.positionFromRange(input, occurrence.range)
@@ -161,7 +161,7 @@ object DocSemanticdbIndex {
   }
 
   def syntheticToLegacy(
-      doc: v1.SemanticDoc,
+      doc: v1.SemanticDocument,
       synthetic: s.Synthetic): v0.Synthetic = {
     new LegacyCodePrinter(doc).convertSynthetic(synthetic)
   }

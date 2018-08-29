@@ -8,7 +8,7 @@ import scalafix.v0
 import scalafix.v0.SemanticdbIndex
 import scalafix.v1.Configuration
 import scalafix.v1.Rule
-import scalafix.v1.SemanticDoc
+import scalafix.v1.SemanticDocument
 import scalafix.v1.SemanticRule
 
 class LegacySemanticRule(name: RuleName, fn: v0.SemanticdbIndex => v0.Rule)
@@ -22,9 +22,9 @@ class LegacySemanticRule(name: RuleName, fn: v0.SemanticdbIndex => v0.Rule)
       this
     }
   }
-  override def fix(implicit sdoc: SemanticDoc): Patch = {
+  override def fix(implicit sdoc: SemanticDocument): Patch = {
     val ctx = new LegacyRuleCtx(sdoc.internal.doc)
-    val rule = fn(new DocSemanticdbIndex(sdoc)).init(this.conf).get
+    val rule = fn(new LegacySemanticdbIndex(sdoc)).init(this.conf).get
     rule.fix(ctx) + LegacyRule.lints(ctx, rule)
   }
 }

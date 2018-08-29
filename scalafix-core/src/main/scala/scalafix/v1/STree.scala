@@ -15,7 +15,7 @@ case object NoTree extends STree
 
 final class IdTree private[scalafix] (
     val symbol: Symbol
-)(implicit doc: SemanticDoc)
+)(implicit doc: SemanticDocument)
     extends STree {
   override def productArity: Int = 1
   override def productPrefix: String = "IdTree"
@@ -44,7 +44,7 @@ final class IdTree private[scalafix] (
 final class SelectTree private[scalafix] (
     val qualifier: STree,
     val id: IdTree
-)(implicit doc: SemanticDoc)
+)(implicit doc: SemanticDocument)
     extends STree {
   override def productArity: Int = 2
   override def productPrefix: String = "SelectTree"
@@ -77,7 +77,7 @@ final class SelectTree private[scalafix] (
 final class ApplyTree private[scalafix] (
     val function: STree,
     val arguments: List[STree]
-)(implicit doc: SemanticDoc)
+)(implicit doc: SemanticDocument)
     extends STree {
   override def productArity: Int = 2
   override def productPrefix: String = "ApplyTree"
@@ -110,7 +110,7 @@ final class ApplyTree private[scalafix] (
 final class TypeApplyTree private[scalafix] (
     val function: STree,
     val typeArguments: List[SType]
-)(implicit doc: SemanticDoc)
+)(implicit doc: SemanticDocument)
     extends STree {
   override def productArity: Int = 2
   override def productPrefix: String = "TypeApplyTree"
@@ -143,7 +143,7 @@ final class TypeApplyTree private[scalafix] (
 final class FunctionTree private[scalafix] (
     val parameters: List[IdTree],
     val body: STree
-)(implicit doc: SemanticDoc)
+)(implicit doc: SemanticDocument)
     extends STree {
   override def productArity: Int = 2
   override def productPrefix: String = "FunctionTree"
@@ -175,7 +175,7 @@ final class FunctionTree private[scalafix] (
 
 final class LiteralTree private[scalafix] (
     val constant: Constant
-)(implicit doc: SemanticDoc)
+)(implicit doc: SemanticDocument)
     extends STree {
   override def productArity: Int = 1
   override def productPrefix: String = "LiteralTree"
@@ -204,7 +204,7 @@ final class LiteralTree private[scalafix] (
 final class MacroExpansionTree private[scalafix] (
     val beforeExpansion: STree,
     val tpe: SType
-)(implicit doc: SemanticDoc)
+)(implicit doc: SemanticDocument)
     extends STree {
   override def productArity: Int = 2
   override def productPrefix: String = "MacroExpansionTree"
@@ -238,7 +238,7 @@ final class MacroExpansionTree private[scalafix] (
 final class OriginalTree private[scalafix] (
     val matchesFullOriginalRange: Boolean,
     val tree: Tree
-)(implicit doc: SemanticDoc)
+)(implicit doc: SemanticDocument)
     extends STree {
   override def productArity: Int = 1
   override def productPrefix: String = "OriginalTree"
