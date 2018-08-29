@@ -1,18 +1,38 @@
 package scalafix.v1
 
 import scala.runtime.Statics
+import scalafix.internal.util.Pretty
+import scalafix.util.FieldNames
 
-sealed abstract class SType
+sealed abstract class SType extends Product with FieldNames {
+  final override def toString: String = Pretty.pretty(this).render(80)
+  final def isEmpty: Boolean = this == NoType
+  final def nonEmpty: Boolean = !isEmpty
+}
 
 case object NoType extends SType
 
-final class TypeRef(
+final class TypeRef private[scalafix] (
     val prefix: SType,
     val symbol: Symbol,
     val typeArguments: List[SType]
 ) extends SType {
-  override def toString: String =
-    s"TypeRef($prefix,$symbol,$typeArguments)"
+  override def productArity: Int = 3
+  override def productPrefix: String = "TypeRef"
+  override def productElement(n: Int): Any = n match {
+    case 0 => prefix
+    case 1 => symbol
+    case 2 => typeArguments
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "prefix"
+    case 1 => "symbol"
+    case 2 => "typeArguments"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean =
+    that.isInstanceOf[TypeRef]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: TypeRef =>
@@ -30,12 +50,24 @@ final class TypeRef(
   }
 }
 
-final class SingleType(
+final class SingleType private[scalafix] (
     val prefix: SType,
     val symbol: Symbol
 ) extends SType {
-  override def toString: String =
-    s"SingleType($prefix,$symbol)"
+  override def productArity: Int = 2
+  override def productPrefix: String = "SingleType"
+  override def productElement(n: Int): Any = n match {
+    case 0 => prefix
+    case 1 => symbol
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "prefix"
+    case 1 => "symbol"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean =
+    that.isInstanceOf[SingleType]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: TypeRef =>
@@ -51,11 +83,21 @@ final class SingleType(
   }
 }
 
-final class ThisType(
+final class ThisType private[scalafix] (
     val symbol: Symbol
 ) extends SType {
-  override def toString: String =
-    s"ThisType($symbol)"
+  override def productArity: Int = 1
+  override def productPrefix: String = "ThisType"
+  override def productElement(n: Int): Any = n match {
+    case 0 => symbol
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "symbol"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean =
+    that.isInstanceOf[ThisType]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: ThisType =>
@@ -69,12 +111,24 @@ final class ThisType(
   }
 }
 
-final class SuperType(
+final class SuperType private[scalafix] (
     val prefix: SType,
     val symbol: Symbol
 ) extends SType {
-  override def toString: String =
-    s"SuperType($prefix,$symbol)"
+  override def productArity: Int = 2
+  override def productPrefix: String = "SuperType"
+  override def productElement(n: Int): Any = n match {
+    case 0 => prefix
+    case 1 => symbol
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "prefix"
+    case 1 => "symbol"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean =
+    that.isInstanceOf[SuperType]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: SuperType =>
@@ -90,11 +144,21 @@ final class SuperType(
   }
 }
 
-final class ConstantType(
+final class ConstantType private[scalafix] (
     val constant: Constant
 ) extends SType {
-  override def toString: String =
-    s"ConstantType($constant)"
+  override def productArity: Int = 1
+  override def productPrefix: String = "ConstantType"
+  override def productElement(n: Int): Any = n match {
+    case 0 => constant
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "constant"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean =
+    that.isInstanceOf[ConstantType]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: ConstantType =>
@@ -108,11 +172,21 @@ final class ConstantType(
   }
 }
 
-final class IntersectionType(
+final class IntersectionType private[scalafix] (
     val types: List[SType]
 ) extends SType {
-  override def toString: String =
-    s"IntersectionType($types)"
+  override def productArity: Int = 1
+  override def productPrefix: String = "IntersectionType"
+  override def productElement(n: Int): Any = n match {
+    case 0 => types
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "types"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean =
+    that.isInstanceOf[IntersectionType]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: IntersectionType =>
@@ -126,11 +200,21 @@ final class IntersectionType(
   }
 }
 
-final class UnionType(
+final class UnionType private[scalafix] (
     val types: List[SType]
 ) extends SType {
-  override def toString: String =
-    s"UnionType($types)"
+  override def productArity: Int = 1
+  override def productPrefix: String = "UnionType"
+  override def productElement(n: Int): Any = n match {
+    case 0 => types
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "types"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean =
+    that.isInstanceOf[UnionType]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: UnionType =>
@@ -144,11 +228,21 @@ final class UnionType(
   }
 }
 
-final class WithType(
+final class WithType private[scalafix] (
     val types: List[SType]
 ) extends SType {
-  override def toString: String =
-    s"WithType($types)"
+  override def productArity: Int = 1
+  override def productPrefix: String = "WithType"
+  override def productElement(n: Int): Any = n match {
+    case 0 => types
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "types"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean =
+    that.isInstanceOf[WithType]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: WithType =>
@@ -162,12 +256,24 @@ final class WithType(
   }
 }
 
-final class StructuralType(
+final class StructuralType private[scalafix] (
     val tpe: SType,
     val declarations: List[SymbolInfo]
 ) extends SType {
-  override def toString: String =
-    s"StructuralType($tpe,$declarations)"
+  override def productArity: Int = 2
+  override def productPrefix: String = "StructuralType"
+  override def productElement(n: Int): Any = n match {
+    case 0 => tpe
+    case 1 => declarations
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "tpe"
+    case 1 => "declarations"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean =
+    that.isInstanceOf[StructuralType]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: StructuralType =>
@@ -183,12 +289,24 @@ final class StructuralType(
   }
 }
 
-final class AnnotatedType(
+final class AnnotatedType private[scalafix] (
     val annotations: List[Annotation],
     val tpe: SType
 ) extends SType {
-  override def toString: String =
-    s"AnnotatedType($annotations,$tpe)"
+  override def productArity: Int = 2
+  override def productPrefix: String = "AnnotatedType"
+  override def productElement(n: Int): Any = n match {
+    case 0 => annotations
+    case 1 => tpe
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "annotations"
+    case 1 => "tpe"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean =
+    that.isInstanceOf[AnnotatedType]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: AnnotatedType =>
@@ -204,12 +322,24 @@ final class AnnotatedType(
   }
 }
 
-final class ExistentialType(
+final class ExistentialType private[scalafix] (
     val tpe: SType,
     val declarations: List[SymbolInfo]
 ) extends SType {
-  override def toString: String =
-    s"ExistentialType($tpe,$declarations)"
+  override def productArity: Int = 2
+  override def productPrefix: String = "ExistentialType"
+  override def productElement(n: Int): Any = n match {
+    case 0 => tpe
+    case 1 => declarations
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "tpe"
+    case 1 => "declarations"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean =
+    that.isInstanceOf[ExistentialType]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: ExistentialType =>
@@ -225,12 +355,24 @@ final class ExistentialType(
   }
 }
 
-final class UniversalType(
+final class UniversalType private[scalafix] (
     val typeParameters: List[SymbolInfo],
     val tpe: SType
 ) extends SType {
-  override def toString: String =
-    s"UniversalType($tpe,$typeParameters)"
+  override def productArity: Int = 2
+  override def productPrefix: String = "UniversalType"
+  override def productElement(n: Int): Any = n match {
+    case 0 => typeParameters
+    case 1 => tpe
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "typeParameters"
+    case 1 => "tpe"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean =
+    that.isInstanceOf[UniversalType]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: UniversalType =>
@@ -246,11 +388,21 @@ final class UniversalType(
   }
 }
 
-final class ByNameType(
+final class ByNameType private[scalafix] (
     val tpe: SType
 ) extends SType {
-  override def toString: String =
-    s"ByNameType($tpe)"
+  override def productArity: Int = 1
+  override def productPrefix: String = "ByNameType"
+  override def productElement(n: Int): Any = n match {
+    case 0 => tpe
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "tpe"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean =
+    that.isInstanceOf[ByNameType]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: ByNameType =>
@@ -264,11 +416,21 @@ final class ByNameType(
   }
 }
 
-final class RepeatedType(
+final class RepeatedType private[scalafix] (
     val tpe: SType
 ) extends SType {
-  override def toString: String =
-    s"RepeatedType($tpe)"
+  override def productArity: Int = 1
+  override def productPrefix: String = "RepeatedType"
+  override def productElement(n: Int): Any = n match {
+    case 0 => tpe
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def fieldName(n: Int): String = n match {
+    case 0 => "tpe"
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+  override def canEqual(that: Any): Boolean =
+    that.isInstanceOf[RepeatedType]
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: ByNameType =>

@@ -30,6 +30,8 @@ final class SemanticDoc private[scalafix] (
 
   def diagnostics: Iterator[Diagnostic] =
     internal.messages
+  def synthetics: Iterator[STree] =
+    internal.synthetics
 
   override def info(symbol: Symbol): Option[SymbolInfo] =
     internal.info(symbol)

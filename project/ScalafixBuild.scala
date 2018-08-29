@@ -171,6 +171,10 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     testOptions in Test += Tests.Argument("-oD"),
     updateOptions := updateOptions.value.withCachedResolution(true),
     triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
+    commands += Command.command("save-expect") { s =>
+      "unit/test:runMain scalafix.tests.util.SaveExpect" ::
+        s
+    },
     commands += Command.command("ci-212") { s =>
       "++2.12.6" ::
         "unit/test" ::

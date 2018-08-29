@@ -21,18 +21,22 @@ final class InternalSemanticDoc(
     val symtab: SymbolTable
 ) extends Symtab {
 
+  def synthetics: Iterator[STree] =
+    textDocument.synthetics.iterator.map { tree =>
+      DocFromProtobuf.convert(tree, this)
+    }
   def messages: Iterator[Diagnostic] =
     textDocument.diagnostics.iterator.map { diag =>
       SemanticdbDiagnostic(doc.input, diag)
     }
 
   def synthetic(pos: Position): Option[STree] = {
-    val tree = _synthetics.get(
+    val synth = _synthetics.get(
       s.Range(pos.startLine, pos.startColumn, pos.endLine, pos.endColumn))
-    if (tree == null) {
+    if (synth == null) {
       None
     } else {
-      Some(DocFromProtobuf(this).stree(tree))
+      Some(DocFromProtobuf.convert(synth, this))
     }
   }
 
@@ -81,11 +85,11 @@ final class InternalSemanticDoc(
       info.symbol -> info
   }.toMap
 
-  private[this] lazy val _synthetics: util.Map[s.Range, s.Tree] = {
-    val result = new util.HashMap[s.Range, s.Tree]()
+  private[this] lazy val _synthetics: util.Map[s.Range, s.Synthetic] = {
+    val result = new util.HashMap[s.Range, s.Synthetic]()
     textDocument.synthetics.foreach { synthetic =>
       if (synthetic.range.isDefined) {
-        result.put(synthetic.range.get, synthetic.tree)
+        result.put(synthetic.range.get, synthetic)
       }
     }
     result

@@ -6,47 +6,49 @@ import scala.meta.internal.{semanticdb => s}
 import scalafix.v1._
 
 object DocFromProtobuf {
-  def apply(doc: InternalSemanticDoc): DocFromProtobuf =
-    new DocFromProtobuf()(new SemanticDoc(doc))
+  def convert(synth: s.Synthetic, doc: InternalSemanticDoc): STree =
+    new DocFromProtobuf(synth)(new SemanticDoc(doc)).stree(synth.tree)
 }
-final class DocFromProtobuf()(implicit doc: SemanticDoc) {
+final class DocFromProtobuf(original: s.Synthetic)(implicit doc: SemanticDoc) {
   val convert = new SymtabFromProtobuf(doc)
   def stree(t: s.Tree): STree = {
     t match {
       case t: s.ApplyTree =>
-        new ApplyTree(t, t.fn.convert, t.args.convert)
+        new ApplyTree(t.fn.convert, t.args.convert)
       case t: s.FunctionTree =>
-        new FunctionTree(t, t.params.convert, t.term.convert)
+        new FunctionTree(t.params.convert, t.term.convert)
       case t: s.IdTree =>
         sid(t)
       case t: s.LiteralTree =>
         val const = convert.sconstant(t.const)
-        new LiteralTree(t, const)
+        new LiteralTree(const)
       case t: s.MacroExpansionTree =>
         val tpe = convert.stype(t.tpe)
-        new MacroExpansionTree(t, t.expandee.convert, tpe)
+        new MacroExpansionTree(t.expandee.convert, tpe)
       case t: s.OriginalTree =>
         soriginal(t.range) match {
-          case Some(tree) => new OriginalTree(t, tree)
+          case Some(tree) =>
+            val isOriginal = original.range.exists(t.range.contains)
+            new OriginalTree(isOriginal, tree)
           case None => NoTree
         }
       case t: s.SelectTree =>
         t.id match {
           case Some(id) =>
-            new SelectTree(t, t.qual.convert, sid(id))
+            new SelectTree(t.qual.convert, sid(id))
           case None =>
             NoTree
         }
       case t: s.TypeApplyTree =>
         val targs = t.targs.iterator.map(tpe => convert.stype(tpe)).toList
-        new TypeApplyTree(t, t.fn.convert, targs)
+        new TypeApplyTree(t.fn.convert, targs)
       case s.NoTree =>
         NoTree
     }
   }
 
   private def sid(id: s.IdTree): IdTree =
-    new IdTree(id, Symbol(id.sym))
+    new IdTree(Symbol(id.sym))
 
   private def soriginal(range: Option[s.Range]): Option[Tree] = {
     val pos = ScalametaInternals.positionFromRange(doc.input, range)

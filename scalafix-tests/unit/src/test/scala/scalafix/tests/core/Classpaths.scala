@@ -13,7 +13,7 @@ object Classpaths {
       path.toNIO.getFileName.toString.contains("scala-library")
     }
   )
-  def withDirectory(dir: AbsolutePath) =
+  def withDirectory(dir: AbsolutePath): Classpath =
     Classpath(dir :: jdk.entries ::: scalaLibrary.entries)
 
 }

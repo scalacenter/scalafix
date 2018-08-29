@@ -4,11 +4,27 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 import scala.meta._
 import scala.meta.internal.io.PathIO
-import scalafix.internal.v0.DocSemanticdbIndex
+import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.v0.LegacyInMemorySemanticdbIndex
 import scalafix.syntax._
 import scalafix.testkit.DiffAssertions
+import scalafix.tests.BuildInfo
+import scalafix.v1.Doc
 import scalafix.v1.SemanticDoc
+
+object BaseSemanticSuite {
+  def loadDoc(filename: String): SemanticDoc = {
+    val root = AbsolutePath(BuildInfo.sharedSourceroot).resolve("scala/test")
+    val abspath = root.resolve(filename)
+    val relpath = abspath.toRelative(AbsolutePath(BuildInfo.baseDirectory))
+    val input = Input.File(abspath)
+    val doc = Doc.fromInput(input)
+    val classpath =
+      Classpaths.withDirectory(AbsolutePath(BuildInfo.sharedClasspath))
+    val symtab = ClasspathOps.newSymbolTable(classpath).get
+    SemanticDoc.fromPath(doc, relpath, ClasspathOps.thisClassLoader, symtab)
+  }
+}
 
 abstract class BaseSemanticSuite(filename: String)
     extends FunSuite
@@ -16,11 +32,6 @@ abstract class BaseSemanticSuite(filename: String)
     with DiffAssertions {
   var _db: LegacyInMemorySemanticdbIndex = _
   var _input: Input = _
-  implicit def doc: SemanticDoc =
-    _db.index(_input.syntax) match {
-      case sdoc: DocSemanticdbIndex => sdoc.doc
-      case els => throw new IllegalArgumentException(els.toString)
-    }
   implicit def index: LegacyInMemorySemanticdbIndex = _db
   def input: Input = _input
   def source: Source = {

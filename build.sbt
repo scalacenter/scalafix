@@ -207,6 +207,7 @@ lazy val unit = project
         sourceDirectory.in(testsInput, Compile).value,
       "outputSourceroot" ->
         sourceDirectory.in(testsOutput, Compile).value,
+      "unitResourceDirectory" -> resourceDirectory.in(Compile).value,
       "testsInputResources" ->
         sourceDirectory.in(testsInput, Compile).value / "resources",
       "semanticClasspath" ->

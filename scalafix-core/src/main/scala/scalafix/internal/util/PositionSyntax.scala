@@ -40,6 +40,9 @@ object PositionSyntax {
     def lineInput: String =
       s"${pos.input.syntax}:${pos.startLine + 1}:${pos.startColumn + 1}:"
 
+    def rangeNumber: String =
+      s"${pos.startLine + 1}:${pos.startColumn + 1}..${pos.endLine + 1}:${pos.endColumn + 1}"
+
     def lineCaret: String = pos match {
       case Position.None =>
         ""

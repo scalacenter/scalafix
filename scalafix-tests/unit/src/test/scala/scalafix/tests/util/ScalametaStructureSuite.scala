@@ -5,9 +5,9 @@ import org.scalatest.FunSuite
 import scalafix.testkit.DiffAssertions
 import scalafix.v1._
 
-class InspectSuite extends FunSuite with DiffAssertions {
+class ScalametaStructureSuite extends FunSuite with DiffAssertions {
   test("pretty(t)") {
-    val obtained = q"a.b.c.d".inspect
+    val obtained = q"a.b.c.d".structure(1)
     val expected =
       """|Term.Select(
          |  Term.Select(
@@ -24,7 +24,7 @@ class InspectSuite extends FunSuite with DiffAssertions {
   }
 
   test("pretty(t, showFieldNames = true)") {
-    val obtained = q"a.b.c.d".inspectLabeled
+    val obtained = q"a.b.c.d".structureLabeled(1)
     val expected =
       """|
          |Term.Select(
@@ -43,7 +43,7 @@ class InspectSuite extends FunSuite with DiffAssertions {
 
   test("option") {
     assertNoDiff(
-      q"def foo: A = ???".decltpe.inspect,
+      q"def foo: A = ???".decltpe.structure(1),
       """|
          |Some(Type.Name("A"))
          |""".stripMargin
@@ -52,7 +52,7 @@ class InspectSuite extends FunSuite with DiffAssertions {
 
   test("list") {
     assertNoDiff(
-      q"foo(a)".args.inspect,
+      q"foo(a)".args.structure(1),
       """|List(
          |  Term.Name("a")
          |)
