@@ -14,7 +14,7 @@ class Disable(symbols: List[Symbol]) extends SemanticRule("Disable") {
       new Disable(
         config.conf.dynamic.Disable.symbols.as[List[Symbol]].getOrElse(Nil))
     )
-  override def fix(implicit doc: SemanticDoc): Patch = {
+  override def fix(implicit doc: SemanticDocument): Patch = {
     doc.internal.textDocument.occurrences.collect {
       case o if symbols.contains(SymbolOps.normalize(Symbol(o.symbol))) =>
         val r = o.range.get

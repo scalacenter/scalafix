@@ -8,7 +8,7 @@ class LeakingImplicitClassVal extends SyntacticRule("LeakingImplicitClassVal") {
   override def description: String =
     "Add private access modifier to val parameters of implicit value classes in order to prevent public access"
 
-  override def fix(implicit doc: Doc): Patch = {
+  override def fix(implicit doc: SyntacticDocument): Patch = {
     doc.tree.collect {
       case Defn.Class(
           cMods,

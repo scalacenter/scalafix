@@ -7,15 +7,16 @@ import scalafix.util.Api
 
 package object v1 extends Api {
   implicit class XtensionTreeScalafixSemantic(tree: Tree) {
-    def symbol(implicit doc: SemanticDoc): Symbol = doc.internal.symbol(tree)
+    def symbol(implicit doc: SemanticDocument): Symbol =
+      doc.internal.symbol(tree)
   }
   implicit class XtensionTermScalafixSemantic(term: Term) {
-    def synthetic(implicit doc: SemanticDoc): Option[STree] =
+    def synthetic(implicit doc: SemanticDocument): Option[STree] =
       doc.internal.synthetic(term.pos)
   }
   implicit class XtensionTermApplyInfixScalafixSemantic(
       infix: Term.ApplyInfix) {
-    def syntheticOperator(implicit doc: SemanticDoc): Option[STree] = {
+    def syntheticOperator(implicit doc: SemanticDocument): Option[STree] = {
       val operatorPosition =
         Position.Range(infix.pos.input, infix.pos.start, infix.op.pos.end)
       doc.internal.synthetic(operatorPosition)
@@ -23,7 +24,7 @@ package object v1 extends Api {
   }
 
   implicit class XtensionSyntheticTree(tree: STree) {
-    def symbol(implicit sdoc: SemanticDoc): Option[Symbol] = tree match {
+    def symbol(implicit sdoc: SemanticDocument): Option[Symbol] = tree match {
       case t: ApplyTree =>
         t.function.symbol
       case t: TypeApplyTree =>

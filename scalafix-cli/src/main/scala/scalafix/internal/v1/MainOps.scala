@@ -32,8 +32,8 @@ import scalafix.Versions
 import scalafix.cli.ExitStatus
 import scalafix.internal.config.PrintStreamReporter
 import scalafix.internal.diff.DiffUtils
-import scalafix.v1.Doc
-import scalafix.v1.SemanticDoc
+import scalafix.v1.SyntacticDocument
+import scalafix.v1.SemanticDocument
 
 object MainOps {
 
@@ -179,11 +179,11 @@ object MainOps {
     val tree = LazyValue.later { () =>
       args.parse(input).get: Tree
     }
-    val doc = Doc(input, tree, args.diffDisable, args.config)
+    val doc = SyntacticDocument(input, tree, args.diffDisable, args.config)
     val (fixed, messages) =
       if (args.rules.isSemantic) {
         val relpath = file.toRelative(args.sourceroot)
-        val sdoc = SemanticDoc.fromPath(
+        val sdoc = SemanticDocument.fromPath(
           doc,
           relpath,
           args.classLoader,
@@ -238,7 +238,7 @@ object MainOps {
       case e: ParseException =>
         args.config.reporter.error(e.shortMessage, e.pos)
         ExitStatus.ParseError
-      case e: SemanticDoc.Error.MissingSemanticdb =>
+      case e: SemanticDocument.Error.MissingSemanticdb =>
         args.config.reporter.error(e.getMessage)
         ExitStatus.MissingSemanticdbError
       case e: StaleSemanticDB =>

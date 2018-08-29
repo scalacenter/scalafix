@@ -4,7 +4,7 @@ import metaconfig.Configured
 import scalafix.patch.Patch
 import scalafix.v0
 import scalafix.v1.Configuration
-import scalafix.v1.Doc
+import scalafix.v1.SyntacticDocument
 import scalafix.v1.Rule
 import scalafix.v1.SyntacticRule
 
@@ -18,7 +18,7 @@ class LegacySyntacticRule(rule: v0.Rule) extends SyntacticRule(rule.name) {
       this
     }
   }
-  override def fix(implicit doc: Doc): Patch = {
+  override def fix(implicit doc: SyntacticDocument): Patch = {
     val ctx = new LegacyRuleCtx(doc)
     configuredRule.fix(ctx) + LegacyRule.lints(ctx, configuredRule)
   }

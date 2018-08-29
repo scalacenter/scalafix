@@ -57,7 +57,7 @@ case class ExplicitResultTypes(config: ExplicitResultTypesConfig)
   }
   import scala.meta.internal.{semanticdb => s}
   def unsafeToType(
-      ctx: SemanticDoc,
+      ctx: SemanticDocument,
       pos: Position,
       symbol: Symbol
   ): PrettyResult[Type] = {
@@ -84,7 +84,7 @@ case class ExplicitResultTypes(config: ExplicitResultTypesConfig)
   def toType(
       pos: Position,
       symbol: Symbol
-  )(implicit ctx: SemanticDoc): Option[PrettyResult[Type]] = {
+  )(implicit ctx: SemanticDocument): Option[PrettyResult[Type]] = {
     try {
       Some(unsafeToType(ctx, pos, symbol))
     } catch {
@@ -99,7 +99,7 @@ case class ExplicitResultTypes(config: ExplicitResultTypesConfig)
     }
   }
 
-  override def fix(implicit ctx: SemanticDoc): Patch = {
+  override def fix(implicit ctx: SemanticDocument): Patch = {
     def defnType(defn: Defn): Option[(Type, Patch)] =
       for {
         name <- defnName(defn)

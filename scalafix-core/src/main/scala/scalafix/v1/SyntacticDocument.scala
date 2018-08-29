@@ -13,7 +13,7 @@ import scalafix.internal.v1.LazyValue
 import scalafix.util.MatchingParens
 import scalafix.util.TokenList
 
-final class Doc private[scalafix] (
+final class SyntacticDocument private[scalafix] (
     private[scalafix] val internal: InternalDoc
 ) {
   def input: Input = internal.input
@@ -22,19 +22,19 @@ final class Doc private[scalafix] (
   def comments: AssociatedComments = internal.comments.value
   def matchingParens: MatchingParens = internal.matchingParens.value
   def tokenList: TokenList = internal.tokenList.value
-  override def toString: String = s"Doc(${input.syntax})"
+  override def toString: String = s"SyntacticDocument(${input.syntax})"
 }
 
-object Doc {
-  def fromInput(input: Input): Doc = {
+object SyntacticDocument {
+  def fromInput(input: Input): SyntacticDocument = {
     fromInput(input, scala.meta.dialects.Scala212)
   }
-  def fromInput(input: Input, dialect: Dialect): Doc = {
+  def fromInput(input: Input, dialect: Dialect): SyntacticDocument = {
     import scala.meta._
     val tree = LazyValue.later { () =>
       parsers.Parse.parseSource.apply(input, dialect).get: Tree
     }
-    Doc(
+    SyntacticDocument(
       input,
       tree,
       DiffDisable.empty,
@@ -42,8 +42,8 @@ object Doc {
     )
   }
 
-  def fromTree(tree: Tree): Doc = {
-    Doc(
+  def fromTree(tree: Tree): SyntacticDocument = {
+    SyntacticDocument(
       tree.pos.input,
       LazyValue.now(tree),
       DiffDisable.empty,
@@ -55,7 +55,7 @@ object Doc {
       input: Input,
       tree: LazyValue[Tree],
       diffDisable: DiffDisable,
-      config: ScalafixConfig): Doc = {
+      config: ScalafixConfig): SyntacticDocument = {
     val tokens = LazyValue.later { () =>
       tree.value.tokens
     }
@@ -81,6 +81,6 @@ object Doc {
       matchingParens = matchingParens,
       tokenList = tokenList
     )
-    new Doc(internal)
+    new SyntacticDocument(internal)
   }
 }

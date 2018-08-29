@@ -27,7 +27,7 @@ case class LegacyInMemorySemanticdbIndex(
 
   override def inputs: Seq[m.Input] = {
     index.values.collect {
-      case s: DocSemanticdbIndex =>
+      case s: LegacySemanticdbIndex =>
         s.doc.input
     }.toSeq
   }
@@ -56,7 +56,7 @@ case class LegacyInMemorySemanticdbIndex(
           )
         }
       case _ =>
-        // global symbol, use any SemanticDoc
+        // global symbol, use any SemanticDocument
         index.head._2.denotation(symbol)
     }
   override def denotation(tree: Tree): Option[Denotation] =
@@ -104,11 +104,11 @@ object LegacyInMemorySemanticdbIndex {
               val abspath = textDocument.abspath(sourceuri)
               if (abspath.isFile) {
                 val input = textDocument.input(abspath)
-                val doc = v1.Doc.fromInput(input, dialect)
+                val doc = v1.SyntacticDocument.fromInput(input, dialect)
                 val internal =
                   new InternalSemanticDoc(doc, textDocument, symtab)
-                val sdoc = new v1.SemanticDoc(internal)
-                buf += (textDocument.uri -> new DocSemanticdbIndex(sdoc))
+                val sdoc = new v1.SemanticDocument(internal)
+                buf += (textDocument.uri -> new LegacySemanticdbIndex(sdoc))
               }
             }
           }

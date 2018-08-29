@@ -9,7 +9,7 @@ import scalafix.util.TokenList
 import scala.meta.internal.{semanticdb => s}
 import scalafix.internal.v1._
 
-final class SemanticDoc private[scalafix] (
+final class SemanticDocument private[scalafix] (
     private[scalafix] val internal: InternalSemanticDoc
 ) extends SemanticContext
     with Symtab {
@@ -36,10 +36,10 @@ final class SemanticDoc private[scalafix] (
   override def info(symbol: Symbol): Option[SymbolInfo] =
     internal.info(symbol)
   override def toString: String =
-    s"SemanticDoc(${input.syntax})"
+    s"SemanticDocument(${input.syntax})"
 }
 
-object SemanticDoc {
+object SemanticDocument {
   sealed abstract class Error(msg: String) extends Exception(msg)
   object Error {
     final case class MissingSemanticdb(reluri: String)
@@ -49,11 +49,11 @@ object SemanticDoc {
   }
 
   private[scalafix] def fromPath(
-      doc: Doc,
+      doc: SyntacticDocument,
       path: RelativePath,
       classLoader: ClassLoader,
       symtab: SymbolTable
-  ): SemanticDoc = {
+  ): SemanticDocument = {
     val semanticdbReluri = s"META-INF/semanticdb/$path.semanticdb"
     Option(classLoader.getResourceAsStream(semanticdbReluri)) match {
       case Some(inputStream) =>
@@ -65,7 +65,7 @@ object SemanticDoc {
           throw Error.MissingTextDocument(reluri)
         }
         val impl = new InternalSemanticDoc(doc, sdoc, symtab)
-        new SemanticDoc(impl)
+        new SemanticDocument(impl)
       case None =>
         throw Error.MissingSemanticdb(semanticdbReluri)
     }

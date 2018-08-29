@@ -21,15 +21,15 @@ import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.internal.util.SuppressOps
 import scalafix.internal.util.SymbolOps.Root
 import scalafix.internal.v0.LegacyRuleCtx
-import scalafix.internal.v0.DocSemanticdbIndex
+import scalafix.internal.v0.LegacySemanticdbIndex
 import scalafix.lint.RuleDiagnostic
 import scalafix.patch.TreePatch.AddGlobalImport
 import scalafix.patch.TreePatch.RemoveGlobalImport
 import scalafix.rule.RuleCtx
 import scalafix.util.SemanticdbIndex
-import scalafix.v1.Doc
+import scalafix.v1.SyntacticDocument
 import scalafix.v1.SemanticContext
-import scalafix.v1.SemanticDoc
+import scalafix.v1.SemanticDocument
 import scalafix.v0.Signature
 import scalafix.v0.Symbol
 import scalafix.v1
@@ -234,7 +234,7 @@ object Patch {
 
   private[scalafix] def syntactic(
       patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
-      doc: Doc,
+      doc: SyntacticDocument,
       suppress: Boolean
   ): (String, List[RuleDiagnostic]) = {
     apply(patchesByName, new LegacyRuleCtx(doc), None, suppress)
@@ -242,13 +242,13 @@ object Patch {
 
   private[scalafix] def semantic(
       patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
-      doc: SemanticDoc,
+      doc: SemanticDocument,
       suppress: Boolean
   ): (String, List[RuleDiagnostic]) = {
     apply(
       patchesByName,
       new LegacyRuleCtx(doc.internal.doc),
-      Some(new DocSemanticdbIndex(doc)),
+      Some(new LegacySemanticdbIndex(doc)),
       suppress)
   }
 

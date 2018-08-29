@@ -10,16 +10,16 @@ abstract class Rule(val name: RuleName) {
 }
 
 abstract class SyntacticRule(name: RuleName) extends Rule(name) {
-  def fix(implicit doc: Doc): Patch = Patch.empty
+  def fix(implicit doc: SyntacticDocument): Patch = Patch.empty
 }
 
 abstract class SemanticRule(name: RuleName) extends Rule(name) {
-  def fix(implicit doc: SemanticDoc): Patch = Patch.empty
+  def fix(implicit doc: SemanticDocument): Patch = Patch.empty
 }
 
 object SemanticRule {
   def constant(name: RuleName, patch: Patch): SemanticRule =
     new SemanticRule(name) {
-      override def fix(implicit doc: SemanticDoc): Patch = patch
+      override def fix(implicit doc: SemanticDocument): Patch = patch
     }
 }

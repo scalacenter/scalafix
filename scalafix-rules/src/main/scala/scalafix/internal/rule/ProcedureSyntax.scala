@@ -9,7 +9,7 @@ class ProcedureSyntax extends SyntacticRule("ProcedureSyntax") {
   override def description: String =
     "Rewrite that inserts explicit : Unit = for soon-to-be-deprecated procedure syntax def foo { ... }"
 
-  override def fix(implicit doc: Doc): Patch = {
+  override def fix(implicit doc: SyntacticDocument): Patch = {
     doc.tree.collect {
       case t: Decl.Def if t.decltpe.tokens.isEmpty =>
         Patch.addRight(t.tokens.last, s": Unit").atomic

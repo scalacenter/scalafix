@@ -19,7 +19,7 @@ final case class DisableSyntax(config: DisableSyntaxConfig)
       .getOrElse("disableSyntax", "DisableSyntax")(DisableSyntaxConfig.default)
       .map(DisableSyntax(_))
 
-  private def checkRegex(doc: Doc): Seq[Diagnostic] = {
+  private def checkRegex(doc: SyntacticDocument): Seq[Diagnostic] = {
     def pos(offset: Int): Position =
       Position.Range(doc.input, offset, offset)
     val regexDiagnostics = Seq.newBuilder[Diagnostic]
@@ -39,7 +39,7 @@ final case class DisableSyntax(config: DisableSyntaxConfig)
     regexDiagnostics.result()
   }
 
-  private def checkTokens(doc: Doc): Seq[Diagnostic] = {
+  private def checkTokens(doc: SyntacticDocument): Seq[Diagnostic] = {
     doc.tree.tokens.collect {
       case token @ Keyword(keyword) if config.isDisabled(keyword) =>
         Diagnostic(s"keywords.$keyword", s"$keyword is disabled", token.pos)
@@ -52,7 +52,7 @@ final case class DisableSyntax(config: DisableSyntaxConfig)
     }
   }
 
-  private def checkTree(doc: Doc): Seq[Diagnostic] = {
+  private def checkTree(doc: SyntacticDocument): Seq[Diagnostic] = {
     object AbstractWithVals {
       def unapply(t: Tree): Option[List[Defn.Val]] = {
         val stats = t match {
@@ -169,7 +169,7 @@ final case class DisableSyntax(config: DisableSyntaxConfig)
     doc.tree.collect(DefaultMatcher.orElse(FinalizeMatcher)).flatten
   }
 
-  override def fix(implicit doc: Doc): Patch = {
+  override def fix(implicit doc: SyntacticDocument): Patch = {
     (checkTree(doc) ++ checkTokens(doc) ++ checkRegex(doc))
       .map(Patch.lint)
       .asPatch

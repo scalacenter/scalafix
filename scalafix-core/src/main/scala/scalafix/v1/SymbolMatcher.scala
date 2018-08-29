@@ -6,12 +6,12 @@ import scalafix.internal.util.SymbolOps
 trait SymbolMatcher {
 
   def matches(sym: Symbol): Boolean
-  final def matches(tree: Tree)(implicit sdoc: SemanticDoc): Boolean =
+  final def matches(tree: Tree)(implicit sdoc: SemanticDocument): Boolean =
     matches(sdoc.internal.symbol(tree))
 
   final def unapply(sym: Symbol): Boolean =
     matches(sym)
-  final def unapply(tree: Tree)(implicit sdoc: SemanticDoc): Boolean =
+  final def unapply(tree: Tree)(implicit sdoc: SemanticDocument): Boolean =
     unapply(sdoc.internal.symbol(tree))
 
   final def +(other: SymbolMatcher): SymbolMatcher = new SymbolMatcher {

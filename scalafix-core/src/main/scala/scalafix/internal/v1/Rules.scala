@@ -10,9 +10,9 @@ import scalafix.lint.Diagnostic
 import scalafix.patch.Patch
 import scalafix.rule.RuleName
 import scalafix.v1.Configuration
-import scalafix.v1.Doc
+import scalafix.v1.SyntacticDocument
 import scalafix.v1.Rule
-import scalafix.v1.SemanticDoc
+import scalafix.v1.SemanticDocument
 import scalafix.v1.SemanticRule
 import scalafix.v1.SyntacticRule
 
@@ -45,7 +45,7 @@ case class Rules(rules: List[Rule] = Nil) {
   }
 
   def semanticPatch(
-      sdoc: SemanticDoc,
+      sdoc: SemanticDocument,
       suppress: Boolean): (String, List[RuleDiagnostic]) = {
     val fixes = rules.iterator.map {
       case rule: SemanticRule =>
@@ -57,7 +57,7 @@ case class Rules(rules: List[Rule] = Nil) {
   }
 
   def syntacticPatch(
-      doc: Doc,
+      doc: SyntacticDocument,
       suppress: Boolean): (String, List[RuleDiagnostic]) = {
     require(!isSemantic, semanticRules.map(_.name).mkString("+"))
     val fixes = syntacticRules.iterator.map { rule =>

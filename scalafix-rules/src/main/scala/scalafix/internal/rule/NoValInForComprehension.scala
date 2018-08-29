@@ -9,7 +9,7 @@ class NoValInForComprehension extends SyntacticRule("NoValInForComprehension") {
   override def description: String =
     "Rewrite that removes redundant val inside for-comprehensions"
 
-  override def fix(implicit doc: Doc): Patch = {
+  override def fix(implicit doc: SyntacticDocument): Patch = {
     doc.tree.collect {
       case v: Enumerator.Val =>
         val valTokens =
