@@ -3,6 +3,7 @@ package scalafix.internal.util
 import org.typelevel.paiges.Doc
 import scala.collection.mutable.ListBuffer
 import scala.meta.Lit
+import scalafix.internal.v1.Types
 import scalafix.v1._
 
 object Pretty {
@@ -103,16 +104,12 @@ object Pretty {
           val init = normal(t.tpe)
           val decls = Doc
             .intercalate(Doc.line, t.declarations.map(pretty))
-            .tightBracketBy(
-              Doc.space + `forSome` + Doc.space + `{`,
-              `}`)
+            .tightBracketBy(Doc.space + `forSome` + Doc.space + `{`, `}`)
           init + decls
         case t: UniversalType =>
           val tparams = Doc
             .intercalate(Doc.comma, t.typeParameters.map(pretty))
-            .tightBracketBy(
-              `[`,
-              `]` + Doc.space + `=>` + Doc.space)
+            .tightBracketBy(`[`, `]` + Doc.space + `=>` + Doc.space)
           normal(t.tpe) + tparams
         case t: ByNameType =>
           `=>` + Doc.space + pretty(t.tpe)

@@ -10,15 +10,6 @@ sealed abstract class SType extends Product with FieldNames {
   final def nonEmpty: Boolean = !isEmpty
 }
 
-object Types {
-  def scalaNothing: TypeRef =
-    new TypeRef(NoType, Symbol("scala/Nothing#"), Nil)
-  def scalaAny: TypeRef =
-    new TypeRef(NoType, Symbol("scala/Any#"), Nil)
-  def javaObject: TypeRef =
-    new TypeRef(NoType, Symbol("java/lang/Object#"), Nil)
-}
-
 case object NoType extends SType
 
 final class TypeRef private[scalafix] (
