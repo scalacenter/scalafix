@@ -6,7 +6,7 @@
 }
 
 .terminal_window header {
-  background-color: #E0E8F0;
+  background-color: #e0e8f0;
   height: 30px;
   border-radius: 8px 8px 0 0;
   padding-left: 10px;
@@ -25,20 +25,20 @@
 }
 
 .red_btn {
-  background-color: #E75448;
+  background-color: #e75448;
 }
 
 .green_btn {
-  background-color: #3BB662;
+  background-color: #3bb662;
 }
 
 .yellow_btn {
-  background-color: #E5C30F;
+  background-color: #e5c30f;
 }
 
 .terminal_window {
-  background-color: #0D1F2D;
-  color: #F4FAFF;
+  background-color: #0d1f2d;
+  color: #f4faff;
   font-size: 11pt;
 }
 
@@ -46,7 +46,7 @@
   position: relative;
 
   margin: 40px auto;
-  height: 220px;
+  /* height: 220px; */
 }
 
 .terminal_text {
@@ -89,7 +89,6 @@
   flex-direction: column;
   flex-grow: 1;
 }
-
 
 .promoSection .button {
   margin: 10px;
@@ -137,7 +136,6 @@ table th {
   border-bottom-color: inherit;
 }
 
-
 /* GitHub CI */
 .travis-logo {
   height: 100px;
@@ -162,11 +160,11 @@ table th {
   width: 30px;
   margin-right: 12px;
   align-self: center;
-  color: #28a745;
+  color: #bd0e25;
 }
 
 .merge-status-icon svg {
-  color: #28a745t;
+  color: #bd0e25;
   display: block;
   margin-right: auto;
   margin-left: auto;
@@ -221,8 +219,6 @@ table th {
   margin-right: 0;
 }
 
-
 .container {
   margin: 15px;
 }
-

@@ -34,7 +34,7 @@ class Footer extends React.Component {
               href={`
                 ${this.props.config.baseUrl}docs/users/installation.html`}
             >
-              Getting Started
+              Get started
             </a>
             <a
               href={`
