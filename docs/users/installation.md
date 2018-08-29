@@ -87,14 +87,10 @@ git diff // should produce a diff
 
 ### Settings and tasks
 
-| Name                    | Type           | Description                                                                                                                      |
-| ----------------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `scalafix <rule>..`     | `Unit`         | Run scalafix on project sources. See [Rules](rules/overview.md) or use tab completion to explore supported rules.                |
-| `scalafixCli <args>`    | `Unit`         | Invoke scalafix command line interface directly. See [--help](#help) use tab completion to explore supported arguments           |
-| `scalafixTest <rule>..` | `Unit`         | Similar to `scalafix` except does not write to files, only reports an error if the task would produce a diff.                    |
-| `sbtfix <rule>..`       | `Unit`         | Run scalafix on the `*.sbt` and `project/*.scala` sources of this build. Only supports syntactic rules.                          |
-| `sbtfixTest <rule>..`   | `Unit`         | Similar to `sbtfix` except does not write to files, only reports an error if the task would produce a diff.                      |
-| `scalafixConfig`        | `Option[File]` | .scalafix.conf file to specify which scalafix rules should run. Defaults to `.scalafix.conf` in the root directory if it exists. |
+| Name               | Type           | Description                                                                                                                      |
+| ------------------ | -------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `scalafix <args>`  | `Unit`         | Invoke scalafix command line interface directly. See [--help](#help) use tab completion to explore supported arguments           |
+| `scalafixConfig`   | `Option[File]` | .scalafix.conf file to specify which scalafix rules should run. Defaults to `.scalafix.conf` in the root directory if it exists. |
 
 ### FAQ
 
