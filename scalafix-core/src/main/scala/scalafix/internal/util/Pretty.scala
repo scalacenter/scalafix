@@ -9,7 +9,7 @@ object Pretty {
   import DocConstants._
 
   def pretty(constant: Constant): Doc = constant match {
-    case UnitConstant => unit
+    case UnitConstant => `()`
     case BooleanConstant(value) => Doc.str(value)
     case ByteConstant(value) => Doc.text(Lit.Byte(value).syntax)
     case ShortConstant(value) => Doc.text(Lit.Short(value).syntax)
@@ -32,45 +32,45 @@ object Pretty {
         case t: TypeRef =>
           val pre: Doc = t.prefix match {
             case _: SingleType | _: ThisType | _: SuperType =>
-              prefix(t.prefix) + dot
+              prefix(t.prefix) + `.`
             case NoType =>
               Doc.empty
             case _ =>
-              prefix(t.prefix) + hash
+              prefix(t.prefix) + `#`
           }
           val symbol = pretty(t.symbol)
           val targs =
             if (t.typeArguments.isEmpty) Doc.empty
             else {
-              leftBracket +
+              `[` +
                 Doc.intercalate(Doc.comma, t.typeArguments.map(normal)) +
-                rightBracket
+                `]`
             }
           pre + symbol + targs
         case t: SingleType =>
           if (t.prefix.isEmpty) pretty(t.symbol)
-          else prefix(t.prefix) + dot + pretty(t.symbol)
+          else prefix(t.prefix) + `.` + pretty(t.symbol)
         case t: ThisType =>
           if (t.symbol.isNone) pretty(t.symbol)
-          else pretty(t.symbol) + dot + `this`
+          else pretty(t.symbol) + `.` + `this`
         case t: SuperType =>
           val pre =
             if (t.prefix.isEmpty) Doc.empty
-            else prefix(t.prefix) + dot
+            else prefix(t.prefix) + `.`
           val sym =
             if (t.symbol.isNone) Doc.empty
-            else leftBracket + pretty(t.symbol) + rightBracket
+            else `[` + pretty(t.symbol) + `]`
           pre + `super` + sym
         case t: ConstantType =>
           pretty(t.constant)
         case t: IntersectionType =>
           Doc.intercalate(
-            Doc.space + ampersand + Doc.space,
+            Doc.space + `&` + Doc.space,
             t.types.map(normal)
           )
         case t: UnionType =>
           Doc.intercalate(
-            Doc.space + pipe + Doc.space,
+            Doc.space + `|` + Doc.space,
             t.types.map(normal)
           )
         case t: WithType =>
@@ -82,12 +82,12 @@ object Pretty {
           val init = normal(t.tpe)
           val declarations =
             if (t.declarations.isEmpty) {
-              Doc.space + leftCurly + rightCurly
+              Doc.space + `{` + `}`
             } else {
               Doc.space +
                 Doc
                   .intercalate(Doc.line, t.declarations.map(pretty))
-                  .tightBracketBy(leftCurly, rightCurly)
+                  .tightBracketBy(`{`, `}`)
             }
           init + declarations
         case t: AnnotatedType =>
@@ -104,25 +104,25 @@ object Pretty {
           val decls = Doc
             .intercalate(Doc.line, t.declarations.map(pretty))
             .tightBracketBy(
-              Doc.space + `forSome` + Doc.space + leftCurly,
-              rightCurly)
+              Doc.space + `forSome` + Doc.space + `{`,
+              `}`)
           init + decls
         case t: UniversalType =>
           val tparams = Doc
             .intercalate(Doc.comma, t.typeParameters.map(pretty))
             .tightBracketBy(
-              leftBracket,
-              rightBracket + Doc.space + rightArrow + Doc.space)
+              `[`,
+              `]` + Doc.space + `=>` + Doc.space)
           normal(t.tpe) + tparams
         case t: ByNameType =>
-          rightArrow + Doc.space + pretty(t.tpe)
+          `=>` + Doc.space + pretty(t.tpe)
         case t: RepeatedType =>
-          asterisk + Doc.space + pretty(t.tpe)
+          `*` + Doc.space + pretty(t.tpe)
       }
     }
     def normal(tpe: SType): Doc = tpe match {
       case _: SingleType | _: ThisType | _: SuperType =>
-        prefix(tpe) + dot + `type`
+        prefix(tpe) + `.` + `type`
       case _ =>
         prefix(tpe)
     }
@@ -213,9 +213,9 @@ object Pretty {
   def prettyTypeParameters(typeParameters: List[SymbolInfo]): Doc = {
     if (typeParameters.isEmpty) Doc.empty
     else {
-      leftBracket +
+      `[` +
         Doc.intercalate(Doc.comma, typeParameters.map(pretty)) +
-        rightBracket
+        `]`
     }
   }
   def pretty(signature: Signature): Doc = signature match {
@@ -235,7 +235,7 @@ object Pretty {
             else
               Doc.text(s" +") + Doc.str(t.declarations.length) +
                 Doc.text(" decls ")
-          Doc.space + leftCurly + self + declarations + rightCurly
+          Doc.space + `{` + self + declarations + `}`
         }
       tparams + Doc.space + parents + body
     case t: MethodSignature =>
@@ -246,8 +246,8 @@ object Pretty {
           val params = t.parameterLists.map { parameterList =>
             Doc.intercalate(Doc.comma, parameterList.map(pretty))
           }
-          val paramss = Doc.intercalate(rightParen + leftParen, params)
-          leftParen + paramss + rightParen
+          val paramss = Doc.intercalate(`)` + `(`, params)
+          `(` + paramss + `)`
         }
       val returnType = pretty(t.returnType)
       tparams + params + `:` + Doc.space + returnType
@@ -275,26 +275,26 @@ object Pretty {
     case t: IdTree =>
       pretty(t.symbol)
     case t: SelectTree =>
-      pretty(t.qualifier) + dot + pretty(t.id)
+      pretty(t.qualifier) + `.` + pretty(t.id)
     case t: ApplyTree =>
       Doc
         .intercalate(Doc.comma, t.arguments.map(pretty))
-        .tightBracketBy(pretty(t.function) + leftParen, rightParen)
+        .tightBracketBy(pretty(t.function) + `(`, `)`)
     case t: TypeApplyTree =>
       val targs = Doc.intercalate(Doc.comma, t.typeArguments.map(pretty))
-      pretty(t.function) + leftBracket + targs + rightBracket
+      pretty(t.function) + `[` + targs + `]`
     case t: FunctionTree =>
-      val params = leftParen +
+      val params = `(` +
         Doc.intercalate(Doc.comma, t.parameters.map(pretty)) +
-        rightParen + Doc.space + rightArrow
-      pretty(t.body).bracketBy(leftCurly + Doc.space + params, rightCurly)
+        `)` + Doc.space + `=>`
+      pretty(t.body).bracketBy(`{` + Doc.space + params, `}`)
     case t: LiteralTree =>
       pretty(t.constant)
     case t: MacroExpansionTree =>
-      leftParen + Doc.text("`after-expansion` : ") + pretty(t.tpe) + rightParen
+      `(` + Doc.text("`after-expansion` : ") + pretty(t.tpe) + `)`
     case r: OriginalTree =>
-      if (r.matchesFullOriginalRange) asterisk
-      else Doc.text("orig") + leftParen + Doc.text(r.tree.syntax) + rightParen
+      if (r.matchesFullOriginalRange) `*`
+      else Doc.text("orig") + `(` + Doc.text(r.tree.syntax) + `)`
   }
 
 }

@@ -36,13 +36,13 @@ class ProductStructure(
         case _ => ""
       }
       if (iterable.isEmpty) {
-        Doc.text(prefix) + leftParen +
+        Doc.text(prefix) + `(` +
           Doc.intercalate(Doc.comma + Doc.space, iterable.map(prettyAny)) +
-          rightParen
+          `)`
       } else {
         Doc
           .intercalate(Doc.comma + Doc.line, iterable.map(prettyAny))
-          .tightBracketBy(Doc.text(prefix) + leftParen, rightParen)
+          .tightBracketBy(Doc.text(prefix) + `(`, `)`)
       }
     case value: String =>
       Doc.text(Lit.String(value).syntax)
@@ -81,7 +81,7 @@ class ProductStructure(
     if (product.productArity == 0) {
       prefix
     } else if (product.productArity == 1) {
-      prefix + leftParen + values.head + rightParen
+      prefix + `(` + values.head + `)`
     } else {
       val fieldNames = prettyFields(product)
       val allNamesAreUnhelpful = fieldNames.forall(isUnhelpfulFieldName)
@@ -95,7 +95,7 @@ class ProductStructure(
         } else {
           Doc.intercalate(Doc.comma + Doc.line, values)
         }
-      args.tightBracketBy(prefix + leftParen, rightParen)
+      args.tightBracketBy(prefix + `(`, `)`)
     }
   }
 
