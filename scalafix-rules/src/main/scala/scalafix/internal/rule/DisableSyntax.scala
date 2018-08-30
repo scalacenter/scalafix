@@ -12,7 +12,8 @@ final case class DisableSyntax(config: DisableSyntaxConfig)
   def this() = this(DisableSyntaxConfig())
 
   override def description: String =
-    "Linter that reports an error on a configurable set of keywords and syntax."
+    "Reports an error for disabled constructs such as var/null keywords or XML literals."
+  override def isLinter: Boolean = true
 
   override def withConfiguration(config: Configuration): Configured[Rule] =
     config.conf

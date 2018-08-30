@@ -6,7 +6,8 @@ import scalafix.v1._
 class LeakingImplicitClassVal extends SyntacticRule("LeakingImplicitClassVal") {
 
   override def description: String =
-    "Add private access modifier to val parameters of implicit value classes in order to prevent public access"
+    "Adds 'private' to val parameters of implicit value classes"
+  override def isRewrite: Boolean = true
 
   override def fix(implicit doc: SyntacticDocument): Patch = {
     doc.tree.collect {

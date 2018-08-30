@@ -6,7 +6,8 @@ import scalafix.v1._
 class NoAutoTupling extends SemanticRule("NoAutoTupling") {
 
   override def description: String =
-    "Rewrite that inserts explicit tuples for adapted argument lists for compatibility with -Yno-adapted-args"
+    "Inserts explicit tuples for adapted argument lists for compatibility with -Yno-adapted-args"
+  override def isRewrite: Boolean = true
 
   private[this] def addWrappingParens(args: Seq[Term]): Patch =
     Patch.addLeft(args.head.tokens.head, "(") +

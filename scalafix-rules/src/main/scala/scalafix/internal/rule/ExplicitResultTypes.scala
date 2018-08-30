@@ -18,7 +18,8 @@ case class ExplicitResultTypes(config: ExplicitResultTypesConfig)
   def this() = this(ExplicitResultTypesConfig.default)
 
   override def description: String =
-    "Rewrite that inserts explicit type annotations for def/val/var"
+    "Inserts explicit annotations for inferred types of def/val/var"
+  override def isRewrite: Boolean = true
 
   override def withConfiguration(config: Configuration): Configured[Rule] =
     config.conf // Support deprecated explicitReturnTypes config

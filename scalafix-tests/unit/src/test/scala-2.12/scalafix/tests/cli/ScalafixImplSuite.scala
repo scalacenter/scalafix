@@ -61,10 +61,21 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
 
   test("availableRules") {
     val api = i.Scalafix.classloadInstance(this.getClass.getClassLoader)
-    val rules = api.newMainArgs().availableRules().asScala.map(_.name())
-    assert(rules.contains("DisableSyntax"))
-    assert(rules.contains("AvailableRule"))
-    assert(!rules.contains("DeprecatedAvailableRule"))
+    val rules = api.newMainArgs().availableRules().asScala
+    val names = rules.map(_.name())
+    assert(names.contains("DisableSyntax"))
+    assert(names.contains("AvailableRule"))
+    assert(!names.contains("DeprecatedAvailableRule"))
+    val hasDescription = rules.filter(_.description().nonEmpty)
+    assert(hasDescription.nonEmpty)
+    val isSyntactic = rules.filter(_.kind().isSyntactic)
+    assert(isSyntactic.nonEmpty)
+    val isSemantic = rules.filter(_.kind().isSemantic)
+    assert(isSemantic.nonEmpty)
+    val isLinter = rules.filter(_.isLinter)
+    assert(isLinter.nonEmpty)
+    val isRewrite = rules.filter(_.isRewrite)
+    assert(isRewrite.nonEmpty)
   }
 
   test("error") {
