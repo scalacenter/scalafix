@@ -11,7 +11,48 @@ import scalafix.testkit.DiffAssertions
 import scalafix.internal.tests.utils.{Fs, Git}
 import scalafix.internal.tests.utils.SkipWindows
 
+import scalafix.internal.jgit.JGitBlame
+
 class CliGitDiffSuite extends FunSuite with DiffAssertions {
+
+  gitTest("blame") { (fs, git, cli) =>
+    val code = "code.scala"
+    val codeAbsPath = fs.absPath(code)
+
+    fs.add(
+      code,
+      """|object Code {
+         |  val a = 42
+         |}""".stripMargin)
+    git.add(code)
+    addConf(fs, git)
+    git.commit()
+
+    fs.replace(
+      code,
+      """|object Code {
+         |  var a = 42
+         |}""".stripMargin)
+    git.add(code)
+    val rev = git.commit()
+
+    val blame = new JGitBlame(fs.workingDirectory, None)
+
+    val diffLine = blame.formatCommit(rev)
+
+    val obtained = runDiff(cli, ExitStatus.LinterError, "--blame")
+
+    val expected =
+      s"""|$codeAbsPath:2:3: error: [DisableSyntax.keywords.var] 
+          |$diffLine
+          |var is disabled
+          |  var a = 42
+          |  ^^^
+          |""".stripMargin
+
+    assertNoDiff(obtained, expected)
+  }
+
   gitTest("addition", SkipWindows) { (fs, git, cli) =>
     val oldCode = "old.scala"
     val newCode = "new.scala"

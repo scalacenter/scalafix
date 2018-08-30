@@ -2,6 +2,8 @@ package scalafix.internal.tests.utils
 
 import java.nio.file.Path
 
+import org.eclipse.jgit.revwalk.RevCommit
+
 class Git(workingDirectory: Path) {
   import org.eclipse.jgit.api.{Git => JGit}
 
@@ -23,8 +25,9 @@ class Git(workingDirectory: Path) {
   def deleteBranch(branch: String): Unit =
     git.branchDelete().setBranchNames(branch).call()
 
-  def commit(): Unit = {
-    git.commit().setMessage(s"r$revision").call()
+  def commit(): RevCommit = {
+    val rev = git.commit().setMessage(s"r$revision").call()
     revision += 1
+    rev
   }
 }

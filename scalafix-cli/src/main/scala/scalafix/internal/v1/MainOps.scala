@@ -34,6 +34,7 @@ import scalafix.internal.config.PrintStreamReporter
 import scalafix.internal.diff.DiffUtils
 import scalafix.v1.SyntacticDocument
 import scalafix.v1.SemanticDocument
+import scalafix.internal.jgit.JGitBlame
 
 object MainOps {
 
@@ -198,7 +199,13 @@ object MainOps {
       }
 
     if (!args.args.autoSuppressLinterErrors) {
-      messages.foreach { diag =>
+      val messagesWithBlame =
+        if (args.args.blame) {
+          val blame = new JGitBlame(args.args.cwd.toNIO, args.args.diffBase)
+          blame(messages)
+        } else messages
+
+      messagesWithBlame.foreach { diag =>
         args.config.reporter.lint(diag)
       }
     }
