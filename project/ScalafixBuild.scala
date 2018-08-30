@@ -156,7 +156,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   lazy val isCustomRepository = adhocRepoUri != null && adhocRepoCredentials != null
 
   override def globalSettings: Seq[Def.Setting[_]] = List(
-    stableVersion := "0.5.10", // hardcoded while we iterate through v0.6 milestones.
+    stableVersion := version.in(ThisBuild).value.replaceFirst("\\+.*", ""),
     scalacOptions ++= compilerOptions,
     scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
     libraryDependencies ++= List(
