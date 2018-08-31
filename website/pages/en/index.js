@@ -233,8 +233,8 @@ class Index extends React.Component {
           <div className="split-right">
             <h3>Enforce in CI</h3>
             <p>
-              Make sure your coding style is enforced running Scalafix in CI on
-              every pull request.
+              Ensure sure your coding style is automatically enforced by running
+              Scalafix on every pull request.
             </p>
           </div>
         </div>

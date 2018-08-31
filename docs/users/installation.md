@@ -3,69 +3,94 @@ id: installation
 title: Installation
 ---
 
-To run scalafix on your project, you must first install the Scalafix sbt plugin
-or command line interface. Currently, Scalafix does not provide any IDE
-integrations.
+First, make sure you are using a supported Scala compiler version.
 
-| Scalafix Version | Scalameta(SemanticDB) Version | Scala Version           |
-| ---------------- | ----------------------------- | ----------------------- |
-| 0.5.10           | 2.1.7                         | 2.11.12 / 2.12.4        |
-| @VERSION@        | @SCALAMETA@                   | @SCALA211@ / @SCALA212@ |
+| Scalafix  | Scala Compiler          | Scalameta   |
+| --------- | ----------------------- | ----------- |
+| 0.5.10    | 2.11.12 / 2.12.4        | 2.1.7       |
+| @VERSION@ | @SCALA211@ / @SCALA212@ | @SCALAMETA@ |
+
+Next, integrate Scalafix with your build tool or use the command-line interface.
 
 ## sbt
 
-The quickest way to get started is to run a **syntactic** rule like
-`ProcedureSyntax`
+Start by installing the sbt plugin in `project/plugins.sbt`
 
 ```scala
 // project/plugins.sbt
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@VERSION@")
 ```
 
-From the sbt shell, invoke the `scalafix` task
+From the sbt shell, let's run a **syntactic** rule `ProcedureSyntax`
 
 ```
-> myproject/scalafix ProcedureSyntax      // run rule on main sources
-> myproject/test:scalafix ProcedureSyntax // run rule on test sources
+> myproject/scalafix ProcedureSyntax
 ```
 
-To run **semantic** rules like `RemoveUnusedImports` you need additional build
-configuration.
+If your project uses the deprecated "procedure syntax", you should have a diff
+in your sources like this
 
-```scala
-// build.sbt
-lazy val myproject = project.settings(
-  scalaVersion := "@SCALA212@", // or @SCALA211@
-  addCompilerPlugin(scalafixSemanticdb),
-  scalacOptions ++= List(
-    "-Yrangepos",          // required by semanticdb-scalac compiler plugin
-    "-Ywarn-unused-import" // required by `RemoveUnusedImports` rule
-  )
-)
+```diff
+-  def unloadDrivers {
++  def unloadDrivers: Unit = {
 ```
 
-Run semantic rules from the sbt shell like normal
+Next, if we run a **semantic** rule like `RemoveUnusedImports` then we get an
+error
+
+```
+> myproject/scalafix RemoveUnusedImports
+[error] SemanticDB not found: META-INF/semanticdb/src/main/scala/...
+```
+
+The error message "SemanticDB not found" means the
+[SemanticDB](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md)
+compiler plugin is not enabled in the build. Let's fix that by adding the
+following settings to `build.sbt`
+
+```diff
+ // build.sbt
+ lazy val myproject = project.settings(
+   scalaVersion := "@SCALA212@", // or @SCALA211@
++  addCompilerPlugin(scalafixSemanticdb),
+   scalacOptions ++= List(
++    "-Yrangepos",          // required by SemanticDB compiler plugin
++    "-Ywarn-unused-import" // required by `RemoveUnusedImports` rule
+   )
+ )
+```
+
+We run `RemoveUnusedImports` again and the error should be gone
 
 ```
 > myproject/scalafix RemoveUnusedImports
 ```
 
-Beware that the `semanticdb-scalac` compiler plugin adds around 7-25% overhead
-to compilation. It's recommended to provide generous JVM memory and stack
-settings in `.jvmopts`:
+If your project has unused imports, you should see a diff like this
 
+```diff
+- import scala.util.{ Success, Failure }
++ import scala.util.Success
 ```
--Xss8m
--Xms1G
--Xmx4G
-```
+
+Great! You are all set to use Scalafix with sbt :)
+
+> Beware that the `semanticdb-scalac` compiler plugin adds around 7-25% overhead
+> to compilation. It's recommended to provide generous JVM memory and stack
+> settings in `.jvmopts`:
+>
+> ```
+>   -Xss8m
+>   -Xms1G
+>   -Xmx4G
+> ```
 
 ### Verify installation
 
-To verify the installation, check that scalacOptions and libraryDependencies
-contain the values below.
+To verify that the SemanticDB compiler plugin is enabled, check that the
+settings `scalacOptions` and `libraryDependencies` contain the values below.
 
-```scala
+```sh
 > show scalacOptions
 [info] * -Yrangepos
 > show libraryDependencies
@@ -78,7 +103,7 @@ For a minimal example project using sbt-scalafix, see the
 [scalacenter/scalafix-sbt-example](https://github.com/scalacenter/scalafix-sbt-example)
 repository.
 
-```scala
+```sh
 git clone https://github.com/scalacenter/sbt-scalafix-example
 cd scalafix-sbt-example
 sbt "scalafix RemoveUnusedImports"
@@ -87,17 +112,71 @@ git diff // should produce a diff
 
 ### Settings and tasks
 
-| Name               | Type           | Description                                                                                                                      |
-| ------------------ | -------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `scalafix <args>`  | `Unit`         | Invoke scalafix command line interface directly. See [--help](#help) use tab completion to explore supported arguments           |
-| `scalafixConfig`   | `Option[File]` | .scalafix.conf file to specify which scalafix rules should run. Defaults to `.scalafix.conf` in the root directory if it exists. |
+| Name              | Type                       | Description                                                                                                                       |
+| ----------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `scalafix <args>` | `TaskKey[Unit]`            | Invoke scalafix command line interface directly. Use tab completion to explore supported arguments or consult [--help](#help)     |
+| `scalafixConfig`  | `SettingKey[Option[File]]` | .scalafix.conf file to specify which scalafix rules should run. Defaults to `.scalafix.conf` in the root directory, if it exists. |
 
-### FAQ
+### Main and test sources
 
-- How to exclude/add files that are processed by the `scalafix` task?
+The task `myproject/scalafix` runs only in the project `myproject` for main
+sources, excluding test sources. To run Scalafix on test source, execute
+`myproject/test:scalafix` instead. To run on both main and test sources, execute
+`all myproject/scalafix myproject/test:scalafix`
 
+### Integration tests
+
+By default, the `scalafix` command is only enabled for the `Compile` and `Test`
+configurations. To enable Scalafix for other configuration like
+`IntegrationTest`, add the following to your project settings
+
+```scala
+lazy val myproject = project
+  .configs(IntegrationTest)
+  .settings(
+    Defaults.itSettings,
+    inConfig(IntegrationTest)(scalafixConfigSettings(IntegrationTest)),
+  // ...
+)
 ```
-unmanagedSources.in(Compile, scalafix) := unmanagedSources.in(Compile).value.filter(file => ...)
+
+### Multi-module builds
+
+The `scalafix` task aggregates like the `compile` and `test` tasks. To run
+Scalafix on all projects for both main and test sources you can execute
+`all scalafix test:scalafix`.
+
+Optionally, add a command alias to your build to run Scalafix on your entire
+project with the shorthand `fix`
+
+```scala
+// top of build.sbt
+addCommandAlias("fix", "all compile:scalafix test:scalafix")
+```
+
+### Enforce in CI
+
+To automatically enforce that Scalafix has been run on all sources, use
+`scalafix --test` instead of `scalafix`. This task fails the build if running
+`scalafix` would produce a diff or a linter error message is reported.
+
+Optionally, add a command alias to enforce Scalafix on your entire project with
+the shorthand `fixTest`
+
+```scala
+// top of build.sbt
+addCommandAlias("fixTest", "; compile:scalafix --test ; test:scalafix --test")
+```
+
+### Add and exclude files
+
+By default, the task `myproject/test:scalafix` runs on the files matching
+`unmanagedSources.in(Test).value`. To customize this value, add the following
+setting
+
+```scala
+unmanagedSources.in(Compile, scalafix) :=
+  unmanagedSources.in(Compile).value.filter(file => ...)
 ```
 
 ## Command line
@@ -109,7 +188,7 @@ Next, bootstrap a `scalafix` binary with Coursier
 
 ```sh
 coursier bootstrap ch.epfl.scala:scalafix-cli_@SCALA212@:@VERSION@ -f --main scalafix.cli.Cli -o scalafix
-./scalafix --help
+./scalafix --version # Should say @VERSION@
 ```
 
 ### Help
