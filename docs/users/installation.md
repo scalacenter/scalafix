@@ -48,16 +48,16 @@ The error message "SemanticDB not found" means the
 compiler plugin is not enabled in the build. Let's fix that by adding the
 following settings to `build.sbt`
 
-```scala
-// build.sbt
-lazy val myproject = project.settings(
-  scalaVersion := "@SCALA212@", // or @SCALA211@
-  addCompilerPlugin(scalafixSemanticdb),
-  scalacOptions ++= List(
-    "-Yrangepos",          // required by SemanticDB compiler plugin
-    "-Ywarn-unused-import" // required by `RemoveUnusedImports` rule
-  )
-)
+```diff
+ // build.sbt
+ lazy val myproject = project.settings(
+   scalaVersion := "@SCALA212@", // or @SCALA211@
++  addCompilerPlugin(scalafixSemanticdb),
+   scalacOptions ++= List(
++    "-Yrangepos",          // required by SemanticDB compiler plugin
++    "-Ywarn-unused-import" // required by `RemoveUnusedImports` rule
+   )
+ )
 ```
 
 We run `RemoveUnusedImports` again and the error should be gone
@@ -79,8 +79,7 @@ Great! You are all set to use Scalafix with sbt :)
 > to compilation. It's recommended to provide generous JVM memory and stack
 > settings in `.jvmopts`:
 >
-> ```scala
->   // .jvmopts
+> ```
 >   -Xss8m
 >   -Xms1G
 >   -Xmx4G
@@ -157,8 +156,8 @@ addCommandAlias("fix", "all compile:scalafix test:scalafix")
 
 ### Enforce in CI
 
-To automatically enforce that Scalafix has been run on all sources, use the
-`scalafixTest` instead of `scalafix`. This task fails the build if running
+To automatically enforce that Scalafix has been run on all sources, use
+`scalafix --test` instead of `scalafix`. This task fails the build if running
 `scalafix` would produce a diff or a linter error message is reported.
 
 Optionally, add a command alias to enforce Scalafix on your entire project with
@@ -166,7 +165,7 @@ the shorthand `fixTest`
 
 ```scala
 // top of build.sbt
-addCommandAlias("fixTest", "all compile:scalafixTest test:scalafixTest")
+addCommandAlias("fixTest", "; compile:scalafix --test ; test:scalafix --test")
 ```
 
 ### Add and exclude files
