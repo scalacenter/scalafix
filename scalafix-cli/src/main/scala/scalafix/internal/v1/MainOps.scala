@@ -25,6 +25,7 @@ import scala.meta.inputs.Input
 import scala.meta.internal.semanticdb.TextDocument
 import scala.meta.internal.tokenizers.PlatformTokenizerCache
 import scala.meta.io.AbsolutePath
+import scala.meta.io.RelativePath
 import scala.meta.parsers.ParseException
 import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
@@ -35,6 +36,7 @@ import scalafix.internal.diff.DiffUtils
 import scalafix.v1.SyntacticDocument
 import scalafix.v1.SemanticDocument
 import scalafix.internal.jgit.JGitBlame
+import scalafix.lint.RuleDiagnostic
 
 object MainOps {
 
@@ -181,7 +183,7 @@ object MainOps {
       args.parse(input).get: Tree
     }
     val doc = SyntacticDocument(input, tree, args.diffDisable, args.config)
-    val (fixed, messages) =
+    val (fixed, diagnostics) =
       if (args.rules.isSemantic) {
         val relpath = file.toRelative(args.sourceroot)
         val sdoc = SemanticDocument.fromPath(
@@ -190,25 +192,15 @@ object MainOps {
           args.classLoader,
           args.symtab
         )
-        val (fix, messages) =
+        val (fix, diagnostics) =
           args.rules.semanticPatch(sdoc, args.args.autoSuppressLinterErrors)
         assertFreshSemanticDB(input, file, fix, sdoc.internal.textDocument)
-        (fix, messages)
+        (fix, diagnostics)
       } else {
         args.rules.syntacticPatch(doc, args.args.autoSuppressLinterErrors)
       }
 
-    if (!args.args.autoSuppressLinterErrors) {
-      val messagesWithBlame =
-        if (args.args.blame) {
-          val blame = new JGitBlame(args.args.cwd.toNIO, args.args.diffBase)
-          blame(messages)
-        } else messages
-
-      messagesWithBlame.foreach { diag =>
-        args.config.reporter.lint(diag)
-      }
-    }
+    reportDiagnostics(args, file, diagnostics)
 
     if (args.args.test) {
       if (fixed == input.text) {
@@ -234,6 +226,25 @@ object MainOps {
         Files.write(toFix, fixed.getBytes(args.args.charset))
       }
       ExitStatus.Ok
+    }
+  }
+
+  def reportDiagnostics(
+      args: ValidatedArgs,
+      file: AbsolutePath,
+      diagnostics: List[RuleDiagnostic]): Unit = {
+    if (!args.args.autoSuppressLinterErrors) {
+      val diagnosticsWithBlame =
+        if (args.args.blame) {
+          val gitRoot = args.args.cwd
+          val filePath = RelativePath(gitRoot.toNIO.relativize(file.toNIO))
+          val blame = new JGitBlame(gitRoot.toNIO, filePath, args.args.diffBase)
+          blame(diagnostics)
+        } else diagnostics
+
+      diagnosticsWithBlame.foreach { diagnostic =>
+        args.config.reporter.lint(diagnostic)
+      }
     }
   }
 
