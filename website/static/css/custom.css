@@ -37,8 +37,6 @@
 }
 
 .terminal_window {
-  background-color: #0d1f2d;
-  color: #f4faff;
   font-size: 11pt;
 }
 
@@ -190,35 +188,37 @@ table th {
   color: #24292e;
 }
 
-.split {
-  clear: both;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.split > * {
-  float: left;
-}
-
-.hljs {
-  overflow-x: hidden;
-}
-
-.terminal_window .hljs,
-.terminal_window_full,
-.split-right {
-  width: 550px;
-}
-
-.terminal_window_full {
-  margin-right: 40px;
-}
-
-.terminal-right {
-  margin-left: 40px;
-  margin-right: 0;
-}
-
 .container {
-  margin: 15px;
+  margin: 10px;
+}
+
+.terminal_window {
+  display: none;
+}
+
+/*Medium devices (tablets, 768px and up)*/
+@media (min-width: 768px) {
+  .terminal_window {
+    display: block;
+  }
+
+  .feature-row h3{
+    margin: 0;
+  }
+
+  .feature-row {
+    width: 80%;
+    margin: auto;
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+    flex-flow: column wrap;
+    align-content: center;
+  }
+
+  .feature-row > * {
+    width: 600px;
+    margin: 10px;
+  }
 }
