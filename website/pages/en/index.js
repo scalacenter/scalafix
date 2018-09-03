@@ -195,7 +195,7 @@ class Index extends React.Component {
       <div className="container">
         <HomeSplash language={language} />
 
-        <div className="split">
+        <div className="feature-row">
           <Terminal>
             <Highlight lang="diff">{refactoring}</Highlight>
           </Terminal>
@@ -209,8 +209,12 @@ class Index extends React.Component {
           </div>
         </div>
 
-        <div className="split">
-          <div className="split-right">
+        <div className="feature-row">
+          <Terminal className="terminal-right">
+            <Highlight lang="sh">{linting}</Highlight>
+          </Terminal>
+
+          <div>
             <h3>Linting</h3>
             <p>
               Some problems don't have obvious solutions. Let Scalafix report
@@ -219,12 +223,9 @@ class Index extends React.Component {
             </p>
           </div>
 
-          <Terminal className="terminal-right">
-            <Highlight lang="sh">{linting}</Highlight>
-          </Terminal>
         </div>
 
-        <div className="split">
+        <div className="feature-row">
           <Terminal>
             <Highlight lang="diff">{ci}</Highlight>
             <Travis />
