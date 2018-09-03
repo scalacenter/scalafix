@@ -65,9 +65,6 @@ case class Args(
       "If set, only apply scalafix to added and edited files in git diff against a provided branch, commit or tag.")
     diffBase: Option[String] = None,
     @Description(
-      "Add git blame information in lint message, uses diffBase if set")
-    blame: Boolean = false,
-    @Description(
       "Run only syntactic rules, ignore semantic rules even if they are explicitly " +
         "configured in .scalafix.conf or via --rules")
     syntactic: Boolean = false,

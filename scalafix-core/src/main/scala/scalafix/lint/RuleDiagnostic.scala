@@ -13,31 +13,24 @@ import scalafix.rule.RuleName
 final class RuleDiagnostic private (
     val diagnostic: Diagnostic,
     val rule: RuleName,
-    val overriddenSeverity: Option[LintSeverity],
-    val blameMessage: Option[String]
+    val overriddenSeverity: Option[LintSeverity]
 ) {
   override def toString: String = formattedMessage
-  def message: String =
-    diagnostic.message + blameMessage.map("\n" + _).getOrElse("")
+  def message: String = diagnostic.message
   def position: Position = diagnostic.position
   def severity: LintSeverity = overriddenSeverity.getOrElse(diagnostic.severity)
   def explanation: String = diagnostic.explanation
   def id: LintID = LintID(rule.value, diagnostic.categoryID)
 
-  def withBlame(msg: String): RuleDiagnostic =
-    new RuleDiagnostic(diagnostic, rule, overriddenSeverity, Some(msg))
-
   /** A pretty-printed representation of this diagnostic without detailed explanation. */
   def formattedMessage: String = {
-    val msg0 = new StringBuilder()
+    val msg = new StringBuilder()
       .append("[")
       .append(id.fullID)
       .append("]:")
       .append(if (message.isEmpty || message.startsWith("\n")) "" else " ")
       .append(message)
-
-    val msg = blameMessage.map(msg0.append).getOrElse(msg0).toString()
-
+      .toString()
     position.formatMessage(severity.toString, msg)
   }
 }
@@ -47,6 +40,6 @@ object RuleDiagnostic {
       diagnostic: Diagnostic,
       rule: RuleName,
       configuredSeverity: Option[LintSeverity]): RuleDiagnostic = {
-    new RuleDiagnostic(diagnostic, rule, configuredSeverity, None)
+    new RuleDiagnostic(diagnostic, rule, configuredSeverity)
   }
 }
