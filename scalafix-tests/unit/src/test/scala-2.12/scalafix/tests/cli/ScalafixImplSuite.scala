@@ -170,6 +170,18 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
       .withToolClasspath(toolClasspath)
       .withScalacOptions(Collections.singletonList("-Ywarn-unused-import"))
       .withScalaVersion("2.11.12")
+    val expectedRulesToRun = List(
+      "ProcedureSyntax",
+      "ExplicitResultTypes",
+      "ExampleScalafixRule_v1",
+      "DisableSyntax"
+    )
+    val obtainedRulesToRun =
+      args.rulesThatWillRun().asScala.toList.map(_.name())
+    assertNoDiff(
+      obtainedRulesToRun.sorted.mkString("\n"),
+      expectedRulesToRun.sorted.mkString("\n")
+    )
     val errors = args.run().toList.map(_.toString).sorted
     val stdout = fansi
       .Str(out.toString(charset.name()))

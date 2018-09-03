@@ -174,12 +174,23 @@ case class Args(
   }
 
   def baseConfig: Configured[(Conf, ScalafixConfig, DelegatingMainCallback)] = {
+    fileConfig.andThen { b =>
+      val applied = Conf.applyPatch(b, settings)
+      applied.as[ScalafixConfig].map { scalafixConfig =>
+        val delegator = new DelegatingMainCallback(callback)
+        val reporter = MainCallbackImpl.fromJava(delegator)
+        (applied, scalafixConfig.copy(reporter = reporter), delegator)
+      }
+    }
+  }
+
+  def fileConfig: Configured[Conf] = {
     val toRead: Option[AbsolutePath] = config.orElse {
       val defaultPath = cwd.resolve(".scalafix.conf")
       if (defaultPath.isFile) Some(defaultPath)
       else None
     }
-    val base = toRead match {
+    toRead match {
       case Some(file) =>
         if (file.isFile) {
           val input = metaconfig.Input.File(file.toNIO)
@@ -190,13 +201,25 @@ case class Args(
       case _ =>
         Configured.ok(Conf.Obj.empty)
     }
-    base.andThen { b =>
-      val applied = Conf.applyPatch(b, settings)
-      applied.as[ScalafixConfig].map { scalafixConfig =>
-        val delegator = new DelegatingMainCallback(callback)
-        val reporter = MainCallbackImpl.fromJava(delegator)
-        (applied, scalafixConfig.copy(reporter = reporter), delegator)
+  }
+
+  def ruleDecoder(scalafixConfig: ScalafixConfig): ConfDecoder[Rules] = {
+    val decoderSettings = RuleDecoder
+      .Settings()
+      .withConfig(scalafixConfig)
+      .withToolClasspath(toolClasspath)
+      .withCwd(cwd)
+    RuleDecoder.decoder(decoderSettings)
+  }
+
+  def rulesConf(base: () => Conf): Conf = {
+    if (rules.isEmpty) {
+      ConfGet.getKey(base(), "rules" :: "rule" :: Nil) match {
+        case Some(c) => c
+        case _ => Conf.Lst(Nil)
       }
+    } else {
+      Conf.Lst(rules.map(Conf.fromString))
     }
   }
 
@@ -204,21 +227,8 @@ case class Args(
       base: Conf,
       scalafixConfig: ScalafixConfig
   ): Configured[Rules] = {
-    val rulesConf =
-      if (rules.isEmpty) {
-        ConfGet.getKey(base, "rules" :: "rule" :: Nil) match {
-          case Some(c) => c
-          case _ => Conf.Lst(Nil)
-        }
-      } else {
-        Conf.Lst(rules.map(Conf.fromString))
-      }
-    val decoderSettings = RuleDecoder
-      .Settings()
-      .withConfig(scalafixConfig)
-      .withToolClasspath(toolClasspath)
-      .withCwd(cwd)
-    val decoder = RuleDecoder.decoder(decoderSettings)
+    val rulesConf = this.rulesConf(() => base)
+    val decoder = ruleDecoder(scalafixConfig)
 
     val configuration = Configuration()
       .withConf(base)

@@ -6,6 +6,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * Wrapper around arguments for invoking the Scalafix command-line interface main method.
@@ -69,8 +70,10 @@ public interface ScalafixMainArgs {
 
     /**
      * @param args Unparsed command-line arguments that are fed directly to <code>main(Array[String])</code>
+     *
+     * @throws IllegalArgumentException In case of an error parsing the provided arguments.
      */
-    ScalafixMainArgs withArgs(List<String> args);
+    ScalafixMainArgs withArgs(List<String> args) throws IllegalArgumentException;
 
     /**
      * @param out The output stream to use for reporting diagnostics while running Scalafix.
@@ -128,6 +131,14 @@ public interface ScalafixMainArgs {
      * {@link #withToolClasspath(URLClassLoader) }.
      */
     List<ScalafixRule> availableRules();
+
+    /**
+     * The rules that would run when calling {@link #run() }
+     *
+     * Takes into account rules that are configured in .scalafix.conf.
+     * @throws NoSuchElementException In case of an error loading the configured rules.
+     */
+    List<ScalafixRule> rulesThatWillRun() throws NoSuchElementException;
 
     /**
      * Run the Scalafix commmand-line interface <code>main</code> function.

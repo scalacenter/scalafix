@@ -7,6 +7,7 @@ import java.nio.file.Path
 import java.nio.file.PathMatcher
 import java.util
 import metaconfig.Conf
+import metaconfig.Configured
 import scala.collection.JavaConverters._
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
@@ -15,6 +16,7 @@ import scalafix.interfaces.ScalafixMainArgs
 import scalafix.interfaces.ScalafixMainCallback
 import scalafix.interfaces.ScalafixMainMode
 import scalafix.interfaces.ScalafixRule
+import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.v1.Args
 import scalafix.internal.v1.MainOps
 import scalafix.internal.v1.Rules
@@ -67,8 +69,12 @@ final case class ScalafixMainArgsImpl(args: Args = Args.default)
     val decoder = Args.decoder(this.args)
     val newArgs = Conf
       .parseCliArgs[Args](args.asScala.toList)
-      .andThen(c => c.as[Args](decoder))
-      .get
+      .andThen(c => c.as[Args](decoder)) match {
+      case Configured.Ok(value) =>
+        value
+      case Configured.NotOk(error) =>
+        throw new IllegalArgumentException(error.toString())
+    }
     copy(args = newArgs)
   }
 
@@ -99,6 +105,12 @@ final case class ScalafixMainArgsImpl(args: Args = Args.default)
       .all(args.toolClasspath)
       .map(rule => ScalafixRuleImpl(rule))
       .asJava
+  }
+
+  override def rulesThatWillRun(): util.List[ScalafixRule] = {
+    val decoder = args.ruleDecoder(ScalafixConfig.default)
+    val rules = decoder.read(args.rulesConf(() => args.fileConfig.get)).get
+    rules.rules.map(rule => ScalafixRuleImpl(rule)).asJava
   }
 
   override def withScalacOptions(options: util.List[String]): ScalafixMainArgs =
