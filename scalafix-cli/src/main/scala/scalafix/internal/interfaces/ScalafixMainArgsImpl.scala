@@ -16,10 +16,10 @@ import scalafix.interfaces.ScalafixMainArgs
 import scalafix.interfaces.ScalafixMainCallback
 import scalafix.interfaces.ScalafixMainMode
 import scalafix.interfaces.ScalafixRule
-import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.v1.Args
 import scalafix.internal.v1.MainOps
 import scalafix.internal.v1.Rules
+import scalafix.v1.RuleDecoder
 
 final case class ScalafixMainArgsImpl(args: Args = Args.default)
     extends ScalafixMainArgs {
@@ -108,7 +108,7 @@ final case class ScalafixMainArgsImpl(args: Args = Args.default)
   }
 
   override def rulesThatWillRun(): util.List[ScalafixRule] = {
-    val decoder = args.ruleDecoder(ScalafixConfig.default)
+    val decoder = RuleDecoder.decoder(args.ruleDecoderSettings)
     val rules = decoder.read(args.rulesConf(() => args.fileConfig.get)).get
     rules.rules.map(rule => ScalafixRuleImpl(rule)).asJava
   }

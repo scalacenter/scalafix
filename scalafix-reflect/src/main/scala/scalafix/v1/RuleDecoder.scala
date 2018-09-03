@@ -106,21 +106,30 @@ object RuleDecoder {
             case Conf.Str(value) =>
               fromString(value, allRules, settings).map { rule =>
                 rule.foreach(
-                  _.name
-                    .reportDeprecationWarning(value, settings.config.reporter))
+                  _.name.reportDeprecationWarning(value, settings.reporter))
                 rule
               }
             case err =>
               ConfError.typeMismatch("String", err).notOk :: Nil
           }
           MetaconfigOps.traverse(decoded).map { rules =>
-            settings.config.patches.all match {
-              case Nil => Rules(rules)
-              case patches =>
-                val hardcodedRule =
-                  v1.SemanticRule.constant(".scalafix.conf", patches.asPatch)
-                Rules(hardcodedRule :: rules)
-            }
+            val allRules =
+              if (settings.patches.isEmpty) {
+                rules
+              } else {
+                val hardcodedRule = v1.SemanticRule.constant(
+                  ".scalafix.conf",
+                  settings.patches.asPatch
+                )
+                hardcodedRule :: rules
+              }
+            val filteredRules =
+              if (settings.syntactic) {
+                allRules.filter(_.isInstanceOf[v1.SyntacticRule])
+              } else {
+                allRules
+              }
+            Rules(filteredRules)
           }
         case els =>
           ConfError.typeMismatch("Either[String, List[String]]", els).notOk
@@ -142,13 +151,23 @@ object RuleDecoder {
     * @param cwd the working directory to turn relative paths in file:Foo.scala into absolute paths.
     */
   final class Settings private (
-      val config: ScalafixConfig,
+      val reporter: ScalafixReporter,
+      val patches: List[Patch],
       val toolClasspath: URLClassLoader,
-      val cwd: AbsolutePath
+      val cwd: AbsolutePath,
+      val syntactic: Boolean
   ) {
 
     def withConfig(value: ScalafixConfig): Settings = {
-      copy(config = value)
+      copy(reporter = value.reporter, patches = value.patches.all)
+    }
+
+    def withReporter(value: ScalafixReporter): Settings = {
+      copy(reporter = value)
+    }
+
+    def withPatches(value: List[Patch]): Settings = {
+      copy(patches = value)
     }
 
     def withToolClasspath(value: List[AbsolutePath]): Settings = {
@@ -163,23 +182,33 @@ object RuleDecoder {
       copy(cwd = value)
     }
 
+    def withSyntactic(value: Boolean): Settings = {
+      copy(syntactic = value)
+    }
+
     private def copy(
-        config: ScalafixConfig = this.config,
+        reporter: ScalafixReporter = this.reporter,
+        patches: List[Patch] = this.patches,
         toolClasspath: URLClassLoader = this.toolClasspath,
-        cwd: AbsolutePath = this.cwd
+        cwd: AbsolutePath = this.cwd,
+        syntactic: Boolean = this.syntactic
     ): Settings =
       new Settings(
-        config,
+        reporter,
+        patches,
         toolClasspath,
-        cwd
+        cwd,
+        syntactic
       )
   }
   object Settings {
     def apply(): Settings =
       new Settings(
-        ScalafixConfig.default,
-        ClasspathOps.thisClassLoader,
-        PathIO.workingDirectory
+        reporter = ScalafixReporter.default,
+        patches = Nil,
+        toolClasspath = ClasspathOps.thisClassLoader,
+        cwd = PathIO.workingDirectory,
+        syntactic = false
       )
   }
 

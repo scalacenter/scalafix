@@ -66,6 +66,10 @@ case class Args(
     @Description(
       "Add git blame information in lint message, uses diffBase if set")
     blame: Boolean = false,
+    @Description(
+      "Run only syntactic rules, ignore semantic rules even if they are explicitly " +
+        "configured in .scalafix.conf or via --rules")
+    syntactic: Boolean = false,
     @Description("Print out additional diagnostics while running scalafix.")
     verbose: Boolean = false,
     @Description("Print out this help message and exit")
@@ -203,13 +207,16 @@ case class Args(
     }
   }
 
-  def ruleDecoder(scalafixConfig: ScalafixConfig): ConfDecoder[Rules] = {
-    val decoderSettings = RuleDecoder
+  def ruleDecoderSettings: RuleDecoder.Settings = {
+    RuleDecoder
       .Settings()
-      .withConfig(scalafixConfig)
       .withToolClasspath(toolClasspath)
       .withCwd(cwd)
-    RuleDecoder.decoder(decoderSettings)
+      .withSyntactic(syntactic)
+  }
+
+  def ruleDecoder(scalafixConfig: ScalafixConfig): ConfDecoder[Rules] = {
+    RuleDecoder.decoder(ruleDecoderSettings.withConfig(scalafixConfig))
   }
 
   def rulesConf(base: () => Conf): Conf = {
