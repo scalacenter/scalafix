@@ -53,11 +53,6 @@ const SplashContainer = props => (
   </div>
 );
 
-const Logo = props => (
-  <div className="projectLogo">
-    <img src={props.img_src} />
-  </div>
-);
 
 const ProjectTitle = props => (
   <h2 className="projectTitle">
@@ -92,6 +87,39 @@ class HomeSplash extends React.Component {
   }
 }
 
+const Features = props => {
+  const features = [
+    {
+      title: "Refactoring",
+      content: "Focus on your application and let Scalafix do grunt work like removing unused imports.",
+      image: imgUrl("refactoring.png"),
+      imageAlign: "right"
+    },
+    {
+      title: "Linting",
+      content: "Some problems don't have obvious solutions. Let Scalafix report potential issues in your code so you catch bugs before they hit production.",
+      image: imgUrl("linting.png"),
+      imageAlign: "left"
+    },
+    {
+      title: "Enforce in CI",
+      content: "Ensure sure your coding style is automatically enforced by running Scalafix on every pull request.",
+      image: imgUrl("enforce-in-ci.png"),
+      imageAlign: "right"
+    }
+  ];
+  return (
+    <div
+      className="productShowcaseSection paddingBottom"
+      style={{ textAlign: "center" }}
+    >
+      {features.map(feature => (
+        <Block key={feature.title}>{[feature]}</Block>
+      ))}
+    </div>
+  );
+};
+
 const Block = props => (
   <Container
     padding={["bottom", "top"]}
@@ -102,141 +130,15 @@ const Block = props => (
   </Container>
 );
 
-class Terminal extends React.Component {
-  render() {
-    const cls = this.props.className || "";
-    return (
-      <div className={`terminal_window terminal_window_full ${cls}`}>
-        <header>
-          <div className="red_btn terminal_button" />
-          <div className="green_btn terminal_button" />
-          <div className="yellow_btn terminal_button" />
-        </header>
-        <div className="terminal_window">
-          <div className="terminal_text">{this.props.children}</div>
-        </div>
-      </div>
-    );
-  }
-}
-
-class Highlight extends React.Component {
-  render() {
-    const content = {
-      __html: highlightBlock.highlight(this.props.lang, this.props.children)
-        .value
-    };
-    return (
-      <pre className={`${this.props.lang} hljs`}>
-        <code dangerouslySetInnerHTML={content} />
-      </pre>
-    );
-  }
-}
-
-// Mimic travis-ci status bar on a GitHub PR
-class Travis extends React.Component {
-  render() {
-    return (
-      <div className="github-travis merge-status-item ">
-        <div className="merge-status-icon">
-          <svg
-            viewBox="0 0 12 16"
-            version="1.1"
-            width="12"
-            height="16"
-            aria-hidden="true"
-          >
-            <path
-              fillRule="evenodd"
-              d="M7.48 8l3.75 3.75-1.48 1.48L6 9.48l-3.75 3.75-1.48-1.48L4.52 8 .77 4.25l1.48-1.48L6 6.52l3.75-3.75 1.48 1.48L7.48 8z"
-            />
-          </svg>
-        </div>
-        <img className="avatar" src="img/travis.png" alt="" />
-        <div className="status-text">
-          <strong className="text-emphasized">continuous-integration</strong> —
-          The CI build failed
-        </div>
-      </div>
-    );
-  }
-}
-
-class Split extends React.Component {
-  render() {
-    return <div className="split">{this.props.children}</div>;
-  }
-}
 
 class Index extends React.Component {
   render() {
-    let language = this.props.language || "";
-    let refactoring = `--- ForUpdateTest.scala (before scalafix)
-+++ ForUpdateTest.scala (after scalafix)
--import scala.concurrent.{Await, ExecutionContext, Future}
-+import scala.concurrent.Await
-`;
-
-    let linting = `Remoting.scala:15:13: error: finalize should not be used
-  def finalize(): Unit = {
-      ^^^^^^^^
-`;
-
-    let ci = `error: you forgot to run scalafix!
---- PostgresDriver.scala (on disk)
-+++ PostgresDriver.scala (after scalafix)
--  def unloadDrivers {
-+  def unloadDrivers: Unit = {
-    DriverManager.getDrivers.foreach { d =>
-`;
-
+    let language = this.props.language || ""; 
     return (
-      <div className="container">
+      <div>
         <HomeSplash language={language} />
-
-        <div className="split">
-          <Terminal>
-            <Highlight lang="diff">{refactoring}</Highlight>
-          </Terminal>
-
-          <div className="split-right">
-            <h3>Refactoring</h3>
-            <p>
-              Focus on your application and let Scalafix do grunt work like
-              removing unused imports.
-            </p>
-          </div>
-        </div>
-
-        <div className="split">
-          <div className="split-right">
-            <h3>Linting</h3>
-            <p>
-              Some problems don't have obvious solutions. Let Scalafix report
-              potential issues in your code so you catch bugs before they hit
-              production.
-            </p>
-          </div>
-
-          <Terminal className="terminal-right">
-            <Highlight lang="sh">{linting}</Highlight>
-          </Terminal>
-        </div>
-
-        <div className="split">
-          <Terminal>
-            <Highlight lang="diff">{ci}</Highlight>
-            <Travis />
-          </Terminal>
-
-          <div className="split-right">
-            <h3>Enforce in CI</h3>
-            <p>
-              Ensure sure your coding style is automatically enforced by running
-              Scalafix on every pull request.
-            </p>
-          </div>
+        <div className="mainContainer">
+        <Features/>
         </div>
       </div>
     );
