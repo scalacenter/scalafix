@@ -5,19 +5,19 @@ import scala.meta._
 import scalafix.v0.LintCategory
 import scalafix.v1._
 
-final case class DisableSyntax(config: DisableSyntaxConfig)
-    extends SyntacticRule("DisableSyntax")
-    with Product {
+final class DisableSyntax(config: DisableSyntaxConfig)
+    extends SyntacticRule("DisableSyntax") {
 
   def this() = this(DisableSyntaxConfig())
 
   override def description: String =
-    "Linter that reports an error on a configurable set of keywords and syntax."
+    "Reports an error for disabled constructs such as var/null keywords or XML literals."
+  override def isLinter: Boolean = true
 
   override def withConfiguration(config: Configuration): Configured[Rule] =
     config.conf
       .getOrElse("disableSyntax", "DisableSyntax")(DisableSyntaxConfig.default)
-      .map(DisableSyntax(_))
+      .map(new DisableSyntax(_))
 
   private def checkRegex(doc: SyntacticDocument): Seq[Diagnostic] = {
     def pos(offset: Int): Position =

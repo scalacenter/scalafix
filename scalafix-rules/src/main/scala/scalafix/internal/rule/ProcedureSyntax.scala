@@ -7,7 +7,8 @@ import scalafix.util.Trivia
 class ProcedureSyntax extends SyntacticRule("ProcedureSyntax") {
 
   override def description: String =
-    "Rewrite that inserts explicit : Unit = for soon-to-be-deprecated procedure syntax def foo { ... }"
+    "Replaces deprecated procedure syntax with explicit ': Unit ='"
+  override def isRewrite: Boolean = true
 
   override def fix(implicit doc: SyntacticDocument): Patch = {
     doc.tree.collect {

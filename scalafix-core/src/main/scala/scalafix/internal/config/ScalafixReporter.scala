@@ -21,6 +21,13 @@ trait ScalafixReporter {
 }
 
 object ScalafixReporter {
+  def empty: ScalafixReporter = new ScalafixReporter {
+    def report(
+        message: String,
+        position: Position,
+        severity: LintSeverity): Unit = ()
+    def lint(d: RuleDiagnostic): Unit = ()
+  }
   def default: ScalafixReporter = PrintStreamReporter.default
   implicit val decoder: ConfDecoder[ScalafixReporter] =
     ConfDecoder.stringConfDecoder.map(_ => default)

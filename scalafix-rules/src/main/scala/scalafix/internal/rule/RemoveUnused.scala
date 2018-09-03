@@ -22,7 +22,8 @@ class RemoveUnused(config: RemoveUnusedConfig)
   def this() = this(RemoveUnusedConfig.default)
 
   override def description: String =
-    "Rewrite that removes imports and terms that are reported as unused by the compiler under -Ywarn-unused"
+    "Removes unused imports and terms that reported by the compiler under -Ywarn-unused"
+  override def isRewrite: Boolean = true
 
   override def withConfiguration(config: Configuration): Configured[Rule] =
     if (!config.scalacOptions.exists(_.startsWith("-Ywarn-unused"))) {

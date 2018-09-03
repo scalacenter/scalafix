@@ -42,6 +42,7 @@ case class Args(
       "Scalafix rules to run, for example ExplicitResultTypes. " +
         "The syntax for rules is documented in https://scalacenter.github.io/scalafix/docs/users/configuration#rules")
     @ExtraName("r")
+    @Repeated
     rules: List[String] = Nil,
     @Description("Files or directories (recursively visited) to fix.")
     @ExtraName("remainingArgs")
@@ -66,6 +67,10 @@ case class Args(
     @Description(
       "Add git blame information in lint message, uses diffBase if set")
     blame: Boolean = false,
+    @Description(
+      "Run only syntactic rules, ignore semantic rules even if they are explicitly " +
+        "configured in .scalafix.conf or via --rules")
+    syntactic: Boolean = false,
     @Description("Print out additional diagnostics while running scalafix.")
     verbose: Boolean = false,
     @Description("Print out this help message and exit")
@@ -174,12 +179,23 @@ case class Args(
   }
 
   def baseConfig: Configured[(Conf, ScalafixConfig, DelegatingMainCallback)] = {
+    fileConfig.andThen { b =>
+      val applied = Conf.applyPatch(b, settings)
+      applied.as[ScalafixConfig].map { scalafixConfig =>
+        val delegator = new DelegatingMainCallback(callback)
+        val reporter = MainCallbackImpl.fromJava(delegator)
+        (applied, scalafixConfig.copy(reporter = reporter), delegator)
+      }
+    }
+  }
+
+  def fileConfig: Configured[Conf] = {
     val toRead: Option[AbsolutePath] = config.orElse {
       val defaultPath = cwd.resolve(".scalafix.conf")
       if (defaultPath.isFile) Some(defaultPath)
       else None
     }
-    val base = toRead match {
+    toRead match {
       case Some(file) =>
         if (file.isFile) {
           val input = metaconfig.Input.File(file.toNIO)
@@ -190,13 +206,28 @@ case class Args(
       case _ =>
         Configured.ok(Conf.Obj.empty)
     }
-    base.andThen { b =>
-      val applied = Conf.applyPatch(b, settings)
-      applied.as[ScalafixConfig].map { scalafixConfig =>
-        val delegator = new DelegatingMainCallback(callback)
-        val reporter = MainCallbackImpl.fromJava(delegator)
-        (applied, scalafixConfig.copy(reporter = reporter), delegator)
+  }
+
+  def ruleDecoderSettings: RuleDecoder.Settings = {
+    RuleDecoder
+      .Settings()
+      .withToolClasspath(toolClasspath)
+      .withCwd(cwd)
+      .withSyntactic(syntactic)
+  }
+
+  def ruleDecoder(scalafixConfig: ScalafixConfig): ConfDecoder[Rules] = {
+    RuleDecoder.decoder(ruleDecoderSettings.withConfig(scalafixConfig))
+  }
+
+  def rulesConf(base: () => Conf): Conf = {
+    if (rules.isEmpty) {
+      ConfGet.getKey(base(), "rules" :: "rule" :: Nil) match {
+        case Some(c) => c
+        case _ => Conf.Lst(Nil)
       }
+    } else {
+      Conf.Lst(rules.map(Conf.fromString))
     }
   }
 
@@ -204,21 +235,8 @@ case class Args(
       base: Conf,
       scalafixConfig: ScalafixConfig
   ): Configured[Rules] = {
-    val rulesConf =
-      if (rules.isEmpty) {
-        ConfGet.getKey(base, "rules" :: "rule" :: Nil) match {
-          case Some(c) => c
-          case _ => Conf.Lst(Nil)
-        }
-      } else {
-        Conf.Lst(rules.map(Conf.fromString))
-      }
-    val decoderSettings = RuleDecoder
-      .Settings()
-      .withConfig(scalafixConfig)
-      .withToolClasspath(toolClasspath)
-      .withCwd(cwd)
-    val decoder = RuleDecoder.decoder(decoderSettings)
+    val rulesConf = this.rulesConf(() => base)
+    val decoder = ruleDecoder(scalafixConfig)
 
     val configuration = Configuration()
       .withConf(base)

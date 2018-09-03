@@ -12,20 +12,21 @@ import scalafix.internal.util.QualifyStrategy
 import scalafix.internal.util.PrettyType
 import scalafix.v1.MissingSymbolException
 
-case class ExplicitResultTypes(config: ExplicitResultTypesConfig)
+final class ExplicitResultTypes(config: ExplicitResultTypesConfig)
     extends SemanticRule("ExplicitResultTypes") {
 
   def this() = this(ExplicitResultTypesConfig.default)
 
   override def description: String =
-    "Rewrite that inserts explicit type annotations for def/val/var"
+    "Inserts explicit annotations for inferred types of def/val/var"
+  override def isRewrite: Boolean = true
 
   override def withConfiguration(config: Configuration): Configured[Rule] =
     config.conf // Support deprecated explicitReturnTypes config
       .getOrElse("explicitReturnTypes", "ExplicitResultTypes")(
         ExplicitResultTypesConfig.default
       )
-      .map(c => ExplicitResultTypes(c))
+      .map(c => new ExplicitResultTypes(c))
 
   // Don't explicitly annotate vals when the right-hand body is a single call
   // to `implicitly`. Prevents ambiguous implicit. Not annotating in such cases,

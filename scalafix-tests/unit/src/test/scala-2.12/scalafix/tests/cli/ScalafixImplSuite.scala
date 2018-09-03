@@ -61,10 +61,21 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
 
   test("availableRules") {
     val api = i.Scalafix.classloadInstance(this.getClass.getClassLoader)
-    val rules = api.newMainArgs().availableRules().asScala.map(_.name())
-    assert(rules.contains("DisableSyntax"))
-    assert(rules.contains("AvailableRule"))
-    assert(!rules.contains("DeprecatedAvailableRule"))
+    val rules = api.newMainArgs().availableRules().asScala
+    val names = rules.map(_.name())
+    assert(names.contains("DisableSyntax"))
+    assert(names.contains("AvailableRule"))
+    assert(!names.contains("DeprecatedAvailableRule"))
+    val hasDescription = rules.filter(_.description().nonEmpty)
+    assert(hasDescription.nonEmpty)
+    val isSyntactic = rules.filter(_.kind().isSyntactic)
+    assert(isSyntactic.nonEmpty)
+    val isSemantic = rules.filter(_.kind().isSemantic)
+    assert(isSemantic.nonEmpty)
+    val isLinter = rules.filter(_.isLinter)
+    assert(isLinter.nonEmpty)
+    val isRewrite = rules.filter(_.isRewrite)
+    assert(isRewrite.nonEmpty)
   }
 
   test("error") {
@@ -159,7 +170,19 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
       .withToolClasspath(toolClasspath)
       .withScalacOptions(Collections.singletonList("-Ywarn-unused-import"))
       .withScalaVersion("2.11.12")
-    val errors = api.runMain(args).toList.map(_.toString).sorted
+    val expectedRulesToRun = List(
+      "ProcedureSyntax",
+      "ExplicitResultTypes",
+      "ExampleScalafixRule_v1",
+      "DisableSyntax"
+    )
+    val obtainedRulesToRun =
+      args.rulesThatWillRun().asScala.toList.map(_.name())
+    assertNoDiff(
+      obtainedRulesToRun.sorted.mkString("\n"),
+      expectedRulesToRun.sorted.mkString("\n")
+    )
+    val errors = args.run().toList.map(_.toString).sorted
     val stdout = fansi
       .Str(out.toString(charset.name()))
       .plainText

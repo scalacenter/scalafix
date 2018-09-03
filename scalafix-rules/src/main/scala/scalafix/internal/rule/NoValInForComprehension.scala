@@ -7,7 +7,8 @@ import scalafix.v1._
 class NoValInForComprehension extends SyntacticRule("NoValInForComprehension") {
 
   override def description: String =
-    "Rewrite that removes redundant val inside for-comprehensions"
+    "Removes deprecated val inside for-comprehension binders"
+  override def isRewrite: Boolean = true
 
   override def fix(implicit doc: SyntacticDocument): Patch = {
     doc.tree.collect {
