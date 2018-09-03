@@ -42,6 +42,6 @@ class Fs() {
     Files.write(path(filename), content.getBytes, op)
   }
 
-  private def path(filename: String): Path =
+  def path(filename: String): Path =
     workingDirectory.resolve(filename)
 }

@@ -63,6 +63,9 @@ case class Args(
     @Description(
       "If set, only apply scalafix to added and edited files in git diff against a provided branch, commit or tag.")
     diffBase: Option[String] = None,
+    @Description(
+      "Add git blame information in lint message, uses diffBase if set")
+    blame: Boolean = false,
     @Description("Print out additional diagnostics while running scalafix.")
     verbose: Boolean = false,
     @Description("Print out this help message and exit")

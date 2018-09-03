@@ -1,17 +1,63 @@
 package scalafix.tests.cli
 
-import java.io.ByteArrayOutputStream
-import java.io.PrintStream
-import java.nio.charset.StandardCharsets
-import java.nio.file.Path
-import org.scalatest._
-import org.scalatest.FunSuite
 import scalafix.cli.ExitStatus
 import scalafix.testkit.DiffAssertions
 import scalafix.internal.tests.utils.{Fs, Git}
 import scalafix.internal.tests.utils.SkipWindows
+import scalafix.internal.jgit.JGitBlame
+
+import scala.meta.io.RelativePath
+
+import org.scalatest._
+import org.scalatest.FunSuite
+
+import java.io.ByteArrayOutputStream
+import java.io.PrintStream
+import java.nio.charset.StandardCharsets
+import java.nio.file.Path
 
 class CliGitDiffSuite extends FunSuite with DiffAssertions {
+
+  gitTest("blame", SkipWindows) { (fs, git, cli) =>
+    val code = "code.scala"
+    val codeAbsPath = fs.absPath(code)
+
+    fs.add(
+      code,
+      """|object Code {
+         |  val a = 42
+         |}""".stripMargin)
+    git.add(code)
+    addConf(fs, git)
+    git.commit()
+
+    fs.replace(
+      code,
+      """|object Code {
+         |  var a = 42
+         |}""".stripMargin)
+    git.add(code)
+    val rev = git.commit()
+
+    val filePath = RelativePath(fs.workingDirectory.relativize(fs.path(code)))
+    val blame = new JGitBlame(fs.workingDirectory, filePath, None)
+
+    val diffLine = blame.formatCommit(rev)
+
+    val obtained = runDiff(cli, ExitStatus.LinterError, "--blame")
+
+    val expected =
+      s"""|$codeAbsPath:2:3: error: [DisableSyntax.keywords.var] var is disabled
+          |$diffLine
+          |  var a = 42
+          |  ^^^
+          |""".stripMargin
+
+    println(obtained)
+
+    assertNoDiff(obtained, expected)
+  }
+
   gitTest("addition", SkipWindows) { (fs, git, cli) =>
     val oldCode = "old.scala"
     val newCode = "new.scala"
