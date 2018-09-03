@@ -170,7 +170,7 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
       .withToolClasspath(toolClasspath)
       .withScalacOptions(Collections.singletonList("-Ywarn-unused-import"))
       .withScalaVersion("2.11.12")
-    val errors = api.runMain(args).toList.map(_.toString).sorted
+    val errors = args.run().toList.map(_.toString).sorted
     val stdout = fansi
       .Str(out.toString(charset.name()))
       .plainText

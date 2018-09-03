@@ -10,15 +10,22 @@ import metaconfig.Conf
 import scala.collection.JavaConverters._
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
+import scalafix.interfaces.ScalafixError
 import scalafix.interfaces.ScalafixMainArgs
 import scalafix.interfaces.ScalafixMainCallback
 import scalafix.interfaces.ScalafixMainMode
 import scalafix.interfaces.ScalafixRule
 import scalafix.internal.v1.Args
+import scalafix.internal.v1.MainOps
 import scalafix.internal.v1.Rules
 
 final case class ScalafixMainArgsImpl(args: Args = Args.default)
     extends ScalafixMainArgs {
+
+  override def run(): Array[ScalafixError] = {
+    val exit = MainOps.run(Array(), args)
+    ScalafixErrorImpl.fromScala(exit)
+  }
 
   override def withRules(rules: util.List[String]): ScalafixMainArgs =
     copy(args = args.copy(rules = rules.asScala.toList))

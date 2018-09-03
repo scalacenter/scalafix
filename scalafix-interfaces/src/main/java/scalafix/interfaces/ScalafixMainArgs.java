@@ -128,4 +128,10 @@ public interface ScalafixMainArgs {
      * {@link #withToolClasspath(URLClassLoader) }.
      */
     List<ScalafixRule> availableRules();
+
+    /**
+     * Run the Scalafix commmand-line interface <code>main</code> function.
+     */
+    ScalafixError[] run();
+
 }

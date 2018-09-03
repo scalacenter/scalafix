@@ -16,13 +16,6 @@ import java.util.List;
 public interface Scalafix {
 
     /**
-     * Run the Scalafix commmand-line interface <code>main</code> function.
-     *
-     * @param args The arguments passed to the command-line interface.
-     */
-    ScalafixError[] runMain(ScalafixMainArgs args);
-
-    /**
      * @return Construct a new instance of {@link ScalafixMainArgs} that can be later passed to {@link #runMain(ScalafixMainArgs) }.
      */
     ScalafixMainArgs newMainArgs();
