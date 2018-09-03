@@ -5,9 +5,8 @@ import scala.meta._
 import scalafix.v0.LintCategory
 import scalafix.v1._
 
-final case class DisableSyntax(config: DisableSyntaxConfig)
-    extends SyntacticRule("DisableSyntax")
-    with Product {
+final class DisableSyntax(config: DisableSyntaxConfig)
+    extends SyntacticRule("DisableSyntax") {
 
   def this() = this(DisableSyntaxConfig())
 
@@ -18,7 +17,7 @@ final case class DisableSyntax(config: DisableSyntaxConfig)
   override def withConfiguration(config: Configuration): Configured[Rule] =
     config.conf
       .getOrElse("disableSyntax", "DisableSyntax")(DisableSyntaxConfig.default)
-      .map(DisableSyntax(_))
+      .map(new DisableSyntax(_))
 
   private def checkRegex(doc: SyntacticDocument): Seq[Diagnostic] = {
     def pos(offset: Int): Position =

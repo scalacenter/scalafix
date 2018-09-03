@@ -12,7 +12,7 @@ import scalafix.internal.util.QualifyStrategy
 import scalafix.internal.util.PrettyType
 import scalafix.v1.MissingSymbolException
 
-case class ExplicitResultTypes(config: ExplicitResultTypesConfig)
+final class ExplicitResultTypes(config: ExplicitResultTypesConfig)
     extends SemanticRule("ExplicitResultTypes") {
 
   def this() = this(ExplicitResultTypesConfig.default)
@@ -26,7 +26,7 @@ case class ExplicitResultTypes(config: ExplicitResultTypesConfig)
       .getOrElse("explicitReturnTypes", "ExplicitResultTypes")(
         ExplicitResultTypesConfig.default
       )
-      .map(c => ExplicitResultTypes(c))
+      .map(c => new ExplicitResultTypes(c))
 
   // Don't explicitly annotate vals when the right-hand body is a single call
   // to `implicitly`. Prevents ambiguous implicit. Not annotating in such cases,

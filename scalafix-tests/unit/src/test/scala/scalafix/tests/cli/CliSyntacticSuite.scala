@@ -59,6 +59,32 @@ class CliSyntacticSuite extends BaseCliSuite {
   )
 
   check(
+    name = "--syntactic ignores semantic rule",
+    originalLayout = s"""|
+                         |/.scalafix.conf
+                         |rules = [
+                         |  RemoveUnused
+                         |  ExplicitResultTypes
+                         |  ProcedureSyntax
+                         |]
+                         |/hello.scala
+                         |$original
+                         |""".stripMargin,
+    args = Array("--syntactic", "hello.scala"),
+    expectedLayout = s"""|
+                         |/.scalafix.conf
+                         |rules = [
+                         |  RemoveUnused
+                         |  ExplicitResultTypes
+                         |  ProcedureSyntax
+                         |]
+                         |/hello.scala
+                         |$expected
+                         |""".stripMargin,
+    expectedExit = ExitStatus.Ok
+  )
+
+  check(
     // same test as above except using @args expansion
     name = "@args",
     originalLayout = s"""/hello.scala

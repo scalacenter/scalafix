@@ -42,6 +42,7 @@ case class Args(
       "Scalafix rules to run, for example ExplicitResultTypes. " +
         "The syntax for rules is documented in https://scalacenter.github.io/scalafix/docs/users/configuration#rules")
     @ExtraName("r")
+    @Repeated
     rules: List[String] = Nil,
     @Description("Files or directories (recursively visited) to fix.")
     @ExtraName("remainingArgs")

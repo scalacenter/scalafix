@@ -6,7 +6,6 @@ import scala.meta.internal.io.PathIO
 import scala.meta.internal.io.FileIO
 import scala.meta.io.Classpath
 import scalafix.cli._
-import scalafix.internal.rule.ExplicitResultTypes
 
 class CliSemanticSuite extends BaseCliSuite {
 
@@ -77,7 +76,7 @@ class CliSemanticSuite extends BaseCliSuite {
       Files.write(path.toNIO, staleCode.getBytes(StandardCharsets.UTF_8))
     },
     expectedExit = ExitStatus.StaleSemanticdbError,
-    rule = ExplicitResultTypes.toString(),
+    rule = "ExplicitResultTypes",
     path = explicitResultTypesPath,
     files = explicitResultTypesPath.toString(),
     outputAssert = { out =>
@@ -100,7 +99,7 @@ class CliSemanticSuite extends BaseCliSuite {
       Files.write(path.toNIO, expectedOutput.getBytes(StandardCharsets.UTF_8))
     },
     expectedExit = ExitStatus.Ok,
-    rule = ExplicitResultTypes.toString(),
+    rule = "ExplicitResultTypes",
     path = explicitResultTypesPath,
     files = explicitResultTypesPath.toString(),
     outputAssert = { out =>
@@ -115,7 +114,7 @@ class CliSemanticSuite extends BaseCliSuite {
       defaultClasspath
     ),
     expectedExit = ExitStatus.Ok,
-    rule = ExplicitResultTypes.toString(),
+    rule = "ExplicitResultTypes",
     path = explicitResultTypesPath,
     files = explicitResultTypesPath.toString()
   )
@@ -130,7 +129,7 @@ class CliSemanticSuite extends BaseCliSuite {
     ),
     // Errors in ExplicitResultTypes are suppressed.
     expectedExit = ExitStatus.Ok,
-    rule = ExplicitResultTypes.toString(),
+    rule = "ExplicitResultTypes",
     path = explicitResultTypesPath,
     assertObtained = { _ =>
       // Do nothing
