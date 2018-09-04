@@ -3,7 +3,6 @@ package scalafix.interfaces;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 
 /**
  * Public API for reflectively invoking Scalafix from a build tool or IDE integration.
@@ -16,9 +15,9 @@ import java.util.List;
 public interface Scalafix {
 
     /**
-     * @return Construct a new instance of {@link ScalafixMainArgs} that can be later passed to {@link #runMain(ScalafixMainArgs) }.
+     * @return Construct a new instance of {@link ScalafixArguments} that can be later passed to {@link #runMain(ScalafixArguments) }.
      */
-    ScalafixMainArgs newMainArgs();
+    ScalafixArguments newArguments();
 
     /**
      * Get --help message for running the Scalafix command-line interface.

@@ -13,9 +13,9 @@ import scala.collection.JavaConverters._
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
 import scala.util.control.NoStackTrace
+import scalafix.interfaces.ScalafixArguments
 import scalafix.interfaces.ScalafixError
 import scalafix.interfaces.ScalafixException
-import scalafix.interfaces.ScalafixMainArgs
 import scalafix.interfaces.ScalafixMainCallback
 import scalafix.interfaces.ScalafixMainMode
 import scalafix.interfaces.ScalafixRule
@@ -24,83 +24,90 @@ import scalafix.internal.v1.MainOps
 import scalafix.internal.v1.Rules
 import scalafix.v1.RuleDecoder
 
-final case class ScalafixMainArgsImpl(args: Args = Args.default)
-    extends ScalafixMainArgs {
+final case class ScalafixArgumentsImpl(args: Args = Args.default)
+    extends ScalafixArguments {
 
   override def run(): Array[ScalafixError] = {
     val exit = MainOps.run(Array(), args)
     ScalafixErrorImpl.fromScala(exit)
   }
 
-  override def withRules(rules: util.List[String]): ScalafixMainArgs =
+  override def withRules(rules: util.List[String]): ScalafixArguments =
     copy(args = args.copy(rules = rules.asScala.toList))
 
   override def withToolClasspath(
-      classLoader: URLClassLoader): ScalafixMainArgs =
+      classLoader: URLClassLoader): ScalafixArguments =
     copy(args = args.copy(toolClasspath = classLoader))
 
-  override def withPaths(paths: util.List[Path]): ScalafixMainArgs =
+  override def withPaths(paths: util.List[Path]): ScalafixArguments =
     copy(
       args = args.copy(
         files = paths.asScala.iterator.map(AbsolutePath(_)(args.cwd)).toList)
     )
 
   override def withExcludedPaths(
-      matchers: util.List[PathMatcher]): ScalafixMainArgs =
+      matchers: util.List[PathMatcher]): ScalafixArguments =
     copy(args = args.copy(exclude = matchers.asScala.toList))
 
-  override def withWorkingDirectory(path: Path): ScalafixMainArgs = {
+  override def withWorkingDirectory(path: Path): ScalafixArguments = {
     require(path.isAbsolute, s"working directory must be relative: $path")
     copy(args = args.copy(cwd = AbsolutePath(path)))
   }
 
-  override def withConfig(path: Path): ScalafixMainArgs =
-    copy(args = args.copy(config = Some(AbsolutePath(path)(args.cwd))))
-
-  override def withMode(mode: ScalafixMainMode): ScalafixMainArgs = mode match {
-    case ScalafixMainMode.TEST =>
-      copy(args = args.copy(test = true))
-    case ScalafixMainMode.IN_PLACE =>
-      copy(args = args.copy(stdout = false))
-    case ScalafixMainMode.STDOUT =>
-      copy(args = args.copy(stdout = true))
-    case ScalafixMainMode.AUTO_SUPPRESS_LINTER_ERRORS =>
-      copy(args = args.copy(autoSuppressLinterErrors = true))
+  override def withConfig(path: Optional[Path]): ScalafixArguments = {
+    val abspath = Option(path.orElse(null)).map(p => AbsolutePath(p)(args.cwd))
+    copy(args = args.copy(config = abspath))
   }
 
-  override def withArgs(args: util.List[String]): ScalafixMainArgs = {
-    val decoder = Args.decoder(this.args)
-    val newArgs = Conf
-      .parseCliArgs[Args](args.asScala.toList)
-      .andThen(c => c.as[Args](decoder)) match {
-      case Configured.Ok(value) =>
-        value
-      case Configured.NotOk(error) =>
-        throw new IllegalArgumentException(error.toString())
+  override def withMode(mode: ScalafixMainMode): ScalafixArguments =
+    mode match {
+      case ScalafixMainMode.TEST =>
+        copy(args = args.copy(test = true))
+      case ScalafixMainMode.IN_PLACE =>
+        copy(args = args.copy(stdout = false))
+      case ScalafixMainMode.STDOUT =>
+        copy(args = args.copy(stdout = true))
+      case ScalafixMainMode.AUTO_SUPPRESS_LINTER_ERRORS =>
+        copy(args = args.copy(autoSuppressLinterErrors = true))
     }
-    copy(args = newArgs)
+
+  override def withParsedArguments(
+      args: util.List[String]): ScalafixArguments = {
+    if (args.isEmpty) this
+    else {
+      val decoder = Args.decoder(this.args)
+      val newArgs = Conf
+        .parseCliArgs[Args](args.asScala.toList)
+        .andThen(c => c.as[Args](decoder)) match {
+        case Configured.Ok(value) =>
+          value
+        case Configured.NotOk(error) =>
+          throw new IllegalArgumentException(error.toString())
+      }
+      copy(args = newArgs)
+    }
   }
 
-  override def withPrintStream(out: PrintStream): ScalafixMainArgs =
+  override def withPrintStream(out: PrintStream): ScalafixArguments =
     copy(args = args.copy(out = out))
 
-  override def withClasspath(path: util.List[Path]): ScalafixMainArgs =
+  override def withClasspath(path: util.List[Path]): ScalafixArguments =
     copy(
       args = args.copy(
         classpath = Classpath(
           path.asScala.iterator.map(AbsolutePath(_)(args.cwd)).toList))
     )
 
-  override def withSourceroot(path: Path): ScalafixMainArgs = {
+  override def withSourceroot(path: Path): ScalafixArguments = {
     require(path.isAbsolute, s"sourceroot must be relative: $path")
     copy(args = args.copy(sourceroot = Some(AbsolutePath(path)(args.cwd))))
   }
 
   override def withMainCallback(
-      callback: ScalafixMainCallback): ScalafixMainArgs =
+      callback: ScalafixMainCallback): ScalafixArguments =
     copy(args = args.copy(callback = callback))
 
-  override def withCharset(charset: Charset): ScalafixMainArgs =
+  override def withCharset(charset: Charset): ScalafixArguments =
     copy(args = args.copy(charset = charset))
 
   override def availableRules(): util.List[ScalafixRule] = {
@@ -118,10 +125,11 @@ final case class ScalafixMainArgsImpl(args: Args = Args.default)
     rules.rules.map(rule => ScalafixRuleImpl(rule)).asJava
   }
 
-  override def withScalacOptions(options: util.List[String]): ScalafixMainArgs =
+  override def withScalacOptions(
+      options: util.List[String]): ScalafixArguments =
     copy(args = args.copy(scalacOptions = options.asScala.toList))
 
-  override def withScalaVersion(version: String): ScalafixMainArgs =
+  override def withScalaVersion(version: String): ScalafixArguments =
     copy(args = args.copy(scalaVersion = version))
 
   override def validate(): Optional[ScalafixException] = {

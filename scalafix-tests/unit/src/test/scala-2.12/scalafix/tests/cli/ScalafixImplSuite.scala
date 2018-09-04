@@ -11,6 +11,7 @@ import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.Collections
+import java.util.Optional
 import org.scalatest.FunSuite
 import scala.collection.JavaConverters._
 import scala.meta.io.AbsolutePath
@@ -61,7 +62,7 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
 
   test("availableRules") {
     val api = i.Scalafix.classloadInstance(this.getClass.getClassLoader)
-    val rules = api.newMainArgs().availableRules().asScala
+    val rules = api.newArguments().availableRules().asScala
     val names = rules.map(_.name())
     assert(names.contains("DisableSyntax"))
     assert(names.contains("AvailableRule"))
@@ -89,7 +90,7 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
   test("validate") {
     // This is a full integration test that stresses the full breadth of the scalafix-interfaces API
     val api = i.Scalafix.classloadInstance(this.getClass.getClassLoader)
-    val args = api.newMainArgs().withRules(List("RemoveUnused").asJava)
+    val args = api.newArguments().withRules(List("RemoveUnused").asJava)
     val e = args.validate()
     assert(e.isPresent)
     assert(e.get().getMessage.contains("-Ywarn-unused"))
@@ -153,8 +154,9 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
     val out = new ByteArrayOutputStream()
     val relativePath = cwd.relativize(semicolon)
     val args = api
-      .newMainArgs()
-      .withArgs(List("--settings.DisableSyntax.noSemicolons", "true").asJava)
+      .newArguments()
+      .withParsedArguments(
+        List("--settings.DisableSyntax.noSemicolons", "true").asJava)
       .withCharset(charset)
       .withClasspath(List(d, scalaLibrary.toNIO).asJava)
       .withSourceroot(src)
@@ -179,6 +181,7 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
       .withToolClasspath(toolClasspath)
       .withScalacOptions(Collections.singletonList("-Ywarn-unused-import"))
       .withScalaVersion("2.11.12")
+      .withConfig(Optional.empty())
     val expectedRulesToRun = List(
       "ProcedureSyntax",
       "ExplicitResultTypes",
