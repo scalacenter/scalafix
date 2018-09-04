@@ -2,7 +2,7 @@ package scalafix.internal.interfaces
 
 import scalafix.Versions
 import scalafix.interfaces.Scalafix
-import scalafix.interfaces.ScalafixMainArgs
+import scalafix.interfaces.ScalafixArguments
 import scalafix.internal.v1.MainOps
 
 final class ScalafixImpl extends Scalafix {
@@ -10,8 +10,8 @@ final class ScalafixImpl extends Scalafix {
   override def toString: String =
     s"""Scalafix v${scalafixVersion()}"""
 
-  override def newMainArgs(): ScalafixMainArgs =
-    ScalafixMainArgsImpl()
+  override def newArguments(): ScalafixArguments =
+    ScalafixArgumentsImpl()
 
   override def mainHelp(screenWidth: Int): String = {
     MainOps.helpMessage(screenWidth)
