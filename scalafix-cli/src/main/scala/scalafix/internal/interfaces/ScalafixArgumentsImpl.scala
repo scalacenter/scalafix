@@ -73,16 +73,19 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
 
   override def withParsedArguments(
       args: util.List[String]): ScalafixArguments = {
-    val decoder = Args.decoder(this.args)
-    val newArgs = Conf
-      .parseCliArgs[Args](args.asScala.toList)
-      .andThen(c => c.as[Args](decoder)) match {
-      case Configured.Ok(value) =>
-        value
-      case Configured.NotOk(error) =>
-        throw new IllegalArgumentException(error.toString())
+    if (args.isEmpty) this
+    else {
+      val decoder = Args.decoder(this.args)
+      val newArgs = Conf
+        .parseCliArgs[Args](args.asScala.toList)
+        .andThen(c => c.as[Args](decoder)) match {
+        case Configured.Ok(value) =>
+          value
+        case Configured.NotOk(error) =>
+          throw new IllegalArgumentException(error.toString())
+      }
+      copy(args = newArgs)
     }
-    copy(args = newArgs)
   }
 
   override def withPrintStream(out: PrintStream): ScalafixArguments =
