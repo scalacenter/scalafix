@@ -5,7 +5,7 @@ package scalafix.interfaces;
  */
 public class ScalafixException extends Exception {
     static final long serialVersionUID = 118L;
-    ScalafixException(String message, Exception cause) {
+    public ScalafixException(String message, Throwable cause) {
         super(message, cause);
     }
 }

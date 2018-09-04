@@ -28,9 +28,10 @@ class RemoveUnused(config: RemoveUnusedConfig)
   override def withConfiguration(config: Configuration): Configured[Rule] =
     if (!config.scalacOptions.exists(_.startsWith("-Ywarn-unused"))) {
       Configured.error(
-        s"The compiler option -Ywarn-unused is required to use RemoveUnused. " +
-          "Run `scalac -Ywarn-unused:help` for more details. " +
-          s"Obtained ${config.scalacOptions}")
+        """|The Scala compiler option "-Ywarn-unused" is required to use RemoveUnused.
+           |To fix this problem, update your build to use at least one Scala compiler
+           |option that starts with "-Ywarn-unused"""".stripMargin
+      )
     } else {
       config.conf
         .getOrElse("RemoveUnused")(this.config)
