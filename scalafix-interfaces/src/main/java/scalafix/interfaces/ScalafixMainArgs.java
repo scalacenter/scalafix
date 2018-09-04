@@ -56,11 +56,11 @@ public interface ScalafixMainArgs {
     ScalafixMainArgs withWorkingDirectory(Path path);
 
     /**
-     * @param path Optional path to a <code>.scalafix.conf</code>. If not provided, Scalafix
-     *             will infer such a file from the working directory or fallback to the default
-     *             configuration.
+     * @param config Optional path to a <code>.scalafix.conf</code>. If empty, Scalafix
+     *               will infer such a file from the working directory or fallback to the default
+     *               configuration.
      */
-    ScalafixMainArgs withConfig(Path path);
+    ScalafixMainArgs withConfig(Optional<Path> config);
 
     /**
      * @param mode The mode to run via --test or --stdout or --auto-suppress-linter-errors
@@ -70,9 +70,9 @@ public interface ScalafixMainArgs {
     /**
      * @param args Unparsed command-line arguments that are fed directly to <code>main(Array[String])</code>
      *
-     * @throws IllegalArgumentException In case of an error parsing the provided arguments.
+     * @throws ScalafixException In case of an error parsing the provided arguments.
      */
-    ScalafixMainArgs withArgs(List<String> args) throws IllegalArgumentException;
+    ScalafixMainArgs withArgs(List<String> args) throws ScalafixException;
 
     /**
      * @param out The output stream to use for reporting diagnostics while running Scalafix.

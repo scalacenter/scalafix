@@ -54,8 +54,10 @@ final case class ScalafixMainArgsImpl(args: Args = Args.default)
     copy(args = args.copy(cwd = AbsolutePath(path)))
   }
 
-  override def withConfig(path: Path): ScalafixMainArgs =
-    copy(args = args.copy(config = Some(AbsolutePath(path)(args.cwd))))
+  override def withConfig(path: Optional[Path]): ScalafixMainArgs = {
+    val abspath = Option(path.orElse(null)).map(p => AbsolutePath(p)(args.cwd))
+    copy(args = args.copy(config = abspath))
+  }
 
   override def withMode(mode: ScalafixMainMode): ScalafixMainArgs = mode match {
     case ScalafixMainMode.TEST =>

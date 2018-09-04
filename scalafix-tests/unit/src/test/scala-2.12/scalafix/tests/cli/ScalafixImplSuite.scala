@@ -11,6 +11,7 @@ import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.Collections
+import java.util.Optional
 import org.scalatest.FunSuite
 import scala.collection.JavaConverters._
 import scala.meta.io.AbsolutePath
@@ -179,6 +180,7 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
       .withToolClasspath(toolClasspath)
       .withScalacOptions(Collections.singletonList("-Ywarn-unused-import"))
       .withScalaVersion("2.11.12")
+      .withConfig(Optional.empty())
     val expectedRulesToRun = List(
       "ProcedureSyntax",
       "ExplicitResultTypes",
