@@ -13,10 +13,11 @@ import sbtbuildinfo.BuildInfoKey
 import sbtbuildinfo.BuildInfoPlugin.autoImport._
 import com.typesafe.sbt.sbtghpages.GhpagesKeys
 import sbt.Def
+import sbt.plugins.IvyPlugin
 
 object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   override def trigger = allRequirements
-  override def requires = JvmPlugin
+  override def requires = JvmPlugin && IvyPlugin
   object autoImport {
     lazy val stableVersion =
       settingKey[String]("Version of latest release to Maven.")
@@ -262,6 +263,10 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
+    publishConfiguration :=
+      publishConfiguration.value.withOverwrite(true),
+    publishLocalConfiguration :=
+      publishLocalConfiguration.value.withOverwrite(true),
     publishTo := Some {
       if (isCustomRepository) "adhoc" at adhocRepoUri
       else if (isSnapshot.value) Opts.resolver.sonatypeSnapshots
