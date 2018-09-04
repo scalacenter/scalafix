@@ -26,10 +26,6 @@ trait Api {
   val CustomMessage = scalafix.config.CustomMessage
 
   implicit class XtensionScalafixProductInspect(product: Product) {
-    // NOTE(olafurpg) I can't explain why, but fortunately these methods shadow
-    // `scala.meta.Tree.structure` regardless of how `import scalafix.v1, scala.meta._`.
-    // These structure methods work the same except they implement line wrapping which
-    // makes the output more readable.
     def structure: String =
       ProductStructure.structure(product).render(80)
     def structure(printWidth: Int): String =

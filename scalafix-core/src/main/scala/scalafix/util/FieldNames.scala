@@ -1,9 +1,9 @@
 package scalafix.util
 
 /** Polyfill for the upcoming `Product.productElementName` in 2.13
-  *
-  * See https://github.com/scala/scala/blob/4dc5b915f417bb4107f0700e19a957cb7d7d8e3b/src/library/scala/Product.scala#L52-L70
-  */
+ *
+ * See https://github.com/scala/scala/blob/4dc5b915f417bb4107f0700e19a957cb7d7d8e3b/src/library/scala/Product.scala#L52-L70
+ */
 trait FieldNames { self: Product =>
   def fieldName(n: Int): String =
     if (n < 0 || n >= self.productArity) {

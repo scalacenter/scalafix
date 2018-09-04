@@ -34,22 +34,23 @@ import scalafix.v0.Signature
 import scalafix.v0.Symbol
 import scalafix.v1
 
-/** A data structure that can produce a .patch file.
-  *
-  * The best way to build a Patch is with a RuleCtx inside a Rule.
-  * For example, `Rule.syntactic(ctx => ctx.addLeft(ctx.tree.tokens.head): Patch)`
-  *
-  * Patches can be composed with Patch.+ and Patch.++. A Seq[Patch] can be combined
-  * into a single patch with `Seq[Patch](...).asPatch` with `import scalafix.v0._`.
-  *
-  * Patches are split into low-level token patches and high-level tree patches.
-  * A token patch works on scala.meta.Token and provides surgical precision over
-  * how details like formatting are managed by the rule.
-  *
-  * NOTE: Patch current only works for a single file, but it may be possible
-  * to add support in the future for combining patches for different files
-  * with Patch + Patch.
-  */
+/**
+ * A data structure that can produce a .patch file.
+ *
+ * The best way to build a Patch is with a RuleCtx inside a Rule.
+ * For example, `Rule.syntactic(ctx => ctx.addLeft(ctx.tree.tokens.head): Patch)`
+ *
+ * Patches can be composed with Patch.+ and Patch.++. A Seq[Patch] can be combined
+ * into a single patch with `Seq[Patch](...).asPatch` with `import scalafix.v0._`.
+ *
+ * Patches are split into low-level token patches and high-level tree patches.
+ * A token patch works on scala.meta.Token and provides surgical precision over
+ * how details like formatting are managed by the rule.
+ *
+ * NOTE: Patch current only works for a single file, but it may be possible
+ * to add support in the future for combining patches for different files
+ * with Patch + Patch.
+ */
 sealed abstract class Patch {
   // NOTE: potential bottle-neck, this might be very slow for large
   // patches. We might want to group related patches and enforce some ordering.
@@ -63,16 +64,16 @@ sealed abstract class Patch {
   def ++(other: Iterable[Patch]): Patch = other.foldLeft(this)(_ + _)
 
   /**
-    * Returns true if this patch is Patch.empty, false otherwise.
-    *
-    * Note, may return false for patches that produce empty diffs. For example, a [[Patch]].replaceSymbol
-    * returns false even if the symbol from is not referenced in the code resulting in an empty diff.
-    */
+   * Returns true if this patch is Patch.empty, false otherwise.
+   *
+   * Note, may return false for patches that produce empty diffs. For example, a [[Patch]].replaceSymbol
+   * returns false even if the symbol from is not referenced in the code resulting in an empty diff.
+   */
   def isEmpty: Boolean = this == EmptyPatch
 
   /**
-    * @see [[Patch.isEmpty]]
-    */
+   * @see [[Patch.isEmpty]]
+   */
   def nonEmpty: Boolean = !isEmpty
 
   /** Skip this entire patch if a part of it is disabled with // scalafix:off */

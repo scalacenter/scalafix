@@ -9,14 +9,14 @@ import scala.meta.io.RelativePath
 import scalafix.internal.v1._
 
 /**
-  * An input file for a testkit test.
-  *
-  * @param input the absolute path to the input file.
-  * @param testPath the input file relativized by the input source directory.
-  *                 Used to compute the test name and the expected output file.
-  * @param semanticdbPath the input file relativized by the SemanticDB sourceroot.
-  *                       Used to compute the path to the SemanticDB payload.
-  */
+ * An input file for a testkit test.
+ *
+ * @param input the absolute path to the input file.
+ * @param testPath the input file relativized by the input source directory.
+ *                 Used to compute the test name and the expected output file.
+ * @param semanticdbPath the input file relativized by the SemanticDB sourceroot.
+ *                       Used to compute the path to the SemanticDB payload.
+ */
 final class TestkitPath(
     val input: AbsolutePath,
     val testPath: RelativePath,

@@ -23,8 +23,8 @@ object DiffAssertions {
     else
       difflib.DiffUtils
         .generateUnifiedDiff(
-          "expected",
           "obtained",
+          "expected",
           original.asJava,
           diff,
           1

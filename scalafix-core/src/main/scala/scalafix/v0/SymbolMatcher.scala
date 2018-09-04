@@ -4,21 +4,21 @@ import scala.meta.Tree
 import scalafix.internal.util.SymbolOps
 
 /**
-  * Utility to match against a particular symbol.
-  *
-  * Can be used both in pattern matching and regular condition testing.
-  * {{{
-  *   val myMethod = SymbolMatcher(Symbol("_root_.myMethod"))
-  *   myMethod.matches(Tree)
-  *   Tree match {
-  *     case myMethod(_) => // act on tree
-  *   }
-  *   myMethod.matches(Tree)
-  * }}}
-  * @param symbols the symbols to match against.
-  * @param isEqual which equality to use, can be normalized or structural.
-  * @param index the semantic context to lookup symbols of trees.
-  */
+ * Utility to match against a particular symbol.
+ *
+ * Can be used both in pattern matching and regular condition testing.
+ * {{{
+ *   val myMethod = SymbolMatcher(Symbol("_root_.myMethod"))
+ *   myMethod.matches(Tree)
+ *   Tree match {
+ *     case myMethod(_) => // act on tree
+ *   }
+ *   myMethod.matches(Tree)
+ * }}}
+ * @param symbols the symbols to match against.
+ * @param isEqual which equality to use, can be normalized or structural.
+ * @param index the semantic context to lookup symbols of trees.
+ */
 final class SymbolMatcher(
     symbols: List[Symbol],
     isEqual: (Symbol, Symbol) => Boolean)(implicit index: SemanticdbIndex) {

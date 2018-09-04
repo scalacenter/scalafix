@@ -1,9 +1,7 @@
 ---
-id: faq
-title: Frequently Asked Questions
+id: related-projects
+title: Related projects
 ---
-
-## How does Scalafix compare with alternatives?
 
 There are several alternative tools to Scalafix that each make different
 tradeoffs with regards to Scala 2.x fidelity, ease of writing custom analyses,
@@ -18,7 +16,7 @@ provides a rough comparison, below are more detailed explanations.
 | Refactoring    | Yes            | Yes            | Yes               | No             | No          |
 | Run on compile | No             | No             | No                | Yes            | Yes         |
 
-### WartRemover
+## WartRemover
 
 [WartRemover](http://www.wartremover.org/) is a flexible scala linter. Scalafix
 and WartRemover can be used together as linters. The primary difference between
@@ -43,7 +41,7 @@ for an in-depth write-up about lint-on-compile vs. lint-after-compile.
   `ExplicitImplicitTypes`, `Var`, `While` can run faster outside of compilation
   if implemented with Scalafix.
 
-### IntelliJ Scala
+## IntelliJ Scala
 
 The IntelliJ Scala Plugin is probably the most used IDE for Scala development,
 supporting a wide range of features to browse/edit/refactor Scala code.
@@ -66,7 +64,7 @@ according to this release:
 https://blog.jetbrains.com/scala/2016/11/11/intellij-idea-2016-3-rc-scala-js-scala-meta-and-more/
 . We look forward to see more of it!
 
-### Scalastyle
+## Scalastyle
 
 [Scalastyle](http://www.scalastyle.org/) is a Scala style checker.
 
@@ -79,7 +77,7 @@ https://blog.jetbrains.com/scala/2016/11/11/intellij-idea-2016-3-rc-scala-js-sca
   rules that need information about types/symbols.
 - Scalastyle runs as a separate tool outside of compilation, just like Scalafix.
 
-### Scala Refactoring
+## Scala Refactoring
 
 [Scala Refactoring](https://github.com/scala-ide/scala-refactoring) is a library
 providing automated refactoring support for Scala.
@@ -141,25 +139,3 @@ package <empty> {
     schema, essentially a small hierarchy of case classes. The entire schema is
     defined in
     [60 lines of protobuf](https://github.com/scalameta/scalameta/blob/master/langmeta/shared/src/main/protobuf/semanticdb.proto).
-
-## I get resolution errors for org.scalameta:semanticdb-scalac
-
-The `semanticdb-scalac` compiler plugin supports only a subset of Scala
-versions. Make sure you are using one of the following exact Scala versions:
-
-- @SCALA211@
-- @SCALA212@
-
-The version must match exactly, including the last number.
-
-## Enclosing tree [2873] does not include tree [2872]
-
-Scalafix requires code to compile with the scalac option `-Yrangepos`. A macro
-that emits invalid tree positions is usually the cause of compiler errors
-triggered by `-Yrangepos`. Other tools like the presentation compiler
-(ENSIME/Scala IDE) require `-Yrangepos` to work properly.
-
-## RemoveUnusedImports does not remove unused imports
-
-Make sure that you have enabled the compiler option `-Ywarn-unused` as
-instructed in [RemoveUnused](../rules/RemoveUnused.md).

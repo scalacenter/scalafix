@@ -4,6 +4,11 @@ import metaconfig.ConfDecoder
 import scala.meta.internal.semanticdb.Scala._
 import scalafix.internal.util.SymbolOps
 
+/**
+ * Represents a unique definitions such as a Scala `val`, `object`, `class`, or Java field/method.
+ *
+ * @param value The unique string representation for this symbol.
+ */
 final class Symbol private (val value: String) {
   def isNone: Boolean = value.isNone
   def isRootPackage: Boolean = value.isRootPackage
@@ -12,16 +17,21 @@ final class Symbol private (val value: String) {
   def isLocal: Boolean = value.isLocal
   def owner: Symbol = Symbol(value.owner)
   def displayName: String = value.desc.name.value
-  def info(implicit doc: SemanticDocument): Option[SymbolInfo] =
-    doc.internal.info(this)
+  def info(implicit doc: Symtab): Option[SymbolInfo] =
+    doc.info(this)
   def normalized: Symbol = SymbolOps.normalize(this)
   def asNonEmpty: Option[Symbol] =
     if (isNone) None
     else Some(this)
 
   override def toString: String =
-    if (isNone) "Symbol.None"
+    if (isNone) "<no symbol>"
     else value
+  def structure: String =
+    if (isNone) "Symbol.None"
+    else if (isRootPackage) "Symbol.RootPackage"
+    else if (isEmptyPackage) "Symbol.EmptyPackage"
+    else s"""Symbol("$value")"""
   override def equals(obj: Any): Boolean =
     this.eq(obj.asInstanceOf[AnyRef]) || (obj match {
       case s: Symbol => value == s.value

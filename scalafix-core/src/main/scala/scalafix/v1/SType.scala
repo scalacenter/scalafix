@@ -4,6 +4,30 @@ import scala.runtime.Statics
 import scalafix.internal.util.Pretty
 import scalafix.util.FieldNames
 
+/**
+ * Encoding of the Scala type system as a sealed data structure.
+ *
+ * SType can be considered as the following sealed trait:
+ *
+ * {{{
+ *   sealed trait SType
+ *   class TypeRef(prefix: SType, symbol: Symbol, typeArguments: List[SType]) extends SType
+ *   class SingleType(prefix: SType, symbol: Symbol)                          extends SType
+ *   class ThisType(symbol: Symbol)                                           extends SType
+ *   class SuperType(prefix: SType, symbol: Symbol)                           extends SType
+ *   class ConstantType(constant: Constant)                                   extends SType
+ *   class IntersectionType(types: List[SType)                                extends SType
+ *   class UnionType(types: List[SType)                                       extends SType
+ *   class WithType(types: List[SType)                                        extends SType
+ *   class StructuralType(types: List[SType)                                  extends SType
+ *   class AnnotatedType(annotations: List[Annotation], tpe: SType)           extends SType
+ *   class ExistentialType(tpe: SType, declarations: List[SymbolInfo])        extends SType
+ *   class UniversalType(typeParameters: List[SType], tpe: Type)              extends SType
+ *   class ByNameType(tpe: Type)                                              extends SType
+ *   class RepatedType(tpe: Type)                                             extends SType
+ *   object NoType                                                            extends SType
+ * }}}
+ */
 sealed abstract class SType extends Product with FieldNames {
   final override def toString: String = Pretty.pretty(this).render(80)
   final def isEmpty: Boolean = this == NoType

@@ -131,7 +131,9 @@ object Pretty {
     else `@` + pretty(annotation.tpe)
 
   def pretty(info: SymbolInfo): Doc = {
-    val symbol = Doc.text("/* ") + Doc.text(info.sym.value) + Doc.text(" */ ")
+    val symbol = Doc.text("/* ") +
+      Doc.text(info.symbol.value) +
+      Doc.text(" */ ")
     val annotations = info.annotations.filter(_.tpe.nonEmpty)
     val annotation =
       if (annotations.isEmpty) Doc.empty

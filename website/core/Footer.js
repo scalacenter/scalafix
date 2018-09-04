@@ -44,7 +44,7 @@ class Footer extends React.Component {
             </a>
             <a
               href={`
-                ${this.props.config.baseUrl}docs/rule-authors/setup.html`}
+                ${this.props.config.baseUrl}docs/developers/setup.html`}
             >
               Extend Scalafix
             </a>

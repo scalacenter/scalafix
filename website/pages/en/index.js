@@ -133,7 +133,7 @@ const Block = props => (
 
 class Index extends React.Component {
   render() {
-    let language = this.props.language || ""; 
+    let language = this.props.language || "";
     return (
       <div>
         <HomeSplash language={language} />

@@ -33,10 +33,10 @@ object MatchingParens {
   }
 
   /**
-    * Finds matching parens [({})].
-    *
-    * Contains lookup keys in both directions, opening [({ and closing })].
-    */
+   * Finds matching parens [({})].
+   *
+   * Contains lookup keys in both directions, opening [({ and closing })].
+   */
   private def getMatchingParentheses(tokens: Tokens): Map[TokenHash, Token] = {
     val ret = Map.newBuilder[TokenHash, Token]
     var stack = List.empty[Token]
