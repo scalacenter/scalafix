@@ -6,12 +6,15 @@ import java.nio.charset.Charset
 import java.nio.file.Path
 import java.nio.file.PathMatcher
 import java.util
+import java.util.Optional
 import metaconfig.Conf
 import metaconfig.Configured
 import scala.collection.JavaConverters._
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
+import scala.util.control.NoStackTrace
 import scalafix.interfaces.ScalafixError
+import scalafix.interfaces.ScalafixException
 import scalafix.interfaces.ScalafixMainArgs
 import scalafix.interfaces.ScalafixMainCallback
 import scalafix.interfaces.ScalafixMainMode
@@ -109,7 +112,9 @@ final case class ScalafixMainArgsImpl(args: Args = Args.default)
 
   override def rulesThatWillRun(): util.List[ScalafixRule] = {
     val decoder = RuleDecoder.decoder(args.ruleDecoderSettings)
-    val rules = decoder.read(args.rulesConf(() => args.fileConfig.get)).get
+    val rules = decoder
+      .read(args.rulesConf(() => args.fileConfig.getOrException))
+      .getOrException
     rules.rules.map(rule => ScalafixRuleImpl(rule)).asJava
   }
 
@@ -119,4 +124,26 @@ final case class ScalafixMainArgsImpl(args: Args = Args.default)
   override def withScalaVersion(version: String): ScalafixMainArgs =
     copy(args = args.copy(scalaVersion = version))
 
+  override def validate(): Optional[ScalafixException] = {
+    args.validate match {
+      case Configured.Ok(_) =>
+        Optional.empty()
+      case Configured.NotOk(error) =>
+        Optional.of(new ScalafixMainArgsException(error.toString()))
+    }
+  }
+
+  implicit class XtensionConfigured[T](c: Configured[T]) {
+    def getOrException: T = c match {
+      case Configured.Ok(value) => value
+      case Configured.NotOk(error) =>
+        throw new ScalafixMainArgsException(error.toString())
+    }
+  }
+}
+
+class ScalafixMainArgsException(msg: String, cause: Throwable)
+    extends ScalafixException(msg, cause)
+    with NoStackTrace {
+  def this(msg: String) = this(msg, null)
 }

@@ -86,6 +86,15 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
     assert(ex.getCause.isInstanceOf[ClassNotFoundException])
   }
 
+  test("validate") {
+    // This is a full integration test that stresses the full breadth of the scalafix-interfaces API
+    val api = i.Scalafix.classloadInstance(this.getClass.getClassLoader)
+    val args = api.newMainArgs().withRules(List("RemoveUnused").asJava)
+    val e = args.validate()
+    assert(e.isPresent)
+    assert(e.get().getMessage.contains("-Ywarn-unused"))
+  }
+
   test("runMain") {
     // This is a full integration test that stresses the full breadth of the scalafix-interfaces API
     val api = i.Scalafix.classloadInstance(this.getClass.getClassLoader)
@@ -182,6 +191,8 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
       obtainedRulesToRun.sorted.mkString("\n"),
       expectedRulesToRun.sorted.mkString("\n")
     )
+    val validateError = args.validate()
+    assert(!validateError.isPresent)
     val errors = args.run().toList.map(_.toString).sorted
     val stdout = fansi
       .Str(out.toString(charset.name()))

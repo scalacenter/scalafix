@@ -6,15 +6,14 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Optional;
 
 /**
  * Wrapper around arguments for invoking the Scalafix command-line interface main method.
  * <p>
  * To obtain an instance of MainArgs, use {@link scalafix.interfaces.Scalafix#newMainArgs()}.
  * Instances of MainArgs are immutable and thread safe. It is safe to re-use the same
- * MainArgs instance for multiple Scalafix invocations.
- *
+ * MainArgs instance for multiple Scalafix invocations. *
  * @implNote This interface is not intended for extension, the only implementation of this interface
  * should live in the Scalafix repository.
  */
@@ -132,13 +131,28 @@ public interface ScalafixMainArgs {
      */
     List<ScalafixRule> availableRules();
 
+
     /**
      * The rules that would run when calling {@link #run() }
      *
      * Takes into account rules that are configured in .scalafix.conf.
-     * @throws NoSuchElementException In case of an error loading the configured rules.
+     * @throws ScalafixException In case of an error loading the configured rules.
      */
-    List<ScalafixRule> rulesThatWillRun() throws NoSuchElementException;
+    List<ScalafixRule> rulesThatWillRun() throws ScalafixException;
+
+
+    /**
+     * Validates that the passed arguments are valid.
+     *
+     * Takes into account provided rules, .scalafix.conf configuration, scala version,
+     * scalac options and other potential problems. The primary purpose
+     * of this method is to validate the arguments before starting compilation
+     * to populate {@link #withClasspath(List)}.
+     *
+     * @return Optional.empty in case the arguments are valid. Optional.of
+     * an exception in case of an error loading the arguments.
+     */
+    Optional<ScalafixException> validate();
 
     /**
      * Run the Scalafix commmand-line interface <code>main</code> function.
