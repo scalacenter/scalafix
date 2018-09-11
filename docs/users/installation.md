@@ -21,24 +21,24 @@ Start by installing the sbt plugin in `project/plugins.sbt`
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@VERSION@")
 ```
 
-From the sbt shell, let's run a **syntactic** rule `ProcedureSyntax`
+From the sbt shell, let's run the rule `ProcedureSyntax`
 
 ```
 > myproject/scalafix ProcedureSyntax
 ```
 
-It's normal that the first invocation of `scalafix` is slow and takes a while to
-download Scalafix artifacts from Maven Central.
+It's normal that the first invocation of `scalafix` takes a while to download
+Scalafix artifacts from Maven Central.
 
 If all went well and your project uses the deprecated "procedure syntax", you
 should have a diff in your sources like this
 
 ```diff
--  def unloadDrivers {
-+  def unloadDrivers: Unit = {
+-  def myProcedure {
++  def myProcedure: Unit = {
 ```
 
-Next, if we run a **semantic** rule like `RemoveUnused` then we get an error
+Next, if we run another rule like `RemoveUnused` then we get an error
 
 ```
 > myproject/scalafix RemoveUnused
@@ -49,8 +49,11 @@ rules like RemoveUnused ...
 RemoveUnused ...
 ```
 
+The error message appears because `RemoveUnused` requires the project sources to
+be compiled beforehand for the unused code analysis to function properly.
+
 The first error message means the
-[SemanticDB](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md)
+[SemanticDB](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/guide.md)
 compiler plugin is not enabled for this project. The second error says
 `RemoveUnused` requires the Scala compiler option `-Ywarn-unused`. To fix both
 problems, add the following settings to `build.sbt`
@@ -82,11 +85,16 @@ If your project has unused imports, you should see a diff like this
 + import scala.util.Success
 ```
 
+See [example project](#example-project) for a repository that demonstrates
+`ProcedureSyntax` and `RemoveUnused`.
+
 Great! You are all set to use Scalafix with sbt :)
 
 > Beware that the SemanticDB compiler plugin in combination with `-Yrangepos`
-> adds around 7-25% overhead to compilation. It's recommended to provide
-> generous JVM memory and stack settings in the file `.jvmopts`:
+> adds around overhead to compilation time. The exact compilation overhead
+> depends on the codebase being compiled and compiler options used. It's
+> recommended to provide generous JVM memory and stack settings in the file
+> `.jvmopts`:
 >
 > ```
 >   -Xss8m
@@ -178,17 +186,16 @@ Central. To install a custom rule, add it to `scalafixDependencies`:
 ```scala
 // at the top of build.sbt
 scalafixDependencies in ThisBuild +=
-  "com.geirsson" % "example-scalafix-rule_2.12" % "1.3.0"
+  "com.geirsson" %% "example-scalafix-rule" % "1.3.0"
 ```
 
-> the `_2.12` part is necessary, it's not possible to replace it with `%%`
-
-If you start sbt, you should see the custom rules from that module appear in tab
-completions. The `example-scalafix-rule` project exposes an example rule
-`SyntacticRule` that you can run like this
+Start sbt and type `scalafix <TAB>`, once the `example-scalafix-rule` dependency
+has been downloaded the rules `SemanticRule` and `SyntacticRule` should appear
+as tab completion suggestions.
 
 ```sh
 $ sbt
+> scalafix Syn<TAB>
 > scalafix SyntacticRule
 ```
 
@@ -224,7 +231,8 @@ session.
 
 The `scalafixEnable` command automatically runs
 `addCompilerPlugin(scalafixSemanticdb)` and `scalacOptions += "-Yrangepos"` for
-all elibible projects in the builds.
+all eligible projects in the builds. The change in Scala compiler options means
+the project needs to be re-built on the next `compile`.
 
 > The `scalafixEnable` command must be re-executed after every `reload` and when
 > sbt shell is exited.
@@ -292,102 +300,15 @@ coursier bootstrap ch.epfl.scala:scalafix-cli_@SCALA212@:@VERSION@ -f --main sca
 
 ```
 
-## Maven
-
-It is possible to use Scalafix with scala-maven-plugin but it requires a custom
-setup since there exists no official Scalafix plugin for Maven.
-
-⚠️ Help wanted! The setup described here will not work for a few semantic rules
-like `ExplicitResultTypes` that require access to the full classpath of your
-application.
-
-First, add the following snippet to your maven `pom.xml`:
-
-```xml
-<profile>
-  <id>scalafix</id>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>net.alchim31.maven</groupId>
-        <artifactId>scala-maven-plugin</artifactId>
-        <configuration>
-          <compilerPlugins>
-            <compilerPlugin>
-              <groupId>org.scalameta</groupId>
-              <artifactId>semanticdb-scalac_@SCALA212@</artifactId>
-              <version>@SCALAMETA@</version>
-            </compilerPlugin>
-          </compilerPlugins>
-          <addScalacArgs>-Yrangepos|-Ywarn-unused-import|-P:semanticdb:sourceroot:/path/to/root-directory</addScalacArgs>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-</profile>
-```
-
-- Make sure to replace `/path/to/root-directory` with the absolute path to the
-  root directory of Maven build. This directory must match the directory from
-  where you invoke the `scalafix` command-line interface.
-- `-Yrangepos` is required for `semanticdb` to function properly,
-- (optional) `-Ywarn-unused-import` is required for the `RemoveUnused` rule. If
-  you don't run `RemoveUnused` you can skip this flag. Consult the Scalafix
-  documentation for each rule to see which flags it requires.
-
-Next, compile your project with the `scalafix` profile
-
-```
-mvn clean test -DskipTests=true -P scalafix
-```
-
-We compile both main sources and tests to have semantic information generated
-for all of them, but we skip test execution because it is not the point of that
-compilation. For documentation about `addScalaArgs` see
-[here](http://davidb.github.io/scala-maven-plugin/help-mojo.html#addScalacArgs).
-
-> Note that will need to recompile to get up-to-date `semanticdb` information
-> after each modification.
-
-After compilation, double check that there exists a directory
-`target/classes/META-INF/semanticdb/` containing files with the `.semanticdb`
-extension.
-
-Next, install the [Scalafix command line](#command-line). Finally, invoke the
-`scalafix` command line interface from the same directory as the value of
-`-P:semanticdb:sourceroot:/path/to/root-directory`
-
-```sh
-scalafix --rules RemoveUnused
-```
-
-Congrats, if all went well you successfully ran a semantic rule for your Maven
-project.
-
-## Pants
-
-Scalafix support is built into Pants and will run scalafmt after running
-scalafix rewrite rules to maintain your target formatting. Usage instructions
-can be found at https://www.pantsbuild.org/scala.html
-
-## Bazel
-
-The GitHub project
-[ianoc/bazel-scalafix](https://github.com/ianoc/bazel-scalafix/) has
-instructions for using Scalafix from the Bazel build tool.
-
-> The bazel-scalafix project does not seem to be actively maintained and at the
-> time of this writing the readme contains instructions for the now outdated
-> Scalafix v0.5 version.
-
 ## SNAPSHOT
 
 Our CI publishes a snapshot release to Sonatype on every merge into master. Each
 snapshot release has a unique version number, jars don't get overwritten. To
 find the latest snapshot version number, go to
 <https://oss.sonatype.org/content/repositories/snapshots/ch/epfl/scala/scalafix-core_2.12/>
-and select the version number at the bottom, the one with the latest "Last
-Modified". Once you have found the version number, adapting the version number
+and select the largest version number (the one with the newest "Last Modified"
+timestamp). Once you have found the version number, adapt the version number in
+the instructions below
 
 If using the sbt plugin
 

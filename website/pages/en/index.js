@@ -53,7 +53,6 @@ const SplashContainer = props => (
   </div>
 );
 
-
 const ProjectTitle = props => (
   <h2 className="projectTitle">
     {siteConfig.title}
@@ -91,19 +90,22 @@ const Features = props => {
   const features = [
     {
       title: "Refactoring",
-      content: "Focus on your application and let Scalafix do grunt work like removing unused imports.",
+      content:
+        "Automate day-to-day code health tasks or write one-time migrations scripts.",
       image: imgUrl("refactoring.png"),
       imageAlign: "right"
     },
     {
       title: "Linting",
-      content: "Some problems don't have obvious solutions. Let Scalafix report potential issues in your code so you catch bugs before they hit production.",
+      content:
+        "Report error messages for code patterns that cause bugs in production or violate your coding style.",
       image: imgUrl("linting.png"),
       imageAlign: "left"
     },
     {
       title: "Enforce in CI",
-      content: "Ensure sure your coding style is automatically enforced by running Scalafix on every pull request.",
+      content:
+        "Automatically enforce refactoring and linting rules on every code review.",
       image: imgUrl("enforce-in-ci.png"),
       imageAlign: "right"
     }
@@ -130,7 +132,6 @@ const Block = props => (
   </Container>
 );
 
-
 class Index extends React.Component {
   render() {
     let language = this.props.language || "";
@@ -138,7 +139,7 @@ class Index extends React.Component {
       <div>
         <HomeSplash language={language} />
         <div className="mainContainer">
-        <Features/>
+          <Features />
         </div>
       </div>
     );

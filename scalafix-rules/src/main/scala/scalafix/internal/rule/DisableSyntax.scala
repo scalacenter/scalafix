@@ -49,6 +49,18 @@ final class DisableSyntax(config: DisableSyntaxConfig)
         Diagnostic("noTabs", "tabs are disabled", token.pos)
       case token @ Token.Xml.Start() if config.noXml =>
         Diagnostic("noXml", "xml literals are disabled", token.pos)
+      case token: Token.Ident
+          if token.value == "asInstanceOf" && config.noAsInstanceOf =>
+        Diagnostic(
+          "asInstanceOf",
+          "asInstanceOf casts are disabled, use pattern matching instead",
+          token.pos)
+      case token: Token.Ident
+          if token.value == "isInstanceOf" && config.noIsInstanceOf =>
+        Diagnostic(
+          "isInstanceOf",
+          "isInstanceOf checks are disabled, use pattern matching instead",
+          token.pos)
     }
   }
 

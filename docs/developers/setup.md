@@ -34,9 +34,7 @@ scalafix
 The `scalafix/` directory is a self-contained sbt build and can live in the same
 directory as your existing library.
 
-To run unit tests, execute `tests/test`. For a productive edit/test/debug
-workflow, it's recommended to open an sbt shell and re-run the tests on file
-save
+To run unit tests, execute `tests/test`.
 
 ```
 $ sbt

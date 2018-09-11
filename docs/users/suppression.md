@@ -14,17 +14,21 @@ methods for suppressing rules: annotations and comments.
 ## Annotations
 
 It's possible to suppress Scalafix with `@SuppressWarnings` annotations. The
-`@SuppressWarnings` annotation is supported my many different tools so it's
+`@SuppressWarnings` annotation is supported by many different tools so it's
 recommended to prefix the suppression with `scalafix:`.
+
+For example, imagine we have configured the `DisableSyntax` rule to report
+errors for the usage of `null` and `asInstanceOf` but we want to suppress those
+errors inside a particular `getUser` method
 
 ```scala
 @SuppressWarnings(Array(
   "scalafix:DisableSyntax.keywords.null",
-  "scalafix:Disable.asInstanceOf"
+  "scalafix:DisableSyntax.asInstanceOf"
 ))
-def foo: Unit = {
-    foo(null)
-    1.asInstanceOf[String]
+def getUser(name: String): User = {
+  if (name != null) database.getUser(name)
+  else defaultPerson.asInstanceOf[User]
 }
 ```
 
@@ -34,7 +38,7 @@ Scalafix reports for suppressions that can be removed.
 
 > The `@SuppressWarnings` annotation is detected without compilation. Any
 > annotation matching the syntax `@SuppressWarnings(..)` regardless if it's
-> `java.lang.SuppressWarnings` or `com.example.SuppressWarnings` will not will
+> `java.lang.SuppressWarnings` or `com.example.SuppressWarnings` will will
 > trigger the suppression mechanism. This is done in order to support
 > `@SuppressWarnings` for syntactic rules like `DisableSyntax`.
 

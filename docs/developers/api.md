@@ -47,12 +47,6 @@ v0.5 rules. If you are writing a new Scalafix rule, please use the v1 API.
 Latest Scaladoc:
 [v@SCALAMETA@](https://static.javadoc.io/org.scalameta/trees_2.12/@SCALAMETA@/scala/meta/index.html)
 
-The type `scala.meta.Tree` is a
-["lossless syntax tree"](http://www.oilshell.org/blog/2017/02/11.html) for the
-Scala language syntax. A Scalameta Tree preserves more details than the Scala
-compiler syntax trees. The detailed syntax tree nodes in Scalameta are great for
-fine-grained manipulation source code like is required in Scalafix.
-
 The tree API is available through `import scala.meta._`. Key data structures
 include:
 

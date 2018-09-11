@@ -10,6 +10,7 @@ import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.annotation.Description
 import metaconfig.annotation.ExampleValue
+import metaconfig.annotation.Hidden
 import scalafix.config.CustomMessage
 import scalafix.internal.config._
 
@@ -17,22 +18,32 @@ case class DisableSyntaxConfig(
     @Description("Report error on usage of a given set of keywords.")
     @ExampleValue("[return, null]")
     keywords: Set[DisabledKeyword] = Set(),
+    @Description("Report error for usage of asInstanceOf[T] casts.")
+    noAsInstanceOf: Boolean = false,
+    @Description("Report error for usage of isInstanceOf[T] checks.")
+    noIsInstanceOf: Boolean = false,
+    @Hidden
     @Description("Report error on semicolon characters.")
     noSemicolons: Boolean = false,
     @Description("Report error on tab characters.")
     noTabs: Boolean = false,
     @Description("Report error on xml literals.")
     noXml: Boolean = false,
+    @Hidden
     @Description("Report error on covariant type parameters.")
     noCovariantTypes: Boolean = false,
+    @Hidden
     @Description("Report error on contravariant type parameters.")
     noContravariantTypes: Boolean = false,
     @Description("Report error on method parameters with default arguments.")
     noDefaultArgs: Boolean = false,
+    @Hidden
     @Description("Report error on vals inside abstract class/trait.")
     noValInAbstract: Boolean = false,
+    @Hidden
     @Description("Report error on object with `implicit` modifier.")
     noImplicitObject: Boolean = false,
+    @Hidden
     @Description("Report error on method that define an implicit conversion. ")
     noImplicitConversion: Boolean = false,
     @Description(

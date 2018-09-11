@@ -18,10 +18,13 @@ package object website {
     url(name, s"docs/rules/$name")
   }
 
+  def isUndocumented = Set("ExplicitResultTypes")
+
   def allRulesTable(reporter: Reporter): String = {
     val rules = Rules
       .all()
       .filterNot(_.name.isDeprecated)
+      .filterNot(rule => isUndocumented(rule.name.value))
       .sortBy(_.name.value)
 
     val (semantic, syntactic) = rules.partition(_.isInstanceOf[v1.SemanticRule])
@@ -32,7 +35,8 @@ package object website {
           .resolve("docs")
           .resolve("rules")
           .resolve(rule.name.value + ".md")
-        if (!Files.isRegularFile(docPath.toNIO)) {
+        if (!isUndocumented(rule.name.value) &&
+          !Files.isRegularFile(docPath.toNIO)) {
           reporter.warning(s"Missing $docPath")
         }
         tr(
@@ -80,6 +84,7 @@ package object website {
   )(implicit settings: Settings[T], ev: T <:< Product): List[(Setting, Any)] = {
     settings.settings
       .zip(default.productIterator.toIterable)
+      .filterNot { case (setting, _) => setting.isHidden }
       .flatMap {
         case (deepSetting, defaultSetting: Product)
             if deepSetting.underlying.nonEmpty =>
