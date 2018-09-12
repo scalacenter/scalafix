@@ -18,13 +18,11 @@ package object website {
     url(name, s"docs/rules/$name")
   }
 
-  def isUndocumented = Set("ExplicitResultTypes")
-
   def allRulesTable(reporter: Reporter): String = {
     val rules = Rules
       .all()
       .filterNot(_.name.isDeprecated)
-      .filterNot(rule => isUndocumented(rule.name.value))
+      .filterNot(_.isExperimental)
       .sortBy(_.name.value)
 
     val (semantic, syntactic) = rules.partition(_.isInstanceOf[v1.SemanticRule])
@@ -35,8 +33,7 @@ package object website {
           .resolve("docs")
           .resolve("rules")
           .resolve(rule.name.value + ".md")
-        if (!isUndocumented(rule.name.value) &&
-          !Files.isRegularFile(docPath.toNIO)) {
+        if (!rule.isExperimental && !Files.isRegularFile(docPath.toNIO)) {
           reporter.warning(s"Missing $docPath")
         }
         tr(
@@ -154,18 +151,17 @@ package object website {
     else {
       val sb = new StringBuilder
       sb.append("\n\n### Examples\n\n```")
-      settings.settings.foreach {
-        case (setting) =>
-          setting.exampleValues match {
-            case Nil =>
-            case example :: _ =>
-              sb.append("\n")
-                .append(ruleName)
-                .append(".")
-                .append(setting.name)
-                .append(" = ")
-                .append(example)
-          }
+      settings.settings.foreach { setting =>
+        setting.exampleValues match {
+          case Nil =>
+          case example :: _ =>
+            sb.append("\n")
+              .append(ruleName)
+              .append(".")
+              .append(setting.name)
+              .append(" = ")
+              .append(example)
+        }
       }
       sb.append("\n```\n\n")
       sb.toString()

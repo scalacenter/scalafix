@@ -77,6 +77,8 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
     assert(isLinter.nonEmpty)
     val isRewrite = rules.filter(_.isRewrite)
     assert(isRewrite.nonEmpty)
+    val isExperimental = rules.filter(_.isExperimental)
+    assert(isExperimental.nonEmpty)
   }
 
   test("error") {

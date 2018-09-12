@@ -672,7 +672,7 @@ Note that for syntactic rules like `NoLiteralArguments`, the `--classpath`
 argument is not required.
 
 Don't be intimidated by publishing to Maven Central, it gets easier once you've
-done it the first time. A guide to publish libraries can be seen
+done it the first time. A guide on how to publish libraries can be found
 [here](https://github.com/olafurpg/sbt-ci-release). The benefits of publishing a
 rule to Maven Central are many.
 

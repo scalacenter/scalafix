@@ -21,15 +21,57 @@ sbt tests/test
 ```
 
 The `--rule=<reponame>` option should match the name of your GitHub repository.
-The template generates a `scalafix/` directory with four different sbt projects
+The template generates a `scalafix/` directory with four different sbt projects.
 
 ```scala
 scalafix
-├── rules  // rule implementations
-├── input  // code to be analyzed by rule
-├── output // expected output from running input on rules
-└── tests  // small project where unit tests run
+├── rules
+│   └── src
+│       └── main
+│           ├── resources
+│           │   └── META-INF
+│           │       └── services
+│           │           └── scalafix.v1.Rule // ServiceLoader configuration to load rule
+│           └── scala
+│               └── fix
+│                   ├── Rewrite.scala // Implementation of a rewrite rule
+│                   └── Linter.scala // Implementation of a linter rule
+├── input
+│   └── src
+│       └── main
+│           └── scala
+│               └── test
+│                   ├── RewriteTest.scala // Unit test for rewrite rule,
+│                   │                     // must have corresponding file in output.
+│                   └── LinterTest.scala  // Unit test for linter rule,
+│                                         // no corresponding output file needed.
+├── output
+│   └── src
+│       └── main
+│           └── scala
+│               └── test
+│                   └── RewriteTest.scala // Expected output from running rewrite
+│                                         // on RewriteTest.scala from input project
+└── tests
+    └── src
+        └── test
+            └── scala
+                └── fix
+                    └── RuleSuite.scala
 ```
+
+- `rules`: contains rule implementations. This is the module that you will
+  publish so others can run your rule.
+- `input`: input Scala source files to be analyzed by the rule. Every Scala
+  source file in this project becomes a unit test.
+- `output`: this project is only used for rewrites, it can be ignored for
+  linters. The structure of the `output` project should mirror the `input`
+  project file by file. The text contents of the files should be the expected
+  output after running the rule on the input sources. A mismatch from an output
+  file and the result of running the rewrite rule on an `input` file becomes a
+  test failure.
+- `tests`: a project containing a single test suite to configure
+  scalafix-testkit.
 
 The `scalafix/` directory is a self-contained sbt build and can live in the same
 directory as your existing library.
