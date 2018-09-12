@@ -41,7 +41,7 @@ class CliGitDiffSuite extends FunSuite with DiffAssertions {
     val obtained = runDiff(cli, ExitStatus.LinterError)
 
     val expected =
-      s"""|$newCodeAbsPath:3:3: error: [DisableSyntax.keywords.var] var is disabled
+      s"""|$newCodeAbsPath:3:3: error: [DisableSyntax.var] mutable state should be avoided
           |  var newVar = 1
           |  ^^^
           |""".stripMargin
@@ -81,7 +81,7 @@ class CliGitDiffSuite extends FunSuite with DiffAssertions {
     val obtained = runDiff(cli, ExitStatus.LinterError)
 
     val expected =
-      s"""|$oldCodeAbsPath:7:3: error: [DisableSyntax.keywords.var] var is disabled
+      s"""|$oldCodeAbsPath:7:3: error: [DisableSyntax.var] mutable state should be avoided
           |  var newVar = 2
           |  ^^^
           |""".stripMargin
@@ -122,7 +122,7 @@ class CliGitDiffSuite extends FunSuite with DiffAssertions {
     val obtained = runDiff(cli, ExitStatus.LinterError)
 
     val expected =
-      s"""|$newCodeAbsPath:5:3: error: [DisableSyntax.keywords.var] var is disabled
+      s"""|$newCodeAbsPath:5:3: error: [DisableSyntax.var] mutable state should be avoided
           |  var newVar = 2
           |  ^^^
           |""".stripMargin
@@ -179,7 +179,7 @@ class CliGitDiffSuite extends FunSuite with DiffAssertions {
       runDiff(cli, ExitStatus.LinterError, "--diff-base", baseBranch)
 
     val expected =
-      s"""|$newCodeAbsPath:5:3: error: [DisableSyntax.keywords.var] var is disabled
+      s"""|$newCodeAbsPath:5:3: error: [DisableSyntax.var] mutable state should be avoided
           |  var newVar = 2
           |  ^^^
           |""".stripMargin
@@ -279,7 +279,7 @@ class CliGitDiffSuite extends FunSuite with DiffAssertions {
     fs.add(
       confFile,
       """|rules = DisableSyntax
-         |DisableSyntax.keywords = [var]""".stripMargin)
+         |DisableSyntax.noVars = true""".stripMargin)
   }
 
   private def noColor(in: String): String =

@@ -11,15 +11,16 @@ rule.
 Example:
 
 ```scala
-MyCode.scala:7: error: [DisableSyntax.xml] xml is disabled.
-  <a>xml</a>
-  ^
+MyCode.scala:7: error: [DisableSyntax.xml] xml literals is disabled.
+  var x = 2
+  ^^^
 ```
 
 ```scala
-MyCode.scala:10: error: [DisableSyntax.keywords.return] return is disabled.
-  return
-  ^
+MyCode.scala:10: error: [DisableSyntax.throw] exceptions should be avoided,
+                        consider encoding the error in the return type instead
+  throw new IllegalArgumentException
+  ^^^^^
 ```
 
 ## Configuration

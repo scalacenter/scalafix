@@ -1,18 +1,18 @@
 // See https://docusaurus.io/docs/site-config.html for all the possible
 // site configuration options.
 
-const repoUrl = "https://github.com/calacenter/scalafix";
+const repoUrl = "https://github.com/scalacenter/scalafix";
 
 const siteConfig = {
   title: "Scalafix",
   tagline: "Refactoring and linting tool for Scala",
 
-  url: "https://olafurpg.github.io/",
+  url: "https://scalacenter.github.io/",
   baseUrl: "/scalafix/",
 
   // Used for publishing and more
   projectName: "scalafix",
-  organizationName: "olafurpg",
+  organizationName: "scalacenter",
 
   // algolia: {
   //   apiKey: "???",

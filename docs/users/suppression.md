@@ -23,7 +23,7 @@ errors inside a particular `getUser` method
 
 ```scala
 @SuppressWarnings(Array(
-  "scalafix:DisableSyntax.keywords.null",
+  "scalafix:DisableSyntax.null",
   "scalafix:DisableSyntax.asInstanceOf"
 ))
 def getUser(name: String): User = {
@@ -111,7 +111,7 @@ Both `scalafix:ok` and `scalafix:off` can selectively disable a list of rules.
 You can provide the list of rules to be disabled separated by commas:
 
 ```scala
-// scalafix:off DisableSyntax.keywords.null, Disable.asInstanceOf
+// scalafix:off DisableSyntax.null, Disable.asInstanceOf
 foo(null)
 1.asInstanceOf[String]
 // scalafix:on
@@ -128,7 +128,7 @@ suppression is needed. The description is only for informational purposes for
 the person reading the code and will be ignored by Scalafix:
 
 ```scala
-var x: Int = 0 // scalafix:ok DisableSyntax.keywords.var; I need mutability
+var x: Int = 0 // scalafix:ok DisableSyntax.var; I need mutability
 
 // scalafix:off; temporarily disabling all rules until the code below gets refactored
 ```
@@ -154,10 +154,10 @@ cause confusion and counter-intuitive behavior. Scalafix handles overlaps by
 giving precedence to the `@SuppressWarnings` annotation:
 
 ```scala
-@SuppressWarnings(Array("scalafix:DisableSyntax.keywords.null"))
+@SuppressWarnings(Array("scalafix:DisableSyntax.null"))
 def overlap(): Unit = {
   val a = null
-  // scalafix:on DisableSyntax.keywords.null
+  // scalafix:on DisableSyntax.null
   val b = null // rule is still disabled because the annotation takes precedence over the comment
 }
 ```
