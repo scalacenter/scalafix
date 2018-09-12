@@ -132,7 +132,7 @@ package object website {
 
   def defaults[T](ruleName: String, all: List[(Setting, Any)]): String = {
     val sb = new StringBuilder
-    sb.append("\n\n**Defaults:**\n\n```")
+    sb.append("\n\n### Defaults\n\n```")
     all.foreach {
       case (setting, default) =>
         sb.append("\n")
