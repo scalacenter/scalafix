@@ -22,6 +22,7 @@ package object website {
     val rules = Rules
       .all()
       .filterNot(_.name.isDeprecated)
+      .filterNot(_.isExperimental)
       .sortBy(_.name.value)
 
     val (semantic, syntactic) = rules.partition(_.isInstanceOf[v1.SemanticRule])
@@ -32,7 +33,7 @@ package object website {
           .resolve("docs")
           .resolve("rules")
           .resolve(rule.name.value + ".md")
-        if (!Files.isRegularFile(docPath.toNIO)) {
+        if (!rule.isExperimental && !Files.isRegularFile(docPath.toNIO)) {
           reporter.warning(s"Missing $docPath")
         }
         tr(
@@ -80,6 +81,7 @@ package object website {
   )(implicit settings: Settings[T], ev: T <:< Product): List[(Setting, Any)] = {
     settings.settings
       .zip(default.productIterator.toIterable)
+      .filterNot { case (setting, _) => setting.isHidden }
       .flatMap {
         case (deepSetting, defaultSetting: Product)
             if deepSetting.underlying.nonEmpty =>
@@ -130,7 +132,7 @@ package object website {
 
   def defaults[T](ruleName: String, all: List[(Setting, Any)]): String = {
     val sb = new StringBuilder
-    sb.append("\n\n**Defaults:**\n\n```")
+    sb.append("\n\n### Defaults\n\n```")
     all.foreach {
       case (setting, default) =>
         sb.append("\n")
@@ -149,18 +151,17 @@ package object website {
     else {
       val sb = new StringBuilder
       sb.append("\n\n### Examples\n\n```")
-      settings.settings.foreach {
-        case (setting) =>
-          setting.exampleValues match {
-            case Nil =>
-            case example :: _ =>
-              sb.append("\n")
-                .append(ruleName)
-                .append(".")
-                .append(setting.name)
-                .append(" = ")
-                .append(example)
-          }
+      settings.settings.foreach { setting =>
+        setting.exampleValues match {
+          case Nil =>
+          case example :: _ =>
+            sb.append("\n")
+              .append(ruleName)
+              .append(".")
+              .append(setting.name)
+              .append(" = ")
+              .append(example)
+        }
       }
       sb.append("\n```\n\n")
       sb.toString()

@@ -1,24 +1,23 @@
 {
-  "docs": {
-    "Users": ["users/installation", "users/configuration", "users/faq"],
-    "Rule Authors": [
-      "rule-authors/setup",
-      "rule-authors/tutorial",
-      "rule-authors/glossary"
-    ]
-  },
-  "rules": {
-    "Overview": ["rules/overview"],
-    "Semantic": [
-      "rules/ExplicitResultTypes",
-      "rules/NoAutoTupling",
-      "rules/RemoveUnused"
-    ],
-    "Syntactic": [
+  "users": {
+    "Usage": ["users/installation", "users/configuration", "users/suppression"],
+    "Rules": [
+      "rules/overview",
+      "rules/RemoveUnused",
       "rules/DisableSyntax",
+      "rules/NoAutoTupling",
       "rules/LeakingImplicitClassVal",
       "rules/NoValInForComprehension",
       "rules/ProcedureSyntax"
+    ],
+    "Misc": ["users/related-projects"]
+  },
+  "developers": {
+    "Implementing rules": [
+      "developers/setup",
+      "developers/before-you-begin",
+      "developers/tutorial",
+      "developers/api"
     ]
   }
 }

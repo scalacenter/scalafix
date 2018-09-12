@@ -33,6 +33,11 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       crossVersion := CrossVersion.full
     )
     lazy val warnUnusedImports = "-Ywarn-unused-import"
+    lazy val scaladocOptions = Seq(
+      "-groups",
+      "-implicits"
+//      "-diagrams"
+    )
     lazy val compilerOptions = Seq(
       "-target:jvm-1.8",
       warnUnusedImports,
@@ -159,7 +164,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   override def globalSettings: Seq[Def.Setting[_]] = List(
     stableVersion := version.in(ThisBuild).value.replaceFirst("\\+.*", ""),
     scalacOptions ++= compilerOptions,
-    scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
+    scalacOptions
+      .in(Compile, console) := compilerOptions :+ "-Yrepl-class-based",
     libraryDependencies ++= List(
       scalacheck % Test,
       scalatest % Test
@@ -263,10 +269,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
-    publishConfiguration :=
-      publishConfiguration.value.withOverwrite(true),
-    publishLocalConfiguration :=
-      publishLocalConfiguration.value.withOverwrite(true),
+    scalacOptions.in(Compile, doc) ++= scaladocOptions,
     publishTo := Some {
       if (isCustomRepository) "adhoc" at adhocRepoUri
       else if (isSnapshot.value) Opts.resolver.sonatypeSnapshots

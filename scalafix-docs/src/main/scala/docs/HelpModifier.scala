@@ -12,6 +12,6 @@ class HelpModifier extends StringModifier {
       code: Input,
       reporter: Reporter
   ): String = {
-    "```sh\n" + MainOps.helpMessage(60) + "\n```"
+    "```\n" + MainOps.helpMessage(60) + "\n```"
   }
 }

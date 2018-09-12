@@ -21,11 +21,11 @@ import scalafix.util.TreeExtractors.Mods
 import scalafix.internal.util.LintSyntax._
 
 /** EscapeHatch is an algorithm to selectively disable rules. There
-  * are two mechanisms to do so: anchored comments and the
-  * standard `@SuppressWarnings` annotation. The latter takes
-  * precedence over the former in case there are overlaps.
-  * See `AnchoredEscapes` and `AnnotatedEscapes` for more details.
-  */
+ * are two mechanisms to do so: anchored comments and the
+ * standard `@SuppressWarnings` annotation. The latter takes
+ * precedence over the former in case there are overlaps.
+ * See `AnchoredEscapes` and `AnnotatedEscapes` for more details.
+ */
 class EscapeHatch private (
     anchoredEscapes: AnchoredEscapes,
     annotatedEscapes: AnnotatedEscapes) {
@@ -121,7 +121,7 @@ class EscapeHatch private (
 object EscapeHatch {
 
   private val UnusedScalafixSuppression =
-    LintCategory.warning("", "Unused Scalafix suppression. This can be removed")
+    LintCategory.warning("", "Unused Scalafix suppression, this can be removed")
   private val UnusedName = RuleName("UnusedScalafixSuppression")
 
   private type EscapeTree = TreeMap[EscapeOffset, List[EscapeFilter]]
@@ -148,15 +148,15 @@ object EscapeHatch {
     )
 
   /** Rules are disabled via standard `@SuppressWarnings` annotations. The
-    * annotation can be placed in class, object, trait, type, def, val, var,
-    * parameters and constructor definitions.
-    *
-    * Rules can be optionally prefixed with `scalafix:`. Besides helping
-    * users to understand where the rules are coming from, it also allows
-    * Scalafix to warn unused suppression.
-    *
-    * Use the keyword "all" to suppress all rules.
-    */
+   * annotation can be placed in class, object, trait, type, def, val, var,
+   * parameters and constructor definitions.
+   *
+   * Rules can be optionally prefixed with `scalafix:`. Besides helping
+   * users to understand where the rules are coming from, it also allows
+   * Scalafix to warn unused suppression.
+   *
+   * Use the keyword "all" to suppress all rules.
+   */
   private class AnnotatedEscapes private (escapeTree: EscapeTree) {
     import AnnotatedEscapes._
 
@@ -252,24 +252,24 @@ object EscapeHatch {
   }
 
   /** Rules are disabled via comments with a specific syntax:
-    * `scalafix:off` or `scalafix:on` disable or enable rules until the end of file
-    * `scalafix:ok` disable rules on an associated expression
-    * a list of rules separated by commas can be provided to selectively
-    * enable or disable rules otherwise all rules are affected
-    *
-    * `enabling` and `enabling` contain the offset at which you start applying a filter
-    *
-    * `unused` contains the position of unused `scalafix:on|off`
-    */
+   * `scalafix:off` or `scalafix:on` disable or enable rules until the end of file
+   * `scalafix:ok` disable rules on an associated expression
+   * a list of rules separated by commas can be provided to selectively
+   * enable or disable rules otherwise all rules are affected
+   *
+   * `enabling` and `enabling` contain the offset at which you start applying a filter
+   *
+   * `unused` contains the position of unused `scalafix:on|off`
+   */
   private class AnchoredEscapes private (
       enabling: EscapeTree,
       disabling: EscapeTree,
       unused: List[Position]) {
 
     /**
-      * a rule r is disabled in position p if there is a comment disabling r at
-      * position p1 < p and there is no comment enabling r in position p2 where p1 < p2 < p.
-      */
+     * a rule r is disabled in position p if there is a comment disabling r at
+     * position p1 < p and there is no comment enabling r in position p2 where p1 < p2 < p.
+     */
     def isEnabled(
         ruleName: RuleName,
         position: Int): (Boolean, Option[EscapeFilter]) = {
@@ -437,13 +437,13 @@ object EscapeHatch {
   }
 
   /**
-    * Keep track of what rules are ON or OFF while the `scalafix:on|off` comments
-    * are being parsed from the top to the bottom of the source file. This makes
-    * it possible to identify unused escape comments and duplicate rules.
-    *
-    * This code does not know upfront what rules are configured for a given file.
-    * Therefore, it uses a placeholder to represent "all".
-    */
+   * Keep track of what rules are ON or OFF while the `scalafix:on|off` comments
+   * are being parsed from the top to the bottom of the source file. This makes
+   * it possible to identify unused escape comments and duplicate rules.
+   *
+   * This code does not know upfront what rules are configured for a given file.
+   * Therefore, it uses a placeholder to represent "all".
+   */
   private class OnOffTracker {
     private trait Selection
     private case object AllRules extends Selection

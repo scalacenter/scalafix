@@ -1,24 +1,22 @@
 ---
-id: faq
-title: Frequently Asked Questions
+id: related-projects
+title: Related projects
 ---
-
-## How does Scalafix compare with alternatives?
 
 There are several alternative tools to Scalafix that each make different
 tradeoffs with regards to Scala 2.x fidelity, ease of writing custom analyses,
 interactivity, performance, integrations and feature support. The table below
 provides a rough comparison, below are more detailed explanations.
 
-|                | Scalafix       | IntelliJ Scala | Scala Refactoring | WartRemover    | ScalaStyle  |
-| -------------- | -------------- | -------------- | ----------------- | -------------- | ----------- |
-| Syntax model   | Scalameta      | IntelliJ Scala | Scala Compiler    | Scala Compiler | Scalariform |
-| Typechecker    | Scala Compiler | IntelliJ Scala | Scala Compiler    | Scala Compiler | n/a         |
-| Linting        | Yes            | Yes            | Yes               | Yes            | Yes         |
-| Refactoring    | Yes            | Yes            | Yes               | No             | No          |
-| Run on compile | No             | No             | No                | Yes            | Yes         |
+|                   | Syntax model   | Typechecker    | Linting | Refactoring | Run on compile |
+| ----------------- | -------------- | -------------- | ------- | ----------- | -------------- |
+| Scalafix          | Scalameta      | Scala compiler | Yes     | Yes         | No             |
+| WartRemover       | Scala compiler | Scala compiler | Yes     | No          | Yes            |
+| IntelliJ Scala    | IntelliJ Scala | IntelliJ Scala | Yes     | Yes         | No             |
+| ScalaStyle        | Scalariform    | n/a            | Yes     | No          | Yes            |
+| Scala Refactoring | Scala compiler | Scala compiler | Yes     | Yes         | No             |
 
-### WartRemover
+## WartRemover
 
 [WartRemover](http://www.wartremover.org/) is a flexible scala linter. Scalafix
 and WartRemover can be used together as linters. The primary difference between
@@ -29,9 +27,6 @@ served well by WartRemover. See
 [Lessons from Building Static Analysis Tools at Google](https://cacm.acm.org/magazines/2018/4/226371-lessons-from-building-static-analysis-tools-at-google/fulltext)
 for an in-depth write-up about lint-on-compile vs. lint-after-compile.
 
-- Compilation overhead of the semanticdb-scalac compiler plugin (that Scalafix
-  requires) is ~7-25%, which is likely higher than the WartRemover compiler
-  plugin (I haven't measured).
 - WartRemover has more linter rules out of the box than Scalafix.
 - It is easier to write/test/share/run new/custom rules with Scalafix. The
   Scalafix API does not require familiarity with scalac compiler internals.
@@ -43,30 +38,21 @@ for an in-depth write-up about lint-on-compile vs. lint-after-compile.
   `ExplicitImplicitTypes`, `Var`, `While` can run faster outside of compilation
   if implemented with Scalafix.
 
-### IntelliJ Scala
+## IntelliJ Scala
 
 The IntelliJ Scala Plugin is probably the most used IDE for Scala development,
 supporting a wide range of features to browse/edit/refactor Scala code.
 
-- Scalafix uses the Scala 2.x compiler to resolve symbols/types while the
-  IntelliJ Scala plugin uses it's own own typechecker. This means that if a
-  project compiles with the Scala compiler, then scalafix can analyze the source
-  code (assuming no conflicting compiler plugins). The IntelliJ Scala
-  typechecker is known to produce false red squigglies. It depends on what Scala
-  features you use whether the IntelliJ Scala can analyze your source code.
 - Scalafix is primarily aimed to be used in batch-mode through a console
   interface while IntelliJ is primarily aimed for interactive use in the
   IntelliJ IDE.
 - IntelliJ Scala contains a lot more rules ("inspections" in IntelliJ terms),
   including sophisticated refactorings such as "Organize imports" and "Move
   class" that Scalafix does not currently support.
+- Scalafix uses the Scala 2.x compiler to resolve symbols/types while the
+  IntelliJ Scala plugin uses its own typechecker.
 
-The IntelliJ Scala Plugin will reportedly soon release a "Migrators API",
-according to this release:
-https://blog.jetbrains.com/scala/2016/11/11/intellij-idea-2016-3-rc-scala-js-scala-meta-and-more/
-. We look forward to see more of it!
-
-### Scalastyle
+## Scalastyle
 
 [Scalastyle](http://www.scalastyle.org/) is a Scala style checker.
 
@@ -79,7 +65,7 @@ https://blog.jetbrains.com/scala/2016/11/11/intellij-idea-2016-3-rc-scala-js-sca
   rules that need information about types/symbols.
 - Scalastyle runs as a separate tool outside of compilation, just like Scalafix.
 
-### Scala Refactoring
+## Scala Refactoring
 
 [Scala Refactoring](https://github.com/scala-ide/scala-refactoring) is a library
 providing automated refactoring support for Scala.
@@ -141,25 +127,3 @@ package <empty> {
     schema, essentially a small hierarchy of case classes. The entire schema is
     defined in
     [60 lines of protobuf](https://github.com/scalameta/scalameta/blob/master/langmeta/shared/src/main/protobuf/semanticdb.proto).
-
-## I get resolution errors for org.scalameta:semanticdb-scalac
-
-The `semanticdb-scalac` compiler plugin supports only a subset of Scala
-versions. Make sure you are using one of the following exact Scala versions:
-
-- @SCALA211@
-- @SCALA212@
-
-The version must match exactly, including the last number.
-
-## Enclosing tree [2873] does not include tree [2872]
-
-Scalafix requires code to compile with the scalac option `-Yrangepos`. A macro
-that emits invalid tree positions is usually the cause of compiler errors
-triggered by `-Yrangepos`. Other tools like the presentation compiler
-(ENSIME/Scala IDE) require `-Yrangepos` to work properly.
-
-## RemoveUnusedImports does not remove unused imports
-
-Make sure that you have enabled the compiler option `-Ywarn-unused` as
-instructed in [RemoveUnused](../rules/RemoveUnused.md).

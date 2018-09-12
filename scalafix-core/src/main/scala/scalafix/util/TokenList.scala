@@ -33,11 +33,11 @@ final class TokenList private (tokens: Tokens) {
     tokens.view(tok2idx(from), tok2idx(to))
 
   /** Returns the next/trailing token or the original token if none exists.
-    *
-    * @note You need to guard against infinite recursion if iterating through
-    *       a list of tokens using this method. This method does not fail
-    *       with an exception.
-    */
+   *
+   * @note You need to guard against infinite recursion if iterating through
+   *       a list of tokens using this method. This method does not fail
+   *       with an exception.
+   */
   def next(token: Token): Token = {
     tok2idx.get(token) match {
       case Some(i) if tokens.length > i + 1 =>
@@ -47,11 +47,11 @@ final class TokenList private (tokens: Tokens) {
   }
 
   /** Returns the previous/leading token or the original token if none exists.
-    *
-    * @note You need to guard against infinite recursion if iterating through
-    *       a list of tokens using this method. This method does not fail
-    *       with an exception.
-    */
+   *
+   * @note You need to guard against infinite recursion if iterating through
+   *       a list of tokens using this method. This method does not fail
+   *       with an exception.
+   */
   def prev(token: Token): Token = {
     tok2idx.get(token) match {
       case Some(i) if i > 0 =>

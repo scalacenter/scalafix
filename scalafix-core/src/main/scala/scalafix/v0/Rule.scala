@@ -9,37 +9,37 @@ import metaconfig.Configured
 import scalafix.lint.RuleDiagnostic
 
 /** A Scalafix Rule.
-  *
-  * To provide automatic fixes for this rule, override the `fix` method. Example:
-  * {{{
-  *   object ReverseNames extends Rule("ReverseNames") {
-  *     override def fix(ctx: RuleCtx) =
-  *       ctx.tree.collect {
-  *         case name @ Name(value) => ctx.replaceTree(name, value.reverse)
-  *       }.asPatch
-  *   }
-  * }}}
-  *
-  * To report violations of this rule (without automatic fix), override
-  * the `check` method. Example:
-  * {{{
-  *   // example syntactic linter
-  *   object NoNulls extends Rule("NoNulls") {
-  *     val error = LintCategory.error("Nulls are not allowed.")
-  *     override def check(ctx: RuleCtx): List[Diagnostic] = ctx.tree.collect {
-  *       case nil @ q"null" => error.at(nil.pos)
-  *     }
-  *   }
-  * }}}
-  *
-  * @param ruleName
-  *   Name of this rule that users call via .scalafix.conf
-  *   or in the sbt shell. By convention, a name should be
-  *   PascalCase matching the class name of the rule.
-  *
-  *   Example good name: NoVars, ExplicitUnit.
-  *   Example bad name: no-vars, noVars, FixVars.
-  */
+ *
+ * To provide automatic fixes for this rule, override the `fix` method. Example:
+ * {{{
+ *   object ReverseNames extends Rule("ReverseNames") {
+ *     override def fix(ctx: RuleCtx) =
+ *       ctx.tree.collect {
+ *         case name @ Name(value) => ctx.replaceTree(name, value.reverse)
+ *       }.asPatch
+ *   }
+ * }}}
+ *
+ * To report violations of this rule (without automatic fix), override
+ * the `check` method. Example:
+ * {{{
+ *   // example syntactic linter
+ *   object NoNulls extends Rule("NoNulls") {
+ *     val error = LintCategory.error("Nulls are not allowed.")
+ *     override def check(ctx: RuleCtx): List[Diagnostic] = ctx.tree.collect {
+ *       case nil @ q"null" => error.at(nil.pos)
+ *     }
+ *   }
+ * }}}
+ *
+ * @param ruleName
+ *   Name of this rule that users call via .scalafix.conf
+ *   or in the sbt shell. By convention, a name should be
+ *   PascalCase matching the class name of the rule.
+ *
+ *   Example good name: NoVars, ExplicitUnit.
+ *   Example bad name: no-vars, noVars, FixVars.
+ */
 abstract class Rule(ruleName: RuleName) { self =>
 
   /** Returns linter messages to report violations of this rule. */
@@ -49,15 +49,15 @@ abstract class Rule(ruleName: RuleName) { self =>
   def fix(ctx: RuleCtx): Patch = Patch.empty
 
   /** Initialize this rule with the given user configuration.
-    *
-    * This method is called once by scalafix before rule is called.
-    * Use this method to either read custom configuration or to build
-    * expensive indices.
-    *
-    * @param config The .scalafix.conf configuration.
-    * @return the initialized rule or an error. If no initialization is needed,
-    *         return Configured.Ok(this).
-    */
+   *
+   * This method is called once by scalafix before rule is called.
+   * Use this method to either read custom configuration or to build
+   * expensive indices.
+   *
+   * @param config The .scalafix.conf configuration.
+   * @return the initialized rule or an error. If no initialization is needed,
+   *         return Configured.Ok(this).
+   */
   def init(config: Conf): Configured[Rule] =
     Configured.Ok(this)
 

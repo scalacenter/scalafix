@@ -7,9 +7,9 @@ import scalafix.syntax._
 import scalafix.v0._
 
 /** Utility to unit test syntactic rules
-  *
-  * @param rule the default rule to use from `check`/`checkDiff`.
-  */
+ *
+ * @param rule the default rule to use from `check`/`checkDiff`.
+ */
 class SyntacticRuleSuite(rule: Rule = Rule.empty)
     extends FunSuiteLike
     with DiffAssertions {

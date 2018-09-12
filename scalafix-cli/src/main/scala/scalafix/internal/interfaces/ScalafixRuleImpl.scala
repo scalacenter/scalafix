@@ -17,6 +17,7 @@ final class ScalafixRuleImpl(rule: v1.Rule) extends ScalafixRule {
   }
   override def isLinter: Boolean = rule.isLinter
   override def isRewrite: Boolean = rule.isRewrite
+  override def isExperimental: Boolean = rule.isExperimental
 }
 
 object ScalafixRuleImpl {

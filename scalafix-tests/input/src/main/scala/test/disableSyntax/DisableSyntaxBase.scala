@@ -1,11 +1,9 @@
 /*
 rules = DisableSyntax
-DisableSyntax.keywords = [
-  var
-  null
-  return
-  throw
-]
+DisableSyntax.noVars = true
+DisableSyntax.noNulls = true
+DisableSyntax.noReturns = true
+DisableSyntax.noThrows = true
 DisableSyntax.noTabs = true
 DisableSyntax.noSemicolons = true
 DisableSyntax.noXml = true
@@ -28,14 +26,14 @@ import scala.concurrent.duration._
 case object DisableSyntaxBase {
 
 
-  null /* assert: DisableSyntax.keywords.null
+  null /* assert: DisableSyntax.null
   ^
-  null is disabled
+  null should be avoided, consider using Option instead
   */
 
-  var a = 1                 // assert: DisableSyntax.keywords.var
-  def foo: Unit = return    // assert: DisableSyntax.keywords.return
-  throw new Exception("ok") // assert: DisableSyntax.keywords.throw
+  var a = 1                 // assert: DisableSyntax.var
+  def foo: Unit = return    // assert: DisableSyntax.return
+  throw new Exception("ok") // assert: DisableSyntax.throw
 
   "semicolon"; /* assert: DisableSyntax.noSemicolons
              ^
@@ -43,7 +41,7 @@ case object DisableSyntaxBase {
 
   <a>xml</a>   /* assert: DisableSyntax.noXml
   ^
-  xml literals are disabled */
+  xml literals should be avoided */
 
 	             /* assert: DisableSyntax.noTabs
 ^

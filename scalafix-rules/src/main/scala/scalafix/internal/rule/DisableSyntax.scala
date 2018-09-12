@@ -11,7 +11,7 @@ final class DisableSyntax(config: DisableSyntaxConfig)
   def this() = this(DisableSyntaxConfig())
 
   override def description: String =
-    "Reports an error for disabled constructs such as var/null keywords or XML literals."
+    "Reports an error for disabled features such as var or XML literals."
   override def isLinter: Boolean = true
 
   override def withConfiguration(config: Configuration): Configured[Rule] =
@@ -42,13 +42,45 @@ final class DisableSyntax(config: DisableSyntaxConfig)
   private def checkTokens(doc: SyntacticDocument): Seq[Diagnostic] = {
     doc.tree.tokens.collect {
       case token @ Keyword(keyword) if config.isDisabled(keyword) =>
-        Diagnostic(s"keywords.$keyword", s"$keyword is disabled", token.pos)
+        keyword match {
+          case "var" =>
+            Diagnostic(keyword, s"mutable state should be avoided", token.pos)
+          case "null" =>
+            Diagnostic(
+              keyword,
+              "null should be avoided, consider using Option instead",
+              token.pos)
+          case "throw" =>
+            Diagnostic(
+              keyword,
+              "exceptions should be avoided, consider encoding the error in the return type instead",
+              token.pos)
+          case "return" =>
+            Diagnostic(
+              keyword,
+              "return should be avoided, consider using if/else instead",
+              token.pos)
+          case _ =>
+            Diagnostic(keyword, s"$keyword is disabled", token.pos)
+        }
       case token @ Token.Semicolon() if config.noSemicolons =>
         Diagnostic("noSemicolons", "semicolons are disabled", token.pos)
       case token @ Token.Tab() if config.noTabs =>
         Diagnostic("noTabs", "tabs are disabled", token.pos)
       case token @ Token.Xml.Start() if config.noXml =>
-        Diagnostic("noXml", "xml literals are disabled", token.pos)
+        Diagnostic("noXml", "xml literals should be avoided", token.pos)
+      case token: Token.Ident
+          if token.value == "asInstanceOf" && config.noAsInstanceOf =>
+        Diagnostic(
+          "asInstanceOf",
+          "asInstanceOf casts are disabled, use pattern matching instead",
+          token.pos)
+      case token: Token.Ident
+          if token.value == "isInstanceOf" && config.noIsInstanceOf =>
+        Diagnostic(
+          "isInstanceOf",
+          "isInstanceOf checks are disabled, use pattern matching instead",
+          token.pos)
     }
   }
 

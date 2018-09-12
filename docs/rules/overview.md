@@ -1,14 +1,21 @@
 ---
 id: overview
-title: All rules
+sidebar_label: All rules
+title: Built-in Rules
 ---
 
-A Scalafix rule is a small program that can analyze your source code, report
-messages and sometimes automatically fix problems. The following rules come
-pre-installed with Scalafix. The "Semantic" column indicates whether the rule
-requires compilation with the semanticdb-scalac compiler plugin before running.
-Non-semantic rules can run directly from the command line interface without
-compilation.
+Scalafix comes with a small set of built-in rules. Rules are either
+**syntactic** or **semantic**.
+
+**Syntactic**: the rule can run directly on source code without compilation.
+Syntactic rules are simple to run but they can only do limited code analysis
+since they do not have access to information such as symbols and types.
+
+**Semantic**: the rule requires input sources to be compiled beforehand with the
+Scala compiler and the
+[SemanticDB](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/guide.md)
+compiler plugin enabled. Semantic rules are more complicated to run but they can
+do more advanced code analysis based on symbols and types.
 
 ```scala mdoc:scalafix-rules
 

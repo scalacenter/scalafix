@@ -33,8 +33,8 @@ object FileOps {
   }
 
   /**
-    * Reads file from file system or from http url.
-    */
+   * Reads file from file system or from http url.
+   */
   def readFile(filename: String): String = {
     if (filename matches "https?://.*") {
       readURL(new URL(filename))

@@ -9,9 +9,9 @@ import scala.meta.AbsolutePath
 object StringFS {
 
   /**
-    * The inverse of [[dir2string]]. Given a string representation creates the
-    * necessary files/directories with respective file contents.
-    */
+   * The inverse of [[dir2string]]. Given a string representation creates the
+   * necessary files/directories with respective file contents.
+   */
   def string2dir(
       layout: String,
       charset: Charset = StandardCharsets.UTF_8): AbsolutePath = {
@@ -34,14 +34,14 @@ object StringFS {
   }
 
   /** Gives a string representation of a directory. For example
-    *
-    * /build.sbt
-    * val x = project
-    * /src/main/scala/Main.scala
-    * object A { def main = Unit }
-    * /target/scala-2.11/foo.class
-    * ^!*@#@!*#&@*!&#^
-    */
+   *
+   * /build.sbt
+   * val x = project
+   * /src/main/scala/Main.scala
+   * object A { def main = Unit }
+   * /target/scala-2.11/foo.class
+   * ^!*@#@!*#&@*!&#^
+   */
   def dir2string(
       file: AbsolutePath,
       charset: Charset = StandardCharsets.UTF_8): String = {

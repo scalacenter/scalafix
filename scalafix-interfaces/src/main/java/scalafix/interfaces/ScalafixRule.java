@@ -26,4 +26,12 @@ public interface ScalafixRule {
      */
     boolean isRewrite();
 
+    /**
+     * @return true if this rule is unstable and is subject to breaking
+     * changes in the future.
+     *
+     * Note, it's valid for a rule to be both a rewrite and linter.
+     */
+    boolean isExperimental();
+
 }

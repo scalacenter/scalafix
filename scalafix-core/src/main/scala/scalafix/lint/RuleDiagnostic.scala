@@ -5,11 +5,11 @@ import scalafix.internal.util.PositionSyntax._
 import scalafix.rule.RuleName
 
 /**
-  * A diagnostic that has been associated with a rule.
-  *
-  * @param overriddenSeverity Optional .scalafix.conf configuration where user has overriden the severity of
-  *                           diagnostics for this rule + category ID.
-  */
+ * A diagnostic that has been associated with a rule.
+ *
+ * @param overriddenSeverity Optional .scalafix.conf configuration where user has overriden the severity of
+ *                           diagnostics for this rule + category ID.
+ */
 final class RuleDiagnostic private (
     val diagnostic: Diagnostic,
     val rule: RuleName,

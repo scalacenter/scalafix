@@ -20,6 +20,7 @@ final class ExplicitResultTypes(config: ExplicitResultTypesConfig)
   override def description: String =
     "Inserts explicit annotations for inferred types of def/val/var"
   override def isRewrite: Boolean = true
+  override def isExperimental: Boolean = true
 
   override def withConfiguration(config: Configuration): Configured[Rule] =
     config.conf // Support deprecated explicitReturnTypes config
