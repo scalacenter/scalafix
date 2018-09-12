@@ -4,47 +4,71 @@
     "next": "Next",
     "previous": "Previous",
     "tagline": "Refactoring and linting tool for Scala",
-    "api/v0": "Scalafix v0",
-    "Scalafix v0 (legacy)": "Scalafix v0 (legacy)",
-    "api/v1": "API Documentation",
-    "developers/api": "API Documentation",
-    "developers/before-you-begin": "Before you write code",
-    "developers/build-tools": "Build tools",
-    "developers/example": "Tutorial",
-    "developers/glossary": "Glossary",
-    "developers/ides": "IDEs",
-    "developers/linting": "Linting errors",
-    "developers/matching": "Matching code",
-    "developers/rewriting": "Rewriting code",
-    "developers/setup": "Setup",
-    "developers/sharing-rules": "Sharing rules",
-    "developers/testing": "Testing rules",
-    "developers/tutorial": "Tutorial",
-    "rule-authors/glossary": "Glossary",
-    "rule-authors/setup": "Setup",
-    "rule-authors/tutorial": "Tutorial",
-    "rules/DisableSyntax": "DisableSyntax",
-    "rules/ExplicitResultTypes": "ExplicitResultTypes",
-    "rules/LeakingImplicitClassVal": "LeakingImplicitClassVal",
-    "rules/NoAutoTupling": "NoAutoTupling",
-    "rules/NoValInForComprehension": "NoValInForComprehension",
-    "rules/overview": "Built-in Rules",
-    "All rules": "All rules",
-    "rules/ProcedureSyntax": "ProcedureSyntax",
-    "rules/RemoveUnused": "RemoveUnused",
-    "rules/RemoveUnusedTerms": "RemoveUnusedTerms",
-    "users/configuration": "Configuration",
-    "users/faq": "Frequently Asked Questions",
-    "users/installation": "Installation",
-    "users/related-projects": "Related projects",
-    "users/suppression": "Suppressing rules",
-    "User guide": "User guide",
-    "Developer guide": "Developer guide",
-    "GitHub": "GitHub",
-    "Usage": "Usage",
-    "Rules": "Rules",
-    "Misc": "Misc",
-    "Implementing rules": "Implementing rules"
+    "docs": {
+      "developers/api": {
+        "title": "API Documentation"
+      },
+      "developers/before-you-begin": {
+        "title": "Before you write code"
+      },
+      "developers/setup": {
+        "title": "Setup"
+      },
+      "developers/sharing-rules": {
+        "title": "Sharing rules"
+      },
+      "developers/tutorial": {
+        "title": "Tutorial"
+      },
+      "rules/DisableSyntax": {
+        "title": "DisableSyntax"
+      },
+      "rules/LeakingImplicitClassVal": {
+        "title": "LeakingImplicitClassVal"
+      },
+      "rules/NoAutoTupling": {
+        "title": "NoAutoTupling"
+      },
+      "rules/NoValInForComprehension": {
+        "title": "NoValInForComprehension"
+      },
+      "rules/overview": {
+        "title": "Built-in Rules",
+        "sidebar_label": "All rules"
+      },
+      "rules/ProcedureSyntax": {
+        "title": "ProcedureSyntax"
+      },
+      "rules/RemoveUnused": {
+        "title": "RemoveUnused"
+      },
+      "rules/RemoveUnusedTerms": {
+        "title": "RemoveUnusedTerms"
+      },
+      "users/configuration": {
+        "title": "Configuration"
+      },
+      "users/installation": {
+        "title": "Installation"
+      },
+      "users/related-projects": {
+        "title": "Related projects"
+      },
+      "users/suppression": {
+        "title": "Suppressing rules"
+      }
+    },
+    "links": {
+      "User guide": "User guide",
+      "Developer guide": "Developer guide",
+      "GitHub": "GitHub"
+    },
+    "categories": {
+      "Usage": "Usage",
+      "Rules": "Rules",
+      "Misc": "Misc",
+      "Implementing rules": "Implementing rules"
+    }
   },
   "pages-strings": {
     "Help Translate|recruit community translators for your project": "Help Translate",
