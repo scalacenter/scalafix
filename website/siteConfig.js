@@ -12,7 +12,7 @@ const siteConfig = {
 
   // Used for publishing and more
   projectName: "scalafix",
-  organizationName: "olafurpg",
+  organizationName: "scalacenter",
 
   // algolia: {
   //   apiKey: "???",

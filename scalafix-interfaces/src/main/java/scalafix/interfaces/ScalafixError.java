@@ -36,7 +36,7 @@ public enum ScalafixError {
      */
     StaleSemanticdbError,
     /**
-     * When run with {@link ScalafixMainMode#TEST}, this error is returned when a file on disk does not match
+     * When run with {@link ScalafixMainMode#CHECK}, this error is returned when a file on disk does not match
      * the file contents if it was fixed with Scalafix.
      */
     TestError,

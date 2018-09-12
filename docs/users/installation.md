@@ -149,17 +149,17 @@ addCommandAlias("fix", "all compile:scalafix test:scalafix")
 ### Enforce in CI
 
 To automatically enforce that Scalafix has been run on all sources, use
-`scalafix --test` instead of `scalafix`. This task fails the build if running
+`scalafix --check` instead of `scalafix`. This task fails the build if running
 `scalafix` would produce a diff or a linter error message is reported.
 
 Optionally, add a command alias to enforce Scalafix on your entire project with
-the shorthand `fixTest`
+the shorthand `fixCheck`
 
 ```scala
 // top of build.sbt
 addCommandAlias(
-  "fixTest",
-  "; compile:scalafix --test ; test:scalafix --test"
+  "fixCheck",
+  "; compile:scalafix --check ; test:scalafix --check"
 )
 ```
 

@@ -179,7 +179,7 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
         ).asJava
       )
       .withPrintStream(new PrintStream(out))
-      .withMode(ScalafixMainMode.TEST)
+      .withMode(ScalafixMainMode.CHECK)
       .withToolClasspath(toolClasspath)
       .withScalacOptions(Collections.singletonList("-Ywarn-unused-import"))
       .withScalaVersion("2.11.12")

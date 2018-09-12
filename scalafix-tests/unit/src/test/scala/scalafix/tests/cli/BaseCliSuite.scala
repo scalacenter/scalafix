@@ -97,7 +97,7 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
       "check " + name,
       "/a.scala\n" + expectedFile,
       Array(
-        "--test",
+        "--check",
         "-r",
         rule,
         "a.scala"

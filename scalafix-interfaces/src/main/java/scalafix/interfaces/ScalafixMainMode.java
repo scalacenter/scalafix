@@ -15,7 +15,7 @@ public enum ScalafixMainMode {
      *
      * Does not write to files.
      */
-    TEST,
+    CHECK,
 
     /**
      * Print fixed output to stdout.
