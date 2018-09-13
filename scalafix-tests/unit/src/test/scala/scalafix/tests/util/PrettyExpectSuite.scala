@@ -5,7 +5,7 @@ import scala.meta.internal.ScalametaInternals
 import scala.meta.internal.semanticdb.Scala._
 import scalafix.internal.util.PositionSyntax._
 import scalafix.internal.util.Pretty
-import scalafix.internal.v1.DocFromProtobuf
+import scalafix.internal.v1.DocumentFromProtobuf
 import scalafix.v1
 
 class PrettyExpectSuite extends ExpectSuite {
@@ -13,7 +13,7 @@ class PrettyExpectSuite extends ExpectSuite {
   def obtained(): String = {
     val synthetics = sdoc.internal.textDocument.synthetics.map { synth =>
       val pos = ScalametaInternals.positionFromRange(sdoc.input, synth.range)
-      val tree = DocFromProtobuf.convert(synth, sdoc.internal)
+      val tree = DocumentFromProtobuf.convert(synth, sdoc.internal)
       pos -> Pretty.pretty(tree)
     }
     val types = sdoc.internal.textDocument.occurrences.collect {

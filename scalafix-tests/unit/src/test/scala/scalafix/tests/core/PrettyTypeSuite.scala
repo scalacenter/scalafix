@@ -1,5 +1,6 @@
 package scalafix.tests.core
 
+import scala.meta.cli.Reporter
 import scala.meta.internal.ScalametaInternals
 import scala.meta.internal.io.PathIO
 import scala.meta.internal.io.PlatformFileIO
@@ -13,6 +14,7 @@ import scala.{meta => m}
 import scala.meta.internal.semanticdb.Scala._
 import scala.meta.internal.semanticdb.SymbolInformation
 import scala.meta.io.AbsolutePath
+import scala.meta.metacp.Settings
 import scalafix.internal.util.QualifyStrategy
 import scalafix.internal.util.PrettyType
 
@@ -90,9 +92,11 @@ class PrettyTypeFuzzSuite extends BasePrettyTypeSuite {
   }
 
   def checkPath(file: AbsolutePath): Unit = {
+    val settings = Settings()
+    val reporter = Reporter().withSilentOut().withSilentErr()
     val node = file.toClassNode
     ClassfileInfos
-      .fromClassNode(node, classpathIndex)
+      .fromClassNode(node, classpathIndex, settings, reporter)
       .foreach { classfile =>
         classfile.infos.foreach { toplevel =>
           if (toplevel.symbol.owner.isPackage) {

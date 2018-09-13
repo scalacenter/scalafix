@@ -5,27 +5,27 @@ import scala.meta.internal.ScalametaInternals
 import scala.meta.internal.{semanticdb => s}
 import scalafix.v1._
 
-object DocFromProtobuf {
+object DocumentFromProtobuf {
   def convert(synth: s.Synthetic, doc: InternalSemanticDoc): STree =
-    new DocFromProtobuf(synth)(new SemanticDocument(doc)).stree(synth.tree)
+    new DocumentFromProtobuf(synth)(new SemanticDocument(doc)).stree(synth.tree)
 }
-final class DocFromProtobuf(original: s.Synthetic)(
+final class DocumentFromProtobuf(original: s.Synthetic)(
     implicit doc: SemanticDocument) {
   val convert = new SymtabFromProtobuf(doc)
   def stree(t: s.Tree): STree = {
     t match {
       case t: s.ApplyTree =>
-        new ApplyTree(t.fn.convert, t.args.convert)
+        new ApplyTree(t.function.convert, t.arguments.convert)
       case t: s.FunctionTree =>
-        new FunctionTree(t.params.convert, t.term.convert)
+        new FunctionTree(t.parameters.convert, t.body.convert)
       case t: s.IdTree =>
         sid(t)
       case t: s.LiteralTree =>
-        val const = convert.sconstant(t.const)
+        val const = convert.sconstant(t.constant)
         new LiteralTree(const)
       case t: s.MacroExpansionTree =>
         val tpe = convert.stype(t.tpe)
-        new MacroExpansionTree(t.expandee.convert, tpe)
+        new MacroExpansionTree(t.beforeExpansion.convert, tpe)
       case t: s.OriginalTree =>
         soriginal(t.range) match {
           case Some(tree) =>
@@ -36,20 +36,21 @@ final class DocFromProtobuf(original: s.Synthetic)(
       case t: s.SelectTree =>
         t.id match {
           case Some(id) =>
-            new SelectTree(t.qual.convert, sid(id))
+            new SelectTree(t.qualifier.convert, sid(id))
           case None =>
             NoTree
         }
       case t: s.TypeApplyTree =>
-        val targs = t.targs.iterator.map(tpe => convert.stype(tpe)).toList
-        new TypeApplyTree(t.fn.convert, targs)
+        val targs =
+          t.typeArguments.iterator.map(tpe => convert.stype(tpe)).toList
+        new TypeApplyTree(t.function.convert, targs)
       case s.NoTree =>
         NoTree
     }
   }
 
   private def sid(id: s.IdTree): IdTree =
-    new IdTree(Symbol(id.sym))
+    new IdTree(Symbol(id.symbol))
 
   private def soriginal(range: Option[s.Range]): Option[Tree] = {
     val pos = ScalametaInternals.positionFromRange(doc.input, range)
