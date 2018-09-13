@@ -143,7 +143,7 @@ class CliSyntacticSuite extends BaseCliSuite {
     name = "TestError",
     originalLayout = s"""/foobar.scala
                         |$original""".stripMargin,
-    args = Array("--test", "-r", "ProcedureSyntax", "foobar.scala"),
+    args = Array("--check", "-r", "ProcedureSyntax", "foobar.scala"),
     expectedLayout = s"""/foobar.scala
                         |$original""".stripMargin,
     expectedExit = ExitStatus.TestError,
@@ -163,10 +163,10 @@ class CliSyntacticSuite extends BaseCliSuite {
   )
 
   check(
-    name = "--test OK",
+    name = "--check OK",
     originalLayout = s"""/foobar.scala
                         |$expected""".stripMargin,
-    args = Array("--test", "-r", "ProcedureSyntax", "foobar.scala"),
+    args = Array("--check", "-r", "ProcedureSyntax", "foobar.scala"),
     expectedLayout = s"""/foobar.scala
                         |$expected""".stripMargin,
     expectedExit = ExitStatus.Ok

@@ -203,7 +203,7 @@ object MainOps {
       }
     }
 
-    if (args.args.test) {
+    if (args.args.check) {
       if (fixed == input.text) {
         ExitStatus.Ok
       } else {

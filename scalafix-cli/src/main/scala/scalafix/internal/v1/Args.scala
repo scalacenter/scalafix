@@ -55,7 +55,8 @@ case class Args(
     @Description(
       "Check that all files have been fixed with scalafix, exiting with non-zero code on violations. " +
         "Won't write to files.")
-    test: Boolean = false,
+    @ExtraName("test")
+    check: Boolean = false,
     @Description("Print fixed output to stdout instead of writing in-place.")
     stdout: Boolean = false,
     @Description(

@@ -61,8 +61,8 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
 
   override def withMode(mode: ScalafixMainMode): ScalafixArguments =
     mode match {
-      case ScalafixMainMode.TEST =>
-        copy(args = args.copy(test = true))
+      case ScalafixMainMode.CHECK =>
+        copy(args = args.copy(check = true))
       case ScalafixMainMode.IN_PLACE =>
         copy(args = args.copy(stdout = false))
       case ScalafixMainMode.STDOUT =>
