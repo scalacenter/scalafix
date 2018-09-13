@@ -23,7 +23,7 @@ final class InternalSemanticDoc(
 
   def synthetics: Iterator[STree] =
     textDocument.synthetics.iterator.map { tree =>
-      DocFromProtobuf.convert(tree, this)
+      DocumentFromProtobuf.convert(tree, this)
     }
   def messages: Iterator[Diagnostic] =
     textDocument.diagnostics.iterator.map { diag =>
@@ -36,7 +36,7 @@ final class InternalSemanticDoc(
     if (synth == null) {
       None
     } else {
-      Some(DocFromProtobuf.convert(synth, this))
+      Some(DocumentFromProtobuf.convert(synth, this))
     }
   }
 
