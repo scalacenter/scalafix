@@ -6,10 +6,14 @@
     "tagline": "Refactoring and linting tool for Scala",
     "docs": {
       "developers/api": {
-        "title": "API Documentation"
+        "title": "API Overview",
+        "sidebar_label": "Overview"
       },
       "developers/before-you-begin": {
         "title": "Before you write code"
+      },
+      "developers/patch": {
+        "title": "Patch"
       },
       "developers/setup": {
         "title": "Setup"
@@ -67,7 +71,8 @@
       "Usage": "Usage",
       "Rules": "Rules",
       "Misc": "Misc",
-      "Implementing rules": "Implementing rules"
+      "Implementing rules": "Implementing rules",
+      "API Reference": "API Reference"
     }
   },
   "pages-strings": {

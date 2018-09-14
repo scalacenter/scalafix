@@ -59,6 +59,8 @@ const siteConfig = {
 
   editUrl: `${repoUrl}/edit/master/docs/`,
 
+  cleanUrl: true,
+
   repoUrl
 };
 

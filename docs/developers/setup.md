@@ -15,12 +15,17 @@ template:
 ```
 cd reponame # The project you want to implement rules for.
 
-sbt new scalacenter/scalafix.g8 --rule="reponame" --version="v1.0"
+sbt new scalacenter/scalafix.g8 --repo="Repository Name"
 cd scalafix
 sbt tests/test
 ```
 
-The `--rule=<reponame>` option should match the name of your GitHub repository.
+The `--repo=<repository name>` option should match the name of your GitHub
+repository with dashes replaced by spaces.
+
+- For `github.com/organization/repository`, type `repository`
+- For `github.com/organization/repository-name`, type `Repository Name`
+
 The template generates a `scalafix/` directory with four different sbt projects.
 
 ```scala

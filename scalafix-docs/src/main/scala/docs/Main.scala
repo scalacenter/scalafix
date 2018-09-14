@@ -2,6 +2,7 @@ package docs
 
 import java.nio.file.Paths
 import scalafix.Versions
+import scalafix.docs.PatchDocs
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -28,6 +29,7 @@ object Main {
       )
       .withArgs(args.toList)
     val exit = mdoc.Main.process(settings)
-    sys.exit(exit)
+    PatchDocs.compiler.askShutdown()
+    if (exit != 0) sys.exit(exit)
   }
 }

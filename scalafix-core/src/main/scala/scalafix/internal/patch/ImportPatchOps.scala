@@ -190,6 +190,7 @@ object ImportPatchOps {
     val isRemovedImport =
       allImports.filter(_.importers.forall(isRemovedImporter))
     def remove(toRemove: Tree): Patch = {
+      if (toRemove.pos == Position.None) return Patch.empty
       // Imagine "import a.b, c.d, e.f, g.h" where a.b, c.d and g.h are unused.
       // All unused imports are responible to delete their leading comma but
       // c.d is additionally responsible for deleting its trailling comma.

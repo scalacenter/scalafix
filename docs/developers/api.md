@@ -1,6 +1,7 @@
 ---
 id: api
-title: API Documentation
+title: API Overview
+sidebar_label: Overview
 ---
 
 The Scalafix public API documentation is composed of several packages.
@@ -13,8 +14,8 @@ Latest Scaladoc:
 The Scalafix v1 API is available through `import scalafix.v1._`. Key data
 structures include:
 
-- `Patch`: to describe source code rewrites such as removing or replacing tokens
-  and trees.
+- [`Patch`](patch.md): to describe source code rewrites such as removing or
+  replacing tokens and trees.
 - `Diagnostic`: a linter error message that can be reported at a source file
   location.
 - `SyntacticRule`: super class for all syntactic rules.
@@ -87,3 +88,8 @@ include:
   slice, take and drop. It's important to keep in mind that a normal source file
   can have tens of thousands of tokens so operations like `filter` may perform
   badly.
+
+```scala mdoc
+case class User(name: String)
+User("\"John")
+```

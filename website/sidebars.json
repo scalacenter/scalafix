@@ -16,8 +16,8 @@
     "Implementing rules": [
       "developers/setup",
       "developers/before-you-begin",
-      "developers/tutorial",
-      "developers/api"
-    ]
+      "developers/tutorial"
+    ],
+    "API Reference": ["developers/api", "developers/patch"]
   }
 }
