@@ -6,12 +6,13 @@ hesitate to ask in the [gitter channel](https://gitter.im/scalacenter/scalafix).
 
 ## Modules
 
-- `scalafix-core/` data structures for rewriting and linting Scala source code
-- `scalafix-reflect/` JVM-only utilities to compile and classload custom rules
-- `scalafix-rules/` Scalafix built-in rules such as `RemoveUnused`
-- `scalafix-cli/` command-line interface
-- `scalafix-tests/` project for running unit and integration tests.
-- `readme` documentation page
+- `scalafix-core/` data structures for rewriting and linting Scala source code.
+- `scalafix-reflect/` utilities to compile and classload rules from
+  configuration.
+- `scalafix-rules/` built-in rules such as `RemoveUnused`.
+- `scalafix-cli/` command-line interface.
+- `scalafix-tests/` projects for unit and integration tests.
+- `scalafix-docs/` documentation code for the Scalafix website.
 
 ## IntelliJ import
 
@@ -37,9 +38,9 @@ here: https://scalacenter.github.io/scalafix/docs/developers/setup
 
 ```
 scalafix-tests
-├── input         # Source files to be fixed by default rules
-├── output        # Expected output from running default rules
-├── shared        # Source files that are compiled semanticdb, used in BaseSemanticTest.
+├── input         # Source files to be analyzed and fixed by rules
+├── output        # Expected output from running rewrite rules
+├── shared        # Code that is shared between input and unit projects
 └── unit          # Unit test suites.
 ```
 

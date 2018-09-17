@@ -12,7 +12,7 @@ const siteConfig = {
 
   // Used for publishing and more
   projectName: "scalafix",
-  organizationName: "olafurpg",
+  organizationName: "scalacenter",
 
   // algolia: {
   //   apiKey: "???",
@@ -59,7 +59,8 @@ const siteConfig = {
 
   editUrl: `${repoUrl}/edit/master/docs/`,
 
-  cleanUrl: true,
+  // Disabled because relative *.md links result in 404s.
+  // cleanUrl: true,
 
   repoUrl
 };

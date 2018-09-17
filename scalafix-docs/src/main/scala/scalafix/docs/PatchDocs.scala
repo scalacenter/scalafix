@@ -1,17 +1,19 @@
 package scalafix.docs
 
 import scala.meta.inputs.Input
-import scala.meta.interactive._
+import scala.meta.interactive.InteractiveSemanticdb
 import scala.meta.internal.semanticdb.Print
 import scala.meta.internal.symtab.GlobalSymbolTable
 import scala.meta.metap.Format
-import scalafix.internal.v1.InternalSemanticDoc
 import scalafix.internal.reflect.ClasspathOps
-import scalafix.internal.util.SymbolOps
+import scalafix.internal.v1.InternalSemanticDoc
 import scalafix.patch.Patch
-import scalafix.v1._
-
-import scala.meta.internal.semanticdb.Scala.{Descriptor, Symbols}
+import scalafix.v1.RuleName
+import scalafix.v1.SemanticDocument
+import scalafix.v1.Symbol
+import scalafix.v1.SymbolInformation
+import scalafix.v1.Symtab
+import scalafix.v1.SyntacticDocument
 
 object PatchDocs {
 
@@ -61,41 +63,6 @@ object PatchDocs {
   lazy val scalafixSymtab = new Symtab { self =>
     override def info(symbol: Symbol): Option[SymbolInformation] = {
       symtab.info(symbol.value).map(new SymbolInformation(_)(self))
-    }
-  }
-  import scalafix.v1._
-  lazy val symbolInformationMethods: List[SymbolInformation] = {
-    implicit val symtab = PatchDocs.scalafixSymtab
-    val info = symtab.info(Symbol("scalafix/v1/SymbolInformation#")).get
-    info.signature
-      .asInstanceOf[ClassSignature]
-      .declarations
-      .filter(_.displayName.startsWith("is"))
-  }
-  def documentSymbolInfo(info: SymbolInformation): Unit = {
-    println(s"- `${info.displayName}`")
-  }
-  def classToSymbol(cls: Class[_]): String = {
-    if (cls.getEnclosingClass == null) {
-      cls.getName + "."
-    } else {
-      Symbols.Global(
-        classToSymbol(cls.getEnclosingClass),
-        Descriptor.Term(cls.getSimpleName))
-    }
-  }
-  def documentSymbolInfoCategory(category: Class[_]): Unit = {
-    val normalized = Symbol(classToSymbol(category)).normalized
-    symbolInformationMethods.foreach { info =>
-      info.annotations.foreach { annotation =>
-        annotation.tpe match {
-          case TypeRef(_, sym, Nil) =>
-            if (sym.normalized == normalized) {
-              documentSymbolInfo(info)
-            }
-          case _ =>
-        }
-      }
     }
   }
   def fromString(code: String, debug: Boolean = false): SemanticDocument = {

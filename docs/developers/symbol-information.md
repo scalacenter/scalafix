@@ -15,7 +15,7 @@ definition. A symbol information describes the symbols's
 
 ```scala mdoc:passthrough
 import scalafix.internal.v1.SymbolInformationAnnotations._
-import scalafix.docs.PatchDocs.documentSymbolInfoCategory
+import scalafix.docs.SymbolInformationDocs.documentSymbolInfoCategory
 ```
 
 ## SemanticDB

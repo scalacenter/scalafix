@@ -52,7 +52,6 @@ sidebar_label: Guide
         )
       )
       .withArgs(args.toList)
-//    PatchDocs.documentSymbolInfoCategory(classOf[kind])
     val exit = mdoc.Main.process(settings)
     PatchDocs.compiler.askShutdown()
     if (exit != 0) sys.exit(exit)
