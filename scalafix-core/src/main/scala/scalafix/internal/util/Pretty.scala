@@ -26,8 +26,8 @@ object Pretty {
   def pretty(sym: Symbol): Doc =
     Doc.text(sym.displayName)
 
-  def pretty(tpe: SType): Doc = {
-    def prefix(tpe: SType): Doc = {
+  def pretty(tpe: ScalaType): Doc = {
+    def prefix(tpe: ScalaType): Doc = {
       tpe match {
         case NoType => Doc.str("<no type>")
         case t: TypeRef =>
@@ -117,7 +117,7 @@ object Pretty {
           `*` + Doc.space + pretty(t.tpe)
       }
     }
-    def normal(tpe: SType): Doc = tpe match {
+    def normal(tpe: ScalaType): Doc = tpe match {
       case _: SingleType | _: ThisType | _: SuperType =>
         prefix(tpe) + `.` + `type`
       case _ =>
@@ -268,7 +268,7 @@ object Pretty {
       pretty(t.tpe)
   }
 
-  def pretty(tree: STree): Doc = tree match {
+  def pretty(tree: SyntheticTree): Doc = tree match {
     case NoTree =>
       Doc.empty
     case t: IdTree =>
@@ -292,8 +292,9 @@ object Pretty {
     case t: MacroExpansionTree =>
       `(` + Doc.text("`after-expansion` : ") + pretty(t.tpe) + `)`
     case r: OriginalTree =>
-      if (r.matchesFullOriginalRange) `*`
-      else Doc.text("orig") + `(` + Doc.text(r.tree.syntax) + `)`
+      `*`
+    case r: OriginalSubTree =>
+      Doc.text("orig") + `(` + Doc.text(r.tree.syntax) + `)`
   }
 
 }

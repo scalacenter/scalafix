@@ -3,7 +3,6 @@ package scalafix.internal.util
 import org.typelevel.paiges._
 import scala.meta.Tree
 import scala.meta._
-import scalafix.util.FieldNames
 import scalafix.v1.Symbol
 import scalafix.v1.SymbolInfo
 import DocConstants._
@@ -66,8 +65,6 @@ class ProductStructure(
 
   private def prettyFields(product: Product): List[String] = {
     product match {
-      case value: FieldNames =>
-        value.fieldNames.toList
       case value: Tree =>
         value.productFields
       case _ =>

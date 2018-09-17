@@ -63,7 +63,6 @@ class SymbolMatcherSuite extends FunSuite {
     val main = mainClass + mainObject
     assert(main.matches(Symbol("com/Main#")))
     assert(main.matches(Symbol("com/Main.")))
-    math.max()
   }
 
 }

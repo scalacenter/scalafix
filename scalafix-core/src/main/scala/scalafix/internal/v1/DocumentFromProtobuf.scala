@@ -6,51 +6,52 @@ import scala.meta.internal.{semanticdb => s}
 import scalafix.v1._
 
 object DocumentFromProtobuf {
-  def convert(synth: s.Synthetic, doc: InternalSemanticDoc): STree =
+  def convert(synth: s.Synthetic, doc: InternalSemanticDoc): SyntheticTree =
     new DocumentFromProtobuf(synth)(new SemanticDocument(doc)).stree(synth.tree)
 }
 final class DocumentFromProtobuf(original: s.Synthetic)(
     implicit doc: SemanticDocument) {
   val convert = new SymtabFromProtobuf(doc)
-  def stree(t: s.Tree): STree = {
+  def stree(t: s.Tree): SyntheticTree = {
     t match {
       case t: s.ApplyTree =>
-        new ApplyTree(t.function.convert, t.arguments.convert)
+        ApplyTree(t.function.convert, t.arguments.convert)
       case t: s.FunctionTree =>
-        new FunctionTree(t.parameters.convert, t.body.convert)
+        FunctionTree(t.parameters.convert, t.body.convert)
       case t: s.IdTree =>
         sid(t)
       case t: s.LiteralTree =>
         val const = convert.sconstant(t.constant)
-        new LiteralTree(const)
+        LiteralTree(const)
       case t: s.MacroExpansionTree =>
         val tpe = convert.stype(t.tpe)
-        new MacroExpansionTree(t.beforeExpansion.convert, tpe)
+        MacroExpansionTree(t.beforeExpansion.convert, tpe)
       case t: s.OriginalTree =>
         soriginal(t.range) match {
           case Some(tree) =>
             val isOriginal = original.range.exists(t.range.contains)
-            new OriginalTree(isOriginal, tree)
+            if (isOriginal) OriginalTree(tree)
+            else OriginalSubTree(tree)
           case None => NoTree
         }
       case t: s.SelectTree =>
         t.id match {
           case Some(id) =>
-            new SelectTree(t.qualifier.convert, sid(id))
+            SelectTree(t.qualifier.convert, sid(id))
           case None =>
             NoTree
         }
       case t: s.TypeApplyTree =>
         val targs =
           t.typeArguments.iterator.map(tpe => convert.stype(tpe)).toList
-        new TypeApplyTree(t.function.convert, targs)
+        TypeApplyTree(t.function.convert, targs)
       case s.NoTree =>
         NoTree
     }
   }
 
   private def sid(id: s.IdTree): IdTree =
-    new IdTree(Symbol(id.symbol))
+    IdTree(Symbol(id.symbol))
 
   private def soriginal(range: Option[s.Range]): Option[Tree] = {
     val pos = ScalametaInternals.positionFromRange(doc.input, range)
@@ -58,14 +59,14 @@ final class DocumentFromProtobuf(original: s.Synthetic)(
   }
 
   private implicit class RichTree(tree: s.Tree) {
-    def convert: STree = stree(tree)
+    def convert: SyntheticTree = stree(tree)
   }
   private implicit class RichIds(ids: Seq[s.IdTree]) {
     def convert: List[IdTree] =
       ids.iterator.map(sid).toList
   }
   private implicit class RichTrees(trees: Seq[s.Tree]) {
-    def convert: List[STree] = trees.iterator.map(stree).toList
+    def convert: List[SyntheticTree] = trees.iterator.map(stree).toList
   }
 
 }

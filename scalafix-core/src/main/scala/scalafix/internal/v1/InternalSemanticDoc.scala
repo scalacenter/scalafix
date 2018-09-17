@@ -10,7 +10,7 @@ import scala.meta.internal.{semanticdb => s}
 import scalafix.internal.config.ScalafixConfig
 import scalafix.lint.Diagnostic
 import scalafix.v1.SyntacticDocument
-import scalafix.v1.STree
+import scalafix.v1.SyntheticTree
 import scalafix.v1.Symbol
 import scalafix.v1.SymbolInfo
 import scalafix.v1.Symtab
@@ -21,7 +21,7 @@ final class InternalSemanticDoc(
     val symtab: SymbolTable
 ) extends Symtab {
 
-  def synthetics: Iterator[STree] =
+  def synthetics: Iterator[SyntheticTree] =
     textDocument.synthetics.iterator.map { tree =>
       DocumentFromProtobuf.convert(tree, this)
     }
@@ -30,7 +30,7 @@ final class InternalSemanticDoc(
       SemanticdbDiagnostic(doc.input, diag)
     }
 
-  def synthetic(pos: Position): Option[STree] = {
+  def synthetic(pos: Position): Option[SyntheticTree] = {
     val synth = _synthetics.get(
       s.Range(pos.startLine, pos.startColumn, pos.endLine, pos.endColumn))
     if (synth == null) {
