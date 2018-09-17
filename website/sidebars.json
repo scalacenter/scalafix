@@ -22,7 +22,8 @@
       "developers/api",
       "developers/patch",
       "developers/symbol-matcher",
-      "developers/scala-type"
+      "developers/scala-type",
+      "developers/synthetic-tree"
     ]
   }
 }

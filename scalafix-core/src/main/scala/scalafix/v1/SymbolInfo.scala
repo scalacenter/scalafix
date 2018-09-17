@@ -47,8 +47,6 @@ import scala.meta.metap.Format
 final class SymbolInfo private[scalafix] (
     private[scalafix] val info: s.SymbolInformation
 )(implicit symtab: Symtab) { self =>
-  private[this] val x = 2
-
   def symbol: Symbol = Symbol(info.symbol)
   def owner: Symbol = Symbol(info.symbol).owner
   def displayName: String = info.displayName

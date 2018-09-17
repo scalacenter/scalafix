@@ -27,6 +27,9 @@
       "developers/symbol-matcher": {
         "title": "SymbolMatcher"
       },
+      "developers/synthetic-tree": {
+        "title": "SyntheticTree"
+      },
       "developers/tutorial": {
         "title": "Tutorial"
       },

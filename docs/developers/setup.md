@@ -30,39 +30,22 @@ The template generates a `scalafix/` directory with four different sbt projects.
 
 ```scala
 scalafix
-├── rules
-│   └── src
-│       └── main
-│           ├── resources
-│           │   └── META-INF
-│           │       └── services
-│           │           └── scalafix.v1.Rule // ServiceLoader configuration to load rule
-│           └── scala
-│               └── fix
-│                   ├── Rewrite.scala // Implementation of a rewrite rule
-│                   └── Linter.scala // Implementation of a linter rule
-├── input
-│   └── src
-│       └── main
-│           └── scala
-│               └── test
-│                   ├── RewriteTest.scala // Unit test for rewrite rule,
-│                   │                     // must have corresponding file in output.
-│                   └── LinterTest.scala  // Unit test for linter rule,
-│                                         // no corresponding output file needed.
-├── output
-│   └── src
-│       └── main
-│           └── scala
-│               └── test
-│                   └── RewriteTest.scala // Expected output from running rewrite
-│                                         // on RewriteTest.scala from input project
-└── tests
-    └── src
-        └── test
-            └── scala
-                └── fix
-                    └── RuleSuite.scala
+├── rules/src/main
+│   ├── resources/META-INF/services
+│   │   └── scalafix.v1.Rule // ServiceLoader configuration to load rule
+│   └── scala/fix
+│       ├── Rewrite.scala // Implementation of a rewrite rule
+│       └── Linter.scala // Implementation of a linter rule
+├── input/src/main/scala/test
+│   ├── RewriteTest.scala // Unit test for rewrite rule,
+│   │                     // must have corresponding file in output.
+│   └── LinterTest.scala  // Unit test for linter rule,
+│                         // no corresponding output file needed.
+├── output/src/main/scala/test
+│   └── RewriteTest.scala // Expected output from running rewrite
+│                         // on RewriteTest.scala from input project
+└── tests/src/test/scala/fix
+    └── RuleSuite.scala
 ```
 
 - `rules`: contains rule implementations. This is the module that you will

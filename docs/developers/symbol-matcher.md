@@ -28,9 +28,10 @@ import scalafix.docs.PatchDocs
 import scalafix.docs.PatchDocs._
 ```
 
-## Symbol specification
+## SemanticDB
 
-To learn more about symbols, consult the SemanticDB specification:
+Scalafix symbols are based on SemanticDB symbols. To learn more about SemanticDB
+symbols, consult the SemanticDB specification:
 
 - [General symbols](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#symbol)
 - [Scala symbols](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#scala-symbol)

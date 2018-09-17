@@ -23,6 +23,7 @@ object Main {
       )
       .withStringModifiers(
         List(
+          new FileModifier,
           new HelpModifier,
           new RuleModifier,
           new RulesModifier

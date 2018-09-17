@@ -4,7 +4,7 @@ package scalafix.v1
 import scalafix.internal.util.Pretty
 
 /** Encoding of the Scala type system as a sealed data structure. */
-sealed abstract class ScalaType extends Product {
+sealed abstract class ScalaType extends Product with Serializable {
   final override def toString: String = Pretty.pretty(this).render(80)
   final def isEmpty: Boolean = this == NoType
   final def nonEmpty: Boolean = !isEmpty
