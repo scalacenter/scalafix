@@ -1,18 +1,24 @@
 # Contributing
 
+Contributions to Scalafix are welcome! This document is a guide to help you get
+familiar with the Scalafix build, if you are unsure about anything, don't
+hesitate to ask in the [gitter channel](https://gitter.im/scalacenter/scalafix).
+
 ## Modules
 
-- `scalafix-core/` data structures and algorithms for scalafix rules
+- `scalafix-core/` data structures for rewriting and linting Scala source code
 - `scalafix-reflect/` JVM-only utilities to compile and classload custom rules
+- `scalafix-rules/` Scalafix built-in rules such as `RemoveUnused`
 - `scalafix-cli/` command-line interface
 - `scalafix-tests/` project for running unit and integration tests.
 - `readme` documentation page
 
-## Setting up an IDE
+## IntelliJ import
 
-I use IntelliJ myself but run all tests from the SBT console. I've tried to make
-the project compile from IntelliJ IDEA. If you experience any issues, don't
-hesitate to ask on Gitter.
+The project should import normally into IntelliJ and there should not be any
+false red squiggles. To use the debugger or run tests from withing IntelliJ, run
+at least once `sbt unit/test` to generate a `BuildInfo` file and property files
+for Scalafix testkit.
 
 ## Testing
 
@@ -22,22 +28,17 @@ sbt shell.
 ```sh
 > unit/test # Fast unit tests for rules, cli, core. Contains a lot
             # of different test suites, so it's recommended to use testOnly.
-> unit/testOnly scalafix.tests.rule.* # Only run tests for rules, using scalafix-testkit.
-> unit/testOnly scalafix.tests.core.* # Only run tests for core APIs.
-> unit/testOnly scalafix.tests.cli.*  # Only run tests for the command line interface.
+> unit/testOnly *RuleSuite # Only run tests for rules, using scalafix-testkit.
+> unit/testOnly *RuleSuite -- -z ProcedureSyntax # Only run only ProcedureSyntax unit test.
 ```
 
 Unit tests for rules are written using scalafix-testkit, read more about it
-here:
-https://scalacenter.github.io/scalafix/docs/rule-authors/setup#scalafix-testkit
+here: https://scalacenter.github.io/scalafix/docs/developers/setup
 
 ```
 scalafix-tests
 ├── input         # Source files to be fixed by default rules
-├── input-sbt     # Source files to be fixed by Sbt1 rule
 ├── output        # Expected output from running default rules
-├── output-dotty  # Expected output from running Dotty-specific rules
-├── output-sbt    # Expected output from running Sbt1 rule
 ├── shared        # Source files that are compiled semanticdb, used in BaseSemanticTest.
 └── unit          # Unit test suites.
 ```
@@ -87,47 +88,9 @@ Run `sbt mimaReportBinaryIssues` to check for any compatibility issues.
 
 ## Publish setup
 
-Scalafix is setup to publish automatically when we publish a tag on GitHub. You
-should not have to worry about this part. For completeness, this is how it was
-set up:
-
-### Register on Sonatype
-
-Follow
-https://github.com/scalacenter/sbt-release-early/wiki/How-to-release-with-Sonatype#release-with-sonatype
-
-You now have:
-
-- SONATYPE_PASSWORD
-- SONATYPE_USERNAME
-
-Ask us to be added to the ch.epfl.scala group
-
-### Setup gpg
-
-```bash
-gpg --version # make shure it's 1.X (not 2.X)
-gpg --gen-key # with an empty passphrase
-gpg --armor --export-secret-keys | base64 -w 0 | xclip -i # This is PGP_SECRET
-gpg --list-keys
-
-# For example
-# /home/gui/.gnupg/pubring.gpg
-# ----------------------------
-# pub   2048R/6EBD580D 2017-12-04
-# uid                  GMGMGM
-# sub   2048R/135A5E9E 2017-12-04
-
-gpg --keyserver hkp://pool.sks-keyservers.net --send-keys <YOUR KEY ID>
-
-# For example: gpg --keyserver hkp://pool.sks-keyservers.net --send-keys 6EBD580D
-```
-
-### Setup travis
-
-Setup the project at https://travis-ci.org/scalacenter/scalafix/settings with
-
-SONATYPE_PASSWORD SONATYPE_USERNAME PGP_PASSPHRASE (empty) PGP_SECRET
+Scalafix uses [sbt-ci-release](https://github.com/olafurpg/sbt-ci-release) to
+automate Sonatype releases. A new SNAPSHOT release is published on every merge
+into master. A stable release is published to Maven Central on every git tag.
 
 ### AppVeyor
 
@@ -160,9 +123,6 @@ curl -vvv -H "Authorization: Bearer $APPVEYOR_TOKEN" -XDELETE https://ci.appveyo
 
          coursier bootstrap ch.epfl.scala:scalafix-cli_2.12.4:VERSION -f --main scalafix.cli.Cli -o scalafix -f
 
-- [ ] update the scalafix version in this build
-      [project/plugins.sbt](project/plugins.sbt)
-
 If everything went smoothly, congrats!
 
 If something goes wrong for any reason making the artifacts not reach maven,
@@ -177,8 +137,3 @@ git push origin :refs/tags/$TAG
 It's important that the latest tag always has an accompanying release on Maven.
 If there is no release matching the latest tag then the docs will point to
 scalafix artifacts that cannot be resolved.
-
-## TL;DR
-
-If you are unsure about anything, don't hesitate to ask in the
-[gitter channel](https://gitter.im/scalacenter/scalafix).

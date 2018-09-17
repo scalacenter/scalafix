@@ -25,6 +25,7 @@
       "developers/scala-type",
       "developers/synthetic-tree",
       "developers/symbol-information"
-    ]
+    ],
+    "Contributing": ["developers/contributing"]
   }
 }

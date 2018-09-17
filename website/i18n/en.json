@@ -12,6 +12,10 @@
       "developers/before-you-begin": {
         "title": "Before you write code"
       },
+      "developers/contributing": {
+        "title": "Contributing Guide",
+        "sidebar_label": "Guide"
+      },
       "developers/patch": {
         "title": "Patch"
       },
@@ -84,7 +88,8 @@
       "Rules": "Rules",
       "Misc": "Misc",
       "Implementing rules": "Implementing rules",
-      "API Reference": "API Reference"
+      "API Reference": "API Reference",
+      "Contributing": "Contributing"
     }
   },
   "pages-strings": {
