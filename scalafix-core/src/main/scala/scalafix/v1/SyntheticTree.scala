@@ -1,5 +1,5 @@
 package scalafix.v1
-// scalafmt: { maxColumn = 120}
+// scalafmt: { maxColumn = 120 }
 
 import scalafix.internal.util.Pretty
 

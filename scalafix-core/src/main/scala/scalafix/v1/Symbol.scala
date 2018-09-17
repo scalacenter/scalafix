@@ -17,7 +17,7 @@ final class Symbol private (val value: String) {
   def isLocal: Boolean = value.isLocal
   def owner: Symbol = Symbol(value.owner)
   def displayName: String = value.desc.name.value
-  def info(implicit doc: Symtab): Option[SymbolInfo] =
+  def info(implicit doc: Symtab): Option[SymbolInformation] =
     doc.info(this)
   def normalized: Symbol = SymbolOps.normalize(this)
   def asNonEmpty: Option[Symbol] =

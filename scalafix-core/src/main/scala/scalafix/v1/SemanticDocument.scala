@@ -33,7 +33,7 @@ final class SemanticDocument private[scalafix] (
   def synthetics: Iterator[SyntheticTree] =
     internal.synthetics
 
-  override def info(symbol: Symbol): Option[SymbolInfo] =
+  override def info(symbol: Symbol): Option[SymbolInformation] =
     internal.info(symbol)
   override def toString: String =
     s"SemanticDocument(${input.syntax})"

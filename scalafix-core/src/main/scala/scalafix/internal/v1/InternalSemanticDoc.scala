@@ -12,7 +12,7 @@ import scalafix.lint.Diagnostic
 import scalafix.v1.SyntacticDocument
 import scalafix.v1.SyntheticTree
 import scalafix.v1.Symbol
-import scalafix.v1.SymbolInfo
+import scalafix.v1.SymbolInformation
 import scalafix.v1.Symtab
 
 final class InternalSemanticDoc(
@@ -46,13 +46,13 @@ final class InternalSemanticDoc(
     else Symbol.None
   }
 
-  def info(sym: Symbol): Option[SymbolInfo] = {
+  def info(sym: Symbol): Option[SymbolInformation] = {
     if (sym.isNone) {
       None
     } else if (sym.isLocal) {
-      locals.get(sym.value).map(new SymbolInfo(_)(this))
+      locals.get(sym.value).map(new SymbolInformation(_)(this))
     } else {
-      symtab.info(sym.value).map(new SymbolInfo(_)(this))
+      symtab.info(sym.value).map(new SymbolInformation(_)(this))
     }
   }
 

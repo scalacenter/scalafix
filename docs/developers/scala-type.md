@@ -7,7 +7,7 @@ title: ScalaType
 
 ```scala mdoc:file:scalafix-core/src/main/scala/scalafix/v1/ScalaType.scala
 sealed abstract class ScalaType...
-...case object NoType
+...NoType extends
 ```
 
 ## SemanticDB
@@ -32,8 +32,9 @@ import scalafix.v1._
 import scala.meta._
 ```
 
-### `List[SymbolInfo]` instead of `Scope`
+### `List[SymbolInformation]` instead of `Scope`
 
-The `ScalaType` data structure uses `List[SymbolInfo]` instead of `Scope`, where
-applicable. This change avoids the notion of "soft-linked" and "hard-linked"
-symbols, resulting in a higher-level API without loss of expressiveness.
+The `ScalaType` data structure uses `List[SymbolInformation]` instead of
+`Scope`, where applicable. This change avoids the notion of "soft-linked" and
+"hard-linked" symbols, resulting in a higher-level API without loss of
+expressiveness.

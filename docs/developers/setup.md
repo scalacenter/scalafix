@@ -13,7 +13,7 @@ The quickest way to get started in sbt is to use the `scalafix.g8` project
 template:
 
 ```
-cd reponame # The project you want to implement rules for.
+cd repo-name # The project you want to implement rules for.
 
 sbt new scalacenter/scalafix.g8 --repo="Repository Name"
 cd scalafix
@@ -34,12 +34,10 @@ scalafix
 │   ├── resources/META-INF/services
 │   │   └── scalafix.v1.Rule // ServiceLoader configuration to load rule
 │   └── scala/fix
-│       ├── Rewrite.scala // Implementation of a rewrite rule
-│       └── Linter.scala // Implementation of a linter rule
+│       └── Rewrite.scala // Implementation of a rewrite rule
 ├── input/src/main/scala/test
-│   ├── RewriteTest.scala // Unit test for rewrite rule,
-│   │                     // must have corresponding file in output.
-│   └── LinterTest.scala  // Unit test for linter rule,
+│   └── RewriteTest.scala // Unit test for rewrite rule,
+│                         // must have corresponding file in output.
 │                         // no corresponding output file needed.
 ├── output/src/main/scala/test
 │   └── RewriteTest.scala // Expected output from running rewrite

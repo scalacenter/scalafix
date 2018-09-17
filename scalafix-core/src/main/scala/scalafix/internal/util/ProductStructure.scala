@@ -4,7 +4,7 @@ import org.typelevel.paiges._
 import scala.meta.Tree
 import scala.meta._
 import scalafix.v1.Symbol
-import scalafix.v1.SymbolInfo
+import scalafix.v1.SymbolInformation
 import DocConstants._
 
 object ProductLabeledStructure
@@ -49,7 +49,7 @@ class ProductStructure(
       prettyProduct(value)
     case value: Symbol =>
       prettySymbol(value)
-    case value: SymbolInfo =>
+    case value: SymbolInformation =>
       prettySymbolInfo(value)
     case value: Int =>
       Doc.text(Lit.Int(value).syntax)
@@ -96,8 +96,8 @@ class ProductStructure(
     }
   }
 
-  private def prettySymbolInfo(info: SymbolInfo): Doc = {
-    Doc.text(s"SymbolInfo(${info.toString})")
+  private def prettySymbolInfo(info: SymbolInformation): Doc = {
+    Doc.text(s"SymbolInformation(${info.toString})")
   }
 
   private def prettySymbol(symbol: Symbol): Doc = {

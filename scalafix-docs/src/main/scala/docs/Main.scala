@@ -4,6 +4,7 @@ import java.nio.file.Paths
 
 import scalafix.Versions
 import scalafix.docs.PatchDocs
+import scalafix.internal.v1.SymbolInformationAnnotations.kind
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -30,6 +31,7 @@ object Main {
         )
       )
       .withArgs(args.toList)
+//    PatchDocs.documentSymbolInfoCategory(classOf[kind])
     val exit = mdoc.Main.process(settings)
     PatchDocs.compiler.askShutdown()
     if (exit != 0) sys.exit(exit)

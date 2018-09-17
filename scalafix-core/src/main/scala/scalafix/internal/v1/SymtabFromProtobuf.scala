@@ -9,14 +9,14 @@ object SymtabFromProtobuf {
 }
 final class SymtabFromProtobuf(symtab: Symtab) {
 
-  def info(sym: String): SymbolInfo =
+  def info(sym: String): SymbolInformation =
     symtab.info(Symbol(sym)).getOrElse(throw new NoSuchElementException(sym))
 
-  def sscope(scope: Option[s.Scope]): List[SymbolInfo] = scope match {
+  def sscope(scope: Option[s.Scope]): List[SymbolInformation] = scope match {
     case None => Nil
     case Some(sc) =>
       if (sc.hardlinks.isEmpty) sc.symlinks.iterator.map(info).toList
-      else sc.infos.iterator.map(i => new SymbolInfo(i)(symtab)).toList
+      else sc.infos.iterator.map(i => new SymbolInformation(i)(symtab)).toList
   }
 
   def stype(t: s.Type): ScalaType = t match {
@@ -121,10 +121,10 @@ final class SymtabFromProtobuf(symtab: Symtab) {
     def convert: List[ScalaType] = types.iterator.map(stype).toList
   }
   implicit class RichScope(scope: Option[s.Scope]) {
-    def convert: List[SymbolInfo] = sscope(scope)
+    def convert: List[SymbolInformation] = sscope(scope)
   }
   implicit class RichScopes(scopes: Seq[s.Scope]) {
-    def convert: List[List[SymbolInfo]] =
+    def convert: List[List[SymbolInformation]] =
       scopes.iterator.map(s => sscope(Some(s))).toList
   }
 }

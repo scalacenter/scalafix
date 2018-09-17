@@ -5,14 +5,14 @@ import scalafix.internal.reflect.ClasspathOps
 import scalafix.testkit.DiffAssertions
 import scalafix.v1._
 
-class SymbolInfoSuite extends FunSuite with DiffAssertions {
+class SymbolInformationSuite extends FunSuite with DiffAssertions {
   private val classpath =
     ClasspathOps.bootClasspath.get ++ ClasspathOps.thisClasspath
 
   private val symtab = GlobalSymbolTable(classpath)
   private implicit val v1Symtab = new Symtab {
-    override def info(symbol: Symbol): Option[SymbolInfo] =
-      symtab.info(symbol.value).map(new SymbolInfo(_)(this))
+    override def info(symbol: Symbol): Option[SymbolInformation] =
+      symtab.info(symbol.value).map(new SymbolInformation(_)(this))
   }
 
   def checkSyntax(original: String, expected: String): Unit = {

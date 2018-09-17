@@ -7,7 +7,7 @@ In this tutorial, you will learn how to
 
 - write unit tests for rewrite and linter rules
 - use pattern matching to find interesting tree nodes
-- use `SymbolInfo` to look up method signatures
+- use `SymbolInformation` to look up method signatures
 - use `Diagnostic` to report linter errors
 - use `withConfiguration` to make a rule configurable
 - publish the rule so others can try it on their own codebase
@@ -187,7 +187,7 @@ case Term.Apply(_, args) =>
   }
 ```
 
-## Use `SymbolInfo` to lookup method signatures
+## Use `SymbolInformation to lookup method signatures
 
 Our rule is still unfinished because we have hard-coded `isSuccess`. Let's add a
 test case to reproduce this bug
@@ -233,11 +233,11 @@ we are calling
 - `Tree.symbol` returns a `Symbol`, which represents the unique identifier of
   definition such as a `val` or a `class`.
 - `Symbol.info` returns a
-  [`SymbolInfo`](https://static.javadoc.io/ch.epfl.scala/scalafix-core_2.12/@VERSION@/scalafix/v1/SymbolInfo.html),
+  [`SymbolInformation`](https://static.javadoc.io/ch.epfl.scala/scalafix-core_2.12/@VERSION@/scalafix/v1/SymbolInformation.html),
   which contains metadata about that symbol.
 
-Next, we use `SymbolInfo.signature` to see if the symbol is a method with a
-non-empty parameter list.
+Next, we use `SymbolInformation.signature` to see if the symbol is a method with
+a non-empty parameter list.
 
 ```diff
 + info.signature match {
@@ -315,7 +315,7 @@ The benefit of making `NamedLiteralArguments` a syntactic linter instead of a
 semantic rewrite is that it's simpler to run syntactic rules since they don't
 require compilation. However, the downside is that we can't look up the correct
 parameter name. The linter can be syntactic because it doesn't need to use
-`SymbolInfo` to look up the parameter name.
+`SymbolInformation` to look up the parameter name.
 
 First, let's create a diagnostic that produces the error message
 

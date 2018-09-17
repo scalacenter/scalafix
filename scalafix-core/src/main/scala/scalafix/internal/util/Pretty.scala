@@ -129,11 +129,11 @@ object Pretty {
     if (annotation.tpe.isEmpty) Doc.empty
     else `@` + pretty(annotation.tpe)
 
-  def pretty(info: SymbolInfo): Doc = {
+  def pretty(info: SymbolInformation): Doc = {
     Doc.text(info.toString)
   }
 
-  def prettyTypeParameters(typeParameters: List[SymbolInfo]): Doc = {
+  def prettyTypeParameters(typeParameters: List[SymbolInformation]): Doc = {
     if (typeParameters.isEmpty) Doc.empty
     else {
       `[` +

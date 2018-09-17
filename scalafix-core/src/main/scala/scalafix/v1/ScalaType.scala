@@ -1,5 +1,5 @@
 package scalafix.v1
-// scalafmt: { maxColumn = 120}
+// scalafmt: { maxColumn = 120 }
 
 import scalafix.internal.util.Pretty
 
@@ -17,10 +17,10 @@ final case class ConstantType(constant: Constant) extends ScalaType
 final case class IntersectionType(types: List[ScalaType]) extends ScalaType
 final case class UnionType(types: List[ScalaType]) extends ScalaType
 final case class WithType(types: List[ScalaType]) extends ScalaType
-final case class StructuralType(tpe: ScalaType, declarations: List[SymbolInfo]) extends ScalaType
+final case class StructuralType(tpe: ScalaType, declarations: List[SymbolInformation]) extends ScalaType
 final case class AnnotatedType(annotations: List[Annotation], tpe: ScalaType) extends ScalaType
-final case class ExistentialType(tpe: ScalaType, declarations: List[SymbolInfo]) extends ScalaType
-final case class UniversalType(typeParameters: List[SymbolInfo], tpe: ScalaType) extends ScalaType
+final case class ExistentialType(tpe: ScalaType, declarations: List[SymbolInformation]) extends ScalaType
+final case class UniversalType(typeParameters: List[SymbolInformation], tpe: ScalaType) extends ScalaType
 final case class ByNameType(tpe: ScalaType) extends ScalaType
 final case class RepeatedType(tpe: ScalaType) extends ScalaType
 case object NoType extends ScalaType

@@ -1,5 +1,4 @@
 package scalafix.v1
-// scalafmt: { maxColumn = 200 }
 
 import scalafix.internal.util.Pretty
 
@@ -9,8 +8,21 @@ sealed abstract class Signature extends Product with Serializable {
   final def nonEmpty: Boolean = !isEmpty
 }
 
-case object NoSignature extends Signature
-final case class ClassSignature(typeParameters: List[SymbolInfo], parents: List[ScalaType], self: ScalaType, declarations: List[SymbolInfo]) extends Signature
-final case class MethodSignature(typeParameters: List[SymbolInfo], parameterLists: List[List[SymbolInfo]], returnType: ScalaType) extends Signature
-final case class TypeSignature(typeParameters: List[SymbolInfo], lowerBound: ScalaType, upperBound: ScalaType) extends Signature
 final case class ValueSignature(tpe: ScalaType) extends Signature
+final case class ClassSignature(
+    typeParameters: List[SymbolInformation],
+    parents: List[ScalaType],
+    self: ScalaType,
+    declarations: List[SymbolInformation])
+    extends Signature
+final case class MethodSignature(
+    typeParameters: List[SymbolInformation],
+    parameterLists: List[List[SymbolInformation]],
+    returnType: ScalaType)
+    extends Signature
+final case class TypeSignature(
+    typeParameters: List[SymbolInformation],
+    lowerBound: ScalaType,
+    upperBound: ScalaType)
+    extends Signature
+case object NoSignature extends Signature
