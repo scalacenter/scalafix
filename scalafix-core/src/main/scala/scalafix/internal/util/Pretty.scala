@@ -1,7 +1,6 @@
 package scalafix.internal.util
 
 import org.typelevel.paiges.Doc
-import scala.collection.mutable.ListBuffer
 import scala.meta.Lit
 import scalafix.internal.v1.Types
 import scalafix.v1._
@@ -131,82 +130,7 @@ object Pretty {
     else `@` + pretty(annotation.tpe)
 
   def pretty(info: SymbolInfo): Doc = {
-    val symbol = Doc.text("/* ") +
-      Doc.text(info.symbol.value) +
-      Doc.text(" */ ")
-    val annotations = info.annotations.filter(_.tpe.nonEmpty)
-    val annotation =
-      if (annotations.isEmpty) Doc.empty
-      else {
-        Doc
-          .intercalate(
-            Doc.space,
-            info.annotations.filter(_.tpe.nonEmpty).map(pretty)) +
-          Doc.space
-      }
-    val saccess =
-      if (info.isPrivate) "private"
-      else if (info.isPrivateThis) "private[this]"
-      else if (info.isPrivateWithin) s"private[${pretty(info.within.get)}]"
-      else if (info.isProtected) "protected"
-      else if (info.isProtectedThis) "protected[this]"
-      else if (info.isProtectedWithin) s"protected[${pretty(info.within.get)}]"
-      else ""
-    val access =
-      if (saccess.isEmpty) Doc.empty
-      else Doc.text(saccess) + Doc.space
-    val mods = ListBuffer.empty[Doc]
-    def append(mod: String): Unit = mods += Doc.text(mod)
-    if (info.isAbstract) append("abstract")
-    if (info.isFinal && !info.isObject) append("final")
-    if (info.isSealed) append("sealed")
-    if (info.isImplicit) append("implicit")
-    if (info.isLazy) append("lazy")
-    if (info.isCase) append("case")
-    if (info.isCovariant) append("<covariant>")
-    if (info.isContravariant) append("<contravariant>")
-    if (info.isStatic) append("static")
-    if (info.isPrimary) append("<primary>")
-    if (info.isDefault) append("<default>")
-
-    val property =
-      if (mods.isEmpty) Doc.empty
-      else Doc.intercalate(Doc.space, mods) + Doc.space
-
-    val skind =
-      if (info.isMethod || info.isLocal) {
-        if (info.isVal) "val"
-        else if (info.isVar && !info.isSetter) "var"
-        else if (info.isScala) "def"
-        else "java-method"
-      } else if (info.isField) {
-        if (info.isScala) "val"
-        else "java-field"
-      } else if (info.isTrait) "trait"
-      else if (info.isInterface) "interface"
-      else if (info.isClass) "class"
-      else if (info.isObject) "object"
-      else if (info.isPackageObject) "package object"
-      else if (info.isType) "type"
-      else if (info.isConstructor) "def"
-      else if (info.isMacro) "def"
-      else if (info.isParameter) ""
-      else if (info.isTypeParameter) ""
-      else if (info.isSelfParameter) ""
-      else throw new IllegalArgumentException(info.toString)
-    val kind =
-      if (skind.isEmpty) Doc.empty
-      else Doc.text(skind) + Doc.space
-    val name =
-      if (info.isConstructor) Doc.text("this")
-      else Doc.text(info.displayName)
-
-    val signature =
-      if (info.isConstructor) Doc.empty
-      else if (info.isParameter) `:` + Doc.space + pretty(info.signature)
-      else pretty(info.signature)
-
-    symbol + annotation + access + property + kind + name + signature
+    Doc.text(info.toString)
   }
 
   def prettyTypeParameters(typeParameters: List[SymbolInfo]): Doc = {

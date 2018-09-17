@@ -18,6 +18,10 @@ structures include:
   replacing tokens and trees.
 - [`SymbolMatcher`](symbol-matcher.md): to match tree nodes that resolve to a
   specific set of symbols.
+- `ScalaType`: an ADT that encodes the full Scala type system.
+- `SyntheticTree`: an ADT that encodes synthetic tree nodes such as inferred
+  `.apply`, inferred type parameters, implicit arguments and implicit
+  conversions.
 - `Diagnostic`: a linter error message that can be reported at a source file
   location.
 - `SyntacticRule`: super class for all syntactic rules.
@@ -33,10 +37,6 @@ structures include:
 - `SymbolInfo`: metadata about a `Symbol`, including accessibility
   (private/protected/...), kind (val/def/class/trait/...), properties
   (final/abstract/implicit), language (Scala/Java) and type signature.
-- `ScalaType`: an ADT that encodes the full Scala type system.
-- `SyntheticTree`: an ADT that encodes synthetic tree nodes such as inferred
-  `.apply`, inferred type parameters, implicit arguments and implicit
-  conversions.
 
 ## Scalafix v0
 

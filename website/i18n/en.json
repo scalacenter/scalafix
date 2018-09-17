@@ -15,6 +15,9 @@
       "developers/patch": {
         "title": "Patch"
       },
+      "developers/scala-type": {
+        "title": "ScalaType"
+      },
       "developers/setup": {
         "title": "Setup"
       },

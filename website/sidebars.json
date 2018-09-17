@@ -21,7 +21,8 @@
     "API Reference": [
       "developers/api",
       "developers/patch",
-      "developers/symbol-matcher"
+      "developers/symbol-matcher",
+      "developers/scala-type"
     ]
   }
 }
