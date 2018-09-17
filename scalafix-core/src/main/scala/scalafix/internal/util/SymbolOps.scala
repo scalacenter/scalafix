@@ -7,6 +7,7 @@ import scalafix.v1
 import scala.meta.internal.semanticdb.Scala._
 
 object SymbolOps {
+
   object SignatureName {
     def unapply(arg: Signature): Option[String] = arg match {
       case Signature.Term(a) => Some(a)
@@ -90,4 +91,9 @@ object SymbolOps {
     val otherSyms = underlyingSymbols(b).map(normalize)
     syms.exists(otherSyms.contains)
   }
+
+  def inferTrailingDot(symbol: String): String =
+    if (symbol.isEmpty) symbol
+    else if (Character.isJavaIdentifierPart(symbol.last)) symbol + "."
+    else symbol
 }

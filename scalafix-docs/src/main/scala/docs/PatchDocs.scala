@@ -2,7 +2,9 @@ package scalafix.docs
 
 import scala.meta.inputs.Input
 import scala.meta.interactive._
+import scala.meta.internal.semanticdb.Print
 import scala.meta.internal.symtab.GlobalSymbolTable
+import scala.meta.metap.Format
 import scalafix.internal.v1.InternalSemanticDoc
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.patch.Patch
@@ -52,13 +54,18 @@ object PatchDocs {
   }
   lazy val compiler = InteractiveSemanticdb.newCompiler(List("-Ywarn-unused"))
   lazy val symtab = GlobalSymbolTable(ClasspathOps.thisClasspath)
-  def fromString(code: String): SemanticDocument = {
+  def fromString(code: String, debug: Boolean = false): SemanticDocument = {
     val filename = "Main.scala"
     println("```scala")
     println("// " + filename)
     println(code.trim)
     println("```")
     val textDocument = InteractiveSemanticdb.toTextDocument(compiler, code)
+    if (debug) {
+      println("```")
+      println(Print.document(Format.Compact, textDocument))
+      println("```")
+    }
     val input = Input.VirtualFile(filename, code)
     val doc = SyntacticDocument.fromInput(input)
     val internal = new InternalSemanticDoc(

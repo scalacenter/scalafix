@@ -18,6 +18,10 @@
       "developers/before-you-begin",
       "developers/tutorial"
     ],
-    "API Reference": ["developers/api", "developers/patch"]
+    "API Reference": [
+      "developers/api",
+      "developers/patch",
+      "developers/symbol-matcher"
+    ]
   }
 }

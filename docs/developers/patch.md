@@ -44,7 +44,7 @@ doc.tree.collect {
 }.showDiff()
 ```
 
-It's also possible to add left to a token instead of a tree node.
+It's also possible to add left of a token instead of a tree node.
 
 ```scala mdoc
 doc.tokens.collect {
@@ -75,7 +75,7 @@ doc.tree.collect {
 }.showDiff()
 ```
 
-It's also possible to add right to a token instead of a tree node.
+It's also possible to add right of a token instead of a tree node.
 
 ```scala mdoc
 doc.tokens.collect {

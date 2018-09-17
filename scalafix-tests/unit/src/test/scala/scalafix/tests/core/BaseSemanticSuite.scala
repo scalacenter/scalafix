@@ -4,6 +4,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 import scala.meta._
 import scala.meta.internal.io.PathIO
+import scala.meta.internal.symtab.SymbolTable
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.v0.LegacyInMemorySemanticdbIndex
 import scalafix.syntax._
@@ -13,15 +14,17 @@ import scalafix.v1.SyntacticDocument
 import scalafix.v1.SemanticDocument
 
 object BaseSemanticSuite {
+  lazy val symtab: SymbolTable = {
+    val classpath =
+      Classpaths.withDirectory(AbsolutePath(BuildInfo.sharedClasspath))
+    ClasspathOps.newSymbolTable(classpath).get
+  }
   def loadDoc(filename: String): SemanticDocument = {
     val root = AbsolutePath(BuildInfo.sharedSourceroot).resolve("scala/test")
     val abspath = root.resolve(filename)
     val relpath = abspath.toRelative(AbsolutePath(BuildInfo.baseDirectory))
     val input = Input.File(abspath)
     val doc = SyntacticDocument.fromInput(input)
-    val classpath =
-      Classpaths.withDirectory(AbsolutePath(BuildInfo.sharedClasspath))
-    val symtab = ClasspathOps.newSymbolTable(classpath).get
     SemanticDocument.fromPath(
       doc,
       relpath,

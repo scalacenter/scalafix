@@ -237,7 +237,7 @@ lazy val docs = project
     scalaVersion := scala212,
     crossScalaVersions := List(scala212),
     libraryDependencies ++= List(
-      "com.geirsson" % "mdoc" % "0.4.3" cross CrossVersion.full,
+      "com.geirsson" % "mdoc" % "0.4.4" cross CrossVersion.full,
       "com.geirsson" %% "metaconfig-docs" % metaconfigV,
       "org.scalameta" % "interactive" % scalametaV cross CrossVersion.full
     )

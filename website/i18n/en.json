@@ -21,6 +21,9 @@
       "developers/sharing-rules": {
         "title": "Sharing rules"
       },
+      "developers/symbol-matcher": {
+        "title": "SymbolMatcher"
+      },
       "developers/tutorial": {
         "title": "Tutorial"
       },

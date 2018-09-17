@@ -3,6 +3,7 @@ package scalafix
 import scala.meta.Term
 import scala.meta.Tree
 import scala.meta.inputs.Position
+import scalafix.internal.util.PositionSyntax
 import scalafix.util.Api
 
 package object v1 extends Api {
@@ -20,6 +21,11 @@ package object v1 extends Api {
       val operatorPosition =
         Position.Range(infix.pos.input, infix.pos.start, infix.op.pos.end)
       doc.internal.synthetic(operatorPosition)
+    }
+  }
+  implicit class XtensionPositionScalafix(pos: Position) {
+    def formatMessage(severity: String, message: String): String = {
+      PositionSyntax.formatMessage(pos, severity, message)
     }
   }
 

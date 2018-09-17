@@ -35,7 +35,6 @@ object ImportPatchOps {
       case _ => false
     }
   }
-
   private def fallbackToken(ctx: RuleCtx): Token = {
     def loop(tree: Tree): Token = tree match {
       case Source((stat: Pkg) :: _) => loop(stat)

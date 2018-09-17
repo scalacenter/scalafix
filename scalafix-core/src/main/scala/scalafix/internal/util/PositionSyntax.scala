@@ -6,21 +6,13 @@ import scala.meta.internal.ScalametaInternals
 
 object PositionSyntax {
 
-  implicit class XtensionPositionsScalafix(private val pos: Position)
-      extends AnyVal {
-
-    def contains(other: Position): Boolean = {
-      pos.start <= other.start &&
-      pos.end >= other.end
-    }
-
-    /** Returns a formatted string of this position including filename/line/caret. */
-    def formatMessage(severity: String, message: String): String = pos match {
+  def formatMessage(pos: Position, severity: String, message: String): String =
+    pos match {
       case Position.None =>
         s"$severity: $message"
       case _ =>
         new java.lang.StringBuilder()
-          .append(lineInput)
+          .append(pos.lineInput)
           .append(if (severity.isEmpty) "" else " ")
           .append(severity)
           .append(
@@ -31,12 +23,24 @@ object PositionSyntax {
           )
           .append(message)
           .append("\n")
-          .append(lineContent)
+          .append(pos.lineContent)
           .append("\n")
-          .append(lineCaret)
+          .append(pos.lineCaret)
           .toString
     }
 
+  implicit class XtensionPositionsScalafix(private val pos: Position)
+      extends AnyVal {
+
+    def contains(other: Position): Boolean = {
+      pos.start <= other.start &&
+      pos.end >= other.end
+    }
+
+    def formatMessage(severity: String, message: String): String =
+      PositionSyntax.formatMessage(pos, severity, message)
+
+    /** Returns a formatted string of this position including filename/line/caret. */
     def lineInput: String =
       s"${pos.input.syntax}:${pos.startLine + 1}:${pos.startColumn + 1}:"
 

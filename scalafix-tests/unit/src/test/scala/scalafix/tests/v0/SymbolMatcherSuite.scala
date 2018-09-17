@@ -1,9 +1,10 @@
-package scalafix.tests.core
+package scalafix.tests.v0
 
 import scala.meta._
-import scalafix.v0._
 import scalafix.syntax._
+import scalafix.tests.core.BaseSemanticSuite
 import scalafix.util.SymbolMatcher
+import scalafix.v0._
 
 class SymbolMatcherSuite extends BaseSemanticSuite("SymbolMatcherTest") {
 
