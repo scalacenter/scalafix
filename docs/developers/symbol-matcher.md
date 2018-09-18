@@ -33,9 +33,9 @@ import scalafix.docs.PatchDocs._
 Scalafix symbols are based on SemanticDB symbols. To learn more about SemanticDB
 symbols, consult the SemanticDB specification:
 
-- [General symbols](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#symbol)
-- [Scala symbols](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#scala-symbol)
-- [Java symbols](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#java-symbol)
+- [General symbols](https://scalameta.org/docs/semanticdb/specification.html#symbol)
+- [Scala symbols](https://scalameta.org/docs/semanticdb/specification.html#scala-symbol)
+- [Java symbols](https://scalameta.org/docs/semanticdb/specification.html#java-symbol)
 
 ## SymbolMatcher reference
 

@@ -15,10 +15,10 @@ import scalafix.internal.v1.SymbolInformationAnnotations._
  *
  * <ul>
  *   <li>
- *     <a href="https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#scala-symbolinformation">Scala SymbolInformation</a>
+ *     <a href="https://scalameta.org/docs/semanticdb/specification.html#scala-symbolinformation">Scala SymbolInformation</a>
  *   </li>
  *   <li>
- *     <a href="https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#java-symbolinformation">Java SymbolInformation</a>
+ *     <a href="https://scalameta.org/docs/semanticdb/specification.html#java-symbolinformation">Java SymbolInformation</a>
  *   </li>
  * </ul>
  *
@@ -39,7 +39,7 @@ import scalafix.internal.v1.SymbolInformationAnnotations._
  * @groupprio access 13
  * @groupdesc access Describes the visibility of this symbol. It is only possible for a symbol to have one access.
  *            For example, a symbol is either private or privateThis, it cannot be both.
- *           To learn more about Access, refer to the <a href="https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#scala-access">SemanticDB specification.</a>
+ *           To learn more about Access, refer to the <a href="https://scalameta.org/docs/semanticdb/specification.html#scala-access">SemanticDB specification.</a>
  *
  * @groupname utility Utility methods
  * @groupprio utility 14

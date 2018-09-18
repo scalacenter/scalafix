@@ -15,9 +15,9 @@ sealed abstract class SemanticType...
 The structure of `SemanticType` mirrors SemanticDB `Type`. For comprehensive
 documentation about SemanticDB types, consult the SemanticDB specification:
 
-- [General types](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#type)
-- [Scala types](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#scala-type)
-- [Java types](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#java-type)
+- [General types](https://scalameta.org/docs/semanticdb/specification.html#type)
+- [Scala types](https://scalameta.org/docs/semanticdb/specification.html#scala-type)
+- [Java types](https://scalameta.org/docs/semanticdb/specification.html#java-type)
 
 The `SemanticType` data structure diverges from SemanticDB `Type` in few minor
 details.

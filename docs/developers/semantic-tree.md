@@ -17,8 +17,8 @@ sealed abstract class SemanticTree...
 The structure of `SemanticTree` mirrors SemanticDB `Tree`. For comprehensive
 documentation about SemanticDB trees, consult the SemanticDB specification:
 
-- [General trees](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#type)
-- [Scala trees](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#java-tree)
+- [General trees](https://scalameta.org/docs/semanticdb/specification.html#type)
+- [Scala trees](https://scalameta.org/docs/semanticdb/specification.html#java-tree)
 
 The `SemanticTree` data structure diverges from SemanticDB `Tree` in few minor
 details.
