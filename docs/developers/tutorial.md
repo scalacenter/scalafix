@@ -593,11 +593,11 @@ However, rules that are compiled from source have the following limitations:
 - No tab completion in the sbt shell, users need to manually type the path to
   the source file
 
-The steps below assume you have scalafix setup according to the
-[installation instructions](../users/installation.md). The SemanticDB compiler
-plugin must be enabled to run semantic rules like `NamedLiteralArguments`.
-Syntactic rules like the linter `NoLiteralArguments` work without SemanticDB and
-don't require a `--classpath` (when using the command-line interface).
+The steps below assume you have scalafix setup according to the installation
+instructions. The SemanticDB compiler plugin must be enabled to run semantic
+rules like `NamedLiteralArguments`. Syntactic rules like the linter
+`NoLiteralArguments` work without SemanticDB and don't require a `--classpath`
+(when using the command-line interface).
 
 You have different options to run the rule from source: `file:`, `http:` or
 `github:`

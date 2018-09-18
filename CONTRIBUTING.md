@@ -33,8 +33,7 @@ sbt shell.
 > unit/testOnly *RuleSuite -- -z ProcedureSyntax # Only run only ProcedureSyntax unit test.
 ```
 
-Unit tests for rules are written using scalafix-testkit, read more about it
-here: https://scalacenter.github.io/scalafix/docs/developers/setup
+Unit tests for rules are written using scalafix-testkit
 
 ```
 scalafix-tests

@@ -180,11 +180,10 @@ doc.tree.collect {
 ### `atomic`
 
 The `atomic` patch describes how a patch should integrate with the Scalafix
-[suppression mechanism](../users/suppression.md). By using `atomic`, a patch
-opts-into respecting suppressions such as `// scalafix:off` comments. A patch
-without `atomic` will ignore suppressions. A patch with `atomic` guarantees that
-either all underlying changes of the patch get applied or none of the changes
-get applied.
+suppression mechanism. By using `atomic`, a patch opts-into respecting
+suppressions such as `// scalafix:off` comments. A patch without `atomic` will
+ignore suppressions. A patch with `atomic` guarantees that either all underlying
+changes of the patch get applied or none of the changes get applied.
 
 To illustrate how `atomic` works, imagine we have the following input.
 

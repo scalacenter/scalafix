@@ -126,4 +126,4 @@ package <empty> {
     break some assumed invariants. SemanticDB on the other hand is a plain data
     schema, essentially a small hierarchy of case classes. The entire schema is
     defined in
-    [60 lines of protobuf](https://github.com/scalameta/scalameta/blob/master/langmeta/shared/src/main/protobuf/semanticdb.proto).
+    [a single file of protobuf](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb/semanticdb.proto).
