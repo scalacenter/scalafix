@@ -59,6 +59,9 @@ const siteConfig = {
 
   editUrl: `${repoUrl}/edit/master/docs/`,
 
+  // Disabled because relative *.md links result in 404s.
+  // cleanUrl: true,
+
   repoUrl
 };
 

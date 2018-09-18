@@ -78,6 +78,7 @@ sealed abstract class Patch {
 
   /** Skip this entire patch if a part of it is disabled with // scalafix:off */
   def atomic: Patch = AtomicPatch(this)
+
 }
 
 //////////////////////////////
@@ -333,11 +334,15 @@ object Patch {
   }
 
   def unifiedDiff(original: Input, revised: Input): String = {
+    unifiedDiff(original, revised, 3)
+  }
+
+  def unifiedDiff(original: Input, revised: Input, context: Int): String = {
     DiffUtils.unifiedDiff(
       original.label,
       revised.label,
       new String(original.chars).lines.toList,
       new String(revised.chars).lines.toList,
-      3)
+      context)
   }
 }

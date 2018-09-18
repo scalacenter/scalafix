@@ -30,10 +30,10 @@ final class SemanticDocument private[scalafix] (
 
   def diagnostics: Iterator[Diagnostic] =
     internal.messages
-  def synthetics: Iterator[STree] =
+  def synthetics: Iterator[SyntheticTree] =
     internal.synthetics
 
-  override def info(symbol: Symbol): Option[SymbolInfo] =
+  override def info(symbol: Symbol): Option[SymbolInformation] =
     internal.info(symbol)
   override def toString: String =
     s"SemanticDocument(${input.syntax})"

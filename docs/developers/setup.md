@@ -13,51 +13,37 @@ The quickest way to get started in sbt is to use the `scalafix.g8` project
 template:
 
 ```
-cd reponame # The project you want to implement rules for.
+cd repo-name # The project you want to implement rules for.
 
-sbt new scalacenter/scalafix.g8 --rule="reponame" --version="v1.0"
+sbt new scalacenter/scalafix.g8 --repo="Repository Name"
 cd scalafix
 sbt tests/test
 ```
 
-The `--rule=<reponame>` option should match the name of your GitHub repository.
+The `--repo=<repository name>` option should match the name of your GitHub
+repository with dashes replaced by spaces.
+
+- For `github.com/organization/repository`, type `repository`
+- For `github.com/organization/repository-name`, type `Repository Name`
+
 The template generates a `scalafix/` directory with four different sbt projects.
 
 ```scala
 scalafix
-├── rules
-│   └── src
-│       └── main
-│           ├── resources
-│           │   └── META-INF
-│           │       └── services
-│           │           └── scalafix.v1.Rule // ServiceLoader configuration to load rule
-│           └── scala
-│               └── fix
-│                   ├── Rewrite.scala // Implementation of a rewrite rule
-│                   └── Linter.scala // Implementation of a linter rule
-├── input
-│   └── src
-│       └── main
-│           └── scala
-│               └── test
-│                   ├── RewriteTest.scala // Unit test for rewrite rule,
-│                   │                     // must have corresponding file in output.
-│                   └── LinterTest.scala  // Unit test for linter rule,
-│                                         // no corresponding output file needed.
-├── output
-│   └── src
-│       └── main
-│           └── scala
-│               └── test
-│                   └── RewriteTest.scala // Expected output from running rewrite
-│                                         // on RewriteTest.scala from input project
-└── tests
-    └── src
-        └── test
-            └── scala
-                └── fix
-                    └── RuleSuite.scala
+├── rules/src/main
+│   ├── resources/META-INF/services
+│   │   └── scalafix.v1.Rule // ServiceLoader configuration to load rule
+│   └── scala/fix
+│       └── Rewrite.scala // Implementation of a rewrite rule
+├── input/src/main/scala/test
+│   └── RewriteTest.scala // Unit test for rewrite rule,
+│                         // must have corresponding file in output.
+│                         // no corresponding output file needed.
+├── output/src/main/scala/test
+│   └── RewriteTest.scala // Expected output from running rewrite
+│                         // on RewriteTest.scala from input project
+└── tests/src/test/scala/fix
+    └── RuleSuite.scala
 ```
 
 - `rules`: contains rule implementations. This is the module that you will

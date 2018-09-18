@@ -9,17 +9,17 @@ object SymtabFromProtobuf {
 }
 final class SymtabFromProtobuf(symtab: Symtab) {
 
-  def info(sym: String): SymbolInfo =
+  def info(sym: String): SymbolInformation =
     symtab.info(Symbol(sym)).getOrElse(throw new NoSuchElementException(sym))
 
-  def sscope(scope: Option[s.Scope]): List[SymbolInfo] = scope match {
+  def sscope(scope: Option[s.Scope]): List[SymbolInformation] = scope match {
     case None => Nil
     case Some(sc) =>
       if (sc.hardlinks.isEmpty) sc.symlinks.iterator.map(info).toList
-      else sc.infos.iterator.map(i => new SymbolInfo(i)(symtab)).toList
+      else sc.infos.iterator.map(i => new SymbolInformation(i)(symtab)).toList
   }
 
-  def stype(t: s.Type): SType = t match {
+  def stype(t: s.Type): ScalaType = t match {
     case s.IntersectionType(types) =>
       new IntersectionType(types.convert)
     case s.SuperType(prefix, symbol) =>
@@ -115,16 +115,16 @@ final class SymtabFromProtobuf(symtab: Symtab) {
     def convert: Symbol = Symbol(sym)
   }
   implicit class RichType(t: s.Type) {
-    def convert: SType = stype(t)
+    def convert: ScalaType = stype(t)
   }
   implicit class RichTypes(types: Seq[s.Type]) {
-    def convert: List[SType] = types.iterator.map(stype).toList
+    def convert: List[ScalaType] = types.iterator.map(stype).toList
   }
   implicit class RichScope(scope: Option[s.Scope]) {
-    def convert: List[SymbolInfo] = sscope(scope)
+    def convert: List[SymbolInformation] = sscope(scope)
   }
   implicit class RichScopes(scopes: Seq[s.Scope]) {
-    def convert: List[List[SymbolInfo]] =
+    def convert: List[List[SymbolInformation]] =
       scopes.iterator.map(s => sscope(Some(s))).toList
   }
 }

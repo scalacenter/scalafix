@@ -2,7 +2,7 @@ package scalafix.v1
 
 import scala.runtime.Statics
 
-final class Annotation(val tpe: SType) extends Product {
+final class Annotation(val tpe: ScalaType) extends Product {
   override def productArity: Int = 1
   override def productPrefix: String = "Annotation"
   override def productElement(n: Int): Any = n match {

@@ -6,16 +6,36 @@
     "tagline": "Refactoring and linting tool for Scala",
     "docs": {
       "developers/api": {
-        "title": "API Documentation"
+        "title": "API Overview",
+        "sidebar_label": "Overview"
       },
       "developers/before-you-begin": {
         "title": "Before you write code"
+      },
+      "developers/contributing": {
+        "title": "Contributing Guide",
+        "sidebar_label": "Guide"
+      },
+      "developers/patch": {
+        "title": "Patch"
+      },
+      "developers/scala-type": {
+        "title": "ScalaType"
       },
       "developers/setup": {
         "title": "Setup"
       },
       "developers/sharing-rules": {
         "title": "Sharing rules"
+      },
+      "developers/symbol-information": {
+        "title": "SymbolInformation"
+      },
+      "developers/symbol-matcher": {
+        "title": "SymbolMatcher"
+      },
+      "developers/synthetic-tree": {
+        "title": "SyntheticTree"
       },
       "developers/tutorial": {
         "title": "Tutorial"
@@ -67,7 +87,9 @@
       "Usage": "Usage",
       "Rules": "Rules",
       "Misc": "Misc",
-      "Implementing rules": "Implementing rules"
+      "Implementing rules": "Implementing rules",
+      "API Reference": "API Reference",
+      "Contributing": "Contributing"
     }
   },
   "pages-strings": {

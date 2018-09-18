@@ -1,13 +1,37 @@
 package docs
 
-import java.nio.file.Paths
+import java.nio.charset.StandardCharsets
+import java.nio.file.{Files, Path, Paths}
+
 import scalafix.Versions
+import scalafix.docs.PatchDocs
+
+import scala.meta.internal.io.{FileIO, PathIO}
 
 object Main {
+  def copyContributingGuide(out: Path): Unit = {
+    val guide = FileIO
+      .slurp(
+        PathIO.workingDirectory.resolve("CONTRIBUTING.md"),
+        StandardCharsets.UTF_8)
+      .stripPrefix("# Contributing\n")
+    val text =
+      """---
+id: contributing
+title: Contributing Guide
+sidebar_label: Guide
+---
+""".stripMargin + guide
+    val outfile = out.resolve("developers").resolve("contributing.md")
+    Files.createDirectories(outfile.getParent)
+    Files.write(outfile, text.getBytes(StandardCharsets.UTF_8))
+  }
   def main(args: Array[String]): Unit = {
+    val out = Paths.get("website", "target", "docs")
+    copyContributingGuide(out)
     val settings = mdoc
       .MainSettings()
-      .withOut(Paths.get("website", "target", "docs"))
+      .withOut(out)
       .withSiteVariables(
         Map(
           "SEMANTICDB" -> "[SemanticDB](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md)",
@@ -21,6 +45,7 @@ object Main {
       )
       .withStringModifiers(
         List(
+          new FileModifier,
           new HelpModifier,
           new RuleModifier,
           new RulesModifier
@@ -28,6 +53,7 @@ object Main {
       )
       .withArgs(args.toList)
     val exit = mdoc.Main.process(settings)
-    sys.exit(exit)
+    PatchDocs.compiler.askShutdown()
+    if (exit != 0) sys.exit(exit)
   }
 }

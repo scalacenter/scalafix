@@ -19,6 +19,7 @@ import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.Ok
+import scalafix.internal.util.SymbolOps
 import scalafix.v0._
 
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
@@ -184,10 +185,10 @@ trait ScalafixMetaconfigReaders {
                   Conf.Str(s"$els: ${els.productPrefix}"))
                 .notOk
           }
-        var toParse = path
-        if (!path.endsWith(".") && !path.endsWith("#")) toParse += "."
+        val toParse = SymbolOps.inferTrailingDot(path)
         parseSymbol(toParse).andThen(symbolGlobal)
     }
+
   implicit lazy val AddGlobalImportReader: ConfDecoder[AddGlobalImport] =
     importerReader.map(AddGlobalImport.apply)
   implicit lazy val RemoveGlobalImportReader: ConfDecoder[RemoveGlobalImport] =

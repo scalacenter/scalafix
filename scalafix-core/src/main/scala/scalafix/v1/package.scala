@@ -3,6 +3,7 @@ package scalafix
 import scala.meta.Term
 import scala.meta.Tree
 import scala.meta.inputs.Position
+import scalafix.internal.util.PositionSyntax
 import scalafix.util.Api
 
 package object v1 extends Api {
@@ -11,19 +12,25 @@ package object v1 extends Api {
       doc.internal.symbol(tree)
   }
   implicit class XtensionTermScalafixSemantic(term: Term) {
-    def synthetic(implicit doc: SemanticDocument): Option[STree] =
+    def synthetic(implicit doc: SemanticDocument): Option[SyntheticTree] =
       doc.internal.synthetic(term.pos)
   }
   implicit class XtensionTermApplyInfixScalafixSemantic(
       infix: Term.ApplyInfix) {
-    def syntheticOperator(implicit doc: SemanticDocument): Option[STree] = {
+    def syntheticOperator(
+        implicit doc: SemanticDocument): Option[SyntheticTree] = {
       val operatorPosition =
         Position.Range(infix.pos.input, infix.pos.start, infix.op.pos.end)
       doc.internal.synthetic(operatorPosition)
     }
   }
+  implicit class XtensionPositionScalafix(pos: Position) {
+    def formatMessage(severity: String, message: String): String = {
+      PositionSyntax.formatMessage(pos, severity, message)
+    }
+  }
 
-  implicit class XtensionSyntheticTree(tree: STree) {
+  implicit class XtensionSyntheticTree(tree: SyntheticTree) {
     def symbol(implicit sdoc: SemanticDocument): Option[Symbol] = tree match {
       case t: ApplyTree =>
         t.function.symbol
@@ -34,6 +41,8 @@ package object v1 extends Api {
       case t: IdTree =>
         Some(t.symbol)
       case t: OriginalTree =>
+        t.tree.symbol.asNonEmpty
+      case t: OriginalSubTree =>
         t.tree.symbol.asNonEmpty
       case _: MacroExpansionTree | _: LiteralTree | _: FunctionTree | NoTree =>
         None
