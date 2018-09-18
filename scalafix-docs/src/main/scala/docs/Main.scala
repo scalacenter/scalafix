@@ -15,7 +15,6 @@ object Main {
         PathIO.workingDirectory.resolve("CONTRIBUTING.md"),
         StandardCharsets.UTF_8)
       .stripPrefix("# Contributing\n")
-    Files.createDirectories(out)
     val text =
       """---
 id: contributing
@@ -24,6 +23,7 @@ sidebar_label: Guide
 ---
 """.stripMargin + guide
     val outfile = out.resolve("developers").resolve("contributing.md")
+    Files.createDirectories(outfile.getParent)
     Files.write(outfile, text.getBytes(StandardCharsets.UTF_8))
   }
   def main(args: Array[String]): Unit = {
