@@ -105,8 +105,8 @@ package <empty> {
 
 - Scala Refactoring requires a live instance of scala-compiler while
   scalafix-core does not depend on scala-compiler. Scalafix only depends on
-  [SemanticDB](http://scalameta.org/tutorial/#SemanticDB). This has positive and
-  negative implications, for example
+  [SemanticDB](https://scalameta.org/docs/semanticdb/specification.html). This
+  has positive and negative implications, for example
   - Scala Refactoring has always access to the full compiler APIs, while changes
     to the Scalafix semantic API may require changing the Scalameta SemanticDB
     schema.

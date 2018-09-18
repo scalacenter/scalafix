@@ -22,6 +22,12 @@
       "developers/scala-type": {
         "title": "ScalaType"
       },
+      "developers/semantic-tree": {
+        "title": "SemanticTree"
+      },
+      "developers/semantic-type": {
+        "title": "SemanticType"
+      },
       "developers/setup": {
         "title": "Setup"
       },

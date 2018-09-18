@@ -24,9 +24,9 @@ The structure of `SymbolInformation` in Scalafix mirrors SemanticDB
 `SymbolInformation`. For comprehensive documentation about SemanticDB symbol
 information consult the SemanticDB specification:
 
-- [General symbol information](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#symbolinformation)
-- [Scala symbol information](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#scala-symbolinformation)
-- [Java symbol information](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#java-symbolinformation)
+- [General symbol information](https://scalameta.org/docs/semanticdb/specification.html#symbolinformation)
+- [Scala symbol information](https://scalameta.org/docs/semanticdb/specification.html#scala-symbolinformation)
+- [Java symbol information](https://scalameta.org/docs/semanticdb/specification.html#java-symbolinformation)
 
 ### Language
 
@@ -73,17 +73,17 @@ sealed abstract class Signature...
 
 To learn more about SemanticDB signatures, consult the specification:
 
-- [General signatures](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#signature)
-- [Scala signatures](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#scala-signature)
-- [Java signatures](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#java-signature)
+- [General signatures](https://scalameta.org/docs/semanticdb/specification.html#signature)
+- [Scala signatures](https://scalameta.org/docs/semanticdb/specification.html#scala-signature)
+- [Java signatures](https://scalameta.org/docs/semanticdb/specification.html#java-signature)
 
 ### Annotation
 
 To learn more about SemanticDB annotations, consult the specification:
 
-- [General annotations](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#annotation)
-- [Scala annotations](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#scala-annotation)
-- [Java annotations](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#java-annotation)
+- [General annotations](https://scalameta.org/docs/semanticdb/specification.html#annotation)
+- [Scala annotations](https://scalameta.org/docs/semanticdb/specification.html#scala-annotation)
+- [Java annotations](https://scalameta.org/docs/semanticdb/specification.html#java-annotation)
 
 ### Access
 
@@ -98,9 +98,9 @@ documentSymbolInfoCategory(classOf[access])
 
 To learn more about SemanticDB visibility access, consult the specification:
 
-- [General access](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#access)
-- [Scala access](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#scala-access)
-- [Java access](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#java-access)
+- [General access](https://scalameta.org/docs/semanticdb/specification.html#access)
+- [Scala access](https://scalameta.org/docs/semanticdb/specification.html#scala-access)
+- [Java access](https://scalameta.org/docs/semanticdb/specification.html#java-access)
 
 ### Utility methods
 

@@ -53,10 +53,10 @@ The error message appears because `RemoveUnused` requires the project sources to
 be compiled beforehand for the unused code analysis to function properly.
 
 The first error message means the
-[SemanticDB](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/guide.md)
-compiler plugin is not enabled for this project. The second error says
-`RemoveUnused` requires the Scala compiler option `-Ywarn-unused`. To fix both
-problems, add the following settings to `build.sbt`
+[SemanticDB](https://scalameta.org/docs/semanticdb/guide.html) compiler plugin
+is not enabled for this project. The second error says `RemoveUnused` requires
+the Scala compiler option `-Ywarn-unused`. To fix both problems, add the
+following settings to `build.sbt`
 
 ```diff
  // build.sbt

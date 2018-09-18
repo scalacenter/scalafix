@@ -22,9 +22,9 @@
       "developers/api",
       "developers/patch",
       "developers/symbol-matcher",
-      "developers/scala-type",
-      "developers/synthetic-tree",
-      "developers/symbol-information"
+      "developers/symbol-information",
+      "developers/semantic-type",
+      "developers/semantic-tree"
     ],
     "Contributing": ["developers/contributing"]
   }

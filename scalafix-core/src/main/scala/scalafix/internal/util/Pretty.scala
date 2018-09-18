@@ -25,8 +25,8 @@ object Pretty {
   def pretty(sym: Symbol): Doc =
     Doc.text(sym.displayName)
 
-  def pretty(tpe: ScalaType): Doc = {
-    def prefix(tpe: ScalaType): Doc = {
+  def pretty(tpe: SemanticType): Doc = {
+    def prefix(tpe: SemanticType): Doc = {
       tpe match {
         case NoType => Doc.str("<no type>")
         case t: TypeRef =>
@@ -116,7 +116,7 @@ object Pretty {
           `*` + Doc.space + pretty(t.tpe)
       }
     }
-    def normal(tpe: ScalaType): Doc = tpe match {
+    def normal(tpe: SemanticType): Doc = tpe match {
       case _: SingleType | _: ThisType | _: SuperType =>
         prefix(tpe) + `.` + `type`
       case _ =>
@@ -192,7 +192,7 @@ object Pretty {
       pretty(t.tpe)
   }
 
-  def pretty(tree: SyntheticTree): Doc = tree match {
+  def pretty(tree: SemanticTree): Doc = tree match {
     case NoTree =>
       Doc.empty
     case t: IdTree =>

@@ -34,7 +34,7 @@ sidebar_label: Guide
       .withOut(out)
       .withSiteVariables(
         Map(
-          "SEMANTICDB" -> "[SemanticDB](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md)",
+          "SEMANTICDB" -> "[SemanticDB](https://scalameta.org/docs/semanticdb/specification.html)",
           "GITTER" -> "[Gitter](http://gitter.im/scalacenter/scalafix)",
           "SCALA212" -> Versions.scala212,
           "SCALA211" -> Versions.scala211,

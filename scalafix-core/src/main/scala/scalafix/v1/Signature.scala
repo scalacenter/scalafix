@@ -8,21 +8,21 @@ sealed abstract class Signature extends Product with Serializable {
   final def nonEmpty: Boolean = !isEmpty
 }
 
-final case class ValueSignature(tpe: ScalaType) extends Signature
+final case class ValueSignature(tpe: SemanticType) extends Signature
 final case class ClassSignature(
     typeParameters: List[SymbolInformation],
-    parents: List[ScalaType],
-    self: ScalaType,
+    parents: List[SemanticType],
+    self: SemanticType,
     declarations: List[SymbolInformation])
     extends Signature
 final case class MethodSignature(
     typeParameters: List[SymbolInformation],
     parameterLists: List[List[SymbolInformation]],
-    returnType: ScalaType)
+    returnType: SemanticType)
     extends Signature
 final case class TypeSignature(
     typeParameters: List[SymbolInformation],
-    lowerBound: ScalaType,
-    upperBound: ScalaType)
+    lowerBound: SemanticType,
+    upperBound: SemanticType)
     extends Signature
 case object NoSignature extends Signature

@@ -15,6 +15,7 @@ package object website {
   def url(name: String, relpath: String): Text.TypedTag[String] =
     a(href := s"/scalafix/$relpath", name)
   def ruleLink(name: String): Text.TypedTag[String] = {
+
     url(name, s"docs/rules/$name.html")
   }
 

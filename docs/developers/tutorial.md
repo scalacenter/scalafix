@@ -122,9 +122,9 @@ Let's break this down:
 - `doc.tree.collect { case => ...}`: perform a top-to-bottom traversal of the
   syntax tree
 - we construct a Scalameta
-  ["quasiquote"](https://github.com/scalameta/scalameta/blob/master/notes/quasiquotes.md)
-  pattern `q"true"` which matches any tree node that represents the boolean
-  literal `true`.
+  ["quasiquote"](https://scalameta.org/docs/trees/quasiquotes.html) pattern
+  `q"true"` which matches any tree node that represents the boolean literal
+  `true`.
 - `Patch.addLeft(t, "isSuccess = ")`: describes a refactoring on the source code
   that adds the string `isSuccess =` to the left side of the `true` literal.
 - `List[Patch].asPatch`: helper method to convert a list of patches into a

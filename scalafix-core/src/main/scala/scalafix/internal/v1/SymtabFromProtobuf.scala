@@ -19,7 +19,7 @@ final class SymtabFromProtobuf(symtab: Symtab) {
       else sc.infos.iterator.map(i => new SymbolInformation(i)(symtab)).toList
   }
 
-  def stype(t: s.Type): ScalaType = t match {
+  def stype(t: s.Type): SemanticType = t match {
     case s.IntersectionType(types) =>
       new IntersectionType(types.convert)
     case s.SuperType(prefix, symbol) =>
@@ -115,10 +115,10 @@ final class SymtabFromProtobuf(symtab: Symtab) {
     def convert: Symbol = Symbol(sym)
   }
   implicit class RichType(t: s.Type) {
-    def convert: ScalaType = stype(t)
+    def convert: SemanticType = stype(t)
   }
   implicit class RichTypes(types: Seq[s.Type]) {
-    def convert: List[ScalaType] = types.iterator.map(stype).toList
+    def convert: List[SemanticType] = types.iterator.map(stype).toList
   }
   implicit class RichScope(scope: Option[s.Scope]) {
     def convert: List[SymbolInformation] = sscope(scope)

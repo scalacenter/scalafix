@@ -6,7 +6,7 @@ public enum ScalafixRuleKind {
      * This rule requires input sources to be compiled with the Scala compiler and
      * the SemanticDB compiler plugin enabled. For SemanticDB installation instruction,
      * consult the
-     * <a href="https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/guide.md">
+     * <a href="https://scalameta.org/docs/semanticdb/guide.html">
      * SemanticDB guide
      * </a>.
      */
