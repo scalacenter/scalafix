@@ -6,13 +6,13 @@ import scala.meta.internal.{semanticdb => s}
 import scalafix.v1._
 
 object DocumentFromProtobuf {
-  def convert(synth: s.Synthetic, doc: InternalSemanticDoc): SyntheticTree =
+  def convert(synth: s.Synthetic, doc: InternalSemanticDoc): SemanticTree =
     new DocumentFromProtobuf(synth)(new SemanticDocument(doc)).stree(synth.tree)
 }
 final class DocumentFromProtobuf(original: s.Synthetic)(
     implicit doc: SemanticDocument) {
   val convert = new SymtabFromProtobuf(doc)
-  def stree(t: s.Tree): SyntheticTree = {
+  def stree(t: s.Tree): SemanticTree = {
     t match {
       case t: s.ApplyTree =>
         ApplyTree(t.function.convert, t.arguments.convert)
@@ -59,14 +59,14 @@ final class DocumentFromProtobuf(original: s.Synthetic)(
   }
 
   private implicit class RichTree(tree: s.Tree) {
-    def convert: SyntheticTree = stree(tree)
+    def convert: SemanticTree = stree(tree)
   }
   private implicit class RichIds(ids: Seq[s.IdTree]) {
     def convert: List[IdTree] =
       ids.iterator.map(sid).toList
   }
   private implicit class RichTrees(trees: Seq[s.Tree]) {
-    def convert: List[SyntheticTree] = trees.iterator.map(stree).toList
+    def convert: List[SemanticTree] = trees.iterator.map(stree).toList
   }
 
 }

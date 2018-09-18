@@ -2,7 +2,9 @@ package scalafix.v1
 
 import scala.runtime.Statics
 
-final class Annotation(val tpe: ScalaType) extends Product {
+final class Annotation(tpe: SemanticType) extends Product {
+  // NOTE(olafur): This is intentionally not a case class to ease future
+  // migrations when annotations gain term arguments.
   override def productArity: Int = 1
   override def productPrefix: String = "Annotation"
   override def productElement(n: Int): Any = n match {

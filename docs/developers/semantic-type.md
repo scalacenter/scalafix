@@ -1,31 +1,32 @@
 ---
-id: scala-type
-title: ScalaType
+id: semantic-type
+title: SemanticType
 ---
 
-`ScalaType` is a sealed data structure that encodes the Scala type system.
+`SemanticType` is a sealed data structure that encodes the Scala type system.
 
-```scala mdoc:file:scalafix-core/src/main/scala/scalafix/v1/ScalaType.scala
-sealed abstract class ScalaType...
+```scala mdoc:file:scalafix-core/src/main/scala/scalafix/v1/SemanticType.scala
+sealed abstract class SemanticType...
 ...NoType extends
 ```
 
 ## SemanticDB
 
-The structure of `ScalaType` mirrors SemanticDB `Type`. For comprehensive
+The structure of `SemanticType` mirrors SemanticDB `Type`. For comprehensive
 documentation about SemanticDB types, consult the SemanticDB specification:
 
 - [General types](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#type)
 - [Scala types](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#scala-type)
 - [Java types](https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb3/semanticdb3.md#java-type)
 
-The `ScalaType` data structure diverges from SemanticDB `Type` in few minor
+The `SemanticType` data structure diverges from SemanticDB `Type` in few minor
 details.
 
-### `ScalaType` instead of `Type`
+### `SemanticType` instead of `Type`
 
-Scalafix uses the name `ScalaType` instead of `Type` in order to avoid ambiguous
-references with `scala.meta.Type` when importing the two packages together.
+Scalafix uses the name `SemanticType` instead of `Type` in order to avoid
+ambiguous references with `scala.meta.Type` when importing the two packages
+together.
 
 ```scala
 import scalafix.v1._
@@ -34,7 +35,7 @@ import scala.meta._
 
 ### `List[SymbolInformation]` instead of `Scope`
 
-The `ScalaType` data structure uses `List[SymbolInformation]` instead of
+The `SemanticType` data structure uses `List[SymbolInformation]` instead of
 `Scope`, where applicable. This change avoids the notion of "soft-linked" and
 "hard-linked" symbols, resulting in a higher-level API without loss of
 expressiveness.

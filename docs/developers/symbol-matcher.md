@@ -77,9 +77,9 @@ To match only the `println(String)` method overload and not the `println()`
 method.
 
 ```scala mdoc
-val printlnString  = SymbolMatcher.exact("scala/Predef.assert(+1).")
-printlnString.matches(Symbol("scala/Predef.assert()."))
-printlnString.matches(Symbol("scala/Predef.assert(+1)."))
+val printlnString  = SymbolMatcher.exact("scala/Predef.println(+1).")
+printlnString.matches(Symbol("scala/Predef.println()."))
+printlnString.matches(Symbol("scala/Predef.println(+1)."))
 ```
 
 ### `normalized()`
@@ -90,7 +90,7 @@ they use a simple symbol syntax: fully qualified names with a dot `.` separator.
 For example,
 
 - `java/lang/String#` is equal to `java.lang.String` normalized
-- `scala/Predef.assert(+1).` is equal to `scala.Predef.assert` normalized
+- `scala/Predef.println(+1).` is equal to `scala.Predef.println` normalized
 
 To match against either the `Main` class or companion object
 
