@@ -49,7 +49,7 @@ class ExplicitSynthetic(insertInfixTypeParam: Boolean)
           Patch.addRight(t, ".apply")
         }
     }
-    patches.flatten.asPatch
+    patches.flatten.asPatch + Patch.replaceTree(q"a", "b")
   }
 
 }

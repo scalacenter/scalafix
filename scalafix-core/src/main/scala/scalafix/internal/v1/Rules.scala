@@ -4,6 +4,7 @@ import java.util.ServiceLoader
 import metaconfig.Configured
 import scala.meta.tokens.Tokens
 import scalafix.internal.config.MetaconfigOps
+import scalafix.internal.patch.PatchInternals
 import scalafix.internal.util.SuppressOps
 import scalafix.lint.RuleDiagnostic
 import scalafix.lint.Diagnostic
@@ -53,7 +54,7 @@ case class Rules(rules: List[Rule] = Nil) {
       case rule: SyntacticRule =>
         rule.name -> rule.fix(sdoc.internal.doc)
     }.toMap
-    scalafix.Patch.semantic(fixes, sdoc, suppress)
+    PatchInternals.semantic(fixes, sdoc, suppress)
   }
 
   def syntacticPatch(
@@ -63,7 +64,7 @@ case class Rules(rules: List[Rule] = Nil) {
     val fixes = syntacticRules.iterator.map { rule =>
       rule.name -> rule.fix(doc)
     }.toMap
-    scalafix.Patch.syntactic(fixes, doc, suppress)
+    PatchInternals.syntactic(fixes, doc, suppress)
   }
 }
 

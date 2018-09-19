@@ -1,9 +1,7 @@
 package scalafix.internal.config
 
 import scalafix.patch.Patch
-import scalafix.patch.TreePatch.AddGlobalImport
-import scalafix.patch.TreePatch.ReplaceSymbol
-import scalafix.patch.TreePatch.RemoveGlobalImport
+import scalafix.patch.Patch.internal._
 import metaconfig.ConfDecoder
 import metaconfig.generic
 import metaconfig.generic.Surface

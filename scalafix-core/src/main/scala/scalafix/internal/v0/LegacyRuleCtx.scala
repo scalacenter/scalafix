@@ -5,7 +5,7 @@ import scala.meta.Input
 import scala.meta.Tree
 import scala.meta.contrib.AssociatedComments
 import scala.meta.tokens.Tokens
-import scalafix.internal.patch.DeprecatedPatchOps
+import scalafix.internal.patch.LegacyPatchOps
 import scalafix.util.MatchingParens
 import scalafix.util.SemanticdbIndex
 import scalafix.util.TokenList
@@ -14,7 +14,7 @@ import scalafix.v1.SyntacticDocument
 
 class LegacyRuleCtx(doc: SyntacticDocument)
     extends RuleCtx
-    with DeprecatedPatchOps {
+    with LegacyPatchOps {
   override def tree: Tree = doc.tree
   override def input: Input = doc.input
   override def tokens: Tokens = doc.tokens

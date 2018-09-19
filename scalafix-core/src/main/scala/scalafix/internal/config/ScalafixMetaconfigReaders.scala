@@ -7,7 +7,7 @@ import scalafix.v0.Symbol
 import scala.reflect.ClassTag
 import scala.util.Try
 import scala.util.matching.Regex
-import scalafix.patch.TreePatch._
+import scalafix.patch.Patch.internal._
 import java.io.OutputStream
 import java.io.PrintStream
 import java.net.URI

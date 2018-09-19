@@ -8,6 +8,7 @@ import scala.meta.metap.Format
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.v1.InternalSemanticDoc
 import scalafix.patch.Patch
+import scalafix.internal.patch.PatchInternals
 import scalafix.v1.RuleName
 import scalafix.v1.SemanticDocument
 import scalafix.v1.Symbol
@@ -20,7 +21,7 @@ object PatchDocs {
   implicit class XtensionPatch(p: Patch) {
     def output(implicit doc: SemanticDocument): String = {
       val (obtained, _) =
-        Patch.semantic(Map(RuleName("patch") -> p), doc, suppress = false)
+        PatchInternals.semantic(Map(RuleName("patch") -> p), doc, suppress = false)
       obtained
     }
     def showDiff(context: Int = 0)(implicit doc: SemanticDocument): Unit = {
@@ -29,7 +30,7 @@ object PatchDocs {
   }
   implicit class XtensionPatchs(p: Iterable[Patch]) {
     def showLints()(implicit doc: SemanticDocument): Unit = {
-      val (_, diagnostics) = Patch.semantic(
+      val (_, diagnostics) = PatchInternals.semantic(
         Map(RuleName("RuleName") -> p.asPatch),
         doc,
         suppress = false)
@@ -56,7 +57,7 @@ object PatchDocs {
       implicit doc: SemanticDocument): String = {
     val in = Input.VirtualFile("before patch", doc.input.text)
     val out = Input.VirtualFile("after  patch", obtained)
-    Patch.unifiedDiff(in, out, context)
+    PatchInternals.unifiedDiff(in, out, context)
   }
   lazy val compiler = InteractiveSemanticdb.newCompiler(List("-Ywarn-unused"))
   lazy val symtab = GlobalSymbolTable(ClasspathOps.thisClasspath)

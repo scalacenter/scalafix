@@ -9,7 +9,7 @@ import scalafix.v0._
 import scalafix.syntax._
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
-import scalafix.internal.patch.DeprecatedPatchOps
+import scalafix.internal.patch.LegacyPatchOps
 import scalafix.internal.patch.EscapeHatch
 import scalafix.util.MatchingParens
 import scalafix.util.SemanticdbIndex
@@ -20,7 +20,7 @@ case class RuleCtxImpl(
     config: ScalafixConfig,
     diffDisable: DiffDisable)
     extends RuleCtx
-    with DeprecatedPatchOps { ctx =>
+    with LegacyPatchOps { ctx =>
   def syntax: String =
     s"""${tree.input.syntax}
        |${logger.revealWhitespace(tree.syntax.take(100))}""".stripMargin

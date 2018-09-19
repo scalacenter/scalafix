@@ -6,7 +6,7 @@ import scalafix.v0._
 import scalafix.internal.util.SymbolOps.Root
 import scalafix.internal.util.SymbolOps.SignatureName
 import scalafix.patch.Patch
-import scalafix.patch.TreePatch.ReplaceSymbol
+import scalafix.patch.Patch.internal.ReplaceSymbol
 import scalafix.syntax._
 
 object ReplaceSymbolOps {
