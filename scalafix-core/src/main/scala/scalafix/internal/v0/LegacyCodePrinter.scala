@@ -9,6 +9,7 @@ import scala.meta.internal.{semanticdb => s}
 import scalafix.v0
 import scalafix.v0.ResolvedName
 import scalafix.v1
+import scalafix.v1.MissingSymbolException
 import scalafix.v1.SemanticDocument
 
 /**
@@ -70,8 +71,12 @@ class LegacyCodePrinter(doc: SemanticDocument) {
           mkString("(", scope.symbols, ")") { symbol =>
             emit(symbol)
             text.append(": ")
-            doc.internal.info(v1.Symbol(symbol)).foreach { info =>
-              pprint(info.info.signature)
+            val sym = v1.Symbol(symbol)
+            doc.internal.info(sym) match {
+              case Some(info) =>
+                pprint(info.info.signature)
+              case None =>
+                throw new MissingSymbolException(sym)
             }
           }
         }
