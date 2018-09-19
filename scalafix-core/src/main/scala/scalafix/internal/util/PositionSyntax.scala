@@ -1,8 +1,8 @@
 package scalafix.internal.util
 
-import scala.meta.internal.{semanticdb => s}
 import scala.meta._
 import scala.meta.internal.ScalametaInternals
+import scala.meta.internal.{semanticdb => s}
 
 object PositionSyntax {
 

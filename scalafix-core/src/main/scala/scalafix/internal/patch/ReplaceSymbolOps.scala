@@ -2,12 +2,12 @@ package scalafix.internal.patch
 
 import scala.meta._
 import scala.meta.internal.trees._
-import scalafix.v0._
 import scalafix.internal.util.SymbolOps.Root
 import scalafix.internal.util.SymbolOps.SignatureName
 import scalafix.patch.Patch
 import scalafix.patch.Patch.internal.ReplaceSymbol
 import scalafix.syntax._
+import scalafix.v0._
 
 object ReplaceSymbolOps {
   private object Select {

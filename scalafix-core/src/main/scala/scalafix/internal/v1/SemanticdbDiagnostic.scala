@@ -1,12 +1,12 @@
 package scalafix.internal.v1
 
-import scala.meta.Position
 import scala.meta.Input
+import scala.meta.Position
+import scala.meta.internal.semanticdb.Diagnostic.{Severity => d}
+import scala.meta.internal.{semanticdb => s}
+import scalafix.internal.util.PositionSyntax._
 import scalafix.lint.Diagnostic
 import scalafix.lint.LintSeverity
-import scala.meta.internal.{semanticdb => s}
-import scala.meta.internal.semanticdb.Diagnostic.{Severity => d}
-import scalafix.internal.util.PositionSyntax._
 
 case class SemanticdbDiagnostic(input: Input, diagnostic: s.Diagnostic)
     extends Diagnostic {

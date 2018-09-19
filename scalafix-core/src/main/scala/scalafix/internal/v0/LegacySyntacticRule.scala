@@ -4,8 +4,8 @@ import metaconfig.Configured
 import scalafix.patch.Patch
 import scalafix.v0
 import scalafix.v1.Configuration
-import scalafix.v1.SyntacticDocument
 import scalafix.v1.Rule
+import scalafix.v1.SyntacticDocument
 import scalafix.v1.SyntacticRule
 
 class LegacySyntacticRule(rule: v0.Rule) extends SyntacticRule(rule.name) {

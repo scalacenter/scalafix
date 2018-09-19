@@ -1,25 +1,25 @@
 package scalafix.internal.config
 
-import scala.meta.Ref
-import scala.meta._
-import scala.meta.parsers.Parse
-import scalafix.v0.Symbol
-import scala.reflect.ClassTag
-import scala.util.Try
-import scala.util.matching.Regex
-import scalafix.patch.Patch.internal._
 import java.io.OutputStream
 import java.io.PrintStream
 import java.net.URI
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
-import scala.util.control.NonFatal
 import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.Ok
+import scala.meta.Ref
+import scala.meta._
+import scala.meta.parsers.Parse
+import scala.reflect.ClassTag
+import scala.util.Try
+import scala.util.control.NonFatal
+import scala.util.matching.Regex
 import scalafix.internal.util.SymbolOps
+import scalafix.patch.Patch.internal._
+import scalafix.v0.Symbol
 import scalafix.v0._
 
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
@@ -31,8 +31,8 @@ trait ScalafixMetaconfigReaders {
     ReaderUtil.oneOf[MetaParser](parseSource, parseStat, parseCase)
   }
   implicit lazy val dialectReader: ConfDecoder[Dialect] = {
-    import scala.meta.dialects._
     import ScalafixConfig.{DefaultDialect => Default}
+    import scala.meta.dialects._
     ReaderUtil.oneOf[Dialect](
       Default,
       Scala211,

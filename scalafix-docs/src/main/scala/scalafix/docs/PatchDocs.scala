@@ -21,7 +21,10 @@ object PatchDocs {
   implicit class XtensionPatch(p: Patch) {
     def output(implicit doc: SemanticDocument): String = {
       val (obtained, _) =
-        PatchInternals.semantic(Map(RuleName("patch") -> p), doc, suppress = false)
+        PatchInternals.semantic(
+          Map(RuleName("patch") -> p),
+          doc,
+          suppress = false)
       obtained
     }
     def showDiff(context: Int = 0)(implicit doc: SemanticDocument): Unit = {

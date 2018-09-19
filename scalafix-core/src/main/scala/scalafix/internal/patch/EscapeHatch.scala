@@ -8,14 +8,14 @@ import scala.meta._
 import scala.meta.contrib._
 import scala.meta.tokens.Token
 import scala.meta.tokens.Token.Comment
-import scalafix.v0._
 import scalafix.internal.config.FilterMatcher
 import scalafix.internal.patch.EscapeHatch._
+import scalafix.internal.util.LintSyntax._
 import scalafix.lint.RuleDiagnostic
 import scalafix.patch.Patch.internal._
 import scalafix.rule.RuleName
 import scalafix.util.TreeExtractors.Mods
-import scalafix.internal.util.LintSyntax._
+import scalafix.v0._
 
 /** EscapeHatch is an algorithm to selectively disable rules. There
  * are two mechanisms to do so: anchored comments and the

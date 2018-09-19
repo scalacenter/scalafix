@@ -1,10 +1,10 @@
 package scalafix.v0
 
 import scala.meta._
-import scala.meta.internal.symtab.SymbolTable
-import scalafix.v1.SemanticContext
-import SemanticdbIndex.DeprecationMessage
 import scala.meta.internal.semanticdb.SymbolInformation
+import scala.meta.internal.symtab.SymbolTable
+import scalafix.v0.SemanticdbIndex.DeprecationMessage
+import scalafix.v1.SemanticContext
 
 /** An index for looking up data in a scala.meta.Database. */
 trait SemanticdbIndex extends SemanticContext {

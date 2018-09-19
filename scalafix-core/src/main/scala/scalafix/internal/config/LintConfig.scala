@@ -1,9 +1,9 @@
 package scalafix.internal.config
 
-import scalafix.lint.LintSeverity
 import metaconfig.ConfDecoder
 import metaconfig.generic
 import metaconfig.generic.Surface
+import scalafix.lint.LintSeverity
 
 case class LintConfig(
     explain: Boolean = false,

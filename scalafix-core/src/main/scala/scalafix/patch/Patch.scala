@@ -4,11 +4,9 @@ import org.scalameta.logger
 import scala.meta.Token
 import scala.meta._
 import scalafix.internal.config.ScalafixMetaconfigReaders
-import scalafix.internal.patch.PatchInternals
 import scalafix.internal.util.SymbolOps.Root
 import scalafix.lint.Diagnostic
 import scalafix.patch.Patch.internal._
-import scalafix.rule.RuleName
 import scalafix.v0
 import scalafix.v1
 import scalafix.v1.SemanticContext

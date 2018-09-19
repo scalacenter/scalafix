@@ -3,9 +3,9 @@ package scalafix.internal.util
 import org.typelevel.paiges._
 import scala.meta.Tree
 import scala.meta._
+import scalafix.internal.util.DocConstants._
 import scalafix.v1.Symbol
 import scalafix.v1.SymbolInformation
-import DocConstants._
 
 object ProductLabeledStructure
     extends ProductStructure(

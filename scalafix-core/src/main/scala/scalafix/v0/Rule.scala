@@ -1,13 +1,13 @@
 package scalafix.v0
 
+import metaconfig.Conf
+import metaconfig.Configured
 import scala.meta._
 import scalafix.internal.config.MetaconfigOps
 import scalafix.internal.config.ScalafixConfig
-import scalafix.syntax._
-import metaconfig.Conf
-import metaconfig.Configured
 import scalafix.internal.patch.PatchInternals
 import scalafix.lint.RuleDiagnostic
+import scalafix.syntax._
 
 /** A Scalafix Rule.
  *

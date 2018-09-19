@@ -13,7 +13,6 @@ import scalafix.patch._
 import scalafix.syntax._
 import scalafix.v0
 import scalafix.v1
-import scalafix.v1.SemanticDocument
 
 object PatchInternals {
   def merge(a: TokenPatch, b: TokenPatch): TokenPatch = (a, b) match {
@@ -164,6 +163,5 @@ object PatchInternals {
       new String(revised.chars).lines.toList,
       context)
   }
-
 
 }

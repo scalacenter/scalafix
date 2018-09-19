@@ -1,10 +1,10 @@
 package scalafix.internal.config
 
-import scalafix.patch.Patch
-import scalafix.patch.Patch.internal._
 import metaconfig.ConfDecoder
 import metaconfig.generic
 import metaconfig.generic.Surface
+import scalafix.patch.Patch
+import scalafix.patch.Patch.internal._
 
 case class ConfigRulePatches(
     replaceSymbols: List[ReplaceSymbol] = Nil,

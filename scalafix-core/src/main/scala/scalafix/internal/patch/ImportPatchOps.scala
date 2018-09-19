@@ -3,8 +3,6 @@ package scalafix.internal.patch
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.meta._
-import scalafix.v0.Symbol
-import scalafix.v0.Signature
 import scalafix.internal.util.SymbolOps
 import scalafix.patch.Patch
 import scalafix.patch.Patch.internal._
@@ -12,6 +10,8 @@ import scalafix.rule.RuleCtx
 import scalafix.syntax._
 import scalafix.util.Newline
 import scalafix.util.SemanticdbIndex
+import scalafix.v0.Signature
+import scalafix.v0.Symbol
 
 object ImportPatchOps {
   object symbols {

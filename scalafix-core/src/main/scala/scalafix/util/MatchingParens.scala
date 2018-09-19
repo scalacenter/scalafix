@@ -1,8 +1,8 @@
 package scalafix.util
 
 import scala.meta._
+import scala.meta.tokens.Token._
 import scalafix.internal.util.TokenOps._
-import tokens.Token._
 
 sealed abstract class MatchingParens(map: Map[TokenHash, Token]) {
   private def lookup(token: Token) = map.get(hash(token))

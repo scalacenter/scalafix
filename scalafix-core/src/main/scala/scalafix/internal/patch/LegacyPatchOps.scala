@@ -2,15 +2,15 @@ package scalafix.internal.patch
 
 import scala.meta.Importee
 import scala.meta.Importer
-import scalafix.v0.Symbol
 import scala.meta.Token
 import scala.meta.Tree
 import scala.meta.tokens.Tokens
-import scalafix.v0._
-import scalafix.patch.PatchOps
-import LegacyPatchOps.DeprecationMessage
+import scalafix.internal.patch.LegacyPatchOps.DeprecationMessage
 import scalafix.internal.util.SymbolOps.Root
 import scalafix.patch.Patch.internal._
+import scalafix.patch.PatchOps
+import scalafix.v0.Symbol
+import scalafix.v0._
 
 trait LegacyPatchOps extends PatchOps {
   @deprecated(DeprecationMessage, "0.6.0")

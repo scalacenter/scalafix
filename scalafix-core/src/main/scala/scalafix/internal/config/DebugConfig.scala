@@ -1,7 +1,7 @@
 package scalafix.internal.config
 
-import metaconfig.generic
 import metaconfig.ConfDecoder
+import metaconfig.generic
 import metaconfig.generic.Surface
 
 case class DebugConfig(
