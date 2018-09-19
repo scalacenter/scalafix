@@ -648,12 +648,12 @@ shows the necessary changes to build.sbt to populate publishing information. The
 the further steps to configure gpg and Sonatype.
 
 Once you have your rule, users can depend on it in the sbt plugin by updating
-`scalafixDependencies`
+`scalafixDependencies` (`scalafix.sbt.ScalafixPlugin.autoImport.scalafixDependencies`)
 
 ```scala
 // build.sbt
 scalafixDependencies in ThisBuild +=
-  "com.geirsson" % "named-literal-arguments_2.12" % "VERSION"
+  "com.geirsson" %% "named-literal-arguments" % "VERSION"
 // sbt shell
 > scalafix NamedLiteralArguments
 ```

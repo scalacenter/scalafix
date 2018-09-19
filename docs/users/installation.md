@@ -181,7 +181,7 @@ export COURSIER_CACHE=$HOME/.custom-cache
 ### Run custom rules
 
 It's possible to run custom Scalafix rules that have been published to Maven
-Central. To install a custom rule, add it to `scalafixDependencies`:
+Central. To install a custom rule, add it to `scalafixDependencies` (`scalafix.sbt.ScalafixPlugin.autoImport.scalafixDependencies`):
 
 ```scala
 // at the top of build.sbt
