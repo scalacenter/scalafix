@@ -12,10 +12,252 @@ sealed abstract class SemanticTree...
 ...case object NoTree
 ```
 
+## Cookbook
+
+All code examples in this document assume you have the following imports in
+scope
+
+```scala mdoc
+import scalafix.v1._
+import scala.meta._
+```
+
+The variable `doc` in the code examples is an implicit instance of
+`scalafix.v1.SemanticDoc`.
+
+```scala mdoc:passthrough
+import scalafix.docs.PatchDocs
+import scalafix.docs.PatchDocs._
+implicit var doc: SemanticDocument = null
+```
+
+### Look up inferred type parameter
+
+Consider the following program.
+
+```scala mdoc:passthrough
+doc = PatchDocs.fromStatement("""
+Option.apply(1) // inferred type parameter
+""")
+```
+
+Use `Tree.synthetic` on the qualifier `Option.apply` to get the inferred type
+parameters
+
+```scala mdoc
+doc.tree.traverse {
+  // Option.apply
+  case option @ Term.Select(Term.Name("Option"), Term.Name("apply")) =>
+    println("synthetic = " + option.synthetic)
+    println("structure = " + option.synthetic.structure)
+}
+```
+
+The asterisk `*` represents an `OriginalTree` node that matches the enclosing
+non-synthetic tree, which is `List` in this example.
+
+The `.synthetic` method is only available on `Term` nodes, using the method on
+other tree nodes such as types results in compilation error
+
+```scala mdoc:fail
+doc.tree.traverse {
+  case app @ Type.Name("App") =>
+    println(".synthetic = " + app.synthetic)
+}
+```
+
+### Look up symbol of semantic tree
+
+Consider the following program.
+
+```scala mdoc:passthrough
+doc = PatchDocs.fromStatement("""
+val add: Int => Int = _ + 1
+add(2)         // inferred: add.apply(2)
+Option[Int](2) // inferred: Option.apply[Int](2)
+""")
+```
+
+Use `Tree.synthetic` in combination with `SemanticTree.symbol` to get the symbol
+of those inferred `.apply` method calls.
+
+```scala mdoc
+doc.tree.traverse {
+  case Term.Apply(add @ q"add", List(q"2")) =>
+    println("add(2)")
+    println("synthetic = " + add.synthetic)
+    println("symbol    = " + add.synthetic.flatMap(_.symbol).structure)
+    println("structure = " + add.synthetic.structure)
+  case Term.ApplyType(option @ q"Option", List(t"Int")) =>
+    println("Option[Int]")
+    println("synthetic = " + option.synthetic)
+    println("symbol    = " + option.synthetic.flatMap(_.symbol).structure)
+    println("structure = " + option.synthetic.structure)
+}
+```
+
+The `.symbol` method returns nothing for the following semantic trees
+
+- `MacroExpansionTree`
+- `LiteralTree`
+- `FunctionTree`
+- `NoTree`
+
+### Look up implicit argument
+
+Consider the following program.
+
+```scala mdoc:passthrough
+doc = PatchDocs.fromStatement("""
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+def run(implicit message: String) = println(message)
+implicit val message = "hello world"
+
+Future.apply[Int](3) // implicit argument: global
+Main.run             // implicit argument: message
+""")
+```
+
+Use `Tree.synthetic` to look up an implicit argument for any `Term` node.
+
+```scala mdoc
+doc.tree.traverse {
+  case term: Term if term.synthetic.isDefined =>
+    println("term      = " + term.syntax)
+    println("synthetic = " + term.synthetic)
+    println("structure = " + term.synthetic.structure)
+}
+```
+
+### Look up inferred type parameters for infix operators
+
+Infix operators such as `a ++ b` can have type parameters like `a ++[Int] b`.
+Consider the following program.
+
+```scala mdoc:passthrough
+doc = PatchDocs.fromStatement("""
+List(1) ++ List(2)
+""")
+```
+
+Use the `Term.ApplyInfix.syntheticOperator` to look up inferred type parameters
+of infix operators.
+
+```scala mdoc
+doc.tree.traverse {
+  case concat @ Term.ApplyInfix(_, Term.Name("++"), _, _) =>
+    println(".syntheticOperator = " + concat.syntheticOperator)
+}
+```
+
+The `.syntheticOperator` method is only available for `Term.ApplyInfix` nodes,
+using the method on other node types results in a compilation error
+
+```scala mdoc:fail
+doc.tree.traverse {
+  case concat @ Term.Name("++") =>
+    println(".syntheticOperator = " + concat.syntheticOperator)
+}
+```
+
+Beware that looking up synthetics for the infix operator name returns nothing
+
+```scala mdoc
+doc.tree.traverse {
+  case concat @ Term.Name("++") =>
+    println(".synthetic = " + concat.synthetic)
+}
+```
+
+### Look up `for` comprehension desugaring
+
+Consider the following program.
+
+```scala mdoc:passthrough
+doc = PatchDocs.fromStatement("""
+val numbers = for {
+  i <- List(1, 2)
+  j <- 1.to(i)
+} yield i + j
+for (number <- numbers) println(number)
+""")
+```
+
+Use `Tree.synthetic` on the tree node `Term.ForYield` to inspect the desugared
+version of the `for { .. } yield` expression
+
+```scala mdoc
+doc.tree.traverse {
+  case forYield: Term.ForYield =>
+    println(".synthetic = " + forYield.synthetic)
+}
+```
+
+The `orig(List(1, 2))` and `orig(1.to(i)` parts represent `OriginalSubTree`
+nodes that match non-synthetic tree nodes from the original for-comprension.
+
+## Known limitations
+
+The `SemanticTree` data structure does not encode all possible synthetic code
+that may get generated at compile-time. See
+[scalameta/scalameta#1711](https://github.com/scalameta/scalameta/issues/1711)
+if you are interested in contributing to improve the situation.
+
+### `for` patterns
+
+For comprehensions that use patterns produce incomplete semantic trees.
+
+```scala mdoc:passthrough
+doc = PatchDocs.fromStatement("""
+for {
+  (a, b) <- List(1 -> 2) // pattern
+} yield a + b
+""")
+```
+
+Observe the empty `withFilter` body and `<unknown>` parameter symbol.
+
+```scala mdoc
+doc.tree.traverse {
+  case forYield: Term.ForYield =>
+    println(forYield.synthetic)
+}
+```
+
+### `for` assignments
+
+For comprehensions that use assignments produce incomplete semantic trees.
+
+```scala mdoc:passthrough
+doc = PatchDocs.fromStatement("""
+for {
+  a <- List(1)
+  b = a + 1 // assignment
+} yield a + b
+""")
+```
+
+Observe the `<unknown>` parameter symbol to the final call to `map`.
+
+```scala mdoc
+doc.tree.traverse {
+  case forYield: Term.ForYield =>
+    println(forYield.synthetic)
+}
+```
+
+### Macros
+
+Macros can expand into arbitrary code including new definitions such as methods
+and classes. Semantic trees only encode tree nodes that are generated by the
+compiler through offical language features like type inference and implicit
+search.
+
 ## SemanticDB
 
-The structure of `SemanticTree` mirrors SemanticDB `Tree`. For comprehensive
-documentation about SemanticDB trees, consult the SemanticDB specification:
+The structure of `SemanticTree` mirrors SemanticDB `Tree`. Consult the
+SemanticDB specification for more details about synthetics:
 
 - [General trees](https://scalameta.org/docs/semanticdb/specification.html#type)
 - [Scala trees](https://scalameta.org/docs/semanticdb/specification.html#java-tree)

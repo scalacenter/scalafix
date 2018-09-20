@@ -1,16 +1,15 @@
 package docs
+
 import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Paths}
-
-import mdoc.{Reporter, StringModifier}
-
-import scala.meta.inputs.Position
+import java.nio.file.Files
+import java.nio.file.Paths
+import mdoc.Reporter
+import mdoc.StringModifier
 import scala.meta.inputs.Input
+import scala.meta.inputs.Position
 
 class FileModifier extends StringModifier {
   override val name: String = "file"
-  private val Start = "start=(.+)".r
-  private val End = "end=(.+)".r
   override def process(
       info: String,
       code: Input,
