@@ -6,6 +6,7 @@ DisableSyntax.noDefaultArgs = true
 DisableSyntax.noValInAbstract = true
 DisableSyntax.noImplicitObject = true
 DisableSyntax.noImplicitConversion = true
+DisableSyntax.noUniversalEquality = true
 */
 package test
 
@@ -85,4 +86,9 @@ Default args makes it hard to use methods as functions.
 
   implicit def toString(a: Any): String = a.toString // assert: DisableSyntax.implicitConversion
   implicit def toImplicitString(implicit foo: Foo) = foo.toString // ok
+
+  1 == 2 /* assert: DisableSyntax.noUniversalEquality
+    ^^
+    == (universal equality) is disabled
+  */
 }
