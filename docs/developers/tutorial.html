@@ -1,0 +1,566 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Tutorial · Scalafix</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="In this tutorial, you will learn how to"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Tutorial · Scalafix"/><meta property="og:type" content="website"/><meta property="og:url" content="https://scalacenter.github.io//scalafix/index.html"/><meta property="og:description" content="In this tutorial, you will learn how to"/><meta property="og:image" content="https://scalacenter.github.io//scalafix/img/scalacenter2x.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://scalacenter.github.io//scalafix/img/scalacenter2x.png"/><link rel="shortcut icon" href="/scalafix/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css"/><link rel="stylesheet" href="/scalafix/css/main.css"/></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/scalafix/"><img class="logo" src="/scalafix/img/scalacenter2x.png" alt="Scalafix"/><h2 class="headerTitleWithLogo">Scalafix</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="/scalafix/docs/users/installation.html" target="_self">User guide</a></li><li class="siteNavGroupActive"><a href="/scalafix/docs/developers/setup.html" target="_self">Developer guide</a></li><li class=""><a href="https://github.com/scalacenter/scalafix" target="_blank">GitHub</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>Implementing rules</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Implementing rules</h3><ul><li class="navListItem"><a class="navItem" href="/scalafix/docs/developers/setup.html">Setup</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/developers/before-you-begin.html">Before you write code</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/scalafix/docs/developers/tutorial.html">Tutorial</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">API Reference</h3><ul><li class="navListItem"><a class="navItem" href="/scalafix/docs/developers/api.html">Overview</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/developers/patch.html">Patch</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/developers/symbol-matcher.html">SymbolMatcher</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/developers/symbol-information.html">SymbolInformation</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/developers/semantic-type.html">SemanticType</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/developers/semantic-tree.html">SemanticTree</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Contributing</h3><ul><li class="navListItem"><a class="navItem" href="/scalafix/docs/developers/contributing.html">Guide</a></li></ul></div></div></section></div><script>
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              const headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                if (event.target.tagName === 'A') {
+                  document.body.classList.remove('tocActive');
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docMainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><a class="edit-page-link button" href="https://github.com/scalacenter/scalafix/edit/master/docs/developers/tutorial.md" target="_blank" rel="noreferrer noopener">Edit</a><h1 class="postHeaderTitle">Tutorial</h1></header><article><div><span><p>In this tutorial, you will learn how to</p>
+<ul>
+<li>write unit tests for rewrite and linter rules</li>
+<li>use pattern matching to find interesting tree nodes</li>
+<li>use <code>SymbolInformation</code> to look up method signatures</li>
+<li>use <code>Diagnostic</code> to report linter errors</li>
+<li>use <code>withConfiguration</code> to make a rule configurable</li>
+<li>publish the rule so others can try it on their own codebase</li>
+</ul>
+<p>We are going to implement two different rules. The first rule is a semantic
+rewrite <code>NamedLiteralArguments</code> that produces the following diff</p>
+<pre><code class="hljs css language-diff">  def complete(isSuccess: Boolean): Unit = ???
+<span class="hljs-deletion">- complete(true)</span>
+<span class="hljs-addition">+ complete(isSuccess = true)</span>
+</code></pre>
+<p>The second rule is a syntactic linter <code>NoLiteralArguments</code> that reports an error
+when a literal is used in argument position</p>
+<pre><code class="hljs css language-scala">test/<span class="hljs-type">NamedLiteralArguments</span>.scala:<span class="hljs-number">9</span>:<span class="hljs-number">12</span>: error: [<span class="hljs-type">NoLiteralArguments</span>]:
+<span class="hljs-type">Use</span> named arguments <span class="hljs-keyword">for</span> literals such as <span class="hljs-symbol">'parameterName</span> = <span class="hljs-literal">true</span>'
+  complete(<span class="hljs-literal">true</span>)
+           ^^^^
+</code></pre>
+<p>Let's get started!</p>
+<h2><a class="anchor" aria-hidden="true" id="import-the-build"></a><a href="#import-the-build" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Import the build</h2>
+<p>Start by cloning the repository
+<a href="https://github.com/olafurpg/named-literal-arguments">olafurpg/named-literal-arguments</a>.</p>
+<pre><code class="hljs">git clone http<span class="hljs-variable">s:</span>//github.<span class="hljs-keyword">com</span>/olafurpg/named-literal-arguments.git
+<span class="hljs-keyword">cd</span> named-literal-arguments
+<span class="hljs-keyword">cd</span> scalafix
+sbt
+...
+[info] sbt server started at loca<span class="hljs-variable">l:</span>//$HOME/.sbt/<span class="hljs-number">1.0</span>/server/<span class="hljs-number">93</span>fc24de3bb97dec3e5b/sock
+<span class="hljs-keyword">sb</span><span class="hljs-variable">t:scalafix</span>&gt;
+</code></pre>
+<p>This starts an sbt shell session from where you can run the test suite with
+<code>tests/test</code>.</p>
+<p>Optionally, if you use IntelliJ, import the build like normal with the action
+&quot;New project from existing sources&quot; and select the <code>scalafix/build.sbt</code> file.</p>
+<p>The sections in this tutorial follow the chronological order of the git history
+so feel free to checkout older commits.</p>
+<p>First we implement <code>NamedLiteralArguments</code>.</p>
+<h2><a class="anchor" aria-hidden="true" id="write-unit-tests"></a><a href="#write-unit-tests" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Write unit tests</h2>
+<p>The build we just cloned is composed of four sub-projects</p>
+<ul>
+<li><code>rules</code>: where the <code>NamedLiteralArguments</code> rewrite rule is implemented</li>
+<li><code>input</code>: where the code before the rewrite gets applied is written</li>
+<li><code>output</code>: a mirror of the <code>input</code> project except with the expected code after
+the rewrite has applied to the input files</li>
+<li><code>tests</code>: where we run the unit tests</li>
+</ul>
+<p>For every file in the <code>input</code> project there should be a matching file in the
+<code>output</code> project</p>
+<pre><code class="hljs css language-sh">input/src
+└── main
+    └── scala
+        └── fix
+            └── NamedLiteralArguments.scala
+output/src
+└── main
+    └── scala
+        └── fix
+            └── NamedLiteralArguments.scala
+</code></pre>
+<p>Checkout the commit
+<a href="https://github.com/olafurpg/named-literal-arguments/commit/55f9196163ab0a5dde22364ab1f7880bf4a5dc54">55f9196163ab0a</a>,
+run <code>tests/test</code> and see the tests fail</p>
+<pre><code class="hljs css language-diff"> &gt; ~tests/test
+<span class="hljs-comment">--- obtained</span>
+<span class="hljs-comment">+++ expected</span>
+<span class="hljs-meta">@@ -4,3 +4,3 @@</span>
+   def complete(isSuccess: Boolean): Unit = ()
+<span class="hljs-deletion">-  complete(true)</span>
+<span class="hljs-addition">+  complete(isSuccess = true)</span>
+ }
+</code></pre>
+<p>The diff tells us that the expected fix (contents of <code>output</code> file) does not
+match the output from running <code>NamedLiteralArguments</code> on the <code>input</code> file. We
+expected the output to be <code>complete(isSuccess = true)</code> but the obtained output
+was <code>complete(true)</code>. The <code>NamedLiteralArguments</code> rule currently returns
+<code>Patch.empty</code> so the test failure is expected.</p>
+<h2><a class="anchor" aria-hidden="true" id="use-pattern-matching-to-find-interesting-tree-nodes"></a><a href="#use-pattern-matching-to-find-interesting-tree-nodes" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Use pattern matching to find interesting tree nodes</h2>
+<p>We update the rule implementation to traverse the syntax tree and find
+occurrences of the literal <code>true</code>.</p>
+<pre><code class="hljs css language-scala">doc.tree.collect {
+  <span class="hljs-keyword">case</span> t @ <span class="hljs-string">q"true"</span> =&gt; <span class="hljs-type">Patch</span>.addLeft(t, <span class="hljs-string">"isSuccess = "</span>)
+}.asPatch
+</code></pre>
+<p>Let's break this down:</p>
+<ul>
+<li><code>doc.tree.collect { case =&gt; ...}</code>: perform a top-to-bottom traversal of the
+syntax tree</li>
+<li>we construct a Scalameta
+<a href="https://scalameta.org/docs/trees/quasiquotes.html">&quot;quasiquote&quot;</a> pattern
+<code>q&quot;true&quot;</code> which matches any tree node that represents the boolean literal
+<code>true</code>.</li>
+<li><code>Patch.addLeft(t, &quot;isSuccess = &quot;)</code>: describes a refactoring on the source code
+that adds the string <code>isSuccess =</code> to the left side of the <code>true</code> literal.</li>
+<li><code>List[Patch].asPatch</code>: helper method to convert a list of patches into a
+single patch.</li>
+</ul>
+<p>This solution is simple but it is incomplete</p>
+<ul>
+<li>the rewrite triggers only for the literal <code>true</code> but not <code>false</code></li>
+<li>the rewrite triggers for any <code>true</code> literal even if it is not a function
+argument. For example, <code>val done = true</code> becomes
+<code>val done = isSuccess = true</code>.</li>
+</ul>
+<p>The first improvement we make is to handle both <code>true</code> and <code>false</code> literals.</p>
+<pre><code class="hljs css language-diff"><span class="hljs-deletion">-  case t @ q"true" =&gt;</span>
+<span class="hljs-addition">+  case t @ Lit.Boolean(_) =&gt;</span>
+</code></pre>
+<p>We replace the <code>q&quot;true&quot;</code> quasiquote with <code>Lit.Boolean(_)</code>. Quasiquotes are great
+for constructing static tree nodes but pattern matching against named tree nodes
+like <code>Lit.Boolean(_)</code> can be more flexible when you need fine-grained control.</p>
+<p>To fine the name of a tree node you can use
+<a href="http://astexplorer.net/#/gist/ec56167ffafb20cbd8d68f24a37043a9/74efb238ad02abaa8fa69fc80342563efa8a1bdc">AST Explorer</a>
+or <code>tree.structure</code>. First, make sure you have the following imports</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> scalafix.v1._
+<span class="hljs-keyword">import</span> scala.meta._
+</code></pre>
+<p>Next, use the <code>.structure</code> and <code>.structure(width: Int)</code> extension methods on
+trees.</p>
+<pre><code class="hljs css language-scala">println(<span class="hljs-string">q"complete(true)"</span>.structure)     <span class="hljs-comment">// line wrap at 80th column</span>
+<span class="hljs-comment">// Term.Apply(Term.Name("complete"), List(Lit.Boolean(true)))     // line wrap at 80th column</span>
+println(<span class="hljs-string">q"complete(true)"</span>.structure(<span class="hljs-number">30</span>)) <span class="hljs-comment">// line wrap at 30th column</span>
+<span class="hljs-comment">// Term.Apply(</span>
+<span class="hljs-comment">//   Term.Name("complete"),</span>
+<span class="hljs-comment">//   List(Lit.Boolean(true))</span>
+<span class="hljs-comment">// )</span>
+</code></pre>
+<p>The output of <code>tree.structure</code> can be copy-pasted for use in pattern matching.</p>
+<p>The next improvement is to ensure we only rewrite boolean literals that appear
+in function argument position. Previously, the rewrite would replace appearances
+of <code>true</code> anywhere, producing problematic diffs like this</p>
+<pre><code class="hljs css language-diff"><span class="hljs-deletion">- val isComplete = true</span>
+<span class="hljs-addition">+ val isComplete = isSuccess = true</span>
+</code></pre>
+<p>To fix this bug, we first match function call nodes <code>Term.Apply</code> and pattern
+match only <code>Lit.Boolean</code> that appear in argument position</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">case</span> <span class="hljs-type">Term</span>.<span class="hljs-type">Apply</span>(_, args) =&gt;
+  args.collect {
+    <span class="hljs-keyword">case</span> t @ <span class="hljs-type">Lit</span>.<span class="hljs-type">Boolean</span>(_) =&gt;
+      <span class="hljs-type">Patch</span>.addLeft(t, <span class="hljs-string">"isSuccess = "</span>)
+  }
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="use-symbolinformation-to-lookup-method-signatures"></a><a href="#use-symbolinformation-to-lookup-method-signatures" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Use `SymbolInformation to lookup method signatures</h2>
+<p>Our rule is still unfinished because we have hard-coded <code>isSuccess</code>. Let's add a
+test case to reproduce this bug</p>
+<pre><code class="hljs css language-scala"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">complete</span></span>(isSuccess: <span class="hljs-type">Boolean</span>): <span class="hljs-type">Unit</span> = ()
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">finish</span></span>(isError: <span class="hljs-type">Boolean</span>): <span class="hljs-type">Unit</span> = ()
+complete(<span class="hljs-literal">true</span>)
+finish(<span class="hljs-literal">true</span>)
+</code></pre>
+<p>The rule currently produces <code>finish(isSuccess = true)</code> but the correct solution
+is to produce <code>finish(isError = true)</code>.</p>
+<p>To fix this bug, we start by capturing the called method into a variable <code>fun</code></p>
+<pre><code class="hljs css language-diff"><span class="hljs-deletion">- case Term.Apply(_, args) =&gt;</span>
+<span class="hljs-addition">+ case Term.Apply(fun, args) =&gt;</span>
+</code></pre>
+<p>We update the call to <code>args.collect</code> to include the index of the argument</p>
+<pre><code class="hljs css language-diff"><span class="hljs-deletion">- args.collect { case Lit.Boolean(_) =&gt; ...</span>
+<span class="hljs-addition">+ args.zipWithIndex.collect { case (Lit.Boolean(_), i) =&gt; ...</span>
+</code></pre>
+<p>Next, we use the method <code>Tree.symbol.info</code> to query information about the method
+we are calling</p>
+<pre><code class="hljs css language-diff">  case Lit.Boolean(_) =&gt;
+<span class="hljs-addition">+   fun.symbol.info match {</span>
+<span class="hljs-addition">+     case Some(info) =&gt;</span>
+        // ...
+<span class="hljs-addition">+     case None =&gt;</span>
+<span class="hljs-addition">+       // Do nothing, no information about this symbol.</span>
+<span class="hljs-addition">+       Patch.empty</span>
+<span class="hljs-addition">+   }</span>
+</code></pre>
+<ul>
+<li><code>Tree.symbol</code> returns a <code>Symbol</code>, which represents the unique identifier of
+definition such as a <code>val</code> or a <code>class</code>.</li>
+<li><code>Symbol.info</code> returns a
+<a href="https://static.javadoc.io/ch.epfl.scala/scalafix-core_2.12/0.8.0-RC1/scalafix/v1/SymbolInformation.html"><code>SymbolInformation</code></a>,
+which contains metadata about that symbol.</li>
+</ul>
+<p>Next, we use <code>SymbolInformation.signature</code> to see if the symbol is a method with
+a non-empty parameter list.</p>
+<pre><code class="hljs css language-diff"><span class="hljs-addition">+ info.signature match {</span>
+<span class="hljs-addition">+   case method: MethodSignature if method.parameterLists.nonEmpty =&gt;</span>
+      // ...
+<span class="hljs-addition">+   case _ =&gt;</span>
+<span class="hljs-addition">+     // Do nothing, the symbol is not a method with matching signature</span>
+<span class="hljs-addition">+     Patch.empty</span>
+<span class="hljs-addition">+ }</span>
+</code></pre>
+<p>The final step is to extract the parameter at the index of the argument</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> parameter = method.parameterLists.head(i)
+<span class="hljs-keyword">val</span> parameterName = parameter.displayName
+<span class="hljs-type">Patch</span>.addLeft(t, <span class="hljs-string">s"<span class="hljs-subst">$parameterName</span> = "</span>)
+</code></pre>
+<p>That completes the <code>NamedLiteralArguments</code> rule! Run all tests and we see they
+pass. Putting it together, the final code for the rule looks like this</p>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">// NamedLiteralArguments.scala</span>
+<span class="hljs-keyword">package</span> fix
+
+<span class="hljs-keyword">import</span> scalafix.v1._
+<span class="hljs-keyword">import</span> scala.meta._
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">NamedLiteralArguments</span></span>
+    <span class="hljs-keyword">extends</span> <span class="hljs-type">SemanticRule</span>(<span class="hljs-string">"NamedLiteralArguments"</span>) {
+  <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">fix</span></span>(<span class="hljs-keyword">implicit</span> doc: <span class="hljs-type">SemanticDocument</span>): <span class="hljs-type">Patch</span> = {
+    doc.tree.collect {
+      <span class="hljs-keyword">case</span> <span class="hljs-type">Term</span>.<span class="hljs-type">Apply</span>(fun, args) =&gt;
+        args.zipWithIndex.collect {
+          <span class="hljs-keyword">case</span> (t @ <span class="hljs-type">Lit</span>.<span class="hljs-type">Boolean</span>(_), i) =&gt;
+            fun.symbol.info <span class="hljs-keyword">match</span> {
+              <span class="hljs-keyword">case</span> <span class="hljs-type">Some</span>(info) =&gt;
+                info.signature <span class="hljs-keyword">match</span> {
+                  <span class="hljs-keyword">case</span> method: <span class="hljs-type">MethodSignature</span>
+                      <span class="hljs-keyword">if</span> method.parameterLists.nonEmpty =&gt;
+                    <span class="hljs-keyword">val</span> parameter = method.parameterLists.head(i)
+                    <span class="hljs-keyword">val</span> parameterName = parameter.displayName
+                    <span class="hljs-type">Patch</span>.addLeft(t, <span class="hljs-string">s"<span class="hljs-subst">$parameterName</span> = "</span>)
+                  <span class="hljs-keyword">case</span> _ =&gt;
+                    <span class="hljs-comment">// Do nothing, the symbol is not a method with matching signature</span>
+                    <span class="hljs-type">Patch</span>.empty
+                }
+              <span class="hljs-keyword">case</span> <span class="hljs-type">None</span> =&gt;
+                <span class="hljs-comment">// Do nothing, no information about this symbol.</span>
+                <span class="hljs-type">Patch</span>.empty
+            }
+        }
+    }.flatten.asPatch
+  }
+}
+</code></pre>
+<p>Next, we learn how to implement a syntactic linter.</p>
+<h2><a class="anchor" aria-hidden="true" id="use-diagnostic-to-report-linter-errors"></a><a href="#use-diagnostic-to-report-linter-errors" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Use <code>Diagnostic</code> to report linter errors</h2>
+<p>Let's say we want to report an error message when an argument is a literal
+instead of automatically inserting the parameter name. The user would see a
+diagnostic like this</p>
+<pre><code class="hljs css language-scala">test/<span class="hljs-type">NamedLiteralArguments</span>.scala:<span class="hljs-number">9</span>:<span class="hljs-number">12</span>: error: [<span class="hljs-type">NoLiteralArguments</span>]:
+<span class="hljs-type">Use</span> named arguments <span class="hljs-keyword">for</span> literals such as <span class="hljs-symbol">'parameterName</span> = <span class="hljs-literal">true</span>'
+  complete(<span class="hljs-literal">true</span>)
+           ^^^^
+</code></pre>
+<p>The benefit of making <code>NamedLiteralArguments</code> a syntactic linter instead of a
+semantic rewrite is that it's simpler to run syntactic rules since they don't
+require compilation. However, the downside is that we can't look up the correct
+parameter name. The linter can be syntactic because it doesn't need to use
+<code>SymbolInformation</code> to look up the parameter name.</p>
+<p>First, let's create a diagnostic that produces the error message</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">LiteralArgument</span>(<span class="hljs-params">literal: <span class="hljs-type">Lit</span></span>) <span class="hljs-keyword">extends</span> <span class="hljs-title">Diagnostic</span> </span>{
+  <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">position</span></span>: <span class="hljs-type">Position</span> = literal.pos
+  <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">message</span></span>: <span class="hljs-type">String</span> =
+    <span class="hljs-string">s"Use named arguments for literals such as 'parameterName = <span class="hljs-subst">$literal</span>'"</span>
+}
+</code></pre>
+<p>Next, we create a new syntactic rule <code>NoLiteralArguments</code>.</p>
+<pre><code class="hljs css language-scala"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">NoLiteralArguments</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">SyntacticRule</span>(<span class="hljs-params">"<span class="hljs-type">NoLiteralArguments</span>"</span>) </span>{
+  <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">fix</span></span>(<span class="hljs-keyword">implicit</span> doc: <span class="hljs-type">SyntacticDocument</span>): <span class="hljs-type">Patch</span> = {
+    <span class="hljs-comment">// ...</span>
+  }
+}
+</code></pre>
+<p>Next, update <code>META-INF/services/scalafix.v1.Rule</code> to include the new rule so
+that Scalafix can load the rule by it's name <code>rules = [ NoLiteralArguments ]</code>.
+Consult the JDK
+<a href="https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html">ServiceLoader</a>
+documentation to learn more about how Scalafix loads rules</p>
+<pre><code class="hljs css language-diff">  fix.NamedLiteralArguments
+<span class="hljs-addition">+ fix.NoLiteralArguments</span>
+</code></pre>
+<p>We create a new input file to test <code>NoLiteralArguments</code>.</p>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">/*
+rule = NoLiteralArguments
+ */</span>
+<span class="hljs-keyword">package</span> test
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">NoLiteralArguments</span> </span>{
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">complete</span></span>(isSuccess: <span class="hljs-type">Boolean</span>): <span class="hljs-type">Unit</span> = ()
+  complete(<span class="hljs-literal">true</span>) <span class="hljs-comment">// assert: NoLiteralArguments</span>
+}
+</code></pre>
+<p>The comment <code>// assert: NoLiteralArguments</code> asserts that a diagnostic is
+reported at the line of <code>complete(true)</code>. There is no need to write an output
+file since linters don't modify the input source code.</p>
+<p>Next, we write the same pattern matching logic as in <code>NamedLiteralArguments</code></p>
+<pre><code class="hljs css language-scala">doc.tree.collect {
+  <span class="hljs-keyword">case</span> <span class="hljs-type">Term</span>.<span class="hljs-type">Apply</span>(_, args) =&gt;
+    args.collect {
+      <span class="hljs-keyword">case</span> t @ <span class="hljs-type">Lit</span>.<span class="hljs-type">Boolean</span>(_) =&gt;
+        <span class="hljs-comment">// ....</span>
+    }
+}.flatten.asPatch
+</code></pre>
+<p>Finally, to report a diagnostic we use <code>Patch.lint</code></p>
+<pre><code class="hljs css language-scala"><span class="hljs-type">Patch</span>.lint(<span class="hljs-type">LiteralArgument</span>(t))
+</code></pre>
+<p>We run the tests and see that they pass. Let's add a <code>/*</code> multi-line assertion
+to make sure the position and message of the diagnostic make sense</p>
+<pre><code class="hljs css language-diff">  complete(true) // assert: NoLiteralArguments
+<span class="hljs-addition">+ complete(false) /* assert: NoLiteralArguments</span>
+<span class="hljs-addition">+          ^^^^^</span>
+<span class="hljs-addition">+ Use named arguments for literals such as 'parameterName = false'</span>
+<span class="hljs-addition">+ */</span>
+</code></pre>
+<blockquote>
+<p>It's a good practice to write at least one <code>/*</code> multi-line assertion for the
+position and message contents of a diagnostic.</p>
+</blockquote>
+<h2><a class="anchor" aria-hidden="true" id="use-withconfiguration-to-make-a-rule-configurable"></a><a href="#use-withconfiguration-to-make-a-rule-configurable" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Use <code>withConfiguration</code> to make a rule configurable</h2>
+<p>The <code>NoLiteralArguments</code> linter reports errors for <strong>boolean</strong> literals but in
+some cases we might want an error for other types of literals such as magic
+<strong>numbers</strong> and <strong>strings</strong>. Since users may have different preferences, let's
+allow them to decide which literal types to prohibit through configuration in
+<code>.scalafix.conf</code></p>
+<pre><code class="hljs css language-conf"><span class="hljs-comment">// .scalafix.conf</span>
+NoLiteralArguments<span class="hljs-selector-class">.disabledLiterals</span> = [
+  <span class="hljs-string">"Int"</span>,
+  <span class="hljs-string">"String"</span>,
+  <span class="hljs-string">"Boolean"</span>
+]
+</code></pre>
+<p>Let's start by adding a failing test suite by adding a new input file
+<code>NoLiteralArgumentsConfig.scala</code></p>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">/*
+rule = NoLiteralArguments
+NoLiteralArguments.disabledLiterals = [
+  Int
+  Boolean
+]
+ */</span>
+<span class="hljs-keyword">package</span> test
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">NoLiteralArgumentsConfig</span> </span>{
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">complete</span></span>(message: <span class="hljs-type">String</span>): <span class="hljs-type">Unit</span> = ()
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">complete</span></span>(count: <span class="hljs-type">Int</span>): <span class="hljs-type">Unit</span> = ()
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">complete</span></span>(isSuccess: <span class="hljs-type">Boolean</span>): <span class="hljs-type">Unit</span> = ()
+  complete(<span class="hljs-string">"done"</span>) <span class="hljs-comment">// ok, no error message</span>
+  complete(<span class="hljs-number">42</span>) <span class="hljs-comment">// assert: NoLiteralArguments</span>
+  complete(<span class="hljs-literal">true</span>) <span class="hljs-comment">// assert: NoLiteralArguments</span>
+}
+</code></pre>
+<p>The top of the file contains <code>.scalafix.conf</code> configuration that is passed to
+rules when they're loaded.</p>
+<p>If we run <code>tests/test</code> we get an error like this</p>
+<pre><code class="hljs css language-scala">===========&gt; <span class="hljs-type">Unreported</span> &lt;===========
+test/<span class="hljs-type">NoLiteralArgumentsConfig</span>.scala:<span class="hljs-number">16</span>:<span class="hljs-number">20</span>: error
+  complete(<span class="hljs-string">"done"</span>) <span class="hljs-comment">// assert: NoLiteralArguments</span>
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+</code></pre>
+<p>An &quot;unreported&quot; error message means we asserted a diagnostic would be reported
+at this line but no diagnostic was reported. This is expected since we don't
+read the configuration yet.</p>
+<p>Start by writing a case class to hold the configuration</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">NoLiteralArgumentsConfig</span>(<span class="hljs-params">
+    disabledLiterals: <span class="hljs-type">List</span>[<span class="hljs-type">String</span>] = <span class="hljs-type">List</span>("<span class="hljs-type">Boolean</span>"</span>)</span>
+) {
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">isDisabled</span></span>(literal: <span class="hljs-type">Lit</span>): <span class="hljs-type">Boolean</span> = {
+    <span class="hljs-keyword">val</span> kind = lit.productPrefix.stripPrefix(<span class="hljs-string">"Lit."</span>)
+    disabledLiterals.contains(kind)
+  }
+}
+</code></pre>
+<p>Next we update the rule to have an instance of the configuration</p>
+<pre><code class="hljs css language-diff"><span class="hljs-deletion">- class NoLiteralArguments extends SyntacticRule("NoLiteralArguments")</span>
+<span class="hljs-addition">+ class NoLiteralArguments(config: NoLiteralArgumentsConfig)</span>
+<span class="hljs-addition">+     extends SyntacticRule("NoLiteralArguments")</span>
+<span class="hljs-addition">+   def this() = this(NoLiteralArgumentsConfig())</span>
+</code></pre>
+<blockquote>
+<p>It's important to keep an empty constructor <code>def this() = ...</code> so that
+Scalafix can load the rule. If we forget the empty constructor we get an error
+like this: &quot;Provider fix.NoLiteralArguments could not be instantiated&quot;</p>
+</blockquote>
+<p>Next, we create a companion object with decoders to read <code>.scalafix.conf</code>
+configuration into <code>NoLiteralArgumentsConfig</code>.</p>
+<pre><code class="hljs css language-scala"><span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">NoLiteralArgumentsConfig</span> </span>{
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">default</span> </span>= <span class="hljs-type">NoLiteralArgumentsConfig</span>()
+  <span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> surface =
+    metaconfig.generic.deriveSurface[<span class="hljs-type">NoLiteralArgumentsConfig</span>]
+  <span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> decoder =
+    metaconfig.generic.deriveDecoder(<span class="hljs-keyword">default</span>)
+}
+</code></pre>
+<p>To learn more about decoding configuration, consult the
+<a href="https://olafurpg.github.io/metaconfig/">metaconfig docs</a>.</p>
+<p>Next, we override the <code>withConfiguration</code> method to read user configuration.</p>
+<pre><code class="hljs css language-diff">  class NoLiteralArguments(config: NoLiteralArgumentsConfig)
+      extends SyntacticRule("NoLiteralArguments") {
+<span class="hljs-addition">+   override def withConfiguration(config: Configuration): Configured[Rule] =</span>
+<span class="hljs-addition">+     config.conf</span>
+<span class="hljs-addition">+       .getOrElse("NoLiteralArguments")(this.config)</span>
+<span class="hljs-addition">+       .map { newConfig =&gt; new NoLiteralArguments(newConfig) }</span>
+</code></pre>
+<p>The <code>withConfiguration</code> method is called once after the rule is loaded. The same
+rule instance is then used to process multiple files in the same project.</p>
+<p>The final step is to use the configuration to report errors only for literals
+types the user has configured to prohibit</p>
+<pre><code class="hljs css language-diff"><span class="hljs-deletion">- case t: Lit.Boolean =&gt;</span>
+<span class="hljs-addition">+ case t: Lit if config.isDisabled(t) =&gt;</span>
+</code></pre>
+<p>Congrats! The <code>NoLiteralArguments</code> linter is now configurable. Putting it
+together, the final code looks like this</p>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">// NoLiteralArguments.scala</span>
+<span class="hljs-keyword">package</span> fix
+
+<span class="hljs-keyword">import</span> metaconfig.<span class="hljs-type">Configured</span>
+<span class="hljs-keyword">import</span> scala.meta._
+<span class="hljs-keyword">import</span> scalafix.v1._
+
+<span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">LiteralArgument</span>(<span class="hljs-params">literal: <span class="hljs-type">Lit</span></span>) <span class="hljs-keyword">extends</span> <span class="hljs-title">Diagnostic</span> </span>{
+  <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">position</span></span>: <span class="hljs-type">Position</span> = literal.pos
+  <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">message</span></span>: <span class="hljs-type">String</span> =
+    <span class="hljs-string">s"Use named arguments for literals such as 'parameterName = <span class="hljs-subst">$literal</span>'"</span>
+}
+
+<span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">NoLiteralArgumentsConfig</span>(<span class="hljs-params">
+    disabledLiterals: <span class="hljs-type">List</span>[<span class="hljs-type">String</span>] = <span class="hljs-type">List</span>("<span class="hljs-type">Boolean</span>"</span>)</span>
+) {
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">isDisabled</span></span>(lit: <span class="hljs-type">Lit</span>): <span class="hljs-type">Boolean</span> = {
+    <span class="hljs-keyword">val</span> kind = lit.productPrefix.stripPrefix(<span class="hljs-string">"Lit."</span>)
+    disabledLiterals.contains(kind)
+  }
+}
+
+<span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">NoLiteralArgumentsConfig</span> </span>{
+  <span class="hljs-keyword">val</span> <span class="hljs-keyword">default</span> = <span class="hljs-type">NoLiteralArgumentsConfig</span>()
+  <span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> surface =
+    metaconfig.generic.deriveSurface[<span class="hljs-type">NoLiteralArgumentsConfig</span>]
+  <span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> decoder =
+    metaconfig.generic.deriveDecoder(<span class="hljs-keyword">default</span>)
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">NoLiteralArguments</span>(<span class="hljs-params">config: <span class="hljs-type">NoLiteralArgumentsConfig</span></span>)</span>
+    <span class="hljs-keyword">extends</span> <span class="hljs-type">SyntacticRule</span>(<span class="hljs-string">"NoLiteralArguments"</span>) {
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">this</span></span>() = <span class="hljs-keyword">this</span>(<span class="hljs-type">NoLiteralArgumentsConfig</span>.<span class="hljs-keyword">default</span>)
+  <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">withConfiguration</span></span>(config: <span class="hljs-type">Configuration</span>): <span class="hljs-type">Configured</span>[<span class="hljs-type">Rule</span>] = {
+    config.conf
+      .getOrElse(<span class="hljs-string">"NoLiteralArguments"</span>)(<span class="hljs-keyword">this</span>.config)
+      .map(newConfig =&gt; <span class="hljs-keyword">new</span> <span class="hljs-type">NoLiteralArguments</span>(newConfig))
+  }
+  <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">fix</span></span>(<span class="hljs-keyword">implicit</span> doc: <span class="hljs-type">SyntacticDocument</span>): <span class="hljs-type">Patch</span> = {
+    doc.tree
+      .collect {
+        <span class="hljs-keyword">case</span> <span class="hljs-type">Term</span>.<span class="hljs-type">Apply</span>(_, args) =&gt;
+          args.collect {
+            <span class="hljs-keyword">case</span> t: <span class="hljs-type">Lit</span> <span class="hljs-keyword">if</span> config.isDisabled(t) =&gt;
+              <span class="hljs-type">Patch</span>.lint(<span class="hljs-type">LiteralArgument</span>(t))
+          }
+      }
+      .flatten
+      .asPatch
+  }
+}
+</code></pre>
+<p>That completes the tutorial in implementing rules. Now let's run the rule on
+real-world codebases.</p>
+<p>There are two ways to run a custom rule: from source or from pre-compiled
+artifacts.</p>
+<h2><a class="anchor" aria-hidden="true" id="run-the-rule-from-source-code"></a><a href="#run-the-rule-from-source-code" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Run the rule from source code</h2>
+<p>Running a rule from source code is the simplest way to run a custom rule.
+However, rules that are compiled from source have the following limitations:</p>
+<ul>
+<li>Inflexible, rules must be implemented in a single source file</li>
+<li>No dependencies, rules can only use the Scalafix public API</li>
+<li>Slow, rule is re-compiled on every invocation so it's not great for
+interactive usage.</li>
+<li>No tab completion in the sbt shell, users need to manually type the path to
+the source file</li>
+</ul>
+<p>The steps below assume you have scalafix setup according to the installation
+instructions. The SemanticDB compiler plugin must be enabled to run semantic
+rules like <code>NamedLiteralArguments</code>. Syntactic rules like the linter
+<code>NoLiteralArguments</code> work without SemanticDB and don't require a <code>--classpath</code>
+(when using the command-line interface).</p>
+<p>You have different options to run the rule from source: <code>file:</code>, <code>http:</code> or
+<code>github:</code></p>
+<h3><a class="anchor" aria-hidden="true" id="using-file"></a><a href="#using-file" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Using <code>file:</code></h3>
+<p>If you have the source code for the rule on your local machine, you can run a
+custom rule using the <code>file:/path/to/NamedLiteralArguments.scala</code> syntax.</p>
+<pre><code class="hljs">scalafix <span class="hljs-built_in">file</span>:/path/<span class="hljs-keyword">to</span>/NamedLiteralArguments.scala
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="using-http"></a><a href="#using-http" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Using <code>http:</code></h3>
+<p>Another way to run a rule from source is to publish it as a gist and share the
+raw URL</p>
+<pre><code class="hljs">scalafix <span class="hljs-symbol">https:</span>/<span class="hljs-regexp">/gist.githubusercontent.com/olafurpg</span><span class="hljs-regexp">/eeccf32f035d13f0728bc94d8ec0a776/raw</span><span class="hljs-regexp">/78c81bb7f390eb98178dd26ea03c42bd5a998666/</span>NamedLiteralArguments.scala
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="using-github"></a><a href="#using-github" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Using <code>github:</code></h3>
+<p>Another way to run custom rules from source is to use the <code>github:org/repo</code>
+scheme.</p>
+<pre><code class="hljs">scalafix github:olafurpg/<span class="hljs-keyword">named</span>-literal-arguments
+</code></pre>
+<p>The expansion rules for <code>github:org/repo</code> are the following:</p>
+<table>
+<thead>
+<tr><th>Before</th><th>After</th></tr>
+</thead>
+<tbody>
+<tr><td><code>github:org/repo</code></td><td><code>scalafix/rules/src/main/scala/fix/Repo.scala</code></td></tr>
+<tr><td><code>github:org/some-repo</code></td><td><code>scalafix/rules/src/main/scala/fix/SomeRepo.scala</code></td></tr>
+<tr><td><code>github:org/repo/RuleName</code></td><td><code>scalafix/rules/src/main/scala/fix/RuleName.scala</code></td></tr>
+<tr><td><code>github:org/repo/RuleName?sha=HASH125</code></td><td>(at commit <code>HASH125</code>) <code>scalafix/rules/src/main/scala/fix/RuleName.scala</code></td></tr>
+</tbody>
+</table>
+<h2><a class="anchor" aria-hidden="true" id="publish-the-rule-to-maven-central"></a><a href="#publish-the-rule-to-maven-central" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Publish the rule to Maven Central</h2>
+<p>The most robust way to share a custom rule is to publish it as a library to
+Maven Central. The
+<a href="https://github.com/olafurpg/named-literal-arguments/blob/master/scalafix/build.sbt"><code>build.sbt</code></a>
+shows the necessary changes to build.sbt to populate publishing information. The
+<a href="https://github.com/olafurpg/sbt-ci-release">sbt-ci-release</a> readme documents
+the further steps to configure gpg and Sonatype.</p>
+<p>Once you have your rule, users can depend on it in the sbt plugin by updating
+<code>scalafixDependencies</code> (<code>scalafix.sbt.ScalafixPlugin.autoImport.scalafixDependencies</code>)</p>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">// build.sbt</span>
+scalafixDependencies in <span class="hljs-type">ThisBuild</span> +=
+  <span class="hljs-string">"com.geirsson"</span> %% <span class="hljs-string">"named-literal-arguments"</span> % <span class="hljs-string">"VERSION"</span>
+<span class="hljs-comment">// sbt shell</span>
+&gt; scalafix <span class="hljs-type">NamedLiteralArguments</span>
+</code></pre>
+<p>Users of the Scalafix command-line interface can use the <code>--tool-classpath</code> flag</p>
+<pre><code class="hljs">scalafix \
+  -<span class="ruby">-tool-classpath $(coursier fetch com.<span class="hljs-symbol">geirsson:</span>named-literal-arguments_2.<span class="hljs-number">12</span><span class="hljs-symbol">:VERSION</span>) \
+</span>  -<span class="ruby">r NamedLiteralArguments \
+</span>  -<span class="ruby">-classpath MY_PROJECT_CLASSPATH \
+</span>  my-project/src/main/scala
+</code></pre>
+<p>Note that for syntactic rules like <code>NoLiteralArguments</code>, the <code>--classpath</code>
+argument is not required.</p>
+<p>Don't be intimidated by publishing to Maven Central, it gets easier once you've
+done it the first time. A guide on how to publish libraries can be found
+<a href="https://github.com/olafurpg/sbt-ci-release">here</a>. The benefits of publishing a
+rule to Maven Central are many.</p>
+<ul>
+<li>Dependencies, you can use custom library dependency to implement your rule</li>
+<li>Fast to run, no need to re-compile the rule on every Scalafix invocation</li>
+<li>Tab completion in sbt, users can tab-complete your rule when using sbt plugin</li>
+</ul>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/scalafix/docs/developers/before-you-begin.html"><span class="arrow-prev">← </span><span>Previous</span></a><a class="docs-next button" href="/scalafix/docs/developers/api.html"><span>Next</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav docOnPageNav"><ul class="toc-headings"><li><a href="#import-the-build">Import the build</a></li><li><a href="#write-unit-tests">Write unit tests</a></li><li><a href="#use-pattern-matching-to-find-interesting-tree-nodes">Use pattern matching to find interesting tree nodes</a></li><li><a href="#use-symbolinformation-to-lookup-method-signatures">Use `SymbolInformation to lookup method signatures</a></li><li><a href="#use-diagnostic-to-report-linter-errors">Use <code>Diagnostic</code> to report linter errors</a></li><li><a href="#use-withconfiguration-to-make-a-rule-configurable">Use <code>withConfiguration</code> to make a rule configurable</a></li><li><a href="#run-the-rule-from-source-code">Run the rule from source code</a><ul class="toc-headings"><li><a href="#using-file">Using <code>file:</code></a></li><li><a href="#using-http">Using <code>http:</code></a></li><li><a href="#using-github">Using <code>github:</code></a></li></ul></li><li><a href="#publish-the-rule-to-maven-central">Publish the rule to Maven Central</a></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#15242B"><section class="sitemap"><a href="/scalafix/" class="nav-home"><img src="/scalafix/img/scalacenter2x.png" alt="Scalafix" width="66" height="58"/></a><div><h5>Docs</h5><a href="
+                /scalafix/docs/users/installation.html">Get started</a><a href="
+                /scalafix/docs/rules/overview.html">Rules</a><a href="
+                /scalafix/docs/developers/setup.html">Extend Scalafix</a></div><div><h5>Community</h5><a href="https://gitter.im/scalacenter/scalafix" target="_blank">Chat on Gitter</a><a href="https://users.scala-lang.org/" target="_blank">Discuss on Scala Users</a></div><div><h5>More</h5><a href="https://github.com/scalacenter/scalafix" target="_blank">GitHub</a></div></section><section class="copyright">Copyright © 2018 Scala Center</section></footer></div></body></html>

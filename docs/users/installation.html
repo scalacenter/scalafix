@@ -1,479 +1,407 @@
-<html><head><title>scalafix: Installation</title><meta charset="utf-8" /><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="ch.epfl.scala" /><meta name="description" content="Rewrite and linting tool for Scala" /><meta name="og:image" content="/scalafix/img/poster.png" /><meta name="og:title" content="scalafix: Installation" /><meta name="og:site_name" content="scalafix" /><meta name="og:url" content="https://scalacenter.github.io/scalafix/" /><meta name="og:type" content="website" /><meta name="og:description" content="Rewrite and linting tool for Scala" /><link rel="icon" type="image/png" href="/scalafix/img/favicon.png" /><meta name="twitter:title" content="scalafix: Installation" /><meta name="twitter:image" content="https://scalacenter.github.io/scalafix/img/poster.png" /><meta name="twitter:description" content="Rewrite and linting tool for Scala" /><meta name="twitter:card" content="summary_large_image" /><meta name="twitter:creator" content="@scala_lang" /><link rel="icon" type="image/png" sizes="16x16" href="/scalafix/img/favicon16x16.png" /><link rel="icon" type="image/png" sizes="24x24" href="/scalafix/img/favicon24x24.png" /><link rel="icon" type="image/png" sizes="32x32" href="/scalafix/img/favicon32x32.png" /><link rel="icon" type="image/png" sizes="48x48" href="/scalafix/img/favicon48x48.png" /><link rel="icon" type="image/png" sizes="57x57" href="/scalafix/img/favicon57x57.png" /><link rel="icon" type="image/png" sizes="60x60" href="/scalafix/img/favicon60x60.png" /><link rel="icon" type="image/png" sizes="64x64" href="/scalafix/img/favicon64x64.png" /><link rel="icon" type="image/png" sizes="70x70" href="/scalafix/img/favicon70x70.png" /><link rel="icon" type="image/png" sizes="72x72" href="/scalafix/img/favicon72x72.png" /><link rel="icon" type="image/png" sizes="76x76" href="/scalafix/img/favicon76x76.png" /><link rel="icon" type="image/png" sizes="96x96" href="/scalafix/img/favicon96x96.png" /><link rel="icon" type="image/png" sizes="114x114" href="/scalafix/img/favicon114x114.png" /><link rel="icon" type="image/png" sizes="120x120" href="/scalafix/img/favicon120x120.png" /><link rel="icon" type="image/png" sizes="128x128" href="/scalafix/img/favicon128x128.png" /><link rel="icon" type="image/png" sizes="144x144" href="/scalafix/img/favicon144x144.png" /><link rel="icon" type="image/png" sizes="150x150" href="/scalafix/img/favicon150x150.png" /><link rel="icon" type="image/png" sizes="152x152" href="/scalafix/img/favicon152x152.png" /><link rel="icon" type="image/png" sizes="196x196" href="/scalafix/img/favicon196x196.png" /><link rel="icon" type="image/png" sizes="310x310" href="/scalafix/img/favicon310x310.png" /><link rel="icon" type="image/png" sizes="310x150" href="/scalafix/img/favicon310x150.png" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" /><link rel="stylesheet" href="/scalafix/highlight/styles/atom-one-light.css" /><link rel="stylesheet" href="/scalafix/css/style.css" /><link rel="stylesheet" href="/scalafix/css/palette.css" /><link rel="stylesheet" href="/scalafix/css/codemirror.css" /><link rel="stylesheet" href="/scalafix/css/override.css" /></head><body class="docs"><div id="wrapper"><div id="sidebar-wrapper"><ul id="sidebar" class="sidebar-nav"><li class="sidebar-brand"><a href="/scalafix/" class="brand"><div class="brand-wrapper"><span>scalafix</span></div></a></li> <li><a href="/scalafix/docs/users/installation" class="">Users</a> <ul class="sub_section"> <li><a href="/scalafix/docs/users/installation" class=" active ">Installation</a></li> <li><a href="/scalafix/docs/users/rules" class="">Rules</a></li> <li><a href="/scalafix/docs/users/configuration" class="">Configuration</a></li> <li><a href="/scalafix/docs/users/faq" class="">FAQ</a></li></ul></li> <li><a href="/scalafix/docs/rule-authors/setup" class="">Rule Authors</a> <ul class="sub_section"> <li><a href="/scalafix/docs/rule-authors/setup" class="">Setup</a></li> <li><a href="/scalafix/docs/rule-authors/tutorial" class="">Tutorial</a></li> <li><a href="/scalafix/docs/rule-authors/glossary" class="">Glossary</a></li> <li><a href="/scalafix/docs/api/scalafix/" class="">API Docs</a></li></ul></li></ul></div><div id="page-content-wrapper"><div class="nav"><div class="container-fluid"><div class="row"><div class="col-lg-12"><div class="action-menu pull-left clearfix"><a href="#menu-toggle" id="menu-toggle"><i class="fa fa-bars" aria-hidden="true"></i></a></div><ul class="pull-right"><li id="gh-eyes-item" class="hidden-xs"><a href="https://github.com/scalacenter/scalafix"><i class="fa fa-eye"></i><span>WATCH<span id="eyes" class="label label-default">--</span></span></a></li><li id="gh-stars-item" class="hidden-xs"><a href="https://github.com/scalacenter/scalafix"><i class="fa fa-star-o"></i><span>STARS<span id="stars" class="label label-default">--</span></span></a></li><li><a href="#" onclick="shareSiteTwitter('scalafix Rewrite and linting tool for Scala');"><i class="fa fa-twitter"></i></a></li><li><a href="#" onclick="shareSiteFacebook('scalafix Rewrite and linting tool for Scala');"><i class="fa fa-facebook"></i></a></li><li><a href="#" onclick="shareSiteGoogle();"><i class="fa fa-google-plus"></i></a></li></ul></div></div></div></div><div id="content" data-github-owner="scalacenter" data-github-repo="scalafix"><div class="content-wrapper"><section><p>To run scalafix on your project, you must first install the Scalafix sbt plugin
-or command line interface.
-Currently, Scalafix does not provide any IDE integrations with IntelliJ/ENSIME.</p>
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Installation · Scalafix</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="First, make sure you are using a supported Scala compiler version."/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Installation · Scalafix"/><meta property="og:type" content="website"/><meta property="og:url" content="https://scalacenter.github.io//scalafix/index.html"/><meta property="og:description" content="First, make sure you are using a supported Scala compiler version."/><meta property="og:image" content="https://scalacenter.github.io//scalafix/img/scalacenter2x.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://scalacenter.github.io//scalafix/img/scalacenter2x.png"/><link rel="shortcut icon" href="/scalafix/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css"/><link rel="stylesheet" href="/scalafix/css/main.css"/></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/scalafix/"><img class="logo" src="/scalafix/img/scalacenter2x.png" alt="Scalafix"/><h2 class="headerTitleWithLogo">Scalafix</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive siteNavItemActive"><a href="/scalafix/docs/users/installation.html" target="_self">User guide</a></li><li class=""><a href="/scalafix/docs/developers/setup.html" target="_self">Developer guide</a></li><li class=""><a href="https://github.com/scalacenter/scalafix" target="_blank">GitHub</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>Usage</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Usage</h3><ul><li class="navListItem navListItemActive"><a class="navItem" href="/scalafix/docs/users/installation.html">Installation</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/users/configuration.html">Configuration</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/users/suppression.html">Suppressing rules</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Rules</h3><ul><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/overview.html">All rules</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/RemoveUnused.html">RemoveUnused</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/DisableSyntax.html">DisableSyntax</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/NoAutoTupling.html">NoAutoTupling</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/LeakingImplicitClassVal.html">LeakingImplicitClassVal</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/NoValInForComprehension.html">NoValInForComprehension</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/ProcedureSyntax.html">ProcedureSyntax</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Misc</h3><ul><li class="navListItem"><a class="navItem" href="/scalafix/docs/users/related-projects.html">Related projects</a></li></ul></div></div></section></div><script>
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
 
-<ul id="markdown-toc">
-  <li><a href="#sbt-scalafix" id="markdown-toc-sbt-scalafix">sbt-scalafix</a>    <ul>
-      <li><a href="#verify-installation" id="markdown-toc-verify-installation">Verify installation</a></li>
-      <li><a href="#example-project" id="markdown-toc-example-project">Example project</a></li>
-      <li><a href="#settings-and-tasks" id="markdown-toc-settings-and-tasks">Settings and tasks</a></li>
-      <li><a href="#semanticdb-sbt" id="markdown-toc-semanticdb-sbt">semanticdb-sbt</a></li>
-    </ul>
-  </li>
-  <li><a href="#scalafix-cli" id="markdown-toc-scalafix-cli">scalafix-cli</a>    <ul>
-      <li><a href="#coursier" id="markdown-toc-coursier">Coursier</a></li>
-      <li><a href="#homebrew" id="markdown-toc-homebrew">Homebrew</a></li>
-      <li><a href="#wget" id="markdown-toc-wget">wget</a></li>
-      <li><a href="#help" id="markdown-toc-help">–help</a></li>
-    </ul>
-  </li>
-  <li><a href="#maven" id="markdown-toc-maven">Maven</a>    <ul>
-      <li><a href="#install-semanticdb-compiler-plugin" id="markdown-toc-install-semanticdb-compiler-plugin">Install semanticdb compiler plugin</a></li>
-      <li><a href="#compile-sources-with-semanticdb" id="markdown-toc-compile-sources-with-semanticdb">Compile sources with semanticdb</a></li>
-      <li><a href="#run-scalafix-cli" id="markdown-toc-run-scalafix-cli">Run scalafix-cli</a></li>
-    </ul>
-  </li>
-  <li><a href="#scalafix-core" id="markdown-toc-scalafix-core">scalafix-core</a></li>
-  <li><a href="#snapshot" id="markdown-toc-snapshot">SNAPSHOT</a></li>
-</ul>
+              const headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                if (event.target.tagName === 'A') {
+                  document.body.classList.remove('tocActive');
+                }
+              }, false);
 
-<h2 id="sbt-scalafix">sbt-scalafix</h2>
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
 
-<p>The sbt-plugin is the recommended integration to run semantic rules like RemoveUnusedImports or ExplicitResultTypes.</p>
+                if (!toggler) {
+                  return;
+                }
 
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="c1">// ===&gt; project/plugins.sbt
-</span><span class="n">addSbtPlugin</span><span class="o">(</span><span class="s">"ch.epfl.scala"</span> <span class="o">%</span> <span class="s">"sbt-scalafix"</span> <span class="o">%</span> <span class="s">"0.5.10"</span><span class="o">)</span>
+                toggler.onclick = function(event) {
+                  event.preventDefault();
 
-<span class="c1">// ===&gt; sbt shell
-</span><span class="o">&gt;</span> <span class="n">scalafixEnable</span> <span class="c1">// Setup scalafix for active session.
-</span>                 <span class="c1">// Not needed if build.sbt is configured like below.
-</span><span class="o">&gt;</span> <span class="n">scalafixCli</span>                                            <span class="c1">// Run all rules configured in .scalafix.conf
-</span><span class="o">&gt;</span> <span class="n">scalafixCli</span> <span class="o">--</span><span class="n">rules</span> <span class="nc">RemoveUnusedImports</span>                 <span class="c1">// Run only RemoveUnusedImports rule
-</span><span class="o">&gt;</span> <span class="n">myProject</span><span class="o">/</span><span class="n">scalafixCli</span> <span class="o">--</span><span class="n">rules</span> <span class="nc">RemoveUnusedImports</span>       <span class="c1">// Run rule in one project only
-</span><span class="o">&gt;</span> <span class="n">test</span><span class="k">:</span><span class="kt">scalafixCli</span> <span class="kt">--rules</span> <span class="kt">RemoveUnusedImports</span>            <span class="c1">// Run rule in single configuration
-</span><span class="o">&gt;</span> <span class="n">scalafixCli</span> <span class="o">--</span><span class="n">rules</span> <span class="nc">ExplicitR</span><span class="o">&lt;</span><span class="nc">TAB</span><span class="o">&gt;</span>                      <span class="c1">// Use tab completion
-</span><span class="o">&gt;</span> <span class="n">scalafixCli</span> <span class="o">--</span><span class="n">rules</span> <span class="n">replace</span><span class="k">:</span><span class="kt">com.foobar/com.buzbaz</span>       <span class="c1">// Refactor (experimental)
-</span><span class="o">&gt;</span> <span class="n">scalafixCli</span> <span class="o">--</span><span class="n">rules</span> <span class="n">file</span><span class="k">:</span><span class="kt">rules/MyRule.scala</span>             <span class="c1">// Run local custom rule
-</span><span class="o">&gt;</span> <span class="n">scalafixCli</span> <span class="o">--</span><span class="n">rules</span> <span class="n">github</span><span class="k">:</span><span class="kt">org/repo/v1</span>                  <span class="c1">// Run library migration rule
-</span><span class="o">&gt;</span> <span class="n">scalafixCli</span> <span class="o">--</span><span class="n">test</span>                                      <span class="c1">// Make sure no files needs to be fixed
-</span>
-
-<span class="c1">// (optional, to avoid need for scalafixEnable) permanently enable scalafix in build.sbt
-// ===&gt; build.sbt
-</span><span class="n">scalaVersion</span> <span class="o">:=</span> <span class="s">"2.12.4"</span> <span class="c1">// 2.11.12 is also supported.
-</span>
-<span class="c1">// If you get "-Yrangepos is required" error or "Missing compiler plugin semanticdb",
-// This setting must appear after scalacOptions and libraryDependencies.
-</span><span class="n">scalafixSettings</span>
-<span class="c1">// or scalafixLibraryDependencies (Add semanticdb-scalac compiler plugin to libraryDependencies.)
-// &amp; scalacOptions bellow
-</span>
-<span class="c1">// Similarly for sbt builds
-</span><span class="n">sbtfixSettings</span>
-
-<span class="c1">// To configure for custom configurations like IntegrationTest
-</span><span class="n">scalafixConfigure</span><span class="o">(</span><span class="nc">Compile</span><span class="o">,</span> <span class="nc">Test</span><span class="o">,</span> <span class="nc">IntegrationTest</span><span class="o">)</span>
-</code></pre>
-</div>
-
-<h3 id="verify-installation">Verify installation</h3>
-
-<p>To verify the installation, check that scalacOptions and libraryDependecies
-contain the values below.</p>
-
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="o">&gt;</span> <span class="n">show</span> <span class="n">scalacOptions</span>
-<span class="o">[</span><span class="kt">info</span><span class="o">]</span> <span class="o">*</span> <span class="o">-</span><span class="nc">Yrangepos</span>                   <span class="c1">// required
-</span><span class="o">[</span><span class="kt">info</span><span class="o">]</span> <span class="o">*</span> <span class="o">-</span><span class="nc">Xplugin</span><span class="o">-</span><span class="n">require</span><span class="k">:</span><span class="kt">semanticdb</span>  <span class="c1">// recommended
-</span><span class="o">[</span><span class="kt">info</span><span class="o">]</span> <span class="o">*</span> <span class="o">-</span><span class="n">P</span><span class="k">:</span><span class="kt">semanticdb:sourceroot:/x</span>  <span class="c1">// recommended
-</span><span class="o">&gt;</span> <span class="n">show</span> <span class="n">libraryDependencies</span>
-<span class="o">[</span><span class="kt">info</span><span class="o">]</span> <span class="o">*</span> <span class="n">org</span><span class="o">.</span><span class="n">scalameta</span><span class="k">:</span><span class="kt">semanticdb-scalac:</span><span class="err">2</span><span class="kt">.</span><span class="err">1</span><span class="kt">.</span><span class="err">7</span><span class="kt">:plugin-&gt;default</span><span class="o">(</span><span class="kt">compile</span><span class="o">)</span>
-</code></pre>
-</div>
-
-<h3 id="example-project">Example project</h3>
-
-<p>For a minimal example project using sbt-scalafix, see the <a href="https://github.com/scalacenter/scalafix-sbt-example">scalacenter/scalafix-sbt-example</a> repository.</p>
-
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="o">://</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">olafurpg</span><span class="o">/</span><span class="n">scalafix</span><span class="o">-</span><span class="n">sbt</span><span class="o">-</span><span class="n">example</span>
-<span class="n">cd</span> <span class="n">scalafix</span><span class="o">-</span><span class="n">sbt</span><span class="o">-</span><span class="n">example</span>
-<span class="n">sbt</span> <span class="s">"scalafix RemoveUnusedImports"</span>
-<span class="n">git</span> <span class="n">diff</span> <span class="c1">// should produce a diff
-</span></code></pre>
-</div>
-
-<h3 id="settings-and-tasks">Settings and tasks</h3>
-
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docMainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><a class="edit-page-link button" href="https://github.com/scalacenter/scalafix/edit/master/docs/users/installation.md" target="_blank" rel="noreferrer noopener">Edit</a><h1 class="postHeaderTitle">Installation</h1></header><article><div><span><p>First, make sure you are using a supported Scala compiler version.</p>
 <table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="highlighter-rouge">scalafixCli &lt;args&gt;</code></td>
-      <td><code class="highlighter-rouge">Unit</code></td>
-      <td>Invoke scalafix command line interface directly. See <a href="/scalafix/docs/users/installation#cli">cli</a> or use tab completion to explore supported arguments</td>
-    </tr>
-    <tr>
-      <td><code class="highlighter-rouge">scalafix &lt;rule&gt;..</code></td>
-      <td><code class="highlighter-rouge">Unit</code></td>
-      <td>Run scalafix on project sources. See <a href="/scalafix/docs/users/rules">Rules</a> or use tab completion to explore supported rules.</td>
-    </tr>
-    <tr>
-      <td><code class="highlighter-rouge">scalafixTest &lt;rule&gt;..</code></td>
-      <td><code class="highlighter-rouge">Unit</code></td>
-      <td>Similar to the above task with the –test parameter</td>
-    </tr>
-    <tr>
-      <td><code class="highlighter-rouge">sbtfix &lt;rule&gt;..</code></td>
-      <td><code class="highlighter-rouge">Unit</code></td>
-      <td>Run scalafix on the build sources, <code class="highlighter-rouge">*.sbt</code> and <code class="highlighter-rouge">project/*</code>. <strong>Note</strong>: Only supports syntactic rules.</td>
-    </tr>
-    <tr>
-      <td><code class="highlighter-rouge">sbtfixTest &lt;rule&gt;..</code></td>
-      <td><code class="highlighter-rouge">Unit</code></td>
-      <td>Similar to the above task with the –test parameter</td>
-    </tr>
-    <tr>
-      <td><code class="highlighter-rouge">scalafixConfig</code></td>
-      <td><code class="highlighter-rouge">Option[File]</code></td>
-      <td>.scalafix.conf file to specify which scalafix rules should run.</td>
-    </tr>
-    <tr>
-      <td><code class="highlighter-rouge">scalafixScalacOptions</code></td>
-      <td><code class="highlighter-rouge">Seq[String]</code></td>
-      <td>Necessary Scala compiler settings for scalafix to work.</td>
-    </tr>
-    <tr>
-      <td><code class="highlighter-rouge">scalafixScalaVersion</code></td>
-      <td><code class="highlighter-rouge">String</code></td>
-      <td>Which Scala version of scalafix-cli to run.</td>
-    </tr>
-    <tr>
-      <td><code class="highlighter-rouge">scalafixSemanticdbVersion</code></td>
-      <td><code class="highlighter-rouge">String</code></td>
-      <td>Which version of org.scalameta:semanticdb-scalac to run.</td>
-    </tr>
-    <tr>
-      <td><code class="highlighter-rouge">scalafixSourceRoot</code></td>
-      <td><code class="highlighter-rouge">File</code></td>
-      <td>The root directory of this project.</td>
-    </tr>
-    <tr>
-      <td><code class="highlighter-rouge">scalafixVerbose</code></td>
-      <td><code class="highlighter-rouge">Boolean</code></td>
-      <td>If <code class="highlighter-rouge">true</code>, print out debug information.</td>
-    </tr>
-    <tr>
-      <td><code class="highlighter-rouge">scalafixVersion</code></td>
-      <td><code class="highlighter-rouge">String</code></td>
-      <td>Which version of scalafix-cli to run.</td>
-    </tr>
-    <tr>
-      <td><code class="highlighter-rouge">scalafixEnabled</code></td>
-      <td><code class="highlighter-rouge">Boolean</code></td>
-      <td>Deprecated. Use the scalafixEnable command or manually configure scalacOptions/libraryDependecies/scalaVersion</td>
-    </tr>
-    <tr>
-      <td><code class="highlighter-rouge">scalametaSourceroot</code></td>
-      <td><code class="highlighter-rouge">File</code></td>
-      <td>Deprecated. Renamed to <code class="highlighter-rouge">scalafixSourceroot</code></td>
-    </tr>
-  </tbody>
+<thead>
+<tr><th>Scalafix</th><th>Scala Compiler</th><th>Scalameta</th></tr>
+</thead>
+<tbody>
+<tr><td>0.5.10</td><td>2.11.12 / 2.12.4</td><td>2.1.7</td></tr>
+<tr><td>0.8.0-RC1</td><td>2.11.12 / 2.12.6</td><td>4.0.0-RC1</td></tr>
+</tbody>
 </table>
-
-<h3 id="semanticdb-sbt">semanticdb-sbt</h3>
-
-<p><strong>⚠️ Experimental</strong></p>
-
-<p>semanticdb-sbt is a Scala 2.10 compiler plugin that extracts semantic
-information from the sbt compiler.
-Note. semanticdb-sbt only works for <code class="highlighter-rouge">*.scala</code> files, it does not
-support <code class="highlighter-rouge">*.sbt</code> files.</p>
-
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="c1">// project/plugins.sbt
-</span><span class="n">addCompilerPlugin</span><span class="o">(</span><span class="s">"org.scalameta"</span> <span class="o">%</span> <span class="s">"semanticdb-sbt"</span> <span class="o">%</span> <span class="s">"0.4.0"</span> <span class="n">cross</span> <span class="nc">CrossVersion</span><span class="o">.</span><span class="n">full</span><span class="o">)</span>
+<p>Next, integrate Scalafix with your build tool or use the command-line interface.</p>
+<h2><a class="anchor" aria-hidden="true" id="sbt"></a><a href="#sbt" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>sbt</h2>
+<p>Start by installing the sbt plugin in <code>project/plugins.sbt</code></p>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">// project/plugins.sbt</span>
+addSbtPlugin(<span class="hljs-string">"ch.epfl.scala"</span> % <span class="hljs-string">"sbt-scalafix"</span> % <span class="hljs-string">"0.8.0-RC1"</span>)
 </code></pre>
-</div>
-
-<p>Once enabled, you can run scalafix rules against <code class="highlighter-rouge">project/*.scala</code>:</p>
-
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="o">&gt;</span> <span class="n">reload</span> <span class="c1">// rebuild semanticdb for project/*.scala sources
-</span><span class="o">&gt;</span> <span class="n">sbtfix</span> <span class="nc">Sbt1</span>
+<p>From the sbt shell, let's run the rule <code>ProcedureSyntax</code></p>
+<pre><code class="hljs"><span class="hljs-meta">&gt;</span><span class="bash"> myproject/scalafix ProcedureSyntax</span>
 </code></pre>
-</div>
-
-<h2 id="scalafix-cli">scalafix-cli</h2>
-
-<p>The recommended way to install the scalafix command-line interface is with
-<a href="https://github.com/coursier/coursier#command-line">coursier</a>.</p>
-
-<h3 id="coursier">Coursier</h3>
-
-<div class="language-sh highlighter-rouge"><pre class="highlight"><code>// coursier
-coursier bootstrap ch.epfl.scala:scalafix-cli_2.12.4:0.5.10 -f --main scalafix.cli.Cli -o scalafix
-./scalafix --help
+<p>It's normal that the first invocation of <code>scalafix</code> takes a while to download
+Scalafix artifacts from Maven Central.</p>
+<p>If all went well and your project uses the deprecated &quot;procedure syntax&quot;, you
+should have a diff in your sources like this</p>
+<pre><code class="hljs css language-diff"><span class="hljs-deletion">-  def myProcedure {</span>
+<span class="hljs-addition">+  def myProcedure: Unit = {</span>
 </code></pre>
-</div>
-
-<h3 id="homebrew">Homebrew</h3>
-
-<div class="language-sh highlighter-rouge"><pre class="highlight"><code>// homebrew
-brew install --HEAD olafurpg/scalafmt/scalafix
-scalafix --help
+<p>Next, if we run another rule like <code>RemoveUnused</code> then we get an error</p>
+<pre><code class="hljs">&gt; myproject/scalafix RemoveUnused
+[<span class="hljs-builtin-name">error</span>] (Compile / scalafix) scalafix.sbt.InvalidArgument: 2 errors
+[E1] The semanticdb-scalac compiler plugin is required <span class="hljs-keyword">to</span> <span class="hljs-builtin-name">run</span> semantic
+rules like RemoveUnused <span class="hljs-built_in">..</span>.
+[E2] The Scala compiler option <span class="hljs-string">"-Ywarn-unused"</span> is required <span class="hljs-keyword">to</span> use
+RemoveUnused <span class="hljs-built_in">..</span>.
 </code></pre>
-</div>
-
-<h3 id="wget">wget</h3>
-
-<div class="language-sh highlighter-rouge"><pre class="highlight"><code>// wget
-wget -O scalafix https://github.com/scalacenter/scalafix/blob/master/scalafix?raw<span class="o">=</span><span class="nb">true</span>
-./scalafix --help
+<p>The error message appears because <code>RemoveUnused</code> requires the project sources to
+be compiled beforehand for the unused code analysis to function properly.</p>
+<p>The first error message means the
+<a href="https://scalameta.org/docs/semanticdb/guide.html">SemanticDB</a> compiler plugin
+is not enabled for this project. The second error says <code>RemoveUnused</code> requires
+the Scala compiler option <code>-Ywarn-unused</code>. To fix both problems, add the
+following settings to <code>build.sbt</code></p>
+<pre><code class="hljs css language-diff"> // build.sbt
+ lazy val myproject = project.settings(
+   scalaVersion := "2.12.6", // or 2.11.12
+<span class="hljs-addition">+  addCompilerPlugin(scalafixSemanticdb), // enable SemanticDB</span>
+   scalacOptions ++= List(
+<span class="hljs-addition">+    "-Yrangepos",          // required by SemanticDB compiler plugin</span>
+<span class="hljs-addition">+    "-Ywarn-unused-import" // required by `RemoveUnused` rule</span>
+   )
+ )
 </code></pre>
-</div>
-
-<p>Once the scalafix cli is installed, consult the –help page for further usage instructions.</p>
-
-<h3 id="help">–help</h3>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>scalafix 0.5.10-20180618-1437
-Usage: scalafix [options] [&lt;file&gt;...]
-  --usage  
-        Print usage and exit
-  --help | -h  
-        Print help message and exit
-  --version | -v  
-        Print version number and exit
-  --verbose  
-        If set, print out debugging inforation to stderr.
-  --config | -c  &lt;.scalafix.conf&gt;
-        File path to a .scalafix.conf configuration file.
-  --config-str | -c  &lt;imports.organize=false&gt;
-        String representing scalafix configuration
-  --sourceroot  &lt;/foo/myproject&gt;
-        Absolute path passed to semanticdb with
-	-P:semanticdb:sourceroot:&lt;path&gt;. Relative filenames persisted in the
-	Semantic DB are absolutized by the sourceroot. Defaults to current
-	working directory if not provided.
-  --classpath  &lt;entry1.jar:entry2.jar:target/scala-2.12/classes/&gt;
-        java.io.File.pathSeparator separated list of directories or jars
-	containing '.semanticdb' files. The 'semanticdb' files are emitted by
-	the semanticdb-scalac compiler plugin and are necessary for semantic
-	rules like ExplicitResultTypes to function.
-  --classpath-auto-roots  &lt;value&gt;
-        Automatically infer --classpath starting from these directories.
-	Ignored if --classpath is provided.
-  --tool-classpath  &lt;entry1.jar:entry2.jar:target/scala-2.12/classes/&gt;
-        Additional classpath to use when classloading/compiling rules
-  --no-strict-semanticdb  
-        Disable validation when loading semanticdb files.
-  --rules | -r  &lt;ProcedureSyntax OR file:LocalFile.scala OR scala:full.Name OR https://gist.com/.../Rule.scala&gt;
-        Scalafix rules to run.
-  --stdout  
-        If set, print fix to stdout instead of writing to file.
-  --test  
-        Exit non-zero code if files have not been fixed. Won't write to files.
-  --out-from  &lt;/shared/&gt;
-        Regex that is passed as first argument to
-	fileToFix.replaceAll(outFrom, outTo)
-  --out-to  &lt;/custom/&gt;
-        Replacement string that is passed as second argument to
-	fileToFix.replaceAll(outFrom, outTo)
-  --exclude  &lt;core Foobar.scala&gt;
-        Space separated list of regexes to exclude which files to fix. If a
-	file match one of the exclude regexes, then it will not get fixed.
-	Defaults to excluding no files.
-  --single-thread  
-        If true, run on single thread. If false (default), use all available
-	cores
-  --no-sys-exit  
-        If true, does not sys.exit at the end. Useful for example in
-	sbt-scalafix
-  --quiet-parse-errors  
-        Don't report parse errors for non-explictly passed filepaths.
-  --bash  
-        Print out bash completion file for scalafix. To install on scalafix
-	--bash &gt; /usr/local/etc/bash_completion.d/scalafix # Mac scalafix
-	--bash &gt; /etc/bash_completion.d/scalafix # Linux
-  --zsh  
-        Print out zsh completion file for scalafix. To install: scalafix --zsh
-	&gt; /usr/local/share/zsh/site-functions/_scalafix
-  --non-interactive  
-        Don't use fancy progress bar.
-  --project-id  &lt;value&gt;
-        String ID to prefix reported messages with
-  --diff  
-        If set, only apply scalafix to added and edited files in git diff
-	against master.
-  --diff-base  &lt;value&gt;
-        If set, only apply scalafix to added and edited files in git diff
-	against a provided branch, commit or tag. (defaults to master)
-Available rules: DottyKeywords, DisableSyntax, NoFinalize, NoValInForComprehension, RemoveXmlLiterals, LeakingImplicitClassVal, VolatileLazyVal, ProcedureSyntax, ExplicitUnit, DottyVolatileLazyVal, DottyVarArgPattern, NoInfer, Sbt1, ExplicitResultTypes, ExplicitReturnTypes, RemoveUnusedImports, RemoveUnusedTerms, NoAutoTupling, Disable, DisableUnless, MissingFinal
-
-NOTE. The command line tool is mostly intended to be invoked programmatically
-from build-tool integrations such as sbt-scalafix. The necessary fixture to run
-semantic rules is tricky to setup manually.
-
-Scalafix chooses which files to fix according to the following rules:
-- scalafix &lt;directory&gt; &lt;rule&gt; finds *.scala files in &lt;directory&gt;
-- when &lt;rule&gt; is semantic
-  - if --classpath and --sourceroot are provided, then those are used to find .semanticdb files
-  - otherwise, Scalafix will automatically look for META-INF/semanticdb directories from the
-    current working directory.
-- when --diff or --diff-branch is set it will parse the git diff and only
-  apply on modified or added lines
-
-  Those command will have the same effect:
-    scalafix --diff
-    scalafix --diff-branch=master
-
-Examples (semantic):
-  $ scalafix # automatically finds .semanticdb files and runs rule configured in .scalafix.conf.
-  $ scalafix &lt;directory&gt; # same as above except only run on files in &lt;directory&gt;
-  $ scalafix --rules RemoveUnusedImports # same as above but run RemoveUnusedImports.
-  $ scalafix --classpath &lt;foo.jar:target/classes&gt; # explicitly pass classpath, --sourceroot is cwd.
-  $ scalafix --classpath &lt;foo.jar:target/classes&gt; --sourceroot &lt;directory&gt;
-  $ cat .scalafix.conf
-  rules = [ProcedureSyntax]
-  $ scalafix Code.scala # Same as --rules ProcedureSyntax
-
-Exit status codes:
- Ok=0
- UnexpectedError=1
- ParseError=2
- ScalafixError=4
- InvalidCommandLineOption=8
- MissingSemanticApi=16
- StaleSemanticDB=32
- TestFailed=64
- LinterError=128
-
+<p>We run <code>RemoveUnused</code> again and the error is now gone</p>
+<pre><code class="hljs">&gt; myproject/scalafix RemoveUnused
+[<span class="hljs-builtin-name">info</span>] Compiling 15 Scala sources <span class="hljs-keyword">to</span> <span class="hljs-built_in">..</span>.
+[<span class="hljs-builtin-name">info</span>] Running scalafix on 15 Scala sources
 </code></pre>
-</div>
-
-<h2 id="maven">Maven</h2>
-
-<p>It is possible to use scalafix with scala-maven-plugin but it requires a custom setup since there is no scalafix specific Maven plugin.</p>
-
-<h3 id="install-semanticdb-compiler-plugin">Install semanticdb compiler plugin</h3>
-
-<p>First, download the <code class="highlighter-rouge">semanticdb-scalac</code> compiler plugin which corresponds to your exact scala version of your project, down to the patch number.</p>
-
-<p>To begin with, it’s recommended to install the coursier command line interface https://github.com/coursier/coursier.</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>wget https://github.com/coursier/coursier/raw/master/coursier &amp;&amp; chmod +x coursier &amp;&amp; ./coursier --help
+<p>If your project has unused imports, you should see a diff like this</p>
+<pre><code class="hljs css language-diff"><span class="hljs-deletion">- import scala.util.{ Success, Failure }</span>
+<span class="hljs-addition">+ import scala.util.Success</span>
 </code></pre>
-</div>
-
-<p>Coursier is a tool to download and launch library artifacts.
-Once you have coursier installed, assuming you are on 2.12.4:</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>coursier fetch --intransitive org.scalameta:semanticdb-scalac_2.12.4:2.1.7
-</code></pre>
-</div>
-
-<p>You can also use <code class="highlighter-rouge">wget</code> or a simalar tool to retrieve the jar from <code class="highlighter-rouge">https://repo1.maven.org/maven2/org/scalameta/semanticdb-scalac_2.12.4/2.1.7/semanticdb-scalac_2.12.4-2.1.7-javadoc.jar</code>.</p>
-
-<h3 id="compile-sources-with-semanticdb">Compile sources with semanticdb</h3>
-
-<p>Let’s say the <code class="highlighter-rouge">semanticdb-scalac_2.12.4-2.1.7.jar</code> is available in <code class="highlighter-rouge">PLUGINS/semanticdb-scalac_2.12.4-2.1.7.jar</code> path on your file system.</p>
-
-<p>Recompile your project using <code class="highlighter-rouge">-DaddScalacArgs</code> as follow:</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>mvn clean test -DskipTests=true -DaddScalacArgs="-Yrangepos|-Xplugin-require:semanticdb|-Xplugin:PLUGIN/semanticdb-scalac_2.12.4-2.1.7.jar|-Ywarn-unused-import"
-</code></pre>
-</div>
-
-<p>Here, we compile both main sources and tests to have semantic information generated for all of them, but we skip test execution because it is not the point of that compilation.
-The added flags for scala are given with the <code class="highlighter-rouge">addScalaArgs</code> option (see http://davidb.github.io/scala-maven-plugin/help-mojo.html#addScalacArgs):</p>
-
-<ul>
-  <li><code class="highlighter-rouge">-Yrangepos</code> is required for <code class="highlighter-rouge">semanticdb</code> to function properly,</li>
-  <li><code class="highlighter-rouge">-Xplugin:PLUGIN/semanticdb-scalac_2.12.4-2.1.7.jar</code> give the path where the <code class="highlighter-rouge">semanticdb</code> jar can be found,</li>
-  <li>(optional) <code class="highlighter-rouge">-Xplugin-require:semanticdb</code> tells scalac to fails if it can’t load the <code class="highlighter-rouge">semanticdb</code> plugin,</li>
-  <li>(optional) <code class="highlighter-rouge">-Ywarn-unused-import</code> is required for the <code class="highlighter-rouge">RemoveUnusedImports</code> rule. If you don’t run <code class="highlighter-rouge">RemoveUnusedImports</code> you can skip this flag. Consult the scalafix documentation for each rule to see which flags it requires.</li>
-  <li>(optional) Customize the –sourceroot with <code class="highlighter-rouge">-P:semanticdb:sourceroot:/path/to/sourceroot</code> (more details below)</li>
-</ul>
-
-<p>After compilation, double check that there exists a directory <code class="highlighter-rouge">target/classes/META-INF/semanticdb/</code> containing files with the <code class="highlighter-rouge">.semanticdb</code> extension.</p>
-
-<p><em>Important note</em>: you will need to recompile to get up-to-date <code class="highlighter-rouge">semanticdb</code> information after each modification.</p>
-
-<h3 id="run-scalafix-cli">Run scalafix-cli</h3>
-
-<p>Install and use <code class="highlighter-rouge">scalafix</code> as explained above.
-One important note is that you need to give <code class="highlighter-rouge">--sourceroot</code> with the root path the same as the path where you ran your <code class="highlighter-rouge">mvn clent test</code> command.
-This may be confusing when you are on a multi-module project.
-For example, if your project is:</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>somepath/scalaProject
- |- moduleA
- |    |- src/{main, test}/scala
- |    `- target
- `- moduleB
-      |- src/{main, test}/scala
-      `- target
-</code></pre>
-</div>
-
-<p>If you compile at <code class="highlighter-rouge">scalaProject</code> level, you will need to invoke scalafix with:</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>scalafix --rules RemoveUnusedImports --sourceroot /path/to/somepath/scalaProject
-</code></pre>
-</div>
-
-<p>But if you compiled at <code class="highlighter-rouge">moduleA</code> level only, you will need to use:</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>scalafix --rules RemoveUnusedImports --sourceroot /path/to/somepath/scalaProject/moduleA
-</code></pre>
-</div>
-
-<h2 id="scalafix-core">scalafix-core</h2>
-
-<p>Scalafix can be used as a library to run custom rules.</p>
-
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="c1">// ===&gt; build.sbt
-</span><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"ch.epfl.scala"</span> <span class="o">%%</span> <span class="s">"scalafix-core"</span> <span class="o">%</span> <span class="s">"0.5.10"</span>
-<span class="c1">// (optional) Scala.js is also supported
-</span><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"ch.epfl.scala"</span> <span class="o">%%%</span> <span class="s">"scalafix-core"</span> <span class="o">%</span> <span class="s">"0.5.10"</span>
-</code></pre>
-</div>
-
-<p>Example usage of the syntactic API.</p>
-
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalafix._</span>
-<span class="k">import</span> <span class="nn">scala.meta._</span>
-
-<span class="k">case</span> <span class="k">object</span> <span class="nc">Uppercase</span> <span class="k">extends</span> <span class="nc">Rule</span><span class="o">(</span><span class="s">"Uppercase"</span><span class="o">)</span> <span class="o">{</span>
-  <span class="k">override</span> <span class="k">def</span> <span class="n">fix</span><span class="o">(</span><span class="n">ctx</span><span class="k">:</span> <span class="kt">RuleCtx</span><span class="o">)</span><span class="k">:</span> <span class="kt">Patch</span> <span class="o">=</span>
-    <span class="n">ctx</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">collect</span> <span class="o">{</span>
-      <span class="k">case</span> <span class="n">name</span> <span class="k">@</span> <span class="nc">Name</span><span class="o">(</span><span class="n">value</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">ctx</span><span class="o">.</span><span class="n">replaceTree</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="n">value</span><span class="o">.</span><span class="n">toUpperCase</span><span class="o">())</span>
-    <span class="o">}.</span><span class="n">asPatch</span>
-<span class="o">}</span>
-
-</code></pre>
-</div>
-
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">println</span><span class="o">(</span><span class="nc">Uppercase</span><span class="o">(</span><span class="s">"object Hello { println('world) }"</span><span class="o">))</span>
-<span class="c1">// object HELLO { PRINTLN('world) }
+<p>See <a href="#example-project">example project</a> for a repository that demonstrates
+<code>ProcedureSyntax</code> and <code>RemoveUnused</code>.</p>
+<p>Great! You are all set to use Scalafix with sbt :)</p>
+<blockquote>
+<p>Beware that the SemanticDB compiler plugin in combination with <code>-Yrangepos</code>
+adds around overhead to compilation time. The exact compilation overhead
+depends on the codebase being compiled and compiler options used. It's
+recommended to provide generous JVM memory and stack settings in the file
+<code>.jvmopts</code>:</p>
+<pre><code class="hljs">-<span class="ruby">Xss8m
+</span>-<span class="ruby">Xms1G
+</span>-<span class="ruby">Xmx4G
 </span></code></pre>
-</div>
-
-<p>The semantic API requires a more complicated setup.
-Please see <a href="/scalafix/docs/rule-authors/setup">Rule Authors</a>.</p>
-
-<h2 id="snapshot">SNAPSHOT</h2>
-
-<p>Our CI publishes a snapshot release to Sonatype on every merge into master.
-Each snapshot release has a unique version number, jars don’t get overwritten.
-To find the latest snapshot version number, go to <a href="https://oss.sonatype.org/content/repositories/snapshots/ch/epfl/scala/scalafix-core_2.12/">https://oss.sonatype.org/content/repositories/snapshots/ch/epfl/scala/scalafix-core_2.12/</a>
-and select the version number at the bottom, the one with the latest “Last Modified”.
-Once you have found the version number, adapting the version number</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>// If using sbt-scalafix, add to project/plugins.sbt
-resolvers += Resolver.sonatypeRepo("snapshots")
-addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.5.10-20180618-1437-SNAPSHOT")
-
-// If using scalafix-cli, launch with coursier
-coursier launch ch.epfl.scala:scalafix-cli_2.12.4:0.5.10-20180618-1437-SNAPSHOT -r sonatype:snapshots --main scalafix.cli.Cli -- --help
+</blockquote>
+<h3><a class="anchor" aria-hidden="true" id="settings-and-tasks"></a><a href="#settings-and-tasks" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Settings and tasks</h3>
+<table>
+<thead>
+<tr><th>Name</th><th>Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>scalafix &lt;args&gt;</code></td><td><code>InputTaskKey[Unit]</code></td><td>Invoke scalafix command line interface directly. Use tab completion to explore supported arguments or consult <a href="#help">--help</a></td></tr>
+<tr><td><code>scalafixConfig</code></td><td><code>SettingKey[Option[File]]</code></td><td>.scalafix.conf file to specify which scalafix rules should run. Defaults to <code>.scalafix.conf</code> in the root directory, if it exists.</td></tr>
+</tbody>
+</table>
+<h3><a class="anchor" aria-hidden="true" id="main-and-test-sources"></a><a href="#main-and-test-sources" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Main and test sources</h3>
+<p>The task <code>myproject/scalafix</code> runs for <strong>main sources</strong> in the project
+<code>myproject</code>. To run Scalafix on <strong>test sources</strong>, execute
+<code>myproject/test:scalafix</code> instead. To run on both main and test sources, execute
+<code>; myproject/scalafix ; myproject/test:scalafix</code></p>
+<h3><a class="anchor" aria-hidden="true" id="integration-tests"></a><a href="#integration-tests" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Integration tests</h3>
+<p>By default, the <code>scalafix</code> command is enabled for the <code>Compile</code> and <code>Test</code>
+configurations. To enable Scalafix for other configuration like
+<code>IntegrationTest</code>, add the following to your project settings</p>
+<pre><code class="hljs css language-diff"> lazy val myproject = project
+   .configs(IntegrationTest)
+   .settings(
+     Defaults.itSettings,
+<span class="hljs-addition">+    inConfig(IntegrationTest)(scalafixConfigSettings(IntegrationTest))</span>
+     // ...
+   )
 </code></pre>
-</div>
-</section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/scalafix/highlight/highlight.pack.js"></script><script>hljs.configure({
-languages:['scala','java','bash']
-});
-hljs.initHighlighting();
-             </script><script src="/scalafix/js/addEditLinks.js"></script><script src="/scalafix/js/addSectionLinks.js"></script><script src="/scalafix/js/setCallToAction.js"></script><script src="/scalafix/js/removeSocialMediaLinks.js"></script><script>((window.gitter = {}).chat = {}).options = {
-room: 'scalacenter/scalafix'};</script><script src="https://sidecar.gitter.im/dist/sidecar.v1.js"></script><script src="/scalafix/js/main.js"></script></body></html>
+<h3><a class="anchor" aria-hidden="true" id="multi-module-builds"></a><a href="#multi-module-builds" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Multi-module builds</h3>
+<p>The <code>scalafix</code> task aggregates like the <code>compile</code> and <code>test</code> tasks. To run
+Scalafix on all projects for both main and test sources you can execute
+<code>all scalafix test:scalafix</code>.</p>
+<p>Optionally, add a command alias to your build to run Scalafix on your entire
+project with the shorthand <code>fix</code></p>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">// top of build.sbt</span>
+addCommandAlias(<span class="hljs-string">"fix"</span>, <span class="hljs-string">"all compile:scalafix test:scalafix"</span>)
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="enforce-in-ci"></a><a href="#enforce-in-ci" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Enforce in CI</h3>
+<p>To automatically enforce that Scalafix has been run on all sources, use
+<code>scalafix --check</code> instead of <code>scalafix</code>. This task fails the build if running
+<code>scalafix</code> would produce a diff or a linter error message is reported.</p>
+<p>Optionally, add a command alias to enforce Scalafix on your entire project with
+the shorthand <code>fixCheck</code></p>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">// top of build.sbt</span>
+addCommandAlias(
+  <span class="hljs-string">"fixCheck"</span>,
+  <span class="hljs-string">"; compile:scalafix --check ; test:scalafix --check"</span>
+)
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="cache-in-ci"></a><a href="#cache-in-ci" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Cache in CI</h3>
+<p>To avoid binary compatibility conflicts with the sbt classpath
+(<a href="https://github.com/sbt/zinc/issues/546#issuecomment-393084316">example issue</a>),
+the Scalafix plugin uses <a href="https://github.com/coursier/coursier/">Coursier</a> to
+fetch Scalafix artifacts from Maven Central. These artifacts are by default
+cached in the directory <code>$HOME/.coursier/cache</code>. To avoid redundant downloads on
+every pull request, it's recommended to configure your CI enviroment to cache
+this directory. The location can be customized with the environment variable
+<code>COURSIER_CACHE</code></p>
+<pre><code class="hljs css language-sh"><span class="hljs-built_in">export</span> COURSIER_CACHE=<span class="hljs-variable">$HOME</span>/.custom-cache
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="run-custom-rules"></a><a href="#run-custom-rules" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Run custom rules</h3>
+<p>It's possible to run custom Scalafix rules that have been published to Maven
+Central. To install a custom rule, add it to <code>scalafixDependencies</code> (<code>scalafix.sbt.ScalafixPlugin.autoImport.scalafixDependencies</code>):</p>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">// at the top of build.sbt</span>
+scalafixDependencies in <span class="hljs-type">ThisBuild</span> +=
+  <span class="hljs-string">"com.geirsson"</span> %% <span class="hljs-string">"example-scalafix-rule"</span> % <span class="hljs-string">"1.3.0"</span>
+</code></pre>
+<p>Start sbt and type <code>scalafix &lt;TAB&gt;</code>, once the <code>example-scalafix-rule</code> dependency
+has been downloaded the rules <code>SemanticRule</code> and <code>SyntacticRule</code> should appear
+as tab completion suggestions.</p>
+<pre><code class="hljs css language-sh">$ sbt
+&gt; scalafix Syn&lt;TAB&gt;
+&gt; scalafix SyntacticRule
+</code></pre>
+<p>If all went well, you should see a diff adding the comment
+<code>// v1 SyntacticRule!</code> to all Scala source files.</p>
+<pre><code class="hljs css language-diff"><span class="hljs-addition">+// v1 SyntacticRule!</span>
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="add-and-exclude-files"></a><a href="#add-and-exclude-files" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Add and exclude files</h3>
+<p>By default, the task <code>myproject/test:scalafix</code> runs on the files matching
+<code>unmanagedSources.in(Test).value</code>. To customize this value, add the following
+setting</p>
+<pre><code class="hljs css language-scala">unmanagedSources.in(<span class="hljs-type">Compile</span>, scalafix) :=
+  unmanagedSources.in(<span class="hljs-type">Compile</span>).value.filter(file =&gt; ...)
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="enable-semanticdb-for-current-shell-session"></a><a href="#enable-semanticdb-for-current-shell-session" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Enable SemanticDB for current shell session</h3>
+<p>Instead of permanently enabling SemanticDB in build.sbt, use the
+<code>scalafixEnable</code> command to enable SemanticDB the current active sbt shell
+session.</p>
+<pre><code class="hljs"><span class="hljs-meta">&gt;</span><span class="bash"> scalafixEnable</span>
+...
+<span class="hljs-meta">&gt;</span><span class="bash"> scalafix ExplicitResultTypes</span>
+</code></pre>
+<p>The <code>scalafixEnable</code> command automatically runs
+<code>addCompilerPlugin(scalafixSemanticdb)</code> and <code>scalacOptions += &quot;-Yrangepos&quot;</code> for
+all eligible projects in the builds. The change in Scala compiler options means
+the project needs to be re-built on the next <code>compile</code>.</p>
+<blockquote>
+<p>The <code>scalafixEnable</code> command must be re-executed after every <code>reload</code> and when
+sbt shell is exited.</p>
+</blockquote>
+<h3><a class="anchor" aria-hidden="true" id="optionally-enable-semanticdb"></a><a href="#optionally-enable-semanticdb" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Optionally enable SemanticDB</h3>
+<p>It's possible to optionally enable the SemanticDB compiler plugin by updating
+build.sbt like this:</p>
+<pre><code class="hljs css language-diff">  // build.sbt
+<span class="hljs-deletion">- addCompilerPlugin(scalafixSemanticdb)</span>
+<span class="hljs-deletion">- scalacOptions += "-Yrangepos"</span>
+<span class="hljs-addition">+ def shouldEnableSemanticdb: Boolean = ??? // fill this part</span>
+<span class="hljs-addition">+ libraryDependencies ++= {</span>
+<span class="hljs-addition">+   if (shouldEnableSemanticdb) List(compilerPlugin(scalafixSemanticdb))</span>
+<span class="hljs-addition">+   else List()</span>
+<span class="hljs-addition">+ }</span>
+<span class="hljs-addition">+ scalacOptions ++= {</span>
+<span class="hljs-addition">+   if (shouldEnableSemanticdb) List("-Yrangepos")</span>
+<span class="hljs-addition">+   else List()</span>
+<span class="hljs-addition">+ }</span>
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="verify-installation"></a><a href="#verify-installation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Verify installation</h3>
+<p>To verify that the SemanticDB compiler plugin is enabled, check that the
+settings <code>scalacOptions</code> and <code>libraryDependencies</code> contain the values below.</p>
+<pre><code class="hljs css language-sh">&gt; show scalacOptions
+[info] * -Yrangepos
+&gt; show libraryDependencies
+[info] * org.scalameta:semanticdb-scalac:2.12.6:plugin-&gt;default(compile)
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="example-project"></a><a href="#example-project" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Example project</h3>
+<p>For a minimal example project using sbt-scalafix, see the
+<a href="https://github.com/scalacenter/scalafix-sbt-example">scalacenter/scalafix-sbt-example</a>
+repository.</p>
+<pre><code class="hljs css language-sh">git <span class="hljs-built_in">clone</span> https://github.com/scalacenter/sbt-scalafix-example
+<span class="hljs-built_in">cd</span> scalafix-sbt-example
+sbt <span class="hljs-string">"scalafix RemoveUnused"</span>
+git diff // should produce a diff
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="command-line"></a><a href="#command-line" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Command line</h2>
+<p>First, install the <a href="https://github.com/coursier/coursier#command-line">Coursier</a>
+command-line interface.</p>
+<p>Next, bootstrap a <code>scalafix</code> binary with Coursier</p>
+<pre><code class="hljs css language-sh">coursier bootstrap ch.epfl.scala:scalafix-cli_2.12.6:0.8.0-RC1 -f --main scalafix.cli.Cli -o scalafix
+./scalafix --version <span class="hljs-comment"># Should say 0.8.0-RC1</span>
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="help"></a><a href="#help" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Help</h3>
+<pre><code class="hljs">Scalafix <span class="hljs-number">0.8</span>.<span class="hljs-number">0</span>-RC1
+Usage: scalafix [options] [&lt;path&gt; ...]
+
+Scalafix <span class="hljs-keyword">is</span> a refactoring <span class="hljs-keyword">and</span> linting tool. Scalafix
+supports both syntactic <span class="hljs-keyword">and</span> semantic linter <span class="hljs-keyword">and</span> rewrite
+rules. Syntactic rules can run <span class="hljs-keyword">on</span> source code without
+compilation. Semantic rules can run <span class="hljs-keyword">on</span> source code that has
+been compiled <span class="hljs-keyword">with</span> the SemanticDB compiler plugin. 
+
+Common options:
+
+  <span class="hljs-comment">--rules | -r [String ...] (default: [])</span>
+    Scalafix rules <span class="hljs-keyword">to</span> run, <span class="hljs-keyword">for</span> example ExplicitResultTypes. The
+    syntax <span class="hljs-keyword">for</span> rules <span class="hljs-keyword">is</span> documented <span class="hljs-keyword">in</span>
+    https://scalacenter.github.io/scalafix/docs/users/<span class="hljs-keyword">configuration</span>#rules
+
+  <span class="hljs-comment">--files | -f [&lt;path&gt; ...] (default: [])</span>
+    Files <span class="hljs-keyword">or</span> directories (recursively visited) <span class="hljs-keyword">to</span> fix.
+
+  <span class="hljs-comment">--config &lt;path&gt; (default: null)</span>
+    <span class="hljs-keyword">File</span> path <span class="hljs-keyword">to</span> a .scalafix.conf <span class="hljs-keyword">configuration</span> <span class="hljs-keyword">file</span>. Defaults
+    <span class="hljs-keyword">to</span> .scalafix.conf <span class="hljs-keyword">in</span> the current working directory, <span class="hljs-keyword">if</span>
+    any.
+
+  <span class="hljs-comment">--check</span>
+    Check that <span class="hljs-keyword">all</span> files have been fixed <span class="hljs-keyword">with</span> scalafix, exiting
+    <span class="hljs-keyword">with</span> non-zero code <span class="hljs-keyword">on</span> violations. Won<span class="hljs-symbol">'t</span> write <span class="hljs-keyword">to</span> files.
+
+  <span class="hljs-comment">--stdout</span>
+    Print fixed output <span class="hljs-keyword">to</span> stdout instead <span class="hljs-keyword">of</span> writing <span class="hljs-keyword">in</span>-place.
+
+  <span class="hljs-comment">--diff</span>
+    <span class="hljs-keyword">If</span> set, only apply scalafix <span class="hljs-keyword">to</span> added <span class="hljs-keyword">and</span> edited files <span class="hljs-keyword">in</span> git
+    diff against the master branch.
+
+  <span class="hljs-comment">--diff-base String (default: null)</span>
+    <span class="hljs-keyword">If</span> set, only apply scalafix <span class="hljs-keyword">to</span> added <span class="hljs-keyword">and</span> edited files <span class="hljs-keyword">in</span> git
+    diff against a provided branch, commit <span class="hljs-keyword">or</span> tag.
+
+  <span class="hljs-comment">--syntactic</span>
+    Run only syntactic rules, ignore semantic rules even <span class="hljs-keyword">if</span> they
+    are explicitly configured <span class="hljs-keyword">in</span> .scalafix.conf <span class="hljs-keyword">or</span> via
+    <span class="hljs-comment">--rules</span>
+
+  <span class="hljs-comment">--verbose</span>
+    Print <span class="hljs-keyword">out</span> additional diagnostics <span class="hljs-keyword">while</span> running scalafix.
+
+  <span class="hljs-comment">--help | -h</span>
+    Print <span class="hljs-keyword">out</span> this help message <span class="hljs-keyword">and</span> <span class="hljs-keyword">exit</span>
+
+  <span class="hljs-comment">--version | -v</span>
+    Print <span class="hljs-keyword">out</span> version number <span class="hljs-keyword">and</span> <span class="hljs-keyword">exit</span>
+
+Semantic options:
+
+  <span class="hljs-comment">--classpath Classpath (default: "&lt;classpath&gt;")</span>
+    Full classpath <span class="hljs-keyword">of</span> the files <span class="hljs-keyword">to</span> fix, required <span class="hljs-keyword">for</span> semantic
+    rules. The source files that should be fixed must be
+    compiled <span class="hljs-keyword">with</span> semanticdb-scalac. Dependencies are
+    required by rules like ExplicitResultTypes, but the
+    dependencies do <span class="hljs-keyword">not</span> need <span class="hljs-keyword">to</span> be compiled <span class="hljs-keyword">with</span>
+    semanticdb-scalac.
+
+  <span class="hljs-comment">--sourceroot &lt;path&gt; (default: null)</span>
+    Absolute path passed <span class="hljs-keyword">to</span> semanticdb <span class="hljs-keyword">with</span>
+    -P:semanticdb:sourceroot:&lt;path&gt;. Relative filenames
+    persisted <span class="hljs-keyword">in</span> the Semantic DB are absolutized by the
+    sourceroot. Defaults <span class="hljs-keyword">to</span> current working directory <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span>
+    provided.
+
+  <span class="hljs-comment">--auto-classpath</span>
+    <span class="hljs-keyword">If</span> set, automatically infer the <span class="hljs-comment">--classpath flag by scanning</span>
+    <span class="hljs-keyword">for</span> directories <span class="hljs-keyword">with</span> META-INF/semanticdb
+
+  <span class="hljs-comment">--auto-classpath-roots [&lt;path&gt; ...] (default: [])</span>
+    Additional directories <span class="hljs-keyword">to</span> scan <span class="hljs-keyword">for</span> <span class="hljs-comment">--auto-classpath</span>
+
+  <span class="hljs-comment">--scalac-options [String ...] (default: [])</span>
+    The scala compiler options used <span class="hljs-keyword">to</span> compile this <span class="hljs-comment">--classpath,</span>
+    <span class="hljs-keyword">for</span> example -Ywarn-unused-import
+
+  <span class="hljs-comment">--scala-version String (default: "2.12.6")</span>
+    The Scala compiler version that was used <span class="hljs-keyword">to</span> compile this
+    project.
+
+Tab completions:
+
+  <span class="hljs-comment">--bash</span>
+    Print <span class="hljs-keyword">out</span> bash tab completions. <span class="hljs-keyword">To</span> install:
+    ```
+    # macOS, requires <span class="hljs-string">"brew install bash-completion"</span>
+    scalafix <span class="hljs-comment">--bash &gt; /usr/local/etc/bash_completion.d/scalafix</span>
+    # Linux
+    scalafix <span class="hljs-comment">--bash &gt; /etc/bash_completion.d/scalafix</span>
+    ```
+
+  <span class="hljs-comment">--zsh</span>
+    Print <span class="hljs-keyword">out</span> zsh tab completions. <span class="hljs-keyword">To</span> install:
+    ```
+    scalafix <span class="hljs-comment">--zsh &gt; /usr/local/share/zsh/site-functions/_scalafix</span>
+    unfunction _scalafix
+    autoload -U _scalafix
+    ```
+
+Less common options:
+
+  <span class="hljs-comment">--exclude [&lt;glob&gt; ...] (default: [])</span>
+    Unix-style glob <span class="hljs-keyword">for</span> files <span class="hljs-keyword">to</span> exclude from fixing. The glob
+    syntax <span class="hljs-keyword">is</span> defined by `nio.FileSystem.getPathMatcher`.
+
+  <span class="hljs-comment">--tool-classpath URLClassLoader (default: "&lt;classloader&gt;")</span>
+    Additional classpath <span class="hljs-keyword">for</span> compiling <span class="hljs-keyword">and</span> classloading custom
+    rules.
+
+  <span class="hljs-comment">--charset Charset (default: "UTF-8")</span>
+    The encoding <span class="hljs-keyword">to</span> <span class="hljs-keyword">use</span> <span class="hljs-keyword">for</span> reading/writing files
+
+  <span class="hljs-comment">--no-sys-exit</span>
+    <span class="hljs-keyword">If</span> set, throw exception <span class="hljs-keyword">in</span> the <span class="hljs-keyword">end</span> instead <span class="hljs-keyword">of</span> System.<span class="hljs-keyword">exit</span>
+
+  <span class="hljs-comment">--no-stale-semanticdb</span>
+    Don<span class="hljs-symbol">'t</span> <span class="hljs-literal">error</span> <span class="hljs-keyword">on</span> stale semanticdb files.
+
+  <span class="hljs-comment">--settings ScalafixConfig (default: {})</span>
+    Custom settings <span class="hljs-keyword">to</span> override .scalafix.conf
+
+  <span class="hljs-comment">--out-from String (default: null)</span>
+    Write fixed output <span class="hljs-keyword">to</span> custom location instead <span class="hljs-keyword">of</span> <span class="hljs-keyword">in</span>-place.
+    Regex <span class="hljs-keyword">is</span> passed as first argument <span class="hljs-keyword">to</span>
+    <span class="hljs-keyword">file</span>.replaceAll(<span class="hljs-comment">--out-from, --out-to), requires</span>
+    <span class="hljs-comment">--out-to.</span>
+
+  <span class="hljs-comment">--out-to String (default: null)</span>
+    Companion <span class="hljs-keyword">of</span> <span class="hljs-comment">--out-from, string that is passed as second</span>
+    argument <span class="hljs-keyword">to</span> fileToFix.replaceAll(<span class="hljs-comment">--out-from, --out-to)</span>
+
+  <span class="hljs-comment">--auto-suppress-linter-errors</span>
+    Insert <span class="hljs-comment">/* scalafix:ok */</span> suppressions instead <span class="hljs-keyword">of</span> reporting
+    linter errors.
+
+  <span class="hljs-comment">--cwd &lt;path&gt; (default: "/Users/ollie/dev/scalafix")</span>
+    The current working directory
+
+
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="snapshot"></a><a href="#snapshot" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>SNAPSHOT</h2>
+<p>Our CI publishes a snapshot release to Sonatype on every merge into master. Each
+snapshot release has a unique version number, jars don't get overwritten. To
+find the latest snapshot version number, go to
+<a href="https://oss.sonatype.org/content/repositories/snapshots/ch/epfl/scala/scalafix-core_2.12/">https://oss.sonatype.org/content/repositories/snapshots/ch/epfl/scala/scalafix-core_2.12/</a>
+and select the largest version number (the one with the newest &quot;Last Modified&quot;
+timestamp). Once you have found the version number, adapt the version number in
+the instructions below</p>
+<p>If using the sbt plugin</p>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">// project/plugins.sbt</span>
+resolvers += <span class="hljs-type">Resolver</span>.sonatypeRepo(<span class="hljs-string">"snapshots"</span>)
+addSbtPlugin(<span class="hljs-string">"ch.epfl.scala"</span> % <span class="hljs-string">"sbt-scalafix"</span> % <span class="hljs-string">"0.8.0-RC1-SNAPSHOT"</span>)
+</code></pre>
+<p>If using the command-line interface</p>
+<pre><code class="hljs css language-sh">coursier launch ch.epfl.scala:scalafix-cli_2.12.6:0.8.0-RC1-SNAPSHOT -r sonatype:snapshots --main scalafix.cli.Cli -- --<span class="hljs-built_in">help</span>
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-next button" href="/scalafix/docs/users/configuration.html"><span>Next</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav docOnPageNav"><ul class="toc-headings"><li><a href="#sbt">sbt</a><ul class="toc-headings"><li><a href="#settings-and-tasks">Settings and tasks</a></li><li><a href="#main-and-test-sources">Main and test sources</a></li><li><a href="#integration-tests">Integration tests</a></li><li><a href="#multi-module-builds">Multi-module builds</a></li><li><a href="#enforce-in-ci">Enforce in CI</a></li><li><a href="#cache-in-ci">Cache in CI</a></li><li><a href="#run-custom-rules">Run custom rules</a></li><li><a href="#add-and-exclude-files">Add and exclude files</a></li><li><a href="#enable-semanticdb-for-current-shell-session">Enable SemanticDB for current shell session</a></li><li><a href="#optionally-enable-semanticdb">Optionally enable SemanticDB</a></li><li><a href="#verify-installation">Verify installation</a></li><li><a href="#example-project">Example project</a></li></ul></li><li><a href="#command-line">Command line</a><ul class="toc-headings"><li><a href="#help">Help</a></li></ul></li><li><a href="#snapshot">SNAPSHOT</a></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#15242B"><section class="sitemap"><a href="/scalafix/" class="nav-home"><img src="/scalafix/img/scalacenter2x.png" alt="Scalafix" width="66" height="58"/></a><div><h5>Docs</h5><a href="
+                /scalafix/docs/users/installation.html">Get started</a><a href="
+                /scalafix/docs/rules/overview.html">Rules</a><a href="
+                /scalafix/docs/developers/setup.html">Extend Scalafix</a></div><div><h5>Community</h5><a href="https://gitter.im/scalacenter/scalafix" target="_blank">Chat on Gitter</a><a href="https://users.scala-lang.org/" target="_blank">Discuss on Scala Users</a></div><div><h5>More</h5><a href="https://github.com/scalacenter/scalafix" target="_blank">GitHub</a></div></section><section class="copyright">Copyright © 2018 Scala Center</section></footer></div></body></html>

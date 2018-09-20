@@ -1,0 +1,156 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Related projects · Scalafix</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="There are several alternative tools to Scalafix that each make different"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Related projects · Scalafix"/><meta property="og:type" content="website"/><meta property="og:url" content="https://scalacenter.github.io//scalafix/index.html"/><meta property="og:description" content="There are several alternative tools to Scalafix that each make different"/><meta property="og:image" content="https://scalacenter.github.io//scalafix/img/scalacenter2x.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://scalacenter.github.io//scalafix/img/scalacenter2x.png"/><link rel="shortcut icon" href="/scalafix/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css"/><link rel="stylesheet" href="/scalafix/css/main.css"/></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/scalafix/"><img class="logo" src="/scalafix/img/scalacenter2x.png" alt="Scalafix"/><h2 class="headerTitleWithLogo">Scalafix</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/scalafix/docs/users/installation.html" target="_self">User guide</a></li><li class=""><a href="/scalafix/docs/developers/setup.html" target="_self">Developer guide</a></li><li class=""><a href="https://github.com/scalacenter/scalafix" target="_blank">GitHub</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>Misc</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Usage</h3><ul><li class="navListItem"><a class="navItem" href="/scalafix/docs/users/installation.html">Installation</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/users/configuration.html">Configuration</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/users/suppression.html">Suppressing rules</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Rules</h3><ul><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/overview.html">All rules</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/RemoveUnused.html">RemoveUnused</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/DisableSyntax.html">DisableSyntax</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/NoAutoTupling.html">NoAutoTupling</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/LeakingImplicitClassVal.html">LeakingImplicitClassVal</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/NoValInForComprehension.html">NoValInForComprehension</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/ProcedureSyntax.html">ProcedureSyntax</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Misc</h3><ul><li class="navListItem navListItemActive"><a class="navItem" href="/scalafix/docs/users/related-projects.html">Related projects</a></li></ul></div></div></section></div><script>
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              const headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                if (event.target.tagName === 'A') {
+                  document.body.classList.remove('tocActive');
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docMainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><a class="edit-page-link button" href="https://github.com/scalacenter/scalafix/edit/master/docs/users/related-projects.md" target="_blank" rel="noreferrer noopener">Edit</a><h1 class="postHeaderTitle">Related projects</h1></header><article><div><span><p>There are several alternative tools to Scalafix that each make different
+tradeoffs with regards to Scala 2.x fidelity, ease of writing custom analyses,
+interactivity, performance, integrations and feature support. The table below
+provides a rough comparison, below are more detailed explanations.</p>
+<table>
+<thead>
+<tr><th></th><th>Syntax model</th><th>Typechecker</th><th>Linting</th><th>Refactoring</th><th>Run on compile</th></tr>
+</thead>
+<tbody>
+<tr><td>Scalafix</td><td>Scalameta</td><td>Scala compiler</td><td>Yes</td><td>Yes</td><td>No</td></tr>
+<tr><td>WartRemover</td><td>Scala compiler</td><td>Scala compiler</td><td>Yes</td><td>No</td><td>Yes</td></tr>
+<tr><td>IntelliJ Scala</td><td>IntelliJ Scala</td><td>IntelliJ Scala</td><td>Yes</td><td>Yes</td><td>No</td></tr>
+<tr><td>ScalaStyle</td><td>Scalariform</td><td>n/a</td><td>Yes</td><td>No</td><td>Yes</td></tr>
+<tr><td>Scala Refactoring</td><td>Scala compiler</td><td>Scala compiler</td><td>Yes</td><td>Yes</td><td>No</td></tr>
+</tbody>
+</table>
+<h2><a class="anchor" aria-hidden="true" id="wartremover"></a><a href="#wartremover" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>WartRemover</h2>
+<p><a href="http://www.wartremover.org/">WartRemover</a> is a flexible scala linter. Scalafix
+and WartRemover can be used together as linters. The primary difference between
+Scalafix and WartRemover is that Scalafix runs <em>after</em> compilation as a separate
+tool and WartRemover runs during compilation as a compiler plugin. There are no
+plans to support lint-on-compile in Scalafix since this use-case is already
+served well by WartRemover. See
+<a href="https://cacm.acm.org/magazines/2018/4/226371-lessons-from-building-static-analysis-tools-at-google/fulltext">Lessons from Building Static Analysis Tools at Google</a>
+for an in-depth write-up about lint-on-compile vs. lint-after-compile.</p>
+<ul>
+<li>WartRemover has more linter rules out of the box than Scalafix.</li>
+<li>It is easier to write/test/share/run new/custom rules with Scalafix. The
+Scalafix API does not require familiarity with scalac compiler internals.</li>
+<li>Scalafix is a linter and refactoring tool, which means Scalafix rules can
+automatically fix some discovered problems. WartRemover is only a linter, it
+does not support automatic fixing.</li>
+<li>Scalafix supports syntactic rules without going through the compiler, this
+means that WartRemover rules like <code>Null</code>, <code>Throw</code>, <code>FinalVal</code>, <code>asInstanceOf</code>,
+<code>ExplicitImplicitTypes</code>, <code>Var</code>, <code>While</code> can run faster outside of compilation
+if implemented with Scalafix.</li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="intellij-scala"></a><a href="#intellij-scala" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>IntelliJ Scala</h2>
+<p>The IntelliJ Scala Plugin is probably the most used IDE for Scala development,
+supporting a wide range of features to browse/edit/refactor Scala code.</p>
+<ul>
+<li>Scalafix is primarily aimed to be used in batch-mode through a console
+interface while IntelliJ is primarily aimed for interactive use in the
+IntelliJ IDE.</li>
+<li>IntelliJ Scala contains a lot more rules (&quot;inspections&quot; in IntelliJ terms),
+including sophisticated refactorings such as &quot;Organize imports&quot; and &quot;Move
+class&quot; that Scalafix does not currently support.</li>
+<li>Scalafix uses the Scala 2.x compiler to resolve symbols/types while the
+IntelliJ Scala plugin uses its own typechecker.</li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="scalastyle"></a><a href="#scalastyle" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Scalastyle</h2>
+<p><a href="http://www.scalastyle.org/">Scalastyle</a> is a Scala style checker.</p>
+<ul>
+<li>Scalastyle has a lot more rules than Scalafix out of the box.</li>
+<li>Scalafix supports semantic and syntactic rules while Scalastyle supports only
+syntactic rules. Semantic Scalafix rules know more about the types/symbols in
+your source code. For example, a semantic rules can tell if <code>get</code> in <code>x.get</code>
+comes from <code>Option[T].get</code> or from another class that happens to also have a
+<code>.get</code> method. Scalastyle is purely syntactic, which means it does not support
+rules that need information about types/symbols.</li>
+<li>Scalastyle runs as a separate tool outside of compilation, just like Scalafix.</li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="scala-refactoring"></a><a href="#scala-refactoring" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Scala Refactoring</h2>
+<p><a href="https://github.com/scala-ide/scala-refactoring">Scala Refactoring</a> is a library
+providing automated refactoring support for Scala.</p>
+<ul>
+<li>Scalafix rules uses the <a href="http://scalameta.org/">Scalameta</a> AST while Scala
+Refactoring uses the Scala 2.x compiler AST. The Scalameta AST encodes more
+syntactic details from the original source file, including for-comprehensions,
+infix operators and primary constructors. Example:</li>
+</ul>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">// scalameta AST</span>
+<span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">A</span>(<span class="hljs-params">b: <span class="hljs-type">Int</span>, c: <span class="hljs-type">String</span></span>) </span>{
+  <span class="hljs-keyword">for</span> {
+    char &lt;- c
+    <span class="hljs-keyword">if</span> char == 'a'
+    i &lt;- (<span class="hljs-number">1</span> to char.toInt)
+  } <span class="hljs-keyword">yield</span> i
+  <span class="hljs-keyword">val</span> d, <span class="hljs-type">List</span>(e: <span class="hljs-type">Int</span>) = <span class="hljs-type">List</span>(<span class="hljs-number">1</span>)
+}
+<span class="hljs-comment">// Scala Compiler AST</span>
+<span class="hljs-keyword">package</span> &lt;empty&gt; {
+  <span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">A</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">scala</span>.<span class="hljs-title">Product</span> <span class="hljs-keyword">with</span> <span class="hljs-title">scala</span>.<span class="hljs-title">Serializable</span> </span>{
+    &lt;caseaccessor&gt; &lt;paramaccessor&gt; <span class="hljs-keyword">val</span> b: <span class="hljs-type">Int</span> = _;
+    &lt;caseaccessor&gt; &lt;paramaccessor&gt; <span class="hljs-keyword">val</span> c: <span class="hljs-type">String</span> = _;
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">&lt;init&gt;</span></span>(b: <span class="hljs-type">Int</span>, c: <span class="hljs-type">String</span>) = {
+      <span class="hljs-keyword">super</span>.&lt;init&gt;();
+      ()
+    };
+    c.withFilter(((char) =&gt; char.$eq$eq('a'))).flatMap(((char) =&gt; <span class="hljs-number">1.</span>to(char.toInt).map(((i) =&gt; i))));
+    <span class="hljs-keyword">val</span> d = <span class="hljs-type">List</span>(<span class="hljs-number">1</span>);
+    <span class="hljs-keyword">val</span> e: <span class="hljs-type">Int</span> = <span class="hljs-type">List</span>(<span class="hljs-number">1</span>): <span class="hljs-meta">@scala</span>.unchecked <span class="hljs-keyword">match</span> {
+      <span class="hljs-keyword">case</span> <span class="hljs-type">List</span>((e @ (_: <span class="hljs-type">Int</span>))) =&gt; e
+    }
+  }
+}
+</code></pre>
+<ul>
+<li>Scala Refactoring requires a live instance of scala-compiler while
+scalafix-core does not depend on scala-compiler. Scalafix only depends on
+<a href="https://scalameta.org/docs/semanticdb/specification.html">SemanticDB</a>. This
+has positive and negative implications, for example
+<ul>
+<li>Scala Refactoring has always access to the full compiler APIs, while changes
+to the Scalafix semantic API may require changing the Scalameta SemanticDB
+schema.</li>
+<li>scalafix-core cross-builds to Scala.js, you can interactively explore the
+Scalameta ASTs in the browser on
+<a href="https://astexplorer.net/#/gist/f0816de84a02654b8242de5822e672a2/8a7007dd2b292b955e005704f5823c24fab9bfeb">astexplorer.net</a>.</li>
+<li>The edit/run/debug cycle when developing Scalafix rules can be very fast if
+you have a pre-built SemanticDB. For example, in
+<a href="https://github.com/olafurpg/scala-experiments">olafur/scala-experiments</a>
+you can run semantic analysis on a corpus of 2.5M LOC in under 5 seconds
+(more complicated analyses can take 1-2 minutes). You can use that corpus to
+fuzz your Scalafix rules. In Scala Refactoring, you must always re-compile
+sources to test new changes in the rule you are developing.</li>
+<li>scala-compiler APIs expose internals of the Scala compiler, which requires a
+certain level of expertise to accomplish even fairly simple tasks. It is
+easy to get cryptic compiler errors in scala-compiler if you accidentally
+break some assumed invariants. SemanticDB on the other hand is a plain data
+schema, essentially a small hierarchy of case classes. The entire schema is
+defined in
+<a href="https://github.com/scalameta/scalameta/blob/master/semanticdb/semanticdb/semanticdb.proto">a single file of protobuf</a>.</li>
+</ul></li>
+</ul>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/scalafix/docs/rules/ProcedureSyntax.html"><span class="arrow-prev">← </span><span>Previous</span></a></div></div></div><nav class="onPageNav docOnPageNav"><ul class="toc-headings"><li><a href="#wartremover">WartRemover</a></li><li><a href="#intellij-scala">IntelliJ Scala</a></li><li><a href="#scalastyle">Scalastyle</a></li><li><a href="#scala-refactoring">Scala Refactoring</a></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#15242B"><section class="sitemap"><a href="/scalafix/" class="nav-home"><img src="/scalafix/img/scalacenter2x.png" alt="Scalafix" width="66" height="58"/></a><div><h5>Docs</h5><a href="
+                /scalafix/docs/users/installation.html">Get started</a><a href="
+                /scalafix/docs/rules/overview.html">Rules</a><a href="
+                /scalafix/docs/developers/setup.html">Extend Scalafix</a></div><div><h5>Community</h5><a href="https://gitter.im/scalacenter/scalafix" target="_blank">Chat on Gitter</a><a href="https://users.scala-lang.org/" target="_blank">Discuss on Scala Users</a></div><div><h5>More</h5><a href="https://github.com/scalacenter/scalafix" target="_blank">GitHub</a></div></section><section class="copyright">Copyright © 2018 Scala Center</section></footer></div></body></html>
