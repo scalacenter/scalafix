@@ -36,9 +36,9 @@ package object v1 extends Api {
       case t: TypeApplyTree =>
         t.function.symbol
       case t: SelectTree =>
-        Some(t.id.symbol)
+        Some(t.id.info.symbol)
       case t: IdTree =>
-        Some(t.symbol)
+        Some(t.info.symbol)
       case t: OriginalTree =>
         t.tree.symbol.asNonEmpty
       case t: OriginalSubTree =>

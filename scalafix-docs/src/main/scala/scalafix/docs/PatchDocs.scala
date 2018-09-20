@@ -83,7 +83,7 @@ object PatchDocs {
       code: String,
       debug: Boolean = false,
       statement: Option[String] = None
-                ): SemanticDocument = {
+  ): SemanticDocument = {
     val filename = "Main.scala"
     println("```scala")
     statement match {

@@ -4,6 +4,7 @@ import scalafix.internal.util.Pretty
 
 sealed abstract class Signature extends Product with Serializable {
   final override def toString: String = Pretty.pretty(this).render(80)
+  final def toString(width: Int): String = Pretty.pretty(this).render(width)
   final def isEmpty: Boolean = this == NoSignature
   final def nonEmpty: Boolean = !isEmpty
 }

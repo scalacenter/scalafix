@@ -52,7 +52,13 @@ final class InternalSemanticDoc(
     } else if (sym.isLocal) {
       locals.get(sym.value).map(new SymbolInformation(_)(this))
     } else {
-      symtab.info(sym.value).map(new SymbolInformation(_)(this))
+      val fromGlobalSymtab =
+        symtab.info(sym.value).map(new SymbolInformation(_)(this))
+      def fromTextDocument: Option[SymbolInformation] =
+        textDocument.symbols
+          .find(_.symbol == sym.value)
+          .map(new SymbolInformation(_)(this))
+      fromGlobalSymtab.orElse(fromTextDocument)
     }
   }
 
