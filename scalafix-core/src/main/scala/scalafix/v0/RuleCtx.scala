@@ -1,16 +1,16 @@
 package scalafix.v0
 
+import org.scalameta.FileLine
 import scala.meta._
 import scala.meta.contrib.AssociatedComments
 import scala.meta.tokens.Tokens
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
+import scalafix.internal.patch.EscapeHatch
 import scalafix.internal.rule.RuleCtxImpl
 import scalafix.patch.PatchOps
 import scalafix.util.MatchingParens
 import scalafix.util.TokenList
-import org.scalameta.FileLine
-import scalafix.internal.patch.EscapeHatch
 
 trait RuleCtx extends PatchOps {
 

@@ -2,15 +2,17 @@ package scalafix.internal.patch
 
 import scala.meta.Importee
 import scala.meta.Importer
-import scalafix.v0.Symbol
 import scala.meta.Token
 import scala.meta.Tree
 import scala.meta.tokens.Tokens
-import scalafix.v0._
+import scalafix.internal.patch.LegacyPatchOps.DeprecationMessage
+import scalafix.internal.util.SymbolOps.Root
+import scalafix.patch.Patch.internal._
 import scalafix.patch.PatchOps
-import DeprecatedPatchOps.DeprecationMessage
+import scalafix.v0.Symbol
+import scalafix.v0._
 
-trait DeprecatedPatchOps extends PatchOps {
+trait LegacyPatchOps extends PatchOps {
   @deprecated(DeprecationMessage, "0.6.0")
   final def removeImportee(importee: Importee): Patch =
     Patch.removeImportee(importee)
@@ -49,15 +51,15 @@ trait DeprecatedPatchOps extends PatchOps {
   @deprecated(DeprecationMessage, "0.6.0")
   final def removeGlobalImport(symbol: Symbol)(
       implicit index: SemanticdbIndex): Patch =
-    Patch.removeGlobalImport(symbol)
+    RemoveGlobalImport(symbol)
   @deprecated(DeprecationMessage, "0.6.0")
   final def addGlobalImport(symbol: Symbol)(
       implicit index: SemanticdbIndex): Patch =
-    Patch.addGlobalImport(symbol)
+    AddGlobalSymbol(symbol)
   @deprecated(DeprecationMessage, "0.6.0")
   final def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
       implicit index: SemanticdbIndex): Patch =
-    Patch.replaceSymbol(fromSymbol, toSymbol)
+    ReplaceSymbol(fromSymbol, toSymbol)
   @deprecated(DeprecationMessage, "0.6.0")
   final def replaceSymbols(toReplace: (String, String)*)(
       implicit index: SemanticdbIndex): Patch =
@@ -70,12 +72,12 @@ trait DeprecatedPatchOps extends PatchOps {
   @deprecated(DeprecationMessage, "0.6.0")
   final def renameSymbol(fromSymbol: Symbol.Global, toName: String)(
       implicit index: SemanticdbIndex): Patch =
-    Patch.renameSymbol(fromSymbol, toName)
+    ReplaceSymbol(fromSymbol, Root(Signature.Term(toName)))
   @deprecated(DeprecationMessage, "0.6.0")
   final def lint(msg: Diagnostic): Patch =
     Patch.lint(msg)
 }
 
-object DeprecatedPatchOps {
+object LegacyPatchOps {
   private[scalafix] final val DeprecationMessage = "Use scalafix.Patch instead"
 }

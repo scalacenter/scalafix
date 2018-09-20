@@ -1,11 +1,10 @@
 package scalafix.internal.config
 
-import scala.reflect.ClassTag
-
-import metaconfig.ConfDecoder
 import metaconfig.Conf
+import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
+import scala.reflect.ClassTag
 
 object ReaderUtil {
   def oneOf[T: ClassTag](options: sourcecode.Text[T]*): ConfDecoder[T] = {

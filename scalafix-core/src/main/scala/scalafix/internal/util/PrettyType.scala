@@ -2,10 +2,10 @@ package scalafix.internal.util
 
 import scala.collection.mutable
 import scala.meta._
-import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.semanticdb.Scala._
 import scala.meta.internal.semanticdb.SymbolInformation.{Kind => k}
 import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
+import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
 import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal

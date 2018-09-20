@@ -3,8 +3,8 @@ package scalafix.internal.config
 import java.io.PrintStream
 import scala.meta.Position
 import scalafix.internal.util.PositionSyntax._
-import scalafix.lint.RuleDiagnostic
 import scalafix.lint.LintSeverity
+import scalafix.lint.RuleDiagnostic
 
 /** A ScalafixReporter that emits messages to a PrintStream. */
 case class PrintStreamReporter(

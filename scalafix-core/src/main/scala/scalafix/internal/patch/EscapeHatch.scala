@@ -8,17 +8,14 @@ import scala.meta._
 import scala.meta.contrib._
 import scala.meta.tokens.Token
 import scala.meta.tokens.Token.Comment
-import scalafix.v0._
 import scalafix.internal.config.FilterMatcher
 import scalafix.internal.patch.EscapeHatch._
+import scalafix.internal.util.LintSyntax._
 import scalafix.lint.RuleDiagnostic
-import scalafix.patch.AtomicPatch
-import scalafix.patch.Concat
-import scalafix.patch.EmptyPatch
-import scalafix.patch.LintPatch
+import scalafix.patch.Patch.internal._
 import scalafix.rule.RuleName
 import scalafix.util.TreeExtractors.Mods
-import scalafix.internal.util.LintSyntax._
+import scalafix.v0._
 
 /** EscapeHatch is an algorithm to selectively disable rules. There
  * are two mechanisms to do so: anchored comments and the
@@ -37,7 +34,7 @@ class EscapeHatch private (
     val diagnostics = List.newBuilder[RuleDiagnostic]
     patchesByName.foreach {
       case (rule, rulePatch) =>
-        Patch.foreach(rulePatch) {
+        PatchInternals.foreach(rulePatch) {
           case LintPatch(message) =>
             diagnostics += message.toDiagnostic(rule, ctx.config)
           case rewritePatch =>
@@ -75,7 +72,7 @@ class EscapeHatch private (
     def loop(name: RuleName, patch: Patch): Patch = patch match {
       case AtomicPatch(underlying) =>
         val hasDisabledPatch = {
-          val patches = Patch.treePatchApply(underlying)(ctx, index)
+          val patches = PatchInternals.treePatchApply(underlying)(ctx, index)
           patches.exists { tp =>
             val byGit = diff.isDisabled(tp.tok.pos)
             val byEscape = isDisabledByEscape(name, tp.tok.pos.start)

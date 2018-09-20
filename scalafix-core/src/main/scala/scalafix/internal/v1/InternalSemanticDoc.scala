@@ -9,11 +9,11 @@ import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
 import scalafix.internal.config.ScalafixConfig
 import scalafix.lint.Diagnostic
-import scalafix.v1.SyntacticDocument
 import scalafix.v1.SemanticTree
 import scalafix.v1.Symbol
 import scalafix.v1.SymbolInformation
 import scalafix.v1.Symtab
+import scalafix.v1.SyntacticDocument
 
 final class InternalSemanticDoc(
     val doc: SyntacticDocument,

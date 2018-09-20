@@ -2,9 +2,9 @@ package scalafix.internal.util
 
 import scala.meta._
 import scala.meta.internal.ScalametaInternals
+import scala.meta.internal.semanticdb.Scala._
 import scalafix.v0._
 import scalafix.v1
-import scala.meta.internal.semanticdb.Scala._
 
 object SymbolOps {
 

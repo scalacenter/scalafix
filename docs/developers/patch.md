@@ -122,7 +122,9 @@ doc.tree.collect {
 It's best to target as precise tree nodes as possible when using `replaceTree()`
 to avoid conflicts with other patches.
 
-A common mistake is to use `replaceTree()` in combination with `
+A common mistake is to use `replaceTree()` in combination with quasiquotes. The
+tree node reference that is passed to `replaceTree()` must appear in the source
+file in order to produce a diff.
 
 ### `removeImportee()`
 

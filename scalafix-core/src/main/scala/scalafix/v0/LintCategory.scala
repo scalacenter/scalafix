@@ -1,7 +1,7 @@
 package scalafix.v0
 
-import scalafix.internal.config.LintConfig
 import scala.meta.inputs.Position
+import scalafix.internal.config.LintConfig
 import scalafix.lint.LintSeverity
 
 /** A unique identifier for one kind of a linter message.

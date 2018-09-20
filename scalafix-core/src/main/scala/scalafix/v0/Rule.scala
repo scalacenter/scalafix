@@ -1,12 +1,13 @@
 package scalafix.v0
 
+import metaconfig.Conf
+import metaconfig.Configured
 import scala.meta._
 import scalafix.internal.config.MetaconfigOps
 import scalafix.internal.config.ScalafixConfig
-import scalafix.syntax._
-import metaconfig.Conf
-import metaconfig.Configured
+import scalafix.internal.patch.PatchInternals
 import scalafix.lint.RuleDiagnostic
+import scalafix.syntax._
 
 /** A Scalafix Rule.
  *
@@ -79,19 +80,19 @@ abstract class Rule(ruleName: RuleName) { self =>
   final def apply(ctx: RuleCtx, patches: Map[RuleName, Patch]): String = {
     // This overload of apply if purely for convenience
     // Use `applyAndLint` to iterate over Diagnostic without printing to the console
-    val (fixed, diagnostics) = Patch(patches, ctx, semanticOption)
+    val (fixed, diagnostics) = PatchInternals(patches, ctx, semanticOption)
     diagnostics.foreach(diag => ctx.config.reporter.lint(diag))
     fixed
   }
   final def applyAndLint(ctx: RuleCtx): (String, List[RuleDiagnostic]) =
-    Patch(fixWithName(ctx), ctx, semanticOption)
+    PatchInternals(fixWithName(ctx), ctx, semanticOption)
 
   /** Returns unified diff from applying this patch */
   final def diff(ctx: RuleCtx): String =
     diff(ctx, fix(ctx))
   final protected def diff(ctx: RuleCtx, patch: Patch): String = {
     val original = ctx.tree.input
-    Patch.unifiedDiff(
+    PatchInternals.unifiedDiff(
       original,
       Input.VirtualFile(original.label, apply(ctx, patch)))
   }

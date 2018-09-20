@@ -1,13 +1,13 @@
 package scalafix
 
-import scala.meta._
-import scalafix.v0.Symbol
 import scala.compat.Platform.EOL
+import scala.meta._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
-import scalafix.internal.util.SymbolOps
 import scalafix.internal.util.DenotationOps
+import scalafix.internal.util.SymbolOps
 import scalafix.util.SymbolMatcher
 import scalafix.util.TreeOps
+import scalafix.v0.Symbol
 
 package object syntax {
   implicit class XtensionRefSymbolOpt(tree: Tree)(

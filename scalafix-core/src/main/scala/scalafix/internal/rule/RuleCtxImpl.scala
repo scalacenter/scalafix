@@ -5,22 +5,22 @@ import org.scalameta.logger
 import scala.meta._
 import scala.meta.contrib.AssociatedComments
 import scala.meta.tokens.Tokens
-import scalafix.v0._
-import scalafix.syntax._
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
-import scalafix.internal.patch.DeprecatedPatchOps
 import scalafix.internal.patch.EscapeHatch
+import scalafix.internal.patch.LegacyPatchOps
+import scalafix.syntax._
 import scalafix.util.MatchingParens
 import scalafix.util.SemanticdbIndex
 import scalafix.util.TokenList
+import scalafix.v0._
 
 case class RuleCtxImpl(
     tree: Tree,
     config: ScalafixConfig,
     diffDisable: DiffDisable)
     extends RuleCtx
-    with DeprecatedPatchOps { ctx =>
+    with LegacyPatchOps { ctx =>
   def syntax: String =
     s"""${tree.input.syntax}
        |${logger.revealWhitespace(tree.syntax.take(100))}""".stripMargin

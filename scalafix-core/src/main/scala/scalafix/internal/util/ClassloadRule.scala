@@ -1,13 +1,13 @@
 package scalafix.internal.util
 
 import java.lang.reflect.InvocationTargetException
-import scalafix.v0.SemanticdbIndex
+import metaconfig.ConfError
+import metaconfig.Configured
 import scala.reflect.ClassTag
 import scala.util.Success
 import scala.util.Try
 import scalafix.v0.Rule
-import metaconfig.ConfError
-import metaconfig.Configured
+import scalafix.v0.SemanticdbIndex
 
 class ClassloadRule[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
   private val t = ev.runtimeClass

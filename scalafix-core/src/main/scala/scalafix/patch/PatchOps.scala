@@ -1,9 +1,9 @@
 package scalafix.patch
 
 import scala.meta._
-import scalafix.v0.Symbol
 import scalafix.lint.Diagnostic
 import scalafix.util.SemanticdbIndex
+import scalafix.v0.Symbol
 
 trait PatchOps {
 

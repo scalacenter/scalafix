@@ -1,19 +1,17 @@
 package scalafix.internal.patch
 
 import scala.annotation.tailrec
-import scala.collection.immutable.Seq
 import scala.collection.mutable
 import scala.meta._
-import scalafix.v0.Symbol
-import scalafix.v0.Signature
 import scalafix.internal.util.SymbolOps
 import scalafix.patch.Patch
-import scalafix.patch.TreePatch
-import scalafix.patch.TreePatch.ImportPatch
+import scalafix.patch.Patch.internal._
 import scalafix.rule.RuleCtx
 import scalafix.syntax._
 import scalafix.util.Newline
 import scalafix.util.SemanticdbIndex
+import scalafix.v0.Signature
+import scalafix.v0.Symbol
 
 object ImportPatchOps {
   object symbols {
@@ -89,11 +87,11 @@ object ImportPatchOps {
     }
     val isRemovedImportee = mutable.LinkedHashSet.empty[Importee]
     importPatches.foreach {
-      case TreePatch.RemoveGlobalImport(sym) =>
+      case RemoveGlobalImport(sym) =>
         allImporteeSymbols
           .withFilter(_._1 == sym.normalized)
           .foreach { case (_, x) => isRemovedImportee += x }
-      case x: TreePatch.RemoveImportee => isRemovedImportee += x.importee
+      case x: RemoveImportee => isRemovedImportee += x.importee
       case _ =>
     }
     val importersToAdd = {
@@ -108,13 +106,13 @@ object ImportPatchOps {
         isAlreadyImported += underlying
       }
       importPatches.flatMap {
-        case TreePatch.AddGlobalSymbol(symbol)
+        case AddGlobalSymbol(symbol)
             if !allNamedImports.contains(symbol) &&
               !isAlreadyImported(symbol) &&
               !isPredef(symbol) =>
           isAlreadyImported += symbol
           SymbolOps.toImporter(symbol).toList
-        case TreePatch.AddGlobalImport(importer)
+        case AddGlobalImport(importer)
             // best effort deduplication for syntactic addGlobalImport(Importer)
             if !allImportersSyntax.contains(importer.syntax) =>
           importer :: Nil

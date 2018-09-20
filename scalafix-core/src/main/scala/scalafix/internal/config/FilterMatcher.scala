@@ -1,8 +1,8 @@
 package scalafix.internal.config
 
+import metaconfig._
 import scala.meta.io.AbsolutePath
 import scala.util.matching.Regex
-import metaconfig._
 
 case class FilterMatcher(
     includeFilters: Regex,

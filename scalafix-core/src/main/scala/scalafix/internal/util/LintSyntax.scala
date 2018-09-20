@@ -1,9 +1,9 @@
 package scalafix.internal.util
 
 import scalafix.internal.config.ScalafixConfig
-import scalafix.lint.RuleDiagnostic
-import scalafix.lint.LintID
 import scalafix.lint.Diagnostic
+import scalafix.lint.LintID
+import scalafix.lint.RuleDiagnostic
 import scalafix.rule.RuleName
 
 object LintSyntax {

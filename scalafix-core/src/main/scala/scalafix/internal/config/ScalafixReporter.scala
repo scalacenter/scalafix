@@ -3,8 +3,8 @@ package scalafix.internal.config
 import metaconfig.ConfDecoder
 import metaconfig.ConfEncoder
 import scala.meta.Position
-import scalafix.lint.RuleDiagnostic
 import scalafix.lint.LintSeverity
+import scalafix.lint.RuleDiagnostic
 
 trait ScalafixReporter {
   private[scalafix] def report(

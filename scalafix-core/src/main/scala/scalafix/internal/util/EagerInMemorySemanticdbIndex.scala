@@ -2,12 +2,12 @@ package scalafix.internal.util
 
 import scala.collection.mutable
 import scala.meta._
-import scala.meta.internal.{semanticdb => s}
 import scala.meta.internal.symtab._
+import scala.meta.internal.{semanticdb => s}
 import scalafix.internal.v0._
 import scalafix.util.SemanticdbIndex
-import scalafix.v0._
 import scalafix.v0
+import scalafix.v0._
 
 case class EagerInMemorySemanticdbIndex(
     database: Database,

@@ -14,7 +14,6 @@ import scalafix.internal.reflect.RuleDecoderOps.tryClassload
 import scalafix.internal.reflect.ScalafixToolbox
 import scalafix.internal.reflect.ScalafixToolbox.CompiledRules
 import scalafix.internal.v1.Rules
-import scalafix.patch.TreePatch
 import scalafix.v1
 import scala.meta.io.Classpath
 import scalafix.internal.reflect.ClasspathOps
@@ -55,7 +54,7 @@ object RuleDecoder {
       // Patch.replaceSymbols(from, to)
       case UriRuleString("replace", replace @ SlashSeparated(from, to)) =>
         val constant = parseReplaceSymbol(from, to)
-          .map(TreePatch.ReplaceSymbol.tupled)
+          .map(Patch.internal.ReplaceSymbol.tupled)
           .map(p => scalafix.v1.SemanticRule.constant(replace, p.atomic))
         constant :: Nil
       // Classload rule from classloader
