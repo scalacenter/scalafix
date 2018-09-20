@@ -70,6 +70,10 @@ following settings to `build.sbt`
  )
 ```
 
+For `project/*.scala` files, add
+`import scalafix.sbt.ScalafixPlugin.autoImport._` to the top of the file to
+resolve `scalafixSemanticdb`.
+
 We run `RemoveUnused` again and the error is now gone
 
 ```
@@ -181,7 +185,8 @@ export COURSIER_CACHE=$HOME/.custom-cache
 ### Run custom rules
 
 It's possible to run custom Scalafix rules that have been published to Maven
-Central. To install a custom rule, add it to `scalafixDependencies` (`scalafix.sbt.ScalafixPlugin.autoImport.scalafixDependencies`):
+Central. To install a custom rule, add it to `scalafixDependencies`
+(`scalafix.sbt.ScalafixPlugin.autoImport.scalafixDependencies`):
 
 ```scala
 // at the top of build.sbt
