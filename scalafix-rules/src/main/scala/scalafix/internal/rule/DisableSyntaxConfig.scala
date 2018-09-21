@@ -67,10 +67,12 @@ case class DisableSyntaxConfig(
     @Description(
       "Report error on `==` (universal equality)"
     )
+    @ExampleValue("true")
     noUniversalEquality: Boolean = false,
     @Description(
       "Reporter message for noUniversalEquality"
     )
+    @ExampleValue("\"use === instead of ==\"")
     noUniversalEqualityMessage: String =
       "== is unsafe since it allows comparing two unrelated types",
     @Description(
