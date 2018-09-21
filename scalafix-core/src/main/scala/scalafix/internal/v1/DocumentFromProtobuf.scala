@@ -50,8 +50,13 @@ final class DocumentFromProtobuf(original: s.Synthetic)(
     }
   }
 
-  private def sid(id: s.IdTree): IdTree =
-    IdTree(Symbol(id.symbol))
+  private def sid(id: s.IdTree): IdTree = {
+    val symbol = Symbol(id.symbol)
+    IdTree(doc.info(symbol).getOrElse {
+      val info = s.SymbolInformation(id.symbol, displayName = "<unknown>")
+      new SymbolInformation(info)
+    })
+  }
 
   private def soriginal(range: Option[s.Range]): Option[Tree] = {
     val pos = ScalametaInternals.positionFromRange(doc.input, range)

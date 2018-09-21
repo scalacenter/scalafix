@@ -17,7 +17,6 @@ import scalafix.v1.Symtab
 import scalafix.v1.SyntacticDocument
 
 object PatchDocs {
-
   implicit class XtensionPatch(p: Patch) {
     def output(implicit doc: SemanticDocument): String = {
       val (obtained, _) =
@@ -62,25 +61,50 @@ object PatchDocs {
     val out = Input.VirtualFile("after  patch", obtained)
     PatchInternals.unifiedDiff(in, out, context)
   }
-  lazy val compiler = InteractiveSemanticdb.newCompiler(List("-Ywarn-unused"))
+  lazy val scalacOptions = List(
+    "-Ywarn-unused",
+    "-P:semanticdb:synthetics:on"
+  )
+  lazy val compiler = InteractiveSemanticdb.newCompiler(scalacOptions)
   lazy val symtab = GlobalSymbolTable(ClasspathOps.thisClasspath)
   lazy val scalafixSymtab = new Symtab { self =>
     override def info(symbol: Symbol): Option[SymbolInformation] = {
       symtab.info(symbol.value).map(new SymbolInformation(_)(self))
     }
   }
-  def fromString(code: String, debug: Boolean = false): SemanticDocument = {
+  def fromStatement(code: String, debug: Boolean = false): SemanticDocument = {
+    fromString(
+      "object Main {\n" + code + "\n}",
+      debug,
+      statement = Some(code)
+    )
+  }
+  def fromString(
+      code: String,
+      debug: Boolean = false,
+      statement: Option[String] = None
+  ): SemanticDocument = {
     val filename = "Main.scala"
     println("```scala")
-    println("// " + filename)
-    println(code.trim)
+    statement match {
+      case Some(stat) =>
+        println(stat.trim)
+      case None =>
+        println("// " + filename)
+        println(code.trim)
+    }
     println("```")
-    val textDocument = InteractiveSemanticdb.toTextDocument(compiler, code)
+    val textDocument = InteractiveSemanticdb.toTextDocument(
+      compiler,
+      code,
+      scalacOptions.filter(_.startsWith("-P:semanticdb")))
     if (debug) {
       println("```")
       println(Print.document(Format.Compact, textDocument))
+      scala.reflect.classTag
       println("```")
     }
+
     val input = Input.VirtualFile(filename, code)
     val doc = SyntacticDocument.fromInput(input)
     val internal = new InternalSemanticDoc(
@@ -88,6 +112,11 @@ object PatchDocs {
       textDocument,
       symtab
     )
-    new SemanticDocument(internal)
+    val sdoc = new SemanticDocument(internal)
+    if (textDocument.diagnostics.exists(_.severity.isError)) {
+      sdoc.diagnostics.foreach(diag => println(diag))
+      throw new IllegalArgumentException(sdoc.diagnostics.mkString("\n"))
+    }
+    sdoc
   }
 }

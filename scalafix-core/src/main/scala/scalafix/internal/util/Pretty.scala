@@ -207,8 +207,10 @@ object Pretty {
       val targs = Doc.intercalate(Doc.comma, t.typeArguments.map(pretty))
       pretty(t.function) + `[` + targs + `]`
     case t: FunctionTree =>
+      val paramNames =
+        t.parameters.map(param => Doc.text(param.info.displayName))
       val params = `(` +
-        Doc.intercalate(Doc.comma, t.parameters.map(pretty)) +
+        Doc.intercalate(Doc.comma, paramNames) +
         `)` + Doc.space + `=>`
       pretty(t.body).bracketBy(`{` + Doc.space + params, `}`)
     case t: LiteralTree =>

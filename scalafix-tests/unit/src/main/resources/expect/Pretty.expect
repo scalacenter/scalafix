@@ -4,10 +4,10 @@
 [7:3..7:14]:      *[Int,List[Int]]
 [7:3..7:7]:       *.apply[Int]
 [8:3..12:12]:     orig(1.to(10)).flatMap[Int,IndexedSeq[Int]](
-                    { () =>
+                    { (i) =>
                       orig(2.to(20)).withFilter(
-                        { () => orig(i > i) }
-                      ).map[Int,IndexedSeq[Int]]({ () => orig(j) })(
+                        { (j) => orig(i > i) }
+                      ).map[Int,IndexedSeq[Int]]({ (j) => orig(j) })(
                         canBuildFrom[Int]
                       )
                     }
@@ -15,9 +15,9 @@
 [9:10..9:11]:     intWrapper(*)
 [10:10..10:11]:   intWrapper(*)
 [13:3..17:15]:    orig(Future(1.to(10)))(global).foreach[Unit](
-                    { () =>
+                    { (i) =>
                       orig(Future(2.to(i.length)))(global).foreach[Unit](
-                        { () => orig(println(j)) }
+                        { (j) => orig(println(j)) }
                       )(global)
                     }
                   )(global)

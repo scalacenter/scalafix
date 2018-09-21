@@ -6,6 +6,7 @@ import scalafix.internal.util.Pretty
 /** Encoding of the Scala type system as a sealed data structure. */
 sealed abstract class SemanticType extends Product with Serializable {
   final override def toString: String = Pretty.pretty(this).render(80)
+  final def toString(width: Int): String = Pretty.pretty(this).render(width)
   final def isEmpty: Boolean = this == NoType
   final def nonEmpty: Boolean = !isEmpty
 }

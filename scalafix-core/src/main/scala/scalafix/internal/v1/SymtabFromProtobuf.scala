@@ -16,38 +16,40 @@ final class SymtabFromProtobuf(symtab: Symtab) {
     case None => Nil
     case Some(sc) =>
       if (sc.hardlinks.isEmpty) sc.symlinks.iterator.map(info).toList
-      else sc.infos.iterator.map(i => new SymbolInformation(i)(symtab)).toList
+      else {
+        sc.infos.iterator.map(i => new SymbolInformation(i)(symtab)).toList
+      }
   }
 
   def stype(t: s.Type): SemanticType = t match {
     case s.IntersectionType(types) =>
-      new IntersectionType(types.convert)
+      IntersectionType(types.convert)
     case s.SuperType(prefix, symbol) =>
-      new SuperType(prefix.convert, symbol.convert)
+      SuperType(prefix.convert, symbol.convert)
     case s.ByNameType(tpe) =>
-      new ByNameType(tpe.convert)
+      ByNameType(tpe.convert)
     case s.AnnotatedType(annotations, tpe) =>
-      new AnnotatedType(annotations.convert, tpe.convert)
+      AnnotatedType(annotations.convert, tpe.convert)
     case s.ConstantType(constant) =>
-      new ConstantType(sconstant(constant))
+      ConstantType(sconstant(constant))
     case s.TypeRef(prefix, symbol, typeArguments) =>
-      new TypeRef(prefix.convert, symbol.convert, typeArguments.convert)
+      TypeRef(prefix.convert, symbol.convert, typeArguments.convert)
     case s.StructuralType(tpe, declarations) =>
-      new StructuralType(tpe.convert, declarations.convert)
+      StructuralType(tpe.convert, declarations.convert)
     case s.RepeatedType(tpe) =>
-      new RepeatedType(tpe.convert)
+      RepeatedType(tpe.convert)
     case s.ThisType(symbol) =>
-      new ThisType(symbol.convert)
+      ThisType(symbol.convert)
     case s.WithType(types) =>
-      new WithType(types.convert)
+      WithType(types.convert)
     case s.UniversalType(typeParameters, tpe) =>
-      new UniversalType(typeParameters.convert, tpe.convert)
+      UniversalType(typeParameters.convert, tpe.convert)
     case s.SingleType(prefix, symbol) =>
-      new SingleType(prefix.convert, symbol.convert)
+      SingleType(prefix.convert, symbol.convert)
     case s.ExistentialType(tpe, declarations) =>
-      new ExistentialType(tpe.convert, declarations.convert)
+      ExistentialType(tpe.convert, declarations.convert)
     case s.UnionType(types) =>
-      new UnionType(types.convert)
+      UnionType(types.convert)
     case s.NoType =>
       NoType
   }
@@ -81,22 +83,22 @@ final class SymtabFromProtobuf(symtab: Symtab) {
 
   def ssignature(sig: s.Signature): Signature = sig match {
     case s.ValueSignature(tpe) =>
-      new ValueSignature(tpe.convert)
+      ValueSignature(tpe.convert)
     case s.TypeSignature(typeParameters, lowerBound, upperBound) =>
-      new TypeSignature(
+      TypeSignature(
         typeParameters.convert,
         lowerBound.convert,
         upperBound.convert
       )
     case s.ClassSignature(typeParameters, parents, self, declarations) =>
-      new ClassSignature(
+      ClassSignature(
         typeParameters.convert,
         parents.convert,
         self.convert,
         declarations.convert
       )
     case s.MethodSignature(typeParameters, parameterLists, returnType) =>
-      new MethodSignature(
+      MethodSignature(
         typeParameters.convert,
         parameterLists.convert,
         returnType.convert
@@ -106,7 +108,7 @@ final class SymtabFromProtobuf(symtab: Symtab) {
   }
 
   def sannotation(a: s.Annotation): Annotation =
-    new Annotation(a.tpe.convert)
+    Annotation(a.tpe.convert)
 
   implicit class RichAnnotations(annots: Seq[s.Annotation]) {
     def convert: List[Annotation] = annots.iterator.map(sannotation).toList
