@@ -1,6 +1,5 @@
 package scalafix.internal.v1
 
-import scala.language.higherKinds
 import java.io.File
 import java.io.PrintStream
 import java.net.URI
@@ -10,7 +9,6 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.PathMatcher
 import java.nio.file.Paths
-import java.util.Locale.FilteringMode
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 import metaconfig.Configured._
@@ -21,18 +19,19 @@ import metaconfig.internal.ConfGet
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 import pprint.TPrint
 import scala.annotation.StaticAnnotation
+import scala.language.higherKinds
 import scala.meta.internal.io.PathIO
+import scala.meta.internal.symtab.SymbolTable
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
-import scalafix.internal.config.ScalafixConfig
-import scalafix.internal.diff.DiffDisable
-import scalafix.internal.jgit.JGitDiff
-import scalafix.internal.reflect.ClasspathOps
-import scala.meta.internal.symtab.SymbolTable
 import scalafix.interfaces.ScalafixMainCallback
 import scalafix.internal.config.FilterMatcher
 import scalafix.internal.config.PrintStreamReporter
+import scalafix.internal.config.ScalafixConfig
+import scalafix.internal.diff.DiffDisable
 import scalafix.internal.interfaces.MainCallbackImpl
+import scalafix.internal.jgit.JGitDiff
+import scalafix.internal.reflect.ClasspathOps
 import scalafix.v1.Configuration
 import scalafix.v1.RuleDecoder
 

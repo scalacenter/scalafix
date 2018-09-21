@@ -18,7 +18,6 @@ class CliSemanticSuite extends BaseCliSuite {
     expectedExit = ExitStatus.Ok
   )
 
-
   checkSemantic(
     name = "--auto-classpath ok",
     args = Array(
