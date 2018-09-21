@@ -176,7 +176,6 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
       assertObtained: Result => Unit = { result =>
         if (result.exit.isOk) {
           assertNoDiff(result.obtained, result.expected)
-
         }
       }
   ): Unit = {
@@ -215,7 +214,6 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
         } else {
           fixed
         }
-
       }
       val expected =
         if (fileIsFixed) slurpOutput(path)

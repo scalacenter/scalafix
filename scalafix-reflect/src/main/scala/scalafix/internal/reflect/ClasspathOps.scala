@@ -82,7 +82,15 @@ object ClasspathOps {
   }
 
   def toClassLoader(classpath: Classpath): URLClassLoader = {
+    toClassLoaderWithParent(classpath, this.getClass.getClassLoader)
+  }
+  def toOrphanClassLoader(classpath: Classpath): URLClassLoader = {
+    toClassLoaderWithParent(classpath, null)
+  }
+  private def toClassLoaderWithParent(
+      classpath: Classpath,
+      parent: ClassLoader): URLClassLoader = {
     val urls = classpath.entries.map(_.toNIO.toUri.toURL).toArray
-    new URLClassLoader(urls, this.getClass.getClassLoader)
+    new URLClassLoader(urls, parent)
   }
 }
