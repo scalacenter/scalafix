@@ -23,7 +23,7 @@ jobs:
     # - env: TEST="mima"
     #   script: sbt mima
     - stage: release
-      script: sbt ci-release
+      script: sbt ci-release docs/docusaurusPublishGhpages
 
 cache:
   directories:
