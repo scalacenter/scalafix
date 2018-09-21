@@ -3,14 +3,25 @@ id: installation
 title: Installation
 ---
 
-First, make sure you are using a supported Scala compiler version.
+## Requirements
+
+**macOS, Linux and Windows**: Scalafix runs on macOS, Linux and Windows. Every
+pull request is tested on both Linux and Windows.
+
+**Java 8**. Scalafix supports only Java 8 at the moment. Running Scalafix on
+Java 9+ results in `error: unable to load symbol table` errors. See
+[#880](https://github.com/scalacenter/scalafix/issues/880) for updates on adding
+support for Java 11.
+
+**Scala 2.11 and 2.12**: Scalafix works only with the latest version of Scala
+2.11 and Scala 2.12. See
+[scalameta/scalameta#1695](https://github.com/scalameta/scalameta/issues/1695)
+for updates on adding support for Scala 2.13 once it's out.
 
 | Scalafix  | Scala Compiler          | Scalameta   |
 | --------- | ----------------------- | ----------- |
-| 0.5.10    | 2.11.12 / 2.12.4        | 2.1.7       |
 | @VERSION@ | @SCALA211@ / @SCALA212@ | @SCALAMETA@ |
-
-Next, integrate Scalafix with your build tool or use the command-line interface.
+| 0.5.10    | 2.11.12 / 2.12.4        | 2.1.7       |
 
 ## sbt
 
