@@ -223,7 +223,7 @@ final class DisableSyntax(config: DisableSyntaxConfig)
         "use \"_ match { ... }\" with a fallback case instead.")
 
   private def noUniversalEqualityDiagnostic(t: Term.Name): Diagnostic =
-    Diagnostic("==", "== (universal equality) is disabled", t.pos)
+    Diagnostic("==", config.noUniversalEqualityMessage, t.pos)
 
 }
 

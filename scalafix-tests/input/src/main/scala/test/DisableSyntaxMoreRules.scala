@@ -7,6 +7,8 @@ DisableSyntax.noValInAbstract = true
 DisableSyntax.noImplicitObject = true
 DisableSyntax.noImplicitConversion = true
 DisableSyntax.noUniversalEquality = true
+DisableSyntax.noUniversalEqualityMessage =
+  "== is not typesafe, use === from cats.Eq instead"
 */
 package test
 
@@ -89,12 +91,12 @@ Default args makes it hard to use methods as functions.
 
   1 == 2 /* assert: DisableSyntax.==
     ^^
-    == (universal equality) is disabled
+    == is not typesafe, use === from cats.Eq instead
   */
 
   1.==(2) /* assert: DisableSyntax.==
     ^^
-    == (universal equality) is disabled
+    == is not typesafe, use === from cats.Eq instead
   */
 
 }
