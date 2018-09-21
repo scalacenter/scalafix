@@ -9,6 +9,7 @@ import scala.meta.parsers.Parsed
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scala.meta.internal.symtab.SymbolTable
+import scalafix.internal.config.FilterMatcher
 
 case class ValidatedArgs(
     args: Args,
@@ -19,7 +20,8 @@ case class ValidatedArgs(
     sourceroot: AbsolutePath,
     pathReplace: AbsolutePath => AbsolutePath,
     diffDisable: DiffDisable,
-    callback: DelegatingMainCallback
+    callback: DelegatingMainCallback,
+    semanticdbFileFilter: FilterMatcher
 ) {
 
   def input(file: AbsolutePath): Input = {
@@ -35,6 +37,11 @@ case class ValidatedArgs(
   def matches(path: RelativePath): Boolean =
     Args.baseMatcher.matches(path.toNIO) && {
       args.exclude.forall(!_.matches(path.toNIO))
+    } && {
+      // Respect -P:semanticdb:exclude and -P:semanticdb:include
+      semanticdbFileFilter.eq(FilterMatcher.matchEverything) || {
+        semanticdbFileFilter.matches(path.toString())
+      }
     }
 
 }

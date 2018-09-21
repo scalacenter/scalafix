@@ -47,5 +47,9 @@ object FilterMatcher {
   def apply(includes: Seq[String], excludes: Seq[String]): FilterMatcher =
     new FilterMatcher(mkRegexp(includes), mkRegexp(excludes))
   def apply(include: String): FilterMatcher =
+    this.include(include)
+  def include(include: String): FilterMatcher =
     new FilterMatcher(mkRegexp(Seq(include)), mkRegexp(Nil))
+  def exclude(exclude: String): FilterMatcher =
+    new FilterMatcher(matchEverything.includeFilters, mkRegexp(List(exclude)))
 }

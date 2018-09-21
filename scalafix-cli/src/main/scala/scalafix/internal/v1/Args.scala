@@ -1,6 +1,5 @@
 package scalafix.internal.v1
 
-import scala.language.higherKinds
 import java.io.File
 import java.io.PrintStream
 import java.net.URI
@@ -20,17 +19,19 @@ import metaconfig.internal.ConfGet
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 import pprint.TPrint
 import scala.annotation.StaticAnnotation
+import scala.language.higherKinds
 import scala.meta.internal.io.PathIO
+import scala.meta.internal.symtab.SymbolTable
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
+import scalafix.interfaces.ScalafixMainCallback
+import scalafix.internal.config.FilterMatcher
+import scalafix.internal.config.PrintStreamReporter
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
+import scalafix.internal.interfaces.MainCallbackImpl
 import scalafix.internal.jgit.JGitDiff
 import scalafix.internal.reflect.ClasspathOps
-import scala.meta.internal.symtab.SymbolTable
-import scalafix.interfaces.ScalafixMainCallback
-import scalafix.internal.config.PrintStreamReporter
-import scalafix.internal.interfaces.MainCallbackImpl
 import scalafix.v1.Configuration
 import scalafix.v1.RuleDecoder
 
@@ -289,10 +290,8 @@ case class Args(
   }
 
   def validatedClasspath: Classpath = {
-    val targetrootFlag = "-P:semanticdb:targetroot:"
-    val targetroot = scalacOptions
-      .find(_.startsWith(targetrootFlag))
-      .map(option => Classpath(option.stripPrefix(targetrootFlag)))
+    val targetroot = semanticdbOption("targetroot")
+      .map(option => Classpath(option))
       .getOrElse(Classpath(Nil))
     val baseClasspath =
       if (autoClasspath && classpath.entries.isEmpty) {
@@ -308,6 +307,24 @@ case class Args(
 
   def classLoader: ClassLoader =
     ClasspathOps.toOrphanClassLoader(validatedClasspath)
+
+  def semanticdbOption(name: String): Option[String] = {
+    val flag = s"-P:semanticdb:$name:"
+    scalacOptions
+      .find(_.startsWith(flag))
+      .map(_.stripPrefix(flag))
+  }
+
+  def semanticdbFilterMatcher: FilterMatcher = {
+    val include = semanticdbOption("include")
+    val exclude = semanticdbOption("exclude")
+    (include, exclude) match {
+      case (None, None) => FilterMatcher.matchEverything
+      case (Some(in), None) => FilterMatcher.include(in)
+      case (None, Some(ex)) => FilterMatcher.exclude(ex)
+      case (Some(in), Some(ex)) => FilterMatcher(List(in), List(ex))
+    }
+  }
 
   def validate: Configured[ValidatedArgs] = {
     baseConfig.andThen {
@@ -329,7 +346,8 @@ case class Args(
               root,
               pathReplace,
               diffDisable,
-              delegator
+              delegator,
+              semanticdbFilterMatcher
             )
         }
     }
