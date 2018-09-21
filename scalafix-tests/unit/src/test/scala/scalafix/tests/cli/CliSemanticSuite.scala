@@ -19,6 +19,21 @@ class CliSemanticSuite extends BaseCliSuite {
   )
 
   checkSemantic(
+    name = "-P:semanticdb:targetroot",
+    args = {
+      val (targetroot :: Nil, jars) =
+        props.inputClasspath.entries.partition(_.isDirectory)
+      Array(
+        s"--scalacOptions",
+        s"-P:semanticdb:targetroot:${targetroot.toString()}",
+        "--classpath",
+        Classpath(jars).syntax
+      )
+    },
+    expectedExit = ExitStatus.Ok
+  )
+
+  checkSemantic(
     name = "--auto-classpath ok",
     args = Array(
       "--auto-classpath-roots",
@@ -41,6 +56,12 @@ class CliSemanticSuite extends BaseCliSuite {
       assert(out.contains("--sourceroot"))
       assert(out.contains("bogus"))
     }
+  )
+
+  checkSemantic(
+    name = "missing --classpath",
+    args = Array(),
+    expectedExit = ExitStatus.MissingSemanticdbError
   )
 
   test("MissingSemanticDB") {

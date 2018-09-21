@@ -289,17 +289,25 @@ case class Args(
   }
 
   def validatedClasspath: Classpath = {
-    if (autoClasspath && classpath.entries.isEmpty) {
-      val roots =
-        if (autoClasspathRoots.isEmpty) cwd :: Nil
-        else autoClasspathRoots
-      ClasspathOps.autoClasspath(roots)
-    } else {
-      classpath
-    }
+    val targetrootFlag = "-P:semanticdb:targetroot:"
+    val targetroot = scalacOptions
+      .find(_.startsWith(targetrootFlag))
+      .map(option => Classpath(option.stripPrefix(targetrootFlag)))
+      .getOrElse(Classpath(Nil))
+    val baseClasspath =
+      if (autoClasspath && classpath.entries.isEmpty) {
+        val roots =
+          if (autoClasspathRoots.isEmpty) cwd :: Nil
+          else autoClasspathRoots
+        ClasspathOps.autoClasspath(roots)
+      } else {
+        classpath
+      }
+    baseClasspath ++ targetroot
   }
 
-  def classLoader: ClassLoader = ClasspathOps.toClassLoader(validatedClasspath)
+  def classLoader: ClassLoader =
+    ClasspathOps.toOrphanClassLoader(validatedClasspath)
 
   def validate: Configured[ValidatedArgs] = {
     baseConfig.andThen {
@@ -399,12 +407,4 @@ object Args {
       s"[${ev.render} ...]"
     }
   implicit val argsSurface: Surface[Args] = generic.deriveSurface
-}
-
-case class ScalafixFileConfig(rules: Conf, other: Conf)
-object ScalafixFileConfig {
-  val empty = ScalafixFileConfig(
-    Conf.Obj.empty,
-    Conf.Obj.empty
-  )
 }
