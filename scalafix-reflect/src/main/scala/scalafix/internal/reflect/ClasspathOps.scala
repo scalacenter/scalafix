@@ -18,6 +18,7 @@ object ClasspathOps {
 
   def bootClasspath: Option[Classpath] = sys.props.collectFirst {
     case (k, v) if k.endsWith(".boot.class.path") => Classpath(v)
+    case (k, v) if k == "java.class.path" => Classpath(v)
   }
 
   val devNull = new PrintStream(new OutputStream {

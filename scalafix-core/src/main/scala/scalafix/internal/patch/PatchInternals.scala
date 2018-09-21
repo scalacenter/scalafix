@@ -159,8 +159,8 @@ object PatchInternals {
     DiffUtils.unifiedDiff(
       original.label,
       revised.label,
-      new String(original.chars).lines.toList,
-      new String(revised.chars).lines.toList,
+      new String(original.chars).linesIterator.toList,
+      new String(revised.chars).linesIterator.toList,
       context)
   }
 

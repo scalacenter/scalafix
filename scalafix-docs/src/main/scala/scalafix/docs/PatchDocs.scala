@@ -48,7 +48,7 @@ object PatchDocs {
     }
   }
   def printDiff(diff: String): Unit = {
-    val trimmed = diff.lines.drop(3).mkString("\n")
+    val trimmed = diff.linesIterator.drop(3).mkString("\n")
     val message =
       if (trimmed.isEmpty) "<no diff>"
       else trimmed

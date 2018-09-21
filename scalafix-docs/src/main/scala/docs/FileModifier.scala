@@ -18,7 +18,7 @@ class FileModifier extends StringModifier {
     val path = Paths.get(filename)
     val text = new String(Files.readAllBytes(path), StandardCharsets.UTF_8)
     val input = Input.VirtualFile(filename, text)
-    code.text.lines.toList match {
+    code.text.linesIterator.toList match {
       case List(startMarker, endMarker) =>
         val start = text.indexOf(startMarker.stripSuffix("..."))
         val end = text.indexOf(endMarker.stripPrefix("..."))
