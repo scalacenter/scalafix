@@ -222,15 +222,85 @@ If all went well, you should see a diff adding the comment
 +// v1 SyntacticRule!
 ```
 
-### Add and exclude files
+### Exclude files from SemanticDB
 
-By default, the task `myproject/test:scalafix` runs on the files matching
-`unmanagedSources.in(Test).value`. To customize this value, add the following
-setting
+By default, the SemanticDB compiler plugin will process all files in a project.
+
+Use `-P:semanticdb:exclude:<regex>` to exclude files from the SemanticDB
+compiler plugin.
+
+```scala
+scalacOptions += "-P:semanticdb:exclude:Macros.scala"
+```
+
+Separate multiple patterns with pipe `|` to exclude multiple files.
+
+```scala
+scalacOptions += "-P:semanticdb:exclude:Macros.scala|Schema.scala"
+```
+
+To learn more about SemanticDB compiler options visit
+https://scalameta.org/docs/semanticdb/guide.html#scalac-compiler-plugin
+
+> Avoid using slashes like `/` in `-P:semanticdb:exclude` since that will not
+> work on Windows. The argument is compiled to a regular expression and gets
+> matched against the `java.io.File.getAbsolutePath` representation of each
+> file.
+
+### Exclude files from Scalafix
+
+By default, the `scalafix` task processes all files in a project. If you use
+SemanticDB, the `scalafix` task also respects
+[`-P:semanticdb:exclude`](#exclude-files-from-semanticdb).
+
+Use `unmanagedSources.in(Compile, scalafix)` to optionally exclude files from
+the `scalafix` task.
 
 ```scala
 unmanagedSources.in(Compile, scalafix) :=
-  unmanagedSources.in(Compile).value.filter(file => ...)
+  unmanagedSources.in(Compile).value
+    .filter(file => file.getName == "Macros.scala")
+```
+
+Replace `Compile` with `Test` to customize which test sources should be
+processed.
+
+### Customize SemanticDB output directory
+
+By default, the SemanticDB compiler plugin emits `*.semanticdb` files in the
+`classDirectory`.
+
+Use `-P:semanticdb:targetroot:path` to configure SemanticDB to emit
+`*.semanticdb` files in a custom location. For example:
+
+```scala
+scalacOptions += {
+  val targetroot = target.value / "semanticdb"
+  s"-P:semanticdb:targetroot:$targetroot"
+}
+```
+
+To learn more about SemanticDB compiler options visit
+https://scalameta.org/docs/semanticdb/guide.html#scalac-compiler-plugin
+
+### Disable Scalafix for specific project
+
+Use `.disablePlugins(ScalafixPlugin)` to disable Scalafix for a particular
+project.
+
+```diff
+  lazy val myproject = project
+    .settings(...)
++   .disablePlugins(ScalafixPlugin)
+```
+
+When using Scala.js or Scala Native, use `.jsConfigure` or `.nativeConfigure` to
+disable Scalafix for only the Scala.js or Scala Native project. For example:
+
+```diff
+  lazy val myproject = crossProject(JVMPlatform, JSPlatform)
+    .settings(...)
++   .jsConfigure(_.disablePlugins(ScalafixPlugin))
 ```
 
 ### Enable SemanticDB for current shell session
