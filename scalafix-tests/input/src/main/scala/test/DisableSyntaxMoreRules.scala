@@ -87,8 +87,14 @@ Default args makes it hard to use methods as functions.
   implicit def toString(a: Any): String = a.toString // assert: DisableSyntax.implicitConversion
   implicit def toImplicitString(implicit foo: Foo) = foo.toString // ok
 
-  1 == 2 /* assert: DisableSyntax.noUniversalEquality
+  1 == 2 /* assert: DisableSyntax.==
     ^^
     == (universal equality) is disabled
   */
+
+  1.==(2) /* assert: DisableSyntax.==
+    ^^
+    == (universal equality) is disabled
+  */
+
 }
