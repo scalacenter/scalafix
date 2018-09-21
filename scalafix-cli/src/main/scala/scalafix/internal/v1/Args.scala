@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.PathMatcher
 import java.nio.file.Paths
+import java.util.Locale.FilteringMode
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 import metaconfig.Configured._
@@ -29,6 +30,7 @@ import scalafix.internal.jgit.JGitDiff
 import scalafix.internal.reflect.ClasspathOps
 import scala.meta.internal.symtab.SymbolTable
 import scalafix.interfaces.ScalafixMainCallback
+import scalafix.internal.config.FilterMatcher
 import scalafix.internal.config.PrintStreamReporter
 import scalafix.internal.interfaces.MainCallbackImpl
 import scalafix.v1.Configuration
@@ -289,10 +291,8 @@ case class Args(
   }
 
   def validatedClasspath: Classpath = {
-    val targetrootFlag = "-P:semanticdb:targetroot:"
-    val targetroot = scalacOptions
-      .find(_.startsWith(targetrootFlag))
-      .map(option => Classpath(option.stripPrefix(targetrootFlag)))
+    val targetroot = semanticdbOption("targetroot")
+      .map(option => Classpath(option))
       .getOrElse(Classpath(Nil))
     val baseClasspath =
       if (autoClasspath && classpath.entries.isEmpty) {
@@ -308,6 +308,24 @@ case class Args(
 
   def classLoader: ClassLoader =
     ClasspathOps.toOrphanClassLoader(validatedClasspath)
+
+  def semanticdbOption(name: String): Option[String] = {
+    val flag = s"-P:semanticdb:$name:"
+    scalacOptions
+      .find(_.startsWith(flag))
+      .map(_.stripPrefix(flag))
+  }
+
+  def semanticdbFilterMatcher: FilterMatcher = {
+    val include = semanticdbOption("include")
+    val exclude = semanticdbOption("exclude")
+    (include, exclude) match {
+      case (None, None) => FilterMatcher.matchEverything
+      case (Some(in), None) => FilterMatcher.include(in)
+      case (None, Some(ex)) => FilterMatcher.exclude(ex)
+      case (Some(in), Some(ex)) => FilterMatcher(List(in), List(ex))
+    }
+  }
 
   def validate: Configured[ValidatedArgs] = {
     baseConfig.andThen {
@@ -329,7 +347,8 @@ case class Args(
               root,
               pathReplace,
               diffDisable,
-              delegator
+              delegator,
+              semanticdbFilterMatcher
             )
         }
     }

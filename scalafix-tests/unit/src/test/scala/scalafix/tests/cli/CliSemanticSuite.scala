@@ -18,20 +18,6 @@ class CliSemanticSuite extends BaseCliSuite {
     expectedExit = ExitStatus.Ok
   )
 
-  checkSemantic(
-    name = "-P:semanticdb:targetroot",
-    args = {
-      val (targetroot :: Nil, jars) =
-        props.inputClasspath.entries.partition(_.isDirectory)
-      Array(
-        s"--scalacOptions",
-        s"-P:semanticdb:targetroot:${targetroot.toString()}",
-        "--classpath",
-        Classpath(jars).syntax
-      )
-    },
-    expectedExit = ExitStatus.Ok
-  )
 
   checkSemantic(
     name = "--auto-classpath ok",
@@ -155,6 +141,57 @@ class CliSemanticSuite extends BaseCliSuite {
     assertObtained = { _ =>
       // Do nothing
     }
+  )
+
+  checkSemantic(
+    name = "-P:semanticdb:targetroot",
+    args = {
+      val (targetroot :: Nil, jars) =
+        props.inputClasspath.entries.partition(_.isDirectory)
+      Array(
+        s"--scalacOptions",
+        s"-P:semanticdb:targetroot:${targetroot.toString()}",
+        "--classpath",
+        Classpath(jars).syntax
+      )
+    },
+    expectedExit = ExitStatus.Ok
+  )
+
+  checkSemantic(
+    name = "-P:semanticdb:include",
+    args = Array(
+      s"--scalacOptions",
+      s"-P:semanticdb:include:${removeImportsPath.toNIO.getFileName}",
+      "--classpath",
+      defaultClasspath,
+      "--files",
+      "IgnoreMe.scala",
+      "--files",
+      removeImportsPath.toString()
+    ),
+    preprocess = { root =>
+      Files.createFile(root.resolve("IgnoreMe.scala").toNIO)
+    },
+    expectedExit = ExitStatus.Ok
+  )
+
+  checkSemantic(
+    name = "-P:semanticdb:exclude",
+    args = Array(
+      s"--scalacOptions",
+      s"-P:semanticdb:exclude:IgnoreMe.scala",
+      "--classpath",
+      defaultClasspath,
+      "--files",
+      "IgnoreMe.scala",
+      "--files",
+      removeImportsPath.toString()
+    ),
+    preprocess = { root =>
+      Files.createFile(root.resolve("IgnoreMe.scala").toNIO)
+    },
+    expectedExit = ExitStatus.Ok
   )
 
 }

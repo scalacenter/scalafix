@@ -195,17 +195,14 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
       val sourceroot =
         if (args.contains("--sourceroot")) Array[String]()
         else Array("--sourceroot", cwd.toString)
-      val exit = Main.run(
-        args ++ sourceroot ++ Seq(
-          "--scalac-options",
-          "-Ywarn-unused-import",
-          "-r",
-          rule,
-          files
-        ),
-        root.toNIO,
-        new PrintStream(out)
+      val allArguments = args ++ sourceroot ++ Seq(
+        "--scalac-options",
+        "-Ywarn-unused-import",
+        "-r",
+        rule,
+        files
       )
+      val exit = Main.run(allArguments, root.toNIO, new PrintStream(out))
       val original = slurpInput(path)
       val obtained = {
         val fixed = slurp(root.resolve(path))
