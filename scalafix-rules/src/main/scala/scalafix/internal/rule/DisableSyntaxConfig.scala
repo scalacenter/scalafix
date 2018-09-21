@@ -65,6 +65,15 @@ case class DisableSyntaxConfig(
       "Report error when pattern matching in val assignment with non-tuple patterns.")
     noValPatterns: Boolean = false,
     @Description(
+      "Report error on `==` (universal equality)"
+    )
+    noUniversalEquality: Boolean = false,
+    @Description(
+      "Reporter message for noUniversalEquality"
+    )
+    noUniversalEqualityMessage: String =
+      "Universal equality should be avoided since it's not typesafe",
+    @Description(
       "Report error if the text contents of a source file matches a given regex.")
     @ExampleValue(
       """|[
