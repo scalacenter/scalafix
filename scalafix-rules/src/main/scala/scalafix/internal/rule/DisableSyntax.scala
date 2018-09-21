@@ -196,9 +196,11 @@ final class DisableSyntax(config: DisableSyntaxConfig)
               "Default args makes it hard to use methods as functions.",
               m.pos)
           }
-      case Term.ApplyInfix(_, t @ Term.Name("=="), _, _) if config.noUniversalEquality =>
+      case Term.ApplyInfix(_, t @ Term.Name("=="), _, _)
+          if config.noUniversalEquality =>
         Seq(noUniversalEqualityDiagnostic(t))
-      case Term.Apply(Term.Select(_, t @ Term.Name("==")), _) if config.noUniversalEquality =>
+      case Term.Apply(Term.Select(_, t @ Term.Name("==")), _)
+          if config.noUniversalEquality =>
         Seq(noUniversalEqualityDiagnostic(t))
     }
     val FinalizeMatcher = DisableSyntax.FinalizeMatcher("noFinalize")

@@ -71,7 +71,8 @@ case class DisableSyntaxConfig(
     @Description(
       "Reporter message for noUniversalEquality"
     )
-    noUniversalEqualityMessage: String = "Universal equality should be avoided since it's not typesafe",
+    noUniversalEqualityMessage: String =
+      "Universal equality should be avoided since it's not typesafe",
     @Description(
       "Report error if the text contents of a source file matches a given regex.")
     @ExampleValue(
