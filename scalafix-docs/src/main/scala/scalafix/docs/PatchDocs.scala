@@ -113,7 +113,7 @@ object PatchDocs {
       symtab
     )
     val sdoc = new SemanticDocument(internal)
-    if (textDocument.diagnostics.nonEmpty) {
+    if (textDocument.diagnostics.exists(_.severity.isError)) {
       sdoc.diagnostics.foreach(diag => println(diag))
       throw new IllegalArgumentException(sdoc.diagnostics.mkString("\n"))
     }
