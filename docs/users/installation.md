@@ -32,6 +32,8 @@ Start by installing the sbt plugin in `project/plugins.sbt`
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@VERSION@")
 ```
 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/ch.epfl.scala/sbt-scalafix/badge.svg)](https://maven-badges.herokuapp.com/maven-central/ch.epfl.scala/sbt-scalafix)
+
 From the sbt shell, let's run the rule `ProcedureSyntax`
 
 ```
@@ -59,9 +61,6 @@ rules like RemoveUnused ...
 [E2] The Scala compiler option "-Ywarn-unused" is required to use
 RemoveUnused ...
 ```
-
-The error message appears because `RemoveUnused` requires the project sources to
-be compiled beforehand for the unused code analysis to function properly.
 
 The first error message means the
 [SemanticDB](https://scalameta.org/docs/semanticdb/guide.html) compiler plugin
@@ -106,15 +105,14 @@ See [example project](#example-project) for a repository that demonstrates
 Great! You are all set to use Scalafix with sbt :)
 
 > Beware that the SemanticDB compiler plugin in combination with `-Yrangepos`
-> adds around overhead to compilation time. The exact compilation overhead
-> depends on the codebase being compiled and compiler options used. It's
-> recommended to provide generous JVM memory and stack settings in the file
-> `.jvmopts`:
+> adds overhead to compilation time. The exact compilation overhead depends on
+> the codebase being compiled and compiler options used. It's recommended to
+> provide generous JVM memory and stack settings in the file `.jvmopts`:
 >
 > ```
 >   -Xss8m
 >   -Xms1G
->   -Xmx4G
+>   -Xmx8G
 > ```
 
 ### Settings and tasks
