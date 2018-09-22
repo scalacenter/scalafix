@@ -53,8 +53,6 @@ class RemoveUnused(config: RemoveUnusedConfig)
         diagnostic.message.startsWith("local") &&
         diagnostic.message.endsWith("is never used")) {
         isUnusedTerm += diagnostic.position
-      } else {
-        () // ignore
       }
     }
 
