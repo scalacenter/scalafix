@@ -14,10 +14,10 @@ const siteConfig = {
   projectName: "scalafix",
   organizationName: "scalacenter",
 
-  // algolia: {
-  //   apiKey: "???",
-  //   indexName: "scalafix"
-  // },
+  algolia: {
+    apiKey: "cf575cebacff15579dd2dee010c4010f",
+    indexName: "scalafix"
+  },
 
   // For no header links in the top nav bar -> headerLinks: [],
   headerLinks: [
