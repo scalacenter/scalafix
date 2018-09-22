@@ -148,6 +148,7 @@ of infix operators.
 doc.tree.traverse {
   case concat @ Term.ApplyInfix(_, Term.Name("++"), _, _) =>
     println(".syntheticOperator = " + concat.syntheticOperator)
+    println(".structure         = " + concat.syntheticOperator.structure)
 }
 ```
 
