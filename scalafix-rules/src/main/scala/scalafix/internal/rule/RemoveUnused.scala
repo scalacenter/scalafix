@@ -53,8 +53,6 @@ class RemoveUnused(config: RemoveUnusedConfig)
         diagnostic.message.startsWith("local") &&
         diagnostic.message.endsWith("is never used")) {
         isUnusedTerm += diagnostic.position
-      } else {
-        () // ignore
       }
     }
 
@@ -74,6 +72,12 @@ class RemoveUnused(config: RemoveUnusedConfig)
               Patch.removeImportee(i).atomic
           }
         case i: Defn if isUnusedTerm(i.pos) =>
+          defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
+        case i @ Defn.Val(_, List(pat), _, _)
+            if isUnusedTerm.exists(p => p.start == pat.pos.start) =>
+          defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
+        case i @ Defn.Var(_, List(pat), _, _)
+            if isUnusedTerm.exists(p => p.start == pat.pos.start) =>
           defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
       }.asPatch
     }
