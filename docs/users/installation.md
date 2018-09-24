@@ -257,7 +257,7 @@ the `scalafix` task.
 ```scala
 unmanagedSources.in(Compile, scalafix) :=
   unmanagedSources.in(Compile).value
-    .filter(file => file.getName == "Macros.scala")
+    .filterNot(file => file.getName == "Macros.scala")
 ```
 
 Replace `Compile` with `Test` to customize which test sources should be
