@@ -11,8 +11,16 @@ noPublish
 
 // force javac to fork by setting javaHome to get error messages during compilation,
 // see https://github.com/sbt/zinc/issues/520
-def inferJavaHome() =
-  Some(file(System.getProperty("java.home")).getParentFile)
+def inferJavaHome() = {
+  val jHome = file(System.getProperty("java.home"))
+  if((jHome / "bin" / "javac").exists()) {
+    Some(jHome)
+  } else if((jHome.getParentFile / "bin" / "javac").exists()) {
+    Some(jHome.getParentFile)
+  } else {
+    None
+  }
+}
 
 lazy val interfaces = project
   .in(file("scalafix-interfaces"))

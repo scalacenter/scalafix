@@ -204,7 +204,7 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
       .plainText
       .replaceAllLiterally(semicolon.toString, relativePath.toString)
       .replace('\\', '/') // for windows
-      .lines
+      .linesIterator
       .filterNot(_.trim.isEmpty)
       .mkString("\n")
     assert(errors == List("LinterError", "TestError"), stdout)

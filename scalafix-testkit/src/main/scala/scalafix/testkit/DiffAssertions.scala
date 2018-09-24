@@ -85,13 +85,13 @@ trait DiffAssertions extends FunSuiteLike {
   ): Boolean = {
     val result = compareContents(obtained, expected)
     if (result.isEmpty) true
-    else if (obtained.lines.toList == expected.lines.toList) {
+    else if (obtained.linesIterator.toList == expected.linesIterator.toList) {
       // Ignore \r\n and \n differences
       true
     } else {
       if (printObtained) {
         println("\"\"\"|")
-        obtained.lines.foreach { line =>
+        obtained.linesIterator.foreach { line =>
           print("   |")
           println(line)
         }
