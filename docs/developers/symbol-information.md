@@ -18,6 +18,444 @@ import scalafix.internal.v1.SymbolInformationAnnotations._
 import scalafix.docs.SymbolInformationDocs.documentSymbolInfoCategory
 ```
 
+## Cookbook
+
+All code examples in this document assume you have the following imports in
+scope
+
+```scala mdoc
+import scalafix.v1._
+import scala.meta._
+```
+
+```scala mdoc:passthrough
+import scalafix.docs.PatchDocs
+import scalafix.docs.PatchDocs._
+implicit var doc: Symtab = scalafixSymtab
+```
+
+### Lookup method return type
+
+Use `MethodSignature.returnType` to inspect the return type of a method.
+
+```scala mdoc
+def printReturnType(symbol: Symbol): Unit = {
+  symbol.info.get.signature match {
+    case signature @ MethodSignature(_, _, returnType) =>
+      println("returnType = " + returnType)
+      println("signature  = " + signature)
+      println("structure  = " + returnType.structure)
+  }
+}
+printReturnType(Symbol("scala/Int#`+`()."))
+printReturnType(Symbol("scala/Int#`+`(+4)."))
+printReturnType(Symbol("scala/Option#map()."))
+```
+
+The return type for constructor method signatures is always `NoType`.
+
+```scala mdoc
+printReturnType(Symbol("scala/Some#`<init>`()."))
+```
+
+### Lookup method parameters
+
+Consider the following program.
+
+```scala mdoc:passthrough
+doc = fromString("""
+package example
+class Main(val constructorParam: Int) {
+  def magic: Int = 42
+  def typeParam[T]: T = ???
+  def annotatedParam(@deprecatedName('a) e: Int): Int = e
+  def curried(a: Int)(b: Int) = a + b
+}
+""")
+```
+
+Use `MethodSignature.parameterLists` to look up parameters of a method.
+
+```scala mdoc
+def printMethodParameters(symbol: Symbol): Unit = {
+  symbol.info.get.signature match {
+    case signature @ MethodSignature(typeParameters, parameterLists, _) =>
+      if (typeParameters.nonEmpty) {
+        println("typeParameters")
+        println(typeParameters.mkString("  ", "\n  ", ""))
+      }
+      parameterLists.foreach { parameterList =>
+        println("parametersList")
+        println(parameterList.mkString("  ", "\n  ", ""))
+      }
+  }
+}
+printMethodParameters(Symbol("example/Main#magic()."))
+printMethodParameters(Symbol("example/Main#typeParam()."))
+printMethodParameters(Symbol("example/Main#annotatedParam()."))
+printMethodParameters(Symbol("example/Main#`<init>`()."))
+```
+
+Curried methods are distinguished by a `MethodSignature` with a parameter list
+of length greater than 1.
+
+```scala mdoc
+printMethodParameters(Symbol("example/Main#curried()."))
+printMethodParameters(Symbol("scala/Option#fold()."))
+printMethodParameters(Symbol("scala/collection/LinearSeqOptimized#foldLeft()."))
+```
+
+### Test if method is nullary
+
+A "nullary method" is a method that are declared with no parameters and without
+parentheses.
+
+```scala mdoc:passthrough
+doc = fromString("""
+package example
+object Main {
+  def nullary: Int = 1
+  def nonNullary(): Unit = println(2)
+  def toString = "Main"
+}
+""")
+```
+
+Nullary method signatures are distinguished by having an no parameter lists:
+`List()`.
+
+```scala mdoc
+def printParameterList(symbol: Symbol): Unit = {
+  symbol.info.get.signature match {
+    case MethodSignature(_, parameterLists, _) =>
+      println(parameterLists)
+  }
+}
+printParameterList(Symbol("example/Main.nullary()."))
+printParameterList(Symbol("scala/collection/Iterator#hasNext()."))
+```
+
+Non-nullary methods such as `Iterator.next()` have a non-empty list of
+parameters: `List(List())`.
+
+```scala mdoc
+printParameterList(Symbol("example/Main.nonNullary()."))
+printParameterList(Symbol("scala/collection/Iterator#next()."))
+```
+
+Java does not have nullary methods and so Java methods always have a non-empty
+list: `List(List())`.
+
+```scala mdoc
+printParameterList(Symbol("java/lang/String#isEmpty()."))
+printParameterList(Symbol("java/lang/String#toString()."))
+```
+
+Scala methods that override Java methods always have non-nullary signatures even
+if the Scala method is defined as nullary without parentheses.
+
+```scala mdoc
+printParameterList(Symbol("example/Main.toString()."))
+```
+
+### Lookup type alias
+
+Use `TypeSignature` to inspect type aliases.
+
+```scala mdoc
+def printTypeAlias(symbol: Symbol): Unit = {
+  symbol.info.get.signature match {
+    case signature @ TypeSignature(typeParameters, lowerBound, upperBound) =>
+      if (lowerBound == upperBound) {
+        println("Type alias where upperBound == lowerBound")
+        println("signature      = '" + signature + "'")
+        println("typeParameters = " + typeParameters.structure)
+        println("bound          = " + upperBound.structure)
+      } else {
+        println("Different upper and lower bounds")
+        println("signature = '" + signature + "'")
+        println("structure = " + signature.structure)
+      }
+  }
+}
+```
+
+Consider the following program.
+
+```scala mdoc:passthrough
+doc = fromString("""
+package example
+object Main {
+  type Number = Int
+  type Sequence[T] = Seq[T]
+  type Unbound
+  type LowerBound >: Int
+  type UpperBound <: String
+  type UpperAndLowerBounded  >: String <: CharSequence
+}
+""")
+```
+
+```scala mdoc
+printTypeAlias(Symbol("example/Main.Number#"))
+printTypeAlias(Symbol("example/Main.Sequence#"))
+printTypeAlias(Symbol("example/Main.Unbound#"))
+printTypeAlias(Symbol("example/Main.LowerBound#"))
+printTypeAlias(Symbol("example/Main.UpperBound#"))
+printTypeAlias(Symbol("example/Main.UpperAndLowerBounded#"))
+```
+
+### Lookup class parents
+
+Use `ClassSignature.parents` and `TypeRef.symbol` to lookup parent symbols of a
+class.
+
+```scala mdoc
+def getParentSymbols(symbol: Symbol): Set[Symbol] =
+  symbol.info.get.signature match {
+    case ClassSignature(_, parents, _, _) =>
+      Set(symbol) ++ parents.flatMap {
+        case TypeRef(_, symbol, _) => getParentSymbols(symbol)
+      }
+  }
+getParentSymbols(Symbol("scala/Some#"))
+getParentSymbols(Symbol("java/lang/String#"))
+getParentSymbols(Symbol("scala/collection/immutable/List#")).take(5)
+```
+
+### Lookup class methods
+
+Use `ClassSignature.declarations` and `SymbolInformation.{isMethod,isStatic}` to
+query methods of a class. Use `ClassSignature.parents` to query methods that are
+inherited from supertypes.
+
+```scala mdoc
+def getClassMethods(symbol: Symbol): Set[Symbol] =
+  symbol.info.get.signature match {
+    case ClassSignature(_, parents, _, declarations) =>
+      val nonStaticMethods = declarations.collect {
+        case declaration if declaration.isMethod && !declaration.isStatic =>
+          declaration.symbol
+      }
+      nonStaticMethods.toSet ++ parents.flatMap {
+        case TypeRef(_, symbol, _) => getClassMethods(symbol)
+      }
+    case _ => Set.empty
+  }
+getClassMethods(Symbol("scala/Some#")).take(5)
+getClassMethods(Symbol("java/lang/String#")).take(5)
+getClassMethods(Symbol("scala/collection/immutable/List#")).take(5)
+```
+
+### Lookup class primary constructor
+
+A primary constructor is the constructor that defined alongside the class
+declaration.
+
+```scala mdoc:passthrough
+doc = fromString("""
+package example
+class User(name: String, age: Int) {      // primary constructor
+  def this(name: String) = this(name, 42) // secondary constructor
+}
+""", filename = "User.scala")
+```
+
+Use `SymbolInformation.{isConstructor,isPrimary}` to distinguish a primary
+constructor.
+
+```scala mdoc
+def getConstructors(symbol: Symbol): List[SymbolInformation] =
+  symbol.info.get.signature match {
+    case ClassSignature(_, parents, _, declarations) =>
+      declarations.filter { declaration =>
+        declaration.isConstructor
+      }
+    case _ => Nil
+  }
+getConstructors(Symbol("example/User#")).filter(_.isPrimary)
+
+// secondary constructors are distinguished by not being primary
+getConstructors(Symbol("example/User#")).filter(!_.isPrimary)
+```
+
+Java constructors cannot be primary, "primary constructor" is a Scala-specific
+feature.
+
+```scala mdoc
+getConstructors(Symbol("java/lang/String#")).take(3)
+getConstructors(Symbol("java/lang/String#")).filter(_.isPrimary)
+getConstructors(Symbol("java/util/ArrayList#")).filter(_.isPrimary)
+```
+
+### Lookup method overloads
+
+Use `SymbolInformation.{isMethod,displayName}` to query for overloaded methods.
+
+```scala mdoc
+def getMethodOverloads(classSymbol: Symbol, methodName: String): Set[SymbolInformation] =
+  classSymbol.info.get.signature match {
+    case ClassSignature(_, parents, _, declarations) =>
+      val overloadedMethods = declarations.filter { declaration =>
+        declaration.isMethod &&
+        declaration.displayName == methodName
+      }
+      overloadedMethods.toSet ++ parents.flatMap {
+        case TypeRef(_, symbol, _) => getMethodOverloads(symbol, methodName)
+      }
+    case _ => Set.empty
+  }
+getMethodOverloads(Symbol("java/lang/String#"), "substring")
+getMethodOverloads(Symbol("scala/Predef."), "assert")
+getMethodOverloads(Symbol("scala/Predef."), "println")
+getMethodOverloads(Symbol("java/io/PrintStream#"), "print").take(3)
+```
+
+Overloaded methods can be inherited from supertypes.
+
+```scala mdoc:passthrough
+doc = fromString("""
+package example
+class Main {
+  def toString(width: Int): String = ???
+}
+""")
+```
+
+```scala mdoc
+getMethodOverloads(Symbol("example/Main#"), "toString")
+```
+
+### Test if symbol is from Java or Scala
+
+Use `SymbolInformation.{isScala,isJava}` to test if a symbol is defined in Java
+or Scala.
+
+```scala mdoc
+def printLanguage(symbol: Symbol): Unit =
+  if (symbol.info.get.isJava) println("java")
+  else if (symbol.info.get.isScala) println("scala")
+  else println("unknown")
+
+printLanguage(Symbol("java/lang/String#"))
+printLanguage(Symbol("scala/Predef.String#"))
+```
+
+Package symbols are neither defined in Scala or Java.
+
+```scala mdoc
+printLanguage(Symbol("scala/"))
+printLanguage(Symbol("java/"))
+```
+
+### Test if symbol is private
+
+Access modifiers such as `private` and `protected` control the visibility of a
+symbol.
+
+```scala mdoc
+def printAccess(symbol: Symbol): Unit = {
+  val info = symbol.info.get
+  println(
+         if (info.isPrivate) "private"
+    else if (info.isPrivateThis) "private[this]"
+    else if (info.isPrivateWithin) s"private[${info.within.get.displayName}]"
+    else if (info.isProtected) "protected"
+    else if (info.isProtectedThis) "protected[this]"
+    else if (info.isProtectedWithin) s"protected[${info.within.get.displayName}]"
+    else if (info.isPublic) "public"
+    else "<no access>"
+  )
+}
+```
+
+Consider the following program.
+
+```scala mdoc:passthrough
+doc = fromString("""
+package example
+class Main {
+                     def publicMethod          = 1
+  private            def privateMethod         = 1
+  private[this]      def privateThisMethod     = 1
+  private[example]   def privateWithinMethod   = 1
+  protected          def protectedMethod       = 1
+  protected[this]    def protectedThisMethod   = 1
+  protected[example] def protectedWithinMethod = 1
+}
+""")
+```
+
+The methods have the following access modifiers.
+
+```scala mdoc
+printAccess(Symbol("example/Main#publicMethod()."))
+printAccess(Symbol("example/Main#privateMethod()."))
+printAccess(Symbol("example/Main#privateThisMethod()."))
+printAccess(Symbol("example/Main#privateWithinMethod()."))
+printAccess(Symbol("example/Main#protectedMethod()."))
+printAccess(Symbol("example/Main#protectedThisMethod()."))
+printAccess(Symbol("example/Main#protectedWithinMethod()."))
+```
+
+Observe that a symbol can only have one kind of access modifier, for example
+`isPrivate=false` for symbols where `isPrivateWithin=true`.
+
+Java does supports smaller set of access modifiers, there is no `private[this]`,
+`protected[this]` and `protected[within]` for Java symbols.
+
+```scala mdoc
+printAccess(Symbol("java/lang/String#"))
+
+println(Symbol("java/lang/String#value.").info)
+printAccess(Symbol("java/lang/String#value."))
+
+println(Symbol("java/lang/String#`<init>`(+15).").info)
+printAccess(Symbol("java/lang/String#`<init>`(+15)."))
+```
+
+Package symbols have no access restrictions.
+
+```scala mdoc
+printAccess(Symbol("scala/"))
+printAccess(Symbol("java/"))
+```
+
+### Lookup symbol annotations
+
+Definitions such as classes, parameters and methods can be annotated with
+`@annotation`.
+
+```scala mdoc:passthrough
+doc = fromString("""
+package example
+object Main {
+  @deprecated("Use add instead", "1.0")
+  def +(a: Int, b: Int) = add(a, b)
+
+  class typed[T] extends scala.annotation.StaticAnnotation
+  @typed[Int]
+  def add(a: Int, b: Int) = a + b
+}
+""")
+```
+
+Use `SymbolInformation.annotations` to query the annotations of a symbol.
+
+```scala mdoc
+def printAnnotations(symbol: Symbol): Unit =
+  println(symbol.info.get.annotations.structure)
+
+printAnnotations(Symbol("example/Main.`+`()."))
+printAnnotations(Symbol("example/Main.add()."))
+printAnnotations(Symbol("scala/Predef.identity()."))
+printAnnotations(Symbol("scala/Function2#[T1]"))
+```
+
+It is not possible to query the term arguments of annotations. For example,
+observe that the annotation for `Main.+` does not include the "Use add instead"
+message.
+
 ## SemanticDB
 
 The structure of `SymbolInformation` in Scalafix mirrors SemanticDB
