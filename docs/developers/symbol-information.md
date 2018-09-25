@@ -107,7 +107,7 @@ printMethodParameters(Symbol("scala/collection/LinearSeqOptimized#foldLeft()."))
 
 ### Test if method is nullary
 
-A "nullary method" is a method that are declared with no parameters and without
+A "nullary method" is a method that is declared with no parameters and without
 parentheses.
 
 ```scala mdoc:passthrough
@@ -143,8 +143,8 @@ printParameterList(Symbol("example/Main.nonNullary()."))
 printParameterList(Symbol("scala/collection/Iterator#next()."))
 ```
 
-Java does not have nullary methods and so Java methods always have a non-empty
-list: `List(List())`.
+Java does not have nullary methods so Java methods always have a non-empty list:
+`List(List())`.
 
 ```scala mdoc
 printParameterList(Symbol("java/lang/String#isEmpty()."))
@@ -207,8 +207,7 @@ printTypeAlias(Symbol("example/Main.UpperAndLowerBounded#"))
 
 ### Lookup class parents
 
-Use `ClassSignature.parents` and `TypeRef.symbol` to lookup parent symbols of a
-class.
+Use `ClassSignature.parents` and `TypeRef.symbol` to lookup the class hierarchy.
 
 ```scala mdoc
 def getParentSymbols(symbol: Symbol): Set[Symbol] =
@@ -225,19 +224,16 @@ getParentSymbols(Symbol("scala/collection/immutable/List#")).take(5)
 
 ### Lookup class methods
 
-Use `ClassSignature.declarations` and `SymbolInformation.{isMethod,isStatic}` to
-query methods of a class. Use `ClassSignature.parents` to query methods that are
+Use `ClassSignature.declarations` and `SymbolInformation.isMethod` to query
+methods of a class. Use `ClassSignature.parents` to query methods that are
 inherited from supertypes.
 
 ```scala mdoc
-def getClassMethods(symbol: Symbol): Set[Symbol] =
+def getClassMethods(symbol: Symbol): Set[SymbolInformation] =
   symbol.info.get.signature match {
     case ClassSignature(_, parents, _, declarations) =>
-      val nonStaticMethods = declarations.collect {
-        case declaration if declaration.isMethod && !declaration.isStatic =>
-          declaration.symbol
-      }
-      nonStaticMethods.toSet ++ parents.flatMap {
+      val methods = declarations.filter(_.isMethod)
+      methods.toSet ++ parents.flatMap {
         case TypeRef(_, symbol, _) => getClassMethods(symbol)
       }
     case _ => Set.empty
@@ -245,6 +241,14 @@ def getClassMethods(symbol: Symbol): Set[Symbol] =
 getClassMethods(Symbol("scala/Some#")).take(5)
 getClassMethods(Symbol("java/lang/String#")).take(5)
 getClassMethods(Symbol("scala/collection/immutable/List#")).take(5)
+```
+
+For Java methods, use `SymbolInformation.isStatic` to separate static methods
+from non-static methods.
+
+```scala mdoc
+getClassMethods(Symbol("java/lang/String#")).filter(_.isStatic).take(3)
+getClassMethods(Symbol("java/lang/String#")).filter(!_.isStatic).take(3)
 ```
 
 ### Lookup class primary constructor
@@ -286,6 +290,47 @@ feature.
 getConstructors(Symbol("java/lang/String#")).take(3)
 getConstructors(Symbol("java/lang/String#")).filter(_.isPrimary)
 getConstructors(Symbol("java/util/ArrayList#")).filter(_.isPrimary)
+```
+
+### Lookup case class fields
+
+Consider the following program.
+
+```scala mdoc:passthrough
+doc = fromString("""
+package example
+case class User(name: String, age: Int) {
+  def this(secondaryName: String) = this(secondaryName, 42)
+  val upperCaseName = name.toUpperCase
+}
+""", filename = "User.scala")
+```
+
+On the symbol information level, there is no difference between `name` and
+`upperCaseName`, both are `val method`.
+
+```scala mdoc
+println(Symbol("example/User#name.").info)
+println(Symbol("example/User#upperCaseName.").info)
+```
+
+> See
+> [scalameta/scalameta#1492](https://github.com/scalameta/scalameta/issues/1492)
+> for a discussion about adding `isSynthetic` to distinguish between `name` and
+> `upperCaseName`.
+
+Use the primary constructor to get the names of the case class fields
+
+```scala mdoc
+getConstructors(Symbol("example/User#")).foreach {
+  case ctor if ctor.isPrimary =>
+    ctor.signature match {
+      case MethodSignature(_, parameters :: _, _) =>
+        val names = parameters.map(_.displayName)
+        println("names: " + names.mkString(", "))
+    }
+  case _ => // secondary constructor, ignore `this(secondaryName: String)`
+}
 ```
 
 ### Lookup method overloads
