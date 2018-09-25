@@ -1,5 +1,6 @@
 package scalafix.docs
 
+import org.typelevel.paiges.Doc
 import scala.meta.inputs.Input
 import scala.meta.interactive.InteractiveSemanticdb
 import scala.meta.internal.semanticdb.Print
@@ -9,24 +10,45 @@ import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.v1.InternalSemanticDoc
 import scalafix.patch.Patch
 import scalafix.internal.patch.PatchInternals
-import scalafix.v1.RuleName
-import scalafix.v1.SemanticDocument
-import scalafix.v1.Symbol
-import scalafix.v1.SymbolInformation
-import scalafix.v1.Symtab
-import scalafix.v1.SyntacticDocument
+import scalafix.internal.util.Pretty
+import scalafix.v1._
 
 object PatchDocs {
-  def println(any: Any): Unit = any match {
-    case s: String =>
-      Predef.println(s)
-    case _ =>
-      Predef.println(any.toStringLineWrapped(60))
+  object DocPrinter
+      extends pprint.PPrinter(
+        colorLiteral = fansi.Attrs.Empty,
+        colorApplyPrefix = fansi.Attrs.Empty
+      ) {
+    override def treeify(x: Any): pprint.Tree = {
+      def print(doc: Doc): pprint.Tree =
+        pprint.Tree.Lazy { ctx =>
+          doc
+            .nested(ctx.indentCount * ctx.indentStep)
+            .renderStream(ctx.leftOffset)
+            .toIterator
+        }
+      x match {
+        case t: SemanticTree =>
+          print(Pretty.pretty(t))
+        case t: SemanticType =>
+          print(Pretty.pretty(t))
+        case _ =>
+          super.treeify(x)
+      }
+    }
+  }
+  def println(any: Any): Unit = {
+    any match {
+      case s: String =>
+        Predef.println(s)
+      case _ =>
+        Predef.println(any.toStringLineWrapped(60))
+    }
   }
 
   implicit class XtensionAnyLineWrapped(any: Any) {
     def toStringLineWrapped(width: Int): String =
-      pprint.PPrinter.BlackWhite.tokenize(any, width = width).mkString
+      DocPrinter.tokenize(any, width = width).mkString
   }
   implicit class XtensionPatch(p: Patch) {
     def output(implicit doc: SemanticDocument): String = {
@@ -96,24 +118,24 @@ object PatchDocs {
       statement: Option[String] = None,
       filename: String = "Main.scala"
   ): SemanticDocument = {
-    println("```scala")
+    Predef.println("```scala")
     statement match {
       case Some(stat) =>
-        println(stat.trim)
+        Predef.println(stat.trim)
       case None =>
-        println("// " + filename)
-        println(code.trim)
+        Predef.println("// " + filename)
+        Predef.println(code.trim)
     }
-    println("```")
+    Predef.println("```")
     val textDocument = InteractiveSemanticdb.toTextDocument(
       compiler,
       code,
       scalacOptions.filter(_.startsWith("-P:semanticdb")))
     if (debug) {
-      println("```")
-      println(Print.document(Format.Compact, textDocument))
+      Predef.println("```")
+      Predef.println(Print.document(Format.Compact, textDocument))
       scala.reflect.classTag
-      println("```")
+      Predef.println("```")
     }
 
     val input = Input.VirtualFile(filename, code)

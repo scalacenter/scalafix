@@ -501,6 +501,25 @@ It is not possible to query the term arguments of annotations. For example,
 observe that the annotation for `Main.+` does not include the "Use add instead"
 message.
 
+## Known limitations
+
+### Lookup method overrides
+
+Consider the following program.
+
+```scala
+trait A {
+  def add(a: Int, b: Int): Int
+}
+class B extends A {
+  override def add(a: Int, b: Int): Int = a + b
+}
+```
+
+There is no API to go from the symbol `B#add().` to the symbol it overrides
+`A#add()`. There is also no `.isOverride` helper to test if a method overrides
+another symbol.
+
 ## SemanticDB
 
 The structure of `SymbolInformation` in Scalafix mirrors SemanticDB
