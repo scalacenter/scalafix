@@ -146,9 +146,9 @@ final class SymbolInformation private[scalafix] (
   /** @group access */
   @access def isProtected: Boolean = info.isProtected
   /** @group access */
-  @access def isProtectedThis: Boolean = info.isPrivateThis
+  @access def isProtectedThis: Boolean = info.isProtectedThis
   /** @group access */
-  @access def isProtectedWithin: Boolean = info.isPrivateWithin
+  @access def isProtectedWithin: Boolean = info.isProtectedWithin
   /** @group access */
   @access def isPublic: Boolean = info.isPublic
   /** @group access */

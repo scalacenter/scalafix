@@ -133,14 +133,24 @@ object Pretty {
     Doc.text(info.toString)
   }
 
+  def prettyTermParameter(parameter: SymbolInformation): Doc = {
+    Doc.text(parameter.displayName) + `:` + Doc.space +
+      pretty(parameter.signature)
+  }
+
+  def prettyTypeParameter(parameter: SymbolInformation): Doc = {
+    Doc.text(parameter.displayName) + pretty(parameter.signature)
+  }
+
   def prettyTypeParameters(typeParameters: List[SymbolInformation]): Doc = {
     if (typeParameters.isEmpty) Doc.empty
     else {
       `[` +
-        Doc.intercalate(Doc.comma, typeParameters.map(pretty)) +
+        Doc.intercalate(Doc.comma, typeParameters.map(prettyTypeParameter)) +
         `]`
     }
   }
+
   def pretty(signature: Signature): Doc = signature match {
     case NoSignature => Doc.empty
     case t: ClassSignature =>
@@ -167,7 +177,7 @@ object Pretty {
         if (t.parameterLists.isEmpty) Doc.empty
         else {
           val params = t.parameterLists.map { parameterList =>
-            Doc.intercalate(Doc.comma, parameterList.map(pretty))
+            Doc.intercalate(Doc.comma, parameterList.map(prettyTermParameter))
           }
           val paramss = Doc.intercalate(`)` + `(`, params)
           `(` + paramss + `)`

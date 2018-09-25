@@ -17,6 +17,17 @@ import scalafix.v1.Symtab
 import scalafix.v1.SyntacticDocument
 
 object PatchDocs {
+  def println(any: Any): Unit = any match {
+    case s: String =>
+      Predef.println(s)
+    case _ =>
+      Predef.println(any.toStringLineWrapped(60))
+  }
+
+  implicit class XtensionAnyLineWrapped(any: Any) {
+    def toStringLineWrapped(width: Int): String =
+      pprint.PPrinter.BlackWhite.tokenize(any, width = width).mkString
+  }
   implicit class XtensionPatch(p: Patch) {
     def output(implicit doc: SemanticDocument): String = {
       val (obtained, _) =
@@ -82,9 +93,9 @@ object PatchDocs {
   def fromString(
       code: String,
       debug: Boolean = false,
-      statement: Option[String] = None
+      statement: Option[String] = None,
+      filename: String = "Main.scala"
   ): SemanticDocument = {
-    val filename = "Main.scala"
     println("```scala")
     statement match {
       case Some(stat) =>
