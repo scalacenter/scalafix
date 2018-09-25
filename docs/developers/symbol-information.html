@@ -133,7 +133,7 @@ printMethodParameters(<span class="hljs-type">Symbol</span>(<span class="hljs-st
 <span class="hljs-comment">//   scala/collection/LinearSeqOptimized#foldLeft().(op) =&gt; @deprecatedName param op: Function2[B, A, B]</span>
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="test-if-method-is-nullary"></a><a href="#test-if-method-is-nullary" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Test if method is nullary</h3>
-<p>A &quot;nullary method&quot; is a method that are declared with no parameters and without
+<p>A &quot;nullary method&quot; is a method that is declared with no parameters and without
 parentheses.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-comment">// Main.scala</span>
 <span class="hljs-keyword">package</span> example
@@ -163,8 +163,8 @@ parameters: <code>List(List())</code>.</p>
 printParameterList(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"scala/collection/Iterator#next()."</span>))
 <span class="hljs-comment">// List(List())</span>
 </code></pre>
-<p>Java does not have nullary methods and so Java methods always have a non-empty
-list: <code>List(List())</code>.</p>
+<p>Java does not have nullary methods so Java methods always have a non-empty list:
+<code>List(List())</code>.</p>
 <pre><code class="hljs css language-scala">printParameterList(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/lang/String#isEmpty()."</span>))
 <span class="hljs-comment">// List(List())</span>
 printParameterList(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/lang/String#toString()."</span>))
@@ -253,8 +253,7 @@ printTypeAlias(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"
 <span class="hljs-comment">// )</span>
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="lookup-class-parents"></a><a href="#lookup-class-parents" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Lookup class parents</h3>
-<p>Use <code>ClassSignature.parents</code> and <code>TypeRef.symbol</code> to lookup parent symbols of a
-class.</p>
+<p>Use <code>ClassSignature.parents</code> and <code>TypeRef.symbol</code> to lookup the class hierarchy.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">getParentSymbols</span></span>(symbol: <span class="hljs-type">Symbol</span>): <span class="hljs-type">Set</span>[<span class="hljs-type">Symbol</span>] =
   symbol.info.get.signature <span class="hljs-keyword">match</span> {
     <span class="hljs-keyword">case</span> <span class="hljs-type">ClassSignature</span>(_, parents, _, _) =&gt;
@@ -292,44 +291,56 @@ getParentSymbols(<span class="hljs-type">Symbol</span>(<span class="hljs-string"
 <span class="hljs-comment">// )</span>
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="lookup-class-methods"></a><a href="#lookup-class-methods" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Lookup class methods</h3>
-<p>Use <code>ClassSignature.declarations</code> and <code>SymbolInformation.{isMethod,isStatic}</code> to
-query methods of a class. Use <code>ClassSignature.parents</code> to query methods that are
+<p>Use <code>ClassSignature.declarations</code> and <code>SymbolInformation.isMethod</code> to query
+methods of a class. Use <code>ClassSignature.parents</code> to query methods that are
 inherited from supertypes.</p>
-<pre><code class="hljs css language-scala"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">getClassMethods</span></span>(symbol: <span class="hljs-type">Symbol</span>): <span class="hljs-type">Set</span>[<span class="hljs-type">Symbol</span>] =
+<pre><code class="hljs css language-scala"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">getClassMethods</span></span>(symbol: <span class="hljs-type">Symbol</span>): <span class="hljs-type">Set</span>[<span class="hljs-type">SymbolInformation</span>] =
   symbol.info.get.signature <span class="hljs-keyword">match</span> {
     <span class="hljs-keyword">case</span> <span class="hljs-type">ClassSignature</span>(_, parents, _, declarations) =&gt;
-      <span class="hljs-keyword">val</span> nonStaticMethods = declarations.collect {
-        <span class="hljs-keyword">case</span> declaration <span class="hljs-keyword">if</span> declaration.isMethod &amp;&amp; !declaration.isStatic =&gt;
-          declaration.symbol
-      }
-      nonStaticMethods.toSet ++ parents.flatMap {
+      <span class="hljs-keyword">val</span> methods = declarations.filter(_.isMethod)
+      methods.toSet ++ parents.flatMap {
         <span class="hljs-keyword">case</span> <span class="hljs-type">TypeRef</span>(_, symbol, _) =&gt; getClassMethods(symbol)
       }
     <span class="hljs-keyword">case</span> _ =&gt; <span class="hljs-type">Set</span>.empty
   }
 getClassMethods(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"scala/Some#"</span>)).take(<span class="hljs-number">5</span>)
-<span class="hljs-comment">// res30: Set[Symbol] = Set(</span>
-<span class="hljs-comment">//   scala/Option#isEmpty().,</span>
-<span class="hljs-comment">//   java/lang/Object#getClass().,</span>
-<span class="hljs-comment">//   scala/Option#map().,</span>
-<span class="hljs-comment">//   scala/Option#collect().,</span>
-<span class="hljs-comment">//   scala/Some#productPrefix().</span>
+<span class="hljs-comment">// res30: Set[SymbolInformation] = Set(</span>
+<span class="hljs-comment">//   scala/Option#flatten(). =&gt; method flatten[B](implicit ev: &lt;:&lt;[A, Option[B]]): Option[B],</span>
+<span class="hljs-comment">//   scala/Any#`##`(). =&gt; final method ##(): Int,</span>
+<span class="hljs-comment">//   scala/Some#value. =&gt; val method value: A,</span>
+<span class="hljs-comment">//   scala/Option#filter(). =&gt; @inline final method filter(p: Function1[A, Boolean]): Option[A],</span>
+<span class="hljs-comment">//   scala/Product#productPrefix(). =&gt; method productPrefix: String</span>
 <span class="hljs-comment">// )</span>
 getClassMethods(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/lang/String#"</span>)).take(<span class="hljs-number">5</span>)
-<span class="hljs-comment">// res31: Set[Symbol] = Set(</span>
-<span class="hljs-comment">//   java/lang/String#equals().,</span>
-<span class="hljs-comment">//   java/lang/String#charAt().,</span>
-<span class="hljs-comment">//   java/lang/String#replace().,</span>
-<span class="hljs-comment">//   java/lang/String#lastIndexOf().,</span>
-<span class="hljs-comment">//   java/lang/String#codePointBefore().</span>
+<span class="hljs-comment">// res31: Set[SymbolInformation] = Set(</span>
+<span class="hljs-comment">//   java/lang/String#join(). =&gt; static method join(param0: CharSequence, param1: CharSequence*): String,</span>
+<span class="hljs-comment">//   java/lang/String#hashCode(). =&gt; method hashCode(): Int,</span>
+<span class="hljs-comment">//   java/lang/String#regionMatches(+1). =&gt; method regionMatches(param0: Boolean, param1: Int, param2: String, param3: Int, param4: Int): Boolean,</span>
+<span class="hljs-comment">//   java/lang/String#indexOf(+3). =&gt; method indexOf(param0: String, param1: Int): Int,</span>
+<span class="hljs-comment">//   java/lang/String#contains(). =&gt; method contains(param0: CharSequence): Boolean</span>
 <span class="hljs-comment">// )</span>
 getClassMethods(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"scala/collection/immutable/List#"</span>)).take(<span class="hljs-number">5</span>)
-<span class="hljs-comment">// res32: Set[Symbol] = Set(</span>
-<span class="hljs-comment">//   scala/collection/TraversableOnce#toArray().,</span>
-<span class="hljs-comment">//   scala/collection/SeqLike#lastIndexOfSlice().,</span>
-<span class="hljs-comment">//   scala/collection/GenTraversableLike#head().,</span>
-<span class="hljs-comment">//   scala/collection/LinearSeqOptimized#reduceLeft().,</span>
-<span class="hljs-comment">//   scala/collection/TraversableLike#isTraversableAgain().</span>
+<span class="hljs-comment">// res32: Set[SymbolInformation] = Set(</span>
+<span class="hljs-comment">//   scala/collection/GenTraversableOnce#seq(). =&gt; abstract method seq: TraversableOnce[A],</span>
+<span class="hljs-comment">//   scala/collection/TraversableLike#exists(). =&gt; method exists(p: Function1[A, Boolean]): Boolean,</span>
+<span class="hljs-comment">//   scala/Any#getClass(). =&gt; final method getClass(): Class,</span>
+<span class="hljs-comment">//   scala/collection/TraversableLike#dropWhile(). =&gt; method dropWhile(p: Function1[A, Boolean]): Repr,</span>
+<span class="hljs-comment">//   scala/collection/GenTraversableOnce#mkString(+1). =&gt; abstract method mkString(sep: String): String</span>
+<span class="hljs-comment">// )</span>
+</code></pre>
+<p>For Java methods, use <code>SymbolInformation.isStatic</code> to separate static methods
+from non-static methods.</p>
+<pre><code class="hljs css language-scala">getClassMethods(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/lang/String#"</span>)).filter(_.isStatic).take(<span class="hljs-number">3</span>)
+<span class="hljs-comment">// res33: Set[SymbolInformation] = Set(</span>
+<span class="hljs-comment">//   java/lang/Object#registerNatives(). =&gt; private static method registerNatives(): Unit,</span>
+<span class="hljs-comment">//   java/lang/String#valueOf(+3). =&gt; static method valueOf(param0: Boolean): String,</span>
+<span class="hljs-comment">//   java/lang/String#valueOf(). =&gt; static method valueOf(param0: Object): String</span>
+<span class="hljs-comment">// )</span>
+getClassMethods(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/lang/String#"</span>)).filter(!_.isStatic).take(<span class="hljs-number">3</span>)
+<span class="hljs-comment">// res34: Set[SymbolInformation] = Set(</span>
+<span class="hljs-comment">//   java/lang/String#contains(). =&gt; method contains(param0: CharSequence): Boolean,</span>
+<span class="hljs-comment">//   java/lang/String#getBytes(). =&gt; method getBytes(param0: Int, param1: Int, param2: Array[Byte], param3: Int): Unit,</span>
+<span class="hljs-comment">//   java/lang/String#replaceAll(). =&gt; method replaceAll(param0: String, param1: String): String</span>
 <span class="hljs-comment">// )</span>
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="lookup-class-primary-constructor"></a><a href="#lookup-class-primary-constructor" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Lookup class primary constructor</h3>
@@ -352,28 +363,64 @@ constructor.</p>
     <span class="hljs-keyword">case</span> _ =&gt; <span class="hljs-type">Nil</span>
   }
 getConstructors(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"example/User#"</span>)).filter(_.isPrimary)
-<span class="hljs-comment">// res34: List[SymbolInformation] = List(</span>
+<span class="hljs-comment">// res36: List[SymbolInformation] = List(</span>
 <span class="hljs-comment">//   example/User#`&lt;init&gt;`(). =&gt; primary ctor &lt;init&gt;(name: String, age: Int)</span>
 <span class="hljs-comment">// )</span>
 
 <span class="hljs-comment">// secondary constructors are distinguished by not being primary</span>
 getConstructors(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"example/User#"</span>)).filter(!_.isPrimary)
-<span class="hljs-comment">// res35: List[SymbolInformation] = List(</span>
+<span class="hljs-comment">// res37: List[SymbolInformation] = List(</span>
 <span class="hljs-comment">//   example/User#`&lt;init&gt;`(+1). =&gt; ctor &lt;init&gt;(name: String)</span>
 <span class="hljs-comment">// )</span>
 </code></pre>
 <p>Java constructors cannot be primary, &quot;primary constructor&quot; is a Scala-specific
 feature.</p>
 <pre><code class="hljs css language-scala">getConstructors(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/lang/String#"</span>)).take(<span class="hljs-number">3</span>)
-<span class="hljs-comment">// res36: List[SymbolInformation] = List(</span>
+<span class="hljs-comment">// res38: List[SymbolInformation] = List(</span>
 <span class="hljs-comment">//   java/lang/String#`&lt;init&gt;`(). =&gt; ctor &lt;init&gt;(),</span>
 <span class="hljs-comment">//   java/lang/String#`&lt;init&gt;`(+1). =&gt; ctor &lt;init&gt;(param0: String),</span>
 <span class="hljs-comment">//   java/lang/String#`&lt;init&gt;`(+2). =&gt; ctor &lt;init&gt;(param0: Array[Char])</span>
 <span class="hljs-comment">// )</span>
 getConstructors(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/lang/String#"</span>)).filter(_.isPrimary)
-<span class="hljs-comment">// res37: List[SymbolInformation] = List()</span>
+<span class="hljs-comment">// res39: List[SymbolInformation] = List()</span>
 getConstructors(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/util/ArrayList#"</span>)).filter(_.isPrimary)
-<span class="hljs-comment">// res38: List[SymbolInformation] = List()</span>
+<span class="hljs-comment">// res40: List[SymbolInformation] = List()</span>
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="lookup-case-class-fields"></a><a href="#lookup-case-class-fields" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Lookup case class fields</h3>
+<p>Consider the following program.</p>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">// User.scala</span>
+<span class="hljs-keyword">package</span> example
+<span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">User</span>(<span class="hljs-params">name: <span class="hljs-type">String</span>, age: <span class="hljs-type">Int</span></span>) </span>{
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">this</span></span>(secondaryName: <span class="hljs-type">String</span>) = <span class="hljs-keyword">this</span>(secondaryName, <span class="hljs-number">42</span>)
+  <span class="hljs-keyword">val</span> upperCaseName = name.toUpperCase
+}
+</code></pre>
+<p>On the symbol information level, there is no difference between <code>name</code> and
+<code>upperCaseName</code>, both are <code>val method</code>.</p>
+<pre><code class="hljs css language-scala">println(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"example/User#name."</span>).info)
+<span class="hljs-comment">// Some(example/User#name. =&gt; val method name: String)</span>
+println(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"example/User#upperCaseName."</span>).info)
+<span class="hljs-comment">// Some(</span>
+<span class="hljs-comment">//   example/User#upperCaseName. =&gt; val method upperCaseName: String</span>
+<span class="hljs-comment">// )</span>
+</code></pre>
+<blockquote>
+<p>See
+<a href="https://github.com/scalameta/scalameta/issues/1492">scalameta/scalameta#1492</a>
+for a discussion about adding <code>isSynthetic</code> to distinguish between <code>name</code> and
+<code>upperCaseName</code>.</p>
+</blockquote>
+<p>Use the primary constructor to get the names of the case class fields</p>
+<pre><code class="hljs css language-scala">getConstructors(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"example/User#"</span>)).foreach {
+  <span class="hljs-keyword">case</span> ctor <span class="hljs-keyword">if</span> ctor.isPrimary =&gt;
+    ctor.signature <span class="hljs-keyword">match</span> {
+      <span class="hljs-keyword">case</span> <span class="hljs-type">MethodSignature</span>(_, parameters :: _, _) =&gt;
+        <span class="hljs-keyword">val</span> names = parameters.map(_.displayName)
+        println(<span class="hljs-string">"names: "</span> + names.mkString(<span class="hljs-string">", "</span>))
+    }
+  <span class="hljs-keyword">case</span> _ =&gt; <span class="hljs-comment">// secondary constructor, ignore `this(secondaryName: String)`</span>
+}
+<span class="hljs-comment">// names: name, age</span>
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="lookup-method-overloads"></a><a href="#lookup-method-overloads" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Lookup method overloads</h3>
 <p>Use <code>SymbolInformation.{isMethod,displayName}</code> to query for overloaded methods.</p>
@@ -390,25 +437,25 @@ getConstructors(<span class="hljs-type">Symbol</span>(<span class="hljs-string">
     <span class="hljs-keyword">case</span> _ =&gt; <span class="hljs-type">Set</span>.empty
   }
 getMethodOverloads(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/lang/String#"</span>), <span class="hljs-string">"substring"</span>)
-<span class="hljs-comment">// res39: Set[SymbolInformation] = Set(</span>
+<span class="hljs-comment">// res45: Set[SymbolInformation] = Set(</span>
 <span class="hljs-comment">//   java/lang/String#substring(). =&gt; method substring(param0: Int): String,</span>
 <span class="hljs-comment">//   java/lang/String#substring(+1). =&gt; method substring(param0: Int, param1: Int): String</span>
 <span class="hljs-comment">// )</span>
 getMethodOverloads(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"scala/Predef."</span>), <span class="hljs-string">"assert"</span>)
-<span class="hljs-comment">// res40: Set[SymbolInformation] = Set(</span>
+<span class="hljs-comment">// res46: Set[SymbolInformation] = Set(</span>
 <span class="hljs-comment">//   scala/Predef.assert(). =&gt; @elidable method assert(assertion: Boolean): Unit,</span>
 <span class="hljs-comment">//   scala/Predef.assert(+1). =&gt; @inline @elidable final method assert(assertion: Boolean, message: =&gt; Any): Unit</span>
 <span class="hljs-comment">// )</span>
 getMethodOverloads(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"scala/Predef."</span>), <span class="hljs-string">"println"</span>)
-<span class="hljs-comment">// res41: Set[SymbolInformation] = Set(</span>
+<span class="hljs-comment">// res47: Set[SymbolInformation] = Set(</span>
 <span class="hljs-comment">//   scala/Predef.println(). =&gt; method println(): Unit,</span>
 <span class="hljs-comment">//   scala/Predef.println(+1). =&gt; method println(x: Any): Unit</span>
 <span class="hljs-comment">// )</span>
 getMethodOverloads(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/io/PrintStream#"</span>), <span class="hljs-string">"print"</span>).take(<span class="hljs-number">3</span>)
-<span class="hljs-comment">// res42: Set[SymbolInformation] = Set(</span>
-<span class="hljs-comment">//   java/io/PrintStream#print(+5). =&gt; method print(param0: Double): Unit,</span>
+<span class="hljs-comment">// res48: Set[SymbolInformation] = Set(</span>
 <span class="hljs-comment">//   java/io/PrintStream#print(+8). =&gt; method print(param0: Object): Unit,</span>
-<span class="hljs-comment">//   java/io/PrintStream#print(+2). =&gt; method print(param0: Int): Unit</span>
+<span class="hljs-comment">//   java/io/PrintStream#print(+5). =&gt; method print(param0: Double): Unit,</span>
+<span class="hljs-comment">//   java/io/PrintStream#print(). =&gt; method print(param0: Boolean): Unit</span>
 <span class="hljs-comment">// )</span>
 </code></pre>
 <p>Overloaded methods can be inherited from supertypes.</p>
@@ -419,7 +466,7 @@ getMethodOverloads(<span class="hljs-type">Symbol</span>(<span class="hljs-strin
 }
 </code></pre>
 <pre><code class="hljs css language-scala">getMethodOverloads(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"example/Main#"</span>), <span class="hljs-string">"toString"</span>)
-<span class="hljs-comment">// res44: Set[SymbolInformation] = Set(</span>
+<span class="hljs-comment">// res50: Set[SymbolInformation] = Set(</span>
 <span class="hljs-comment">//   example/Main#toString(). =&gt; method toString(width: Int): String,</span>
 <span class="hljs-comment">//   scala/Any#toString(). =&gt; abstract method toString(): String</span>
 <span class="hljs-comment">// )</span>
@@ -552,6 +599,19 @@ printAnnotations(<span class="hljs-type">Symbol</span>(<span class="hljs-string"
 <p>It is not possible to query the term arguments of annotations. For example,
 observe that the annotation for <code>Main.+</code> does not include the &quot;Use add instead&quot;
 message.</p>
+<h2><a class="anchor" aria-hidden="true" id="known-limitations"></a><a href="#known-limitations" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Known limitations</h2>
+<h3><a class="anchor" aria-hidden="true" id="lookup-method-overrides"></a><a href="#lookup-method-overrides" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Lookup method overrides</h3>
+<p>Consider the following program.</p>
+<pre><code class="hljs css language-scala"><span class="hljs-class"><span class="hljs-keyword">trait</span> <span class="hljs-title">A</span> </span>{
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">add</span></span>(a: <span class="hljs-type">Int</span>, b: <span class="hljs-type">Int</span>): <span class="hljs-type">Int</span>
+}
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">B</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">A</span> </span>{
+  <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">add</span></span>(a: <span class="hljs-type">Int</span>, b: <span class="hljs-type">Int</span>): <span class="hljs-type">Int</span> = a + b
+}
+</code></pre>
+<p>There is no API to go from the symbol <code>B#add().</code> to the symbol it overrides
+<code>A#add()</code>. There is also no <code>.isOverride</code> helper to test if a method overrides
+another symbol.</p>
 <h2><a class="anchor" aria-hidden="true" id="semanticdb"></a><a href="#semanticdb" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>SemanticDB</h2>
 <p>The structure of <code>SymbolInformation</code> in Scalafix mirrors SemanticDB
 <code>SymbolInformation</code>. For comprehensive documentation about SemanticDB symbol
@@ -683,7 +743,7 @@ address common use-cases:</p>
 <code>var</code> symbol has a corresponding setter symbol. Setter symbols are
 distinguished by having a display name that ends with <code>_=</code>.</li>
 </ul>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/scalafix/docs/developers/symbol-matcher.html"><span class="arrow-prev">← </span><span>Previous</span></a><a class="docs-next button" href="/scalafix/docs/developers/semantic-type.html"><span>Next</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav docOnPageNav"><ul class="toc-headings"><li><a href="#cookbook">Cookbook</a><ul class="toc-headings"><li><a href="#lookup-method-return-type">Lookup method return type</a></li><li><a href="#lookup-method-parameters">Lookup method parameters</a></li><li><a href="#test-if-method-is-nullary">Test if method is nullary</a></li><li><a href="#lookup-type-alias">Lookup type alias</a></li><li><a href="#lookup-class-parents">Lookup class parents</a></li><li><a href="#lookup-class-methods">Lookup class methods</a></li><li><a href="#lookup-class-primary-constructor">Lookup class primary constructor</a></li><li><a href="#lookup-method-overloads">Lookup method overloads</a></li><li><a href="#test-if-symbol-is-from-java-or-scala">Test if symbol is from Java or Scala</a></li><li><a href="#test-if-symbol-is-private">Test if symbol is private</a></li><li><a href="#lookup-symbol-annotations">Lookup symbol annotations</a></li></ul></li><li><a href="#semanticdb">SemanticDB</a><ul class="toc-headings"><li><a href="#language">Language</a></li><li><a href="#kind">Kind</a></li><li><a href="#properties">Properties</a></li><li><a href="#signature">Signature</a></li><li><a href="#annotation">Annotation</a></li><li><a href="#access">Access</a></li><li><a href="#utility-methods">Utility methods</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#15242B"><section class="sitemap"><a href="/scalafix/" class="nav-home"><img src="/scalafix/img/scalacenter2x.png" alt="Scalafix" width="66" height="58"/></a><div><h5>Docs</h5><a href="
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/scalafix/docs/developers/symbol-matcher.html"><span class="arrow-prev">← </span><span>Previous</span></a><a class="docs-next button" href="/scalafix/docs/developers/semantic-type.html"><span>Next</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav docOnPageNav"><ul class="toc-headings"><li><a href="#cookbook">Cookbook</a><ul class="toc-headings"><li><a href="#lookup-method-return-type">Lookup method return type</a></li><li><a href="#lookup-method-parameters">Lookup method parameters</a></li><li><a href="#test-if-method-is-nullary">Test if method is nullary</a></li><li><a href="#lookup-type-alias">Lookup type alias</a></li><li><a href="#lookup-class-parents">Lookup class parents</a></li><li><a href="#lookup-class-methods">Lookup class methods</a></li><li><a href="#lookup-class-primary-constructor">Lookup class primary constructor</a></li><li><a href="#lookup-case-class-fields">Lookup case class fields</a></li><li><a href="#lookup-method-overloads">Lookup method overloads</a></li><li><a href="#test-if-symbol-is-from-java-or-scala">Test if symbol is from Java or Scala</a></li><li><a href="#test-if-symbol-is-private">Test if symbol is private</a></li><li><a href="#lookup-symbol-annotations">Lookup symbol annotations</a></li></ul></li><li><a href="#known-limitations">Known limitations</a><ul class="toc-headings"><li><a href="#lookup-method-overrides">Lookup method overrides</a></li></ul></li><li><a href="#semanticdb">SemanticDB</a><ul class="toc-headings"><li><a href="#language">Language</a></li><li><a href="#kind">Kind</a></li><li><a href="#properties">Properties</a></li><li><a href="#signature">Signature</a></li><li><a href="#annotation">Annotation</a></li><li><a href="#access">Access</a></li><li><a href="#utility-methods">Utility methods</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#15242B"><section class="sitemap"><a href="/scalafix/" class="nav-home"><img src="/scalafix/img/scalacenter2x.png" alt="Scalafix" width="66" height="58"/></a><div><h5>Docs</h5><a href="
                 /scalafix/docs/users/installation.html">Get started</a><a href="
                 /scalafix/docs/rules/overview.html">Rules</a><a href="
                 /scalafix/docs/developers/setup.html">Extend Scalafix</a></div><div><h5>Community</h5><a href="https://gitter.im/scalacenter/scalafix" target="_blank">Chat on Gitter</a><a href="https://users.scala-lang.org/" target="_blank">Discuss on Scala Users</a></div><div><h5>More</h5><a href="https://github.com/scalacenter/scalafix" target="_blank">GitHub</a></div></section><section class="copyright">Copyright © 2018 Scala Center</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>

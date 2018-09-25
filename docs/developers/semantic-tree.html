@@ -253,50 +253,18 @@ if you are interested in contributing to improve the situation.</p>
     println(forYield.synthetic)
 }
 <span class="hljs-comment">// Some(</span>
-<span class="hljs-comment">//   ApplyTree(</span>
-<span class="hljs-comment">//     ApplyTree(</span>
-<span class="hljs-comment">//       TypeApplyTree(</span>
-<span class="hljs-comment">//         SelectTree(</span>
-<span class="hljs-comment">//           ApplyTree(</span>
-<span class="hljs-comment">//             SelectTree(</span>
-<span class="hljs-comment">//               OriginalSubTree(</span>
-<span class="hljs-comment">//                 Term.Apply(</span>
-<span class="hljs-comment">//                   Term.Name("List"),</span>
-<span class="hljs-comment">//                   List(</span>
-<span class="hljs-comment">//                     Term.ApplyInfix(</span>
-<span class="hljs-comment">//                       Lit.Int(1),</span>
-<span class="hljs-comment">//                       Term.Name("-&gt;"),</span>
-<span class="hljs-comment">//                       List(),</span>
-<span class="hljs-comment">//                       List(Lit.Int(2))</span>
-<span class="hljs-comment">//                     )</span>
-<span class="hljs-comment">//                   )</span>
-<span class="hljs-comment">//                 )</span>
-<span class="hljs-comment">//               ),</span>
-<span class="hljs-comment">//               IdTree(</span>
-<span class="hljs-comment">//                 scala/collection/TraversableLike#withFilter(). =&gt; method withFilter(p: Function1[A, Boolean]): FilterMonadic[A, Repr]</span>
-<span class="hljs-comment">//               )</span>
-<span class="hljs-comment">//             ),</span>
-<span class="hljs-comment">//             List(</span>
-<span class="hljs-comment">//               FunctionTree(</span>
-<span class="hljs-comment">//                 List(</span>
-<span class="hljs-comment">//                   IdTree(</span>
-<span class="hljs-comment">//                     local0 =&gt; param check$ifrefutable$1: Tuple2[Int, Int]</span>
-<span class="hljs-comment">//                   )</span>
-<span class="hljs-comment">//                 ),</span>
-<span class="hljs-comment">//                 </span>
-<span class="hljs-comment">//               )</span>
-<span class="hljs-comment">//             )</span>
-<span class="hljs-comment">//           ),</span>
-<span class="hljs-comment">//           IdTree(</span>
-<span class="hljs-comment">//             scala/collection/generic/FilterMonadic#map(). =&gt; abstract method map[B, That](f: Function1[A, B])(implicit bf: CanBuildFrom[Repr, B, That]): That</span>
-<span class="hljs-comment">//           )</span>
-<span class="hljs-comment">//         ),</span>
-<span class="hljs-comment">//         List(</span>
-<span class="hljs-comment">//           TypeRef(&lt;no type&gt;, scala/Int#, List()),</span>
-<span class="hljs-comment">//           TypeRef(</span>
-<span class="hljs-comment">//             &lt;no type&gt;,</span>
-<span class="hljs-comment">//             scala/collection/immutable/List#,</span>
-<span class="hljs-comment">// ...</span>
+<span class="hljs-comment">//   orig(List(1 -&gt; 2)).withFilter(</span>
+<span class="hljs-comment">//     { (check$ifrefutable$1) =&gt;</span>
+<span class="hljs-comment">//       </span>
+<span class="hljs-comment">//     }</span>
+<span class="hljs-comment">//   ).map[Int,List[Int]](</span>
+<span class="hljs-comment">//     { (&lt;unknown&gt;) =&gt;</span>
+<span class="hljs-comment">//       </span>
+<span class="hljs-comment">//     }</span>
+<span class="hljs-comment">//   )(</span>
+<span class="hljs-comment">//     canBuildFrom[Int]</span>
+<span class="hljs-comment">//   )</span>
+<span class="hljs-comment">// )</span>
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="for-assignments"></a><a href="#for-assignments" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><code>for</code> assignments</h3>
 <p>For comprehensions that use assignments produce incomplete semantic trees.</p>
@@ -311,52 +279,20 @@ if you are interested in contributing to improve the situation.</p>
     println(forYield.synthetic)
 }
 <span class="hljs-comment">// Some(</span>
-<span class="hljs-comment">//   ApplyTree(</span>
-<span class="hljs-comment">//     ApplyTree(</span>
-<span class="hljs-comment">//       TypeApplyTree(</span>
-<span class="hljs-comment">//         SelectTree(</span>
-<span class="hljs-comment">//           ApplyTree(</span>
-<span class="hljs-comment">//             ApplyTree(</span>
-<span class="hljs-comment">//               TypeApplyTree(</span>
-<span class="hljs-comment">//                 SelectTree(</span>
-<span class="hljs-comment">//                   OriginalSubTree(</span>
-<span class="hljs-comment">//                     Term.Apply(</span>
-<span class="hljs-comment">//                       Term.Name("List"),</span>
-<span class="hljs-comment">//                       List(Lit.Int(1))</span>
-<span class="hljs-comment">//                     )</span>
-<span class="hljs-comment">//                   ),</span>
-<span class="hljs-comment">//                   IdTree(</span>
-<span class="hljs-comment">//                     scala/collection/immutable/List#map(). =&gt; final method map[B, That](f: Function1[A, B])(implicit bf: CanBuildFrom[List[A], B, That]): That</span>
-<span class="hljs-comment">//                   )</span>
-<span class="hljs-comment">//                 ),</span>
-<span class="hljs-comment">//                 List(</span>
-<span class="hljs-comment">//                   TypeRef(</span>
-<span class="hljs-comment">//                     &lt;no type&gt;,</span>
-<span class="hljs-comment">//                     scala/Tuple2#,</span>
-<span class="hljs-comment">//                     List(</span>
-<span class="hljs-comment">//                       TypeRef(&lt;no type&gt;, scala/Int#, List()),</span>
-<span class="hljs-comment">//                       TypeRef(&lt;no type&gt;, scala/Int#, List())</span>
-<span class="hljs-comment">//                     )</span>
-<span class="hljs-comment">//                   ),</span>
-<span class="hljs-comment">//                   TypeRef(</span>
-<span class="hljs-comment">//                     &lt;no type&gt;,</span>
-<span class="hljs-comment">//                     scala/collection/immutable/List#,</span>
-<span class="hljs-comment">//                     List(</span>
-<span class="hljs-comment">//                       TypeRef(</span>
-<span class="hljs-comment">//                         &lt;no type&gt;,</span>
-<span class="hljs-comment">//                         scala/Tuple2#,</span>
-<span class="hljs-comment">//                         List(</span>
-<span class="hljs-comment">//                           TypeRef(</span>
-<span class="hljs-comment">//                             &lt;no type&gt;,</span>
-<span class="hljs-comment">//                             scala/Int#,</span>
-<span class="hljs-comment">//                             List()</span>
-<span class="hljs-comment">//                           ),</span>
-<span class="hljs-comment">//                           TypeRef(</span>
-<span class="hljs-comment">//                             &lt;no type&gt;,</span>
-<span class="hljs-comment">//                             scala/Int#,</span>
-<span class="hljs-comment">//                             List()</span>
-<span class="hljs-comment">//                           )</span>
-<span class="hljs-comment">// ...</span>
+<span class="hljs-comment">//   orig(List(1)).map[Tuple2[Int,Int],List[Tuple2[Int,Int]]](</span>
+<span class="hljs-comment">//     { (a) =&gt;</span>
+<span class="hljs-comment">//       orig(b = a + 1)</span>
+<span class="hljs-comment">//     }</span>
+<span class="hljs-comment">//   )(</span>
+<span class="hljs-comment">//     canBuildFrom[Tuple2[Int,Int]]</span>
+<span class="hljs-comment">//   ).map[Int,List[Int]](</span>
+<span class="hljs-comment">//     { (&lt;unknown&gt;) =&gt;</span>
+<span class="hljs-comment">//       orig(a + b)</span>
+<span class="hljs-comment">//     }</span>
+<span class="hljs-comment">//   )(</span>
+<span class="hljs-comment">//     canBuildFrom[Int]</span>
+<span class="hljs-comment">//   )</span>
+<span class="hljs-comment">// )</span>
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="macros"></a><a href="#macros" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Macros</h3>
 <p>Macros can expand into arbitrary code including new definitions such as methods
