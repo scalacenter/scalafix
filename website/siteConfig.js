@@ -2,6 +2,8 @@
 // site configuration options.
 
 const repoUrl = "https://github.com/scalacenter/scalafix";
+const metadocUrl =
+  "https://scalameta.org/metadoc/#/scalafix/scalafix-core/src/main/scala/scalafix/patch/Patch.scala";
 
 const siteConfig = {
   title: "Scalafix",
@@ -23,6 +25,7 @@ const siteConfig = {
   headerLinks: [
     { doc: "users/installation", label: "User guide" },
     { doc: "developers/setup", label: "Developer guide" },
+    { href: metadocUrl, label: "Browse sources", external: true },
     { href: repoUrl, label: "GitHub", external: true }
   ],
 

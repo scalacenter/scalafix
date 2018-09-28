@@ -3,6 +3,10 @@ id: patch
 title: Patch
 ---
 
+Source:
+<a href="https://scalameta.org/metadoc/#/scalafix/scalafix-core/src/main/scala/scalafix/patch/Patch.scala" target="_blank">
+<code>Patch.scala</code> </a>
+
 Scalafix rules return a `Patch` data structure that describes how to rewrite a
 source file and how to report diagnostics. Patch is an immutable sealed data
 structure similar to `Option` or `Either`. A `Patch` can be combined with
