@@ -3,6 +3,10 @@ id: symbol-information
 title: SymbolInformation
 ---
 
+Source:
+<a href="https://scalameta.org/metadoc/#/scalafix/scalafix-core/src/main/scala/scalafix/v1/SymbolInformation.scala" target="_blank">
+<code>SymbolInformation.scala</code> </a>
+
 `SymbolInformation` is a data structure containing metadata about a `Symbol`
 definition. A symbol information describes the symbols's
 

@@ -3,6 +3,10 @@ id: symbol-matcher
 title: SymbolMatcher
 ---
 
+Source:
+<a href="https://scalameta.org/metadoc/#/scalafix/scalafix-core/src/main/scala/scalafix/v1/SymbolMatcher.scala" target="_blank">
+<code>SymbolMatcher.scala</code> </a>
+
 Symbol matcher is a trait that is defined by a single method
 `matches(Symbol): Boolean`.
 

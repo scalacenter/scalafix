@@ -3,6 +3,10 @@ id: semantic-type
 title: SemanticType
 ---
 
+Source:
+<a href="https://scalameta.org/metadoc/#/scalafix/scalafix-core/src/main/scala/scalafix/v1/SemanticType.scala" target="_blank">
+<code>SemanticType.scala</code> </a>
+
 `SemanticType` is a sealed data structure that encodes the Scala type system.
 
 ```scala mdoc:file:scalafix-core/src/main/scala/scalafix/v1/SemanticType.scala

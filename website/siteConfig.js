@@ -3,7 +3,7 @@
 
 const repoUrl = "https://github.com/scalacenter/scalafix";
 const metadocUrl =
-  "https://scalameta.org/metadoc/#/scalafix/scalafix-core/src/main/scala/scalafix/patch/Patch.scala#L19C23-L19C28";
+  "https://scalameta.org/metadoc/#/scalafix/scalafix-core/src/main/scala/scalafix/patch/Patch.scala";
 
 const siteConfig = {
   title: "Scalafix",
