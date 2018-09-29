@@ -8,6 +8,7 @@ import scala.meta.tokens.Token.Ident
 import scalafix.v0.Rule
 import scalafix.testkit.SyntacticRuleSuite
 import scalafix.internal.tests.utils.SkipWindows
+import scalafix.patch.Patch
 
 class PatchSuite extends SyntacticRuleSuite {
 
@@ -95,4 +96,20 @@ class PatchSuite extends SyntacticRuleSuite {
       |object A
       |""".stripMargin
   )
+
+  val tree = Input.String(original).parse[Source].get
+
+  test("Patch.empty") {
+    val empty = Patch.empty
+    assert(empty.isEmpty)
+    assert(empty.atomic.isEmpty)
+    assert((empty + empty).isEmpty)
+    assert((empty + empty).atomic.isEmpty)
+
+    val nonEmpty = Patch.addLeft(tree, "?")
+    assert(nonEmpty.isEmpty == false)
+    assert(nonEmpty.atomic.isEmpty == false)
+    assert((nonEmpty + nonEmpty).isEmpty == false)
+    assert((nonEmpty + nonEmpty).atomic.isEmpty == false)
+  }
 }
