@@ -7,7 +7,7 @@ object Dependencies {
   def dotty = "0.9.0-RC1"
   def scala210 = "2.10.6"
   def scala211 = "2.11.12"
-  def scala212 = "2.12.6"
+  def scala212 = "2.12.7"
   val currentScalaVersion = scala212
 
   def sbt013 = "0.13.17"

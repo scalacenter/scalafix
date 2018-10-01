@@ -183,7 +183,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         s
     },
     commands += Command.command("ci-212") { s =>
-      "++2.12.6" ::
+      "++2.12.7" ::
         "unit/test" ::
         "docs/run" ::
         "interfaces/doc" ::
@@ -195,7 +195,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         s
     },
     commands += Command.command("ci-212-windows") { s =>
-      "++2.12.6" ::
+      "++2.12.7" ::
         s"unit/testOnly -- -l scalafix.internal.tests.utils.SkipWindows" ::
         s
     },
