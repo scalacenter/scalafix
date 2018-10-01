@@ -8,9 +8,9 @@ coursier fetch \
   ch.epfl.scala:scalafix-core_2.11:$version  \
   ch.epfl.scala:scalafix-core_2.12:$version  \
   ch.epfl.scala:scalafix-reflect_2.11.12:$version  \
-  ch.epfl.scala:scalafix-reflect_2.12.6:$version  \
+  ch.epfl.scala:scalafix-reflect_2.12.7:$version  \
   ch.epfl.scala:scalafix-cli_2.11.12:$version  \
-  ch.epfl.scala:scalafix-cli_2.12.6:$version  \
+  ch.epfl.scala:scalafix-cli_2.12.7:$version  \
   ch.epfl.scala:scalafix-testkit_2.11.12:$version  \
-  ch.epfl.scala:scalafix-testkit_2.12.6:$version \
+  ch.epfl.scala:scalafix-testkit_2.12.7:$version \
   -r sonatype:releases

@@ -2,8 +2,8 @@ import Dependencies._
 inThisBuild(
   List(
     onLoadMessage := s"Welcome to scalafix ${version.value}",
-    scalaVersion := "2.12.6",
-    crossScalaVersions := List("2.12.6", "2.11.12")
+    scalaVersion := "2.12.7",
+    crossScalaVersions := List("2.12.7", "2.11.12")
   )
 )
 
@@ -237,7 +237,7 @@ lazy val docs = project
     scalaVersion := scala212,
     crossScalaVersions := List(scala212),
     libraryDependencies ++= List(
-      "com.geirsson" % "mdoc" % "0.4.5" cross CrossVersion.full,
+      "com.geirsson" % "mdoc" % "0.5.0" cross CrossVersion.full,
       "com.geirsson" %% "metaconfig-docs" % metaconfigV,
       "org.scalameta" % "interactive" % scalametaV cross CrossVersion.full
     )

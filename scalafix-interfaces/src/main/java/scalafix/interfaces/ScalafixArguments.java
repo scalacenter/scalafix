@@ -111,7 +111,7 @@ public interface ScalafixArguments {
 
     /**
      * @param version The Scala compiler version used to compile this classpath.
-     *                For example "2.12.6".
+     *                For example "2.12.7".
      *
      */
     ScalafixArguments withScalaVersion(String version);
