@@ -15,9 +15,9 @@ import scalafix.util.SemanticdbIndex
 import scalafix.util.TokenList
 import scalafix.v0._
 
-case class RuleCtxImpl(
-    tree: Tree,
-    config: ScalafixConfig,
+private[scalafix] class RuleCtxImpl(
+    val tree: Tree,
+    val config: ScalafixConfig,
     diffDisable: DiffDisable)
     extends RuleCtx
     with LegacyPatchOps { ctx =>
@@ -31,7 +31,8 @@ case class RuleCtxImpl(
   lazy val matchingParens: MatchingParens = MatchingParens(tokens)
   lazy val comments: AssociatedComments = AssociatedComments(tokens)
   lazy val input: Input = tokens.head.input
-  lazy val escapeHatch: EscapeHatch = EscapeHatch(tree, comments)
+  lazy val escapeHatch: EscapeHatch =
+    EscapeHatch(input, tree, comments, diffDisable)
 
   // Debug utilities
   def index(implicit index: SemanticdbIndex): SemanticdbIndex =
