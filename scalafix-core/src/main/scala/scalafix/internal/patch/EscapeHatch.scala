@@ -180,17 +180,17 @@ object EscapeHatch {
   }
 
   private object AnnotatedEscapes {
-    private val SuppressWarnings = "SuppressWarnings"
+    private val SuppressWarnings = classOf[SuppressWarnings].getSimpleName
     private val SuppressAll = "all"
     private val OptionalRulePrefix = "scalafix:"
 
     def apply(tree: Tree): AnnotatedEscapes = {
       val escapes =
         tree.collect {
-          case t @ Mods(mods) if hasSuppressWarnings(mods) =>
+          case t @ Mods(SuppressWarningsArgs(args)) =>
             val start = EscapeOffset(t.pos.start)
             val end = EscapeOffset(t.pos.end)
-            val rules = extractRules(mods)
+            val rules = rulesWithPosition(args)
             val (matchAll, matchOne) = rules.partition(_._1 == SuppressAll)
             val filters = ListBuffer.empty[EscapeFilter]
 
@@ -210,42 +210,33 @@ object EscapeHatch {
       new AnnotatedEscapes(TreeMap(escapes: _*))
     }
 
-    private def hasSuppressWarnings(mods: List[Mod]): Boolean =
-      mods.exists {
-        case Mod.Annot(Init(Type.Name(SuppressWarnings), _, _)) => true
-        case Mod.Annot(
-            Init(Type.Select(_, Type.Name(SuppressWarnings)), _, _)) =>
-          true
-        case _ => false
-      }
+    private object SuppressWarningsArgs {
+      def unapply(mods: List[Mod]): Option[List[Term]] =
+        mods.collectFirst {
+          case Mod.Annot(
+              Init(
+                Type.Name(SuppressWarnings),
+                _,
+                List(Term.Apply(Term.Name("Array"), args) :: Nil))) =>
+            args
 
-    private def extractRules(mods: List[Mod]): List[(String, Position)] = {
-      def process(rules: List[Term]) = rules.collect {
+          case Mod.Annot(
+              Init(
+                Type.Select(_, Type.Name(SuppressWarnings)),
+                _,
+                List(Term.Apply(Term.Name("Array"), args) :: Nil))) =>
+            args
+        }
+    }
+
+    private def rulesWithPosition(rules: List[Term]): List[(String, Position)] =
+      rules.collect {
         case lit @ Lit.String(rule) =>
           // get the exact position of the rule name
           val lo = lit.pos.start + lit.pos.text.indexOf(rule)
           val hi = lo + rule.length
           rule -> Position.Range(lit.pos.input, lo, hi)
       }
-
-      mods.flatMap {
-        case Mod.Annot(
-            Init(
-              Type.Name(SuppressWarnings),
-              _,
-              List(Term.Apply(Term.Name("Array"), rules) :: Nil))) =>
-          process(rules)
-
-        case Mod.Annot(
-            Init(
-              Type.Select(_, Type.Name(SuppressWarnings)),
-              _,
-              List(Term.Apply(Term.Name("Array"), rules) :: Nil))) =>
-          process(rules)
-
-        case _ => Nil
-      }
-    }
   }
 
   /** Rules are disabled via comments with a specific syntax:
@@ -477,7 +468,7 @@ object EscapeHatch {
           (SomeRules(), AllRules)
 
         case _ => // specific rules
-          (source, target) match {
+          ((source, target): @unchecked) match {
             case (AllRules, SomeRules(tgt)) =>
               var newTgt = tgt
               rulesPos.foreach {
@@ -493,8 +484,6 @@ object EscapeHatch {
                   if (newSrc(rule)) newSrc -= rule else unused += pos
               }
               (SomeRules(newSrc), AllRules)
-
-            case _ => sys.error("invalid state") // should never reach here
           }
       }
 
