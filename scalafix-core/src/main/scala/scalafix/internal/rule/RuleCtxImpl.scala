@@ -2,6 +2,7 @@ package scalafix.internal.rule
 
 import org.scalameta.FileLine
 import org.scalameta.logger
+
 import scala.meta._
 import scala.meta.contrib.AssociatedComments
 import scala.meta.tokens.Tokens
@@ -9,13 +10,14 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.patch.EscapeHatch
 import scalafix.internal.patch.LegacyPatchOps
+import scalafix.internal.v1.LazyValue
 import scalafix.syntax._
 import scalafix.util.MatchingParens
 import scalafix.util.SemanticdbIndex
 import scalafix.util.TokenList
 import scalafix.v0._
 
-private[scalafix] class RuleCtxImpl(
+class RuleCtxImpl(
     val tree: Tree,
     val config: ScalafixConfig,
     diffDisable: DiffDisable)
@@ -32,7 +34,11 @@ private[scalafix] class RuleCtxImpl(
   lazy val comments: AssociatedComments = AssociatedComments(tokens)
   lazy val input: Input = tokens.head.input
   lazy val escapeHatch: EscapeHatch =
-    EscapeHatch(input, tree, comments, diffDisable)
+    EscapeHatch(
+      input,
+      LazyValue.now(tree),
+      LazyValue.later(() => comments),
+      diffDisable)
 
   // Debug utilities
   def index(implicit index: SemanticdbIndex): SemanticdbIndex =

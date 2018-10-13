@@ -42,9 +42,10 @@ class EscapeHatchSuite extends FunSuite {
   )
 
   private class DontTouchMe(who: String) extends RuntimeException
-  private lazy val untouchableTree: Tree = throw new DontTouchMe("tree")
-  private lazy val untouchableComments: AssociatedComments =
-    throw new DontTouchMe("associated comments")
+  private lazy val untouchableTree: LazyValue[Tree] =
+    LazyValue.later(() => throw new DontTouchMe("tree"))
+  private lazy val untouchableComments: LazyValue[AssociatedComments] =
+    LazyValue.later(() => throw new DontTouchMe("associated comments"))
 
   test(
     "`apply` should not evaluate tree nor associated comments if escapes are not found") {
@@ -95,7 +96,7 @@ class EscapeHatchSuite extends FunSuite {
     val input = noEscapes
     val doc = SyntacticDocument(
       input,
-      LazyValue.later(() => untouchableTree),
+      untouchableTree,
       EmptyDiff,
       ScalafixConfig.default)
     implicit val ctx = new LegacyRuleCtx(doc)
@@ -143,9 +144,10 @@ class EscapeHatchSuite extends FunSuite {
     assert(!hatch.isEmpty)
   }
 
-  private def params(input: Input): (Input, Tree, AssociatedComments) = {
+  private def params(
+      input: Input): (Input, LazyValue[Tree], LazyValue[AssociatedComments]) = {
     val tree = input.parse[Source].get
     val comments = AssociatedComments.apply(tree)
-    (input, tree, comments)
+    (input, LazyValue.now(tree), LazyValue.now(comments))
   }
 }

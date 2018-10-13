@@ -12,6 +12,7 @@ import scalafix.internal.config.FilterMatcher
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.patch.EscapeHatch._
 import scalafix.internal.util.LintSyntax._
+import scalafix.internal.v1.LazyValue
 import scalafix.lint.RuleDiagnostic
 import scalafix.patch.Patch.internal._
 import scalafix.rule.RuleName
@@ -24,7 +25,7 @@ import scalafix.v0._
  * precedence over the former in case there are overlaps.
  * See `AnchoredEscapes` and `AnnotatedEscapes` for more details.
  */
-private[scalafix] class EscapeHatch private (
+class EscapeHatch private (
     anchoredEscapes: AnchoredEscapes,
     annotatedEscapes: AnnotatedEscapes,
     diffDisable: DiffDisable) {
@@ -133,8 +134,8 @@ object EscapeHatch {
 
   def apply(
       input: Input,
-      tree: => Tree,
-      associatedComments: => AssociatedComments,
+      tree: LazyValue[Tree],
+      associatedComments: LazyValue[AssociatedComments],
       diffDisable: DiffDisable): EscapeHatch = {
     new EscapeHatch(
       AnchoredEscapes(input, tree, associatedComments),
@@ -184,12 +185,12 @@ object EscapeHatch {
   }
 
   private object AnnotatedEscapes {
-    private val SuppressWarnings = classOf[SuppressWarnings].getSimpleName
+    private val SuppressWarnings = "SuppressWarnings"
     private val SuppressAll = "all"
     private val OptionalRulePrefix = "scalafix:"
 
-    def apply(input: Input, tree: => Tree): AnnotatedEscapes = {
-      if (input.text.contains(SuppressWarnings)) collectEscapes(tree)
+    def apply(input: Input, tree: LazyValue[Tree]): AnnotatedEscapes = {
+      if (input.text.contains(SuppressWarnings)) collectEscapes(tree.value)
       else new AnnotatedEscapes(EmptyEscapeTree)
     }
 
@@ -325,17 +326,17 @@ object EscapeHatch {
 
     def apply(
         input: Input,
-        tree: => Tree,
-        associatedComments: => AssociatedComments): AnchoredEscapes = {
+        tree: LazyValue[Tree],
+        associatedComments: LazyValue[AssociatedComments]): AnchoredEscapes = {
       if (input.text.contains(Prefix))
-        collectEscapes(input, tree, associatedComments)
+        collectEscapes(input, tree.value, associatedComments)
       else new AnchoredEscapes(EmptyEscapeTree, EmptyEscapeTree, Nil)
     }
 
     private def collectEscapes(
         input: Input,
-        tree: => Tree,
-        associatedComments: => AssociatedComments): AnchoredEscapes = {
+        tree: Tree,
+        associatedComments: LazyValue[AssociatedComments]): AnchoredEscapes = {
       val enable = TreeMap.newBuilder[EscapeOffset, List[EscapeFilter]]
       val disable = TreeMap.newBuilder[EscapeOffset, List[EscapeFilter]]
       val visitedFilterExpression = mutable.Set.empty[Position]
@@ -381,7 +382,7 @@ object EscapeHatch {
 
       if (input.text.contains(ScalafixOk)) {
         tree.foreach { t =>
-          associatedComments.trailing(t).foreach {
+          associatedComments.value.trailing(t).foreach {
             // matches simple expressions
             //
             // val a = (
