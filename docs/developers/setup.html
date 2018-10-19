@@ -114,7 +114,7 @@ for more details about the <code>-z</code> option.</p>
 <code>scalafix-testkit</code> directly. Start by adding a dependency on the
 <a href="https://search.maven.org/artifact/ch.epfl.scala/scalafix-testkit_2.12.7/0.9.0/jar">scalafix-testkit</a>
 artifact</p>
-<pre><code class="hljs"><span class="hljs-selector-tag">coursier</span> <span class="hljs-selector-tag">fetch</span> <span class="hljs-selector-tag">ch</span><span class="hljs-selector-class">.epfl</span><span class="hljs-selector-class">.scala</span><span class="hljs-selector-pseudo">:scalafix-testkit_2.12.7</span><span class="hljs-selector-pseudo">:0.9.0</span>
+<pre><code class="hljs">coursier fetch ch.epfl.scala:scalafix-testkit_2<span class="hljs-number">.12</span><span class="hljs-number">.7</span>:<span class="hljs-number">0.9</span><span class="hljs-number">.0</span>
 </code></pre>
 <p>Next, create a test suite that extends the class <code>SemanticRuleSuite</code></p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">package</span> myproject
@@ -132,6 +132,17 @@ should go into <code>scalafix-testkit.properties</code>, consult the Scaladocs.<
                 /scalafix/docs/users/installation.html">Get started</a><a href="
                 /scalafix/docs/rules/overview.html">Rules</a><a href="
                 /scalafix/docs/developers/setup.html">Extend Scalafix</a></div><div><h5>Community</h5><a href="https://gitter.im/scalacenter/scalafix" target="_blank">Chat on Gitter</a><a href="https://users.scala-lang.org/" target="_blank">Discuss on Scala Users</a></div><div><h5>More</h5><a href="https://github.com/scalacenter/scalafix" target="_blank">GitHub</a></div></section><section class="copyright">Copyright © 2018 Scala Center</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
               var search = docsearch({
                 
                 apiKey: 'cf575cebacff15579dd2dee010c4010f',

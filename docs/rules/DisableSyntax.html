@@ -39,20 +39,20 @@ rule.</p>
 opt-in.</p>
 <table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>noVars</code></td><td><code>Boolean</code></td><td>Report error for usage of vars.</td></tr><tr><td><code>noThrows</code></td><td><code>Boolean</code></td><td>Report error for throwing exceptions.</td></tr><tr><td><code>noNulls</code></td><td><code>Boolean</code></td><td>Report error for usage of null.</td></tr><tr><td><code>noReturns</code></td><td><code>Boolean</code></td><td>Report error for usage of return.</td></tr><tr><td><code>noAsInstanceOf</code></td><td><code>Boolean</code></td><td>Report error for usage of asInstanceOf[T] casts.</td></tr><tr><td><code>noIsInstanceOf</code></td><td><code>Boolean</code></td><td>Report error for usage of isInstanceOf[T] checks.</td></tr><tr><td><code>noXml</code></td><td><code>Boolean</code></td><td>Report error on xml literals.</td></tr><tr><td><code>noDefaultArgs</code></td><td><code>Boolean</code></td><td>Report error on method parameters with default arguments.</td></tr><tr><td><code>noFinalVal</code></td><td><code>Boolean</code></td><td>Report error on `final` modifier for val definitions, see [motivation](https://github.com/sbt/zinc/issues/227)</td></tr><tr><td><code>noFinalize</code></td><td><code>Boolean</code></td><td>Reports error when finalize is overridden.</td></tr><tr><td><code>noValPatterns</code></td><td><code>Boolean</code></td><td>Report error when pattern matching in val assignment with non-tuple patterns.</td></tr><tr><td><code>noUniversalEquality</code></td><td><code>Boolean</code></td><td>Report error on `==` (universal equality)</td></tr><tr><td><code>noUniversalEqualityMessage</code></td><td><code>String</code></td><td>Reporter message for noUniversalEquality</td></tr><tr><td><code>regex</code></td><td><code>List[Regex]</code></td><td>Report error if the text contents of a source file matches a given regex.</td></tr></tbody></table>
 <h3><a class="anchor" aria-hidden="true" id="defaults"></a><a href="#defaults" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Defaults</h3>
-<pre><code class="hljs">DisableSyntax<span class="hljs-selector-class">.noVars</span> = false
-DisableSyntax<span class="hljs-selector-class">.noThrows</span> = false
-DisableSyntax<span class="hljs-selector-class">.noNulls</span> = false
-DisableSyntax<span class="hljs-selector-class">.noReturns</span> = false
-DisableSyntax<span class="hljs-selector-class">.noAsInstanceOf</span> = false
-DisableSyntax<span class="hljs-selector-class">.noIsInstanceOf</span> = false
-DisableSyntax<span class="hljs-selector-class">.noXml</span> = false
-DisableSyntax<span class="hljs-selector-class">.noDefaultArgs</span> = false
-DisableSyntax<span class="hljs-selector-class">.noFinalVal</span> = false
-DisableSyntax<span class="hljs-selector-class">.noFinalize</span> = false
-DisableSyntax<span class="hljs-selector-class">.noValPatterns</span> = false
-DisableSyntax<span class="hljs-selector-class">.noUniversalEquality</span> = false
-DisableSyntax<span class="hljs-selector-class">.noUniversalEqualityMessage</span> = == is unsafe since it allows comparing two unrelated types
-DisableSyntax<span class="hljs-selector-class">.regex</span> = []
+<pre><code class="hljs"><span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">DisableSyntax</span>.</span></span>noVars = <span class="hljs-literal">false</span>
+<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">DisableSyntax</span>.</span></span>noThrows = <span class="hljs-literal">false</span>
+<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">DisableSyntax</span>.</span></span>noNulls = <span class="hljs-literal">false</span>
+<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">DisableSyntax</span>.</span></span>noReturns = <span class="hljs-literal">false</span>
+<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">DisableSyntax</span>.</span></span>noAsInstanceOf = <span class="hljs-literal">false</span>
+<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">DisableSyntax</span>.</span></span>noIsInstanceOf = <span class="hljs-literal">false</span>
+<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">DisableSyntax</span>.</span></span>noXml = <span class="hljs-literal">false</span>
+<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">DisableSyntax</span>.</span></span>noDefaultArgs = <span class="hljs-literal">false</span>
+<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">DisableSyntax</span>.</span></span>noFinalVal = <span class="hljs-literal">false</span>
+<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">DisableSyntax</span>.</span></span>noFinalize = <span class="hljs-literal">false</span>
+<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">DisableSyntax</span>.</span></span>noValPatterns = <span class="hljs-literal">false</span>
+<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">DisableSyntax</span>.</span></span>noUniversalEquality = <span class="hljs-literal">false</span>
+<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">DisableSyntax</span>.</span></span>noUniversalEqualityMessage =<span class="hljs-operator"> == </span>is unsafe since it allows comparing two unrelated types
+<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">DisableSyntax</span>.</span></span>regex = <span class="hljs-literal">[]</span>
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="examples"></a><a href="#examples" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Examples</h3>
 <pre><code class="hljs">DisableSyntax.<span class="hljs-attr">noUniversalEquality</span> = <span class="hljs-literal">true</span>
@@ -69,6 +69,17 @@ DisableSyntax.<span class="hljs-attr">regex</span> = [
                 /scalafix/docs/users/installation.html">Get started</a><a href="
                 /scalafix/docs/rules/overview.html">Rules</a><a href="
                 /scalafix/docs/developers/setup.html">Extend Scalafix</a></div><div><h5>Community</h5><a href="https://gitter.im/scalacenter/scalafix" target="_blank">Chat on Gitter</a><a href="https://users.scala-lang.org/" target="_blank">Discuss on Scala Users</a></div><div><h5>More</h5><a href="https://github.com/scalacenter/scalafix" target="_blank">GitHub</a></div></section><section class="copyright">Copyright © 2018 Scala Center</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
               var search = docsearch({
                 
                 apiKey: 'cf575cebacff15579dd2dee010c4010f',
