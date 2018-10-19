@@ -9,8 +9,10 @@ import scala.meta.contrib._
 import scala.meta.tokens.Token
 import scala.meta.tokens.Token.Comment
 import scalafix.internal.config.FilterMatcher
+import scalafix.internal.diff.DiffDisable
 import scalafix.internal.patch.EscapeHatch._
 import scalafix.internal.util.LintSyntax._
+import scalafix.internal.v1.LazyValue
 import scalafix.lint.RuleDiagnostic
 import scalafix.patch.Patch.internal._
 import scalafix.rule.RuleName
@@ -25,11 +27,11 @@ import scalafix.v0._
  */
 class EscapeHatch private (
     anchoredEscapes: AnchoredEscapes,
-    annotatedEscapes: AnnotatedEscapes) {
+    annotatedEscapes: AnnotatedEscapes,
+    diffDisable: DiffDisable) {
 
-  def rawFilter(
-      patchesByName: Map[RuleName, Patch],
-      ctx: RuleCtx): (Patch, List[RuleDiagnostic]) = {
+  private def rawFilter(patchesByName: Map[RuleName, Patch])(
+      implicit ctx: RuleCtx): (Patch, List[RuleDiagnostic]) = {
     var patchBuilder = Patch.empty
     val diagnostics = List.newBuilder[RuleDiagnostic]
     patchesByName.foreach {
@@ -44,16 +46,11 @@ class EscapeHatch private (
     (patchBuilder, diagnostics.result())
   }
 
-  def filter(
-      patchesByName: Map[RuleName, Patch],
-      ctx: RuleCtx,
-      index: SemanticdbIndex
-  ): (Patch, List[RuleDiagnostic]) = {
-    if (!FastPatch.hasSuppression(ctx.input.text) && ctx.diffDisable.isEmpty) {
-      return rawFilter(patchesByName, ctx)
-    }
-    val diff = ctx.diffDisable
-    val config = ctx.config
+  def filter(patchesByName: Map[RuleName, Patch])(
+      implicit ctx: RuleCtx,
+      index: SemanticdbIndex): (Patch, List[RuleDiagnostic]) = {
+    if (isEmpty) return rawFilter(patchesByName)
+
     val usedEscapes = mutable.Set.empty[EscapeFilter]
     val lintMessages = List.newBuilder[RuleDiagnostic]
 
@@ -71,30 +68,24 @@ class EscapeHatch private (
 
     def loop(name: RuleName, patch: Patch): Patch = patch match {
       case AtomicPatch(underlying) =>
-        val hasDisabledPatch = {
-          val patches = PatchInternals.treePatchApply(underlying)(ctx, index)
-          patches.exists { tp =>
-            val byGit = diff.isDisabled(tp.tok.pos)
+        val hasDisabledPatch =
+          PatchInternals.treePatchApply(underlying).exists { tp =>
+            val byGit = diffDisable.isDisabled(tp.tok.pos)
             val byEscape = isDisabledByEscape(name, tp.tok.pos.start)
             byGit || byEscape
           }
-        }
+        if (hasDisabledPatch) EmptyPatch else underlying
 
-        if (hasDisabledPatch) EmptyPatch
-        else loop(name, underlying)
-
-      case Concat(a, b) =>
-        Concat(loop(name, a), loop(name, b))
+      case Concat(a, b) => Concat(loop(name, a), loop(name, b))
 
       case LintPatch(lint) =>
-        val byGit = diff.isDisabled(lint.position)
+        val byGit = diffDisable.isDisabled(lint.position)
         val id = lint.fullStringID(name)
         val byEscape = isDisabledByEscape(id, lint.position.start)
-
         val isLintDisabled = byGit || byEscape
 
         if (!isLintDisabled) {
-          lintMessages += lint.toDiagnostic(name, config)
+          lintMessages += lint.toDiagnostic(name, ctx.config)
         }
 
         EmptyPatch
@@ -108,20 +99,23 @@ class EscapeHatch private (
     val unusedWarnings =
       (annotatedEscapes.unusedEscapes(usedEscapes) ++
         anchoredEscapes.unusedEscapes(usedEscapes)).map { pos =>
-        UnusedScalafixSuppression.at(pos).toDiagnostic(UnusedName, config)
+        UnusedScalafixSuppression.at(pos).toDiagnostic(UnusedName, ctx.config)
       }
     val warnings = lintMessages.result() ++ unusedWarnings
     (patches, warnings)
   }
+
+  def isEmpty: Boolean =
+    diffDisable.isEmpty && anchoredEscapes.isEmpty && annotatedEscapes.isEmpty
 }
 
 object EscapeHatch {
-
   private val UnusedScalafixSuppression =
     LintCategory.warning("", "Unused Scalafix suppression, this can be removed")
   private val UnusedName = RuleName("UnusedScalafixSuppression")
 
   private type EscapeTree = TreeMap[EscapeOffset, List[EscapeFilter]]
+  private val EmptyEscapeTree: EscapeTree = TreeMap.empty
 
   private case class EscapeFilter(
       matcher: FilterMatcher,
@@ -132,17 +126,23 @@ object EscapeHatch {
       id.identifiers.exists(i => matcher.matches(i.value))
   }
 
-  private case class EscapeOffset(offset: Int)
+  private case class EscapeOffset(offset: Int) extends AnyVal
 
   private object EscapeOffset {
     implicit val ordering: Ordering[EscapeOffset] = Ordering.by(_.offset)
   }
 
-  def apply(tree: Tree, associatedComments: AssociatedComments): EscapeHatch =
+  def apply(
+      input: Input,
+      tree: LazyValue[Tree],
+      associatedComments: LazyValue[AssociatedComments],
+      diffDisable: DiffDisable): EscapeHatch = {
     new EscapeHatch(
-      AnchoredEscapes(tree, associatedComments),
-      AnnotatedEscapes(tree)
+      AnchoredEscapes(input, tree, associatedComments),
+      AnnotatedEscapes(input, tree),
+      diffDisable
     )
+  }
 
   /** Rules are disabled via standard `@SuppressWarnings` annotations. The
    * annotation can be placed in class, object, trait, type, def, val, var,
@@ -157,18 +157,23 @@ object EscapeHatch {
   private class AnnotatedEscapes private (escapeTree: EscapeTree) {
     import AnnotatedEscapes._
 
+    val isEmpty: Boolean = escapeTree.isEmpty
+
     def isEnabled(
         ruleName: RuleName,
         position: Int): (Boolean, Option[EscapeFilter]) = {
-      val escapesUpToPos =
-        escapeTree.to(EscapeOffset(position)).valuesIterator.flatten
-      escapesUpToPos
-        .collectFirst {
-          case f @ EscapeFilter(_, _, _, Some(end))
-              if f.matches(ruleName) && end.offset >= position =>
-            (false, Some(f))
-        }
-        .getOrElse(true -> None)
+      if (isEmpty) (true, None)
+      else {
+        val escapesUpToPos =
+          escapeTree.to(EscapeOffset(position)).valuesIterator.flatten
+        escapesUpToPos
+          .collectFirst {
+            case f @ EscapeFilter(_, _, _, Some(end))
+                if end.offset >= position && f.matches(ruleName) =>
+              (false, Some(f))
+          }
+          .getOrElse(true -> None)
+      }
     }
 
     def unusedEscapes(used: collection.Set[EscapeFilter]): Set[Position] =
@@ -184,13 +189,18 @@ object EscapeHatch {
     private val SuppressAll = "all"
     private val OptionalRulePrefix = "scalafix:"
 
-    def apply(tree: Tree): AnnotatedEscapes = {
+    def apply(input: Input, tree: LazyValue[Tree]): AnnotatedEscapes = {
+      if (input.text.contains(SuppressWarnings)) collectEscapes(tree.value)
+      else new AnnotatedEscapes(EmptyEscapeTree)
+    }
+
+    private def collectEscapes(tree: Tree): AnnotatedEscapes = {
       val escapes =
         tree.collect {
-          case t @ Mods(mods) if hasSuppressWarnings(mods) =>
+          case t @ Mods(SuppressWarningsArgs(args)) =>
             val start = EscapeOffset(t.pos.start)
             val end = EscapeOffset(t.pos.end)
-            val rules = extractRules(mods)
+            val rules = rulesWithPosition(args)
             val (matchAll, matchOne) = rules.partition(_._1 == SuppressAll)
             val filters = ListBuffer.empty[EscapeFilter]
 
@@ -210,45 +220,37 @@ object EscapeHatch {
       new AnnotatedEscapes(TreeMap(escapes: _*))
     }
 
-    private def hasSuppressWarnings(mods: List[Mod]): Boolean =
-      mods.exists {
-        case Mod.Annot(Init(Type.Name(SuppressWarnings), _, _)) => true
-        case Mod.Annot(
-            Init(Type.Select(_, Type.Name(SuppressWarnings)), _, _)) =>
-          true
-        case _ => false
-      }
+    private object SuppressWarningsArgs {
+      def unapply(mods: List[Mod]): Option[List[Term]] =
+        mods.collectFirst {
+          case Mod.Annot(
+              Init(
+                Type.Name(SuppressWarnings),
+                _,
+                List(Term.Apply(Term.Name("Array"), args) :: Nil))) =>
+            args
 
-    private def extractRules(mods: List[Mod]): List[(String, Position)] = {
-      def process(rules: List[Term]) = rules.collect {
+          case Mod.Annot(
+              Init(
+                Type.Select(_, Type.Name(SuppressWarnings)),
+                _,
+                List(Term.Apply(Term.Name("Array"), args) :: Nil))) =>
+            args
+        }
+    }
+
+    private def rulesWithPosition(rules: List[Term]): List[(String, Position)] =
+      rules.collect {
         case lit @ Lit.String(rule) =>
           // get the exact position of the rule name
           val lo = lit.pos.start + lit.pos.text.indexOf(rule)
           val hi = lo + rule.length
           rule -> Position.Range(lit.pos.input, lo, hi)
       }
-
-      mods.flatMap {
-        case Mod.Annot(
-            Init(
-              Type.Name(SuppressWarnings),
-              _,
-              List(Term.Apply(Term.Name("Array"), rules) :: Nil))) =>
-          process(rules)
-
-        case Mod.Annot(
-            Init(
-              Type.Select(_, Type.Name(SuppressWarnings)),
-              _,
-              List(Term.Apply(Term.Name("Array"), rules) :: Nil))) =>
-          process(rules)
-
-        case _ => Nil
-      }
-    }
   }
 
-  /** Rules are disabled via comments with a specific syntax:
+  /**
+   * Rules are disabled via comments with a specific syntax:
    * `scalafix:off` or `scalafix:on` disable or enable rules until the end of file
    * `scalafix:ok` disable rules on an associated expression
    * a list of rules separated by commas can be provided to selectively
@@ -262,6 +264,8 @@ object EscapeHatch {
       enabling: EscapeTree,
       disabling: EscapeTree,
       unused: List[Position]) {
+
+    val isEmpty: Boolean = disabling.isEmpty && unused.isEmpty
 
     /**
      * a rule r is disabled in position p if there is a comment disabling r at
@@ -278,7 +282,7 @@ object EscapeHatch {
       @tailrec
       def loop(
           disables: List[EscapeFilter],
-          culprit: Option[EscapeFilter]): (Boolean, Option[EscapeFilter]) =
+          culprit: Option[EscapeFilter]): (Boolean, Option[EscapeFilter]) = {
         disables match {
           case head :: tail if head.matches(ruleName) =>
             head.endOffset match {
@@ -294,9 +298,14 @@ object EscapeHatch {
           case _ :: tail => loop(tail, culprit)
           case Nil => (true, culprit)
         }
+      }
 
-      val disables = disabling.to(EscapeOffset(position)).valuesIterator.flatten
-      loop(disables.toList, None)
+      if (disabling.isEmpty) (true, None)
+      else {
+        val disables =
+          disabling.to(EscapeOffset(position)).valuesIterator.flatten
+        loop(disables.toList, None)
+      }
     }
 
     def unusedEscapes(used: collection.Set[EscapeFilter]): Set[Position] =
@@ -305,16 +314,29 @@ object EscapeHatch {
   }
 
   private object AnchoredEscapes {
-    private val FilterDisable = regex("off")
-    private val FilterEnable = regex("on")
-    private val FilterExpression = regex("ok")
+    private val Prefix = "scalafix:"
+    private val ScalafixOk = Prefix + "ok"
+    private val ScalafixOn = Prefix + "on"
+    private val ScalafixOff = Prefix + "off"
+    private val ScalafixOkRgx = regex(ScalafixOk)
+    private val ScalafixOnRgx = regex(ScalafixOn)
+    private val ScalafixOffRgx = regex(ScalafixOff)
 
-    private def regex(anchor: String) =
-      s"\\s?scalafix:$anchor\\s?(.*?)(?:;.*)?".r
+    private def regex(anchor: String) = s"\\s?$anchor\\s?(.*?)(?:;.*)?".r
 
     def apply(
+        input: Input,
+        tree: LazyValue[Tree],
+        associatedComments: LazyValue[AssociatedComments]): AnchoredEscapes = {
+      if (input.text.contains(Prefix))
+        collectEscapes(input, tree.value, associatedComments)
+      else new AnchoredEscapes(EmptyEscapeTree, EmptyEscapeTree, Nil)
+    }
+
+    private def collectEscapes(
+        input: Input,
         tree: Tree,
-        associatedComments: AssociatedComments): AnchoredEscapes = {
+        associatedComments: LazyValue[AssociatedComments]): AnchoredEscapes = {
       val enable = TreeMap.newBuilder[EscapeOffset, List[EscapeFilter]]
       val disable = TreeMap.newBuilder[EscapeOffset, List[EscapeFilter]]
       val visitedFilterExpression = mutable.Set.empty[Position]
@@ -358,25 +380,27 @@ object EscapeHatch {
         rulesToPos.result()
       }
 
-      tree.foreach { t =>
-        associatedComments.trailing(t).foreach {
-          // matches simple expressions
-          //
-          // val a = (
-          //   1,
-          //   2
-          // ) // scalafix:ok RuleA
-          //
-          case comment @ Token.Comment(FilterExpression(rules)) =>
-            if (!visitedFilterExpression.contains(comment.pos)) {
-              val rulesPos = rulesWithPosition(rules, comment)
-              val start = EscapeOffset(t.pos.start)
-              val end = Some(EscapeOffset(t.pos.end))
-              disable += (start -> makeFilters(rulesPos, start, end, comment))
-              visitedFilterExpression += comment.pos
-            }
+      if (input.text.contains(ScalafixOk)) {
+        tree.foreach { t =>
+          associatedComments.value.trailing(t).foreach {
+            // matches simple expressions
+            //
+            // val a = (
+            //   1,
+            //   2
+            // ) // scalafix:ok RuleA
+            //
+            case comment @ Token.Comment(ScalafixOkRgx(rules)) =>
+              if (!visitedFilterExpression.contains(comment.pos)) {
+                val rulesPos = rulesWithPosition(rules, comment)
+                val start = EscapeOffset(t.pos.start)
+                val end = Some(EscapeOffset(t.pos.end))
+                disable += (start -> makeFilters(rulesPos, start, end, comment))
+                visitedFilterExpression += comment.pos
+              }
 
-          case _ => ()
+            case _ => ()
+          }
         }
       }
 
@@ -388,7 +412,7 @@ object EscapeHatch {
             // // scalafix:off RuleA
             // ...
             //
-            case FilterDisable(rules) =>
+            case ScalafixOffRgx(rules) =>
               val rulesPos = rulesWithPosition(rules, comment)
               val start = EscapeOffset(comment.pos.start)
               disable += (start -> makeFilters(rulesPos, start, None, comment))
@@ -399,7 +423,7 @@ object EscapeHatch {
             // ...
             // // scalafix:on RuleA
             //
-            case FilterEnable(rules) =>
+            case ScalafixOnRgx(rules) =>
               val rulesPos = rulesWithPosition(rules, comment)
               val start = EscapeOffset(comment.pos.start)
               enable += (start -> makeFilters(rulesPos, start, None, comment))
@@ -410,7 +434,7 @@ object EscapeHatch {
             // object Dummy { // scalafix:ok NoDummy
             //   1
             // }
-            case FilterExpression(rules) =>
+            case ScalafixOkRgx(rules) =>
               if (!visitedFilterExpression.contains(comment.pos)) {
                 val rulesPos = rulesWithPosition(rules, comment)
                 // we approximate the position of the expression to the whole line
@@ -477,7 +501,7 @@ object EscapeHatch {
           (SomeRules(), AllRules)
 
         case _ => // specific rules
-          (source, target) match {
+          ((source, target): @unchecked) match {
             case (AllRules, SomeRules(tgt)) =>
               var newTgt = tgt
               rulesPos.foreach {
@@ -493,8 +517,6 @@ object EscapeHatch {
                   if (newSrc(rule)) newSrc -= rule else unused += pos
               }
               (SomeRules(newSrc), AllRules)
-
-            case _ => sys.error("invalid state") // should never reach here
           }
       }
 

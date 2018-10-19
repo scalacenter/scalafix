@@ -46,8 +46,7 @@ sealed abstract class Patch extends Product {
   def nonEmpty: Boolean = !isEmpty
 
   /** Skip this entire patch if a part of it is disabled with // scalafix:off */
-  def atomic: Patch = AtomicPatch(this)
-
+  def atomic: Patch = if (isEmpty) this else AtomicPatch(this)
 }
 
 object Patch {

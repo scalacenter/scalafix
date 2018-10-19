@@ -63,7 +63,7 @@ object SyntacticDocument {
       AssociatedComments(tree.value)
     }
     val escape = LazyValue.later { () =>
-      EscapeHatch(tree.value, comments.value)
+      EscapeHatch(input, tree, comments, diffDisable)
     }
     val matchingParens = LazyValue.later { () =>
       MatchingParens(tokens.value)
@@ -77,7 +77,6 @@ object SyntacticDocument {
       comments = comments,
       config = config,
       escapeHatch = escape,
-      diffDisable = diffDisable,
       matchingParens = matchingParens,
       tokenList = tokenList
     )

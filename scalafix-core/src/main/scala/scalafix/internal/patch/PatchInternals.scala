@@ -37,11 +37,11 @@ object PatchInternals {
       index: Option[v0.SemanticdbIndex],
       suppress: Boolean = false
   ): (String, List[RuleDiagnostic]) = {
-    if (FastPatch.shortCircuit(patchesByName, ctx)) {
+    if (patchesByName.values.forall(_.isEmpty) && ctx.escapeHatch.isEmpty) {
       (ctx.input.text, Nil)
     } else {
       val idx = index.getOrElse(v0.SemanticdbIndex.empty)
-      val (patch, lints) = ctx.escapeHatch.filter(patchesByName, ctx, idx)
+      val (patch, lints) = ctx.escapeHatch.filter(patchesByName)(ctx, idx)
       val finalPatch =
         if (suppress) {
           patch + SuppressOps.addComments(ctx.tokens, lints.map(_.position))

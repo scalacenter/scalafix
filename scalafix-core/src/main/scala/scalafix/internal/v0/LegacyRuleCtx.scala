@@ -31,5 +31,4 @@ class LegacyRuleCtx(doc: SyntacticDocument)
     t.tokens(doc.internal.config.dialect)
   override private[scalafix] def config = doc.internal.config
   override private[scalafix] def escapeHatch = doc.internal.escapeHatch.value
-  override private[scalafix] def diffDisable = doc.internal.diffDisable
 }
