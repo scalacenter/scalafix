@@ -3,6 +3,7 @@ rules = DisableSyntax
 DisableSyntax.noVars = true
 DisableSyntax.noNulls = true
 DisableSyntax.noReturns = true
+DisableSyntax.noWhileLoops = true
 DisableSyntax.noThrows = true
 DisableSyntax.noTabs = true
 DisableSyntax.noSemicolons = true
@@ -57,4 +58,8 @@ case object DisableSyntaxBase {
   override def finalize(): Unit = println("exit") // assert: DisableSyntax.noFinalize
 
   val Right(notFound) = 1.asInstanceOf[Either[String, String]]
+
+  while (true) () /* assert: DisableSyntax.while
+  ^^^^^
+  while loops should be avoided, consider using recursion instead */
 }

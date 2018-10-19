@@ -60,6 +60,11 @@ final class DisableSyntax(config: DisableSyntaxConfig)
               keyword,
               "return should be avoided, consider using if/else instead",
               token.pos)
+          case "while" =>
+            Diagnostic(
+              keyword,
+              "while loops should be avoided, consider using recursion instead",
+              token.pos)
           case _ =>
             Diagnostic(keyword, s"$keyword is disabled", token.pos)
         }
