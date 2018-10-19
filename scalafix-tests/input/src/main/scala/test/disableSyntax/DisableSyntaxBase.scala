@@ -62,4 +62,5 @@ case object DisableSyntaxBase {
   while (true) () /* assert: DisableSyntax.while
   ^^^^^
   while loops should be avoided, consider using recursion instead */
+  do () while (true) // assert: DisableSyntax.while
 }
