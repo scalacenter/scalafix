@@ -4,7 +4,7 @@ title: SymbolInformation
 ---
 
 Source:
-<a href="https://scalameta.org/mbrowse/#/scalafix/scalafix-core/src/main/scala/scalafix/v1/SymbolInformation.scala" target="_blank">
+<a href="https://scalameta.org/metabrowse/#/scalafix/scalafix-core/src/main/scala/scalafix/v1/SymbolInformation.scala" target="_blank">
 <code>SymbolInformation.scala</code> </a>
 
 `SymbolInformation` is a data structure containing metadata about a `Symbol`

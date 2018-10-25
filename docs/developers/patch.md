@@ -4,7 +4,7 @@ title: Patch
 ---
 
 Source:
-<a href="https://scalameta.org/mbrowse/#/scalafix/scalafix-core/src/main/scala/scalafix/patch/Patch.scala" target="_blank">
+<a href="https://scalameta.org/metabrowse/#/scalafix/scalafix-core/src/main/scala/scalafix/patch/Patch.scala" target="_blank">
 <code>Patch.scala</code> </a>
 
 Scalafix rules return a `Patch` data structure that describes how to rewrite a
