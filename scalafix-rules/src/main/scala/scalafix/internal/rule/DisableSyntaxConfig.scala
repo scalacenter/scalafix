@@ -26,6 +26,8 @@ case class DisableSyntaxConfig(
     noNulls: Boolean = false,
     @Description("Report error for usage of return.")
     noReturns: Boolean = false,
+    @Description("Report error for usage of while loops.")
+    noWhileLoops: Boolean = false,
     @Description("Report error for usage of asInstanceOf[T] casts.")
     noAsInstanceOf: Boolean = false,
     @Description("Report error for usage of isInstanceOf[T] checks.")
@@ -93,6 +95,7 @@ case class DisableSyntaxConfig(
     case "throw" if noThrows => true
     case "null" if noNulls => true
     case "return" if noReturns => true
+    case "while" if noWhileLoops => true
     case _ => keywords.contains(DisabledKeyword(keyword))
   }
 }
