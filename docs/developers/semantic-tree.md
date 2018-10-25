@@ -4,7 +4,7 @@ title: SemanticTree
 ---
 
 Source:
-<a href="https://scalameta.org/mbrowse/#/scalafix/scalafix-core/src/main/scala/scalafix/v1/SemanticTree.scala" target="_blank">
+<a href="https://scalameta.org/metabrowse/#/scalafix/scalafix-core/src/main/scala/scalafix/v1/SemanticTree.scala" target="_blank">
 <code>SemanticTree.scala</code> </a>
 
 `SemanticTree` is a sealed data structure that encodes tree nodes that are
