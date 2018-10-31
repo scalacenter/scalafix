@@ -535,7 +535,8 @@ shows the necessary changes to build.sbt to populate publishing information. The
 <a href="https://github.com/olafurpg/sbt-ci-release">sbt-ci-release</a> readme documents
 the further steps to configure gpg and Sonatype.</p>
 <p>Once you have your rule, users can depend on it in the sbt plugin by updating
-<code>scalafixDependencies</code> (<code>scalafix.sbt.ScalafixPlugin.autoImport.scalafixDependencies</code>)</p>
+<code>scalafixDependencies</code>
+(<code>scalafix.sbt.ScalafixPlugin.autoImport.scalafixDependencies</code>)</p>
 <pre><code class="hljs css language-scala"><span class="hljs-comment">// build.sbt</span>
 scalafixDependencies in <span class="hljs-type">ThisBuild</span> +=
   <span class="hljs-string">"com.geirsson"</span> %% <span class="hljs-string">"named-literal-arguments"</span> % <span class="hljs-string">"VERSION"</span>
@@ -544,7 +545,7 @@ scalafixDependencies in <span class="hljs-type">ThisBuild</span> +=
 </code></pre>
 <p>Users of the Scalafix command-line interface can use the <code>--tool-classpath</code> flag</p>
 <pre><code class="hljs">scalafix \
-  --tool-classpath <span class="hljs-constructor">$(<span class="hljs-params">coursier</span> <span class="hljs-params">fetch</span> <span class="hljs-params">com</span>.<span class="hljs-params">geirsson</span>:<span class="hljs-params">named</span>-<span class="hljs-params">literal</span>-<span class="hljs-params">arguments_2</span>.12:VERSION)</span> \
+  --tool-classpath <span class="hljs-constructor">$(<span class="hljs-params">coursier</span> <span class="hljs-params">fetch</span> <span class="hljs-params">com</span>.<span class="hljs-params">geirsson</span>:<span class="hljs-params">named</span>-<span class="hljs-params">literal</span>-<span class="hljs-params">arguments_2</span>.12:VERSION -<span class="hljs-params">p</span>)</span> \
   -r NamedLiteralArguments \
   --classpath MY_PROJECT_CLASSPATH \
   my-project/src/main/scala
