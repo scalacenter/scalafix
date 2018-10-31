@@ -648,7 +648,8 @@ shows the necessary changes to build.sbt to populate publishing information. The
 the further steps to configure gpg and Sonatype.
 
 Once you have your rule, users can depend on it in the sbt plugin by updating
-`scalafixDependencies` (`scalafix.sbt.ScalafixPlugin.autoImport.scalafixDependencies`)
+`scalafixDependencies`
+(`scalafix.sbt.ScalafixPlugin.autoImport.scalafixDependencies`)
 
 ```scala
 // build.sbt
@@ -662,7 +663,7 @@ Users of the Scalafix command-line interface can use the `--tool-classpath` flag
 
 ```
 scalafix \
-  --tool-classpath $(coursier fetch com.geirsson:named-literal-arguments_2.12:VERSION) \
+  --tool-classpath $(coursier fetch com.geirsson:named-literal-arguments_2.12:VERSION -p) \
   -r NamedLiteralArguments \
   --classpath MY_PROJECT_CLASSPATH \
   my-project/src/main/scala
