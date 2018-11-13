@@ -88,7 +88,7 @@ case class DisableSyntaxConfig(
          |    message = "Please consider a less offensive word such as 'extension' or 'enrichment'"
          |  }
          |]""".stripMargin)
-    regex: List[CustomMessage[Either[Pattern, Regex]]] = Nil
+    regex: List[CustomMessage[Either[Regex, Pattern]]] = Nil
 ) {
 
   def isDisabled(keyword: String): Boolean = keyword match {

@@ -1,6 +1,8 @@
 package scalafix.internal.config
 
 import metaconfig._
+import metaconfig.Configured.Ok
+import metaconfig.Configured.NotOk
 import metaconfig.generic.Surface
 import scala.meta._
 import scala.meta.dialects.Scala212

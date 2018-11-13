@@ -9,6 +9,7 @@ import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
+import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
 import scala.meta.Ref
 import scala.meta._
@@ -223,4 +224,23 @@ trait ScalafixMetaconfigReaders {
   implicit lazy val CustomMessagePattern: ConfDecoder[CustomMessage[Pattern]] =
     CustomMessage.decoder(field = "pattern")
 
+  implicit def EitherConfDecoder[A, B](
+      implicit A: ConfDecoder[A],
+      B: ConfDecoder[B]): ConfDecoder[Either[A, B]] = {
+    def wrapLeft(a: A): Either[A, B] = Left(a)
+    def wrapRight(b: B): Either[A, B] = Right(b)
+    ConfDecoder.instance[Either[A, B]] {
+      case conf =>
+        B.map(wrapRight).orElse(A.map(wrapLeft)).read(conf) match {
+          case ok @ Ok(_) => ok
+          case NotOk(err) =>
+            NotOk(
+              ConfError
+                .message(
+                  "Failed to decode configuration for either of the following types:")
+                .combine(err)
+            )
+        }
+    }
+  }
 }

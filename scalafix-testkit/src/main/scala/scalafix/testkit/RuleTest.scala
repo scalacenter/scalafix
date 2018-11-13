@@ -53,7 +53,7 @@ object RuleTest {
         .withConf(conf)
         .withScalaVersion(props.scalaVersion)
         .withScalacOptions(props.scalacOptions)
-      val rules = decoder.read(rulesConf).get.withConfiguration(config).get
+        val rules = decoder.read(rulesConf).get.withConfiguration(config).get
       (rules, sdoc)
     }
 

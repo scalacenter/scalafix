@@ -21,19 +21,29 @@ final class DisableSyntax(config: DisableSyntaxConfig)
       .map(new DisableSyntax(_))
 
   private def checkRegex(doc: SyntacticDocument): Seq[Diagnostic] = {
-    def pos(offset: Int): Position =
-      Position.Range(doc.input, offset, offset)
+    def pos(matcher: Matcher, groupIndex: Int): Position =
+      if (matcher.group(groupIndex) == null)
+        Position.Range(doc.input, matcher.start, matcher.end)
+      else
+        Position.Range(
+          doc.input,
+          matcher.start(groupIndex),
+          matcher.end(groupIndex))
 
     def messageSubstitution(matcher: Matcher, message: String): String =
       (0 to matcher.groupCount).foldLeft(message) {
-        case (msg, idx) => msg.replaceAll("$"+idx, matcher.group(idx))
+        case (msg, idx) =>
+          val groupText = matcher.group(idx)
+          println(groupText)
+          if (groupText != null) msg.replace("$" + idx, matcher.group(idx))
+          else msg
       }
 
     val regexDiagnostics = Seq.newBuilder[Diagnostic]
     config.regex.foreach { regex =>
       val (matcher, pattern, groupIndex) = regex.value match {
-        case Left(pat) => (pat.matcher(doc.input.chars), pat.pattern, 0)
-        case Right(reg) =>
+        case Right(pat) => (pat.matcher(doc.input.chars), pat.pattern, 0)
+        case Left(reg) =>
           val pattern = reg.pattern
           val groupIndex = reg.captureGroup.getOrElse(0)
           (pattern.matcher(doc.input.chars), pattern.pattern, groupIndex)
@@ -45,7 +55,7 @@ final class DisableSyntax(config: DisableSyntaxConfig)
           Diagnostic(
             id = regex.id.getOrElse(pattern),
             message = messageSubstitution(matcher, message),
-            position = pos(matcher.start(groupIndex))
+            position = pos(matcher, groupIndex)
           )
       }
     }
