@@ -12,8 +12,16 @@ DisableSyntax.noFinalize = true
 DisableSyntax.regex = [
   {
     id = offensive
-    pattern = "[P|p]imp"
+    pattern = "[Pp]imp"
     message = "Please consider a less offensive word such as Extension"
+  }
+  {
+    id = magicNumbers
+    regex = {
+      pattern = "[^=]*(\d+).*$"
+      captureGroup = 1
+    }
+    message = "Numbers should always have their named param attached, or be defined as a val."
   }
   "Await\\.result"
 ]
@@ -52,8 +60,18 @@ case object DisableSyntaxBase {
     def -(other: String): String = s"$value - $other"
   }
 
+  implicit class RichString(value: String) { // assert: DisableSyntax.classist
+    def -(other: String): String = s"$value - $other"
+  }
+
+  5 // assert: DisableSyntax.magicNumbers
+
+  val fortyTwo = 42
+  val someDays = 75.days
   // actually 7.5 million years
-  Await.result(Future(42), 75.days) // assert: DisableSyntax.Await\.result
+  Await.result(Future(fortyTwo), someDays) // assert: DisableSyntax.Await\.result
+
+  "foo" // assert: DisableSyntax.bad-indentation
 
   override def finalize(): Unit = println("exit") // assert: DisableSyntax.noFinalize
 

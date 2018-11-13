@@ -13,6 +13,7 @@ import metaconfig.annotation.ExampleValue
 import metaconfig.annotation.Hidden
 import pprint.TPrint
 import scalafix.config.CustomMessage
+import scalafix.config.Regex
 
 case class DisableSyntaxConfig(
     @Hidden
@@ -83,11 +84,11 @@ case class DisableSyntaxConfig(
       """|[
          |  {
          |    id = "offensive"
-         |    pattern = "[P|p]imp"
+         |    pattern = "[Pp]imp"
          |    message = "Please consider a less offensive word such as 'extension' or 'enrichment'"
          |  }
          |]""".stripMargin)
-    regex: List[CustomMessage[Pattern]] = Nil
+    regex: List[CustomMessage[Either[Pattern, Regex]]] = Nil
 ) {
 
   def isDisabled(keyword: String): Boolean = keyword match {
