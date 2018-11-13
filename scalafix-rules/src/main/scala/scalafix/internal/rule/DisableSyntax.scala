@@ -34,7 +34,6 @@ final class DisableSyntax(config: DisableSyntaxConfig)
       (0 to matcher.groupCount).foldLeft(message) {
         case (msg, idx) =>
           val groupText = matcher.group(idx)
-          println(groupText)
           if (groupText != null) msg.replace(s"{$$$idx}", matcher.group(idx))
           else msg
       }
