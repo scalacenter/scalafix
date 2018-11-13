@@ -36,7 +36,7 @@ scalafix.website.rule("DisableSyntax", DisableSyntaxConfig.default)
 
 Regex patterns have 3 available ways to be configured.  The example below shows 1 of each way.
 
-```json
+```hocon
 DisableSyntax.regex = [
   {
     id = offensive
