@@ -35,7 +35,7 @@ final class DisableSyntax(config: DisableSyntaxConfig)
         case (msg, idx) =>
           val groupText = matcher.group(idx)
           println(groupText)
-          if (groupText != null) msg.replace("$" + idx, matcher.group(idx))
+          if (groupText != null) msg.replace(s"{$$$idx}", matcher.group(idx))
           else msg
       }
 
