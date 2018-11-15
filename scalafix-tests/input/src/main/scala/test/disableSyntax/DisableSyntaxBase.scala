@@ -60,7 +60,10 @@ case object DisableSyntaxBase {
     def -(other: String): String = s"$value - $other"
   }
 
-  5 // assert: DisableSyntax.magicNumbers
+  5 /* assert: DisableSyntax.magicNumbers
+  ^
+Numbers (5 in this instance) should always have a named parameter attached, or be assigned to a val.
+   */
 
   val fortyTwo = 42
   val someDays = 75.days

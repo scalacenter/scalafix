@@ -55,16 +55,17 @@ DisableSyntax.regex = [
 ]
 ```
 
-1. The first way has a simple object providing an `id`, `pattern`, and `message`.
+1. The first way has an object providing an `id`, `pattern`, and `message`.
 2. The second way is just the pattern.  When this is used, the `id` is set equal 
    to the pattern, and a generic message is provided for you.
-3. The third way allows you to specify what capture-group the problematic thing 
-   is in, in case your regex is complicated.
+3. The third way allows you to specify what capture-group the problematic piece 
+   of code is in, in case your regex is complicated and also matches characters 
+   not useful in an error message.
 
 ### Error Messages  
 
-Error messages have access to the capture groups of the regex. Simply use `{$n}` 
-where `n` is the index of the capture group you wish to appear in that part of 
-the message.
+Error messages have access to the capture groups of the regex. To access the 
+capture groups of the regex, use `{$n}` where `n` is the index of the capture 
+group you wish to appear in that part of the message.
 
 You can see this used in the 3rd example.
