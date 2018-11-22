@@ -266,6 +266,8 @@ object MainOps {
         i += 1
       }
       val next = handleFile(args, file)
+      if (next != ExitStatus.Ok)
+        args.args.out.println(s"Unexpected error handling '$file', proceeding to the next.")
       exit = ExitStatus.merge(exit, next)
     }
     adjustExitCode(args, exit, files)
