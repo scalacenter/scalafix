@@ -1,6 +1,7 @@
 banana.rule.SemanticRuleV1
 banana.rule.SyntacticRuleV1
 scalafix.test.ExplicitSynthetic
+scalafix.tests.cli.CrashingRule
 scalafix.tests.cli.NoOpRule
 scalafix.tests.cli.DeprecatedName
 scalafix.tests.cli.Scala2_9

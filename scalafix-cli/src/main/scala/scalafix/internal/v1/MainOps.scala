@@ -18,6 +18,7 @@ import metaconfig.generic.Setting
 import metaconfig.generic.Settings
 import metaconfig.internal.Case
 import org.typelevel.paiges.{Doc => D}
+import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.ListBuffer
 import scala.meta.Tree
@@ -105,16 +106,18 @@ object MainOps {
       extends Exception(s"Stale SemanticDB\n$diff")
       with NoStackTrace
 
-  def handleException(ex: Throwable, out: PrintStream): Unit = {
-    val st = ex.getStackTrace.filterNot { e =>
-      e.getClassName.startsWith("java.lang.Thread") ||
-      e.getClassName.startsWith("java.util.concurrent.") ||
-      e.getClassName.startsWith("org.scalatest") ||
-      e.getClassName.startsWith("sbt.")
+  @tailrec private final def trimStackTrace(
+      e: Throwable,
+      untilMethod: String
+  ): Unit = {
+    val relevantStackTrace =
+      e.getStackTrace.takeWhile(_.getMethodName != untilMethod)
+    e.setStackTrace(relevantStackTrace)
+    if (e.getCause != null) {
+      trimStackTrace(e.getCause, untilMethod)
     }
-    ex.setStackTrace(st)
-    ex.printStackTrace(out)
   }
+  def handleException(ex: Throwable, out: PrintStream): Unit = {}
 
   def adjustExitCode(
       args: ValidatedArgs,
@@ -248,7 +251,9 @@ object MainOps {
           ExitStatus.StaleSemanticdbError
         }
       case NonFatal(e) =>
-        handleException(e, args.args.out)
+        val ex = FileException(file, e)
+        trimStackTrace(ex, untilMethod = "handleFile")
+        ex.printStackTrace(args.args.out)
         ExitStatus.UnexpectedError
     }
   }

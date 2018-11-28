@@ -37,7 +37,8 @@ case class Rules(rules: List[Rule] = Nil) {
       tokens: Tokens,
       messages: List[Diagnostic],
       patch: Patch,
-      suppress: Boolean): Patch = {
+      suppress: Boolean
+  ): Patch = {
     if (suppress) {
       patch + SuppressOps.addComments(tokens, messages.map(_.position))
     } else {
@@ -47,8 +48,9 @@ case class Rules(rules: List[Rule] = Nil) {
 
   def semanticPatch(
       sdoc: SemanticDocument,
-      suppress: Boolean): (String, List[RuleDiagnostic]) = {
-    val fixes = rules.iterator.map {
+      suppress: Boolean
+  ): (String, List[RuleDiagnostic]) = {
+    val fixes = rules.map {
       case rule: SemanticRule =>
         rule.name -> rule.fix(sdoc)
       case rule: SyntacticRule =>
@@ -59,9 +61,10 @@ case class Rules(rules: List[Rule] = Nil) {
 
   def syntacticPatch(
       doc: SyntacticDocument,
-      suppress: Boolean): (String, List[RuleDiagnostic]) = {
+      suppress: Boolean
+  ): (String, List[RuleDiagnostic]) = {
     require(!isSemantic, semanticRules.map(_.name).mkString("+"))
-    val fixes = syntacticRules.iterator.map { rule =>
+    val fixes = syntacticRules.map { rule =>
       rule.name -> rule.fix(doc)
     }.toMap
     PatchInternals.syntactic(fixes, doc, suppress)
