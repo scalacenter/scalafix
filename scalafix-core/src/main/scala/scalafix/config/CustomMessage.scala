@@ -13,6 +13,16 @@ class CustomMessage[T](
 object CustomMessage {
   implicit val SymbolDecoder: ConfDecoder[CustomMessage[Symbol.Global]] =
     decoder[Symbol.Global](field = "symbol")
+
+  implicit def CustomMessageEitherDecoder[A, B](
+      implicit AB: ConfDecoder[Either[CustomMessage[A], CustomMessage[B]]])
+    : ConfDecoder[CustomMessage[Either[A, B]]] =
+    AB.map {
+      case Right(msg) =>
+        new CustomMessage(Right(msg.value), msg.message, msg.id)
+      case Left(msg) => new CustomMessage(Left(msg.value), msg.message, msg.id)
+    }
+
   def decoder[T](field: String)(
       implicit ev: ConfDecoder[T]): ConfDecoder[CustomMessage[T]] =
     ConfDecoder.instance[CustomMessage[T]] {

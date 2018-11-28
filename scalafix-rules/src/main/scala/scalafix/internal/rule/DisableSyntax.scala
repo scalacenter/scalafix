@@ -1,6 +1,7 @@
 package scalafix.internal.rule
 
 import metaconfig.Configured
+import java.util.regex.Matcher
 import scala.meta._
 import scalafix.v0.LintCategory
 import scalafix.v1._
@@ -20,19 +21,40 @@ final class DisableSyntax(config: DisableSyntaxConfig)
       .map(new DisableSyntax(_))
 
   private def checkRegex(doc: SyntacticDocument): Seq[Diagnostic] = {
-    def pos(offset: Int): Position =
-      Position.Range(doc.input, offset, offset)
+    def pos(matcher: Matcher, groupIndex: Int): Position =
+      if (matcher.group(groupIndex) == null)
+        Position.Range(doc.input, matcher.start, matcher.end)
+      else
+        Position.Range(
+          doc.input,
+          matcher.start(groupIndex),
+          matcher.end(groupIndex))
+
+    def messageSubstitution(matcher: Matcher, message: String): String =
+      (0 to matcher.groupCount).foldLeft(message) {
+        case (msg, idx) =>
+          val groupText = matcher.group(idx)
+          if (groupText != null) msg.replace(s"{$$$idx}", matcher.group(idx))
+          else msg
+      }
+
     val regexDiagnostics = Seq.newBuilder[Diagnostic]
     config.regex.foreach { regex =>
-      val matcher = regex.value.matcher(doc.input.chars)
-      val pattern = regex.value.pattern
+      val (matcher, pattern, groupIndex) = regex.value match {
+        case Right(pat) => (pat.matcher(doc.input.chars), pat.pattern, 0)
+        case Left(reg) =>
+          val pattern = reg.pattern
+          val groupIndex = reg.captureGroup.getOrElse(0)
+          (pattern.matcher(doc.input.chars), pattern.pattern, groupIndex)
+      }
+
       val message = regex.message.getOrElse(s"$pattern is disabled")
       while (matcher.find()) {
         regexDiagnostics +=
           Diagnostic(
             id = regex.id.getOrElse(pattern),
-            message = message,
-            position = pos(matcher.start)
+            message = messageSubstitution(matcher, message),
+            position = pos(matcher, groupIndex)
           )
       }
     }
