@@ -56,7 +56,8 @@ object PatchDocs {
         PatchInternals.semantic(
           Map(RuleName("patch") -> p),
           doc,
-          suppress = false)
+          suppress = false
+        )
       obtained
     }
     def showDiff(context: Int = 0)(implicit doc: SemanticDocument): Unit = {
@@ -68,7 +69,8 @@ object PatchDocs {
       val (_, diagnostics) = PatchInternals.semantic(
         Map(RuleName("RuleName") -> p.asPatch),
         doc,
-        suppress = false)
+        suppress = false
+      )
       diagnostics.foreach { diag =>
         println(diag.formattedMessage)
       }
@@ -89,7 +91,8 @@ object PatchDocs {
   }
 
   def unifiedDiff(obtained: String, context: Int)(
-      implicit doc: SemanticDocument): String = {
+      implicit doc: SemanticDocument
+  ): String = {
     val in = Input.VirtualFile("before patch", doc.input.text)
     val out = Input.VirtualFile("after  patch", obtained)
     PatchInternals.unifiedDiff(in, out, context)
@@ -99,7 +102,8 @@ object PatchDocs {
     "-P:semanticdb:synthetics:on"
   )
   lazy val compiler = InteractiveSemanticdb.newCompiler(scalacOptions)
-  lazy val symtab = GlobalSymbolTable(ClasspathOps.thisClasspath)
+  lazy val symtab =
+    GlobalSymbolTable(ClasspathOps.thisClasspath, includeJdk = true)
   lazy val scalafixSymtab = new Symtab { self =>
     override def info(symbol: Symbol): Option[SymbolInformation] = {
       symtab.info(symbol.value).map(new SymbolInformation(_)(self))
@@ -130,7 +134,8 @@ object PatchDocs {
     val textDocument = InteractiveSemanticdb.toTextDocument(
       compiler,
       code,
-      scalacOptions.filter(_.startsWith("-P:semanticdb")))
+      scalacOptions.filter(_.startsWith("-P:semanticdb"))
+    )
     if (debug) {
       Predef.println("```")
       Predef.println(Print.document(Format.Compact, textDocument))

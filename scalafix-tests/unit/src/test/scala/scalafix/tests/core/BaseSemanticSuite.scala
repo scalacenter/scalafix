@@ -17,7 +17,7 @@ object BaseSemanticSuite {
   lazy val symtab: SymbolTable = {
     val classpath =
       Classpaths.withDirectory(AbsolutePath(BuildInfo.sharedClasspath))
-    ClasspathOps.newSymbolTable(classpath).get
+    ClasspathOps.newSymbolTable(classpath)
   }
   def loadDoc(filename: String): SemanticDocument = {
     val root = AbsolutePath(BuildInfo.sharedSourceroot).resolve("scala/test")
@@ -29,7 +29,8 @@ object BaseSemanticSuite {
       doc,
       relpath,
       ClasspathOps.thisClassLoader,
-      symtab)
+      symtab
+    )
   }
 }
 

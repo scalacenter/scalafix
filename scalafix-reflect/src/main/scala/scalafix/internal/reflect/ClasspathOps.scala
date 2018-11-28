@@ -16,10 +16,6 @@ import scala.meta.io.AbsolutePath
 
 object ClasspathOps {
 
-  def bootClasspath: Option[Classpath] = sys.props.collectFirst {
-    case (k, v) if k.endsWith(".boot.class.path") => Classpath(v)
-  }
-
   val devNull = new PrintStream(new OutputStream {
     override def write(b: Int): Unit = ()
   })
@@ -28,21 +24,18 @@ object ClasspathOps {
       classpath: Classpath,
       parallel: Boolean = false,
       out: PrintStream = System.out
-  ): Option[SymbolTable] = {
-    bootClasspath.map { jdk =>
-      GlobalSymbolTable(classpath ++ jdk)
-    }
+  ): SymbolTable = {
+    GlobalSymbolTable(classpath, includeJdk = true)
   }
 
   def thisClassLoader: URLClassLoader =
     this.getClass.getClassLoader.asInstanceOf[URLClassLoader]
   def thisClasspath: Classpath = {
-    bootClasspath.get ++
-      Classpath(
-        thisClassLoader.getURLs.iterator
-          .map(url => AbsolutePath(Paths.get(url.toURI)))
-          .toList
-      )
+    Classpath(
+      thisClassLoader.getURLs.iterator
+        .map(url => AbsolutePath(Paths.get(url.toURI)))
+        .toList
+    )
   }
   this.getClass.getClassLoader.asInstanceOf[URLClassLoader]
   def getCurrentClasspath: String = {
@@ -89,7 +82,8 @@ object ClasspathOps {
   }
   private def toClassLoaderWithParent(
       classpath: Classpath,
-      parent: ClassLoader): URLClassLoader = {
+      parent: ClassLoader
+  ): URLClassLoader = {
     val urls = classpath.entries.map(_.toNIO.toUri.toURL).toArray
     new URLClassLoader(urls, parent)
   }

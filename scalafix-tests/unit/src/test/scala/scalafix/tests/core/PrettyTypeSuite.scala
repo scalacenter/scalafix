@@ -23,7 +23,7 @@ class BasePrettyTypeSuite extends BaseSemanticSuite("TypeToTreeInput") {
   val dir: m.AbsolutePath =
     m.AbsolutePath(scalafix.tests.BuildInfo.sharedClasspath)
   val classpath = Classpaths.withDirectory(dir)
-  val table = GlobalSymbolTable(classpath)
+  val table = GlobalSymbolTable(classpath, includeJdk = true)
 }
 
 class PrettyTypeSuite extends BasePrettyTypeSuite {
@@ -60,7 +60,7 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
 
 class PrettyTypeFuzzSuite extends BasePrettyTypeSuite {
 
-  val classpathIndex = ClasspathIndex(classpath)
+  val classpathIndex = ClasspathIndex(classpath, includeJdk = true)
 
   def checkToplevel(toplevel: SymbolInformation): Unit = {
     try {
@@ -121,13 +121,17 @@ class PrettyTypeFuzzSuite extends BasePrettyTypeSuite {
     uri.contains("org/scalatest/junit")
   }
 
+  val isUnique = scala.collection.mutable.Set.empty[String]
   for {
     entry <- classpath.entries
     if entry.isFile
+    name = entry.toNIO.getFileName.toString
+    if isUnique(name)
   } {
+    isUnique += name
     // ignore these test  by default because they are slow and
     // there is no need to run them on every PR.
-    ignore(entry.toNIO.getFileName.toString) {
+    ignore(name) {
       PlatformFileIO.withJarFileSystem(entry, create = false) { root =>
         val files = PlatformFileIO.listAllFilesRecursively(root)
         files.foreach { file =>

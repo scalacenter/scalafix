@@ -2,11 +2,9 @@ package scalafix.tests.core
 
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
-import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.reflect.RuleCompiler
 
 object Classpaths {
-  def jdk: Classpath = ClasspathOps.bootClasspath.get
   def scalaLibrary = Classpath(
     RuleCompiler.defaultClasspathPaths.filter { path =>
       path.isFile ||
@@ -14,6 +12,6 @@ object Classpaths {
     }
   )
   def withDirectory(dir: AbsolutePath): Classpath =
-    Classpath(dir :: jdk.entries ::: scalaLibrary.entries)
+    Classpath(dir :: scalaLibrary.entries)
 
 }
