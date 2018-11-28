@@ -18,6 +18,9 @@ jobs:
       script: sbt ci-211
     - env: TEST="2.12"
       script: sbt ci-212
+    - jdk: openjdk11
+      env: TEST="2.12"
+      script: sbt ci-212
 
     # Disabled until stable v0.6
     # - env: TEST="mima"

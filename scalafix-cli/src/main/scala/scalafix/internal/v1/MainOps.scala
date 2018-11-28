@@ -167,8 +167,8 @@ object MainOps {
           DiffUtils.unifiedDiff(
             input.syntax + "-ondisk",
             input.syntax + "-semanticdb",
-            input.text.lines.toList,
-            doc.text.lines.toList,
+            input.text.linesIterator.toList,
+            doc.text.linesIterator.toList,
             3
           )
         }
@@ -213,8 +213,8 @@ object MainOps {
         val diff = DiffUtils.unifiedDiff(
           file.toString(),
           "<expected fix>",
-          input.text.lines.toList,
-          fixed.lines.toList,
+          input.text.linesIterator.toList,
+          fixed.linesIterator.toList,
           3
         )
         args.args.out.println(diff)
@@ -304,7 +304,7 @@ object MainOps {
       }
       buf.clear()
     }
-    text.lines.foreach { line =>
+    text.linesIterator.foreach { line =>
       if (line.startsWith("```")) {
         flush()
         insideCodeFence = !insideCodeFence

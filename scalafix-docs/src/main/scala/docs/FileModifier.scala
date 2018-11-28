@@ -13,12 +13,13 @@ class FileModifier extends StringModifier {
   override def process(
       info: String,
       code: Input,
-      reporter: Reporter): String = {
+      reporter: Reporter
+  ): String = {
     val filename = info
     val path = Paths.get(filename)
     val text = new String(Files.readAllBytes(path), StandardCharsets.UTF_8)
     val input = Input.VirtualFile(filename, text)
-    code.text.lines.toList match {
+    code.text.linesIterator.toList match {
       case List(startMarker, endMarker) =>
         val start = text.indexOf(startMarker.stripSuffix("..."))
         val end = text.indexOf(endMarker.stripPrefix("..."))
