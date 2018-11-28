@@ -40,7 +40,7 @@ object RuleDecoderOps {
     } else {
       val ctor = cls.getDeclaredConstructor()
       ctor.setAccessible(true)
-      cls.newInstance().asInstanceOf[v1.Rule]
+      cls.getConstructor().newInstance().asInstanceOf[v1.Rule]
     }
   }
 

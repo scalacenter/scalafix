@@ -21,7 +21,8 @@ object PatchInternals {
         add1.tok,
         add1.addLeft + add2.addLeft,
         add1.addRight + add2.addRight,
-        add1.keepTok && add2.keepTok)
+        add1.keepTok && add2.keepTok
+      )
     case (_: Remove, add: Add) => add.copy(keepTok = false)
     case (add: Add, _: Remove) => add.copy(keepTok = false)
     case (rem: Remove, rem2: Remove) => rem
@@ -70,18 +71,21 @@ object PatchInternals {
       patchesByName,
       new LegacyRuleCtx(doc.internal.doc),
       Some(new LegacySemanticdbIndex(doc)),
-      suppress)
+      suppress
+    )
   }
 
   def treePatchApply(patch: Patch)(
       implicit
       ctx: v0.RuleCtx,
-      index: v0.SemanticdbIndex): Iterable[TokenPatch] = {
+      index: v0.SemanticdbIndex
+  ): Iterable[TokenPatch] = {
     val base = underlying(patch)
     val moveSymbol = underlying(
       ReplaceSymbolOps.naiveMoveSymbolPatch(base.collect {
         case m: ReplaceSymbol => m
-      })(ctx, index))
+      })(ctx, index)
+    )
     val patches = base.filterNot(_.isInstanceOf[ReplaceSymbol]) ++ moveSymbol
     val tokenPatches = patches.collect { case e: TokenPatch => e }
     val importPatches = patches.collect { case e: ImportPatch => e }
@@ -97,7 +101,8 @@ object PatchInternals {
           case x: TokenPatch => x
           case els =>
             throw Failure.InvariantFailedException(
-              s"Expected TokenPatch, got $els")
+              s"Expected TokenPatch, got $els"
+            )
         }
     }
     importTokenPatches ++ tokenPatches
@@ -105,7 +110,8 @@ object PatchInternals {
 
   private def tokenPatchApply(
       ctx: v0.RuleCtx,
-      patches: Iterable[TokenPatch]): String = {
+      patches: Iterable[TokenPatch]
+  ): String = {
     val patchMap = patches
       .groupBy(x => TokenOps.hash(x.tok))
       .mapValues(_.reduce(merge).newTok)
@@ -159,9 +165,10 @@ object PatchInternals {
     DiffUtils.unifiedDiff(
       original.label,
       revised.label,
-      new String(original.chars).lines.toList,
-      new String(revised.chars).lines.toList,
-      context)
+      new String(original.chars).linesIterator.toList,
+      new String(revised.chars).linesIterator.toList,
+      context
+    )
   }
 
 }

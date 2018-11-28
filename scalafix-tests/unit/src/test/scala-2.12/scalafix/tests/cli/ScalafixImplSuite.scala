@@ -35,7 +35,8 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
     }
     semanticdbscalac.getOrElse {
       throw new IllegalStateException(
-        "unable to auto-detect semanticdb-scalac compiler plugin")
+        "unable to auto-detect semanticdb-scalac compiler plugin"
+      )
     }
   }
   def scalaLibrary: AbsolutePath =
@@ -132,7 +133,8 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
     // This rule is published to Maven Central to simplify testing --tool-classpath.
     val toolClasspathJars = CoursierSmall.fetch(settings)
     val toolClasspath = ClasspathOps.toClassLoader(
-      Classpath(toolClasspathJars.map(jar => AbsolutePath(jar))))
+      Classpath(toolClasspathJars.map(jar => AbsolutePath(jar)))
+    )
     val scalacOptions = Array[String](
       "-Yrangepos",
       s"-Xplugin:${semanticdbPluginPath()}",
@@ -158,7 +160,8 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
     val args = api
       .newArguments()
       .withParsedArguments(
-        List("--settings.DisableSyntax.noSemicolons", "true").asJava)
+        List("--settings.DisableSyntax.noSemicolons", "true").asJava
+      )
       .withCharset(charset)
       .withClasspath(List(d, scalaLibrary.toNIO).asJava)
       .withSourceroot(src)
@@ -204,7 +207,7 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
       .plainText
       .replaceAllLiterally(semicolon.toString, relativePath.toString)
       .replace('\\', '/') // for windows
-      .lines
+      .linesIterator
       .filterNot(_.trim.isEmpty)
       .mkString("\n")
     assert(errors == List("LinterError", "TestError"), stdout)
