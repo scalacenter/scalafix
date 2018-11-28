@@ -6,8 +6,10 @@ import scalafix.patch.Patch
 import scalafix.rule.RuleName
 import scalafix.v1
 import scalafix.v1.Configuration
+import scalafix.v1.MissingSymbolException
 import scalafix.v1.SyntacticDocument
 import scalafix.v1.Rule
+import scalafix.v1.Symbol
 import scalafix.v1.SyntacticRule
 
 class CliSyntacticSuite extends BaseCliSuite {
@@ -158,7 +160,8 @@ class CliSyntacticSuite extends BaseCliSuite {
              |   }
              | }
              |""".stripMargin
-        ))
+        )
+      )
     }
   )
 
@@ -387,10 +390,37 @@ class CliSyntacticSuite extends BaseCliSuite {
     expectedExit = ExitStatus.ParseError
   )
 
+  check(
+    name = "unexpected error",
+    originalLayout = """
+                       |/src/shared/a.scala
+                       |object a { }
+                       |""".stripMargin,
+    args = Array(
+      "-r",
+      "CrashingRule"
+    ),
+    expectedLayout = """
+                       |/src/shared/a.scala
+                       |object a { }
+                       |""".stripMargin,
+    outputAssert = { out =>
+      assert(out.contains("FileException"), out)
+      assert(out.contains("a.scala"), out)
+      assert(out.contains("MissingSymbolException"), out)
+      assert(out.contains("local63"), out)
+      // Check that the stack trace doesn't include irrelevant entries.
+      assert(out.contains("unsafeHandleFile"), out)
+      assert(!out.contains("handleFile"), out)
+    },
+    expectedExit = ExitStatus.UnexpectedError
+  )
+
   def checkCommandLineError(
       name: String,
       args: Array[String],
-      fn: String => Unit): Unit =
+      fn: String => Unit
+  ): Unit =
     check(
       name = name,
       originalLayout = "",
@@ -417,6 +447,11 @@ class CliSyntacticSuite extends BaseCliSuite {
   )
 }
 
+class CrashingRule extends SyntacticRule("CrashingRule") {
+  override def fix(implicit doc: SyntacticDocument): _root_.scalafix.v1.Patch =
+    throw new MissingSymbolException(Symbol("local63"))
+}
+
 class NoOpRule extends SyntacticRule("NoOpRule") {
   override def fix(implicit doc: SyntacticDocument): _root_.scalafix.v1.Patch =
     Patch.empty
@@ -427,7 +462,9 @@ class DeprecatedName
       RuleName("DeprecatedName").withDeprecatedName(
         "OldDeprecatedName",
         "Use DeprecatedName instead",
-        "1.0")) {
+        "1.0"
+      )
+    ) {
   override def fix(implicit doc: SyntacticDocument): _root_.scalafix.v1.Patch =
     Patch.empty
 }
@@ -446,4 +483,5 @@ class Scala2_9 extends SyntacticRule("Scala2_9") {
 class AvailableRule
     extends v1.SemanticRule(
       v1.RuleName("AvailableRule")
-        .withDeprecatedName("DeprecatedAvailableRule", "", ""))
+        .withDeprecatedName("DeprecatedAvailableRule", "", "")
+    )
