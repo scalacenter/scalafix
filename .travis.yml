@@ -30,6 +30,7 @@ cache:
     - "$HOME/.sbt"
     - "$HOME/.ivy2/cache"
     - "$HOME/.coursier"
+    - "$HOME/.cache"
   yarn: true
 
 before_cache:

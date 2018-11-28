@@ -19,8 +19,8 @@ import scalafix.internal.v1._
 
 case class LegacyInMemorySemanticdbIndex(
     index: Map[String, SemanticdbIndex],
-    symtab: SymbolTable)
-    extends CrashingSemanticdbIndex
+    symtab: SymbolTable
+) extends CrashingSemanticdbIndex
     with SymbolTable {
 
   def info(symbol: String): Option[s.SymbolInformation] = symtab.info(symbol)
@@ -78,8 +78,9 @@ object LegacyInMemorySemanticdbIndex {
 
   def load(
       classpath: Classpath,
-      sourceroot: AbsolutePath): LegacyInMemorySemanticdbIndex = {
-    val symtab = ClasspathOps.newSymbolTable(classpath).get
+      sourceroot: AbsolutePath
+  ): LegacyInMemorySemanticdbIndex = {
+    val symtab = ClasspathOps.newSymbolTable(classpath)
     val dialect = dialects.Scala212
     load(classpath, sourceroot, symtab, dialect)
   }

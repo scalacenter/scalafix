@@ -24,7 +24,8 @@ abstract class SemanticRuleSuite(val props: TestkitProperties)
 
   @deprecated(
     "Use empty constructor instead. Arguments are passed as resource 'scalafix-testkit.properties'",
-    "0.6.0")
+    "0.6.0"
+  )
   def this(
       index: SemanticdbIndex,
       inputSourceroot: AbsolutePath,
@@ -77,9 +78,7 @@ abstract class SemanticRuleSuite(val props: TestkitProperties)
   }
 
   lazy val testsToRun = {
-    val symtab = ClasspathOps
-      .newSymbolTable(props.inputClasspath)
-      .getOrElse { sys.error("Failed to load symbol table") }
+    val symtab = ClasspathOps.newSymbolTable(props.inputClasspath)
     val classLoader = ClasspathOps.toClassLoader(props.inputClasspath)
     val tests = TestkitPath.fromProperties(props)
     tests.map { test =>
@@ -94,8 +93,9 @@ abstract class SemanticRuleSuite(val props: TestkitProperties)
 object SemanticRuleSuite {
   def defaultClasspath(classDirectory: AbsolutePath) = Classpath(
     classDirectory ::
-      RuleCompiler.defaultClasspathPaths.filter(path =>
-      path.toNIO.getFileName.toString.contains("scala-library"))
+      RuleCompiler.defaultClasspathPaths.filter(
+      path => path.toNIO.getFileName.toString.contains("scala-library")
+    )
   )
 
   def stripTestkitComments(input: String): String =
@@ -119,7 +119,8 @@ object SemanticRuleSuite {
       .getOrElse {
         val input = tokens.headOption.fold("the file")(_.input.toString)
         throw new IllegalArgumentException(
-          s"Missing /* */ comment at the top of $input")
+          s"Missing /* */ comment at the top of $input"
+        )
       }
   }
 

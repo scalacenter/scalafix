@@ -24,6 +24,9 @@ import scala.meta.internal.io.PathIO
 import scala.meta.internal.symtab.SymbolTable
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 import scalafix.interfaces.ScalafixMainCallback
 import scalafix.internal.config.FilterMatcher
 import scalafix.internal.config.PrintStreamReporter
@@ -41,7 +44,8 @@ case class Args(
     @Section("Common options")
     @Description(
       "Scalafix rules to run, for example ExplicitResultTypes. " +
-        "The syntax for rules is documented in https://scalacenter.github.io/scalafix/docs/users/configuration#rules")
+        "The syntax for rules is documented in https://scalacenter.github.io/scalafix/docs/users/configuration#rules"
+    )
     @ExtraName("r")
     @Repeated
     rules: List[String] = Nil,
@@ -51,24 +55,29 @@ case class Args(
     files: List[AbsolutePath] = Nil,
     @Description(
       "File path to a .scalafix.conf configuration file. " +
-        "Defaults to .scalafix.conf in the current working directory, if any.")
+        "Defaults to .scalafix.conf in the current working directory, if any."
+    )
     config: Option[AbsolutePath] = None,
     @Description(
       "Check that all files have been fixed with scalafix, exiting with non-zero code on violations. " +
-        "Won't write to files.")
+        "Won't write to files."
+    )
     @ExtraName("test")
     check: Boolean = false,
     @Description("Print fixed output to stdout instead of writing in-place.")
     stdout: Boolean = false,
     @Description(
-      "If set, only apply scalafix to added and edited files in git diff against the master branch.")
+      "If set, only apply scalafix to added and edited files in git diff against the master branch."
+    )
     diff: Boolean = false,
     @Description(
-      "If set, only apply scalafix to added and edited files in git diff against a provided branch, commit or tag.")
+      "If set, only apply scalafix to added and edited files in git diff against a provided branch, commit or tag."
+    )
     diffBase: Option[String] = None,
     @Description(
       "Run only syntactic rules, ignore semantic rules even if they are explicitly " +
-        "configured in .scalafix.conf or via --rules")
+        "configured in .scalafix.conf or via --rules"
+    )
     syntactic: Boolean = false,
     @Description("Print out additional diagnostics while running scalafix.")
     verbose: Boolean = false,
@@ -86,21 +95,26 @@ case class Args(
         "need to be compiled with semanticdb-scalac."
     )
     classpath: Classpath = Classpath(Nil),
-    @Description("Absolute path passed to semanticdb with -P:semanticdb:sourceroot:<path>. " +
-      "Relative filenames persisted in the Semantic DB are absolutized by the " +
-      "sourceroot. Defaults to current working directory if not provided.")
+    @Description(
+      "Absolute path passed to semanticdb with -P:semanticdb:sourceroot:<path>. " +
+        "Relative filenames persisted in the Semantic DB are absolutized by the " +
+        "sourceroot. Defaults to current working directory if not provided."
+    )
     sourceroot: Option[AbsolutePath] = None,
     @Description(
-      "If set, automatically infer the --classpath flag by scanning for directories with META-INF/semanticdb")
+      "If set, automatically infer the --classpath flag by scanning for directories with META-INF/semanticdb"
+    )
     autoClasspath: Boolean = false,
     @Description("Additional directories to scan for --auto-classpath")
     @ExtraName("classpathAutoRoots")
     autoClasspathRoots: List[AbsolutePath] = Nil,
     @Description(
-      "The scala compiler options used to compile this --classpath, for example -Ywarn-unused-import")
+      "The scala compiler options used to compile this --classpath, for example -Ywarn-unused-import"
+    )
     scalacOptions: List[String] = Nil,
     @Description(
-      "The Scala compiler version that was used to compile this project.")
+      "The Scala compiler version that was used to compile this project."
+    )
     scalaVersion: String = scala.util.Properties.versionNumberString,
     @Section("Tab completions")
     @Description(
@@ -128,10 +142,12 @@ case class Args(
     @Section("Less common options")
     @Description(
       "Unix-style glob for files to exclude from fixing. " +
-        "The glob syntax is defined by `nio.FileSystem.getPathMatcher`.")
+        "The glob syntax is defined by `nio.FileSystem.getPathMatcher`."
+    )
     exclude: List[PathMatcher] = Nil,
     @Description(
-      "Additional classpath for compiling and classloading custom rules.")
+      "Additional classpath for compiling and classloading custom rules."
+    )
     toolClasspath: URLClassLoader = ClasspathOps.thisClassLoader,
     @Description("The encoding to use for reading/writing files")
     charset: Charset = StandardCharsets.UTF_8,
@@ -142,13 +158,16 @@ case class Args(
     @Description("Custom settings to override .scalafix.conf")
     settings: Conf = Conf.Obj.empty,
     @Description(
-      "Write fixed output to custom location instead of in-place. Regex is passed as first argument to file.replaceAll(--out-from, --out-to), requires --out-to.")
+      "Write fixed output to custom location instead of in-place. Regex is passed as first argument to file.replaceAll(--out-from, --out-to), requires --out-to."
+    )
     outFrom: Option[String] = None,
     @Description(
-      "Companion of --out-from, string that is passed as second argument to fileToFix.replaceAll(--out-from, --out-to)")
+      "Companion of --out-from, string that is passed as second argument to fileToFix.replaceAll(--out-from, --out-to)"
+    )
     outTo: Option[String] = None,
     @Description(
-      "Insert /* scalafix:ok */ suppressions instead of reporting linter errors.")
+      "Insert /* scalafix:ok */ suppressions instead of reporting linter errors."
+    )
     autoSuppressLinterErrors: Boolean = false,
     @Description("The current working directory")
     cwd: AbsolutePath,
@@ -166,14 +185,16 @@ case class Args(
   override def toString: String = ConfEncoder[Args].write(this).toString()
 
   def configuredSymtab: Configured[SymbolTable] = {
-    ClasspathOps.newSymbolTable(
-      classpath = classpath,
-      out = out
+    Try(
+      ClasspathOps.newSymbolTable(
+        classpath = classpath,
+        out = out
+      )
     ) match {
-      case Some(symtab) =>
+      case Success(symtab) =>
         Configured.ok(symtab)
-      case _ =>
-        ConfError.message("Unable to load symbol table").notOk
+      case Failure(e) =>
+        ConfError.message(s"Unable to load symbol table: ${e.getMessage}").notOk
     }
   }
 
@@ -254,7 +275,8 @@ case class Args(
             Paths.get(
               URI.create(
                 "file:" +
-                  outFromPattern.matcher(file.toURI.getPath).replaceAll(to))
+                  outFromPattern.matcher(file.toURI.getPath).replaceAll(to)
+              )
             )
           )
           Ok(replacePath _)
@@ -385,8 +407,9 @@ object Args {
   implicit val printStreamDecoder: ConfDecoder[PrintStream] =
     ConfDecoder.stringConfDecoder.map(_ => System.out)
   implicit val pathMatcherDecoder: ConfDecoder[PathMatcher] =
-    ConfDecoder.stringConfDecoder.map(glob =>
-      FileSystems.getDefault.getPathMatcher("glob:" + glob))
+    ConfDecoder.stringConfDecoder.map(
+      glob => FileSystems.getDefault.getPathMatcher("glob:" + glob)
+    )
   implicit val callbackDecoder: ConfDecoder[ScalafixMainCallback] =
     ConfDecoder.stringConfDecoder.map(_ => MainCallbackImpl.default)
 
@@ -415,12 +438,14 @@ object Args {
   implicit val confPrint: TPrint[Conf] =
     TPrint.make[Conf](implicit cfg => TPrint.implicitly[ScalafixConfig].render)
   implicit def optionPrint[T](
-      implicit ev: pprint.TPrint[T]): TPrint[Option[T]] =
+      implicit ev: pprint.TPrint[T]
+  ): TPrint[Option[T]] =
     TPrint.make { implicit cfg =>
       ev.render
     }
   implicit def iterablePrint[C[x] <: Iterable[x], T](
-      implicit ev: pprint.TPrint[T]): TPrint[C[T]] =
+      implicit ev: pprint.TPrint[T]
+  ): TPrint[C[T]] =
     TPrint.make { implicit cfg =>
       s"[${ev.render} ...]"
     }
