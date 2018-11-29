@@ -35,7 +35,28 @@ import scala.meta._
 ```scala mdoc:passthrough
 import scalafix.docs.PatchDocs
 import scalafix.docs.PatchDocs._
-implicit var doc: Symtab = scalafixSymtab
+implicit var doc: SemanticDocument = null
+```
+
+### Get symbol of a tree
+
+Use `Tree.symbol` to get the symbol of a tree. Consider the following code.
+
+```scala mdoc:passthrough
+doc = PatchDocs.fromStatement("""
+println(42)
+println()
+""")
+```
+
+To get the `println` symbol we match against the `Term.Name("println")` tree
+node.
+
+```scala mdoc
+doc.tree.collect {
+  case apply @ Term.Apply(println @ Term.Name("println"), _) =>
+    (apply.syntax, println.symbol)
+}
 ```
 
 ### Lookup method return type
