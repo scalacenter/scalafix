@@ -46,6 +46,22 @@ scope</p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> scalafix.v1._
 <span class="hljs-keyword">import</span> scala.meta._
 </code></pre>
+<h3><a class="anchor" aria-hidden="true" id="get-symbol-of-a-tree"></a><a href="#get-symbol-of-a-tree" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Get symbol of a tree</h3>
+<p>Use <code>Tree.symbol</code> to get the symbol of a tree. Consider the following code.</p>
+<pre><code class="hljs css language-scala">println(<span class="hljs-number">42</span>)
+println()
+</code></pre>
+<p>To get the <code>println</code> symbol we match against the <code>Term.Name(&quot;println&quot;)</code> tree
+node.</p>
+<pre><code class="hljs css language-scala">doc.tree.collect {
+  <span class="hljs-keyword">case</span> apply @ <span class="hljs-type">Term</span>.<span class="hljs-type">Apply</span>(println @ <span class="hljs-type">Term</span>.<span class="hljs-type">Name</span>(<span class="hljs-string">"println"</span>), _) =&gt;
+    (apply.syntax, println.symbol)
+}
+<span class="hljs-comment">// res1: List[(String, Symbol)] = List(</span>
+<span class="hljs-comment">//   ("println(42)", scala/Predef.println(+1).),</span>
+<span class="hljs-comment">//   ("println()", scala/Predef.println().)</span>
+<span class="hljs-comment">// )</span>
+</code></pre>
 <h3><a class="anchor" aria-hidden="true" id="lookup-method-return-type"></a><a href="#lookup-method-return-type" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Lookup method return type</h3>
 <p>Use <code>MethodSignature.returnType</code> to inspect the return type of a method.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">printReturnType</span></span>(symbol: <span class="hljs-type">Symbol</span>): <span class="hljs-type">Unit</span> = {
@@ -267,7 +283,7 @@ printTypeAlias(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"
       }
   }
 getParentSymbols(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"scala/Some#"</span>))
-<span class="hljs-comment">// res27: Set[Symbol] = Set(</span>
+<span class="hljs-comment">// res29: Set[Symbol] = Set(</span>
 <span class="hljs-comment">//   scala/Any#,</span>
 <span class="hljs-comment">//   java/io/Serializable#,</span>
 <span class="hljs-comment">//   scala/Serializable#,</span>
@@ -279,7 +295,7 @@ getParentSymbols(<span class="hljs-type">Symbol</span>(<span class="hljs-string"
 <span class="hljs-comment">//   java/lang/Object#</span>
 <span class="hljs-comment">// )</span>
 getParentSymbols(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/lang/String#"</span>))
-<span class="hljs-comment">// res28: Set[Symbol] = Set(</span>
+<span class="hljs-comment">// res30: Set[Symbol] = Set(</span>
 <span class="hljs-comment">//   java/lang/String#,</span>
 <span class="hljs-comment">//   java/io/Serializable#,</span>
 <span class="hljs-comment">//   java/lang/CharSequence#,</span>
@@ -287,7 +303,7 @@ getParentSymbols(<span class="hljs-type">Symbol</span>(<span class="hljs-string"
 <span class="hljs-comment">//   java/lang/Object#</span>
 <span class="hljs-comment">// )</span>
 getParentSymbols(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"scala/collection/immutable/List#"</span>)).take(<span class="hljs-number">5</span>)
-<span class="hljs-comment">// res29: Set[Symbol] = Set(</span>
+<span class="hljs-comment">// res31: Set[Symbol] = Set(</span>
 <span class="hljs-comment">//   scala/collection/GenSeq#,</span>
 <span class="hljs-comment">//   scala/collection/GenSeqLike#,</span>
 <span class="hljs-comment">//   scala/collection/IterableLike#,</span>
@@ -309,43 +325,43 @@ inherited from supertypes.</p>
     <span class="hljs-keyword">case</span> _ =&gt; <span class="hljs-type">Set</span>.empty
   }
 getClassMethods(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"scala/Some#"</span>)).take(<span class="hljs-number">5</span>)
-<span class="hljs-comment">// res30: Set[SymbolInformation] = Set(</span>
-<span class="hljs-comment">//   scala/Option#filter(). =&gt; @inline final method filter(p: Function1[A, Boolean]): Option[A],</span>
-<span class="hljs-comment">//   scala/Option#withFilter(). =&gt; @inline final method withFilter(p: Function1[A, Boolean]): WithFilter,</span>
-<span class="hljs-comment">//   scala/AnyRef#synchronized(). =&gt; final method synchronized[T](body: T): T,</span>
-<span class="hljs-comment">//   scala/Any#`!=`(). =&gt; final method !=(that: Any): Boolean,</span>
-<span class="hljs-comment">//   java/lang/Object#wait(). =&gt; final method wait(param0: Long): Unit</span>
+<span class="hljs-comment">// res32: Set[SymbolInformation] = Set(</span>
+<span class="hljs-comment">//   java/lang/Object#getClass(). =&gt; final method getClass(): Class[local_wildcard],</span>
+<span class="hljs-comment">//   scala/Any#toString(). =&gt; abstract method toString(): String,</span>
+<span class="hljs-comment">//   scala/Any#isInstanceOf(). =&gt; final method isInstanceOf[A](): Boolean,</span>
+<span class="hljs-comment">//   scala/Some#productElement(). =&gt; method productElement(x$1: Int): Any,</span>
+<span class="hljs-comment">//   scala/Any#`##`(). =&gt; final method ##(): Int</span>
 <span class="hljs-comment">// )</span>
 getClassMethods(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/lang/String#"</span>)).take(<span class="hljs-number">5</span>)
-<span class="hljs-comment">// res31: Set[SymbolInformation] = Set(</span>
-<span class="hljs-comment">//   java/lang/String#split(). =&gt; method split(param0: String, param1: Int): Array[String],</span>
-<span class="hljs-comment">//   java/lang/String#startsWith(). =&gt; method startsWith(param0: String, param1: Int): Boolean,</span>
+<span class="hljs-comment">// res33: Set[SymbolInformation] = Set(</span>
 <span class="hljs-comment">//   java/lang/Object#registerNatives(). =&gt; private static method registerNatives(): Unit,</span>
-<span class="hljs-comment">//   java/lang/Object#getClass(). =&gt; final method getClass(): Class[local_wildcard],</span>
-<span class="hljs-comment">//   java/lang/CharSequence#chars(). =&gt; default method chars(): IntStream</span>
+<span class="hljs-comment">//   java/lang/CharSequence#charAt(). =&gt; abstract method charAt(param0: Int): Char,</span>
+<span class="hljs-comment">//   java/lang/String#getBytes(). =&gt; method getBytes(param0: Int, param1: Int, param2: Array[Byte], param3: Int): Unit,</span>
+<span class="hljs-comment">//   java/lang/String#valueOf(+5). =&gt; static method valueOf(param0: Int): String,</span>
+<span class="hljs-comment">//   java/lang/String#toCharArray(). =&gt; method toCharArray(): Array[Char]</span>
 <span class="hljs-comment">// )</span>
 getClassMethods(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"scala/collection/immutable/List#"</span>)).take(<span class="hljs-number">5</span>)
-<span class="hljs-comment">// res32: Set[SymbolInformation] = Set(</span>
-<span class="hljs-comment">//   scala/collection/SeqLike#lastIndexOfSlice(+1). =&gt; method lastIndexOfSlice[B &gt;: A](that: GenSeq[B], end: Int): Int,</span>
-<span class="hljs-comment">//   scala/collection/GenTraversableOnce#mkString(+2). =&gt; abstract method mkString: String,</span>
-<span class="hljs-comment">//   scala/collection/TraversableOnce#toIterable(). =&gt; method toIterable: Iterable[A],</span>
-<span class="hljs-comment">//   scala/Any#`==`(). =&gt; final method ==(that: Any): Boolean,</span>
-<span class="hljs-comment">//   scala/collection/GenTraversableLike#flatMap(). =&gt; abstract method flatMap[B, That](f: Function1[A, GenTraversableOnce[B]])(implicit bf: CanBuildFrom[Repr, B, That]): That</span>
+<span class="hljs-comment">// res34: Set[SymbolInformation] = Set(</span>
+<span class="hljs-comment">//   scala/Any#`##`(). =&gt; final method ##(): Int,</span>
+<span class="hljs-comment">//   scala/collection/SeqLike#indexOfSlice(+1). =&gt; method indexOfSlice[B &gt;: A](that: GenSeq[B], from: Int): Int,</span>
+<span class="hljs-comment">//   scala/Any#`!=`(). =&gt; final method !=(that: Any): Boolean,</span>
+<span class="hljs-comment">//   scala/collection/GenTraversableOnce#toStream(). =&gt; abstract method toStream: Stream[A],</span>
+<span class="hljs-comment">//   scala/collection/GenTraversableOnce#sum(). =&gt; abstract method sum[A1 &gt;: A](implicit num: Numeric[A1]): A1</span>
 <span class="hljs-comment">// )</span>
 </code></pre>
 <p>For Java methods, use <code>SymbolInformation.isStatic</code> to separate static methods
 from non-static methods.</p>
 <pre><code class="hljs css language-scala">getClassMethods(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/lang/String#"</span>)).filter(_.isStatic).take(<span class="hljs-number">3</span>)
-<span class="hljs-comment">// res33: Set[SymbolInformation] = Set(</span>
+<span class="hljs-comment">// res35: Set[SymbolInformation] = Set(</span>
 <span class="hljs-comment">//   java/lang/Object#registerNatives(). =&gt; private static method registerNatives(): Unit,</span>
-<span class="hljs-comment">//   java/lang/Object#registerNatives(). =&gt; private static method registerNatives(): Unit,</span>
-<span class="hljs-comment">//   java/lang/String#indexOf(+5). =&gt; private[lang] static method indexOf(param0: Array[Char], param1: Int, param2: Int, param3: Array[Char], param4: Int, param5: Int, param6: Int): Int</span>
+<span class="hljs-comment">//   java/lang/String#valueOf(+8). =&gt; static method valueOf(param0: Double): String,</span>
+<span class="hljs-comment">//   java/lang/String#lastIndexOf(+4). =&gt; private[lang] static method lastIndexOf(param0: Array[Char], param1: Int, param2: Int, param3: String, param4: Int): Int</span>
 <span class="hljs-comment">// )</span>
 getClassMethods(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/lang/String#"</span>)).filter(!_.isStatic).take(<span class="hljs-number">3</span>)
-<span class="hljs-comment">// res34: Set[SymbolInformation] = Set(</span>
-<span class="hljs-comment">//   java/lang/String#contentEquals(+1). =&gt; method contentEquals(param0: CharSequence): Boolean,</span>
-<span class="hljs-comment">//   java/lang/String#equalsIgnoreCase(). =&gt; method equalsIgnoreCase(param0: String): Boolean,</span>
-<span class="hljs-comment">//   java/lang/String#lastIndexOf(+3). =&gt; method lastIndexOf(param0: String, param1: Int): Int</span>
+<span class="hljs-comment">// res36: Set[SymbolInformation] = Set(</span>
+<span class="hljs-comment">//   java/lang/Object#wait(+2). =&gt; final method wait(): Unit,</span>
+<span class="hljs-comment">//   java/lang/String#lastIndexOf(). =&gt; method lastIndexOf(param0: Int): Int,</span>
+<span class="hljs-comment">//   java/lang/Object#hashCode(). =&gt; method hashCode(): Int</span>
 <span class="hljs-comment">// )</span>
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="lookup-class-primary-constructor"></a><a href="#lookup-class-primary-constructor" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Lookup class primary constructor</h3>
@@ -368,28 +384,28 @@ constructor.</p>
     <span class="hljs-keyword">case</span> _ =&gt; <span class="hljs-type">Nil</span>
   }
 getConstructors(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"example/User#"</span>)).filter(_.isPrimary)
-<span class="hljs-comment">// res36: List[SymbolInformation] = List(</span>
+<span class="hljs-comment">// res38: List[SymbolInformation] = List(</span>
 <span class="hljs-comment">//   example/User#`&lt;init&gt;`(). =&gt; primary ctor &lt;init&gt;(name: String, age: Int)</span>
 <span class="hljs-comment">// )</span>
 
 <span class="hljs-comment">// secondary constructors are distinguished by not being primary</span>
 getConstructors(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"example/User#"</span>)).filter(!_.isPrimary)
-<span class="hljs-comment">// res37: List[SymbolInformation] = List(</span>
+<span class="hljs-comment">// res39: List[SymbolInformation] = List(</span>
 <span class="hljs-comment">//   example/User#`&lt;init&gt;`(+1). =&gt; ctor &lt;init&gt;(name: String)</span>
 <span class="hljs-comment">// )</span>
 </code></pre>
 <p>Java constructors cannot be primary, &quot;primary constructor&quot; is a Scala-specific
 feature.</p>
 <pre><code class="hljs css language-scala">getConstructors(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/lang/String#"</span>)).take(<span class="hljs-number">3</span>)
-<span class="hljs-comment">// res38: List[SymbolInformation] = List(</span>
+<span class="hljs-comment">// res40: List[SymbolInformation] = List(</span>
 <span class="hljs-comment">//   java/lang/String#`&lt;init&gt;`(). =&gt; ctor &lt;init&gt;(),</span>
 <span class="hljs-comment">//   java/lang/String#`&lt;init&gt;`(+1). =&gt; ctor &lt;init&gt;(param0: String),</span>
 <span class="hljs-comment">//   java/lang/String#`&lt;init&gt;`(+2). =&gt; ctor &lt;init&gt;(param0: Array[Char])</span>
 <span class="hljs-comment">// )</span>
 getConstructors(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/lang/String#"</span>)).filter(_.isPrimary)
-<span class="hljs-comment">// res39: List[SymbolInformation] = List()</span>
+<span class="hljs-comment">// res41: List[SymbolInformation] = List()</span>
 getConstructors(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/util/ArrayList#"</span>)).filter(_.isPrimary)
-<span class="hljs-comment">// res40: List[SymbolInformation] = List()</span>
+<span class="hljs-comment">// res42: List[SymbolInformation] = List()</span>
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="lookup-case-class-fields"></a><a href="#lookup-case-class-fields" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Lookup case class fields</h3>
 <p>Consider the following program.</p>
@@ -442,25 +458,25 @@ for a discussion about adding <code>isSynthetic</code> to distinguish between <c
     <span class="hljs-keyword">case</span> _ =&gt; <span class="hljs-type">Set</span>.empty
   }
 getMethodOverloads(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/lang/String#"</span>), <span class="hljs-string">"substring"</span>)
-<span class="hljs-comment">// res45: Set[SymbolInformation] = Set(</span>
+<span class="hljs-comment">// res47: Set[SymbolInformation] = Set(</span>
 <span class="hljs-comment">//   java/lang/String#substring(). =&gt; method substring(param0: Int): String,</span>
 <span class="hljs-comment">//   java/lang/String#substring(+1). =&gt; method substring(param0: Int, param1: Int): String</span>
 <span class="hljs-comment">// )</span>
 getMethodOverloads(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"scala/Predef."</span>), <span class="hljs-string">"assert"</span>)
-<span class="hljs-comment">// res46: Set[SymbolInformation] = Set(</span>
+<span class="hljs-comment">// res48: Set[SymbolInformation] = Set(</span>
 <span class="hljs-comment">//   scala/Predef.assert(). =&gt; @elidable method assert(assertion: Boolean): Unit,</span>
 <span class="hljs-comment">//   scala/Predef.assert(+1). =&gt; @inline @elidable final method assert(assertion: Boolean, message: =&gt; Any): Unit</span>
 <span class="hljs-comment">// )</span>
 getMethodOverloads(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"scala/Predef."</span>), <span class="hljs-string">"println"</span>)
-<span class="hljs-comment">// res47: Set[SymbolInformation] = Set(</span>
+<span class="hljs-comment">// res49: Set[SymbolInformation] = Set(</span>
 <span class="hljs-comment">//   scala/Predef.println(). =&gt; method println(): Unit,</span>
 <span class="hljs-comment">//   scala/Predef.println(+1). =&gt; method println(x: Any): Unit</span>
 <span class="hljs-comment">// )</span>
 getMethodOverloads(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/io/PrintStream#"</span>), <span class="hljs-string">"print"</span>).take(<span class="hljs-number">3</span>)
-<span class="hljs-comment">// res48: Set[SymbolInformation] = Set(</span>
-<span class="hljs-comment">//   java/io/PrintStream#print(+7). =&gt; method print(param0: String): Unit,</span>
-<span class="hljs-comment">//   java/io/PrintStream#print(). =&gt; method print(param0: Boolean): Unit,</span>
-<span class="hljs-comment">//   java/io/PrintStream#print(+1). =&gt; method print(param0: Char): Unit</span>
+<span class="hljs-comment">// res50: Set[SymbolInformation] = Set(</span>
+<span class="hljs-comment">//   java/io/PrintStream#print(+5). =&gt; method print(param0: Double): Unit,</span>
+<span class="hljs-comment">//   java/io/PrintStream#print(+3). =&gt; method print(param0: Long): Unit,</span>
+<span class="hljs-comment">//   java/io/PrintStream#print(+7). =&gt; method print(param0: String): Unit</span>
 <span class="hljs-comment">// )</span>
 </code></pre>
 <p>Overloaded methods can be inherited from supertypes.</p>
@@ -471,7 +487,7 @@ getMethodOverloads(<span class="hljs-type">Symbol</span>(<span class="hljs-strin
 }
 </code></pre>
 <pre><code class="hljs css language-scala">getMethodOverloads(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"example/Main#"</span>), <span class="hljs-string">"toString"</span>)
-<span class="hljs-comment">// res50: Set[SymbolInformation] = Set(</span>
+<span class="hljs-comment">// res52: Set[SymbolInformation] = Set(</span>
 <span class="hljs-comment">//   example/Main#toString(). =&gt; method toString(width: Int): String,</span>
 <span class="hljs-comment">//   scala/Any#toString(). =&gt; abstract method toString(): String</span>
 <span class="hljs-comment">// )</span>
@@ -748,7 +764,7 @@ address common use-cases:</p>
 <code>var</code> symbol has a corresponding setter symbol. Setter symbols are
 distinguished by having a display name that ends with <code>_=</code>.</li>
 </ul>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/scalafix/docs/developers/symbol-matcher.html"><span class="arrow-prev">← </span><span class="function-name-prevnext">SymbolMatcher</span></a><a class="docs-next button" href="/scalafix/docs/developers/semantic-type.html"><span class="function-name-prevnext">SemanticType</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#cookbook">Cookbook</a><ul class="toc-headings"><li><a href="#lookup-method-return-type">Lookup method return type</a></li><li><a href="#lookup-method-parameters">Lookup method parameters</a></li><li><a href="#test-if-method-is-nullary">Test if method is nullary</a></li><li><a href="#lookup-type-alias">Lookup type alias</a></li><li><a href="#lookup-class-parents">Lookup class parents</a></li><li><a href="#lookup-class-methods">Lookup class methods</a></li><li><a href="#lookup-class-primary-constructor">Lookup class primary constructor</a></li><li><a href="#lookup-case-class-fields">Lookup case class fields</a></li><li><a href="#lookup-method-overloads">Lookup method overloads</a></li><li><a href="#test-if-symbol-is-from-java-or-scala">Test if symbol is from Java or Scala</a></li><li><a href="#test-if-symbol-is-private">Test if symbol is private</a></li><li><a href="#lookup-symbol-annotations">Lookup symbol annotations</a></li></ul></li><li><a href="#known-limitations">Known limitations</a><ul class="toc-headings"><li><a href="#lookup-method-overrides">Lookup method overrides</a></li></ul></li><li><a href="#semanticdb">SemanticDB</a><ul class="toc-headings"><li><a href="#language">Language</a></li><li><a href="#kind">Kind</a></li><li><a href="#properties">Properties</a></li><li><a href="#signature">Signature</a></li><li><a href="#annotation">Annotation</a></li><li><a href="#access">Access</a></li><li><a href="#utility-methods">Utility methods</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#15242B"><section class="sitemap"><a href="/scalafix/" class="nav-home"><img src="/scalafix/img/scalacenter2x.png" alt="Scalafix" width="66" height="58"/></a><div><h5>Docs</h5><a href="
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/scalafix/docs/developers/symbol-matcher.html"><span class="arrow-prev">← </span><span class="function-name-prevnext">SymbolMatcher</span></a><a class="docs-next button" href="/scalafix/docs/developers/semantic-type.html"><span class="function-name-prevnext">SemanticType</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#cookbook">Cookbook</a><ul class="toc-headings"><li><a href="#get-symbol-of-a-tree">Get symbol of a tree</a></li><li><a href="#lookup-method-return-type">Lookup method return type</a></li><li><a href="#lookup-method-parameters">Lookup method parameters</a></li><li><a href="#test-if-method-is-nullary">Test if method is nullary</a></li><li><a href="#lookup-type-alias">Lookup type alias</a></li><li><a href="#lookup-class-parents">Lookup class parents</a></li><li><a href="#lookup-class-methods">Lookup class methods</a></li><li><a href="#lookup-class-primary-constructor">Lookup class primary constructor</a></li><li><a href="#lookup-case-class-fields">Lookup case class fields</a></li><li><a href="#lookup-method-overloads">Lookup method overloads</a></li><li><a href="#test-if-symbol-is-from-java-or-scala">Test if symbol is from Java or Scala</a></li><li><a href="#test-if-symbol-is-private">Test if symbol is private</a></li><li><a href="#lookup-symbol-annotations">Lookup symbol annotations</a></li></ul></li><li><a href="#known-limitations">Known limitations</a><ul class="toc-headings"><li><a href="#lookup-method-overrides">Lookup method overrides</a></li></ul></li><li><a href="#semanticdb">SemanticDB</a><ul class="toc-headings"><li><a href="#language">Language</a></li><li><a href="#kind">Kind</a></li><li><a href="#properties">Properties</a></li><li><a href="#signature">Signature</a></li><li><a href="#annotation">Annotation</a></li><li><a href="#access">Access</a></li><li><a href="#utility-methods">Utility methods</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#15242B"><section class="sitemap"><a href="/scalafix/" class="nav-home"><img src="/scalafix/img/scalacenter2x.png" alt="Scalafix" width="66" height="58"/></a><div><h5>Docs</h5><a href="
                 /scalafix/docs/users/installation.html">Get started</a><a href="
                 /scalafix/docs/rules/overview.html">Rules</a><a href="
                 /scalafix/docs/developers/setup.html">Extend Scalafix</a></div><div><h5>Community</h5><a href="https://gitter.im/scalacenter/scalafix" target="_blank">Chat on Gitter</a><a href="https://users.scala-lang.org/" target="_blank">Discuss on Scala Users</a></div><div><h5>More</h5><a href="https://github.com/scalacenter/scalafix" target="_blank">GitHub</a></div></section><section class="copyright">Copyright © 2018 Scala Center</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>

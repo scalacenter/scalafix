@@ -397,7 +397,8 @@ read the configuration yet.</p>
 <blockquote>
 <p>It's important to keep an empty constructor <code>def this() = ...</code> so that
 Scalafix can load the rule. If we forget the empty constructor we get an error
-like this: &quot;Provider fix.NoLiteralArguments could not be instantiated&quot;</p>
+like this: &quot;java.lang.NoSuchMethodException: Provider fix.NoLiteralArguments
+could not be instantiated&quot;</p>
 </blockquote>
 <p>Next, we create a companion object with decoders to read <code>.scalafix.conf</code>
 configuration into <code>NoLiteralArgumentsConfig</code>.</p>
@@ -530,20 +531,64 @@ scheme.</p>
 </tbody>
 </table>
 <h2><a class="anchor" aria-hidden="true" id="publish-the-rule-to-maven-central"></a><a href="#publish-the-rule-to-maven-central" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Publish the rule to Maven Central</h2>
-<p>The most robust way to share a custom rule is to publish it as a library to
-Maven Central. The
-<a href="https://github.com/olafurpg/named-literal-arguments/blob/master/scalafix/build.sbt"><code>build.sbt</code></a>
-shows the necessary changes to build.sbt to populate publishing information. The
-<a href="https://github.com/olafurpg/sbt-ci-release">sbt-ci-release</a> readme documents
-the further steps to configure gpg and Sonatype.</p>
-<p>Once you have your rule, users can depend on it in the sbt plugin by updating
-<code>scalafixDependencies</code>
-(<code>scalafix.sbt.ScalafixPlugin.autoImport.scalafixDependencies</code>)</p>
+<p>Run the following sbt command to publish a rule locally.</p>
+<pre><code class="hljs css language-sh">&gt; rules/publishLocal
+</code></pre>
+<p>To publish a rule online you need additional steps. First, add the settings
+below to your <code>build.sbt</code> (replacing <code>ch.epfl.scala</code>, <code>scalacenter/scalafix</code> and
+<code>olafurpg</code> with your own organization and project name)</p>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">// build.sbt</span>
+inThisBuild(<span class="hljs-type">List</span>(
+  organization := <span class="hljs-string">"ch.epfl.scala"</span>,
+  homepage := <span class="hljs-type">Some</span>(url(<span class="hljs-string">"https://github.com/scalacenter/scalafix"</span>)),
+  licenses := <span class="hljs-type">List</span>(<span class="hljs-string">"Apache-2.0"</span> -&gt; url(<span class="hljs-string">"http://www.apache.org/licenses/LICENSE-2.0"</span>)),
+  developers := <span class="hljs-type">List</span>(
+    <span class="hljs-type">Developer</span>(
+      <span class="hljs-string">"olafurpg"</span>,
+      <span class="hljs-string">"Ólafur Páll Geirsson"</span>,
+      <span class="hljs-string">"olafurpg@gmail.com"</span>,
+      url(<span class="hljs-string">"https://geirsson.com"</span>)
+    )
+  )
+))
+</code></pre>
+<p>Next, add the <code>sbt-ci-release</code> plugin to <code>project/plugins.sbt</code></p>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">// project/plugins.sbt</span>
+addSbtPlugin(<span class="hljs-string">"com.geirsson"</span> % <span class="hljs-string">"sbt-ci-release"</span> % <span class="hljs-string">"1.2.2"</span>)
+</code></pre>
+<p>If you have not setup GPG on your machine, run the following command</p>
+<pre><code class="hljs css language-sh">gpg --gen-key
+</code></pre>
+<p>Finally, create a Sonatype account if you have never published to Sonatype
+before. Follow the instructions
+<a href="https://central.sonatype.org/pages/ossrh-guide.html">here</a>. If you don't have a
+domain name, you can use <code>com.github.@username</code>. Here is a template you can use
+to write the Sonatype issue:</p>
+<pre><code class="hljs css language-text">Title:
+Publish rights for com.github.olafurpg
+Description:
+Hi, I would like to publish under the groupId: com.github.olafurpg.
+It's my GitHub account https://github.com/olafurpg/
+</code></pre>
+<p>Once Sonatype and GPG are setup, run the following command to publish the rule
+online.</p>
+<pre><code class="hljs css language-sh">&gt; rules/publishSigned
+&gt; sonatypeRelease
+</code></pre>
+<p>Once published, users can run your rule with the following sbt command.</p>
+<pre><code class="hljs css language-sh">// sbt shell
+&gt; scalafix dependency:NamedLiteralArguments@com.geirsson:named-literal-arguments:VERSION
+</code></pre>
+<p>To permanently install the rule for a build, users can add the dependency to
+<code>build.sbt</code> by updating <code>scalafixDependencies in ThisBuild</code>.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-comment">// build.sbt</span>
 scalafixDependencies in <span class="hljs-type">ThisBuild</span> +=
   <span class="hljs-string">"com.geirsson"</span> %% <span class="hljs-string">"named-literal-arguments"</span> % <span class="hljs-string">"VERSION"</span>
 <span class="hljs-comment">// sbt shell</span>
 &gt; scalafix <span class="hljs-type">NamedLiteralArguments</span>
+</code></pre>
+<p>For builds using <code>project/*.scala</code> files, add the following auto import</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> scalafix.sbt.<span class="hljs-type">ScalafixPlugin</span>.autoImport._
 </code></pre>
 <p>Users of the Scalafix command-line interface can use the <code>--tool-classpath</code> flag</p>
 <pre><code class="hljs">scalafix \
@@ -554,16 +599,31 @@ scalafixDependencies in <span class="hljs-type">ThisBuild</span> +=
 </code></pre>
 <p>Note that for syntactic rules like <code>NoLiteralArguments</code>, the <code>--classpath</code>
 argument is not required.</p>
+<h3><a class="anchor" aria-hidden="true" id="adding-custom-resolver"></a><a href="#adding-custom-resolver" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Adding custom resolver</h3>
+<p>Update the <code>scalafixResolvers</code> setting to resolve rules that are published to a
+custom repository like Bintray or a private Nexus.</p>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">// build.sbt</span>
+<span class="hljs-keyword">import</span> com.geirsson.coursiersmall.{<span class="hljs-type">Repository</span> =&gt; <span class="hljs-type">R</span>}
+scalafixResolvers.in(<span class="hljs-type">ThisBuild</span>) ++= <span class="hljs-type">List</span>(
+  <span class="hljs-type">R</span>.<span class="hljs-type">SonatypeSnapshots</span>,
+  <span class="hljs-type">R</span>.bintrayRepo(<span class="hljs-string">"scalacenter"</span>, <span class="hljs-string">"releases"</span>),
+  <span class="hljs-type">R</span>.bintrayIvyRepo(<span class="hljs-string">"sbt"</span>, <span class="hljs-string">"sbt-plugin-releases"</span>),
+  <span class="hljs-keyword">new</span> <span class="hljs-type">R</span>.<span class="hljs-type">Maven</span>(<span class="hljs-string">"https://oss.sonatype.org/content/repositories/snapshots/"</span>),
+  <span class="hljs-keyword">new</span> <span class="hljs-type">R</span>.<span class="hljs-type">Ivy</span>(<span class="hljs-string">s"https://dl.bintray.com/sbt/sbt-plugin-releases/"</span>)
+)
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="conclusion"></a><a href="#conclusion" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Conclusion</h3>
 <p>Don't be intimidated by publishing to Maven Central, it gets easier once you've
-done it the first time. A guide on how to publish libraries can be found
-<a href="https://github.com/olafurpg/sbt-ci-release">here</a>. The benefits of publishing a
-rule to Maven Central are many.</p>
+done it the first time. A more detailed guide on how to publish libraries can be
+found <a href="https://github.com/olafurpg/sbt-ci-release">here</a>. The benefits of
+publishing a rule to Maven Central are many.</p>
 <ul>
-<li>Dependencies, you can use custom library dependency to implement your rule</li>
-<li>Fast to run, no need to re-compile the rule on every Scalafix invocation</li>
-<li>Tab completion in sbt, users can tab-complete your rule when using sbt plugin</li>
+<li>Bring your own dependencies, you can use custom library dependency to
+implement a published rule.</li>
+<li>Fast to run, no need to re-compile the rule on every Scalafix invocation.</li>
+<li>Tab completion in sbt, users can tab-complete your rule when using sbt plugin.</li>
 </ul>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/scalafix/docs/developers/before-you-begin.html"><span class="arrow-prev">← </span><span>Before you write code</span></a><a class="docs-next button" href="/scalafix/docs/developers/api.html"><span>API Overview</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#import-the-build">Import the build</a></li><li><a href="#write-unit-tests">Write unit tests</a></li><li><a href="#use-pattern-matching-to-find-interesting-tree-nodes">Use pattern matching to find interesting tree nodes</a></li><li><a href="#use-symbolinformation-to-lookup-method-signatures">Use `SymbolInformation to lookup method signatures</a></li><li><a href="#use-diagnostic-to-report-linter-errors">Use <code>Diagnostic</code> to report linter errors</a></li><li><a href="#use-withconfiguration-to-make-a-rule-configurable">Use <code>withConfiguration</code> to make a rule configurable</a></li><li><a href="#run-the-rule-from-source-code">Run the rule from source code</a><ul class="toc-headings"><li><a href="#using-file">Using <code>file:</code></a></li><li><a href="#using-http">Using <code>http:</code></a></li><li><a href="#using-github">Using <code>github:</code></a></li></ul></li><li><a href="#publish-the-rule-to-maven-central">Publish the rule to Maven Central</a></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#15242B"><section class="sitemap"><a href="/scalafix/" class="nav-home"><img src="/scalafix/img/scalacenter2x.png" alt="Scalafix" width="66" height="58"/></a><div><h5>Docs</h5><a href="
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/scalafix/docs/developers/before-you-begin.html"><span class="arrow-prev">← </span><span>Before you write code</span></a><a class="docs-next button" href="/scalafix/docs/developers/api.html"><span>API Overview</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#import-the-build">Import the build</a></li><li><a href="#write-unit-tests">Write unit tests</a></li><li><a href="#use-pattern-matching-to-find-interesting-tree-nodes">Use pattern matching to find interesting tree nodes</a></li><li><a href="#use-symbolinformation-to-lookup-method-signatures">Use `SymbolInformation to lookup method signatures</a></li><li><a href="#use-diagnostic-to-report-linter-errors">Use <code>Diagnostic</code> to report linter errors</a></li><li><a href="#use-withconfiguration-to-make-a-rule-configurable">Use <code>withConfiguration</code> to make a rule configurable</a></li><li><a href="#run-the-rule-from-source-code">Run the rule from source code</a><ul class="toc-headings"><li><a href="#using-file">Using <code>file:</code></a></li><li><a href="#using-http">Using <code>http:</code></a></li><li><a href="#using-github">Using <code>github:</code></a></li></ul></li><li><a href="#publish-the-rule-to-maven-central">Publish the rule to Maven Central</a><ul class="toc-headings"><li><a href="#adding-custom-resolver">Adding custom resolver</a></li><li><a href="#conclusion">Conclusion</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#15242B"><section class="sitemap"><a href="/scalafix/" class="nav-home"><img src="/scalafix/img/scalacenter2x.png" alt="Scalafix" width="66" height="58"/></a><div><h5>Docs</h5><a href="
                 /scalafix/docs/users/installation.html">Get started</a><a href="
                 /scalafix/docs/rules/overview.html">Rules</a><a href="
                 /scalafix/docs/developers/setup.html">Extend Scalafix</a></div><div><h5>Community</h5><a href="https://gitter.im/scalacenter/scalafix" target="_blank">Chat on Gitter</a><a href="https://users.scala-lang.org/" target="_blank">Discuss on Scala Users</a></div><div><h5>More</h5><a href="https://github.com/scalacenter/scalafix" target="_blank">GitHub</a></div></section><section class="copyright">Copyright © 2018 Scala Center</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
