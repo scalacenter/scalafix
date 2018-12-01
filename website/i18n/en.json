@@ -19,9 +19,6 @@
       "developers/patch": {
         "title": "Patch"
       },
-      "developers/scala-type": {
-        "title": "ScalaType"
-      },
       "developers/semantic-tree": {
         "title": "SemanticTree"
       },
@@ -39,9 +36,6 @@
       },
       "developers/symbol-matcher": {
         "title": "SymbolMatcher"
-      },
-      "developers/synthetic-tree": {
-        "title": "SyntheticTree"
       },
       "developers/tutorial": {
         "title": "Tutorial"

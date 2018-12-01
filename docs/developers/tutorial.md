@@ -478,7 +478,8 @@ Next we update the rule to have an instance of the configuration
 
 > It's important to keep an empty constructor `def this() = ...` so that
 > Scalafix can load the rule. If we forget the empty constructor we get an error
-> like this: "Provider fix.NoLiteralArguments could not be instantiated"
+> like this: "java.lang.NoSuchMethodException: Provider fix.NoLiteralArguments
+> could not be instantiated"
 
 Next, we create a companion object with decoders to read `.scalafix.conf`
 configuration into `NoLiteralArgumentsConfig`.
@@ -640,16 +641,77 @@ The expansion rules for `github:org/repo` are the following:
 
 ## Publish the rule to Maven Central
 
-The most robust way to share a custom rule is to publish it as a library to
-Maven Central. The
-[`build.sbt`](https://github.com/olafurpg/named-literal-arguments/blob/master/scalafix/build.sbt)
-shows the necessary changes to build.sbt to populate publishing information. The
-[sbt-ci-release](https://github.com/olafurpg/sbt-ci-release) readme documents
-the further steps to configure gpg and Sonatype.
+Run the following sbt command to publish a rule locally.
 
-Once you have your rule, users can depend on it in the sbt plugin by updating
-`scalafixDependencies`
-(`scalafix.sbt.ScalafixPlugin.autoImport.scalafixDependencies`)
+```sh
+> rules/publishLocal
+```
+
+To publish a rule online you need additional steps. First, add the settings
+below to your `build.sbt` (replacing `ch.epfl.scala`, `scalacenter/scalafix` and
+`olafurpg` with your own organization and project name)
+
+```scala
+// build.sbt
+inThisBuild(List(
+  organization := "ch.epfl.scala",
+  homepage := Some(url("https://github.com/scalacenter/scalafix")),
+  licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+  developers := List(
+    Developer(
+      "olafurpg",
+      "Ólafur Páll Geirsson",
+      "olafurpg@gmail.com",
+      url("https://geirsson.com")
+    )
+  )
+))
+```
+
+Next, add the `sbt-ci-release` plugin to `project/plugins.sbt`
+
+```scala
+// project/plugins.sbt
+addSbtPlugin("com.geirsson" % "sbt-ci-release" % "1.2.2")
+```
+
+If you have not setup GPG on your machine, run the following command
+
+```sh
+gpg --gen-key
+```
+
+Finally, create a Sonatype account if you have never published to Sonatype
+before. Follow the instructions
+[here](https://central.sonatype.org/pages/ossrh-guide.html). If you don't have a
+domain name, you can use `com.github.@username`. Here is a template you can use
+to write the Sonatype issue:
+
+```text
+Title:
+Publish rights for com.github.olafurpg
+Description:
+Hi, I would like to publish under the groupId: com.github.olafurpg.
+It's my GitHub account https://github.com/olafurpg/
+```
+
+Once Sonatype and GPG are setup, run the following command to publish the rule
+online.
+
+```sh
+> rules/publishSigned
+> sonatypeRelease
+```
+
+Once published, users can run your rule with the following sbt command.
+
+```sh
+// sbt shell
+> scalafix dependency:NamedLiteralArguments@com.geirsson:named-literal-arguments:VERSION
+```
+
+To permanently install the rule for a build, users can add the dependency to
+`build.sbt` by updating `scalafixDependencies in ThisBuild`.
 
 ```scala
 // build.sbt
@@ -657,6 +719,12 @@ scalafixDependencies in ThisBuild +=
   "com.geirsson" %% "named-literal-arguments" % "VERSION"
 // sbt shell
 > scalafix NamedLiteralArguments
+```
+
+For builds using `project/*.scala` files, add the following auto import
+
+```scala
+import scalafix.sbt.ScalafixPlugin.autoImport._
 ```
 
 Users of the Scalafix command-line interface can use the `--tool-classpath` flag
@@ -672,11 +740,31 @@ scalafix \
 Note that for syntactic rules like `NoLiteralArguments`, the `--classpath`
 argument is not required.
 
-Don't be intimidated by publishing to Maven Central, it gets easier once you've
-done it the first time. A guide on how to publish libraries can be found
-[here](https://github.com/olafurpg/sbt-ci-release). The benefits of publishing a
-rule to Maven Central are many.
+### Adding custom resolver
 
-- Dependencies, you can use custom library dependency to implement your rule
-- Fast to run, no need to re-compile the rule on every Scalafix invocation
-- Tab completion in sbt, users can tab-complete your rule when using sbt plugin
+Update the `scalafixResolvers` setting to resolve rules that are published to a
+custom repository like Bintray or a private Nexus.
+
+```scala
+// build.sbt
+import com.geirsson.coursiersmall.{Repository => R}
+scalafixResolvers.in(ThisBuild) ++= List(
+  R.SonatypeSnapshots,
+  R.bintrayRepo("scalacenter", "releases"),
+  R.bintrayIvyRepo("sbt", "sbt-plugin-releases"),
+  new R.Maven("https://oss.sonatype.org/content/repositories/snapshots/"),
+  new R.Ivy(s"https://dl.bintray.com/sbt/sbt-plugin-releases/")
+)
+```
+
+### Conclusion
+
+Don't be intimidated by publishing to Maven Central, it gets easier once you've
+done it the first time. A more detailed guide on how to publish libraries can be
+found [here](https://github.com/olafurpg/sbt-ci-release). The benefits of
+publishing a rule to Maven Central are many.
+
+- Bring your own dependencies, you can use custom library dependency to
+  implement a published rule.
+- Fast to run, no need to re-compile the rule on every Scalafix invocation.
+- Tab completion in sbt, users can tab-complete your rule when using sbt plugin.
