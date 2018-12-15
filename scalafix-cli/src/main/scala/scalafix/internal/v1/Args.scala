@@ -187,7 +187,7 @@ case class Args(
   def configuredSymtab: Configured[SymbolTable] = {
     Try(
       ClasspathOps.newSymbolTable(
-        classpath = classpath,
+        classpath = validatedClasspath,
         out = out
       )
     ) match {
