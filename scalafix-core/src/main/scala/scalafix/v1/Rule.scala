@@ -34,6 +34,17 @@ abstract class Rule(val name: RuleName) {
    * on the website.
    */
   def isExperimental: Boolean = false
+
+  /**
+   * Called before the rule starts processing documents
+   */
+  def beforeStart(): Unit = {}
+
+  /**
+   * Called after all documents have been processed
+   */
+  def afterComplete(): Unit = {}
+
 }
 
 abstract class SyntacticRule(name: RuleName) extends Rule(name) {
