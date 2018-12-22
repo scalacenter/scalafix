@@ -50,8 +50,8 @@ It's also possible to add left of a token instead of a tree node.
 
 ```scala mdoc
 doc.tokens.collect {
-  case brace @ Token.KwExtends() =>
-    Patch.addLeft(brace, "/* => */ ")
+  case `extends` @ Token.KwExtends() =>
+    Patch.addLeft(`extends`, "/* => */ ")
 }.showDiff()
 ```
 
