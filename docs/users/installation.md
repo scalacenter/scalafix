@@ -362,7 +362,7 @@ repository.
 ```sh
 git clone https://github.com/scalacenter/sbt-scalafix-example
 cd sbt-scalafix-example
-sbt "scalafix RemoveUnused"
+sbt "scalafix RemoveUnusedImports"
 git diff // should produce a diff
 ```
 
