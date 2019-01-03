@@ -20,6 +20,8 @@ final class SemanticDocument private[scalafix] (
     tree.tokens
   def input: Input =
     internal.doc.internal.input
+  def uri: String =
+    internal.textDocument.uri
 
   def matchingParens: MatchingParens =
     internal.doc.internal.matchingParens.value
