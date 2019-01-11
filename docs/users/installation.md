@@ -356,13 +356,13 @@ settings `scalacOptions` and `libraryDependencies` contain the values below.
 ### Example project
 
 For a minimal example project using sbt-scalafix, see the
-[scalacenter/scalafix-sbt-example](https://github.com/scalacenter/scalafix-sbt-example)
+[scalacenter/sbt-scalafix-example](https://github.com/scalacenter/sbt-scalafix-example)
 repository.
 
 ```sh
 git clone https://github.com/scalacenter/sbt-scalafix-example
-cd scalafix-sbt-example
-sbt "scalafix RemoveUnused"
+cd sbt-scalafix-example
+sbt "scalafix RemoveUnusedImports"
 git diff // should produce a diff
 ```
 
