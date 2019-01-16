@@ -1,6 +1,5 @@
 package scalafix.internal.rule
 
-import java.util.regex.Pattern
 import metaconfig.Configured
 import scala.collection.mutable
 import scala.meta._
@@ -61,16 +60,21 @@ class RemoveUnused(config: RemoveUnusedConfig)
       Patch.empty
     } else {
       doc.tree.collect {
-        case i: Importee if isUnusedImport(importPosition(i)) =>
-          i match {
-            case Importee.Rename(_, to) =>
+        case Importer(_, importees) =>
+          val hasUsedWildcard = importees.exists {
+            case i: Importee.Wildcard => !isUnusedImport(importPosition(i))
+            case _ => false
+          }
+          importees.collect {
+            case i @ Importee.Rename(_, to)
+                if isUnusedImport(importPosition(i)) && hasUsedWildcard =>
               // Unimport the identifier instead of removing the importee since
               // unused renamed may still impact compilation by shadowing an identifier.
               // See https://github.com/scalacenter/scalafix/issues/614
               Patch.replaceTree(to, "_").atomic
-            case _ =>
+            case i if isUnusedImport(importPosition(i)) =>
               Patch.removeImportee(i).atomic
-          }
+          }.asPatch
         case i: Defn if isUnusedTerm(i.pos) =>
           defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
         case i @ Defn.Val(_, List(pat), _, _)
@@ -82,11 +86,6 @@ class RemoveUnused(config: RemoveUnusedConfig)
       }.asPatch
     }
   }
-
-  private val unusedPrivateLocalVal: Pattern =
-    Pattern.compile("""(local|private) (.*) is never used""")
-  def isUnusedPrivateDiagnostic(message: Diagnostic): Boolean =
-    unusedPrivateLocalVal.matcher(message.message).matches()
 
   private def importPosition(importee: Importee): Position = importee match {
     case Importee.Rename(from, _) => from.pos
@@ -108,5 +107,4 @@ class RemoveUnused(config: RemoveUnusedConfig)
     case i: Defn.Def => Some(i.tokens)
     case _ => None
   }
-
 }
