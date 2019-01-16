@@ -5,15 +5,12 @@ title: Installation
 
 ## Requirements
 
-**macOS, Linux and Windows**: Scalafix runs on macOS, Linux and Windows. Every
+**macOS, Linux or Windows**: Scalafix runs on macOS, Linux and Windows. Every
 pull request is tested on both Linux and Windows.
 
-**Java 8**. Scalafix supports only Java 8 at the moment. Running Scalafix on
-Java 9+ results in `error: unable to load symbol table` errors. See
-[#880](https://github.com/scalacenter/scalafix/issues/880) for updates on adding
-support for Java 11.
+**Java 8 or Java 11.**
 
-**Scala 2.11 and 2.12**: Scalafix works only with the latest version of Scala
+**Scala 2.11 or 2.12**: Scalafix works only with the latest version of Scala
 2.11 and Scala 2.12. See
 [scalameta/scalameta#1695](https://github.com/scalameta/scalameta/issues/1695)
 for updates on adding support for Scala 2.13 once it's out.
