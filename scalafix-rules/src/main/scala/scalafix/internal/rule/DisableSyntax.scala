@@ -229,7 +229,6 @@ final class DisableSyntax(config: DisableSyntaxConfig)
       case Term.Apply(Term.Select(_, t @ Term.Name("==")), _)
           if config.noUniversalEquality =>
         Seq(noUniversalEqualityDiagnostic("==", t))
-
       case Term.ApplyInfix(_, t @ Term.Name("!="), _, _)
           if config.noUniversalEquality =>
         Seq(noUniversalEqualityDiagnostic("!=", t))
@@ -258,7 +257,9 @@ final class DisableSyntax(config: DisableSyntaxConfig)
       explain = "Pattern matching in val assignment can result in match error, " +
         "use \"_ match { ... }\" with a fallback case instead.")
 
-  private def noUniversalEqualityDiagnostic(symbol: String, t: Term.Name): Diagnostic =
+  private def noUniversalEqualityDiagnostic(
+      symbol: String,
+      t: Term.Name): Diagnostic =
     Diagnostic(symbol, config.noUniversalEqualityMessage, t.pos)
 
 }
