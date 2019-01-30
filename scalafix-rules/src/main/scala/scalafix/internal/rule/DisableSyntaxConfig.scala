@@ -77,7 +77,7 @@ case class DisableSyntaxConfig(
     )
     @ExampleValue("\"use === instead of ==\"")
     noUniversalEqualityMessage: String =
-      "== is unsafe since it allows comparing two unrelated types",
+      "== and != are unsafe since they allow comparing two unrelated types",
     @Description(
       "Report error if the text contents of a source file matches a given regex.")
     @ExampleValue(
