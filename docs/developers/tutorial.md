@@ -609,7 +609,7 @@ If you have the source code for the rule on your local machine, you can run a
 custom rule using the `file:/path/to/NamedLiteralArguments.scala` syntax.
 
 ```
-scalafix file:/path/to/NamedLiteralArguments.scala
+scalafix --rules file:/path/to/NamedLiteralArguments.scala
 ```
 
 ### Using `http:`
@@ -618,7 +618,7 @@ Another way to run a rule from source is to publish it as a gist and share the
 raw URL
 
 ```
-scalafix https://gist.githubusercontent.com/olafurpg/eeccf32f035d13f0728bc94d8ec0a776/raw/78c81bb7f390eb98178dd26ea03c42bd5a998666/NamedLiteralArguments.scala
+scalafix --rules https://gist.githubusercontent.com/olafurpg/eeccf32f035d13f0728bc94d8ec0a776/raw/78c81bb7f390eb98178dd26ea03c42bd5a998666/NamedLiteralArguments.scala
 ```
 
 ### Using `github:`
@@ -627,7 +627,7 @@ Another way to run custom rules from source is to use the `github:org/repo`
 scheme.
 
 ```
-scalafix github:olafurpg/named-literal-arguments
+scalafix --rules github:olafurpg/named-literal-arguments
 ```
 
 The expansion rules for `github:org/repo` are the following:
