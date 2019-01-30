@@ -264,6 +264,9 @@ object MainOps {
     val N = files.length
     val width = N.toString.length
     var exit = ExitStatus.Ok
+
+    args.rules.rules.foreach(_.beforeStart())
+
     files.foreach { file =>
       if (args.args.verbose) {
         val message = s"Processing (%${width}s/%s) %s".format(i, N, file)
@@ -273,6 +276,9 @@ object MainOps {
       val next = handleFile(args, file)
       exit = ExitStatus.merge(exit, next)
     }
+
+    args.rules.rules.foreach(_.afterComplete())
+
     adjustExitCode(args, exit, files)
   }
 

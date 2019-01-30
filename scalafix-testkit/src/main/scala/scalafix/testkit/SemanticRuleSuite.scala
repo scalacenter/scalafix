@@ -41,8 +41,9 @@ abstract class SemanticRuleSuite(val props: TestkitProperties)
   def runOn(diffTest: RuleTest): Unit = {
     test(diffTest.path.testName) {
       val (rule, sdoc) = diffTest.run.apply()
+      rule.rules.foreach(_.beforeStart())
       val (fixed, messages) = rule.semanticPatch(sdoc, suppress = false)
-
+      rule.rules.foreach(_.afterComplete())
       val tokens = fixed.tokenize.get
       val obtained = SemanticRuleSuite.stripTestkitComments(tokens)
       val expected = diffTest.path.resolveOutput(props) match {
