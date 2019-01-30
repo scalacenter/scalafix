@@ -2,10 +2,12 @@ package scalafix.tests.cli
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+
 import scala.meta.internal.io.PathIO
 import scala.meta.internal.io.FileIO
 import scala.meta.io.Classpath
 import scalafix.cli._
+import scalafix.tests.core.Classpaths
 
 class CliSemanticSuite extends BaseCliSuite {
 
@@ -119,6 +121,24 @@ class CliSemanticSuite extends BaseCliSuite {
       "--classpath",
       defaultClasspath
     ),
+    expectedExit = ExitStatus.Ok,
+    rule = "ExplicitResultTypes",
+    path = explicitResultTypesPath,
+    files = explicitResultTypesPath.toString()
+  )
+
+  checkSemantic(
+    name = "explicit result types OK (auto-classpath)",
+    args = Array(
+      "--auto-classpath",
+      "--auto-classpath-roots",
+      PathIO.workingDirectory.toString
+    ) ++ Classpaths.scalaLibrary.entries.to[Array].flatMap { path =>
+      Array(
+        "--auto-classpath-roots",
+        path.toString
+      )
+    },
     expectedExit = ExitStatus.Ok,
     rule = "ExplicitResultTypes",
     path = explicitResultTypesPath,

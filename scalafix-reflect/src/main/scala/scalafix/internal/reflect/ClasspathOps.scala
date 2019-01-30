@@ -55,6 +55,10 @@ object ClasspathOps {
     path.resolve(META_INF).resolve(SEMANTICDB).toFile.isDirectory
   }
 
+  private def isJar(path: AbsolutePath): Boolean =
+    path.isFile &&
+      path.toFile.getName.endsWith(".jar")
+
   def autoClasspath(roots: List[AbsolutePath]): Classpath = {
     val buffer = List.newBuilder[AbsolutePath]
     val visitor = new SimpleFileVisitor[Path] {
@@ -71,6 +75,7 @@ object ClasspathOps {
       }
     }
     roots.foreach(x => Files.walkFileTree(x.toNIO, visitor))
+    roots.filter(isJar).foreach(buffer += _)
     Classpath(buffer.result())
   }
 
