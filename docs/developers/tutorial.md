@@ -742,13 +742,13 @@ argument is not required.
 
 ### Adding custom resolver
 
-Update the `scalafixResolvers` setting to resolve rules that are published to a
+Update the `scalafixCustomResolvers` setting to resolve rules that are published to a
 custom repository like Bintray or a private Nexus.
 
 ```scala
 // build.sbt
 import com.geirsson.coursiersmall.{Repository => R}
-scalafixResolvers.in(ThisBuild) ++= List(
+scalafixCustomResolvers.in(ThisBuild) ++= List(
   R.SonatypeSnapshots,
   R.bintrayRepo("scalacenter", "releases"),
   R.bintrayIvyRepo("sbt", "sbt-plugin-releases"),
