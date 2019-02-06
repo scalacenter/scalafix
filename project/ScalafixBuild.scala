@@ -183,7 +183,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         s
     },
     commands += Command.command("ci-212") { s =>
-      "++2.12.7" ::
+      "++2.12.8" ::
         "unit/test" ::
         "docs/run" ::
         "interfaces/doc" ::
@@ -195,7 +195,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         s
     },
     commands += Command.command("ci-212-windows") { s =>
-      "++2.12.7" ::
+      "++2.12.8" ::
         s"unit/testOnly -- -l scalafix.internal.tests.utils.SkipWindows" ::
         s
     },
@@ -265,7 +265,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
 
   private val PreviousScalaVersion = Map(
     "2.11.12" -> "2.11.11",
-    "2.12.4" -> "2.12.3"
+    "2.12.4" -> "2.12.3",
+    "2.12.8" -> "2.12.7"
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(

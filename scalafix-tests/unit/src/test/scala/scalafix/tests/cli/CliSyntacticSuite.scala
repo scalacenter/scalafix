@@ -434,7 +434,7 @@ class CliSyntacticSuite extends BaseCliSuite {
 
   checkCommandLineError(
     "--scala-version error",
-    Array("-r", "Scala2_9", "--scala-version", "2.12.7"), { out =>
+    Array("-r", "Scala2_9", "--scala-version", "2.12.8"), { out =>
       assert(out.contains("must start with 2.9"))
     }
   )
