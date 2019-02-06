@@ -2,8 +2,8 @@ import Dependencies._
 inThisBuild(
   List(
     onLoadMessage := s"Welcome to scalafix ${version.value}",
-    scalaVersion := "2.12.7",
-    crossScalaVersions := List("2.12.7", "2.11.12")
+    scalaVersion := "2.12.8",
+    crossScalaVersions := List("2.12.8", "2.11.12")
   )
 )
 

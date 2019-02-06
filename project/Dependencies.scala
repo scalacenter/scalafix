@@ -2,17 +2,13 @@ import sbt._
 /* scalafmt: { maxColumn = 120 }*/
 
 object Dependencies {
-  val scalametaV = "4.1.0"
+  val scalametaV = "4.1.4"
   val metaconfigV = "0.9.1"
   def dotty = "0.9.0-RC1"
   def scala210 = "2.10.6"
   def scala211 = "2.11.12"
-  def scala212 = "2.12.7"
+  def scala212 = "2.12.8"
   val currentScalaVersion = scala212
-
-  def sbt013 = "0.13.17"
-  def sbt1 = "1.0.4"
-  val currentSbtVersion = sbt1
 
   val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % "4.5.4.201711221230-r"
 
