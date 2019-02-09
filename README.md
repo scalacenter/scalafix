@@ -15,7 +15,6 @@ Head over here: https://scalacenter.github.io/scalafix/
 
 The current maintainers (people who can merge pull requests) are:
 
-- Eugene Burmako - [`@xeno-by`](https://github.com/xeno-by)
 - Gabriele Petronella - [`@gabro`](https://github.com/gabro)
 - Guillaume Massé - [`@MasseGuillaume`](https://github.com/MasseGuillaume)
 - Ólafur Páll Geirsson - [`@olafurpg`](https://github.com/olafurpg)
