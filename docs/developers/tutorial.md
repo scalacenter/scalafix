@@ -187,7 +187,7 @@ case Term.Apply(_, args) =>
   }
 ```
 
-## Use `SymbolInformation to lookup method signatures
+## Use `SymbolInformation` to lookup method signatures
 
 Our rule is still unfinished because we have hard-coded `isSuccess`. Let's add a
 test case to reproduce this bug
