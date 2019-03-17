@@ -105,7 +105,8 @@ object RuleDecoder {
             case Conf.Str(value) =>
               fromString(value, allRules, settings).map { rule =>
                 rule.foreach(
-                  _.name.reportDeprecationWarning(value, settings.reporter))
+                  _.name.reportDeprecationWarning(value, settings.reporter)
+                )
                 rule
               }
             case err =>

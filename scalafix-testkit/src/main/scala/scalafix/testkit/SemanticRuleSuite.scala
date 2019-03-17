@@ -95,8 +95,8 @@ object SemanticRuleSuite {
   def defaultClasspath(classDirectory: AbsolutePath) = Classpath(
     classDirectory ::
       RuleCompiler.defaultClasspathPaths.filter(
-      path => path.toNIO.getFileName.toString.contains("scala-library")
-    )
+        path => path.toNIO.getFileName.toString.contains("scala-library")
+      )
   )
 
   def stripTestkitComments(input: String): String =

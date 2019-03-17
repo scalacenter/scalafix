@@ -62,6 +62,7 @@ object RuleCtx {
   private[scalafix] def apply(
       tree: Tree,
       config: ScalafixConfig,
-      diffDisable: DiffDisable): RuleCtx =
+      diffDisable: DiffDisable
+  ): RuleCtx =
     new RuleCtxImpl(tree, config, diffDisable)
 }

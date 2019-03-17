@@ -29,7 +29,8 @@ object Symbol {
         sig.syntax
       case Symbol.Global(
           Symbol.Global(Symbol.None, Signature.Term("_root_")),
-          sig) =>
+          sig
+          ) =>
         // For legacy reasons, we special case the `_root_.` term symbol.
         sig.syntax
       case _ =>

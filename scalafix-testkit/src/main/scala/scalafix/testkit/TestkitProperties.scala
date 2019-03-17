@@ -48,7 +48,8 @@ final class TestkitProperties(
     resolveFrom(outputSourceDirectories, path)
   private def resolveFrom(
       directories: List[AbsolutePath],
-      path: RelativePath): AbsolutePath = {
+      path: RelativePath
+  ): AbsolutePath = {
     directories
       .collectFirst {
         case dir if Files.exists(dir.resolve(path).toNIO) =>

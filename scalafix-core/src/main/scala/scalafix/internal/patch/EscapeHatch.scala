@@ -28,10 +28,12 @@ import scalafix.v0._
 class EscapeHatch private (
     anchoredEscapes: AnchoredEscapes,
     annotatedEscapes: AnnotatedEscapes,
-    diffDisable: DiffDisable) {
+    diffDisable: DiffDisable
+) {
 
-  private def rawFilter(patchesByName: Map[RuleName, Patch])(
-      implicit ctx: RuleCtx): (Patch, List[RuleDiagnostic]) = {
+  private def rawFilter(
+      patchesByName: Map[RuleName, Patch]
+  )(implicit ctx: RuleCtx): (Patch, List[RuleDiagnostic]) = {
     var patchBuilder = Patch.empty
     val diagnostics = List.newBuilder[RuleDiagnostic]
     patchesByName.foreach {
@@ -48,7 +50,8 @@ class EscapeHatch private (
 
   def filter(patchesByName: Map[RuleName, Patch])(
       implicit ctx: RuleCtx,
-      index: SemanticdbIndex): (Patch, List[RuleDiagnostic]) = {
+      index: SemanticdbIndex
+  ): (Patch, List[RuleDiagnostic]) = {
     if (isEmpty) return rawFilter(patchesByName)
 
     val usedEscapes = mutable.Set.empty[EscapeFilter]
@@ -121,7 +124,8 @@ object EscapeHatch {
       matcher: FilterMatcher,
       cause: Position,
       startOffset: EscapeOffset,
-      endOffset: Option[EscapeOffset]) {
+      endOffset: Option[EscapeOffset]
+  ) {
     def matches(id: RuleName): Boolean =
       id.identifiers.exists(i => matcher.matches(i.value))
   }
@@ -136,7 +140,8 @@ object EscapeHatch {
       input: Input,
       tree: LazyValue[Tree],
       associatedComments: LazyValue[AssociatedComments],
-      diffDisable: DiffDisable): EscapeHatch = {
+      diffDisable: DiffDisable
+  ): EscapeHatch = {
     new EscapeHatch(
       AnchoredEscapes(input, tree, associatedComments),
       AnnotatedEscapes(input, tree),
@@ -161,7 +166,8 @@ object EscapeHatch {
 
     def isEnabled(
         ruleName: RuleName,
-        position: Int): (Boolean, Option[EscapeFilter]) = {
+        position: Int
+    ): (Boolean, Option[EscapeFilter]) = {
       if (isEmpty) (true, None)
       else {
         val escapesUpToPos =
@@ -227,14 +233,18 @@ object EscapeHatch {
               Init(
                 Type.Name(SuppressWarnings),
                 _,
-                List(Term.Apply(Term.Name("Array"), args) :: Nil))) =>
+                List(Term.Apply(Term.Name("Array"), args) :: Nil)
+              )
+              ) =>
             args
 
           case Mod.Annot(
               Init(
                 Type.Select(_, Type.Name(SuppressWarnings)),
                 _,
-                List(Term.Apply(Term.Name("Array"), args) :: Nil))) =>
+                List(Term.Apply(Term.Name("Array"), args) :: Nil)
+              )
+              ) =>
             args
         }
     }
@@ -263,7 +273,8 @@ object EscapeHatch {
   private class AnchoredEscapes private (
       enabling: EscapeTree,
       disabling: EscapeTree,
-      unused: List[Position]) {
+      unused: List[Position]
+  ) {
 
     val isEmpty: Boolean = disabling.isEmpty && unused.isEmpty
 
@@ -273,7 +284,8 @@ object EscapeHatch {
      */
     def isEnabled(
         ruleName: RuleName,
-        position: Int): (Boolean, Option[EscapeFilter]) = {
+        position: Int
+    ): (Boolean, Option[EscapeFilter]) = {
       def findEnableInRange(from: EscapeOffset, to: EscapeOffset) = {
         val enables = enabling.range(from, to).valuesIterator.flatten
         enables.find(_.matches(ruleName))
@@ -282,7 +294,8 @@ object EscapeHatch {
       @tailrec
       def loop(
           disables: List[EscapeFilter],
-          culprit: Option[EscapeFilter]): (Boolean, Option[EscapeFilter]) = {
+          culprit: Option[EscapeFilter]
+      ): (Boolean, Option[EscapeFilter]) = {
         disables match {
           case head :: tail if head.matches(ruleName) =>
             head.endOffset match {
@@ -327,7 +340,8 @@ object EscapeHatch {
     def apply(
         input: Input,
         tree: LazyValue[Tree],
-        associatedComments: LazyValue[AssociatedComments]): AnchoredEscapes = {
+        associatedComments: LazyValue[AssociatedComments]
+    ): AnchoredEscapes = {
       if (input.text.contains(Prefix))
         collectEscapes(input, tree.value, associatedComments)
       else new AnchoredEscapes(EmptyEscapeTree, EmptyEscapeTree, Nil)
@@ -336,7 +350,8 @@ object EscapeHatch {
     private def collectEscapes(
         input: Input,
         tree: Tree,
-        associatedComments: LazyValue[AssociatedComments]): AnchoredEscapes = {
+        associatedComments: LazyValue[AssociatedComments]
+    ): AnchoredEscapes = {
       val enable = TreeMap.newBuilder[EscapeOffset, List[EscapeFilter]]
       val disable = TreeMap.newBuilder[EscapeOffset, List[EscapeFilter]]
       val visitedFilterExpression = mutable.Set.empty[Position]
@@ -346,10 +361,12 @@ object EscapeHatch {
           rulesPos: List[(String, Position)],
           start: EscapeOffset,
           end: Option[EscapeOffset],
-          anchor: Comment): List[EscapeFilter] = {
+          anchor: Comment
+      ): List[EscapeFilter] = {
         if (rulesPos.isEmpty) { // wildcard
           List(
-            EscapeFilter(FilterMatcher.matchEverything, anchor.pos, start, end))
+            EscapeFilter(FilterMatcher.matchEverything, anchor.pos, start, end)
+          )
         } else {
           rulesPos.map {
             case (rule, pos) =>
@@ -365,7 +382,8 @@ object EscapeHatch {
 
       def rulesWithPosition(
           rules: String,
-          anchor: Comment): List[(String, Position)] = {
+          anchor: Comment
+      ): List[(String, Position)] = {
         val rulesToPos = ListBuffer.empty[(String, Position)]
         var fromIdx = 0
 
@@ -453,7 +471,8 @@ object EscapeHatch {
       new AnchoredEscapes(
         enable.result(),
         disable.result(),
-        onOffTracker.allUnused)
+        onOffTracker.allUnused
+      )
     }
   }
 
@@ -490,7 +509,8 @@ object EscapeHatch {
         rulesPos: List[(String, Position)],
         anchor: Comment,
         source: Selection,
-        target: Selection): (Selection, Selection) =
+        target: Selection
+    ): (Selection, Selection) =
       rulesPos match {
         case Nil => // wildcard
           (source, target) match {

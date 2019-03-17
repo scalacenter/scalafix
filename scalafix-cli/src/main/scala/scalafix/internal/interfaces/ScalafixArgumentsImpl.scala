@@ -36,17 +36,20 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
     copy(args = args.copy(rules = rules.asScala.toList))
 
   override def withToolClasspath(
-      classLoader: URLClassLoader): ScalafixArguments =
+      classLoader: URLClassLoader
+  ): ScalafixArguments =
     copy(args = args.copy(toolClasspath = classLoader))
 
   override def withPaths(paths: util.List[Path]): ScalafixArguments =
     copy(
       args = args.copy(
-        files = paths.asScala.iterator.map(AbsolutePath(_)(args.cwd)).toList)
+        files = paths.asScala.iterator.map(AbsolutePath(_)(args.cwd)).toList
+      )
     )
 
   override def withExcludedPaths(
-      matchers: util.List[PathMatcher]): ScalafixArguments =
+      matchers: util.List[PathMatcher]
+  ): ScalafixArguments =
     copy(args = args.copy(exclude = matchers.asScala.toList))
 
   override def withWorkingDirectory(path: Path): ScalafixArguments = {
@@ -72,7 +75,8 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
     }
 
   override def withParsedArguments(
-      args: util.List[String]): ScalafixArguments = {
+      args: util.List[String]
+  ): ScalafixArguments = {
     if (args.isEmpty) this
     else {
       val decoder = Args.decoder(this.args)
@@ -94,8 +98,9 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
   override def withClasspath(path: util.List[Path]): ScalafixArguments =
     copy(
       args = args.copy(
-        classpath = Classpath(
-          path.asScala.iterator.map(AbsolutePath(_)(args.cwd)).toList))
+        classpath =
+          Classpath(path.asScala.iterator.map(AbsolutePath(_)(args.cwd)).toList)
+      )
     )
 
   override def withSourceroot(path: Path): ScalafixArguments = {
@@ -104,7 +109,8 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
   }
 
   override def withMainCallback(
-      callback: ScalafixMainCallback): ScalafixArguments =
+      callback: ScalafixMainCallback
+  ): ScalafixArguments =
     copy(args = args.copy(callback = callback))
 
   override def withCharset(charset: Charset): ScalafixArguments =
@@ -126,7 +132,8 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
   }
 
   override def withScalacOptions(
-      options: util.List[String]): ScalafixArguments =
+      options: util.List[String]
+  ): ScalafixArguments =
     copy(args = args.copy(scalacOptions = options.asScala.toList))
 
   override def withScalaVersion(version: String): ScalafixArguments =

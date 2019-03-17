@@ -16,11 +16,13 @@ final case class RuleName(identifiers: List[RuleIdentifier]) {
   def withDeprecatedName(
       name: String,
       message: String,
-      since: String): RuleName = {
+      since: String
+  ): RuleName = {
     val conflictingName = identifiers.find(_.value == name)
     require(conflictingName.isEmpty, s"Duplicate name! $conflictingName")
     this.+(
-      RuleName(RuleIdentifier(name, Some(Deprecated(message, since))) :: Nil))
+      RuleName(RuleIdentifier(name, Some(Deprecated(message, since))) :: Nil)
+    )
   }
   def value: String =
     if (isDeprecated) identifiers.mkString("+")
@@ -38,12 +40,14 @@ final case class RuleName(identifiers: List[RuleIdentifier]) {
   override def toString: String = value
   def reportDeprecationWarning(
       name: String,
-      reporter: ScalafixReporter): Unit = {
+      reporter: ScalafixReporter
+  ): Unit = {
     identifiers.foreach { ident =>
       if (ident.value == name) {
         ident.deprecated.foreach { d =>
           reporter.warn(
-            s"Name $name is deprecated. ${d.message} (since ${d.since})")
+            s"Name $name is deprecated. ${d.message} (since ${d.since})"
+          )
         }
       }
     }

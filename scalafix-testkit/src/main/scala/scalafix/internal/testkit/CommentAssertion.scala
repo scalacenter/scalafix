@@ -33,7 +33,8 @@ case class CommentAssertion(
     anchorPosition: Position,
     key: String,
     caretPosition: Option[Position],
-    expectedMessage: Option[String]) {
+    expectedMessage: Option[String]
+) {
 
   def formattedMessage: String =
     caretPosition
@@ -66,7 +67,8 @@ object EndOfLineAssertExtractor {
             key = key,
             caretPosition = None,
             expectedMessage = None
-          ))
+          )
+        )
       case _ =>
         None
     }
@@ -89,7 +91,8 @@ object MultiLineAssertExtractor {
             case EndOfLineAssertExtractor.AssertRegex(key) => key
             case _ =>
               throw new Exception(
-                "the rule name should be on the first line of the assert")
+                "the rule name should be on the first line of the assert"
+              )
           }
 
         val caretOffset = lines(1).indexOf('^')
@@ -107,7 +110,8 @@ object MultiLineAssertExtractor {
               Position.Range(token.pos.input, caretStart, caretStart)
             ),
             expectedMessage = Some(message)
-          ))
+          )
+        )
       }
       case _ => None
     }

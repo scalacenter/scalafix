@@ -25,7 +25,8 @@ class LegacyRuleCtx(doc: SyntacticDocument)
     index
   override def debugIndex()(
       implicit index: SemanticdbIndex,
-      fileLine: FileLine): Unit =
+      fileLine: FileLine
+  ): Unit =
     throw new UnsupportedOperationException
   override private[scalafix] def toks(t: Tree) =
     t.tokens(doc.internal.config.dialect)

@@ -11,7 +11,8 @@ object DenotationOps {
   def resultType(
       symbol: Symbol,
       denot: Denotation,
-      dialect: Dialect): Option[Type] = {
+      dialect: Dialect
+  ): Option[Type] = {
     def getDeclType(tpe: Type): Type = tpe match {
       case Type.Method(_, tpe) if denot.isMethod => tpe
       case Type.Lambda(_, tpe) if denot.isMethod => getDeclType(tpe)
@@ -27,7 +28,8 @@ object DenotationOps {
         denot.signature
       } else {
         throw new UnsupportedOperationException(
-          s"Can't parse type for denotation $denot, denot.info=${denot.signature}")
+          s"Can't parse type for denotation $denot, denot.info=${denot.signature}"
+        )
       }
     val input = Input.VirtualFile(symbol.syntax, signature)
     (dialect, input).parse[Type].toOption.map(getDeclType)

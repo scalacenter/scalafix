@@ -38,7 +38,8 @@ class Fs() {
   private def write(
       filename: String,
       content: String,
-      op: StandardOpenOption): Unit = {
+      op: StandardOpenOption
+  ): Unit = {
     Files.write(path(filename), content.getBytes, op)
   }
 

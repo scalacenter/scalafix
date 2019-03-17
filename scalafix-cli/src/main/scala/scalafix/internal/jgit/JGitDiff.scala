@@ -44,20 +44,22 @@ object JGitDiff {
 
               def edits(file: FileHeader): ModifiedFile = {
                 val changes =
-                  file.toEditList.asScala.map(edit =>
-                    GitChange(edit.getBeginB, edit.getEndB))
+                  file.toEditList.asScala
+                    .map(edit => GitChange(edit.getBeginB, edit.getEndB))
 
                 ModifiedFile(path(file.getNewPath), changes.toList)
               }
               val diffs =
-                getDiff(repository, oldTree, newTree).flatMap(file =>
-                  file.getChangeType match {
-                    case ADD => List(NewFile(path(file.getNewPath)))
-                    case MODIFY => List(edits(file))
-                    case RENAME => List(edits(file))
-                    case COPY => List(edits(file))
-                    case DELETE => Nil
-                })
+                getDiff(repository, oldTree, newTree).flatMap(
+                  file =>
+                    file.getChangeType match {
+                      case ADD => List(NewFile(path(file.getNewPath)))
+                      case MODIFY => List(edits(file))
+                      case RENAME => List(edits(file))
+                      case COPY => List(edits(file))
+                      case DELETE => Nil
+                    }
+                )
 
               Configured.Ok(DiffDisable(diffs))
             }
@@ -76,7 +78,8 @@ object JGitDiff {
 
   private def resolve(
       repo: Repository,
-      revstr: String): Either[String, ObjectId] = {
+      revstr: String
+  ): Either[String, ObjectId] = {
     try {
       Option(repo.resolve(revstr)) match {
         case Some(id) => Right(id)
@@ -101,7 +104,8 @@ object JGitDiff {
 
   private def iterator(
       repository: Repository,
-      id: ObjectId): Either[String, AbstractTreeIterator] = {
+      id: ObjectId
+  ): Either[String, AbstractTreeIterator] = {
     try {
       val walk = new RevWalk(repository)
       val tree = walk.parseTree(id)
@@ -119,7 +123,8 @@ object JGitDiff {
   private def getDiff(
       repository: Repository,
       oldTree: AbstractTreeIterator,
-      newTree: AbstractTreeIterator): List[FileHeader] = {
+      newTree: AbstractTreeIterator
+  ): List[FileHeader] = {
 
     val diffFmt = new DiffFormatter(NullOutputStream.INSTANCE)
     diffFmt.setRepository(repository)

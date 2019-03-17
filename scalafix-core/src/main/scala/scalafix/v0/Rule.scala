@@ -70,7 +70,8 @@ abstract class Rule(ruleName: RuleName) { self =>
     apply(ctx, fixWithName(ctx))
   final def apply(
       input: Input,
-      config: ScalafixConfig = ScalafixConfig.default): String = {
+      config: ScalafixConfig = ScalafixConfig.default
+  ): String = {
     val ctx = RuleCtx(config.dialect(input).parse[Source].get, config)
     apply(ctx, fixWithName(ctx))
   }
@@ -94,7 +95,8 @@ abstract class Rule(ruleName: RuleName) { self =>
     val original = ctx.tree.input
     PatchInternals.unifiedDiff(
       original,
-      Input.VirtualFile(original.label, apply(ctx, patch)))
+      Input.VirtualFile(original.label, apply(ctx, patch))
+    )
   }
 
   private[scalafix] final def allNames: List[String] =
@@ -166,11 +168,11 @@ object Rule {
 
   /** Creates a semantic rule. */
   def semantic(ruleName: String)(
-      f: SemanticdbIndex => RuleCtx => Patch): SemanticdbIndex => Rule = {
-    index =>
-      new SemanticRule(index, ruleName) {
-        override def fix(ctx: RuleCtx): Patch = f(index)(ctx)
-      }
+      f: SemanticdbIndex => RuleCtx => Patch
+  ): SemanticdbIndex => Rule = { index =>
+    new SemanticRule(index, ruleName) {
+      override def fix(ctx: RuleCtx): Patch = f(index)(ctx)
+    }
   }
 
   /** Creates a rule that always returns the same patch. */

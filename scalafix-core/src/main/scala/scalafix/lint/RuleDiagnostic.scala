@@ -39,7 +39,8 @@ object RuleDiagnostic {
   def apply(
       diagnostic: Diagnostic,
       rule: RuleName,
-      configuredSeverity: Option[LintSeverity]): RuleDiagnostic = {
+      configuredSeverity: Option[LintSeverity]
+  ): RuleDiagnostic = {
     new RuleDiagnostic(diagnostic, rule, configuredSeverity)
   }
 }

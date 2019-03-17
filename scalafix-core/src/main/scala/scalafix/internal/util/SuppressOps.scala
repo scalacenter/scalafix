@@ -12,7 +12,8 @@ object SuppressOps {
   @tailrec
   private def findClosestLeadingToken(
       tokens: Tokens,
-      pos: Position): Option[Token] = {
+      pos: Position
+  ): Option[Token] = {
     if (tokens.isEmpty) {
       None
     } else {
@@ -29,10 +30,12 @@ object SuppressOps {
 
   def addComments(tokens: Tokens, positions: List[Position]): Patch =
     positions
-      .map(pos =>
-        findClosestLeadingToken(tokens, pos) match {
-          case Some(token) => Patch.addRight(token, "/* scalafix:ok */")
-          case _ => Patch.empty
-      })
+      .map(
+        pos =>
+          findClosestLeadingToken(tokens, pos) match {
+            case Some(token) => Patch.addRight(token, "/* scalafix:ok */")
+            case _ => Patch.empty
+          }
+      )
       .asPatch
 }

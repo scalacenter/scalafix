@@ -49,29 +49,34 @@ trait LegacyPatchOps extends PatchOps {
 
   // Semantic patch ops.
   @deprecated(DeprecationMessage, "0.6.0")
-  final def removeGlobalImport(symbol: Symbol)(
-      implicit index: SemanticdbIndex): Patch =
+  final def removeGlobalImport(
+      symbol: Symbol
+  )(implicit index: SemanticdbIndex): Patch =
     RemoveGlobalImport(symbol)
   @deprecated(DeprecationMessage, "0.6.0")
-  final def addGlobalImport(symbol: Symbol)(
-      implicit index: SemanticdbIndex): Patch =
+  final def addGlobalImport(
+      symbol: Symbol
+  )(implicit index: SemanticdbIndex): Patch =
     AddGlobalSymbol(symbol)
   @deprecated(DeprecationMessage, "0.6.0")
   final def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
-      implicit index: SemanticdbIndex): Patch =
+      implicit index: SemanticdbIndex
+  ): Patch =
     ReplaceSymbol(fromSymbol, toSymbol)
   @deprecated(DeprecationMessage, "0.6.0")
-  final def replaceSymbols(toReplace: (String, String)*)(
-      implicit index: SemanticdbIndex): Patch =
+  final def replaceSymbols(
+      toReplace: (String, String)*
+  )(implicit index: SemanticdbIndex): Patch =
     Patch.replaceSymbols(toReplace: _*)
   @deprecated(DeprecationMessage, "0.6.0")
-  final def replaceSymbols(toReplace: Seq[(String, String)])(
-      implicit noop: DummyImplicit,
-      index: SemanticdbIndex): Patch =
+  final def replaceSymbols(
+      toReplace: Seq[(String, String)]
+  )(implicit noop: DummyImplicit, index: SemanticdbIndex): Patch =
     Patch.replaceSymbols(toReplace: _*)
   @deprecated(DeprecationMessage, "0.6.0")
   final def renameSymbol(fromSymbol: Symbol.Global, toName: String)(
-      implicit index: SemanticdbIndex): Patch =
+      implicit index: SemanticdbIndex
+  ): Patch =
     ReplaceSymbol(fromSymbol, Root(Signature.Term(toName)))
   @deprecated(DeprecationMessage, "0.6.0")
   final def lint(msg: Diagnostic): Patch =

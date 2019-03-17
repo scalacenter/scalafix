@@ -40,7 +40,8 @@ import scalafix.internal.util.LintSyntax._
 object AssertDiff {
   def apply(
       reportedLintMessages: List[RuleDiagnostic],
-      expectedLintMessages: List[CommentAssertion]): AssertDiff = {
+      expectedLintMessages: List[CommentAssertion]
+  ): AssertDiff = {
 
     val data =
       expectedLintMessages
@@ -100,7 +101,8 @@ object AssertDiff {
 case class AssertDiff(
     unreported: List[CommentAssertion],
     unexpected: List[RuleDiagnostic],
-    mismatch: List[AssertDelta]) {
+    mismatch: List[AssertDelta]
+) {
 
   def isFailure: Boolean =
     !(

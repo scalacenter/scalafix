@@ -14,16 +14,16 @@ final case class ClassSignature(
     typeParameters: List[SymbolInformation],
     parents: List[SemanticType],
     self: SemanticType,
-    declarations: List[SymbolInformation])
-    extends Signature
+    declarations: List[SymbolInformation]
+) extends Signature
 final case class MethodSignature(
     typeParameters: List[SymbolInformation],
     parameterLists: List[List[SymbolInformation]],
-    returnType: SemanticType)
-    extends Signature
+    returnType: SemanticType
+) extends Signature
 final case class TypeSignature(
     typeParameters: List[SymbolInformation],
     lowerBound: SemanticType,
-    upperBound: SemanticType)
-    extends Signature
+    upperBound: SemanticType
+) extends Signature
 case object NoSignature extends Signature

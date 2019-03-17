@@ -15,10 +15,12 @@ class PositionSuite extends FunSuite with DiffAssertions {
     test(name) {
       require(
         original.count(_ == startMarker) == 1,
-        s"Original must contain one $startMarker")
+        s"Original must contain one $startMarker"
+      )
       require(
         original.count(_ == stopMarker) == 1,
-        s"Original must contain one $stopMarker")
+        s"Original must contain one $stopMarker"
+      )
       val start = original.indexOf(startMarker)
       val end = original.indexOf(stopMarker)
       val text = new StringBuilder()

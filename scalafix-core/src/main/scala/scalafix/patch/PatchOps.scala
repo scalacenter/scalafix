@@ -103,7 +103,8 @@ trait PatchOps {
    * is the same patch as `replace:com.foo/com.bar` from sbt-scalafix.
    */
   def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
-      implicit index: SemanticdbIndex): Patch
+      implicit index: SemanticdbIndex
+  ): Patch
 
   /**
    * Replace appearances of names that reference fromSymbol with toName.
@@ -112,7 +113,8 @@ trait PatchOps {
    * Use this patch for example to rename a methods on a class.
    */
   def renameSymbol(fromSymbol: Symbol.Global, toName: String)(
-      implicit index: SemanticdbIndex): Patch
+      implicit index: SemanticdbIndex
+  ): Patch
 
   /**
    * Shorthand for calling replaceSymbol from strings.
@@ -120,7 +122,8 @@ trait PatchOps {
    * String values are treated as Symbol.Global.
    */
   def replaceSymbols(toReplace: (String, String)*)(
-      implicit index: SemanticdbIndex): Patch
+      implicit index: SemanticdbIndex
+  ): Patch
 
   /**
    * Helper for calling replaceSymbols without needing _*
@@ -128,7 +131,7 @@ trait PatchOps {
    * Defers work to replaceSymbols((String, String)*). Needs a dummy implicit
    * to differentiate from replaceSymbols((String, String)*) after type erasure
    */
-  def replaceSymbols(toReplace: Seq[(String, String)])(
-      implicit noop: DummyImplicit,
-      index: SemanticdbIndex): Patch
+  def replaceSymbols(
+      toReplace: Seq[(String, String)]
+  )(implicit noop: DummyImplicit, index: SemanticdbIndex): Patch
 }

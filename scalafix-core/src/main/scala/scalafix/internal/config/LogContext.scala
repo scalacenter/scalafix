@@ -3,7 +3,8 @@ package scalafix.internal.config
 case class LogContext(
     line: sourcecode.Line,
     file: sourcecode.File,
-    enclosing: sourcecode.Enclosing) {
+    enclosing: sourcecode.Enclosing
+) {
   override def toString: String = enclosing.value.replaceAll(" .*", "")
 }
 

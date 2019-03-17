@@ -11,7 +11,8 @@ import scalafix.v0.Symbol
 
 package object syntax {
   implicit class XtensionRefSymbolOpt(tree: Tree)(
-      implicit index: v0.SemanticdbIndex) {
+      implicit index: v0.SemanticdbIndex
+  ) {
     def symbol: Option[Symbol] = index.symbol(tree.pos)
     def denotation: Option[v0.Denotation] = index.denotation(tree)
   }
@@ -22,11 +23,14 @@ package object syntax {
     }
   }
   implicit class XtensionSymbolSemanticdbIndex(symbol: Symbol)(
-      implicit index: v0.SemanticdbIndex) {
+      implicit index: v0.SemanticdbIndex
+  ) {
     def denotation: Option[v0.Denotation] = index.denotation(symbol)
     def resultType: Option[Type] =
-      denotation.flatMap(denot =>
-        DenotationOps.resultType(symbol, denot, DenotationOps.defaultDialect))
+      denotation.flatMap(
+        denot =>
+          DenotationOps.resultType(symbol, denot, DenotationOps.defaultDialect)
+      )
   }
   implicit class XtensionSymbol(symbol: Symbol) {
     def normalized: Symbol = SymbolOps.normalize(symbol)

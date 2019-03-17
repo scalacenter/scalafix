@@ -21,7 +21,8 @@ import scalafix.internal.util.SymbolOps
  */
 final class SymbolMatcher(
     symbols: List[Symbol],
-    isEqual: (Symbol, Symbol) => Boolean)(implicit index: SemanticdbIndex) {
+    isEqual: (Symbol, Symbol) => Boolean
+)(implicit index: SemanticdbIndex) {
   def matches(tree: Tree): Boolean = {
     index.symbol(tree).fold(false)(matches)
   }
@@ -50,7 +51,8 @@ object SymbolMatcher {
     new SymbolMatcher(symbol.toList, _ == _)
 
   /** Construct SymbolMatcher with normalized equality. */
-  def normalized(symbol: Symbol*)(
-      implicit index: SemanticdbIndex): SymbolMatcher =
+  def normalized(
+      symbol: Symbol*
+  )(implicit index: SemanticdbIndex): SymbolMatcher =
     new SymbolMatcher(symbol.toList, SymbolOps.isSameNormalized)
 }

@@ -54,7 +54,7 @@ class FullDiffDisable(diffs: List[GitDiff]) extends DiffDisable {
             interval.intersects(
               startLine,
               endLine
-          )
+            )
         )
     }
 

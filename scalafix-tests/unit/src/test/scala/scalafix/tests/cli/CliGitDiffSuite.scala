@@ -22,7 +22,8 @@ class CliGitDiffSuite extends FunSuite with DiffAssertions {
       """|object OldCode {
          |  // This is old code, where var's blossom
          |  var oldVar = 1
-         |}""".stripMargin)
+         |}""".stripMargin
+    )
     git.add(oldCode)
     addConf(fs, git)
     git.commit()
@@ -34,7 +35,8 @@ class CliGitDiffSuite extends FunSuite with DiffAssertions {
       """|object NewCode {
          |  // New code, no vars
          |  var newVar = 1
-         |}""".stripMargin)
+         |}""".stripMargin
+    )
     git.add(newCode)
     git.commit()
 
@@ -58,7 +60,8 @@ class CliGitDiffSuite extends FunSuite with DiffAssertions {
       """|object OldCode {
          |  // This is old code, where var's blossom
          |  var oldVar = 1
-         |}""".stripMargin)
+         |}""".stripMargin
+    )
     git.add(oldCode)
     addConf(fs, git)
     git.commit()
@@ -99,7 +102,8 @@ class CliGitDiffSuite extends FunSuite with DiffAssertions {
       """|object OldCode {
          |  // This is old code, where var's blossom
          |  var oldVar = 1
-         |}""".stripMargin)
+         |}""".stripMargin
+    )
     git.add(oldCode)
     addConf(fs, git)
     git.commit()
@@ -150,7 +154,8 @@ class CliGitDiffSuite extends FunSuite with DiffAssertions {
       """|object OldCode {
          |  // This is old code, where var's blossom
          |  var oldVar = 1
-         |}""".stripMargin)
+         |}""".stripMargin
+    )
     git.add(oldCode)
     addConf(fs, git)
     git.commit()
@@ -195,7 +200,8 @@ class CliGitDiffSuite extends FunSuite with DiffAssertions {
       """|object OldCode {
          |  // This is old code, where var's blossom
          |  var oldVar = 1
-         |}""".stripMargin)
+         |}""".stripMargin
+    )
     git.add(oldCode)
     addConf(fs, git)
     git.commit()
@@ -276,17 +282,16 @@ class CliGitDiffSuite extends FunSuite with DiffAssertions {
   }
 
   private def addConf(fs: Fs): Unit = {
-    fs.add(
-      confFile,
-      """|rules = DisableSyntax
-         |DisableSyntax.noVars = true""".stripMargin)
+    fs.add(confFile, """|rules = DisableSyntax
+                        |DisableSyntax.noVars = true""".stripMargin)
   }
 
   private def noColor(in: String): String =
     fansi.Str(in).plainText
 
   private def gitTest(name: String, testTags: Tag*)(
-      body: (Fs, Git, Cli) => Unit): Unit = {
+      body: (Fs, Git, Cli) => Unit
+  ): Unit = {
     test(name, testTags: _*) {
       val fs = new Fs()
       val git = new Git(fs.workingDirectory)

@@ -91,12 +91,14 @@ case class EagerInMemorySemanticdbIndex(
   override def info(symbol: String): Option[s.SymbolInformation] =
     table.info(symbol).orElse {
       val msym = v0.Symbol(symbol)
-      denotation(msym).map(denot =>
-        denotationToSymbolInformation(symbol, denot, {
-          msym match {
-            case v0.Symbol.Global(owner, _) => owner.syntax
-            case _ => ""
-          }
-        }))
+      denotation(msym).map(
+        denot =>
+          denotationToSymbolInformation(symbol, denot, {
+            msym match {
+              case v0.Symbol.Global(owner, _) => owner.syntax
+              case _ => ""
+            }
+          })
+      )
     }
 }

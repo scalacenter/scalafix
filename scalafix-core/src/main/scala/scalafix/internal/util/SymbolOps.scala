@@ -30,7 +30,8 @@ object SymbolOps {
     def unapply(arg: Symbol): Option[Signature] = arg match {
       case Symbol.Global(
           Symbol.Global(Symbol.None, Signature.Package("_root_")),
-          sig) =>
+          sig
+          ) =>
         Some(sig)
       case _ =>
         None
@@ -52,7 +53,9 @@ object SymbolOps {
         Some(
           Importer(
             toTermRef(qual),
-            List(Importee.Name(Name.Indeterminate(name)))))
+            List(Importee.Name(Name.Indeterminate(name)))
+          )
+        )
       case _ => None
     }
   }

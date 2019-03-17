@@ -11,11 +11,13 @@ class RemoveUnused(config: RemoveUnusedConfig)
         .withDeprecatedName(
           "RemoveUnusedImports",
           "Use RemoveUnused instead",
-          "0.6.0")
+          "0.6.0"
+        )
         .withDeprecatedName(
           "RemoveUnusedTerms",
           "Use RemoveUnused instead",
-          "0.6.0")
+          "0.6.0"
+        )
     ) {
   // default constructor for reflective classloading
   def this() = this(RemoveUnusedConfig.default)

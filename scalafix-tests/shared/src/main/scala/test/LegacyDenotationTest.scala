@@ -9,7 +9,8 @@ class LegacyDenotationTest(
     iset: immutable.Set[Int],
     cset: collection.Set[Int],
     imap: immutable.Map[Int, Int],
-    cmap: collection.Map[Int, Int]) {
+    cmap: collection.Map[Int, Int]
+) {
   iset + 1
   iset - 2
   cset + 1

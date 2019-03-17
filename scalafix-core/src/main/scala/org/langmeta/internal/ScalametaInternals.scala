@@ -41,7 +41,8 @@ object ScalametaInternals {
   def formatMessage(
       pos: Position,
       severity: String,
-      message: String): String = {
+      message: String
+  ): String = {
     if (pos != Position.None) {
       val input = pos.input
       val startLine = pos.startLine + 1

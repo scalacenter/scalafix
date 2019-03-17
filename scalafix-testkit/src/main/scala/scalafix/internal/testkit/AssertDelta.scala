@@ -8,7 +8,8 @@ import scalafix.internal.util.PositionSyntax._
 // AssertDelta is used to find which Assert is associated with which LintMessage
 case class AssertDelta(
     assert: CommentAssertion,
-    lintDiagnostic: RuleDiagnostic) {
+    lintDiagnostic: RuleDiagnostic
+) {
 
   private def sameLine(assertPos: Position): Boolean =
     assertPos.startLine == lintDiagnostic.position.startLine

@@ -60,12 +60,14 @@ case class DisableSyntaxConfig(
     noImplicitConversion: Boolean = false,
     @Description(
       "Report error on `final` modifier for val definitions, " +
-        "see [motivation](https://github.com/sbt/zinc/issues/227)")
+        "see [motivation](https://github.com/sbt/zinc/issues/227)"
+    )
     noFinalVal: Boolean = false,
     @Description("Reports error when finalize is overridden.")
     noFinalize: Boolean = false,
     @Description(
-      "Report error when pattern matching in val assignment with non-tuple patterns.")
+      "Report error when pattern matching in val assignment with non-tuple patterns."
+    )
     noValPatterns: Boolean = false,
     @Description(
       "Report error on `==` (universal equality)"
@@ -79,7 +81,8 @@ case class DisableSyntaxConfig(
     noUniversalEqualityMessage: String =
       "== and != are unsafe since they allow comparing two unrelated types",
     @Description(
-      "Report error if the text contents of a source file matches a given regex.")
+      "Report error if the text contents of a source file matches a given regex."
+    )
     @ExampleValue(
       """|[
          |  {
@@ -87,7 +90,8 @@ case class DisableSyntaxConfig(
          |    pattern = "[Pp]imp"
          |    message = "Please consider a less offensive word such as 'extension' or 'enrichment'"
          |  }
-         |]""".stripMargin)
+         |]""".stripMargin
+    )
     regex: List[CustomMessage[Either[Regex, Pattern]]] = Nil
 ) {
 

@@ -16,7 +16,8 @@ class LegacySemanticRule(name: RuleName, fn: v0.SemanticdbIndex => v0.Rule)
   private[this] var conf: Conf = Conf.Obj()
   override def description: String = fn(SemanticdbIndex.empty).description
   override def withConfiguration(
-      configuration: Configuration): Configured[Rule] = {
+      configuration: Configuration
+  ): Configured[Rule] = {
     LegacyRule.init(configuration.conf, fn).map { _ =>
       this.conf = configuration.conf
       this

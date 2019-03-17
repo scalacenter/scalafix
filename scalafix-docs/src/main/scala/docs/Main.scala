@@ -13,7 +13,8 @@ object Main {
     val guide = FileIO
       .slurp(
         PathIO.workingDirectory.resolve("CONTRIBUTING.md"),
-        StandardCharsets.UTF_8)
+        StandardCharsets.UTF_8
+      )
       .stripPrefix("# Contributing\n")
     val text =
       """---

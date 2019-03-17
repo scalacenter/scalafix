@@ -90,7 +90,8 @@ object LegacySemanticdbIndex {
 
   def infoToDenotation(
       doc: v1.SemanticDocument,
-      info: s.SymbolInformation): v0.Denotation = {
+      info: s.SymbolInformation
+  ): v0.Denotation = {
     val dflags = {
       var dflags = 0L
       def dflip(dbit: Long) = dflags ^= dbit
@@ -151,7 +152,8 @@ object LegacySemanticdbIndex {
   def occurrenceToLegacy(
       doc: v1.SemanticDocument,
       input: Input,
-      occurrence: s.SymbolOccurrence): v0.ResolvedName = {
+      occurrence: s.SymbolOccurrence
+  ): v0.ResolvedName = {
     val pos = ScalametaInternals.positionFromRange(input, occurrence.range)
     v0.ResolvedName(
       pos,
@@ -162,7 +164,8 @@ object LegacySemanticdbIndex {
 
   def syntheticToLegacy(
       doc: v1.SemanticDocument,
-      synthetic: s.Synthetic): v0.Synthetic = {
+      synthetic: s.Synthetic
+  ): v0.Synthetic = {
     new LegacyCodePrinter(doc).convertSynthetic(synthetic)
   }
 }

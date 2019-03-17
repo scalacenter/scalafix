@@ -13,7 +13,8 @@ final class ScalafixRuleImpl(rule: v1.Rule) extends ScalafixRule {
     case _: v1.SyntacticRule => ScalafixRuleKind.SYNTACTIC
     case _ =>
       throw new IllegalArgumentException(
-        s"Rule '$rule' is neither semantic or syntactic")
+        s"Rule '$rule' is neither semantic or syntactic"
+      )
   }
   override def isLinter: Boolean = rule.isLinter
   override def isRewrite: Boolean = rule.isRewrite

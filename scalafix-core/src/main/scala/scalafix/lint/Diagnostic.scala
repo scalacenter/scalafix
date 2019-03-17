@@ -60,11 +60,13 @@ object Diagnostic {
   /** Construct an eager instance of a Diagnostic. */
   @deprecated(
     "Use Diagnostic(categoryID,message,position,explanation) instead",
-    "0.6.0")
+    "0.6.0"
+  )
   def apply(
       message: String,
       position: Position,
-      category: v0.LintCategory): v0.LintMessage = {
+      category: v0.LintCategory
+  ): v0.LintMessage = {
     v0.LintMessage(message, position, category)
   }
 

@@ -24,7 +24,8 @@ object SymbolInformationDocs {
     } else {
       Symbols.Global(
         classToSymbol(cls.getEnclosingClass),
-        Descriptor.Term(cls.getSimpleName))
+        Descriptor.Term(cls.getSimpleName)
+      )
     }
   }
   def documentSymbolInfoCategory(category: Class[_]): Unit = {
