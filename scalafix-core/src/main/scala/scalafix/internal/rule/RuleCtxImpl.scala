@@ -20,8 +20,8 @@ import scalafix.v0._
 class RuleCtxImpl(
     val tree: Tree,
     val config: ScalafixConfig,
-    diffDisable: DiffDisable)
-    extends RuleCtx
+    diffDisable: DiffDisable
+) extends RuleCtx
     with LegacyPatchOps { ctx =>
   def syntax: String =
     s"""${tree.input.syntax}
@@ -38,19 +38,22 @@ class RuleCtxImpl(
       input,
       LazyValue.now(tree),
       LazyValue.later(() => comments),
-      diffDisable)
+      diffDisable
+    )
 
   // Debug utilities
   def index(implicit index: SemanticdbIndex): SemanticdbIndex =
     index
   def debugIndex()(
       implicit index: SemanticdbIndex,
-      fileLine: FileLine): Unit = {
+      fileLine: FileLine
+  ): Unit = {
     val db = this.index(index)
     debug(sourcecode.Text(db.documents.head, "index"))
   }
-  def debug(values: sourcecode.Text[Any]*)(
-      implicit fileLine: FileLine): Unit = {
+  def debug(
+      values: sourcecode.Text[Any]*
+  )(implicit fileLine: FileLine): Unit = {
     // alias for org.scalameta.logger.
     logger.elem(values: _*)
   }

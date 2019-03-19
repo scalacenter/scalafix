@@ -13,17 +13,20 @@ case class ExplicitResultTypesConfig(
     @ExampleValue("[Public, Protected]")
     memberVisibility: List[MemberVisibility] = Nil,
     @Description(
-      "If false, insert explicit result types even for simple definitions like `val x = 2`")
+      "If false, insert explicit result types even for simple definitions like `val x = 2`"
+    )
     skipSimpleDefinitions: Boolean = true,
     @Description(
-      "If false, insert explicit result types even for locally defined implicit vals")
+      "If false, insert explicit result types even for locally defined implicit vals"
+    )
     skipLocalImplicits: Boolean = true,
     // Experimental, still blocked by https://github.com/scalameta/scalameta/issues/1099
     // to work for defs. May insert names that conflicts with existing names in scope.
     // Use at your own risk.
     @Description(
       "If true, does a best-effort at inserting short names and add missing imports. " +
-        "WARNING. This feature is currently implemented in a naive way and it contains many bugs.")
+        "WARNING. This feature is currently implemented in a naive way and it contains many bugs."
+    )
     unsafeShortenNames: Boolean = false,
     @Description(
       "If true, report and fail unexpected errors. " +

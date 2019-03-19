@@ -14,7 +14,8 @@ object StringFS {
    */
   def string2dir(
       layout: String,
-      charset: Charset = StandardCharsets.UTF_8): AbsolutePath = {
+      charset: Charset = StandardCharsets.UTF_8
+  ): AbsolutePath = {
     val root = Files.createTempDirectory("root")
     if (!layout.isEmpty) {
       layout.split("(?=\n/)").foreach { row =>
@@ -25,7 +26,8 @@ object StringFS {
             Files.write(file, contents.getBytes(charset))
           case els =>
             throw new IllegalArgumentException(
-              s"Unable to split argument info path/contents! \n$els")
+              s"Unable to split argument info path/contents! \n$els"
+            )
 
         }
       }
@@ -44,7 +46,8 @@ object StringFS {
    */
   def dir2string(
       file: AbsolutePath,
-      charset: Charset = StandardCharsets.UTF_8): String = {
+      charset: Charset = StandardCharsets.UTF_8
+  ): String = {
     import scala.collection.JavaConverters._
     Files
       .walk(file.toNIO)

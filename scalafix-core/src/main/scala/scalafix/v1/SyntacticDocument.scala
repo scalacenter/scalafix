@@ -55,7 +55,8 @@ object SyntacticDocument {
       input: Input,
       tree: LazyValue[Tree],
       diffDisable: DiffDisable,
-      config: ScalafixConfig): SyntacticDocument = {
+      config: ScalafixConfig
+  ): SyntacticDocument = {
     val tokens = LazyValue.later { () =>
       tree.value.tokens
     }

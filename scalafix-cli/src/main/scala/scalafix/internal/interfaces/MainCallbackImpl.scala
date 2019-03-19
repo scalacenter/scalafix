@@ -23,7 +23,8 @@ object MainCallbackImpl {
           underlying.report(
             diagnostic.message,
             diagnostic.position,
-            diagnostic.severity)
+            diagnostic.severity
+          )
         } else {
           underlying.lint(diagnostic)
         }
@@ -41,7 +42,8 @@ object MainCallbackImpl {
           RuleDiagnostic(
             Diagnostic(id = "", msg, pos, "", sev),
             RuleName.empty,
-            None)
+            None
+          )
         )
         underlying.reportDiagnostic(diagnostic)
       }

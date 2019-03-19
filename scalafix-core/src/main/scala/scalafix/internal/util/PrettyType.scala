@@ -434,7 +434,8 @@ class PrettyType private (
           } else {
             Term.Select(
               toTermRef(this.info(info.owner)),
-              Term.Name(info.displayName))
+              Term.Name(info.displayName)
+            )
           }
         case QualifyStrategy.Name =>
           imports += info.symbol

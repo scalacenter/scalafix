@@ -143,7 +143,8 @@ class TokenListSuite extends FunSuite {
   }
 
   test(
-    "leadingSpaces returns an empty seq if there's no space preceding a token") {
+    "leadingSpaces returns an empty seq if there's no space preceding a token"
+  ) {
     val Some(kwPackage) = tokens.find(_.is[Token.KwPackage])
 
     assert(tokenList.leadingSpaces(kwPackage) == Seq())
@@ -161,7 +162,8 @@ class TokenListSuite extends FunSuite {
   }
 
   test(
-    "trailingSpaces returns an empty seq if there's no space following a token") {
+    "trailingSpaces returns an empty seq if there's no space following a token"
+  ) {
     val Some(rightBrace) = tokens.find(_.is[Token.RightBrace])
 
     assert(tokenList.trailingSpaces(rightBrace) == Seq())

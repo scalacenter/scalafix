@@ -32,7 +32,8 @@ final class InternalSemanticDoc(
 
   def synthetic(pos: Position): Option[SemanticTree] = {
     val synth = _synthetics.get(
-      s.Range(pos.startLine, pos.startColumn, pos.endLine, pos.endColumn))
+      s.Range(pos.startLine, pos.startColumn, pos.endLine, pos.endColumn)
+    )
     if (synth == null) {
       None
     } else {

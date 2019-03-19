@@ -10,7 +10,8 @@ object DocumentFromProtobuf {
     new DocumentFromProtobuf(synth)(new SemanticDocument(doc)).stree(synth.tree)
 }
 final class DocumentFromProtobuf(original: s.Synthetic)(
-    implicit doc: SemanticDocument) {
+    implicit doc: SemanticDocument
+) {
   val convert = new SymtabFromProtobuf(doc)
   def stree(t: s.Tree): SemanticTree = {
     t match {

@@ -6,7 +6,8 @@ import scala.meta.internal.inputs._
 final case class Synthetic(
     position: Position,
     text: String,
-    names: List[ResolvedName]) {
+    names: List[ResolvedName]
+) {
   def syntax: String = {
     val s_names = ResolvedName.syntax(names)
     s"[${position.start}..${position.end}): $text$s_names"

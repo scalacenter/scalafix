@@ -18,7 +18,8 @@ object ScalafixDiagnosticImpl {
         underlying
       case _ =>
         throw new IllegalArgumentException(
-          "Unexpected diagnostic: " + scalafixDiagnostic.toString)
+          "Unexpected diagnostic: " + scalafixDiagnostic.toString
+        )
     }
   }
 }

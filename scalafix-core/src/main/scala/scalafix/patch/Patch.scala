@@ -114,8 +114,9 @@ object Patch {
    *
    * Does not remove wildcard imports for the enclosing package or class.
    */
-  def removeGlobalImport(symbol: v1.Symbol)(
-      implicit c: SemanticContext): Patch =
+  def removeGlobalImport(
+      symbol: v1.Symbol
+  )(implicit c: SemanticContext): Patch =
     RemoveGlobalImport(v0.Symbol(symbol.value))
   /** Place named import for this symbol at the bottom of the global import list */
   def addGlobalImport(symbol: v1.Symbol)(implicit c: SemanticContext): Patch =
@@ -131,8 +132,9 @@ object Patch {
    * - good: replace:com.foo.Bar/org.qux.Buz
    * - bad:  replace:com.Bar/org.qux.Buz
    */
-  def replaceSymbols(toReplace: (String, String)*)(
-      implicit c: SemanticContext): Patch =
+  def replaceSymbols(
+      toReplace: (String, String)*
+  )(implicit c: SemanticContext): Patch =
     toReplace.foldLeft(Patch.empty) {
       case (a, (from, to)) =>
         val (fromSymbol, toSymbol) =
@@ -142,10 +144,12 @@ object Patch {
 
   /** Replace occurrences of fromSymbol to use toName instead */
   def renameSymbol(fromSymbol: v1.Symbol, toName: String)(
-      implicit c: SemanticContext): Patch =
+      implicit c: SemanticContext
+  ): Patch =
     ReplaceSymbol(
       v0.Symbol(fromSymbol.value).asInstanceOf[v0.Symbol.Global],
-      Root(v0.Signature.Term(toName)))
+      Root(v0.Signature.Term(toName))
+    )
 
   private[scalafix] object internal {
     trait LowLevelPatch
@@ -163,10 +167,11 @@ object Patch {
         override val tok: Token,
         addLeft: String,
         addRight: String,
-        keepTok: Boolean = true)
-        extends TokenPatch(
+        keepTok: Boolean = true
+    ) extends TokenPatch(
           tok,
-          s"""$addLeft${if (keepTok) tok else ""}$addRight""")
+          s"""$addLeft${if (keepTok) tok else ""}$addRight"""
+        )
     abstract class TreePatch extends Patch
     abstract class ImportPatch extends TreePatch
     case class RemoveGlobalImport(symbol: v0.Symbol) extends ImportPatch

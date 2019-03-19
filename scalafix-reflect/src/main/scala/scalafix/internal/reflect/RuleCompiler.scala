@@ -16,7 +16,8 @@ import scala.tools.nsc.reporters.StoreReporter
 
 class RuleCompiler(
     classpath: String,
-    target: AbstractFile = new VirtualDirectory("(memory)", None)) {
+    target: AbstractFile = new VirtualDirectory("(memory)", None)
+) {
   private val settings = new Settings()
   settings.deprecation.value = true // enable detailed deprecation warnings
   settings.unchecked.value = true // enable detailed unchecked warnings
@@ -36,7 +37,8 @@ class RuleCompiler(
       case _ => "(input)"
     }
     run.compileSources(
-      List(new BatchSourceFile(label, new String(input.chars))))
+      List(new BatchSourceFile(label, new String(input.chars)))
+    )
     val errors = reporter.infos.collect {
       case reporter.Info(pos, msg, reporter.ERROR) =>
         ConfError

@@ -17,7 +17,8 @@ case class PrintStreamReporter(
   override private[scalafix] def report(
       message: String,
       position: Position,
-      severity: LintSeverity): Unit = {
+      severity: LintSeverity
+  ): Unit = {
     val formatted = position.formatMessage(severity.toString, message)
     out.println(formatted)
   }

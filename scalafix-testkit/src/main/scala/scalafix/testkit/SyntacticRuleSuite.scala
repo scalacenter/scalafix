@@ -22,7 +22,8 @@ class SyntacticRuleSuite(rule: Rule = Rule.empty)
       rule: Rule,
       name: String,
       original: String,
-      expected: String): Unit = {
+      expected: String
+  ): Unit = {
     check(rule, name, original, expected, Seq(): _*)
   }
 
@@ -31,7 +32,8 @@ class SyntacticRuleSuite(rule: Rule = Rule.empty)
       name: String,
       original: String,
       expected: String,
-      testTags: Tag*): Unit = {
+      testTags: Tag*
+  ): Unit = {
     test(name, testTags: _*) {
       import scala.meta._
       val obtained = rule.apply(Input.String(original))
@@ -55,7 +57,8 @@ class SyntacticRuleSuite(rule: Rule = Rule.empty)
       rule: Rule,
       original: Input,
       expected: String,
-      testTags: Tag*): Unit = {
+      testTags: Tag*
+  ): Unit = {
     test(original.label, testTags: _*) {
       val ctx = RuleCtx(original.parse[Source].get)
       val obtained = rule.diff(ctx)

@@ -67,8 +67,8 @@ object ImportPatchOps {
   // NOTE(olafur): This method is the simplest/dummest thing I can think of
   private[scalafix] def superNaiveImportPatchToTokenPatchConverter(
       ctx: RuleCtx,
-      importPatches: Seq[ImportPatch])(
-      implicit index: SemanticdbIndex): Iterable[Patch] = {
+      importPatches: Seq[ImportPatch]
+  )(implicit index: SemanticdbIndex): Iterable[Patch] = {
     val allImports = ctx.tree.collect { case i: Import => i }
     val allImporters = allImports.flatMap(_.importers)
     lazy val allImportersSyntax = allImporters.map(_.syntax)
@@ -78,8 +78,9 @@ object ImportPatchOps {
         n.symbol
       // TODO(olafur) handle rename.
     }
-    val allImporteeSymbols = allImportees.flatMap(importee =>
-      importee.symbol.map(_.normalized -> importee))
+    val allImporteeSymbols = allImportees.flatMap(
+      importee => importee.symbol.map(_.normalized -> importee)
+    )
     val globalImports = getGlobalImports(ctx.tree)
     val editToken: Token = {
       if (globalImports.isEmpty) fallbackToken(ctx)
@@ -230,16 +231,18 @@ object ImportPatchOps {
       var newline = false
       ctx.tokenList
         .leading(ctx.toks(i).head)
-        .takeWhile(x =>
-          !newline && {
-            x.is[Token.Space] || {
-              val isNewline = x.is[Newline]
-              if (isNewline) {
-                newline = true
+        .takeWhile(
+          x =>
+            !newline && {
+              x.is[Token.Space] || {
+                val isNewline = x.is[Newline]
+                if (isNewline) {
+                  newline = true
+                }
+                isNewline
               }
-              isNewline
             }
-        })
+        )
         .map(tok => ctx.removeToken(tok))
         .asPatch
     }

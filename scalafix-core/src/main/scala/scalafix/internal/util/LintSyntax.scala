@@ -14,7 +14,8 @@ object LintSyntax {
 
     def toDiagnostic(
         ruleName: RuleName,
-        config: ScalafixConfig): RuleDiagnostic = {
+        config: ScalafixConfig
+    ): RuleDiagnostic = {
       val id = LintID(ruleName.value, msg.categoryID)
       val configuredSeverity =
         config.lint.getConfiguredSeverity(id.fullID)

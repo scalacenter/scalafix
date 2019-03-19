@@ -27,7 +27,8 @@ class ClassloadRule[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
   private def classloadLambdaRule(
       clazz: Class[_],
       args: Seq[AnyRef],
-      fieldName: String): Try[T] = Try {
+      fieldName: String
+  ): Try[T] = Try {
     val field = clazz.getDeclaredField(fieldName)
     val obj = {
       val constructor = clazz.getDeclaredConstructor()
@@ -44,7 +45,8 @@ class ClassloadRule[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
           rule.asInstanceOf[Function[SemanticdbIndex, T]].apply(index)
         case _ =>
           throw new IllegalArgumentException(
-            s"Unable to load rule from field $fieldName on object $obj with arguments $args")
+            s"Unable to load rule from field $fieldName on object $obj with arguments $args"
+          )
       }
   }
 
@@ -68,7 +70,8 @@ class ClassloadRule[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
             s"""No suitable constructor on $clazz.
                |Expected : zero argument constructor $argsMsg
                |Found    : $constructors
-             """.stripMargin)
+             """.stripMargin
+          )
         }
       constructor.setAccessible(true)
       val obj = {
@@ -87,11 +90,12 @@ class ClassloadRule[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
 
   def classloadRule(fqcn: String, args: Class[_] => Seq[AnyRef]): Try[T] = {
     val combined = List.newBuilder[Try[T]]
-    combined += getClassFor(fqcn).flatMap(cls =>
-      classloadClassRule(cls, args(cls)))
+    combined += getClassFor(fqcn).flatMap(
+      cls => classloadClassRule(cls, args(cls))
+    )
     if (!fqcn.endsWith("$")) {
-      combined += getClassFor(fqcn + "$").flatMap(cls =>
-        classloadClassRule(cls, args(cls)))
+      combined += getClassFor(fqcn + "$")
+        .flatMap(cls => classloadClassRule(cls, args(cls)))
     }
     fqcn match {
       case LambdaRule(cls, field) =>
@@ -109,7 +113,9 @@ class ClassloadRule[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
       util.Failure(
         new IllegalArgumentException(
           s"""Unable to load rule $fqcn with args $args. Tried the following:
-             |${failures.map(pretty).mkString("\n")}""".stripMargin))
+             |${failures.map(pretty).mkString("\n")}""".stripMargin
+        )
+      )
     }
   }
 }
@@ -119,7 +125,8 @@ object ClassloadRule {
   def apply(
       fqn: String,
       args: Class[_] => Seq[AnyRef],
-      classloader: ClassLoader = defaultClassloader): Configured[Rule] = {
+      classloader: ClassLoader = defaultClassloader
+  ): Configured[Rule] = {
     val result =
       new ClassloadRule[Rule](classloader).classloadRule(fqn, args)
     result match {

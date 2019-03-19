@@ -23,7 +23,8 @@ object GitHubUrlRule {
                       |- github:org/repo
                       |- github:org/repo/name
                       |- github:org/repo/name?sha=branch""".stripMargin)
-          .notOk)
+          .notOk
+      )
     case _ => None
   }
 
@@ -31,7 +32,8 @@ object GitHubUrlRule {
       org: String,
       repo: String,
       filename: String,
-      sha: String): URL = {
+      sha: String
+  ): URL = {
     val firstGuess = expandGitHubURL(org, repo, filename, sha)
     if (is404(firstGuess)) {
       val secondGuess = expandGitHubURL(org, repo, g8CamelCase(filename), sha)
@@ -75,9 +77,11 @@ object GitHubUrlRule {
       org: String,
       repo: String,
       filename: String,
-      sha: String): URL = {
+      sha: String
+  ): URL = {
     new URL(
-      s"https://raw.githubusercontent.com/$org/$repo/$sha/scalafix/rules/src/main/scala/fix/$filename.scala")
+      s"https://raw.githubusercontent.com/$org/$repo/$sha/scalafix/rules/src/main/scala/fix/$filename.scala"
+    )
   }
 
 }

@@ -91,7 +91,9 @@ class CliSemanticSuite extends BaseCliSuite {
       assert(out.contains("Stale SemanticDB"))
       assert(
         out.contains(
-          explicitResultTypesPath.toString + "-ondisk-md5-fingerprint"))
+          explicitResultTypesPath.toString + "-ondisk-md5-fingerprint"
+        )
+      )
     }
   )
 
@@ -151,7 +153,8 @@ class CliSemanticSuite extends BaseCliSuite {
       "--classpath",
       Classpath(
         props.inputClasspath.entries
-          .filterNot(_.toString().contains("scala-library"))).syntax
+          .filterNot(_.toString().contains("scala-library"))
+      ).syntax
     ),
     // Errors in ExplicitResultTypes are suppressed.
     expectedExit = ExitStatus.Ok,

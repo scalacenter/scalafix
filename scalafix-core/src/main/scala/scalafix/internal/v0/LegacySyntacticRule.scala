@@ -12,7 +12,8 @@ class LegacySyntacticRule(rule: v0.Rule) extends SyntacticRule(rule.name) {
   private[this] var configuredRule: v0.Rule = rule
   override def description: String = rule.description
   override def withConfiguration(
-      configuration: Configuration): Configured[Rule] = {
+      configuration: Configuration
+  ): Configured[Rule] = {
     LegacyRule.init(configuration.conf, _ => rule).map { ok =>
       configuredRule = ok
       this

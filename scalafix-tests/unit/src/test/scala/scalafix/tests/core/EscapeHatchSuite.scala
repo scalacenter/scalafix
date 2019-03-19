@@ -48,12 +48,14 @@ class EscapeHatchSuite extends FunSuite {
     LazyValue.later(() => throw new DontTouchMe("associated comments"))
 
   test(
-    "`apply` should not evaluate tree nor associated comments if escapes are not found") {
+    "`apply` should not evaluate tree nor associated comments if escapes are not found"
+  ) {
     EscapeHatch(noEscapes, untouchableTree, untouchableComments, EmptyDiff)
   }
 
   test(
-    "`apply` should evaluate tree and associated comments if 'scalafix:ok' is found") {
+    "`apply` should evaluate tree and associated comments if 'scalafix:ok' is found"
+  ) {
     val (input, tree, comments) = params(scalafixOk)
 
     intercept[DontTouchMe] {
@@ -83,22 +85,23 @@ class EscapeHatchSuite extends FunSuite {
   }
 
   test(
-    "`isEmpty` should not evaluate tree nor associated comments if escapes are not found") {
-    assert(EscapeHatch(
-      noEscapes,
-      untouchableTree,
-      untouchableComments,
-      EmptyDiff).isEmpty)
+    "`isEmpty` should not evaluate tree nor associated comments if escapes are not found"
+  ) {
+    assert(
+      EscapeHatch(noEscapes, untouchableTree, untouchableComments, EmptyDiff).isEmpty
+    )
   }
 
   test(
-    "`filter` should not evaluate tree nor associated comments if no escapes are found") {
+    "`filter` should not evaluate tree nor associated comments if no escapes are found"
+  ) {
     val input = noEscapes
     val doc = SyntacticDocument(
       input,
       untouchableTree,
       EmptyDiff,
-      ScalafixConfig.default)
+      ScalafixConfig.default
+    )
     implicit val ctx = new LegacyRuleCtx(doc)
     implicit val idx = SemanticdbIndex.empty
     val patches = Map(RuleName("foo") -> Patch.empty)
@@ -145,7 +148,8 @@ class EscapeHatchSuite extends FunSuite {
   }
 
   private def params(
-      input: Input): (Input, LazyValue[Tree], LazyValue[AssociatedComments]) = {
+      input: Input
+  ): (Input, LazyValue[Tree], LazyValue[AssociatedComments]) = {
     val tree = input.parse[Source].get
     val comments = AssociatedComments.apply(tree)
     (input, LazyValue.now(tree), LazyValue.now(comments))

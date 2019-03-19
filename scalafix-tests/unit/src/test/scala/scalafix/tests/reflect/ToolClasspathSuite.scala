@@ -23,7 +23,8 @@ class ToolClasspathSuite extends FunSuite with BeforeAndAfterAll {
     val dependency = new Dependency(
       "com.geirsson",
       "scalafmt-core_" + scalaBinaryVersion,
-      "1.2.0")
+      "1.2.0"
+    )
     val settings = new Settings().withDependencies(List(dependency))
     val jars = CoursierSmall.fetch(settings)
     scalafmtClasspath = jars.map(AbsolutePath(_))
@@ -62,7 +63,8 @@ class ToolClasspathSuite extends FunSuite with BeforeAndAfterAll {
     val tmp = Files.createTempDirectory("scalafix")
     val compiler = new RuleCompiler(
       RuleCompiler.defaultClasspath,
-      new PlainDirectory(new Directory(tmp.toFile)))
+      new PlainDirectory(new Directory(tmp.toFile))
+    )
     compiler.compile(metaconfig.Input.VirtualFile("CustomRule.scala", rewrite))
     val decoderSettings =
       RuleDecoder.Settings().withToolClasspath(AbsolutePath(tmp) :: Nil)

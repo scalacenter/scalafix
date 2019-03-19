@@ -7,7 +7,8 @@ import scala.meta.internal.inputs._
 final case class ResolvedName(
     position: Position,
     symbol: Symbol,
-    isDefinition: Boolean) {
+    isDefinition: Boolean
+) {
   def syntax: String = {
     val text = if (position.text.nonEmpty) position.text else ""
     val binder = if (isDefinition) "<=" else "=>"

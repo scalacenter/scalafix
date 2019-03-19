@@ -97,7 +97,8 @@ trait ScalafixMetaconfigReaders {
 
   def parseReplaceSymbol(
       from: String,
-      to: String): Configured[(Symbol.Global, Symbol.Global)] =
+      to: String
+  ): Configured[(Symbol.Global, Symbol.Global)] =
     symbolGlobalReader.read(Conf.Str(from)) |@|
       symbolGlobalReader.read(Conf.Str(to))
 
@@ -110,10 +111,12 @@ trait ScalafixMetaconfigReaders {
     }
 
   def ruleConfDecoderSyntactic(
-      singleRuleDecoder: ConfDecoder[Rule]): ConfDecoder[Rule] =
+      singleRuleDecoder: ConfDecoder[Rule]
+  ): ConfDecoder[Rule] =
     ruleConfDecoder(singleRuleDecoder)
   def ruleConfDecoder(
-      singleRuleDecoder: ConfDecoder[Rule]): ConfDecoder[Rule] = {
+      singleRuleDecoder: ConfDecoder[Rule]
+  ): ConfDecoder[Rule] = {
     ConfDecoder.instance[Rule] {
       case Conf.Lst(values) =>
         MetaconfigOps
@@ -153,8 +156,9 @@ trait ScalafixMetaconfigReaders {
       }
     }
 
-  def castReader[From, To](ConfDecoder: ConfDecoder[From])(
-      implicit ev: ClassTag[To]): ConfDecoder[To] = ConfDecoder.flatMap {
+  def castReader[From, To](
+      ConfDecoder: ConfDecoder[From]
+  )(implicit ev: ClassTag[To]): ConfDecoder[To] = ConfDecoder.flatMap {
     case x if ev.runtimeClass.isInstance(x) =>
       Configured.Ok(x.asInstanceOf[To])
     case x =>
@@ -183,7 +187,8 @@ trait ScalafixMetaconfigReaders {
               ConfError
                 .typeMismatch(
                   "Symbol.Global",
-                  Conf.Str(s"$els: ${els.productPrefix}"))
+                  Conf.Str(s"$els: ${els.productPrefix}")
+                )
                 .notOk
           }
         val toParse = SymbolOps.inferTrailingDot(path)
@@ -212,13 +217,15 @@ trait ScalafixMetaconfigReaders {
   }
 
   implicit lazy val PatternDecoder: ConfDecoder[Pattern] = {
-    ConfDecoder.stringConfDecoder.flatMap(pattern =>
-      try {
-        Configured.Ok(Pattern.compile(pattern, Pattern.MULTILINE))
-      } catch {
-        case ex: PatternSyntaxException =>
-          Configured.NotOk(ConfError.message(ex.getMessage))
-    })
+    ConfDecoder.stringConfDecoder.flatMap(
+      pattern =>
+        try {
+          Configured.Ok(Pattern.compile(pattern, Pattern.MULTILINE))
+        } catch {
+          case ex: PatternSyntaxException =>
+            Configured.NotOk(ConfError.message(ex.getMessage))
+        }
+    )
   }
 
   implicit lazy val CustomMessagePattern: ConfDecoder[CustomMessage[Pattern]] =
@@ -226,7 +233,8 @@ trait ScalafixMetaconfigReaders {
 
   implicit def EitherConfDecoder[A, B](
       implicit A: ConfDecoder[A],
-      B: ConfDecoder[B]): ConfDecoder[Either[A, B]] = {
+      B: ConfDecoder[B]
+  ): ConfDecoder[Either[A, B]] = {
     def wrapLeft(a: A): Either[A, B] = Left(a)
     def wrapRight(b: B): Either[A, B] = Right(b)
     ConfDecoder.instance[Either[A, B]] {
@@ -237,7 +245,8 @@ trait ScalafixMetaconfigReaders {
             NotOk(
               ConfError
                 .message(
-                  "Failed to decode configuration for either of the following types:")
+                  "Failed to decode configuration for either of the following types:"
+                )
                 .combine(err)
             )
         }

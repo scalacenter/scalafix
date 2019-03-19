@@ -17,7 +17,8 @@ package object v1 extends Api {
   }
   implicit class XtensionTermInfixScalafix(infix: Term.ApplyInfix) {
     def syntheticOperator(
-        implicit doc: SemanticDocument): Option[SemanticTree] = {
+        implicit doc: SemanticDocument
+    ): Option[SemanticTree] = {
       val operatorPosition =
         Position.Range(infix.pos.input, infix.pos.start, infix.op.pos.end)
       doc.internal.synthetic(operatorPosition)

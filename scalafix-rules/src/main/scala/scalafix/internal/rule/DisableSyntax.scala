@@ -28,7 +28,8 @@ final class DisableSyntax(config: DisableSyntaxConfig)
         Position.Range(
           doc.input,
           matcher.start(groupIndex),
-          matcher.end(groupIndex))
+          matcher.end(groupIndex)
+        )
 
     def messageSubstitution(matcher: Matcher, message: String): String =
       (0 to matcher.groupCount).foldLeft(message) {
@@ -71,22 +72,26 @@ final class DisableSyntax(config: DisableSyntaxConfig)
             Diagnostic(
               keyword,
               "null should be avoided, consider using Option instead",
-              token.pos)
+              token.pos
+            )
           case "throw" =>
             Diagnostic(
               keyword,
               "exceptions should be avoided, consider encoding the error in the return type instead",
-              token.pos)
+              token.pos
+            )
           case "return" =>
             Diagnostic(
               keyword,
               "return should be avoided, consider using if/else instead",
-              token.pos)
+              token.pos
+            )
           case "while" =>
             Diagnostic(
               keyword,
               "while loops should be avoided, consider using recursion instead",
-              token.pos)
+              token.pos
+            )
           case _ =>
             Diagnostic(keyword, s"$keyword is disabled", token.pos)
         }
@@ -101,13 +106,15 @@ final class DisableSyntax(config: DisableSyntaxConfig)
         Diagnostic(
           "asInstanceOf",
           "asInstanceOf casts are disabled, use pattern matching instead",
-          token.pos)
+          token.pos
+        )
       case token: Token.Ident
           if token.value == "isInstanceOf" && config.noIsInstanceOf =>
         Diagnostic(
           "isInstanceOf",
           "isInstanceOf checks are disabled, use pattern matching instead",
-          token.pos)
+          token.pos
+        )
     }
   }
 
@@ -195,7 +202,8 @@ final class DisableSyntax(config: DisableSyntaxConfig)
           Diagnostic(
             "valInAbstract",
             "val definitions in traits/abstract classes may cause initialization bugs",
-            v.pos)
+            v.pos
+          )
         }
       case t @ Defn.Object(mods, _, _)
           if mods.exists(_.is[Mod.Implicit]) && config.noImplicitObject =>
@@ -203,7 +211,8 @@ final class DisableSyntax(config: DisableSyntaxConfig)
           Diagnostic(
             "implicitObject",
             "implicit objects may cause implicit resolution errors",
-            t.pos)
+            t.pos
+          )
         )
       case t @ Defn.Def(mods, _, _, paramss, _, _)
           if mods.exists(_.is[Mod.Implicit]) &&
@@ -213,7 +222,8 @@ final class DisableSyntax(config: DisableSyntaxConfig)
           Diagnostic(
             "implicitConversion",
             "implicit conversions weaken type safety and always can be replaced by explicit conversions",
-            t.pos)
+            t.pos
+          )
         )
       case DefaultArgs(params) if config.noDefaultArgs =>
         params
@@ -221,7 +231,8 @@ final class DisableSyntax(config: DisableSyntaxConfig)
             Diagnostic(
               "defaultArgs",
               "Default args makes it hard to use methods as functions.",
-              m.pos)
+              m.pos
+            )
           }
       case Term.ApplyInfix(_, t @ Term.Name("=="), _, _)
           if config.noUniversalEquality =>
@@ -249,17 +260,20 @@ final class DisableSyntax(config: DisableSyntaxConfig)
   private val noFinalVal: LintCategory =
     LintCategory.error(
       id = "noFinalVal",
-      explain = "Final vals cause problems with incremental compilation")
+      explain = "Final vals cause problems with incremental compilation"
+    )
 
   private val noValPatternCategory: LintCategory =
     LintCategory.error(
       id = "noValPatterns",
       explain = "Pattern matching in val assignment can result in match error, " +
-        "use \"_ match { ... }\" with a fallback case instead.")
+        "use \"_ match { ... }\" with a fallback case instead."
+    )
 
   private def noUniversalEqualityDiagnostic(
       symbol: String,
-      t: Term.Name): Diagnostic =
+      t: Term.Name
+  ): Diagnostic =
     Diagnostic(symbol, config.noUniversalEqualityMessage, t.pos)
 
 }

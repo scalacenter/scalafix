@@ -15,14 +15,17 @@ object Failure {
           s"""Unable to merge two token patches:
           |Token Patch 1: $a
           |Token Patch 2: $b"""
-        ))
+        )
+      )
   case class MismatchingSemanticdbIndex(a: SemanticdbIndex, b: SemanticdbIndex)
       extends Failure(
         InvariantFailedException(
           s"""Cannot mix two different SemanticdbIndex inside the same patch.
              |SemanticdbIndex 1: $a
              |RuleCtx 2: $b
-             |""".stripMargin))
+             |""".stripMargin
+        )
+      )
   case class Unsupported(msg: String)
       extends Failure(new UnsupportedOperationException(msg))
   case class InvariantFailedException(msg: String)

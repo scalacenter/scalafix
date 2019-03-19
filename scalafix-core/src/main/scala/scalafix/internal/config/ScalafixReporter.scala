@@ -10,7 +10,8 @@ trait ScalafixReporter {
   private[scalafix] def report(
       message: String,
       position: Position,
-      severity: LintSeverity): Unit
+      severity: LintSeverity
+  ): Unit
   private[scalafix] def lint(d: RuleDiagnostic): Unit
   final def info(message: String, position: Position = Position.None): Unit =
     report(message, position, LintSeverity.Info)
@@ -25,7 +26,8 @@ object ScalafixReporter {
     def report(
         message: String,
         position: Position,
-        severity: LintSeverity): Unit = ()
+        severity: LintSeverity
+    ): Unit = ()
     def lint(d: RuleDiagnostic): Unit = ()
   }
   def default: ScalafixReporter = PrintStreamReporter.default

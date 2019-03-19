@@ -77,7 +77,8 @@ object SemanticdbIndex {
       override def database: Database = Database(Nil)
       override def names: Seq[ResolvedName] = Nil
       override def symbol(
-          position: _root_.scala.meta.Position): Option[Symbol] = None
+          position: _root_.scala.meta.Position
+      ): Option[Symbol] = None
       override def symbol(tree: Tree): Option[Symbol] = None
       override def denotation(symbol: Symbol): Option[Denotation] = None
       override def denotation(tree: Tree): Option[Denotation] = None
@@ -87,7 +88,8 @@ object SemanticdbIndex {
 
   @deprecated(
     "Use scalafix.internal.v0.LegacyInMemorySemanticdbIndex from scalafix-reflect instead",
-    "0.6.0")
+    "0.6.0"
+  )
   def load(classpath: Classpath): SemanticdbIndex =
     throw new UnsupportedOperationException
 }

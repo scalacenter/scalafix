@@ -12,7 +12,8 @@ class Disable(symbols: List[Symbol]) extends SemanticRule("Disable") {
   override def withConfiguration(config: Configuration): Configured[Rule] =
     Configured.ok(
       new Disable(
-        config.conf.dynamic.Disable.symbols.as[List[Symbol]].getOrElse(Nil))
+        config.conf.dynamic.Disable.symbols.as[List[Symbol]].getOrElse(Nil)
+      )
     )
   override def fix(implicit doc: SemanticDocument): Patch = {
     doc.internal.textDocument.occurrences.collect {
@@ -23,7 +24,8 @@ class Disable(symbols: List[Symbol]) extends SemanticRule("Disable") {
           r.startLine,
           r.startCharacter,
           r.endLine,
-          r.endCharacter)
+          r.endCharacter
+        )
         if (pos.lineContent.contains("import")) {
           Patch.empty
         } else {

@@ -10,7 +10,8 @@ class RuleModifier extends StringModifier {
   override def process(
       info: String,
       code: Input,
-      reporter: Reporter): String = {
+      reporter: Reporter
+  ): String = {
     rules.find(_.name.matches(info)) match {
       case Some(rule) =>
         rule.description

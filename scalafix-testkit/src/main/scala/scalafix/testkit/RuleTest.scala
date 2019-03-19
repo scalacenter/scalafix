@@ -23,7 +23,8 @@ object RuleTest {
       props: TestkitProperties,
       test: TestkitPath,
       classLoader: ClassLoader,
-      symtab: SymbolTable): RuleTest = {
+      symtab: SymbolTable
+  ): RuleTest = {
     val run: () => (Rules, v1.SemanticDocument) = { () =>
       val input = test.toInput
       val tree = input.parse[Source].get
@@ -42,7 +43,8 @@ object RuleTest {
           doc,
           test.semanticdbPath,
           classLoader,
-          symtab)
+          symtab
+        )
       val decoderSettings =
         RuleDecoder.Settings().withConfig(scalafixConfig)
       val decoder = RuleDecoder.decoder(decoderSettings)

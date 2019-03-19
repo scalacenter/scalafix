@@ -11,23 +11,25 @@ object ScalafixToolbox extends ScalafixToolbox
 class ScalafixToolbox {
 
   private val ruleCache =
-    new java.util.concurrent.ConcurrentHashMap[
-      Input,
-      Configured[CompiledRules]]()
+    new java.util.concurrent.ConcurrentHashMap[Input, Configured[
+      CompiledRules
+    ]]()
   private val compilerCache =
     new java.util.concurrent.ConcurrentHashMap[String, RuleCompiler]()
   private val newCompiler: function.Function[String, RuleCompiler] =
     new function.Function[String, RuleCompiler] {
       override def apply(classpath: String) =
         new RuleCompiler(
-          classpath + File.pathSeparator + RuleCompiler.defaultClasspath)
+          classpath + File.pathSeparator + RuleCompiler.defaultClasspath
+        )
     }
 
   case class CompiledRules(classloader: ClassLoader, fqns: Seq[String])
 
   def getRule(
       code: Input,
-      toolClasspath: URLClassLoader): Configured[CompiledRules] =
+      toolClasspath: URLClassLoader
+  ): Configured[CompiledRules] =
     ruleCache.getOrDefault(code, {
       val uncached = getRuleUncached(code, toolClasspath)
       uncached match {
@@ -40,7 +42,8 @@ class ScalafixToolbox {
 
   def getRuleUncached(
       code: Input,
-      toolClasspath: URLClassLoader): Configured[CompiledRules] =
+      toolClasspath: URLClassLoader
+  ): Configured[CompiledRules] =
     synchronized {
       val classpath =
         toolClasspath.getURLs.map(_.getPath).mkString(File.pathSeparator)

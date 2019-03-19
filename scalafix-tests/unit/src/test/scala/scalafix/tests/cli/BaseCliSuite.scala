@@ -80,7 +80,8 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
       name: String,
       originalFile: String,
       rule: String,
-      expectedFile: String): Unit = {
+      expectedFile: String
+  ): Unit = {
     check(
       name,
       "/a.scala\n" + originalFile,
@@ -109,7 +110,8 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
 
   def writeTestkitConfiguration(
       root: AbsolutePath,
-      path: AbsolutePath): Unit = {
+      path: AbsolutePath
+  ): Unit = {
     import scala.meta._
     val code = slurp(path)
     val comment = SemanticRuleSuite.findTestkitComment(code.tokenize.get)
@@ -133,18 +135,21 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
       new SimpleFileVisitor[Path] {
         override def preVisitDirectory(
             dir: Path,
-            attrs: BasicFileAttributes): FileVisitResult = {
+            attrs: BasicFileAttributes
+        ): FileVisitResult = {
           val rel = source.toNIO.relativize(dir)
           Files.createDirectories(target.toNIO.resolve(rel))
           super.preVisitDirectory(dir, attrs)
         }
         override def visitFile(
             file: Path,
-            attrs: BasicFileAttributes): FileVisitResult = {
+            attrs: BasicFileAttributes
+        ): FileVisitResult = {
           Files.copy(
             file,
             target.toNIO.resolve(source.toNIO.relativize(file)),
-            StandardCopyOption.REPLACE_EXISTING)
+            StandardCopyOption.REPLACE_EXISTING
+          )
           super.visitFile(file, attrs)
         }
       }
@@ -156,14 +161,16 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
       .find(dir => dir.toNIO.endsWith("scala")) // Skip scala-2.12
       .getOrElse {
         throw new IllegalArgumentException(
-          props.inputSourceDirectories.toString())
+          props.inputSourceDirectories.toString()
+        )
       }
 
   case class Result(
       exit: ExitStatus,
       original: String,
       obtained: String,
-      expected: String)
+      expected: String
+  )
   def checkSemantic(
       name: String,
       args: Array[String],

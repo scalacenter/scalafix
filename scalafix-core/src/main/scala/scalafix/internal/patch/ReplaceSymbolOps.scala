@@ -18,18 +18,20 @@ object ReplaceSymbolOps {
     }
   }
 
-  def naiveMoveSymbolPatch(moveSymbols: Seq[ReplaceSymbol])(
-      implicit ctx: RuleCtx,
-      index: SemanticdbIndex): Patch = {
+  def naiveMoveSymbolPatch(
+      moveSymbols: Seq[ReplaceSymbol]
+  )(implicit ctx: RuleCtx, index: SemanticdbIndex): Patch = {
     val moves: Map[String, Symbol.Global] =
       moveSymbols.toIterator.flatMap {
         case ReplaceSymbol(
             term @ Symbol.Global(_, Signature.Method(_, _)),
-            to) =>
+            to
+            ) =>
           (term.syntax -> to) :: Nil
         case ReplaceSymbol(
             term @ Symbol.Global(qual, Signature.Term(name)),
-            to) =>
+            to
+            ) =>
           (term.syntax -> to) ::
             (Symbol.Global(qual, Signature.Type(name)).syntax -> to) ::
             Nil
@@ -45,12 +47,14 @@ object ReplaceSymbolOps {
         // ref is longer
         case (
             Select(qual, Name(_)),
-            Symbol.Global(Symbol.None, SignatureName(b))) =>
+            Symbol.Global(Symbol.None, SignatureName(b))
+            ) =>
           ctx.replaceTree(qual, b) -> Symbol.None
         // recurse
         case (
             Select(qual: Ref, a @ Name(_)),
-            Symbol.Global(symQual, SignatureName(b))) =>
+            Symbol.Global(symQual, SignatureName(b))
+            ) =>
           val (patch, toImport) = loop(qual, symQual)
           (patch + ctx.replaceTree(a, b)) -> toImport
       }
