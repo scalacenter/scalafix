@@ -349,42 +349,42 @@ inherited from supertypes.</p>
   }
 getClassMethods(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"scala/Some#"</span>)).take(<span class="hljs-number">5</span>)
 <span class="hljs-comment">// res32: Set[SymbolInformation] = Set(</span>
-<span class="hljs-comment">//   scala/Option#filter(). =&gt; @inline final method filter(p: Function1[A, Boolean]): Option[A],</span>
-<span class="hljs-comment">//   scala/Any#toString(). =&gt; abstract method toString(): String,</span>
-<span class="hljs-comment">//   scala/Option#flatMap(). =&gt; @inline final method flatMap[B](f: Function1[A, Option[B]]): Option[B],</span>
 <span class="hljs-comment">//   scala/Any#`==`(). =&gt; final method ==(that: Any): Boolean,</span>
-<span class="hljs-comment">//   scala/Any#`==`(). =&gt; final method ==(that: Any): Boolean</span>
+<span class="hljs-comment">//   scala/AnyRef#ne(). =&gt; final method ne(that: AnyRef): Boolean,</span>
+<span class="hljs-comment">//   scala/Some#copy$default$1(). =&gt; method copy$default$1[A]: A @&lt;?&gt;,</span>
+<span class="hljs-comment">//   scala/Equals#equals(). =&gt; abstract method equals(that: Any): Boolean,</span>
+<span class="hljs-comment">//   scala/Option#map(). =&gt; @inline final method map[B](f: Function1[A, B]): Option[B]</span>
 <span class="hljs-comment">// )</span>
 getClassMethods(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/lang/String#"</span>)).take(<span class="hljs-number">5</span>)
 <span class="hljs-comment">// res33: Set[SymbolInformation] = Set(</span>
-<span class="hljs-comment">//   java/lang/Object#toString(). =&gt; method toString(): String,</span>
-<span class="hljs-comment">//   java/lang/Object#wait(+2). =&gt; final method wait(): Unit,</span>
+<span class="hljs-comment">//   java/lang/String#valueOf(+4). =&gt; static method valueOf(param0: Char): String,</span>
+<span class="hljs-comment">//   java/lang/String#substring(). =&gt; method substring(param0: Int): String,</span>
+<span class="hljs-comment">//   java/lang/String#getChars(). =&gt; private[lang] method getChars(param0: Array[Char], param1: Int): Unit,</span>
 <span class="hljs-comment">//   java/lang/Object#notifyAll(). =&gt; final method notifyAll(): Unit,</span>
-<span class="hljs-comment">//   java/lang/String#equalsIgnoreCase(). =&gt; method equalsIgnoreCase(param0: String): Boolean,</span>
-<span class="hljs-comment">//   java/lang/Object#wait(+1). =&gt; final method wait(param0: Long, param1: Int): Unit</span>
+<span class="hljs-comment">//   java/lang/String#valueOf(+2). =&gt; static method valueOf(param0: Array[Char], param1: Int, param2: Int): String</span>
 <span class="hljs-comment">// )</span>
 getClassMethods(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"scala/collection/immutable/List#"</span>)).take(<span class="hljs-number">5</span>)
 <span class="hljs-comment">// res34: Set[SymbolInformation] = Set(</span>
-<span class="hljs-comment">//   scala/collection/GenTraversableOnce#toBuffer(). =&gt; abstract method toBuffer[A1 &gt;: A]: Buffer[A1],</span>
-<span class="hljs-comment">//   scala/Any#`!=`(). =&gt; final method !=(that: Any): Boolean,</span>
-<span class="hljs-comment">//   scala/collection/GenTraversableOnce#copyToArray(). =&gt; abstract method copyToArray[B &gt;: A](xs: Array[B]): Unit,</span>
-<span class="hljs-comment">//   scala/collection/TraversableLike#iterateUntilEmpty(). =&gt; private method iterateUntilEmpty(f: Function1[Traversable[A @&lt;?&gt;], Traversable[A @&lt;?&gt;]]): Iterator[Repr],</span>
-<span class="hljs-comment">//   scala/collection/GenTraversableOnce#toArray(). =&gt; abstract method toArray[A1 &gt;: A](implicit evidence$1: ClassTag[A1]): Array[A1]</span>
+<span class="hljs-comment">//   scala/collection/Parallelizable#par(). =&gt; method par: ParRepr,</span>
+<span class="hljs-comment">//   scala/Any#asInstanceOf(). =&gt; final method asInstanceOf[A](): A,</span>
+<span class="hljs-comment">//   scala/collection/IterableLike#reduceRight(). =&gt; method reduceRight[B &gt;: A](op: Function2[A, B, B]): B,</span>
+<span class="hljs-comment">//   scala/collection/GenTraversableOnce#`/:`(). =&gt; abstract method /:[B](z: B)(op: Function2[B, A, B]): B,</span>
+<span class="hljs-comment">//   scala/collection/IterableLike#zipWithIndex(). =&gt; method zipWithIndex[A1 &gt;: A, That](implicit bf: CanBuildFrom[Repr, Tuple2[A1, Int], That]): That</span>
 <span class="hljs-comment">// )</span>
 </code></pre>
 <p>For Java methods, use <code>SymbolInformation.isStatic</code> to separate static methods
 from non-static methods.</p>
 <pre><code class="hljs css language-scala">getClassMethods(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/lang/String#"</span>)).filter(_.isStatic).take(<span class="hljs-number">3</span>)
 <span class="hljs-comment">// res35: Set[SymbolInformation] = Set(</span>
-<span class="hljs-comment">//   java/lang/String#valueOf(+7). =&gt; static method valueOf(param0: Float): String,</span>
-<span class="hljs-comment">//   java/lang/String#join(+1). =&gt; static method join(param0: CharSequence, param1: Iterable[local_wildcard]): String,</span>
-<span class="hljs-comment">//   java/lang/String#valueOf(). =&gt; static method valueOf(param0: Object): String</span>
+<span class="hljs-comment">//   java/lang/String#valueOf(+3). =&gt; static method valueOf(param0: Boolean): String,</span>
+<span class="hljs-comment">//   java/lang/String#valueOf(+2). =&gt; static method valueOf(param0: Array[Char], param1: Int, param2: Int): String,</span>
+<span class="hljs-comment">//   java/lang/String#join(). =&gt; static method join(param0: CharSequence, param1: CharSequence*): String</span>
 <span class="hljs-comment">// )</span>
 getClassMethods(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/lang/String#"</span>)).filter(!_.isStatic).take(<span class="hljs-number">3</span>)
 <span class="hljs-comment">// res36: Set[SymbolInformation] = Set(</span>
-<span class="hljs-comment">//   java/lang/String#replaceAll(). =&gt; method replaceAll(param0: String, param1: String): String,</span>
-<span class="hljs-comment">//   java/lang/Object#equals(). =&gt; method equals(param0: Object): Boolean,</span>
-<span class="hljs-comment">//   java/lang/Comparable#compareTo(). =&gt; abstract method compareTo(param0: T): Int</span>
+<span class="hljs-comment">//   java/lang/String#replaceFirst(). =&gt; method replaceFirst(param0: String, param1: String): String,</span>
+<span class="hljs-comment">//   java/lang/String#regionMatches(). =&gt; method regionMatches(param0: Int, param1: String, param2: Int, param3: Int): Boolean,</span>
+<span class="hljs-comment">//   java/lang/String#toLowerCase(+1). =&gt; method toLowerCase(): String</span>
 <span class="hljs-comment">// )</span>
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="lookup-class-primary-constructor"></a><a href="#lookup-class-primary-constructor" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Lookup class primary constructor</h3>
@@ -497,9 +497,9 @@ getMethodOverloads(<span class="hljs-type">Symbol</span>(<span class="hljs-strin
 <span class="hljs-comment">// )</span>
 getMethodOverloads(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/io/PrintStream#"</span>), <span class="hljs-string">"print"</span>).take(<span class="hljs-number">3</span>)
 <span class="hljs-comment">// res50: Set[SymbolInformation] = Set(</span>
-<span class="hljs-comment">//   java/io/PrintStream#print(+5). =&gt; method print(param0: Double): Unit,</span>
-<span class="hljs-comment">//   java/io/PrintStream#print(+2). =&gt; method print(param0: Int): Unit,</span>
-<span class="hljs-comment">//   java/io/PrintStream#print(). =&gt; method print(param0: Boolean): Unit</span>
+<span class="hljs-comment">//   java/io/PrintStream#print(+1). =&gt; method print(param0: Char): Unit,</span>
+<span class="hljs-comment">//   java/io/PrintStream#print(). =&gt; method print(param0: Boolean): Unit,</span>
+<span class="hljs-comment">//   java/io/PrintStream#print(+5). =&gt; method print(param0: Double): Unit</span>
 <span class="hljs-comment">// )</span>
 </code></pre>
 <p>Overloaded methods can be inherited from supertypes.</p>
@@ -730,18 +730,18 @@ definition.</p>
     typeParameters: <span class="hljs-type">List</span>[<span class="hljs-type">SymbolInformation</span>],
     parents: <span class="hljs-type">List</span>[<span class="hljs-type">SemanticType</span>],
     self: <span class="hljs-type">SemanticType</span>,
-    declarations: <span class="hljs-type">List</span>[<span class="hljs-type">SymbolInformation</span>]</span>)</span>
-    <span class="hljs-keyword">extends</span> <span class="hljs-type">Signature</span>
+    declarations: <span class="hljs-type">List</span>[<span class="hljs-type">SymbolInformation</span>]
+</span>) <span class="hljs-keyword">extends</span> <span class="hljs-title">Signature</span></span>
 <span class="hljs-keyword">final</span> <span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MethodSignature</span>(<span class="hljs-params">
     typeParameters: <span class="hljs-type">List</span>[<span class="hljs-type">SymbolInformation</span>],
     parameterLists: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-type">SymbolInformation</span>]],
-    returnType: <span class="hljs-type">SemanticType</span></span>)</span>
-    <span class="hljs-keyword">extends</span> <span class="hljs-type">Signature</span>
+    returnType: <span class="hljs-type">SemanticType</span>
+</span>) <span class="hljs-keyword">extends</span> <span class="hljs-title">Signature</span></span>
 <span class="hljs-keyword">final</span> <span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TypeSignature</span>(<span class="hljs-params">
     typeParameters: <span class="hljs-type">List</span>[<span class="hljs-type">SymbolInformation</span>],
     lowerBound: <span class="hljs-type">SemanticType</span>,
-    upperBound: <span class="hljs-type">SemanticType</span></span>)</span>
-    <span class="hljs-keyword">extends</span> <span class="hljs-type">Signature</span>
+    upperBound: <span class="hljs-type">SemanticType</span>
+</span>) <span class="hljs-keyword">extends</span> <span class="hljs-title">Signature</span></span>
 <span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">NoSignature</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Signature</span></span>
 </code></pre>
 <p>To learn more about SemanticDB signatures, consult the specification:</p>
