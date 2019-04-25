@@ -365,7 +365,7 @@ git diff // should produce a diff
 
 ## Command line
 
-First, install the [Coursier](https://github.com/coursier/coursier#command-line)
+First, install the [Coursier](https://get-coursier.io/docs/cli-overview)
 command-line interface.
 
 Next, bootstrap a `scalafix` binary with Coursier
