@@ -1,6 +1,6 @@
 [6:7..6:17]:      test/PrettyTest# => class PrettyTest extends AnyRef { +4 decls }
 [6:18..6:18]:     test/PrettyTest#`<init>`(). => primary ctor <init>()
-[7:3..7:21]:      *(canBuildFrom[Int])
+[7:3..7:21]:      *(List.canBuildFrom[Int])
 [7:3..7:14]:      *[Int,List[Int]]
 [7:3..7:7]:       *.apply[Int]
 [8:3..12:12]:     orig(1.to(10)).flatMap[Int,IndexedSeq[Int]](
@@ -8,10 +8,10 @@
                       orig(2.to(20)).withFilter(
                         { (j) => orig(i > i) }
                       ).map[Int,IndexedSeq[Int]]({ (j) => orig(j) })(
-                        canBuildFrom[Int]
+                        IndexedSeq.canBuildFrom[Int]
                       )
                     }
-                  )(canBuildFrom[Int])
+                  )(IndexedSeq.canBuildFrom[Int])
 [9:10..9:11]:     intWrapper(*)
 [10:10..10:11]:   intWrapper(*)
 [13:3..17:15]:    orig(Future(1.to(10)))(global).foreach[Unit](

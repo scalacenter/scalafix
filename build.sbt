@@ -56,8 +56,6 @@ lazy val core = project
     buildInfoSettings,
     libraryDependencies ++= List(
       scalameta,
-      symtab,
-      metap,
       googleDiff,
       "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
@@ -79,7 +77,6 @@ lazy val reflect = project
     moduleName := "scalafix-reflect",
     isFullCrossVersion,
     libraryDependencies ++= Seq(
-      metacp,
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
     )
@@ -243,7 +240,7 @@ lazy val docs = project
     crossScalaVersions := List(scala212),
     libraryDependencies ++= List(
       "com.geirsson" %% "metaconfig-docs" % metaconfigV,
-      "org.scalameta" % "interactive" % scalametaV cross CrossVersion.full
+      "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
     )
   )
   .dependsOn(testkit, core, cli)

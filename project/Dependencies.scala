@@ -2,7 +2,7 @@ import sbt._
 /* scalafmt: { maxColumn = 120 }*/
 
 object Dependencies {
-  val scalametaV = "4.1.5"
+  val scalametaV = "4.1.9"
   val metaconfigV = "0.9.1"
   def dotty = "0.9.0-RC1"
   def scala210 = "2.10.6"
@@ -19,9 +19,7 @@ object Dependencies {
 
   def metacp = "org.scalameta" %% "metacp" % scalametaV
   def semanticdbPluginLibrary = "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
-  def scalameta = "org.scalameta" %% "contrib" % scalametaV
-  def symtab = "org.scalameta" %% "symtab" % scalametaV
-  def metap = "org.scalameta" %% "metap" % scalametaV
+  def scalameta = "org.scalameta" %% "scalameta" % scalametaV
   def scalatest = "org.scalatest" %% "scalatest" % "3.2.0-SNAP10"
   def scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.0"
 
