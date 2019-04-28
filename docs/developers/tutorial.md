@@ -148,7 +148,7 @@ We replace the `q"true"` quasiquote with `Lit.Boolean(_)`. Quasiquotes are great
 for constructing static tree nodes but pattern matching against named tree nodes
 like `Lit.Boolean(_)` can be more flexible when you need fine-grained control.
 
-To fine the name of a tree node you can use
+To find the name of a tree node you can use
 [AST Explorer](http://astexplorer.net/#/gist/ec56167ffafb20cbd8d68f24a37043a9/74efb238ad02abaa8fa69fc80342563efa8a1bdc)
 or `tree.structure`. First, make sure you have the following imports
 
