@@ -10,10 +10,11 @@ class LegacySyntheticsSuite extends BaseSemanticSuite("LegacySyntheticsTest") {
     val obtained = synthetics.sortBy(_.position.start).mkString("\n")
     val expected =
       """
-        |[221..226): *(canBuildFrom[Int])
+        |[221..226): *(List.canBuildFrom[Int])
         |  [0..1): * => _star_.
-        |  [2..14): canBuildFrom => scala/collection/immutable/List.canBuildFrom().
-        |  [15..18): Int => scala/Int#
+        |  [2..6): List => scala/collection/immutable/List.
+        |  [7..19): canBuildFrom => scala/collection/immutable/List.canBuildFrom().
+        |  [20..23): Int => scala/Int#
         |[221..226): *[List]
         |  [0..1): * => _star_.
         |  [2..6): List => scala/package.List#
@@ -22,10 +23,11 @@ class LegacySyntheticsSuite extends BaseSemanticSuite("LegacySyntheticsTest") {
         |  [2..5): Int => scala/Int#
         |  [7..10): Set => scala/Predef.Set#
         |  [11..14): Int => scala/Int#
-        |[245..253): *(canBuildFrom[Int])
+        |[245..253): *(Set.canBuildFrom[Int])
         |  [0..1): * => _star_.
-        |  [2..14): canBuildFrom => scala/collection/immutable/Set.canBuildFrom().
-        |  [15..18): Int => scala/Int#
+        |  [2..5): Set => scala/collection/immutable/Set.
+        |  [6..18): canBuildFrom => scala/collection/immutable/Set.canBuildFrom().
+        |  [19..22): Int => scala/Int#
         |[245..253): *[List[Int], Int, Set[Int]]
         |  [0..1): * => _star_.
         |  [2..6): List => scala/collection/immutable/List#
@@ -49,10 +51,11 @@ class LegacySyntheticsSuite extends BaseSemanticSuite("LegacySyntheticsTest") {
         |  [0..1): * => _star_.
         |  [2..7): apply => scala/concurrent/Future.apply().
         |  [8..11): Int => scala/Int#
-        |[301..309): *(canBuildFrom[Int])
+        |[301..309): *(List.canBuildFrom[Int])
         |  [0..1): * => _star_.
-        |  [2..14): canBuildFrom => scala/collection/immutable/List.canBuildFrom().
-        |  [15..18): Int => scala/Int#
+        |  [2..6): List => scala/collection/immutable/List.
+        |  [7..19): canBuildFrom => scala/collection/immutable/List.canBuildFrom().
+        |  [20..23): Int => scala/Int#
         |[301..309): *[List[Future[Int]], Int, List[Int]]
         |  [0..1): * => _star_.
         |  [2..6): List => scala/collection/immutable/List#
