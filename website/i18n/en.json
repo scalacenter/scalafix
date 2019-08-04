@@ -43,6 +43,10 @@
       "rules/DisableSyntax": {
         "title": "DisableSyntax"
       },
+      "rules/external-rules": {
+        "title": "Using external rules",
+        "sidebar_label": "Using external rules"
+      },
       "rules/LeakingImplicitClassVal": {
         "title": "LeakingImplicitClassVal"
       },
@@ -54,7 +58,7 @@
       },
       "rules/overview": {
         "title": "Built-in Rules",
-        "sidebar_label": "All rules"
+        "sidebar_label": "Built-in rules"
       },
       "rules/ProcedureSyntax": {
         "title": "ProcedureSyntax"
