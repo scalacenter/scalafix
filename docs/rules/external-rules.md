@@ -29,3 +29,15 @@ scalafixDependencies in ThisBuild +=
 // sbt shell
 > scalafix RULE
 ```
+
+You may find useful [scalafix rules in Scaladex](https://index.scala-lang.org/search?q=scalafix).
+
+If you want to create and publish scalafix rules, refer ["Developer guide" section](../developers/setup.md).
+
+
+
+
+
+
+
+
