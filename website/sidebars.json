@@ -8,7 +8,8 @@
       "rules/NoAutoTupling",
       "rules/LeakingImplicitClassVal",
       "rules/NoValInForComprehension",
-      "rules/ProcedureSyntax"
+      "rules/ProcedureSyntax",
+      "rules/external-rules"
     ],
     "Misc": ["users/related-projects"]
   },
