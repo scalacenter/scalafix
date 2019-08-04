@@ -1,5 +1,5 @@
 ---
-id: external-rule
+id: external-rules
 sidebar_label: Using external rules
 title: Using external rules
 ---
