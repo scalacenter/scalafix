@@ -1,6 +1,6 @@
 ---
 id: overview
-sidebar_label: All rules
+sidebar_label: Built-in rules
 title: Built-in Rules
 ---
 
