@@ -21,7 +21,7 @@ ask yourself the following questions first.
   sources beforehand but syntactic rules can only do limited code analysis
   since they don't have access to compiler information such as symbols and
   types.
-- Semantic rules are are slower and more complicated to run since they require
+- Semantic rules are slower and more complicated to run since they require
   compilation but on the other hand semantic rules are able to perform more
   advanced code analysis since they have access to compiler information such as
   symbols and types.
