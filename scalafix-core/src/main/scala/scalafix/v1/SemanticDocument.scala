@@ -54,20 +54,20 @@ object SemanticDocument {
       classLoader: ClassLoader,
       symtab: SymbolTable
   ): SemanticDocument = {
-    val semanticdbReluri = s"META-INF/semanticdb/$path.semanticdb"
-    Option(classLoader.getResourceAsStream(semanticdbReluri)) match {
+    val semanticdbRelPath = s"META-INF/semanticdb/$path.semanticdb"
+    Option(classLoader.getResourceAsStream(semanticdbRelPath)) match {
       case Some(inputStream) =>
         val sdocs =
           try s.TextDocuments.parseFrom(inputStream).documents
           finally inputStream.close()
-        val reluri = path.toRelativeURI.toString
+        val reluri = path.toURI(isDirectory = false).toString
         val sdoc = sdocs.find(_.uri == reluri).getOrElse {
           throw Error.MissingTextDocument(reluri)
         }
         val impl = new InternalSemanticDoc(doc, sdoc, symtab)
         new SemanticDocument(impl)
       case None =>
-        throw Error.MissingSemanticdb(semanticdbReluri)
+        throw Error.MissingSemanticdb(semanticdbRelPath)
     }
   }
 }

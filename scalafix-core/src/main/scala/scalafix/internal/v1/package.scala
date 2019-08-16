@@ -13,16 +13,6 @@ import scala.meta.io.RelativePath
 
 package object v1 {
 
-  implicit class XtensionRelativePathScalafix(path: RelativePath) {
-    // TODO: replace with RelativePath.toURI once https://github.com/scalameta/scalameta/issues/1523 is fixed
-    def toRelativeURI: URI = {
-      val reluri = path.toNIO.asScala.iterator.map { path =>
-        new URI(null, null, path.getFileName.toString, null).toString
-      }
-      URI.create(reluri.mkString("/"))
-    }
-  }
-
   implicit class XtensionTextDocumentFix(sdoc: s.TextDocument) {
     def abspath(sourceroot: URI): AbsolutePath = {
       val absuri = sourceroot.resolve(URI.create(sdoc.uri))
