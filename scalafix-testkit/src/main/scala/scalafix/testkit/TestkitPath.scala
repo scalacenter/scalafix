@@ -30,7 +30,7 @@ final class TestkitPath(
     )
     pprint.PPrinter.BlackWhite.tokenize(map).mkString
   }
-  def testName: String = testPath.toRelativeURI.toString
+  def testName: String = testPath.toURI(isDirectory = false).toString
   def toInput: Input =
     Input.VirtualFile(testName, FileIO.slurp(input, StandardCharsets.UTF_8))
   def resolveOutput(props: TestkitProperties): Either[String, AbsolutePath] = {
