@@ -44,13 +44,11 @@ object AssertDiff {
   ): AssertDiff = {
 
     val data =
-      expectedLintMessages
-        .map { assert =>
-          reportedLintMessages
-            .map(message => AssertDelta(assert, message))
-            .to[IndexedSeq]
-        }
-        .to[IndexedSeq]
+      expectedLintMessages.map { assert =>
+        reportedLintMessages
+          .map(message => AssertDelta(assert, message))
+          .toVector
+      }.toVector
 
     if (reportedLintMessages.nonEmpty && expectedLintMessages.nonEmpty) {
       val matrix =

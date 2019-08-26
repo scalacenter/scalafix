@@ -100,8 +100,8 @@ final class InternalSemanticDoc(
     }
     result
   }
-
-  private[this] lazy val occurrences: util.Map[s.Range, Seq[String]] = {
+  private[this] lazy val occurrences
+      : util.Map[s.Range, collection.Seq[String]] = {
     val result = new util.HashMap[s.Range, ListBuffer[String]]()
     textDocument.occurrences.foreach { o =>
       if (o.range.isDefined) {
@@ -114,7 +114,7 @@ final class InternalSemanticDoc(
         buffer += o.symbol
       }
     }
-    result.asInstanceOf[util.Map[s.Range, Seq[String]]]
+    result.asInstanceOf[util.Map[s.Range, collection.Seq[String]]]
   }
 
 }

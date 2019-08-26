@@ -2,8 +2,8 @@ import Dependencies._
 inThisBuild(
   List(
     onLoadMessage := s"Welcome to scalafix ${version.value}",
-    scalaVersion := "2.12.8",
-    crossScalaVersions := List("2.12.8", "2.11.12")
+    scalaVersion := scala212,
+    crossScalaVersions := List(scala212, scala211, scala213)
   )
 )
 
@@ -29,6 +29,7 @@ lazy val interfaces = project
       props.put("scalametaVersion", scalametaV)
       props.put("scala212", scala212)
       props.put("scala211", scala211)
+      props.put("scala213", scala213)
       val out =
         managedResourceDirectories.in(Compile).value.head /
           "scalafix-interfaces.properties"
@@ -107,14 +108,21 @@ lazy val testsShared = project
     coverageEnabled := false
   )
 
+val isScala213 = Def.setting(scalaVersion.value.startsWith("2.13"))
+
+val warnAdaptedArgs = Def.setting {
+  if (isScala213.value) "-Xlint:adapted-args"
+  else "-Ywarn-adapted-args"
+}
+
 lazy val testsInput = project
   .in(file("scalafix-tests/input"))
   .settings(
     noPublish,
     semanticdbSettings,
     scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
-    scalacOptions += "-Ywarn-adapted-args", // For NoAutoTupling
-    scalacOptions += "-Ywarn-unused-import", // For RemoveUnusedImports
+    scalacOptions += warnAdaptedArgs.value, // For NoAutoTupling
+    scalacOptions += warnUnusedImports.value, // For RemoveUnused
     scalacOptions += "-Ywarn-unused", // For RemoveUnusedTerms
     logLevel := Level.Error, // avoid flood of compiler warnings
     testsInputOutputSetting,
@@ -127,7 +135,7 @@ lazy val testsOutput = project
     noPublish,
     semanticdbSettings,
     scalacOptions --= List(
-      warnUnusedImports,
+      warnUnusedImports.value,
       "-Xlint"
     ),
     testsInputOutputSetting,

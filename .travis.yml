@@ -12,14 +12,16 @@ before_install:
     fi
 jobs:
   include:
-    - env: TEST="scalafmt"
+    - name: Scalafmt
       script: ./scalafmt --test
-    - env: TEST="2.11"
+    - name: 2.11
       script: sbt ci-211
-    - env: TEST="2.12"
+    - name: 2.12
       script: sbt ci-212
+    - name: 2.13
+      script: sbt ci-213
     - jdk: openjdk11
-      env: TEST="2.12"
+      name: 2.12
       script: sbt ci-212
 
     # Disabled until stable v0.6

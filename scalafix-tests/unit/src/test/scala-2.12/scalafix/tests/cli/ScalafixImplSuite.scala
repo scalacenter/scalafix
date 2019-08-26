@@ -1,8 +1,5 @@
 package scalafix.tests.cli
 
-import com.geirsson.coursiersmall.CoursierSmall
-import com.geirsson.coursiersmall.Dependency
-import com.geirsson.coursiersmall.Settings
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.net.URLClassLoader
@@ -12,6 +9,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.Collections
 import java.util.Optional
+import coursier._
 import org.scalatest.FunSuite
 import scala.collection.JavaConverters._
 import scala.meta.io.AbsolutePath
@@ -127,11 +125,11 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
     Files.createDirectories(d)
     val semicolon = src.resolve("Semicolon.scala")
     val excluded = src.resolve("Excluded.scala")
-    val dependency =
-      new Dependency("com.geirsson", "example-scalafix-rule_2.12", "1.1.0")
-    val settings = new Settings().withDependencies(List(dependency))
     // This rule is published to Maven Central to simplify testing --tool-classpath.
-    val toolClasspathJars = CoursierSmall.fetch(settings)
+    val toolClasspathJars = Fetch()
+      .addDependencies(dep"com.geirsson:example-scalafix-rule_2.12:1.1.0")
+      .run()
+      .toList
     val toolClasspath = ClasspathOps.toClassLoader(
       Classpath(toolClasspathJars.map(jar => AbsolutePath(jar)))
     )

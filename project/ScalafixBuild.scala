@@ -32,20 +32,26 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     lazy val isFullCrossVersion = Seq(
       crossVersion := CrossVersion.full
     )
-    lazy val warnUnusedImports = "-Ywarn-unused-import"
+    lazy val isScala213 = Def.setting {
+      scalaVersion.value.startsWith("2.13")
+    }
+    lazy val warnUnusedImports = Def.setting {
+      if (isScala213.value) "-Ywarn-unused:imports"
+      else "-Ywarn-unused-import"
+    }
     lazy val scaladocOptions = Seq(
       "-groups",
       "-implicits"
-//      "-diagrams"
     )
-    lazy val compilerOptions = Seq(
-      "-target:jvm-1.8",
-      warnUnusedImports,
-      "-deprecation",
-      "-encoding",
-      "UTF-8",
-      "-feature",
-      "-unchecked"
+    lazy val compilerOptions = Def.setting(
+      Seq(
+        "-target:jvm-1.8",
+        warnUnusedImports.value,
+        "-encoding",
+        "UTF-8",
+        "-feature",
+        "-unchecked"
+      )
     )
 
     lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
@@ -163,9 +169,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
 
   override def globalSettings: Seq[Def.Setting[_]] = List(
     stableVersion := version.in(ThisBuild).value.replaceFirst("\\+.*", ""),
-    scalacOptions ++= compilerOptions,
-    scalacOptions
-      .in(Compile, console) := compilerOptions :+ "-Yrepl-class-based",
     libraryDependencies ++= List(
       scalacheck % Test,
       scalatest % Test
@@ -180,6 +183,11 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     triggeredMessage in ThisBuild := Watched.clearWhenTriggered,
     commands += Command.command("save-expect") { s =>
       "unit/test:runMain scalafix.tests.util.SaveExpect" ::
+        s
+    },
+    commands += Command.command("ci-213") { s =>
+      "++2.13.0" ::
+        "unit/test" ::
         s
     },
     commands += Command.command("ci-212") { s =>
@@ -270,6 +278,9 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
+    scalacOptions ++= compilerOptions.value,
+    scalacOptions.in(Compile, console) :=
+      compilerOptions.value :+ "-Yrepl-class-based",
     scalacOptions.in(Compile, doc) ++= scaladocOptions,
     publishTo := Some {
       if (isCustomRepository) "adhoc" at adhocRepoUri

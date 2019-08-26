@@ -77,37 +77,38 @@ object MainOps {
     }
   }
 
-  def files(args: ValidatedArgs): Seq[AbsolutePath] = args.args.ls match {
-    case Ls.Find =>
-      val buf = ArrayBuffer.empty[AbsolutePath]
-      val visitor = new SimpleFileVisitor[Path] {
-        override def visitFile(
-            file: Path,
-            attrs: BasicFileAttributes
-        ): FileVisitResult = {
-          val path = AbsolutePath(file)
-          val relpath = path.toRelative(args.sourceroot)
-          if (args.matches(relpath)) {
-            buf += path
+  def files(args: ValidatedArgs): collection.Seq[AbsolutePath] =
+    args.args.ls match {
+      case Ls.Find =>
+        val buf = ArrayBuffer.empty[AbsolutePath]
+        val visitor = new SimpleFileVisitor[Path] {
+          override def visitFile(
+              file: Path,
+              attrs: BasicFileAttributes
+          ): FileVisitResult = {
+            val path = AbsolutePath(file)
+            val relpath = path.toRelative(args.sourceroot)
+            if (args.matches(relpath)) {
+              buf += path
+            }
+            FileVisitResult.CONTINUE
           }
-          FileVisitResult.CONTINUE
         }
-      }
 
-      val roots =
-        if (args.args.files.isEmpty) args.sourceroot :: Nil
-        else args.args.files
+        val roots =
+          if (args.args.files.isEmpty) args.sourceroot :: Nil
+          else args.args.files
 
-      roots.foreach { root =>
-        if (root.isFile) {
-          if (args.matches(root.toRelative(args.args.cwd))) {
-            buf += root
-          }
-        } else if (root.isDirectory) Files.walkFileTree(root.toNIO, visitor)
-        else args.config.reporter.error(s"$root is not a file")
-      }
-      buf.result()
-  }
+        roots.foreach { root =>
+          if (root.isFile) {
+            if (args.matches(root.toRelative(args.args.cwd))) {
+              buf += root
+            }
+          } else if (root.isDirectory) Files.walkFileTree(root.toNIO, visitor)
+          else args.config.reporter.error(s"$root is not a file")
+        }
+        buf.result()
+    }
 
   final class StaleSemanticDB(val path: AbsolutePath, val diff: String)
       extends Exception(s"Stale SemanticDB\n$diff")
@@ -129,7 +130,7 @@ object MainOps {
   def adjustExitCode(
       args: ValidatedArgs,
       code: ExitStatus,
-      files: Seq[AbsolutePath]
+      files: collection.Seq[AbsolutePath]
   ): ExitStatus = {
     if (args.callback.hasLintErrors) {
       ExitStatus.merge(ExitStatus.LinterError, code)

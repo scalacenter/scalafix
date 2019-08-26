@@ -28,7 +28,10 @@ trait Api {
   implicit class XtensionScalafixProductInspect(product: Product) {
     def structure: String =
       ProductStructure.structure(product).render(80)
+    @deprecated("use structureWidth instead", "0.9.7")
     def structure(printWidth: Int): String =
+      structureWidth(printWidth)
+    def structureWidth(printWidth: Int): String =
       ProductStructure.structure(product).render(printWidth)
     def structureLabeled: String =
       ProductLabeledStructure.structure(product).render(80)
