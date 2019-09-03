@@ -12,18 +12,29 @@ package object v1 extends Api {
       doc.internal.symbol(tree)
   }
   implicit class XtensionTermScalafix(term: Term) {
+    @deprecated("0.9.7", "Use synthetics")
     def synthetic(implicit doc: SemanticDocument): Option[SemanticTree] =
+      synthetics.headOption
+
+    def synthetics(implicit doc: SemanticDocument): List[SemanticTree] =
       doc.internal.synthetic(term.pos)
   }
   implicit class XtensionTermInfixScalafix(infix: Term.ApplyInfix) {
+    @deprecated("0.9.7", "Use syntheticOperators")
     def syntheticOperator(
         implicit doc: SemanticDocument
-    ): Option[SemanticTree] = {
+    ): Option[SemanticTree] =
+      syntheticOperators.headOption
+
+    def syntheticOperators(
+        implicit doc: SemanticDocument
+    ): List[SemanticTree] = {
       val operatorPosition =
         Position.Range(infix.pos.input, infix.pos.start, infix.op.pos.end)
       doc.internal.synthetic(operatorPosition)
     }
   }
+
   implicit class XtensionPositionScalafix(pos: Position) {
     def formatMessage(severity: String, message: String): String = {
       PositionSyntax.formatMessage(pos, severity, message)
