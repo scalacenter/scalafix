@@ -43,26 +43,33 @@ object MainOps {
     val out = base.out
     Conf
       .parseCliArgs[Args](expanded)
-      .andThen(c => c.as[Args](Args.decoder(base)))
-      .andThen(_.validate) match {
-      case Configured.Ok(validated) =>
-        if (validated.args.help) {
+      .andThen(c => c.as[Args](Args.decoder(base))) match {
+      case Configured.Ok(args) =>
+        if (args.help) {
           MainOps.helpMessage(out, 80)
           ExitStatus.Ok
-        } else if (validated.args.version) {
+        } else if (args.version) {
           out.println(Versions.version)
           ExitStatus.Ok
-        } else if (validated.args.bash) {
+        } else if (args.bash) {
           out.println(CompletionsOps.bashCompletions)
           ExitStatus.Ok
-        } else if (validated.args.zsh) {
+        } else if (args.zsh) {
           out.println(CompletionsOps.zshCompletions)
           ExitStatus.Ok
-        } else if (validated.rules.isEmpty) {
-          out.println("Missing --rules")
-          ExitStatus.CommandLineError
         } else {
-          MainOps.run(validated)
+          args.validate match {
+            case Configured.Ok(validated) =>
+              if (validated.rules.isEmpty) {
+                out.println("Missing --rules")
+                ExitStatus.CommandLineError
+              } else {
+                MainOps.run(validated)
+              }
+            case Configured.NotOk(err) =>
+              PrintStreamReporter(out = out).error(err.toString())
+              ExitStatus.CommandLineError
+          }
         }
       case Configured.NotOk(err) =>
         PrintStreamReporter(out = out).error(err.toString())
