@@ -30,15 +30,12 @@ final class InternalSemanticDoc(
       SemanticdbDiagnostic(doc.input, diag)
     }
 
-  def synthetic(pos: Position): Option[SemanticTree] = {
-    val synth = _synthetics.get(
-      s.Range(pos.startLine, pos.startColumn, pos.endLine, pos.endColumn)
+  def synthetic(pos: Position): List[SemanticTree] = {
+    val synth = _synthetics.getOrDefault(
+      s.Range(pos.startLine, pos.startColumn, pos.endLine, pos.endColumn),
+      List.empty
     )
-    if (synth == null) {
-      None
-    } else {
-      Some(DocumentFromProtobuf.convert(synth, this))
-    }
+    synth.map(DocumentFromProtobuf.convert(_, this))
   }
 
   def symbol(tree: Tree): Symbol = {
@@ -92,15 +89,18 @@ final class InternalSemanticDoc(
       info.symbol -> info
   }.toMap
 
-  private[this] lazy val _synthetics: util.Map[s.Range, s.Synthetic] = {
-    val result = new util.HashMap[s.Range, s.Synthetic]()
+  private[this] lazy val _synthetics: util.Map[s.Range, List[s.Synthetic]] = {
+    val result = new util.HashMap[s.Range, List[s.Synthetic]]()
     textDocument.synthetics.foreach { synthetic =>
       if (synthetic.range.isDefined) {
-        result.put(synthetic.range.get, synthetic)
+        val key = synthetic.range.get
+        val currentValue = result.getOrDefault(key, List.empty[s.Synthetic])
+        result.put(key, synthetic :: currentValue)
       }
     }
     result
   }
+
   private[this] lazy val occurrences: util.Map[s.Range, Seq[String]] = {
     val result = new util.HashMap[s.Range, ListBuffer[String]]()
     textDocument.occurrences.foreach { o =>
