@@ -6,7 +6,6 @@ import scala.meta.inputs.Input
 import scala.meta.internal.io.FileIO
 import scala.meta.io.AbsolutePath
 import scala.meta.io.RelativePath
-import scalafix.internal.v1._
 
 /**
  * An input file for a testkit test.

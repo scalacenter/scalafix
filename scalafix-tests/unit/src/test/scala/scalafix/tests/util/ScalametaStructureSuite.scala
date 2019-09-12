@@ -7,7 +7,7 @@ import scalafix.v1._
 
 class ScalametaStructureSuite extends FunSuite with DiffAssertions {
   test("pretty(t)") {
-    val obtained = q"a.b.c.d".structure(1)
+    val obtained = q"a.b.c.d".structureWidth(1)
     val expected =
       """|Term.Select(
          |  Term.Select(
@@ -43,7 +43,7 @@ class ScalametaStructureSuite extends FunSuite with DiffAssertions {
 
   test("option") {
     assertNoDiff(
-      q"def foo: A = ???".decltpe.structure(1),
+      q"def foo: A = ???".decltpe.structureWidth(1),
       """|
          |Some(Type.Name("A"))
          |""".stripMargin
@@ -52,7 +52,8 @@ class ScalametaStructureSuite extends FunSuite with DiffAssertions {
 
   test("list") {
     assertNoDiff(
-      q"foo(a)".args.structure(1),
+      // NOTE(olafur): need downcast because List is no longer a Product in 2.13.
+      q"foo(a)".args.asInstanceOf[Product].structureWidth(1),
       """|List(
          |  Term.Name("a")
          |)

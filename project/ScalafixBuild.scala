@@ -32,20 +32,26 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     lazy val isFullCrossVersion = Seq(
       crossVersion := CrossVersion.full
     )
-    lazy val warnUnusedImports = "-Ywarn-unused-import"
+    lazy val isScala213 = Def.setting {
+      scalaVersion.value.startsWith("2.13")
+    }
+    lazy val warnUnusedImports = Def.setting {
+      if (isScala213.value) "-Ywarn-unused:imports"
+      else "-Ywarn-unused-import"
+    }
     lazy val scaladocOptions = Seq(
       "-groups",
       "-implicits"
-//      "-diagrams"
     )
-    lazy val compilerOptions = Seq(
-      "-target:jvm-1.8",
-      warnUnusedImports,
-      "-deprecation",
-      "-encoding",
-      "UTF-8",
-      "-feature",
-      "-unchecked"
+    lazy val compilerOptions = Def.setting(
+      Seq(
+        "-target:jvm-1.8",
+        warnUnusedImports.value,
+        "-encoding",
+        "UTF-8",
+        "-feature",
+        "-unchecked"
+      )
     )
 
     lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
@@ -163,16 +169,13 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
 
   override def globalSettings: Seq[Def.Setting[_]] = List(
     stableVersion := version.in(ThisBuild).value.replaceFirst("\\+.*", ""),
-    scalacOptions ++= compilerOptions,
-    scalacOptions
-      .in(Compile, console) := compilerOptions :+ "-Yrepl-class-based",
     libraryDependencies ++= List(
       scalacheck % Test,
       scalatest % Test
     ),
     resolvers ++= List(
       Resolver.sonatypeRepo("snapshots"),
-      Resolver.sonatypeRepo("releases"),
+      Resolver.sonatypeRepo("public"),
       Resolver.mavenLocal
     ),
     testOptions in Test += Tests.Argument("-oD"),
@@ -182,20 +185,25 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       "unit/test:runMain scalafix.tests.util.SaveExpect" ::
         s
     },
+    commands += Command.command("ci-213") { s =>
+      s"++$scala213" ::
+        "unit/test" ::
+        s
+    },
     commands += Command.command("ci-212") { s =>
-      "++2.12.8" ::
+      s"++$scala212" ::
         "unit/test" ::
         "docs/run" ::
         "interfaces/doc" ::
         s
     },
     commands += Command.command("ci-211") { s =>
-      "++2.11.12" ::
+      s"++$scala211" ::
         "unit/test" ::
         s
     },
     commands += Command.command("ci-212-windows") { s =>
-      "++2.12.8" ::
+      s"++$scala212" ::
         s"unit/testOnly -- -l scalafix.internal.tests.utils.SkipWindows" ::
         s
     },
@@ -266,10 +274,14 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   private val PreviousScalaVersion = Map(
     "2.11.12" -> "2.11.11",
     "2.12.4" -> "2.12.3",
-    "2.12.8" -> "2.12.7"
+    "2.12.8" -> "2.12.7",
+    "2.12.10" -> "2.12.8"
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
+    scalacOptions ++= compilerOptions.value,
+    scalacOptions.in(Compile, console) :=
+      compilerOptions.value :+ "-Yrepl-class-based",
     scalacOptions.in(Compile, doc) ++= scaladocOptions,
     publishTo := Some {
       if (isCustomRepository) "adhoc" at adhocRepoUri
@@ -283,7 +295,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       )
     ),
     mimaPreviousArtifacts := {
-      val previousArtifactVersion = "0.5.0"
+      val previousArtifactVersion = "0.9.6"
       // NOTE(olafur) shudder, can't figure out simpler way to do the same.
       val binaryVersion =
         if (crossVersion.value.isInstanceOf[CrossVersion.Full]) {

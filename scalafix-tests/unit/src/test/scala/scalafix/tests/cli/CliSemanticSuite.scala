@@ -135,7 +135,7 @@ class CliSemanticSuite extends BaseCliSuite {
       "--auto-classpath",
       "--auto-classpath-roots",
       PathIO.workingDirectory.toString
-    ) ++ Classpaths.scalaLibrary.entries.to[Array].flatMap { path =>
+    ) ++ Classpaths.scalaLibrary.entries.toArray.flatMap { path =>
       Array(
         "--auto-classpath-roots",
         path.toString

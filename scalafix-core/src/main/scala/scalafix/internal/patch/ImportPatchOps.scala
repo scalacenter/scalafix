@@ -148,7 +148,7 @@ object ImportPatchOps {
       allImporters.toIterator
         .filter(_.importees.forall(isRemovedImportee))
         .toSet
-    def removeSpaces(tokens: scala.Seq[Token]): Patch = {
+    def removeSpaces(tokens: Iterable[Token]): Patch = {
       tokens
         .takeWhile {
           case Token.Space() => true

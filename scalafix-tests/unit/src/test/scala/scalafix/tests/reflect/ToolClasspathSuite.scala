@@ -5,7 +5,7 @@ import scala.reflect.io.Directory
 import scala.reflect.io.PlainDirectory
 import scalafix.internal.reflect.RuleCompiler
 import scalafix.internal.tests.utils.SkipWindows
-import com.geirsson.coursiersmall._
+import coursier._
 import metaconfig.Conf
 import scala.meta.io.AbsolutePath
 import org.scalatest.BeforeAndAfterAll
@@ -15,18 +15,10 @@ import scalafix.v1.RuleDecoder
 class ToolClasspathSuite extends FunSuite with BeforeAndAfterAll {
   var scalafmtClasspath: List[AbsolutePath] = _
   override def beforeAll(): Unit = {
-    val scalaBinaryVersion =
-      scala.util.Properties.versionNumberString
-        .split("\\.")
-        .take(2)
-        .mkString(".")
-    val dependency = new Dependency(
-      "com.geirsson",
-      "scalafmt-core_" + scalaBinaryVersion,
-      "1.2.0"
-    )
-    val settings = new Settings().withDependencies(List(dependency))
-    val jars = CoursierSmall.fetch(settings)
+    val jars = Fetch()
+      .addDependencies(dep"com.geirsson:scalafmt-core_2.12:1.2.0")
+      .run()
+      .toList
     scalafmtClasspath = jars.map(AbsolutePath(_))
   }
 

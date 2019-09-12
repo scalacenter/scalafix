@@ -1,16 +1,15 @@
 package scalafix.util
 
-import scala.collection.SeqView
-import scala.collection.immutable.IndexedSeq
+import scalafix.util.Compat._
 import scala.meta.tokens.Token
 import scala.meta.tokens.Tokens
 
 /** Helper to traverse tokens as a doubly linked list.  */
 final class TokenList private (tokens: Tokens) {
-  def trailing(token: Token): SeqView[Token, IndexedSeq[Token]] =
+  def trailing(token: Token): View[Token] =
     tokens.view(tok2idx(token) + 1, tokens.length)
 
-  def leading(token: Token): SeqView[Token, IndexedSeq[Token]] =
+  def leading(token: Token): View[Token] =
     tokens.view(0, tok2idx(token)).reverse
 
   private[this] val tok2idx = {
@@ -30,7 +29,7 @@ final class TokenList private (tokens: Tokens) {
   def find(start: Token)(p: Token => Boolean): Option[Token] =
     tokens.drop(tok2idx(start)).find(p)
 
-  def slice(from: Token, to: Token): Seq[Token] =
+  def slice(from: Token, to: Token): SeqView[Token] =
     tokens.view(tok2idx(from), tok2idx(to))
 
   /** Returns the next/trailing token or the original token if none exists.
@@ -61,10 +60,10 @@ final class TokenList private (tokens: Tokens) {
     }
   }
 
-  def leadingSpaces(token: Token): SeqView[Token, IndexedSeq[Token]] =
+  def leadingSpaces(token: Token): View[Token] =
     leading(token).takeWhile(_.is[Token.Space])
 
-  def trailingSpaces(token: Token): SeqView[Token, IndexedSeq[Token]] =
+  def trailingSpaces(token: Token): View[Token] =
     trailing(token).takeWhile(_.is[Token.Space])
 }
 

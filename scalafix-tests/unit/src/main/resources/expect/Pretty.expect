@@ -139,5 +139,5 @@
 [141:15..141:21]: test/Test.Literal.string. => final val method string: "a"
 [142:15..142:19]: test/Test.Literal.bool. => final val method bool: true
 [143:15..143:19]: test/Test.Literal.unit. => final val method unit: Unit
-[144:15..144:23]: test/Test.Literal.javaEnum. => final val method javaEnum
+[144:15..144:23]: test/Test.Literal.javaEnum. => final val method javaEnum: NOFOLLOW_LINKS.type
 [145:15..145:22]: test/Test.Literal.clazzOf. => final val method clazzOf: Class[Option[Int]]

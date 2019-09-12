@@ -24,13 +24,13 @@ class TokenListSuite extends FunSuite {
       case _ => false
     }
 
-    val leading = tokenList.leading(bar)
+    val leading = tokenList.leading(bar).toVector
     assert(leading.size == 8)
     for ((a, b) <- tokens.zip(leading.reverse)) assert(a == b)
   }
 
   test("leading returns empty seq if there is no preceding tokens") {
-    assert(tokenList.leading(tokens.head) == Seq())
+    assert(tokenList.leading(tokens.head).toList == List())
   }
 
   test("leading fails if input token does not exist") {
@@ -45,13 +45,13 @@ class TokenListSuite extends FunSuite {
       case _ => false
     }
 
-    val trailing = tokenList.trailing(baz)
+    val trailing = tokenList.trailing(baz).toVector
     assert(trailing.size == 11)
     for ((a, b) <- tokens.reverse.zip(trailing.reverse)) assert(a == b)
   }
 
   test("trailing returns empty seq if there is no following tokens") {
-    assert(tokenList.trailing(tokens.last) == Seq())
+    assert(tokenList.trailing(tokens.last).toList == List())
   }
 
   test("trailing fails if input token does not exist") {
@@ -95,15 +95,15 @@ class TokenListSuite extends FunSuite {
   }
 
   test("slice returns `from` if there is no more tokens in between") {
-    assert(tokenList.slice(tokens.head, tokens(1)) == Seq(tokens.head))
+    assert(tokenList.slice(tokens.head, tokens(1)).toList == List(tokens.head))
   }
 
   test("slice returns empty seq if `from` and `to` tokens are the same object") {
-    assert(tokenList.slice(tokens.head, tokens.head) == Seq())
+    assert(tokenList.slice(tokens.head, tokens.head).toList == List())
   }
 
   test("slice returns empty seq if `from` comes after `to`") {
-    assert(tokenList.slice(tokens.last, tokens.head) == Seq())
+    assert(tokenList.slice(tokens.last, tokens.head).toList == List())
   }
 
   test("slice fails if `from` token does not exist") {
@@ -124,7 +124,7 @@ class TokenListSuite extends FunSuite {
 
     val slice = tokenList.slice(kwObject, leftBrace)
     assert(slice.size == 4)
-    val Seq(kwObj, space1, bar, space2) = slice
+    val List(kwObj, space1, bar, space2) = slice.toList
     assert(kwObj == kwObject)
     assert(space1.is[Token.Space])
     assert(bar.syntax.equals("Bar"))
@@ -136,7 +136,7 @@ class TokenListSuite extends FunSuite {
 
     val spaces = tokenList.leadingSpaces(equals)
     assert(spaces.size == 3)
-    val Seq(s1, s2, s3) = spaces
+    val List(s1, s2, s3) = spaces.toList
     assert(s1 == tokenList.prev(equals))
     assert(s2 == tokenList.prev(s1))
     assert(s3 == tokenList.prev(s2))
@@ -147,7 +147,7 @@ class TokenListSuite extends FunSuite {
   ) {
     val Some(kwPackage) = tokens.find(_.is[Token.KwPackage])
 
-    assert(tokenList.leadingSpaces(kwPackage) == Seq())
+    assert(tokenList.leadingSpaces(kwPackage).toList == List())
   }
 
   test("trailingSpaces returns all spaces following a token") {
@@ -155,7 +155,7 @@ class TokenListSuite extends FunSuite {
 
     val spaces = tokenList.trailingSpaces(equals)
     assert(spaces.size == 3)
-    val Seq(s1, s2, s3) = spaces
+    val List(s1, s2, s3) = spaces.toList
     assert(s1 == tokenList.next(equals))
     assert(s2 == tokenList.next(s1))
     assert(s3 == tokenList.next(s2))
@@ -166,6 +166,6 @@ class TokenListSuite extends FunSuite {
   ) {
     val Some(rightBrace) = tokens.find(_.is[Token.RightBrace])
 
-    assert(tokenList.trailingSpaces(rightBrace) == Seq())
+    assert(tokenList.trailingSpaces(rightBrace).toList == List())
   }
 }

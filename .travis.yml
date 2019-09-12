@@ -1,4 +1,3 @@
-language: scala
 jdk:
 - openjdk8
 stages:
@@ -12,21 +11,21 @@ before_install:
     fi
 jobs:
   include:
-    - env: TEST="scalafmt"
+    - name: Scalafmt
       script: ./scalafmt --test
-    - env: TEST="2.11"
-      script: sbt ci-211
-    - env: TEST="2.12"
-      script: sbt ci-212
+    - name: 2.11
+      script: ./sbt ci-211
+    - name: 2.12
+      script: ./sbt ci-212
     - jdk: openjdk11
-      env: TEST="2.12"
-      script: sbt ci-212
+      name: 2.12
+      script: ./sbt ci-212
 
     # Disabled until stable v0.6
     # - env: TEST="mima"
     #   script: sbt mima
     - stage: release
-      script: sbt ci-release docs/docusaurusPublishGhpages
+      script: ./sbt ci-release docs/docusaurusPublishGhpages
 
 cache:
   directories:

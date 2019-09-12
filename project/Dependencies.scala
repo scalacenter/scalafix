@@ -2,12 +2,12 @@ import sbt._
 /* scalafmt: { maxColumn = 120 }*/
 
 object Dependencies {
-  val scalametaV = "4.2.1"
-  val metaconfigV = "0.9.1"
-  def dotty = "0.9.0-RC1"
-  def scala210 = "2.10.6"
+  val scalametaV = "4.2.3"
+  val metaconfigV = "0.9.4"
+  def scala210 = "2.10.7"
   def scala211 = "2.11.12"
-  def scala212 = "2.12.8"
+  def scala212 = "2.12.10"
+  def scala213 = "2.13.0"
   val currentScalaVersion = scala212
 
   val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % "4.5.4.201711221230-r"
@@ -20,17 +20,16 @@ object Dependencies {
   def metacp = "org.scalameta" %% "metacp" % scalametaV
   def semanticdbPluginLibrary = "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
   def scalameta = "org.scalameta" %% "scalameta" % scalametaV
-  def scalatest = "org.scalatest" %% "scalatest" % "3.2.0-SNAP10"
+  def scalatest = "org.scalatest" %% "scalatest" % "3.0.8"
   def scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.0"
 
   def testsDeps = List(
     // integration property tests
-    "com.geirsson" %% "coursier-small" % "1.0.0-M4",
-    "org.scala-lang.modules" %% "scala-xml" % "1.1.0",
-    "org.typelevel" %% "catalysts-platform" % "0.0.5",
-    "org.typelevel" %% "cats-core" % "0.9.0",
-    "com.typesafe.slick" %% "slick" % "3.2.0-M2",
-    "com.chuusai" %% "shapeless" % "2.3.2",
+    "io.get-coursier" %% "coursier" % "2.0.0-RC3-3",
+    "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
+    "org.typelevel" %% "cats-core" % "2.0.0-RC1",
+    "com.typesafe.slick" %% "slick" % "3.3.2",
+    "com.chuusai" %% "shapeless" % "2.3.3",
     scalacheck
   )
 
