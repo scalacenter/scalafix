@@ -186,24 +186,24 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         s
     },
     commands += Command.command("ci-213") { s =>
-      "++2.13.0" ::
+      s"++$scala213" ::
         "unit/test" ::
         s
     },
     commands += Command.command("ci-212") { s =>
-      "++2.12.8" ::
+      s"++$scala212" ::
         "unit/test" ::
         "docs/run" ::
         "interfaces/doc" ::
         s
     },
     commands += Command.command("ci-211") { s =>
-      "++2.11.12" ::
+      s"++$scala211" ::
         "unit/test" ::
         s
     },
     commands += Command.command("ci-212-windows") { s =>
-      "++2.12.8" ::
+      s"++$scala212" ::
         s"unit/testOnly -- -l scalafix.internal.tests.utils.SkipWindows" ::
         s
     },
@@ -274,7 +274,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   private val PreviousScalaVersion = Map(
     "2.11.12" -> "2.11.11",
     "2.12.4" -> "2.12.3",
-    "2.12.8" -> "2.12.7"
+    "2.12.8" -> "2.12.7",
+    "2.12.10" -> "2.12.8"
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
@@ -294,7 +295,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       )
     ),
     mimaPreviousArtifacts := {
-      val previousArtifactVersion = "0.5.0"
+      val previousArtifactVersion = "0.9.6"
       // NOTE(olafur) shudder, can't figure out simpler way to do the same.
       val binaryVersion =
         if (crossVersion.value.isInstanceOf[CrossVersion.Full]) {

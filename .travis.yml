@@ -1,4 +1,3 @@
-language: scala
 jdk:
 - openjdk8
 stages:
