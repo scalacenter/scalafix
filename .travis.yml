@@ -18,8 +18,6 @@ jobs:
       script: sbt ci-211
     - name: 2.12
       script: sbt ci-212
-    - name: 2.13
-      script: sbt ci-213
     - jdk: openjdk11
       name: 2.12
       script: sbt ci-212

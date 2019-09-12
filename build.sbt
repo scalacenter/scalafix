@@ -3,7 +3,7 @@ inThisBuild(
   List(
     onLoadMessage := s"Welcome to scalafix ${version.value}",
     scalaVersion := scala212,
-    crossScalaVersions := List(scala212, scala211, scala213)
+    crossScalaVersions := List(scala212, scala211)
   )
 )
 

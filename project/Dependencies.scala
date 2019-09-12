@@ -6,7 +6,7 @@ object Dependencies {
   val metaconfigV = "0.9.4"
   def scala210 = "2.10.7"
   def scala211 = "2.11.12"
-  def scala212 = "2.12.9"
+  def scala212 = "2.12.10"
   def scala213 = "2.13.0"
   val currentScalaVersion = scala212
 
