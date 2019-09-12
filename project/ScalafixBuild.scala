@@ -175,7 +175,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     ),
     resolvers ++= List(
       Resolver.sonatypeRepo("snapshots"),
-      Resolver.sonatypeRepo("releases"),
+      Resolver.sonatypeRepo("public"),
       Resolver.mavenLocal
     ),
     testOptions in Test += Tests.Argument("-oD"),
