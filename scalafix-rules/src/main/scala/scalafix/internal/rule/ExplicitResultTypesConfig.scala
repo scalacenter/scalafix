@@ -8,10 +8,12 @@ import scalafix.internal.config._
 case class ExplicitResultTypesConfig(
     @Description("Enable/disable this rule for defs, vals or vars.")
     @ExampleValue("[Def, Val, Var]")
-    memberKind: List[MemberKind] = Nil,
+    memberKind: List[MemberKind] =
+      List(MemberKind.Def, MemberKind.Val, MemberKind.Var),
     @Description("Enable/disable this rule for private/protected members.")
     @ExampleValue("[Public, Protected]")
-    memberVisibility: List[MemberVisibility] = Nil,
+    memberVisibility: List[MemberVisibility] =
+      List(MemberVisibility.Public, MemberVisibility.Protected),
     @Description(
       "If false, insert explicit result types even for simple definitions like `val x = 2`"
     )

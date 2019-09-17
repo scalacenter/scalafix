@@ -8,6 +8,8 @@ import scala.meta.io.RelativePath
 import scalafix.internal.v1._
 import scalafix.util.MatchingParens
 import scalafix.util.TokenList
+import scala.tools.nsc.interactive.Global
+import scala.meta.internal.semanticdb.TextDocument
 
 final class SemanticDocument private[scalafix] (
     private[scalafix] val internal: InternalSemanticDoc
@@ -52,7 +54,8 @@ object SemanticDocument {
       doc: SyntacticDocument,
       path: RelativePath,
       classLoader: ClassLoader,
-      symtab: SymbolTable
+      symtab: SymbolTable,
+      compile: () => Option[TextDocument]
   ): SemanticDocument = {
     val semanticdbRelPath = s"META-INF/semanticdb/$path.semanticdb"
     Option(classLoader.getResourceAsStream(semanticdbRelPath)) match {
@@ -67,7 +70,11 @@ object SemanticDocument {
         val impl = new InternalSemanticDoc(doc, sdoc, symtab)
         new SemanticDocument(impl)
       case None =>
-        throw Error.MissingSemanticdb(semanticdbRelPath)
+        compile() match {
+          case None => throw Error.MissingSemanticdb(semanticdbRelPath)
+          case Some(sdoc) =>
+            new SemanticDocument(new InternalSemanticDoc(doc, sdoc, symtab))
+        }
     }
   }
 }

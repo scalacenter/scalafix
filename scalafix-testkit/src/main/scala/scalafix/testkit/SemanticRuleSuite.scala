@@ -13,13 +13,17 @@ import scalafix.internal.testkit.CommentAssertion
 import scalafix.internal.testkit.EndOfLineAssertExtractor
 import scalafix.internal.testkit.MultiLineAssertExtractor
 import scalafix.v0.SemanticdbIndex
+import java.nio.file.Files
 
 /** Construct a test suite for running semantic Scalafix rules. */
-abstract class SemanticRuleSuite(val props: TestkitProperties)
-    extends FunSuite
+abstract class SemanticRuleSuite(
+    val props: TestkitProperties,
+    val isSaveExpect: Boolean
+) extends FunSuite
     with DiffAssertions
     with BeforeAndAfterAll { self =>
 
+  def this(props: TestkitProperties) = this(props, isSaveExpect = false)
   def this() = this(TestkitProperties.loadFromResources())
 
   @deprecated(
@@ -38,43 +42,56 @@ abstract class SemanticRuleSuite(val props: TestkitProperties)
     else if (scalaVersion.startsWith("2.12")) Some("scala-2.12")
     else None
 
+  def evaluateTestBody(diffTest: RuleTest): Unit = {
+    val (rule, sdoc) = diffTest.run.apply()
+    rule.beforeStart()
+    val (fixed, messages) =
+      try rule.semanticPatch(sdoc, suppress = false)
+      finally rule.afterComplete()
+    val tokens = fixed.tokenize.get
+    val obtained = SemanticRuleSuite.stripTestkitComments(tokens)
+    val expected = diffTest.path.resolveOutput(props) match {
+      case Right(file) =>
+        FileIO.slurp(file, StandardCharsets.UTF_8)
+      case Left(err) =>
+        if (fixed == sdoc.input.text) {
+          // rule is a linter, no need for an output file.
+          obtained
+        } else {
+          fail(err)
+        }
+    }
+
+    val expectedLintMessages = CommentAssertion.extract(sdoc.tokens)
+    val diff = AssertDiff(messages, expectedLintMessages)
+
+    if (diff.isFailure) {
+      println("###########> Lint       <###########")
+      println(diff.toString)
+    }
+
+    val result = compareContents(obtained, expected)
+    if (result.nonEmpty) {
+      println("###########> Diff       <###########")
+      println(error2message(obtained, expected))
+    }
+
+    val isTestFailure = result.nonEmpty || diff.isFailure
+    diffTest.path.resolveOutput(props) match {
+      case Right(output) if isTestFailure && isSaveExpect =>
+        println(s"promoted expect test: $output")
+        Files.write(output.toNIO, obtained.getBytes(StandardCharsets.UTF_8))
+      case _ =>
+    }
+
+    if (isTestFailure) {
+      throw new TestFailedException("see above", 0)
+    }
+  }
+
   def runOn(diffTest: RuleTest): Unit = {
     test(diffTest.path.testName) {
-      val (rule, sdoc) = diffTest.run.apply()
-      rule.rules.foreach(_.beforeStart())
-      val (fixed, messages) = rule.semanticPatch(sdoc, suppress = false)
-      rule.rules.foreach(_.afterComplete())
-      val tokens = fixed.tokenize.get
-      val obtained = SemanticRuleSuite.stripTestkitComments(tokens)
-      val expected = diffTest.path.resolveOutput(props) match {
-        case Right(file) =>
-          FileIO.slurp(file, StandardCharsets.UTF_8)
-        case Left(err) =>
-          if (fixed == sdoc.input.text) {
-            // rule is a linter, no need for an output file.
-            obtained
-          } else {
-            fail(err)
-          }
-      }
-
-      val expectedLintMessages = CommentAssertion.extract(sdoc.tokens)
-      val diff = AssertDiff(messages, expectedLintMessages)
-
-      if (diff.isFailure) {
-        println("###########> Lint       <###########")
-        println(diff.toString)
-      }
-
-      val result = compareContents(obtained, expected)
-      if (result.nonEmpty) {
-        println("###########> Diff       <###########")
-        println(error2message(obtained, expected))
-      }
-
-      if (result.nonEmpty || diff.isFailure) {
-        throw new TestFailedException("see above", 0)
-      }
+      evaluateTestBody(diffTest)
     }
   }
 

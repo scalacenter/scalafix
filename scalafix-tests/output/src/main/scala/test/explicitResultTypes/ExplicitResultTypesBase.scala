@@ -47,5 +47,6 @@ object ExplicitResultTypesBase {
     }
     val `→`: _root_.test.explicitResultTypes.ExplicitResultTypesBase.unicode.->.type = `->`
   }
+  def tuple: ((_root_.scala.Int, _root_.scala.Predef.String)) => _root_.scala.Predef.String = null.asInstanceOf[((Int, String)) => String]
 }
 

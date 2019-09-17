@@ -52,4 +52,5 @@ object ExplicitResultTypesBase {
     }
     val `→` = `->`
   }
+  def tuple = null.asInstanceOf[((Int, String)) => String]
 }

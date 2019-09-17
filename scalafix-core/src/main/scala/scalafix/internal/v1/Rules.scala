@@ -16,6 +16,8 @@ import scalafix.v1.SemanticDocument
 import scalafix.v1.SemanticRule
 import scalafix.v1.SyntacticDocument
 import scalafix.v1.SyntacticRule
+import scala.util.control.NonFatal
+import scala.collection.mutable
 
 case class Rules(rules: List[Rule] = Nil) {
 
@@ -31,6 +33,24 @@ case class Rules(rules: List[Rule] = Nil) {
   }
   def syntacticRules: List[SyntacticRule] = rules.collect {
     case s: SyntacticRule => s
+  }
+  def afterComplete(): List[(Rule, Throwable)] = {
+    foreachRule(_.afterComplete())
+  }
+  def beforeStart(): List[(Rule, Throwable)] = {
+    foreachRule(_.beforeStart())
+  }
+
+  private def foreachRule(fn: Rule => Unit): List[(Rule, Throwable)] = {
+    val buf = mutable.ListBuffer.empty[(Rule, Throwable)]
+    rules.foreach { rule =>
+      try fn(rule)
+      catch {
+        case NonFatal(e) =>
+          buf += (rule -> e)
+      }
+    }
+    buf.result()
   }
 
   def addSuppression(

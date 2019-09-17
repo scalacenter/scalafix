@@ -29,7 +29,8 @@ object BaseSemanticSuite {
       doc,
       relpath,
       ClasspathOps.thisClassLoader,
-      symtab
+      symtab,
+      () => None
     )
   }
 }

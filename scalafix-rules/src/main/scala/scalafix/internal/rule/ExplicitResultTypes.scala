@@ -3,6 +3,7 @@ package scalafix.internal.rule
 import scala.meta._
 import scala.meta.contrib._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
+import scala.meta.internal.proxy.GlobalProxy
 import scalafix.patch.Patch
 import scalafix.v1._
 import scalafix.util.TokenOps
@@ -11,23 +12,42 @@ import scalafix.internal.util.PrettyResult
 import scalafix.internal.util.QualifyStrategy
 import scalafix.internal.util.PrettyType
 import scalafix.v1.MissingSymbolException
+import scala.meta.internal.pc.MetalsGlobal
+import scala.meta.internal.pc.ScalaPresentationCompiler
+import scala.collection.mutable
 
-final class ExplicitResultTypes(config: ExplicitResultTypesConfig)
-    extends SemanticRule("ExplicitResultTypes") {
+final class ExplicitResultTypes(
+    config: ExplicitResultTypesConfig,
+    global: Option[MetalsGlobal]
+) extends SemanticRule("ExplicitResultTypes") {
 
-  def this() = this(ExplicitResultTypesConfig.default)
+  def this() = this(ExplicitResultTypesConfig.default, None)
 
   override def description: String =
     "Inserts explicit annotations for inferred types of def/val/var"
   override def isRewrite: Boolean = true
   override def isExperimental: Boolean = true
 
-  override def withConfiguration(config: Configuration): Configured[Rule] =
+  override def afterComplete(): Unit = {
+    global.foreach(_.askShutdown())
+  }
+
+  override def withConfiguration(config: Configuration): Configured[Rule] = {
+    val newGlobal =
+      if (config.scalacClasspath.isEmpty) None
+      else {
+        Some(
+          ScalaPresentationCompiler(
+            classpath = config.scalacClasspath.map(_.toNIO)
+          ).newCompiler()
+        )
+      }
     config.conf // Support deprecated explicitReturnTypes config
       .getOrElse("explicitReturnTypes", "ExplicitResultTypes")(
         ExplicitResultTypesConfig.default
       )
-      .map(c => new ExplicitResultTypes(c))
+      .map(c => new ExplicitResultTypes(c, newGlobal))
+  }
 
   // Don't explicitly annotate vals when the right-hand body is a single call
   // to `implicitly`. Prevents ambiguous implicit. Not annotating in such cases,
@@ -102,19 +122,110 @@ final class ExplicitResultTypes(config: ExplicitResultTypesConfig)
   }
 
   override def fix(implicit ctx: SemanticDocument): Patch = {
-    def defnType(defn: Defn): Option[(Type, Patch)] =
+    lazy val unit =
+      global.map(g => g.newCompilationUnit(ctx.input.text, ctx.input.syntax))
+    def toCompilerType(
+        pos: Position,
+        sym: Symbol,
+        replace: Token,
+        space: String
+    ): Option[Patch] = {
+      global match {
+        case None => None
+        case Some(g) =>
+          val gpos = unit.get.position(pos.start)
+          GlobalProxy.typedTreeAt(g, gpos)
+          val gsym = g.inverseSemanticdbSymbol(sym.value)
+          if (gsym == g.NoSymbol) None
+          else {
+            val context = g.doLocateContext(gpos)
+            val history = new g.ShortenedNames(
+              lookupSymbol = name => {
+                val other =
+                  if (name.isTermName) name.toTypeName else name.toTermName
+                context.lookupSymbol(name, _ => true) ::
+                  context.lookupSymbol(other, _ => true) ::
+                  Nil
+              },
+              config = g.renamedSymbols(context)
+            )
+            val long = gsym.info.toString()
+            def loop(tpe: g.Type): g.Type = {
+              import g._
+              tpe match {
+                case t: g.PolyType => loop(t.resultType)
+                case t: g.MethodType => loop(t.resultType)
+                case g.RefinedType(parents, _) =>
+                  g.RefinedType(parents, g.EmptyScope)
+                case g.NullaryMethodType(tpe) =>
+                  g.NullaryMethodType(loop(tpe))
+                case TypeRef(pre, sym, args) =>
+                  TypeRef(loop(pre), sym, args.map(loop))
+                case tpe => tpe
+              }
+            }
+            val shortT = g.shortType(loop(gsym.info).widen, history)
+            val short = shortT.toString()
+            val toImport = mutable.Map.empty[g.Symbol, List[g.ShortName]]
+            val isRootSymbol = Set[g.Symbol](
+              g.rootMirror.RootClass,
+              g.rootMirror.RootPackage
+            )
+            for {
+              (name, sym) <- history.history.iterator
+              owner = sym.owner
+              if !isRootSymbol(owner)
+              if !context.lookupSymbol(name, _ => true).isSuccess
+            } {
+              toImport(owner) = sym :: toImport.getOrElse(owner, Nil)
+            }
+            val addImports = for {
+              (pkg, names) <- toImport
+              name <- names
+              ref = pkg.owner
+            } yield {
+              val head :: tail = pkg.ownerChain.reverse.tail // Skip root symbol
+                .map(sym => Term.Name(sym.name.toString()))
+              val ref = tail.foldLeft(head: Term.Ref) {
+                case (owner, name) =>
+                  Term.Select(owner, name)
+              }
+              Patch.addGlobalImport(
+                Importer(
+                  ref,
+                  List(Importee.Name(Name.Indeterminate(name.name.toString())))
+                )
+              )
+            }
+            Some(Patch.addRight(replace, s"$space: $short") ++ addImports)
+          }
+      }
+    }
+    def toMetaType(
+        pos: Position,
+        sym: Symbol,
+        replace: Token,
+        space: String
+    ): Option[Patch] = {
       for {
-        name <- defnName(defn)
-        defnSymbol <- name.symbol.asNonEmpty
-        result <- toType(name.pos, defnSymbol)
+        result <- toType(pos, sym)
       } yield {
         val addGlobalImports = result.imports.map { s =>
           val symbol = Symbol(s)
           Patch.addGlobalImport(symbol)
         }
-        result.tree -> addGlobalImports.asPatch
+        Patch.addRight(replace, s"$space: ${treeSyntax(result.tree)}") +
+          addGlobalImports.asPatch
       }
+    }
+    def defnType(defn: Defn, replace: Token, space: String): Option[Patch] =
+      for {
+        name <- defnName(defn)
+        defnSymbol <- name.symbol.asNonEmpty
+        patch <- toCompilerType(name.pos, defnSymbol, replace, space)
+      } yield patch
     import scala.meta._
+
     def fix(defn: Defn, body: Term): Patch = {
       val lst = ctx.tokenList
       import lst._
@@ -127,12 +238,12 @@ final class ExplicitResultTypes(config: ExplicitResultTypesConfig)
         replace <- lhsTokens.reverseIterator.find(
           x => !x.is[Token.Equals] && !x.is[Trivia]
         )
-        (typ, patch) <- defnType(defn)
         space = {
           if (TokenOps.needsLeadingSpaceBeforeColon(replace)) " "
           else ""
         }
-      } yield Patch.addRight(replace, s"$space: ${treeSyntax(typ)}") + patch
+        patch <- defnType(defn, replace, space)
+      } yield patch
     }.asPatch.atomic
 
     def treeSyntax(tree: Tree): String =
@@ -152,6 +263,11 @@ final class ExplicitResultTypes(config: ExplicitResultTypesConfig)
       def matchesMemberKind(): Boolean =
         kind(defn).exists(memberKind.contains)
 
+      def isFinalLiteralVal: Boolean =
+        defn.is[Defn.Val] &&
+          mods.exists(_.is[Mod.Final]) &&
+          body.is[Lit]
+
       def matchesSimpleDefinition(): Boolean =
         body.is[Lit] && skipSimpleDefinitions
 
@@ -165,7 +281,7 @@ final class ExplicitResultTypes(config: ExplicitResultTypesConfig)
         if (config.skipLocalImplicits) nm.symbol.isLocal
         else false
 
-      isImplicit && !isLocal || {
+      isImplicit && !isFinalLiteralVal && !isLocal || {
         hasParentWihTemplate &&
         !defn.hasMod(mod"implicit") &&
         !matchesSimpleDefinition() &&
@@ -174,7 +290,7 @@ final class ExplicitResultTypes(config: ExplicitResultTypesConfig)
       }
     }
 
-    ctx.tree.collect {
+    val result = ctx.tree.collect {
       case t @ Defn.Val(mods, Pat.Var(name) :: Nil, None, body)
           if isRuleCandidate(t, name, mods, body) =>
         fix(t, body)
@@ -187,5 +303,6 @@ final class ExplicitResultTypes(config: ExplicitResultTypesConfig)
           if isRuleCandidate(t, name, mods, body) =>
         fix(t, body)
     }.asPatch
+    result
   }
 }
