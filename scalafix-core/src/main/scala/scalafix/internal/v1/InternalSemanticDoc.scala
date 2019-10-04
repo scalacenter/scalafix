@@ -17,9 +17,15 @@ import scalafix.v1.SyntacticDocument
 
 final class InternalSemanticDoc(
     val doc: SyntacticDocument,
-    val textDocument: s.TextDocument,
+    _textDocument: LazyValue[s.TextDocument],
     val symtab: SymbolTable
 ) extends Symtab {
+  def this(
+      doc: SyntacticDocument,
+      textDocument: s.TextDocument,
+      symtab: SymbolTable
+  ) = this(doc, LazyValue.now(textDocument), symtab)
+  def textDocument = _textDocument.value
 
   def synthetics: Iterator[SemanticTree] =
     textDocument.synthetics.iterator.map { tree =>

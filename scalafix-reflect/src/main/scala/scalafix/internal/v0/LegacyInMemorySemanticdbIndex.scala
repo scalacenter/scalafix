@@ -107,7 +107,11 @@ object LegacyInMemorySemanticdbIndex {
                 val input = textDocument.input(abspath)
                 val doc = v1.SyntacticDocument.fromInput(input, dialect)
                 val internal =
-                  new InternalSemanticDoc(doc, textDocument, symtab)
+                  new InternalSemanticDoc(
+                    doc,
+                    LazyValue.now(textDocument),
+                    symtab
+                  )
                 val sdoc = new v1.SemanticDocument(internal)
                 buf += (textDocument.uri -> new LegacySemanticdbIndex(sdoc))
               }
