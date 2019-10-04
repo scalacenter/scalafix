@@ -32,4 +32,14 @@ object ExplicitResultTypesImports {
     case object B extends ADT
   }
   val productWithSerializable = List(ADT.A, ADT.B)
+
+  sealed abstract class ADT2
+  trait Mixin[T]
+  object ADT2 {
+    case object A extends ADT2 with Mixin[Int]
+    case object B extends ADT2 with Mixin[String]
+    case object C extends ADT2 with Mixin[Int]
+  }
+  val longSharedParent1 = List(ADT2.A, ADT2.B)
+  val longSharedParent2 = List(ADT2.A, ADT2.C)
 }

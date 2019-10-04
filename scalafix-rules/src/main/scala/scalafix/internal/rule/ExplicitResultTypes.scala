@@ -168,14 +168,25 @@ final class ExplicitResultTypes(
                   }
                   val newParents =
                     if (strippedParents.nonEmpty) strippedParents else parents
-                  RefinedType(newParents, EmptyScope)
+                  RefinedType(newParents.map(loop), EmptyScope)
                 case NullaryMethodType(tpe) =>
                   NullaryMethodType(loop(tpe))
                 case TypeRef(pre, sym, args) =>
                   TypeRef(loop(pre), sym, args.map(loop))
+                case ExistentialType(head :: Nil, underlying) =>
+                  head.info match {
+                    case TypeBounds(RefinedType(parents, _), _)
+                        if parents.length > 1 =>
+                      // Avoid large `Type[_ <: A with B with C]` that get
+                      // frequently inferred from long lists of ADT subtypes.
+                      head.setInfo(TypeBounds.empty)
+                    case _ =>
+                  }
+                  tpe
                 case tpe => tpe
               }
             }
+
             val shortT = g.shortType(loop(gsym.info).widen, history)
             val short = shortT.toString()
             val toImport = mutable.Map.empty[g.Symbol, List[g.ShortName]]
