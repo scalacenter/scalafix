@@ -1,6 +1,9 @@
 package scalafix.util
 
 import scala.meta._
+import scalafix.v1.Symbol
+import scala.meta.internal.semanticdb.Scala.Symbols
+import scala.meta.internal.semanticdb.Scala.Descriptor
 
 object TreeExtractors {
   object :&&: {
@@ -40,6 +43,61 @@ object TreeExtractors {
   }
 }
 object TreeOps {
+  def chain(ref: Term.Ref): List[Name] = ref match {
+    case n: Name => List(n)
+    case Term.Select(qual: Term.Ref, name) => name :: chain(qual)
+    case _ => Nil
+  }
+  def inferGlobalSymbol(tree: Tree): Option[Symbol] = {
+    def loop(t: Tree): Option[String] = {
+      t match {
+        case _: Defn.Val | _: Defn.Var | _: Template =>
+          t.parent.flatMap(loop)
+        case p: Pkg =>
+          for {
+            parent <- t.parent
+            owner <- loop(parent)
+            next = chain(p.ref).foldRight(owner) {
+              case (n, o) => Symbols.Global(o, Descriptor.Package(n.value))
+            }
+          } yield next
+        case d: Member =>
+          for {
+            parent <- t.parent
+            owner <- loop(parent)
+            desc <- d match {
+              case _: Defn.Object => Some(Descriptor.Term(d.name.value))
+              case _: Defn.Class => Some(Descriptor.Type(d.name.value))
+              case _: Defn.Trait => Some(Descriptor.Type(d.name.value))
+              case _: Pat.Var => Some(Descriptor.Term(d.name.value))
+              case _: Defn.Def =>
+                for {
+                  stats <- parent match {
+                    case t: Template => Some(t.stats)
+                    case _ => None
+                  }
+                  conflicts = stats.collect {
+                    case m: Member if m.name == d.name => d.name
+                  }
+                  disambiguator = if (conflicts.lengthCompare(1) > 0)
+                    "+" + conflicts.indexOf(d)
+                  else ""
+                } yield Descriptor.Method(d.name.value, disambiguator)
+              case _ => None
+            }
+          } yield Symbols.Global(owner, desc)
+        case _: Source =>
+          Some(Symbols.RootPackage)
+        case _ =>
+          None
+      }
+    }
+    val result = tree match {
+      case _: Name => tree.parent.flatMap(loop)
+      case _ => loop(tree)
+    }
+    result.map(Symbol(_))
+  }
   def parents(tree: Tree): Stream[Tree] =
     tree #:: (tree.parent match {
       case Some(x) => parents(x)

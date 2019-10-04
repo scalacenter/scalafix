@@ -4,15 +4,16 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 // Simple, not stack-safe container around a lazy val.
 final class LazyValue[A] private (thunk: () => A) {
-  private val isEvaluated = new AtomicBoolean(false)
+  private val _isEvaluated = new AtomicBoolean(false)
+  def isEvaluated: Boolean = _isEvaluated.get()
   def foreach(fn: A => Unit): Unit = {
-    if (isEvaluated.get()) {
+    if (isEvaluated) {
       fn(value)
     }
   }
   private[this] lazy val _value: Try[A] =
     Try {
-      isEvaluated.set(true)
+      _isEvaluated.set(true)
       thunk()
     }
   def value: A = _value.get
