@@ -15,6 +15,7 @@ import scalafix.v1.MissingSymbolException
 import scala.meta.internal.pc.MetalsGlobal
 import scala.meta.internal.pc.ScalaPresentationCompiler
 import scala.collection.mutable
+import scala.reflect.internal.{Flags => gf}
 
 final class ExplicitResultTypes(
     config: ExplicitResultTypesConfig,
@@ -153,12 +154,17 @@ final class ExplicitResultTypes(
             def loop(tpe: g.Type): g.Type = {
               import g._
               tpe match {
-                case t: g.PolyType => loop(t.resultType)
-                case t: g.MethodType => loop(t.resultType)
-                case g.RefinedType(parents, _) =>
-                  g.RefinedType(parents, g.EmptyScope)
-                case g.NullaryMethodType(tpe) =>
-                  g.NullaryMethodType(loop(tpe))
+                case ConstantType(Constant(c: Symbol))
+                    if c.hasFlag(gf.JAVA_ENUM) =>
+                  // Manually widen Java enums to obtain `x: FileVisitResult`
+                  // instead of `x: FileVisitResult.Continue.type`
+                  TypeRef(ThisType(tpe.typeSymbol.owner), tpe.typeSymbol, Nil)
+                case t: PolyType => loop(t.resultType)
+                case t: MethodType => loop(t.resultType)
+                case RefinedType(parents, _) =>
+                  RefinedType(parents, EmptyScope)
+                case NullaryMethodType(tpe) =>
+                  NullaryMethodType(loop(tpe))
                 case TypeRef(pre, sym, args) =>
                   TypeRef(loop(pre), sym, args.map(loop))
                 case tpe => tpe
