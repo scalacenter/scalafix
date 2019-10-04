@@ -17,4 +17,8 @@ object ExplicitResultTypesImports {
   val inner = null.asInstanceOf[scala.collection.Searching.SearchResult]
 
   final val javaEnum = java.util.Locale.Category.DISPLAY
+
+  // TODO: respect type aliases?
+  type MyResult = Either[Int, String]
+  val inferTypeAlias = null.asInstanceOf[Either[Int, String]]
 }
