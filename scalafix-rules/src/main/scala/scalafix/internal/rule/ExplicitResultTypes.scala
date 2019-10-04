@@ -8,13 +8,14 @@ import scalafix.util.TokenOps
 import metaconfig.Configured
 import scala.meta.internal.pc.MetalsGlobal
 import scala.meta.internal.pc.ScalaPresentationCompiler
+import scalafix.internal.v1.LazyValue
 
 final class ExplicitResultTypes(
     config: ExplicitResultTypesConfig,
-    global: Option[MetalsGlobal]
+    global: LazyValue[Option[MetalsGlobal]]
 ) extends SemanticRule("ExplicitResultTypes") {
 
-  def this() = this(ExplicitResultTypesConfig.default, None)
+  def this() = this(ExplicitResultTypesConfig.default, LazyValue.now(None))
 
   override def description: String =
     "Inserts explicit annotations for inferred types of def/val/var"
@@ -22,18 +23,18 @@ final class ExplicitResultTypes(
   override def isExperimental: Boolean = true
 
   override def afterComplete(): Unit = {
-    global.foreach(_.askShutdown())
+    global.foreach(_.foreach(_.askShutdown()))
   }
 
   override def withConfiguration(config: Configuration): Configured[Rule] = {
-    val newGlobal =
-      if (config.scalacClasspath.isEmpty) None
+    val newGlobal: LazyValue[Option[MetalsGlobal]] =
+      if (config.scalacClasspath.isEmpty) LazyValue.now(None)
       else {
-        Some(
+        LazyValue.fromUnsafe { () =>
           ScalaPresentationCompiler(
             classpath = config.scalacClasspath.map(_.toNIO)
           ).newCompiler()
-        )
+        }
       }
     config.conf // Support deprecated explicitReturnTypes config
       .getOrElse("explicitReturnTypes", "ExplicitResultTypes")(
@@ -43,8 +44,8 @@ final class ExplicitResultTypes(
   }
 
   override def fix(implicit ctx: SemanticDocument): Patch = {
-    val types = new CompilerTypes(global)
-    val result = ctx.tree.collect {
+    lazy val types = new CompilerTypes(global.value)
+    ctx.tree.collect {
       case t @ Defn.Val(mods, Pat.Var(name) :: Nil, None, body)
           if isRuleCandidate(t, name, mods, body) =>
         fixDefinition(t, body, types)
@@ -57,7 +58,6 @@ final class ExplicitResultTypes(
           if isRuleCandidate(t, name, mods, body) =>
         fixDefinition(t, body, types)
     }.asPatch
-    result
   }
 
   // Don't explicitly annotate vals when the right-hand body is a single call

@@ -23,7 +23,7 @@ case class ValidatedArgs(
     diffDisable: DiffDisable,
     callback: DelegatingMainCallback,
     semanticdbFileFilter: FilterMatcher,
-    global: Option[Global]
+    global: LazyValue[Option[Global]]
 ) {
 
   def input(file: AbsolutePath): Input = {

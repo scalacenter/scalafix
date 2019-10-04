@@ -190,11 +190,10 @@ object MainOps {
       args: ValidatedArgs,
       doc: SyntacticDocument
   ): Option[TextDocument] = {
-    args.global.map { g =>
+    args.global.value.map { g =>
       InteractiveSemanticdb
         .toTextDocument(g, doc.input.text)
         .copy(
-          // TODO(olafur): avoid this MD5 compute
           md5 = FingerprintOps.md5(
             StandardCharsets.UTF_8.encode(CharBuffer.wrap(doc.input.chars))
           )

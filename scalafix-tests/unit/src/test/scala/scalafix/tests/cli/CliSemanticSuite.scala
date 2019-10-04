@@ -240,9 +240,18 @@ class CliSemanticSuite extends BaseCliSuite {
       ),
       root.toNIO
     )
-    pprint.log(out)
     assert(exit.isOk)
-    pprint.log(StringFS.asString(root))
+    val obtained =
+      FileIO.slurp(root.resolve("NoSemanticdb.scala"), StandardCharsets.UTF_8)
+    assertNoDiff(
+      obtained,
+      """
+        |package a
+        |object NoSemanticdb {
+        |  def foo: Option[Int] = Option.empty[Int]
+        |}
+        |""".stripMargin
+    )
   }
 
 }

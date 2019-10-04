@@ -264,7 +264,7 @@ case class Args(
       .withConf(base)
       .withScalaVersion(scalaVersion)
       .withScalacOptions(scalacOptions)
-      .withScalacClasspath(classpath.entries)
+      .withScalacClasspath(validatedClasspath.entries)
     decoder.read(rulesConf).andThen(_.withConfiguration(configuration))
   }
 
@@ -351,13 +351,13 @@ case class Args(
     }
   }
 
-  def configuredGlobal: Configured[Option[Global]] =
+  def configuredGlobal: Configured[LazyValue[Option[Global]]] =
     Configured.ok {
       val settings = new Settings()
       settings.YpresentationAnyThread.value = true
-      settings.classpath.value = classpath.syntax
+      settings.classpath.value = validatedClasspath.syntax
       val reporter = new ConsoleReporter(settings)
-      Some(new Global(settings, reporter))
+      LazyValue.fromUnsafe(() => new Global(settings, reporter))
     }
 
   def validate: Configured[ValidatedArgs] = {
