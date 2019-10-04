@@ -1,6 +1,7 @@
 package rsc.tests
 
 import java.util.TimeZone
+import scala.collection.Searching
 import scala.collection.immutable.ListSet
 import scala.concurrent.duration.FiniteDuration
 object ExplicitResultTypesImports {
@@ -12,4 +13,7 @@ object ExplicitResultTypesImports {
   val duplicate2: FiniteDuration = null.asInstanceOf[scala.concurrent.duration.FiniteDuration]
 
   val timezone: TimeZone = null.asInstanceOf[java.util.TimeZone]
+
+  // TODO: Is this desirable behavior?
+  val inner: Searching.SearchResult = null.asInstanceOf[scala.collection.Searching.SearchResult]
 }

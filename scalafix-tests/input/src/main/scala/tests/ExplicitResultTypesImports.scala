@@ -12,4 +12,7 @@ object ExplicitResultTypesImports {
   val duplicate2 = null.asInstanceOf[scala.concurrent.duration.FiniteDuration]
 
   val timezone = null.asInstanceOf[java.util.TimeZone]
+
+  // TODO: Is this desirable behavior?
+  val inner = null.asInstanceOf[scala.collection.Searching.SearchResult]
 }
