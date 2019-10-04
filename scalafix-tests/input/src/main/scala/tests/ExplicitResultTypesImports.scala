@@ -10,4 +10,6 @@ object ExplicitResultTypesImports {
 
   val duplicate1 = null.asInstanceOf[scala.concurrent.duration.FiniteDuration]
   val duplicate2 = null.asInstanceOf[scala.concurrent.duration.FiniteDuration]
+
+  val timezone = null.asInstanceOf[java.util.TimeZone]
 }
