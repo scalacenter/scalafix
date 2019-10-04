@@ -97,6 +97,7 @@ object ImportPatchOps {
     }
     val importersToAdd = {
       val isAlreadyImported = mutable.Set.empty[Symbol]
+      val isAddedImporter = mutable.Set.empty[String]
       for { // register global imports
         import_ <- globalImports
         importer <- import_.importers
@@ -115,7 +116,9 @@ object ImportPatchOps {
           SymbolOps.toImporter(symbol).toList
         case AddGlobalImport(importer)
             // best effort deduplication for syntactic addGlobalImport(Importer)
-            if !allImportersSyntax.contains(importer.syntax) =>
+            if !allImportersSyntax.contains(importer.syntax) &&
+              !isAddedImporter(importer.syntax) =>
+          isAddedImporter += importer.syntax
           importer :: Nil
         case _ => Nil
       }
