@@ -27,7 +27,9 @@ final class InternalSemanticDoc(
       symtab: SymbolTable
   ) = this(doc, LazyValue.now(textDocument), symtab)
 
-  def textDocument = _textDocument.value
+  def textDocument = {
+    _textDocument.value
+  }
 
   def synthetics: Iterator[SemanticTree] =
     textDocument.synthetics.iterator.map { tree =>

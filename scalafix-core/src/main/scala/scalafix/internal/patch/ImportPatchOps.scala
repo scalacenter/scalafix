@@ -78,7 +78,7 @@ object ImportPatchOps {
         n.symbol
       // TODO(olafur) handle rename.
     }
-    val allImporteeSymbols = allImportees.flatMap(
+    lazy val allImporteeSymbols = allImportees.flatMap(
       importee => importee.symbol.map(_.normalized -> importee)
     )
     val globalImports = getGlobalImports(ctx.tree)
@@ -96,16 +96,19 @@ object ImportPatchOps {
       case _ =>
     }
     val importersToAdd = {
-      val isAlreadyImported = mutable.Set.empty[Symbol]
       val isAddedImporter = mutable.Set.empty[String]
-      for { // register global imports
-        import_ <- globalImports
-        importer <- import_.importers
-        importee <- importer.importees
-        symbol <- index.symbol(importee).toList
-        underlying <- SymbolOps.underlyingSymbols(symbol)
-      } {
-        isAlreadyImported += underlying
+      lazy val isAlreadyImported = {
+        val isImported = mutable.Set.empty[Symbol]
+        for { // register global imports
+          import_ <- globalImports
+          importer <- import_.importers
+          importee <- importer.importees
+          symbol <- index.symbol(importee).toList
+          underlying <- SymbolOps.underlyingSymbols(symbol)
+        } {
+          isImported += underlying
+        }
+        isImported
       }
       importPatches.flatMap {
         case AddGlobalSymbol(symbol)
