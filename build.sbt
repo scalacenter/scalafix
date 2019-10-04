@@ -73,6 +73,7 @@ lazy val rules = project
   .settings(
     moduleName := "scalafix-rules",
     description := "Built-in Scalafix rules",
+    // The mtags module is used by the ExplicitResultTypes rewrite.
     libraryDependencies += "org.scalameta" % "mtags" % "0.7.6" cross CrossVersion.full
   )
   .dependsOn(core)
@@ -97,8 +98,6 @@ lazy val cli = project
     mainClass in assembly := Some("scalafix.v1.Main"),
     assemblyJarName in assembly := "scalafix.jar",
     libraryDependencies ++= Seq(
-      "ch.epfl.scala" %% "bloop-launcher" % "1.3.3",
-      "ch.epfl.scala" % "bsp4j" % "2.0.0-M4+10-61e61e87",
       "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0",
       "com.martiansoftware" % "nailgun-server" % "0.9.1",
       jgit,
