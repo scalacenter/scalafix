@@ -162,7 +162,13 @@ final class ExplicitResultTypes(
                 case t: PolyType => loop(t.resultType)
                 case t: MethodType => loop(t.resultType)
                 case RefinedType(parents, _) =>
-                  RefinedType(parents, EmptyScope)
+                  // Remove redundant `Product with Serializable`, if possible.
+                  val strippedParents = parents.filterNot { tpe =>
+                    definitions.isPossibleSyntheticParent(tpe.typeSymbol)
+                  }
+                  val newParents =
+                    if (strippedParents.nonEmpty) strippedParents else parents
+                  RefinedType(newParents, EmptyScope)
                 case NullaryMethodType(tpe) =>
                   NullaryMethodType(loop(tpe))
                 case TypeRef(pre, sym, args) =>

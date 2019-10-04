@@ -3,6 +3,8 @@ rules = "ExplicitResultTypes"
  */
 package rsc.tests
 
+import scala.util._
+
 object ExplicitResultTypesImports {
 
   val x = scala.collection.immutable.ListSet.empty[Int]
@@ -21,4 +23,13 @@ object ExplicitResultTypesImports {
   // TODO: respect type aliases?
   type MyResult = Either[Int, String]
   val inferTypeAlias = null.asInstanceOf[Either[Int, String]]
+
+  val wildcardImport = Try(1)
+
+  sealed abstract class ADT
+  object ADT {
+    case object A extends ADT
+    case object B extends ADT
+  }
+  val productWithSerializable = List(ADT.A, ADT.B)
 }

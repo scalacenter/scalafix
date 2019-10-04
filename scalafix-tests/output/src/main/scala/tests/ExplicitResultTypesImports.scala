@@ -1,10 +1,12 @@
 package rsc.tests
 
+import scala.util._
 import java.util.TimeZone
 import java.util.Locale.Category
 import scala.collection.Searching
 import scala.collection.immutable.ListSet
 import scala.concurrent.duration.FiniteDuration
+
 object ExplicitResultTypesImports {
 
   val x: ListSet[Int] = scala.collection.immutable.ListSet.empty[Int]
@@ -23,4 +25,13 @@ object ExplicitResultTypesImports {
   // TODO: respect type aliases?
   type MyResult = Either[Int, String]
   val inferTypeAlias: Either[Int,String] = null.asInstanceOf[Either[Int, String]]
+
+  val wildcardImport: Try[Int] = Try(1)
+
+  sealed abstract class ADT
+  object ADT {
+    case object A extends ADT
+    case object B extends ADT
+  }
+  val productWithSerializable: List[ADT] = List(ADT.A, ADT.B)
 }
