@@ -6,6 +6,7 @@ import scala.{meta => m}
 import scala.meta.internal.proxy.GlobalProxy
 import scala.collection.mutable
 import scala.reflect.internal.{Flags => gf}
+import scala.meta.internal.pc.Identifier
 
 class CompilerTypes {
   def toCompilerType(
@@ -67,7 +68,8 @@ class CompilerTypesImpl(g: MetalsGlobal)(implicit ctx: v1.SemanticDocument)
           context.lookupSymbol(name, _ => true) :: Nil
         },
         renames = g.renamedSymbols(context),
-        owners = parentSymbols(context)
+        owners = parentSymbols(context),
+        config = g.renameConfig
       )
       def loop(tpe: g.Type): g.Type = {
         tpe match {
@@ -123,18 +125,22 @@ class CompilerTypesImpl(g: MetalsGlobal)(implicit ctx: v1.SemanticDocument)
         name <- names
         ref = pkg.owner
       } yield {
+        val importee: m.Importee = {
+          val ident = m.Name.Indeterminate(Identifier(name.name))
+          if (name.isRename)
+            m.Importee.Rename(
+              m.Name.Indeterminate(Identifier(name.symbol.name)),
+              ident
+            )
+          else m.Importee.Name(ident)
+        }
         val head :: tail = pkg.ownerChain.reverse.tail // Skip root symbol
           .map(sym => m.Term.Name(sym.name.toString()))
         val ref = tail.foldLeft(head: m.Term.Ref) {
           case (owner, name) =>
             m.Term.Select(owner, name)
         }
-        v1.Patch.addGlobalImport(
-          m.Importer(
-            ref,
-            List(m.Importee.Name(m.Name.Indeterminate(name.name.toString())))
-          )
-        )
+        v1.Patch.addGlobalImport(m.Importer(ref, List(importee)))
       }
       Some(v1.Patch.addRight(replace, s"$space: $short") ++ addImports)
     }

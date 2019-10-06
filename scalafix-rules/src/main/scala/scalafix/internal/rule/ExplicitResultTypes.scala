@@ -9,6 +9,7 @@ import metaconfig.Configured
 import scala.meta.internal.pc.MetalsGlobal
 import scala.meta.internal.pc.ScalaPresentationCompiler
 import scalafix.internal.v1.LazyValue
+import scala.meta.internal.pc.PresentationCompilerConfigImpl
 
 final class ExplicitResultTypes(
     config: ExplicitResultTypesConfig,

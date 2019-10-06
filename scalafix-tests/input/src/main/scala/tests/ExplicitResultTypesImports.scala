@@ -42,4 +42,6 @@ object ExplicitResultTypesImports {
   }
   val longSharedParent1 = List(ADT2.A, ADT2.B)
   val longSharedParent2 = List(ADT2.A, ADT2.C)
+
+  val juMap = java.util.Collections.emptyMap[Int, String]()
 }

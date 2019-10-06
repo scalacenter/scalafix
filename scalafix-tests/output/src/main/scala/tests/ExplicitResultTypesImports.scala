@@ -1,7 +1,7 @@
 package rsc.tests
 
 import scala.util._
-import java.util.TimeZone
+import java.{util => ju}
 import java.util.Locale.Category
 import scala.collection.Searching
 import scala.collection.immutable.ListSet
@@ -15,7 +15,7 @@ object ExplicitResultTypesImports {
   val duplicate1: FiniteDuration = null.asInstanceOf[scala.concurrent.duration.FiniteDuration]
   val duplicate2: FiniteDuration = null.asInstanceOf[scala.concurrent.duration.FiniteDuration]
 
-  val timezone: TimeZone = null.asInstanceOf[java.util.TimeZone]
+  val timezone: ju.TimeZone = null.asInstanceOf[java.util.TimeZone]
 
   // TODO: Is this desirable behavior?
   val inner: Searching.SearchResult = null.asInstanceOf[scala.collection.Searching.SearchResult]
@@ -44,4 +44,6 @@ object ExplicitResultTypesImports {
   }
   val longSharedParent1: List[ADT2 with Mixin[_]] = List(ADT2.A, ADT2.B)
   val longSharedParent2: List[ADT2 with Mixin[Int]] = List(ADT2.A, ADT2.C)
+
+  val juMap: ju.Map[Int,String] = java.util.Collections.emptyMap[Int, String]()
 }
