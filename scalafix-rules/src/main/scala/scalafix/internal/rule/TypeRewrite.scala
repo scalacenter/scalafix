@@ -8,26 +8,26 @@ import scala.collection.mutable
 import scala.reflect.internal.{Flags => gf}
 import scala.meta.internal.pc.Identifier
 
-class CompilerTypes {
-  def toCompilerType(
+class TypeRewrite {
+  def toPatch(
       pos: m.Position,
       sym: v1.Symbol,
       replace: m.Token,
       space: String
   ): Option[v1.Patch] = None
 }
-object CompilerTypes {
+object TypeRewrite {
   def apply(
       global: Option[MetalsGlobal]
-  )(implicit ctx: v1.SemanticDocument): CompilerTypes =
+  )(implicit ctx: v1.SemanticDocument): TypeRewrite =
     global match {
-      case None => new CompilerTypes
-      case Some(value) => new CompilerTypesImpl(value)
+      case None => new TypeRewrite
+      case Some(value) => new CompilerTypeRewrite(value)
     }
 }
 
-class CompilerTypesImpl(g: MetalsGlobal)(implicit ctx: v1.SemanticDocument)
-    extends CompilerTypes {
+class CompilerTypeRewrite(g: MetalsGlobal)(implicit ctx: v1.SemanticDocument)
+    extends TypeRewrite {
   import g._
   private lazy val unit =
     g.newCompilationUnit(ctx.input.text, ctx.input.syntax)
@@ -51,7 +51,7 @@ class CompilerTypesImpl(g: MetalsGlobal)(implicit ctx: v1.SemanticDocument)
     isVisited
   }
 
-  override def toCompilerType(
+  override def toPatch(
       pos: m.Position,
       sym: v1.Symbol,
       replace: m.Token,
@@ -63,13 +63,14 @@ class CompilerTypesImpl(g: MetalsGlobal)(implicit ctx: v1.SemanticDocument)
     if (gsym == g.NoSymbol) None
     else {
       val context = g.doLocateContext(gpos)
+      val renames = g.renamedSymbols(context)
       val history = new g.ShortenedNames(
         lookupSymbol = name => {
           context.lookupSymbol(name, _ => true) :: Nil
         },
-        renames = g.renamedSymbols(context),
+        renames = renames,
         owners = parentSymbols(context),
-        config = g.renameConfig
+        config = g.renameConfig ++ renames
       )
       def loop(tpe: g.Type): g.Type = {
         tpe match {

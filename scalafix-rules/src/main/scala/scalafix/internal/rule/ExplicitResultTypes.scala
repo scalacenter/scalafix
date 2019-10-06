@@ -9,7 +9,6 @@ import metaconfig.Configured
 import scala.meta.internal.pc.MetalsGlobal
 import scala.meta.internal.pc.ScalaPresentationCompiler
 import scalafix.internal.v1.LazyValue
-import scala.meta.internal.pc.PresentationCompilerConfigImpl
 
 final class ExplicitResultTypes(
     config: ExplicitResultTypesConfig,
@@ -45,7 +44,7 @@ final class ExplicitResultTypes(
   }
 
   override def fix(implicit ctx: SemanticDocument): Patch = {
-    lazy val types = CompilerTypes(global.value)
+    lazy val types = TypeRewrite(global.value)
     ctx.tree.collect {
       case t @ Defn.Val(mods, Pat.Var(name) :: Nil, None, body)
           if isRuleCandidate(t, name, mods, body) =>
@@ -131,16 +130,16 @@ final class ExplicitResultTypes(
     }
   }
 
-  def defnType(defn: Defn, replace: Token, space: String, types: CompilerTypes)(
+  def defnType(defn: Defn, replace: Token, space: String, types: TypeRewrite)(
       implicit ctx: SemanticDocument
   ): Option[Patch] =
     for {
       name <- defnName(defn)
       defnSymbol <- name.symbol.asNonEmpty
-      patch <- types.toCompilerType(name.pos, defnSymbol, replace, space)
+      patch <- types.toPatch(name.pos, defnSymbol, replace, space)
     } yield patch
 
-  def fixDefinition(defn: Defn, body: Term, types: CompilerTypes)(
+  def fixDefinition(defn: Defn, body: Term, types: TypeRewrite)(
       implicit ctx: SemanticDocument
   ): Patch = {
     val lst = ctx.tokenList
