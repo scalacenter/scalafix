@@ -3,6 +3,7 @@ package rsc.tests
 
 import rsc.tests.BetterRscCompat_Test.AutoImport.oa.ob.od
 import testpkg._
+import scala.collection.mutable
 
 object BetterRscCompat_Test {
 
@@ -94,7 +95,7 @@ object BetterRscCompat_Test {
 
     val y: od.MyClass = new od.MyClass
 
-    val z: scala.collection.mutable.Map[oa.oc.od.MyClass,oa.oe.MyClass2] = oa.oc.od.map
+    val z: mutable.Map[oa.oc.od.MyClass,oa.oe.MyClass2] = oa.oc.od.map
 
     private object po {
       val v1: oa.oe.MyClass2 = new oa.oe.MyClass2

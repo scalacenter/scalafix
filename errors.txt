@@ -1,0 +1,235 @@
+ Array(UnexpectedError)
+scalafix.tests.rule.MavenFuzzSuite#check:165 path: AbsolutePath(
+  /var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ujson/ChannelParser.scala
+)
+scalafix.tests.rule.MavenFuzzSuite#check:166 errors: List(
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ujson/ChannelParser.scala:31 ';' expected but '(' found.
+  final val ParseAsStringThreshold: Int(20971520) = 20 * 1048576
+                                       ^"""
+)
+scalafix.tests.rule.MavenFuzzSuite#check:165 path: AbsolutePath(
+  /var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/Core.scala
+)
+scalafix.tests.rule.MavenFuzzSuite#check:166 errors: List(
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/Core.scala:11 empty quoted identifier
+import fastparse.``package``
+                 ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/Core.scala:11 empty quoted identifier
+import fastparse.``package``
+                          ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/Core.scala:11 identifier expected but something found.
+import fastparse.``package``
+                 ^"""
+)
+scalafix.tests.rule.MavenFuzzSuite#check:165 path: AbsolutePath(
+  /var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/Xml.scala
+)
+scalafix.tests.rule.MavenFuzzSuite#check:166 errors: List(
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/Xml.scala:9 empty quoted identifier
+import fastparse.``package``
+                 ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/Xml.scala:9 empty quoted identifier
+import fastparse.``package``
+                          ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/Xml.scala:9 identifier expected but something found.
+import fastparse.``package``
+                 ^"""
+)
+scalafix.tests.rule.MavenFuzzSuite#check:165 path: AbsolutePath(
+  /var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/Scala.scala
+)
+scalafix.tests.rule.MavenFuzzSuite#check:166 errors: List(
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/Scala.scala:7 empty quoted identifier
+import fastparse.``package``
+                 ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/Scala.scala:7 empty quoted identifier
+import fastparse.``package``
+                          ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/Scala.scala:7 identifier expected but something found.
+import fastparse.``package``
+                 ^"""
+)
+scalafix.tests.rule.MavenFuzzSuite#check:165 path: AbsolutePath(
+  /var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/syntax/Identifiers.scala
+)
+scalafix.tests.rule.MavenFuzzSuite#check:166 errors: List(
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/syntax/Identifiers.scala:7 empty quoted identifier
+import fastparse.``package``
+                 ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/syntax/Identifiers.scala:7 empty quoted identifier
+import fastparse.``package``
+                          ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/syntax/Identifiers.scala:7 identifier expected but something found.
+import fastparse.``package``
+                 ^"""
+)
+scalafix.tests.rule.MavenFuzzSuite#check:165 path: AbsolutePath(
+  /var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/syntax/Basic.scala
+)
+scalafix.tests.rule.MavenFuzzSuite#check:166 errors: List(
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/syntax/Basic.scala:9 empty quoted identifier
+import fastparse.``package``
+                 ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/syntax/Basic.scala:9 empty quoted identifier
+import fastparse.``package``
+                          ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/syntax/Basic.scala:9 identifier expected but something found.
+import fastparse.``package``
+                 ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/syntax/Basic.scala:52 identifier expected but 'package' found.
+  def W[_: P](s: String): package.P[Unit] = P( s ~ !CharPred(Basic.LetterDigitDollarUnderscore) )(s"`$s`", implicitly)
+                          ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/syntax/Basic.scala:54 identifier expected but 'package' found.
+  def O[_: P](s: String): package.P[Unit] = P( s ~ (!Basic.OpChar | &(NoTrace(StringIn("/*", "//")))) )(s"`$s`", implicitly)
+                          ^"""
+)
+scalafix.tests.rule.MavenFuzzSuite#check:165 path: AbsolutePath(
+  /var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/syntax/Literals.scala
+)
+scalafix.tests.rule.MavenFuzzSuite#check:166 errors: List(
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/syntax/Literals.scala:7 empty quoted identifier
+import fastparse.``package``
+                 ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/syntax/Literals.scala:7 empty quoted identifier
+import fastparse.``package``
+                          ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/syntax/Literals.scala:7 identifier expected but something found.
+import fastparse.``package``
+                 ^"""
+)
+scalafix.tests.rule.MavenFuzzSuite#check:165 path: AbsolutePath(
+  /var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/Exprs.scala
+)
+scalafix.tests.rule.MavenFuzzSuite#check:166 errors: List(
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/Exprs.scala:4 empty quoted identifier
+import fastparse.``package``
+                 ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/Exprs.scala:4 empty quoted identifier
+import fastparse.``package``
+                          ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/Exprs.scala:4 identifier expected but something found.
+import fastparse.``package``
+                 ^"""
+)
+scalafix.tests.rule.MavenFuzzSuite#check:165 path: AbsolutePath(
+  /var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/Types.scala
+)
+scalafix.tests.rule.MavenFuzzSuite#check:166 errors: List(
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/Types.scala:5 empty quoted identifier
+import fastparse.``package``
+                 ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/Types.scala:5 empty quoted identifier
+import fastparse.``package``
+                          ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/scalaparse/Types.scala:5 identifier expected but something found.
+import fastparse.``package``
+                 ^"""
+)
+scalafix.tests.rule.MavenFuzzSuite#check:165 path: AbsolutePath(
+  /var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ammonite/interp/Interpreter.scala
+)
+scalafix.tests.rule.MavenFuzzSuite#check:166 errors: List(
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ammonite/interp/Interpreter.scala:101 type mismatch;
+ found   : scala.collection.mutable.Map[ammonite.util.Util.CodeSource,ammonite.util.ScriptOutput.Metadata]
+ required: scala.collection.mutable.Map[ammonite.util.Util.CodeSource,Any]
+Note: ammonite.util.ScriptOutput.Metadata <: Any, but trait Map is invariant in type V.
+You may wish to investigate a wildcard type such as `_ <: Any`. (SLS 3.2.10)
+  val alreadyLoadedFiles: mutable.Map[Util.CodeSource,Any] = mutable.Map.empty[CodeSource, ScriptOutput.Metadata]
+                                                                              ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ammonite/interp/Interpreter.scala:185 type mismatch;
+ found   : Seq[ammonite.util.Imports]
+ required: Seq[Nothing]
+    } yield hookResults
+            ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ammonite/interp/Interpreter.scala:223 value value is not a member of Nothing
+      Imports(hookImports.flatten.flatMap(_.value)),
+                                            ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ammonite/interp/Interpreter.scala:355 type mismatch;
+ found   : Any
+ required: ammonite.util.ScriptOutput.Metadata
+      case Some(x) => Res.Success(x)
+                                  ^"""
+)
+scalafix.tests.rule.MavenFuzzSuite#check:165 path: AbsolutePath(
+  /var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ammonite/interp/Parsers.scala
+)
+scalafix.tests.rule.MavenFuzzSuite#check:166 errors: List(
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ammonite/interp/Parsers.scala:3 empty quoted identifier
+import fastparse.``package``
+                 ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ammonite/interp/Parsers.scala:3 empty quoted identifier
+import fastparse.``package``
+                          ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ammonite/interp/Parsers.scala:3 identifier expected but something found.
+import fastparse.``package``
+                 ^"""
+)
+scalafix.tests.rule.MavenFuzzSuite#check:165 path: AbsolutePath(
+  /var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ammonite/repl/Repl.scala
+)
+scalafix.tests.rule.MavenFuzzSuite#check:166 errors: List(
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ammonite/repl/Repl.scala:49 not found: value Interpreter
+    Interpreter.initPrinters(initialColors, output, error, true)
+    ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ammonite/repl/Repl.scala:74 not found: type Interpreter
+  val interp: Interpreter = new Interpreter(
+              ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ammonite/repl/Repl.scala:74 not found: type Interpreter
+  val interp: Interpreter = new Interpreter(
+                                ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ammonite/repl/Repl.scala:85 type mismatch;
+ found   : Any
+ required: ammonite.util.Printer
+          def printer = repl.printer
+                             ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ammonite/repl/Repl.scala:86 type mismatch;
+ found   : Any
+ required: ammonite.util.Ref[ammonite.util.Colors]
+          val colors = repl.colors
+                            ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ammonite/repl/Repl.scala:133 not found: value verboseOutput
+    verboseOutput = true,
+    ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ammonite/repl/Repl.scala:134 not found: value getFrame
+    getFrame = () => frames().head,
+    ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ammonite/repl/Repl.scala:135 not found: value createFrame
+    createFrame = () => { val f = sess0.childFrame(frames().head); frames() = f :: frames(); f },
+    ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ammonite/repl/Repl.scala:136 reassignment to val
+    initialClassLoader = initialClassLoader,
+                       ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ammonite/repl/Repl.scala:137 reassignment to val
+    replCodeWrapper = replCodeWrapper,
+                    ^""",
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/ammonite/repl/Repl.scala:138 reassignment to val
+    scriptCodeWrapper = scriptCodeWrapper,
+                      ^""",
+...
+scalafix.tests.rule.MavenFuzzSuite#check:165 path: AbsolutePath(
+  /var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/upickle/Api.scala
+)
+scalafix.tests.rule.MavenFuzzSuite#check:166 errors: List(
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/upickle/Api.scala:115 type mismatch;
+ found   : LegacyApi.this.TaggedWriter.Leaf[V]
+ required: LegacyApi.this.TaggedReader.Leaf[V]
+    new TaggedWriter.Leaf[V](c, n, rw)
+    ^"""
+)
+scalafix.tests.rule.MavenFuzzSuite#check:165 path: AbsolutePath(
+  /var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/os/FileOps.scala
+)
+scalafix.tests.rule.MavenFuzzSuite#check:166 errors: List(
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/os/FileOps.scala:250 unbound wildcard type
+  def apply(link: Path, dest: Path): _ = {
+                                     ^"""
+)
+scalafix.tests.rule.MavenFuzzSuite#check:165 path: AbsolutePath(
+  /var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/os/GlobInterpolator.scala
+)
+scalafix.tests.rule.MavenFuzzSuite#check:166 errors: List(
+  """/var/folders/y5/gbz6gd297z57_5bg0nm589nr0000gp/T/scalafix1157111382320891914/os/GlobInterpolator.scala:20 type mismatch;
+ found   : os.GlobInterpolator.Interped
+ required: String
+  def g: String = new GlobInterpolator.Interped(sc.parts)
+                  ^"""

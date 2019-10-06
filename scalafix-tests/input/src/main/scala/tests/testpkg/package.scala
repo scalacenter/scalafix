@@ -14,4 +14,6 @@ package object testpkg {
   object O2 {
     class C2
   }
+
+  class O3
 }

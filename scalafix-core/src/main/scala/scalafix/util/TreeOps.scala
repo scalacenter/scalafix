@@ -80,8 +80,8 @@ object TreeOps {
                     case m: Member if m.name == d.name => d.name
                   }
                   disambiguator = if (conflicts.lengthCompare(1) > 0)
-                    "+" + conflicts.indexOf(d)
-                  else ""
+                    "(+" + conflicts.indexOf(d) + ")"
+                  else "()"
                 } yield Descriptor.Method(d.name.value, disambiguator)
               case _ => None
             }
@@ -93,7 +93,8 @@ object TreeOps {
       }
     }
     val result = tree match {
-      case _: Name => tree.parent.flatMap(loop)
+      case n: Name =>
+        tree.parent.flatMap(loop)
       case _ => loop(tree)
     }
     result.map(Symbol(_))
