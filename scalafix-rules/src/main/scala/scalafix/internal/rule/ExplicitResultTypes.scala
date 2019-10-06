@@ -44,7 +44,7 @@ final class ExplicitResultTypes(
   }
 
   override def fix(implicit ctx: SemanticDocument): Patch = {
-    lazy val types = new CompilerTypes(global.value)
+    lazy val types = CompilerTypes(global.value)
     ctx.tree.collect {
       case t @ Defn.Val(mods, Pat.Var(name) :: Nil, None, body)
           if isRuleCandidate(t, name, mods, body) =>
