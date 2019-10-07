@@ -28,7 +28,7 @@ class MavenFuzzSuite extends FunSuite with DiffAssertions {
   ): Seq[Path] = {
     val result = mutable.ArrayBuffer.empty[Path]
     val matcher =
-      FileSystems.getDefault().getPathMatcher("glob:*GlobInterpolator.scala")
+      FileSystems.getDefault().getPathMatcher("glob:*.scala")
     sourceJars.foreach { jar =>
       FileIO.withJarFileSystem(AbsolutePath(jar), false, true) { root =>
         FileIO.listAllFilesRecursively(root).files.foreach { relpath =>
