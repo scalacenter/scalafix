@@ -77,11 +77,13 @@ object TreeOps {
                     case _ => None
                   }
                   conflicts = stats.collect {
-                    case m: Member if m.name == d.name => d.name
+                    case m: Defn.Def if m.name.value == d.name.value => m
                   }
-                  disambiguator = if (conflicts.lengthCompare(1) > 0)
-                    "(+" + conflicts.indexOf(d) + ")"
-                  else "()"
+                  indexOf = conflicts.indexOf(d)
+                  disambiguator = {
+                    if (indexOf > 0) "(+" + indexOf + ")"
+                    else "()"
+                  }
                 } yield Descriptor.Method(d.name.value, disambiguator)
               case _ => None
             }

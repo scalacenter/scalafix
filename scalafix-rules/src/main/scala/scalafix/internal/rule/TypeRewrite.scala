@@ -65,11 +65,6 @@ class CompilerTypeRewrite(g: MetalsGlobal)(implicit ctx: v1.SemanticDocument)
       .getOrElse(g.NoSymbol)
     if (gsym == g.NoSymbol) {
       None
-    } else if (gsym.alternatives.length > 1) {
-      pprint.log(sym.value)
-      pprint.log(gsym)
-      pprint.log(gsym.info)
-      None
     } else {
       val context = g.doLocateContext(gpos)
       val renames = g.renamedSymbols(context)
@@ -115,17 +110,8 @@ class CompilerTypeRewrite(g: MetalsGlobal)(implicit ctx: v1.SemanticDocument)
         }
       }
 
-      if (gsym.name.toString() == "True") {
-        // pprint.log/inverse
-      }
       val shortT = g.shortType(loop(gsym.info).widen, history)
       val short = shortT.toString()
-      if (short == "IndexedParserInput") {
-        pprint.log(sym.value)
-        pprint.log(gsym)
-        pprint.log(gsym.alternatives)
-        pprint.log(gsym.info)
-      }
       val toImport = mutable.Map.empty[g.Symbol, List[g.ShortName]]
       val isRootSymbol = Set[g.Symbol](
         g.rootMirror.RootClass,
