@@ -1,6 +1,6 @@
 package scalafix.internal.rule
 
-import scala.meta.internal.pc.MetalsGlobal
+import scala.meta.internal.pc.ScalafixGlobal
 import scalafix.v1
 import scala.{meta => m}
 import scala.meta.internal.proxy.GlobalProxy
@@ -19,7 +19,7 @@ class TypeRewrite {
 }
 object TypeRewrite {
   def apply(
-      global: Option[MetalsGlobal]
+      global: Option[ScalafixGlobal]
   )(implicit ctx: v1.SemanticDocument): TypeRewrite =
     global match {
       case None => new TypeRewrite
@@ -27,7 +27,7 @@ object TypeRewrite {
     }
 }
 
-class CompilerTypeRewrite(g: MetalsGlobal)(implicit ctx: v1.SemanticDocument)
+class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
     extends TypeRewrite {
   import g._
   private lazy val unit =
@@ -52,6 +52,7 @@ class CompilerTypeRewrite(g: MetalsGlobal)(implicit ctx: v1.SemanticDocument)
         None
     }
   }
+  def isDebug = Set[String]("inPlace")
   def toPatchUnsafe(
       pos: m.Position,
       sym: v1.Symbol,
@@ -60,16 +61,29 @@ class CompilerTypeRewrite(g: MetalsGlobal)(implicit ctx: v1.SemanticDocument)
   ): Option[v1.Patch] = {
     val gpos = unit.position(pos.start)
     GlobalProxy.typedTreeAt(g, gpos)
-    val gsym = g
+    val inverseSemanticdbSymbol = g
       .inverseSemanticdbSymbols(sym.value)
       .find(s => g.semanticdbSymbol(s) == sym.value)
       .getOrElse(g.NoSymbol)
+    // NOTE(olafurpg) Select the supermethod signature if it exists. In Scala 2,
+    // type inference picks the type of the override method expression even if
+    // it's more precise than the type of the supermethod. In Scala 3, there's a
+    // breaking change in type inference to pick the type of the supermethod
+    // even if the expression of the override method is more precise. I believe
+    // the Scala 3 behavior aligns more closely with the intuition for how
+    // people believe type inference works so we go with the signature of the
+    // supermethod, if it exists.
+    val gsym = inverseSemanticdbSymbol.overrides.lastOption
+      .getOrElse(inverseSemanticdbSymbol)
+    val isDebug = this.isDebug(gsym.name.toString())
     if (gsym == g.NoSymbol) {
       None
     } else {
       val context = g.doLocateContext(gpos)
       val renames = g.renamedSymbols(context).filterNot {
-        case (_, name) => name.toString() == "_"
+        case (sym, name) =>
+          sym == g.NoSymbol ||
+            name.toString() == "_"
       }
       val history = new g.ShortenedNames(
         lookupSymbol = name => {

@@ -1,10 +1,10 @@
 package scala.meta.internal.proxy
 
-import scala.meta.internal.pc.MetalsGlobal
 import scala.reflect.internal.util.Position
+import scala.meta.internal.pc.ScalafixGlobal
 
 object GlobalProxy {
-  def typedTreeAt(g: MetalsGlobal, pos: Position): g.Tree = {
+  def typedTreeAt(g: ScalafixGlobal, pos: Position): g.Tree = {
     g.typedTreeAt(pos)
   }
 }

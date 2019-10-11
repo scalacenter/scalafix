@@ -38,5 +38,19 @@ object ExplicitResultTypesBug {
   case class Foo(a: Int) {
     def apply(x: Int): Int = x
   }
+
+  trait Trait {
+    def foo: Map[Int, String]
+    def message: CharSequence
+  }
+  object Overrides extends Trait {
+    val foo: Map[Int,String] = Map.empty
+    val message: CharSequence = s"hello $foo"
+  }
+
+  class Eval() {
+    def inPlace[T](e: String): T = apply[T](e)
+    def apply[T](e: String): T = ???
+  }
 }
 

@@ -73,8 +73,7 @@ lazy val rules = project
   .settings(
     moduleName := "scalafix-rules",
     description := "Built-in Scalafix rules",
-    // The mtags module is used by the ExplicitResultTypes rewrite.
-    libraryDependencies += "org.scalameta" % "mtags" % "0.7.6" cross CrossVersion.full
+    libraryDependencies += "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
   )
   .dependsOn(core)
 
@@ -179,6 +178,7 @@ lazy val unit = project
       jgit,
       semanticdbPluginLibrary,
       scalatest,
+      "com.lihaoyi" %% "ujson" % "0.8.0",
       "org.scalameta" %% "testkit" % scalametaV
     ),
     compileInputs.in(Compile, compile) := {
