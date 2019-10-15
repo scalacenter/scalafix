@@ -13,4 +13,6 @@ package object testpkg {
   }
 
   class O3
+
+  type O4 = PartialFunction[String, Int]
 }

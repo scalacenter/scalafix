@@ -16,6 +16,12 @@ class ScalafixGlobal(
     settings: Settings,
     reporter: StoreReporter
 ) extends Global(settings, reporter) { compiler =>
+  def printTree(code: String): Unit = {
+    val unit = new RichCompilationUnit(newSourceFile(code))
+    typeCheck(unit)
+    pprint.log(unit.body)
+    pprint.log(unit.body.toString())
+  }
   def inverseSemanticdbSymbols(symbol: String): List[Symbol] = {
     import scala.meta.internal.semanticdb.Scala._
     if (!symbol.isGlobal) return Nil
@@ -148,6 +154,12 @@ class ScalafixGlobal(
                     sym.newErrorSymbol(rename),
                     args.map(arg => loop(arg, None))
                   )
+                case _ if history.nameResolvesToSymbol(sym) =>
+                  TypeRef(
+                    NoPrefix,
+                    sym,
+                    args.map(arg => loop(arg, None))
+                  )
                 case _ =>
                   if (sym.isAliasType &&
                     (sym.isAbstract ||
@@ -177,7 +189,7 @@ class ScalafixGlobal(
               }
           }
         case SingleType(pre, sym) =>
-          if (sym.hasPackageFlag) {
+          if (sym.hasPackageFlag || sym.isPackageObjectOrClass) {
             if (history.tryShortenName(name)) NoPrefix
             else tpe
           } else {
@@ -261,7 +273,7 @@ class ScalafixGlobal(
     }
 
     def topSymbolResolves(sym: Symbol): Boolean = {
-      // Returns the package `a` for the symbol `_root_.a.b.c`
+      // Returns the package `a` for the symbol `_root_/a/b.c`
       def topPackage(s: Symbol): Symbol = {
         val owner = s.owner
         if (s.isRoot || s.isRootPackage || s == NoSymbol || s.owner.isEffectiveRoot || s == owner) {
@@ -440,6 +452,8 @@ object ScalafixGlobal {
     val classpath = cp.mkString(File.pathSeparator)
     val vd = new VirtualDirectory("(memory)", None)
     val settings = new Settings
+    settings.maxerrs.value = 1
+    settings.Xprint.value = List("typer")
     settings.Ymacroexpand.value = "discard"
     settings.outputDirs.setSingleOutput(vd)
     settings.classpath.value = classpath

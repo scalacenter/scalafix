@@ -50,9 +50,13 @@ object ExplicitResultTypesBug {
     val message: CharSequence = s"hello $foo"
   }
 
-  class Eval() {
-    def inPlace[T](e: String) = apply[T](e)
-    def apply[T](e: String): T = ???
+  abstract class Opt[T] {
+    def get(e: T): T
   }
+  class IntOpt extends Opt[Int] {
+    def get(e: Int) = e
+  }
+
+  val o4 = null.asInstanceOf[List[rsc.tests.testpkg.O4]]
 }
 

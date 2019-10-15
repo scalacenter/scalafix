@@ -5,6 +5,7 @@ import java.lang.{Boolean => JBoolean}
 import scala.reflect.runtime.universe._
 import scala.collection.{mutable => mut}
 import java.{util => ju}
+import rsc.tests.testpkg.{ O3, O4 }
 
 object ExplicitResultTypesBug {
   type Seq = Int
@@ -12,7 +13,7 @@ object ExplicitResultTypesBug {
   def foo: JBoolean = JBoolean.TRUE
 
   class MyMirror(owner: ClassMirror) {
-    val symbol: reflect.runtime.universe.MethodSymbol =
+    val symbol: MethodSymbol =
       owner.symbol.info.decl(TermName("")).asMethod
   }
 
@@ -24,7 +25,7 @@ object ExplicitResultTypesBug {
   }
   val missingImport: ju.List[Int] = java.util.Collections.emptyList[Int]()
 
-  def o3: rsc.tests.testpkg.O3 = new rsc.tests.testpkg.O3()
+  def o3: O3 = new rsc.tests.testpkg.O3()
 
   def overload(a: Int): Int = a
   def overload(a: String): String = a
@@ -48,9 +49,13 @@ object ExplicitResultTypesBug {
     val message: CharSequence = s"hello $foo"
   }
 
-  class Eval() {
-    def inPlace[T](e: String): T = apply[T](e)
-    def apply[T](e: String): T = ???
+  abstract class Opt[T] {
+    def get(e: T): T
   }
+  class IntOpt extends Opt[Int] {
+    def get(e: Int): Int = e
+  }
+
+  val o4: List[O4] = null.asInstanceOf[List[rsc.tests.testpkg.O4]]
 }
 
