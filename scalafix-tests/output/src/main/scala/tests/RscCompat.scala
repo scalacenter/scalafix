@@ -5,6 +5,7 @@ import com.twitter.bijection._
 import java.util.Base64
 import scala.language.existentials
 import scala.language.higherKinds
+import rsc.tests.foo.T
 
 object RscCompat_Test {
   class Basic {
@@ -84,9 +85,9 @@ object RscCompat_Test {
     import TypesHelpers._
     override val x: X = new X
 
-    val typeRef1: TypesHelpers.C = ??? : C
+    val typeRef1: C = ??? : C
     val typeRef2: TypesHelpers.p.C = ??? : p.C
-    val typeRef3: TypesHelpers.E#C = ??? : E#C
+    val typeRef3: E#C = ??? : E#C
     val typeRef4: List[Int] = ??? : List[Int]
     val typeRef5: X = ??? : X
     val typeRef6: T = ??? : T
@@ -113,12 +114,12 @@ object RscCompat_Test {
     // val constantType1 = ??? : 42.type
 
     val compoundType1: AnyRef = ??? : { def k: Int }
-    val compoundType2: TypesHelpers.A with TypesHelpers.B = ??? : A with B
-    val compoundType3: TypesHelpers.A with TypesHelpers.B = ??? : A with B { def k: Int }
+    val compoundType2: A with B = ??? : A with B
+    val compoundType3: A with B = ??? : A with B { def k: Int }
     val compoundType4: AnyRef = new { def k: Int = ??? }
-    val compoundType5: TypesHelpers.A with TypesHelpers.B = new A with B
-    val compoundType6: TypesHelpers.A with TypesHelpers.B = new A with B { def k: Int = ??? }
-    val compoundType7: TypesHelpers.A with List[_] with TypesHelpers.B = ??? : A with (List[T] forSome { type T }) with B
+    val compoundType5: A with B = new A with B
+    val compoundType6: A with B = new A with B { def k: Int = ??? }
+    val compoundType7: A with List[_] with B = ??? : A with (List[T] forSome { type T }) with B
 
     // FIXME: https://github.com/twitter/rsc/issues/317
     // val annType1 = ??? : C @ann
@@ -181,7 +182,7 @@ object RscCompat_Test {
     // FIXME: https://github.com/scalameta/scalameta/issues/1872#issuecomment-498705622
     // val X, List(y) = List(1, 2)
 
-    val t: rsc.tests.foo.T = ??? : foo.T
+    val t: T = ??? : foo.T
 
     val (a: String, b: String, c) = ("foo", "bar", "baz")
   }

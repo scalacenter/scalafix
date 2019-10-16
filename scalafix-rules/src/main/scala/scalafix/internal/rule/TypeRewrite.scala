@@ -135,6 +135,11 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
             gsym.owner
           )
         }
+      if (gsym.nameString == "cp") {
+        pprint.log(seenFromType)
+        pprint.log(gsym.info)
+        pprint.log(inverseSemanticdbSymbol.info)
+      }
       val shortT = g.shortType(loop(seenFromType).widen, history)
       val short = shortT.toString()
 

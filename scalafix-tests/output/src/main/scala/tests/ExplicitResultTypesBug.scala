@@ -57,5 +57,12 @@ object ExplicitResultTypesBug {
   }
 
   val o4: List[O4] = null.asInstanceOf[List[rsc.tests.testpkg.O4]]
+
+  trait ThisType  {
+    def cp(): this.type
+  }
+  class ThisTypeImpl extends ThisType {
+    def cp(): this.type = this
+  }
 }
 

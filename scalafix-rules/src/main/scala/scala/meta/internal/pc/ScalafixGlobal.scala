@@ -453,7 +453,6 @@ object ScalafixGlobal {
     val vd = new VirtualDirectory("(memory)", None)
     val settings = new Settings
     settings.maxerrs.value = 1
-    settings.Xprint.value = List("typer")
     settings.Ymacroexpand.value = "discard"
     settings.outputDirs.setSingleOutput(vd)
     settings.classpath.value = classpath

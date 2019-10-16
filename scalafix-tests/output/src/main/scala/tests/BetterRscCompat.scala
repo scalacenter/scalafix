@@ -181,18 +181,18 @@ object BetterRscCompat_Test {
     object right2left {
       import scope1.MyClass
 
-      val bar: scope2.MyClass = scope2.foo
+      val bar: MyClass = scope2.foo
     }
 
     object left2right {
       import scope2.MyClass
 
-      val bar: scope1.MyClass = scope1.foo
+      val bar: MyClass = scope1.foo
     }
   }
 
   object PackageObjects {
-    val o2c: rsc.tests.testpkg.O2.C2 = O1.foo
+    val o2c: O2.C2 = O1.foo
 
     val poc: PkgObjClass = new PkgObjClass
   }
