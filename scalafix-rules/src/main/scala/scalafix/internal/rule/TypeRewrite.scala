@@ -96,6 +96,9 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
       )
       def loop(tpe: g.Type): g.Type = {
         tpe match {
+          case tp @ ThisType(sym)
+              if tp.toString() == s"${inverseSemanticdbSymbol.owner.nameString}.this.type" =>
+            new PrettyType("this.type")
           case ConstantType(Constant(c: Symbol)) if c.hasFlag(gf.JAVA_ENUM) =>
             // Manually widen Java enums to obtain `x: FileVisitResult`
             // instead of `x: FileVisitResult.Continue.type`
@@ -135,13 +138,8 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
             gsym.owner
           )
         }
-      if (gsym.nameString == "cp") {
-        pprint.log(seenFromType)
-        pprint.log(gsym.info)
-        pprint.log(inverseSemanticdbSymbol.info)
-      }
-      val shortT = g.shortType(loop(seenFromType).widen, history)
-      val short = shortT.toString()
+      val shortType = g.shortType(loop(seenFromType).widen, history)
+      val short = shortType.toString()
 
       val toImport = mutable.Map.empty[g.Symbol, List[g.ShortName]]
       val isRootSymbol = Set[g.Symbol](
