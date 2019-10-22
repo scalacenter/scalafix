@@ -13,12 +13,20 @@ final class LazyValue[A] private (
       fn(value)
     }
   }
-  private[this] lazy val _value: Try[A] =
-    Try {
-      _isEvaluated.set(true)
-      thunk()
+  def restart(): Unit = {
+    _value = null
+  }
+  private[this] var _value: Try[A] = null
+  private[this] def computeValue(): Try[A] = {
+    if (_value == null) {
+      _value = Try {
+        _isEvaluated.set(true)
+        thunk()
+      }
     }
-  def value: A = _value.get
+    _value
+  }
+  def value: A = computeValue().get
 }
 
 object LazyValue {

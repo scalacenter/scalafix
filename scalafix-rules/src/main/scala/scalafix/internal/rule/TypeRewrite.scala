@@ -8,6 +8,7 @@ import scala.collection.mutable
 import scala.reflect.internal.{Flags => gf}
 import scala.meta.internal.pc.Identifier
 import scala.reflect.internal.FatalError
+import scala.util.control.NonFatal
 
 class TypeRewrite {
   def toPatch(
@@ -26,6 +27,9 @@ object TypeRewrite {
       case Some(value) => new CompilerTypeRewrite(value)
     }
 }
+
+case class CompilerException(underlying: Throwable)
+    extends Exception("compiler crashed", underlying)
 
 class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
     extends TypeRewrite {
@@ -46,10 +50,8 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
       space
     )
     catch {
-      case e: FatalError =>
-        // Ignore crashes inside the compiler
-        // e.printStackTrace()
-        None
+      case e: Throwable =>
+        throw CompilerException(e)
     }
   }
   def isDebug = Set[String]("inPlace")

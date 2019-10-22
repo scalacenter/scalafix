@@ -8,6 +8,7 @@ import scalafix.util.TokenOps
 import metaconfig.Configured
 import scala.meta.internal.pc.ScalafixGlobal
 import scalafix.internal.v1.LazyValue
+import scala.util.control.NonFatal
 
 final class ExplicitResultTypes(
     config: ExplicitResultTypesConfig,
@@ -22,7 +23,18 @@ final class ExplicitResultTypes(
   override def isExperimental: Boolean = true
 
   override def afterComplete(): Unit = {
-    global.foreach(_.foreach(_.askShutdown()))
+    shutdownCompiler()
+  }
+
+  private def shutdownCompiler(): Unit = {
+    global.foreach(_.foreach(g => {
+      try {
+        g.askShutdown()
+        g.close()
+      } catch {
+        case NonFatal(_) =>
+      }
+    }))
   }
 
   override def withConfiguration(config: Configuration): Configured[Rule] = {
@@ -44,7 +56,24 @@ final class ExplicitResultTypes(
   }
 
   override def fix(implicit ctx: SemanticDocument): Patch = {
-    lazy val types = TypeRewrite(global.value)
+    try unsafeFix()
+    catch {
+      case _: CompilerException =>
+        shutdownCompiler()
+        global.restart()
+        try unsafeFix()
+        catch {
+          case _: CompilerException =>
+            // Ignore compiler crashes.
+            Patch.empty
+        }
+    }
+  }
+  def unsafeFix()(implicit ctx: SemanticDocument): Patch = {
+    lazy val types = {
+      pprint.log(global.value.map(_.isHijacked()))
+      TypeRewrite(global.value)
+    }
     ctx.tree.collect {
       case t @ Defn.Val(mods, Pat.Var(name) :: Nil, None, body)
           if isRuleCandidate(t, name, mods, body) =>

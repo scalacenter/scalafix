@@ -2,6 +2,7 @@ package scala.meta.internal.pc
 
 import scala.collection.mutable
 import scala.tools.nsc.Settings
+import scala.tools.nsc.interactive.ScalafixGlobalProxy
 import scala.tools.nsc.interactive.Global
 import scala.meta.io.AbsolutePath
 import scala.reflect.io.VirtualDirectory
@@ -15,13 +16,17 @@ import scala.util.control.NonFatal
 class ScalafixGlobal(
     settings: Settings,
     reporter: StoreReporter
-) extends Global(settings, reporter) { compiler =>
+) extends Global(settings, reporter)
+    with ScalafixGlobalProxy { compiler =>
+  hijackPresentationCompilerThread()
+
   def printTree(code: String): Unit = {
     val unit = new RichCompilationUnit(newSourceFile(code))
     typeCheck(unit)
     pprint.log(unit.body)
     pprint.log(unit.body.toString())
   }
+
   def inverseSemanticdbSymbols(symbol: String): List[Symbol] = {
     import scala.meta.internal.semanticdb.Scala._
     if (!symbol.isGlobal) return Nil
