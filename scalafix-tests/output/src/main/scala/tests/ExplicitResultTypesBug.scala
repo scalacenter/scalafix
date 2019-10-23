@@ -64,5 +64,5 @@ object ExplicitResultTypesBug {
   class ThisTypeImpl extends ThisType {
     def cp(): this.type = this
   }
-}
 
+}

@@ -41,7 +41,6 @@ trait ScalafixGlobalProxy { this: ScalafixGlobal =>
     compileRunner = new ScalafixGlobalThread(this, "Metals")
     compileRunner.setDaemon(true)
     compileRunner.start()
-    pprint.log("hijack!!")
     compileRunner
   }
 }

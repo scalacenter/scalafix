@@ -305,19 +305,18 @@ class ScalafixGlobal(
       val ShortName(name, sym) = short
       history.get(name) match {
         case Some(ShortName(_, other)) =>
-          if (other.isKindaTheSameAs(sym)) true
-          else false
+          other.isKindaTheSameAs(sym)
         case _ =>
-          val isOk = lookupSymbol(name).filter(_ != LookupNotFound) match {
-            case Nil => true
+          val otherName =
+            if (name.isTermName) name.toTypeName
+            else name.toTermName
+          val results = Iterator(lookupSymbol(name), lookupSymbol(otherName))
+          results.flatten.filter(_ != LookupNotFound).toList match {
+            case Nil =>
+              history(name) = short
+              true
             case lookup =>
               lookup.exists(_.symbol.isKindaTheSameAs(sym))
-          }
-          if (isOk) {
-            history(name) = short
-            true
-          } else {
-            false // conflict, do not shorten name.
           }
       }
     }
