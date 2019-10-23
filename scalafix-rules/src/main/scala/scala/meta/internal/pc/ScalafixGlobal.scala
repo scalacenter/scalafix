@@ -141,57 +141,61 @@ class ScalafixGlobal(
       isVisited += key
       val result = tpe match {
         case TypeRef(pre, sym, args) =>
-          val ownerSymbol = pre.termSymbol
-          history.config.get(ownerSymbol) match {
-            case Some(rename)
-                if history.tryShortenName(ShortName(rename, ownerSymbol)) =>
-              TypeRef(
-                new PrettyType(rename.toString),
-                sym,
-                args.map(arg => loop(arg, None))
-              )
-            case _ =>
-              history.renames.get(sym) match {
-                case Some(rename)
-                    if history.nameResolvesToSymbol(rename, sym) =>
-                  TypeRef(
-                    NoPrefix,
-                    sym.newErrorSymbol(rename),
-                    args.map(arg => loop(arg, None))
-                  )
-                case _ if history.nameResolvesToSymbol(sym) =>
-                  TypeRef(
-                    NoPrefix,
-                    sym,
-                    args.map(arg => loop(arg, None))
-                  )
-                case _ =>
-                  if (sym.isAliasType &&
-                    (sym.isAbstract ||
-                    sym.overrides.lastOption.exists(_.isAbstract))) {
+          if (history.nameResolvesToSymbol(sym)) {
+            TypeRef(NoPrefix, sym, args.map(arg => loop(arg, None)))
+          } else {
+            val ownerSymbol = pre.termSymbol
+            history.config.get(ownerSymbol) match {
+              case Some(rename)
+                  if history.tryShortenName(ShortName(rename, ownerSymbol)) =>
+                TypeRef(
+                  new PrettyType(rename.toString),
+                  sym,
+                  args.map(arg => loop(arg, None))
+                )
+              case _ =>
+                history.renames.get(sym) match {
+                  case Some(rename)
+                      if history.nameResolvesToSymbol(rename, sym) =>
+                    TypeRef(
+                      NoPrefix,
+                      sym.newErrorSymbol(rename),
+                      args.map(arg => loop(arg, None))
+                    )
+                  case _ if history.nameResolvesToSymbol(sym) =>
+                    TypeRef(
+                      NoPrefix,
+                      sym,
+                      args.map(arg => loop(arg, None))
+                    )
+                  case _ =>
+                    if (sym.isAliasType &&
+                      (sym.isAbstract ||
+                      sym.overrides.lastOption.exists(_.isAbstract))) {
 
-                    // Always dealias abstract type aliases but leave concrete aliases alone.
-                    // trait Generic { type Repr /* dealias */ }
-                    // type Catcher[T] = PartialFunction[Throwable, T] // no dealias
-                    loop(tpe.dealias, name)
-                  } else if (history.owners(pre.typeSymbol)) {
-                    if (history.nameResolvesToSymbol(sym.name, sym)) {
-                      TypeRef(NoPrefix, sym, args.map(arg => loop(arg, None)))
+                      // Always dealias abstract type aliases but leave concrete aliases alone.
+                      // trait Generic { type Repr /* dealias */ }
+                      // type Catcher[T] = PartialFunction[Throwable, T] // no dealias
+                      loop(tpe.dealias, name)
+                    } else if (history.owners(pre.typeSymbol)) {
+                      if (history.nameResolvesToSymbol(sym.name, sym)) {
+                        TypeRef(NoPrefix, sym, args.map(arg => loop(arg, None)))
+                      } else {
+                        TypeRef(
+                          ThisType(pre.typeSymbol),
+                          sym,
+                          args.map(arg => loop(arg, None))
+                        )
+                      }
                     } else {
                       TypeRef(
-                        ThisType(pre.typeSymbol),
+                        loop(pre, Some(ShortName(sym))),
                         sym,
                         args.map(arg => loop(arg, None))
                       )
                     }
-                  } else {
-                    TypeRef(
-                      loop(pre, Some(ShortName(sym))),
-                      sym,
-                      args.map(arg => loop(arg, None))
-                    )
-                  }
-              }
+                }
+            }
           }
         case SingleType(pre, sym) =>
           if (sym.hasPackageFlag || sym.isPackageObjectOrClass) {
