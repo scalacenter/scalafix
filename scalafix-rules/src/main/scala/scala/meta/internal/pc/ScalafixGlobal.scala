@@ -1,5 +1,6 @@
 package scala.meta.internal.pc
 
+import scala.{meta => m}
 import scala.collection.mutable
 import scala.tools.nsc.Settings
 import scala.tools.nsc.interactive.ScalafixGlobalProxy
@@ -211,7 +212,26 @@ class ScalafixGlobal(
           }
         case ThisType(sym) =>
           if (history.tryShortenName(name)) NoPrefix
-          else new PrettyType(history.fullname(sym))
+          else {
+            val owners = sym.ownerChain
+            val prefix = owners.indexWhere { owner =>
+              history.tryShortenName(
+                Some(ShortName(owner.name, owner))
+              )
+            }
+            if (prefix < 0) {
+              new PrettyType(history.fullname(sym))
+            } else {
+              val names = owners
+                .take(prefix + 1)
+                .reverse
+                .map(s => m.Term.Name(s.nameSyntax))
+              val ref = names.tail.foldLeft(names.head: m.Term.Ref) {
+                case (qual, name) => m.Term.Select(qual, name)
+              }
+              new PrettyType(ref.syntax)
+            }
+          }
         case ConstantType(Constant(sym: TermSymbol))
             if sym.hasFlag(gf.JAVA_ENUM) =>
           loop(SingleType(sym.owner.thisPrefix, sym), None)
@@ -339,15 +359,16 @@ class ScalafixGlobal(
       if (sym.isJavaModule && !sym.hasPackageFlag) sym.companionClass
       else sym
     }
+    def nameSyntax: String = {
+      if (sym.isEmptyPackage || sym.isEmptyPackageClass) "_empty_"
+      else if (sym.isRootPackage || sym.isRoot) "_root_"
+      else sym.nameString
+    }
     def fullNameSyntax: String = {
       val out = new java.lang.StringBuilder
       def loop(s: Symbol): Unit = {
         if (s.isRoot || s.isRootPackage || s == NoSymbol || s.owner.isEffectiveRoot) {
-          val name =
-            if (s.isEmptyPackage || s.isEmptyPackageClass) TermName("_empty_")
-            else if (s.isRootPackage || s.isRoot) TermName("_root_")
-            else s.name
-          out.append(Identifier(name))
+          out.append(Identifier(s.nameSyntax))
         } else {
           loop(s.effectiveOwner.enclClass)
           out.append('.').append(Identifier(s.name))
