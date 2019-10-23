@@ -203,11 +203,14 @@ class ScalafixGlobal(
             if (history.tryShortenName(name)) NoPrefix
             else tpe
           } else {
-            pre match {
-              case ThisType(psym) if history.nameResolvesToSymbol(psym) =>
-                SingleType(NoPrefix, sym)
-              case _ =>
-                SingleType(loop(pre, Some(ShortName(sym))), sym)
+            if (history.nameResolvesToSymbol(sym)) SingleType(NoPrefix, sym)
+            else {
+              pre match {
+                case ThisType(psym) if history.nameResolvesToSymbol(psym) =>
+                  SingleType(NoPrefix, sym)
+                case _ =>
+                  SingleType(loop(pre, Some(ShortName(sym))), sym)
+              }
             }
           }
         case ThisType(sym) =>
@@ -444,7 +447,7 @@ class ScalafixGlobal(
 
     def dealiasedSingleType: Symbol =
       if (sym.isValue) {
-        sym.info match {
+        sym.info.resultType match {
           case SingleType(_, dealias) => dealias
           case _ => sym
         }
@@ -453,6 +456,7 @@ class ScalafixGlobal(
       }
     def dealiased: Symbol =
       if (sym.isAliasType) sym.info.dealias.typeSymbol
+      else if (sym.isValue) dealiasedSingleType
       else sym
   }
 

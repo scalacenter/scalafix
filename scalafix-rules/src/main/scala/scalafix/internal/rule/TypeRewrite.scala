@@ -13,6 +13,7 @@ class TypeRewrite {
       pos: m.Position,
       sym: v1.Symbol,
       replace: m.Token,
+      defn: m.Defn,
       space: String
   ): Option[v1.Patch] = None
 }
@@ -39,12 +40,14 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
       pos: m.Position,
       sym: v1.Symbol,
       replace: m.Token,
+      defn: m.Defn,
       space: String
   ): Option[v1.Patch] = {
     try toPatchUnsafe(
       pos,
       sym,
       replace,
+      defn,
       space
     )
     catch {
@@ -57,6 +60,7 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
       pos: m.Position,
       sym: v1.Symbol,
       replace: m.Token,
+      defn: m.Defn,
       space: String
   ): Option[v1.Patch] = {
     val gpos = unit.position(pos.start)
@@ -119,7 +123,8 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
               definitions.isPossibleSyntheticParent(tpe.typeSymbol)
             }
             val newParents =
-              if (strippedParents.nonEmpty) strippedParents else parents
+              if (strippedParents.nonEmpty) strippedParents
+              else parents
             RefinedType(newParents.map(loop), EmptyScope)
           case NullaryMethodType(tpe) =>
             NullaryMethodType(loop(tpe))
@@ -146,7 +151,38 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
             gsym.owner
           )
         }
-      val shortType = g.shortType(loop(seenFromType).widen, history)
+      var extraPatch = v1.Patch.empty
+      val toLoop = seenFromType.resultType match {
+        case RefinedType(parents, decls) if decls.nonEmpty =>
+          val body = defn match {
+            case t: m.Defn.Val => Some(t.rhs)
+            case t: m.Defn.Var => Some(t.rhs)
+            case _ => None
+          }
+          body match {
+            case Some(body @ m.Term.NewAnonymous(template))
+                if body.tokens.head.syntax == "new" =>
+              var suffix = ""
+              val nameSyntax = gsym.nameSyntax
+              while (context.isNameInScope(TypeName(nameSyntax + suffix))) {
+                suffix = suffix match {
+                  case "" => "1"
+                  case _ => (suffix.toInt + 1).toString()
+                }
+              }
+              val name = nameSyntax + suffix
+              val indent = " " * defn.pos.startColumn
+              extraPatch += v1.Patch.addRight(
+                body.tokens.head,
+                s" ${name}\n${indent}class ${name} extends"
+              )
+              new PrettyType(name)
+            case _ =>
+              seenFromType
+          }
+        case _ => seenFromType
+      }
+      val shortType = g.shortType(loop(toLoop).widen, history)
       val short = shortType.toString()
 
       val toImport = mutable.Map.empty[g.Symbol, List[g.ShortName]]
@@ -190,7 +226,9 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
           v1.Patch.addGlobalImport(m.Importer(ref, List(importee)))
         }
       }
-      Some(v1.Patch.addRight(replace, s"$space: $short") ++ addImports)
+      Some(
+        v1.Patch.addRight(replace, s"$space: $short") ++ addImports + extraPatch
+      )
     }
   }
 

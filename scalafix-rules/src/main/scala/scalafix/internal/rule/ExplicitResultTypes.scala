@@ -162,7 +162,7 @@ final class ExplicitResultTypes(
     for {
       name <- defnName(defn)
       defnSymbol <- name.symbol.asNonEmpty
-      patch <- types.toPatch(name.pos, defnSymbol, replace, space)
+      patch <- types.toPatch(name.pos, defnSymbol, replace, defn, space)
     } yield patch
 
   def fixDefinition(defn: Defn, body: Term, types: TypeRewrite)(
