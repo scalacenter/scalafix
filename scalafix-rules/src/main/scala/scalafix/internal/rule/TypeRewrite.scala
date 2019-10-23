@@ -73,8 +73,17 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
     // the Scala 3 behavior aligns more closely with the intuition for how
     // people believe type inference works so we go with the signature of the
     // supermethod, if it exists.
-    val gsym = inverseSemanticdbSymbol.overrides.lastOption
-      .getOrElse(inverseSemanticdbSymbol)
+    val hasNothing = inverseSemanticdbSymbol.info.exists {
+      case g.definitions.NothingTpe => true
+      case _ => false
+    }
+    val gsym =
+      if (hasNothing) {
+        inverseSemanticdbSymbol.overrides.lastOption
+          .getOrElse(inverseSemanticdbSymbol)
+      } else {
+        inverseSemanticdbSymbol
+      }
     val isDebug = this.isDebug(gsym.name.toString())
     if (gsym == g.NoSymbol) {
       None
