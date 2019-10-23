@@ -86,7 +86,7 @@ object RscCompat_Test {
     override val x: X = new X
 
     val typeRef1: C = ??? : C
-    val typeRef2: TypesHelpers.p.C = ??? : p.C
+    val typeRef2: p.C = ??? : p.C
     val typeRef3: E#C = ??? : E#C
     val typeRef4: List[Int] = ??? : List[Int]
     val typeRef5: X = ??? : X
@@ -96,8 +96,8 @@ object RscCompat_Test {
     val typeRef9: (T, T) => T = ??? : (T, T) => T
     val typeRef10: (T, T) = ??? : (T, T)
 
-    val singleType1: TypesHelpers.c.type = ??? : c.type
-    val singleType2: TypesHelpers.p.c.type = ??? : p.c.type
+    val singleType1: c.type = ??? : c.type
+    val singleType2: p.c.type = ??? : p.c.type
     // TODO: RscCompat regression
     // val Either = ??? : scala.util.Either.type
 
@@ -116,9 +116,11 @@ object RscCompat_Test {
     val compoundType1: AnyRef = ??? : { def k: Int }
     val compoundType2: A with B = ??? : A with B
     val compoundType3: A with B = ??? : A with B { def k: Int }
-    val compoundType4: AnyRef = new { def k: Int = ??? }
+    val compoundType4: compoundType4 = new compoundType4
+    class compoundType4 extends { def k: Int = ??? }
     val compoundType5: A with B = new A with B
-    val compoundType6: A with B = new A with B { def k: Int = ??? }
+    val compoundType6: compoundType6 = new compoundType6
+    class compoundType6 extends A with B { def k: Int = ??? }
     val compoundType7: A with List[_] with B = ??? : A with (List[T] forSome { type T }) with B
 
     // FIXME: https://github.com/twitter/rsc/issues/317
@@ -169,10 +171,14 @@ object RscCompat_Test {
     val innerClass3: ti.X = ti.x
     val innerClass4: Base64.Decoder = Base64.getMimeDecoder
 
-    val param: AnyRef = new { lazy val default = true }
-    val more1: AnyRef = new { var x = 42 }
-    val more2: AnyRef = new { def foo(implicit x: Int, y: Int) = 42 }
-    val more3: AnyRef = new { implicit def bar = 42 }
+    val param: param = new param
+    class param extends { lazy val default = true }
+    val more1: more1 = new more1
+    class more1 extends { var x = 42 }
+    val more2: more2 = new more2
+    class more2 extends { def foo(implicit x: Int, y: Int) = 42 }
+    val more3: more3 = new more3
+    class more3 extends { implicit def bar = 42 }
 
     implicit val crazy1 = implicitly[Int]
     implicit val crazy2: Bijection[In,Out1] = Bijection.connect[In, Out1]

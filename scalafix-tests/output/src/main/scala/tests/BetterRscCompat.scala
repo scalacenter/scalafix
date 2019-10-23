@@ -144,7 +144,8 @@ object BetterRscCompat_Test {
       val bar: Int = 1
     }
 
-    val t3: Trait2 = new Trait2 {
+    val t3: t3 = new t3
+    class t3 extends Trait2 {
       def foo: Int = 1
       val bar: Int = 1
     }
