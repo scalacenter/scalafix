@@ -21,13 +21,6 @@ class ScalafixGlobal(
     with ScalafixGlobalProxy { compiler =>
   hijackPresentationCompilerThread()
 
-  def printTree(code: String): Unit = {
-    val unit = new RichCompilationUnit(newSourceFile(code))
-    typeCheck(unit)
-    pprint.log(unit.body)
-    pprint.log(unit.body.toString())
-  }
-
   def inverseSemanticdbSymbols(symbol: String): List[Symbol] = {
     import scala.meta.internal.semanticdb.Scala._
     if (!symbol.isGlobal) return Nil

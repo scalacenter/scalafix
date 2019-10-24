@@ -35,6 +35,7 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
   import g._
   private lazy val unit =
     g.newCompilationUnit(ctx.input.text, ctx.input.syntax)
+  private val isRewritten = mutable.Map.empty[Name, ShortName]
 
   override def toPatch(
       pos: m.Position,
@@ -106,6 +107,7 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
         owners = parentSymbols(context),
         config = g.renameConfig ++ renames
       )
+      history.history ++= isRewritten
       def loop(tpe: g.Type): g.Type = {
         tpe match {
           case tp @ ThisType(sym)
@@ -197,6 +199,10 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
         if !context.lookupSymbol(name, _ => true).isSuccess
       } {
         toImport(owner) = sym :: toImport.getOrElse(owner, Nil)
+      }
+      isRewritten ++= history.history.filter {
+        case (name, short) =>
+          history.nameResolvesToSymbol(name, short.symbol)
       }
       val addImports = for {
         (pkg, names) <- toImport
