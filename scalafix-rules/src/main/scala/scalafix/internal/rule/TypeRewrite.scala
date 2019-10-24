@@ -151,10 +151,28 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
           case tpe => tpe
         }
       }
-      val seenFromType =
+      val seenFromType: Type =
         if (gsym == inverseSemanticdbSymbol) gsym.info
         else {
-          gsym.info.asSeenFrom(
+          val from = gsym.typeParams
+          val to = inverseSemanticdbSymbol.typeParams
+          val substituteSymbols = new SubstSymMap(from, to) {
+            val map = from.map(semanticdbSymbol).zip(to).toMap
+            override def apply(tp: g.Type): g.Type = {
+              tp match {
+                // NOTE(olafur): I was unable to obtain the correct reference to
+                // the type parameter symbols to get the default `SubstSymMap`
+                // working. Using SemanticDB equality makes the substitution
+                // work as expected.
+                case TypeRef(pre, sym, args)
+                    if map.contains(semanticdbSymbol(sym)) =>
+                  super.apply(TypeRef(pre, map(semanticdbSymbol(sym)), args))
+                case _ =>
+                  super.apply(tp)
+              }
+            }
+          }
+          substituteSymbols(gsym.info).asSeenFrom(
             ThisType(inverseSemanticdbSymbol.owner),
             gsym.owner
           )
