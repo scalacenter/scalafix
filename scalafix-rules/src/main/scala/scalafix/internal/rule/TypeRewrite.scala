@@ -178,11 +178,12 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
           )
         }
       var extraPatch = v1.Patch.empty
-      val toLoop = seenFromType.resultType match {
+      val toLoop = seenFromType.finalResultType match {
         case RefinedType(parents, decls) if decls.nonEmpty =>
-          val body = defn match {
+          val body: Option[m.Term] = defn match {
             case t: m.Defn.Val => Some(t.rhs)
-            case t: m.Defn.Var => Some(t.rhs)
+            case t: m.Defn.Var => t.rhs
+            case t: m.Defn.Def => Some(t.body)
             case _ => None
           }
           body match {
@@ -196,11 +197,25 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
                   case _ => (suffix.toInt + 1).toString()
                 }
               }
+              val paramDefnSuffix = defn match {
+                case d: m.Defn.Def =>
+                  d.paramss
+                    .map(_.map(_.syntax).mkString(", "))
+                    .mkString("(", ")(", ")")
+                case _ => ""
+              }
+              val paramCallSuffix = defn match {
+                case d: m.Defn.Def =>
+                  d.paramss
+                    .map(_.map(_.name.syntax).mkString(", "))
+                    .mkString("(", ")(", ")")
+                case _ => ""
+              }
               val name = nameSyntax + suffix
               val indent = " " * defn.pos.startColumn
               extraPatch += v1.Patch.addRight(
                 body.tokens.head,
-                s" ${name}\n${indent}class ${name} extends"
+                s" ${name}${paramCallSuffix}\n${indent}class ${name}${paramDefnSuffix} extends"
               )
               new PrettyType(name)
             case _ =>

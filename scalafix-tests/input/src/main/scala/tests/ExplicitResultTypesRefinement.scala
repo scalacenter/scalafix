@@ -7,13 +7,22 @@ import java.io.Serializable
 import scala.language.reflectiveCalls
 
 object ExplicitResultTypesRefinement {
-  val method = new Serializable {
+  val field = new Serializable {
     val results: List[Int] = List(1)
   }
-  def app(): Unit = println(method.results)
   val conflict = new Serializable {
     val results: List[Int] = List(1)
   }
   class conflict
   class conflict1
+  def method(param: Int) = new Serializable {
+    val results: List[Int] = List(param)
+  }
+  def curried(param: Int)(param2: Int, param3: String) = new Serializable {
+    val results: List[Int] = List(param2, param3.length(), param)
+  }
+  def app(): Unit = {
+    println(field.results)
+    println(method(42).results)
+  }
 }
