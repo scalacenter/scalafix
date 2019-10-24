@@ -1,16 +1,11 @@
 package tests
 
-import scala.collection.{Seq => SSeq}
-import java.lang.{Boolean => JBoolean}
 import scala.reflect.runtime.universe._
 import scala.collection.{mutable => mut}
 import java.{util => ju}
 import rsc.tests.testpkg.{ O3, O4 }
 
 object ExplicitResultTypesBug {
-  type Seq = Int
-  def foo(a: Int*): SSeq[Int] = a
-  def foo: JBoolean = JBoolean.TRUE
 
   class MyMirror(owner: ClassMirror) {
     val symbol: MethodSymbol =
@@ -57,12 +52,5 @@ object ExplicitResultTypesBug {
   }
 
   val o4: List[O4] = null.asInstanceOf[List[rsc.tests.testpkg.O4]]
-
-  trait ThisType  {
-    def cp(): this.type
-  }
-  class ThisTypeImpl extends ThisType {
-    def cp(): this.type = this
-  }
 
 }

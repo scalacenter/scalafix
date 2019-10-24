@@ -135,7 +135,7 @@ class ScalafixGlobal(
       isVisited += key
       val result = tpe match {
         case TypeRef(pre, sym, args) =>
-          if (history.nameResolvesToSymbol(sym)) {
+          if (history.isSymbolInScope(sym, pre)) {
             TypeRef(NoPrefix, sym, args.map(arg => loop(arg, None)))
           } else {
             val ownerSymbol = pre.termSymbol
@@ -156,7 +156,7 @@ class ScalafixGlobal(
                       sym.newErrorSymbol(rename),
                       args.map(arg => loop(arg, None))
                     )
-                  case _ if history.nameResolvesToSymbol(sym) =>
+                  case _ if history.isSymbolInScope(sym, pre) =>
                     TypeRef(
                       NoPrefix,
                       sym,
@@ -196,10 +196,10 @@ class ScalafixGlobal(
             if (history.tryShortenName(name)) NoPrefix
             else tpe
           } else {
-            if (history.nameResolvesToSymbol(sym)) SingleType(NoPrefix, sym)
+            if (history.isSymbolInScope(sym, pre)) SingleType(NoPrefix, sym)
             else {
               pre match {
-                case ThisType(psym) if history.nameResolvesToSymbol(psym) =>
+                case ThisType(psym) if history.isSymbolInScope(psym, pre) =>
                   SingleType(NoPrefix, sym)
                 case _ =>
                   SingleType(loop(pre, Some(ShortName(sym))), sym)
@@ -312,13 +312,27 @@ class ScalafixGlobal(
       nameResolvesToSymbol(top.name.toTermName, top)
     }
 
-    def nameResolvesToSymbol(sym: Symbol): Boolean = {
-      nameResolvesToSymbol(sym.name, sym)
+    def isSymbolInScope(sym: Symbol, prefix: Type = NoPrefix): Boolean = {
+      nameResolvesToSymbol(sym.name, sym, prefix)
     }
-    def nameResolvesToSymbol(name: Name, sym: Symbol): Boolean = {
+    def nameResolvesToSymbol(
+        name: Name,
+        sym: Symbol,
+        prefix: Type = NoPrefix
+    ): Boolean = {
       lookupSymbol(name) match {
         case Nil => true
-        case lookup => lookup.exists(_.symbol.isKindaTheSameAs(sym))
+        case lookup =>
+          lookup.exists {
+            case LookupSucceeded(qual, symbol) =>
+              symbol.isKindaTheSameAs(sym) && {
+                prefix == NoPrefix ||
+                prefix.isInstanceOf[PrettyType] ||
+                qual.tpe.computeMemberType(symbol) <:<
+                  prefix.computeMemberType(sym)
+              }
+            case l => l.symbol.isKindaTheSameAs(sym)
+          }
       }
     }
 

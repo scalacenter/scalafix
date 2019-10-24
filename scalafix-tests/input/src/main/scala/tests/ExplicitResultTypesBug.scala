@@ -3,15 +3,10 @@ rules = "ExplicitResultTypes"
  */
 package tests
 
-import scala.collection.{Seq => SSeq}
-import java.lang.{Boolean => JBoolean}
 import scala.reflect.runtime.universe._
 import scala.collection.{mutable => mut}
 
 object ExplicitResultTypesBug {
-  type Seq = Int
-  def foo(a: Int*) = a
-  def foo = JBoolean.TRUE
 
   class MyMirror(owner: ClassMirror) {
     val symbol =
@@ -58,12 +53,5 @@ object ExplicitResultTypesBug {
   }
 
   val o4 = null.asInstanceOf[List[rsc.tests.testpkg.O4]]
-
-  trait ThisType  {
-    def cp(): this.type
-  }
-  class ThisTypeImpl extends ThisType {
-    def cp() = this
-  }
 
 }
