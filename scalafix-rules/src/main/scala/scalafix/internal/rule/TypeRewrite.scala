@@ -107,7 +107,13 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
         owners = parentSymbols(context),
         config = g.renameConfig ++ renames
       )
-      history.history ++= isRewritten
+      val fromRewritten = isRewritten.filter {
+        case (name, short) =>
+          (!context.isNameInScope(name) &&
+            !context.isNameInScope(name.otherName)) ||
+            history.nameResolvesToSymbol(name, short.symbol)
+      }
+      history.history ++= fromRewritten
       def loop(tpe: g.Type): g.Type = {
         tpe match {
           case tp @ ThisType(sym)
@@ -200,10 +206,7 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
       } {
         toImport(owner) = sym :: toImport.getOrElse(owner, Nil)
       }
-      isRewritten ++= history.history.filter {
-        case (name, short) =>
-          history.nameResolvesToSymbol(name, short.symbol)
-      }
+      isRewritten ++= history.history
       val addImports = for {
         (pkg, names) <- toImport
         name <- names

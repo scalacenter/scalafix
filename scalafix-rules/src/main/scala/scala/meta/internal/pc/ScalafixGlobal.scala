@@ -211,6 +211,7 @@ class ScalafixGlobal(
           else {
             val owners = sym.ownerChain
             val prefix = owners.indexWhere { owner =>
+              owner.owner != definitions.ScalaPackageClass &&
               history.tryShortenName(
                 Some(ShortName(owner.name, owner))
               )
@@ -327,10 +328,8 @@ class ScalafixGlobal(
         case Some(ShortName(_, other)) =>
           other.isKindaTheSameAs(sym)
         case _ =>
-          val otherName =
-            if (name.isTermName) name.toTypeName
-            else name.toTermName
-          val results = Iterator(lookupSymbol(name), lookupSymbol(otherName))
+          val results =
+            Iterator(lookupSymbol(name), lookupSymbol(name.otherName))
           results.flatten.filter(_ != LookupNotFound).toList match {
             case Nil =>
               history(name) = short
@@ -350,6 +349,11 @@ class ScalafixGlobal(
 
   }
 
+  implicit class XtensionNameMetals(name: Name) {
+    def otherName: Name =
+      if (name.isTermName) name.toTypeName
+      else name.toTermName
+  }
   implicit class XtensionSymbolMetals(sym: Symbol) {
     def javaClassSymbol: Symbol = {
       if (sym.isJavaModule && !sym.hasPackageFlag) sym.companionClass
