@@ -24,6 +24,10 @@ object ExplicitResultTypesRefinement {
   def tparam[T <: CharSequence](e: T) = new Serializable {
     val results: List[Int] = List(e.length())
   }
+  val access = new Serializable {
+    private val results: List[Int] = List.empty
+    protected val results2: List[Int] = List.empty
+  }
   def app(): Unit = {
     println(field.results)
     println(method(42).results)
