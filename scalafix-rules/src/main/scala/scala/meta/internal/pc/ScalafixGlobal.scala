@@ -349,7 +349,7 @@ class ScalafixGlobal(
               history(name) = short
               true
             case lookup =>
-              lookup.exists(_.symbol.isKindaTheSameAs(sym))
+              lookup.forall(_.symbol.isKindaTheSameAs(sym))
           }
       }
     }
