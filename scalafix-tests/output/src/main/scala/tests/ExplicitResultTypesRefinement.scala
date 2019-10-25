@@ -22,6 +22,10 @@ object ExplicitResultTypesRefinement {
   class curried(param: Int)(param2: Int, param3: String) extends Serializable {
     val results: List[Int] = List(param2, param3.length(), param)
   }
+  def tparam[T <: CharSequence](e: T): tparam[T] = new tparam[T](e)
+  class tparam[T <: CharSequence](e: T) extends Serializable {
+    val results: List[Int] = List(e.length())
+  }
   def app(): Unit = {
     println(field.results)
     println(method(42).results)

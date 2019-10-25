@@ -204,6 +204,16 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
                     .mkString("(", ")(", ")")
                 case _ => ""
               }
+              val tparamDefn = defn match {
+                case d: m.Defn.Def if d.tparams.nonEmpty =>
+                  d.tparams.map(_.syntax).mkString("[", ", ", "]")
+                case _ => ""
+              }
+              val tparamCall = defn match {
+                case d: m.Defn.Def if d.tparams.nonEmpty =>
+                  d.tparams.map(_.name.syntax).mkString("[", ", ", "]")
+                case _ => ""
+              }
               val paramCallSuffix = defn match {
                 case d: m.Defn.Def =>
                   d.paramss
@@ -215,9 +225,9 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
               val indent = " " * defn.pos.startColumn
               extraPatch += v1.Patch.addRight(
                 body.tokens.head,
-                s" ${name}${paramCallSuffix}\n${indent}class ${name}${paramDefnSuffix} extends"
+                s" ${name}${tparamCall}${paramCallSuffix}\n${indent}class ${name}${tparamDefn}${paramDefnSuffix} extends"
               )
-              new PrettyType(name)
+              new PrettyType(name + tparamCall)
             case _ =>
               seenFromType
           }
