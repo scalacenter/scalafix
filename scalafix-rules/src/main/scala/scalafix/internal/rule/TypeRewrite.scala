@@ -278,9 +278,17 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
           v1.Patch.addGlobalImport(m.Importer(ref, List(importee)))
         }
       }
-      Some(
-        v1.Patch.addRight(replace, s"$space: $short") ++ addImports + extraPatch
-      )
+      val isConstantType = toLoop.finalResultType match {
+        case ConstantType(Constant(value)) => !value.isInstanceOf[Symbol]
+        case _ => false
+      }
+      if (isConstantType) None
+      else {
+        Some(
+          v1.Patch.addRight(replace, s"$space: $short") ++
+            addImports + extraPatch
+        )
+      }
     }
   }
 
