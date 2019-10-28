@@ -21,6 +21,8 @@ class ScalafixGlobal(
     with ScalafixGlobalProxy { compiler =>
   hijackPresentationCompilerThread()
 
+  override val shorthands: Set[String] = Set.empty
+
   def inverseSemanticdbSymbols(symbol: String): List[Symbol] = {
     import scala.meta.internal.semanticdb.Scala._
     if (!symbol.isGlobal) return Nil
