@@ -17,6 +17,7 @@ class TypeRewrite {
       space: String
   ): Option[v1.Patch] = None
 }
+
 object TypeRewrite {
   def apply(
       global: Option[ScalafixGlobal]

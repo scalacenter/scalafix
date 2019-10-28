@@ -194,7 +194,12 @@ class ScalafixGlobal(
             }
           }
         case SingleType(pre, sym) =>
-          if (sym.hasPackageFlag || sym.isPackageObjectOrClass) {
+          if (sym.isScalaPackageObject) {
+            // NOTE(olafur): special-case scala package object because
+            // `Type.toString()` doesn't print the "scala." prefix in
+            // "scala.Seq[T]" even when it's needed.
+            loop(ThisType(sym.owner), name)
+          } else if (sym.hasPackageFlag || sym.isPackageObjectOrClass) {
             if (history.tryShortenName(name)) NoPrefix
             else tpe
           } else {
@@ -374,6 +379,10 @@ class ScalafixGlobal(
       else name.toTermName
   }
   implicit class XtensionSymbolMetals(sym: Symbol) {
+    def isScalaPackageObject: Boolean = {
+      sym.isPackageObject &&
+      sym.owner == definitions.ScalaPackageClass
+    }
     def javaClassSymbol: Symbol = {
       if (sym.isJavaModule && !sym.hasPackageFlag) sym.companionClass
       else sym
