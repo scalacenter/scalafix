@@ -16,8 +16,8 @@ import scala.util.control.NonFatal
 
 class ScalafixGlobal(
     settings: Settings,
-    reporter: StoreReporter
-) extends Global(settings, reporter)
+    val storeReporter: StoreReporter
+) extends Global(settings, storeReporter)
     with ScalafixGlobalProxy { compiler =>
   hijackPresentationCompilerThread()
 

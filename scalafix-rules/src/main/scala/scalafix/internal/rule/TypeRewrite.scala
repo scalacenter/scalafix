@@ -92,6 +92,8 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
     val isDebug = this.isDebug(gsym.name.toString())
     if (gsym == g.NoSymbol) {
       None
+    } else if (gsym.info == null || gsym.info.isErroneous) {
+      None
     } else {
       val context = g.doLocateContext(gpos)
       val renames = g.renamedSymbols(context).filterNot {
@@ -285,6 +287,7 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
         case _ => false
       }
       if (isConstantType) None
+      else if (seenFromType.isErroneous) None
       else {
         Some(
           v1.Patch.addRight(replace, s"$space: $short") ++
