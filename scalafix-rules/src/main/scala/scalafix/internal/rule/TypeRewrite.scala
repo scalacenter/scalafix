@@ -140,11 +140,13 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
             TypeRef(loop(pre), sym, args.map(loop))
           case ExistentialType(head :: Nil, underlying) =>
             head.info match {
-              case TypeBounds(RefinedType(parents, _), _)
+              case b @ TypeBounds(RefinedType(parents, _), hi)
                   if parents.length > 1 =>
-                // Avoid large `Type[_ <: A with B with C]` that get
-                // frequently inferred from long lists of ADT subtypes.
-                head.setInfo(TypeBounds.empty)
+                // Remove the lower bound large `Type[_ >: A with B with C <: D
+                // with Serializable]` so that it becomes only `Type[_ <: D]`.
+                // Large lower bounds `_ >: A with B with C ...` happen in
+                // situations like `val x = List(A, B, C)`.
+                head.setInfo(TypeBounds(definitions.NothingTpe, loop(hi)))
               case _ =>
             }
             tpe

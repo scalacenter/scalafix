@@ -241,7 +241,10 @@ class ScalafixGlobal(
         case AnnotatedType(annotations, underlying) =>
           AnnotatedType(annotations, loop(underlying, None))
         case ExistentialType(quantified, underlying) =>
-          ExistentialType(quantified, loop(underlying, None))
+          ExistentialType(
+            quantified.map(sym => sym.setInfo(loop(sym.info, None))),
+            loop(underlying, None)
+          )
         case PolyType(tparams, resultType) =>
           PolyType(tparams, resultType.map(t => loop(t, None)))
         case NullaryMethodType(resultType) =>
