@@ -150,9 +150,11 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
           case TypeRef(pre, sym, args) =>
             val tpeString = tpe.toString()
             // NOTE(olafur): special case where `Type.toString()` produces
-            // unparseable syntax such as `Path#foo.type`. See
-            // WidenSingleType.scala test case for an example where this
-            // simplification is needed.
+            // unparseable syntax such as `Path#foo.type`. In these cases, we
+            // either try to simplify the type into the parents of the singleton
+            // type. When we can't safely simplify the type, we give up and
+            // don't annotate the type. See "WidenSingleType.scala" for test
+            // cases that stress this code path.
             val isSimplifyToParents =
               tpe.toString().endsWith(".type") &&
                 pre.prefixString.endsWith("#")
@@ -160,7 +162,11 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
               val hasMeaningfulParent = sym.info.parents.exists { parent =>
                 !isPossibleSyntheticParent(parent)
               }
-              if (hasMeaningfulParent) {
+              val hasMeaningfulDeclaration =
+                sym.info.decls.exists(
+                  decl => !decl.isOverridingSymbol && !decl.isConstructor
+                )
+              if (hasMeaningfulParent && !hasMeaningfulDeclaration) {
                 loop(RefinedType(sym.info.parents, EmptyScope))
               } else {
                 throw new NotImplementedError(

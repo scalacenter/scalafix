@@ -10,10 +10,16 @@ trait WidenSingleType {
   object strings {
     val message = "Hello!"
   }
+  trait Meaningful
+  object Meaningful extends Meaningful {
+    val message = "Hello!"
+  }
 }
 abstract class WidenSingleTypeUsage {
   def widen: WidenSingleType
   def widenString = widen.strings // left un-annotated
+  def meaningful = widen.Meaningful
+  def message = meaningful.message
 }
 object WidenSingleType {
   def list(a: WidenSingleType, b: WidenSingleType) =
