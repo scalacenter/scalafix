@@ -197,7 +197,8 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
         }
       var extraPatch = v1.Patch.empty
       val toLoop = seenFromType.finalResultType match {
-        case RefinedType(parents, decls) if decls.nonEmpty =>
+        case RefinedType(parents, decls)
+            if decls.filterNot(_.isOverridingSymbol).nonEmpty =>
           val body: Option[m.Term] = defn match {
             case t: m.Defn.Val => Some(t.rhs)
             case t: m.Defn.Var => t.rhs

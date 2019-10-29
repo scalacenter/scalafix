@@ -31,6 +31,10 @@ object ExplicitResultTypesRefinement {
     private val results: List[Int] = List.empty
     protected val results2: List[Int] = List.empty
   }
+  trait Chars { def chars: CharSequence }
+  val chars = new Chars {
+    val chars = 42.toString()
+  }
   def app(): Unit = {
     println(field.results)
     println(method(42).results)
