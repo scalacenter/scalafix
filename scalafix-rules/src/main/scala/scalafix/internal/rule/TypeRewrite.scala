@@ -54,6 +54,8 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
       space
     )
     catch {
+      case _: NotImplementedError =>
+        None
       case e: Throwable =>
         throw CompilerException(e)
     }
@@ -118,6 +120,11 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
             history.nameResolvesToSymbol(name, short.symbol)
       }
       history.history ++= fromRewritten
+      def isPossibleSyntheticParent(tpe: Type): Boolean = {
+        definitions.isPossibleSyntheticParent(tpe.typeSymbol) ||
+        definitions.AnyRefTpe == tpe ||
+        definitions.ObjectTpe == tpe
+      }
       def loop(tpe: g.Type): g.Type = {
         tpe match {
           case tp @ ThisType(sym)
@@ -142,15 +149,24 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
             NullaryMethodType(loop(tpe))
           case TypeRef(pre, sym, args) =>
             val tpeString = tpe.toString()
+            // NOTE(olafur): special case where `Type.toString()` produces
+            // unparseable syntax such as `Path#foo.type`. See
+            // WidenSingleType.scala test case for an example where this
+            // simplification is needed.
             val isSimplifyToParents =
               tpe.toString().endsWith(".type") &&
                 pre.prefixString.endsWith("#")
             if (isSimplifyToParents) {
-              // NOTE(olafur): special case where `Type.toString()` produces
-              // unparseable syntax such as `Path#foo.type`. See
-              // WidenSingleType.scala test case for an example where this
-              // simplification is needed.
-              loop(RefinedType(sym.info.parents, EmptyScope))
+              val hasMeaningfulParent = sym.info.parents.exists { parent =>
+                !isPossibleSyntheticParent(parent)
+              }
+              if (hasMeaningfulParent) {
+                loop(RefinedType(sym.info.parents, EmptyScope))
+              } else {
+                throw new NotImplementedError(
+                  s"don't know how to produce parseable type for '$tpeString'"
+                )
+              }
             } else {
               TypeRef(loop(pre), sym, args.map(loop))
             }
