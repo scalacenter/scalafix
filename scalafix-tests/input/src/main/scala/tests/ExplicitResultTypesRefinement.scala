@@ -18,6 +18,9 @@ object ExplicitResultTypesRefinement {
   def method(param: Int) = new Serializable {
     val results: List[Int] = List(param)
   }
+  def method(param: String) = new Serializable {
+    val results: List[String] = List(param)
+  }
   def curried(param: Int)(param2: Int, param3: String) = new Serializable {
     val results: List[Int] = List(param2, param3.length(), param)
   }

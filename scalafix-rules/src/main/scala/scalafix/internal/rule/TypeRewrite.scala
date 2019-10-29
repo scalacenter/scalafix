@@ -37,6 +37,7 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
   private lazy val unit =
     g.newCompilationUnit(ctx.input.text, ctx.input.syntax)
   private val isRewritten = mutable.Map.empty[Name, ShortName]
+  private val isInsertedClass = mutable.Set.empty[String]
 
   override def toPatch(
       pos: m.Position,
@@ -206,14 +207,16 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
           body match {
             case Some(body @ m.Term.NewAnonymous(template))
                 if body.tokens.head.syntax == "new" =>
-              var suffix = ""
               val nameSyntax = gsym.nameSyntax
-              while (context.isNameInScope(TypeName(nameSyntax + suffix))) {
-                suffix = suffix match {
-                  case "" => "1"
-                  case _ => (suffix.toInt + 1).toString()
+              val suffixes = "" #:: Stream.from(1).map(_.toString())
+              val name = suffixes
+                .map(suffix => nameSyntax + suffix)
+                .find { name =>
+                  !context.isNameInScope(TypeName(name)) &&
+                  !isInsertedClass(name)
                 }
-              }
+                .get
+              isInsertedClass += name
               val paramDefnSuffix = defn match {
                 case d: m.Defn.Def =>
                   d.paramss
@@ -238,7 +241,6 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
                     .mkString("(", ")(", ")")
                 case _ => ""
               }
-              val name = nameSyntax + suffix
               val indent = " " * defn.pos.startColumn
               extraPatch += v1.Patch.addRight(
                 body.tokens.head,
