@@ -140,7 +140,19 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
           case NullaryMethodType(tpe) =>
             NullaryMethodType(loop(tpe))
           case TypeRef(pre, sym, args) =>
-            TypeRef(loop(pre), sym, args.map(loop))
+            val tpeString = tpe.toString()
+            val isSimplifyToParents =
+              tpe.toString().endsWith(".type") &&
+                pre.prefixString.endsWith("#")
+            if (isSimplifyToParents) {
+              // NOTE(olafur): special case where `Type.toString()` produces
+              // unparseable syntax such as `Path#foo.type`. See
+              // WidenSingleType.scala test case for an example where this
+              // simplification is needed.
+              loop(RefinedType(sym.info.parents, EmptyScope))
+            } else {
+              TypeRef(loop(pre), sym, args.map(loop))
+            }
           case ExistentialType(head :: Nil, underlying) =>
             head.info match {
               case b @ TypeBounds(RefinedType(parents, _), hi)
@@ -238,7 +250,8 @@ class CompilerTypeRewrite(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
           }
         case _ => seenFromType
       }
-      val shortType = g.shortType(loop(toLoop).widen, history)
+      val looped = loop(toLoop).widen
+      val shortType = g.shortType(looped, history)
       val short = shortType.toString()
 
       val toImport = mutable.Map.empty[g.Symbol, List[g.ShortName]]
