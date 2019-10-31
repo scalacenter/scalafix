@@ -24,6 +24,7 @@ import scalafix.internal.reflect.RuleCompiler
 import scalafix.test.StringFS
 import scalafix.testkit.DiffAssertions
 import scalafix.{interfaces => i}
+import scala.util.Properties
 
 class ScalafixImplSuite extends FunSuite with DiffAssertions {
   def semanticdbPluginPath(): String = {
@@ -183,7 +184,7 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
       .withMode(ScalafixMainMode.CHECK)
       .withToolClasspath(toolClasspath)
       .withScalacOptions(Collections.singletonList("-Ywarn-unused-import"))
-      .withScalaVersion("2.11.12")
+      .withScalaVersion(Properties.versionNumberString)
       .withConfig(Optional.empty())
     val expectedRulesToRun = List(
       "ProcedureSyntax",
@@ -198,7 +199,7 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
       expectedRulesToRun.sorted.mkString("\n")
     )
     val validateError = args.validate()
-    assert(!validateError.isPresent)
+    assert(!validateError.isPresent, validateError)
     val errors = args.run().toList.map(_.toString).sorted
     val stdout = fansi
       .Str(out.toString(charset.name()))
