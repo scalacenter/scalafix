@@ -32,6 +32,13 @@ case class ExplicitResultTypesConfig(
         "If false, silently ignore errors to produce an explicit result type."
     )
     fatalWarnings: Boolean = false,
+    @Description(
+      "If false, disables rewriting of inferred structural types to named subclasses. " +
+        "Beware that this option may produce code that no longer compiles if it previously " +
+        " used `scala.language.reflectiveCalls` to access methods on structural types."
+    )
+    rewriteStructuralTypesToNamedSubclass: Boolean = true,
+    @Hidden()
     symbolReplacements: Map[String, String] = Map.empty
 )
 

@@ -16,10 +16,11 @@ class TypePrinter {
 
 object TypePrinter {
   def apply(
-      global: Option[ScalafixGlobal]
+      global: Option[ScalafixGlobal],
+      config: ExplicitResultTypesConfig
   )(implicit ctx: v1.SemanticDocument): TypePrinter =
     global match {
       case None => new TypePrinter
-      case Some(value) => new CompilerTypePrinter(value)
+      case Some(value) => new CompilerTypePrinter(value, config)
     }
 }

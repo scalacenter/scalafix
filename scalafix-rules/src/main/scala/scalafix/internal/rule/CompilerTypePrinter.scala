@@ -8,8 +8,9 @@ import scala.collection.mutable
 import scala.reflect.internal.{Flags => gf}
 import scala.meta.internal.pc.Identifier
 
-class CompilerTypePrinter(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
-    extends TypePrinter {
+class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
+    implicit ctx: v1.SemanticDocument
+) extends TypePrinter {
   import g._
   private lazy val unit =
     g.newCompilationUnit(ctx.input.text, ctx.input.syntax)
@@ -231,7 +232,8 @@ class CompilerTypePrinter(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
       tpe: Type
   ): Option[(Type, v1.Patch)] = tpe.finalResultType match {
     case resultType @ RefinedType(parents, decls)
-        if decls.filterNot(_.isOverridingSymbol).nonEmpty =>
+        if config.rewriteStructuralTypesToNamedSubclass &&
+          decls.filterNot(_.isOverridingSymbol).nonEmpty =>
       val body: Option[m.Term] = defn match {
         case t: m.Defn.Val => Some(t.rhs)
         case t: m.Defn.Var => t.rhs
