@@ -178,7 +178,6 @@ lazy val unit = project
       jgit,
       semanticdbPluginLibrary,
       scalatest,
-      "com.lihaoyi" %% "ujson" % "0.8.0",
       "org.scalameta" %% "testkit" % scalametaV
     ),
     compileInputs.in(Compile, compile) := {

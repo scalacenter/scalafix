@@ -9,6 +9,9 @@ import metaconfig.Configured
 import scala.meta.internal.pc.ScalafixGlobal
 import scalafix.internal.v1.LazyValue
 import scala.util.control.NonFatal
+import scala.util.Properties
+import metaconfig.Conf
+import scalafix.internal.compat.CompilerCompat._
 
 final class ExplicitResultTypes(
     config: ExplicitResultTypesConfig,
@@ -29,7 +32,7 @@ final class ExplicitResultTypes(
     global.foreach(_.foreach(g => {
       try {
         g.askShutdown()
-        g.close()
+        g.closeCompat()
       } catch {
         case NonFatal(_) =>
       }
@@ -38,8 +41,9 @@ final class ExplicitResultTypes(
 
   override def withConfiguration(config: Configuration): Configured[Rule] = {
     val newGlobal: LazyValue[Option[ScalafixGlobal]] =
-      if (config.scalacClasspath.isEmpty) LazyValue.now(None)
-      else {
+      if (config.scalacClasspath.isEmpty) {
+        LazyValue.now(None)
+      } else {
         LazyValue.fromUnsafe { () =>
           ScalafixGlobal.newCompiler(
             config.scalacClasspath,
@@ -47,11 +51,19 @@ final class ExplicitResultTypes(
           )
         }
       }
-    config.conf // Support deprecated explicitReturnTypes config
-      .getOrElse("explicitReturnTypes", "ExplicitResultTypes")(
-        ExplicitResultTypesConfig.default
+    if (config.scalacClasspath.nonEmpty && config.scalaVersion != Properties.versionNumberString) {
+      Configured.typeMismatch(
+        s"scalaVersion=${Properties.versionNumberString}",
+        Conf.Obj("scalaVersion" -> Conf.Str(config.scalaVersion))
       )
-      .map(c => new ExplicitResultTypes(c, newGlobal))
+
+    } else {
+      config.conf // Support deprecated explicitReturnTypes config
+        .getOrElse("explicitReturnTypes", "ExplicitResultTypes")(
+          ExplicitResultTypesConfig.default
+        )
+        .map(c => new ExplicitResultTypes(c, newGlobal))
+    }
   }
 
   override def fix(implicit ctx: SemanticDocument): Patch = {
