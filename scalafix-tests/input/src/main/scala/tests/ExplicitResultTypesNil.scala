@@ -1,5 +1,6 @@
 /*
 rules = "ExplicitResultTypes"
+ExplicitResultTypes.skipSimpleDefinitions = ["Lit"]
  */
 package tests
 

@@ -1,6 +1,6 @@
 /*
 rules = "ExplicitResultTypes"
-RscCompat.autoimport = true
+ExplicitResultTypes.skipSimpleDefinitions = ["Lit"]
  */
 package rsc.tests
 

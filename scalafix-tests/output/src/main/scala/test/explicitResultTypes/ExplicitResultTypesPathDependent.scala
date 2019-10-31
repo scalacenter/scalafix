@@ -6,7 +6,7 @@ object ExplicitResultTypesPathDependent {
     class B { class C }
     implicit val x: B = new B
     implicit val y: x.C = new x.C
-    def gimme(yy: x.C): Nothing = ???; gimme(y)
+    def gimme(yy: x.C): Nothing = identity(???); gimme(y)
   }
   implicit val b: Path#B = new Path().x
   trait Foo[T] {

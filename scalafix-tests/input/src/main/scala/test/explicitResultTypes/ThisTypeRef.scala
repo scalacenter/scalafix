@@ -8,7 +8,7 @@ object ThisTypeRef {
     class T
   }
   class Sub extends Base {
-    val ref = new T()
+    val ref = identity(new T())
   }
 
   trait ThisType  {

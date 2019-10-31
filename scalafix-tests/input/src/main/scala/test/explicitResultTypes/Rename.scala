@@ -8,6 +8,6 @@ import java.lang.{Boolean => JBoolean}
 
 object Rename {
   type Seq = Int
-  def foo(a: Int*) = a
-  def foo = JBoolean.TRUE
+  def foo(a: Int*) = identity(a)
+  def foo = identity(JBoolean.TRUE)
 }

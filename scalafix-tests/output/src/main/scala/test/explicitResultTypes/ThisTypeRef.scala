@@ -1,3 +1,4 @@
+
 package test.explicitResultTypes
 
 object ThisTypeRef {
@@ -5,7 +6,7 @@ object ThisTypeRef {
     class T
   }
   class Sub extends Base {
-    val ref: T = new T()
+    val ref: T = identity(new T())
   }
 
   trait ThisType  {

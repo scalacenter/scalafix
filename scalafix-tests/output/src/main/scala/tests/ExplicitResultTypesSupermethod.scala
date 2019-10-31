@@ -1,3 +1,4 @@
+
 package tests
 
 object ExplicitResultTypesSupermethod {

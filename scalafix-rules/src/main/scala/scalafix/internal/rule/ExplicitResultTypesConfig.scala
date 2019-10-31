@@ -4,6 +4,10 @@ import metaconfig._
 import metaconfig.generic.Surface
 import metaconfig.annotation._
 import scalafix.internal.config._
+import metaconfig.Conf.Bool
+import metaconfig.Conf.Lst
+import metaconfig.Conf.Str
+import scala.{meta => m}
 
 case class ExplicitResultTypesConfig(
     @Description("Enable/disable this rule for defs, vals or vars.")
@@ -17,7 +21,8 @@ case class ExplicitResultTypesConfig(
     @Description(
       "If false, insert explicit result types even for simple definitions like `val x = 2`"
     )
-    skipSimpleDefinitions: Boolean = true,
+    @ExampleValue("['Lit', 'Term.New']")
+    skipSimpleDefinitions: SimpleDefinitions = SimpleDefinitions.default,
     @Description(
       "If false, insert explicit result types even for locally defined implicit vals"
     )
@@ -37,6 +42,44 @@ object ExplicitResultTypesConfig {
     generic.deriveSurface[ExplicitResultTypesConfig]
 }
 
+case class SimpleDefinitions(kinds: Set[String]) {
+  private def isSimpleRef(tree: m.Tree): Boolean = tree match {
+    case _: m.Name => true
+    case t: m.Term.Select => isSimpleRef(t.qual)
+    case _ => false
+  }
+
+  def isSimpleDefinition(body: m.Term): Boolean = {
+    val kind =
+      if (body.is[m.Lit]) Some("Lit")
+      else if (body.is[m.Term.New]) Some("Term.New")
+      else if (isSimpleRef(body)) Some("Term.Ref")
+      else None
+    kind.exists(kinds.contains)
+  }
+}
+object SimpleDefinitions {
+  def allKinds = Set("Term.Ref", "Lit", "Term.New")
+  def default = SimpleDefinitions(allKinds)
+  implicit val encoder: ConfEncoder[SimpleDefinitions] =
+    ConfEncoder.instance[SimpleDefinitions](
+      x => Conf.Lst(x.kinds.toList.map(Conf.Str(_)))
+    )
+  implicit val decoder: ConfDecoder[SimpleDefinitions] =
+    ConfDecoder.instanceExpect[SimpleDefinitions]("List[String]") {
+      case Bool(false) => Configured.ok(SimpleDefinitions(Set.empty))
+      case Bool(true) => Configured.ok(SimpleDefinitions(Set.empty))
+      case conf @ Lst(values) =>
+        val strings = values.collect {
+          case Str(kind) => kind
+        }
+        if (strings.length == values.length) {
+          Configured.ok(SimpleDefinitions(strings.toSet))
+        } else {
+          Configured.typeMismatch("List[String]", conf)
+        }
+    }
+}
 sealed trait MemberVisibility
 object MemberVisibility {
   case object Public extends MemberVisibility

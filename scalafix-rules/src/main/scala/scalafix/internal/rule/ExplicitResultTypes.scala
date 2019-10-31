@@ -114,12 +114,6 @@ final class ExplicitResultTypes(
     case _: Defn.Var => MemberKind.Var
   }
 
-  private def isSimpleRef(tree: Tree): Boolean = tree match {
-    case _: Name => true
-    case t: Term.Select => isSimpleRef(t.qual)
-    case _ => false
-  }
-
   def isRuleCandidate[D <: Defn](
       defn: D,
       nm: Name,
@@ -140,10 +134,7 @@ final class ExplicitResultTypes(
         body.is[Lit]
 
     def matchesSimpleDefinition(): Boolean =
-      skipSimpleDefinitions && {
-        body.is[Lit] ||
-        isSimpleRef(body)
-      }
+      config.skipSimpleDefinitions.isSimpleDefinition(body)
 
     def isImplicit: Boolean =
       defn.hasMod(mod"implicit") && !isImplicitly(body)
