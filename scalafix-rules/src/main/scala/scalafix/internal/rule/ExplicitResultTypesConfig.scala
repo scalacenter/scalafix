@@ -31,7 +31,8 @@ case class ExplicitResultTypesConfig(
       "If true, report and fail unexpected errors. " +
         "If false, silently ignore errors to produce an explicit result type."
     )
-    fatalWarnings: Boolean = false
+    fatalWarnings: Boolean = false,
+    symbolReplacements: Map[String, String] = Map.empty
 )
 
 object ExplicitResultTypesConfig {

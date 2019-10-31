@@ -14,12 +14,45 @@ import scala.reflect.internal.{Flags => gf}
 import scala.meta.internal.semanticdb.scalac.SemanticdbOps
 import scala.util.control.NonFatal
 
+object ScalafixGlobal {
+  def newCompiler(
+      cp: List[AbsolutePath],
+      options: List[String],
+      symbolReplacements: Map[String, String]
+  ): ScalafixGlobal = {
+    val classpath = cp.mkString(File.pathSeparator)
+    val vd = new VirtualDirectory("(memory)", None)
+    val settings = new Settings
+    settings.Ymacroexpand.value = "discard"
+    settings.outputDirs.setSingleOutput(vd)
+    settings.classpath.value = classpath
+    settings.YpresentationAnyThread.value = true
+    if (classpath.isEmpty) {
+      settings.usejavacp.value = true
+    }
+    val (isSuccess, unprocessed) =
+      settings.processArguments(options, processAll = true)
+    require(isSuccess, unprocessed)
+    require(unprocessed.isEmpty, unprocessed)
+    new ScalafixGlobal(settings, new StoreReporter, symbolReplacements)
+  }
+}
+
 class ScalafixGlobal(
     settings: Settings,
-    val storeReporter: StoreReporter
+    val storeReporter: StoreReporter,
+    symbolReplacements: Map[String, String]
 ) extends Global(settings, storeReporter)
     with ScalafixGlobalProxy { compiler =>
   hijackPresentationCompilerThread()
+
+  lazy val gsymbolReplacements: Map[String, Symbol] = (for {
+    (key, value) <- symbolReplacements.toSeq
+    gkey <- inverseSemanticdbSymbols(key)
+    if semanticdbSymbol(gkey) == key
+    gvalue <- inverseSemanticdbSymbols(value)
+    if semanticdbSymbol(gvalue) == value
+  } yield (key, gvalue)).toMap
 
   override val shorthands: Set[String] = Set.empty
 
@@ -499,28 +532,4 @@ class ScalafixGlobal(
       this(string + ".", string)
   }
 
-}
-
-object ScalafixGlobal {
-
-  def newCompiler(
-      cp: List[AbsolutePath],
-      options: List[String]
-  ): ScalafixGlobal = {
-    val classpath = cp.mkString(File.pathSeparator)
-    val vd = new VirtualDirectory("(memory)", None)
-    val settings = new Settings
-    settings.Ymacroexpand.value = "discard"
-    settings.outputDirs.setSingleOutput(vd)
-    settings.classpath.value = classpath
-    settings.YpresentationAnyThread.value = true
-    if (classpath.isEmpty) {
-      settings.usejavacp.value = true
-    }
-    val (isSuccess, unprocessed) =
-      settings.processArguments(options, processAll = true)
-    require(isSuccess, unprocessed)
-    require(unprocessed.isEmpty, unprocessed)
-    new ScalafixGlobal(settings, new StoreReporter)
-  }
 }

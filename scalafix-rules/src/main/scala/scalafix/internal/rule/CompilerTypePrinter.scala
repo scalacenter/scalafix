@@ -296,6 +296,9 @@ class CompilerTypePrinter(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
   private def preProcess(tpe: Type, gsym: Symbol): Type = {
     def loop(tpe: Type): Type = {
       tpe match {
+        case TypeRef(pre, sym, args)
+            if gsymbolReplacements.contains(semanticdbSymbol(sym)) =>
+          loop(TypeRef(pre, gsymbolReplacements(semanticdbSymbol(sym)), args))
         case tp @ ThisType(sym)
             if tp.toString() == s"${gsym.owner.nameString}.this.type" =>
           new PrettyType("this.type")
@@ -357,6 +360,12 @@ class CompilerTypePrinter(g: ScalafixGlobal)(implicit ctx: v1.SemanticDocument)
             case _ =>
           }
           tpe
+        case SingleType(ThisType(osym), sym)
+            if sym.isKindaTheSameAs(sym) &&
+              gsymbolReplacements.contains(semanticdbSymbol(sym)) =>
+          loop(
+            TypeRef(NoPrefix, gsymbolReplacements(semanticdbSymbol(sym)), Nil)
+          )
         case tpe => tpe
       }
     }

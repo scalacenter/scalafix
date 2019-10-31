@@ -40,6 +40,10 @@ final class ExplicitResultTypes(
   }
 
   override def withConfiguration(config: Configuration): Configured[Rule] = {
+    val symbolReplacements =
+      config.conf.dynamic.ExplicitResultTypes.symbolReplacements
+        .as[Map[String, String]]
+        .getOrElse(Map.empty)
     val newGlobal: LazyValue[Option[ScalafixGlobal]] =
       if (config.scalacClasspath.isEmpty) {
         LazyValue.now(None)
@@ -47,7 +51,8 @@ final class ExplicitResultTypes(
         LazyValue.fromUnsafe { () =>
           ScalafixGlobal.newCompiler(
             config.scalacClasspath,
-            config.scalacOptions
+            config.scalacOptions,
+            symbolReplacements
           )
         }
       }
