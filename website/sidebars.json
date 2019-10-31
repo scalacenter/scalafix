@@ -4,6 +4,7 @@
     "Rules": [
       "rules/overview",
       "rules/RemoveUnused",
+      "rules/ExplicitResultTypes",
       "rules/DisableSyntax",
       "rules/NoAutoTupling",
       "rules/LeakingImplicitClassVal",
