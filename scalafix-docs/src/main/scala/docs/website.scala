@@ -11,6 +11,7 @@ import scala.meta.internal.io.PathIO
 import scalafix.internal.v1.Rules
 
 package object website {
+  import scalafix.internal.rule.SimpleDefinitions
 
   def url(name: String, relpath: String): Text.TypedTag[String] =
     a(href := s"/scalafix/$relpath", name)
@@ -84,6 +85,8 @@ package object website {
       .zip(default.productIterator.toIterable)
       .filterNot { case (setting, _) => setting.isHidden }
       .flatMap {
+        case (s, d: SimpleDefinitions) =>
+          (s, d.kinds.mkString("['", "', '", "']")) :: Nil
         case (deepSetting, defaultSetting: Product)
             if deepSetting.underlying.nonEmpty =>
           deepSetting.flat.zip(defaultSetting.productIterator.toIterable)
@@ -172,7 +175,10 @@ package object website {
   def rule[T](
       ruleName: String,
       default: T
-  )(implicit settings: Settings[T], ev: T <:< Product): String = {
+  )(
+      implicit settings: Settings[T],
+      ev: T <:< Product
+  ): String = {
     val sb = new StringBuilder
     val all = flat(default)
     sb.append(html(all.map(_._1)))
