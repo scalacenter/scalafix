@@ -18,9 +18,8 @@ final class ExplicitResultTypes(
   def this() = this(ExplicitResultTypesConfig.default, LazyValue.now(None))
 
   override def description: String =
-    "Inserts explicit annotations for inferred types of def/val/var"
+    "Inserts type annotations for inferred public members"
   override def isRewrite: Boolean = true
-  override def isExperimental: Boolean = true
 
   override def afterComplete(): Unit = {
     shutdownCompiler()
@@ -63,14 +62,14 @@ final class ExplicitResultTypes(
         global.restart()
         try unsafeFix()
         catch {
-          case _: CompilerException =>
-            // Ignore compiler crashes.
+          case _: CompilerException if !config.fatalWarnings =>
+            // Ignore compiler crashes unless `fatalWarnings = true`.
             Patch.empty
         }
     }
   }
   def unsafeFix()(implicit ctx: SemanticDocument): Patch = {
-    lazy val types = TypeRewrite(global.value)
+    lazy val types = TypePrinter(global.value)
     ctx.tree.collect {
       case t @ Defn.Val(mods, Pat.Var(name) :: Nil, None, body)
           if isRuleCandidate(t, name, mods, body) =>
@@ -156,7 +155,7 @@ final class ExplicitResultTypes(
     }
   }
 
-  def defnType(defn: Defn, replace: Token, space: String, types: TypeRewrite)(
+  def defnType(defn: Defn, replace: Token, space: String, types: TypePrinter)(
       implicit ctx: SemanticDocument
   ): Option[Patch] =
     for {
@@ -165,7 +164,7 @@ final class ExplicitResultTypes(
       patch <- types.toPatch(name.pos, defnSymbol, replace, defn, space)
     } yield patch
 
-  def fixDefinition(defn: Defn, body: Term, types: TypeRewrite)(
+  def fixDefinition(defn: Defn, body: Term, types: TypePrinter)(
       implicit ctx: SemanticDocument
   ): Patch = {
     val lst = ctx.tokenList

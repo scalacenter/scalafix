@@ -22,14 +22,6 @@ case class ExplicitResultTypesConfig(
       "If false, insert explicit result types even for locally defined implicit vals"
     )
     skipLocalImplicits: Boolean = true,
-    // Experimental, still blocked by https://github.com/scalameta/scalameta/issues/1099
-    // to work for defs. May insert names that conflicts with existing names in scope.
-    // Use at your own risk.
-    @Description(
-      "If true, does a best-effort at inserting short names and add missing imports. " +
-        "WARNING. This feature is currently implemented in a naive way and it contains many bugs."
-    )
-    unsafeShortenNames: Boolean = false,
     @Description(
       "If true, report and fail unexpected errors. " +
         "If false, silently ignore errors to produce an explicit result type."

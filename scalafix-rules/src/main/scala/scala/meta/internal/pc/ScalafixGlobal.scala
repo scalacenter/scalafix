@@ -292,7 +292,7 @@ class ScalafixGlobal(
   }
 
   class ShortenedNames(
-      val history: mutable.Map[Name, ShortName] = mutable.Map.empty,
+      val missingImports: mutable.Map[Name, ShortName] = mutable.Map.empty,
       val lookupSymbol: Name => List[NameLookup] = _ => Nil,
       val config: collection.Map[Symbol, Name] = Map.empty,
       val renames: collection.Map[Symbol, Name] = Map.empty,
@@ -348,7 +348,7 @@ class ScalafixGlobal(
 
     def tryShortenName(short: ShortName): Boolean = {
       val ShortName(name, sym) = short
-      history.get(name) match {
+      missingImports.get(name) match {
         case Some(ShortName(_, other)) =>
           other.isKindaTheSameAs(sym)
         case _ =>
@@ -356,7 +356,7 @@ class ScalafixGlobal(
             Iterator(lookupSymbol(name), lookupSymbol(name.otherName))
           results.flatten.filter(_ != LookupNotFound).toList match {
             case Nil =>
-              history(name) = short
+              missingImports(name) = short
               true
             case lookup =>
               lookup.forall(_.symbol.isKindaTheSameAs(sym))
