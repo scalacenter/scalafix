@@ -77,7 +77,7 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
     val isRewrite = rules.filter(_.isRewrite)
     assert(isRewrite.nonEmpty)
     val isExperimental = rules.filter(_.isExperimental)
-    assert(isExperimental.nonEmpty)
+    assert(isExperimental.isEmpty)
   }
 
   test("error") {
@@ -235,7 +235,7 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
          |   val a = 1; // ??? ???
          |-  implicit val b = List(1)
          |-  def main { println(42) }
-         |+  implicit val b: _root_.scala.collection.immutable.List[_root_.scala.Int] = List(1)
+         |+  implicit val b: List[Int] = List(1)
          |+  def main: Unit = { println(42) }
          | }
          |+// Hello world!

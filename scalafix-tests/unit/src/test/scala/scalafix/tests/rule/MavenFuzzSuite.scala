@@ -16,7 +16,9 @@ import scala.meta.internal.pc.ScalafixGlobal
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Paths
+import org.scalatest.Ignore
 
+@Ignore // Ignored because this test is very slow.
 class MavenFuzzSuite extends FunSuite with DiffAssertions {
   private def getCompilingSources(
       g: ScalafixGlobal,
@@ -170,21 +172,4 @@ class MavenFuzzSuite extends FunSuite with DiffAssertions {
     }
   }
   check("ExplicitResultTypes")
-  // test("foo") {
-  //   val classfiles = fetch.withDependencies(ammonite).run().map(_.toPath())
-  //   val g = ScalaPresentationCompiler(classpath = classfiles)
-  //     .newCompiler()
-  //   pprint.log(
-  //     compileErrors(
-  //       g,
-  //       """
-  //         |package x
-  //         |object Foo {
-  //         | def foo: String = 42
-  //         |}
-  //         |""".stripMargin,
-  //       "Foo.scala"
-  //     )
-  //   )
-  // }
 }
