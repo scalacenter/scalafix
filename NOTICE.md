@@ -1,8 +1,9 @@
 ## Licence for source code in LazySymbolTable
 
-The class `scalafix.internal.util.LazySymbolTable` contains adapted source code from
-[twitter/rsc](https://github.com/twitter/rsc).
-We include the text of the original license below:
+
+This project contains adapted source code from the
+[twitter/rsc](https://github.com/twitter/rsc) repository.  We include the text
+of the original license below:
 
 ```
 Copyright (c) 2017-2018 Twitter, Inc.

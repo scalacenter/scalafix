@@ -10,6 +10,7 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scala.meta.internal.symtab.SymbolTable
 import scalafix.internal.config.FilterMatcher
+import scala.tools.nsc.interactive.Global
 
 case class ValidatedArgs(
     args: Args,
@@ -21,7 +22,8 @@ case class ValidatedArgs(
     pathReplace: AbsolutePath => AbsolutePath,
     diffDisable: DiffDisable,
     callback: DelegatingMainCallback,
-    semanticdbFileFilter: FilterMatcher
+    semanticdbFileFilter: FilterMatcher,
+    global: LazyValue[Option[Global]]
 ) {
 
   def input(file: AbsolutePath): Input = {

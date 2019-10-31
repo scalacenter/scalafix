@@ -14,12 +14,22 @@ import scalafix.v1.Symbol
 import scalafix.v1.SymbolInformation
 import scalafix.v1.Symtab
 import scalafix.v1.SyntacticDocument
+import scalafix.util.TreeOps
 
 final class InternalSemanticDoc(
     val doc: SyntacticDocument,
-    val textDocument: s.TextDocument,
+    _textDocument: LazyValue[s.TextDocument],
     val symtab: SymbolTable
 ) extends Symtab {
+  def this(
+      doc: SyntacticDocument,
+      textDocument: s.TextDocument,
+      symtab: SymbolTable
+  ) = this(doc, LazyValue.now(textDocument), symtab)
+
+  def textDocument = {
+    _textDocument.value
+  }
 
   def synthetics: Iterator[SemanticTree] =
     textDocument.synthetics.iterator.map { tree =>
@@ -39,9 +49,16 @@ final class InternalSemanticDoc(
   }
 
   def symbol(tree: Tree): Symbol = {
-    val result = symbols(TreePos.symbol(tree))
-    if (result.hasNext) result.next() // Discard multi symbols
-    else Symbol.None
+    def fromTextDocument() = {
+      val result = symbols(TreePos.symbol(tree))
+      if (result.hasNext) result.next() // Discard multi symbols
+      else Symbol.None
+    }
+    if (!_textDocument.isEvaluated) {
+      TreeOps.inferGlobalSymbol(tree).getOrElse(fromTextDocument())
+    } else {
+      fromTextDocument()
+    }
   }
 
   def info(sym: Symbol): Option[SymbolInformation] = {
@@ -52,11 +69,11 @@ final class InternalSemanticDoc(
     } else {
       val fromGlobalSymtab =
         symtab.info(sym.value).map(new SymbolInformation(_)(this))
-      def fromTextDocument: Option[SymbolInformation] =
+      def fromTextDocument(): Option[SymbolInformation] =
         textDocument.symbols
           .find(_.symbol == sym.value)
           .map(new SymbolInformation(_)(this))
-      fromGlobalSymtab.orElse(fromTextDocument)
+      fromGlobalSymtab.orElse(fromTextDocument())
     }
   }
 

@@ -8,7 +8,7 @@ object ExplicitResultTypesPathDependent {
     class B { class C }
     implicit val x = new B
     implicit val y = new x.C
-    def gimme(yy: x.C) = ???; gimme(y)
+    def gimme(yy: x.C) = identity(???); gimme(y)
   }
   implicit val b = new Path().x
   trait Foo[T] {

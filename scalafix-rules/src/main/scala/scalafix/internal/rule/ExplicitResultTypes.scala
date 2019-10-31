@@ -2,32 +2,105 @@ package scalafix.internal.rule
 
 import scala.meta._
 import scala.meta.contrib._
-import scala.meta.internal.scalafix.ScalafixScalametaHacks
 import scalafix.patch.Patch
 import scalafix.v1._
 import scalafix.util.TokenOps
 import metaconfig.Configured
-import scalafix.internal.util.PrettyResult
-import scalafix.internal.util.QualifyStrategy
-import scalafix.internal.util.PrettyType
-import scalafix.v1.MissingSymbolException
+import scala.meta.internal.pc.ScalafixGlobal
+import scalafix.internal.v1.LazyValue
+import scala.util.control.NonFatal
+import scala.util.Properties
+import metaconfig.Conf
+import scalafix.internal.compat.CompilerCompat._
 
-final class ExplicitResultTypes(config: ExplicitResultTypesConfig)
-    extends SemanticRule("ExplicitResultTypes") {
+final class ExplicitResultTypes(
+    config: ExplicitResultTypesConfig,
+    global: LazyValue[Option[ScalafixGlobal]]
+) extends SemanticRule("ExplicitResultTypes") {
 
-  def this() = this(ExplicitResultTypesConfig.default)
+  def this() = this(ExplicitResultTypesConfig.default, LazyValue.now(None))
 
   override def description: String =
-    "Inserts explicit annotations for inferred types of def/val/var"
+    "Inserts type annotations for inferred public members"
   override def isRewrite: Boolean = true
-  override def isExperimental: Boolean = true
 
-  override def withConfiguration(config: Configuration): Configured[Rule] =
-    config.conf // Support deprecated explicitReturnTypes config
-      .getOrElse("explicitReturnTypes", "ExplicitResultTypes")(
-        ExplicitResultTypesConfig.default
+  override def afterComplete(): Unit = {
+    shutdownCompiler()
+  }
+
+  private def shutdownCompiler(): Unit = {
+    global.foreach(_.foreach(g => {
+      try {
+        g.askShutdown()
+        g.closeCompat()
+      } catch {
+        case NonFatal(_) =>
+      }
+    }))
+  }
+
+  override def withConfiguration(config: Configuration): Configured[Rule] = {
+    val symbolReplacements =
+      config.conf.dynamic.ExplicitResultTypes.symbolReplacements
+        .as[Map[String, String]]
+        .getOrElse(Map.empty)
+    val newGlobal: LazyValue[Option[ScalafixGlobal]] =
+      if (config.scalacClasspath.isEmpty) {
+        LazyValue.now(None)
+      } else {
+        LazyValue.fromUnsafe { () =>
+          ScalafixGlobal.newCompiler(
+            config.scalacClasspath,
+            config.scalacOptions,
+            symbolReplacements
+          )
+        }
+      }
+    if (config.scalacClasspath.nonEmpty && config.scalaVersion != Properties.versionNumberString) {
+      Configured.typeMismatch(
+        s"scalaVersion=${Properties.versionNumberString}",
+        Conf.Obj("scalaVersion" -> Conf.Str(config.scalaVersion))
       )
-      .map(c => new ExplicitResultTypes(c))
+
+    } else {
+      config.conf // Support deprecated explicitReturnTypes config
+        .getOrElse("explicitReturnTypes", "ExplicitResultTypes")(
+          ExplicitResultTypesConfig.default
+        )
+        .map(c => new ExplicitResultTypes(c, newGlobal))
+    }
+  }
+
+  override def fix(implicit ctx: SemanticDocument): Patch = {
+    try unsafeFix()
+    catch {
+      case _: CompilerException =>
+        shutdownCompiler()
+        global.restart()
+        try unsafeFix()
+        catch {
+          case _: CompilerException if !config.fatalWarnings =>
+            // Ignore compiler crashes unless `fatalWarnings = true`.
+            Patch.empty
+        }
+    }
+  }
+  def unsafeFix()(implicit ctx: SemanticDocument): Patch = {
+    lazy val types = TypePrinter(global.value, config)
+    ctx.tree.collect {
+      case t @ Defn.Val(mods, Pat.Var(name) :: Nil, None, body)
+          if isRuleCandidate(t, name, mods, body) =>
+        fixDefinition(t, body, types)
+
+      case t @ Defn.Var(mods, Pat.Var(name) :: Nil, None, Some(body))
+          if isRuleCandidate(t, name, mods, body) =>
+        fixDefinition(t, body, types)
+
+      case t @ Defn.Def(mods, name, _, _, None, body)
+          if isRuleCandidate(t, name, mods, body) =>
+        fixDefinition(t, body, types)
+    }.asPatch
+  }
 
   // Don't explicitly annotate vals when the right-hand body is a single call
   // to `implicitly`. Prevents ambiguous implicit. Not annotating in such cases,
@@ -57,135 +130,77 @@ final class ExplicitResultTypes(config: ExplicitResultTypesConfig)
     case _: Defn.Def => MemberKind.Def
     case _: Defn.Var => MemberKind.Var
   }
-  import scala.meta.internal.{semanticdb => s}
-  def unsafeToType(
-      ctx: SemanticDocument,
-      pos: Position,
-      symbol: Symbol
-  ): PrettyResult[Type] = {
-    val info = ctx.internal.symtab
-      .info(symbol.value)
-      .getOrElse(throw new NoSuchElementException(symbol.value))
-    val tpe = info.signature match {
-      case method: s.MethodSignature =>
-        method.returnType
-      case value: s.ValueSignature =>
-        value.tpe
-      case els =>
-        throw new IllegalArgumentException(s"Unsupported signature $els")
-    }
-    PrettyType.toType(
-      tpe,
-      ctx.internal.symtab,
-      if (config.unsafeShortenNames) QualifyStrategy.Readable
-      else QualifyStrategy.Full,
-      fatalErrors = config.fatalWarnings
-    )
-  }
 
-  def toType(
-      pos: Position,
-      symbol: Symbol
-  )(implicit ctx: SemanticDocument): Option[PrettyResult[Type]] = {
-    try {
-      Some(unsafeToType(ctx, pos, symbol))
-    } catch {
-      case e: MissingSymbolException =>
-        if (config.fatalWarnings) {
-          ctx.internal.config.reporter.error(e.getMessage, pos)
-        } else {
-          // Silently discard failures from producing a new type.
-          // Errors are most likely caused by known upstream issue that have been reported in Scalameta.
-        }
-        None
+  def isRuleCandidate[D <: Defn](
+      defn: D,
+      nm: Name,
+      mods: Traversable[Mod],
+      body: Term
+  )(implicit ev: Extract[D, Mod], ctx: SemanticDocument): Boolean = {
+    import config._
+
+    def matchesMemberVisibility(): Boolean =
+      memberVisibility.contains(visibility(mods))
+
+    def matchesMemberKind(): Boolean =
+      kind(defn).exists(memberKind.contains)
+
+    def isFinalLiteralVal: Boolean =
+      defn.is[Defn.Val] &&
+        mods.exists(_.is[Mod.Final]) &&
+        body.is[Lit]
+
+    def matchesSimpleDefinition(): Boolean =
+      config.skipSimpleDefinitions.isSimpleDefinition(body)
+
+    def isImplicit: Boolean =
+      defn.hasMod(mod"implicit") && !isImplicitly(body)
+
+    def hasParentWihTemplate: Boolean =
+      defn.parent.exists(_.is[Template])
+
+    def isLocal: Boolean =
+      if (config.skipLocalImplicits) nm.symbol.isLocal
+      else false
+
+    isImplicit && !isFinalLiteralVal && !isLocal || {
+      hasParentWihTemplate &&
+      !defn.hasMod(mod"implicit") &&
+      !matchesSimpleDefinition() &&
+      matchesMemberKind() &&
+      matchesMemberVisibility()
     }
   }
 
-  override def fix(implicit ctx: SemanticDocument): Patch = {
-    def defnType(defn: Defn): Option[(Type, Patch)] =
-      for {
-        name <- defnName(defn)
-        defnSymbol <- name.symbol.asNonEmpty
-        result <- toType(name.pos, defnSymbol)
-      } yield {
-        val addGlobalImports = result.imports.map { s =>
-          val symbol = Symbol(s)
-          Patch.addGlobalImport(symbol)
-        }
-        result.tree -> addGlobalImports.asPatch
+  def defnType(defn: Defn, replace: Token, space: String, types: TypePrinter)(
+      implicit ctx: SemanticDocument
+  ): Option[Patch] =
+    for {
+      name <- defnName(defn)
+      defnSymbol <- name.symbol.asNonEmpty
+      patch <- types.toPatch(name.pos, defnSymbol, replace, defn, space)
+    } yield patch
+
+  def fixDefinition(defn: Defn, body: Term, types: TypePrinter)(
+      implicit ctx: SemanticDocument
+  ): Patch = {
+    val lst = ctx.tokenList
+    import lst._
+    for {
+      start <- defn.tokens.headOption
+      end <- body.tokens.headOption
+      // Left-hand side tokens in definition.
+      // Example: `val x = ` from `val x = rhs.banana`
+      lhsTokens = slice(start, end)
+      replace <- lhsTokens.reverseIterator.find(
+        x => !x.is[Token.Equals] && !x.is[Trivia]
+      )
+      space = {
+        if (TokenOps.needsLeadingSpaceBeforeColon(replace)) " "
+        else ""
       }
-    import scala.meta._
-    def fix(defn: Defn, body: Term): Patch = {
-      val lst = ctx.tokenList
-      import lst._
-      for {
-        start <- defn.tokens.headOption
-        end <- body.tokens.headOption
-        // Left-hand side tokens in definition.
-        // Example: `val x = ` from `val x = rhs.banana`
-        lhsTokens = slice(start, end)
-        replace <- lhsTokens.reverseIterator.find(
-          x => !x.is[Token.Equals] && !x.is[Trivia]
-        )
-        (typ, patch) <- defnType(defn)
-        space = {
-          if (TokenOps.needsLeadingSpaceBeforeColon(replace)) " "
-          else ""
-        }
-      } yield Patch.addRight(replace, s"$space: ${treeSyntax(typ)}") + patch
-    }.asPatch.atomic
+      patch <- defnType(defn, replace, space, types)
+    } yield patch
+  }.asPatch.atomic
 
-    def treeSyntax(tree: Tree): String =
-      ScalafixScalametaHacks.resetOrigin(tree).syntax
-
-    def isRuleCandidate[D <: Defn](
-        defn: D,
-        nm: Name,
-        mods: Traversable[Mod],
-        body: Term
-    )(implicit ev: Extract[D, Mod]): Boolean = {
-      import config._
-
-      def matchesMemberVisibility(): Boolean =
-        memberVisibility.contains(visibility(mods))
-
-      def matchesMemberKind(): Boolean =
-        kind(defn).exists(memberKind.contains)
-
-      def matchesSimpleDefinition(): Boolean =
-        body.is[Lit] && skipSimpleDefinitions
-
-      def isImplicit: Boolean =
-        defn.hasMod(mod"implicit") && !isImplicitly(body)
-
-      def hasParentWihTemplate: Boolean =
-        defn.parent.exists(_.is[Template])
-
-      def isLocal: Boolean =
-        if (config.skipLocalImplicits) nm.symbol.isLocal
-        else false
-
-      isImplicit && !isLocal || {
-        hasParentWihTemplate &&
-        !defn.hasMod(mod"implicit") &&
-        !matchesSimpleDefinition() &&
-        matchesMemberKind() &&
-        matchesMemberVisibility()
-      }
-    }
-
-    ctx.tree.collect {
-      case t @ Defn.Val(mods, Pat.Var(name) :: Nil, None, body)
-          if isRuleCandidate(t, name, mods, body) =>
-        fix(t, body)
-
-      case t @ Defn.Var(mods, Pat.Var(name) :: Nil, None, Some(body))
-          if isRuleCandidate(t, name, mods, body) =>
-        fix(t, body)
-
-      case t @ Defn.Def(mods, name, _, _, None, body)
-          if isRuleCandidate(t, name, mods, body) =>
-        fix(t, body)
-    }.asPatch
-  }
 }

@@ -71,14 +71,19 @@ object ImportPatchOps {
   )(implicit index: SemanticdbIndex): Iterable[Patch] = {
     val allImports = ctx.tree.collect { case i: Import => i }
     val allImporters = allImports.flatMap(_.importers)
-    lazy val allImportersSyntax = allImporters.map(_.syntax)
+    lazy val allGlobalImportersSyntax = (for {
+      importer <- allImporters.iterator
+      p1 <- importer.parent
+      p2 <- p1.parent
+      if p2.is[Pkg]
+    } yield importer.syntax).toSet
     val allImportees = allImporters.flatMap(_.importees)
-    val allNamedImports = allImportees.collect {
+    lazy val allNamedImports = allImportees.collect {
       case Importee.Name(n) if index.symbol(n).isDefined =>
         n.symbol
       // TODO(olafur) handle rename.
     }
-    val allImporteeSymbols = allImportees.flatMap(
+    lazy val allImporteeSymbols = allImportees.flatMap(
       importee => importee.symbol.map(_.normalized -> importee)
     )
     val globalImports = getGlobalImports(ctx.tree)
@@ -96,15 +101,19 @@ object ImportPatchOps {
       case _ =>
     }
     val importersToAdd = {
-      val isAlreadyImported = mutable.Set.empty[Symbol]
-      for { // register global imports
-        import_ <- globalImports
-        importer <- import_.importers
-        importee <- importer.importees
-        symbol <- index.symbol(importee).toList
-        underlying <- SymbolOps.underlyingSymbols(symbol)
-      } {
-        isAlreadyImported += underlying
+      val isAddedImporter = mutable.Set.empty[String]
+      lazy val isAlreadyImported = {
+        val isImported = mutable.Set.empty[Symbol]
+        for { // register global imports
+          import_ <- globalImports
+          importer <- import_.importers
+          importee <- importer.importees
+          symbol <- index.symbol(importee).toList
+          underlying <- SymbolOps.underlyingSymbols(symbol)
+        } {
+          isImported += underlying
+        }
+        isImported
       }
       importPatches.flatMap {
         case AddGlobalSymbol(symbol)
@@ -115,7 +124,9 @@ object ImportPatchOps {
           SymbolOps.toImporter(symbol).toList
         case AddGlobalImport(importer)
             // best effort deduplication for syntactic addGlobalImport(Importer)
-            if !allImportersSyntax.contains(importer.syntax) =>
+            if !allGlobalImportersSyntax.contains(importer.syntax) &&
+              !isAddedImporter(importer.syntax) =>
+          isAddedImporter += importer.syntax
           importer :: Nil
         case _ => Nil
       }

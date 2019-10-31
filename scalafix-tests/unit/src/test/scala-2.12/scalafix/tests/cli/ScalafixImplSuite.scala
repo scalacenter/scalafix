@@ -24,6 +24,7 @@ import scalafix.internal.reflect.RuleCompiler
 import scalafix.test.StringFS
 import scalafix.testkit.DiffAssertions
 import scalafix.{interfaces => i}
+import scala.util.Properties
 
 class ScalafixImplSuite extends FunSuite with DiffAssertions {
   def semanticdbPluginPath(): String = {
@@ -77,7 +78,7 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
     val isRewrite = rules.filter(_.isRewrite)
     assert(isRewrite.nonEmpty)
     val isExperimental = rules.filter(_.isExperimental)
-    assert(isExperimental.nonEmpty)
+    assert(isExperimental.isEmpty)
   }
 
   test("error") {
@@ -183,7 +184,7 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
       .withMode(ScalafixMainMode.CHECK)
       .withToolClasspath(toolClasspath)
       .withScalacOptions(Collections.singletonList("-Ywarn-unused-import"))
-      .withScalaVersion("2.11.12")
+      .withScalaVersion(Properties.versionNumberString)
       .withConfig(Optional.empty())
     val expectedRulesToRun = List(
       "ProcedureSyntax",
@@ -198,7 +199,7 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
       expectedRulesToRun.sorted.mkString("\n")
     )
     val validateError = args.validate()
-    assert(!validateError.isPresent)
+    assert(!validateError.isPresent, validateError)
     val errors = args.run().toList.map(_.toString).sorted
     val stdout = fansi
       .Str(out.toString(charset.name()))
@@ -235,7 +236,7 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
          |   val a = 1; // ??? ???
          |-  implicit val b = List(1)
          |-  def main { println(42) }
-         |+  implicit val b: _root_.scala.collection.immutable.List[_root_.scala.Int] = List(1)
+         |+  implicit val b: List[Int] = List(1)
          |+  def main: Unit = { println(42) }
          | }
          |+// Hello world!

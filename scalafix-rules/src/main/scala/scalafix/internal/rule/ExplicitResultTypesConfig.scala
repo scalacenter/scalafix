@@ -4,35 +4,42 @@ import metaconfig._
 import metaconfig.generic.Surface
 import metaconfig.annotation._
 import scalafix.internal.config._
+import metaconfig.Conf.Bool
+import metaconfig.Conf.Lst
+import metaconfig.Conf.Str
+import scala.{meta => m}
 
 case class ExplicitResultTypesConfig(
     @Description("Enable/disable this rule for defs, vals or vars.")
     @ExampleValue("[Def, Val, Var]")
-    memberKind: List[MemberKind] = Nil,
+    memberKind: List[MemberKind] =
+      List(MemberKind.Def, MemberKind.Val, MemberKind.Var),
     @Description("Enable/disable this rule for private/protected members.")
     @ExampleValue("[Public, Protected]")
-    memberVisibility: List[MemberVisibility] = Nil,
+    memberVisibility: List[MemberVisibility] =
+      List(MemberVisibility.Public, MemberVisibility.Protected),
     @Description(
       "If false, insert explicit result types even for simple definitions like `val x = 2`"
     )
-    skipSimpleDefinitions: Boolean = true,
+    @ExampleValue("['Lit', 'Term.New']")
+    skipSimpleDefinitions: SimpleDefinitions = SimpleDefinitions.default,
     @Description(
       "If false, insert explicit result types even for locally defined implicit vals"
     )
     skipLocalImplicits: Boolean = true,
-    // Experimental, still blocked by https://github.com/scalameta/scalameta/issues/1099
-    // to work for defs. May insert names that conflicts with existing names in scope.
-    // Use at your own risk.
-    @Description(
-      "If true, does a best-effort at inserting short names and add missing imports. " +
-        "WARNING. This feature is currently implemented in a naive way and it contains many bugs."
-    )
-    unsafeShortenNames: Boolean = false,
     @Description(
       "If true, report and fail unexpected errors. " +
         "If false, silently ignore errors to produce an explicit result type."
     )
-    fatalWarnings: Boolean = false
+    fatalWarnings: Boolean = false,
+    @Description(
+      "If false, disables rewriting of inferred structural types to named subclasses. " +
+        "Beware that this option may produce code that no longer compiles if it previously " +
+        " used `scala.language.reflectiveCalls` to access methods on structural types."
+    )
+    rewriteStructuralTypesToNamedSubclass: Boolean = true,
+    @Hidden()
+    symbolReplacements: Map[String, String] = Map.empty
 )
 
 object ExplicitResultTypesConfig {
@@ -43,6 +50,44 @@ object ExplicitResultTypesConfig {
     generic.deriveSurface[ExplicitResultTypesConfig]
 }
 
+case class SimpleDefinitions(kinds: Set[String]) {
+  private def isSimpleRef(tree: m.Tree): Boolean = tree match {
+    case _: m.Name => true
+    case t: m.Term.Select => isSimpleRef(t.qual)
+    case _ => false
+  }
+
+  def isSimpleDefinition(body: m.Term): Boolean = {
+    val kind =
+      if (body.is[m.Lit]) Some("Lit")
+      else if (body.is[m.Term.New]) Some("Term.New")
+      else if (isSimpleRef(body)) Some("Term.Ref")
+      else None
+    kind.exists(kinds.contains)
+  }
+}
+object SimpleDefinitions {
+  def allKinds = Set("Term.Ref", "Lit", "Term.New")
+  def default = SimpleDefinitions(allKinds)
+  implicit val encoder: ConfEncoder[SimpleDefinitions] =
+    ConfEncoder.instance[SimpleDefinitions](
+      x => Conf.Lst(x.kinds.toList.map(Conf.Str(_)))
+    )
+  implicit val decoder: ConfDecoder[SimpleDefinitions] =
+    ConfDecoder.instanceExpect[SimpleDefinitions]("List[String]") {
+      case Bool(false) => Configured.ok(SimpleDefinitions(Set.empty))
+      case Bool(true) => Configured.ok(SimpleDefinitions(Set.empty))
+      case conf @ Lst(values) =>
+        val strings = values.collect {
+          case Str(kind) => kind
+        }
+        if (strings.length == values.length) {
+          Configured.ok(SimpleDefinitions(strings.toSet))
+        } else {
+          Configured.typeMismatch("List[String]", conf)
+        }
+    }
+}
 sealed trait MemberVisibility
 object MemberVisibility {
   case object Public extends MemberVisibility

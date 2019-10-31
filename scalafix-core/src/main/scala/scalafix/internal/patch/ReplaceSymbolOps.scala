@@ -21,6 +21,7 @@ object ReplaceSymbolOps {
   def naiveMoveSymbolPatch(
       moveSymbols: Seq[ReplaceSymbol]
   )(implicit ctx: RuleCtx, index: SemanticdbIndex): Patch = {
+    if (moveSymbols.isEmpty) return Patch.empty
     val moves: Map[String, Symbol.Global] =
       moveSymbols.toIterator.flatMap {
         case ReplaceSymbol(

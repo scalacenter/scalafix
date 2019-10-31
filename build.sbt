@@ -3,9 +3,12 @@ inThisBuild(
   List(
     onLoadMessage := s"Welcome to scalafix ${version.value}",
     scalaVersion := scala212,
-    crossScalaVersions := List(scala212, scala211)
+    crossScalaVersions := List(scala212, scala211),
+    fork.in(Test, test) := true
   )
 )
+
+cancelable.in(Global) := true
 
 noPublish
 
@@ -69,7 +72,8 @@ lazy val rules = project
   .in(file("scalafix-rules"))
   .settings(
     moduleName := "scalafix-rules",
-    description := "Built-in Scalafix rules"
+    description := "Built-in Scalafix rules",
+    libraryDependencies += "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
   )
   .dependsOn(core)
 
@@ -93,6 +97,7 @@ lazy val cli = project
     mainClass in assembly := Some("scalafix.v1.Main"),
     assemblyJarName in assembly := "scalafix.jar",
     libraryDependencies ++= Seq(
+      "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0",
       "com.martiansoftware" % "nailgun-server" % "0.9.1",
       jgit,
       "ch.qos.logback" % "logback-classic" % "1.2.3",
@@ -126,6 +131,7 @@ lazy val testsInput = project
     scalacOptions += warnUnusedImports.value, // For RemoveUnused
     scalacOptions += "-Ywarn-unused", // For RemoveUnusedTerms
     logLevel := Level.Error, // avoid flood of compiler warnings
+    libraryDependencies += "com.twitter" %% "bijection-core" % "0.9.5",
     testsInputOutputSetting,
     coverageEnabled := false
   )
@@ -140,7 +146,8 @@ lazy val testsOutput = project
       "-Xlint"
     ),
     testsInputOutputSetting,
-    coverageEnabled := false
+    coverageEnabled := false,
+    libraryDependencies += "com.twitter" %% "bijection-core" % "0.9.5"
   )
 
 lazy val testkit = project
@@ -170,7 +177,8 @@ lazy val unit = project
     libraryDependencies ++= List(
       jgit,
       semanticdbPluginLibrary,
-      scalatest
+      scalatest,
+      "org.scalameta" %% "testkit" % scalametaV
     ),
     compileInputs.in(Compile, compile) := {
       compileInputs

@@ -43,7 +43,8 @@ object RuleTest {
           doc,
           test.semanticdbPath,
           classLoader,
-          symtab
+          symtab,
+          () => None
         )
       val decoderSettings =
         RuleDecoder.Settings().withConfig(scalafixConfig)
@@ -55,6 +56,7 @@ object RuleTest {
         .withConf(conf)
         .withScalaVersion(props.scalaVersion)
         .withScalacOptions(props.scalacOptions)
+        .withScalacClasspath(props.inputClasspath.entries)
       val rules = decoder.read(rulesConf).get.withConfiguration(config).get
       (rules, sdoc)
     }

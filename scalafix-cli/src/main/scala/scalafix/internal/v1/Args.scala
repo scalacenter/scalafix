@@ -37,6 +37,9 @@ import scalafix.internal.jgit.JGitDiff
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.v1.Configuration
 import scalafix.v1.RuleDecoder
+import scala.tools.nsc.interactive.Global
+import scala.tools.nsc.Settings
+import scala.tools.nsc.reporters.ConsoleReporter
 
 class Section(val name: String) extends StaticAnnotation
 
@@ -257,11 +260,11 @@ case class Args(
   ): Configured[Rules] = {
     val rulesConf = this.rulesConf(() => base)
     val decoder = ruleDecoder(scalafixConfig)
-
     val configuration = Configuration()
       .withConf(base)
       .withScalaVersion(scalaVersion)
       .withScalacOptions(scalacOptions)
+      .withScalacClasspath(validatedClasspath.entries)
     decoder.read(rulesConf).andThen(_.withConfiguration(configuration))
   }
 
@@ -348,6 +351,15 @@ case class Args(
     }
   }
 
+  def configuredGlobal: Configured[LazyValue[Option[Global]]] =
+    Configured.ok {
+      val settings = new Settings()
+      settings.YpresentationAnyThread.value = true
+      settings.classpath.value = validatedClasspath.syntax
+      val reporter = new ConsoleReporter(settings)
+      LazyValue.fromUnsafe(() => new Global(settings, reporter))
+    }
+
   def validate: Configured[ValidatedArgs] = {
     baseConfig.andThen {
       case (base, scalafixConfig, delegator) =>
@@ -356,9 +368,13 @@ case class Args(
             configuredSymtab |@|
             configuredRules(base, scalafixConfig) |@|
             resolvedPathReplace |@|
-            configuredDiffDisable
+            configuredDiffDisable |@|
+            configuredGlobal
         ).map {
-          case ((((root, symtab), rulez), pathReplace), diffDisable) =>
+          case (
+              ((((root, symtab), rulez), pathReplace), diffDisable),
+              global
+              ) =>
             ValidatedArgs(
               this,
               symtab,
@@ -369,7 +385,8 @@ case class Args(
               pathReplace,
               diffDisable,
               delegator,
-              semanticdbFilterMatcher
+              semanticdbFilterMatcher,
+              global
             )
         }
     }

@@ -40,12 +40,13 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
   ): ScalafixArguments =
     copy(args = args.copy(toolClasspath = classLoader))
 
-  override def withPaths(paths: util.List[Path]): ScalafixArguments =
+  override def withPaths(paths: util.List[Path]): ScalafixArguments = {
     copy(
       args = args.copy(
         files = paths.asScala.iterator.map(AbsolutePath(_)(args.cwd)).toList
       )
     )
+  }
 
   override def withExcludedPaths(
       matchers: util.List[PathMatcher]

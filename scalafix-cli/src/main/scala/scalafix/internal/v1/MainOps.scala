@@ -35,6 +35,7 @@ import scalafix.internal.config.PrintStreamReporter
 import scalafix.internal.diff.DiffUtils
 import scalafix.v1.SyntacticDocument
 import scalafix.v1.SemanticDocument
+import scala.meta.interactive.InteractiveSemanticdb
 
 object MainOps {
 
@@ -185,6 +186,33 @@ object MainOps {
     }
   }
 
+  def compileWithGlobal(
+      args: ValidatedArgs,
+      doc: SyntacticDocument
+  ): Option[TextDocument] = {
+    args.global.value.map { g =>
+      val result = try {
+        InteractiveSemanticdb.toTextDocument(
+          g,
+          doc.input.text,
+          doc.internal.input.syntax,
+          10000,
+          Nil
+        )
+      } catch {
+        case NonFatal(_) =>
+          args.global.restart()
+          TextDocument.defaultInstance
+      }
+      g.unitOfFile.clear()
+      result.withMd5(
+        FingerprintOps.md5(
+          StandardCharsets.UTF_8.encode(CharBuffer.wrap(doc.input.chars))
+        )
+      )
+    }
+  }
+
   def unsafeHandleFile(args: ValidatedArgs, file: AbsolutePath): ExitStatus = {
     val input = args.input(file)
     val tree = LazyValue.later { () =>
@@ -198,7 +226,8 @@ object MainOps {
           doc,
           relpath,
           args.classLoader,
-          args.symtab
+          args.symtab,
+          () => compileWithGlobal(args, doc)
         )
         val (fix, messages) =
           args.rules.semanticPatch(sdoc, args.args.autoSuppressLinterErrors)
@@ -261,7 +290,14 @@ object MainOps {
       case NonFatal(e) =>
         val ex = FileException(file, e)
         trimStackTrace(ex, untilMethod = "handleFile")
-        ex.printStackTrace(args.args.out)
+        e match {
+          case _: java.lang.AssertionError
+              if e.getMessage() != null &&
+                e.getMessage().startsWith("assertion failed:") &&
+                e.getMessage().contains("reconstructed args: ") =>
+          case _ =>
+            ex.printStackTrace(args.args.out)
+        }
         ExitStatus.UnexpectedError
     }
   }

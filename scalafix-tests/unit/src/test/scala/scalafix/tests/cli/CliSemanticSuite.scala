@@ -8,6 +8,7 @@ import scala.meta.internal.io.FileIO
 import scala.meta.io.Classpath
 import scalafix.cli._
 import scalafix.tests.core.Classpaths
+import scala.meta.testkit.StringFS
 
 class CliSemanticSuite extends BaseCliSuite {
 
@@ -215,5 +216,42 @@ class CliSemanticSuite extends BaseCliSuite {
     },
     expectedExit = ExitStatus.Ok
   )
+
+  test("ondemand") {
+    val root = StringFS.fromString(
+      """
+        |/NoSemanticdb.scala
+        |package a
+        |object NoSemanticdb {
+        |  def foo = Option.empty[Int]
+        |}
+        |/.scalafix.conf
+        |rules = ExplicitResultTypes
+        |ExplicitResultTypes.memberKind = [Val, Def, Var]
+        |ExplicitResultTypes.memberVisibility = [Public, Protected]
+        |""".stripMargin
+    )
+    val (out, exit) = runMain(
+      Array(
+        "--files",
+        "NoSemanticdb.scala",
+        "--classpath",
+        defaultClasspath
+      ),
+      root.toNIO
+    )
+    assert(exit.isOk)
+    val obtained =
+      FileIO.slurp(root.resolve("NoSemanticdb.scala"), StandardCharsets.UTF_8)
+    assertNoDiff(
+      obtained,
+      """
+        |package a
+        |object NoSemanticdb {
+        |  def foo: Option[Int] = Option.empty[Int]
+        |}
+        |""".stripMargin
+    )
+  }
 
 }
