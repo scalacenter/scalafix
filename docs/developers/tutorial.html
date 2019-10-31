@@ -367,8 +367,8 @@ some cases we might want an error for other types of literals such as magic
 <strong>numbers</strong> and <strong>strings</strong>. Since users may have different preferences, let's
 allow them to decide which literal types to prohibit through configuration in
 <code>.scalafix.conf</code></p>
-<pre><code class="hljs css language-conf"><span class="hljs-comment">// .scalafix.conf</span>
-NoLiteralArguments<span class="hljs-selector-class">.disabledLiterals</span> = [
+<pre><code class="hljs css language-conf"><span class="hljs-string">//</span> <span class="hljs-string">.scalafix.conf</span>
+NoLiteralArguments.disabledLiterals = [
   <span class="hljs-string">"Int"</span>,
   <span class="hljs-string">"String"</span>,
   <span class="hljs-string">"Boolean"</span>

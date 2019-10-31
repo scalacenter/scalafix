@@ -135,7 +135,7 @@ printTypeSymbol(getType(<span class="hljs-type">Symbol</span>(<span class="hljs-
 <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Main</span></span>
 <span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">Main</span> </span>{
   <span class="hljs-keyword">val</span> a: <span class="hljs-type">Main</span> <span class="hljs-keyword">with</span> <span class="hljs-type">Serializable</span> = ???
-  <span class="hljs-keyword">val</span> b: <span class="hljs-type">Main</span>.<span class="hljs-keyword">type</span> = <span class="hljs-keyword">this</span>
+  <span class="hljs-keyword">val</span> b: <span class="hljs-type">Main</span><span class="hljs-class">.<span class="hljs-keyword">type</span> </span>= <span class="hljs-keyword">this</span>
 }
 </code></pre>
 <p>The <code>printTypeSymbol</code> method crashes on non-<code>TypeRef</code> types.</p>
