@@ -166,6 +166,7 @@ final class DisableSyntax(config: DisableSyntaxConfig)
       def isProhibited(v: Pat): Boolean = v match {
         case _: Pat.Tuple => false
         case _: Pat.Var => false
+        case _: Pat.Wildcard => false
         case _ => true
       }
     }
