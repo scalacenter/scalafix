@@ -38,7 +38,12 @@ object ImportPatchOps {
       case Source((stat: Pkg) :: _) => loop(stat)
       case Source(_) => ctx.toks(tree).head
       case Pkg(_, stat :: _) => loop(stat)
-      case els => ctx.tokenList.prev(ctx.tokenList.prev(ctx.toks(els).head))
+      case els =>
+        ctx.tokenList.prev(ctx.tokenList.prev(ctx.toks(els).head)) match {
+          case comment @ Token.Comment(_) =>
+            ctx.tokenList.prev(ctx.tokenList.prev(comment))
+          case other => other
+        }
     }
     loop(ctx.tree)
   }
