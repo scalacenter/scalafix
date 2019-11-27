@@ -97,6 +97,26 @@ class PatchSuite extends SyntacticRuleSuite {
       |""".stripMargin
   )
 
+  check(
+    addGlobalImporter,
+    "addGlobalImporter skip a comment preceding the first statement",
+    """package foo.bar
+      |
+      |/**
+      | * API docs here
+      | */
+      |object A
+      |""".stripMargin,
+    """package foo.bar
+      |
+      |import scala.collection.{ mutable => _ }
+      |/**
+      | * API docs here
+      | */
+      |object A
+      |""".stripMargin
+  )
+
   val tree = Input.String(original).parse[Source].get
 
   test("Patch.empty") {
