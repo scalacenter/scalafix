@@ -26,18 +26,23 @@ class RemoveUnused(config: RemoveUnusedConfig)
     "Removes unused imports and terms that reported by the compiler under -Ywarn-unused"
   override def isRewrite: Boolean = true
 
-  override def withConfiguration(config: Configuration): Configured[Rule] =
-    if (!config.scalacOptions.exists(_.startsWith("-Ywarn-unused"))) {
+  private def warnUnusedPrefix = List("-Wunused", "-Ywarn-unused")
+  override def withConfiguration(config: Configuration): Configured[Rule] = {
+    val hasWarnUnused = config.scalacOptions.exists(
+      option => warnUnusedPrefix.exists(prefix => option.startsWith(prefix))
+    )
+    if (!hasWarnUnused) {
       Configured.error(
-        """|The Scala compiler option "-Ywarn-unused" is required to use RemoveUnused.
-           |To fix this problem, update your build to use at least one Scala compiler
-           |option that starts with "-Ywarn-unused"""".stripMargin
+        s"""|The Scala compiler option "-Ywarn-unused" is required to use RemoveUnused.
+            |To fix this problem, update your build to use at least one Scala compiler
+            |option that starts with -Ywarn-unused or -Wunused (2.13 only)""".stripMargin
       )
     } else {
       config.conf
         .getOrElse("RemoveUnused")(this.config)
         .map(new RemoveUnused(_))
     }
+  }
 
   override def fix(implicit doc: SemanticDocument): Patch = {
     val isUnusedTerm = mutable.Set.empty[Position]

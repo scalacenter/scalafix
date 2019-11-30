@@ -10,15 +10,13 @@ pull request is tested on both Linux and Windows.
 
 **Java 8 or Java 11.**
 
-**Scala 2.11 or 2.12**: Scalafix works only with the latest version of Scala
-2.11 and Scala 2.12. See
-[scalameta/scalameta#1695](https://github.com/scalameta/scalameta/issues/1695)
-for updates on adding support for Scala 2.13 once it's out.
+**Scala 2.11, 2.12 or 2.13**: Scalafix works only with the latest version of Scala
+2.11,  Scala 2.12 and Scala 2.13. 
 
-| Scalafix  | Scala Compiler          | Scalameta   |
-| --------- | ----------------------- | ----------- |
-| @VERSION@ | @SCALA211@ / @SCALA212@ | @SCALAMETA@ |
-| 0.5.10    | 2.11.12 / 2.12.4        | 2.1.7       |
+| Scalafix  | Scala Compiler                       | Scalameta   |
+| --------- | ------------------------------------ | ----------- |
+| @VERSION@ | @SCALA211@ / @SCALA212@ / @SCALA213@ | @SCALAMETA@ |
+| 0.5.10    | 2.11.12 / 2.12.4                     | 2.1.7       |
 
 ## sbt
 
@@ -307,7 +305,7 @@ session.
 ```
 > scalafixEnable
 ...
-> scalafix ExplicitResultTypes
+> scalafix RemoveUnused
 ```
 
 The `scalafixEnable` command automatically runs
@@ -383,7 +381,8 @@ coursier bootstrap ch.epfl.scala:scalafix-cli_@SCALA212@:@VERSION@ -f --main sca
 
 ## Maven
 
-It is possible to use scalafix in Maven with the following externally maintained plugin:
+It is possible to use scalafix in Maven with the following externally maintained
+plugin:
 
 - [scalafix-maven-plugin](https://github.com/evis/scalafix-maven-plugin)
 
