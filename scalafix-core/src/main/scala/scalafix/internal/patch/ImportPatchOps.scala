@@ -88,8 +88,8 @@ object ImportPatchOps {
         n.symbol
       // TODO(olafur) handle rename.
     }
-    lazy val allImporteeSymbols = allImportees.flatMap(
-      importee => importee.symbol.map(_.normalized -> importee)
+    lazy val allImporteeSymbols = allImportees.flatMap(importee =>
+      importee.symbol.map(_.normalized -> importee)
     )
     val globalImports = getGlobalImports(ctx.tree)
     val editToken: Token = {
@@ -247,17 +247,16 @@ object ImportPatchOps {
       var newline = false
       ctx.tokenList
         .leading(ctx.toks(i).head)
-        .takeWhile(
-          x =>
-            !newline && {
-              x.is[Token.Space] || {
-                val isNewline = x.is[Newline]
-                if (isNewline) {
-                  newline = true
-                }
-                isNewline
+        .takeWhile(x =>
+          !newline && {
+            x.is[Token.Space] || {
+              val isNewline = x.is[Newline]
+              if (isNewline) {
+                newline = true
               }
+              isNewline
             }
+          }
         )
         .map(tok => ctx.removeToken(tok))
         .asPatch

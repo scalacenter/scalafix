@@ -30,12 +30,11 @@ object SuppressOps {
 
   def addComments(tokens: Tokens, positions: List[Position]): Patch =
     positions
-      .map(
-        pos =>
-          findClosestLeadingToken(tokens, pos) match {
-            case Some(token) => Patch.addRight(token, "/* scalafix:ok */")
-            case _ => Patch.empty
-          }
+      .map(pos =>
+        findClosestLeadingToken(tokens, pos) match {
+          case Some(token) => Patch.addRight(token, "/* scalafix:ok */")
+          case _ => Patch.empty
+        }
       )
       .asPatch
 }

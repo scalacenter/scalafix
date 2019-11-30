@@ -34,13 +34,12 @@ object CustomMessage {
           obj.getOption[String]("id")).map {
           case ((value, message0), id) =>
             val message =
-              message0.map(
-                msg =>
-                  if (msg.contains("\n")) {
-                    "\n" + msg.stripMargin
-                  } else {
-                    msg
-                  }
+              message0.map(msg =>
+                if (msg.contains("\n")) {
+                  "\n" + msg.stripMargin
+                } else {
+                  msg
+                }
               )
 
             new CustomMessage(value, message, id)

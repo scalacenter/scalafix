@@ -28,8 +28,8 @@ class RemoveUnused(config: RemoveUnusedConfig)
 
   private def warnUnusedPrefix = List("-Wunused", "-Ywarn-unused")
   override def withConfiguration(config: Configuration): Configured[Rule] = {
-    val hasWarnUnused = config.scalacOptions.exists(
-      option => warnUnusedPrefix.exists(prefix => option.startsWith(prefix))
+    val hasWarnUnused = config.scalacOptions.exists(option =>
+      warnUnusedPrefix.exists(prefix => option.startsWith(prefix))
     )
     if (!hasWarnUnused) {
       Configured.error(

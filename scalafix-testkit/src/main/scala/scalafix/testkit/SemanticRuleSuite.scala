@@ -111,8 +111,8 @@ abstract class SemanticRuleSuite(
 object SemanticRuleSuite {
   def defaultClasspath(classDirectory: AbsolutePath) = Classpath(
     classDirectory ::
-      RuleCompiler.defaultClasspathPaths.filter(
-        path => path.toNIO.getFileName.toString.contains("scala-library")
+      RuleCompiler.defaultClasspathPaths.filter(path =>
+        path.toNIO.getFileName.toString.contains("scala-library")
       )
   )
 

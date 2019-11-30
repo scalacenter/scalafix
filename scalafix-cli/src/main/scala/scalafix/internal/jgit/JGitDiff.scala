@@ -50,15 +50,14 @@ object JGitDiff {
                 ModifiedFile(path(file.getNewPath), changes.toList)
               }
               val diffs =
-                getDiff(repository, oldTree, newTree).flatMap(
-                  file =>
-                    file.getChangeType match {
-                      case ADD => List(NewFile(path(file.getNewPath)))
-                      case MODIFY => List(edits(file))
-                      case RENAME => List(edits(file))
-                      case COPY => List(edits(file))
-                      case DELETE => Nil
-                    }
+                getDiff(repository, oldTree, newTree).flatMap(file =>
+                  file.getChangeType match {
+                    case ADD => List(NewFile(path(file.getNewPath)))
+                    case MODIFY => List(edits(file))
+                    case RENAME => List(edits(file))
+                    case COPY => List(edits(file))
+                    case DELETE => Nil
+                  }
                 )
 
               Configured.Ok(DiffDisable(diffs))
