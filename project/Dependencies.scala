@@ -7,7 +7,7 @@ object Dependencies {
   def scala210 = "2.10.7"
   def scala211 = "2.11.12"
   def scala212 = "2.12.10"
-  def scala213 = "2.13.0"
+  def scala213 = "2.13.1"
   val currentScalaVersion = scala212
 
   val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % "4.5.4.201711221230-r"

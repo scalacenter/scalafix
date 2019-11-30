@@ -4,13 +4,15 @@ id: NoAutoTupling
 title: NoAutoTupling
 ---
 
+> ⚠️ This rule does not work with Scala 2.13 since `-Yno-adapter-args` has been
+> removed.
+
 Adds explicit tuples around argument lists where auto-tupling is occurring.
 
 To use this rule:
 
 - enable `-Ywarn-adapted-args` (note, `-Yno-adapted-args` will fail compilation,
   which prevents scalafix from running)
-
 - disable `-Xfatal-warnings`. Unfortunately, the Scala compiler does not support
   finer grained control over the severity level per message kind. See
   [scalameta/scalameta#924](https://github.com/scalameta/scalameta/issues/924)
@@ -29,7 +31,8 @@ Auto-tupling is a feature that can lead to unexpected results, making code to
 compile when one would expect a compiler error instead. Adding explicit tuples
 makes it more obvious.
 
-> Some auto-tupling cases are left unfixed, namely the ones involving constructor application using `new`
+> Some auto-tupling cases are left unfixed, namely the ones involving
+> constructor application using `new`
 
 ```scala
 case class Foo(x: (String, Boolean))

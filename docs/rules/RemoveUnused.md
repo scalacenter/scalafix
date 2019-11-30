@@ -14,8 +14,8 @@ example diff from running `sbt "scalafix RemoveUnused"`.
 
 To use this rule:
 
-- Enable the Scala compiler option `-Ywarn-unused`. In sbt, this is done with
-  `scalacOptions += "-Ywarn-unused"`.
+- Enable the Scala compiler option `-Ywarn-unused` (or `-Wunused` in 2.13). In
+  sbt, this is done with `scalacOptions += "-Ywarn-unused"`.
 - Disable `-Xfatal-warnings` if you have it enabled. This is required so the
   compiler warnings do not fail the build before running Scalafix.
   Unfortunately, it's not possible exclude unused imports from -Xfatal-warnings.

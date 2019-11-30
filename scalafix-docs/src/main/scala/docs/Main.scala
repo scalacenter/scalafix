@@ -37,6 +37,7 @@ sidebar_label: Guide
         Map(
           "SEMANTICDB" -> "[SemanticDB](https://scalameta.org/docs/semanticdb/specification.html)",
           "GITTER" -> "[Gitter](http://gitter.im/scalacenter/scalafix)",
+          "SCALA213" -> Versions.scala213,
           "SCALA212" -> Versions.scala212,
           "SCALA211" -> Versions.scala211,
           "NIGHTLY_VERSION" -> Versions.version,

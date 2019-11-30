@@ -20,8 +20,10 @@ final class ExplicitResultTypes(
 
   def this() = this(ExplicitResultTypesConfig.default, LazyValue.now(None))
 
+  private def supportedScalaVersion = Properties.versionNumberString
   override def description: String =
-    "Inserts type annotations for inferred public members"
+    "Inserts type annotations for inferred public members. " +
+      s"Only compatible with Scala $supportedScalaVersion."
   override def isRewrite: Boolean = true
 
   override def afterComplete(): Unit = {
@@ -56,7 +58,7 @@ final class ExplicitResultTypes(
           )
         }
       }
-    if (config.scalacClasspath.nonEmpty && config.scalaVersion != Properties.versionNumberString) {
+    if (config.scalacClasspath.nonEmpty && config.scalaVersion != supportedScalaVersion) {
       Configured.typeMismatch(
         s"scalaVersion=${Properties.versionNumberString}",
         Conf.Obj("scalaVersion" -> Conf.Str(config.scalaVersion))
