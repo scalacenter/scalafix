@@ -337,8 +337,8 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
               !isPossibleSyntheticParent(parent)
             }
             val hasMeaningfulDeclaration =
-              sym.info.decls.exists(
-                decl => !decl.isOverridingSymbol && !decl.isConstructor
+              sym.info.decls.exists(decl =>
+                !decl.isOverridingSymbol && !decl.isConstructor
               )
             if (hasMeaningfulParent && !hasMeaningfulDeclaration) {
               loop(RefinedType(sym.info.parents, EmptyScope))

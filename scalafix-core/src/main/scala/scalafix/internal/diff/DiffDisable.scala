@@ -49,12 +49,11 @@ class FullDiffDisable(diffs: List[GitDiff]) extends DiffDisable {
       val endLine = position.endLine
       modifiedFiles
         .get(position.input.syntax)
-        .fold(false)(
-          interval =>
-            interval.intersects(
-              startLine,
-              endLine
-            )
+        .fold(false)(interval =>
+          interval.intersects(
+            startLine,
+            endLine
+          )
         )
     }
 

@@ -70,8 +70,8 @@ object SimpleDefinitions {
   def allKinds = Set("Term.Ref", "Lit", "Term.New")
   def default = SimpleDefinitions(allKinds)
   implicit val encoder: ConfEncoder[SimpleDefinitions] =
-    ConfEncoder.instance[SimpleDefinitions](
-      x => Conf.Lst(x.kinds.toList.map(Conf.Str(_)))
+    ConfEncoder.instance[SimpleDefinitions](x =>
+      Conf.Lst(x.kinds.toList.map(Conf.Str(_)))
     )
   implicit val decoder: ConfDecoder[SimpleDefinitions] =
     ConfDecoder.instanceExpect[SimpleDefinitions]("List[String]") {

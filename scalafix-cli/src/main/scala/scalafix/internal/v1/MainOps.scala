@@ -191,19 +191,20 @@ object MainOps {
       doc: SyntacticDocument
   ): Option[TextDocument] = {
     args.global.value.map { g =>
-      val result = try {
-        InteractiveSemanticdb.toTextDocument(
-          g,
-          doc.input.text,
-          doc.internal.input.syntax,
-          10000,
-          Nil
-        )
-      } catch {
-        case NonFatal(_) =>
-          args.global.restart()
-          TextDocument.defaultInstance
-      }
+      val result =
+        try {
+          InteractiveSemanticdb.toTextDocument(
+            g,
+            doc.input.text,
+            doc.internal.input.syntax,
+            10000,
+            Nil
+          )
+        } catch {
+          case NonFatal(_) =>
+            args.global.restart()
+            TextDocument.defaultInstance
+        }
       g.unitOfFile.clear()
       result.withMd5(
         FingerprintOps.md5(

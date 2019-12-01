@@ -87,7 +87,7 @@ class PrettyTypeFuzzSuite extends BasePrettyTypeSuite {
         ()
       case NonFatal(e) =>
         throw new IllegalArgumentException(toplevel.toProtoString, e)
-        with NoStackTrace
+          with NoStackTrace
     }
   }
 

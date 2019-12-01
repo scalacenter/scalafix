@@ -21,8 +21,7 @@ final class TokenList private (tokens: Tokens) {
     }
     map
       .result()
-      .withDefault(
-        t => throw new NoSuchElementException(s"token not found: $t")
+      .withDefault(t => throw new NoSuchElementException(s"token not found: $t")
       )
   }
 

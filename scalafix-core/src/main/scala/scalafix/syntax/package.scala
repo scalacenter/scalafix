@@ -27,9 +27,8 @@ package object syntax {
   ) {
     def denotation: Option[v0.Denotation] = index.denotation(symbol)
     def resultType: Option[Type] =
-      denotation.flatMap(
-        denot =>
-          DenotationOps.resultType(symbol, denot, DenotationOps.defaultDialect)
+      denotation.flatMap(denot =>
+        DenotationOps.resultType(symbol, denot, DenotationOps.defaultDialect)
       )
   }
   implicit class XtensionSymbol(symbol: Symbol) {

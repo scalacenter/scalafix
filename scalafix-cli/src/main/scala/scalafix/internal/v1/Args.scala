@@ -424,8 +424,8 @@ object Args {
   implicit val printStreamDecoder: ConfDecoder[PrintStream] =
     ConfDecoder.stringConfDecoder.map(_ => System.out)
   implicit val pathMatcherDecoder: ConfDecoder[PathMatcher] =
-    ConfDecoder.stringConfDecoder.map(
-      glob => FileSystems.getDefault.getPathMatcher("glob:" + glob)
+    ConfDecoder.stringConfDecoder.map(glob =>
+      FileSystems.getDefault.getPathMatcher("glob:" + glob)
     )
   implicit val callbackDecoder: ConfDecoder[ScalafixMainCallback] =
     ConfDecoder.stringConfDecoder.map(_ => MainCallbackImpl.default)

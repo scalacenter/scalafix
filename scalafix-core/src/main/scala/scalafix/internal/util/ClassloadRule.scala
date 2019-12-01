@@ -90,8 +90,8 @@ class ClassloadRule[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
 
   def classloadRule(fqcn: String, args: Class[_] => Seq[AnyRef]): Try[T] = {
     val combined = List.newBuilder[Try[T]]
-    combined += getClassFor(fqcn).flatMap(
-      cls => classloadClassRule(cls, args(cls))
+    combined += getClassFor(fqcn).flatMap(cls =>
+      classloadClassRule(cls, args(cls))
     )
     if (!fqcn.endsWith("$")) {
       combined += getClassFor(fqcn + "$")
