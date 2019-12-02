@@ -173,6 +173,7 @@ lazy val unit = project
       jgit,
       semanticdbPluginLibrary,
       scalatest,
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value,
       "io.get-coursier" %% "coursier" % "2.0.0-RC5-2",
       "org.scalameta" %% "testkit" % scalametaV
     ),
