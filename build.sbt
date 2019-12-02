@@ -101,7 +101,7 @@ lazy val cli = project
       "com.martiansoftware" % "nailgun-server" % "0.9.1",
       jgit,
       "ch.qos.logback" % "logback-classic" % "1.2.3",
-      "org.apache.commons" % "commons-text" % "1.2"
+      "org.apache.commons" % "commons-text" % "1.8"
     )
   )
   .dependsOn(reflect, interfaces)
