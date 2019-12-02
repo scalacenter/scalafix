@@ -24,17 +24,14 @@ object Dependencies {
   def scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.0"
 
   def testsDeps = List(
-    // integration property tests
-    "io.get-coursier" %% "coursier" % "2.0.0-RC3-3",
-    "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
-    "org.typelevel" %% "cats-core" % "2.0.0-RC1",
-    "com.typesafe.slick" %% "slick" % "3.3.2",
-    "com.chuusai" %% "shapeless" % "2.3.3",
-    scalacheck
-  )
-
-  def coursierDeps = Seq(
-    "io.get-coursier" %% "coursier" % coursier.util.Properties.version,
-    "io.get-coursier" %% "coursier-cache" % coursier.util.Properties.version
+    Keys.libraryDependencies ++= List(
+      "org.scala-lang" % "scala-reflect" % Keys.scalaVersion.value,
+      "com.twitter" %% "bijection-core" % "0.9.6",
+      "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
+      "org.typelevel" %% "cats-core" % "2.0.0-RC1",
+      "com.typesafe.slick" %% "slick" % "3.3.2",
+      "com.chuusai" %% "shapeless" % "2.3.3",
+      scalacheck
+    )
   )
 }

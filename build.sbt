@@ -110,8 +110,7 @@ lazy val testsShared = project
   .in(file("scalafix-tests/shared"))
   .settings(
     semanticdbSettings,
-    noPublish,
-    coverageEnabled := false
+    noPublish
   )
 
 val isScala213 = Def.setting(scalaVersion.value.startsWith("2.13"))
@@ -131,9 +130,7 @@ lazy val testsInput = project
     scalacOptions += warnUnusedImports.value, // For RemoveUnused
     scalacOptions += "-Ywarn-unused", // For RemoveUnusedTerms
     logLevel := Level.Error, // avoid flood of compiler warnings
-    libraryDependencies += "com.twitter" %% "bijection-core" % "0.9.6",
-    testsInputOutputSetting,
-    coverageEnabled := false
+    testsInputOutputSetting
   )
 
 lazy val testsOutput = project
@@ -145,9 +142,7 @@ lazy val testsOutput = project
       warnUnusedImports.value,
       "-Xlint"
     ),
-    testsInputOutputSetting,
-    coverageEnabled := false,
-    libraryDependencies += "com.twitter" %% "bijection-core" % "0.9.6"
+    testsInputOutputSetting
   )
 
 lazy val testkit = project
@@ -173,11 +168,12 @@ lazy val unit = project
     javaOptions := Nil,
     buildInfoPackage := "scalafix.tests",
     buildInfoObject := "BuildInfo",
-    libraryDependencies ++= testsDeps,
+    testsInputOutputSetting,
     libraryDependencies ++= List(
       jgit,
       semanticdbPluginLibrary,
       scalatest,
+      "io.get-coursier" %% "coursier" % "2.0.0-RC5-2",
       "org.scalameta" %% "testkit" % scalametaV
     ),
     compileInputs.in(Compile, compile) := {
