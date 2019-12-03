@@ -101,7 +101,7 @@ lazy val cli = project
       "com.martiansoftware" % "nailgun-server" % "0.9.1",
       jgit,
       "ch.qos.logback" % "logback-classic" % "1.2.3",
-      "org.apache.commons" % "commons-text" % "1.2"
+      "org.apache.commons" % "commons-text" % "1.8"
     )
   )
   .dependsOn(reflect, interfaces)
@@ -131,7 +131,7 @@ lazy val testsInput = project
     scalacOptions += warnUnusedImports.value, // For RemoveUnused
     scalacOptions += "-Ywarn-unused", // For RemoveUnusedTerms
     logLevel := Level.Error, // avoid flood of compiler warnings
-    libraryDependencies += "com.twitter" %% "bijection-core" % "0.9.5",
+    libraryDependencies += "com.twitter" %% "bijection-core" % "0.9.6",
     testsInputOutputSetting,
     coverageEnabled := false
   )
@@ -147,7 +147,7 @@ lazy val testsOutput = project
     ),
     testsInputOutputSetting,
     coverageEnabled := false,
-    libraryDependencies += "com.twitter" %% "bijection-core" % "0.9.5"
+    libraryDependencies += "com.twitter" %% "bijection-core" % "0.9.6"
   )
 
 lazy val testkit = project
