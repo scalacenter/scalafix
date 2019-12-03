@@ -31,6 +31,7 @@ The variable `doc` in the code examples is an implicit instance of
 
 ```scala mdoc:passthrough
 import scalafix.docs.PatchDocs
+def println(a: Any): Unit = PatchDocs.println(a)
 import scalafix.docs.PatchDocs._
 implicit var doc: SemanticDocument = null
 ```
