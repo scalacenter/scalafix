@@ -34,6 +34,7 @@ import scala.meta._
 
 ```scala mdoc:passthrough
 import scalafix.docs.PatchDocs
+def println(a: Any): Unit = PatchDocs.println(a)
 import scalafix.docs.PatchDocs._
 implicit var doc: SemanticDocument = null
 ```
