@@ -10,7 +10,7 @@ object Dependencies {
   def scala213 = "2.13.1"
   val currentScalaVersion = scala212
 
-  val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % "4.5.7.201904151645-r"
+  val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % "4.11.9.201909030838-r"
 
   var testClasspath: String = "empty"
   def semanticdb: ModuleID = "org.scalameta" % "semanticdb-scalac" % scalametaV cross CrossVersion.full
