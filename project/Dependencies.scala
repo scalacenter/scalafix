@@ -25,7 +25,7 @@ object Dependencies {
 
   def testsDeps = List(
     // integration property tests
-    "io.get-coursier" %% "coursier" % "2.0.0-RC3-3",
+    "io.get-coursier" %% "coursier" % "2.0.0-RC5-6",
     "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
     "org.typelevel" %% "cats-core" % "2.0.0",
     "com.typesafe.slick" %% "slick" % "3.3.2",
