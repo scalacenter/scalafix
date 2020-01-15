@@ -131,7 +131,7 @@ lazy val testsInput = project
     scalacOptions += warnUnusedImports.value, // For RemoveUnused
     scalacOptions += "-Ywarn-unused", // For RemoveUnusedTerms
     logLevel := Level.Error, // avoid flood of compiler warnings
-    libraryDependencies += "com.twitter" %% "bijection-core" % "0.9.6",
+    libraryDependencies += "com.twitter" %% "bijection-core" % "0.9.7",
     testsInputOutputSetting,
     coverageEnabled := false
   )
@@ -147,7 +147,7 @@ lazy val testsOutput = project
     ),
     testsInputOutputSetting,
     coverageEnabled := false,
-    libraryDependencies += "com.twitter" %% "bijection-core" % "0.9.6"
+    libraryDependencies += "com.twitter" %% "bijection-core" % "0.9.7"
   )
 
 lazy val testkit = project
