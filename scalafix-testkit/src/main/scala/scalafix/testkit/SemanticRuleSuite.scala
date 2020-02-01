@@ -135,7 +135,7 @@ object SemanticRuleSuite {
         x.is[Token.Comment] && x.syntax.startsWith("/*")
       }
       .getOrElse {
-        val input = tokens.headOption.fold("the file")(_.input.toString)
+        val input = tokens.headOption.fold("the file")(_.input.path)
         throw new IllegalArgumentException(
           s"Missing /* */ comment at the top of $input"
         )
