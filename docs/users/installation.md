@@ -379,12 +379,12 @@ coursier bootstrap ch.epfl.scala:scalafix-cli_@SCALA212@:@VERSION@ -f --main sca
 
 ```
 
-## Maven
+## Plugins for other build tools
 
-It is possible to use scalafix in Maven with the following externally maintained
-plugin:
+Scalafix is supported in other build tools via externally maintained plugins:
 
-- [scalafix-maven-plugin](https://github.com/evis/scalafix-maven-plugin)
+- Gradle: [gradle-scalafix](https://github.com/cosmicsilence/gradle-scalafix)
+- Maven: [scalafix-maven-plugin](https://github.com/evis/scalafix-maven-plugin)
 
 ## SNAPSHOT
 
