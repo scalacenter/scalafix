@@ -3,7 +3,7 @@ import sbt._
 
 object Dependencies {
   val scalametaV = "4.3.0"
-  val metaconfigV = "0.9.5"
+  val metaconfigV = "0.9.6"
   def scala210 = "2.10.7"
   def scala211 = "2.11.12"
   def scala212 = "2.12.10"
