@@ -248,7 +248,7 @@ class CliSemanticSuite extends BaseCliSuite {
       """
         |package a
         |object NoSemanticdb {
-        |  def foo: Option[Int] = Option.empty[Int]
+        |  def foo: Option[Int] = None
         |}
         |""".stripMargin
     )

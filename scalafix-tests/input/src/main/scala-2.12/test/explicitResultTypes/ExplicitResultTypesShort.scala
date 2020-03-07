@@ -17,4 +17,6 @@ object ExplicitResultTypesShort {
   implicit var zz = scala.collection.immutable.ListSet.empty[String]
   implicit val FALSE = (x: Any) => false
   implicit def tparam[T](e: T) = e
+  implicit val opt = Option.empty[Int]
+  implicit val seq = Seq.empty[List[Int]]
 }

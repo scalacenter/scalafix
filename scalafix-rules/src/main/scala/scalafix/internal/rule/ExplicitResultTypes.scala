@@ -119,6 +119,12 @@ final class ExplicitResultTypes(
     case Defn.Def(_, name, _, _, _, _) => name
   }
 
+  def defnBody(defn: Defn): Option[Term] = Option(defn).collect {
+    case Defn.Val(_, _, _, term) => term
+    case Defn.Var(_, _, _, Some(term)) => term
+    case Defn.Def(_, _, _, _, _, term) => term
+  }
+
   def visibility(mods: Traversable[Mod]): MemberVisibility =
     mods
       .collectFirst {
@@ -183,6 +189,17 @@ final class ExplicitResultTypes(
       patch <- types.toPatch(name.pos, defnSymbol, replace, defn, space)
     } yield patch
 
+  def patchEmptyValue(term: Term): Patch = term match {
+    case q"Option.empty[$_]" =>
+      Patch.replaceTree(term, "None")
+    case q"List.empty[$_]" =>
+      Patch.replaceTree(term, "Nil")
+    case q"Seq.empty[$_]" =>
+      Patch.replaceTree(term, "Nil")
+    case _ =>
+      Patch.empty
+  }
+
   def fixDefinition(defn: Defn, body: Term, types: TypePrinter)(
       implicit ctx: SemanticDocument
   ): Patch = {
@@ -201,8 +218,9 @@ final class ExplicitResultTypes(
         if (TokenOps.needsLeadingSpaceBeforeColon(replace)) " "
         else ""
       }
-      patch <- defnType(defn, replace, space, types)
-    } yield patch
+      typePatch <- defnType(defn, replace, space, types)
+      valuePatchOpt = defnBody(defn).map(patchEmptyValue)
+    } yield typePatch + valuePatchOpt
   }.asPatch.atomic
 
 }
