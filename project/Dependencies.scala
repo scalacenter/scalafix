@@ -2,11 +2,11 @@ import sbt._
 /* scalafmt: { maxColumn = 120 }*/
 
 object Dependencies {
-  val scalametaV = "4.3.4"
+  val scalametaV = "4.3.6"
   val metaconfigV = "0.9.9"
   def scala210 = "2.10.7"
   def scala211 = "2.11.12"
-  def scala212 = "2.12.10"
+  def scala212 = "2.12.11"
   def scala213 = "2.13.1"
   val currentScalaVersion = scala212
 
