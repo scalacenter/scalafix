@@ -119,6 +119,12 @@ final class ExplicitResultTypes(
     case Defn.Def(_, name, _, _, _, _) => name
   }
 
+  def defnBody(defn: Defn): Option[Term] = Option(defn).collect {
+    case Defn.Val(_, _, _, term) => term
+    case Defn.Var(_, _, _, Some(term)) => term
+    case Defn.Def(_, _, _, _, _, term) => term
+  }
+
   def visibility(mods: Traversable[Mod]): MemberVisibility =
     mods
       .collectFirst {
@@ -187,6 +193,28 @@ final class ExplicitResultTypes(
       implicit ctx: SemanticDocument
   ): Patch = {
     val lst = ctx.tokenList
+    val option = SymbolMatcher.exact("scala/Option.")
+    val list = SymbolMatcher.exact(
+      "scala/package.List.",
+      "scala/collection/immutable/List."
+    )
+    val seq = SymbolMatcher.exact(
+      "scala/package.Seq.",
+      "scala/collection/Seq.",
+      "scala/collection/immutable/Seq."
+    )
+    def patchEmptyValue(term: Term): Patch = {
+      term match {
+        case q"${option(_)}.empty[$_]" =>
+          Patch.replaceTree(term, "None")
+        case q"${list(_)}.empty[$_]" =>
+          Patch.replaceTree(term, "Nil")
+        case q"${seq(_)}.empty[$_]" =>
+          Patch.replaceTree(term, "Nil")
+        case _ =>
+          Patch.empty
+      }
+    }
     import lst._
     for {
       start <- defn.tokens.headOption
@@ -201,8 +229,9 @@ final class ExplicitResultTypes(
         if (TokenOps.needsLeadingSpaceBeforeColon(replace)) " "
         else ""
       }
-      patch <- defnType(defn, replace, space, types)
-    } yield patch
+      typePatch <- defnType(defn, replace, space, types)
+      valuePatchOpt = defnBody(defn).map(patchEmptyValue)
+    } yield typePatch + valuePatchOpt
   }.asPatch.atomic
 
 }
