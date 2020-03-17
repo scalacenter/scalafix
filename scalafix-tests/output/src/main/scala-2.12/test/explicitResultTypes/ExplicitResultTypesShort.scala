@@ -17,4 +17,8 @@ object ExplicitResultTypesShort {
   implicit def tparam[T](e: T): T = e
   implicit val opt: Option[Int] = None
   implicit val seq: Seq[List[Int]] = Nil
+  object Shadow {
+    val Option = scala.collection.mutable.ListBuffer
+    implicit val shadow: ListBuffer[List[Int]] = Option.empty[List[Int]]
+  }
 }

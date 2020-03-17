@@ -189,21 +189,32 @@ final class ExplicitResultTypes(
       patch <- types.toPatch(name.pos, defnSymbol, replace, defn, space)
     } yield patch
 
-  def patchEmptyValue(term: Term): Patch = term match {
-    case q"Option.empty[$_]" =>
-      Patch.replaceTree(term, "None")
-    case q"List.empty[$_]" =>
-      Patch.replaceTree(term, "Nil")
-    case q"Seq.empty[$_]" =>
-      Patch.replaceTree(term, "Nil")
-    case _ =>
-      Patch.empty
-  }
-
   def fixDefinition(defn: Defn, body: Term, types: TypePrinter)(
       implicit ctx: SemanticDocument
   ): Patch = {
     val lst = ctx.tokenList
+    val option = SymbolMatcher.exact("scala/Option.")
+    val list = SymbolMatcher.exact(
+      "scala/package.List.",
+      "scala/collection/immutable/List."
+    )
+    val seq = SymbolMatcher.exact(
+      "scala/package.Seq.",
+      "scala/collection/Seq.",
+      "scala/collection/immutable/Seq."
+    )
+    def patchEmptyValue(term: Term): Patch = {
+      term match {
+        case q"${option(_)}.empty[$_]" =>
+          Patch.replaceTree(term, "None")
+        case q"${list(_)}.empty[$_]" =>
+          Patch.replaceTree(term, "Nil")
+        case q"${seq(_)}.empty[$_]" =>
+          Patch.replaceTree(term, "Nil")
+        case _ =>
+          Patch.empty
+      }
+    }
     import lst._
     for {
       start <- defn.tokens.headOption
