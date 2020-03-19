@@ -40,3 +40,4 @@ out/
 .bloop/
 .metals/
 .vscode/
+project/metals.sbt
