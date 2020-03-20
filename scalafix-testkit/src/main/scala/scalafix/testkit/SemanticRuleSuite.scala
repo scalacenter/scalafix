@@ -2,6 +2,7 @@ package scalafix.testkit
 
 import java.nio.charset.StandardCharsets
 import org.scalatest.BeforeAndAfterAll
+import org.scalatest.FunSuite
 import org.scalatest.exceptions.TestFailedException
 import scala.meta._
 import scala.meta.internal.io.FileIO
@@ -13,13 +14,12 @@ import scalafix.internal.testkit.EndOfLineAssertExtractor
 import scalafix.internal.testkit.MultiLineAssertExtractor
 import scalafix.v0.SemanticdbIndex
 import java.nio.file.Files
-import org.scalatest.funsuite.AnyFunSuite
 
 /** Construct a test suite for running semantic Scalafix rules. */
 abstract class SemanticRuleSuite(
     val props: TestkitProperties,
     val isSaveExpect: Boolean
-) extends AnyFunSuite
+) extends FunSuite
     with DiffAssertions
     with BeforeAndAfterAll { self =>
 
