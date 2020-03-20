@@ -1,0 +1,44 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+jobs:
+  test:
+    name: ${{ matrix.command }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        command:
+          - "ci-211"
+          - "ci-212"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v7
+      - run: sbt ${{ matrix.command }}
+  jdk11:
+    name: JDK11 tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v7
+        with:
+          java-version: adopt@1.11
+      - run: sbt ci-212
+  windows:
+    name: Windows tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v7
+      - run: sbt ci-212-windows
+        shell: bash
+  checks:
+    name: Scalafmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v7
+      - run: ./scalafmt --test
