@@ -33,9 +33,4 @@ object Dependencies {
     "com.chuusai" %% "shapeless" % "2.3.3",
     scalacheck
   )
-
-  def coursierDeps = Seq(
-    "io.get-coursier" %% "coursier" % coursierV,
-    "io.get-coursier" %% "coursier-cache" % coursierV
-  )
 }
