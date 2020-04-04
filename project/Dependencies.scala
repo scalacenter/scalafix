@@ -22,7 +22,7 @@ object Dependencies {
   def semanticdbPluginLibrary = "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
   def scalameta = "org.scalameta" %% "scalameta" % scalametaV
   def scalatest = "org.scalatest" %% "scalatest" % "3.0.8"
-  def scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.2"
+  def scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.3"
 
   def testsDeps = List(
     // integration property tests
