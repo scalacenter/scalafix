@@ -23,7 +23,11 @@ lazy val tests = project
   .settings(
     skip in publish := true,
     libraryDependencies +=
-      "ch.epfl.scala" % "scalafix-testkit" % v.scalafixVersion % Test cross CrossVersion.full
+      "ch.epfl.scala" % "scalafix-testkit" % v.scalafixVersion % Test cross CrossVersion.full,
+    dependencyOverrides ++= Seq(
+      "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
+      "org.slf4j" % "slf4j-api" % "1.7.25"
+    )
   )
   .settings(
     (compile in Compile) :=
