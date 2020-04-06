@@ -1,11 +1,31 @@
 package fix
 
 import scala.annotation.tailrec
-import scala.meta.{Import, Importer, Term}
+import scala.meta.{Import, Importer, Pkg, Source, Term, Tree}
 
 import metaconfig.Configured
+import metaconfig.generic.{deriveDecoder, deriveEncoder, deriveSurface, Surface}
+import metaconfig.{ConfDecoder, ConfEncoder}
 import scalafix.patch.Patch
 import scalafix.v1._
+
+final case class OrganizeImportsConfig(
+  sortImportees: Boolean = false,
+  groups: Seq[String] = Seq("*")
+)
+
+object OrganizeImportsConfig {
+  val default: OrganizeImportsConfig = OrganizeImportsConfig()
+
+  implicit val surface: Surface[OrganizeImportsConfig] =
+    deriveSurface[OrganizeImportsConfig]
+
+  implicit val decoder: ConfDecoder[OrganizeImportsConfig] =
+    deriveDecoder[OrganizeImportsConfig](default)
+
+  implicit val encoder: ConfEncoder[OrganizeImportsConfig] =
+    deriveEncoder[OrganizeImportsConfig]
+}
 
 class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("OrganizeImports") {
   def this() = this(OrganizeImportsConfig())
@@ -21,8 +41,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
   override def fix(implicit doc: SemanticDocument): Patch = {
     val globalImports = collectGlobalImports(doc.tree)
-
-    if (globalImports.isEmpty) Patch.empty else organizeImports(globalImports)(doc)
+    if (globalImports.isEmpty) Patch.empty else organizeImports(globalImports)
   }
 
   private def organizeImports(imports: Seq[Import])(implicit doc: SemanticDocument): Patch = {
@@ -77,4 +96,17 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   private def sortImportees(importer: Importer): Importer =
     if (!config.sortImportees) importer
     else importer.copy(importees = importer.importees sortBy (_.syntax))
+
+  private object / {
+    def unapply(tree: Tree): Option[(Tree, Tree)] = tree.parent map (_ -> tree)
+  }
+
+  private def collectGlobalImports(tree: Tree): Seq[Import] = tree match {
+    case s: Source                 => s.children flatMap collectGlobalImports
+    case (_: Source) / (p: Pkg)    => p.children flatMap collectGlobalImports
+    case (_: Pkg) / (p: Pkg)       => p.children flatMap collectGlobalImports
+    case (_: Source) / (i: Import) => Seq(i)
+    case (_: Pkg) / (i: Import)    => Seq(i)
+    case _                         => Seq.empty[Import]
+  }
 }
