@@ -1,10 +1,8 @@
 /*
 rules = OrganizeImports
 
-OrganizeImports.sortImportees = true
-
 OrganizeImports.groups = [
-  "java.",
+  "re:javax?\\."
   "scala."
 ]
  */
@@ -18,5 +16,7 @@ import scala.concurrent.ExecutionContext
 import scala.util
 import util.control
 import control.NonFatal
+import javax.annotation.Generated
+import scala.Predef.{println => printLine, ??? => _}
 
 object OrganizeImportsTest0
