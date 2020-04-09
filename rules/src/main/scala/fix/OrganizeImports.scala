@@ -32,27 +32,30 @@ object OrganizeImportsConfig {
 }
 
 sealed trait ImportMatcher {
-  def matchPrefix(importer: Importer): Boolean
+  def matches(i: Importer): Boolean
 }
 
-case class RegexMatcher(pattern: String) extends ImportMatcher {
-  private val regex: Regex = new Regex(pattern)
-
-  override def matchPrefix(importer: Importer): Boolean =
-    (regex findPrefixMatchOf importer.syntax).nonEmpty
+case class RegexMatcher(pattern: Regex) extends ImportMatcher {
+  override def matches(i: Importer): Boolean = (pattern findPrefixMatchOf i.syntax).nonEmpty
 }
 
 case class PlainTextMatcher(pattern: String) extends ImportMatcher {
-  override def matchPrefix(importer: Importer): Boolean = importer.syntax startsWith pattern
+  override def matches(i: Importer): Boolean = i.syntax startsWith pattern
 }
 
 case object WildcardMatcher extends ImportMatcher {
   // We don't want the "*" wildcard group to match anything since it is always special-cased at the
   // end of the import group matching process.
-  def matchPrefix(importer: Importer): Boolean = false
+  def matches(importer: Importer): Boolean = false
 }
 
 class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("OrganizeImports") {
+  private val importMatchers = config.groups map {
+    case p if p startsWith "re:" => RegexMatcher(new Regex(p stripPrefix "re:"))
+    case "*"                     => WildcardMatcher
+    case p                       => PlainTextMatcher(p)
+  }
+
   def this() = this(OrganizeImportsConfig())
 
   override def isExperimental: Boolean = true
@@ -70,24 +73,30 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   }
 
   private def organizeImports(imports: Seq[Import])(implicit doc: SemanticDocument): Patch = {
-    val (fullyQualifiedImporters, relativeImporters) = imports flatMap (_.importers) partition {
-      importer => firstQualifier(importer.ref).symbol.owner == Symbol.RootPackage
-    }
-
-    val (_, organizedImportGroups: Seq[String]) = {
-      val importMatchers = config.groups map {
-        case p if p startsWith "re:" => RegexMatcher(p stripPrefix "re:")
-        case "*"                     => WildcardMatcher
-        case p                       => PlainTextMatcher(p)
+    val (fullyQualifiedImporters, relativeImporters) =
+      imports flatMap (_.importers) partition { importer =>
+        topQualifierOf(importer.ref).symbol.owner == Symbol.RootPackage
       }
 
+    val (_, sortedFullyQualifiedGroups: Seq[Seq[Importer]]) =
       fullyQualifiedImporters
-        .groupBy(matchImportGroup(_, importMatchers))
-        .mapValues(organizeImportGroup)
+        .groupBy(matchImportGroup(_, importMatchers)) // Groups imports by importer prefix.
+        .mapValues(_ sortBy (_.syntax)) // Sorts all the imports within the same group.
         .toSeq
-        .sortBy { case (index, _) => index }
+        .sortBy { case (index, _) => index } // Sorts import groups by group index
         .unzip
-    }
+
+    // Append all the relative imports at the end as a separate group with the original order
+    // unchanged.
+    val resultImporterGroups: Seq[Seq[Importer]] =
+      if (relativeImporters.isEmpty) sortedFullyQualifiedGroups
+      else sortedFullyQualifiedGroups :+ relativeImporters
+
+    // A patch that inserts all the organized imports.
+    val insertOrganizedImports = Patch.addLeft(
+      imports.head,
+      resultImporterGroups map (_ map ("import " + _.syntax) mkString "\n") mkString "\n\n"
+    )
 
     // A patch that removes all the original imports.
     val removeOriginalImports = Patch.removeTokens(
@@ -97,36 +106,20 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       )
     )
 
-    // A patch that inserts all the organized imports, with all the relative imports appended at the
-    // end as a separate group.
-    val insertOrganizedImports = {
-      val relativeImportGroup =
-        if (relativeImporters.isEmpty) Nil
-        else relativeImporters.map("import " + _.syntax).mkString("\n") :: Nil
-
-      Patch.addLeft(
-        imports.head,
-        (organizedImportGroups ++ relativeImportGroup) mkString "\n\n"
-      )
-    }
-
     insertOrganizedImports + removeOriginalImports
   }
 
-  @tailrec private def firstQualifier(term: Term): Term.Name =
+  @tailrec private def topQualifierOf(term: Term): Term.Name =
     term match {
-      case Term.Select(qualifier, _) => firstQualifier(qualifier)
-      case t: Term.Name              => t
+      case Term.Select(qualifier, _) => topQualifierOf(qualifier)
+      case name: Term.Name           => name
     }
 
   // Returns the index of the group a given importer belongs to.
   private def matchImportGroup(importer: Importer, matchers: Seq[ImportMatcher]): Int = {
-    val index = matchers indexWhere (_ matchPrefix importer)
+    val index = matchers indexWhere (_ matches importer)
     if (index > -1) index else matchers indexOf WildcardMatcher
   }
-
-  private def organizeImportGroup(importers: Seq[Importer]): String =
-    importers.map("import " + _.syntax).sorted.mkString("\n")
 
   private object / {
     def unapply(tree: Tree): Option[(Tree, Tree)] = tree.parent map (_ -> tree)
