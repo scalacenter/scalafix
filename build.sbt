@@ -1,16 +1,34 @@
 lazy val v = _root_.scalafix.sbt.BuildInfo
 
-ThisBuild / organization := "com.github.liancheng"
-ThisBuild / scalaVersion := v.scala212
-ThisBuild / (skip in publish) := true
-ThisBuild / scalacOptions ++= Seq("-Yrangepos", "-P:semanticdb:synthetics:on")
-ThisBuild / conflictManager := ConflictManager.strict
-ThisBuild / libraryDependencies += compilerPlugin(scalafixSemanticdb)
-ThisBuild / dependencyOverrides += "com.lihaoyi" %% "sourcecode" % "0.2.1"
+inThisBuild(
+  List(
+    organization := "com.github.liancheng",
+    homepage := Some(url("https://github.com/liancheng/scalafix-organize-imports")),
+    licenses := List("MIT" -> url("https://opensource.org/licenses/MIT")),
+    developers := List(
+      Developer(
+        "liancheng",
+        "Cheng Lian",
+        "lian.cs.zju@gmail.com",
+        url("https://github.com/liancheng")
+      )
+    ),
+    scalaVersion := v.scala212,
+    addCompilerPlugin(scalafixSemanticdb),
+    scalacOptions ++= List(
+      "-Yrangepos",
+      "-P:semanticdb:synthetics:on"
+    )
+  )
+)
+
+skip in publish := true
 
 lazy val rules = project
   .settings(
-    moduleName := "scalafix",
+    moduleName := "organize-imports",
+    conflictManager := ConflictManager.strict,
+    dependencyOverrides += "com.lihaoyi" %% "sourcecode" % "0.2.1",
     libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % v.scalafixVersion
   )
 
@@ -23,7 +41,7 @@ lazy val tests = project
     skip in publish := true,
     libraryDependencies +=
       "ch.epfl.scala" % "scalafix-testkit" % v.scalafixVersion % Test cross CrossVersion.full,
-    dependencyOverrides ++= Seq(
+    dependencyOverrides ++= List(
       "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
       "org.slf4j" % "slf4j-api" % "1.7.25"
     ),
