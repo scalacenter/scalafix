@@ -11,7 +11,11 @@ import scalafix.patch.Patch
 import scalafix.v1._
 
 final case class OrganizeImportsConfig(
-  groups: Seq[String] = Seq("*")
+  groups: Seq[String] = Seq(
+    "re:javax?\\.",
+    "scala.",
+    "*"
+  )
 )
 
 object OrganizeImportsConfig {
