@@ -15,4 +15,4 @@ import scala.collection.JavaConverters._
 import java.time.{Duration, LocalDate}
 import scala.concurrent.ExecutionContext
 
-object OrganizeImportsTest0
+object OrganizeImportsNestedPackage

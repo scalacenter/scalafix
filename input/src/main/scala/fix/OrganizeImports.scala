@@ -19,4 +19,4 @@ import control.NonFatal
 import javax.annotation.Generated
 import scala.Predef.{println => printLine, ??? => _}
 
-object OrganizeImportsTest0
+object OrganizeImports

@@ -16,4 +16,4 @@ import util.control
 import control.NonFatal
 import javax.annotation.Generated
 
-object OrganizeImportsTest0
+object OrganizeImportsRootPackage

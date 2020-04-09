@@ -11,4 +11,4 @@ import sun.misc.BASE64Encoder
 import util.control
 import control.NonFatal
 
-object OrganizeImportsTest0
+object OrganizeImportsRootPackage
