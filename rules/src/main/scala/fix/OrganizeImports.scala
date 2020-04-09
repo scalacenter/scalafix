@@ -70,35 +70,41 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       importer => firstQualifier(importer.ref).symbol.owner == Symbol.RootPackage
     }
 
-    val importMatchers = config.groups map {
-      case p if p startsWith "re:" => RegexMatcher(p stripPrefix "re:")
-      case "*"                     => WildcardMatcher
-      case p                       => PlainTextMatcher(p)
-    }
+    val (_, organizedImportGroups: Seq[String]) = {
+      val importMatchers = config.groups map {
+        case p if p startsWith "re:" => RegexMatcher(p stripPrefix "re:")
+        case "*"                     => WildcardMatcher
+        case p                       => PlainTextMatcher(p)
+      }
 
-    val (_, organizedImportGroups: Seq[String]) =
       fullyQualifiedImporters
         .groupBy(matchImportGroup(_, importMatchers))
         .mapValues(organizeImportGroup)
         .toSeq
         .sortBy { case (index, _) => index }
         .unzip
+    }
 
-    val relativeImportGroup =
-      if (relativeImporters.isEmpty) Nil
-      else relativeImporters.map("import " + _.syntax).mkString("\n") :: Nil
-
-    val insertOrganizedImports = Patch.addLeft(
-      imports.head,
-      (organizedImportGroups ++ relativeImportGroup) mkString "\n\n"
-    )
-
+    // A patch that removes all the original imports.
     val removeOriginalImports = Patch.removeTokens(
       doc.tree.tokens.slice(
         imports.head.tokens.start,
         imports.last.tokens.end
       )
     )
+
+    // A patch that inserts all the organized imports, with all the relative imports appended at the
+    // end as a separate group.
+    val insertOrganizedImports = {
+      val relativeImportGroup =
+        if (relativeImporters.isEmpty) Nil
+        else relativeImporters.map("import " + _.syntax).mkString("\n") :: Nil
+
+      Patch.addLeft(
+        imports.head,
+        (organizedImportGroups ++ relativeImportGroup) mkString "\n\n"
+      )
+    }
 
     insertOrganizedImports + removeOriginalImports
   }
