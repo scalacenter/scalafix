@@ -81,7 +81,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     val (_, sortedFullyQualifiedGroups: Seq[Seq[Importer]]) =
       fullyQualifiedImporters
         .groupBy(matchImportGroup(_, importMatchers)) // Groups imports by importer prefix.
-        .mapValues(_ sortBy (_.syntax)) // Sorts all the imports within the same group.
+        .mapValues(_ sortBy fixedImporterSyntax) // Sorts all the imports within the same group.
         .toSeq
         .sortBy { case (index, _) => index } // Sorts import groups by group index
         .unzip
@@ -95,7 +95,9 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     // A patch that inserts all the organized imports.
     val insertOrganizedImports = Patch.addLeft(
       imports.head,
-      resultImporterGroups map (_ map ("import " + _.syntax) mkString "\n") mkString "\n\n"
+      resultImporterGroups
+        .map(_ map fixedImporterSyntax map ("import " + _) mkString "\n")
+        .mkString("\n\n")
     )
 
     // A patch that removes all the original imports.
@@ -114,6 +116,12 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       case Term.Select(qualifier, _) => topQualifierOf(qualifier)
       case name: Term.Name           => name
     }
+
+  // The scalafix pretty-printer decides to add spaces after open and before close braces in
+  // imports, i.e., "import a.{ b, c }" instead of "import a.{b, c}". Unfortunately, this behavior
+  // cannot be overriden. This function removes the unwanted spaces as a workaround.
+  private def fixedImporterSyntax(importer: Importer)(implicit doc: SemanticDocument): String =
+    importer.syntax.replace("{ ", "{").replace(" }", "}")
 
   // Returns the index of the group a given importer belongs to.
   private def matchImportGroup(importer: Importer, matchers: Seq[ImportMatcher]): Int = {
