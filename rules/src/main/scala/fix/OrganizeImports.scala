@@ -56,6 +56,8 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     case p                       => PlainTextMatcher(p)
   }
 
+  private val wildcardGroupIndex = importMatchers indexOf WildcardMatcher
+
   def this() = this(OrganizeImportsConfig())
 
   override def isExperimental: Boolean = true
@@ -126,7 +128,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   // Returns the index of the group a given importer belongs to.
   private def matchImportGroup(importer: Importer, matchers: Seq[ImportMatcher]): Int = {
     val index = matchers indexWhere (_ matches importer)
-    if (index > -1) index else matchers indexOf WildcardMatcher
+    if (index > -1) index else wildcardGroupIndex
   }
 
   private object / {
