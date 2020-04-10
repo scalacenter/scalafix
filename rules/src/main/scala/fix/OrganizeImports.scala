@@ -91,14 +91,14 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
     // Append all the relative imports (if any) at the end as a separate group with the original
     // order unchanged.
-    val resultImporterGroups: Seq[Seq[Importer]] =
+    val organizedImporterGroups: Seq[Seq[Importer]] =
       if (relativeImporters.isEmpty) sortedImporterGroups
       else sortedImporterGroups :+ relativeImporters
 
     // A patch that inserts all the organized imports.
     val insertOrganizedImports = Patch.addLeft(
       imports.head,
-      resultImporterGroups
+      organizedImporterGroups
         .map(_ map fixedImporterSyntax map ("import " + _) mkString "\n")
         .mkString("\n\n")
     )
