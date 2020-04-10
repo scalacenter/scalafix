@@ -1,11 +1,4 @@
-/*
-rules = OrganizeImports
-
-OrganizeImports.groups = [
-  "re:javax?\\."
-  "scala."
-]
- */
+/* rules = OrganizeImports */
 
 package fix
 

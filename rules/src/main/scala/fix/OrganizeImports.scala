@@ -1,17 +1,30 @@
 package fix
 
 import scala.annotation.tailrec
-import scala.meta.{Import, Importer, Pkg, Source, Term, Tree}
+import scala.collection.mutable.ArrayBuffer
+import scala.meta.{Import, Importee, Importer, Pkg, Source, Term, Tree}
 import scala.util.matching.Regex
 
-import metaconfig.generic.{Surface, deriveDecoder, deriveEncoder, deriveSurface}
-import metaconfig.{ConfDecoder, ConfEncoder, Configured}
+import metaconfig._
+import metaconfig.generic.{Surface, deriveDecoder, deriveSurface}
+import scalafix.internal.config.ReaderUtil
 import scalafix.patch.Patch
 import scalafix.v1._
 
+sealed trait ImporteesOrder
+
+object ImporteesOrder {
+  case object Ascii extends ImporteesOrder
+  case object SymbolsFirst extends ImporteesOrder
+  case object Keep extends ImporteesOrder
+
+  implicit def reader: ConfDecoder[ImporteesOrder] =
+    ReaderUtil.fromMap(List(Ascii, SymbolsFirst, Keep) groupBy (_.toString) mapValues (_.head))
+}
+
 final case class OrganizeImportsConfig(
-  sortImportees: Boolean = true,
-  mergeImportsSharingCommonPrefixes: Boolean = true,
+  importeesOrder: ImporteesOrder = ImporteesOrder.Ascii,
+  mergeImportsWithCommonPrefix: Boolean = true,
   groups: Seq[String] = Seq(
     "re:javax?\\.",
     "scala.",
@@ -27,9 +40,6 @@ object OrganizeImportsConfig {
 
   implicit val decoder: ConfDecoder[OrganizeImportsConfig] =
     deriveDecoder[OrganizeImportsConfig](default)
-
-  implicit val encoder: ConfEncoder[OrganizeImportsConfig] =
-    deriveEncoder[OrganizeImportsConfig]
 }
 
 sealed trait ImportMatcher {
@@ -85,7 +95,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     val (_, sortedImporterGroups: Seq[Seq[Importer]]) =
       fullyQualifiedImporters
         .groupBy(matchImportGroup(_, importMatchers)) // Groups imports by importer prefix.
-        .mapValues(organizeImporters) // Organize all the imports within the same group.
+        .mapValues(organizeImporters) // Organize imports within the same group.
         .toSeq
         .sortBy { case (index, _) => index } // Sorts import groups by group index
         .unzip
@@ -121,11 +131,31 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       case name: Term.Name           => name
     }
 
-  private def sortImportees(importer: Importer): Importer =
-    if (!config.sortImportees) importer
-    else importer.copy(importees = importer.importees.sortBy(_.syntax))
+  private def sortImporteesSymbolsFirst(importees: List[Importee]): List[Importee] = {
+    val symbols = ArrayBuffer.empty[Importee]
+    val lowerCases = ArrayBuffer.empty[Importee]
+    val upperCases = ArrayBuffer.empty[Importee]
 
-  private def mergeImportersSharingCommonPrefixes(importers: Seq[Importer]): Seq[Importer] =
+    importees.foreach {
+      case i if i.syntax.head.isLower => lowerCases += i
+      case i if i.syntax.head.isUpper => upperCases += i
+      case i                          => symbols += i
+    }
+
+    List(symbols, lowerCases, upperCases) flatMap (_ sortBy (_.syntax))
+  }
+
+  private def sortImportees(importer: Importer): Importer = {
+    import ImporteesOrder._
+
+    config.importeesOrder match {
+      case Ascii        => importer.copy(importees = importer.importees.sortBy(_.syntax))
+      case SymbolsFirst => importer.copy(importees = sortImporteesSymbolsFirst(importer.importees))
+      case Keep         => importer
+    }
+  }
+
+  private def mergeImportersWithCommonPrefix(importers: Seq[Importer]): Seq[Importer] =
     importers.groupBy(_.ref.syntax).values.toSeq.map { group =>
       val mergedImportees = group.flatMap(_.importees)
       group.head.copy(importees = mergedImportees.toList)
@@ -133,8 +163,8 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
   private def organizeImporters(importers: Seq[Importer]): Seq[Importer] = {
     val mergedImporters =
-      if (!config.mergeImportsSharingCommonPrefixes) importers
-      else mergeImportersSharingCommonPrefixes(importers)
+      if (!config.mergeImportsWithCommonPrefix) importers
+      else mergeImportersWithCommonPrefix(importers)
     mergedImporters map sortImportees sortBy (_.syntax)
   }
 
