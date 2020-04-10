@@ -44,8 +44,8 @@ case class PlainTextMatcher(pattern: String) extends ImportMatcher {
 }
 
 case object WildcardMatcher extends ImportMatcher {
-  // We don't want the "*" wildcard group to match anything since it is always special-cased at the
-  // end of the import group matching process.
+  // We don't want the "*" wildcard group to match anything. It will be special-cased at the end of
+  // the import group matching process.
   def matches(importer: Importer): Boolean = false
 }
 
@@ -80,7 +80,8 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
         topQualifierOf(importer.ref).symbol.owner == Symbol.RootPackage
       }
 
-    val (_, sortedFullyQualifiedGroups: Seq[Seq[Importer]]) =
+    // Organizes all the fully-qualified global importers.
+    val (_, sortedImporterGroups: Seq[Seq[Importer]]) =
       fullyQualifiedImporters
         .groupBy(matchImportGroup(_, importMatchers)) // Groups imports by importer prefix.
         .mapValues(_ sortBy fixedImporterSyntax) // Sorts all the imports within the same group.
@@ -88,11 +89,11 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
         .sortBy { case (index, _) => index } // Sorts import groups by group index
         .unzip
 
-    // Append all the relative imports at the end as a separate group with the original order
-    // unchanged.
+    // Append all the relative imports (if any) at the end as a separate group with the original
+    // order unchanged.
     val resultImporterGroups: Seq[Seq[Importer]] =
-      if (relativeImporters.isEmpty) sortedFullyQualifiedGroups
-      else sortedFullyQualifiedGroups :+ relativeImporters
+      if (relativeImporters.isEmpty) sortedImporterGroups
+      else sortedImporterGroups :+ relativeImporters
 
     // A patch that inserts all the organized imports.
     val insertOrganizedImports = Patch.addLeft(
@@ -125,7 +126,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   private def fixedImporterSyntax(importer: Importer)(implicit doc: SemanticDocument): String =
     importer.syntax.replace("{ ", "{").replace(" }", "}")
 
-  // Returns the index of the group a given importer belongs to.
+  // Returns the index of the group to which the given importer belongs.
   private def matchImportGroup(importer: Importer, matchers: Seq[ImportMatcher]): Int = {
     val index = matchers indexWhere (_ matches importer)
     if (index > -1) index else wildcardGroupIndex
