@@ -110,7 +110,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       )
     )
 
-    insertOrganizedImports + removeOriginalImports
+    (insertOrganizedImports + removeOriginalImports).atomic
   }
 
   @tailrec private def topQualifierOf(term: Term): Term.Name =
