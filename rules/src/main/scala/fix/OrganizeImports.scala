@@ -4,13 +4,14 @@ import scala.annotation.tailrec
 import scala.meta.{Import, Importer, Pkg, Source, Term, Tree}
 import scala.util.matching.Regex
 
-import metaconfig.Configured
 import metaconfig.generic.{Surface, deriveDecoder, deriveEncoder, deriveSurface}
-import metaconfig.{ConfDecoder, ConfEncoder}
+import metaconfig.{ConfDecoder, ConfEncoder, Configured}
 import scalafix.patch.Patch
 import scalafix.v1._
 
 final case class OrganizeImportsConfig(
+  sortImportees: Boolean = true,
+  mergeCommonPrefixImports: Boolean = true,
   groups: Seq[String] = Seq(
     "re:javax?\\.",
     "scala.",
@@ -84,7 +85,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     val (_, sortedImporterGroups: Seq[Seq[Importer]]) =
       fullyQualifiedImporters
         .groupBy(matchImportGroup(_, importMatchers)) // Groups imports by importer prefix.
-        .mapValues(_ sortBy fixedImporterSyntax) // Sorts all the imports within the same group.
+        .mapValues(organizeImporters) // Organize all the imports within the same group.
         .toSeq
         .sortBy { case (index, _) => index } // Sorts import groups by group index
         .unzip
@@ -120,10 +121,24 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       case name: Term.Name           => name
     }
 
+  private def sortImportees(importer: Importer): Importer =
+    if (!config.sortImportees) importer
+    else importer.copy(importees = importer.importees.sortBy(_.syntax))
+
+  private def mergeCommonPrefixImporters(importers: Seq[Importer]): Seq[Importer] = {
+    val grouped = importers.groupBy(_.ref.syntax).values
+    grouped.map { group => group.head.copy(importees = group.flatMap(_.importees).toList) }.toSeq
+  }
+
+  private def organizeImporters(importers: Seq[Importer]): Seq[Importer] = {
+    if (!config.mergeCommonPrefixImports) importers
+    else mergeCommonPrefixImporters(importers)
+  } map sortImportees sortBy (_.syntax)
+
   // The scalafix pretty-printer decides to add spaces after open and before close braces in
   // imports, i.e., "import a.{ b, c }" instead of "import a.{b, c}". Unfortunately, this behavior
   // cannot be overriden. This function removes the unwanted spaces as a workaround.
-  private def fixedImporterSyntax(importer: Importer)(implicit doc: SemanticDocument): String =
+  private def fixedImporterSyntax(importer: Importer): String =
     importer.syntax.replace("{ ", "{").replace(" }", "}")
 
   // Returns the index of the group to which the given importer belongs.

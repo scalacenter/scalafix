@@ -1,10 +1,9 @@
 package fix
 
-import java.time.Clock
-import java.time.{Duration, LocalDate}
+import java.time.{Clock, Duration, LocalDate}
 import javax.annotation.Generated
 
-import scala.Predef.{println => printLine, ??? => _}
+import scala.Predef.{??? => _, println => printLine}
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.util

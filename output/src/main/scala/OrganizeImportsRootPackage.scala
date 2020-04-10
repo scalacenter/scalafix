@@ -1,5 +1,4 @@
-import java.time.Clock
-import java.time.{Duration, LocalDate}
+import java.time.{Clock, Duration, LocalDate}
 import javax.annotation.Generated
 
 import scala.collection.JavaConverters._
