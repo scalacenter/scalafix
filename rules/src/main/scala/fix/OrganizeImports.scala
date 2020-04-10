@@ -11,7 +11,7 @@ import scalafix.v1._
 
 final case class OrganizeImportsConfig(
   sortImportees: Boolean = true,
-  mergeCommonPrefixImports: Boolean = true,
+  mergeImportsSharingCommonPrefixes: Boolean = true,
   groups: Seq[String] = Seq(
     "re:javax?\\.",
     "scala.",
@@ -125,15 +125,18 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     if (!config.sortImportees) importer
     else importer.copy(importees = importer.importees.sortBy(_.syntax))
 
-  private def mergeCommonPrefixImporters(importers: Seq[Importer]): Seq[Importer] = {
-    val grouped = importers.groupBy(_.ref.syntax).values
-    grouped.map { group => group.head.copy(importees = group.flatMap(_.importees).toList) }.toSeq
-  }
+  private def mergeImportersSharingCommonPrefixes(importers: Seq[Importer]): Seq[Importer] =
+    importers.groupBy(_.ref.syntax).values.toSeq.map { group =>
+      val mergedImportees = group.flatMap(_.importees)
+      group.head.copy(importees = mergedImportees.toList)
+    }
 
   private def organizeImporters(importers: Seq[Importer]): Seq[Importer] = {
-    if (!config.mergeCommonPrefixImports) importers
-    else mergeCommonPrefixImporters(importers)
-  } map sortImportees sortBy (_.syntax)
+    val mergedImporters =
+      if (!config.mergeImportsSharingCommonPrefixes) importers
+      else mergeImportersSharingCommonPrefixes(importers)
+    mergedImporters map sortImportees sortBy (_.syntax)
+  }
 
   // The scalafix pretty-printer decides to add spaces after open and before close braces in
   // imports, i.e., "import a.{ b, c }" instead of "import a.{b, c}". Unfortunately, this behavior
