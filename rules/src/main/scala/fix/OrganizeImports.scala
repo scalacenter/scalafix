@@ -11,19 +11,21 @@ import scalafix.internal.config.ReaderUtil
 import scalafix.patch.Patch
 import scalafix.v1._
 
-sealed trait ImporteesOrder
+sealed trait ImportSelectorsOrder
 
-object ImporteesOrder {
-  case object Ascii extends ImporteesOrder
-  case object SymbolsFirst extends ImporteesOrder
-  case object Keep extends ImporteesOrder
+object ImportSelectorsOrder {
+  case object Ascii extends ImportSelectorsOrder
+  case object SymbolsFirst extends ImportSelectorsOrder
+  case object Keep extends ImportSelectorsOrder
 
-  implicit def reader: ConfDecoder[ImporteesOrder] =
-    ReaderUtil.fromMap(List(Ascii, SymbolsFirst, Keep) groupBy (_.toString) mapValues (_.head))
+  implicit def reader: ConfDecoder[ImportSelectorsOrder] = ReaderUtil.fromMap {
+    List(Ascii, SymbolsFirst, Keep) groupBy (_.toString) mapValues (_.head)
+  }
 }
 
 final case class OrganizeImportsConfig(
-  importeesOrder: ImporteesOrder = ImporteesOrder.Ascii,
+  sortImportSelectors: ImportSelectorsOrder = ImportSelectorsOrder.Ascii,
+  wildcardImportSelectorThreshold: Int = Int.MaxValue,
   mergeImportsWithCommonPrefix: Boolean = true,
   groups: Seq[String] = Seq(
     "re:javax?\\.",
@@ -146,9 +148,9 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   }
 
   private def sortImportees(importer: Importer): Importer = {
-    import ImporteesOrder._
+    import ImportSelectorsOrder._
 
-    config.importeesOrder match {
+    config.sortImportSelectors match {
       case Ascii        => importer.copy(importees = importer.importees.sortBy(_.syntax))
       case SymbolsFirst => importer.copy(importees = sortImporteesSymbolsFirst(importer.importees))
       case Keep         => importer
@@ -157,8 +159,11 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
   private def mergeImportersWithCommonPrefix(importers: Seq[Importer]): Seq[Importer] =
     importers.groupBy(_.ref.syntax).values.toSeq.map { group =>
-      val mergedImportees = group.flatMap(_.importees)
-      group.head.copy(importees = mergedImportees.toList)
+      val mergedImportees = group.flatMap(_.importees).toList
+      group.head.copy(importees =
+        if (mergedImportees.length <= config.wildcardImportSelectorThreshold) mergedImportees
+        else Importee.Wildcard() :: Nil
+      )
     }
 
   private def organizeImporters(importers: Seq[Importer]): Seq[Importer] = {
@@ -168,11 +173,13 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     mergedImporters map sortImportees sortBy (_.syntax)
   }
 
-  // The scalafix pretty-printer decides to add spaces after open and before close braces in
+  // Hack: The scalafix pretty-printer decides to add spaces after open and before close braces in
   // imports, i.e., "import a.{ b, c }" instead of "import a.{b, c}". Unfortunately, this behavior
   // cannot be overriden. This function removes the unwanted spaces as a workaround.
   private def fixedImporterSyntax(importer: Importer): String =
-    importer.syntax.replace("{ ", "{").replace(" }", "}")
+    importer.syntax
+      .replace("{ ", "{")
+      .replace(" }", "}")
 
   // Returns the index of the group to which the given importer belongs.
   private def matchImportGroup(importer: Importer, matchers: Seq[ImportMatcher]): Int = {
