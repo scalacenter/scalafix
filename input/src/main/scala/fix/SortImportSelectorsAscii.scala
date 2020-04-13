@@ -1,10 +1,10 @@
 /*
 rules = OrganizeImports
-OrganizeImports.importeesOrder = Ascii
+OrganizeImports.sortImportSelectors = Ascii
  */
 
 package fix
 
 import scala.{Any, ::, collection, :+, Predef, concurrent}
 
-object SortImporteesAscii
+object SortImportSelectorsAscii

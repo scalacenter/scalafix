@@ -1,10 +1,6 @@
 /*
 rules = OrganizeImports
-
-OrganizeImports.groups = [
-  "java."
-  "scala."
-]
+OrganizeImports.groups = ["re:javax?\\.", "*", "scala."]
  */
 
 package fix
@@ -12,7 +8,8 @@ package nested
 
 import java.time.Clock
 import scala.collection.JavaConverters._
-import java.time.{Duration, LocalDate}
+import sun.misc.BASE64Encoder
 import scala.concurrent.ExecutionContext
+import javax.annotation.Generated
 
 object OrganizeImportsNestedPackage

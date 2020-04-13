@@ -1,6 +1,6 @@
 /*
 rules = OrganizeImports
-OrganizeImports.wildcardImporteeThreshold = 3
+OrganizeImports.wildcardImportSelectorThreshold = 3
  */
 
 package fix
@@ -8,4 +8,4 @@ package fix
 import scala.collection.{Seq, GenSeq, immutable, SeqLike}
 import scala.collection.mutable.{Buffer, ArrayBuffer, Queue}
 
-object UseWildcardImportees
+object UseWildcardImportSelectors
