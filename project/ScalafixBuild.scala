@@ -32,9 +32,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     lazy val isFullCrossVersion = Seq(
       crossVersion := CrossVersion.full
     )
-    lazy val isScala213 = Def.setting {
-      scalaVersion.value.startsWith("2.13")
-    }
+    lazy val isScala213 = Def.setting { scalaVersion.value.startsWith("2.13") }
     lazy val warnUnusedImports = Def.setting {
       if (isScala213.value) "-Ywarn-unused:imports"
       else "-Ywarn-unused-import"
@@ -59,7 +57,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         name,
         version,
         stableVersion,
-        "coursier" -> coursier.util.Properties.version,
+        "coursier" -> coursierV,
         "nightly" -> version.value,
         "scalameta" -> scalametaV,
         scalaVersion,
@@ -155,7 +153,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
           "stableVersion" -> stableVersion.value,
           "scalametaVersion" -> scalametaV,
           "supportedScalaVersions" -> supportedScalaVersions,
-          "coursierVersion" -> coursier.util.Properties.version
+          "coursierVersion" -> coursierV
         )
       ),
       fork in tut := true
