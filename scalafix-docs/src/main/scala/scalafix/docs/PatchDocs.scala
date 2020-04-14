@@ -103,10 +103,7 @@ object PatchDocs {
     "-Ywarn-unused",
     "-P:semanticdb:synthetics:on"
   )
-  lazy val classpath = ClasspathOps
-    .getURLs(this.getClass().getClassLoader())
-    .map(p => Paths.get(p.toURI()))
-    .mkString(File.pathSeparator)
+  lazy val classpath = ClasspathOps.getCurrentClasspath
   lazy val compiler =
     InteractiveSemanticdb.newCompiler(classpath, scalacOptions)
   lazy val symtab =
