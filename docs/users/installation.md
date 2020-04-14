@@ -66,7 +66,7 @@ following settings to `build.sbt`
 ```diff
  // build.sbt
  lazy val myproject = project.settings(
-   scalaVersion := "@SCALA212@", // or @SCALA211@
+   scalaVersion := "@SCALA212@", // @SCALA211@, or @SCALA213@
 +  addCompilerPlugin(scalafixSemanticdb), // enable SemanticDB
    scalacOptions ++= List(
 +    "-Yrangepos",          // required by SemanticDB compiler plugin
@@ -74,6 +74,22 @@ following settings to `build.sbt`
    )
  )
 ```
+
+> To enable SemanticDB related settings for all projects in your build.sbt, 
+> use the following setting which is available from Scalafix 0.9.14 and sbt 1.3.x . 
+> 
+> ```diff
+>  // build.sbt
+> inThisBuild(
+>  List(
+>    scalaVersion := "@SCALA212@", // @SCALA211@, or @SCALA213@
+> +  semanticdbEnabled := true,
+> +  semanticdbIncludeInJar := true,
+> +  semanticdbVersion := scalafixSemanticdb.revision
+>   )
+> )
+> ```
+
 
 For `project/*.scala` files, add
 `import scalafix.sbt.ScalafixPlugin.autoImport._` to the top of the file to
