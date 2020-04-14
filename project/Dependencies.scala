@@ -8,6 +8,7 @@ object Dependencies {
   def scala211 = "2.11.12"
   def scala212 = "2.12.11"
   def scala213 = "2.13.1"
+  def coursierV = "2.0.0-RC5-6"
   val currentScalaVersion = scala212
 
   val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.6.0.201912101111-r"
@@ -25,7 +26,7 @@ object Dependencies {
 
   def testsDeps = List(
     // integration property tests
-    "io.get-coursier" %% "coursier" % "2.0.0-RC5-6",
+    "io.get-coursier" %% "coursier" % coursierV,
     "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
     "org.typelevel" %% "cats-core" % "2.0.0",
     "com.typesafe.slick" %% "slick" % "3.3.2",
@@ -34,7 +35,7 @@ object Dependencies {
   )
 
   def coursierDeps = Seq(
-    "io.get-coursier" %% "coursier" % coursier.util.Properties.version,
-    "io.get-coursier" %% "coursier-cache" % coursier.util.Properties.version
+    "io.get-coursier" %% "coursier" % coursierV,
+    "io.get-coursier" %% "coursier-cache" % coursierV
   )
 }

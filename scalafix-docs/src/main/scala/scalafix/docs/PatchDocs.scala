@@ -1,5 +1,7 @@
 package scalafix.docs
 
+import java.nio.file.Paths
+import java.io.File
 import org.typelevel.paiges.Doc
 import scala.meta.inputs.Input
 import scala.meta.interactive.InteractiveSemanticdb
@@ -101,7 +103,12 @@ object PatchDocs {
     "-Ywarn-unused",
     "-P:semanticdb:synthetics:on"
   )
-  lazy val compiler = InteractiveSemanticdb.newCompiler(scalacOptions)
+  lazy val classpath = ClasspathOps
+    .getURLs(this.getClass().getClassLoader())
+    .map(p => Paths.get(p.toURI()))
+    .mkString(File.pathSeparator)
+  lazy val compiler =
+    InteractiveSemanticdb.newCompiler(classpath, scalacOptions)
   lazy val symtab =
     GlobalSymbolTable(ClasspathOps.thisClasspath, includeJdk = true)
   lazy val scalafixSymtab = new Symtab { self =>
