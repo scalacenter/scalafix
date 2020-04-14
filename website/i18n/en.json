@@ -43,6 +43,9 @@
       "rules/DisableSyntax": {
         "title": "DisableSyntax"
       },
+      "rules/ExplicitResultTypes": {
+        "title": "ExplicitResultTypes"
+      },
       "rules/external-rules": {
         "title": "Using external rules",
         "sidebar_label": "Using external rules"
