@@ -82,7 +82,7 @@ following settings to `build.sbt`.
  )
 ```
 
-- sbt 1.2 or less
+- all sbt versions
 
 ```diff
  // build.sbt
