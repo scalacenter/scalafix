@@ -57,8 +57,8 @@ case class PlainTextMatcher(pattern: String) extends ImportMatcher {
 }
 
 case object WildcardMatcher extends ImportMatcher {
-  // We don't want the "*" wildcard group to match anything. It will be special-cased at the end of
-  // the import group matching process.
+  // This matcher should not match anything. The wildcard group is always special-cased at the end
+  // of the import group matching process.
   def matches(importer: Importer): Boolean = false
 }
 
