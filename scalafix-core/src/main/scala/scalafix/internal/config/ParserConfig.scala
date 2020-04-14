@@ -6,11 +6,13 @@ import metaconfig._
 import scala.meta.Dialect
 
 case class ParserConfig(
+    literalTypes: Boolean = true,
     trailingCommas: Boolean = true,
     inlineKeyword: Boolean = false
 ) {
 
-  private val dialect = scala.meta.dialects.Scala212.copy(
+  private val dialect = scala.meta.dialects.Scala213.copy(
+    allowLiteralTypes = literalTypes,
     allowTrailingCommas = trailingCommas,
     allowInlineMods = inlineKeyword,
     allowInlineIdents = !inlineKeyword

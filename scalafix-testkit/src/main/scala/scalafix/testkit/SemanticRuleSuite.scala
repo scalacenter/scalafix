@@ -40,6 +40,7 @@ abstract class SemanticRuleSuite(
   private def scalaVersionDirectory: Option[String] =
     if (scalaVersion.startsWith("2.11")) Some("scala-2.11")
     else if (scalaVersion.startsWith("2.12")) Some("scala-2.12")
+    else if (scalaVersion.startsWith("2.13")) Some("scala-2.13")
     else None
 
   def evaluateTestBody(diffTest: RuleTest): Unit = {

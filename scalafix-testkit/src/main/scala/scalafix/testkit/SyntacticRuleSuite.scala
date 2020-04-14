@@ -5,6 +5,7 @@ import org.scalatest.Tag
 import scala.meta._
 import scalafix.syntax._
 import scalafix.v0._
+import scalafix.internal.config.ScalafixConfig
 
 /** Utility to unit test syntactic rules
  *
@@ -60,9 +61,10 @@ class SyntacticRuleSuite(rule: Rule = Rule.empty)
       testTags: Tag*
   ): Unit = {
     test(original.label, testTags: _*) {
-      val ctx = RuleCtx(original.parse[Source].get)
+      val dialect = ScalafixConfig.default.parser.dialectForFile("Source.scala")
+      val ctx = RuleCtx(dialect(original).parse[Source].get)
       val obtained = rule.diff(ctx)
-      assert(obtained == expected)
+      assertNoDiff(obtained, expected)
     }
   }
 }
