@@ -63,6 +63,8 @@ case object WildcardMatcher extends ImportMatcher {
 }
 
 class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("OrganizeImports") {
+  import OrganizeImports._
+
   private val importMatchers = config.groups map {
     case p if p startsWith "re:" => RegexMatcher(new Regex(p stripPrefix "re:"))
     case "*"                     => WildcardMatcher
@@ -127,26 +129,6 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     (insertOrganizedImports + removeOriginalImports).atomic
   }
 
-  @tailrec private def topQualifierOf(term: Term): Term.Name =
-    term match {
-      case Term.Select(qualifier, _) => topQualifierOf(qualifier)
-      case name: Term.Name           => name
-    }
-
-  private def sortImporteesSymbolsFirst(importees: List[Importee]): List[Importee] = {
-    val symbols = ArrayBuffer.empty[Importee]
-    val lowerCases = ArrayBuffer.empty[Importee]
-    val upperCases = ArrayBuffer.empty[Importee]
-
-    importees.foreach {
-      case i if i.syntax.head.isLower => lowerCases += i
-      case i if i.syntax.head.isUpper => upperCases += i
-      case i                          => symbols += i
-    }
-
-    List(symbols, lowerCases, upperCases) flatMap (_ sortBy (_.syntax))
-  }
-
   private def sortImportees(importer: Importer): Importer = {
     import ImportSelectorsOrder._
 
@@ -173,6 +155,18 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     mergedImporters map sortImportees sortBy (_.syntax)
   }
 
+  // Returns the index of the group to which the given importer belongs.
+  private def matchImportGroup(importer: Importer, matchers: Seq[ImportMatcher]): Int = {
+    val index = matchers indexWhere (_ matches importer)
+    if (index > -1) index else wildcardGroupIndex
+  }
+}
+
+object OrganizeImports {
+  private object / {
+    def unapply(tree: Tree): Option[(Tree, Tree)] = tree.parent map (_ -> tree)
+  }
+
   // Hack: The scalafix pretty-printer decides to add spaces after open and before close braces in
   // imports, i.e., "import a.{ b, c }" instead of "import a.{b, c}". Unfortunately, this behavior
   // cannot be overriden. This function removes the unwanted spaces as a workaround.
@@ -181,15 +175,11 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       .replace("{ ", "{")
       .replace(" }", "}")
 
-  // Returns the index of the group to which the given importer belongs.
-  private def matchImportGroup(importer: Importer, matchers: Seq[ImportMatcher]): Int = {
-    val index = matchers indexWhere (_ matches importer)
-    if (index > -1) index else wildcardGroupIndex
-  }
-
-  private object / {
-    def unapply(tree: Tree): Option[(Tree, Tree)] = tree.parent map (_ -> tree)
-  }
+  @tailrec private def topQualifierOf(term: Term): Term.Name =
+    term match {
+      case Term.Select(qualifier, _) => topQualifierOf(qualifier)
+      case name: Term.Name           => name
+    }
 
   private def collectGlobalImports(tree: Tree): Seq[Import] = tree match {
     case s: Source                 => s.children flatMap collectGlobalImports
@@ -198,5 +188,19 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     case (_: Source) / (i: Import) => Seq(i)
     case (_: Pkg) / (i: Import)    => Seq(i)
     case _                         => Seq.empty[Import]
+  }
+
+  private def sortImporteesSymbolsFirst(importees: List[Importee]): List[Importee] = {
+    val symbols = ArrayBuffer.empty[Importee]
+    val lowerCases = ArrayBuffer.empty[Importee]
+    val upperCases = ArrayBuffer.empty[Importee]
+
+    importees.foreach {
+      case i if i.syntax.head.isLower => lowerCases += i
+      case i if i.syntax.head.isUpper => upperCases += i
+      case i                          => symbols += i
+    }
+
+    List(symbols, lowerCases, upperCases) flatMap (_ sortBy (_.syntax))
   }
 }
