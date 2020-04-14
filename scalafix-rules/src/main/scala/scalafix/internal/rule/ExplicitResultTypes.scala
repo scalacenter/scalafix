@@ -59,11 +59,11 @@ final class ExplicitResultTypes(
         }
       }
     if (config.scalacClasspath.nonEmpty && config.scalaVersion != supportedScalaVersion) {
-      Configured.typeMismatch(
-        s"scalaVersion=${Properties.versionNumberString}",
-        Conf.Obj("scalaVersion" -> Conf.Str(config.scalaVersion))
+      Configured.error(
+        s"The ExplicitResultTypes rule only supports the Scala version '$supportedScalaVersion'. " +
+          s"To fix this problem, either remove `ExplicitResultTypes` from .scalafix.conf or change the Scala version " +
+          s"in your build to match exactly '$supportedScalaVersion'."
       )
-
     } else {
       config.conf // Support deprecated explicitReturnTypes config
         .getOrElse("explicitReturnTypes", "ExplicitResultTypes")(

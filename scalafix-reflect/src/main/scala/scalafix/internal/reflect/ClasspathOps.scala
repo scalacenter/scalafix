@@ -38,16 +38,14 @@ object ClasspathOps {
 
   def thisClasspath: Classpath = {
     Classpath(
-      thisClassLoader.getURLs.iterator
+      getURLs(this.getClass().getClassLoader())
         .map(url => AbsolutePath(Paths.get(url.toURI)))
         .toList
     )
   }
 
   def getCurrentClasspath: String = {
-    this.getClass.getClassLoader
-      .asInstanceOf[URLClassLoader]
-      .getURLs
+    getURLs(this.getClass.getClassLoader)
       .map(_.getFile)
       .mkString(File.pathSeparator)
   }
