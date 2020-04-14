@@ -61,7 +61,28 @@ The first error message means the
 [SemanticDB](https://scalameta.org/docs/semanticdb/guide.html) compiler plugin
 is not enabled for this project. The second error says `RemoveUnused` requires
 the Scala compiler option `-Ywarn-unused`. To fix both problems, add the
-following settings to `build.sbt`
+following settings to `build.sbt`. 
+
+- sbt 1.3.x or above
+
+```diff
+ // build.sbt
+ inThisBuild(
+   List(
+     scalaVersion := "@SCALA212@", // @SCALA211@, or @SCALA213@
++    semanticdbEnabled := true, // enable SemanticDB
++    semanticdbVersion := scalafixSemanticdb.revision // use Scalafix compatible version
+   )
+ )
+
+ lazy val myproject = project.settings(
+   scalacOptions ++= List(
++    "-Ywarn-unused-import" // required by `RemoveUnused` rule
+   )
+ )
+```
+
+- sbt 1.2 or less
 
 ```diff
  // build.sbt
@@ -74,22 +95,6 @@ following settings to `build.sbt`
    )
  )
 ```
-
-> To enable SemanticDB related settings for all projects in your build.sbt, 
-> use the following setting which is available from Scalafix 0.9.14 and sbt 1.3.x . 
-> 
-> ```diff
->  // build.sbt
-> inThisBuild(
->  List(
->    scalaVersion := "@SCALA212@", // @SCALA211@, or @SCALA213@
-> +  semanticdbEnabled := true,
-> +  semanticdbIncludeInJar := true,
-> +  semanticdbVersion := scalafixSemanticdb.revision
->   )
-> )
-> ```
-
 
 For `project/*.scala` files, add
 `import scalafix.sbt.ScalafixPlugin.autoImport._` to the top of the file to
@@ -125,6 +130,10 @@ Great! You are all set to use Scalafix with sbt :)
 >   -Xms1G
 >   -Xmx8G
 > ```
+> 
+> You can also use project scoped settings if you don't want to mix 
+> SemanticDB settings with your sub-projects which don't use it, 
+> rather than using ThisBuild scoped settings.
 
 ### Settings and tasks
 
