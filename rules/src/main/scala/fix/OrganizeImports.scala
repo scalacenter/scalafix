@@ -65,10 +65,15 @@ case object WildcardMatcher extends ImportMatcher {
 class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("OrganizeImports") {
   import OrganizeImports._
 
-  private val importMatchers = config.groups map {
-    case p if p startsWith "re:" => RegexMatcher(new Regex(p stripPrefix "re:"))
-    case "*"                     => WildcardMatcher
-    case p                       => PlainTextMatcher(p)
+  private val importMatchers = {
+    val matchers = config.groups map {
+      case p if p startsWith "re:" => RegexMatcher(new Regex(p stripPrefix "re:"))
+      case "*"                     => WildcardMatcher
+      case p                       => PlainTextMatcher(p)
+    }
+
+    // The wildcard group should always exist. Append one at the end if omitted.
+    if (matchers contains WildcardMatcher) matchers else matchers :+ WildcardMatcher
   }
 
   private val wildcardGroupIndex = importMatchers indexOf WildcardMatcher
@@ -78,11 +83,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   override def isExperimental: Boolean = true
 
   override def withConfiguration(config: Configuration): Configured[Rule] =
-    config.conf.getOrElse("OrganizeImports")(OrganizeImportsConfig()).map { c =>
-      // The "*" wildcard group should always exist. Append one at the end if omitted.
-      val withStar = if (c.groups contains "*") c.groups else c.groups :+ "*"
-      new OrganizeImports(c.copy(groups = withStar))
-    }
+    config.conf.getOrElse("OrganizeImports")(OrganizeImportsConfig()).map(new OrganizeImports(_))
 
   override def fix(implicit doc: SemanticDocument): Patch = {
     val globalImports = collectGlobalImports(doc.tree)
@@ -98,7 +99,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     // Organizes all the fully-qualified global importers.
     val (_, sortedImporterGroups: Seq[Seq[Importer]]) =
       fullyQualifiedImporters
-        .groupBy(matchImportGroup(_, importMatchers)) // Groups imports by importer prefix.
+        .groupBy(matchImportGroup) // Groups imports by importer prefix.
         .mapValues(organizeImporters) // Organize imports within the same group.
         .toSeq
         .sortBy { case (index, _) => index } // Sorts import groups by group index
@@ -156,8 +157,8 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   }
 
   // Returns the index of the group to which the given importer belongs.
-  private def matchImportGroup(importer: Importer, matchers: Seq[ImportMatcher]): Int = {
-    val index = matchers indexWhere (_ matches importer)
+  private def matchImportGroup(importer: Importer): Int = {
+    val index = importMatchers indexWhere (_ matches importer)
     if (index > -1) index else wildcardGroupIndex
   }
 }
@@ -165,6 +166,15 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 object OrganizeImports {
   private object / {
     def unapply(tree: Tree): Option[(Tree, Tree)] = tree.parent map (_ -> tree)
+  }
+
+  private def collectGlobalImports(tree: Tree): Seq[Import] = tree match {
+    case s: Source                 => s.children flatMap collectGlobalImports
+    case (_: Source) / (p: Pkg)    => p.children flatMap collectGlobalImports
+    case (_: Pkg) / (p: Pkg)       => p.children flatMap collectGlobalImports
+    case (_: Source) / (i: Import) => Seq(i)
+    case (_: Pkg) / (i: Import)    => Seq(i)
+    case _                         => Seq.empty[Import]
   }
 
   // Hack: The scalafix pretty-printer decides to add spaces after open and before close braces in
@@ -180,15 +190,6 @@ object OrganizeImports {
       case Term.Select(qualifier, _) => topQualifierOf(qualifier)
       case name: Term.Name           => name
     }
-
-  private def collectGlobalImports(tree: Tree): Seq[Import] = tree match {
-    case s: Source                 => s.children flatMap collectGlobalImports
-    case (_: Source) / (p: Pkg)    => p.children flatMap collectGlobalImports
-    case (_: Pkg) / (p: Pkg)       => p.children flatMap collectGlobalImports
-    case (_: Source) / (i: Import) => Seq(i)
-    case (_: Pkg) / (i: Import)    => Seq(i)
-    case _                         => Seq.empty[Import]
-  }
 
   private def sortImporteesSymbolsFirst(importees: List[Importee]): List[Importee] = {
     val symbols = ArrayBuffer.empty[Importee]
