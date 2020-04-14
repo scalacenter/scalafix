@@ -12,7 +12,7 @@ before_install:
 jobs:
   include:
     - stage: release
-      script: ./sbt ci-release docs/docusaurusPublishGhpages
+      script: ./sbt docs/docusaurusPublishGhpages
 
 cache:
   directories:
