@@ -10,9 +10,11 @@ import org.scalatest.exceptions.TestFailedException
 
 object DiffAssertions {
   def compareContents(original: String, revised: String): String = {
-    "".lines
     def splitLines(s: String) =
-      s.trim.replaceAllLiterally("\r\n", "\n").split("\n")
+      s.trim
+        .replaceAllLiterally("\r\n", "\n")
+        .replace(" +$", "")
+        .split("\n")
     compareContents(splitLines(original), splitLines(revised))
   }
 
