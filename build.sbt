@@ -4,7 +4,7 @@ inThisBuild(
     onLoadMessage := s"Welcome to scalafix ${version.value}",
     scalaVersion := scala212,
     crossScalaVersions := List(scala212, scala211),
-    fork.in(Test, test) := true
+    fork := true
   )
 )
 
@@ -169,7 +169,8 @@ lazy val unit = project
   .in(file("scalafix-tests/unit"))
   .settings(
     noPublish,
-    fork := false,
+    // Change working directory to match when `fork := false`.
+    baseDirectory.in(Test) := baseDirectory.in(ThisBuild).value,
     javaOptions := Nil,
     buildInfoPackage := "scalafix.tests",
     buildInfoObject := "BuildInfo",
@@ -251,6 +252,7 @@ lazy val docs = project
   .in(file("scalafix-docs"))
   .settings(
     noMima,
+    baseDirectory.in(run) := baseDirectory.in(ThisBuild).value,
     skip in publish := true,
     moduleName := "scalafix-docs",
     scalaVersion := scala212,

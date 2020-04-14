@@ -82,7 +82,7 @@ class ScalafixImplSuite extends FunSuite with DiffAssertions {
   }
 
   test("error") {
-    val cl = new URLClassLoader(Array())
+    val cl = new URLClassLoader(Array(), null)
     val ex = intercept[ScalafixException] {
       i.Scalafix.classloadInstance(cl)
     }
