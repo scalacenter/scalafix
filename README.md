@@ -250,3 +250,14 @@ Import selectors within a single import expression can be sorted by a configurab
 1.  `Keep`
 
     Do not sort import selectors.
+
+## Default configuration
+
+```hocon
+OrganizeImports {
+  explodeGroupedImportSelectors = false
+  groups = ["re:javax?\\.", "scala.", "*"]
+  importSelectorsOrder = Ascii
+  mergeImportsWithCommonPrefix = true
+}
+```
