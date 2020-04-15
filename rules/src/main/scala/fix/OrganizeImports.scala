@@ -25,7 +25,6 @@ object ImportSelectorsOrder {
 
 final case class OrganizeImportsConfig(
   importSelectorsOrder: ImportSelectorsOrder = ImportSelectorsOrder.Ascii,
-  wildcardImportSelectorThreshold: Int = Int.MaxValue,
   mergeImportsWithCommonPrefix: Boolean = true,
   explodeGroupedImportSelectors: Boolean = false,
   groups: Seq[String] = Seq(
@@ -150,14 +149,6 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     }
   }
 
-  private def useWildcardImporteeWhenNecessary(importer: Importer): Importer = {
-    val importees = importer.importees
-    importer.copy(importees =
-      if (importees.length <= config.wildcardImportSelectorThreshold) importees
-      else Importee.Wildcard() :: Nil
-    )
-  }
-
   private def organizeImporters(importers: Seq[Importer]): Seq[Importer] = {
     val xs = config match {
       case _ if config.mergeImportsWithCommonPrefix  => mergeImportersWithCommonPrefix(importers)
@@ -165,7 +156,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       case _                                         => importers
     }
 
-    xs map useWildcardImporteeWhenNecessary map sortImportees sortBy (_.syntax)
+    xs map sortImportees sortBy (_.syntax)
   }
 
   // Returns the index of the group to which the given importer belongs.
