@@ -1,12 +1,6 @@
 # OrganizeImports
 
-A Scalafix custom rule that organizes import statements. It implements the following features:
-
-- Grouping import statements by import expression prefix (with regular expression support).
-- Breaking import expressions in a single import statement into separate import statements.
-- Merging import statements with common prefix into a single statement.
-- Sorting import selectors by customizable orders.
-- Using wildcard import when the number of import selectors exceeds a configurable threshold.
+A Scalafix custom rule that organizes import statements.
 
 ## Installation
 
