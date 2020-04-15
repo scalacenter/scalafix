@@ -24,7 +24,7 @@ object ImportSelectorsOrder {
 }
 
 final case class OrganizeImportsConfig(
-  sortImportSelectors: ImportSelectorsOrder = ImportSelectorsOrder.Ascii,
+  importSelectorsOrder: ImportSelectorsOrder = ImportSelectorsOrder.Ascii,
   wildcardImportSelectorThreshold: Int = Int.MaxValue,
   mergeImportsWithCommonPrefix: Boolean = true,
   explodeGroupedImportSelectors: Boolean = false,
@@ -143,7 +143,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   private def sortImportees(importer: Importer): Importer = {
     import ImportSelectorsOrder._
 
-    config.sortImportSelectors match {
+    config.importSelectorsOrder match {
       case Ascii        => importer.copy(importees = importer.importees.sortBy(_.syntax))
       case SymbolsFirst => importer.copy(importees = sortImporteesSymbolsFirst(importer.importees))
       case Keep         => importer
