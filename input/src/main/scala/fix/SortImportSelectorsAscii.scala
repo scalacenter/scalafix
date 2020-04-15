@@ -1,6 +1,6 @@
 /*
 rules = OrganizeImports
-OrganizeImports.sortImportSelectors = Ascii
+OrganizeImports.importSelectorsOrder = Ascii
  */
 
 package fix
