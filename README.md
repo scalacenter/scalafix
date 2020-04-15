@@ -239,13 +239,13 @@ Import selectors within a single import expression can be sorted by a configurab
     - Input:
 
       ```scala
-      import foo.{~>, `symbol`, bar, Random}
+      import foo.{Random, `symbol`, bar, ~>}
       ```
 
     - Output:
 
       ```scala
-      import foo.{Random, `symbol`, bar, ~>}
+      import foo.{~>, `symbol`, bar, Random}
       ```
 1.  `Keep`
 
