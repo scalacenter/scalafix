@@ -27,6 +27,7 @@ final case class OrganizeImportsConfig(
   sortImportSelectors: ImportSelectorsOrder = ImportSelectorsOrder.Ascii,
   wildcardImportSelectorThreshold: Int = Int.MaxValue,
   mergeImportsWithCommonPrefix: Boolean = true,
+  explodeGroupedImportSelectors: Boolean = false,
   groups: Seq[String] = Seq(
     "re:javax?\\.",
     "scala.",
@@ -82,8 +83,17 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
   override def isExperimental: Boolean = true
 
-  override def withConfiguration(config: Configuration): Configured[Rule] =
-    config.conf.getOrElse("OrganizeImports")(OrganizeImportsConfig()).map(new OrganizeImports(_))
+  override def withConfiguration(config: Configuration): Configured[Rule] = {
+    config.conf.getOrElse("OrganizeImports")(OrganizeImportsConfig()).map { conf =>
+      require(
+        !(conf.explodeGroupedImportSelectors && conf.mergeImportsWithCommonPrefix),
+        "The following configuration options cannot both be true:\n"
+          + "- OrganizeImports.explodeGroupedImportSelectors\n"
+          + "- OrganizeImports.mergeImportsWithCommonPrefix"
+      )
+      new OrganizeImports(conf)
+    }
+  }
 
   override def fix(implicit doc: SemanticDocument): Patch = {
     val globalImports = collectGlobalImports(doc.tree)
@@ -140,20 +150,22 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     }
   }
 
-  private def mergeImportersWithCommonPrefix(importers: Seq[Importer]): Seq[Importer] =
-    importers.groupBy(_.ref.syntax).values.toSeq.map { group =>
-      val mergedImportees = group.flatMap(_.importees).toList
-      group.head.copy(importees =
-        if (mergedImportees.length <= config.wildcardImportSelectorThreshold) mergedImportees
-        else Importee.Wildcard() :: Nil
-      )
-    }
+  private def useWildcardImporteeWhenNecessary(importer: Importer): Importer = {
+    val importees = importer.importees
+    importer.copy(importees =
+      if (importees.length <= config.wildcardImportSelectorThreshold) importees
+      else Importee.Wildcard() :: Nil
+    )
+  }
 
   private def organizeImporters(importers: Seq[Importer]): Seq[Importer] = {
-    val mergedImporters =
-      if (!config.mergeImportsWithCommonPrefix) importers
-      else mergeImportersWithCommonPrefix(importers)
-    mergedImporters map sortImportees sortBy (_.syntax)
+    val xs = config match {
+      case _ if config.mergeImportsWithCommonPrefix  => mergeImportersWithCommonPrefix(importers)
+      case _ if config.explodeGroupedImportSelectors => explodeGroupedImportees(importers)
+      case _                                         => importers
+    }
+
+    xs map useWildcardImporteeWhenNecessary map sortImportees sortBy (_.syntax)
   }
 
   // Returns the index of the group to which the given importer belongs.
@@ -204,4 +216,15 @@ object OrganizeImports {
 
     List(symbols, lowerCases, upperCases) flatMap (_ sortBy (_.syntax))
   }
+
+  private def mergeImportersWithCommonPrefix(importers: Seq[Importer]): Seq[Importer] =
+    importers.groupBy(_.ref.syntax).values.toSeq.map { group =>
+      group.head.copy(importees = group.flatMap(_.importees).toList)
+    }
+
+  private def explodeGroupedImportees(importers: Seq[Importer]): Seq[Importer] =
+    for {
+      Importer(ref, importees) <- importers
+      importee <- importees
+    } yield Importer(ref, importee :: Nil)
 }
