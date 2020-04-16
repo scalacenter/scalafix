@@ -2,11 +2,19 @@ package fix
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
-import scala.meta.{Import, Importee, Importer, Pkg, Source, Term, Tree}
+import scala.meta.Import
+import scala.meta.Importee
+import scala.meta.Importer
+import scala.meta.Pkg
+import scala.meta.Source
+import scala.meta.Term
+import scala.meta.Tree
 import scala.util.matching.Regex
 
 import metaconfig._
-import metaconfig.generic.{Surface, deriveDecoder, deriveSurface}
+import metaconfig.generic.Surface
+import metaconfig.generic.deriveDecoder
+import metaconfig.generic.deriveSurface
 import scalafix.internal.config.ReaderUtil
 import scalafix.patch.Patch
 import scalafix.v1._
