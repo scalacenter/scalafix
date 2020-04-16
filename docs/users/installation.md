@@ -65,7 +65,10 @@ following settings to `build.sbt`.
 
 
 ```diff
- // build.sbt, for sbt 1.3x and newer
+ /*
+  * build.sbt, for sbt 1.3x and newer
+  * SemanticDB is enabled for all sub-projects via ThisBuild scope.
+  */
  inThisBuild(
    List(
      scalaVersion := "@SCALA212@", // @SCALA211@, or @SCALA213@
@@ -75,16 +78,25 @@ following settings to `build.sbt`.
  )
 
  lazy val myproject = project.settings(
-   scalacOptions ++= List(
-+    "-Ywarn-unused-import" // required by `RemoveUnused` rule
-   )
+   scalacOptions += "-Ywarn-unused-import" // required by `RemoveUnused` rule
  )
 ```
 
-- all sbt versions
+```diff
+ /*
+  * build.sbt, for sbt 1.3x and newer
+  * SemanticDB is enabled only for a sub-project.
+  */
+ lazy val myproject = project.settings(
+   scalaVersion := "@SCALA212@", // @SCALA211@, or @SCALA213@
++  semanticdbEnabled := true, // enable SemanticDB
++  semanticdbVersion := scalafixSemanticdb.revision, // use Scalafix compatible version
++  scalacOptions += "-Ywarn-unused-import" // required by `RemoveUnused` rule
+ )
+```
 
 ```diff
- // build.sbt
+ // build.sbt, for sbt 1.2.x and older
  lazy val myproject = project.settings(
    scalaVersion := "@SCALA212@", // @SCALA211@, or @SCALA213@
 +  addCompilerPlugin(scalafixSemanticdb), // enable SemanticDB
