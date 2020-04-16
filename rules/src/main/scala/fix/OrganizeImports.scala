@@ -23,15 +23,22 @@ object ImportSelectorsOrder {
   }
 }
 
+sealed trait ImportSelectorsPolicy
+
+object ImportSelectorsPolicy {
+  case object Group extends ImportSelectorsPolicy
+  case object Explode extends ImportSelectorsPolicy
+  case object Keep extends ImportSelectorsPolicy
+
+  implicit def reader: ConfDecoder[ImportSelectorsPolicy] = ReaderUtil.fromMap {
+    List(Group, Explode, Keep) groupBy (_.toString) mapValues (_.head)
+  }
+}
+
 final case class OrganizeImportsConfig(
   importSelectorsOrder: ImportSelectorsOrder = ImportSelectorsOrder.Ascii,
-  mergeImportsWithCommonPrefix: Boolean = true,
-  explodeGroupedImportSelectors: Boolean = false,
-  groups: Seq[String] = Seq(
-    "re:javax?\\.",
-    "scala.",
-    "*"
-  )
+  importSelectorsPolicy: ImportSelectorsPolicy = ImportSelectorsPolicy.Explode,
+  groups: Seq[String] = Seq("re:javax?\\.", "scala.", "*")
 )
 
 object OrganizeImportsConfig {
@@ -83,15 +90,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   override def isExperimental: Boolean = true
 
   override def withConfiguration(config: Configuration): Configured[Rule] = {
-    config.conf.getOrElse("OrganizeImports")(OrganizeImportsConfig()).map { conf =>
-      require(
-        !(conf.explodeGroupedImportSelectors && conf.mergeImportsWithCommonPrefix),
-        "The following configuration options cannot both be true:\n"
-          + "- OrganizeImports.explodeGroupedImportSelectors\n"
-          + "- OrganizeImports.mergeImportsWithCommonPrefix"
-      )
-      new OrganizeImports(conf)
-    }
+    config.conf.getOrElse("OrganizeImports")(OrganizeImportsConfig()).map(new OrganizeImports(_))
   }
 
   override def fix(implicit doc: SemanticDocument): Patch = {
@@ -150,10 +149,12 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   }
 
   private def organizeImporters(importers: Seq[Importer]): Seq[Importer] = {
-    val xs = config match {
-      case _ if config.mergeImportsWithCommonPrefix  => mergeImportersWithCommonPrefix(importers)
-      case _ if config.explodeGroupedImportSelectors => explodeGroupedImportees(importers)
-      case _                                         => importers
+    import ImportSelectorsPolicy._
+
+    val xs = config.importSelectorsPolicy match {
+      case Group   => groupImportersWithCommonPrefix(importers)
+      case Explode => explodeGroupedImportees(importers)
+      case Keep    => importers
     }
 
     xs map sortImportees sortBy (_.syntax)
@@ -208,7 +209,7 @@ object OrganizeImports {
     List(symbols, lowerCases, upperCases) flatMap (_ sortBy (_.syntax))
   }
 
-  private def mergeImportersWithCommonPrefix(importers: Seq[Importer]): Seq[Importer] =
+  private def groupImportersWithCommonPrefix(importers: Seq[Importer]): Seq[Importer] =
     importers.groupBy(_.ref.syntax).values.toSeq.map { group =>
       group.head.copy(importees = group.flatMap(_.importees).toList)
     }

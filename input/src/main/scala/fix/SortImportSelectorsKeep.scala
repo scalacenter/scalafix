@@ -1,6 +1,9 @@
 /*
 rules = OrganizeImports
-OrganizeImports.importSelectorsOrder = Keep
+OrganizeImports {
+  importSelectorsOrder = Keep
+  importSelectorsPolicy = Keep
+}
  */
 
 package fix

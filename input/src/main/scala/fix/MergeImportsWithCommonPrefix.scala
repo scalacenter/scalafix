@@ -1,4 +1,7 @@
-/* rules = OrganizeImports */
+/*
+rules = OrganizeImports
+OrganizeImports.importSelectorsPolicy = Group
+ */
 
 package fix
 

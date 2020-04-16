@@ -1,9 +1,6 @@
 /*
 rules = OrganizeImports
-OrganizeImports {
-  mergeImportsWithCommonPrefix = false
-  explodeGroupedImportSelectors = true
-}
+OrganizeImports.importSelectorsPolicy = Explode
  */
 package fix
 

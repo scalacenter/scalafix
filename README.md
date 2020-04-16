@@ -139,13 +139,8 @@ Example:
 - Configuration:
 
   ```hocon
-  OrganizeImports {
-    explodeGroupedImportSelectors = true
-    mergeImportsWithCommonPrefix = false
-  }
+  OrganizeImports.importSelectorsPolicy = Explode
   ```
-
-  **NOTE:** Setting both `explodeGroupedImportSelectors` and `mergeImportsWithCommonPrefix` to `true` is invalid and triggers a runtime error.
 
 - Input:
 
@@ -161,20 +156,15 @@ Example:
   import scala.collection.mutable.StringBuilder
   ```
 
-### Merging import statements with common prefix
+### Grouping import statements with common prefix
 
 Example:
 
 - Configuration:
 
   ```hocon
-  OrganizeImports {
-    explodeGroupedImportSelectors = false
-    mergeImportsWithCommonPrefix = true
-  }
+  OrganizeImports.importSelectorsPolicy = Group
   ```
-
-  **NOTE:** Setting both `explodeGroupedImportSelectors` and `mergeImportsWithCommonPrefix` to `true` is invalid and triggers a runtime error.
 
 - Before:
 
@@ -203,7 +193,10 @@ Import selectors within a single import expression can be sorted by a configurab
     - Configuration
 
       ```hocon
-      importSelectorsOrder = Ascii
+      OrganizeImports {
+        importSelectorsOrder = Ascii
+        importSelectorsPolicy = Keep
+      }
       ```
 
     - Input:
@@ -227,7 +220,10 @@ Import selectors within a single import expression can be sorted by a configurab
     - Configuration
 
       ```hocon
-      importSelectorsOrder = SymbolsFirst
+      OrganizeImports {
+        importSelectorsOrder = SymbolsFirst
+        importSelectorsPolicy = Keep
+      }
       ```
 
     - Input:
@@ -249,9 +245,8 @@ Import selectors within a single import expression can be sorted by a configurab
 
 ```hocon
 OrganizeImports {
-  explodeGroupedImportSelectors = false
   groups = ["re:javax?\\.", "scala.", "*"]
   importSelectorsOrder = Ascii
-  mergeImportsWithCommonPrefix = true
+  importSelectorsPolicy = Explode
 }
 ```
