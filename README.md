@@ -139,7 +139,7 @@ Example:
 - Configuration:
 
   ```hocon
-  OrganizeImports.importSelectorsPolicy = Explode
+  OrganizeImports.groupedImports = Explode
   ```
 
 - Input:
@@ -163,7 +163,7 @@ Example:
 - Configuration:
 
   ```hocon
-  OrganizeImports.importSelectorsPolicy = Group
+  OrganizeImports.groupedImports = Group
   ```
 
 - Before:
@@ -194,8 +194,8 @@ Import selectors within a single import expression can be sorted by a configurab
 
       ```hocon
       OrganizeImports {
+        groupedImports = Keep
         importSelectorsOrder = Ascii
-        importSelectorsPolicy = Keep
       }
       ```
 
@@ -221,8 +221,8 @@ Import selectors within a single import expression can be sorted by a configurab
 
       ```hocon
       OrganizeImports {
+        groupedImports = Keep
         importSelectorsOrder = SymbolsFirst
-        importSelectorsPolicy = Keep
       }
       ```
 
@@ -246,7 +246,7 @@ Import selectors within a single import expression can be sorted by a configurab
 ```hocon
 OrganizeImports {
   groups = ["re:javax?\\.", "scala.", "*"]
+  groupedImports = Explode
   importSelectorsOrder = Ascii
-  importSelectorsPolicy = Explode
 }
 ```

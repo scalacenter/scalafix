@@ -31,21 +31,21 @@ object ImportSelectorsOrder {
   }
 }
 
-sealed trait ImportSelectorsPolicy
+sealed trait GroupedImports
 
-object ImportSelectorsPolicy {
-  case object Group extends ImportSelectorsPolicy
-  case object Explode extends ImportSelectorsPolicy
-  case object Keep extends ImportSelectorsPolicy
+object GroupedImports {
+  case object Merge extends GroupedImports
+  case object Explode extends GroupedImports
+  case object Keep extends GroupedImports
 
-  implicit def reader: ConfDecoder[ImportSelectorsPolicy] = ReaderUtil.fromMap {
-    List(Group, Explode, Keep) groupBy (_.toString) mapValues (_.head)
+  implicit def reader: ConfDecoder[GroupedImports] = ReaderUtil.fromMap {
+    List(Merge, Explode, Keep) groupBy (_.toString) mapValues (_.head)
   }
 }
 
 final case class OrganizeImportsConfig(
   importSelectorsOrder: ImportSelectorsOrder = ImportSelectorsOrder.Ascii,
-  importSelectorsPolicy: ImportSelectorsPolicy = ImportSelectorsPolicy.Explode,
+  groupedImports: GroupedImports = GroupedImports.Explode,
   groups: Seq[String] = Seq("re:javax?\\.", "scala.", "*")
 )
 
@@ -157,10 +157,10 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   }
 
   private def organizeImporters(importers: Seq[Importer]): Seq[Importer] = {
-    import ImportSelectorsPolicy._
+    import GroupedImports._
 
-    val xs = config.importSelectorsPolicy match {
-      case Group   => groupImportersWithCommonPrefix(importers)
+    val xs = config.groupedImports match {
+      case Merge   => mergeImportersWithCommonPrefix(importers)
       case Explode => explodeGroupedImportees(importers)
       case Keep    => importers
     }
@@ -217,7 +217,7 @@ object OrganizeImports {
     List(symbols, lowerCases, upperCases) flatMap (_ sortBy (_.syntax))
   }
 
-  private def groupImportersWithCommonPrefix(importers: Seq[Importer]): Seq[Importer] =
+  private def mergeImportersWithCommonPrefix(importers: Seq[Importer]): Seq[Importer] =
     importers.groupBy(_.ref.syntax).values.toSeq.map { group =>
       group.head.copy(importees = group.flatMap(_.importees).toList)
     }

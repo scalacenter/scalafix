@@ -2,7 +2,7 @@
 rules = OrganizeImports
 OrganizeImports {
   importSelectorsOrder = Keep
-  importSelectorsPolicy = Keep
+  groupedImports = Keep
 }
  */
 

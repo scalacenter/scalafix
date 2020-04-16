@@ -2,7 +2,7 @@
 rules = OrganizeImports
 OrganizeImports {
   importSelectorsOrder = SymbolsFirst
-  importSelectorsPolicy = Keep
+  groupedImports = Keep
 }
  */
 

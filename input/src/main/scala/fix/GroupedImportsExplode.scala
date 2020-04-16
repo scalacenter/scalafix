@@ -1,9 +1,9 @@
 /*
 rules = OrganizeImports
-OrganizeImports.importSelectorsPolicy = Explode
+OrganizeImports.groupedImports = Explode
  */
 package fix
 
 import scala.collection.mutable.{ArrayBuffer, Buffer, StringBuilder}
 
-object ExplodeGroupedImportSelectors
+object GroupedImportsExplode

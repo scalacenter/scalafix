@@ -2,7 +2,7 @@
 rules = OrganizeImports
 OrganizeImports {
   importSelectorsOrder = Ascii
-  importSelectorsPolicy = Keep
+  groupedImports = Keep
 }
  */
 
