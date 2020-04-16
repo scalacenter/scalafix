@@ -63,10 +63,9 @@ is not enabled for this project. The second error says `RemoveUnused` requires
 the Scala compiler option `-Ywarn-unused`. To fix both problems, add the
 following settings to `build.sbt`. 
 
-- sbt 1.3.x or above
 
 ```diff
- // build.sbt
+ // build.sbt, for sbt 1.3x and newer
  inThisBuild(
    List(
      scalaVersion := "@SCALA212@", // @SCALA211@, or @SCALA213@
