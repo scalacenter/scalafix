@@ -11,7 +11,7 @@ pull request is tested on both Linux and Windows.
 **Java 8 or Java 11.**
 
 **Scala 2.11, 2.12 or 2.13**: Scalafix works only with the latest version of Scala
-2.11,  Scala 2.12 and Scala 2.13. 
+2.11,  Scala 2.12 and Scala 2.13.
 
 | Scalafix  | Scala Compiler                       | Scalameta   |
 | --------- | ------------------------------------ | ----------- |
@@ -60,9 +60,9 @@ RemoveUnused ...
 The first error message means the
 [SemanticDB](https://scalameta.org/docs/semanticdb/guide.html) compiler plugin
 is not enabled for this project. The second error says `RemoveUnused` requires
-the Scala compiler option `-Ywarn-unused`. To fix both problems, add the
-following settings to `build.sbt`. 
 
+the Scala compiler option `-Ywarn-unused-import` (or `-Wunused:imports` in
+2.13.x). To fix both problems, add the following settings to `build.sbt`
 
 ```diff
  /*
