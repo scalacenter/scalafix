@@ -142,30 +142,27 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     //   package foo {
     //     package bar {
     //       import baz
+    //       import qux
     //     }
     //   }
     val insertOrganizedImports = {
-      def formatImporterGroup(group: Seq[Importer]): String =
-        group
-          .map(fixedImporterSyntax)
-          .map("import " + _)
-          .mkString("\n")
-
-      val indent: Int = imports.head.tokens.head.pos.startColumn
+      val firstImportToken = imports.head.tokens.head
+      val indent: Int = firstImportToken.pos.startColumn
 
       val indentedOutput: Seq[String] =
         organizedImporterGroups
-          .map(formatImporterGroup)
+          .map(prettyPrintImportGroup)
           .mkString("\n\n")
           .split("\n")
           .zipWithIndex
           .map {
+            // The first line will be inserted at an already indented position.
             case (line, 0)                 => line
             case (line, _) if line.isEmpty => line
             case (line, _)                 => " " * indent + line
           }
 
-      Patch.addLeft(imports.head, indentedOutput mkString "\n")
+      Patch.addLeft(firstImportToken, indentedOutput mkString "\n")
     }
 
     (removeOriginalImports + insertOrganizedImports).atomic
@@ -213,6 +210,12 @@ object OrganizeImports {
       case _                   => Nil
     }
   }
+
+  private def prettyPrintImportGroup(group: Seq[Importer]): String =
+    group
+      .map(fixedImporterSyntax)
+      .map("import " + _)
+      .mkString("\n")
 
   // Hack: The scalafix pretty-printer decides to add spaces after open and before close braces in
   // imports, i.e., "import a.{ b, c }" instead of "import a.{b, c}". Unfortunately, this behavior
