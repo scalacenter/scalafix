@@ -7,6 +7,7 @@ import scala.meta.Importee
 import scala.meta.Importer
 import scala.meta.Pkg
 import scala.meta.Source
+import scala.meta.Stat
 import scala.meta.Term
 import scala.meta.Tree
 import scala.util.matching.Regex
@@ -176,17 +177,17 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 }
 
 object OrganizeImports {
-  private object / {
-    def unapply(tree: Tree): Option[(Tree, Tree)] = tree.parent map (_ -> tree)
-  }
+  private def collectGlobalImports(tree: Tree): Seq[Import] = {
+    def extractImports(stats: Seq[Stat]): Seq[Import] =
+      stats takeWhile (_.is[Import]) collect { case i: Import => i }
 
-  private def collectGlobalImports(tree: Tree): Seq[Import] = tree match {
-    case s: Source                 => s.children flatMap collectGlobalImports
-    case (_: Source) / (p: Pkg)    => p.children flatMap collectGlobalImports
-    case (_: Pkg) / (p: Pkg)       => p.children flatMap collectGlobalImports
-    case (_: Source) / (i: Import) => Seq(i)
-    case (_: Pkg) / (i: Import)    => Seq(i)
-    case _                         => Seq.empty[Import]
+    tree match {
+      case Source(Seq(p: Pkg)) => collectGlobalImports(p)
+      case Pkg(_, Seq(p: Pkg)) => collectGlobalImports(p)
+      case Source(stats)       => extractImports(stats)
+      case Pkg(_, stats)       => extractImports(stats)
+      case _                   => Nil
+    }
   }
 
   // Hack: The scalafix pretty-printer decides to add spaces after open and before close braces in
