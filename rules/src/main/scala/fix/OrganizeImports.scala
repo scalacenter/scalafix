@@ -129,12 +129,29 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       else sortedImporterGroups :+ relativeImporters
 
     // A patch that inserts all the organized imports.
-    val insertOrganizedImports = Patch.addLeft(
-      imports.head,
-      organizedImporterGroups
-        .map(_ map fixedImporterSyntax map ("import " + _) mkString "\n")
-        .mkString("\n\n")
-    )
+    val insertOrganizedImports = {
+      def formatImporterGroup(group: Seq[Importer]): String =
+        group
+          .map(fixedImporterSyntax)
+          .map("import " + _)
+          .mkString("\n")
+
+      val indent: Int = imports.head.tokens.head.pos.startColumn
+
+      val indentedOutput: Seq[String] =
+        organizedImporterGroups
+          .map(formatImporterGroup)
+          .mkString("\n\n")
+          .split("\n")
+          .zipWithIndex
+          .map {
+            case (line, 0)                 => line
+            case (line, _) if line.isEmpty => line
+            case (line, _)                 => " " * indent + line
+          }
+
+      Patch.addLeft(imports.head, indentedOutput mkString "\n")
+    }
 
     // A patch that removes all the original imports.
     val removeOriginalImports = Patch.removeTokens(
