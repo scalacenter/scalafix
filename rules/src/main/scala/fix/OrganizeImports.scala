@@ -128,7 +128,22 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       if (relativeImporters.isEmpty) sortedImporterGroups
       else sortedImporterGroups :+ relativeImporters
 
-    // A patch that inserts all the organized imports.
+    // A patch that removes all the tokens forming the original imports.
+    val removeOriginalImports = Patch.removeTokens(
+      doc.tree.tokens.slice(
+        imports.head.tokens.start,
+        imports.last.tokens.end
+      )
+    )
+
+    // A patch that inserts the organized imports. Note that global imports within curly-braced
+    // packages must be indented accordingly, e.g.:
+    //
+    //   package foo {
+    //     package bar {
+    //       import baz
+    //     }
+    //   }
     val insertOrganizedImports = {
       def formatImporterGroup(group: Seq[Importer]): String =
         group
@@ -153,15 +168,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       Patch.addLeft(imports.head, indentedOutput mkString "\n")
     }
 
-    // A patch that removes all the original imports.
-    val removeOriginalImports = Patch.removeTokens(
-      doc.tree.tokens.slice(
-        imports.head.tokens.start,
-        imports.last.tokens.end
-      )
-    )
-
-    (insertOrganizedImports + removeOriginalImports).atomic
+    (removeOriginalImports + insertOrganizedImports).atomic
   }
 
   private def sortImportees(importer: Importer): Importer = {

@@ -1,6 +1,5 @@
 package fix {
   package nested {
-    // TODO Fix output indentation
     import java.time.Clock
     import javax.annotation.Generated
 
