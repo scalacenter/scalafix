@@ -45,6 +45,7 @@ object GroupedImports {
 }
 
 final case class OrganizeImportsConfig(
+  expandRelative: Boolean = false,
   importSelectorsOrder: ImportSelectorsOrder = ImportSelectorsOrder.Ascii,
   groupedImports: GroupedImports = GroupedImports.Explode,
   groups: Seq[String] = Seq("re:javax?\\.", "scala.", "*")
@@ -109,7 +110,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
   private def organizeImports(imports: Seq[Import])(implicit doc: SemanticDocument): Patch = {
     val (fullyQualifiedImporters, relativeImporters) =
-      imports flatMap (_.importers) partition { importer =>
+      imports flatMap (_.importers) map expandRelative partition { importer =>
         topQualifierOf(importer.ref).symbol.owner == Symbol.RootPackage
       }
 
@@ -167,6 +168,17 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
     (removeOriginalImports + insertOrganizedImports).atomic
   }
+
+  private def expandRelative(importer: Importer)(implicit doc: SemanticDocument): Importer =
+    if (!config.expandRelative) importer
+    else {
+      import scala.meta._
+
+      val Parsed.Success(normalizedRef: Term.Ref) =
+        importer.ref.symbol.normalized.value.stripSuffix(".").parse[Term]
+
+      importer.copy(ref = normalizedRef)
+    }
 
   private def sortImportees(importer: Importer): Importer = {
     import ImportSelectorsOrder._
