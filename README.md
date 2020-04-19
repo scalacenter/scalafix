@@ -159,11 +159,29 @@ Example:
 
 1.  It may introduce unused imports.
 
+    For example, after expanding
+
+    ```scala
+    import scala.util
+    import util.control
+    import control.NonFatal
+    ```
+
+    into
+
+    ```scala
+    import scala.util
+    import scala.util.control
+    import scala.util.control.NonFatal
+    ```
+
+    it's possible that the first two imports are no longer needed if `util` and `control` are not referenced.
+
     Due to the limitation of the Scalafix architecture, it's not possible for this rule to remove newly introduced unused imports. One workaround is to run Scalafix again with the `RemoveUnused` rule enabled to remove them.
 
 1.  Currently, it does not handle quoted identifier with `.` in the name properly.
 
-    Due to scalacenter/scalafix#1097, this rule cannot rewrite the following snippet correctly. The backticks will be lost in the output:
+    Due to [scalacenter/scalafix#1097](https://github.com/scalacenter/scalafix/issues/1097), this rule cannot rewrite the following snippet correctly. The backticks will be lost in the output:
 
     ```scala
     import a.`b.c`
