@@ -15,8 +15,9 @@ final class SymtabFromProtobuf(symtab: Symtab) {
   def sscope(scope: Option[s.Scope]): List[SymbolInformation] = scope match {
     case None => Nil
     case Some(sc) =>
-      if (sc.hardlinks.isEmpty) sc.symlinks.iterator.map(info).toList
-      else {
+      if (sc.hardlinks.isEmpty) {
+        sc.symlinks.flatMap(sym => symtab.info(Symbol(sym))).toList
+      } else {
         sc.infos.iterator.map(i => new SymbolInformation(i)(symtab)).toList
       }
   }
