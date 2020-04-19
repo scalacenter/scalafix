@@ -5,6 +5,7 @@ inThisBuild(
     organization := "com.github.liancheng",
     homepage := Some(url("https://github.com/liancheng/scalafix-organize-imports")),
     licenses := List("MIT" -> url("https://opensource.org/licenses/MIT")),
+    version := "0.1.0-SNAPSHOT",
     developers := List(
       Developer(
         "liancheng",
