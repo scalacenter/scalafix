@@ -4,16 +4,18 @@ A Scalafix custom rule that organizes import statements.
 
 ## Installation
 
+This rule does not have any official release yet. To try it out, please clone this repository and run `sbt publishLocal` to publish it locally.
+
 To try this rule in your SBT console (with Scalafix enabled):
 
 ```
-sbt> scalafix dependency:OrganizeImports@com.github.liancheng:organize-imports:<VERSION>
+sbt> scalafix dependency:OrganizeImports@com.github.liancheng:organize-imports:0.1.0-SNAPSHOT
 ```
 
 To use this rule in your SBT build:
 
 ```
-ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "<VERSION>"
+ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.1.0-SNAPSHOT"
 ```
 
 ## Features
