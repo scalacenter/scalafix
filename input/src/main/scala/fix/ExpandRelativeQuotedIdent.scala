@@ -5,7 +5,7 @@ OrganizeImports.expandRelative = true
 
 package fix
 
-// TODO This test case fails.
+// TODO Re-enable this test case after scalacenter/scalafix#1097 is fixed.
 // import ExpandRelativeQuotedIdent.`a.b`
 // import `a.b`.c
 
