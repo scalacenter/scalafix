@@ -111,7 +111,11 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   private def organizeImports(imports: Seq[Import])(implicit doc: SemanticDocument): Patch = {
     val (fullyQualifiedImporters, relativeImporters) =
       imports flatMap (_.importers) map expandRelative partition { importer =>
-        topQualifierOf(importer.ref).symbol.owner == Symbol.RootPackage
+        // Checking `config.expandRelative` is necessary here, because applying `isFullyQualified`
+        // on fully-qualified importers expanded from a relative importers always returns false.
+        // The reason is that `isFullyQualified` relies on symbol table information, while expanded
+        // importers contain synthesized AST nodes without symbols associated with them.
+        config.expandRelative || isFullyQualified(importer)
       }
 
     // Organizes all the fully-qualified global importers.
@@ -176,7 +180,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       // See https://github.com/scalacenter/scalafix/issues/1097
       else Term.Select(toRef(symbol.owner), Term.Name(symbol.displayName))
 
-    if (!config.expandRelative) importer
+    if (!config.expandRelative || isFullyQualified(importer)) importer
     else importer.copy(ref = toRef(importer.ref.symbol.normalized))
   }
 
@@ -222,6 +226,9 @@ object OrganizeImports {
       case _                   => Nil
     }
   }
+
+  private def isFullyQualified(importer: Importer)(implicit doc: SemanticDocument): Boolean =
+    topQualifierOf(importer.ref).symbol.owner == Symbol.RootPackage
 
   private def prettyPrintImportGroup(group: Seq[Importer]): String =
     group
