@@ -2,6 +2,7 @@ package scalafix.internal.util
 
 import scala.meta._
 import scala.meta.internal.ScalametaInternals
+import scala.meta.internal.scalafix.ScalafixScalametaHacks
 import scala.meta.internal.semanticdb.Scala._
 import scalafix.v0._
 import scalafix.v1
@@ -69,7 +70,7 @@ object SymbolOps {
           val (owner, desc) =
             ScalametaInternals.symbolOwnerAndDescriptor(symbol)
           loop(owner)
-          sb.append(desc.name).append(".")
+          sb.append(ScalafixScalametaHacks.encode(desc.name.value)).append(".")
         }
       }
       loop(sym.value)
