@@ -172,6 +172,9 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   private def expandRelative(importer: Importer)(implicit doc: SemanticDocument): Importer = {
     def toRef(symbol: Symbol): Term.Ref =
       if (symbol.owner == Symbol.RootPackage) Term.Name(symbol.displayName)
+      // The Symbol#owner method doesn't handle quoted identifiers containing "." correctly. E.g.,
+      // it returns "b" instead of "`a.b`" as the owner of symbol "`a.b`.c".
+      // See https://github.com/scalacenter/scalafix/issues/1097
       else Term.Select(toRef(symbol.owner), Term.Name(symbol.displayName))
 
     if (!config.expandRelative) importer

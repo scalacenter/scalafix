@@ -155,24 +155,24 @@ Example:
 
 **NOTE:** The relative import expansion feature has two limitations:
 
-- It may introduce unused imports.
+1.  It may introduce unused imports.
 
-  Due to the limitation of the Scalafix architecture, it's not possible for this rule to remove newly introduced unused imports. One workaround is to run Scalafix again with the `RemoveUnused` rule enabled to remove them.
+    Due to the limitation of the Scalafix architecture, it's not possible for this rule to remove newly introduced unused imports. One workaround is to run Scalafix again with the `RemoveUnused` rule enabled to remove them.
 
-- Currently, it does not handle quoted identifier with `.` in the name properly.
+1.  Currently, it does not handle quoted identifier with `.` in the name properly.
 
-  While rewriting the following snippet, the backquotes around `b.c` may get lost. This is a bug to be fixed.
+    Due to scalacenter/scalafix#1097, this rule cannot rewrite the following snippet correctly. The backticks will be lost in the output:
 
-  ```scala
-  import a.`b.c`
-  import `b.c`.d
+    ```scala
+    import a.`b.c`
+    import `b.c`.d
 
-  object a {
-    object `b.c` {
-      object d
+    object a {
+      object `b.c` {
+        object d
+      }
     }
-  }
-  ```
+    ```
 
 ### Exploding import statements with multiple import expression
 
