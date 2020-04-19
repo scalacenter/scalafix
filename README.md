@@ -191,6 +191,8 @@ Example:
   import javax.annotation.Generated
   ```
 
+**NOTE:** This behavior is not configurable.
+
 ### Exploding grouped import selectors into separate import statements
 
 Example:
@@ -304,6 +306,7 @@ Import selectors within a single import expression can be sorted by a configurab
 
 ```hocon
 OrganizeImports {
+  expandRelative = false
   groups = ["re:javax?\\.", "scala.", "*"]
   groupedImports = Explode
   importSelectorsOrder = Ascii
