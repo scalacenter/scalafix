@@ -115,6 +115,65 @@ Example:
   import control.NonFatal
   ```
 
+#### Expanding relative imports
+
+Alternatively, you may also configure this rule to expand relative imports into fully-qualified imports via the `expandRelative` option.
+
+Example:
+
+- Configuration:
+
+  ```hocon
+  OrganizeImports {
+    groups = ["scala.", "*"]
+    expandRelative = true
+  }
+  ```
+
+- Before:
+
+  ```scala
+  import scala.collection.JavaConverters._
+  import sun.misc.BASE64Encoder
+  import scala.concurrent.ExecutionContext
+  import scala.util
+  import util.control
+  import control.NonFatal
+  ```
+
+- After:
+
+  ```scala
+  import scala.collection.JavaConverters._
+  import scala.concurrent.ExecutionContext
+  import scala.util
+  import scala.util.control
+  import scala.util.control.NonFatal
+
+  import sun.misc.BASE64Encoder
+  ```
+
+**NOTE:** The relative import expansion feature has two limitations:
+
+- It may introduce unused imports.
+
+  Due to the limitation of the Scalafix architecture, it's not possible for this rule to remove newly introduced unused imports. One workaround is to run Scalafix again with the `RemoveUnused` rule enabled to remove them.
+
+- Currently, it does not handle quoted identifier with `.` in the name properly.
+
+  While rewriting the following snippet, the backquotes around `b.c` may get lost. This is a bug to be fixed.
+
+  ```scala
+  import a.`b.c`
+  import `b.c`.d
+
+  object a {
+    object `b.c` {
+      object d
+    }
+  }
+  ```
+
 ### Exploding import statements with multiple import expression
 
 Example:

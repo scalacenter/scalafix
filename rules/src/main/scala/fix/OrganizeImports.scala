@@ -169,16 +169,14 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     (removeOriginalImports + insertOrganizedImports).atomic
   }
 
-  private def expandRelative(importer: Importer)(implicit doc: SemanticDocument): Importer =
+  private def expandRelative(importer: Importer)(implicit doc: SemanticDocument): Importer = {
+    def toRef(symbol: Symbol): Term.Ref =
+      if (symbol.owner == Symbol.RootPackage) Term.Name(symbol.displayName)
+      else Term.Select(toRef(symbol.owner), Term.Name(symbol.displayName))
+
     if (!config.expandRelative) importer
-    else {
-      import scala.meta._
-
-      val Parsed.Success(normalizedRef: Term.Ref) =
-        importer.ref.symbol.normalized.value.stripSuffix(".").parse[Term]
-
-      importer.copy(ref = normalizedRef)
-    }
+    else importer.copy(ref = toRef(importer.ref.symbol.normalized))
+  }
 
   private def sortImportees(importer: Importer): Importer = {
     import ImportSelectorsOrder._
@@ -210,7 +208,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 }
 
 object OrganizeImports {
-  private def collectGlobalImports(tree: Tree): Seq[Import] = {
+  @tailrec private def collectGlobalImports(tree: Tree): Seq[Import] = {
     def extractImports(stats: Seq[Stat]): Seq[Import] =
       stats takeWhile (_.is[Import]) collect { case i: Import => i }
 

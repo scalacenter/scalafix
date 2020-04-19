@@ -37,6 +37,8 @@ lazy val input = project.settings(skip in publish := true)
 lazy val output = project.settings(skip in publish := true)
 
 lazy val tests = project
+  .dependsOn(rules)
+  .enablePlugins(ScalafixTestkitPlugin)
   .settings(
     skip in publish := true,
     libraryDependencies +=
@@ -50,5 +52,3 @@ lazy val tests = project
     scalafixTestkitInputSourceDirectories := (sourceDirectories in (input, Compile)).value,
     scalafixTestkitInputClasspath := (fullClasspath in (input, Compile)).value
   )
-  .dependsOn(rules)
-  .enablePlugins(ScalafixTestkitPlugin)
