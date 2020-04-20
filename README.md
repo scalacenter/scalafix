@@ -1,5 +1,7 @@
 # OrganizeImports
 
+![](https://github.com/liancheng/scalafix-organize-imports/workflows/Build/badge.svg)
+
 A Scalafix custom rule that organizes import statements.
 
 ## Installation
