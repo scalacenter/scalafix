@@ -1,6 +1,7 @@
 # OrganizeImports
 
 ![](https://github.com/liancheng/scalafix-organize-imports/workflows/Build/badge.svg)
+![](https://img.shields.io/github/v/tag/liancheng/scalafix-organize-imports)
 
 A Scalafix custom rule that organizes import statements.
 
