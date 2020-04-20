@@ -270,8 +270,38 @@ object OrganizeImports {
     }
 
   private def explodeGroupedImportees(importers: Seq[Importer]): Seq[Importer] =
-    for {
-      Importer(ref, importees) <- importers
-      importee <- importees
-    } yield Importer(ref, importee :: Nil)
+    importers.flatMap {
+      case importer @ Importer(ref, importees) =>
+        var containsUnimport = false
+        var containsWildcard = false
+
+        val unimportsAndWildcards = importees.collect {
+          case i: Importee.Unimport => containsUnimport = true; i :: Nil
+          case i: Importee.Wildcard => containsWildcard = true; i :: Nil
+          case _                    => Nil
+        }.flatten
+
+        if (containsUnimport && containsWildcard) {
+          // If an importer contains both `Importee.Unimport`(s) and `Importee.Wildcard`, we only
+          // need to have both of them and only them in the result importer. E.g.:
+          //
+          //   import scala.collection.{Seq => _, Vector, _}
+          //
+          // should be rewritten into
+          //
+          //   import scala.collection.{Seq => _, _}
+          //
+          // rather than
+          //
+          //   import scala.collection.Vector
+          //   import scala.collection._
+          //   import scala.collection.{Seq => _}
+          //
+          // Especially, we don't need `Vector` in the result since it's already covered by the
+          // wildcard import.
+          Importer(ref, unimportsAndWildcards) :: Nil
+        } else {
+          importees.map(importee => Importer(ref, importee :: Nil))
+        }
+    }
 }
