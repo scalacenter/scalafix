@@ -208,7 +208,7 @@ object OrganizeImports {
 
   private def explodeGroupedImportees(importers: Seq[Importer]): Seq[Importer] =
     importers.flatMap {
-      case importer @ Importer(ref, importees) =>
+      case Importer(ref, importees) =>
         var containsUnimport = false
         var containsWildcard = false
 
