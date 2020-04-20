@@ -82,6 +82,12 @@ Example:
   import scala.concurrent.ExecutionContext
   ```
 
+The default configuration is:
+
+```hocon
+OrganizeImports.groups = ["re:javax?\\.", "scala.", "*"]
+```
+
 #### Relative imports
 
 Due to the fact that relative imports are order sensitive, they are moved into a separate group located after all the other groups, _with the original import order reserved_.
@@ -156,6 +162,8 @@ Example:
   import sun.misc.BASE64Encoder
   ```
 
+This behavior is disabled by default.
+
 **NOTE:** The relative import expansion feature has two limitations:
 
 1.  It may introduce unused imports.
@@ -195,7 +203,7 @@ Example:
     }
     ```
 
-### Exploding import statements with multiple import expression
+### Exploding import statements with multiple import expressions
 
 Example:
 
@@ -238,6 +246,8 @@ Example:
   import scala.collection.mutable.StringBuilder
   ```
 
+This behavior is enabled by default. You may set `OrganizeImports.groupedImports` to `Keep` to disable it.
+
 ### Grouping import statements with common prefix
 
 Example:
@@ -245,7 +255,7 @@ Example:
 - Configuration:
 
   ```hocon
-  OrganizeImports.groupedImports = Group
+  OrganizeImports.groupedImports = Merge
   ```
 
 - Before:
@@ -292,6 +302,8 @@ Import selectors within a single import expression can be sorted by a configurab
       ```scala
       import foo.{Random, `symbol`, bar, ~>}
       ```
+
+    This behavior is enabled by default. You may set `OrganizeImports.importSelectorsOrder` to `Keep` to disable it.
 
 1.  `SymbolsFirst`
 
