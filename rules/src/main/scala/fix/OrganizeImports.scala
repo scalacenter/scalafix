@@ -12,72 +12,9 @@ import scala.meta.Term
 import scala.meta.Tree
 import scala.util.matching.Regex
 
-import metaconfig._
-import metaconfig.generic.Surface
-import metaconfig.generic.deriveDecoder
-import metaconfig.generic.deriveSurface
-import scalafix.internal.config.ReaderUtil
+import metaconfig.Configured
 import scalafix.patch.Patch
 import scalafix.v1._
-
-sealed trait ImportSelectorsOrder
-
-object ImportSelectorsOrder {
-  case object Ascii extends ImportSelectorsOrder
-  case object SymbolsFirst extends ImportSelectorsOrder
-  case object Keep extends ImportSelectorsOrder
-
-  implicit def reader: ConfDecoder[ImportSelectorsOrder] = ReaderUtil.fromMap {
-    List(Ascii, SymbolsFirst, Keep) groupBy (_.toString) mapValues (_.head)
-  }
-}
-
-sealed trait GroupedImports
-
-object GroupedImports {
-  case object Merge extends GroupedImports
-  case object Explode extends GroupedImports
-  case object Keep extends GroupedImports
-
-  implicit def reader: ConfDecoder[GroupedImports] = ReaderUtil.fromMap {
-    List(Merge, Explode, Keep) groupBy (_.toString) mapValues (_.head)
-  }
-}
-
-final case class OrganizeImportsConfig(
-  expandRelative: Boolean = false,
-  importSelectorsOrder: ImportSelectorsOrder = ImportSelectorsOrder.Ascii,
-  groupedImports: GroupedImports = GroupedImports.Explode,
-  groups: Seq[String] = Seq("re:javax?\\.", "scala.", "*")
-)
-
-object OrganizeImportsConfig {
-  val default: OrganizeImportsConfig = OrganizeImportsConfig()
-
-  implicit val surface: Surface[OrganizeImportsConfig] =
-    deriveSurface[OrganizeImportsConfig]
-
-  implicit val decoder: ConfDecoder[OrganizeImportsConfig] =
-    deriveDecoder[OrganizeImportsConfig](default)
-}
-
-sealed trait ImportMatcher {
-  def matches(i: Importer): Boolean
-}
-
-case class RegexMatcher(pattern: Regex) extends ImportMatcher {
-  override def matches(i: Importer): Boolean = (pattern findPrefixMatchOf i.syntax).nonEmpty
-}
-
-case class PlainTextMatcher(pattern: String) extends ImportMatcher {
-  override def matches(i: Importer): Boolean = i.syntax startsWith pattern
-}
-
-case object WildcardMatcher extends ImportMatcher {
-  // This matcher should not match anything. The wildcard group is always special-cased at the end
-  // of the import group matching process.
-  def matches(importer: Importer): Boolean = false
-}
 
 class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("OrganizeImports") {
   import OrganizeImports._
