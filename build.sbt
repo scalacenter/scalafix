@@ -172,6 +172,7 @@ lazy val unit = project
     // Change working directory to match when `fork := false`.
     baseDirectory.in(Test) := baseDirectory.in(ThisBuild).value,
     javaOptions := Nil,
+    testFrameworks += new TestFramework("munit.Framework"),
     buildInfoPackage := "scalafix.tests",
     buildInfoObject := "BuildInfo",
     libraryDependencies ++= testsDeps,
