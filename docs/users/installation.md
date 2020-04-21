@@ -60,13 +60,45 @@ RemoveUnused ...
 The first error message means the
 [SemanticDB](https://scalameta.org/docs/semanticdb/guide.html) compiler plugin
 is not enabled for this project. The second error says `RemoveUnused` requires
+
 the Scala compiler option `-Ywarn-unused-import` (or `-Wunused:imports` in
 2.13.x). To fix both problems, add the following settings to `build.sbt`
 
 ```diff
- // build.sbt
+ /*
+  * build.sbt, for sbt 1.3x and newer
+  * SemanticDB is enabled for all sub-projects via ThisBuild scope.
+  */
+ inThisBuild(
+   List(
+     scalaVersion := "@SCALA212@", // @SCALA211@, or @SCALA213@
++    semanticdbEnabled := true, // enable SemanticDB
++    semanticdbVersion := scalafixSemanticdb.revision // use Scalafix compatible version
+   )
+ )
+
  lazy val myproject = project.settings(
-   scalaVersion := "@SCALA212@", // or @SCALA211@
+   scalacOptions += "-Ywarn-unused-import" // required by `RemoveUnused` rule
+ )
+```
+
+```diff
+ /*
+  * build.sbt, for sbt 1.3x and newer
+  * SemanticDB is enabled only for a sub-project.
+  */
+ lazy val myproject = project.settings(
+   scalaVersion := "@SCALA212@", // @SCALA211@, or @SCALA213@
++  semanticdbEnabled := true, // enable SemanticDB
++  semanticdbVersion := scalafixSemanticdb.revision, // use Scalafix compatible version
++  scalacOptions += "-Ywarn-unused-import" // required by `RemoveUnused` rule
+ )
+```
+
+```diff
+ // build.sbt, for sbt 1.2.x and older
+ lazy val myproject = project.settings(
+   scalaVersion := "@SCALA212@", // @SCALA211@, or @SCALA213@
 +  addCompilerPlugin(scalafixSemanticdb), // enable SemanticDB
    scalacOptions ++= List(
 +    "-Yrangepos",          // required by SemanticDB compiler plugin
@@ -109,6 +141,10 @@ Great! You are all set to use Scalafix with sbt :)
 >   -Xms1G
 >   -Xmx8G
 > ```
+> 
+> You can also use project scoped settings if you don't want to mix 
+> SemanticDB settings with your sub-projects which don't use it, 
+> rather than using ThisBuild scoped settings.
 
 ### Settings and tasks
 
