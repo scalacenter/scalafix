@@ -19,14 +19,14 @@ Please refer to https://scalacenter.github.io/scalafix/docs/users/installation.h
 To try this rule in SBT console without updating your SBT build:
 
 ....
-sbt> scalafix dependency:OrganizeImports@com.github.liancheng:organize-imports:0.1.1
+sbt> scalafix dependency:OrganizeImports@com.github.liancheng:organize-imports:0.2.0-RC1
 ....
 
 To include this rule in your SBT build:
 
 [source,scala]
 ----
-ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.1.1"
+ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.2.0-RC1"
 ----
 
 == Configuration
