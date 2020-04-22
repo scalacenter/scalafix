@@ -34,7 +34,8 @@ final case class OrganizeImportsConfig(
   expandRelative: Boolean = false,
   importSelectorsOrder: ImportSelectorsOrder = ImportSelectorsOrder.Ascii,
   groupedImports: GroupedImports = GroupedImports.Explode,
-  groups: Seq[String] = Seq("re:javax?\\.", "scala.", "*")
+  groups: Seq[String] = Seq("re:javax?\\.", "scala.", "*"),
+  removeUnused: Boolean = false
 )
 
 object OrganizeImportsConfig {

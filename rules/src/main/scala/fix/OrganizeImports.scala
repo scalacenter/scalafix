@@ -15,6 +15,7 @@ import scala.util.matching.Regex
 import metaconfig.Configured
 import scalafix.patch.Patch
 import scalafix.v1._
+import scala.meta.inputs.Position
 
 class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("OrganizeImports") {
   import OrganizeImports._
@@ -36,14 +37,50 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
   override def isExperimental: Boolean = true
 
-  override def withConfiguration(config: Configuration): Configured[Rule] = {
-    config.conf.getOrElse("OrganizeImports")(OrganizeImportsConfig()).map(new OrganizeImports(_))
-  }
+  override def withConfiguration(config: Configuration): Configured[Rule] =
+    config.conf.getOrElse("OrganizeImports")(OrganizeImportsConfig()) andThen { conf =>
+      val hasWarnUnused = {
+        val warnUnusedPrefix = Set("-Wunused", "-Ywarn-unused")
+        config.scalacOptions exists { option => warnUnusedPrefix exists (option.startsWith _) }
+      }
+
+      if (hasWarnUnused || !conf.removeUnused)
+        Configured.ok(new OrganizeImports(conf))
+      else
+        Configured.error(
+          "The Scala compiler option \"-Ywarn-unused\" is required to use OrganizeImports with"
+            + " \"OrganizeImports.removeUnused\" set to true. To fix this problem, update your"
+            + " build to use at least one Scala compiler option that starts with -Ywarn-unused"
+            + " or -Wunused (2.13 only)"
+        )
+    }
 
   override def fix(implicit doc: SemanticDocument): Patch = {
     val globalImports = collectGlobalImports(doc.tree)
     if (globalImports.isEmpty) Patch.empty else organizeImports(globalImports)
   }
+
+  private def removeUnused(importer: Importer)(implicit doc: SemanticDocument): Seq[Importer] =
+    if (!config.removeUnused) importer :: Nil
+    else {
+      val unusedImports =
+        doc.diagnostics
+          .filter(_.message == "Unused import")
+          .map(_.position)
+          .toSet
+
+      def importeePosition(importee: Importee): Position = importee match {
+        case Importee.Rename(from, _) => from.pos
+        case _                        => importee.pos
+      }
+
+      val unusedRemoved = importer.importees filterNot { importee =>
+        unusedImports contains importeePosition(importee)
+      }
+
+      if (unusedRemoved.isEmpty) Nil
+      else importer.copy(importees = unusedRemoved) :: Nil
+    }
 
   private def organizeImports(imports: Seq[Import])(implicit doc: SemanticDocument): Patch = {
     val (fullyQualifiedImporters, relativeImporters) =
@@ -58,6 +95,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     // Organizes all the fully-qualified global importers.
     val (_, sortedImporterGroups: Seq[Seq[Importer]]) =
       fullyQualifiedImporters
+        .flatMap(removeUnused)
         .groupBy(matchImportGroup) // Groups imports by importer prefix.
         .mapValues(organizeImporters) // Organize imports within the same group.
         .toSeq
@@ -68,7 +106,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     // order unchanged.
     val organizedImporterGroups: Seq[Seq[Importer]] =
       if (relativeImporters.isEmpty) sortedImporterGroups
-      else sortedImporterGroups :+ relativeImporters
+      else sortedImporterGroups :+ relativeImporters.flatMap(removeUnused)
 
     // A patch that removes all the tokens forming the original imports.
     val removeOriginalImports = Patch.removeTokens(
