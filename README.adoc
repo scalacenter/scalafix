@@ -40,7 +40,7 @@ OrganizeImports {
   groupedImports = Explode
   groups = ["re:javax?\\.", "scala.", "*"]
   importSelectorOrder = Ascii
-  removeUnused = false
+  removeUnused = true
 }
 ----
 
@@ -457,7 +457,7 @@ Boolean
 
 ==== Default value
 
-`false`
+`true`
 
 ==== Example
 
