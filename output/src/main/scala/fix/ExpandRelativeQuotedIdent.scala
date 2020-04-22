@@ -1,8 +1,7 @@
 package fix
 
-// TODO Re-enable this test case after scalacenter/scalafix#1097 is fixed.
-// import ExpandRelativeQuotedIdent.`a.b`
-// import `a.b`.c
+import fix.ExpandRelativeQuotedIdent.`a.b`
+import fix.ExpandRelativeQuotedIdent.`a.b`.c
 
 object ExpandRelativeQuotedIdent {
   object `a.b` {
