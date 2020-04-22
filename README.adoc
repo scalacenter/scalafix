@@ -4,7 +4,7 @@
 :toc-placement!:
 :toc-title:
 :toc:
-:toclevels: 3
+:toclevels: 2
 
 image:https://github.com/liancheng/scalafix-organize-imports/workflows/Build/badge.svg[] image:https://img.shields.io/github/v/tag/liancheng/scalafix-organize-imports[]
 
@@ -86,9 +86,6 @@ Boolean
 
 ==== Example
 
-. {blank}
-+
---
 Configuration:
 
 [source,hocon]
@@ -128,7 +125,6 @@ import scala.util.control.NonFatal
 
 import sun.misc.BASE64Encoder
 ----
---
 
 === `groupedImports`
 
@@ -450,9 +446,6 @@ Boolean
 
 ==== Example
 
-. {blank}
-+
---
 Configuration:
 
 [source,hocon]
@@ -490,4 +483,3 @@ object RemoveUnused {
   val long: JLong = JLong.parseLong("0")
 }
 ----
---
