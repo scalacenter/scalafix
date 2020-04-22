@@ -1,0 +1,493 @@
+= OrganizeImports
+:icons: font
+:sectnums:
+:toc-placement!:
+:toc-title:
+:toc:
+:toclevels: 3
+
+image:https://github.com/liancheng/scalafix-organize-imports/workflows/Build/badge.svg[] image:https://img.shields.io/github/v/tag/liancheng/scalafix-organize-imports[]
+
+toc::[]
+
+`OrganizeImports` is a the https://scalacenter.github.io[Scalafix] semantic rule that helps you to organize import statements.
+
+== Getting started
+
+Please refer to https://scalacenter.github.io/scalafix/docs/users/installation.html[the Scalafix documentation] for how to install Scalafix and invoking it in your build.
+
+To try this rule in SBT console without updating your SBT build:
+
+....
+sbt> scalafix dependency:OrganizeImports@com.github.liancheng:organize-imports:0.1.1
+....
+
+To include this rule in your SBT build:
+
+[source,scala]
+----
+ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.1.1"
+----
+
+== Configuration
+
+=== Default configuration values
+
+[source,hocon]
+----
+OrganizeImports {
+  expandRelative = false
+  groupedImports = Explode
+  groups = ["re:javax?\\.", "scala.", "*"]
+  importSelectorOrder = Ascii
+  removeUnused = false
+}
+----
+
+[[expand-relative]]
+=== `expandRelative`
+
+==== Description
+
+Expand relative imports into fully-qualified one.
+
+[CAUTION]
+====
+Expanding relative imports may introduce new unused imports. For instance, relative imports in the following snippet
+
+[source,scala]
+----
+import scala.util
+import util.control
+import control.NonFatal
+----
+
+are expanded into
+
+[source,scala]
+----
+import scala.util
+import scala.util.control
+import scala.util.control.NonFatal
+----
+
+If neither `scala.util` nor `scala.util.control` is referenced anywhere after the expansion, they become unused imports.
+
+Unfortunately, these newly introduced unused imports cannot be removed even if `removeUnused` is set to `true`. Please refer to the <<remove-unused,`removeUnused` option>> for more details.
+====
+
+==== Value type
+
+Boolean
+
+==== Default value
+
+`false`
+
+==== Example
+
+. {blank}
++
+--
+Configuration:
+
+[source,hocon]
+----
+OrganizeImports {
+  expandRelative = true
+  groups = ["re:javax?\\.", "scala.", "*"]
+}
+----
+
+Before:
+
+[source,scala]
+----
+import scala.util
+import util.control
+import control.NonFatal
+import scala.collection.JavaConverters._
+import java.time.Clock
+import sun.misc.BASE64Encoder
+import javax.annotation.Generated
+import scala.concurrent.ExecutionContext
+----
+
+After:
+
+[source,scala]
+----
+import java.time.Clock
+import javax.annotation.Generated
+
+import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext
+import scala.util
+import scala.util.control
+import scala.util.control.NonFatal
+
+import sun.misc.BASE64Encoder
+----
+--
+
+=== `groupedImports`
+
+==== Description
+
+Configure how to handle grouped imports.
+
+==== Value type
+
+Enum: `Explode | Merge | Keep`
+
+`Explode`::
+
+Explode grouped imports into separate import statements.
+
+`Merge`::
+
+Merge imports sharing the same prefix into a single grouped import statement.
+
+`Keep`::
+
+Leave grouped imports and imports sharing the same prefix untouched.
+
+==== Default value
+
+`Explode`
+
+==== Examples
+
+. `Explode`
++
+--
+Configuration:
+
+[source,hocon]
+----
+OrganizeImports.groupedImports = Explode
+----
+
+Before:
+
+[source,scala]
+----
+import scala.collection.mutable.{ArrayBuffer, Buffer, StringBuilder}
+----
+
+After:
+
+[source,scala]
+----
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.Buffer
+import scala.collection.mutable.StringBuilder
+----
+--
+
+. `Merge`
++
+--
+Configuration:
+
+[source,hocon]
+----
+OrganizeImports.groupedImports = Merge
+----
+
+Before:
+
+[source,scala]
+----
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.Buffer
+import scala.collection.mutable.StringBuilder
+----
+
+After:
+
+[source,scala]
+----
+import scala.collection.mutable.{ArrayBuffer, Buffer, StringBuilder}
+----
+--
+
+=== `groups`
+
+==== Description
+
+Defines import groups by prefix patterns. Only global imports are processed.
+
+Fully-qualified and relative imports must be grouped in different manner: fully-qualified imports matching the same prefix patterns are gathered into the same group and sorted in ASCII code order, while relative imports are always gathered into a separate group living after all other groups with the original order unchanged.
+
+This is necessary because relative imports are order sensitive. For instance, sorting the following imports in alphabetical order introduces compilation errors:
+
+[source,scala]
+----
+import scala.util
+import util.control
+import control.NonFatal
+----
+
+CAUTION: Comments living _between_ imports being processed will be _removed_.
+
+==== Value type
+
+An ordered list of import prefix pattern strings. A prefix pattern can be one of the following:
+
+A plain-text pattern::
+
+For instance, `"scala."` is a plain-text pattern that matches imports referring the `scala` package. Please note that the trailing dot is necessary, otherwise you may have `scalafix` and `scala` imports in the same group, which is not what you want in most cases.
+
+A regular expression pattern::
+
+A regular expression pattern starts with `re:`. For instance, `"re:javax?\\."` is a regular expression pattern that matches both `java` and `javax` packages.
+
+The wildcard pattern::
+The wildcard pattern, `"*"`, defines the wildcard group, which matches all fully-qualified imports not belonging to any other groups. It can be omitted when it's the last group. So the following two configurations are equivalent:
++
+[source,hocon]
+----
+OrganizeImports.groups = ["re:javax?\\.", "scala.", "*"]
+OrganizeImports.groups = ["re:javax?\\.", "scala."]
+----
+
+==== Default value
+
+[source,hocon]
+----
+[
+  "re:javax?\\."
+  "scala."
+  "*"
+]
+----
+
+==== Examples
+
+. Fully-qualified imports only
++
+--
+Configuration:
+
+[source,hocon]
+----
+OrganizeImports.groups = ["re:javax?\\.", "scala.", "*"]
+----
+
+Before:
+
+[source,scala]
+----
+import scala.collection.JavaConverters._
+import java.time.Clock
+import sun.misc.BASE64Encoder
+import javax.annotation.Generated
+import scala.concurrent.ExecutionContext
+----
+
+After:
+
+[source,scala]
+----
+import java.time.Clock
+import javax.annotation.Generated
+
+import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext
+
+import sun.misc.BASE64Encoder
+----
+--
+
+. With relative imports
++
+--
+Configuration:
+
+[source,hocon]
+----
+OrganizeImports.groups = ["re:javax?\\.", "scala.", "*"]
+----
+
+Before:
+
+[source,scala]
+----
+import scala.util
+import util.control
+import control.NonFatal
+import scala.collection.JavaConverters._
+import java.time.Clock
+import sun.misc.BASE64Encoder
+import javax.annotation.Generated
+import scala.concurrent.ExecutionContext
+----
+
+After:
+
+[source,scala]
+----
+import java.time.Clock
+import javax.annotation.Generated
+
+import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext
+import scala.util
+
+import sun.misc.BASE64Encoder
+
+import util.control
+import control.NonFatal
+----
+--
+
+=== `importSelectorsOrder`
+
+==== Description
+
+Sort import selectors within a single import expression by the specified order.
+
+==== Value type
+
+Enum: `Ascii | SymbolsFirst | Keep`
+
+`Ascii`::
+
+Sort import selectors by ASCII codes, equivalent to the https://scalameta.org/scalafmt/docs/configuration.html#asciisortimports[`AsciiSortImports`] rewriting rule in Scalafmt.
+
+`SymbolsFirst`::
+
+Sort import selectors by the groups: symbols, lower-case, upper-case, equivalent to the https://scalameta.org/scalafmt/docs/configuration.html#sortimports[`SortImports`] rewriting rule in Scalafmt.
+
+`Keep`::
+
+Do not sort import selectors.
+
+==== Default value
+
+`Ascii`
+
+==== Example
+
+. `Ascii`
++
+--
+Configuration:
+
+[source,hocon]
+----
+OrganizeImports {
+  groupedImports = Keep
+  importSelectorsOrder = Ascii
+}
+----
+
+Before:
+
+[source,scala]
+----
+import foo.{~>, `symbol`, bar, Random}
+----
+
+After:
+
+[source,scala]
+----
+import foo.{Random, `symbol`, bar, ~>}
+----
+--
+
+. `SymbolsFirst`
++
+--
+Configuration:
+
+[source,hocon]
+----
+OrganizeImports {
+  groupedImports = Keep
+  importSelectorsOrder = SymbolsFirst
+}
+----
+
+Before:
+
+[source,scala]
+----
+import foo.{Random, `symbol`, bar, ~>}
+----
+
+After:
+
+[source,scala]
+----
+import foo.{~>, `symbol`, bar, Random}
+----
+--
+
+[[remove-unused]]
+=== `removeUnused`
+
+==== Description
+
+Remove unused imports.
+
+[CAUTION]
+====
+Although the Scalafix built-in rule `RemoveUnused` can already remove unused imports, using `OrganizeImports` together with `RemoveUnused` is dangerous. Scalafix mutates source files by applying patches generated by applied rules. Unfortunately, if patches generated by different rules touch the same text segment, they may conflict with each other and result in broken code. That's why `OrganizeImports` ports part of the `RemoveUnused` rule to remove unused imports.
+
+However, the `removeUnused` option doesn't play perfectly with the `expandRelative` option. When the `expandRelative` option is set to `true`, new unused imports can be introduced while expanding relative imports (see <<expand-relative,`expandRelative`>>), which cannot be removed even if `removeUnused` is set to `true`. This is because unused imports are identified using Scala compilation diagnostics information, and the compilation phase happens before Scalafix rules get applied.
+====
+
+==== Value type
+
+Boolean
+
+==== Default value
+
+`false`
+
+==== Example
+
+. {blank}
++
+--
+Configuration:
+
+[source,hocon]
+----
+OrganizeImports {
+  groups = ["javax?\\.", "scala.", "*"]
+  removeUnused = true
+}
+----
+
+Before:
+
+[source,scala]
+----
+import scala.collection.mutable.{Buffer, ArrayBuffer}
+import java.time.Clock
+import java.lang.{Long => JLong, Double => JDouble}
+
+object RemoveUnused {
+  val buffer: ArrayBuffer[Int] = ArrayBuffer.empty[Int]
+  val long: JLong = JLong.parseLong("0")
+}
+----
+
+After:
+
+[source,scala]
+----
+import java.lang.{Long => JLong}
+
+import scala.collection.mutable.ArrayBuffer
+
+object RemoveUnused {
+  val buffer: ArrayBuffer[Int] = ArrayBuffer.empty[Int]
+  val long: JLong = JLong.parseLong("0")
+}
+----
+--
