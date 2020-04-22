@@ -10,12 +10,12 @@ import scala.meta.Source
 import scala.meta.Stat
 import scala.meta.Term
 import scala.meta.Tree
+import scala.meta.inputs.Position
 import scala.util.matching.Regex
 
 import metaconfig.Configured
 import scalafix.patch.Patch
 import scalafix.v1._
-import scala.meta.inputs.Position
 
 class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("OrganizeImports") {
   import OrganizeImports._
