@@ -227,6 +227,21 @@ import control.NonFatal
 
 CAUTION: Comments living _between_ imports being processed will be _removed_.
 
+[TIP]
+====
+`OrganizeImports` tries to match the longest prefix while grouping imports. For instance, the following configuration groups `scala.meta.` and `scala.` imports into different two groups properly:
+
+[source,hocon]
+----
+OrganizeImports.groups = [
+  "re:javax?\\."
+  "scala."
+  "scala.meta."
+  "*"
+]
+----
+====
+
 ==== Value type
 
 An ordered list of import prefix pattern strings. A prefix pattern can be one of the following:

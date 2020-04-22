@@ -183,8 +183,16 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
   // Returns the index of the group to which the given importer belongs.
   private def matchImportGroup(importer: Importer): Int = {
-    val index = importMatchers indexWhere (_ matches importer)
-    if (index > -1) index else wildcardGroupIndex
+    val matchedGroups = importMatchers
+      .map(_ matches importer)
+      .zipWithIndex
+      .filter { case (length, _) => length > 0 }
+
+    if (matchedGroups.isEmpty) wildcardGroupIndex
+    else {
+      val (_, index) = matchedGroups.maxBy { case (length, _) => length }
+      index
+    }
   }
 }
 
