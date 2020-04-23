@@ -6,7 +6,7 @@
 :toc:
 :toclevels: 2
 
-image:https://github.com/liancheng/scalafix-organize-imports/workflows/Build/badge.svg[] image:https://img.shields.io/github/v/tag/liancheng/scalafix-organize-imports[]
+image:https://github.com/liancheng/scalafix-organize-imports/workflows/Build/badge.svg[]
 
 toc::[]
 
@@ -28,6 +28,8 @@ To include this rule in your SBT build:
 ----
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.2.1-RC2"
 ----
+
+The latest release is: image:https://img.shields.io/github/v/tag/liancheng/scalafix-organize-imports[]
 
 == Configuration
 
@@ -154,7 +156,7 @@ Leave grouped imports and imports sharing the same prefix untouched.
 
 ==== Examples
 
-. `Explode`
+`Explode`::
 +
 --
 Configuration:
@@ -181,7 +183,7 @@ import scala.collection.mutable.StringBuilder
 ----
 --
 
-. `Merge`
+`Merge`::
 +
 --
 Configuration:
@@ -214,6 +216,8 @@ import scala.collection.mutable.{ArrayBuffer, Buffer, StringBuilder}
 
 Defines import groups by prefix patterns. Only global imports are processed.
 
+CAUTION: Comments living _between_ imports being processed will be _removed_.
+
 Fully-qualified and relative imports must be grouped in different manner: fully-qualified imports matching the same prefix patterns are gathered into the same group and sorted in ASCII code order, while relative imports are always gathered into a separate group living after all other groups with the original order unchanged.
 
 This is necessary because relative imports are order sensitive. For instance, sorting the following imports in alphabetical order introduces compilation errors:
@@ -224,8 +228,6 @@ import scala.util
 import util.control
 import control.NonFatal
 ----
-
-CAUTION: Comments living _between_ imports being processed will be _removed_.
 
 [TIP]
 ====
@@ -276,7 +278,7 @@ OrganizeImports.groups = ["re:javax?\\.", "scala."]
 
 ==== Examples
 
-. Fully-qualified imports only
+Fully-qualified imports only::
 +
 --
 Configuration:
@@ -311,7 +313,7 @@ import sun.misc.BASE64Encoder
 ----
 --
 
-. With relative imports
+With relative imports::
 +
 --
 Configuration:
@@ -381,7 +383,7 @@ Do not sort import selectors.
 
 ==== Example
 
-. `Ascii`
+`Ascii`::
 +
 --
 Configuration:
@@ -409,7 +411,7 @@ import foo.{Random, `symbol`, bar, ~>}
 ----
 --
 
-. `SymbolsFirst`
+`SymbolsFirst`::
 +
 --
 Configuration:
