@@ -19,7 +19,7 @@ inThisBuild(
       "-P:semanticdb:synthetics:on"
     ),
     addCompilerPlugin(scalafixSemanticdb),
-    scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.1.1"
+    scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.2.1"
   )
 )
 
