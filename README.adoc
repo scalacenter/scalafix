@@ -6,7 +6,7 @@
 :toc:
 :toclevels: 2
 
-image:https://github.com/liancheng/scalafix-organize-imports/workflows/Build/badge.svg[]
+image:https://github.com/liancheng/scalafix-organize-imports/workflows/Build/badge.svg[] image:https://img.shields.io/github/v/tag/liancheng/scalafix-organize-imports[] image:https://img.shields.io/github/license/liancheng/scalafix-organize-imports[] image:https://img.shields.io/badge/Scala_Steward-helping-blue.svg[]
 
 toc::[]
 
@@ -28,8 +28,6 @@ To include this rule in your SBT build:
 ----
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.2.1-RC2"
 ----
-
-The latest release is: image:https://img.shields.io/github/v/tag/liancheng/scalafix-organize-imports[]
 
 == Configuration
 
