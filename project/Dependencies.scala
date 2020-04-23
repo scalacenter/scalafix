@@ -7,7 +7,7 @@ object Dependencies {
   def scala210 = "2.10.7"
   def scala211 = "2.11.12"
   def scala212 = "2.12.11"
-  def scala213 = "2.13.1"
+  def scala213 = "2.13.2"
   def coursierV = "2.0.0-RC5-6"
   val currentScalaVersion = scala212
 
