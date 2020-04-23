@@ -10,7 +10,7 @@ image:https://github.com/liancheng/scalafix-organize-imports/workflows/Build/bad
 
 toc::[]
 
-`OrganizeImports` is a the https://scalacenter.github.io[Scalafix] semantic rule that helps you to organize import statements.
+`OrganizeImports` is a https://scalacenter.github.io[Scalafix] semantic rule that helps you to organize import statements.
 
 == Getting started
 
