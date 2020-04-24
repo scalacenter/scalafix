@@ -353,6 +353,50 @@ import control.NonFatal
 ----
 --
 
+Regular expression::
++
+--
+Defining import groups using regular expressions can be quite flexible. For instance, the `scala.meta` package is not part of the Scala standard library (yet), but the default groups defined in the `OrganizeImports.groups` option move imports from this package into the `scala.` group. The following example illustrates how to move them into the wildcard group using regular expression.
+
+Configuration:
+[source,hocon]
+----
+OrganizeImports.groups = [
+  "re:javax?\\."
+  "re:scala.(?!meta\\.)"
+  "*"
+]
+----
+
+Before:
+[source,scala]
+----
+import scala.collection.JavaConverters._
+import java.time.Clock
+import sun.misc.BASE64Encoder
+import scala.meta.Tree
+import javax.annotation.Generated
+import scala.concurrent.ExecutionContext
+import scala.meta.Import
+import scala.meta.Pkg
+----
+
+After:
+[source,scala]
+----
+import java.time.Clock
+import javax.annotation.Generated
+
+import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext
+
+import scala.meta.Import
+import scala.meta.Pkg
+import scala.meta.Tree
+import sun.misc.BASE64Encoder
+----
+--
+
 === `importSelectorsOrder`
 
 ==== Description
