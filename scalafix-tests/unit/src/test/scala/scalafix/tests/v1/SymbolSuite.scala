@@ -1,11 +1,10 @@
 package scalafix.tests.v1
 
-import org.scalatest.FunSuite
-import scala.meta.Import
-import scala.meta.Importer
+import scala.meta._
 import scalafix.tests.core.BaseSemanticSuite
+import scalafix.v1._
 
-class SymbolSuite extends FunSuite {
+class SymbolSuite extends munit.FunSuite {
   implicit val doc = BaseSemanticSuite.loadDoc("SymbolTest.scala")
 
   test("normalized") {
@@ -13,7 +12,14 @@ class SymbolSuite extends FunSuite {
       case Import(Importer(ref, _) :: Nil) => ref
     }
 
-    import scalafix.v1._
-    assert(ref.symbol.normalized.owner.value == "test.a.")
+    assertEquals(ref.symbol.normalized.owner.value, "test.a.")
+  }
+
+  test("fromTextDocument") {
+    val arg :: Nil = doc.tree.collect {
+      case Term.ApplyInfix(_, Term.Name("shouldBe"), _, arg :: Nil) => arg
+    }
+
+    assertNotEquals(arg.symbol, Symbol.None)
   }
 }
