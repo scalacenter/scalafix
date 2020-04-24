@@ -10,7 +10,6 @@ import scala.meta.internal.pc.ScalafixGlobal
 import scalafix.internal.v1.LazyValue
 import scala.util.control.NonFatal
 import scala.util.Properties
-import metaconfig.Conf
 import scalafix.internal.compat.CompilerCompat._
 
 final class ExplicitResultTypes(

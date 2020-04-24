@@ -1,7 +1,5 @@
 package scalafix.docs
 
-import java.nio.file.Paths
-import java.io.File
 import org.typelevel.paiges.Doc
 import scala.meta.inputs.Input
 import scala.meta.interactive.InteractiveSemanticdb
