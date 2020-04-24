@@ -18,6 +18,12 @@ inThisBuild(
       "-Yrangepos",
       "-P:semanticdb:synthetics:on"
     ),
+    conflictManager := ConflictManager.strict,
+    dependencyOverrides ++= List(
+      "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
+      "org.slf4j" % "slf4j-api" % "1.7.25",
+      "com.lihaoyi" %% "sourcecode" % "0.2.1"
+    ),
     addCompilerPlugin(scalafixSemanticdb),
     scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.2.1"
   )
@@ -28,7 +34,6 @@ skip in publish := true
 lazy val rules = project
   .settings(
     moduleName := "organize-imports",
-    conflictManager := ConflictManager.strict,
     dependencyOverrides += "com.lihaoyi" %% "sourcecode" % "0.2.1",
     libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % v.scalafixVersion,
     scalacOptions ++= List("-Ywarn-unused")
@@ -52,10 +57,6 @@ lazy val tests = project
     scalacOptions ++= List("-Ywarn-unused"),
     libraryDependencies +=
       "ch.epfl.scala" % "scalafix-testkit" % v.scalafixVersion % Test cross CrossVersion.full,
-    dependencyOverrides ++= List(
-      "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
-      "org.slf4j" % "slf4j-api" % "1.7.25"
-    ),
     (compile in Compile) := (compile in Compile)
       .dependsOn(
         compile in (input, Compile),
