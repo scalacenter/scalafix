@@ -163,7 +163,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     import ImportSelectorsOrder._
 
     config.importSelectorsOrder match {
-      case Ascii        => importer.copy(importees = importer.importees.sortBy(_.syntax))
+      case Ascii        => importer.copy(importees = sortImporteesAscii(importer.importees))
       case SymbolsFirst => importer.copy(importees = sortImporteesSymbolsFirst(importer.importees))
       case Keep         => importer
     }
@@ -233,6 +233,13 @@ object OrganizeImports {
       case name: Term.Name           => name
     }
 
+  private def sortImporteesAscii(importees: List[Importee]): List[Importee] = {
+    // An `Importer` may contain at most one `Importee.Wildcard`, and it is only allowed to appear
+    // at the end of the `Importee` list.
+    val (wildcard, withoutWildcard) = importees.partition(_.is[Importee.Wildcard])
+    withoutWildcard.sortBy(_.syntax) ++ wildcard
+  }
+
   private def sortImporteesSymbolsFirst(importees: List[Importee]): List[Importee] = {
     val symbols = ArrayBuffer.empty[Importee]
     val lowerCases = ArrayBuffer.empty[Importee]
@@ -265,8 +272,8 @@ object OrganizeImports {
         }.flatten
 
         if (containsUnimport && containsWildcard) {
-          // If an importer contains both `Importee.Unimport`(s) and `Importee.Wildcard`, we only
-          // need to have both of them and only them in the result importer. E.g.:
+          // If an importer contains both `Importee.Unimport`(s) and `Importee.Wildcard`, we must
+          // have both of them appearing in a single importer. E.g.:
           //
           //   import scala.collection.{Seq => _, Vector, _}
           //
