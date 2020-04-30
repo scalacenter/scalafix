@@ -6,6 +6,17 @@ import metaconfig.generic.deriveDecoder
 import metaconfig.generic.deriveSurface
 import scalafix.internal.config.ReaderUtil
 
+sealed trait ImportsOrder
+
+object ImportsOrder {
+  case object Ascii extends ImportsOrder
+  case object SymbolsFirst extends ImportsOrder
+
+  implicit def reader: ConfDecoder[ImportsOrder] = ReaderUtil.fromMap {
+    List(Ascii, SymbolsFirst) groupBy (_.toString) mapValues (_.head)
+  }
+}
+
 sealed trait ImportSelectorsOrder
 
 object ImportSelectorsOrder {
@@ -32,9 +43,10 @@ object GroupedImports {
 
 final case class OrganizeImportsConfig(
   expandRelative: Boolean = false,
-  importSelectorsOrder: ImportSelectorsOrder = ImportSelectorsOrder.Ascii,
   groupedImports: GroupedImports = GroupedImports.Explode,
   groups: Seq[String] = Seq("re:javax?\\.", "scala.", "*"),
+  importSelectorsOrder: ImportSelectorsOrder = ImportSelectorsOrder.Ascii,
+  importsOrder: ImportsOrder = ImportsOrder.Ascii,
   removeUnused: Boolean = true
 )
 

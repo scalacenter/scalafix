@@ -208,6 +208,7 @@ import scala.collection.mutable.{ArrayBuffer, Buffer, StringBuilder}
 ----
 --
 
+[[groups]]
 === `groups`
 
 ==== Description
@@ -401,7 +402,7 @@ import sun.misc.BASE64Encoder
 
 ==== Description
 
-Sort import selectors within a single import expression by the specified order.
+Specifies the order of grouped import selectors within a single import expression.
 
 ==== Value type
 
@@ -478,6 +479,96 @@ After:
 [source,scala]
 ----
 import foo.{~>, `symbol`, bar, Random}
+----
+--
+
+=== `importsOrder`
+
+==== Description
+
+Specifies the order of import statements within import groups defined by the <<groups,`OrganizeImports.groups`>> option.
+
+==== Value type
+
+Enum: `Ascii | SymbolsFirst`
+
+`Ascii`::
+Sort import statements by ASCII codes.
+
+`SymbolsFirst`::
+Put wildcard imports and grouped imports with braces first, otherwise same as `Ascii`. This is also the sorting order the IntelliJ IDEA Scala plugin picks.
+
+==== Deafult value
+
+`Ascii`
+
+==== Example
+
+`Ascii`::
++
+--
+Configuration:
+
+[source,hocon]
+----
+OrganizeImports {
+  groupedImports = Keep
+  importsOrder = Ascii
+}
+----
+
+Before:
+
+[source,scala]
+----
+import scala.concurrent._
+import scala.concurrent.{Future, Promise}
+import scala.concurrent.ExecutionContext.Implicits._
+import scala.concurrent.duration
+----
+
+After:
+
+[source,scala]
+----
+import scala.concurrent.ExecutionContext.Implicits._
+import scala.concurrent._
+import scala.concurrent.duration
+import scala.concurrent.{Promise, Future}
+----
+--
+
+`SymbolsFirst`::
++
+--
+Configuration:
+
+[source,hocon]
+----
+OrganizeImports {
+  groupedImports = Keep
+  importsOrder = SymbolsFirst
+}
+----
+
+Before:
+
+[source,scala]
+----
+import scala.concurrent.ExecutionContext.Implicits._
+import scala.concurrent._
+import scala.concurrent.duration
+import scala.concurrent.{Promise, Future}
+----
+
+After:
+
+[source,scala]
+----
+import scala.concurrent._
+import scala.concurrent.{Future, Promise}
+import scala.concurrent.ExecutionContext.Implicits._
+import scala.concurrent.duration
 ----
 --
 
