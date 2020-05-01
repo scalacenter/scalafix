@@ -1,10 +1,8 @@
 package fix
 
-import fix.ExpandRelativeQuotedIdent.`a.b`
-import fix.ExpandRelativeQuotedIdent.`a.b`.c
+import fix.QuotedIdent.`a.b`
+import fix.QuotedIdent.`a.b`.c
 
 object ExpandRelativeQuotedIdent {
-  object `a.b` {
-    object c
-  }
+  val refC = c
 }

@@ -39,9 +39,11 @@ lazy val rules = project
     scalacOptions ++= List("-Ywarn-unused")
   )
 
-lazy val input = project.settings(skip in publish := true)
+lazy val shared = project.settings(skip in publish := true)
 
-lazy val output = project.settings(skip in publish := true)
+lazy val input = project.settings(skip in publish := true).dependsOn(shared)
+
+lazy val output = project.settings(skip in publish := true).dependsOn(shared)
 
 lazy val inputUnusedImports = project
   .settings(

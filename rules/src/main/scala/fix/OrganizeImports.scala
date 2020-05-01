@@ -5,6 +5,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.meta.Import
 import scala.meta.Importee
 import scala.meta.Importer
+import scala.meta.Name
 import scala.meta.Pkg
 import scala.meta.Source
 import scala.meta.Stat
@@ -162,11 +163,17 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   private def sortImportees(importer: Importer): Importer = {
     import ImportSelectorsOrder._
 
-    config.importSelectorsOrder match {
-      case Ascii        => importer.copy(importees = sortImporteesAscii(importer.importees))
-      case SymbolsFirst => importer.copy(importees = sortImporteesSymbolsFirst(importer.importees))
-      case Keep         => importer
+    // The Scala language spec allows an import expression to have at most one final wildcard, which
+    // can only appears in the last position.
+    val (wildcard, withoutWildcard) = importer.importees.partition(_.is[Importee.Wildcard])
+
+    val orderedImportees = config.importSelectorsOrder match {
+      case Ascii        => withoutWildcard.sortBy(_.syntax)
+      case SymbolsFirst => sortImporteesSymbolsFirst(withoutWildcard)
+      case Keep         => withoutWildcard
     }
+
+    importer.copy(importees = orderedImportees ++ wildcard)
   }
 
   private def organizeImporters(importers: Seq[Importer]): Seq[Importer] = {
@@ -175,8 +182,8 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
     val importeesSorted = {
       config.groupedImports match {
-        case Merge   => mergeImportersWithCommonPrefix(importers)
-        case Explode => explodeGroupedImportees(importers)
+        case Merge   => mergeImporters(importers)
+        case Explode => explodeImportees(importers)
         case Keep    => importers
       }
     } map sortImportees
@@ -249,13 +256,6 @@ object OrganizeImports {
       case name: Term.Name           => name
     }
 
-  private def sortImporteesAscii(importees: List[Importee]): List[Importee] = {
-    // An `Importer` may contain at most one `Importee.Wildcard`, and it is only allowed to appear
-    // at the end of the `Importee` list.
-    val (wildcard, withoutWildcard) = importees.partition(_.is[Importee.Wildcard])
-    withoutWildcard.sortBy(_.syntax) ++ wildcard
-  }
-
   private def sortImporteesSymbolsFirst(importees: List[Importee]): List[Importee] = {
     val symbols = ArrayBuffer.empty[Importee]
     val lowerCases = ArrayBuffer.empty[Importee]
@@ -270,44 +270,109 @@ object OrganizeImports {
     List(symbols, lowerCases, upperCases) flatMap (_ sortBy (_.syntax))
   }
 
-  private def mergeImportersWithCommonPrefix(importers: Seq[Importer]): Seq[Importer] =
-    importers.groupBy(_.ref.syntax).values.toSeq.map { group =>
-      group.head.copy(importees = group.flatMap(_.importees).toList)
-    }
-
-  private def explodeGroupedImportees(importers: Seq[Importer]): Seq[Importer] =
-    importers.flatMap {
-      case Importer(ref, importees) =>
-        var containsUnimport = false
-        var containsWildcard = false
-
-        val unimportsAndWildcards = importees.collect {
-          case i: Importee.Unimport => containsUnimport = true; i :: Nil
-          case i: Importee.Wildcard => containsWildcard = true; i :: Nil
-          case _                    => Nil
-        }.flatten
-
-        if (containsUnimport && containsWildcard) {
-          // If an importer contains both `Importee.Unimport`(s) and `Importee.Wildcard`, we must
-          // have both of them appearing in a single importer. E.g.:
-          //
-          //   import scala.collection.{Seq => _, Vector, _}
-          //
-          // should be rewritten into
-          //
-          //   import scala.collection.{Seq => _, _}
-          //
-          // rather than
-          //
-          //   import scala.collection.Vector
-          //   import scala.collection._
-          //   import scala.collection.{Seq => _}
-          //
-          // Especially, we don't need `Vector` in the result since it's already covered by the
-          // wildcard import.
-          Importer(ref, unimportsAndWildcards) :: Nil
-        } else {
-          importees.map(importee => Importer(ref, importee :: Nil))
+  private def mergeImporters(importers: Seq[Importer]): Seq[Importer] = {
+    importers.groupBy(_.ref.syntax).values.toSeq.flatMap {
+      case group @ (Importer(ref, _) :: _) =>
+        val hasWildcard = group map (_.importees) exists {
+          case Importees(_, _, Nil, Some(_)) => true
+          case _                             => false
         }
+
+        val lastUnimports = group.reverse map (_.importees) collectFirst {
+          case Importees(_, _, unimports @ (_ :: _), Some(_)) => unimports
+        }
+
+        val allImportees = group flatMap (_.importees)
+
+        val renames = allImportees
+          .filter(_.is[Importee.Rename])
+          .groupBy { case Importee.Rename(Name(name), _) => name }
+          .mapValues(_.head)
+          .values
+          .toList
+
+        val (renamedNames, names) = allImportees
+          .filter(_.is[Importee.Name])
+          .groupBy { case Importee.Name(Name(name)) => name }
+          .mapValues(_.head)
+          .values
+          .toList
+          .partition {
+            case Importee.Name(Name(name)) =>
+              renames exists {
+                case Importee.Rename(Name(`name`), _) => true
+                case _                                => false
+              }
+          }
+
+        val importeesList = (hasWildcard, lastUnimports) match {
+          case (true, _) if renames.isEmpty =>
+            Seq(Importee.Wildcard() :: Nil)
+
+          case (true, _) =>
+            Seq(Importee.Wildcard() :: Nil, renames)
+
+          case (false, Some(unimports)) if renamedNames.isEmpty =>
+            Seq(renames ++ unimports :+ Importee.Wildcard())
+
+          case (false, Some(unimports)) =>
+            Seq(renamedNames, renames ++ unimports :+ Importee.Wildcard())
+
+          case (false, None) if renamedNames.isEmpty =>
+            Seq(renames ++ names)
+
+          case (false, None) =>
+            Seq(renamedNames, renames ++ names)
+        }
+
+        importeesList map (Importer(ref, _))
     }
+  }
+
+  private def explodeImportees(importers: Seq[Importer]): Seq[Importer] =
+    importers.flatMap {
+      case Importer(ref, Importees(_, renames, unimports, Some(wildcard))) =>
+        // When a wildcard exists, all unimports (if any) and the wildcard must appear in the same
+        // importer, e.g.:
+        //
+        //   import p.{A => _, B => _, C => D, E, _}
+        //
+        // should be rewritten into
+        //
+        //   import p.{A => _, B => _, _}
+        //   import p.{C => D}
+        //
+        // Note that `E` is discarded since it's covered by the wildcard, but the rename `{C => D}`
+        // still needs to be preserved.
+        renames.map(i => Importer(ref, i :: Nil)) :+ Importer(ref, unimports :+ wildcard)
+
+      case importer =>
+        importer.importees map (i => importer.copy(importees = i :: Nil))
+    }
+
+  // An extractor that categorizes a list of `Importee`s into different groups.
+  object Importees {
+    def unapply(importees: Seq[Importee]): Option[
+      (
+        List[Importee], // Names
+        List[Importee], // Renames
+        List[Importee], // Unimports
+        Option[Importee] // Wildcard
+      )
+    ] = {
+      var maybeWildcard: Option[Importee] = None
+      val unimports = ArrayBuffer.empty[Importee]
+      val renames = ArrayBuffer.empty[Importee]
+      val names = ArrayBuffer.empty[Importee]
+
+      importees foreach {
+        case i: Importee.Wildcard => maybeWildcard = Some(i)
+        case i: Importee.Unimport => unimports += i
+        case i: Importee.Rename   => renames += i
+        case i: Importee.Name     => names += i
+      }
+
+      Option((names.toList, renames.toList, unimports.toList, maybeWildcard))
+    }
+  }
 }
