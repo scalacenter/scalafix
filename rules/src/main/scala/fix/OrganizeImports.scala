@@ -308,32 +308,24 @@ object OrganizeImports {
           }
 
         val importeesList = (hasWildcard, lastUnimports) match {
-          case (true, _) if renames.isEmpty =>
-            Seq(Importee.Wildcard() :: Nil)
-
           case (true, _) =>
-            Seq(Importee.Wildcard() :: Nil, renames)
-
-          case (false, Some(unimports)) if renamedNames.isEmpty =>
-            Seq(renames ++ unimports :+ Importee.Wildcard())
+            // Unimports are canceled by the wildcard.
+            Seq(renames, names :+ Importee.Wildcard())
 
           case (false, Some(unimports)) =>
-            Seq(renamedNames, renames ++ unimports :+ Importee.Wildcard())
-
-          case (false, None) if renamedNames.isEmpty =>
-            Seq(renames ++ names)
+            Seq(renamedNames, names ++ renames ++ unimports :+ Importee.Wildcard())
 
           case (false, None) =>
-            Seq(renamedNames, renames ++ names)
+            Seq(renamedNames, names ++ renames)
         }
 
-        importeesList map (Importer(ref, _))
+        importeesList filter (_.nonEmpty) map (Importer(ref, _))
     }
   }
 
   private def explodeImportees(importers: Seq[Importer]): Seq[Importer] =
     importers.flatMap {
-      case Importer(ref, Importees(_, renames, unimports, Some(wildcard))) =>
+      case Importer(ref, Importees(names, renames, unimports, Some(wildcard))) =>
         // When a wildcard exists, all unimports (if any) and the wildcard must appear in the same
         // importer, e.g.:
         //
@@ -343,10 +335,8 @@ object OrganizeImports {
         //
         //   import p.{A => _, B => _, _}
         //   import p.{C => D}
-        //
-        // Note that `E` is discarded since it's covered by the wildcard, but the rename `{C => D}`
-        // still needs to be preserved.
-        renames.map(i => Importer(ref, i :: Nil)) :+ Importer(ref, unimports :+ wildcard)
+        //   import p.E
+        (names ++ renames).map(i => Importer(ref, i :: Nil)) :+ Importer(ref, unimports :+ wildcard)
 
       case importer =>
         importer.importees map (i => importer.copy(importees = i :: Nil))

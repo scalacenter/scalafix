@@ -1,5 +1,5 @@
 package fix
 
-import fix.MergeImports.Unimport.{b => B, c => _, _}
+import fix.MergeImports.Unimport.{b => B, c => _, d, _}
 
 object GroupedImportsMergeUnimports
