@@ -233,8 +233,10 @@ object OrganizeImports {
     }
   }
 
-  private def isFullyQualified(importer: Importer)(implicit doc: SemanticDocument): Boolean =
-    topQualifierOf(importer.ref).symbol.owner == Symbol.RootPackage
+  private def isFullyQualified(importer: Importer)(implicit doc: SemanticDocument): Boolean = {
+    val owner = topQualifierOf(importer.ref).symbol.owner
+    owner.isRootPackage || owner.isEmptyPackage
+  }
 
   private def prettyPrintImportGroup(group: Seq[Importer]): String =
     group
