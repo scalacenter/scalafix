@@ -28,7 +28,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     lazy val noPublish = Seq(
       skip in publish := true
     ) ++ noMima
-    lazy val supportedScalaVersions = List(scala211, scala212)
+    lazy val supportedScalaVersions = List(scala213, scala211, scala212)
     lazy val isFullCrossVersion = Seq(
       crossVersion := CrossVersion.full
     )
@@ -187,13 +187,13 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     commands += Command.command("ci-213") { s =>
       s"++$scala213" ::
         "unit/test" ::
+        "docs/run" ::
+        "interfaces/doc" ::
         s
     },
     commands += Command.command("ci-212") { s =>
       s"++$scala212" ::
         "unit/test" ::
-        "docs/run" ::
-        "interfaces/doc" ::
         s
     },
     commands += Command.command("ci-211") { s =>
@@ -203,6 +203,11 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     },
     commands += Command.command("ci-212-windows") { s =>
       s"++$scala212" ::
+        s"unit/testOnly -- -l scalafix.internal.tests.utils.SkipWindows" ::
+        s
+    },
+    commands += Command.command("ci-213-windows") { s =>
+      s"++$scala213" ::
         s"unit/testOnly -- -l scalafix.internal.tests.utils.SkipWindows" ::
         s
     },

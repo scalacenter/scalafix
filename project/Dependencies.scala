@@ -9,7 +9,7 @@ object Dependencies {
   def scala212 = "2.12.11"
   def scala213 = "2.13.2"
   def coursierV = "2.0.0-RC5-6"
-  val currentScalaVersion = scala212
+  val currentScalaVersion = scala213
 
   val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.7.0.202003110725-r"
 

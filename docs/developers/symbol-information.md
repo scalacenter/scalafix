@@ -128,7 +128,6 @@ of length greater than 1.
 ```scala mdoc
 printMethodParameters(Symbol("example/Main#curried()."))
 printMethodParameters(Symbol("scala/Option#fold()."))
-printMethodParameters(Symbol("scala/collection/LinearSeqOptimized#foldLeft()."))
 ```
 
 ### Test if method is nullary
@@ -243,9 +242,7 @@ def getParentSymbols(symbol: Symbol): Set[Symbol] =
         case TypeRef(_, symbol, _) => getParentSymbols(symbol)
       }
   }
-getParentSymbols(Symbol("scala/Some#"))
 getParentSymbols(Symbol("java/lang/String#"))
-getParentSymbols(Symbol("scala/collection/immutable/List#")).take(5)
 ```
 
 ### Lookup class methods

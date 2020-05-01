@@ -15,6 +15,9 @@ patches.replaceSymbols = [
   { from = "scala.math.sqrt"
     to = "com.geirsson.fastmath.sqrt" }
   // normalized symbol renames all overloaded methods
+  { from = "scala.collection.IterableOnceOps.mkString"
+    to = "unsafeMkString" }
+  // for prior to scala 2.12
   { from = "scala.collection.TraversableOnce.mkString."
     to = "unsafeMkString" }
   // non-normalized symbol renames single method overload

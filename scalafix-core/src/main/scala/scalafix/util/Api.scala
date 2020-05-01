@@ -39,4 +39,10 @@ trait Api {
       ProductLabeledStructure.structure(product).render(printWidth)
   }
 
+  // in scala 2.13, List[A] doesn't extend Product
+  implicit class XtensionScalaFixListInspect[A](list: List[A]) {
+    def structure: String =
+      ProductStructure.structure(list).render(80)
+  }
+
 }

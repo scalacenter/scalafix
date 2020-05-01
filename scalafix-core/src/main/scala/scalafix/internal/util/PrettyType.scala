@@ -62,7 +62,8 @@ class PrettyType private (
     "canEqual",
     "hashCode",
     "toString",
-    "equals"
+    "equals",
+    "productElementName"
   )
   private[this] val imports = List.newBuilder[String]
 
@@ -241,8 +242,8 @@ class PrettyType private (
                   if (isCaseClass) {
                     parent match {
                       case TypeExtractors.Product() |
-                          TypeExtractors.Serializable() =>
-                        true
+                          TypeExtractors.Serializable() |
+                          TypeExtractors.Serializable213() => true
                       case _ =>
                         false
                     }
