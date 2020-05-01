@@ -26,7 +26,7 @@ class MavenFuzzSuite extends FunSuite with DiffAssertions {
       sourceJars: Seq[Path],
       tmp: Path
   ): Seq[Path] = {
-    val result = mutable.ArrayBuffer.empty[Path]
+    val result = Vector.newBuilder[Path]
     val matcher =
       FileSystems.getDefault().getPathMatcher("glob:*.scala")
     sourceJars.foreach { jar =>
@@ -51,7 +51,7 @@ class MavenFuzzSuite extends FunSuite with DiffAssertions {
         }
       }
     }
-    result
+    result.result()
   }
 
   def compileErrors(
