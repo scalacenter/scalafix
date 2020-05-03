@@ -50,36 +50,34 @@ OrganizeImports {
 
 When the number of imported names exceeds a certain threshold, coalesce them into a wildcard import. Renames and unimports are left untouched.
 
+[WARNING]
 ====
-WARNING: Coalescing grouped import selectors into a wildcard import may introduce [red]#_compilation errors_#! Having this feature in `OrganizeImports` is mostly for feature parity with the IntelliJ IDEA Scala import optimizer.
+Coalescing grouped import selectors into a wildcard import may introduce [red]#_compilation errors_#! Having this feature in `OrganizeImports` is mostly for feature parity with the IntelliJ IDEA Scala import optimizer.
 
 For example, the following snippet compiles successfully:
 
 [source,scala]
 ----
-import scala.collection.immutable._ <1>
-import scala.collection.mutable.{ArrayBuffer, Map, Set} <2>
+import scala.collection.immutable._
+import scala.collection.mutable.{ArrayBuffer, Map, Set}
 
 object Example {
-  val m: Map[Int, Int] = ??? <3>
+  val m: Map[Int, Int] = ???
 }
 ----
-<1> The trait `scala.collection.immutable.Map` is imported via a wildcard.
-<2> The trait `scala.collection.mutable.Map` is explicitly imported.
-<3> The type `Map` here is not ambiguous because the mutable `Map` takes higher precedence than the immutable `Map`.
+The type of `Example.m` above is not ambiguous because the mutable `Map` explicitly imported in the second import takes higher precedence than the immutable `Map` imported via wildcard in the second import.
 
 However, if we coalesce the grouped importes in the second import statement into a wildcard, there will be a compilation error:
 [source,scala]
 ----
-import scala.collection.immutable._ <1>
-import scala.collection.mutable._ <1>
+import scala.collection.immutable._
+import scala.collection.mutable._
 
 object Example {
-  val m: Map[Int, Int] = ??? <2>
+  val m: Map[Int, Int] = ???
 }
 ----
-<1> Both `scala.collection.immutable.Map` and `scala.collection.mutable.Map` are imported via a wildcard.
-<2> Now the type `Map` here becomes ambiguous because both the mutable and immutable `Map` imported take the same precedence.
+Now the type of `Example.m` becomes ambiguous because both the mutable and immutable `Map` are imported via a wildcard and have the same precedence.
 ====
 
 ==== Value type
