@@ -7,11 +7,11 @@ object Dependencies {
   def scala210 = "2.10.7"
   def scala211 = "2.11.12"
   def scala212 = "2.12.11"
-  def scala213 = "2.13.1"
+  def scala213 = "2.13.2"
   def coursierV = "2.0.0-RC5-6"
   val currentScalaVersion = scala212
 
-  val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.6.0.201912101111-r"
+  val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.7.0.202003110725-r"
 
   var testClasspath: String = "empty"
   def semanticdb: ModuleID = "org.scalameta" % "semanticdb-scalac" % scalametaV cross CrossVersion.full
@@ -22,20 +22,15 @@ object Dependencies {
   def semanticdbPluginLibrary = "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
   def scalameta = "org.scalameta" %% "scalameta" % scalametaV
   def scalatest = "org.scalatest" %% "scalatest" % "3.0.8"
-  def scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.2"
+  def scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.3"
 
   def testsDeps = List(
     // integration property tests
     "io.get-coursier" %% "coursier" % coursierV,
-    "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
+    "org.scala-lang.modules" %% "scala-xml" % "1.3.0",
     "org.typelevel" %% "cats-core" % "2.0.0",
     "com.typesafe.slick" %% "slick" % "3.3.2",
     "com.chuusai" %% "shapeless" % "2.3.3",
     scalacheck
-  )
-
-  def coursierDeps = Seq(
-    "io.get-coursier" %% "coursier" % coursierV,
-    "io.get-coursier" %% "coursier-cache" % coursierV
   )
 }
