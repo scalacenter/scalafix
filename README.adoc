@@ -8,7 +8,7 @@
 :toc:
 :toclevels: 2
 
-image:https://github.com/liancheng/scalafix-organize-imports/workflows/Build/badge.svg[] image:https://img.shields.io/github/v/tag/liancheng/scalafix-organize-imports[] https://github.com/liancheng/scalafix-organize-imports/blob/master/LICENSE[image:https://img.shields.io/github/license/liancheng/scalafix-organize-imports[]] https://scala-steward.org[image:https://img.shields.io/badge/Scala_Steward-helping-blue.svg[]] https://codecov.io/gh/liancheng/scalafix-organize-imports[https://img.shields.io/codecov/c/github/liancheng/scalafix-organize-imports?token=28c81cc3-82e2-48bb-8afa-fd2fdab81072[]]
+image:https://github.com/liancheng/scalafix-organize-imports/workflows/Build/badge.svg[] image:https://img.shields.io/github/v/tag/liancheng/scalafix-organize-imports[] https://github.com/liancheng/scalafix-organize-imports/blob/master/LICENSE[image:https://img.shields.io/github/license/liancheng/scalafix-organize-imports[]] https://scala-steward.org[image:https://img.shields.io/badge/Scala_Steward-helping-blue.svg[]] https://codecov.io/gh/liancheng/scalafix-organize-imports[image:https://img.shields.io/codecov/c/github/liancheng/scalafix-organize-imports[]]
 
 toc::[]
 
