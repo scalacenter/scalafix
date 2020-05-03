@@ -7,3 +7,8 @@ object a {
     object d
   }
 }
+trait SymbolTest {
+  def shouldBe(right: Any)
+  def arg = 1
+  this shouldBe (arg)
+}

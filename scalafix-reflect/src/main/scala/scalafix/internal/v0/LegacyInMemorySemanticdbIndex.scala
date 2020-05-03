@@ -41,7 +41,7 @@ case class LegacyInMemorySemanticdbIndex(
     }
   }
   override def symbol(tree: Tree): Option[v0.Symbol] =
-    symbol(TreePos.symbol(tree))
+    TreePos.symbolImpl[Option[v0.Symbol]](tree)(symbol, _.isEmpty)
   override def denotation(symbol: v0.Symbol): Option[Denotation] =
     symbol match {
       case v0.Symbol.Local(id) =>

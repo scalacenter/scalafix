@@ -50,7 +50,8 @@ final class InternalSemanticDoc(
 
   def symbol(tree: Tree): Symbol = {
     def fromTextDocument() = {
-      val result = symbols(TreePos.symbol(tree))
+      val result =
+        TreePos.symbolImpl[Iterator[Symbol]](tree)(symbols, _.isEmpty)
       if (result.hasNext) result.next() // Discard multi symbols
       else Symbol.None
     }

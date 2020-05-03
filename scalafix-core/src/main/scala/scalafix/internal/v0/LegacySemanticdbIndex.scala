@@ -71,7 +71,7 @@ final class LegacySemanticdbIndex(val doc: v1.SemanticDocument)
       case multi => Some(v0.Symbol.Multi(multi))
     }
   override def symbol(tree: Tree): Option[v0.Symbol] =
-    symbol(TreePos.symbol(tree))
+    TreePos.symbolImpl[Option[v0.Symbol]](tree)(symbol, _.isEmpty)
 
   override def denotation(symbol: v0.Symbol): Option[v0.Denotation] = {
     doc.internal.info(v1.Symbol(symbol.syntax)).map { info =>

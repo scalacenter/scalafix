@@ -5,6 +5,7 @@ import scala.meta._
 import scala.meta.internal.symtab._
 import scala.meta.internal.{semanticdb => s}
 import scalafix.internal.v0._
+import scalafix.internal.v1.TreePos
 import scalafix.util.SemanticdbIndex
 import scalafix.v0
 import scalafix.v0._
@@ -50,16 +51,7 @@ case class EagerInMemorySemanticdbIndex(
   def symbol(position: Position): Option[Symbol] =
     _names.get(position).map(_.symbol)
   def symbol(tree: Tree): Option[Symbol] = tree match {
-    case name @ Name(_) =>
-      val syntax = name.syntax
-      // workaround for https://github.com/scalameta/scalameta/issues/1083
-      val pos =
-        if (syntax.startsWith("(") &&
-          syntax.endsWith(")") &&
-          syntax != name.value)
-          Position.Range(name.pos.input, name.pos.start + 1, name.pos.end - 1)
-        else name.pos
-      symbol(pos)
+    case name: Name => TreePos.symbol[Option[Symbol]](name, symbol, _.isEmpty)
     case Importee.Rename(name, _) => symbol(name)
     case Importee.Name(name) => symbol(name)
     case Term.Select(_, name @ Name(_)) => symbol(name)
