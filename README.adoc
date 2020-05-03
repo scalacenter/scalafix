@@ -1,3 +1,5 @@
+:latest-release: 0.3.0-RC1
+
 = OrganizeImports
 :icons: font
 :sectnums:
@@ -18,15 +20,16 @@ Please refer to https://scalacenter.github.io/scalafix/docs/users/installation.h
 
 To try this rule in SBT console without updating your SBT build:
 
-....
-sbt> scalafix dependency:OrganizeImports@com.github.liancheng:organize-imports:0.2.1
-....
+[source,subs="attributes+"]
+----
+sbt> scalafix dependency:OrganizeImports@com.github.liancheng:organize-imports:{latest-release}
+----
 
 To include this rule in your SBT build:
 
-[source,scala]
+[source,scala,subs="attributes+"]
 ----
-ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.2.1"
+ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "{latest-release}"
 ----
 
 == Configuration
