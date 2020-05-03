@@ -1,8 +1,7 @@
 /*
-rules = OrganizeImports
+rules = [OrganizeImports]
 OrganizeImports.groupedImports = Keep
  */
-
 package fix
 
 import scala.collection.mutable.{ArrayBuffer, Buffer}

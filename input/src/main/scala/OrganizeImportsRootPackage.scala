@@ -1,8 +1,7 @@
 /*
-rules = OrganizeImports
+rules = [OrganizeImports]
 OrganizeImports.groups = ["re:javax?\\.", "*", "scala."]
  */
-
 import java.time.Clock
 import scala.collection.JavaConverters._
 import sun.misc.BASE64Encoder

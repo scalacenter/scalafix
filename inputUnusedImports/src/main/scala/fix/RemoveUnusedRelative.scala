@@ -6,7 +6,6 @@ OrganizeImports {
   removeUnused = true
 }
  */
-
 package fix
 
 import scala.collection

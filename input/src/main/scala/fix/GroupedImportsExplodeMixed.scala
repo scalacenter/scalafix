@@ -1,8 +1,6 @@
 /*
 rules = [OrganizeImports]
-OrganizeImports {
-  groupedImports = Explode
-}
+OrganizeImports.groupedImports = Explode
  */
 package fix
 

@@ -1,8 +1,7 @@
 /*
-rules = OrganizeImports
+rules = [OrganizeImports]
 OrganizeImports.groupedImports = Merge
  */
-
 package fix
 
 import scala.collection.mutable.Buffer

@@ -1,8 +1,7 @@
 /*
-rules = OrganizeImports
+rules = [OrganizeImports]
 OrganizeImports.groups = ["scala.", "*"]
  */
-
 package fix
 
 import scala.util

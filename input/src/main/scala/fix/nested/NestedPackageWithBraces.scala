@@ -1,5 +1,4 @@
-/* rules = OrganizeImports */
-
+/* rules = [OrganizeImports] */
 package fix {
   package nested {
     import java.time.Clock

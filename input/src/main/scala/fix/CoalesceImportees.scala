@@ -1,9 +1,10 @@
 /*
 rules = [OrganizeImports]
-OrganizeImports.groupedImports = Keep
-OrganizeImports.coalesceToWildcardImportThreshold = 3
+OrganizeImports {
+  groupedImports = Keep
+  coalesceToWildcardImportThreshold = 3
+}
  */
-
 package fix
 
 import scala.collection.immutable.{Seq, Map, Vector}

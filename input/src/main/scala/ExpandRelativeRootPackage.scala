@@ -1,8 +1,7 @@
 /*
-rules = OrganizeImports
+rules = [OrganizeImports]
 OrganizeImports.expandRelative = true
  */
-
 import P._
 import Q.x
 import Q._

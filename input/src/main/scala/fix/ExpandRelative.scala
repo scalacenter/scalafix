@@ -1,5 +1,5 @@
 /*
-rules = OrganizeImports
+rules = [OrganizeImports]
 OrganizeImports.expandRelative = true
  */
 package fix

@@ -1,7 +1,9 @@
 /*
 rules = [OrganizeImports]
-OrganizeImports.groupedImports = Keep
-OrganizeImports.importsOrder = SymbolsFirst
+OrganizeImports {
+  groupedImports = Keep
+  importsOrder = SymbolsFirst
+}
  */
 package fix
 

@@ -1,8 +1,7 @@
 /*
-rules = OrganizeImports
+rules = [OrganizeImports]
 OrganizeImports.groups = ["re:javax?\\.", "scala.", "scala.util.", "*"]
  */
-
 package fix
 
 import java.time.Clock

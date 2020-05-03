@@ -1,10 +1,7 @@
 /*
 rules = [OrganizeImports]
-OrganizeImports {
-  groupedImports = Explode
-}
+OrganizeImports.groupedImports = Explode
  */
-
 package fix
 
 import scala.collection.{Seq => _, _}

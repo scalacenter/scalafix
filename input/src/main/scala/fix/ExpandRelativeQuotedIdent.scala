@@ -1,8 +1,7 @@
 /*
-rules = OrganizeImports
+rules = [OrganizeImports]
 OrganizeImports.expandRelative = true
  */
-
 package fix
 
 import QuotedIdent.`a.b`

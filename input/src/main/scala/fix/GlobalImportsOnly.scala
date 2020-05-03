@@ -1,5 +1,4 @@
-/* rules = OrganizeImports */
-
+/* rules = [OrganizeImports] */
 package fix
 
 import scala.collection.mutable

@@ -5,7 +5,6 @@ OrganizeImports {
   removeUnused = true
 }
  */
-
 package fix
 
 import scala.collection.mutable.{ArrayBuffer, Buffer}
