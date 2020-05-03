@@ -7,7 +7,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+
       - name: Lint
-        run: sbt scalafmtCheckAll
+        run: sbt scalafmtCheckAll "rules/scalafix --check"
+
       - name: Test
-        run: sbt tests/test
+        run: sbt coverage tests/test coverageReport
+
+      - uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
