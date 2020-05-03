@@ -16,7 +16,13 @@ import scala.util.matching.Regex
 
 import metaconfig.Configured
 import scalafix.patch.Patch
-import scalafix.v1._
+import scalafix.v1.Configuration
+import scalafix.v1.Rule
+import scalafix.v1.RuleName.stringToRuleName
+import scalafix.v1.SemanticDocument
+import scalafix.v1.SemanticRule
+import scalafix.v1.Symbol
+import scalafix.v1.XtensionTreeScalafix
 
 class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("OrganizeImports") {
   import OrganizeImports._
@@ -160,22 +166,6 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     else importer.copy(ref = toRef(importer.ref.symbol.normalized))
   }
 
-  private def sortImportees(importer: Importer): Importer = {
-    import ImportSelectorsOrder._
-
-    // The Scala language spec allows an import expression to have at most one final wildcard, which
-    // can only appears in the last position.
-    val (wildcard, withoutWildcard) = importer.importees.partition(_.is[Importee.Wildcard])
-
-    val orderedImportees = config.importSelectorsOrder match {
-      case Ascii        => withoutWildcard.sortBy(_.syntax)
-      case SymbolsFirst => sortImporteesSymbolsFirst(withoutWildcard)
-      case Keep         => withoutWildcard
-    }
-
-    importer.copy(importees = orderedImportees ++ wildcard)
-  }
-
   private def organizeImporters(importers: Seq[Importer]): Seq[Importer] = {
     import GroupedImports._
     import ImportsOrder._
@@ -186,7 +176,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
         case Explode => explodeImportees(importers)
         case Keep    => importers
       }
-    } map sortImportees
+    } map coalesceImportees map sortImportees
 
     config.importsOrder match {
       case Ascii =>
@@ -202,6 +192,28 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
             .replaceAll("[{}]", "\1")
         }
     }
+  }
+
+  private def coalesceImportees(importer: Importer): Importer = {
+    val Importees(names, renames, unimports, _) = importer.importees
+    if (names.length <= config.coalesceToWildcardImportThreshold) importer
+    else importer.copy(importees = renames ++ unimports :+ Importee.Wildcard())
+  }
+
+  private def sortImportees(importer: Importer): Importer = {
+    import ImportSelectorsOrder._
+
+    // The Scala language spec allows an import expression to have at most one final wildcard, which
+    // can only appears in the last position.
+    val (wildcard, withoutWildcard) = importer.importees.partition(_.is[Importee.Wildcard])
+
+    val orderedImportees = config.importSelectorsOrder match {
+      case Ascii        => withoutWildcard.sortBy(_.syntax)
+      case SymbolsFirst => sortImporteesSymbolsFirst(withoutWildcard)
+      case Keep         => withoutWildcard
+    }
+
+    importer.copy(importees = orderedImportees ++ wildcard)
   }
 
   // Returns the index of the group to which the given importer belongs.

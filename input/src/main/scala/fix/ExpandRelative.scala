@@ -2,7 +2,6 @@
 rules = OrganizeImports
 OrganizeImports.expandRelative = true
  */
-
 package fix
 
 import scala.util

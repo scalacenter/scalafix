@@ -44,6 +44,86 @@ OrganizeImports {
 }
 ----
 
+=== `coalesceToWildcardImportThreshold`
+
+==== Description
+
+When the number of imported names exceeds a certain threshold, coalesce them into a wildcard import. Renames and unimports are left untouched.
+
+====
+WARNING: Coalescing grouped import selectors into a wildcard import may introduce [red]#_compilation errors_#! Having this feature in `OrganizeImports` is mostly for feature parity with the IntelliJ IDEA Scala import optimizer.
+
+For example, the following snippet compiles successfully:
+
+[source,scala]
+----
+import scala.collection.immutable._ <1>
+import scala.collection.mutable.{ArrayBuffer, Map, Set} <2>
+
+object Example {
+  val m: Map[Int, Int] = ??? <3>
+}
+----
+<1> The trait `scala.collection.immutable.Map` is imported via a wildcard.
+<2> The trait `scala.collection.mutable.Map` is explicitly imported.
+<3> The type `Map` here is not ambiguous because the mutable `Map` takes higher precedence than the immutable `Map`.
+
+However, if we coalesce the grouped importes in the second import statement into a wildcard, there will be a compilation error:
+[source,scala]
+----
+import scala.collection.immutable._ <1>
+import scala.collection.mutable._ <1>
+
+object Example {
+  val m: Map[Int, Int] = ??? <2>
+}
+----
+<1> Both `scala.collection.immutable.Map` and `scala.collection.mutable.Map` are imported via a wildcard.
+<2> Now the type `Map` here becomes ambiguous because both the mutable and immutable `Map` imported take the same precedence.
+====
+
+==== Value type
+
+Integer
+
+==== Default value
+
+`Int.MaxValue`
+
+Rationale:: Setting the default value to `Int.MaxValue` essentially disables this feature, since it can may correctness issues.
+
+==== Example
+
+Configuration:
+
+[source,scala]
+----
+OrganizeImports {
+  groupedImports = Keep
+  coalesceToWildcardImportThreshold = 3
+}
+----
+
+Before:
+
+[source,scala]
+----
+import scala.collection.immutable.{Seq, Map, Vector, Set}
+import scala.collection.immutable.{Seq, Map, Vector}
+import scala.collection.immutable.{Seq, Map, Vector => Vec, Set, Stream}
+import scala.collection.immutable.{Seq, Map, Vector => _, Set, Stream}
+----
+
+After:
+
+[source,scala]
+----
+import scala.collection.immutable._
+import scala.collection.immutable.{Map, Seq, Vector}
+import scala.collection.immutable.{Vector => Vec, _}
+import scala.collection.immutable.{Vector => _, _}
+----
+
 [[expand-relative]]
 === `expandRelative`
 
@@ -424,7 +504,7 @@ Do not sort import selectors.
 
 `Ascii`
 
-==== Example
+==== Examples
 
 `Ascii`::
 +
@@ -496,13 +576,13 @@ Enum: `Ascii | SymbolsFirst`
 Sort import statements by ASCII codes.
 
 `SymbolsFirst`::
-Put wildcard imports and grouped imports with braces first, otherwise same as `Ascii`. This is also the sorting order the IntelliJ IDEA Scala plugin picks.
+Put wildcard imports and grouped imports with braces first, otherwise same as `Ascii`. This is also the sorting order the IntelliJ IDEA Scala import opitimizer picks.
 
 ==== Deafult value
 
 `Ascii`
 
-==== Example
+==== Examples
 
 `Ascii`::
 +

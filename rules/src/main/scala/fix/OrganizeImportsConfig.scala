@@ -42,9 +42,14 @@ object GroupedImports {
 }
 
 final case class OrganizeImportsConfig(
+  coalesceToWildcardImportThreshold: Int = Int.MaxValue,
   expandRelative: Boolean = false,
   groupedImports: GroupedImports = GroupedImports.Explode,
-  groups: Seq[String] = Seq("re:javax?\\.", "scala.", "*"),
+  groups: Seq[String] = Seq(
+    "re:javax?\\.",
+    "scala.",
+    "*"
+  ),
   importSelectorsOrder: ImportSelectorsOrder = ImportSelectorsOrder.Ascii,
   importsOrder: ImportsOrder = ImportsOrder.Ascii,
   removeUnused: Boolean = true
