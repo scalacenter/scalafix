@@ -6,7 +6,6 @@ package fix
 
 import QuotedIdent.`a.b`
 import `a.b`.c
+import `a.b`.`{ d }`
 
-object ExpandRelativeQuotedIdent {
-  val refC = c
-}
+object ExpandRelativeQuotedIdent

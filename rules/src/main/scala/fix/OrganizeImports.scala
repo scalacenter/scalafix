@@ -176,7 +176,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
         case Explode => explodeImportees(importers)
         case Keep    => importers
       }
-    } map coalesceImportees map sortImportees
+    } map (coalesceImportees _ andThen sortImportees _)
 
     config.importsOrder match {
       case Ascii =>
@@ -252,17 +252,30 @@ object OrganizeImports {
 
   private def prettyPrintImportGroup(group: Seq[Importer]): String =
     group
-      .map(fixedImporterSyntax)
-      .map("import " + _)
+      .map { i => "import " + fixedImporterSyntax(i) }
       .mkString("\n")
 
-  // Hack: The scalafix pretty-printer decides to add spaces after open and before close braces in
+  // HACK: The scalafix pretty-printer decides to add spaces after open and before close braces in
   // imports, i.e., "import a.{ b, c }" instead of "import a.{b, c}". Unfortunately, this behavior
   // cannot be overriden. This function removes the unwanted spaces as a workaround.
-  private def fixedImporterSyntax(importer: Importer): String =
-    importer.syntax
-      .replace("{ ", "{")
-      .replace(" }", "}")
+  private def fixedImporterSyntax(importer: Importer): String = {
+    // NOTE: We need to check whether the input importer is curly braced first and then replace the
+    // first "{ " and the last " }" if any. Naive string replacements is not sufficient, e.g., a
+    // quoted-identifier like "`{ d }`" may cause broken output.
+    val isCurlyBraced = importer.importees match {
+      case Importees(_, _ :: _, _, _)        => true // At least one rename
+      case Importees(_, _, _ :: _, _)        => true // At least one unimport
+      case importees if importees.length > 1 => true // Multiple importees
+      case _                                 => false
+    }
+
+    val syntax = importer.syntax
+
+    (isCurlyBraced, syntax lastIndexOfSlice " }") match {
+      case (true, index) if index > -1 => syntax.patch(index, "}", 2).replaceFirst("\\{ ", "{")
+      case _                           => syntax
+    }
+  }
 
   @tailrec private def topQualifierOf(term: Term): Term.Name =
     term match {
