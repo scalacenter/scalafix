@@ -183,9 +183,9 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
         importeesSorted sortBy (_.syntax)
 
       case SymbolsFirst =>
-        // Hack: This is a quick-n-dirty way to achieve a the import ordering provided by the
-        // IntelliJ IDEA Scala plugin. This implementation does not cover cases like quoted
-        // identifiers containg "._" and/or braces.
+        // HACK: This is a quick-n-dirty way to achieve the import ordering provided by the IntelliJ
+        // IDEA Scala plugin. This implementation does not cover cases like quoted identifiers
+        // containg "._" and/or braces.
         importeesSorted sortBy {
           _.syntax
             .replaceAll("\\._$", ".\0")
