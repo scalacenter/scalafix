@@ -306,6 +306,18 @@ object OrganizeImports {
           case _                             => false
         }
 
+        // Collects the last set of unimports, which cancels previous unimports. E.g.:
+        //
+        //   import p.{A => _, B => _, _}
+        //   import p.{C => _, _}
+        //
+        // Only `C` is unimported. `A` and `B` are still available.
+        //
+        // NOTE: Here we only care about unimports with a wildcard. Unimports without a wildcard is
+        // still legal but meaningless. E.g.:
+        //
+        //   import p.{A => _, _} // Import everything under `p` except `A`.
+        //   import p.{A => _}    // Legal, but meaningless.
         val lastUnimports = group.reverse map (_.importees) collectFirst {
           case Importees(_, _, unimports @ (_ :: _), Some(_)) => unimports
         }
@@ -319,6 +331,21 @@ object OrganizeImports {
           .values
           .toList
 
+        // Collects distinct explicitly imported names, and filters out those that are also renamed.
+        // If an explicitly imported name is also renamed, both the original name and the new name
+        // are available. This implies that both of them must be preserved in the merged result, but
+        // in two separate import statements, since Scala disallows a name to appear more than once
+        // in a single imporr statement. E.g.:
+        //
+        //   import p.A
+        //   import p.{A => A1}
+        //   import p.B
+        //   import p.{B => B1}
+        //
+        // The above snippet should be rewritten into:
+        //
+        //   import p.{A, B}
+        //   import p.{A => A1, B => B1}
         val (renamedNames, names) = allImportees
           .filter(_.is[Importee.Name])
           .groupBy { case Importee.Name(Name(name)) => name }
@@ -335,10 +362,51 @@ object OrganizeImports {
 
         val importeesList = (hasWildcard, lastUnimports) match {
           case (true, _) =>
-            // Unimports are canceled by the wildcard.
+            // A few things to note in this case:
+            //
+            // 1. Unimports are discarded because they are canceled by the wildcard.
+            //
+            // 2. Explicitly imported names can NOT be discarded even though they seem to be covered
+            //    by the wildcard. This is because explicitly imported names have higher precedence
+            //    than names imported via a wildcard. Discarding them may introduce ambiguity in
+            //    some cases. E.g.:
+            //
+            //      import scala.collection.immutable._
+            //      import scala.collection.mutable._
+            //      import scala.collection.mutable.Set
+            //
+            //      object Main { val s: Set[Int] = ??? }
+            //
+            //    The type of `Main.s` above is unambiguous because `mutable.Set` is explicitly
+            //    imported, and has higher precedence than `immutable.Set`, which is made available
+            //    via a wildcard. In this case, the imports should be merged into:
+            //
+            //      import scala.collection.immutable._
+            //      import scala.collection.mutable.{Set, _}
+            //
+            //    rather than
+            //
+            //      import scala.collection.immutable._
+            //      import scala.collection.mutable._
+            //
+            //    Otherwise, the type of `Main.s` becomes ambiguous and a compilation error is
+            //    introduced.
+            //
+            // 3. Renames must be moved into a separate import statement to make sure that the
+            //    original names made available by the wildcard are still preserved. E.g.:
+            //
+            //      import p._
+            //      import p.{A => A1}
+            //
+            //    The above imports cannot be merged into
+            //
+            //      import p.{A => A1, _}
+            //
+            //    Otherwise, the original name `A` is no longer available.
             Seq(renames, names :+ Importee.Wildcard())
 
           case (false, Some(unimports)) =>
+            // A wildcard must be appended for unimports.
             Seq(renamedNames, names ++ renames ++ unimports :+ Importee.Wildcard())
 
           case (false, None) =>
