@@ -260,7 +260,7 @@ object OrganizeImports {
   // cannot be overriden. This function removes the unwanted spaces as a workaround.
   private def fixedImporterSyntax(importer: Importer): String = {
     // NOTE: We need to check whether the input importer is curly braced first and then replace the
-    // first "{ " and the last " }" if any. Naive string replacements is not sufficient, e.g., a
+    // first "{ " and the last " }" if any. Naive string replacements are not sufficient, e.g., a
     // quoted-identifier like "`{ d }`" may cause broken output.
     val isCurlyBraced = importer.importees match {
       case Importees(_, _ :: _, _, _)        => true // At least one rename
@@ -272,8 +272,9 @@ object OrganizeImports {
     val syntax = importer.syntax
 
     (isCurlyBraced, syntax lastIndexOfSlice " }") match {
-      case (true, index) if index > -1 => syntax.patch(index, "}", 2).replaceFirst("\\{ ", "{")
-      case _                           => syntax
+      case (_, -1)       => syntax
+      case (true, index) => syntax.patch(index, "}", 2).replaceFirst("\\{ ", "{")
+      case _             => syntax
     }
   }
 
