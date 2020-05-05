@@ -419,6 +419,7 @@ coursier bootstrap ch.epfl.scala:scalafix-cli_@SCALA212@:@VERSION@ -f --main sca
 
 Scalafix is supported in other build tools via externally maintained plugins:
 
+- Mill: [mill-scalafix](https://github.com/joan38/mill-scalafix)
 - Gradle: [gradle-scalafix](https://github.com/cosmicsilence/gradle-scalafix)
 - Maven: [scalafix-maven-plugin](https://github.com/evis/scalafix-maven-plugin)
 
