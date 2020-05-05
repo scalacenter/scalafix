@@ -76,10 +76,11 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
           .map(_.position)
           .toSet
 
-      def importeePosition(importee: Importee): Position = importee match {
-        case Importee.Rename(from, _) => from.pos
-        case _                        => importee.pos
-      }
+      def importeePosition(importee: Importee): Position =
+        importee match {
+          case Importee.Rename(from, _) => from.pos
+          case _                        => importee.pos
+        }
 
       val unusedRemoved = importer.importees filterNot { importee =>
         unusedImports contains importeePosition(importee)
