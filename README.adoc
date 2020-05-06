@@ -39,6 +39,7 @@ ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports"
 [source,hocon]
 ----
 OrganizeImports {
+  coalesceToWildcardImportThreshold = 2147483647 # Int.MaxValue
   expandRelative = false
   groupedImports = Explode
   groups = ["re:javax?\\.", "scala.", "*"]
@@ -91,7 +92,7 @@ Integer
 
 `Int.MaxValue`
 
-Rationale:: Setting the default value to `Int.MaxValue` essentially disables this feature, since it can may correctness issues.
+Rationale:: Setting the default value to `Int.MaxValue` essentially disables this feature, since it can may cause correctness issues.
 
 ==== Example
 
