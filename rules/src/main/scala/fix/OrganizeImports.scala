@@ -179,20 +179,27 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     } map (coalesceImportees _ andThen sortImportees _)
 
     config.importsOrder match {
-      case Ascii =>
-        importeesSorted sortBy (_.syntax)
-
-      case SymbolsFirst =>
-        // HACK: This is a quick-n-dirty way to achieve the import ordering provided by the IntelliJ
-        // IDEA Scala plugin. This implementation does not cover cases like quoted identifiers
-        // containg "._" and/or braces.
-        importeesSorted sortBy {
-          _.syntax
-            .replaceAll("\\._$", ".\0")
-            .replaceAll("[{}]", "\1")
-        }
+      case Ascii        => importeesSorted sortBy (_.syntax)
+      case SymbolsFirst => sortImportersSymbolsFirst(importeesSorted)
     }
   }
+
+  private def sortImportersSymbolsFirst(importers: Seq[Importer]): Seq[Importer] =
+    importers.sortBy { importer =>
+      val syntax = importer.syntax
+
+      importer match {
+        case Importer(_, Importee.Wildcard() :: Nil) =>
+          syntax.patch(syntax.lastIndexOfSlice("._"), ".\0", 2)
+
+        case _ if isCurlyBraced(importer) =>
+          syntax
+            .replaceFirst("[{]", "\2")
+            .patch(syntax.lastIndexOf("}"), "\2", 1)
+
+        case _ => syntax
+      }
+    }
 
   private def coalesceImportees(importer: Importer): Importer = {
     val Importees(names, renames, unimports, _) = importer.importees
@@ -259,24 +266,25 @@ object OrganizeImports {
   // imports, i.e., "import a.{ b, c }" instead of "import a.{b, c}". Unfortunately, this behavior
   // cannot be overriden. This function removes the unwanted spaces as a workaround.
   private def fixedImporterSyntax(importer: Importer): String = {
+    val syntax = importer.syntax
+
     // NOTE: We need to check whether the input importer is curly braced first and then replace the
     // first "{ " and the last " }" if any. Naive string replacements are not sufficient, e.g., a
     // quoted-identifier like "`{ d }`" may cause broken output.
-    val isCurlyBraced = importer.importees match {
-      case Importees(_, _ :: _, _, _)        => true // At least one rename
-      case Importees(_, _, _ :: _, _)        => true // At least one unimport
-      case importees if importees.length > 1 => true // Multiple importees
-      case _                                 => false
-    }
-
-    val syntax = importer.syntax
-
-    (isCurlyBraced, syntax lastIndexOfSlice " }") match {
+    (isCurlyBraced(importer), syntax lastIndexOfSlice " }") match {
       case (_, -1)       => syntax
       case (true, index) => syntax.patch(index, "}", 2).replaceFirst("\\{ ", "{")
       case _             => syntax
     }
   }
+
+  private def isCurlyBraced(importer: Importer): Boolean =
+    importer.importees match {
+      case Importees(_, _ :: _, _, _)        => true // At least one rename
+      case Importees(_, _, _ :: _, _)        => true // At least one unimport
+      case importees if importees.length > 1 => true // Multiple importees
+      case _                                 => false
+    }
 
   @tailrec private def topQualifierOf(term: Term): Term.Name =
     term match {
