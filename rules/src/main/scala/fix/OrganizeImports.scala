@@ -67,6 +67,69 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     if (globalImports.isEmpty) Patch.empty else organizeImports(globalImports)
   }
 
+  private def organizeImports(imports: Seq[Import])(implicit doc: SemanticDocument): Patch = {
+    val (fullyQualifiedImporters, relativeImporters) =
+      imports flatMap (_.importers) flatMap removeUnused partition isFullyQualified
+
+    // Organizes all the fully-qualified global importers.
+    val (_, sortedImporterGroups: Seq[Seq[Importer]]) = {
+      val expanded =
+        if (!config.expandRelative) Nil
+        else relativeImporters map expandRelative
+
+      (fullyQualifiedImporters ++ expanded)
+        .groupBy(matchImportGroup) // Groups imports by importer prefix.
+        .mapValues(organizeImporters) // Organize imports within the same group.
+        .toSeq
+        .sortBy { case (index, _) => index } // Sorts import groups by group index
+        .unzip
+    }
+
+    // A patch that removes all the tokens forming the original imports.
+    val removeOriginalImports = Patch.removeTokens(
+      doc.tree.tokens.slice(
+        imports.head.tokens.start,
+        imports.last.tokens.end
+      )
+    )
+
+    // A patch that inserts the organized imports.
+    val insertOrganizedImports = {
+      // Append all the relative imports (if any) at the end as a separate group with the original
+      // order unchanged.
+      val organizedImporterGroups: Seq[Seq[Importer]] = {
+        val relativeGroup = if (config.expandRelative) Nil else relativeImporters
+        sortedImporterGroups :+ relativeGroup filter (_.nonEmpty)
+      }
+
+      // Note that global imports within curly-braced packages must be indented accordingly, e.g.:
+      //
+      //   package foo {
+      //     package bar {
+      //       import baz
+      //       import qux
+      //     }
+      //   }
+      val firstImportToken = imports.head.tokens.head
+      val indentedOutput: Seq[String] =
+        organizedImporterGroups
+          .map(prettyPrintImportGroup)
+          .mkString("\n\n")
+          .split("\n")
+          .zipWithIndex
+          .map {
+            // The first line will be inserted at an already indented position.
+            case (line, 0)                 => line
+            case (line, _) if line.isEmpty => line
+            case (line, _)                 => " " * firstImportToken.pos.startColumn + line
+          }
+
+      Patch.addLeft(firstImportToken, indentedOutput mkString "\n")
+    }
+
+    (removeOriginalImports + insertOrganizedImports).atomic
+  }
+
   private def removeUnused(importer: Importer)(implicit doc: SemanticDocument): Seq[Importer] =
     if (!config.removeUnused) importer :: Nil
     else {
@@ -90,78 +153,14 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       else importer.copy(importees = unusedRemoved) :: Nil
     }
 
-  private def organizeImports(imports: Seq[Import])(implicit doc: SemanticDocument): Patch = {
-    val (fullyQualifiedImporters, relativeImporters) =
-      imports flatMap (_.importers) map expandRelative partition { importer =>
-        // Checking `config.expandRelative` is necessary here, because applying `isFullyQualified`
-        // on fully-qualified importers expanded from a relative importers always returns false.
-        // The reason is that `isFullyQualified` relies on symbol table information, while expanded
-        // importers contain synthesized AST nodes without symbols associated with them.
-        config.expandRelative || isFullyQualified(importer)
-      }
-
-    // Organizes all the fully-qualified global importers.
-    val (_, sortedImporterGroups: Seq[Seq[Importer]]) =
-      fullyQualifiedImporters
-        .flatMap(removeUnused)
-        .groupBy(matchImportGroup) // Groups imports by importer prefix.
-        .mapValues(organizeImporters) // Organize imports within the same group.
-        .toSeq
-        .sortBy { case (index, _) => index } // Sorts import groups by group index
-        .unzip
-
-    // Append all the relative imports (if any) at the end as a separate group with the original
-    // order unchanged.
-    val organizedImporterGroups: Seq[Seq[Importer]] =
-      if (relativeImporters.isEmpty) sortedImporterGroups
-      else sortedImporterGroups :+ relativeImporters.flatMap(removeUnused)
-
-    // A patch that removes all the tokens forming the original imports.
-    val removeOriginalImports = Patch.removeTokens(
-      doc.tree.tokens.slice(
-        imports.head.tokens.start,
-        imports.last.tokens.end
-      )
-    )
-
-    // A patch that inserts the organized imports. Note that global imports within curly-braced
-    // packages must be indented accordingly, e.g.:
-    //
-    //   package foo {
-    //     package bar {
-    //       import baz
-    //       import qux
-    //     }
-    //   }
-    val insertOrganizedImports = {
-      val firstImportToken = imports.head.tokens.head
-      val indent: Int = firstImportToken.pos.startColumn
-
-      val indentedOutput: Seq[String] =
-        organizedImporterGroups
-          .map(prettyPrintImportGroup)
-          .mkString("\n\n")
-          .split("\n")
-          .zipWithIndex
-          .map {
-            // The first line will be inserted at an already indented position.
-            case (line, 0)                 => line
-            case (line, _) if line.isEmpty => line
-            case (line, _)                 => " " * indent + line
-          }
-
-      Patch.addLeft(firstImportToken, indentedOutput mkString "\n")
-    }
-
-    (removeOriginalImports + insertOrganizedImports).atomic
-  }
-
   private def expandRelative(importer: Importer)(implicit doc: SemanticDocument): Importer = {
     // NOTE: An `Importer.Ref` instance constructed by `toRef` does NOT contain symbol information
     // since it's not parsed from the source file.
-    def toRef(symbol: Symbol): Term.Ref =
-      if (symbol.owner == Symbol.RootPackage) Term.Name(symbol.displayName)
-      else Term.Select(toRef(symbol.owner), Term.Name(symbol.displayName))
+    def toRef(symbol: Symbol): Term.Ref = {
+      val owner = symbol.owner
+      if (owner.isRootPackage || owner.isEmptyPackage) Term.Name(symbol.displayName)
+      else Term.Select(toRef(owner), Term.Name(symbol.displayName))
+    }
 
     if (!config.expandRelative || isFullyQualified(importer)) importer
     else importer.copy(ref = toRef(importer.ref.symbol.normalized))
@@ -431,7 +430,8 @@ object OrganizeImports {
         //   import p.{A => _, B => _, _}
         //   import p.{C => D}
         //   import p.E
-        (names ++ renames).map(i => Importer(ref, i :: Nil)) :+ Importer(ref, unimports :+ wildcard)
+        val importeesList = (names ++ renames).map(_ :: Nil) :+ (unimports :+ wildcard)
+        importeesList filter (_.nonEmpty) map (Importer(ref, _))
 
       case importer =>
         importer.importees map (i => importer.copy(importees = i :: Nil))
