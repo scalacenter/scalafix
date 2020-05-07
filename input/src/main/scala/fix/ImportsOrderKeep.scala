@@ -3,18 +3,17 @@ rules = [OrganizeImports]
 OrganizeImports {
   groupedImports = Keep
   importSelectorsOrder = Keep
-  importsOrder = SymbolsFirst
+  importsOrder = Keep
 }
  */
 package fix
 
 import scala.concurrent.ExecutionContext.Implicits._
-import scala.concurrent._
+import fix.QuotedIdent.`a.b`.`{ d }`.e
 import scala.concurrent.duration
+import fix.QuotedIdent._
+import scala.concurrent._
+import fix.QuotedIdent.`a.b`.{c => _, _}
 import scala.concurrent.{Promise, Future}
 
-import fix.QuotedIdent.`a.b`.`{ d }`.e
-import fix.QuotedIdent.`a.b`.{c => _, _}
-import fix.QuotedIdent._
-
-object ImportsOrderSymbolsFirst
+object ImportsOrderKeep

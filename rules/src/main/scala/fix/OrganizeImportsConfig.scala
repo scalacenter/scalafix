@@ -11,10 +11,11 @@ sealed trait ImportsOrder
 object ImportsOrder {
   case object Ascii extends ImportsOrder
   case object SymbolsFirst extends ImportsOrder
+  case object Keep extends ImportsOrder
 
   implicit def reader: ConfDecoder[ImportsOrder] =
     ReaderUtil.fromMap {
-      List(Ascii, SymbolsFirst) groupBy (_.toString) mapValues (_.head)
+      List(Ascii, SymbolsFirst, Keep) groupBy (_.toString) mapValues (_.head)
     }
 }
 

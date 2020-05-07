@@ -166,7 +166,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   private def groupImporters(importers: Seq[Importer]): Seq[Seq[Importer]] = {
     val (_, importerGroups) = importers
       .groupBy(matchImportGroup) // Groups imports by importer prefix.
-      .mapValues(organizeImporters) // Organize imports within the same group.
+      .mapValues(organizeImportGroup) // Organize imports within the same group.
       .toSeq
       .sortBy { case (index, _) => index } // Sorts import groups by group index
       .unzip
@@ -174,21 +174,19 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     importerGroups
   }
 
-  private def organizeImporters(importers: Seq[Importer]): Seq[Importer] = {
-    import GroupedImports._
-    import ImportsOrder._
-
+  private def organizeImportGroup(importers: Seq[Importer]): Seq[Importer] = {
     val importeesSorted = {
       config.groupedImports match {
-        case Merge   => mergeImporters(importers)
-        case Explode => explodeImportees(importers)
-        case Keep    => importers
+        case GroupedImports.Merge   => mergeImporters(importers)
+        case GroupedImports.Explode => explodeImportees(importers)
+        case GroupedImports.Keep    => importers
       }
     } map (coalesceImportees _ andThen sortImportees _)
 
     config.importsOrder match {
-      case Ascii        => importeesSorted sortBy (_.syntax)
-      case SymbolsFirst => sortImportersSymbolsFirst(importeesSorted)
+      case ImportsOrder.Ascii        => importeesSorted sortBy (_.syntax)
+      case ImportsOrder.SymbolsFirst => sortImportersSymbolsFirst(importeesSorted)
+      case ImportsOrder.Keep         => importeesSorted
     }
   }
 

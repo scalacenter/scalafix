@@ -593,8 +593,7 @@ Sort import selectors by ASCII codes, equivalent to the https://scalameta.org/sc
 Sort import selectors by the groups: symbols, lower-case, upper-case, equivalent to the https://scalameta.org/scalafmt/docs/configuration.html#sortimports[`SortImports`] rewriting rule in Scalafmt.
 
 `Keep`::
-
-Do not sort import selectors.
+Keep the original order.
 
 ==== Default value
 
@@ -667,13 +666,16 @@ Specifies the order of import statements within import groups defined by the <<g
 
 ==== Value type
 
-Enum: `Ascii | SymbolsFirst`
+Enum: `Ascii | SymbolsFirst | Keep`
 
 `Ascii`::
 Sort import statements by ASCII codes.
 
 `SymbolsFirst`::
 Put wildcard imports and grouped imports with braces first, otherwise same as `Ascii`. This is also the sorting order the IntelliJ IDEA Scala import opitimizer picks.
+
+`Keep`::
+Keep the original order.
 
 ==== Deafult value
 
