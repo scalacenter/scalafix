@@ -1,4 +1,4 @@
-:latest-release: 0.3.0-RC1
+:latest-release: 0.3.0
 
 = OrganizeImports
 :icons: font
