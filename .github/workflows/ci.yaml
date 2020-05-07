@@ -12,7 +12,7 @@ jobs:
         run: sbt scalafmtCheckAll "rules/scalafix --check"
 
       - name: Test
-        run: sbt coverage tests/test coverageReport
+        run: sbt coverage tests/test rules/coverageReport
 
       - uses: codecov/codecov-action@v1
         with:

@@ -12,6 +12,7 @@ import scala.meta.Stat
 import scala.meta.Term
 import scala.meta.Tree
 import scala.meta.inputs.Position
+import scala.meta.tokens.Token
 import scala.util.matching.Regex
 
 import metaconfig.Configured
@@ -35,7 +36,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     }
 
     // The wildcard group should always exist. Append one at the end if omitted.
-    if (matchers contains WildcardMatcher) matchers else matchers :+ WildcardMatcher
+    matchers ++ (List(WildcardMatcher) filterNot matchers.contains)
   }
 
   private val wildcardGroupIndex = importMatchers indexOf WildcardMatcher
@@ -48,7 +49,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     config.conf.getOrElse("OrganizeImports")(OrganizeImportsConfig()) andThen { conf =>
       val hasWarnUnused = {
         val warnUnusedPrefix = Set("-Wunused", "-Ywarn-unused")
-        config.scalacOptions exists { option => warnUnusedPrefix exists (option.startsWith _) }
+        config.scalacOptions exists { option => warnUnusedPrefix exists option.startsWith }
       }
 
       if (hasWarnUnused || !conf.removeUnused)
@@ -68,66 +69,42 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   }
 
   private def organizeImports(imports: Seq[Import])(implicit doc: SemanticDocument): Patch = {
-    val (fullyQualifiedImporters, relativeImporters) =
-      imports flatMap (_.importers) flatMap removeUnused partition isFullyQualified
+    val (implicits, noImplicits) =
+      partitionImplicits(imports flatMap (_.importers) flatMap removeUnused)
+
+    val (fullyQualifiedImporters, relativeImporters) = noImplicits partition isFullyQualified
 
     // Organizes all the fully-qualified global importers.
-    val (_, sortedImporterGroups: Seq[Seq[Importer]]) = {
-      val expanded =
-        if (!config.expandRelative) Nil
-        else relativeImporters map expandRelative
-
-      (fullyQualifiedImporters ++ expanded)
-        .groupBy(matchImportGroup) // Groups imports by importer prefix.
-        .mapValues(organizeImporters) // Organize imports within the same group.
-        .toSeq
-        .sortBy { case (index, _) => index } // Sorts import groups by group index
-        .unzip
+    val fullyQualifiedGroups: Seq[Seq[Importer]] = {
+      val expanded = if (config.expandRelative) relativeImporters map expandRelative else Nil
+      groupImporters(fullyQualifiedImporters ++ expanded)
     }
 
-    // A patch that removes all the tokens forming the original imports.
-    val removeOriginalImports = Patch.removeTokens(
+    // Moves relative imports (when `config.expandRelative` is false) and explicitly imported
+    // implicit names into a separate order preserving group. This group will be appended after
+    // all the other groups. See [issue #30][1] for why implicits require special handling.
+    //
+    // [1]: https://github.com/liancheng/scalafix-organize-imports/issues/30
+    val orderPreservingGroup = {
+      val relatives = if (config.expandRelative) Nil else relativeImporters
+      relatives ++ implicits sortBy (_.importees.head.pos.start)
+    }
+
+    // Builds a patch that inserts the organized imports.
+    val insertionPatch = insertOrganizedImportsBefore(
+      imports.head.tokens.head,
+      fullyQualifiedGroups :+ orderPreservingGroup filter (_.nonEmpty)
+    )
+
+    // Builds a patch that removes all the tokens forming the original imports.
+    val removalPatch = Patch.removeTokens(
       doc.tree.tokens.slice(
         imports.head.tokens.start,
         imports.last.tokens.end
       )
     )
 
-    // A patch that inserts the organized imports.
-    val insertOrganizedImports = {
-      // Append all the relative imports (if any) at the end as a separate group with the original
-      // order unchanged.
-      val organizedImporterGroups: Seq[Seq[Importer]] = {
-        val relativeGroup = if (config.expandRelative) Nil else relativeImporters
-        sortedImporterGroups :+ relativeGroup filter (_.nonEmpty)
-      }
-
-      // Note that global imports within curly-braced packages must be indented accordingly, e.g.:
-      //
-      //   package foo {
-      //     package bar {
-      //       import baz
-      //       import qux
-      //     }
-      //   }
-      val firstImportToken = imports.head.tokens.head
-      val indentedOutput: Seq[String] =
-        organizedImporterGroups
-          .map(prettyPrintImportGroup)
-          .mkString("\n\n")
-          .split("\n")
-          .zipWithIndex
-          .map {
-            // The first line will be inserted at an already indented position.
-            case (line, 0)                 => line
-            case (line, _) if line.isEmpty => line
-            case (line, _)                 => " " * firstImportToken.pos.startColumn + line
-          }
-
-      Patch.addLeft(firstImportToken, indentedOutput mkString "\n")
-    }
-
-    (removeOriginalImports + insertOrganizedImports).atomic
+    (insertionPatch + removalPatch).atomic
   }
 
   private def removeUnused(importer: Importer)(implicit doc: SemanticDocument): Seq[Importer] =
@@ -153,6 +130,26 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       else importer.copy(importees = unusedRemoved) :: Nil
     }
 
+  private def partitionImplicits(
+    importers: Seq[Importer]
+  )(implicit doc: SemanticDocument): (Seq[Importer], Seq[Importer]) = {
+    val (implicits, implicitPositions) = importers.flatMap {
+      case importer @ Importer(_, importees) =>
+        importees
+          .filter(_.is[Importee.Name])
+          .filter(_.symbol.info.exists(_.isImplicit))
+          .map(i => importer.copy(importees = i :: Nil) -> i.pos)
+    }.unzip
+
+    val noImplicits = importers.flatMap {
+      case importer @ Importer(_, importees) =>
+        val implicitsRemoved = importees.filterNot(i => implicitPositions.contains(i.pos))
+        if (implicitsRemoved.isEmpty) Nil else importer.copy(importees = implicitsRemoved) :: Nil
+    }
+
+    (implicits, noImplicits)
+  }
+
   private def expandRelative(importer: Importer)(implicit doc: SemanticDocument): Importer = {
     // NOTE: An `Importer.Ref` instance constructed by `toRef` does NOT contain symbol information
     // since it's not parsed from the source file.
@@ -164,6 +161,17 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
     if (!config.expandRelative || isFullyQualified(importer)) importer
     else importer.copy(ref = toRef(importer.ref.symbol.normalized))
+  }
+
+  private def groupImporters(importers: Seq[Importer]): Seq[Seq[Importer]] = {
+    val (_, importerGroups) = importers
+      .groupBy(matchImportGroup) // Groups imports by importer prefix.
+      .mapValues(organizeImporters) // Organize imports within the same group.
+      .toSeq
+      .sortBy { case (index, _) => index } // Sorts import groups by group index
+      .unzip
+
+    importerGroups
   }
 
   private def organizeImporters(importers: Seq[Importer]): Seq[Importer] = {
@@ -212,12 +220,12 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
     // The Scala language spec allows an import expression to have at most one final wildcard, which
     // can only appears in the last position.
-    val (wildcard, withoutWildcard) = importer.importees.partition(_.is[Importee.Wildcard])
+    val (wildcard, noWildcard) = importer.importees partition (_.is[Importee.Wildcard])
 
     val orderedImportees = config.importSelectorsOrder match {
-      case Ascii        => withoutWildcard.sortBy(_.syntax)
-      case SymbolsFirst => sortImporteesSymbolsFirst(withoutWildcard)
-      case Keep         => withoutWildcard
+      case Ascii        => noWildcard.sortBy(_.syntax)
+      case SymbolsFirst => sortImporteesSymbolsFirst(noWildcard)
+      case Keep         => noWildcard
     }
 
     importer.copy(importees = orderedImportees ++ wildcard)
@@ -469,5 +477,33 @@ object OrganizeImports {
 
       Option((names.toList, renames.toList, unimports.toList, maybeWildcard))
     }
+  }
+
+  private def insertOrganizedImportsBefore(
+    token: Token,
+    importGroups: Seq[Seq[Importer]]
+  ): Patch = {
+    // Global imports within curly-braced packages must be indented accordingly, e.g.:
+    //
+    //   package foo {
+    //     package bar {
+    //       import baz
+    //       import qux
+    //     }
+    //   }
+    val indentedOutput: Iterator[String] =
+      importGroups
+        .map(prettyPrintImportGroup)
+        .mkString("\n\n")
+        .lines
+        .zipWithIndex
+        .map {
+          // The first line will be inserted at an already indented position.
+          case (line, 0)                 => line
+          case (line, _) if line.isEmpty => line
+          case (line, _)                 => " " * token.pos.startColumn + line
+        }
+
+    Patch.addLeft(token, indentedOutput mkString "\n")
   }
 }
