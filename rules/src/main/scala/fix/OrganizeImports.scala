@@ -19,10 +19,11 @@ import metaconfig.Configured
 import scalafix.patch.Patch
 import scalafix.v1.Configuration
 import scalafix.v1.Rule
-import scalafix.v1.RuleName.stringToRuleName
 import scalafix.v1.SemanticDocument
 import scalafix.v1.SemanticRule
 import scalafix.v1.Symbol
+
+import scalafix.v1.RuleName.stringToRuleName
 import scalafix.v1.XtensionTreeScalafix
 
 class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("OrganizeImports") {
@@ -133,21 +134,25 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   private def partitionImplicits(
     importers: Seq[Importer]
   )(implicit doc: SemanticDocument): (Seq[Importer], Seq[Importer]) = {
-    val (implicits, implicitPositions) = importers.flatMap {
-      case importer @ Importer(_, importees) =>
-        importees
-          .filter(_.is[Importee.Name])
-          .filter(_.symbol.info.exists(_.isImplicit))
-          .map(i => importer.copy(importees = i :: Nil) -> i.pos)
-    }.unzip
+    if (config.intellijCompatible) {
+      (Nil, importers)
+    } else {
+      val (implicits, implicitPositions) = importers.flatMap {
+        case importer @ Importer(_, importees) =>
+          importees
+            .filter(_.is[Importee.Name])
+            .filter(_.symbol.info.exists(_.isImplicit))
+            .map(i => importer.copy(importees = i :: Nil) -> i.pos)
+      }.unzip
 
-    val noImplicits = importers.flatMap {
-      case importer @ Importer(_, importees) =>
-        val implicitsRemoved = importees.filterNot(i => implicitPositions.contains(i.pos))
-        if (implicitsRemoved.isEmpty) Nil else importer.copy(importees = implicitsRemoved) :: Nil
+      val noImplicits = importers.flatMap {
+        case importer @ Importer(_, importees) =>
+          val implicitsRemoved = importees.filterNot(i => implicitPositions.contains(i.pos))
+          if (implicitsRemoved.isEmpty) Nil else importer.copy(importees = implicitsRemoved) :: Nil
+      }
+
+      (implicits, noImplicits)
     }
-
-    (implicits, noImplicits)
   }
 
   private def expandRelative(importer: Importer)(implicit doc: SemanticDocument): Importer = {

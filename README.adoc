@@ -165,7 +165,7 @@ import scala.util.control.NonFatal
 
 If neither `scala.util` nor `scala.util.control` is referenced anywhere after the expansion, they become unused imports.
 
-Unfortunately, these newly introduced unused imports cannot be removed by setting `removeUnused` to `true`. Please refer to the <<remove-unused,`removeUnused`>> option for more details.
+Unfortunately, these newly introduced unused imports cannot be removed by setting `removeUnused` to `true`. Please refer to the <<remove-unused, `removeUnused`>> option for more details.
 ====
 
 ==== Value type
@@ -390,6 +390,7 @@ A regular expression pattern::
 A regular expression pattern starts with `re:`. For instance, `"re:javax?\\."` is a regular expression pattern that matches both `java` and `javax` packages.
 
 The wildcard pattern::
+
 The wildcard pattern, `"*"`, defines the wildcard group, which matches all fully-qualified imports not belonging to any other groups. It can be omitted when it's the last group. So the following two configurations are equivalent:
 +
 [source,hocon]
@@ -662,19 +663,22 @@ import foo.{~>, `symbol`, bar, Random}
 
 ==== Description
 
-Specifies the order of import statements within import groups defined by the <<groups,`OrganizeImports.groups`>> option.
+Specifies the order of import statements within import groups defined by the <<groups, `OrganizeImports.groups`>> option.
 
 ==== Value type
 
 Enum: `Ascii | SymbolsFirst | Keep`
 
 `Ascii`::
+
 Sort import statements by ASCII codes.
 
 `SymbolsFirst`::
+
 Put wildcard imports and grouped imports with braces first, otherwise same as `Ascii`. This is also the sorting order the IntelliJ IDEA Scala import opitimizer picks.
 
 `Keep`::
+
 Keep the original order.
 
 ==== Deafult value
@@ -751,6 +755,118 @@ import scala.concurrent.duration
 ----
 --
 
+=== `intellijCompatible`
+
+==== Description
+
+When set to `true`, try to be compatible with the IntelliJ IDEA Scala import optimizer when possible.
+
+In some edge cases, the IntelliJ IDEA Scala import optimizer may produce broken code. For example, it does not handle the explicitly imported implicits case properly (see the <<groups, `groups`>> option). In order to guarantee correctness, `OrganizeImports` may behave differently from IntelliJ in these cases.
+
+However, to some users, having `OrganizeImports` fighting against IntelliJ can be annoying during development. Considering that those edge cases are rarely seen, the `intellijCompatible` option provides a choice to sacrifice edge case correctness for IntelliJ compatibility.
+
+==== Value type
+
+Boolean
+
+==== Default value
+
+`false`
+
+==== Example
+
+IntelliJ compatible mode turned off::
++
+--
+In the following example, we have two explicitly imported implicit names:
+
+[source,scala]
+----
+import scala.language.postfixOps
+import scala.concurrent.ExecutionContext.Implicits.global
+----
+
+By default, when the IntelliJ compatible mode is turned off, to avoid the aforementioned correctness issue (see the <<groups, `groups`>> option), they are moved into the last order-preserving group together with all the relative imports, if any.
+
+Configuration:
+
+[source,hocon]
+----
+OrganizeImports {
+  groups = ["scala.", "*"]
+  intellijCompatible = false
+}
+----
+
+Before:
+
+[source,scala]
+----
+import scala.collection.mutable
+import mutable.ArrayBuffer
+import scala.collection.JavaConverters._
+import scala.language.postfixOps
+import org.apache.spark.SparkContext
+import scala.concurrent.ExecutionContext.Implicits.global
+----
+
+After:
+
+[source,scala]
+----
+import scala.collection.mutable
+import scala.collection.JavaConverters._
+
+import org.apache.spark.SparkContext
+
+import mutable.ArrayBuffer
+import scala.language.postfixOps
+import scala.concurrent.ExecutionContext.Implicits.global
+----
+--
+
+IntelliJ compatible mode turned on::
++
+--
+After turning on the IntelliJ compatible mode, explicitly imported implicits names are grouped in the same way as other imports (only relative imports are moved to the last group).
+
+Configuration:
+
+[source,hocon]
+----
+OrganizeImports {
+  groups = ["scala.", "*"]
+  intellijCompatible = true
+}
+----
+
+Before:
+
+[source,scala]
+----
+import scala.collection.mutable
+import mutable.ArrayBuffer
+import scala.collection.JavaConverters._
+import scala.language.postfixOps
+import org.apache.spark.SparkContext
+import scala.concurrent.ExecutionContext.Implicits.global
+----
+
+After:
+
+[source,scala]
+----
+import scala.collection.mutable
+import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.language.postfixOps
+
+import org.apache.spark.SparkContext
+
+import mutable.ArrayBuffer
+----
+--
+
 [[remove-unused]]
 === `removeUnused`
 
@@ -760,7 +876,7 @@ Remove unused imports.
 
 [CAUTION]
 ====
-As mentioned in the <<remove-unused-warning, Getting started>> section, the `removeUnused` option doesn't play perfectly with the `expandRelative` option. Setting `expandRelative` to `true` might introduce new unused imports (see <<expand-relative,`expandRelative`>>). These newly introduced unused imports cannot be removed by setting `removeUnused` to `true`. This is because unused imports are identified using Scala compilation diagnostics information, and the compilation phase happens before Scalafix rules get applied.
+As mentioned in the <<remove-unused-warning, Getting started>> section, the `removeUnused` option doesn't play perfectly with the `expandRelative` option. Setting `expandRelative` to `true` might introduce new unused imports (see <<expand-relative, `expandRelative`>>). These newly introduced unused imports cannot be removed by setting `removeUnused` to `true`. This is because unused imports are identified using Scala compilation diagnostics information, and the compilation phase happens before Scalafix rules get applied.
 ====
 
 ==== Value type

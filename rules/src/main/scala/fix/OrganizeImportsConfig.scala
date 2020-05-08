@@ -56,6 +56,7 @@ final case class OrganizeImportsConfig(
   ),
   importSelectorsOrder: ImportSelectorsOrder = ImportSelectorsOrder.Ascii,
   importsOrder: ImportsOrder = ImportsOrder.Ascii,
+  intellijCompatible: Boolean = false,
   removeUnused: Boolean = true
 )
 
