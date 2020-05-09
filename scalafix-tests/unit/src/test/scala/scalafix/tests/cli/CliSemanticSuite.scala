@@ -173,6 +173,8 @@ class CliSemanticSuite extends BaseCliSuite {
         props.inputClasspath.entries.partition(_.isDirectory)
       Array(
         s"--scalacOptions",
+        s"-P:semanticdb:targetroot:shouldBeIgnored",
+        s"--scalacOptions",
         s"-P:semanticdb:targetroot:${targetroot.toString()}",
         "--classpath",
         Classpath(jars).syntax
