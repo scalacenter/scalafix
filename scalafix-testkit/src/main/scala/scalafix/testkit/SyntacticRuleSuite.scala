@@ -1,18 +1,18 @@
 package scalafix.testkit
 
-import org.scalatest.FunSuiteLike
 import org.scalatest.Tag
 import scala.meta._
 import scalafix.syntax._
 import scalafix.v0._
 import scalafix.internal.config.ScalafixConfig
+import org.scalatest.funsuite.AnyFunSuiteLike
 
 /** Utility to unit test syntactic rules
  *
  * @param rule the default rule to use from `check`/`checkDiff`.
  */
 class SyntacticRuleSuite(rule: Rule = Rule.empty)
-    extends FunSuiteLike
+    extends AnyFunSuiteLike
     with DiffAssertions {
 
   def check(name: String, original: String, expected: String): Unit = {
