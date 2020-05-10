@@ -123,12 +123,9 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
           case _                        => importee.pos
         }
 
-      val unusedRemoved = importer.importees filterNot { importee =>
-        unusedImports contains importeePosition(importee)
-      }
-
-      if (unusedRemoved.isEmpty) Nil
-      else importer.copy(importees = unusedRemoved) :: Nil
+      filterImportees(importer) { importee =>
+        !unusedImports.contains(importeePosition(importee))
+      }.toSeq
     }
 
   private def partitionImplicits(
@@ -146,9 +143,9 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       }.unzip
 
       val noImplicits = importers.flatMap {
-        case importer @ Importer(_, importees) =>
-          val implicitsRemoved = importees.filterNot(i => implicitPositions.contains(i.pos))
-          if (implicitsRemoved.isEmpty) Nil else importer.copy(importees = implicitsRemoved) :: Nil
+        filterImportees(_) { importee =>
+          !implicitPositions.contains(importee.pos)
+        }.toSeq
       }
 
       (implicits, noImplicits)
@@ -226,12 +223,20 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     val (wildcard, noWildcard) = importer.importees partition (_.is[Importee.Wildcard])
 
     val orderedImportees = config.importSelectorsOrder match {
-      case Ascii        => noWildcard.sortBy(_.syntax)
-      case SymbolsFirst => sortImporteesSymbolsFirst(noWildcard)
-      case Keep         => noWildcard
+      case Ascii        => noWildcard.sortBy(_.syntax) ++ wildcard
+      case SymbolsFirst => sortImporteesSymbolsFirst(noWildcard) ++ wildcard
+      case Keep         => importer.importees
     }
 
-    importer.copy(importees = orderedImportees ++ wildcard)
+    // Checks whether importees of the input importer are already sorted. If yes, we should return
+    // the original importer to preserve the original source level formatting.
+    val alreadySorted =
+      config.importSelectorsOrder == Keep ||
+        (importer.importees corresponds orderedImportees) { (lhs, rhs) =>
+          lhs.syntax == rhs.syntax
+        }
+
+    if (alreadySorted) importer else importer.copy(importees = orderedImportees)
   }
 
   // Returns the index of the group to which the given importer belongs.
@@ -319,6 +324,11 @@ object OrganizeImports {
 
   private def mergeImporters(importers: Seq[Importer]): Seq[Importer] = {
     importers.groupBy(_.ref.syntax).values.toSeq.flatMap {
+      case importer :: Nil =>
+        // If this group has only one importer, returns it as is to preserve the original source
+        // level formatting.
+        importer :: Nil
+
       case group @ (Importer(ref, _) :: _) =>
         val hasWildcard = group map (_.importees) exists {
           case Importees(_, _, Nil, Some(_)) => true
@@ -337,7 +347,7 @@ object OrganizeImports {
         //
         //   import p.{A => _, _} // Import everything under `p` except `A`.
         //   import p.{A => _}    // Legal, but meaningless.
-        val lastUnimports = group.reverse map (_.importees) collectFirst {
+        val lastUnimportsWildcard = group.reverse map (_.importees) collectFirst {
           case Importees(_, _, unimports @ (_ :: _), Some(_)) => unimports
         }
 
@@ -379,7 +389,7 @@ object OrganizeImports {
               }
           }
 
-        val importeesList = (hasWildcard, lastUnimports) match {
+        val importeesList = (hasWildcard, lastUnimportsWildcard) match {
           case (true, _) =>
             // A few things to note in this case:
             //
@@ -438,6 +448,11 @@ object OrganizeImports {
 
   private def explodeImportees(importers: Seq[Importer]): Seq[Importer] =
     importers.flatMap {
+      case importer @ Importer(_, _ :: Nil) =>
+        // If the importer has exactly one importee, returns it as is to preserve the original
+        // source level formatting.
+        importer :: Nil
+
       case Importer(ref, Importees(names, renames, unimports, Some(wildcard))) =>
         // When a wildcard exists, all unimports (if any) and the wildcard must appear in the same
         // importer, e.g.:
@@ -508,5 +523,16 @@ object OrganizeImports {
         }
 
     Patch.addLeft(token, indentedOutput mkString "\n")
+  }
+
+  // Returns an importer with all the importees selected from the input importer that satisfy a
+  // predicate. If all the importees are selected, the input importer instance is returned to
+  // preserve the original source level formatting. If none of the importees are selected, returns
+  // a `None`.
+  private def filterImportees(importer: Importer)(f: Importee => Boolean): Option[Importer] = {
+    val filtered = importer.importees filter f
+    if (filtered.length == importer.importees.length) Some(importer)
+    else if (filtered.isEmpty) None
+    else Some(importer.copy(importees = filtered))
   }
 }
