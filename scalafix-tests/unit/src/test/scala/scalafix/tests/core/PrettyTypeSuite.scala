@@ -49,9 +49,7 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
           PrettyType
             .toTree(info, table, QualifyStrategy.Readable, fatalErrors = true)
             .tree
-        val expectedSyntax =
-          // TODO: Remove withOrigin after https://github.com/scalameta/scalameta/issues/1526
-          ScalametaInternals.withOrigin(expected, Origin.None).syntax
+        val expectedSyntax = expected.syntax
         assertNoDiff(obtained.syntax, expectedSyntax)
       }
   }
