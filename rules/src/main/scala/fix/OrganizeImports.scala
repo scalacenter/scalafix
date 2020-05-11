@@ -282,7 +282,11 @@ object OrganizeImports {
   // imports, i.e., "import a.{ b, c }" instead of "import a.{b, c}". Unfortunately, this behavior
   // cannot be overriden. This function removes the unwanted spaces as a workaround.
   private def fixedImporterSyntax(importer: Importer): String = {
-    val syntax = importer.syntax
+    // If the importer originates from the parser, `Tree.toString` returns the original source text
+    // being parsed, and therefore preserves the original source level formatting. If the importer
+    // does not originates from the parser, `Tree.toString` pretty-prints it using the Scala 2.11
+    // dialect, which is good enough for imports.
+    val syntax = importer.toString
 
     // NOTE: We need to check whether the input importer is curly braced first and then replace the
     // first "{ " and the last " }" if any. Naive string replacements are not sufficient, e.g., a
