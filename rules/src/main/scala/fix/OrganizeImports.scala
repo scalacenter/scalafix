@@ -65,13 +65,15 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     }
 
   override def fix(implicit doc: SemanticDocument): Patch = {
-    val globalImports = collectGlobalImports(doc.tree)
-    if (globalImports.isEmpty) Patch.empty else organizeImports(globalImports)
+    val Imports(globalImports, otherImports) = collectImports(doc.tree)
+    val globalPatch = if (globalImports.isEmpty) Patch.empty else organizeImports(globalImports)
+    val removeUnusedPatch = if (!config.removeUnused) Patch.empty else removeUnused(otherImports)
+    globalPatch + removeUnusedPatch
   }
 
   private def organizeImports(imports: Seq[Import])(implicit doc: SemanticDocument): Patch = {
     val (implicits, noImplicits) =
-      partitionImplicits(imports flatMap (_.importers) flatMap removeUnused)
+      partitionImplicits(imports flatMap (_.importers) flatMap filterUnusedImportees)
 
     val (fullyQualifiedImporters, relativeImporters) = noImplicits partition isFullyQualified
 
@@ -108,20 +110,33 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     (insertionPatch + removalPatch).atomic
   }
 
-  private def removeUnused(importer: Importer)(implicit doc: SemanticDocument): Seq[Importer] =
+  private def removeUnused(imports: Seq[Import])(implicit doc: SemanticDocument): Patch = {
+    val unusedImports = unusedImportsPositions(doc)
+
+    val importees = imports flatMap (_.importers) flatMap (_.importees)
+
+    val hasUsedWildcard = importees.exists {
+      case i: Importee.Wildcard => !unusedImports(importeePosition(i))
+      case _                    => false
+    }
+
+    importees.collect {
+      case i @ Importee.Rename(_, to) if unusedImports(importeePosition(i)) && hasUsedWildcard =>
+        // Unimport the identifier instead of removing the importee since
+        // unused renamed may still impact compilation by shadowing an identifier.
+        // See https://github.com/scalacenter/scalafix/issues/614
+        Patch.replaceTree(to, "_").atomic
+      case i if unusedImports(importeePosition(i)) =>
+        Patch.removeImportee(i).atomic
+    }.asPatch
+  }
+
+  private def filterUnusedImportees(
+    importer: Importer
+  )(implicit doc: SemanticDocument): Seq[Importer] =
     if (!config.removeUnused) importer :: Nil
     else {
-      val unusedImports =
-        doc.diagnostics
-          .filter(_.message == "Unused import")
-          .map(_.position)
-          .toSet
-
-      def importeePosition(importee: Importee): Position =
-        importee match {
-          case Importee.Rename(from, _) => from.pos
-          case _                        => importee.pos
-        }
+      val unusedImports = unusedImportsPositions(doc)
 
       filterImportees(importer) { importee =>
         !unusedImports.contains(importeePosition(importee))
@@ -255,16 +270,25 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 }
 
 object OrganizeImports {
-  @tailrec private def collectGlobalImports(tree: Tree): Seq[Import] = {
-    def extractImports(stats: Seq[Stat]): Seq[Import] =
-      stats takeWhile (_.is[Import]) collect { case i: Import => i }
+
+  case class Imports(globals: Seq[Import] = Nil, others: Seq[Import] = Nil)
+
+  @tailrec private def collectImports(tree: Tree): Imports = {
+
+    def extractImports(stats: Seq[Stat]): Imports = {
+      val (imports, others) = stats span (_.is[Import])
+      Imports(
+        imports collect { case i: Import => i },
+        others flatMap (_.collect { case i: Import => i })
+      )
+    }
 
     tree match {
-      case Source(Seq(p: Pkg)) => collectGlobalImports(p)
-      case Pkg(_, Seq(p: Pkg)) => collectGlobalImports(p)
+      case Source(Seq(p: Pkg)) => collectImports(p)
+      case Pkg(_, Seq(p: Pkg)) => collectImports(p)
       case Source(stats)       => extractImports(stats)
       case Pkg(_, stats)       => extractImports(stats)
-      case _                   => Nil
+      case _                   => Imports()
     }
   }
 
@@ -539,4 +563,16 @@ object OrganizeImports {
     else if (filtered.isEmpty) None
     else Some(importer.copy(importees = filtered))
   }
+
+  private def importeePosition(importee: Importee): Position =
+    importee match {
+      case Importee.Rename(from, _) => from.pos
+      case _                        => importee.pos
+    }
+
+  private def unusedImportsPositions(doc: SemanticDocument): Set[Position] =
+    doc.diagnostics
+      .filter(_.message == "Unused import")
+      .map(_.position)
+      .toSet
 }
