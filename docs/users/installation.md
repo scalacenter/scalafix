@@ -213,10 +213,10 @@ To avoid binary compatibility conflicts with the sbt classpath
 ([example issue](https://github.com/sbt/zinc/issues/546#issuecomment-393084316)),
 the Scalafix plugin uses [Coursier](https://github.com/coursier/coursier/) to
 fetch Scalafix artifacts from Maven Central. These artifacts are by default
-cached in the directory `$HOME/.coursier/cache`. To avoid redundant downloads on
-every pull request, it's recommended to configure your CI enviroment to cache
-this directory. The location can be customized with the environment variable
-`COURSIER_CACHE`
+cached [inside the home directory](https://get-coursier.io/docs/cache.html#default-location).
+To avoid redundant downloads on every pull request, it's recommended to configure
+your CI enviroment to cache this directory. The location can be customized with
+the environment variable `COURSIER_CACHE`
 
 ```sh
 export COURSIER_CACHE=$HOME/.custom-cache
