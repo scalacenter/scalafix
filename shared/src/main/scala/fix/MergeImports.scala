@@ -13,7 +13,14 @@ object MergeImports {
     object b
   }
 
-  object Unimport {
+  object Unimport1 {
+    object a
+    object b
+    object c
+    object d
+  }
+
+  object Unimport2 {
     object a
     object b
     object c

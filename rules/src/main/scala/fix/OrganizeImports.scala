@@ -390,7 +390,7 @@ object OrganizeImports {
     importer.importees match {
       case Importees(_, _ :: _, _, _)        => true // At least one rename
       case Importees(_, _, _ :: _, _)        => true // At least one unimport
-      case importees if importees.length > 1 => true // Multiple importees
+      case importees if importees.length > 1 => true // More than one importees
       case _                                 => false
     }
 
@@ -422,30 +422,33 @@ object OrganizeImports {
         importer :: Nil
 
       case group @ (Importer(ref, _) :: _) =>
-        val hasWildcard = group map (_.importees) exists {
+        val importeeLists = group map (_.importees)
+
+        val hasWildcard = importeeLists exists {
           case Importees(_, _, Nil, Some(_)) => true
           case _                             => false
         }
 
-        // Collects the last set of unimports, which cancels previous unimports. E.g.:
+        // Collects the last set of unimports with a wildcard, if any. It cancels all previous
+        // unimports. E.g.:
         //
-        //   import p.{A => _, B => _, _}
+        //   import p.{A => _}
+        //   import p.{B => _, _}
         //   import p.{C => _, _}
         //
         // Only `C` is unimported. `A` and `B` are still available.
-        //
-        // NOTE: Here we only care about unimports with a wildcard. Unimports without a wildcard is
-        // still legal but meaningless. E.g.:
-        //
-        //   import p.{A => _, _} // Import everything under `p` except `A`.
-        //   import p.{A => _}    // Legal, but meaningless.
-        val lastUnimportsWildcard = group.reverse map (_.importees) collectFirst {
+        val lastUnimportsWildcard = importeeLists.reverse collectFirst {
           case Importees(_, _, unimports @ (_ :: _), Some(_)) => unimports
         }
 
+        // Collects all unimports without an accompanying wildcard.
+        val allUnimports = importeeLists.collect {
+          case Importees(_, _, unimports, None) => unimports
+        }.flatten
+
         val allImportees = group flatMap (_.importees)
 
-        val renames = allImportees
+        val allRenames = allImportees
           .filter(_.is[Importee.Rename])
           .groupBy { case Importee.Rename(Name(name), _) => name }
           .mapValues(_.head)
@@ -456,7 +459,7 @@ object OrganizeImports {
         // If an explicitly imported name is also renamed, both the original name and the new name
         // are available. This implies that both of them must be preserved in the merged result, but
         // in two separate import statements, since Scala disallows a name to appear more than once
-        // in a single imporr statement. E.g.:
+        // in a single import statement. E.g.:
         //
         //   import p.A
         //   import p.{A => A1}
@@ -467,7 +470,7 @@ object OrganizeImports {
         //
         //   import p.{A, B}
         //   import p.{A => A1, B => B1}
-        val (renamedNames, names) = allImportees
+        val (renamedNames, importedNames) = allImportees
           .filter(_.is[Importee.Name])
           .groupBy { case Importee.Name(Name(name)) => name }
           .mapValues(_.head)
@@ -475,7 +478,7 @@ object OrganizeImports {
           .toList
           .partition {
             case Importee.Name(Name(name)) =>
-              renames exists {
+              allRenames exists {
                 case Importee.Rename(Name(`name`), _) => true
                 case _                                => false
               }
@@ -524,14 +527,14 @@ object OrganizeImports {
             //      import p.{A => A1, _}
             //
             //    Otherwise, the original name `A` is no longer available.
-            Seq(renames, names :+ Importee.Wildcard())
+            Seq(allRenames, importedNames :+ Importee.Wildcard())
 
           case (false, Some(unimports)) =>
             // A wildcard must be appended for unimports.
-            Seq(renamedNames, names ++ renames ++ unimports :+ Importee.Wildcard())
+            Seq(renamedNames, importedNames ++ allRenames ++ unimports :+ Importee.Wildcard())
 
           case (false, None) =>
-            Seq(renamedNames, names ++ renames)
+            Seq(renamedNames, importedNames ++ allRenames ++ allUnimports)
         }
 
         importeesList filter (_.nonEmpty) map (Importer(ref, _))
