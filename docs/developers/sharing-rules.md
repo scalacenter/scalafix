@@ -93,7 +93,7 @@ Users of the Scalafix command-line interface can use the `--tool-classpath` flag
 
 ```
 scalafix \
-  --tool-classpath $(coursier fetch com.geirsson:named-literal-arguments_2.12:VERSION) \
+  --tool-classpath $(cs fetch com.geirsson:named-literal-arguments_2.12:VERSION) \
   -r NamedLiteralArguments \
   --classpath MY_PROJECT_CLASSPATH \
   my-project/src/main/scala

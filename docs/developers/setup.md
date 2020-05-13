@@ -115,7 +115,7 @@ To test custom Scalafix rules outside of sbt use the library API of
 artifact
 
 ```
-coursier fetch ch.epfl.scala:scalafix-testkit_@SCALA212@:@VERSION@
+cs fetch ch.epfl.scala:scalafix-testkit_@SCALA212@:@VERSION@
 ```
 
 Next, create a test suite that extends the class `SemanticRuleSuite`
