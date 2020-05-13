@@ -399,13 +399,13 @@ git diff // should produce a diff
 
 ## Command line
 
-First, install the [Coursier](https://get-coursier.io/docs/cli-overview)
+First, install the [Coursier](https://get-coursier.io/docs/cli-installation)
 command-line interface.
 
-Next, bootstrap a `scalafix` binary with Coursier
+Next, install a `scalafix` binary with Coursier
 
 ```sh
-coursier bootstrap ch.epfl.scala:scalafix-cli_@SCALA212@:@VERSION@ -f --main scalafix.cli.Cli -o scalafix
+cs install scalafix
 ./scalafix --version # Should say @VERSION@
 ```
 
