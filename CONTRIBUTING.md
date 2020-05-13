@@ -115,13 +115,13 @@ curl -vvv -H "Authorization: Bearer $APPVEYOR_TOKEN" -XDELETE https://ci.appveyo
 - [ ] after sonatype release is completed, double check after ~30 minutes that
       the artifacts have synced to maven by running this command:
 
-          coursier fetch ch.epfl.scala:scalafix-core_2.12:VERSION
+          cs fetch ch.epfl.scala:scalafix-core_2.12:VERSION
 
 - [ ] once the artifacts are synced to maven, go to the scalafix repo and update
       the `scalafix` binary with the following command and open a PR to the
       scalafix repo.
 
-         coursier bootstrap ch.epfl.scala:scalafix-cli_2.12.4:VERSION -f --main scalafix.cli.Cli -o scalafix -f
+         cs bootstrap ch.epfl.scala:scalafix-cli_2.12.4:VERSION -f --main scalafix.cli.Cli -o scalafix -f
 
 If everything went smoothly, congrats!
 

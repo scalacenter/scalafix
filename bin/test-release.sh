@@ -3,7 +3,7 @@ set -eux
 
 version=$1
 
-coursier resolve \
+cs resolve \
   ch.epfl.scala:scalafix-interfaces:$version  \
   ch.epfl.scala:scalafix-core_2.11:$version  \
   ch.epfl.scala:scalafix-core_2.12:$version  \
