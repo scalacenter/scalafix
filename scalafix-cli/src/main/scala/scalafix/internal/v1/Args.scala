@@ -336,7 +336,8 @@ case class Args(
   def semanticdbOption(name: String): Option[String] = {
     val flag = s"-P:semanticdb:$name:"
     scalacOptions
-      .find(_.startsWith(flag))
+      .filter(_.startsWith(flag))
+      .lastOption
       .map(_.stripPrefix(flag))
   }
 
