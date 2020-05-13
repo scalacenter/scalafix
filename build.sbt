@@ -25,7 +25,9 @@ inThisBuild(
       "com.lihaoyi" %% "sourcecode" % "0.2.1"
     ),
     addCompilerPlugin(scalafixSemanticdb),
-    scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.3.0"
+    scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.3.0",
+    // Super shell output often messes up Scalafix test output.
+    useSuperShell := false
   )
 )
 
@@ -41,11 +43,16 @@ lazy val rules = project
 
 lazy val shared = project.settings(skip in publish := true)
 
-lazy val input = project.settings(skip in publish := true).dependsOn(shared)
+lazy val input = project
+  .dependsOn(shared)
+  .settings(skip in publish := true)
 
-lazy val output = project.settings(skip in publish := true).dependsOn(shared)
+lazy val output = project
+  .dependsOn(shared)
+  .settings(skip in publish := true)
 
 lazy val inputUnusedImports = project
+  .dependsOn(shared)
   .settings(
     skip in publish := true,
     scalacOptions ++= List("-Ywarn-unused")

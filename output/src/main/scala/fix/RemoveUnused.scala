@@ -1,10 +1,11 @@
 package fix
 
-import java.lang.{Long => JLong}
-
-import scala.collection.mutable.ArrayBuffer
+import fix.UnusedImports.a.v1
+import fix.UnusedImports.c.{v6 => w2}
+import fix.UnusedImports.d.{v7 => _, _}
 
 object RemoveUnused {
-  val buffer: ArrayBuffer[Int] = ArrayBuffer.empty[Int]
-  val long: JLong = JLong.parseLong("0")
+  val x1 = v1
+  val x2 = w2
+  val x3 = v8
 }

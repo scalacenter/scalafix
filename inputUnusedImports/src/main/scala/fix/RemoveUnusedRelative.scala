@@ -8,12 +8,18 @@ OrganizeImports {
  */
 package fix
 
-import scala.collection
-import collection.mutable.{ArrayBuffer, Buffer}
-import java.lang
-import lang.{Long => JLong, Double => JDouble}
+import fix.UnusedImports.a
+import fix.UnusedImports.b
+import fix.UnusedImports.c
+import fix.UnusedImports.d
+
+import a.{v1, v2}
+import b.v3
+import c.{v5 => w1, v6 => w2}
+import d.{v7 => unused, _}
 
 object RemoveUnusedRelative {
-  val buffer: ArrayBuffer[Int] = ArrayBuffer.empty[Int]
-  val long: JLong = JLong.parseLong("0")
+  val x1 = v1
+  val x2 = w2
+  val x3 = v8
 }

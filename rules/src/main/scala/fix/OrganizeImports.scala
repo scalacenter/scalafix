@@ -1,6 +1,7 @@
 package fix
 
 import scala.annotation.tailrec
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.meta.Import
 import scala.meta.Importee
@@ -40,7 +41,9 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     matchers ++ (List(WildcardMatcher) filterNot matchers.contains)
   }
 
-  private val wildcardGroupIndex = importMatchers indexOf WildcardMatcher
+  private val wildcardGroupIndex: Int = importMatchers indexOf WildcardMatcher
+
+  private val unusedImporteePositions: mutable.Set[Position] = mutable.Set.empty[Position]
 
   def this() = this(OrganizeImportsConfig())
 
@@ -65,15 +68,32 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     }
 
   override def fix(implicit doc: SemanticDocument): Patch = {
-    val Imports(globalImports, otherImports) = collectImports(doc.tree)
-    val globalPatch = if (globalImports.isEmpty) Patch.empty else organizeImports(globalImports)
-    val removeUnusedPatch = if (!config.removeUnused) Patch.empty else removeUnused(otherImports)
-    globalPatch + removeUnusedPatch
+    unusedImporteePositions ++= doc.diagnostics.filter(_.message == "Unused import").map(_.position)
+
+    val (globalImports, localImports) = collectImports(doc.tree)
+
+    val globalImportsPatch =
+      if (globalImports.isEmpty) Patch.empty
+      else organizeGlobalImports(globalImports)
+
+    val localImportsPatch =
+      if (!config.removeUnused || localImports.isEmpty) Patch.empty
+      else removeUnused(localImports)
+
+    globalImportsPatch + localImportsPatch
   }
 
-  private def organizeImports(imports: Seq[Import])(implicit doc: SemanticDocument): Patch = {
-    val (implicits, noImplicits) =
-      partitionImplicits(imports flatMap (_.importers) flatMap filterUnusedImportees)
+  private def isUnused(importee: Importee): Boolean =
+    unusedImporteePositions contains positionOf(importee)
+
+  private def organizeGlobalImports(imports: Seq[Import])(implicit doc: SemanticDocument): Patch = {
+    val (implicits, noImplicits) = partitionImplicits(
+      for {
+        `import` <- imports
+        importer <- `import`.importers
+        unusedRemoved <- removeUnused(importer).toSeq
+      } yield unusedRemoved
+    )
 
     val (fullyQualifiedImporters, relativeImporters) = noImplicits partition isFullyQualified
 
@@ -85,9 +105,10 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
     // Moves relative imports (when `config.expandRelative` is false) and explicitly imported
     // implicit names into a separate order preserving group. This group will be appended after
-    // all the other groups. See [issue #30][1] for why implicits require special handling.
+    // all the other groups.
     //
-    // [1]: https://github.com/liancheng/scalafix-organize-imports/issues/30
+    // See https://github.com/liancheng/scalafix-organize-imports/issues/30 for why implicits
+    // require special handling.
     val orderPreservingGroup = {
       val relatives = if (config.expandRelative) Nil else relativeImporters
       relatives ++ implicits sortBy (_.importees.head.pos.start)
@@ -110,37 +131,59 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     (insertionPatch + removalPatch).atomic
   }
 
-  private def removeUnused(imports: Seq[Import])(implicit doc: SemanticDocument): Patch = {
-    val unusedImports = unusedImportsPositions(doc)
+  private def removeUnused(imports: Seq[Import]): Patch =
+    Patch.fromIterable {
+      imports flatMap (_.importers) flatMap {
+        case Importer(_, importees) =>
+          val hasUsedWildcard = importees exists {
+            case i: Importee.Wildcard => !isUnused(i)
+            case _                    => false
+          }
 
-    val importees = imports flatMap (_.importers) flatMap (_.importees)
+          importees collect {
+            case i @ Importee.Rename(_, to) if isUnused(i) && hasUsedWildcard =>
+              // Unimport the identifier instead of removing the importee since unused renamed may
+              // still impact compilation by shadowing an identifier.
+              //
+              // See https://github.com/scalacenter/scalafix/issues/614
+              Patch.replaceTree(to, "_").atomic
 
-    val hasUsedWildcard = importees.exists {
-      case i: Importee.Wildcard => !unusedImports(importeePosition(i))
-      case _                    => false
+            case i if isUnused(i) =>
+              Patch.removeImportee(i).atomic
+          }
+      }
     }
 
-    importees.collect {
-      case i @ Importee.Rename(_, to) if unusedImports(importeePosition(i)) && hasUsedWildcard =>
-        // Unimport the identifier instead of removing the importee since
-        // unused renamed may still impact compilation by shadowing an identifier.
-        // See https://github.com/scalacenter/scalafix/issues/614
-        Patch.replaceTree(to, "_").atomic
-      case i if unusedImports(importeePosition(i)) =>
-        Patch.removeImportee(i).atomic
-    }.asPatch
-  }
-
-  private def filterUnusedImportees(
-    importer: Importer
-  )(implicit doc: SemanticDocument): Seq[Importer] =
-    if (!config.removeUnused) importer :: Nil
+  private def removeUnused(importer: Importer): Option[Importer] =
+    if (!config.removeUnused) Some(importer)
     else {
-      val unusedImports = unusedImportsPositions(doc)
+      val hasUsedWildcard = importer.importees exists {
+        case i: Importee.Wildcard => !isUnused(i)
+        case _                    => false
+      }
 
-      filterImportees(importer) { importee =>
-        !unusedImports.contains(importeePosition(importee))
-      }.toSeq
+      var rewritten = false
+
+      val unusedRemoved = importer.importees.flatMap {
+        case i @ Importee.Rename(from, _) if isUnused(i) && hasUsedWildcard =>
+          // Unimport the identifier instead of removing the importee since unused renamed may still
+          // impact compilation by shadowing an identifier.
+          //
+          // See https://github.com/scalacenter/scalafix/issues/614
+          rewritten = true
+          Importee.Unimport(from) :: Nil
+
+        case i if isUnused(i) =>
+          rewritten = true
+          Nil
+
+        case i =>
+          i :: Nil
+      }
+
+      if (!rewritten) Some(importer)
+      else if (unusedRemoved.isEmpty) None
+      else Some(importer.copy(importees = unusedRemoved))
     }
 
   private def partitionImplicits(
@@ -155,11 +198,12 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
           // normal imports due to the following reasons:
           //
           // 1. The IntelliJ IDEA Scala import optimizer does not handle the explicitly imported
-          //    implicit names case (see [issue #30][1]). Moving `scala.languageFeature` to the last
-          //    order-preserving import group produces a different result from IntelliJ, which can
-          //    be annoying for users who use both IntelliJ and `OrganizeImports`.
+          //    implicit names case. Moving `scala.languageFeature` to the last order-preserving
+          //    import group produces a different result from IntelliJ, which can be annoying for
+          //    users who use both IntelliJ and `OrganizeImports`.
           //
-          //    [1]: https://github.com/liancheng/scalafix-organize-imports/issues/30
+          //    See https://github.com/liancheng/scalafix-organize-imports/issues/30 for more
+          //    details.
           //
           // 2. Importing `scala.languageFeature` values is almost the only commonly seen cases
           //    where a Scala developer imports an implicit by name explicitly. Yet, there's
@@ -289,17 +333,18 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 }
 
 object OrganizeImports {
+  private def positionOf(importee: Importee): Position =
+    importee match {
+      case Importee.Rename(from, _) => from.pos
+      case _                        => importee.pos
+    }
 
-  case class Imports(globals: Seq[Import] = Nil, others: Seq[Import] = Nil)
-
-  @tailrec private def collectImports(tree: Tree): Imports = {
-
-    def extractImports(stats: Seq[Stat]): Imports = {
-      val (imports, others) = stats span (_.is[Import])
-      Imports(
-        imports collect { case i: Import => i },
-        others flatMap (_.collect { case i: Import => i })
-      )
+  @tailrec private def collectImports(tree: Tree): (Seq[Import], Seq[Import]) = {
+    def extractImports(stats: Seq[Stat]): (Seq[Import], Seq[Import]) = {
+      val (importStats, otherStats) = stats span (_.is[Import])
+      val globalImports = importStats map { case i: Import => i }
+      val localImports = otherStats flatMap (_.collect { case i: Import => i })
+      (globalImports, localImports)
     }
 
     tree match {
@@ -307,7 +352,7 @@ object OrganizeImports {
       case Pkg(_, Seq(p: Pkg)) => collectImports(p)
       case Source(stats)       => extractImports(stats)
       case Pkg(_, stats)       => extractImports(stats)
-      case _                   => Imports()
+      case _                   => (Nil, Nil)
     }
   }
 
@@ -581,16 +626,4 @@ object OrganizeImports {
     else if (filtered.isEmpty) None
     else Some(importer.copy(importees = filtered))
   }
-
-  private def importeePosition(importee: Importee): Position =
-    importee match {
-      case Importee.Rename(from, _) => from.pos
-      case _                        => importee.pos
-    }
-
-  private def unusedImportsPositions(doc: SemanticDocument): Set[Position] =
-    doc.diagnostics
-      .filter(_.message == "Unused import")
-      .map(_.position)
-      .toSet
 }

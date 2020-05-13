@@ -7,11 +7,13 @@ OrganizeImports {
  */
 package fix
 
-import scala.collection.mutable.{ArrayBuffer, Buffer}
-import java.time.Clock
-import java.lang.{Long => JLong, Double => JDouble}
+import fix.UnusedImports.a.{v1, v2}
+import fix.UnusedImports.b.v3
+import fix.UnusedImports.c.{v5 => w1, v6 => w2}
+import fix.UnusedImports.d.{v7 => unused, _}
 
 object RemoveUnused {
-  val buffer: ArrayBuffer[Int] = ArrayBuffer.empty[Int]
-  val long: JLong = JLong.parseLong("0")
+  val x1 = v1
+  val x2 = w2
+  val x3 = v8
 }
