@@ -17,8 +17,9 @@ To use this rule:
 - Enable the Scala compiler option `-Ywarn-unused` (or `-Wunused` in 2.13). In
   sbt, this is done with `scalacOptions += "-Ywarn-unused"`.
 - Disable `-Xfatal-warnings` if you have it enabled. This is required so the
-  compiler warnings do not fail the build before running Scalafix.
-  Unfortunately, it's not possible exclude unused imports from -Xfatal-warnings.
+  compiler warnings do not fail the build before running Scalafix. If you are
+  running 2.13.2 or later, you may keep `-Xfatal-warnings` by modifying how
+  specific warnings are handled via `scalacOptions += "-Wconf:cat=unused:info"`.
 
 ## Examples
 

@@ -69,9 +69,6 @@
       "rules/RemoveUnused": {
         "title": "RemoveUnused"
       },
-      "rules/RemoveUnusedTerms": {
-        "title": "RemoveUnusedTerms"
-      },
       "users/configuration": {
         "title": "Configuration"
       },
