@@ -14,6 +14,7 @@ import scala.meta.Term
 import scala.meta.Tree
 import scala.meta.inputs.Position
 import scala.meta.tokens.Token
+import scala.util.Try
 import scala.util.matching.Regex
 
 import metaconfig.Configured
@@ -88,11 +89,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
   private def organizeGlobalImports(imports: Seq[Import])(implicit doc: SemanticDocument): Patch = {
     val (implicits, noImplicits) = partitionImplicits(
-      for {
-        `import` <- imports
-        importer <- `import`.importers
-        unusedRemoved <- removeUnused(importer).toSeq
-      } yield unusedRemoved
+      imports flatMap (_.importers) flatMap (removeUnused(_).toSeq)
     )
 
     val (fullyQualifiedImporters, relativeImporters) = noImplicits partition isFullyQualified
@@ -164,7 +161,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
       var rewritten = false
 
-      val unusedRemoved = importer.importees.flatMap {
+      val noUnused = importer.importees.flatMap {
         case i @ Importee.Rename(from, _) if isUnused(i) && hasUsedWildcard =>
           // Unimport the identifier instead of removing the importee since unused renamed may still
           // impact compilation by shadowing an identifier.
@@ -182,8 +179,8 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       }
 
       if (!rewritten) Some(importer)
-      else if (unusedRemoved.isEmpty) None
-      else Some(importer.copy(importees = unusedRemoved))
+      else if (noUnused.isEmpty) None
+      else Some(importer.copy(importees = noUnused))
     }
 
   private def partitionImplicits(
@@ -193,7 +190,11 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       case importer @ Importer(_, importees) =>
         importees
           .filter(_.is[Importee.Name])
-          .filter(_.symbol.info.exists(_.isImplicit))
+          // HACK: In certain cases, `Symbol.info` may throw `MissingSymbolException` due to some
+          // unknown reason. If it happens, here we assume that this symbol is not an implicit.
+          //
+          // See https://github.com/scalacenter/scalafix/issues/1123
+          .filter(name => Try(name.symbol.info exists (_.isImplicit)) getOrElse false)
           // Explicitly imported `scala.languageFeature` implicits are special cased and treated as
           // normal imports due to the following reasons:
           //
@@ -217,7 +218,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
           //    `OrganizeImports` may produce different results when `OrganizeImports` users upgrade
           //    their code base from Scala 2.12 to 2.13. This introduces an annoying and unnecessary
           //    thing to be taken care of.
-          .filter(_.symbol.owner.normalized != "scala.languageFeature.")
+          .filter(_.symbol.owner.normalized.value != "scala.languageFeature.")
           .map(i => importer.copy(importees = i :: Nil) -> i.pos)
     }.unzip
 
@@ -261,7 +262,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
         case GroupedImports.Explode => explodeImportees(importers)
         case GroupedImports.Keep    => importers
       }
-    } map (coalesceImportees _ andThen sortImportees _)
+    } map (coalesceImportees _ andThen sortImportees)
 
     config.importsOrder match {
       case ImportsOrder.Ascii        => importeesSorted sortBy (_.syntax)
@@ -421,7 +422,7 @@ object OrganizeImports {
         // level formatting.
         importer :: Nil
 
-      case group @ (Importer(ref, _) :: _) =>
+      case group @ Importer(ref, _) :: _ =>
         val importeeLists = group map (_.importees)
 
         val hasWildcard = importeeLists exists {
@@ -438,7 +439,7 @@ object OrganizeImports {
         //
         // Only `C` is unimported. `A` and `B` are still available.
         val lastUnimportsWildcard = importeeLists.reverse collectFirst {
-          case Importees(_, _, unimports @ (_ :: _), Some(_)) => unimports
+          case Importees(_, _, unimports @ _ :: _, Some(_)) => unimports
         }
 
         // Collects all unimports without an accompanying wildcard.
