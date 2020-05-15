@@ -370,22 +370,27 @@ object OrganizeImports {
   // HACK: The scalafix pretty-printer decides to add spaces after open and before close braces in
   // imports, i.e., "import a.{ b, c }" instead of "import a.{b, c}". Unfortunately, this behavior
   // cannot be overriden. This function removes the unwanted spaces as a workaround.
-  private def fixedImporterSyntax(importer: Importer): String = {
-    // If the importer originates from the parser, `Tree.toString` returns the original source text
-    // being parsed, and therefore preserves the original source level formatting. If the importer
-    // does not originates from the parser, `Tree.toString` pretty-prints it using the Scala 2.11
-    // dialect, which is good enough for imports.
-    val syntax = importer.toString
+  private def fixedImporterSyntax(importer: Importer): String =
+    importer.pos match {
+      case pos: Position.Range =>
+        // Position found, implies that `importer` was directly parsed from the source code. Returns
+        // the original parsed text to preserve the original source level formatting.
+        pos.text
 
-    // NOTE: We need to check whether the input importer is curly braced first and then replace the
-    // first "{ " and the last " }" if any. Naive string replacements are not sufficient, e.g., a
-    // quoted-identifier like "`{ d }`" may cause broken output.
-    (isCurlyBraced(importer), syntax lastIndexOfSlice " }") match {
-      case (_, -1)       => syntax
-      case (true, index) => syntax.patch(index, "}", 2).replaceFirst("\\{ ", "{")
-      case _             => syntax
+      case Position.None =>
+        // Position not found, implies that `importer` is derived from certain existing import
+        // statement(s). Pretty-prints it.
+        val syntax = importer.syntax
+
+        // NOTE: We need to check whether the input importer is curly braced first and then replace
+        // the first "{ " and the last " }" if any. Naive string replacements are not sufficient,
+        // e.g., a quoted-identifier like "`{ d }`" may cause broken output.
+        (isCurlyBraced(importer), syntax lastIndexOfSlice " }") match {
+          case (_, -1)       => syntax
+          case (true, index) => syntax.patch(index, "}", 2).replaceFirst("\\{ ", "{")
+          case _             => syntax
+        }
     }
-  }
 
   private def isCurlyBraced(importer: Importer): Boolean =
     importer.importees match {
