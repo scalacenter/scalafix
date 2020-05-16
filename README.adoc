@@ -76,9 +76,9 @@ When the number of imported names exceeds a certain threshold, coalesce them int
 
 [CAUTION]
 ====
-Coalescing grouped import selectors into a wildcard import may introduce [red]#_compilation errors_#! Having this feature in `OrganizeImports` is mostly for feature parity with the IntelliJ IDEA Scala import optimizer.
+Having this feature in `OrganizeImports` is mostly for feature parity with the IntelliJ IDEA Scala import optimizer, but coalescing grouped import selectors into a wildcard import may introduce _compilation errors_! 
 
-For example, the following snippet compiles successfully:
+Here is an example to illustrate the risk. The following snippet compiles successfully:
 
 [source,scala]
 ----
@@ -89,7 +89,7 @@ object Example {
   val m: Map[Int, Int] = ???
 }
 ----
-The type of `Example.m` above is not ambiguous because the mutable `Map` explicitly imported in the second import takes higher precedence than the immutable `Map` imported via wildcard in the second import.
+The type of `Example.m` above is not ambiguous because the mutable `Map` explicitly imported in the second import takes higher precedence than the immutable `Map` imported via wildcard in the first import.
 
 However, if we coalesce the grouped importes in the second import statement into a wildcard, there will be a compilation error:
 [source,scala]
@@ -101,7 +101,7 @@ object Example {
   val m: Map[Int, Int] = ???
 }
 ----
-Now the type of `Example.m` becomes ambiguous because both the mutable and immutable `Map` are imported via a wildcard and have the same precedence.
+This is because the type of `Example.m` becomes ambiguous now since both the mutable and immutable `Map` are imported via a wildcard and have the same precedence.
 ====
 
 ==== Value type
@@ -238,17 +238,11 @@ Configure how to handle grouped imports.
 
 Enum: `Explode | Merge | Keep`
 
-`Explode`::
+`Explode`:: Explode grouped imports into separate import statements.
 
-Explode grouped imports into separate import statements.
+`Merge`:: Merge imports sharing the same prefix into a single grouped import statement.
 
-`Merge`::
-
-Merge imports sharing the same prefix into a single grouped import statement.
-
-`Keep`::
-
-Leave grouped imports and imports sharing the same prefix untouched.
+`Keep`:: Leave grouped imports and imports sharing the same prefix untouched.
 
 ==== Default value
 
@@ -391,18 +385,15 @@ To avoid having such implicit imports appearing before any wildcard import that 
 
 An ordered list of import prefix pattern strings. A prefix pattern can be one of the following:
 
-A plain-text pattern::
+A plain-text pattern:: For instance, `"scala."` is a plain-text pattern that matches imports referring the `scala` package. Please note that the trailing dot is necessary, otherwise you may have `scalafix` and `scala` imports in the same group, which is not what you want in most cases.
 
-For instance, `"scala."` is a plain-text pattern that matches imports referring the `scala` package. Please note that the trailing dot is necessary, otherwise you may have `scalafix` and `scala` imports in the same group, which is not what you want in most cases.
-
-A regular expression pattern::
-
-A regular expression pattern starts with `re:`. For instance, `"re:javax?\\."` is a regular expression pattern that matches both `java` and `javax` packages.
+A regular expression pattern:: A regular expression pattern starts with `re:`. For instance, `"re:javax?\\."` is a regular expression pattern that matches both `java` and `javax` packages.
 
 The wildcard pattern::
-
-The wildcard pattern, `"*"`, defines the wildcard group, which matches all fully-qualified imports not belonging to any other groups. It can be omitted when it's the last group. So the following two configurations are equivalent:
 +
+--
+The wildcard pattern, `"*"`, defines the wildcard group, which matches all fully-qualified imports not belonging to any other groups. It can be omitted when it's the last group. So the following two configurations are equivalent:
+
 [source,hocon]
 ----
 OrganizeImports.groups = ["re:javax?\\.", "scala.", "*"]
@@ -419,6 +410,7 @@ OrganizeImports.groups = ["re:javax?\\.", "scala."]
   "*"
 ]
 ----
+--
 
 ==== Examples
 
@@ -595,16 +587,11 @@ Specifies the order of grouped import selectors within a single import expressio
 
 Enum: `Ascii | SymbolsFirst | Keep`
 
-`Ascii`::
+`Ascii`:: Sort import selectors by ASCII codes, equivalent to the https://scalameta.org/scalafmt/docs/configuration.html#asciisortimports[`AsciiSortImports`] rewriting rule in Scalafmt.
 
-Sort import selectors by ASCII codes, equivalent to the https://scalameta.org/scalafmt/docs/configuration.html#asciisortimports[`AsciiSortImports`] rewriting rule in Scalafmt.
+`SymbolsFirst`:: Sort import selectors by the groups: symbols, lower-case, upper-case, equivalent to the https://scalameta.org/scalafmt/docs/configuration.html#sortimports[`SortImports`] rewriting rule in Scalafmt.
 
-`SymbolsFirst`::
-
-Sort import selectors by the groups: symbols, lower-case, upper-case, equivalent to the https://scalameta.org/scalafmt/docs/configuration.html#sortimports[`SortImports`] rewriting rule in Scalafmt.
-
-`Keep`::
-Keep the original order.
+`Keep`:: Keep the original order.
 
 ==== Default value
 
@@ -679,17 +666,11 @@ Specifies the order of import statements within import groups defined by the <<g
 
 Enum: `Ascii | SymbolsFirst | Keep`
 
-`Ascii`::
+`Ascii`:: Sort import statements by ASCII codes.
 
-Sort import statements by ASCII codes.
+`SymbolsFirst`:: Put wildcard imports and grouped imports with braces first, otherwise same as `Ascii`. This is also the sorting order the IntelliJ IDEA Scala import opitimizer picks.
 
-`SymbolsFirst`::
-
-Put wildcard imports and grouped imports with braces first, otherwise same as `Ascii`. This is also the sorting order the IntelliJ IDEA Scala import opitimizer picks.
-
-`Keep`::
-
-Keep the original order.
+`Keep`:: Keep the original order.
 
 ==== Deafult value
 
@@ -765,6 +746,7 @@ import scala.concurrent.duration
 ----
 --
 
+[[remove-unused]]
 === `removeUnused`
 
 ==== Description
