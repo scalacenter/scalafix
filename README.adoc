@@ -672,7 +672,7 @@ Enum: `Ascii | SymbolsFirst | Keep`
 
 `Keep`:: Keep the original order.
 
-==== Deafult value
+==== Default value
 
 `Ascii`
 
