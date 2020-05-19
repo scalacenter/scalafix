@@ -24,6 +24,7 @@ import scalafix.v1.Rule
 import scalafix.v1.SemanticDocument
 import scalafix.v1.SemanticRule
 import scalafix.v1.Symbol
+import scalafix.v1.SymbolInformation
 
 import scalafix.v1.RuleName.stringToRuleName
 import scalafix.v1.XtensionTreeScalafix
@@ -190,11 +191,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       case importer @ Importer(_, importees) =>
         importees
           .filter(_.is[Importee.Name])
-          // HACK: In certain cases, `Symbol.info` may throw `MissingSymbolException` due to some
-          // unknown reason. If it happens, here we assume that this symbol is not an implicit.
-          //
-          // See https://github.com/scalacenter/scalafix/issues/1123
-          .filter(name => Try(name.symbol.info exists (_.isImplicit)) getOrElse false)
+          .filter(name => name.symbol.safeInfo exists (_.isImplicit))
           // Explicitly imported `scala.languageFeature` implicits are special cased and treated as
           // normal imports due to the following reasons:
           //
@@ -236,12 +233,15 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     // since it's not parsed from the source file.
     def toRef(symbol: Symbol): Term.Ref = {
       val owner = symbol.owner
-      if (owner.isRootPackage || owner.isEmptyPackage) Term.Name(symbol.displayName)
+      // See https://github.com/liancheng/scalafix-organize-imports/issues/55 for why package
+      // objects must be skipped.
+      if (symbol.safeInfo exists (_.isPackageObject)) toRef(owner)
+      else if (owner.isRootPackage || owner.isEmptyPackage) Term.Name(symbol.displayName)
       else Term.Select(toRef(owner), Term.Name(symbol.displayName))
     }
 
     if (!config.expandRelative || isFullyQualified(importer)) importer
-    else importer.copy(ref = toRef(importer.ref.symbol.normalized))
+    else importer.copy(ref = toRef(importer.ref.symbol))
   }
 
   private def groupImporters(importers: Seq[Importer]): Seq[Seq[Importer]] = {
@@ -634,5 +634,15 @@ object OrganizeImports {
     if (filtered.length == importer.importees.length) Some(importer)
     else if (filtered.isEmpty) None
     else Some(importer.copy(importees = filtered))
+  }
+
+  // HACK: In certain cases, `Symbol#info` may throw `MissingSymbolException` due to some unknown
+  // reason. This implicit class adds a safe version of `Symbol#info` to return `None` instead of
+  // throw an exception when this happens.
+  //
+  // See https://github.com/scalacenter/scalafix/issues/1123
+  implicit private class SymbolSafeInfo(symbol: Symbol) {
+    def safeInfo(implicit doc: SemanticDocument): Option[SymbolInformation] =
+      Try(symbol.info).toOption.flatten
   }
 }
