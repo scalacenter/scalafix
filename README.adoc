@@ -666,9 +666,9 @@ Specifies the order of import statements within import groups defined by the <<g
 
 Enum: `Ascii | SymbolsFirst | Keep`
 
-`Ascii`:: Sort import statements by ASCII codes.
+`Ascii`:: Sort import statements by ASCII codes. This is the default sorting order that the IntelliJ IDEA Scala import optimizer picks ("lexicographically" option).
 
-`SymbolsFirst`:: Put wildcard imports and grouped imports with braces first, otherwise same as `Ascii`. This is also the sorting order the IntelliJ IDEA Scala import opitimizer picks.
+`SymbolsFirst`:: Put wildcard imports and grouped imports with braces first, otherwise same as `Ascii`. This replicates IntelliJ IDEA Scala's "scalastyle consistent" option.
 
 `Keep`:: Keep the original order.
 
