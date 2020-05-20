@@ -3,9 +3,6 @@ package test
 import java.util.Map
 import scala.collection.immutable.TreeMap
 import scala.language.higherKinds
-// FIXME: https://github.com/scalameta/scalameta/issues/1625
-// The import on Either below is needed to workaround that issue.
-import scala.util.Either
 
 trait TypeToTreeInput {
   type A

@@ -30,7 +30,9 @@ class NoAutoTupling extends SemanticRule("NoAutoTupling") {
       doc.diagnostics.toIterator.collect {
         case message
             if message.message.startsWith(
-              "Adapting argument list by creating a"
+              "Adapting argument list by creating"
+            ) || message.message.startsWith(
+              "adapted the argument list to the expected"
             ) =>
           message.position
       }.toSet

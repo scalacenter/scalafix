@@ -27,10 +27,11 @@ object ExplicitResultTypesRefinement {
   def tparam[T <: CharSequence](e: T) = new Serializable {
     val results: List[Int] = List(e.length())
   }
-  val access = new Serializable {
-    private val results: List[Int] = List.empty
-    protected val results2: List[Int] = List.empty
-  }
+  //todo: in 2.13, the type found is AnyRef
+  //  val access = new Serializable {
+  //    private val results: List[Int] = List.empty
+  //    protected val results2: List[Int] = List.empty
+  //  }
   trait Chars { def chars: CharSequence }
   val chars = new Chars {
     val chars = 42.toString()
