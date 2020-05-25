@@ -1,6 +1,5 @@
 package scalafix.v0
 
-import scala.compat.Platform.EOL
 import scala.meta.internal.io.PathIO
 
 final case class Database(documents: Seq[Document]) {
@@ -10,6 +9,7 @@ final case class Database(documents: Seq[Document]) {
   lazy val synthetics: Seq[Synthetic] = documents.flatMap(_.synthetics)
 
   def syntax: String = {
+    val EOL = System.lineSeparator
     val s_entries = documents.map { attrs =>
       val s_input = PathIO.toUnix(attrs.input.syntax)
       val separator = EOL + "-" * s_input.toString.length + EOL

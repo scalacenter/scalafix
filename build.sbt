@@ -63,7 +63,8 @@ lazy val core = project
       scalameta,
       googleDiff,
       "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided,
+      collectionCompat
     )
   )
   .enablePlugins(BuildInfoPlugin)
@@ -73,7 +74,10 @@ lazy val rules = project
   .settings(
     moduleName := "scalafix-rules",
     description := "Built-in Scalafix rules",
-    libraryDependencies += "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
+    libraryDependencies ++= List(
+      "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full,
+      collectionCompat
+    )
   )
   .dependsOn(core)
 

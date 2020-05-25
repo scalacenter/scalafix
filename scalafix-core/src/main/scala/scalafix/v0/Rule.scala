@@ -149,7 +149,7 @@ object Rule {
   def emptyConfigured: Configured[Rule] = Configured.Ok(empty)
   def emptyFromSemanticdbIndexOpt(index: Option[SemanticdbIndex]): Rule =
     index.fold(empty)(emptySemantic)
-  def combine(rules: Seq[Rule]): Rule =
+  def combine(rules: scala.collection.Seq[Rule]): Rule =
     rules.foldLeft(empty)(_ merge _)
   private[scalafix] def emptySemantic(index: SemanticdbIndex): Rule =
     semantic(RuleName.empty.value)(_ => _ => Patch.empty)(index)

@@ -19,7 +19,7 @@ object FileOps {
     } else {
       def listFilesIter(s: File): Iterable[String] = {
         val (dirs, files) = Option(s.listFiles()).toIterable
-          .flatMap(_.toIterator)
+          .flatMap(_.iterator)
           .partition(_.isDirectory)
         files.map(_.getPath) ++ dirs.flatMap(listFilesIter)
       }

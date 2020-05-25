@@ -1,6 +1,5 @@
 package scalafix.v0
 
-import scala.compat.Platform.EOL
 import scala.math.Ordering
 import scala.meta.inputs._
 
@@ -27,7 +26,7 @@ final case class Document(
     appendSection("Messages", messages.sorted.map(_.syntax))
     appendSection("Symbols", symbols.sorted.map(_.syntax))
     appendSection("Synthetics", synthetics.sorted.map(_.syntax))
-    lines.mkString(EOL)
+    lines.mkString(System.lineSeparator)
   }
 
   private implicit def positionOrder: Ordering[Position] =

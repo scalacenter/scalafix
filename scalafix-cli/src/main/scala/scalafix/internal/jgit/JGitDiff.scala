@@ -23,7 +23,7 @@ import org.eclipse.jgit.treewalk.FileTreeIterator
 import org.eclipse.jgit.util.io.NullOutputStream
 import org.eclipse.jgit.lib.Constants.DOT_GIT
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 import metaconfig.{ConfError, Configured}
 

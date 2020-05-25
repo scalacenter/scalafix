@@ -132,6 +132,6 @@ trait PatchOps {
    * to differentiate from replaceSymbols((String, String)*) after type erasure
    */
   def replaceSymbols(
-      toReplace: Seq[(String, String)]
+      toReplace: scala.collection.Seq[(String, String)]
   )(implicit noop: DummyImplicit, index: SemanticdbIndex): Patch
 }

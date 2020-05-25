@@ -124,7 +124,7 @@ final class ExplicitResultTypes(
     case Defn.Def(_, _, _, _, _, term) => term
   }
 
-  def visibility(mods: Traversable[Mod]): MemberVisibility =
+  def visibility(mods: Iterable[Mod]): MemberVisibility =
     mods
       .collectFirst {
         case _: Mod.Private => MemberVisibility.Private
@@ -141,7 +141,7 @@ final class ExplicitResultTypes(
   def isRuleCandidate[D <: Defn](
       defn: D,
       nm: Name,
-      mods: Traversable[Mod],
+      mods: Iterable[Mod],
       body: Term
   )(implicit ev: Extract[D, Mod], ctx: SemanticDocument): Boolean = {
     import config._

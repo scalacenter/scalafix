@@ -1,6 +1,5 @@
 package scalafix.v0
 
-import scala.compat.Platform.EOL
 import scala.meta.internal.semanticdb.Scala._
 import scalafix.internal.util.SymbolOps.Root
 
@@ -53,6 +52,7 @@ object Symbol {
   // https://github.com/scalameta/scalameta/pull/1241.
   def apply(s: String): Symbol = {
     object naiveParser {
+      val EOL = System.lineSeparator()
       var i = 0
       def fail(message: String = "invalid symbol format") = {
         val caret = " " * (i - 1) + "^"

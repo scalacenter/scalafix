@@ -1,6 +1,5 @@
 package scalafix
 
-import scala.compat.Platform.EOL
 import scala.meta._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
 import scalafix.internal.util.DenotationOps
@@ -8,6 +7,7 @@ import scalafix.internal.util.SymbolOps
 import scalafix.util.SymbolMatcher
 import scalafix.util.TreeOps
 import scalafix.v0.Symbol
+import scala.collection.compat.immutable.LazyList
 
 package object syntax {
   implicit class XtensionRefSymbolOpt(tree: Tree)(
@@ -40,7 +40,7 @@ package object syntax {
   implicit class XtensionTreeScalafix(tree: Tree) {
     def matches(matcher: SymbolMatcher): Boolean =
       matcher.matches(tree)
-    def parents: Stream[Tree] = TreeOps.parents(tree)
+    def parents: LazyList[Tree] = TreeOps.parents(tree)
     def input: Input = tree.tokens.headOption.map(_.input).getOrElse(Input.None)
   }
   implicit class XtensionInputScalafix(input: Input) {
@@ -49,7 +49,7 @@ package object syntax {
       case inputs.Input.VirtualFile(label, _) => label
       case _ =>
         s"Input.${input.productPrefix}('<${input.chars.take(10).mkString}...>')"
-          .replaceAllLiterally(EOL, "")
+          .replace(System.lineSeparator(), "")
     }
   }
 }

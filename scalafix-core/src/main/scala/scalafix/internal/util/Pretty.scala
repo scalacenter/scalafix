@@ -180,6 +180,7 @@ object Pretty {
             Doc.intercalate(Doc.comma, parameterList.map(prettyTermParameter))
           }
           val paramss = Doc.intercalate(`)` + `(`, params)
+
           `(` + paramss + `)`
         }
       val returnType = pretty(t.returnType)
