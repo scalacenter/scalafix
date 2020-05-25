@@ -89,9 +89,11 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     unusedImporteePositions contains positionOf(importee)
 
   private def organizeGlobalImports(imports: Seq[Import])(implicit doc: SemanticDocument): Patch = {
-    val (implicits, noImplicits) = partitionImplicits(
-      imports flatMap (_.importers) flatMap (removeUnused(_).toSeq)
-    )
+    val noUnused = imports flatMap (_.importers) flatMap (removeUnused(_).toSeq)
+
+    val (implicits, noImplicits) =
+      if (!config.groupExplicitlyImportedImplicitsSeparately) (Nil, noUnused)
+      else partitionImplicits(noUnused)
 
     val (fullyQualifiedImporters, relativeImporters) = noImplicits partition isFullyQualified
 
@@ -192,30 +194,6 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
         importees
           .filter(_.is[Importee.Name])
           .filter(name => name.symbol.safeInfo exists (_.isImplicit))
-          // Explicitly imported `scala.languageFeature` implicits are special cased and treated as
-          // normal imports due to the following reasons:
-          //
-          // 1. The IntelliJ IDEA Scala import optimizer does not handle the explicitly imported
-          //    implicit names case. Moving `scala.languageFeature` to the last order-preserving
-          //    import group produces a different result from IntelliJ, which can be annoying for
-          //    users who use both IntelliJ and `OrganizeImports`.
-          //
-          //    See https://github.com/liancheng/scalafix-organize-imports/issues/30 for more
-          //    details.
-          //
-          // 2. Importing `scala.languageFeature` values is almost the only commonly seen cases
-          //    where a Scala developer imports an implicit by name explicitly. Yet, there's
-          //    practically zero chance that an implicit of the same type can be imported to cause a
-          //    conflict, unless the user is intentionally torturing the Scala compiler. Not
-          //    treating them as implicits and group them as other normal imports minimizes the
-          //    chance of behaving differently from IntelliJ without.
-          //
-          // 3. The `scala.languageFeature` values are defined as `object`s in Scala 2.12 but
-          //    changed to implicit lazy vals in Scala 2.13. Treating them as implicits means that
-          //    `OrganizeImports` may produce different results when `OrganizeImports` users upgrade
-          //    their code base from Scala 2.12 to 2.13. This introduces an annoying and unnecessary
-          //    thing to be taken care of.
-          .filter(_.symbol.owner.normalized.value != "scala.languageFeature.")
           .map(i => importer.copy(importees = i :: Nil) -> i.pos)
     }.unzip
 
@@ -233,8 +211,15 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     // since it's not parsed from the source file.
     def toRef(symbol: Symbol): Term.Ref = {
       val owner = symbol.owner
-      // See https://github.com/liancheng/scalafix-organize-imports/issues/55 for why package
-      // objects must be skipped.
+      // When importing names defined within package objects, skip the `package` part for brevity.
+      // For instance, with the following definition:
+      //
+      //   package object foo { val x: Int = ??? }
+      //
+      // when importing `foo.x`, we prefer "import foo.x" instead of "import foo.`package`.x", which
+      // is also valid, but unnecessarily lengthy.
+      //
+      // See https://github.com/liancheng/scalafix-organize-imports/issues/55.
       if (symbol.safeInfo exists (_.isPackageObject)) toRef(owner)
       else if (owner.isRootPackage || owner.isEmptyPackage) Term.Name(symbol.displayName)
       else Term.Select(toRef(owner), Term.Name(symbol.displayName))

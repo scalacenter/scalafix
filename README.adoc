@@ -1,8 +1,8 @@
 :latest-release: 0.3.1-RC1
 
 ifdef::env-github[]
-:caution-caption: :warning:
-:warning-caption: :no_entry:
+:caution-caption: :construction:
+:warning-caption: :warning:
 :tip-caption: :bulb:
 endif::[]
 
@@ -61,9 +61,11 @@ By default, `OrganizeImports` already removes unused imports for you (see the <<
 OrganizeImports {
   coalesceToWildcardImportThreshold = 2147483647 # Int.MaxValue
   expandRelative = false
+  groupExplicitlyImportedImplicitsSeparately = false
   groupedImports = Explode
   groups = ["re:javax?\\.", "scala.", "*"]
   importSelectorsOrder = Ascii
+  importsOrder = Ascii
   removeUnused = true
 }
 ----
@@ -228,6 +230,111 @@ import scala.util.control.NonFatal
 import sun.misc.BASE64Encoder
 ----
 
+[[group-explicitly-imported-implicits-separately]]
+=== `groupExplicitlyImportedImplicitsSeparately`
+
+==== Description
+
+This option provides a workaround to a subtle and rarely seen correctness issue related to explicitly imported implicit names.
+
+The following snippet helps illustrate the problem:
+
+[source,scala]
+----
+package a
+
+import c._
+import b.i
+
+object b { implicit def i: Int = 1 }
+object c { implicit def i: Int = 2 }
+
+object Imports {
+  def f()(implicit i: Int) = println(1)
+  def main() = f()
+}
+----
+
+The above snippet compiles successfully and outputs `1`, because the explicitly imported implicit value `b.i` overrides `c.i`, which is made available via a wildcard import. However, if we reorder the two imports into:
+
+[source,scala]
+----
+import b.i
+import c._
+----
+
+The Scala compiler starts complianing:
+
+----
+error: could not find implicit value for parameter i: Int
+  def main() = f()
+                ^
+----
+
+This behavior could be due to a Scala compiler bug since https://scala-lang.org/files/archive/spec/2.13/02-identifiers-names-and-scopes.html[the Scala language specification] requires that explicitly imported names should have higher precedence than names made available via a wildcard.
+
+Unfortunately, Scalafix is not able to surgically identify conflicting implicit values behind a wildcard import. In order to guarantee correctness in all cases, when the `groupExplicitlyImportedImplicitsSeparately` option is set to `true`, all explicitly imported implicit names are moved into the trailing order-preserving import group together with relative imports, if any (see the <<trailing-order-preserving-import-group, trailing order-preserving import group>> section for more details).
+
+CAUTION: In general, order-sensitive imports are fragile, and can easily be broken by either human collaborators or tools (e.g., the IntelliJ IDEA Scala import optimizer does not handle this case correctly). They should be eliminated whenever possible. This option is mostly useful when you are dealing with a large trunk of legacy codebase and you want to minimize manual intervention and guarantee correctness in all cases.
+
+==== Value type
+
+Boolean
+
+==== Default value
+
+`false`
+
+Rationale::
++
+--
+This option defaults to `false` due to the following reasons:
+
+. Although setting it to `true` avoids the aforementioned correctness issue, the result is unintuitive and confusing for many users since it looks like the `groups` option is not respected.
++
+E.g., why my `scala.concurrent.ExecutionContext.Implicits.global` import is moved to a separate group even if I have a `scala.` group defined in the `groups` option?
+
+. The concerned correctness issue is rarely seen in real life. When it really happens, it is usually a sign of bad coding style and you may want to tweak your imports to eliminate the root cause.
+--
+
+==== Example
+
+Configuration:
+
+[source,hocon]
+----
+OrganizeImports {
+  groups = ["scala.", *]
+  groupExplicitlyImportedImplicitsSeparately = true
+}
+----
+
+Before:
+
+[source,scala]
+----
+import org.apache.spark.SparkContext
+import org.apache.spark.RDD
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.Buffer
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.sys.process.stringToProcess
+----
+
+After:
+
+[source,scala]
+----
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.Buffer
+
+import org.apache.spark.RDD
+import org.apache.spark.SparkContext
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.sys.process.stringToProcess
+----
+
 === `groupedImports`
 
 ==== Description
@@ -330,7 +437,15 @@ OrganizeImports.groups = [
 ----
 ====
 
-Relative imports and _explicitly imported_ implicit names (what a tongue twister!) are moved to a separate group. This group always locates after all the other import groups, and imports within this group are always sorted by the original order they appear in the source file. This special handling is necessary because both relative imports and explicitly imported implicit names are order sensitive:
+[[trailing-order-preserving-import-group]]
+===== The trailing order-preserving import group
+
+No matter how the `groups` option is configured, a special order-preserving import group may appear after all the configured import groups when:
+
+. The `expandRelative` option is set to `false` and there are relative imports.
+. The `groupExplicitlyImportedImplicitsSeparately` option is set to `true` and there are implicit names explicitly imported.
+
+This special import group is necessary because the above two kinds of imports are order sensitive:
 
 Relative imports::
 +
@@ -345,41 +460,7 @@ import control.NonFatal
 ----
 --
 
-Explicitly imported implicit names::
-+
---
-This case is more subtle. The following snippet compiles correctly:
-[source,scala]
-----
-package a
-
-import c._
-import b.i
-
-object b { implicit def i = ??? }
-object c { implicit def i = ??? }
-
-class Imports {
-  def f()(implicit i: Int) = ???
-  def main() = f()
-}
-----
-But if we reorder the two imports into:
-[source,scala]
-----
-import b.i
-import c._
-----
-The Scala compiler complians:
-----
-error: could not find implicit value for parameter i: Int
-  def main() = f()
-                ^
-----
-This could be a Scala compiler bug since https://scala-lang.org/files/archive/spec/2.13/02-identifiers-names-and-scopes.html[the Scala language specification] requires that explicitly imported names should always have higher precedence than names made available via a wildcard.
-
-To avoid having such implicit imports appearing before any wildcard import that may introduce a conflicting implicit, they are always moved to the last import group.
---
+Explicitly imported implicit names:: Please refer to the <<group-explicitly-imported-implicits-separately, `groupExplicitlyImportedImplicitsSeparately`>> option for more details.
 
 ==== Value type
 
