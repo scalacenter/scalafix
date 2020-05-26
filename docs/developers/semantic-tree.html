@@ -185,7 +185,7 @@ of those inferred <code>.apply</code> method calls.</p>
 <span class="hljs-comment">//     List(Lit.Int(3))</span>
 <span class="hljs-comment">//   )),</span>
 <span class="hljs-comment">//   List(</span>
-<span class="hljs-comment">//     IdTree(SymbolInformation(scala/concurrent/ExecutionContext.Implicits.global. =&gt; implicit lazy val method global: ExecutionContext))</span>
+<span class="hljs-comment">//     IdTree(SymbolInformation(scala/concurrent/ExecutionContext.Implicits.global(). =&gt; final implicit method global: ExecutionContext))</span>
 <span class="hljs-comment">//   )</span>
 <span class="hljs-comment">// ))</span>
 <span class="hljs-comment">// term      = Main.run</span>
@@ -209,7 +209,7 @@ of infix operators.</p>
     println(<span class="hljs-string">".syntheticOperator = "</span> + concat.syntheticOperator)
     println(<span class="hljs-string">".structure         = "</span> + concat.syntheticOperator.structure)
 }
-<span class="hljs-comment">// .syntheticOperator = Some(*[Int,List[Int]])</span>
+<span class="hljs-comment">// .syntheticOperator = Some(*[Int])</span>
 <span class="hljs-comment">// .structure         = Some(TypeApplyTree(</span>
 <span class="hljs-comment">//   OriginalTree(Term.ApplyInfix(</span>
 <span class="hljs-comment">//     Term.Apply(Term.Name("List"), List(Lit.Int(1))),</span>
@@ -217,14 +217,7 @@ of infix operators.</p>
 <span class="hljs-comment">//     List(),</span>
 <span class="hljs-comment">//     List(Term.Apply(Term.Name("List"), List(Lit.Int(2))))</span>
 <span class="hljs-comment">//   )),</span>
-<span class="hljs-comment">//   List(</span>
-<span class="hljs-comment">//     TypeRef(NoType, Symbol("scala/Int#"), List()),</span>
-<span class="hljs-comment">//     TypeRef(</span>
-<span class="hljs-comment">//       NoType,</span>
-<span class="hljs-comment">//       Symbol("scala/collection/immutable/List#"),</span>
-<span class="hljs-comment">//       List(TypeRef(NoType, Symbol("scala/Int#"), List()))</span>
-<span class="hljs-comment">//     )</span>
-<span class="hljs-comment">//   )</span>
+<span class="hljs-comment">//   List(TypeRef(NoType, Symbol("scala/Int#"), List()))</span>
 <span class="hljs-comment">// ))</span>
 </code></pre>
 <p>The <code>.syntheticOperator</code> method is only available for <code>Term.ApplyInfix</code> nodes,
@@ -258,13 +251,9 @@ version of the <code>for { .. } yield</code> expression</p>
   <span class="hljs-keyword">case</span> forYield: <span class="hljs-type">Term</span>.<span class="hljs-type">ForYield</span> =&gt;
     println(<span class="hljs-string">".synthetic = "</span> + forYield.synthetic)
 }
-<span class="hljs-comment">// .synthetic = Some(orig(List(1, 2)).flatMap[Int,List[Int]](</span>
-<span class="hljs-comment">//   { (i) =&gt;</span>
-<span class="hljs-comment">//     orig(1.to(i)).map[Int,IndexedSeq[Int]]({ (j) =&gt; orig(i + j) })(</span>
-<span class="hljs-comment">//       IndexedSeq.canBuildFrom[Int]</span>
-<span class="hljs-comment">//     )</span>
-<span class="hljs-comment">//   }</span>
-<span class="hljs-comment">// )(List.canBuildFrom[Int]))</span>
+<span class="hljs-comment">// .synthetic = Some(orig(List(1, 2)).flatMap[Int](</span>
+<span class="hljs-comment">//   { (i) =&gt; orig(1.to(i)).map[Int]({ (j) =&gt; orig(i + j) }) }</span>
+<span class="hljs-comment">// ))</span>
 </code></pre>
 <p>The <code>orig(List(1, 2))</code> and <code>orig(1.to(i)</code> parts represent <code>OriginalSubTree</code>
 nodes that match non-synthetic tree nodes from the original for-comprension.</p>
@@ -289,12 +278,10 @@ if you are interested in contributing to improve the situation.</p>
 <span class="hljs-comment">//     { (check$ifrefutable$1) =&gt;</span>
 <span class="hljs-comment">//       </span>
 <span class="hljs-comment">//     }</span>
-<span class="hljs-comment">//   ).map[Int,List[Int]](</span>
+<span class="hljs-comment">//   ).map[Int](</span>
 <span class="hljs-comment">//     { (&lt;unknown&gt;) =&gt;</span>
 <span class="hljs-comment">//       </span>
 <span class="hljs-comment">//     }</span>
-<span class="hljs-comment">//   )(</span>
-<span class="hljs-comment">//     List.canBuildFrom[Int]</span>
 <span class="hljs-comment">//   )</span>
 <span class="hljs-comment">// )</span>
 </code></pre>
@@ -311,18 +298,14 @@ if you are interested in contributing to improve the situation.</p>
     println(forYield.synthetic)
 }
 <span class="hljs-comment">// Some(</span>
-<span class="hljs-comment">//   orig(List(1)).map[Tuple2[Int,Int],List[Tuple2[Int,Int]]](</span>
+<span class="hljs-comment">//   orig(List(1)).map[Tuple2[Int,Int]](</span>
 <span class="hljs-comment">//     { (a) =&gt;</span>
 <span class="hljs-comment">//       orig(b = a + 1)</span>
 <span class="hljs-comment">//     }</span>
-<span class="hljs-comment">//   )(</span>
-<span class="hljs-comment">//     List.canBuildFrom[Tuple2[Int,Int]]</span>
-<span class="hljs-comment">//   ).map[Int,List[Int]](</span>
+<span class="hljs-comment">//   ).map[Int](</span>
 <span class="hljs-comment">//     { (&lt;unknown&gt;) =&gt;</span>
 <span class="hljs-comment">//       orig(a + b)</span>
 <span class="hljs-comment">//     }</span>
-<span class="hljs-comment">//   )(</span>
-<span class="hljs-comment">//     List.canBuildFrom[Int]</span>
 <span class="hljs-comment">//   )</span>
 <span class="hljs-comment">// )</span>
 </code></pre>
