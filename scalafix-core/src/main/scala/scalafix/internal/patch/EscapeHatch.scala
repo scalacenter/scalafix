@@ -18,6 +18,7 @@ import scalafix.patch.Patch.internal._
 import scalafix.rule.RuleName
 import scalafix.util.TreeExtractors.Mods
 import scalafix.v0._
+import scala.collection.compat._ // used for cross-compilation.
 
 /** EscapeHatch is an algorithm to selectively disable rules. There
  * are two mechanisms to do so: anchored comments and the
@@ -171,7 +172,7 @@ object EscapeHatch {
       if (isEmpty) (true, None)
       else {
         val escapesUpToPos =
-          escapeTree.to(EscapeOffset(position)).valuesIterator.flatten
+          escapeTree.rangeTo(EscapeOffset(position)).valuesIterator.flatten
         escapesUpToPos
           .collectFirst {
             case f @ EscapeFilter(_, _, _, Some(end))
@@ -316,7 +317,7 @@ object EscapeHatch {
       if (disabling.isEmpty) (true, None)
       else {
         val disables =
-          disabling.to(EscapeOffset(position)).valuesIterator.flatten
+          disabling.rangeTo(EscapeOffset(position)).valuesIterator.flatten
         loop(disables.toList, None)
       }
     }

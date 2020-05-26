@@ -14,7 +14,7 @@ object CompletionsOps {
     if (setting.isHidden) Nil
     else setting.name :: setting.alternativeNames.filter(_.length == 1)
 
-  private def toZshOption(setting: Setting): scala.Seq[String] = {
+  private def toZshOption(setting: Setting): scala.collection.Seq[String] = {
     if (setting.isHidden) Nil
     else {
       // See https://github.com/zsh-users/zsh-completions/blob/master/zsh-completions-howto.org#writing-completion-functions-using-_arguments

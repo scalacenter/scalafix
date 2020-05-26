@@ -7,10 +7,10 @@ import scala.meta.tokens.Tokens
 /** Helper to traverse tokens as a doubly linked list.  */
 final class TokenList private (tokens: Tokens) {
   def trailing(token: Token): View[Token] =
-    tokens.view(tok2idx(token) + 1, tokens.length)
+    tokens.view.slice(tok2idx(token) + 1, tokens.length)
 
   def leading(token: Token): View[Token] =
-    tokens.view(0, tok2idx(token)).reverse
+    tokens.view.slice(0, tok2idx(token)).reverse
 
   private[this] val tok2idx = {
     val map = Map.newBuilder[Token, Int]
@@ -29,7 +29,7 @@ final class TokenList private (tokens: Tokens) {
     tokens.drop(tok2idx(start)).find(p)
 
   def slice(from: Token, to: Token): SeqView[Token] =
-    tokens.view(tok2idx(from), tok2idx(to))
+    tokens.view.slice(tok2idx(from), tok2idx(to))
 
   /** Returns the next/trailing token or the original token if none exists.
    *

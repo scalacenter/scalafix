@@ -19,7 +19,6 @@ import metaconfig.internal.ConfGet
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 import pprint.TPrint
 import scala.annotation.StaticAnnotation
-import scala.language.higherKinds
 import scala.meta.internal.io.PathIO
 import scala.meta.internal.symtab.SymbolTable
 import scala.meta.io.AbsolutePath

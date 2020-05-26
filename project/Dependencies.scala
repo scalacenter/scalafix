@@ -9,7 +9,7 @@ object Dependencies {
   def scala212 = "2.12.11"
   def scala213 = "2.13.2"
   def coursierV = "2.0.0-RC5-6"
-  val currentScalaVersion = scala212
+  val currentScalaVersion = scala213
 
   val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.7.0.202003110725-r"
 
@@ -22,7 +22,9 @@ object Dependencies {
   def semanticdbPluginLibrary = "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
   def scalameta = "org.scalameta" %% "scalameta" % scalametaV
   def scalatest = "org.scalatest" %% "scalatest" % "3.0.8"
+  def bijectionCore = "com.twitter" %% "bijection-core" % "0.9.7"
   def scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.3"
+  def collectionCompat = "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.6"
 
   def testsDeps = List(
     // integration property tests

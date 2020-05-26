@@ -22,10 +22,10 @@ class ProductStructure(
     isUnhelpfulFieldName: Set[String]
 ) {
 
-  def structure(product: Product): Doc =
+  def structure(product: Any): Doc =
     prettyAny(product)
 
-  private def prettyAny(any: Any): Doc = any match {
+  def prettyAny(any: Any): Doc = any match {
     case iterable: Iterable[_] =>
       val prefix = iterable match {
         case _: List[_] => "List"

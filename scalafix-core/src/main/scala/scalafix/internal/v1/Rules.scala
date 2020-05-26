@@ -96,7 +96,7 @@ object Rules {
     all(Thread.currentThread.getContextClassLoader)
   }
   def all(classLoader: ClassLoader): List[Rule] = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     ServiceLoader
       .load(classOf[Rule], classLoader)
       .iterator()

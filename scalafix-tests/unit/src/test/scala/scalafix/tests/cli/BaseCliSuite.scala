@@ -20,6 +20,7 @@ import scala.meta.io.AbsolutePath
 import scala.meta.io.RelativePath
 import org.scalatest.FunSuite
 import scalafix.testkit.TestkitProperties
+import scalafix.tests.util.ScalaVersions
 import scalafix.v1.Main
 
 // extend this class to run custom cli tests.
@@ -202,9 +203,13 @@ trait BaseCliSuite extends FunSuite with DiffAssertions {
       val sourceroot =
         if (args.contains("--sourceroot")) Array[String]()
         else Array("--sourceroot", cwd.toString)
+      val scalaOption =
+        if (ScalaVersions.isScala213)
+          "-Wunused:imports"
+        else "-Ywarn-unused-import"
       val allArguments = args ++ sourceroot ++ Seq(
         "--scalac-options",
-        "-Ywarn-unused-import",
+        scalaOption,
         "-r",
         rule,
         files

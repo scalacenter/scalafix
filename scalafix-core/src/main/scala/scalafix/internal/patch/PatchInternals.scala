@@ -115,7 +115,7 @@ object PatchInternals {
     val patchMap = patches
       .groupBy(x => TokenOps.hash(x.tok))
       .mapValues(_.reduce(merge).newTok)
-    ctx.tokens.toIterator
+    ctx.tokens.iterator
       .map(tok => patchMap.getOrElse(TokenOps.hash(tok), tok.syntax))
       .mkString
   }

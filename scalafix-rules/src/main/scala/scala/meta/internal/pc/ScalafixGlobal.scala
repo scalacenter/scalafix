@@ -13,6 +13,7 @@ import java.{util => ju}
 import scala.reflect.internal.{Flags => gf}
 import scala.meta.internal.semanticdb.scalac.SemanticdbOps
 import scala.util.control.NonFatal
+import scala.collection.compat._ // Used for cross-compilation.
 
 object ScalafixGlobal {
   def newCompiler(
@@ -34,7 +35,7 @@ object ScalafixGlobal {
       settings.processArguments(options, processAll = true)
     require(isSuccess, unprocessed)
     require(unprocessed.isEmpty, unprocessed)
-    new ScalafixGlobal(settings, new StoreReporter, symbolReplacements)
+    new ScalafixGlobal(settings, new StoreReporter(), symbolReplacements)
   }
 }
 
@@ -157,6 +158,7 @@ class ScalafixGlobal(
             else TermName(name)
           inverseSemanticdbSymbol(sym) -> nme
       }
+      .view
       .filterKeys(_ != NoSymbol)
       .toMap
 

@@ -159,7 +159,8 @@ object RscCompat_Test {
       List(local1, local2)
     }
 
-    val clazz = Class.forName("foo.Bar")
+    // Todo: in 2.13 explicit type is Class[_ <: Object] and not Class[_]
+    // val clazz = Class.forName("foo.Bar")
 
     val compound = ??? : { def m(x: Int): Int }
 

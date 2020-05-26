@@ -49,4 +49,6 @@ class NoAutoTupling2 {
     Foo.apply(42, "foo", ('z', true))
   }
 
+  //todo: Fix Adaptation of argument list by inserting ()
+  val c: Option[Unit] = Some()
 }

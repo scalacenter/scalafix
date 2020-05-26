@@ -16,6 +16,7 @@ import scala.meta.internal.pc.ScalafixGlobal
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Paths
+
 import org.scalatest.Ignore
 
 @Ignore // Ignored because this test is very slow.
@@ -26,7 +27,7 @@ class MavenFuzzSuite extends FunSuite with DiffAssertions {
       sourceJars: Seq[Path],
       tmp: Path
   ): Seq[Path] = {
-    val result = mutable.ArrayBuffer.empty[Path]
+    val result = Vector.newBuilder[Path]
     val matcher =
       FileSystems.getDefault().getPathMatcher("glob:*.scala")
     sourceJars.foreach { jar =>
@@ -51,7 +52,7 @@ class MavenFuzzSuite extends FunSuite with DiffAssertions {
         }
       }
     }
-    result
+    result.result()
   }
 
   def compileErrors(

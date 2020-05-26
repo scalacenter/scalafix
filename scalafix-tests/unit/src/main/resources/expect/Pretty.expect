@@ -1,17 +1,14 @@
 [6:7..6:17]:      test/PrettyTest# => class PrettyTest extends AnyRef { +4 decls }
 [6:18..6:18]:     test/PrettyTest#`<init>`(). => primary ctor <init>()
-[7:3..7:21]:      *(List.canBuildFrom[Int])
-[7:3..7:14]:      *[Int,List[Int]]
+[7:3..7:14]:      *[Int]
 [7:3..7:7]:       *.apply[Int]
-[8:3..12:12]:     orig(1.to(10)).flatMap[Int,IndexedSeq[Int]](
+[8:3..12:12]:     orig(1.to(10)).flatMap[Int](
                     { (i) =>
                       orig(2.to(20)).withFilter(
                         { (j) => orig(i > i) }
-                      ).map[Int,IndexedSeq[Int]]({ (j) => orig(j) })(
-                        IndexedSeq.canBuildFrom[Int]
-                      )
+                      ).map[Int]({ (j) => orig(j) })
                     }
-                  )(IndexedSeq.canBuildFrom[Int])
+                  )
 [9:10..9:11]:     intWrapper(*)
 [10:10..10:11]:   intWrapper(*)
 [13:3..17:15]:    orig(Future(1.to(10)))(global).foreach[Unit](
@@ -115,7 +112,7 @@
 [117:12..117:22]: test/Test.C#ByNameType. => final object ByNameType extends AnyRef { +1 decls }
 [118:11..118:13]: test/Test.C#ByNameType.m1(). => method m1(x: => Int): Int
 [118:14..118:15]: test/Test.C#ByNameType.m1().(x) => param x: => Int
-[121:16..121:28]: test/Test.C#RepeatedType# => case class RepeatedType extends AnyRef with Product with Serializable { +11 decls }
+[121:16..121:28]: test/Test.C#RepeatedType# => case class RepeatedType extends AnyRef with Product with Serializable { +12 decls }
 [121:28..121:28]: test/Test.C#RepeatedType#`<init>`(). => primary ctor <init>(val s: String*)
 [121:29..121:30]: test/Test.C#RepeatedType#s. => val method s: String*
 [122:11..122:13]: test/Test.C#RepeatedType#m1(). => method m1(x: Int*): Int

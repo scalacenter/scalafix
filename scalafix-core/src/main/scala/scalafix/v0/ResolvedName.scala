@@ -1,6 +1,5 @@
 package scalafix.v0
 
-import scala.compat.Platform.EOL
 import scala.meta.inputs._
 import scala.meta.internal.inputs._
 
@@ -21,6 +20,7 @@ final case class ResolvedName(
 
 object ResolvedName {
   def syntax(names: List[ResolvedName]): String = {
+    val EOL = System.lineSeparator()
     if (names.isEmpty) ""
     else names.map(name => "  " + name.syntax).mkString(EOL, EOL, "")
   }

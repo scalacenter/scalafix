@@ -10,15 +10,23 @@ import metaconfig.Conf
 import scala.meta.io.AbsolutePath
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
+import scalafix.tests.util.ScalaVersions
 import scalafix.v1.RuleDecoder
 
 class ToolClasspathSuite extends FunSuite with BeforeAndAfterAll {
   var scalafmtClasspath: List[AbsolutePath] = _
   override def beforeAll(): Unit = {
-    val jars = Fetch()
-      .addDependencies(dep"com.geirsson:scalafmt-core_2.12:1.2.0")
-      .run()
-      .toList
+    val jars =
+      if (ScalaVersions.isScala213)
+        Fetch()
+          .addDependencies(dep"org.scalameta:scalafmt-core_2.13:2.5.1")
+          .run()
+          .toList
+      else
+        Fetch()
+          .addDependencies(dep"com.geirsson:scalafmt-core_2.12:1.2.0")
+          .run()
+          .toList
     scalafmtClasspath = jars.map(AbsolutePath(_))
   }
 
