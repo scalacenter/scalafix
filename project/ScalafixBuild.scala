@@ -232,6 +232,12 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     organization := "ch.epfl.scala",
     developers ++= List(
       Developer(
+        "bjaglin",
+        "Brice Jaglin",
+        "bjaglin@teads.tv",
+        url("https://github.com/bjaglin")
+      ),
+      Developer(
         "xeno-by",
         "Eugene Burmako",
         "eugene.burmako@gmail.com",
