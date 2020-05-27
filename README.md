@@ -15,6 +15,7 @@ Head over here: https://scalacenter.github.io/scalafix/
 
 The current maintainers (people who can merge pull requests) are:
 
+- Brice Jaglin - [`@bjaglin`](https://github.com/bjaglin)
 - Gabriele Petronella - [`@gabro`](https://github.com/gabro)
 - Guillaume Massé - [`@MasseGuillaume`](https://github.com/MasseGuillaume)
 - Ólafur Páll Geirsson - [`@olafurpg`](https://github.com/olafurpg)
@@ -23,6 +24,4 @@ The current maintainers (people who can merge pull requests) are:
 
 ## Contributing
 
-Contributions are welcome!
-See [CONTRIBUTING.md](CONTRIBUTING.md).
-
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md).
