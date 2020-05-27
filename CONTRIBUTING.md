@@ -105,25 +105,39 @@ curl -vvv -H "Authorization: Bearer $APPVEYOR_TOKEN" -XDELETE https://ci.appveyo
 
 ## Releasing
 
-- [ ] Releases > "Draft a new release"
-- [ ] Write changelog, linking to each merged PR and attributing contributor,
-      following a similar format as previous release notes.
-- [ ] "Publish release", this pushes a tag and triggers the CI to release to
-      sonatype.
-- [ ] after CI releases, double check the end of logs of the entry where
-      CI_PUBLISH=true. You have to expand the after_success section.
-- [ ] after sonatype release is completed, double check after ~30 minutes that
-      the artifacts have synced to maven by running this command:
+First, kickstart a CI release to Sonatype by pushing a git tag.
 
-          coursier fetch ch.epfl.scala:scalafix-core_2.12:VERSION
+```
+VERSION=0.9.15 # change this variable
+git tag -af "v$VERSION" -m "v$VERSION" && git push -f origin v$VERSION
+```
 
-- [ ] once the artifacts are synced to maven, go to the scalafix repo and update
-      the `scalafix` binary with the following command and open a PR to the
-      scalafix repo.
+While the CI is running, update the release notes at
+https://github.com/scalacenter/scalafix/releases
 
-         coursier bootstrap ch.epfl.scala:scalafix-cli_2.12.4:VERSION -f --main scalafix.cli.Cli -o scalafix -f
+After the CI completes, confirm that the release has successfully finished
 
-If everything went smoothly, congrats!
+```
+./bin/test-release.sh $VERSION
+```
+
+You may need to update the test-release.sh script to include new cross-build
+artifacts (for example a new Scala version).
+
+Next, open a PR to sbt-scalafix that updates the version here
+https://github.com/scalacenter/sbt-scalafix/blob/7a4b51ae520c26ab2b09c9bedb6e3962f809ac53/project/Dependencies.scala#L5.
+Once the CI for this change is green, merge and push a new git tag to
+sbt-scalafix.
+
+Validate that the sbt-scalafix release completed successfully by running the
+test-release.sh script in the sbt-scalafix repository.
+
+When scalafix and sbt-scalafix have both completed the release, edit the release
+draft in the GitHub web UI to point to the tag that you pushed and then click on
+"Publish release".
+
+If everything went smoothly, congrats! Tweet about the release and comment with
+`@/all` on Gitter linking to the release notes.
 
 If something goes wrong for any reason making the artifacts not reach maven,
 delete the pushed tag with the following command
