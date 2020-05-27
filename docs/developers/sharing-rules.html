@@ -65,7 +65,7 @@ scalafixDependencies in <span class="hljs-type">ThisBuild</span> +=
 </code></pre>
 <p>Users of the Scalafix command-line interface can use the <code>--tool-classpath</code> flag</p>
 <pre><code class="hljs">scalafix \
-  --tool-classpath <span class="hljs-constructor">$(<span class="hljs-params">coursier</span> <span class="hljs-params">fetch</span> <span class="hljs-params">com</span>.<span class="hljs-params">geirsson</span>:<span class="hljs-params">named</span>-<span class="hljs-params">literal</span>-<span class="hljs-params">arguments_2</span>.12:VERSION)</span> \
+  --tool-classpath <span class="hljs-constructor">$(<span class="hljs-params">cs</span> <span class="hljs-params">fetch</span> <span class="hljs-params">com</span>.<span class="hljs-params">geirsson</span>:<span class="hljs-params">named</span>-<span class="hljs-params">literal</span>-<span class="hljs-params">arguments_2</span>.12:VERSION)</span> \
   -r NamedLiteralArguments \
   --classpath MY_PROJECT_CLASSPATH \
   my-project/src/main/scala

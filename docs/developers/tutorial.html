@@ -232,7 +232,7 @@ we are calling</p>
 <li><code>Tree.symbol</code> returns a <code>Symbol</code>, which represents the unique identifier of
 definition such as a <code>val</code> or a <code>class</code>.</li>
 <li><code>Symbol.info</code> returns a
-<a href="https://static.javadoc.io/ch.epfl.scala/scalafix-core_2.12/0.9.16/scalafix/v1/SymbolInformation.html"><code>SymbolInformation</code></a>,
+<a href="https://static.javadoc.io/ch.epfl.scala/scalafix-core_2.12/0.9.15/scalafix/v1/SymbolInformation.html"><code>SymbolInformation</code></a>,
 which contains metadata about that symbol.</li>
 </ul>
 <p>Next, we use <code>SymbolInformation.signature</code> to see if the symbol is a method with
@@ -619,7 +619,7 @@ scalafixDependencies in <span class="hljs-type">ThisBuild</span> +=
 </code></pre>
 <p>Users of the Scalafix command-line interface can use the <code>--tool-classpath</code> flag</p>
 <pre><code class="hljs">scalafix \
-  --tool-classpath <span class="hljs-constructor">$(<span class="hljs-params">coursier</span> <span class="hljs-params">fetch</span> <span class="hljs-params">com</span>.<span class="hljs-params">geirsson</span>:<span class="hljs-params">named</span>-<span class="hljs-params">literal</span>-<span class="hljs-params">arguments_2</span>.12:VERSION -<span class="hljs-params">p</span>)</span> \
+  --tool-classpath <span class="hljs-constructor">$(<span class="hljs-params">cs</span> <span class="hljs-params">fetch</span> <span class="hljs-params">com</span>.<span class="hljs-params">geirsson</span>:<span class="hljs-params">named</span>-<span class="hljs-params">literal</span>-<span class="hljs-params">arguments_2</span>.12:VERSION -<span class="hljs-params">p</span>)</span> \
   -r NamedLiteralArguments \
   --classpath MY_PROJECT_CLASSPATH \
   my-project/src/main/scala
