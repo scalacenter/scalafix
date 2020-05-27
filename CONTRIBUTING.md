@@ -95,17 +95,6 @@ Scalafix uses [sbt-ci-release](https://github.com/olafurpg/sbt-ci-release) to
 automate Sonatype releases. A new SNAPSHOT release is published on every merge
 into master. A stable release is published to Maven Central on every git tag.
 
-### AppVeyor
-
-The cache is limited to 1GB. It's not possible to delete the cache via the ui:
-https://github.com/appveyor/ci/issues/985 To delete via curl, get your token at
-https://ci.appveyor.com/api-token
-
-```bash
-export APPVEYOR_TOKEN="<your-api-token>"
-curl -vvv -H "Authorization: Bearer $APPVEYOR_TOKEN" -XDELETE https://ci.appveyor.com/api/projects/scalacenter/scalafix/buildcache
-```
-
 ## Releasing
 
 First, kickstart a CI release to Sonatype by pushing a git tag that correspond to the desired commit
