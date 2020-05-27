@@ -21,12 +21,11 @@ import metaconfig.Configured
 import scalafix.patch.Patch
 import scalafix.v1.Configuration
 import scalafix.v1.Rule
+import scalafix.v1.RuleName.stringToRuleName
 import scalafix.v1.SemanticDocument
 import scalafix.v1.SemanticRule
 import scalafix.v1.Symbol
 import scalafix.v1.SymbolInformation
-
-import scalafix.v1.RuleName.stringToRuleName
 import scalafix.v1.XtensionTreeScalafix
 
 class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("OrganizeImports") {
