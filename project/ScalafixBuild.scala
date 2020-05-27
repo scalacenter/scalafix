@@ -162,7 +162,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   import autoImport._
 
   // Custom settings to publish scalafix forks to alternative maven repo.
-  lazy val adhocRepoUri = sys.props("scalafix.repository.uri")
+  lazy val adhocRepoUri = "http://127.0.0.1:8081"
   lazy val adhocRepoCredentials = sys.props("scalafix.repository.credentials")
   lazy val isCustomRepository = adhocRepoUri != null && adhocRepoCredentials != null
 
@@ -219,14 +219,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     },
     // There is flakyness in CliGitDiffTests and CliSemanticTests
     parallelExecution.in(Test) := false,
-    credentials ++= {
-      val credentialsFile = {
-        if (adhocRepoCredentials != null) new File(adhocRepoCredentials)
-        else null
-      }
-      if (credentialsFile != null) List(new FileCredentials(credentialsFile))
-      else Nil
-    },
     publishArtifact.in(Test) := false,
     licenses := Seq(
       "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
@@ -287,11 +279,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     scalacOptions.in(Compile, console) :=
       compilerOptions.value :+ "-Yrepl-class-based",
     scalacOptions.in(Compile, doc) ++= scaladocOptions,
-    publishTo := Some {
-      if (isCustomRepository) "adhoc" at adhocRepoUri
-      else if (isSnapshot.value) Opts.resolver.sonatypeSnapshots
-      else Opts.resolver.sonatypeStaging
-    },
     scmInfo := Some(
       ScmInfo(
         url("https://github.com/scalacenter/scalafix"),

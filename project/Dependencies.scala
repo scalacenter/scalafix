@@ -35,3 +35,7 @@ object Dependencies {
     scalacheck
   )
 }
+
+object versions {
+  val value = "0.9.15.2-SNAPSHOT"
+}

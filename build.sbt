@@ -1,7 +1,8 @@
 import Dependencies._
+
 inThisBuild(
   List(
-    onLoadMessage := s"Welcome to scalafix ${version.value}",
+    onLoadMessage := s"Welcome to scalafix ${versions.value}",
     scalaVersion := scala213,
     crossScalaVersions := List(scala213, scala212, scala211),
     fork := true
@@ -28,7 +29,7 @@ lazy val interfaces = project
     noMima,
     resourceGenerators.in(Compile) += Def.task {
       val props = new java.util.Properties()
-      props.put("scalafixVersion", version.value)
+      props.put("scalafixVersion", versions.value)
       props.put("scalafixStableVersion", stableVersion.value)
       props.put("scalametaVersion", scalametaV)
       props.put("scala213", scala213)
@@ -51,20 +52,26 @@ lazy val interfaces = project
     moduleName := "scalafix-interfaces",
     crossVersion := CrossVersion.disabled,
     crossScalaVersions := List(scala213),
-    autoScalaLibrary := false
+    autoScalaLibrary := false,
+    version := versions.value,
+    credentials += Credentials("Sonatype Nexus Repository Manager", "127.0.0.1", "admin", "admin"),
+    publishTo := Some("Sonatype Nexus Repository Manager" at "http://127.0.0.1:8081/repository/maven-snapshots")
   )
 
 lazy val core = project
   .in(file("scalafix-core"))
   .settings(
     moduleName := "scalafix-core",
+    version := versions.value,
     buildInfoSettings,
     libraryDependencies ++= List(
       scalameta,
       googleDiff,
       "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
-    )
+    ),
+    credentials += Credentials("Sonatype Nexus Repository Manager", "127.0.0.1", "admin", "admin"),
+    publishTo := Some("Sonatype Nexus Repository Manager" at "http://127.0.0.1:8081/repository/maven-snapshots")
   )
   .enablePlugins(BuildInfoPlugin)
 
@@ -72,8 +79,11 @@ lazy val rules = project
   .in(file("scalafix-rules"))
   .settings(
     moduleName := "scalafix-rules",
+    version := versions.value,
     description := "Built-in Scalafix rules",
-    libraryDependencies += "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
+    libraryDependencies += "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full,
+    credentials += Credentials("Sonatype Nexus Repository Manager", "127.0.0.1", "admin", "admin"),
+    publishTo := Some("Sonatype Nexus Repository Manager" at "http://127.0.0.1:8081/repository/maven-snapshots")
   )
   .dependsOn(core)
 
@@ -81,11 +91,14 @@ lazy val reflect = project
   .in(file("scalafix-reflect"))
   .settings(
     moduleName := "scalafix-reflect",
+    version := versions.value,
     isFullCrossVersion,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
-    )
+    ),
+    credentials += Credentials("Sonatype Nexus Repository Manager", "127.0.0.1", "admin", "admin"),
+    publishTo := Some("Sonatype Nexus Repository Manager" at "http://127.0.0.1:8081/repository/maven-snapshots")
   )
   .dependsOn(core, rules)
 
@@ -93,6 +106,7 @@ lazy val cli = project
   .in(file("scalafix-cli"))
   .settings(
     moduleName := "scalafix-cli",
+    version := versions.value,
     isFullCrossVersion,
     mainClass in assembly := Some("scalafix.v1.Main"),
     assemblyJarName in assembly := "scalafix.jar",
@@ -102,7 +116,9 @@ lazy val cli = project
       jgit,
       "ch.qos.logback" % "logback-classic" % "1.2.3",
       "org.apache.commons" % "commons-text" % "1.8"
-    )
+    ),
+    credentials += Credentials("Sonatype Nexus Repository Manager", "127.0.0.1", "admin", "admin"),
+    publishTo := Some("Sonatype Nexus Repository Manager" at "http://127.0.0.1:8081/repository/maven-snapshots")
   )
   .dependsOn(reflect, interfaces)
 
@@ -155,13 +171,16 @@ lazy val testkit = project
   .settings(
     noMima,
     moduleName := "scalafix-testkit",
+    version := versions.value,
     isFullCrossVersion,
     libraryDependencies ++= Seq(
       semanticdb,
       googleDiff,
       scalacheck,
       scalatest
-    )
+    ),
+    credentials += Credentials("Sonatype Nexus Repository Manager", "127.0.0.1", "admin", "admin"),
+    publishTo := Some("Sonatype Nexus Repository Manager" at "http://127.0.0.1:8081/repository/maven-snapshots")
   )
   .dependsOn(cli)
 
@@ -256,13 +275,16 @@ lazy val docs = project
     baseDirectory.in(run) := baseDirectory.in(ThisBuild).value,
     skip in publish := true,
     moduleName := "scalafix-docs",
+    version := versions.value,
     scalaVersion := scala213,
     mdoc := run.in(Compile).evaluated,
     crossScalaVersions := List(scala213),
     libraryDependencies ++= List(
       "com.geirsson" %% "metaconfig-docs" % metaconfigV,
       "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
-    )
+    ),
+    credentials += Credentials("Sonatype Nexus Repository Manager", "127.0.0.1", "admin", "admin"),
+    publishTo := Some("Sonatype Nexus Repository Manager" at "http://127.0.0.1:8081/repository/maven-snapshots")
   )
   .dependsOn(testkit, core, cli)
   .enablePlugins(DocusaurusPlugin)
