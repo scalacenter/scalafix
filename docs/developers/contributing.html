@@ -126,28 +126,25 @@ into master. A stable release is published to Maven Central on every git tag.</p
 curl -vvv -H <span class="hljs-string">"Authorization: Bearer <span class="hljs-variable">$APPVEYOR_TOKEN</span>"</span> -XDELETE https://ci.appveyor.com/api/projects/scalacenter/scalafix/buildcache
 </code></pre>
 <h2><a class="anchor" aria-hidden="true" id="releasing"></a><a href="#releasing" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Releasing</h2>
-<p>First, kickstart a CI release to Sonatype by pushing a git tag.</p>
-<pre><code class="hljs"><span class="hljs-attr">VERSION=</span><span class="hljs-number">0.9</span>.<span class="hljs-number">15</span> <span class="hljs-comment"># change this variable</span>
-git <span class="hljs-keyword">tag</span> <span class="hljs-title">-af</span> <span class="hljs-string">"v$VERSION"</span> -m <span class="hljs-string">"v$VERSION"</span> &amp;&amp; git push -f origin v$<span class="hljs-keyword">VERSION</span>
-</code></pre>
-<p>While the CI is running, update the release notes at
-<a href="https://github.com/scalacenter/scalafix/releases">https://github.com/scalacenter/scalafix/releases</a></p>
-<p>After the CI completes, confirm that the release has successfully finished</p>
-<pre><code class="hljs">./bin/<span class="hljs-keyword">test</span>-release.<span class="hljs-keyword">sh</span> <span class="hljs-variable">$VERSION</span>
-</code></pre>
-<p>You may need to update the test-release.sh script to include new cross-build
-artifacts (for example a new Scala version).</p>
-<p>Next, open a PR to sbt-scalafix that updates the version here
-<a href="https://github.com/scalacenter/sbt-scalafix/blob/7a4b51ae520c26ab2b09c9bedb6e3962f809ac53/project/Dependencies.scala#L5">https://github.com/scalacenter/sbt-scalafix/blob/7a4b51ae520c26ab2b09c9bedb6e3962f809ac53/project/Dependencies.scala#L5</a>.
-Once the CI for this change is green, merge and push a new git tag to
-sbt-scalafix.</p>
-<p>Validate that the sbt-scalafix release completed successfully by running the
-test-release.sh script in the sbt-scalafix repository.</p>
-<p>When scalafix and sbt-scalafix have both completed the release, edit the release
-draft in the GitHub web UI to point to the tag that you pushed and then click on
-&quot;Publish release&quot;.</p>
-<p>If everything went smoothly, congrats! Tweet about the release and comment with
-<code>@/all</code> on Gitter linking to the release notes.</p>
+<ul>
+<li><p>[ ] Releases &gt; &quot;Draft a new release&quot;</p></li>
+<li><p>[ ] Write changelog, linking to each merged PR and attributing contributor,
+following a similar format as previous release notes.</p></li>
+<li><p>[ ] &quot;Publish release&quot;, this pushes a tag and triggers the CI to release to
+sonatype.</p></li>
+<li><p>[ ] after CI releases, double check the end of logs of the entry where
+CI_PUBLISH=true. You have to expand the after_success section.</p></li>
+<li><p>[ ] after sonatype release is completed, double check after ~30 minutes that
+the artifacts have synced to maven by running this command:</p>
+<pre><code class="hljs">    coursier fetch ch.epfl.scala:scalafix-core_2.12:VERSION
+</code></pre></li>
+<li><p>[ ] once the artifacts are synced to maven, go to the scalafix repo and update
+the <code>scalafix</code> binary with the following command and open a PR to the
+scalafix repo.</p>
+<pre><code class="hljs">   coursier bootstrap ch.epfl.scala:scalafix-cli_2.12.4:VERSION -f --main scalafix.cli.Cli -o scalafix -f
+</code></pre></li>
+</ul>
+<p>If everything went smoothly, congrats!</p>
 <p>If something goes wrong for any reason making the artifacts not reach maven,
 delete the pushed tag with the following command</p>
 <pre><code class="hljs css language-sh">TAG=??? <span class="hljs-comment"># for example "v0.5.3"</span>
