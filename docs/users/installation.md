@@ -213,10 +213,10 @@ To avoid binary compatibility conflicts with the sbt classpath
 ([example issue](https://github.com/sbt/zinc/issues/546#issuecomment-393084316)),
 the Scalafix plugin uses [Coursier](https://github.com/coursier/coursier/) to
 fetch Scalafix artifacts from Maven Central. These artifacts are by default
-cached in the directory `$HOME/.coursier/cache`. To avoid redundant downloads on
-every pull request, it's recommended to configure your CI enviroment to cache
-this directory. The location can be customized with the environment variable
-`COURSIER_CACHE`
+cached [inside the home directory](https://get-coursier.io/docs/cache.html#default-location).
+To avoid redundant downloads on every pull request, it's recommended to configure
+your CI enviroment to cache this directory. The location can be customized with
+the environment variable `COURSIER_CACHE`
 
 ```sh
 export COURSIER_CACHE=$HOME/.custom-cache
@@ -399,13 +399,13 @@ git diff // should produce a diff
 
 ## Command line
 
-First, install the [Coursier](https://get-coursier.io/docs/cli-overview)
+First, install the [Coursier](https://get-coursier.io/docs/cli-installation)
 command-line interface.
 
-Next, bootstrap a `scalafix` binary with Coursier
+Next, install a `scalafix` binary with Coursier
 
 ```sh
-coursier bootstrap ch.epfl.scala:scalafix-cli_@SCALA212@:@VERSION@ -f --main scalafix.cli.Cli -o scalafix
+cs install scalafix
 ./scalafix --version # Should say @VERSION@
 ```
 
@@ -444,5 +444,5 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@NIGHTLY_VERSION@-SNAPSHOT")
 If using the command-line interface
 
 ```sh
-coursier launch ch.epfl.scala:scalafix-cli_@SCALA212@:@NIGHTLY_VERSION@-SNAPSHOT -r sonatype:snapshots --main scalafix.cli.Cli -- --help
+cs launch ch.epfl.scala:scalafix-cli_@SCALA212@:@NIGHTLY_VERSION@-SNAPSHOT -r sonatype:snapshots --main scalafix.cli.Cli -- --help
 ```
