@@ -25,7 +25,7 @@ inThisBuild(
       "com.lihaoyi" %% "sourcecode" % "0.2.1"
     ),
     addCompilerPlugin(scalafixSemanticdb),
-    scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.3.0",
+    scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.3.1-RC2",
     // Super shell output often messes up Scalafix test output.
     useSuperShell := false
   )
