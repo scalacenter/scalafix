@@ -19,12 +19,10 @@ import metaconfig.generic.Settings
 import metaconfig.internal.Case
 import org.typelevel.paiges.{Doc => D}
 import scala.annotation.tailrec
-import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.ListBuffer
 import scala.meta.Tree
 import scala.meta.inputs.Input
 import scala.meta.internal.semanticdb.TextDocument
-import scala.meta.internal.tokenizers.PlatformTokenizerCache
 import scala.meta.io.AbsolutePath
 import scala.meta.parsers.ParseException
 import scala.util.control.NoStackTrace
@@ -81,7 +79,7 @@ object MainOps {
   def files(args: ValidatedArgs): collection.Seq[AbsolutePath] =
     args.args.ls match {
       case Ls.Find =>
-        val buf = ArrayBuffer.empty[AbsolutePath]
+        val buf = Vector.newBuilder[AbsolutePath]
         val visitor = new SimpleFileVisitor[Path] {
           override def visitFile(
               file: Path,
@@ -273,7 +271,6 @@ object MainOps {
 
   def handleFile(args: ValidatedArgs, file: AbsolutePath): ExitStatus = {
     try {
-      PlatformTokenizerCache.megaCache.clear()
       unsafeHandleFile(args, file)
     } catch {
       case e: ParseException =>

@@ -1,6 +1,7 @@
 package scalafix.util
 
 import scala.meta._
+import scala.collection.compat.immutable.LazyList
 import scalafix.v1.Symbol
 import scala.meta.internal.semanticdb.Scala.Symbols
 import scala.meta.internal.semanticdb.Scala.Descriptor
@@ -101,9 +102,9 @@ object TreeOps {
     }
     result.map(Symbol(_))
   }
-  def parents(tree: Tree): Stream[Tree] =
-    tree #:: (tree.parent match {
+  def parents(tree: Tree): LazyList[Tree] =
+    tree +: (tree.parent match {
       case Some(x) => parents(x)
-      case _ => Stream.empty
+      case _ => LazyList.empty
     })
 }

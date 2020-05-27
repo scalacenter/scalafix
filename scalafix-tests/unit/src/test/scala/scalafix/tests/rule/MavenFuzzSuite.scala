@@ -16,6 +16,7 @@ import scala.meta.internal.pc.ScalafixGlobal
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Paths
+
 import org.scalatest.Ignore
 
 @Ignore // Ignored because this test is very slow.

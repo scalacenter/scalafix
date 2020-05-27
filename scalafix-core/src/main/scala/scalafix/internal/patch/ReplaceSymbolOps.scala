@@ -23,7 +23,7 @@ object ReplaceSymbolOps {
   )(implicit ctx: RuleCtx, index: SemanticdbIndex): Patch = {
     if (moveSymbols.isEmpty) return Patch.empty
     val moves: Map[String, Symbol.Global] =
-      moveSymbols.toIterator.flatMap {
+      moveSymbols.iterator.flatMap {
         case ReplaceSymbol(
             term @ Symbol.Global(_, Signature.Method(_, _)),
             to
@@ -67,7 +67,7 @@ object ReplaceSymbolOps {
     }
     object Move {
       def unapply(name: Name): Option[Symbol.Global] = {
-        val result = name.symbol.toIterator
+        val result = name.symbol.iterator
           .flatMap {
             case Symbol.Multi(syms) => syms
             case els => els :: Nil

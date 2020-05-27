@@ -34,7 +34,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     )
     lazy val isScala213 = Def.setting { scalaVersion.value.startsWith("2.13") }
     lazy val warnUnusedImports = Def.setting {
-      if (isScala213.value) "-Ywarn-unused:imports"
+      if (isScala213.value) "-Wunused:imports"
       else "-Ywarn-unused-import"
     }
     lazy val scaladocOptions = Seq(
@@ -201,8 +201,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "unit/test" ::
         s
     },
-    commands += Command.command("ci-212-windows") { s =>
-      s"++$scala212" ::
+    commands += Command.command("ci-213-windows") { s =>
+      s"++$scala213" ::
         s"unit/testOnly -- -l scalafix.internal.tests.utils.SkipWindows" ::
         s
     },

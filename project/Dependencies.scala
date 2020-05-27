@@ -24,6 +24,7 @@ object Dependencies {
   def scalatest = "org.scalatest" %% "scalatest" % "3.0.8"
   def bijectionCore = "com.twitter" %% "bijection-core" % "0.9.7"
   def scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.3"
+  def collectionCompat = "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.6"
 
   def testsDeps = List(
     // integration property tests

@@ -2,6 +2,7 @@ package scalafix.internal.rule
 
 import scala.meta._
 import scalafix.v1._
+import scala.collection.compat._ // Used for cross-compilation.
 
 class NoAutoTupling extends SemanticRule("NoAutoTupling") {
 
@@ -18,7 +19,7 @@ class NoAutoTupling extends SemanticRule("NoAutoTupling") {
 
   override def fix(implicit doc: SemanticDocument): Patch = {
     val unitAdaptations: Set[Position] =
-      doc.diagnostics.toIterator.collect {
+      doc.diagnostics.iterator.collect {
         case message
             if message.message.startsWith(
               "Adaptation of argument list by inserting ()"
@@ -27,7 +28,7 @@ class NoAutoTupling extends SemanticRule("NoAutoTupling") {
       }.toSet
 
     val tupleAdaptations: Set[Position] =
-      doc.diagnostics.toIterator.collect {
+      doc.diagnostics.iterator.collect {
         case message
             if message.message.startsWith(
               "Adapting argument list by creating"

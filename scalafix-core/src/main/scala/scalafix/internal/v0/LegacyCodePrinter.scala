@@ -160,9 +160,9 @@ class LegacyCodePrinter(doc: SemanticDocument) {
       case s.IntConstant(value) =>
         text.append(value)
       case s.LongConstant(value) =>
-        text.append(value + "L")
+        text.append(s"${value}L")
       case s.FloatConstant(value) =>
-        text.append(value + "f")
+        text.append(s"${value}f")
       case s.DoubleConstant(value) =>
         text.append(value)
       case s.StringConstant(value) =>

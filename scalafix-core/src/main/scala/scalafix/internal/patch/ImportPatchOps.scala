@@ -161,7 +161,7 @@ object ImportPatchOps {
         .sortBy(_.ref.syntax)
         .map(is => ctx.addRight(editToken, s"\nimport ${is.syntax}"))
     val isRemovedImporter =
-      allImporters.toIterator
+      allImporters.iterator
         .filter(_.importees.forall(isRemovedImportee))
         .toSet
     def removeSpaces(tokens: Iterable[Token]): Patch = {

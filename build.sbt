@@ -2,7 +2,7 @@ import Dependencies._
 
 inThisBuild(
   List(
-    onLoadMessage := s"Welcome to scalafix ${versions.value}",
+    onLoadMessage := s"Welcome to scalafix ${version.value}",
     scalaVersion := scala213,
     crossScalaVersions := List(scala213, scala212, scala211),
     fork := true
@@ -68,7 +68,8 @@ lazy val core = project
       scalameta,
       googleDiff,
       "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided,
+      collectionCompat
     ),
     credentials += Credentials("Sonatype Nexus Repository Manager", "127.0.0.1", "admin", "admin"),
     publishTo := Some("Sonatype Nexus Repository Manager" at "http://127.0.0.1:8081/repository/maven-snapshots")
@@ -82,6 +83,7 @@ lazy val rules = project
     version := versions.value,
     description := "Built-in Scalafix rules",
     libraryDependencies += "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full,
+    libraryDependencies += collectionCompat,
     credentials += Credentials("Sonatype Nexus Repository Manager", "127.0.0.1", "admin", "admin"),
     publishTo := Some("Sonatype Nexus Repository Manager" at "http://127.0.0.1:8081/repository/maven-snapshots")
   )
@@ -275,7 +277,6 @@ lazy val docs = project
     baseDirectory.in(run) := baseDirectory.in(ThisBuild).value,
     skip in publish := true,
     moduleName := "scalafix-docs",
-    version := versions.value,
     scalaVersion := scala213,
     mdoc := run.in(Compile).evaluated,
     crossScalaVersions := List(scala213),

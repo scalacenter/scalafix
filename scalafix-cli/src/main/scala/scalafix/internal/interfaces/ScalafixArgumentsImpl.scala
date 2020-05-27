@@ -9,7 +9,7 @@ import java.util
 import java.util.Optional
 import metaconfig.Conf
 import metaconfig.Configured
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
 import scala.util.control.NoStackTrace

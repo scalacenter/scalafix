@@ -7,6 +7,7 @@ import scala.meta.internal.proxy.GlobalProxy
 import scala.collection.mutable
 import scala.reflect.internal.{Flags => gf}
 import scala.meta.internal.pc.Identifier
+import scala.collection.compat.immutable.LazyList
 
 class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
     implicit ctx: v1.SemanticDocument
@@ -244,7 +245,7 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
         case Some(body @ m.Term.NewAnonymous(template))
             if body.tokens.head.syntax == "new" =>
           val nameSyntax = gsym.nameSyntax
-          val suffixes = "" #:: Stream.from(1).map(_.toString())
+          val suffixes = "" +: LazyList.from(1).map(_.toString())
           val name = suffixes
             .map(suffix => nameSyntax + suffix)
             .find { name =>

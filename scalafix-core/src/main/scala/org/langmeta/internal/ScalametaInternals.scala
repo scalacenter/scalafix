@@ -1,6 +1,5 @@
 package scala.meta.internal
 
-import scala.compat.Platform.EOL
 import scala.meta._
 import scala.meta.internal.semanticdb.Scala.Descriptor
 import scala.meta.internal.semanticdb.Scala.DescriptorParser
@@ -8,6 +7,7 @@ import scala.meta.internal.trees.Origin
 import scala.meta.internal.{semanticdb => s}
 
 object ScalametaInternals {
+  private val EOL = System.lineSeparator()
 
   def symbolOwnerAndDescriptor(symbol: String): (String, Descriptor) = {
     val (desc, owner) = DescriptorParser(symbol)
