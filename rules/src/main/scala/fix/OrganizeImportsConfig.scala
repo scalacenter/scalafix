@@ -14,9 +14,9 @@ object ImportsOrder {
   case object Keep extends ImportsOrder
 
   implicit def reader: ConfDecoder[ImportsOrder] =
-    ReaderUtil.fromMap {
-      List(Ascii, SymbolsFirst, Keep) groupBy (_.toString) mapValues (_.head)
-    }
+    ReaderUtil.fromMap(
+      (List(Ascii, SymbolsFirst, Keep) map (v => v.toString -> v)).toMap
+    )
 }
 
 sealed trait ImportSelectorsOrder
@@ -28,7 +28,7 @@ object ImportSelectorsOrder {
 
   implicit def reader: ConfDecoder[ImportSelectorsOrder] =
     ReaderUtil.fromMap {
-      List(Ascii, SymbolsFirst, Keep) groupBy (_.toString) mapValues (_.head)
+      (List(Ascii, SymbolsFirst, Keep) map (v => v.toString -> v)).toMap
     }
 }
 
@@ -41,7 +41,7 @@ object GroupedImports {
 
   implicit def reader: ConfDecoder[GroupedImports] =
     ReaderUtil.fromMap {
-      List(Merge, Explode, Keep) groupBy (_.toString) mapValues (_.head)
+      (List(Merge, Explode, Keep) map (v => v.toString -> v)).toMap
     }
 }
 

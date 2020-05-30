@@ -14,7 +14,9 @@ inThisBuild(
       )
     ),
     scalaVersion := v.scala212,
+    crossScalaVersions := List(v.scala212, v.scala213),
     scalacOptions ++= List(
+      "-deprecation",
       "-Yrangepos",
       "-P:semanticdb:synthetics:on"
     ),
@@ -22,7 +24,8 @@ inThisBuild(
     dependencyOverrides ++= List(
       "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
       "org.slf4j" % "slf4j-api" % "1.7.25",
-      "com.lihaoyi" %% "sourcecode" % "0.2.1"
+      "com.lihaoyi" %% "sourcecode" % "0.2.1",
+      "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.6"
     ),
     addCompilerPlugin(scalafixSemanticdb),
     scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.3.1-RC2",

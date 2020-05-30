@@ -228,16 +228,15 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     else importer.copy(ref = toRef(importer.ref.symbol))
   }
 
-  private def groupImporters(importers: Seq[Importer]): Seq[Seq[Importer]] = {
-    val (_, importerGroups) = importers
+  private def groupImporters(importers: Seq[Importer]): Seq[Seq[Importer]] =
+    importers
       .groupBy(matchImportGroup) // Groups imports by importer prefix.
-      .mapValues(organizeImportGroup) // Organize imports within the same group.
       .toSeq
       .sortBy { case (index, _) => index } // Sorts import groups by group index
-      .unzip
-
-    importerGroups
-  }
+      .map {
+        // Organize imports within the same group.
+        case (_, importers) => organizeImportGroup(importers)
+      }
 
   private def organizeImportGroup(importers: Seq[Importer]): Seq[Importer] = {
     val importeesSorted = {
@@ -261,12 +260,12 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
       importer match {
         case Importer(_, Importee.Wildcard() :: Nil) =>
-          syntax.patch(syntax.lastIndexOfSlice("._"), ".\0", 2)
+          syntax.patch(syntax.lastIndexOfSlice("._"), ".\u0000", 2)
 
         case _ if isCurlyBraced(importer) =>
           syntax
-            .replaceFirst("[{]", "\2")
-            .patch(syntax.lastIndexOf("}"), "\2", 1)
+            .replaceFirst("[{]", "\u0002")
+            .patch(syntax.lastIndexOf("}"), "\u0002", 1)
 
         case _ => syntax
       }
@@ -442,8 +441,7 @@ object OrganizeImports {
         val allRenames = allImportees
           .filter(_.is[Importee.Rename])
           .groupBy { case Importee.Rename(Name(name), _) => name }
-          .mapValues(_.head)
-          .values
+          .map { case (_, importees) => importees.head }
           .toList
 
         // Collects distinct explicitly imported names, and filters out those that are also renamed.
@@ -464,8 +462,7 @@ object OrganizeImports {
         val (renamedNames, importedNames) = allImportees
           .filter(_.is[Importee.Name])
           .groupBy { case Importee.Name(Name(name)) => name }
-          .mapValues(_.head)
-          .values
+          .map { case (_, importees) => importees.head }
           .toList
           .partition {
             case Importee.Name(Name(name)) =>
@@ -598,7 +595,7 @@ object OrganizeImports {
       importGroups
         .map(prettyPrintImportGroup)
         .mkString("\n\n")
-        .lines
+        .linesIterator
         .zipWithIndex
         .map {
           // The first line will be inserted at an already indented position.
