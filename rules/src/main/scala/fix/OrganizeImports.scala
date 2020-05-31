@@ -57,7 +57,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
         config.scalacOptions exists { option => warnUnusedPrefix exists option.startsWith }
       }
 
-      if (hasWarnUnused || !conf.removeUnused)
+      if (!conf.removeUnused || hasWarnUnused)
         Configured.ok(new OrganizeImports(conf))
       else
         Configured.error(
@@ -69,7 +69,10 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     }
 
   override def fix(implicit doc: SemanticDocument): Patch = {
-    unusedImporteePositions ++= doc.diagnostics.filter(_.message == "Unused import").map(_.position)
+    unusedImporteePositions ++=
+      doc.diagnostics
+        .filter(_.message == "Unused import")
+        .map(_.position)
 
     val (globalImports, localImports) = collectImports(doc.tree)
 
@@ -192,14 +195,12 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       case importer @ Importer(_, importees) =>
         importees
           .filter(_.is[Importee.Name])
-          .filter(name => name.symbol.safeInfo exists (_.isImplicit))
+          .filter(name => name.symbol.infoNoThrow exists (_.isImplicit))
           .map(i => importer.copy(importees = i :: Nil) -> i.pos)
     }.unzip
 
     val noImplicits = importers.flatMap {
-      filterImportees(_) { importee =>
-        !implicitPositions.contains(importee.pos)
-      }.toSeq
+      _.filterImportees { importee => !implicitPositions.contains(importee.pos) }.toSeq
     }
 
     (implicits, noImplicits)
@@ -219,7 +220,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       // is also valid, but unnecessarily lengthy.
       //
       // See https://github.com/liancheng/scalafix-organize-imports/issues/55.
-      if (symbol.safeInfo exists (_.isPackageObject)) toRef(owner)
+      if (symbol.infoNoThrow exists (_.isPackageObject)) toRef(owner)
       else if (owner.isRootPackage || owner.isEmptyPackage) Term.Name(symbol.displayName)
       else Term.Select(toRef(owner), Term.Name(symbol.displayName))
     }
@@ -239,7 +240,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       }
 
   private def organizeImportGroup(importers: Seq[Importer]): Seq[Importer] = {
-    val importeesSorted = {
+    val importeesSorted = locally {
       config.groupedImports match {
         case GroupedImports.Merge   => mergeImporters(importers)
         case GroupedImports.Explode => explodeImportees(importers)
@@ -262,7 +263,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
         case Importer(_, Importee.Wildcard() :: Nil) =>
           syntax.patch(syntax.lastIndexOfSlice("._"), ".\u0000", 2)
 
-        case _ if isCurlyBraced(importer) =>
+        case _ if importer.isCurlyBraced =>
           syntax
             .replaceFirst("[{]", "\u0002")
             .patch(syntax.lastIndexOf("}"), "\u0002", 1)
@@ -367,21 +368,13 @@ object OrganizeImports {
         val syntax = importer.syntax
 
         // NOTE: We need to check whether the input importer is curly braced first and then replace
-        // the first "{ " and the last " }" if any. Naive string replacements are not sufficient,
-        // e.g., a quoted-identifier like "`{ d }`" may cause broken output.
-        (isCurlyBraced(importer), syntax lastIndexOfSlice " }") match {
+        // the first "{ " and the last " }" if any. Naive string replacement is insufficient, e.g.,
+        // a quoted-identifier like "`{ d }`" may cause broken output.
+        (importer.isCurlyBraced, syntax lastIndexOfSlice " }") match {
           case (_, -1)       => syntax
           case (true, index) => syntax.patch(index, "}", 2).replaceFirst("\\{ ", "{")
           case _             => syntax
         }
-    }
-
-  private def isCurlyBraced(importer: Importer): Boolean =
-    importer.importees match {
-      case Importees(_, _ :: _, _, _)        => true // At least one rename
-      case Importees(_, _, _ :: _, _)        => true // At least one unimport
-      case importees if importees.length > 1 => true // More than one importees
-      case _                                 => false
     }
 
   @tailrec private def topQualifierOf(term: Term): Term.Name =
@@ -607,24 +600,34 @@ object OrganizeImports {
     Patch.addLeft(token, indentedOutput mkString "\n")
   }
 
-  // Returns an importer with all the importees selected from the input importer that satisfy a
-  // predicate. If all the importees are selected, the input importer instance is returned to
-  // preserve the original source level formatting. If none of the importees are selected, returns
-  // a `None`.
-  private def filterImportees(importer: Importer)(f: Importee => Boolean): Option[Importer] = {
-    val filtered = importer.importees filter f
-    if (filtered.length == importer.importees.length) Some(importer)
-    else if (filtered.isEmpty) None
-    else Some(importer.copy(importees = filtered))
-  }
-
   // HACK: In certain cases, `Symbol#info` may throw `MissingSymbolException` due to some unknown
   // reason. This implicit class adds a safe version of `Symbol#info` to return `None` instead of
   // throw an exception when this happens.
   //
   // See https://github.com/scalacenter/scalafix/issues/1123
-  implicit private class SymbolSafeInfo(symbol: Symbol) {
-    def safeInfo(implicit doc: SemanticDocument): Option[SymbolInformation] =
+  implicit private class SymbolExtension(symbol: Symbol) {
+    def infoNoThrow(implicit doc: SemanticDocument): Option[SymbolInformation] =
       Try(symbol.info).toOption.flatten
+  }
+
+  implicit private class ImporterExtension(importer: Importer) {
+    def isCurlyBraced: Boolean =
+      importer.importees match {
+        case Importees(_, _ :: _, _, _)        => true // At least one rename
+        case Importees(_, _, _ :: _, _)        => true // At least one unimport
+        case importees if importees.length > 1 => true // More than one importees
+        case _                                 => false
+      }
+
+    // Returns an importer with all the importees selected from the input importer that satisfy a
+    // predicate. If all the importees are selected, the input importer instance is returned to
+    // preserve the original source level formatting. If none of the importees are selected, returns
+    // a `None`.
+    def filterImportees(f: Importee => Boolean): Option[Importer] = {
+      val filtered = importer.importees filter f
+      if (filtered.length == importer.importees.length) Some(importer)
+      else if (filtered.isEmpty) None
+      else Some(importer.copy(importees = filtered))
+    }
   }
 }

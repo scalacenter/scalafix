@@ -2,12 +2,13 @@ package fix
 
 object Implicits {
   object a {
-    implicit def i: Int = ???
-    implicit def s: String = ???
+    def nonImplicit: Unit = ???
+    implicit def intImplicit: Int = ???
+    implicit def stringImplicit: String = ???
   }
 
   object b {
-    implicit def i: Int = ???
-    implicit def s: String = ???
+    implicit def intImplicit: Int = ???
+    implicit def stringImplicit: String = ???
   }
 }

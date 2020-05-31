@@ -12,4 +12,4 @@ import javax.annotation.Generated
 import scala.util.control.NonFatal
 import scala.util.Random
 
-object OrganizeImportsLongestMatch
+object GroupsLongestMatch
