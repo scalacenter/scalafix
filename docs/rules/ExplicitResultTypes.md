@@ -56,5 +56,6 @@ import scala.collection.mutable
 
 Potential workarounds:
 
-- use https://github.com/NeQuissimus/sort-imports.
+- use https://github.com/NeQuissimus/sort-imports
+- use https://github.com/liancheng/scalafix-organize-imports
 - run "organize imports" refactoring in IntelliJ
