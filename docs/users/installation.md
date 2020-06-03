@@ -148,10 +148,13 @@ Great! You are all set to use Scalafix with sbt :)
 
 ### Settings and tasks
 
-| Name              | Type                       | Description                                                                                                                       |
-| ----------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `scalafix <args>` | `InputTaskKey[Unit]`       | Invoke scalafix command line interface directly. Use tab completion to explore supported arguments or consult [--help](#help)     |
-| `scalafixConfig`  | `SettingKey[Option[File]]` | .scalafix.conf file to specify which scalafix rules should run. Defaults to `.scalafix.conf` in the root directory, if it exists. |
+| Name | Type | Description
+| ---- | ---- | -----------
+| `scalafix <args>` | `InputTaskKey[Unit]` | Invoke scalafix command line interface directly. Use tab completion to explore supported arguments or consult [--help](#help).
+| `scalafixCaching` | `SettingKey[Boolean]`  | Controls whether 2 successive invocations of the `scalafix` `InputTask` with the same arguments & configuration should be incremental. Defaults to `false` (still experimental, known false positives and false negatives cache hits, please report your own experience). When enabled, use the `--no-cache` argument to force an exhaustive run.
+| `scalafixConfig` | `SettingKey[Option[File]]` | `.scalafix.conf` file to specify which scalafix rules should run, together with their potential options. Defaults to `.scalafix.conf` in the root directory, if it exists.
+| `scalafixDependencies` | `SettingKey[Seq[ModuleID]]` | Dependencies making [custom rules](#run-custom-rules) available via their simple name. Must be set in `ThisBuild`. Defaults to `Nil`.
+| `scalafixResolvers` | `SettingKey[Seq[Repository]]` | Custom resolvers where `scalafixDependencies` are resolved from. Must be set in `ThisBuild`. Defaults to: Ivy2 local, Maven Central, Sonatype releases & Sonatype snapshots.
 
 ### Main and test sources
 
