@@ -27,5 +27,7 @@ final class ScalafixImpl extends Scalafix {
     Versions.scala211
   override def scala212(): String =
     Versions.scala212
+  override def scala213(): String =
+    Versions.scala213
 
 }
