@@ -440,7 +440,6 @@ OrganizeImports.groups = [
 
 [[trailing-order-preserving-import-group]]
 [IMPORTANT]
-.The trailing order-preserving import group
 ====
 No matter how the `groups` option is configured, a special order-preserving import group may appear after all the configured import groups when:
 
@@ -483,6 +482,7 @@ The wildcard pattern, `"*"`, defines the wildcard group, which matches all fully
 OrganizeImports.groups = ["re:javax?\\.", "scala.", "*"]
 OrganizeImports.groups = ["re:javax?\\.", "scala."]
 ----
+--
 
 ==== Default value
 
@@ -494,7 +494,6 @@ OrganizeImports.groups = ["re:javax?\\.", "scala."]
   "*"
 ]
 ----
---
 
 ==== Examples
 
