@@ -29,6 +29,11 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       skip in publish := true
     ) ++ noMima
     lazy val supportedScalaVersions = List(scala213, scala211, scala212)
+    lazy val publishLocalTransitive =
+      taskKey[Unit]("Run publishLocal on this project and its dependencies")
+    lazy val crossPublishLocalBinTransitive = taskKey[Unit](
+      "Run, for each crossVersion, publishLocal without packageDoc & packageSrc, on this project and its dependencies"
+    )
     lazy val isFullCrossVersion = Seq(
       crossVersion := CrossVersion.full
     )
@@ -203,6 +208,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     },
     commands += Command.command("ci-213-windows") { s =>
       s"++$scala213" ::
+        "cli/crossPublishLocalBinTransitive" :: // scalafix.tests.interfaces.ScalafixSuite
         s"unit/testOnly -- -l scalafix.internal.tests.utils.SkipWindows" ::
         s
     },
@@ -311,6 +317,31 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         organization.value % s"${moduleName.value}_$binaryVersion" % previousArtifactVersion
       )
     },
-    mimaBinaryIssueFilters ++= Mima.ignoredABIProblems
+    mimaBinaryIssueFilters ++= Mima.ignoredABIProblems,
+    publishLocalTransitive := Def.taskDyn {
+      val ref = thisProjectRef.value
+      publishLocal.all(ScopeFilter(inDependencies(ref)))
+    }.value,
+    crossPublishLocalBinTransitive := {
+      val currentState = state.value
+      val ref = thisProjectRef.value
+      val versions = crossScalaVersions.value
+      versions.map {
+        version =>
+          val withScalaVersion = Project
+            .extract(currentState)
+            .appendWithoutSession(
+              Seq(
+                scalaVersion.in(ThisBuild) := version,
+                publishArtifact.in(ThisBuild, packageDoc) := false,
+                publishArtifact.in(ThisBuild, packageSrc) := false
+              ),
+              currentState
+            )
+          Project
+            .extract(withScalaVersion)
+            .runTask(publishLocalTransitive.in(ref), withScalaVersion)
+      }
+    }
   )
 }

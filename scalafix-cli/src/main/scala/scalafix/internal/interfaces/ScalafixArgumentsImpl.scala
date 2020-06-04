@@ -1,14 +1,17 @@
 package scalafix.internal.interfaces
 
 import java.io.PrintStream
-import java.net.URLClassLoader
+import java.net.{URL, URLClassLoader}
 import java.nio.charset.Charset
 import java.nio.file.Path
 import java.nio.file.PathMatcher
 import java.util
 import java.util.Optional
+
+import coursierapi.Repository
 import metaconfig.Conf
 import metaconfig.Configured
+
 import scala.jdk.CollectionConverters._
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
@@ -23,6 +26,7 @@ import scalafix.internal.v1.Args
 import scalafix.internal.v1.MainOps
 import scalafix.internal.v1.Rules
 import scalafix.v1.RuleDecoder
+import scalafix.Versions
 
 final case class ScalafixArgumentsImpl(args: Args = Args.default)
     extends ScalafixArguments {
@@ -34,6 +38,41 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
 
   override def withRules(rules: util.List[String]): ScalafixArguments =
     copy(args = args.copy(rules = rules.asScala.toList))
+
+  override def withToolClasspath(
+      customURLs: util.List[URL]
+  ): ScalafixArguments =
+    withToolClasspath(
+      new URLClassLoader(customURLs.asScala.toArray, getClass.getClassLoader)
+    )
+
+  override def withToolClasspath(
+      customURLs: util.List[URL],
+      customDependenciesCoordinates: util.List[String]
+  ): ScalafixArguments =
+    withToolClasspath(
+      customURLs,
+      customDependenciesCoordinates,
+      Repository.defaults()
+    )
+
+  override def withToolClasspath(
+      customURLs: util.List[URL],
+      customDependenciesCoordinates: util.List[String],
+      repositories: util.List[Repository]
+  ): ScalafixArguments = {
+    val customDependenciesJARs = ScalafixCoursier.toolClasspath(
+      repositories,
+      customDependenciesCoordinates,
+      Versions.scalaVersion
+    )
+    val extraURLs = customURLs.asScala ++ customDependenciesJARs.asScala
+    val classLoader = new URLClassLoader(
+      extraURLs.toArray,
+      getClass.getClassLoader
+    )
+    withToolClasspath(classLoader)
+  }
 
   override def withToolClasspath(
       classLoader: URLClassLoader
