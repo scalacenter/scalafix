@@ -53,6 +53,11 @@ public interface Scalafix {
      */
     String scala212();
 
+    /**
+     * The most recent Scala 2.13 version in {@link #supportedScalaVersions()}
+     */
+    String scala213();
+
 
 
     /**
