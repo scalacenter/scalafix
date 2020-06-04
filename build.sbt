@@ -49,8 +49,7 @@ lazy val interfaces = project
     javaHome.in(Compile) := inferJavaHome(),
     javaHome.in(Compile, doc) := inferJavaHome(),
     moduleName := "scalafix-interfaces",
-    crossVersion := CrossVersion.disabled,
-    crossScalaVersions := List(scala213),
+    crossPaths := false,
     autoScalaLibrary := false
   )
 
