@@ -39,7 +39,6 @@ lazy val interfaces = project
           "scalafix-interfaces.properties"
       IO.write(props, "Scalafix version constants", out)
       List(out)
-
     },
     javacOptions.in(Compile) ++= List(
       "-Xlint:all",
@@ -48,9 +47,9 @@ lazy val interfaces = project
     javacOptions.in(Compile, doc) := List("-Xdoclint:none"),
     javaHome.in(Compile) := inferJavaHome(),
     javaHome.in(Compile, doc) := inferJavaHome(),
+    libraryDependencies += "io.get-coursier" % "interface" % coursierInterfaceV,
     moduleName := "scalafix-interfaces",
-    crossVersion := CrossVersion.disabled,
-    crossScalaVersions := List(scala213),
+    crossPaths := false,
     autoScalaLibrary := false
   )
 
@@ -243,7 +242,11 @@ lazy val unit = project
           "scalafix-tests" / "shared" / "src" / "main",
       "sharedClasspath" ->
         classDirectory.in(testsShared, Compile).value
-    )
+    ),
+    test.in(Test) := test
+      .in(Test)
+      .dependsOn(crossPublishLocalBinTransitive.in(cli))
+      .value
   )
   .enablePlugins(BuildInfoPlugin)
   .dependsOn(

@@ -6,6 +6,7 @@ hesitate to ask in the [gitter channel](https://gitter.im/scalacenter/scalafix).
 
 ## Modules
 
+- `scalafix-interfaces` Java facade to run rules within an existing JVM instance.
 - `scalafix-core/` data structures for rewriting and linting Scala source code.
 - `scalafix-reflect/` utilities to compile and classload rules from
   configuration.

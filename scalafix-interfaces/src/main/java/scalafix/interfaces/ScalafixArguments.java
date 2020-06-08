@@ -1,6 +1,9 @@
 package scalafix.interfaces;
 
+import coursierapi.Repository;
+
 import java.io.PrintStream;
+import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
@@ -13,7 +16,10 @@ import java.util.Optional;
  * <p>
  * To obtain an instance of ScalafixArguments, use {@link scalafix.interfaces.Scalafix#newArguments()}.
  * Instances of ScalafixArguments are immutable and thread safe. It is safe to re-use the same
- * ScalafixArguments instance for multiple Scalafix invocations. *
+ * ScalafixArguments instance for multiple Scalafix invocations. Re-using the same instance is
+ * particularly encouraged when a custom toolClasspath is provided, in order to amortize the
+ * cost/time of fetching artifacts, classloading them & warming up the JIT code cache.
+ *
  * @implNote This interface is not intended for extension, the only implementation of this interface
  * should live in the Scalafix repository.
  */
@@ -26,9 +32,44 @@ public interface ScalafixArguments {
     ScalafixArguments withRules(List<String> rules);
 
     /**
+     * @param customURLs Extra URLs for classloading and compiling external rules.
+     */
+    ScalafixArguments withToolClasspath(List<URL> customURLs);
+
+    /**
+     * @param customURLs                    Extra URLs for classloading and compiling external rules.
+     * @param customDependenciesCoordinates Extra dependencies for classloading and compiling external rules.
+     *                                      For example "com.nequissimus::sort-imports:0.5.2".
+     *                                      Artifacts will be resolved against the Scala version in the classloader
+     *                                      of the parent {@link Scalafix} instance and fetched using Coursier.
+     * @throws ScalafixException in case of errors during artifact resolution/fetching.
+     */
+    ScalafixArguments withToolClasspath(
+            List<URL> customURLs,
+            List<String> customDependenciesCoordinates
+    ) throws ScalafixException;
+
+    /**
+     * @param customURLs                    Extra URLs for classloading and compiling external rules.
+     * @param customDependenciesCoordinates Extra dependencies for classloading and compiling external rules.
+     *                                      For example "com.nequissimus::sort-imports:0.5.2".
+     *                                      Artifacts will be resolved against the Scala version in the classloader
+     *                                      of the parent {@link Scalafix} instance and fetched using Coursier.
+     * @param repositories                  Maven/Ivy repositories to fetch the artifacts from.
+     * @throws ScalafixException in case of errors during artifact resolution/fetching.
+     */
+    ScalafixArguments withToolClasspath(
+            List<URL> customURLs,
+            List<String> customDependenciesCoordinates,
+            List<Repository> repositories
+    ) throws ScalafixException;
+
+    /**
      * @param toolClasspath Custom classpath for classloading and compiling external rules.
      *                      Must be a URLClassLoader (not regular ClassLoader) to support
-     *                      compiling sources.
+     *                      compiling sources. This classloader should have as ancestor the
+     *                      classloader of the {@link Scalafix} instance that returned this
+     *                      {@link ScalafixArguments} instance.
      */
     ScalafixArguments withToolClasspath(URLClassLoader toolClasspath);
 
@@ -69,7 +110,6 @@ public interface ScalafixArguments {
 
     /**
      * @param args Unparsed command-line arguments that are fed directly to <code>main(Array[String])</code>
-     *
      * @throws ScalafixException In case of an error parsing the provided arguments.
      */
     ScalafixArguments withParsedArguments(List<String> args) throws ScalafixException;
@@ -111,8 +151,11 @@ public interface ScalafixArguments {
 
     /**
      * @param version The Scala compiler version used to compile this classpath.
-     *                For example "2.12.8".
-     *
+     *                For example "2.12.8". To be able to run advanced semantic rules
+     *                using the Scala Presentation Compiler (such as ExplicitResultTypes),
+     *                this must match the binary version available in the classloader of
+     *                this instance, as requested/provided in the static factory methods
+     *                of {@link Scalafix}.
      */
     ScalafixArguments withScalaVersion(String version);
 
@@ -125,7 +168,7 @@ public interface ScalafixArguments {
 
     /**
      * The rules that are valid arguments for {@link #withRules(List) }.
-     *
+     * <p>
      * Takes into account built-in rules as well as the tool classpath provided via
      * {@link #withToolClasspath(URLClassLoader) }.
      */
@@ -134,8 +177,9 @@ public interface ScalafixArguments {
 
     /**
      * The rules that would run when calling {@link #run() }
-     *
+     * <p>
      * Takes into account rules that are configured in .scalafix.conf.
+     *
      * @throws ScalafixException In case of an error loading the configured rules.
      */
     List<ScalafixRule> rulesThatWillRun() throws ScalafixException;
@@ -143,7 +187,7 @@ public interface ScalafixArguments {
 
     /**
      * Validates that the passed arguments are valid.
-     *
+     * <p>
      * Takes into account provided rules, .scalafix.conf configuration, scala version,
      * scalac options and other potential problems. The primary purpose
      * of this method is to validate the arguments before starting compilation
