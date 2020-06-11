@@ -225,7 +225,8 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       else Term.Select(toRef(owner), Term.Name(symbol.displayName))
     }
 
-    importer.copy(ref = toRef(importer.ref.symbol))
+    if (importer.ref.symbol.isNone) importer // #64
+    else importer.copy(ref = toRef(importer.ref.symbol))
   }
 
   private def groupImporters(importers: Seq[Importer]): Seq[Seq[Importer]] =
