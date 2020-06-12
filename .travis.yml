@@ -1,9 +1,8 @@
 jdk:
 - openjdk8
 stages:
-  - name: test
   - name: release
-    if: (branch = master AND type = push) OR (tag IS present)
+    if: tag IS present
 before_install:
   - if [ "$TRAVIS_BUILD_STAGE_NAME" = 'Release'  ]; then
       curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.9.4;
