@@ -150,7 +150,8 @@ Great! You are all set to use Scalafix with sbt :)
 
 | Name | Type | Description
 | ---- | ---- | -----------
-| `scalafix <args>` | `InputTaskKey[Unit]` | Invoke scalafix command line interface directly. Use tab completion to explore supported arguments or consult [--help](#help).
+| `scalafix <args>` | `InputKey[Unit]` | Invoke scalafix command line interface directly. Use tab completion to explore supported arguments or consult [--help](#help).
+| `scalafixAll <args>` | `InputKey[Unit]` | Invoke `scalafix` across all configurations where scalafix is [enabled](#integration-tests).
 | `scalafixCaching` | `SettingKey[Boolean]`  | Controls whether 2 successive invocations of the `scalafix` `InputTask` with the same arguments & configuration should be incremental. Defaults to `false` (still experimental, known false positives and false negatives cache hits, please report your own experience). When enabled, use the `--no-cache` argument to force an exhaustive run.
 | `scalafixConfig` | `SettingKey[Option[File]]` | `.scalafix.conf` file to specify which scalafix rules should run, together with their potential options. Defaults to `.scalafix.conf` in the root directory, if it exists.
 | `scalafixDependencies` | `SettingKey[Seq[ModuleID]]` | Dependencies making [custom rules](#run-custom-rules) available via their simple name. Must be set in `ThisBuild`. Defaults to `Nil`.
@@ -161,13 +162,14 @@ Great! You are all set to use Scalafix with sbt :)
 The task `myproject/scalafix` runs for **main sources** in the project
 `myproject`. To run Scalafix on **test sources**, execute
 `myproject/test:scalafix` instead. To run on both main and test sources, execute
-`; myproject/scalafix ; myproject/test:scalafix`
+`myproject/scalafixAll`.
 
 ### Integration tests
 
 By default, the `scalafix` command is enabled for the `Compile` and `Test`
-configurations. To enable Scalafix for other configuration like
-`IntegrationTest`, add the following to your project settings
+configurations, and `scalafixAll` will run on both of them. To enable
+Scalafix for other configuration like `IntegrationTest`, add the following
+to your project settings
 
 ```diff
  lazy val myproject = project
@@ -181,17 +183,9 @@ configurations. To enable Scalafix for other configuration like
 
 ### Multi-module builds
 
-The `scalafix` task aggregates like the `compile` and `test` tasks. To run
-Scalafix on all projects for both main and test sources you can execute
-`all scalafix test:scalafix`.
-
-Optionally, add a command alias to your build to run Scalafix on your entire
-project with the shorthand `fix`
-
-```scala
-// top of build.sbt
-addCommandAlias("fix", "all compile:scalafix test:scalafix")
-```
+Both the `scalafix` & the `scalafixAll` task aggregate like the `compile`
+and `test` tasks. To run Scalafix on all projects for both main and test
+sources you can execute `scalafixAll`.
 
 ### Enforce in CI
 
@@ -199,16 +193,7 @@ To automatically enforce that Scalafix has been run on all sources, use
 `scalafix --check` instead of `scalafix`. This task fails the build if running
 `scalafix` would produce a diff or a linter error message is reported.
 
-Optionally, add a command alias to enforce Scalafix on your entire project with
-the shorthand `fixCheck`
-
-```scala
-// top of build.sbt
-addCommandAlias(
-  "fixCheck",
-  "; compile:scalafix --check ; test:scalafix --check"
-)
-```
+Use `scalafixAll --check`  to enforce Scalafix on your entire project.
 
 ### Cache in CI
 
