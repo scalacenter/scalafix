@@ -37,7 +37,7 @@ class RemoveUnused(config: RemoveUnusedConfig)
       Configured.error(
         s"""|The Scala compiler option "-Ywarn-unused" is required to use RemoveUnused.
             |To fix this problem, update your build to use at least one Scala compiler
-            |option like -Ywarn-unused, -Xlint:unused, or -Wunused (2.13 only).""".stripMargin
+            |option like -Ywarn-unused, -Xlint:unused (2.12.2 or above), or -Wunused (2.13 only)""".stripMargin
       )
     } else {
       config.conf
