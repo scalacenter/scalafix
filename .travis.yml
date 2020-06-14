@@ -1,7 +1,6 @@
 jdk:
 - openjdk8
 stages:
-  - name: test
   - name: release
     if: (branch = master AND type = push) OR (tag IS present)
 before_install:
