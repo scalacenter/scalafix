@@ -53,4 +53,4 @@ jobs:
       - uses: actions/checkout@v2
       - uses: olafurpg/setup-scala@v7
       - run: ./scalafmt --test
-      - run: sbt docs/mdoc
+      - run: git fetch --unshallow && sbt docs/mdoc

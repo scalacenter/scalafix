@@ -263,9 +263,9 @@ lazy val docs = project
     baseDirectory.in(run) := baseDirectory.in(ThisBuild).value,
     skip in publish := true,
     moduleName := "scalafix-docs",
-    scalaVersion := scala213,
+    scalaVersion := scala212,
     mdoc := run.in(Compile).evaluated,
-    crossScalaVersions := List(scala213),
+    crossScalaVersions := List(scala212),
     libraryDependencies ++= List(
       "com.geirsson" %% "metaconfig-docs" % metaconfigV,
       "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
