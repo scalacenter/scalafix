@@ -128,44 +128,39 @@ curl -vvv -H <span class="hljs-string">"Authorization: Bearer <span class="hljs-
 </code></pre>
 <h2><a class="anchor" aria-hidden="true" id="releasing"></a><a href="#releasing" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Releasing</h2>
 <p>First, kickstart a CI release to Sonatype by pushing a git tag that correspond to the desired commit</p>
-<p>git fetch &amp;&amp; git log origin/master --pretty=oneline # choose the commit hash you want to tag
-COMMIT_HASH=14a069a3765739f5540129e8220104b17f233020 # change this variable
-VERSION=0.9.15 # change this variable
-git tag -af &quot;v$VERSION&quot; $COMMIT_HASH -m &quot;v$VERSION&quot; &amp;&amp; git push -f origin v$VERSION</p>
-<pre><code class="hljs">
-<span class="hljs-keyword">While</span> the <span class="hljs-keyword">CI</span> is running, <span class="hljs-keyword">update</span> the release <span class="hljs-keyword">notes</span> at
-https:<span class="hljs-comment">//github.com/scalacenter/scalafix/releases</span>
-
-After the <span class="hljs-keyword">CI</span> completes, <span class="hljs-keyword">confirm</span> that the release has successfully finished
-
+<pre><code class="hljs css language-sh">git fetch &amp;&amp; git <span class="hljs-built_in">log</span> origin/master --pretty=oneline <span class="hljs-comment"># choose the commit hash you want to tag</span>
+COMMIT_HASH=14a069a3765739f5540129e8220104b17f233020 <span class="hljs-comment"># change this variable</span>
+VERSION=0.9.15 <span class="hljs-comment"># change this variable</span>
+git tag -af <span class="hljs-string">"v<span class="hljs-variable">$VERSION</span>"</span> <span class="hljs-variable">$COMMIT_HASH</span> -m <span class="hljs-string">"v<span class="hljs-variable">$VERSION</span>"</span> &amp;&amp; git push -f origin v<span class="hljs-variable">$VERSION</span>
 </code></pre>
-<p>./bin/test-release.sh $VERSION</p>
-<pre><code class="hljs">
-You may need <span class="hljs-built_in">to</span> update <span class="hljs-keyword">the</span> test-release.sh script <span class="hljs-built_in">to</span> <span class="hljs-built_in">include</span> <span class="hljs-built_in">new</span> cross-build
-artifacts (<span class="hljs-keyword">for</span> example <span class="hljs-keyword">a</span> <span class="hljs-built_in">new</span> Scala <span class="hljs-built_in">version</span>).
-
-Next, <span class="hljs-built_in">open</span> <span class="hljs-keyword">a</span> PR <span class="hljs-built_in">to</span> sbt-scalafix that updates <span class="hljs-keyword">the</span> <span class="hljs-built_in">version</span> here
-<span class="hljs-keyword">https</span>://github.com/scalacenter/sbt-scalafix/blob/<span class="hljs-number">7</span>a4b51ae520c26ab2b09c9bedb6e3962f809ac53/project/Dependencies.scala<span class="hljs-comment">#L5.</span>
-Once <span class="hljs-keyword">the</span> CI <span class="hljs-keyword">for</span> this change is green, <span class="hljs-built_in">merge</span> <span class="hljs-keyword">and</span> push <span class="hljs-keyword">a</span> <span class="hljs-built_in">new</span> git tag <span class="hljs-built_in">to</span>
-sbt-scalafix.
-
-Validate that <span class="hljs-keyword">the</span> sbt-scalafix release completed successfully <span class="hljs-keyword">by</span> running <span class="hljs-keyword">the</span>
-test-release.sh script <span class="hljs-keyword">in</span> <span class="hljs-keyword">the</span> sbt-scalafix repository.
-
-When scalafix <span class="hljs-keyword">and</span> sbt-scalafix have both completed <span class="hljs-keyword">the</span> release, edit <span class="hljs-keyword">the</span> release
-draft <span class="hljs-keyword">in</span> <span class="hljs-keyword">the</span> GitHub web UI <span class="hljs-built_in">to</span> point <span class="hljs-built_in">to</span> <span class="hljs-keyword">the</span> tag that you pushed <span class="hljs-keyword">and</span> <span class="hljs-keyword">then</span> click <span class="hljs-keyword">on</span>
-<span class="hljs-string">"Publish release"</span>.
-
-If everything went smoothly, congrats! Tweet about <span class="hljs-keyword">the</span> release <span class="hljs-keyword">and</span> comment <span class="hljs-keyword">with</span>
-`@/all` <span class="hljs-keyword">on</span> <span class="hljs-title">Gitter</span> <span class="hljs-title">linking</span> <span class="hljs-title">to</span> <span class="hljs-title">the</span> <span class="hljs-title">release</span> <span class="hljs-title">notes</span>.
-
-If something goes wrong <span class="hljs-keyword">for</span> <span class="hljs-keyword">any</span> reason making <span class="hljs-keyword">the</span> artifacts <span class="hljs-keyword">not</span> reach maven,
-<span class="hljs-built_in">delete</span> <span class="hljs-keyword">the</span> pushed tag <span class="hljs-keyword">with</span> <span class="hljs-keyword">the</span> following <span class="hljs-keyword">command</span>
-
-```sh
-TAG=??? <span class="hljs-comment"># for example "v0.5.3"</span>
-git tag -d $TAG
-git push origin :refs/tags/$TAG
+<p>While the CI is running, update the release notes at
+<a href="https://github.com/scalacenter/scalafix/releases">https://github.com/scalacenter/scalafix/releases</a></p>
+<p>After the CI completes, confirm that the release has successfully finished</p>
+<pre><code class="hljs">./bin/<span class="hljs-keyword">test</span>-release.<span class="hljs-keyword">sh</span> <span class="hljs-variable">$VERSION</span>
+</code></pre>
+<p>You may need to update the test-release.sh script to include new cross-build
+artifacts (for example a new Scala version).</p>
+<p>Next, open a PR to sbt-scalafix that updates the version here
+<a href="https://github.com/scalacenter/sbt-scalafix/blob/7a4b51ae520c26ab2b09c9bedb6e3962f809ac53/project/Dependencies.scala#L5">https://github.com/scalacenter/sbt-scalafix/blob/7a4b51ae520c26ab2b09c9bedb6e3962f809ac53/project/Dependencies.scala#L5</a>.
+Once the CI for this change is green, merge and push a new git tag to
+sbt-scalafix.</p>
+<p>Validate that the sbt-scalafix release completed successfully by running the
+test-release.sh script in the sbt-scalafix repository.</p>
+<p>When scalafix and sbt-scalafix have both completed the release, edit the release
+draft in the GitHub web UI to point to the tag that you pushed and then click on
+&quot;Publish release&quot;.</p>
+<p>Confirm that the documentation is advertising the new versions</p>
+<ul>
+<li><a href="https://scalacenter.github.io/scalafix/docs/users/installation.html#sbt">https://scalacenter.github.io/scalafix/docs/users/installation.html#sbt</a></li>
+<li><a href="https://scalacenter.github.io/scalafix/docs/users/installation.html#help">https://scalacenter.github.io/scalafix/docs/users/installation.html#help</a></li>
+</ul>
+<p>If everything went smoothly, congrats! Tweet about the release and comment with
+<code>@/all</code> on Gitter linking to the release notes.</p>
+<p>If something goes wrong for any reason making the artifacts not reach maven,
+delete the pushed tag with the following command</p>
+<pre><code class="hljs css language-sh">TAG=??? <span class="hljs-comment"># for example "v0.5.3"</span>
+git tag -d <span class="hljs-variable">$TAG</span>
+git push origin :refs/tags/<span class="hljs-variable">$TAG</span>
 </code></pre>
 <p>It's important that the latest tag always has an accompanying release on Maven.
 If there is no release matching the latest tag then the docs will point to
