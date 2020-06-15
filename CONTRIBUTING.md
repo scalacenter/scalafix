@@ -108,6 +108,7 @@ curl -vvv -H "Authorization: Bearer $APPVEYOR_TOKEN" -XDELETE https://ci.appveyo
 
 First, kickstart a CI release to Sonatype by pushing a git tag that correspond to the desired commit
 
+```sh
 git fetch && git log origin/master --pretty=oneline # choose the commit hash you want to tag
 COMMIT_HASH=14a069a3765739f5540129e8220104b17f233020 # change this variable
 VERSION=0.9.15 # change this variable
@@ -137,6 +138,10 @@ test-release.sh script in the sbt-scalafix repository.
 When scalafix and sbt-scalafix have both completed the release, edit the release
 draft in the GitHub web UI to point to the tag that you pushed and then click on
 "Publish release".
+
+Confirm that the documentation is advertising the new versions
+- https://scalacenter.github.io/scalafix/docs/users/installation.html#sbt
+- https://scalacenter.github.io/scalafix/docs/users/installation.html#help
 
 If everything went smoothly, congrats! Tweet about the release and comment with
 `@/all` on Gitter linking to the release notes.
