@@ -69,6 +69,9 @@ class RemoveUnused(config: RemoveUnusedConfig)
       Patch.empty
     } else {
       doc.tree.collect {
+        case Importer(_, importees)
+            if importees.forall(_.is[Importee.Unimport]) =>
+          importees.map(Patch.removeImportee).asPatch
         case Importer(_, importees) =>
           val hasUsedWildcard = importees.exists {
             case i: Importee.Wildcard => !isUnusedImport(importPosition(i))
