@@ -148,6 +148,9 @@ public interface Scalafix {
      * classload external rules must have the provided classloader as ancestor to share a common loaded instance
      * of `scalafix-core`, and therefore must have been compiled against the same Scala binary version as
      * the one in the classLoader provided here.
+     * <p>
+     * Unless you have an advanced use-case, prefer the high-level overloads that cannot cause runtime errors
+     * due to an invalid classloader hierarchy.
      *
      * @param classLoader Classloader containing the full Scalafix classpath, including the scalafix-cli module. To be
      *                    able to run advanced semantic rules using the Scala Presentation Compiler such as
