@@ -313,9 +313,19 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
         case t: MethodType => loop(t.resultType)
         case RefinedType(parents, _) =>
           // Remove redundant `Product with Serializable`, if possible.
-          val strippedParents = parents.filterNot { tpe =>
-            definitions.isPossibleSyntheticParent(tpe.typeSymbol)
-          }
+          val productRootClass = definitions.ProductClass.seq
+            .toSet[Symbol] + definitions.ProductRootClass
+          val serializableClass = definitions.SerializableClass
+          val strippedParents =
+            if (productRootClass
+                .intersect(parents.map(_.typeSymbol).toSet)
+                .nonEmpty && parents
+                .map(_.typeSymbol)
+                .contains(serializableClass)) {
+              parents.filterNot { tpe =>
+                definitions.isPossibleSyntheticParent(tpe.typeSymbol)
+              }
+            } else parents
           val newParents =
             if (strippedParents.nonEmpty) strippedParents
             else parents
