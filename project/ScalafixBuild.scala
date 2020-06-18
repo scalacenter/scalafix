@@ -262,6 +262,12 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         url("https://github.com/MasseGuillaume")
       ),
       Developer(
+        "mlachkar",
+        "Meriam Lachkar",
+        "meriam.lachkar@gmail.com",
+        url("https://github.com/mlachkar")
+      ),
+      Developer(
         "olafurpg",
         "Ólafur Páll Geirsson",
         "olafurpg@gmail.com",
