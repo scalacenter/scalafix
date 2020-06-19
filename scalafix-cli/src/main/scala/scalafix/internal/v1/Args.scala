@@ -148,7 +148,7 @@ case class Args(
     )
     exclude: List[PathMatcher] = Nil,
     @Description(
-      "Additional classpath for compiling and classloading custom rules."
+      "Additional classpath for compiling and classloading custom rules, as a set of filesystem paths, separated by ':' on Unix or ';' on Windows."
     )
     toolClasspath: URLClassLoader = ClasspathOps.thisClassLoader,
     @Description("The encoding to use for reading/writing files")
