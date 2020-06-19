@@ -39,6 +39,16 @@ object ExplicitResultTypesRefinement {
     override def productElement(n: Int): Any = ???
     override def canEqual(that: Any): Boolean = ???
   }
+  val productWithSerializable: Product with Serializable = new Product with Serializable {
+    override def productArity: Int = ???
+    override def productElement(n: Int): Any = ???
+    override def canEqual(that: Any): Boolean = ???
+  }
+  val test: conflict = new conflict with Product with Serializable {
+    override def productArity: Int = ???
+    override def productElement(n: Int): Any = ???
+    override def canEqual(that: Any): Boolean = ???
+  }
   trait Chars { def chars: CharSequence }
   val chars: Chars = new Chars {
     val chars = 42.toString()

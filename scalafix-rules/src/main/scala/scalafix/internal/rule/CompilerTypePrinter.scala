@@ -1,7 +1,10 @@
 package scalafix.internal.rule
 
+import scalafix.internal.compat.CompilerCompat
+
 import scala.meta.internal.pc.ScalafixGlobal
 import scalafix.v1
+
 import scala.{meta => m}
 import scala.meta.internal.proxy.GlobalProxy
 import scala.collection.mutable
@@ -222,6 +225,7 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
 
   private def isPossibleSyntheticParent(tpe: Type): Boolean = {
     definitions.isPossibleSyntheticParent(tpe.typeSymbol) ||
+    CompilerCompat.serializableClass(g).toSet[Symbol](tpe.typeSymbol) ||
     definitions.AnyRefTpe == tpe ||
     definitions.ObjectTpe == tpe
   }
@@ -315,16 +319,16 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
           // Remove redundant `Product with Serializable`, if possible.
           val productRootClass = definitions.ProductClass.seq
             .toSet[Symbol] + definitions.ProductRootClass
-          val serializableClass = definitions.SerializableClass
+          val serializableClass =
+            CompilerCompat.serializableClass(g).toSet[Symbol]
+          val parentSymbol = parents.map(_.typeSymbol).toSet
           val strippedParents =
-            if (productRootClass
-                .intersect(parents.map(_.typeSymbol).toSet)
-                .nonEmpty && parents
-                .map(_.typeSymbol)
-                .contains(serializableClass)) {
-              parents.filterNot { tpe =>
-                definitions.isPossibleSyntheticParent(tpe.typeSymbol)
-              }
+            if (parentSymbol
+                .intersect(productRootClass)
+                .nonEmpty && parentSymbol
+                .intersect(serializableClass)
+                .nonEmpty) {
+              parents.filterNot(isPossibleSyntheticParent)
             } else parents
           val newParents =
             if (strippedParents.nonEmpty) strippedParents
