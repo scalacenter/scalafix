@@ -207,9 +207,14 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   }
 
   private def expandRelative(importer: Importer)(implicit doc: SemanticDocument): Importer = {
-    // NOTE: An `Importer.Ref` instance constructed by `toRef` does NOT contain symbol information
-    // since it's not parsed from the source file.
-    def toRef(symbol: Symbol): Term.Ref = {
+
+    /**
+     * Converts a `Symbol` into a fully-qualified `Term.Ref`.
+     *
+     * NOTE: The returned `Term.Ref` does NOT contain symbol information since it's not parsed from
+     * the source file.
+     */
+    def toFullyQualifiedRef(symbol: Symbol): Term.Ref = {
       val owner = symbol.owner
       // When importing names defined within package objects, skip the `package` part for brevity.
       // For instance, with the following definition:
@@ -220,12 +225,13 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       // is also valid, but unnecessarily lengthy.
       //
       // See https://github.com/liancheng/scalafix-organize-imports/issues/55.
-      if (symbol.infoNoThrow exists (_.isPackageObject)) toRef(owner)
+      if (symbol.infoNoThrow exists (_.isPackageObject)) toFullyQualifiedRef(owner)
       else if (owner.isRootPackage || owner.isEmptyPackage) Term.Name(symbol.displayName)
-      else Term.Select(toRef(owner), Term.Name(symbol.displayName))
+      else Term.Select(toFullyQualifiedRef(owner), Term.Name(symbol.displayName))
     }
 
-    importer.copy(ref = toRef(importer.ref.symbol))
+    val fullyQualifiedTopQualifier = toFullyQualifiedRef(topQualifierOf(importer.ref).symbol)
+    importer.copy(ref = replaceTopQualifier(importer.ref, fullyQualifiedTopQualifier))
   }
 
   private def groupImporters(importers: Seq[Importer]): Seq[Seq[Importer]] =
@@ -260,7 +266,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
       importer match {
         case Importer(_, Importee.Wildcard() :: Nil) =>
-          syntax.patch(syntax.lastIndexOfSlice("._"), ".\u0001", 2)
+          syntax.patch(syntax.lastIndexOfSlice("._"), ".\u0000", 2)
 
         case _ if importer.isCurlyBraced =>
           syntax
@@ -400,6 +406,15 @@ object OrganizeImports {
     term match {
       case Term.Select(qualifier, _) => topQualifierOf(qualifier)
       case name: Term.Name           => name
+    }
+
+  /** Replaces the top-qualifier of the input `term` with a new term `newTopQualifier`. */
+  private def replaceTopQualifier(term: Term, newTopQualifier: Term.Ref): Term.Ref =
+    term match {
+      case _: Term.Name =>
+        newTopQualifier
+      case Term.Select(qualifier, name) =>
+        Term.Select(replaceTopQualifier(qualifier, newTopQualifier), name)
     }
 
   private def sortImporteesSymbolsFirst(importees: List[Importee]): List[Importee] = {
