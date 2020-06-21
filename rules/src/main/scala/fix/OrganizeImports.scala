@@ -225,8 +225,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       else Term.Select(toRef(owner), Term.Name(symbol.displayName))
     }
 
-    if (importer.ref.symbol.isNone) importer // #64
-    else importer.copy(ref = toRef(importer.ref.symbol))
+    importer.copy(ref = toRef(importer.ref.symbol))
   }
 
   private def groupImporters(importers: Seq[Importer]): Seq[Seq[Importer]] =
@@ -342,9 +341,25 @@ object OrganizeImports {
   }
 
   private def isFullyQualified(importer: Importer)(implicit doc: SemanticDocument): Boolean = {
-    val topQualifier = topQualifierOf(importer.ref)
-    val owner = topQualifier.symbol.owner
-    topQualifier.value == "_root_" || owner.isRootPackage || owner.isEmptyPackage
+    val topjualifier = topQualifierOf(importer.ref).symbol
+    val owner = topQualifier.owner
+    (
+      // The top-qualifier itself is _root_, e.g.: import _root_.scala.util
+      topQualifier.isRootPackage
+      // The owner of the top-qualifier is _root_, e.g.: import scala.util
+      || owner.isRootPackage
+      // The top-qualifier is a top-level class/trait/object defined under no packages. In this
+      // case, Scalameta defines the owner to be the empty package.
+      || owner.isEmptyPackage
+      // Sometimes, symbols of the top-qualifier or its owner may not be found due to unknwon
+      // reasons (see https://github.com/liancheng/scalafix-organize-imports/issues/64). In this
+      // case, although not 100% safe, here we tentatively assume that the input importer is
+      // fully-qualified. This is because in all reported cases discussed in issue #64, all the
+      // importers in question are fully-qualified. We should dig deeper into it and enumerate the
+      // reasons why a symbol can be missing and handle them accordingly.
+      || topQualifier.isNone
+      || owner.isNone
+    )
   }
 
   private def prettyPrintImportGroup(group: Seq[Importer]): String =
