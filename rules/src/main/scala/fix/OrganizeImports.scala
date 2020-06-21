@@ -266,7 +266,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
       importer match {
         case Importer(_, Importee.Wildcard() :: Nil) =>
-          syntax.patch(syntax.lastIndexOfSlice("._"), ".\u0000", 2)
+          syntax.patch(syntax.lastIndexOfSlice("._"), ".\u0001", 2)
 
         case _ if importer.isCurlyBraced =>
           syntax
