@@ -53,10 +53,12 @@ then you might want to be more careful with corner cases.
 
 Is your rule specific to a particular codebase or is the rule intended to be
 used for any arbitrary project? It's easier to validate a rule if it will only
-run on a single codebase. You may not even need tests, since the codebase is the
-only test. If your rule is intended to be used in any random codebase, you need
-to put more effort into handling corner cases. In general, the smaller the
-target domain of your rule, the easier it is to implement a rule.
+run on a single codebase. You may not even need tests, since the codebase is
+the only test. In that case, you may also develop your rules [as part of the
+same build as your codebase](local-rules.md), to avoid versioning & publishing
+them. If your rule is intended to be used in any random codebase, you need to
+put more effort into handling corner cases. In general, the smaller the target
+domain of your rule, the easier it is to implement a rule.
 
 ## How often will your rule run?
 

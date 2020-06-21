@@ -18,7 +18,8 @@
     "Implementing rules": [
       "developers/setup",
       "developers/before-you-begin",
-      "developers/tutorial"
+      "developers/tutorial",
+      "developers/local-rules"
     ],
     "API Reference": [
       "developers/api",
