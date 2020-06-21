@@ -321,7 +321,7 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
             .toSet[Symbol] + definitions.ProductRootClass
           val serializableClass =
             CompilerCompat.serializableClass(g).toSet[Symbol]
-          val parentSymbol = parents.map(_.typeSymbol).toSet
+          val parentSymbols = parents.map(_.typeSymbol).toSet
           val strippedParents =
             if (parentSymbol
                 .intersect(productRootClass)
