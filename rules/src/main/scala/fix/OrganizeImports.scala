@@ -260,7 +260,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
       importer match {
         case Importer(_, Importee.Wildcard() :: Nil) =>
-          syntax.patch(syntax.lastIndexOfSlice("._"), ".\u0000", 2)
+          syntax.patch(syntax.lastIndexOfSlice("._"), ".\u0001", 2)
 
         case _ if importer.isCurlyBraced =>
           syntax
@@ -341,7 +341,7 @@ object OrganizeImports {
   }
 
   private def isFullyQualified(importer: Importer)(implicit doc: SemanticDocument): Boolean = {
-    val topjualifier = topQualifierOf(importer.ref).symbol
+    val topQualifier = topQualifierOf(importer.ref).symbol
     val owner = topQualifier.owner
     (
       // The top-qualifier itself is _root_, e.g.: import _root_.scala.util
@@ -364,12 +364,16 @@ object OrganizeImports {
 
   private def prettyPrintImportGroup(group: Seq[Importer]): String =
     group
-      .map { i => "import " + fixedImporterSyntax(i) }
+      .map(i => "import " + fixedImporterSyntax(i))
       .mkString("\n")
 
-  // HACK: The scalafix pretty-printer decides to add spaces after open and before close braces in
-  // imports, i.e., "import a.{ b, c }" instead of "import a.{b, c}". Unfortunately, this behavior
-  // cannot be overriden. This function removes the unwanted spaces as a workaround.
+  /**
+   * HACK: The Scalafix pretty-printer decides to add spaces after open and before close braces in
+   * imports, i.e., `import a.{ b, c }` instead of `import a.{b, c}`. Unfortunately, this behavior
+   * cannot be overriden. This function removes the unwanted spaces as a workaround. In cases where
+   * users do want the inserted spaces, Scalafmt should be used after running the `OrganizeImports`
+   * rule.
+   */
   private def fixedImporterSyntax(importer: Importer): String =
     importer.pos match {
       case pos: Position.Range =>
@@ -537,7 +541,7 @@ object OrganizeImports {
     }
 
   private def explodeImportees(importers: Seq[Importer]): Seq[Importer] =
-    importers.flatMap {
+    importers flatMap {
       case importer @ Importer(_, _ :: Nil) =>
         // If the importer has exactly one importee, returns it as is to preserve the original
         // source level formatting.
@@ -561,7 +565,14 @@ object OrganizeImports {
         importer.importees map (i => importer.copy(importees = i :: Nil))
     }
 
-  // An extractor that categorizes a list of `Importee`s into different groups.
+  /**
+   * Categorizes a list of `Importee`s into the following four groups:
+   *
+   *  - Names, e.g., `Seq`, `Option`, etc.
+   *  - Renames, e.g., `{Long => JLong}`, `{Duration => D}`, etc.
+   *  - Unimports, e.g., `{Foo => _}`.
+   *  - Wildcard, i.e., `_`.
+   */
   object Importees {
     def unapply(importees: Seq[Importee]): Option[
       (
@@ -615,17 +626,22 @@ object OrganizeImports {
     Patch.addLeft(token, indentedOutput mkString "\n")
   }
 
-  // HACK: In certain cases, `Symbol#info` may throw `MissingSymbolException` due to some unknown
-  // reason. This implicit class adds a safe version of `Symbol#info` to return `None` instead of
-  // throw an exception when this happens.
-  //
-  // See https://github.com/scalacenter/scalafix/issues/1123
   implicit private class SymbolExtension(symbol: Symbol) {
+
+    /**
+     * HACK: In certain cases, `Symbol#info` may throw `MissingSymbolException` due to some unknown
+     * reason. This implicit class adds a safe version of `Symbol#info` to return `None` instead of
+     * throw an exception when this happens.
+     *
+     * See [[https://github.com/scalacenter/scalafix/issues/1123 issue #1123]].
+     */
     def infoNoThrow(implicit doc: SemanticDocument): Option[SymbolInformation] =
       Try(symbol.info).toOption.flatten
   }
 
   implicit private class ImporterExtension(importer: Importer) {
+
+    /** Checks whether the `Importer` is curly-braced when pretty-printed. */
     def isCurlyBraced: Boolean =
       importer.importees match {
         case Importees(_, _ :: _, _, _)        => true // At least one rename
@@ -634,10 +650,12 @@ object OrganizeImports {
         case _                                 => false
       }
 
-    // Returns an importer with all the importees selected from the input importer that satisfy a
-    // predicate. If all the importees are selected, the input importer instance is returned to
-    // preserve the original source level formatting. If none of the importees are selected, returns
-    // a `None`.
+    /**
+     * Returns an `Importer` with all the `Importee`s selected from the input `Importer` that
+     * satisfy a predicate. If all the `Importee`s are selected, the input `Importer` instance is
+     * returned to preserve the original source level formatting. If none of the `Importee`s are
+     * selected, returns a `None`.
+     */
     def filterImportees(f: Importee => Boolean): Option[Importer] = {
       val filtered = importer.importees filter f
       if (filtered.length == importer.importees.length) Some(importer)
