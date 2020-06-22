@@ -352,11 +352,14 @@ object OrganizeImports {
     (
       // The top-qualifier itself is _root_, e.g.: import _root_.scala.util
       topQualifier.isRootPackage
+
       // The owner of the top-qualifier is _root_, e.g.: import scala.util
       || owner.isRootPackage
+
       // The top-qualifier is a top-level class/trait/object defined under no packages. In this
       // case, Scalameta defines the owner to be the empty package.
       || owner.isEmptyPackage
+
       // Sometimes, symbols of the top-qualifier or its owner may not be found due to unknwon
       // reasons (see https://github.com/liancheng/scalafix-organize-imports/issues/64). In this
       // case, although not 100% safe, here we tentatively assume that the input importer is
