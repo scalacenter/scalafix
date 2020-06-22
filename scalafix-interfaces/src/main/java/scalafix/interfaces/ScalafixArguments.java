@@ -67,9 +67,11 @@ public interface ScalafixArguments {
     /**
      * @param toolClasspath Custom classpath for classloading and compiling external rules.
      *                      Must be a URLClassLoader (not regular ClassLoader) to support
-     *                      compiling sources. This classloader should have as ancestor the
+     *                      compiling sources. This classloader must have as ancestor the
      *                      classloader of the {@link Scalafix} instance that returned this
-     *                      {@link ScalafixArguments} instance.
+     *                      {@link ScalafixArguments} instance. Unless you have an advanced
+     *                      use-case, prefer the high-level overloads that cannot cause
+     *                      runtime errors due to an invalid classloader hierarchy.
      */
     ScalafixArguments withToolClasspath(URLClassLoader toolClasspath);
 
