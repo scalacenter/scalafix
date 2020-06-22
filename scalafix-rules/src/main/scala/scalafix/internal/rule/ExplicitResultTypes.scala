@@ -1,5 +1,6 @@
 package scalafix.internal.rule
 
+import buildinfo.RulesBuildInfo
 import scala.meta._
 import scala.meta.contrib._
 import scalafix.patch.Patch
@@ -9,7 +10,6 @@ import metaconfig.Configured
 import scala.meta.internal.pc.ScalafixGlobal
 import scalafix.internal.v1.LazyValue
 import scala.util.control.NonFatal
-import scala.util.Properties
 import scalafix.internal.compat.CompilerCompat._
 
 final class ExplicitResultTypes(
@@ -18,11 +18,14 @@ final class ExplicitResultTypes(
 ) extends SemanticRule("ExplicitResultTypes") {
 
   def this() = this(ExplicitResultTypesConfig.default, LazyValue.now(None))
+  val supportedScalaVersions = RulesBuildInfo.supportedScalaVersions
+  val compilerScalaVersion = RulesBuildInfo.scalaVersion
 
-  private def supportedScalaVersion = Properties.versionNumberString
+  private def toBinaryVersion(v: String) = v.split('.').take(2).mkString(".")
+
   override def description: String =
     "Inserts type annotations for inferred public members. " +
-      s"Only compatible with Scala $supportedScalaVersion."
+      s"Only compatible with Scala ${supportedScalaVersions.mkString(",")}."
   override def isRewrite: Boolean = true
 
   override def afterComplete(): Unit = {
@@ -57,12 +60,24 @@ final class ExplicitResultTypes(
           )
         }
       }
-    if (config.scalacClasspath.nonEmpty && config.scalaVersion != supportedScalaVersion) {
-      Configured.error(
-        s"The ExplicitResultTypes rule only supports the Scala version '$supportedScalaVersion'. " +
-          s"To fix this problem, either remove `ExplicitResultTypes` from .scalafix.conf or change the Scala version " +
-          s"in your build to match exactly '$supportedScalaVersion'."
-      )
+    if (config.scalacClasspath.nonEmpty && !supportedScalaVersions.contains(
+        config.scalaVersion
+      )) {
+      val inputBinaryScalaVersion =
+        toBinaryVersion(config.scalaVersion)
+      val runtimeBinaryScalaVersion =
+        toBinaryVersion(compilerScalaVersion)
+      if (inputBinaryScalaVersion == runtimeBinaryScalaVersion)
+        Configured.error(
+          s"The ExplicitResultTypes rule only supports the exact Scala versions '$supportedScalaVersions' for this binary version. " +
+            s"To fix this problem, either remove ExplicitResultTypes from .scalafix.conf " +
+            s"or change the Scala version of your build to match one of the supported versions."
+        )
+      else
+        Configured.error(
+          s"The ExplicitResultTypes rule needs to run with the same Scala binary version as the one used to compile target sources ($inputBinaryScalaVersion). " +
+            s"To fix this problem, either remove ExplicitResultTypes from .scalafix.conf or make sure the scalafixScalaBinaryVersion setting key matches $inputBinaryScalaVersion."
+        )
     } else {
       config.conf // Support deprecated explicitReturnTypes config
         .getOrElse("explicitReturnTypes", "ExplicitResultTypes")(
