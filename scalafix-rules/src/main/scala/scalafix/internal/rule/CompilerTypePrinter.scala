@@ -323,9 +323,9 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
             CompilerCompat.serializableClass(g).toSet[Symbol]
           val parentSymbols = parents.map(_.typeSymbol).toSet
           val strippedParents =
-            if (parentSymbol
+            if (parentSymbols
                 .intersect(productRootClass)
-                .nonEmpty && parentSymbol
+                .nonEmpty && parentSymbols
                 .intersect(serializableClass)
                 .nonEmpty) {
               parents.filterNot(isPossibleSyntheticParent)

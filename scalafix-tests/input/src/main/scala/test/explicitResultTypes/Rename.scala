@@ -8,6 +8,6 @@ import java.lang.{Boolean => JBoolean}
 
 object Rename {
   type List = Int
-  def foo(a: Int*) = identity(a.toList)
+  def foo(a: Int): LList[Int] = List(a)
   def foo = identity(JBoolean.TRUE)
 }
