@@ -10,4 +10,6 @@ object ImmutableSeq {
   def scalaSeq(): scala.Seq[Int] = Seq.empty[Int]
   def foo = seq()
   def scalaFoo = scalaSeq()
+
+  def foo(a: Int*) = identity(a.toList)
 }

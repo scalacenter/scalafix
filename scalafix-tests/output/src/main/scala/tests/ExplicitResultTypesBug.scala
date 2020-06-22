@@ -1,4 +1,3 @@
-
 package tests
 
 import scala.reflect.runtime.universe._
@@ -35,16 +34,6 @@ object ExplicitResultTypesBug {
   case class Foo(a: Int) {
     def apply(x: Int): Int = x
   }
-
-  trait Trait {
-    def foo: Map[Int, String]
-    def message: CharSequence
-  }
-  object Overrides extends Trait {
-    val foo: Map[Int,String] = Map.empty
-    val message: CharSequence = s"hello $foo"
-  }
-
   abstract class Opt[T] {
     def get(e: T): T
   }

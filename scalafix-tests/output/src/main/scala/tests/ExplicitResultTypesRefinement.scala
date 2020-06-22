@@ -30,11 +30,25 @@ object ExplicitResultTypesRefinement {
   class tparam[T <: CharSequence](e: T) extends Serializable {
     val results: List[Int] = List(e.length())
   }
-  //todo: in 2.13, the type found is AnyRef
-  //  val access = new Serializable {
-  //    private val results: List[Int] = List.empty
-  //    protected val results2: List[Int] = List.empty
-  //  }
+  val access: Serializable = new Serializable {
+    private val results: List[Int] = List.empty
+    protected val results2: List[Int] = List.empty
+  }
+  val product: Product = new Product {
+    override def productArity: Int = ???
+    override def productElement(n: Int): Any = ???
+    override def canEqual(that: Any): Boolean = ???
+  }
+  val productWithSerializable: Product with Serializable = new Product with Serializable {
+    override def productArity: Int = ???
+    override def productElement(n: Int): Any = ???
+    override def canEqual(that: Any): Boolean = ???
+  }
+  val test: conflict = new conflict with Product with Serializable {
+    override def productArity: Int = ???
+    override def productElement(n: Int): Any = ???
+    override def canEqual(that: Any): Boolean = ???
+  }
   trait Chars { def chars: CharSequence }
   val chars: Chars = new Chars {
     val chars = 42.toString()
