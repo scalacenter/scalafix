@@ -10,7 +10,7 @@ import java.nio.file.Paths
 import java.util.Collections
 import java.util.Optional
 import coursier._
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import scala.collection.JavaConverters._
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
@@ -26,7 +26,7 @@ import scalafix.testkit.DiffAssertions
 import scalafix.{interfaces => i}
 import scala.util.Properties
 
-class ScalafixImplSuite extends FunSuite with DiffAssertions {
+class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
   def semanticdbPluginPath(): String = {
     val semanticdbscalac = ClasspathOps.thisClassLoader.getURLs.collectFirst {
       case url if url.toString.contains("semanticdb-scalac_") =>

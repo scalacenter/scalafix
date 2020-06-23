@@ -1,6 +1,6 @@
 package scalafix.tests.util
 import java.nio.charset.StandardCharsets
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import scala.meta.internal.io.FileIO
 import scala.meta.io.AbsolutePath
 import scalafix.testkit.DiffAssertions
@@ -8,7 +8,7 @@ import scalafix.tests.BuildInfo
 import scalafix.tests.core.BaseSemanticSuite
 import scalafix.v1.SemanticDocument
 
-trait ExpectSuite extends FunSuite with DiffAssertions {
+trait ExpectSuite extends AnyFunSuite with DiffAssertions {
   def filename: String
   def obtained(): String
 

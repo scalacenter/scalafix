@@ -4,7 +4,7 @@ import java.net.URL
 import java.nio.file.{Files, Path}
 
 import coursierapi.Repository
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.interfaces.{Scalafix, ScalafixDiagnostic, ScalafixMainCallback}
 import scalafix.internal.tests.utils.SkipWindows
 
@@ -15,7 +15,7 @@ import scala.jdk.CollectionConverters._
  * That is done automatically as part of `sbt unit/test`, but if you run this from any other way, running
  * `sbt cli/crossPublishLocalBinTransitive` is a prerequisite.
  */
-class ScalafixSuite extends FunSuite {
+class ScalafixSuite extends AnyFunSuite {
 
   def tmpFile(prefix: String, suffix: String)(content: String): Path = {
     val path = Files.createTempFile(prefix, suffix)

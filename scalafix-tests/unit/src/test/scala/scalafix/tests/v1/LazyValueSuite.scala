@@ -1,8 +1,8 @@
 package scalafix.tests.v1
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.internal.v1.LazyValue
 
-class LazyValueSuite extends FunSuite {
+class LazyValueSuite extends AnyFunSuite {
   test("now") {
     var i = 0
     val now = LazyValue.now {

@@ -9,11 +9,11 @@ import coursier._
 import metaconfig.Conf
 import scala.meta.io.AbsolutePath
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.tests.util.ScalaVersions
 import scalafix.v1.RuleDecoder
 
-class ToolClasspathSuite extends FunSuite with BeforeAndAfterAll {
+class ToolClasspathSuite extends AnyFunSuite with BeforeAndAfterAll {
   var scalafmtClasspath: List[AbsolutePath] = _
   override def beforeAll(): Unit = {
     val jars =

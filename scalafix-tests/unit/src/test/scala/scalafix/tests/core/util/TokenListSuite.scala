@@ -1,12 +1,12 @@
 package scalafix.tests.core.util
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.meta._
 import scala.meta.dialects.Scala211
 import scalafix.util.TokenList
 
-class TokenListSuite extends FunSuite {
+class TokenListSuite extends AnyFunSuite {
 
   val tokens =
     """package foo

@@ -118,11 +118,14 @@ artifact
 cs fetch ch.epfl.scala:scalafix-testkit_@SCALA212@:@VERSION@
 ```
 
-Next, create a test suite that extends the class `SemanticRuleSuite`
+Next, create a test suite that extends `AbstractSemanticRuleSuite`
 
 ```scala
 package myproject
-class MyTests extends scalafix.testkit.SemanticRuleSuite {
+class MyTests
+    extends scalafix.testkit.AbstractSemanticRuleSuite
+    with org.scalatest.funsuite.AnyFunSuiteLike {
+
   runAllTests()
 }
 ```

@@ -2,7 +2,7 @@ package scalafix.tests.core
 
 import java.nio.file.Paths
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.{DiffDisable, EmptyDiff, NewFile}
 import scalafix.internal.patch.EscapeHatch
@@ -17,7 +17,7 @@ import scala.meta.{Source, Tree}
 import scala.meta.contrib.AssociatedComments
 import scala.meta.inputs.Input
 
-class EscapeHatchSuite extends FunSuite {
+class EscapeHatchSuite extends AnyFunSuite {
 
   private val noEscapes = Input.String(
     """object Foo"""

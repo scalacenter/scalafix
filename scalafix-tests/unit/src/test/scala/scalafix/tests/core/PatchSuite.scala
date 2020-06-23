@@ -3,14 +3,17 @@ package scalafix.tests.core
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
+
+import org.scalatest.funsuite.AnyFunSuiteLike
+
 import scala.meta._
 import scala.meta.tokens.Token.Ident
 import scalafix.v0.Rule
-import scalafix.testkit.SyntacticRuleSuite
+import scalafix.testkit.AbstractSyntacticRuleSuite
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.patch.Patch
 
-class PatchSuite extends SyntacticRuleSuite {
+class PatchSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
 
   val original: String =
     """// Foobar

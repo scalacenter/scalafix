@@ -182,7 +182,7 @@ lazy val unit = project
     libraryDependencies ++= List(
       jgit,
       semanticdbPluginLibrary,
-      scalatest,
+      scalatest.withRevision("3.2.0"), // make sure testkit clients can use recent 3.x versions
       "org.scalameta" %% "testkit" % scalametaV
     ),
     compileInputs.in(Compile, compile) := {

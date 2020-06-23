@@ -1,13 +1,13 @@
 package scalafix.tests.config
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import metaconfig.Configured
 import metaconfig.Configured.NotOk
 import metaconfig.ConfError
 import metaconfig.typesafeconfig._
 import scalafix.internal.rule._
 
-class DisableSyntaxConfigSuite extends FunSuite {
+class DisableSyntaxConfigSuite extends AnyFunSuite {
   test("Warn about invalid keywords") {
     val rawConfig =
       """|keywords = [

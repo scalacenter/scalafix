@@ -1,9 +1,9 @@
 package scalafix.tests.cli
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.Versions
 
-class InterfacesPropertiesSuite extends FunSuite with BeforeAndAfterAll {
+class InterfacesPropertiesSuite extends AnyFunSuite with BeforeAndAfterAll {
   val props = new java.util.Properties()
   override def beforeAll(): Unit = {
     val path = "scalafix-interfaces.properties"
