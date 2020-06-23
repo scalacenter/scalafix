@@ -25,7 +25,6 @@ def inferJavaHome() = {
 lazy val interfaces = project
   .in(file("scalafix-interfaces"))
   .settings(
-    noMima,
     resourceGenerators.in(Compile) += Def.task {
       val props = new java.util.Properties()
       props.put("scalafixVersion", version.value)
@@ -156,7 +155,6 @@ lazy val testsOutput = project
 lazy val testkit = project
   .in(file("scalafix-testkit"))
   .settings(
-    noMima,
     moduleName := "scalafix-testkit",
     isFullCrossVersion,
     libraryDependencies ++= Seq(

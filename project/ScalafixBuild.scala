@@ -212,12 +212,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         s"unit/testOnly -- -l scalafix.internal.tests.utils.SkipWindows" ::
         s
     },
-    commands += Command.command("mima") { s =>
-      // Disabled until v0.6.0 stable
-      // "scalafix/mimaReportBinaryIssues" ::
-      //   "scalafix211/mimaReportBinaryIssues" ::
-      s
-    },
     // There is flakyness in CliGitDiffTests and CliSemanticTests
     parallelExecution.in(Test) := false,
     credentials ++= {
@@ -289,10 +283,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion = Map(
-    "2.11.12" -> "2.11.11",
-    "2.12.4" -> "2.12.3",
-    "2.12.8" -> "2.12.7",
-    "2.12.10" -> "2.12.8"
+    "2.13.3" -> "2.13.2"
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
@@ -312,15 +303,16 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       )
     ),
     mimaPreviousArtifacts := {
-      val previousArtifactVersion = "0.9.6"
-      // NOTE(olafur) shudder, can't figure out simpler way to do the same.
-      val binaryVersion =
-        if (crossVersion.value.isInstanceOf[CrossVersion.Full]) {
-          val version = scalaVersion.value
-          PreviousScalaVersion.getOrElse(version, version)
-        } else scalaBinaryVersion.value
+      val currentScalaFullV = scalaVersion.value
+      val previousScalaFullV =
+        PreviousScalaVersion.getOrElse(currentScalaFullV, currentScalaFullV)
+      val previousScalaVCrossName = CrossVersion(
+        crossVersion.value,
+        previousScalaFullV,
+        scalaBinaryVersion.value
+      ).getOrElse(identity[String] _)(moduleName.value)
       Set(
-        organization.value % s"${moduleName.value}_$binaryVersion" % previousArtifactVersion
+        organizationName.value % previousScalaVCrossName % stableVersion.value
       )
     },
     mimaBinaryIssueFilters ++= Mima.ignoredABIProblems,
