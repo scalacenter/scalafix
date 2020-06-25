@@ -54,7 +54,10 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     config.conf.getOrElse("OrganizeImports")(OrganizeImportsConfig()) andThen { conf =>
       val hasWarnUnused = {
         val warnUnusedPrefix = Set("-Wunused", "-Ywarn-unused")
-        config.scalacOptions exists { option => warnUnusedPrefix exists option.startsWith }
+        val warnUnusedString = Set("-Xlint", "-Xlint:unused")
+        config.scalacOptions exists { option =>
+          (warnUnusedPrefix exists option.startsWith) || (warnUnusedString apply option)
+        }
       }
 
       if (!conf.removeUnused || hasWarnUnused)
@@ -63,8 +66,8 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
         Configured.error(
           "The Scala compiler option \"-Ywarn-unused\" is required to use OrganizeImports with"
             + " \"OrganizeImports.removeUnused\" set to true. To fix this problem, update your"
-            + " build to use at least one Scala compiler option that starts with -Ywarn-unused"
-            + " or -Wunused (2.13 only)"
+            + " build to use at least one Scala compiler option like -Ywarn-unused,"
+            + " -Xlint:unused (2.12.2 or above) or -Wunused (2.13 only)"
         )
     }
 
