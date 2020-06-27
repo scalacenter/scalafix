@@ -51,7 +51,7 @@ object ExplicitResultTypesRefinement {
   }
   trait Chars { def chars: CharSequence }
   val chars: Chars = new Chars {
-    val chars = 42.toString()
+    val chars: String = 42.toString()
   }
   def app(): Unit = {
     println(field.results)
