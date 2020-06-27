@@ -244,8 +244,20 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       .sortBy { case (index, _) => index } // Sorts import groups by group index
       .map {
         // Organize imports within the same group.
-        case (_, importers) => organizeImportGroup(importers)
+        case (_, importers) => organizeImportGroup(deduplicateImportees(importers))
       }
+
+  private def deduplicateImportees(importers: Seq[Importer]): Seq[Importer] = {
+    // Scalameta `Tree` nodes do not provide structural equality comparisons, here we pretty-print
+    // them and compare the string results.
+    val seenImportees = mutable.Set.empty[(String, String)]
+
+    importers flatMap { importer =>
+      importer filterImportees { importee =>
+        importee.is[Importee.Wildcard] || seenImportees.add(importee.syntax -> importer.ref.syntax)
+      }
+    }
+  }
 
   private def organizeImportGroup(importers: Seq[Importer]): Seq[Importer] = {
     val importeesSorted = locally {

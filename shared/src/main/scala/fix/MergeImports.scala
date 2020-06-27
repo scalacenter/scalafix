@@ -39,4 +39,10 @@ object MergeImports {
     object b
     object c
   }
+
+  object Dedup {
+    object a
+    object b
+    object c
+  }
 }

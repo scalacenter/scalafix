@@ -8,8 +8,8 @@ OrganizeImports {
 package fix
 
 import scala.collection.immutable.{Seq, Map, Vector}
-import scala.collection.immutable.{Seq, Map, Vector, Set}
-import scala.collection.immutable.{Seq, Map, Vector => Vec, Set, Stream}
-import scala.collection.immutable.{Seq, Map, Vector => _, Set, Stream}
+import scala.collection.mutable.{Buffer, Seq, Map, Set}
+import scala.concurrent.{Await, Channel => Ch, Future, Promise, duration}
+import scala.util.{Either, Random => _, Try, Success, Failure}
 
 object CoalesceImportees
