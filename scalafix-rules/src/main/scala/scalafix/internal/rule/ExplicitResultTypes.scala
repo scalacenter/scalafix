@@ -167,7 +167,7 @@ final class ExplicitResultTypes(
       defn.parent.exists(_.is[Template])
 
     def isLocal: Boolean =
-      if (config.skipLocalImplicits) nm.symbol.isLocal
+      if (config.skipLocalImplicits) nm.symbol.isLocal && !hasParentWihTemplate
       else false
 
     isImplicit && !isFinalLiteralVal && !isLocal || {
