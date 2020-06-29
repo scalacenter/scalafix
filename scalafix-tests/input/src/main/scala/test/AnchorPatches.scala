@@ -5,7 +5,7 @@ ExplicitResultTypes.memberVisibility = [Public]
 unsafeShortenNames = true
 ExplicitResultTypes.unsafeShortenNames = true
  */
-package test.escapeHatch
+package test
 
 import scala.collection.mutable
 import scala.collection.immutable // scalafix:ok RemoveUnusedImports
