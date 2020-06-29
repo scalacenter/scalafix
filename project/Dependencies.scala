@@ -2,12 +2,12 @@ import sbt._
 /* scalafmt: { maxColumn = 120 }*/
 
 object Dependencies {
-  val scalametaV = "4.3.15"
+  val scalametaV = "4.3.16"
   val metaconfigV = "0.9.10"
   def scala210 = "2.10.7"
   def scala211 = "2.11.12"
   def scala212 = "2.12.11"
-  def scala213 = "2.13.2"
+  def scala213 = "2.13.3"
   def coursierV = "2.0.0-RC5-6"
   def coursierInterfaceV = "0.0.22"
   val currentScalaVersion = scala213
