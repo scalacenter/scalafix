@@ -1,7 +1,7 @@
 package scalafix.tests.core
 
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import scala.meta._
 import scala.meta.internal.io.PathIO
 import scala.meta.internal.symtab.SymbolTable
@@ -36,7 +36,7 @@ object BaseSemanticSuite {
 }
 
 abstract class BaseSemanticSuite(filename: String)
-    extends FunSuite
+    extends AnyFunSuite
     with BeforeAndAfterAll
     with DiffAssertions {
   var _db: LegacyInMemorySemanticdbIndex = _

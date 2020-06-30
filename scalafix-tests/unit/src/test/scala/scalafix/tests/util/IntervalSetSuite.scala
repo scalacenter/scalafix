@@ -1,11 +1,11 @@
 package scalafix.tests.util
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import org.scalactic.source.Position
 
 import scalafix.internal.util.IntervalSet
 
-class IntervalSetSuite extends FunSuite {
+class IntervalSetSuite extends AnyFunSuite {
   test("contains") {
     val set = IntervalSet(Seq((1, 2), (4, 5)))
     assert(!set.contains(0))

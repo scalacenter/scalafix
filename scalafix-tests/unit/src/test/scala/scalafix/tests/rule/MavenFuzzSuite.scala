@@ -2,7 +2,7 @@ package scalafix.tests.rule
 
 import coursier._
 import scala.collection.JavaConverters._
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.testkit.DiffAssertions
 import scalafix.interfaces.Scalafix
 import java.nio.file.Files
@@ -20,7 +20,7 @@ import java.nio.file.Paths
 import org.scalatest.Ignore
 
 @Ignore // Ignored because this test is very slow.
-class MavenFuzzSuite extends FunSuite with DiffAssertions {
+class MavenFuzzSuite extends AnyFunSuite with DiffAssertions {
   private def getCompilingSources(
       g: ScalafixGlobal,
       classfiles: Seq[Path],

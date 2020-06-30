@@ -52,6 +52,8 @@ object Mima {
       ProblemFilters.exclude[DirectMissingMethodProblem]("scalafix.testkit.SemanticRuleSuite.LintAssertion"),
       ProblemFilters.exclude[MissingClassProblem]("scalafix.testkit.package$"),
       ProblemFilters.exclude[MissingClassProblem]("scalafix.testkit.package"),
+      ProblemFilters.exclude[MissingTypesProblem]("scalafix.testkit.DiffAssertions"),
+      ProblemFilters.exclude[MissingTypesProblem]("scalafix.testkit.SemanticRuleSuite"),
       // marked private[scalafix]
       ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.rule.RuleCtx.printLintMessage"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.rule.RuleCtx.filter"),

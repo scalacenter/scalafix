@@ -1,11 +1,11 @@
 package scalafix.tests.reflect
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.internal.reflect.RuleInstrumentation
 import metaconfig.Configured
 import scala.meta.inputs.Input
 
-class RuleInstrumentationSuite extends FunSuite {
+class RuleInstrumentationSuite extends AnyFunSuite {
   def check(name: String, original: String, expected: List[String]): Unit = {
     test(name) {
       val Configured.Ok(obtained) =

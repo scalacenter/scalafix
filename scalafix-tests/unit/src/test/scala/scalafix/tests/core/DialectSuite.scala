@@ -1,11 +1,13 @@
 package scalafix.tests.core
 
+import org.scalatest.funsuite.AnyFunSuiteLike
+
 import scala.meta._
 import scalafix.v0.Rule
-import scalafix.testkit.SyntacticRuleSuite
+import scalafix.testkit.AbstractSyntacticRuleSuite
 import scalafix.internal.tests.utils.SkipWindows
 
-class DialectSuite extends SyntacticRuleSuite {
+class DialectSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
 
   val original: String =
     """|object LiteralType {

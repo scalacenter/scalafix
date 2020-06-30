@@ -18,13 +18,13 @@ import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.BasicFileAttributes
 import scala.meta.io.AbsolutePath
 import scala.meta.io.RelativePath
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.testkit.TestkitProperties
 import scalafix.tests.util.ScalaVersions
 import scalafix.v1.Main
 
 // extend this class to run custom cli tests.
-trait BaseCliSuite extends FunSuite with DiffAssertions {
+trait BaseCliSuite extends AnyFunSuite with DiffAssertions {
 
   val original: String =
     """|object Main {

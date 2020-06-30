@@ -3,14 +3,15 @@ package scalafix.tests.rule
 import scalafix.testkit._
 import scala.util.control.NonFatal
 import org.scalatest.exceptions.TestFailedException
+import org.scalatest.funsuite.AnyFunSuiteLike
 
 object RuleSuite {
   def main(args: Array[String]): Unit = {
     if (Array("--save-expect").sameElements(args)) {
-      val suite = new SemanticRuleSuite(
+      val suite = new AbstractSemanticRuleSuite(
         TestkitProperties.loadFromResources(),
         isSaveExpect = true
-      ) {
+      ) with AnyFunSuiteLike {
         testsToRun.foreach { t =>
           try evaluateTestBody(t)
           catch {
@@ -28,6 +29,6 @@ object RuleSuite {
     }
   }
 }
-class RuleSuite extends SemanticRuleSuite {
+class RuleSuite extends AbstractSemanticRuleSuite with AnyFunSuiteLike {
   runAllTests()
 }

@@ -1,12 +1,12 @@
 package scalafix.tests.core
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import scala.meta.inputs.Input
 import scala.meta.inputs.Position
 import scalafix.testkit.DiffAssertions
 import scalafix.internal.util.PositionSyntax._
 
-class PositionSuite extends FunSuite with DiffAssertions {
+class PositionSuite extends AnyFunSuite with DiffAssertions {
 
   val startMarker = '→'
   val stopMarker = '←'
