@@ -269,7 +269,14 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     } map (coalesceImportees _ andThen sortImportees)
 
     config.importsOrder match {
-      case ImportsOrder.Ascii        => importeesSorted sortBy (_.syntax)
+      // Issue #84: The Scalameta `Tree` node pretty-printer checks whether the node originates
+      // directly from the parser. If yes, the original source code text is returned, and may
+      // interfere imports sort order. The `.copy()` call below erases the source position
+      // information so that the pretty-printer would actually pretty-print an `Importer` into a
+      // single line.
+      //
+      // See https://github.com/liancheng/scalafix-organize-imports/issues/84 for more details.
+      case ImportsOrder.Ascii        => importeesSorted sortBy (_.copy().syntax)
       case ImportsOrder.SymbolsFirst => sortImportersSymbolsFirst(importeesSorted)
       case ImportsOrder.Keep         => importeesSorted
     }
@@ -277,7 +284,8 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
   private def sortImportersSymbolsFirst(importers: Seq[Importer]): Seq[Importer] =
     importers.sortBy { importer =>
-      val syntax = importer.syntax
+      // See the comment marked with "Issue #84" for why a `.copy()` is needed.
+      val syntax = importer.copy().syntax
 
       importer match {
         case Importer(_, Importee.Wildcard() :: Nil) =>
@@ -472,6 +480,8 @@ object OrganizeImports {
         //   import p.{C => _, _}
         //
         // Only `C` is unimported. `A` and `B` are still available.
+        //
+        // TODO: Shall we issue a warning here as using order-sensitive imports is a bad practice?
         val lastUnimportsWildcard = importeeLists.reverse collectFirst {
           case Importees(_, _, unimports @ _ :: _, Some(_)) => unimports
         }
@@ -486,6 +496,8 @@ object OrganizeImports {
         val allRenames = allImportees
           .filter(_.is[Importee.Rename])
           .groupBy { case Importee.Rename(Name(name), _) => name }
+          // TODO: Is there a bug? Seems that we should preserve the last Rename since it shadows
+          // all the previous ones?
           .map { case (_, importees) => importees.head }
           .toList
 
@@ -516,6 +528,8 @@ object OrganizeImports {
                 case _                                => false
               }
           }
+
+        val wildcard = Importee.Wildcard()
 
         val importeesList = (hasWildcard, lastUnimportsWildcard) match {
           case (true, _) =>
@@ -560,11 +574,11 @@ object OrganizeImports {
             //      import p.{A => A1, _}
             //
             //    Otherwise, the original name `A` is no longer available.
-            Seq(allRenames, importedNames :+ Importee.Wildcard())
+            Seq(allRenames, importedNames :+ wildcard)
 
           case (false, Some(unimports)) =>
             // A wildcard must be appended for unimports.
-            Seq(renamedNames, importedNames ++ allRenames ++ unimports :+ Importee.Wildcard())
+            Seq(renamedNames, importedNames ++ allRenames ++ unimports :+ wildcard)
 
           case (false, None) =>
             Seq(renamedNames, importedNames ++ allRenames ++ allUnimports)
