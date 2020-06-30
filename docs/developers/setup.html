@@ -145,9 +145,12 @@ for more details about the <code>-z</code> option.</p>
 artifact</p>
 <pre><code class="hljs">cs fetch ch.epfl.scala:scalafix-testkit_2<span class="hljs-number">.12</span><span class="hljs-number">.11</span>:<span class="hljs-number">0.9</span><span class="hljs-number">.17</span>
 </code></pre>
-<p>Next, create a test suite that extends the class <code>SemanticRuleSuite</code></p>
+<p>Next, create a test suite that extends <code>AbstractSemanticRuleSuite</code></p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">package</span> myproject
-<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyTests</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">scalafix</span>.<span class="hljs-title">testkit</span>.<span class="hljs-title">SemanticRuleSuite</span> </span>{
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyTests</span></span>
+    <span class="hljs-keyword">extends</span> scalafix.testkit.<span class="hljs-type">AbstractSemanticRuleSuite</span>
+    <span class="hljs-keyword">with</span> org.scalatest.funsuite.<span class="hljs-type">AnyFunSuiteLike</span> {
+
   runAllTests()
 }
 </code></pre>
