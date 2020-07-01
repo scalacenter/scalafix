@@ -12,7 +12,7 @@ object Dependencies {
   def coursierInterfaceV = "0.0.22"
   val currentScalaVersion = scala213
 
-  val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.7.0.202003110725-r"
+  val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.8.0.202006091008-r"
 
   var testClasspath: String = "empty"
   def semanticdb: ModuleID = "org.scalameta" % "semanticdb-scalac" % scalametaV cross CrossVersion.full
