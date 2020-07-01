@@ -2,7 +2,6 @@ addSbtPlugin("com.geirsson" % "sbt-ci-release" % "1.5.3")
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.9.0")
 addSbtPlugin("com.typesafe.sbt" % "sbt-ghpages" % "0.6.3")
 addSbtPlugin("com.typesafe.sbt" % "sbt-site" % "1.4.0")
-// exclude is a workaround for https://github.com/sbt/sbt-assembly/issues/236#issuecomment-294452474
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.15.0")
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.6.4")
 addSbtPlugin("com.47deg" % "sbt-microsites" % "0.7.27")
