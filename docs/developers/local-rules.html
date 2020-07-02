@@ -1,0 +1,255 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Local rules · Scalafix</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="If your custom rules only target a single codebase or repository, you can"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Local rules · Scalafix"/><meta property="og:type" content="website"/><meta property="og:url" content="https://scalacenter.github.io//scalafix/index.html"/><meta property="og:description" content="If your custom rules only target a single codebase or repository, you can"/><meta property="og:image" content="https://scalacenter.github.io//scalafix/img/scalacenter2x.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://scalacenter.github.io//scalafix/img/scalacenter2x.png"/><link rel="shortcut icon" href="/scalafix/img/favicon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css"/><script src="/scalafix/js/scrollSpy.js"></script><link rel="stylesheet" href="/scalafix/css/main.css"/><script src="/scalafix/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/scalafix/"><img class="logo" src="/scalafix/img/scalacenter2x.png" alt="Scalafix"/><h2 class="headerTitleWithLogo">Scalafix</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="/scalafix/docs/users/installation.html" target="_self">User guide</a></li><li class="siteNavGroupActive"><a href="/scalafix/docs/developers/setup.html" target="_self">Developer guide</a></li><li class=""><a href="https://scalameta.org/metabrowse/#/scalafix/scalafix-core/src/main/scala/scalafix/patch/Patch.scala" target="_blank">Browse sources</a></li><li class=""><a href="https://github.com/scalacenter/scalafix" target="_blank">GitHub</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Implementing rules</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Implementing rules</h3><ul class=""><li class="navListItem"><a class="navItem" href="/scalafix/docs/developers/setup.html">Setup</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/developers/before-you-begin.html">Before you write code</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/developers/tutorial.html">Tutorial</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/scalafix/docs/developers/local-rules.html">Local rules</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">API Reference</h3><ul class=""><li class="navListItem"><a class="navItem" href="/scalafix/docs/developers/api.html">Overview</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/developers/patch.html">Patch</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/developers/symbol-matcher.html">SymbolMatcher</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/developers/symbol-information.html">SymbolInformation</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/developers/semantic-type.html">SemanticType</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/developers/semantic-tree.html">SemanticTree</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Contributing</h3><ul class=""><li class="navListItem"><a class="navItem" href="/scalafix/docs/developers/contributing.html">Guide</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              var headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                var el = event.target;
+                while(el !== headings){
+                  if (el.tagName === 'A') {
+                    document.body.classList.remove('tocActive');
+                    break;
+                  } else{
+                    el = el.parentNode;
+                  }
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><a class="edit-page-link button" href="https://github.com/scalacenter/scalafix/edit/master/docs/developers/local-rules.md" target="_blank" rel="noreferrer noopener">Edit</a><h1 id="__docusaurus" class="postHeaderTitle">Local rules</h1></header><article><div><span><p>If your custom rules only target a single codebase or repository, you can
+define and develop these rules as part of the same sbt build. This way, you do
+not have to version your rules and publish them to a Maven or Ivy repository.</p>
+<p>When implementing rules that are very specific to your domain, this strategy
+can be interesting as it allows rules to be added or extended in the same
+change sets as the domain sources they will be run against.</p>
+<h2><a class="anchor" aria-hidden="true" id="prerequisite"></a><a href="#prerequisite" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Prerequisite</h2>
+<p>Make sure the sbt plugin, as well as the Scala compiler plugin and options <a href="/scalafix/docs/users/installation.html#sbt">are
+set up correctly</a>.</p>
+<p>Although it is possible to define your rules in a Scala binary version that
+does not match your build, it is highly recommended that you align them via:</p>
+<pre><code class="hljs css language-diff"> // build.sbt
+<span class="hljs-addition">+scalafixScalaBinaryVersion in ThisBuild :=</span>
+<span class="hljs-addition">+  CrossVersion.binaryScalaVersion(scalaVersion.value)</span>
+</code></pre>
+<blockquote>
+<p>Note that any potential external Scalafix rule, loaded with the
+<code>scalafixDependencies</code> setting key, must be built and published against the
+same Scala binary version.</p>
+</blockquote>
+<h2><a class="anchor" aria-hidden="true" id="single-project-sbt-build"></a><a href="#single-project-sbt-build" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Single-project sbt build</h2>
+<p>If you do not have any sub-project in your build, custom rules should be
+defined under the Scalafix Ivy configuration sources directory, which by
+default is <code>src/scalafix/scala</code>.</p>
+<pre><code class="hljs css language-diff"> repository
+ ├── build.sbt
+ ├── project
+ │   └── plugins.sbt
+ └── src
+     ├── main
+     │   └── ...
+     ├── test
+     │   └── ...
+<span class="hljs-addition">+    └── scalafix</span>
+<span class="hljs-addition">+       ├── resources/META-INF/services</span>
+<span class="hljs-addition">+       │   └── scalafix.v1.Rule // not mandatory, but allows syntax</span>
+<span class="hljs-addition">+       |                        // `MyRule1` over `class:fix.MyRule1`</span>
+<span class="hljs-addition">+       └── scala/fix</span>
+<span class="hljs-addition">+           ├── MyRule1.scala</span>
+<span class="hljs-addition">+           ├── MyRule2.scala</span>
+<span class="hljs-addition">+           └── ...</span>
+</code></pre>
+<pre><code class="hljs css language-diff"> // build.sbt
+<span class="hljs-addition">+libraryDependencies +=</span>
+<span class="hljs-addition">+  "ch.epfl.scala" %%</span>
+<span class="hljs-addition">+    "scalafix-core" %</span>
+<span class="hljs-addition">+    _root_.scalafix.sbt.BuildInfo.scalafixVersion %</span>
+<span class="hljs-addition">+    ScalafixConfig</span>
+</code></pre>
+<pre><code class="hljs css language-bash">$ sbt
+&gt; scalafix MyRule1 MyRule2
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="multi-project-sbt-build"></a><a href="#multi-project-sbt-build" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Multi-project sbt build</h2>
+<p>If your build contains several sub-projects, rules can be defined either:</p>
+<ol>
+<li>within <a href="#within-a-given-sub-project">one of them</a>, which is simpler but
+make them impossible to test and complicate sharing rules across
+sub-projects;</li>
+<li>under <a href="#as-a-separate-sub-project">their own sub-project(s)</a>, allowing
+usage of <a href="/scalafix/docs/developers/setup.html">scalafix-testkit</a>.</li>
+</ol>
+<h3><a class="anchor" aria-hidden="true" id="within-a-given-sub-project"></a><a href="#within-a-given-sub-project" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Within a given sub-project</h3>
+<p>In a large build with different code owners across sub-projects, it may
+be useful to define rules within a given sub-project, without impacting the
+global build definition. This helps to iterate on them before potentially
+promoting them to the <a href="#as-a-separate-sub-project">build-level</a>.</p>
+<pre><code class="hljs css language-diff"> repository
+ ├── build.sbt
+ ├── project
+ │   └── plugins.sbt
+ └── service1
+ │   └── src
+ │       ├── main
+ │       │   └── ...
+ │       ├── test
+ │       │   └── ...
+<span class="hljs-addition">+│       └── scalafix</span>
+<span class="hljs-addition">+│           ├── resources/META-INF/services</span>
+<span class="hljs-addition">+│           │   └── scalafix.v1.Rule // not mandatory, but allows syntax</span>
+<span class="hljs-addition">+|           |                        // `MyRule1` over `class:fix.MyRule1`</span>
+<span class="hljs-addition">+│           └── scala/fix</span>
+<span class="hljs-addition">+│               ├── MyRule1.scala</span>
+<span class="hljs-addition">+│               ├── MyRule2.scala</span>
+<span class="hljs-addition">+│               └── ...</span>
+ ├── service2
+ │   └── ...
+ └── service3
+     └── ...
+</code></pre>
+<pre><code class="hljs css language-diff"> // build.sbt
+ lazy val service1 = project
+<span class="hljs-addition">+  .settings(</span>
+<span class="hljs-addition">+    libraryDependencies +=</span>
+<span class="hljs-addition">+      "ch.epfl.scala" %%</span>
+<span class="hljs-addition">+        "scalafix-core" %</span>
+<span class="hljs-addition">+        _root_.scalafix.sbt.BuildInfo.scalafixVersion %</span>
+<span class="hljs-addition">+        ScalafixConfig</span>
+<span class="hljs-addition">+  )</span>
+</code></pre>
+<pre><code class="hljs css language-bash">$ sbt
+&gt; service1/scalafix MyRule1 MyRule2
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="as-a-separate-sub-project"></a><a href="#as-a-separate-sub-project" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>As a separate sub-project</h3>
+<p>Declaring your rules in a separate sub-project allows you to use
+<a href="/scalafix/docs/developers/tutorial.html#write-unit-tests">scalafix-testkit</a> to easily unit-test your
+semantic rules.</p>
+<pre><code class="hljs css language-diff"> repository
+ ├── build.sbt
+ ├── project
+ │   └── plugins.sbt
+<span class="hljs-addition">+├── scalafix // same source structure as the scalafix.g8 project template</span>
+<span class="hljs-addition">+│   ├── input/src/main/scala/fix</span>
+<span class="hljs-addition">+│   │   ├── Test1.scala</span>
+<span class="hljs-addition">+│   │   ├── Test2.scala</span>
+<span class="hljs-addition">+│   │   └── ...</span>
+<span class="hljs-addition">+│   ├── output/src/main/scala/fix</span>
+<span class="hljs-addition">+│   │   ├── Test1.scala</span>
+<span class="hljs-addition">+│   │   ├── Test2.scala</span>
+<span class="hljs-addition">+│   │   └── ...</span>
+<span class="hljs-addition">+│   ├── rules/src</span>
+<span class="hljs-addition">+│   │   └── main</span>
+<span class="hljs-addition">+│   │       ├── resources/META-INF/services</span>
+<span class="hljs-addition">+│   |       │   └── scalafix.v1.Rule // not mandatory, but allows syntax</span>
+<span class="hljs-addition">+|   |       |                        // `MyRule1` over `class:fix.MyRule1`</span>
+<span class="hljs-addition">+│   │       └── scala/fix</span>
+<span class="hljs-addition">+│   │           ├── MyRule1.scala</span>
+<span class="hljs-addition">+│   │           ├── MyRule2.scala</span>
+<span class="hljs-addition">+│   │           └── ...</span>
+<span class="hljs-addition">+│   └── tests/src/test/scala/fix</span>
+<span class="hljs-addition">+│       └── RuleSuite.scala</span>
+ ├── service1
+ │   └── ...
+ ├── service2
+ │   └── ...
+ └── service3
+     └── ...
+</code></pre>
+<pre><code class="hljs css language-diff"> // build.sbt
+ lazy val service1 = project // sub-project where rule(s) will be used
+<span class="hljs-addition">+  .dependsOn(`scalafix-rules` % ScalafixConfig)</span>
+<span class="hljs-addition">+lazy val `scalafix-input` = (project in file("scalafix/input"))</span>
+<span class="hljs-addition">+  .disablePlugins(ScalafixPlugin)</span>
+<span class="hljs-addition">+lazy val `scalafix-output` = (project in file("scalafix/output"))</span>
+<span class="hljs-addition">+  .disablePlugins(ScalafixPlugin)</span>
+<span class="hljs-addition">+lazy val `scalafix-rules` = (project in file("scalafix/rules"))</span>
+<span class="hljs-addition">+  .disablePlugins(ScalafixPlugin)</span>
+<span class="hljs-addition">+  .settings(</span>
+<span class="hljs-addition">+    libraryDependencies +=</span>
+<span class="hljs-addition">+      "ch.epfl.scala" %%</span>
+<span class="hljs-addition">+        "scalafix-core" %</span>
+<span class="hljs-addition">+        _root_.scalafix.sbt.BuildInfo.scalafixVersion</span>
+<span class="hljs-addition">+  )</span>
+<span class="hljs-addition">+lazy val `scalafix-tests` = (project in file("scalafix/tests"))</span>
+<span class="hljs-addition">+  .settings(</span>
+<span class="hljs-addition">+    libraryDependencies +=</span>
+<span class="hljs-addition">+      "ch.epfl.scala" %</span>
+<span class="hljs-addition">+        "scalafix-testkit" %</span>
+<span class="hljs-addition">+        _root_.scalafix.sbt.BuildInfo.scalafixVersion %</span>
+<span class="hljs-addition">+        Test cross CrossVersion.full,</span>
+<span class="hljs-addition">+    scalafixTestkitOutputSourceDirectories :=</span>
+<span class="hljs-addition">+      sourceDirectories.in(`scalafix-output`, Compile).value,</span>
+<span class="hljs-addition">+    scalafixTestkitInputSourceDirectories :=</span>
+<span class="hljs-addition">+      sourceDirectories.in(`scalafix-input`, Compile).value,</span>
+<span class="hljs-addition">+    scalafixTestkitInputClasspath :=</span>
+<span class="hljs-addition">+      fullClasspath.in(`scalafix-input`, Compile).value,</span>
+<span class="hljs-addition">+    scalafixTestkitInputScalacOptions :=</span>
+<span class="hljs-addition">+      scalacOptions.in(`scalafix-input`, Compile).value,</span>
+<span class="hljs-addition">+    scalafixTestkitInputScalaVersion :=</span>
+<span class="hljs-addition">+      scalaVersion.in(`scalafix-input`, Compile).value</span>
+<span class="hljs-addition">+  )</span>
+<span class="hljs-addition">+  .dependsOn(`scalafix-input`, `scalafix-rules`)</span>
+<span class="hljs-addition">+  .enablePlugins(ScalafixTestkitPlugin)</span>
+</code></pre>
+<pre><code class="hljs css language-bash">$ sbt
+&gt; scalafixTests/<span class="hljs-built_in">test</span>
+&gt; service1/scalafix MyRule1 MyRule2
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/scalafix/docs/developers/tutorial.html"><span class="arrow-prev">← </span><span>Tutorial</span></a><a class="docs-next button" href="/scalafix/docs/developers/api.html"><span>Overview</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#prerequisite">Prerequisite</a></li><li><a href="#single-project-sbt-build">Single-project sbt build</a></li><li><a href="#multi-project-sbt-build">Multi-project sbt build</a><ul class="toc-headings"><li><a href="#within-a-given-sub-project">Within a given sub-project</a></li><li><a href="#as-a-separate-sub-project">As a separate sub-project</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#15242B"><section class="sitemap"><a href="/scalafix/" class="nav-home"><img src="/scalafix/img/scalacenter2x.png" alt="Scalafix" width="66" height="58"/></a><div><h5>Docs</h5><a href="
+                /scalafix/docs/users/installation.html">Get started</a><a href="
+                /scalafix/docs/rules/overview.html">Rules</a><a href="
+                /scalafix/docs/developers/setup.html">Extend Scalafix</a></div><div><h5>Community</h5><a href="https://gitter.im/scalacenter/scalafix" target="_blank">Chat on Gitter</a><a href="https://users.scala-lang.org/" target="_blank">Discuss on Scala Users</a></div><div><h5>More</h5><a href="https://github.com/scalacenter/scalafix" target="_blank">GitHub</a></div></section><section class="copyright">Copyright © 2020 Scala Center</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'cf575cebacff15579dd2dee010c4010f',
+                indexName: 'scalafix',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>
