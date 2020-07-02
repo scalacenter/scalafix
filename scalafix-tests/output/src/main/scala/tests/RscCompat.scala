@@ -179,7 +179,7 @@ object RscCompat_Test {
     val more2: more2 = new more2
     class more2 extends { def foo(implicit x: Int, y: Int) = 42 }
     val more3: more3 = new more3
-    class more3 extends { implicit def bar = 42 }
+    class more3 extends { implicit def bar: Int = 42 }
 
     implicit val crazy1 = implicitly[Int]
     implicit val crazy2: Bijection[In,Out1] = Bijection.connect[In, Out1]
