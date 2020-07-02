@@ -751,13 +751,10 @@ custom repository like Bintray or a private Nexus.
 
 ```scala
 // build.sbt
-import com.geirsson.coursiersmall.{Repository => R}
 scalafixResolvers.in(ThisBuild) ++= List(
-  R.SonatypeSnapshots,
-  R.bintrayRepo("scalacenter", "releases"),
-  R.bintrayIvyRepo("sbt", "sbt-plugin-releases"),
-  new R.Maven("https://oss.sonatype.org/content/repositories/snapshots/"),
-  new R.Ivy(s"https://dl.bintray.com/sbt/sbt-plugin-releases/")
+  coursierapi.MavenRepository.of("https://dl.bintray.com/scalacenter/releases"),
+  coursierapi.MavenRepository.of("https://oss.sonatype.org/content/repositories/snapshots"),
+  coursierapi.IvyRepository.of("https://dl.bintray.com/sbt/sbt-plugin-releases")
 )
 ```
 
