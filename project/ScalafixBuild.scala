@@ -348,7 +348,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   ): State = {
     testedPreviousScalaVersions
       .getOrElse(scalaVersion, Nil)
-      .filter(_ != scalaVersion)
       .flatMap { v =>
         List(
           s"""set testsInput/scalaVersion := "$v"""",
