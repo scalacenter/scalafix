@@ -23,7 +23,7 @@ https://codecov.io/gh/liancheng/scalafix-organize-imports[image:https://img.shie
 
 toc::[]
 
-`OrganizeImports` is a https://scalacenter.github.io[Scalafix] semantic rule that helps you to organize import statements.
+`OrganizeImports` is a https://scalacenter.github.io/scalafix[Scalafix] semantic rule that helps you to organize import statements.
 
 == Getting started
 
