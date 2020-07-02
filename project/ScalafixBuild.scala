@@ -207,7 +207,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         testRulesAgainstPreviousScalaVersions(scala211, s)
     },
     commands += Command.command("ci-213-windows") { s =>
-      s"++$scala213" ::
+      s"""set ThisBuild/scalaVersion := "$scala213"""" ::
         "cli/crossPublishLocalBinTransitive" :: // scalafix.tests.interfaces.ScalafixSuite
         s"unit/testOnly -- -l scalafix.internal.tests.utils.SkipWindows" ::
         s
