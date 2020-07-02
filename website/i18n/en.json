@@ -16,6 +16,9 @@
         "title": "Contributing Guide",
         "sidebar_label": "Guide"
       },
+      "developers/local-rules": {
+        "title": "Local rules"
+      },
       "developers/patch": {
         "title": "Patch"
       },

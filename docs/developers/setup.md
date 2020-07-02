@@ -94,6 +94,7 @@ plugin. Supported Scala compiler versions include:
 
 - Scala @SCALA211@
 - Scala @SCALA212@
+- Scala @SCALA213@
 
 The output project can use any Scala compiler version.
 

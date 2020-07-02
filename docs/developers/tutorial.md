@@ -641,6 +641,10 @@ The expansion rules for `github:org/repo` are the following:
 
 ## Publish the rule to Maven Central
 
+> If your rule only targets a single codebase and is not meant to be
+> distributed, you might want to develop it [as part of your existing
+> build](local-rules.md) instead.
+
 Run the following sbt command to publish a rule locally.
 
 ```sh
