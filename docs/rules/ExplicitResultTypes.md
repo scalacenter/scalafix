@@ -34,13 +34,6 @@ This rule has several known limitations, which are most likely fixable with some
 effort. At the time of this writing, there are no short-term plans to address
 these issues however.
 
-### Limited Scala support
-
-Due to implementation details, this rule works only with @SCALA212@. Scala 2.11
-and 2.13 are not supported for this rule. See
-[#988](https://github.com/scalacenter/scalafix/issues/998) if you want to
-contribute support for other Scala versions.
-
 ### Imports ordering
 
 The rewrite inserts imports at the bottom of the global import list. Users are
