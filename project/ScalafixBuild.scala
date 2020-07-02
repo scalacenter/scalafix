@@ -190,21 +190,21 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         s
     },
     commands += Command.command("ci-213") { s =>
-      s"++$scala213" ::
+      s"""set ThisBuild/scalaVersion := "$scala213"""" ::
         "unit/test" ::
         "docs/run" ::
         "interfaces/doc" ::
-        s
+        testRulesAgainstPreviousScalaVersions(scala213, s)
     },
     commands += Command.command("ci-212") { s =>
-      s"++$scala212" ::
+      s"""set ThisBuild/scalaVersion := "$scala212"""" ::
         "unit/test" ::
-        s
+        testRulesAgainstPreviousScalaVersions(scala212, s)
     },
     commands += Command.command("ci-211") { s =>
-      s"++$scala211" ::
+      s"""set ThisBuild/scalaVersion := "$scala211"""" ::
         "unit/test" ::
-        s
+        testRulesAgainstPreviousScalaVersions(scala211, s)
     },
     commands += Command.command("ci-213-windows") { s =>
       s"++$scala213" ::
@@ -342,4 +342,19 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       }
     }
   )
+  private def testRulesAgainstPreviousScalaVersions(
+      scalaVersion: String,
+      state: State
+  ): State = {
+    testedPreviousScalaVersions
+      .getOrElse(scalaVersion, Nil)
+      .flatMap { v =>
+        List(
+          s"""set testsInput/scalaVersion := "$v"""",
+          "show testsInput/scalaVersion",
+          s"unit/testOnly scalafix.tests.rule.RuleSuite"
+        )
+      }
+      .foldRight(state)(_ :: _)
+  }
 }

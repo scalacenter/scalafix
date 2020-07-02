@@ -1,4 +1,6 @@
 import sbt._
+
+import scala.util.{Properties, Try}
 /* scalafmt: { maxColumn = 120 }*/
 
 object Dependencies {
@@ -11,6 +13,9 @@ object Dependencies {
   def coursierV = "2.0.0-RC5-6"
   def coursierInterfaceV = "0.0.22"
   val currentScalaVersion = scala213
+  // we support 3 last binary versions of scala212 and scala213
+  val testedPreviousScalaVersions =
+    List(scala213, scala212).map(version => version -> previousVersions(version)).toMap
 
   val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.8.0.202006091008-r"
 
@@ -37,4 +42,13 @@ object Dependencies {
     "com.chuusai" %% "shapeless" % "2.3.3",
     scalacheck
   )
+
+  private def previousVersions(scalaVersion: String): List[String] = {
+    val split = scalaVersion.split('.')
+    val binaryVersion = split.take(2).mkString(".")
+    val compilerVersion = Try(split.last.toInt).toOption
+    val previousPatchVersions =
+      compilerVersion.map(version => List.range(version - 2, version).filter(_ >= 0)).getOrElse(Nil)
+    previousPatchVersions.map(v => s"$binaryVersion.$v")
+  }
 }
