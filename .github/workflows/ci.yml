@@ -5,39 +5,6 @@ on:
       - master
   pull_request:
 jobs:
-  test:
-    name: ${{ matrix.command }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        command:
-          - "ci-211"
-          - "ci-212"
-          - "ci-213"
-    steps:
-      - uses: actions/checkout@v2
-      - uses: olafurpg/setup-scala@v7
-      - run: sbt ${{ matrix.command }}
-  jdk11_212:
-    name: JDK11/scala_2.12 tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: olafurpg/setup-scala@v7
-        with:
-          java-version: adopt@1.11
-      - run: sbt ci-212
-  jdk11_213:
-    name: JDK11/scala_2.13 tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: olafurpg/setup-scala@v7
-        with:
-          java-version: adopt@1.11
-      - run: sbt ci-213
-
   windows_213:
     name: Windows/scala_2.13 tests
     runs-on: windows-latest
@@ -46,18 +13,3 @@ jobs:
       - uses: olafurpg/setup-scala@v7
       - run: sbt ci-213-windows
         shell: bash
-  checks:
-    name: Scalafmt
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: olafurpg/setup-scala@v7
-      - run: ./scalafmt --test
-  mima:
-    name: MiMa
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: olafurpg/setup-scala@v7
-      - run: git fetch --unshallow
-      - run: sbt +mimaReportBinaryIssues
