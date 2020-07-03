@@ -74,7 +74,8 @@ lazy val rules = project
     buildInfoKeys ++= Seq[BuildInfoKey](
       "supportedScalaVersions" -> (scalaVersion.value +:
         testedPreviousScalaVersions
-          .getOrElse(scalaVersion.value, Nil))
+          .getOrElse(scalaVersion.value, Nil)),
+      "allSupportedScalaVersions" -> ((crossScalaVersions.value ++ testedPreviousScalaVersions.values.toSeq.flatten).sorted)
     ),
     buildInfoObject := "RulesBuildInfo",
     description := "Built-in Scalafix rules",
