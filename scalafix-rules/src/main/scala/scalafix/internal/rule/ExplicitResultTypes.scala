@@ -91,11 +91,15 @@ final class ExplicitResultTypes(
     try unsafeFix()
     catch {
       case _: CompilerException =>
+        println("first attempt failed, retrying...")
         shutdownCompiler()
         global.restart()
         try unsafeFix()
         catch {
-          case _: CompilerException if !config.fatalWarnings =>
+          case e: CompilerException if !config.fatalWarnings =>
+            println("second attempt failed, giving up...")
+            println(e.underlying)
+            e.underlying.printStackTrace()
             // Ignore compiler crashes unless `fatalWarnings = true`.
             Patch.empty
         }
