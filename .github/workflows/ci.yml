@@ -13,20 +13,6 @@ jobs:
       - uses: olafurpg/setup-scala@v7
       - run: sbt ci-213-windows
         shell: bash
-  test:
-    name: ${{ matrix.command }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        command:
-          - "ci-211"
-          - "ci-212"
-          - "ci-213"
-    steps:
-      - uses: actions/checkout@v2
-      - uses: olafurpg/setup-scala@v7
-      - run: sbt ${{ matrix.command }}
   jdk11_212:
     name: JDK11/scala_2.12 tests
     runs-on: ubuntu-latest
