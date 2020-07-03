@@ -18,14 +18,15 @@ final class ExplicitResultTypes(
 ) extends SemanticRule("ExplicitResultTypes") {
 
   def this() = this(ExplicitResultTypesConfig.default, LazyValue.now(None))
-  val supportedScalaVersions = RulesBuildInfo.supportedScalaVersions
-  val compilerScalaVersion = RulesBuildInfo.scalaVersion
+  val supportedScalaVersions: collection.Seq[String] =
+    RulesBuildInfo.supportedScalaVersions
+  val compilerScalaVersion: String = RulesBuildInfo.scalaVersion
 
   private def toBinaryVersion(v: String) = v.split('.').take(2).mkString(".")
 
   override def description: String =
     "Inserts type annotations for inferred public members. " +
-      s"Only compatible with Scala ${supportedScalaVersions.mkString(",")}."
+      s"Only compatible with Scala ${RulesBuildInfo.allSupportedScalaVersions.mkString(", ")}."
   override def isRewrite: Boolean = true
 
   override def afterComplete(): Unit = {
