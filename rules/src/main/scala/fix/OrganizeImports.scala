@@ -18,6 +18,8 @@ import scala.util.Try
 import scala.util.matching.Regex
 
 import metaconfig.Configured
+import scalafix.lint.Diagnostic
+import scalafix.lint.LintSeverity
 import scalafix.patch.Patch
 import scalafix.v1.Configuration
 import scalafix.v1.Rule
@@ -27,6 +29,17 @@ import scalafix.v1.SemanticRule
 import scalafix.v1.Symbol
 import scalafix.v1.SymbolInformation
 import scalafix.v1.XtensionTreeScalafix
+
+case class ImporterSymbolNotFound(ref: Term.Name) extends Diagnostic {
+  override def position: meta.Position = ref.pos
+
+  override def message: String =
+    s"Could not determine whether '${ref.syntax}' is fully-qualified because the symbol" +
+      " information is missing. We will continue processing assuming that it is fully-qualified." +
+      " Please check whether the corresponding .semanticdb file is properly generated."
+
+  override def severity: LintSeverity = LintSeverity.Warning
+}
 
 class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("OrganizeImports") {
   import OrganizeImports._
@@ -45,6 +58,8 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   private val wildcardGroupIndex: Int = importMatchers indexOf WildcardMatcher
 
   private val unusedImporteePositions: mutable.Set[Position] = mutable.Set.empty[Position]
+
+  private val diagnostics: ArrayBuffer[Diagnostic] = ArrayBuffer.empty[Diagnostic]
 
   def this() = this(OrganizeImportsConfig())
 
@@ -87,7 +102,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       if (!config.removeUnused || localImports.isEmpty) Patch.empty
       else removeUnused(localImports)
 
-    globalImportsPatch + localImportsPatch
+    diagnostics.map(Patch.lint).asPatch + globalImportsPatch + localImportsPatch
   }
 
   private def isUnused(importee: Importee): Boolean =
@@ -209,6 +224,32 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     (implicits, noImplicits)
   }
 
+  private def isFullyQualified(importer: Importer)(implicit doc: SemanticDocument): Boolean = {
+    val topQualifier = topQualifierOf(importer.ref)
+    val topQualifierSymbol = topQualifier.symbol
+    val owner = topQualifierSymbol.owner
+
+    (
+      // The owner of the top qualifier is `_root_`, e.g.: `import scala.util`
+      owner.isRootPackage
+
+      // The top qualifier is a top-level class/trait/object defined under no packages. In this
+      // case, Scalameta defines the owner to be the empty package.
+      || owner.isEmptyPackage
+
+      // The top qualifier itself is `_root_`, e.g.: `import _root_.scala.util`
+      || topQualifier.value == "_root_"
+
+      // Issue #64: Sometimes, the symbol of the top qualifier can be missing due to unknwon reasons
+      // (see https://github.com/liancheng/scalafix-organize-imports/issues/64). In this case, we
+      // issue a warning and continue processing assuming that the top qualifier is fully-qualified.
+      || topQualifierSymbol.isNone && {
+        diagnostics += ImporterSymbolNotFound(topQualifier)
+        true
+      }
+    )
+  }
+
   private def expandRelative(importer: Importer)(implicit doc: SemanticDocument): Importer = {
 
     /**
@@ -219,18 +260,27 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
      */
     def toFullyQualifiedRef(symbol: Symbol): Term.Ref = {
       val owner = symbol.owner
-      // When importing names defined within package objects, skip the `package` part for brevity.
-      // For instance, with the following definition:
-      //
-      //   package object foo { val x: Int = ??? }
-      //
-      // when importing `foo.x`, we prefer "import foo.x" instead of "import foo.`package`.x", which
-      // is also valid, but unnecessarily lengthy.
-      //
-      // See https://github.com/liancheng/scalafix-organize-imports/issues/55.
-      if (symbol.infoNoThrow exists (_.isPackageObject)) toFullyQualifiedRef(owner)
-      else if (owner.isRootPackage || owner.isEmptyPackage) Term.Name(symbol.displayName)
-      else Term.Select(toFullyQualifiedRef(owner), Term.Name(symbol.displayName))
+
+      symbol match {
+        // When importing names defined within package objects, skip the `package` part for brevity.
+        // For instance, with the following definition:
+        //
+        //   package object foo { val x: Int = ??? }
+        //
+        // when importing `foo.x`, we prefer "import foo.x" instead of "import foo.`package`.x",
+        // which is also valid, but unnecessarily lengthy.
+        //
+        // See https://github.com/liancheng/scalafix-organize-imports/issues/55.
+        case _ if symbol.infoNoThrow exists (_.isPackageObject) =>
+          toFullyQualifiedRef(owner)
+
+        // See the comment marked with "Issue #64" for the case of `symbol.isNone`
+        case _ if symbol.isNone || owner.isRootPackage || owner.isEmptyPackage =>
+          Term.Name(symbol.displayName)
+
+        case _ =>
+          Term.Select(toFullyQualifiedRef(owner), Term.Name(symbol.displayName))
+      }
     }
 
     val fullyQualifiedTopQualifier = toFullyQualifiedRef(topQualifierOf(importer.ref).symbol)
@@ -367,31 +417,6 @@ object OrganizeImports {
       case Pkg(_, stats)       => extractImports(stats)
       case _                   => (Nil, Nil)
     }
-  }
-
-  private def isFullyQualified(importer: Importer)(implicit doc: SemanticDocument): Boolean = {
-    val topQualifier = topQualifierOf(importer.ref).symbol
-    val owner = topQualifier.owner
-    (
-      // The top-qualifier itself is _root_, e.g.: import _root_.scala.util
-      topQualifier.isRootPackage
-
-      // The owner of the top-qualifier is _root_, e.g.: import scala.util
-      || owner.isRootPackage
-
-      // The top-qualifier is a top-level class/trait/object defined under no packages. In this
-      // case, Scalameta defines the owner to be the empty package.
-      || owner.isEmptyPackage
-
-      // Sometimes, symbols of the top-qualifier or its owner may not be found due to unknwon
-      // reasons (see https://github.com/liancheng/scalafix-organize-imports/issues/64). In this
-      // case, although not 100% safe, here we tentatively assume that the input importer is
-      // fully-qualified. This is because in all reported cases discussed in issue #64, all the
-      // importers in question are fully-qualified. We should dig deeper into it and enumerate the
-      // reasons why a symbol can be missing and handle them accordingly.
-      || topQualifier.isNone
-      || owner.isNone
-    )
   }
 
   private def prettyPrintImportGroup(group: Seq[Importer]): String =
