@@ -51,6 +51,10 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
   def this() = this(OrganizeImportsConfig())
 
+  override def isLinter: Boolean = true
+
+  override def isRewrite: Boolean = true
+
   override def isExperimental: Boolean = true
 
   override def withConfiguration(config: Configuration): Configured[Rule] =
@@ -366,13 +370,12 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
           .filter(_.is[Importee.Rename])
           .map { case rename: Importee.Rename => rename }
           .groupBy(_.name.value)
-          .mapValues {
-            case rename :: Nil => rename
-            case renames @ (head @ Importee.Rename(from, _)) :: _ =>
+          .map {
+            case (_, rename :: Nil) => rename
+            case (_, renames @ (head @ Importee.Rename(from, _)) :: _) =>
               diagnostics += TooManyAliases(from, renames)
               head
           }
-          .values
           .toList
 
         // Collects distinct explicitly imported names, and filters out those that are also renamed.
