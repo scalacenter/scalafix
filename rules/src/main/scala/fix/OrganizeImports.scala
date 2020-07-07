@@ -19,7 +19,6 @@ import scala.util.matching.Regex
 
 import metaconfig.Configured
 import scalafix.lint.Diagnostic
-import scalafix.lint.LintSeverity
 import scalafix.patch.Patch
 import scalafix.v1.Configuration
 import scalafix.v1.Rule
@@ -29,17 +28,6 @@ import scalafix.v1.SemanticRule
 import scalafix.v1.Symbol
 import scalafix.v1.SymbolInformation
 import scalafix.v1.XtensionTreeScalafix
-
-case class ImporterSymbolNotFound(ref: Term.Name) extends Diagnostic {
-  override def position: meta.Position = ref.pos
-
-  override def message: String =
-    s"Could not determine whether '${ref.syntax}' is fully-qualified because the symbol" +
-      " information is missing. We will continue processing assuming that it is fully-qualified." +
-      " Please check whether the corresponding .semanticdb file is properly generated."
-
-  override def severity: LintSeverity = LintSeverity.Warning
-}
 
 class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("OrganizeImports") {
   import OrganizeImports._
@@ -332,6 +320,147 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     }
   }
 
+  private def mergeImporters(importers: Seq[Importer]): Seq[Importer] =
+    importers.groupBy(_.ref.syntax).values.toSeq.flatMap {
+      case importer :: Nil =>
+        // If this group has only one importer, returns it as is to preserve the original source
+        // level formatting.
+        importer :: Nil
+
+      case group @ Importer(ref, _) :: _ =>
+        val importeeLists = group map (_.importees)
+
+        val hasWildcard = importeeLists exists {
+          case Importees(_, _, Nil, Some(_)) => true
+          case _                             => false
+        }
+
+        // Collects the last set of unimports with a wildcard, if any. It cancels all previous
+        // unimports. E.g.:
+        //
+        //   import p.{A => _}
+        //   import p.{B => _, _}
+        //   import p.{C => _, _}
+        //
+        // Only `C` is unimported. `A` and `B` are still available.
+        //
+        // TODO: Shall we issue a warning here as using order-sensitive imports is a bad practice?
+        val lastUnimportsWithWildcard = importeeLists.reverse collectFirst {
+          case Importees(_, _, unimports @ _ :: _, Some(_)) => unimports
+        }
+
+        // Collects all unimports without an accompanying wildcard.
+        val allUnimports = importeeLists.collect {
+          case Importees(_, _, unimports, None) => unimports
+        }.flatten
+
+        val allImportees = group flatMap (_.importees)
+
+        // Here we assume that a name is renamed at most once within a single source file, which is
+        // true in most cases.
+        //
+        // Note that the IntelliJ IDEA Scala import optimizer does not handle this case properly
+        // either. If a name is renamed more than once, it only keeps one of the renames in the
+        // result and may break compilation (unless other renames are not actually referenced).
+        val renames = allImportees
+          .filter(_.is[Importee.Rename])
+          .map { case rename: Importee.Rename => rename }
+          .groupBy(_.name.value)
+          .mapValues {
+            case rename :: Nil => rename
+            case renames @ (head @ Importee.Rename(from, _)) :: _ =>
+              diagnostics += TooManyAliases(from, renames)
+              head
+          }
+          .values
+          .toList
+
+        // Collects distinct explicitly imported names, and filters out those that are also renamed.
+        // If an explicitly imported name is also renamed, both the original name and the new name
+        // are available. This implies that both of them must be preserved in the merged result, but
+        // in two separate import statements (Scala only allows a name to appear in an import at
+        // most once). E.g.:
+        //
+        //   import p.A
+        //   import p.{A => A1}
+        //   import p.B
+        //   import p.{B => B1}
+        //
+        // The above snippet should be rewritten into:
+        //
+        //   import p.{A, B}
+        //   import p.{A => A1, B => B1}
+        val (renamedImportedNames, importedNames) = {
+          val renamedNames = renames.map {
+            case Importee.Rename(Name(from), _) => from
+          }.toSet
+
+          allImportees
+            .filter(_.is[Importee.Name])
+            .groupBy { case Importee.Name(Name(name)) => name }
+            .map { case (_, importees) => importees.head }
+            .toList
+            .partition { case Importee.Name(Name(name)) => renamedNames contains name }
+        }
+
+        val wildcard = Importee.Wildcard()
+
+        val importeesList = (hasWildcard, lastUnimportsWithWildcard) match {
+          case (true, _) =>
+            // A few things to note in this case:
+            //
+            // 1. Unimports are discarded because they are canceled by the wildcard.
+            //
+            // 2. Explicitly imported names can NOT be discarded even though they seem to be covered
+            //    by the wildcard. This is because explicitly imported names have higher precedence
+            //    than names imported via a wildcard. Discarding them may introduce ambiguity in
+            //    some cases. E.g.:
+            //
+            //      import scala.collection.immutable._
+            //      import scala.collection.mutable._
+            //      import scala.collection.mutable.Set
+            //
+            //      object Main { val s: Set[Int] = ??? }
+            //
+            //    The type of `Main.s` above is unambiguous because `mutable.Set` is explicitly
+            //    imported, and has higher precedence than `immutable.Set`, which is made available
+            //    via a wildcard. In this case, the imports should be merged into:
+            //
+            //      import scala.collection.immutable._
+            //      import scala.collection.mutable.{Set, _}
+            //
+            //    rather than
+            //
+            //      import scala.collection.immutable._
+            //      import scala.collection.mutable._
+            //
+            //    Otherwise, the type of `Main.s` becomes ambiguous and a compilation error is
+            //    introduced.
+            //
+            // 3. Renames must be moved into a separate import statement to make sure that the
+            //    original names made available by the wildcard are still preserved. E.g.:
+            //
+            //      import p._
+            //      import p.{A => A1}
+            //
+            //    The above imports cannot be merged into
+            //
+            //      import p.{A => A1, _}
+            //
+            //    Otherwise, the original name `A` is no longer available.
+            Seq(renames, importedNames :+ wildcard)
+
+          case (false, Some(unimports)) =>
+            // A wildcard must be appended for unimports.
+            Seq(renamedImportedNames, importedNames ++ renames ++ unimports :+ wildcard)
+
+          case (false, None) =>
+            Seq(renamedImportedNames, importedNames ++ renames ++ allUnimports)
+        }
+
+        importeesList filter (_.nonEmpty) map (Importer(ref, _))
+    }
+
   private def sortImportersSymbolsFirst(importers: Seq[Importer]): Seq[Importer] =
     importers.sortBy { importer =>
       // See the comment marked with "Issue #84" for why a `.copy()` is needed.
@@ -481,136 +610,6 @@ object OrganizeImports {
 
     List(symbols, lowerCases, upperCases) flatMap (_ sortBy (_.syntax))
   }
-
-  private def mergeImporters(importers: Seq[Importer]): Seq[Importer] =
-    importers.groupBy(_.ref.syntax).values.toSeq.flatMap {
-      case importer :: Nil =>
-        // If this group has only one importer, returns it as is to preserve the original source
-        // level formatting.
-        importer :: Nil
-
-      case group @ Importer(ref, _) :: _ =>
-        val importeeLists = group map (_.importees)
-
-        val hasWildcard = importeeLists exists {
-          case Importees(_, _, Nil, Some(_)) => true
-          case _                             => false
-        }
-
-        // Collects the last set of unimports with a wildcard, if any. It cancels all previous
-        // unimports. E.g.:
-        //
-        //   import p.{A => _}
-        //   import p.{B => _, _}
-        //   import p.{C => _, _}
-        //
-        // Only `C` is unimported. `A` and `B` are still available.
-        //
-        // TODO: Shall we issue a warning here as using order-sensitive imports is a bad practice?
-        val lastUnimportsWildcard = importeeLists.reverse collectFirst {
-          case Importees(_, _, unimports @ _ :: _, Some(_)) => unimports
-        }
-
-        // Collects all unimports without an accompanying wildcard.
-        val allUnimports = importeeLists.collect {
-          case Importees(_, _, unimports, None) => unimports
-        }.flatten
-
-        val allImportees = group flatMap (_.importees)
-
-        val allRenames = allImportees
-          .filter(_.is[Importee.Rename])
-          .groupBy { case Importee.Rename(Name(name), _) => name }
-          // TODO: Is there a bug? Seems that we should preserve the last Rename since it shadows
-          // all the previous ones?
-          .map { case (_, importees) => importees.head }
-          .toList
-
-        // Collects distinct explicitly imported names, and filters out those that are also renamed.
-        // If an explicitly imported name is also renamed, both the original name and the new name
-        // are available. This implies that both of them must be preserved in the merged result, but
-        // in two separate import statements, since Scala disallows a name to appear more than once
-        // in a single import statement. E.g.:
-        //
-        //   import p.A
-        //   import p.{A => A1}
-        //   import p.B
-        //   import p.{B => B1}
-        //
-        // The above snippet should be rewritten into:
-        //
-        //   import p.{A, B}
-        //   import p.{A => A1, B => B1}
-        val (renamedNames, importedNames) = allImportees
-          .filter(_.is[Importee.Name])
-          .groupBy { case Importee.Name(Name(name)) => name }
-          .map { case (_, importees) => importees.head }
-          .toList
-          .partition {
-            case Importee.Name(Name(name)) =>
-              allRenames exists {
-                case Importee.Rename(Name(`name`), _) => true
-                case _                                => false
-              }
-          }
-
-        val wildcard = Importee.Wildcard()
-
-        val importeesList = (hasWildcard, lastUnimportsWildcard) match {
-          case (true, _) =>
-            // A few things to note in this case:
-            //
-            // 1. Unimports are discarded because they are canceled by the wildcard.
-            //
-            // 2. Explicitly imported names can NOT be discarded even though they seem to be covered
-            //    by the wildcard. This is because explicitly imported names have higher precedence
-            //    than names imported via a wildcard. Discarding them may introduce ambiguity in
-            //    some cases. E.g.:
-            //
-            //      import scala.collection.immutable._
-            //      import scala.collection.mutable._
-            //      import scala.collection.mutable.Set
-            //
-            //      object Main { val s: Set[Int] = ??? }
-            //
-            //    The type of `Main.s` above is unambiguous because `mutable.Set` is explicitly
-            //    imported, and has higher precedence than `immutable.Set`, which is made available
-            //    via a wildcard. In this case, the imports should be merged into:
-            //
-            //      import scala.collection.immutable._
-            //      import scala.collection.mutable.{Set, _}
-            //
-            //    rather than
-            //
-            //      import scala.collection.immutable._
-            //      import scala.collection.mutable._
-            //
-            //    Otherwise, the type of `Main.s` becomes ambiguous and a compilation error is
-            //    introduced.
-            //
-            // 3. Renames must be moved into a separate import statement to make sure that the
-            //    original names made available by the wildcard are still preserved. E.g.:
-            //
-            //      import p._
-            //      import p.{A => A1}
-            //
-            //    The above imports cannot be merged into
-            //
-            //      import p.{A => A1, _}
-            //
-            //    Otherwise, the original name `A` is no longer available.
-            Seq(allRenames, importedNames :+ wildcard)
-
-          case (false, Some(unimports)) =>
-            // A wildcard must be appended for unimports.
-            Seq(renamedNames, importedNames ++ allRenames ++ unimports :+ wildcard)
-
-          case (false, None) =>
-            Seq(renamedNames, importedNames ++ allRenames ++ allUnimports)
-        }
-
-        importeesList filter (_.nonEmpty) map (Importer(ref, _))
-    }
 
   private def explodeImportees(importers: Seq[Importer]): Seq[Importer] =
     importers flatMap {

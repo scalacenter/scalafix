@@ -79,7 +79,7 @@ When the number of imported names exceeds a certain threshold, coalesce them int
 
 [CAUTION]
 ====
-Having this feature in `OrganizeImports` is mostly for feature parity with the IntelliJ IDEA Scala import optimizer, but coalescing grouped import selectors into a wildcard import may introduce _compilation errors_! 
+Having this feature in `OrganizeImports` is mostly for feature parity with the IntelliJ IDEA Scala import optimizer, but coalescing grouped import selectors into a wildcard import may introduce _compilation errors_!
 
 Here is an example to illustrate the risk. The following snippet compiles successfully:
 
@@ -348,7 +348,69 @@ Enum: `Explode | Merge | Keep`
 
 `Explode`:: Explode grouped imports into separate import statements.
 
-`Merge`:: Merge imports sharing the same prefix into a single grouped import statement.
+`Merge`::
++
+--
+Merge imports sharing the same prefix into a single grouped import statement.
+
+[IMPORTANT]
+====
+Scala allows a name to be renamed to multiple aliases within a single source file, which makes merging import statements tricky. For example:
+
+[source,scala]
+----
+import java.lang.{Double => JDouble}
+import java.lang.{Double => JavaDouble}
+import java.lang.Integer
+----
+
+The above three imports can be merged into:
+
+[source,scala]
+----
+import java.lang.{Double => JDouble}
+import java.lang.{Double => JavaDouble, Integer}
+----
+
+but not:
+
+[source,scala]
+----
+import java.lang.{Double => JDouble, Double => JavaDouble, Integer}
+----
+
+because Scala disallow a name (in this case, `Double`) to appear in one import multiple times.
+
+Here's a more complicated example:
+
+[source,scala]
+----
+import p.{A => A1}
+import p.{A => A2}
+import p.{A => A3}
+
+import p.{B => B1}
+import p.{B => B2}
+
+import p.{C => C1}
+import p.{C => C2}
+import p.{C => C3}
+import p.{C => C4}
+----
+
+While merging these imports, we may want to "bin-pack" them to minimize the number of the result import statements:
+
+[source,scala]
+----
+import p.{A => A1, B => B1, C => C1}
+import p.{A => A2, B => B2, C => C2}
+import p.{A => A3, C3 => C3}
+import p.{C => C4}
+----
+
+On the other hand, renaming a name to multiple aliases in the same source file is rarely a practical need. Therefore, `OrganizeImports` does not support this when `groupedImports` is set to `Merge` to avoid the extra complexity. (Please note that the IntelliJ IDEA Scala import optimizer does not support this case either.)
+====
+--
 
 `Keep`:: Leave grouped imports and imports sharing the same prefix untouched.
 
