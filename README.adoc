@@ -115,7 +115,7 @@ Integer
 
 `Int.MaxValue`
 
-Rationale:: Setting the default value to `Int.MaxValue` essentially disables this feature, since it can may cause correctness issues.
+Rationale:: Setting the default value to `Int.MaxValue` essentially disables this feature, since it may cause correctness issues.
 
 ==== Example
 
