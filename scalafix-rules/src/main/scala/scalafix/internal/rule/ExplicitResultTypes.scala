@@ -154,12 +154,12 @@ final class ExplicitResultTypes(
     case _: Defn.Var => MemberKind.Var
   }
 
-  def isRuleCandidate(
-      defn: Defn,
+  def isRuleCandidate[D <: Defn](
+      defn: D,
       nm: Name,
       mods: Iterable[Mod],
       body: Term
-  )(implicit ctx: SemanticDocument): Boolean = {
+  )(implicit ev: Extract[D, Mod], ctx: SemanticDocument): Boolean = {
     import config._
 
     def matchesMemberVisibility(): Boolean =
@@ -177,18 +177,18 @@ final class ExplicitResultTypes(
       config.skipSimpleDefinitions.isSimpleDefinition(body)
 
     def isImplicit: Boolean =
-      mods.exists(_.is[Mod.Implicit]) && !isImplicitly(body)
+      defn.hasMod(mod"implicit") && !isImplicitly(body)
 
     def hasParentWihTemplate: Boolean =
       defn.parent.exists(_.is[Template])
 
     def isLocal: Boolean =
-      if (config.skipLocalImplicits) nm.symbol.isLocal && !hasParentWihTemplate
+      if (config.skipLocalImplicits) nm.symbol.isLocal
       else false
 
     isImplicit && !isFinalLiteralVal && !isLocal || {
       hasParentWihTemplate &&
-      !mods.exists(_.is[Mod.Implicit]) &&
+      !defn.hasMod(mod"implicit") &&
       !matchesSimpleDefinition() &&
       matchesMemberKind() &&
       matchesMemberVisibility()
