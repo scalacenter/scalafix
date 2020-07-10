@@ -182,11 +182,7 @@ final class ExplicitResultTypes(
     def hasParentWihTemplate: Boolean =
       defn.parent.exists(_.is[Template])
 
-    def isLocal: Boolean =
-      if (config.skipLocalImplicits) nm.symbol.isLocal
-      else false
-
-    isImplicit && !isFinalLiteralVal && !isLocal || {
+    isImplicit && !isFinalLiteralVal || {
       hasParentWihTemplate &&
       !defn.hasMod(mod"implicit") &&
       !matchesSimpleDefinition() &&

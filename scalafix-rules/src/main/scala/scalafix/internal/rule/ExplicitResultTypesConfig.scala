@@ -23,9 +23,7 @@ case class ExplicitResultTypesConfig(
     )
     @ExampleValue("['Lit', 'Term.New']")
     skipSimpleDefinitions: SimpleDefinitions = SimpleDefinitions.default,
-    @Description(
-      "If false, insert explicit result types even for locally defined implicit vals"
-    )
+    @Hidden
     skipLocalImplicits: Boolean = true,
     @Description(
       "If true, report and fail unexpected errors. " +
