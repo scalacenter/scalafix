@@ -45,13 +45,11 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
       space: String
   ): Option[v1.Patch] = {
     val gpos = unit.position(pos.start)
-    val tpe = GlobalProxy.typedTreeAt(g, gpos)
-    val inverseSemanticdbSymbol =
-      if (sym.isLocal) tpe.symbol
-      else
-        g.inverseSemanticdbSymbols(sym.value)
-          .find(s => g.semanticdbSymbol(s) == sym.value)
-          .getOrElse(g.NoSymbol)
+    GlobalProxy.typedTreeAt(g, gpos)
+    val inverseSemanticdbSymbol = g
+      .inverseSemanticdbSymbols(sym.value)
+      .find(s => g.semanticdbSymbol(s) == sym.value)
+      .getOrElse(g.NoSymbol)
     val hasNothing = inverseSemanticdbSymbol.info.exists {
       case g.definitions.NothingTpe => true
       case _ => false
