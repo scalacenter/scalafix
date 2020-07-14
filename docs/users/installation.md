@@ -155,7 +155,8 @@ Great! You are all set to use Scalafix with sbt :)
 | `scalafixCaching` | `SettingKey[Boolean]`  | Controls whether 2 successive invocations of the `scalafix` `InputTask` with the same arguments & configuration should be incremental. Defaults to `true` if `scalafixOnCompile := true`, `false` otherwise. When enabled, use the `--no-cache` argument to force an exhaustive run.
 | `scalafixConfig` | `SettingKey[Option[File]]` | `.scalafix.conf` file to specify which scalafix rules should run, together with their potential options. Defaults to `.scalafix.conf` in the root directory, if it exists.
 | `scalafixDependencies` | `SettingKey[Seq[ModuleID]]` | Dependencies making [custom rules](#run-custom-rules) available via their simple name. Must be set in `ThisBuild`. Defaults to `Nil`.
-| `scalafixOnCompile` | `SettingKey[Boolean]` | When `true`, Scalafix rule(s) declared in `scalafixConfig` are run on compilation, applying rewrites and failing on lint errors. Defaults to `false`.
+| `scalafixOnCompile` | `SettingKey[Boolean]` | When `true`, Scalafix rule(s) declared in `scalafixConfig` (or `scalafixOnCompileConfig` when set) are run on compilation, applying rewrites and failing on lint errors. Defaults to `false`.
+| `scalafixOnCompileConfig` | `SettingKey[File]` | When this is set and `scalafixOnCompile := true`, the rules and settings from this .scalafix.conf file will be used when Scalafix runs automatically after compilation.
 | `scalafixResolvers` | `SettingKey[Seq[Repository]]` | Custom resolvers where `scalafixDependencies` are resolved from. Must be set in `ThisBuild`. Defaults to: Ivy2 local, Maven Central, Sonatype releases & Sonatype snapshots.
 | `scalafixScalaBinaryVersion` | `SettingKey[String]` | Scala binary version used for Scalafix execution. Defaults to 2.12. For advanced rules such as ExplicitResultTypes to work, it must match the binary version defined in the build for compiling sources. Note that `scalafixDependencies` artifacts must be published against that Scala version.
 
@@ -217,6 +218,12 @@ feature with care as it has several shortcomings, for example:
    confusing when triggered automatically.
 1. Bugs in rule implementations can prevent you from getting a successul
    `compile`, blocking testing or publishing for example
+
+Some of these shortcomings can be mitigated by the `scalafixOnCompileConfig`
+setting key, which allows to use a separate configuration file whenever
+Scalafix is triggered by `compile`. This way, Scalafix can execute a
+different, safer set of rules compared to the regular `scalafixConfig` that
+remains used for explicit `scalafix` & `scalafixAll` invocations.
 
 ### Enforce in CI
 
