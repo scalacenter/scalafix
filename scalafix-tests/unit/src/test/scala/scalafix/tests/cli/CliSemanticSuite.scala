@@ -10,6 +10,7 @@ import scala.meta.testkit.StringFS
 
 import scalafix.cli._
 import scalafix.tests.core.Classpaths
+import scalafix.tests.util.ScalaVersions
 
 class CliSemanticSuite extends BaseCliSuite {
 
@@ -257,4 +258,54 @@ class CliSemanticSuite extends BaseCliSuite {
     )
   }
 
+  test("on-demand with scalacOptions") {
+    // Todo: Ondemand compilation doesn't take scalacOptions or the reporter doesn't gather all warns in 2.13
+    // see https://github.com/scalacenter/scalafix/pull/1215
+    if (ScalaVersions.isScala213) true
+    else {
+      val warnUnused =
+        if (ScalaVersions.isScala213) "-Wunused:imports"
+        else "-Ywarn-unused-import"
+
+      val root = StringFS.fromString(
+        """|/NoSemanticdb2.scala
+          |package b
+          |import scala.concurrent.Future
+          |object a {
+          |  val x = _root_.scala.List()
+          |  x + "string"
+          |}
+          |/.scalafix.conf
+          |rules = RemoveUnused
+          |""".stripMargin
+      )
+      val (out, exit) = runMain(
+        Array(
+          "--files",
+          "NoSemanticdb2.scala",
+          "--classpath",
+          defaultClasspath,
+          "--scalac-options",
+          warnUnused
+        ),
+        root.toNIO
+      )
+      assert(exit.isOk)
+      val obtained =
+        FileIO.slurp(
+          root.resolve("NoSemanticdb2.scala"),
+          StandardCharsets.UTF_8
+        )
+      assertNoDiff(
+        obtained,
+        """
+          |package b
+          |object a {
+          |  val x = _root_.scala.List()
+          |  x + "string"
+          |}
+          |""".stripMargin
+      )
+    }
+  }
 }

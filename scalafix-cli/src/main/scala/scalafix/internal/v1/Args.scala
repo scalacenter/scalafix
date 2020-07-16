@@ -13,9 +13,10 @@ import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 
 import scala.annotation.StaticAnnotation
+import scala.tools.nsc.CompilerCommand
 import scala.tools.nsc.Settings
 import scala.tools.nsc.interactive.Global
-import scala.tools.nsc.reporters.ConsoleReporter
+import scala.tools.nsc.reporters.StoreReporter
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
@@ -42,7 +43,6 @@ import scalafix.internal.jgit.JGitDiff
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.v1.Configuration
 import scalafix.v1.RuleDecoder
-
 class Section(val name: String) extends StaticAnnotation
 
 case class Args(
@@ -376,11 +376,15 @@ case class Args(
 
   def configuredGlobal: Configured[LazyValue[Option[Global]]] =
     Configured.ok {
-      val settings = new Settings()
-      settings.YpresentationAnyThread.value = true
-      settings.classpath.value = validatedClasspath.syntax
-      val reporter = new ConsoleReporter(settings)
-      LazyValue.fromUnsafe(() => new Global(settings, reporter))
+      LazyValue.fromUnsafe(() => {
+        val ss = new Settings()
+        val command = new CompilerCommand(scalacOptions, ss)
+        val settings = command.settings
+        settings.YpresentationAnyThread.value = true
+        settings.classpath.value = validatedClasspath.syntax
+        val reporter = new StoreReporter()
+        new Global(settings, reporter)
+      })
     }
 
   def validate: Configured[ValidatedArgs] = {
