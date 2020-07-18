@@ -81,6 +81,11 @@ case class Args(
         "configured in .scalafix.conf or via --rules"
     )
     syntactic: Boolean = false,
+    @Description(
+      "Run only rules defined in onCompile section in .scalafix.conf," +
+        "or rules explicitly passed via --rules"
+    )
+    onCompile: Boolean = false,
     @Description("Print out additional diagnostics while running scalafix.")
     verbose: Boolean = false,
     @Description("Print out this help message and exit")
@@ -242,9 +247,28 @@ case class Args(
     RuleDecoder.decoder(ruleDecoderSettings.withConfig(scalafixConfig))
   }
 
+  // In running with onCompile flag, look for settings in onCompile block first, and fallback to standard settings.
+  //
+  // Please watch out that its merge scope is shallow. For example,
+  //   DisableSyntax.noVars = true
+  // will be overridden by
+  //   onCompile = {
+  //     DisableSyntax.noThrows = true
+  //   }
+  def preProcessedConf(base: Conf): Conf =
+    if (onCompile) {
+      val confOnCompile = ConfGet.getKey(base, "onCompile" :: Nil)
+      confOnCompile.fold(base)(
+        ScalafixConfOps.mergeShallow(_, ScalafixConfOps.drop(base, "onCompile"))
+      )
+    } else base
+
   def rulesConf(base: () => Conf): Conf = {
     if (rules.isEmpty) {
-      ConfGet.getKey(base(), "rules" :: "rule" :: Nil) match {
+      val rulesInConf =
+        ConfGet.getKey(preProcessedConf(base()), "rules" :: "rule" :: Nil)
+
+      rulesInConf match {
         case Some(c) => c
         case _ => Conf.Lst(Nil)
       }
@@ -257,10 +281,13 @@ case class Args(
       base: Conf,
       scalafixConfig: ScalafixConfig
   ): Configured[Rules] = {
+    val targetConf = preProcessedConf(base)
+
     val rulesConf = this.rulesConf(() => base)
     val decoder = ruleDecoder(scalafixConfig)
+
     val configuration = Configuration()
-      .withConf(base)
+      .withConf(targetConf)
       .withScalaVersion(scalaVersion)
       .withScalacOptions(scalacOptions)
       .withScalacClasspath(validatedClasspath.entries)

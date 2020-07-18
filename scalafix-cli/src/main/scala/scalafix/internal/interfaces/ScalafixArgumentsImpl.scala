@@ -16,12 +16,14 @@ import scala.jdk.CollectionConverters._
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
 import scala.util.control.NoStackTrace
-import scalafix.interfaces.ScalafixArguments
-import scalafix.interfaces.ScalafixError
-import scalafix.interfaces.ScalafixException
-import scalafix.interfaces.ScalafixMainCallback
-import scalafix.interfaces.ScalafixMainMode
-import scalafix.interfaces.ScalafixRule
+import scalafix.interfaces.{
+  ScalafixArguments,
+  ScalafixError,
+  ScalafixException,
+  ScalafixMainCallback,
+  ScalafixMainMode,
+  ScalafixRule
+}
 import scalafix.internal.v1.Args
 import scalafix.internal.v1.MainOps
 import scalafix.internal.v1.Rules
@@ -112,6 +114,8 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
         copy(args = args.copy(stdout = true))
       case ScalafixMainMode.AUTO_SUPPRESS_LINTER_ERRORS =>
         copy(args = args.copy(autoSuppressLinterErrors = true))
+      case ScalafixMainMode.ON_COMPILE =>
+        copy(args = args.copy(onCompile = true))
     }
 
   override def withParsedArguments(
