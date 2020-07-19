@@ -28,7 +28,7 @@ inThisBuild(
       "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.6"
     ),
     addCompilerPlugin(scalafixSemanticdb),
-    scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.3.1-RC3",
+    scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.0",
     // Super shell output often messes up Scalafix test output.
     useSuperShell := false
   )
