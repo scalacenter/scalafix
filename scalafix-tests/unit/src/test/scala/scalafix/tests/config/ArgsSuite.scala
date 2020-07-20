@@ -8,23 +8,25 @@ import scalafix.internal.config.ScalafixConfig
 
 class ArgsSuite extends munit.FunSuite {
 
-  private lazy val onCompileConf = Conf.parseString(
-    "ArgsSuite",
-    """
-      |rules = [DisableSyntax, RemoveUnused]
-      |
-      |onCompile.rules = [DisableSyntax]
-      |
-      |DisableSyntax.noVars = true
-      |DisableSyntax.noThrows = true
-      |
-      |onCompile = {
-      |  DisableSyntax.noVars = false
-      |}
-      |
-      |onCompile.DisableSyntax.noReturns = true
-      |""".stripMargin
-  )
+  private lazy val givenConf = Conf
+    .parseString(
+      "ArgsSuite",
+      """
+        |rules = [DisableSyntax, RemoveUnused]
+        |
+        |onCompile.rules = [DisableSyntax]
+        |
+        |DisableSyntax.noVars = true
+        |DisableSyntax.noThrows = true
+        |
+        |onCompile = {
+        |  DisableSyntax.noVars = false
+        |}
+        |
+        |onCompile.DisableSyntax.noReturns = true
+        |""".stripMargin
+    )
+    .get
 
   test("ignore onCompile section if args.onCompile is false") {
     val args = Args.default.copy(scalacOptions = "-Ywarn-unused" :: Nil)
@@ -32,13 +34,14 @@ class ArgsSuite extends munit.FunSuite {
 
     assert(!args.onCompile, "onCompile should be false at default.")
 
-    val rules = args.configuredRules(onCompileConf.get, config).get
+    val rulesConfigured = args.configuredRules(givenConf, config).get
 
     assert(
-      rules.rules.map(_.name.value) == List("DisableSyntax", "RemoveUnused")
+      rulesConfigured.rules
+        .map(_.name.value) == List("DisableSyntax", "RemoveUnused")
     )
 
-    val merged = args.preProcessedConf(onCompileConf.get)
+    val merged = args.preProcessedConf(givenConf)
 
     val disableSyntaxRule = ConfGet.getKey(merged, "DisableSyntax" :: Nil).get
 
@@ -52,11 +55,11 @@ class ArgsSuite extends munit.FunSuite {
     val args = Args.default.copy(onCompile = true)
     val config = ScalafixConfig()
 
-    val rules = args.configuredRules(onCompileConf.get, config).get
+    val rulesConfigured = args.configuredRules(givenConf, config).get
 
-    assert(rules.rules.map(_.name.value) == List("DisableSyntax"))
+    assert(rulesConfigured.rules.map(_.name.value) == List("DisableSyntax"))
 
-    val merged = args.preProcessedConf(onCompileConf.get)
+    val merged = args.preProcessedConf(givenConf)
 
     val disableSyntaxRule = ConfGet.getKey(merged, "DisableSyntax" :: Nil).get
 
