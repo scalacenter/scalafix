@@ -1,7 +1,8 @@
 package fix
 
-import scala.meta.Importer
 import scala.util.matching.Regex
+
+import scala.meta.Importer
 
 sealed trait ImportMatcher {
   def matches(i: Importer): Int

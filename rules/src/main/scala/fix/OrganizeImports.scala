@@ -3,6 +3,10 @@ package fix
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
+import scala.util.Try
+import scala.util.matching.Regex
+
+import metaconfig.Configured
 import scala.meta.Import
 import scala.meta.Importee
 import scala.meta.Importer
@@ -14,10 +18,6 @@ import scala.meta.Term
 import scala.meta.Tree
 import scala.meta.inputs.Position
 import scala.meta.tokens.Token
-import scala.util.Try
-import scala.util.matching.Regex
-
-import metaconfig.Configured
 import scalafix.lint.Diagnostic
 import scalafix.patch.Patch
 import scalafix.v1.Configuration

@@ -3,7 +3,6 @@ package fix
 import scala.meta.Importee
 import scala.meta.Name
 import scala.meta.Term
-
 import scalafix.lint.Diagnostic
 import scalafix.lint.LintSeverity
 
@@ -31,7 +30,7 @@ case class TooManyAliases(name: Name, renames: Seq[Importee.Rename]) extends Dia
 
     val aliasList = aliases match {
       case head :: last :: Nil => s"$head and $last"
-      case init :+ last        => init mkString ("", ", ", s", and $last")
+      case init :+ last        => init.mkString("", ", ", s", and $last")
     }
 
     s"When `OrganizeImports.groupedImports` is set to `Merge`, renaming a name to multiple" +
