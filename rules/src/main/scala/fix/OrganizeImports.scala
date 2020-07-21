@@ -4,7 +4,6 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
-import scala.util.matching.Regex
 
 import metaconfig.Configured
 import scala.meta.Import
@@ -33,17 +32,12 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   import OrganizeImports._
 
   private val importMatchers = {
-    val matchers = config.groups map {
-      case p if p startsWith "re:" => RegexMatcher(new Regex(p stripPrefix "re:"))
-      case "*"                     => WildcardMatcher
-      case p                       => PlainTextMatcher(p)
-    }
-
+    val matchers = config.groups map ImportMatcher.parse
     // The wildcard group should always exist. Append one at the end if omitted.
-    matchers ++ (List(WildcardMatcher) filterNot matchers.contains)
+    if (matchers contains ImportMatcher.Wildcard) matchers else matchers :+ ImportMatcher.Wildcard
   }
 
-  private val wildcardGroupIndex: Int = importMatchers indexOf WildcardMatcher
+  private val wildcardGroupIndex: Int = importMatchers indexOf ImportMatcher.Wildcard
 
   private val unusedImporteePositions: mutable.Set[Position] = mutable.Set.empty[Position]
 
@@ -63,7 +57,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
         val warnUnusedPrefix = Set("-Wunused", "-Ywarn-unused")
         val warnUnusedString = Set("-Xlint", "-Xlint:unused")
         config.scalacOptions exists { option =>
-          (warnUnusedPrefix exists option.startsWith) || (warnUnusedString apply option)
+          (warnUnusedPrefix exists option.startsWith) || (warnUnusedString contains option)
         }
       }
 
@@ -73,8 +67,8 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
         Configured.error(
           "The Scala compiler option \"-Ywarn-unused\" is required to use OrganizeImports with"
             + " \"OrganizeImports.removeUnused\" set to true. To fix this problem, update your"
-            + " build to use at least one Scala compiler option like -Ywarn-unused,"
-            + " -Xlint:unused (2.12.2 or above) or -Wunused (2.13 only)"
+            + " build to use at least one Scala compiler option like -Ywarn-unused, -Xlint:unused"
+            + " (2.12.2 or above) or -Wunused (2.13 only)"
         )
     }
 
