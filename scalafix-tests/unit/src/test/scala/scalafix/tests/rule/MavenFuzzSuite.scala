@@ -1,14 +1,17 @@
 package scalafix.tests.rule
 
 import coursier._
+
 import scala.collection.JavaConverters._
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.testkit.DiffAssertions
-import scalafix.interfaces.Scalafix
+import scalafix.interfaces.{Scalafix, ScalafixMainMode}
 import java.nio.file.Files
+
 import scala.meta.internal.io.FileIO
 import scala.meta.io.AbsolutePath
 import java.nio.file.Path
+
 import scala.sys.process._
 import scala.collection.mutable
 import scala.tools.nsc.reporters.StoreReporter
@@ -158,7 +161,7 @@ class MavenFuzzSuite extends AnyFunSuite with DiffAssertions {
         .withPaths(paths.asJava)
         .withRules(List(rule).asJava)
         .withClasspath(classfiles.asJava)
-      // .withMode(ScalafixMainMode.CHECK)
+        .withMode(ScalafixMainMode.CHECK)
       val exit = args.run()
       pprint.log(exit)
       // exec("git", "diff")

@@ -62,7 +62,8 @@ class ScalafixSuite extends AnyFunSuite {
         .withPaths(Seq(ruleSource).asJava) // any file would do, we just want rules to be loaded
         .withRules(Seq(s"file:$ruleSource").asJava)
         .withMainCallback(scalafixMainCallback)
-        .run()
+        .runAndReturnResult()
+        .writeResult()
       assert(maybeDiagnostic.get.message.startsWith(scalaVersion))
     }
   }

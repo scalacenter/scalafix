@@ -1,7 +1,9 @@
 package scalafix.internal.v1
 
 import java.util.ServiceLoader
+
 import metaconfig.Configured
+
 import scala.meta.tokens.Tokens
 import scalafix.internal.config.MetaconfigOps
 import scalafix.internal.patch.PatchInternals
@@ -10,12 +12,14 @@ import scalafix.lint.Diagnostic
 import scalafix.lint.RuleDiagnostic
 import scalafix.patch.Patch
 import scalafix.rule.RuleName
+import scalafix.v0
 import scalafix.v1.Configuration
 import scalafix.v1.Rule
 import scalafix.v1.SemanticDocument
 import scalafix.v1.SemanticRule
 import scalafix.v1.SyntacticDocument
 import scalafix.v1.SyntacticRule
+
 import scala.util.control.NonFatal
 import scala.collection.mutable
 
@@ -69,7 +73,13 @@ case class Rules(rules: List[Rule] = Nil) {
   def semanticPatch(
       sdoc: SemanticDocument,
       suppress: Boolean
-  ): (String, List[RuleDiagnostic]) = {
+  ): (
+      String,
+      List[v0.Patch],
+      v0.RuleCtx,
+      Option[v0.SemanticdbIndex],
+      List[RuleDiagnostic]
+  ) = {
     val fixes = rules.map {
       case rule: SemanticRule =>
         rule.name -> rule.fix(sdoc)
@@ -82,7 +92,13 @@ case class Rules(rules: List[Rule] = Nil) {
   def syntacticPatch(
       doc: SyntacticDocument,
       suppress: Boolean
-  ): (String, List[RuleDiagnostic]) = {
+  ): (
+      String,
+      List[v0.Patch],
+      v0.RuleCtx,
+      Option[v0.SemanticdbIndex],
+      List[RuleDiagnostic]
+  ) = {
     require(!isSemantic, semanticRules.map(_.name).mkString("+"))
     val fixes = syntacticRules.map { rule =>
       rule.name -> rule.fix(doc)

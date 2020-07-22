@@ -32,6 +32,7 @@ import scalafix.tests.util.ScalaVersions
 import scalafix.{interfaces => i}
 
 import scala.util.Properties
+import scalafix.internal.util.OptionOps
 
 class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
   def semanticdbPluginPath(): String = {
@@ -261,7 +262,10 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
     )
     val validateError = args.validate()
     assert(!validateError.isPresent, validateError)
-    val errors = args.run().toList.map(_.toString).sorted
+    val scalafixResult = args.runAndReturnResult()
+    scalafixResult.getScalafixOutputs().toList.map(_.applyPatches())
+    val errors = args.run().toList.sorted
+//   val errors = List()
     val stdout = fansi
       .Str(out.toString(charset.name()))
       .plainText

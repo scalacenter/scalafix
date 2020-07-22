@@ -52,7 +52,7 @@ object PatchDocs {
   }
   implicit class XtensionPatch(p: Patch) {
     def output(implicit doc: SemanticDocument): String = {
-      val (obtained, _) =
+      val (obtained, _, _, _, _) =
         PatchInternals.semantic(
           Map(RuleName("patch") -> p),
           doc,
@@ -66,7 +66,7 @@ object PatchDocs {
   }
   implicit class XtensionPatchs(p: Iterable[Patch]) {
     def showLints()(implicit doc: SemanticDocument): Unit = {
-      val (_, diagnostics) = PatchInternals.semantic(
+      val (_, _, _, _, diagnostics) = PatchInternals.semantic(
         Map(RuleName("RuleName") -> p.asPatch),
         doc,
         suppress = false

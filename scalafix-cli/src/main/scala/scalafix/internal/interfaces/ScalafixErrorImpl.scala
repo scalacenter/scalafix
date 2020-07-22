@@ -19,7 +19,11 @@ object ScalafixErrorImpl {
     map
   }
 
-  def fromScala(exit: ExitStatus): Array[ScalafixError] = {
+  def fromScala(exit: ExitStatus): Option[ScalafixError] = {
+    ExitStatus.all.find(code => exit.is(code)).flatMap(statusToError.get)
+  }
+
+  def fromScala2(exit: ExitStatus): Array[ScalafixError] = {
     val buf = Array.newBuilder[ScalafixError]
     ExitStatus.all.foreach { code =>
       if (exit.is(code))

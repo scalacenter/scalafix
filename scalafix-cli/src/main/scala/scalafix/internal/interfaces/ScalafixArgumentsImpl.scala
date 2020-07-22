@@ -16,24 +16,37 @@ import scala.jdk.CollectionConverters._
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
 import scala.util.control.NoStackTrace
-import scalafix.interfaces.ScalafixArguments
-import scalafix.interfaces.ScalafixError
-import scalafix.interfaces.ScalafixException
-import scalafix.interfaces.ScalafixMainCallback
-import scalafix.interfaces.ScalafixMainMode
-import scalafix.interfaces.ScalafixRule
+import scalafix.interfaces.{
+  ScalafixArguments,
+  ScalafixError,
+  ScalafixException,
+  ScalafixMainCallback,
+  ScalafixMainMode,
+  ScalafixResult,
+  ScalafixRule
+}
 import scalafix.internal.v1.Args
 import scalafix.internal.v1.MainOps
 import scalafix.internal.v1.Rules
 import scalafix.v1.RuleDecoder
 import scalafix.Versions
+import scalafix.cli.ExitStatus
 
 final case class ScalafixArgumentsImpl(args: Args = Args.default)
     extends ScalafixArguments {
 
   override def run(): Array[ScalafixError] = {
     val exit = MainOps.run(Array(), args)
-    ScalafixErrorImpl.fromScala(exit)
+    ScalafixErrorImpl.fromScala2(exit)
+  }
+
+  override def runAndReturnResult(): ScalafixResult = {
+    args.validate match {
+      case Configured.Ok(validated) =>
+        MainOps.runWithResult(validated)
+      case Configured.NotOk(err) =>
+        ScalafixResultImpl(ExitStatus.CommandLineError, Some(err.msg))
+    }
   }
 
   override def withRules(rules: util.List[String]): ScalafixArguments =

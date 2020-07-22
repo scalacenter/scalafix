@@ -29,11 +29,18 @@ import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
 import scalafix.Versions
 import scalafix.cli.ExitStatus
+import scalafix.interfaces.ScalafixResult
 import scalafix.internal.config.PrintStreamReporter
 import scalafix.internal.diff.DiffUtils
-import scalafix.v1.SyntacticDocument
-import scalafix.v1.SemanticDocument
+import scalafix.internal.interfaces.{ScalafixOutputtImpl, ScalafixResultImpl}
+import scalafix.internal.patch.PatchInternals.tokenPatchApply
+import scalafix.v0
+import scalafix.lint.RuleDiagnostic
+import scalafix.v0.{RuleCtx, SemanticdbIndex}
+import scalafix.v1.{Rule, SemanticDocument, SyntacticDocument}
+
 import scala.meta.interactive.InteractiveSemanticdb
+import scala.util.{Try, Success}
 
 object MainOps {
 
@@ -76,7 +83,60 @@ object MainOps {
     }
   }
 
-  def files(args: ValidatedArgs): collection.Seq[AbsolutePath] =
+  def runWithResult(args: ValidatedArgs): ScalafixResult = {
+    args.rules.rules match {
+      case Nil => {
+        ScalafixResultImpl(ExitStatus.CommandLineError, Some("missing rules"))
+      }
+      case _: Seq[Rule] => {
+        val scalafixOutputs: Seq[ScalafixOutputtImpl] = {
+          val files = getFilesFrom(args)
+          files.map { file =>
+            val input = args.input(file)
+            val result = Try(getPatchesAndDiags(args, input, file))
+            result
+              .map {
+                case (fixed, patches, ctx, index, messages) =>
+                  if (fixed == input.text) {
+                    ScalafixOutputtImpl.from(
+                      file,
+                      Some(fixed),
+                      None,
+                      ExitStatus.Ok,
+                      Nil,
+                      messages
+                    )(args, ctx, index)
+                  } else {
+                    val diff = DiffUtils.unifiedDiff(
+                      file.toString(),
+                      "<expected fix>",
+                      input.text.linesIterator.toList,
+                      fixed.linesIterator.toList,
+                      3
+                    )
+                    args.args.out.println(diff)
+                    ScalafixOutputtImpl.from(
+                      file,
+                      Some(fixed),
+                      Some(diff),
+                      ExitStatus.Ok, // ExitStatus.TestError why ??
+                      patches,
+                      messages
+                    )(args, ctx, index)
+                  }
+              }
+              .getOrElse(
+                ScalafixOutputtImpl
+                  .from(file, ExitStatus.UnexpectedError, "failure")(args)
+              )
+          }
+        }
+        ScalafixResultImpl.from(scalafixOutputs)
+      }
+    }
+  }
+
+  def getFilesFrom(args: ValidatedArgs): Seq[AbsolutePath] =
     args.args.ls match {
       case Ls.Find =>
         val buf = Vector.newBuilder[AbsolutePath]
@@ -214,34 +274,14 @@ object MainOps {
 
   def unsafeHandleFile(args: ValidatedArgs, file: AbsolutePath): ExitStatus = {
     val input = args.input(file)
-    val tree = LazyValue.later { () =>
-      args.parse(input).get: Tree
-    }
-    val doc = SyntacticDocument(input, tree, args.diffDisable, args.config)
-    val (fixed, messages) =
-      if (args.rules.isSemantic) {
-        val relpath = file.toRelative(args.sourceroot)
-        val sdoc = SemanticDocument.fromPath(
-          doc,
-          relpath,
-          args.classLoader,
-          args.symtab,
-          () => compileWithGlobal(args, doc)
-        )
-        val (fix, messages) =
-          args.rules.semanticPatch(sdoc, args.args.autoSuppressLinterErrors)
-        assertFreshSemanticDB(input, file, fix, sdoc.internal.textDocument)
-        (fix, messages)
-      } else {
-        args.rules.syntacticPatch(doc, args.args.autoSuppressLinterErrors)
-      }
+    val (fixed, javaPatches, _, _, messages) =
+      getPatchesAndDiags(args, input, file)
 
     if (!args.args.autoSuppressLinterErrors) {
       messages.foreach { diag =>
         args.config.reporter.lint(diag)
       }
     }
-
     if (args.args.check) {
       if (fixed == input.text) {
         ExitStatus.Ok
@@ -256,6 +296,7 @@ object MainOps {
         args.args.out.println(diff)
         ExitStatus.TestError
       }
+
     } else if (args.args.stdout) {
       args.args.out.println(fixed)
       ExitStatus.Ok
@@ -267,6 +308,74 @@ object MainOps {
       }
       ExitStatus.Ok
     }
+  }
+
+  private def getPatchesAndDiags(
+      args: ValidatedArgs,
+      input: Input,
+      file: AbsolutePath
+  ): (
+      String,
+      List[v0.Patch],
+      RuleCtx,
+      Option[SemanticdbIndex],
+      List[RuleDiagnostic]
+  ) = {
+    val tree = LazyValue.later { () =>
+      args.parse(input).get: Tree
+    }
+    val doc = SyntacticDocument(input, tree, args.diffDisable, args.config)
+    val (fixed, patches, ctx, index, messages) =
+      if (args.rules.isSemantic) {
+        val relpath = file.toRelative(args.sourceroot)
+        val sdoc = SemanticDocument.fromPath(
+          doc,
+          relpath,
+          args.classLoader,
+          args.symtab,
+          () => compileWithGlobal(args, doc)
+        )
+        val (fix, patches, ctx, index, messages) =
+          args.rules.semanticPatch(sdoc, args.args.autoSuppressLinterErrors)
+        assertFreshSemanticDB(input, file, fix, sdoc.internal.textDocument)
+        (fix, patches, ctx, index, messages)
+      } else {
+        args.rules.syntacticPatch(doc, args.args.autoSuppressLinterErrors)
+      }
+    (fixed, patches, ctx, index, messages)
+  }
+
+  def applyPatches(
+      args: ValidatedArgs,
+      patches: Seq[v0.Patch],
+      ctx: RuleCtx,
+      index: Option[v0.SemanticdbIndex],
+      file: AbsolutePath
+  ): Try[ExitStatus] = {
+    val input = args.input(file)
+    for {
+      fixed <- Try(tokenPatchApply(ctx, index, patches))
+      if (fixed != input.text)
+      toFix = args.pathReplace(file).toNIO
+      _ <- Try(Files.createDirectories(toFix.getParent))
+      _ <- Try(Files.write(toFix, fixed.getBytes(args.args.charset)))
+    } yield ExitStatus.Ok
+  }
+
+  def appyDiff(
+      args: ValidatedArgs,
+      file: AbsolutePath,
+      fixed: String
+  ): Try[ExitStatus] = {
+    val input = args.input(file)
+    if (fixed != input.text) {
+      val toFix = args.pathReplace(file).toNIO
+
+      for {
+        _ <- Try(Files.createDirectories(toFix.getParent))
+        _ <- Try(Files.write(toFix, fixed.getBytes(args.args.charset)))
+      } yield ExitStatus.Ok
+    } else Success(ExitStatus.Ok)
   }
 
   def handleFile(args: ValidatedArgs, file: AbsolutePath): ExitStatus = {
@@ -301,7 +410,7 @@ object MainOps {
   }
 
   def run(args: ValidatedArgs): ExitStatus = {
-    val files = this.files(args)
+    val files = getFilesFrom(args)
     var i = 0
     val N = files.length
     val width = N.toString.length
