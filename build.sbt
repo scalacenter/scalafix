@@ -41,7 +41,8 @@ lazy val rules = project
     moduleName := "organize-imports",
     dependencyOverrides += "com.lihaoyi" %% "sourcecode" % "0.2.1",
     libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % v.scalafixVersion,
-    scalacOptions ++= List("-Ywarn-unused")
+    scalacOptions ++= List("-Ywarn-unused"),
+    scalafixOnCompile := true
   )
 
 lazy val shared = project.settings(skip in publish := true)
