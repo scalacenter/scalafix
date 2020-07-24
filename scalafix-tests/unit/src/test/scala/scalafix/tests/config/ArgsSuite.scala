@@ -64,7 +64,11 @@ class ArgsSuite extends munit.FunSuite {
     val disableSyntaxRule = ConfGet.getKey(merged, "DisableSyntax" :: Nil).get
 
     val expected =
-      Conf.Obj("noVars" -> Conf.Bool(false), "noReturns" -> Conf.Bool(true))
+      Conf.Obj(
+        "noVars" -> Conf.Bool(false),
+        "noThrows" -> Conf.Bool(true),
+        "noReturns" -> Conf.Bool(true)
+      )
 
     assertEquals(disableSyntaxRule, expected)
   }

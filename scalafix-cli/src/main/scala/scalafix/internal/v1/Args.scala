@@ -247,19 +247,12 @@ case class Args(
     RuleDecoder.decoder(ruleDecoderSettings.withConfig(scalafixConfig))
   }
 
-  // In running with onCompile flag, look for settings in onCompile block first, and fallback to standard settings.
-  //
-  // Please watch out that its merge scope is shallow. For example,
-  //   DisableSyntax.noVars = true
-  // will be overridden by
-  //   onCompile = {
-  //     DisableSyntax.noThrows = true
-  //   }
+  // With a --on-compile flag, looking for settings in onCompile block first, and fallback to standard settings.
   def preProcessedConf(base: Conf): Conf =
     if (onCompile) {
       val confOnCompile = ConfGet.getKey(base, "onCompile" :: Nil)
       confOnCompile.fold(base)(
-        ScalafixConfOps.mergeShallow(_, ScalafixConfOps.drop(base, "onCompile"))
+        ConfOps.merge(ScalafixConfOps.drop(base, "onCompile"), _)
       )
     } else base
 
