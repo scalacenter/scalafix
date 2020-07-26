@@ -43,6 +43,13 @@ To include this rule in your sbt build:
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "{latest-release}"
 ----
 
+You can also include this rule in your Mill build if using https://github.com/joan38/mill-scalafix[mill-scalafix]:
+
+[source,scala,subs="attributes+"]
+----
+def scalafixIvyDeps = Agg(ivy"com.github.liancheng::organize-imports:{latest-release}")
+----
+
 [[remove-unused-warning]]
 [WARNING]
 ====
