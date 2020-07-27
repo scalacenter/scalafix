@@ -362,6 +362,8 @@ Merge imports sharing the same prefix into a single grouped import statement.
 
 [IMPORTANT]
 ====
+`OrganizeImports` does not support renaming one name to multiple aliases within the same source file when `groupedImports` is set to `Merge`. (The IntelliJ IDEA Scala import optimizer does not support this either.)
+
 Scala allows a name to be renamed to multiple aliases within a single source file, which makes merging import statements tricky. For example:
 
 [source,scala]
@@ -415,7 +417,7 @@ import p.{A => A3, C3 => C3}
 import p.{C => C4}
 ----
 
-On the other hand, renaming a name to multiple aliases in the same source file is rarely a practical need. Therefore, `OrganizeImports` does not support this when `groupedImports` is set to `Merge` to avoid the extra complexity. (Please note that the IntelliJ IDEA Scala import optimizer does not support this case either.)
+However, in reality, renaming aliasing a name multiple times in the same source file is rarely a practical need. Therefore, `OrganizeImports` does not support this when `groupedImports` is set to `Merge` to avoid the extra complexity.
 ====
 --
 
