@@ -23,13 +23,13 @@ https://codecov.io/gh/liancheng/scalafix-organize-imports[image:https://img.shie
 
 toc::[]
 
-`OrganizeImports` is a https://scalacenter.github.io/scalafix[Scalafix] semantic rule that helps you to organize import statements.
+`OrganizeImports` is a CI-friendly https://scalacenter.github.io/scalafix[Scalafix] semantic rule that helps you organize import statements.
 
 == Getting started
 
-Please refer to https://scalacenter.github.io/scalafix/docs/users/installation.html[the Scalafix documentation] for how to install Scalafix and invoking it in your build.
+Please refer to https://scalacenter.github.io/scalafix/docs/users/installation.html[the Scalafix documentation] for how to install Scalafix and invoking it in your sbt build.
 
-To try this rule in sbt console without updating your sbt build:
+To try this rule in the sbt console without updating your sbt build:
 
 [source,subs="attributes+"]
 ----
@@ -43,7 +43,7 @@ To include this rule in your sbt build:
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "{latest-release}"
 ----
 
-You can also include this rule in your Mill build if using https://github.com/joan38/mill-scalafix[mill-scalafix]:
+You can also include this rule in your http://www.lihaoyi.com/mill/[Mill] build using https://github.com/joan38/mill-scalafix[mill-scalafix]:
 
 [source,scala,subs="attributes+"]
 ----
