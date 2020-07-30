@@ -4,11 +4,9 @@ inThisBuild(
     onLoadMessage := s"Welcome to scalafix ${version.value}",
     scalaVersion := scala213,
     crossScalaVersions := List(scala213, scala212, scala211),
-    semanticdbEnabled := true,
-    semanticdbVersion := scalafixSemanticdb.revision,
+    fork := true,
     scalafixScalaBinaryVersion := scalaBinaryVersion.value,
-    scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.0",
-    fork := true
+    scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.0"
   )
 )
 
@@ -55,6 +53,7 @@ lazy val interfaces = project
     crossPaths := false,
     autoScalaLibrary := false
   )
+  .disablePlugins(ScalafixPlugin)
 
 lazy val core = project
   .in(file("scalafix-core"))
@@ -67,7 +66,8 @@ lazy val core = project
       "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided,
       collectionCompat
-    )
+    ),
+    scalafixSettings
   )
   .enablePlugins(BuildInfoPlugin)
 
@@ -86,7 +86,8 @@ lazy val rules = project
     libraryDependencies ++= List(
       "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full,
       collectionCompat
-    )
+    ),
+    scalafixSettings
   )
   .dependsOn(core)
   .enablePlugins(BuildInfoPlugin)
@@ -99,7 +100,8 @@ lazy val reflect = project
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
-    )
+    ),
+    scalafixSettings
   )
   .dependsOn(core, rules)
 
@@ -116,7 +118,8 @@ lazy val cli = project
       jgit,
       "ch.qos.logback" % "logback-classic" % "1.2.3",
       "org.apache.commons" % "commons-text" % "1.9"
-    )
+    ),
+    scalafixSettings
   )
   .dependsOn(reflect, interfaces)
 
@@ -176,6 +179,7 @@ lazy val testkit = project
       scalatest
     )
   )
+  .disablePlugins(ScalafixPlugin)
   .dependsOn(cli)
 
 lazy val unit = project
@@ -287,3 +291,9 @@ lazy val docs = project
   )
   .dependsOn(testkit, core, cli)
   .enablePlugins(DocusaurusPlugin)
+  .disablePlugins(ScalafixPlugin)
+
+lazy val scalafixSettings = Seq(
+  semanticdbEnabled := true,
+  semanticdbVersion := scalafixSemanticdb.revision
+)

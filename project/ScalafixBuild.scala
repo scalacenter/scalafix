@@ -12,8 +12,8 @@ import microsites.ConfigYml
 import sbtbuildinfo.BuildInfoKey
 import sbtbuildinfo.BuildInfoPlugin.autoImport._
 import com.typesafe.sbt.sbtghpages.GhpagesKeys
-import sbt.Def
 import sbt.plugins.IvyPlugin
+import scalafix.sbt.ScalafixPlugin.autoImport._
 
 object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   override def trigger = allRequirements
