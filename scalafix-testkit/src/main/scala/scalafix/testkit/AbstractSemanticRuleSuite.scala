@@ -100,7 +100,7 @@ abstract class AbstractSemanticRuleSuite(
     }
   }
 
-  lazy val testsToRun = {
+  lazy val testsToRun: List[RuleTest] = {
     val symtab = ClasspathOps.newSymbolTable(props.inputClasspath)
     val classLoader = ClasspathOps.toClassLoader(props.inputClasspath)
     val tests = TestkitPath.fromProperties(props)

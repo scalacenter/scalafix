@@ -12,8 +12,7 @@ import scala.tools.nsc.reporters.StoreReporter
 import java.{util => ju}
 import scala.reflect.internal.{Flags => gf}
 import scala.meta.internal.semanticdb.scalac.SemanticdbOps
-import scala.util.control.NonFatal
-import scala.collection.compat._ // Used for cross-compilation.
+import scala.util.control.NonFatal // Used for cross-compilation.
 
 object ScalafixGlobal {
   def newCompiler(

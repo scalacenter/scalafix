@@ -27,7 +27,7 @@ final class InternalSemanticDoc(
       symtab: SymbolTable
   ) = this(doc, LazyValue.now(textDocument), symtab)
 
-  def textDocument = {
+  def textDocument: s.TextDocument = {
     _textDocument.value
   }
 

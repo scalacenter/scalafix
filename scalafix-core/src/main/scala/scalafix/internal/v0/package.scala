@@ -9,7 +9,7 @@ import scalafix.v0.{Flags => d}
 package object v0 {
 
   implicit class XtensionDenotation(ddenot: Denotation) {
-    def dtest(bit: Long) = (ddenot.flags & bit) == bit
+    def dtest(bit: Long): Boolean = (ddenot.flags & bit) == bit
     def sproperties: Int = {
       var sproperties = 0
       def sflip(sprop: s.SymbolInformation.Property) =
