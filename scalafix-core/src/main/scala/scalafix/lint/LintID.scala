@@ -21,5 +21,5 @@ final case class LintID(rule: String, category: String) {
 }
 
 object LintID {
-  val empty = LintID("", "")
+  val empty: LintID = LintID("", "")
 }

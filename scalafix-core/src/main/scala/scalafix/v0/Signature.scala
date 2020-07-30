@@ -11,19 +11,19 @@ sealed trait Signature {
 object Signature {
   final case class Type(name: String) extends Signature {
     override def syntax: String = d.Type(name).toString
-    override def structure = s"""Signature.Type("$name")"""
+    override def structure: String = s"""Signature.Type("$name")"""
     override def toString: String = syntax
   }
 
   final case class Term(name: String) extends Signature {
     override def syntax: String = d.Term(name).toString
-    override def structure = s"""Signature.Term("$name")"""
+    override def structure: String = s"""Signature.Term("$name")"""
     override def toString: String = syntax
   }
 
   final case class Package(name: String) extends Signature {
     override def syntax: String = d.Package(name).toString
-    override def structure = s"""Signature.Package("$name")"""
+    override def structure: String = s"""Signature.Package("$name")"""
     override def toString: String = syntax
   }
 
@@ -32,26 +32,26 @@ object Signature {
     @deprecated("Use `disambiguator` instead.", "3.3.0")
     def jvmSignature: String = disambiguator
     override def syntax: String = d.Method(name, disambiguator).toString
-    override def structure = s"""Signature.Method("$name", "$disambiguator")"""
+    override def structure: String = s"""Signature.Method("$name", "$disambiguator")"""
     override def toString: String = syntax
   }
 
   final case class TypeParameter(name: String) extends Signature {
     override def syntax: String = d.TypeParameter(name).toString
-    override def structure = s"""Signature.TypeParameter("$name")"""
+    override def structure: String = s"""Signature.TypeParameter("$name")"""
     override def toString: String = syntax
   }
 
   final case class TermParameter(name: String) extends Signature {
     override def syntax: String = d.Parameter(name).toString
-    override def structure = s"""Signature.TermParameter("$name")"""
+    override def structure: String = s"""Signature.TermParameter("$name")"""
     override def toString: String = syntax
   }
 
   final case class Self(name: String) extends Signature {
-    override def syntax =
+    override def syntax: String =
       throw new UnsupportedOperationException("No longer supported.")
-    override def structure = s"""Signature.Self("$name")"""
+    override def structure: String = s"""Signature.Self("$name")"""
     override def toString: String = syntax
   }
 }

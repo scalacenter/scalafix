@@ -4,6 +4,9 @@ inThisBuild(
     onLoadMessage := s"Welcome to scalafix ${version.value}",
     scalaVersion := scala213,
     crossScalaVersions := List(scala213, scala212, scala211),
+    semanticdbEnabled := true,
+    semanticdbVersion := scalafixSemanticdb.revision,
+    scalafixScalaBinaryVersion := scalaBinaryVersion.value,
     fork := true
   )
 )
@@ -119,10 +122,10 @@ lazy val cli = project
 lazy val testsShared = project
   .in(file("scalafix-tests/shared"))
   .settings(
-    semanticdbSettings,
     noPublish,
     coverageEnabled := false
   )
+  .disablePlugins(ScalafixPlugin)
 
 val isScala213 = Def.setting(scalaVersion.value.startsWith("2.13"))
 
@@ -135,7 +138,6 @@ lazy val testsInput = project
   .in(file("scalafix-tests/input"))
   .settings(
     noPublish,
-    semanticdbSettings,
     scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
     scalacOptions += warnAdaptedArgs.value, // For NoAutoTupling
     scalacOptions += warnUnusedImports.value, // For RemoveUnused
@@ -145,12 +147,12 @@ lazy val testsInput = project
     testsInputOutputSetting,
     coverageEnabled := false
   )
+  .disablePlugins(ScalafixPlugin)
 
 lazy val testsOutput = project
   .in(file("scalafix-tests/output"))
   .settings(
     noPublish,
-    semanticdbSettings,
     scalacOptions --= List(
       warnUnusedImports.value,
       "-Xlint"
@@ -159,6 +161,7 @@ lazy val testsOutput = project
     coverageEnabled := false,
     libraryDependencies += bijectionCore
   )
+  .disablePlugins(ScalafixPlugin)
 
 lazy val testkit = project
   .in(file("scalafix-testkit"))
@@ -258,6 +261,7 @@ lazy val unit = project
       .value
   )
   .enablePlugins(BuildInfoPlugin)
+  .disablePlugins(ScalafixPlugin)
   .dependsOn(
     testsInput,
     testsShared,

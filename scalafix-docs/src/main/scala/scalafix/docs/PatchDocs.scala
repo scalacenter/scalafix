@@ -12,6 +12,7 @@ import scalafix.patch.Patch
 import scalafix.internal.patch.PatchInternals
 import scalafix.internal.util.Pretty
 import scalafix.v1._
+import scala.tools.nsc.interactive.Global
 
 object PatchDocs {
   object DocPrinter
@@ -99,16 +100,16 @@ object PatchDocs {
     val out = Input.VirtualFile("after  patch", obtained)
     PatchInternals.unifiedDiff(in, out, context)
   }
-  lazy val scalacOptions = List(
+  lazy val scalacOptions: List[String] = List(
     "-Ywarn-unused",
     "-P:semanticdb:synthetics:on"
   )
   lazy val classpath = ClasspathOps.getCurrentClasspath
-  lazy val compiler =
+  lazy val compiler: Global =
     InteractiveSemanticdb.newCompiler(classpath, scalacOptions)
-  lazy val symtab =
+  lazy val symtab: GlobalSymbolTable =
     GlobalSymbolTable(ClasspathOps.thisClasspath, includeJdk = true)
-  lazy val scalafixSymtab = new Symtab { self =>
+  lazy val scalafixSymtab: Symtab = new Symtab { self =>
     override def info(symbol: Symbol): Option[SymbolInformation] = {
       symtab.info(symbol.value).map(new SymbolInformation(_)(self))
     }

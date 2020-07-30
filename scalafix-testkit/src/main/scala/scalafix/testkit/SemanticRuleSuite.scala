@@ -33,7 +33,7 @@ class SemanticRuleSuite(
 }
 
 object SemanticRuleSuite {
-  def defaultClasspath(classDirectory: AbsolutePath) = Classpath(
+  def defaultClasspath(classDirectory: AbsolutePath): Classpath = Classpath(
     classDirectory ::
       RuleCompiler.defaultClasspathPaths.filter(path =>
         path.toNIO.getFileName.toString.contains("scala-library")

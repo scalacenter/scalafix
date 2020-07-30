@@ -13,7 +13,7 @@ final case class ResolvedName(
     val binder = if (isDefinition) "<=" else "=>"
     s"[${position.start}..${position.end}): $text $binder ${symbol.syntax}"
   }
-  def structure =
+  def structure: String =
     s"""ResolvedName(${position.structure}, ${symbol.structure}, $isDefinition)"""
   override def toString = syntax
 }

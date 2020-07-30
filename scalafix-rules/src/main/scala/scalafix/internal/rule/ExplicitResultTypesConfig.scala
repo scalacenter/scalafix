@@ -65,8 +65,8 @@ case class SimpleDefinitions(kinds: Set[String]) {
   }
 }
 object SimpleDefinitions {
-  def allKinds = Set("Term.Ref", "Lit", "Term.New")
-  def default = SimpleDefinitions(allKinds)
+  def allKinds: Set[String] = Set("Term.Ref", "Lit", "Term.New")
+  def default: SimpleDefinitions = SimpleDefinitions(allKinds)
   implicit val encoder: ConfEncoder[SimpleDefinitions] =
     ConfEncoder.instance[SimpleDefinitions](x =>
       Conf.Lst(x.kinds.toList.map(Conf.Str(_)))

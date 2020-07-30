@@ -10,7 +10,7 @@ case class DebugConfig(
 object DebugConfig {
   implicit val surface: Surface[DebugConfig] =
     generic.deriveSurface[DebugConfig]
-  val default = DebugConfig()
+  val default: DebugConfig = DebugConfig()
   implicit val decoder: ConfDecoder[DebugConfig] =
     generic.deriveDecoder[DebugConfig](default)
 }

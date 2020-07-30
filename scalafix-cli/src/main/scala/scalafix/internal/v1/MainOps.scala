@@ -461,7 +461,7 @@ object MainOps {
     adjustExitCode(args, exit, files)
   }
 
-  def version =
+  def version: String =
     s"Scalafix ${Versions.version}"
   def usage: String =
     """|Usage: scalafix [options] [<path> ...]
