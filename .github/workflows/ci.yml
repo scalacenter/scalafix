@@ -47,19 +47,13 @@ jobs:
       - run: sbt ci-213-windows
         shell: bash
   checks:
-    name: Scalafmt
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: olafurpg/setup-scala@v7
-      - run: ./scalafmt --test
-  scalafix:
-    name: scalafix
+    name: Scalafmt and Scalafix
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: olafurpg/setup-scala@v7
       - run: sbt "scalafix --check"
+      - run: ./scalafmt --test
   mima:
     name: MiMa
     runs-on: ubuntu-latest

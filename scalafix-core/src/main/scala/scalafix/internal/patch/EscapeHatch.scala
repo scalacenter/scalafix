@@ -19,7 +19,9 @@ import scalafix.lint.RuleDiagnostic
 import scalafix.patch.Patch.internal._
 import scalafix.rule.RuleName
 import scalafix.util.TreeExtractors.Mods
-import scalafix.v0._ // used for cross-compilation.
+import scalafix.v0._
+// used to cross-compile
+import scala.collection.compat._ // scalafix:ok
 
 /** EscapeHatch is an algorithm to selectively disable rules. There
  * are two mechanisms to do so: anchored comments and the

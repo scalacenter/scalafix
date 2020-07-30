@@ -14,7 +14,9 @@ import scala.util.control.NonFatal
 import scala.{meta => m}
 
 import scala.meta.internal.semanticdb.scalac.SemanticdbOps
-import scala.meta.io.AbsolutePath // Used for cross-compilation.
+import scala.meta.io.AbsolutePath
+// used to cross-compile
+import scala.collection.compat._ // scalafix:ok
 
 object ScalafixGlobal {
   def newCompiler(
