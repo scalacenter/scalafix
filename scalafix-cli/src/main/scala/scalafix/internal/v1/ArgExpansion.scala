@@ -1,6 +1,7 @@
 package scalafix.internal.v1
 
 import java.nio.charset.StandardCharsets
+
 import scala.meta.internal.io.FileIO
 import scala.meta.io.AbsolutePath
 

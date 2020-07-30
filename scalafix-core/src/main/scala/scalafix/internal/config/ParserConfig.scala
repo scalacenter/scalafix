@@ -2,8 +2,10 @@ package scalafix.internal.config
 
 import java.nio.file.FileSystems
 import java.nio.file.PathMatcher
-import metaconfig._
+
 import scala.meta.Dialect
+
+import metaconfig._
 
 case class ParserConfig(
     literalTypes: Boolean = true,

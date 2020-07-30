@@ -5,6 +5,7 @@ import scala.meta.Input
 import scala.meta.Tokens
 import scala.meta.Tree
 import scala.meta.contrib.AssociatedComments
+
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.patch.EscapeHatch

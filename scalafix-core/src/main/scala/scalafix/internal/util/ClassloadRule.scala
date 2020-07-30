@@ -1,11 +1,13 @@
 package scalafix.internal.util
 
 import java.lang.reflect.InvocationTargetException
-import metaconfig.ConfError
-import metaconfig.Configured
+
 import scala.reflect.ClassTag
 import scala.util.Success
 import scala.util.Try
+
+import metaconfig.ConfError
+import metaconfig.Configured
 import scalafix.v0.Rule
 import scalafix.v0.SemanticdbIndex
 

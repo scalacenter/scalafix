@@ -2,13 +2,14 @@ package scalafix.v1
 
 import scala.meta._
 import scala.meta.contrib.AssociatedComments
+import scala.meta.internal.semanticdb.TextDocument
 import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
 import scala.meta.io.RelativePath
+
 import scalafix.internal.v1._
 import scalafix.util.MatchingParens
 import scalafix.util.TokenList
-import scala.meta.internal.semanticdb.TextDocument
 
 final class SemanticDocument private[scalafix] (
     private[scalafix] val internal: InternalSemanticDoc

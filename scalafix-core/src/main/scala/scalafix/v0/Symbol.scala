@@ -1,6 +1,7 @@
 package scalafix.v0
 
 import scala.meta.internal.semanticdb.Scala._
+
 import scalafix.internal.util.SymbolOps.Root
 
 sealed trait Symbol extends Product {

@@ -4,6 +4,7 @@ import scala.meta.Input
 import scala.meta.Position
 import scala.meta.internal.semanticdb.Diagnostic.{Severity => d}
 import scala.meta.internal.{semanticdb => s}
+
 import scalafix.internal.util.PositionSyntax._
 import scalafix.lint.Diagnostic
 import scalafix.lint.LintSeverity

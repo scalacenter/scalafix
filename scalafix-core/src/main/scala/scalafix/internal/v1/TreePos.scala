@@ -1,6 +1,7 @@
 package scalafix.internal.v1
 
 import scala.annotation.tailrec
+
 import scala.meta._
 
 object TreePos {

@@ -4,10 +4,12 @@ import scala.annotation.tailrec
 import scala.collection.immutable.TreeMap
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+
 import scala.meta._
 import scala.meta.contrib._
 import scala.meta.tokens.Token
 import scala.meta.tokens.Token.Comment
+
 import scalafix.internal.config.FilterMatcher
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.patch.EscapeHatch._

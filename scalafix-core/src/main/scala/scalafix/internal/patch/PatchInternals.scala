@@ -1,6 +1,7 @@
 package scalafix.internal.patch
 
 import scala.meta._
+
 import scalafix.internal.diff.DiffUtils
 import scalafix.internal.util.Failure
 import scalafix.internal.util.SuppressOps

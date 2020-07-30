@@ -1,8 +1,9 @@
 package scalafix.internal.util
 
-import org.typelevel.paiges._
 import scala.meta.Tree
 import scala.meta._
+
+import org.typelevel.paiges._
 import scalafix.internal.util.DocConstants._
 import scalafix.v1.Symbol
 import scalafix.v1.SymbolInformation

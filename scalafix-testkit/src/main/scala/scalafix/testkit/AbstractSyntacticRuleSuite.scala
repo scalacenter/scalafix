@@ -1,11 +1,13 @@
 package scalafix.testkit
 
-import org.scalatest.{Suite, TestRegistration}
-import org.scalatest.Tag
 import scala.meta._
+
+import org.scalatest.Suite
+import org.scalatest.Tag
+import org.scalatest.TestRegistration
+import scalafix.internal.config.ScalafixConfig
 import scalafix.syntax._
 import scalafix.v0._
-import scalafix.internal.config.ScalafixConfig
 
 /** Utility to unit test syntactic rules.
  * <p>

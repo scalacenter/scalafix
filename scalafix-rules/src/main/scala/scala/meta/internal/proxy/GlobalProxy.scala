@@ -1,6 +1,7 @@
 package scala.meta.internal.proxy
 
 import scala.reflect.internal.util.Position
+
 import scala.meta.internal.pc.ScalafixGlobal
 
 object GlobalProxy {

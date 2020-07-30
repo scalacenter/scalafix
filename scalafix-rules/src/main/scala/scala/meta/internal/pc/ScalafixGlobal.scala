@@ -1,18 +1,20 @@
 package scala.meta.internal.pc
 
-import scala.{meta => m}
-import scala.collection.mutable
-import scala.tools.nsc.Settings
-import scala.tools.nsc.interactive.ScalafixGlobalProxy
-import scala.tools.nsc.interactive.Global
-import scala.meta.io.AbsolutePath
-import scala.reflect.io.VirtualDirectory
 import java.io.File
-import scala.tools.nsc.reporters.StoreReporter
 import java.{util => ju}
+
+import scala.collection.mutable
 import scala.reflect.internal.{Flags => gf}
+import scala.reflect.io.VirtualDirectory
+import scala.tools.nsc.Settings
+import scala.tools.nsc.interactive.Global
+import scala.tools.nsc.interactive.ScalafixGlobalProxy
+import scala.tools.nsc.reporters.StoreReporter
+import scala.util.control.NonFatal
+import scala.{meta => m}
+
 import scala.meta.internal.semanticdb.scalac.SemanticdbOps
-import scala.util.control.NonFatal // Used for cross-compilation.
+import scala.meta.io.AbsolutePath // Used for cross-compilation.
 
 object ScalafixGlobal {
   def newCompiler(

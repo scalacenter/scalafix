@@ -1,9 +1,10 @@
 package scalafix.internal.config
 
-import metaconfig._
-import metaconfig.generic.Surface
 import scala.meta._
 import scala.meta.dialects.Scala212
+
+import metaconfig._
+import metaconfig.generic.Surface
 import scalafix.Versions
 
 case class ScalafixConfig(

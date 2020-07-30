@@ -1,10 +1,12 @@
 package scalafix.util
 
-import scala.meta._
 import scala.collection.compat.immutable.LazyList
-import scalafix.v1.Symbol
-import scala.meta.internal.semanticdb.Scala.Symbols
+
+import scala.meta._
 import scala.meta.internal.semanticdb.Scala.Descriptor
+import scala.meta.internal.semanticdb.Scala.Symbols
+
+import scalafix.v1.Symbol
 
 object TreeExtractors {
   object :&&: {

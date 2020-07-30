@@ -1,16 +1,18 @@
 package scalafix.internal.rule
 
-import buildinfo.RulesBuildInfo
+import scala.util.control.NonFatal
+
 import scala.meta._
 import scala.meta.contrib._
-import scalafix.patch.Patch
-import scalafix.v1._
-import scalafix.util.TokenOps
-import metaconfig.Configured
 import scala.meta.internal.pc.ScalafixGlobal
-import scalafix.internal.v1.LazyValue
-import scala.util.control.NonFatal
+
+import buildinfo.RulesBuildInfo
+import metaconfig.Configured
 import scalafix.internal.compat.CompilerCompat._
+import scalafix.internal.v1.LazyValue
+import scalafix.patch.Patch
+import scalafix.util.TokenOps
+import scalafix.v1._
 
 final class ExplicitResultTypes(
     config: ExplicitResultTypesConfig,

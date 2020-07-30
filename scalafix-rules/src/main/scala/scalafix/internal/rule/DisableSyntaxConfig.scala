@@ -1,9 +1,9 @@
 package scalafix.internal.rule
 
 import java.util.regex.Pattern
+
 import scala.meta.tokens.Token
-import metaconfig.generic
-import metaconfig.generic.Surface
+
 import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
@@ -11,6 +11,8 @@ import metaconfig.Configured
 import metaconfig.annotation.Description
 import metaconfig.annotation.ExampleValue
 import metaconfig.annotation.Hidden
+import metaconfig.generic
+import metaconfig.generic.Surface
 import pprint.TPrint
 import scalafix.config.CustomMessage
 import scalafix.config.Regex

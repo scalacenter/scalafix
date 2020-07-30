@@ -1,11 +1,13 @@
 package scalafix.internal.v0
 
 import java.nio.charset.StandardCharsets
+
 import scala.meta.inputs.Input
 import scala.meta.inputs.Position
 import scala.meta.internal.ScalametaInternals
 import scala.meta.internal.semanticdb.Scala._
 import scala.meta.internal.{semanticdb => s}
+
 import scalafix.v0
 import scalafix.v0.ResolvedName
 import scalafix.v1

@@ -1,9 +1,10 @@
 package scalafix.internal.testkit
 
 import scala.meta.Position
+
+import scalafix.internal.util.PositionSyntax._
 import scalafix.lint.RuleDiagnostic
 import scalafix.testkit.DiffAssertions
-import scalafix.internal.util.PositionSyntax._
 
 // AssertDelta is used to find which Assert is associated with which LintMessage
 case class AssertDelta(

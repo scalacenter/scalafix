@@ -7,6 +7,7 @@ inThisBuild(
     semanticdbEnabled := true,
     semanticdbVersion := scalafixSemanticdb.revision,
     scalafixScalaBinaryVersion := scalaBinaryVersion.value,
+    scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.0",
     fork := true
   )
 )

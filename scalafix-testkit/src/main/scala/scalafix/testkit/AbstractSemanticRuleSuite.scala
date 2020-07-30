@@ -12,6 +12,14 @@ import scalafix.internal.testkit.{AssertDiff, CommentAssertion}
 import scala.meta._
 import scala.meta.internal.io.FileIO
 
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.Suite
+import org.scalatest.TestRegistration
+import org.scalatest.exceptions.TestFailedException
+import scalafix.internal.reflect.ClasspathOps
+import scalafix.internal.testkit.AssertDiff
+import scalafix.internal.testkit.CommentAssertion
+
 /** Construct a test suite for running semantic Scalafix rules.
  * <p>
  * Mix-in FunSuiteLike (ScalaTest 3.0), AnyFunSuiteLike (ScalaTest 3.1+) or

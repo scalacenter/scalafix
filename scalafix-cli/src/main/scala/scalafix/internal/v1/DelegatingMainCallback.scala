@@ -1,6 +1,7 @@
 package scalafix.internal.v1
 
 import java.util.concurrent.atomic.AtomicInteger
+
 import scalafix.interfaces
 import scalafix.interfaces.ScalafixDiagnostic
 import scalafix.interfaces.ScalafixMainCallback

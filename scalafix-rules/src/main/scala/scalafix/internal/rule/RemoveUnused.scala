@@ -1,8 +1,10 @@
 package scalafix.internal.rule
 
-import metaconfig.Configured
 import scala.collection.mutable
+
 import scala.meta._
+
+import metaconfig.Configured
 import scalafix.v1._
 
 class RemoveUnused(config: RemoveUnusedConfig)

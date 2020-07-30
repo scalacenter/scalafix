@@ -2,7 +2,9 @@ package scalafix.internal.patch
 
 import scala.annotation.tailrec
 import scala.collection.mutable
+
 import scala.meta._
+
 import scalafix.internal.util.SymbolOps
 import scalafix.patch.Patch
 import scalafix.patch.Patch.internal._

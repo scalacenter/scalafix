@@ -1,52 +1,39 @@
 package scalafix.internal.v1
 
-import java.io.ByteArrayOutputStream
-import java.io.PrintStream
+import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.CharBuffer
 import java.nio.charset.StandardCharsets
-import java.nio.file.FileVisitResult
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.SimpleFileVisitor
+import java.nio.file.{FileVisitResult, Files, Path, SimpleFileVisitor}
 import java.nio.file.attribute.BasicFileAttributes
 
-import metaconfig.Conf
-import metaconfig.ConfEncoder
-import metaconfig.Configured
-import metaconfig.annotation.Hidden
-import metaconfig.annotation.Inline
-import metaconfig.generic.Setting
-import metaconfig.generic.Settings
+import metaconfig.{Conf, ConfEncoder, Configured}
+import metaconfig.annotation.{Hidden, Inline}
+import metaconfig.generic.{Setting, Settings}
 import metaconfig.internal.Case
 import org.typelevel.paiges.{Doc => D}
+import scalafix.cli.ExitStatus
+import scalafix.interfaces.ScalafixEvaluation
+import scalafix.internal.config.PrintStreamReporter
+import scalafix.internal.diff.DiffUtils
+import scalafix.internal.interfaces.{ScalafixEvaluationImpl, ScalafixFileEvaluationImpl}
+import scalafix.internal.patch.PatchInternals
+import scalafix.internal.patch.PatchInternals.tokenPatchApply
+import scalafix.lint.{LintSeverity, RuleDiagnostic}
+import scalafix.v0
+import scalafix.v0.RuleCtx
+import scalafix.v1.{Rule, SemanticDocument, SyntacticDocument}
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.meta.Tree
 import scala.meta.inputs.Input
+import scala.meta.interactive.InteractiveSemanticdb
 import scala.meta.internal.semanticdb.TextDocument
 import scala.meta.io.AbsolutePath
 import scala.meta.parsers.ParseException
-import scala.util.control.NoStackTrace
-import scala.util.control.NonFatal
-import scalafix.Versions
-import scalafix.cli.ExitStatus
-import scalafix.interfaces.ScalafixEvaluation
-import scalafix.internal.config.PrintStreamReporter
-import scalafix.internal.diff.DiffUtils
-import scalafix.internal.interfaces.{
-  ScalafixFileEvaluationImpl,
-  ScalafixEvaluationImpl
-}
-import scalafix.internal.patch.PatchInternals
-import scalafix.internal.patch.PatchInternals.tokenPatchApply
-import scalafix.v0
-import scalafix.lint.{LintSeverity, RuleDiagnostic}
-import scalafix.v0.RuleCtx
-import scalafix.v1.{Rule, SemanticDocument, SyntacticDocument}
-
-import scala.meta.interactive.InteractiveSemanticdb
+import scala.util.control.{NoStackTrace, NonFatal}
 import scala.util.{Failure, Success, Try}
+import scalafix.Versions
 
 object MainOps {
 

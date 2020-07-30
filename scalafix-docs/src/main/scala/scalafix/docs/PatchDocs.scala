@@ -1,18 +1,20 @@
 package scalafix.docs
 
-import org.typelevel.paiges.Doc
+import scala.tools.nsc.interactive.Global
+
 import scala.meta.inputs.Input
 import scala.meta.interactive.InteractiveSemanticdb
 import scala.meta.internal.semanticdb.Print
 import scala.meta.internal.symtab.GlobalSymbolTable
 import scala.meta.metap.Format
+
+import org.typelevel.paiges.Doc
+import scalafix.internal.patch.PatchInternals
 import scalafix.internal.reflect.ClasspathOps
+import scalafix.internal.util.Pretty
 import scalafix.internal.v1.InternalSemanticDoc
 import scalafix.patch.Patch
-import scalafix.internal.patch.PatchInternals
-import scalafix.internal.util.Pretty
 import scalafix.v1._
-import scala.tools.nsc.interactive.Global
 
 object PatchDocs {
   object DocPrinter

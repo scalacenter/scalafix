@@ -1,7 +1,8 @@
 package scalafix.v1
 
-import metaconfig.ConfDecoder
 import scala.meta.internal.semanticdb.Scala._
+
+import metaconfig.ConfDecoder
 import scalafix.internal.util.SymbolOps
 
 /**
