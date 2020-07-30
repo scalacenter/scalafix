@@ -1,6 +1,7 @@
 package scalafix.testkit
 
 import java.nio.file.Files
+
 import scala.meta.AbsolutePath
 import scala.meta.Classpath
 import scala.meta.internal.io.PathIO

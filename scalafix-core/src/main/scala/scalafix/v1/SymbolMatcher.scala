@@ -1,6 +1,7 @@
 package scalafix.v1
 
 import scala.meta.Tree
+
 import scalafix.internal.util.SymbolOps
 
 trait SymbolMatcher { self =>

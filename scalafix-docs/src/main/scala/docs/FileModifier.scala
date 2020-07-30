@@ -3,10 +3,12 @@ package docs
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
-import mdoc.Reporter
-import mdoc.StringModifier
+
 import scala.meta.inputs.Input
 import scala.meta.inputs.Position
+
+import mdoc.Reporter
+import mdoc.StringModifier
 
 class FileModifier extends StringModifier {
   override val name: String = "file"

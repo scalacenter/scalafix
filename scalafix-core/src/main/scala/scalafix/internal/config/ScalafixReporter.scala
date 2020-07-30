@@ -1,8 +1,9 @@
 package scalafix.internal.config
 
+import scala.meta.Position
+
 import metaconfig.ConfDecoder
 import metaconfig.ConfEncoder
-import scala.meta.Position
 import scalafix.lint.LintSeverity
 import scalafix.lint.RuleDiagnostic
 

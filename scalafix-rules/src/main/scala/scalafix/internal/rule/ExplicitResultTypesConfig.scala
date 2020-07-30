@@ -1,13 +1,14 @@
 package scalafix.internal.rule
 
-import metaconfig._
-import metaconfig.generic.Surface
-import metaconfig.annotation._
-import scalafix.internal.config._
+import scala.{meta => m}
+
 import metaconfig.Conf.Bool
 import metaconfig.Conf.Lst
 import metaconfig.Conf.Str
-import scala.{meta => m}
+import metaconfig._
+import metaconfig.annotation._
+import metaconfig.generic.Surface
+import scalafix.internal.config._
 
 case class ExplicitResultTypesConfig(
     @Description("Enable/disable this rule for defs, vals or vars.")

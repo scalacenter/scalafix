@@ -2,6 +2,7 @@ package scalafix.internal.rule
 
 import scala.meta._
 import scala.meta.contrib._
+
 import scalafix.v1._
 
 class NoValInForComprehension extends SyntacticRule("NoValInForComprehension") {

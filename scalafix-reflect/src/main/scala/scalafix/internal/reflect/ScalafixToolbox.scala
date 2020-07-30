@@ -3,6 +3,7 @@ package scalafix.internal.reflect
 import java.io.File
 import java.net.URLClassLoader
 import java.util.function
+
 import metaconfig.Configured
 import metaconfig.Input
 import scalafix.internal.config.MetaconfigOps._

@@ -1,7 +1,9 @@
 package scalafix.internal.interfaces
 
 import java.util.Optional
+
 import scala.meta.inputs.Position
+
 import scalafix.interfaces.ScalafixInput
 import scalafix.interfaces.ScalafixPosition
 import scalafix.internal.util.PositionSyntax._

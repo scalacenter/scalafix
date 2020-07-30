@@ -3,6 +3,7 @@ package scalafix.v0
 import scala.meta._
 import scala.meta.internal.semanticdb.SymbolInformation
 import scala.meta.internal.symtab.SymbolTable
+
 import scalafix.v0.SemanticdbIndex.DeprecationMessage
 import scalafix.v1.SemanticContext
 

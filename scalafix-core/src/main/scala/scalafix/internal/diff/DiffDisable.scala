@@ -1,8 +1,10 @@
 package scalafix.internal.diff
 
 import scala.collection.mutable.StringBuilder
+
 import scala.meta.Position
 import scala.meta.inputs.Input
+
 import scalafix.internal.util.IntervalSet
 
 object DiffDisable {

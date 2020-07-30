@@ -1,8 +1,9 @@
 package scalafix.config
 
+import java.util.regex.Pattern
+
 import metaconfig.Conf
 import metaconfig.ConfDecoder
-import java.util.regex.Pattern
 import scalafix.internal.config.ScalafixMetaconfigReaders._
 
 class Regex(

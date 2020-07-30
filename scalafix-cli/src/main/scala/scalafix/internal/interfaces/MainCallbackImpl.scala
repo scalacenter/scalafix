@@ -1,14 +1,15 @@
 package scalafix.internal.interfaces
 
 import scala.meta.inputs.Position
+
 import scalafix.interfaces.ScalafixDiagnostic
 import scalafix.interfaces.ScalafixMainCallback
 import scalafix.internal.config
 import scalafix.internal.config.ScalafixReporter
 import scalafix.lint.Diagnostic
-import scalafix.lint.RuleDiagnostic
 import scalafix.lint.LintID
 import scalafix.lint.LintSeverity
+import scalafix.lint.RuleDiagnostic
 import scalafix.rule.RuleName
 
 object MainCallbackImpl {

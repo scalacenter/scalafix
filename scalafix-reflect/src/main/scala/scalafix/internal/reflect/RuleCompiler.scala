@@ -1,11 +1,7 @@
 package scalafix.internal.reflect
 import java.io.File
 import java.nio.file.Paths
-import metaconfig.ConfError
-import metaconfig.Configured
-import metaconfig.Input
-import metaconfig.Position
-import scala.meta.io.AbsolutePath
+
 import scala.reflect.internal.util.AbstractFileClassLoader
 import scala.reflect.internal.util.BatchSourceFile
 import scala.tools.nsc.Global
@@ -13,6 +9,13 @@ import scala.tools.nsc.Settings
 import scala.tools.nsc.io.AbstractFile
 import scala.tools.nsc.io.VirtualDirectory
 import scala.tools.nsc.reporters.StoreReporter
+
+import scala.meta.io.AbsolutePath
+
+import metaconfig.ConfError
+import metaconfig.Configured
+import metaconfig.Input
+import metaconfig.Position
 
 class RuleCompiler(
     classpath: String,

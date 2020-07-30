@@ -3,6 +3,7 @@ package scalafix
 import scala.meta.Term
 import scala.meta.Tree
 import scala.meta.inputs.Position
+
 import scalafix.internal.util.PositionSyntax
 import scalafix.util.Api
 

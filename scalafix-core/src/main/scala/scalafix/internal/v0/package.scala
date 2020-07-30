@@ -3,6 +3,7 @@ package scalafix.internal
 import scala.meta.internal.semanticdb.SymbolInformation.{Kind => k}
 import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
 import scala.meta.internal.{semanticdb => s}
+
 import scalafix.v0.Denotation
 import scalafix.v0.{Flags => d}
 

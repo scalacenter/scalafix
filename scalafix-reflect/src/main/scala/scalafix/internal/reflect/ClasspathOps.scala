@@ -12,9 +12,11 @@ import java.nio.file.Paths
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 import java.util
+
 import scala.meta.Classpath
 import scala.meta.internal.symtab._
 import scala.meta.io.AbsolutePath
+
 import sun.misc.Unsafe
 
 object ClasspathOps {

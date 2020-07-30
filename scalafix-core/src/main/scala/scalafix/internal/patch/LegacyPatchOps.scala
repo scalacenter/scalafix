@@ -5,6 +5,7 @@ import scala.meta.Importer
 import scala.meta.Token
 import scala.meta.Tree
 import scala.meta.tokens.Tokens
+
 import scalafix.internal.patch.LegacyPatchOps.DeprecationMessage
 import scalafix.internal.util.SymbolOps.Root
 import scalafix.patch.Patch.internal._

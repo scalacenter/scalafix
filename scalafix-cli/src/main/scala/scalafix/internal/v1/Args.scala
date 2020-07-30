@@ -11,6 +11,20 @@ import java.nio.file.PathMatcher
 import java.nio.file.Paths
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
+
+import scala.annotation.StaticAnnotation
+import scala.tools.nsc.Settings
+import scala.tools.nsc.interactive.Global
+import scala.tools.nsc.reporters.ConsoleReporter
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
+
+import scala.meta.internal.io.PathIO
+import scala.meta.internal.symtab.SymbolTable
+import scala.meta.io.AbsolutePath
+import scala.meta.io.Classpath
+
 import metaconfig.Configured._
 import metaconfig._
 import metaconfig.annotation._
@@ -18,14 +32,6 @@ import metaconfig.generic.Surface
 import metaconfig.internal.ConfGet
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 import pprint.TPrint
-import scala.annotation.StaticAnnotation
-import scala.meta.internal.io.PathIO
-import scala.meta.internal.symtab.SymbolTable
-import scala.meta.io.AbsolutePath
-import scala.meta.io.Classpath
-import scala.util.Failure
-import scala.util.Success
-import scala.util.Try
 import scalafix.interfaces.ScalafixMainCallback
 import scalafix.internal.config.FilterMatcher
 import scalafix.internal.config.PrintStreamReporter
@@ -36,9 +42,6 @@ import scalafix.internal.jgit.JGitDiff
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.v1.Configuration
 import scalafix.v1.RuleDecoder
-import scala.tools.nsc.interactive.Global
-import scala.tools.nsc.Settings
-import scala.tools.nsc.reporters.ConsoleReporter
 
 class Section(val name: String) extends StaticAnnotation
 

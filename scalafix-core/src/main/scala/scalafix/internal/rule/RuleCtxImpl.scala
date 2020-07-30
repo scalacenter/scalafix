@@ -1,11 +1,11 @@
 package scalafix.internal.rule
 
-import org.scalameta.FileLine
-import org.scalameta.logger
-
 import scala.meta._
 import scala.meta.contrib.AssociatedComments
 import scala.meta.tokens.Tokens
+
+import org.scalameta.FileLine
+import org.scalameta.logger
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.patch.EscapeHatch

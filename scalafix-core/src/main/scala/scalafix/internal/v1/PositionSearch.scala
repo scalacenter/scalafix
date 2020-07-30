@@ -3,6 +3,7 @@ package scalafix.internal.v1
 import scala.meta.Position
 import scala.meta.Term
 import scala.meta.Tree
+
 import scalafix.internal.util.PositionSyntax._
 
 object PositionSearch {

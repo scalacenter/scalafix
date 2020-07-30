@@ -1,7 +1,9 @@
 package scalafix.internal.config
 
 import java.io.PrintStream
+
 import scala.meta.Position
+
 import scalafix.internal.util.PositionSyntax._
 import scalafix.lint.LintSeverity
 import scalafix.lint.RuleDiagnostic

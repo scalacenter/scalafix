@@ -1,12 +1,11 @@
 package scalafix.testkit
 
 import scala.meta._
+
 import org.scalatest.FunSpecLike
 import scalafix.internal.reflect.RuleCompiler
-import scalafix.internal.testkit.{
-  EndOfLineAssertExtractor,
-  MultiLineAssertExtractor
-}
+import scalafix.internal.testkit.EndOfLineAssertExtractor
+import scalafix.internal.testkit.MultiLineAssertExtractor
 import scalafix.v0.SemanticdbIndex
 
 @deprecated(

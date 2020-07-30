@@ -1,15 +1,16 @@
 package scalafix.testkit
 
-import metaconfig.Conf
-import metaconfig.internal.ConfGet
-import scalafix.v1
 import scala.meta._
 import scala.meta.internal.symtab.SymbolTable
-import scalafix.internal.v1.Rules
+
+import metaconfig.Conf
+import metaconfig.internal.ConfGet
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.v1.LazyValue
+import scalafix.internal.v1.Rules
+import scalafix.v1
 import scalafix.v1.Configuration
 import scalafix.v1.RuleDecoder
 

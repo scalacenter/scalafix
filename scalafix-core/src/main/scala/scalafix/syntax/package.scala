@@ -1,13 +1,15 @@
 package scalafix
 
+import scala.collection.compat.immutable.LazyList
+
 import scala.meta._
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
+
 import scalafix.internal.util.DenotationOps
 import scalafix.internal.util.SymbolOps
 import scalafix.util.SymbolMatcher
 import scalafix.util.TreeOps
 import scalafix.v0.Symbol
-import scala.collection.compat.immutable.LazyList
 
 package object syntax {
   implicit class XtensionRefSymbolOpt(tree: Tree)(

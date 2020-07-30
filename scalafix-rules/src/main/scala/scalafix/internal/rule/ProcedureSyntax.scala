@@ -1,8 +1,9 @@
 package scalafix.internal.rule
 
 import scala.meta._
-import scalafix.v1._
+
 import scalafix.util.Trivia
+import scalafix.v1._
 
 class ProcedureSyntax extends SyntacticRule("ProcedureSyntax") {
 

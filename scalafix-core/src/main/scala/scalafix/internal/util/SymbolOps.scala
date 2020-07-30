@@ -4,6 +4,7 @@ import scala.meta._
 import scala.meta.internal.ScalametaInternals
 import scala.meta.internal.scalafix.ScalafixScalametaHacks
 import scala.meta.internal.semanticdb.Scala._
+
 import scalafix.v0._
 import scalafix.v1
 

@@ -32,7 +32,8 @@ object Signature {
     @deprecated("Use `disambiguator` instead.", "3.3.0")
     def jvmSignature: String = disambiguator
     override def syntax: String = d.Method(name, disambiguator).toString
-    override def structure: String = s"""Signature.Method("$name", "$disambiguator")"""
+    override def structure: String =
+      s"""Signature.Method("$name", "$disambiguator")"""
     override def toString: String = syntax
   }
 

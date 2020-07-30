@@ -5,12 +5,15 @@ import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+
+import scala.collection.concurrent.TrieMap
+
+import scala.meta.io.AbsolutePath
+
 import metaconfig.Conf
 import metaconfig.Configured
 import metaconfig.Configured.Ok
 import metaconfig.Input
-import scala.collection.concurrent.TrieMap
-import scala.meta.io.AbsolutePath
 import scalafix.internal.config.ScalafixMetaconfigReaders.UriRule
 import scalafix.internal.util.FileOps
 import scalafix.internal.v0.LegacySemanticRule

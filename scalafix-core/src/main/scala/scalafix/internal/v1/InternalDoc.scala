@@ -3,6 +3,7 @@ package scalafix.internal.v1
 import scala.meta.Tree
 import scala.meta.contrib.AssociatedComments
 import scala.meta.inputs.Input
+
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.patch.EscapeHatch
 import scalafix.util.MatchingParens

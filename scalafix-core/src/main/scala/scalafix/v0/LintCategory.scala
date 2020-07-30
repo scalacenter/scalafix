@@ -1,6 +1,7 @@
 package scalafix.v0
 
 import scala.meta.inputs.Position
+
 import scalafix.internal.config.LintConfig
 import scalafix.lint.LintSeverity
 

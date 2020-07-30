@@ -1,7 +1,9 @@
 package scalafix.internal.testkit
 
-import scala.meta._
 import scala.util.matching.Regex
+
+import scala.meta._
+
 import scalafix.internal.util.PositionSyntax._
 
 // CommentAssertion are the bread and butter of testkit they

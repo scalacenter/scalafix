@@ -1,14 +1,16 @@
 package scalafix
 
 import java.nio.file.Files
+
+import scala.meta.internal.io.PathIO
+
 import mdoc.Reporter
-import scalatags.Text
 import metaconfig.generic.Setting
 import metaconfig.generic.Settings
-import scalatags.Text.all._
-import scalafix.v0._
-import scala.meta.internal.io.PathIO
 import scalafix.internal.v1.Rules
+import scalafix.v0._
+import scalatags.Text
+import scalatags.Text.all._
 
 package object website {
   import scalafix.internal.rule.SimpleDefinitions

@@ -2,30 +2,29 @@ package scalafix.internal.jgit
 
 import java.nio.file.Path
 
-import scalafix.internal.diff._
+import scala.jdk.CollectionConverters._
 
-import org.eclipse.jgit.util.FS
-import org.eclipse.jgit.lib.RepositoryCache
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder
+import metaconfig.ConfError
+import metaconfig.Configured
 import org.eclipse.jgit.diff.DiffEntry.ChangeType._
 import org.eclipse.jgit.diff.DiffFormatter
 import org.eclipse.jgit.errors.AmbiguousObjectException
 import org.eclipse.jgit.errors.IncorrectObjectTypeException
-import org.eclipse.jgit.errors.RevisionSyntaxException
 import org.eclipse.jgit.errors.MissingObjectException
-import org.eclipse.jgit.patch.FileHeader
-import org.eclipse.jgit.lib.Repository
+import org.eclipse.jgit.errors.RevisionSyntaxException
+import org.eclipse.jgit.lib.Constants.DOT_GIT
 import org.eclipse.jgit.lib.ObjectId
+import org.eclipse.jgit.lib.Repository
+import org.eclipse.jgit.lib.RepositoryCache
+import org.eclipse.jgit.patch.FileHeader
 import org.eclipse.jgit.revwalk.RevWalk
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.eclipse.jgit.treewalk.AbstractTreeIterator
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.treewalk.FileTreeIterator
+import org.eclipse.jgit.util.FS
 import org.eclipse.jgit.util.io.NullOutputStream
-import org.eclipse.jgit.lib.Constants.DOT_GIT
-
-import scala.jdk.CollectionConverters._
-
-import metaconfig.{ConfError, Configured}
+import scalafix.internal.diff._
 
 object JGitDiff {
   def apply(workingDir: Path, diffBase: String): Configured[DiffDisable] = {

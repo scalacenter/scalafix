@@ -1,7 +1,8 @@
 package scalafix.internal.diff
 
-import difflib.{DiffUtils => DU}
 import scala.jdk.CollectionConverters._
+
+import difflib.{DiffUtils => DU}
 
 object DiffUtils {
   def unifiedDiff(

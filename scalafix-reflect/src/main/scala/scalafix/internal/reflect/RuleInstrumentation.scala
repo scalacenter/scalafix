@@ -1,11 +1,13 @@
 package scalafix.internal.reflect
 
 import scala.collection.immutable.Seq
-import scalafix.internal.config.ScalafixConfig.DefaultDialect
+
 import scala.meta._
+
 import metaconfig.ConfError
 import metaconfig.Configured
 import scalafix.internal.config.MetaconfigOps._
+import scalafix.internal.config.ScalafixConfig.DefaultDialect
 
 object RuleInstrumentation {
 

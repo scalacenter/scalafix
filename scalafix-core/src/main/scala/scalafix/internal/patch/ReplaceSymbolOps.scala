@@ -2,6 +2,7 @@ package scalafix.internal.patch
 
 import scala.meta._
 import scala.meta.internal.trees._
+
 import scalafix.internal.util.SymbolOps.Root
 import scalafix.internal.util.SymbolOps.SignatureName
 import scalafix.patch.Patch

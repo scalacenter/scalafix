@@ -1,6 +1,7 @@
 package scalafix.internal.v1
-import scala.util.Try
 import java.util.concurrent.atomic.AtomicBoolean
+
+import scala.util.Try
 
 // Simple, not stack-safe container around a lazy val.
 final class LazyValue[A] private (

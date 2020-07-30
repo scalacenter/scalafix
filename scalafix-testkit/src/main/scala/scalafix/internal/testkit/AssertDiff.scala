@@ -1,7 +1,7 @@
 package scalafix.internal.testkit
 
-import scalafix.lint.RuleDiagnostic
 import scalafix.internal.util.LintSyntax._
+import scalafix.lint.RuleDiagnostic
 
 // Example:
 //

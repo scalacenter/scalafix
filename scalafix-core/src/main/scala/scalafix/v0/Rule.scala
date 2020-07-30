@@ -1,7 +1,10 @@
 package scalafix.v0
 
+import scala.meta._
+
 import metaconfig.Conf
 import metaconfig.Configured
+
 
 import scala.meta._
 import scalafix.internal.config.MetaconfigOps
