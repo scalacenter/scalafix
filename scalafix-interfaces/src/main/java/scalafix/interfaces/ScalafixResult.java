@@ -29,4 +29,6 @@ public interface ScalafixResult {
 
 
     ScalafixError[] writeResult();
+
+    ScalafixError[] writeResult(Path path);
 }

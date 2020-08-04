@@ -57,5 +57,7 @@ public interface ScalafixOutput {
 
     ScalafixError[] applyPatches();
 
+    Optional<String> getOutputFixedWithSelectivePatches(ScalafixPatch[] patches);
+
     ScalafixError[] applySelectivePatches(ScalafixPatch[] patches);
 }

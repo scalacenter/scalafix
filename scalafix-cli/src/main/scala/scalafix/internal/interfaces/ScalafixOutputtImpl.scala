@@ -67,6 +67,19 @@ final case class ScalafixOutputtImpl(
     ScalafixErrorImpl.fromScala(exitStatus).toSeq.toArray
   }
 
+  override def getOutputFixedWithSelectivePatches(
+      selectedPatches: Array[ScalafixPatch]
+  ): Optional[String] = {
+    val ids = selectedPatches.toList.map(_.getId())
+    val filteredPatches = patches.filter {
+      case ScalafixPatchImpl(id, _) => ids.contains(id.value)
+    }
+    ctxOpt
+      .flatMap(ctx =>
+        MainOps.getFixedOutput(filteredPatches.map(_.patch), ctx, index)
+      )
+      .asJava
+  }
   override def applySelectivePatches(
       selectedPatches: Array[ScalafixPatch]
   ): Array[ScalafixError] = {

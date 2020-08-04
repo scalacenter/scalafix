@@ -116,7 +116,6 @@ object MainOps {
                       fixed.linesIterator.toList,
                       3
                     )
-                    args.args.out.println(diff)
                     ScalafixOutputtImpl.from(
                       file,
                       Some(fixed),
@@ -373,6 +372,13 @@ object MainOps {
       }
     (fixed, patches, ctx, index, messages)
   }
+
+  def getFixedOutput(
+      patches: Seq[v0.Patch],
+      ctx: RuleCtx,
+      index: Option[v0.SemanticdbIndex]
+  ): Option[String] =
+    Try(tokenPatchApply(ctx, index, patches)).toOption
 
   def applyPatches(
       args: ValidatedArgs,

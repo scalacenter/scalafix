@@ -2,7 +2,6 @@ package scalafix.tests.interfaces
 
 import java.net.URL
 import java.nio.file.{Files, Path}
-
 import coursierapi.Repository
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.interfaces.{Scalafix, ScalafixDiagnostic, ScalafixMainCallback}
@@ -62,8 +61,7 @@ class ScalafixSuite extends AnyFunSuite {
         .withPaths(Seq(ruleSource).asJava) // any file would do, we just want rules to be loaded
         .withRules(Seq(s"file:$ruleSource").asJava)
         .withMainCallback(scalafixMainCallback)
-        .runAndReturnResult()
-        .writeResult()
+        .run()
       assert(maybeDiagnostic.get.message.startsWith(scalaVersion))
     }
   }

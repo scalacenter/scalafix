@@ -1,6 +1,7 @@
 package scalafix.internal.interfaces
 
 import java.lang
+import java.nio.file.Path
 import java.util.Optional
 
 import scalafix.cli.ExitStatus
@@ -23,6 +24,10 @@ final case class ScalafixResultImpl(
     scalafixOutputs.toArray
 
   override def writeResult(): Array[ScalafixError] = {
+    scalafixOutputs.flatMap(o => o.applyPatches()).toArray
+  }
+
+  override def writeResult(path: Path): Array[ScalafixError] = {
     scalafixOutputs.flatMap(o => o.applyPatches()).toArray
   }
 

@@ -2,14 +2,14 @@ package scalafix.internal.interfaces
 
 import java.util.UUID
 
-import scalafix.interfaces.{ScalafixPatch}
-import scalafix.{Patch, v0}
+import scalafix.interfaces.ScalafixPatch
+import scalafix.Patch
 
 import scala.util.Try
 
 case class ScalafixPatchImpl(id: ScalafixPatchImpl.Id, patch: Patch)
     extends ScalafixPatch {
-  override def kind(): String = patch.getClass.getCanonicalName
+  override def kind(): String = patch.productPrefix
 
   override def getId: String = id.value
 

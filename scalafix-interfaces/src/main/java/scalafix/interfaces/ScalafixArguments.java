@@ -210,6 +210,7 @@ public interface ScalafixArguments {
      * Compared to {@link #run()}, it doesn't write the diff to the requested file,
      * but instead return the list of patches and diagnostics, which can be written to file using
      * {@link ScalafixResult#writeResult()}}.
+     * withCallback doesn't have any effect, all diagnostics are directly stored in ScalafixResult
      *
      * @return ScalafixResult
      */
