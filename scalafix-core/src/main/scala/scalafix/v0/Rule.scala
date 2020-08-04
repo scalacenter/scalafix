@@ -9,7 +9,6 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.patch.PatchInternals
 import scalafix.lint.RuleDiagnostic
 import scalafix.syntax._
-import scalafix.v0
 
 /** A Scalafix Rule.
  *
@@ -92,12 +91,11 @@ abstract class Rule(ruleName: RuleName) { self =>
       ctx: RuleCtx
   ): (
       String,
-      List[v0.Patch],
-      RuleCtx,
-      Option[v0.SemanticdbIndex],
       List[RuleDiagnostic]
-  ) =
-    PatchInternals(fixWithName(ctx), ctx, semanticOption)
+  ) = {
+    val res = PatchInternals(fixWithName(ctx), ctx, semanticOption)
+    (res._1, res._5)
+  }
 
   /** Returns unified diff from applying this patch */
   final def diff(ctx: RuleCtx): String =

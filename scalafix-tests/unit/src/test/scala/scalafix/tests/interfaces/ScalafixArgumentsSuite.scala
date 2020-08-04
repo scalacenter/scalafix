@@ -9,6 +9,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import scalafix.interfaces.{Scalafix, ScalafixArguments}
 import scalafix.internal.reflect.{ClasspathOps, RuleCompiler}
 import scalafix.internal.rule.{RemoveUnused, RemoveUnusedConfig}
+import scalafix.internal.tests.utils.SkipWindows
 import scalafix.test.StringFS
 import scalafix.testkit.DiffAssertions
 import scalafix.tests.core.Classpaths
@@ -72,7 +73,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     main.toString
   )
 
-  test("ScalafixArgumentsSuite test RemoveUnused rule") {
+  test("ScalafixArgumentsSuite test RemoveUnused rule", SkipWindows) {
     val compileSucceeded = scala.tools.nsc.Main.process(scalacOptions)
     val result = api
       .withRules(

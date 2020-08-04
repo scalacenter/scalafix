@@ -3,8 +3,6 @@ package scalafix.internal.interfaces
 import java.lang
 import java.nio.file.Path
 import java.util.Optional
-
-import scalafix.v1.Rule
 import scalafix.cli.ExitStatus
 import scalafix.interfaces.{
   ScalafixDiagnostic,
@@ -13,10 +11,9 @@ import scalafix.interfaces.{
   ScalafixPatch,
   ScalafixRule
 }
-import scalafix.internal.v1.{MainOps, Rules, ValidatedArgs}
+import scalafix.internal.v1.{MainOps, ValidatedArgs}
 import scalafix.lint.RuleDiagnostic
 import scalafix.internal.util.OptionOps._
-import scalafix.internal.v0.{LegacyRuleCtx, LegacySemanticdbIndex}
 import scalafix.v0
 import scalafix.v0.RuleCtx
 
