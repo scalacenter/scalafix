@@ -26,7 +26,7 @@ public interface ScalafixOutput {
      *
      * @return is not successful, the error is stored in this method.
      */
-    Optional<ScalafixError> getError();
+    ScalafixError[] getError();
 
 
     /**

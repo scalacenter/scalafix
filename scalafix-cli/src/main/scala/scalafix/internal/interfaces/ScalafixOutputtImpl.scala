@@ -48,8 +48,8 @@ final case class ScalafixOutputtImpl(
 
   override def getUnifiedDiff: Optional[String] = unifiedDiff.asJava
 
-  override def getError(): Optional[ScalafixError] =
-    ScalafixErrorImpl.fromScala(error).asJava
+  override def getError(): Array[ScalafixError] =
+    ScalafixErrorImpl.fromScala(error)
 
   override def isSuccessful: lang.Boolean = error.isOk
 
@@ -86,7 +86,7 @@ final case class ScalafixOutputtImpl(
           )
         )
         .getOrElse(ExitStatus.UnexpectedError)
-    ScalafixErrorImpl.fromScala(exitStatus).toSeq.toArray
+    ScalafixErrorImpl.fromScala(exitStatus)
   }
 
 }

@@ -52,7 +52,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite {
     s"-P:semanticdb:sourceroot:$src",
     "-d",
     d.toString,
-    main.toString,
+    main.toString
   )
 
   test("ScalafixArgumentsSuite test RemoveUnused rule") {

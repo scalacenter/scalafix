@@ -4,11 +4,7 @@ import java.lang
 import java.util.Optional
 
 import scalafix.cli.ExitStatus
-import scalafix.interfaces.{
-  ScalafixError,
-  ScalafixOutput,
-  ScalafixResult
-}
+import scalafix.interfaces.{ScalafixError, ScalafixOutput, ScalafixResult}
 import scalafix.internal.util.OptionOps._
 
 final case class ScalafixResultImpl(
@@ -19,8 +15,9 @@ final case class ScalafixResultImpl(
 
   override def isSuccessful: lang.Boolean = error.isOk
 
-  override def getError: Optional[ScalafixError] =
-    ScalafixErrorImpl.fromScala(error).asJava
+  override def getError: Array[ScalafixError] = {
+    ScalafixErrorImpl.fromScala(error)
+  }
 
   override def getScalafixOutputs: Array[ScalafixOutput] =
     scalafixOutputs.toArray
@@ -41,11 +38,10 @@ object ScalafixResultImpl {
   }
 
   def from(
-      scalafixOutputtImpl: Seq[ScalafixOutputtImpl]
+      scalafixOutputtImpl: Seq[ScalafixOutputtImpl],
+      exitStatus: ExitStatus
   ): ScalafixResultImpl = {
-    val error = ExitStatus.merge(scalafixOutputtImpl.map(_.error))
-    ScalafixResultImpl(error, Optional.empty(), scalafixOutputtImpl)
-
+    ScalafixResultImpl(exitStatus, Optional.empty(), scalafixOutputtImpl)
   }
 
 }

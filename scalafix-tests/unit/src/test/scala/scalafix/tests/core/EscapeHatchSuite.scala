@@ -108,7 +108,7 @@ class EscapeHatchSuite extends AnyFunSuite {
     val hatch =
       EscapeHatch(input, untouchableTree, untouchableComments, EmptyDiff)
 
-    assert(hatch.filter(patches) == (Patch.empty, Nil))
+    assert(hatch.filter(patches) == (List(Patch.empty), Nil))
   }
 
   test("should be empty if file contains no escapes nor git diffs") {

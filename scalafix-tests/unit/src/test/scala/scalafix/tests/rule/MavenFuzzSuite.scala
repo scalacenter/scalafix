@@ -13,7 +13,6 @@ import scala.meta.io.AbsolutePath
 import java.nio.file.Path
 
 import scala.sys.process._
-import scala.collection.mutable
 import scala.tools.nsc.reporters.StoreReporter
 import scala.meta.internal.pc.ScalafixGlobal
 import java.nio.charset.StandardCharsets

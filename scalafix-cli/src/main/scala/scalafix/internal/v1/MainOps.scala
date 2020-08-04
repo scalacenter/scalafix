@@ -9,6 +9,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
+
 import metaconfig.Conf
 import metaconfig.ConfEncoder
 import metaconfig.Configured
@@ -18,6 +19,7 @@ import metaconfig.generic.Setting
 import metaconfig.generic.Settings
 import metaconfig.internal.Case
 import org.typelevel.paiges.{Doc => D}
+
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.meta.Tree
@@ -35,12 +37,12 @@ import scalafix.internal.diff.DiffUtils
 import scalafix.internal.interfaces.{ScalafixOutputtImpl, ScalafixResultImpl}
 import scalafix.internal.patch.PatchInternals.tokenPatchApply
 import scalafix.v0
-import scalafix.lint.RuleDiagnostic
+import scalafix.lint.{LintSeverity, RuleDiagnostic}
 import scalafix.v0.{RuleCtx, SemanticdbIndex}
 import scalafix.v1.{Rule, SemanticDocument, SyntacticDocument}
 
 import scala.meta.interactive.InteractiveSemanticdb
-import scala.util.{Try, Success}
+import scala.util.{Success, Try}
 
 object MainOps {
 
@@ -89,8 +91,8 @@ object MainOps {
         ScalafixResultImpl(ExitStatus.CommandLineError, Some("missing rules"))
       }
       case _: Seq[Rule] => {
-        val scalafixOutputs: Seq[ScalafixOutputtImpl] = {
-          val files = getFilesFrom(args)
+        val files = getFilesFrom(args)
+        val scalafixOutputs = {
           files.map { file =>
             val input = args.input(file)
             val result = Try(getPatchesAndDiags(args, input, file))
@@ -119,7 +121,7 @@ object MainOps {
                       file,
                       Some(fixed),
                       Some(diff),
-                      ExitStatus.Ok, // ExitStatus.TestError why ??
+                      ExitStatus.Ok,
                       patches,
                       messages
                     )(args, ctx, index)
@@ -131,7 +133,14 @@ object MainOps {
               )
           }
         }
-        ScalafixResultImpl.from(scalafixOutputs)
+        val exit = ExitStatus.merge(scalafixOutputs.map(_.error))
+        val adjustedExitCode = adjustExitCode(
+          args,
+          exit,
+          files,
+          scalafixOutputs.flatMap(_.diagnostics)
+        )
+        ScalafixResultImpl.from(scalafixOutputs, adjustedExitCode)
       }
     }
   }
@@ -194,6 +203,27 @@ object MainOps {
     if (args.callback.hasLintErrors) {
       ExitStatus.merge(ExitStatus.LinterError, code)
     } else if (args.callback.hasErrors && code.isOk) {
+      ExitStatus.merge(ExitStatus.UnexpectedError, code)
+    } else if (files.isEmpty) {
+      args.config.reporter.error("No files to fix")
+      ExitStatus.merge(ExitStatus.NoFilesError, code)
+    } else {
+      code
+    }
+  }
+  def adjustExitCode(
+      args: ValidatedArgs,
+      code: ExitStatus,
+      files: collection.Seq[AbsolutePath],
+      diags: Seq[RuleDiagnostic]
+  ): ExitStatus = {
+    if (diags.exists(ruleDiag =>
+        ruleDiag.diagnostic.severity == LintSeverity.Error && ruleDiag.diagnostic.categoryID.nonEmpty
+      )) {
+      ExitStatus.merge(ExitStatus.LinterError, code)
+    } else if (diags.exists(ruleDiag =>
+        ruleDiag.diagnostic.severity == LintSeverity.Error
+      ) && code.isOk) {
       ExitStatus.merge(ExitStatus.UnexpectedError, code)
     } else if (files.isEmpty) {
       args.config.reporter.error("No files to fix")
@@ -274,7 +304,7 @@ object MainOps {
 
   def unsafeHandleFile(args: ValidatedArgs, file: AbsolutePath): ExitStatus = {
     val input = args.input(file)
-    val (fixed, javaPatches, _, _, messages) =
+    val (fixed, _, _, _, messages) =
       getPatchesAndDiags(args, input, file)
 
     if (!args.args.autoSuppressLinterErrors) {
@@ -296,7 +326,6 @@ object MainOps {
         args.args.out.println(diff)
         ExitStatus.TestError
       }
-
     } else if (args.args.stdout) {
       args.args.out.println(fixed)
       ExitStatus.Ok

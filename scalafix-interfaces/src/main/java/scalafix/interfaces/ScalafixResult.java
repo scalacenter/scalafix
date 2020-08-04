@@ -14,7 +14,7 @@ public interface ScalafixResult {
      * If {@link ScalafixArguments#runAndReturnResult()} is not successful, the error is stored in this method.
      * @returnOptional<ScalafixError>
      */
-    Optional<ScalafixError> getError();
+    ScalafixError[] getError();
 
     /**
      * @return Optional<String> if the run is not successful and an error message is provided.

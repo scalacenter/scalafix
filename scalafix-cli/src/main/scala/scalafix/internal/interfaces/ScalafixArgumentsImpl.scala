@@ -37,7 +37,8 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
 
   override def run(): Array[ScalafixError] = {
     val exit = MainOps.run(Array(), args)
-    ScalafixErrorImpl.fromScala2(exit)
+    println(s"exit $exit")
+    ScalafixErrorImpl.fromScala(exit)
   }
 
   override def runAndReturnResult(): ScalafixResult = {
