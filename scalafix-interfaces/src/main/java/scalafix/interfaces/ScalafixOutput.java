@@ -41,13 +41,11 @@ public interface ScalafixOutput {
      */
     Optional<String> getUnifiedDiff();
 
-
     /**
      *
      * @return the output file after running scalafix if no error
      */
     Optional<String> getOutputFileFixed();
-
 
     /**
      *
@@ -55,9 +53,21 @@ public interface ScalafixOutput {
      */
     ScalafixPatch[] getPatches();
 
+    /**
+     *
+     * @return apply all patches and write the result to file.
+     */
     ScalafixError[] applyPatches();
 
+    /**
+     *
+     * @return Optional<String> containes the new file if no error.
+     */
     Optional<String> getOutputFixedWithSelectivePatches(ScalafixPatch[] patches);
 
+    /**
+     *
+     * @return apply selected patches to file
+     */
     ScalafixError[] applySelectivePatches(ScalafixPatch[] patches);
 }

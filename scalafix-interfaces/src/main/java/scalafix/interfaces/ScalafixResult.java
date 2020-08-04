@@ -22,13 +22,14 @@ public interface ScalafixResult {
     Optional<String> getMessageError();
 
     /**
-     * G
+     *
      * @return ScalafixOutput[] for each file we store diagnostics and patches
      * */
     ScalafixOutput[] getScalafixOutputs();
 
-
+    /**
+     *
+     * @return if no error, write result to file configured in {@link ScalafixArguments()}
+     */
     ScalafixError[] writeResult();
-
-    ScalafixError[] writeResult(Path path);
 }

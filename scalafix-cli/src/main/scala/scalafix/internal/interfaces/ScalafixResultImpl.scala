@@ -26,11 +26,6 @@ final case class ScalafixResultImpl(
   override def writeResult(): Array[ScalafixError] = {
     scalafixOutputs.flatMap(o => o.applyPatches()).toArray
   }
-
-  override def writeResult(path: Path): Array[ScalafixError] = {
-    scalafixOutputs.flatMap(o => o.applyPatches()).toArray
-  }
-
 }
 
 object ScalafixResultImpl {
