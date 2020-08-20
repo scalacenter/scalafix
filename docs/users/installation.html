@@ -217,6 +217,37 @@ your CI enviroment to cache this directory. The location can be customized with
 the environment variable <code>COURSIER_CACHE</code></p>
 <pre><code class="hljs css language-sh"><span class="hljs-built_in">export</span> COURSIER_CACHE=<span class="hljs-variable">$HOME</span>/.custom-cache
 </code></pre>
+<h3><a class="anchor" aria-hidden="true" id="run-scalafix-automatically-on-compile"></a><a href="#run-scalafix-automatically-on-compile" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Run Scalafix automatically on compile</h3>
+<p>If you set <code>scalafixOnCompile</code> to <code>true</code>, the rules declared in <code>.scalafix.conf</code>
+(or in the file located by <code>scalafixConfig</code>) will run automatically each time
+<code>compile</code> is invoked either explicitly or implicitly (for example when
+executing <code>test</code> or <code>publishLocal</code>). Lint errors will fail that invocation,
+while rewrites will be applied.</p>
+<p>Although this looks like an easy way to use Scalafix as a linter, use this
+feature with care as it has several shortcomings, for example:</p>
+<ol>
+<li><code>scalafixOnCompile := true</code> is dangerous on CI as a rewrite might be applied
+before a call to <code>scalafix[All] --check</code>, causing this one to run on dirty
+sources and thus pass while it should not. Make sure that <code>scalafixOnCompile</code>
+is disabled on CI or, if that is impossible, that <code>scalafix[All] --check</code>
+is the first task executed, without any other concurrently.</li>
+<li>Some rules such as <code>RemoveUnused</code> can be counter-productive if applied too
+often/early, as the work-in-progress code that was just added might disappear
+after a simple <code>test</code>.</li>
+<li>If you run many semantic rules by default, the last one(s) to run might see
+stale information and fail the invocation, which needs to be re-run manually.
+This is <a href="https://github.com/scalacenter/scalafix/issues/1204">not specific to <code>scalafixOnCompile</code></a>,
+but the problem becomes much more visible with it.</li>
+<li>To keep the overhad minimal, <code>scalafixCaching</code> is automatically enabled when
+<code>scalafixOnCompile</code> is, which can cause unexpected behaviors if you run into
+false positive cache hits. <code>scalafixCaching</code> can explicitly be set to
+<code>false</code> in that case.</li>
+<li>Non-idempotent rewrite rules might get you in an infinite loop where sources
+never converge - not specific to <code>scalafixOnCompile</code> either, but rather
+confusing when triggered automatically.</li>
+<li>Bugs in rule implementations can prevent you from getting a successul
+<code>compile</code>, blocking testing or publishing for example</li>
+</ol>
 <h3><a class="anchor" aria-hidden="true" id="run-custom-rules"></a><a href="#run-custom-rules" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Run custom rules</h3>
 <p>It's possible to run custom Scalafix rules that have been published to Maven
 Central. To install a custom rule, add it to <code>scalafixDependencies</code>
@@ -347,7 +378,7 @@ command-line interface.</p>
 ./scalafix --version <span class="hljs-comment"># Should say 0.9.19</span>
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="help"></a><a href="#help" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Help</h3>
-<pre><code class="hljs">Scalafix <span class="hljs-number">0.9</span>.<span class="hljs-number">19</span>+<span class="hljs-number">11</span>-a4dc259f-SNAPSHOT
+<pre><code class="hljs">Scalafix <span class="hljs-number">0.9</span>.<span class="hljs-number">19</span>+<span class="hljs-number">13</span>-b4c8ce50-SNAPSHOT
 Usage: scalafix [options] [&lt;path&gt; ...]
 
 Scalafix <span class="hljs-keyword">is</span> a refactoring <span class="hljs-keyword">and</span> linting tool. Scalafix
@@ -511,12 +542,12 @@ the instructions below</p>
 <p>If using the sbt plugin</p>
 <pre><code class="hljs css language-scala"><span class="hljs-comment">// project/plugins.sbt</span>
 resolvers += <span class="hljs-type">Resolver</span>.sonatypeRepo(<span class="hljs-string">"snapshots"</span>)
-addSbtPlugin(<span class="hljs-string">"ch.epfl.scala"</span> % <span class="hljs-string">"sbt-scalafix"</span> % <span class="hljs-string">"0.9.19+11-a4dc259f-SNAPSHOT-SNAPSHOT"</span>)
+addSbtPlugin(<span class="hljs-string">"ch.epfl.scala"</span> % <span class="hljs-string">"sbt-scalafix"</span> % <span class="hljs-string">"0.9.19+13-b4c8ce50-SNAPSHOT-SNAPSHOT"</span>)
 </code></pre>
 <p>If using the command-line interface</p>
-<pre><code class="hljs css language-sh">cs launch ch.epfl.scala:scalafix-cli_2.12.12:0.9.19+11-a4dc259f-SNAPSHOT-SNAPSHOT -r sonatype:snapshots --main scalafix.cli.Cli -- --<span class="hljs-built_in">help</span>
+<pre><code class="hljs css language-sh">cs launch ch.epfl.scala:scalafix-cli_2.12.12:0.9.19+13-b4c8ce50-SNAPSHOT-SNAPSHOT -r sonatype:snapshots --main scalafix.cli.Cli -- --<span class="hljs-built_in">help</span>
 </code></pre>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-next button" href="/scalafix/docs/users/configuration.html"><span>Configuration</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#requirements">Requirements</a></li><li><a href="#sbt">sbt</a><ul class="toc-headings"><li><a href="#settings-and-tasks">Settings and tasks</a></li><li><a href="#main-and-test-sources">Main and test sources</a></li><li><a href="#integration-tests">Integration tests</a></li><li><a href="#multi-module-builds">Multi-module builds</a></li><li><a href="#enforce-in-ci">Enforce in CI</a></li><li><a href="#cache-in-ci">Cache in CI</a></li><li><a href="#run-custom-rules">Run custom rules</a></li><li><a href="#exclude-files-from-semanticdb">Exclude files from SemanticDB</a></li><li><a href="#exclude-files-from-scalafix">Exclude files from Scalafix</a></li><li><a href="#customize-semanticdb-output-directory">Customize SemanticDB output directory</a></li><li><a href="#disable-scalafix-for-specific-project">Disable Scalafix for specific project</a></li><li><a href="#enable-semanticdb-for-current-shell-session">Enable SemanticDB for current shell session</a></li><li><a href="#optionally-enable-semanticdb">Optionally enable SemanticDB</a></li><li><a href="#verify-installation">Verify installation</a></li><li><a href="#example-project">Example project</a></li></ul></li><li><a href="#command-line">Command line</a><ul class="toc-headings"><li><a href="#help">Help</a></li></ul></li><li><a href="#plugins-for-other-build-tools">Plugins for other build tools</a></li><li><a href="#snapshot">SNAPSHOT</a></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#15242B"><section class="sitemap"><a href="/scalafix/" class="nav-home"><img src="/scalafix/img/scalacenter2x.png" alt="Scalafix" width="66" height="58"/></a><div><h5>Docs</h5><a href="
+</span></div></article></div><div class="docs-prevnext"><a class="docs-next button" href="/scalafix/docs/users/configuration.html"><span>Configuration</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#requirements">Requirements</a></li><li><a href="#sbt">sbt</a><ul class="toc-headings"><li><a href="#settings-and-tasks">Settings and tasks</a></li><li><a href="#main-and-test-sources">Main and test sources</a></li><li><a href="#integration-tests">Integration tests</a></li><li><a href="#multi-module-builds">Multi-module builds</a></li><li><a href="#enforce-in-ci">Enforce in CI</a></li><li><a href="#cache-in-ci">Cache in CI</a></li><li><a href="#run-scalafix-automatically-on-compile">Run Scalafix automatically on compile</a></li><li><a href="#run-custom-rules">Run custom rules</a></li><li><a href="#exclude-files-from-semanticdb">Exclude files from SemanticDB</a></li><li><a href="#exclude-files-from-scalafix">Exclude files from Scalafix</a></li><li><a href="#customize-semanticdb-output-directory">Customize SemanticDB output directory</a></li><li><a href="#disable-scalafix-for-specific-project">Disable Scalafix for specific project</a></li><li><a href="#enable-semanticdb-for-current-shell-session">Enable SemanticDB for current shell session</a></li><li><a href="#optionally-enable-semanticdb">Optionally enable SemanticDB</a></li><li><a href="#verify-installation">Verify installation</a></li><li><a href="#example-project">Example project</a></li></ul></li><li><a href="#command-line">Command line</a><ul class="toc-headings"><li><a href="#help">Help</a></li></ul></li><li><a href="#plugins-for-other-build-tools">Plugins for other build tools</a></li><li><a href="#snapshot">SNAPSHOT</a></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#15242B"><section class="sitemap"><a href="/scalafix/" class="nav-home"><img src="/scalafix/img/scalacenter2x.png" alt="Scalafix" width="66" height="58"/></a><div><h5>Docs</h5><a href="
                 /scalafix/docs/users/installation.html">Get started</a><a href="
                 /scalafix/docs/rules/overview.html">Rules</a><a href="
                 /scalafix/docs/developers/setup.html">Extend Scalafix</a></div><div><h5>Community</h5><a href="https://gitter.im/scalacenter/scalafix" target="_blank">Chat on Gitter</a><a href="https://users.scala-lang.org/" target="_blank">Discuss on Scala Users</a></div><div><h5>More</h5><a href="https://github.com/scalacenter/scalafix" target="_blank">GitHub</a></div></section><section class="copyright">Copyright © 2020 Scala Center</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
