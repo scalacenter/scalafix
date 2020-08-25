@@ -134,6 +134,9 @@ Declaring your rules in a separate sub-project allows you to use
 [scalafix-testkit](tutorial.md#write-unit-tests) to easily unit-test your
 semantic rules.
 
+Make sure you replace `scala2XX` below with the binary Scala version that
+your project uses.
+
 ```diff
  repository
  ├── build.sbt
@@ -185,6 +188,7 @@ semantic rules.
 +  )
 +lazy val `scalafix-tests` = (project in file("scalafix/tests"))
 +  .settings(
++    scalaVersion := _root_.scalafix.sbt.BuildInfo.scala2XX, //FIXME
 +    libraryDependencies +=
 +      "ch.epfl.scala" %
 +        "scalafix-testkit" %
