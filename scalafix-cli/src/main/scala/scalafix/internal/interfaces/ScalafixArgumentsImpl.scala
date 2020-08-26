@@ -22,7 +22,7 @@ import scalafix.interfaces.{
   ScalafixException,
   ScalafixMainCallback,
   ScalafixMainMode,
-  ScalafixResult,
+  ScalafixEvaluation,
   ScalafixRule
 }
 import scalafix.internal.v1.Args
@@ -40,7 +40,7 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
     ScalafixErrorImpl.fromScala(exit)
   }
 
-  override def runAndReturnResult(): ScalafixResult = {
+  override def evaluate(): ScalafixEvaluation = {
     args.validate match {
       case Configured.Ok(validated) =>
         MainOps.runWithResult(validated)

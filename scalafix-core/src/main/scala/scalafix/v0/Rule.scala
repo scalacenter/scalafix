@@ -82,10 +82,10 @@ abstract class Rule(ruleName: RuleName) { self =>
   final def apply(ctx: RuleCtx, patches: Map[RuleName, Patch]): String = {
     // This overload of apply if purely for convenience
     // Use `applyAndLint` to iterate over Diagnostic without printing to the console
-    val (fixed, _, _, _, diagnostics) =
+    val result =
       PatchInternals(patches, ctx, semanticOption)
-    diagnostics.foreach(diag => ctx.config.reporter.lint(diag))
-    fixed
+    result.diagnostics.foreach(diag => ctx.config.reporter.lint(diag))
+    result.fixed
   }
   final def applyAndLint(
       ctx: RuleCtx
@@ -94,7 +94,7 @@ abstract class Rule(ruleName: RuleName) { self =>
       List[RuleDiagnostic]
   ) = {
     val res = PatchInternals(fixWithName(ctx), ctx, semanticOption)
-    (res._1, res._5)
+    (res.fixed, res.diagnostics)
   }
 
   /** Returns unified diff from applying this patch */

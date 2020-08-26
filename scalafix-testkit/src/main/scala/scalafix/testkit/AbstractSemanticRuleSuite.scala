@@ -38,17 +38,20 @@ abstract class AbstractSemanticRuleSuite(
   def evaluateTestBody(diffTest: RuleTest): Unit = {
     val (rule, sdoc) = diffTest.run.apply()
     rule.beforeStart()
-    val (fixed2, patches, ctx, index, messages) =
+    val res =
       try rule.semanticPatch(sdoc, suppress = false)
       finally rule.afterComplete()
-
     // verify to verify that tokenPatchApply and fixed are the same
     val fixed =
-      PatchInternals.tokenPatchApply(ctx, index, patches)
+      PatchInternals.tokenPatchApply(
+        res.ruleCtx,
+        res.semanticdbIndex,
+        res.patches
+      )
 
     assertNoDiff(
       fixed,
-      fixed2,
+      res.fixed,
       "fixed from tokenPatchApply differs from fixed2 from rule.semanticPatch"
     )
     val tokens = fixed.tokenize.get
@@ -66,7 +69,7 @@ abstract class AbstractSemanticRuleSuite(
     }
 
     val expectedLintMessages = CommentAssertion.extract(sdoc.tokens)
-    val diff = AssertDiff(messages, expectedLintMessages)
+    val diff = AssertDiff(res.diagnostics, expectedLintMessages)
 
     if (diff.isFailure) {
       println("###########> Lint       <###########")

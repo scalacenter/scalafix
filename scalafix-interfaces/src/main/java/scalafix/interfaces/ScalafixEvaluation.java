@@ -1,17 +1,16 @@
 package scalafix.interfaces;
 
-import java.nio.file.Path;
 import java.util.Optional;
 
-public interface ScalafixResult {
+public interface ScalafixEvaluation {
     /**
      *
-     * @return Boolean true if there are no error on any file scalafix run on it.
+     * @return boolean true if there are no error on any file scalafix run on it.
      */
-    Boolean isSuccessful();
+    boolean isSuccessful();
 
     /**
-     * If {@link ScalafixArguments#runAndReturnResult()} is not successful, the error is stored in this method.
+     * If not successful, the error is stored in this method.
      * @returnOptional<ScalafixError>
      */
     ScalafixError[] getError();
@@ -23,7 +22,8 @@ public interface ScalafixResult {
 
     /**
      *
-     * @return ScalafixOutput[] for each file we store diagnostics and patches
+     * @return ScalafixOutput[] for each file we store the scalafix evaluation: If the evaluation is successful,
+     * we store the list of patches, diagnostics, the corresponding unified diff, otherwise we store the error resulted from the evaluation
      * */
     ScalafixOutput[] getScalafixOutputs();
 

@@ -13,21 +13,17 @@ public interface ScalafixOutput {
 
     /**
      *
-     * @return corresponding list of rules that has been applied
+     * @return corresponding list of rules that has been evaluated
      */
     ScalafixRule[] getRules();
 
     /**
      *
-     * @return Boolean true if there are no error when scalafix fixed the file
+     * @return boolean true if there are no error when scalafix run on the file
      */
-    Boolean isSuccessful();
-    /**
-     *
-     * @return is not successful, the error is stored in this method.
-     */
-    ScalafixError[] getError();
+    boolean isSuccessful();
 
+    ScalafixError[] getErrors();
 
     /**
      *
@@ -41,17 +37,13 @@ public interface ScalafixOutput {
      */
     Optional<String> getUnifiedDiff();
 
-    /**
-     *
-     * @return the output file after running scalafix if no error
-     */
-    Optional<String> getOutputFileFixed();
+    ScalafixPatch[] getPatches();
 
     /**
      *
-     * @return scalafixPatches
+     * @return the output content after evaluating scalafix if no error. The original file will stay unchanged.
      */
-    ScalafixPatch[] getPatches();
+    Optional<String> getOutputFixed();
 
     /**
      *
@@ -61,11 +53,12 @@ public interface ScalafixOutput {
 
     /**
      *
-     * @return Optional<String> containes the new file if no error.
+     * @return Optional<String> the output content after evaluating scalafix with desired patches if no error.
+     * The original file will stay unchanged.
      */
     Optional<String> getOutputFixedWithSelectivePatches(ScalafixPatch[] patches);
 
-    /**
+    /**applySelectivePatches
      *
      * @return apply selected patches to file
      */

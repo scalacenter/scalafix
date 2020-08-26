@@ -1,20 +1,18 @@
 package scalafix.internal.interfaces
 
-import java.lang
-import java.nio.file.Path
 import java.util.Optional
 
 import scalafix.cli.ExitStatus
-import scalafix.interfaces.{ScalafixError, ScalafixOutput, ScalafixResult}
+import scalafix.interfaces.{ScalafixError, ScalafixOutput, ScalafixEvaluation}
 import scalafix.internal.util.OptionOps._
 
 final case class ScalafixResultImpl(
     error: ExitStatus,
     getMessageError: Optional[String],
-    scalafixOutputs: Seq[ScalafixOutputtImpl]
-) extends ScalafixResult {
+    scalafixOutputs: Seq[ScalafixOutputImpl]
+) extends ScalafixEvaluation {
 
-  override def isSuccessful: lang.Boolean = error.isOk
+  override def isSuccessful: Boolean = error.isOk
 
   override def getError: Array[ScalafixError] = {
     ScalafixErrorImpl.fromScala(error)
@@ -38,7 +36,7 @@ object ScalafixResultImpl {
   }
 
   def from(
-      scalafixOutputtImpl: Seq[ScalafixOutputtImpl],
+      scalafixOutputtImpl: Seq[ScalafixOutputImpl],
       exitStatus: ExitStatus
   ): ScalafixResultImpl = {
     ScalafixResultImpl(exitStatus, Optional.empty(), scalafixOutputtImpl)

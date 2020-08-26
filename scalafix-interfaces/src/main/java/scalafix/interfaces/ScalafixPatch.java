@@ -6,11 +6,4 @@ public interface ScalafixPatch {
      * @return
      */
     String kind();
-
-    /**
-     *
-     * @return Java UUID
-     */
-    String getId();
-
 }

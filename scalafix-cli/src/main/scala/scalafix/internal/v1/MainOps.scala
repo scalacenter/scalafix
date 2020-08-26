@@ -31,18 +31,19 @@ import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
 import scalafix.Versions
 import scalafix.cli.ExitStatus
-import scalafix.interfaces.ScalafixResult
+import scalafix.interfaces.ScalafixEvaluation
 import scalafix.internal.config.PrintStreamReporter
 import scalafix.internal.diff.DiffUtils
-import scalafix.internal.interfaces.{ScalafixOutputtImpl, ScalafixResultImpl}
+import scalafix.internal.interfaces.{ScalafixOutputImpl, ScalafixResultImpl}
+import scalafix.internal.patch.PatchInternals
 import scalafix.internal.patch.PatchInternals.tokenPatchApply
 import scalafix.v0
 import scalafix.lint.{LintSeverity, RuleDiagnostic}
-import scalafix.v0.{RuleCtx, SemanticdbIndex}
+import scalafix.v0.RuleCtx
 import scalafix.v1.{Rule, SemanticDocument, SyntacticDocument}
 
 import scala.meta.interactive.InteractiveSemanticdb
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 object MainOps {
 
@@ -85,7 +86,10 @@ object MainOps {
     }
   }
 
-  def runWithResult(args: ValidatedArgs): ScalafixResult = {
+  def runWithResult(args: ValidatedArgs): ScalafixEvaluation = {
+    // first run beforeStart of each rule
+    args.rules.rules.foreach(_.beforeStart())
+
     args.rules.rules match {
       case Nil => {
         ScalafixResultImpl(ExitStatus.CommandLineError, Some("missing rules"))
@@ -96,42 +100,27 @@ object MainOps {
           files.map { file =>
             val input = args.input(file)
             val result = Try(getPatchesAndDiags(args, input, file))
-            result
-              .map {
-                case (fixed, patches, ctx, index, messages) =>
-                  if (fixed == input.text) {
-                    ScalafixOutputtImpl.from(
-                      file,
-                      Some(fixed),
-                      None,
-                      ExitStatus.Ok,
-                      Nil,
-                      messages
-                    )(args, ctx, index)
-                  } else {
-                    val diff = DiffUtils.unifiedDiff(
-                      file.toString(),
-                      "<expected fix>",
-                      input.text.linesIterator.toList,
-                      fixed.linesIterator.toList,
-                      3
-                    )
-                    ScalafixOutputtImpl.from(
-                      file,
-                      Some(fixed),
-                      Some(diff),
-                      ExitStatus.Ok,
-                      patches,
-                      messages
-                    )(args, ctx, index)
-                  }
-              }
-              .getOrElse(
-                ScalafixOutputtImpl
-                  .from(file, ExitStatus.UnexpectedError, "failure")(args)
-              )
+            result match {
+              case Success(result) =>
+                ScalafixOutputImpl.from(
+                  file,
+                  Some(result.fixed),
+                  ExitStatus.Ok,
+                  result.patches,
+                  result.diagnostics
+                )(args, result.ruleCtx, result.semanticdbIndex)
+
+              case Failure(exception) =>
+                ScalafixOutputImpl
+                  .from(file, ExitStatus.UnexpectedError, exception.getMessage)(
+                    args
+                  )
+            }
           }
         }
+        // Then afterComplete for each rule
+        args.rules.rules.foreach(_.afterComplete())
+
         val exit = ExitStatus.merge(scalafixOutputs.map(_.error))
         val adjustedExitCode = adjustExitCode(
           args,
@@ -303,9 +292,10 @@ object MainOps {
 
   def unsafeHandleFile(args: ValidatedArgs, file: AbsolutePath): ExitStatus = {
     val input = args.input(file)
-    val (fixed, _, _, _, messages) =
+    val result =
       getPatchesAndDiags(args, input, file)
-
+    val messages = result.diagnostics
+    val fixed = result.fixed
     if (!args.args.autoSuppressLinterErrors) {
       messages.foreach { diag =>
         args.config.reporter.lint(diag)
@@ -342,35 +332,32 @@ object MainOps {
       args: ValidatedArgs,
       input: Input,
       file: AbsolutePath
-  ): (
-      String,
-      List[v0.Patch],
-      RuleCtx,
-      Option[SemanticdbIndex],
-      List[RuleDiagnostic]
-  ) = {
+  ): PatchInternals.ResultWithContext = {
     val tree = LazyValue.later { () =>
       args.parse(input).get: Tree
     }
     val doc = SyntacticDocument(input, tree, args.diffDisable, args.config)
-    val (fixed, patches, ctx, index, messages) =
-      if (args.rules.isSemantic) {
-        val relpath = file.toRelative(args.sourceroot)
-        val sdoc = SemanticDocument.fromPath(
-          doc,
-          relpath,
-          args.classLoader,
-          args.symtab,
-          () => compileWithGlobal(args, doc)
-        )
-        val (fix, patches, ctx, index, messages) =
-          args.rules.semanticPatch(sdoc, args.args.autoSuppressLinterErrors)
-        assertFreshSemanticDB(input, file, fix, sdoc.internal.textDocument)
-        (fix, patches, ctx, index, messages)
-      } else {
-        args.rules.syntacticPatch(doc, args.args.autoSuppressLinterErrors)
-      }
-    (fixed, patches, ctx, index, messages)
+    if (args.rules.isSemantic) {
+      val relpath = file.toRelative(args.sourceroot)
+      val sdoc = SemanticDocument.fromPath(
+        doc,
+        relpath,
+        args.classLoader,
+        args.symtab,
+        () => compileWithGlobal(args, doc)
+      )
+      val result =
+        args.rules.semanticPatch(sdoc, args.args.autoSuppressLinterErrors)
+      assertFreshSemanticDB(
+        input,
+        file,
+        result.fixed,
+        sdoc.internal.textDocument
+      )
+      result
+    } else {
+      args.rules.syntacticPatch(doc, args.args.autoSuppressLinterErrors)
+    }
   }
 
   def getFixedOutput(
@@ -397,7 +384,7 @@ object MainOps {
     } yield ExitStatus.Ok
   }
 
-  def appyDiff(
+  def applyDiff(
       args: ValidatedArgs,
       file: AbsolutePath,
       fixed: String

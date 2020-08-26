@@ -6,8 +6,9 @@ import java.util.Collections
 
 import buildinfo.RulesBuildInfo
 import org.scalatest.funsuite.AnyFunSuite
-import scalafix.interfaces.{Scalafix, ScalafixArguments}
-import scalafix.internal.reflect.{ClasspathOps, RuleCompiler}
+import scalafix.interfaces.ScalafixArguments
+import scalafix.internal.interfaces.ScalafixArgumentsImpl
+import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.rule.{RemoveUnused, RemoveUnusedConfig}
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.test.StringFS
@@ -19,11 +20,6 @@ import scalafix.v1.SemanticRule
 import scala.meta.io.AbsolutePath
 import collection.JavaConverters._
 
-/**
- * Tests in this suite require scalafix-cli & its dependencies to be cross-published so that Coursier can fetch them.
- * That is done automatically as part of `sbt unit/test`, but if you run this from any other way, running
- * `sbt cli/crossPublishLocalBinTransitive` is a prerequisite.
- */
 class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
   val scalaBinaryVersion =
     RulesBuildInfo.scalaVersion.split('.').take(2).mkString(".")
@@ -32,9 +28,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     if (ScalaVersions.isScala213)
       "-Wunused:imports"
     else "-Ywarn-unused-import"
-  val api: ScalafixArguments = Scalafix
-    .fetchAndClassloadInstance(scalaBinaryVersion)
-    .newArguments()
+  val api: ScalafixArguments = ScalafixArgumentsImpl()
 
   val charset = StandardCharsets.US_ASCII
   val cwd = StringFS
@@ -74,7 +68,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
   )
 
   test("ScalafixArgumentsSuite test RemoveUnused rule", SkipWindows) {
-    val compileSucceeded = scala.tools.nsc.Main.process(scalacOptions)
+    val _ = scala.tools.nsc.Main.process(scalacOptions)
     val result = api
       .withRules(
         List(
@@ -91,7 +85,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
       .withScalacOptions(Collections.singletonList(removeUnused))
       .withPaths(Seq(main).asJava)
       .withSourceroot(src)
-      .runAndReturnResult()
+      .evaluate()
 
     val errors = result.getError.toList.map(_.toString)
     assert(errors == List("LinterError"))
@@ -104,7 +98,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
          |  println("ok")
          |}
          |""".stripMargin
-    val obtained = scalafixOutput.getOutputFileFixed.get()
+    val obtained = scalafixOutput.getOutputFixed.get()
     assertNoDiff(obtained, expected)
 
     val linterError = scalafixOutput.getDiagnostics.toList

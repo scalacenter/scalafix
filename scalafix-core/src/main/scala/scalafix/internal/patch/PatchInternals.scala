@@ -15,6 +15,13 @@ import scalafix.v0
 import scalafix.v1
 
 object PatchInternals {
+  case class ResultWithContext(
+      fixed: String,
+      patches: List[v0.Patch],
+      diagnostics: List[RuleDiagnostic],
+      ruleCtx: v0.RuleCtx,
+      semanticdbIndex: Option[v0.SemanticdbIndex]
+  )
   def merge(a: TokenPatch, b: TokenPatch): TokenPatch = (a, b) match {
     case (add1: Add, add2: Add) =>
       Add(
@@ -37,15 +44,9 @@ object PatchInternals {
       ctx: v0.RuleCtx,
       index: Option[v0.SemanticdbIndex],
       suppress: Boolean = false
-  ): (
-      String,
-      List[Patch],
-      v0.RuleCtx,
-      Option[v0.SemanticdbIndex],
-      List[RuleDiagnostic]
-  ) = {
+  ): ResultWithContext = {
     if (patchesByName.values.forall(_.isEmpty) && ctx.escapeHatch.isEmpty) {
-      (ctx.input.text, Nil, ctx, index, Nil) // no patch
+      ResultWithContext(ctx.input.text, Nil, Nil, ctx, index) // no patch
     } else {
       val idx = index.getOrElse(v0.SemanticdbIndex.empty)
       val (patch, lints) = ctx.escapeHatch.filter(patchesByName)(ctx, idx)
@@ -61,7 +62,13 @@ object PatchInternals {
       }
       val patches = treePatchApply(finalPatch)(ctx, idx)
       val atomicPatches = underlying(finalPatch).toList
-      (tokenPatchApply(ctx, patches), atomicPatches, ctx, index, lints)
+      ResultWithContext(
+        tokenPatchApply(ctx, patches),
+        atomicPatches,
+        lints,
+        ctx,
+        index
+      )
     }
   }
 
@@ -69,13 +76,7 @@ object PatchInternals {
       patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
       doc: v1.SyntacticDocument,
       suppress: Boolean
-  ): (
-      String,
-      List[v0.Patch],
-      v0.RuleCtx,
-      Option[v0.SemanticdbIndex],
-      List[RuleDiagnostic]
-  ) = {
+  ): ResultWithContext = {
     apply(patchesByName, new LegacyRuleCtx(doc), None, suppress)
   }
 
@@ -83,13 +84,7 @@ object PatchInternals {
       patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
       doc: v1.SemanticDocument,
       suppress: Boolean
-  ): (
-      String,
-      List[v0.Patch],
-      v0.RuleCtx,
-      Option[v0.SemanticdbIndex],
-      List[RuleDiagnostic]
-  ) = {
+  ): ResultWithContext = {
     apply(
       patchesByName,
       new LegacyRuleCtx(doc.internal.doc),

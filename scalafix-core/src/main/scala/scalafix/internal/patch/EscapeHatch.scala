@@ -34,7 +34,7 @@ class EscapeHatch private (
 
   private def rawFilter(
       patchesByName: Map[RuleName, Patch]
-  )(implicit ctx: RuleCtx): (Seq[Patch], List[RuleDiagnostic]) = {
+  )(implicit ctx: RuleCtx): (Patch, List[RuleDiagnostic]) = {
     var patchBuilder = Patch.empty
     val diagnostics = List.newBuilder[RuleDiagnostic]
     patchesByName.foreach {
@@ -46,14 +46,17 @@ class EscapeHatch private (
             patchBuilder += rewritePatch
         }
     }
-    (Seq(patchBuilder), diagnostics.result())
+    (patchBuilder, diagnostics.result())
   }
 
   def filter(patchesByName: Map[RuleName, Patch])(
       implicit ctx: RuleCtx,
       index: SemanticdbIndex
   ): (Iterable[Patch], List[RuleDiagnostic]) = {
-    if (isEmpty) return rawFilter(patchesByName)
+    if (isEmpty) return {
+      val (patch, diags) = rawFilter(patchesByName)
+      (Seq(patch), diags)
+    }
 
     val usedEscapes = mutable.Set.empty[EscapeFilter]
     val lintMessages = List.newBuilder[RuleDiagnostic]

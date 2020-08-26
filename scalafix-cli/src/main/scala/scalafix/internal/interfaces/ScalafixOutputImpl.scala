@@ -1,8 +1,8 @@
 package scalafix.internal.interfaces
 
-import java.lang
 import java.nio.file.Path
 import java.util.Optional
+
 import scalafix.cli.ExitStatus
 import scalafix.interfaces.{
   ScalafixDiagnostic,
@@ -11,6 +11,7 @@ import scalafix.interfaces.{
   ScalafixPatch,
   ScalafixRule
 }
+import scalafix.internal.diff.DiffUtils
 import scalafix.internal.v1.{MainOps, ValidatedArgs}
 import scalafix.lint.RuleDiagnostic
 import scalafix.internal.util.OptionOps._
@@ -19,10 +20,9 @@ import scalafix.v0.RuleCtx
 
 import scala.meta.io.AbsolutePath
 
-final case class ScalafixOutputtImpl(
+final case class ScalafixOutputImpl(
     originalPath: AbsolutePath,
-    fixed: Option[String],
-    unifiedDiff: Option[String],
+    fixedOpt: Option[String],
     error: ExitStatus,
     errorMessage: Option[String],
     diagnostics: Seq[RuleDiagnostic],
@@ -41,14 +41,31 @@ final case class ScalafixOutputtImpl(
 
   override def getRules: Array[ScalafixRule] = rules.toArray
 
-  override def getOutputFileFixed(): Optional[String] = fixed.asJava
+  override def getOutputFixed(): Optional[String] = fixedOpt.asJava
 
-  override def getUnifiedDiff: Optional[String] = unifiedDiff.asJava
+  override def getUnifiedDiff: Optional[String] = {
+    fixedOpt
+      .flatMap(fixed => {
+        val input = args.input(originalPath).text
+        if (input == fixed) None
+        else
+          Some(
+            DiffUtils.unifiedDiff(
+              originalPath.toString(),
+              "<expected fix>",
+              input.linesIterator.toList,
+              fixed.linesIterator.toList,
+              3
+            )
+          )
+      })
+      .asJava
+  }
 
-  override def getError(): Array[ScalafixError] =
+  override def getErrors(): Array[ScalafixError] =
     ScalafixErrorImpl.fromScala(error)
 
-  override def isSuccessful: lang.Boolean = error.isOk
+  override def isSuccessful: Boolean = error.isOk
 
   override def getDiagnostics: Array[ScalafixDiagnostic] =
     diagnostics.map(ScalafixDiagnosticImpl.fromScala).toArray
@@ -58,8 +75,8 @@ final case class ScalafixOutputtImpl(
   }
 
   override def applyPatches(): Array[ScalafixError] = {
-    val exitStatus = fixed.toTry
-      .flatMap(MainOps.appyDiff(args, file = originalPath, _))
+    val exitStatus = fixedOpt.toTry
+      .flatMap(MainOps.applyDiff(args, file = originalPath, _))
       .getOrElse(ExitStatus.UnexpectedError)
     ScalafixErrorImpl.fromScala(exitStatus).toSeq.toArray
   }
@@ -67,10 +84,11 @@ final case class ScalafixOutputtImpl(
   override def getOutputFixedWithSelectivePatches(
       selectedPatches: Array[ScalafixPatch]
   ): Optional[String] = {
-    val ids = selectedPatches.toList.map(_.getId())
-    val filteredPatches = patches.filter {
-      case ScalafixPatchImpl(id, _) => ids.contains(id.value)
-    }
+    val selectedPatchesSet =
+      new java.util.IdentityHashMap[ScalafixPatch, Unit](selectedPatches.length)
+    for (patch <- selectedPatches)
+      selectedPatchesSet.put(patch, ())
+    val filteredPatches = patches.filter(selectedPatchesSet.containsKey(_))
     ctxOpt
       .flatMap(ctx =>
         MainOps.getFixedOutput(filteredPatches.map(_.patch), ctx, index)
@@ -80,10 +98,11 @@ final case class ScalafixOutputtImpl(
   override def applySelectivePatches(
       selectedPatches: Array[ScalafixPatch]
   ): Array[ScalafixError] = {
-    val ids = selectedPatches.toList.map(_.getId())
-    val filteredPatches = patches.filter {
-      case ScalafixPatchImpl(id, _) => ids.contains(id.value)
-    }
+    val selectedPatchesSet =
+      new java.util.IdentityHashMap[ScalafixPatch, Unit](selectedPatches.length)
+    for (patch <- selectedPatches)
+      selectedPatchesSet.put(patch, ())
+    val filteredPatches = patches.filter(selectedPatchesSet.containsKey(_))
     val exitStatus =
       ctxOpt.toTry
         .flatMap(ctx =>
@@ -101,12 +120,11 @@ final case class ScalafixOutputtImpl(
 
 }
 
-object ScalafixOutputtImpl {
+object ScalafixOutputImpl {
 
   def from(
       originalPath: AbsolutePath,
       fixed: Option[String],
-      unifiedDiff: Option[String],
       exitStatus: ExitStatus,
       patches: Seq[v0.Patch],
       diagnostics: Seq[RuleDiagnostic]
@@ -114,12 +132,11 @@ object ScalafixOutputtImpl {
       args: ValidatedArgs,
       ctx: RuleCtx,
       index: Option[v0.SemanticdbIndex]
-  ): ScalafixOutputtImpl = {
-    val scalafixPatches = patches.map(ScalafixPatchImpl.from)
-    ScalafixOutputtImpl(
+  ): ScalafixOutputImpl = {
+    val scalafixPatches = patches.map(ScalafixPatchImpl)
+    ScalafixOutputImpl(
       originalPath = originalPath,
-      fixed = fixed,
-      unifiedDiff = unifiedDiff,
+      fixedOpt = fixed,
       error = exitStatus,
       errorMessage = None,
       diagnostics = diagnostics,
@@ -132,10 +149,9 @@ object ScalafixOutputtImpl {
       errorMessage: String
   )(
       args: ValidatedArgs
-  ): ScalafixOutputtImpl =
-    ScalafixOutputtImpl(
+  ): ScalafixOutputImpl =
+    ScalafixOutputImpl(
       originalPath,
-      None,
       None,
       exitStatus,
       Some(errorMessage),

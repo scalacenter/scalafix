@@ -9,7 +9,7 @@ object Mima {
       ProblemFilters.exclude[MissingTypesProblem]("scalafix.testkit.DiffAssertions"),
       ProblemFilters.exclude[MissingTypesProblem]("scalafix.testkit.SemanticRuleSuite"),
       ProblemFilters.exclude[Problem]("scalafix.internal.*"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixArguments.runAndReturnResult")
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixArguments.evaluate")
     )
   }
 }
