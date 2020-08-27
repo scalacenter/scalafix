@@ -206,12 +206,10 @@ public interface ScalafixArguments {
     ScalafixError[] run();
 
     /**
-     *
-     * Compared to {@link #run()}, it evaluates scalafix on each file and returns the list of patches and diagnostics,
-     * which can be written to file using {@link ScalafixEvaluation#writeResult()}}.
-     * withMainCallback it's not called, all diagnostics are directly stored in ScalafixEvaluation
-     *
-     * @return ScalafixResult
+     * Similar to {@link #run()}, but without any side effects on the source files. Via the returned {@link ScalafixEvaluation},
+     * for each file, diagnostics can be inspected, and patches can be previewed and applied.
+     * <p>
+     * Incompatible with {@link #withMainCallback} and {@link #withMode}.
      */
     ScalafixEvaluation evaluate();
 }

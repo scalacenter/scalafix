@@ -7,7 +7,7 @@ import scalafix.cli.ExitStatus
 import scalafix.interfaces.{
   ScalafixDiagnostic,
   ScalafixError,
-  ScalafixOutput,
+  ScalafixFileEvaluation,
   ScalafixPatch,
   ScalafixRule
 }
@@ -20,7 +20,7 @@ import scalafix.v0.RuleCtx
 
 import scala.meta.io.AbsolutePath
 
-final case class ScalafixOutputImpl(
+final case class ScalafixFileEvaluationImpl(
     originalPath: AbsolutePath,
     fixedOpt: Option[String],
     error: ExitStatus,
@@ -31,17 +31,16 @@ final case class ScalafixOutputImpl(
     args: ValidatedArgs,
     ctxOpt: Option[RuleCtx],
     index: Option[v0.SemanticdbIndex]
-) extends ScalafixOutput {
-
+) extends ScalafixFileEvaluation {
   val rules: Seq[ScalafixRuleImpl] =
     args.rules.rules.map(new ScalafixRuleImpl(_))
   val pathToReplace = args.pathReplace(originalPath)
 
-  override def getPath: Path = originalPath.toNIO
+  override def getEvaluatedPath: Path = originalPath.toNIO
 
-  override def getRules: Array[ScalafixRule] = rules.toArray
+  override def getEvaluatedRules: Array[ScalafixRule] = rules.toArray
 
-  override def getOutputFixed(): Optional[String] = fixedOpt.asJava
+  override def previewPatches(): Optional[String] = fixedOpt.asJava
 
   override def getUnifiedDiff: Optional[String] = {
     fixedOpt
@@ -81,7 +80,7 @@ final case class ScalafixOutputImpl(
     ScalafixErrorImpl.fromScala(exitStatus).toSeq.toArray
   }
 
-  override def getOutputFixedWithSelectivePatches(
+  override def previewPatches(
       selectedPatches: Array[ScalafixPatch]
   ): Optional[String] = {
     val selectedPatchesSet =
@@ -91,11 +90,11 @@ final case class ScalafixOutputImpl(
     val filteredPatches = patches.filter(selectedPatchesSet.containsKey(_))
     ctxOpt
       .flatMap(ctx =>
-        MainOps.getFixedOutput(filteredPatches.map(_.patch), ctx, index)
+        MainOps.previewPatches(filteredPatches.map(_.patch), ctx, index)
       )
       .asJava
   }
-  override def applySelectivePatches(
+  override def applyPatches(
       selectedPatches: Array[ScalafixPatch]
   ): Array[ScalafixError] = {
     val selectedPatchesSet =
@@ -120,7 +119,7 @@ final case class ScalafixOutputImpl(
 
 }
 
-object ScalafixOutputImpl {
+object ScalafixFileEvaluationImpl {
 
   def from(
       originalPath: AbsolutePath,
@@ -132,9 +131,9 @@ object ScalafixOutputImpl {
       args: ValidatedArgs,
       ctx: RuleCtx,
       index: Option[v0.SemanticdbIndex]
-  ): ScalafixOutputImpl = {
+  ): ScalafixFileEvaluationImpl = {
     val scalafixPatches = patches.map(ScalafixPatchImpl)
-    ScalafixOutputImpl(
+    ScalafixFileEvaluationImpl(
       originalPath = originalPath,
       fixedOpt = fixed,
       error = exitStatus,
@@ -149,8 +148,8 @@ object ScalafixOutputImpl {
       errorMessage: String
   )(
       args: ValidatedArgs
-  ): ScalafixOutputImpl =
-    ScalafixOutputImpl(
+  ): ScalafixFileEvaluationImpl =
+    ScalafixFileEvaluationImpl(
       originalPath,
       None,
       exitStatus,

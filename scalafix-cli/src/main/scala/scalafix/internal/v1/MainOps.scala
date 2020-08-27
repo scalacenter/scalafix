@@ -34,7 +34,10 @@ import scalafix.cli.ExitStatus
 import scalafix.interfaces.ScalafixEvaluation
 import scalafix.internal.config.PrintStreamReporter
 import scalafix.internal.diff.DiffUtils
-import scalafix.internal.interfaces.{ScalafixOutputImpl, ScalafixResultImpl}
+import scalafix.internal.interfaces.{
+  ScalafixFileEvaluationImpl,
+  ScalafixEvaluationImpl
+}
 import scalafix.internal.patch.PatchInternals
 import scalafix.internal.patch.PatchInternals.tokenPatchApply
 import scalafix.v0
@@ -92,17 +95,20 @@ object MainOps {
 
     args.rules.rules match {
       case Nil => {
-        ScalafixResultImpl(ExitStatus.CommandLineError, Some("missing rules"))
+        ScalafixEvaluationImpl(
+          ExitStatus.CommandLineError,
+          Some("missing rules")
+        )
       }
       case _: Seq[Rule] => {
         val files = getFilesFrom(args)
-        val scalafixOutputs = {
+        val fileEvaluations = {
           files.map { file =>
             val input = args.input(file)
             val result = Try(getPatchesAndDiags(args, input, file))
             result match {
               case Success(result) =>
-                ScalafixOutputImpl.from(
+                ScalafixFileEvaluationImpl.from(
                   file,
                   Some(result.fixed),
                   ExitStatus.Ok,
@@ -111,7 +117,7 @@ object MainOps {
                 )(args, result.ruleCtx, result.semanticdbIndex)
 
               case Failure(exception) =>
-                ScalafixOutputImpl
+                ScalafixFileEvaluationImpl
                   .from(file, ExitStatus.UnexpectedError, exception.getMessage)(
                     args
                   )
@@ -121,14 +127,14 @@ object MainOps {
         // Then afterComplete for each rule
         args.rules.rules.foreach(_.afterComplete())
 
-        val exit = ExitStatus.merge(scalafixOutputs.map(_.error))
+        val exit = ExitStatus.merge(fileEvaluations.map(_.error))
         val adjustedExitCode = adjustExitCode(
           args,
           exit,
           files,
-          scalafixOutputs.flatMap(_.diagnostics)
+          fileEvaluations.flatMap(_.diagnostics)
         )
-        ScalafixResultImpl.from(scalafixOutputs, adjustedExitCode)
+        ScalafixEvaluationImpl.from(fileEvaluations, adjustedExitCode)
       }
     }
   }
@@ -360,7 +366,7 @@ object MainOps {
     }
   }
 
-  def getFixedOutput(
+  def previewPatches(
       patches: Seq[v0.Patch],
       ctx: RuleCtx,
       index: Option[v0.SemanticdbIndex]

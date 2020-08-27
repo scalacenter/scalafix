@@ -45,7 +45,7 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
       case Configured.Ok(validated) =>
         MainOps.runWithResult(validated)
       case Configured.NotOk(err) =>
-        ScalafixResultImpl(ExitStatus.CommandLineError, Some(err.msg))
+        ScalafixEvaluationImpl(ExitStatus.CommandLineError, Some(err.msg))
     }
   }
 

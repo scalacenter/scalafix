@@ -87,10 +87,10 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
       .withSourceroot(src)
       .evaluate()
 
-    val errors = result.getError.toList.map(_.toString)
+    val errors = result.getErrors.toList.map(_.toString)
     assert(errors == List("LinterError"))
-    assert(result.getScalafixOutputs.length == 1)
-    val scalafixOutput = result.getScalafixOutputs.head
+    assert(result.getFileEvaluations.length == 1)
+    val fileEvaluation = result.getFileEvaluations.head
     val expected =
       """|
          |object Main extends App {
@@ -98,10 +98,10 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
          |  println("ok")
          |}
          |""".stripMargin
-    val obtained = scalafixOutput.getOutputFixed.get()
+    val obtained = fileEvaluation.previewPatches.get()
     assertNoDiff(obtained, expected)
 
-    val linterError = scalafixOutput.getDiagnostics.toList
+    val linterError = fileEvaluation.getDiagnostics.toList
     val linterErrorFormatted = linterError
       .map { d =>
         d.position()
@@ -119,11 +119,9 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
       """.stripMargin
     )
 
-    val unifiedDiff = scalafixOutput.getUnifiedDiff.get()
+    val unifiedDiff = fileEvaluation.getUnifiedDiff.get()
     assert(unifiedDiff.nonEmpty)
-    val patches = scalafixOutput.getPatches.toList
-    val patchKind = patches.map(_.kind())
-    assert(patchKind.toSet == Set("RemoveImportee"))
+    val patches = fileEvaluation.getPatches.toList
 
     val expectedWithOnePatch =
       """|
@@ -137,11 +135,11 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
          |""".stripMargin
     // if applying all patches we should get the same result
     val obtained2 =
-      scalafixOutput.getOutputFixedWithSelectivePatches(patches.toArray).get()
+      fileEvaluation.previewPatches(patches.toArray).get()
     assertNoDiff(obtained2, expected)
 
-    val obtained3 = scalafixOutput
-      .getOutputFixedWithSelectivePatches(Seq(patches.head).toArray)
+    val obtained3 = fileEvaluation
+      .previewPatches(Seq(patches.head).toArray)
       .get
     assertNoDiff(obtained3, expectedWithOnePatch)
 
