@@ -6,7 +6,12 @@ import java.util.Collections
 
 import buildinfo.RulesBuildInfo
 import org.scalatest.funsuite.AnyFunSuite
-import scalafix.interfaces.ScalafixArguments
+import scalafix.interfaces.{
+  ScalafixArguments,
+  ScalafixDiagnostic,
+  ScalafixMainCallback,
+  ScalafixMainMode
+}
 import scalafix.internal.interfaces.ScalafixArgumentsImpl
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.rule.{RemoveUnused, RemoveUnusedConfig}
@@ -19,6 +24,7 @@ import scalafix.v1.SemanticRule
 
 import scala.meta.io.AbsolutePath
 import collection.JavaConverters._
+import scala.meta.internal.io.FileIO
 
 class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
   val scalaBinaryVersion =
@@ -67,7 +73,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     main.toString
   )
 
-  test("ScalafixArgumentsSuite test RemoveUnused rule", SkipWindows) {
+  test("ScalafixArguments.evaluate with a semantic rule", SkipWindows) {
     val _ = scala.tools.nsc.Main.process(scalacOptions)
     val result = api
       .withRules(
@@ -119,7 +125,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
       """.stripMargin
     )
 
-    val unifiedDiff = fileEvaluation.getUnifiedDiff.get()
+    val unifiedDiff = fileEvaluation.previewPatchesAsUnifiedDiff.get()
     assert(unifiedDiff.nonEmpty)
     val patches = fileEvaluation.getPatches.toList
 
@@ -143,6 +149,68 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
       .get
     assertNoDiff(obtained3, expectedWithOnePatch)
 
+  }
+
+  test(
+    "ScalafixArguments.evaluate doesn't take into account withMode and withMainCallback",
+    SkipWindows
+  ) {
+    val _ = scala.tools.nsc.Main.process(scalacOptions)
+    val contentBeforeEvaluation =
+      FileIO.slurp(AbsolutePath(main), StandardCharsets.UTF_8)
+    var maybeDiagnostic: Option[ScalafixDiagnostic] = None
+    val scalafixMainCallback = new ScalafixMainCallback {
+      override def reportDiagnostic(diagnostic: ScalafixDiagnostic): Unit =
+        maybeDiagnostic = Some(diagnostic)
+    }
+    val result = api
+      .withRules(
+        List(
+          removeUnsuedRule().name.toString(),
+          "ExplicitResultTypes",
+          "DisableSyntax"
+        ).asJava
+      )
+      .withParsedArguments(
+        List("--settings.DisableSyntax.noSemicolons", "true").asJava
+      )
+      .withClasspath((scalaLibrary.map(_.toNIO) :+ target).asJava)
+      .withScalaVersion(scalaVersion)
+      .withScalacOptions(Collections.singletonList(removeUnused))
+      .withPaths(Seq(main).asJava)
+      .withSourceroot(src)
+      .withMode(ScalafixMainMode.IN_PLACE)
+      .withMainCallback(scalafixMainCallback)
+      .evaluate()
+
+    val fileEvaluation = result.getFileEvaluations.toSeq.head
+    assert(fileEvaluation.getDiagnostics.toSeq.nonEmpty)
+    assert(maybeDiagnostic.isEmpty)
+    val content = FileIO.slurp(AbsolutePath(main), StandardCharsets.UTF_8)
+    assert(contentBeforeEvaluation == content)
+    val run = api
+      .withRules(
+        List(
+          removeUnsuedRule().name.toString(),
+          "ExplicitResultTypes",
+          "DisableSyntax"
+        ).asJava
+      )
+      .withParsedArguments(
+        List("--settings.DisableSyntax.noSemicolons", "true").asJava
+      )
+      .withClasspath((scalaLibrary.map(_.toNIO) :+ target).asJava)
+      .withScalaVersion(scalaVersion)
+      .withScalacOptions(Collections.singletonList(removeUnused))
+      .withPaths(Seq(main).asJava)
+      .withSourceroot(src)
+      .withMode(ScalafixMainMode.IN_PLACE)
+      .withMainCallback(scalafixMainCallback)
+      .run()
+
+    val contentAfterRun =
+      FileIO.slurp(AbsolutePath(main), StandardCharsets.UTF_8)
+    assert(contentAfterRun == fileEvaluation.previewPatches().get)
   }
 
   def removeUnsuedRule(): SemanticRule = {

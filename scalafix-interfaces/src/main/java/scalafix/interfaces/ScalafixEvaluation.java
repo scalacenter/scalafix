@@ -4,7 +4,7 @@ import java.util.Optional;
 
 public interface ScalafixEvaluation {
     /**
-     * @return boolean true if scalafix has successfully been evaluated on all files configured.
+     * @return boolean true if scalafix has successfully been evaluated on all files configured and no ScalafixError has been found
      */
     boolean isSuccessful();
 

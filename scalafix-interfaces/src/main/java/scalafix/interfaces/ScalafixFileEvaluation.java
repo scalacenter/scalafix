@@ -8,7 +8,7 @@ public interface ScalafixFileEvaluation {
     /**
      * @return original path of the file scalafix has evaluated on
      */
-    Path getEvaluatedPath();
+    Path getEvaluatedFile();
 
     /**
      *
@@ -29,9 +29,9 @@ public interface ScalafixFileEvaluation {
     /**
      *
      * @return if the fixed file is different from the input file and the evaluation
-     * is successful this method return non empty unified diff
+     * is successful this method return non empty unified diff. The original file will stay unchanged.
      */
-    Optional<String> getUnifiedDiff();
+    Optional<String> previewPatchesAsUnifiedDiff();
 
     ScalafixPatch[] getPatches();
 
@@ -59,7 +59,6 @@ public interface ScalafixFileEvaluation {
      * @param patches the patches should belong to this scalafixFileEvaluation's patches.
      *                If you apply patches that result from another ScalafixFileEvaluation,
      *                no patch will be applied to the file.
-     * @return apply selected patches to file
      */
     ScalafixError[] applyPatches(ScalafixPatch[] patches);
 }

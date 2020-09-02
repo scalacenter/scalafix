@@ -36,13 +36,13 @@ final case class ScalafixFileEvaluationImpl(
     args.rules.rules.map(new ScalafixRuleImpl(_))
   val pathToReplace = args.pathReplace(originalPath)
 
-  override def getEvaluatedPath: Path = originalPath.toNIO
+  override def getEvaluatedFile: Path = originalPath.toNIO
 
   override def getEvaluatedRules: Array[ScalafixRule] = rules.toArray
 
   override def previewPatches(): Optional[String] = fixedOpt.asJava
 
-  override def getUnifiedDiff: Optional[String] = {
+  override def previewPatchesAsUnifiedDiff: Optional[String] = {
     fixedOpt
       .flatMap(fixed => {
         val input = args.input(originalPath).text
