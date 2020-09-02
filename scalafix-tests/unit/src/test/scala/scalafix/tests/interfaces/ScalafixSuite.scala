@@ -2,7 +2,6 @@ package scalafix.tests.interfaces
 
 import java.net.URL
 import java.nio.file.{Files, Path}
-
 import coursierapi.Repository
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.interfaces.{Scalafix, ScalafixDiagnostic, ScalafixMainCallback}

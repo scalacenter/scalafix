@@ -56,4 +56,9 @@ object ExitStatus {
 
   def merge(exit1: ExitStatus, exit2: ExitStatus): ExitStatus =
     apply(exit1.code | exit2.code)
+
+  def merge(exitStatus: Seq[ExitStatus]): ExitStatus =
+    exitStatus.foldLeft(ExitStatus.Ok) { (status, next) =>
+      apply(status.code | next.code)
+    }
 }

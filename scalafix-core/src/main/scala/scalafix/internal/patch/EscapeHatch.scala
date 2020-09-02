@@ -52,8 +52,11 @@ class EscapeHatch private (
   def filter(patchesByName: Map[RuleName, Patch])(
       implicit ctx: RuleCtx,
       index: SemanticdbIndex
-  ): (Patch, List[RuleDiagnostic]) = {
-    if (isEmpty) return rawFilter(patchesByName)
+  ): (Iterable[Patch], List[RuleDiagnostic]) = {
+    if (isEmpty) return {
+      val (patch, diags) = rawFilter(patchesByName)
+      (Seq(patch), diags)
+    }
 
     val usedEscapes = mutable.Set.empty[EscapeFilter]
     val lintMessages = List.newBuilder[RuleDiagnostic]
@@ -99,7 +102,7 @@ class EscapeHatch private (
 
     val patches = patchesByName.map {
       case (name, patch) => loop(name, patch)
-    }.asPatch
+    }
     val unusedWarnings =
       (annotatedEscapes.unusedEscapes(usedEscapes) ++
         anchoredEscapes.unusedEscapes(usedEscapes)).map { pos =>

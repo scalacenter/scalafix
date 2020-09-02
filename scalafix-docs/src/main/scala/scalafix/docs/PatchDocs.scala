@@ -52,13 +52,13 @@ object PatchDocs {
   }
   implicit class XtensionPatch(p: Patch) {
     def output(implicit doc: SemanticDocument): String = {
-      val (obtained, _) =
-        PatchInternals.semantic(
+      PatchInternals
+        .semantic(
           Map(RuleName("patch") -> p),
           doc,
           suppress = false
         )
-      obtained
+        .fixed
     }
     def showDiff(context: Int = 0)(implicit doc: SemanticDocument): Unit = {
       printDiff(unifiedDiff(p.output, context))
@@ -66,11 +66,13 @@ object PatchDocs {
   }
   implicit class XtensionPatchs(p: Iterable[Patch]) {
     def showLints()(implicit doc: SemanticDocument): Unit = {
-      val (_, diagnostics) = PatchInternals.semantic(
-        Map(RuleName("RuleName") -> p.asPatch),
-        doc,
-        suppress = false
-      )
+      val diagnostics = PatchInternals
+        .semantic(
+          Map(RuleName("RuleName") -> p.asPatch),
+          doc,
+          suppress = false
+        )
+        .diagnostics
       diagnostics.foreach { diag =>
         println(diag.formattedMessage)
       }

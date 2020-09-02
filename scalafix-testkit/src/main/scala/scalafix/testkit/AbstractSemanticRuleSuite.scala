@@ -5,6 +5,7 @@ import java.nio.file.Files
 
 import org.scalatest.exceptions.TestFailedException
 import org.scalatest.{BeforeAndAfterAll, Suite, TestRegistration}
+import scalafix.internal.patch.PatchInternals
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.testkit.{AssertDiff, CommentAssertion}
 
@@ -37,9 +38,22 @@ abstract class AbstractSemanticRuleSuite(
   def evaluateTestBody(diffTest: RuleTest): Unit = {
     val (rule, sdoc) = diffTest.run.apply()
     rule.beforeStart()
-    val (fixed, messages) =
+    val res =
       try rule.semanticPatch(sdoc, suppress = false)
       finally rule.afterComplete()
+    // verify to verify that tokenPatchApply and fixed are the same
+    val fixed =
+      PatchInternals.tokenPatchApply(
+        res.ruleCtx,
+        res.semanticdbIndex,
+        res.patches
+      )
+
+    assertNoDiff(
+      fixed,
+      res.fixed,
+      "fixed from tokenPatchApply differs from fixed2 from rule.semanticPatch"
+    )
     val tokens = fixed.tokenize.get
     val obtained = SemanticRuleSuite.stripTestkitComments(tokens)
     val expected = diffTest.path.resolveOutput(props) match {
@@ -55,13 +69,12 @@ abstract class AbstractSemanticRuleSuite(
     }
 
     val expectedLintMessages = CommentAssertion.extract(sdoc.tokens)
-    val diff = AssertDiff(messages, expectedLintMessages)
+    val diff = AssertDiff(res.diagnostics, expectedLintMessages)
 
     if (diff.isFailure) {
       println("###########> Lint       <###########")
       println(diff.toString)
     }
-
     val result = compareContents(obtained, expected)
     if (result.nonEmpty) {
       println("###########> Diff       <###########")

@@ -2,6 +2,7 @@ package scalafix.v0
 
 import metaconfig.Conf
 import metaconfig.Configured
+
 import scala.meta._
 import scalafix.internal.config.MetaconfigOps
 import scalafix.internal.config.ScalafixConfig
@@ -81,12 +82,20 @@ abstract class Rule(ruleName: RuleName) { self =>
   final def apply(ctx: RuleCtx, patches: Map[RuleName, Patch]): String = {
     // This overload of apply if purely for convenience
     // Use `applyAndLint` to iterate over Diagnostic without printing to the console
-    val (fixed, diagnostics) = PatchInternals(patches, ctx, semanticOption)
-    diagnostics.foreach(diag => ctx.config.reporter.lint(diag))
-    fixed
+    val result =
+      PatchInternals(patches, ctx, semanticOption)
+    result.diagnostics.foreach(diag => ctx.config.reporter.lint(diag))
+    result.fixed
   }
-  final def applyAndLint(ctx: RuleCtx): (String, List[RuleDiagnostic]) =
-    PatchInternals(fixWithName(ctx), ctx, semanticOption)
+  final def applyAndLint(
+      ctx: RuleCtx
+  ): (
+      String,
+      List[RuleDiagnostic]
+  ) = {
+    val res = PatchInternals(fixWithName(ctx), ctx, semanticOption)
+    (res.fixed, res.diagnostics)
+  }
 
   /** Returns unified diff from applying this patch */
   final def diff(ctx: RuleCtx): String =

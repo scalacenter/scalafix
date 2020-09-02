@@ -9,6 +9,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
+
 import metaconfig.Conf
 import metaconfig.ConfEncoder
 import metaconfig.Configured
@@ -18,6 +19,7 @@ import metaconfig.generic.Setting
 import metaconfig.generic.Settings
 import metaconfig.internal.Case
 import org.typelevel.paiges.{Doc => D}
+
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.meta.Tree
@@ -29,11 +31,22 @@ import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
 import scalafix.Versions
 import scalafix.cli.ExitStatus
+import scalafix.interfaces.ScalafixEvaluation
 import scalafix.internal.config.PrintStreamReporter
 import scalafix.internal.diff.DiffUtils
-import scalafix.v1.SyntacticDocument
-import scalafix.v1.SemanticDocument
+import scalafix.internal.interfaces.{
+  ScalafixFileEvaluationImpl,
+  ScalafixEvaluationImpl
+}
+import scalafix.internal.patch.PatchInternals
+import scalafix.internal.patch.PatchInternals.tokenPatchApply
+import scalafix.v0
+import scalafix.lint.{LintSeverity, RuleDiagnostic}
+import scalafix.v0.RuleCtx
+import scalafix.v1.{Rule, SemanticDocument, SyntacticDocument}
+
 import scala.meta.interactive.InteractiveSemanticdb
+import scala.util.{Failure, Success, Try}
 
 object MainOps {
 
@@ -76,7 +89,57 @@ object MainOps {
     }
   }
 
-  def files(args: ValidatedArgs): collection.Seq[AbsolutePath] =
+  def runWithResult(args: ValidatedArgs): ScalafixEvaluation = {
+    // first run beforeStart of each rule
+    args.rules.rules.foreach(_.beforeStart())
+
+    args.rules.rules match {
+      case Nil => {
+        ScalafixEvaluationImpl(
+          ExitStatus.CommandLineError,
+          Some("missing rules")
+        )
+      }
+      case _: Seq[Rule] => {
+        val files = getFilesFrom(args)
+        val fileEvaluations = {
+          files.map { file =>
+            val input = args.input(file)
+            val result = Try(getPatchesAndDiags(args, input, file))
+            result match {
+              case Success(result) =>
+                ScalafixFileEvaluationImpl.from(
+                  file,
+                  Some(result.fixed),
+                  ExitStatus.Ok,
+                  result.patches,
+                  result.diagnostics
+                )(args, result.ruleCtx, result.semanticdbIndex)
+
+              case Failure(exception) =>
+                ScalafixFileEvaluationImpl
+                  .from(file, ExitStatus.UnexpectedError, exception.getMessage)(
+                    args
+                  )
+            }
+          }
+        }
+        // Then afterComplete for each rule
+        args.rules.rules.foreach(_.afterComplete())
+
+        val exit = ExitStatus.merge(fileEvaluations.map(_.error))
+        val adjustedExitCode = adjustExitCode(
+          args,
+          exit,
+          files,
+          fileEvaluations.flatMap(_.diagnostics)
+        )
+        ScalafixEvaluationImpl.from(fileEvaluations, adjustedExitCode)
+      }
+    }
+  }
+
+  def getFilesFrom(args: ValidatedArgs): Seq[AbsolutePath] =
     args.args.ls match {
       case Ls.Find =>
         val buf = Vector.newBuilder[AbsolutePath]
@@ -134,6 +197,27 @@ object MainOps {
     if (args.callback.hasLintErrors) {
       ExitStatus.merge(ExitStatus.LinterError, code)
     } else if (args.callback.hasErrors && code.isOk) {
+      ExitStatus.merge(ExitStatus.UnexpectedError, code)
+    } else if (files.isEmpty) {
+      args.config.reporter.error("No files to fix")
+      ExitStatus.merge(ExitStatus.NoFilesError, code)
+    } else {
+      code
+    }
+  }
+  def adjustExitCode(
+      args: ValidatedArgs,
+      code: ExitStatus,
+      files: collection.Seq[AbsolutePath],
+      diags: Seq[RuleDiagnostic]
+  ): ExitStatus = {
+    if (diags.exists(ruleDiag =>
+        ruleDiag.diagnostic.severity == LintSeverity.Error && ruleDiag.diagnostic.categoryID.nonEmpty
+      )) {
+      ExitStatus.merge(ExitStatus.LinterError, code)
+    } else if (diags.exists(ruleDiag =>
+        ruleDiag.diagnostic.severity == LintSeverity.Error
+      ) && code.isOk) {
       ExitStatus.merge(ExitStatus.UnexpectedError, code)
     } else if (files.isEmpty) {
       args.config.reporter.error("No files to fix")
@@ -214,34 +298,15 @@ object MainOps {
 
   def unsafeHandleFile(args: ValidatedArgs, file: AbsolutePath): ExitStatus = {
     val input = args.input(file)
-    val tree = LazyValue.later { () =>
-      args.parse(input).get: Tree
-    }
-    val doc = SyntacticDocument(input, tree, args.diffDisable, args.config)
-    val (fixed, messages) =
-      if (args.rules.isSemantic) {
-        val relpath = file.toRelative(args.sourceroot)
-        val sdoc = SemanticDocument.fromPath(
-          doc,
-          relpath,
-          args.classLoader,
-          args.symtab,
-          () => compileWithGlobal(args, doc)
-        )
-        val (fix, messages) =
-          args.rules.semanticPatch(sdoc, args.args.autoSuppressLinterErrors)
-        assertFreshSemanticDB(input, file, fix, sdoc.internal.textDocument)
-        (fix, messages)
-      } else {
-        args.rules.syntacticPatch(doc, args.args.autoSuppressLinterErrors)
-      }
-
+    val result =
+      getPatchesAndDiags(args, input, file)
+    val messages = result.diagnostics
+    val fixed = result.fixed
     if (!args.args.autoSuppressLinterErrors) {
       messages.foreach { diag =>
         args.config.reporter.lint(diag)
       }
     }
-
     if (args.args.check) {
       if (fixed == input.text) {
         ExitStatus.Ok
@@ -267,6 +332,78 @@ object MainOps {
       }
       ExitStatus.Ok
     }
+  }
+
+  private def getPatchesAndDiags(
+      args: ValidatedArgs,
+      input: Input,
+      file: AbsolutePath
+  ): PatchInternals.ResultWithContext = {
+    val tree = LazyValue.later { () =>
+      args.parse(input).get: Tree
+    }
+    val doc = SyntacticDocument(input, tree, args.diffDisable, args.config)
+    if (args.rules.isSemantic) {
+      val relpath = file.toRelative(args.sourceroot)
+      val sdoc = SemanticDocument.fromPath(
+        doc,
+        relpath,
+        args.classLoader,
+        args.symtab,
+        () => compileWithGlobal(args, doc)
+      )
+      val result =
+        args.rules.semanticPatch(sdoc, args.args.autoSuppressLinterErrors)
+      assertFreshSemanticDB(
+        input,
+        file,
+        result.fixed,
+        sdoc.internal.textDocument
+      )
+      result
+    } else {
+      args.rules.syntacticPatch(doc, args.args.autoSuppressLinterErrors)
+    }
+  }
+
+  def previewPatches(
+      patches: Seq[v0.Patch],
+      ctx: RuleCtx,
+      index: Option[v0.SemanticdbIndex]
+  ): Option[String] =
+    Try(tokenPatchApply(ctx, index, patches)).toOption
+
+  def applyPatches(
+      args: ValidatedArgs,
+      patches: Seq[v0.Patch],
+      ctx: RuleCtx,
+      index: Option[v0.SemanticdbIndex],
+      file: AbsolutePath
+  ): Try[ExitStatus] = {
+    val input = args.input(file)
+    for {
+      fixed <- Try(tokenPatchApply(ctx, index, patches))
+      if (fixed != input.text)
+      toFix = args.pathReplace(file).toNIO
+      _ <- Try(Files.createDirectories(toFix.getParent))
+      _ <- Try(Files.write(toFix, fixed.getBytes(args.args.charset)))
+    } yield ExitStatus.Ok
+  }
+
+  def applyDiff(
+      args: ValidatedArgs,
+      file: AbsolutePath,
+      fixed: String
+  ): Try[ExitStatus] = {
+    val input = args.input(file)
+    if (fixed != input.text) {
+      val toFix = args.pathReplace(file).toNIO
+
+      for {
+        _ <- Try(Files.createDirectories(toFix.getParent))
+        _ <- Try(Files.write(toFix, fixed.getBytes(args.args.charset)))
+      } yield ExitStatus.Ok
+    } else Success(ExitStatus.Ok)
   }
 
   def handleFile(args: ValidatedArgs, file: AbsolutePath): ExitStatus = {
@@ -301,7 +438,7 @@ object MainOps {
   }
 
   def run(args: ValidatedArgs): ExitStatus = {
-    val files = this.files(args)
+    val files = getFilesFrom(args)
     var i = 0
     val N = files.length
     val width = N.toString.length

@@ -15,6 +15,13 @@ import scalafix.v0
 import scalafix.v1
 
 object PatchInternals {
+  case class ResultWithContext(
+      fixed: String,
+      patches: List[v0.Patch],
+      diagnostics: List[RuleDiagnostic],
+      ruleCtx: v0.RuleCtx,
+      semanticdbIndex: Option[v0.SemanticdbIndex]
+  )
   def merge(a: TokenPatch, b: TokenPatch): TokenPatch = (a, b) match {
     case (add1: Add, add2: Add) =>
       Add(
@@ -37,20 +44,31 @@ object PatchInternals {
       ctx: v0.RuleCtx,
       index: Option[v0.SemanticdbIndex],
       suppress: Boolean = false
-  ): (String, List[RuleDiagnostic]) = {
+  ): ResultWithContext = {
     if (patchesByName.values.forall(_.isEmpty) && ctx.escapeHatch.isEmpty) {
-      (ctx.input.text, Nil)
+      ResultWithContext(ctx.input.text, Nil, Nil, ctx, index) // no patch
     } else {
       val idx = index.getOrElse(v0.SemanticdbIndex.empty)
       val (patch, lints) = ctx.escapeHatch.filter(patchesByName)(ctx, idx)
-      val finalPatch =
+      val finalPatch = {
         if (suppress) {
-          patch + SuppressOps.addComments(ctx.tokens, lints.map(_.position))
+          patch.asPatch + SuppressOps.addComments(
+            ctx.tokens,
+            lints.map(_.position)
+          )
         } else {
-          patch
+          patch.asPatch
         }
+      }
       val patches = treePatchApply(finalPatch)(ctx, idx)
-      (tokenPatchApply(ctx, patches), lints)
+      val atomicPatches = underlying(finalPatch).toList
+      ResultWithContext(
+        tokenPatchApply(ctx, patches),
+        atomicPatches,
+        lints,
+        ctx,
+        index
+      )
     }
   }
 
@@ -58,7 +76,7 @@ object PatchInternals {
       patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
       doc: v1.SyntacticDocument,
       suppress: Boolean
-  ): (String, List[RuleDiagnostic]) = {
+  ): ResultWithContext = {
     apply(patchesByName, new LegacyRuleCtx(doc), None, suppress)
   }
 
@@ -66,7 +84,7 @@ object PatchInternals {
       patchesByName: Map[scalafix.rule.RuleName, scalafix.Patch],
       doc: v1.SemanticDocument,
       suppress: Boolean
-  ): (String, List[RuleDiagnostic]) = {
+  ): ResultWithContext = {
     apply(
       patchesByName,
       new LegacyRuleCtx(doc.internal.doc),
@@ -112,6 +130,21 @@ object PatchInternals {
       ctx: v0.RuleCtx,
       patches: Iterable[TokenPatch]
   ): String = {
+    val patchMap = patches
+      .groupBy(x => TokenOps.hash(x.tok))
+      .mapValues(_.reduce(merge).newTok)
+    ctx.tokens.iterator
+      .map(tok => patchMap.getOrElse(TokenOps.hash(tok), tok.syntax))
+      .mkString
+  }
+
+  def tokenPatchApply(
+      ctx: v0.RuleCtx,
+      index: Option[v0.SemanticdbIndex],
+      v0Patches: Iterable[v0.Patch]
+  ): String = {
+    val idx = index.getOrElse(v0.SemanticdbIndex.empty)
+    val patches = treePatchApply(v0Patches.asPatch)(ctx, idx)
     val patchMap = patches
       .groupBy(x => TokenOps.hash(x.tok))
       .mapValues(_.reduce(merge).newTok)

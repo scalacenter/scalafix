@@ -8,7 +8,8 @@ object Mima {
     Seq(
       ProblemFilters.exclude[MissingTypesProblem]("scalafix.testkit.DiffAssertions"),
       ProblemFilters.exclude[MissingTypesProblem]("scalafix.testkit.SemanticRuleSuite"),
-      ProblemFilters.exclude[Problem]("scalafix.internal.*")
+      ProblemFilters.exclude[Problem]("scalafix.internal.*"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixArguments.evaluate")
     )
   }
 }

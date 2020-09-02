@@ -205,4 +205,11 @@ public interface ScalafixArguments {
      */
     ScalafixError[] run();
 
+    /**
+     * Similar to {@link #run()}, but without any side effects on the source files. Via the returned {@link ScalafixEvaluation},
+     * for each file, diagnostics can be inspected, and patches can be previewed and applied.
+     * <p>
+     * Incompatible with {@link #withMainCallback} and {@link #withMode}.
+     */
+    ScalafixEvaluation evaluate();
 }

@@ -259,9 +259,10 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
       obtainedRulesToRun.sorted.mkString("\n"),
       expectedRulesToRun.sorted.mkString("\n")
     )
-    val validateError = args.validate()
+    val validateError: Optional[ScalafixException] = args.validate()
     assert(!validateError.isPresent, validateError)
-    val errors = args.run().toList.map(_.toString).sorted
+    val scalafixErrors = args.run()
+    val errors = scalafixErrors.toList.map(_.toString).sorted
     val stdout = fansi
       .Str(out.toString(charset.name()))
       .plainText
