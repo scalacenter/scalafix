@@ -139,24 +139,23 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
   private def removeUnused(imports: Seq[Import]): Patch =
     Patch.fromIterable {
-      imports flatMap (_.importers) flatMap {
-        case Importer(_, importees) =>
-          val hasUsedWildcard = importees exists {
-            case i: Importee.Wildcard => !isUnused(i)
-            case _                    => false
-          }
+      imports flatMap (_.importers) flatMap { case Importer(_, importees) =>
+        val hasUsedWildcard = importees exists {
+          case i: Importee.Wildcard => !isUnused(i)
+          case _                    => false
+        }
 
-          importees collect {
-            case i @ Importee.Rename(_, to) if isUnused(i) && hasUsedWildcard =>
-              // Unimport the identifier instead of removing the importee since unused renamed may
-              // still impact compilation by shadowing an identifier.
-              //
-              // See https://github.com/scalacenter/scalafix/issues/614
-              Patch.replaceTree(to, "_").atomic
+        importees collect {
+          case i @ Importee.Rename(_, to) if isUnused(i) && hasUsedWildcard =>
+            // Unimport the identifier instead of removing the importee since unused renamed may
+            // still impact compilation by shadowing an identifier.
+            //
+            // See https://github.com/scalacenter/scalafix/issues/614
+            Patch.replaceTree(to, "_").atomic
 
-            case i if isUnused(i) =>
-              Patch.removeImportee(i).atomic
-          }
+          case i if isUnused(i) =>
+            Patch.removeImportee(i).atomic
+        }
       }
     }
 
@@ -361,13 +360,14 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
         // Only `C` is unimported. `A` and `B` are still available.
         //
         // TODO: Shall we issue a warning here as using order-sensitive imports is a bad practice?
-        val lastUnimportsWithWildcard = importeeLists.reverse collectFirst {
-          case Importees(_, _, unimports @ _ :: _, Some(_)) => unimports
-        }
+        val lastUnimportsWithWildcard =
+          importeeLists.reverse collectFirst { case Importees(_, _, unimports @ _ :: _, Some(_)) =>
+            unimports
+          }
 
         // Collects all unimports without an accompanying wildcard.
-        val allUnimports = importeeLists.collect {
-          case Importees(_, _, unimports, None) => unimports
+        val allUnimports = importeeLists.collect { case Importees(_, _, unimports, None) =>
+          unimports
         }.flatten
 
         val allImportees = group flatMap (_.importees)
@@ -406,8 +406,8 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
         //   import p.{A, B}
         //   import p.{A => A1, B => B1}
         val (renamedImportedNames, importedNames) = {
-          val renamedNames = renames.map {
-            case Importee.Rename(Name(from), _) => from
+          val renamedNames = renames.map { case Importee.Rename(Name(from), _) =>
+            from
           }.toSet
 
           allImportees
