@@ -652,7 +652,10 @@ Configuration:
 
 [source,hocon]
 ----
-OrganizeImports.groups = ["re:javax?\\.", "scala.", "*"]
+OrganizeImports {
+  groups = ["re:javax?\\.", "scala.", "*"]
+  groupExplicitlyImportedImplicitsSeparately = true
+}
 ----
 
 Before:
