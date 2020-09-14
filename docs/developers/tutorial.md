@@ -643,7 +643,8 @@ The expansion rules for `github:org/repo` are the following:
 
 > If your rule only targets a single codebase and is not meant to be
 > distributed, you might want to develop it [as part of your existing
-> build](local-rules.md) instead.
+> build](local-rules.md) instead. You may also read [how to cross publish you rules](cross-publish-custom-rules.md)
+> once you have set up the necessary configuration to publish to Maven Central.
 
 Run the following sbt command to publish a rule locally.
 
