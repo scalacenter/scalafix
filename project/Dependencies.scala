@@ -17,7 +17,7 @@ object Dependencies {
   val testedPreviousScalaVersions =
     List(scala213, scala212).map(version => version -> previousVersions(version)).toMap
 
-  val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.8.1.202007141445-r"
+  val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.9.0.202009080501-r"
 
   var testClasspath: String = "empty"
   def semanticdb: ModuleID = "org.scalameta" % "semanticdb-scalac" % scalametaV cross CrossVersion.full
