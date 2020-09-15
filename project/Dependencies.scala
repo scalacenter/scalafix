@@ -31,7 +31,7 @@ object Dependencies {
     "org.scalatest" %% "scalatest" % "3.0.8" // don't bump, to avoid forcing breaking changes on clients via eviction
   def bijectionCore = "com.twitter" %% "bijection-core" % "0.9.7"
   def scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.3"
-  def collectionCompat = "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.6"
+  def collectionCompat = "org.scala-lang.modules" %% "scala-collection-compat" % "2.2.0"
 
   def testsDeps = List(
     // integration property tests
