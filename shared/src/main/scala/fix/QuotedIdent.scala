@@ -7,4 +7,6 @@ object QuotedIdent {
       object e
     }
   }
+
+  object `macro`
 }
