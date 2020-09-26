@@ -14,7 +14,7 @@ inThisBuild(
       )
     ),
     scalaVersion := v.scala212,
-    crossScalaVersions := List(v.scala212, v.scala213),
+    crossScalaVersions := List(v.scala211, v.scala212, v.scala213),
     scalacOptions ++= List(
       "-deprecation",
       "-Yrangepos",
@@ -53,7 +53,16 @@ lazy val input = project
 
 lazy val output = project
   .dependsOn(shared)
-  .settings(skip in publish := true)
+  .settings(
+    skip in publish := true,
+    Compile / unmanagedSourceDirectories ++= {
+      val baseMainDir = baseDirectory.value / "src" / "main"
+      if (scalaVersion.value.startsWith("2.12.") || scalaVersion.value.startsWith("2.13."))
+        Seq(baseMainDir / "scala-2.12_2.13")
+      else
+        Nil
+    }
+  )
 
 lazy val inputUnusedImports = project
   .dependsOn(shared)
