@@ -53,22 +53,18 @@ lazy val input = project
 
 lazy val output = project
   .dependsOn(shared)
-  .settings(
-    skip in publish := true,
-    Compile / unmanagedSourceDirectories ++= {
-      val baseMainDir = baseDirectory.value / "src" / "main"
-      if (scalaVersion.value.startsWith("2.12.") || scalaVersion.value.startsWith("2.13."))
-        Seq(baseMainDir / "scala-2.12_2.13")
-      else
-        Nil
-    }
-  )
+  .settings(skip in publish := true)
 
 lazy val inputUnusedImports = project
   .dependsOn(shared)
   .settings(
     skip in publish := true,
-    scalacOptions ++= List("-Ywarn-unused")
+    scalacOptions += {
+      if (scalaVersion.value.startsWith("2.11."))
+        "-Ywarn-unused-import"
+      else
+        "-Ywarn-unused"
+    }
   )
 
 lazy val tests = project
