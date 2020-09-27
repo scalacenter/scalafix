@@ -20,7 +20,6 @@ The current maintainers (people who can merge pull requests) are:
 - Guillaume Massé - [`@MasseGuillaume`](https://github.com/MasseGuillaume)
 - Ólafur Páll Geirsson - [`@olafurpg`](https://github.com/olafurpg)
 - Meriam Lachkar - [`@mlachkar`](https://github.com/mlachkar)
-- Marcelo Cenerino - [`@marcelocenerine`](https://github.com/marcelocenerine)
 - Shane Delmore - [`@ShaneDelmore`](https://github.com/ShaneDelmore)
 
 ## Contributing
