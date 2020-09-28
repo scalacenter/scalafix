@@ -1,4 +1,4 @@
-:latest-release: 0.4.1
+:latest-release: 0.4.2
 
 ifdef::env-github[]
 :caution-caption: :construction:
