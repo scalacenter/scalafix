@@ -144,4 +144,11 @@ object Test {
     final val javaEnum = java.nio.file.LinkOption.NOFOLLOW_LINKS
     final val clazzOf = classOf[Option[Int]]
   }
+
+  object EscapedName {
+    implicit val `test-test`: Int = 5
+    val x = implicitly[Int]
+    implicit val test: String = "string"
+    val y = implicitly[String]
+  }
 }

@@ -16,7 +16,7 @@ final class Symbol private (val value: String) {
   def isGlobal: Boolean = value.isGlobal
   def isLocal: Boolean = value.isLocal
   def owner: Symbol = Symbol(value.owner)
-  def displayName: String = value.desc.name.value
+  def displayName: String = encode(value.desc.name.value)
   def info(implicit doc: Symtab): Option[SymbolInformation] =
     doc.info(this)
   def normalized: Symbol = SymbolOps.normalize(this)
@@ -38,6 +38,18 @@ final class Symbol private (val value: String) {
       case _ => false
     })
   override def hashCode(): Int = value.##
+
+  private def encode(value: String): String = {
+    if (value == "") {
+      "``"
+    } else {
+      val (start, parts) = (value.head, value.tail)
+      val isStartOk = Character.isJavaIdentifierStart(start)
+      val isPartsOk = parts.forall(Character.isJavaIdentifierPart)
+      if (isStartOk && isPartsOk) value
+      else "`" + value + "`"
+    }
+  }
 }
 
 object Symbol {

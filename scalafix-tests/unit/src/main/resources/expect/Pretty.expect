@@ -57,7 +57,7 @@
 [53:9..53:10]:    test/T#X# => class X extends AnyRef { +1 decls }
 [53:10..53:10]:   test/T#X#`<init>`(). => primary ctor <init>()
 [54:7..54:8]:     test/T#x. => val method x: X
-[57:8..57:12]:    test/Test. => final object Test extends AnyRef { +4 decls }
+[57:8..57:12]:    test/Test. => final object Test extends AnyRef { +5 decls }
 [58:9..58:10]:    test/Test.M# => class M extends AnyRef { +2 decls }
 [58:11..58:11]:   test/Test.M#`<init>`(). => primary ctor <init>()
 [59:9..59:10]:    test/Test.M#m(). => method m: Int
@@ -138,3 +138,10 @@
 [143:15..143:19]: test/Test.Literal.unit. => final val method unit: Unit
 [144:15..144:23]: test/Test.Literal.javaEnum. => final val method javaEnum: NOFOLLOW_LINKS.type
 [145:15..145:22]: test/Test.Literal.clazzOf. => final val method clazzOf: Class[Option[Int]]
+[148:10..148:21]: test/Test.EscapedName. => final object EscapedName extends AnyRef { +4 decls }
+[149:18..149:29]: test/Test.EscapedName.`test-test`. => implicit val method test-test: Int
+[150:9..150:10]:  test/Test.EscapedName.x. => val method x: Int
+[150:13..150:28]: *(`test-test`)
+[151:18..151:22]: test/Test.EscapedName.test. => implicit val method test: String
+[152:9..152:10]:  test/Test.EscapedName.y. => val method y: String
+[152:13..152:31]: *(test)
