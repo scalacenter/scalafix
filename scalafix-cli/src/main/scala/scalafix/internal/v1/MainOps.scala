@@ -41,6 +41,10 @@ import scalafix.internal.config.PrintStreamReporter
 import scalafix.internal.diff.DiffUtils
 import scalafix.internal.interfaces.ScalafixEvaluationImpl
 import scalafix.internal.interfaces.ScalafixFileEvaluationImpl
+import scalafix.internal.interfaces.{
+  ScalafixEvaluationImpl,
+  ScalafixFileEvaluationImpl
+}
 import scalafix.internal.patch.PatchInternals
 import scalafix.internal.patch.PatchInternals.tokenPatchApply
 import scalafix.lint.LintSeverity
@@ -103,11 +107,10 @@ object MainOps {
           Some("missing rules")
         )
       }
-      case _: Seq[Rule] => {
+      case _: Seq[Rule] =>
         val files = getFilesFrom(args)
         val fileEvaluations = {
           files.map { file =>
-            println(s"file = ${file}")
             val input = args.input(file)
             val result = Try(getPatchesAndDiags(args, input, file))
             result match {
@@ -121,29 +124,14 @@ object MainOps {
                 )(args, result.ruleCtx, result.semanticdbIndex)
 
               case Failure(exception) =>
-                exception match {
-                  case e: StaleSemanticDB =>
-                    ScalafixFileEvaluationImpl
-                      .from(
-                        file,
-                        ExitStatus.StaleSemanticdbError,
-                        exception.getMessage
-                      )(
-                        args
-                      )
-                  case _ =>
-                    ScalafixFileEvaluationImpl
-                      .from(
-                        file,
-                        ExitStatus.UnexpectedError,
-                        exception.getMessage
-                      )(
-                        args
-                      )
-                }
+                ScalafixFileEvaluationImpl
+                  .from(file, ExitStatus.from(exception), exception.getMessage)(
+                    args
+                  )
             }
           }
         }
+
         // Then afterComplete for each rule
         args.rules.rules.foreach(_.afterComplete())
 
@@ -155,7 +143,7 @@ object MainOps {
           fileEvaluations.flatMap(_.diagnostics)
         )
         ScalafixEvaluationImpl.from(fileEvaluations, adjustedExitCode)
-      }
+
     }
   }
 

@@ -13,7 +13,8 @@ object Mima {
       // https://github.com/sbt/sbt-buildinfo/pull/150
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("scalafix.Versions.supportedScalaVersions"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("buildinfo.RulesBuildInfo.allSupportedScalaVersions"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("buildinfo.RulesBuildInfo.supportedScalaVersions")
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("buildinfo.RulesBuildInfo.supportedScalaVersions"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixFileEvaluation.getMessageError")
     )
   }
 }

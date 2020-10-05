@@ -18,12 +18,16 @@ public interface ScalafixFileEvaluation {
 
     /**
      *
-     * @return boolean true if there is no error when scalafix has been evaluated on the file
+     * @return boolean true if there is no error except LintError when scalafix has been evaluated on the file
      */
     boolean isSuccessful();
 
     Optional<String> getMessageError();
 
+    /**
+     *
+     * @return Return scalafix errors, including LinterError
+     */
     ScalafixError[] getErrors();
 
     ScalafixDiagnostic[] getDiagnostics();

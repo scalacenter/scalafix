@@ -63,7 +63,8 @@ final case class ScalafixFileEvaluationImpl(
   override def getErrors(): Array[ScalafixError] =
     ScalafixErrorImpl.fromScala(error)
 
-  override def isSuccessful: Boolean = error.isOk
+  override def isSuccessful: Boolean =
+    getErrors().toList.filter(_ != ScalafixError.LinterError).isEmpty
 
   override def getMessageError: Optional[String] = errorMessage.asJava
 

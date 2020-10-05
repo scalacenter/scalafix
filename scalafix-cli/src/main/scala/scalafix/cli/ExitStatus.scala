@@ -1,6 +1,11 @@
 package scalafix.cli
 
+import scalafix.internal.v1.MainOps.StaleSemanticDB
+import scalafix.v1.SemanticDocument
+
 import scala.collection.mutable
+import scala.meta.parsers.ParseException
+import scala.util.control.NonFatal
 
 sealed abstract case class ExitStatus(code: Int, name: String) {
   def isOk: Boolean = code == ExitStatus.Ok.code
@@ -60,5 +65,17 @@ object ExitStatus {
   def merge(exitStatus: Seq[ExitStatus]): ExitStatus =
     exitStatus.foldLeft(ExitStatus.Ok) { (status, next) =>
       apply(status.code | next.code)
+    }
+
+  def from(throwable: Throwable): (ExitStatus) =
+    throwable match {
+      case _: ParseException =>
+        ExitStatus.ParseError
+      case _: SemanticDocument.Error.MissingSemanticdb =>
+        ExitStatus.MissingSemanticdbError
+      case _: StaleSemanticDB =>
+        ExitStatus.StaleSemanticdbError
+      case NonFatal(_) =>
+        ExitStatus.UnexpectedError
     }
 }

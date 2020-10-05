@@ -8,6 +8,9 @@ public interface ScalafixEvaluation {
      */
     boolean isSuccessful();
 
+    /**
+     * @return Return scalafix errors, including LinterErrors
+     */
     ScalafixError[] getErrors();
 
     Optional<String> getMessageError();
@@ -16,7 +19,7 @@ public interface ScalafixEvaluation {
      * @return for each file we store the scalafix evaluation: If the evaluation is successful,
      * we store the list of patches, diagnostics and the corresponding unified diff,
      * otherwise we store the errors resulted from the evaluation
-     * */
+     */
     ScalafixFileEvaluation[] getFileEvaluations();
 
     /**
