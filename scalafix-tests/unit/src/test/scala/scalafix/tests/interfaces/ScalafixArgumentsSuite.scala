@@ -4,6 +4,8 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.Collections
+import java.nio.file.{Files, Paths}
+import java.util.{Collections, Optional}
 
 import scala.collection.JavaConverters._
 
@@ -151,6 +153,38 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
       .get
     assertNoDiff(obtained3, expectedWithOnePatch)
 
+  }
+  test("ScalafixArguments.evaluate getting StaleSemanticdb", SkipWindows) {
+    val _ = scala.tools.nsc.Main.process(scalacOptions)
+    val args = api
+      .withRules(
+        List(
+          removeUnsuedRule().name.toString()
+        ).asJava
+      )
+      .withClasspath((scalaLibrary.map(_.toNIO) :+ target).asJava)
+      .withScalacOptions(Collections.singletonList(removeUnused))
+      .withScalaVersion(scalaVersion)
+      .withPaths(Seq(main).asJava)
+      .withSourceroot(src)
+
+    val result = args.evaluate()
+
+    assert(result.getFileEvaluations.length == 1)
+
+    // let's modify file and evaluate again
+    val code = FileIO.slurp(AbsolutePath(main), StandardCharsets.UTF_8)
+    val staleCode = code + "\n// comment\n"
+    Files.write(main, staleCode.getBytes(StandardCharsets.UTF_8))
+    val code2 = FileIO.slurp(AbsolutePath(main), StandardCharsets.UTF_8)
+
+    val evaluation2 = args.evaluate()
+    assert(evaluation2.getErrors.head.toString == "StaleSemanticdbError")
+    assert(evaluation2.getMessageError == Optional.empty())
+    assert(!evaluation2.isSuccessful)
+    val fileEval = evaluation2.getFileEvaluations.head
+    assert(fileEval.getErrors.head.toString == "StaleSemanticdbError")
+    assert(fileEval.getMessageError.get.startsWith("Stale SemanticDB"))
   }
 
   test(

@@ -65,6 +65,8 @@ final case class ScalafixFileEvaluationImpl(
 
   override def isSuccessful: Boolean = error.isOk
 
+  override def getMessageError: Optional[String] = errorMessage.asJava
+
   override def getDiagnostics: Array[ScalafixDiagnostic] =
     diagnostics.map(ScalafixDiagnosticImpl.fromScala).toArray
 

@@ -107,6 +107,7 @@ object MainOps {
         val files = getFilesFrom(args)
         val fileEvaluations = {
           files.map { file =>
+            println(s"file = ${file}")
             val input = args.input(file)
             val result = Try(getPatchesAndDiags(args, input, file))
             result match {
@@ -120,10 +121,26 @@ object MainOps {
                 )(args, result.ruleCtx, result.semanticdbIndex)
 
               case Failure(exception) =>
-                ScalafixFileEvaluationImpl
-                  .from(file, ExitStatus.UnexpectedError, exception.getMessage)(
-                    args
-                  )
+                exception match {
+                  case e: StaleSemanticDB =>
+                    ScalafixFileEvaluationImpl
+                      .from(
+                        file,
+                        ExitStatus.StaleSemanticdbError,
+                        exception.getMessage
+                      )(
+                        args
+                      )
+                  case _ =>
+                    ScalafixFileEvaluationImpl
+                      .from(
+                        file,
+                        ExitStatus.UnexpectedError,
+                        exception.getMessage
+                      )(
+                        args
+                      )
+                }
             }
           }
         }

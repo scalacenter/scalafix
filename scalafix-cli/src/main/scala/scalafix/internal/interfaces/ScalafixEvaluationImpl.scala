@@ -6,7 +6,13 @@ import scalafix.cli.ExitStatus
 import scalafix.interfaces.ScalafixError
 import scalafix.interfaces.ScalafixEvaluation
 import scalafix.interfaces.ScalafixFileEvaluation
+import scalafix.interfaces.{
+  ScalafixError,
+  ScalafixEvaluation,
+  ScalafixFileEvaluation
+}
 import scalafix.internal.util.OptionOps._
+import scalafix.internal.v1.ValidatedArgs
 
 final case class ScalafixEvaluationImpl(
     error: ExitStatus,
@@ -14,11 +20,11 @@ final case class ScalafixEvaluationImpl(
     fileEvaluations: Seq[ScalafixFileEvaluationImpl]
 ) extends ScalafixEvaluation {
 
-  override def isSuccessful: Boolean = error.isOk
-
   override def getErrors: Array[ScalafixError] = {
     ScalafixErrorImpl.fromScala(error)
   }
+  override def isSuccessful: Boolean =
+    getErrors.toList.filter(_ != ScalafixError.LinterError).isEmpty
 
   override def getFileEvaluations: Array[ScalafixFileEvaluation] =
     fileEvaluations.toArray

@@ -22,6 +22,8 @@ public interface ScalafixFileEvaluation {
      */
     boolean isSuccessful();
 
+    Optional<String> getMessageError();
+
     ScalafixError[] getErrors();
 
     ScalafixDiagnostic[] getDiagnostics();
