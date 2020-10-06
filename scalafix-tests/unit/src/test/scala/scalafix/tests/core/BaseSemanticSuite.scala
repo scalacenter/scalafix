@@ -28,7 +28,7 @@ object BaseSemanticSuite {
     SemanticDocument.fromPath(
       doc,
       relpath,
-      ClasspathOps.thisClassLoader,
+      ClasspathOps.thisClassLoaderWith(BuildInfo.semanticClasspath.toURI.toURL),
       symtab,
       () => None
     )
@@ -48,7 +48,7 @@ abstract class BaseSemanticSuite(filename: String)
   }
 
   override def beforeAll(): Unit = {
-    val dir = AbsolutePath(scalafix.tests.BuildInfo.sharedClasspath)
+    val dir = AbsolutePath(scalafix.tests.BuildInfo.semanticClasspath)
     _db = LegacyInMemorySemanticdbIndex.load(
       Classpaths.withDirectory(dir),
       PathIO.workingDirectory

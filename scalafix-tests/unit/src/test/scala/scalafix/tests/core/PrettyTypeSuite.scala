@@ -20,9 +20,13 @@ import scalafix.internal.util.PrettyType
 
 class BasePrettyTypeSuite extends BaseSemanticSuite("TypeToTreeInput") {
   super.beforeAll()
-  val dir: m.AbsolutePath =
+  val classDir: m.AbsolutePath =
     m.AbsolutePath(scalafix.tests.BuildInfo.sharedClasspath)
-  val classpath = Classpaths.withDirectory(dir)
+  val semanticdbTargetRoot =
+    m.AbsolutePath(scalafix.tests.BuildInfo.semanticClasspath)
+
+  val classpath =
+    Classpaths.withDirectories(List(semanticdbTargetRoot, classDir))
   val table = GlobalSymbolTable(classpath, includeJdk = true)
 }
 

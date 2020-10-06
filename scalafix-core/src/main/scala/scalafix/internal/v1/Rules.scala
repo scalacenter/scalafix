@@ -10,12 +10,18 @@ import scalafix.internal.util.SuppressOps
 import scalafix.lint.Diagnostic
 import scalafix.patch.Patch
 import scalafix.rule.RuleName
-import scalafix.v1.{Configuration, Rule, SemanticDocument, SemanticRule, SyntacticDocument, SyntacticRule}
+import scalafix.v1.{
+  Configuration,
+  Rule,
+  SemanticDocument,
+  SemanticRule,
+  SyntacticDocument,
+  SyntacticRule
+}
 
 import scala.collection.mutable
 import scala.meta.tokens.Tokens
 import scala.util.control.NonFatal
-
 
 case class Rules(rules: List[Rule] = Nil) {
 

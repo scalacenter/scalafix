@@ -96,7 +96,9 @@ object TestkitProperties {
         case None => Nil
       }
       new TestkitProperties(
-        Classpath(sprops("inputClasspath")),
+        Classpath(sprops("semanticdbRootDirectory")) ++ Classpath(
+          sprops("inputClasspath")
+        ),
         Classpath(sprops("inputSourceDirectories")).entries,
         Classpath(sprops("outputSourceDirectories")).entries,
         sourceroot,
