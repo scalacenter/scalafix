@@ -25,26 +25,16 @@ import scalafix.interfaces.ScalafixMainCallback
 import scalafix.interfaces.ScalafixMainMode
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.reflect.RuleCompiler
-import scalafix.internal.rule.ProcedureSyntax
 import scalafix.test.StringFS
 import scalafix.testkit.DiffAssertions
-import scalafix.tests.util.ScalaVersions
+import scalafix.tests.util.{ScalaVersions, SemanticdbPlugin}
 import scalafix.{interfaces => i}
+import RulesBuildInfo.scalaVersion
 
 import scala.util.Properties
 
 class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
-  def semanticdbPluginPath(): String = {
-    val semanticdbscalac = ClasspathOps.thisClassLoader.getURLs.collectFirst {
-      case url if url.toString.contains("semanticdb-scalac_") =>
-        Paths.get(url.toURI).toString
-    }
-    semanticdbscalac.getOrElse {
-      throw new IllegalStateException(
-        "unable to auto-detect semanticdb-scalac compiler plugin"
-      )
-    }
-  }
+
   def scalaLibrary: AbsolutePath =
     RuleCompiler.defaultClasspathPaths
       .find(_.toNIO.getFileName.toString.contains("scala-library"))
@@ -194,7 +184,7 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
     )
     val scalacOptions = Array[String](
       "-Yrangepos",
-      s"-Xplugin:${semanticdbPluginPath()}",
+      s"-Xplugin:${SemanticdbPlugin.semanticdbPluginPath()}",
       "-Xplugin-require:semanticdb",
       "-classpath",
       scalaLibrary.toString,

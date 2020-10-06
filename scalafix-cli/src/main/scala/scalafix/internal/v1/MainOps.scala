@@ -15,7 +15,10 @@ import scalafix.cli.ExitStatus
 import scalafix.interfaces.ScalafixEvaluation
 import scalafix.internal.config.PrintStreamReporter
 import scalafix.internal.diff.DiffUtils
-import scalafix.internal.interfaces.{ScalafixEvaluationImpl, ScalafixFileEvaluationImpl}
+import scalafix.internal.interfaces.{
+  ScalafixEvaluationImpl,
+  ScalafixFileEvaluationImpl
+}
 import scalafix.internal.patch.PatchInternals
 import scalafix.internal.patch.PatchInternals.tokenPatchApply
 import scalafix.lint.{LintSeverity, RuleDiagnostic}

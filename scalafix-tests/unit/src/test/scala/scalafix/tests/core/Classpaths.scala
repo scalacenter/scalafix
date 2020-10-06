@@ -14,4 +14,7 @@ object Classpaths {
   def withDirectory(dir: AbsolutePath): Classpath =
     Classpath(dir :: scalaLibrary.entries)
 
+  def withDirectories(dir: List[AbsolutePath]): Classpath =
+    Classpath(dir ++ scalaLibrary.entries)
+
 }

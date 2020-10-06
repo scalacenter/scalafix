@@ -5,6 +5,9 @@ inThisBuild(
     scalaVersion := scala213,
     crossScalaVersions := List(scala213, scala212, scala211),
     fork := true,
+    semanticdbEnabled := true,
+    semanticdbVersion := scalafixSemanticdb.revision,
+    scalacOptions ++= List("-P:semanticdb:synthetics:on"),
     scalafixScalaBinaryVersion := scalaBinaryVersion.value,
     scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.0"
   )
@@ -66,8 +69,7 @@ lazy val core = project
       "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided,
       collectionCompat
-    ),
-    scalafixSettings
+    )
   )
   .enablePlugins(BuildInfoPlugin)
 
@@ -86,8 +88,7 @@ lazy val rules = project
     libraryDependencies ++= List(
       "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full,
       collectionCompat
-    ),
-    scalafixSettings
+    )
   )
   .dependsOn(core)
   .enablePlugins(BuildInfoPlugin)
@@ -100,8 +101,7 @@ lazy val reflect = project
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
-    ),
-    scalafixSettings
+    )
   )
   .dependsOn(core, rules)
 
@@ -118,8 +118,7 @@ lazy val cli = project
       jgit,
       "ch.qos.logback" % "logback-classic" % "1.2.3",
       "org.apache.commons" % "commons-text" % "1.9"
-    ),
-    scalafixSettings
+    )
   )
   .dependsOn(reflect, interfaces)
 
@@ -173,7 +172,6 @@ lazy val testkit = project
     moduleName := "scalafix-testkit",
     isFullCrossVersion,
     libraryDependencies ++= Seq(
-      semanticdb,
       googleDiff,
       scalacheck,
       scalatest
@@ -195,7 +193,6 @@ lazy val unit = project
     libraryDependencies ++= testsDeps,
     libraryDependencies ++= List(
       jgit,
-      semanticdbPluginLibrary,
       scalatest.withRevision("3.2.0"), // make sure testkit clients can use recent 3.x versions
       "org.scalameta" %% "testkit" % scalametaV
     ),
@@ -222,6 +219,11 @@ lazy val unit = project
       put(
         "inputClasspath",
         fullClasspath.in(testsInput, Compile).value.map(_.data)
+      )
+
+      put(
+        "semanticdbRootDirectory",
+        Seq(semanticdbTargetRoot.in(testsInput, Compile).value)
       )
       put(
         "inputSourceDirectories",
@@ -253,7 +255,7 @@ lazy val unit = project
       "testsInputResources" ->
         sourceDirectory.in(testsInput, Compile).value / "resources",
       "semanticClasspath" ->
-        classDirectory.in(testsInput, Compile).value,
+        semanticdbTargetRoot.in(testsShared, Compile).value,
       "sharedSourceroot" ->
         baseDirectory.in(ThisBuild).value /
           "scalafix-tests" / "shared" / "src" / "main",
@@ -292,8 +294,3 @@ lazy val docs = project
   .dependsOn(testkit, core, cli)
   .enablePlugins(DocusaurusPlugin)
   .disablePlugins(ScalafixPlugin)
-
-lazy val scalafixSettings = Seq(
-  semanticdbEnabled := true,
-  semanticdbVersion := scalafixSemanticdb.revision
-)
