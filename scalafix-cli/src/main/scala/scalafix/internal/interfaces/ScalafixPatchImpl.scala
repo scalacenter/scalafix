@@ -1,6 +1,6 @@
 package scalafix.internal.interfaces
 
-import scalafix.interfaces.ScalafixPatch
 import scalafix.Patch
+import scalafix.interfaces.ScalafixPatch
 
 case class ScalafixPatchImpl(patch: Patch) extends ScalafixPatch

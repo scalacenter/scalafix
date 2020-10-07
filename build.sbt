@@ -287,8 +287,7 @@ lazy val docs = project
     mdoc := run.in(Compile).evaluated,
     crossScalaVersions := List(scala213),
     libraryDependencies ++= List(
-      "com.geirsson" %% "metaconfig-docs" % metaconfigV,
-      "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
+      "com.geirsson" %% "metaconfig-docs" % metaconfigV
     )
   )
   .dependsOn(testkit, core, cli)

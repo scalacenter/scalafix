@@ -2,6 +2,11 @@ package scalafix.internal.v1
 
 import java.util.ServiceLoader
 
+import scala.collection.mutable
+import scala.util.control.NonFatal
+
+import scala.meta.tokens.Tokens
+
 import metaconfig.Configured
 import scalafix.internal.config.MetaconfigOps
 import scalafix.internal.patch.PatchInternals
@@ -10,18 +15,12 @@ import scalafix.internal.util.SuppressOps
 import scalafix.lint.Diagnostic
 import scalafix.patch.Patch
 import scalafix.rule.RuleName
-import scalafix.v1.{
-  Configuration,
-  Rule,
-  SemanticDocument,
-  SemanticRule,
-  SyntacticDocument,
-  SyntacticRule
-}
-
-import scala.collection.mutable
-import scala.meta.tokens.Tokens
-import scala.util.control.NonFatal
+import scalafix.v1.Configuration
+import scalafix.v1.Rule
+import scalafix.v1.SemanticDocument
+import scalafix.v1.SemanticRule
+import scalafix.v1.SyntacticDocument
+import scalafix.v1.SyntacticRule
 
 case class Rules(rules: List[Rule] = Nil) {
 
