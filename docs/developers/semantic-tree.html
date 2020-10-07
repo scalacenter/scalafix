@@ -222,13 +222,10 @@ of infix operators.</p>
 </code></pre>
 <p>The <code>.syntheticOperator</code> method is only available for <code>Term.ApplyInfix</code> nodes,
 using the method on other node types results in a compilation error</p>
-<pre><code class="hljs css language-scala">doc.tree.traverse {
-  <span class="hljs-keyword">case</span> concat @ <span class="hljs-type">Term</span>.<span class="hljs-type">Name</span>(<span class="hljs-string">"++"</span>) =&gt;
-    println(<span class="hljs-string">".syntheticOperator = "</span> + concat.syntheticOperator)
+<pre><code class="hljs">doc.tree.traverse {
+  <span class="hljs-keyword">case</span> <span class="hljs-built_in">concat</span> @ Term.Name(<span class="hljs-string">"++"</span>) =&gt;
+    <span class="hljs-built_in">println</span>(<span class="hljs-string">".syntheticOperator = "</span> + <span class="hljs-built_in">concat</span>.syntheticOperator)
 }
-<span class="hljs-comment">// error: value syntheticOperator is not a member of scala.meta.Term.Name</span>
-<span class="hljs-comment">//     println(".syntheticOperator = " + concat.syntheticOperator)</span>
-<span class="hljs-comment">//                                       ^^^^^^^^^^^^^^^^^^^^^^^^</span>
 </code></pre>
 <p>Beware that looking up synthetics for the infix operator name returns nothing</p>
 <pre><code class="hljs css language-scala">doc.tree.traverse {
