@@ -1,22 +1,30 @@
 package scalafix.internal.interfaces
 
 import java.io.PrintStream
-import java.net.{URL, URLClassLoader}
+import java.net.URL
+import java.net.URLClassLoader
 import java.nio.charset.Charset
-import java.nio.file.{Path, PathMatcher}
+import java.nio.file.Path
+import java.nio.file.PathMatcher
 import java.util
 import java.util.Optional
 
+import scala.jdk.CollectionConverters._
+import scala.util.control.NoStackTrace
+
+import scala.meta.io.AbsolutePath
+import scala.meta.io.Classpath
+
 import coursierapi.Repository
-import metaconfig.{Conf, Configured}
+import metaconfig.Conf
+import metaconfig.Configured
+import scalafix.Versions
 import scalafix.cli.ExitStatus
 import scalafix.interfaces._
-import scalafix.internal.v1.{Args, MainOps, Rules}
+import scalafix.internal.v1.Args
+import scalafix.internal.v1.MainOps
+import scalafix.internal.v1.Rules
 import scalafix.v1.RuleDecoder
-import scalafix.Versions
-import scala.jdk.CollectionConverters._
-import scala.meta.io.{AbsolutePath, Classpath}
-import scala.util.control.NoStackTrace
 
 final case class ScalafixArgumentsImpl(args: Args = Args.default)
     extends ScalafixArguments {

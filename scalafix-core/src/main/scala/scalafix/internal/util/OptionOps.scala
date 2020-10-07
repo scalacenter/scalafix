@@ -2,7 +2,9 @@ package scalafix.internal.util
 
 import java.util.Optional
 
-import scala.util.{Failure => ScalaFailure, Success, Try}
+import scala.util.Success
+import scala.util.Try
+import scala.util.{Failure => ScalaFailure}
 
 object OptionOps {
   implicit class OptionExtension[A](val in: Option[A]) extends AnyVal {

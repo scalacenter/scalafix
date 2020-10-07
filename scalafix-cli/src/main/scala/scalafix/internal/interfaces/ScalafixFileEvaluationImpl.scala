@@ -3,22 +3,21 @@ package scalafix.internal.interfaces
 import java.nio.file.Path
 import java.util.Optional
 
+import scala.meta.io.AbsolutePath
+
 import scalafix.cli.ExitStatus
-import scalafix.interfaces.{
-  ScalafixDiagnostic,
-  ScalafixError,
-  ScalafixFileEvaluation,
-  ScalafixPatch,
-  ScalafixRule
-}
+import scalafix.interfaces.ScalafixDiagnostic
+import scalafix.interfaces.ScalafixError
+import scalafix.interfaces.ScalafixFileEvaluation
+import scalafix.interfaces.ScalafixPatch
+import scalafix.interfaces.ScalafixRule
 import scalafix.internal.diff.DiffUtils
-import scalafix.internal.v1.{MainOps, ValidatedArgs}
-import scalafix.lint.RuleDiagnostic
 import scalafix.internal.util.OptionOps._
+import scalafix.internal.v1.MainOps
+import scalafix.internal.v1.ValidatedArgs
+import scalafix.lint.RuleDiagnostic
 import scalafix.v0
 import scalafix.v0.RuleCtx
-
-import scala.meta.io.AbsolutePath
 
 final case class ScalafixFileEvaluationImpl(
     originalPath: AbsolutePath,
@@ -34,7 +33,7 @@ final case class ScalafixFileEvaluationImpl(
 ) extends ScalafixFileEvaluation {
   val rules: Seq[ScalafixRuleImpl] =
     args.rules.rules.map(new ScalafixRuleImpl(_))
-  val pathToReplace = args.pathReplace(originalPath)
+  val pathToReplace: AbsolutePath = args.pathReplace(originalPath)
 
   override def getEvaluatedFile: Path = originalPath.toNIO
 

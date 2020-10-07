@@ -4,8 +4,6 @@ import scala.meta._
 
 import metaconfig.Conf
 import metaconfig.Configured
-
-import scala.meta._
 import scalafix.internal.config.MetaconfigOps
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.patch.PatchInternals

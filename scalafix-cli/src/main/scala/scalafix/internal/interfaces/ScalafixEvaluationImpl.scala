@@ -3,11 +3,9 @@ package scalafix.internal.interfaces
 import java.util.Optional
 
 import scalafix.cli.ExitStatus
-import scalafix.interfaces.{
-  ScalafixError,
-  ScalafixFileEvaluation,
-  ScalafixEvaluation
-}
+import scalafix.interfaces.ScalafixError
+import scalafix.interfaces.ScalafixEvaluation
+import scalafix.interfaces.ScalafixFileEvaluation
 import scalafix.internal.util.OptionOps._
 
 final case class ScalafixEvaluationImpl(
