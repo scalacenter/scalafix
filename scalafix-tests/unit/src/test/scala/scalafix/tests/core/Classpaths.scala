@@ -2,10 +2,11 @@ package scalafix.tests.core
 
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
+
 import scalafix.internal.reflect.RuleCompiler
 
 object Classpaths {
-  def scalaLibrary = Classpath(
+  def scalaLibrary: Classpath = Classpath(
     RuleCompiler.defaultClasspathPaths.filter { path =>
       path.isFile ||
       path.toNIO.getFileName.toString.contains("scala-library")

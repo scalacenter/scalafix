@@ -1,9 +1,10 @@
 package scalafix.tests.rule
 
-import scalafix.testkit._
 import scala.util.control.NonFatal
+
 import org.scalatest.exceptions.TestFailedException
 import org.scalatest.funsuite.AnyFunSuiteLike
+import scalafix.testkit._
 
 object RuleSuite {
   def main(args: Array[String]): Unit = {

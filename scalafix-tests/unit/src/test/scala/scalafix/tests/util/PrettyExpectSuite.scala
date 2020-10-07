@@ -1,8 +1,9 @@
 package scalafix.tests.util
 
-import org.typelevel.paiges.Doc
 import scala.meta.internal.ScalametaInternals
 import scala.meta.internal.semanticdb.Scala._
+
+import org.typelevel.paiges.Doc
 import scalafix.internal.util.PositionSyntax._
 import scalafix.internal.util.Pretty
 import scalafix.internal.v1.DocumentFromProtobuf

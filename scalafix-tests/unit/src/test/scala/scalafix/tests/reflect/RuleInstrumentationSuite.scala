@@ -1,9 +1,10 @@
 package scalafix.tests.reflect
 
+import scala.meta.inputs.Input
+
+import metaconfig.Configured
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.internal.reflect.RuleInstrumentation
-import metaconfig.Configured
-import scala.meta.inputs.Input
 
 class RuleInstrumentationSuite extends AnyFunSuite {
   def check(name: String, original: String, expected: List[String]): Unit = {

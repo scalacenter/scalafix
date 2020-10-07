@@ -1,8 +1,10 @@
 package scalafix.tests.util
 import java.nio.charset.StandardCharsets
-import org.scalatest.funsuite.AnyFunSuite
+
 import scala.meta.internal.io.FileIO
 import scala.meta.io.AbsolutePath
+
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.testkit.DiffAssertions
 import scalafix.tests.BuildInfo
 import scalafix.tests.core.BaseSemanticSuite

@@ -1,6 +1,7 @@
 package scalafix.tests.v0
 
 import scala.meta._
+
 import scalafix.tests.core.BaseSemanticSuite
 
 class LegacyDenotationSuite extends BaseSemanticSuite("LegacyDenotationTest") {

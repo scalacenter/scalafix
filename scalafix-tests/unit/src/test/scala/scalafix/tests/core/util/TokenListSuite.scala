@@ -1,20 +1,20 @@
 package scalafix.tests.core.util
 
-import org.scalatest.funsuite.AnyFunSuite
-
 import scala.meta._
 import scala.meta.dialects.Scala211
+
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.util.TokenList
 
 class TokenListSuite extends AnyFunSuite {
 
-  val tokens =
+  val tokens: Tokens =
     """package foo
       |
       |object Bar {
       | val baz   =   10
       |}""".stripMargin.tokenize.get
-  val tokenList = TokenList(tokens)
+  val tokenList: TokenList = TokenList(tokens)
 
   val unknownToken = new Token.EOF(Input.None, Scala211)
 

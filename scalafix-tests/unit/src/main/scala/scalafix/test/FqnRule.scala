@@ -2,6 +2,7 @@ package banana.rule
 
 import scala.meta._
 import scala.meta.contrib._
+
 import scalafix.patch.Patch
 import scalafix.util.SymbolMatcher
 import scalafix.v0

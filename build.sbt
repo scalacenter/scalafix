@@ -268,7 +268,6 @@ lazy val unit = project
       .value
   )
   .enablePlugins(BuildInfoPlugin)
-  .disablePlugins(ScalafixPlugin)
   .dependsOn(
     testsInput,
     testsShared,

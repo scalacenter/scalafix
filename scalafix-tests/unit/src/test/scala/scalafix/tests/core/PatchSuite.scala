@@ -4,14 +4,14 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 
-import org.scalatest.funsuite.AnyFunSuiteLike
-
 import scala.meta._
 import scala.meta.tokens.Token.Ident
-import scalafix.v0.Rule
-import scalafix.testkit.AbstractSyntacticRuleSuite
+
+import org.scalatest.funsuite.AnyFunSuiteLike
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.patch.Patch
+import scalafix.testkit.AbstractSyntacticRuleSuite
+import scalafix.v0.Rule
 
 class PatchSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
 
@@ -52,7 +52,7 @@ class PatchSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
       | }""".stripMargin
   )
 
-  val file = File.createTempFile("foo", ".scala")
+  val file: File = File.createTempFile("foo", ".scala")
   Files.write(Paths.get(file.toURI), original.getBytes)
   checkDiff(
     addRightRule,
@@ -120,7 +120,7 @@ class PatchSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
       |""".stripMargin
   )
 
-  val tree = Input.String(original).parse[Source].get
+  val tree: Source = Input.String(original).parse[Source].get
 
   test("Patch.empty") {
     val empty = Patch.empty

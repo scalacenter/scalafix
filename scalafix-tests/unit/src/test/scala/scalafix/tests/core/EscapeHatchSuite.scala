@@ -2,9 +2,16 @@ package scalafix.tests.core
 
 import java.nio.file.Paths
 
+import scala.meta.Source
+import scala.meta.Tree
+import scala.meta.contrib.AssociatedComments
+import scala.meta.inputs.Input
+
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.internal.config.ScalafixConfig
-import scalafix.internal.diff.{DiffDisable, EmptyDiff, NewFile}
+import scalafix.internal.diff.DiffDisable
+import scalafix.internal.diff.EmptyDiff
+import scalafix.internal.diff.NewFile
 import scalafix.internal.patch.EscapeHatch
 import scalafix.internal.v0.LegacyRuleCtx
 import scalafix.internal.v1.LazyValue
@@ -12,10 +19,6 @@ import scalafix.patch.Patch
 import scalafix.rule.RuleName
 import scalafix.v0.SemanticdbIndex
 import scalafix.v1.SyntacticDocument
-
-import scala.meta.{Source, Tree}
-import scala.meta.contrib.AssociatedComments
-import scala.meta.inputs.Input
 
 class EscapeHatchSuite extends AnyFunSuite {
 

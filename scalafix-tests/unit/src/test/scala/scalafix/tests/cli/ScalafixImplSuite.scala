@@ -6,18 +6,18 @@ import java.net.URLClassLoader
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.Collections
 import java.util.Optional
 
-import coursier._
-import org.scalatest.funsuite.AnyFunSuite
-
 import scala.collection.JavaConverters._
-import buildinfo.RulesBuildInfo
+import scala.util.Properties
 
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
+
+import buildinfo.RulesBuildInfo
+import coursier._
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.Versions
 import scalafix.interfaces.ScalafixDiagnostic
 import scalafix.interfaces.ScalafixException
@@ -27,11 +27,9 @@ import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.reflect.RuleCompiler
 import scalafix.test.StringFS
 import scalafix.testkit.DiffAssertions
-import scalafix.tests.util.{ScalaVersions, SemanticdbPlugin}
+import scalafix.tests.util.ScalaVersions
+import scalafix.tests.util.SemanticdbPlugin
 import scalafix.{interfaces => i}
-import RulesBuildInfo.scalaVersion
-
-import scala.util.Properties
 
 class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
 

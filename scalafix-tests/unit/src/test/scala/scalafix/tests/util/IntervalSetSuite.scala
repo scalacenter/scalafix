@@ -1,8 +1,7 @@
 package scalafix.tests.util
 
-import org.scalatest.funsuite.AnyFunSuite
 import org.scalactic.source.Position
-
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.internal.util.IntervalSet
 
 class IntervalSetSuite extends AnyFunSuite {

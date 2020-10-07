@@ -1,6 +1,7 @@
 package scalafix.tests.v0
 
 import scala.meta._
+
 import scalafix.syntax._
 import scalafix.tests.core.BaseSemanticSuite
 import scalafix.util.SymbolMatcher

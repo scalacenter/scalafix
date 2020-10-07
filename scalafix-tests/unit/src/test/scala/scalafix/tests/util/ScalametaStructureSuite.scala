@@ -1,6 +1,7 @@
 package scalafix.tests.util
 
 import scala.meta._
+
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.testkit.DiffAssertions
 import scalafix.v1._

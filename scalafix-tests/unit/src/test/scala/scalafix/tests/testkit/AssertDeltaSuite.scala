@@ -1,20 +1,21 @@
 package scalafix.tests.testkit
 
-import org.scalatest.funsuite.AnyFunSuite
 import scala.meta.Position
 import scala.meta.dialects.Scala212
 import scala.meta.inputs.Input
 import scala.meta.parsers.Parse
+
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.testkit.AssertDiff
 import scalafix.internal.testkit.CommentAssertion
 import scalafix.internal.tests.utils.SkipWindows
-import scalafix.v0.LintCategory
-import scalafix.lint.RuleDiagnostic
+import scalafix.internal.util.LintSyntax._
 import scalafix.lint.LintSeverity
+import scalafix.lint.RuleDiagnostic
 import scalafix.rule.RuleName
 import scalafix.testkit.DiffAssertions
-import scalafix.internal.util.LintSyntax._
+import scalafix.v0.LintCategory
 import scalafix.v0.LintMessage
 
 class AssertDeltaSuite() extends AnyFunSuite with DiffAssertions {
