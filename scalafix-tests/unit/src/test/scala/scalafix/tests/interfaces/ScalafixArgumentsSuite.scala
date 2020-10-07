@@ -3,9 +3,8 @@ package scalafix.tests.interfaces
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.Collections
-import java.nio.file.{Files, Paths}
-import java.util.{Collections, Optional}
 
 import scala.collection.JavaConverters._
 
@@ -98,9 +97,11 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
       .evaluate()
 
     val errors = result.getErrors.toList.map(_.toString)
-    assert(errors == List("LinterError"))
+    assert(errors.isEmpty) // we ignore completely linterErrors
+    assert(result.isSuccessful)
     assert(result.getFileEvaluations.length == 1)
     val fileEvaluation = result.getFileEvaluations.head
+    assert(fileEvaluation.isSuccessful)
     val expected =
       """|
          |object Main extends App {
@@ -169,22 +170,24 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
       .withSourceroot(src)
 
     val result = args.evaluate()
-
     assert(result.getFileEvaluations.length == 1)
-
+    assert(result.isSuccessful)
     // let's modify file and evaluate again
     val code = FileIO.slurp(AbsolutePath(main), StandardCharsets.UTF_8)
     val staleCode = code + "\n// comment\n"
     Files.write(main, staleCode.getBytes(StandardCharsets.UTF_8))
     val code2 = FileIO.slurp(AbsolutePath(main), StandardCharsets.UTF_8)
-
     val evaluation2 = args.evaluate()
-    assert(evaluation2.getErrors.head.toString == "StaleSemanticdbError")
-    assert(evaluation2.getMessageError == Optional.empty())
+    assert(
+      evaluation2.getErrors.toList
+        .map(_.toString) == List("StaleSemanticdbError")
+    )
+    assert(evaluation2.getMessageError.isPresent)
     assert(!evaluation2.isSuccessful)
     val fileEval = evaluation2.getFileEvaluations.head
     assert(fileEval.getErrors.head.toString == "StaleSemanticdbError")
-    assert(fileEval.getMessageError.get.startsWith("Stale SemanticDB"))
+    assert(fileEval.getErrorMessage.get.startsWith("Stale SemanticDB"))
+    assert(!fileEval.isSuccessful)
   }
 
   test(
@@ -310,6 +313,39 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     val fileEvaluation = run.evaluate().getFileEvaluations.head
     val obtained = fileEvaluation.previewPatches().get
     assertNoDiff(obtained, content)
+  }
+
+    test(
+    "Scalafix-evaluation-error-messages:Unknown rule error message",
+    SkipWindows
+  ) {
+    val eval = api.withRules(List("nonExisting").asJava).evaluate()
+    assert(!eval.isSuccessful)
+    assert(eval.getErrors.toList.map(_.toString) == List("CommandLineError"))
+    assert(eval.getMessageError.get.contains("Unknown rule"))
+  }
+
+  test("Scalafix-evaluation-error-messages: No file error", SkipWindows) {
+    val eval = api
+      .withPaths(Seq(Paths.get("/tmp/non-existing-file.scala")).asJava)
+      .withRules(List("DisableSyntax").asJava)
+      .evaluate()
+    assert(!eval.isSuccessful)
+    assert(eval.getErrors.toList.map(_.toString) == List("NoFilesError"))
+    assert(eval.getMessageError.get == "No files to fix")
+  }
+
+  test("Scalafix-evaluation-error-messages: missing semanticdb", SkipWindows) {
+    val eval = api
+      .withPaths(Seq(main).asJava)
+      .withRules(List("ExplicitResultTypes").asJava)
+      .evaluate()
+    assert(!eval.isSuccessful)
+    assert(
+      eval.getErrors.toList.map(_.toString) == List("MissingSemanticdbError")
+    )
+    assert(eval.getMessageError.get.contains(main.toString))
+    assert(eval.getMessageError.get.contains("SemanticDB not found"))
   }
 
   def removeUnsuedRule(): SemanticRule = {

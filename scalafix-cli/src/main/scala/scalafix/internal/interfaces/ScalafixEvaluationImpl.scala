@@ -6,25 +6,31 @@ import scalafix.cli.ExitStatus
 import scalafix.interfaces.ScalafixError
 import scalafix.interfaces.ScalafixEvaluation
 import scalafix.interfaces.ScalafixFileEvaluation
-import scalafix.interfaces.{
-  ScalafixError,
-  ScalafixEvaluation,
-  ScalafixFileEvaluation
-}
 import scalafix.internal.util.OptionOps._
-import scalafix.internal.v1.ValidatedArgs
 
 final case class ScalafixEvaluationImpl(
     error: ExitStatus,
-    getMessageError: Optional[String],
+    errorMessage: Option[String],
     fileEvaluations: Seq[ScalafixFileEvaluationImpl]
 ) extends ScalafixEvaluation {
 
-  override def getErrors: Array[ScalafixError] = {
+  override def getErrors: Array[ScalafixError] =
     ScalafixErrorImpl.fromScala(error)
-  }
-  override def isSuccessful: Boolean =
-    getErrors.toList.filter(_ != ScalafixError.LinterError).isEmpty
+
+  override def getMessageError: Optional[String] =
+    errorMessage
+      .orElse({
+        val fileToError = fileEvaluations
+          .map { eval =>
+            (eval.originalPath, eval.errorMessage)
+          }
+          .toMap
+          .collect { case (path, Some(msg)) => (path, msg) }
+        if (fileToError.isEmpty) None else Some(fileToError.toString())
+      })
+      .asJava
+
+  override def isSuccessful: Boolean = getErrors.isEmpty
 
   override def getFileEvaluations: Array[ScalafixFileEvaluation] =
     fileEvaluations.toArray
@@ -40,14 +46,14 @@ object ScalafixEvaluationImpl {
       error: ExitStatus,
       errorMessage: Option[String] = None
   ): ScalafixEvaluationImpl = {
-    new ScalafixEvaluationImpl(error, errorMessage.asJava, Nil)
+    new ScalafixEvaluationImpl(error, errorMessage, Nil)
   }
 
   def from(
       fileEvaluations: Seq[ScalafixFileEvaluationImpl],
       exitStatus: ExitStatus
   ): ScalafixEvaluationImpl = {
-    ScalafixEvaluationImpl(exitStatus, Optional.empty(), fileEvaluations)
+    ScalafixEvaluationImpl(exitStatus, None, fileEvaluations)
   }
 
 }

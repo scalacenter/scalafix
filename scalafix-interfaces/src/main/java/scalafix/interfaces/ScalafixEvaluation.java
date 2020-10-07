@@ -4,15 +4,18 @@ import java.util.Optional;
 
 public interface ScalafixEvaluation {
     /**
-     * @return boolean true if scalafix has successfully been evaluated on all files configured with no error except LintErrors.
+     * @return boolean true if scalafix has successfully been evaluated on all files configured with no error.
      */
     boolean isSuccessful();
 
-    /**
-     * @return Return scalafix errors, including LinterErrors
-     */
     ScalafixError[] getErrors();
 
+    /**
+     *
+     * @return a more detailed error message that can be
+     *  - an explanation of why scalafix failed running at all
+     *  - a concatenation of all {@Link ScalafixFileEvaluation} message Errors
+     */
     Optional<String> getMessageError();
 
     /**

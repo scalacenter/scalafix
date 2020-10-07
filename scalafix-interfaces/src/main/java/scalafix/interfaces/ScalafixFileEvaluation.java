@@ -22,11 +22,16 @@ public interface ScalafixFileEvaluation {
      */
     boolean isSuccessful();
 
-    Optional<String> getMessageError();
+    /**
+     *
+     * @return a more detailed error in case of scalafix ParseError, StaleSemanticdbError,
+     * MissingSemanticdbError or an UnexpectedError. LinterErrors are found in {@link ScalafixDiagnostic}
+     */
+    Optional<String> getErrorMessage();
 
     /**
      *
-     * @return Return scalafix errors, including LinterError
+     * @return Can only be a ParseError, StaleSemanticdbError, MissingSemanticdbError or UnexpectedError
      */
     ScalafixError[] getErrors();
 

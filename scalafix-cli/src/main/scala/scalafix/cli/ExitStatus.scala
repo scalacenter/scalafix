@@ -1,11 +1,12 @@
 package scalafix.cli
 
+import scala.collection.mutable
+import scala.util.control.NonFatal
+
+import scala.meta.parsers.ParseException
+
 import scalafix.internal.v1.MainOps.StaleSemanticDB
 import scalafix.v1.SemanticDocument
-
-import scala.collection.mutable
-import scala.meta.parsers.ParseException
-import scala.util.control.NonFatal
 
 sealed abstract case class ExitStatus(code: Int, name: String) {
   def isOk: Boolean = code == ExitStatus.Ok.code
