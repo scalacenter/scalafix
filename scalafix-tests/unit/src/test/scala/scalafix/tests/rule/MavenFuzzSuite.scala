@@ -1,25 +1,26 @@
 package scalafix.tests.rule
 
-import coursier._
-
-import scala.collection.JavaConverters._
-import org.scalatest.funsuite.AnyFunSuite
-import scalafix.testkit.DiffAssertions
-import scalafix.interfaces.{Scalafix, ScalafixMainMode}
-import java.nio.file.Files
-
-import scala.meta.internal.io.FileIO
-import scala.meta.io.AbsolutePath
-import java.nio.file.Path
-
-import scala.sys.process._
-import scala.tools.nsc.reporters.StoreReporter
-import scala.meta.internal.pc.ScalafixGlobal
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 
+import scala.collection.JavaConverters._
+import scala.sys.process._
+import scala.tools.nsc.reporters.StoreReporter
+
+import scala.meta.internal.io.FileIO
+import scala.meta.internal.pc.ScalafixGlobal
+import scala.meta.io.AbsolutePath
+
+import coursier._
+import coursier.util.Task
 import org.scalatest.Ignore
+import org.scalatest.funsuite.AnyFunSuite
+import scalafix.interfaces.Scalafix
+import scalafix.interfaces.ScalafixMainMode
+import scalafix.testkit.DiffAssertions
 
 @Ignore // Ignored because this test is very slow.
 class MavenFuzzSuite extends AnyFunSuite with DiffAssertions {
@@ -86,7 +87,7 @@ class MavenFuzzSuite extends AnyFunSuite with DiffAssertions {
     }
   }
 
-  val metals = List(
+  val metals: List[Dependency] = List(
     Dependency(
       Module(
         Organization("org.scalameta"),
@@ -97,14 +98,14 @@ class MavenFuzzSuite extends AnyFunSuite with DiffAssertions {
   )
   // akka is a bad example since it has undeclared compile-time dependencies
   // on "silencer"
-  val akka = Dependency(
+  val akka: Dependency = Dependency(
     Module(
       Organization("com.typesafe.akka"),
       ModuleName("akka-actor_2.12")
     ),
     "2.5.25"
   )
-  val ammonite = List(
+  val ammonite: List[Dependency] = List(
     Dependency(
       Module(
         Organization("com.lihaoyi"),
@@ -121,7 +122,7 @@ class MavenFuzzSuite extends AnyFunSuite with DiffAssertions {
     )
   )
   val dependencies = ammonite // ammonite
-  val fetch = Fetch()
+  val fetch: Fetch[Task] = Fetch()
 
   def check(rule: String): Unit = {
     test(rule) {

@@ -7,9 +7,9 @@ import scalafix.rule.RuleName
 import scalafix.v1
 import scalafix.v1.Configuration
 import scalafix.v1.MissingSymbolException
-import scalafix.v1.SyntacticDocument
 import scalafix.v1.Rule
 import scalafix.v1.Symbol
+import scalafix.v1.SyntacticDocument
 import scalafix.v1.SyntacticRule
 
 class CliSyntacticSuite extends BaseCliSuite {

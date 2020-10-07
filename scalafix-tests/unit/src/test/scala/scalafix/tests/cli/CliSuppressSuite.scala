@@ -1,6 +1,8 @@
 package scalafix.tests.cli
 
-import scala.meta.{Defn, Lit}
+import scala.meta.Defn
+import scala.meta.Lit
+
 import scalafix.patch.Patch
 import scalafix.v0.LintCategory
 import scalafix.v1.SyntacticDocument

@@ -1,11 +1,13 @@
 package scalafix.tests.v1
 
 import scala.meta._
+
 import scalafix.tests.core.BaseSemanticSuite
 import scalafix.v1._
 
 class SymbolSuite extends munit.FunSuite {
-  implicit val doc = BaseSemanticSuite.loadDoc("SymbolTest.scala")
+  implicit val doc: SemanticDocument =
+    BaseSemanticSuite.loadDoc("SymbolTest.scala")
 
   test("normalized") {
     val ref :: Nil = doc.tree.collect {

@@ -2,6 +2,7 @@ package scalafix.tests.core
 
 import scala.meta._
 import scala.meta.contrib._
+
 import scalafix.syntax._
 
 class DenotationOpsSuite extends BaseSemanticSuite("DenotationOpsTest") {

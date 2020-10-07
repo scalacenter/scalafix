@@ -1,43 +1,44 @@
 package scalafix.tests.interfaces
 
 import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Paths}
+import java.nio.file.Files
+import java.nio.file.Path
 import java.util.Collections
+
+import scala.collection.JavaConverters._
+
+import scala.meta.internal.io.FileIO
+import scala.meta.io.AbsolutePath
 
 import buildinfo.RulesBuildInfo
 import org.scalatest.funsuite.AnyFunSuite
-import scalafix.interfaces.{
-  ScalafixArguments,
-  ScalafixDiagnostic,
-  ScalafixMainCallback,
-  ScalafixMainMode
-}
+import scalafix.interfaces.ScalafixArguments
+import scalafix.interfaces.ScalafixDiagnostic
+import scalafix.interfaces.ScalafixMainCallback
+import scalafix.interfaces.ScalafixMainMode
 import scalafix.internal.interfaces.ScalafixArgumentsImpl
-import scalafix.internal.reflect.ClasspathOps
-import scalafix.internal.rule.{RemoveUnused, RemoveUnusedConfig}
+import scalafix.internal.rule.RemoveUnused
+import scalafix.internal.rule.RemoveUnusedConfig
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.test.StringFS
 import scalafix.testkit.DiffAssertions
 import scalafix.tests.core.Classpaths
-import scalafix.tests.util.{ScalaVersions, SemanticdbPlugin}
+import scalafix.tests.util.ScalaVersions
+import scalafix.tests.util.SemanticdbPlugin
 import scalafix.v1.SemanticRule
 
-import scala.meta.io.AbsolutePath
-import collection.JavaConverters._
-import scala.meta.internal.io.FileIO
-
 class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
-  val scalaBinaryVersion =
+  val scalaBinaryVersion: String =
     RulesBuildInfo.scalaVersion.split('.').take(2).mkString(".")
   val scalaVersion = RulesBuildInfo.scalaVersion
-  val removeUnused =
+  val removeUnused: String =
     if (ScalaVersions.isScala213)
       "-Wunused:imports"
     else "-Ywarn-unused-import"
   val api: ScalafixArguments = ScalafixArgumentsImpl()
 
   val charset = StandardCharsets.US_ASCII
-  val cwd = StringFS
+  val cwd: Path = StringFS
     .string2dir(
       """|/src/Main.scala
          |import scala.concurrent.duration
@@ -52,14 +53,14 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
       charset
     )
     .toNIO
-  val d = cwd.resolve("out")
-  val target = cwd.resolve("target")
-  val src = cwd.resolve("src")
+  val d: Path = cwd.resolve("out")
+  val target: Path = cwd.resolve("target")
+  val src: Path = cwd.resolve("src")
   Files.createDirectories(d)
-  val main = src.resolve("Main.scala")
-  val relativePath = cwd.relativize(main)
+  val main: Path = src.resolve("Main.scala")
+  val relativePath: Path = cwd.relativize(main)
 
-  val scalacOptions = Array[String](
+  val scalacOptions: Array[String] = Array[String](
     "-Yrangepos",
     removeUnused,
     s"-Xplugin:${SemanticdbPlugin.semanticdbPluginPath()}",

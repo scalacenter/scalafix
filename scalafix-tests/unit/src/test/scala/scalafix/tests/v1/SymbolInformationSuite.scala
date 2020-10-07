@@ -1,6 +1,7 @@
 package scalafix.tests.v1
-import org.scalatest.funsuite.AnyFunSuite
 import scala.meta.internal.symtab.GlobalSymbolTable
+
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.testkit.DiffAssertions
 import scalafix.v1._
@@ -9,7 +10,7 @@ class SymbolInformationSuite extends AnyFunSuite with DiffAssertions {
   private val classpath = ClasspathOps.thisClasspath
 
   private val symtab = GlobalSymbolTable(classpath, includeJdk = true)
-  private implicit val v1Symtab = new Symtab {
+  private implicit val v1Symtab: Symtab = new Symtab {
     override def info(symbol: Symbol): Option[SymbolInformation] =
       symtab.info(symbol.value).map(new SymbolInformation(_)(this))
   }

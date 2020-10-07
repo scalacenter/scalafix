@@ -1,12 +1,14 @@
 package scalafix.tests.v1
 
+import scala.meta._
+
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.tests.core.BaseSemanticSuite
 import scalafix.v1._
-import scala.meta._
 
 class SymbolMatcherSuite extends AnyFunSuite {
-  implicit val doc = BaseSemanticSuite.loadDoc("SymbolMatcherTest.scala")
+  implicit val doc: SemanticDocument =
+    BaseSemanticSuite.loadDoc("SymbolMatcherTest.scala")
 
   test("exact") {
     val option = SymbolMatcher.exact("scala/Option#")

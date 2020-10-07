@@ -1,15 +1,18 @@
 package scalafix.tests.reflect
 
 import java.nio.file.Files
+
 import scala.reflect.io.Directory
 import scala.reflect.io.PlainDirectory
-import scalafix.internal.reflect.RuleCompiler
-import scalafix.internal.tests.utils.SkipWindows
+
+import scala.meta.io.AbsolutePath
+
 import coursier._
 import metaconfig.Conf
-import scala.meta.io.AbsolutePath
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funsuite.AnyFunSuite
+import scalafix.internal.reflect.RuleCompiler
+import scalafix.internal.tests.utils.SkipWindows
 import scalafix.tests.util.ScalaVersions
 import scalafix.v1.RuleDecoder
 

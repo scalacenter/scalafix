@@ -3,22 +3,25 @@ package scalafix.tests.cli
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.nio.charset.StandardCharsets
+import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.SimpleFileVisitor
+import java.nio.file.StandardCopyOption
+import java.nio.file.attribute.BasicFileAttributes
+
 import scala.collection.immutable.Seq
+
 import scala.meta.internal.io.FileIO
+import scala.meta.io.AbsolutePath
+import scala.meta.io.RelativePath
+
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.cli.ExitStatus
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.test.StringFS
 import scalafix.testkit.DiffAssertions
 import scalafix.testkit.SemanticRuleSuite
-import java.nio.file.FileVisitResult
-import java.nio.file.SimpleFileVisitor
-import java.nio.file.StandardCopyOption
-import java.nio.file.attribute.BasicFileAttributes
-import scala.meta.io.AbsolutePath
-import scala.meta.io.RelativePath
-import org.scalatest.funsuite.AnyFunSuite
 import scalafix.testkit.TestkitProperties
 import scalafix.tests.util.ScalaVersions
 import scalafix.v1.Main
@@ -48,7 +51,7 @@ trait BaseCliSuite extends AnyFunSuite with DiffAssertions {
     semanticRoot
       .resolve("explicitResultTypes")
       .resolve("ExplicitResultTypesBase.scala")
-  val props = TestkitProperties.loadFromResources()
+  val props: TestkitProperties = TestkitProperties.loadFromResources()
   def defaultClasspath: String =
     props.inputClasspath.syntax
 

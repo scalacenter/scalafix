@@ -1,33 +1,35 @@
 package scalafix.tests.core
 
-import scala.meta.cli.Reporter
-import scala.meta.internal.ScalametaInternals
-import scala.meta.internal.io.PathIO
-import scala.meta.internal.io.PlatformFileIO
-import scala.meta.internal.trees.Origin
-import scala.meta.internal.symtab._
-import scala.meta.internal.metacp._
-import scala.meta.internal.classpath.ClasspathIndex
+import scala.collection.mutable
 import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
 import scala.{meta => m}
+
+import scala.meta.cli.Reporter
+import scala.meta.internal.classpath.ClasspathIndex
+import scala.meta.internal.io.PathIO
+import scala.meta.internal.io.PlatformFileIO
+import scala.meta.internal.metacp._
 import scala.meta.internal.semanticdb.Scala._
 import scala.meta.internal.semanticdb.SymbolInformation
+import scala.meta.internal.symtab._
 import scala.meta.io.AbsolutePath
+import scala.meta.io.Classpath
 import scala.meta.metacp.Settings
-import scalafix.internal.util.QualifyStrategy
+
 import scalafix.internal.util.PrettyType
+import scalafix.internal.util.QualifyStrategy
 
 class BasePrettyTypeSuite extends BaseSemanticSuite("TypeToTreeInput") {
   super.beforeAll()
   val classDir: m.AbsolutePath =
     m.AbsolutePath(scalafix.tests.BuildInfo.sharedClasspath)
-  val semanticdbTargetRoot =
+  val semanticdbTargetRoot: AbsolutePath =
     m.AbsolutePath(scalafix.tests.BuildInfo.semanticClasspath)
 
-  val classpath =
+  val classpath: Classpath =
     Classpaths.withDirectories(List(semanticdbTargetRoot, classDir))
-  val table = GlobalSymbolTable(classpath, includeJdk = true)
+  val table: GlobalSymbolTable = GlobalSymbolTable(classpath, includeJdk = true)
 }
 
 class PrettyTypeSuite extends BasePrettyTypeSuite {
@@ -62,7 +64,8 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
 
 class PrettyTypeFuzzSuite extends BasePrettyTypeSuite {
 
-  val classpathIndex = ClasspathIndex(classpath, includeJdk = true)
+  val classpathIndex: ClasspathIndex =
+    ClasspathIndex(classpath, includeJdk = true)
 
   def checkToplevel(toplevel: SymbolInformation): Unit = {
     try {
@@ -123,7 +126,7 @@ class PrettyTypeFuzzSuite extends BasePrettyTypeSuite {
     uri.contains("org/scalatest/junit")
   }
 
-  val isUnique = scala.collection.mutable.Set.empty[String]
+  val isUnique: mutable.Set[String] = scala.collection.mutable.Set.empty[String]
   for {
     entry <- classpath.entries
     if entry.isFile

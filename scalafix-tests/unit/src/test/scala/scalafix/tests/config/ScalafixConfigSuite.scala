@@ -1,8 +1,8 @@
 package scalafix.tests.config
 
-import scalafix.internal.config.ScalafixConfig
 import metaconfig.Conf
 import metaconfig.typesafeconfig._
+import scalafix.internal.config.ScalafixConfig
 
 class ScalafixConfigSuite extends munit.FunSuite {
   def check(name: String, config: String, expected: ScalafixConfig)(

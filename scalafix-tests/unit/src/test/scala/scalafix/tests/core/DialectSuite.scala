@@ -1,11 +1,11 @@
 package scalafix.tests.core
 
-import org.scalatest.funsuite.AnyFunSuiteLike
-
 import scala.meta._
-import scalafix.v0.Rule
-import scalafix.testkit.AbstractSyntacticRuleSuite
+
+import org.scalatest.funsuite.AnyFunSuiteLike
 import scalafix.internal.tests.utils.SkipWindows
+import scalafix.testkit.AbstractSyntacticRuleSuite
+import scalafix.v0.Rule
 
 class DialectSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
 

@@ -1,6 +1,9 @@
 package scalafix.internal.tests.utils
 
-import java.nio.file.{Files, Path, StandardOpenOption}
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardOpenOption
+
 import scala.collection.JavaConverters._
 
 class Fs() {

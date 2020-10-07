@@ -3,7 +3,11 @@ package scalafix.tests.util
 import java.nio.file.Paths
 
 import buildinfo.RulesBuildInfo.scalaVersion
-import coursier.{Dependency, Fetch, Module, ModuleName, Organization}
+import coursier.Dependency
+import coursier.Fetch
+import coursier.Module
+import coursier.ModuleName
+import coursier.Organization
 
 object SemanticdbPlugin {
   def semanticdbPluginPath(): String = {

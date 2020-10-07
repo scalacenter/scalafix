@@ -4,12 +4,14 @@ import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
+
 import org.scalatest._
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.cli.ExitStatus
-import scalafix.testkit.DiffAssertions
-import scalafix.internal.tests.utils.{Fs, Git}
+import scalafix.internal.tests.utils.Fs
+import scalafix.internal.tests.utils.Git
 import scalafix.internal.tests.utils.SkipWindows
+import scalafix.testkit.DiffAssertions
 
 class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
   gitTest("addition", SkipWindows) { (fs, git, cli) =>
