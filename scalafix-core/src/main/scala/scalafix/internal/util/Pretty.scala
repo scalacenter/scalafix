@@ -23,7 +23,7 @@ object Pretty {
   }
 
   def pretty(sym: Symbol): Doc =
-    Doc.text(sym.displayName)
+    Doc.text(scala.meta.Name(sym.displayName).toString())
 
   def pretty(tpe: SemanticType): Doc = {
     def prefix(tpe: SemanticType): Doc = {
