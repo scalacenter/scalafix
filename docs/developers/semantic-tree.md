@@ -32,7 +32,6 @@ The variable `doc` in the code examples is an implicit instance of
 ```scala mdoc:passthrough
 import scalafix.docs.PatchDocs
 def println(a: Any): Unit = PatchDocs.println(a)
-import scalafix.docs.PatchDocs._
 implicit var doc: SemanticDocument = null
 ```
 
@@ -53,21 +52,21 @@ parameters
 doc.tree.traverse {
   // Option.apply
   case option @ Term.Select(Term.Name("Option"), Term.Name("apply")) =>
-    println("synthetic = " + option.synthetic)
-    println("structure = " + option.synthetic.structure)
+    println("synthetic = " + option.synthetics)
+    println("structure = " + option.synthetics.structure)
 }
 ```
 
 The asterisk `*` represents an `OriginalTree` node that matches the enclosing
 non-synthetic tree, which is `List` in this example.
 
-The `.synthetic` method is only available on `Term` nodes, using the method on
+The `.synthetics` method is only available on `Term` nodes, using the method on
 other tree nodes such as types results in compilation error
 
 ```scala mdoc:fail
 doc.tree.traverse {
   case app @ Type.Name("App") =>
-    println(".synthetic = " + app.synthetic)
+    println(".synthetic = " + app.synthetics)
 }
 ```
 
@@ -83,21 +82,21 @@ Option[Int](2) // inferred: Option.apply[Int](2)
 """)
 ```
 
-Use `Tree.synthetic` in combination with `SemanticTree.symbol` to get the symbol
+Use `Tree.synthetics` in combination with `SemanticTree.symbol` to get the symbol
 of those inferred `.apply` method calls.
 
 ```scala mdoc
 doc.tree.traverse {
   case Term.Apply(add @ q"add", List(q"2")) =>
     println("add(2)")
-    println("synthetic = " + add.synthetic)
-    println("symbol    = " + add.synthetic.flatMap(_.symbol).structure)
-    println("structure = " + add.synthetic.structure)
+    println("synthetic = " + add.synthetics)
+    println("symbol    = " + add.synthetics.flatMap(_.symbol).structure)
+    println("structure = " + add.synthetics.structure)
   case Term.ApplyType(option @ q"Option", List(t"Int")) =>
     println("Option[Int]")
-    println("synthetic = " + option.synthetic)
-    println("symbol    = " + option.synthetic.flatMap(_.symbol).structure)
-    println("structure = " + option.synthetic.structure)
+    println("synthetic = " + option.synthetics)
+    println("symbol    = " + option.synthetics.flatMap(_.symbol).structure)
+    println("structure = " + option.synthetics.structure)
 }
 ```
 
@@ -124,14 +123,14 @@ Main.run             // implicit argument: message
 """)
 ```
 
-Use `Tree.synthetic` to look up an implicit argument for any `Term` node.
+Use `Tree.synthetics` to look up an implicit argument for any `Term` node.
 
 ```scala mdoc
 doc.tree.traverse {
-  case term: Term if term.synthetic.isDefined =>
+  case term: Term if term.synthetics.nonEmpty =>
     println("term      = " + term.syntax)
-    println("synthetic = " + term.synthetic)
-    println("structure = " + term.synthetic.structure)
+    println("synthetics = " + term.synthetics)
+    println("structure = " + term.synthetics.structure)
 }
 ```
 
@@ -146,18 +145,18 @@ List(1) ++ List(2)
 """)
 ```
 
-Use the `Term.ApplyInfix.syntheticOperator` to look up inferred type parameters
+Use the `Term.ApplyInfix.syntheticOperators` to look up inferred type parameters
 of infix operators.
 
 ```scala mdoc
 doc.tree.traverse {
   case concat @ Term.ApplyInfix(_, Term.Name("++"), _, _) =>
-    println(".syntheticOperator = " + concat.syntheticOperator)
-    println(".structure         = " + concat.syntheticOperator.structure)
+    println(".syntheticOperators = " + concat.syntheticOperators)
+    println(".structure         = " + concat.syntheticOperators.structure)
 }
 ```
 
-The `.syntheticOperator` method is only available for `Term.ApplyInfix` nodes,
+The `.syntheticOperators` method is only available for `Term.ApplyInfix` nodes,
 using the method on other node types results in a compilation error
 
 [comment]: <> (Todo: add mdoc:fail for this snippet!) 
@@ -173,7 +172,7 @@ Beware that looking up synthetics for the infix operator name returns nothing
 ```scala mdoc
 doc.tree.traverse {
   case concat @ Term.Name("++") =>
-    println(".synthetic = " + concat.synthetic)
+    println(".synthetics = " + concat.synthetics)
 }
 ```
 
@@ -191,18 +190,18 @@ for (number <- numbers) println(number)
 """)
 ```
 
-Use `Tree.synthetic` on the tree node `Term.ForYield` to inspect the desugared
+Use `Tree.synthetics` on the tree node `Term.ForYield` to inspect the desugared
 version of the `for { .. } yield` expression
 
 ```scala mdoc
 doc.tree.traverse {
   case forYield: Term.ForYield =>
-    println(".synthetic = " + forYield.synthetic)
+    println(".synthetics = " + forYield.synthetics)
 }
 ```
 
 The `orig(List(1, 2))` and `orig(1.to(i)` parts represent `OriginalSubTree`
-nodes that match non-synthetic tree nodes from the original for-comprension.
+nodes that match non-synthetic tree nodes from the original for-comprehension.
 
 ## Known limitations
 
@@ -228,7 +227,7 @@ Observe the empty `withFilter` body and `<unknown>` parameter symbol.
 ```scala mdoc
 doc.tree.traverse {
   case forYield: Term.ForYield =>
-    println(forYield.synthetic)
+    println(forYield.synthetics)
 }
 ```
 
@@ -250,7 +249,7 @@ Observe the `<unknown>` parameter symbol to the final call to `map`.
 ```scala mdoc
 doc.tree.traverse {
   case forYield: Term.ForYield =>
-    println(forYield.synthetic)
+    println(forYield.synthetics)
 }
 ```
 

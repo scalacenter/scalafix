@@ -24,10 +24,10 @@ class ExplicitSynthetic(insertInfixTypeParam: Boolean)
       case Term.Select(_, Term.Name("apply")) =>
         // happens for explicit "List.apply" because Synthetic.symbol returns Some(symbol)
         // for OriginalTree.
-        None
+        List()
       case infix: Term.ApplyInfix if insertInfixTypeParam =>
         for {
-          synthetic <- infix.syntheticOperator.collect {
+          synthetic <- infix.syntheticOperators.collect {
             case tappl: TypeApplyTree => tappl
           }
         } yield {
@@ -43,7 +43,7 @@ class ExplicitSynthetic(insertInfixTypeParam: Boolean)
         }
       case t: Term =>
         for {
-          synthetic <- t.synthetic
+          synthetic <- t.synthetics
           sym <- synthetic.symbol
           if sym.displayName == "apply"
         } yield {
