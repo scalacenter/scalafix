@@ -1,7 +1,8 @@
 package scalafix.internal.v1
 
-import metaconfig.{Conf, ConfOps}
+import metaconfig.Conf
 import metaconfig.Conf.Obj
+import metaconfig.ConfOps
 import metaconfig.internal.ConfGet
 
 object ScalafixConfOps {
