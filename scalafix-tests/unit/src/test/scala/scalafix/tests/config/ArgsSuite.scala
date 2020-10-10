@@ -14,25 +14,25 @@ class ArgsSuite extends munit.FunSuite {
       """
         |rules = [DisableSyntax, RemoveUnused]
         |
-        |onCompile.rules = [DisableSyntax]
+        |triggered.rules = [DisableSyntax]
         |
         |DisableSyntax.noVars = true
         |DisableSyntax.noThrows = true
         |
-        |onCompile = {
+        |triggered = {
         |  DisableSyntax.noVars = false
         |}
         |
-        |onCompile.DisableSyntax.noReturns = true
+        |triggered.DisableSyntax.noReturns = true
         |""".stripMargin
     )
     .get
 
-  test("ignore onCompile section if args.onCompile is false") {
+  test("ignore triggered section if args.triggered is false") {
     val args = Args.default.copy(scalacOptions = "-Ywarn-unused" :: Nil)
     val config = ScalafixConfig()
 
-    assert(!args.onCompile, "onCompile should be false at default.")
+    assert(!args.triggered, "triggered should be false at default.")
 
     val rulesConfigured = args.configuredRules(givenConf, config).get
 
@@ -41,7 +41,7 @@ class ArgsSuite extends munit.FunSuite {
         .map(_.name.value) == List("DisableSyntax", "RemoveUnused")
     )
 
-    val merged = args.preProcessedConf(givenConf)
+    val merged = args.maybeTriggeredOverlaidConf(givenConf)
 
     val disableSyntaxRule = ConfGet.getKey(merged, "DisableSyntax" :: Nil).get
 
@@ -51,15 +51,15 @@ class ArgsSuite extends munit.FunSuite {
     assertEquals(disableSyntaxRule, expected)
   }
 
-  test("use onCompile section if args.onCompile is true") {
-    val args = Args.default.copy(onCompile = true)
+  test("use triggered section if args.triggered is true") {
+    val args = Args.default.copy(triggered = true)
     val config = ScalafixConfig()
 
     val rulesConfigured = args.configuredRules(givenConf, config).get
 
     assert(rulesConfigured.rules.map(_.name.value) == List("DisableSyntax"))
 
-    val merged = args.preProcessedConf(givenConf)
+    val merged = args.maybeTriggeredOverlaidConf(givenConf)
 
     val disableSyntaxRule = ConfGet.getKey(merged, "DisableSyntax" :: Nil).get
 

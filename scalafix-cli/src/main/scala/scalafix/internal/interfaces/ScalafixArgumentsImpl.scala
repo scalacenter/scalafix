@@ -114,8 +114,8 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
         copy(args = args.copy(stdout = true))
       case ScalafixMainMode.AUTO_SUPPRESS_LINTER_ERRORS =>
         copy(args = args.copy(autoSuppressLinterErrors = true))
-      case ScalafixMainMode.ON_COMPILE =>
-        copy(args = args.copy(onCompile = true))
+      case ScalafixMainMode.IN_PLACE_TRIGGERED =>
+        copy(args = args.copy(triggered = true))
     }
 
   override def withParsedArguments(

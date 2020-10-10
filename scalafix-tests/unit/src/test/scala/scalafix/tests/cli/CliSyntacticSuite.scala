@@ -176,7 +176,7 @@ class CliSyntacticSuite extends BaseCliSuite {
   )
 
   check(
-    name = "--on-compile is respected",
+    name = "--triggered is respected",
     originalLayout = s"""|
                          |/.scalafix.conf
                          |rules = [
@@ -188,14 +188,14 @@ class CliSyntacticSuite extends BaseCliSuite {
                          |/hello.scala
                          |$original
                          |""".stripMargin,
-    args = Array("--on-compile", "hello.scala"),
+    args = Array("--triggered", "hello.scala"),
     expectedLayout = s"""|
                          |/.scalafix.conf
                          |rules = [
                          |  RemoveUnused
                          |]
                          |
-                         |onCompile.rules = [ProcedureSyntax]
+                         |triggered.rules = [ProcedureSyntax]
                          |
                          |/hello.scala
                          |$expected
