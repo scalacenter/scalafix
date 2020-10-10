@@ -41,7 +41,7 @@ class ArgsSuite extends munit.FunSuite {
         .map(_.name.value) == List("DisableSyntax", "RemoveUnused")
     )
 
-    val merged = args.maybeTriggeredOverlaidConf(givenConf)
+    val merged = args.maybeOverlaidConfWithTriggered(givenConf)
 
     val disableSyntaxRule = ConfGet.getKey(merged, "DisableSyntax" :: Nil).get
 
@@ -59,7 +59,7 @@ class ArgsSuite extends munit.FunSuite {
 
     assert(rulesConfigured.rules.map(_.name.value) == List("DisableSyntax"))
 
-    val merged = args.maybeTriggeredOverlaidConf(givenConf)
+    val merged = args.maybeOverlaidConfWithTriggered(givenConf)
 
     val disableSyntaxRule = ConfGet.getKey(merged, "DisableSyntax" :: Nil).get
 

@@ -247,19 +247,17 @@ case class Args(
   }
 
   // With a --triggered flag, looking for settings in triggered block first, and fallback to standard settings.
-  def maybeTriggeredOverlaidConf(base: Conf): Conf =
-    if (triggered) {
-      val triggeredConf = ConfGet.getKey(base, "triggered" :: Nil)
-      triggeredConf.fold(base)(
-        ConfOps.merge(ScalafixConfOps.drop(base, "triggered"), _)
-      )
-    } else base
+  def maybeOverlaidConfWithTriggered(base: Conf): Conf =
+    if (triggered)
+      ScalafixConfOps.overlay(base, "triggered")
+    else
+      base
 
   def rulesConf(base: () => Conf): Conf = {
     if (rules.isEmpty) {
       val rulesInConf =
         ConfGet.getKey(
-          maybeTriggeredOverlaidConf(base()),
+          maybeOverlaidConfWithTriggered(base()),
           "rules" :: "rule" :: Nil
         )
 
@@ -276,7 +274,7 @@ case class Args(
       base: Conf,
       scalafixConfig: ScalafixConfig
   ): Configured[Rules] = {
-    val targetConf = maybeTriggeredOverlaidConf(base)
+    val targetConf = maybeOverlaidConfWithTriggered(base)
 
     val rulesConf = this.rulesConf(() => base)
     val decoder = ruleDecoder(scalafixConfig)
