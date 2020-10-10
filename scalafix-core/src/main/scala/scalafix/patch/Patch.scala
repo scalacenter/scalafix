@@ -1,8 +1,9 @@
 package scalafix.patch
 
-import org.scalameta.logger
 import scala.meta.Token
 import scala.meta._
+
+import org.scalameta.logger
 import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.internal.util.SymbolOps.Root
 import scalafix.lint.Diagnostic

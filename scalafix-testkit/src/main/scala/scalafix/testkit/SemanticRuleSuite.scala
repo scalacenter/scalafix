@@ -1,12 +1,11 @@
 package scalafix.testkit
 
 import scala.meta._
+
 import org.scalatest.FunSpecLike
 import scalafix.internal.reflect.RuleCompiler
-import scalafix.internal.testkit.{
-  EndOfLineAssertExtractor,
-  MultiLineAssertExtractor
-}
+import scalafix.internal.testkit.EndOfLineAssertExtractor
+import scalafix.internal.testkit.MultiLineAssertExtractor
 import scalafix.v0.SemanticdbIndex
 
 @deprecated(
@@ -33,7 +32,7 @@ class SemanticRuleSuite(
 }
 
 object SemanticRuleSuite {
-  def defaultClasspath(classDirectory: AbsolutePath) = Classpath(
+  def defaultClasspath(classDirectory: AbsolutePath): Classpath = Classpath(
     classDirectory ::
       RuleCompiler.defaultClasspathPaths.filter(path =>
         path.toNIO.getFileName.toString.contains("scala-library")

@@ -3,6 +3,7 @@ package scalafix.internal.v1
 import scala.meta.Tree
 import scala.meta.internal.ScalametaInternals
 import scala.meta.internal.{semanticdb => s}
+
 import scalafix.v1._
 
 object DocumentFromProtobuf {

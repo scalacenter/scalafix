@@ -1,8 +1,10 @@
 package scalafix.internal.rule
 
-import scala.meta.internal.pc.ScalafixGlobal
-import scalafix.v1
 import scala.{meta => m}
+
+import scala.meta.internal.pc.ScalafixGlobal
+
+import scalafix.v1
 
 class TypePrinter {
   def toPatch(

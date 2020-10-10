@@ -12,8 +12,8 @@ import microsites.ConfigYml
 import sbtbuildinfo.BuildInfoKey
 import sbtbuildinfo.BuildInfoPlugin.autoImport._
 import com.typesafe.sbt.sbtghpages.GhpagesKeys
-import sbt.Def
 import sbt.plugins.IvyPlugin
+import scalafix.sbt.ScalafixPlugin.autoImport._
 
 object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   override def trigger = allRequirements
@@ -78,17 +78,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
 
     lazy val testsInputOutputSetting = Seq(
       libraryDependencies ++= testsDeps
-    )
-
-    lazy val semanticdbSettings = Seq(
-      scalacOptions ++= List(
-        "-Yrangepos",
-        "-Xplugin-require:semanticdb",
-        "-P:semanticdb:synthetics:on"
-      ),
-      addCompilerPlugin(
-        "org.scalameta" % "semanticdb-scalac" % scalametaV cross CrossVersion.full
-      )
     )
 
     // =======
@@ -266,12 +255,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "Ólafur Páll Geirsson",
         "olafurpg@gmail.com",
         url("https://geirsson.com")
-      ),
-      Developer(
-        "marcelocenerine",
-        "Marcelo Cenerino",
-        "marcelocenerine@gmail.com",
-        url("https://github.com/marcelocenerine")
       ),
       Developer(
         "ShaneDelmore",

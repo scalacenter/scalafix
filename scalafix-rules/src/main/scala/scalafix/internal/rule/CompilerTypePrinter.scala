@@ -1,16 +1,16 @@
 package scalafix.internal.rule
 
-import scalafix.internal.compat.CompilerCompat
-
-import scala.meta.internal.pc.ScalafixGlobal
-import scalafix.v1
-
-import scala.{meta => m}
-import scala.meta.internal.proxy.GlobalProxy
+import scala.collection.compat.immutable.LazyList
 import scala.collection.mutable
 import scala.reflect.internal.{Flags => gf}
+import scala.{meta => m}
+
 import scala.meta.internal.pc.Identifier
-import scala.collection.compat.immutable.LazyList
+import scala.meta.internal.pc.ScalafixGlobal
+import scala.meta.internal.proxy.GlobalProxy
+
+import scalafix.internal.compat.CompilerCompat
+import scalafix.v1
 
 class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
     implicit ctx: v1.SemanticDocument

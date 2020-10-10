@@ -1,16 +1,18 @@
 package scalafix.internal.v1
 
-import scala.meta.internal.io.FileIO
-import scala.meta.io.RelativePath
-import scala.meta.Input
+import scala.tools.nsc.interactive.Global
+
 import scala.meta.AbsolutePath
+import scala.meta.Input
 import scala.meta.Source
+import scala.meta.internal.io.FileIO
+import scala.meta.internal.symtab.SymbolTable
+import scala.meta.io.RelativePath
 import scala.meta.parsers.Parsed
+
+import scalafix.internal.config.FilterMatcher
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
-import scala.meta.internal.symtab.SymbolTable
-import scalafix.internal.config.FilterMatcher
-import scala.tools.nsc.interactive.Global
 
 case class ValidatedArgs(
     args: Args,

@@ -1,13 +1,14 @@
 package scalafix.internal.rule
 
-import metaconfig._
-import metaconfig.generic.Surface
-import metaconfig.annotation._
-import scalafix.internal.config._
+import scala.{meta => m}
+
 import metaconfig.Conf.Bool
 import metaconfig.Conf.Lst
 import metaconfig.Conf.Str
-import scala.{meta => m}
+import metaconfig._
+import metaconfig.annotation._
+import metaconfig.generic.Surface
+import scalafix.internal.config._
 
 case class ExplicitResultTypesConfig(
     @Description("Enable/disable this rule for defs, vals or vars.")
@@ -65,8 +66,8 @@ case class SimpleDefinitions(kinds: Set[String]) {
   }
 }
 object SimpleDefinitions {
-  def allKinds = Set("Term.Ref", "Lit", "Term.New")
-  def default = SimpleDefinitions(allKinds)
+  def allKinds: Set[String] = Set("Term.Ref", "Lit", "Term.New")
+  def default: SimpleDefinitions = SimpleDefinitions(allKinds)
   implicit val encoder: ConfEncoder[SimpleDefinitions] =
     ConfEncoder.instance[SimpleDefinitions](x =>
       Conf.Lst(x.kinds.toList.map(Conf.Str(_)))

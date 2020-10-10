@@ -4,10 +4,12 @@ import scala.annotation.tailrec
 import scala.collection.immutable.TreeMap
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+
 import scala.meta._
 import scala.meta.contrib._
 import scala.meta.tokens.Token
 import scala.meta.tokens.Token.Comment
+
 import scalafix.internal.config.FilterMatcher
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.patch.EscapeHatch._
@@ -18,7 +20,8 @@ import scalafix.patch.Patch.internal._
 import scalafix.rule.RuleName
 import scalafix.util.TreeExtractors.Mods
 import scalafix.v0._
-import scala.collection.compat._ // used for cross-compilation.
+// used to cross-compile
+import scala.collection.compat._ // scalafix:ok
 
 /** EscapeHatch is an algorithm to selectively disable rules. There
  * are two mechanisms to do so: anchored comments and the
@@ -52,8 +55,11 @@ class EscapeHatch private (
   def filter(patchesByName: Map[RuleName, Patch])(
       implicit ctx: RuleCtx,
       index: SemanticdbIndex
-  ): (Patch, List[RuleDiagnostic]) = {
-    if (isEmpty) return rawFilter(patchesByName)
+  ): (Iterable[Patch], List[RuleDiagnostic]) = {
+    if (isEmpty) return {
+      val (patch, diags) = rawFilter(patchesByName)
+      (Seq(patch), diags)
+    }
 
     val usedEscapes = mutable.Set.empty[EscapeFilter]
     val lintMessages = List.newBuilder[RuleDiagnostic]
@@ -99,7 +105,7 @@ class EscapeHatch private (
 
     val patches = patchesByName.map {
       case (name, patch) => loop(name, patch)
-    }.asPatch
+    }
     val unusedWarnings =
       (annotatedEscapes.unusedEscapes(usedEscapes) ++
         anchoredEscapes.unusedEscapes(usedEscapes)).map { pos =>

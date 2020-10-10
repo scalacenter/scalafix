@@ -1,34 +1,30 @@
 package scalafix.internal.interfaces
 
 import java.io.PrintStream
-import java.net.{URL, URLClassLoader}
+import java.net.URL
+import java.net.URLClassLoader
 import java.nio.charset.Charset
 import java.nio.file.Path
 import java.nio.file.PathMatcher
 import java.util
 import java.util.Optional
 
+import scala.jdk.CollectionConverters._
+import scala.util.control.NoStackTrace
+
+import scala.meta.io.AbsolutePath
+import scala.meta.io.Classpath
+
 import coursierapi.Repository
 import metaconfig.Conf
 import metaconfig.Configured
-
-import scala.jdk.CollectionConverters._
-import scala.meta.io.AbsolutePath
-import scala.meta.io.Classpath
-import scala.util.control.NoStackTrace
-import scalafix.interfaces.{
-  ScalafixArguments,
-  ScalafixError,
-  ScalafixException,
-  ScalafixMainCallback,
-  ScalafixMainMode,
-  ScalafixRule
-}
+import scalafix.Versions
+import scalafix.cli.ExitStatus
+import scalafix.interfaces._
 import scalafix.internal.v1.Args
 import scalafix.internal.v1.MainOps
 import scalafix.internal.v1.Rules
 import scalafix.v1.RuleDecoder
-import scalafix.Versions
 
 final case class ScalafixArgumentsImpl(args: Args = Args.default)
     extends ScalafixArguments {
@@ -36,6 +32,15 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
   override def run(): Array[ScalafixError] = {
     val exit = MainOps.run(Array(), args)
     ScalafixErrorImpl.fromScala(exit)
+  }
+
+  override def evaluate(): ScalafixEvaluation = {
+    args.validate match {
+      case Configured.Ok(validated) =>
+        MainOps.runWithResult(validated)
+      case Configured.NotOk(err) =>
+        ScalafixEvaluationImpl(ExitStatus.CommandLineError, Some(err.msg))
+    }
   }
 
   override def withRules(rules: util.List[String]): ScalafixArguments =

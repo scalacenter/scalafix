@@ -3,8 +3,11 @@ package scalafix.internal.interfaces
 import java.nio.CharBuffer
 import java.nio.file.Path
 import java.util.Optional
-import scala.meta.inputs.Input
+
 import scala.{meta => m}
+
+import scala.meta.inputs.Input
+
 import scalafix.interfaces.ScalafixInput
 
 object ScalafixInputImpl {

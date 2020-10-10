@@ -1,8 +1,10 @@
 package scalafix.internal.rule
 
-import metaconfig.Configured
 import java.util.regex.Matcher
+
 import scala.meta._
+
+import metaconfig.Configured
 import scalafix.v0.LintCategory
 import scalafix.v1._
 

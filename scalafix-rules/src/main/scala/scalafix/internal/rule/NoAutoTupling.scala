@@ -1,8 +1,10 @@
 package scalafix.internal.rule
 
 import scala.meta._
+
 import scalafix.v1._
-import scala.collection.compat._ // Used for cross-compilation.
+// used to cross-compile
+import scala.collection.compat._ // scalafix:ok
 
 class NoAutoTupling extends SemanticRule("NoAutoTupling") {
 

@@ -19,7 +19,8 @@
       "developers/setup",
       "developers/before-you-begin",
       "developers/tutorial",
-      "developers/local-rules"
+      "developers/local-rules",
+      "developers/cross-publish-custom-rules"
     ],
     "API Reference": [
       "developers/api",

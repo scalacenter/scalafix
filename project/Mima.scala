@@ -8,7 +8,12 @@ object Mima {
     Seq(
       ProblemFilters.exclude[MissingTypesProblem]("scalafix.testkit.DiffAssertions"),
       ProblemFilters.exclude[MissingTypesProblem]("scalafix.testkit.SemanticRuleSuite"),
-      ProblemFilters.exclude[Problem]("scalafix.internal.*")
+      ProblemFilters.exclude[Problem]("scalafix.internal.*"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixArguments.evaluate"),
+      // https://github.com/sbt/sbt-buildinfo/pull/150
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("scalafix.Versions.supportedScalaVersions"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("buildinfo.RulesBuildInfo.allSupportedScalaVersions"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("buildinfo.RulesBuildInfo.supportedScalaVersions")
     )
   }
 }

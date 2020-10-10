@@ -1,9 +1,11 @@
 package scalafix.internal.util
 
 import scala.collection.mutable
+
 import scala.meta._
 import scala.meta.internal.symtab._
 import scala.meta.internal.{semanticdb => s}
+
 import scalafix.internal.v0._
 import scalafix.internal.v1.TreePos
 import scalafix.util.SemanticdbIndex

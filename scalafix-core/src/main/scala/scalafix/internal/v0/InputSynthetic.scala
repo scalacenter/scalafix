@@ -2,6 +2,7 @@ package scalafix.internal.v0
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
+
 import scala.meta.Input
 
 // Input.Synthetic is gone so we hack it here by extending java.io.InputStream and

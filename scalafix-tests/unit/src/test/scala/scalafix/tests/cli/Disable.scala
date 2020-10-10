@@ -1,10 +1,11 @@
 package scalafix.tests.cli
 
+import scala.meta._
+
 import metaconfig.Configured
+import scalafix.internal.util.PositionSyntax._
 import scalafix.internal.util.SymbolOps
 import scalafix.v1._
-import scala.meta._
-import scalafix.internal.util.PositionSyntax._
 
 //
 class Disable(symbols: List[Symbol]) extends SemanticRule("Disable") {

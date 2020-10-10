@@ -1,14 +1,17 @@
 package scalafix.tests.interfaces
 
 import java.net.URL
-import java.nio.file.{Files, Path}
+import java.nio.file.Files
+import java.nio.file.Path
+
+import scala.jdk.CollectionConverters._
 
 import coursierapi.Repository
 import org.scalatest.funsuite.AnyFunSuite
-import scalafix.interfaces.{Scalafix, ScalafixDiagnostic, ScalafixMainCallback}
+import scalafix.interfaces.Scalafix
+import scalafix.interfaces.ScalafixDiagnostic
+import scalafix.interfaces.ScalafixMainCallback
 import scalafix.internal.tests.utils.SkipWindows
-
-import scala.jdk.CollectionConverters._
 
 /**
  * Tests in this suite require scalafix-cli & its dependencies to be cross-published so that Coursier can fetch them.
@@ -82,14 +85,14 @@ class ScalafixSuite extends AnyFunSuite {
       assert(args.availableRules.asScala.map(_.name).contains("SortImports")) // community rule
     }
   }
-  val supportedScalaBinaryVersions = Set("2.11", "2.12", "2.13")
+  val supportedScalaBinaryVersions: Set[String] = Set("2.11", "2.12", "2.13")
 
   // 2.11(.12) triggers `java.lang.NoClassDefFoundError: javax/tools/DiagnosticListener` on Java11.
   // See https://github.com/scala/bug/issues/10603.
-  val isJava11 = Option(System.getProperty("java.version"))
+  val isJava11: Boolean = Option(System.getProperty("java.version"))
     .getOrElse("")
     .startsWith("11")
-  val scalaBinaryVersionsToRun =
+  val scalaBinaryVersionsToRun: Set[String] =
     if (isJava11) supportedScalaBinaryVersions - "2.11"
     else supportedScalaBinaryVersions
 

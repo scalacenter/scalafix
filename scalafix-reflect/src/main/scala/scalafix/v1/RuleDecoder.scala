@@ -1,22 +1,24 @@
 package scalafix.v1
 
 import java.net.URLClassLoader
+
+import scala.meta.internal.io.PathIO
+import scala.meta.io.AbsolutePath
+import scala.meta.io.Classpath
+
 import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
-import scala.meta.internal.io.PathIO
-import scala.meta.io.AbsolutePath
 import scalafix.internal.config.MetaconfigOps._
 import scalafix.internal.config._
+import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.reflect.RuleDecoderOps.FromSourceRule
 import scalafix.internal.reflect.RuleDecoderOps.tryClassload
 import scalafix.internal.reflect.ScalafixToolbox
 import scalafix.internal.reflect.ScalafixToolbox.CompiledRules
 import scalafix.internal.v1.Rules
 import scalafix.v1
-import scala.meta.io.Classpath
-import scalafix.internal.reflect.ClasspathOps
 
 /** One-stop shop for loading scalafix rules from strings. */
 object RuleDecoder {

@@ -1,10 +1,12 @@
 package scalafix.v1
 
-import com.martiansoftware.nailgun.NGContext
 import java.io.PrintStream
 import java.nio.file.Path
 import java.nio.file.Paths
+
 import scala.meta.io.AbsolutePath
+
+import com.martiansoftware.nailgun.NGContext
 import scalafix.cli.ExitStatus
 import scalafix.internal.v1._
 

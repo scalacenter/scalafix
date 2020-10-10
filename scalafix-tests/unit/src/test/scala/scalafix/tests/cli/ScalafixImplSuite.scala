@@ -6,14 +6,18 @@ import java.net.URLClassLoader
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.Collections
 import java.util.Optional
-import coursier._
-import org.scalatest.funsuite.AnyFunSuite
+
 import scala.collection.JavaConverters._
+import scala.util.Properties
+
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
+
+import buildinfo.RulesBuildInfo
+import coursier._
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.Versions
 import scalafix.interfaces.ScalafixDiagnostic
 import scalafix.interfaces.ScalafixException
@@ -23,21 +27,12 @@ import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.reflect.RuleCompiler
 import scalafix.test.StringFS
 import scalafix.testkit.DiffAssertions
+import scalafix.tests.util.ScalaVersions
+import scalafix.tests.util.SemanticdbPlugin
 import scalafix.{interfaces => i}
-import scala.util.Properties
 
 class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
-  def semanticdbPluginPath(): String = {
-    val semanticdbscalac = ClasspathOps.thisClassLoader.getURLs.collectFirst {
-      case url if url.toString.contains("semanticdb-scalac_") =>
-        Paths.get(url.toURI).toString
-    }
-    semanticdbscalac.getOrElse {
-      throw new IllegalStateException(
-        "unable to auto-detect semanticdb-scalac compiler plugin"
-      )
-    }
-  }
+
   def scalaLibrary: AbsolutePath =
     RuleCompiler.defaultClasspathPaths
       .find(_.toNIO.getFileName.toString.contains("scala-library"))
@@ -97,6 +92,47 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
     assert(e.isPresent)
     assert(e.get().getMessage.contains("-Ywarn-unused"))
   }
+  test("rulesThatWillRun") {
+    val api = i.Scalafix.classloadInstance(this.getClass.getClassLoader)
+
+    val charset = StandardCharsets.US_ASCII
+    val cwd = StringFS
+      .string2dir(
+        """|/src/Semicolon.scala
+           |
+           |object Semicolon {
+           |  def main { println(42) }
+           |}
+           |/.scalafix.conf
+           |rules = ["DisableSyntax"]
+      """.stripMargin,
+        charset
+      )
+    val args = api
+      .newArguments()
+      .withConfig(Optional.empty())
+      .withWorkingDirectory(cwd.toNIO)
+    args.validate()
+    assert(
+      args.rulesThatWillRun().asScala.toList.map(_.toString) == List(
+        "ScalafixRule(DisableSyntax)"
+      )
+    )
+
+    //if a non empty list of rules is provided, rules from config file are ignored
+    val args2 = api
+      .newArguments()
+      .withRules(List("ProcedureSyntax").asJava)
+      .withConfig(Optional.empty())
+      .withWorkingDirectory(cwd.toNIO)
+    args2.validate()
+    assert(
+      args2.rulesThatWillRun().asScala.toList.map(_.name()) == List(
+        "ProcedureSyntax"
+      )
+    )
+
+  }
 
   test("runMain") {
     // This is a full integration test that stresses the full breadth of the scalafix-interfaces API
@@ -126,9 +162,19 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
     Files.createDirectories(d)
     val semicolon = src.resolve("Semicolon.scala")
     val excluded = src.resolve("Excluded.scala")
+    val scalaBinaryVersion =
+      RulesBuildInfo.scalaVersion.split('.').take(2).mkString(".")
     // This rule is published to Maven Central to simplify testing --tool-classpath.
+    val dep =
+      Dependency(
+        Module(
+          Organization("ch.epfl.scala"),
+          ModuleName(s"example-scalafix-rule_$scalaBinaryVersion")
+        ),
+        "1.6.0"
+      )
     val toolClasspathJars = Fetch()
-      .addDependencies(dep"com.geirsson:example-scalafix-rule_2.12:1.1.0")
+      .addDependencies(dep)
       .run()
       .toList
     val toolClasspath = ClasspathOps.toClassLoader(
@@ -136,7 +182,7 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
     )
     val scalacOptions = Array[String](
       "-Yrangepos",
-      s"-Xplugin:${semanticdbPluginPath()}",
+      s"-Xplugin:${SemanticdbPlugin.semanticdbPluginPath()}",
       "-Xplugin-require:semanticdb",
       "-classpath",
       scalaLibrary.toString,
@@ -147,7 +193,6 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
       excluded.toString
     )
     val compileSucceeded = scala.tools.nsc.Main.process(scalacOptions)
-    assert(compileSucceeded)
     val buf = List.newBuilder[ScalafixDiagnostic]
     val callback = new ScalafixMainCallback {
       override def reportDiagnostic(diagnostic: ScalafixDiagnostic): Unit = {
@@ -156,6 +201,10 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
     }
     val out = new ByteArrayOutputStream()
     val relativePath = cwd.relativize(semicolon)
+    val warnRemoveUnused =
+      if (ScalaVersions.isScala213)
+        "-Wunused:imports"
+      else "-Ywarn-unused-import"
     val args = api
       .newArguments()
       .withParsedArguments(
@@ -183,7 +232,7 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
       .withPrintStream(new PrintStream(out))
       .withMode(ScalafixMainMode.CHECK)
       .withToolClasspath(toolClasspath)
-      .withScalacOptions(Collections.singletonList("-Ywarn-unused-import"))
+      .withScalacOptions(Collections.singletonList(warnRemoveUnused))
       .withScalaVersion(Properties.versionNumberString)
       .withConfig(Optional.empty())
     val expectedRulesToRun = List(
@@ -198,9 +247,10 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
       obtainedRulesToRun.sorted.mkString("\n"),
       expectedRulesToRun.sorted.mkString("\n")
     )
-    val validateError = args.validate()
+    val validateError: Optional[ScalafixException] = args.validate()
     assert(!validateError.isPresent, validateError)
-    val errors = args.run().toList.map(_.toString).sorted
+    val scalafixErrors = args.run()
+    val errors = scalafixErrors.toList.map(_.toString).sorted
     val stdout = fansi
       .Str(out.toString(charset.name()))
       .plainText
@@ -243,5 +293,4 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
          |""".stripMargin
     )
   }
-
 }

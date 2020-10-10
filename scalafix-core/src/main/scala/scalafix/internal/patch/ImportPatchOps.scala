@@ -2,7 +2,9 @@ package scalafix.internal.patch
 
 import scala.annotation.tailrec
 import scala.collection.mutable
+
 import scala.meta._
+
 import scalafix.internal.util.SymbolOps
 import scalafix.patch.Patch
 import scalafix.patch.Patch.internal._
@@ -203,6 +205,7 @@ object ImportPatchOps {
     // same comma being removed twice.
     val isRemovedImport =
       allImports.filter(_.importers.forall(isRemovedImporter))
+
     def remove(toRemove: Tree): Patch = {
       if (toRemove.pos == Position.None) return Patch.empty
       // Imagine "import a.b, c.d, e.f, g.h" where a.b, c.d and g.h are unused.

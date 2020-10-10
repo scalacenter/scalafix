@@ -45,6 +45,8 @@ scalafix-tests
 ```
 
 ## Formatting
+We use scalafix to apply some rules that are configured in .scalafix.conf.
+Make sure to run `sbt scalafixAll` to apply those rules.
 
 Be sure to run `scalafmt` (available in the root folder) to ensure code
 formatting. `./scalafmt --diff` formats only the files that have changed from

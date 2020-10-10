@@ -1,6 +1,7 @@
 package scalafix.v1
-import metaconfig.Conf
 import scala.meta.io.AbsolutePath
+
+import metaconfig.Conf
 
 final class Configuration private (
     val scalaVersion: String,

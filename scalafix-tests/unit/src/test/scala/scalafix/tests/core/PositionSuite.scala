@@ -1,10 +1,11 @@
 package scalafix.tests.core
 
-import org.scalatest.funsuite.AnyFunSuite
 import scala.meta.inputs.Input
 import scala.meta.inputs.Position
-import scalafix.testkit.DiffAssertions
+
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.internal.util.PositionSyntax._
+import scalafix.testkit.DiffAssertions
 
 class PositionSuite extends AnyFunSuite with DiffAssertions {
 

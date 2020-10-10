@@ -1,5 +1,6 @@
 package scalafix.internal.interfaces
 import java.util.Optional
+
 import scalafix.interfaces.ScalafixDiagnostic
 import scalafix.interfaces.ScalafixLintID
 import scalafix.interfaces.ScalafixPosition

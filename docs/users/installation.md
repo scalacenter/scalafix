@@ -213,6 +213,39 @@ the environment variable `COURSIER_CACHE`
 export COURSIER_CACHE=$HOME/.custom-cache
 ```
 
+### Run Scalafix automatically on compile
+
+If you set `scalafixOnCompile` to `true`, the rules declared in `.scalafix.conf`
+(or in the file located by `scalafixConfig`) will run automatically each time
+`compile` is invoked either explicitly or implicitly (for example when
+executing `test` or `publishLocal`). Lint errors will fail that invocation,
+while rewrites will be applied.
+
+Although this looks like an easy way to use Scalafix as a linter, use this
+feature with care as it has several shortcomings, for example:
+
+1. `scalafixOnCompile := true` is dangerous on CI as a rewrite might be applied
+   before a call to `scalafix[All] --check`, causing this one to run on dirty
+   sources and thus pass while it should not. Make sure that `scalafixOnCompile`
+   is disabled on CI or, if that is impossible, that `scalafix[All] --check`
+   is the first task executed, without any other concurrently.
+1. Some rules such as `RemoveUnused` can be counter-productive if applied too
+   often/early, as the work-in-progress code that was just added might disappear
+   after a simple `test`.
+1. If you run many semantic rules by default, the last one(s) to run might see
+   stale information and fail the invocation, which needs to be re-run manually.
+   This is [not specific to `scalafixOnCompile`](https://github.com/scalacenter/scalafix/issues/1204),
+   but the problem becomes much more visible with it.
+1. To keep the overhad minimal, `scalafixCaching` is automatically enabled when
+   `scalafixOnCompile` is, which can cause unexpected behaviors if you run into
+   false positive cache hits. `scalafixCaching` can explicitly be set to
+   `false` in that case.
+1. Non-idempotent rewrite rules might get you in an infinite loop where sources
+   never converge - not specific to `scalafixOnCompile` either, but rather
+   confusing when triggered automatically.
+1. Bugs in rule implementations can prevent you from getting a successul
+   `compile`, blocking testing or publishing for example
+
 ### Run custom rules
 
 It's possible to run custom Scalafix rules that have been published to Maven

@@ -3,12 +3,13 @@ package scalafix.tests.cli
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 
-import scala.meta.internal.io.PathIO
 import scala.meta.internal.io.FileIO
+import scala.meta.internal.io.PathIO
 import scala.meta.io.Classpath
+import scala.meta.testkit.StringFS
+
 import scalafix.cli._
 import scalafix.tests.core.Classpaths
-import scala.meta.testkit.StringFS
 
 class CliSemanticSuite extends BaseCliSuite {
 
@@ -169,7 +170,7 @@ class CliSemanticSuite extends BaseCliSuite {
   checkSemantic(
     name = "-P:semanticdb:targetroot",
     args = {
-      val (targetroot :: Nil, jars) =
+      val (targetroot :: classDir :: Nil, jars) =
         props.inputClasspath.entries.partition(_.isDirectory)
       Array(
         s"--scalacOptions",

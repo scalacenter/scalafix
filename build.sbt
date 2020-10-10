@@ -4,7 +4,12 @@ inThisBuild(
     onLoadMessage := s"Welcome to scalafix ${version.value}",
     scalaVersion := scala213,
     crossScalaVersions := List(scala213, scala212, scala211),
-    fork := true
+    fork := true,
+    semanticdbEnabled := true,
+    semanticdbVersion := scalafixSemanticdb.revision,
+    scalacOptions ++= List("-P:semanticdb:synthetics:on"),
+    scalafixScalaBinaryVersion := scalaBinaryVersion.value,
+    scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.0"
   )
 )
 
@@ -51,6 +56,7 @@ lazy val interfaces = project
     crossPaths := false,
     autoScalaLibrary := false
   )
+  .disablePlugins(ScalafixPlugin)
 
 lazy val core = project
   .in(file("scalafix-core"))
@@ -111,7 +117,7 @@ lazy val cli = project
       "com.martiansoftware" % "nailgun-server" % "0.9.1",
       jgit,
       "ch.qos.logback" % "logback-classic" % "1.2.3",
-      "org.apache.commons" % "commons-text" % "1.8"
+      "org.apache.commons" % "commons-text" % "1.9"
     )
   )
   .dependsOn(reflect, interfaces)
@@ -119,10 +125,10 @@ lazy val cli = project
 lazy val testsShared = project
   .in(file("scalafix-tests/shared"))
   .settings(
-    semanticdbSettings,
     noPublish,
     coverageEnabled := false
   )
+  .disablePlugins(ScalafixPlugin)
 
 val isScala213 = Def.setting(scalaVersion.value.startsWith("2.13"))
 
@@ -135,7 +141,6 @@ lazy val testsInput = project
   .in(file("scalafix-tests/input"))
   .settings(
     noPublish,
-    semanticdbSettings,
     scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
     scalacOptions += warnAdaptedArgs.value, // For NoAutoTupling
     scalacOptions += warnUnusedImports.value, // For RemoveUnused
@@ -145,12 +150,12 @@ lazy val testsInput = project
     testsInputOutputSetting,
     coverageEnabled := false
   )
+  .disablePlugins(ScalafixPlugin)
 
 lazy val testsOutput = project
   .in(file("scalafix-tests/output"))
   .settings(
     noPublish,
-    semanticdbSettings,
     scalacOptions --= List(
       warnUnusedImports.value,
       "-Xlint"
@@ -159,6 +164,7 @@ lazy val testsOutput = project
     coverageEnabled := false,
     libraryDependencies += bijectionCore
   )
+  .disablePlugins(ScalafixPlugin)
 
 lazy val testkit = project
   .in(file("scalafix-testkit"))
@@ -166,12 +172,12 @@ lazy val testkit = project
     moduleName := "scalafix-testkit",
     isFullCrossVersion,
     libraryDependencies ++= Seq(
-      semanticdb,
       googleDiff,
       scalacheck,
       scalatest
     )
   )
+  .disablePlugins(ScalafixPlugin)
   .dependsOn(cli)
 
 lazy val unit = project
@@ -187,7 +193,6 @@ lazy val unit = project
     libraryDependencies ++= testsDeps,
     libraryDependencies ++= List(
       jgit,
-      semanticdbPluginLibrary,
       scalatest.withRevision("3.2.0"), // make sure testkit clients can use recent 3.x versions
       "org.scalameta" %% "testkit" % scalametaV
     ),
@@ -214,6 +219,11 @@ lazy val unit = project
       put(
         "inputClasspath",
         fullClasspath.in(testsInput, Compile).value.map(_.data)
+      )
+
+      put(
+        "semanticdbRootDirectory",
+        Seq(semanticdbTargetRoot.in(testsInput, Compile).value)
       )
       put(
         "inputSourceDirectories",
@@ -245,7 +255,7 @@ lazy val unit = project
       "testsInputResources" ->
         sourceDirectory.in(testsInput, Compile).value / "resources",
       "semanticClasspath" ->
-        classDirectory.in(testsInput, Compile).value,
+        semanticdbTargetRoot.in(testsShared, Compile).value,
       "sharedSourceroot" ->
         baseDirectory.in(ThisBuild).value /
           "scalafix-tests" / "shared" / "src" / "main",
@@ -276,9 +286,9 @@ lazy val docs = project
     mdoc := run.in(Compile).evaluated,
     crossScalaVersions := List(scala213),
     libraryDependencies ++= List(
-      "com.geirsson" %% "metaconfig-docs" % metaconfigV,
-      "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
+      "com.geirsson" %% "metaconfig-docs" % metaconfigV
     )
   )
   .dependsOn(testkit, core, cli)
   .enablePlugins(DocusaurusPlugin)
+  .disablePlugins(ScalafixPlugin)

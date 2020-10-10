@@ -4,6 +4,7 @@ import java.io.File
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+
 import scala.meta.AbsolutePath
 
 object StringFS {

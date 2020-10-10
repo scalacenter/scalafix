@@ -1,6 +1,7 @@
 package scalafix.lint
 
 import scala.meta.Position
+
 import scalafix.v0
 
 /**

@@ -1,6 +1,7 @@
 package scalafix.testkit
 
 import java.nio.file.Files
+
 import scala.meta.AbsolutePath
 import scala.meta.Classpath
 import scala.meta.internal.io.PathIO
@@ -95,7 +96,9 @@ object TestkitProperties {
         case None => Nil
       }
       new TestkitProperties(
-        Classpath(sprops("inputClasspath")),
+        Classpath(sprops("semanticdbRootDirectory")) ++ Classpath(
+          sprops("inputClasspath")
+        ),
         Classpath(sprops("inputSourceDirectories")).entries,
         Classpath(sprops("outputSourceDirectories")).entries,
         sourceroot,

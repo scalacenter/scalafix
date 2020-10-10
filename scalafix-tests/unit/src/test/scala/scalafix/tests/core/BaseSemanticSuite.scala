@@ -1,17 +1,18 @@
 package scalafix.tests.core
 
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.funsuite.AnyFunSuite
 import scala.meta._
 import scala.meta.internal.io.PathIO
 import scala.meta.internal.symtab.SymbolTable
+
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.v0.LegacyInMemorySemanticdbIndex
 import scalafix.syntax._
 import scalafix.testkit.DiffAssertions
 import scalafix.tests.BuildInfo
-import scalafix.v1.SyntacticDocument
 import scalafix.v1.SemanticDocument
+import scalafix.v1.SyntacticDocument
 
 object BaseSemanticSuite {
   lazy val symtab: SymbolTable = {
@@ -28,7 +29,7 @@ object BaseSemanticSuite {
     SemanticDocument.fromPath(
       doc,
       relpath,
-      ClasspathOps.thisClassLoader,
+      ClasspathOps.thisClassLoaderWith(BuildInfo.semanticClasspath.toURI.toURL),
       symtab,
       () => None
     )
@@ -48,7 +49,7 @@ abstract class BaseSemanticSuite(filename: String)
   }
 
   override def beforeAll(): Unit = {
-    val dir = AbsolutePath(scalafix.tests.BuildInfo.sharedClasspath)
+    val dir = AbsolutePath(scalafix.tests.BuildInfo.semanticClasspath)
     _db = LegacyInMemorySemanticdbIndex.load(
       Classpaths.withDirectory(dir),
       PathIO.workingDirectory

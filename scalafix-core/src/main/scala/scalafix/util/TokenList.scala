@@ -1,8 +1,9 @@
 package scalafix.util
 
-import scalafix.util.Compat._
 import scala.meta.tokens.Token
 import scala.meta.tokens.Tokens
+
+import scalafix.util.Compat._
 
 /** Helper to traverse tokens as a doubly linked list.  */
 final class TokenList private (tokens: Tokens) {

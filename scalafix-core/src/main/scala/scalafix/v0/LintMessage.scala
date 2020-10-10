@@ -1,6 +1,7 @@
 package scalafix.v0
 
 import scala.meta.Position
+
 import scalafix.lint.LintSeverity
 
 /** An observation of a LintCategory at a particular position

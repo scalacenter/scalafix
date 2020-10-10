@@ -1,13 +1,14 @@
 package scalafix.tests.reflect
 
+import scala.meta.io.AbsolutePath
+import scala.meta.io.RelativePath
+
+import metaconfig.Conf
+import metaconfig.ConfDecoder
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.internal.v1.Rules
 import scalafix.tests.BuildInfo
-import metaconfig.Conf
-import metaconfig.ConfDecoder
-import scala.meta.io.AbsolutePath
-import scala.meta.io.RelativePath
-import org.scalatest.funsuite.AnyFunSuite
 import scalafix.v1.RuleDecoder
 
 class RuleDecoderSuite extends AnyFunSuite {
@@ -19,9 +20,10 @@ class RuleDecoderSuite extends AnyFunSuite {
     .resolve("scala")
     .resolve("scalafix")
     .resolve("test")
-  val relpath = RelativePath("NoDummy.scala")
+  val relpath: RelativePath = RelativePath("NoDummy.scala")
   val abspath: AbsolutePath = cwd.resolve(relpath)
-  val decoderSettings = RuleDecoder.Settings().withCwd(cwd)
+  val decoderSettings: RuleDecoder.Settings =
+    RuleDecoder.Settings().withCwd(cwd)
   val decoder: ConfDecoder[Rules] = RuleDecoder.decoder(decoderSettings)
   val expectedName = "NoDummy"
   val expectedDescription = ""

@@ -1,7 +1,9 @@
 package scala.tools.nsc.interactive
 
 import java.util.logging.Level
+
 import scala.util.control.NonFatal
+
 import scala.meta.internal.pc.ScalafixGlobal
 
 trait ScalafixGlobalProxy { this: ScalafixGlobal =>

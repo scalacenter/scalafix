@@ -2,6 +2,7 @@ package scalafix.internal.reflect
 
 import java.io.FileNotFoundException
 import java.net.URL
+
 import metaconfig.Conf
 import metaconfig.ConfError
 import metaconfig.Configured

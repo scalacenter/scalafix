@@ -1,6 +1,7 @@
 package scalafix.v0
 
 import scala.math.Ordering
+
 import scala.meta.inputs._
 
 final case class Document(

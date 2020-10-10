@@ -1,12 +1,15 @@
 package docs
 
 import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+
+import scala.meta.internal.io.FileIO
+import scala.meta.internal.io.PathIO
 
 import scalafix.Versions
 import scalafix.docs.PatchDocs
-
-import scala.meta.internal.io.{FileIO, PathIO}
 
 object Main {
   def copyContributingGuide(out: Path): Unit = {

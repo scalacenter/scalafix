@@ -5,19 +5,22 @@ import java.io.PrintStream
 import java.net.URI
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
+
+import scala.reflect.ClassTag
+import scala.util.Try
+import scala.util.control.NonFatal
+import scala.util.matching.Regex
+
+import scala.meta.Ref
+import scala.meta._
+import scala.meta.parsers.Parse
+
 import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
-import scala.meta.Ref
-import scala.meta._
-import scala.meta.parsers.Parse
-import scala.reflect.ClassTag
-import scala.util.Try
-import scala.util.control.NonFatal
-import scala.util.matching.Regex
 import scalafix.internal.util.SymbolOps
 import scalafix.patch.Patch.internal._
 import scalafix.v0.Symbol

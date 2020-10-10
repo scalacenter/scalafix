@@ -3,13 +3,14 @@ package scalafix.internal
 import scala.meta.internal.semanticdb.SymbolInformation.{Kind => k}
 import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
 import scala.meta.internal.{semanticdb => s}
+
 import scalafix.v0.Denotation
 import scalafix.v0.{Flags => d}
 
 package object v0 {
 
   implicit class XtensionDenotation(ddenot: Denotation) {
-    def dtest(bit: Long) = (ddenot.flags & bit) == bit
+    def dtest(bit: Long): Boolean = (ddenot.flags & bit) == bit
     def sproperties: Int = {
       var sproperties = 0
       def sflip(sprop: s.SymbolInformation.Property) =

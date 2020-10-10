@@ -1,6 +1,7 @@
 package scalafix.v0
 
 import scala.meta.internal.semanticdb.Scala._
+
 import scalafix.internal.util.SymbolOps.Root
 
 sealed trait Symbol extends Product {
@@ -12,13 +13,13 @@ object Symbol {
   case object None extends Symbol {
     override def toString: String = syntax
     override def syntax: String = Symbols.None
-    override def structure = s"""Symbol.None"""
+    override def structure: String = s"""Symbol.None"""
   }
 
   final case class Local(id: String) extends Symbol {
     override def toString: String = syntax
     override def syntax: String = id
-    override def structure = s"""Symbol.Local("$id")"""
+    override def structure: String = s"""Symbol.Local("$id")"""
   }
 
   final case class Global(owner: Symbol, signature: Signature) extends Symbol {
@@ -35,14 +36,14 @@ object Symbol {
       case _ =>
         owner.syntax + signature.syntax
     }
-    override def structure =
+    override def structure: String =
       s"""Symbol.Global(${owner.structure}, ${signature.structure})"""
   }
 
   final case class Multi(symbols: List[Symbol]) extends Symbol {
     override def toString: String = syntax
     override def syntax: String = symbols.mkString(";", ";", "")
-    override def structure =
+    override def structure: String =
       s"""Symbol.Multi(${symbols.map(_.structure).mkString(", ")})"""
   }
 

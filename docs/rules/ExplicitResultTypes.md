@@ -4,7 +4,11 @@ id: ExplicitResultTypes
 title: ExplicitResultTypes
 ---
 
-This rewrite inserts type annotations for inferred public members.
+This rewrite inserts type annotations for inferred public members. Only compatible with 
+```scala mdoc:passthrough
+import buildinfo.RulesBuildInfo
+println(s"${RulesBuildInfo.allSupportedScalaVersions.mkString(", ")}")
+```
 
 Example:
 

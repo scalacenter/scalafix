@@ -1,4 +1,4 @@
-package test.escapeHatch
+package test
 
 import scala.collection.immutable // scalafix:ok RemoveUnusedImports
 

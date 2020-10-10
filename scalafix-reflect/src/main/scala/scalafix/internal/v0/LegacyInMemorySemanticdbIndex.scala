@@ -1,21 +1,23 @@
 package scalafix.internal.v0
 
+import scala.{meta => m}
+
 import scala.meta._
 import scala.meta.internal.io._
+import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
-import scala.{meta => m}
+
 import scalafix.internal.patch.CrashingSemanticdbIndex
 import scalafix.internal.reflect.ClasspathOps
-import scala.meta.internal.symtab.SymbolTable
 import scalafix.internal.v1.TreePos
+import scalafix.internal.v1._
 import scalafix.util.SemanticdbIndex
+import scalafix.v0
 import scalafix.v0.Database
 import scalafix.v0.Denotation
 import scalafix.v0.ResolvedName
 import scalafix.v0.Synthetic
-import scalafix.v0
 import scalafix.v1
-import scalafix.internal.v1._
 
 case class LegacyInMemorySemanticdbIndex(
     index: Map[String, SemanticdbIndex],

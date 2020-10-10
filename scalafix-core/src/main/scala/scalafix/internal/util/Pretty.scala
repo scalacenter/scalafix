@@ -1,7 +1,8 @@
 package scalafix.internal.util
 
-import org.typelevel.paiges.Doc
 import scala.meta.Lit
+
+import org.typelevel.paiges.Doc
 import scalafix.internal.v1.Types
 import scalafix.v1._
 

@@ -643,7 +643,8 @@ The expansion rules for `github:org/repo` are the following:
 
 > If your rule only targets a single codebase and is not meant to be
 > distributed, you might want to develop it [as part of your existing
-> build](local-rules.md) instead.
+> build](local-rules.md) instead. You may also read [how to cross publish you rules](cross-publish-custom-rules.md)
+> once you have set up the necessary configuration to publish to Maven Central.
 
 Run the following sbt command to publish a rule locally.
 
@@ -754,9 +755,15 @@ custom repository like Bintray or a private Nexus.
 scalafixResolvers.in(ThisBuild) ++= List(
   coursierapi.MavenRepository.of("https://dl.bintray.com/scalacenter/releases"),
   coursierapi.MavenRepository.of("https://oss.sonatype.org/content/repositories/snapshots"),
-  coursierapi.IvyRepository.of("https://dl.bintray.com/sbt/sbt-plugin-releases")
+  coursierapi.IvyRepository.of("https://dl.bintray.com/sbt/sbt-plugin-releases/[defaultPattern]"),
+  coursierapi.IvyRepository.of("https://foo.com/a/b/c/[defaultPattern]")
 )
 ```
+
+Notice for Ivy resolvers, `coursierapi.IvyRepository.of` is interpolated as a pattern. Appending `[defaultPattern]`
+uses this [convenience method](https://github.com/coursier/coursier/blob/a92e4f263f494199078adfb1c5db67ba0b076674/modules/core/shared/src/main/scala/coursier/ivy/Pattern.scala#L107)
+to substitute in [this default pattern](https://github.com/coursier/coursier/blob/a92e4f263f494199078adfb1c5db67ba0b076674/modules/core/shared/src/main/scala/coursier/ivy/Pattern.scala#L236-L245).
+Tests showing a working example can found [here](https://github.com/coursier/coursier/blob/master/modules/tests/jvm/src/test/scala/coursier/test/IvyTests.scala).
 
 ### Conclusion
 

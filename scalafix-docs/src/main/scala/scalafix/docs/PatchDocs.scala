@@ -1,16 +1,19 @@
 package scalafix.docs
 
-import org.typelevel.paiges.Doc
+import scala.tools.nsc.interactive.Global
+
 import scala.meta.inputs.Input
 import scala.meta.interactive.InteractiveSemanticdb
 import scala.meta.internal.semanticdb.Print
 import scala.meta.internal.symtab.GlobalSymbolTable
 import scala.meta.metap.Format
+
+import org.typelevel.paiges.Doc
+import scalafix.internal.patch.PatchInternals
 import scalafix.internal.reflect.ClasspathOps
+import scalafix.internal.util.Pretty
 import scalafix.internal.v1.InternalSemanticDoc
 import scalafix.patch.Patch
-import scalafix.internal.patch.PatchInternals
-import scalafix.internal.util.Pretty
 import scalafix.v1._
 
 object PatchDocs {
@@ -52,13 +55,13 @@ object PatchDocs {
   }
   implicit class XtensionPatch(p: Patch) {
     def output(implicit doc: SemanticDocument): String = {
-      val (obtained, _) =
-        PatchInternals.semantic(
+      PatchInternals
+        .semantic(
           Map(RuleName("patch") -> p),
           doc,
           suppress = false
         )
-      obtained
+        .fixed
     }
     def showDiff(context: Int = 0)(implicit doc: SemanticDocument): Unit = {
       printDiff(unifiedDiff(p.output, context))
@@ -66,11 +69,13 @@ object PatchDocs {
   }
   implicit class XtensionPatchs(p: Iterable[Patch]) {
     def showLints()(implicit doc: SemanticDocument): Unit = {
-      val (_, diagnostics) = PatchInternals.semantic(
-        Map(RuleName("RuleName") -> p.asPatch),
-        doc,
-        suppress = false
-      )
+      val diagnostics = PatchInternals
+        .semantic(
+          Map(RuleName("RuleName") -> p.asPatch),
+          doc,
+          suppress = false
+        )
+        .diagnostics
       diagnostics.foreach { diag =>
         println(diag.formattedMessage)
       }
@@ -97,16 +102,16 @@ object PatchDocs {
     val out = Input.VirtualFile("after  patch", obtained)
     PatchInternals.unifiedDiff(in, out, context)
   }
-  lazy val scalacOptions = List(
+  lazy val scalacOptions: List[String] = List(
     "-Ywarn-unused",
     "-P:semanticdb:synthetics:on"
   )
   lazy val classpath = ClasspathOps.getCurrentClasspath
-  lazy val compiler =
+  lazy val compiler: Global =
     InteractiveSemanticdb.newCompiler(classpath, scalacOptions)
-  lazy val symtab =
+  lazy val symtab: GlobalSymbolTable =
     GlobalSymbolTable(ClasspathOps.thisClasspath, includeJdk = true)
-  lazy val scalafixSymtab = new Symtab { self =>
+  lazy val scalafixSymtab: Symtab = new Symtab { self =>
     override def info(symbol: Symbol): Option[SymbolInformation] = {
       symtab.info(symbol.value).map(new SymbolInformation(_)(self))
     }

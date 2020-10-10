@@ -1,10 +1,11 @@
 package scalafix.internal.v0
 
-import org.scalameta.FileLine
 import scala.meta.Input
 import scala.meta.Tree
 import scala.meta.contrib.AssociatedComments
 import scala.meta.tokens.Tokens
+
+import org.scalameta.FileLine
 import scalafix.internal.patch.LegacyPatchOps
 import scalafix.util.MatchingParens
 import scalafix.util.SemanticdbIndex

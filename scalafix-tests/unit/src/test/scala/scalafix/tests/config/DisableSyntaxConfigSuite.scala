@@ -1,10 +1,10 @@
 package scalafix.tests.config
 
-import org.scalatest.funsuite.AnyFunSuite
+import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.NotOk
-import metaconfig.ConfError
 import metaconfig.typesafeconfig._
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.internal.rule._
 
 class DisableSyntaxConfigSuite extends AnyFunSuite {

@@ -12,9 +12,11 @@ import java.nio.file.Paths
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 import java.util
+
 import scala.meta.Classpath
 import scala.meta.internal.symtab._
 import scala.meta.io.AbsolutePath
+
 import sun.misc.Unsafe
 
 object ClasspathOps {
@@ -34,6 +36,11 @@ object ClasspathOps {
   def thisClassLoader: URLClassLoader = {
     val classLoader = this.getClass.getClassLoader
     new URLClassLoader(getURLs(classLoader), classLoader)
+  }
+
+  def thisClassLoaderWith(url: URL): URLClassLoader = {
+    val classLoader = this.getClass.getClassLoader
+    new URLClassLoader(url +: getURLs(classLoader), classLoader)
   }
 
   def thisClasspath: Classpath = {

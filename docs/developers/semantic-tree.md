@@ -160,7 +160,8 @@ doc.tree.traverse {
 The `.syntheticOperator` method is only available for `Term.ApplyInfix` nodes,
 using the method on other node types results in a compilation error
 
-```scala mdoc:fail
+[comment]: <> (Todo: add mdoc:fail for this snippet!) 
+```
 doc.tree.traverse {
   case concat @ Term.Name("++") =>
     println(".syntheticOperator = " + concat.syntheticOperator)
