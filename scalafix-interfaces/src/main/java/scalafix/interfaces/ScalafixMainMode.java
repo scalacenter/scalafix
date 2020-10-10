@@ -30,7 +30,7 @@ public enum ScalafixMainMode {
     AUTO_SUPPRESS_LINTER_ERRORS,
 
     /**
-     * Enable onCompile mode and let scalafix use onCompile configuration in .scalafix.conf.
+     * Use when the client triggers the run as a side effect of something else, as opposed to an explicit, interactive invocation. Write fixed contents in-place, with a custom configuration if it exists.
      */
-    ON_COMPILE
+    IN_PLACE_TRIGGERED
 }
