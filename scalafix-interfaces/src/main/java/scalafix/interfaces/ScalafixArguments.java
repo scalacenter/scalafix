@@ -106,7 +106,7 @@ public interface ScalafixArguments {
     ScalafixArguments withConfig(Optional<Path> config);
 
     /**
-     * @param mode The mode to run via --check or --stdout or --auto-suppress-linter-errors or --on-compile
+     * @param mode The mode to run via --check or --stdout or --auto-suppress-linter-errors or --triggered
      */
     ScalafixArguments withMode(ScalafixMainMode mode);
 
