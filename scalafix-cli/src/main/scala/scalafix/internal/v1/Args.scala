@@ -82,10 +82,9 @@ case class Args(
     )
     syntactic: Boolean = false,
     @Description(
-      "Run only rules defined in onCompile section in .scalafix.conf," +
-        "or rules explicitly passed via --rules"
+      "Overlay the default rules & rule settings in .scalafix.conf with the `triggered` section"
     )
-    onCompile: Boolean = false,
+    triggered: Boolean = false,
     @Description("Print out additional diagnostics while running scalafix.")
     verbose: Boolean = false,
     @Description("Print out this help message and exit")
