@@ -183,7 +183,7 @@ class CliSyntacticSuite extends BaseCliSuite {
                          |  RemoveUnused
                          |]
                          |
-                         |onCompile.rules = [ProcedureSyntax]
+                         |triggered.rules = [ProcedureSyntax]
                          |
                          |/hello.scala
                          |$original
