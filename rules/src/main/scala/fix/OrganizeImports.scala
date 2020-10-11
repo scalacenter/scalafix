@@ -524,7 +524,9 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     if (alreadySorted) importer else importer.copy(importees = orderedImportees)
   }
 
-  // Returns the index of the group to which the given importer belongs.
+  // Returns the index of the group to which the given importer belongs. Each group is represented
+  // by an `ImportMatcher`. If multiple `ImporterMatcher`s match the given import, the one matches
+  // the longest prefix wins.
   private def matchImportGroup(importer: Importer): Int = {
     val matchedGroups = importMatchers
       .map(_ matches importer)
