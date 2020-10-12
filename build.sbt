@@ -283,6 +283,7 @@ lazy val docs = project
     skip in publish := true,
     moduleName := "scalafix-docs",
     scalaVersion := scala213,
+    scalacOptions += "-Wconf:msg='match may not be exhaustive':ws", // silence exhaustive pattern matching warning for documentation
     mdoc := run.in(Compile).evaluated,
     crossScalaVersions := List(scala213),
     libraryDependencies ++= List(

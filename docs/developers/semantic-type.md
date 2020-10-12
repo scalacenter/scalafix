@@ -49,7 +49,7 @@ Use `MethodSignature.returnType` to get the types of vals.
 
 ```scala mdoc
 def getType(symbol: Symbol): SemanticType =
-  (symbol.info.get.signature: @unchecked) match {
+  symbol.info.get.signature match {
     case MethodSignature(_, _, returnType) =>
       returnType
   }
@@ -167,7 +167,7 @@ def simpleDealias(tpe: SemanticType): SemanticType = {
       case _ =>
         symbol
     }
-  (tpe: @unchecked) match {
+  tpe match {
     case TypeRef(prefix, symbol, typeArguments) =>
       TypeRef(prefix, dealiasSymbol(symbol), typeArguments.map(simpleDealias))
   }

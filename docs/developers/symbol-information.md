@@ -66,7 +66,7 @@ Use `MethodSignature.returnType` to inspect the return type of a method.
 
 ```scala mdoc
 def printReturnType(symbol: Symbol): Unit = {
-  (symbol.info.get.signature: @unchecked) match {
+  symbol.info.get.signature match {
     case signature @ MethodSignature(_, _, returnType) =>
       println("returnType = " + returnType)
       println("signature  = " + signature)
@@ -104,7 +104,7 @@ Use `MethodSignature.parameterLists` to look up parameters of a method.
 
 ```scala mdoc
 def printMethodParameters(symbol: Symbol): Unit = {
-  (symbol.info.get.signature: @unchecked) match {
+  symbol.info.get.signature match {
     case signature @ MethodSignature(typeParameters, parameterLists, _) =>
       if (typeParameters.nonEmpty) {
         println("typeParameters")
@@ -151,7 +151,7 @@ Nullary method signatures are distinguished by having an no parameter lists:
 
 ```scala mdoc
 def printParameterList(symbol: Symbol): Unit = {
-  (symbol.info.get.signature: @unchecked) match {
+  symbol.info.get.signature match {
     case MethodSignature(_, parameterLists, _) =>
       println(parameterLists)
   }
@@ -189,7 +189,7 @@ Use `TypeSignature` to inspect type aliases.
 
 ```scala mdoc
 def printTypeAlias(symbol: Symbol): Unit = {
-  (symbol.info.get.signature: @unchecked) match {
+  symbol.info.get.signature match {
     case signature @ TypeSignature(typeParameters, lowerBound, upperBound) =>
       if (lowerBound == upperBound) {
         println("Type alias where upperBound == lowerBound")
@@ -236,7 +236,7 @@ Use `ClassSignature.parents` and `TypeRef.symbol` to lookup the class hierarchy.
 
 ```scala mdoc
 def getParentSymbols(symbol: Symbol): Set[Symbol] =
-  (symbol.info.get.signature: @unchecked) match {
+  symbol.info.get.signature match {
     case ClassSignature(_, parents, _, _) =>
       Set(symbol) ++ parents.collect {
         case TypeRef(_, symbol, _) => getParentSymbols(symbol)
@@ -347,7 +347,7 @@ Use the primary constructor to get the names of the case class fields
 ```scala mdoc
 getConstructors(Symbol("example/User#")).foreach {
   case ctor if ctor.isPrimary =>
-    (ctor.signature: @unchecked) match {
+    ctor.signature match {
       case MethodSignature(_, parameters :: _, _) =>
         val names = parameters.map(_.displayName)
         println("names: " + names.mkString(", "))
@@ -362,7 +362,7 @@ Use `SymbolInformation.{isMethod,displayName}` to query for overloaded methods.
 
 ```scala mdoc
 def getMethodOverloads(classSymbol: Symbol, methodName: String): Set[SymbolInformation] =
-  (classSymbol.info.get.signature: @unchecked) match {
+  classSymbol.info.get.signature match {
     case ClassSignature(_, parents, _, declarations) =>
       val overloadedMethods = declarations.filter { declaration =>
         declaration.isMethod &&
