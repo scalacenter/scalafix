@@ -162,7 +162,7 @@ trees.
 
 ```scala mdoc
 println(q"complete(true)".structure)     // line wrap at 80th column
-println(q"complete(true)".structure(30)) // line wrap at 30th column
+println(q"complete(true)".structureWidth(30)) // line wrap at 30th column
 ```
 
 The output of `tree.structure` can be copy-pasted for use in pattern matching.

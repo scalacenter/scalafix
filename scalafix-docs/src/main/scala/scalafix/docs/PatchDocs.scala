@@ -28,7 +28,7 @@ object PatchDocs {
           doc
             .nested(ctx.indentCount * ctx.indentStep)
             .renderStream(ctx.leftOffset)
-            .toIterator
+            .iterator
         }
       x match {
         case t: SemanticTree =>

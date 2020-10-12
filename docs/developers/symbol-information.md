@@ -238,9 +238,9 @@ Use `ClassSignature.parents` and `TypeRef.symbol` to lookup the class hierarchy.
 def getParentSymbols(symbol: Symbol): Set[Symbol] =
   symbol.info.get.signature match {
     case ClassSignature(_, parents, _, _) =>
-      Set(symbol) ++ parents.flatMap {
+      Set(symbol) ++ parents.collect {
         case TypeRef(_, symbol, _) => getParentSymbols(symbol)
-      }
+      }.flatten
   }
 getParentSymbols(Symbol("java/lang/String#"))
 ```
@@ -256,9 +256,9 @@ def getClassMethods(symbol: Symbol): Set[SymbolInformation] =
   symbol.info.get.signature match {
     case ClassSignature(_, parents, _, declarations) =>
       val methods = declarations.filter(_.isMethod)
-      methods.toSet ++ parents.flatMap {
+      methods.toSet ++ parents.collect {
         case TypeRef(_, symbol, _) => getClassMethods(symbol)
-      }
+      }.flatten
     case _ => Set.empty
   }
 getClassMethods(Symbol("scala/Some#")).take(5)
@@ -368,9 +368,9 @@ def getMethodOverloads(classSymbol: Symbol, methodName: String): Set[SymbolInfor
         declaration.isMethod &&
         declaration.displayName == methodName
       }
-      overloadedMethods.toSet ++ parents.flatMap {
+      overloadedMethods.toSet ++ parents.collect {
         case TypeRef(_, symbol, _) => getMethodOverloads(symbol, methodName)
-      }
+      }.flatten
     case _ => Set.empty
   }
 getMethodOverloads(Symbol("java/lang/String#"), "substring")
