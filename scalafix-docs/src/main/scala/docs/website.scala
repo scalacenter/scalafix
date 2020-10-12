@@ -84,14 +84,16 @@ package object website {
       default: T
   )(implicit settings: Settings[T], ev: T <:< Product): List[(Setting, Any)] = {
     settings.settings
-      .zip(default.productIterator.toIterable)
+      .zip(default.productIterator.iterator.to(Iterable))
       .filterNot { case (setting, _) => setting.isHidden }
       .flatMap {
         case (s, d: SimpleDefinitions) =>
           (s, d.kinds.mkString("['", "', '", "']")) :: Nil
         case (deepSetting, defaultSetting: Product)
             if deepSetting.underlying.nonEmpty =>
-          deepSetting.flat.zip(defaultSetting.productIterator.toIterable)
+          deepSetting.flat.zip(
+            defaultSetting.productIterator.iterator.to(Iterable)
+          )
         case (s, lst: Iterable[_]) =>
           val rendered = lst.map(render)
           val string =
