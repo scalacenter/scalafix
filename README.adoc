@@ -78,6 +78,7 @@ OrganizeImports {
 }
 ----
 
+[[coalesce]]
 === `coalesceToWildcardImportThreshold`
 
 ==== Description
@@ -351,7 +352,7 @@ Configure how to handle grouped imports.
 
 ==== Value type
 
-Enum: `Explode | Merge | Keep`
+Enum: `Explode | Merge | AggressiveMerge | Keep`
 
 `Explode`:: Explode grouped imports into separate import statements.
 
@@ -360,9 +361,14 @@ Enum: `Explode | Merge | Keep`
 --
 Merge imports sharing the same prefix into a single grouped import statement.
 
+[TIP]
+====
+You may want to check the <<aggressive-merge, `AggressiveMerge`>> option for conciser output despite a relatively low risk of introducing compilation errors.
+====
+
 [IMPORTANT]
 ====
-`OrganizeImports` does not support renaming one name to multiple aliases within the same source file when `groupedImports` is set to `Merge`. (The IntelliJ IDEA Scala import optimizer does not support this either.)
+`OrganizeImports` does not support cases where one name is renamed to multiple aliases within the same source file when `groupedImports` is set to `Merge`. (The IntelliJ IDEA Scala import optimizer does not support this either.)
 
 Scala allows a name to be renamed to multiple aliases within a single source file, which makes merging import statements tricky. For example:
 
@@ -421,6 +427,64 @@ However, in reality, renaming aliasing a name multiple times in the same source 
 ====
 --
 
+[[aggressive-merge]]
+`AggressiveMerge`::
++
+--
+Similar to `Merge`, but merges imports more aggressively and produces conciser output, despite a relatively low risk of introducing compilation errors.
+
+The `OrganizeImports` rule tries hard to guarantee correctness in all cases. This forces it to be more conservative when merging imports, and may sometimes produce suboptimal output. Here is a concrete example about correctness:
+
+[source,scala]
+----
+import scala.collection.immutable._
+import scala.collection.mutable.Map
+import scala.collection.mutable._
+
+object Example {
+  val m: Map[Int, Int] = ???
+}
+----
+
+At a first glance, it seems feasible to simply drop the second import since `mutable._` already covers `mutble.Map`. However, similar to the example illustrated in the section about the <<coalesce, `coalesceToWildcardImportThreshold` configuration>>, the type of `Example.m` above is `mutable.Map`, because the mutable `Map` explicitly imported in the second import takes higher precedence than the immutable `Map` imported via wildcard in the first import. If we merge the last two imports naively, we'll get:
+
+[source,scala]
+----
+import scala.collection.immutable._
+import scala.collection.mutable._
+----
+
+This triggers in a compilation error, because both `immutable.Map` and `mutable.Map` are now imported via wildcards with the same precedence. This makes the type of `Example.m` ambiguous. The correct result should be:
+
+[source,scala]
+----
+import scala.collection.immutable._
+import scala.collection.mutable.{Map, _}
+----
+
+On the other hand, the case discussed above is rarely seen in practice. A more commonly seen case is something like:
+
+[source,scala]
+----
+import scala.collection.mutable.Map
+import scala.collection.mutable._
+----
+
+Instead of being conservative and produce a suboptimal output like:
+
+[source,scala]
+----
+import scala.collection.mutable.{Map, _}
+----
+
+setting `groupedImports` to `AggressiveMerge` produces
+
+[source,scala]
+----
+import scala.collection.mutable._
+----
+--
+
 `Keep`:: Leave grouped imports and imports sharing the same prefix untouched.
 
 ==== Default value
@@ -473,6 +537,8 @@ Before:
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.Buffer
 import scala.collection.mutable.StringBuilder
+import scala.collection.immutable.Set
+import scala.collection.immutable._
 ----
 
 After:
@@ -480,6 +546,37 @@ After:
 [source,scala]
 ----
 import scala.collection.mutable.{ArrayBuffer, Buffer, StringBuilder}
+import scala.collection.immutable.{Set, _}
+----
+--
+
+`AggressiveMerge`::
++
+--
+Configuration:
+
+[source,hocon]
+----
+OrganizeImports.groupedImports = AggressiveMerge
+----
+
+Before:
+
+[source,scala]
+----
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.Buffer
+import scala.collection.mutable.StringBuilder
+import scala.collection.immutable.Set
+import scala.collection.immutable._
+----
+
+After:
+
+[source,scala]
+----
+import scala.collection.mutable.{ArrayBuffer, Buffer, StringBuilder}
+import scala.collection.immutable._
 ----
 --
 

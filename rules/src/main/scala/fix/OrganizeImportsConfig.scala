@@ -35,13 +35,14 @@ object ImportSelectorsOrder {
 sealed trait GroupedImports
 
 object GroupedImports {
+  case object AggressiveMerge extends GroupedImports
   case object Merge extends GroupedImports
   case object Explode extends GroupedImports
   case object Keep extends GroupedImports
 
   implicit def reader: ConfDecoder[GroupedImports] =
     ReaderUtil.fromMap {
-      (List(Merge, Explode, Keep) map (v => v.toString -> v)).toMap
+      (List(AggressiveMerge, Merge, Explode, Keep) map (v => v.toString -> v)).toMap
     }
 }
 

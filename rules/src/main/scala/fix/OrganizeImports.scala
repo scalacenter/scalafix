@@ -67,8 +67,8 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
         Configured.error(
           "The Scala compiler option \"-Ywarn-unused\" is required to use OrganizeImports with"
             + " \"OrganizeImports.removeUnused\" set to true. To fix this problem, update your"
-            + " build to use at least one Scala compiler option like -Ywarn-unused-import (2.11 only),"
-            + " -Ywarn-unused, -Xlint:unused (2.12.2 or above) or -Wunused (2.13 only)"
+            + " build to use at least one Scala compiler option like -Ywarn-unused-import (2.11"
+            + " only), -Ywarn-unused, -Xlint:unused (2.12.2 or above) or -Wunused (2.13 only)."
         )
     }
 
@@ -315,9 +315,10 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
     val importeesSorted = locally {
       config.groupedImports match {
-        case GroupedImports.Merge   => mergeImporters(noUnneededBraces)
-        case GroupedImports.Explode => explodeImportees(noUnneededBraces)
-        case GroupedImports.Keep    => noUnneededBraces
+        case GroupedImports.Merge           => mergeImporters(noUnneededBraces, aggressive = false)
+        case GroupedImports.AggressiveMerge => mergeImporters(noUnneededBraces, aggressive = true)
+        case GroupedImports.Explode         => explodeImportees(noUnneededBraces)
+        case GroupedImports.Keep            => noUnneededBraces
       }
     } map (coalesceImportees _ andThen sortImportees)
 
@@ -335,7 +336,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     }
   }
 
-  private def mergeImporters(importers: Seq[Importer]): Seq[Importer] =
+  private def mergeImporters(importers: Seq[Importer], aggressive: Boolean): Seq[Importer] =
     importers.groupBy(_.ref.syntax).values.toSeq.flatMap {
       case importer :: Nil =>
         // If this group has only one importer, returns it as is to preserve the original source
@@ -424,12 +425,19 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
           case (true, _) =>
             // A few things to note in this case:
             //
-            // 1. Unimports are discarded because they are canceled by the wildcard.
+            // 1. Unimports are discarded because they are canceled by the wildcard. E.g.:
+            //
+            //      import scala.collection.mutable.{Set => _, _}
+            //      import scala.collection.mutable._
+            //
+            //    The above two imports should be merged into:
+            //
+            //      import scala.collection.mutable._
             //
             // 2. Explicitly imported names can NOT be discarded even though they seem to be covered
-            //    by the wildcard. This is because explicitly imported names have higher precedence
-            //    than names imported via a wildcard. Discarding them may introduce ambiguity in
-            //    some cases. E.g.:
+            //    by the wildcard, unless groupedImports is set to AggressiveMerge. This is because
+            //    explicitly imported names have higher precedence than names imported via a
+            //    wildcard. Discarding them may introduce ambiguity in some cases. E.g.:
             //
             //      import scala.collection.immutable._
             //      import scala.collection.mutable._
@@ -452,7 +460,25 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
             //    Otherwise, the type of `Main.s` becomes ambiguous and a compilation error is
             //    introduced.
             //
-            // 3. Renames must be moved into a separate import statement to make sure that the
+            // 3. However, the case discussed above is relatively rare in real life. A more common
+            //    case is something like:
+            //
+            //      import scala.collection.Set
+            //      import scala.collection._
+            //
+            //    In this case, we do want to merge them into:
+            //
+            //      import scala.collection._
+            //
+            //    rather than
+            //
+            //      import scala.collection.{Set, _}
+            //
+            //    To achieve this, users may set `groupedImports` to `AggressiveMerge`. Instead of
+            //    being conservative and ensure correctness in all the cases, this option merges
+            //    imports aggressively for conciseness.
+            //
+            // 4. Renames must be moved into a separate import statement to make sure that the
             //    original names made available by the wildcard are still preserved. E.g.:
             //
             //      import p._
@@ -463,7 +489,8 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
             //      import p.{A => A1, _}
             //
             //    Otherwise, the original name `A` is no longer available.
-            Seq(renames, importedNames :+ wildcard)
+            if (aggressive) Seq(renames, wildcard :: Nil)
+            else Seq(renames, importedNames :+ wildcard)
 
           case (false, Some(unimports)) =>
             // A wildcard must be appended for unimports.
