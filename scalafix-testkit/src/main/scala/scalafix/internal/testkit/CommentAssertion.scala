@@ -97,19 +97,21 @@ object MultiLineAssertExtractor {
               )
           }
 
-        val caretOffset = lines(1).indexOf('^')
-        if (caretOffset == -1)
+        val caretOffsetStart = lines(1).indexOf('^')
+        if (caretOffsetStart == -1)
           throw new Exception("^ should be on the second line of the assert")
-        val offset = caretOffset - token.pos.startColumn
-        val caretStart = token.pos.start + offset
+        val caretOffsetEnd = lines(1).lastIndexOf('^')
+        val offsetStart = caretOffsetStart - token.pos.startColumn
+        val offsetEnd = caretOffsetEnd - token.pos.startColumn + 1
+        val caretStart = token.pos.start + offsetStart
+        val caretEnd = token.pos.start + offsetEnd
         val message = lines.drop(2).mkString("\n")
-
         Some(
           CommentAssertion(
             anchorPosition = token.pos,
             key = key,
             caretPosition = Some(
-              Position.Range(token.pos.input, caretStart, caretStart)
+              Position.Range(token.pos.input, caretStart, caretEnd)
             ),
             expectedMessage = Some(message)
           )
