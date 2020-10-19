@@ -25,7 +25,7 @@ case object NoFinalize {
 
   class Example {
     override protected def finalize() = () /* assert: DisableSyntax.noFinalize
-                           ^
+                           ^^^^^^^^
     finalize should not be used
     */
   }

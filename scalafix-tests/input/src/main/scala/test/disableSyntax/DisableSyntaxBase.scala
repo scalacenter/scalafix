@@ -36,7 +36,7 @@ case object DisableSyntaxBase {
 
 
   null /* assert: DisableSyntax.null
-  ^
+  ^^^^
   null should be avoided, consider using Option instead
   */
 

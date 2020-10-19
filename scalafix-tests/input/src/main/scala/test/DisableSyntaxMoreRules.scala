@@ -24,7 +24,7 @@ object DisableSyntaxMoreRules {
 
   class Foo {
     def bar(x: Int = 42) = 1 /* assert: DisableSyntax.defaultArgs
-                     ^
+                     ^^
 Default args makes it hard to use methods as functions.
 */
   }
@@ -58,11 +58,11 @@ Default args makes it hard to use methods as functions.
 
   class Bar { type Foo = Int; def foo = 42 }
   def foo(a: { type Foo = Int; def foo: Foo } = new Bar): Int = a.foo /* assert: DisableSyntax.defaultArgs
-                                                ^
+                                                ^^^^^^^
 Default args makes it hard to use methods as functions.
 */
   def foo2(a: { type Foo = Int; def foo: Foo } = {val a = new Bar; a}): Int = a.foo /* assert: DisableSyntax.defaultArgs
-                                                 ^
+                                                 ^^^^^^^^^^^^^^^^^^^^
 Default args makes it hard to use methods as functions.
 */
 
