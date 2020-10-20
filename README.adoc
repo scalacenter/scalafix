@@ -363,7 +363,7 @@ Merge imports sharing the same prefix into a single grouped import statement.
 
 [TIP]
 ====
-You may want to check the <<aggressive-merge, `AggressiveMerge`>> option for conciser output despite a relatively low risk of introducing compilation errors.
+You may want to check the <<aggressive-merge, `AggressiveMerge`>> option for more concise results despite a relatively low risk of introducing compilation errors.
 ====
 
 [IMPORTANT]
@@ -431,7 +431,7 @@ However, in reality, renaming aliasing a name multiple times in the same source 
 `AggressiveMerge`::
 +
 --
-Similar to `Merge`, but merges imports more aggressively and produces conciser output, despite a relatively low risk of introducing compilation errors.
+Similar to `Merge`, but merges imports more aggressively and produces more concise results, despite a relatively low risk of introducing compilation errors.
 
 The `OrganizeImports` rule tries hard to guarantee correctness in all cases. This forces it to be more conservative when merging imports, and may sometimes produce suboptimal output. Here is a concrete example about correctness:
 
