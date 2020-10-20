@@ -12,7 +12,9 @@ import scalafix.internal.util.PositionSyntax._
 // For example:
 //
 // ```scala
-// Option(1).get // assert: Disable.get
+// class Foo {
+//   def bar(x: Int = 42) = 1 // assert: DisableSyntax.defaultArgs
+// }
 // ```
 //
 // You can also use the multiline variant. This isuseful two visually
@@ -22,14 +24,13 @@ import scalafix.internal.util.PositionSyntax._
 // For example:
 //
 // ```scala
-// Option(1).get /* assert: Disable.get
-//           ^
-// Option.get is the root of all evilz
-//
-// If you must Option.get, wrap the code block with
-// // scalafix:off Option.get
-// ...
-// // scalafix:on Option.get
+// class Foo {
+//   def bar(x: Int = 42) = 1 /* assert: DisableSyntax.defaultArgs
+//                    ^^
+// Default args makes it hard to use methods as functions.
+// */
+// }
+// ```
 // */
 case class CommentAssertion(
     anchorPosition: Position,
