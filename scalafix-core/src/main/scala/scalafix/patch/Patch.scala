@@ -110,6 +110,14 @@ object Patch {
   def addLeft(tree: Tree, toAdd: String): Patch =
     tree.tokens.headOption.fold(Patch.empty)(addLeft(_, toAdd))
 
+  def addAround(tok: Token, left: String, right: String): Patch =
+    Add(tok, left, right)
+
+  def addAround(tree: Tree, left: String, right: String): Patch = {
+    (tree.tokens.headOption.fold(Patch.empty)(addLeft(_, left)) +
+      tree.tokens.lastOption.fold(Patch.empty)(addRight(_, right))).atomic
+  }
+
   /**
    * Remove named imports for this symbol.
    *
