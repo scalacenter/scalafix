@@ -12,7 +12,9 @@ import scalafix.internal.util.PositionSyntax._
 // For example:
 //
 // ```scala
-// Option(1).get // assert: Disable.get
+// class Foo {
+//   def bar(x: Int = 42) = 1 // assert: DisableSyntax.defaultArgs
+// }
 // ```
 //
 // You can also use the multiline variant. This isuseful two visually
@@ -22,14 +24,13 @@ import scalafix.internal.util.PositionSyntax._
 // For example:
 //
 // ```scala
-// Option(1).get /* assert: Disable.get
-//           ^
-// Option.get is the root of all evilz
-//
-// If you must Option.get, wrap the code block with
-// // scalafix:off Option.get
-// ...
-// // scalafix:on Option.get
+// class Foo {
+//   def bar(x: Int = 42) = 1 /* assert: DisableSyntax.defaultArgs
+//                    ^^
+// Default args makes it hard to use methods as functions.
+// */
+// }
+// ```
 // */
 case class CommentAssertion(
     anchorPosition: Position,
@@ -97,19 +98,21 @@ object MultiLineAssertExtractor {
               )
           }
 
-        val caretOffset = lines(1).indexOf('^')
-        if (caretOffset == -1)
+        val caretOffsetStart = lines(1).indexOf('^')
+        if (caretOffsetStart == -1)
           throw new Exception("^ should be on the second line of the assert")
-        val offset = caretOffset - token.pos.startColumn
-        val caretStart = token.pos.start + offset
+        val caretOffsetEnd = lines(1).lastIndexOf('^')
+        val offsetStart = caretOffsetStart - token.pos.startColumn
+        val offsetEnd = caretOffsetEnd - token.pos.startColumn + 1
+        val caretStart = token.pos.start + offsetStart
+        val caretEnd = token.pos.start + offsetEnd
         val message = lines.drop(2).mkString("\n")
-
         Some(
           CommentAssertion(
             anchorPosition = token.pos,
             key = key,
             caretPosition = Some(
-              Position.Range(token.pos.input, caretStart, caretStart)
+              Position.Range(token.pos.input, caretStart, caretEnd)
             ),
             expectedMessage = Some(message)
           )

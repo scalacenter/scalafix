@@ -14,9 +14,9 @@ case object DisableSyntaxNoValPatterns {
   val (works6, _) = (1, Left(42))
   case class TestClass(a: Int, b: Int)
   val TestClass(a, b) = TestClass(1, 1) /* assert: DisableSyntax.noValPatterns
-      ^
+      ^^^^^^^^^^^^^^^
   Pattern matching in val assignment can result in match error, use "_ match { ... }" with a fallback case instead.*/
   val TestClass(c, _) = TestClass(1, 1) /* assert: DisableSyntax.noValPatterns
-      ^
+      ^^^^^^^^^^^^^^^
   Pattern matching in val assignment can result in match error, use "_ match { ... }" with a fallback case instead.*/
 }
