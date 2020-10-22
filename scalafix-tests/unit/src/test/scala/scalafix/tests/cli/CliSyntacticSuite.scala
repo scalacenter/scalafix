@@ -265,7 +265,7 @@ class CliSyntacticSuite extends BaseCliSuite {
     outputAssert = { out =>
       assert(
         out.endsWith(
-          """|a.scala:1:1: error: expected class or object definition
+          """|a.scala:1:1: error: expected class or object definition identifier
              |objec bar
              |^^^^^
              |""".stripMargin
