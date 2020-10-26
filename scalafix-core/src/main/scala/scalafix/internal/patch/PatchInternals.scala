@@ -139,14 +139,14 @@ object PatchInternals {
       .mkString
   }
 
-  def patchApply(
+  def tokenPatchApply(
       ctx: v0.RuleCtx,
       index: Option[v0.SemanticdbIndex],
       v0Patches: Iterable[v0.Patch]
   ): String = {
     val idx = index.getOrElse(v0.SemanticdbIndex.empty)
-    val tokenPatches = treePatchApply(v0Patches.asPatch)(ctx, idx)
-    val patchMap = tokenPatches
+    val patches = treePatchApply(v0Patches.asPatch)(ctx, idx)
+    val patchMap = patches
       .groupBy(x => TokenOps.hash(x.tok))
       .mapValues(_.reduce(merge).newTok)
     ctx.tokens.iterator
@@ -206,8 +206,6 @@ object PatchInternals {
       case Concat(a, b) =>
         loop(a)
         loop(b)
-      case EmptyPatch =>
-        ()
       case els =>
         f(els)
     }

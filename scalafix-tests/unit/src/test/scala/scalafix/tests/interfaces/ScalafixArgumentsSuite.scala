@@ -213,72 +213,69 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     assert(contentAfterRun == fileEvaluation.previewPatches().get)
   }
 
-  test("ScalafixArguments.evaluate retrieve only atomic patches") {
+  test("CommentFileNonAtomic retrieves 2 patches") {
     val run1 = api
-      .withRules(
-        List(
-          "CommentFileRule1"
-        ).asJava
-      )
+      .withRules(List("CommentFileNonAtomic").asJava)
       .withSourceroot(src)
 
     val fileEvaluation1 = run1.evaluate().getFileEvaluations.head
     val patches1 = fileEvaluation1.getPatches
     assert(patches1.length == 2)
-    val obtained1 = fileEvaluation1.previewPatches().get
 
-    val run2 = api
-      .withRules(
-        List(
-          "CommentFileRule2"
-        ).asJava
-      )
+  }
+  test("CommentFileAtomicRule retrieves 1 patch") {
+    val run = api
+      .withRules(List("CommentFileAtomic").asJava)
       .withSourceroot(src)
-    val fileEvaluation2 = run2.evaluate().getFileEvaluations.head
-    val patches2 = fileEvaluation2.getPatches
-    assert(patches2.length == 1)
-    val obtained2 = fileEvaluation2.previewPatches().get
-    assertNoDiff(obtained1, obtained2)
+    val fileEvaluation = run.evaluate().getFileEvaluations.head
+    val patches = fileEvaluation.getPatches
+    assert(patches.length == 1)
   }
 
-  test("ScalafixArguments.evaluate respects suppression mechanism") {
-    val content = """|import scala.concurrent.duration // scalafix:ok
-                     |import scala.concurrent.Future""".stripMargin
-    val cwd: Path = StringFS
+  test("Suppression mechanism isn't applied with non atomic patches") {
+    val content =
+      """|import scala.concurrent.duration // scalafix:ok
+         |import scala.concurrent.Future""".stripMargin
+    val cwd = StringFS
       .string2dir(
         s"""|/src/Main.scala
             |$content""".stripMargin,
         charset
       )
       .toNIO
-    val src: Path = cwd.resolve("src")
-    val run1 = api
-      .withRules(
-        List(
-          "CommentFileRule1"
-        ).asJava
-      )
+    val src = cwd.resolve("src")
+    val run = api
+      .withRules(List("CommentFileNonAtomic").asJava)
       .withSourceroot(src)
 
-    val fileEvaluation1 = run1.evaluate().getFileEvaluations.head
-    val obtained1 = fileEvaluation1.previewPatches().get
+    val fileEvaluation = run.evaluate().getFileEvaluations.head
+    val obtained = fileEvaluation.previewPatches().get
     // A patch without `atomic` will ignore suppressions.
-    val expected = """|/*import scala.concurrent.duration // scalafix:ok
-                      |import scala.concurrent.Future*/""".stripMargin
-    assertNoDiff(obtained1, expected)
+    val expected =
+      """|/*import scala.concurrent.duration // scalafix:ok
+         |import scala.concurrent.Future*/""".stripMargin
+    assertNoDiff(obtained, expected)
+  }
 
-    val run2 = api
-      .withRules(
-        List(
-          "CommentFileRule2"
-        ).asJava
+  test("Suppression mechanism is applied with atomic patches") {
+    val content =
+      """|import scala.concurrent.duration // scalafix:ok
+         |import scala.concurrent.Future""".stripMargin
+    val cwd = StringFS
+      .string2dir(
+        s"""|/src/Main.scala
+            |$content""".stripMargin,
+        charset
       )
+      .toNIO
+    val src = cwd.resolve("src")
+    val run = api
+      .withRules(List("CommentFileAtomic").asJava)
       .withSourceroot(src)
 
-    val fileEvaluation2 = run2.evaluate().getFileEvaluations.head
-    val obtained2 = fileEvaluation2.previewPatches().get
-
-    assertNoDiff(obtained2, content)
+    val fileEvaluation = run.evaluate().getFileEvaluations.head
+    val obtained = fileEvaluation.previewPatches().get
+    assertNoDiff(obtained, content)
   }
 
   def removeUnsuedRule(): SemanticRule = {

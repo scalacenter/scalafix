@@ -51,7 +51,7 @@ abstract class AbstractSemanticRuleSuite(
       finally rule.afterComplete()
     // verify to verify that tokenPatchApply and fixed are the same
     val fixed =
-      PatchInternals.patchApply(
+      PatchInternals.tokenPatchApply(
         res.ruleCtx,
         res.semanticdbIndex,
         res.patches

@@ -42,7 +42,7 @@ import scalafix.internal.diff.DiffUtils
 import scalafix.internal.interfaces.ScalafixEvaluationImpl
 import scalafix.internal.interfaces.ScalafixFileEvaluationImpl
 import scalafix.internal.patch.PatchInternals
-import scalafix.internal.patch.PatchInternals.patchApply
+import scalafix.internal.patch.PatchInternals.tokenPatchApply
 import scalafix.lint.LintSeverity
 import scalafix.lint.RuleDiagnostic
 import scalafix.v0
@@ -374,7 +374,7 @@ object MainOps {
       ctx: RuleCtx,
       index: Option[v0.SemanticdbIndex]
   ): Option[String] =
-    Try(patchApply(ctx, index, patches)).toOption
+    Try(tokenPatchApply(ctx, index, patches)).toOption
 
   def applyPatches(
       args: ValidatedArgs,
@@ -385,7 +385,7 @@ object MainOps {
   ): Try[ExitStatus] = {
     val input = args.input(file)
     for {
-      fixed <- Try(patchApply(ctx, index, patches))
+      fixed <- Try(tokenPatchApply(ctx, index, patches))
       if (fixed != input.text)
       toFix = args.pathReplace(file).toNIO
       _ <- Try(Files.createDirectories(toFix.getParent))
