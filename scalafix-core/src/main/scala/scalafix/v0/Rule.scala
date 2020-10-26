@@ -83,7 +83,7 @@ abstract class Rule(ruleName: RuleName) { self =>
     // This overload of apply if purely for convenience
     // Use `applyAndLint` to iterate over Diagnostic without printing to the console
     val result =
-      PatchInternals(patches, ctx, semanticOption)
+      PatchInternals(patches, ctx, semanticOption, suppress = false)
     result.diagnostics.foreach(diag => ctx.config.reporter.lint(diag))
     result.fixed
   }
@@ -93,7 +93,8 @@ abstract class Rule(ruleName: RuleName) { self =>
       String,
       List[RuleDiagnostic]
   ) = {
-    val res = PatchInternals(fixWithName(ctx), ctx, semanticOption)
+    val res =
+      PatchInternals(fixWithName(ctx), ctx, semanticOption, suppress = false)
     (res.fixed, res.diagnostics)
   }
 

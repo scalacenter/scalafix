@@ -42,7 +42,7 @@ class EscapeHatch private (
     val diagnostics = List.newBuilder[RuleDiagnostic]
     patchesByName.foreach {
       case (rule, rulePatch) =>
-        PatchInternals.foreach(rulePatch) {
+        PatchInternals.foreachPatchUnit(rulePatch) {
           case LintPatch(message) =>
             diagnostics += message.toDiagnostic(rule, ctx.config)
           case rewritePatch =>
@@ -56,63 +56,67 @@ class EscapeHatch private (
       implicit ctx: RuleCtx,
       index: SemanticdbIndex
   ): (Iterable[Patch], List[RuleDiagnostic]) = {
-    if (isEmpty) return {
+    if (isEmpty) {
       val (patch, diags) = rawFilter(patchesByName)
       (Seq(patch), diags)
-    }
+    } else {
+      val usedEscapes = mutable.Set.empty[EscapeFilter]
+      val lintMessages = List.newBuilder[RuleDiagnostic]
 
-    val usedEscapes = mutable.Set.empty[EscapeFilter]
-    val lintMessages = List.newBuilder[RuleDiagnostic]
-
-    def isDisabledByEscape(name: RuleName, start: Int): Boolean =
-      // annotatedEscapes takes precedence over anchoredEscapes
-      annotatedEscapes.isEnabled(name, start) match {
-        case (false, Some(culprit)) => // if disabled, there must be a escape
-          usedEscapes += culprit
-          true
-        case _ =>
-          val (enabled, culprit) = anchoredEscapes.isEnabled(name, start)
-          culprit.foreach(escape => usedEscapes += escape)
-          !enabled
-      }
-
-    def loop(name: RuleName, patch: Patch): Patch = patch match {
-      case AtomicPatch(underlying) =>
-        val hasDisabledPatch =
-          PatchInternals.treePatchApply(underlying).exists { tp =>
-            val byGit = diffDisable.isDisabled(tp.tok.pos)
-            val byEscape = isDisabledByEscape(name, tp.tok.pos.start)
-            byGit || byEscape
-          }
-        if (hasDisabledPatch) EmptyPatch else underlying
-
-      case Concat(a, b) => Concat(loop(name, a), loop(name, b))
-
-      case LintPatch(lint) =>
-        val byGit = diffDisable.isDisabled(lint.position)
-        val id = lint.fullStringID(name)
-        val byEscape = isDisabledByEscape(id, lint.position.start)
-        val isLintDisabled = byGit || byEscape
-
-        if (!isLintDisabled) {
-          lintMessages += lint.toDiagnostic(name, ctx.config)
+      def isDisabledByEscape(name: RuleName, start: Int): Boolean =
+        // annotatedEscapes takes precedence over anchoredEscapes
+        annotatedEscapes.isEnabled(name, start) match {
+          case (false, Some(culprit)) => // if disabled, there must be a escape
+            usedEscapes += culprit
+            true
+          case _ =>
+            val (enabled, culprit) = anchoredEscapes.isEnabled(name, start)
+            culprit.foreach(escape => usedEscapes += escape)
+            !enabled
         }
 
-        EmptyPatch
+      def loop(name: RuleName, patch: Patch): Patch = patch match {
+        case ap @ AtomicPatch(underlying) =>
+          val hasDisabledPatch =
+            PatchInternals.treePatchApply(underlying).exists { tp =>
+              val byGit = diffDisable.isDisabled(tp.tok.pos)
+              val byEscape = isDisabledByEscape(name, tp.tok.pos.start)
+              byGit || byEscape
+            }
+          if (hasDisabledPatch) EmptyPatch else ap
 
-      case e => e
-    }
+        case Concat(a, b) => {
+          Concat(loop(name, a), loop(name, b))
+        }
 
-    val patches = patchesByName.map {
-      case (name, patch) => loop(name, patch)
-    }
-    val unusedWarnings =
-      (annotatedEscapes.unusedEscapes(usedEscapes) ++
-        anchoredEscapes.unusedEscapes(usedEscapes)).map { pos =>
-        UnusedScalafixSuppression.at(pos).toDiagnostic(UnusedName, ctx.config)
+        case LintPatch(lint) =>
+          val byGit = diffDisable.isDisabled(lint.position)
+          val id = lint.fullStringID(name)
+          val byEscape = isDisabledByEscape(id, lint.position.start)
+          val isLintDisabled = byGit || byEscape
+
+          if (!isLintDisabled) {
+            lintMessages += lint.toDiagnostic(name, ctx.config)
+          }
+
+          EmptyPatch
+
+        case e => e
       }
-    val warnings = lintMessages.result() ++ unusedWarnings
-    (patches, warnings)
+
+      val patches = patchesByName.map {
+        case (name, patch) =>
+          loop(name, patch)
+
+      }
+      val unusedWarnings =
+        (annotatedEscapes.unusedEscapes(usedEscapes) ++
+          anchoredEscapes.unusedEscapes(usedEscapes)).map { pos =>
+          UnusedScalafixSuppression.at(pos).toDiagnostic(UnusedName, ctx.config)
+        }
+      val warnings = lintMessages.result() ++ unusedWarnings
+      (patches, warnings)
+    }
   }
 
   def isEmpty: Boolean =

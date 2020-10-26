@@ -62,7 +62,7 @@ object PatchInternals {
         }
       }
       val patches = treePatchApply(finalPatch)(ctx, idx)
-      val atomicPatches = underlying(finalPatch).toList
+      val atomicPatches = getPatchUnits(finalPatch).toList
       ResultWithContext(
         tokenPatchApply(ctx, patches),
         atomicPatches,
@@ -139,14 +139,14 @@ object PatchInternals {
       .mkString
   }
 
-  def tokenPatchApply(
+  def patchApply(
       ctx: v0.RuleCtx,
       index: Option[v0.SemanticdbIndex],
       v0Patches: Iterable[v0.Patch]
   ): String = {
     val idx = index.getOrElse(v0.SemanticdbIndex.empty)
-    val patches = treePatchApply(v0Patches.asPatch)(ctx, idx)
-    val patchMap = patches
+    val tokenPatches = treePatchApply(v0Patches.asPatch)(ctx, idx)
+    val patchMap = tokenPatches
       .groupBy(x => TokenOps.hash(x.tok))
       .mapValues(_.reduce(merge).newTok)
     ctx.tokens.iterator
@@ -161,6 +161,15 @@ object PatchInternals {
         ()
       case els =>
         builder += els
+    }
+    builder.result()
+  }
+
+  private def getPatchUnits(patch: Patch): Seq[Patch] = {
+    val builder = Seq.newBuilder[Patch]
+    foreachPatchUnit(patch) {
+      case _: LintPatch => ()
+      case els => builder += els
     }
     builder.result()
   }
@@ -185,6 +194,20 @@ object PatchInternals {
         ()
       case AtomicPatch(underlying) =>
         loop(underlying)
+      case els =>
+        f(els)
+    }
+    loop(patch)
+  }
+
+  // don't decompose Atomic Patch
+  def foreachPatchUnit(patch: Patch)(f: Patch => Unit): Unit = {
+    def loop(patch: Patch): Unit = patch match {
+      case Concat(a, b) =>
+        loop(a)
+        loop(b)
+      case EmptyPatch =>
+        ()
       case els =>
         f(els)
     }

@@ -7,6 +7,7 @@ import scalafix.patch.Patch
 import scalafix.util.SymbolMatcher
 import scalafix.v0
 import scalafix.v1
+import scalafix.v1.SyntacticDocument
 
 case class FqnRule(index: v0.SemanticdbIndex)
     extends v0.SemanticRule(index, "FqnRule") {
@@ -48,5 +49,19 @@ class SemanticRuleV1 extends v1.SemanticRule("SemanticRuleV1") {
 class SyntacticRuleV1 extends v1.SyntacticRule("SyntacticRuleV1") {
   override def fix(implicit doc: v1.SyntacticDocument): Patch = {
     Patch.addRight(doc.tree, "\nobject SyntacticRuleV1")
+  }
+}
+
+class CommentFileRule1 extends v1.SyntacticRule("CommentFileRule1") {
+  override def fix(implicit doc: SyntacticDocument): Patch = {
+    Patch.addLeft(doc.tree, "/*") +
+      Patch.addRight(doc.tree, "*/")
+  }
+}
+
+class CommentFileRule2 extends v1.SyntacticRule("CommentFileRule2") {
+  override def fix(implicit doc: SyntacticDocument): Patch = {
+    (Patch.addLeft(doc.tree, "/*") +
+      Patch.addRight(doc.tree, "*/")).atomic
   }
 }
