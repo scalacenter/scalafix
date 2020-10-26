@@ -1,5 +1,6 @@
 package scalafix.interfaces;
 
+import javax.swing.text.html.Option;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -24,16 +25,16 @@ public interface ScalafixFileEvaluation {
 
     /**
      *
-     * @return a more detailed error in case of scalafix ParseError, StaleSemanticdbError,
-     * MissingSemanticdbError or an UnexpectedError. LinterErrors are found in {@link ScalafixDiagnostic}
+     * @return a more detailed error in case of scalafix.
      */
     Optional<String> getErrorMessage();
 
+    Optional<FileEvaluationError> getError();
+
     /**
-     *
-     * @return Can only be a ParseError, StaleSemanticdbError, MissingSemanticdbError or UnexpectedError
+     * @deprecated  replaced by {@link #getError()}
      */
-    ScalafixError[] getErrors();
+    @Deprecated ScalafixError[] getErrors();
 
     ScalafixDiagnostic[] getDiagnostics();
 

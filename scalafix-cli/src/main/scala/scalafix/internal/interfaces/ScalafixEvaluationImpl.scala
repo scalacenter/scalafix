@@ -3,34 +3,37 @@ package scalafix.internal.interfaces
 import java.util.Optional
 
 import scalafix.cli.ExitStatus
+import scalafix.interfaces.EvaluationError
 import scalafix.interfaces.ScalafixError
 import scalafix.interfaces.ScalafixEvaluation
 import scalafix.interfaces.ScalafixFileEvaluation
 import scalafix.internal.util.OptionOps._
 
 final case class ScalafixEvaluationImpl(
-    error: ExitStatus,
+    exitStatus: ExitStatus,
     errorMessage: Option[String],
     fileEvaluations: Seq[ScalafixFileEvaluationImpl]
 ) extends ScalafixEvaluation {
 
+  override def getError: Optional[EvaluationError] =
+    exitStatus match {
+      case ExitStatus.Ok => None.asJava
+      case ExitStatus.NoFilesError => Some(EvaluationError.NoFilesError).asJava
+      case ExitStatus.CommandLineError =>
+        Some(EvaluationError.CommandLineError).asJava
+      case _ => Some(EvaluationError.UnexpectedError).asJava
+    }
+
   override def getErrors: Array[ScalafixError] =
-    ScalafixErrorImpl.fromScala(error)
+    ScalafixErrorImpl.fromScala(exitStatus)
 
   override def getMessageError: Optional[String] =
-    errorMessage
-      .orElse({
-        val fileToError = fileEvaluations
-          .map { eval =>
-            (eval.originalPath, eval.errorMessage)
-          }
-          .toMap
-          .collect { case (path, Some(msg)) => (path, msg) }
-        if (fileToError.isEmpty) None else Some(fileToError.toString())
-      })
-      .asJava
+    errorMessage.asJava
 
-  override def isSuccessful: Boolean = getErrors.isEmpty
+  override def getErrorMessage: Optional[String] =
+    errorMessage.asJava
+
+  override def isSuccessful: Boolean = !getError.isPresent
 
   override def getFileEvaluations: Array[ScalafixFileEvaluation] =
     fileEvaluations.toArray
@@ -43,10 +46,10 @@ final case class ScalafixEvaluationImpl(
 object ScalafixEvaluationImpl {
 
   def apply(
-      error: ExitStatus,
+      exitStatus: ExitStatus,
       errorMessage: Option[String] = None
   ): ScalafixEvaluationImpl = {
-    new ScalafixEvaluationImpl(error, errorMessage, Nil)
+    new ScalafixEvaluationImpl(exitStatus, errorMessage, Nil)
   }
 
   def from(

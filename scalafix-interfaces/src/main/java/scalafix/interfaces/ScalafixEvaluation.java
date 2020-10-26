@@ -8,15 +8,21 @@ public interface ScalafixEvaluation {
      */
     boolean isSuccessful();
 
-    ScalafixError[] getErrors();
+    Optional<EvaluationError> getError();
 
     /**
-     *
-     * @return a more detailed error message that can be
-     *  - an explanation of why scalafix failed running at all
-     *  - a concatenation of all {@Link ScalafixFileEvaluation} message Errors
+     * @deprecated  replaced by {@link #getError()}
      */
-    Optional<String> getMessageError();
+    @Deprecated ScalafixError[] getErrors();
+    /**
+     * @deprecated  replaced by {@link #getErrorMessage()}
+     */
+    @Deprecated Optional<String> getMessageError();
+
+    /**
+     * @return a more detailed error message that can be
+     */
+    Optional<String> getErrorMessage();
 
     /**
      * @return for each file we store the scalafix evaluation: If the evaluation is successful,

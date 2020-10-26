@@ -96,8 +96,8 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
       .withSourceroot(src)
       .evaluate()
 
-    val errors = result.getErrors.toList.map(_.toString)
-    assert(errors.isEmpty) // we ignore completely linterErrors
+    val error = result.getError
+    assert(!error.isPresent) // we ignore completely linterErrors
     assert(result.isSuccessful)
     assert(result.getFileEvaluations.length == 1)
     val fileEvaluation = result.getFileEvaluations.head
@@ -176,16 +176,12 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     val code = FileIO.slurp(AbsolutePath(main), StandardCharsets.UTF_8)
     val staleCode = code + "\n// comment\n"
     Files.write(main, staleCode.getBytes(StandardCharsets.UTF_8))
-    val code2 = FileIO.slurp(AbsolutePath(main), StandardCharsets.UTF_8)
     val evaluation2 = args.evaluate()
-    assert(
-      evaluation2.getErrors.toList
-        .map(_.toString) == List("StaleSemanticdbError")
-    )
-    assert(evaluation2.getMessageError.isPresent)
-    assert(!evaluation2.isSuccessful)
+    assert(!evaluation2.getError.isPresent)
+    assert(!evaluation2.getMessageError.isPresent)
+    assert(evaluation2.isSuccessful)
     val fileEval = evaluation2.getFileEvaluations.head
-    assert(fileEval.getErrors.head.toString == "StaleSemanticdbError")
+    assert(fileEval.getError.get.toString == "StaleSemanticdbError")
     assert(fileEval.getErrorMessage.get.startsWith("Stale SemanticDB"))
     assert(!fileEval.isSuccessful)
   }
@@ -321,7 +317,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
   ) {
     val eval = api.withRules(List("nonExisting").asJava).evaluate()
     assert(!eval.isSuccessful)
-    assert(eval.getErrors.toList.map(_.toString) == List("CommandLineError"))
+    assert(eval.getError.get.toString == "CommandLineError")
     assert(eval.getMessageError.get.contains("Unknown rule"))
   }
 
@@ -331,7 +327,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
       .withRules(List("DisableSyntax").asJava)
       .evaluate()
     assert(!eval.isSuccessful)
-    assert(eval.getErrors.toList.map(_.toString) == List("NoFilesError"))
+    assert(eval.getError.get.toString == "NoFilesError")
     assert(eval.getMessageError.get == "No files to fix")
   }
 
@@ -340,12 +336,11 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
       .withPaths(Seq(main).asJava)
       .withRules(List("ExplicitResultTypes").asJava)
       .evaluate()
-    assert(!eval.isSuccessful)
-    assert(
-      eval.getErrors.toList.map(_.toString) == List("MissingSemanticdbError")
-    )
-    assert(eval.getMessageError.get.contains(main.toString))
-    assert(eval.getMessageError.get.contains("SemanticDB not found"))
+    assert(eval.isSuccessful)
+    val fileEvaluation = eval.getFileEvaluations.head
+    assert(fileEvaluation.getError.get.toString == "MissingSemanticdbError")
+    assert(fileEvaluation.getErrorMessage.get.contains(main.toString))
+    assert(fileEvaluation.getErrorMessage.get.contains("SemanticDB not found"))
   }
 
   def removeUnsuedRule(): SemanticRule = {

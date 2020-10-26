@@ -133,8 +133,7 @@ object MainOps {
           // Then afterComplete for each rule
           args.rules.rules.foreach(_.afterComplete())
 
-          val exit = ExitStatus.merge(fileEvaluations.map(_.error))
-          ScalafixEvaluationImpl.from(fileEvaluations, exit)
+          ScalafixEvaluationImpl.from(fileEvaluations, ExitStatus.Ok)
         } else
           ScalafixEvaluationImpl(
             ExitStatus.NoFilesError,

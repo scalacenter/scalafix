@@ -6,6 +6,7 @@ import java.util.Optional
 import scala.meta.io.AbsolutePath
 
 import scalafix.cli.ExitStatus
+import scalafix.interfaces.FileEvaluationError
 import scalafix.interfaces.ScalafixDiagnostic
 import scalafix.interfaces.ScalafixError
 import scalafix.interfaces.ScalafixFileEvaluation
@@ -22,7 +23,7 @@ import scalafix.v0.RuleCtx
 final case class ScalafixFileEvaluationImpl(
     originalPath: AbsolutePath,
     fixedOpt: Option[String],
-    error: ExitStatus,
+    exitStatus: ExitStatus,
     errorMessage: Option[String],
     diagnostics: Seq[RuleDiagnostic],
     patches: Seq[ScalafixPatchImpl]
@@ -60,10 +61,21 @@ final case class ScalafixFileEvaluationImpl(
       .asJava
   }
 
-  override def getErrors(): Array[ScalafixError] =
-    ScalafixErrorImpl.fromScala(error)
+  override def getError(): Optional[FileEvaluationError] =
+    exitStatus match {
+      case ExitStatus.Ok => None.asJava
+      case ExitStatus.ParseError => Some(FileEvaluationError.ParseError).asJava
+      case ExitStatus.MissingSemanticdbError =>
+        Some(FileEvaluationError.MissingSemanticdbError).asJava
+      case ExitStatus.StaleSemanticdbError =>
+        Some(FileEvaluationError.StaleSemanticdbError).asJava
+      case _ => Some(FileEvaluationError.UnexpectedError).asJava
+    }
 
-  override def isSuccessful: Boolean = getErrors().isEmpty
+  override def getErrors: Array[ScalafixError] =
+    ScalafixErrorImpl.fromScala(exitStatus)
+
+  override def isSuccessful: Boolean = !getError().isPresent
 
   override def getErrorMessage: Optional[String] = errorMessage.asJava
 
@@ -137,7 +149,7 @@ object ScalafixFileEvaluationImpl {
     ScalafixFileEvaluationImpl(
       originalPath = originalPath,
       fixedOpt = fixed,
-      error = exitStatus,
+      exitStatus = exitStatus,
       errorMessage = None,
       diagnostics = diagnostics,
       patches = scalafixPatches
