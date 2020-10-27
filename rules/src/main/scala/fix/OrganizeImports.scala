@@ -691,16 +691,16 @@ object OrganizeImports {
   object Importees {
     def unapply(importees: Seq[Importee]): Option[
       (
-        List[Importee], // Names
-        List[Importee], // Renames
-        List[Importee], // Unimports
-        Option[Importee] // Wildcard
+        List[Importee.Name],
+        List[Importee.Rename],
+        List[Importee.Unimport],
+        Option[Importee.Wildcard]
       )
     ] = {
-      var maybeWildcard: Option[Importee] = None
-      val unimports = ArrayBuffer.empty[Importee]
-      val renames = ArrayBuffer.empty[Importee]
-      val names = ArrayBuffer.empty[Importee]
+      val names = ArrayBuffer.empty[Importee.Name]
+      val renames = ArrayBuffer.empty[Importee.Rename]
+      val unimports = ArrayBuffer.empty[Importee.Unimport]
+      var maybeWildcard: Option[Importee.Wildcard] = None
 
       importees foreach {
         case i: Importee.Wildcard => maybeWildcard = Some(i)
