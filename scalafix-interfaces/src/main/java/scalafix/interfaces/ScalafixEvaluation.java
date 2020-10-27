@@ -4,11 +4,11 @@ import java.util.Optional;
 
 public interface ScalafixEvaluation {
     /**
-     * @return boolean true if scalafix has successfully been evaluated on all files configured with no error.
+     * @return boolean true if scalafix ran on at least one file; there might be errors in file evaluation though
      */
     boolean isSuccessful();
 
-    Optional<EvaluationError> getError();
+    Optional<ScalafixEvaluationError> getError();
 
     /**
      * @deprecated  replaced by {@link #getError()}
@@ -19,9 +19,6 @@ public interface ScalafixEvaluation {
      */
     @Deprecated Optional<String> getMessageError();
 
-    /**
-     * @return a more detailed error message that can be
-     */
     Optional<String> getErrorMessage();
 
     /**

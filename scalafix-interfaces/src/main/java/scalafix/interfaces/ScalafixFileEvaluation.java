@@ -1,10 +1,13 @@
 package scalafix.interfaces;
 
-import javax.swing.text.html.Option;
 import java.nio.file.Path;
 import java.util.Optional;
 
 public interface ScalafixFileEvaluation {
+    /**
+     * @return boolean true if scalafix was successfully evaluated on the file
+     */
+    boolean isSuccessful();
 
     /**
      * @return original path of the file scalafix has evaluated on
@@ -17,19 +20,9 @@ public interface ScalafixFileEvaluation {
      */
     ScalafixRule[] getEvaluatedRules();
 
-    /**
-     *
-     * @return boolean true if there is no error except LintError when scalafix has been evaluated on the file
-     */
-    boolean isSuccessful();
-
-    /**
-     *
-     * @return a more detailed error in case of scalafix.
-     */
     Optional<String> getErrorMessage();
 
-    Optional<FileEvaluationError> getError();
+    Optional<ScalafixFileEvaluationError> getError();
 
     /**
      * @deprecated  replaced by {@link #getError()}

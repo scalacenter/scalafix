@@ -3,9 +3,9 @@ package scalafix.internal.interfaces
 import java.util.Optional
 
 import scalafix.cli.ExitStatus
-import scalafix.interfaces.EvaluationError
 import scalafix.interfaces.ScalafixError
 import scalafix.interfaces.ScalafixEvaluation
+import scalafix.interfaces.ScalafixEvaluationError
 import scalafix.interfaces.ScalafixFileEvaluation
 import scalafix.internal.util.OptionOps._
 
@@ -15,13 +15,14 @@ final case class ScalafixEvaluationImpl(
     fileEvaluations: Seq[ScalafixFileEvaluationImpl]
 ) extends ScalafixEvaluation {
 
-  override def getError: Optional[EvaluationError] =
+  override def getError: Optional[ScalafixEvaluationError] =
     exitStatus match {
       case ExitStatus.Ok => None.asJava
-      case ExitStatus.NoFilesError => Some(EvaluationError.NoFilesError).asJava
+      case ExitStatus.NoFilesError =>
+        Some(ScalafixEvaluationError.NoFilesError).asJava
       case ExitStatus.CommandLineError =>
-        Some(EvaluationError.CommandLineError).asJava
-      case _ => Some(EvaluationError.UnexpectedError).asJava
+        Some(ScalafixEvaluationError.CommandLineError).asJava
+      case _ => Some(ScalafixEvaluationError.UnexpectedError).asJava
     }
 
   override def getErrors: Array[ScalafixError] =

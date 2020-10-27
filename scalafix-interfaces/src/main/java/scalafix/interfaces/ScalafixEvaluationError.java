@@ -1,6 +1,6 @@
 package scalafix.interfaces;
 
-public enum EvaluationError {
+public enum ScalafixEvaluationError {
     /**
      * Something unexpected happened.
      */

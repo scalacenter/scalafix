@@ -6,10 +6,10 @@ import java.util.Optional
 import scala.meta.io.AbsolutePath
 
 import scalafix.cli.ExitStatus
-import scalafix.interfaces.FileEvaluationError
 import scalafix.interfaces.ScalafixDiagnostic
 import scalafix.interfaces.ScalafixError
 import scalafix.interfaces.ScalafixFileEvaluation
+import scalafix.interfaces.ScalafixFileEvaluationError
 import scalafix.interfaces.ScalafixPatch
 import scalafix.interfaces.ScalafixRule
 import scalafix.internal.diff.DiffUtils
@@ -61,15 +61,16 @@ final case class ScalafixFileEvaluationImpl(
       .asJava
   }
 
-  override def getError(): Optional[FileEvaluationError] =
+  override def getError(): Optional[ScalafixFileEvaluationError] =
     exitStatus match {
       case ExitStatus.Ok => None.asJava
-      case ExitStatus.ParseError => Some(FileEvaluationError.ParseError).asJava
+      case ExitStatus.ParseError =>
+        Some(ScalafixFileEvaluationError.ParseError).asJava
       case ExitStatus.MissingSemanticdbError =>
-        Some(FileEvaluationError.MissingSemanticdbError).asJava
+        Some(ScalafixFileEvaluationError.MissingSemanticdbError).asJava
       case ExitStatus.StaleSemanticdbError =>
-        Some(FileEvaluationError.StaleSemanticdbError).asJava
-      case _ => Some(FileEvaluationError.UnexpectedError).asJava
+        Some(ScalafixFileEvaluationError.StaleSemanticdbError).asJava
+      case _ => Some(ScalafixFileEvaluationError.UnexpectedError).asJava
     }
 
   override def getErrors: Array[ScalafixError] =

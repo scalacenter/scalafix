@@ -165,7 +165,6 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
       )
       .withClasspath((scalaLibrary.map(_.toNIO) :+ target).asJava)
       .withScalacOptions(Collections.singletonList(removeUnused))
-      .withScalaVersion(scalaVersion)
       .withPaths(Seq(main).asJava)
       .withSourceroot(src)
 
@@ -311,7 +310,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     assertNoDiff(obtained, content)
   }
 
-    test(
+  test(
     "Scalafix-evaluation-error-messages:Unknown rule error message",
     SkipWindows
   ) {
