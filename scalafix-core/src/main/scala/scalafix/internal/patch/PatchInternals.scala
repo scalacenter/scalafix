@@ -165,7 +165,7 @@ object PatchInternals {
     builder.result()
   }
 
-  private def getPatchUnits(patch: Patch): Seq[Patch] = {
+  private[scalafix] def getPatchUnits(patch: Patch): Seq[Patch] = {
     val builder = Seq.newBuilder[Patch]
     foreachPatchUnit(patch) {
       case _: LintPatch => ()
@@ -185,7 +185,7 @@ object PatchInternals {
     patch.isEmpty || hasLintMessage && onlyLint
   }
 
-  def foreach(patch: Patch)(f: Patch => Unit): Unit = {
+  private def foreach(patch: Patch)(f: Patch => Unit): Unit = {
     def loop(patch: Patch): Unit = patch match {
       case Concat(a, b) =>
         loop(a)
@@ -201,7 +201,9 @@ object PatchInternals {
   }
 
   // don't decompose Atomic Patch
-  def foreachPatchUnit(patch: Patch)(f: Patch => Unit): Unit = {
+  private[scalafix] def foreachPatchUnit(
+      patch: Patch
+  )(f: Patch => Unit): Unit = {
     def loop(patch: Patch): Unit = patch match {
       case Concat(a, b) =>
         loop(a)

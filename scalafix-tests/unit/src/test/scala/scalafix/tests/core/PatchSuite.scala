@@ -8,8 +8,12 @@ import scala.meta._
 import scala.meta.tokens.Token.Ident
 
 import org.scalatest.funsuite.AnyFunSuiteLike
+import scalafix.internal.patch.PatchInternals
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.patch.Patch
+import scalafix.patch.Patch.internal.Add
+import scalafix.patch.Patch.internal.AtomicPatch
+import scalafix.patch.Patch.internal.Concat
 import scalafix.testkit.AbstractSyntacticRuleSuite
 import scalafix.v0.Rule
 
@@ -134,5 +138,36 @@ class PatchSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
     assert(nonEmpty.atomic.isEmpty == false)
     assert((nonEmpty + nonEmpty).isEmpty == false)
     assert((nonEmpty + nonEmpty).atomic.isEmpty == false)
+  }
+
+  val commentFileRule: Rule = Rule.syntactic("commentEntireFile") { ctx =>
+    Patch.addAround(ctx.tree, "/*", "*/")
+  }
+
+  check(
+    commentFileRule,
+    "comment a file is a syntactic patch",
+    """import a.b
+      |
+      |object A
+      |""".stripMargin,
+    """/*import a.b
+      |
+      |object A
+      |*/""".stripMargin
+  )
+
+  test("Patch.addAround") {
+    val patch = Patch.addAround(tree, "/*", "*/")
+    assert(!patch.isEmpty)
+    val atomicPatch = PatchInternals.getPatchUnits(patch)
+    assert(atomicPatch.length == 1)
+    atomicPatch.head match {
+      case AtomicPatch(Concat(patch1, patch2)) =>
+        assert(patch1.isInstanceOf[Add])
+        assert(patch2.isInstanceOf[Add])
+      case _ =>
+        fail(s"$atomicPatch is not of expected type AtomicPatch(Concat(_, _))")
+    }
   }
 }
