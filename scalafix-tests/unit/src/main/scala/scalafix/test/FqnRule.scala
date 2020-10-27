@@ -50,3 +50,17 @@ class SyntacticRuleV1 extends v1.SyntacticRule("SyntacticRuleV1") {
     Patch.addRight(doc.tree, "\nobject SyntacticRuleV1")
   }
 }
+
+class CommentFileNonAtomic extends v1.SyntacticRule("CommentFileNonAtomic") {
+  override def fix(implicit doc: v1.SyntacticDocument): Patch = {
+    Patch.addLeft(doc.tree, "/*") +
+      Patch.addRight(doc.tree, "*/")
+  }
+}
+
+class CommentFileAtomic extends v1.SyntacticRule("CommentFileAtomic") {
+  override def fix(implicit doc: v1.SyntacticDocument): Patch = {
+    (Patch.addLeft(doc.tree, "/*") +
+      Patch.addRight(doc.tree, "*/")).atomic
+  }
+}

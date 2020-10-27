@@ -35,7 +35,9 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     if (ScalaVersions.isScala213)
       "-Wunused:imports"
     else "-Ywarn-unused-import"
-  val api: ScalafixArguments = ScalafixArgumentsImpl()
+  val api: ScalafixArguments =
+    ScalafixArgumentsImpl()
+      .withScalaVersion(scalaVersion)
 
   val charset = StandardCharsets.US_ASCII
   val cwd: Path = StringFS
@@ -88,7 +90,6 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
         List("--settings.DisableSyntax.noSemicolons", "true").asJava
       )
       .withClasspath((scalaLibrary.map(_.toNIO) :+ target).asJava)
-      .withScalaVersion(scalaVersion)
       .withScalacOptions(Collections.singletonList(removeUnused))
       .withPaths(Seq(main).asJava)
       .withSourceroot(src)
@@ -176,7 +177,6 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
         List("--settings.DisableSyntax.noSemicolons", "true").asJava
       )
       .withClasspath((scalaLibrary.map(_.toNIO) :+ target).asJava)
-      .withScalaVersion(scalaVersion)
       .withScalacOptions(Collections.singletonList(removeUnused))
       .withPaths(Seq(main).asJava)
       .withSourceroot(src)
@@ -201,7 +201,6 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
         List("--settings.DisableSyntax.noSemicolons", "true").asJava
       )
       .withClasspath((scalaLibrary.map(_.toNIO) :+ target).asJava)
-      .withScalaVersion(scalaVersion)
       .withScalacOptions(Collections.singletonList(removeUnused))
       .withPaths(Seq(main).asJava)
       .withSourceroot(src)
@@ -212,6 +211,71 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     val contentAfterRun =
       FileIO.slurp(AbsolutePath(main), StandardCharsets.UTF_8)
     assert(contentAfterRun == fileEvaluation.previewPatches().get)
+  }
+
+  test("CommentFileNonAtomic retrieves 2 patches") {
+    val run1 = api
+      .withRules(List("CommentFileNonAtomic").asJava)
+      .withSourceroot(src)
+
+    val fileEvaluation1 = run1.evaluate().getFileEvaluations.head
+    val patches1 = fileEvaluation1.getPatches
+    assert(patches1.length == 2)
+
+  }
+  test("CommentFileAtomicRule retrieves 1 patch") {
+    val run = api
+      .withRules(List("CommentFileAtomic").asJava)
+      .withSourceroot(src)
+    val fileEvaluation = run.evaluate().getFileEvaluations.head
+    val patches = fileEvaluation.getPatches
+    assert(patches.length == 1)
+  }
+
+  test("Suppression mechanism isn't applied with non atomic patches") {
+    val content =
+      """|import scala.concurrent.duration // scalafix:ok
+         |import scala.concurrent.Future""".stripMargin
+    val cwd = StringFS
+      .string2dir(
+        s"""|/src/Main.scala
+            |$content""".stripMargin,
+        charset
+      )
+      .toNIO
+    val src = cwd.resolve("src")
+    val run = api
+      .withRules(List("CommentFileNonAtomic").asJava)
+      .withSourceroot(src)
+
+    val fileEvaluation = run.evaluate().getFileEvaluations.head
+    val obtained = fileEvaluation.previewPatches().get
+    // A patch without `atomic` will ignore suppressions.
+    val expected =
+      """|/*import scala.concurrent.duration // scalafix:ok
+         |import scala.concurrent.Future*/""".stripMargin
+    assertNoDiff(obtained, expected)
+  }
+
+  test("Suppression mechanism is applied with atomic patches") {
+    val content =
+      """|import scala.concurrent.duration // scalafix:ok
+         |import scala.concurrent.Future""".stripMargin
+    val cwd = StringFS
+      .string2dir(
+        s"""|/src/Main.scala
+            |$content""".stripMargin,
+        charset
+      )
+      .toNIO
+    val src = cwd.resolve("src")
+    val run = api
+      .withRules(List("CommentFileAtomic").asJava)
+      .withSourceroot(src)
+
+    val fileEvaluation = run.evaluate().getFileEvaluations.head
+    val obtained = fileEvaluation.previewPatches().get
+    assertNoDiff(obtained, content)
   }
 
   def removeUnsuedRule(): SemanticRule = {

@@ -62,7 +62,7 @@ object PatchInternals {
         }
       }
       val patches = treePatchApply(finalPatch)(ctx, idx)
-      val atomicPatches = underlying(finalPatch).toList
+      val atomicPatches = getPatchUnits(finalPatch).toList
       ResultWithContext(
         tokenPatchApply(ctx, patches),
         atomicPatches,
@@ -165,6 +165,15 @@ object PatchInternals {
     builder.result()
   }
 
+  private def getPatchUnits(patch: Patch): Seq[Patch] = {
+    val builder = Seq.newBuilder[Patch]
+    foreachPatchUnit(patch) {
+      case _: LintPatch => ()
+      case els => builder += els
+    }
+    builder.result()
+  }
+
   def isOnlyLintMessages(patch: Patch): Boolean = {
     // TODO(olafur): foreach should really return Stream[Patch] for early termination.
     var onlyLint = true
@@ -185,6 +194,18 @@ object PatchInternals {
         ()
       case AtomicPatch(underlying) =>
         loop(underlying)
+      case els =>
+        f(els)
+    }
+    loop(patch)
+  }
+
+  // don't decompose Atomic Patch
+  def foreachPatchUnit(patch: Patch)(f: Patch => Unit): Unit = {
+    def loop(patch: Patch): Unit = patch match {
+      case Concat(a, b) =>
+        loop(a)
+        loop(b)
       case els =>
         f(els)
     }

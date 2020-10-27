@@ -42,7 +42,7 @@ class EscapeHatch private (
     val diagnostics = List.newBuilder[RuleDiagnostic]
     patchesByName.foreach {
       case (rule, rulePatch) =>
-        PatchInternals.foreach(rulePatch) {
+        PatchInternals.foreachPatchUnit(rulePatch) {
           case LintPatch(message) =>
             diagnostics += message.toDiagnostic(rule, ctx.config)
           case rewritePatch =>
@@ -60,7 +60,6 @@ class EscapeHatch private (
       val (patch, diags) = rawFilter(patchesByName)
       (Seq(patch), diags)
     }
-
     val usedEscapes = mutable.Set.empty[EscapeFilter]
     val lintMessages = List.newBuilder[RuleDiagnostic]
 
@@ -77,14 +76,14 @@ class EscapeHatch private (
       }
 
     def loop(name: RuleName, patch: Patch): Patch = patch match {
-      case AtomicPatch(underlying) =>
+      case ap @ AtomicPatch(underlying) =>
         val hasDisabledPatch =
           PatchInternals.treePatchApply(underlying).exists { tp =>
             val byGit = diffDisable.isDisabled(tp.tok.pos)
             val byEscape = isDisabledByEscape(name, tp.tok.pos.start)
             byGit || byEscape
           }
-        if (hasDisabledPatch) EmptyPatch else underlying
+        if (hasDisabledPatch) EmptyPatch else ap
 
       case Concat(a, b) => Concat(loop(name, a), loop(name, b))
 
