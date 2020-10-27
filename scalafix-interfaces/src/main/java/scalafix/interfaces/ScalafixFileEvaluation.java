@@ -4,6 +4,10 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 public interface ScalafixFileEvaluation {
+    /**
+     * @return boolean true if scalafix was successfully evaluated on the file
+     */
+    boolean isSuccessful();
 
     /**
      * @return original path of the file scalafix has evaluated on
@@ -16,13 +20,14 @@ public interface ScalafixFileEvaluation {
      */
     ScalafixRule[] getEvaluatedRules();
 
-    /**
-     *
-     * @return boolean true if there is no error when scalafix has been evaluated on the file
-     */
-    boolean isSuccessful();
+    Optional<String> getErrorMessage();
 
-    ScalafixError[] getErrors();
+    Optional<ScalafixFileEvaluationError> getError();
+
+    /**
+     * @deprecated  replaced by {@link #getError()}
+     */
+    @Deprecated ScalafixError[] getErrors();
 
     ScalafixDiagnostic[] getDiagnostics();
 

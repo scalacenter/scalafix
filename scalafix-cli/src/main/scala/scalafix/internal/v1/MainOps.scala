@@ -43,8 +43,6 @@ import scalafix.internal.interfaces.ScalafixEvaluationImpl
 import scalafix.internal.interfaces.ScalafixFileEvaluationImpl
 import scalafix.internal.patch.PatchInternals
 import scalafix.internal.patch.PatchInternals.tokenPatchApply
-import scalafix.lint.LintSeverity
-import scalafix.lint.RuleDiagnostic
 import scalafix.v0
 import scalafix.v0.RuleCtx
 import scalafix.v1.Rule
@@ -103,42 +101,45 @@ object MainOps {
           Some("missing rules")
         )
       }
-      case _: Seq[Rule] => {
+      case _: Seq[Rule] =>
         val files = getFilesFrom(args)
-        val fileEvaluations = {
-          files.map { file =>
-            val input = args.input(file)
-            val result = Try(getPatchesAndDiags(args, input, file))
-            result match {
-              case Success(result) =>
-                ScalafixFileEvaluationImpl.from(
-                  file,
-                  Some(result.fixed),
-                  ExitStatus.Ok,
-                  result.patches,
-                  result.diagnostics
-                )(args, result.ruleCtx, result.semanticdbIndex)
+        if (files.nonEmpty) {
+          val fileEvaluations = {
+            files.map { file =>
+              val input = args.input(file)
+              val result = Try(getPatchesAndDiags(args, input, file))
+              result match {
+                case Success(result) =>
+                  ScalafixFileEvaluationImpl.from(
+                    file,
+                    Some(result.fixed),
+                    ExitStatus.Ok,
+                    result.patches,
+                    result.diagnostics
+                  )(args, result.ruleCtx, result.semanticdbIndex)
 
-              case Failure(exception) =>
-                ScalafixFileEvaluationImpl
-                  .from(file, ExitStatus.UnexpectedError, exception.getMessage)(
-                    args
-                  )
+                case Failure(exception) =>
+                  ScalafixFileEvaluationImpl
+                    .from(
+                      file,
+                      ExitStatus.from(exception),
+                      exception.getMessage
+                    )(
+                      args
+                    )
+              }
             }
           }
-        }
-        // Then afterComplete for each rule
-        args.rules.rules.foreach(_.afterComplete())
+          // Then afterComplete for each rule
+          args.rules.rules.foreach(_.afterComplete())
 
-        val exit = ExitStatus.merge(fileEvaluations.map(_.error))
-        val adjustedExitCode = adjustExitCode(
-          args,
-          exit,
-          files,
-          fileEvaluations.flatMap(_.diagnostics)
-        )
-        ScalafixEvaluationImpl.from(fileEvaluations, adjustedExitCode)
-      }
+          ScalafixEvaluationImpl.from(fileEvaluations, ExitStatus.Ok)
+        } else
+          ScalafixEvaluationImpl(
+            ExitStatus.NoFilesError,
+            Some("No files to fix")
+          )
+
     }
   }
 
@@ -200,27 +201,6 @@ object MainOps {
     if (args.callback.hasLintErrors) {
       ExitStatus.merge(ExitStatus.LinterError, code)
     } else if (args.callback.hasErrors && code.isOk) {
-      ExitStatus.merge(ExitStatus.UnexpectedError, code)
-    } else if (files.isEmpty) {
-      args.config.reporter.error("No files to fix")
-      ExitStatus.merge(ExitStatus.NoFilesError, code)
-    } else {
-      code
-    }
-  }
-  def adjustExitCode(
-      args: ValidatedArgs,
-      code: ExitStatus,
-      files: collection.Seq[AbsolutePath],
-      diags: Seq[RuleDiagnostic]
-  ): ExitStatus = {
-    if (diags.exists(ruleDiag =>
-        ruleDiag.diagnostic.severity == LintSeverity.Error && ruleDiag.diagnostic.categoryID.nonEmpty
-      )) {
-      ExitStatus.merge(ExitStatus.LinterError, code)
-    } else if (diags.exists(ruleDiag =>
-        ruleDiag.diagnostic.severity == LintSeverity.Error
-      ) && code.isOk) {
       ExitStatus.merge(ExitStatus.UnexpectedError, code)
     } else if (files.isEmpty) {
       args.config.reporter.error("No files to fix")

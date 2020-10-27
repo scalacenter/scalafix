@@ -9,6 +9,7 @@ import scalafix.cli.ExitStatus
 import scalafix.interfaces.ScalafixDiagnostic
 import scalafix.interfaces.ScalafixError
 import scalafix.interfaces.ScalafixFileEvaluation
+import scalafix.interfaces.ScalafixFileEvaluationError
 import scalafix.interfaces.ScalafixPatch
 import scalafix.interfaces.ScalafixRule
 import scalafix.internal.diff.DiffUtils
@@ -22,7 +23,7 @@ import scalafix.v0.RuleCtx
 final case class ScalafixFileEvaluationImpl(
     originalPath: AbsolutePath,
     fixedOpt: Option[String],
-    error: ExitStatus,
+    exitStatus: ExitStatus,
     errorMessage: Option[String],
     diagnostics: Seq[RuleDiagnostic],
     patches: Seq[ScalafixPatchImpl]
@@ -60,10 +61,24 @@ final case class ScalafixFileEvaluationImpl(
       .asJava
   }
 
-  override def getErrors(): Array[ScalafixError] =
-    ScalafixErrorImpl.fromScala(error)
+  override def getError(): Optional[ScalafixFileEvaluationError] =
+    exitStatus match {
+      case ExitStatus.Ok => None.asJava
+      case ExitStatus.ParseError =>
+        Some(ScalafixFileEvaluationError.ParseError).asJava
+      case ExitStatus.MissingSemanticdbError =>
+        Some(ScalafixFileEvaluationError.MissingSemanticdbError).asJava
+      case ExitStatus.StaleSemanticdbError =>
+        Some(ScalafixFileEvaluationError.StaleSemanticdbError).asJava
+      case _ => Some(ScalafixFileEvaluationError.UnexpectedError).asJava
+    }
 
-  override def isSuccessful: Boolean = error.isOk
+  override def getErrors: Array[ScalafixError] =
+    ScalafixErrorImpl.fromScala(exitStatus)
+
+  override def isSuccessful: Boolean = !getError().isPresent
+
+  override def getErrorMessage: Optional[String] = errorMessage.asJava
 
   override def getDiagnostics: Array[ScalafixDiagnostic] =
     diagnostics.map(ScalafixDiagnosticImpl.fromScala).toArray
@@ -135,7 +150,7 @@ object ScalafixFileEvaluationImpl {
     ScalafixFileEvaluationImpl(
       originalPath = originalPath,
       fixedOpt = fixed,
-      error = exitStatus,
+      exitStatus = exitStatus,
       errorMessage = None,
       diagnostics = diagnostics,
       patches = scalafixPatches

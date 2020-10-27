@@ -28,9 +28,8 @@ case class ValidatedArgs(
     global: LazyValue[Option[Global]]
 ) {
 
-  def input(file: AbsolutePath): Input = {
+  def input(file: AbsolutePath): Input =
     Input.VirtualFile(file.toString(), FileIO.slurp(file, args.charset))
-  }
 
   def parse(input: Input): Parsed[Source] = {
     import scala.meta._
