@@ -177,7 +177,6 @@ lazy val testkit = project
       scalatest
     )
   )
-  .disablePlugins(ScalafixPlugin)
   .dependsOn(cli)
 
 lazy val unit = project

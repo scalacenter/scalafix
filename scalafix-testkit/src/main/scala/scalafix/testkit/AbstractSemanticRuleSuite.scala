@@ -3,12 +3,6 @@ package scalafix.testkit
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 
-import org.scalatest.exceptions.TestFailedException
-import org.scalatest.{BeforeAndAfterAll, Suite, TestRegistration}
-import scalafix.internal.patch.PatchInternals
-import scalafix.internal.reflect.ClasspathOps
-import scalafix.internal.testkit.{AssertDiff, CommentAssertion}
-
 import scala.meta._
 import scala.meta.internal.io.FileIO
 
@@ -16,6 +10,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.Suite
 import org.scalatest.TestRegistration
 import org.scalatest.exceptions.TestFailedException
+import scalafix.internal.patch.PatchInternals
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.testkit.AssertDiff
 import scalafix.internal.testkit.CommentAssertion
