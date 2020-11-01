@@ -29,4 +29,8 @@ public enum ScalafixMainMode {
      */
     AUTO_SUPPRESS_LINTER_ERRORS,
 
+    /**
+     * Use when the client triggers the run as a side effect of something else, as opposed to an explicit, interactive invocation. Write fixed contents in-place, with a custom configuration if it exists.
+     */
+    IN_PLACE_TRIGGERED
 }

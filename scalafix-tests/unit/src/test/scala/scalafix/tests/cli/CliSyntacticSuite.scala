@@ -176,6 +176,34 @@ class CliSyntacticSuite extends BaseCliSuite {
   )
 
   check(
+    name = "--triggered is respected",
+    originalLayout = s"""|
+                         |/.scalafix.conf
+                         |rules = [
+                         |  RemoveUnused
+                         |]
+                         |
+                         |triggered.rules = [ProcedureSyntax]
+                         |
+                         |/hello.scala
+                         |$original
+                         |""".stripMargin,
+    args = Array("--triggered", "hello.scala"),
+    expectedLayout = s"""|
+                         |/.scalafix.conf
+                         |rules = [
+                         |  RemoveUnused
+                         |]
+                         |
+                         |triggered.rules = [ProcedureSyntax]
+                         |
+                         |/hello.scala
+                         |$expected
+                         |""".stripMargin,
+    expectedExit = ExitStatus.Ok
+  )
+
+  check(
     name = "linter error",
     originalLayout = s"""/foobar.scala
                         |$original""".stripMargin,

@@ -84,6 +84,10 @@ case class Args(
         "configured in .scalafix.conf or via --rules"
     )
     syntactic: Boolean = false,
+    @Description(
+      "Overlay the default rules & rule settings in .scalafix.conf with the `triggered` section"
+    )
+    triggered: Boolean = false,
     @Description("Print out additional diagnostics while running scalafix.")
     verbose: Boolean = false,
     @Description("Print out this help message and exit")
@@ -245,9 +249,22 @@ case class Args(
     RuleDecoder.decoder(ruleDecoderSettings.withConfig(scalafixConfig))
   }
 
+  // With a --triggered flag, looking for settings in triggered block first, and fallback to standard settings.
+  def maybeOverlaidConfWithTriggered(base: Conf): Conf =
+    if (triggered)
+      ScalafixConfOps.overlay(base, "triggered")
+    else
+      base
+
   def rulesConf(base: () => Conf): Conf = {
     if (rules.isEmpty) {
-      ConfGet.getKey(base(), "rules" :: "rule" :: Nil) match {
+      val rulesInConf =
+        ConfGet.getKey(
+          maybeOverlaidConfWithTriggered(base()),
+          "rules" :: "rule" :: Nil
+        )
+
+      rulesInConf match {
         case Some(c) => c
         case _ => Conf.Lst(Nil)
       }
@@ -260,10 +277,13 @@ case class Args(
       base: Conf,
       scalafixConfig: ScalafixConfig
   ): Configured[Rules] = {
+    val targetConf = maybeOverlaidConfWithTriggered(base)
+
     val rulesConf = this.rulesConf(() => base)
     val decoder = ruleDecoder(scalafixConfig)
+
     val configuration = Configuration()
-      .withConf(base)
+      .withConf(targetConf)
       .withScalaVersion(scalaVersion)
       .withScalacOptions(scalacOptions)
       .withScalacClasspath(validatedClasspath.entries)
