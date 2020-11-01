@@ -9,7 +9,7 @@ inThisBuild(
     semanticdbVersion := scalafixSemanticdb.revision,
     scalacOptions ++= List("-P:semanticdb:synthetics:on"),
     scalafixScalaBinaryVersion := scalaBinaryVersion.value,
-    scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.2"
+    scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.3"
   )
 )
 
