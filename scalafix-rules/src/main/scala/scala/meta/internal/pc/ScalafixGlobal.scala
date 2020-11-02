@@ -8,7 +8,6 @@ import scala.reflect.internal.{Flags => gf}
 import scala.reflect.io.VirtualDirectory
 import scala.tools.nsc.Settings
 import scala.tools.nsc.interactive.Global
-import scala.tools.nsc.interactive.ScalafixGlobalProxy
 import scala.tools.nsc.reporters.StoreReporter
 import scala.util.control.NonFatal
 import scala.{meta => m}
@@ -46,9 +45,7 @@ class ScalafixGlobal(
     settings: Settings,
     val storeReporter: StoreReporter,
     symbolReplacements: Map[String, String]
-) extends Global(settings, storeReporter)
-    with ScalafixGlobalProxy { compiler =>
-  hijackPresentationCompilerThread()
+) extends Global(settings, storeReporter) { compiler =>
 
   lazy val gsymbolReplacements: Map[String, Symbol] = (for {
     (key, value) <- symbolReplacements.toSeq

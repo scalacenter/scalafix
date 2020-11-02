@@ -17,7 +17,14 @@ object Mima {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixFileEvaluation.getErrorMessage"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixEvaluation.getError"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixEvaluation.getErrorMessage"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixFileEvaluation.getError")
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixFileEvaluation.getError"),
+
+      ProblemFilters.exclude[MissingTypesProblem]("scala.meta.internal.pc.ScalafixGlobal"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("scala.meta.internal.pc.ScalafixGlobal.presentationCompilerThread"),
+      ProblemFilters.exclude[MissingClassProblem]("scala.tools.nsc.interactive.ScalafixGlobalProxy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("scala.meta.internal.pc.ScalafixGlobal.hijackPresentationCompilerThread"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("scala.meta.internal.pc.ScalafixGlobal.isHijacked"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("scala.meta.internal.pc.ScalafixGlobal.metalsAsk")
     )
   }
 }
