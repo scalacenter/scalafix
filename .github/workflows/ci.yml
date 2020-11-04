@@ -17,6 +17,24 @@ jobs:
           - "ci-213"
     steps:
       - uses: actions/checkout@v2
+      - name: Cache Ivy
+        uses: actions/cache@v1
+        with:
+          path: ~/.ivy2/cache
+          key: ${{ runner.os }}-ivy-${{ hashFiles('*.sbt') }}-${{ hashFiles('project/*.*') }}
+          restore-keys: ${{ runner.os }}-ivy-
+      - name: Cache Sbt
+        uses: actions/cache@v1
+        with:
+          path: ~/.sbt
+          key: ${{ runner.os }}-sbt-${{ hashFiles('*.sbt') }}-${{ hashFiles('project/*.*') }}
+          restore-keys: ${{ runner.os }}-sbt-
+      - name: Cache Coursier
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/coursier
+          key: ${{ runner.os }}-coursier-${{ hashFiles('*.sbt') }}-${{ hashFiles('project/*.*') }}
+          restore-keys: ${{ runner.os }}-coursier-
       - uses: olafurpg/setup-scala@v7
       - run: sbt ${{ matrix.command }}
   jdk11_212:
@@ -24,6 +42,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Cache Ivy
+          uses: actions/cache@v1
+          with:
+            path: ~/.ivy2/cache
+            key: ${{ runner.os }}-ivy-${{ hashFiles('*.sbt') }}-${{ hashFiles('project/*.*') }}
+            restore-keys: ${{ runner.os }}-ivy-
+      - name: Cache Sbt
+        uses: actions/cache@v1
+        with:
+          path: ~/.sbt
+          key: ${{ runner.os }}-sbt-${{ hashFiles('*.sbt') }}-${{ hashFiles('project/*.*') }}
+          restore-keys: ${{ runner.os }}-sbt-
+      - name: Cache Coursier
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/coursier
+          key: ${{ runner.os }}-coursier-${{ hashFiles('*.sbt') }}-${{ hashFiles('project/*.*') }}
+          restore-keys: ${{ runner.os }}-coursier-
       - uses: olafurpg/setup-scala@v7
         with:
           java-version: adopt@1.11
@@ -33,6 +69,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Cache Ivy
+          uses: actions/cache@v1
+          with:
+            path: ~/.ivy2/cache
+            key: ${{ runner.os }}-ivy-${{ hashFiles('*.sbt') }}-${{ hashFiles('project/*.*') }}
+            restore-keys: ${{ runner.os }}-ivy-
+      - name: Cache Sbt
+        uses: actions/cache@v1
+        with:
+          path: ~/.sbt
+          key: ${{ runner.os }}-sbt-${{ hashFiles('*.sbt') }}-${{ hashFiles('project/*.*') }}
+          restore-keys: ${{ runner.os }}-sbt-
+      - name: Cache Coursier
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/coursier
+          key: ${{ runner.os }}-coursier-${{ hashFiles('*.sbt') }}-${{ hashFiles('project/*.*') }}
+          restore-keys: ${{ runner.os }}-coursier-
       - uses: olafurpg/setup-scala@v7
         with:
           java-version: adopt@1.11
@@ -43,6 +97,24 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Cache Ivy
+          uses: actions/cache@v1
+          with:
+            path: ~/.ivy2/cache
+            key: ${{ runner.os }}-ivy-${{ hashFiles('*.sbt') }}-${{ hashFiles('project/*.*') }}
+            restore-keys: ${{ runner.os }}-ivy-
+      - name: Cache Sbt
+        uses: actions/cache@v1
+        with:
+          path: ~/.sbt
+          key: ${{ runner.os }}-sbt-${{ hashFiles('*.sbt') }}-${{ hashFiles('project/*.*') }}
+          restore-keys: ${{ runner.os }}-sbt-
+      - name: Cache Coursier
+        uses: actions/cache@v1
+        with:
+          path: ~/AppData/Local/Coursier/Cache
+          key: ${{ runner.os }}-coursier-${{ hashFiles('*.sbt') }}-${{ hashFiles('project/*.*') }}
+          restore-keys: ${{ runner.os }}-coursier-
       - uses: olafurpg/setup-scala@v7
       - run: sbt ci-213-windows
         shell: bash
