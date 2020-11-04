@@ -28,7 +28,9 @@ object CompletionsOps {
         s"$assign[$escaped]"
       }
       names(setting).map { name =>
-        s""""$repeat${option(Case.camelToKebab(name))}$description$message$action""""
+        s""""$repeat${option(
+          Case.camelToKebab(name)
+        )}$description$message$action""""
       }
     }
   }

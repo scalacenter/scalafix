@@ -29,12 +29,11 @@ class PrettyExpectSuite extends ExpectSuite {
         pos -> Pretty.pretty(info)
     }
     val rows = (synthetics ++ types)
-      .sortBy {
-        case (pos, _) => pos.start
+      .sortBy { case (pos, _) =>
+        pos.start
       }
-      .map {
-        case (pos, doc) =>
-          s"[${pos.rangeNumber}]: " -> doc
+      .map { case (pos, doc) =>
+        s"[${pos.rangeNumber}]: " -> doc
 
       }
     Doc.tabulate(rows.toList).render(80)

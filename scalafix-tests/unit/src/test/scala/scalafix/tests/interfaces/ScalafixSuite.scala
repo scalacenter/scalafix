@@ -27,7 +27,10 @@ class ScalafixSuite extends AnyFunSuite {
   }
 
   def fetchAndLoad(scalaVersion: String): Unit = {
-    test(s"fetch & load instance for Scala version $scalaVersion", SkipWindows) {
+    test(
+      s"fetch & load instance for Scala version $scalaVersion",
+      SkipWindows
+    ) {
       val scalafixAPI = Scalafix.fetchAndClassloadInstance(
         scalaVersion,
         Seq[Repository](
@@ -62,7 +65,9 @@ class ScalafixSuite extends AnyFunSuite {
           maybeDiagnostic = Some(diagnostic)
       }
       args
-        .withPaths(Seq(ruleSource).asJava) // any file would do, we just want rules to be loaded
+        .withPaths(
+          Seq(ruleSource).asJava
+        ) // any file would do, we just want rules to be loaded
         .withRules(Seq(s"file:$ruleSource").asJava)
         .withMainCallback(scalafixMainCallback)
         .run()
@@ -81,8 +86,12 @@ class ScalafixSuite extends AnyFunSuite {
           Seq[String]("com.nequissimus::sort-imports:0.5.2").asJava,
           Seq[Repository](Repository.central()).asJava
         )
-      assert(args.availableRules.asScala.map(_.name).contains("RemoveUnused")) // built-in rule
-      assert(args.availableRules.asScala.map(_.name).contains("SortImports")) // community rule
+      assert(
+        args.availableRules.asScala.map(_.name).contains("RemoveUnused")
+      ) // built-in rule
+      assert(
+        args.availableRules.asScala.map(_.name).contains("SortImports")
+      ) // community rule
     }
   }
   val supportedScalaBinaryVersions: Set[String] = Set("2.11", "2.12", "2.13")

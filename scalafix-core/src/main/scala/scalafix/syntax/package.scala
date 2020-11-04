@@ -12,8 +12,8 @@ import scalafix.util.TreeOps
 import scalafix.v0.Symbol
 
 package object syntax {
-  implicit class XtensionRefSymbolOpt(tree: Tree)(
-      implicit index: v0.SemanticdbIndex
+  implicit class XtensionRefSymbolOpt(tree: Tree)(implicit
+      index: v0.SemanticdbIndex
   ) {
     def symbol: Option[Symbol] = index.symbol(tree.pos)
     def denotation: Option[v0.Denotation] = index.denotation(tree)
@@ -24,8 +24,8 @@ package object syntax {
       case _ => None
     }
   }
-  implicit class XtensionSymbolSemanticdbIndex(symbol: Symbol)(
-      implicit index: v0.SemanticdbIndex
+  implicit class XtensionSymbolSemanticdbIndex(symbol: Symbol)(implicit
+      index: v0.SemanticdbIndex
   ) {
     def denotation: Option[v0.Denotation] = index.denotation(symbol)
     def resultType: Option[Type] =

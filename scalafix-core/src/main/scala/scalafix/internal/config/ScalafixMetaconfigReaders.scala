@@ -51,8 +51,8 @@ trait ScalafixMetaconfigReaders {
 
   object UriRuleString {
     def unapply(arg: Conf.Str): Option[(String, String)] =
-      UriRule.unapply(arg).map {
-        case (a, b) => a -> b.getSchemeSpecificPart
+      UriRule.unapply(arg).map { case (a, b) =>
+        a -> b.getSchemeSpecificPart
       }
   }
 
@@ -68,30 +68,28 @@ trait ScalafixMetaconfigReaders {
   private def isRuleKey(key: (String, Conf)) =
     ruleRegex.matcher(key._1).matches()
   def scalafixConfigEmptyRuleReader: ConfDecoder[(Conf, ScalafixConfig)] =
-    ConfDecoder.instance[(Conf, ScalafixConfig)] {
-      case Conf.Obj(values) =>
-        val (rules, noRules) = values.partition(isRuleKey)
-        val ruleConf =
-          Configured.Ok(rules.lastOption.map(_._2).getOrElse(Conf.Lst()))
-        val config =
-          ScalafixConfig.ScalafixConfigDecoder.read(Conf.Obj(noRules))
-        ruleConf.product(config)
+    ConfDecoder.instance[(Conf, ScalafixConfig)] { case Conf.Obj(values) =>
+      val (rules, noRules) = values.partition(isRuleKey)
+      val ruleConf =
+        Configured.Ok(rules.lastOption.map(_._2).getOrElse(Conf.Lst()))
+      val config =
+        ScalafixConfig.ScalafixConfigDecoder.read(Conf.Obj(noRules))
+      ruleConf.product(config)
     }
   def scalafixConfigConfDecoder(
       ruleDecoder: ConfDecoder[Rule],
       extraRules: List[String] = Nil
   ): ConfDecoder[(Rule, ScalafixConfig)] =
-    scalafixConfigEmptyRuleReader.flatMap {
-      case (ruleConf, config) =>
-        val combinedRules: Conf.Lst =
-          if (extraRules.nonEmpty)
-            Conf.Lst(extraRules.map(Conf.Str))
-          else
-            ruleConf match {
-              case rules @ Conf.Lst(_) => rules
-              case x => Conf.Lst(x :: Nil)
-            }
-        ruleDecoder.read(combinedRules).map(rule => rule -> config)
+    scalafixConfigEmptyRuleReader.flatMap { case (ruleConf, config) =>
+      val combinedRules: Conf.Lst =
+        if (extraRules.nonEmpty)
+          Conf.Lst(extraRules.map(Conf.Str))
+        else
+          ruleConf match {
+            case rules @ Conf.Lst(_) => rules
+            case x => Conf.Lst(x :: Nil)
+          }
+      ruleDecoder.read(combinedRules).map(rule => rule -> config)
     }
 
   private lazy val semanticRuleClass = classOf[SemanticRule]
@@ -178,24 +176,25 @@ trait ScalafixMetaconfigReaders {
   implicit lazy val symbolReader: ConfDecoder[Symbol] =
     ConfDecoder.stringConfDecoder.map(Symbol.apply)
   private def parseSymbol(sym: String): Configured[Symbol] =
-    try Ok(Symbol(sym)) // Because https://github.com/scalameta/scalameta/issues/821
+    try Ok(
+      Symbol(sym)
+    ) // Because https://github.com/scalameta/scalameta/issues/821
     catch { case NonFatal(e) => ConfError.exception(e, 0).notOk }
   implicit lazy val symbolGlobalReader: ConfDecoder[Symbol.Global] =
-    ConfDecoder.instance[Symbol.Global] {
-      case Conf.Str(path) =>
-        def symbolGlobal(symbol: Symbol): Configured[Symbol.Global] =
-          symbol match {
-            case g: Symbol.Global => Ok(g)
-            case els =>
-              ConfError
-                .typeMismatch(
-                  "Symbol.Global",
-                  Conf.Str(s"$els: ${els.productPrefix}")
-                )
-                .notOk
-          }
-        val toParse = SymbolOps.inferTrailingDot(path)
-        parseSymbol(toParse).andThen(symbolGlobal)
+    ConfDecoder.instance[Symbol.Global] { case Conf.Str(path) =>
+      def symbolGlobal(symbol: Symbol): Configured[Symbol.Global] =
+        symbol match {
+          case g: Symbol.Global => Ok(g)
+          case els =>
+            ConfError
+              .typeMismatch(
+                "Symbol.Global",
+                Conf.Str(s"$els: ${els.productPrefix}")
+              )
+              .notOk
+        }
+      val toParse = SymbolOps.inferTrailingDot(path)
+      parseSymbol(toParse).andThen(symbolGlobal)
     }
 
   implicit lazy val AddGlobalImportReader: ConfDecoder[AddGlobalImport] =
@@ -233,25 +232,24 @@ trait ScalafixMetaconfigReaders {
   implicit lazy val CustomMessagePattern: ConfDecoder[CustomMessage[Pattern]] =
     CustomMessage.decoder(field = "pattern")
 
-  implicit def EitherConfDecoder[A, B](
-      implicit A: ConfDecoder[A],
+  implicit def EitherConfDecoder[A, B](implicit
+      A: ConfDecoder[A],
       B: ConfDecoder[B]
   ): ConfDecoder[Either[A, B]] = {
     def wrapLeft(a: A): Either[A, B] = Left(a)
     def wrapRight(b: B): Either[A, B] = Right(b)
-    ConfDecoder.instance[Either[A, B]] {
-      case conf =>
-        B.map(wrapRight).orElse(A.map(wrapLeft)).read(conf) match {
-          case ok @ Ok(_) => ok
-          case NotOk(err) =>
-            NotOk(
-              ConfError
-                .message(
-                  "Failed to decode configuration for either of the following types:"
-                )
-                .combine(err)
-            )
-        }
+    ConfDecoder.instance[Either[A, B]] { case conf =>
+      B.map(wrapRight).orElse(A.map(wrapLeft)).read(conf) match {
+        case ok @ Ok(_) => ok
+        case NotOk(err) =>
+          NotOk(
+            ConfError
+              .message(
+                "Failed to decode configuration for either of the following types:"
+              )
+              .combine(err)
+          )
+      }
     }
   }
 }

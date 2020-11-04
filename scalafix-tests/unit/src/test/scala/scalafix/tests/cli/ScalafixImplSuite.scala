@@ -99,12 +99,12 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
     val cwd = StringFS
       .string2dir(
         """|/src/Semicolon.scala
-           |
-           |object Semicolon {
-           |  def main { println(42) }
-           |}
-           |/.scalafix.conf
-           |rules = ["DisableSyntax"]
+          |
+          |object Semicolon {
+          |  def main { println(42) }
+          |}
+          |/.scalafix.conf
+          |rules = ["DisableSyntax"]
       """.stripMargin,
         charset
       )
@@ -142,17 +142,17 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
     val cwd = StringFS
       .string2dir(
         """|/src/Semicolon.scala
-           |
-           |object Semicolon {
-           |  val a = 1; // みりん þæö
-           |  implicit val b = List(1)
-           |  def main { println(42) }
-           |}
-           |
-           |/src/Excluded.scala
-           |object Excluded {
-           |  val a = 1;
-           |}
+          |
+          |object Semicolon {
+          |  val a = 1; // みりん þæö
+          |  implicit val b = List(1)
+          |  def main { println(42) }
+          |}
+          |
+          |/src/Excluded.scala
+          |object Excluded {
+          |  val a = 1;
+          |}
       """.stripMargin,
         charset
       )
@@ -273,24 +273,24 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
     assertNoDiff(
       linterDiagnostics,
       """|src/Semicolon.scala:3:12: ERROR: semicolons are disabled
-         |  val a = 1; // ??? ???
-         |           ^
+        |  val a = 1; // ??? ???
+        |           ^
       """.stripMargin
     )
     assertNoDiff(
       stdout,
       """|--- src/Semicolon.scala
-         |+++ <expected fix>
-         |@@ -1,6 +1,7 @@
-         | object Semicolon {
-         |   val a = 1; // ??? ???
-         |-  implicit val b = List(1)
-         |-  def main { println(42) }
-         |+  implicit val b: List[Int] = List(1)
-         |+  def main: Unit = { println(42) }
-         | }
-         |+// Hello world!
-         |""".stripMargin
+        |+++ <expected fix>
+        |@@ -1,6 +1,7 @@
+        | object Semicolon {
+        |   val a = 1; // ??? ???
+        |-  implicit val b = List(1)
+        |-  def main { println(42) }
+        |+  implicit val b: List[Int] = List(1)
+        |+  def main: Unit = { println(42) }
+        | }
+        |+// Hello world!
+        |""".stripMargin
     )
   }
 }

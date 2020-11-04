@@ -128,23 +128,23 @@ case class Args(
     @Section("Tab completions")
     @Description(
       """|Print out bash tab completions. To install:
-         |```
-         |# macOS, requires "brew install bash-completion"
-         |scalafix --bash > /usr/local/etc/bash_completion.d/scalafix
-         |# Linux
-         |scalafix --bash > /etc/bash_completion.d/scalafix
-         |```
-         |""".stripMargin
+        |```
+        |# macOS, requires "brew install bash-completion"
+        |scalafix --bash > /usr/local/etc/bash_completion.d/scalafix
+        |# Linux
+        |scalafix --bash > /etc/bash_completion.d/scalafix
+        |```
+        |""".stripMargin
     )
     bash: Boolean = false,
     @Description(
       """|Print out zsh tab completions. To install:
-         |```
-         |scalafix --zsh > /usr/local/share/zsh/site-functions/_scalafix
-         |unfunction _scalafix
-         |autoload -U _scalafix
-         |```
-         |""".stripMargin
+        |```
+        |scalafix --zsh > /usr/local/share/zsh/site-functions/_scalafix
+        |unfunction _scalafix
+        |autoload -U _scalafix
+        |```
+        |""".stripMargin
     )
     zsh: Boolean = false,
     // TODO: --sbt
@@ -384,34 +384,33 @@ case class Args(
     }
 
   def validate: Configured[ValidatedArgs] = {
-    baseConfig.andThen {
-      case (base, scalafixConfig, delegator) =>
-        (
-          configuredSourceroot |@|
-            configuredSymtab |@|
-            configuredRules(base, scalafixConfig) |@|
-            resolvedPathReplace |@|
-            configuredDiffDisable |@|
-            configuredGlobal
-        ).map {
-          case (
+    baseConfig.andThen { case (base, scalafixConfig, delegator) =>
+      (
+        configuredSourceroot |@|
+          configuredSymtab |@|
+          configuredRules(base, scalafixConfig) |@|
+          resolvedPathReplace |@|
+          configuredDiffDisable |@|
+          configuredGlobal
+      ).map {
+        case (
               ((((root, symtab), rulez), pathReplace), diffDisable),
               global
-              ) =>
-            ValidatedArgs(
-              this,
-              symtab,
-              rulez,
-              scalafixConfig,
-              classLoader,
-              root,
-              pathReplace,
-              diffDisable,
-              delegator,
-              semanticdbFilterMatcher,
-              global
-            )
-        }
+            ) =>
+          ValidatedArgs(
+            this,
+            symtab,
+            rulez,
+            scalafixConfig,
+            classLoader,
+            root,
+            pathReplace,
+            diffDisable,
+            delegator,
+            semanticdbFilterMatcher,
+            global
+          )
+      }
     }
   }
 }
@@ -477,14 +476,14 @@ object Args {
     TPrint.make[PathMatcher](_ => "<glob>")
   implicit val confPrint: TPrint[Conf] =
     TPrint.make[Conf](implicit cfg => TPrint.implicitly[ScalafixConfig].render)
-  implicit def optionPrint[T](
-      implicit ev: pprint.TPrint[T]
+  implicit def optionPrint[T](implicit
+      ev: pprint.TPrint[T]
   ): TPrint[Option[T]] =
     TPrint.make { implicit cfg =>
       ev.render
     }
-  implicit def iterablePrint[C[x] <: Iterable[x], T](
-      implicit ev: pprint.TPrint[T]
+  implicit def iterablePrint[C[x] <: Iterable[x], T](implicit
+      ev: pprint.TPrint[T]
   ): TPrint[C[T]] =
     TPrint.make { implicit cfg =>
       s"[${ev.render} ...]"

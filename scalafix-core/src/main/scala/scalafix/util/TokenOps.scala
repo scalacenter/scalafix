@@ -4,7 +4,8 @@ import scala.meta.tokens.Token
 
 object TokenOps {
 
-  /** Returns true if this token is an identifier that requires a leading space before colon.
+  /**
+   * Returns true if this token is an identifier that requires a leading space before colon.
    *
    * Example:
    *   needsLeadingSpaceBeforeColon(foo_) // true
@@ -12,8 +13,7 @@ object TokenOps {
    *   val foo_ : Int = 2 // OK
    *   val foo_: Int = 2  // ERROR
    *   val foo: Int = 2   // OK
-   *
-    **/
+   */
   def needsLeadingSpaceBeforeColon(ident: Token): Boolean = ident match {
     case Token.Ident(_) =>
       ident.syntax.lastOption.exists {

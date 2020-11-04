@@ -39,25 +39,24 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
     case m.Defn.Def(mods, name, tparams, paramss, Some(decltpe), _) =>
       m.Decl.Def(mods, name, tparams, paramss, decltpe)
   }
-  stats.collect {
-    case expected: m.Member =>
-      val name = expected.name.value
-      test(s"${expected.productPrefix} - $name") {
-        val suffix: String = expected match {
-          case _: m.Defn.Object => s"$name."
-          case _: m.Pkg.Object => s"$name/package."
-          case _ => s"$name#"
-        }
-        val sym = s"test/$suffix"
-        val info =
-          table.info(sym).getOrElse(throw new NoSuchElementException(sym))
-        val obtained =
-          PrettyType
-            .toTree(info, table, QualifyStrategy.Readable, fatalErrors = true)
-            .tree
-        val expectedSyntax = expected.syntax
-        assertNoDiff(obtained.syntax, expectedSyntax)
+  stats.collect { case expected: m.Member =>
+    val name = expected.name.value
+    test(s"${expected.productPrefix} - $name") {
+      val suffix: String = expected match {
+        case _: m.Defn.Object => s"$name."
+        case _: m.Pkg.Object => s"$name/package."
+        case _ => s"$name#"
       }
+      val sym = s"test/$suffix"
+      val info =
+        table.info(sym).getOrElse(throw new NoSuchElementException(sym))
+      val obtained =
+        PrettyType
+          .toTree(info, table, QualifyStrategy.Readable, fatalErrors = true)
+          .tree
+      val expectedSyntax = expected.syntax
+      assertNoDiff(obtained.syntax, expectedSyntax)
+    }
   }
 
 }

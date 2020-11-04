@@ -63,9 +63,11 @@ final class ExplicitResultTypes(
           )
         }
       }
-    if (config.scalacClasspath.nonEmpty && !supportedScalaVersions.contains(
+    if (
+      config.scalacClasspath.nonEmpty && !supportedScalaVersions.contains(
         config.scalaVersion
-      )) {
+      )
+    ) {
       val inputBinaryScalaVersion =
         toBinaryVersion(config.scalaVersion)
       val runtimeBinaryScalaVersion =
@@ -202,8 +204,8 @@ final class ExplicitResultTypes(
       patch <- types.toPatch(name.pos, defnSymbol, replace, defn, space)
     } yield patch
 
-  def fixDefinition(defn: Defn, body: Term, types: TypePrinter)(
-      implicit ctx: SemanticDocument
+  def fixDefinition(defn: Defn, body: Term, types: TypePrinter)(implicit
+      ctx: SemanticDocument
   ): Patch = {
     val lst = ctx.tokenList
     val option = SymbolMatcher.exact("scala/Option.")

@@ -70,8 +70,8 @@ class ClassloadRule[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
             else s" or constructor matching arguments $args"
           throw new IllegalArgumentException(
             s"""No suitable constructor on $clazz.
-               |Expected : zero argument constructor $argsMsg
-               |Found    : $constructors
+              |Expected : zero argument constructor $argsMsg
+              |Found    : $constructors
              """.stripMargin
           )
         }
@@ -109,13 +109,13 @@ class ClassloadRule[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
     val failures = result.collect { case util.Failure(e) => e }
     def pretty(ex: Throwable): String =
       s"""$ex
-         | ${ex.getStackTrace.take(10).mkString(" \n")}""".stripMargin
+        | ${ex.getStackTrace.take(10).mkString(" \n")}""".stripMargin
     if (successes.nonEmpty) Success(successes.head)
     else {
       util.Failure(
         new IllegalArgumentException(
           s"""Unable to load rule $fqcn with args $args. Tried the following:
-             |${failures.map(pretty).mkString("\n")}""".stripMargin
+            |${failures.map(pretty).mkString("\n")}""".stripMargin
         )
       )
     }

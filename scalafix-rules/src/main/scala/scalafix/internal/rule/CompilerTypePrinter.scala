@@ -79,10 +79,9 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
       gsym: Symbol,
       inverseSemanticdbSymbol: Symbol
   ): Option[v1.Patch] = {
-    val renames = g.renamedSymbols(context).filterNot {
-      case (sym, name) =>
-        sym == g.NoSymbol ||
-          name.toString() == "_"
+    val renames = g.renamedSymbols(context).filterNot { case (sym, name) =>
+      sym == g.NoSymbol ||
+        name.toString() == "_"
     }
     val history = new g.ShortenedNames(
       lookupSymbol = name => {
@@ -92,11 +91,10 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
       owners = parentSymbols(context),
       config = g.renameConfig ++ renames
     )
-    val fromRewritten = willBeImported.filter {
-      case (name, short) =>
-        (!context.isNameInScope(name) &&
-          !context.isNameInScope(name.otherName)) ||
-          history.nameResolvesToSymbol(name, short.symbol)
+    val fromRewritten = willBeImported.filter { case (name, short) =>
+      (!context.isNameInScope(name) &&
+        !context.isNameInScope(name.otherName)) ||
+        history.nameResolvesToSymbol(name, short.symbol)
     }
     history.missingImports ++= fromRewritten
     val seenFromType = asSeenFromType(gsym, inverseSemanticdbSymbol)
@@ -193,10 +191,9 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
       } else {
         val head :: tail = pkg.ownerChain.reverse.tail // Skip root symbol
           .map(sym => m.Term.Name(sym.name.toString()))
-        val ref = tail.foldLeft(head: m.Term.Ref) {
-          case (owner, name) =>
-            if (name.value == "package") owner
-            else m.Term.Select(owner, name)
+        val ref = tail.foldLeft(head: m.Term.Ref) { case (owner, name) =>
+          if (name.value == "package") owner
+          else m.Term.Select(owner, name)
         }
         v1.Patch.addGlobalImport(m.Importer(ref, List(importee)))
       }
@@ -323,11 +320,13 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
             CompilerCompat.serializableClass(g).toSet[Symbol]
           val parentSymbols = parents.map(_.typeSymbol).toSet
           val strippedParents =
-            if (parentSymbols
+            if (
+              parentSymbols
                 .intersect(productRootClass)
                 .nonEmpty && parentSymbols
                 .intersect(serializableClass)
-                .nonEmpty) {
+                .nonEmpty
+            ) {
               parents.filterNot(isPossibleSyntheticParent)
             } else parents
           val newParents =

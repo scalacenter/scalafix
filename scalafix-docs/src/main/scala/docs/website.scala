@@ -141,14 +141,13 @@ package object website {
   def defaults[T](ruleName: String, all: List[(Setting, Any)]): String = {
     val sb = new StringBuilder
     sb.append("\n\n### Defaults\n\n```")
-    all.foreach {
-      case (setting, default) =>
-        sb.append("\n")
-          .append(ruleName)
-          .append(".")
-          .append(setting.name)
-          .append(" = ")
-          .append(default)
+    all.foreach { case (setting, default) =>
+      sb.append("\n")
+        .append(ruleName)
+        .append(".")
+        .append(setting.name)
+        .append(" = ")
+        .append(default)
     }
     sb.append("\n```\n\n")
     sb.toString()
@@ -179,8 +178,8 @@ package object website {
   def rule[T](
       ruleName: String,
       default: T
-  )(
-      implicit settings: Settings[T],
+  )(implicit
+      settings: Settings[T],
       ev: T <:< Product
   ): String = {
     val sb = new StringBuilder

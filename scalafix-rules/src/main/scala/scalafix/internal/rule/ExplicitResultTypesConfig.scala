@@ -77,8 +77,8 @@ object SimpleDefinitions {
       case Bool(false) => Configured.ok(SimpleDefinitions(Set.empty))
       case Bool(true) => Configured.ok(SimpleDefinitions(Set.empty))
       case conf @ Lst(values) =>
-        val strings = values.collect {
-          case Str(kind) => kind
+        val strings = values.collect { case Str(kind) =>
+          kind
         }
         if (strings.length == values.length) {
           Configured.ok(SimpleDefinitions(strings.toSet))

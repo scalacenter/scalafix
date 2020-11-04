@@ -32,7 +32,8 @@ trait SemanticdbIndex extends SemanticContext {
   /** Get all synthetics in this index. */
   def synthetics: Seq[Synthetic] = database.synthetics
 
-  /** The resolved names in this database.
+  /**
+   * The resolved names in this database.
    *
    * Includes resolved name in synthetics, such as inferred implicits/types.
    */
@@ -41,7 +42,8 @@ trait SemanticdbIndex extends SemanticContext {
   /** Lookup symbol at this position. */
   def symbol(position: Position): Option[Symbol]
 
-  /** Lookup symbol at this tree.
+  /**
+   * Lookup symbol at this tree.
    *
    * This method returns the same result as symbol(Tree.Position) in most cases
    * but handles some special cases:
@@ -53,7 +55,8 @@ trait SemanticdbIndex extends SemanticContext {
   /** Lookup denotation of this symbol. */
   def denotation(symbol: Symbol): Option[Denotation]
 
-  /** Lookup denotation of this tree.
+  /**
+   * Lookup denotation of this tree.
    *
    * Shorthand method for symbol(tree).flatMap(denotation).
    */

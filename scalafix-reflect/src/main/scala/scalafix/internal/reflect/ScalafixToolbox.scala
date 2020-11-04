@@ -31,15 +31,17 @@ class ScalafixToolbox {
       code: Input,
       toolClasspath: URLClassLoader
   ): Configured[CompiledRules] =
-    ruleCache.getOrDefault(code, {
-      val uncached = getRuleUncached(code, toolClasspath)
-      uncached match {
-        case toCache @ Configured.Ok(_) =>
-          ruleCache.put(code, toCache)
-        case _ =>
+    ruleCache.getOrDefault(
+      code, {
+        val uncached = getRuleUncached(code, toolClasspath)
+        uncached match {
+          case toCache @ Configured.Ok(_) =>
+            ruleCache.put(code, toCache)
+          case _ =>
+        }
+        uncached
       }
-      uncached
-    })
+    )
 
   def getRuleUncached(
       code: Input,

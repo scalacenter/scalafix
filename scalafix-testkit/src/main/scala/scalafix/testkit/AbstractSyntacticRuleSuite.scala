@@ -9,7 +9,8 @@ import scalafix.internal.config.ScalafixConfig
 import scalafix.syntax._
 import scalafix.v0._
 
-/** Utility to unit test syntactic rules.
+/**
+ * Utility to unit test syntactic rules.
  * <p>
  * Mix-in FunSuiteLike (ScalaTest 3.0), AnyFunSuiteLike (ScalaTest 3.1+) or
  * the testing style of your choice if you add your own tests.

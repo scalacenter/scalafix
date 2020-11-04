@@ -9,8 +9,8 @@ case class LogContext(
 }
 
 object LogContext {
-  implicit def generate(
-      implicit line: sourcecode.Line,
+  implicit def generate(implicit
+      line: sourcecode.Line,
       file: sourcecode.File,
       enclosing: sourcecode.Enclosing
   ): LogContext = LogContext(line, file, enclosing)

@@ -29,9 +29,8 @@ class IntervalSet(range: BitSet) {
         interval.result()
       }
 
-    val is = intervals.map {
-      case (start, end) =>
-        s"[$start, $end]"
+    val is = intervals.map { case (start, end) =>
+      s"[$start, $end]"
     }
 
     s"""IntervalSet(${is.mkString(", ")})"""

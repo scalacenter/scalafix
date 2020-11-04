@@ -11,14 +11,13 @@ class DialectSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
 
   val original: String =
     """|object LiteralType {
-       |  val x: 41 = 41
-       |}
-       |""".stripMargin
+      |  val x: 41 = 41
+      |}
+      |""".stripMargin
 
   val LiteralType: Rule = Rule.syntactic("LiteralType") { ctx =>
-    ctx.tree.collect {
-      case lit @ Lit.Int(n) =>
-        ctx.replaceTree(lit, (n + 1).toString)
+    ctx.tree.collect { case lit @ Lit.Int(n) =>
+      ctx.replaceTree(lit, (n + 1).toString)
     }.asPatch
   }
 

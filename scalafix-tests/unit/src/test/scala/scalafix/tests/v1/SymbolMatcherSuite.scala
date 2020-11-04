@@ -51,11 +51,10 @@ class SymbolMatcherSuite extends AnyFunSuite {
   test("matches/unapply") {
     val symbolMatcher =
       SymbolMatcher.exact("test/SymbolMatcherTest.")
-    val assertions = doc.tree.collect {
-      case symbolMatcher(t @ Name(_)) =>
-        assert(t.is[Term.Name])
-        assert(t.parent.get.is[Defn.Object])
-        assert(symbolMatcher.matches(t))
+    val assertions = doc.tree.collect { case symbolMatcher(t @ Name(_)) =>
+      assert(t.is[Term.Name])
+      assert(t.parent.get.is[Defn.Object])
+      assert(symbolMatcher.matches(t))
     }
     assert(assertions.length == 1)
   }

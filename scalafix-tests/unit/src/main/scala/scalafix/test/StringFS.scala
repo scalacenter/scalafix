@@ -36,7 +36,8 @@ object StringFS {
     AbsolutePath(root)
   }
 
-  /** Gives a string representation of a directory. For example
+  /**
+   * Gives a string representation of a directory. For example
    *
    * /build.sbt
    * val x = project
@@ -60,7 +61,7 @@ object StringFS {
       .map { path =>
         val contents = new String(Files.readAllBytes(path), charset)
         s"""|/${file.toNIO.relativize(path)}
-            |$contents""".stripMargin
+          |$contents""".stripMargin
       }
       .mkString("\n")
       .replace(File.separator, "/") // ensure original separators

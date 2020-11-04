@@ -28,8 +28,8 @@ object Symbol {
       case Root(sig) =>
         sig.syntax
       case Symbol.Global(
-          Symbol.Global(Symbol.None, Signature.Term("_root_")),
-          sig
+            Symbol.Global(Symbol.None, Signature.Term("_root_")),
+            sig
           ) =>
         // For legacy reasons, we special case the `_root_.` term symbol.
         sig.syntax
@@ -97,7 +97,9 @@ object Symbol {
 
       def parseSymbol(owner: Symbol): Symbol = {
         def global(signature: Signature): Symbol.Global = {
-          if (owner == Symbol.None && signature != Signature.Package("_root_")) {
+          if (
+            owner == Symbol.None && signature != Signature.Package("_root_")
+          ) {
             val root = Symbol.Global(Symbol.None, Signature.Package("_root_"))
             Symbol.Global(root, signature)
           } else {

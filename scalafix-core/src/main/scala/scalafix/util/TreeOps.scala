@@ -60,8 +60,8 @@ object TreeOps {
           for {
             parent <- t.parent
             owner <- loop(parent)
-            next = chain(p.ref).foldRight(owner) {
-              case (n, o) => Symbols.Global(o, Descriptor.Package(n.value))
+            next = chain(p.ref).foldRight(owner) { case (n, o) =>
+              Symbols.Global(o, Descriptor.Package(n.value))
             }
           } yield next
         case d: Member =>

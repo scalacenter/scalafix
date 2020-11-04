@@ -31,16 +31,16 @@ trait BaseCliSuite extends AnyFunSuite with DiffAssertions {
 
   val original: String =
     """|object Main {
-       |  def foo() {
-       |  }
-       |}
-       |""".stripMargin
+      |  def foo() {
+      |  }
+      |}
+      |""".stripMargin
   val expected: String =
     """|object Main {
-       |  def foo(): Unit = {
-       |  }
-       |}
-       |""".stripMargin
+      |  def foo(): Unit = {
+      |  }
+      |}
+      |""".stripMargin
   val cwd: Path = Files.createTempDirectory("scalafix-cli")
   val ps = new PrintStream(new ByteArrayOutputStream())
 

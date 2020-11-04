@@ -87,12 +87,12 @@ case class DisableSyntaxConfig(
     )
     @ExampleValue(
       """|[
-         |  {
-         |    id = "offensive"
-         |    pattern = "[Pp]imp"
-         |    message = "Please consider a less offensive word such as 'extension' or 'enrichment'"
-         |  }
-         |]""".stripMargin
+        |  {
+        |    id = "offensive"
+        |    pattern = "[Pp]imp"
+        |    message = "Please consider a less offensive word such as 'extension' or 'enrichment'"
+        |  }
+        |]""".stripMargin
     )
     regex: List[CustomMessage[Either[Regex, Pattern]]] = Nil
 ) {

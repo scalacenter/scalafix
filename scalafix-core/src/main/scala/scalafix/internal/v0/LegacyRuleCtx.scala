@@ -24,8 +24,8 @@ class LegacyRuleCtx(doc: SyntacticDocument)
   override def comments: AssociatedComments = doc.comments
   override def index(implicit index: SemanticdbIndex): SemanticdbIndex =
     index
-  override def debugIndex()(
-      implicit index: SemanticdbIndex,
+  override def debugIndex()(implicit
+      index: SemanticdbIndex,
       fileLine: FileLine
   ): Unit =
     throw new UnsupportedOperationException

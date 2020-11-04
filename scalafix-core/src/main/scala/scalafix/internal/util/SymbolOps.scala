@@ -31,8 +31,8 @@ object SymbolOps {
       Symbol.Global(apply(), signature)
     def unapply(arg: Symbol): Option[Signature] = arg match {
       case Symbol.Global(
-          Symbol.Global(Symbol.None, Signature.Package("_root_")),
-          sig
+            Symbol.Global(Symbol.None, Signature.Package("_root_")),
+            sig
           ) =>
         Some(sig)
       case _ =>

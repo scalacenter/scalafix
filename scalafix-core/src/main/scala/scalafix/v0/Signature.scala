@@ -51,7 +51,9 @@ object Signature {
 
   final case class Self(name: String) extends Signature {
     override def syntax =
-      throw new UnsupportedOperationException("No longer supported.") // scalafix:ok
+      throw new UnsupportedOperationException(
+        "No longer supported."
+      ) // scalafix:ok
     override def structure: String = s"""Signature.Self("$name")"""
     override def toString: String = syntax
   }

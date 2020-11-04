@@ -5,7 +5,8 @@ import scala.meta.inputs.Position
 import scalafix.internal.config.LintConfig
 import scalafix.lint.LintSeverity
 
-/** A unique identifier for one kind of a linter message.
+/**
+ * A unique identifier for one kind of a linter message.
  *
  * @param id a string ID for this message, typically the name of the
  *           assigned variable. If id is empty, then the name of the

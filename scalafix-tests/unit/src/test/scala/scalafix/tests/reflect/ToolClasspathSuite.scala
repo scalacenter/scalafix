@@ -33,7 +33,10 @@ class ToolClasspathSuite extends AnyFunSuite with BeforeAndAfterAll {
     scalafmtClasspath = jars.map(AbsolutePath(_))
   }
 
-  test("--tool-classpath is respected when compiling from source", SkipWindows) {
+  test(
+    "--tool-classpath is respected when compiling from source",
+    SkipWindows
+  ) {
     val scalafmtRewrite =
       """
         |import org.scalafmt._

@@ -123,8 +123,8 @@ case class AssertDiff(
       if (mismatch.isEmpty) ""
       else {
         """|===========> Mismatch  <===========
-           |
-           |""".stripMargin
+          |
+          |""".stripMargin
       }
 
     val showMismatchs =
@@ -148,8 +148,8 @@ case class AssertDiff(
       if (unexpected.isEmpty) ""
       else {
         """|===========> Unexpected <===========
-           |
-           |""".stripMargin
+          |
+          |""".stripMargin
       }
 
     val showUnexpected =
@@ -166,8 +166,8 @@ case class AssertDiff(
       if (unreported.isEmpty) ""
       else {
         """|===========> Unreported <===========
-           |
-           |""".stripMargin
+          |
+          |""".stripMargin
       }
 
     val showUnreported =

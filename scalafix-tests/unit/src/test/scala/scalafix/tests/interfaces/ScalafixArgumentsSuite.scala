@@ -44,14 +44,14 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
   val cwd: Path = StringFS
     .string2dir(
       """|/src/Main.scala
-         |import scala.concurrent.duration
-         |import scala.concurrent.Future
-         |
-         |object Main extends App {
-         |  import scala.concurrent.Await
-         |  println("test");
-         |  println("ok")
-         |}
+        |import scala.concurrent.duration
+        |import scala.concurrent.Future
+        |
+        |object Main extends App {
+        |  import scala.concurrent.Await
+        |  println("test");
+        |  println("ok")
+        |}
       """.stripMargin,
       charset
     )
@@ -104,11 +104,11 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     assert(fileEvaluation.isSuccessful)
     val expected =
       """|
-         |object Main extends App {
-         |  println("test");
-         |  println("ok")
-         |}
-         |""".stripMargin
+        |object Main extends App {
+        |  println("test");
+        |  println("ok")
+        |}
+        |""".stripMargin
     val obtained = fileEvaluation.previewPatches.get()
     assertNoDiff(obtained, expected)
 
@@ -125,8 +125,8 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     assertNoDiff(
       linterErrorFormatted,
       """|src/Main.scala:6:18: ERROR: semicolons are disabled
-         |  println("test");
-         |                 ^
+        |  println("test");
+        |                 ^
       """.stripMargin
     )
 
@@ -136,14 +136,14 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
 
     val expectedWithOnePatch =
       """|
-         |import scala.concurrent.Future
-         |
-         |object Main extends App {
-         |  import scala.concurrent.Await
-         |  println("test");
-         |  println("ok")
-         |}
-         |""".stripMargin
+        |import scala.concurrent.Future
+        |
+        |object Main extends App {
+        |  import scala.concurrent.Await
+        |  println("test");
+        |  println("ok")
+        |}
+        |""".stripMargin
     // if applying all patches we should get the same result
     val obtained2 =
       fileEvaluation.previewPatches(patches.toArray).get()
@@ -267,11 +267,11 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
   test("Suppression mechanism isn't applied with non atomic patches") {
     val content =
       """|import scala.concurrent.duration // scalafix:ok
-         |import scala.concurrent.Future""".stripMargin
+        |import scala.concurrent.Future""".stripMargin
     val cwd = StringFS
       .string2dir(
         s"""|/src/Main.scala
-            |$content""".stripMargin,
+          |$content""".stripMargin,
         charset
       )
       .toNIO
@@ -285,18 +285,18 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     // A patch without `atomic` will ignore suppressions.
     val expected =
       """|/*import scala.concurrent.duration // scalafix:ok
-         |import scala.concurrent.Future*/""".stripMargin
+        |import scala.concurrent.Future*/""".stripMargin
     assertNoDiff(obtained, expected)
   }
 
   test("Suppression mechanism is applied with atomic patches") {
     val content =
       """|import scala.concurrent.duration // scalafix:ok
-         |import scala.concurrent.Future""".stripMargin
+        |import scala.concurrent.Future""".stripMargin
     val cwd = StringFS
       .string2dir(
         s"""|/src/Main.scala
-            |$content""".stripMargin,
+          |$content""".stripMargin,
         charset
       )
       .toNIO

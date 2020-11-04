@@ -12,11 +12,10 @@ class NoValInForComprehension extends SyntacticRule("NoValInForComprehension") {
   override def isRewrite: Boolean = true
 
   override def fix(implicit doc: SyntacticDocument): Patch = {
-    doc.tree.collect {
-      case v: Enumerator.Val =>
-        val valTokens =
-          v.tokens.takeWhile(t => t.syntax == "val" || t.is[Whitespace])
-        valTokens.map(Patch.removeToken).asPatch.atomic
+    doc.tree.collect { case v: Enumerator.Val =>
+      val valTokens =
+        v.tokens.takeWhile(t => t.syntax == "val" || t.is[Whitespace])
+      valTokens.map(Patch.removeToken).asPatch.atomic
     }.asPatch
   }
 

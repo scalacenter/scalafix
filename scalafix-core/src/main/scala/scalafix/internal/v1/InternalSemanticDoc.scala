@@ -105,7 +105,9 @@ final class InternalSemanticDoc(
   private[this] lazy val locals = textDocument.symbols.iterator.collect {
     case info
         if info.symbol.startsWith("local") ||
-          info.symbol.contains("$anon") // NOTE(olafur) workaround for a semanticdb-scala issue.
+          info.symbol.contains(
+            "$anon"
+          ) // NOTE(olafur) workaround for a semanticdb-scala issue.
         =>
       info.symbol -> info
   }.toMap
