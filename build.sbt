@@ -219,12 +219,8 @@ lazy val unit = project
 
       put(
         "inputClasspath",
-        fullClasspath.in(testsInput, Compile).value.map(_.data)
-      )
-
-      put(
-        "semanticdbRootDirectory",
-        Seq(semanticdbTargetRoot.in(testsInput, Compile).value)
+        fullClasspath.in(testsInput, Compile).value.map(_.data) :+
+          semanticdbTargetRoot.in(testsInput, Compile).value
       )
       put(
         "inputSourceDirectories",

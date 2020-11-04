@@ -170,7 +170,7 @@ class CliSemanticSuite extends BaseCliSuite {
   checkSemantic(
     name = "-P:semanticdb:targetroot",
     args = {
-      val (targetroot :: classDir :: Nil, jars) =
+      val (_ :: targetroot :: Nil, jars) =
         props.inputClasspath.entries.partition(_.isDirectory)
       Array(
         s"--scalacOptions",
