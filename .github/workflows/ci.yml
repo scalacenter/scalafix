@@ -53,7 +53,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: olafurpg/setup-scala@v7
       - run: sbt "scalafix --check"
-      - run: ./scalafmt --test
+      - run: ./bin/scalafmt --test
   mima:
     name: MiMa
     runs-on: ubuntu-latest

@@ -48,9 +48,9 @@ scalafix-tests
 We use scalafix to apply some rules that are configured in .scalafix.conf.
 Make sure to run `sbt scalafixAll` to apply those rules.
 
-Be sure to run `scalafmt` (available in the root folder) to ensure code
-formatting. `./scalafmt --diff` formats only the files that have changed from
-the master branch. You can read more about it at http://scalafmt.org
+Be sure to run `scalafmt` (available in the `bin` folder) to ensure code
+formatting. `./bin/scalafmt --diff` formats only the files that have changed
+from the master branch. You can read more about it at http://scalafmt.org
 
 ## Documentation
 
@@ -94,17 +94,6 @@ Run `sbt mimaReportBinaryIssues` to check for any compatibility issues.
 Scalafix uses [sbt-ci-release](https://github.com/olafurpg/sbt-ci-release) to
 automate Sonatype releases. A new SNAPSHOT release is published on every merge
 into master. A stable release is published to Maven Central on every git tag.
-
-### AppVeyor
-
-The cache is limited to 1GB. It's not possible to delete the cache via the ui:
-https://github.com/appveyor/ci/issues/985 To delete via curl, get your token at
-https://ci.appveyor.com/api-token
-
-```bash
-export APPVEYOR_TOKEN="<your-api-token>"
-curl -vvv -H "Authorization: Bearer $APPVEYOR_TOKEN" -XDELETE https://ci.appveyor.com/api/projects/scalacenter/scalafix/buildcache
-```
 
 ## Releasing
 
