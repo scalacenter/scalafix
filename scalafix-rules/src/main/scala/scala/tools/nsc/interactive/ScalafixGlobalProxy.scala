@@ -2,6 +2,7 @@ package scala.tools.nsc.interactive
 
 import java.util.logging.Level
 
+import scala.tools.nsc.util.WorkScheduler
 import scala.util.control.NonFatal
 
 import scala.meta.internal.pc.ScalafixGlobal
@@ -29,8 +30,8 @@ trait ScalafixGlobalProxy { this: ScalafixGlobal =>
   private def newRunnerThread(): Thread = {
     if (compileRunner.isAlive) {
       try {
-        val re = askForResponse(() => throw ShutdownReq)
-        re.get
+        this.askShutdown()
+        while (compileRunner.isAlive) Thread.sleep(0)
       } catch {
         case NonFatal(e) =>
           println(
@@ -40,6 +41,7 @@ trait ScalafixGlobalProxy { this: ScalafixGlobal =>
           )
       }
     }
+    this.scheduler = new WorkScheduler
     compileRunner = new ScalafixGlobalThread(this, "Metals")
     compileRunner.setDaemon(true)
     compileRunner.start()
