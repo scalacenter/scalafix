@@ -153,15 +153,13 @@ class ScalafixGlobal(
     Map[String, String](
       "scala/collection/mutable/" -> "mutable.",
       "java/util/" -> "ju."
-    ).map {
-        case (sym, name) =>
-          val nme =
-            if (name.endsWith("#")) TypeName(name.stripSuffix("#"))
-            else if (name.endsWith(".")) TermName(name.stripSuffix("."))
-            else TermName(name)
-          inverseSemanticdbSymbol(sym) -> nme
-      }
-      .view
+    ).map { case (sym, name) =>
+      val nme =
+        if (name.endsWith("#")) TypeName(name.stripSuffix("#"))
+        else if (name.endsWith(".")) TermName(name.stripSuffix("."))
+        else TermName(name)
+      inverseSemanticdbSymbol(sym) -> nme
+    }.view
       .filterKeys(_ != NoSymbol)
       .toMap
 
@@ -203,9 +201,11 @@ class ScalafixGlobal(
                       args.map(arg => loop(arg, None))
                     )
                   case _ =>
-                    if (sym.isAliasType &&
+                    if (
+                      sym.isAliasType &&
                       (sym.isAbstract ||
-                      sym.overrides.lastOption.exists(_.isAbstract))) {
+                        sym.overrides.lastOption.exists(_.isAbstract))
+                    ) {
 
                       // Always dealias abstract type aliases but leave concrete aliases alone.
                       // trait Generic { type Repr /* dealias */ }
@@ -350,7 +350,9 @@ class ScalafixGlobal(
       // Returns the package `a` for the symbol `_root_/a/b.c`
       def topPackage(s: Symbol): Symbol = {
         val owner = s.owner
-        if (s.isRoot || s.isRootPackage || s == NoSymbol || s.owner.isEffectiveRoot || s == owner) {
+        if (
+          s.isRoot || s.isRootPackage || s == NoSymbol || s.owner.isEffectiveRoot || s == owner
+        ) {
           s
         } else {
           topPackage(owner)
@@ -433,7 +435,9 @@ class ScalafixGlobal(
     def fullNameSyntax: String = {
       val out = new java.lang.StringBuilder
       def loop(s: Symbol): Unit = {
-        if (s.isRoot || s.isRootPackage || s == NoSymbol || s.owner.isEffectiveRoot) {
+        if (
+          s.isRoot || s.isRootPackage || s == NoSymbol || s.owner.isEffectiveRoot
+        ) {
           out.append(Identifier(s.nameSyntax))
         } else {
           loop(s.effectiveOwner.enclClass)
@@ -448,8 +452,10 @@ class ScalafixGlobal(
     }
 
     def asInfixPattern: Option[String] =
-      if (sym.isCase &&
-        !Character.isUnicodeIdentifierStart(sym.decodedName.head)) {
+      if (
+        sym.isCase &&
+        !Character.isUnicodeIdentifierStart(sym.decodedName.head)
+      ) {
         sym.primaryConstructor.paramss match {
           case (a :: b :: Nil) :: _ =>
             Some(s"${a.decodedName} ${sym.decodedName} ${b.decodedName}")

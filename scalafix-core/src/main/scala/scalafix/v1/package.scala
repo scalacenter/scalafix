@@ -22,13 +22,13 @@ package object v1 extends Api {
   }
   implicit class XtensionTermInfixScalafix(infix: Term.ApplyInfix) {
     @deprecated("0.9.7", "Use syntheticOperators")
-    def syntheticOperator(
-        implicit doc: SemanticDocument
+    def syntheticOperator(implicit
+        doc: SemanticDocument
     ): Option[SemanticTree] =
       syntheticOperators.headOption
 
-    def syntheticOperators(
-        implicit doc: SemanticDocument
+    def syntheticOperators(implicit
+        doc: SemanticDocument
     ): List[SemanticTree] = {
       val operatorPosition =
         Position.Range(infix.pos.input, infix.pos.start, infix.op.pos.end)

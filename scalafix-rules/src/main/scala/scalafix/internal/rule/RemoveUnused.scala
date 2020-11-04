@@ -38,8 +38,8 @@ class RemoveUnused(config: RemoveUnusedConfig)
     if (!hasWarnUnused) {
       Configured.error(
         s"""|The Scala compiler option "-Ywarn-unused" is required to use RemoveUnused.
-            |To fix this problem, update your build to use at least one Scala compiler
-            |option like -Ywarn-unused, -Xlint:unused (2.12.2 or above), or -Wunused (2.13 only)""".stripMargin
+          |To fix this problem, update your build to use at least one Scala compiler
+          |option like -Ywarn-unused, -Xlint:unused (2.12.2 or above), or -Wunused (2.13 only)""".stripMargin
       )
     } else {
       config.conf
@@ -55,13 +55,17 @@ class RemoveUnused(config: RemoveUnusedConfig)
     doc.diagnostics.foreach { diagnostic =>
       if (config.imports && diagnostic.message == "Unused import") {
         isUnusedImport += diagnostic.position
-      } else if (config.privates &&
+      } else if (
+        config.privates &&
         diagnostic.message.startsWith("private") &&
-        diagnostic.message.endsWith("is never used")) {
+        diagnostic.message.endsWith("is never used")
+      ) {
         isUnusedTerm += diagnostic.position
-      } else if (config.locals &&
+      } else if (
+        config.locals &&
         diagnostic.message.startsWith("local") &&
-        diagnostic.message.endsWith("is never used")) {
+        diagnostic.message.endsWith("is never used")
+      ) {
         isUnusedTerm += diagnostic.position
       }
     }

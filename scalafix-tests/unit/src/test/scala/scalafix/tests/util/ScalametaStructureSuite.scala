@@ -11,16 +11,16 @@ class ScalametaStructureSuite extends AnyFunSuite with DiffAssertions {
     val obtained = q"a.b.c.d".structureWidth(1)
     val expected =
       """|Term.Select(
-         |  Term.Select(
-         |    Term.Select(
-         |      Term.Name("a"),
-         |      Term.Name("b")
-         |    ),
-         |    Term.Name("c")
-         |  ),
-         |  Term.Name("d")
-         |)
-         |""".stripMargin
+        |  Term.Select(
+        |    Term.Select(
+        |      Term.Name("a"),
+        |      Term.Name("b")
+        |    ),
+        |    Term.Name("c")
+        |  ),
+        |  Term.Name("d")
+        |)
+        |""".stripMargin
     assertNoDiff(obtained, expected)
   }
 
@@ -28,17 +28,17 @@ class ScalametaStructureSuite extends AnyFunSuite with DiffAssertions {
     val obtained = q"a.b.c.d".structureLabeled(1)
     val expected =
       """|
-         |Term.Select(
-         |  qual = Term.Select(
-         |    qual = Term.Select(
-         |      qual = Term.Name("a"),
-         |      name = Term.Name("b")
-         |    ),
-         |    name = Term.Name("c")
-         |  ),
-         |  name = Term.Name("d")
-         |)
-         |""".stripMargin
+        |Term.Select(
+        |  qual = Term.Select(
+        |    qual = Term.Select(
+        |      qual = Term.Name("a"),
+        |      name = Term.Name("b")
+        |    ),
+        |    name = Term.Name("c")
+        |  ),
+        |  name = Term.Name("d")
+        |)
+        |""".stripMargin
     assertNoDiff(obtained, expected)
   }
 
@@ -46,8 +46,8 @@ class ScalametaStructureSuite extends AnyFunSuite with DiffAssertions {
     assertNoDiff(
       q"def foo: A = ???".decltpe.structureWidth(1),
       """|
-         |Some(Type.Name("A"))
-         |""".stripMargin
+        |Some(Type.Name("A"))
+        |""".stripMargin
     )
   }
 
@@ -56,9 +56,9 @@ class ScalametaStructureSuite extends AnyFunSuite with DiffAssertions {
       // NOTE(olafur): need downcast because List is no longer a Product in 2.13.
       q"foo(a)".args.asInstanceOf[Product].structureWidth(1),
       """|List(
-         |  Term.Name("a")
-         |)
-         |""".stripMargin
+        |  Term.Name("a")
+        |)
+        |""".stripMargin
     )
   }
 }

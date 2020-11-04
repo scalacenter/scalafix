@@ -5,7 +5,7 @@ import scala.meta.tokens.Tokens
 
 import scalafix.util.Compat._
 
-/** Helper to traverse tokens as a doubly linked list.  */
+/** Helper to traverse tokens as a doubly linked list. */
 final class TokenList private (tokens: Tokens) {
   def trailing(token: Token): View[Token] =
     tokens.view.slice(tok2idx(token) + 1, tokens.length)
@@ -22,7 +22,8 @@ final class TokenList private (tokens: Tokens) {
     }
     map
       .result()
-      .withDefault(t => throw new NoSuchElementException(s"token not found: $t")
+      .withDefault(t =>
+        throw new NoSuchElementException(s"token not found: $t")
       )
   }
 
@@ -32,7 +33,8 @@ final class TokenList private (tokens: Tokens) {
   def slice(from: Token, to: Token): SeqView[Token] =
     tokens.view.slice(tok2idx(from), tok2idx(to))
 
-  /** Returns the next/trailing token or the original token if none exists.
+  /**
+   * Returns the next/trailing token or the original token if none exists.
    *
    * @note You need to guard against infinite recursion if iterating through
    *       a list of tokens using this method. This method does not fail
@@ -46,7 +48,8 @@ final class TokenList private (tokens: Tokens) {
     }
   }
 
-  /** Returns the previous/leading token or the original token if none exists.
+  /**
+   * Returns the previous/leading token or the original token if none exists.
    *
    * @note You need to guard against infinite recursion if iterating through
    *       a list of tokens using this method. This method does not fail

@@ -15,7 +15,8 @@ import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.testkit.AssertDiff
 import scalafix.internal.testkit.CommentAssertion
 
-/** Construct a test suite for running semantic Scalafix rules.
+/**
+ * Construct a test suite for running semantic Scalafix rules.
  * <p>
  * Mix-in FunSuiteLike (ScalaTest 3.0), AnyFunSuiteLike (ScalaTest 3.1+) or
  * the testing style of your choice if you add your own tests.

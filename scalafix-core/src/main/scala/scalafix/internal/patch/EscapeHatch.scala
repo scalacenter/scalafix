@@ -23,7 +23,8 @@ import scalafix.v0._
 // used to cross-compile
 import scala.collection.compat._ // scalafix:ok
 
-/** EscapeHatch is an algorithm to selectively disable rules. There
+/**
+ * EscapeHatch is an algorithm to selectively disable rules. There
  * are two mechanisms to do so: anchored comments and the
  * standard `@SuppressWarnings` annotation. The latter takes
  * precedence over the former in case there are overlaps.
@@ -40,20 +41,19 @@ class EscapeHatch private (
   )(implicit ctx: RuleCtx): (Patch, List[RuleDiagnostic]) = {
     var patchBuilder = Patch.empty
     val diagnostics = List.newBuilder[RuleDiagnostic]
-    patchesByName.foreach {
-      case (rule, rulePatch) =>
-        PatchInternals.foreachPatchUnit(rulePatch) {
-          case LintPatch(message) =>
-            diagnostics += message.toDiagnostic(rule, ctx.config)
-          case rewritePatch =>
-            patchBuilder += rewritePatch
-        }
+    patchesByName.foreach { case (rule, rulePatch) =>
+      PatchInternals.foreachPatchUnit(rulePatch) {
+        case LintPatch(message) =>
+          diagnostics += message.toDiagnostic(rule, ctx.config)
+        case rewritePatch =>
+          patchBuilder += rewritePatch
+      }
     }
     (patchBuilder, diagnostics.result())
   }
 
-  def filter(patchesByName: Map[RuleName, Patch])(
-      implicit ctx: RuleCtx,
+  def filter(patchesByName: Map[RuleName, Patch])(implicit
+      ctx: RuleCtx,
       index: SemanticdbIndex
   ): (Iterable[Patch], List[RuleDiagnostic]) = {
     if (isEmpty) return {
@@ -102,8 +102,8 @@ class EscapeHatch private (
       case e => e
     }
 
-    val patches = patchesByName.map {
-      case (name, patch) => loop(name, patch)
+    val patches = patchesByName.map { case (name, patch) =>
+      loop(name, patch)
     }
     val unusedWarnings =
       (annotatedEscapes.unusedEscapes(usedEscapes) ++
@@ -155,7 +155,8 @@ object EscapeHatch {
     )
   }
 
-  /** Rules are disabled via standard `@SuppressWarnings` annotations. The
+  /**
+   * Rules are disabled via standard `@SuppressWarnings` annotations. The
    * annotation can be placed in class, object, trait, type, def, val, var,
    * parameters and constructor definitions.
    *
@@ -191,7 +192,9 @@ object EscapeHatch {
     def unusedEscapes(used: collection.Set[EscapeFilter]): Set[Position] =
       escapeTree.valuesIterator.flatten.collect {
         case f @ EscapeFilter(_, rulePos, _, _)
-            if !used(f) && rulePos.text.startsWith(OptionalRulePrefix) => // only report unused warnings for Scalafix rules
+            if !used(f) && rulePos.text.startsWith(
+              OptionalRulePrefix
+            ) => // only report unused warnings for Scalafix rules
           rulePos
       }.toSet
   }
@@ -208,26 +211,25 @@ object EscapeHatch {
 
     private def collectEscapes(tree: Tree): AnnotatedEscapes = {
       val escapes =
-        tree.collect {
-          case t @ Mods(SuppressWarningsArgs(args)) =>
-            val start = EscapeOffset(t.pos.start)
-            val end = EscapeOffset(t.pos.end)
-            val rules = rulesWithPosition(args)
-            val (matchAll, matchOne) = rules.partition(_._1 == SuppressAll)
-            val filters = ListBuffer.empty[EscapeFilter]
+        tree.collect { case t @ Mods(SuppressWarningsArgs(args)) =>
+          val start = EscapeOffset(t.pos.start)
+          val end = EscapeOffset(t.pos.end)
+          val rules = rulesWithPosition(args)
+          val (matchAll, matchOne) = rules.partition(_._1 == SuppressAll)
+          val filters = ListBuffer.empty[EscapeFilter]
 
-            // 'all' should come before individual rules so that we can warn unused rules later
-            for ((_, rulePos) <- matchAll) {
-              val matcher = FilterMatcher.matchEverything
-              filters += EscapeFilter(matcher, rulePos, start, Some(end))
-            }
-            for ((rule, rulePos) <- matchOne) {
-              val unprefixedRuleName = rule.stripPrefix(OptionalRulePrefix)
-              val matcher = FilterMatcher(unprefixedRuleName)
-              filters += EscapeFilter(matcher, rulePos, start, Some(end))
-            }
+          // 'all' should come before individual rules so that we can warn unused rules later
+          for ((_, rulePos) <- matchAll) {
+            val matcher = FilterMatcher.matchEverything
+            filters += EscapeFilter(matcher, rulePos, start, Some(end))
+          }
+          for ((rule, rulePos) <- matchOne) {
+            val unprefixedRuleName = rule.stripPrefix(OptionalRulePrefix)
+            val matcher = FilterMatcher(unprefixedRuleName)
+            filters += EscapeFilter(matcher, rulePos, start, Some(end))
+          }
 
-            (start, filters.result())
+          (start, filters.result())
         }
       new AnnotatedEscapes(TreeMap(escapes: _*))
     }
@@ -236,32 +238,31 @@ object EscapeHatch {
       def unapply(mods: List[Mod]): Option[List[Term]] =
         mods.collectFirst {
           case Mod.Annot(
-              Init(
-                Type.Name(SuppressWarnings),
-                _,
-                List(Term.Apply(Term.Name("Array"), args) :: Nil)
-              )
+                Init(
+                  Type.Name(SuppressWarnings),
+                  _,
+                  List(Term.Apply(Term.Name("Array"), args) :: Nil)
+                )
               ) =>
             args
 
           case Mod.Annot(
-              Init(
-                Type.Select(_, Type.Name(SuppressWarnings)),
-                _,
-                List(Term.Apply(Term.Name("Array"), args) :: Nil)
-              )
+                Init(
+                  Type.Select(_, Type.Name(SuppressWarnings)),
+                  _,
+                  List(Term.Apply(Term.Name("Array"), args) :: Nil)
+                )
               ) =>
             args
         }
     }
 
     private def rulesWithPosition(rules: List[Term]): List[(String, Position)] =
-      rules.collect {
-        case lit @ Lit.String(rule) =>
-          // get the exact position of the rule name
-          val lo = lit.pos.start + lit.pos.text.indexOf(rule)
-          val hi = lo + rule.length
-          rule -> Position.Range(lit.pos.input, lo, hi)
+      rules.collect { case lit @ Lit.String(rule) =>
+        // get the exact position of the rule name
+        val lo = lit.pos.start + lit.pos.text.indexOf(rule)
+        val hi = lo + rule.length
+        rule -> Position.Range(lit.pos.input, lo, hi)
       }
   }
 
@@ -374,9 +375,8 @@ object EscapeHatch {
             EscapeFilter(FilterMatcher.matchEverything, anchor.pos, start, end)
           )
         } else {
-          rulesPos.map {
-            case (rule, pos) =>
-              EscapeFilter(FilterMatcher(rule), pos, start, end)
+          rulesPos.map { case (rule, pos) =>
+            EscapeFilter(FilterMatcher(rule), pos, start, end)
           }
         }
       }
@@ -530,17 +530,15 @@ object EscapeHatch {
           ((source, target): @unchecked) match {
             case (AllRules, SomeRules(tgt)) =>
               var newTgt = tgt
-              rulesPos.foreach {
-                case (rule, pos) =>
-                  if (!newTgt(rule)) newTgt += rule else unused += pos
+              rulesPos.foreach { case (rule, pos) =>
+                if (!newTgt(rule)) newTgt += rule else unused += pos
               }
               (AllRules, SomeRules(newTgt))
 
             case (SomeRules(src), AllRules) =>
               var newSrc = src
-              rulesPos.foreach {
-                case (rule, pos) =>
-                  if (newSrc(rule)) newSrc -= rule else unused += pos
+              rulesPos.foreach { case (rule, pos) =>
+                if (newSrc(rule)) newSrc -= rule else unused += pos
               }
               (SomeRules(newSrc), AllRules)
           }

@@ -31,8 +31,8 @@ object MetaconfigOps {
         res.product(configured).map { case (a, b) => b +: a }
     }
   }
-  def getKey[T](conf: Conf.Obj, path: String, extraNames: String*)(
-      implicit ev: ConfDecoder[T]
+  def getKey[T](conf: Conf.Obj, path: String, extraNames: String*)(implicit
+      ev: ConfDecoder[T]
   ): Configured[T] = {
     ConfGet.getKey(conf, path +: extraNames) match {
       case Some(value) => ev.read(value)

@@ -51,38 +51,38 @@ class CliSyntacticSuite extends BaseCliSuite {
   check(
     name = "fix file",
     originalLayout = s"""/hello.scala
-                        |$original
-                        |""".stripMargin,
+      |$original
+      |""".stripMargin,
     args = Array("-r", "ProcedureSyntax", "hello.scala"),
     expectedLayout = s"""/hello.scala
-                        |$expected
-                        |""".stripMargin,
+      |$expected
+      |""".stripMargin,
     expectedExit = ExitStatus.Ok
   )
 
   check(
     name = "--syntactic ignores semantic rule",
     originalLayout = s"""|
-                         |/.scalafix.conf
-                         |rules = [
-                         |  RemoveUnused
-                         |  ExplicitResultTypes
-                         |  ProcedureSyntax
-                         |]
-                         |/hello.scala
-                         |$original
-                         |""".stripMargin,
+      |/.scalafix.conf
+      |rules = [
+      |  RemoveUnused
+      |  ExplicitResultTypes
+      |  ProcedureSyntax
+      |]
+      |/hello.scala
+      |$original
+      |""".stripMargin,
     args = Array("--syntactic", "hello.scala"),
     expectedLayout = s"""|
-                         |/.scalafix.conf
-                         |rules = [
-                         |  RemoveUnused
-                         |  ExplicitResultTypes
-                         |  ProcedureSyntax
-                         |]
-                         |/hello.scala
-                         |$expected
-                         |""".stripMargin,
+      |/.scalafix.conf
+      |rules = [
+      |  RemoveUnused
+      |  ExplicitResultTypes
+      |  ProcedureSyntax
+      |]
+      |/hello.scala
+      |$expected
+      |""".stripMargin,
     expectedExit = ExitStatus.Ok
   )
 
@@ -90,38 +90,38 @@ class CliSyntacticSuite extends BaseCliSuite {
     // same test as above except using @args expansion
     name = "@args",
     originalLayout = s"""/hello.scala
-                        |$original
-                        |/scalafix.args
-                        |-r
-                        |ProcedureSyntax
-                        |hello.scala
-                        |""".stripMargin,
+      |$original
+      |/scalafix.args
+      |-r
+      |ProcedureSyntax
+      |hello.scala
+      |""".stripMargin,
     args = Array("@scalafix.args"),
     expectedLayout = s"""/hello.scala
-                        |$expected
-                        |/scalafix.args
-                        |-r
-                        |ProcedureSyntax
-                        |hello.scala
-                        |""".stripMargin,
+      |$expected
+      |/scalafix.args
+      |-r
+      |ProcedureSyntax
+      |hello.scala
+      |""".stripMargin,
     expectedExit = ExitStatus.Ok
   )
 
   check(
     name = "fix directory",
     originalLayout = s"""|/dir/a.scala
-                         |$original
-                         |/dir/b.scala
-                         |$original""".stripMargin,
+      |$original
+      |/dir/b.scala
+      |$original""".stripMargin,
     args = Array(
       "-r",
       "ProcedureSyntax",
       "dir"
     ),
     expectedLayout = s"""|/dir/a.scala
-                         |$expected
-                         |/dir/b.scala
-                         |$expected""".stripMargin,
+      |$expected
+      |/dir/b.scala
+      |$expected""".stripMargin,
     expectedExit = ExitStatus.Ok
   )
 
@@ -144,22 +144,22 @@ class CliSyntacticSuite extends BaseCliSuite {
   check(
     name = "TestError",
     originalLayout = s"""/foobar.scala
-                        |$original""".stripMargin,
+      |$original""".stripMargin,
     args = Array("--check", "-r", "ProcedureSyntax", "foobar.scala"),
     expectedLayout = s"""/foobar.scala
-                        |$original""".stripMargin,
+      |$original""".stripMargin,
     expectedExit = ExitStatus.TestError,
     outputAssert = { out =>
       assert(
         out.endsWith(
           """|<expected fix>
-             |@@ -1,4 +1,4 @@
-             | object Main {
-             |-  def foo() {
-             |+  def foo(): Unit = {
-             |   }
-             | }
-             |""".stripMargin
+            |@@ -1,4 +1,4 @@
+            | object Main {
+            |-  def foo() {
+            |+  def foo(): Unit = {
+            |   }
+            | }
+            |""".stripMargin
         )
       )
     }
@@ -168,52 +168,52 @@ class CliSyntacticSuite extends BaseCliSuite {
   check(
     name = "--check OK",
     originalLayout = s"""/foobar.scala
-                        |$expected""".stripMargin,
+      |$expected""".stripMargin,
     args = Array("--check", "-r", "ProcedureSyntax", "foobar.scala"),
     expectedLayout = s"""/foobar.scala
-                        |$expected""".stripMargin,
+      |$expected""".stripMargin,
     expectedExit = ExitStatus.Ok
   )
 
   check(
     name = "--triggered is respected",
     originalLayout = s"""|
-                         |/.scalafix.conf
-                         |rules = [
-                         |  RemoveUnused
-                         |]
-                         |
-                         |triggered.rules = [ProcedureSyntax]
-                         |
-                         |/hello.scala
-                         |$original
-                         |""".stripMargin,
+      |/.scalafix.conf
+      |rules = [
+      |  RemoveUnused
+      |]
+      |
+      |triggered.rules = [ProcedureSyntax]
+      |
+      |/hello.scala
+      |$original
+      |""".stripMargin,
     args = Array("--triggered", "hello.scala"),
     expectedLayout = s"""|
-                         |/.scalafix.conf
-                         |rules = [
-                         |  RemoveUnused
-                         |]
-                         |
-                         |triggered.rules = [ProcedureSyntax]
-                         |
-                         |/hello.scala
-                         |$expected
-                         |""".stripMargin,
+      |/.scalafix.conf
+      |rules = [
+      |  RemoveUnused
+      |]
+      |
+      |triggered.rules = [ProcedureSyntax]
+      |
+      |/hello.scala
+      |$expected
+      |""".stripMargin,
     expectedExit = ExitStatus.Ok
   )
 
   check(
     name = "linter error",
     originalLayout = s"""/foobar.scala
-                        |$original""".stripMargin,
+      |$original""".stripMargin,
     args = Array(
       "-r",
       "scala:scalafix.tests.cli.LintError",
       "foobar.scala"
     ),
     expectedLayout = s"""/foobar.scala
-                        |$original""".stripMargin,
+      |$original""".stripMargin,
     expectedExit = ExitStatus.LinterError,
     outputAssert = { out =>
       assert(out.contains("Error!"))
@@ -223,7 +223,7 @@ class CliSyntacticSuite extends BaseCliSuite {
   check(
     name = "linter warning promoted to error",
     originalLayout = s"""/foobar.scala
-                        |$original""".stripMargin,
+      |$original""".stripMargin,
     args = Array(
       "--settings.lint.error",
       "LintWarning.warning",
@@ -232,7 +232,7 @@ class CliSyntacticSuite extends BaseCliSuite {
       "foobar.scala"
     ),
     expectedLayout = s"""/foobar.scala
-                        |$original""".stripMargin,
+      |$original""".stripMargin,
     expectedExit = ExitStatus.LinterError,
     outputAssert = { out =>
       assert(out.contains("foobar.scala:1:1"))
@@ -242,9 +242,9 @@ class CliSyntacticSuite extends BaseCliSuite {
   check(
     name = "--exclude is respected",
     originalLayout = s"""|/ignoreme.scala
-                         |$original
-                         |/fixme.scala
-                         |$original""".stripMargin,
+      |$original
+      |/fixme.scala
+      |$original""".stripMargin,
     args = Array(
       "--exclude",
       "**ignoreme.scala",
@@ -254,17 +254,17 @@ class CliSyntacticSuite extends BaseCliSuite {
       "fixme.scala"
     ),
     expectedLayout = s"""|/fixme.scala
-                         |$expected
-                         |/ignoreme.scala
-                         |$original""".stripMargin,
+      |$expected
+      |/ignoreme.scala
+      |$original""".stripMargin,
     expectedExit = ExitStatus.Ok
   )
 
   check(
     name = "--stdout does not write to file",
     originalLayout = s"""|/a.scala
-                         |$original
-                         |""".stripMargin,
+      |$original
+      |""".stripMargin,
     args = Array(
       "--stdout",
       "-r",
@@ -272,7 +272,7 @@ class CliSyntacticSuite extends BaseCliSuite {
       "a.scala"
     ),
     expectedLayout = s"""|/a.scala
-                         |$original""".stripMargin,
+      |$original""".stripMargin,
     expectedExit = ExitStatus.Ok,
     output => assertNoDiff(output, expected)
   )
@@ -280,23 +280,23 @@ class CliSyntacticSuite extends BaseCliSuite {
   check(
     name = "ParseError",
     originalLayout = s"""|/a.scala
-                         |objec bar
-                         |""".stripMargin,
+      |objec bar
+      |""".stripMargin,
     args = Array(
       "-r",
       "ProcedureSyntax",
       "a.scala"
     ),
     expectedLayout = s"""|/a.scala
-                         |objec bar""".stripMargin,
+      |objec bar""".stripMargin,
     expectedExit = ExitStatus.ParseError,
     outputAssert = { out =>
       assert(
         out.endsWith(
           """|a.scala:1:1: error: expected class or object definition identifier
-             |objec bar
-             |^^^^^
-             |""".stripMargin
+            |objec bar
+            |^^^^^
+            |""".stripMargin
         )
       )
     }
@@ -305,36 +305,36 @@ class CliSyntacticSuite extends BaseCliSuite {
   check(
     name = "fix sbt files",
     originalLayout = s"""|/a.sbt
-                         |def foo { println(1) }
-                         |lazy val bar = project
-                         |""".stripMargin,
+      |def foo { println(1) }
+      |lazy val bar = project
+      |""".stripMargin,
     args = Array(
       "-r",
       "ProcedureSyntax",
       "a.sbt"
     ),
     expectedLayout = s"""|/a.sbt
-                         |def foo: Unit = { println(1) }
-                         |lazy val bar = project
-                         |""".stripMargin,
+      |def foo: Unit = { println(1) }
+      |lazy val bar = project
+      |""".stripMargin,
     expectedExit = ExitStatus.Ok
   )
 
   check(
     name = "deprecated name emits warning",
     originalLayout = s"""|/a.scala
-                         |object a {
-                         |}
-                         |""".stripMargin,
+      |object a {
+      |}
+      |""".stripMargin,
     args = Array(
       "-r",
       "OldDeprecatedName", // class:scalafix.tests.cli.DeprecatedName
       "a.scala"
     ),
     expectedLayout = s"""|/a.scala
-                         |object a {
-                         |}
-                         |""".stripMargin,
+      |object a {
+      |}
+      |""".stripMargin,
     expectedExit = ExitStatus.Ok,
     output => assert(output.contains("Use DeprecatedName instead"))
   )
@@ -342,19 +342,20 @@ class CliSyntacticSuite extends BaseCliSuite {
   check(
     name = "no files to fix is error",
     originalLayout = s"""|/dir/a.java
-                         |package a;
-                         |class A
-                         |""".stripMargin,
+      |package a;
+      |class A
+      |""".stripMargin,
     args = Array(
       "-r",
       "ProcedureSyntax",
       "dir"
     ),
     expectedLayout = s"""|/dir/a.java
-                         |package a;
-                         |class A
-                         |""".stripMargin,
-    expectedExit = ExitStatus.NoFilesError, { output =>
+      |package a;
+      |class A
+      |""".stripMargin,
+    expectedExit = ExitStatus.NoFilesError,
+    { output =>
       assert(output.contains("No files to fix"))
     }
   )
@@ -362,9 +363,9 @@ class CliSyntacticSuite extends BaseCliSuite {
   check(
     name = "--out-from --out-to change output path",
     originalLayout = """
-                       |/src/shared/a.scala
-                       |object a { def foo { println(1) } }
-                       |""".stripMargin,
+      |/src/shared/a.scala
+      |object a { def foo { println(1) } }
+      |""".stripMargin,
     args = Array(
       "-r",
       "ProcedureSyntax",
@@ -375,63 +376,63 @@ class CliSyntacticSuite extends BaseCliSuite {
       "src"
     ),
     expectedLayout = """
-                       |/src/fixed/a.scala
-                       |object a { def foo: Unit = { println(1) } }
-                       |
-                       |/src/shared/a.scala
-                       |object a { def foo { println(1) } }
-                       |""".stripMargin,
+      |/src/fixed/a.scala
+      |object a { def foo: Unit = { println(1) } }
+      |
+      |/src/shared/a.scala
+      |object a { def foo { println(1) } }
+      |""".stripMargin,
     expectedExit = ExitStatus.Ok
   )
 
   check(
     name = "skip parser when it's not needed",
     originalLayout = """
-                       |/src/shared/a.scala
-                       |object a {
-                       |""".stripMargin,
+      |/src/shared/a.scala
+      |object a {
+      |""".stripMargin,
     args = Array(
       "-r",
       "NoOpRule"
     ),
     expectedLayout = """
-                       |/src/shared/a.scala
-                       |object a {
-                       |""".stripMargin,
+      |/src/shared/a.scala
+      |object a {
+      |""".stripMargin,
     expectedExit = ExitStatus.Ok
   )
 
   check(
     name = "don't skip parser when there is a suppression",
     originalLayout = """
-                       |/src/shared/a.scala
-                       |object a { // scalafix:
-                       |""".stripMargin,
+      |/src/shared/a.scala
+      |object a { // scalafix:
+      |""".stripMargin,
     args = Array(
       "-r",
       "NoOpRule"
     ),
     expectedLayout = """
-                       |/src/shared/a.scala
-                       |object a { // scalafix:
-                       |""".stripMargin,
+      |/src/shared/a.scala
+      |object a { // scalafix:
+      |""".stripMargin,
     expectedExit = ExitStatus.ParseError
   )
 
   check(
     name = "unexpected error",
     originalLayout = """
-                       |/src/shared/a.scala
-                       |object a { }
-                       |""".stripMargin,
+      |/src/shared/a.scala
+      |object a { }
+      |""".stripMargin,
     args = Array(
       "-r",
       "CrashingRule"
     ),
     expectedLayout = """
-                       |/src/shared/a.scala
-                       |object a { }
-                       |""".stripMargin,
+      |/src/shared/a.scala
+      |object a { }
+      |""".stripMargin,
     outputAssert = { out =>
       assert(out.contains("FileException"), out)
       assert(out.contains("a.scala"), out)
@@ -462,14 +463,16 @@ class CliSyntacticSuite extends BaseCliSuite {
 
   checkCommandLineError(
     "--scala-version error",
-    Array("-r", "Scala2_9", "--scala-version", "2.12.8"), { out =>
+    Array("-r", "Scala2_9", "--scala-version", "2.12.8"),
+    { out =>
       assert(out.contains("must start with 2.9"))
     }
   )
 
   checkCommandLineError(
     "--scalac-options error",
-    Array("-r", "Scala2_9", "--scala-version", "2.9.6"), { out =>
+    Array("-r", "Scala2_9", "--scala-version", "2.9.6"),
+    { out =>
       assert(out.contains("must contain -Ysource:2.9"))
     }
   )

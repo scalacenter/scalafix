@@ -269,8 +269,10 @@ class PrettyType private (
                   inits,
                   Self(Name(""), None),
                   declarations.flatMap { i =>
-                    if (!i.kind.isConstructor &&
-                      !i.isVarSetter) toStat(i)
+                    if (
+                      !i.kind.isConstructor &&
+                      !i.isVarSetter
+                    ) toStat(i)
                     else Nil
                   }
                 )
@@ -329,9 +331,11 @@ class PrettyType private (
                   inits,
                   Self(Name(""), None),
                   declarations.flatMap { i =>
-                    if (!i.kind.isConstructor &&
+                    if (
+                      !i.kind.isConstructor &&
                       !i.isVarSetter &&
-                      !isSyntheticMember(i)) toStat(i)
+                      !isSyntheticMember(i)
+                    ) toStat(i)
                     else Nil
                   }
                 )
@@ -446,9 +450,11 @@ class PrettyType private (
           Term.Name(info.displayName)
         case QualifyStrategy.Readable =>
           val owner = this.info(info.owner)
-          if (owner.kind.isPackageObject ||
+          if (
+            owner.kind.isPackageObject ||
             owner.kind.isPackage ||
-            (owner.kind.isObject && info.kind.isType)) {
+            (owner.kind.isObject && info.kind.isType)
+          ) {
             imports += info.symbol
             Term.Name(info.displayName)
           } else {
@@ -478,16 +484,20 @@ class PrettyType private (
       name
     } else {
       val owner = this.info(info.owner)
-      if (shorten.isReadable && (
+      if (
+        shorten.isReadable && (
           owner.kind.isPackage ||
-          owner.kind.isPackageObject ||
-          (owner.kind.isObject && info.kind.isType)
-        )) {
+            owner.kind.isPackageObject ||
+            (owner.kind.isObject && info.kind.isType)
+        )
+      ) {
         imports += info.symbol
         name
-      } else if (owner.kind.isPackage ||
+      } else if (
+        owner.kind.isPackage ||
         owner.kind.isObject ||
-        info.language.isJava) {
+        info.language.isJava
+      ) {
         Type.Select(toTermRef(owner), name)
       } else if (owner.kind.isClass || owner.kind.isTrait) {
         Type.Project(toTypeRef(owner), name)
@@ -607,8 +617,8 @@ class PrettyType private (
         case head =>
           head -> types.iterator.drop(1)
       }
-      tail.foldLeft(toType(head)) {
-        case (accum, next) => Type.With(accum, toType(next))
+      tail.foldLeft(toType(head)) { case (accum, next) =>
+        Type.With(accum, toType(next))
       }
     case s.UniversalType(Some(typeParameters), underlying) =>
       val universalName = t"T"

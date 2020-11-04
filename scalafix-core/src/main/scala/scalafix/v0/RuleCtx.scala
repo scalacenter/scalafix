@@ -15,13 +15,15 @@ import scalafix.util.TokenList
 
 trait RuleCtx extends PatchOps {
 
-  /** The parsed syntax tree that should be fixed.
+  /**
+   * The parsed syntax tree that should be fixed.
    *
    * The scalafix API does not support fixing un-parseable code at this point.
    */
   def tree: Tree
 
-  /** The input where the tree was parsed from.
+  /**
+   * The input where the tree was parsed from.
    *
    * This is typically either Input.VirtualFile for semantic rules
    * and Input.File for syntactic rules. For Input.VirtualFile, it is
@@ -29,22 +31,22 @@ trait RuleCtx extends PatchOps {
    */
   def input: Input
 
-  /** The tokenized tokens of this this tree. **/
+  /** The tokenized tokens of this this tree. * */
   def tokens: Tokens
 
-  /** Find matching open/close pairs of parens/braces/brackets. **/
+  /** Find matching open/close pairs of parens/braces/brackets. * */
   def matchingParens: MatchingParens
 
-  /** Traverse tokens as a doubly linked list. **/
+  /** Traverse tokens as a doubly linked list. * */
   def tokenList: TokenList
 
-  /** Find comments/docstrings associated with tree nodes. **/
+  /** Find comments/docstrings associated with tree nodes. * */
   def comments: AssociatedComments
 
   /** Get SemanticdbIndex for this single tree alone. */
   def index(implicit index: SemanticdbIndex): SemanticdbIndex
 
-  /** Print out the contents of SemanticdbIndex for this input only. **/
+  /** Print out the contents of SemanticdbIndex for this input only. * */
   def debugIndex()(implicit index: SemanticdbIndex, fileLine: FileLine): Unit
 
   // Private scalafix methods, subject for removal without notice.

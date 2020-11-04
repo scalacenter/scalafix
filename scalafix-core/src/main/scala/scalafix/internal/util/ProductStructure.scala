@@ -85,10 +85,10 @@ class ProductStructure(
       val allNamesAreUnhelpful = fieldNames.forall(isUnhelpfulFieldName)
       val args =
         if (showFieldNames && !allNamesAreUnhelpful) {
-          val table = fieldNames.zip(values).map {
-            case (fieldName, fieldValue) =>
+          val table =
+            fieldNames.zip(values).map { case (fieldName, fieldValue) =>
               Doc.text(fieldName) + Doc.text(" = ") + fieldValue
-          }
+            }
           Doc.intercalate(Doc.comma + Doc.line, table)
         } else {
           Doc.intercalate(Doc.comma + Doc.line, values)

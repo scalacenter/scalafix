@@ -26,14 +26,14 @@ object EmptyDiff extends DiffDisable {
 
 class FullDiffDisable(diffs: List[GitDiff]) extends DiffDisable {
   override def isEmpty: Boolean = diffs.isEmpty
-  private val newFiles: Set[String] = diffs.collect {
-    case NewFile(path) => path.toAbsolutePath.toString
+  private val newFiles: Set[String] = diffs.collect { case NewFile(path) =>
+    path.toAbsolutePath.toString
   }.toSet
 
   private val modifiedFiles: Map[String, IntervalSet] = diffs.collect {
     case ModifiedFile(path, changes) => {
-      val ranges = changes.map {
-        case GitChange(start, end) => (start, end)
+      val ranges = changes.map { case GitChange(start, end) =>
+        (start, end)
       }
       path.toAbsolutePath.toString -> IntervalSet(ranges)
     }
@@ -78,8 +78,8 @@ class FullDiffDisable(diffs: List[GitDiff]) extends DiffDisable {
     diffs.foreach {
       case ModifiedFile(path, changes) => {
         add(path.toString)
-        changes.foreach {
-          case GitChange(start, end) => add(s"  [$start, $end]")
+        changes.foreach { case GitChange(start, end) =>
+          add(s"  [$start, $end]")
         }
       }
       case _ => ()

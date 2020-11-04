@@ -21,9 +21,9 @@ object GitHubUrlRule {
       Some(
         ConfError
           .message(s"""Invalid url 'github:$invalid'. Valid formats are:
-                      |- github:org/repo
-                      |- github:org/repo/name
-                      |- github:org/repo/name?sha=branch""".stripMargin)
+            |- github:org/repo
+            |- github:org/repo/name
+            |- github:org/repo/name?sha=branch""".stripMargin)
           .notOk
       )
     case _ => None

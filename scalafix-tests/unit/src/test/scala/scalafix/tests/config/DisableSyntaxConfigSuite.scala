@@ -11,9 +11,9 @@ class DisableSyntaxConfigSuite extends AnyFunSuite {
   test("Warn about invalid keywords") {
     val rawConfig =
       """|keywords = [
-         |  banana
-         |]
-         |""".stripMargin
+        |  banana
+        |]
+        |""".stripMargin
     val errorMessage = "banana is not in our supported keywords."
     assertError(rawConfig, errorMessage)
   }
@@ -21,9 +21,9 @@ class DisableSyntaxConfigSuite extends AnyFunSuite {
   test("Provide suggestions when typos are present in keywords") {
     val rawConfig =
       """|keywords = [
-         |  overide
-         |]
-         |""".stripMargin
+        |  overide
+        |]
+        |""".stripMargin
     val errorMessage =
       "overide is not in our supported keywords. (Did you mean: override?)"
     assertError(rawConfig, errorMessage)
@@ -32,24 +32,24 @@ class DisableSyntaxConfigSuite extends AnyFunSuite {
   test("Warn about wrong types") {
     val rawConfig =
       """|keywords = [
-         |  42
-         |]
-         |""".stripMargin
+        |  42
+        |]
+        |""".stripMargin
     val errorMessage =
       """|Type mismatch;
-         |  found    : Number (value: 42)
-         |  expected : String""".stripMargin
+        |  found    : Number (value: 42)
+        |  expected : String""".stripMargin
     assertError(rawConfig, errorMessage)
   }
 
   test("Handles non-string types") {
     val rawConfig =
       """|keywords = [
-         |  null
-         |  false
-         |  true
-         |]
-         |""".stripMargin
+        |  null
+        |  false
+        |  true
+        |]
+        |""".stripMargin
 
     val obtained = read(rawConfig).get
     val expected = DisableSyntaxConfig(

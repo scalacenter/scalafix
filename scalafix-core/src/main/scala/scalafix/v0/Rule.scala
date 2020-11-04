@@ -10,7 +10,8 @@ import scalafix.internal.patch.PatchInternals
 import scalafix.lint.RuleDiagnostic
 import scalafix.syntax._
 
-/** A Scalafix Rule.
+/**
+ * A Scalafix Rule.
  *
  * To provide automatic fixes for this rule, override the `fix` method. Example:
  * {{{
@@ -50,7 +51,8 @@ abstract class Rule(ruleName: RuleName) { self =>
   /** Returns a patch to fix violations of this rule. */
   def fix(ctx: RuleCtx): Patch = Patch.empty
 
-  /** Initialize this rule with the given user configuration.
+  /**
+   * Initialize this rule with the given user configuration.
    *
    * This method is called once by scalafix before rule is called.
    * Use this method to either read custom configuration or to build

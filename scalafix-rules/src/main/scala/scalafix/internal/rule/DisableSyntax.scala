@@ -34,11 +34,10 @@ final class DisableSyntax(config: DisableSyntaxConfig)
         )
 
     def messageSubstitution(matcher: Matcher, message: String): String =
-      (0 to matcher.groupCount).foldLeft(message) {
-        case (msg, idx) =>
-          val groupText = matcher.group(idx)
-          if (groupText != null) msg.replace(s"{$$$idx}", matcher.group(idx))
-          else msg
+      (0 to matcher.groupCount).foldLeft(message) { case (msg, idx) =>
+        val groupText = matcher.group(idx)
+        if (groupText != null) msg.replace(s"{$$$idx}", matcher.group(idx))
+        else msg
       }
 
     val regexDiagnostics = Seq.newBuilder[Diagnostic]
@@ -269,8 +268,9 @@ final class DisableSyntax(config: DisableSyntaxConfig)
   private val noValPatternCategory: LintCategory =
     LintCategory.error(
       id = "noValPatterns",
-      explain = "Pattern matching in val assignment can result in match error, " +
-        "use \"_ match { ... }\" with a fallback case instead."
+      explain =
+        "Pattern matching in val assignment can result in match error, " +
+          "use \"_ match { ... }\" with a fallback case instead."
     )
 
   private def noUniversalEqualityDiagnostic(
@@ -285,7 +285,7 @@ object DisableSyntax {
 
   private val explanation =
     """|there is no guarantee that finalize will be called and
-       |overriding finalize incurs a performance penalty""".stripMargin
+      |overriding finalize incurs a performance penalty""".stripMargin
 
   def FinalizeMatcher(id: String): PartialFunction[Tree, List[Diagnostic]] = {
     case Defn.Def(_, name @ q"finalize", _, Nil | Nil :: Nil, _, _) =>

@@ -45,7 +45,8 @@ case class AssertDelta(
             val line = pos.lineContent
 
             val assertCarret = (" " * carPos.startColumn) + "^-- asserted"
-            val lintCarret = (" " * lintDiagnostic.position.startColumn) + "^-- reported"
+            val lintCarret =
+              (" " * lintDiagnostic.position.startColumn) + "^-- reported"
 
             List(
               line,
@@ -62,7 +63,7 @@ case class AssertDelta(
       if (!sameKey(assert.key)) {
         List(
           s"""|-${assert.key}
-              |+${lintDiagnostic.id.fullID}""".stripMargin
+            |+${lintDiagnostic.id.fullID}""".stripMargin
         )
       } else {
         Nil

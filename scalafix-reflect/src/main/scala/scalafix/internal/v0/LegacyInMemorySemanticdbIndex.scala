@@ -28,9 +28,8 @@ case class LegacyInMemorySemanticdbIndex(
   def info(symbol: String): Option[s.SymbolInformation] = symtab.info(symbol)
 
   override def inputs: Seq[m.Input] = {
-    index.values.collect {
-      case s: LegacySemanticdbIndex =>
-        s.doc.input
+    index.values.collect { case s: LegacySemanticdbIndex =>
+      s.doc.input
     }.toSeq
   }
 

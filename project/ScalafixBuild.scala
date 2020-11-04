@@ -158,7 +158,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   // Custom settings to publish scalafix forks to alternative maven repo.
   lazy val adhocRepoUri = sys.props("scalafix.repository.uri")
   lazy val adhocRepoCredentials = sys.props("scalafix.repository.credentials")
-  lazy val isCustomRepository = adhocRepoUri != null && adhocRepoCredentials != null
+  lazy val isCustomRepository =
+    adhocRepoUri != null && adhocRepoCredentials != null
 
   override def globalSettings: Seq[Def.Setting[_]] = List(
     stableVersion := version.in(ThisBuild).value.replaceFirst("\\+.*", ""),
@@ -308,21 +309,20 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       val currentState = state.value
       val ref = thisProjectRef.value
       val versions = crossScalaVersions.value
-      versions.map {
-        version =>
-          val withScalaVersion = Project
-            .extract(currentState)
-            .appendWithoutSession(
-              Seq(
-                scalaVersion.in(ThisBuild) := version,
-                publishArtifact.in(ThisBuild, packageDoc) := false,
-                publishArtifact.in(ThisBuild, packageSrc) := false
-              ),
-              currentState
-            )
-          Project
-            .extract(withScalaVersion)
-            .runTask(publishLocalTransitive.in(ref), withScalaVersion)
+      versions.map { version =>
+        val withScalaVersion = Project
+          .extract(currentState)
+          .appendWithoutSession(
+            Seq(
+              scalaVersion.in(ThisBuild) := version,
+              publishArtifact.in(ThisBuild, packageDoc) := false,
+              publishArtifact.in(ThisBuild, packageSrc) := false
+            ),
+            currentState
+          )
+        Project
+          .extract(withScalaVersion)
+          .runTask(publishLocalTransitive.in(ref), withScalaVersion)
       }
     }
   )

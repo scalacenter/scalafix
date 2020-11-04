@@ -9,12 +9,11 @@ object ScalafixErrorImpl {
     val to = ScalafixError.values().toList
     assert(from.length == to.length, s"$from != $to")
     val map = from.zip(to).toMap
-    map.foreach {
-      case (key, value) =>
-        assert(
-          key.name.toLowerCase() == value.toString.toLowerCase,
-          s"$key != $value"
-        )
+    map.foreach { case (key, value) =>
+      assert(
+        key.name.toLowerCase() == value.toString.toLowerCase,
+        s"$key != $value"
+      )
     }
     map
   }

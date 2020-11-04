@@ -192,7 +192,9 @@ lazy val unit = project
     libraryDependencies ++= testsDeps,
     libraryDependencies ++= List(
       jgit,
-      scalatest.withRevision("3.2.0"), // make sure testkit clients can use recent 3.x versions
+      scalatest.withRevision(
+        "3.2.0"
+      ), // make sure testkit clients can use recent 3.x versions
       "org.scalameta" %% "testkit" % scalametaV
     ),
     compileInputs.in(Compile, compile) := {
@@ -257,7 +259,7 @@ lazy val unit = project
         semanticdbTargetRoot.in(testsShared, Compile).value,
       "sharedSourceroot" ->
         baseDirectory.in(ThisBuild).value /
-          "scalafix-tests" / "shared" / "src" / "main",
+        "scalafix-tests" / "shared" / "src" / "main",
       "sharedClasspath" ->
         classDirectory.in(testsShared, Compile).value
     ),

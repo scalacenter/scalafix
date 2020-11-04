@@ -10,15 +10,18 @@ package scala.tools.nsc.interactive
 final class ScalafixGlobalThread(var compiler: Global, name: String = "")
     extends Thread("Scalafix Presentation Compiler [" + name + "]") {
 
-  /** The presentation compiler loop.
+  /**
+   * The presentation compiler loop.
    */
   override def run(): Unit = {
     compiler.debugLog("starting new runner thread")
     while (compiler ne null) try {
       compiler.checkNoResponsesOutstanding()
-      compiler.log.logreplay("wait for more work", {
-        compiler.scheduler.waitForMoreWork(); true
-      })
+      compiler.log.logreplay(
+        "wait for more work", {
+          compiler.scheduler.waitForMoreWork(); true
+        }
+      )
       compiler.pollForWork(compiler.NoPosition)
       while (compiler.isOutOfDate) {
         try {

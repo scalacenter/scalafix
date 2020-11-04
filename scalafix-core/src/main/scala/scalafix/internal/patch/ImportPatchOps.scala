@@ -142,19 +142,18 @@ object ImportPatchOps {
       if (ctx.config.groupImportsByPrefix)
         importersToAdd
           .groupBy(_.ref.syntax)
-          .map {
-            case (_, is) =>
-              Importer(
-                is.head.ref,
-                is.flatMap(_.importees)
-                  .sortBy({
-                    case Importee.Name(n) => n.value
-                    case Importee.Rename(n, _) => n.value
-                    case Importee.Unimport(n) => n.value
-                    case Importee.Wildcard() => '\uFFFF'.toString
-                  })
-                  .toList
-              )
+          .map { case (_, is) =>
+            Importer(
+              is.head.ref,
+              is.flatMap(_.importees)
+                .sortBy({
+                  case Importee.Name(n) => n.value
+                  case Importee.Rename(n, _) => n.value
+                  case Importee.Unimport(n) => n.value
+                  case Importee.Wildcard() => '\uFFFF'.toString
+                })
+                .toList
+            )
           }
           .toList
       else importersToAdd
@@ -185,17 +184,16 @@ object ImportPatchOps {
             if hasRemovedImportee =>
           ctx
             .toks(importer)
-            .collectFirst {
-              case open @ Token.LeftBrace() =>
-                ctx.matchingParens
-                  .close(open)
-                  .map { close =>
-                    ctx.removeToken(open) +
-                      removeSpaces(ctx.tokenList.trailing(open)) +
-                      ctx.removeToken(close) +
-                      removeSpaces(ctx.tokenList.leading(close))
-                  }
-                  .asPatch
+            .collectFirst { case open @ Token.LeftBrace() =>
+              ctx.matchingParens
+                .close(open)
+                .map { close =>
+                  ctx.removeToken(open) +
+                    removeSpaces(ctx.tokenList.trailing(open)) +
+                    ctx.removeToken(close) +
+                    removeSpaces(ctx.tokenList.leading(close))
+                }
+                .asPatch
             }
             .asPatch
         case _ => Patch.empty

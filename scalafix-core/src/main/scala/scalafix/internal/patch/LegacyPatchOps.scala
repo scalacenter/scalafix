@@ -75,8 +75,8 @@ trait LegacyPatchOps extends PatchOps {
   )(implicit noop: DummyImplicit, index: SemanticdbIndex): Patch =
     Patch.replaceSymbols(toReplace.toSeq: _*)
   @deprecated(DeprecationMessage, "0.6.0")
-  final def renameSymbol(fromSymbol: Symbol.Global, toName: String)(
-      implicit index: SemanticdbIndex
+  final def renameSymbol(fromSymbol: Symbol.Global, toName: String)(implicit
+      index: SemanticdbIndex
   ): Patch =
     ReplaceSymbol(fromSymbol, Root(Signature.Term(toName)))
   @deprecated(DeprecationMessage, "0.6.0")

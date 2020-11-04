@@ -75,7 +75,12 @@ class EscapeHatchSuite extends AnyFunSuite {
     intercept[DontTouchMe] {
       EscapeHatch(input, untouchableTree, comments, EmptyDiff)
     }
-    EscapeHatch(input, tree, untouchableComments, EmptyDiff) // should not touch comments
+    EscapeHatch(
+      input,
+      tree,
+      untouchableComments,
+      EmptyDiff
+    ) // should not touch comments
   }
 
   test("`apply` should evaluate tree if `@SuppressWarnings` is found") {
@@ -84,14 +89,24 @@ class EscapeHatchSuite extends AnyFunSuite {
     intercept[DontTouchMe] {
       EscapeHatch(input, untouchableTree, comments, EmptyDiff)
     }
-    EscapeHatch(input, tree, untouchableComments, EmptyDiff) // should not touch comments
+    EscapeHatch(
+      input,
+      tree,
+      untouchableComments,
+      EmptyDiff
+    ) // should not touch comments
   }
 
   test(
     "`isEmpty` should not evaluate tree nor associated comments if escapes are not found"
   ) {
     assert(
-      EscapeHatch(noEscapes, untouchableTree, untouchableComments, EmptyDiff).isEmpty
+      EscapeHatch(
+        noEscapes,
+        untouchableTree,
+        untouchableComments,
+        EmptyDiff
+      ).isEmpty
     )
   }
 

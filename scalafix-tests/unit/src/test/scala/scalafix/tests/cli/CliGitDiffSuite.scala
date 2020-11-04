@@ -22,9 +22,9 @@ class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
     fs.add(
       oldCode,
       """|object OldCode {
-         |  // This is old code, where var's blossom
-         |  var oldVar = 1
-         |}""".stripMargin
+        |  // This is old code, where var's blossom
+        |  var oldVar = 1
+        |}""".stripMargin
     )
     git.add(oldCode)
     addConf(fs, git)
@@ -35,9 +35,9 @@ class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
     fs.add(
       newCode,
       """|object NewCode {
-         |  // New code, no vars
-         |  var newVar = 1
-         |}""".stripMargin
+        |  // New code, no vars
+        |  var newVar = 1
+        |}""".stripMargin
     )
     git.add(newCode)
     git.commit()
@@ -46,9 +46,9 @@ class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
 
     val expected =
       s"""|$newCodeAbsPath:3:3: error: [DisableSyntax.var] mutable state should be avoided
-          |  var newVar = 1
-          |  ^^^
-          |""".stripMargin
+        |  var newVar = 1
+        |  ^^^
+        |""".stripMargin
 
     assertNoDiff(obtained, expected)
   }
@@ -60,9 +60,9 @@ class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
     fs.add(
       oldCode,
       """|object OldCode {
-         |  // This is old code, where var's blossom
-         |  var oldVar = 1
-         |}""".stripMargin
+        |  // This is old code, where var's blossom
+        |  var oldVar = 1
+        |}""".stripMargin
     )
     git.add(oldCode)
     addConf(fs, git)
@@ -72,13 +72,13 @@ class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
     fs.replace(
       oldCode,
       """|object OldCode {
-         |  // This is old code, where var's blossom
-         |  var oldVar = 1
-         |}
-         |object NewCode {
-         |  // It's not ok to add new vars
-         |  var newVar = 2
-         |}""".stripMargin
+        |  // This is old code, where var's blossom
+        |  var oldVar = 1
+        |}
+        |object NewCode {
+        |  // It's not ok to add new vars
+        |  var newVar = 2
+        |}""".stripMargin
     )
     git.add(oldCode)
     git.commit()
@@ -87,9 +87,9 @@ class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
 
     val expected =
       s"""|$oldCodeAbsPath:7:3: error: [DisableSyntax.var] mutable state should be avoided
-          |  var newVar = 2
-          |  ^^^
-          |""".stripMargin
+        |  var newVar = 2
+        |  ^^^
+        |""".stripMargin
 
     assertNoDiff(obtained, expected)
   }
@@ -102,9 +102,9 @@ class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
     fs.add(
       oldCode,
       """|object OldCode {
-         |  // This is old code, where var's blossom
-         |  var oldVar = 1
-         |}""".stripMargin
+        |  // This is old code, where var's blossom
+        |  var oldVar = 1
+        |}""".stripMargin
     )
     git.add(oldCode)
     addConf(fs, git)
@@ -114,11 +114,11 @@ class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
     fs.replace(
       oldCode,
       """|object OldCode {
-         |  // This is old code, where var's blossom
-         |  var oldVar = 1
-         |  // It's not ok to add new vars
-         |  var newVar = 2
-         |}""".stripMargin
+        |  // This is old code, where var's blossom
+        |  var oldVar = 1
+        |  // It's not ok to add new vars
+        |  var newVar = 2
+        |}""".stripMargin
     )
     fs.mv(oldCode, newCode)
     git.add(oldCode)
@@ -129,9 +129,9 @@ class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
 
     val expected =
       s"""|$newCodeAbsPath:5:3: error: [DisableSyntax.var] mutable state should be avoided
-          |  var newVar = 2
-          |  ^^^
-          |""".stripMargin
+        |  var newVar = 2
+        |  ^^^
+        |""".stripMargin
 
     assertNoDiff(obtained, expected)
   }
@@ -154,9 +154,9 @@ class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
     fs.add(
       oldCode,
       """|object OldCode {
-         |  // This is old code, where var's blossom
-         |  var oldVar = 1
-         |}""".stripMargin
+        |  // This is old code, where var's blossom
+        |  var oldVar = 1
+        |}""".stripMargin
     )
     git.add(oldCode)
     addConf(fs, git)
@@ -171,11 +171,11 @@ class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
     fs.replace(
       oldCode,
       """|object OldCode {
-         |  // This is old code, where var's blossom
-         |  var oldVar = 1
-         |  // It's not ok to add new vars
-         |  var newVar = 2
-         |}""".stripMargin
+        |  // This is old code, where var's blossom
+        |  var oldVar = 1
+        |  // It's not ok to add new vars
+        |  var newVar = 2
+        |}""".stripMargin
     )
     fs.mv(oldCode, newCode)
     git.add(oldCode)
@@ -187,9 +187,9 @@ class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
 
     val expected =
       s"""|$newCodeAbsPath:5:3: error: [DisableSyntax.var] mutable state should be avoided
-          |  var newVar = 2
-          |  ^^^
-          |""".stripMargin
+        |  var newVar = 2
+        |  ^^^
+        |""".stripMargin
 
     assertNoDiff(obtained, expected)
   }
@@ -200,9 +200,9 @@ class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
     fs.add(
       oldCode,
       """|object OldCode {
-         |  // This is old code, where var's blossom
-         |  var oldVar = 1
-         |}""".stripMargin
+        |  // This is old code, where var's blossom
+        |  var oldVar = 1
+        |}""".stripMargin
     )
     git.add(oldCode)
     addConf(fs, git)
@@ -227,21 +227,21 @@ class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
     val code = "code.scala"
     val foo1 =
       """|object A {
-         |  def foo() {}
-         |}
-         |""".stripMargin
+        |  def foo() {}
+        |}
+        |""".stripMargin
 
     val bar1 =
       """|object B {
-         |  def bar() {}
-         |}
-         |""".stripMargin
+        |  def bar() {}
+        |}
+        |""".stripMargin
 
     val bar2 =
       """|object B {
-         |  def bar(): Unit = {}
-         |}
-         |""".stripMargin
+        |  def bar(): Unit = {}
+        |}
+        |""".stripMargin
 
     fs.add(code, foo1)
     git.add(code)
@@ -253,8 +253,8 @@ class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
     fs.replace(
       code,
       s"""|$foo1
-          |
-          |$bar1""".stripMargin
+        |
+        |$bar1""".stripMargin
     )
     git.add(code)
     git.commit()
@@ -263,8 +263,8 @@ class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
     val obtained = fs.read(code)
     val expected =
       s"""|$foo1
-          |
-          |$bar2""".stripMargin // only bar is modified
+        |
+        |$bar2""".stripMargin // only bar is modified
     assertNoDiff(obtained, expected)
   }
 
@@ -284,8 +284,11 @@ class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
   }
 
   private def addConf(fs: Fs): Unit = {
-    fs.add(confFile, """|rules = DisableSyntax
-                        |DisableSyntax.noVars = true""".stripMargin)
+    fs.add(
+      confFile,
+      """|rules = DisableSyntax
+        |DisableSyntax.noVars = true""".stripMargin
+    )
   }
 
   private def noColor(in: String): String =

@@ -62,13 +62,13 @@ class PatchSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
     addRightRule,
     Input.File(file),
     s"""--- ${file.getAbsolutePath}
-       |+++ ${file.getAbsolutePath}
-       |@@ -1,4 +1,4 @@
-       | // Foobar
-       |-object a {
-       |+object abba {
-       |   val x = 2
-       | }""".stripMargin
+      |+++ ${file.getAbsolutePath}
+      |@@ -1,4 +1,4 @@
+      | // Foobar
+      |-object a {
+      |+object abba {
+      |   val x = 2
+      | }""".stripMargin
   )
 
   val addLeftRule: Rule = Rule.syntactic("addLeft") { (ctx) =>

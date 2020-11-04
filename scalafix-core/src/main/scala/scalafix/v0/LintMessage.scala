@@ -4,7 +4,8 @@ import scala.meta.Position
 
 import scalafix.lint.LintSeverity
 
-/** An observation of a LintCategory at a particular position
+/**
+ * An observation of a LintCategory at a particular position
  *
  * @param message The message to display to the user. If empty, LintID.explanation
  *                is used instead.
@@ -25,9 +26,9 @@ final case class LintMessage(
     val explanation =
       if (explain)
         s"""
-           |Explanation:
-           |${category.explanation}
-           |""".stripMargin
+          |Explanation:
+          |${category.explanation}
+          |""".stripMargin
       else ""
 
     s"[${category.id}] $message$explanation"

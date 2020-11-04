@@ -25,7 +25,7 @@ class RuleCtxImpl(
     with LegacyPatchOps { ctx =>
   def syntax: String =
     s"""${tree.input.syntax}
-       |${logger.revealWhitespace(tree.syntax.take(100))}""".stripMargin
+      |${logger.revealWhitespace(tree.syntax.take(100))}""".stripMargin
   override def toString: String = syntax
   def toks(t: Tree): Tokens = t.tokens(config.dialect)
   lazy val tokens: Tokens = tree.tokens(config.dialect)
@@ -44,8 +44,8 @@ class RuleCtxImpl(
   // Debug utilities
   def index(implicit index: SemanticdbIndex): SemanticdbIndex =
     index
-  def debugIndex()(
-      implicit index: SemanticdbIndex,
+  def debugIndex()(implicit
+      index: SemanticdbIndex,
       fileLine: FileLine
   ): Unit = {
     val db = this.index(index)

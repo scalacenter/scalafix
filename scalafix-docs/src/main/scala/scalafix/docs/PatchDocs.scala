@@ -95,8 +95,8 @@ object PatchDocs {
     println(message)
   }
 
-  def unifiedDiff(obtained: String, context: Int)(
-      implicit doc: SemanticDocument
+  def unifiedDiff(obtained: String, context: Int)(implicit
+      doc: SemanticDocument
   ): String = {
     val in = Input.VirtualFile("before patch", doc.input.text)
     val out = Input.VirtualFile("after  patch", obtained)

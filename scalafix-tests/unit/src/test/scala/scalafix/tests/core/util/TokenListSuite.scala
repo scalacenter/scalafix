@@ -98,7 +98,9 @@ class TokenListSuite extends AnyFunSuite {
     assert(tokenList.slice(tokens.head, tokens(1)).toList == List(tokens.head))
   }
 
-  test("slice returns empty seq if `from` and `to` tokens are the same object") {
+  test(
+    "slice returns empty seq if `from` and `to` tokens are the same object"
+  ) {
     assert(tokenList.slice(tokens.head, tokens.head).toList == List())
   }
 

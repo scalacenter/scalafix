@@ -12,9 +12,11 @@ object TreePos {
   ): T = {
     val syntax = name.syntax
     // workaround for https://github.com/scalameta/scalameta/issues/1083
-    if (syntax.startsWith("(") &&
+    if (
+      syntax.startsWith("(") &&
       syntax.endsWith(")") &&
-      syntax != name.value) {
+      syntax != name.value
+    ) {
       val pos =
         Position.Range(name.pos.input, name.pos.start + 1, name.pos.end - 1)
       val t = f(pos)

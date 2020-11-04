@@ -47,8 +47,6 @@ import scalafix.internal.v1.SymtabFromProtobuf
  * @groupname language Language
  * @groupprio language 15
  * @groupdesc language Describes which language the symbol is defined in.
- *
- *
  */
 final class SymbolInformation private[scalafix] (
     private[scalafix] val info: s.SymbolInformation

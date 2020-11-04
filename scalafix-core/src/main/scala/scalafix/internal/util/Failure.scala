@@ -21,9 +21,9 @@ object Failure {
       extends Failure(
         InvariantFailedException(
           s"""Cannot mix two different SemanticdbIndex inside the same patch.
-             |SemanticdbIndex 1: $a
-             |RuleCtx 2: $b
-             |""".stripMargin
+            |SemanticdbIndex 1: $a
+            |RuleCtx 2: $b
+            |""".stripMargin
         )
       )
   case class Unsupported(msg: String)

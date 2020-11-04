@@ -12,11 +12,10 @@ class SemanticdbIndexSuite extends BaseSemanticSuite("SemanticdbIndexTest") {
     val mutable =
       SymbolMatcher.exact(Symbol("scala/collection/mutable/"))
     var hasAssert = false
-    source.collect {
-      case importee @ Importee.Name(name @ Name("mutable")) =>
-        assert(index.symbol(importee) == index.symbol(name))
-        assert(importee.matches(mutable))
-        hasAssert = true
+    source.collect { case importee @ Importee.Name(name @ Name("mutable")) =>
+      assert(index.symbol(importee) == index.symbol(name))
+      assert(importee.matches(mutable))
+      hasAssert = true
     }
     assert(hasAssert)
   }

@@ -23,7 +23,8 @@ import scalafix.v1
 /** One-stop shop for loading scalafix rules from strings. */
 object RuleDecoder {
 
-  /** Load a single rule from a string like "RemoveUnusedImports" or "file:path/to/Rule.scala"
+  /**
+   * Load a single rule from a string like "RemoveUnusedImports" or "file:path/to/Rule.scala"
    *
    * Supports loading rules in both scalafix.v0 and scalafix.v1.
    *

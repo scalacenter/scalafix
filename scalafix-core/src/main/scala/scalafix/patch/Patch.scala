@@ -144,16 +144,15 @@ object Patch {
   def replaceSymbols(
       toReplace: (String, String)*
   )(implicit c: SemanticContext): Patch =
-    toReplace.foldLeft(Patch.empty) {
-      case (a, (from, to)) =>
-        val (fromSymbol, toSymbol) =
-          ScalafixMetaconfigReaders.parseReplaceSymbol(from, to).get
-        a + ReplaceSymbol(fromSymbol, toSymbol)
+    toReplace.foldLeft(Patch.empty) { case (a, (from, to)) =>
+      val (fromSymbol, toSymbol) =
+        ScalafixMetaconfigReaders.parseReplaceSymbol(from, to).get
+      a + ReplaceSymbol(fromSymbol, toSymbol)
     }
 
   /** Replace occurrences of fromSymbol to use toName instead */
-  def renameSymbol(fromSymbol: v1.Symbol, toName: String)(
-      implicit c: SemanticContext
+  def renameSymbol(fromSymbol: v1.Symbol, toName: String)(implicit
+      c: SemanticContext
   ): Patch =
     ReplaceSymbol(
       v0.Symbol(fromSymbol.value).asInstanceOf[v0.Symbol.Global],

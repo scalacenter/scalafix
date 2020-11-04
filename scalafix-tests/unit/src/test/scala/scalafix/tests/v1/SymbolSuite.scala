@@ -10,8 +10,8 @@ class SymbolSuite extends munit.FunSuite {
     BaseSemanticSuite.loadDoc("SymbolTest.scala")
 
   test("normalized") {
-    val ref :: Nil = doc.tree.collect {
-      case Import(Importer(ref, _) :: Nil) => ref
+    val ref :: Nil = doc.tree.collect { case Import(Importer(ref, _) :: Nil) =>
+      ref
     }
 
     assertEquals(ref.symbol.normalized.owner.value, "test.a.")

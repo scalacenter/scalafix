@@ -94,8 +94,7 @@ object PatchInternals {
     )
   }
 
-  def treePatchApply(patch: Patch)(
-      implicit
+  def treePatchApply(patch: Patch)(implicit
       ctx: v0.RuleCtx,
       index: v0.SemanticdbIndex
   ): Iterable[TokenPatch] = {

@@ -448,15 +448,15 @@ object MainOps {
     s"Scalafix ${Versions.version}"
   def usage: String =
     """|Usage: scalafix [options] [<path> ...]
-       |""".stripMargin
+      |""".stripMargin
   def description: D =
     D.paragraph(
       """|Scalafix is a refactoring and linting tool.
-         |Scalafix supports both syntactic and semantic linter and rewrite rules.
-         |Syntactic rules can run on source code without compilation.
-         |Semantic rules can run on source code that has been compiled with the
-         |SemanticDB compiler plugin.
-         |""".stripMargin
+        |Scalafix supports both syntactic and semantic linter and rewrite rules.
+        |Syntactic rules can run on source code without compilation.
+        |Semantic rules can run on source code that has been compiled with the
+        |SemanticDB compiler plugin.
+        |""".stripMargin
     )
 
   /** Line wrap prose while keeping markdown code fences unchanged. */

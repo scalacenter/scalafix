@@ -103,8 +103,8 @@ trait PatchOps {
    * Experimental. May produce broken code in some cases. This
    * is the same patch as `replace:com.foo/com.bar` from sbt-scalafix.
    */
-  def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(
-      implicit index: SemanticdbIndex
+  def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(implicit
+      index: SemanticdbIndex
   ): Patch
 
   /**
@@ -113,8 +113,8 @@ trait PatchOps {
    * toName should be a legal identifier, it cannot be a tree such as `foo()`.
    * Use this patch for example to rename a methods on a class.
    */
-  def renameSymbol(fromSymbol: Symbol.Global, toName: String)(
-      implicit index: SemanticdbIndex
+  def renameSymbol(fromSymbol: Symbol.Global, toName: String)(implicit
+      index: SemanticdbIndex
   ): Patch
 
   /**
@@ -122,8 +122,8 @@ trait PatchOps {
    *
    * String values are treated as Symbol.Global.
    */
-  def replaceSymbols(toReplace: (String, String)*)(
-      implicit index: SemanticdbIndex
+  def replaceSymbols(toReplace: (String, String)*)(implicit
+      index: SemanticdbIndex
   ): Patch
 
   /**
