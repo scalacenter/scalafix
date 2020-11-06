@@ -43,11 +43,20 @@ final class DisableSyntax(config: DisableSyntaxConfig)
     val regexDiagnostics = Seq.newBuilder[Diagnostic]
     config.regex.foreach { regex =>
       val (matcher, pattern, groupIndex) = regex.value match {
-        case Right(pat) => (pat.matcher(doc.input.chars), pat.pattern, 0)
+        case Right(pat) =>
+          (
+            pat.matcher(java.nio.CharBuffer.wrap(doc.input.chars)),
+            pat.pattern,
+            0
+          )
         case Left(reg) =>
           val pattern = reg.pattern
           val groupIndex = reg.captureGroup.getOrElse(0)
-          (pattern.matcher(doc.input.chars), pattern.pattern, groupIndex)
+          (
+            pattern.matcher(java.nio.CharBuffer.wrap(doc.input.chars)),
+            pattern.pattern,
+            groupIndex
+          )
       }
 
       val message = regex.message.getOrElse(s"$pattern is disabled")

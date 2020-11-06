@@ -2,9 +2,9 @@ package scalafix.tests.config
 
 import metaconfig.Conf
 import metaconfig.internal.ConfGet
-import scalafix.internal.v1.Args
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 import scalafix.internal.config.ScalafixConfig
+import scalafix.internal.v1.Args
 
 class ArgsSuite extends munit.FunSuite {
 
