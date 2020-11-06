@@ -396,8 +396,19 @@ class ScalafixGlobal(
             Iterator(lookupSymbol(name), lookupSymbol(name.otherName))
           results.flatten.filter(_ != LookupNotFound).toList match {
             case Nil =>
-              missingImports(name) = short
-              true
+              // Missing imports must be addressable via the dot operator
+              // syntax (as type projection is not allowed in imports).
+              // https://lptk.github.io/programming/2019/09/13/type-projection.html
+              if (
+                sym.isStaticMember || // Java static
+                sym.owner.ownerChain.forall { s =>
+                  // ensure the symbol can be referenced in a static manner, without any instance
+                  s.isPackageClass || s.isPackageObjectClass || s.isModule
+                }
+              ) {
+                missingImports(name) = short
+                true
+              } else false
             case lookup =>
               lookup.forall(_.symbol.isKindaTheSameAs(sym))
           }
