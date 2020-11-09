@@ -20,7 +20,12 @@ class Clazz {
 package object PackageObject extends Trait
 
 package pkg {
-  object Obj extends Clazz
+  abstract class AbstractClazz {
+    trait T4
+  }
+  object Obj extends Clazz {
+    object NestedObj extends AbstractClazz
+  }
 }
 
 object ExplicitResultTypesPathDependent {
@@ -46,4 +51,7 @@ object ExplicitResultTypesPathDependent {
 
   def t3: pkg.Obj.T3 = ???
   val t3Ref = t3
+
+  def t4: pkg.Obj.NestedObj.T4 = ???
+  val t4Ref = t4
 }

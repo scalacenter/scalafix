@@ -18,7 +18,6 @@ object ExplicitResultTypesImports {
 
   val timezone: ju.TimeZone = null.asInstanceOf[java.util.TimeZone]
 
-  // TODO: Is this desirable behavior?
   val inner: Searching.SearchResult = null.asInstanceOf[scala.collection.Searching.SearchResult]
 
   final val javaEnum: Category = java.util.Locale.Category.DISPLAY
