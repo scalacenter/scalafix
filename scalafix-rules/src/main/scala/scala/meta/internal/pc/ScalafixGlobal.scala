@@ -238,7 +238,21 @@ class ScalafixGlobal(
             // "scala.Seq[T]" even when it's needed.
             loop(ThisType(sym.owner), name)
           } else if (sym.hasPackageFlag || sym.isPackageObjectOrClass) {
-            if (history.tryShortenName(name)) NoPrefix
+            val dotSyntaxFriendlyName = name.map { name0 =>
+              if (name0.symbol.isStatic) name0
+              else {
+                // Use the prefix rather than the real owner to maximize the
+                // chances of shortening the reference: when `name` is directly
+                // nested in a non-statically addressable type (class or trait),
+                // its original owner is that type (requiring a type projection
+                // to reference it) while the prefix is its concrete owner value
+                // (for which the dot syntax works).
+                // https://docs.scala-lang.org/tour/inner-classes.html
+                // https://danielwestheide.com/blog/the-neophytes-guide-to-scala-part-13-path-dependent-types/
+                ShortName(name0.symbol.cloneSymbol(sym))
+              }
+            }
+            if (history.tryShortenName(dotSyntaxFriendlyName)) NoPrefix
             else tpe
           } else {
             if (history.isSymbolInScope(sym, pre)) SingleType(NoPrefix, sym)
@@ -396,8 +410,19 @@ class ScalafixGlobal(
             Iterator(lookupSymbol(name), lookupSymbol(name.otherName))
           results.flatten.filter(_ != LookupNotFound).toList match {
             case Nil =>
-              missingImports(name) = short
-              true
+              // Missing imports must be addressable via the dot operator
+              // syntax (as type projection is not allowed in imports).
+              // https://lptk.github.io/programming/2019/09/13/type-projection.html
+              if (
+                sym.isStaticMember || // Java static
+                sym.owner.ownerChain.forall { s =>
+                  // ensure the symbol can be referenced in a static manner, without any instance
+                  s.isPackageClass || s.isPackageObjectClass || s.isModule
+                }
+              ) {
+                missingImports(name) = short
+                true
+              } else false
             case lookup =>
               lookup.forall(_.symbol.isKindaTheSameAs(sym))
           }
