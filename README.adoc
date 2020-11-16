@@ -23,13 +23,15 @@ https://codecov.io/gh/liancheng/scalafix-organize-imports[image:https://img.shie
 
 toc::[]
 
-`OrganizeImports` is a CI-friendly https://scalacenter.github.io/scalafix[Scalafix] semantic rule that helps you organize import statements.
+`OrganizeImports` is a CI-friendly https://scalacenter.github.io/scalafix[Scalafix] semantic rule that helps you organize import statements. It also powers the "organize imports" code action in https://scalameta.org/metals/blog/2020/11/10/lithium.html#organize-imports-code-action[Metals], the Scala language server:
+
+image:https://i.imgur.com/8YBdjjC.gif[]
 
 == Getting started
 
 Please refer to https://scalacenter.github.io/scalafix/docs/users/installation.html[the Scalafix documentation] for how to install Scalafix and invoking it in your sbt build.
 
-To try this rule in the sbt console without updating your sbt build:
+To try this rule in the sbt console without adding this rule to your sbt build:
 
 [source,subs="attributes+"]
 ----
@@ -790,7 +792,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 Regular expression::
 +
 --
-Defining import groups using regular expressions can be quite flexible. For instance, the `scala.meta` package is not part of the Scala standard library (yet), but the default groups defined in the `OrganizeImports.groups` option move imports from this package into the `scala.` group. The following example illustrates how to move them into the wildcard group using regular expression.
+Defining import groups using regular expressions can be quite flexible. For instance, the `scala.meta` package is not part of the Scala standard library, but the default groups defined in the `OrganizeImports.groups` option move imports from this package into the `scala.` group. The following example illustrates how to move them into the wildcard group using regular expression.
 
 Configuration:
 [source,hocon]
