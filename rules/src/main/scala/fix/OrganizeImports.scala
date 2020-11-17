@@ -421,7 +421,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
         val wildcard = Importee.Wildcard()
 
-        val importeesList = (hasWildcard, lastUnimportsWithWildcard) match {
+        val newImporteeLists = (hasWildcard, lastUnimportsWithWildcard) match {
           case (true, _) =>
             // A few things to note in this case:
             //
@@ -500,7 +500,21 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
             Seq(renamedImportedNames, importedNames ++ renames ++ allUnimports)
         }
 
-        importeesList filter (_.nonEmpty) map (Importer(ref, _))
+        // Issue #127: After merging imports within an importer group, we should check whether there
+        // are any input importers are left untouched. For those importers, we should return the
+        // original importer instance to preserve the original source level formatting.
+        locally {
+          def importeesSyntax(importees: List[Importee]): String =
+            importees map (_.syntax) mkString "\u0000"
+
+          val importeesSyntaxMap = group.map { case i @ Importer(_, importees) =>
+            importeesSyntax(importees) -> i
+          }.toMap
+
+          newImporteeLists filter (_.nonEmpty) map { case importees =>
+            importeesSyntaxMap.getOrElse(importeesSyntax(importees), Importer(ref, importees))
+          }
+        }
     }
 
   private def sortImportersSymbolsFirst(importers: Seq[Importer]): Seq[Importer] =

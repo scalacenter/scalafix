@@ -45,4 +45,16 @@ object MergeImports {
     object b
     object c
   }
+
+  object FormatPreserving {
+    object g1 {
+      object a
+      object b
+    }
+
+    object g2 {
+      object c
+      object d
+    }
+  }
 }
