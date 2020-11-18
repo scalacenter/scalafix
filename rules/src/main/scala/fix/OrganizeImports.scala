@@ -504,15 +504,11 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
         // are any input importers are left untouched. For those importers, we should return the
         // original importer instance to preserve the original source level formatting.
         locally {
-          def importeesSyntax(importees: List[Importee]): String =
-            importees map (_.syntax) mkString "\u0000"
-
-          val importeesSyntaxMap = group.map { case i @ Importer(_, importees) =>
-            importeesSyntax(importees) -> i
-          }.toMap
+          val importerSyntaxMap = group.map { i => i.copy().syntax -> i }.toMap
 
           newImporteeLists filter (_.nonEmpty) map { case importees =>
-            importeesSyntaxMap.getOrElse(importeesSyntax(importees), Importer(ref, importees))
+            val newImporter = Importer(ref, importees)
+            importerSyntaxMap.getOrElse(newImporter.syntax, newImporter)
           }
         }
     }
