@@ -58,6 +58,22 @@ You can also include this rule in your http://www.lihaoyi.com/mill/[Mill] build 
 def scalafixIvyDeps = Agg(ivy"com.github.liancheng::organize-imports:{latest-release}")
 ----
 
+=== Source formatting tools
+
+The `OrganizeImports` rule plays nicely with source formatting tools like https://scalameta.org/scalafmt/[Scalafmt]. If an import statement is already organized according to the configuration, its original source level format would be preserved. For example, in an sbt project, if you run the following command sequence:
+
+[source]
+----
+sbt> scalafixAll
+...
+sbt> scalafmtAll
+...
+sbt> scalafixAll --check
+...
+----
+
+The last `scalafixAll --check` command should not fail if both the previous commands succeed.
+
 == Configuration
 
 [[remove-unused-warning]]
@@ -499,6 +515,8 @@ import scala.collection.mutable._
 
 `Explode`
 
+Rationale:: Despite making the import section lengthier, exploding grouped imports into separate import statements is made the default behavior because it is more friendly to version control and less likely to create annoying merge conflicts caused by trivial import changes.
+
 ==== Examples
 
 `Explode`::
@@ -646,7 +664,7 @@ An ordered list of import prefix pattern strings. A prefix pattern can be one of
 
 A plain-text pattern:: For instance, `"scala."` is a plain-text pattern that matches imports referring the `scala` package. Please note that the trailing dot is necessary, otherwise you may have `scalafix` and `scala` imports in the same group, which is not what you want in most cases.
 
-A regular expression pattern:: A regular expression pattern starts with `re:`. For instance, `"re:javax?\\."` is a regular expression pattern that matches both `java` and `javax` packages.
+A regular expression pattern:: A regular expression pattern starts with `re:`. For instance, `"re:javax?\\."` is such a pattern that matches both the `java` and the `javax` packages. Please refer to the https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html[`java.util.regex.Pattern`] Javadoc page for the regular expression syntax. Note that special characters like backslashes must be escaped.
 
 The wildcard pattern::
 +
