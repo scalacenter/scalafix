@@ -13,7 +13,7 @@ endif::[]
 :toc-placement!:
 :toc-title:
 :toc:
-:toclevels: 2
+:toclevels: 3
 
 image:https://github.com/liancheng/scalafix-organize-imports/workflows/Build/badge.svg[]
 https://github.com/liancheng/scalafix-organize-imports/releases/latest[image:https://img.shields.io/github/v/tag/liancheng/scalafix-organize-imports[]]
