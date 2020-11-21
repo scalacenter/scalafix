@@ -105,8 +105,6 @@ OrganizeImports {
 [[coalesce]]
 === `coalesceToWildcardImportThreshold`
 
-==== Description
-
 When the number of imported names exceeds a certain threshold, coalesce them into a wildcard import. Renames and unimports are left untouched.
 
 [CAUTION]
@@ -183,8 +181,6 @@ import scala.collection.immutable.{Vector => _, _}
 
 [[expand-relative]]
 === `expandRelative`
-
-==== Description
 
 Expand relative imports into fully-qualified one.
 
@@ -266,8 +262,6 @@ import sun.misc.BASE64Encoder
 [[group-explicitly-imported-implicits-separately]]
 === `groupExplicitlyImportedImplicitsSeparately`
 
-==== Description
-
 This option provides a workaround to a subtle and rarely seen correctness issue related to explicitly imported implicit names.
 
 The following snippet helps illustrate the problem:
@@ -337,7 +331,7 @@ Configuration:
 [source,hocon]
 ----
 OrganizeImports {
-  groups = ["scala.", *]
+  groups = ["scala.", "*"]
   groupExplicitlyImportedImplicitsSeparately = true
 }
 ----
@@ -369,8 +363,6 @@ import scala.sys.process.stringToProcess
 ----
 
 === `groupedImports`
-
-==== Description
 
 Configure how to handle grouped imports.
 
@@ -608,8 +600,6 @@ import scala.collection.immutable._
 
 [[groups]]
 === `groups`
-
-==== Description
 
 Defines import groups by prefix patterns. Only global imports are processed.
 
@@ -859,8 +849,6 @@ import sun.misc.BASE64Encoder
 
 === `importSelectorsOrder`
 
-==== Description
-
 Specifies the order of grouped import selectors within a single import expression.
 
 ==== Value type
@@ -937,8 +925,6 @@ import foo.{~>, `symbol`, bar, Random}
 
 [[imports-order]]
 === `importsOrder`
-
-==== Description
 
 Specifies the order of import statements within import groups defined by the <<groups, `OrganizeImports.groups`>> option.
 
@@ -1028,8 +1014,6 @@ import scala.concurrent.duration
 
 [[remove-unused]]
 === `removeUnused`
-
-==== Description
 
 Remove unused imports.
 
