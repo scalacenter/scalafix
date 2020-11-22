@@ -290,7 +290,7 @@ import b.i
 import c._
 ----
 
-The Scala compiler starts complianing:
+The Scala compiler starts complaining:
 
 ----
 error: could not find implicit value for parameter i: Int
