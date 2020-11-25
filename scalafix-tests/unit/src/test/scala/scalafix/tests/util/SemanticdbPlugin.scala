@@ -16,7 +16,7 @@ object SemanticdbPlugin {
         Organization("org.scalameta"),
         ModuleName(s"semanticdb-scalac_$scalaVersion")
       ),
-      "4.3.22"
+      "4.4.0"
     )
     val paths = Fetch()
       .addDependencies(dep)

@@ -4,12 +4,12 @@ import scala.util.{Properties, Try}
 /* scalafmt: { maxColumn = 120 }*/
 
 object Dependencies {
-  val scalametaV = "4.3.24"
+  val scalametaV = "4.4.0"
   val metaconfigV = "0.9.10"
   def scala210 = "2.10.7"
   def scala211 = "2.11.12"
   def scala212 = "2.12.12"
-  def scala213 = "2.13.3"
+  def scala213 = "2.13.4"
   def coursierV = "2.0.0-RC5-6"
   def coursierInterfaceV = "1.0.1"
   val currentScalaVersion = scala213
