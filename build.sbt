@@ -6,7 +6,7 @@ inThisBuild(
     crossScalaVersions := List(scala213, scala212, scala211),
     fork := true,
     semanticdbEnabled := true,
-    semanticdbVersion := scalafixSemanticdb.revision,
+    semanticdbVersion := scalametaV,
     scalacOptions ++= List("-P:semanticdb:synthetics:on"),
     scalafixScalaBinaryVersion := scalaBinaryVersion.value,
     scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.3"
