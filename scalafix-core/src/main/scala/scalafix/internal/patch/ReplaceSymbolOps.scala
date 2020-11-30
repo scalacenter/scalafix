@@ -3,6 +3,7 @@ package scalafix.internal.patch
 import scala.meta._
 import scala.meta.internal.trees._
 
+import scalafix.internal.util.SymbolOps
 import scalafix.internal.util.SymbolOps.Root
 import scalafix.internal.util.SymbolOps.SignatureName
 import scalafix.patch.Patch
@@ -38,14 +39,19 @@ object ReplaceSymbolOps {
             (Symbol.Global(qual, Signature.Type(name)).syntax -> to) ::
             Nil
       }.toMap
-    def loop(ref: Ref, sym: Symbol): (Patch, Symbol) = {
+    def loop(ref: Ref, sym: Symbol, isImport: Boolean): (Patch, Symbol) = {
       (ref, sym) match {
         // same length
         case (a @ Name(_), Symbol.Global(Symbol.None, SignatureName(b))) =>
           ctx.replaceTree(a, b) -> Symbol.None
         // ref is shorter
-        case (a @ Name(_), sym @ Symbol.Global(_, SignatureName(b))) =>
-          ctx.replaceTree(a, b) -> sym
+        case (a @ Name(_), sym @ Symbol.Global(owner, SignatureName(b))) =>
+          if (isImport) {
+            val qual = SymbolOps.toTermRef(sym)
+            ctx.replaceTree(a, qual.syntax) -> Symbol.None
+          } else {
+            ctx.replaceTree(a, b) -> sym
+          }
         // ref is longer
         case (
               Select(qual, Name(_)),
@@ -57,7 +63,7 @@ object ReplaceSymbolOps {
               Select(qual: Ref, a @ Name(_)),
               Symbol.Global(symQual, SignatureName(b))
             ) =>
-          val (patch, toImport) = loop(qual, symQual)
+          val (patch, toImport) = loop(qual, symQual, isImport)
           (patch + ctx.replaceTree(a, b)) -> toImport
       }
     }
@@ -79,6 +85,13 @@ object ReplaceSymbolOps {
         result
       }
     }
+    object Identifier {
+      def unapply(tree: Tree): Option[(Name, Symbol)] = tree match {
+        case n: Name => n.symbol.map(s => n -> s)
+        case Init(n: Name, _, _) => n.symbol.map(s => n -> s)
+        case _ => None
+      }
+    }
     val patches = ctx.tree.collect { case n @ Move(to) =>
       // was this written as `to = "blah"` instead of `to = _root_.blah`
       val isSelected = to match {
@@ -88,14 +101,37 @@ object ReplaceSymbolOps {
       n.parent match {
         case Some(i @ Importee.Name(_)) =>
           ctx.removeImportee(i)
+        case Some(i @ Importee.Rename(name, rename)) =>
+          i.parent match {
+            case Some(Importer(ref, `i` :: Nil)) =>
+              Patch.replaceTree(ref, SymbolOps.toTermRef(to.owner).syntax) +
+                Patch.replaceTree(name, to.signature.name)
+            case Some(Importer(ref, _)) =>
+              Patch.removeImportee(i) +
+                Patch.addGlobalImport(
+                  Importer(
+                    SymbolOps.toTermRef(to.owner),
+                    List(
+                      Importee.Rename(Term.Name(to.signature.name), rename)
+                    )
+                  )
+                )
+            case _ => Patch.empty
+          }
         case Some(parent @ Select(_, `n`)) if isSelected =>
-          val (patch, imp) = loop(parent, to)
+          val (patch, imp) =
+            loop(parent, to, isImport = n.parents.exists(_.is[Import]))
           ctx.addGlobalImport(imp) + patch
-        case Some(_) =>
+        case Some(Identifier(parent, Symbol.Global(_, sig)))
+            if sig.name != parent.value =>
+          Patch.empty // do nothing because it was a renamed symbol
+        case Some(parent) =>
           val addImport =
             if (n.isDefinition) Patch.empty
             else ctx.addGlobalImport(to)
           addImport + ctx.replaceTree(n, to.signature.name)
+        case _ =>
+          Patch.empty
       }
     }
     patches.asPatch
