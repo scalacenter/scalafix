@@ -266,6 +266,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     )
   )
 
+  private val PreviousScalaVersion = Map[String, String]()
+
   override def projectSettings: Seq[Def.Setting[_]] = List(
     scalacOptions ++= compilerOptions.value,
     scalacOptions.in(Compile, console) :=
@@ -284,9 +286,11 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     ),
     mimaPreviousArtifacts := {
       val currentScalaFullV = scalaVersion.value
+      val previousScalaFullV =
+        PreviousScalaVersion.getOrElse(currentScalaFullV, currentScalaFullV)
       val previousScalaVCrossName = CrossVersion(
         crossVersion.value,
-        currentScalaFullV,
+        previousScalaFullV,
         scalaBinaryVersion.value
       ).getOrElse(identity[String] _)(moduleName.value)
       Set(
