@@ -17,7 +17,7 @@ object Dependencies {
   val testedPreviousScalaVersions =
     List(scala213, scala212).map(version => version -> previousVersions(version)).toMap
 
-  val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.9.0.202009080501-r"
+  val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.10.0.202012080955-r"
 
   var testClasspath: String = "empty"
   def metaconfig: ModuleID = "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV
