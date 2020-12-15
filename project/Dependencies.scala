@@ -4,7 +4,7 @@ import scala.util.{Properties, Try}
 /* scalafmt: { maxColumn = 120 }*/
 
 object Dependencies {
-  val scalametaV = "4.4.0"
+  val scalametaV = "4.4.2"
   val metaconfigV = "0.9.10"
   def scala210 = "2.10.7"
   def scala211 = "2.11.12"
