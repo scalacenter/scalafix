@@ -52,9 +52,8 @@ final case class OrganizeImportsConfig(
   groupExplicitlyImportedImplicitsSeparately: Boolean = false,
   groupedImports: GroupedImports = GroupedImports.Explode,
   groups: Seq[String] = Seq(
-    "re:javax?\\.",
-    "scala.",
-    "*"
+    "*",
+    "re:(javax?|scala)\\."
   ),
   importSelectorsOrder: ImportSelectorsOrder = ImportSelectorsOrder.Ascii,
   importsOrder: ImportsOrder = ImportsOrder.Ascii,

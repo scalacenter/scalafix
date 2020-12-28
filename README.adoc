@@ -95,7 +95,7 @@ OrganizeImports {
   expandRelative = false
   groupExplicitlyImportedImplicitsSeparately = false
   groupedImports = Explode
-  groups = ["re:javax?\\.", "scala.", "*"]
+  groups = ["*", "re:(javax?|scala)\\."]
   importSelectorsOrder = Ascii
   importsOrder = Ascii
   removeUnused = true
@@ -673,9 +673,8 @@ OrganizeImports.groups = ["re:javax?\\.", "scala."]
 [source,hocon]
 ----
 [
-  "re:javax?\\."
-  "scala."
   "*"
+  "re:(javax?|scala)\\."
 ]
 ----
 

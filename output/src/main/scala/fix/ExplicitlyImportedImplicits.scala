@@ -1,9 +1,9 @@
 package fix
 
-import scala.concurrent.ExecutionContext
-
 import fix.Implicits.a.nonImplicit
 import fix.Implicits.b._
+
+import scala.concurrent.ExecutionContext
 
 import ExecutionContext.Implicits.global
 import fix.Implicits.a.intImplicit
