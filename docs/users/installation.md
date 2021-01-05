@@ -446,7 +446,7 @@ Scalafix is supported in other build tools via externally maintained plugins:
 - Mill: [mill-scalafix](https://github.com/joan38/mill-scalafix)
 - Gradle: [gradle-scalafix](https://github.com/cosmicsilence/gradle-scalafix)
 - Maven: [scalafix-maven-plugin](https://github.com/evis/scalafix-maven-plugin)
-- [Mega-Linter](https://nvuillam.github.io/mega-linter/): More than 70 linters ready to use for GitHub Actions, other CI tools and locally, including [scalafix](https://nvuillam.github.io/mega-linter/descriptors/scala_scalafix/) activated by default (limited to [built-in syntactic rules](https://scalacenter.github.io/scalafix/docs/rules/overview.html), as there is no prior compilation)
+- [Mega-Linter](https://nvuillam.github.io/mega-linter/descriptors/scala_scalafix) (only built-in syntactic rules are supported)
 
 ## SNAPSHOT
 
