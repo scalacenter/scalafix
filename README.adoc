@@ -112,7 +112,7 @@ Configures whether blank lines between adjacent import groups are automatically 
 
 Enum: `Auto | Manual`
 
-Auto:: A blank line is automatically inserted between adjacent import groups. All blank line markers (`---`) configured in the <<groups, `groups` option`>> are ignored.
+Auto:: A blank line is automatically inserted between adjacent import groups. All blank line markers (`---`) configured in the <<groups, `groups` option>> are ignored.
 
 Manual:: A blank line is inserted at all the positions where blank line markers appear in the <<groups, `groups` option>>.
 
