@@ -60,7 +60,7 @@ def scalafixIvyDeps = Agg(ivy"com.github.liancheng::organize-imports:{latest-rel
 
 === Source formatting tools
 
-The `OrganizeImports` rule plays nicely with source formatting tools like https://scalameta.org/scalafmt/[Scalafmt]. If an import statement is already organized according to the configuration, its original source level format would be preserved. For example, in an sbt project, if you run the following command sequence:
+The `OrganizeImports` rule plays nicely with source-formatting tools like https://scalameta.org/scalafmt/[Scalafmt]. If an import statement is already organized according to the configuration, its original source level format would be preserved. For example, in an sbt project, if you run the following command sequence:
 
 [source]
 ----
@@ -91,6 +91,7 @@ By default, `OrganizeImports` already removes unused imports for you (see the <<
 [source,hocon]
 ----
 OrganizeImports {
+  blankLines = Auto
   coalesceToWildcardImportThreshold = 2147483647 # Int.MaxValue
   expandRelative = false
   groupExplicitlyImportedImplicitsSeparately = false
@@ -101,6 +102,134 @@ OrganizeImports {
   removeUnused = true
 }
 ----
+
+[[blank-lines]]
+=== `blankLines`
+
+Configures whether blank lines between adjacent import groups are automatically or manually inserted. This option is used together with the <<blank-line-marker, `---` blank line markers>>.
+
+==== Value type
+
+Enum: `Auto | Manual`
+
+Auto:: A blank line is automatically inserted between adjacent import groups. All blank line markers (`---`) configured in the <<groups, `groups` option`>> are ignored.
+
+Manual:: A blank line is inserted at all the positions where blank line markers appear in the <<groups, `groups` option>>.
+
+The following two configurations are equivalent:
+
+[source,hocon]
+----
+OrganizeImports {
+  blankLines = Auto
+  groups = [
+    "re:javax?\\."
+    "scala."
+    "*"
+  ]
+}
+
+OrganizeImports {
+  blankLines = Manual
+  groups = [
+    "re:javax?\\."
+    "---"
+    "scala."
+    "---"
+    "*"
+  ]
+}
+----
+
+==== Default value
+
+`Auto`
+
+==== Examples
+
+`Auto`::
++
+--
+Configuration:
+
+[source,hocon]
+----
+OrganizeImports {
+  blankLines = Auto
+  groups = [
+    "re:javax?\\."
+    "scala."
+    "*"
+  ]
+}
+----
+
+Before:
+
+[source,scala]
+----
+import scala.collection.JavaConverters._
+import java.time.Clock
+import sun.misc.BASE64Encoder
+import javax.annotation.Generated
+import scala.concurrent.ExecutionContext
+----
+
+After:
+
+[source,scala]
+----
+import java.time.Clock
+import javax.annotation.Generated
+
+import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext
+
+import sun.misc.BASE64Encoder
+----
+--
+
+`Manual`::
++
+--
+Configuration:
+
+[source,hocon]
+----
+OrganizeImports {
+  blankLines = Manual
+  groups = [
+    "re:javax?\\."
+    "scala."
+    "---"
+    "*"
+  ]
+}
+----
+
+Before:
+
+[source,scala]
+----
+import scala.collection.JavaConverters._
+import java.time.Clock
+import sun.misc.BASE64Encoder
+import javax.annotation.Generated
+import scala.concurrent.ExecutionContext
+----
+
+After:
+
+[source,scala]
+----
+import java.time.Clock
+import javax.annotation.Generated
+import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext
+
+import sun.misc.BASE64Encoder
+----
+--
 
 [[coalesce]]
 === `coalesceToWildcardImportThreshold`
@@ -124,7 +253,7 @@ object Example {
 ----
 The type of `Example.m` above is not ambiguous because the mutable `Map` explicitly imported in the second import takes higher precedence than the immutable `Map` imported via wildcard in the first import.
 
-However, if we coalesce the grouped importes in the second import statement into a wildcard, there will be a compilation error:
+However, if we coalesce the grouped imports in the second import statement into a wildcard, there will be a compilation error:
 [source,scala]
 ----
 import scala.collection.immutable._
@@ -147,7 +276,7 @@ Integer
 
 Rationale:: Setting the default value to `Int.MaxValue` essentially disables this feature, since it may cause correctness issues.
 
-==== Example
+==== Examples
 
 Configuration:
 
@@ -217,7 +346,7 @@ Boolean
 
 `false`
 
-==== Example
+==== Examples
 
 Configuration:
 
@@ -302,7 +431,7 @@ This behavior could be due to a Scala compiler bug since https://scala-lang.org/
 
 Unfortunately, Scalafix is not able to surgically identify conflicting implicit values behind a wildcard import. In order to guarantee correctness in all cases, when the `groupExplicitlyImportedImplicitsSeparately` option is set to `true`, all explicitly imported implicit names are moved into the trailing order-preserving import group together with relative imports, if any (see the <<trailing-order-preserving-import-group, trailing order-preserving import group>> section for more details).
 
-CAUTION: In general, order-sensitive imports are fragile, and can easily be broken by either human collaborators or tools (e.g., the IntelliJ IDEA Scala import optimizer does not handle this case correctly). They should be eliminated whenever possible. This option is mostly useful when you are dealing with a large trunk of legacy codebase and you want to minimize manual intervention and guarantee correctness in all cases.
+CAUTION: In general, order-sensitive imports are fragile, and can easily be broken by either human collaborators or tools (e.g., the IntelliJ IDEA Scala import optimizer does not handle this case correctly). They should be eliminated whenever possible. This option is mostly useful when you are dealing with a large trunk of legacy codebase, and you want to minimize manual intervention and guarantee correctness in all cases.
 
 ==== Value type
 
@@ -321,10 +450,10 @@ This option defaults to `false` due to the following reasons:
 +
 E.g., why my `scala.concurrent.ExecutionContext.Implicits.global` import is moved to a separate group even if I have a `scala.` group defined in the `groups` option?
 
-. The concerned correctness issue is rarely seen in real life. When it really happens, it is usually a sign of bad coding style and you may want to tweak your imports to eliminate the root cause.
+. The concerned correctness issue is rarely seen in real life. When it really happens, it is usually a sign of bad coding style, and you may want to tweak your imports to eliminate the root cause.
 --
 
-==== Example
+==== Examples
 
 Configuration:
 
@@ -462,7 +591,7 @@ object Example {
 }
 ----
 
-At a first glance, it seems feasible to simply drop the second import since `mutable._` already covers `mutble.Map`. However, similar to the example illustrated in the section about the <<coalesce, `coalesceToWildcardImportThreshold` configuration>>, the type of `Example.m` above is `mutable.Map`, because the mutable `Map` explicitly imported in the second import takes higher precedence than the immutable `Map` imported via wildcard in the first import. If we merge the last two imports naively, we'll get:
+At a first glance, it seems feasible to simply drop the second import since `mutable._` already covers `mutble.Map`. However, similar to the example illustrated in the section about the <<coalesce, `coalesceToWildcardImportThreshold` option>>, the type of `Example.m` above is `mutable.Map`, because the mutable `Map` explicitly imported in the second import takes higher precedence than the immutable `Map` imported via wildcard in the first import. If we merge the last two imports naively, we'll get:
 
 [source,scala]
 ----
@@ -668,6 +797,50 @@ OrganizeImports.groups = ["re:javax?\\.", "scala."]
 ----
 --
 
+[[blank-line-marker]]
+A blank line marker::
++
+--
+A blank line marker, `"---"`, defines a blank line between two adjacent import groups when <<blank-lines, `blankLines`>> is set to `Manual`. It is ignored when `blankLines` is `Auto`. Leading and trailing blank line markers are always ignored. Multiple consecutive blank line markers are treated as a single one. So the following three configurations are all equivalent:
+
+[source,hocon]
+----
+OrganizeImports {
+  blankLines = Manual
+  groups = [
+    "----"
+    "re:javax?\\."
+    "----"
+    "scala."
+    "----"
+    "----"
+    "*"
+    "----"
+  ]
+}
+
+OrganizeImports {
+  blankLines = Manual
+  groups = [
+    "re:javax?\\."
+    "---"
+    "scala."
+    "---"
+    "*"
+  ]
+}
+
+OrganizeImports {
+  blankLines = Auto
+  groups = [
+    "re:javax?\\."
+    "scala."
+    "*"
+  ]
+}
+----
+--
+
 ==== Default value
 
 [source,hocon]
@@ -843,6 +1016,48 @@ import scala.meta.Import
 import scala.meta.Pkg
 import scala.meta.Tree
 import sun.misc.BASE64Encoder
+----
+--
+
+With manually configured blank lines::
++
+--
+Configuration:
+
+[source,hocon]
+----
+OrganizeImports {
+  blankLines = Manual
+  groups = [
+    "*"
+    "---"
+    "re:javax?\\."
+    "scala."
+  ]
+}
+----
+
+Before:
+
+[source,scala]
+----
+import scala.collection.JavaConverters._
+import java.time.Clock
+import sun.misc.BASE64Encoder
+import javax.annotation.Generated
+import scala.concurrent.ExecutionContext
+----
+
+After:
+
+[source,scala]
+----
+import sun.misc.BASE64Encoder
+
+import java.time.Clock
+import javax.annotation.Generated
+import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext
 ----
 --
 
@@ -1029,7 +1244,7 @@ Boolean
 
 `true`
 
-==== Example
+==== Examples
 
 Configuration:
 

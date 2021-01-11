@@ -13,10 +13,9 @@ object ImportsOrder {
   case object SymbolsFirst extends ImportsOrder
   case object Keep extends ImportsOrder
 
-  implicit def reader: ConfDecoder[ImportsOrder] =
-    ReaderUtil.fromMap(
-      (List(Ascii, SymbolsFirst, Keep) map (v => v.toString -> v)).toMap
-    )
+  implicit def reader: ConfDecoder[ImportsOrder] = ReaderUtil.fromMap(
+    (List(Ascii, SymbolsFirst, Keep) map (v => v.toString -> v)).toMap
+  )
 }
 
 sealed trait ImportSelectorsOrder
@@ -26,10 +25,9 @@ object ImportSelectorsOrder {
   case object SymbolsFirst extends ImportSelectorsOrder
   case object Keep extends ImportSelectorsOrder
 
-  implicit def reader: ConfDecoder[ImportSelectorsOrder] =
-    ReaderUtil.fromMap {
-      (List(Ascii, SymbolsFirst, Keep) map (v => v.toString -> v)).toMap
-    }
+  implicit def reader: ConfDecoder[ImportSelectorsOrder] = ReaderUtil.fromMap {
+    (List(Ascii, SymbolsFirst, Keep) map (v => v.toString -> v)).toMap
+  }
 }
 
 sealed trait GroupedImports
@@ -40,13 +38,24 @@ object GroupedImports {
   case object Explode extends GroupedImports
   case object Keep extends GroupedImports
 
-  implicit def reader: ConfDecoder[GroupedImports] =
-    ReaderUtil.fromMap {
-      (List(AggressiveMerge, Merge, Explode, Keep) map (v => v.toString -> v)).toMap
-    }
+  implicit def reader: ConfDecoder[GroupedImports] = ReaderUtil.fromMap {
+    (List(AggressiveMerge, Merge, Explode, Keep) map (v => v.toString -> v)).toMap
+  }
+}
+
+sealed trait BlankLines
+
+object BlankLines {
+  case object Auto extends BlankLines
+  case object Manual extends BlankLines
+
+  implicit def reader: ConfDecoder[BlankLines] = ReaderUtil.fromMap {
+    (List(Auto, Manual) map (v => v.toString -> v)).toMap
+  }
 }
 
 final case class OrganizeImportsConfig(
+  blankLines: BlankLines = BlankLines.Auto,
   coalesceToWildcardImportThreshold: Int = Int.MaxValue,
   expandRelative: Boolean = false,
   groupExplicitlyImportedImplicitsSeparately: Boolean = false,

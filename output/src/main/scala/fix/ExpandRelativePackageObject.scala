@@ -2,6 +2,4 @@ package fix
 
 import fix.PackageObject.a
 
-object ExpandRelativePackageObject {
-  println(a)
-}
+object ExpandRelativePackageObject

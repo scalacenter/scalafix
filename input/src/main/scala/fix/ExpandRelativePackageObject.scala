@@ -6,6 +6,4 @@ package fix
 
 import PackageObject.a
 
-object ExpandRelativePackageObject {
-  println(a)
-}
+object ExpandRelativePackageObject

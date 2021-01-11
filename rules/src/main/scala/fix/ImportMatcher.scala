@@ -11,9 +11,10 @@ sealed trait ImportMatcher {
 object ImportMatcher {
   def parse(pattern: String): ImportMatcher =
     pattern match {
-      case p if p startsWith "re:" => ImportMatcher.RE(new Regex(p stripPrefix "re:"))
-      case "*"                     => ImportMatcher.Wildcard
-      case p                       => ImportMatcher.PlainText(p)
+      case p if p startsWith "re:" => RE(new Regex(p stripPrefix "re:"))
+      case "---"                   => ---
+      case "*"                     => *
+      case p                       => PlainText(p)
     }
 
   case class RE(pattern: Regex) extends ImportMatcher {
@@ -25,9 +26,15 @@ object ImportMatcher {
     override def matches(i: Importer): Int = if (i.syntax startsWith pattern) pattern.length else 0
   }
 
-  case object Wildcard extends ImportMatcher {
-    // This matcher matches nothing. The wildcard group is always special-cased at the end of the
-    // import group matching process.
+  case object * extends ImportMatcher {
+    // The wildcard matcher matches nothing. It is special-cased at the end of the import group
+    // matching process.
     def matches(importer: Importer): Int = 0
+  }
+
+  case object --- extends ImportMatcher {
+    // Blank line matchers are pseudo matchers matching nothing. They are special-cased at the end
+    // of the import group matching process.
+    override def matches(i: Importer): Int = 0
   }
 }

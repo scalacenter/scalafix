@@ -8,4 +8,4 @@ import scala.util
 import util.control
 import control.NonFatal
 
-object ExpandRelativeImports
+object ExpandRelative
