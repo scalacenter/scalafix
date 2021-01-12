@@ -1,7 +1,5 @@
 package fix
 
-import scala.collection.immutable.Vector
-import scala.collection.immutable.{Set => _, _}
-import scala.collection.immutable.{Map => Dict}
+import scala.collection.immutable.{Map => Dict, Set => _, Vector, _}
 
 object DeduplicateImportees

@@ -95,7 +95,7 @@ OrganizeImports {
   coalesceToWildcardImportThreshold = 2147483647 # Int.MaxValue
   expandRelative = false
   groupExplicitlyImportedImplicitsSeparately = false
-  groupedImports = Explode
+  groupedImports = Merge
   groups = ["*", "re:(javax?|scala)\\."]
   importSelectorsOrder = Ascii
   importsOrder = Ascii
@@ -634,7 +634,7 @@ import scala.collection.mutable._
 
 ==== Default value
 
-`Explode`
+`Merge`
 
 Rationale:: Despite making the import section lengthier, exploding grouped imports into separate import statements is made the default behavior because it is more friendly to version control and less likely to create annoying merge conflicts caused by trivial import changes.
 
