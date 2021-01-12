@@ -1,4 +1,4 @@
-:latest-release: 0.4.4
+:latest-release: 0.5.0-alpha.1
 
 ifdef::env-github[]
 :caution-caption: :construction:
@@ -105,6 +105,8 @@ OrganizeImports {
 
 [[blank-lines]]
 === `blankLines`
+
+Available since v0.5.0-alpha.1.
 
 Configures whether blank lines between adjacent import groups are automatically or manually inserted. This option is used together with the <<blank-line-marker, `---` blank line markers>>.
 
@@ -803,6 +805,8 @@ OrganizeImports.groups = ["re:javax?\\.", "scala."]
 A blank line marker::
 +
 --
+Available since v0.5.0-alpha.1.
+
 A blank line marker, `"---"`, defines a blank line between two adjacent import groups when <<blank-lines, `blankLines`>> is set to `Manual`. It is ignored when `blankLines` is `Auto`. Leading and trailing blank line markers are always ignored. Multiple consecutive blank line markers are treated as a single one. So the following three configurations are all equivalent:
 
 [source,hocon]
