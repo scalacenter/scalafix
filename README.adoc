@@ -636,7 +636,9 @@ import scala.collection.mutable._
 
 `Merge`
 
-Rationale:: Despite making the import section lengthier, exploding grouped imports into separate import statements is made the default behavior because it is more friendly to version control and less likely to create annoying merge conflicts caused by trivial import changes.
+Rationale:: For v0.4.4 and earlier versions, this option defaults to `Explode`, because despite making the import section lengthier, exploding grouped imports into separate import statements is made the default behavior because it is more friendly to version control and less likely to create annoying merge conflicts caused by trivial import changes.
++
+For later versions, this option defaults to `Merge` to be consistent with the default configuration of the IntelliJ IDEA Scala import optimizer.
 
 ==== Examples
 
