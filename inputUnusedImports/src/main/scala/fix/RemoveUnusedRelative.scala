@@ -2,6 +2,7 @@
 rules = [OrganizeImports]
 OrganizeImports {
   expandRelative = true
+  groupedImports = Explode
   groups = ["re:javax?\\.", "scala.", "*"]
   removeUnused = true
 }

@@ -1,5 +1,6 @@
 import P._
-import Q.{x, _}
+import Q._
+import Q.x
 
 object P {
   object x

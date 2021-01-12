@@ -1,5 +1,6 @@
 package fix
 
-import scala.collection.{Map, Set => ImmutableSet}
+import scala.collection.Map
+import scala.collection.{Set => ImmutableSet}
 
 object CurlyBracedSingleImportee

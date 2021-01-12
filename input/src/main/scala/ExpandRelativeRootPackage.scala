@@ -1,6 +1,9 @@
 /*
 rules = [OrganizeImports]
-OrganizeImports.expandRelative = true
+OrganizeImports {
+  expandRelative = true
+  groupedImports = Explode
+}
  */
 import P._
 import Q.x
