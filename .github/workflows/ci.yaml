@@ -7,13 +7,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2.3.4
-
+      - uses: olafurpg/setup-scala@v10
+      - uses: coursier/cache-action@v5
       - name: Lint
         run: sbt scalafmtCheckAll "rules/scalafix --check"
-
       - name: Test
         run: sbt coverage +tests/test +rules/coverageReport
-
       - uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
