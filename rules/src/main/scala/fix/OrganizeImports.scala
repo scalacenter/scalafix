@@ -323,7 +323,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       // single line.
       //
       // See https://github.com/liancheng/scalafix-organize-imports/issues/84 for more details.
-      case ImportsOrder.Ascii        => importeesSorted sortBy (_.copy().syntax)
+      case ImportsOrder.Ascii        => importeesSorted sortBy (i => importerSyntax(i.copy()))
       case ImportsOrder.SymbolsFirst => sortImportersSymbolsFirst(importeesSorted)
       case ImportsOrder.Keep         => importeesSorted
     }
@@ -651,7 +651,7 @@ object OrganizeImports {
 
   private def prettyPrintImportGroup(group: Seq[Importer]): String =
     group
-      .map(i => "import " + fixedImporterSyntax(i))
+      .map(i => "import " + importerSyntax(i))
       .mkString("\n")
 
   /**
@@ -661,7 +661,7 @@ object OrganizeImports {
    * users do want the inserted spaces, Scalafmt should be used after running the `OrganizeImports`
    * rule.
    */
-  private def fixedImporterSyntax(importer: Importer): String =
+  private def importerSyntax(importer: Importer): String =
     importer.pos match {
       case pos: Position.Range =>
         // Position found, implies that `importer` was directly parsed from the source code. Returns
