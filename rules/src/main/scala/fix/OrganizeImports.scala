@@ -720,17 +720,16 @@ object OrganizeImports {
         importer :: Nil
 
       case Importer(ref, Importees(names, renames, unimports, Some(wildcard))) =>
-        // When a wildcard exists, all unimports (if any) and the wildcard must appear in the same
+        // When a wildcard exists, all renames, unimports, and the wildcard must appear in the same
         // importer, e.g.:
         //
         //   import p.{A => _, B => _, C => D, E, _}
         //
         // should be rewritten into
         //
-        //   import p.{A => _, B => _, _}
-        //   import p.{C => D}
+        //   import p.{A => _, B => _, C => D, _}
         //   import p.E
-        val importeesList = (names ++ renames).map(_ :: Nil) :+ (unimports :+ wildcard)
+        val importeesList = names.map(_ :: Nil) :+ (renames ++ unimports :+ wildcard)
         importeesList filter (_.nonEmpty) map (Importer(ref, _))
 
       case importer =>
