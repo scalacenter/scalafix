@@ -242,6 +242,7 @@ lazy val unit = project
       List(out)
     },
     buildInfoKeys := Seq[BuildInfoKey](
+      "scalametaVersion" -> scalametaV,
       "baseDirectory" ->
         baseDirectory.in(ThisBuild).value,
       "inputSourceroot" ->

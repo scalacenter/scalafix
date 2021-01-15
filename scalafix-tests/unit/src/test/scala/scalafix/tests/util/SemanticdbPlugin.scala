@@ -8,6 +8,7 @@ import coursier.Fetch
 import coursier.Module
 import coursier.ModuleName
 import coursier.Organization
+import scalafix.tests.BuildInfo
 
 object SemanticdbPlugin {
   def semanticdbPluginPath(): String = {
@@ -16,7 +17,7 @@ object SemanticdbPlugin {
         Organization("org.scalameta"),
         ModuleName(s"semanticdb-scalac_$scalaVersion")
       ),
-      "4.4.0"
+      BuildInfo.scalametaVersion
     )
     val paths = Fetch()
       .addDependencies(dep)
