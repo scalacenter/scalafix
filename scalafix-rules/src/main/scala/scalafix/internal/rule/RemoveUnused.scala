@@ -51,6 +51,9 @@ class RemoveUnused(config: RemoveUnusedConfig)
   override def fix(implicit doc: SemanticDocument): Patch = {
     val isUnusedTerm = mutable.Set.empty[Position]
     val isUnusedImport = mutable.Set.empty[Position]
+    val isUnusedPattern = mutable.Set.empty[Position]
+
+    val unusedPatterExpr = raw"^pattern var .* in [a-z]+ <.+> is never used".r
 
     doc.diagnostics.foreach { diagnostic =>
       if (config.imports && diagnostic.message == "Unused import") {
@@ -67,10 +70,17 @@ class RemoveUnused(config: RemoveUnusedConfig)
         diagnostic.message.endsWith("is never used")
       ) {
         isUnusedTerm += diagnostic.position
+      } else if (
+        config.patternvars &&
+        unusedPatterExpr.findFirstMatchIn(diagnostic.message).isDefined
+      ) {
+        isUnusedPattern += diagnostic.position
       }
     }
 
-    if (isUnusedImport.isEmpty && isUnusedTerm.isEmpty) {
+    if (
+      isUnusedImport.isEmpty && isUnusedTerm.isEmpty && isUnusedPattern.isEmpty
+    ) {
       // Optimization: don't traverse if there are no diagnostics to act on.
       Patch.empty
     } else {
@@ -101,6 +111,16 @@ class RemoveUnused(config: RemoveUnusedConfig)
         case i @ Defn.Var(_, List(pat), _, _)
             if isUnusedTerm.exists(p => p.start == pat.pos.start) =>
           defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
+        case Term.Match(_, cases) =>
+          val vars =
+            cases
+              .map { case Case(extract, _, _) => extract }
+              .flatMap(_.collect { case v: Pat.Var => v })
+          vars
+            .filter(v => isUnusedPattern(v.pos))
+            .map(v => Patch.replaceTree(v, "_"))
+            .asPatch
+            .atomic
       }.asPatch
     }
   }
