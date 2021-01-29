@@ -3,6 +3,7 @@
     "Usage": ["users/installation", "users/configuration", "users/suppression"],
     "Rules": [
       "rules/overview",
+      "rules/community-rules",
       "rules/RemoveUnused",
       "rules/ExplicitResultTypes",
       "rules/DisableSyntax",
