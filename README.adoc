@@ -1246,6 +1246,8 @@ import scala.concurrent.duration
 [[preset]]
 === `preset`
 
+Available since v0.5.0.
+
 Specify a preset style.
 
 ==== Value type
@@ -1301,11 +1303,6 @@ OrganizeImports {
   removeUnused = true
 }
 ----
-
-[NOTE]
-====
-This preset style sets `blankLines` to `Manual`, so that you can fully customize where a blank line should appear by adding the blank line marker, `"---"`, in the `groups` option manually. Please refer to <<blank-line-marker, the blank line marker>> for more details.
-====
 --
 
 ==== Default value
