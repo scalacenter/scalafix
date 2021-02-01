@@ -1316,7 +1316,7 @@ Remove unused imports.
 
 [CAUTION]
 ====
-As mentioned in the <<remove-unused-warning, Getting started>> section, the `removeUnused` option doesn't play perfectly with the `expandRelative` option. Setting `expandRelative` to `true` might introduce new unused imports (see <<expandRelative, `expandRelative`>>). These newly introduced unused imports cannot be removed by setting `removeUnused` to `true`. This is because unused imports are identified using Scala compilation diagnostics information, and the compilation phase happens before Scalafix rules get applied.
+As mentioned in <<remove-unused-warning, a previous section>>, the `removeUnused` option doesn't play perfectly with the `expandRelative` option. Setting `expandRelative` to `true` might introduce new unused imports (see <<expandRelative, `expandRelative`>>). These newly introduced unused imports cannot be removed by setting `removeUnused` to `true`. This is because unused imports are identified using Scala compilation diagnostics information, and the compilation phase happens before Scalafix rules get applied.
 ====
 
 ==== Value type
