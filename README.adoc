@@ -89,7 +89,7 @@ However, you should make sure that the source-formatting tools you use do not re
 ----
 OrganizeImports {
   <<blankLines, blankLines>> = Auto
-  <<coalesce, coalesceToWildcardImportThreshold>> = null
+  <<coalesceToWildcardImportThreshold, coalesceToWildcardImportThreshold>> = null
   <<expandRelative, expandRelative>> = false
   <<groupExplicitlyImportedImplicitsSeparately, groupExplicitlyImportedImplicitsSeparately>> = false
   <<groupedImports, groupedImports>> = Explode
