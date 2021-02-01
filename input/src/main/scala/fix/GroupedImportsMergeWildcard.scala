@@ -1,9 +1,6 @@
 /*
 rules = [OrganizeImports]
-OrganizeImports {
-  groupedImports = Merge
-  importSelectorsOrder = Ascii
-}
+OrganizeImports.groupedImports = Merge
  */
 package fix
 

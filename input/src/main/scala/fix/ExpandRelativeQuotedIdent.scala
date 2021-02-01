@@ -1,9 +1,6 @@
 /*
 rules = [OrganizeImports]
-OrganizeImports {
-  expandRelative = true
-  groupedImports = Explode
-}
+OrganizeImports.expandRelative = true
  */
 package fix
 

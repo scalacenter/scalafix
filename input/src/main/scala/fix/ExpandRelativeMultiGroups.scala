@@ -1,9 +1,6 @@
 /*
 rules = [OrganizeImports]
-OrganizeImports {
-  groups = ["re:javax?\\.", "scala.", "*"]
-  expandRelative = true
-}
+OrganizeImports.expandRelative = true
  */
 package fix
 

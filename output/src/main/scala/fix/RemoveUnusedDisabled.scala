@@ -1,8 +1,10 @@
 package fix
 
-import fix.UnusedImports.a.{v1, v2}
+import fix.UnusedImports.a.v1
+import fix.UnusedImports.a.v2
 import fix.UnusedImports.b.v3
-import fix.UnusedImports.c.{v5 => w1, v6 => w2}
+import fix.UnusedImports.c.{v5 => w1}
+import fix.UnusedImports.c.{v6 => w2}
 import fix.UnusedImports.d.{v7 => unused, _}
 
 object RemoveUnusedDisabled {

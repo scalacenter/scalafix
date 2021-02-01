@@ -1,6 +1,4 @@
-/*
-rules = OrganizeImports
- */
+/* rules = OrganizeImports */
 package fix
 
 object NoImports

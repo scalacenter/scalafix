@@ -1,9 +1,6 @@
 /*
 rules = [OrganizeImports]
-OrganizeImports {
-  groupedImports = AggressiveMerge
-  importSelectorsOrder = Ascii
-}
+OrganizeImports.groupedImports = AggressiveMerge
  */
 package fix
 
