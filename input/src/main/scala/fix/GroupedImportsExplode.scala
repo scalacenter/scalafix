@@ -1,7 +1,4 @@
-/*
-rules = [OrganizeImports]
-OrganizeImports.groupedImports = Explode
- */
+/* rules = [OrganizeImports] */
 package fix
 
 import scala.collection.mutable.{ArrayBuffer, Buffer, StringBuilder}

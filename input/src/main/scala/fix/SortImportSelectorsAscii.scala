@@ -1,11 +1,7 @@
 /*
 rules = [OrganizeImports]
-OrganizeImports {
-  importSelectorsOrder = Ascii
-  groupedImports = Keep
-}
+OrganizeImports.groupedImports = Keep
  */
-
 package fix
 
 import scala.{Any, ::, collection, :+, Predef, concurrent}

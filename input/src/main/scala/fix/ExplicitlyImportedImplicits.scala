@@ -1,9 +1,6 @@
 /*
 rules = [OrganizeImports]
-OrganizeImports {
-  importsOrder = Ascii
-  groupExplicitlyImportedImplicitsSeparately = true
-}
+OrganizeImports.groupExplicitlyImportedImplicitsSeparately = true
  */
 package fix
 

@@ -8,7 +8,12 @@ import scala.util.Try
 import fix.ImportMatcher.*
 import fix.ImportMatcher.---
 import fix.ImportMatcher.parse
+import metaconfig.Conf
+import metaconfig.ConfDecoder
+import metaconfig.ConfEncoder
+import metaconfig.ConfOps
 import metaconfig.Configured
+import metaconfig.internal.ConfGet
 import scala.meta.Import
 import scala.meta.Importee
 import scala.meta.Importer
@@ -52,25 +57,10 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   override def isExperimental: Boolean = true
 
   override def withConfiguration(config: Configuration): Configured[Rule] =
-    config.conf.getOrElse("OrganizeImports")(OrganizeImportsConfig()) andThen { conf =>
-      val hasWarnUnused = {
-        val warnUnusedPrefix = Set("-Wunused", "-Ywarn-unused")
-        val warnUnusedString = Set("-Xlint", "-Xlint:unused")
-        config.scalacOptions exists { option =>
-          (warnUnusedPrefix exists option.startsWith) || (warnUnusedString contains option)
-        }
-      }
-
-      if (!conf.removeUnused || hasWarnUnused)
-        Configured.ok(new OrganizeImports(conf))
-      else
-        Configured.error(
-          "The Scala compiler option \"-Ywarn-unused\" is required to use OrganizeImports with"
-            + " \"OrganizeImports.removeUnused\" set to true. To fix this problem, update your"
-            + " build to use at least one Scala compiler option like -Ywarn-unused-import (2.11"
-            + " only), -Ywarn-unused, -Xlint:unused (2.12.2 or above) or -Wunused (2.13 only)."
-        )
-    }
+    config.conf
+      .getOrElse("OrganizeImports")(OrganizeImportsConfig())
+      .andThen(patchPreset(_, config.conf))
+      .andThen(checkScalacOptions(_, config.scalacOptions))
 
   override def fix(implicit doc: SemanticDocument): Patch = {
     unusedImporteePositions ++= doc.diagnostics.collect {
@@ -492,9 +482,9 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
             Seq(renamedImportedNames, importedNames ++ renames ++ allUnimports)
         }
 
-        // Issue #127: After merging imports within an importer group, we should check whether there
-        // are any input importers are left untouched. For those importers, we should return the
-        // original importer instance to preserve the original source level formatting.
+        // Issue #127: After merging imports within an importer group, checks whether there are any
+        // input importers left untouched. For those importers, returns the original importer
+        // instance to preserve the original source level formatting.
         locally {
           val importerSyntaxMap = group.map { i => i.copy().syntax -> i }.toMap
 
@@ -525,8 +515,10 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
   private def coalesceImportees(importer: Importer): Importer = {
     val Importees(names, renames, unimports, _) = importer.importees
-    if (names.length <= config.coalesceToWildcardImportThreshold) importer
-    else importer.copy(importees = renames ++ unimports :+ Importee.Wildcard())
+    config.coalesceToWildcardImportThreshold
+      .filter(names.length > _)
+      .map(_ => importer.copy(importees = renames ++ unimports :+ Importee.Wildcard()))
+      .getOrElse(importer)
   }
 
   private def sortImportees(importer: Importer): Importer = {
@@ -613,6 +605,40 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 object OrganizeImports {
   private case class ImportGroup(index: Int, imports: Seq[Importer])
 
+  private def patchPreset(
+    ruleConf: OrganizeImportsConfig,
+    conf: Conf
+  ): Configured[OrganizeImportsConfig] = {
+    val preset = OrganizeImportsConfig.presets(ruleConf.preset)
+    val presetConf = ConfEncoder[OrganizeImportsConfig].write(preset)
+    val userConf = ConfGet.getKey(conf, "OrganizeImports" :: Nil).getOrElse(Conf.Obj.empty)
+    val mergedConf = ConfOps.merge(presetConf, userConf)
+    ConfDecoder[OrganizeImportsConfig].read(mergedConf)
+  }
+
+  private def checkScalacOptions(
+    conf: OrganizeImportsConfig,
+    scalacOptions: List[String]
+  ): Configured[Rule] = {
+    val hasWarnUnused = {
+      val warnUnusedPrefix = Set("-Wunused", "-Ywarn-unused")
+      val warnUnusedString = Set("-Xlint", "-Xlint:unused")
+      scalacOptions exists { option =>
+        (warnUnusedPrefix exists option.startsWith) || (warnUnusedString contains option)
+      }
+    }
+
+    if (!conf.removeUnused || hasWarnUnused)
+      Configured.ok(new OrganizeImports(conf))
+    else
+      Configured.error(
+        "The Scala compiler option \"-Ywarn-unused\" is required to use OrganizeImports with"
+          + " \"OrganizeImports.removeUnused\" set to true. To fix this problem, update your"
+          + " build to use at least one Scala compiler option like -Ywarn-unused-import (2.11"
+          + " only), -Ywarn-unused, -Xlint:unused (2.12.2 or above) or -Wunused (2.13 only)."
+      )
+  }
+
   private def buildImportMatchers(config: OrganizeImportsConfig): Seq[ImportMatcher] = {
     val withWildcard = {
       val parsed = config.groups map parse
@@ -656,10 +682,12 @@ object OrganizeImports {
 
   /**
    * HACK: The Scalafix pretty-printer decides to add spaces after open and before close braces in
-   * imports, i.e., `import a.{ b, c }` instead of `import a.{b, c}`. Unfortunately, this behavior
-   * cannot be overridden. This function removes the unwanted spaces as a workaround. In cases where
-   * users do want the inserted spaces, Scalafmt should be used after running the `OrganizeImports`
-   * rule.
+   * imports with multiple importees, i.e., `import a.{ b, c }` instead of `import a.{b, c}`. On the
+   * other hand, renames are pretty-printed without the extra spaces, e.g., `import a.{b => c}`.
+   * This behavior is not customizable and makes ordering imports by ASCII order complicated.
+   *
+   * This function removes the unwanted spaces as a workaround. In cases where users do want the
+   * inserted spaces, Scalafmt should be used after running the `OrganizeImports` rule.
    */
   private def importerSyntax(importer: Importer): String =
     importer.pos match {
