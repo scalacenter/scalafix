@@ -266,8 +266,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     )
   )
 
-  private val PreviousScalaVersion = Map(
-    "2.12.13" -> "2.12.12"
+  private val PreviousScalaVersion: Map[String, String] = Map(
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
