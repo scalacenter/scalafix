@@ -11,7 +11,11 @@ case class RemoveUnusedConfig(
     @Description("Remove unused private members")
     privates: Boolean = true,
     @Description("Remove unused local definitions")
-    locals: Boolean = true
+    locals: Boolean = true,
+    @Description(
+      "Remove unused pattern match variables (compatible with Scala 2.12 and 2.13"
+    )
+    patternvars: Boolean = true
 )
 
 object RemoveUnusedConfig {
