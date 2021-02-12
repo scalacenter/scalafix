@@ -24,7 +24,7 @@ structures include:
   implicit conversions, inferred `.apply` and for-comprehensions.
 - `Symbol`: a unique identifier for a definition. For example, the `String`
   class has the symbol `java/lang/String#`. The type alias to `String` in the
-  Scala standard library has the symbol `scala/Predef.Symbol#`.
+  Scala standard library has the symbol `scala/Predef.String#`.
 - `SymbolInformation`: a data structure containing metadata about a `Symbol`
   definition.
 - `Diagnostic`: a linter error message that can be reported at a source file
