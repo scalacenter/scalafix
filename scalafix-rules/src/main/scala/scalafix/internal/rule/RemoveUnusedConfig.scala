@@ -13,7 +13,7 @@ case class RemoveUnusedConfig(
     @Description("Remove unused local definitions")
     locals: Boolean = true,
     @Description(
-      "Remove unused pattern match variables (compatible with Scala 2.12 and 2.13"
+      "Remove unused pattern match variables (compatible with Scala 2.12 and 2.13)"
     )
     patternvars: Boolean = true
 )
