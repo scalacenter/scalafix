@@ -64,6 +64,26 @@ object Main {
 }
 ```
 
+Remove unused pattern match variables (Scala 2.12 & 2.13 only):
+
+```scala
+case class AB(a: Int, b: String)
+// before
+object Main {
+  val example = AB(42, "lol")
+  example match {
+    case AB(a, b) => println("Not used")
+  }
+}
+// after
+object Main {
+  val example = AB(42, "lol")
+  example match {
+    case AB(_, _) => println("Not used")
+  }
+}
+```
+
 ## Formatting
 
 > This rule does a best-effort at preserving original formatting. In some cases,
@@ -98,7 +118,7 @@ println(scalafix.website.rule("RemoveUnused", RemoveUnusedConfig.default))
 Consult `scala -Y` in the command-line for more information about using
 `-Ywarn-unused`.
 
-For Scala @SCALA212@
+For Scala @SCALA212@ & @SCALA213@
 
 ```
 $ scala -Ywarn-unused:help
