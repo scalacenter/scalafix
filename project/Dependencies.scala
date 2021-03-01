@@ -11,7 +11,7 @@ object Dependencies {
   def scala212 = "2.12.13"
   def scala213 = "2.13.5"
   def coursierV = "2.0.0-RC5-6"
-  def coursierInterfaceV = "1.0.2"
+  def coursierInterfaceV = "1.0.3"
   val currentScalaVersion = scala213
   // we support 3 last binary versions of scala212 and scala213
   val testedPreviousScalaVersions =
