@@ -383,7 +383,7 @@ case class Args(
         settings.YpresentationAnyThread.value = true
         settings.classpath.value = validatedClasspath.syntax
         val reporter = new StoreReporter()
-        new Global(settings, reporter)
+        new Global(settings, reporter, "Scalafix")
       })
     }
 

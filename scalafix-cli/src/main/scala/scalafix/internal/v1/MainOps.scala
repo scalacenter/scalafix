@@ -12,6 +12,7 @@ import java.nio.file.attribute.BasicFileAttributes
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
+import scala.tools.nsc.interactive.Global
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
@@ -37,6 +38,7 @@ import org.typelevel.paiges.{Doc => D}
 import scalafix.Versions
 import scalafix.cli.ExitStatus
 import scalafix.interfaces.ScalafixEvaluation
+import scalafix.internal.compat.CompilerCompat.XtensionGlobal
 import scalafix.internal.config.PrintStreamReporter
 import scalafix.internal.diff.DiffUtils
 import scalafix.internal.interfaces.ScalafixEvaluationImpl
@@ -132,6 +134,7 @@ object MainOps {
           }
           // Then afterComplete for each rule
           args.rules.rules.foreach(_.afterComplete())
+          shutdownCompiler(args.global)
 
           ScalafixEvaluationImpl.from(fileEvaluations, ExitStatus.Ok)
         } else
@@ -267,7 +270,6 @@ object MainOps {
           )
         } catch {
           case NonFatal(_) =>
-            args.global.restart()
             TextDocument.defaultInstance
         }
       g.unitOfFile.clear()
@@ -347,6 +349,17 @@ object MainOps {
     } else {
       args.rules.syntacticPatch(doc, args.args.autoSuppressLinterErrors)
     }
+  }
+
+  private def shutdownCompiler(global: LazyValue[Option[Global]]): Unit = {
+    global.foreach(_.foreach(g => {
+      try {
+        g.askShutdown()
+        g.closeCompat()
+      } catch {
+        case NonFatal(_) =>
+      }
+    }))
   }
 
   def previewPatches(
@@ -440,6 +453,7 @@ object MainOps {
     }
 
     args.rules.rules.foreach(_.afterComplete())
+    shutdownCompiler(args.global)
 
     adjustExitCode(args, exit, files)
   }
