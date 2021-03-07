@@ -451,19 +451,15 @@ Scalafix is supported in other build tools via externally maintained plugins:
 ## SNAPSHOT
 
 Our CI publishes a snapshot release to Sonatype on every merge into master. Each
-snapshot release has a unique version number, jars don't get overwritten. To
-find the latest snapshot version number, go to
-<https://oss.sonatype.org/content/repositories/snapshots/ch/epfl/scala/scalafix-core_2.12/>
-and select the largest version number (the one with the newest "Last Modified"
-timestamp). Once you have found the version number, adapt the version number in
-the instructions below
+snapshot release has a unique version number, jars don't get overwritten.
 
 If using the sbt plugin
 
-```scala
-// project/plugins.sbt
-resolvers += Resolver.sonatypeRepo("snapshots")
-addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@NIGHTLY_VERSION@-SNAPSHOT")
+```diff
+ // project/plugins.sbt
+ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@VERSION@")
++resolvers += Resolver.sonatypeRepo("snapshots")
++dependencyOverrides += "ch.epfl.scala" % "scalafix-interfaces" % "@NIGHTLY_VERSION@-SNAPSHOT"
 ```
 
 If using the command-line interface
