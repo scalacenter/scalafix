@@ -1,5 +1,5 @@
 Scalafix
-[![Latest version](https://index.scala-lang.org/scalacenter/scalafix/scalafix-core/latest.svg)](https://index.scala-lang.org/scalacenter/scala3-migrate/scala3-migrate)
+[![Latest version](https://index.scala-lang.org/scalacenter/scalafix/scalafix-core/latest.svg)](https://index.scala-lang.org/scalacenter/scalafix/scalafix-core)
 [![Build status](https://github.com/scalacenter/scalafix/workflows/CI/badge.svg)](https://github.com/scalacenter/scalafix/actions?query=workflow)
 [![Join the chat at https://gitter.im/scalacenter/scalafix](https://badges.gitter.im/scalacenter/scalafix.svg)](https://gitter.im/scalacenter/scalafix)
 ========
