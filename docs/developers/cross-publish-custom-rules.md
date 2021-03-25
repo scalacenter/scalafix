@@ -34,7 +34,7 @@ Therefore, no change is required if you are writing a new rule.
 
 
 ## Projects that already cross-publish
-[Edit](https://github.com/scalacenter/scalafix/edit/master/docs/developers/cross-publish-custom-rules.md) this page to submit a pull request that adds more project that cross-publish their rule.
+[Edit](https://github.com/scalacenter/scalafix/edit/main/docs/developers/cross-publish-custom-rules.md) this page to submit a pull request that adds more project that cross-publish their rule.
 This is a non-exhaustive list of pull request that have cross-published their rules:
 - [liancheng/**scalafix-organize-imports**](https://github.com/liancheng/scalafix-organize-imports/pull/69)
 - [scala/**scala-rewrites**](https://github.com/scala/scala-rewrites/pull/33)

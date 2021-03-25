@@ -450,7 +450,7 @@ Scalafix is supported in other build tools via externally maintained plugins:
 
 ## SNAPSHOT
 
-Our CI publishes a snapshot release to Sonatype on every merge into master. Each
+Our CI publishes a snapshot release to Sonatype on every merge into main. Each
 snapshot release has a unique version number, jars don't get overwritten.
 
 If using the sbt plugin

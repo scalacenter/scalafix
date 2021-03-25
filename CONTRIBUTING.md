@@ -50,7 +50,7 @@ Make sure to run `sbt scalafixAll` to apply those rules.
 
 Be sure to run `scalafmt` (available in the `bin` folder) to ensure code
 formatting. `./bin/scalafmt --diff` formats only the files that have changed
-from the master branch. You can read more about it at http://scalafmt.org
+from the main branch. You can read more about it at http://scalafmt.org
 
 ## Documentation
 
@@ -93,14 +93,14 @@ Run `sbt mimaReportBinaryIssues` to check for any compatibility issues.
 
 Scalafix uses [sbt-ci-release](https://github.com/olafurpg/sbt-ci-release) to
 automate Sonatype releases. A new SNAPSHOT release is published on every merge
-into master. A stable release is published to Maven Central on every git tag.
+into main. A stable release is published to Maven Central on every git tag.
 
 ## Releasing
 
 First, kickstart a CI release to Sonatype by pushing a git tag that correspond to the desired commit
 
 ```sh
-git fetch && git log origin/master --pretty=oneline # choose the commit hash you want to tag
+git fetch && git log origin/main --pretty=oneline # choose the commit hash you want to tag
 COMMIT_HASH=14a069a3765739f5540129e8220104b17f233020 # change this variable
 VERSION=0.9.15 # change this variable
 git tag -af "v$VERSION" $COMMIT_HASH -m "v$VERSION" && git push -f origin v$VERSION
