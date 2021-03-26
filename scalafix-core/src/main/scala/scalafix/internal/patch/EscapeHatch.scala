@@ -4,6 +4,7 @@ import scala.annotation.tailrec
 import scala.collection.immutable.TreeMap
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+import scala.util.control.TailCalls._
 
 import scala.meta._
 import scala.meta.contrib._
@@ -75,7 +76,7 @@ class EscapeHatch private (
           !enabled
       }
 
-    def loop(name: RuleName, patch: Patch): Patch = patch match {
+    def loop(name: RuleName, patch: Patch): TailRec[Patch] = patch match {
       case ap @ AtomicPatch(underlying) =>
         val hasDisabledPatch =
           PatchInternals.treePatchApply(underlying).exists { tp =>
@@ -83,9 +84,13 @@ class EscapeHatch private (
             val byEscape = isDisabledByEscape(name, tp.tok.pos.start)
             byGit || byEscape
           }
-        if (hasDisabledPatch) EmptyPatch else ap
+        done(if (hasDisabledPatch) EmptyPatch else ap)
 
-      case Concat(a, b) => Concat(loop(name, a), loop(name, b))
+      case Concat(a, b) =>
+        for {
+          fa <- tailcall(loop(name, a))
+          fb <- tailcall(loop(name, b))
+        } yield Concat(fa, fb)
 
       case LintPatch(lint) =>
         val byGit = diffDisable.isDisabled(lint.position)
@@ -97,13 +102,13 @@ class EscapeHatch private (
           lintMessages += lint.toDiagnostic(name, ctx.config)
         }
 
-        EmptyPatch
+        done(EmptyPatch)
 
-      case e => e
+      case e => done(e)
     }
 
     val patches = patchesByName.map { case (name, patch) =>
-      loop(name, patch)
+      loop(name, patch).result
     }
     val unusedWarnings =
       (annotatedEscapes.unusedEscapes(usedEscapes) ++
