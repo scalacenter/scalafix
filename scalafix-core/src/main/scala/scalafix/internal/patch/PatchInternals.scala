@@ -1,5 +1,7 @@
 package scalafix.internal.patch
 
+import scala.util.control.TailCalls._
+
 import scala.meta._
 
 import scalafix.internal.diff.DiffUtils
@@ -185,32 +187,36 @@ object PatchInternals {
   }
 
   private def foreach(patch: Patch)(f: Patch => Unit): Unit = {
-    def loop(patch: Patch): Unit = patch match {
+    def loop(patch: Patch): TailRec[Unit] = patch match {
       case Concat(a, b) =>
-        loop(a)
-        loop(b)
+        for {
+          _ <- tailcall(loop(a))
+          _ <- tailcall(loop(b))
+        } yield ()
       case EmptyPatch =>
-        ()
+        done(())
       case AtomicPatch(underlying) =>
-        loop(underlying)
+        tailcall(loop(underlying))
       case els =>
-        f(els)
+        done(f(els))
     }
-    loop(patch)
+    loop(patch).result
   }
 
   // don't decompose Atomic Patch
   private[scalafix] def foreachPatchUnit(
       patch: Patch
   )(f: Patch => Unit): Unit = {
-    def loop(patch: Patch): Unit = patch match {
+    def loop(patch: Patch): TailRec[Unit] = patch match {
       case Concat(a, b) =>
-        loop(a)
-        loop(b)
+        for {
+          _ <- tailcall(loop(a))
+          _ <- tailcall(loop(b))
+        } yield ()
       case els =>
-        f(els)
+        done(f(els))
     }
-    loop(patch)
+    loop(patch).result
   }
 
   def unifiedDiff(original: Input, revised: Input): String = {
