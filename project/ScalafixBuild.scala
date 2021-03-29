@@ -39,9 +39,14 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       crossVersion := CrossVersion.full
     )
     lazy val isScala213 = Def.setting { scalaVersion.value.startsWith("2.13") }
+    lazy val isScala212 = Def.setting { scalaVersion.value.startsWith("2.12") }
     lazy val warnUnusedImports = Def.setting {
       if (isScala213.value) "-Wunused:imports"
       else "-Ywarn-unused-import"
+    }
+    lazy val maxwarns = Def.setting {
+      if (isScala213.value || isScala212.value) Seq("-Xmaxwarns", "1000")
+      else Nil
     }
     lazy val scaladocOptions = Seq(
       "-groups",
