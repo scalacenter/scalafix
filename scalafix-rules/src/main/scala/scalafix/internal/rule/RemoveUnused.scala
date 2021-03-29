@@ -53,7 +53,8 @@ class RemoveUnused(config: RemoveUnusedConfig)
     val isUnusedImport = mutable.Set.empty[Position]
     val isUnusedPattern = mutable.Set.empty[Position]
 
-    val unusedPatterExpr = raw"^pattern var .* in [a-z]+ <.+> is never used".r
+    val unusedPatterExpr =
+      raw"^pattern var .* in (value|method) .* is never used".r
 
     doc.diagnostics.foreach { diagnostic =>
       if (config.imports && diagnostic.message == "Unused import") {
