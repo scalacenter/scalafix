@@ -67,7 +67,6 @@ lazy val core = project
       scalameta,
       googleDiff,
       "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided,
       collectionCompat
     )
   )
@@ -97,11 +96,7 @@ lazy val reflect = project
   .in(file("scalafix-reflect"))
   .settings(
     moduleName := "scalafix-reflect",
-    isFullCrossVersion,
-    libraryDependencies ++= Seq(
-      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value
-    )
+    isFullCrossVersion
   )
   .dependsOn(core, rules)
 
@@ -265,12 +260,7 @@ lazy val unit = project
       .value
   )
   .enablePlugins(BuildInfoPlugin)
-  .dependsOn(
-    testsInput,
-    testsShared,
-    cli,
-    testkit
-  )
+  .dependsOn(testkit)
 
 lazy val docs = project
   .in(file("scalafix-docs"))

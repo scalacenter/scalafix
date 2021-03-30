@@ -8,4 +8,7 @@ addSbtPlugin("com.47deg" % "sbt-microsites" % "0.7.27")
 addSbtPlugin("com.eed3si9n" % "sbt-unidoc" % "0.4.3")
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")
 addSbtPlugin("org.scalameta" % "sbt-mdoc" % "2.2.18")
-addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.26")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.27")
+addSbtPlugin("ch.epfl.scala" % "sbt-scala3-migrate" % "0.3.2")
+// sbt-dotty is not required since sbt 1.5.0-M1
+addSbtPlugin("ch.epfl.lamp" % "sbt-dotty" % "0.5.3")
