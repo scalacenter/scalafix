@@ -22,3 +22,4 @@ this page to submit a pull request that adds more rules*
 * [vovapolu/scaluzzi](https://github.com/vovapolu/scaluzzi): Additional rules for Scalafix. The part of scalazzi rules. 
 * [xuwei-k/play-ws-scalafix](https://github.com/xuwei-k/play-ws-scalafix): scalafix rule for migrate to play-ws-standalone 
 * [xuwei-k/replace-symbol-literals](https://github.com/xuwei-k/replace-symbol-literals): replace deprecated scala.Symbol literals. s/'foo/Symbol("foo")/
+* [sake92/kalem](https://github.com/sake92/kalem): generate `with*` methods for classes
