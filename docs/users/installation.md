@@ -459,11 +459,11 @@ If using the sbt plugin
  // project/plugins.sbt
  addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@VERSION@")
 +resolvers += Resolver.sonatypeRepo("snapshots")
-+dependencyOverrides += "ch.epfl.scala" % "scalafix-interfaces" % "@NIGHTLY_VERSION@-SNAPSHOT"
++dependencyOverrides += "ch.epfl.scala" % "scalafix-interfaces" % "@NIGHTLY_VERSION@"
 ```
 
 If using the command-line interface
 
 ```sh
-cs launch ch.epfl.scala:scalafix-cli_@SCALA212@:@NIGHTLY_VERSION@-SNAPSHOT -r sonatype:snapshots --main scalafix.cli.Cli -- --help
+cs launch ch.epfl.scala:scalafix-cli_@SCALA212@:@NIGHTLY_VERSION@ -r sonatype:snapshots --main scalafix.cli.Cli -- --help
 ```
