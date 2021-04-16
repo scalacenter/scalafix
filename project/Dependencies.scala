@@ -4,40 +4,48 @@ import scala.util.{Properties, Try}
 /* scalafmt: { maxColumn = 120 }*/
 
 object Dependencies {
-  val scalametaV = "4.4.13"
-  val metaconfigV = "0.9.10"
-  def scala210 = "2.10.7"
-  def scala211 = "2.11.12"
-  def scala212 = "2.12.13"
-  def scala213 = "2.13.5"
-  def coursierV = "2.0.0-RC5-6"
-  def coursierInterfaceV = "1.0.3"
-  val currentScalaVersion = scala213
+  val scala211 = "2.11.12"
+  val scala212 = "2.12.13"
+  val scala213 = "2.13.5"
   // we support 3 last binary versions of scala212 and scala213
-  val testedPreviousScalaVersions =
+  val testedPreviousScalaVersions: Map[String, List[String]] =
     List(scala213, scala212).map(version => version -> previousVersions(version)).toMap
 
-  val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.11.0.202103091610-r"
+  val bijectionCoreV = "0.9.7"
+  val collectionCompatV = "2.4.3"
+  val coursierV = "2.0.0-RC5-6"
+  val coursierInterfaceV = "1.0.3"
+  val commontTextV = "1.9"
+  val googleDiffV = "1.3.0"
+  val java8CompatV = "0.9.0"
+  val jgitV = "5.11.0.202103091610-r"
+  val metaconfigV = "0.9.10"
+  val nailgunV = "0.9.1"
+  val scalaXmlV = "1.2.0"
+  val scalametaV = "4.4.13"
+  val scalatestV = "3.0.8" // don't bump, to avoid forcing breaking changes on clients via eviction
 
-  var testClasspath: String = "empty"
-  def metaconfig: ModuleID = "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV
-  def googleDiff = "com.googlecode.java-diff-utils" % "diffutils" % "1.3.0"
-
-  def metacp = "org.scalameta" %% "metacp" % scalametaV
-  def scalameta = "org.scalameta" %% "scalameta" % scalametaV
-  def scalatest =
-    "org.scalatest" %% "scalatest" % "3.0.8" // don't bump, to avoid forcing breaking changes on clients via eviction
-  def bijectionCore = "com.twitter" %% "bijection-core" % "0.9.7"
-  def scalacheck = "org.scalacheck" %% "scalacheck" % "1.15.2"
-  def collectionCompat = "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.3"
+  val bijectionCore = "com.twitter" %% "bijection-core" % bijectionCoreV
+  val collectionCompat = "org.scala-lang.modules" %% "scala-collection-compat" % collectionCompatV
+  val commonText = "org.apache.commons" % "commons-text" % commontTextV
+  val coursier = "io.get-coursier" %% "coursier" % coursierV
+  val coursierInterfaces = "io.get-coursier" % "interface" % coursierInterfaceV
+  val googleDiff = "com.googlecode.java-diff-utils" % "diffutils" % googleDiffV
+  val java8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % java8CompatV
+  val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % jgitV
+  val metaconfig = "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV
+  val metaconfigDoc = "com.geirsson" %% "metaconfig-docs" % metaconfigV
+  val metacp = "org.scalameta" %% "metacp" % scalametaV
+  val nailgunServer = "com.martiansoftware" % "nailgun-server" % nailgunV
+  val scalaXml = "org.scala-lang.modules" %% "scala-xml" % scalaXmlV
+  val scalameta = "org.scalameta" %% "scalameta" % scalametaV
+  val scalametaTeskit = "org.scalameta" %% "testkit" % scalametaV
+  val scalatest = "org.scalatest" %% "scalatest" % scalatestV
+  val semanticdbScalacCore = "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
 
   def testsDeps = List(
-    // integration property tests
-    "io.get-coursier" %% "coursier" % coursierV,
-    "org.scala-lang.modules" %% "scala-xml" % "1.3.0",
-    "org.typelevel" %% "cats-core" % "2.0.0",
-    "com.chuusai" %% "shapeless" % "2.3.4",
-    scalacheck
+    scalaXml,
+    bijectionCore
   )
 
   private def previousVersions(scalaVersion: String): List[String] = {
