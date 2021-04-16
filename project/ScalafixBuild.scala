@@ -4,17 +4,10 @@ import sbt.Keys._
 import sbt.nio.Keys._
 import sbt.plugins.JvmPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
-import tut.TutPlugin.autoImport._
-import microsites.MicrositesPlugin.autoImport._
-import sbtunidoc.BaseUnidocPlugin.autoImport._
-import sbtunidoc.ScalaUnidocPlugin.autoImport._
-import com.typesafe.sbt.site.SitePlugin.autoImport._
-import microsites.ConfigYml
 import sbtbuildinfo.BuildInfoKey
-import sbtbuildinfo.BuildInfoPlugin.autoImport._
+import sbtbuildinfo.BuildInfoPlugin.autoImport.{BuildInfoKey, _}
 import com.typesafe.sbt.sbtghpages.GhpagesKeys
 import sbt.plugins.IvyPlugin
-import scalafix.sbt.ScalafixPlugin.autoImport._
 
 object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   override def trigger = allRequirements
@@ -22,13 +15,11 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   object autoImport {
     lazy val stableVersion =
       settingKey[String]("Version of latest release to Maven.")
-    lazy val noMima = Seq(
+    lazy val noPublishAndNoMima = Seq(
       mimaReportBinaryIssues := {},
-      mimaPreviousArtifacts := Set.empty
-    )
-    lazy val noPublish = Seq(
+      mimaPreviousArtifacts := Set.empty,
       publish / skip := true
-    ) ++ noMima
+    )
     lazy val supportedScalaVersions = List(scala213, scala211, scala212)
     lazy val publishLocalTransitive =
       taskKey[Unit]("Run publishLocal on this project and its dependencies")
@@ -38,11 +29,19 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     lazy val isFullCrossVersion = Seq(
       crossVersion := CrossVersion.full
     )
-    lazy val isScala213 = Def.setting { scalaVersion.value.startsWith("2.13") }
-    lazy val isScala212 = Def.setting { scalaVersion.value.startsWith("2.12") }
+    lazy val isScala213 = Def.setting {
+      scalaVersion.value.startsWith("2.13")
+    }
+    lazy val isScala212 = Def.setting {
+      scalaVersion.value.startsWith("2.12")
+    }
     lazy val warnUnusedImports = Def.setting {
       if (isScala213.value) "-Wunused:imports"
       else "-Ywarn-unused-import"
+    }
+    val warnAdaptedArgs = Def.setting {
+      if (isScala213.value) "-Xlint:adapted-args"
+      else "-Ywarn-adapted-args"
     }
     lazy val maxwarns = Def.setting {
       if (isScala213.value || isScala212.value) Seq("-Xmaxwarns", "1000")
@@ -63,7 +62,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       )
     )
 
-    lazy val buildInfoSettings: Seq[Def.Setting[_]] = Seq(
+    lazy val buildInfoSettingsForCore: Seq[Def.Setting[_]] = Seq(
       buildInfoKeys := Seq[BuildInfoKey](
         name,
         version,
@@ -82,97 +81,21 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       buildInfoObject := "Versions"
     )
 
-    lazy val testsInputOutputSetting = Seq(
-      libraryDependencies ++= testsDeps
-    )
-
-    // =======
-    // Website
-    // =======
-    lazy val docsMappingsAPIDir = settingKey[String](
-      "Name of subdirectory in site target directory for api docs"
-    )
-    lazy val unidocSettings = Seq(
-      autoAPIMappings := true,
-      apiURL := Some(url("https://scalacenter.github.io/docs/api/")),
-      docsMappingsAPIDir := "docs/api",
-      addMappingsToSiteDir(
-        ScalaUnidoc / packageDoc / mappings,
-        docsMappingsAPIDir
+    lazy val buildInfoSettingsForRules: Seq[Def.Setting[_]] = Seq(
+      buildInfoKeys ++= Seq[BuildInfoKey](
+        "supportedScalaVersions" -> (scalaVersion.value +:
+          testedPreviousScalaVersions
+            .getOrElse(scalaVersion.value, Nil)),
+        "allSupportedScalaVersions" -> ((crossScalaVersions.value ++ testedPreviousScalaVersions.values.toSeq.flatten).sorted)
       ),
-      (ScalaUnidoc / unidoc / scalacOptions) ++= Seq(
-        "-doc-source-url",
-        scmInfo.value.get.browseUrl + "/tree/master€{FILE_PATH}.scala",
-        "-sourcepath",
-        (LocalRootProject / baseDirectory).value.getAbsolutePath,
-        "-skip-packages",
-        "ammonite:org:scala:scalafix.tests:scalafix.internal"
-      ),
-      ScalaUnidoc / unidoc / fork := true
-    )
-
-    lazy val websiteSettings = Seq(
-      micrositeName := "scalafix",
-      micrositeDescription := "Rewrite and linting tool for Scala",
-      micrositeBaseUrl := "scalafix",
-      micrositeDocumentationUrl := "docs/users/installation",
-      micrositeHighlightTheme := "atom-one-light",
-      micrositeHomepage := "https://scalacenter.github.io/scalafix/",
-      micrositeOrganizationHomepage := "https://scala.epfl.ch/",
-      micrositeTwitterCreator := "@scala_lang",
-      micrositeGithubOwner := "scalacenter",
-      micrositeGithubRepo := "scalafix",
-      ghpagesNoJekyll := false,
-      micrositeGitterChannel := true,
-      micrositeFooterText := None,
-      micrositeFooterText := Some(
-        """
-          |<p>© 2017 <a href="https://github.com/scalacenter/scalafix#team">The Scalafix Maintainers</a></p>
-          |<p style="font-size: 80%; margin-top: 10px">Website built with <a href="https://47deg.github.io/sbt-microsites/">sbt-microsites © 2016 47 Degrees</a></p>
-          |""".stripMargin
-      ),
-      micrositePalette := Map(
-        "brand-primary" -> "#0D2B35",
-        "brand-secondary" -> "#203F4A",
-        "brand-tertiary" -> "#0D2B35",
-        "gray-dark" -> "#453E46",
-        "gray" -> "rgba(0,0,0,.8)",
-        "gray-light" -> "#E3E2E3",
-        "gray-lighter" -> "#F4F3F4",
-        "white-color" -> "#FFFFFF"
-      ),
-      micrositeConfigYaml := ConfigYml(
-        yamlCustomProperties = Map(
-          "githubOwner" -> micrositeGithubOwner.value,
-          "githubRepo" -> micrositeGithubRepo.value,
-          "docsUrl" -> "docs",
-          "callToActionText" -> "Get started",
-          "callToActionUrl" -> micrositeDocumentationUrl.value,
-          "scala212" -> scala212,
-          "scala211" -> scala211,
-          "stableVersion" -> stableVersion.value,
-          "scalametaVersion" -> scalametaV,
-          "supportedScalaVersions" -> supportedScalaVersions,
-          "coursierVersion" -> coursierV
-        )
-      ),
-      tut / fork := true
+      buildInfoObject := "RulesBuildInfo"
     )
   }
-  import autoImport._
 
-  // Custom settings to publish scalafix forks to alternative maven repo.
-  lazy val adhocRepoUri = sys.props("scalafix.repository.uri")
-  lazy val adhocRepoCredentials = sys.props("scalafix.repository.credentials")
-  lazy val isCustomRepository =
-    adhocRepoUri != null && adhocRepoCredentials != null
+  import autoImport._
 
   override def globalSettings: Seq[Def.Setting[_]] = List(
     stableVersion := (ThisBuild / version).value.replaceFirst("\\+.*", ""),
-    libraryDependencies ++= List(
-      scalacheck % Test,
-      scalatest % Test
-    ),
     resolvers ++= List(
       Resolver.sonatypeRepo("snapshots"),
       Resolver.sonatypeRepo("public"),
@@ -210,14 +133,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     },
     // There is flakyness in CliGitDiffTests and CliSemanticTests
     Test / parallelExecution := false,
-    credentials ++= {
-      val credentialsFile = {
-        if (adhocRepoCredentials != null) new File(adhocRepoCredentials)
-        else null
-      }
-      if (credentialsFile != null) List(new FileCredentials(credentialsFile))
-      else Nil
-    },
     Test / publishArtifact := false,
     licenses := Seq(
       "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
@@ -226,50 +141,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     autoAPIMappings := true,
     apiURL := Some(url("https://scalacenter.github.io/scalafix/")),
     organization := "ch.epfl.scala",
-    developers ++= List(
-      Developer(
-        "bjaglin",
-        "Brice Jaglin",
-        "bjaglin@teads.tv",
-        url("https://github.com/bjaglin")
-      ),
-      Developer(
-        "xeno-by",
-        "Eugene Burmako",
-        "eugene.burmako@gmail.com",
-        url("http://xeno.by")
-      ),
-      Developer(
-        "gabro",
-        "Gabriele Petronella",
-        "gabriele@buildo.io",
-        url("https://buildo.io")
-      ),
-      Developer(
-        "MasseGuillaume",
-        "Guillaume Massé",
-        "masgui@gmail.com",
-        url("https://github.com/MasseGuillaume")
-      ),
-      Developer(
-        "mlachkar",
-        "Meriam Lachkar",
-        "meriam.lachkar@gmail.com",
-        url("https://github.com/mlachkar")
-      ),
-      Developer(
-        "olafurpg",
-        "Ólafur Páll Geirsson",
-        "olafurpg@gmail.com",
-        url("https://geirsson.com")
-      ),
-      Developer(
-        "ShaneDelmore",
-        "Shane Delmore",
-        "shane@delmore.io",
-        url("https://github.com/shanedelmore")
-      )
-    )
+    developers ++= Developers.list
   )
 
   private val PreviousScalaVersion: Map[String, String] = Map(
@@ -281,8 +153,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       compilerOptions.value :+ "-Yrepl-class-based",
     Compile / doc / scalacOptions ++= scaladocOptions,
     publishTo := Some {
-      if (isCustomRepository) "adhoc" at adhocRepoUri
-      else if (isSnapshot.value) Opts.resolver.sonatypeSnapshots
+      if (isSnapshot.value) Opts.resolver.sonatypeSnapshots
       else Opts.resolver.sonatypeStaging
     },
     scmInfo := Some(

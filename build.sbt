@@ -15,7 +15,7 @@ inThisBuild(
 )
 
 Global / cancelable := true
-noPublish
+noPublishAndNoMima
 
 // force javac to fork by setting javaHome to get error messages during compilation,
 // see https://github.com/sbt/zinc/issues/520
@@ -51,7 +51,7 @@ lazy val interfaces = project
     (Compile / doc / javacOptions) := List("-Xdoclint:none"),
     (Compile / javaHome) := inferJavaHome(),
     (Compile / doc / javaHome) := inferJavaHome(),
-    libraryDependencies += "io.get-coursier" % "interface" % coursierInterfaceV,
+    libraryDependencies += coursierInterfaces,
     moduleName := "scalafix-interfaces",
     crossPaths := false,
     autoScalaLibrary := false
@@ -62,12 +62,11 @@ lazy val core = project
   .in(file("scalafix-core"))
   .settings(
     moduleName := "scalafix-core",
-    buildInfoSettings,
+    buildInfoSettingsForCore,
     libraryDependencies ++= List(
       scalameta,
       googleDiff,
-      "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided,
+      metaconfig,
       collectionCompat
     )
   )
@@ -77,16 +76,12 @@ lazy val rules = project
   .in(file("scalafix-rules"))
   .settings(
     moduleName := "scalafix-rules",
-    buildInfoKeys ++= Seq[BuildInfoKey](
-      "supportedScalaVersions" -> (scalaVersion.value +:
-        testedPreviousScalaVersions
-          .getOrElse(scalaVersion.value, Nil)),
-      "allSupportedScalaVersions" -> ((crossScalaVersions.value ++ testedPreviousScalaVersions.values.toSeq.flatten).sorted)
-    ),
-    buildInfoObject := "RulesBuildInfo",
     description := "Built-in Scalafix rules",
+    buildInfoSettingsForRules,
     libraryDependencies ++= List(
-      "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full,
+      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+      semanticdbScalacCore,
       collectionCompat
     )
   )
@@ -103,7 +98,7 @@ lazy val reflect = project
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
     )
   )
-  .dependsOn(core, rules)
+  .dependsOn(core)
 
 lazy val cli = project
   .in(file("scalafix-cli"))
@@ -113,42 +108,34 @@ lazy val cli = project
     assembly / mainClass := Some("scalafix.v1.Main"),
     assembly / assemblyJarName := "scalafix.jar",
     libraryDependencies ++= Seq(
-      "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0",
-      "com.martiansoftware" % "nailgun-server" % "0.9.1",
+      java8Compat,
+      nailgunServer,
       jgit,
-      "ch.qos.logback" % "logback-classic" % "1.2.3",
-      "org.apache.commons" % "commons-text" % "1.9"
+      commonText
     )
   )
-  .dependsOn(reflect, interfaces)
+  .dependsOn(reflect, interfaces, rules)
 
 lazy val testsShared = project
   .in(file("scalafix-tests/shared"))
   .settings(
-    noPublish,
+    noPublishAndNoMima,
     coverageEnabled := false
   )
   .disablePlugins(ScalafixPlugin)
 
-val isScala213 = Def.setting(scalaVersion.value.startsWith("2.13"))
-
-val warnAdaptedArgs = Def.setting {
-  if (isScala213.value) "-Xlint:adapted-args"
-  else "-Ywarn-adapted-args"
-}
-
 lazy val testsInput = project
   .in(file("scalafix-tests/input"))
   .settings(
-    noPublish,
+    noPublishAndNoMima,
     scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
     scalacOptions += warnAdaptedArgs.value, // For NoAutoTupling
     scalacOptions += warnUnusedImports.value, // For RemoveUnused
     scalacOptions += "-Ywarn-unused", // For RemoveUnusedTerms
     scalacOptions ++= maxwarns.value, // Increase the maximum warnings to print
     logLevel := Level.Error, // avoid flood of compiler warnings
-    libraryDependencies += bijectionCore,
-    testsInputOutputSetting,
+    libraryDependencies ++= testsDeps,
+    libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
     coverageEnabled := false
   )
   .disablePlugins(ScalafixPlugin)
@@ -156,14 +143,11 @@ lazy val testsInput = project
 lazy val testsOutput = project
   .in(file("scalafix-tests/output"))
   .settings(
-    noPublish,
-    scalacOptions --= List(
-      warnUnusedImports.value,
-      "-Xlint"
-    ),
-    testsInputOutputSetting,
-    coverageEnabled := false,
-    libraryDependencies += bijectionCore
+    noPublishAndNoMima,
+    scalacOptions -= warnUnusedImports.value,
+    libraryDependencies ++= testsDeps,
+    libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+    coverageEnabled := false
   )
   .disablePlugins(ScalafixPlugin)
 
@@ -174,7 +158,6 @@ lazy val testkit = project
     isFullCrossVersion,
     libraryDependencies ++= Seq(
       googleDiff,
-      scalacheck,
       scalatest
     )
   )
@@ -183,40 +166,39 @@ lazy val testkit = project
 lazy val unit = project
   .in(file("scalafix-tests/unit"))
   .settings(
-    noPublish,
+    noPublishAndNoMima,
     // Change working directory to match when `fork := false`.
     Test / baseDirectory := (ThisBuild / baseDirectory).value,
     javaOptions := Nil,
     testFrameworks += new TestFramework("munit.Framework"),
     buildInfoPackage := "scalafix.tests",
     buildInfoObject := "BuildInfo",
-    libraryDependencies ++= testsDeps,
     libraryDependencies ++= List(
       jgit,
+      coursier,
       scalatest.withRevision(
         "3.2.0"
       ), // make sure testkit clients can use recent 3.x versions
-      "org.scalameta" %% "testkit" % scalametaV
-    ),
+      scalametaTeskit
+    ) ++ testsDeps,
     Compile / compile / compileInputs := {
       (Compile / compile / compileInputs)
         .dependsOn(
           testsInput / Compile / compile,
-          testsOutput / Compile / compile
+          testsOutput / Compile / compile,
+          testsShared / Compile / compile
         )
         .value
     },
     Test / resourceGenerators += Def.task {
       // copy-pasted code from ScalafixTestkitPlugin to avoid cyclic dependencies between build and sbt-scalafix.
       val props = new java.util.Properties()
-
       def put(key: String, files: Seq[File]): Unit = {
         val value = files.iterator
           .filter(_.exists())
           .mkString(java.io.File.pathSeparator)
         props.put(key, value)
       }
-
       put(
         "inputClasspath",
         (testsInput / Compile / fullClasspath).value.map(_.data) :+
@@ -265,28 +247,20 @@ lazy val unit = project
       .value
   )
   .enablePlugins(BuildInfoPlugin)
-  .dependsOn(
-    testsInput,
-    testsShared,
-    cli,
-    testkit
-  )
+  .dependsOn(testkit)
 
 lazy val docs = project
   .in(file("scalafix-docs"))
   .settings(
-    noMima,
+    noPublishAndNoMima,
     run / baseDirectory := (ThisBuild / baseDirectory).value,
-    noPublish,
     moduleName := "scalafix-docs",
     scalaVersion := scala213,
     scalacOptions += "-Wconf:msg='match may not be exhaustive':s", // silence exhaustive pattern matching warning for documentation
     scalacOptions += "-Xfatal-warnings",
     mdoc := (Compile / run).evaluated,
     crossScalaVersions := List(scala213),
-    libraryDependencies ++= List(
-      "com.geirsson" %% "metaconfig-docs" % metaconfigV
-    )
+    libraryDependencies += metaconfigDoc
   )
   .dependsOn(testkit, core, cli)
   .enablePlugins(DocusaurusPlugin)
