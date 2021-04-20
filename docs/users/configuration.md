@@ -31,3 +31,22 @@ rules = [
 ]
 DisableSyntax.noFinalize = true
 ```
+
+## Triggered configuration
+
+Overlay rules and rule specific configuration for scalafix on compilation, which is enabled by `scalafixOnCompile := true`.
+Every configuration can be overlaid by `triggered` prefix. With the following configuration, explicit scalafix invocation will run with `[ DisableSyntax, RemoveUnused ]` rules, while scalafix on compilation will run with `[ DisableSyntax ]` rule.
+
+```scala
+// .scalafix.conf
+rules = [
+  DisableSyntax,
+  RemoveUnused
+]
+DisableSyntax.noFinalize = true
+
+// `rules` on compilation
+triggered.rules = [
+  DisableSyntax
+]
+```
