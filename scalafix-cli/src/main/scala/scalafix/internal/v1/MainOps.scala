@@ -12,7 +12,6 @@ import java.nio.file.attribute.BasicFileAttributes
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
-import scala.tools.nsc.interactive.Global
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
@@ -21,7 +20,6 @@ import scala.util.control.NonFatal
 
 import scala.meta.Tree
 import scala.meta.inputs.Input
-import scala.meta.interactive.InteractiveSemanticdb
 import scala.meta.internal.semanticdb.TextDocument
 import scala.meta.io.AbsolutePath
 import scala.meta.parsers.ParseException
@@ -38,7 +36,6 @@ import org.typelevel.paiges.{Doc => D}
 import scalafix.Versions
 import scalafix.cli.ExitStatus
 import scalafix.interfaces.ScalafixEvaluation
-import scalafix.internal.compat.CompilerCompat.XtensionGlobal
 import scalafix.internal.config.PrintStreamReporter
 import scalafix.internal.diff.DiffUtils
 import scalafix.internal.interfaces.ScalafixEvaluationImpl
@@ -134,7 +131,6 @@ object MainOps {
           }
           // Then afterComplete for each rule
           args.rules.rules.foreach(_.afterComplete())
-          shutdownCompiler(args.global)
 
           ScalafixEvaluationImpl.from(fileEvaluations, ExitStatus.Ok)
         } else
@@ -254,33 +250,6 @@ object MainOps {
     }
   }
 
-  def compileWithGlobal(
-      args: ValidatedArgs,
-      doc: SyntacticDocument
-  ): Option[TextDocument] = {
-    args.global.value.map { g =>
-      val result =
-        try {
-          InteractiveSemanticdb.toTextDocument(
-            g,
-            doc.input.text,
-            doc.internal.input.syntax,
-            10000,
-            Nil
-          )
-        } catch {
-          case NonFatal(_) =>
-            TextDocument.defaultInstance
-        }
-      g.unitOfFile.clear()
-      result.withMd5(
-        FingerprintOps.md5(
-          StandardCharsets.UTF_8.encode(CharBuffer.wrap(doc.input.chars))
-        )
-      )
-    }
-  }
-
   def unsafeHandleFile(args: ValidatedArgs, file: AbsolutePath): ExitStatus = {
     val input = args.input(file)
     val result =
@@ -334,8 +303,7 @@ object MainOps {
         doc,
         relpath,
         args.classLoader,
-        args.symtab,
-        () => compileWithGlobal(args, doc)
+        args.symtab
       )
       val result =
         args.rules.semanticPatch(sdoc, args.args.autoSuppressLinterErrors)
@@ -349,17 +317,6 @@ object MainOps {
     } else {
       args.rules.syntacticPatch(doc, args.args.autoSuppressLinterErrors)
     }
-  }
-
-  private def shutdownCompiler(global: LazyValue[Option[Global]]): Unit = {
-    global.foreach(_.foreach(g => {
-      try {
-        g.askShutdown()
-        g.closeCompat()
-      } catch {
-        case NonFatal(_) =>
-      }
-    }))
   }
 
   def previewPatches(
@@ -453,7 +410,6 @@ object MainOps {
     }
 
     args.rules.rules.foreach(_.afterComplete())
-    shutdownCompiler(args.global)
 
     adjustExitCode(args, exit, files)
   }

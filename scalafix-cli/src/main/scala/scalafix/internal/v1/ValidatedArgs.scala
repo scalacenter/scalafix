@@ -1,7 +1,5 @@
 package scalafix.internal.v1
 
-import scala.tools.nsc.interactive.Global
-
 import scala.meta.AbsolutePath
 import scala.meta.Input
 import scala.meta.Source
@@ -24,8 +22,7 @@ case class ValidatedArgs(
     pathReplace: AbsolutePath => AbsolutePath,
     diffDisable: DiffDisable,
     callback: DelegatingMainCallback,
-    semanticdbFileFilter: FilterMatcher,
-    global: LazyValue[Option[Global]]
+    semanticdbFileFilter: FilterMatcher
 ) {
 
   def input(file: AbsolutePath): Input =

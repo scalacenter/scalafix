@@ -10,7 +10,6 @@ import scala.meta.testkit.StringFS
 
 import scalafix.cli._
 import scalafix.tests.core.Classpaths
-import scalafix.tests.util.ScalaVersions
 
 class CliSemanticSuite extends BaseCliSuite {
 
@@ -235,7 +234,7 @@ class CliSemanticSuite extends BaseCliSuite {
         |ExplicitResultTypes.memberVisibility = [Public, Protected]
         |""".stripMargin
     )
-    val (out, exit) = runMain(
+    val (_, exit) = runMain(
       Array(
         "--files",
         "NoSemanticdb.scala",
@@ -244,63 +243,6 @@ class CliSemanticSuite extends BaseCliSuite {
       ),
       root.toNIO
     )
-    assert(exit.isOk)
-    val obtained =
-      FileIO.slurp(root.resolve("NoSemanticdb.scala"), StandardCharsets.UTF_8)
-    assertNoDiff(
-      obtained,
-      """
-        |package a
-        |object NoSemanticdb {
-        |  def foo: Option[Int] = None
-        |}
-        |""".stripMargin
-    )
-  }
-
-  test("on-demand with scalacOptions") {
-    val warnUnused =
-      if (ScalaVersions.isScala213) "-Wunused:imports"
-      else "-Ywarn-unused-import"
-
-    val root = StringFS.fromString(
-      """|/NoSemanticdb2.scala
-        |package b
-        |import scala.concurrent.Future
-        |object a {
-        |  val x = _root_.scala.List()
-        |  x + "string"
-        |}
-        |/.scalafix.conf
-        |rules = RemoveUnused
-        |""".stripMargin
-    )
-    val (out, exit) = runMain(
-      Array(
-        "--files",
-        "NoSemanticdb2.scala",
-        "--classpath",
-        defaultClasspath,
-        "--scalac-options",
-        warnUnused
-      ),
-      root.toNIO
-    )
-    assert(exit.isOk)
-    val obtained =
-      FileIO.slurp(
-        root.resolve("NoSemanticdb2.scala"),
-        StandardCharsets.UTF_8
-      )
-    assertNoDiff(
-      obtained,
-      """
-        |package b
-        |object a {
-        |  val x = _root_.scala.List()
-        |  x + "string"
-        |}
-        |""".stripMargin
-    )
+    assert(exit.is(ExitStatus.MissingSemanticdbError))
   }
 }
