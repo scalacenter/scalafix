@@ -239,7 +239,7 @@ feature with care as it has several shortcomings, for example:
    stale information and fail the invocation, which needs to be re-run manually.
    This is [not specific to `scalafixOnCompile`](https://github.com/scalacenter/scalafix/issues/1204),
    but the problem becomes much more visible with it.
-1. To keep the overhad minimal, `scalafixCaching` is automatically enabled when
+1. To keep the overhead minimal, `scalafixCaching` is automatically enabled when
    `scalafixOnCompile` is, which can cause unexpected behaviors if you run into
    false positive cache hits. `scalafixCaching` can explicitly be set to
    `false` in that case.
