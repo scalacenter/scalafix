@@ -44,8 +44,7 @@ object RuleTest {
           doc,
           test.semanticdbPath,
           classLoader,
-          symtab,
-          () => None
+          symtab
         )
       val decoderSettings =
         RuleDecoder.Settings().withConfig(scalafixConfig)

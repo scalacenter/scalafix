@@ -2,7 +2,6 @@ package scalafix.v1
 
 import scala.meta._
 import scala.meta.contrib.AssociatedComments
-import scala.meta.internal.semanticdb.TextDocument
 import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
 import scala.meta.io.RelativePath
@@ -54,8 +53,7 @@ object SemanticDocument {
       doc: SyntacticDocument,
       path: RelativePath,
       classLoader: ClassLoader,
-      symtab: SymbolTable,
-      compile: () => Option[TextDocument]
+      symtab: SymbolTable
   ): SemanticDocument = {
     val semanticdbRelPath = s"META-INF/semanticdb/$path.semanticdb"
     Option(classLoader.getResourceAsStream(semanticdbRelPath)) match {
@@ -70,19 +68,10 @@ object SemanticDocument {
         val impl = new InternalSemanticDoc(doc, LazyValue.now(sdoc), symtab)
         new SemanticDocument(impl)
       case None =>
-        new SemanticDocument(
-          new InternalSemanticDoc(
-            doc,
-            LazyValue.later { () =>
-              compile().getOrElse {
-                throw new Error.MissingSemanticdb(
-                  path.toURI(false).toString()
-                )
-              }
-            },
-            symtab
-          )
+        throw Error.MissingSemanticdb(
+          path.toURI(false).toString()
         )
     }
   }
+
 }

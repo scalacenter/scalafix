@@ -30,8 +30,7 @@ object BaseSemanticSuite {
       doc,
       relpath,
       ClasspathOps.thisClassLoaderWith(BuildInfo.semanticClasspath.toURI.toURL),
-      symtab,
-      () => None
+      symtab
     )
   }
 }

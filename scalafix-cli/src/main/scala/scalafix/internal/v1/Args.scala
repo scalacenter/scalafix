@@ -13,10 +13,6 @@ import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 
 import scala.annotation.StaticAnnotation
-import scala.tools.nsc.CompilerCommand
-import scala.tools.nsc.Settings
-import scala.tools.nsc.interactive.Global
-import scala.tools.nsc.reporters.StoreReporter
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
@@ -374,19 +370,6 @@ case class Args(
     }
   }
 
-  def configuredGlobal: Configured[LazyValue[Option[Global]]] =
-    Configured.ok {
-      LazyValue.fromUnsafe(() => {
-        val ss = new Settings()
-        val command = new CompilerCommand(scalacOptions, ss)
-        val settings = command.settings
-        settings.YpresentationAnyThread.value = true
-        settings.classpath.value = validatedClasspath.syntax
-        val reporter = new StoreReporter()
-        new Global(settings, reporter, "Scalafix")
-      })
-    }
-
   def validate: Configured[ValidatedArgs] = {
     baseConfig.andThen { case (base, scalafixConfig, delegator) =>
       (
@@ -394,26 +377,20 @@ case class Args(
           configuredSymtab |@|
           configuredRules(base, scalafixConfig) |@|
           resolvedPathReplace |@|
-          configuredDiffDisable |@|
-          configuredGlobal
-      ).map {
-        case (
-              ((((root, symtab), rulez), pathReplace), diffDisable),
-              global
-            ) =>
-          ValidatedArgs(
-            this,
-            symtab,
-            rulez,
-            scalafixConfig,
-            classLoader,
-            root,
-            pathReplace,
-            diffDisable,
-            delegator,
-            semanticdbFilterMatcher,
-            global
-          )
+          configuredDiffDisable
+      ).map { case ((((root, symtab), rulez), pathReplace), diffDisable) =>
+        ValidatedArgs(
+          this,
+          symtab,
+          rulez,
+          scalafixConfig,
+          classLoader,
+          root,
+          pathReplace,
+          diffDisable,
+          delegator,
+          semanticdbFilterMatcher
+        )
       }
     }
   }
