@@ -232,8 +232,9 @@ feature with care as it has several shortcomings, for example:
 1. Some rules such as `RemoveUnused` can be counter-productive if applied too
    often/early, as the work-in-progress code that was just added might disappear
    after a simple `test`. 
-   `triggered` prefix in `.scalafix.conf` will help you to run scalafix on compile
-   with different configuration than explicit invocation.
+   To make such invocations less intrusive, you can change the rules and rules
+   configuration used in that case by defining in `.scalafix.conf`
+   [custom values for them](configuration.md#triggered-configuration).
 1. If you run many semantic rules by default, the last one(s) to run might see
    stale information and fail the invocation, which needs to be re-run manually.
    This is [not specific to `scalafixOnCompile`](https://github.com/scalacenter/scalafix/issues/1204),
