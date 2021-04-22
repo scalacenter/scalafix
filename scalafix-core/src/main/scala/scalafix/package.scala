@@ -14,12 +14,12 @@ package object scalafix extends Api {
   @deprecated(DeprecationMessage, "0.6.0")
   val RuleCtx = rule.RuleCtx
 
-  @deprecated(DeprecationMessage, "0.6.0")
-  type SemanticRule = rule.SemanticRule
-  @deprecated(DeprecationMessage, "0.6.0")
-  type Rule = rule.Rule
-  @deprecated(DeprecationMessage, "0.6.0")
-  val Rule = rule.Rule
+//  @deprecated(DeprecationMessage, "0.6.0")
+//  type SemanticRule = rule.SemanticRule
+//  @deprecated(DeprecationMessage, "0.6.0")
+//  type Rule = rule.Rule
+//  @deprecated(DeprecationMessage, "0.6.0")
+//  val Rule = rule.Rule
 
   // inlined langmeta APIs
 

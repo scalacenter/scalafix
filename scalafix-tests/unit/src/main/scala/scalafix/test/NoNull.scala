@@ -2,12 +2,17 @@ package scalafix.test
 
 import scala.meta._
 
-import scalafix.v0._
+import scalafix.v0.LintCategory
+import scalafix.v1.Patch
+import scalafix.v1.SyntacticDocument
+import scalafix.v1.SyntacticRule
 
-object NoNull extends Rule("NoNull") {
+class NoNull extends SyntacticRule("NoNull") {
   val error: LintCategory = LintCategory.error("Nulls are not allowed.")
 
-  override def check(ctx: RuleCtx): List[Diagnostic] = ctx.tree.collect {
-    case nil @ q"null" => error.at(nil.pos)
-  }
+  override def fix(implicit doc: SyntacticDocument): Patch = {
+    doc.tree.collect { case nil @ q"null" =>
+      Patch.lint(error.at(nil.pos))
+    }
+  }.asPatch
 }

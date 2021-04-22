@@ -16,48 +16,31 @@ import metaconfig.Configured.Ok
 import metaconfig.Input
 import scalafix.internal.config.ScalafixMetaconfigReaders.UriRule
 import scalafix.internal.util.FileOps
-import scalafix.internal.v0.LegacySemanticRule
-import scalafix.internal.v0.LegacySyntacticRule
-import scalafix.v0
 import scalafix.v1
 
 object RuleDecoderOps {
 
-  val legacySemanticRuleClass: Class[v0.SemanticRule] =
-    classOf[scalafix.rule.SemanticRule]
-  val legacyRuleClass: Class[v0.Rule] =
-    classOf[scalafix.rule.Rule]
   def toRule(cls: Class[_]): v1.Rule = {
     assertNotOutdatedScalafixRule(cls)
-    if (legacySemanticRuleClass.isAssignableFrom(cls)) {
-      val fn: v0.SemanticdbIndex => v0.Rule = { index =>
-        val ctor = cls.getDeclaredConstructor(classOf[v0.SemanticdbIndex])
-        ctor.setAccessible(true)
-        ctor.newInstance(index).asInstanceOf[v0.Rule]
-      }
-      new LegacySemanticRule(fn(v0.SemanticdbIndex.empty).name, fn)
-    } else if (legacyRuleClass.isAssignableFrom(cls)) {
-      val ctor = cls.getDeclaredConstructor()
-      ctor.setAccessible(true)
-      new LegacySyntacticRule(ctor.newInstance().asInstanceOf[v0.Rule])
-    } else {
-      val ctor = cls.getDeclaredConstructor()
-      ctor.setAccessible(true)
-      cls.getConstructor().newInstance().asInstanceOf[v1.Rule]
-    }
+    val ctor = cls.getDeclaredConstructor()
+    ctor.setAccessible(true)
+    cls.getConstructor().newInstance().asInstanceOf[v1.Rule]
   }
 
-  def assertNotOutdatedScalafixRule(cls: Class[_]): Unit = {
+  def assertNotOutdatedScalafixRule(cls: Class[_]): Unit =
     cls.getSuperclass.getName match {
       case "scalafix.rule.Rule" | "scalafix.rule.SemanticRule" =>
         // Custom rule is using 0.5 API that is not supported here.
         throw new IllegalArgumentException(
           "Outdated Scalafix rule, please upgrade to the latest Scalafix version"
         )
+      case "scalafix.v0.SemanticRule" | "scalafix.v0.Rule" =>
+        throw new IllegalArgumentException(
+          "Outdated Scalafix rule, please upgrade to the latest Scalafix version"
+        )
       case _ =>
         ()
     }
-  }
 
   def tryClassload(classloader: ClassLoader, fqn: String): Option[v1.Rule] = {
     try {

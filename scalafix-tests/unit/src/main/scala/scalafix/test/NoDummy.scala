@@ -2,15 +2,15 @@ package scalafix.test
 
 import scala.meta._
 
-import scalafix.v0._
+import scalafix.v0.LintCategory
+import scalafix.v1._
 
-object NoDummy extends Rule("NoDummy") {
+class NoDummy extends SyntacticRule("NoDummy") {
   val error: LintCategory = LintCategory.error("Dummy!")
-
-  override def check(ctx: RuleCtx): Seq[Diagnostic] = {
-    ctx.tree.collect {
+  override def fix(implicit doc: SyntacticDocument): Patch = {
+    doc.tree.collect {
       case tree @ Name(name) if name.toLowerCase.contains("dummy") =>
-        error.at(tree.pos)
+        Patch.lint(error.at(tree.pos))
     }
-  }
+  }.asPatch
 }

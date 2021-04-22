@@ -4,61 +4,60 @@ import scala.meta._
 import scala.meta.contrib._
 
 import scalafix.patch.Patch
-import scalafix.util.SymbolMatcher
-import scalafix.v0
-import scalafix.v1
+import scalafix.v1._
 
-case class FqnRule(index: v0.SemanticdbIndex)
-    extends v0.SemanticRule(index, "FqnRule") {
-  override def fix(ctx: v0.RuleCtx): Patch =
-    ctx.addGlobalImport(importer"scala.collection.immutable") + {
-      val fqnRule = SymbolMatcher.exact(v0.Symbol("test/FqnRule."))
-      ctx.tree.collect { case fqnRule(t: Term.Name) =>
-        ctx.addLeft(t, "/* matched */ ")
+class FqnRule extends SemanticRule("FqnRule") {
+  override def fix(implicit doc: SemanticDocument): Patch = {
+    Patch.addGlobalImport(importer"scala.collection.immutable") + {
+      val fqnRule = SymbolMatcher.exact("test/FqnRule.")
+      doc.tree.collect { case fqnRule(t: Term.Name) =>
+        Patch.addLeft(t, "/* matched */ ")
       }.asPatch
     }
+
+  }
 }
 
-case object FqnRule2 extends v0.Rule("FqnRule2") {
-  override def fix(ctx: v0.RuleCtx): Patch =
-    ctx.tree.collectFirst { case n: Name =>
-      ctx.replaceTree(n, n.value + "2")
+case object FqnRule2 extends SyntacticRule("FqnRule2") {
+  override def fix(implicit doc: SyntacticDocument): Patch =
+    doc.tree.collectFirst { case n: Name =>
+      Patch.replaceTree(n, n.value + "2")
     }.asPatch
 }
 
-case object PatchTokenWithEmptyRange
-    extends v0.Rule("PatchTokenWithEmptyRange") {
-  override def fix(ctx: v0.RuleCtx): Patch = {
-    ctx.tokens.collect {
+class PatchTokenWithEmptyRange
+    extends SyntacticRule("PatchTokenWithEmptyRange") {
+  override def fix(implicit doc: SyntacticDocument): Patch = {
+    doc.tokens.collect {
       case tok @ Token.Interpolation.SpliceEnd() =>
-        ctx.addRight(tok, "a")
+        Patch.addRight(tok, "a")
       case tok @ Token.Xml.SpliceEnd() =>
-        ctx.addRight(tok, "a")
+        Patch.addRight(tok, "a")
     }
   }.asPatch
 }
 
-class SemanticRuleV1 extends v1.SemanticRule("SemanticRuleV1") {
-  override def fix(implicit doc: v1.SemanticDocument): Patch = {
+class SemanticRuleV1 extends SemanticRule("SemanticRuleV1") {
+  override def fix(implicit doc: SemanticDocument): Patch = {
     Patch.addRight(doc.tree, "\nobject SemanticRuleV1")
   }
 }
 
-class SyntacticRuleV1 extends v1.SyntacticRule("SyntacticRuleV1") {
-  override def fix(implicit doc: v1.SyntacticDocument): Patch = {
+class SyntacticRuleV1 extends SyntacticRule("SyntacticRuleV1") {
+  override def fix(implicit doc: SyntacticDocument): Patch = {
     Patch.addRight(doc.tree, "\nobject SyntacticRuleV1")
   }
 }
 
-class CommentFileNonAtomic extends v1.SyntacticRule("CommentFileNonAtomic") {
-  override def fix(implicit doc: v1.SyntacticDocument): Patch = {
+class CommentFileNonAtomic extends SyntacticRule("CommentFileNonAtomic") {
+  override def fix(implicit doc: SyntacticDocument): Patch = {
     Patch.addLeft(doc.tree, "/*") +
       Patch.addRight(doc.tree, "*/")
   }
 }
 
-class CommentFileAtomic extends v1.SyntacticRule("CommentFileAtomic") {
-  override def fix(implicit doc: v1.SyntacticDocument): Patch = {
+class CommentFileAtomic extends SyntacticRule("CommentFileAtomic") {
+  override def fix(implicit doc: SyntacticDocument): Patch = {
     (Patch.addLeft(doc.tree, "/*") +
       Patch.addRight(doc.tree, "*/")).atomic
   }

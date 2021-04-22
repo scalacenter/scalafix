@@ -226,7 +226,7 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
           "DisableSyntax", // syntactic linter
           "ProcedureSyntax", // syntactic rewrite
           "ExplicitResultTypes", // semantic rewrite
-          "class:fix.Examplescalafixrule_v1" // --tool-classpath
+          "SyntacticRule" // --tool-classpath
         ).asJava
       )
       .withPrintStream(new PrintStream(out))
@@ -238,7 +238,7 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
     val expectedRulesToRun = List(
       "ProcedureSyntax",
       "ExplicitResultTypes",
-      "ExampleScalafixRule_v1",
+      "SyntacticRule",
       "DisableSyntax"
     )
     val obtainedRulesToRun =
@@ -289,7 +289,7 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
         |+  implicit val b: List[Int] = List(1)
         |+  def main: Unit = { println(42) }
         | }
-        |+// Hello world!
+        |+// v1 SyntacticRule!
         |""".stripMargin
     )
   }
