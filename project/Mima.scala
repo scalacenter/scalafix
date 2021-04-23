@@ -18,6 +18,7 @@ object Mima {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixEvaluation.getError"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixEvaluation.getErrorMessage"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixFileEvaluation.getError"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("scalafix.v1.SemanticDocument.fromPath"),
       ProblemFilters.exclude[Problem]("scala.meta.internal.*"),
       ProblemFilters.exclude[Problem]("scala.tools.nsc.interactive.*")
     )
