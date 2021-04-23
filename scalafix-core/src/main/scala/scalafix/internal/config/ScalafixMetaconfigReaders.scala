@@ -45,7 +45,8 @@ trait ScalafixMetaconfigReaders {
       Sbt1,
       Dotty,
       Paradise211,
-      Paradise212
+      Paradise212,
+      Scala3
     )
   }
 
@@ -64,36 +65,6 @@ trait ScalafixMetaconfigReaders {
       } yield scheme -> uri
   }
 
-  private val ruleRegex = Pattern.compile("(rules?|rewrites?)")
-  private def isRuleKey(key: (String, Conf)) =
-    ruleRegex.matcher(key._1).matches()
-  def scalafixConfigEmptyRuleReader: ConfDecoder[(Conf, ScalafixConfig)] =
-    ConfDecoder.instance[(Conf, ScalafixConfig)] { case Conf.Obj(values) =>
-      val (rules, noRules) = values.partition(isRuleKey)
-      val ruleConf =
-        Configured.Ok(rules.lastOption.map(_._2).getOrElse(Conf.Lst()))
-      val config =
-        ScalafixConfig.ScalafixConfigDecoder.read(Conf.Obj(noRules))
-      ruleConf.product(config)
-    }
-  def scalafixConfigConfDecoder(
-      ruleDecoder: ConfDecoder[Rule],
-      extraRules: List[String] = Nil
-  ): ConfDecoder[(Rule, ScalafixConfig)] =
-    scalafixConfigEmptyRuleReader.flatMap { case (ruleConf, config) =>
-      val combinedRules: Conf.Lst =
-        if (extraRules.nonEmpty)
-          Conf.Lst(extraRules.map(Conf.Str))
-        else
-          ruleConf match {
-            case rules @ Conf.Lst(_) => rules
-            case x => Conf.Lst(x :: Nil)
-          }
-      ruleDecoder.read(combinedRules).map(rule => rule -> config)
-    }
-
-  private lazy val semanticRuleClass = classOf[SemanticRule]
-
   lazy val SlashSeparated: Regex = "([^/]+)/(.*)".r
 
   def parseReplaceSymbol(
@@ -110,22 +81,6 @@ trait ScalafixMetaconfigReaders {
           c.get[Symbol.Global]("to")
       ).map { case (a, b) => ReplaceSymbol(a, b) }
     }
-
-  def ruleConfDecoderSyntactic(
-      singleRuleDecoder: ConfDecoder[Rule]
-  ): ConfDecoder[Rule] =
-    ruleConfDecoder(singleRuleDecoder)
-  def ruleConfDecoder(
-      singleRuleDecoder: ConfDecoder[Rule]
-  ): ConfDecoder[Rule] = {
-    ConfDecoder.instance[Rule] {
-      case Conf.Lst(values) =>
-        MetaconfigOps
-          .flipSeq(values.map(singleRuleDecoder.read))
-          .map(rules => Rule.combine(rules))
-      case rule @ Conf.Str(_) => singleRuleDecoder.read(rule)
-    }
-  }
 
   object ConfStrLst {
     def unapply(arg: Conf.Lst): Option[List[String]] =

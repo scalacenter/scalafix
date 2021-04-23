@@ -2,7 +2,7 @@ package scalafix.config
 
 import metaconfig.Conf
 import metaconfig.ConfDecoder
-import scalafix.internal.config.ScalafixMetaconfigReaders._
+import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.v0.Symbol
 
 class CustomMessage[T](
@@ -13,7 +13,7 @@ class CustomMessage[T](
 
 object CustomMessage {
   implicit val SymbolDecoder: ConfDecoder[CustomMessage[Symbol.Global]] =
-    decoder[Symbol.Global](field = "symbol")
+    decoder[Symbol.Global](field = "symbol")(ScalafixMetaconfigReaders.symbolGlobalReader)
 
   implicit def CustomMessageEitherDecoder[A, B](implicit
       AB: ConfDecoder[Either[CustomMessage[A], CustomMessage[B]]]
