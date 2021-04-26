@@ -41,6 +41,9 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     lazy val isScala212 = Def.setting {
       scalaVersion.value.startsWith("2.12")
     }
+    lazy val isScala211 = Def.setting {
+      scalaVersion.value.startsWith("2.11")
+    }
     lazy val warnUnusedImports = Def.setting {
       if (isScala213.value) "-Wunused:imports"
       else "-Ywarn-unused-import"
