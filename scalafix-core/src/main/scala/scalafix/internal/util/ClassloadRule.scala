@@ -6,9 +6,6 @@ import scala.reflect.ClassTag
 import scala.util.Success
 import scala.util.Try
 
-import metaconfig.ConfError
-import metaconfig.Configured
-import scalafix.v0.Rule
 import scalafix.v0.SemanticdbIndex
 
 class ClassloadRule[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
@@ -118,22 +115,6 @@ class ClassloadRule[T](classLoader: ClassLoader)(implicit ev: ClassTag[T]) {
             |${failures.map(pretty).mkString("\n")}""".stripMargin
         )
       )
-    }
-  }
-}
-
-object ClassloadRule {
-  def defaultClassloader: ClassLoader = getClass.getClassLoader
-  def apply(
-      fqn: String,
-      args: Class[_] => Seq[AnyRef],
-      classloader: ClassLoader = defaultClassloader
-  ): Configured[Rule] = {
-    val result =
-      new ClassloadRule[Rule](classloader).classloadRule(fqn, args)
-    result match {
-      case Success(e) => Configured.Ok(e)
-      case util.Failure(e) => Configured.NotOk(ConfError.message(e.toString))
     }
   }
 }

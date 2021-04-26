@@ -6,8 +6,10 @@ import org.scalatest.Suite
 import org.scalatest.Tag
 import org.scalatest.TestRegistration
 import scalafix.internal.config.ScalafixConfig
+import scalafix.internal.patch.PatchInternals
+import scalafix.internal.v1.Rules
 import scalafix.syntax._
-import scalafix.v0._
+import scalafix.v1._
 
 /**
  * Utility to unit test syntactic rules.
@@ -17,61 +19,46 @@ import scalafix.v0._
  *
  * @param rule the default rule to use from `check`/`checkDiff`.
  */
-abstract class AbstractSyntacticRuleSuite(rule: Rule = Rule.empty)
+abstract class AbstractSyntacticRuleSuite()
     extends Suite
     with TestRegistration
     with DiffAssertions {
 
-  def check(name: String, original: String, expected: String): Unit = {
-    check(rule, name, original, expected)
-  }
-
-  def check(
-      rule: Rule,
-      name: String,
-      original: String,
-      expected: String
-  ): Unit = {
-    check(rule, name, original, expected, Seq(): _*)
-  }
-
-  def check(
-      rule: Rule,
-      name: String,
-      original: String,
-      expected: String,
-      testTags: Tag*
-  ): Unit = {
-    registerTest(name, testTags: _*) {
-      import scala.meta._
-      val obtained = rule.apply(Input.String(original))
-      assertNoDiff(obtained, expected)
-    }
-  }
-
-  def checkDiff(original: Input, expected: String): Unit = {
-    checkDiff(rule, original, expected, Seq(): _*)
-  }
-
-  def checkDiff(original: Input, expected: String, testTags: Tag*): Unit = {
-    checkDiff(rule, original, expected, testTags: _*)
-  }
-
-  def checkDiff(rule: Rule, original: Input, expected: String): Unit = {
-    checkDiff(rule, original, expected, Seq(): _*)
-  }
-
   def checkDiff(
-      rule: Rule,
+      rule: SyntacticRule,
       original: Input,
       expected: String,
       testTags: Tag*
   ): Unit = {
     registerTest(original.label, testTags: _*) {
       val dialect = ScalafixConfig.default.parser.dialectForFile("Source.scala")
-      val ctx = RuleCtx(dialect(original).parse[Source].get)
-      val obtained = rule.diff(ctx)
+      val doc = SyntacticDocument.fromInput(original, dialect)
+      val rules = Rules(List(rule))
+      val resultWithContext = rules.syntacticPatch(doc, suppress = true)
+      val obtained = resultWithContext.fixed
+      val diff = PatchInternals.unifiedDiff(
+        original,
+        Input.VirtualFile(original.label, obtained)
+      )
+      assertNoDiff(diff, expected)
+    }
+  }
+
+  def check(
+      rule: SyntacticRule,
+      name: String,
+      original: String,
+      expected: String,
+      testTags: Tag*
+  ): Unit = {
+    registerTest(name, testTags: _*) {
+      val dialect = ScalafixConfig.default.parser.dialectForFile("Source.scala")
+      val doc = SyntacticDocument.fromInput(Input.String(original), dialect)
+      val rules = Rules(List(rule))
+      val resultWithContext = rules.syntacticPatch(doc, suppress = true)
+      val obtained = resultWithContext.fixed
       assertNoDiff(obtained, expected)
     }
   }
+
 }

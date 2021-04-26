@@ -6,12 +6,12 @@ import scala.meta.tokens.Tokens
 
 import org.scalameta.FileLine
 import scalafix.internal.config.ScalafixConfig
-import scalafix.internal.diff.DiffDisable
 import scalafix.internal.patch.EscapeHatch
 import scalafix.internal.rule.RuleCtxImpl
 import scalafix.patch.PatchOps
 import scalafix.util.MatchingParens
 import scalafix.util.TokenList
+import scalafix.v1.SyntacticDocument
 
 trait RuleCtx extends PatchOps {
 
@@ -56,16 +56,12 @@ trait RuleCtx extends PatchOps {
 }
 
 object RuleCtx {
-  def apply(tree: Tree): RuleCtx =
-    apply(tree, ScalafixConfig.default, DiffDisable.empty)
-
-  private[scalafix] def apply(tree: Tree, config: ScalafixConfig): RuleCtx =
-    apply(tree, config, DiffDisable.empty)
+  def apply(doc: SyntacticDocument): RuleCtx =
+    apply(doc, ScalafixConfig.default)
 
   private[scalafix] def apply(
-      tree: Tree,
-      config: ScalafixConfig,
-      diffDisable: DiffDisable
+      doc: SyntacticDocument,
+      config: ScalafixConfig
   ): RuleCtx =
-    new RuleCtxImpl(tree, config, diffDisable)
+    new RuleCtxImpl(doc, config)
 }

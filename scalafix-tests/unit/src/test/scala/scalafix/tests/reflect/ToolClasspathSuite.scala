@@ -40,13 +40,12 @@ class ToolClasspathSuite extends AnyFunSuite with BeforeAndAfterAll {
     val scalafmtRewrite =
       """
         |import org.scalafmt._
-        |import scalafix.v0._
+        |import scalafix.v1._
         |
-        |object FormatRule extends Rule("FormatRule") {
-        |  override def description: String = "FormatRuleDescription"
-        |  override def fix(ctx: RuleCtx): Patch = {
-        |    val formatted = Scalafmt.format(ctx.tokens.mkString).get
-        |    ctx.addLeft(ctx.tokens.last, formatted)
+        |class FormatRule extends SyntacticRule("FormatRule") {
+        |  override def fix(implicit doc: SyntacticDocument): Patch = {
+        |    val formatted = Scalafmt.format(doc.tokens.mkString).get
+        |    Patch.addLeft(doc.tokens.last, formatted)
         |  }
         |}
       """.stripMargin
@@ -63,7 +62,7 @@ class ToolClasspathSuite extends AnyFunSuite with BeforeAndAfterAll {
   test("--tool-classpath is respected during classloading") {
     val rewrite =
       """package custom
-        |import scalafix.v0._
+        |import scalafix.v1._
         |class CustomRule extends Rule("CustomRule")
       """.stripMargin
     val tmp = Files.createTempDirectory("scalafix")

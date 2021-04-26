@@ -220,24 +220,24 @@ class CliSyntacticSuite extends BaseCliSuite {
     }
   )
 
-  check(
-    name = "linter warning promoted to error",
-    originalLayout = s"""/foobar.scala
-      |$original""".stripMargin,
-    args = Array(
-      "--settings.lint.error",
-      "LintWarning.warning",
-      "-r",
-      "scala:scalafix.tests.cli.LintWarning",
-      "foobar.scala"
-    ),
-    expectedLayout = s"""/foobar.scala
-      |$original""".stripMargin,
-    expectedExit = ExitStatus.LinterError,
-    outputAssert = { out =>
-      assert(out.contains("foobar.scala:1:1"))
-    }
-  )
+//  check(
+//    name = "linter warning promoted to error",
+//    originalLayout = s"""/foobar.scala
+//      |$original""".stripMargin,
+//    args = Array(
+//      "--settings.lint.error",
+//      "LintWarning.warning",
+//      "-r",
+//      "scala:scalafix.tests.cli.LintWarning",
+//      "foobar.scala"
+//    ),
+//    expectedLayout = s"""/foobar.scala
+//      |$original""".stripMargin,
+//    expectedExit = ExitStatus.LinterError,
+//    outputAssert = { out =>
+//      assert(out.contains("foobar.scala:1:1"))
+//    }
+//  )
 
   check(
     name = "--exclude is respected",
@@ -385,22 +385,22 @@ class CliSyntacticSuite extends BaseCliSuite {
     expectedExit = ExitStatus.Ok
   )
 
-  check(
-    name = "skip parser when it's not needed",
-    originalLayout = """
-      |/src/shared/a.scala
-      |object a {
-      |""".stripMargin,
-    args = Array(
-      "-r",
-      "NoOpRule"
-    ),
-    expectedLayout = """
-      |/src/shared/a.scala
-      |object a {
-      |""".stripMargin,
-    expectedExit = ExitStatus.Ok
-  )
+//  check(
+//    name = "skip parser when it's not needed",
+//    originalLayout = """
+//      |/src/shared/a.scala
+//      |object a {
+//      |""".stripMargin,
+//    args = Array(
+//      "-r",
+//      "NoOpRule"
+//    ),
+//    expectedLayout = """
+//      |/src/shared/a.scala
+//      |object a {
+//      |""".stripMargin,
+//    expectedExit = ExitStatus.Ok
+//  )
 
   check(
     name = "don't skip parser when there is a suppression",

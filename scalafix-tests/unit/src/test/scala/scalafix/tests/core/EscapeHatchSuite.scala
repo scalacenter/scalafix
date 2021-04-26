@@ -13,9 +13,9 @@ import scalafix.internal.diff.DiffDisable
 import scalafix.internal.diff.EmptyDiff
 import scalafix.internal.diff.NewFile
 import scalafix.internal.patch.EscapeHatch
-import scalafix.internal.v0.LegacyRuleCtx
 import scalafix.internal.v1.LazyValue
 import scalafix.patch.Patch
+import scalafix.rule.RuleCtx
 import scalafix.rule.RuleName
 import scalafix.v0.SemanticdbIndex
 import scalafix.v1.SyntacticDocument
@@ -120,12 +120,11 @@ class EscapeHatchSuite extends AnyFunSuite {
       EmptyDiff,
       ScalafixConfig.default
     )
-    implicit val ctx = new LegacyRuleCtx(doc)
+    implicit val ctx = RuleCtx(doc)
     implicit val idx = SemanticdbIndex.empty
     val patches = Map(RuleName("foo") -> Patch.empty)
     val hatch =
       EscapeHatch(input, untouchableTree, untouchableComments, EmptyDiff)
-
     assert(hatch.filter(patches) == (List(Patch.empty), Nil))
   }
 

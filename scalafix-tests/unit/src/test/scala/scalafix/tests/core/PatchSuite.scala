@@ -15,7 +15,8 @@ import scalafix.patch.Patch.internal.Add
 import scalafix.patch.Patch.internal.AtomicPatch
 import scalafix.patch.Patch.internal.Concat
 import scalafix.testkit.AbstractSyntacticRuleSuite
-import scalafix.v0.Rule
+import scalafix.v1.SyntacticDocument
+import scalafix.v1.SyntacticRule
 
 class PatchSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
 
@@ -25,12 +26,14 @@ class PatchSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
       |  val x = 2
       |}""".stripMargin
 
-  val addRightRule: Rule = Rule.syntactic("addRight") { (ctx) =>
-    ctx.addRight(ctx.tree.tokens.find(_.is[Ident]).get, "bba")
+  case object AddRightRule extends SyntacticRule("addRight") {
+    override def fix(implicit doc: SyntacticDocument): Patch = {
+      Patch.addRight(doc.tree.tokens.find(_.is[Ident]).get, "bba")
+    }
   }
 
   checkDiff(
-    addRightRule,
+    AddRightRule,
     Input.String(original),
     """--- Input.String('<// Foobar...>')
       |+++ Input.String('<// Foobar...>')
@@ -44,7 +47,7 @@ class PatchSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
   )
 
   checkDiff(
-    addRightRule,
+    AddRightRule,
     Input.VirtualFile("/label", original),
     """--- /label
       |+++ /label
@@ -59,7 +62,7 @@ class PatchSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
   val file: File = File.createTempFile("foo", ".scala")
   Files.write(Paths.get(file.toURI), original.getBytes)
   checkDiff(
-    addRightRule,
+    AddRightRule,
     Input.File(file),
     s"""--- ${file.getAbsolutePath}
       |+++ ${file.getAbsolutePath}
@@ -71,12 +74,14 @@ class PatchSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
       | }""".stripMargin
   )
 
-  val addLeftRule: Rule = Rule.syntactic("addLeft") { (ctx) =>
-    ctx.addLeft(ctx.tree, "object Foo {}\n")
+  case object AddLeftRule extends SyntacticRule("addRight") {
+    override def fix(implicit doc: SyntacticDocument): Patch = {
+      Patch.addLeft(doc.tree, "object Foo {}\n")
+    }
   }
 
   check(
-    addLeftRule,
+    AddLeftRule,
     "addLeft adds the string before the first tree token",
     original,
     """object Foo {}
@@ -86,12 +91,14 @@ class PatchSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
       |}""".stripMargin
   )
 
-  val addGlobalImporter: Rule = Rule.syntactic("addGlobalImporter") { ctx =>
-    ctx.addGlobalImport(importer"scala.collection.{mutable => _}")
+  case object AddGlobalImporter extends SyntacticRule("addGlobalImporter") {
+    override def fix(implicit doc: SyntacticDocument): Patch = {
+      Patch.addGlobalImport(importer"scala.collection.{mutable => _}")
+    }
   }
 
   check(
-    addGlobalImporter,
+    AddGlobalImporter,
     "addGlobalImporter is a syntactic patch",
     """import a.b
       |
@@ -105,7 +112,7 @@ class PatchSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
   )
 
   check(
-    addGlobalImporter,
+    AddGlobalImporter,
     "addGlobalImporter skip a comment preceding the first statement",
     """package foo.bar
       |
@@ -140,12 +147,14 @@ class PatchSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
     assert((nonEmpty + nonEmpty).atomic.isEmpty == false)
   }
 
-  val commentFileRule: Rule = Rule.syntactic("commentEntireFile") { ctx =>
-    Patch.addAround(ctx.tree, "/*", "*/")
+  case object CommentFileRule extends SyntacticRule("commentFileRule") {
+    override def fix(implicit doc: SyntacticDocument): Patch = {
+      Patch.addAround(doc.tree, "/*", "*/")
+    }
   }
 
   check(
-    commentFileRule,
+    CommentFileRule,
     "comment a file is a syntactic patch",
     """import a.b
       |

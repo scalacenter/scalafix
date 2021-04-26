@@ -8,13 +8,13 @@ import scalafix.internal.diff.DiffUtils
 import scalafix.internal.util.Failure
 import scalafix.internal.util.SuppressOps
 import scalafix.internal.util.TokenOps
-import scalafix.internal.v0.LegacyRuleCtx
 import scalafix.internal.v0.LegacySemanticdbIndex
 import scalafix.lint.RuleDiagnostic
 import scalafix.patch.Patch.internal._
 import scalafix.patch._
 import scalafix.syntax._
 import scalafix.v0
+import scalafix.v0.RuleCtx
 import scalafix.v1
 
 object PatchInternals {
@@ -80,7 +80,7 @@ object PatchInternals {
       doc: v1.SyntacticDocument,
       suppress: Boolean
   ): ResultWithContext = {
-    apply(patchesByName, new LegacyRuleCtx(doc), None, suppress)
+    apply(patchesByName, RuleCtx(doc), None, suppress)
   }
 
   def semantic(
@@ -90,7 +90,7 @@ object PatchInternals {
   ): ResultWithContext = {
     apply(
       patchesByName,
-      new LegacyRuleCtx(doc.internal.doc),
+      RuleCtx(doc.internal.doc),
       Some(new LegacySemanticdbIndex(doc)),
       suppress
     )
