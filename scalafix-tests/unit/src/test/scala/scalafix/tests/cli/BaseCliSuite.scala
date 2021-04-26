@@ -162,7 +162,8 @@ trait BaseCliSuite extends AnyFunSuite with DiffAssertions {
 
   def sourceDirectory: AbsolutePath =
     props.inputSourceDirectories
-      .find(dir => dir.toNIO.endsWith("scala")) // Skip scala-2.12
+      // TODO: This test won't work for scala 3. The path is hardcoded
+      .find(dir => dir.toNIO.endsWith("scala-2")) // Skip scala-2.12
       .getOrElse {
         throw new IllegalArgumentException(
           props.inputSourceDirectories.toString()
@@ -194,7 +195,7 @@ trait BaseCliSuite extends AnyFunSuite with DiffAssertions {
       val fileIsFixed = expectedExit.isOk
       val cwd = Files.createTempDirectory("scalafix")
       val inputSourceDirectory =
-        cwd.resolve("scalafix-tests/input/src/main/scala/")
+        cwd.resolve("scalafix-tests/input/src/main/scala-2/")
       Files.createDirectories(inputSourceDirectory)
       val root = AbsolutePath(inputSourceDirectory)
       val out = new ByteArrayOutputStream()
