@@ -68,7 +68,7 @@ abstract class AbstractSyntacticRuleSuite(rule: Rule = Rule.empty)
       testTags: Tag*
   ): Unit = {
     registerTest(original.label, testTags: _*) {
-      val dialect = ScalafixConfig.default.parser.dialectForFile("Source.scala")
+      val dialect = ScalafixConfig.default.dialectForFile("Source.scala")
       val ctx = RuleCtx(dialect(original).parse[Source].get)
       val obtained = rule.diff(ctx)
       assertNoDiff(obtained, expected)

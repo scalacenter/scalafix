@@ -15,6 +15,7 @@ import scalafix.v1.SemanticDocument
 import scalafix.v1.SyntacticDocument
 
 object BaseSemanticSuite {
+  val dialect = scala.meta.dialects.Scala213 // For tests
   lazy val symtab: SymbolTable = {
     val classpath =
       Classpaths.withDirectory(AbsolutePath(BuildInfo.sharedClasspath))
@@ -25,7 +26,7 @@ object BaseSemanticSuite {
     val abspath = root.resolve(filename)
     val relpath = abspath.toRelative(AbsolutePath(BuildInfo.baseDirectory))
     val input = Input.File(abspath)
-    val doc = SyntacticDocument.fromInput(input)
+    val doc = SyntacticDocument.fromInput(input, dialect)
     SemanticDocument.fromPath(
       doc,
       relpath,

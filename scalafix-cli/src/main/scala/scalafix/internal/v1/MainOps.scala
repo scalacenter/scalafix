@@ -18,7 +18,6 @@ import scala.util.Try
 import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
 
-import scala.meta.Tree
 import scala.meta.inputs.Input
 import scala.meta.internal.semanticdb.TextDocument
 import scala.meta.io.AbsolutePath
@@ -293,10 +292,7 @@ object MainOps {
       input: Input,
       file: AbsolutePath
   ): PatchInternals.ResultWithContext = {
-    val tree = LazyValue.later { () =>
-      args.parse(input).get: Tree
-    }
-    val doc = SyntacticDocument(input, tree, args.diffDisable, args.config)
+    val doc = SyntacticDocument(input, args.diffDisable, args.config)
     if (args.rules.isSemantic) {
       val relpath = file.toRelative(args.sourceroot)
       val sdoc = SemanticDocument.fromPath(
