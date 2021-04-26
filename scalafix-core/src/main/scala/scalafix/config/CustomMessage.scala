@@ -13,7 +13,9 @@ class CustomMessage[T](
 
 object CustomMessage {
   implicit val SymbolDecoder: ConfDecoder[CustomMessage[Symbol.Global]] =
-    decoder[Symbol.Global](field = "symbol")(ScalafixMetaconfigReaders.symbolGlobalReader)
+    decoder[Symbol.Global](field = "symbol")(
+      ScalafixMetaconfigReaders.symbolGlobalReader
+    )
 
   implicit def CustomMessageEitherDecoder[A, B](implicit
       AB: ConfDecoder[Either[CustomMessage[A], CustomMessage[B]]]

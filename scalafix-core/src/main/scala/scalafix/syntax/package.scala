@@ -3,7 +3,6 @@ package scalafix
 import scala.collection.compat.immutable.LazyList
 
 import scala.meta._
-import scala.meta.internal.scalafix.ScalafixScalametaHacks
 
 import scalafix.internal.util.DenotationOps
 import scalafix.internal.util.SymbolOps
@@ -35,9 +34,6 @@ package object syntax {
   }
   implicit class XtensionSymbol(symbol: Symbol) {
     def normalized: Symbol = SymbolOps.normalize(symbol)
-  }
-  implicit class XtensionDocument(document: v0.Document) {
-    def dialect: Dialect = ScalafixScalametaHacks.dialect(document.language)
   }
   implicit class XtensionTreeScalafix(tree: Tree) {
     def matches(matcher: SymbolMatcher): Boolean =

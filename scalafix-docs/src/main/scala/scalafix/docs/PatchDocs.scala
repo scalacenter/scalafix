@@ -151,7 +151,10 @@ object PatchDocs {
     }
 
     val input = Input.VirtualFile(filename, code)
-    val doc = SyntacticDocument.fromInput(input)
+    val doc = SyntacticDocument.fromInput(
+      input,
+      scala.meta.dialects.Scala213
+    ) // Used when parsing documentation
     val internal = new InternalSemanticDoc(
       doc,
       textDocument,
