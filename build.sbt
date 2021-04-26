@@ -1,4 +1,5 @@
 import Dependencies._
+import sbt.Keys.scalacOptions
 
 inThisBuild(
   List(
@@ -6,9 +7,9 @@ inThisBuild(
     scalaVersion := scala213,
     crossScalaVersions := List(scala213, scala212, scala211),
     fork := true,
+    scalacOptions ++= syntheticsOn.value,
     semanticdbEnabled := true,
     semanticdbVersion := scalametaV,
-    scalacOptions ++= List("-P:semanticdb:synthetics:on"),
     scalafixScalaBinaryVersion := scalaBinaryVersion.value,
     scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
   )
@@ -128,14 +129,19 @@ lazy val testsInput = project
   .in(file("scalafix-tests/input"))
   .settings(
     noPublishAndNoMima,
+    crossScalaVersions := List(scala3, scala213, scala212, scala211),
+    scalacOptions --= (if (scalaVersion.value.startsWith("3"))
+                         Seq("-P:semanticdb:synthetics:on")
+                       else Nil),
     scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
     scalacOptions += warnAdaptedArgs.value, // For NoAutoTupling
     scalacOptions += warnUnusedImports.value, // For RemoveUnused
     scalacOptions += "-Ywarn-unused", // For RemoveUnusedTerms
     scalacOptions ++= maxwarns.value, // Increase the maximum warnings to print
     logLevel := Level.Error, // avoid flood of compiler warnings
-    libraryDependencies ++= testsDeps,
-    libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+    libraryDependencies ++= (if (scalaVersion.value.startsWith("2"))
+                               testsDeps :+ "org.scala-lang" % "scala-reflect" % scalaVersion.value
+                             else Nil),
     coverageEnabled := false
   )
   .disablePlugins(ScalafixPlugin)
@@ -144,9 +150,13 @@ lazy val testsOutput = project
   .in(file("scalafix-tests/output"))
   .settings(
     noPublishAndNoMima,
+    scalacOptions --= (if (scalaVersion.value.startsWith("3"))
+                         Seq("-P:semanticdb:synthetics:on")
+                       else Nil),
     scalacOptions -= warnUnusedImports.value,
-    libraryDependencies ++= testsDeps,
-    libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+    libraryDependencies ++= (if (scalaVersion.value.startsWith("2"))
+                               testsDeps :+ "org.scala-lang" % "scala-reflect" % scalaVersion.value
+                             else Nil),
     coverageEnabled := false
   )
   .disablePlugins(ScalafixPlugin)

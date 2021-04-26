@@ -2,6 +2,7 @@ banana.rule.SemanticRuleV1
 banana.rule.SyntacticRuleV1
 banana.rule.CommentFileNonAtomic
 banana.rule.CommentFileAtomic
+banana.rule.AddCommentEndOfFile
 scalafix.test.ScalatestAutofixRule
 scalafix.test.ExplicitSynthetic
 scalafix.tests.cli.CrashingRule

@@ -15,6 +15,7 @@ jobs:
           - "ci-211"
           - "ci-212"
           - "ci-213"
+          - "ci-3"
     steps:
       - uses: actions/checkout@v2
       - uses: olafurpg/setup-scala@v10

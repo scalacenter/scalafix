@@ -63,3 +63,9 @@ class CommentFileAtomic extends v1.SyntacticRule("CommentFileAtomic") {
       Patch.addRight(doc.tree, "*/")).atomic
   }
 }
+
+class AddCommentEndOfFile extends v1.SyntacticRule("AddCommentEndOfFile") {
+  override def fix(implicit doc: v1.SyntacticDocument): Patch = {
+    Patch.addRight(doc.tree, "// This comment is added by Scalafix")
+  }
+}

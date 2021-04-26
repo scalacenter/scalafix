@@ -28,7 +28,8 @@ object RuleTest {
   ): RuleTest = {
     val run: () => (Rules, v1.SemanticDocument) = { () =>
       val input = test.toInput
-      val tree = input.parse[Source].get
+      val dialect = getDialectFromScalaV(props.scalaVersion)
+      val tree = dialect(input).parse[Source].get
       val comment = SemanticRuleSuite.findTestkitComment(tree.tokens)
       val syntax = comment.syntax.stripPrefix("/*").stripSuffix("*/")
       val conf = Conf.parseString(test.testName, syntax).get
@@ -63,4 +64,8 @@ object RuleTest {
 
     new RuleTest(test, run)
   }
+
+  def getDialectFromScalaV(scalaV: String): Dialect =
+    if (scalaV.startsWith("3")) scala.meta.dialects.Scala3
+    else scala.meta.dialects.Scala213
 }
