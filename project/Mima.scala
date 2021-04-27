@@ -20,7 +20,9 @@ object Mima {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixFileEvaluation.getError"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("scalafix.v1.SemanticDocument.fromPath"),
       ProblemFilters.exclude[Problem]("scala.meta.internal.*"),
-      ProblemFilters.exclude[Problem]("scala.tools.nsc.interactive.*")
+      ProblemFilters.exclude[Problem]("scala.tools.nsc.interactive.*"),
+      ProblemFilters.exclude[Problem]("scalafix.syntax.package.XtensionDocument"),
+      ProblemFilters.exclude[MissingClassProblem]("scalafix.syntax.package$XtensionDocument")
     )
   }
 }
