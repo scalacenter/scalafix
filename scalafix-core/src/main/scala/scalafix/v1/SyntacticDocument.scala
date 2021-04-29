@@ -29,7 +29,7 @@ final class SyntacticDocument private[scalafix] (
 }
 
 object SyntacticDocument {
-  @deprecated("use fromInput(input: Input, dialect: Dialect) instead", "0.9.27")
+  @deprecated("use fromInput(input: Input, dialect: Dialect) instead", "0.9.28")
   def fromInput(input: Input): SyntacticDocument = {
     fromInput(input, scala.meta.dialects.Scala212)
   }

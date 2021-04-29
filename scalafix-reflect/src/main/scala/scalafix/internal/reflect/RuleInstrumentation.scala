@@ -7,7 +7,7 @@ import scala.meta._
 import metaconfig.ConfError
 import metaconfig.Configured
 import scalafix.internal.config.MetaconfigOps._
-import scalafix.internal.config.ScalafixConfig.DefaultDialect
+import scalafix.internal.config.ScalafixConfig.Scala2
 
 object RuleInstrumentation {
 
@@ -39,7 +39,7 @@ object RuleInstrumentation {
         case _ => false
       }
     }
-    (DefaultDialect, code).parse[Source] match {
+    (Scala2, code).parse[Source] match {
       case parsers.Parsed.Error(pos, msg, details) =>
         ConfError.parseError(pos.toMetaconfig, msg).notOk
       case parsers.Parsed.Success(ast) =>

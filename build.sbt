@@ -7,7 +7,7 @@ inThisBuild(
     scalaVersion := scala213,
     crossScalaVersions := List(scala213, scala212, scala211),
     fork := true,
-    scalacOptions ++= syntheticsOn.value,
+    scalacOptions ++= List("-P:semanticdb:synthetics:on"),
     semanticdbEnabled := true,
     semanticdbVersion := scalametaV,
     scalafixScalaBinaryVersion := scalaBinaryVersion.value,
@@ -130,7 +130,7 @@ lazy val testsInput = project
   .settings(
     noPublishAndNoMima,
     crossScalaVersions := List(scala3, scala213, scala212, scala211),
-    scalacOptions --= (if (scalaVersion.value.startsWith("3"))
+    scalacOptions --= (if (isScala3.value)
                          Seq("-P:semanticdb:synthetics:on")
                        else Nil),
     scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
@@ -139,7 +139,7 @@ lazy val testsInput = project
     scalacOptions += "-Ywarn-unused", // For RemoveUnusedTerms
     scalacOptions ++= maxwarns.value, // Increase the maximum warnings to print
     logLevel := Level.Error, // avoid flood of compiler warnings
-    libraryDependencies ++= (if (scalaVersion.value.startsWith("2"))
+    libraryDependencies ++= (if (isScala2.value)
                                testsDeps :+ "org.scala-lang" % "scala-reflect" % scalaVersion.value
                              else Nil),
     coverageEnabled := false

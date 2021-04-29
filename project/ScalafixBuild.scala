@@ -32,6 +32,9 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     lazy val isScala3 = Def.setting {
       scalaVersion.value.startsWith("3")
     }
+    lazy val isScala2 = Def.setting {
+      scalaVersion.value.startsWith("2")
+    }
     lazy val isScala213 = Def.setting {
       scalaVersion.value.startsWith("2.13")
     }
@@ -41,10 +44,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     lazy val warnUnusedImports = Def.setting {
       if (isScala213.value) "-Wunused:imports"
       else "-Ywarn-unused-import"
-    }
-    lazy val syntheticsOn = Def.setting {
-      if (isScala3.value) Nil
-      else Seq("-P:semanticdb:synthetics:on")
     }
     val warnAdaptedArgs = Def.setting {
       if (isScala213.value) "-Xlint:adapted-args"
@@ -115,7 +114,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       "unit/test:runMain scalafix.tests.util.SaveExpect" ::
         s
     },
-    // just to launch first test in scala 3
     commands += Command.command("ci-3") { s =>
       s"""set testsInput/scalaVersion := "$scala3"""" ::
         s"""set testsOutput/scalaVersion := "$scala3"""" ::
