@@ -4,7 +4,7 @@ import java.util.regex.Pattern
 
 import metaconfig.Conf
 import metaconfig.ConfDecoder
-import scalafix.internal.config.ScalafixMetaconfigReaders
+import scalafix.internal.config.ScalafixMetaconfigReaders._
 
 class Regex(
     val pattern: Pattern,
@@ -14,9 +14,7 @@ class Regex(
 object Regex {
   implicit val regexDecoder: ConfDecoder[Regex] =
     ConfDecoder.instance[Regex] { case obj: Conf.Obj =>
-      (obj.get[Pattern]("pattern")(
-        ScalafixMetaconfigReaders.PatternDecoder
-      ) |@| obj.getOption[Int]("captureGroup"))
+      (obj.get[Pattern]("pattern") |@| obj.getOption[Int]("captureGroup"))
         .map { case (pattern, groupIndex) =>
           new Regex(pattern, groupIndex)
         }
