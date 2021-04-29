@@ -4,8 +4,10 @@ import scala.meta._
 
 import org.scalatest.funsuite.AnyFunSuiteLike
 import scalafix.internal.tests.utils.SkipWindows
+import scalafix.patch.Patch
 import scalafix.testkit.AbstractSyntacticRuleSuite
-import scalafix.v0.Rule
+import scalafix.v1.SyntacticDocument
+import scalafix.v1.SyntacticRule
 
 class DialectSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
 
@@ -15,10 +17,12 @@ class DialectSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
       |}
       |""".stripMargin
 
-  val LiteralType: Rule = Rule.syntactic("LiteralType") { ctx =>
-    ctx.tree.collect { case lit @ Lit.Int(n) =>
-      ctx.replaceTree(lit, (n + 1).toString)
-    }.asPatch
+  case object LiteralType extends SyntacticRule("LiteralType") {
+    override def fix(implicit doc: SyntacticDocument): Patch = {
+      doc.tree.collect { case lit @ Lit.Int(n) =>
+        Patch.replaceTree(lit, (n + 1).toString)
+      }.asPatch
+    }
   }
 
   checkDiff(
