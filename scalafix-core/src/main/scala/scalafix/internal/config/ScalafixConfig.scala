@@ -9,13 +9,12 @@ import scalafix.internal.config.ScalafixConfig._
 
 case class ScalafixConfig(
     version: String = Versions.version,
-    //    parser: ParserConfig = ParserConfig(),
     debug: DebugConfig = DebugConfig(),
     groupImportsByPrefix: Boolean = true,
     fatalWarnings: Boolean = true,
     reporter: ScalafixReporter = ScalafixReporter.default,
     patches: ConfigRulePatches = ConfigRulePatches.default,
-    dialect: Dialect = ScalafixConfig.DefaultDialect,
+    dialect: Dialect = ScalafixConfig.Scala2,
     lint: LintConfig = LintConfig.default
 ) {
 
@@ -37,6 +36,6 @@ object ScalafixConfig {
   implicit lazy val ScalafixConfigDecoder: ConfDecoder[ScalafixConfig] =
     decoder(default)
 
-  val DefaultDialect = scala.meta.dialects.Scala213
-  val DefaultSbtDialect = scala.meta.dialects.Sbt1
+  val Scala2: Dialect = scala.meta.dialects.Scala213
+  val DefaultSbtDialect: Dialect = scala.meta.dialects.Sbt1
 }

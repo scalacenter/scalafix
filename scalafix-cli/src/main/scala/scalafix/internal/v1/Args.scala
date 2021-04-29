@@ -17,6 +17,7 @@ import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
+import scala.meta.Dialect
 import scala.meta.internal.io.PathIO
 import scala.meta.internal.symtab.SymbolTable
 import scala.meta.io.AbsolutePath
@@ -33,6 +34,7 @@ import scalafix.interfaces.ScalafixMainCallback
 import scalafix.internal.config.FilterMatcher
 import scalafix.internal.config.PrintStreamReporter
 import scalafix.internal.config.ScalafixConfig
+import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.interfaces.MainCallbackImpl
 import scalafix.internal.jgit.JGitDiff
@@ -54,6 +56,11 @@ case class Args(
     @ExtraName("remainingArgs")
     @ExtraName("f")
     files: List[AbsolutePath] = Nil,
+    @Description(
+      "default Scala2" +
+        "Possibilities: Scala2, Scala3"
+    )
+    dialect: Option[Dialect] = None,
     @Description(
       "File path to a .scalafix.conf configuration file. " +
         "Defaults to .scalafix.conf in the current working directory, if any."
@@ -211,6 +218,16 @@ case class Args(
         val reporter = MainCallbackImpl.fromJava(delegator)
         (applied, scalafixConfig.copy(reporter = reporter), delegator)
       }
+    }
+  }
+
+  def configureDialect(
+      scalafixConfig: ScalafixConfig
+  ): Configured[ScalafixConfig] = {
+    dialect match {
+      case Some(value) =>
+        Configured.ok(scalafixConfig.copy(dialect = value))
+      case None => Configured.ok(scalafixConfig)
     }
   }
 
@@ -377,20 +394,25 @@ case class Args(
           configuredSymtab |@|
           configuredRules(base, scalafixConfig) |@|
           resolvedPathReplace |@|
-          configuredDiffDisable
-      ).map { case ((((root, symtab), rulez), pathReplace), diffDisable) =>
-        ValidatedArgs(
-          this,
-          symtab,
-          rulez,
-          scalafixConfig,
-          classLoader,
-          root,
-          pathReplace,
-          diffDisable,
-          delegator,
-          semanticdbFilterMatcher
-        )
+          configuredDiffDisable |@|
+          configureDialect(scalafixConfig)
+      ).map {
+        case (
+              ((((root, symtab), rulez), pathReplace), diffDisable),
+              scalafixConfig
+            ) =>
+          ValidatedArgs(
+            this,
+            symtab,
+            rulez,
+            scalafixConfig,
+            classLoader,
+            root,
+            pathReplace,
+            diffDisable,
+            delegator,
+            semanticdbFilterMatcher
+          )
       }
     }
   }
@@ -430,6 +452,12 @@ object Args {
     ConfDecoder.stringConfDecoder.map(glob =>
       FileSystems.getDefault.getPathMatcher("glob:" + glob)
     )
+  implicit val dialectDecoder: ConfDecoder[Dialect] =
+    ScalafixMetaconfigReaders.dialectReader
+  implicit val dialectEncoder: ConfEncoder[Dialect] =
+    ConfEncoder.StringEncoder.contramap(_.toString)
+  implicit val dialectPrint: TPrint[Dialect] =
+    TPrint.make[Dialect](_ => "dialect")
   implicit val callbackDecoder: ConfDecoder[ScalafixMainCallback] =
     ConfDecoder.stringConfDecoder.map(_ => MainCallbackImpl.default)
 
@@ -457,6 +485,7 @@ object Args {
     TPrint.make[PathMatcher](_ => "<glob>")
   implicit val confPrint: TPrint[Conf] =
     TPrint.make[Conf](implicit cfg => TPrint.implicitly[ScalafixConfig].render)
+
   implicit def optionPrint[T](implicit
       ev: pprint.TPrint[T]
   ): TPrint[Option[T]] =
