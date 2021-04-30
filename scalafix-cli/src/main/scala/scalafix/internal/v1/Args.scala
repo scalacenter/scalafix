@@ -362,7 +362,7 @@ case class Args(
       } else {
         classpath
       }
-    baseClasspath ++ targetroot
+    targetroot ++ baseClasspath
   }
 
   def classLoader: ClassLoader =
