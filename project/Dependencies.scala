@@ -22,7 +22,7 @@ object Dependencies {
   val jgitV = "5.11.0.202103091610-r"
   val metaconfigV = "0.9.10"
   val nailgunV = "0.9.1"
-  val scalaXmlV = "1.2.0"
+  val scalaXmlV = "1.3.0"
   val scalametaV = "4.4.13"
   val scalatestV = "3.0.8" // don't bump, to avoid forcing breaking changes on clients via eviction
 
