@@ -24,11 +24,6 @@ public interface ScalafixFileEvaluation {
 
     Optional<ScalafixFileEvaluationError> getError();
 
-    /**
-     * @deprecated  replaced by {@link #getError()}
-     */
-    @Deprecated ScalafixError[] getErrors();
-
     ScalafixDiagnostic[] getDiagnostics();
 
     /**

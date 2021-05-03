@@ -73,9 +73,6 @@ final case class ScalafixFileEvaluationImpl(
       case _ => Some(ScalafixFileEvaluationError.UnexpectedError).asJava
     }
 
-  override def getErrors: Array[ScalafixError] =
-    ScalafixErrorImpl.fromScala(exitStatus)
-
   override def isSuccessful: Boolean = !getError().isPresent
 
   override def getErrorMessage: Optional[String] = errorMessage.asJava

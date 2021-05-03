@@ -179,7 +179,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     Files.write(main, staleCode.getBytes(StandardCharsets.UTF_8))
     val evaluation2 = args.evaluate()
     assert(!evaluation2.getError.isPresent)
-    assert(!evaluation2.getMessageError.isPresent)
+    assert(!evaluation2.getErrorMessage.isPresent)
     assert(evaluation2.isSuccessful)
     val fileEval = evaluation2.getFileEvaluations.head
     assert(fileEval.getError.get.toString == "StaleSemanticdbError")
@@ -319,7 +319,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     val eval = api.withRules(List("nonExisting").asJava).evaluate()
     assert(!eval.isSuccessful)
     assert(eval.getError.get.toString == "CommandLineError")
-    assert(eval.getMessageError.get.contains("Unknown rule"))
+    assert(eval.getErrorMessage.get.contains("Unknown rule"))
   }
 
   test("Scalafix-evaluation-error-messages: No file error", SkipWindows) {
@@ -329,7 +329,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
       .evaluate()
     assert(!eval.isSuccessful)
     assert(eval.getError.get.toString == "NoFilesError")
-    assert(eval.getMessageError.get == "No files to fix")
+    assert(eval.getErrorMessage.get == "No files to fix")
   }
 
   test("Scalafix-evaluation-error-messages: missing semanticdb", SkipWindows) {

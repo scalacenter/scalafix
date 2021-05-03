@@ -10,15 +10,6 @@ public interface ScalafixEvaluation {
 
     Optional<ScalafixEvaluationError> getError();
 
-    /**
-     * @deprecated  replaced by {@link #getError()}
-     */
-    @Deprecated ScalafixError[] getErrors();
-    /**
-     * @deprecated  replaced by {@link #getErrorMessage()}
-     */
-    @Deprecated Optional<String> getMessageError();
-
     Optional<String> getErrorMessage();
 
     /**

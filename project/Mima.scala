@@ -23,7 +23,10 @@ object Mima {
       ProblemFilters.exclude[Problem]("scala.tools.nsc.interactive.*"),
       ProblemFilters.exclude[Problem]("scalafix.syntax.package.XtensionDocument"),
       ProblemFilters.exclude[MissingClassProblem]("scalafix.syntax.package$XtensionDocument"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixArguments.withDialect")
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixArguments.withDialect"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("scalafix.interfaces.ScalafixEvaluation.getErrors"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("scalafix.interfaces.ScalafixEvaluation.getMessageError"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("scalafix.interfaces.ScalafixFileEvaluation.getErrors")
     )
   }
 }
