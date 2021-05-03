@@ -111,7 +111,7 @@ public interface ScalafixArguments {
     ScalafixArguments withMode(ScalafixMainMode mode);
 
     /**
-     * @param dialect The dialect to use in order to parse source code. Can be aither "Scala2" or "Scala3"
+     * @param dialect The dialect to use in order to parse source code.
      */
 
     ScalafixArguments withDialect(ScalafixDialect dialect);
