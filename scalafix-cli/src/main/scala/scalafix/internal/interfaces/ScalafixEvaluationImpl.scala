@@ -25,12 +25,6 @@ final case class ScalafixEvaluationImpl(
       case _ => Some(ScalafixEvaluationError.UnexpectedError).asJava
     }
 
-  override def getErrors: Array[ScalafixError] =
-    ScalafixErrorImpl.fromScala(exitStatus)
-
-  override def getMessageError: Optional[String] =
-    errorMessage.asJava
-
   override def getErrorMessage: Optional[String] =
     errorMessage.asJava
 
