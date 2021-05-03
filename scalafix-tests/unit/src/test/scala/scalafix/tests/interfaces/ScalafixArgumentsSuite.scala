@@ -15,6 +15,8 @@ import buildinfo.RulesBuildInfo
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.interfaces.ScalafixArguments
 import scalafix.interfaces.ScalafixDiagnostic
+import scalafix.interfaces.ScalafixDialect
+import scalafix.interfaces.ScalafixFileEvaluationError
 import scalafix.interfaces.ScalafixMainCallback
 import scalafix.interfaces.ScalafixMainMode
 import scalafix.internal.interfaces.ScalafixArgumentsImpl
@@ -342,6 +344,57 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     assert(fileEvaluation.getErrorMessage.get.contains("SemanticDB not found"))
   }
 
+  test("withDialect Scala3") {
+    val content =
+      """|
+        |object HelloWorld:
+        |  @main def hello = println("Hello, world!")""".stripMargin
+    val cwd = StringFS
+      .string2dir(
+        s"""|/src/Main.scala
+          |$content""".stripMargin,
+        charset
+      )
+      .toNIO
+    val src = cwd.resolve("src")
+    val run = api
+      .withDialect(ScalafixDialect.Scala3)
+      .withRules(List("CommentFileAtomic").asJava)
+      .withSourceroot(src)
+      .evaluate()
+
+    val obtained = run.getFileEvaluations.head.previewPatches.get()
+
+    val expected =
+      """|/*
+        |object HelloWorld:
+        |  @main def hello = println("Hello, world!")*/""".stripMargin
+    assertNoDiff(obtained, expected)
+  }
+
+  test("withDialect Scala2: ParserError") {
+    val content =
+      """|
+        |object HelloWorld:
+        |  @main def hello = println("Hello, world!")""".stripMargin
+    val cwd = StringFS
+      .string2dir(
+        s"""|/src/Main.scala
+          |$content""".stripMargin,
+        charset
+      )
+      .toNIO
+    val src = cwd.resolve("src")
+    val run = api
+      .withDialect(ScalafixDialect.Scala2)
+      .withRules(List("CommentFileAtomic").asJava)
+      .withSourceroot(src)
+      .evaluate()
+
+    val obtainedError = run.getFileEvaluations.head.getError.get
+
+    assert(obtainedError == ScalafixFileEvaluationError.ParseError)
+  }
   def removeUnsuedRule(): SemanticRule = {
     val config = RemoveUnusedConfig.default
     new RemoveUnused(config)
