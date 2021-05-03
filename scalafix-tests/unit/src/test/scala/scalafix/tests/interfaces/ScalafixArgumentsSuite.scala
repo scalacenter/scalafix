@@ -344,7 +344,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     assert(fileEvaluation.getErrorMessage.get.contains("SemanticDB not found"))
   }
 
-  test("withDialect Scala3") {
+  test("Source with Scala3 syntax can be parsed with dialect Scala3") {
     val content =
       """|
         |object HelloWorld:
