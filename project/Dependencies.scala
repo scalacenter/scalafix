@@ -1,5 +1,5 @@
 import sbt._
-import scala.util.{Properties, Try}
+import scala.util.Try
 import ScalafixBuild.autoImport._
 
 /* scalafmt: { maxColumn = 120 }*/
@@ -21,7 +21,7 @@ object Dependencies {
   val googleDiffV = "1.3.0"
   val java8CompatV = "0.9.0"
   val jgitV = "5.11.0.202103091610-r"
-  val metaconfigV = Def.setting {if (isScala211.value)  "0.9.10" else "0.9.11"}
+  val metaconfigV = Def.setting { if (isScala211.value) "0.9.10" else "0.9.11" }
   val nailgunV = "0.9.1"
   val scalaXmlV = "1.3.0"
   val scalametaV = "4.4.13"
@@ -44,11 +44,6 @@ object Dependencies {
   val scalametaTeskit = "org.scalameta" %% "testkit" % scalametaV
   val scalatest = "org.scalatest" %% "scalatest" % scalatestV
   val semanticdbScalacCore = "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
-
-
-//  lazy val isScala211 = Def.setting {
-//    scalaVersion.value.startsWith("2.11")
-//  }
 
   def testsDeps = List(
     scalaXml,
