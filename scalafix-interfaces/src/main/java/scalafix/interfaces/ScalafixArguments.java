@@ -111,6 +111,11 @@ public interface ScalafixArguments {
     ScalafixArguments withMode(ScalafixMainMode mode);
 
     /**
+     * @param dialect The dialect to use in order to parse source code. Can be aither "Scala2" or "Scala3"
+     */
+
+    ScalafixArguments withDialect(ScalafixDialect dialect);
+    /**
      * @param args Unparsed command-line arguments that are fed directly to <code>main(Array[String])</code>
      * @throws ScalafixException In case of an error parsing the provided arguments.
      */

@@ -22,7 +22,8 @@ object Mima {
       ProblemFilters.exclude[Problem]("scala.meta.internal.*"),
       ProblemFilters.exclude[Problem]("scala.tools.nsc.interactive.*"),
       ProblemFilters.exclude[Problem]("scalafix.syntax.package.XtensionDocument"),
-      ProblemFilters.exclude[MissingClassProblem]("scalafix.syntax.package$XtensionDocument")
+      ProblemFilters.exclude[MissingClassProblem]("scalafix.syntax.package$XtensionDocument"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixArguments.withDialect")
     )
   }
 }

@@ -21,6 +21,7 @@ import metaconfig.Configured
 import scalafix.Versions
 import scalafix.cli.ExitStatus
 import scalafix.interfaces._
+import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.v1.Args
 import scalafix.internal.v1.MainOps
 import scalafix.internal.v1.Rules
@@ -121,6 +122,14 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
         copy(args = args.copy(autoSuppressLinterErrors = true))
       case ScalafixMainMode.IN_PLACE_TRIGGERED =>
         copy(args = args.copy(triggered = true))
+    }
+
+  override def withDialect(dialect: ScalafixDialect): ScalafixArguments =
+    dialect match {
+      case ScalafixDialect.Scala2 =>
+        copy(args = args.copy(dialect = Some(ScalafixConfig.Scala2)))
+      case ScalafixDialect.Scala3 =>
+        copy(args = args.copy(dialect = Some(scala.meta.dialects.Scala3)))
     }
 
   override def withParsedArguments(
