@@ -372,7 +372,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     assertNoDiff(obtained, expected)
   }
 
-  test("withDialect Scala2: ParserError") {
+  test("Source with Scala3 syntax cannot be parsed with dialect Scala2") {
     val content =
       """|
         |object HelloWorld:
