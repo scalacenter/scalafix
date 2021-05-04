@@ -37,5 +37,6 @@ object ScalafixConfig {
     decoder(default)
 
   val Scala2: Dialect = scala.meta.dialects.Scala213
+  val Scala3: Dialect = scala.meta.dialects.Scala3
   val DefaultSbtDialect: Dialect = scala.meta.dialects.Sbt1
 }

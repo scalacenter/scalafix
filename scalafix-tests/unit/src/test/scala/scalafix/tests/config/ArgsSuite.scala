@@ -72,4 +72,15 @@ class ArgsSuite extends munit.FunSuite {
 
     assertEquals(disableSyntaxRule, expected)
   }
+
+  test("targetRoot") {
+    val targetRootPath = "/some-path"
+    val scalacOptions = List("-semanticdb-target", targetRootPath)
+    val args = Args.default.copy(
+      dialect = ScalafixConfig.Scala3,
+      scalacOptions = scalacOptions
+    )
+    val semanticTargetRoot = args.semanticTargetRoot()
+    assert(semanticTargetRoot.contains(targetRootPath))
+  }
 }

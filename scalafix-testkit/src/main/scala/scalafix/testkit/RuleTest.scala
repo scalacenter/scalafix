@@ -66,6 +66,6 @@ object RuleTest {
   }
 
   def getDialectFromScalaV(scalaV: String): Dialect =
-    if (scalaV.startsWith("3")) scala.meta.dialects.Scala3
-    else scala.meta.dialects.Scala213
+    if (scalaV.startsWith("3")) ScalafixConfig.Scala3
+    else ScalafixConfig.Scala2
 }

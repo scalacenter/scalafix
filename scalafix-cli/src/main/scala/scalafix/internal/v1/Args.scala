@@ -41,6 +41,7 @@ import scalafix.internal.jgit.JGitDiff
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.v1.Configuration
 import scalafix.v1.RuleDecoder
+
 class Section(val name: String) extends StaticAnnotation
 
 case class Args(
@@ -341,7 +342,7 @@ case class Args(
   }
 
   def validatedClasspath: Classpath = {
-    val targetroot = semanticdbOption("targetroot")
+    val targetroot = semanticTargetRoot
       .map(option => Classpath(option))
       .getOrElse(Classpath(Nil))
     val baseClasspath =
@@ -365,6 +366,18 @@ case class Args(
       .filter(_.startsWith(flag))
       .lastOption
       .map(_.stripPrefix(flag))
+  }
+
+  def semanticTargetRoot(): Option[String] = {
+    dialect match {
+      case ScalafixConfig.Scala2 => semanticdbOption("targetroot")
+      case ScalafixConfig.Scala3 =>
+        val indexOpt = scalacOptions.zipWithIndex
+          .filter { case (setting, _) => setting == "-semanticdb-target" }
+          .lastOption
+          .map(_._2)
+        indexOpt.flatMap(i => Option(scalacOptions(i + 1)))
+    }
   }
 
   def semanticdbFilterMatcher: FilterMatcher = {
