@@ -145,6 +145,12 @@ public interface ScalafixArguments {
     ScalafixArguments withSourceroot(Path path);
 
     /**
+     * @param path The SemanticDB targetroot path passed via --targetroot. Must match <code>path</code>
+     *             in <code>-Xplugin:semanticdb:targetroot:{path}</path></code> if used.
+     */
+    ScalafixArguments withTargetroot(Path path);
+
+    /**
      * @param callback Handler for reported linter messages. If not provided, defaults to printing
      *                 linter messages to the Stdout.
      */

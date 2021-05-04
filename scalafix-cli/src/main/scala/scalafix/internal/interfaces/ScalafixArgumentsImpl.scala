@@ -166,6 +166,10 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
     copy(args = args.copy(sourceroot = Some(AbsolutePath(path)(args.cwd))))
   }
 
+  override def withTargetroot(path: Path): ScalafixArguments = {
+    copy(args = args.copy(targetroot = Some(AbsolutePath(path)(args.cwd))))
+  }
+
   override def withMainCallback(
       callback: ScalafixMainCallback
   ): ScalafixArguments =
