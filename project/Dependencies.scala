@@ -1,6 +1,5 @@
 import sbt._
 import scala.util.Try
-import ScalafixBuild.autoImport._
 
 /* scalafmt: { maxColumn = 120 }*/
 
@@ -21,7 +20,8 @@ object Dependencies {
   val googleDiffV = "1.3.0"
   val java8CompatV = "0.9.0"
   val jgitV = "5.11.0.202103091610-r"
-  val metaconfigV = Def.setting { if (isScala211.value) "0.9.10" else "0.9.11" }
+  val metaconfigFor211V = "0.9.10" // metaconfig stops publishing for scala 2.11
+  val metaconfigV = "0.9.11"
   val nailgunV = "0.9.1"
   val scalaXmlV = "1.3.0"
   val scalametaV = "4.4.13"
@@ -35,8 +35,10 @@ object Dependencies {
   val googleDiff = "com.googlecode.java-diff-utils" % "diffutils" % googleDiffV
   val java8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % java8CompatV
   val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % jgitV
-  lazy val metaconfig = Def.setting("com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV.value)
-  lazy val metaconfigDoc = Def.setting("com.geirsson" %% "metaconfig-docs" % metaconfigV.value)
+  val metaconfigFor211 = "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigFor211V
+  val metaconfig = "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV
+  val metaconfigDocFor211 = "com.geirsson" %% "metaconfig-docs" % metaconfigFor211V
+  val metaconfigDoc = "com.geirsson" %% "metaconfig-docs" % metaconfigV
   val metacp = "org.scalameta" %% "metacp" % scalametaV
   val nailgunServer = "com.martiansoftware" % "nailgun-server" % nailgunV
   val scalaXml = "org.scala-lang.modules" %% "scala-xml" % scalaXmlV
