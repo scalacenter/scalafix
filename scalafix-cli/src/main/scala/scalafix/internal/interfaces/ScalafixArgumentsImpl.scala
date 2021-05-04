@@ -127,9 +127,9 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
   override def withDialect(dialect: ScalafixDialect): ScalafixArguments =
     dialect match {
       case ScalafixDialect.Scala2 =>
-        copy(args = args.copy(dialect = Some(ScalafixConfig.Scala2)))
+        copy(args = args.copy(dialect = ScalafixConfig.Scala2))
       case ScalafixDialect.Scala3 =>
-        copy(args = args.copy(dialect = Some(scala.meta.dialects.Scala3)))
+        copy(args = args.copy(dialect = scala.meta.dialects.Scala3))
     }
 
   override def withParsedArguments(
