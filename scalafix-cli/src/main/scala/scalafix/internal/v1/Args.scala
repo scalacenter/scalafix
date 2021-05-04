@@ -60,7 +60,7 @@ case class Args(
       "default Scala2" +
         "Possibilities: Scala2, Scala3"
     )
-    dialect: Option[Dialect] = None,
+    dialect: Dialect = ScalafixConfig.Scala2,
     @Description(
       "File path to a .scalafix.conf configuration file. " +
         "Defaults to .scalafix.conf in the current working directory, if any."
@@ -223,13 +223,8 @@ case class Args(
 
   def configureDialect(
       scalafixConfig: ScalafixConfig
-  ): Configured[ScalafixConfig] = {
-    dialect match {
-      case Some(value) =>
-        Configured.ok(scalafixConfig.copy(dialect = value))
-      case None => Configured.ok(scalafixConfig)
-    }
-  }
+  ): Configured[ScalafixConfig] =
+    Configured.ok(scalafixConfig.copy(dialect = dialect))
 
   def fileConfig: Configured[Conf] = {
     val toRead: Option[AbsolutePath] = config.orElse {
@@ -456,8 +451,6 @@ object Args {
     ScalafixMetaconfigReaders.dialectReader
   implicit val dialectEncoder: ConfEncoder[Dialect] =
     ConfEncoder.StringEncoder.contramap(_.toString)
-  implicit val dialectPrint: TPrint[Dialect] =
-    TPrint.make[Dialect](_ => "dialect")
   implicit val callbackDecoder: ConfDecoder[ScalafixMainCallback] =
     ConfDecoder.stringConfDecoder.map(_ => MainCallbackImpl.default)
 
