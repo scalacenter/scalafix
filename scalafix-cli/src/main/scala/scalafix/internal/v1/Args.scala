@@ -56,10 +56,6 @@ case class Args(
     @ExtraName("remainingArgs")
     @ExtraName("f")
     files: List[AbsolutePath] = Nil,
-    @Description(
-      "default Scala2" +
-        "Possibilities: Scala2, Scala3"
-    )
     dialect: Dialect = ScalafixConfig.Scala2,
     @Description(
       "File path to a .scalafix.conf configuration file. " +
