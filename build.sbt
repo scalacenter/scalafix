@@ -69,8 +69,8 @@ lazy val core = project
       googleDiff,
       collectionCompat
     ),
-    libraryDependencies += (if (isScala211.value) metaconfigDocFor211
-                            else metaconfigDoc)
+    libraryDependencies += (if (isScala211.value) metaconfigFor211
+                            else metaconfig)
   )
   .enablePlugins(BuildInfoPlugin)
 
