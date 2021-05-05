@@ -166,8 +166,10 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
     copy(args = args.copy(sourceroot = Some(AbsolutePath(path)(args.cwd))))
   }
 
-  override def withTargetroot(path: Path): ScalafixArguments = {
-    copy(args = args.copy(targetroot = Some(AbsolutePath(path)(args.cwd))))
+  override def withSemanticdbTargetroot(path: Path): ScalafixArguments = {
+    copy(args =
+      args.copy(semanticdbTargetroot = Some(AbsolutePath(path)(args.cwd)))
+    )
   }
 
   override def withMainCallback(

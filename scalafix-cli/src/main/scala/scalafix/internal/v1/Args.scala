@@ -112,9 +112,9 @@ case class Args(
     sourceroot: Option[AbsolutePath] = None,
     @Description(
       "Absolute path passed to semanticdb with -P:semanticdb:targetroot:<path>. " +
-        "Used to locate semanticdb files. Default, Scalafix will try to locate semanticdb files under the classpath"
+        "Used to locate semanticdb files. By default, Scalafix will try to locate semanticdb files in the classpath"
     )
-    targetroot: Option[AbsolutePath] = None,
+    semanticdbTargetroot: Option[AbsolutePath] = None,
     @Description(
       "If set, automatically infer the --classpath flag by scanning for directories with META-INF/semanticdb"
     )
@@ -347,9 +347,9 @@ case class Args(
   }
 
   def validatedClasspath: Classpath = {
-    val targetrootClasspath = targetroot
+    val targetrootClasspath = semanticdbTargetroot
       .map(_.toString())
-      .orElse(semanticTargetRoot())
+      .orElse(targetrootFromScalacOptions())
       .map(option => Classpath(option))
       .getOrElse(Classpath(Nil))
     val baseClasspath =
@@ -375,17 +375,16 @@ case class Args(
       .map(_.stripPrefix(flag))
   }
 
-  def semanticTargetRoot(): Option[String] = {
+  def targetrootFromScalacOptions(): Option[String] =
     dialect match {
       case ScalafixConfig.Scala2 => semanticdbOption("targetroot")
       case ScalafixConfig.Scala3 =>
-        val indexOpt = scalacOptions.zipWithIndex
-          .filter { case (setting, _) => setting == "-semanticdb-target" }
-          .lastOption
-          .map(_._2)
-        indexOpt.flatMap(i => Option(scalacOptions(i + 1)))
+        scalacOptions
+          .sliding(2)
+          .collectFirst {
+            case h :: last :: Nil if h == "-semanticdb-target" => last
+          }
     }
-  }
 
   def semanticdbFilterMatcher: FilterMatcher = {
     val include = semanticdbOption("include")
