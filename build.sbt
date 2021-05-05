@@ -68,10 +68,9 @@ lazy val core = project
       scalameta,
       googleDiff,
       collectionCompat
-    ) :+ (CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, 11)) => metaconfigFor211
-      case _ => metaconfig
-    })
+    ),
+    libraryDependencies += (if (isScala211.value) metaconfigDocFor211
+                            else metaconfigDoc)
   )
   .enablePlugins(BuildInfoPlugin)
 
