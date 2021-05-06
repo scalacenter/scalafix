@@ -43,6 +43,7 @@ import scalafix.syntax._
  *   Example good name: NoVars, ExplicitUnit.
  *   Example bad name: no-vars, noVars, FixVars.
  */
+@deprecated("Use scalafix.v1.Rule instead", "0.9.28")
 abstract class Rule(ruleName: RuleName) { self =>
 
   /** Returns linter messages to report violations of this rule. */
@@ -172,12 +173,14 @@ object Rule {
     }
 
   /** Creates a syntactic rule. */
+  @deprecated("Use scalafix.v1.SyntacticRule instead", "0.9.28")
   def syntactic(ruleName: String)(f: RuleCtx => Patch): Rule =
     new Rule(ruleName) {
       override def fix(ctx: RuleCtx): Patch = f(ctx)
     }
 
   /** Creates a semantic rule. */
+  @deprecated("Use scalafix.v1.SemanticRule instead", "0.9.28")
   def semantic(ruleName: String)(
       f: SemanticdbIndex => RuleCtx => Patch
   ): SemanticdbIndex => Rule = { index =>

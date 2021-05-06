@@ -26,7 +26,15 @@ object Mima {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixArguments.withDialect"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("scalafix.interfaces.ScalafixEvaluation.getErrors"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("scalafix.interfaces.ScalafixEvaluation.getMessageError"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("scalafix.interfaces.ScalafixFileEvaluation.getErrors")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("scalafix.interfaces.ScalafixFileEvaluation.getErrors"),
+      ProblemFilters.exclude[MissingClassProblem]("scalafix.testkit.AbstractSyntacticRuleSuite$"),
+      ProblemFilters.exclude[Problem]("scalafix.testkit.AbstractSyntacticRuleSuite"),
+      ProblemFilters.exclude[Problem]("scalafix.testkit.AbstractSyntacticRuleSuite.*"),
+      ProblemFilters.exclude[MissingTypesProblem]("scalafix.testkit.SemanticRuleSuite$"),
+      ProblemFilters.exclude[Problem]("scalafix.testkit.SemanticRuleSuite"),
+      ProblemFilters.exclude[Problem]("scalafix.testkit.SemanticRuleSuite.*"),
+      ProblemFilters.exclude[MissingClassProblem]("scalafix.testkit.SyntacticRuleSuite$"),
+      ProblemFilters.exclude[Problem]("scalafix.testkit.SyntacticRuleSuite")
     )
   }
 }
