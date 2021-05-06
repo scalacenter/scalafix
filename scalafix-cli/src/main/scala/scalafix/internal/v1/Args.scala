@@ -349,7 +349,7 @@ case class Args(
   def validatedClasspath: Classpath = {
     val targetrootClasspath = semanticdbTargetroot
       .map(_.toString())
-      .orElse(targetrootFromScalacOptions())
+      .orElse(semanticdbOption("targetroot", Some("-semanticdb-target")))
       .map(option => Classpath(option))
       .getOrElse(Classpath(Nil))
     val baseClasspath =
@@ -367,28 +367,30 @@ case class Args(
   def classLoader: ClassLoader =
     ClasspathOps.toOrphanClassLoader(validatedClasspath)
 
-  def semanticdbOption(name: String): Option[String] = {
-    val flag = s"-P:semanticdb:$name:"
-    scalacOptions
-      .filter(_.startsWith(flag))
-      .lastOption
-      .map(_.stripPrefix(flag))
-  }
-
-  def targetrootFromScalacOptions(): Option[String] =
-    dialect match {
-      case ScalafixConfig.Scala2 => semanticdbOption("targetroot")
-      case ScalafixConfig.Scala3 =>
+  private def semanticdbOption(
+      settingInScala2: String,
+      settingInScala3Opt: Option[String]
+  ): Option[String] = {
+    if (scalaVersion.isEmpty || scalaVersion.startsWith("2")) {
+      val flag = s"-P:semanticdb:$settingInScala2:"
+      scalacOptions
+        .filter(_.startsWith(flag))
+        .lastOption
+        .map(_.stripPrefix(flag))
+    } else {
+      settingInScala3Opt.flatMap { settingInScala3 =>
         scalacOptions
           .sliding(2)
           .collectFirst {
-            case h :: last :: Nil if h == "-semanticdb-target" => last
+            case h :: last :: Nil if h == settingInScala3 => last
           }
+      }
     }
+  }
 
   def semanticdbFilterMatcher: FilterMatcher = {
-    val include = semanticdbOption("include")
-    val exclude = semanticdbOption("exclude")
+    val include = semanticdbOption("include", None)
+    val exclude = semanticdbOption("exclude", None)
     (include, exclude) match {
       case (None, None) => FilterMatcher.matchEverything
       case (Some(in), None) => FilterMatcher.include(in)

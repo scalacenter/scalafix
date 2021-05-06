@@ -1,5 +1,7 @@
 package scalafix.tests.config
 
+import scala.meta.io.AbsolutePath
+
 import metaconfig.Conf
 import metaconfig.internal.ConfGet
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
@@ -76,11 +78,12 @@ class ArgsSuite extends munit.FunSuite {
   test("targetRoot") {
     val targetRootPath = "/some-path"
     val scalacOptions = List("first", "-semanticdb-target", targetRootPath)
-    val args = Args.default.copy(
+    val args: Args = Args.default.copy(
       dialect = ScalafixConfig.Scala3,
-      scalacOptions = scalacOptions
+      scalacOptions = scalacOptions,
+      scalaVersion = "3.0.0-RC3"
     )
-    val semanticTargetRoot = args.targetrootFromScalacOptions()
-    assert(semanticTargetRoot.contains(targetRootPath))
+    val classpath = args.validatedClasspath
+    assert(classpath.entries.contains(AbsolutePath(targetRootPath)))
   }
 }
