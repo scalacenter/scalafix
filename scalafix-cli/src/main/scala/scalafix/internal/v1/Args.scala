@@ -41,6 +41,7 @@ import scalafix.internal.jgit.JGitDiff
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.v1.Configuration
 import scalafix.v1.RuleDecoder
+
 class Section(val name: String) extends StaticAnnotation
 
 case class Args(
@@ -109,6 +110,11 @@ case class Args(
         "sourceroot. Defaults to current working directory if not provided."
     )
     sourceroot: Option[AbsolutePath] = None,
+    @Description(
+      "Absolute path passed to semanticdb with -P:semanticdb:targetroot:<path>. " +
+        "Used to locate semanticdb files. By default, Scalafix will try to locate semanticdb files in the classpath"
+    )
+    semanticdbTargetroot: Option[AbsolutePath] = None,
     @Description(
       "If set, automatically infer the --classpath flag by scanning for directories with META-INF/semanticdb"
     )
@@ -341,7 +347,9 @@ case class Args(
   }
 
   def validatedClasspath: Classpath = {
-    val targetroot = semanticdbOption("targetroot")
+    val targetrootClasspath = semanticdbTargetroot
+      .map(_.toString())
+      .orElse(semanticdbOption("targetroot", Some("-semanticdb-target")))
       .map(option => Classpath(option))
       .getOrElse(Classpath(Nil))
     val baseClasspath =
@@ -353,23 +361,36 @@ case class Args(
       } else {
         classpath
       }
-    targetroot ++ baseClasspath
+    targetrootClasspath ++ baseClasspath
   }
 
   def classLoader: ClassLoader =
     ClasspathOps.toOrphanClassLoader(validatedClasspath)
 
-  def semanticdbOption(name: String): Option[String] = {
-    val flag = s"-P:semanticdb:$name:"
-    scalacOptions
-      .filter(_.startsWith(flag))
-      .lastOption
-      .map(_.stripPrefix(flag))
+  private def semanticdbOption(
+      settingInScala2: String,
+      settingInScala3Opt: Option[String]
+  ): Option[String] = {
+    if (scalaVersion.isEmpty || scalaVersion.startsWith("2")) {
+      val flag = s"-P:semanticdb:$settingInScala2:"
+      scalacOptions
+        .filter(_.startsWith(flag))
+        .lastOption
+        .map(_.stripPrefix(flag))
+    } else {
+      settingInScala3Opt.flatMap { settingInScala3 =>
+        scalacOptions
+          .sliding(2)
+          .collectFirst {
+            case h :: last :: Nil if h == settingInScala3 => last
+          }
+      }
+    }
   }
 
   def semanticdbFilterMatcher: FilterMatcher = {
-    val include = semanticdbOption("include")
-    val exclude = semanticdbOption("exclude")
+    val include = semanticdbOption("include", None)
+    val exclude = semanticdbOption("exclude", None)
     (include, exclude) match {
       case (None, None) => FilterMatcher.matchEverything
       case (Some(in), None) => FilterMatcher.include(in)

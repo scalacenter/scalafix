@@ -129,7 +129,7 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
       case ScalafixDialect.Scala2 =>
         copy(args = args.copy(dialect = ScalafixConfig.Scala2))
       case ScalafixDialect.Scala3 =>
-        copy(args = args.copy(dialect = scala.meta.dialects.Scala3))
+        copy(args = args.copy(dialect = ScalafixConfig.Scala3))
     }
 
   override def withParsedArguments(
@@ -164,6 +164,12 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
   override def withSourceroot(path: Path): ScalafixArguments = {
     require(path.isAbsolute, s"sourceroot must be relative: $path")
     copy(args = args.copy(sourceroot = Some(AbsolutePath(path)(args.cwd))))
+  }
+
+  override def withSemanticdbTargetroot(path: Path): ScalafixArguments = {
+    copy(args =
+      args.copy(semanticdbTargetroot = Some(AbsolutePath(path)(args.cwd)))
+    )
   }
 
   override def withMainCallback(

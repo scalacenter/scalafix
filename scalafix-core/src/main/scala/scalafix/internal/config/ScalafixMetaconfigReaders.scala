@@ -21,7 +21,6 @@ import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
-import scalafix.internal.config.ScalafixConfig.Scala2
 import scalafix.internal.util.SymbolOps
 import scalafix.patch.Patch.internal._
 import scalafix.v0.Symbol
@@ -36,7 +35,7 @@ trait ScalafixMetaconfigReaders {
     ReaderUtil.oneOf[MetaParser](parseSource, parseStat, parseCase)
   }
   implicit lazy val dialectReader: ConfDecoder[Dialect] = {
-    import scala.meta.dialects._
+    import scalafix.internal.config.ScalafixConfig._
     ReaderUtil.oneOf[Dialect](
       Scala2,
       Scala3
