@@ -8,6 +8,7 @@ import scala.meta.Tree
 import scala.meta.contrib.AssociatedComments
 import scala.meta.parsers.Parsed
 
+import scalafix.internal.config.ScalaVersion
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.patch.EscapeHatch
@@ -29,15 +30,27 @@ final class SyntacticDocument private[scalafix] (
 }
 
 object SyntacticDocument {
-  @deprecated("use fromInput(input: Input, dialect: Dialect) instead", "0.9.28")
+  @deprecated(
+    "use fromInput(input: Input, scalaVersion: ScalaVersion) instead",
+    "0.9.28"
+  )
   def fromInput(input: Input): SyntacticDocument = {
-    fromInput(input, scala.meta.dialects.Scala212)
+    fromInput(input, ScalaVersion.scala2)
   }
-  def fromInput(input: Input, dialect: Dialect): SyntacticDocument = {
+  @deprecated(
+    "use fromInput(input: Input, scalaVersion: ScalaVersion) instead",
+    "0.9.28"
+  )
+  def fromInput(inout: Input, dialect: Dialect): SyntacticDocument = {
+    val tree = parse(inout, dialect).get: Tree
+    fromTree(tree)
+  }
+
+  def fromInput(input: Input, scalaVersion: ScalaVersion): SyntacticDocument = {
     SyntacticDocument(
       input,
       DiffDisable.empty,
-      ScalafixConfig.default.copy(dialect = dialect)
+      ScalafixConfig.default.copy(scalaVersion = scalaVersion)
     )
   }
 
@@ -53,6 +66,11 @@ object SyntacticDocument {
   private def parse(input: Input, config: ScalafixConfig): Parsed[Source] = {
     import scala.meta._
     val dialect = config.dialectForFile(input.syntax)
+    dialect(input).parse[Source]
+  }
+
+  private def parse(input: Input, dialect: Dialect): Parsed[Source] = {
+    import scala.meta._
     dialect(input).parse[Source]
   }
 

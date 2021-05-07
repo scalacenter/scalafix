@@ -34,13 +34,6 @@ trait ScalafixMetaconfigReaders {
     import scala.meta.parsers.Parse._
     ReaderUtil.oneOf[MetaParser](parseSource, parseStat, parseCase)
   }
-  implicit lazy val dialectReader: ConfDecoder[Dialect] = {
-    import scalafix.internal.config.ScalafixConfig._
-    ReaderUtil.oneOf[Dialect](
-      Scala2,
-      Scala3
-    )
-  }
 
   object UriRuleString {
     def unapply(arg: Conf.Str): Option[(String, String)] =

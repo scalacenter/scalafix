@@ -1,14 +1,13 @@
 package scalafix.docs
 
 import scala.tools.nsc.interactive.Global
-
 import scala.meta.inputs.Input
 import scala.meta.interactive.InteractiveSemanticdb
 import scala.meta.internal.semanticdb.Print
 import scala.meta.internal.symtab.GlobalSymbolTable
 import scala.meta.metap.Format
-
 import org.typelevel.paiges.Doc
+import scalafix.internal.config.ScalaVersion
 import scalafix.internal.patch.PatchInternals
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.util.Pretty
@@ -153,7 +152,7 @@ object PatchDocs {
     val input = Input.VirtualFile(filename, code)
     val doc = SyntacticDocument.fromInput(
       input,
-      scala.meta.dialects.Scala213
+      ScalaVersion.scala2
     ) // Used when parsing documentation
     val internal = new InternalSemanticDoc(
       doc,

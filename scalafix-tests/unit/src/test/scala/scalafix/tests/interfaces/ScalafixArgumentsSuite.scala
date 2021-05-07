@@ -7,6 +7,8 @@ import java.nio.file.Paths
 import java.util.Collections
 
 import scala.collection.JavaConverters._
+import scala.util.Failure
+import scala.util.Try
 
 import scala.meta.internal.io.FileIO
 import scala.meta.io.AbsolutePath
@@ -15,7 +17,6 @@ import buildinfo.RulesBuildInfo
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.interfaces.ScalafixArguments
 import scalafix.interfaces.ScalafixDiagnostic
-import scalafix.interfaces.ScalafixDialect
 import scalafix.interfaces.ScalafixFileEvaluationError
 import scalafix.interfaces.ScalafixMainCallback
 import scalafix.interfaces.ScalafixMainMode
@@ -358,7 +359,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
       .toNIO
     val src = cwd.resolve("src")
     val run = api
-      .withDialect(ScalafixDialect.Scala3)
+      .withScalaVersion("3.0.0")
       .withRules(List("CommentFileAtomic").asJava)
       .withSourceroot(src)
       .evaluate()
@@ -386,7 +387,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
       .toNIO
     val src = cwd.resolve("src")
     val run = api
-      .withDialect(ScalafixDialect.Scala2)
+      .withScalaVersion("2.13")
       .withRules(List("CommentFileAtomic").asJava)
       .withSourceroot(src)
       .evaluate()
@@ -395,6 +396,18 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
 
     assert(obtainedError == ScalafixFileEvaluationError.ParseError)
   }
+  test("withScalaVersion: non-parsable scala version") {
+    val run = Try(api.withScalaVersion("213"))
+    assert(run.isFailure)
+    run match {
+      case Failure(exception) =>
+        assert(
+          exception.getMessage == "Failed to parse the Scala version"
+        )
+      case _ => ()
+    }
+  }
+
   def removeUnsuedRule(): SemanticRule = {
     val config = RemoveUnusedConfig.default
     new RemoveUnused(config)

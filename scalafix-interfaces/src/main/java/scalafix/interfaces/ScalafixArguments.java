@@ -111,11 +111,6 @@ public interface ScalafixArguments {
     ScalafixArguments withMode(ScalafixMainMode mode);
 
     /**
-     * @param dialect The dialect to use in order to parse source code.
-     */
-
-    ScalafixArguments withDialect(ScalafixDialect dialect);
-    /**
      * @param args Unparsed command-line arguments that are fed directly to <code>main(Array[String])</code>
      * @throws ScalafixException In case of an error parsing the provided arguments.
      */
@@ -163,12 +158,14 @@ public interface ScalafixArguments {
     ScalafixArguments withCharset(Charset charset);
 
     /**
-     * @param version The Scala compiler version used to compile this classpath.
-     *                For example "2.12.8". To be able to run advanced semantic rules
+     * @param version TThe major or binary Scala version that the provided files are targeting,
+     *                for the full version that was used to compile them when a classpath is provided.
+     *                For example "2.12.8" or "2.12" or "2". To be able to run advanced semantic rules
      *                using the Scala Presentation Compiler (such as ExplicitResultTypes),
-     *                this must match the binary version available in the classloader of
+     *                the fullSscala version must match the binary version available in the classloader of
      *                this instance, as requested/provided in the static factory methods
      *                of {@link Scalafix}.
+     * @throws ScalafixException In case of an error parsing the scalaVersion.
      */
     ScalafixArguments withScalaVersion(String version);
 

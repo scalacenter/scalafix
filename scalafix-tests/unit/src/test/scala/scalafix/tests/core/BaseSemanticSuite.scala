@@ -6,6 +6,7 @@ import scala.meta.internal.symtab.SymbolTable
 
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funsuite.AnyFunSuite
+import scalafix.internal.config.ScalaVersion
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.v0.LegacyInMemorySemanticdbIndex
 import scalafix.syntax._
@@ -15,7 +16,7 @@ import scalafix.v1.SemanticDocument
 import scalafix.v1.SyntacticDocument
 
 object BaseSemanticSuite {
-  val dialect = scala.meta.dialects.Scala213 // For tests
+  val scalaVersion = ScalaVersion.scala2 // For tests
   lazy val symtab: SymbolTable = {
     val classpath =
       Classpaths.withDirectory(AbsolutePath(BuildInfo.sharedClasspath))
@@ -26,7 +27,7 @@ object BaseSemanticSuite {
     val abspath = root.resolve(filename)
     val relpath = abspath.toRelative(AbsolutePath(BuildInfo.baseDirectory))
     val input = Input.File(abspath)
-    val doc = SyntacticDocument.fromInput(input, dialect)
+    val doc = SyntacticDocument.fromInput(input, scalaVersion)
     SemanticDocument.fromPath(
       doc,
       relpath,

@@ -31,8 +31,8 @@ abstract class AbstractSyntacticRuleSuite()
       testTags: Tag*
   ): Unit = {
     registerTest(original.label, testTags: _*) {
-      val dialect = ScalafixConfig.default.dialectForFile("Source.scala")
-      val doc = SyntacticDocument.fromInput(original, dialect)
+      val scalaVersion = ScalafixConfig.default.scalaVersion
+      val doc = SyntacticDocument.fromInput(original, scalaVersion)
       val rules = Rules(List(rule))
       val resultWithContext = rules.syntacticPatch(doc, suppress = true)
       val obtained = resultWithContext.fixed
@@ -52,8 +52,9 @@ abstract class AbstractSyntacticRuleSuite()
       testTags: Tag*
   ): Unit = {
     registerTest(name, testTags: _*) {
-      val dialect = ScalafixConfig.default.dialectForFile("Source.scala")
-      val doc = SyntacticDocument.fromInput(Input.String(original), dialect)
+      val scalaVersion = ScalafixConfig.default.scalaVersion
+      val doc =
+        SyntacticDocument.fromInput(Input.String(original), scalaVersion)
       val rules = Rules(List(rule))
       val resultWithContext = rules.syntacticPatch(doc, suppress = true)
       val obtained = resultWithContext.fixed
