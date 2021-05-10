@@ -247,28 +247,14 @@ class CliSemanticSuite extends BaseCliSuite {
   }
 
   checkSemantic(
-    name = "dialect Scala3",
+    name = "ScalaVersion Scala3",
     args = Array(
       "--classpath",
       defaultClasspath,
-      "--dialect",
-      "Scala3"
+      "--scalaVersion",
+      "3.0.0-RC3"
     ),
     expectedExit = ExitStatus.Ok
   )
 
-  checkSemantic(
-    name = "dialect unknown",
-    args = Array(
-      "--classpath",
-      defaultClasspath,
-      "--dialect",
-      "unknown"
-    ),
-    expectedExit = ExitStatus.CommandLineError,
-    outputAssert = { out =>
-      assert(out.contains("Scala3"))
-      assert(out.contains("Scala2"))
-    }
-  )
 }

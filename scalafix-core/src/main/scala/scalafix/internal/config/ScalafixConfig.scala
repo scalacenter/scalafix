@@ -14,9 +14,10 @@ case class ScalafixConfig(
     fatalWarnings: Boolean = true,
     reporter: ScalafixReporter = ScalafixReporter.default,
     patches: ConfigRulePatches = ConfigRulePatches.default,
-    dialect: Dialect = ScalafixConfig.Scala2,
+    scalaVersion: ScalaVersion = ScalaVersion.scala2,
     lint: LintConfig = LintConfig.default
 ) {
+  val dialect = scalaVersion.dialect
 
   def dialectForFile(path: String): Dialect =
     if (path.endsWith(".sbt")) DefaultSbtDialect
@@ -28,6 +29,10 @@ case class ScalafixConfig(
 
 object ScalafixConfig {
 
+  implicit val scalaVersionDecoder: ConfDecoder[ScalaVersion] =
+    ConfDecoder.stringConfDecoder.map { version =>
+      ScalaVersion.from(version).get
+    }
   lazy val default: ScalafixConfig = ScalafixConfig()
   def decoder(default: ScalafixConfig): ConfDecoder[ScalafixConfig] =
     generic.deriveDecoder[ScalafixConfig](default)

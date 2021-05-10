@@ -17,7 +17,6 @@ import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
-import scala.meta.Dialect
 import scala.meta.internal.io.PathIO
 import scala.meta.internal.symtab.SymbolTable
 import scala.meta.io.AbsolutePath
@@ -33,8 +32,9 @@ import pprint.TPrint
 import scalafix.interfaces.ScalafixMainCallback
 import scalafix.internal.config.FilterMatcher
 import scalafix.internal.config.PrintStreamReporter
+import scalafix.internal.config.ScalaVersion
+import scalafix.internal.config.ScalaVersion.scala2
 import scalafix.internal.config.ScalafixConfig
-import scalafix.internal.config.ScalafixMetaconfigReaders
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.interfaces.MainCallbackImpl
 import scalafix.internal.jgit.JGitDiff
@@ -57,7 +57,6 @@ case class Args(
     @ExtraName("remainingArgs")
     @ExtraName("f")
     files: List[AbsolutePath] = Nil,
-    dialect: Dialect = ScalafixConfig.Scala2,
     @Description(
       "File path to a .scalafix.conf configuration file. " +
         "Defaults to .scalafix.conf in the current working directory, if any."
@@ -127,9 +126,10 @@ case class Args(
     )
     scalacOptions: List[String] = Nil,
     @Description(
-      "The Scala compiler version that was used to compile this project."
+      "The major or binary Scala version that the provided files are targeting," +
+        "or the full version that was used to compile them when a classpath is provided."
     )
-    scalaVersion: String = scala.util.Properties.versionNumberString,
+    scalaVersion: ScalaVersion = Args.runtimeScalaVersion,
     @Section("Tab completions")
     @Description(
       """|Print out bash tab completions. To install:
@@ -223,11 +223,6 @@ case class Args(
     }
   }
 
-  def configureDialect(
-      scalafixConfig: ScalafixConfig
-  ): Configured[ScalafixConfig] =
-    Configured.ok(scalafixConfig.copy(dialect = dialect))
-
   def fileConfig: Configured[Conf] = {
     val toRead: Option[AbsolutePath] = config.orElse {
       val defaultPath = cwd.resolve(".scalafix.conf")
@@ -294,7 +289,7 @@ case class Args(
 
     val configuration = Configuration()
       .withConf(targetConf)
-      .withScalaVersion(scalaVersion)
+      .withScalaVersion(scalaVersion.value)
       .withScalacOptions(scalacOptions)
       .withScalacClasspath(validatedClasspath.entries)
     decoder.read(rulesConf).andThen(_.withConfiguration(configuration))
@@ -340,6 +335,12 @@ case class Args(
     }
   }
 
+  def configureScalaVersion(
+      conf: ScalafixConfig
+  ): Configured[ScalafixConfig] = {
+    Configured.Ok(conf.copy(scalaVersion = scalaVersion))
+  }
+
   def configuredSourceroot: Configured[AbsolutePath] = {
     val path = sourceroot.getOrElse(cwd)
     if (path.isDirectory) Configured.ok(path)
@@ -371,7 +372,7 @@ case class Args(
       settingInScala2: String,
       settingInScala3Opt: Option[String]
   ): Option[String] = {
-    if (scalaVersion.isEmpty || scalaVersion.startsWith("2")) {
+    if (scalaVersion.isScala2) {
       val flag = s"-P:semanticdb:$settingInScala2:"
       scalacOptions
         .filter(_.startsWith(flag))
@@ -407,7 +408,7 @@ case class Args(
           configuredRules(base, scalafixConfig) |@|
           resolvedPathReplace |@|
           configuredDiffDisable |@|
-          configureDialect(scalafixConfig)
+          configureScalaVersion(scalafixConfig)
       ).map {
         case (
               ((((root, symtab), rulez), pathReplace), diffDisable),
@@ -433,6 +434,11 @@ case class Args(
 object Args {
   val baseMatcher: PathMatcher =
     FileSystems.getDefault.getPathMatcher("glob:**.{scala,sbt}")
+  val runtimeScalaVersion: ScalaVersion = ScalaVersion
+    .from(scala.util.Properties.versionNumberString) // can be empty
+    .toOption
+    .getOrElse(scala2)
+
   val default: Args = default(PathIO.workingDirectory, System.out)
   def default(cwd: AbsolutePath, out: PrintStream): Args = {
     val callback = MainCallbackImpl.fromScala(PrintStreamReporter(out))
@@ -464,10 +470,11 @@ object Args {
     ConfDecoder.stringConfDecoder.map(glob =>
       FileSystems.getDefault.getPathMatcher("glob:" + glob)
     )
-  implicit val dialectDecoder: ConfDecoder[Dialect] =
-    ScalafixMetaconfigReaders.dialectReader
-  implicit val dialectEncoder: ConfEncoder[Dialect] =
-    ConfEncoder.StringEncoder.contramap(_.toString)
+  implicit val scalaVersionDecoder: ConfDecoder[ScalaVersion] =
+    ScalafixConfig.scalaVersionDecoder
+
+  implicit val scalaVersionEncoder: ConfEncoder[ScalaVersion] =
+    ConfEncoder.StringEncoder.contramap(_.value)
   implicit val callbackDecoder: ConfDecoder[ScalafixMainCallback] =
     ConfDecoder.stringConfDecoder.map(_ => MainCallbackImpl.default)
 
@@ -487,7 +494,6 @@ object Args {
     ConfEncoder.StringEncoder.contramap(_.toString)
   implicit val callbackEncoder: ConfEncoder[ScalafixMainCallback] =
     ConfEncoder.StringEncoder.contramap(_.toString)
-
   implicit val argsEncoder: ConfEncoder[Args] = generic.deriveEncoder
   implicit val absolutePathPrint: TPrint[AbsolutePath] =
     TPrint.make[AbsolutePath](_ => "<path>")
