@@ -289,7 +289,7 @@ case class Args(
 
     val configuration = Configuration()
       .withConf(targetConf)
-      .withScalaVersion(scalaVersion.value)
+      .withScalaVersion(scalaVersion)
       .withScalacOptions(scalacOptions)
       .withScalacClasspath(validatedClasspath.entries)
     decoder.read(rulesConf).andThen(_.withConfiguration(configuration))

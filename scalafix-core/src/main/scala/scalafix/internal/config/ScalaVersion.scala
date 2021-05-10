@@ -23,6 +23,12 @@ sealed trait ScalaVersion {
 
   def isScala2: Boolean = major == Major.Scala2
   def isScala3: Boolean = major == Major.Scala3
+  def isScala211: Boolean = isScala2 && minor.contains(11)
+
+  def isFullVersion: Boolean = this match {
+    case _: Patch => true
+    case _ => false
+  }
 
   def value: String = this match {
     case Major(major) => s"${major.value}"
@@ -44,12 +50,22 @@ object ScalaVersion {
       extends ScalaVersion {
     override val minor: Some[Int] = Some(minorVersion)
     override val patch = None
-
   }
+
   case class Patch(major: MajorVersion, minorVersion: Int, patchVersion: Int)
       extends ScalaVersion {
     override val minor: Some[Int] = Some(minorVersion)
     override val patch: Some[Int] = Some(patchVersion)
+
+    def binaryVersion: Minor = Minor(major, minorVersion)
+  }
+  object Patch {
+    def from(s: String): Try[Patch] = {
+      ScalaVersion.from(s) match {
+        case Success(patch: Patch) => Success(patch)
+        case _ => Failure(new Exception(s"$s is not a valid full version."))
+      }
+    }
   }
 
   sealed trait MajorVersion {

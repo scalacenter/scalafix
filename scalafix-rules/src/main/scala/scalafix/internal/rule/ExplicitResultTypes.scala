@@ -9,6 +9,7 @@ import scala.meta.internal.pc.ScalafixGlobal
 import buildinfo.RulesBuildInfo
 import metaconfig.Configured
 import scalafix.internal.compat.CompilerCompat._
+import scalafix.internal.config.ScalaVersion
 import scalafix.internal.v1.LazyValue
 import scalafix.patch.Patch
 import scalafix.util.TokenOps
@@ -20,9 +21,10 @@ final class ExplicitResultTypes(
 ) extends SemanticRule("ExplicitResultTypes") {
 
   def this() = this(ExplicitResultTypesConfig.default, LazyValue.now(None))
-  val supportedScalaVersions: collection.Seq[String] =
-    RulesBuildInfo.supportedScalaVersions
-  val compilerScalaVersion: String = RulesBuildInfo.scalaVersion
+  val supportedScalaVersions: collection.Seq[ScalaVersion.Patch] =
+    RulesBuildInfo.supportedScalaVersions.map(ScalaVersion.Patch.from(_).get)
+  val compilerScalaVersion: ScalaVersion.Patch =
+    ScalaVersion.Patch.from(RulesBuildInfo.scalaVersion).get
 
   private def toBinaryVersion(v: String) = v.split('.').take(2).mkString(".")
 
@@ -63,16 +65,20 @@ final class ExplicitResultTypes(
           )
         }
       }
-    if (
+
+    if (!config.scalaVersion.isFullVersion)
+      Configured.error(
+        s"For the explicitResultTypes rule, please specify the full Scala version, ${config.scalaVersion} is not valid." +
+          s"The scala versions supported for this binary version are '$supportedScalaVersions'"
+      )
+    else if (
       config.scalacClasspath.nonEmpty && !supportedScalaVersions.contains(
         config.scalaVersion
       )
     ) {
       val inputBinaryScalaVersion =
-        toBinaryVersion(config.scalaVersion)
-      val runtimeBinaryScalaVersion =
-        toBinaryVersion(compilerScalaVersion)
-      if (inputBinaryScalaVersion == runtimeBinaryScalaVersion)
+        config.scalaVersion.asInstanceOf[ScalaVersion.Patch].binaryVersion
+      if (inputBinaryScalaVersion == compilerScalaVersion.binaryVersion)
         Configured.error(
           s"The ExplicitResultTypes rule only supports the exact Scala versions '$supportedScalaVersions' for this binary version. " +
             s"To fix this problem, either remove ExplicitResultTypes from .scalafix.conf " +

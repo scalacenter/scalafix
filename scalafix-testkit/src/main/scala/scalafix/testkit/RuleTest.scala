@@ -6,6 +6,7 @@ import scala.meta.internal.symtab.SymbolTable
 import metaconfig.Conf
 import metaconfig.internal.ConfGet
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
+import scalafix.internal.config.ScalaVersion
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.v1.LazyValue
@@ -55,7 +56,7 @@ object RuleTest {
         .getOrElse(Conf.Lst(Nil))
       val config = Configuration()
         .withConf(conf)
-        .withScalaVersion(props.scalaVersion)
+        .withScalaVersion(ScalaVersion.from(props.scalaVersion).get)
         .withScalacOptions(props.scalacOptions)
         .withScalacClasspath(props.inputClasspath.entries)
       val rules = decoder.read(rulesConf).get.withConfiguration(config).get

@@ -15,7 +15,7 @@ class ExplicitSynthetic(insertInfixTypeParam: Boolean)
       new ExplicitSynthetic(
         // There is a Scala parser bug in 2.11 and below under -Yrangepos
         // that causes a crash for explicit type parameters on infix operators.
-        insertInfixTypeParam = !config.scalaVersion.startsWith("2.11")
+        insertInfixTypeParam = !config.scalaVersion.isScala211
       )
     )
 

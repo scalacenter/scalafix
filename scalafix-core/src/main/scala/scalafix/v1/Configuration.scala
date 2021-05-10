@@ -2,15 +2,16 @@ package scalafix.v1
 import scala.meta.io.AbsolutePath
 
 import metaconfig.Conf
+import scalafix.internal.config.ScalaVersion
 
 final class Configuration private (
-    val scalaVersion: String,
+    val scalaVersion: ScalaVersion,
     val scalacOptions: List[String],
     val scalacClasspath: List[AbsolutePath],
     val conf: Conf
 ) {
 
-  def withScalaVersion(version: String): Configuration = {
+  def withScalaVersion(version: ScalaVersion): Configuration = {
     copy(scalaVersion = version)
   }
 
@@ -30,7 +31,7 @@ final class Configuration private (
     s"Configuration($scalaVersion, $scalacOptions, $scalacClasspath, $conf)"
 
   private[this] def copy(
-      scalaVersion: String = this.scalaVersion,
+      scalaVersion: ScalaVersion = this.scalaVersion,
       scalacOptions: List[String] = this.scalacOptions,
       scalacClasspath: List[AbsolutePath] = this.scalacClasspath,
       conf: Conf = this.conf
@@ -45,9 +46,14 @@ final class Configuration private (
 }
 
 object Configuration {
+  val runtimeScalaV: ScalaVersion = ScalaVersion
+    .from(scala.util.Properties.versionNumberString)
+    .toOption
+    .getOrElse(ScalaVersion.scala2)
+
   def apply(): Configuration = {
     new Configuration(
-      scala.util.Properties.versionNumberString,
+      runtimeScalaV,
       Nil,
       Nil,
       Conf.Obj()

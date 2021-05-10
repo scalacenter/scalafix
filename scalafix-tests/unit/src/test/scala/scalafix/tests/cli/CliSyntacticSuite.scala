@@ -502,7 +502,7 @@ class DeprecatedName
 
 class Scala2_9 extends SyntacticRule("Scala2_9") {
   override def withConfiguration(config: Configuration): Configured[Rule] =
-    if (!config.scalaVersion.startsWith("2.9")) {
+    if (!config.scalaVersion.value.startsWith("2.9")) {
       Configured.error("scalaVersion must start with 2.9")
     } else if (!config.scalacOptions.contains("-Ysource:2.9")) {
       Configured.error("scalacOptions must contain -Ysource:2.9")
