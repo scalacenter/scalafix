@@ -277,3 +277,42 @@ lazy val docs = project
   .dependsOn(testkit, core, cli)
   .enablePlugins(DocusaurusPlugin)
   .disablePlugins(ScalafixPlugin)
+
+lazy val `migration-rules` = project
+  .in(file("migration/rules"))
+  .settings(
+    libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % "0.9.27"
+  )
+
+lazy val `migration-input` = project
+  .in(file("migration/input"))
+  .settings(
+    (publish / skip) := true,
+    libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % "0.9.27" cross CrossVersion.full
+  )
+
+lazy val `migration-output` = project
+  .in(file("migration/output"))
+  .settings(
+    (publish / skip) := true,
+    libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % "0.9.27" cross CrossVersion.full
+  )
+
+lazy val `migration-tests` = project
+  .in(file("migration/tests"))
+  .settings(
+    (publish / skip) := true,
+    libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % "0.9.27" % Test cross CrossVersion.full,
+    (Compile / compile) :=
+      (Compile / compile)
+        .dependsOn((`migration-input` / Compile / compile))
+        .value,
+    scalafixTestkitOutputSourceDirectories :=
+      (`migration-output` / Compile / unmanagedSourceDirectories).value,
+    scalafixTestkitInputSourceDirectories :=
+      (`migration-input` / Compile / unmanagedSourceDirectories).value,
+    scalafixTestkitInputClasspath :=
+      (`migration-input` / Compile / fullClasspath).value
+  )
+  .dependsOn(`migration-rules`)
+  .enablePlugins(ScalafixTestkitPlugin)
