@@ -328,11 +328,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
       case group @ Importer(ref, _) :: _ =>
         val importeeLists = group map (_.importees)
-
-        val hasWildcard = importeeLists exists {
-          case Importees(_, _, Nil, Some(_)) => true
-          case _                             => false
-        }
+        val hasWildcard = importeeLists exists HasWildcard.unapply
 
         // Collects the last set of unimports with a wildcard, if any. It cancels all previous
         // unimports. E.g.:
@@ -797,6 +793,24 @@ object OrganizeImports {
     }
   }
 
+  object Renames {
+    def unapply(importees: Seq[Importee]): Option[Seq[Importee.Rename]] = importees match {
+      case Importees(_, renames, _, _) => Option(renames)
+    }
+  }
+
+  object Unimports {
+    def unapply(importees: Seq[Importee]): Option[Seq[Importee.Unimport]] = importees match {
+      case Importees(_, _, unimports, _) => Option(unimports)
+    }
+  }
+
+  object HasWildcard {
+    def unapply(importees: Seq[Importee]): Boolean = importees match {
+      case Importees(_, _, unimports, wildcard) => unimports.isEmpty && wildcard.nonEmpty
+    }
+  }
+
   implicit private class SymbolExtension(symbol: Symbol) {
 
     /**
@@ -815,10 +829,9 @@ object OrganizeImports {
     /** Checks whether the `Importer` is curly-braced when pretty-printed. */
     def isCurlyBraced: Boolean =
       importer.importees match {
-        case Importees(_, _ :: _, _, _)        => true // At least one rename
-        case Importees(_, _, _ :: _, _)        => true // At least one unimport
-        case importees if importees.length > 1 => true // More than one importees
-        case _                                 => false
+        case Renames(_ :: _) | Unimports(_ :: _) => true // At least one rename or unimport
+        case importees if importees.length > 1   => true // More than one importees
+        case _                                   => false
       }
 
     /**
