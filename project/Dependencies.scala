@@ -13,18 +13,18 @@ object Dependencies {
     List(scala213, scala212).map(version => version -> previousVersions(version)).toMap
 
   val bijectionCoreV = "0.9.7"
-  val collectionCompatV = "2.4.3"
+  val collectionCompatV = "2.4.4"
   val coursierV = "2.0.0-RC5-6"
-  val coursierInterfaceV = "1.0.3"
+  val coursierInterfaceV = "1.0.4"
   val commontTextV = "1.9"
   val googleDiffV = "1.3.0"
   val java8CompatV = "0.9.0"
-  val jgitV = "5.11.0.202103091610-r"
+  val jgitV = "5.11.1.202105131744-r"
   val metaconfigFor211V = "0.9.10" // metaconfig stops publishing for scala 2.11
   val metaconfigV = "0.9.11"
   val nailgunV = "0.9.1"
   val scalaXmlV = "1.3.0"
-  val scalametaV = "4.4.15"
+  val scalametaV = "4.4.17"
   val scalatestV = "3.0.8" // don't bump, to avoid forcing breaking changes on clients via eviction
 
   val bijectionCore = "com.twitter" %% "bijection-core" % bijectionCoreV
