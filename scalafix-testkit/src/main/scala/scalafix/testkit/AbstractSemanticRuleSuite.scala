@@ -32,13 +32,6 @@ abstract class AbstractSemanticRuleSuite(
   def this(props: TestkitProperties) = this(props, isSaveExpect = false)
   def this() = this(TestkitProperties.loadFromResources())
 
-  private def scalaVersion: String = scala.util.Properties.versionNumberString
-  private def scalaVersionDirectory: Option[String] =
-    if (scalaVersion.startsWith("2.11")) Some("scala-2.11")
-    else if (scalaVersion.startsWith("2.12")) Some("scala-2.12")
-    else if (scalaVersion.startsWith("2.13")) Some("scala-2.13")
-    else None
-
   def evaluateTestBody(diffTest: RuleTest): Unit = {
     val (rule, sdoc) = diffTest.run.apply()
     rule.beforeStart()
