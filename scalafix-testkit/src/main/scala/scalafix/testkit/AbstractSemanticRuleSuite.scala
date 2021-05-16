@@ -10,10 +10,12 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.Suite
 import org.scalatest.TestRegistration
 import org.scalatest.exceptions.TestFailedException
+import scalafix.internal.config.ScalaVersion
 import scalafix.internal.patch.PatchInternals
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.testkit.AssertDiff
 import scalafix.internal.testkit.CommentAssertion
+import scalafix.internal.v1.Args
 
 /**
  * Construct a test suite for running semantic Scalafix rules.
@@ -98,8 +100,13 @@ abstract class AbstractSemanticRuleSuite(
   }
 
   lazy val testsToRun: List[RuleTest] = {
+    val args = Args.default.copy(
+      scalaVersion = ScalaVersion.from(props.scalaVersion).get,
+      scalacOptions = props.scalacOptions,
+      classpath = props.inputClasspath
+    )
     val symtab = ClasspathOps.newSymbolTable(props.inputClasspath)
-    val classLoader = ClasspathOps.toClassLoader(props.inputClasspath)
+    val classLoader = ClasspathOps.toClassLoader(args.validatedClasspath)
     val tests = TestkitPath.fromProperties(props)
     tests.map { test =>
       RuleTest.fromPath(props, test, classLoader, symtab)

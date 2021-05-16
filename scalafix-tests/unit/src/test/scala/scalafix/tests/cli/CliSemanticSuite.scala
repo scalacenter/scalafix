@@ -9,6 +9,7 @@ import scala.meta.io.Classpath
 import scala.meta.testkit.StringFS
 
 import scalafix.cli._
+import scalafix.tests.BuildInfo
 import scalafix.tests.core.Classpaths
 
 class CliSemanticSuite extends BaseCliSuite {
@@ -50,6 +51,7 @@ class CliSemanticSuite extends BaseCliSuite {
   checkSemantic(
     name = "missing --classpath",
     args = Array(),
+    targetroots = Seq.empty,
     expectedExit = ExitStatus.MissingSemanticdbError
   )
 
@@ -170,13 +172,13 @@ class CliSemanticSuite extends BaseCliSuite {
   checkSemantic(
     name = "-P:semanticdb:targetroot",
     args = {
-      val (_ :: targetroot :: Nil, jars) =
-        props.inputClasspath.entries.partition(_.isDirectory)
+      val jars = props.inputClasspath.entries.filter(_.isDirectory)
+      val targetroot = BuildInfo.semanticClasspath.last.getAbsolutePath
       Array(
         s"--scalacOptions",
         s"-P:semanticdb:targetroot:shouldBeIgnored",
         s"--scalacOptions",
-        s"-P:semanticdb:targetroot:${targetroot.toString()}",
+        s"-P:semanticdb:targetroot:$targetroot",
         "--classpath",
         Classpath(jars).syntax
       )

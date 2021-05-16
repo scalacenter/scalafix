@@ -212,8 +212,7 @@ lazy val unit = project
       }
       put(
         "inputClasspath",
-        (testsInput / Compile / fullClasspath).value.map(_.data) :+
-          (testsInput / Compile / semanticdbTargetRoot).value
+        (testsInput / Compile / fullClasspath).value.map(_.data)
       )
       put(
         "inputSourceDirectories",
@@ -246,7 +245,10 @@ lazy val unit = project
       "testsInputResources" ->
         (testsInput / Compile / sourceDirectory).value / "resources",
       "semanticClasspath" ->
-        (testsShared / Compile / semanticdbTargetRoot).value,
+        Seq(
+          (testsInput / Compile / semanticdbTargetRoot).value,
+          (testsShared / Compile / semanticdbTargetRoot).value
+        ),
       "sharedSourceroot" ->
         (ThisBuild / baseDirectory).value /
         "scalafix-tests" / "shared" / "src" / "main",
