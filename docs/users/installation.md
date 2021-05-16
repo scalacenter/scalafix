@@ -152,7 +152,7 @@ Great! You are all set to use Scalafix with sbt :)
 | ---- | ---- | -----------
 | `scalafix <args>` | `InputKey[Unit]` | Invoke scalafix command line interface directly. Use tab completion to explore supported arguments or consult [--help](#help).
 | `scalafixAll <args>` | `InputKey[Unit]` | Invoke `scalafix` across all configurations where scalafix is [enabled](#integration-tests).
-| `scalafixCaching` | `SettingKey[Boolean]`  | Controls whether 2 successive invocations of the `scalafix` `InputTask` with the same arguments & configuration should be incremental. Defaults to `true` if `scalafixOnCompile := true`, `false` otherwise. When enabled, use the `--no-cache` argument to force an exhaustive run.
+| `scalafixCaching` | `SettingKey[Boolean]`  | Controls whether 2 successive invocations of the `scalafix` `InputTask` with the same arguments & configuration should be incremental. Defaults to `true`. When enabled, use the `--no-cache` argument to force an exhaustive run.
 | `scalafixConfig` | `SettingKey[Option[File]]` | `.scalafix.conf` file to specify which scalafix rules should run, together with their potential options. Defaults to `.scalafix.conf` in the root directory, if it exists.
 | `scalafixDependencies` | `SettingKey[Seq[ModuleID]]` | Dependencies making [custom rules](#run-custom-rules) available via their simple name. Must be set in `ThisBuild`. Defaults to `Nil`.
 | `scalafixOnCompile` | `SettingKey[Boolean]` | When `true`, Scalafix rule(s) declared in `scalafixConfig` are run on compilation, applying rewrites and failing on lint errors. Defaults to `false`.
