@@ -231,19 +231,22 @@ feature with care as it has several shortcomings, for example:
    is the first task executed, without any other concurrently.
 1. Some rules such as `RemoveUnused` can be counter-productive if applied too
    often/early, as the work-in-progress code that was just added might disappear
-   after a simple `test`.
+   after a simple `test`. 
+   To make such invocations less intrusive, you can change the rules and rules
+   configuration used in that case by defining in `.scalafix.conf`
+   [custom values for them](configuration.md#triggered-configuration).
 1. If you run many semantic rules by default, the last one(s) to run might see
    stale information and fail the invocation, which needs to be re-run manually.
    This is [not specific to `scalafixOnCompile`](https://github.com/scalacenter/scalafix/issues/1204),
    but the problem becomes much more visible with it.
-1. To keep the overhad minimal, `scalafixCaching` is automatically enabled when
+1. To keep the overhead minimal, `scalafixCaching` is automatically enabled when
    `scalafixOnCompile` is, which can cause unexpected behaviors if you run into
    false positive cache hits. `scalafixCaching` can explicitly be set to
    `false` in that case.
 1. Non-idempotent rewrite rules might get you in an infinite loop where sources
    never converge - not specific to `scalafixOnCompile` either, but rather
    confusing when triggered automatically.
-1. Bugs in rule implementations can prevent you from getting a successul
+1. Bugs in rule implementations can prevent you from getting a successful
    `compile`, blocking testing or publishing for example
 
 ### Run custom rules

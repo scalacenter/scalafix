@@ -31,3 +31,29 @@ rules = [
 ]
 DisableSyntax.noFinalize = true
 ```
+
+## Triggered configuration
+
+When Scalafix is triggered automatically (`scalafixOnCompile := true`), the
+values for keys prefixed with `triggered` takes precedence over the default
+configuration - both for rules and rule-specific configuration. You can think
+of `triggered` as a optional overlay, on top of the default configuration.
+  
+For example, with the following configuration, explicit scalafix invocation
+will run `DisableSyntax` & `RemoveUnused`, while triggered invocations
+will only run `DisableSyntax`. In both cases, the `noFinalize` configuration
+is enabled.
+
+```scala
+// .scalafix.conf
+rules = [
+  DisableSyntax,
+  RemoveUnused
+]
+DisableSyntax.noFinalize = true
+
+// `rules` on compilation
+triggered.rules = [
+  DisableSyntax
+]
+```
