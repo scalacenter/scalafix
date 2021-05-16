@@ -126,7 +126,7 @@ case class Args(
     )
     scalacOptions: List[String] = Nil,
     @Description(
-      "The major or binary Scala version that the provided files are targeting," +
+      "The major or binary Scala version that the provided files are targeting, " +
         "or the full version that was used to compile them when a classpath is provided."
     )
     scalaVersion: ScalaVersion = Args.runtimeScalaVersion,
