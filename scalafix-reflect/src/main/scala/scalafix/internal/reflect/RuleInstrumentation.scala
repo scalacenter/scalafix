@@ -7,7 +7,6 @@ import scala.meta._
 import metaconfig.ConfError
 import metaconfig.Configured
 import scalafix.internal.config.MetaconfigOps._
-import scalafix.internal.config.ScalafixConfig.Scala2
 
 object RuleInstrumentation {
 
@@ -39,7 +38,7 @@ object RuleInstrumentation {
         case _ => false
       }
     }
-    (Scala2, code).parse[Source] match {
+    (dialects.Scala213, code).parse[Source] match {
       case parsers.Parsed.Error(pos, msg, details) =>
         ConfError.parseError(pos.toMetaconfig, msg).notOk
       case parsers.Parsed.Success(ast) =>

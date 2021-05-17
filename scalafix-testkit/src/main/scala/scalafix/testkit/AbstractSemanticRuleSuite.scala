@@ -109,7 +109,7 @@ abstract class AbstractSemanticRuleSuite(
     val classLoader = ClasspathOps.toClassLoader(args.validatedClasspath)
     val tests = TestkitPath.fromProperties(props)
     tests.map { test =>
-      RuleTest.fromPath(props, test, classLoader, symtab)
+      RuleTest.fromPath(args, test, classLoader, symtab)
     }
   }
   def runAllTests(): Unit = {

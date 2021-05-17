@@ -34,7 +34,8 @@ object Mima {
       ProblemFilters.exclude[Problem]("scalafix.testkit.SemanticRuleSuite.*"),
       ProblemFilters.exclude[MissingClassProblem]("scalafix.testkit.SyntacticRuleSuite$"),
       ProblemFilters.exclude[Problem]("scalafix.testkit.SyntacticRuleSuite"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixArguments.withSemanticdbTargetroots")
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixArguments.withSemanticdbTargetroots"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("scalafix.testkit.RuleTest.fromPath") // private[scalafix]
     )
   }
 }

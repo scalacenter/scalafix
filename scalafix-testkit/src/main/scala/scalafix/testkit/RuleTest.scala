@@ -8,6 +8,7 @@ import metaconfig.internal.ConfGet
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
+import scalafix.internal.v1.Args
 import scalafix.internal.v1.LazyValue
 import scalafix.internal.v1.Rules
 import scalafix.v1
@@ -21,14 +22,14 @@ final class RuleTest(
 
 object RuleTest {
   private[scalafix] def fromPath(
-      props: TestkitProperties,
+      args: Args,
       test: TestkitPath,
       classLoader: ClassLoader,
       symtab: SymbolTable
   ): RuleTest = {
     val run: () => (Rules, v1.SemanticDocument) = { () =>
       val input = test.toInput
-      val dialect = getDialectFromScalaV(props.scalaVersion)
+      val dialect = args.scalaVersion.dialect(args.sourceScalaVersion)
       val tree = dialect(input).parse[Source].get
       val comment = SemanticRuleSuite.findTestkitComment(tree.tokens)
       val syntax = comment.syntax.stripPrefix("/*").stripSuffix("*/")
@@ -55,17 +56,13 @@ object RuleTest {
         .getOrElse(Conf.Lst(Nil))
       val config = Configuration()
         .withConf(conf)
-        .withScalaVersion(props.scalaVersion)
-        .withScalacOptions(props.scalacOptions)
-        .withScalacClasspath(props.inputClasspath.entries)
+        .withScalaVersion(args.scalaVersion.value)
+        .withScalacOptions(args.scalacOptions)
+        .withScalacClasspath(args.classpath.entries)
       val rules = decoder.read(rulesConf).get.withConfiguration(config).get
       (rules, sdoc)
     }
 
     new RuleTest(test, run)
   }
-
-  def getDialectFromScalaV(scalaV: String): Dialect =
-    if (scalaV.startsWith("3")) ScalafixConfig.Scala3
-    else ScalafixConfig.Scala2
 }
