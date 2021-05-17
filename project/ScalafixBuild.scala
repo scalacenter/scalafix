@@ -7,6 +7,7 @@ import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
 import sbtbuildinfo.BuildInfoKey
 import sbtbuildinfo.BuildInfoPlugin.autoImport.{BuildInfoKey, _}
 import com.typesafe.sbt.sbtghpages.GhpagesKeys
+import sbt.librarymanagement.ivy.IvyDependencyResolution
 import sbt.plugins.IvyPlugin
 
 object ScalafixBuild extends AutoPlugin with GhpagesKeys {
@@ -159,6 +160,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, String] = Map(
+    "2.13.6" -> "2.13.5"
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
@@ -188,6 +190,13 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       Set(
         organizationName.value % previousScalaVCrossName % stableVersion.value
       )
+    },
+    mimaDependencyResolution := {
+      // effectively reverts https://github.com/lightbend/mima/pull/508 since the
+      // Coursier resolution ignores/overrides the explicit scala full version set
+      // in mimaPreviousArtifacts
+      val ivy = sbt.Keys.ivySbt.value
+      IvyDependencyResolution(ivy.configuration)
     },
     mimaBinaryIssueFilters ++= Mima.ignoredABIProblems,
     publishLocalTransitive := Def.taskDyn {
