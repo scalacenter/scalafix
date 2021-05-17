@@ -10,13 +10,11 @@ pull request is tested on both Linux and Windows.
 
 **Java 8 or Java 11.**
 
-**Scala 2.11, 2.12 or 2.13**: Scalafix works only with the latest version of Scala
-2.11,  Scala 2.12 and Scala 2.13.
+**Scala 2.11, 2.12 or 2.13**: Scalafix works only with the latest versions:
+@SCALA211@, @SCALA212@ and @SCALA213@.
 
-| Scalafix  | Scala Compiler                       | Scalameta   |
-| --------- | ------------------------------------ | ----------- |
-| @VERSION@ | @SCALA211@ / @SCALA212@ / @SCALA213@ | @SCALAMETA@ |
-| 0.5.10    | 2.11.12 / 2.12.4                     | 2.1.7       |
+**Scala 3.x**: Scala 3 support is experimental and many built-in rules are not
+supported. Make sure you follow the "sbt 1.3x and newer" instructions below.
 
 ## sbt
 
@@ -71,9 +69,9 @@ the Scala compiler option `-Ywarn-unused-import` (or `-Wunused:imports` in
   */
  inThisBuild(
    List(
-     scalaVersion := "@SCALA212@", // @SCALA211@, or @SCALA213@
+     scalaVersion := "@SCALA212@", // @SCALA211@, @SCALA213@, or 3.x
 +    semanticdbEnabled := true, // enable SemanticDB
-+    semanticdbVersion := scalafixSemanticdb.revision // use Scalafix compatible version
++    semanticdbVersion := scalafixSemanticdb.revision // only required for Scala 2.x
    )
  )
 
@@ -88,15 +86,15 @@ the Scala compiler option `-Ywarn-unused-import` (or `-Wunused:imports` in
   * SemanticDB is enabled only for a sub-project.
   */
  lazy val myproject = project.settings(
-   scalaVersion := "@SCALA212@", // @SCALA211@, or @SCALA213@
+   scalaVersion := "@SCALA212@", // @SCALA211@, @SCALA213@, or 3.x
 +  semanticdbEnabled := true, // enable SemanticDB
-+  semanticdbVersion := scalafixSemanticdb.revision, // use Scalafix compatible version
-+  scalacOptions += "-Ywarn-unused-import" // required by `RemoveUnused` rule
++  semanticdbVersion := scalafixSemanticdb.revision, // only required for Scala 2.x
++  scalacOptions += "-Ywarn-unused-import" // Scala 2.x only, required by `RemoveUnused`
  )
 ```
 
 ```diff
- // build.sbt, for sbt 1.2.x and older
+ // build.sbt, for sbt 1.2.x and older (Scala 2.x only)
  lazy val myproject = project.settings(
    scalaVersion := "@SCALA212@", // @SCALA211@, or @SCALA213@
 +  addCompilerPlugin(scalafixSemanticdb), // enable SemanticDB
@@ -278,7 +276,7 @@ If all went well, you should see a diff adding the comment
 +// v1 SyntacticRule!
 ```
 
-### Exclude files from SemanticDB
+### Exclude files from SemanticDB (Scala 2.x only)
 
 By default, the SemanticDB compiler plugin will process all files in a project.
 
@@ -303,7 +301,7 @@ https://scalameta.org/docs/semanticdb/guide.html#scalac-compiler-plugin
 > matched against the `java.io.File.getAbsolutePath` representation of each
 > file.
 
-### Exclude files from Scalafix
+### Exclude files from Scalafix (Scala 2.x only)
 
 By default, the `scalafix` task processes all files in a project. If you use
 SemanticDB, the `scalafix` task also respects
@@ -323,21 +321,24 @@ processed.
 
 ### Customize SemanticDB output directory
 
-By default, the SemanticDB compiler plugin emits `*.semanticdb` files in the
-`classDirectory`.
+When using the `semanticdbEnabled` key with sbt 1.3x and newer, the
+`*.semanticdb` files are available in the directory referenced by the
+`semanticdbTargetRoot` key, which defaults to `target/scala-x/meta`.
 
-Use `-P:semanticdb:targetroot:path` to configure SemanticDB to emit
-`*.semanticdb` files in a custom location. For example:
+You can override this default to emit `*.semanticdb` files in a custom
+location. For example:
 
 ```scala
-scalacOptions += {
-  val targetroot = target.value / "semanticdb"
-  s"-P:semanticdb:targetroot:$targetroot"
-}
+semanticdbTargetRoot := target.value / "semanticdb"
 ```
 
-To learn more about SemanticDB compiler options visit
-https://scalameta.org/docs/semanticdb/guide.html#scalac-compiler-plugin
+Alternatively, you can set the `semanticdbIncludeInJar` key to request
+the compiler to emit these files into the `classDirectory` so that they
+are available in packaged JARs.
+
+```scala
+semanticdbIncludeInJar := true
+```
 
 ### Disable Scalafix for specific project
 
