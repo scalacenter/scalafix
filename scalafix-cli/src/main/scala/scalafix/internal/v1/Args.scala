@@ -110,10 +110,10 @@ case class Args(
     )
     sourceroot: Option[AbsolutePath] = None,
     @Description(
-      "Absolute path passed to semanticdb with -P:semanticdb:targetroot:<path>. " +
+      "Absolute paths passed to semanticdb with -P:semanticdb:targetroot:<path>. " +
         "Used to locate semanticdb files. By default, Scalafix will try to locate semanticdb files in the classpath"
     )
-    semanticdbTargetroot: Option[AbsolutePath] = None,
+    semanticdbTargetroots: List[AbsolutePath] = Nil,
     @Description(
       "If set, automatically infer the --classpath flag by scanning for directories with META-INF/semanticdb"
     )
@@ -348,11 +348,12 @@ case class Args(
   }
 
   def validatedClasspath: Classpath = {
-    val targetrootClasspath = semanticdbTargetroot
-      .map(_.toString())
-      .orElse(semanticdbOption("targetroot", Some("-semanticdb-target")))
-      .map(option => Classpath(option))
-      .getOrElse(Classpath(Nil))
+    val targetrootClasspath = semanticdbTargetroots match {
+      case Nil =>
+        semanticdbOption("targetroot", Some("-semanticdb-target")).toList
+          .map(AbsolutePath.apply)
+      case _ => semanticdbTargetroots
+    }
     val baseClasspath =
       if (autoClasspath && classpath.entries.isEmpty) {
         val roots =
@@ -362,7 +363,7 @@ case class Args(
       } else {
         classpath
       }
-    targetrootClasspath ++ baseClasspath
+    Classpath(targetrootClasspath) ++ baseClasspath
   }
 
   def classLoader: ClassLoader =

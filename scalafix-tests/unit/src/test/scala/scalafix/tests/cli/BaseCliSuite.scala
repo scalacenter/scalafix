@@ -10,8 +10,6 @@ import java.nio.file.SimpleFileVisitor
 import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.BasicFileAttributes
 
-import scala.collection.immutable.Seq
-
 import scala.meta.internal.io.FileIO
 import scala.meta.io.AbsolutePath
 import scala.meta.io.RelativePath
@@ -23,6 +21,7 @@ import scalafix.test.StringFS
 import scalafix.testkit.DiffAssertions
 import scalafix.testkit.SemanticRuleSuite
 import scalafix.testkit.TestkitProperties
+import scalafix.tests.BuildInfo
 import scalafix.tests.util.ScalaVersions
 import scalafix.v1.Main
 
@@ -179,6 +178,8 @@ trait BaseCliSuite extends AnyFunSuite with DiffAssertions {
   def checkSemantic(
       name: String,
       args: Array[String],
+      targetroots: Seq[String] =
+        BuildInfo.semanticClasspath.map(_.getAbsolutePath),
       expectedExit: ExitStatus,
       preprocess: AbsolutePath => Unit = _ => (),
       outputAssert: String => Unit = _ => (),
@@ -207,11 +208,13 @@ trait BaseCliSuite extends AnyFunSuite with DiffAssertions {
       val sourceroot =
         if (args.contains("--sourceroot")) Array[String]()
         else Array("--sourceroot", cwd.toString)
+      val targetroots0 =
+        targetroots.flatMap(Seq("--semanticdb-targetroots", _))
       val scalaOption =
         if (ScalaVersions.isScala213)
           "-Wunused:imports"
         else "-Ywarn-unused-import"
-      val allArguments = args ++ sourceroot ++ Seq(
+      val allArguments = args ++ sourceroot ++ targetroots0 ++ Seq(
         "--scalac-options",
         scalaOption,
         "-r",

@@ -43,6 +43,11 @@ object ClasspathOps {
     new URLClassLoader(url +: getURLs(classLoader), classLoader)
   }
 
+  def thisClassLoaderWith(urls: Seq[URL]): URLClassLoader = {
+    val classLoader = this.getClass.getClassLoader
+    new URLClassLoader(urls.toArray ++ getURLs(classLoader), classLoader)
+  }
+
   def thisClasspath: Classpath = {
     Classpath(
       getURLs(this.getClass().getClassLoader())

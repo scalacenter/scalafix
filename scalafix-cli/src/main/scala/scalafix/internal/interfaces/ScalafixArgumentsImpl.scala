@@ -160,9 +160,13 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
     copy(args = args.copy(sourceroot = Some(AbsolutePath(path)(args.cwd))))
   }
 
-  override def withSemanticdbTargetroot(path: Path): ScalafixArguments = {
+  override def withSemanticdbTargetroots(
+      paths: util.List[Path]
+  ): ScalafixArguments = {
     copy(args =
-      args.copy(semanticdbTargetroot = Some(AbsolutePath(path)(args.cwd)))
+      args.copy(semanticdbTargetroots =
+        paths.asScala.toList.map(AbsolutePath(_)(args.cwd))
+      )
     )
   }
 
