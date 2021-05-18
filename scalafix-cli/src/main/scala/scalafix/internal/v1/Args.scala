@@ -335,10 +335,18 @@ case class Args(
     }
   }
 
-  def configureScalaVersion(
+  def sourceScalaVersion: Option[ScalaVersion] =
+    extractLastScalacOption("-Xsource:").flatMap(ScalaVersion.from(_).toOption)
+
+  def configureScalaVersions(
       conf: ScalafixConfig
   ): Configured[ScalafixConfig] = {
-    Configured.Ok(conf.copy(scalaVersion = scalaVersion))
+    Configured.ok(
+      conf.copy(
+        scalaVersion = scalaVersion,
+        sourceScalaVersion = sourceScalaVersion
+      )
+    )
   }
 
   def configuredSourceroot: Configured[AbsolutePath] = {
@@ -369,16 +377,19 @@ case class Args(
   def classLoader: ClassLoader =
     ClasspathOps.toOrphanClassLoader(validatedClasspath)
 
+  private def extractLastScalacOption(flag: String) = {
+    scalacOptions
+      .filter(_.startsWith(flag))
+      .lastOption
+      .map(_.stripPrefix(flag))
+  }
+
   private def semanticdbOption(
       settingInScala2: String,
       settingInScala3Opt: Option[String]
   ): Option[String] = {
     if (scalaVersion.isScala2) {
-      val flag = s"-P:semanticdb:$settingInScala2:"
-      scalacOptions
-        .filter(_.startsWith(flag))
-        .lastOption
-        .map(_.stripPrefix(flag))
+      extractLastScalacOption(s"-P:semanticdb:$settingInScala2:")
     } else {
       settingInScala3Opt.flatMap { settingInScala3 =>
         scalacOptions
@@ -409,7 +420,7 @@ case class Args(
           configuredRules(base, scalafixConfig) |@|
           resolvedPathReplace |@|
           configuredDiffDisable |@|
-          configureScalaVersion(scalafixConfig)
+          configureScalaVersions(scalafixConfig)
       ).map {
         case (
               ((((root, symtab), rulez), pathReplace), diffDisable),

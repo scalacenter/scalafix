@@ -5,6 +5,7 @@ import scala.util.Success
 import scala.util.Try
 
 import scala.meta.Dialect
+import scala.meta.dialects
 
 import scalafix.internal.config.ScalaVersion._
 
@@ -16,10 +17,13 @@ sealed trait ScalaVersion {
   val major: MajorVersion
   val minor: Option[Int]
   val patch: Option[Int]
-  val dialect: Dialect = major match {
-    case ScalaVersion.Major.Scala2 => scala.meta.dialects.Scala213
-    case ScalaVersion.Major.Scala3 => scala.meta.dialects.Scala3
-  }
+
+  def dialect(sourceScalaVersion: Option[ScalaVersion]): Dialect =
+    (major, sourceScalaVersion.map(_.major)) match {
+      case (Major.Scala3, _) => dialects.Scala3
+      case (Major.Scala2, Some(Major.Scala3)) => dialects.Scala213Source3
+      case (Major.Scala2, _) => dialects.Scala213
+    }
 
   def isScala2: Boolean = major == Major.Scala2
   def isScala3: Boolean = major == Major.Scala3

@@ -345,6 +345,32 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     assert(fileEvaluation.getErrorMessage.get.contains("SemanticDB not found"))
   }
 
+  test("Scala2 source with Scala3 syntax can only be parsed with -Xsource:3") {
+    val cwd = StringFS
+      .string2dir(
+        s"""|/src/Scala2Source3.scala
+          |open class Scala2Source3""".stripMargin,
+        charset
+      )
+      .toNIO
+    val src = cwd.resolve("src")
+    val args = api
+      .withScalaVersion("2.13.6")
+      .withRules(List("DisableSyntax").asJava)
+      .withSourceroot(src)
+
+    val withoutSource3 = args.evaluate().getFileEvaluations.head
+    assert(!withoutSource3.isSuccessful)
+
+    val withSource3 =
+      args
+        .withScalacOptions(Collections.singletonList("-Xsource:3"))
+        .evaluate()
+        .getFileEvaluations
+        .head
+    assert(withSource3.isSuccessful)
+  }
+
   test("Source with Scala3 syntax can be parsed with dialect Scala3") {
     val content =
       """|
