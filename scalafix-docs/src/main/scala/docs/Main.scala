@@ -43,6 +43,7 @@ sidebar_label: Guide
           "SCALA213" -> Versions.scala213,
           "SCALA212" -> Versions.scala212,
           "SCALA211" -> Versions.scala211,
+          "SCALA3" -> Versions.scala3,
           "NIGHTLY_VERSION" -> Versions.version,
           "VERSION" -> Versions.stableVersion,
           "SCALAMETA" -> Versions.scalameta

@@ -103,7 +103,7 @@ plugin or built-in in the compiler. Supported Scala compiler versions include:
 - Scala @SCALA211@
 - Scala @SCALA212@
 - Scala @SCALA213@
-- Scala 3.x
+- Scala @SCALA3@
 
 The output project can use any Scala compiler version.
 

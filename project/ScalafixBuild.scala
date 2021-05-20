@@ -85,6 +85,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "scala211" -> scala211,
         "scala212" -> scala212,
         "scala213" -> scala213,
+        "scala3" -> scala3,
         sbtVersion
       ),
       buildInfoPackage := "scalafix",

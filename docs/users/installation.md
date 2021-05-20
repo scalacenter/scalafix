@@ -69,7 +69,7 @@ the Scala compiler option `-Ywarn-unused-import` (or `-Wunused:imports` in
   */
  inThisBuild(
    List(
-     scalaVersion := "@SCALA212@", // @SCALA211@, @SCALA213@, or 3.x
+     scalaVersion := "@SCALA212@", // @SCALA211@, @SCALA213@, or @SCALA3@
 +    semanticdbEnabled := true, // enable SemanticDB
 +    semanticdbVersion := scalafixSemanticdb.revision // only required for Scala 2.x
    )
@@ -86,7 +86,7 @@ the Scala compiler option `-Ywarn-unused-import` (or `-Wunused:imports` in
   * SemanticDB is enabled only for a sub-project.
   */
  lazy val myproject = project.settings(
-   scalaVersion := "@SCALA212@", // @SCALA211@, @SCALA213@, or 3.x
+   scalaVersion := "@SCALA212@", // @SCALA211@, @SCALA213@, or @SCALA3@
 +  semanticdbEnabled := true, // enable SemanticDB
 +  semanticdbVersion := scalafixSemanticdb.revision, // only required for Scala 2.x
 +  scalacOptions += "-Ywarn-unused-import" // Scala 2.x only, required by `RemoveUnused`
