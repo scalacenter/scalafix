@@ -18,7 +18,7 @@ case class ScalafixConfig(
     sourceScalaVersion: Option[ScalaVersion] = None,
     lint: LintConfig = LintConfig.default
 ) {
-  val dialect = scalaVersion.dialect(sourceScalaVersion)
+  val dialect: Dialect = scalaVersion.dialect(sourceScalaVersion)
 
   def dialectForFile(path: String): Dialect =
     if (path.endsWith(".sbt")) DefaultSbtDialect
