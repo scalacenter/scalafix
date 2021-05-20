@@ -21,12 +21,12 @@ sbt tests/test
 ```
 
 The `--repo=<repository name>` option should match the name of your GitHub
-repository with dashes replaced by spaces.
+repository with dashes replaced by spaces. For
+`github.com/organization/scalafix-enterprise-rules`, type
+`Scalafix Enterprise Rules`.
 
-- For `github.com/organization/repository`, type `repository`
-- For `github.com/organization/repository-name`, type `Repository Name`
-
-The template generates a `scalafix/` directory with four different sbt projects.
+The template generates a `scalafix/` directory with four different directories
+with sources.
 
 ```scala
 scalafix
@@ -46,18 +46,26 @@ scalafix
     └── RuleSuite.scala
 ```
 
-- `rules`: contains rule implementations. This is the module that you will
-  publish so others can run your rule.
+- `rules`: contains rule implementations.
 - `input`: input Scala source files to be analyzed by the rule. Every Scala
-  source file in this project becomes a unit test.
-- `output`: this project is only used for rewrites, it can be ignored for
+  source file in this directory becomes a unit test.
+- `output`: this directory is only used for rewrites, it can be ignored for
   linters. The structure of the `output` project should mirror the `input`
   project file by file. The text contents of the files should be the expected
   output after running the rule on the input sources. A mismatch from an output
   file and the result of running the rewrite rule on an `input` file becomes a
   test failure.
-- `tests`: a project containing a single test suite to configure
-  scalafix-testkit.
+- `tests`: a directory containing a single test suite to configure
+  `scalafix-testkit`.
+  
+[sbt-projectmatrix](https://github.com/sbt/sbt-projectmatrix) is used to generate
+several sub-projects for each directory.
+- `rules` is set up to cross-publish against all Scala binary versions for which
+  [`scalafix-core`](https://mvnrepository.com/artifact/ch.epfl.scala/scalafix-core)
+  is available.
+- `input` and `output` are cross-built against all Scala versions on which the rule
+  can be applied.
+- `tests` verifies each `input` sub-project against a `rules` sub-project.
 
 The `scalafix/` directory is a self-contained sbt build and can live in the same
 directory as your existing library.
@@ -88,13 +96,14 @@ following sbt settings
 ```
 
 The only requirement is that the input project uses a Scala compiler version
-that is supported by
+that is either supported by
 [SemanticDB](https://scalameta.org/docs/semanticdb/specification.html) compiler
-plugin. Supported Scala compiler versions include:
+plugin or built-in in the compiler. Supported Scala compiler versions include:
 
 - Scala @SCALA211@
 - Scala @SCALA212@
 - Scala @SCALA213@
+- Scala 3.x
 
 The output project can use any Scala compiler version.
 
