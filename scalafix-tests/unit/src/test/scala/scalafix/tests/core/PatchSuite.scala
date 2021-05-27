@@ -5,6 +5,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 import scala.meta._
+import scala.meta.internal.prettyprinters.TreeSyntax
 import scala.meta.tokens.Token.Ident
 
 import org.scalatest.funsuite.AnyFunSuiteLike
@@ -178,4 +179,47 @@ class PatchSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
         fail(s"$atomicPatch is not of expected type AtomicPatch(Concat(_, _))")
     }
   }
+
+  case class ReplaceTreeRule(pf: PartialFunction[Tree, String])
+      extends SyntacticRule("replaceTreeRule") {
+
+    override def fix(implicit doc: SyntacticDocument): Patch = {
+      val patch = doc.tree.collect {
+        case t if pf.isDefinedAt(t) => Patch.replaceTree(t, pf(t))
+      }.asPatch
+      assert(patch.nonEmpty)
+      patch
+    }
+  }
+
+  val program: Source =
+    """import a.b
+      |
+      |class Foo(private val q: String = "") extends Bar with Qux {
+      |  override def toString = if (true) return "hello" else ???
+      |  lazy val x: Seq[_] = List(2)
+      |  foo[Bar](null)
+      |  new R()
+      |  object O {}
+      |}""".stripMargin.parse[Source].get
+
+  program
+    .collect { case t => t }
+    .filterNot(_.pos.text == "")
+    .groupBy(_.productPrefix)
+    .map(_._2.head)
+    .foreach { from =>
+      val replace: PartialFunction[Tree, String] = {
+        case t if t.structure == from.structure =>
+          TreeSyntax.reprint(t)(implicitly[Dialect]).toString
+      }
+      checkDiff(
+        ReplaceTreeRule(replace),
+        Input.VirtualFile(
+          s"Patch.replaceTree(reprint(${from.productPrefix}))",
+          TreeSyntax.reprint(program)(implicitly[Dialect]).toString
+        ),
+        "" // replacing a tree by its syntax should be a no-op
+      )
+    }
 }
