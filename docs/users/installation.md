@@ -18,12 +18,22 @@ supported. Make sure you follow the "sbt 1.3x and newer" instructions below.
 
 ## sbt
 
-Start by installing the sbt plugin in `project/plugins.sbt`
+Start by installing the sbt 1.x plugin in `project/plugins.sbt`
 
 ```scala
 // project/plugins.sbt
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@VERSION@")
 ```
+
+> sbt-scalafix is no longer published for sbt 0.13.x. You should be able to run
+> the latest version of Scalafix with the final sbt-scalafix version published
+> for sbt 0.13.x, but all features documented below might not be supported.
+>
+> ```scala
+> // project/plugins.sbt
+> addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.29") // final sbt 0.13.x version
+> dependencyOverrides += "ch.epfl.scala" % "scalafix-interfaces" % "@VERSION@"
+> ```
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/ch.epfl.scala/sbt-scalafix/badge.svg)](https://maven-badges.herokuapp.com/maven-central/ch.epfl.scala/sbt-scalafix)
 
@@ -255,7 +265,7 @@ Central. To install a custom rule, add it to `scalafixDependencies`
 
 ```scala
 // at the top of build.sbt
-scalafixDependencies in ThisBuild +=
+ThisBuild / scalafixDependencies +=
   "com.geirsson" %% "example-scalafix-rule" % "1.3.0"
 ```
 
@@ -307,12 +317,12 @@ By default, the `scalafix` task processes all files in a project. If you use
 SemanticDB, the `scalafix` task also respects
 [`-P:semanticdb:exclude`](#exclude-files-from-semanticdb).
 
-Use `unmanagedSources.in(Compile, scalafix)` to optionally exclude files from
+Use `Compile / scalafix / unmanagedSources` to optionally exclude files from
 the `scalafix` task.
 
 ```scala
-unmanagedSources.in(Compile, scalafix) :=
-  unmanagedSources.in(Compile).value
+Compile / scalafix / unmanagedSources :=
+  (Compile / unmanagedSources).value
     .filterNot(file => file.getName == "Macros.scala")
 ```
 
