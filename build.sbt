@@ -67,10 +67,9 @@ lazy val core = project
     libraryDependencies ++= List(
       scalameta,
       googleDiff,
+      metaconfig,
       collectionCompat
-    ),
-    libraryDependencies += (if (isScala211.value) metaconfigFor211
-                            else metaconfig)
+    )
   )
   .enablePlugins(BuildInfoPlugin)
 
@@ -273,8 +272,7 @@ lazy val docs = project
     scalacOptions += "-Xfatal-warnings",
     mdoc := (Compile / run).evaluated,
     crossScalaVersions := List(scala213),
-    libraryDependencies += (if (isScala211.value) metaconfigDocFor211
-                            else metaconfigDoc)
+    libraryDependencies += metaconfigDoc
   )
   .dependsOn(testkit, core, cli)
   .enablePlugins(DocusaurusPlugin)

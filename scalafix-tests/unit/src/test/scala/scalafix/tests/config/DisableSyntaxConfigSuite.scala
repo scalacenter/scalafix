@@ -1,11 +1,11 @@
 package scalafix.tests.config
 
+import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.NotOk
 import metaconfig.typesafeconfig._
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.internal.rule._
-import scalafix.tests.util.ScalaVersions
 
 class DisableSyntaxConfigSuite extends AnyFunSuite {
   test("Warn about invalid keywords") {
@@ -36,17 +36,9 @@ class DisableSyntaxConfigSuite extends AnyFunSuite {
         |]
         |""".stripMargin
     val errorMessage =
-      if (ScalaVersions.isScala211)
-        """|Type mismatch;
-          |  found    : Number (value: 42)
-          |  expected : String""".stripMargin
-      else
-        """|<input>:2:0 error: Type mismatch;
-          |  found    : Number (value: 42)
-          |  expected : String
-          |  42
-          |^
-          |""".stripMargin
+      """|Type mismatch;
+        |  found    : Number (value: 42)
+        |  expected : String""".stripMargin
     assertError(rawConfig, errorMessage)
   }
 
@@ -80,6 +72,7 @@ class DisableSyntaxConfigSuite extends AnyFunSuite {
 
   def assertError(rawConfig: String, errorMessage: String): Unit = {
     val obtained = read(rawConfig)
-    assert(obtained.asInstanceOf[NotOk].error.msg == errorMessage)
+    val expected = NotOk(ConfError.message(errorMessage))
+    assert(obtained == expected)
   }
 }
