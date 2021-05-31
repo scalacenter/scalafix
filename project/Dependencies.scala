@@ -20,7 +20,8 @@ object Dependencies {
   val googleDiffV = "1.3.0"
   val java8CompatV = "0.9.0"
   val jgitV = "5.11.1.202105131744-r"
-  val metaconfigV = "0.9.10" // blocked by https://github.com/scalameta/metaconfig/pull/131
+  val metaconfigFor211V = "0.9.10" // metaconfig stops publishing for scala 2.11
+  val metaconfigV = "0.9.14"
   val nailgunV = "0.9.1"
   val scalaXmlV = "1.3.0"
   val scalametaV = "4.4.20"
@@ -34,7 +35,9 @@ object Dependencies {
   val googleDiff = "com.googlecode.java-diff-utils" % "diffutils" % googleDiffV
   val java8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % java8CompatV
   val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % jgitV
+  val metaconfigFor211 = "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigFor211V
   val metaconfig = "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV
+  val metaconfigDocFor211 = "com.geirsson" %% "metaconfig-docs" % metaconfigFor211V
   val metaconfigDoc = "com.geirsson" %% "metaconfig-docs" % metaconfigV
   val metacp = "org.scalameta" %% "metacp" % scalametaV
   val nailgunServer = "com.martiansoftware" % "nailgun-server" % nailgunV
