@@ -61,6 +61,17 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       "-groups",
       "-implicits"
     )
+    lazy val testDependencies = Def.setting {
+      val xmlLib = if (isScala211.value) scalaXml211 else scalaXml
+      val otherLibs =
+        if (isScala2.value)
+          Seq(
+            bijectionCore,
+            "org.scala-lang" % "scala-reflect" % scalaVersion.value
+          )
+        else Nil
+      xmlLib +: otherLibs
+    }
     lazy val compilerOptions = Def.setting(
       Seq(
         "-target:jvm-1.8",
