@@ -24,7 +24,7 @@ object Dependencies {
   val metaconfigV = "0.9.14"
   val nailgunV = "0.9.1"
   val scalaXmlV = "1.3.0"
-  val scalametaV = "4.4.20"
+  val scalametaV = "4.4.21"
   val scalatestV = "3.0.8" // don't bump, to avoid forcing breaking changes on clients via eviction
 
   val bijectionCore = "com.twitter" %% "bijection-core" % bijectionCoreV
