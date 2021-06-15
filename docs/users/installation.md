@@ -155,7 +155,7 @@ Great! You are all set to use Scalafix with sbt :)
 | `scalafixDependencies` | `SettingKey[Seq[ModuleID]]` | Dependencies making [custom rules](#run-custom-rules) available via their simple name. Must be set in `ThisBuild`. Defaults to `Nil`.
 | `scalafixOnCompile` | `SettingKey[Boolean]` | When `true`, Scalafix rule(s) declared in `scalafixConfig` are run on compilation, applying rewrites and failing on lint errors. Defaults to `false`.
 | `scalafixResolvers` | `SettingKey[Seq[Repository]]` | Custom resolvers where `scalafixDependencies` are resolved from. Must be set in `ThisBuild`. Defaults to: Ivy2 local, Maven Central, Sonatype releases & Sonatype snapshots.
-| `scalafixScalaBinaryVersion` | `SettingKey[String]` | Scala binary version used for Scalafix execution. Defaults to 2.12. For advanced rules such as ExplicitResultTypes to work, it must match the binary version defined in the build for compiling sources. Note that `scalafixDependencies` artifacts must be published against that Scala version.
+| `scalafixScalaBinaryVersion` | `SettingKey[String]` | Scala binary version used for Scalafix execution. Must be set in `ThisBuild`. Defaults to 2.12. For advanced rules such as ExplicitResultTypes to work, it must match the binary version defined in the build for compiling sources. Note that `scalafixDependencies` artifacts must be published against that Scala version.
 
 
 ### Main and test sources
@@ -421,7 +421,7 @@ repository.
 ```sh
 git clone https://github.com/scalacenter/sbt-scalafix-example
 cd sbt-scalafix-example
-sbt "scalafix RemoveUnusedImports"
+sbt "scalafix RemoveUnused"
 git diff // should produce a diff
 ```
 
