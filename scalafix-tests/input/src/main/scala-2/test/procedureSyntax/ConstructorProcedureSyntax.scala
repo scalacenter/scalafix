@@ -1,7 +1,7 @@
 /*
 rules = ProcedureSyntax
  */
-package test
+package test.procedureSyntax
 
 class ConstructorProcedureSyntax(i: Long) {
   def this(a: Int) { this(0L + 1) }

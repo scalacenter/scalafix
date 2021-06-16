@@ -1,20 +1,23 @@
-package test
+/*
+rules = ProcedureSyntax
+*/
+package test.procedureSyntax
 
 object ExplicitUnit {
   trait A {
-    def x: Unit
+    def x
   }
   abstract class B {
-    def x: Unit
+    def x
   }
   trait C {
-    def x: Unit /* comment */
+    def x /* comment */
   }
   trait D {
-    def x(): Unit
+    def x()
   }
   trait E {
-    def x(a: String, b: Boolean): Unit
+    def x(a: String, b: Boolean)
   }
   trait F {
     def x: String // don't touch this
