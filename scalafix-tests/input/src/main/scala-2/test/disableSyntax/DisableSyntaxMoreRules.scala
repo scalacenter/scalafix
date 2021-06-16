@@ -10,14 +10,14 @@ DisableSyntax.noUniversalEquality = true
 DisableSyntax.noUniversalEqualityMessage =
   "== and != are not typesafe, use === and =!= from cats.Eq instead"
 */
-package test
+package test.disableSyntax
 
 object DisableSyntaxMoreRules {
   class Co[+T](t: T) // assert: DisableSyntax.covariant
   class Contra[-T](t: T) // assert: DisableSyntax.contravariant
 
   class Pro[-A,             // assert: DisableSyntax.contravariant
-  +B](a: A, b: B) // assert: DisableSyntax.covariant
+    +B](a: A, b: B) // assert: DisableSyntax.covariant
 
   trait TraitCo[+T]            // assert: DisableSyntax.covariant
   type TypeCo[+T] = TraitCo[T] // assert: DisableSyntax.covariant
@@ -35,12 +35,12 @@ Default args makes it hard to use methods as functions.
     def foobar(a: Int, b: Int = 1) = ??? // assert: DisableSyntax.defaultArgs
 
     def muli(
-      a: Int = 1, // assert: DisableSyntax.defaultArgs
-      b: Int = 2  // assert: DisableSyntax.defaultArgs
-    )(
-      c: Int = 3, // assert: DisableSyntax.defaultArgs
-      d: Int = 4  // assert: DisableSyntax.defaultArgs
-    ) = ???
+              a: Int = 1, // assert: DisableSyntax.defaultArgs
+              b: Int = 2  // assert: DisableSyntax.defaultArgs
+            )(
+              c: Int = 3, // assert: DisableSyntax.defaultArgs
+              d: Int = 4  // assert: DisableSyntax.defaultArgs
+            ) = ???
   }
 
   trait FooTT {
@@ -99,8 +99,8 @@ Default args makes it hard to use methods as functions.
     == and != are not typesafe, use === and =!= from cats.Eq instead
   */
 
- 1 != 2 /* assert: DisableSyntax.!=
-   ^^
+  1 != 2 /* assert: DisableSyntax.!=
+    ^^
     == and != are not typesafe, use === and =!= from cats.Eq instead
   */
 

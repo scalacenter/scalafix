@@ -2,7 +2,7 @@
 rules = DisableSyntax
 DisableSyntax.noFinalVal = true
  */
-package test
+package test.disableSyntax
 
 object DisableSyntaxFinalVal {
   final implicit val a = 1 // assert: DisableSyntax.noFinalVal

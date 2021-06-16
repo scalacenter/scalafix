@@ -3,9 +3,9 @@ rules = DisableSyntax
 
 DisableSyntax.noFinalize = true
 */
-package test
+package test.disableSyntax
 
-case object NoFinalize {
+case object NoFinalize:
 
   class Simple {
     override def finalize(): Unit = () // assert: DisableSyntax.noFinalize
@@ -34,4 +34,3 @@ case object NoFinalize {
     def ok = 1
     def finalize(in: Int): Int = in
   }
-}
