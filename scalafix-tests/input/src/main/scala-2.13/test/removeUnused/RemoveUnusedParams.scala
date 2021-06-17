@@ -1,7 +1,7 @@
 /*
 rule = RemoveUnused
  */
-package test
+package test.removeUnused
 
 object UnusedParams {
   def g(x: String => Unit): Unit = ???

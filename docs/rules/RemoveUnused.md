@@ -20,6 +20,8 @@ To use this rule:
   compiler warnings do not fail the build before running Scalafix. If you are
   running 2.13.2 or later, you may keep `-Xfatal-warnings` by modifying how
   specific warnings are handled via `scalacOptions += "-Wconf:cat=unused:info"`.
+- This rule **can't work** yet on Scala 3 projects since the compiler option `warn-unused`
+  is not yet available in Scala 3
 
 ## Examples
 

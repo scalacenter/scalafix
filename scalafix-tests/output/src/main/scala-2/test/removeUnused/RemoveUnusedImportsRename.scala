@@ -1,4 +1,4 @@
-package test
+package test.removeUnused
 
 package t1 {
   import scala.collection.immutable.{List => IList}

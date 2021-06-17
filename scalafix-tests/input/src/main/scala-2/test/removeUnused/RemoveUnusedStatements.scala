@@ -1,6 +1,7 @@
 /*
-rule = RemoveUnused
+rules = RemoveUnused
 */
+package test.removeUnused
 
 class A {
   private val a = 1

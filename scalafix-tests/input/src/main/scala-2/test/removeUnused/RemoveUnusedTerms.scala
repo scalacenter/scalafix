@@ -1,7 +1,7 @@
 /*
-rule = RemoveUnused
+rules = RemoveUnused
  */
-package test
+package test.removeUnused
 
 object RemoveUnusedTerms {
 

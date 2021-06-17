@@ -64,7 +64,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       else Seq("-Ywarn-adapted-args")
     }
     lazy val maxwarns = Def.setting {
-      if (isScala213.value || isScala212.value) Seq("-Xmaxwarns", "1000")
+      if (isScala213.value || isScala212.value) Seq("-Xmaxwarns", "2000")
       else Nil
     }
     lazy val scaladocOptions = Seq(
