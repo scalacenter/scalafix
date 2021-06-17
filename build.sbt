@@ -135,12 +135,12 @@ lazy val testsInput = project
                          Seq("-P:semanticdb:synthetics:on")
                        else Nil),
     scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
-    scalacOptions += warnAdaptedArgs.value, // For NoAutoTupling
-    scalacOptions += warnUnusedImports.value, // For RemoveUnused
-    scalacOptions += "-Ywarn-unused", // For RemoveUnusedTerms
+    scalacOptions ++= warnAdaptedArgs.value, // For NoAutoTupling
+    scalacOptions ++= warnUnusedImports.value, // For RemoveUnused
+    scalacOptions ++= warnUnused.value, // For RemoveUnusedTerms
     scalacOptions ++= maxwarns.value, // Increase the maximum warnings to print
     logLevel := Level.Error, // avoid flood of compiler warnings
-    libraryDependencies ++= testDependencies.value,
+    libraryDependencies ++= testsDependencies.value,
     coverageEnabled := false
   )
   .disablePlugins(ScalafixPlugin)
@@ -152,8 +152,8 @@ lazy val testsOutput = project
     scalacOptions --= (if (scalaVersion.value.startsWith("3"))
                          Seq("-P:semanticdb:synthetics:on")
                        else Nil),
-    scalacOptions -= warnUnusedImports.value,
-    libraryDependencies ++= testDependencies.value,
+    scalacOptions --= warnUnusedImports.value,
+    libraryDependencies ++= testsDependencies.value,
     coverageEnabled := false
   )
   .disablePlugins(ScalafixPlugin)
