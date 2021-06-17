@@ -3,7 +3,7 @@ rules = DisableSyntax
 DisableSyntax.noIsInstanceOf = true
 DisableSyntax.noAsInstanceOf = true
  */
-package test
+package test.disableSyntax
 
 class DisableSyntaxInstanceOf {
   1.isInstanceOf[Int] // assert: DisableSyntax.isInstanceOf

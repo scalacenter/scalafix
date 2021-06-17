@@ -1,4 +1,7 @@
+import ScalafixBuild.autoImport.isScala2
+import sbt.Keys.scalaVersion
 import sbt._
+
 import scala.util.Try
 
 /* scalafmt: { maxColumn = 120 }*/
@@ -23,7 +26,8 @@ object Dependencies {
   val metaconfigFor211V = "0.9.10" // metaconfig stops publishing for scala 2.11
   val metaconfigV = "0.9.14"
   val nailgunV = "0.9.1"
-  val scalaXmlV = "1.3.0"
+  val scalaXmlV = "2.0.0"
+  val scalaXml211V = "1.3.0" // scala-xml stops publishing for scala 2.11
   val scalametaV = "4.4.21"
   val scalatestV = "3.0.8" // don't bump, to avoid forcing breaking changes on clients via eviction
 
@@ -42,15 +46,11 @@ object Dependencies {
   val metacp = "org.scalameta" %% "metacp" % scalametaV
   val nailgunServer = "com.martiansoftware" % "nailgun-server" % nailgunV
   val scalaXml = "org.scala-lang.modules" %% "scala-xml" % scalaXmlV
+  val scalaXml211 = "org.scala-lang.modules" %% "scala-xml" % scalaXml211V
   val scalameta = "org.scalameta" %% "scalameta" % scalametaV
   val scalametaTeskit = "org.scalameta" %% "testkit" % scalametaV
   val scalatest = "org.scalatest" %% "scalatest" % scalatestV
   val semanticdbScalacCore = "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
-
-  def testsDeps = List(
-    scalaXml,
-    bijectionCore
-  )
 
   private def previousVersions(scalaVersion: String): List[String] = {
     val split = scalaVersion.split('.')

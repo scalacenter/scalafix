@@ -3,7 +3,7 @@ rules = DisableSyntax
 
 DisableSyntax.noFinalize = true
 */
-package test
+package test.disableSyntax
 
 case object NoFinalize {
 
@@ -32,6 +32,7 @@ case object NoFinalize {
 
   class Negative {
     def ok = 1
+
     def finalize(in: Int): Int = in
   }
 }
