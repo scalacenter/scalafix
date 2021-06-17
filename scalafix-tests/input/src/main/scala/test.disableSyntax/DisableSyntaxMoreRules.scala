@@ -11,6 +11,7 @@ DisableSyntax.noUniversalEqualityMessage =
   "== and != are not typesafe, use === and =!= from cats.Eq instead"
 */
 package test.disableSyntax
+import scala.language.implicitConversions
 
 object DisableSyntaxMoreRules {
   class Co[+T](t: T) // assert: DisableSyntax.covariant
@@ -56,16 +57,6 @@ Default args makes it hard to use methods as functions.
     def foobarfoo(x: Int = 42) = 6 // assert: DisableSyntax.defaultArgs
   }
 
-  class Bar { type Foo = Int; def foo = 42 }
-  def foo(a: { type Foo = Int; def foo: Foo } = new Bar): Int = a.foo /* assert: DisableSyntax.defaultArgs
-                                                ^^^^^^^
-Default args makes it hard to use methods as functions.
-*/
-  def foo2(a: { type Foo = Int; def foo: Foo } = {val a = new Bar; a}): Int = a.foo /* assert: DisableSyntax.defaultArgs
-                                                 ^^^^^^^^^^^^^^^^^^^^
-Default args makes it hard to use methods as functions.
-*/
-
   class Buzz(val a: Int = 1) // ok
 
   abstract class AbstractThing {
@@ -87,7 +78,7 @@ Default args makes it hard to use methods as functions.
   implicit object FooImplicit extends Foo {} // assert: DisableSyntax.implicitObject
 
   implicit def toString(a: Any): String = a.toString // assert: DisableSyntax.implicitConversion
-  implicit def toImplicitString(implicit foo: Foo) = foo.toString // ok
+  implicit def toImplicitString(implicit foo: Foo): String = foo.toString // ok
 
   1 == 2 /* assert: DisableSyntax.==
     ^^
@@ -108,6 +99,5 @@ Default args makes it hard to use methods as functions.
     ^^
     == and != are not typesafe, use === and =!= from cats.Eq instead
   */
-
 
 }
