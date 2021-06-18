@@ -2,7 +2,7 @@ package scalafix.v1
 
 import metaconfig.Configured
 
-abstract class Rule(val name: RuleName) {
+abstract class Rule(val name: RuleName) extends InputRequirements {
   override def toString: String = name.toString
 
   /**
@@ -21,7 +21,13 @@ abstract class Rule(val name: RuleName) {
    * @return A new version of this rule with loaded configuration or an error message.
    */
   def withConfiguration(config: Configuration): Configured[Rule] =
-    Configured.ok(this)
+    if (meetRequirements(config.scalaVersion, config.scalacOptions))
+      Configured.ok(this)
+    else Configured.error(messageRequirementNotMet)
+
+  def scalaVersionsRequired: Seq[InputRequirements.ScalaVersion] = Nil
+
+  def scalacOptionsRequired: Seq[InputRequirements.ScalacOption] = Nil
 
   /** If true, allows this rule to be grouped together with other linter rules for documentation purposes. */
   def isLinter: Boolean = false
