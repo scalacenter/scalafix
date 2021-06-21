@@ -1,4 +1,4 @@
-package test
+package test.leakingImplicitClassVal
 
 object LeakingImplicitClassVal {
   implicit class XtensionVal(private val int: Int) extends AnyVal {
