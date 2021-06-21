@@ -68,6 +68,8 @@ both method implementations and abstract declaration.</p>
 <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">main</span></span>(args: <span class="hljs-type">Seq</span>[<span class="hljs-type">String</span>]): <span class="hljs-type">Unit</span> = { println(<span class="hljs-string">"Hello world!"</span>) }
 <span class="hljs-class"><span class="hljs-keyword">trait</span> <span class="hljs-title">A</span> </span>{ <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">doSomething</span></span>: <span class="hljs-type">Unit</span> }
 </code></pre>
+<p>This syntax no longer exists in Scala 3 and therefore this rule only makes sense in Scala 2.
+You need to remove <code>ProcedureSyntax</code> from <code>.scalafix.conf</code> for Scala 3 projects.</p>
 </span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/scalafix/docs/rules/NoValInForComprehension.html"><span class="arrow-prev">← </span><span class="function-name-prevnext">NoValInForComprehension</span></a><a class="docs-next button" href="/scalafix/docs/rules/external-rules.html"><span>Using external rules</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"></nav></div><footer class="nav-footer" id="footer" style="background-color:#15242B"><section class="sitemap"><a href="/scalafix/" class="nav-home"><img src="/scalafix/img/scalacenter2x.png" alt="Scalafix" width="66" height="58"/></a><div><h5>Docs</h5><a href="
                 /scalafix/docs/users/installation.html">Get started</a><a href="
                 /scalafix/docs/rules/overview.html">Rules</a><a href="
