@@ -1,4 +1,4 @@
-package test
+package test.procedureSyntax
 
 object ProcedureSyntax {
   // This is a comment

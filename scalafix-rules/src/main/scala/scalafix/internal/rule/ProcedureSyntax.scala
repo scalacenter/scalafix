@@ -5,13 +5,24 @@ import scala.meta.tokens.Token
 import scala.meta.tokens.Token.Equals
 import scala.meta.tokens.Token.RightParen
 
+import metaconfig.Configured
 import scalafix.util.Trivia
 import scalafix.v1._
 
 class ProcedureSyntax extends SyntacticRule("ProcedureSyntax") {
 
   override def description: String =
-    "Replaces deprecated procedure syntax with explicit ': Unit ='"
+    "Replaces deprecated procedure syntax with explicit ': Unit ='" +
+      "This rule is specific to scala 2, since procedure syntax is not supported in Scala 3"
+
+  override def withConfiguration(config: Configuration): Configured[Rule] = {
+    if (config.scalaVersion.startsWith("3"))
+      Configured.error(
+        "This rule is specific to Scala 2, since procedure syntax is not supported in Scala 3. " +
+          "To fix this error, remove ProcedureSyntax from .scalafix.conf"
+      )
+    else Configured.ok(this)
+  }
 
   override def isRewrite: Boolean = true
 
