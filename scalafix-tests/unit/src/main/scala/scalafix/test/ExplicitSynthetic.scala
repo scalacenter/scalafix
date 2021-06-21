@@ -1,23 +1,10 @@
 package scalafix.test
 
-import metaconfig.Configured
 import scalafix.v1.SemanticRule
 
-class ExplicitSynthetic(insertInfixTypeParam: Boolean)
-    extends SemanticRule("ExplicitSynthetic") {
+class ExplicitSynthetic() extends SemanticRule("ExplicitSynthetic") {
   import scalafix.v1._
   import scala.meta._
-
-  def this() = this(insertInfixTypeParam = true)
-
-  override def withConfiguration(config: Configuration): Configured[Rule] =
-    Configured.ok(
-      new ExplicitSynthetic(
-        // There is a Scala parser bug in 2.11 and below under -Yrangepos
-        // that causes a crash for explicit type parameters on infix operators.
-        insertInfixTypeParam = !config.scalaVersion.startsWith("2.11")
-      )
-    )
 
   override def fix(implicit doc: SemanticDocument): Patch = {
     val patches = doc.tree.collect {
@@ -25,7 +12,7 @@ class ExplicitSynthetic(insertInfixTypeParam: Boolean)
         // happens for explicit "List.apply" because Synthetic.symbol returns Some(symbol)
         // for OriginalTree.
         List()
-      case infix: Term.ApplyInfix if insertInfixTypeParam =>
+      case infix: Term.ApplyInfix =>
         for {
           synthetic <- infix.syntheticOperators.collect {
             case tappl: TypeApplyTree => tappl
