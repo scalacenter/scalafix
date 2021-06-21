@@ -1,7 +1,7 @@
 /*
 rules = LeakingImplicitClassVal
  */
-package test
+package test.leakingImplicitClassVal
 
 object LeakingImplicitClassVal {
   implicit class XtensionVal(val int: Int) extends AnyVal {
