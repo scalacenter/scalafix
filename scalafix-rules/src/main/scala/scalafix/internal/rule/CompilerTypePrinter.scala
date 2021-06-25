@@ -14,14 +14,14 @@ import scalafix.v1
 
 class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
     implicit ctx: v1.SemanticDocument
-) extends TypePrinter {
+) {
   import g._
   private lazy val unit =
     g.newCompilationUnit(ctx.input.text, ctx.input.syntax)
   private val willBeImported = mutable.Map.empty[Name, ShortName]
   private val isInsertedClass = mutable.Set.empty[String]
 
-  override def toPatch(
+  def toPatch(
       pos: m.Position,
       sym: v1.Symbol,
       replace: m.Token,

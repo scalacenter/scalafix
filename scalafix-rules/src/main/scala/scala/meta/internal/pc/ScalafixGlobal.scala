@@ -2,7 +2,6 @@ package scala.meta.internal.pc
 
 import java.io.File
 import java.{util => ju}
-
 import scala.collection.mutable
 import scala.reflect.internal.{Flags => gf}
 import scala.reflect.io.VirtualDirectory
@@ -11,9 +10,9 @@ import scala.tools.nsc.interactive.Global
 import scala.tools.nsc.reporters.StoreReporter
 import scala.util.control.NonFatal
 import scala.{meta => m}
-
 import scala.meta.internal.semanticdb.scalac.SemanticdbOps
 import scala.meta.io.AbsolutePath
+import scala.util.{Failure, Success, Try}
 // used to cross-compile
 import scala.collection.compat._ // scalafix:ok
 
@@ -22,7 +21,7 @@ object ScalafixGlobal {
       cp: List[AbsolutePath],
       options: List[String],
       symbolReplacements: Map[String, String]
-  ): ScalafixGlobal = {
+  ): Try[ScalafixGlobal] = {
     val classpath = cp.mkString(File.pathSeparator)
     val vd = new VirtualDirectory("(memory)", None)
     val settings = new Settings
@@ -35,9 +34,19 @@ object ScalafixGlobal {
     }
     val (isSuccess, unprocessed) =
       settings.processArguments(options, processAll = true)
-    require(isSuccess, unprocessed)
-    require(unprocessed.isEmpty, unprocessed)
-    new ScalafixGlobal(settings, new StoreReporter(), symbolReplacements)
+    (isSuccess, unprocessed) match {
+      case (true, Nil) =>
+        Try(
+          new ScalafixGlobal(settings, new StoreReporter(), symbolReplacements)
+        )
+      case (isSuccess, unprocessed) =>
+        Failure(
+          new Exception(
+            s"newGlobal failed while processing Arguments. " +
+              s"Status is $isSuccess, unprocessed arguments are $unprocessed"
+          )
+        )
+    }
   }
 }
 

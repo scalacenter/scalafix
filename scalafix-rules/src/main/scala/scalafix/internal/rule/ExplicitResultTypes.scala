@@ -55,7 +55,7 @@ final class ExplicitResultTypes(
       if (config.scalacClasspath.isEmpty) {
         LazyValue.now(None)
       } else {
-        LazyValue.fromUnsafe { () =>
+        LazyValue.from { () =>
           ScalafixGlobal.newCompiler(
             config.scalacClasspath,
             config.scalacOptions,
@@ -92,35 +92,32 @@ final class ExplicitResultTypes(
     }
   }
 
-  override def fix(implicit ctx: SemanticDocument): Patch = {
+  override def fix(implicit ctx: SemanticDocument): Patch =
     try unsafeFix()
     catch {
-      case _: CompilerException =>
-        shutdownCompiler()
-        global.restart()
-        try unsafeFix()
-        catch {
-          case _: CompilerException if !config.fatalWarnings =>
-            // Ignore compiler crashes unless `fatalWarnings = true`.
-            Patch.empty
-        }
+      case _: CompilerException if !config.fatalWarnings =>
+        Patch.empty
     }
-  }
+
   def unsafeFix()(implicit ctx: SemanticDocument): Patch = {
-    lazy val types = TypePrinter(global.value, config)
-    ctx.tree.collect {
-      case t @ Defn.Val(mods, Pat.Var(name) :: Nil, None, body)
-          if isRuleCandidate(t, name, mods, body) =>
-        fixDefinition(t, body, types)
+    global.value match {
+      case Some(value) =>
+        val types = new CompilerTypePrinter(value, config)
+        ctx.tree.collect {
+          case t @ Defn.Val(mods, Pat.Var(name) :: Nil, None, body)
+              if isRuleCandidate(t, name, mods, body) =>
+            fixDefinition(t, body, types)
 
-      case t @ Defn.Var(mods, Pat.Var(name) :: Nil, None, Some(body))
-          if isRuleCandidate(t, name, mods, body) =>
-        fixDefinition(t, body, types)
+          case t @ Defn.Var(mods, Pat.Var(name) :: Nil, None, Some(body))
+              if isRuleCandidate(t, name, mods, body) =>
+            fixDefinition(t, body, types)
 
-      case t @ Defn.Def(mods, name, _, _, None, body)
-          if isRuleCandidate(t, name, mods, body) =>
-        fixDefinition(t, body, types)
-    }.asPatch
+          case t @ Defn.Def(mods, name, _, _, None, body)
+              if isRuleCandidate(t, name, mods, body) =>
+            fixDefinition(t, body, types)
+        }.asPatch
+      case None => Patch.empty
+    }
   }
 
   // Don't explicitly annotate vals when the right-hand body is a single call
@@ -195,8 +192,13 @@ final class ExplicitResultTypes(
     }
   }
 
-  def defnType(defn: Defn, replace: Token, space: String, types: TypePrinter)(
-      implicit ctx: SemanticDocument
+  def defnType(
+      defn: Defn,
+      replace: Token,
+      space: String,
+      types: CompilerTypePrinter
+  )(implicit
+      ctx: SemanticDocument
   ): Option[Patch] =
     for {
       name <- defnName(defn)
@@ -204,7 +206,7 @@ final class ExplicitResultTypes(
       patch <- types.toPatch(name.pos, defnSymbol, replace, defn, space)
     } yield patch
 
-  def fixDefinition(defn: Defn, body: Term, types: TypePrinter)(implicit
+  def fixDefinition(defn: Defn, body: Term, types: CompilerTypePrinter)(implicit
       ctx: SemanticDocument
   ): Patch = {
     val lst = ctx.tokenList
