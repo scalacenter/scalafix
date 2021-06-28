@@ -31,5 +31,6 @@ object RuleSuite {
   }
 }
 class RuleSuite extends AbstractSemanticRuleSuite with AnyFunSuiteLike {
-  runAllTests()
+//  runAllTests()
+  runSpecificTests("scala3NewSyntax")
 }
