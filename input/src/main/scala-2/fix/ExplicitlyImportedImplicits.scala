@@ -1,5 +1,6 @@
 /*
 rules = [OrganizeImports]
+OrganizeImports.removeUnused = false
 OrganizeImports.groupExplicitlyImportedImplicitsSeparately = true
  */
 package fix

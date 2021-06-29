@@ -1,5 +1,6 @@
 /*
 rules = [OrganizeImports]
+
 OrganizeImports {
   blankLines = Manual
   groups = [
@@ -8,6 +9,7 @@ OrganizeImports {
     "---"
     "*"
   ]
+  removeUnused = false
 }
  */
 package fix

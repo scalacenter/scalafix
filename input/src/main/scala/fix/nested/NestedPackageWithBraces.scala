@@ -1,4 +1,7 @@
-/* rules = [OrganizeImports] */
+/*
+rules = [OrganizeImports]
+OrganizeImports.removeUnused = false
+ */
 package fix {
   package nested {
     import java.time.Clock

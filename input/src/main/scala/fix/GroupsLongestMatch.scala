@@ -1,5 +1,6 @@
 /*
 rules = [OrganizeImports]
+OrganizeImports.removeUnused = false
 OrganizeImports.groups = ["re:javax?\\.", "scala.", "scala.util.", "*"]
  */
 package fix

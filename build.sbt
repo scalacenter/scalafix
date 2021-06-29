@@ -1,5 +1,8 @@
 lazy val v = _root_.scalafix.sbt.BuildInfo
 
+lazy val rulesCrossVersions = Seq(v.scala213, v.scala212, v.scala211)
+lazy val scala3Version = "3.0.0"
+
 inThisBuild(
   List(
     organization := "com.github.liancheng",
@@ -13,52 +16,76 @@ inThisBuild(
         url("https://github.com/liancheng")
       )
     ),
-    scalaVersion := v.scala212,
-    crossScalaVersions := List(v.scala211, v.scala212, v.scala213),
     scalacOptions ++= List(
-      "-deprecation",
-      "-Yrangepos",
-      "-P:semanticdb:synthetics:on"
+      "-deprecation"
     ),
-    conflictManager := ConflictManager.strict,
-    dependencyOverrides ++= List(
-      "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
-      "org.slf4j" % "slf4j-api" % "1.7.25",
-      "com.lihaoyi" %% "sourcecode" % "0.2.1",
-      "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.6"
-    ),
-    addCompilerPlugin(scalafixSemanticdb),
+    semanticdbEnabled := true,
+    // semanticdbTargetRoot makes it hard to have several input modules
+    semanticdbIncludeInJar := true,
+    semanticdbVersion := scalafixSemanticdb.revision,
     scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0",
     // Super shell output often messes up Scalafix test output.
     useSuperShell := false
   )
 )
 
-skip in publish := true
-
-lazy val rules = project
+lazy val `scalafix-organize-imports` = project
+  .in(file("."))
+  .aggregate(
+    rules.projectRefs ++
+      input.projectRefs ++
+      output.projectRefs ++
+      tests.projectRefs: _*
+  )
+  .settings(
+    publish / skip := true
+  )
+lazy val rules = projectMatrix
   .settings(
     moduleName := "organize-imports",
-    dependencyOverrides += "com.lihaoyi" %% "sourcecode" % "0.2.1",
+    conflictManager := ConflictManager.strict,
+    dependencyOverrides ++= List(
+      "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.6",
+      "com.lihaoyi" %% "sourcecode" % "0.2.1"
+    ),
     libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % v.scalafixVersion,
     scalacOptions ++= List("-Ywarn-unused"),
     scalafixOnCompile := true
   )
+  .defaultAxes(VirtualAxis.jvm)
+  .jvmPlatform(rulesCrossVersions)
 
-lazy val shared = project.settings(skip in publish := true)
+lazy val shared = projectMatrix
+  .settings(
+    publish / skip := true,
+    coverageEnabled := false
+  )
+  .defaultAxes(VirtualAxis.jvm)
+  .jvmPlatform(scalaVersions = rulesCrossVersions :+ scala3Version)
 
-lazy val input = project
-  .dependsOn(shared)
-  .settings(skip in publish := true)
-
-lazy val output = project
-  .dependsOn(shared)
-  .settings(skip in publish := true)
-
-lazy val inputUnusedImports = project
+lazy val input = projectMatrix
   .dependsOn(shared)
   .settings(
-    skip in publish := true,
+    publish / skip := true,
+    coverageEnabled := false
+  )
+  .defaultAxes(VirtualAxis.jvm)
+  .jvmPlatform(scalaVersions = rulesCrossVersions :+ scala3Version)
+
+lazy val output = projectMatrix
+  .dependsOn(shared)
+  .settings(
+    publish / skip := true,
+    coverageEnabled := false
+  )
+  .defaultAxes(VirtualAxis.jvm)
+  .jvmPlatform(scalaVersions = rulesCrossVersions :+ scala3Version)
+
+lazy val inputUnusedImports = projectMatrix
+  .dependsOn(shared)
+  .settings(
+    publish / skip := true,
+    coverageEnabled := false,
     scalacOptions += {
       if (scalaVersion.value.startsWith("2.11."))
         "-Ywarn-unused-import"
@@ -66,28 +93,69 @@ lazy val inputUnusedImports = project
         "-Ywarn-unused"
     }
   )
+  .defaultAxes(VirtualAxis.jvm)
+  .jvmPlatform(scalaVersions = rulesCrossVersions :+ scala3Version)
 
-lazy val tests = project
+lazy val testsAggregate = Project("tests", file("target/testsAggregate"))
+  .aggregate(tests.projectRefs: _*)
+
+lazy val tests = projectMatrix
   .dependsOn(rules)
   .enablePlugins(ScalafixTestkitPlugin)
   .settings(
-    skip in publish := true,
-    scalacOptions ++= List("-Ywarn-unused"),
+    publish / skip := true,
+    coverageEnabled := false,
     libraryDependencies +=
       "ch.epfl.scala" % "scalafix-testkit" % v.scalafixVersion % Test cross CrossVersion.full,
-    (compile in Compile) := (compile in Compile)
-      .dependsOn(
-        compile in (input, Compile),
-        compile in (inputUnusedImports, Compile)
-      )
-      .value,
-    scalafixTestkitOutputSourceDirectories := sourceDirectories.in(output, Compile).value,
-    scalafixTestkitInputSourceDirectories := (
-      sourceDirectories.in(input, Compile).value ++
-        sourceDirectories.in(inputUnusedImports, Compile).value
-    ),
-    scalafixTestkitInputClasspath := (
-      fullClasspath.in(input, Compile).value ++
-        fullClasspath.in(inputUnusedImports, Compile).value
-    ).distinct
+    scalafixTestkitOutputSourceDirectories :=
+      TargetAxis.resolve(output, Compile / unmanagedSourceDirectories).value,
+    scalafixTestkitInputSourceDirectories := {
+      val inputSrc = TargetAxis.resolve(
+        input,
+        Compile / unmanagedSourceDirectories
+      ).value
+      val inputUnusedImportsSrc = TargetAxis.resolve(
+        inputUnusedImports,
+        Compile / unmanagedSourceDirectories
+      ).value
+      inputSrc ++ inputUnusedImportsSrc
+    },
+    scalafixTestkitInputClasspath := {
+      val inputClasspath = TargetAxis.resolve(
+        input,
+        Compile / fullClasspath
+      ).value
+      val inputUnusedImportsClasspath = TargetAxis.resolve(
+        inputUnusedImports,
+        Compile / fullClasspath
+      ).value
+      inputClasspath ++ inputUnusedImportsClasspath
+    },
+    scalafixTestkitInputScalacOptions :=
+      TargetAxis.resolve(inputUnusedImports, Compile / scalacOptions).value,
+    scalafixTestkitInputScalaVersion :=
+      TargetAxis.resolve(inputUnusedImports, Compile / scalaVersion).value
+  )
+  .defaultAxes(
+    rulesCrossVersions.map(VirtualAxis.scalaABIVersion) :+ VirtualAxis.jvm: _*
+  )
+  .customRow(
+    scalaVersions = Seq(v.scala212),
+    axisValues = Seq(TargetAxis(scala3Version), VirtualAxis.jvm),
+    settings = Seq()
+  )
+  .customRow(
+    scalaVersions = Seq(v.scala213),
+    axisValues = Seq(TargetAxis(v.scala213), VirtualAxis.jvm),
+    settings = Seq()
+  )
+  .customRow(
+    scalaVersions = Seq(v.scala212),
+    axisValues = Seq(TargetAxis(v.scala212), VirtualAxis.jvm),
+    settings = Seq()
+  )
+  .customRow(
+    scalaVersions = Seq(v.scala211),
+    axisValues = Seq(TargetAxis(v.scala211), VirtualAxis.jvm),
+    settings = Seq()
   )

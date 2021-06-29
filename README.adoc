@@ -81,6 +81,18 @@ Assuming that the first two commands run successfully, the last `scalafixAll --c
 
 However, you should make sure that the source-formatting tools you use do not rewrite import statements in ways that conflict with `OrganizeImports`. For example, when using Scalafmt together with `OrganizeImports`, the `ExpandImportSelectors`, `SortImports`, and `AsciiSortImports` rewriting rules should not be used.
 
+=== Scala 3
+
+Running the rule on source files compiled with Scala 3 is still experimental.
+
+Known limitations:
+
+. You must use Scalafix 0.9.28 or later
+. The <<removeUnused, `removeUnused`>> option must be explicitly set to `false`
+. Source files using new syntax introduced in Scala 3 such as https://docs.scala-lang.org/scala3/book/ca-given-imports.html[`given` imports] may not work properly 
+. Usage of http://dotty.epfl.ch/docs/reference/dropped-features/package-objects.html[deprecated package objects] may result in incorrect imports
+. The <<groupExplicitlyImportedImplicitsSeparately, groupExplicitlyImportedImplicitsSeparately>> option has no effect
+
 == Configuration
 
 === Default Configuration values
@@ -444,6 +456,13 @@ Unfortunately, Scalafix is not able to surgically identify conflicting implicit 
 
 CAUTION: In general, order-sensitive imports are fragile, and can easily be broken by either human collaborators or tools (e.g., the IntelliJ IDEA Scala import optimizer does not handle this case correctly). They should be eliminated whenever possible. This option is mostly useful when you are dealing with a large trunk of legacy codebase, and you want to minimize manual intervention and guarantee correctness in all cases.
 
+
+[IMPORTANT]
+====
+The `groupExplicitlyImportedImplicitsSeparately` option has currently no effect on source files compiled with Scala 3, as the https://github.com/lampepfl/dotty/issues/12766[compiler does not expose full signature information], preventing the rule to identify imported implicits.
+====
+
+
 ==== Value type
 
 Boolean
@@ -472,7 +491,7 @@ Configuration:
 ----
 OrganizeImports {
   groups = ["scala.", "*"]
-  groupExplicitlyImportedImplicitsSeparately = true
+  groupExplicitlyImportedImplicitsSeparately = true // not supported in Scala 3
 }
 ----
 
@@ -1319,6 +1338,11 @@ Remove unused imports.
 As mentioned in <<remove-unused-warning, a previous section>>, the `removeUnused` option doesn't play perfectly with the `expandRelative` option. Setting `expandRelative` to `true` might introduce new unused imports (see <<expandRelative, `expandRelative`>>). These newly introduced unused imports cannot be removed by setting `removeUnused` to `true`. This is because unused imports are identified using Scala compilation diagnostics information, and the compilation phase happens before Scalafix rules get applied.
 ====
 
+[IMPORTANT]
+====
+The `removeUnused` option is currently not supported for source files compiled with Scala 3, as the https://docs.scala-lang.org/scala3/guides/migration/options-lookup.html#warning-settings[compiler cannot issue warnings for unused imports yet]. As a result, you must set `removeUnused` to `false` when running the rule on source files compiled with Scala 3.
+====
+
 ==== Value type
 
 Boolean
@@ -1335,7 +1359,7 @@ Configuration:
 ----
 OrganizeImports {
   groups = ["javax?\\.", "scala.", "*"]
-  removeUnused = true
+  removeUnused = true // not supported in Scala 3
 }
 ----
 

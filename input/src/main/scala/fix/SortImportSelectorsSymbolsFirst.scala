@@ -3,6 +3,7 @@ rules = [OrganizeImports]
 OrganizeImports {
   importSelectorsOrder = SymbolsFirst
   groupedImports = Keep
+  removeUnused = false
 }
  */
 package fix

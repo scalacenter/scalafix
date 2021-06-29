@@ -3,6 +3,7 @@ rules = [OrganizeImports]
 OrganizeImports {
   groupedImports = Keep
   coalesceToWildcardImportThreshold = 3
+  removeUnused = false
 }
  */
 package fix

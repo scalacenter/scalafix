@@ -60,7 +60,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     config.conf
       .getOrElse("OrganizeImports")(OrganizeImportsConfig())
       .andThen(patchPreset(_, config.conf))
-      .andThen(checkScalacOptions(_, config.scalacOptions))
+      .andThen(checkScalacOptions(_, config.scalacOptions, config.scalaVersion))
 
   override def fix(implicit doc: SemanticDocument): Patch = {
     unusedImporteePositions ++= doc.diagnostics.collect {
@@ -181,6 +181,9 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   )(implicit doc: SemanticDocument): (Seq[Importer], Seq[Importer]) = {
     val (implicits, implicitPositions) = importers.flatMap {
       case importer @ Importer(_, importees) =>
+        importees.foreach { i =>
+          println(i.symbol.info)
+        }
         importees collect {
           case i: Importee.Name if i.symbol.infoNoThrow exists (_.isImplicit) =>
             importer.copy(importees = i :: Nil) -> i.pos
@@ -614,9 +617,12 @@ object OrganizeImports {
 
   private def checkScalacOptions(
     conf: OrganizeImportsConfig,
-    scalacOptions: List[String]
+    scalacOptions: List[String],
+    scalaVersion: String
   ): Configured[Rule] = {
-    val hasWarnUnused = {
+    val hasCompilerSupport = scalaVersion.startsWith("2")
+
+    val hasWarnUnused = hasCompilerSupport && {
       val warnUnusedPrefix = Set("-Wunused", "-Ywarn-unused")
       val warnUnusedString = Set("-Xlint", "-Xlint:unused")
       scalacOptions exists { option =>
@@ -626,12 +632,19 @@ object OrganizeImports {
 
     if (!conf.removeUnused || hasWarnUnused)
       Configured.ok(new OrganizeImports(conf))
-    else
+    else if (hasCompilerSupport)
       Configured.error(
         "The Scala compiler option \"-Ywarn-unused\" is required to use OrganizeImports with"
           + " \"OrganizeImports.removeUnused\" set to true. To fix this problem, update your"
           + " build to use at least one Scala compiler option like -Ywarn-unused-import (2.11"
           + " only), -Ywarn-unused, -Xlint:unused (2.12.2 or above) or -Wunused (2.13 only)."
+      )
+    else
+      Configured.error(
+        "\"OrganizeImports.removeUnused\" is not supported on Scala 3 as the compiler is"
+          + " not providing enough information. Run the rule with"
+          + " \"OrganizeImports.removeUnused\" set to false to organize imports while keeping"
+          + " potentially unused imports."
       )
   }
 

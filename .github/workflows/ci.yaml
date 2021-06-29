@@ -10,9 +10,9 @@ jobs:
       - uses: olafurpg/setup-scala@v11
       - uses: coursier/cache-action@v6
       - name: Lint
-        run: sbt scalafmtCheckAll "rules/scalafix --check"
+        run: sbt scalafmtCheckAll "rules2_12/scalafix --check"
       - name: Test
-        run: sbt coverage +tests/test +rules/coverageReport
+        run: sbt coverage tests/test coverageAggregate
       - uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
