@@ -191,15 +191,15 @@ semantic rules.
 +        _root_.scalafix.sbt.BuildInfo.scalafixVersion %
 +        Test cross CrossVersion.full,
 +    scalafixTestkitOutputSourceDirectories :=
-+      sourceDirectories.in(`scalafix-output`, Compile).value,
++      (`scalafix-output` / Compile / sourceDirectories).value,
 +    scalafixTestkitInputSourceDirectories :=
-+      sourceDirectories.in(`scalafix-input`, Compile).value,
++      (`scalafix-input` / Compile / sourceDirectories).value,
 +    scalafixTestkitInputClasspath :=
-+      fullClasspath.in(`scalafix-input`, Compile).value,
++      (`scalafix-input` / Compile / fullClasspath).value,
 +    scalafixTestkitInputScalacOptions :=
-+      scalacOptions.in(`scalafix-input`, Compile).value,
++      (`scalafix-input` / Compile / scalacOptions).value,
 +    scalafixTestkitInputScalaVersion :=
-+      scalaVersion.in(`scalafix-input`, Compile).value
++      (`scalafix-input` / Compile / scalaVersion).value
 +  )
 +  .dependsOn(`scalafix-input`, `scalafix-rules`)
 +  .enablePlugins(ScalafixTestkitPlugin)
