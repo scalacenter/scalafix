@@ -93,8 +93,11 @@ final class ExplicitResultTypes(
   }
 
   override def fix(implicit ctx: SemanticDocument): Patch = {
-    try unsafeFix()
-    catch {
+    try {
+      if (ctx.scalaVersion.isScala3) {
+        Patch.empty
+      } else unsafeFix()
+    } catch {
       case _: CompilerException =>
         shutdownCompiler()
         global.restart()

@@ -1,11 +1,12 @@
 package scalafix.v1
 
+import scalafix.internal.config.ScalaVersion
+
 import scala.meta._
 import scala.meta.contrib.AssociatedComments
 import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
 import scala.meta.io.RelativePath
-
 import scalafix.internal.v1._
 import scalafix.util.MatchingParens
 import scalafix.util.TokenList
@@ -33,6 +34,8 @@ final class SemanticDocument private[scalafix] (
     internal.messages
   def synthetics: Iterator[SemanticTree] =
     internal.synthetics
+
+  def scalaVersion: ScalaVersion = internal.config.scalaVersion
 
   override def info(symbol: Symbol): Option[SymbolInformation] =
     internal.info(symbol)

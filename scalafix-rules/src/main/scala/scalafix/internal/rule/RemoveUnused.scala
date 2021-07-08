@@ -49,80 +49,83 @@ class RemoveUnused(config: RemoveUnusedConfig)
   }
 
   override def fix(implicit doc: SemanticDocument): Patch = {
-    val isUnusedTerm = mutable.Set.empty[Position]
-    val isUnusedImport = mutable.Set.empty[Position]
-    val isUnusedPattern = mutable.Set.empty[Position]
+    if (doc.scalaVersion.isScala3) Patch.empty
+    else {
+      val isUnusedTerm = mutable.Set.empty[Position]
+      val isUnusedImport = mutable.Set.empty[Position]
+      val isUnusedPattern = mutable.Set.empty[Position]
 
-    val unusedPatterExpr =
-      raw"^pattern var .* in (value|method) .* is never used".r
+      val unusedPatterExpr =
+        raw"^pattern var .* in (value|method) .* is never used".r
 
-    doc.diagnostics.foreach { diagnostic =>
-      if (config.imports && diagnostic.message == "Unused import") {
-        isUnusedImport += diagnostic.position
-      } else if (
-        config.privates &&
-        diagnostic.message.startsWith("private") &&
-        diagnostic.message.endsWith("is never used")
-      ) {
-        isUnusedTerm += diagnostic.position
-      } else if (
-        config.locals &&
-        diagnostic.message.startsWith("local") &&
-        diagnostic.message.endsWith("is never used")
-      ) {
-        isUnusedTerm += diagnostic.position
-      } else if (
-        config.patternvars &&
-        unusedPatterExpr.findFirstMatchIn(diagnostic.message).isDefined
-      ) {
-        isUnusedPattern += diagnostic.position
+      doc.diagnostics.foreach { diagnostic =>
+        if (config.imports && diagnostic.message == "Unused import") {
+          isUnusedImport += diagnostic.position
+        } else if (
+          config.privates &&
+            diagnostic.message.startsWith("private") &&
+            diagnostic.message.endsWith("is never used")
+        ) {
+          isUnusedTerm += diagnostic.position
+        } else if (
+          config.locals &&
+            diagnostic.message.startsWith("local") &&
+            diagnostic.message.endsWith("is never used")
+        ) {
+          isUnusedTerm += diagnostic.position
+        } else if (
+          config.patternvars &&
+            unusedPatterExpr.findFirstMatchIn(diagnostic.message).isDefined
+        ) {
+          isUnusedPattern += diagnostic.position
+        }
       }
-    }
 
-    if (
-      isUnusedImport.isEmpty && isUnusedTerm.isEmpty && isUnusedPattern.isEmpty
-    ) {
-      // Optimization: don't traverse if there are no diagnostics to act on.
-      Patch.empty
-    } else {
-      doc.tree.collect {
-        case Importer(_, importees)
+      if (
+        isUnusedImport.isEmpty && isUnusedTerm.isEmpty && isUnusedPattern.isEmpty
+      ) {
+        // Optimization: don't traverse if there are no diagnostics to act on.
+        Patch.empty
+      } else {
+        doc.tree.collect {
+          case Importer(_, importees)
             if importees.forall(_.is[Importee.Unimport]) =>
-          importees.map(Patch.removeImportee).asPatch
-        case Importer(_, importees) =>
-          val hasUsedWildcard = importees.exists {
-            case i: Importee.Wildcard => !isUnusedImport(importPosition(i))
-            case _ => false
-          }
-          importees.collect {
-            case i @ Importee.Rename(_, to)
+            importees.map(Patch.removeImportee).asPatch
+          case Importer(_, importees) =>
+            val hasUsedWildcard = importees.exists {
+              case i: Importee.Wildcard => !isUnusedImport(importPosition(i))
+              case _ => false
+            }
+            importees.collect {
+              case i@Importee.Rename(_, to)
                 if isUnusedImport(importPosition(i)) && hasUsedWildcard =>
-              // Unimport the identifier instead of removing the importee since
-              // unused renamed may still impact compilation by shadowing an identifier.
-              // See https://github.com/scalacenter/scalafix/issues/614
-              Patch.replaceTree(to, "_").atomic
-            case i if isUnusedImport(importPosition(i)) =>
-              Patch.removeImportee(i).atomic
-          }.asPatch
-        case i: Defn if isUnusedTerm(i.pos) =>
-          defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
-        case i @ Defn.Val(_, List(pat), _, _)
+                // Unimport the identifier instead of removing the importee since
+                // unused renamed may still impact compilation by shadowing an identifier.
+                // See https://github.com/scalacenter/scalafix/issues/614
+                Patch.replaceTree(to, "_").atomic
+              case i if isUnusedImport(importPosition(i)) =>
+                Patch.removeImportee(i).atomic
+            }.asPatch
+          case i: Defn if isUnusedTerm(i.pos) =>
+            defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
+          case i@Defn.Val(_, List(pat), _, _)
             if isUnusedTerm.exists(p => p.start == pat.pos.start) =>
-          defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
-        case i @ Defn.Var(_, List(pat), _, _)
+            defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
+          case i@Defn.Var(_, List(pat), _, _)
             if isUnusedTerm.exists(p => p.start == pat.pos.start) =>
-          defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
-        case Term.Match(_, cases) =>
-          val vars =
-            cases
-              .map { case Case(extract, _, _) => extract }
-              .flatMap(_.collect { case v: Pat.Var => v })
-          vars
-            .filter(v => isUnusedPattern(v.pos))
-            .map(v => Patch.replaceTree(v, "_"))
-            .asPatch
-            .atomic
-      }.asPatch
+            defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
+          case Term.Match(_, cases) =>
+            val vars =
+              cases
+                .map { case Case(extract, _, _) => extract }
+                .flatMap(_.collect { case v: Pat.Var => v })
+            vars
+              .filter(v => isUnusedPattern(v.pos))
+              .map(v => Patch.replaceTree(v, "_"))
+              .asPatch
+              .atomic
+        }.asPatch
+      }
     }
   }
 

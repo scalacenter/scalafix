@@ -26,6 +26,7 @@ final class SyntacticDocument private[scalafix] (
   def comments: AssociatedComments = internal.comments.value
   def matchingParens: MatchingParens = internal.matchingParens.value
   def tokenList: TokenList = internal.tokenList.value
+  def scalaVersion: ScalaVersion = internal.config.scalaVersion
   override def toString: String = s"SyntacticDocument(${input.syntax})"
 }
 
