@@ -56,4 +56,16 @@ object Unusedmatchargs {
         }
       }
   }
+
+  def pf(x: PartialFunction[Any, Unit]): Unit = ???
+  case class A(a: Int)
+  pf{
+    case string: String => ???
+    case (i: Int) => ???
+    case (a: Int, b) => println(b)
+    case a@A(v) => ???
+    case x :: (y1, y2) :: Nil => println(x)
+    case (zz) => ???
+  }
+  try ??? catch {case e: Exception => ???}
 }
