@@ -5,8 +5,8 @@ import scala.collection.mutable
 import scala.meta._
 
 import metaconfig.Configured
-import scalafix.v1._
 import scalafix.util.Trivia
+import scalafix.v1._
 
 class RemoveUnused(config: RemoveUnusedConfig)
     extends SemanticRule(
