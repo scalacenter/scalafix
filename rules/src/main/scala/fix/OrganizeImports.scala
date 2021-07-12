@@ -331,7 +331,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
       case group @ Importer(ref, _) :: _ =>
         val importeeLists = group map (_.importees)
-        val hasWildcard = importeeLists exists HasWildcard.unapply
+        val hasWildcard = group exists (_.hasWildcard)
 
         // Collects the last set of unimports with a wildcard, if any. It cancels all previous
         // unimports. E.g.:
@@ -818,12 +818,6 @@ object OrganizeImports {
     }
   }
 
-  object HasWildcard {
-    def unapply(importees: Seq[Importee]): Boolean = importees match {
-      case Importees(_, _, unimports, wildcard) => unimports.isEmpty && wildcard.nonEmpty
-    }
-  }
-
   implicit private class SymbolExtension(symbol: Symbol) {
 
     /**
@@ -858,6 +852,11 @@ object OrganizeImports {
       if (filtered.length == importer.importees.length) Some(importer)
       else if (filtered.isEmpty) None
       else Some(importer.copy(importees = filtered))
+    }
+
+    /** Returns true if the `Importer` contains a standalone wildcard. */
+    def hasWildcard: Boolean = importer.importees match {
+      case Importees(_, _, unimports, wildcard) => unimports.isEmpty && wildcard.nonEmpty
     }
   }
 }
