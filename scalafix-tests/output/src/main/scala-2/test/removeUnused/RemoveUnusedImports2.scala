@@ -1,4 +1,4 @@
-package test
+package test.removeUnused
 
 import scala.sys.process.FileProcessLogger
 import scala.math.{

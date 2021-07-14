@@ -1,4 +1,4 @@
-package test
+package test.removeUnused
 
 object RemoveUnusedTerms {
 

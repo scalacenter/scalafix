@@ -1,7 +1,7 @@
 /*
-rule = RemoveUnused
+rules = RemoveUnused
  */
-package test
+package test.removeUnused
 
 import scala.util.control.NonFatal
 import scala.concurrent.Future

@@ -1,4 +1,4 @@
-package test
+package test.removeUnused
 
 import Unused.b, Unused.d
 import scala.util.Failure

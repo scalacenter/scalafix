@@ -1,3 +1,5 @@
+package test.removeUnused
+
 class A {
   
   

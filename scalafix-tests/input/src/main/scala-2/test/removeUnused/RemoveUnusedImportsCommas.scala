@@ -1,7 +1,7 @@
 /*
-rule = RemoveUnused
+rules = RemoveUnused
  */
-package test
+package test.removeUnused
 
 import Unused.b, Unused.c, Unused.d
 import scala.util.Success  , scala.util.Failure
