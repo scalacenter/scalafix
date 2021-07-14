@@ -15,7 +15,9 @@ case class RemoveUnusedConfig(
     @Description(
       "Remove unused pattern match variables (compatible with Scala 2.12 and 2.13)"
     )
-    patternvars: Boolean = true
+    patternvars: Boolean = true,
+    @Description("Remove unused parameters")
+    params: Boolean = true
 )
 
 object RemoveUnusedConfig {

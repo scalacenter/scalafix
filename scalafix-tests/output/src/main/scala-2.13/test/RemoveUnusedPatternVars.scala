@@ -54,6 +54,18 @@ object ob {
       }
   }
 
+  def pf(x: PartialFunction[Any, Unit]): Unit = ???
+  case class A(a: Int)
+  pf{
+    case _: String => ???
+    case (_: Int) => ???
+    case (_: Int, b) => println(b)
+    case A(_) => ???
+    case x :: (_, _) :: Nil => println(x)
+    case _ => ???
+  }
+  try ??? catch {case _: Exception => ???}
+
   def a: Unit = {
     example match {
       case AB(_, _) => println("Not used, good")
