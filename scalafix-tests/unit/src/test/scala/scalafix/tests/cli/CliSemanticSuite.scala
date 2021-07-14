@@ -256,7 +256,7 @@ class CliSemanticSuite extends BaseCliSuite {
       "--scalaVersion",
       "3.0.0-RC3"
     ),
-    expectedExit = ExitStatus.Ok
+    expectedExit = ExitStatus.CommandLineError
   )
 
 }

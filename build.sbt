@@ -138,7 +138,6 @@ lazy val testsInput = project
     scalacOptions ++= warnAdaptedArgs.value, // For NoAutoTupling
     scalacOptions ++= warnUnusedImports.value, // For RemoveUnused
     scalacOptions ++= warnUnused.value, // For RemoveUnusedTerms
-    scalacOptions ++= maxwarns.value, // Increase the maximum warnings to print
     logLevel := Level.Error, // avoid flood of compiler warnings
     libraryDependencies ++= testsDependencies.value,
     coverageEnabled := false
