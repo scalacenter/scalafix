@@ -36,13 +36,16 @@ class RemoveUnused(config: RemoveUnusedConfig)
       warnUnusedPrefix.exists(prefix => option.startsWith(prefix)) ||
         warnUnusedString.contains(option)
     )
-    if (!hasWarnUnused) {
+    if (config.scalaVersion.startsWith("3"))
+      Configured.error(
+        "This rule is specific to Scala 2, because the compiler option `-Ywarn-unused` is not available yet in scala 3 " +
+          "To fix this error, remove RemoveUnused from .scalafix.conf"
+      )
+    else if (!hasWarnUnused) {
       Configured.error(
         s"""|The Scala compiler option "-Ywarn-unused" is required to use RemoveUnused.
           |To fix this problem, update your build to use at least one Scala compiler
-          |option like -Ywarn-unused, -Xlint:unused (2.12.2 or above), or -Wunused (2.13 only)
-          |The compiler option `warn-unused` is not available yet in scala 3
-          |and therefore this rule won't work for Scala 3.""".stripMargin
+          |option like -Ywarn-unused, -Xlint:unused (2.12.2 or above), or -Wunused (2.13 only)""".stripMargin
       )
     } else {
       config.conf
@@ -59,7 +62,7 @@ class RemoveUnused(config: RemoveUnusedConfig)
 
     val unusedPatterExpr =
       raw"^pattern var .* in (value|method) .* is never used".r
-    println(s"doc.diagnostics.toList = ${doc.diagnostics.toList}")
+
     doc.diagnostics.foreach { diagnostic =>
       if (config.imports && diagnostic.message == "Unused import") {
         isUnusedImport += diagnostic.position
