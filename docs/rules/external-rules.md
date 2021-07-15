@@ -20,11 +20,11 @@ Each parts stands for the following.
 * `@GROUP:ARTIFACT:VERSION`: An id to specify a dependency containing rules.
 
 To permanently install the rule for a build, users can add the dependency to
-`build.sbt` by updating `scalafixDependencies in ThisBuild`.
+`build.sbt` by updating `ThisBuild / scalafixDependencies`.
 
 ```scala
 // build.sbt
-scalafixDependencies in ThisBuild +=
+ThisBuild / scalafixDependencies +=
   "GROUP" %% "ARTIFACT" % "VERSION"
 // sbt shell
 > scalafix RULE

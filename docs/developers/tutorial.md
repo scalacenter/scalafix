@@ -716,11 +716,11 @@ Once published, users can run your rule with the following sbt command.
 ```
 
 To permanently install the rule for a build, users can add the dependency to
-`build.sbt` by updating `scalafixDependencies in ThisBuild`.
+`build.sbt` by updating `ThisBuild / scalafixDependencies`.
 
 ```scala
 // build.sbt
-scalafixDependencies in ThisBuild +=
+ThisBuild / scalafixDependencies +=
   "com.geirsson" %% "named-literal-arguments" % "VERSION"
 // sbt shell
 > scalafix NamedLiteralArguments
@@ -752,7 +752,7 @@ custom repository like Bintray or a private Nexus.
 
 ```scala
 // build.sbt
-scalafixResolvers.in(ThisBuild) ++= List(
+ThisBuild / scalafixResolvers ++= List(
   coursierapi.MavenRepository.of("https://dl.bintray.com/scalacenter/releases"),
   coursierapi.MavenRepository.of("https://oss.sonatype.org/content/repositories/snapshots"),
   coursierapi.IvyRepository.of("https://dl.bintray.com/sbt/sbt-plugin-releases/[defaultPattern]"),
