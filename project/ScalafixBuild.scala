@@ -60,8 +60,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     }
     val warnAdaptedArgs = Def.setting {
       if (isScala3.value) Nil
-      else if (isScala213.value) Seq("-Xlint:adapted-args")
-      else Seq("-Ywarn-adapted-args")
+      else if (isScala213.value) Seq("-Xlint:adapted-args", "-deprecation")
+      else Seq("-Ywarn-adapted-args", "-deprecation")
     }
     lazy val scaladocOptions = Seq(
       "-groups",
