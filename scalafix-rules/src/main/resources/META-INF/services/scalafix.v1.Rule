@@ -5,3 +5,4 @@ scalafix.internal.rule.NoValInForComprehension
 scalafix.internal.rule.ProcedureSyntax
 scalafix.internal.rule.RemoveUnused
 scalafix.internal.rule.LeakingImplicitClassVal
+scalafix.internal.rule.Scala3NewSyntax

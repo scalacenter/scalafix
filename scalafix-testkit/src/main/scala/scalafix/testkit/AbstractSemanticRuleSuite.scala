@@ -112,6 +112,11 @@ abstract class AbstractSemanticRuleSuite(
       RuleTest.fromPath(args, test, classLoader, symtab)
     }
   }
+  def runSpecificTests(name: String): Unit =
+    filterRuleTest(name).map(runOn)
+
+  private def filterRuleTest(name: String): List[RuleTest] =
+    testsToRun.filter(_.path.testName.toLowerCase.contains(name.toLowerCase()))
   def runAllTests(): Unit = {
     testsToRun.foreach(runOn)
   }
