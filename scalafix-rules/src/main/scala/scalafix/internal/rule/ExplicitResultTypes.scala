@@ -46,6 +46,9 @@ final class ExplicitResultTypes(
     }))
   }
 
+  override def scalaVersionsRequired: Seq[InputRequirements.ScalaVersion] = Nil
+  supportedScalaVersions.toSeq.map(InputRequirements.ScalaVersion)
+
   override def withConfiguration(config: Configuration): Configured[Rule] = {
     val symbolReplacements =
       config.conf.dynamic.ExplicitResultTypes.symbolReplacements
