@@ -36,4 +36,6 @@ object LazyValue {
   def later[T](e: () => T): LazyValue[T] = new LazyValue[T](e)
   def fromUnsafe[T](e: () => T): LazyValue[Option[T]] =
     new LazyValue[Option[T]](() => Try(e()).toOption)
+  def from[T](e: () => Try[T]): LazyValue[Option[T]] =
+    new LazyValue[Option[T]](() => e().toOption)
 }
