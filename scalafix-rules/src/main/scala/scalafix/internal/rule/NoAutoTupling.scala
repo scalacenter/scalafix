@@ -25,6 +25,8 @@ class NoAutoTupling extends SemanticRule("NoAutoTupling") {
         case message
             if message.message.startsWith(
               "Adaptation of argument list by inserting ()"
+            ) || message.message.startsWith(
+              "adaptation of an empty argument list by inserting ()"
             ) =>
           message.position
       }.toSet

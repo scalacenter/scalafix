@@ -1,7 +1,7 @@
 /*
 rules = NoAutoTupling
  */
-package test
+package test.noAutoTupling
 
 class NoUnitInsertion {
 

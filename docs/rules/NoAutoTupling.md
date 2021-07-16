@@ -4,27 +4,23 @@ id: NoAutoTupling
 title: NoAutoTupling
 ---
 
-> ⚠️ This rule does not work with Scala 2.13 since `-Yno-adapter-args` has been
-> removed.
-
 Adds explicit tuples around argument lists where auto-tupling is occurring.
 
 To use this rule:
 
-- enable `-Ywarn-adapted-args` (note, `-Yno-adapted-args` will fail compilation,
-  which prevents scalafix from running)
-- disable `-Xfatal-warnings`. Unfortunately, the Scala compiler does not support
-  finer grained control over the severity level per message kind. See
-  [scalameta/scalameta#924](https://github.com/scalameta/scalameta/issues/924)
-  for a possible workaround in the near future.
+- enable `-Ywarn-adapted-args` for Scala 2.11 and 2.12 (note, `-Yno-adapted-args` will fail compilation,
+  which prevents scalafix from running). For Scala 2.13, use instead `-Xlint:adapted-args`.
+- enable also `-deprecation` to get warnings on insertions of `Unit`.
 
 ```scala
 // before
 def someMethod(t: (Int, String)) = ...
 someMethod(1, "something")
+val c: Option[Unit] = Some()
 // after
 def someMethod(t: (Int, String)) = ...
 someMethod((1, "something"))
+val c: Option[Unit] = Some(())
 ```
 
 Auto-tupling is a feature that can lead to unexpected results, making code to
