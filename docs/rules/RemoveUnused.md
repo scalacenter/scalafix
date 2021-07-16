@@ -87,6 +87,19 @@ object Main {
 }
 ```
 
+Remove unused function parameters (Scala 2.12 & 2.13 only):
+
+```scala
+// before
+object Main {
+  val f: String => Unit = unused => println("f")
+}
+// after
+object Main {
+  val f: String => Unit = _ => println("f")
+}
+```
+
 ## Formatting
 
 > This rule does a best-effort at preserving original formatting. In some cases,

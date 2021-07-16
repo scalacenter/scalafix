@@ -153,6 +153,15 @@ class RemoveUnused(config: RemoveUnusedConfig)
         case Term.Function(List(param @ Term.Param(_, name, _, _)), _)
             if isUnusedParam(name.pos) =>
           Patch.replaceTree(param, "_")
+        case Term.Function(List(param @ Term.Param(_, name, _, _)), _)
+            if isUnusedParam(posExclParens(param)) =>
+          Patch.replaceTree(name, "_")
+        case Term.Function(params, _) =>
+          params.collect {
+            case param @ Term.Param(_, name, _, _)
+                if isUnusedParam(param.pos) =>
+              Patch.replaceTree(name, "_")
+          }.asPatch
       }.asPatch
     }
   }
