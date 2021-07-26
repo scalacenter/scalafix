@@ -88,8 +88,7 @@ Running the rule on source files compiled with Scala 3 is still experimental.
 Known limitations:
 
 . You must use Scalafix 0.9.28 or later
-. The <<removeUnused, `removeUnused`>> option must be explicitly set to `false`
-. Source files using new syntax introduced in Scala 3 such as https://docs.scala-lang.org/scala3/book/ca-given-imports.html[`given` imports] may not work properly 
+. The <<removeUnused, `removeUnused`>> option must be explicitly set to `false` - the rule currently doesn't remove unused imports as it's currently not supported by the compiler.
 . Usage of http://dotty.epfl.ch/docs/reference/dropped-features/package-objects.html[deprecated package objects] may result in incorrect imports
 . The <<groupExplicitlyImportedImplicitsSeparately, groupExplicitlyImportedImplicitsSeparately>> option has no effect
 

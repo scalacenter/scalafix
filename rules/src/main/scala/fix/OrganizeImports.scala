@@ -275,7 +275,8 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
     importers flatMap { importer =>
       importer filterImportees { importee =>
-        importee.is[Importee.Wildcard] || seenImportees.add(importee.syntax -> importer.ref.syntax)
+        importee.is[Importee.Wildcard] || importee.is[Importee.GivenAll] ||
+        seenImportees.add(importee.syntax -> importer.ref.syntax)
       }
     }
   }
@@ -332,6 +333,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       case group @ Importer(ref, _) :: _ =>
         val importeeLists = group map (_.importees)
         val hasWildcard = group exists (_.hasWildcard)
+        val hasGivenAll = group exists (_.hasGivenAll)
 
         // Collects the last set of unimports with a wildcard, if any. It cancels all previous
         // unimports. E.g.:
@@ -344,16 +346,26 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
         //
         // TODO: Shall we issue a warning here as using order-sensitive imports is a bad practice?
         val lastUnimportsWithWildcard =
-          importeeLists.reverse collectFirst { case Importees(_, _, unimports @ _ :: _, Some(_)) =>
-            unimports
+          importeeLists.reverse collectFirst {
+            case Importees(_, _, unimports @ _ :: _, _, _, Some(_)) => unimports
+          }
+
+        val lastUnimportsGivenAll =
+          importeeLists.reverse collectFirst {
+            case Importees(_, _, unimports @ _ :: _, _, Some(_), _) => unimports
           }
 
         // Collects all unimports without an accompanying wildcard.
-        val allUnimports = importeeLists.collect { case Importees(_, _, unimports, None) =>
+        val allUnimports = importeeLists.collect { case Importees(_, _, unimports, _, None, None) =>
           unimports
         }.flatten
 
-        val allImportees = group flatMap (_.importees)
+        val isGivenImport: Importee => Boolean = {
+          case _: Importee.Given => true
+          case _                 => false
+        }
+        val allImportees = group flatMap (_.importees.filterNot(isGivenImport))
+        val givens = group.flatMap(_.importees.filter(isGivenImport))
 
         // Here we assume that a name is renamed at most once within a single source file, which is
         // true in most cases.
@@ -401,6 +413,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
         }
 
         val wildcard = Importee.Wildcard()
+        val givenAll = Importee.GivenAll()
 
         val newImporteeLists = (hasWildcard, lastUnimportsWithWildcard) match {
           case (true, _) =>
@@ -481,13 +494,29 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
             Seq(renamedImportedNames, importedNames ++ renames ++ allUnimports)
         }
 
+        /* Adjust the result to add givens imports, these are
+         * are the Scala 3 way of importing implicits, which are not imported
+         * with the wildcard import.
+         */
+        val newImporteeListsWithGivens = if (hasGivenAll) {
+          if (aggressive) newImporteeLists :+ List(givenAll)
+          else newImporteeLists :+ (givens :+ givenAll)
+        } else {
+          lastUnimportsGivenAll match {
+            case Some(unimports) =>
+              newImporteeLists :+ (givens ++ unimports :+ givenAll)
+            case None =>
+              newImporteeLists :+ givens
+          }
+        }
+
         // Issue #127: After merging imports within an importer group, checks whether there are any
         // input importers left untouched. For those importers, returns the original importer
         // instance to preserve the original source level formatting.
         locally {
           val importerSyntaxMap = group.map { i => i.copy().syntax -> i }.toMap
 
-          newImporteeLists filter (_.nonEmpty) map { importees =>
+          newImporteeListsWithGivens filter (_.nonEmpty) map { importees =>
             val newImporter = Importer(ref, importees)
             importerSyntaxMap.getOrElse(newImporter.syntax, newImporter)
           }
@@ -513,11 +542,22 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     }
 
   private def coalesceImportees(importer: Importer): Importer = {
-    val Importees(names, renames, unimports, _) = importer.importees
-    config.coalesceToWildcardImportThreshold
-      .filter(names.length > _)
-      .map(_ => importer.copy(importees = renames ++ unimports :+ Importee.Wildcard()))
-      .getOrElse(importer)
+    val Importees(names, renames, unimports, givens, _, _) = importer.importees
+    config.coalesceToWildcardImportThreshold match {
+      case Some(coalesceLength) =>
+        if (names.length > coalesceLength && givens.length > coalesceLength) {
+          importer.copy(importees =
+            renames ++ unimports :+ Importee.Wildcard() :+ Importee.GivenAll()
+          )
+        } else if (names.length > coalesceLength) {
+          importer.copy(importees = renames ++ unimports ++ givens :+ Importee.Wildcard())
+        } else if (givens.length > coalesceLength) {
+          importer.copy(importees = renames ++ unimports ++ names :+ Importee.GivenAll())
+        } else {
+          importer
+        }
+      case None => importer
+    }
   }
 
   private def sortImportees(importer: Importer): Importer = {
@@ -525,7 +565,8 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
 
     // The Scala language spec allows an import expression to have at most one final wildcard, which
     // can only appears in the last position.
-    val (wildcard, noWildcard) = importer.importees partition (_.is[Importee.Wildcard])
+    val (wildcard, noWildcard) =
+      importer.importees partition (i => i.is[Importee.Wildcard] || i.is[Importee.GivenAll])
 
     val orderedImportees = config.importSelectorsOrder match {
       case Ascii        => noWildcard.sortBy(_.syntax) ++ wildcard
@@ -756,7 +797,8 @@ object OrganizeImports {
         // source level formatting.
         importer :: Nil
 
-      case Importer(ref, Importees(names, renames, unimports, Some(wildcard))) =>
+      case Importer(ref, Importees(names, renames, unimports, givens, givenAll, wildcard))
+          if givenAll.isDefined || wildcard.isDefined =>
         // When a wildcard exists, all renames, unimports, and the wildcard must appear in the same
         // importer, e.g.:
         //
@@ -766,7 +808,9 @@ object OrganizeImports {
         //
         //   import p.{A => _, B => _, C => D, _}
         //   import p.E
-        val importeesList = names.map(_ :: Nil) :+ (renames ++ unimports :+ wildcard)
+        val importeesList = ((names ++ givens).map(
+          _ :: Nil
+        )) :+ (renames ++ unimports ++ wildcard ++ givenAll)
         importeesList filter (_.nonEmpty) map (Importer(ref, _))
 
       case importer =>
@@ -779,6 +823,8 @@ object OrganizeImports {
    *  - Names, e.g., `Seq`, `Option`, etc.
    *  - Renames, e.g., `{Long => JLong}`, `{Duration => D}`, etc.
    *  - Unimports, e.g., `{Foo => _}`.
+   *  - Givens, e.g., `{given Foo}`.
+   *  - GivenAll, i.e., `given`.
    *  - Wildcard, i.e., `_`.
    */
   object Importees {
@@ -787,34 +833,49 @@ object OrganizeImports {
         List[Importee.Name],
         List[Importee.Rename],
         List[Importee.Unimport],
+        List[Importee.Given],
+        Option[Importee.GivenAll],
         Option[Importee.Wildcard]
       )
     ] = {
       val names = ArrayBuffer.empty[Importee.Name]
       val renames = ArrayBuffer.empty[Importee.Rename]
+      val givens = ArrayBuffer.empty[Importee.Given]
       val unimports = ArrayBuffer.empty[Importee.Unimport]
       var maybeWildcard: Option[Importee.Wildcard] = None
+      var maybeGivenAll: Option[Importee.GivenAll] = None
 
       importees foreach {
         case i: Importee.Wildcard => maybeWildcard = Some(i)
         case i: Importee.Unimport => unimports += i
         case i: Importee.Rename   => renames += i
         case i: Importee.Name     => names += i
+        case i: Importee.Given    => givens += i
+        case i: Importee.GivenAll => maybeGivenAll = Some(i)
       }
 
-      Option((names.toList, renames.toList, unimports.toList, maybeWildcard))
+      Option(
+        (
+          names.toList,
+          renames.toList,
+          unimports.toList,
+          givens.toList,
+          maybeGivenAll,
+          maybeWildcard
+        )
+      )
     }
   }
 
   object Renames {
     def unapply(importees: Seq[Importee]): Option[Seq[Importee.Rename]] = importees match {
-      case Importees(_, renames, _, _) => Option(renames)
+      case Importees(_, renames, _, _, _, _) => Option(renames)
     }
   }
 
   object Unimports {
     def unapply(importees: Seq[Importee]): Option[Seq[Importee.Unimport]] = importees match {
-      case Importees(_, _, unimports, _) => Option(unimports)
+      case Importees(_, _, unimports, _, _, _) => Option(unimports)
     }
   }
 
@@ -856,7 +917,12 @@ object OrganizeImports {
 
     /** Returns true if the `Importer` contains a standalone wildcard. */
     def hasWildcard: Boolean = importer.importees match {
-      case Importees(_, _, unimports, wildcard) => unimports.isEmpty && wildcard.nonEmpty
+      case Importees(_, _, unimports, _, _, wildcard) => unimports.isEmpty && wildcard.nonEmpty
+    }
+
+    /** Returns true if the `Importer` contains a standalone given  wildcard. */
+    def hasGivenAll: Boolean = importer.importees match {
+      case Importees(_, _, unimports, _, givenAll, _) => unimports.isEmpty && givenAll.nonEmpty
     }
   }
 }
