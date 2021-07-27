@@ -181,9 +181,6 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
   )(implicit doc: SemanticDocument): (Seq[Importer], Seq[Importer]) = {
     val (implicits, implicitPositions) = importers.flatMap {
       case importer @ Importer(_, importees) =>
-        importees.foreach { i =>
-          println(i.symbol.info)
-        }
         importees collect {
           case i: Importee.Name if i.symbol.infoNoThrow exists (_.isImplicit) =>
             importer.copy(importees = i :: Nil) -> i.pos

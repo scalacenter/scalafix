@@ -2,9 +2,9 @@ package fix
 package nested
 
 import java.time.Clock
-import javax.annotation.Generated
+import javax.net.ssl
 
-import sun.misc.BASE64Encoder
+import sun.misc.Unsafe
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext

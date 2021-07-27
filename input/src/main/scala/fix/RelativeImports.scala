@@ -6,7 +6,7 @@ OrganizeImports.groups = ["scala.", "*"]
 package fix
 
 import scala.util
-import sun.misc.BASE64Encoder
+import sun.misc.Unsafe
 import util.control
 import control.NonFatal
 
