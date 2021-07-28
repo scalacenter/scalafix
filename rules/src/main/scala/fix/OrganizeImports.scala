@@ -864,18 +864,6 @@ object OrganizeImports {
     }
   }
 
-  object Renames {
-    def unapply(importees: Seq[Importee]): Option[Seq[Importee.Rename]] = importees match {
-      case Importees(_, renames, _, _, _, _) => Option(renames)
-    }
-  }
-
-  object Unimports {
-    def unapply(importees: Seq[Importee]): Option[Seq[Importee.Unimport]] = importees match {
-      case Importees(_, _, unimports, _, _, _) => Option(unimports)
-    }
-  }
-
   implicit private class SymbolExtension(symbol: Symbol) {
 
     /**
@@ -892,12 +880,10 @@ object OrganizeImports {
   implicit private class ImporterExtension(importer: Importer) {
 
     /** Checks whether the `Importer` is curly-braced when pretty-printed. */
-    def isCurlyBraced: Boolean =
-      importer.importees match {
-        case Renames(_ :: _) | Unimports(_ :: _) => true // At least one rename or unimport
-        case importees if importees.length > 1   => true // More than one importees
-        case _                                   => false
-      }
+    def isCurlyBraced: Boolean = {
+      val importees @ Importees(_, renames, unimports, givens, _, _) = importer.importees
+      renames.nonEmpty || unimports.nonEmpty || givens.nonEmpty || importees.length > 1
+    }
 
     /**
      * Returns an `Importer` with all the `Importee`s that are selected from the input `Importer`
