@@ -8,7 +8,7 @@ OrganizeImports {
  */
 package fix
 
-import fix.GivenImports.{Alpha, Beta, Zeta}
-import fix.GivenImports.{given Alpha, given Beta, given Zeta}
+import fix.Givens._
+import fix.Givens.{A => A1, given B, given C}
 
-object CoalesceGivenImportees
+object CoalesceImporteesNoNames

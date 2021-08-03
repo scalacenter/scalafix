@@ -539,22 +539,21 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     }
 
   private def coalesceImportees(importer: Importer): Importer = {
+    import Importee.{GivenAll, Wildcard}
+
     val Importees(names, renames, unimports, givens, _, _) = importer.importees
-    config.coalesceToWildcardImportThreshold match {
-      case Some(coalesceLength) =>
-        if (names.length > coalesceLength && givens.length > coalesceLength) {
-          importer.copy(importees =
-            renames ++ unimports :+ Importee.Wildcard() :+ Importee.GivenAll()
-          )
-        } else if (names.length > coalesceLength) {
-          importer.copy(importees = renames ++ unimports ++ givens :+ Importee.Wildcard())
-        } else if (givens.length > coalesceLength) {
-          importer.copy(importees = renames ++ unimports ++ names :+ Importee.GivenAll())
-        } else {
-          importer
-        }
-      case None => importer
-    }
+
+    config.coalesceToWildcardImportThreshold
+      .filter(importer.importees.length > _)
+      // Skips if there's no `Name`s or `Given`s. `Rename`s and `Unimport`s cannot be coalesced.
+      .filterNot(_ => names.isEmpty && givens.isEmpty)
+      .map {
+        case _ if givens.isEmpty => renames ++ unimports :+ Wildcard()
+        case _ if names.isEmpty  => renames ++ unimports :+ GivenAll()
+        case _                   => renames ++ unimports :+ GivenAll() :+ Wildcard()
+      }
+      .map(importees => importer.copy(importees = importees))
+      .getOrElse(importer)
   }
 
   private def sortImportees(importer: Importer): Importer = {
