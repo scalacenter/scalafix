@@ -45,7 +45,7 @@ trait BaseCliSuite extends AnyFunSuite with DiffAssertions {
 
   val semanticRoot: RelativePath = RelativePath("test")
   val removeImportsPath: RelativePath =
-    semanticRoot.resolve("RemoveUnusedImports.scala")
+    semanticRoot.resolve("removeUnused/RemoveUnusedImports.scala")
   val explicitResultTypesPath: RelativePath =
     semanticRoot
       .resolve("explicitResultTypes")

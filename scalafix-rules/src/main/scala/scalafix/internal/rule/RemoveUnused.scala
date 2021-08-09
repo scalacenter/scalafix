@@ -5,6 +5,7 @@ import scala.collection.mutable
 import scala.meta._
 
 import metaconfig.Configured
+import scalafix.util.Trivia
 import scalafix.v1._
 
 class RemoveUnused(config: RemoveUnusedConfig)
@@ -35,7 +36,12 @@ class RemoveUnused(config: RemoveUnusedConfig)
       warnUnusedPrefix.exists(prefix => option.startsWith(prefix)) ||
         warnUnusedString.contains(option)
     )
-    if (!hasWarnUnused) {
+    if (config.scalaVersion.startsWith("3"))
+      Configured.error(
+        "This rule is specific to Scala 2, because the compiler option `-Ywarn-unused` is not available yet in scala 3 " +
+          "To fix this error, remove RemoveUnused from .scalafix.conf"
+      )
+    else if (!hasWarnUnused) {
       Configured.error(
         s"""|The Scala compiler option "-Ywarn-unused" is required to use RemoveUnused.
           |To fix this problem, update your build to use at least one Scala compiler
@@ -52,6 +58,7 @@ class RemoveUnused(config: RemoveUnusedConfig)
     val isUnusedTerm = mutable.Set.empty[Position]
     val isUnusedImport = mutable.Set.empty[Position]
     val isUnusedPattern = mutable.Set.empty[Position]
+    val isUnusedParam = mutable.Set.empty[Position]
 
     val unusedPatterExpr =
       raw"^pattern var .* in (value|method) .* is never used".r
@@ -76,15 +83,40 @@ class RemoveUnused(config: RemoveUnusedConfig)
         unusedPatterExpr.findFirstMatchIn(diagnostic.message).isDefined
       ) {
         isUnusedPattern += diagnostic.position
+      } else if (
+        config.params &&
+        diagnostic.message.startsWith("parameter") &&
+        diagnostic.message.endsWith("is never used")
+      ) {
+        isUnusedParam += diagnostic.position
       }
     }
 
     if (
-      isUnusedImport.isEmpty && isUnusedTerm.isEmpty && isUnusedPattern.isEmpty
+      isUnusedImport.isEmpty && isUnusedTerm.isEmpty && isUnusedPattern.isEmpty && isUnusedParam.isEmpty
     ) {
       // Optimization: don't traverse if there are no diagnostics to act on.
       Patch.empty
     } else {
+      def patchPatVarsIn(cases: List[Case]): Patch = {
+        def checkUnusedPatTree(t: Tree): Boolean =
+          isUnusedPattern(t.pos) || isUnusedPattern(posExclParens(t))
+        def patchPatTree: PartialFunction[Tree, Patch] = {
+          case v: Pat.Var if checkUnusedPatTree(v) =>
+            Patch.replaceTree(v, "_")
+          case t @ Pat.Typed(v: Pat.Var, _) if checkUnusedPatTree(t) =>
+            Patch.replaceTree(v, "_")
+          case b: Pat.Bind if checkUnusedPatTree(b) =>
+            val removableTokens = b.tokens.dropRightWhile(!_.is[Token.At])
+            Patch.removeTokens(removableTokens)
+        }
+        cases
+          .map { case Case(extract, _, _) => extract }
+          .flatMap(_.collect(patchPatTree))
+          .asPatch
+          .atomic
+      }
+
       doc.tree.collect {
         case Importer(_, importees)
             if importees.forall(_.is[Importee.Unimport]) =>
@@ -113,15 +145,14 @@ class RemoveUnused(config: RemoveUnusedConfig)
             if isUnusedTerm.exists(p => p.start == pat.pos.start) =>
           defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
         case Term.Match(_, cases) =>
-          val vars =
-            cases
-              .map { case Case(extract, _, _) => extract }
-              .flatMap(_.collect { case v: Pat.Var => v })
-          vars
-            .filter(v => isUnusedPattern(v.pos))
-            .map(v => Patch.replaceTree(v, "_"))
-            .asPatch
-            .atomic
+          patchPatVarsIn(cases)
+        case Term.PartialFunction(cases) =>
+          patchPatVarsIn(cases)
+        case Term.Try(_, cases, _) =>
+          patchPatVarsIn(cases)
+        case Term.Function(List(param @ Term.Param(_, name, _, _)), _)
+            if isUnusedParam(name.pos) =>
+          Patch.replaceTree(param, "_")
       }.asPatch
     }
   }
@@ -145,5 +176,18 @@ class RemoveUnused(config: RemoveUnusedConfig)
     case i @ Defn.Var(_, _, _, rhs) => rhs.map(binderTokens(i, _))
     case i: Defn.Def => Some(i.tokens)
     case _ => None
+  }
+
+  private def posExclParens(tree: Tree): Position = {
+    val leftTokenCount =
+      tree.tokens.takeWhile(tk => tk.is[Token.LeftParen] || tk.is[Trivia]).size
+    val rightTokenCount = tree.tokens
+      .takeRightWhile(tk => tk.is[Token.RightParen] || tk.is[Trivia])
+      .size
+    tree.pos match {
+      case Position.Range(input, start, end) =>
+        Position.Range(input, start + leftTokenCount, end - rightTokenCount)
+      case other => other
+    }
   }
 }

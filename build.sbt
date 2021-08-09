@@ -135,14 +135,11 @@ lazy val testsInput = project
                          Seq("-P:semanticdb:synthetics:on")
                        else Nil),
     scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
-    scalacOptions += warnAdaptedArgs.value, // For NoAutoTupling
-    scalacOptions += warnUnusedImports.value, // For RemoveUnused
-    scalacOptions += "-Ywarn-unused", // For RemoveUnusedTerms
-    scalacOptions ++= maxwarns.value, // Increase the maximum warnings to print
+    scalacOptions ++= warnAdaptedArgs.value, // For NoAutoTupling
+    scalacOptions ++= warnUnusedImports.value, // For RemoveUnused
+    scalacOptions ++= warnUnused.value, // For RemoveUnusedTerms
     logLevel := Level.Error, // avoid flood of compiler warnings
-    libraryDependencies ++= (if (isScala2.value)
-                               testsDeps :+ "org.scala-lang" % "scala-reflect" % scalaVersion.value
-                             else Nil),
+    libraryDependencies ++= testsDependencies.value,
     coverageEnabled := false
   )
   .disablePlugins(ScalafixPlugin)
@@ -154,10 +151,8 @@ lazy val testsOutput = project
     scalacOptions --= (if (scalaVersion.value.startsWith("3"))
                          Seq("-P:semanticdb:synthetics:on")
                        else Nil),
-    scalacOptions -= warnUnusedImports.value,
-    libraryDependencies ++= (if (scalaVersion.value.startsWith("2"))
-                               testsDeps :+ "org.scala-lang" % "scala-reflect" % scalaVersion.value
-                             else Nil),
+    scalacOptions --= warnUnusedImports.value,
+    libraryDependencies ++= testsDependencies.value,
     coverageEnabled := false
   )
   .disablePlugins(ScalafixPlugin)
@@ -191,7 +186,7 @@ lazy val unit = project
         "3.2.0"
       ), // make sure testkit clients can use recent 3.x versions
       scalametaTeskit
-    ) ++ testsDeps,
+    ),
     Compile / compile / compileInputs := {
       (Compile / compile / compileInputs)
         .dependsOn(

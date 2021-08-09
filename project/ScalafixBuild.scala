@@ -46,30 +46,47 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       scalaVersion.value.startsWith("2.11")
     }
     lazy val warnUnusedImports = Def.setting {
-      if (isScala213.value) "-Wunused:imports"
-      else "-Ywarn-unused-import"
+      if (isScala3.value) Nil
+      else if (isScala213.value) Seq("-Wunused:imports")
+      else Seq("-Ywarn-unused-import")
+    }
+    lazy val warnUnused = Def.setting {
+      if (isScala2.value) Seq("-Ywarn-unused")
+      else Nil
+    }
+    lazy val targetJvm = Def.setting {
+      if (isScala3.value) "-Xtarget:8"
+      else "-target:jvm-1.8"
     }
     val warnAdaptedArgs = Def.setting {
-      if (isScala213.value) "-Xlint:adapted-args"
-      else "-Ywarn-adapted-args"
-    }
-    lazy val maxwarns = Def.setting {
-      if (isScala213.value || isScala212.value) Seq("-Xmaxwarns", "1000")
-      else Nil
+      if (isScala3.value) Nil
+      else if (isScala213.value) Seq("-Xlint:adapted-args", "-deprecation")
+      else Seq("-Ywarn-adapted-args", "-deprecation")
     }
     lazy val scaladocOptions = Seq(
       "-groups",
       "-implicits"
     )
+    lazy val testsDependencies = Def.setting {
+      val xmlLib = if (isScala211.value) scalaXml211 else scalaXml
+      val otherLibs =
+        if (isScala2.value)
+          Seq(
+            bijectionCore,
+            "org.scala-lang" % "scala-reflect" % scalaVersion.value
+          )
+        else Nil
+      xmlLib +: otherLibs
+    }
     lazy val compilerOptions = Def.setting(
-      Seq(
-        "-target:jvm-1.8",
-        warnUnusedImports.value,
-        "-encoding",
-        "UTF-8",
-        "-feature",
-        "-unchecked"
-      )
+      warnUnusedImports.value ++
+        Seq(
+          targetJvm.value,
+          "-encoding",
+          "UTF-8",
+          "-feature",
+          "-unchecked"
+        )
     )
 
     lazy val buildInfoSettingsForCore: Seq[Def.Setting[_]] = Seq(
