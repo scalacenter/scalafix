@@ -26,7 +26,7 @@ object Dependencies {
   val metaconfigFor211V = "0.9.10" // metaconfig stops publishing for scala 2.11
   val metaconfigV = "0.9.14"
   val nailgunV = "0.9.1"
-  val scalaXmlV = "2.0.0"
+  val scalaXmlV = "2.0.1"
   val scalaXml211V = "1.3.0" // scala-xml stops publishing for scala 2.11
   val scalametaV = "4.4.24"
   val scalatestV = "3.0.8" // don't bump, to avoid forcing breaking changes on clients via eviction
