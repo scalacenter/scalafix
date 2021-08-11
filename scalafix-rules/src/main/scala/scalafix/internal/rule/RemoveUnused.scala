@@ -150,9 +150,27 @@ class RemoveUnused(config: RemoveUnusedConfig)
           patchPatVarsIn(cases)
         case Term.Try(_, cases, _) =>
           patchPatVarsIn(cases)
-        case Term.Function(List(param @ Term.Param(_, name, _, _)), _)
-            if isUnusedParam(name.pos) =>
+        case Term.Function(List(param @ Term.Param(_, name, None, _)), _)
+            if isUnusedParam(
+              // diagnostic does not include the implicit prefix (supported only
+              // on 1-arity function without explicit type) captured in param,
+              // so use name instead
+              name.pos
+            ) =>
+          // drop the entire param so that the implicit prefix (if it exists) is removed
           Patch.replaceTree(param, "_")
+        case Term.Function(List(param @ Term.Param(_, name, Some(_), _)), _)
+            if isUnusedParam(
+              // diagnostic does not include the wrapping parens captured in single param
+              posExclParens(param)
+            ) =>
+          Patch.replaceTree(name, "_")
+        case Term.Function(params, _) =>
+          params.collect {
+            case param @ Term.Param(_, name, _, _)
+                if isUnusedParam(param.pos) =>
+              Patch.replaceTree(name, "_")
+          }.asPatch
       }.asPatch
     }
   }
