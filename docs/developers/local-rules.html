@@ -66,7 +66,7 @@ set up correctly</a>.</p>
 <p>Although it is possible to define your rules in a Scala binary version that
 does not match your build, it is highly recommended that you align them via:</p>
 <pre><code class="hljs css language-diff"> // build.sbt
-<span class="hljs-addition">+scalafixScalaBinaryVersion in ThisBuild :=</span>
+<span class="hljs-addition">+ThisBuild / scalafixScalaBinaryVersion :=</span>
 <span class="hljs-addition">+  CrossVersion.binaryScalaVersion(scalaVersion.value)</span>
 </code></pre>
 <blockquote>
@@ -214,15 +214,15 @@ semantic rules.</p>
 <span class="hljs-addition">+        _root_.scalafix.sbt.BuildInfo.scalafixVersion %</span>
 <span class="hljs-addition">+        Test cross CrossVersion.full,</span>
 <span class="hljs-addition">+    scalafixTestkitOutputSourceDirectories :=</span>
-<span class="hljs-addition">+      sourceDirectories.in(`scalafix-output`, Compile).value,</span>
+<span class="hljs-addition">+      (`scalafix-output` / Compile / sourceDirectories).value,</span>
 <span class="hljs-addition">+    scalafixTestkitInputSourceDirectories :=</span>
-<span class="hljs-addition">+      sourceDirectories.in(`scalafix-input`, Compile).value,</span>
+<span class="hljs-addition">+      (`scalafix-input` / Compile / sourceDirectories).value,</span>
 <span class="hljs-addition">+    scalafixTestkitInputClasspath :=</span>
-<span class="hljs-addition">+      fullClasspath.in(`scalafix-input`, Compile).value,</span>
+<span class="hljs-addition">+      (`scalafix-input` / Compile / fullClasspath).value,</span>
 <span class="hljs-addition">+    scalafixTestkitInputScalacOptions :=</span>
-<span class="hljs-addition">+      scalacOptions.in(`scalafix-input`, Compile).value,</span>
+<span class="hljs-addition">+      (`scalafix-input` / Compile / scalacOptions).value,</span>
 <span class="hljs-addition">+    scalafixTestkitInputScalaVersion :=</span>
-<span class="hljs-addition">+      scalaVersion.in(`scalafix-input`, Compile).value</span>
+<span class="hljs-addition">+      (`scalafix-input` / Compile / scalaVersion).value</span>
 <span class="hljs-addition">+  )</span>
 <span class="hljs-addition">+  .dependsOn(`scalafix-input`, `scalafix-rules`)</span>
 <span class="hljs-addition">+  .enablePlugins(ScalafixTestkitPlugin)</span>

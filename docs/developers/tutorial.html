@@ -613,9 +613,9 @@ online.</p>
 &gt; scalafix dependency:NamedLiteralArguments@com.geirsson:named-literal-arguments:VERSION
 </code></pre>
 <p>To permanently install the rule for a build, users can add the dependency to
-<code>build.sbt</code> by updating <code>scalafixDependencies in ThisBuild</code>.</p>
+<code>build.sbt</code> by updating <code>ThisBuild / scalafixDependencies</code>.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-comment">// build.sbt</span>
-scalafixDependencies in <span class="hljs-type">ThisBuild</span> +=
+<span class="hljs-type">ThisBuild</span> / scalafixDependencies +=
   <span class="hljs-string">"com.geirsson"</span> %% <span class="hljs-string">"named-literal-arguments"</span> % <span class="hljs-string">"VERSION"</span>
 <span class="hljs-comment">// sbt shell</span>
 &gt; scalafix <span class="hljs-type">NamedLiteralArguments</span>
@@ -636,7 +636,7 @@ argument is not required.</p>
 <p>Update the <code>scalafixResolvers</code> setting to resolve rules that are published to a
 custom repository like Bintray or a private Nexus.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-comment">// build.sbt</span>
-scalafixResolvers.in(<span class="hljs-type">ThisBuild</span>) ++= <span class="hljs-type">List</span>(
+<span class="hljs-type">ThisBuild</span> / scalafixResolvers ++= <span class="hljs-type">List</span>(
   coursierapi.<span class="hljs-type">MavenRepository</span>.of(<span class="hljs-string">"https://dl.bintray.com/scalacenter/releases"</span>),
   coursierapi.<span class="hljs-type">MavenRepository</span>.of(<span class="hljs-string">"https://oss.sonatype.org/content/repositories/snapshots"</span>),
   coursierapi.<span class="hljs-type">IvyRepository</span>.of(<span class="hljs-string">"https://dl.bintray.com/sbt/sbt-plugin-releases/[defaultPattern]"</span>),

@@ -58,7 +58,7 @@ the further steps to configure gpg and Sonatype.</p>
 <p>Once you have your rule, users can depend on it in the sbt plugin by updating
 <code>scalafixDependencies</code> (<code>scalafix.sbt.ScalafixPlugin.autoImport.scalafixDependencies</code>)</p>
 <pre><code class="hljs css language-scala"><span class="hljs-comment">// build.sbt</span>
-scalafixDependencies in <span class="hljs-type">ThisBuild</span> +=
+<span class="hljs-type">ThisBuild</span> / scalafixDependencies +=
   <span class="hljs-string">"com.geirsson"</span> %% <span class="hljs-string">"named-literal-arguments"</span> % <span class="hljs-string">"VERSION"</span>
 <span class="hljs-comment">// sbt shell</span>
 &gt; scalafix <span class="hljs-type">NamedLiteralArguments</span>
