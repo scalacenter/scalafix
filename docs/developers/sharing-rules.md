@@ -83,7 +83,7 @@ Once you have your rule, users can depend on it in the sbt plugin by updating
 
 ```scala
 // build.sbt
-scalafixDependencies in ThisBuild +=
+ThisBuild / scalafixDependencies +=
   "com.geirsson" %% "named-literal-arguments" % "VERSION"
 // sbt shell
 > scalafix NamedLiteralArguments
