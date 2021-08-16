@@ -880,8 +880,8 @@ object OrganizeImports {
 
     /** Checks whether the `Importer` is curly-braced when pretty-printed. */
     def isCurlyBraced: Boolean = {
-      val importees @ Importees(_, renames, unimports, givens, _, _) = importer.importees
-      renames.nonEmpty || unimports.nonEmpty || givens.nonEmpty || importees.length > 1
+      val importees @ Importees(_, renames, unimports, _, _, _) = importer.importees
+      renames.nonEmpty || unimports.nonEmpty || importees.length > 1
     }
 
     /**
