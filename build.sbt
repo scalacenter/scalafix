@@ -1,5 +1,4 @@
 lazy val v = _root_.scalafix.sbt.BuildInfo
-
 lazy val rulesCrossVersions = Seq(v.scala213, v.scala212, v.scala211)
 lazy val scala3Version = "3.0.1"
 
@@ -40,6 +39,7 @@ lazy val `scalafix-organize-imports` = project
   .settings(
     publish / skip := true
   )
+
 lazy val rules = projectMatrix
   .settings(
     moduleName := "organize-imports",
@@ -110,25 +110,17 @@ lazy val tests = projectMatrix
     scalafixTestkitOutputSourceDirectories :=
       TargetAxis.resolve(output, Compile / unmanagedSourceDirectories).value,
     scalafixTestkitInputSourceDirectories := {
-      val inputSrc = TargetAxis.resolve(
-        input,
-        Compile / unmanagedSourceDirectories
-      ).value
-      val inputUnusedImportsSrc = TargetAxis.resolve(
-        inputUnusedImports,
-        Compile / unmanagedSourceDirectories
-      ).value
+      val inputSrc =
+        TargetAxis.resolve(input, Compile / unmanagedSourceDirectories).value
+      val inputUnusedImportsSrc =
+        TargetAxis.resolve(inputUnusedImports, Compile / unmanagedSourceDirectories).value
       inputSrc ++ inputUnusedImportsSrc
     },
     scalafixTestkitInputClasspath := {
-      val inputClasspath = TargetAxis.resolve(
-        input,
-        Compile / fullClasspath
-      ).value
-      val inputUnusedImportsClasspath = TargetAxis.resolve(
-        inputUnusedImports,
-        Compile / fullClasspath
-      ).value
+      val inputClasspath =
+        TargetAxis.resolve(input, Compile / fullClasspath).value
+      val inputUnusedImportsClasspath =
+        TargetAxis.resolve(inputUnusedImports, Compile / fullClasspath).value
       inputClasspath ++ inputUnusedImportsClasspath
     },
     scalafixTestkitInputScalacOptions :=

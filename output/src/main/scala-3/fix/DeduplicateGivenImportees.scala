@@ -1,7 +1,8 @@
 package fix
 
-import fix.GivenImports._
-import fix.GivenImports.given Alpha
-import fix.GivenImports.given Beta
+import fix.Givens._
+import fix.Givens.given A
+import fix.Givens.given B
+import fix.Givens.given C
 
 object DeduplicateGivenImportees
