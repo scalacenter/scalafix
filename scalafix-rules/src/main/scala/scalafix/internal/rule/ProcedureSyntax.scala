@@ -12,8 +12,7 @@ import scalafix.v1._
 class ProcedureSyntax extends SyntacticRule("ProcedureSyntax") {
 
   override def description: String =
-    "Replaces deprecated procedure syntax with explicit ': Unit ='" +
-      "This rule is specific to scala 2, since procedure syntax is not supported in Scala 3"
+    "Replaces deprecated procedure syntax with explicit ': Unit ='"
 
   override def withConfiguration(config: Configuration): Configured[Rule] = {
     if (config.scalaVersion.startsWith("3"))
