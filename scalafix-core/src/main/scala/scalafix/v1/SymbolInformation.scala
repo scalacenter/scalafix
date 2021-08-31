@@ -60,6 +60,8 @@ final class SymbolInformation private[scalafix] (
     info.annotations.iterator
       .map(annot => new SymtabFromProtobuf(symtab).sannotation(annot))
       .toList
+  def overriddenSymbols: List[Symbol] =
+    info.overriddenSymbols.map(Symbol(_)).toList
 
   /** @group utilty */
   @utility def isSetter: Boolean = displayName.endsWith("_=")
