@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2.3.4
-      - uses: olafurpg/setup-scala@v12
+      - uses: olafurpg/setup-scala@v13
         with:
           java-version: ${{ matrix.java.version }}
       - uses: coursier/cache-action@v6

@@ -11,7 +11,7 @@ jobs:
         with:
           # Fetch all tags to help sbt-ci-release infer the snapshot version.
           fetch-depth: 0
-      - uses: olafurpg/setup-scala@v12
+      - uses: olafurpg/setup-scala@v13
       - uses: coursier/cache-action@v6
       - name: Test
         run: sbt scalafmtCheck "rules2_12/scalafix --check" +test
