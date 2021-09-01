@@ -24,14 +24,18 @@ import scalafix.v1
 object RuleDecoder {
 
   /**
-   * Load a single rule from a string like "RemoveUnusedImports" or "file:path/to/Rule.scala"
+   * Load a single rule from a string like "RemoveUnusedImports" or
+   * "file:path/to/Rule.scala"
    *
    * Supports loading rules in both scalafix.v0 and scalafix.v1.
    *
-   * @param rule the name of the rule. See allowed syntax:
-   *             https://scalacenter.github.io/scalafix/docs/users/configuration#rules
-   * @param settings the settings for loading the rule.
-   * @return a list of loaded rules, or errors.
+   * @param rule
+   *   the name of the rule. See allowed syntax:
+   *   https://scalacenter.github.io/scalafix/docs/users/configuration#rules
+   * @param settings
+   *   the settings for loading the rule.
+   * @return
+   *   a list of loaded rules, or errors.
    */
   def fromString(
       rule: String,
@@ -148,10 +152,14 @@ object RuleDecoder {
    *   Settings().withConfig(...).withCwd(...)
    * }}}
    *
-   * @param config the ScalafixConfig.
-   * @param toolClasspath optional additional classpath entries for classloading/compiling
-   *                      rules from classpath/source.
-   * @param cwd the working directory to turn relative paths in file:Foo.scala into absolute paths.
+   * @param config
+   *   the ScalafixConfig.
+   * @param toolClasspath
+   *   optional additional classpath entries for classloading/compiling rules
+   *   from classpath/source.
+   * @param cwd
+   *   the working directory to turn relative paths in file:Foo.scala into
+   *   absolute paths.
    */
   final class Settings private (
       val reporter: ScalafixReporter,

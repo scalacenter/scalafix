@@ -16,9 +16,12 @@ import scalafix.internal.util.SymbolOps
  *   }
  *   myMethod.matches(Tree)
  * }}}
- * @param symbols the symbols to match against.
- * @param isEqual which equality to use, can be normalized or structural.
- * @param index the semantic context to lookup symbols of trees.
+ * @param symbols
+ *   the symbols to match against.
+ * @param isEqual
+ *   which equality to use, can be normalized or structural.
+ * @param index
+ *   the semantic context to lookup symbols of trees.
  */
 final class SymbolMatcher(
     symbols: List[Symbol],

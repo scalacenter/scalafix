@@ -13,9 +13,11 @@ import scalafix.v1
 import scalafix.v1.SemanticContext
 
 /**
- * An immutable sealed data structure that describes how to rewrite and lint a source file.
+ * An immutable sealed data structure that describes how to rewrite and lint a
+ * source file.
  *
- * Documentation: https://scalacenter.github.io/scalafix/docs/developers/patch.html
+ * Documentation:
+ * https://scalacenter.github.io/scalafix/docs/developers/patch.html
  */
 sealed abstract class Patch extends Product {
 
@@ -36,13 +38,15 @@ sealed abstract class Patch extends Product {
   /**
    * Returns true if this patch is equal to Patch.empty, false otherwise.
    *
-   * Note, may return false for patches that produce empty diffs. For example, a [[Patch]].replaceSymbol
-   * returns false even if the symbol from is not referenced in the code resulting in an empty diff.
+   * Note, may return false for patches that produce empty diffs. For example, a
+   * [[Patch]]. replaceSymbol returns false even if the symbol from is not
+   * referenced in the code resulting in an empty diff.
    */
   def isEmpty: Boolean = this == EmptyPatch
 
   /**
-   * @see [[Patch.isEmpty]]
+   * @see
+   *   [[Patch.isEmpty]]
    */
   def nonEmpty: Boolean = !isEmpty
 
@@ -82,13 +86,14 @@ object Patch {
   /**
    * Remove all tokens from this tree and add a string add the same position.
    *
-   * Beware that this patch does not compose with other patches touching the same
-   * tree node or its children. Avoid using this method for large tree nodes like
-   * classes of methods. It's recommended to target as precise tree nodes as possible.
+   * Beware that this patch does not compose with other patches touching the
+   * same tree node or its children. Avoid using this method for large tree
+   * nodes like classes of methods. It's recommended to target as precise tree
+   * nodes as possible.
    *
    * It is better to use addRight/addLeft if you only insert new code, example:
-   * - bad:  Patch.replaceTree(tree, "(" + tree.syntax + ")")
-   * - good: Patch.addLeft(tree, "(") + Patch.addRight(tree, + ")")
+   *   - bad: Patch.replaceTree(tree, "(" + tree.syntax + ")")
+   *   - good: Patch.addLeft(tree, "(") + Patch.addRight(tree, + ")")
    */
   def replaceTree(from: Tree, to: String): Patch = {
     if (from.pos == Position.None) Patch.empty
@@ -127,19 +132,22 @@ object Patch {
       symbol: v1.Symbol
   )(implicit c: SemanticContext): Patch =
     RemoveGlobalImport(v0.Symbol(symbol.value))
-  /** Place named import for this symbol at the bottom of the global import list */
+  /**
+   * Place named import for this symbol at the bottom of the global import list
+   */
   def addGlobalImport(symbol: v1.Symbol)(implicit c: SemanticContext): Patch =
     AddGlobalSymbol(v0.Symbol(symbol.value))
 
   /**
    * Replace occurrences of fromSymbol to reference toSymbol instead.
    *
-   * `toSymbol` must be a global symbol such as an object/class or a static method.
+   * `toSymbol` must be a global symbol such as an object/class or a static
+   * method.
    *
-   * May produce broken code in some cases, works best when toSymbol has the same depth
-   * as fromSymbol, example:
-   * - good: replace:com.foo.Bar/org.qux.Buz
-   * - bad:  replace:com.Bar/org.qux.Buz
+   * May produce broken code in some cases, works best when toSymbol has the
+   * same depth as fromSymbol, example:
+   *   - good: replace:com.foo.Bar/org.qux.Buz
+   *   - bad: replace:com.Bar/org.qux.Buz
    */
   def replaceSymbols(
       toReplace: (String, String)*

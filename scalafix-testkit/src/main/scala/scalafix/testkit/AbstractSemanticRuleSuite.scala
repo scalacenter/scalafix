@@ -18,10 +18,9 @@ import scalafix.internal.testkit.CommentAssertion
 import scalafix.internal.v1.Args
 
 /**
- * Construct a test suite for running semantic Scalafix rules.
- * <p>
- * Mix-in FunSuiteLike (ScalaTest 3.0), AnyFunSuiteLike (ScalaTest 3.1+) or
- * the testing style of your choice if you add your own tests.
+ * Construct a test suite for running semantic Scalafix rules. <p> Mix-in
+ * FunSuiteLike (ScalaTest 3.0), AnyFunSuiteLike (ScalaTest 3.1+) or the testing
+ * style of your choice if you add your own tests.
  */
 abstract class AbstractSemanticRuleSuite(
     val props: TestkitProperties,

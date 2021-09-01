@@ -14,8 +14,9 @@ object QualifyStrategy {
   /**
    * Optimize for human-readability
    *
-   * In general, tries to quality up to the closest enclosing package but with special handling in
-   * a couple of other cases like type aliases inside of objects.
+   * In general, tries to quality up to the closest enclosing package but with
+   * special handling in a couple of other cases like type aliases inside of
+   * objects.
    */
   case object Readable extends QualifyStrategy
 

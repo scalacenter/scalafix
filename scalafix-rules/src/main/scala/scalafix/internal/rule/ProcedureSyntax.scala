@@ -38,7 +38,10 @@ class ProcedureSyntax extends SyntacticRule("ProcedureSyntax") {
         } yield Patch.addRight(toAdd, s": Unit =").atomic
         fixed.getOrElse(Patch.empty)
 
-      /** @see [[https://github.com/ohze/scala-rewrites/blob/dotty/rewrites/src/main/scala/fix/scala213/ConstructorProcedureSyntax.scala ConstructorProcedureSyntax.scala]] */
+      /**
+       * @see
+       *   [[https://github.com/ohze/scala-rewrites/blob/dotty/rewrites/src/main/scala/fix/scala213/ConstructorProcedureSyntax.scala ConstructorProcedureSyntax.scala]]
+       */
       case t: Ctor.Secondary =>
         val tokens = t.tokens
         val beforeInitIdx = tokens.indexOf(t.init.tokens.head) - 1
