@@ -14,8 +14,9 @@ import scalafix.interfaces.ScalafixMainCallback
 import scalafix.internal.tests.utils.SkipWindows
 
 /**
- * Tests in this suite require scalafix-cli & its dependencies to be cross-published so that Coursier can fetch them.
- * That is done automatically as part of `sbt unit/test`, but if you run this from any other way, running
+ * Tests in this suite require scalafix-cli & its dependencies to be
+ * cross-published so that Coursier can fetch them. That is done automatically
+ * as part of `sbt unit/test`, but if you run this from any other way, running
  * `sbt cli/crossPublishLocalBinTransitive` is a prerequisite.
  */
 class ScalafixSuite extends AnyFunSuite {

@@ -8,8 +8,9 @@ import scalafix.rule.RuleName
 /**
  * A diagnostic that has been associated with a rule.
  *
- * @param overriddenSeverity Optional .scalafix.conf configuration where user has overriden the severity of
- *                           diagnostics for this rule + category ID.
+ * @param overriddenSeverity
+ *   Optional .scalafix.conf configuration where user has overriden the severity
+ *   of diagnostics for this rule + category ID.
  */
 final class RuleDiagnostic private (
     val diagnostic: Diagnostic,
@@ -23,7 +24,10 @@ final class RuleDiagnostic private (
   def explanation: String = diagnostic.explanation
   def id: LintID = LintID(rule.value, diagnostic.categoryID)
 
-  /** A pretty-printed representation of this diagnostic without detailed explanation. */
+  /**
+   * A pretty-printed representation of this diagnostic without detailed
+   * explanation.
+   */
   def formattedMessage: String = {
     val msg = new StringBuilder()
       .append("[")

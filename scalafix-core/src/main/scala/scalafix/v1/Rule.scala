@@ -8,30 +8,40 @@ abstract class Rule(val name: RuleName) {
   /**
    * Single sentence explanation of what this rule does.
    *
-   * Example: Removed unused imports reported by the compiler under -Ywarn-unused
+   * Example: Removed unused imports reported by the compiler under
+   * -Ywarn-unused
    */
   def description: String = ""
 
   /**
-   * Configure this rule according to user .scalafix.conf settings and compiler version.
+   * Configure this rule according to user .scalafix.conf settings and compiler
+   * version.
    *
-   * This method is called once per project/module. The same rule instance is used to
-   * analyze multiple source files.
+   * This method is called once per project/module. The same rule instance is
+   * used to analyze multiple source files.
    *
-   * @return A new version of this rule with loaded configuration or an error message.
+   * @return
+   *   A new version of this rule with loaded configuration or an error message.
    */
   def withConfiguration(config: Configuration): Configured[Rule] =
     Configured.ok(this)
 
-  /** If true, allows this rule to be grouped together with other linter rules for documentation purposes. */
+  /**
+   * If true, allows this rule to be grouped together with other linter rules
+   * for documentation purposes.
+   */
   def isLinter: Boolean = false
-  /** If true, allows this rule to be grouped together with other rewrite rules for documentation purposes. */
+  /**
+   * If true, allows this rule to be grouped together with other rewrite rules
+   * for documentation purposes.
+   */
   def isRewrite: Boolean = false
   /**
-   * Indicates if this rule is incomplete and subject to breaking changes or removal in the future.
+   * Indicates if this rule is incomplete and subject to breaking changes or
+   * removal in the future.
    *
-   * Experimental rules are excluded from from tab completions and do not need to be documented
-   * on the website.
+   * Experimental rules are excluded from from tab completions and do not need
+   * to be documented on the website.
    */
   def isExperimental: Boolean = false
 

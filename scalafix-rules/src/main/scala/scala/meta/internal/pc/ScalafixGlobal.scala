@@ -552,10 +552,12 @@ class ScalafixGlobal(
   }
 
   /**
-   * A `Type` with custom pretty-printing representation, not used for typechecking.
+   * A `Type` with custom pretty-printing representation, not used for
+   * typechecking.
    *
-   * NOTE(olafur) Creating a new `Type` subclass is a hack, a better long-term solution would be
-   * to implement a custom pretty-printer for types so that we don't have to rely on `Type.toString`.
+   * NOTE(olafur) Creating a new `Type` subclass is a hack, a better long-term
+   * solution would be to implement a custom pretty-printer for types so that we
+   * don't have to rely on `Type.toString`.
    */
   class PrettyType(
       override val prefixString: String,

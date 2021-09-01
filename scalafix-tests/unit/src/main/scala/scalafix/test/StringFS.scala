@@ -39,12 +39,8 @@ object StringFS {
   /**
    * Gives a string representation of a directory. For example
    *
-   * /build.sbt
-   * val x = project
-   * /src/main/scala/Main.scala
-   * object A { def main = Unit }
-   * /target/scala-2.11/foo.class
-   * ^!*@#@!*#&@*!&#^
+   * /build.sbt val x = project /src/main/scala/Main.scala object A { def main =
+   * Unit } /target/scala-2.11/foo.class ^!*@#@!*#&@*!&#^
    */
   def dir2string(
       file: AbsolutePath,

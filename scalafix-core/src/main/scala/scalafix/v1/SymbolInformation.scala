@@ -10,43 +10,63 @@ import scalafix.internal.v1.SymtabFromProtobuf
 /**
  * Describes metadata about a symbol such as a method, class or trait.
  *
- * To learn more about SymbolInformation, refer to the SemanticDB specification for
+ * To learn more about SymbolInformation, refer to the SemanticDB specification
+ * for
  *
- * <ul>
- *   <li>
- *     <a href="https://scalameta.org/docs/semanticdb/specification.html#scala-symbolinformation">Scala SymbolInformation</a>
- *   </li>
- *   <li>
- *     <a href="https://scalameta.org/docs/semanticdb/specification.html#java-symbolinformation">Java SymbolInformation</a>
- *   </li>
- * </ul>
+ * <ul> <li> <a
+ * href="https://scalameta.org/docs/semanticdb/specification.html#scala-symbolinformation">Scala
+ * SymbolInformation</a> </li> <li> <a
+ * href="https://scalameta.org/docs/semanticdb/specification.html#java-symbolinformation">Java
+ * SymbolInformation</a> </li> </ul>
  *
- * @groupname Ungrouped Misc
- * @groupprio Ungrouped 9
+ * @groupname Ungrouped
+ *   Misc
+ * @groupprio Ungrouped
+ *   9
  *
- * @groupname kind Kind
- * @groupprio kind 11
- * @groupdesc kind Describes what kind this symbol is. It is only possible for a symbol to have one kind.
- *            For example, it's not possible for a symbol to be both a class and an interface.
+ * @groupname kind
+ *   Kind
+ * @groupprio kind
+ *   11
+ * @groupdesc kind
+ *   Describes what kind this symbol is. It is only possible for a symbol to
+ *   have one kind. For example, it's not possible for a symbol to be both a
+ *   class and an interface.
  *
- * @groupname property Property
- * @groupprio property 12
- * @groupdesc property Describes the properties of this symbol. It is possible for a symbol to have multiple properties.
- *            For example, a symbol can be both implicit and final.
+ * @groupname property
+ *   Property
+ * @groupprio property
+ *   12
+ * @groupdesc property
+ *   Describes the properties of this symbol. It is possible for a symbol to
+ *   have multiple properties. For example, a symbol can be both implicit and
+ *   final.
  *
- * @groupname access Access
- * @groupprio access 13
- * @groupdesc access Describes the visibility of this symbol. It is only possible for a symbol to have one access.
- *            For example, a symbol is either private or privateThis, it cannot be both.
- *           To learn more about Access, refer to the <a href="https://scalameta.org/docs/semanticdb/specification.html#scala-access">SemanticDB specification.</a>
+ * @groupname access
+ *   Access
+ * @groupprio access
+ *   13
+ * @groupdesc access
+ *   Describes the visibility of this symbol. It is only possible for a symbol
+ *   to have one access. For example, a symbol is either private or privateThis,
+ *   it cannot be both. To learn more about Access, refer to the <a
+ *   href="https://scalameta.org/docs/semanticdb/specification.html#scala-access">SemanticDB
+ *   specification.</a>
  *
- * @groupname utility Utility methods
- * @groupprio utility 14
- * @groupdesc utility Helper methods for frequent queries based on properties, kinds, names and languages.
+ * @groupname utility
+ *   Utility methods
+ * @groupprio utility
+ *   14
+ * @groupdesc utility
+ *   Helper methods for frequent queries based on properties, kinds, names and
+ *   languages.
  *
- * @groupname language Language
- * @groupprio language 15
- * @groupdesc language Describes which language the symbol is defined in.
+ * @groupname language
+ *   Language
+ * @groupprio language
+ *   15
+ * @groupdesc language
+ *   Describes which language the symbol is defined in.
  */
 final class SymbolInformation private[scalafix] (
     private[scalafix] val info: s.SymbolInformation
@@ -77,7 +97,8 @@ final class SymbolInformation private[scalafix] (
   /** @group kind */
   @kind def isField: Boolean = info.isField
   /**
-   * Returns true for `val` `var` and `def` symbols in Scala, and true for Java methods.
+   * Returns true for `val` `var` and `def` symbols in Scala, and true for Java
+   * methods.
    * @group kind
    */
   @kind def isMethod: Boolean = info.isMethod

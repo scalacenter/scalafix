@@ -1,4 +1,4 @@
-package test
+package test.removeUnused
 
 case class AB(a: Int, b: String)
 

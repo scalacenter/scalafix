@@ -12,8 +12,7 @@ import scalafix.v1._
 class ProcedureSyntax extends SyntacticRule("ProcedureSyntax") {
 
   override def description: String =
-    "Replaces deprecated procedure syntax with explicit ': Unit ='" +
-      "This rule is specific to scala 2, since procedure syntax is not supported in Scala 3"
+    "Replaces deprecated procedure syntax with explicit ': Unit ='"
 
   override def withConfiguration(config: Configuration): Configured[Rule] = {
     if (config.scalaVersion.startsWith("3"))
@@ -39,7 +38,10 @@ class ProcedureSyntax extends SyntacticRule("ProcedureSyntax") {
         } yield Patch.addRight(toAdd, s": Unit =").atomic
         fixed.getOrElse(Patch.empty)
 
-      /** @see [[https://github.com/ohze/scala-rewrites/blob/dotty/rewrites/src/main/scala/fix/scala213/ConstructorProcedureSyntax.scala ConstructorProcedureSyntax.scala]] */
+      /**
+       * @see
+       *   [[https://github.com/ohze/scala-rewrites/blob/dotty/rewrites/src/main/scala/fix/scala213/ConstructorProcedureSyntax.scala ConstructorProcedureSyntax.scala]]
+       */
       case t: Ctor.Secondary =>
         val tokens = t.tokens
         val beforeInitIdx = tokens.indexOf(t.init.tokens.head) - 1

@@ -6,9 +6,11 @@ import metaconfig.ConfDecoder
 import scalafix.internal.util.SymbolOps
 
 /**
- * Represents a unique definitions such as a Scala `val`, `object`, `class`, or Java field/method.
+ * Represents a unique definitions such as a Scala `val`, `object`, `class`, or
+ * Java field/method.
  *
- * @param value The unique string representation for this symbol.
+ * @param value
+ *   The unique string representation for this symbol.
  */
 final class Symbol private (val value: String) {
   def isNone: Boolean = value.isNone

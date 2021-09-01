@@ -1,7 +1,7 @@
 /*
 rule = RemoveUnused
  */
-package test
+package test.removeUnused
 
 import scala.util.{
   Failure,
