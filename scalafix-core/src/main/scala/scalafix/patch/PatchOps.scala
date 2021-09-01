@@ -11,9 +11,8 @@ trait PatchOps {
   /**
    * Remove this particular instance of Importee.
    *
-   * Handles tricky cases like trailing commas or curly braces.
-   * Example, removeImportee(b) in `import a.{b, c}` produces
-   * `import a.c`.
+   * Handles tricky cases like trailing commas or curly braces. Example,
+   * removeImportee(b) in `import a.{b, c}` produces `import a.c`.
    *
    * Note, `importee` instance is by reference, so removing quasiquotes
    * (example, `removeImportee(importee"b")`) does nothing.
@@ -50,7 +49,9 @@ trait PatchOps {
   /** Add the string toAdd to the last token of tree. Does not remove tokens. */
   def addRight(tree: Tree, toAdd: String): Patch
 
-  /** Add the string toAdd to the first token of tree. Does not remove tokens. */
+  /**
+   * Add the string toAdd to the first token of tree. Does not remove tokens.
+   */
   def addLeft(tree: Tree, toAdd: String): Patch
 
   // Semantic patches below, available to rules that "extends SemanticRule"
@@ -68,9 +69,9 @@ trait PatchOps {
    *   }
    * }}}
    *
-   * Each LintCategory is assigned a unique identifier, which is formatted
-   * as "RuleName.categoryID". The divisionByZero example would have the
-   * id "MyLinter.divisionByZero". A LintCategory has a default severity level
+   * Each LintCategory is assigned a unique identifier, which is formatted as
+   * "RuleName.categoryID". The divisionByZero example would have the id
+   * "MyLinter.divisionByZero". A LintCategory has a default severity level
    * (warning, error) that the user can override in .scalafix.conf.
    */
   def lint(msg: Diagnostic): Patch
@@ -87,21 +88,19 @@ trait PatchOps {
   /**
    * Add an import on symbol among the global imports.
    *
-   * This patch is not reference, unlike removeImportee(Importee). It is
-   * only necessary to use this patch once per tree, duplicate symbols are
-   * ignored.
+   * This patch is not reference, unlike removeImportee(Importee). It is only
+   * necessary to use this patch once per tree, duplicate symbols are ignored.
    */
   def addGlobalImport(symbol: Symbol)(implicit index: SemanticdbIndex): Patch
 
   /**
    * Replace references/call-sites to fromSymbol with references to toSymbol.
    *
-   * toSymbol must be a static method or a globally accessible object.
-   * toSymbol should not be path dependent. To rename a class method,
-   * use renameSymbol.
+   * toSymbol must be a static method or a globally accessible object. toSymbol
+   * should not be path dependent. To rename a class method, use renameSymbol.
    *
-   * Experimental. May produce broken code in some cases. This
-   * is the same patch as `replace:com.foo/com.bar` from sbt-scalafix.
+   * Experimental. May produce broken code in some cases. This is the same patch
+   * as `replace:com.foo/com.bar` from sbt-scalafix.
    */
   def replaceSymbol(fromSymbol: Symbol.Global, toSymbol: Symbol.Global)(implicit
       index: SemanticdbIndex
@@ -129,8 +128,8 @@ trait PatchOps {
   /**
    * Helper for calling replaceSymbols without needing _*
    *
-   * Defers work to replaceSymbols((String, String)*). Needs a dummy implicit
-   * to differentiate from replaceSymbols((String, String)*) after type erasure
+   * Defers work to replaceSymbols((String, String)*). Needs a dummy implicit to
+   * differentiate from replaceSymbols((String, String)*) after type erasure
    */
   def replaceSymbols(
       toReplace: scala.collection.Seq[(String, String)]

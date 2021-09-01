@@ -23,8 +23,8 @@ import scalafix.syntax._
  *   }
  * }}}
  *
- * To report violations of this rule (without automatic fix), override
- * the `check` method. Example:
+ * To report violations of this rule (without automatic fix), override the
+ * `check` method. Example:
  * {{{
  *   // example syntactic linter
  *   object NoNulls extends Rule("NoNulls") {
@@ -36,12 +36,12 @@ import scalafix.syntax._
  * }}}
  *
  * @param ruleName
- *   Name of this rule that users call via .scalafix.conf
- *   or in the sbt shell. By convention, a name should be
- *   PascalCase matching the class name of the rule.
+ *   Name of this rule that users call via .scalafix.conf or in the sbt shell.
+ *   By convention, a name should be PascalCase matching the class name of the
+ *   rule.
  *
- *   Example good name: NoVars, ExplicitUnit.
- *   Example bad name: no-vars, noVars, FixVars.
+ * Example good name: NoVars, ExplicitUnit. Example bad name: no-vars, noVars,
+ * FixVars.
  */
 @deprecated("Use scalafix.v1.Rule instead", "0.9.28")
 abstract class Rule(ruleName: RuleName) { self =>
@@ -55,13 +55,14 @@ abstract class Rule(ruleName: RuleName) { self =>
   /**
    * Initialize this rule with the given user configuration.
    *
-   * This method is called once by scalafix before rule is called.
-   * Use this method to either read custom configuration or to build
-   * expensive indices.
+   * This method is called once by scalafix before rule is called. Use this
+   * method to either read custom configuration or to build expensive indices.
    *
-   * @param config The .scalafix.conf configuration.
-   * @return the initialized rule or an error. If no initialization is needed,
-   *         return Configured.Ok(this).
+   * @param config
+   *   The .scalafix.conf configuration.
+   * @return
+   *   the initialized rule or an error. If no initialization is needed, return
+   *   Configured.Ok(this).
    */
   def init(config: Conf): Configured[Rule] =
     Configured.Ok(this)

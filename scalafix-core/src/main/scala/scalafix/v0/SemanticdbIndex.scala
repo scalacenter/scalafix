@@ -47,8 +47,8 @@ trait SemanticdbIndex extends SemanticContext {
    *
    * This method returns the same result as symbol(Tree.Position) in most cases
    * but handles some special cases:
-   * - when tree is Term/Type.Select(_, name), query by name.position
-   * - workaround for https://github.com/scalameta/scalameta/issues/1083
+   *   - when tree is Term/Type.Select(_, name), query by name.position
+   *   - workaround for https://github.com/scalameta/scalameta/issues/1083
    */
   def symbol(tree: Tree): Option[Symbol]
 

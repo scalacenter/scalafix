@@ -8,12 +8,15 @@ import scalafix.lint.LintSeverity
 /**
  * A unique identifier for one kind of a linter message.
  *
- * @param id a string ID for this message, typically the name of the
- *           assigned variable. If id is empty, then the name of the
- *           rewrite reporting this LintCategory is used as id.
- * @param explanation An optional explanation for this kind of message.
- * @param severity The default category this message should get reported to.
- *                 Note that users can configure/override the default category.
+ * @param id
+ *   a string ID for this message, typically the name of the assigned variable.
+ *   If id is empty, then the name of the rewrite reporting this LintCategory is
+ *   used as id.
+ * @param explanation
+ *   An optional explanation for this kind of message.
+ * @param severity
+ *   The default category this message should get reported to. Note that users
+ *   can configure/override the default category.
  */
 final case class LintCategory(
     id: String,

@@ -25,9 +25,9 @@ trait RuleCtx extends PatchOps {
   /**
    * The input where the tree was parsed from.
    *
-   * This is typically either Input.VirtualFile for semantic rules
-   * and Input.File for syntactic rules. For Input.VirtualFile, it is
-   * possible to trace back to the original file path via SemanticdbIndex.sourcepath.
+   * This is typically either Input.VirtualFile for semantic rules and
+   * Input.File for syntactic rules. For Input.VirtualFile, it is possible to
+   * trace back to the original file path via SemanticdbIndex.sourcepath.
    */
   def input: Input
 

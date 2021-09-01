@@ -25,11 +25,10 @@ import scalafix.v0._
 import scala.collection.compat._ // scalafix:ok
 
 /**
- * EscapeHatch is an algorithm to selectively disable rules. There
- * are two mechanisms to do so: anchored comments and the
- * standard `@SuppressWarnings` annotation. The latter takes
- * precedence over the former in case there are overlaps.
- * See `AnchoredEscapes` and `AnnotatedEscapes` for more details.
+ * EscapeHatch is an algorithm to selectively disable rules. There are two
+ * mechanisms to do so: anchored comments and the standard `@SuppressWarnings`
+ * annotation. The latter takes precedence over the former in case there are
+ * overlaps. See `AnchoredEscapes` and `AnnotatedEscapes` for more details.
  */
 class EscapeHatch private (
     anchoredEscapes: AnchoredEscapes,
@@ -165,9 +164,9 @@ object EscapeHatch {
    * annotation can be placed in class, object, trait, type, def, val, var,
    * parameters and constructor definitions.
    *
-   * Rules can be optionally prefixed with `scalafix:`. Besides helping
-   * users to understand where the rules are coming from, it also allows
-   * Scalafix to warn unused suppression.
+   * Rules can be optionally prefixed with `scalafix:`. Besides helping users to
+   * understand where the rules are coming from, it also allows Scalafix to warn
+   * unused suppression.
    *
    * Use the keyword "all" to suppress all rules.
    */
@@ -272,13 +271,14 @@ object EscapeHatch {
   }
 
   /**
-   * Rules are disabled via comments with a specific syntax:
-   * `scalafix:off` or `scalafix:on` disable or enable rules until the end of file
-   * `scalafix:ok` disable rules on an associated expression
-   * a list of rules separated by commas can be provided to selectively
-   * enable or disable rules otherwise all rules are affected
+   * Rules are disabled via comments with a specific syntax: `scalafix:off` or
+   * `scalafix:on` disable or enable rules until the end of file `scalafix:ok`
+   * disable rules on an associated expression a list of rules separated by
+   * commas can be provided to selectively enable or disable rules otherwise all
+   * rules are affected
    *
-   * `enabling` and `enabling` contain the offset at which you start applying a filter
+   * `enabling` and `enabling` contain the offset at which you start applying a
+   * filter
    *
    * `unused` contains the position of unused `scalafix:on|off`
    */
@@ -292,7 +292,8 @@ object EscapeHatch {
 
     /**
      * a rule r is disabled in position p if there is a comment disabling r at
-     * position p1 < p and there is no comment enabling r in position p2 where p1 < p2 < p.
+     * position p1 < p and there is no comment enabling r in position p2 where
+     * p1 < p2 < p.
      */
     def isEnabled(
         ruleName: RuleName,
