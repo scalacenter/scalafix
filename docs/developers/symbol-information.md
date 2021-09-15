@@ -16,6 +16,7 @@ definition. A symbol information describes the symbols's
 - properties: `final`, `abstract`, `implicit`
 - type signature: class declarations, class parents, method parameters, ...
 - visibility access: `private`, `protected`, ...
+- overridden symbols: list of symbols that this symbol overrides
 
 ```scala mdoc:passthrough
 import scalafix.internal.v1.SymbolInformationAnnotations._
