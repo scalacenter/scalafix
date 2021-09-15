@@ -10,7 +10,7 @@ object Dependencies {
   val scala211 = "2.11.12"
   val scala212 = "2.12.14"
   val scala213 = "2.13.6"
-  val scala3 = "3.0.1"
+  val scala3 = "3.0.2"
   // we support 3 last binary versions of scala212 and scala213
   val testedPreviousScalaVersions: Map[String, List[String]] =
     List(scala213, scala212).map(version => version -> previousVersions(version)).toMap
