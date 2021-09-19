@@ -12,3 +12,7 @@ trait SymbolTest {
   def arg = 1
   this shouldBe (arg)
 }
+
+class ConcreteSymbolTest extends SymbolTest {
+  override def shouldBe(right: Any): Unit = ()
+}
