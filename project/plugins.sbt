@@ -1,4 +1,4 @@
-addSbtPlugin("com.geirsson" % "sbt-ci-release" % "1.5.7")
+addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.5.9")
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.10.0")
 addSbtPlugin("com.typesafe.sbt" % "sbt-ghpages" % "0.6.3")
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "1.1.0")
