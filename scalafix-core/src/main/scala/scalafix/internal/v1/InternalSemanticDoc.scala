@@ -77,7 +77,7 @@ final class InternalSemanticDoc(
         textDocument.symbols
           .find(_.symbol == sym.value)
           .map(new SymbolInformation(_)(this))
-      fromGlobalSymtab.orElse(fromTextDocument())
+      fromTextDocument().orElse(fromGlobalSymtab)
     }
   }
 

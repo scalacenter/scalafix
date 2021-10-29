@@ -24,4 +24,18 @@ class SymbolSuite extends munit.FunSuite {
 
     assertNotEquals(arg.symbol, Symbol.None)
   }
+
+  test("overriddenSymbols") {
+    val shouldBe :: Nil = doc.tree.collect {
+      case defn: Defn.Def
+          if defn.name.value == "shouldBe" && defn.mods
+            .exists(mod => mod.is[Mod.Override]) =>
+        defn
+    }
+
+    assertNotEquals(
+      shouldBe.symbol.info.map(_.overriddenSymbols).getOrElse(Nil).length,
+      0
+    )
+  }
 }
