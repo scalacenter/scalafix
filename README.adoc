@@ -83,7 +83,7 @@ However, you should make sure that the source-formatting tools you use do not re
 
 === Scala 3
 
-Running the rule on source files compiled with Scala 3 is still experimental.
+Running the rule on source files compiled with Scala 3 is still experimental and only available in snapshot releases.
 
 Known limitations:
 
