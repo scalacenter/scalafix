@@ -119,7 +119,7 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
       )
     )
 
-    //if a non empty list of rules is provided, rules from config file are ignored
+    // if a non empty list of rules is provided, rules from config file are ignored
     val args2 = api
       .newArguments()
       .withRules(List("ProcedureSyntax").asJava)
