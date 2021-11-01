@@ -697,9 +697,9 @@ object OrganizeImports {
 
   @tailrec private def collectImports(tree: Tree): (Seq[Import], Seq[Import]) = {
     def extractImports(stats: Seq[Stat]): (Seq[Import], Seq[Import]) = {
-      val (importStats, otherStats) = stats span (_.is[Import])
-      val globalImports = importStats map { case i: Import => i }
-      val localImports = otherStats flatMap (_.collect { case i: Import => i })
+      val (importStats, otherStats) = stats.span(_.is[Import])
+      val globalImports = importStats.map { case i: Import => i }
+      val localImports = otherStats.flatMap(_.collect { case i: Import => i })
       (globalImports, localImports)
     }
 
@@ -806,12 +806,12 @@ object OrganizeImports {
   /**
    * Categorizes a list of `Importee`s into the following four groups:
    *
-   *  - Names, e.g., `Seq`, `Option`, etc.
-   *  - Renames, e.g., `{Long => JLong}`, `{Duration => D}`, etc.
-   *  - Unimports, e.g., `{Foo => _}`.
-   *  - Givens, e.g., `{given Foo}`.
-   *  - GivenAll, i.e., `given`.
-   *  - Wildcard, i.e., `_`.
+   *   - Names, e.g., `Seq`, `Option`, etc.
+   *   - Renames, e.g., `{Long => JLong}`, `{Duration => D}`, etc.
+   *   - Unimports, e.g., `{Foo => _}`.
+   *   - Givens, e.g., `{given Foo}`.
+   *   - GivenAll, i.e., `given`.
+   *   - Wildcard, i.e., `_`.
    */
   object Importees {
     def unapply(importees: Seq[Importee]): Option[
