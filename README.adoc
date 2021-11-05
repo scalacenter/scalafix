@@ -1,4 +1,4 @@
-:latest-release: 0.5.0
+:latest-release: 0.6.0
 
 ifdef::env-github[]
 :caution-caption: :construction:
@@ -83,7 +83,9 @@ However, you should make sure that the source-formatting tools you use do not re
 
 === Scala 3
 
-Running the rule on source files compiled with Scala 3 is still experimental and only available in snapshot releases.
+Available since v0.6.0.
+
+Running the rule on source files compiled with Scala 3 is still experimental.
 
 Known limitations:
 
