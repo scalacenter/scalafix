@@ -164,6 +164,13 @@ final class DisableSyntax(config: DisableSyntaxConfig)
       }
     }
 
+    object FinalObject {
+      def unapply(t: Tree): Option[Defn.Object] = t match {
+        case o: Defn.Object if o.mods.exists(_.is[Mod.Final]) => Some(o)
+        case _ => None
+      }
+    }
+
     object NoValPatterns {
       def unapply(t: Tree): Option[Tree] = t match {
         case v: Defn.Val =>
@@ -216,15 +223,21 @@ final class DisableSyntax(config: DisableSyntaxConfig)
             v.pos
           )
         }
-      case t @ Defn.Object(mods, _, _)
-          if mods.exists(_.is[Mod.Implicit]) && config.noImplicitObject =>
-        Seq(
-          Diagnostic(
-            "implicitObject",
-            "implicit objects may cause implicit resolution errors",
-            t.pos
-          )
-        )
+      case t @ Defn.Object(mods, _, _) =>
+        mods.collect {
+          case mod if mod.is[Mod.Implicit] && config.noImplicitObject =>
+            Diagnostic(
+              "implicitObject",
+              "implicit objects may cause implicit resolution errors",
+              t.pos
+            )
+          case mod if mod.is[Mod.Final] && config.noFinalObject =>
+            Diagnostic(
+              "finalObject",
+              "final modifier on object is redundant",
+              t.pos
+            )
+        }
       case t @ Defn.Def(mods, _, _, paramss, _, _)
           if mods.exists(_.is[Mod.Implicit]) &&
             hasNonImplicitParam(t) &&
