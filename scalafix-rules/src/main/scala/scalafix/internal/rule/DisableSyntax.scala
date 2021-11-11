@@ -164,13 +164,6 @@ final class DisableSyntax(config: DisableSyntaxConfig)
       }
     }
 
-    object FinalObject {
-      def unapply(t: Tree): Option[Defn.Object] = t match {
-        case o: Defn.Object if o.mods.exists(_.is[Mod.Final]) => Some(o)
-        case _ => None
-      }
-    }
-
     object NoValPatterns {
       def unapply(t: Tree): Option[Tree] = t match {
         case v: Defn.Val =>
