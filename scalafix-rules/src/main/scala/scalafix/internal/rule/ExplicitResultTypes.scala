@@ -201,7 +201,6 @@ final class ExplicitResultTypes(
     for {
       name <- defnName(defn)
       defnSymbol <- name.symbol.asNonEmpty
-      _ = println(defnSymbol)
       patch <- types.toPatch(name.pos, defnSymbol, replace, defn, space)
     } yield patch
 
