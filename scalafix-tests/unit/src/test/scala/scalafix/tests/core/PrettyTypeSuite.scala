@@ -39,7 +39,13 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
     case m.Defn.Def(mods, name, tparams, paramss, Some(decltpe), _) =>
       m.Decl.Def(mods, name, tparams, paramss, decltpe)
   }
-  stats.collect { case expected: m.Member =>
+
+  // ignoring Functor[C[_]] because of a regression with scalac 2.13.7, see https://github.com/scalacenter/scalafix/pull/1493
+  val filteredStats = stats.collect {
+    case m: m.Member if m.name.value != "Functor" => m
+  }
+
+  filteredStats.collect { case expected: m.Member =>
     val name = expected.name.value
     test(s"${expected.productPrefix} - $name") {
       val suffix: String = expected match {
