@@ -55,7 +55,7 @@
               }
             });
         </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><a class="edit-page-link button" href="https://github.com/scalacenter/scalafix/edit/main/docs/rules/ExplicitResultTypes.md" target="_blank" rel="noreferrer noopener">Edit</a><h1 id="__docusaurus" class="postHeaderTitle">ExplicitResultTypes</h1></header><article><div><span><p>This rewrite inserts type annotations for inferred public members. Only compatible with
-2.11.12, 2.12.13, 2.12.14, 2.12.15, 2.13.4, 2.13.5, 2.13.6</p>
+2.11.12, 2.12.13, 2.12.14, 2.12.15, 2.13.5, 2.13.6, 2.13.7</p>
 <p>Example:</p>
 <pre><code class="hljs css language-diff"><span class="hljs-deletion">- def myComplexMethod = 1.to(10).map(i =&gt; i -&gt; i.toString).toMap</span>
 <span class="hljs-addition">+ def myComplexMethod: Map[Int, String] = 1.to(10).map(i =&gt; i -&gt; i.toString).toMap</span>
