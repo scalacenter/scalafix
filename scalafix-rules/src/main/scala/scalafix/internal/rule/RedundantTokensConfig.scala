@@ -5,8 +5,8 @@ import metaconfig.annotation._
 import metaconfig.generic.Surface
 
 final case class RedundantTokensConfig(
-  @Description("Remove final modifier from objects")
-  finalObject: Boolean = true
+    @Description("Remove final modifier from objects")
+    finalObject: Boolean = true
 )
 
 object RedundantTokensConfig {

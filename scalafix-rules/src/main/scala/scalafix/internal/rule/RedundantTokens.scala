@@ -1,9 +1,10 @@
 package scalafix.internal.rule
 
-import scalafix.v1._
 import scala.meta._
+
 import metaconfig.Configured
 import scalafix.util.TokenList
+import scalafix.v1._
 
 class RedundantTokens(config: RedundantTokensConfig)
     extends SemanticRule("RedundantTokens") {
