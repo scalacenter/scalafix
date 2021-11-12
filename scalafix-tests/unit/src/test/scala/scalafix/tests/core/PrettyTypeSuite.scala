@@ -41,7 +41,7 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
   }
 
   // ignoring Functor[C[_]] because of a regression with scalac 2.13.7, see https://github.com/scalacenter/scalafix/pull/1493
-  val filteredStats = stats.collect {
+  val filteredStats: List[m.Stat with m.Member] = stats.collect {
     case m: m.Member if m.name.value != "Functor" => m
   }
 
