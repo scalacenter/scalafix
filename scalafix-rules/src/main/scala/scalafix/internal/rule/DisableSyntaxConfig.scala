@@ -65,8 +65,6 @@ case class DisableSyntaxConfig(
         "see [motivation](https://github.com/sbt/zinc/issues/227)"
     )
     noFinalVal: Boolean = false,
-    @Description("Report error on `final` modifier for an object, which is redundant.")
-    noFinalObject: Boolean = false,
     @Description("Reports error when finalize is overridden.")
     noFinalize: Boolean = false,
     @Description(

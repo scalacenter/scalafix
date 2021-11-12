@@ -4,7 +4,6 @@ DisableSyntax.noCovariantTypes = true
 DisableSyntax.noContravariantTypes = true
 DisableSyntax.noDefaultArgs = true
 DisableSyntax.noValInAbstract = true
-DisableSyntax.noFinalObject = true
 DisableSyntax.noImplicitObject = true
 DisableSyntax.noImplicitConversion = true
 DisableSyntax.noUniversalEquality = true
@@ -101,5 +100,4 @@ Default args makes it hard to use methods as functions.
     == and != are not typesafe, use === and =!= from cats.Eq instead
   */
 
-  final object Foo // assert: DisableSyntax.finalObject
 }
