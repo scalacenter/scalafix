@@ -193,8 +193,6 @@ object BetterRscCompat_Test {
 
   object PackageObjects {
     val o2c = O1.foo
-
-    val poc = new PkgObjClass
   }
 
   object PolymorphicDefaultParams {
