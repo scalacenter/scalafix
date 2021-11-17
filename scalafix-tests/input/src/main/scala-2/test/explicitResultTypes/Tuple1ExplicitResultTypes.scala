@@ -11,4 +11,5 @@ object Tuple1ExplicitResultTypes {
   def bar = {
     Tuple1(Tuple1(3))
   }
+  def baz = List(Tuple1(3))
 }
