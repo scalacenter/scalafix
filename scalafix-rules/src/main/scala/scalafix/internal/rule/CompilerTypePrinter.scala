@@ -124,7 +124,7 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
           addImports + extraPatch
       )
     }
-    
+
   }
 
   private def asSeenFromType(
