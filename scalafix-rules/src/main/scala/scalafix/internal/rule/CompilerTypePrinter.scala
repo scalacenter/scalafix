@@ -107,7 +107,6 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
         extraPatch += patch
         tpe
     }
-
     val preProcessed = preProcess(toLoop, inverseSemanticdbSymbol).widen
     val shortType = g.shortType(preProcessed, history)
     val short = shortType.toString()
@@ -125,6 +124,7 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
           addImports + extraPatch
       )
     }
+    
   }
 
   private def asSeenFromType(
