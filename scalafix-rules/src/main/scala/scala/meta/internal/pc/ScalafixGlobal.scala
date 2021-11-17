@@ -169,6 +169,8 @@ class ScalafixGlobal(
       if (isVisited(key)) return cached.getOrDefault(key, tpe)
       isVisited += key
       val result = tpe match {
+        case TypeRef(_, sym, List(arg)) if sym.fullName == "scala.Tuple1" =>
+          new PrettyType(s"Tuple1[${loop(arg, None)}]")
         case TypeRef(pre, sym, args) =>
           if (history.isSymbolInScope(sym, pre)) {
             TypeRef(NoPrefix, sym, args.map(arg => loop(arg, None)))

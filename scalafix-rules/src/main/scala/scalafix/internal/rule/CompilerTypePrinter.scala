@@ -108,20 +108,10 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
         tpe
     }
 
-    def typeToString(typ: Type): String = {
-      val preProcessed = preProcess(typ, inverseSemanticdbSymbol).widen
-      val shortType = g.shortType(preProcessed, history)
-      val shortTypeSymbol = shortType.typeSymbol
+    val preProcessed = preProcess(toLoop, inverseSemanticdbSymbol).widen
+    val shortType = g.shortType(preProcessed, history)
 
-      shortTypeSymbol.fullName match {
-        case "scala.Tuple1" => // toString of Tuple1[Foo] is (Foo,) which is invalid syntax
-          val typeArg = typeToString(shortType.typeArgs.head)
-          s"Tuple1[$typeArg]"
-        case _ => shortType.toString
-      }
-    }
-
-    val short = typeToString(toLoop)
+    val short = shortType.toString
 
     willBeImported ++= history.missingImports
     val addImports = importPatches(history, context)
