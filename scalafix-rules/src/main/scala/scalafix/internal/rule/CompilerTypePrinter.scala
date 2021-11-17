@@ -110,9 +110,7 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
 
     val preProcessed = preProcess(toLoop, inverseSemanticdbSymbol).widen
     val shortType = g.shortType(preProcessed, history)
-
-    val short = shortType.toString
-
+    val short = shortType.toString()
     willBeImported ++= history.missingImports
     val addImports = importPatches(history, context)
     val isConstantType = toLoop.finalResultType match {
