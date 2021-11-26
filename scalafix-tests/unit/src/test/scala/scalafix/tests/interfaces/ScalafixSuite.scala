@@ -99,11 +99,13 @@ class ScalafixSuite extends AnyFunSuite {
 
   // 2.11(.12) triggers `java.lang.NoClassDefFoundError: javax/tools/DiagnosticListener` on Java11.
   // See https://github.com/scala/bug/issues/10603.
-  val isJava11: Boolean = Option(System.getProperty("java.version"))
-    .getOrElse("")
-    .startsWith("11")
+  val javaVersionOpt: Option[String] = Option(
+    System.getProperty("java.version")
+  )
+  val isJava11: Boolean = javaVersionOpt.getOrElse("").startsWith("11")
+  val isJava17: Boolean = javaVersionOpt.getOrElse("").startsWith("17")
   val scalaBinaryVersionsToRun: Set[String] =
-    if (isJava11) supportedScalaBinaryVersions - "2.11"
+    if (isJava11 || isJava17) supportedScalaBinaryVersions - "2.11"
     else supportedScalaBinaryVersions
 
   scalaBinaryVersionsToRun.map { scalaBinaryVersion =>
