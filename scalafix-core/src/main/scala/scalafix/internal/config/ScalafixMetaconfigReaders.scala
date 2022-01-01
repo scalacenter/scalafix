@@ -116,9 +116,10 @@ trait ScalafixMetaconfigReaders {
   implicit lazy val symbolReader: ConfDecoder[Symbol] =
     ConfDecoder.stringConfDecoder.map(Symbol.apply)
   private def parseSymbol(sym: String): Configured[Symbol] =
-    try Ok(
-      Symbol(sym)
-    ) // Because https://github.com/scalameta/scalameta/issues/821
+    try
+      Ok(
+        Symbol(sym)
+      ) // Because https://github.com/scalameta/scalameta/issues/821
     catch { case NonFatal(e) => ConfError.exception(e, 0).notOk }
   implicit lazy val symbolGlobalReader: ConfDecoder[Symbol.Global] =
     ConfDecoder.instance[Symbol.Global] { case Conf.Str(path) =>
