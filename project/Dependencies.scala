@@ -9,7 +9,7 @@ import scala.util.Try
 object Dependencies {
   val scala211 = "2.11.12"
   val scala212 = "2.12.15"
-  val scala213 = "2.13.7"
+  val scala213 = "2.13.8"
   val scala3 = "3.1.0"
   // we support 3 last binary versions of scala212 and scala213
   val testedPreviousScalaVersions: Map[String, List[String]] =
@@ -28,7 +28,7 @@ object Dependencies {
   val nailgunV = "0.9.1"
   val scalaXmlV = "2.0.1"
   val scalaXml211V = "1.3.0" // scala-xml stops publishing for scala 2.11
-  val scalametaV = "4.4.31"
+  val scalametaV = "4.4.32"
   val scalatestV = "3.0.8" // don't bump, to avoid forcing breaking changes on clients via eviction
 
   val bijectionCore = "com.twitter" %% "bijection-core" % bijectionCoreV
