@@ -13,6 +13,7 @@ import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 
 import scala.annotation.StaticAnnotation
+import scala.language.implicitConversions
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
@@ -508,23 +509,31 @@ object Args {
     ConfEncoder.StringEncoder.contramap(_.toString)
   implicit val argsEncoder: ConfEncoder[Args] = generic.deriveEncoder
   implicit val absolutePathPrint: TPrint[AbsolutePath] =
-    TPrint.make[AbsolutePath](_ => "<path>")
+    make(fansi.Str("<path>"))
+
   implicit val pathMatcherPrint: TPrint[PathMatcher] =
-    TPrint.make[PathMatcher](_ => "<glob>")
+    make(fansi.Str("<glob>"))
   implicit val confPrint: TPrint[Conf] =
-    TPrint.make[Conf](implicit cfg => TPrint.implicitly[ScalafixConfig].render)
+    make(TPrint.implicitly[ScalafixConfig].render)
 
   implicit def optionPrint[T](implicit
       ev: pprint.TPrint[T]
   ): TPrint[Option[T]] =
-    TPrint.make { implicit cfg =>
-      ev.render
-    }
+    make(ev.render)
   implicit def iterablePrint[C[x] <: Iterable[x], T](implicit
       ev: pprint.TPrint[T]
   ): TPrint[C[T]] =
-    TPrint.make { implicit cfg =>
-      s"[${ev.render} ...]"
-    }
+    make(fansi.Str(s"[${ev.render} ...]"))
   implicit val argsSurface: Surface[Args] = generic.deriveSurface
+
+  private def make[T](fStr: fansi.Str) = {
+    // hack to support old render signature, before
+    // https://github.com/com-lihaoyi/PPrint/pull/72
+    implicit def fansiStr2Str(fansiStr: fansi.Str): String =
+      fansiStr.toString
+
+    new TPrint[T] {
+      def render(implicit tpc: pprint.TPrintColors) = fStr
+    }
+  }
 }
