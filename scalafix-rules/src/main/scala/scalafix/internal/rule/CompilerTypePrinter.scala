@@ -81,7 +81,7 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
   ): Option[v1.Patch] = {
     val renames = g.renamedSymbols(context).filterNot { case (sym, name) =>
       sym == g.NoSymbol ||
-        name.toString() == "_"
+      name.toString() == "_"
     }
     val history = new g.ShortenedNames(
       lookupSymbol = name => {
@@ -94,7 +94,7 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
     val fromRewritten = willBeImported.filter { case (name, short) =>
       (!context.isNameInScope(name) &&
         !context.isNameInScope(name.otherName)) ||
-        history.nameResolvesToSymbol(name, short.symbol)
+      history.nameResolvesToSymbol(name, short.symbol)
     }
     history.missingImports ++= fromRewritten
     val seenFromType = asSeenFromType(gsym, inverseSemanticdbSymbol)

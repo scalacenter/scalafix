@@ -8,7 +8,7 @@ object TypeExtractors {
       case s.TypeRef(_, symbol, _) => sym == symbol
       case s.WithType(types) =>
         types.lengthCompare(1) == 0 &&
-          unapply(types.head)
+        unapply(types.head)
       case _ =>
         false
     }
