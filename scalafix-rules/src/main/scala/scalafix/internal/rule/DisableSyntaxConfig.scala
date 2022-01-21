@@ -13,7 +13,6 @@ import metaconfig.annotation.ExampleValue
 import metaconfig.annotation.Hidden
 import metaconfig.generic
 import metaconfig.generic.Surface
-import pprint.TPrint
 import scalafix.config.CustomMessage
 import scalafix.config.Regex
 
@@ -108,8 +107,6 @@ case class DisableSyntaxConfig(
 }
 
 object DisableSyntaxConfig {
-  implicit val tprintPattern: TPrint[List[CustomMessage[Pattern]]] =
-    TPrint.literal("List[Regex]")
   val default: DisableSyntaxConfig = DisableSyntaxConfig()
   implicit val surface: Surface[DisableSyntaxConfig] =
     generic.deriveSurface[DisableSyntaxConfig]
