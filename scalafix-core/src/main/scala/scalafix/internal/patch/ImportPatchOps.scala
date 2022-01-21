@@ -30,8 +30,8 @@ object ImportPatchOps {
         true
       case Symbol.Global(owner, _) =>
         owner == Scala ||
-          owner == Predef ||
-          owner == Java
+        owner == Predef ||
+        owner == Java
       case _ => false
     }
   }

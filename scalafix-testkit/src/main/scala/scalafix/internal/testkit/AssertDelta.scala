@@ -26,7 +26,7 @@ case class AssertDelta(
       (assert.caretPosition match {
         case Some(carPos) =>
           carPos.lineCaret == lintDiagnostic.position.lineCaret &&
-            assert.expectedMessage.forall(_.trim == lintDiagnostic.message.trim)
+          assert.expectedMessage.forall(_.trim == lintDiagnostic.message.trim)
         case None =>
           sameLine(assert.anchorPosition)
       })
