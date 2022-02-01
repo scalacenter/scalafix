@@ -21,7 +21,11 @@ object PatchDocs {
         colorLiteral = fansi.Attrs.Empty,
         colorApplyPrefix = fansi.Attrs.Empty
       ) {
-    override def treeify(x: Any): pprint.Tree = {
+    override def treeify(
+        x: Any,
+        escapeUnicode: Boolean,
+        showFieldNames: Boolean
+    ): pprint.Tree = {
       def print(doc: Doc): pprint.Tree =
         pprint.Tree.Lazy { ctx =>
           doc
@@ -35,7 +39,11 @@ object PatchDocs {
         case t: SemanticType =>
           print(Pretty.pretty(t))
         case _ =>
-          super.treeify(x)
+          super.treeify(
+            x,
+            escapeUnicode = false,
+            showFieldNames = true
+          )
       }
     }
   }
