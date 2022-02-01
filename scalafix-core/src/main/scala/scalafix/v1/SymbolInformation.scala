@@ -20,32 +20,32 @@ import scalafix.internal.v1.SymtabFromProtobuf
  * SymbolInformation</a> </li> </ul>
  *
  * @groupname Ungrouped
- *   Misc
+ * Misc
  * @groupprio Ungrouped
- *   9
+ * 9
  *
  * @groupname kind
- *   Kind
+ * Kind
  * @groupprio kind
- *   11
+ * 11
  * @groupdesc kind
  *   Describes what kind this symbol is. It is only possible for a symbol to
  *   have one kind. For example, it's not possible for a symbol to be both a
  *   class and an interface.
  *
  * @groupname property
- *   Property
+ * Property
  * @groupprio property
- *   12
+ * 12
  * @groupdesc property
  *   Describes the properties of this symbol. It is possible for a symbol to
  *   have multiple properties. For example, a symbol can be both implicit and
  *   final.
  *
  * @groupname access
- *   Access
+ * Access
  * @groupprio access
- *   13
+ * 13
  * @groupdesc access
  *   Describes the visibility of this symbol. It is only possible for a symbol
  *   to have one access. For example, a symbol is either private or privateThis,
@@ -54,17 +54,17 @@ import scalafix.internal.v1.SymtabFromProtobuf
  *   specification.</a>
  *
  * @groupname utility
- *   Utility methods
+ * Utility methods
  * @groupprio utility
- *   14
+ * 14
  * @groupdesc utility
  *   Helper methods for frequent queries based on properties, kinds, names and
  *   languages.
  *
  * @groupname language
- *   Language
+ * Language
  * @groupprio language
- *   15
+ * 15
  * @groupdesc language
  *   Describes which language the symbol is defined in.
  */
