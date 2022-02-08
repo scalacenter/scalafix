@@ -79,10 +79,9 @@ when a literal is used in argument position</p>
 <p>Let's get started!</p>
 <h2><a class="anchor" aria-hidden="true" id="import-the-build"></a><a href="#import-the-build" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Import the build</h2>
 <p>Start by cloning the repository
-<a href="https://github.com/olafurpg/named-literal-arguments">olafurpg/named-literal-arguments</a>.</p>
-<pre><code class="hljs">git clone http<span class="hljs-variable">s:</span>//github.<span class="hljs-keyword">com</span>/olafurpg/named-literal-arguments.git
-<span class="hljs-keyword">cd</span> named-literal-arguments
-<span class="hljs-keyword">cd</span> scalafix
+<a href="https://github.com/scalacenter/scalafix-named-literal-arguments">scalacenter/scalafix-named-literal-arguments</a>.</p>
+<pre><code class="hljs">git clone http<span class="hljs-variable">s:</span>//github.<span class="hljs-keyword">com</span>/scalacenter/scalafix-named-literal-arguments.git
+<span class="hljs-keyword">cd</span> scalafix-named-literal-arguments
 sbt
 ...
 [info] sbt server started at loca<span class="hljs-variable">l:</span>//$HOME/.sbt/<span class="hljs-number">1.0</span>/server/<span class="hljs-number">93</span>fc24de3bb97dec3e5b/sock
@@ -118,7 +117,7 @@ output/src
             └── NamedLiteralArguments.scala
 </code></pre>
 <p>Checkout the commit
-<a href="https://github.com/olafurpg/named-literal-arguments/commit/55f9196163ab0a5dde22364ab1f7880bf4a5dc54">55f9196163ab0a</a>,
+<a href="https://github.com/scalacenter/scalafix-named-literal-arguments/commit/12dce5106332f8af5debaf2a0522a7f78c77fade">12dce51</a>,
 run <code>tests/test</code> and see the tests fail</p>
 <pre><code class="hljs css language-diff"> &gt; ~tests/test
 <span class="hljs-comment">--- obtained</span>
@@ -543,8 +542,8 @@ raw URL</p>
 <h3><a class="anchor" aria-hidden="true" id="using-github"></a><a href="#using-github" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Using <code>github:</code></h3>
 <p>Another way to run custom rules from source is to use the <code>github:org/repo</code>
 scheme.</p>
-<pre><code class="hljs">scalafix <span class="hljs-attribute">--rules</span>=github:olafurpg/named-literal-arguments
-</code></pre>
+<pre><code class="hljs"><span class="hljs-keyword">scalafix </span>--rules=github:<span class="hljs-keyword">scalacenter/named-literal-arguments
+</span></code></pre>
 <p>The expansion rules for <code>github:org/repo</code> are the following:</p>
 <table>
 <thead>
@@ -587,7 +586,7 @@ inThisBuild(<span class="hljs-type">List</span>(
 </code></pre>
 <p>Next, add the <code>sbt-ci-release</code> plugin to <code>project/plugins.sbt</code></p>
 <pre><code class="hljs css language-scala"><span class="hljs-comment">// project/plugins.sbt</span>
-addSbtPlugin(<span class="hljs-string">"com.geirsson"</span> % <span class="hljs-string">"sbt-ci-release"</span> % <span class="hljs-string">"1.2.2"</span>)
+addSbtPlugin(<span class="hljs-string">"com.geirsson"</span> % <span class="hljs-string">"sbt-ci-release"</span> % <span class="hljs-string">"1.5.10"</span>)
 </code></pre>
 <p>If you have not setup GPG on your machine, run the following command</p>
 <pre><code class="hljs css language-sh">gpg --gen-key
