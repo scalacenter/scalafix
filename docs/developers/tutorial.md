@@ -36,12 +36,11 @@ Let's get started!
 ## Import the build
 
 Start by cloning the repository
-[olafurpg/named-literal-arguments](https://github.com/olafurpg/named-literal-arguments).
+[scalacenter/scalafix-named-literal-arguments](https://github.com/scalacenter/scalafix-named-literal-arguments).
 
 ```
-git clone https://github.com/olafurpg/named-literal-arguments.git
-cd named-literal-arguments
-cd scalafix
+git clone https://github.com/scalacenter/scalafix-named-literal-arguments.git
+cd scalafix-named-literal-arguments
 sbt
 ...
 [info] sbt server started at local://$HOME/.sbt/1.0/server/93fc24de3bb97dec3e5b/sock
@@ -86,7 +85,7 @@ output/src
 ```
 
 Checkout the commit
-[55f9196163ab0a](https://github.com/olafurpg/named-literal-arguments/commit/55f9196163ab0a5dde22364ab1f7880bf4a5dc54),
+[12dce51](https://github.com/scalacenter/scalafix-named-literal-arguments/commit/12dce5106332f8af5debaf2a0522a7f78c77fade),
 run `tests/test` and see the tests fail
 
 ```diff
@@ -627,7 +626,7 @@ Another way to run custom rules from source is to use the `github:org/repo`
 scheme.
 
 ```
-scalafix --rules=github:olafurpg/named-literal-arguments
+scalafix --rules=github:scalacenter/named-literal-arguments
 ```
 
 The expansion rules for `github:org/repo` are the following:
@@ -677,7 +676,7 @@ Next, add the `sbt-ci-release` plugin to `project/plugins.sbt`
 
 ```scala
 // project/plugins.sbt
-addSbtPlugin("com.geirsson" % "sbt-ci-release" % "1.2.2")
+addSbtPlugin("com.geirsson" % "sbt-ci-release" % "1.5.10")
 ```
 
 If you have not setup GPG on your machine, run the following command
