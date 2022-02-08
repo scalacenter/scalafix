@@ -51,7 +51,7 @@ This starts an sbt shell session from where you can run the test suite with
 `tests/test`.
 
 Optionally, if you use IntelliJ, import the build like normal with the action
-"New project from existing sources" and select the `build.sbt` file.
+"New project from existing sources" and select the `scalafix/build.sbt` file.
 
 The sections in this tutorial follow the chronological order of the git history
 so feel free to checkout older commits.
