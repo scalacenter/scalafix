@@ -9,7 +9,7 @@ Follow [this documentation](external-rules.md) to use them in your project.
 
 
 ## Available rules:
-*[Edit](https://github.com/scalacenter/scalafix/edit/master/docs/rules/community-rules.md) 
+*[Edit](https://github.com/scalacenter/scalafix/edit/main/docs/rules/community-rules.md) 
 this page to submit a pull request that adds more rules*
 
 * [liancheng/scalafix-organize-imports](https://github.com/liancheng/scalafix-organize-imports): A CI-friendly Scalafix semantic rule for organizing imports
@@ -23,3 +23,4 @@ this page to submit a pull request that adds more rules*
 * [vovapolu/scaluzzi](https://github.com/vovapolu/scaluzzi): Additional rules for Scalafix. The part of scalazzi rules. 
 * [xuwei-k/play-ws-scalafix](https://github.com/xuwei-k/play-ws-scalafix): scalafix rule for migrate to play-ws-standalone 
 * [xuwei-k/replace-symbol-literals](https://github.com/xuwei-k/replace-symbol-literals): replace deprecated scala.Symbol literals. s/'foo/Symbol("foo")/
+* [OlegYch/enumeratum-scalafix](https://github.com/OlegYch/enumeratum-scalafix): replace scala.Enumeration with enumeratum
