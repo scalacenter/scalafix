@@ -711,7 +711,7 @@ Once published, users can run your rule with the following sbt command.
 
 ```sh
 // sbt shell
-> scalafix dependency:NamedLiteralArguments@ch.epfl.scala:named-literal-arguments:VERSION
+> scalafix dependency:NamedLiteralArguments@ch.epfl.scala::named-literal-arguments:VERSION
 ```
 
 To permanently install the rule for a build, users can add the dependency to
