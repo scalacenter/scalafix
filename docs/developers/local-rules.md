@@ -185,11 +185,6 @@ semantic rules.
 +  )
 +lazy val `scalafix-tests` = (project in file("scalafix/tests"))
 +  .settings(
-+    libraryDependencies +=
-+      "ch.epfl.scala" %
-+        "scalafix-testkit" %
-+        _root_.scalafix.sbt.BuildInfo.scalafixVersion %
-+        Test cross CrossVersion.full,
 +    scalafixTestkitOutputSourceDirectories :=
 +      (`scalafix-output` / Compile / sourceDirectories).value,
 +    scalafixTestkitInputSourceDirectories :=
