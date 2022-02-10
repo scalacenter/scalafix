@@ -711,7 +711,7 @@ Once published, users can run your rule with the following sbt command.
 
 ```sh
 // sbt shell
-> scalafix dependency:NamedLiteralArguments@com.geirsson:named-literal-arguments:VERSION
+> scalafix dependency:NamedLiteralArguments@ch.epfl.scala:named-literal-arguments:VERSION
 ```
 
 To permanently install the rule for a build, users can add the dependency to
@@ -720,7 +720,7 @@ To permanently install the rule for a build, users can add the dependency to
 ```scala
 // build.sbt
 ThisBuild / scalafixDependencies +=
-  "com.geirsson" %% "named-literal-arguments" % "VERSION"
+  "ch.epfl.scala" %% "named-literal-arguments" % "VERSION"
 // sbt shell
 > scalafix NamedLiteralArguments
 ```
@@ -735,7 +735,7 @@ Users of the Scalafix command-line interface can use the `--tool-classpath` flag
 
 ```
 scalafix \
-  --tool-classpath $(cs fetch com.geirsson:named-literal-arguments_2.12:VERSION -p) \
+  --tool-classpath $(cs fetch ch.epfl.scala::named-literal-arguments:latest.release -p) \
   -r NamedLiteralArguments \
   --classpath MY_PROJECT_CLASSPATH \
   my-project/src/main/scala
