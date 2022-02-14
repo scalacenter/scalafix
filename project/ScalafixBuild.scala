@@ -184,6 +184,13 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     Compile / console / scalacOptions :=
       compilerOptions.value :+ "-Yrepl-class-based",
     Compile / doc / scalacOptions ++= scaladocOptions,
+    Compile / unmanagedSourceDirectories ++= {
+      val sourceDir = (Compile / sourceDirectory).value
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, n)) if n >= 12 => Seq(sourceDir / "scala-2.12+")
+        case _ => Seq()
+      }
+    },
     publishTo := Some {
       if (isSnapshot.value) Opts.resolver.sonatypeSnapshots
       else Opts.resolver.sonatypeStaging
