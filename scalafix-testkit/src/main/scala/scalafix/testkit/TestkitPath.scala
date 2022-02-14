@@ -25,14 +25,6 @@ final class TestkitPath(
     val testPath: RelativePath,
     val semanticdbPath: RelativePath
 ) {
-  override def toString: String = {
-    val map = Map(
-      "input" -> input,
-      "testPath" -> testPath,
-      "semanticdbPath" -> semanticdbPath
-    )
-    pprint.PPrinter.BlackWhite.tokenize(map).mkString
-  }
   def testName: String = testPath.toURI(isDirectory = false).toString
   def toInput: Input =
     Input.VirtualFile(testName, FileIO.slurp(input, StandardCharsets.UTF_8))

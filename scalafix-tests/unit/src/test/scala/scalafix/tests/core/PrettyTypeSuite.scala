@@ -150,7 +150,7 @@ class PrettyTypeFuzzSuite extends BasePrettyTypeSuite {
               checkPath(file)
             } catch {
               case scala.meta.internal.classpath.MissingSymbolException(e) =>
-                pprint.log(file)
+                println(file)
             }
           }
         }
