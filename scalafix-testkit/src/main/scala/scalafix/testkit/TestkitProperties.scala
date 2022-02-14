@@ -61,17 +61,6 @@ final class TestkitProperties(
         throw new NoSuchElementException(path.toString())
       }
   }
-  override def toString: String = {
-    val map = Map(
-      "inputSourceDirectories" -> inputSourceDirectories,
-      "outputSourceDirectories" -> outputSourceDirectories,
-      "inputClasspath" -> inputClasspath.syntax,
-      "sourceroot" -> sourceroot,
-      "scalaVersion" -> scalaVersion,
-      "scalacOptions" -> scalacOptions
-    )
-    pprint.PPrinter.BlackWhite.tokenize(map).mkString
-  }
 }
 
 object TestkitProperties {

@@ -42,11 +42,23 @@ public class ScalafixCoursier {
             String scalafixVersion,
             String scalaVersion
     ) throws ScalafixException {
-        Dependency scalafixCli = Dependency.parse(
+        List<Dependency> dependencies = new ArrayList<Dependency>();
+        dependencies.add(
+            Dependency.parse(
                 "ch.epfl.scala:::scalafix-cli:" + scalafixVersion,
                 ScalaVersion.of(scalaVersion)
+            ).withConfiguration("runtime")
         );
-        return fetch(repositories, Collections.singletonList(scalafixCli), ResolutionParams.create());
+        // Coursier does not seem to fetch runtime dependencies transitively, despite what Maven dictates
+        // https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#dependency-scope
+        // so to be able to retrieve the runtime dependencies of scalafix-core, we need an explicit reference
+        dependencies.add(
+            Dependency.parse(
+                "ch.epfl.scala::scalafix-core:" + scalafixVersion,
+                ScalaVersion.of(scalaVersion)
+            ).withConfiguration("runtime")
+        );
+        return fetch(repositories, dependencies, ResolutionParams.create());
     }
 
     public static List<URL> toolClasspath(

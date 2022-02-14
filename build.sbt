@@ -77,7 +77,7 @@ lazy val core = project
           // metaconfig 0.10.0 shaded pprint but rules built with an old
           // scalafix-core must have the original package in the classpath to link
           // https://github.com/scalameta/metaconfig/pull/154/files#r794005161
-          pprint
+          pprint % Runtime
         )
     }
   )

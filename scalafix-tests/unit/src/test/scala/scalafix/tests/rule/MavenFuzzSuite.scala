@@ -49,7 +49,7 @@ class MavenFuzzSuite extends AnyFunSuite with DiffAssertions {
               finally stream.close()
               result += out
             } else {
-              pprint.log(errors)
+              println(errors)
             }
           }
         }
@@ -154,7 +154,7 @@ class MavenFuzzSuite extends AnyFunSuite with DiffAssertions {
       exec("git", "init")
       exec("git", "add", ".")
       exec("git", "commit", "-m", "first-commit")
-      pprint.log(paths.length)
+      println(paths.length)
       val args = scalafix
         .newArguments()
         .withSourceroot(tmp)
@@ -163,19 +163,19 @@ class MavenFuzzSuite extends AnyFunSuite with DiffAssertions {
         .withClasspath(classfiles.asJava)
         .withMode(ScalafixMainMode.CHECK)
       val exit = args.run()
-      pprint.log(exit)
+      println(exit)
       // exec("git", "diff")
       FileIO.listAllFilesRecursively(AbsolutePath(tmp)).foreach { path =>
         if (path.toNIO.getFileName.toString.endsWith(".scala")) {
           val text = FileIO.slurp(path, StandardCharsets.UTF_8)
           val errors = compileErrors(g, text, path.toString())
           if (errors.nonEmpty) {
-            pprint.log(path)
-            pprint.log(errors)
+            println(path)
+            println(errors)
           }
         }
       }
-      pprint.log(tmp)
+      println(tmp)
     }
   }
   check("ExplicitResultTypes")
