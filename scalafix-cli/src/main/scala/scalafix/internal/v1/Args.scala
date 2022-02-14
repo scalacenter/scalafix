@@ -28,7 +28,6 @@ import metaconfig.annotation._
 import metaconfig.generic.Surface
 import metaconfig.internal.ConfGet
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
-import pprint.TPrint
 import scalafix.interfaces.ScalafixMainCallback
 import scalafix.internal.config.FilterMatcher
 import scalafix.internal.config.PrintStreamReporter
@@ -443,7 +442,7 @@ case class Args(
   }
 }
 
-object Args {
+object Args extends TPrintImplicits {
   val baseMatcher: PathMatcher =
     FileSystems.getDefault.getPathMatcher("glob:**.{scala,sbt}")
   val runtimeScalaVersion: ScalaVersion = ScalaVersion
@@ -507,24 +506,6 @@ object Args {
   implicit val callbackEncoder: ConfEncoder[ScalafixMainCallback] =
     ConfEncoder.StringEncoder.contramap(_.toString)
   implicit val argsEncoder: ConfEncoder[Args] = generic.deriveEncoder
-  implicit val absolutePathPrint: TPrint[AbsolutePath] =
-    TPrint.make[AbsolutePath](_ => "<path>")
-  implicit val pathMatcherPrint: TPrint[PathMatcher] =
-    TPrint.make[PathMatcher](_ => "<glob>")
-  implicit val confPrint: TPrint[Conf] =
-    TPrint.make[Conf](implicit cfg => TPrint.implicitly[ScalafixConfig].render)
 
-  implicit def optionPrint[T](implicit
-      ev: pprint.TPrint[T]
-  ): TPrint[Option[T]] =
-    TPrint.make { implicit cfg =>
-      ev.render
-    }
-  implicit def iterablePrint[C[x] <: Iterable[x], T](implicit
-      ev: pprint.TPrint[T]
-  ): TPrint[C[T]] =
-    TPrint.make { implicit cfg =>
-      s"[${ev.render} ...]"
-    }
   implicit val argsSurface: Surface[Args] = generic.deriveSurface
 }

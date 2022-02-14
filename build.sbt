@@ -69,8 +69,17 @@ lazy val core = project
       googleDiff,
       collectionCompat
     ),
-    libraryDependencies += (if (isScala211.value) metaconfigFor211
-                            else metaconfig)
+    libraryDependencies ++= {
+      if (isScala211.value) Seq(metaconfigFor211)
+      else
+        Seq(
+          metaconfig,
+          // metaconfig 0.10.0 shaded pprint but rules built with an old
+          // scalafix-core must have the original package in the classpath to link
+          // https://github.com/scalameta/metaconfig/pull/154/files#r794005161
+          pprint
+        )
+    }
   )
   .enablePlugins(BuildInfoPlugin)
 
