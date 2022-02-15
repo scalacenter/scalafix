@@ -116,8 +116,6 @@ lazy val cli = project
   .settings(
     moduleName := "scalafix-cli",
     isFullCrossVersion,
-    assembly / mainClass := Some("scalafix.v1.Main"),
-    assembly / assemblyJarName := "scalafix.jar",
     libraryDependencies ++= Seq(
       java8Compat,
       nailgunServer,
