@@ -29,8 +29,8 @@ object CompletionsOps {
       }
       names(setting).map { name =>
         s""""$repeat${option(
-          Case.camelToKebab(name)
-        )}$description$message$action""""
+            Case.camelToKebab(name)
+          )}$description$message$action""""
       }
     }
   }

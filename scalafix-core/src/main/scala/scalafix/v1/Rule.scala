@@ -31,11 +31,13 @@ abstract class Rule(val name: RuleName) {
    * for documentation purposes.
    */
   def isLinter: Boolean = false
+
   /**
    * If true, allows this rule to be grouped together with other rewrite rules
    * for documentation purposes.
    */
   def isRewrite: Boolean = false
+
   /**
    * Indicates if this rule is incomplete and subject to breaking changes or
    * removal in the future.

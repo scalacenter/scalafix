@@ -14,7 +14,7 @@ final case class Synthetic(
   }
   def structure: String =
     s"""Synthetic(${position.structure}, "$text", List(${names
-      .map(_.structure)
-      .mkString(", ")}))"""
+        .map(_.structure)
+        .mkString(", ")}))"""
   override def toString = syntax
 }

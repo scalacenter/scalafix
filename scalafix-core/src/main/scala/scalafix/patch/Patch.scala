@@ -70,15 +70,19 @@ object Patch {
   /** Remove this importee reference. */
   def removeImportee(importee: Importee): Patch =
     RemoveImportee(importee)
+
   /** Add this importer to the global import list. */
   def addGlobalImport(importer: Importer): Patch =
     AddGlobalImport(importer)
+
   /** Remove the token and insert this string at the same position. */
   def replaceToken(token: Token, toReplace: String): Patch =
     Add(token, "", toReplace, keepTok = false)
+
   /** Remove all of the these tokens from the source file. */
   def removeTokens(tokens: Iterable[Token]): Patch =
     tokens.foldLeft(Patch.empty)(_ + Remove(_))
+
   /** Remove this single token from the source file. */
   def removeToken(token: Token): Patch =
     Add(token, "", "", keepTok = false)
@@ -102,15 +106,19 @@ object Patch {
         from.tokens.headOption.map(x => addRight(x, to))
     }
   }
+
   /** Add this string to the right of this token. */
   def addRight(tok: Token, toAdd: String): Patch =
     Add(tok, "", toAdd)
+
   /** Add this string to the right of this tree. */
   def addRight(tree: Tree, toAdd: String): Patch =
     tree.tokens.lastOption.fold(Patch.empty)(addRight(_, toAdd))
+
   /** Add this string to the left of this token. */
   def addLeft(tok: Token, toAdd: String): Patch =
     Add(tok, toAdd, "")
+
   /** Add this string to the left of this tree. */
   def addLeft(tree: Tree, toAdd: String): Patch =
     tree.tokens.headOption.fold(Patch.empty)(addLeft(_, toAdd))
@@ -132,6 +140,7 @@ object Patch {
       symbol: v1.Symbol
   )(implicit c: SemanticContext): Patch =
     RemoveGlobalImport(v0.Symbol(symbol.value))
+
   /**
    * Place named import for this symbol at the bottom of the global import list
    */
