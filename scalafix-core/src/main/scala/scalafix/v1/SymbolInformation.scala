@@ -85,93 +85,129 @@ final class SymbolInformation private[scalafix] (
 
   /** @group utilty */
   @utility def isSetter: Boolean = displayName.endsWith("_=")
+
   /** @group utilty */
   @utility def isDef: Boolean =
     isMethod && isScala && !isVal && !isVar
 
   /** @group language */
   @language def isScala: Boolean = info.isScala
+
   /** @group language */
   @language def isJava: Boolean = info.isJava
 
   /** @group kind */
   @kind def isLocal: Boolean = info.isLocal
+
   /** @group kind */
   @kind def isField: Boolean = info.isField
+
   /**
    * Returns true for `val` `var` and `def` symbols in Scala, and true for Java
    * methods.
    * @group kind
    */
   @kind def isMethod: Boolean = info.isMethod
+
   /** @group kind */
   @kind def isConstructor: Boolean = info.isConstructor
+
   /** @group kind */
   @kind def isMacro: Boolean = info.isMacro
+
   /** @group kind */
   @kind def isType: Boolean = info.isType
+
   /** @group kind */
   @kind def isParameter: Boolean = info.isParameter
+
   /** @group kind */
   @kind def isSelfParameter: Boolean = info.isSelfParameter
+
   /** @group kind */
   @kind def isTypeParameter: Boolean = info.isTypeParameter
+
   /** @group kind */
   @kind def isObject: Boolean = info.isObject
+
   /** @group kind */
   @kind def isPackage: Boolean = info.isPackage
+
   /** @group kind */
   @kind def isPackageObject: Boolean = info.isPackageObject
+
   /** @group kind */
   @kind def isClass: Boolean = info.isClass
+
   /** @group kind */
   @kind def isInterface: Boolean = info.isInterface
+
   /** @group kind */
   @kind def isTrait: Boolean = info.isTrait
 
   /** @group property */
   @property def isAbstract: Boolean = info.isAbstract
+
   /** @group property */
   @property def isFinal: Boolean = info.isFinal
+
   /** @group property */
   @property def isSealed: Boolean = info.isSealed
+
   /** @group property */
   @property def isImplicit: Boolean = info.isImplicit
+
   /** @group property */
   @property def isLazy: Boolean = info.isLazy
+
   /** @group property */
   @property def isCase: Boolean = info.isCase
+
   /** @group property */
   @property def isCovariant: Boolean = info.isCovariant
+
   /** @group property */
   @property def isContravariant: Boolean = info.isContravariant
+
   /** @group property */
   @property def isVal: Boolean = info.isVal
+
   /** @group property */
   @property def isVar: Boolean = info.isVar
+
   /** @group property */
   @property def isStatic: Boolean = info.isStatic
+
   /** @group property */
   @property def isPrimary: Boolean = info.isPrimary
+
   /** @group property */
   @property def isEnum: Boolean = info.isEnum
+
   /** @group property */
   @property def isDefault: Boolean = info.isDefault
 
   /** @group access */
   @access def isPrivate: Boolean = info.isPrivate
+
   /** @group access */
   @access def isPrivateThis: Boolean = info.isPrivateThis
+
   /** @group access */
   @access def isPrivateWithin: Boolean = info.isPrivateWithin
+
   /** @group access */
   @access def isProtected: Boolean = info.isProtected
+
   /** @group access */
   @access def isProtectedThis: Boolean = info.isProtectedThis
+
   /** @group access */
   @access def isProtectedWithin: Boolean = info.isProtectedWithin
+
   /** @group access */
   @access def isPublic: Boolean = info.isPublic
+
   /** @group access */
   @access def within: Option[Symbol] = info.within.map(Symbol(_))
 
