@@ -106,7 +106,7 @@ case class DisableSyntaxConfig(
   }
 }
 
-object DisableSyntaxConfig {
+object DisableSyntaxConfig extends TPrintImplicits {
   val default: DisableSyntaxConfig = DisableSyntaxConfig()
   implicit val surface: Surface[DisableSyntaxConfig] =
     generic.deriveSurface[DisableSyntaxConfig]
