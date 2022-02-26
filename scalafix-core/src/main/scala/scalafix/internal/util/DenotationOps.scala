@@ -7,7 +7,7 @@ import scalafix.v0._
 
 object DenotationOps {
   val defaultDialect: Dialect =
-    dialects.Scala212.copy(allowMethodTypes = true, allowTypeLambdas = true)
+    dialects.Scala212.copy(allowTypeLambdas = true)
 
   def resultType(
       symbol: Symbol,
