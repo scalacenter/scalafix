@@ -381,4 +381,8 @@ class cl {
         println(a)
     }
   }
+
+  def f(v: (Int, (Boolean, String))): Int = v match {
+    case (i, (_, _)) => i
+  }
 }
