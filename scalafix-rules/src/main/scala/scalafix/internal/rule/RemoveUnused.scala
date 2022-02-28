@@ -106,9 +106,8 @@ class RemoveUnused(config: RemoveUnusedConfig)
             Patch.replaceTree(v, "_")
           case t @ Pat.Typed(v: Pat.Var, _) if checkUnusedPatTree(t) =>
             Patch.replaceTree(v, "_")
-          case b: Pat.Bind if checkUnusedPatTree(b) =>
-            val removableTokens = b.tokens.dropRightWhile(!_.is[Token.At])
-            Patch.removeTokens(removableTokens)
+          case b @ Pat.Bind(_, rhs) if checkUnusedPatTree(b) =>
+            Patch.removeTokens(leftTokens(b, rhs))
         }
         cases
           .map { case Case(extract, _, _) => extract }
@@ -180,18 +179,18 @@ class RemoveUnused(config: RemoveUnusedConfig)
     case _ => importee.pos
   }
 
-  // Given defn "val x = 2", returns "val x = ".
-  private def binderTokens(defn: Defn, body: Term): Tokens = {
-    val startDef = defn.tokens.start
-    val startBody = body.tokens.start
-    defn.tokens.take(startBody - startDef)
+  // Given ("val x = 2", "2"), returns "val x = ".
+  private def leftTokens(t: Tree, right: Tree): Tokens = {
+    val startT = t.tokens.start
+    val startRight = right.tokens.start
+    t.tokens.take(startRight - startT)
   }
 
   private def defnTokensToRemove(defn: Defn): Option[Tokens] = defn match {
     case i @ Defn.Val(_, _, _, Lit(_)) => Some(i.tokens)
-    case i @ Defn.Val(_, _, _, rhs) => Some(binderTokens(i, rhs))
+    case i @ Defn.Val(_, _, _, rhs) => Some(leftTokens(i, rhs))
     case i @ Defn.Var(_, _, _, Some(Lit(_))) => Some(i.tokens)
-    case i @ Defn.Var(_, _, _, rhs) => rhs.map(binderTokens(i, _))
+    case i @ Defn.Var(_, _, _, rhs) => rhs.map(leftTokens(i, _))
     case i: Defn.Def => Some(i.tokens)
     case _ => None
   }

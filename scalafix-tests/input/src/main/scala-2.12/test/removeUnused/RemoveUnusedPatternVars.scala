@@ -68,4 +68,8 @@ object Unusedmatchargs {
     case (zz) => ???
   }
   try ??? catch {case e: Exception => ???}
+
+  def f(v: (Int, (Boolean, String))): Int = v match {
+    case t @ (i, v @ (_, _)) => i
+  }
 }
