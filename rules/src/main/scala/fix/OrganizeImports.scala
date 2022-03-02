@@ -320,6 +320,8 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
         case RightBrace() :: Ident(_) :: LeftBrace() :: _ => i.copy()
         case _                                            => i
       }
+
+    case _ => importer
   }
 
   private def mergeImporters(importers: Seq[Importer], aggressive: Boolean): Seq[Importer] =
@@ -893,7 +895,7 @@ object OrganizeImports {
       unimports.isEmpty && wildcard.nonEmpty
     }
 
-    /** Returns true if the `Importer` contains a standalone given  wildcard. */
+    /** Returns true if the `Importer` contains a standalone given wildcard. */
     def hasGivenAll: Boolean = {
       val Importees(_, _, unimports, _, givenAll, _) = importer.importees
       unimports.isEmpty && givenAll.nonEmpty
