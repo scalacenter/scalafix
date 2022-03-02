@@ -284,20 +284,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
     // Issue #96: For importers with only a single `Importee.Name` importee, if the importee is
     // curly-braced, remove the unneeded curly-braces. For example: `import p.{X}` should be
     // rewritten into `import p.X`.
-    val noUnneededBraces = importers map {
-      case importer @ Importer(_, Importee.Name(_) :: Nil) =>
-        import Token.{Ident, LeftBrace, RightBrace}
-
-        importer.tokens.reverse.toList match {
-          // The `.copy()` call erases the source position information from the original importer,
-          // so that instead of returning the original source text, the pretty-printer will reformat
-          // `importer` without the unneeded curly-braces.
-          case RightBrace() :: Ident(_) :: LeftBrace() :: _ => importer.copy()
-          case _                                            => importer
-        }
-
-      case importer => importer
-    }
+    val noUnneededBraces = importers map removeRedundantBrances
 
     val importeesSorted = locally {
       config.groupedImports match {
@@ -320,6 +307,19 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
       case ImportsOrder.SymbolsFirst => sortImportersSymbolsFirst(importeesSorted)
       case ImportsOrder.Keep         => importeesSorted
     }
+  }
+
+  private def removeRedundantBrances(importer: Importer): Importer = importer match {
+    case i @ Importer(_, Importee.Name(_) :: Nil) =>
+      import Token.{Ident, LeftBrace, RightBrace}
+
+      i.tokens.reverse.toList match {
+        // The `.copy()` call erases the source position information from the original importer, so
+        // that instead of returning the original source text, the pretty-printer will reformat
+        // `importer` without the unneeded curly-braces.
+        case RightBrace() :: Ident(_) :: LeftBrace() :: _ => i.copy()
+        case _                                            => i
+      }
   }
 
   private def mergeImporters(importers: Seq[Importer], aggressive: Boolean): Seq[Importer] =
