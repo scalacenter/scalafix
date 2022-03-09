@@ -1,4 +1,4 @@
-package test.redundantTokens
+package test.redundantSyntax
 
 object FinalObject {
   object Foo

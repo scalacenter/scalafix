@@ -1,9 +1,9 @@
 /*
-rules = RedundantTokens
-RedundantTokens.finalObject = true
+rules = RedundantSyntax
+RedundantSyntax.finalObject = true
 */
 
-package test.redundantTokens
+package test.redundantSyntax
 
 final object FinalObject {
   final object Foo

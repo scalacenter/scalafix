@@ -6,18 +6,18 @@ import metaconfig.Configured
 import scalafix.util.TokenList
 import scalafix.v1._
 
-class RedundantTokens(config: RedundantTokensConfig)
-    extends SemanticRule("RedundantTokens") {
-  def this() = this(RedundantTokensConfig())
+class RedundantSyntax(config: RedundantSyntaxConfig)
+    extends SemanticRule("RedundantSyntax") {
+  def this() = this(RedundantSyntaxConfig())
   override def withConfiguration(config: Configuration): Configured[Rule] =
     config.conf
-      .getOrElse("redundantTokens", "RedundantTokens")(
-        RedundantTokensConfig.default
+      .getOrElse("redundantSyntax", "RedundantSyntax")(
+        RedundantSyntaxConfig.default
       )
-      .map(new RedundantTokens(_))
+      .map(new RedundantSyntax(_))
 
   override def description: String =
-    "Removes redundant tokens such as `final` modifiers on an object"
+    "Removes redundant syntax such as `final` modifiers on an object"
   override def isRewrite: Boolean = true
 
   override def fix(implicit doc: SemanticDocument): Patch =
