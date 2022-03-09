@@ -7,7 +7,7 @@ import scalafix.util.TokenList
 import scalafix.v1._
 
 class RedundantSyntax(config: RedundantSyntaxConfig)
-    extends SemanticRule("RedundantSyntax") {
+    extends SyntacticRule("RedundantSyntax") {
   def this() = this(RedundantSyntaxConfig())
   override def withConfiguration(config: Configuration): Configured[Rule] =
     config.conf
@@ -20,7 +20,7 @@ class RedundantSyntax(config: RedundantSyntaxConfig)
     "Removes redundant syntax such as `final` modifiers on an object"
   override def isRewrite: Boolean = true
 
-  override def fix(implicit doc: SemanticDocument): Patch =
+  override def fix(implicit doc: SyntacticDocument): Patch =
     doc.tree.collect {
       case o: Defn.Object
           if config.finalObject && o.mods.exists(_.is[Mod.Final]) =>
