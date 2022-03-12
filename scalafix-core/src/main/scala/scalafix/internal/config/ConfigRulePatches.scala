@@ -3,6 +3,7 @@ package scalafix.internal.config
 import metaconfig.ConfDecoder
 import metaconfig.generic
 import metaconfig.generic.Surface
+import scalafix.internal.util.MetaconfigCompatMacros
 import scalafix.patch.Patch
 import scalafix.patch.Patch.internal._
 
@@ -17,7 +18,7 @@ case class ConfigRulePatches(
 
 object ConfigRulePatches {
   implicit val surface: Surface[ConfigRulePatches] =
-    generic.deriveSurface[ConfigRulePatches]
+    MetaconfigCompatMacros.deriveSurfaceOrig[ConfigRulePatches]
   val default: ConfigRulePatches = ConfigRulePatches()
   implicit val configRuleDecoder: ConfDecoder[ConfigRulePatches] =
     generic.deriveDecoder[ConfigRulePatches](default)
