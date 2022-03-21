@@ -4,9 +4,26 @@ title: API Overview
 sidebar_label: Overview
 ---
 
+## Compatibility considerations
+
+[`scalafix-core`](https://index.scala-lang.org/scalacenter/scalafix/scalafix-core)
+makes the packages below available to built-in and external rules.
+
+Its X.Y.Z version scheme follows [Early SemVer](https://www.scala-lang.org/blog/2021/02/16/preventing-version-conflicts-with-versionscheme.html#early-semver-and-sbt-version-policy)
+for binary compatiblity and aims at keeping source compatibility across
+versions.
+- Running a rule built against an older X or 0.Y version of Scalafix may cause
+  either runtime errors, or false positive/negative tree selection. In that
+  case, a warning is issued when fetching the rules(s) artifact(s).
+- Running a rule built against a more recent X.Y or 0.Y.Z version of Scalafix
+  is not possible. In that case, a `ScalafixException` is raised when fetching
+  the rules(s) artifact(s).
+
+## Packages
+
 The Scalafix public API documentation is composed of several packages.
 
-## Scalafix v1
+### Scalafix v1
 
 Latest Scaladoc:
 [v@VERSION@](https://static.javadoc.io/ch.epfl.scala/scalafix-core_2.12/@VERSION@/scalafix/v1/index.html)
@@ -37,15 +54,7 @@ structures include:
   information such as trees/tokens and semantic information such as
   symbols/types/synthetics.
 
-## Scalafix v0
-
-Latest Scaladoc:
-[v@VERSION@](https://static.javadoc.io/ch.epfl.scala/scalafix-core_2.12/@VERSION@/scalafix/v0/index.html)
-
-This is a legacy API that exists to smoothen the migration for existing Scalafix
-v0.5 rules. If you are writing a new Scalafix rule, please use the v1 API.
-
-## Scalameta Trees
+### Scalameta Trees
 
 Latest Scaladoc:
 [v@SCALAMETA@](https://static.javadoc.io/org.scalameta/trees_2.12/@SCALAMETA@/scala/meta/index.html)
@@ -71,7 +80,7 @@ include:
   position". Statement position is the
 - `Defn`: the supertype for all definitions
 
-## Scalameta Tokens
+### Scalameta Tokens
 
 Latest Scaladoc:
 [v@SCALAMETA@](https://static.javadoc.io/org.scalameta/tokens_2.12/@SCALAMETA@/scala/meta/tokens/Token.html)

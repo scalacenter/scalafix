@@ -15,26 +15,33 @@ import java.util.stream.Collectors;
 
 public class ScalafixCoursier {
 
-    private static List<URL> fetch(
+    private static FetchResult fetch(
             List<Repository> repositories,
             List<Dependency> dependencies,
             ResolutionParams resolutionParams
     ) throws ScalafixException {
-        List<URL> jars = new ArrayList<>();
         try {
-            List<File> files = Fetch.create()
+            return Fetch.create()
                     .withRepositories(repositories.stream().toArray(Repository[]::new))
                     .withDependencies(dependencies.stream().toArray(Dependency[]::new))
                     .withResolutionParams(resolutionParams)
-                    .fetch();
-            for (File file : files) {
-                URL url = file.toURI().toURL();
-                jars.add(url);
-            }
-        } catch (CoursierError | MalformedURLException e) {
+                    .fetchResult();
+        } catch (CoursierError e) {
             throw new ScalafixException("Failed to fetch " + dependencies + "from " + repositories, e);
         }
-        return jars;
+    }
+
+    private static List<URL> toURLs(FetchResult result) throws ScalafixException {
+        List<URL> urls = new ArrayList<>();
+        for (File file : result.getFiles()) {
+            try {
+                URL url = file.toURI().toURL();
+                urls.add(url);
+            } catch (MalformedURLException e) {
+                throw new ScalafixException("Failed to load dependency " + file, e);
+            }
+        }
+        return urls;
     }
 
     public static List<URL> scalafixCliJars(
@@ -58,22 +65,15 @@ public class ScalafixCoursier {
                 ScalaVersion.of(scalaVersion)
             ).withConfiguration("runtime")
         );
-        return fetch(repositories, dependencies, ResolutionParams.create());
+        return toURLs(fetch(repositories, dependencies, ResolutionParams.create()));
     }
 
-    public static List<URL> toolClasspath(
+    public static FetchResult toolClasspath(
             List<Repository> repositories,
             List<String> extraDependenciesCoordinates,
             String scalaVersion
     ) throws ScalafixException {
-        // External rules are built against `scalafix-core` to expose `scalafix.v1.Rule` implementations. The
-        // classloader loading `scalafix-cli` already contains  `scalafix-core` to be able to discover them (which
-        // is why it must be the parent of the one loading the tool classpath), so effectively, the version/instance
-        // in the tool classpath will not be used. This is OK, as `scalafix-core` should not break binary
-        // compatibility, as discussed in https://github.com/scalacenter/scalafix/issues/1108#issuecomment-639853899.
-        Module scalafixCore = Module.parse("ch.epfl.scala::scalafix-core", ScalaVersion.of(scalaVersion));
         ResolutionParams excludeDepsInParentClassloader = ResolutionParams.create()
-                .addExclusion(scalafixCore.getOrganization(), scalafixCore.getName())
                 .addExclusion("org.scala-lang", "scala-library");
 
         List<Dependency> dependencies = extraDependenciesCoordinates

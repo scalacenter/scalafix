@@ -24,6 +24,10 @@ import scalafix.Versions
 import scalafix.cli.ExitStatus
 import scalafix.interfaces._
 import scalafix.internal.config.ScalaVersion
+import scalafix.internal.util.Compatibility
+import scalafix.internal.util.Compatibility.Compatible
+import scalafix.internal.util.Compatibility.Incompatible
+import scalafix.internal.util.Compatibility.Unknown
 import scalafix.internal.v1.Args
 import scalafix.internal.v1.MainOps
 import scalafix.internal.v1.Rules
@@ -76,7 +80,51 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
       customDependenciesCoordinates,
       Versions.scalaVersion
     )
-    val extraURLs = customURLs.asScala ++ customDependenciesJARs.asScala
+
+    // External rules are built against `scalafix-core` to expose `scalafix.v1.Rule` implementations. The
+    // classloader loading `scalafix-cli` already contains  `scalafix-core` to be able to discover them (which
+    // is why it must be the parent of the one loading the tool classpath), so effectively, the version/instance
+    // in the tool classpath will not be used. This adds a sanity check to warn or prevent the user in case of
+    // mismatch.
+    val scalafixCore = coursierapi.Module.parse(
+      "ch.epfl.scala::scalafix-core",
+      coursierapi.ScalaVersion.of(Versions.scalaVersion)
+    )
+    customDependenciesJARs.getDependencies.asScala
+      .find(_.getModule == scalafixCore)
+      .foreach { dependency =>
+        // We only check compatibility against THE scalafix-core returned by the coursier resolution, but
+        // this is not exhaustive as some old rules might coexist with recent ones, so the older versions
+        // get evicted. coursier-interface does not provide more granularity while the native coursier
+        // is stuck on a 2-years old version because it no longer cross-publishes for 2.11, so for now,
+        // the easiest option would be to run several resolutions in isolation, which seems like a massive
+        // cost for just issuing a warning.
+        Compatibility.earlySemver(
+          dependency.getVersion,
+          Versions.nightly
+        ) match {
+          case Incompatible =>
+            throw new ScalafixException(
+              s"Scalafix version ${Versions.nightly} cannot load the registered external rules, " +
+                s"please upgrade to ${dependency.getVersion} or later"
+            )
+          case Unknown =>
+            args.out.println(
+              s"""INFO: loading external rule(s) built against an old version of scalafix (${dependency.getVersion}).
+                |This might not be a problem, but if you run into unexpected behavior, you should either:
+                |1. downgrade scalafix to ${dependency.getVersion}
+                |2. try a more recent version of the rules(s) if available; request the rule maintainer
+                |   to build against scalafix ${Versions.nightly} or later if that does not help
+              """.stripMargin
+            )
+          case Compatible =>
+        }
+      }
+
+    val extraURLs = customURLs.asScala ++ customDependenciesJARs
+      .getFiles()
+      .asScala
+      .map(_.toURI().toURL())
     val classLoader = new URLClassLoader(
       extraURLs.toArray,
       getClass.getClassLoader
