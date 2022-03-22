@@ -11,6 +11,9 @@ jobs:
       - uses: olafurpg/setup-scala@v13
       - uses: olafurpg/setup-gpg@v3
       - run: git fetch --unshallow
+      - name: Check that major or minor was bumped upon compatibility breakage
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: sbt versionCheck
       - name: Publish ${{ github.ref }}
         run: sbt ci-release
         env:

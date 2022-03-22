@@ -63,7 +63,6 @@ lazy val core = project
   .in(file("scalafix-core"))
   .settings(
     moduleName := "scalafix-core",
-    versionScheme := Some("early-semver"),
     buildInfoSettingsForCore,
     libraryDependencies ++= List(
       scalameta,
