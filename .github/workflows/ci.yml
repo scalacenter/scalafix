@@ -66,10 +66,10 @@ jobs:
       - run: sbt "scalafixAll --check"
       - run: ./bin/scalafmt --test
   mima:
-    name: MiMa
+    name: Version Policy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: olafurpg/setup-scala@v13
       - run: git fetch --unshallow
-      - run: sbt +mimaReportBinaryIssues
+      - run: sbt +versionPolicyCheck

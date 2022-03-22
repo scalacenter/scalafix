@@ -5,7 +5,8 @@ import sbt.nio.Keys._
 import sbt.plugins.JvmPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
 import sbtbuildinfo.BuildInfoKey
-import sbtbuildinfo.BuildInfoPlugin.autoImport.{BuildInfoKey, _}
+import sbtbuildinfo.BuildInfoPlugin.autoImport._
+import sbtversionpolicy.SbtVersionPolicyPlugin.autoImport._
 import com.typesafe.sbt.sbtghpages.GhpagesKeys
 import sbt.librarymanagement.ivy.IvyDependencyResolution
 import sbt.plugins.IvyPlugin
@@ -177,6 +178,13 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, String] = Map(
+  )
+
+  override def buildSettings: Seq[Setting[_]] = List(
+    versionPolicyIgnoredInternalDependencyVersions :=
+      Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r),
+    versionScheme := Some("early-semver"),
+    versionPolicyIntention := Compatibility.None // TODO: harden after 0.10.0
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
