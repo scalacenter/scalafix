@@ -842,14 +842,14 @@ A blank line marker, `"---"`, defines a blank line between two adjacent import g
 OrganizeImports {
   blankLines = Manual
   groups = [
-    "----"
+    "---"
     "re:javax?\\."
-    "----"
+    "---"
     "scala."
-    "----"
-    "----"
+    "---"
+    "---"
     "*"
-    "----"
+    "---"
   ]
 }
 
