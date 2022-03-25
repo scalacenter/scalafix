@@ -110,12 +110,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     )
 
     lazy val buildInfoSettingsForRules: Seq[Def.Setting[_]] = Seq(
-      buildInfoKeys ++= Seq[BuildInfoKey](
-        "supportedScalaVersions" -> (scalaVersion.value +:
-          testedPreviousScalaVersions
-            .getOrElse(scalaVersion.value, Nil)),
-        "allSupportedScalaVersions" -> ((crossScalaVersions.value ++ testedPreviousScalaVersions.values.toSeq.flatten).sorted)
-      ),
       buildInfoObject := "RulesBuildInfo"
     )
   }
