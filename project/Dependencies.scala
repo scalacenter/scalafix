@@ -59,7 +59,7 @@ object Dependencies {
     val binaryVersion = split.take(2).mkString(".")
     val compilerVersion = Try(split.last.toInt).toOption
     val previousPatchVersions =
-      compilerVersion.map(version => List.range(version - 2, version).filter(_ >= 0)).getOrElse(Nil)
+      compilerVersion.map(version => List.range(version - 7, version).filter(_ >= 0)).getOrElse(Nil)
     previousPatchVersions.map(v => s"$binaryVersion.$v")
   }
 }

@@ -10,8 +10,7 @@ pull request is tested on both Linux and Windows.
 
 **Java 8 or Java 11.**
 
-**Scala 2.11, 2.12 or 2.13**: Scalafix works only with the latest versions:
-@SCALA211@, @SCALA212@ and @SCALA213@.
+**Scala 2.11, 2.12 or 2.13**
 
 **Scala 3.x**: Scala 3 support is experimental and many built-in rules are not
 supported. Make sure you follow the "sbt 1.3x and newer" instructions below.
