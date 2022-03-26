@@ -6,6 +6,13 @@ import scalafix.internal.util.Compatibility._
 
 class CompatibilitySuite extends AnyFunSuite {
 
+  test("Pre-releases are handled like the releases they will become") {
+    "1.2.3-RC1" match {
+      case Compatibility.XYZ("1", "2", "3") =>
+      case _ => fail()
+    }
+  }
+
   // to avoid struggles when testing nightlies
   test("EarlySemver unknown if run or build is a snapshot") {
     assert(

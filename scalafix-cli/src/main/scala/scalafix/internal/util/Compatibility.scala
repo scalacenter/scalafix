@@ -1,5 +1,6 @@
 package scalafix.internal.util
 
+import scala.util.matching.Regex
 sealed trait Compatibility
 
 object Compatibility {
@@ -10,7 +11,7 @@ object Compatibility {
   case class Temptative(compatibleRunWith: String) extends Compatibility
 
   private val Snapshot = """.*-SNAPSHOT""".r
-  private val XYZ = """^([0-9]+)\.([0-9]+)\.([0-9]+)""".r
+  val XYZ: Regex = """^([0-9]+)\.([0-9]+)\.([0-9]+).*""".r
 
   def earlySemver(builtAgainst: String, runWith: String): Compatibility = {
     (builtAgainst, runWith) match {
