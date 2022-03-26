@@ -109,10 +109,10 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
           case Temptative(compatibleRunWith) =>
             args.out.println(
               s"""Loading external rule(s) built against an old version of Scalafix (${dependency.getVersion}).
-                |This might not be a problem, but if you run into unexpected behavior, you should either:
-                | - downgrade Scalafix to ${compatibleRunWith}
-                | - try a more recent version of the rules(s) if available; request the rule maintainer
-                |   to build against Scalafix ${Versions.stableVersion} or later if that does not help
+                |This might not be a problem, but in case you run into unexpected behavior, you
+                |should try a more recent version of the rules(s) if available. If that does
+                |not help, request the rule(s) maintainer to build against Scalafix ${Versions.stableVersion}
+                |or later, and downgrade Scalafix to ${compatibleRunWith} for the time being.
               """.stripMargin
             )
           case Unknown =>
