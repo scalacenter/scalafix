@@ -81,24 +81,42 @@ class CompatibilitySuite extends AnyFunSuite {
   }
 
   // might be false positive/negative tree matches or link failures
-  test("EarlySemver unknown if run is greater by major (or minor in 0.)") {
+  test("EarlySemver temptative if run is greater by major (or minor in 0.)") {
+    assert(
+      Compatibility.earlySemver(
+        builtAgainst = "1.3.0",
+        runWith = "2.0.0"
+      ) == Temptative("1.x (x>=3)")
+    )
     assert(
       Compatibility.earlySemver(
         builtAgainst = "1.0.41",
         runWith = "2.0.0"
-      ) == Unknown
+      ) == Temptative("1.x")
     )
     assert(
       Compatibility.earlySemver(
         builtAgainst = "0.9.38",
         runWith = "0.10.2"
-      ) == Unknown
+      ) == Temptative("0.9.x (x>=38)")
     )
     assert(
       Compatibility.earlySemver(
-        builtAgainst = "0.9.38",
+        builtAgainst = "0.8.0",
+        runWith = "0.10.2"
+      ) == Temptative("0.8.x")
+    )
+    assert(
+      Compatibility.earlySemver(
+        builtAgainst = "0.7.12",
+        runWith = "1.2.1"
+      ) == Temptative("0.7.x (x>=12)")
+    )
+    assert(
+      Compatibility.earlySemver(
+        builtAgainst = "0.9.0",
         runWith = "1.0.0"
-      ) == Unknown
+      ) == Temptative("0.9.x")
     )
   }
 }

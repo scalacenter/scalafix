@@ -25,9 +25,7 @@ import scalafix.cli.ExitStatus
 import scalafix.interfaces._
 import scalafix.internal.config.ScalaVersion
 import scalafix.internal.util.Compatibility
-import scalafix.internal.util.Compatibility.Compatible
-import scalafix.internal.util.Compatibility.Incompatible
-import scalafix.internal.util.Compatibility.Unknown
+import scalafix.internal.util.Compatibility._
 import scalafix.internal.v1.Args
 import scalafix.internal.v1.MainOps
 import scalafix.internal.v1.Rules
@@ -108,14 +106,18 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
               s"Scalafix version ${Versions.nightly} cannot load the registered external rules, " +
                 s"please upgrade to ${dependency.getVersion} or later"
             )
+          case Temptative(compatibleRunWith) =>
+            args.out.println(
+              s"""Loading external rule(s) built against an old version of Scalafix (${dependency.getVersion}).
+                |This might not be a problem, but if you run into unexpected behavior, you should either:
+                | - downgrade Scalafix to ${compatibleRunWith}
+                | - try a more recent version of the rules(s) if available; request the rule maintainer
+                |   to build against Scalafix ${Versions.stableVersion} or later if that does not help
+              """.stripMargin
+            )
           case Unknown =>
             args.out.println(
-              s"""INFO: loading external rule(s) built against an old version of scalafix (${dependency.getVersion}).
-                |This might not be a problem, but if you run into unexpected behavior, you should either:
-                |1. downgrade scalafix to ${dependency.getVersion}
-                |2. try a more recent version of the rules(s) if available; request the rule maintainer
-                |   to build against scalafix ${Versions.nightly} or later if that does not help
-              """.stripMargin
+              "Using SNAPSHOT artifacts for Scalafix and/or external rules, binary compatibility checks disabled"
             )
           case Compatible =>
         }
