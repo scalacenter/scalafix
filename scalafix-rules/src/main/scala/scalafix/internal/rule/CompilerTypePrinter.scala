@@ -109,7 +109,23 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
     }
     val preProcessed = preProcess(toLoop, inverseSemanticdbSymbol).widen
     val shortType = g.shortType(preProcessed, history)
-    val short = shortType.toString()
+    val shortTypeStr = shortType.toString()
+
+    // currently wrapping in backticks supported only for case classes
+    val isCaseClass = shortType.typeSymbol.isCaseClass
+    val typeSymbolName = shortType.typeSymbol.decodedName
+    val short =
+      if (isCaseClass && Identifier.needsBacktick(typeSymbolName)) {
+        if (shortType.typeArgs.nonEmpty) {
+          val typeConstructorStr = shortType.typeConstructor.toString()
+          val typeArgsStr = shortType.typeArgs.mkString("[", ", ", "]")
+          Identifier.backtickWrapWithoutCheck(typeConstructorStr, Some(typeArgsStr))
+        } else {
+          Identifier.backtickWrapWithoutCheck(shortTypeStr, None)
+        }
+      } else
+        shortTypeStr
+
     willBeImported ++= history.missingImports
     val addImports = importPatches(history, context)
     val isConstantType = toLoop.finalResultType match {
