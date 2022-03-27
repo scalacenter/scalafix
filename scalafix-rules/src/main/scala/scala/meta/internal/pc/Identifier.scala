@@ -114,6 +114,9 @@ object Identifier {
     else s
   }
 
-  def backtickWrapWithoutCheck(typeName: String, typeArgs: Option[String]): String =
+  def backtickWrapWithoutCheck(
+      typeName: String,
+      typeArgs: Option[String]
+  ): String =
     typeArgs.fold('`' + typeName + '`')(ta => '`' + typeName + '`' + ta)
 }

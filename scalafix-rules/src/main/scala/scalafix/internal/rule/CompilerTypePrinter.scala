@@ -119,7 +119,10 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
         if (shortType.typeArgs.nonEmpty) {
           val typeConstructorStr = shortType.typeConstructor.toString()
           val typeArgsStr = shortType.typeArgs.mkString("[", ", ", "]")
-          Identifier.backtickWrapWithoutCheck(typeConstructorStr, Some(typeArgsStr))
+          Identifier.backtickWrapWithoutCheck(
+            typeConstructorStr,
+            Some(typeArgsStr)
+          )
         } else {
           Identifier.backtickWrapWithoutCheck(shortTypeStr, None)
         }
