@@ -169,6 +169,35 @@ class ScalafixGlobal(
       .filterKeys(_ != NoSymbol)
       .toMap
 
+  // currently wrapping in backticks supported only for traits and case classes
+  private def backtickify(
+      tpe: Type,
+      loop: (Type, Option[ShortName]) => Type,
+      withPrefix: Boolean
+  ): Type = {
+    val supportedTypes: Symbol => Boolean =
+      s => s.isCaseClass || s.isTrait
+
+    tpe match {
+      case TypeRef(pre, sym, args)
+          if supportedTypes(sym) && Identifier.needsBacktick(sym.decodedName) =>
+        val rawPrettyName = Identifier.backtickWrapWithoutCheck(sym.decodedName)
+        val prefix = if (withPrefix) pre.prefixString else ""
+        if (args.isEmpty) {
+          new PrettyType(prefix + rawPrettyName)
+        } else {
+          val typeArgsStr =
+            args.map(arg => loop(arg, None)).map(_.toString()).mkString(", ")
+          new PrettyType(prefix + s"$rawPrettyName[$typeArgsStr]")
+        }
+      case TypeRef(p, sym, args) =>
+        val pre = if (withPrefix) p else NoPrefix
+        TypeRef(pre, sym, args.map(arg => loop(arg, None)))
+      case _ =>
+        tpe
+    }
+  }
+
   def shortType(longType: Type, history: ShortenedNames): Type = {
     val isVisited = mutable.Set.empty[(Type, Option[ShortName])]
     val cached = new ju.HashMap[(Type, Option[ShortName]), Type]()
@@ -180,9 +209,9 @@ class ScalafixGlobal(
       val result = tpe match {
         case TypeRef(_, sym, List(arg)) if sym.fullName == "scala.Tuple1" =>
           new PrettyType(s"Tuple1[${loop(arg, None)}]")
-        case TypeRef(pre, sym, args) =>
+        case tpe @ TypeRef(pre, sym, args) =>
           if (history.isSymbolInScope(sym, pre)) {
-            TypeRef(NoPrefix, sym, args.map(arg => loop(arg, None)))
+            backtickify(tpe, loop, false)
           } else {
             val ownerSymbol = pre.termSymbol
             history.config.get(ownerSymbol) match {
@@ -230,11 +259,13 @@ class ScalafixGlobal(
                         )
                       }
                     } else {
-                      TypeRef(
+                      val preparedType = TypeRef(
                         loop(pre, Some(ShortName(sym))),
                         sym,
-                        args.map(arg => loop(arg, None))
+                        args
                       )
+
+                      backtickify(preparedType, loop, true)
                     }
                 }
             }
