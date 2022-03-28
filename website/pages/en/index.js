@@ -53,9 +53,15 @@ const SplashContainer = props => (
   </div>
 );
 
-const ProjectTitle = props => (
+const logoStyle = {
+  marginBottom: '-14px',
+  width: '65px',
+  height: '65px'
+};
+
+const ProjectTitle = _ => (
   <h2 className="projectTitle">
-    {siteConfig.title}
+    <img src={imgUrl("scalafix-brand-small2x.png")} alt="logo" style={logoStyle}></img>{siteConfig.title}
     <small>{siteConfig.tagline}</small>
   </h2>
 );

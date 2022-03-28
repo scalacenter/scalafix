@@ -33,8 +33,8 @@ const siteConfig = {
   // users,
 
   /* path to images for header/footer */
-  headerIcon: "img/scalacenter2x.png",
-  footerIcon: "img/scalacenter2x.png",
+  headerIcon: "img/scalafix-brand-small2x.png",
+  footerIcon: "img/scalafix-brand-small2x.png",
   favicon: "img/favicon.png",
 
   /* colors for website */
@@ -57,8 +57,8 @@ const siteConfig = {
   onPageNav: "separate",
 
   /* Open Graph and Twitter card images */
-  ogImage: "img/scalacenter2x.png",
-  twitterImage: "img/scalacenter2x.png",
+  ogImage: "img/scalafix-brand-small2x.png",
+  twitterImage: "img/scalafix-brand-small2x.png",
 
   editUrl: `${repoUrl}/edit/main/docs/`,
 

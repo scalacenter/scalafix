@@ -1,5 +1,9 @@
 /* your custom css */
 
+.fixedHeaderContainer header img {
+  margin-right: 0px;
+}
+
 .imageAlignSide .blockImage {
   max-width: 700px;
   flex: 0 1 700px;
