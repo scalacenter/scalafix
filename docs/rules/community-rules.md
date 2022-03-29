@@ -21,6 +21,7 @@ rewriting the code when possible.
 [liancheng/scalafix-organize-imports](https://github.com/liancheng/scalafix-organize-imports) | `com.github.liancheng:organize-imports` | Help you organize Scala import statements
 [vovapolu/scaluzzi](https://github.com/vovapolu/scaluzzi) | `com.github.vovapolu:scaluzzi` | Ensure a subset of [scalazzi](http://yowconference.com.au/slides/yowwest2014/Morris-ParametricityTypesDocumentationCodeReadability.pdf)
 [xuwei-k/scalafix-rules](https://github.com/xuwei-k/scalafix-rules) | `com.github.xuwei-k:scalafix-rules` | Avoid ambiguous or redundant Scala syntax & features
+[i10416/databricks-spark-rules](https://github.com/i10416/databricks-spark-rules) | `dev.i10416:databricks-spark-rules` | Warn unsafe method calls especially in Databricks Spark
 
 ## Migration rules
 
