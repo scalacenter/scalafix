@@ -24,7 +24,7 @@ for Scalafix testkit.
 
 ## Testing
 
-Start an sbt shell with `$ sbt`. The commands below assume you have a running
+Start the SBT shell with `$ sbt`. The commands below assume you have a running
 sbt shell.
 
 ```sh
@@ -58,7 +58,7 @@ The scalafix documentation website uses [Docusaurus](https://docusaurus.io/) and
 [mdoc](https://github.com/olafurpg/mdoc).
 
 First, make sure you have the [yarn](https://yarnpkg.com/en/) package manager
-installed installed.
+installed.
 
 Next, start sbt and compile the markdown documentation. The documentation will
 re-generate on file save.
@@ -81,7 +81,7 @@ or tweak the landing page.
 
 ## Binary Compatibility
 
-To avoid breaking binary compatiblity we use the Migration Manage for Scala or
+To avoid breaking binary compatibility we use the Migration Manage for Scala or
 [Mima](https://github.com/lightbend/migration-manager) for short.
 
 Anything under the package `scalafix.internal._` does not have compatibility
