@@ -169,18 +169,16 @@ class ScalafixGlobal(
       .filterKeys(_ != NoSymbol)
       .toMap
 
-  // currently wrapping in backticks supported only for traits and case classes
   private def backtickify(
       tpe: Type,
       loop: (Type, Option[ShortName]) => Type,
       withPrefix: Boolean
-  ): Type = {
-    val supportedTypes: Symbol => Boolean =
-      s => s.isCaseClass || s.isTrait
-
+  ): Type =
     tpe match {
       case TypeRef(pre, sym, args)
-          if supportedTypes(sym) && Identifier.needsBacktick(sym.decodedName) =>
+          if Identifier.needsBacktick(sym.decodedName) &&
+            sym != definitions.ByNameParamClass // `=> T` is OK
+          =>
         val rawPrettyName = Identifier.backtickWrapWithoutCheck(sym.decodedName)
         val prefix = if (withPrefix) pre.prefixString else ""
         if (args.isEmpty) {
@@ -196,7 +194,6 @@ class ScalafixGlobal(
       case _ =>
         tpe
     }
-  }
 
   def shortType(longType: Type, history: ShortenedNames): Type = {
     val isVisited = mutable.Set.empty[(Type, Option[ShortName])]

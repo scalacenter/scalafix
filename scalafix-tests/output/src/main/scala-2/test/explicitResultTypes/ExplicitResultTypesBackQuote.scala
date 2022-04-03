@@ -6,6 +6,7 @@ object ExplicitResultTypesBackQuote {
 
   case class `Foo-Bar`[A](i: A)
   trait `Foo-Trait` {}
+  class `Foo-Class`
   final case class `Bar[,?! $42Baz`[F[_], G[_]](fi: F[Int], gs: G[String])
 
   object Nested {
@@ -22,9 +23,11 @@ object ExplicitResultTypesBackQuote {
 
   val foobar: `Foo-Bar`[Int] = `Foo-Bar`(42)
   val fooTrait: `Foo-Trait` = null.asInstanceOf[`Foo-Trait`]
+  val fooClass: `Foo-Class` = null.asInstanceOf[`Foo-Class`]
   val barbaz: `Bar[,?! $42Baz`[List, Option] = `Bar[,?! $42Baz`[List, Option](List(42), Some(""))
   val qux: Nested.Inner.`Qux Qux` = Nested.Inner.`Qux Qux`(42)
   val quxqux: Nested.Inner.`Qux.Qux`[List] = Nested.Inner.`Qux.Qux`[List](List(42))
   val quux: `Quux !` = `Quux !`(42)
   val nestedTrait: Nested.Inner.`Nested-Trait`[`Foo-Bar`] = null.asInstanceOf[Nested.Inner.`Nested-Trait`[`Foo-Bar`]]
+  def byname[A]: (=> `Foo-Bar`[A]) => `Quux !` = null.asInstanceOf[(=> `Foo-Bar`[A]) => `Quux !`]
 }
