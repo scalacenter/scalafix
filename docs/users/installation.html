@@ -60,9 +60,9 @@ pull request is tested on both Linux and Windows.</p>
 <p><strong>Java 8 or Java 11.</strong></p>
 <p><strong>Scala 2.11, 2.12 or 2.13</strong></p>
 <p><strong>Scala 3.x</strong>: Scala 3 support is experimental and many built-in rules are not
-supported. Make sure you follow the &quot;sbt 1.3x and newer&quot; instructions below.</p>
+supported.</p>
 <h2><a class="anchor" aria-hidden="true" id="sbt"></a><a href="#sbt" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>sbt</h2>
-<p>Start by installing the sbt 1.x plugin in <code>project/plugins.sbt</code></p>
+<p>Start by installing the sbt 1.3+ plugin in <code>project/plugins.sbt</code></p>
 <pre><code class="hljs css language-scala"><span class="hljs-comment">// project/plugins.sbt</span>
 addSbtPlugin(<span class="hljs-string">"ch.epfl.scala"</span> % <span class="hljs-string">"sbt-scalafix"</span> % <span class="hljs-string">"0.10.0-RC1"</span>)
 </code></pre>
@@ -100,8 +100,9 @@ is not enabled for this project. The second error says <code>RemoveUnused</code>
 <p>the Scala compiler option <code>-Ywarn-unused-import</code> (or <code>-Wunused:imports</code> in
 2.13.x). To fix both problems, add the following settings to <code>build.sbt</code></p>
 <pre><code class="hljs css language-diff"> /*
-  * build.sbt, for sbt 1.3x and newer
+  * build.sbt
   * SemanticDB is enabled for all sub-projects via ThisBuild scope.
+  * https://www.scala-sbt.org/1.x/docs/sbt-1.3-Release-Notes.html#SemanticDB+support
   */
  inThisBuild(
    List(
@@ -116,24 +117,15 @@ is not enabled for this project. The second error says <code>RemoveUnused</code>
  )
 </code></pre>
 <pre><code class="hljs css language-diff"> /*
-  * build.sbt, for sbt 1.3x and newer
+  * build.sbt
   * SemanticDB is enabled only for a sub-project.
+  * https://www.scala-sbt.org/1.x/docs/sbt-1.3-Release-Notes.html#SemanticDB+support
   */
  lazy val myproject = project.settings(
    scalaVersion := "2.12.15", // 2.11.12, 2.13.8, or 3.x
 <span class="hljs-addition">+  semanticdbEnabled := true, // enable SemanticDB</span>
 <span class="hljs-addition">+  semanticdbVersion := scalafixSemanticdb.revision, // only required for Scala 2.x</span>
 <span class="hljs-addition">+  scalacOptions += "-Ywarn-unused-import" // Scala 2.x only, required by `RemoveUnused`</span>
- )
-</code></pre>
-<pre><code class="hljs css language-diff"> // build.sbt, for sbt 1.2.x and older (Scala 2.x only)
- lazy val myproject = project.settings(
-   scalaVersion := "2.12.15", // 2.11.12, or 2.13.8
-<span class="hljs-addition">+  addCompilerPlugin(scalafixSemanticdb), // enable SemanticDB</span>
-   scalacOptions ++= List(
-<span class="hljs-addition">+    "-Yrangepos",          // required by SemanticDB compiler plugin</span>
-<span class="hljs-addition">+    "-Ywarn-unused-import" // required by `RemoveUnused` rule</span>
-   )
  )
 </code></pre>
 <p>For <code>project/*.scala</code> files, add
@@ -301,8 +293,7 @@ the <code>scalafix</code> task.</p>
 <p>Replace <code>Compile</code> with <code>Test</code> to customize which test sources should be
 processed.</p>
 <h3><a class="anchor" aria-hidden="true" id="customize-semanticdb-output-directory"></a><a href="#customize-semanticdb-output-directory" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Customize SemanticDB output directory</h3>
-<p>When using the <code>semanticdbEnabled</code> key with sbt 1.3x and newer, the
-<code>*.semanticdb</code> files are available in the directory referenced by the
+<p>The <code>*.semanticdb</code> files are available in the directory referenced by the
 <code>semanticdbTargetRoot</code> key, which defaults to <code>target/scala-x/meta</code>.</p>
 <p>You can override this default to emit <code>*.semanticdb</code> files in a custom
 location. For example:</p>
@@ -334,37 +325,25 @@ session.</p>
 ...
 <span class="hljs-quote">&gt; scalafix RemoveUnused</span>
 </code></pre>
-<p>The <code>scalafixEnable</code> command automatically runs
-<code>addCompilerPlugin(scalafixSemanticdb)</code> and <code>scalacOptions += &quot;-Yrangepos&quot;</code> for
-all eligible projects in the builds. The change in Scala compiler options means
-the project needs to be re-built on the next <code>compile</code>.</p>
+<p>The <code>scalafixEnable</code> command automatically enables semanticdb output and adds
+<code>scalacOptions += &quot;-Yrangepos&quot;</code> for all eligible projects in the builds. The
+change in Scala compiler options means the project may need to be re-built on
+the next <code>compile</code>.</p>
 <blockquote>
 <p>The <code>scalafixEnable</code> command must be re-executed after every <code>reload</code> and when
 sbt shell is exited.</p>
 </blockquote>
-<h3><a class="anchor" aria-hidden="true" id="optionally-enable-semanticdb"></a><a href="#optionally-enable-semanticdb" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Optionally enable SemanticDB</h3>
-<p>It's possible to optionally enable the SemanticDB compiler plugin by updating
-build.sbt like this:</p>
-<pre><code class="hljs css language-diff">  // build.sbt
-<span class="hljs-deletion">- addCompilerPlugin(scalafixSemanticdb)</span>
-<span class="hljs-deletion">- scalacOptions += "-Yrangepos"</span>
-<span class="hljs-addition">+ def shouldEnableSemanticdb: Boolean = ??? // fill this part</span>
-<span class="hljs-addition">+ libraryDependencies ++= {</span>
-<span class="hljs-addition">+   if (shouldEnableSemanticdb) List(compilerPlugin(scalafixSemanticdb))</span>
-<span class="hljs-addition">+   else List()</span>
-<span class="hljs-addition">+ }</span>
-<span class="hljs-addition">+ scalacOptions ++= {</span>
-<span class="hljs-addition">+   if (shouldEnableSemanticdb) List("-Yrangepos")</span>
-<span class="hljs-addition">+   else List()</span>
-<span class="hljs-addition">+ }</span>
-</code></pre>
 <h3><a class="anchor" aria-hidden="true" id="verify-installation"></a><a href="#verify-installation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Verify installation</h3>
 <p>To verify that the SemanticDB compiler plugin is enabled, check that the
-settings <code>scalacOptions</code> and <code>libraryDependencies</code> contain the values below.</p>
-<pre><code class="hljs css language-sh">&gt; show scalacOptions
-[info] * -Yrangepos
-&gt; show libraryDependencies
-[info] * org.scalameta:semanticdb-scalac:2.12.15:plugin-&gt;default(compile)
+settings <code>scalacOptions</code> and <code>allDependencies</code> contain the values below.</p>
+<pre><code class="hljs css language-sh">&gt; show Compile / scalacOptions
+...
+[info] * List(..., -Yrangepos, ...)
+...
+&gt; show allDependencies
+...
+[info] List(..., org.scalameta:semanticdb-scalac:2.12.15:plugin-&gt;default(compile), ...)
+...
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="example-project"></a><a href="#example-project" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Example project</h3>
 <p>For a minimal example project using sbt-scalafix, see the
@@ -383,7 +362,7 @@ command-line interface.</p>
 ./scalafix --version <span class="hljs-comment"># Should say 0.10.0-RC1</span>
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="help"></a><a href="#help" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Help</h3>
-<pre><code class="hljs">Scalafix <span class="hljs-number">0.10</span>.<span class="hljs-number">0</span>-RC1
+<pre><code class="hljs">Scalafix <span class="hljs-number">0.10</span>.<span class="hljs-number">0</span>-RC1+<span class="hljs-number">10</span>-<span class="hljs-number">9</span>a7bbc0d-SNAPSHOT
 Usage: scalafix [options] [&lt;path&gt; ...]
 
 Scalafix <span class="hljs-keyword">is</span> a refactoring <span class="hljs-keyword">and</span> linting tool. Scalafix
@@ -555,12 +534,12 @@ snapshot release has a unique version number, jars don't get overwritten.</p>
 <pre><code class="hljs css language-diff"> // project/plugins.sbt
  addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.10.0-RC1")
 <span class="hljs-addition">+resolvers += Resolver.sonatypeRepo("snapshots")</span>
-<span class="hljs-addition">+dependencyOverrides += "ch.epfl.scala" % "scalafix-interfaces" % "0.10.0-RC1"</span>
+<span class="hljs-addition">+dependencyOverrides += "ch.epfl.scala" % "scalafix-interfaces" % "0.10.0-RC1+10-9a7bbc0d-SNAPSHOT"</span>
 </code></pre>
 <p>If using the command-line interface</p>
-<pre><code class="hljs css language-sh">cs launch ch.epfl.scala:scalafix-cli_2.12.15:0.10.0-RC1 -r sonatype:snapshots --main scalafix.cli.Cli -- --<span class="hljs-built_in">help</span>
+<pre><code class="hljs css language-sh">cs launch ch.epfl.scala:scalafix-cli_2.12.15:0.10.0-RC1+10-9a7bbc0d-SNAPSHOT -r sonatype:snapshots --main scalafix.cli.Cli -- --<span class="hljs-built_in">help</span>
 </code></pre>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-next button" href="/scalafix/docs/users/configuration.html"><span>Configuration</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#requirements">Requirements</a></li><li><a href="#sbt">sbt</a><ul class="toc-headings"><li><a href="#settings-and-tasks">Settings and tasks</a></li><li><a href="#main-and-test-sources">Main and test sources</a></li><li><a href="#integration-tests">Integration tests</a></li><li><a href="#multi-module-builds">Multi-module builds</a></li><li><a href="#enforce-in-ci">Enforce in CI</a></li><li><a href="#cache-in-ci">Cache in CI</a></li><li><a href="#run-scalafix-automatically-on-compile">Run Scalafix automatically on compile</a></li><li><a href="#run-custom-rules">Run custom rules</a></li><li><a href="#exclude-files-from-semanticdb-scala-2x-only">Exclude files from SemanticDB (Scala 2.x only)</a></li><li><a href="#exclude-files-from-scalafix-scala-2x-only">Exclude files from Scalafix (Scala 2.x only)</a></li><li><a href="#customize-semanticdb-output-directory">Customize SemanticDB output directory</a></li><li><a href="#disable-scalafix-for-specific-project">Disable Scalafix for specific project</a></li><li><a href="#enable-semanticdb-for-current-shell-session">Enable SemanticDB for current shell session</a></li><li><a href="#optionally-enable-semanticdb">Optionally enable SemanticDB</a></li><li><a href="#verify-installation">Verify installation</a></li><li><a href="#example-project">Example project</a></li></ul></li><li><a href="#command-line">Command line</a><ul class="toc-headings"><li><a href="#help">Help</a></li></ul></li><li><a href="#plugins-for-other-build-tools">Plugins for other build tools</a></li><li><a href="#snapshot">SNAPSHOT</a></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#15242B"><section class="sitemap"><a href="/scalafix/" class="nav-home"><img src="/scalafix/img/scalafix-brand-small2x.png" alt="Scalafix" width="52" height="52"/></a><div><h5>Docs</h5><a href="
+</span></div></article></div><div class="docs-prevnext"><a class="docs-next button" href="/scalafix/docs/users/configuration.html"><span>Configuration</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#requirements">Requirements</a></li><li><a href="#sbt">sbt</a><ul class="toc-headings"><li><a href="#settings-and-tasks">Settings and tasks</a></li><li><a href="#main-and-test-sources">Main and test sources</a></li><li><a href="#integration-tests">Integration tests</a></li><li><a href="#multi-module-builds">Multi-module builds</a></li><li><a href="#enforce-in-ci">Enforce in CI</a></li><li><a href="#cache-in-ci">Cache in CI</a></li><li><a href="#run-scalafix-automatically-on-compile">Run Scalafix automatically on compile</a></li><li><a href="#run-custom-rules">Run custom rules</a></li><li><a href="#exclude-files-from-semanticdb-scala-2x-only">Exclude files from SemanticDB (Scala 2.x only)</a></li><li><a href="#exclude-files-from-scalafix-scala-2x-only">Exclude files from Scalafix (Scala 2.x only)</a></li><li><a href="#customize-semanticdb-output-directory">Customize SemanticDB output directory</a></li><li><a href="#disable-scalafix-for-specific-project">Disable Scalafix for specific project</a></li><li><a href="#enable-semanticdb-for-current-shell-session">Enable SemanticDB for current shell session</a></li><li><a href="#verify-installation">Verify installation</a></li><li><a href="#example-project">Example project</a></li></ul></li><li><a href="#command-line">Command line</a><ul class="toc-headings"><li><a href="#help">Help</a></li></ul></li><li><a href="#plugins-for-other-build-tools">Plugins for other build tools</a></li><li><a href="#snapshot">SNAPSHOT</a></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#15242B"><section class="sitemap"><a href="/scalafix/" class="nav-home"><img src="/scalafix/img/scalafix-brand-small2x.png" alt="Scalafix" width="52" height="52"/></a><div><h5>Docs</h5><a href="
                 /scalafix/docs/users/installation.html">Get started</a><a href="
                 /scalafix/docs/rules/overview.html">Rules</a><a href="
                 /scalafix/docs/developers/setup.html">Extend Scalafix</a></div><div><h5>Community</h5><a href="https://gitter.im/scalacenter/scalafix" target="_blank">Chat on Gitter</a><a href="https://users.scala-lang.org/" target="_blank">Discuss on Scala Users</a></div><div><h5>More</h5><a href="https://github.com/scalacenter/scalafix" target="_blank">GitHub</a></div></section><section class="copyright">Copyright © 2022 Scala Center</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>

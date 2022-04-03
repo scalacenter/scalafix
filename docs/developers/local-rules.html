@@ -208,11 +208,6 @@ semantic rules.</p>
 <span class="hljs-addition">+  )</span>
 <span class="hljs-addition">+lazy val `scalafix-tests` = (project in file("scalafix/tests"))</span>
 <span class="hljs-addition">+  .settings(</span>
-<span class="hljs-addition">+    libraryDependencies +=</span>
-<span class="hljs-addition">+      "ch.epfl.scala" %</span>
-<span class="hljs-addition">+        "scalafix-testkit" %</span>
-<span class="hljs-addition">+        _root_.scalafix.sbt.BuildInfo.scalafixVersion %</span>
-<span class="hljs-addition">+        Test cross CrossVersion.full,</span>
 <span class="hljs-addition">+    scalafixTestkitOutputSourceDirectories :=</span>
 <span class="hljs-addition">+      (`scalafix-output` / Compile / sourceDirectories).value,</span>
 <span class="hljs-addition">+    scalafixTestkitInputSourceDirectories :=</span>

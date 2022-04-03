@@ -58,12 +58,12 @@
 <p>Users can leverage such published rules by following steps.</p>
 <p>One method is to run rule dynamically with the following sbt command.</p>
 <pre><code class="hljs css language-sh">// sbt shell
-&gt; scalafix dependency:RULE@GROUP:ARTIFACT:VERSION
+&gt; scalafix dependency:RULE@GROUP::ARTIFACT:VERSION
 </code></pre>
 <p>Each parts stands for the following.</p>
 <ul>
 <li><code>RULE</code>: A name of rule to be performed.</li>
-<li><code>@GROUP:ARTIFACT:VERSION</code>: An id to specify a dependency containing rules.</li>
+<li><code>@GROUP::ARTIFACT:VERSION</code>: An id to specify a dependency containing rules.</li>
 </ul>
 <p>To permanently install the rule for a build, users can add the dependency to
 <code>build.sbt</code> by updating <code>ThisBuild / scalafixDependencies</code>.</p>

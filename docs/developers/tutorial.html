@@ -609,7 +609,7 @@ online.</p>
 </code></pre>
 <p>Once published, users can run your rule with the following sbt command.</p>
 <pre><code class="hljs css language-sh">// sbt shell
-&gt; scalafix dependency:NamedLiteralArguments@ch.epfl.scala:named-literal-arguments:VERSION
+&gt; scalafix dependency:NamedLiteralArguments@ch.epfl.scala::named-literal-arguments:VERSION
 </code></pre>
 <p>To permanently install the rule for a build, users can add the dependency to
 <code>build.sbt</code> by updating <code>ThisBuild / scalafixDependencies</code>.</p>
