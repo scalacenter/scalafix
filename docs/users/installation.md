@@ -13,11 +13,11 @@ pull request is tested on both Linux and Windows.
 **Scala 2.11, 2.12 or 2.13**
 
 **Scala 3.x**: Scala 3 support is experimental and many built-in rules are not
-supported. Make sure you follow the "sbt 1.3x and newer" instructions below.
+supported.
 
 ## sbt
 
-Start by installing the sbt 1.x plugin in `project/plugins.sbt`
+Start by installing the sbt 1.3+ plugin in `project/plugins.sbt`
 
 ```scala
 // project/plugins.sbt
@@ -73,8 +73,9 @@ the Scala compiler option `-Ywarn-unused-import` (or `-Wunused:imports` in
 
 ```diff
  /*
-  * build.sbt, for sbt 1.3x and newer
+  * build.sbt
   * SemanticDB is enabled for all sub-projects via ThisBuild scope.
+  * https://www.scala-sbt.org/1.x/docs/sbt-1.3-Release-Notes.html#SemanticDB+support
   */
  inThisBuild(
    List(
@@ -91,26 +92,15 @@ the Scala compiler option `-Ywarn-unused-import` (or `-Wunused:imports` in
 
 ```diff
  /*
-  * build.sbt, for sbt 1.3x and newer
+  * build.sbt
   * SemanticDB is enabled only for a sub-project.
+  * https://www.scala-sbt.org/1.x/docs/sbt-1.3-Release-Notes.html#SemanticDB+support
   */
  lazy val myproject = project.settings(
    scalaVersion := "@SCALA212@", // @SCALA211@, @SCALA213@, or 3.x
 +  semanticdbEnabled := true, // enable SemanticDB
 +  semanticdbVersion := scalafixSemanticdb.revision, // only required for Scala 2.x
 +  scalacOptions += "-Ywarn-unused-import" // Scala 2.x only, required by `RemoveUnused`
- )
-```
-
-```diff
- // build.sbt, for sbt 1.2.x and older (Scala 2.x only)
- lazy val myproject = project.settings(
-   scalaVersion := "@SCALA212@", // @SCALA211@, or @SCALA213@
-+  addCompilerPlugin(scalafixSemanticdb), // enable SemanticDB
-   scalacOptions ++= List(
-+    "-Yrangepos",          // required by SemanticDB compiler plugin
-+    "-Ywarn-unused-import" // required by `RemoveUnused` rule
-   )
  )
 ```
 
@@ -330,8 +320,7 @@ processed.
 
 ### Customize SemanticDB output directory
 
-When using the `semanticdbEnabled` key with sbt 1.3x and newer, the
-`*.semanticdb` files are available in the directory referenced by the
+The `*.semanticdb` files are available in the directory referenced by the
 `semanticdbTargetRoot` key, which defaults to `target/scala-x/meta`.
 
 You can override this default to emit `*.semanticdb` files in a custom
@@ -381,44 +370,28 @@ session.
 > scalafix RemoveUnused
 ```
 
-The `scalafixEnable` command automatically runs
-`addCompilerPlugin(scalafixSemanticdb)` and `scalacOptions += "-Yrangepos"` for
-all eligible projects in the builds. The change in Scala compiler options means
-the project needs to be re-built on the next `compile`.
+The `scalafixEnable` command automatically enables semanticdb output and adds
+`scalacOptions += "-Yrangepos"` for all eligible projects in the builds. The
+change in Scala compiler options means the project may need to be re-built on
+the next `compile`.
 
 > The `scalafixEnable` command must be re-executed after every `reload` and when
 > sbt shell is exited.
 
-### Optionally enable SemanticDB
-
-It's possible to optionally enable the SemanticDB compiler plugin by updating
-build.sbt like this:
-
-```diff
-  // build.sbt
-- addCompilerPlugin(scalafixSemanticdb)
-- scalacOptions += "-Yrangepos"
-+ def shouldEnableSemanticdb: Boolean = ??? // fill this part
-+ libraryDependencies ++= {
-+   if (shouldEnableSemanticdb) List(compilerPlugin(scalafixSemanticdb))
-+   else List()
-+ }
-+ scalacOptions ++= {
-+   if (shouldEnableSemanticdb) List("-Yrangepos")
-+   else List()
-+ }
-```
-
 ### Verify installation
 
 To verify that the SemanticDB compiler plugin is enabled, check that the
-settings `scalacOptions` and `libraryDependencies` contain the values below.
+settings `scalacOptions` and `allDependencies` contain the values below.
 
 ```sh
-> show scalacOptions
-[info] * -Yrangepos
-> show libraryDependencies
-[info] * org.scalameta:semanticdb-scalac:@SCALA212@:plugin->default(compile)
+> show Compile / scalacOptions
+...
+[info] * List(..., -Yrangepos, ...)
+...
+> show allDependencies
+...
+[info] List(..., org.scalameta:semanticdb-scalac:@SCALA212@:plugin->default(compile), ...)
+...
 ```
 
 ### Example project
