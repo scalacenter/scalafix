@@ -59,31 +59,50 @@ class CompatibilitySuite extends AnyFunSuite {
     )
   }
 
-  // no forward compatibility: build might reference classes unknown to run
-  test("EarlySemver incompatible if run is lower by minor (or patch in 0.)") {
+  // no guaranteed forward compatibility: build might reference classes unknown
+  // to run or run might be missing bugfixes build contains
+  test("EarlySemver temptative if run is lower") {
     assert(
       Compatibility.earlySemver(
         builtAgainst = "0.10.8",
         runWith = "0.9.16"
-      ) == Incompatible
+      ) == TemptativeUp("0.10.x (x>=8)")
+    )
+    assert(
+      Compatibility.earlySemver(
+        builtAgainst = "0.10.0",
+        runWith = "0.9.16"
+      ) == TemptativeUp("0.10.x")
     )
     assert(
       Compatibility.earlySemver(
         builtAgainst = "0.10.17",
         runWith = "0.10.4"
-      ) == Incompatible
+      ) == TemptativeUp("0.10.x (x>=17)")
+    )
+    assert(
+      Compatibility.earlySemver(
+        builtAgainst = "2.3.0",
+        runWith = "1.1.1"
+      ) == TemptativeUp("2.x (x>=3)")
     )
     assert(
       Compatibility.earlySemver(
         builtAgainst = "2.0.0",
         runWith = "1.1.1"
-      ) == Incompatible
+      ) == TemptativeUp("2.x")
     )
     assert(
       Compatibility.earlySemver(
         builtAgainst = "1.4.7",
         runWith = "1.2.8"
-      ) == Incompatible
+      ) == TemptativeUp("1.4.x (x>=7)")
+    )
+    assert(
+      Compatibility.earlySemver(
+        builtAgainst = "1.5.0",
+        runWith = "1.2.8"
+      ) == TemptativeUp("1.5.x")
     )
   }
 
@@ -93,37 +112,37 @@ class CompatibilitySuite extends AnyFunSuite {
       Compatibility.earlySemver(
         builtAgainst = "1.3.0",
         runWith = "2.0.0"
-      ) == Temptative("1.x (x>=3)")
+      ) == TemptativeDown("1.x (x>=3)")
     )
     assert(
       Compatibility.earlySemver(
         builtAgainst = "1.0.41",
         runWith = "2.0.0"
-      ) == Temptative("1.x")
+      ) == TemptativeDown("1.x")
     )
     assert(
       Compatibility.earlySemver(
         builtAgainst = "0.9.38",
         runWith = "0.10.2"
-      ) == Temptative("0.9.x (x>=38)")
+      ) == TemptativeDown("0.9.x (x>=38)")
     )
     assert(
       Compatibility.earlySemver(
         builtAgainst = "0.8.0",
         runWith = "0.10.2"
-      ) == Temptative("0.8.x")
+      ) == TemptativeDown("0.8.x")
     )
     assert(
       Compatibility.earlySemver(
         builtAgainst = "0.7.12",
         runWith = "1.2.1"
-      ) == Temptative("0.7.x (x>=12)")
+      ) == TemptativeDown("0.7.x (x>=12)")
     )
     assert(
       Compatibility.earlySemver(
         builtAgainst = "0.9.0",
         runWith = "1.0.0"
-      ) == Temptative("0.9.x")
+      ) == TemptativeDown("0.9.x")
     )
   }
 }

@@ -14,10 +14,12 @@ for binary compatiblity and aims at keeping source compatibility across
 versions.
 - Running a rule built against an older X or 0.Y version of Scalafix may cause
   either runtime errors, or false positive/negative tree selection. In that
-  case, a warning is issued when resolving the rules(s) artifact(s).
+  case, a warning calling the user to use a more recent version of the rule
+  or downgrading Scalafix is issued when resolving the rules(s) artifact(s).
 - Running a rule built against a more recent X.Y or 0.Y.Z version of Scalafix
-  is not possible. In that case, a `ScalafixException` is raised when resolving
-  the rules(s) artifact(s).
+  is also a potential source of incompatibility. In that case, a warning
+  calling the user to upgrade Scalafix is issued when resolving the rules(s)
+  artifact(s).
 
 ## Packages
 
