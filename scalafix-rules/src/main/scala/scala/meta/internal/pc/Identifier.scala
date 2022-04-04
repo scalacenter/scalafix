@@ -106,6 +106,7 @@ object Identifier {
   def backtickWrap(name: Global#Name): String = {
     backtickWrap(name.decoded.trim)
   }
+
   def backtickWrap(s: String): String = {
     if (s.isEmpty) "``"
     else if (s(0) == '`' && s.last == '`') s
@@ -113,4 +114,5 @@ object Identifier {
     else s
   }
 
+  def backtickWrapWithoutCheck(typeName: String): String = '`' + typeName + '`'
 }
