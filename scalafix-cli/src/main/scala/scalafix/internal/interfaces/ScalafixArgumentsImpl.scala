@@ -101,12 +101,14 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
           dependency.getVersion,
           Versions.nightly
         ) match {
-          case Incompatible =>
-            throw new ScalafixException(
-              s"Scalafix version ${Versions.nightly} cannot load the registered external rules, " +
-                s"please upgrade to ${dependency.getVersion} or later"
+          case TemptativeUp(compatibleRunWith) =>
+            args.out.println(
+              s"""Loading external rule(s) built against a recent version of Scalafix (${dependency.getVersion}).
+                |This might not be a problem, but in case you run into unexpected behavior, you
+                |should upgrade Scalafix to ${compatibleRunWith}.
+              """.stripMargin
             )
-          case Temptative(compatibleRunWith) =>
+          case TemptativeDown(compatibleRunWith) =>
             args.out.println(
               s"""Loading external rule(s) built against an old version of Scalafix (${dependency.getVersion}).
                 |This might not be a problem, but in case you run into unexpected behavior, you
