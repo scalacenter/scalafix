@@ -3,5 +3,6 @@ scalafix.internal.rule.ExplicitResultTypes
 scalafix.internal.rule.NoAutoTupling
 scalafix.internal.rule.NoValInForComprehension
 scalafix.internal.rule.ProcedureSyntax
+scalafix.internal.rule.RedundantSyntax
 scalafix.internal.rule.RemoveUnused
 scalafix.internal.rule.LeakingImplicitClassVal
