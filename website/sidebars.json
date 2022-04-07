@@ -3,15 +3,16 @@
     "Usage": ["users/installation", "users/configuration", "users/suppression"],
     "Rules": [
       "rules/overview",
-      "rules/community-rules",
-      "rules/RemoveUnused",
-      "rules/ExplicitResultTypes",
       "rules/DisableSyntax",
-      "rules/NoAutoTupling",
+      "rules/ExplicitResultTypes",
       "rules/LeakingImplicitClassVal",
+      "rules/NoAutoTupling",
       "rules/NoValInForComprehension",
       "rules/ProcedureSyntax",
-      "rules/external-rules"
+      "rules/RedundantSyntax",
+      "rules/RemoveUnused",
+      "rules/external-rules",
+      "rules/community-rules"
     ],
     "Misc": ["users/related-projects"]
   },
