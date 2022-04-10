@@ -288,7 +288,22 @@ lazy val unit = projectMatrix
     ),
     Test / test := (Test / test)
       .dependsOn(cli.projectRefs.map(_ / publishLocalTransitive): _*)
-      .value
+      .value,
+    Test / unmanagedSourceDirectories ++= {
+      val sourceDir = (Test / sourceDirectory).value
+      val maybeTargetScalaVersion =
+        TargetAxis
+          .targetScalaVersion(virtualAxes.value)
+          .flatMap(CrossVersion.partialVersion(_))
+      maybeTargetScalaVersion match {
+        case Some((n, m)) =>
+          Seq(
+            sourceDir / s"scala-target$n",
+            sourceDir / s"scala-target$n.$m"
+          )
+        case _ => Seq()
+      }
+    }
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(

@@ -14,8 +14,8 @@ case class TargetAxis(scalaVersion: String) extends VirtualAxis.WeakAxis {
 
 object TargetAxis {
 
-  private def targetScalaVersion(virtualAxes: Seq[VirtualAxis]): String =
-    virtualAxes.collectFirst { case a: TargetAxis => a.scalaVersion }.get
+  def targetScalaVersion(virtualAxes: Seq[VirtualAxis]): Option[String] =
+    virtualAxes.collectFirst { case a: TargetAxis => a.scalaVersion }
 
   /**
    * When invoked on a ProjectMatrix with a TargetAxis, lookup the project
@@ -27,7 +27,7 @@ object TargetAxis {
       key: TaskKey[T]
   ): Def.Initialize[Task[T]] =
     Def.taskDyn {
-      val sv = targetScalaVersion(virtualAxes.value)
+      val sv = targetScalaVersion(virtualAxes.value).get
       val project = matrix.finder().apply(sv)
       Def.task((project / key).value)
     }
@@ -42,7 +42,7 @@ object TargetAxis {
       key: SettingKey[T]
   ): Def.Initialize[T] =
     Def.settingDyn {
-      val sv = targetScalaVersion(virtualAxes.value)
+      val sv = targetScalaVersion(virtualAxes.value).get
       val project = matrix.finder().apply(sv)
       Def.setting((project / key).value)
     }

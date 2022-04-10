@@ -159,10 +159,16 @@ trait BaseCliSuite extends AnyFunSuite with DiffAssertions {
     )
   }
 
+  // The defaults of this helper expect to find test input which is currently
+  // built only on scala 2.x since building them for Scala 3 would trigger
+  // test failures as the rules they exercise are not supported on Scala 3.
+  // TODO: switch defaults to rely on much more simple test input/rules so
+  // that we don't need to hardcode a scala version here.
+  val sourceDir = "scalafix-tests/input/src/main/scala-2"
+
   def sourceDirectory: AbsolutePath =
     props.inputSourceDirectories
-      // TODO: This test won't work for scala 3. The path is hardcoded
-      .find(dir => dir.toNIO.endsWith("scala-2")) // Skip scala-2.12
+      .find(dir => dir.toNIO.endsWith(sourceDir))
       .getOrElse {
         throw new IllegalArgumentException(
           props.inputSourceDirectories.toString()
@@ -195,8 +201,7 @@ trait BaseCliSuite extends AnyFunSuite with DiffAssertions {
     test(name, SkipWindows) {
       val fileIsFixed = expectedExit.isOk
       val cwd = Files.createTempDirectory("scalafix")
-      val inputSourceDirectory =
-        cwd.resolve("scalafix-tests/input/src/main/scala-2/")
+      val inputSourceDirectory = cwd.resolve(sourceDir)
       Files.createDirectories(inputSourceDirectory)
       val root = AbsolutePath(inputSourceDirectory)
       val out = new ByteArrayOutputStream()
