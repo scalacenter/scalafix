@@ -175,10 +175,12 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
+    // https://github.com/sbt/sbt/issues/5568#issuecomment-1094380636
+    versionPolicyIgnored += "com.lihaoyi" %% "pprint",
     versionPolicyIgnoredInternalDependencyVersions :=
       Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r),
     versionScheme := Some("early-semver"),
-    versionPolicyIntention := Compatibility.None // TODO: harden after 0.10.0
+    versionPolicyIntention := Compatibility.BinaryCompatible
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
