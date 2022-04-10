@@ -81,13 +81,13 @@ or tweak the landing page.
 
 ## Binary Compatibility
 
-To avoid breaking binary compatibility we use the Migration Manage for Scala or
-[Mima](https://github.com/lightbend/migration-manager) for short.
+To avoid breaking binary compatibility we use
+[sbt-version-policy](https://github.com/scalacenter/sbt-version-policy).
 
 Anything under the package `scalafix.internal._` does not have compatibility
 restrictions.
 
-Run `sbt mimaReportBinaryIssues` to check for any compatibility issues.
+Run `sbt versionPolicyCheck` to check for any compatibility issues.
 
 ## Publish setup
 
