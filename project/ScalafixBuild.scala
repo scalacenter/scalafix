@@ -7,6 +7,7 @@ import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
 import sbtbuildinfo.BuildInfoKey
 import sbtbuildinfo.BuildInfoPlugin.autoImport._
 import sbtversionpolicy.SbtVersionPolicyPlugin.autoImport._
+import scalafix.sbt.ScalafixPlugin.autoImport._
 import com.typesafe.sbt.sbtghpages.GhpagesKeys
 import sbt.librarymanagement.ivy.IvyDependencyResolution
 import sbt.plugins.IvyPlugin
@@ -25,9 +26,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     lazy val supportedScalaVersions = List(scala213, scala211, scala212)
     lazy val publishLocalTransitive =
       taskKey[Unit]("Run publishLocal on this project and its dependencies")
-    lazy val crossPublishLocalBinTransitive = taskKey[Unit](
-      "Run, for each crossVersion, publishLocal without packageDoc & packageSrc, on this project and its dependencies"
-    )
     lazy val isFullCrossVersion = Seq(
       crossVersion := CrossVersion.full
     )
@@ -127,35 +125,30 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     updateOptions := updateOptions.value.withCachedResolution(true),
     ThisBuild / watchTriggeredMessage := Watch.clearScreenOnTrigger,
     commands += Command.command("save-expect") { s =>
-      "unit/test:runMain scalafix.tests.util.SaveExpect" ::
+      "unit2_13Target2_13/test:runMain scalafix.tests.util.SaveExpect" ::
         s
     },
     commands += Command.command("ci-3") { s =>
-      s"""set testsInput/scalaVersion := "$scala3"""" ::
-        s"""set testsOutput/scalaVersion := "$scala3"""" ::
-        "unit/testOnly scalafix.tests.rule.RuleSuite" :: s
+      "unit2_12Target3/test" ::
+        s
     },
     commands += Command.command("ci-213") { s =>
-      s"""set ThisBuild/scalaVersion := "$scala213"""" ::
-        "unit/test" ::
-        "docs/run" ::
-        "interfaces/doc" ::
+      "unit2_13Target2_13/test" ::
+        "docs2_13/run" ::
+        "interfaces2_13/doc" ::
         testRulesAgainstPreviousScalaVersions(scala213, s)
     },
     commands += Command.command("ci-212") { s =>
-      s"""set ThisBuild/scalaVersion := "$scala212"""" ::
-        "unit/test" ::
+      "unit2_12Target2_12/test" ::
         testRulesAgainstPreviousScalaVersions(scala212, s)
     },
     commands += Command.command("ci-211") { s =>
-      s"""set ThisBuild/scalaVersion := "$scala211"""" ::
-        "unit/test" ::
+      "unit2_11Target2_11/test" ::
         testRulesAgainstPreviousScalaVersions(scala211, s)
     },
     commands += Command.command("ci-213-windows") { s =>
-      s"++$scala213" ::
-        "cli/crossPublishLocalBinTransitive" :: // scalafix.tests.interfaces.ScalafixSuite
-        s"unit/testOnly -- -l scalafix.internal.tests.utils.SkipWindows" ::
+      "publishLocalTransitive" :: // scalafix.tests.interfaces.ScalafixSuite
+        s"unit2_13Target2_13/testOnly -- -l scalafix.internal.tests.utils.SkipWindows" ::
         s
     },
     // There is flakyness in CliGitDiffTests and CliSemanticTests
@@ -225,43 +218,36 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       val ivy = sbt.Keys.ivySbt.value
       IvyDependencyResolution(ivy.configuration)
     },
-    mimaBinaryIssueFilters ++= Mima.ignoredABIProblems,
-    publishLocalTransitive := Def.taskDyn {
-      val ref = thisProjectRef.value
-      publishLocal.all(ScopeFilter(inDependencies(ref)))
-    }.value,
-    crossPublishLocalBinTransitive := {
-      val currentState = state.value
-      val ref = thisProjectRef.value
-      val versions = crossScalaVersions.value
-      versions.map { version =>
-        val withScalaVersion = Project
-          .extract(currentState)
-          .appendWithoutSession(
-            Seq(
-              ThisBuild / scalaVersion := version,
-              ThisBuild / packageDoc / publishArtifact := false,
-              ThisBuild / packageSrc / publishArtifact := false
-            ),
-            currentState
-          )
-        Project
-          .extract(withScalaVersion)
-          .runTask(ref / publishLocalTransitive, withScalaVersion)
+    mimaBinaryIssueFilters ++= Mima.ignoredABIProblems
+  ) ++ Seq(Compile, Test).flatMap(conf => inConfig(conf)(configSettings))
+
+  private def configSettings: Seq[Def.Setting[_]] = List(
+    // Workaround for https://github.com/scalacenter/scalafix/issues/1592:
+    // effectively skip scalafix[All] if the scala binary version of the project
+    // does not match the scalafix one (which cannot be per-project as it must be
+    // defined on ThisBuild)
+    scalafix / unmanagedSources := {
+      val prev = (scalafix / unmanagedSources).value
+      if (scalaBinaryVersion.value == scalafixScalaBinaryVersion.value) {
+        prev
+      } else {
+        Seq()
       }
     }
   )
+
   private def testRulesAgainstPreviousScalaVersions(
       scalaVersion: String,
       state: State
   ): State = {
+    val projectSuffix = scalaVersion.split('.').take(2).mkString("_")
     testedPreviousScalaVersions
       .getOrElse(scalaVersion, Nil)
       .flatMap { v =>
         List(
-          s"""set testsInput/scalaVersion := "$v"""",
-          "show testsInput/scalaVersion",
-          s"unit/testOnly scalafix.tests.rule.RuleSuite"
+          s"""set Project("testsInput${projectSuffix}", file(".")) / scalaVersion := "$v"""",
+          s"show testsInput${projectSuffix} / scalaVersion",
+          s"unit${projectSuffix}Target${projectSuffix} / testOnly scalafix.tests.rule.RuleSuite"
         )
       }
       .foldRight(state)(_ :: _)

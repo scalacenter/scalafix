@@ -4,13 +4,11 @@ import sbt.Keys.scalacOptions
 inThisBuild(
   List(
     onLoadMessage := s"Welcome to scalafix ${version.value}",
-    scalaVersion := scala213,
-    crossScalaVersions := List(scala213, scala212, scala211),
     fork := true,
     scalacOptions ++= List("-P:semanticdb:synthetics:on"),
     semanticdbEnabled := true,
     semanticdbVersion := scalametaV,
-    scalafixScalaBinaryVersion := scalaBinaryVersion.value,
+    scalafixScalaBinaryVersion := "2.13",
     scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
   )
 )
@@ -28,7 +26,7 @@ def inferJavaHome() = {
   Some(actualHome)
 }
 
-lazy val interfaces = project
+lazy val interfaces = projectMatrix
   .in(file("scalafix-interfaces"))
   .settings(
     Compile / resourceGenerators += Def.task {
@@ -57,9 +55,11 @@ lazy val interfaces = project
     crossPaths := false,
     autoScalaLibrary := false
   )
+  .defaultAxes(VirtualAxis.jvm)
+  .jvmPlatform(buildScalaVersions)
   .disablePlugins(ScalafixPlugin)
 
-lazy val core = project
+lazy val core = projectMatrix
   .in(file("scalafix-core"))
   .settings(
     moduleName := "scalafix-core",
@@ -81,9 +81,11 @@ lazy val core = project
         )
     }
   )
+  .defaultAxes(VirtualAxis.jvm)
+  .jvmPlatform(buildScalaVersions, Seq(), p => p)
   .enablePlugins(BuildInfoPlugin)
 
-lazy val rules = project
+lazy val rules = projectMatrix
   .in(file("scalafix-rules"))
   .settings(
     moduleName := "scalafix-rules",
@@ -96,10 +98,12 @@ lazy val rules = project
       collectionCompat
     )
   )
+  .defaultAxes(VirtualAxis.jvm)
+  .jvmPlatform(buildScalaVersions)
   .dependsOn(core)
   .enablePlugins(BuildInfoPlugin)
 
-lazy val reflect = project
+lazy val reflect = projectMatrix
   .in(file("scalafix-reflect"))
   .settings(
     moduleName := "scalafix-reflect",
@@ -109,9 +113,11 @@ lazy val reflect = project
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
     )
   )
+  .defaultAxes(VirtualAxis.jvm)
+  .jvmPlatform(buildScalaVersions)
   .dependsOn(core)
 
-lazy val cli = project
+lazy val cli = projectMatrix
   .in(file("scalafix-cli"))
   .settings(
     moduleName := "scalafix-cli",
@@ -121,23 +127,33 @@ lazy val cli = project
       nailgunServer,
       jgit,
       commonText
-    )
+    ),
+    publishLocalTransitive := Def.taskDyn {
+      val ref = thisProjectRef.value
+      publishLocal.all(ScopeFilter(inDependencies(ref)))
+    }.value
   )
+  .defaultAxes(VirtualAxis.jvm)
+  .jvmPlatform(buildScalaVersions)
   .dependsOn(reflect, interfaces, rules)
 
-lazy val testsShared = project
+lazy val testsShared = projectMatrix
   .in(file("scalafix-tests/shared"))
   .settings(
     noPublishAndNoMima,
+    scalacOptions --= (if (isScala3.value)
+                         Seq("-P:semanticdb:synthetics:on")
+                       else Nil),
     coverageEnabled := false
   )
+  .defaultAxes(VirtualAxis.jvm)
+  .jvmPlatform(testTargetScalaVersions)
   .disablePlugins(ScalafixPlugin)
 
-lazy val testsInput = project
+lazy val testsInput = projectMatrix
   .in(file("scalafix-tests/input"))
   .settings(
     noPublishAndNoMima,
-    crossScalaVersions := List(scala3, scala213, scala212, scala211),
     scalacOptions --= (if (isScala3.value)
                          Seq("-P:semanticdb:synthetics:on")
                        else Nil),
@@ -149,9 +165,11 @@ lazy val testsInput = project
     libraryDependencies ++= testsDependencies.value,
     coverageEnabled := false
   )
+  .defaultAxes(VirtualAxis.jvm)
+  .jvmPlatform(testTargetScalaVersions)
   .disablePlugins(ScalafixPlugin)
 
-lazy val testsOutput = project
+lazy val testsOutput = projectMatrix
   .in(file("scalafix-tests/output"))
   .settings(
     noPublishAndNoMima,
@@ -162,9 +180,11 @@ lazy val testsOutput = project
     libraryDependencies ++= testsDependencies.value,
     coverageEnabled := false
   )
+  .defaultAxes(VirtualAxis.jvm)
+  .jvmPlatform(testTargetScalaVersions)
   .disablePlugins(ScalafixPlugin)
 
-lazy val testkit = project
+lazy val testkit = projectMatrix
   .in(file("scalafix-testkit"))
   .settings(
     moduleName := "scalafix-testkit",
@@ -174,9 +194,11 @@ lazy val testkit = project
       scalatest
     )
   )
+  .defaultAxes(VirtualAxis.jvm)
+  .jvmPlatform(buildScalaVersions)
   .dependsOn(cli)
 
-lazy val unit = project
+lazy val unit = projectMatrix
   .in(file("scalafix-tests/unit"))
   .settings(
     noPublishAndNoMima,
@@ -197,9 +219,9 @@ lazy val unit = project
     Compile / compile / compileInputs := {
       (Compile / compile / compileInputs)
         .dependsOn(
-          testsInput / Compile / compile,
-          testsOutput / Compile / compile,
-          testsShared / Compile / compile
+          TargetAxis.resolve(testsInput, Compile / compile),
+          TargetAxis.resolve(testsOutput, Compile / compile),
+          TargetAxis.resolve(testsShared, Compile / compile)
         )
         .value
     },
@@ -214,20 +236,33 @@ lazy val unit = project
       }
       put(
         "inputClasspath",
-        (testsInput / Compile / fullClasspath).value.map(_.data)
+        TargetAxis
+          .resolve(testsInput, Compile / fullClasspath)
+          .value
+          .map(_.data)
       )
       put(
         "inputSourceDirectories",
-        (testsInput / Compile / sourceDirectories).value
+        TargetAxis
+          .resolve(testsInput, Compile / unmanagedSourceDirectories)
+          .value
       )
       put(
         "outputSourceDirectories",
-        (testsOutput / Compile / sourceDirectories).value
+        TargetAxis
+          .resolve(testsOutput, Compile / unmanagedSourceDirectories)
+          .value
       )
-      props.put("scalaVersion", (testsInput / Compile / scalaVersion).value)
+      props.put(
+        "scalaVersion",
+        TargetAxis.resolve(testsInput, Compile / scalaVersion).value
+      )
       props.put(
         "scalacOptions",
-        (testsInput / Compile / scalacOptions).value.mkString("|")
+        TargetAxis
+          .resolve(testsInput, Compile / scalacOptions)
+          .value
+          .mkString("|")
       )
       val out =
         (Test / managedResourceDirectories).value.head /
@@ -239,45 +274,60 @@ lazy val unit = project
       "scalametaVersion" -> scalametaV,
       "baseDirectory" ->
         (ThisBuild / baseDirectory).value,
-      "inputSourceroot" ->
-        (testsInput / Compile / sourceDirectory).value,
-      "outputSourceroot" ->
-        (testsOutput / Compile / sourceDirectory).value,
       "unitResourceDirectory" -> (Compile / resourceDirectory).value,
-      "testsInputResources" ->
-        (testsInput / Compile / sourceDirectory).value / "resources",
       "semanticClasspath" ->
         Seq(
-          (testsInput / Compile / semanticdbTargetRoot).value,
-          (testsShared / Compile / semanticdbTargetRoot).value
+          TargetAxis.resolve(testsInput, Compile / semanticdbTargetRoot).value,
+          TargetAxis.resolve(testsShared, Compile / semanticdbTargetRoot).value
         ),
       "sharedSourceroot" ->
         (ThisBuild / baseDirectory).value /
         "scalafix-tests" / "shared" / "src" / "main",
       "sharedClasspath" ->
-        (testsShared / Compile / classDirectory).value
+        TargetAxis.resolve(testsShared, Compile / classDirectory).value
     ),
     Test / test := (Test / test)
-      .dependsOn(cli / crossPublishLocalBinTransitive)
+      .dependsOn(cli.projectRefs.map(_ / publishLocalTransitive): _*)
       .value
+  )
+  .defaultAxes(VirtualAxis.jvm)
+  .jvmPlatform(
+    scalaVersions = Seq(scala212),
+    axisValues = Seq(TargetAxis(scala3)),
+    settings = Seq()
+  )
+  .jvmPlatform(
+    scalaVersions = Seq(scala213),
+    axisValues = Seq(TargetAxis(scala213)),
+    settings = Seq()
+  )
+  .jvmPlatform(
+    scalaVersions = Seq(scala212),
+    axisValues = Seq(TargetAxis(scala212)),
+    settings = Seq()
+  )
+  .jvmPlatform(
+    scalaVersions = Seq(scala211),
+    axisValues = Seq(TargetAxis(scala211)),
+    settings = Seq()
   )
   .enablePlugins(BuildInfoPlugin)
   .dependsOn(testkit)
 
-lazy val docs = project
+lazy val docs = projectMatrix
   .in(file("scalafix-docs"))
   .settings(
     noPublishAndNoMima,
     run / baseDirectory := (ThisBuild / baseDirectory).value,
     moduleName := "scalafix-docs",
-    scalaVersion := scala213,
     scalacOptions += "-Wconf:msg='match may not be exhaustive':s", // silence exhaustive pattern matching warning for documentation
     scalacOptions += "-Xfatal-warnings",
     mdoc := (Compile / run).evaluated,
-    crossScalaVersions := List(scala213),
     libraryDependencies += (if (isScala211.value) metaconfigDocFor211
                             else metaconfigDoc)
   )
+  .defaultAxes(VirtualAxis.jvm)
+  .jvmPlatform(scalaVersions = Seq(scala213))
   .dependsOn(testkit, core, cli)
   .enablePlugins(DocusaurusPlugin)
   .disablePlugins(ScalafixPlugin)

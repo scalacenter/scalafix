@@ -12,6 +12,6 @@ jobs:
           fetch-depth: 0
       - uses: olafurpg/setup-scala@v13
       - name: Publish ${{ github.ref }}
-        run: sbt docs/docusaurusPublishGhpages
+        run: sbt docs2_13/docusaurusPublishGhpages
         env:
           GITHUB_DEPLOY_KEY: ${{ secrets.DOC }}

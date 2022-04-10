@@ -63,7 +63,7 @@
 [59:9..59:10]:    test/Test.M#m(). => method m: Int
 [62:9..62:10]:    test/Test.N# => trait N extends AnyRef { +1 decls }
 [63:9..63:10]:    test/Test.N#n(). => method n: Int
-[66:9..66:10]:    test/Test.C# => class C extends M { +36 decls }
+[66:9..66:10]:    test/Test.C# => class C extends M { +35 decls }
 [66:11..66:11]:   test/Test.C#`<init>`(). => primary ctor <init>()
 [67:9..67:10]:    test/Test.C#p. => val method p: P
 [68:9..68:10]:    test/Test.C#x. => val method x: p.X
@@ -87,54 +87,53 @@
 [91:9..91:22]:    test/Test.C#compoundType6. => val method compoundType6: M with N { def k: Int }
 [93:9..93:17]:    test/Test.C#annType1. => val method annType1: T @ann[Int]
 [94:9..94:17]:    test/Test.C#annType2. => val method annType2: T @ann1 @ann2
-[96:9..96:25]:    test/Test.C#existentialType1. => val method existentialType1: T forSome { type T }
-[97:9..97:25]:    test/Test.C#existentialType2. => val method existentialType2: List[_] forSome { type _ }
-[98:9..98:25]:    test/Test.C#existentialType3. => val method existentialType3: Class[?0] forSome { type ?0 }
-[99:9..99:25]:    test/Test.C#existentialType4. => val method existentialType4: Class[?0] forSome { type ?0 }
-[101:9..101:20]:  test/Test.C#typeLambda1(). => method typeLambda1[M[_]]: Nothing
-[101:21..101:22]: test/Test.C#typeLambda1().[M] => typeparam M[_]
-[104:12..104:26]: test/Test.C#ClassInfoType1. => final object ClassInfoType1 extends AnyRef
-[105:11..105:25]: test/Test.C#ClassInfoType2# => class ClassInfoType2 extends B { +2 decls }
-[105:26..105:26]: test/Test.C#ClassInfoType2#`<init>`(). => primary ctor <init>()
-[105:42..105:43]: test/Test.C#ClassInfoType2#x(). => method x: Int
-[106:11..106:25]: test/Test.C#ClassInfoType3# => trait ClassInfoType3[T] extends AnyRef
-[106:26..106:27]: test/Test.C#ClassInfoType3#[T] => typeparam T
-[108:12..108:22]: test/Test.C#MethodType. => final object MethodType extends AnyRef { +6 decls }
-[109:11..109:13]: test/Test.C#MethodType.x1(). => method x1: Int
-[110:11..110:13]: test/Test.C#MethodType.x2(). => method x2: Int
-[111:11..111:13]: test/Test.C#MethodType.m3(). => method m3: Int
-[112:11..112:13]: test/Test.C#MethodType.m4(). => method m4(): Int
-[113:11..113:13]: test/Test.C#MethodType.m5(). => method m5(x: Int): Int
-[113:14..113:15]: test/Test.C#MethodType.m5().(x) => param x: Int
-[114:11..114:13]: test/Test.C#MethodType.m6(). => method m6[T](x: T): T
-[114:14..114:15]: test/Test.C#MethodType.m6().[T] => typeparam T
-[114:17..114:18]: test/Test.C#MethodType.m6().(x) => param x: T
-[117:12..117:22]: test/Test.C#ByNameType. => final object ByNameType extends AnyRef { +1 decls }
-[118:11..118:13]: test/Test.C#ByNameType.m1(). => method m1(x: => Int): Int
-[118:14..118:15]: test/Test.C#ByNameType.m1().(x) => param x: => Int
-[121:16..121:28]: test/Test.C#RepeatedType# => case class RepeatedType extends AnyRef with Product with Serializable { +12 decls }
-[121:28..121:28]: test/Test.C#RepeatedType#`<init>`(). => primary ctor <init>(val s: String*)
-[121:29..121:30]: test/Test.C#RepeatedType#s. => val method s: String*
-[122:11..122:13]: test/Test.C#RepeatedType#m1(). => method m1(x: Int*): Int
-[122:14..122:15]: test/Test.C#RepeatedType#m1().(x) => param x: Int*
-[125:12..125:20]: test/Test.C#TypeType. => final object TypeType extends AnyRef { +5 decls }
-[126:12..126:14]: test/Test.C#TypeType.T1# => abstract type T1
-[127:11..127:13]: test/Test.C#TypeType.m2(). => method m2[T2 = C]: Nothing
-[127:14..127:16]: test/Test.C#TypeType.m2().[T2] => typeparam T2 = C
-[128:11..128:13]: test/Test.C#TypeType.m3(). => method m3[M3[_]]: Nothing
-[128:14..128:16]: test/Test.C#TypeType.m3().[M3] => typeparam M3[_]
-[129:12..129:14]: test/Test.C#TypeType.T4# => type T4 = C
-[130:12..130:14]: test/Test.C#TypeType.T5# => type T5[U] = U
-[130:15..130:16]: test/Test.C#TypeType.T5#[U] => typeparam U
-[134:10..134:17]: test/Test.Literal. => final object Literal extends AnyRef { +11 decls }
-[135:15..135:18]: test/Test.Literal.int. => final val method int: 1
-[136:15..136:19]: test/Test.Literal.long. => final val method long: 1L
-[137:15..137:20]: test/Test.Literal.float. => final val method float: 1.0f
-[138:15..138:21]: test/Test.Literal.double. => final val method double: 2.0
-[139:15..139:18]: test/Test.Literal.nil. => final val method nil: null
-[140:15..140:19]: test/Test.Literal.char. => final val method char: 'a'
-[141:15..141:21]: test/Test.Literal.string. => final val method string: "a"
-[142:15..142:19]: test/Test.Literal.bool. => final val method bool: true
-[143:15..143:19]: test/Test.Literal.unit. => final val method unit: Unit
-[144:15..144:23]: test/Test.Literal.javaEnum. => final val method javaEnum: NOFOLLOW_LINKS.type
-[145:15..145:22]: test/Test.Literal.clazzOf. => final val method clazzOf: Class[Option[Int]]
+[96:9..96:25]:    test/Test.C#existentialType2. => val method existentialType2: List[_] forSome { type _ }
+[97:9..97:25]:    test/Test.C#existentialType3. => val method existentialType3: Class[?0] forSome { type ?0 }
+[98:9..98:25]:    test/Test.C#existentialType4. => val method existentialType4: Class[?0] forSome { type ?0 }
+[100:9..100:20]:  test/Test.C#typeLambda1(). => method typeLambda1[M[_]]: Nothing
+[100:21..100:22]: test/Test.C#typeLambda1().[M] => typeparam M[_]
+[103:12..103:26]: test/Test.C#ClassInfoType1. => final object ClassInfoType1 extends AnyRef
+[104:11..104:25]: test/Test.C#ClassInfoType2# => class ClassInfoType2 extends B { +2 decls }
+[104:26..104:26]: test/Test.C#ClassInfoType2#`<init>`(). => primary ctor <init>()
+[104:42..104:43]: test/Test.C#ClassInfoType2#x(). => method x: Int
+[105:11..105:25]: test/Test.C#ClassInfoType3# => trait ClassInfoType3[T] extends AnyRef
+[105:26..105:27]: test/Test.C#ClassInfoType3#[T] => typeparam T
+[107:12..107:22]: test/Test.C#MethodType. => final object MethodType extends AnyRef { +6 decls }
+[108:11..108:13]: test/Test.C#MethodType.x1(). => method x1: Int
+[109:11..109:13]: test/Test.C#MethodType.x2(). => method x2: Int
+[110:11..110:13]: test/Test.C#MethodType.m3(). => method m3: Int
+[111:11..111:13]: test/Test.C#MethodType.m4(). => method m4(): Int
+[112:11..112:13]: test/Test.C#MethodType.m5(). => method m5(x: Int): Int
+[112:14..112:15]: test/Test.C#MethodType.m5().(x) => param x: Int
+[113:11..113:13]: test/Test.C#MethodType.m6(). => method m6[T](x: T): T
+[113:14..113:15]: test/Test.C#MethodType.m6().[T] => typeparam T
+[113:17..113:18]: test/Test.C#MethodType.m6().(x) => param x: T
+[116:12..116:22]: test/Test.C#ByNameType. => final object ByNameType extends AnyRef { +1 decls }
+[117:11..117:13]: test/Test.C#ByNameType.m1(). => method m1(x: => Int): Int
+[117:14..117:15]: test/Test.C#ByNameType.m1().(x) => param x: => Int
+[120:16..120:28]: test/Test.C#RepeatedType# => case class RepeatedType extends AnyRef with Product with Serializable { +12 decls }
+[120:28..120:28]: test/Test.C#RepeatedType#`<init>`(). => primary ctor <init>(val s: String*)
+[120:29..120:30]: test/Test.C#RepeatedType#s. => val method s: String*
+[121:11..121:13]: test/Test.C#RepeatedType#m1(). => method m1(x: Int*): Int
+[121:14..121:15]: test/Test.C#RepeatedType#m1().(x) => param x: Int*
+[124:12..124:20]: test/Test.C#TypeType. => final object TypeType extends AnyRef { +5 decls }
+[125:12..125:14]: test/Test.C#TypeType.T1# => abstract type T1
+[126:11..126:13]: test/Test.C#TypeType.m2(). => method m2[T2 = C]: Nothing
+[126:14..126:16]: test/Test.C#TypeType.m2().[T2] => typeparam T2 = C
+[127:11..127:13]: test/Test.C#TypeType.m3(). => method m3[M3[_]]: Nothing
+[127:14..127:16]: test/Test.C#TypeType.m3().[M3] => typeparam M3[_]
+[128:12..128:14]: test/Test.C#TypeType.T4# => type T4 = C
+[129:12..129:14]: test/Test.C#TypeType.T5# => type T5[U] = U
+[129:15..129:16]: test/Test.C#TypeType.T5#[U] => typeparam U
+[133:10..133:17]: test/Test.Literal. => final object Literal extends AnyRef { +11 decls }
+[134:15..134:18]: test/Test.Literal.int. => final val method int: 1
+[135:15..135:19]: test/Test.Literal.long. => final val method long: 1L
+[136:15..136:20]: test/Test.Literal.float. => final val method float: 1.0f
+[137:15..137:21]: test/Test.Literal.double. => final val method double: 2.0
+[138:15..138:18]: test/Test.Literal.nil. => final val method nil: null
+[139:15..139:19]: test/Test.Literal.char. => final val method char: 'a'
+[140:15..140:21]: test/Test.Literal.string. => final val method string: "a"
+[141:15..141:19]: test/Test.Literal.bool. => final val method bool: true
+[142:15..142:19]: test/Test.Literal.unit. => final val method unit: Unit
+[143:15..143:23]: test/Test.Literal.javaEnum. => final val method javaEnum: NOFOLLOW_LINKS.type
+[144:15..144:22]: test/Test.Literal.clazzOf. => final val method clazzOf: Class[Option[Int]]
