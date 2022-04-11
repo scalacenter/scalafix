@@ -93,7 +93,6 @@ object Test {
     val annType1: T @ann(42) = ???
     val annType2: T @ann1 @ann2 = ???
 
-    val existentialType1: T forSome { type T } = ???
     val existentialType2: List[_] = ???
     val existentialType3 = Class.forName("foo.Bar")
     val existentialType4 = Class.forName("foo.Bar")

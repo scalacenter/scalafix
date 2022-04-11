@@ -3,6 +3,7 @@ package scalafix.tests.v0
 import scala.meta._
 import scalafix.tests.core.BaseSemanticSuite
 
+// LegacySyntheticsTest cannot be compiled with Scala 2.13 or Scala 3
 class LegacySyntheticsSuite extends BaseSemanticSuite("LegacySyntheticsTest") {
 
   test("text") {

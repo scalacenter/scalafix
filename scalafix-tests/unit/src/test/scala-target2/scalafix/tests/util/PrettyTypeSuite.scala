@@ -29,6 +29,9 @@ class BasePrettyTypeSuite extends BaseSemanticSuite("TypeToTreeInput") {
 
   val classpath: Classpath =
     Classpaths.withDirectories(semanticdbTargetRoots :+ classDir)
+
+  // As of scalameta 4.5.3, this relies on scalap (and not on TASTy), so it
+  // cannot work against classes compiled with Scala 3
   val table: GlobalSymbolTable = GlobalSymbolTable(classpath, includeJdk = true)
 }
 
