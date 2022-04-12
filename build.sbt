@@ -1,6 +1,6 @@
 lazy val v = _root_.scalafix.sbt.BuildInfo
 lazy val rulesCrossVersions = Seq(v.scala213, v.scala212, v.scala211)
-lazy val scala3Version = "3.1.1"
+lazy val scala3Version = "3.1.2"
 
 inThisBuild(
   List(
