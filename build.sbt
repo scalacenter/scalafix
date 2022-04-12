@@ -69,16 +69,9 @@ lazy val core = projectMatrix
       googleDiff,
       collectionCompat
     ),
-    libraryDependencies ++= {
-      if (isScala211.value) Seq(metaconfigFor211)
-      else
-        Seq(
-          metaconfig,
-          // metaconfig 0.10.0 shaded pprint but rules built with an old
-          // scalafix-core must have the original package in the classpath to link
-          // https://github.com/scalameta/metaconfig/pull/154/files#r794005161
-          pprint % Runtime
-        )
+    libraryDependencies += {
+      if (isScala211.value) metaconfigFor211
+      else metaconfig
     }
   )
   .defaultAxes(VirtualAxis.jvm)
@@ -128,6 +121,16 @@ lazy val cli = projectMatrix
       jgit,
       commonText
     ),
+    libraryDependencies ++= {
+      if (isScala211.value) Seq()
+      else
+        Seq(
+          // metaconfig 0.10.0 shaded pprint but rules built with an old
+          // scalafix-core must have the original package in the classpath to link
+          // https://github.com/scalameta/metaconfig/pull/154/files#r794005161
+          pprint % Runtime
+        )
+    },
     publishLocalTransitive := Def.taskDyn {
       val ref = thisProjectRef.value
       publishLocal.all(ScopeFilter(inDependencies(ref)))
