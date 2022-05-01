@@ -22,9 +22,6 @@ class SymbolSuite extends munit.FunSuite {
       case Term.ApplyInfix(_, Term.Name("shouldBe"), _, arg :: Nil) => arg
     }
 
-    // The symbol lookup fails against Scala 3.1.1 SemanticDB as the position
-    // there excludes surrounding parentheses while 2.x (scalac-semanticdb) and
-    // the parser include them
     assertNotEquals(arg.symbol, Symbol.None)
   }
 
