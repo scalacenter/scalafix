@@ -21,6 +21,7 @@ rewriting the code when possible.
 [liancheng/scalafix-organize-imports](https://github.com/liancheng/scalafix-organize-imports) | `com.github.liancheng::organize-imports` | Help you organize Scala import statements
 [vovapolu/scaluzzi](https://github.com/vovapolu/scaluzzi) | `com.github.vovapolu::scaluzzi` | Ensure a subset of [scalazzi](http://yowconference.com.au/slides/yowwest2014/Morris-ParametricityTypesDocumentationCodeReadability.pdf)
 [xuwei-k/scalafix-rules](https://github.com/xuwei-k/scalafix-rules) | `com.github.xuwei-k::scalafix-rules` | Avoid ambiguous or redundant Scala syntax & features
+[pixiv/scalafix-pixiv-rule](https://github.com/pixiv/scalafix-pixiv-rule) | `net.pixiv::scalafix-pixiv-rule` | Redundant Scala code rewriting and anti-pattern warnings
 
 ## Migration rules
 
