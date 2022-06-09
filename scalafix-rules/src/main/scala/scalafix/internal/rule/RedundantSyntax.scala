@@ -29,5 +29,14 @@ class RedundantSyntax(config: RedundantSyntaxConfig)
             finalTok :: TokenList(o.tokens).trailingSpaces(finalTok).toList
           }
         }
+      case interpolator @ Term.Interpolate(
+            Term.Name(p),
+            Lit.String(v) :: Nil,
+            Nil
+          )
+          if config.stringInterpolator
+            && (p == "s" || p == "f" || (p == "raw" && StringContext
+              .processEscapes(v) == v)) =>
+        Patch.removeTokens(interpolator.prefix.tokens)
     }.asPatch
 }

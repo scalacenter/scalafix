@@ -6,7 +6,9 @@ import metaconfig.generic.Surface
 
 final case class RedundantSyntaxConfig(
     @Description("Remove final modifier from objects")
-    finalObject: Boolean = true
+    finalObject: Boolean = true,
+    @Description("Remove unnecessary string interpolator")
+    stringInterpolator: Boolean = true
 )
 
 object RedundantSyntaxConfig {
