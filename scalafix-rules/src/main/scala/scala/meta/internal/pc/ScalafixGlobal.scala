@@ -177,8 +177,11 @@ class ScalafixGlobal(
     tpe match {
       case TypeRef(pre, sym, args)
           if Identifier.needsBacktick(sym.decodedName) &&
-            sym != definitions.ByNameParamClass // `=> T` is OK
-          =>
+            sym != definitions.ByNameParamClass && // `=> T` is OK
+            !sym.isPackageObject &&
+            !definitions.isRepeated(sym) &&
+            !sym.isAbstractType &&
+            sym.owner != definitions.ScalaPackageClass =>
         val rawPrettyName = Identifier.backtickWrapWithoutCheck(sym.decodedName)
         val prefix = if (withPrefix) pre.prefixString else ""
         if (args.isEmpty) {
