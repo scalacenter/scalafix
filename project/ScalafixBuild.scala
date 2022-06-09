@@ -173,7 +173,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     versionPolicyIgnoredInternalDependencyVersions :=
       Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r),
     versionScheme := Some("early-semver"),
-    versionPolicyIntention := Compatibility.None
+    versionPolicyIntention := Compatibility.BinaryCompatible
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
