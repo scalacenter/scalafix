@@ -22,6 +22,7 @@ class StringInterpolator {
   b = raw"foo $a \nbar"
   b = raw"foo\nbar\\"
   b = "foo bar"
+  b = raw"a\*b\+"
 
   b = my"foo"
   b = my"foo $a bar"
