@@ -35,8 +35,7 @@ class RedundantSyntax(config: RedundantSyntaxConfig)
             Nil
           )
           if config.stringInterpolator
-            && (p == "s" || p == "f" || (p == "raw" && StringContext
-              .processEscapes(v) == v)) =>
+            && (p == "s" || p == "f" || (p == "raw" && !v.contains('\\'))) =>
         Patch.removeTokens(interpolator.prefix.tokens)
     }.asPatch
 }
