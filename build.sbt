@@ -64,18 +64,35 @@ lazy val core = projectMatrix
   .settings(
     moduleName := "scalafix-core",
     buildInfoSettingsForCore,
-    libraryDependencies ++= List(
-      scalameta,
-      googleDiff,
-      collectionCompat
+    scalacOptions --= (if (isScala3.value)
+      Seq("-P:semanticdb:synthetics:on")
+    else Nil),
+    libraryDependencies ++= {
+      if (isScala3.value) {
+        List(
+          scalameta,
+          googleDiff
+        )
+      } else {
+        List(
+          scalameta,
+          googleDiff,
+          collectionCompat
+        )
+      }
+    },
+    excludeDependencies ++= Seq(
+      ExclusionRule(organization = "org.scala-lang.modules", name = "scala-collection-compat_2.13"),
+      ExclusionRule(organization = "com.lihaoyi", name = "sourcecode_2.13"),
     ),
+
     libraryDependencies += {
       if (isScala211.value) metaconfigFor211
       else metaconfig
     }
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(buildScalaVersions, Seq(), p => p)
+  .jvmPlatform(buildScalaVersions :+ scala3, Seq(), p => p)
   .enablePlugins(BuildInfoPlugin)
 
 lazy val rules = projectMatrix
