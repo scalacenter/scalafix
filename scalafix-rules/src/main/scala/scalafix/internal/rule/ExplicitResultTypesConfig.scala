@@ -37,6 +37,8 @@ case class ExplicitResultTypesConfig(
         " used `scala.language.reflectiveCalls` to access methods on structural types."
     )
     rewriteStructuralTypesToNamedSubclass: Boolean = true,
+    @Description("If true, adds result types only to implicit definitions.")
+    onlyImplicits: Boolean = false,
     @Hidden()
     symbolReplacements: Map[String, String] = Map.empty
 )
