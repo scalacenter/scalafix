@@ -174,6 +174,7 @@ final class ExplicitResultTypes(
       defn.parent.exists(_.is[Template])
 
     isImplicit && !isFinalLiteralVal || {
+      !onlyImplicits &&
       hasParentWihTemplate &&
       !defn.hasMod(mod"implicit") &&
       !matchesSimpleDefinition() &&
