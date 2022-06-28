@@ -47,5 +47,9 @@ public enum ScalafixError {
     /**
      * No files were provided to Scalafix so nothing happened.
      */
-    NoFilesError
+    NoFilesError,
+    /**
+     * No rules were provided to Scalafix so nothing happened.
+     */
+    NoRulesError
 }

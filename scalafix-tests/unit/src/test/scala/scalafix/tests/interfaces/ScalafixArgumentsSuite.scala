@@ -333,6 +333,17 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     assert(eval.getErrorMessage.get == "No files to fix")
   }
 
+  test("Scalafix-evaluation-error-messages: NoRulesError", SkipWindows) {
+    // don't get rules from the project's .scalafix.conf
+    val noscalafixconfig = Files.createTempDirectory("scalafix")
+    val eval = api
+      .withPaths(Seq(main).asJava)
+      .withWorkingDirectory(noscalafixconfig)
+      .evaluate()
+    assert(!eval.isSuccessful)
+    assert(eval.getErrorMessage.get == "No rules requested to run")
+  }
+
   test("Scalafix-evaluation-error-messages: missing semanticdb", SkipWindows) {
     val eval = api
       .withPaths(Seq(main).asJava)

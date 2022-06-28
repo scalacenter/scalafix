@@ -72,8 +72,8 @@ object MainOps {
           args.validate match {
             case Configured.Ok(validated) =>
               if (validated.rules.isEmpty) {
-                out.println("Missing --rules")
-                ExitStatus.CommandLineError
+                out.println("No rules requested to run")
+                ExitStatus.NoRulesError
               } else {
                 MainOps.run(validated)
               }
@@ -95,8 +95,8 @@ object MainOps {
     args.rules.rules match {
       case Nil => {
         ScalafixEvaluationImpl(
-          ExitStatus.CommandLineError,
-          Some("missing rules")
+          ExitStatus.NoRulesError,
+          Some("No rules requested to run")
         )
       }
       case _: Seq[Rule] =>
