@@ -38,7 +38,8 @@ object ExitStatus {
       StaleSemanticdbError,
       TestError,
       LinterError,
-      NoFilesError
+      NoFilesError,
+      NoRulesError
     : ExitStatus = generateExitStatus
   // format: on
   lazy val all: List[ExitStatus] = allInternal.toList

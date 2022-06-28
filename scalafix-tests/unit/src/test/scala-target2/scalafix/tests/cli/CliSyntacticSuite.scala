@@ -118,9 +118,9 @@ class CliSyntacticSuite extends BaseCliSuite {
   check(
     name = "file not found",
     originalLayout = s"/foobar.scala\n",
-    args = Array("unknown-file.scala"),
+    args = Array("-r", "ProcedureSyntax", "unknown-file.scala"),
     expectedLayout = "/foobar.scala",
-    expectedExit = ExitStatus.CommandLineError
+    expectedExit = ExitStatus.UnexpectedError
   )
 
   check(
@@ -128,7 +128,7 @@ class CliSyntacticSuite extends BaseCliSuite {
     originalLayout = s"/foobar.scala\n",
     args = Array("foobar.scala"),
     expectedLayout = "/foobar.scala",
-    expectedExit = ExitStatus.CommandLineError
+    expectedExit = ExitStatus.NoRulesError
   )
 
   check(
