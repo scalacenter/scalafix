@@ -15,7 +15,7 @@ object ExplicitResultTypesBase {
   private val g = 1
   private def h(a: Int) = ""
   private var i = 22
-  private implicit var j: Int = 1
+  private implicit var j = 1
   val k: (Int, String) = (1, "msg")
   implicit val L: List[Int] = List(1)
   implicit val M: Map[Int,String] = Map(1 -> "STRING")
