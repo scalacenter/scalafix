@@ -173,13 +173,16 @@ final class ExplicitResultTypes(
     def hasParentWihTemplate: Boolean =
       defn.parent.exists(_.is[Template])
 
-    isImplicit && !isFinalLiteralVal || {
-      !onlyImplicits &&
-      hasParentWihTemplate &&
-      !defn.hasMod(mod"implicit") &&
-      !matchesSimpleDefinition() &&
-      matchesMemberKind() &&
-      matchesMemberVisibility()
+    matchesMemberKind() && matchesMemberVisibility() && {
+      {
+        isImplicit &&
+        !isFinalLiteralVal
+      } || {
+        !onlyImplicits &&
+        hasParentWihTemplate &&
+        !defn.hasMod(mod"implicit") &&
+        !matchesSimpleDefinition()
+      }
     }
   }
 
