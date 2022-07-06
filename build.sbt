@@ -64,9 +64,11 @@ lazy val core = projectMatrix
   .settings(
     moduleName := "scalafix-core",
     buildInfoSettingsForCore,
-    scalacOptions --= (if (isScala3.value)
-      Seq("-P:semanticdb:synthetics:on")
-    else Nil),
+    scalacOptions --= (
+      if (isScala3.value)
+        Seq("-P:semanticdb:synthetics:on")
+      else Nil
+    ),
     libraryDependencies ++= {
       if (isScala3.value) {
         List(
@@ -85,7 +87,6 @@ lazy val core = projectMatrix
       ExclusionRule(organization = "org.scala-lang.modules", name = "scala-collection-compat_2.13"),
       ExclusionRule(organization = "com.lihaoyi", name = "sourcecode_2.13"),
     ),
-
     libraryDependencies += {
       if (isScala211.value) metaconfigFor211
       else metaconfig
