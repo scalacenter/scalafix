@@ -10,6 +10,9 @@ import scala.meta.internal.semanticdb.SymbolInformation.{Kind => k}
 import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
 import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
+import scala.meta.internal.semanticdb.XtensionSemanticdbType
+import meta.internal.semanticdb.XtensionSemanticdbScope
+import sourcecode.Text.generate
 
 import scalapb.GeneratedMessage
 

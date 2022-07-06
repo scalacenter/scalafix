@@ -5,6 +5,7 @@ import scala.meta.Lit
 import org.typelevel.paiges.Doc
 import scalafix.internal.v1.Types
 import scalafix.v1._
+import meta.XtensionSyntax
 
 object Pretty {
   import DocConstants._

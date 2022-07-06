@@ -14,6 +14,8 @@ import scalafix.util.Newline
 import scalafix.util.SemanticdbIndex
 import scalafix.v0.Signature
 import scalafix.v0.Symbol
+import scalafix.XtensionSeqPatch
+import scalafix.XtensionOptionPatch
 
 object ImportPatchOps {
   object symbols {

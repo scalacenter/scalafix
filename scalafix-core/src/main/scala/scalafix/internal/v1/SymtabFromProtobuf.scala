@@ -1,6 +1,7 @@
 package scalafix.internal.v1
 
 import scala.meta.internal.{semanticdb => s}
+import scala.meta.internal.semanticdb.XtensionSemanticdbScope
 
 import scalafix.v1._
 

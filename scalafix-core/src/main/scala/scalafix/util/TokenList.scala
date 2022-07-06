@@ -2,6 +2,7 @@ package scalafix.util
 
 import scala.meta.tokens.Token
 import scala.meta.tokens.Tokens
+import sourcecode.Text.generate
 
 import scalafix.util.Compat._
 

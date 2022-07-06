@@ -3,6 +3,8 @@ package scalafix.util
 import scala.meta.classifiers.Classifier
 import scala.meta.tokens.Token
 import scala.meta.tokens.Token._
+import meta.XtensionClassifiable
+import meta.classifiers.XtensionClassifiable
 
 trait Whitespace
 object Whitespace {
