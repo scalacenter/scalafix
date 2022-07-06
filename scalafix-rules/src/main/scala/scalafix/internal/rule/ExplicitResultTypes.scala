@@ -181,9 +181,9 @@ final class ExplicitResultTypes(
 
     def evaluateWhenNotImplicitOrFinalLiteralVal: Boolean = {
       !onlyImplicits &&
-        hasParentWihTemplate &&
-        !defn.hasMod(mod"implicit") &&
-        !matchesSimpleDefinition()
+      hasParentWihTemplate &&
+      !defn.hasMod(mod"implicit") &&
+      !matchesSimpleDefinition()
     }
 
     matchesMemberKindAndVisibility && {
