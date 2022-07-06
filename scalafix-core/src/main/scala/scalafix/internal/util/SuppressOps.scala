@@ -7,6 +7,7 @@ import scala.meta.tokens.Token
 import scala.meta.tokens.Tokens
 
 import scalafix.patch.Patch
+import scalafix.XtensionSeqPatch
 
 object SuppressOps {
 

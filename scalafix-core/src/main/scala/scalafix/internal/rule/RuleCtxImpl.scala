@@ -16,6 +16,7 @@ import scalafix.util.MatchingParens
 import scalafix.util.SemanticdbIndex
 import scalafix.util.TokenList
 import scalafix.v0._
+import scala.meta.internal.inputs.XtensionInputSyntaxStructure
 
 class RuleCtxImpl(
     val tree: Tree,

@@ -5,6 +5,7 @@ import scalafix.patch.Patch
 import scalafix.rule.RuleCtx
 import scalafix.util.SemanticdbIndex
 import scalafix.v0.Rule
+import scalafix.XtensionSeqPatch
 
 object LegacyRule {
   def lints(ctx: RuleCtx, rule: Rule): Patch =

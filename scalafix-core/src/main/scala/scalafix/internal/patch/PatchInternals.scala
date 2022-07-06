@@ -16,6 +16,7 @@ import scalafix.patch._
 import scalafix.syntax._
 import scalafix.v0
 import scalafix.v1
+import scalafix.XtensionSeqPatch
 
 object PatchInternals {
   case class ResultWithContext(
