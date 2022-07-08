@@ -12,7 +12,6 @@ import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
 import scala.meta.internal.semanticdb.XtensionSemanticdbType
 import meta.internal.semanticdb.XtensionSemanticdbScope
-import sourcecode.Text.generate
 
 import scalapb.GeneratedMessage
 
@@ -175,7 +174,7 @@ class PrettyType private (
         Nil,
         Pat.Var(Term.Name(info.displayName)) :: Nil,
         None,
-        q"???"
+        "???".parse[Term].get
       )
     case k.FIELD =>
       if (info.is(p.FINAL)) {
@@ -624,7 +623,7 @@ class PrettyType private (
         Type.With(accum, toType(next))
       }
     case s.UniversalType(Some(typeParameters), underlying) =>
-      val universalName = t"T"
+      val universalName = Type.Name("T")
       withHardlinks(typeParameters.hardlinks) { () =>
         Type.Project(
           Type.Refine(
