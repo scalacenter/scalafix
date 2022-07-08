@@ -5,6 +5,7 @@ import scala.meta.tokens.Tokens
 import meta.classifiers.XtensionClassifiable
 
 import scalafix.util.Compat._
+import scala.collection.SeqView
 
 /** Helper to traverse tokens as a doubly linked list. */
 final class TokenList private (tokens: Tokens) {
@@ -65,10 +66,10 @@ final class TokenList private (tokens: Tokens) {
   }
 
   def leadingSpaces(token: Token): View[Token] =
-    leading(token).takeWhile(_.is[Token.Space])
+    leading(token).takeWhile(_.is[Token.Space]).asInstanceOf[SeqView[Token]]
 
   def trailingSpaces(token: Token): View[Token] =
-    trailing(token).takeWhile(_.is[Token.Space])
+    trailing(token).takeWhile(_.is[Token.Space]).asInstanceOf[SeqView[Token]]
 }
 
 object TokenList {
