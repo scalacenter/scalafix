@@ -11,7 +11,7 @@ import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
 import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
 import scala.meta.internal.semanticdb.XtensionSemanticdbType
-import meta.internal.semanticdb.XtensionSemanticdbScope
+import scala.meta.internal.semanticdb.XtensionSemanticdbScope
 
 import scalapb.GeneratedMessage
 
