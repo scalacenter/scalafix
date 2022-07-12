@@ -84,8 +84,11 @@ lazy val core = projectMatrix
       }
     },
     excludeDependencies ++= Seq(
-      ExclusionRule(organization = "org.scala-lang.modules", name = "scala-collection-compat_2.13"),
-      ExclusionRule(organization = "com.lihaoyi", name = "sourcecode_2.13"),
+      ExclusionRule(
+        organization = "org.scala-lang.modules",
+        name = "scala-collection-compat_2.13"
+      ),
+      ExclusionRule(organization = "com.lihaoyi", name = "sourcecode_2.13")
     ),
     libraryDependencies += {
       if (isScala211.value) metaconfigFor211
