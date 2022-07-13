@@ -83,13 +83,23 @@ lazy val core = projectMatrix
         )
       }
     },
-    excludeDependencies ++= Seq(
-      ExclusionRule(
-        organization = "org.scala-lang.modules",
-        name = "scala-collection-compat_2.13"
-      ),
-      ExclusionRule(organization = "com.lihaoyi", name = "sourcecode_2.13")
-    ),
+    excludeDependencies ++=
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some(3, _) =>  Seq(  
+          ExclusionRule(
+            organization = "org.scala-lang.modules",
+            name = "scala-collection-compat_2.13"),
+          ExclusionRule(organization = "com.lihaoyi", name = "sourcecode_2.13")
+        )
+        case _ => Nil
+      },
+
+    // excludeDependencies ++= Seq(
+    //   ExclusionRule(
+    //     organization = "org.scala-lang.modules",
+    //     name = "scala-collection-compat_2.13"),
+    //   ExclusionRule(organization = "com.lihaoyi", name = "sourcecode_2.13")
+    // ),
     libraryDependencies += {
       if (isScala211.value) metaconfigFor211
       else metaconfig
@@ -330,6 +340,11 @@ lazy val unit = projectMatrix
     }
   )
   .defaultAxes(VirtualAxis.jvm)
+  .jvmPlatform(
+    scalaVersions = Seq(scala3),
+    axisValues = Seq(TargetAxis(scala3)),
+    settings = Seq()
+  )
   .jvmPlatform(
     scalaVersions = Seq(scala212),
     axisValues = Seq(TargetAxis(scala3)),
