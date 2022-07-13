@@ -10,8 +10,6 @@ import scala.meta.internal.semanticdb.SymbolInformation.{Kind => k}
 import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
 import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
-import scala.meta.internal.semanticdb.XtensionSemanticdbType
-import scala.meta.internal.semanticdb.XtensionSemanticdbScope
 
 import scalapb.GeneratedMessage
 
@@ -174,7 +172,7 @@ class PrettyType private (
         Nil,
         Pat.Var(Term.Name(info.displayName)) :: Nil,
         None,
-        "???".parse[Term].get
+        q"???"
       )
     case k.FIELD =>
       if (info.is(p.FINAL)) {
@@ -623,7 +621,7 @@ class PrettyType private (
         Type.With(accum, toType(next))
       }
     case s.UniversalType(Some(typeParameters), underlying) =>
-      val universalName = Type.Name("T")
+      val universalName = t"T"
       withHardlinks(typeParameters.hardlinks) { () =>
         Type.Project(
           Type.Refine(
