@@ -70,36 +70,21 @@ lazy val core = projectMatrix
       else Nil
     ),
     libraryDependencies ++= {
-      if (isScala3.value) {
-        List(
-          scalameta,
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((3, _)) => List(
+          scalameta
+            .exclude("com.lihaoyi", "sourcecode_2.13")
+            .exclude("org.scala-lang.modules", "scala-collection-compat_2.13"),
           googleDiff
         )
-      } else {
-        List(
+        case Some((2, _)) => List(
           scalameta,
           googleDiff,
           collectionCompat
         )
+        case _ => Nil
       }
     },
-    excludeDependencies ++=
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some(3, _) =>  Seq(  
-          ExclusionRule(
-            organization = "org.scala-lang.modules",
-            name = "scala-collection-compat_2.13"),
-          ExclusionRule(organization = "com.lihaoyi", name = "sourcecode_2.13")
-        )
-        case _ => Nil
-      },
-
-    // excludeDependencies ++= Seq(
-    //   ExclusionRule(
-    //     organization = "org.scala-lang.modules",
-    //     name = "scala-collection-compat_2.13"),
-    //   ExclusionRule(organization = "com.lihaoyi", name = "sourcecode_2.13")
-    // ),
     libraryDependencies += {
       if (isScala211.value) metaconfigFor211
       else metaconfig
