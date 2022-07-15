@@ -6,7 +6,6 @@ import metaconfig._
 import metaconfig.generic.Surface
 import scalafix.Versions
 import scalafix.internal.config.ScalafixConfig._
-import scalafix.internal.util.MetaconfigCompatMacros
 
 case class ScalafixConfig(
     version: String = Versions.version,
@@ -39,7 +38,7 @@ object ScalafixConfig {
   def decoder(default: ScalafixConfig): ConfDecoder[ScalafixConfig] =
     generic.deriveDecoder[ScalafixConfig](default)
   implicit lazy val surface: Surface[ScalafixConfig] =
-    MetaconfigCompatMacros.deriveSurfaceOrig[ScalafixConfig]
+    generic.deriveSurface[ScalafixConfig]
   implicit lazy val ScalafixConfigDecoder: ConfDecoder[ScalafixConfig] =
     decoder(default)
 
