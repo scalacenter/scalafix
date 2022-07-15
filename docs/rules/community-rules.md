@@ -43,7 +43,6 @@ for the service.
 [scala/scala-collection-compat](https://github.com/scala/scala-collection-compat) | `org.scala-lang.modules::scala-collection-migrations` | Rewrite upgrades to the 2.13 collections
 [scala/scala-rewrites](https://github.com/scala/scala-rewrites) | `org.scala-lang::scala-rewrites` | Rewrites for Scala
 [xuwei-k/play-ws-scalafix](https://github.com/xuwei-k/play-ws-scalafix) | `com.github.xuwei-k::play-ws-scalafix` | Migrate to play-ws-standalone
-[xuwei-k/replace-symbol-literals](https://github.com/xuwei-k/replace-symbol-literals) | `com.github.xuwei-k::replace-symbol-literals` | Replace deprecated scala.Symbol literals `s/'foo/Symbol("foo")/`
 
 ## Code generation rules
 
