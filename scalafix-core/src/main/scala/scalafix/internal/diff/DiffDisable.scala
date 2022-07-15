@@ -6,7 +6,7 @@ import scala.meta.Position
 import scala.meta.inputs.Input
 
 import scalafix.internal.util.IntervalSet
-import meta.internal.inputs.XtensionInputSyntaxStructure
+import scala.meta.internal.inputs.XtensionInputSyntaxStructure
 
 object DiffDisable {
   def empty: DiffDisable = EmptyDiff

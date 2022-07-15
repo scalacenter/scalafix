@@ -9,7 +9,7 @@ import metaconfig.Configured
 import metaconfig.Input
 import metaconfig.Position
 import metaconfig.internal.ConfGet
-import meta.internal.inputs.XtensionInputSyntaxStructure
+import scala.meta.internal.inputs.XtensionInputSyntaxStructure
 
 object MetaconfigOps {
   def traverse[T](lst: Seq[Configured[T]]): Configured[List[T]] = {
