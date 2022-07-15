@@ -10,7 +10,7 @@ import scala.meta.internal.semanticdb.SymbolInformation.{Kind => k}
 import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
 import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
-import scalafix.util.CompatSemanticType._
+import scalafix.util.CompatSemanticdbType._
 
 import scalapb.GeneratedMessage
 
