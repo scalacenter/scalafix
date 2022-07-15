@@ -69,20 +69,21 @@ lazy val core = projectMatrix
         Seq("-P:semanticdb:synthetics:on")
       else Nil
     ),
+    libraryDependencies += {
+      googleDiff
+    },
     libraryDependencies ++= {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((3, _)) => List(
+      if (isScala3.value) {
+        List(
           scalameta
             .exclude("com.lihaoyi", "sourcecode_2.13")
             .exclude("org.scala-lang.modules", "scala-collection-compat_2.13"),
-          googleDiff
         )
-        case Some((2, _)) => List(
+      } else {
+        List(
           scalameta,
-          googleDiff,
           collectionCompat
         )
-        case _ => Nil
       }
     },
     libraryDependencies += {
@@ -325,11 +326,6 @@ lazy val unit = projectMatrix
     }
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(
-    scalaVersions = Seq(scala3),
-    axisValues = Seq(TargetAxis(scala3)),
-    settings = Seq()
-  )
   .jvmPlatform(
     scalaVersions = Seq(scala212),
     axisValues = Seq(TargetAxis(scala3)),

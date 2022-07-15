@@ -2,7 +2,7 @@ package scalafix.util
 
 import scala.meta.tokens.Token
 import scala.meta.tokens.Tokens
-import meta.classifiers.XtensionClassifiable
+import scala.meta.classifiers.XtensionClassifiable
 
 import scalafix.util.Compat._
 import scala.collection.SeqView
