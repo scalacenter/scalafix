@@ -10,6 +10,7 @@ import scala.meta.internal.semanticdb.SymbolInformation.{Kind => k}
 import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
 import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
+import scalafix.util.CompatSemanticType._
 
 import scalapb.GeneratedMessage
 
@@ -172,7 +173,7 @@ class PrettyType private (
         Nil,
         Pat.Var(Term.Name(info.displayName)) :: Nil,
         None,
-        q"???"
+        "???".parse[Term].get
       )
     case k.FIELD =>
       if (info.is(p.FINAL)) {
@@ -192,7 +193,7 @@ class PrettyType private (
       toTermRef(info)
     case _ =>
       info.signature match {
-        case s.MethodSignature(Some(tparams), paramss, returnType) =>
+        case s.MethodSignature(Some(tparams), paramss: Seq[SemanticdbScope], returnType) =>
           val ret = unwrapRepeatedType(returnType)
           if (info.isVal) {
             Decl.Val(
@@ -343,7 +344,7 @@ class PrettyType private (
             case _ =>
               fail(info)
           }
-        case s.TypeSignature(Some(typeParameters), lo, hi) =>
+        case s.TypeSignature(Some(typeParameters), lo: SemanticdbType, hi) =>
           if (lo.nonEmpty && lo == hi) {
             Defn.Type(
               toMods(info),
@@ -621,7 +622,7 @@ class PrettyType private (
         Type.With(accum, toType(next))
       }
     case s.UniversalType(Some(typeParameters), underlying) =>
-      val universalName = t"T"
+      val universalName = Type.Name("T")
       withHardlinks(typeParameters.hardlinks) { () =>
         Type.Project(
           Type.Refine(
