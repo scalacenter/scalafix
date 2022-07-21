@@ -71,9 +71,7 @@ lazy val core = projectMatrix
     moduleName := "scalafix-core",
     buildInfoSettingsForCore,
     scalacOptions --= (scala3ScalacOption.value),
-    libraryDependencies += {
-      googleDiff
-    },
+    libraryDependencies += googleDiff
     libraryDependencies ++= {
       if (isScala3.value) {
         List(

@@ -130,7 +130,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     },
     commands += Command.command("ci-3") { s =>
       "unit2_12Target3/test" ::
-      "unit3/compile" ::
+      "core3/compile" ::
         s
     },
     commands += Command.command("ci-213") { s =>
