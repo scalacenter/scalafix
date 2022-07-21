@@ -173,7 +173,7 @@ class PrettyType private (
         Nil,
         Pat.Var(Term.Name(info.displayName)) :: Nil,
         None,
-        "???".parse[Term].get
+        Term.Name("???")
       )
     case k.FIELD =>
       if (info.is(p.FINAL)) {
