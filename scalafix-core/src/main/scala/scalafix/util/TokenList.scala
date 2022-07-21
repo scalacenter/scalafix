@@ -64,11 +64,11 @@ final class TokenList private (tokens: Tokens) {
     }
   }
 
-  def leadingSpaces(token: Token) =
-    leading(token).takeWhile(_.is[Token.Space])
+  def leadingSpaces(token: Token): View[Token] =
+    leading(token).takeWhile(_.is[Token.Space]).asInstanceOf[View[Token]]
 
-  def trailingSpaces(token: Token) =
-    trailing(token).takeWhile(_.is[Token.Space])
+  def trailingSpaces(token: Token): View[Token] =
+    trailing(token).takeWhile(_.is[Token.Space]).asInstanceOf[View[Token]]
 }
 
 object TokenList {
