@@ -5,7 +5,6 @@ inThisBuild(
   List(
     onLoadMessage := s"Welcome to scalafix ${version.value}",
     fork := true,
-    scalacOptions ++= List("-P:semanticdb:synthetics:on"),
     semanticdbEnabled := true,
     semanticdbVersion := scalametaV,
     scalafixScalaBinaryVersion := "2.13",
@@ -25,12 +24,6 @@ def inferJavaHome() = {
     else home
   Some(actualHome)
 }
-
-lazy val scala3ScalacOption = Def.setting (
-  if (isScala3.value)
-    Seq("-P:semanticdb:synthetics:on")
-  else Nil
-)
 
 lazy val interfaces = projectMatrix
   .in(file("scalafix-interfaces"))
@@ -70,8 +63,7 @@ lazy val core = projectMatrix
   .settings(
     moduleName := "scalafix-core",
     buildInfoSettingsForCore,
-    scalacOptions --= (scala3ScalacOption.value),
-    libraryDependencies += googleDiff
+    libraryDependencies += googleDiff,
     libraryDependencies ++= {
       if (isScala3.value) {
         List(
@@ -161,7 +153,6 @@ lazy val testsShared = projectMatrix
   .in(file("scalafix-tests/shared"))
   .settings(
     noPublishAndNoMima,
-    scalacOptions --= (scala3ScalacOption.value),
     coverageEnabled := false
   )
   .defaultAxes(VirtualAxis.jvm)
@@ -172,7 +163,6 @@ lazy val testsInput = projectMatrix
   .in(file("scalafix-tests/input"))
   .settings(
     noPublishAndNoMima,
-    scalacOptions --= (scala3ScalacOption.value),
     scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
     scalacOptions ++= warnAdaptedArgs.value, // For NoAutoTupling
     scalacOptions ++= warnUnusedImports.value, // For RemoveUnused
@@ -189,7 +179,6 @@ lazy val testsOutput = projectMatrix
   .in(file("scalafix-tests/output"))
   .settings(
     noPublishAndNoMima,
-    scalacOptions --= (scala3ScalacOption.value),
     scalacOptions --= warnUnusedImports.value,
     libraryDependencies ++= testsDependencies.value,
     coverageEnabled := false

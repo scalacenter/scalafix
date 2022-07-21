@@ -88,6 +88,12 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         )
     )
 
+    lazy val semanticdbSyntheticsCompilerOption = Def.setting (
+        if (!isScala3.value)
+          Seq("-P:semanticdb:synthetics:on")
+        else Nil
+    )
+
     lazy val buildInfoSettingsForCore: Seq[Def.Setting[_]] = Seq(
       buildInfoKeys := Seq[BuildInfoKey](
         name,
@@ -179,6 +185,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
     scalacOptions ++= compilerOptions.value,
+    scalacOptions ++= semanticdbSyntheticsCompilerOption.value,
     Compile / console / scalacOptions :=
       compilerOptions.value :+ "-Yrepl-class-based",
     Compile / doc / scalacOptions ++= scaladocOptions,
