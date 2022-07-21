@@ -88,10 +88,10 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         )
     )
 
-    lazy val semanticdbSyntheticsCompilerOption = Def.setting (
-        if (!isScala3.value)
-          Seq("-P:semanticdb:synthetics:on")
-        else Nil
+    lazy val semanticdbSyntheticsCompilerOption = Def.setting(
+      if (!isScala3.value)
+        Seq("-P:semanticdb:synthetics:on")
+      else Nil
     )
 
     lazy val buildInfoSettingsForCore: Seq[Def.Setting[_]] = Seq(
@@ -136,7 +136,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     },
     commands += Command.command("ci-3") { s =>
       "unit2_12Target3/test" ::
-      "core3/compile" ::
+        "core3/compile" ::
         s
     },
     commands += Command.command("ci-213") { s =>
