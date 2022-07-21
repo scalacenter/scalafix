@@ -4,6 +4,7 @@ import scala.util.control.TailCalls._
 
 import scala.meta._
 
+import scalafix.XtensionSeqPatch
 import scalafix.internal.diff.DiffUtils
 import scalafix.internal.util.Failure
 import scalafix.internal.util.SuppressOps
@@ -16,7 +17,6 @@ import scalafix.patch._
 import scalafix.syntax._
 import scalafix.v0
 import scalafix.v1
-import scalafix.XtensionSeqPatch
 
 object PatchInternals {
   case class ResultWithContext(

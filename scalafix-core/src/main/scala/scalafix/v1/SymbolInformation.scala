@@ -1,9 +1,9 @@
 package scalafix.v1
 
 import scala.meta.internal.metap.PrinterSymtab
+import scala.meta.internal.semanticdb.XtensionSemanticdbSymbolInformation
 import scala.meta.internal.{semanticdb => s}
 import scala.meta.metap.Format
-import scala.meta.internal.semanticdb.XtensionSemanticdbSymbolInformation
 
 import scalafix.internal.v1.SymbolInformationAnnotations._
 import scalafix.internal.v1.SymtabFromProtobuf

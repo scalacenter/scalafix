@@ -1,7 +1,7 @@
 package scalafix.util
 
-import scala.meta.internal.semanticdb.Type
 import scala.meta.internal.semanticdb.Scope
+import scala.meta.internal.semanticdb.Type
 
 object CompatSemanticdbType {
   type SemanticdbType = Type

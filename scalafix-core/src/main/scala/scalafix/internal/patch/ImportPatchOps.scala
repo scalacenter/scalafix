@@ -5,6 +5,8 @@ import scala.collection.mutable
 
 import scala.meta._
 
+import scalafix.XtensionOptionPatch
+import scalafix.XtensionSeqPatch
 import scalafix.internal.util.SymbolOps
 import scalafix.patch.Patch
 import scalafix.patch.Patch.internal._
@@ -14,8 +16,6 @@ import scalafix.util.Newline
 import scalafix.util.SemanticdbIndex
 import scalafix.v0.Signature
 import scalafix.v0.Symbol
-import scalafix.XtensionSeqPatch
-import scalafix.XtensionOptionPatch
 
 object ImportPatchOps {
   object symbols {

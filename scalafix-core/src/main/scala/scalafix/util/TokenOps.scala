@@ -1,7 +1,7 @@
 package scalafix.util
 
-import scala.meta.tokens.Token
 import scala.meta.XtensionSyntax
+import scala.meta.tokens.Token
 
 object TokenOps {
 
