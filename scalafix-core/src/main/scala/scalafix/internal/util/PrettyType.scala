@@ -193,7 +193,11 @@ class PrettyType private (
       toTermRef(info)
     case _ =>
       info.signature match {
-        case s.MethodSignature(Some(tparams), paramss: Seq[SemanticdbScope], returnType) =>
+        case s.MethodSignature(
+              Some(tparams),
+              paramss: Seq[SemanticdbScope],
+              returnType
+            ) =>
           val ret = unwrapRepeatedType(returnType)
           if (info.isVal) {
             Decl.Val(

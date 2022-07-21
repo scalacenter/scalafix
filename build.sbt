@@ -69,7 +69,7 @@ lazy val core = projectMatrix
         List(
           scalameta
             .exclude("com.lihaoyi", "sourcecode_2.13")
-            .exclude("org.scala-lang.modules", "scala-collection-compat_2.13"),
+            .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
         )
       } else {
         List(
