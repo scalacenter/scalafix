@@ -2,6 +2,7 @@ package scalafix.internal.rule
 
 import scala.meta._
 import scala.meta.contrib.AssociatedComments
+import scala.meta.internal.inputs.XtensionInputSyntaxStructure
 import scala.meta.tokens.Tokens
 
 import org.scalameta.FileLine
@@ -16,7 +17,6 @@ import scalafix.util.MatchingParens
 import scalafix.util.SemanticdbIndex
 import scalafix.util.TokenList
 import scalafix.v0._
-import scala.meta.internal.inputs.XtensionInputSyntaxStructure
 
 class RuleCtxImpl(
     val tree: Tree,

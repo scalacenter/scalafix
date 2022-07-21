@@ -1,11 +1,11 @@
 package scala.meta.internal
 
 import scala.meta._
+import scala.meta.internal.inputs.XtensionInputSyntaxStructure
 import scala.meta.internal.semanticdb.Scala.Descriptor
 import scala.meta.internal.semanticdb.Scala.DescriptorParser
 import scala.meta.internal.trees.Origin
 import scala.meta.internal.{semanticdb => s}
-import scala.meta.internal.inputs.XtensionInputSyntaxStructure
 
 object ScalametaInternals {
   private val EOL = System.lineSeparator()

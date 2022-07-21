@@ -1,8 +1,8 @@
 package scalafix.util
 
+import scala.meta.XtensionClassifiable
 import scala.meta.tokens.Token
 import scala.meta.tokens.Tokens
-import scala.meta.XtensionClassifiable
 
 import scalafix.util.Compat._
 

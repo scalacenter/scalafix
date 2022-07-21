@@ -2,6 +2,8 @@ package scalafix.internal.config
 
 import scala.{meta => m}
 
+import scala.meta.internal.inputs.XtensionInputSyntaxStructure
+
 import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
@@ -9,7 +11,6 @@ import metaconfig.Configured
 import metaconfig.Input
 import metaconfig.Position
 import metaconfig.internal.ConfGet
-import scala.meta.internal.inputs.XtensionInputSyntaxStructure
 
 object MetaconfigOps {
   def traverse[T](lst: Seq[Configured[T]]): Configured[List[T]] = {

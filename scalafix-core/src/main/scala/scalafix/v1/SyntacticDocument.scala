@@ -6,8 +6,8 @@ import scala.meta.Source
 import scala.meta.Tokens
 import scala.meta.Tree
 import scala.meta.contrib.AssociatedComments
-import scala.meta.parsers.Parsed
 import scala.meta.internal.inputs.XtensionInputSyntaxStructure
+import scala.meta.parsers.Parsed
 
 import scalafix.internal.config.ScalaVersion
 import scalafix.internal.config.ScalafixConfig

@@ -4,9 +4,9 @@ import scala.collection.mutable.StringBuilder
 
 import scala.meta.Position
 import scala.meta.inputs.Input
+import scala.meta.internal.inputs.XtensionInputSyntaxStructure
 
 import scalafix.internal.util.IntervalSet
-import scala.meta.internal.inputs.XtensionInputSyntaxStructure
 
 object DiffDisable {
   def empty: DiffDisable = EmptyDiff

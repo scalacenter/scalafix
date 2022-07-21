@@ -1,7 +1,7 @@
 package scalafix.v0
 
-import scala.meta.internal.io.PathIO
 import scala.meta.internal.inputs.XtensionInputSyntaxStructure
+import scala.meta.internal.io.PathIO
 
 final case class Database(documents: Seq[Document]) {
   lazy val names: Seq[ResolvedName] = documents.flatMap(_.names)
