@@ -94,6 +94,13 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       else Nil
     )
 
+    lazy val versionPolicyIntentionSetting = Def.setting(
+      if (!isScala3.value) 
+        Compatibility.BinaryCompatible
+      else
+        Compatibility.None
+    )
+
     lazy val buildInfoSettingsForCore: Seq[Def.Setting[_]] = Seq(
       buildInfoKeys := Seq[BuildInfoKey](
         name,
@@ -180,10 +187,10 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     versionPolicyIgnoredInternalDependencyVersions :=
       Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r),
     versionScheme := Some("early-semver"),
-    versionPolicyIntention := Compatibility.BinaryCompatible
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
+    versionPolicyIntention := versionPolicyIntentionSetting.value,
     scalacOptions ++= compilerOptions.value,
     scalacOptions ++= semanticdbSyntheticsCompilerOption.value,
     Compile / console / scalacOptions :=
