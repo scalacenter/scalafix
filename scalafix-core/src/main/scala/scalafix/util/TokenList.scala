@@ -2,10 +2,9 @@ package scalafix.util
 
 import scala.meta.tokens.Token
 import scala.meta.tokens.Tokens
-import scala.meta.classifiers.XtensionClassifiable
+import scala.meta.XtensionClassifiable
 
 import scalafix.util.Compat._
-import scala.collection.SeqView
 
 /** Helper to traverse tokens as a doubly linked list. */
 final class TokenList private (tokens: Tokens) {
@@ -65,11 +64,11 @@ final class TokenList private (tokens: Tokens) {
     }
   }
 
-  def leadingSpaces(token: Token): View[Token] =
-    leading(token).takeWhile(_.is[Token.Space]).asInstanceOf[SeqView[Token]]
+  def leadingSpaces(token: Token) =
+    leading(token).takeWhile(_.is[Token.Space])
 
-  def trailingSpaces(token: Token): View[Token] =
-    trailing(token).takeWhile(_.is[Token.Space]).asInstanceOf[SeqView[Token]]
+  def trailingSpaces(token: Token) =
+    trailing(token).takeWhile(_.is[Token.Space])
 }
 
 object TokenList {
