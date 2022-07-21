@@ -95,7 +95,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     )
 
     lazy val versionPolicyIntentionSetting = Def.setting(
-      if (!isScala3.value) 
+      if (!isScala3.value)
         Compatibility.BinaryCompatible
       else
         Compatibility.None
@@ -186,7 +186,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     versionPolicyIgnored += "com.lihaoyi" %% "pprint",
     versionPolicyIgnoredInternalDependencyVersions :=
       Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r),
-    versionScheme := Some("early-semver"),
+    versionScheme := Some("early-semver")
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
