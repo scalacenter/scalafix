@@ -81,18 +81,22 @@ class ScalafixSuite extends AnyFunSuite {
       s"fetch & load instance for Scala version $scalaVersion with external dependencies"
     ) {
       val scalafixAPI = Scalafix.fetchAndClassloadInstance(scalaVersion)
-      val args = scalafixAPI.newArguments
+      val availableRules = scalafixAPI.newArguments
         .withToolClasspath(
           Seq[URL]().asJava,
-          Seq[String]("com.nequissimus::sort-imports:0.5.2").asJava,
+          Seq[String](
+            "com.nequissimus::sort-imports:0.5.2", // scalafix 0.9.16
+            "ch.epfl.scala::example-scalafix-rule:2.0.0" // scalafix 0.10.0
+          ).asJava,
           Seq[Repository](Repository.central()).asJava
         )
-      assert(
-        args.availableRules.asScala.map(_.name).contains("RemoveUnused")
-      ) // built-in rule
-      assert(
-        args.availableRules.asScala.map(_.name).contains("SortImports")
-      ) // community rule
+        .availableRules
+        .asScala
+        .map(_.name)
+
+      assert(availableRules.contains("RemoveUnused")) // built-in
+      assert(availableRules.contains("SortImports")) // sort-imports
+      assert(availableRules.contains("SemanticRule")) // example-scalafix-rule
     }
   }
   val supportedScalaBinaryVersions: Set[String] = Set("2.11", "2.12", "2.13")
