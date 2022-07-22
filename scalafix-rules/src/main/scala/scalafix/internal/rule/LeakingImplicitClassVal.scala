@@ -17,7 +17,7 @@ class LeakingImplicitClassVal extends SyntacticRule("LeakingImplicitClassVal") {
             _,
             _,
             Ctor.Primary(_, _, (Term.Param(pMods, _, _, _) :: Nil) :: Nil),
-            Template(_, init"AnyVal" :: Nil, _, _)
+            Template(_, Init(Type.Name("AnyVal"), _, _) :: Nil, _, _)
           ) if cMods.exists(_.is[Mod.Implicit]) =>
         val optPatch = for {
           anchorMod <- pMods.find(!_.is[Mod.Annot])

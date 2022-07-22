@@ -93,15 +93,18 @@ lazy val rules = projectMatrix
     moduleName := "scalafix-rules",
     description := "Built-in Scalafix rules",
     buildInfoSettingsForRules,
-    libraryDependencies ++= List(
-      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-      semanticdbScalacCore,
-      collectionCompat
-    )
+    libraryDependencies ++= {
+      if (!isScala3.value)
+        List(
+          "org.scala-lang" % "scala-compiler" % scalaVersion.value,
+          "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+          semanticdbScalacCore,
+          collectionCompat
+        )
+    }
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(buildScalaVersions)
+  .jvmPlatform(buildScalaVersions :+ scala3, Seq(), p => p)
   .dependsOn(core)
   .enablePlugins(BuildInfoPlugin)
 
