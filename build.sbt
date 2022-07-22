@@ -101,6 +101,7 @@ lazy val rules = projectMatrix
           semanticdbScalacCore,
           collectionCompat
         )
+      else Nil
     }
   )
   .defaultAxes(VirtualAxis.jvm)
