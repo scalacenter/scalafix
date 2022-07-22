@@ -187,7 +187,9 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     versionPolicyIgnored += "com.lihaoyi" %% "pprint",
     versionPolicyIgnoredInternalDependencyVersions :=
       Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r),
-    versionScheme := Some("early-semver")
+    versionScheme := Some("early-semver"),
+    // coursier-versions always return false for the *.*.*.*-r pattern jgit uses
+    libraryDependencySchemes += Dependencies.jgit.withRevision("always")
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
