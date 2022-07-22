@@ -188,7 +188,7 @@ final class DisableSyntax(config: DisableSyntaxConfig)
       case Defn.Val(mods, _, _, _)
           if config.noFinalVal &&
             mods.exists(_.is[Mod.Final]) =>
-        val mod = mods.find(_.is[Mod.Final]).get 
+        val mod = mods.find(_.is[Mod.Final]).get
         Seq(noFinalVal.at(mod.pos))
       case NoValPatterns(v) if config.noValPatterns =>
         Seq(noValPatternCategory.at(v.pos))
