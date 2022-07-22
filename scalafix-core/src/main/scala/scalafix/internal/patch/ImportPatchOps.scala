@@ -5,6 +5,8 @@ import scala.collection.mutable
 
 import scala.meta._
 
+import scalafix.XtensionOptionPatch
+import scalafix.XtensionSeqPatch
 import scalafix.internal.util.SymbolOps
 import scalafix.patch.Patch
 import scalafix.patch.Patch.internal._

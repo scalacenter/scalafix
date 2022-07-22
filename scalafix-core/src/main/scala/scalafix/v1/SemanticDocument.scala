@@ -2,6 +2,7 @@ package scalafix.v1
 
 import scala.meta._
 import scala.meta.contrib.AssociatedComments
+import scala.meta.internal.inputs.XtensionInputSyntaxStructure
 import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
 import scala.meta.io.RelativePath

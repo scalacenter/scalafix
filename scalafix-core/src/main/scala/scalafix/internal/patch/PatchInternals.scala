@@ -4,6 +4,7 @@ import scala.util.control.TailCalls._
 
 import scala.meta._
 
+import scalafix.XtensionSeqPatch
 import scalafix.internal.diff.DiffUtils
 import scalafix.internal.util.Failure
 import scalafix.internal.util.SuppressOps

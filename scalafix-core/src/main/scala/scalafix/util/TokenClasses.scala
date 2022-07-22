@@ -1,6 +1,7 @@
 package scalafix.util
 
 import scala.meta.classifiers.Classifier
+import scala.meta.classifiers.XtensionClassifiable
 import scala.meta.tokens.Token
 import scala.meta.tokens.Token._
 

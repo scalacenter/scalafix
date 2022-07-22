@@ -1,6 +1,7 @@
 package scalafix.internal.v0
 import metaconfig.Conf
 import metaconfig.Configured
+import scalafix.XtensionSeqPatch
 import scalafix.patch.Patch
 import scalafix.rule.RuleCtx
 import scalafix.util.SemanticdbIndex

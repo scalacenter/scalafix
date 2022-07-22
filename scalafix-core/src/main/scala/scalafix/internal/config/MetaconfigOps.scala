@@ -2,6 +2,8 @@ package scalafix.internal.config
 
 import scala.{meta => m}
 
+import scala.meta.internal.inputs.XtensionInputSyntaxStructure
+
 import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
@@ -58,7 +60,9 @@ object MetaconfigOps {
     def getField[T: ConfDecoder](e: sourcecode.Text[T]): Configured[T] =
       conf.getOrElse(e.source)(e.value)
   }
-  implicit class XtensionConfiguredCompanionScalafix(`_`: Configured.type) {
+  implicit class XtensionConfiguredCompanionScalafix(
+      configured: Configured.type
+  ) {
     def fromEither[T](either: Either[String, T]): Configured[T] =
       either.fold(ConfError.message(_).notOk, Configured.ok)
   }

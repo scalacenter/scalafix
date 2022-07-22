@@ -53,7 +53,9 @@ object Dependencies {
   val nailgunServer = "com.martiansoftware" % "nailgun-server" % nailgunV
   val scalaXml = "org.scala-lang.modules" %% "scala-xml" % scalaXmlV
   val scalaXml211 = "org.scala-lang.modules" %% "scala-xml" % scalaXml211V
-  val scalameta = "org.scalameta" %% "scalameta" % scalametaV
+  // https://github.com/scalameta/scalameta/issues/2485
+  val scalameta = ("org.scalameta" %% "scalameta" % scalametaV)
+    .cross(CrossVersion.for3Use2_13)
   val scalametaTeskit = "org.scalameta" %% "testkit" % scalametaV
   val scalatest = "org.scalatest" %% "scalatest" % scalatestV
   val semanticdbScalacCore = "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full

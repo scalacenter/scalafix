@@ -88,6 +88,19 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         )
     )
 
+    lazy val semanticdbSyntheticsCompilerOption = Def.setting(
+      if (!isScala3.value)
+        Seq("-P:semanticdb:synthetics:on")
+      else Nil
+    )
+
+    lazy val versionPolicyIntentionSetting = Def.setting(
+      if (!isScala3.value)
+        Compatibility.BinaryCompatible
+      else
+        Compatibility.None
+    )
+
     lazy val buildInfoSettingsForCore: Seq[Def.Setting[_]] = Seq(
       buildInfoKeys := Seq[BuildInfoKey](
         name,
@@ -130,6 +143,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     },
     commands += Command.command("ci-3") { s =>
       "unit2_12Target3/test" ::
+        "core3/compile" ::
         s
     },
     commands += Command.command("ci-213") { s =>
@@ -172,12 +186,13 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     versionPolicyIgnored += "com.lihaoyi" %% "pprint",
     versionPolicyIgnoredInternalDependencyVersions :=
       Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r),
-    versionScheme := Some("early-semver"),
-    versionPolicyIntention := Compatibility.BinaryCompatible
+    versionScheme := Some("early-semver")
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
+    versionPolicyIntention := versionPolicyIntentionSetting.value,
     scalacOptions ++= compilerOptions.value,
+    scalacOptions ++= semanticdbSyntheticsCompilerOption.value,
     Compile / console / scalacOptions :=
       compilerOptions.value :+ "-Yrepl-class-based",
     Compile / doc / scalacOptions ++= scaladocOptions,

@@ -5,7 +5,6 @@ inThisBuild(
   List(
     onLoadMessage := s"Welcome to scalafix ${version.value}",
     fork := true,
-    scalacOptions ++= List("-P:semanticdb:synthetics:on"),
     semanticdbEnabled := true,
     semanticdbVersion := scalametaV,
     scalafixScalaBinaryVersion := "2.13",
@@ -64,18 +63,28 @@ lazy val core = projectMatrix
   .settings(
     moduleName := "scalafix-core",
     buildInfoSettingsForCore,
-    libraryDependencies ++= List(
-      scalameta,
-      googleDiff,
-      collectionCompat
-    ),
+    libraryDependencies += googleDiff,
+    libraryDependencies ++= {
+      if (isScala3.value) {
+        List(
+          scalameta
+            .exclude("com.lihaoyi", "sourcecode_2.13")
+            .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
+        )
+      } else {
+        List(
+          scalameta,
+          collectionCompat
+        )
+      }
+    },
     libraryDependencies += {
       if (isScala211.value) metaconfigFor211
       else metaconfig
     }
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(buildScalaVersions, Seq(), p => p)
+  .jvmPlatform(buildScalaVersions :+ scala3, Seq(), p => p)
   .enablePlugins(BuildInfoPlugin)
 
 lazy val rules = projectMatrix
@@ -144,9 +153,6 @@ lazy val testsShared = projectMatrix
   .in(file("scalafix-tests/shared"))
   .settings(
     noPublishAndNoMima,
-    scalacOptions --= (if (isScala3.value)
-                         Seq("-P:semanticdb:synthetics:on")
-                       else Nil),
     coverageEnabled := false
   )
   .defaultAxes(VirtualAxis.jvm)
@@ -157,9 +163,6 @@ lazy val testsInput = projectMatrix
   .in(file("scalafix-tests/input"))
   .settings(
     noPublishAndNoMima,
-    scalacOptions --= (if (isScala3.value)
-                         Seq("-P:semanticdb:synthetics:on")
-                       else Nil),
     scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
     scalacOptions ++= warnAdaptedArgs.value, // For NoAutoTupling
     scalacOptions ++= warnUnusedImports.value, // For RemoveUnused
@@ -176,9 +179,6 @@ lazy val testsOutput = projectMatrix
   .in(file("scalafix-tests/output"))
   .settings(
     noPublishAndNoMima,
-    scalacOptions --= (if (scalaVersion.value.startsWith("3"))
-                         Seq("-P:semanticdb:synthetics:on")
-                       else Nil),
     scalacOptions --= warnUnusedImports.value,
     libraryDependencies ++= testsDependencies.value,
     coverageEnabled := false

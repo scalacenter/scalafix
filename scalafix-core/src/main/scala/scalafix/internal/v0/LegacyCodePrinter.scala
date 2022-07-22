@@ -6,6 +6,7 @@ import scala.meta.inputs.Input
 import scala.meta.inputs.Position
 import scala.meta.internal.ScalametaInternals
 import scala.meta.internal.semanticdb.Scala._
+import scala.meta.internal.semanticdb.XtensionSemanticdbScope
 import scala.meta.internal.{semanticdb => s}
 
 import scalafix.v0

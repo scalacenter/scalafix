@@ -68,6 +68,6 @@ object TreePos {
     case Importer(_, i :: Nil) => symbolImpl(i)
     case t: Init => symbolImpl(t.tpe)
     case t: Mod.Annot => symbolImpl(t.init)
-    case _ => tree.pos
+    case _ => $conforms(tree.pos)
   }
 }

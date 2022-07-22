@@ -31,7 +31,9 @@ package object v1 {
     }
   }
 
-  implicit class XtensionTextDocumentsCompanionFix(`_`: s.TextDocuments.type) {
+  implicit class XtensionTextDocumentsCompanionFix(
+      sdocType: s.TextDocuments.type
+  ) {
     def parseFromFile(file: AbsolutePath): s.TextDocuments = {
       val in = Files.newInputStream(file.toNIO)
       val sdocs =

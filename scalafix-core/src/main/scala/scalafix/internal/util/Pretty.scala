@@ -1,6 +1,7 @@
 package scalafix.internal.util
 
 import scala.meta.Lit
+import scala.meta.XtensionSyntax
 
 import org.typelevel.paiges.Doc
 import scalafix.internal.v1.Types
