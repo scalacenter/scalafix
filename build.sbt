@@ -55,7 +55,7 @@ lazy val interfaces = projectMatrix
     autoScalaLibrary := false
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(buildScalaVersions)
+  .jvmPlatform(false)
   .disablePlugins(ScalafixPlugin)
 
 lazy val core = projectMatrix

@@ -150,7 +150,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     commands += Command.command("ci-213") { s =>
       "unit2_13Target2_13/test" ::
         "docs2_13/run" ::
-        "interfaces2_13/doc" ::
+        "interfaces/doc" ::
         testRulesAgainstPreviousScalaVersions(scala213, s)
     },
     commands += Command.command("ci-212") { s =>
