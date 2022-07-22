@@ -192,19 +192,19 @@ final class DisableSyntax(config: DisableSyntaxConfig)
         Seq(noFinalVal.at(mod.pos))
       case NoValPatterns(v) if config.noValPatterns =>
         Seq(noValPatternCategory.at(v.pos))
-      case t @ mod"+" if config.noCovariantTypes =>
+      case t @ Mod.Covariant() if config.noCovariantTypes =>
         Seq(
           Diagnostic(
             "covariant",
-            "Covariant types could lead to error-prone situations.",
+            "Covariant types could lead to error-prone situations",
             t.pos
           )
         )
-      case t @ mod"-" if config.noContravariantTypes =>
+      case t @ Mod.Contravariant() if config.noContravariantTypes =>
         Seq(
           Diagnostic(
             "contravariant",
-            "Contravariant types could lead to error-prone situations.",
+            "Contravariant types could lead to error-prone situations",
             t.pos
           )
         )
@@ -297,7 +297,7 @@ object DisableSyntax {
       |overriding finalize incurs a performance penalty""".stripMargin
 
   def FinalizeMatcher(id: String): PartialFunction[Tree, List[Diagnostic]] = {
-    case Defn.Def(_, name @ q"finalize", _, Nil | Nil :: Nil, _, _) =>
+    case Defn.Def(_, name @ Term.Name("finalize"), _, Nil | Nil :: Nil, _, _) =>
       Diagnostic(
         id,
         "finalize should not be used",
