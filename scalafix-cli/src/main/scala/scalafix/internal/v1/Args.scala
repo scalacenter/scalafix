@@ -408,7 +408,7 @@ case class Args(
     path.isDirectory || {
       val fileName = path.toNIO.getFileName()
       lazy val hasRightExtension = validClasspathFileExtension.exists(ext =>
-        fileName.toString.endsWith(ext)
+        fileName.toString.endsWith(s".$ext")
       )
       fileName != null && hasRightExtension
     }
