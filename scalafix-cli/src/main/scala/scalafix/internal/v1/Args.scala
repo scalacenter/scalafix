@@ -7,6 +7,7 @@ import java.net.URLClassLoader
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
+import java.nio.file.Files
 import java.nio.file.PathMatcher
 import java.nio.file.Paths
 import java.util.regex.Pattern
@@ -198,16 +199,20 @@ case class Args(
   override def toString: String = ConfEncoder[Args].write(this).toString()
 
   def configuredSymtab: Configured[SymbolTable] = {
-    Try(
-      ClasspathOps.newSymbolTable(
-        classpath = validatedClasspath,
-        out = out
-      )
-    ) match {
-      case Success(symtab) =>
-        Configured.ok(symtab)
-      case Failure(e) =>
-        ConfError.message(s"Unable to load symbol table: ${e.getMessage}").notOk
+    validatedClasspath andThen { validClasspath =>
+      Try(
+        ClasspathOps.newSymbolTable(
+          classpath = validClasspath,
+          out = out
+        )
+      ) match {
+        case Success(symtab) =>
+          Configured.ok(symtab)
+        case Failure(e) =>
+          ConfError
+            .message(s"Unable to load symbol table: ${e.getMessage}")
+            .notOk
+      }
     }
   }
 
@@ -281,17 +286,20 @@ case class Args(
       base: Conf,
       scalafixConfig: ScalafixConfig
   ): Configured[Rules] = {
-    val targetConf = maybeOverlaidConfWithTriggered(base)
 
-    val rulesConf = this.rulesConf(() => base)
-    val decoder = ruleDecoder(scalafixConfig)
+    validatedClasspath andThen { validClasspath =>
+      val targetConf = maybeOverlaidConfWithTriggered(base)
 
-    val configuration = Configuration()
-      .withConf(targetConf)
-      .withScalaVersion(scalaVersion.value)
-      .withScalacOptions(scalacOptions)
-      .withScalacClasspath(validatedClasspath.entries)
-    decoder.read(rulesConf).andThen(_.withConfiguration(configuration))
+      val rulesConf = this.rulesConf(() => base)
+      val decoder = ruleDecoder(scalafixConfig)
+
+      val configuration = Configuration()
+        .withConf(targetConf)
+        .withScalaVersion(scalaVersion.value)
+        .withScalacOptions(scalacOptions)
+        .withScalacClasspath(validClasspath.entries)
+      decoder.read(rulesConf).andThen(_.withConfiguration(configuration))
+    }
   }
 
   def resolvedPathReplace: Configured[AbsolutePath => AbsolutePath] =
@@ -354,7 +362,7 @@ case class Args(
     else Configured.error(s"--sourceroot $path is not a directory")
   }
 
-  def validatedClasspath: Classpath = {
+  def validatedClasspath: Configured[Classpath] = {
     val targetrootClasspath = semanticdbTargetroots match {
       case Nil =>
         semanticdbOption("targetroot", Some("-semanticdb-target")).toList
@@ -370,11 +378,48 @@ case class Args(
       } else {
         classpath
       }
-    Classpath(targetrootClasspath) ++ baseClasspath
+    val finalClassPath = Classpath(targetrootClasspath) ++ baseClasspath
+    val badEntries = finalClassPath.entries.filterNot {
+      ensureValidClasspathEntry
+    }
+    if (badEntries.isEmpty) {
+
+      Configured.ok(finalClassPath)
+    } else {
+      val extensions = validClasspathFileExtension.mkString("[", ",", "]")
+      val prefix = s"""|Invalid classpath entry. Make sure your classpath
+        |contains only directories or file that ends with
+        |the following extension: ${extensions}. The following path are invalid: """.stripMargin
+      val error =
+        badEntries.map(_.toString() + "\n").mkString(prefix, " - ", "")
+      Configured.notOk(ConfError.message(error))
+    }
   }
 
-  def classLoader: ClassLoader =
-    ClasspathOps.toOrphanClassLoader(validatedClasspath)
+  private val validClasspathFileExtension = List("jar", "zip", "semanticdb")
+
+  /**
+   * Rules are as follow:
+   *   - valid if it is a directory
+   *   - valid if it is a file and it ends with `jar`, `zip` or `semanticdb`
+   *
+   * We also allow path that don't exists: some tests uses dummy data, but its
+   * also possible that projects out there have this already do this and are not
+   * broken today.
+   */
+  private def ensureValidClasspathEntry(path: AbsolutePath) = {
+    !Files.exists(path.toNIO) ||
+    path.isDirectory || {
+      val fileName = path.toNIO.getFileName()
+      lazy val hasRightExtension = validClasspathFileExtension.exists(ext =>
+        fileName.toString.endsWith(ext)
+      )
+      fileName != null && hasRightExtension
+    }
+  }
+
+  def configuredClassLoader: Configured[ClassLoader] =
+    validatedClasspath.map(ClasspathOps.toOrphanClassLoader)
 
   private def extractLastScalacOption(flag: String) = {
     scalacOptions
@@ -419,11 +464,15 @@ case class Args(
           configuredRules(base, scalafixConfig) |@|
           resolvedPathReplace |@|
           configuredDiffDisable |@|
-          configureScalaVersions(scalafixConfig)
+          configureScalaVersions(scalafixConfig) |@|
+          configuredClassLoader
       ).map {
         case (
-              ((((root, symtab), rulez), pathReplace), diffDisable),
-              scalafixConfig
+              (
+                ((((root, symtab), rulez), pathReplace), diffDisable),
+                scalafixConfig
+              ),
+              classLoader
             ) =>
           ValidatedArgs(
             this,

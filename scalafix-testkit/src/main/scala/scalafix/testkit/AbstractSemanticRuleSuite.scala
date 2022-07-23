@@ -105,7 +105,7 @@ abstract class AbstractSemanticRuleSuite(
       classpath = props.inputClasspath
     )
     val symtab = ClasspathOps.newSymbolTable(props.inputClasspath)
-    val classLoader = ClasspathOps.toClassLoader(args.validatedClasspath)
+    val classLoader = ClasspathOps.toClassLoader(args.validatedClasspath.get)
     val tests = TestkitPath.fromProperties(props)
     tests.map { test =>
       RuleTest.fromPath(args, test, classLoader, symtab)

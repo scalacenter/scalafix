@@ -1,8 +1,12 @@
 package scalafix.tests.config
 
+import java.io.File
+
 import scala.meta.io.AbsolutePath
+import scala.meta.io.Classpath
 
 import metaconfig.Conf
+import metaconfig.Configured
 import metaconfig.internal.ConfGet
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 import scalafix.internal.config.ScalaVersion
@@ -83,7 +87,34 @@ class ArgsSuite extends munit.FunSuite {
       scalacOptions = scalacOptions,
       scalaVersion = ScalaVersion.from("3.0.0-RC3").get
     )
-    val classpath = args.validatedClasspath
+    val classpath = args.validatedClasspath.get
     assert(classpath.entries.contains(AbsolutePath(targetRootPath)))
+  }
+
+  test("reject invalid path entries") {
+    def resource(path: String): File =
+      new File(this.getClass().getResource(path).toURI())
+
+    val targetRootPath = "/some-path"
+    val scalacOptions = List("first", "-semanticdb-target", targetRootPath)
+    val args: Args = Args.default.copy(
+      classpath = Classpath(
+        List(
+          AbsolutePath("/non-existing"),
+          AbsolutePath(resource("/argstest/valid.jar")),
+          AbsolutePath(resource("/argstest/valid.zip")),
+          AbsolutePath(resource("/argstest/valid.semanticdb")),
+          AbsolutePath(resource("/argstest/invalid.json"))
+        )
+      )
+    )
+    args.validatedClasspath match {
+      case Configured.NotOk(err) =>
+        assert(err.msg.contains("invalid.json"))
+        assert(!err.msg.contains("valid.jar"))
+        assert(!err.msg.contains("valid.zip"))
+        assert(!err.msg.contains("valid.semanticdb"))
+      case Configured.Ok(_) => fail("Expected a failure")
+    }
   }
 }
