@@ -41,7 +41,8 @@ class ArgsSuite extends munit.FunSuite {
 
     assert(!args.triggered, "triggered should be false at default.")
 
-    val rulesConfigured = args.configuredRules(givenConf, config).get
+    val rulesConfigured =
+      args.configuredRules(givenConf, config, Classpath(Nil)).get
 
     assert(
       rulesConfigured.rules
@@ -62,7 +63,8 @@ class ArgsSuite extends munit.FunSuite {
     val args = Args.default.copy(triggered = true)
     val config = ScalafixConfig()
 
-    val rulesConfigured = args.configuredRules(givenConf, config).get
+    val rulesConfigured =
+      args.configuredRules(givenConf, config, Classpath(Nil)).get
 
     assert(rulesConfigured.rules.map(_.name.value) == List("DisableSyntax"))
 

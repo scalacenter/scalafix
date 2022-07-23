@@ -198,21 +198,19 @@ case class Args(
 
   override def toString: String = ConfEncoder[Args].write(this).toString()
 
-  def configuredSymtab: Configured[SymbolTable] = {
-    validatedClasspath andThen { validClasspath =>
-      Try(
-        ClasspathOps.newSymbolTable(
-          classpath = validClasspath,
-          out = out
-        )
-      ) match {
-        case Success(symtab) =>
-          Configured.ok(symtab)
-        case Failure(e) =>
-          ConfError
-            .message(s"Unable to load symbol table: ${e.getMessage}")
-            .notOk
-      }
+  def configuredSymtab(validClasspath: Classpath): Configured[SymbolTable] = {
+    Try(
+      ClasspathOps.newSymbolTable(
+        classpath = validClasspath,
+        out = out
+      )
+    ) match {
+      case Success(symtab) =>
+        Configured.ok(symtab)
+      case Failure(e) =>
+        ConfError
+          .message(s"Unable to load symbol table: ${e.getMessage}")
+          .notOk
     }
   }
 
@@ -284,22 +282,20 @@ case class Args(
 
   def configuredRules(
       base: Conf,
-      scalafixConfig: ScalafixConfig
+      scalafixConfig: ScalafixConfig,
+      validClasspath: Classpath
   ): Configured[Rules] = {
+    val targetConf = maybeOverlaidConfWithTriggered(base)
 
-    validatedClasspath andThen { validClasspath =>
-      val targetConf = maybeOverlaidConfWithTriggered(base)
+    val rulesConf = this.rulesConf(() => base)
+    val decoder = ruleDecoder(scalafixConfig)
 
-      val rulesConf = this.rulesConf(() => base)
-      val decoder = ruleDecoder(scalafixConfig)
-
-      val configuration = Configuration()
-        .withConf(targetConf)
-        .withScalaVersion(scalaVersion.value)
-        .withScalacOptions(scalacOptions)
-        .withScalacClasspath(validClasspath.entries)
-      decoder.read(rulesConf).andThen(_.withConfiguration(configuration))
-    }
+    val configuration = Configuration()
+      .withConf(targetConf)
+      .withScalaVersion(scalaVersion.value)
+      .withScalacOptions(scalacOptions)
+      .withScalacClasspath(validClasspath.entries)
+    decoder.read(rulesConf).andThen(_.withConfiguration(configuration))
   }
 
   def resolvedPathReplace: Configured[AbsolutePath => AbsolutePath] =
@@ -418,8 +414,8 @@ case class Args(
     }
   }
 
-  def configuredClassLoader: Configured[ClassLoader] =
-    validatedClasspath.map(ClasspathOps.toOrphanClassLoader)
+  def classLoader(classpath: Classpath): ClassLoader =
+    ClasspathOps.toOrphanClassLoader(classpath)
 
   private def extractLastScalacOption(flag: String) = {
     scalacOptions
@@ -457,36 +453,33 @@ case class Args(
   }
 
   def validate: Configured[ValidatedArgs] = {
-    baseConfig.andThen { case (base, scalafixConfig, delegator) =>
-      (
-        configuredSourceroot |@|
-          configuredSymtab |@|
-          configuredRules(base, scalafixConfig) |@|
-          resolvedPathReplace |@|
-          configuredDiffDisable |@|
-          configureScalaVersions(scalafixConfig) |@|
-          configuredClassLoader
-      ).map {
-        case (
-              (
+    (baseConfig |@| validatedClasspath).andThen {
+      case ((base, scalafixConfig, delegator), validClasspath) =>
+        (
+          configuredSourceroot |@|
+            configuredSymtab(validClasspath) |@|
+            configuredRules(base, scalafixConfig, validClasspath) |@|
+            resolvedPathReplace |@|
+            configuredDiffDisable |@|
+            configureScalaVersions(scalafixConfig)
+        ).map {
+          case (
                 ((((root, symtab), rulez), pathReplace), diffDisable),
                 scalafixConfig
-              ),
-              classLoader
-            ) =>
-          ValidatedArgs(
-            this,
-            symtab,
-            rulez,
-            scalafixConfig,
-            classLoader,
-            root,
-            pathReplace,
-            diffDisable,
-            delegator,
-            semanticdbFilterMatcher
-          )
-      }
+              ) =>
+            ValidatedArgs(
+              this,
+              symtab,
+              rulez,
+              scalafixConfig,
+              classLoader(validClasspath),
+              root,
+              pathReplace,
+              diffDisable,
+              delegator,
+              semanticdbFilterMatcher
+            )
+        }
     }
   }
 }
