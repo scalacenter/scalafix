@@ -4,6 +4,7 @@ import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
 
+import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
 import coursierapi.Repository
@@ -81,13 +82,21 @@ class ScalafixSuite extends AnyFunSuite {
       s"fetch & load instance for Scala version $scalaVersion with external dependencies"
     ) {
       val scalafixAPI = Scalafix.fetchAndClassloadInstance(scalaVersion)
+
+      val ruleForDependency = mutable.Map[String, String]()
+      ruleForDependency +=
+        // built against scalafix 0.9.16
+        "com.nequissimus::sort-imports:0.5.2" -> "SortImports"
+
+      if (scalaVersion != "2.11")
+        ruleForDependency +=
+          // built against scalafix 0.10.0, uses metaconfig, not cross-published for 2.11
+          "com.github.xuwei-k::scalafix-rules:0.2.1" -> "KindProjector"
+
       val availableRules = scalafixAPI.newArguments
         .withToolClasspath(
           Seq[URL]().asJava,
-          Seq[String](
-            "com.nequissimus::sort-imports:0.5.2", // scalafix 0.9.16
-            "ch.epfl.scala::example-scalafix-rule:2.0.0" // scalafix 0.10.0
-          ).asJava,
+          ruleForDependency.keys.toList.asJava,
           Seq[Repository](Repository.central()).asJava
         )
         .availableRules
@@ -95,8 +104,9 @@ class ScalafixSuite extends AnyFunSuite {
         .map(_.name)
 
       assert(availableRules.contains("RemoveUnused")) // built-in
-      assert(availableRules.contains("SortImports")) // sort-imports
-      assert(availableRules.contains("SemanticRule")) // example-scalafix-rule
+      ruleForDependency.values.foreach { rule =>
+        assert(availableRules.contains(rule))
+      }
     }
   }
   val supportedScalaBinaryVersions: Set[String] = Set("2.11", "2.12", "2.13")
