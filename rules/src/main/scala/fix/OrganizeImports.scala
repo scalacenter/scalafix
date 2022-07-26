@@ -499,17 +499,7 @@ class OrganizeImports(config: OrganizeImportsConfig) extends SemanticRule("Organ
           }
         }
 
-        // Issue #127: After merging imports within an importer group, checks whether there are any
-        // input importers left untouched. For those importers, returns the original importer
-        // instance to preserve the original source level formatting.
-        locally {
-          val importerSyntaxMap = group.map { i => i.copy().syntax -> i }.toMap
-
-          newImporteeListsWithGivens filter (_.nonEmpty) map { importees =>
-            val newImporter = Importer(ref, importees)
-            importerSyntaxMap.getOrElse(newImporter.syntax, newImporter)
-          }
-        }
+        preserveOriginalImportersFormatting(group, newImporteeListsWithGivens, ref)
     }
 
   private def sortImportersSymbolsFirst(importers: Seq[Importer]): Seq[Importer] =
@@ -786,8 +776,10 @@ object OrganizeImports {
         // source level formatting.
         importer :: Nil
 
-      case Importer(ref, Importees(names, renames, unimports, givens, givenAll, wildcard))
-          if givenAll.isDefined || wildcard.isDefined =>
+      case importer @ Importer(
+            ref,
+            Importees(names, renames, unimports, givens, givenAll, wildcard)
+          ) if givenAll.isDefined || wildcard.isDefined =>
         // When a wildcard exists, all renames, unimports, and the wildcard must appear in the same
         // importer, e.g.:
         //
@@ -799,11 +791,29 @@ object OrganizeImports {
         //   import p.E
         val importeesList =
           (names ++ givens).map(_ :: Nil) :+ (renames ++ unimports ++ wildcard ++ givenAll)
-        importeesList filter (_.nonEmpty) map (Importer(ref, _))
+        preserveOriginalImportersFormatting(Seq(importer), importeesList, ref)
 
       case importer =>
         importer.importees map (i => importer.copy(importees = i :: Nil))
     }
+
+  /**
+   * Issue #127: After merging or exploding imports, checks whether there are any input importers
+   * left untouched. For those importers, returns the original importer instance to preserve the
+   * original source level formatting.
+   */
+  private def preserveOriginalImportersFormatting(
+    importers: Seq[Importer],
+    newImporteeLists: Seq[List[Importee]],
+    newImporterRef: Term.Ref
+  ) = {
+    val importerSyntaxMap = importers.map { i => i.copy().syntax -> i }.toMap
+
+    newImporteeLists filter (_.nonEmpty) map { importees =>
+      val newImporter = Importer(newImporterRef, importees)
+      importerSyntaxMap.getOrElse(newImporter.syntax, newImporter)
+    }
+  }
 
   /**
    * Categorizes a list of `Importee`s into the following four groups:
