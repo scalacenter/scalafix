@@ -376,7 +376,7 @@ case class Args(
       }
     val finalClassPath = Classpath(targetrootClasspath) ++ baseClasspath
     val badEntries = finalClassPath.entries.filterNot {
-      ensureValidClasspathEntry
+      isValidClasspathEntry
     }
     if (badEntries.isEmpty) {
 
@@ -384,33 +384,24 @@ case class Args(
     } else {
       val extensions = validClasspathFileExtension.mkString("[", ",", "]")
       val prefix = s"""|Invalid classpath entry. Make sure your classpath
-        |contains only directories or file that ends with
-        |the following extension: ${extensions}. The following path are invalid: """.stripMargin
+        |contains only directories or files that end with
+        |the following extension: ${extensions}. The following paths are invalid: """.stripMargin
       val error =
         badEntries.map(_.toString() + "\n").mkString(prefix, " - ", "")
       Configured.notOk(ConfError.message(error))
     }
   }
 
-  private val validClasspathFileExtension = List("jar", "zip", "semanticdb")
+  private val validClasspathFileExtension = List("jar", "zip")
 
-  /**
-   * Rules are as follow:
-   *   - valid if it is a directory
-   *   - valid if it is a file and it ends with `jar`, `zip` or `semanticdb`
-   *
-   * We also allow path that don't exists: some tests uses dummy data, but its
-   * also possible that projects out there have this already do this and are not
-   * broken today.
-   */
-  private def ensureValidClasspathEntry(path: AbsolutePath) = {
+  private def isValidClasspathEntry(path: AbsolutePath) = {
     !Files.exists(path.toNIO) ||
     path.isDirectory || {
-      val fileName = path.toNIO.getFileName()
-      lazy val hasRightExtension = validClasspathFileExtension.exists(ext =>
-        fileName.toString.endsWith(s".$ext")
-      )
-      fileName != null && hasRightExtension
+      val fileName = path.toNIO.getFileName().toString()
+      lazy val hasRightExtension =
+        validClasspathFileExtension.exists(ext => fileName.endsWith(s".$ext"))
+      lazy val hasNoExtension = fileName.indexOf(".") == -1
+      fileName != null && (hasRightExtension || hasNoExtension)
     }
   }
 

@@ -102,10 +102,11 @@ class ArgsSuite extends munit.FunSuite {
     val args: Args = Args.default.copy(
       classpath = Classpath(
         List(
+          // non existing directory/files are ignored
           AbsolutePath("/non-existing"),
+          AbsolutePath(resource("/argstest/valid")),
           AbsolutePath(resource("/argstest/valid.jar")),
           AbsolutePath(resource("/argstest/valid.zip")),
-          AbsolutePath(resource("/argstest/valid.semanticdb")),
           AbsolutePath(resource("/argstest/invalid.json"))
         )
       )
