@@ -189,7 +189,9 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r),
     versionScheme := Some("early-semver"),
     // coursier-versions always return false for the *.*.*.*-r pattern jgit uses
-    libraryDependencySchemes += Dependencies.jgit.withRevision("always")
+    libraryDependencySchemes += Dependencies.jgit.withRevision("always"),
+    // silence warning for 2.7.0 -> 3.0.0
+    libraryDependencySchemes += "com.lihaoyi" %% "sourcecode" % "always"
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
