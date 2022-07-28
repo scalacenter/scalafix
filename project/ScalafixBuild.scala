@@ -142,6 +142,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       "unit2_12Target3/test" ::
         "core3/compile" ::
         "rules3/compile" ::
+        "reflect3/compile" ::
         s
     },
     commands += Command.command("ci-213") { s =>

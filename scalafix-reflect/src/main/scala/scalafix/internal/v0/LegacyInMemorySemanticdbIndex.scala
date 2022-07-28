@@ -3,6 +3,7 @@ package scalafix.internal.v0
 import scala.{meta => m}
 
 import scala.meta._
+import scala.meta.internal.inputs.XtensionInputSyntaxStructure
 import scala.meta.internal.io._
 import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
