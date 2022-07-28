@@ -114,13 +114,21 @@ lazy val reflect = projectMatrix
   .settings(
     moduleName := "scalafix-reflect",
     isFullCrossVersion,
-    libraryDependencies ++= Seq(
-      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value
-    )
+    libraryDependencies ++= {
+      if (!isScala3.value)
+        List(
+          "org.scala-lang" % "scala-compiler" % scalaVersion.value,
+          "org.scala-lang" % "scala-reflect" % scalaVersion.value
+        )
+      else
+        List(
+          "org.scala-lang" %% "scala3-compiler" % scalaVersion.value,
+          "org.scala-lang" %% "scala3-library" % scalaVersion.value
+        )
+    }
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(buildScalaVersions)
+  .jvmPlatform(buildScalaVersions :+ scala3)
   .dependsOn(core)
 
 lazy val cli = projectMatrix

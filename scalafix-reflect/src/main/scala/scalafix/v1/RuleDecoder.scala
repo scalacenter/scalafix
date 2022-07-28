@@ -61,7 +61,7 @@ object RuleDecoder {
       // Patch.replaceSymbols(from, to)
       case UriRuleString("replace", replace @ SlashSeparated(from, to)) =>
         val constant = parseReplaceSymbol(from, to)
-          .map(Patch.internal.ReplaceSymbol.tupled)
+          .map((Patch.internal.ReplaceSymbol.apply _).tupled)
           .map(p => scalafix.v1.SemanticRule.constant(replace, p.atomic))
         constant :: Nil
       // Classload rule from classloader

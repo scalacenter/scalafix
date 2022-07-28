@@ -12,6 +12,7 @@ import metaconfig.Conf
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.internal.reflect.RuleCompiler
+import scalafix.internal.reflect.RuleCompilerClasspath
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.tests.util.ScalaVersions
 import scalafix.v1.RuleDecoder
@@ -68,7 +69,7 @@ class ToolClasspathSuite extends AnyFunSuite with BeforeAndAfterAll {
       """.stripMargin
     val tmp = Files.createTempDirectory("scalafix")
     val compiler = new RuleCompiler(
-      RuleCompiler.defaultClasspath,
+      RuleCompilerClasspath.defaultClasspath,
       new PlainDirectory(new Directory(tmp.toFile))
     )
     compiler.compile(metaconfig.Input.VirtualFile("CustomRule.scala", rewrite))

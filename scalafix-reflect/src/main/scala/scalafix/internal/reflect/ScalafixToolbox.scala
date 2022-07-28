@@ -21,7 +21,7 @@ class ScalafixToolbox {
     new function.Function[String, RuleCompiler] {
       override def apply(classpath: String) =
         new RuleCompiler(
-          classpath + File.pathSeparator + RuleCompiler.defaultClasspath
+          classpath + File.pathSeparator + RuleCompilerClasspath.defaultClasspath
         )
     }
 
@@ -54,6 +54,6 @@ class ScalafixToolbox {
       (
         compiler.compile(code) |@|
           RuleInstrumentation.getRuleFqn(code.toMeta)
-      ).map(CompiledRules.tupled.apply)
+      ).map((CompiledRules.apply _).tupled)
     }
 }
