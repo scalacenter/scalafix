@@ -2,14 +2,14 @@ package scalafix.testkit
 
 import scala.meta._
 
-import scalafix.internal.reflect.RuleCompiler
+import scalafix.internal.reflect.RuleCompilerClasspath
 import scalafix.internal.testkit.EndOfLineAssertExtractor
 import scalafix.internal.testkit.MultiLineAssertExtractor
 
 object SemanticRuleSuite {
   def defaultClasspath(classDirectory: AbsolutePath): Classpath = Classpath(
     classDirectory ::
-      RuleCompiler.defaultClasspathPaths.filter(path =>
+      RuleCompilerClasspath.defaultClasspathPaths.filter(path =>
         path.toNIO.getFileName.toString.contains("scala-library")
       )
   )

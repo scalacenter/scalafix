@@ -24,7 +24,7 @@ import scalafix.interfaces.ScalafixException
 import scalafix.interfaces.ScalafixMainCallback
 import scalafix.interfaces.ScalafixMainMode
 import scalafix.internal.reflect.ClasspathOps
-import scalafix.internal.reflect.RuleCompiler
+import scalafix.internal.reflect.RuleCompilerClasspath
 import scalafix.test.StringFS
 import scalafix.testkit.DiffAssertions
 import scalafix.tests.util.ScalaVersions
@@ -34,7 +34,7 @@ import scalafix.{interfaces => i}
 class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
 
   def scalaLibrary: AbsolutePath =
-    RuleCompiler.defaultClasspathPaths
+    RuleCompilerClasspath.defaultClasspathPaths
       .find(_.toNIO.getFileName.toString.contains("scala-library"))
       .getOrElse {
         throw new IllegalStateException("Unable to detect scala-library.jar")
