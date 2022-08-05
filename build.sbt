@@ -137,13 +137,18 @@ lazy val cli = projectMatrix
     moduleName := "scalafix-cli",
     isFullCrossVersion,
     libraryDependencies ++= Seq(
-      java8Compat,
       nailgunServer,
       jgit,
       commonText
     ),
     libraryDependencies ++= {
-      if (isScala211.value) Seq()
+      if (!isScala3.value)
+        Seq(java8Compat)
+      else
+        Seq()
+    },
+    libraryDependencies ++= {
+      if (isScala211.value || isScala3.value) Seq()
       else
         Seq(
           // metaconfig 0.10.0 shaded pprint but rules built with an old
@@ -158,7 +163,7 @@ lazy val cli = projectMatrix
     }.value
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(buildScalaVersions)
+  .jvmPlatform(buildScalaVersions :+ scala3)
   .dependsOn(reflect, interfaces, rules)
 
 lazy val testsShared = projectMatrix

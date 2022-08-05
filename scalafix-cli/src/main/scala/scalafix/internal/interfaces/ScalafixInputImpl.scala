@@ -7,6 +7,7 @@ import java.util.Optional
 import scala.{meta => m}
 
 import scala.meta.inputs.Input
+import scala.meta.internal.inputs.XtensionInputSyntaxStructure
 
 import scalafix.interfaces.ScalafixInput
 

@@ -19,6 +19,7 @@ import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
 
 import scala.meta.inputs.Input
+import scala.meta.internal.inputs.XtensionInputSyntaxStructure
 import scala.meta.internal.semanticdb.TextDocument
 import scala.meta.io.AbsolutePath
 import scala.meta.parsers.ParseException
