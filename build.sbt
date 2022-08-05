@@ -173,7 +173,7 @@ lazy val testsShared = projectMatrix
     coverageEnabled := false
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(testTargetScalaVersions)
+  .jvmPlatform(buildScalaVersions :+ scala3)
   .disablePlugins(ScalafixPlugin)
 
 lazy val testsInput = projectMatrix
@@ -189,7 +189,7 @@ lazy val testsInput = projectMatrix
     coverageEnabled := false
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(testTargetScalaVersions)
+  .jvmPlatform(buildScalaVersions :+ scala3)
   .disablePlugins(ScalafixPlugin)
 
 lazy val testsOutput = projectMatrix
@@ -201,7 +201,7 @@ lazy val testsOutput = projectMatrix
     coverageEnabled := false
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(testTargetScalaVersions)
+  .jvmPlatform(buildScalaVersions :+ scala3)
   .disablePlugins(ScalafixPlugin)
 
 lazy val testkit = projectMatrix
@@ -209,13 +209,16 @@ lazy val testkit = projectMatrix
   .settings(
     moduleName := "scalafix-testkit",
     isFullCrossVersion,
-    libraryDependencies ++= Seq(
-      googleDiff,
-      scalatest
-    )
+    libraryDependencies += googleDiff,
+    libraryDependencies ++= {
+      if (!isScala3.value)
+        Seq(scalatest)
+      else
+        Seq("org.scalatest" %% "scalatest" % scalatest3V)
+    }
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(buildScalaVersions)
+  .jvmPlatform(buildScalaVersions :+ scala3)
   .dependsOn(cli)
 
 lazy val unit = projectMatrix

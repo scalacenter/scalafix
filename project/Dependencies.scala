@@ -35,6 +35,7 @@ object Dependencies {
   val scalaXml211V = "1.3.0" // scala-xml stops publishing for scala 2.11
   val scalametaV = "4.6.0"
   val scalatestV = "3.0.8" // don't bump, to avoid forcing breaking changes on clients via eviction
+  val scalatest3V = "3.2.13"
 
   val bijectionCore = "com.twitter" %% "bijection-core" % bijectionCoreV
   val collectionCompat = "org.scala-lang.modules" %% "scala-collection-compat" % collectionCompatV
