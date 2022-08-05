@@ -1,6 +1,7 @@
 package scalafix.testkit
 
 import scala.meta._
+import scala.meta.internal.inputs.XtensionInputSyntaxStructure
 
 import scalafix.internal.reflect.RuleCompilerClasspath
 import scalafix.internal.testkit.EndOfLineAssertExtractor
