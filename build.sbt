@@ -84,7 +84,7 @@ lazy val core = projectMatrix
     }
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(buildScalaVersions :+ scala3, Seq(), p => p)
+  .jvmPlatform(buildScalaVersions :+ scala3)
   .enablePlugins(BuildInfoPlugin)
 
 lazy val rules = projectMatrix
@@ -105,7 +105,7 @@ lazy val rules = projectMatrix
     }
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(buildScalaVersions :+ scala3, Seq(), p => p)
+  .jvmPlatform(buildScalaVersions :+ scala3)
   .dependsOn(core)
   .enablePlugins(BuildInfoPlugin)
 

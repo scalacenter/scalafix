@@ -218,8 +218,10 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     Compile / doc / scalacOptions ++= scaladocOptions,
     Compile / unmanagedSourceDirectories ++= {
       val sourceDir = (Compile / sourceDirectory).value
+      val scala212PlusSourceDir = "scala-2.12+"
       CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, n)) if n >= 12 => Seq(sourceDir / "scala-2.12+")
+        case Some((2, n)) if n >= 12 => Seq(sourceDir / scala212PlusSourceDir)
+        case Some((3, _)) => Seq(sourceDir / scala212PlusSourceDir)
         case _ => Seq()
       }
     },
