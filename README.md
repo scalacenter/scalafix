@@ -1,7 +1,7 @@
 <img src="website/static/img/scalafix-brand-small2x.png" alt="logo" width="37px" height="37px" style="margin-bottom:-8px;margin-right:-4px;"> Scalafix
 [![Latest version](https://index.scala-lang.org/scalacenter/scalafix/scalafix-core/latest.svg)](https://index.scala-lang.org/scalacenter/scalafix/scalafix-core)
 [![Build status](https://github.com/scalacenter/scalafix/workflows/CI/badge.svg)](https://github.com/scalacenter/scalafix/actions?query=workflow)
-[![Join the chat on Discord](https://badges.gitter.im/scalacenter/scalafix.svg)](https://discord.gg/8AHaqGx3Qj)
+[![Join the chat on Discord](https://img.shields.io/discord/632642981228314653)](https://discord.gg/8AHaqGx3Qj)
 ========
 
 Rewrite and linting tool for Scala..
