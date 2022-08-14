@@ -2,7 +2,7 @@
 
 Contributions to Scalafix are welcome! This document is a guide to help you get
 familiar with the Scalafix build, if you are unsure about anything, don't
-hesitate to ask in the [gitter channel](https://gitter.im/scalacenter/scalafix).
+hesitate to ask in the [Discord channel](https://discord.gg/8AHaqGx3Qj).
 
 ## Modules
 
@@ -145,8 +145,8 @@ Confirm that the documentation is advertising the new versions
 - https://scalacenter.github.io/scalafix/docs/users/installation.html#sbt
 - https://scalacenter.github.io/scalafix/docs/users/installation.html#help
 
-If everything went smoothly, congrats! Tweet about the release and comment with
-`@/all` on Gitter linking to the release notes.
+If everything went smoothly, congrats! Tweet about the release and comment on
+Discord linking to the release notes.
 
 If something goes wrong for any reason making the artifacts not reach maven,
 delete the pushed tag with the following command

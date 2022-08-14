@@ -51,8 +51,8 @@ class Footer extends React.Component {
           </div>
           <div>
             <h5>Community</h5>
-            <a href="https://gitter.im/scalacenter/scalafix" target="_blank">
-              Chat on Gitter
+            <a href="https://discord.gg/8AHaqGx3Qj" target="_blank">
+              Chat on Discord
             </a>
             <a href="https://users.scala-lang.org/" target="_blank">
               Discuss on Scala Users
