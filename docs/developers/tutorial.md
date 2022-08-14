@@ -444,9 +444,10 @@ If we run `tests/test` we get an error like this
 
 ```scala
 ===========> Unreported <===========
-test/NoLiteralArgumentsConfig.scala:16:20: error
-  complete("done") // assert: NoLiteralArguments
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+fix/NoLiteralArgumentsConfig.scala:16:16: error
+  complete(42) // assert: NoLiteralArguments
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------
 ```
 
 An "unreported" error message means we asserted a diagnostic would be reported
@@ -459,7 +460,7 @@ Start by writing a case class to hold the configuration
 case class NoLiteralArgumentsConfig(
     disabledLiterals: List[String] = List("Boolean")
 ) {
-  def isDisabled(literal: Lit): Boolean = {
+  def isDisabled(lit: Lit): Boolean = {
     val kind = lit.productPrefix.stripPrefix("Lit.")
     disabledLiterals.contains(kind)
   }
