@@ -28,7 +28,7 @@ import scalafix.test.StringFS
 import scalafix.testkit.DiffAssertions
 import scalafix.tests.core.Classpaths
 import scalafix.tests.util.ScalaVersions
-import scalafix.tests.util.SemanticdbPlugin
+import scalafix.tests.util.compat.CompatSemanticdb
 import scalafix.v1.SemanticRule
 
 class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
@@ -67,21 +67,16 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
   val relativePath: Path = cwd.relativize(main)
 
   val scalacOptions: Array[String] = Array[String](
-    "-Yrangepos",
     removeUnused,
-    s"-Xplugin:${SemanticdbPlugin.semanticdbPluginPath()}",
-    "-Xplugin-require:semanticdb",
     "-classpath",
     s"${scalaLibrary.mkString(":")}",
-    s"-P:semanticdb:sourceroot:$src",
-    s"-P:semanticdb:targetroot:$target",
     "-d",
     d.toString,
     main.toString
-  )
+  ) ++ CompatSemanticdb.scalacOptions(src, target)
 
   test("ScalafixArguments.evaluate with a semantic rule", SkipWindows) {
-    val _ = scala.tools.nsc.Main.process(scalacOptions)
+    val _ = CompatSemanticdb.runScalac(scalacOptions)
     val result = api
       .withRules(
         List(
@@ -158,8 +153,9 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     assertNoDiff(obtained3, expectedWithOnePatch)
 
   }
+
   test("ScalafixArguments.evaluate getting StaleSemanticdb", SkipWindows) {
-    val _ = scala.tools.nsc.Main.process(scalacOptions)
+    val _ = CompatSemanticdb.runScalac(scalacOptions)
     val args = api
       .withRules(
         List(
@@ -192,7 +188,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     "ScalafixArguments.evaluate doesn't take into account withMode and withMainCallback",
     SkipWindows
   ) {
-    val _ = scala.tools.nsc.Main.process(scalacOptions)
+    val _ = CompatSemanticdb.runScalac(scalacOptions)
     val contentBeforeEvaluation =
       FileIO.slurp(AbsolutePath(main), StandardCharsets.UTF_8)
     var maybeDiagnostic: Option[ScalafixDiagnostic] = None
@@ -461,20 +457,15 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
 
     val scalacOptions = Array[String](
       "-Xsource:3",
-      "-Yrangepos",
       removeUnused,
-      s"-Xplugin:${SemanticdbPlugin.semanticdbPluginPath()}",
-      "-Xplugin-require:semanticdb",
       "-classpath",
       s"${scalaLibrary.mkString(":")}",
-      s"-P:semanticdb:sourceroot:$src",
-      s"-P:semanticdb:targetroot:$target",
       "-d",
       d.toString,
       main.toString
-    )
+    ) ++ CompatSemanticdb.scalacOptions(src, target)
 
-    val _ = scala.tools.nsc.Main.process(scalacOptions)
+    val _ = CompatSemanticdb.runScalac(scalacOptions)
     val result = api
       .withRules(
         Collections.singletonList(removeUnsuedRule().name.toString())

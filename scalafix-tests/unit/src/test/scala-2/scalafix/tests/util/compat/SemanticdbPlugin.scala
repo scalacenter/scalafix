@@ -1,4 +1,4 @@
-package scalafix.tests.util
+package scalafix.tests.util.compat
 
 import java.nio.file.Paths
 

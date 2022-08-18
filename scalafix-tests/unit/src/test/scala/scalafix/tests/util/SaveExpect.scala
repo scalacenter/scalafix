@@ -10,7 +10,7 @@ object SaveExpect {
     all.foreach { suite =>
       Files.write(
         suite.path.toNIO,
-        suite.obtained.getBytes(StandardCharsets.UTF_8)
+        suite.obtained().getBytes(StandardCharsets.UTF_8)
       )
       println(suite.path)
     }

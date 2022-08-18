@@ -3,6 +3,7 @@ package scalafix.tests.core
 import scala.meta._
 
 import org.scalatest.funsuite.AnyFunSuiteLike
+import scalafix.XtensionSeqPatch
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.patch.Patch
 import scalafix.testkit.AbstractSyntacticRuleSuite
