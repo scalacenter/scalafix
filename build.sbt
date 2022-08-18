@@ -211,10 +211,7 @@ lazy val testkit = projectMatrix
     isFullCrossVersion,
     libraryDependencies += googleDiff,
     libraryDependencies ++= {
-      if (!isScala3.value)
-        Seq(scalatest)
-      else
-        Seq("org.scalatest" %% "scalatest" % scalatest3V)
+      scalatestDeps.value
     }
   )
   .defaultAxes(VirtualAxis.jvm)
@@ -231,14 +228,29 @@ lazy val unit = projectMatrix
     testFrameworks += new TestFramework("munit.Framework"),
     buildInfoPackage := "scalafix.tests",
     buildInfoObject := "BuildInfo",
-    libraryDependencies ++= List(
-      jgit,
-      coursier,
-      scalatest.withRevision(
-        "3.2.13"
-      ), // make sure testkit clients can use recent 3.x versions
-      scalametaTeskit
-    ),
+    libraryDependencies ++= {
+      if (!isScala3.value) {
+        List(
+          jgit,
+          coursier,
+          scalametaTeskit,
+          scalatest.withRevision(
+            "3.2.13"
+          )
+        )
+      } else {
+        List(
+          jgit,
+          coursier
+            .exclude("org.scala-lang.modules", "scala-xml_2.13"),
+          scalametaTeskit
+            .exclude("com.lihaoyi", "sourcecode_2.13")
+            .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
+            .exclude("org.scalameta", "munit_2.13"),
+          ("org.scalameta" %% "munit" % "0.7.29")
+        ) ++ scalatestDeps.value,
+      }
+    },
     Compile / compile / compileInputs := {
       (Compile / compile / compileInputs)
         .dependsOn(
@@ -329,6 +341,11 @@ lazy val unit = projectMatrix
     }
   )
   .defaultAxes(VirtualAxis.jvm)
+  .jvmPlatform(
+    scalaVersions = Seq(scala3),
+    axisValues = Seq(TargetAxis(scala3)),
+    settings = Seq()
+  )
   .jvmPlatform(
     scalaVersions = Seq(scala212),
     axisValues = Seq(TargetAxis(scala3)),

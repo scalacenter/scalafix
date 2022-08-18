@@ -23,12 +23,28 @@ class ToolClasspathSuite extends AnyFunSuite with BeforeAndAfterAll {
     val jars =
       if (ScalaVersions.isScala213)
         Fetch()
-          .addDependencies(dep"org.scalameta:scalafmt-core_2.13:2.5.1")
+          .addDependencies(
+            Dependency(
+              Module(
+                Organization("org.scalameta"),
+                ModuleName("scalafmt-core_2.13")
+              ),
+              "2.5.1"
+            )
+          )
           .run()
           .toList
       else
         Fetch()
-          .addDependencies(dep"com.geirsson:scalafmt-core_2.12:1.2.0")
+          .addDependencies(
+            Dependency(
+              Module(
+                Organization("com.geirsson"),
+                ModuleName("scalafmt-core_2.12")
+              ),
+              "1.2.0"
+            )
+          )
           .run()
           .toList
     scalafmtClasspath = jars.map(AbsolutePath(_))

@@ -8,7 +8,13 @@ import scalafix.v1._
 
 class ScalametaStructureSuite extends AnyFunSuite with DiffAssertions {
   test("pretty(t)") {
-    val obtained = q"a.b.c.d".structureWidth(1)
+    val obtained = Term
+      .Select(
+        Term
+          .Select(Term.Select(Term.Name("a"), Term.Name("b")), Term.Name("c")),
+        Term.Name("d")
+      )
+      .structureWidth(1)
     val expected =
       """|Term.Select(
         |  Term.Select(
@@ -25,7 +31,13 @@ class ScalametaStructureSuite extends AnyFunSuite with DiffAssertions {
   }
 
   test("pretty(t, showFieldNames = true)") {
-    val obtained = q"a.b.c.d".structureLabeled(1)
+    val obtained = Term
+      .Select(
+        Term
+          .Select(Term.Select(Term.Name("a"), Term.Name("b")), Term.Name("c")),
+        Term.Name("d")
+      )
+      .structureLabeled(1)
     val expected =
       """|
         |Term.Select(
@@ -44,7 +56,18 @@ class ScalametaStructureSuite extends AnyFunSuite with DiffAssertions {
 
   test("option") {
     assertNoDiff(
-      q"def foo: A = ???".decltpe.structureWidth(1),
+      Defn
+        .Def(
+          List(),
+          Term.Name("foo"),
+          List(),
+          List(List()),
+          Some(Type.Name("A")),
+          Term.Name("???")
+        )
+        .decltpe
+        .structureWidth(1),
+      // q"def foo: A = ???".decltpe.structureWidth(1),
       """|
         |Some(Type.Name("A"))
         |""".stripMargin
@@ -54,7 +77,11 @@ class ScalametaStructureSuite extends AnyFunSuite with DiffAssertions {
   test("list") {
     assertNoDiff(
       // NOTE(olafur): need downcast because List is no longer a Product in 2.13.
-      q"foo(a)".args.asInstanceOf[Product].structureWidth(1),
+      Term
+        .Apply(Term.Name("foo"), List(Term.Name("a")))
+        .args
+        .asInstanceOf[Product]
+        .structureWidth(1),
       """|List(
         |  Term.Name("a")
         |)

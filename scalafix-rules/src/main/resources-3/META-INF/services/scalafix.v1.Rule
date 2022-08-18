@@ -1,0 +1,7 @@
+scalafix.internal.rule.DisableSyntax
+# scalafix.internal.rule.ExplicitResultTypes # comment out once scala-3 ExplicitResultTypes is implemented
+scalafix.internal.rule.NoAutoTupling
+scalafix.internal.rule.NoValInForComprehension
+scalafix.internal.rule.RedundantSyntax
+scalafix.internal.rule.RemoveUnused
+scalafix.internal.rule.LeakingImplicitClassVal
