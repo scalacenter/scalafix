@@ -176,7 +176,7 @@ to your project settings
    .configs(IntegrationTest)
    .settings(
      Defaults.itSettings,
-+    inConfig(IntegrationTest)(scalafixConfigSettings(IntegrationTest))
++    scalafixConfigSettings(IntegrationTest)
      // ...
    )
 ```
