@@ -21,7 +21,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     lazy val noPublishAndNoMima = Seq(
       mimaReportBinaryIssues := {},
       mimaPreviousArtifacts := Set.empty,
-      publish / skip := true
+      publish / skip := true,
+      libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % "always",
     )
     lazy val supportedScalaVersions = List(scala213, scala211, scala212)
     lazy val publishLocalTransitive =
