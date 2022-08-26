@@ -219,7 +219,7 @@ lazy val unit = projectMatrix
       jgit,
       coursier,
       scalatest.withRevision(
-        "3.2.0"
+        "3.2.13"
       ), // make sure testkit clients can use recent 3.x versions
       scalametaTeskit
     ),
