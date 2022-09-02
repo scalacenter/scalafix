@@ -67,7 +67,6 @@ class ScalametaStructureSuite extends AnyFunSuite with DiffAssertions {
         )
         .decltpe
         .structureWidth(1),
-      // q"def foo: A = ???".decltpe.structureWidth(1),
       """|
         |Some(Type.Name("A"))
         |""".stripMargin

@@ -210,9 +210,7 @@ lazy val testkit = projectMatrix
     moduleName := "scalafix-testkit",
     isFullCrossVersion,
     libraryDependencies += googleDiff,
-    libraryDependencies ++= {
-      scalatestDeps.value
-    }
+    libraryDependencies ++= scalatestDeps.value
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(buildScalaVersions :+ scala3)

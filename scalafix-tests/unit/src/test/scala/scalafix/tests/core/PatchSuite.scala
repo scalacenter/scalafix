@@ -101,7 +101,6 @@ class PatchSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
           List(Importee.Unimport(Name.Indeterminate("mutable")))
         )
       )
-      // (importer"scala.collection.{mutable => _}")
     }
   }
   check(
