@@ -9,15 +9,18 @@ import scalafix.testkit.DiffAssertions
 import scalafix.tests.BuildInfo
 import scalafix.tests.core.BaseSemanticSuite
 import scalafix.v1.SemanticDocument
+import scalafix.Versions
 
 trait ExpectSuite extends AnyFunSuite with DiffAssertions {
   def filename: String
   def obtained(): String
 
-  final def path: AbsolutePath =
-    AbsolutePath(BuildInfo.unitResourceDirectory)
+  final def path: AbsolutePath = {
+    val scalaMajorVersion = Versions.scalaVersion.split("\\.")(0)
+    AbsolutePath(s"${BuildInfo.unitResourceDirectory}-${scalaMajorVersion}")
       .resolve("expect")
       .resolve(filename.stripSuffix("Test.scala") + ".expect")
+  }
   final implicit lazy val sdoc: SemanticDocument =
     BaseSemanticSuite.loadDoc(filename)
   final def expected(): String =
