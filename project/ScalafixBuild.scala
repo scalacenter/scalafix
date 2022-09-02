@@ -122,9 +122,9 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       buildInfoObject := "RulesBuildInfo"
     )
 
-    lazy val scalatestDeps = Def.setting {
-      if (isScala3.value) Seq(scalatest.withRevision(scalatestLatestV))
-      else Seq(scalatest)
+    lazy val scalatestDep = Def.setting {
+      if (isScala3.value) scalatest.withRevision(scalatestLatestV)
+      else scalatest
     }
   }
 
@@ -145,7 +145,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     },
     commands += Command.command("ci-3") { s =>
       "unit2_12Target3/test" ::
-         "unit3Target3/test"
+         "unit3Target3/test" ::
         s
     },
     commands += Command.command("ci-213") { s =>

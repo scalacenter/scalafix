@@ -210,7 +210,7 @@ lazy val testkit = projectMatrix
     moduleName := "scalafix-testkit",
     isFullCrossVersion,
     libraryDependencies += googleDiff,
-    libraryDependencies ++= scalatestDeps.value
+    libraryDependencies += scalatestDep.value
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(buildScalaVersions :+ scala3)
@@ -226,10 +226,10 @@ lazy val unit = projectMatrix
     testFrameworks += new TestFramework("munit.Framework"),
     buildInfoPackage := "scalafix.tests",
     buildInfoObject := "BuildInfo",
+    libraryDependencies += jgit,
     libraryDependencies ++= {
       if (!isScala3.value) {
         List(
-          jgit,
           coursier,
           scalametaTeskit,
           scalatest.withRevision(
@@ -238,7 +238,7 @@ lazy val unit = projectMatrix
         )
       } else {
         List(
-          jgit,
+          scalatestDep.value,
           coursier
             .exclude("org.scala-lang.modules", "scala-xml_2.13"),
           scalametaTeskit
@@ -246,7 +246,7 @@ lazy val unit = projectMatrix
             .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
             .exclude("org.scalameta", "munit_2.13"),
           ("org.scalameta" %% "munit" % "0.7.29")
-        ) ++ scalatestDeps.value,
+        )
       }
     },
     Compile / compile / compileInputs := {
