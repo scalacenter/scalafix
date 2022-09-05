@@ -132,7 +132,13 @@ class RemoveUnused(config: RemoveUnusedConfig)
               // unused renamed may still impact compilation by shadowing an identifier.
               // See https://github.com/scalacenter/scalafix/issues/614
               Patch.replaceTree(to, "_").atomic
-            case i if isUnusedImport(importPosition(i)) =>
+            case i
+                if isUnusedImport
+                  .exists(unused =>
+                    unused.start <= importPosition(i).start && importPosition(
+                      i
+                    ).end <= unused.end
+                  ) =>
               Patch.removeImportee(i).atomic
           }.asPatch
         case i: Defn if isUnusedTerm(i.pos) =>
