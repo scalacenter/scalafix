@@ -1,5 +1,6 @@
 import Dependencies._
 import sbt._
+import sbt.Classpaths
 import sbt.Keys._
 import sbt.nio.Keys._
 import sbt.plugins.JvmPlugin
@@ -209,6 +210,11 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         case _ => Seq()
       }
     },
+    // Don't package sources & docs when publishing locally as it adds a significant
+    // overhead when testing because of publishLocalTransitive. Tweaking publishArtifact
+    // would more readable, but it would also affect remote (sonatype) publishing.
+    publishLocal / packagedArtifacts :=
+      Classpaths.packaged(Seq(Compile / packageBin)).value,
     publishTo := Some {
       if (isSnapshot.value) Opts.resolver.sonatypeSnapshots
       else Opts.resolver.sonatypeStaging
