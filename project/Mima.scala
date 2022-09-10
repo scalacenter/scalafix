@@ -37,7 +37,8 @@ object Mima {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixArguments.withSemanticdbTargetroots"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("scalafix.testkit.RuleTest.fromPath"), // private[scalafix]
       ProblemFilters.exclude[MissingClassProblem]("metaconfig.generic.package"),
-      ProblemFilters.exclude[MissingClassProblem]("metaconfig.generic.package$")
+      ProblemFilters.exclude[MissingClassProblem]("metaconfig.generic.package$"),
+      ProblemFilters.exclude[MissingClassProblem]("scalafix.interfaces.ScalafixDialect")
     )
   }
 }
