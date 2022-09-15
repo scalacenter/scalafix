@@ -197,6 +197,9 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
+    // don't publish scala 3 artifacts for now
+    publish / skip := (if ((publish / skip).value) true
+                       else scalaBinaryVersion.value == "3"),
     versionPolicyIntention := versionPolicyIntentionSetting.value,
     scalacOptions ++= compilerOptions.value,
     scalacOptions ++= semanticdbSyntheticsCompilerOption.value,
