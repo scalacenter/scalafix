@@ -22,8 +22,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     lazy val noPublishAndNoMima = Seq(
       mimaReportBinaryIssues := {},
       mimaPreviousArtifacts := Set.empty,
-      publish / skip := true,
-      libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % "always"
+      publish / skip := true
     )
     lazy val supportedScalaVersions = List(scala213, scala211, scala212)
     lazy val publishLocalTransitive =
@@ -94,13 +93,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       if (!isScala3.value)
         Seq("-P:semanticdb:synthetics:on")
       else Nil
-    )
-
-    lazy val versionPolicyIntentionSetting = Def.setting(
-      if (!isScala3.value)
-        Compatibility.BinaryCompatible
-      else
-        Compatibility.None
     )
 
     lazy val buildInfoSettingsForCore: Seq[Def.Setting[_]] = Seq(
@@ -182,6 +174,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, String] = Map(
+    "2.12.17" -> "2.12.16"
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
@@ -193,14 +186,16 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     // coursier-versions always return false for the *.*.*.*-r pattern jgit uses
     libraryDependencySchemes += Dependencies.jgit.withRevision("always"),
     // silence warning for 2.7.0 -> 3.0.0
-    libraryDependencySchemes += "com.lihaoyi" %% "sourcecode" % "always"
+    libraryDependencySchemes += "com.lihaoyi" %% "sourcecode" % "always",
+    // https://github.com/scala/bug/issues/12632
+    libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % "always"
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
     // don't publish scala 3 artifacts for now
     publish / skip := (if ((publish / skip).value) true
                        else scalaBinaryVersion.value == "3"),
-    versionPolicyIntention := versionPolicyIntentionSetting.value,
+    versionPolicyIntention := Compatibility.None,
     scalacOptions ++= compilerOptions.value,
     scalacOptions ++= semanticdbSyntheticsCompilerOption.value,
     Compile / console / scalacOptions :=
