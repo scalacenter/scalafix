@@ -1,10 +1,10 @@
 package scalafix.tests.cli
 
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.FunSuite
 import scalafix.internal.util.Compatibility
 import scalafix.internal.util.Compatibility._
 
-class CompatibilitySuite extends AnyFunSuite {
+class CompatibilitySuite extends FunSuite {
 
   test("Pre-releases are handled like the releases they will become") {
     "1.2.3-RC1" match {

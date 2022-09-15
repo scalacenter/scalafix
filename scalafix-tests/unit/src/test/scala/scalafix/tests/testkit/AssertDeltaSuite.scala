@@ -5,7 +5,7 @@ import scala.meta.dialects.Scala212
 import scala.meta.inputs.Input
 import scala.meta.parsers.Parse
 
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.FunSuite
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.testkit.AssertDiff
 import scalafix.internal.testkit.CommentAssertion
@@ -18,7 +18,7 @@ import scalafix.testkit.DiffAssertions
 import scalafix.v0.LintCategory
 import scalafix.v0.LintMessage
 
-class AssertDeltaSuite() extends AnyFunSuite with DiffAssertions {
+class AssertDeltaSuite() extends FunSuite with DiffAssertions {
   test("associate assert and reported message", SkipWindows) {
     val input = Input.VirtualFile(
       path = "foo/bar/Disable.scala",

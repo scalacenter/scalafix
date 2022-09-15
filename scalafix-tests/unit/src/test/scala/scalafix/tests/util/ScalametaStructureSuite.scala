@@ -2,11 +2,11 @@ package scalafix.tests.util
 
 import scala.meta._
 
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.FunSuite
 import scalafix.testkit.DiffAssertions
 import scalafix.v1._
 
-class ScalametaStructureSuite extends AnyFunSuite with DiffAssertions {
+class ScalametaStructureSuite extends FunSuite with DiffAssertions {
   test("pretty(t)") {
     val obtained = q"a.b.c.d".structureWidth(1)
     val expected =

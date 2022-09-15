@@ -14,7 +14,7 @@ import scala.meta.internal.io.FileIO
 import scala.meta.io.AbsolutePath
 
 import buildinfo.RulesBuildInfo
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.FunSuite
 import scalafix.interfaces.ScalafixArguments
 import scalafix.interfaces.ScalafixDiagnostic
 import scalafix.interfaces.ScalafixFileEvaluationError
@@ -31,7 +31,7 @@ import scalafix.tests.util.ScalaVersions
 import scalafix.tests.util.SemanticdbPlugin
 import scalafix.v1.SemanticRule
 
-class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
+class ScalafixArgumentsSuite extends FunSuite with DiffAssertions {
   val scalaBinaryVersion: String =
     RulesBuildInfo.scalaVersion.split('.').take(2).mkString(".")
   val scalaVersion = RulesBuildInfo.scalaVersion

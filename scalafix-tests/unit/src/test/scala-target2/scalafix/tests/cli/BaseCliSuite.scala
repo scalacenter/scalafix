@@ -14,7 +14,7 @@ import scala.meta.internal.io.FileIO
 import scala.meta.io.AbsolutePath
 import scala.meta.io.RelativePath
 
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.FunSuite
 import scalafix.cli.ExitStatus
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.test.StringFS
@@ -26,7 +26,7 @@ import scalafix.tests.util.ScalaVersions
 import scalafix.v1.Main
 
 // extend this class to run custom cli tests.
-trait BaseCliSuite extends AnyFunSuite with DiffAssertions {
+trait BaseCliSuite extends FunSuite with DiffAssertions {
 
   val original: String =
     """|object Main {

@@ -2,7 +2,7 @@ package scalafix.testkit
 
 import scala.meta._
 
-import org.scalatest.Suite
+import org.scalatest.FunSuiteLike
 import org.scalatest.Tag
 import org.scalatest.TestRegistration
 import scalafix.internal.config.ScalafixConfig
@@ -20,7 +20,7 @@ import scalafix.v1._
  *   the default rule to use from `check`/`checkDiff`.
  */
 abstract class AbstractSyntacticRuleSuite()
-    extends Suite
+    extends FunSuiteLike
     with TestRegistration
     with DiffAssertions {
 

@@ -8,7 +8,7 @@ import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
 import coursierapi.Repository
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.FunSuite
 import scalafix.interfaces.Scalafix
 import scalafix.interfaces.ScalafixDiagnostic
 import scalafix.interfaces.ScalafixMainCallback
@@ -20,7 +20,7 @@ import scalafix.internal.tests.utils.SkipWindows
  * as part of `sbt unitXTargetY/test`, so make sure to run that once if you want
  * to run the test with testOnly or through BSP.
  */
-class ScalafixSuite extends AnyFunSuite {
+class ScalafixSuite extends FunSuite {
 
   def tmpFile(prefix: String, suffix: String)(content: String): Path = {
     val path = Files.createTempFile(prefix, suffix)

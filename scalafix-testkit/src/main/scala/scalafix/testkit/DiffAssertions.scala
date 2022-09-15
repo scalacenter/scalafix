@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.TimeZone
 
-import org.scalatest.Suite
+import org.scalatest.FunSuiteLike
 import org.scalatest.exceptions.TestFailedException
 
 object DiffAssertions {
@@ -36,7 +36,7 @@ object DiffAssertions {
   }
 }
 
-trait DiffAssertions extends Suite {
+trait DiffAssertions extends FunSuiteLike {
 
   def assertEqual[A](a: A, b: A): Unit = {
     assert(a === b)

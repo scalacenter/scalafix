@@ -3,11 +3,11 @@ package scalafix.tests.config
 import metaconfig.Conf
 import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.FunSuite
 import scalafix.internal.reflect.GitHubUrlRule
 import scalafix.testkit.DiffAssertions
 
-class GitHubUrlRuleSuite extends AnyFunSuite with DiffAssertions {
+class GitHubUrlRuleSuite extends FunSuite with DiffAssertions {
   def check(original: String, expected: String, ok: Boolean = true): Unit = {
     test((if (ok) "" else "FAIL ") + original) {
       Conf.Str(original) match {

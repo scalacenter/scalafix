@@ -5,13 +5,13 @@ import scala.meta.io.RelativePath
 
 import metaconfig.Conf
 import metaconfig.ConfDecoder
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.FunSuite
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.internal.v1.Rules
 import scalafix.tests.BuildInfo
 import scalafix.v1.RuleDecoder
 
-class RuleDecoderSuite extends AnyFunSuite {
+class RuleDecoderSuite extends FunSuite {
   val cwd: AbsolutePath = AbsolutePath(BuildInfo.baseDirectory)
     .resolve("scalafix-tests")
     .resolve("unit")

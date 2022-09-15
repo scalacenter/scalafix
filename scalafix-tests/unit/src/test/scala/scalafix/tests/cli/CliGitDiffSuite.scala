@@ -5,15 +5,15 @@ import java.io.PrintStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 
+import org.scalatest.FunSuite
 import org.scalatest._
-import org.scalatest.funsuite.AnyFunSuite
 import scalafix.cli.ExitStatus
 import scalafix.internal.tests.utils.Fs
 import scalafix.internal.tests.utils.Git
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.testkit.DiffAssertions
 
-class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
+class CliGitDiffSuite extends FunSuite with DiffAssertions {
   gitTest("addition", SkipWindows) { (fs, git, cli) =>
     val oldCode = "old.scala"
     val newCode = "new.scala"

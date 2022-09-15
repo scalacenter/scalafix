@@ -17,7 +17,7 @@ import scala.meta.io.Classpath
 
 import buildinfo.RulesBuildInfo
 import coursier._
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.FunSuite
 import scalafix.Versions
 import scalafix.interfaces.ScalafixDiagnostic
 import scalafix.interfaces.ScalafixException
@@ -31,7 +31,7 @@ import scalafix.tests.util.ScalaVersions
 import scalafix.tests.util.SemanticdbPlugin
 import scalafix.{interfaces => i}
 
-class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
+class ScalafixImplSuite extends FunSuite with DiffAssertions {
 
   def scalaLibrary: AbsolutePath =
     RuleCompiler.defaultClasspathPaths

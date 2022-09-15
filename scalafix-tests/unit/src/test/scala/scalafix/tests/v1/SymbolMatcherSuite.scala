@@ -2,11 +2,11 @@ package scalafix.tests.v1
 
 import scala.meta._
 
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.FunSuite
 import scalafix.tests.core.BaseSemanticSuite
 import scalafix.v1._
 
-class SymbolMatcherSuite extends AnyFunSuite {
+class SymbolMatcherSuite extends FunSuite {
   implicit val doc: SemanticDocument =
     BaseSemanticSuite.loadDoc("SymbolMatcherTest.scala")
 

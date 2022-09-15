@@ -7,7 +7,7 @@ import scala.meta.Tree
 import scala.meta.contrib.AssociatedComments
 import scala.meta.inputs.Input
 
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.FunSuite
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.diff.EmptyDiff
@@ -20,7 +20,7 @@ import scalafix.rule.RuleName
 import scalafix.v0.SemanticdbIndex
 import scalafix.v1.SyntacticDocument
 
-class EscapeHatchSuite extends AnyFunSuite {
+class EscapeHatchSuite extends FunSuite {
 
   private val noEscapes = Input.String(
     """object Foo"""

@@ -1,12 +1,12 @@
 package scalafix.tests.v1
 import scala.meta.internal.symtab.GlobalSymbolTable
 
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.FunSuite
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.testkit.DiffAssertions
 import scalafix.v1._
 
-class SymbolInformationSuite extends AnyFunSuite with DiffAssertions {
+class SymbolInformationSuite extends FunSuite with DiffAssertions {
   private val classpath = ClasspathOps.thisClasspath
 
   private val symtab = GlobalSymbolTable(classpath, includeJdk = true)

@@ -16,14 +16,14 @@ import scala.meta.io.AbsolutePath
 
 import coursier._
 import coursier.util.Task
+import org.scalatest.FunSuite
 import org.scalatest.Ignore
-import org.scalatest.funsuite.AnyFunSuite
 import scalafix.interfaces.Scalafix
 import scalafix.interfaces.ScalafixMainMode
 import scalafix.testkit.DiffAssertions
 
 @Ignore // Ignored because this test is very slow.
-class MavenFuzzSuite extends AnyFunSuite with DiffAssertions {
+class MavenFuzzSuite extends FunSuite with DiffAssertions {
   private def getCompilingSources(
       g: ScalafixGlobal,
       classfiles: Seq[Path],

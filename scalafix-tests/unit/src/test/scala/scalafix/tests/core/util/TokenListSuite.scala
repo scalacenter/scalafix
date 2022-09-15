@@ -3,10 +3,10 @@ package scalafix.tests.core.util
 import scala.meta._
 import scala.meta.dialects.Scala211
 
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.FunSuite
 import scalafix.util.TokenList
 
-class TokenListSuite extends AnyFunSuite {
+class TokenListSuite extends FunSuite {
 
   val tokens: Tokens =
     """package foo

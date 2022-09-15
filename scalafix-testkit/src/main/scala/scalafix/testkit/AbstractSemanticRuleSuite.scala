@@ -7,7 +7,7 @@ import scala.meta._
 import scala.meta.internal.io.FileIO
 
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.Suite
+import org.scalatest.FunSuiteLike
 import org.scalatest.TestRegistration
 import org.scalatest.exceptions.TestFailedException
 import scalafix.internal.config.ScalaVersion
@@ -25,7 +25,7 @@ import scalafix.internal.v1.Args
 abstract class AbstractSemanticRuleSuite(
     val props: TestkitProperties,
     val isSaveExpect: Boolean
-) extends Suite
+) extends FunSuiteLike
     with TestRegistration
     with DiffAssertions
     with BeforeAndAfterAll { self =>

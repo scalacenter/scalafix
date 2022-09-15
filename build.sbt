@@ -218,9 +218,7 @@ lazy val unit = projectMatrix
     libraryDependencies ++= List(
       jgit,
       coursier,
-      scalatest.withRevision(
-        "3.2.13"
-      ), // make sure testkit clients can use recent 3.x versions
+      scalatest,
       scalametaTeskit
     ),
     Compile / compile / compileInputs := {
