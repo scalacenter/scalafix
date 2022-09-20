@@ -58,8 +58,9 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       else Nil
     }
     lazy val targetJvm = Def.setting {
-      if (isScala3.value) "-Xtarget:8"
-      else "-target:jvm-1.8"
+      if (isScala3.value) Seq("-Xtarget:8")
+      else if (isScala213.value) Seq("-release", "8")
+      else Seq("-target:jvm-1.8")
     }
     val warnAdaptedArgs = Def.setting {
       if (isScala3.value) Nil
@@ -83,8 +84,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     }
     lazy val compilerOptions = Def.setting(
       warnUnusedImports.value ++
+        targetJvm.value ++
         Seq(
-          targetJvm.value,
           "-encoding",
           "UTF-8",
           "-feature",
@@ -177,6 +178,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, String] = Map(
+    "2.13.9" -> "2.13.8"
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
