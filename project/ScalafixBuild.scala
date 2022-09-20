@@ -7,6 +7,7 @@ import sbt.plugins.JvmPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
 import sbtbuildinfo.BuildInfoKey
 import sbtbuildinfo.BuildInfoPlugin.autoImport._
+import sbtversionpolicy.SbtVersionPolicyPlugin
 import sbtversionpolicy.SbtVersionPolicyPlugin.autoImport._
 import scalafix.sbt.ScalafixPlugin.autoImport._
 import com.typesafe.sbt.sbtghpages.GhpagesKeys
@@ -15,7 +16,9 @@ import sbt.plugins.IvyPlugin
 
 object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   override def trigger = allRequirements
-  override def requires = JvmPlugin && IvyPlugin
+  override def requires =
+    JvmPlugin &&
+      SbtVersionPolicyPlugin // don't let it override our mimaPreviousArtifacts
   object autoImport {
     lazy val stableVersion =
       settingKey[String]("Version of latest release to Maven.")
@@ -191,6 +194,19 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
+    // avoid "missing dependency" on artifacts with full scala version when bumping scala
+    versionPolicyIgnored ++= {
+      PreviousScalaVersion.get(scalaVersion.value) match {
+        case Some(previous) =>
+          // all transitive dependencies with full scala version we know about
+          Seq(
+            "org.scalameta" % s"semanticdb-scalac-core_$previous",
+            "ch.epfl.scala" % s"scalafix-cli_$previous",
+            "ch.epfl.scala" % s"scalafix-reflect_$previous"
+          )
+        case None => Seq()
+      }
+    },
     // don't publish scala 3 artifacts for now
     publish / skip := (if ((publish / skip).value) true
                        else scalaBinaryVersion.value == "3"),
@@ -234,13 +250,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       Set(
         organizationName.value % previousScalaVCrossName % stableVersion.value
       )
-    },
-    mimaDependencyResolution := {
-      // effectively reverts https://github.com/lightbend/mima/pull/508 since the
-      // Coursier resolution ignores/overrides the explicit scala full version set
-      // in mimaPreviousArtifacts
-      val ivy = sbt.Keys.ivySbt.value
-      IvyDependencyResolution(ivy.configuration)
     },
     mimaBinaryIssueFilters ++= Mima.ignoredABIProblems
   ) ++ Seq(Compile, Test).flatMap(conf => inConfig(conf)(configSettings))
