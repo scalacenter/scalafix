@@ -253,13 +253,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         organizationName.value % previousScalaVCrossName % stableVersion.value
       )
     },
-    mimaDependencyResolution := {
-      // effectively reverts https://github.com/lightbend/mima/pull/508 since the
-      // Coursier resolution ignores/overrides the explicit scala full version set
-      // in mimaPreviousArtifacts
-      val ivy = sbt.Keys.ivySbt.value
-      IvyDependencyResolution(ivy.configuration)
-    },
     mimaBinaryIssueFilters ++= Mima.ignoredABIProblems
   ) ++ Seq(Compile, Test).flatMap(conf => inConfig(conf)(configSettings))
 
