@@ -177,7 +177,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, String] = Map(
-    "2.13.9" -> "2.13.8"
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
