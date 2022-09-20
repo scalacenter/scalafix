@@ -127,11 +127,10 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
 
   override def globalSettings: Seq[Def.Setting[_]] = List(
     stableVersion := (ThisBuild / version).value.replaceFirst("\\+.*", ""),
-    resolvers ++= List(
-      Resolver.sonatypeRepo("snapshots"),
-      Resolver.sonatypeRepo("public"),
-      Resolver.mavenLocal
-    ),
+    resolvers ++=
+      Resolver.sonatypeOssRepos("snapshots") ++
+        Resolver.sonatypeOssRepos("public") :+
+        Resolver.mavenLocal,
     Test / testOptions += Tests.Argument("-oD"),
     updateOptions := updateOptions.value.withCachedResolution(true),
     ThisBuild / watchTriggeredMessage := Watch.clearScreenOnTrigger,
@@ -230,10 +229,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     // would more readable, but it would also affect remote (sonatype) publishing.
     publishLocal / packagedArtifacts :=
       Classpaths.packaged(Seq(Compile / packageBin)).value,
-    publishTo := Some {
-      if (isSnapshot.value) Opts.resolver.sonatypeSnapshots
-      else Opts.resolver.sonatypeStaging
-    },
     scmInfo := Some(
       ScmInfo(
         url("https://github.com/scalacenter/scalafix"),
