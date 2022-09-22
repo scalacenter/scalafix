@@ -9,11 +9,10 @@ import dotty.tools.dotc.interactive.InteractiveDriver
 import dotty.tools.io.AbstractFile as DottyAbstractFile
 import dotty.tools.io.VirtualFile
 import dotty.tools.io.VirtualDirectory as DottyVirtualDirectory
+import dotty.tools.repl.AbstractFileClassLoader
 
 import scala.reflect.io.VirtualDirectory
-import scala.reflect.io.PlainDirectory
 import scala.reflect.io.AbstractFile
-import scala.reflect.internal.util.AbstractFileClassLoader
 
 import metaconfig.Configured
 import metaconfig.Input
@@ -41,7 +40,7 @@ class RuleCompiler(
 
   private val compiler: Compiler = new Compiler()
   private val classLoader: AbstractFileClassLoader =
-    new AbstractFileClassLoader(target, this.getClass.getClassLoader)
+    new AbstractFileClassLoader(dottyTargetDirectory, this.getClass.getClassLoader)
   
   def compile(input: Input): Configured[ClassLoader] = {
     reporter.removeBufferedMessages(using ctx)
@@ -68,10 +67,6 @@ class RuleCompiler(
             "scalafix-cli artifact or force scalafixScalaBinaryVersion " +
             "to 2.x in your build tool"
             )
-
-    println(s"ipath ${input.path}")    
-    println(s"try load ${classLoader.tryToLoadClass(input.path + "$")}")
-    println(s"try load ${classLoader.tryToLoadClass(input.path)}")
     
     ConfError
       .apply(errors)
