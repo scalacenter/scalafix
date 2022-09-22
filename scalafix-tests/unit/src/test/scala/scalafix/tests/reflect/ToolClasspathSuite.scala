@@ -2,9 +2,6 @@ package scalafix.tests.reflect
 
 import java.nio.file.Files
 
-import scala.reflect.io.Directory
-import scala.reflect.io.PlainDirectory
-
 import scala.meta.io.AbsolutePath
 
 import coursier._
@@ -86,7 +83,7 @@ class ToolClasspathSuite extends AnyFunSuite with BeforeAndAfterAll {
     val tmp = Files.createTempDirectory("scalafix")
     val compiler = new RuleCompiler(
       RuleCompilerClasspath.defaultClasspath,
-      new PlainDirectory(new Directory(tmp.toFile))
+      Some(tmp.toFile)
     )
     compiler.compile(metaconfig.Input.VirtualFile("CustomRule.scala", rewrite))
     val decoderSettings =
