@@ -38,8 +38,6 @@ class RuleCompiler(
     .setSetting(ctx.settings.classpath, classpath)
 
   private val compiler: Compiler = new Compiler()
-  private val classLoader: AbstractFileClassLoader =
-    new AbstractFileClassLoader(output, this.getClass.getClassLoader)
 
   def compile(input: Input): Configured[ClassLoader] = {
     reporter.removeBufferedMessages(using ctx)
@@ -71,6 +69,10 @@ class RuleCompiler(
     ConfError
       .apply(errors)
       .map(_.notOk)
-      .getOrElse(Configured.Ok(classLoader))
+      .getOrElse {
+        val classLoader: AbstractFileClassLoader =
+          new AbstractFileClassLoader(output, this.getClass.getClassLoader)
+        Configured.Ok(classLoader)
+      }
   }
 }

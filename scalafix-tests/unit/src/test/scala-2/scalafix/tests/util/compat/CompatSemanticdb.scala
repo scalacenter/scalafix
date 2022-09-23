@@ -3,6 +3,7 @@ package scalafix.tests.util.compat
 import java.nio.file.Path
 
 import scala.tools.nsc.Main
+
 object CompatSemanticdb {
 
   def scalacOptions(src: Path, target: Path): Array[String] = {

@@ -30,8 +30,6 @@ class RuleCompiler(
   settings.classpath.value = classpath
   lazy val reporter = new StoreReporter
   private val global = new Global(settings, reporter)
-  private val classLoader =
-    new AbstractFileClassLoader(output, this.getClass.getClassLoader)
 
   def compile(input: Input): Configured[ClassLoader] = {
     reporter.reset()
@@ -57,6 +55,10 @@ class RuleCompiler(
     ConfError
       .fromResults(errors.toSeq)
       .map(_.notOk)
-      .getOrElse(Configured.Ok(classLoader))
+      .getOrElse {
+        val classLoader: AbstractFileClassLoader =
+          new AbstractFileClassLoader(output, this.getClass.getClassLoader)
+        Configured.Ok(classLoader)
+      }
   }
 }
