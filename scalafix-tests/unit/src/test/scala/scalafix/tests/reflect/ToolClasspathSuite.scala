@@ -11,65 +11,60 @@ import org.scalatest.funsuite.AnyFunSuite
 import scalafix.internal.reflect.RuleCompiler
 import scalafix.internal.reflect.RuleCompilerClasspath
 import scalafix.internal.tests.utils.SkipWindows
-import scalafix.tests.util.ScalaVersions
 import scalafix.v1.RuleDecoder
+import scalafix.Versions
 
 class ToolClasspathSuite extends AnyFunSuite with BeforeAndAfterAll {
-  var scalafmtClasspath: List[AbsolutePath] = _
+  var scalaClasspath: List[AbsolutePath] = _
   override def beforeAll(): Unit = {
+    var scalaVersionSuffix: String = ""
+    val versionSplit = Versions.scalaVersion.split("\\.")
+    if (versionSplit(0) == "3") {
+      scalaVersionSuffix = versionSplit(0)
+    } else {
+      scalaVersionSuffix = s"${versionSplit(0)}.${versionSplit(1)}"
+    }
     val jars =
-      if (ScalaVersions.isScala213)
-        Fetch()
-          .addDependencies(
-            Dependency(
-              Module(
-                Organization("org.scalameta"),
-                ModuleName("scalafmt-core_2.13")
-              ),
-              "2.5.1"
-            )
+      Fetch()
+        .addDependencies(
+          Dependency(
+            Module(
+              Organization("org.scalatest"),
+              ModuleName(s"scalatest_${scalaVersionSuffix}")
+            ),
+            "3.2.13"
           )
-          .run()
-          .toList
-      else
-        Fetch()
-          .addDependencies(
-            Dependency(
-              Module(
-                Organization("com.geirsson"),
-                ModuleName("scalafmt-core_2.12")
-              ),
-              "1.2.0"
-            )
-          )
-          .run()
-          .toList
-    scalafmtClasspath = jars.map(AbsolutePath(_))
+        )
+        .run()
+        .toList
+
+    scalaClasspath = jars.map(AbsolutePath(_))
   }
 
   test(
     "--tool-classpath is respected when compiling from source",
     SkipWindows
   ) {
-    val scalafmtRewrite =
+    val scalaRewrite =
       """
-        |import org.scalafmt._
+        |import org.scalatest.Assertions._
         |import scalafix.v0._
         |
-        |object FormatRule extends Rule("FormatRule") {
-        |  override def description: String = "FormatRuleDescription"
+        |object FormatRule extends Rule("FormatRule")
+        | {
+        |  override def description: String = "RuleDescription"
         |  override def fix(ctx: RuleCtx): Patch = {
-        |    val formatted = Scalafmt.format(ctx.tokens.mkString).get
-        |    ctx.addLeft(ctx.tokens.last, formatted)
+        |    assert("raz" == "raz")
+        |    ctx.addLeft(ctx.tokens.last, "test")
         |  }
         |}
       """.stripMargin
-    val tmp = Files.createTempFile("scalafix", "FormatRule.scala")
-    Files.write(tmp, scalafmtRewrite.getBytes)
+    val tmpFile = Files.createTempFile("scalafix", "FormatRule.scala")
+    Files.write(tmpFile, scalaRewrite.getBytes)
     val decoderSettings =
-      RuleDecoder.Settings().withToolClasspath(scalafmtClasspath)
+      RuleDecoder.Settings().withToolClasspath(scalaClasspath)
     val decoder = RuleDecoder.decoder(decoderSettings)
-    val obtained = decoder.read(Conf.Str(s"file:$tmp")).get
+    val obtained = decoder.read(Conf.Str(s"file:$tmpFile")).get
     val expectedName = "FormatRule"
     assert(obtained.name.value == expectedName)
   }
