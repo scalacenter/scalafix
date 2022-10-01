@@ -1,4 +1,6 @@
 package scalafix.internal.reflect
+import java.io.File
+
 import scala.reflect.internal.util.AbstractFileClassLoader
 import scala.reflect.internal.util.BatchSourceFile
 import scala.reflect.io.Directory
@@ -12,7 +14,6 @@ import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Input
 import metaconfig.Position
-import java.io.File
 
 class RuleCompiler(
     classpath: String,

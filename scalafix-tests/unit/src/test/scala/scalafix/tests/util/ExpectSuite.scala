@@ -5,11 +5,11 @@ import scala.meta.internal.io.FileIO
 import scala.meta.io.AbsolutePath
 
 import org.scalatest.funsuite.AnyFunSuite
+import scalafix.Versions
 import scalafix.testkit.DiffAssertions
 import scalafix.tests.BuildInfo
 import scalafix.tests.core.BaseSemanticSuite
 import scalafix.v1.SemanticDocument
-import scalafix.Versions
 
 trait ExpectSuite extends AnyFunSuite with DiffAssertions {
   def filename: String

@@ -135,6 +135,9 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
   }
 
   test("runMain") {
+    // Todo(i1680): this is an integration test that uses many non supported rules in scala 3.
+    // Add a more simple test for scala 3. For now we ignore for Scala 3.
+    if (ScalaVersions.isScala3) cancel()
     // This is a full integration test that stresses the full breadth of the scalafix-interfaces API
     val api = i.Scalafix.classloadInstance(this.getClass.getClassLoader)
     // Assert that non-ascii characters read into "?"

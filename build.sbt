@@ -224,8 +224,6 @@ lazy val unit = projectMatrix
     Test / baseDirectory := (ThisBuild / baseDirectory).value,
     javaOptions := Nil,
     testFrameworks += new TestFramework("munit.Framework"),
-    buildInfoPackage := "scalafix.tests",
-    buildInfoObject := "BuildInfo",
     libraryDependencies += jgit,
     libraryDependencies ++= {
       if (!isScala3.value) {
@@ -303,8 +301,11 @@ lazy val unit = projectMatrix
       IO.write(props, "Input data for scalafix testkit", out)
       List(out)
     },
+    buildInfoPackage := "scalafix.tests",
+    buildInfoObject := "BuildInfo",
     buildInfoKeys := Seq[BuildInfoKey](
       "scalametaVersion" -> scalametaV,
+      "scalaVersion" -> scalaVersion.value,
       "baseDirectory" ->
         (ThisBuild / baseDirectory).value,
       "unitResourceDirectory" -> (Compile / resourceDirectory).value,

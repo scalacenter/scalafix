@@ -13,7 +13,6 @@ import scala.util.Try
 import scala.meta.internal.io.FileIO
 import scala.meta.io.AbsolutePath
 
-import buildinfo.RulesBuildInfo
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.interfaces.ScalafixArguments
 import scalafix.interfaces.ScalafixDiagnostic
@@ -26,16 +25,15 @@ import scalafix.internal.rule.RemoveUnusedConfig
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.test.StringFS
 import scalafix.testkit.DiffAssertions
+import scalafix.tests.BuildInfo
 import scalafix.tests.core.Classpaths
 import scalafix.tests.util.ScalaVersions
 import scalafix.tests.util.compat.CompatSemanticdb
 import scalafix.v1.SemanticRule
 
 class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
-  val scalaBinaryVersion: String =
-    RulesBuildInfo.scalaVersion.split('.').take(2).mkString(".")
-  val scalaVersion = RulesBuildInfo.scalaVersion
-  val removeUnused: String =
+  private val scalaVersion = BuildInfo.scalaVersion
+  private val removeUnused: String =
     if (ScalaVersions.isScala213)
       "-Wunused:imports"
     else "-Ywarn-unused-import"
@@ -66,17 +64,27 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
   val main: Path = src.resolve("Main.scala")
   val relativePath: Path = cwd.relativize(main)
 
+  val specificScalacOption2: Seq[String] =
+    if (!ScalaVersions.isScala3)
+      Seq(
+        "-Yrangepos",
+        removeUnused
+      )
+    else Nil
+
   val scalacOptions: Array[String] = Array[String](
-    "-Yrangepos",
-    removeUnused,
     "-classpath",
     s"${scalaLibrary.mkString(":")}",
     "-d",
     d.toString,
     main.toString
-  ) ++ CompatSemanticdb.scalacOptions(src, target)
+  ) ++ specificScalacOption2 ++ CompatSemanticdb.scalacOptions(src, target)
 
   test("ScalafixArguments.evaluate with a semantic rule", SkipWindows) {
+    // Todo(i1680): this is an integration test that uses many non supported rules in scala 3.
+    // Add a more simple test for scala 3. For now we ignore for Scala 3.
+    if (ScalaVersions.isScala3) cancel()
+
     val _ = CompatSemanticdb.runScalac(scalacOptions)
     val result = api
       .withRules(
@@ -155,6 +163,8 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
 
   }
   test("ScalafixArguments.evaluate getting StaleSemanticdb", SkipWindows) {
+    // Todo(i1680): We need a semanticRule in scala 3.
+    if (ScalaVersions.isScala3) cancel()
     val _ = CompatSemanticdb.runScalac(scalacOptions)
     val args = api
       .withRules(
@@ -188,6 +198,8 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     "ScalafixArguments.evaluate doesn't take into account withMode and withMainCallback",
     SkipWindows
   ) {
+    // Todo(i1680): We need a semanticRule in scala 3.
+    if (ScalaVersions.isScala3) cancel()
     val _ = CompatSemanticdb.runScalac(scalacOptions)
     val contentBeforeEvaluation =
       FileIO.slurp(AbsolutePath(main), StandardCharsets.UTF_8)
@@ -341,6 +353,8 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
   }
 
   test("Scalafix-evaluation-error-messages: missing semanticdb", SkipWindows) {
+    // Todo(i1680): We need a semanticRule in scala 3.
+    if (ScalaVersions.isScala3) cancel()
     val eval = api
       .withPaths(Seq(main).asJava)
       .withRules(List("ExplicitResultTypes").asJava)
@@ -433,7 +447,9 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
   test("Scala 3 style wildcard import", SkipWindows) {
     // https://github.com/scalacenter/scalafix/issues/1663
 
-    if (scala.util.Properties.versionNumberString.startsWith("2.11")) {
+    // Todo(i1680): Add another test for scala 3 that doesn't uses removeUnused or
+    // at least remove the if when removeUnused is supported in scala 3
+    if (ScalaVersions.isScala211 || ScalaVersions.isScala3) {
       cancel()
     }
 
@@ -511,4 +527,12 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
 
   def scalaLibrary: Seq[AbsolutePath] = Classpaths.scalaLibrary.entries
 
+  def scalacOptions(
+      scalaVersion: String = BuildInfo.scalaVersion
+  ): Array[String] =
+    Array[String](
+      "-Yrangepos",
+      "-classpath",
+      s"${scalaLibrary.mkString(":")}"
+    )
 }

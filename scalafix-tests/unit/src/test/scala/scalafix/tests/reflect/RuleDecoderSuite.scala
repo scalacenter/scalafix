@@ -1,5 +1,7 @@
 package scalafix.tests.reflect
 
+import java.nio.file.Files
+
 import scala.meta.io.AbsolutePath
 import scala.meta.io.RelativePath
 
@@ -10,7 +12,6 @@ import scalafix.internal.tests.utils.SkipWindows
 import scalafix.internal.v1.Rules
 import scalafix.tests.BuildInfo
 import scalafix.v1.RuleDecoder
-import java.nio.file.Files
 
 class RuleDecoderSuite extends AnyFunSuite {
   val cwd: AbsolutePath = AbsolutePath(BuildInfo.baseDirectory)

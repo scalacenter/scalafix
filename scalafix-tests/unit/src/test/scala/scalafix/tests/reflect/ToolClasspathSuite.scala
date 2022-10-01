@@ -8,11 +8,11 @@ import coursier._
 import metaconfig.Conf
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funsuite.AnyFunSuite
+import scalafix.Versions
 import scalafix.internal.reflect.RuleCompiler
 import scalafix.internal.reflect.RuleCompilerClasspath
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.v1.RuleDecoder
-import scalafix.Versions
 
 class ToolClasspathSuite extends AnyFunSuite with BeforeAndAfterAll {
   var scalaClasspath: List[AbsolutePath] = _
