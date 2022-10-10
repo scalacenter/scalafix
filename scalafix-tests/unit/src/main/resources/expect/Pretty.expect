@@ -111,7 +111,7 @@
 [116:12..116:22]: test/Test.C#ByNameType. => final object ByNameType extends AnyRef { +1 decls }
 [117:11..117:13]: test/Test.C#ByNameType.m1(). => method m1(x: => Int): Int
 [117:14..117:15]: test/Test.C#ByNameType.m1().(x) => param x: => Int
-[120:16..120:28]: test/Test.C#RepeatedType# => case class RepeatedType extends AnyRef with Product with Serializable { +11 decls }
+[120:16..120:28]: test/Test.C#RepeatedType# => case class RepeatedType extends AnyRef with Product with Serializable { +12 decls }
 [120:28..120:28]: test/Test.C#RepeatedType#`<init>`(). => primary ctor <init>(val s: String*)
 [120:29..120:30]: test/Test.C#RepeatedType#s. => val method s: String*
 [121:11..121:13]: test/Test.C#RepeatedType#m1(). => method m1(x: Int*): Int
