@@ -222,8 +222,6 @@ lazy val unit = projectMatrix
     noPublishAndNoMima,
     // Change working directory to match when `fork := false`.
     Test / baseDirectory := (ThisBuild / baseDirectory).value,
-    buildInfoPackage := "scalafix.tests",
-    buildInfoObject := "BuildInfo",
     javaOptions := Nil,
     libraryDependencies ++= List(
       jgit,
@@ -302,8 +300,11 @@ lazy val unit = projectMatrix
       IO.write(props, "Input data for scalafix testkit", out)
       List(out)
     },
+    buildInfoPackage := "scalafix.tests",
+    buildInfoObject := "BuildInfo",
     buildInfoKeys := Seq[BuildInfoKey](
       "scalametaVersion" -> scalametaV,
+      "scalaVersion" -> scalaVersion.value,
       "baseDirectory" ->
         (ThisBuild / baseDirectory).value,
       "unitResourceDirectory" -> (Compile / resourceDirectory).value,
