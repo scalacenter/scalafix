@@ -20,7 +20,7 @@ object Dependencies {
     List(scala213, scala212).map(version => version -> previousVersions(version)).toMap
 
   val bijectionCoreV = "0.9.7"
-  val collectionCompatV = "2.8.0"
+  val collectionCompatV = "2.8.1"
   val coursierV = "2.0.0-RC5-6"
   val coursierInterfaceV = "1.0.8"
   val commontTextV = "1.9"
