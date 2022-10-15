@@ -4,8 +4,8 @@ DisableSyntax.noXml = true
  */
 package test.disableSyntax
 
-object NoXml {
+object NoXml {{
   <a>xml</a> /* assert: DisableSyntax.noXml
   ^
   xml literals should be avoided */
-}
+}}
