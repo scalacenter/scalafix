@@ -222,6 +222,8 @@ lazy val unit = projectMatrix
     noPublishAndNoMima,
     // Change working directory to match when `fork := false`.
     Test / baseDirectory := (ThisBuild / baseDirectory).value,
+    // Prevent issues with scalatest serialization
+    Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat,
     javaOptions := Nil,
     libraryDependencies ++= List(
       jgit,
