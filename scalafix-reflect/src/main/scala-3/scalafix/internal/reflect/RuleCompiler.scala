@@ -54,25 +54,19 @@ class RuleCompiler(
       List(new SourceFile(file, input.chars))
     )
 
-    val errors = reporter.allErrors.map(error =>
-      ConfError
-        .message(error.getMessage)
-    )
-    if (!errors.isEmpty)
-      errors :+ ConfError.message(
+    if (reporter.allErrors.isEmpty) {
+      val classLoader: AbstractFileClassLoader =
+        new AbstractFileClassLoader(output, this.getClass.getClassLoader)
+      Configured.Ok(classLoader)
+    } else {
+      val lastError =
         "Error compiling rule(s) from source using Scala 3 compiler; " +
           "to use the Scala 2.x compiler instead, use the corresponding " +
           "scalafix-cli artifact or force scalafixScalaBinaryVersion " +
           "to 2.x in your build tool"
-      )
+      val errors = (reporter.allErrors.map(_.getMessage) :+ lastError)
+      ConfError.apply(errors.map(ConfError.message)).map(_.notOk).get
+    }
 
-    ConfError
-      .apply(errors)
-      .map(_.notOk)
-      .getOrElse {
-        val classLoader: AbstractFileClassLoader =
-          new AbstractFileClassLoader(output, this.getClass.getClassLoader)
-        Configured.Ok(classLoader)
-      }
   }
 }
