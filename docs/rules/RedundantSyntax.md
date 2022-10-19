@@ -31,7 +31,5 @@ Example:
 + println("Bar")
 
 - println(raw"Baz")
-+ println("Foo")
-
-println(raw"Foo\nBar")
++ println("Baz")
 ```
