@@ -32,4 +32,7 @@ Example:
 
 - println(raw"Baz")
 + println("Baz")
+
+// No change as `raw` is not redundant.
+println(raw"Foo\nBar")
 ```
