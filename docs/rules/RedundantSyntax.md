@@ -31,7 +31,8 @@ Example:
 + println("Bar")
 
 - println(raw"Baz")
-+ println("Foo")
++ println("Baz")
 
+// No change as `raw` is not redundant.
 println(raw"Foo\nBar")
 ```
