@@ -72,8 +72,9 @@ Only out-of-the-box interpolators (<code>s</code>, <code>f</code> and <code>raw<
 <span class="hljs-addition">+ println("Bar")</span>
 
 <span class="hljs-deletion">- println(raw"Baz")</span>
-<span class="hljs-addition">+ println("Foo")</span>
+<span class="hljs-addition">+ println("Baz")</span>
 
+// No change as `raw` is not redundant.
 println(raw"Foo\nBar")
 </code></pre>
 </span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/scalafix/docs/rules/ProcedureSyntax.html"><span class="arrow-prev">← </span><span class="function-name-prevnext">ProcedureSyntax</span></a><a class="docs-next button" href="/scalafix/docs/rules/RemoveUnused.html"><span class="function-name-prevnext">RemoveUnused</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#final-keyword-on-an-object"><code>final</code> keyword on an <code>object</code></a></li><li><a href="#string-interpolators">String interpolators</a></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#15242B"><section class="sitemap"><a href="/scalafix/" class="nav-home"><img src="/scalafix/img/scalafix-brand-small2x.png" alt="Scalafix" width="52" height="52"/></a><div><h5>Docs</h5><a href="
