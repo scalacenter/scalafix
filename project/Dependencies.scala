@@ -28,7 +28,7 @@ object Dependencies {
   val java8CompatV = "0.9.0"
   val jgitV = "5.13.1.202206130422-r"
   val metaconfigFor211V = "0.9.10" // metaconfig stops publishing for scala 2.11
-  val metaconfigV = "0.10.0"
+  val metaconfigV = "0.11.1"
   val pprintV = "0.6.6" // don't bump, rules built against metaconfig 0.9.15 or earlier would not link
   val nailgunV = "0.9.1"
   val scalaXmlV = "2.1.0"
