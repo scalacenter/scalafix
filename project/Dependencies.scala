@@ -12,7 +12,7 @@ object Dependencies {
   val scala213 = "2.13.10"
   val scala3 = "3.1.3"
 
-  val buildScalaVersions = Seq(scala211, scala212, scala213)
+  val buildScalaVersions = Seq(scala211, scala212, scala213, scala3)
   val testTargetScalaVersions = Seq(scala211, scala212, scala213, scala3)
 
   // we support 3 last binary versions of scala212 and scala213
@@ -34,12 +34,15 @@ object Dependencies {
   val scalaXmlV = "2.1.0"
   val scalaXml211V = "1.3.0" // scala-xml stops publishing for scala 2.11
   val scalametaV = "4.6.0"
-  val scalatestV = "3.0.8" // don't bump, to avoid forcing breaking changes on clients via eviction
+  val scalatestMinV = "3.0.8" // don't bump, to avoid forcing breaking changes on clients via eviction
+  val scalatestLatestV = "3.2.13"
+  val munitV = "0.7.29"
 
   val bijectionCore = "com.twitter" %% "bijection-core" % bijectionCoreV
   val collectionCompat = "org.scala-lang.modules" %% "scala-collection-compat" % collectionCompatV
   val commonText = "org.apache.commons" % "commons-text" % commontTextV
-  val coursier = "io.get-coursier" %% "coursier" % coursierV
+  val coursier = ("io.get-coursier" %% "coursier" % coursierV)
+    .cross(CrossVersion.for3Use2_13)
   val coursierInterfaces = "io.get-coursier" % "interface" % coursierInterfaceV
   val googleDiff = "com.googlecode.java-diff-utils" % "diffutils" % googleDiffV
   val java8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % java8CompatV
@@ -56,8 +59,10 @@ object Dependencies {
   // https://github.com/scalameta/scalameta/issues/2485
   val scalameta = ("org.scalameta" %% "scalameta" % scalametaV)
     .cross(CrossVersion.for3Use2_13)
-  val scalametaTeskit = "org.scalameta" %% "testkit" % scalametaV
-  val scalatest = "org.scalatest" %% "scalatest" % scalatestV
+  val scalametaTeskit = ("org.scalameta" %% "testkit" % scalametaV)
+    .cross(CrossVersion.for3Use2_13)
+  val scalatest = "org.scalatest" %% "scalatest" % scalatestMinV
+  val munit = "org.scalameta" %% "munit" % munitV
   val semanticdbScalacCore = "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
 
   private def previousVersions(scalaVersion: String): List[String] = {

@@ -3,6 +3,7 @@ package scalafix.internal.v1
 import scala.meta.AbsolutePath
 import scala.meta.Input
 import scala.meta.Source
+import scala.meta.internal.inputs.XtensionInputSyntaxStructure
 import scala.meta.internal.io.FileIO
 import scala.meta.internal.symtab.SymbolTable
 import scala.meta.io.RelativePath

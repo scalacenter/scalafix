@@ -37,7 +37,7 @@ class ExplicitSynthetic() extends SemanticRule("ExplicitSynthetic") {
           Patch.addRight(t, ".apply")
         }
     }
-    patches.flatten.asPatch + Patch.replaceTree(q"a", "b")
+    patches.flatten.asPatch + Patch.replaceTree(Term.Name("a"), "b")
   }
 
 }

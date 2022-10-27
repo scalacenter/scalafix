@@ -1,0 +1,6 @@
+scalafix.internal.rule.DisableSyntax
+scalafix.internal.rule.NoAutoTupling
+scalafix.internal.rule.NoValInForComprehension
+scalafix.internal.rule.RedundantSyntax
+scalafix.internal.rule.RemoveUnused
+scalafix.internal.rule.LeakingImplicitClassVal

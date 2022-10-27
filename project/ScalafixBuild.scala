@@ -121,6 +121,11 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     lazy val buildInfoSettingsForRules: Seq[Def.Setting[_]] = Seq(
       buildInfoObject := "RulesBuildInfo"
     )
+
+    lazy val scalatestDep = Def.setting {
+      if (isScala3.value) scalatest.withRevision(scalatestLatestV)
+      else scalatest
+    }
   }
 
   import autoImport._
@@ -140,8 +145,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     },
     commands += Command.command("ci-3") { s =>
       "unit2_12Target3/test" ::
-        "core3/compile" ::
-        "rules3/compile" ::
+        "unit3Target3/test" ::
         s
     },
     commands += Command.command("ci-213") { s =>
@@ -218,8 +222,17 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     Compile / doc / scalacOptions ++= scaladocOptions,
     Compile / unmanagedSourceDirectories ++= {
       val sourceDir = (Compile / sourceDirectory).value
+      val scala212PlusSourceDir = "scala-2.12+"
       CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, n)) if n >= 12 => Seq(sourceDir / "scala-2.12+")
+        case Some((2, n)) if n >= 12 => Seq(sourceDir / scala212PlusSourceDir)
+        case Some((3, _)) => Seq(sourceDir / scala212PlusSourceDir)
+        case _ => Seq()
+      }
+    },
+    Compile / unmanagedResourceDirectories ++= {
+      val resourceParentDir = (Compile / resourceDirectory).value.getParentFile
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((major, _)) => Seq(resourceParentDir / s"resources-${major}")
         case _ => Seq()
       }
     },

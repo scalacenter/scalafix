@@ -15,29 +15,63 @@ object RuleInstrumentation {
       def unapply(templ: Template): Boolean = templ match {
 
         // v0
-        case Template(_, init"Rewrite" :: _, _, _) => true
-        case Template(_, init"Rule($_)" :: _, _, _) => true
-        case Template(_, init"SemanticRewrite($_)" :: _, _, _) => true
-        case Template(_, init"SemanticRule($_, $_)" :: _, _, _) => true
+        case Template(_, Init(Type.Name("Rewrite"), _, Nil) :: _, _, _) => true
+        case Template(
+              _,
+              Init(Type.Name("Rule"), _, List(List(_))) :: _,
+              _,
+              _
+            ) =>
+          true
+        case Template(
+              _,
+              Init(Type.Name("SemanticRewrite"), _, List(List(_))) :: _,
+              _,
+              _
+            ) =>
+          true
+        case Template(
+              _,
+              Init(Type.Name("SemanticRule"), _, List(List(_, _))) :: _,
+              _,
+              _
+            ) =>
+          true
 
         // v1
-        case Template(_, init"SemanticRule($_)" :: _, _, _) => true
-        case Template(_, init"v1.SemanticRule($_)" :: _, _, _) => true
-        case Template(_, init"SyntacticRule($_)" :: _, _, _) => true
-        case Template(_, init"v1.SyntacticRule($_)" :: _, _, _) => true
+        case Template(
+              _,
+              Init(Type.Name("SemanticRule"), _, List(List(_))) :: _,
+              _,
+              _
+            ) =>
+          true
+        case Template(
+              _,
+              Init(Type.Name("v1.SemanticRule"), _, List(List(_))) :: _,
+              _,
+              _
+            ) =>
+          true
+        case Template(
+              _,
+              Init(Type.Name("SyntacticRule"), _, List(List(_))) :: _,
+              _,
+              _
+            ) =>
+          true
+        case Template(
+              _,
+              Init(Type.Name("v1.SyntacticRule"), _, List(List(_))) :: _,
+              _,
+              _
+            ) =>
+          true
 
         case _ => false
       }
     }
-    object LambdaRule {
-      def unapply(arg: Term): Boolean = arg match {
-        case q"Rule.syntactic($_)" => true
-        case q"Rule.semantic($_)" => true
-        case q"Rule.syntactic($_)" => true
-        case q"Rule.semantic($_)" => true
-        case _ => false
-      }
-    }
+
     (dialects.Scala213, code).parse[Source] match {
       case parsers.Parsed.Error(pos, msg, details) =>
         ConfError.parseError(pos.toMetaconfig, msg).notOk

@@ -233,19 +233,19 @@ class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
 
     val bar1 =
       """|object B {
-        |  def bar() {}
+        |  def bar() { println(s"Foo") }
         |}
         |""".stripMargin
 
     val bar2 =
       """|object B {
-        |  def bar(): Unit = {}
+        |  def bar() { println("Foo") }
         |}
         |""".stripMargin
 
     fs.add(code, foo1)
     git.add(code)
-    fs.add(confFile, "rules = ProcedureSyntax")
+    fs.add(confFile, "rules = RedundantSyntax")
     git.add(confFile)
     git.commit()
 

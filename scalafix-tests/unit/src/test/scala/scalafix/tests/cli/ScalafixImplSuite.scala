@@ -24,17 +24,17 @@ import scalafix.interfaces.ScalafixException
 import scalafix.interfaces.ScalafixMainCallback
 import scalafix.interfaces.ScalafixMainMode
 import scalafix.internal.reflect.ClasspathOps
-import scalafix.internal.reflect.RuleCompiler
+import scalafix.internal.reflect.RuleCompilerClasspath
 import scalafix.test.StringFS
 import scalafix.testkit.DiffAssertions
 import scalafix.tests.util.ScalaVersions
-import scalafix.tests.util.SemanticdbPlugin
+import scalafix.tests.util.compat.CompatSemanticdb
 import scalafix.{interfaces => i}
 
 class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
 
   def scalaLibrary: AbsolutePath =
-    RuleCompiler.defaultClasspathPaths
+    RuleCompilerClasspath.defaultClasspathPaths
       .find(_.toNIO.getFileName.toString.contains("scala-library"))
       .getOrElse {
         throw new IllegalStateException("Unable to detect scala-library.jar")
@@ -122,19 +122,22 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
     // if a non empty list of rules is provided, rules from config file are ignored
     val args2 = api
       .newArguments()
-      .withRules(List("ProcedureSyntax").asJava)
+      .withRules(List("RedundantSyntax").asJava)
       .withConfig(Optional.empty())
       .withWorkingDirectory(cwd.toNIO)
     args2.validate()
     assert(
       args2.rulesThatWillRun().asScala.toList.map(_.name()) == List(
-        "ProcedureSyntax"
+        "RedundantSyntax"
       )
     )
 
   }
 
   test("runMain") {
+    // Todo(i1680): this is an integration test that uses many non supported rules in scala 3.
+    // Add a more simple test for scala 3. For now we ignore for Scala 3.
+    if (ScalaVersions.isScala3) cancel()
     // This is a full integration test that stresses the full breadth of the scalafix-interfaces API
     val api = i.Scalafix.classloadInstance(this.getClass.getClassLoader)
     // Assert that non-ascii characters read into "?"
@@ -182,16 +185,13 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
     )
     val scalacOptions = Array[String](
       "-Yrangepos",
-      s"-Xplugin:${SemanticdbPlugin.semanticdbPluginPath()}",
-      "-Xplugin-require:semanticdb",
       "-classpath",
       scalaLibrary.toString,
-      s"-P:semanticdb:sourceroot:$src",
       "-d",
       d.toString,
       semicolon.toString,
       excluded.toString
-    )
+    ) ++ CompatSemanticdb.scalacOptions(src)
     val compileSucceeded = scala.tools.nsc.Main.process(scalacOptions)
     val buf = List.newBuilder[ScalafixDiagnostic]
     val callback = new ScalafixMainCallback {

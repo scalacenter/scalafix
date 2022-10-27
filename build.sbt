@@ -84,7 +84,7 @@ lazy val core = projectMatrix
     }
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(buildScalaVersions :+ scala3, Seq(), p => p)
+  .jvmPlatform(buildScalaVersions)
   .enablePlugins(BuildInfoPlugin)
 
 lazy val rules = projectMatrix
@@ -105,7 +105,7 @@ lazy val rules = projectMatrix
     }
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(buildScalaVersions :+ scala3, Seq(), p => p)
+  .jvmPlatform(buildScalaVersions)
   .dependsOn(core)
   .enablePlugins(BuildInfoPlugin)
 
@@ -114,10 +114,18 @@ lazy val reflect = projectMatrix
   .settings(
     moduleName := "scalafix-reflect",
     isFullCrossVersion,
-    libraryDependencies ++= Seq(
-      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value
-    )
+    libraryDependencies ++= {
+      if (!isScala3.value)
+        List(
+          "org.scala-lang" % "scala-compiler" % scalaVersion.value,
+          "org.scala-lang" % "scala-reflect" % scalaVersion.value
+        )
+      else
+        List(
+          "org.scala-lang" %% "scala3-compiler" % scalaVersion.value,
+          "org.scala-lang" %% "scala3-library" % scalaVersion.value
+        )
+    }
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(buildScalaVersions)
@@ -129,13 +137,18 @@ lazy val cli = projectMatrix
     moduleName := "scalafix-cli",
     isFullCrossVersion,
     libraryDependencies ++= Seq(
-      java8Compat,
       nailgunServer,
       jgit,
       commonText
     ),
     libraryDependencies ++= {
-      if (isScala211.value) Seq()
+      if (!isScala3.value)
+        Seq(java8Compat)
+      else
+        Seq()
+    },
+    libraryDependencies ++= {
+      if (isScala211.value || isScala3.value) Seq()
       else
         Seq(
           // metaconfig 0.10.0 shaded pprint but rules built with an old
@@ -160,7 +173,7 @@ lazy val testsShared = projectMatrix
     coverageEnabled := false
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(testTargetScalaVersions)
+  .jvmPlatform(buildScalaVersions)
   .disablePlugins(ScalafixPlugin)
 
 lazy val testsInput = projectMatrix
@@ -176,7 +189,7 @@ lazy val testsInput = projectMatrix
     coverageEnabled := false
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(testTargetScalaVersions)
+  .jvmPlatform(buildScalaVersions)
   .disablePlugins(ScalafixPlugin)
 
 lazy val testsOutput = projectMatrix
@@ -188,7 +201,7 @@ lazy val testsOutput = projectMatrix
     coverageEnabled := false
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(testTargetScalaVersions)
+  .jvmPlatform(buildScalaVersions)
   .disablePlugins(ScalafixPlugin)
 
 lazy val testkit = projectMatrix
@@ -196,10 +209,8 @@ lazy val testkit = projectMatrix
   .settings(
     moduleName := "scalafix-testkit",
     isFullCrossVersion,
-    libraryDependencies ++= Seq(
-      googleDiff,
-      scalatest
-    )
+    libraryDependencies += googleDiff,
+    libraryDependencies += scalatestDep.value
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(buildScalaVersions)
@@ -211,18 +222,32 @@ lazy val unit = projectMatrix
     noPublishAndNoMima,
     // Change working directory to match when `fork := false`.
     Test / baseDirectory := (ThisBuild / baseDirectory).value,
+    // Prevent issues with scalatest serialization
+    Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat,
     javaOptions := Nil,
-    testFrameworks += new TestFramework("munit.Framework"),
-    buildInfoPackage := "scalafix.tests",
-    buildInfoObject := "BuildInfo",
     libraryDependencies ++= List(
       jgit,
-      coursier,
-      scalatest.withRevision(
-        "3.2.13"
-      ), // make sure testkit clients can use recent 3.x versions
-      scalametaTeskit
+      munit,
+      scalatest.withRevision(scalatestLatestV)
     ),
+    libraryDependencies ++= {
+      if (!isScala3.value) {
+        List(
+          coursier,
+          scalametaTeskit
+        )
+      } else {
+        // exclude _2.13 artifacts that have their _3 counterpart in the classpath
+        List(
+          coursier
+            .exclude("org.scala-lang.modules", "scala-xml_2.13"),
+          scalametaTeskit
+            .exclude("com.lihaoyi", "sourcecode_2.13")
+            .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
+            .exclude("org.scalameta", "munit_2.13")
+        )
+      }
+    },
     Compile / compile / compileInputs := {
       (Compile / compile / compileInputs)
         .dependsOn(
@@ -277,8 +302,11 @@ lazy val unit = projectMatrix
       IO.write(props, "Input data for scalafix testkit", out)
       List(out)
     },
+    buildInfoPackage := "scalafix.tests",
+    buildInfoObject := "BuildInfo",
     buildInfoKeys := Seq[BuildInfoKey](
       "scalametaVersion" -> scalametaV,
+      "scalaVersion" -> scalaVersion.value,
       "baseDirectory" ->
         (ThisBuild / baseDirectory).value,
       "unitResourceDirectory" -> (Compile / resourceDirectory).value,
@@ -313,6 +341,11 @@ lazy val unit = projectMatrix
     }
   )
   .defaultAxes(VirtualAxis.jvm)
+  .jvmPlatform(
+    scalaVersions = Seq(scala3),
+    axisValues = Seq(TargetAxis(scala3)),
+    settings = Seq()
+  )
   .jvmPlatform(
     scalaVersions = Seq(scala212),
     axisValues = Seq(TargetAxis(scala3)),

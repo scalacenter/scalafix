@@ -4,6 +4,7 @@ import java.nio.file.Paths
 
 import scala.meta.Source
 import scala.meta.Tree
+import scala.meta.XtensionParseInputLike
 import scala.meta.contrib.AssociatedComments
 import scala.meta.inputs.Input
 

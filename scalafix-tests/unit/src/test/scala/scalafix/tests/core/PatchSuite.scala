@@ -9,6 +9,7 @@ import scala.meta.internal.prettyprinters.TreeSyntax
 import scala.meta.tokens.Token.Ident
 
 import org.scalatest.funsuite.AnyFunSuiteLike
+import scalafix.XtensionSeqPatch
 import scalafix.internal.patch.PatchInternals
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.patch.Patch
@@ -94,7 +95,12 @@ class PatchSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
 
   case object AddGlobalImporter extends SyntacticRule("addGlobalImporter") {
     override def fix(implicit doc: SyntacticDocument): Patch = {
-      Patch.addGlobalImport(importer"scala.collection.{mutable => _}")
+      Patch.addGlobalImport(
+        Importer(
+          Term.Select(Term.Name("scala"), Term.Name("collection")),
+          List(Importee.Unimport(Name.Indeterminate("mutable")))
+        )
+      )
     }
   }
   check(
