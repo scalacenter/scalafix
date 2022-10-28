@@ -1,6 +1,7 @@
 /*
 rules = ExplicitResultTypes
 ExplicitResultTypes.onlyImplicits = true
+ExplicitResultTypes.skipSimpleDefinitions = []
  */
 package test.explicitResultTypes
 

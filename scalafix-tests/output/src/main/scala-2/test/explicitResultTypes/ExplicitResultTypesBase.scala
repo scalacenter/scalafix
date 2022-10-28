@@ -19,8 +19,8 @@ object ExplicitResultTypesBase {
   val k: (Int, String) = (1, "msg")
   implicit val L: List[Int] = List(1)
   implicit val M: Map[Int,String] = Map(1 -> "STRING")
-  implicit def D: Int = 2
-  implicit def tparam[T](e: T): T = e
+  implicit def D = 2
+  implicit def tparam[T](e: T) = e
   implicit def tparam2[T](e: T): List[T] = List(e)
   implicit def tparam3[T](e: T): Map[T,T] = Map(e -> e)
   class implicitlytrick {
