@@ -176,17 +176,16 @@ final class ExplicitResultTypes(
     def qualifyingImplicit: Boolean =
       isImplicit && !isFinalLiteralVal
 
-    def matchesMemberKindAndVisibility: Boolean =
-      matchesMemberKind && matchesMemberVisibility
+    def matchesConfig: Boolean =
+      matchesMemberKind && matchesMemberVisibility && !matchesSimpleDefinition
 
     def qualifyingNonImplicit: Boolean = {
       !onlyImplicits &&
       hasParentWihTemplate &&
-      !defn.hasMod(mod"implicit") &&
-      !matchesSimpleDefinition()
+      !defn.hasMod(mod"implicit")
     }
 
-    matchesMemberKindAndVisibility && {
+    matchesConfig && {
       qualifyingImplicit || qualifyingNonImplicit
     }
   }
