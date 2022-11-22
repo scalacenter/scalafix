@@ -32,6 +32,8 @@ class StringInterpolator {
   b = my"foo"
   b = my"foo $a bar"
 
+  b = s"foo" // scalafix:ok
+
   implicit class MyInterpolator(sc: StringContext) {
     def my(subs: Any*): String = sc.toString + subs.mkString("")
   }
