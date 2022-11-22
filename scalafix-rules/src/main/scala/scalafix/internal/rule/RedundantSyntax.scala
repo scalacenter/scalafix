@@ -21,21 +21,24 @@ class RedundantSyntax(config: RedundantSyntaxConfig)
   override def isRewrite: Boolean = true
 
   override def fix(implicit doc: SyntacticDocument): Patch =
-    doc.tree.collect {
-      case o: Defn.Object
-          if config.finalObject && o.mods.exists(_.is[Mod.Final]) =>
-        Patch.removeTokens {
-          o.tokens.find(_.is[Token.KwFinal]).toIterable.flatMap { finalTok =>
-            finalTok :: TokenList(o.tokens).trailingSpaces(finalTok).toList
+    doc.tree
+      .collect {
+        case o: Defn.Object
+            if config.finalObject && o.mods.exists(_.is[Mod.Final]) =>
+          Patch.removeTokens {
+            o.tokens.find(_.is[Token.KwFinal]).toIterable.flatMap { finalTok =>
+              finalTok :: TokenList(o.tokens).trailingSpaces(finalTok).toList
+            }
           }
-        }
-      case interpolator @ Term.Interpolate(
-            Term.Name(p),
-            Lit.String(v) :: Nil,
-            Nil
-          )
-          if config.stringInterpolator
-            && (p == "s" || p == "f" || (p == "raw" && !v.contains('\\'))) =>
-        Patch.removeTokens(interpolator.prefix.tokens)
-    }.asPatch
+        case interpolator @ Term.Interpolate(
+              Term.Name(p),
+              Lit.String(v) :: Nil,
+              Nil
+            )
+            if config.stringInterpolator
+              && (p == "s" || p == "f" || (p == "raw" && !v.contains('\\'))) =>
+          Patch.removeTokens(interpolator.prefix.tokens)
+      }
+      .map(_.atomic)
+      .asPatch
 }

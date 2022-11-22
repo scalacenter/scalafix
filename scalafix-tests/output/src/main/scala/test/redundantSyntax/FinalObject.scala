@@ -8,3 +8,6 @@ object FinalObject {
 abstract class Class {
   final def bar: String = "bar"
 }
+
+@SuppressWarnings(Array("RedundantSyntax"))
+final object Suppressed
