@@ -1,12 +1,8 @@
 [6:7..6:17]:      test/PrettyTest# => class PrettyTest extends Object { self: PrettyTest => +6 decls }
-[7:3..7:14]:      *[Int]
-[7:3..7:7]:       *.apply[Int]
 [9:10..9:11]:     intWrapper(*)
 [10:10..10:11]:   intWrapper(*)
-[14:10..14:16]:   *.apply[Inclusive]
 [14:10..14:26]:   *(global)
 [14:17..14:18]:   intWrapper(*)
-[15:10..15:16]:   *.apply[Inclusive]
 [15:10..15:32]:   *(global)
 [15:17..15:18]:   intWrapper(*)
 [20:9..20:14]:    test/PrettyTest#Inner# => class Inner extends Object { self: Inner => +1 decls }
@@ -61,7 +57,6 @@
 [90:9..90:22]:    test/Test.C#compoundType5. => val method compoundType5M & N
 [91:9..91:22]:    test/Test.C#compoundType6. => val method compoundType6M & N
 [93:9..93:17]:    test/Test.C#annType1. => val method annType1T @ann[T]
-[93:21..93:25]:   [Int]
 [94:9..94:17]:    test/Test.C#annType2. => val method annType2T @ann1 @ann2
 [96:9..96:25]:    test/Test.C#existentialType2. => val method existentialType2List[_] forSome { type _ }
 [97:9..97:25]:    test/Test.C#existentialType3. => val method existentialType3Class[_] forSome { type _ }
