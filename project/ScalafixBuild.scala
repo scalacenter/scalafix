@@ -10,7 +10,7 @@ import sbtbuildinfo.BuildInfoPlugin.autoImport._
 import sbtversionpolicy.SbtVersionPolicyPlugin
 import sbtversionpolicy.SbtVersionPolicyPlugin.autoImport._
 import scalafix.sbt.ScalafixPlugin.autoImport._
-import com.typesafe.sbt.sbtghpages.GhpagesKeys
+import com.github.sbt.sbtghpages.GhpagesKeys
 import sbt.librarymanagement.ivy.IvyDependencyResolution
 import sbt.plugins.IvyPlugin
 
