@@ -268,7 +268,7 @@ class PrettyType private (
                 toMods(info),
                 Type.Name(info.displayName),
                 tparams.smap(toTypeParam),
-                Ctor.Primary(Nil, Name(""), Nil),
+                Ctor.Primary(Nil, Name(""), List.empty[List[Term.Param]]),
                 Template(
                   Nil,
                   inits,
@@ -317,7 +317,7 @@ class PrettyType private (
                     }
                 }
                 .getOrElse {
-                  Ctor.Primary(Nil, Name(""), Nil)
+                  Ctor.Primary(Nil, Name(""), List.empty[List[Term.Param]])
                 }
 
               // FIXME: Workaround for https://github.com/scalameta/scalameta/issues/1492
@@ -393,7 +393,7 @@ class PrettyType private (
       toType(fixed),
       Name.Anonymous(),
       // Can't support term arguments
-      Nil
+      List.empty[List[Term]]
     )
   }
 
