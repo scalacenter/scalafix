@@ -84,8 +84,8 @@ output/src
             └── NamedLiteralArguments.scala
 ```
 
-Checkout the commit
-[12dce51](https://github.com/scalacenter/scalafix-named-literal-arguments/commit/12dce5106332f8af5debaf2a0522a7f78c77fade),
+Checkout the first commit
+[c03e549](https://github.com/scalacenter/scalafix-named-literal-arguments/commit/c03e5493b1e7ee9d82abebf2aa84b3bfcf01455b),
 run `tests/test` and see the tests fail
 
 ```diff
