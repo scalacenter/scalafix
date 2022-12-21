@@ -61,6 +61,7 @@
 <li>use <code>SymbolInformation</code> to look up method signatures</li>
 <li>use <code>Diagnostic</code> to report linter errors</li>
 <li>use <code>withConfiguration</code> to make a rule configurable</li>
+<li>use <code>atomic</code> to enable rule suppression</li>
 <li>publish the rule so others can try it on their own codebase</li>
 </ul>
 <p>We are going to implement two different rules. The first rule is a semantic
@@ -159,6 +160,7 @@ single patch.</li>
 <li>the rewrite triggers for any <code>true</code> literal even if it is not a function
 argument. For example, <code>val done = true</code> becomes
 <code>val done = isSuccess = true</code>.</li>
+<li>the rewrite triggers even if rule suppression is active, i.e. <code>// scalafix:ok</code> is present.</li>
 </ul>
 <p>The first improvement we make is to handle both <code>true</code> and <code>false</code> literals.</p>
 <pre><code class="hljs css language-diff"><span class="hljs-deletion">-  case t @ q"true" =&gt;</span>
@@ -244,10 +246,16 @@ a non-empty parameter list.</p>
 <span class="hljs-addition">+     Patch.empty</span>
 <span class="hljs-addition">+ }</span>
 </code></pre>
-<p>The final step is to extract the parameter at the index of the argument</p>
+<p>The next step is to extract the parameter at the index of the argument</p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> parameter = method.parameterLists.head(i)
 <span class="hljs-keyword">val</span> parameterName = parameter.displayName
 <span class="hljs-type">Patch</span>.addLeft(t, <span class="hljs-string">s"<span class="hljs-subst">$parameterName</span> = "</span>)
+</code></pre>
+<p>We're not done quite yet, because the rule does not respect rule suppression comments like <code>// scalafix:ok</code>.  Let's add a test case to reproduce this bug</p>
+<pre><code class="hljs css language-scala">complete(<span class="hljs-literal">false</span>) <span class="hljs-comment">// scalafix:ok; rule suppression</span>
+</code></pre>
+<p>We can fix this bug by specifying that <code>Patch.addLeft</code> should be <code>atomic</code></p>
+<pre><code class="hljs css language-scala"><span class="hljs-type">Patch</span>.addLeft(t, <span class="hljs-string">s"<span class="hljs-subst">$parameterName</span> = "</span>).atomic
 </code></pre>
 <p>That completes the <code>NamedLiteralArguments</code> rule! Run all tests and we see they
 pass. Putting it together, the final code for the rule looks like this</p>
@@ -271,7 +279,7 @@ pass. Putting it together, the final code for the rule looks like this</p>
                       <span class="hljs-keyword">if</span> method.parameterLists.nonEmpty =&gt;
                     <span class="hljs-keyword">val</span> parameter = method.parameterLists.head(i)
                     <span class="hljs-keyword">val</span> parameterName = parameter.displayName
-                    <span class="hljs-type">Patch</span>.addLeft(t, <span class="hljs-string">s"<span class="hljs-subst">$parameterName</span> = "</span>)
+                    <span class="hljs-type">Patch</span>.addLeft(t, <span class="hljs-string">s"<span class="hljs-subst">$parameterName</span> = "</span>).atomic
                   <span class="hljs-keyword">case</span> _ =&gt;
                     <span class="hljs-comment">// Do nothing, the symbol is not a method with matching signature</span>
                     <span class="hljs-type">Patch</span>.empty
@@ -331,6 +339,7 @@ rule = NoLiteralArguments
 <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">NoLiteralArguments</span> </span>{
   <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">complete</span></span>(isSuccess: <span class="hljs-type">Boolean</span>): <span class="hljs-type">Unit</span> = ()
   complete(<span class="hljs-literal">true</span>) <span class="hljs-comment">// assert: NoLiteralArguments</span>
+  complete(<span class="hljs-literal">true</span>) <span class="hljs-comment">// scalafix:ok; should not assert</span>
 }
 </code></pre>
 <p>The comment <code>// assert: NoLiteralArguments</code> asserts that a diagnostic is
@@ -345,12 +354,13 @@ file since linters don't modify the input source code.</p>
     }
 }.flatten.asPatch
 </code></pre>
-<p>Finally, to report a diagnostic we use <code>Patch.lint</code></p>
+<p>Finally, to report a diagnostic we use <code>Patch.lint</code> (which supports rule suppression comments out of the box)</p>
 <pre><code class="hljs css language-scala"><span class="hljs-type">Patch</span>.lint(<span class="hljs-type">LiteralArgument</span>(t))
 </code></pre>
 <p>We run the tests and see that they pass. Let's add a <code>/*</code> multi-line assertion
 to make sure the position and message of the diagnostic make sense</p>
 <pre><code class="hljs css language-diff">  complete(true) // assert: NoLiteralArguments
+  complete(true) // scalafix:ok; should not assert
 <span class="hljs-addition">+ complete(false) /* assert: NoLiteralArguments</span>
 <span class="hljs-addition">+          ^^^^^</span>
 <span class="hljs-addition">+ Use named arguments for literals such as 'parameterName = false'</span>
@@ -391,6 +401,7 @@ NoLiteralArguments.disabledLiterals = [
   complete(<span class="hljs-string">"done"</span>) <span class="hljs-comment">// ok, no error message</span>
   complete(<span class="hljs-number">42</span>) <span class="hljs-comment">// assert: NoLiteralArguments</span>
   complete(<span class="hljs-literal">true</span>) <span class="hljs-comment">// assert: NoLiteralArguments</span>
+  complete(<span class="hljs-literal">true</span>) <span class="hljs-comment">// scalafix:ok; rule suppression</span>
 }
 </code></pre>
 <p>The top of the file contains <code>.scalafix.conf</code> configuration that is passed to
