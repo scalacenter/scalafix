@@ -395,7 +395,7 @@ doc.tree.collect {
 Finally, to report a diagnostic we use `Patch.lint` (which supports rule suppression comments out of the box)
 
 ```scala
-Patch.lint(LiteralArgument(t)).atomic
+Patch.lint(LiteralArgument(t))
 ```
 
 We run the tests and see that they pass. Let's add a `/*` multi-line assertion
