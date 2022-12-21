@@ -392,7 +392,7 @@ doc.tree.collect {
 }.flatten.asPatch
 ```
 
-Finally, to report a diagnostic we use `Patch.lint` and add `atomic` to enable rule suppression.
+Finally, to report a diagnostic we use `Patch.lint` (which supports rule suppression comments out of the box)
 
 ```scala
 Patch.lint(LiteralArgument(t)).atomic
