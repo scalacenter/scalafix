@@ -264,7 +264,7 @@ We're not done quite yet, because the rule does not respect rule suppression com
 complete(false) // scalafix:ok; rule suppression
 ```
 
-We can fix this bug by specifying that `Patch.left` should be `atomic`
+We can fix this bug by specifying that `Patch.addLeft` should be `atomic`
 
 ```scala
 Patch.addLeft(t, s"$parameterName = ").atomic
