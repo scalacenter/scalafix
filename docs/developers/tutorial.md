@@ -579,7 +579,8 @@ class NoLiteralArguments(config: NoLiteralArgumentsConfig)
       .map(newConfig => new NoLiteralArguments(newConfig))
   }
   override def fix(implicit doc: SyntacticDocument): Patch = {
-    doc.tree.collect {
+    doc.tree
+      .collect {
         case Term.Apply(_, args) =>
           args.collect {
             case t: Lit if config.isDisabled(t) =>
