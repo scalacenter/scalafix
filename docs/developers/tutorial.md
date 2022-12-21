@@ -583,7 +583,7 @@ class NoLiteralArguments(config: NoLiteralArgumentsConfig)
         case Term.Apply(_, args) =>
           args.collect {
             case t: Lit if config.isDisabled(t) =>
-              Patch.lint(LiteralArgument(t)).atomic
+              Patch.lint(LiteralArgument(t))
           }
       }
       .flatten
