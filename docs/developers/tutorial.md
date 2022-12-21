@@ -10,6 +10,7 @@ In this tutorial, you will learn how to
 - use `SymbolInformation` to look up method signatures
 - use `Diagnostic` to report linter errors
 - use `withConfiguration` to make a rule configurable
+- use `atomic` to enable rule suppression
 - publish the rule so others can try it on their own codebase
 
 We are going to implement two different rules. The first rule is a semantic
@@ -135,6 +136,7 @@ This solution is simple but it is incomplete
 - the rewrite triggers for any `true` literal even if it is not a function
   argument. For example, `val done = true` becomes
   `val done = isSuccess = true`.
+- the rewrite triggers even if rule suppression is active, i.e. `// scalafix:ok` is present.  
 
 The first improvement we make is to handle both `true` and `false` literals.
 
@@ -248,12 +250,24 @@ a non-empty parameter list.
 + }
 ```
 
-The final step is to extract the parameter at the index of the argument
+The next step is to extract the parameter at the index of the argument
 
 ```scala
 val parameter = method.parameterLists.head(i)
 val parameterName = parameter.displayName
 Patch.addLeft(t, s"$parameterName = ")
+```
+
+We're not done quite yet, because the rule does not respect rule suppression comments like `// scalafix:ok`.  Let's add a test case to reproduce this bug
+
+```scala
+complete(false) // scalafix:ok; rule suppression
+```
+
+We can fix this bug by specifying that `Patch.addLeft` should be `atomic`
+
+```scala
+Patch.addLeft(t, s"$parameterName = ").atomic
 ```
 
 That completes the `NamedLiteralArguments` rule! Run all tests and we see they
@@ -280,7 +294,7 @@ class NamedLiteralArguments
                       if method.parameterLists.nonEmpty =>
                     val parameter = method.parameterLists.head(i)
                     val parameterName = parameter.displayName
-                    Patch.addLeft(t, s"$parameterName = ")
+                    Patch.addLeft(t, s"$parameterName = ").atomic
                   case _ =>
                     // Do nothing, the symbol is not a method with matching signature
                     Patch.empty
@@ -358,6 +372,7 @@ package test
 class NoLiteralArguments {
   def complete(isSuccess: Boolean): Unit = ()
   complete(true) // assert: NoLiteralArguments
+  complete(true) // scalafix:ok; should not assert
 }
 ```
 
@@ -377,7 +392,7 @@ doc.tree.collect {
 }.flatten.asPatch
 ```
 
-Finally, to report a diagnostic we use `Patch.lint`
+Finally, to report a diagnostic we use `Patch.lint` (which supports rule suppression comments out of the box)
 
 ```scala
 Patch.lint(LiteralArgument(t))
@@ -388,6 +403,7 @@ to make sure the position and message of the diagnostic make sense
 
 ```diff
   complete(true) // assert: NoLiteralArguments
+  complete(true) // scalafix:ok; should not assert
 + complete(false) /* assert: NoLiteralArguments
 +          ^^^^^
 + Use named arguments for literals such as 'parameterName = false'
@@ -434,6 +450,7 @@ class NoLiteralArgumentsConfig {
   complete("done") // ok, no error message
   complete(42) // assert: NoLiteralArguments
   complete(true) // assert: NoLiteralArguments
+  complete(true) // scalafix:ok; rule suppression
 }
 ```
 
