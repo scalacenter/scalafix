@@ -447,7 +447,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
 
     // Todo(i1680): Add another test for scala 3 that doesn't uses removeUnused or
     // at least remove the if when removeUnused is supported in scala 3
-    if (ScalaVersions.isScala211 || ScalaVersions.isScala3) {
+    if (ScalaVersions.isScala3) {
       cancel()
     }
 

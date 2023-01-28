@@ -4,7 +4,6 @@ import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
 
-import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
 import coursierapi.Repository
@@ -83,15 +82,12 @@ class ScalafixSuite extends AnyFunSuite {
     ) {
       val scalafixAPI = Scalafix.fetchAndClassloadInstance(scalaVersion)
 
-      val ruleForDependency = mutable.Map[String, String]()
-      ruleForDependency +=
+      val ruleForDependency = Map(
         // built against scalafix 0.9.16
-        "com.nequissimus::sort-imports:0.5.2" -> "SortImports"
-
-      if (scalaVersion != "2.11")
-        ruleForDependency +=
-          // built against scalafix 0.10.0, uses metaconfig, not cross-published for 2.11
-          "com.github.xuwei-k::scalafix-rules:0.2.1" -> "KindProjector"
+        "com.nequissimus::sort-imports:0.5.2" -> "SortImports",
+        // built against scalafix 0.10.0, uses metaconfig
+        "com.github.xuwei-k::scalafix-rules:0.2.1" -> "KindProjector"
+      )
 
       val availableRules = scalafixAPI.newArguments
         .withToolClasspath(
@@ -109,20 +105,9 @@ class ScalafixSuite extends AnyFunSuite {
       }
     }
   }
-  val supportedScalaBinaryVersions: Set[String] = Set("2.11", "2.12", "2.13")
+  val supportedScalaBinaryVersions: Set[String] = Set("2.12", "2.13")
 
-  // 2.11(.12) triggers `java.lang.NoClassDefFoundError: javax/tools/DiagnosticListener` on Java11.
-  // See https://github.com/scala/bug/issues/10603.
-  val javaVersionOpt: Option[String] = Option(
-    System.getProperty("java.version")
-  )
-  val isJava11: Boolean = javaVersionOpt.getOrElse("").startsWith("11")
-  val isJava17: Boolean = javaVersionOpt.getOrElse("").startsWith("17")
-  val scalaBinaryVersionsToRun: Set[String] =
-    if (isJava11 || isJava17) supportedScalaBinaryVersions - "2.11"
-    else supportedScalaBinaryVersions
-
-  scalaBinaryVersionsToRun.map { scalaBinaryVersion =>
+  supportedScalaBinaryVersions.map { scalaBinaryVersion =>
     fetchAndLoad(scalaBinaryVersion)
     fetchAndLoadWithDeps(scalaBinaryVersion)
   }

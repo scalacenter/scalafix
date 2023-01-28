@@ -67,7 +67,7 @@ object Main {
 }
 ```
 
-Remove unused pattern match variables (Scala 2.12 & 2.13 only):
+Remove unused pattern match variables:
 
 ```scala
 case class AB(a: Int, b: String)
@@ -87,7 +87,7 @@ object Main {
 }
 ```
 
-Remove unused function parameters (Scala 2.12 & 2.13 only):
+Remove unused function parameters:
 
 ```scala
 // before
@@ -134,8 +134,6 @@ println(scalafix.website.rule("RemoveUnused", RemoveUnusedConfig.default))
 Consult `scala -Y` in the command-line for more information about using
 `-Ywarn-unused`.
 
-For Scala @SCALA212@ & @SCALA213@
-
 ```
 $ scala -Ywarn-unused:help
 Enable or disable specific `unused' warnings
@@ -148,12 +146,4 @@ Enable or disable specific `unused' warnings
   params     Enable -Ywarn-unused:explicits,implicits.
   linted     -Xlint:unused.
 Default: All choices are enabled by default.
-```
-
-For Scala @SCALA211@
-
-```
-$ scala -Y | grep warn-unused
-  -Ywarn-unused                           Warn when local and private vals, vars, defs, and types are unused.
-  -Ywarn-unused-import                    Warn when imports are unused.
 ```
