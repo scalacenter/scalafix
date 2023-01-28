@@ -56,7 +56,7 @@ node.
 
 ```scala mdoc
 doc.tree.collect {
-  case apply @ Term.Apply(println @ Term.Name("println"), _) =>
+  case apply @ q"${println @ q"println"}(..$_)" =>
     (apply.syntax, println.symbol)
 }
 ```

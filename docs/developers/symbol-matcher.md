@@ -161,7 +161,7 @@ pattern.
 
 ```scala mdoc
 doc.tree.traverse {
-  case function @ Term.Apply(successObject(_), List(argument)) =>
+  case function @ q"${successObject(_)}($argument)" =>
     println(function.pos.formatMessage("info",
       s"Argument of Success is $argument"))
 }

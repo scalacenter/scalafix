@@ -118,7 +118,7 @@ The `replaceTree()` patch is a convenience operator for `removeTokens` and
 
 ```scala mdoc
 doc.tree.collect {
-  case println @ Term.Apply(Name("println"), _) =>
+  case println @ q"println(..$_)" =>
     Patch.replaceTree(println, "print(40 + 2)")
 }.showDiff()
 ```
@@ -178,7 +178,7 @@ case class Println(position: Position) extends Diagnostic {
   def message = "Use loggers instead of println"
 }
 doc.tree.collect {
-  case println @ Term.Apply(Term.Name("println"), _) =>
+  case println @ q"println(..$_)" =>
     Patch.lint(Println(println.pos))
 }.showLints()
 ```
