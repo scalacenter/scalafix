@@ -312,7 +312,7 @@ https://scalameta.org/docs/semanticdb/guide.html#scalac-compiler-plugin
 
 By default, the `scalafix` task processes all files in a project. If you use
 SemanticDB, the `scalafix` task also respects
-[`-P:semanticdb:exclude`](#exclude-files-from-semanticdb).
+[`-P:semanticdb:exclude`](#exclude-files-from-semanticdb-scala-2x-only).
 
 Use `Compile / scalafix / unmanagedSources` to optionally exclude files from
 the `scalafix` task.
