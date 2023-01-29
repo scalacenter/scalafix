@@ -236,7 +236,8 @@ lazy val unit = projectMatrix
         // exclude _2.13 artifacts that have their _3 counterpart in the classpath
         List(
           coursier
-            .exclude("org.scala-lang.modules", "scala-xml_2.13"),
+            .exclude("org.scala-lang.modules", "scala-xml_2.13")
+            .exclude("org.scala-lang.modules", "scala-collection-compat_2.13"),
           scalametaTeskit
             .exclude("com.lihaoyi", "sourcecode_2.13")
             .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
