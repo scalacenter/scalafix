@@ -57,7 +57,7 @@
         </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><a class="edit-page-link button" href="https://github.com/scalacenter/scalafix/edit/main/docs/rules/NoAutoTupling.md" target="_blank" rel="noreferrer noopener">Edit</a><h1 id="__docusaurus" class="postHeaderTitle">NoAutoTupling</h1></header><article><div><span><p>Adds explicit tuples around argument lists where auto-tupling is occurring.</p>
 <p>To use this rule:</p>
 <ul>
-<li>enable <code>-Ywarn-adapted-args</code> for Scala 2.11 and 2.12 (note, <code>-Yno-adapted-args</code> will fail compilation,
+<li>enable <code>-Ywarn-adapted-args</code> for Scala 2.12 (note, <code>-Yno-adapted-args</code> will fail compilation,
 which prevents scalafix from running). For Scala 2.13, use instead <code>-Xlint:adapted-args</code>.</li>
 <li>enable also <code>-deprecation</code> to get warnings on insertions of <code>Unit</code>.</li>
 </ul>

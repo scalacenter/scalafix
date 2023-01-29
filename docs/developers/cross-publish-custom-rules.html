@@ -66,7 +66,7 @@ authors to cross-publish their rules for the scala versions they support.
 For most rules, this change requires only modifying the build settings as follows:</p>
 <pre><code class="hljs css language-diff"> // build.sbt
  scalaVersion := V.scala212,
-<span class="hljs-addition">+crossScalaVersions := List(V.scala213, V.scala212, V.scala211),</span>
+<span class="hljs-addition">+crossScalaVersions := List(V.scala213, V.scala212),</span>
 </code></pre>
 <p>The second step is to update your CI to run tests on the different
 scala versions your rule is being cross-published to. For that, you only
