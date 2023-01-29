@@ -44,8 +44,8 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
     val api = i.Scalafix.classloadInstance(this.getClass.getClassLoader)
     assert(api.scalafixVersion() == Versions.version)
     assert(api.scalametaVersion() == Versions.scalameta)
-    assert(api.scala211() == Versions.scala211)
     assert(api.scala212() == Versions.scala212)
+    assert(api.scala213() == Versions.scala213)
     assert(
       api
         .supportedScalaVersions()

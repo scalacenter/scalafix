@@ -52,9 +52,7 @@ public interface Scalafix {
      */
     String[] supportedScalaVersions();
 
-    /**
-     * The most recent Scala 2.11 version in {@link #supportedScalaVersions()}
-     */
+    @Deprecated
     String scala211();
 
     /**
@@ -109,9 +107,6 @@ public interface Scalafix {
 
         String scalaVersionKey;
         switch (scalaBinaryVersion) {
-            case "2.11":
-                scalaVersionKey = "scala211";
-                break;
             case "2.12":
                 scalaVersionKey = "scala212";
                 break;

@@ -10,7 +10,7 @@ pull request is tested on both Linux and Windows.
 
 **Java 8 or Java 11.**
 
-**Scala 2.11, 2.12 or 2.13**
+**Scala 2.12 and 2.13**
 
 **Scala 3.x**: Scala 3 support is experimental and many built-in rules are not
 supported.
@@ -79,7 +79,7 @@ the Scala compiler option `-Ywarn-unused-import` (or `-Wunused:imports` in
   */
  inThisBuild(
    List(
-     scalaVersion := "@SCALA212@", // @SCALA211@, @SCALA213@, or 3.x
+     scalaVersion := "@SCALA212@", // @SCALA213@, or 3.x
 +    semanticdbEnabled := true, // enable SemanticDB
 +    semanticdbVersion := scalafixSemanticdb.revision // only required for Scala 2.x
    )
@@ -97,7 +97,7 @@ the Scala compiler option `-Ywarn-unused-import` (or `-Wunused:imports` in
   * https://www.scala-sbt.org/1.x/docs/sbt-1.3-Release-Notes.html#SemanticDB+support
   */
  lazy val myproject = project.settings(
-   scalaVersion := "@SCALA212@", // @SCALA211@, @SCALA213@, or 3.x
+   scalaVersion := "@SCALA212@", // @SCALA213@, or 3.x
 +  semanticdbEnabled := true, // enable SemanticDB
 +  semanticdbVersion := scalafixSemanticdb.revision, // only required for Scala 2.x
 +  scalacOptions += "-Ywarn-unused-import" // Scala 2.x only, required by `RemoveUnused`

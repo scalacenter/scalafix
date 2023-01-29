@@ -27,7 +27,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       mimaPreviousArtifacts := Set.empty,
       publish / skip := true
     )
-    lazy val supportedScalaVersions = List(scala213, scala211, scala212)
+    lazy val supportedScalaVersions = List(scala213, scala212)
     lazy val publishLocalTransitive =
       taskKey[Unit]("Run publishLocal on this project and its dependencies")
     lazy val isFullCrossVersion = Seq(
@@ -44,9 +44,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     }
     lazy val isScala212 = Def.setting {
       scalaVersion.value.startsWith("2.12")
-    }
-    lazy val isScala211 = Def.setting {
-      scalaVersion.value.startsWith("2.11")
     }
     lazy val warnUnusedImports = Def.setting {
       if (isScala3.value) Nil
@@ -72,7 +69,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       "-implicits"
     )
     lazy val testsDependencies = Def.setting {
-      val xmlLib = if (isScala211.value) scalaXml211 else scalaXml
       val otherLibs =
         if (isScala2.value)
           Seq(
@@ -80,7 +76,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
             "org.scala-lang" % "scala-reflect" % scalaVersion.value
           )
         else Nil
-      xmlLib +: otherLibs
+      scalaXml +: otherLibs
     }
     lazy val compilerOptions = Def.setting(
       warnUnusedImports.value ++
@@ -109,7 +105,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "scalameta" -> scalametaV,
         scalaVersion,
         "supportedScalaVersions" -> supportedScalaVersions,
-        "scala211" -> scala211,
         "scala212" -> scala212,
         "scala213" -> scala213,
         sbtVersion
@@ -157,10 +152,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     commands += Command.command("ci-212") { s =>
       "unit2_12Target2_12/test" ::
         testRulesAgainstPreviousScalaVersions(scala212, s)
-    },
-    commands += Command.command("ci-211") { s =>
-      "unit2_11Target2_11/test" ::
-        testRulesAgainstPreviousScalaVersions(scala211, s)
     },
     commands += Command.command("ci-213-windows") { s =>
       "publishLocalTransitive" :: // scalafix.tests.interfaces.ScalafixSuite
@@ -223,15 +214,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     Compile / console / scalacOptions :=
       compilerOptions.value :+ "-Yrepl-class-based",
     Compile / doc / scalacOptions ++= scaladocOptions,
-    Compile / unmanagedSourceDirectories ++= {
-      val sourceDir = (Compile / sourceDirectory).value
-      val scala212PlusSourceDir = "scala-2.12+"
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, n)) if n >= 12 => Seq(sourceDir / scala212PlusSourceDir)
-        case Some((3, _)) => Seq(sourceDir / scala212PlusSourceDir)
-        case _ => Seq()
-      }
-    },
     Compile / unmanagedResourceDirectories ++= {
       val resourceParentDir = (Compile / resourceDirectory).value.getParentFile
       CrossVersion.partialVersion(scalaVersion.value) match {

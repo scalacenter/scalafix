@@ -5,7 +5,7 @@ title: ExplicitResultTypes
 ---
 
 This rewrite inserts type annotations for inferred public members. Only compatible with 
-scala 2.11, 2.12 & 2.13.
+scala 2.12 & 2.13.
 
 Example:
 

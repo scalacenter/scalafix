@@ -41,7 +41,6 @@ sidebar_label: Guide
           "SEMANTICDB" -> "[SemanticDB](https://scalameta.org/docs/semanticdb/specification.html)",
           "SCALA213" -> Versions.scala213,
           "SCALA212" -> Versions.scala212,
-          "SCALA211" -> Versions.scala211,
           "NIGHTLY_VERSION" -> Versions.version,
           "VERSION" -> Versions.stableVersion,
           "SCALAMETA" -> Versions.scalameta

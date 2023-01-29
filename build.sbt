@@ -35,7 +35,6 @@ lazy val interfaces = projectMatrix
       props.put("scalametaVersion", scalametaV)
       props.put("scala213", scala213)
       props.put("scala212", scala212)
-      props.put("scala211", scala211)
       val out =
         (Compile / managedResourceDirectories).value.head /
           "scalafix-interfaces.properties"
@@ -78,10 +77,7 @@ lazy val core = projectMatrix
         )
       }
     },
-    libraryDependencies += {
-      if (isScala211.value) metaconfigFor211
-      else metaconfig
-    }
+    libraryDependencies += metaconfig
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(buildScalaVersions)
@@ -148,7 +144,7 @@ lazy val cli = projectMatrix
         Seq()
     },
     libraryDependencies ++= {
-      if (isScala211.value || isScala3.value) Seq()
+      if (isScala3.value) Seq()
       else
         Seq(
           // metaconfig 0.10.0 shaded pprint but rules built with an old
@@ -361,11 +357,6 @@ lazy val unit = projectMatrix
     axisValues = Seq(TargetAxis(scala212)),
     settings = Seq()
   )
-  .jvmPlatform(
-    scalaVersions = Seq(scala211),
-    axisValues = Seq(TargetAxis(scala211)),
-    settings = Seq()
-  )
   .enablePlugins(BuildInfoPlugin)
   .dependsOn(testkit)
 
@@ -378,8 +369,7 @@ lazy val docs = projectMatrix
     scalacOptions += "-Wconf:msg='match may not be exhaustive':s", // silence exhaustive pattern matching warning for documentation
     scalacOptions += "-Xfatal-warnings",
     mdoc := (Compile / run).evaluated,
-    libraryDependencies += (if (isScala211.value) metaconfigDocFor211
-                            else metaconfigDoc)
+    libraryDependencies += metaconfigDoc
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(scalaVersions = Seq(scala213))

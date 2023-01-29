@@ -17,7 +17,7 @@ For most rules, this change requires only modifying the build settings as follow
 ```diff
  // build.sbt
  scalaVersion := V.scala212,
-+crossScalaVersions := List(V.scala213, V.scala212, V.scala211),
++crossScalaVersions := List(V.scala213, V.scala212),
 ```
 The second step is to update your CI to run tests on the different
 scala versions your rule is being cross-published to. For that, you only
