@@ -24,6 +24,14 @@ Start by installing the sbt 1.3+ plugin in `project/plugins.sbt`
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@VERSION@")
 ```
 
+> Scalafix is no longer published for Scala 2.11. You can run the final version
+> of Scalafix supporting 2.11, but all features documented below might not be
+> supported.
+> ```scala
+> // project/plugins.sbt
+> addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.10.4") // final Scala 2.11 version
+> ```
+
 > sbt-scalafix is no longer published for sbt 0.13.x. You should be able to run
 > the latest version of Scalafix with the final sbt-scalafix version published
 > for sbt 0.13.x, but all features documented below might not be supported.
@@ -304,7 +312,7 @@ https://scalameta.org/docs/semanticdb/guide.html#scalac-compiler-plugin
 
 By default, the `scalafix` task processes all files in a project. If you use
 SemanticDB, the `scalafix` task also respects
-[`-P:semanticdb:exclude`](#exclude-files-from-semanticdb).
+[`-P:semanticdb:exclude`](#exclude-files-from-semanticdb-scala-2x-only).
 
 Use `Compile / scalafix / unmanagedSources` to optionally exclude files from
 the `scalafix` task.
