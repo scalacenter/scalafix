@@ -7,7 +7,6 @@ import java.nio.file.Paths
 import java.util.Collections
 
 import scala.collection.JavaConverters._
-import scala.util.Failure
 import scala.util.Try
 
 import scala.meta.internal.io.FileIO
@@ -507,14 +506,15 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
 
   test("withScalaVersion: non-parsable scala version") {
     val run = Try(api.withScalaVersion("213"))
-    assert(run.isFailure)
-    run match {
-      case Failure(exception) =>
-        assert(
-          exception.getMessage == "Failed to parse the Scala version"
-        )
-      case _ => ()
-    }
+    val expectedErrorMessage = "Failed to parse the Scala version"
+    assert(run.failed.toOption.map(_.getMessage) == Some(expectedErrorMessage))
+  }
+
+  test("Scala 2.11 is no longer supported") {
+    val run = Try(api.withScalaVersion("2.11.12"))
+    val expectedErrorMessage =
+      "Scala 2.11 is no longer supported; the final version supporting it is Scalafix 0.10.4"
+    assert(run.failed.toOption.map(_.getMessage) == Some(expectedErrorMessage))
   }
 
   def removeUnsuedRule(): SemanticRule = {
