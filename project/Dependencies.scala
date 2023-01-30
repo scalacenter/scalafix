@@ -22,7 +22,7 @@ object Dependencies {
   val bijectionCoreV = "0.9.7"
   val collectionCompatV = "2.9.0"
   val coursierV = "2.0.0-RC5-6"
-  val coursierInterfaceV = "1.0.13"
+  val coursierInterfaceV = "1.0.9"
   val commontTextV = "1.10.0"
   val googleDiffV = "1.3.0"
   val java8CompatV = "0.9.1"
