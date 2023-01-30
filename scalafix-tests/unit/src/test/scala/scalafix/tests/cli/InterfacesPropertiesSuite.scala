@@ -23,7 +23,7 @@ class InterfacesPropertiesSuite extends AnyFunSuite with BeforeAndAfterAll {
   check("scalafixVersion", Versions.version)
   check("scalafixStableVersion", Versions.stableVersion)
   check("scalametaVersion", Versions.scalameta)
-  check("scala211", Versions.scala211)
   check("scala212", Versions.scala212)
+  check("scala213", Versions.scala213)
 
 }

@@ -12,7 +12,6 @@ jobs:
       fail-fast: false
       matrix:
         command:
-          - "ci-211"
           - "ci-212"
           - "ci-213"
           - "ci-3"
@@ -40,7 +39,7 @@ jobs:
       - run: sbt ci-213
 
   jdk17_213:
-    name: JDK117/scala_2.13 tests
+    name: JDK17/scala_2.13 tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

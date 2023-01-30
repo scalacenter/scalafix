@@ -1,7 +1,7 @@
 package scalafix.tests.core.util
 
 import scala.meta._
-import scala.meta.dialects.Scala211
+import scala.meta.dialects.Scala212
 
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.util.TokenList
@@ -16,7 +16,7 @@ class TokenListSuite extends AnyFunSuite {
       |}""".stripMargin.tokenize.get
   val tokenList: TokenList = TokenList(tokens)
 
-  val unknownToken = new Token.EOF(Input.None, Scala211)
+  val unknownToken = new Token.EOF(Input.None, Scala212)
 
   test("leading returns all preceding tokens") {
     val Some(bar) = tokens.find {

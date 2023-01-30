@@ -8,7 +8,7 @@ Adds explicit tuples around argument lists where auto-tupling is occurring.
 
 To use this rule:
 
-- enable `-Ywarn-adapted-args` for Scala 2.11 and 2.12 (note, `-Yno-adapted-args` will fail compilation,
+- enable `-Ywarn-adapted-args` for Scala 2.12 (note, `-Yno-adapted-args` will fail compilation,
   which prevents scalafix from running). For Scala 2.13, use instead `-Xlint:adapted-args`.
 - enable also `-deprecation` to get warnings on insertions of `Unit`.
 

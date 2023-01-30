@@ -24,7 +24,9 @@ final class ScalafixImpl extends Scalafix {
   override def supportedScalaVersions(): Array[String] =
     Versions.supportedScalaVersions.toArray
   override def scala211(): String =
-    Versions.scala211
+    throw new java.lang.UnsupportedOperationException(
+      "Scala 2.11 is no longer supported; the final version supporting it is Scalafix 0.10.4"
+    )
   override def scala212(): String =
     Versions.scala212
   override def scala213(): String =

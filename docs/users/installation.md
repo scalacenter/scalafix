@@ -10,7 +10,7 @@ pull request is tested on both Linux and Windows.
 
 **Java 8 or Java 11.**
 
-**Scala 2.11, 2.12 or 2.13**
+**Scala 2.12 and 2.13**
 
 **Scala 3.x**: Scala 3 support is experimental and many built-in rules are not
 supported.
@@ -23,6 +23,14 @@ Start by installing the sbt 1.3+ plugin in `project/plugins.sbt`
 // project/plugins.sbt
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@VERSION@")
 ```
+
+> Scalafix is no longer published for Scala 2.11. You can run the final version
+> of Scalafix supporting 2.11, but all features documented below might not be
+> supported.
+> ```scala
+> // project/plugins.sbt
+> addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.10.4") // final Scala 2.11 version
+> ```
 
 > sbt-scalafix is no longer published for sbt 0.13.x. You should be able to run
 > the latest version of Scalafix with the final sbt-scalafix version published
@@ -79,7 +87,7 @@ the Scala compiler option `-Ywarn-unused-import` (or `-Wunused:imports` in
   */
  inThisBuild(
    List(
-     scalaVersion := "@SCALA212@", // @SCALA211@, @SCALA213@, or 3.x
+     scalaVersion := "@SCALA212@", // @SCALA213@, or 3.x
 +    semanticdbEnabled := true, // enable SemanticDB
 +    semanticdbVersion := scalafixSemanticdb.revision // only required for Scala 2.x
    )
@@ -97,7 +105,7 @@ the Scala compiler option `-Ywarn-unused-import` (or `-Wunused:imports` in
   * https://www.scala-sbt.org/1.x/docs/sbt-1.3-Release-Notes.html#SemanticDB+support
   */
  lazy val myproject = project.settings(
-   scalaVersion := "@SCALA212@", // @SCALA211@, @SCALA213@, or 3.x
+   scalaVersion := "@SCALA212@", // @SCALA213@, or 3.x
 +  semanticdbEnabled := true, // enable SemanticDB
 +  semanticdbVersion := scalafixSemanticdb.revision, // only required for Scala 2.x
 +  scalacOptions += "-Ywarn-unused-import" // Scala 2.x only, required by `RemoveUnused`
@@ -304,7 +312,7 @@ https://scalameta.org/docs/semanticdb/guide.html#scalac-compiler-plugin
 
 By default, the `scalafix` task processes all files in a project. If you use
 SemanticDB, the `scalafix` task also respects
-[`-P:semanticdb:exclude`](#exclude-files-from-semanticdb).
+[`-P:semanticdb:exclude`](#exclude-files-from-semanticdb-scala-2x-only).
 
 Use `Compile / scalafix / unmanagedSources` to optionally exclude files from
 the `scalafix` task.

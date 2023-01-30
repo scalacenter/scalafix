@@ -251,6 +251,10 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
     copy(args = args.copy(scalacOptions = options.asScala.toList))
 
   override def withScalaVersion(version: String): ScalafixArguments = {
+    if (version.startsWith("2.11"))
+      throw new ScalafixMainArgsException(
+        "Scala 2.11 is no longer supported; the final version supporting it is Scalafix 0.10.4"
+      )
     ScalaVersion
       .from(version) match {
       case Success(value) => copy(args = args.copy(scalaVersion = value))

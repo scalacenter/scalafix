@@ -3,8 +3,6 @@ package scalafix.tests.util
 import scalafix.tests.BuildInfo
 
 object ScalaVersions {
-  def isScala211: Boolean =
-    BuildInfo.scalaVersion.startsWith("2.11")
   def isScala212: Boolean =
     BuildInfo.scalaVersion.startsWith("2.12")
   def isScala213: Boolean =
