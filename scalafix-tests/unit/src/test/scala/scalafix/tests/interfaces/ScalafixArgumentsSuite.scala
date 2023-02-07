@@ -517,6 +517,61 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     assert(run.failed.toOption.map(_.getMessage) == Some(expectedErrorMessage))
   }
 
+  test("textEdits returns patch as edits") {
+    val cwd: Path = StringFS
+      .string2dir(
+        """|/src/Main2.scala
+          |import scala.concurrent.duration
+          |import scala.concurrent.Future
+          |
+          |object Main extends App {
+          |  import scala.concurrent.Await
+          |  println("test");
+          |  println("ok")
+          |}""".stripMargin,
+        charset
+      )
+      .toNIO
+    val src = cwd.resolve("src")
+
+    val run = api
+      .withRules(List("CommentFileNonAtomic", "CommentFileAtomic").asJava)
+      .withSourceroot(src)
+
+    val fileEvaluation = run.evaluate().getFileEvaluations.head
+    val patches = fileEvaluation.getPatches
+
+    // CommentFileNonAtomic produces two patches which in turn produce one
+    // token patch each, whilst CommentFileAtomic produces one patch which
+    // in turn produces two token patches
+    val Array(nonAtomicEditArray1, nonAtomicEditArray2, atomicEditArray) =
+      patches.map(_.textEdits()).sortBy(_.length)
+
+    // Check the above holds
+    assert(nonAtomicEditArray1.length == 1 && nonAtomicEditArray2.length == 1)
+    assert(atomicEditArray.length == 2)
+
+    // Check the offsets for the atomic edits look ok (e.g. they're zero-based)
+    val Array(atomicEdit1, atomicEdit2) =
+      atomicEditArray.sortBy(_.position.startLine)
+    assert(
+      atomicEdit1.position.startLine == 0 && atomicEdit1.position.startColumn == 0
+    )
+    assert(
+      atomicEdit2.position.startLine == 7 && atomicEdit2.position.startColumn == 1
+    )
+
+    // Check the same holds for the non-atomic edit pair
+    val Array(nonAtomicEdit1, nonAtomicEdit2) =
+      (nonAtomicEditArray1 ++ nonAtomicEditArray2).sortBy(_.position.startLine)
+    assert(
+      nonAtomicEdit1.position.startLine == 0 && nonAtomicEdit1.position.startColumn == 0
+    )
+    assert(
+      nonAtomicEdit2.position.startLine == 7 && nonAtomicEdit2.position.startColumn == 1
+    )
+  }
+
   def removeUnsuedRule(): SemanticRule = {
     val config = RemoveUnusedConfig.default
     new RemoveUnused(config)
