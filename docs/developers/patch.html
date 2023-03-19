@@ -144,7 +144,7 @@ tree nodes</p>
 <p>The <code>replaceTree()</code> patch is a convenience operator for <code>removeTokens</code> and
 <code>addRight</code>.</p>
 <pre><code class="hljs css language-scala">doc.tree.collect {
-  <span class="hljs-keyword">case</span> println @ <span class="hljs-type">Term</span>.<span class="hljs-type">Apply</span>(<span class="hljs-type">Name</span>(<span class="hljs-string">"println"</span>), _) =&gt;
+  <span class="hljs-keyword">case</span> println @ <span class="hljs-type">Term</span>.<span class="hljs-type">Apply</span>.<span class="hljs-type">After_4_6_0</span>(<span class="hljs-type">Name</span>(<span class="hljs-string">"println"</span>), _) =&gt;
     <span class="hljs-type">Patch</span>.replaceTree(println, <span class="hljs-string">"print(40 + 2)"</span>)
 }.showDiff()
 <span class="hljs-comment">// -  println("Hello world!")</span>
@@ -197,7 +197,7 @@ particular position. The <code>lint()</code> patch does not produce a diff.</p>
   <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">message</span> </span>= <span class="hljs-string">"Use loggers instead of println"</span>
 }
 doc.tree.collect {
-  <span class="hljs-keyword">case</span> println @ <span class="hljs-type">Term</span>.<span class="hljs-type">Apply</span>(<span class="hljs-type">Term</span>.<span class="hljs-type">Name</span>(<span class="hljs-string">"println"</span>), _) =&gt;
+  <span class="hljs-keyword">case</span> println @ <span class="hljs-type">Term</span>.<span class="hljs-type">Apply</span>.<span class="hljs-type">After_4_6_0</span>(<span class="hljs-type">Term</span>.<span class="hljs-type">Name</span>(<span class="hljs-string">"println"</span>), _) =&gt;
     <span class="hljs-type">Patch</span>.lint(<span class="hljs-type">Println</span>(println.pos))
 }.showLints()
 <span class="hljs-comment">// Main.scala:6:3: error: [RuleName]: Use loggers instead of println</span>

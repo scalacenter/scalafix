@@ -178,11 +178,14 @@ or <code>tree.structure</code>. First, make sure you have the following imports<
 <p>Next, use the <code>.structure</code> and <code>.structure(width: Int)</code> extension methods on
 trees.</p>
 <pre><code class="hljs css language-scala">println(<span class="hljs-string">q"complete(true)"</span>.structure)     <span class="hljs-comment">// line wrap at 80th column</span>
-<span class="hljs-comment">// Term.Apply(Term.Name("complete"), List(Lit.Boolean(true)))     // line wrap at 80th column</span>
+<span class="hljs-comment">// Term.Apply(Term.Name("complete"), Term.ArgClause(List(Lit.Boolean(true)), None))     // line wrap at 80th column</span>
 println(<span class="hljs-string">q"complete(true)"</span>.structureWidth(<span class="hljs-number">30</span>)) <span class="hljs-comment">// line wrap at 30th column</span>
 <span class="hljs-comment">// Term.Apply(</span>
 <span class="hljs-comment">//   Term.Name("complete"),</span>
-<span class="hljs-comment">//   List(Lit.Boolean(true))</span>
+<span class="hljs-comment">//   Term.ArgClause(</span>
+<span class="hljs-comment">//     List(Lit.Boolean(true)),</span>
+<span class="hljs-comment">//     None</span>
+<span class="hljs-comment">//   )</span>
 <span class="hljs-comment">// )</span>
 </code></pre>
 <p>The output of <code>tree.structure</code> can be copy-pasted for use in pattern matching.</p>

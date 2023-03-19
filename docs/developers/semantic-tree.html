@@ -126,12 +126,12 @@ add(<span class="hljs-number">2</span>)         <span class="hljs-comment">// in
 <p>Use <code>Tree.synthetics</code> in combination with <code>SemanticTree.symbol</code> to get the symbol
 of those inferred <code>.apply</code> method calls.</p>
 <pre><code class="hljs css language-scala">doc.tree.traverse {
-  <span class="hljs-keyword">case</span> <span class="hljs-type">Term</span>.<span class="hljs-type">Apply</span>(add @ <span class="hljs-string">q"add"</span>, <span class="hljs-type">List</span>(<span class="hljs-string">q"2"</span>)) =&gt;
+  <span class="hljs-keyword">case</span> <span class="hljs-type">Term</span>.<span class="hljs-type">Apply</span>.<span class="hljs-type">After_4_6_0</span>(add @ <span class="hljs-string">q"add"</span>, <span class="hljs-type">Term</span>.<span class="hljs-type">ArgClause</span>(<span class="hljs-type">List</span>(<span class="hljs-string">q"2"</span>), _)) =&gt;
     println(<span class="hljs-string">"add(2)"</span>)
     println(<span class="hljs-string">"synthetic = "</span> + add.synthetics)
     println(<span class="hljs-string">"symbol    = "</span> + add.synthetics.flatMap(_.symbol).structure)
     println(<span class="hljs-string">"structure = "</span> + add.synthetics.structure)
-  <span class="hljs-keyword">case</span> <span class="hljs-type">Term</span>.<span class="hljs-type">ApplyType</span>(option @ <span class="hljs-string">q"Option"</span>, <span class="hljs-type">List</span>(<span class="hljs-string">t"Int"</span>)) =&gt;
+  <span class="hljs-keyword">case</span> <span class="hljs-type">Term</span>.<span class="hljs-type">ApplyType</span>.<span class="hljs-type">After_4_6_0</span>(option @ <span class="hljs-string">q"Option"</span>, <span class="hljs-type">Term</span>.<span class="hljs-type">ArgClause</span>(<span class="hljs-type">List</span>(<span class="hljs-string">t"Int"</span>), _)) =&gt;
     println(<span class="hljs-string">"Option[Int]"</span>)
     println(<span class="hljs-string">"synthetic = "</span> + option.synthetics)
     println(<span class="hljs-string">"symbol    = "</span> + option.synthetics.flatMap(_.symbol).structure)
@@ -144,15 +144,6 @@ of those inferred <code>.apply</code> method calls.</p>
 <span class="hljs-comment">//   SelectTree(</span>
 <span class="hljs-comment">//     OriginalTree(Term.Name("add")),</span>
 <span class="hljs-comment">//     IdTree(SymbolInformation(scala/Function1#apply(). =&gt; abstract method apply(v1: T1): R))</span>
-<span class="hljs-comment">//   )</span>
-<span class="hljs-comment">// )</span>
-<span class="hljs-comment">// Option[Int]</span>
-<span class="hljs-comment">// synthetic = List(*.apply)</span>
-<span class="hljs-comment">// symbol    = List(Symbol("scala/Option.apply()."))</span>
-<span class="hljs-comment">// structure = List(</span>
-<span class="hljs-comment">//   SelectTree(</span>
-<span class="hljs-comment">//     OriginalTree(Term.Name("Option")),</span>
-<span class="hljs-comment">//     IdTree(SymbolInformation(scala/Option.apply(). =&gt; method apply[A](x: A): Option[A]))</span>
 <span class="hljs-comment">//   )</span>
 <span class="hljs-comment">// )</span>
 </code></pre>
@@ -187,9 +178,9 @@ of those inferred <code>.apply</code> method calls.</p>
 <span class="hljs-comment">//     OriginalTree(Term.Apply(</span>
 <span class="hljs-comment">//       Term.ApplyType(</span>
 <span class="hljs-comment">//         Term.Select(Term.Name("Future"), Term.Name("apply")),</span>
-<span class="hljs-comment">//         List(Type.Name("Int"))</span>
+<span class="hljs-comment">//         Type.ArgClause(List(Type.Name("Int")))</span>
 <span class="hljs-comment">//       ),</span>
-<span class="hljs-comment">//       List(Lit.Int(3))</span>
+<span class="hljs-comment">//       Term.ArgClause(List(Lit.Int(3)), None)</span>
 <span class="hljs-comment">//     )),</span>
 <span class="hljs-comment">//     List(</span>
 <span class="hljs-comment">//       IdTree(SymbolInformation(scala/concurrent/ExecutionContext.Implicits.global(). =&gt; final implicit method global: ExecutionContext))</span>
@@ -215,7 +206,7 @@ Consider the following program.</p>
 <p>Use the <code>Term.ApplyInfix.syntheticOperators</code> to look up inferred type parameters
 of infix operators.</p>
 <pre><code class="hljs css language-scala">doc.tree.traverse {
-  <span class="hljs-keyword">case</span> concat @ <span class="hljs-type">Term</span>.<span class="hljs-type">ApplyInfix</span>(_, <span class="hljs-type">Term</span>.<span class="hljs-type">Name</span>(<span class="hljs-string">"++"</span>), _, _) =&gt;
+  <span class="hljs-keyword">case</span> concat @ <span class="hljs-type">Term</span>.<span class="hljs-type">ApplyInfix</span>.<span class="hljs-type">After_4_6_0</span>(_, <span class="hljs-type">Term</span>.<span class="hljs-type">Name</span>(<span class="hljs-string">"++"</span>), _, _) =&gt;
     println(<span class="hljs-string">".syntheticOperators = "</span> + concat.syntheticOperators)
     println(<span class="hljs-string">".structure         = "</span> + concat.syntheticOperators.structure)
 }
@@ -223,10 +214,15 @@ of infix operators.</p>
 <span class="hljs-comment">// .structure         = List(</span>
 <span class="hljs-comment">//   TypeApplyTree(</span>
 <span class="hljs-comment">//     OriginalTree(Term.ApplyInfix(</span>
-<span class="hljs-comment">//       Term.Apply(Term.Name("List"), List(Lit.Int(1))),</span>
+<span class="hljs-comment">//       Term.Apply(Term.Name("List"), Term.ArgClause(List(Lit.Int(1)), None)),</span>
 <span class="hljs-comment">//       Term.Name("++"),</span>
-<span class="hljs-comment">//       List(),</span>
-<span class="hljs-comment">//       List(Term.Apply(Term.Name("List"), List(Lit.Int(2))))</span>
+<span class="hljs-comment">//       Type.ArgClause(List()),</span>
+<span class="hljs-comment">//       Term.ArgClause(</span>
+<span class="hljs-comment">//         List(</span>
+<span class="hljs-comment">//           Term.Apply(Term.Name("List"), Term.ArgClause(List(Lit.Int(2)), None))</span>
+<span class="hljs-comment">//         ),</span>
+<span class="hljs-comment">//         None</span>
+<span class="hljs-comment">//       )</span>
 <span class="hljs-comment">//     )),</span>
 <span class="hljs-comment">//     List(TypeRef(NoType, Symbol("scala/Int#"), List()))</span>
 <span class="hljs-comment">//   )</span>
