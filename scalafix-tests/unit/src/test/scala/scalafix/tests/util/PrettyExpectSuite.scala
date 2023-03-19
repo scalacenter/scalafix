@@ -9,6 +9,7 @@ import scalafix.internal.util.Pretty
 import scalafix.internal.v1.DocumentFromProtobuf
 import scalafix.v1
 
+// Run `sbt save-expect` to acknowledge changes
 class PrettyExpectSuite extends ExpectSuite {
   def filename: String = "PrettyTest.scala"
   def obtained(): String = {
