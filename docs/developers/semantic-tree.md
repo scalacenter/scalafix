@@ -87,12 +87,12 @@ of those inferred `.apply` method calls.
 
 ```scala mdoc
 doc.tree.traverse {
-  case Term.Apply(add @ q"add", List(q"2")) =>
+  case Term.Apply.After_4_6_0(add @ q"add", Term.ArgClause(List(q"2"), _)) =>
     println("add(2)")
     println("synthetic = " + add.synthetics)
     println("symbol    = " + add.synthetics.flatMap(_.symbol).structure)
     println("structure = " + add.synthetics.structure)
-  case Term.ApplyType(option @ q"Option", List(t"Int")) =>
+  case Term.ApplyType.After_4_6_0(option @ q"Option", Term.ArgClause(List(t"Int"), _)) =>
     println("Option[Int]")
     println("synthetic = " + option.synthetics)
     println("symbol    = " + option.synthetics.flatMap(_.symbol).structure)
@@ -150,7 +150,7 @@ of infix operators.
 
 ```scala mdoc
 doc.tree.traverse {
-  case concat @ Term.ApplyInfix(_, Term.Name("++"), _, _) =>
+  case concat @ Term.ApplyInfix.After_4_6_0(_, Term.Name("++"), _, _) =>
     println(".syntheticOperators = " + concat.syntheticOperators)
     println(".structure         = " + concat.syntheticOperators.structure)
 }

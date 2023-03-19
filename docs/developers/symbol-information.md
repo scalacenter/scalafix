@@ -56,7 +56,7 @@ node.
 
 ```scala mdoc
 doc.tree.collect {
-  case apply @ Term.Apply(println @ Term.Name("println"), _) =>
+  case apply @ Term.Apply.After_4_6_0(println @ Term.Name("println"), _) =>
     (apply.syntax, println.symbol)
 }
 ```
