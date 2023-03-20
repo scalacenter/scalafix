@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: olafurpg/setup-scala@v13
+      - uses: olafurpg/setup-scala@v14
       - uses: olafurpg/setup-gpg@v3
       - run: git fetch --unshallow
       - name: Check that major or minor was bumped upon compatibility breakage

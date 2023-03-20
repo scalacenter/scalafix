@@ -9,7 +9,7 @@ import scala.util.Try
 object Dependencies {
   val scala212 = "2.12.17"
   val scala213 = "2.13.10"
-  val scala3 = "3.2.1"
+  val scala3 = "3.2.2"
 
   val buildScalaVersions = Seq(scala212, scala213, scala3)
   val testTargetScalaVersions = Seq(scala212, scala213, scala3)
@@ -20,7 +20,7 @@ object Dependencies {
 
   val bijectionCoreV = "0.9.7"
   val collectionCompatV = "2.9.0"
-  val coursierV = "2.1.0-RC5"
+  val coursierV = "2.1.0"
   val coursierInterfaceV = "1.0.9"
   val commontTextV = "1.10.0"
   val googleDiffV = "1.3.0"
@@ -30,7 +30,7 @@ object Dependencies {
   val pprintV = "0.6.6" // don't bump, rules built against metaconfig 0.9.15 or earlier would not link
   val nailgunV = "0.9.1"
   val scalaXmlV = "2.1.0"
-  val scalametaV = "4.6.0"
+  val scalametaV = "4.7.6"
   val scalatestMinV = "3.0.8" // don't bump, to avoid forcing breaking changes on clients via eviction
   val scalatestLatestV = "3.2.13"
   val munitV = "0.7.29"

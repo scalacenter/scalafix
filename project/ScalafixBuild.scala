@@ -136,6 +136,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     ThisBuild / watchTriggeredMessage := Watch.clearScreenOnTrigger,
     commands += Command.command("save-expect") { s =>
       "unit2_13Target2_13/test:runMain scalafix.tests.util.SaveExpect" ::
+        "unit3Target3/test:runMain scalafix.tests.util.SaveExpect" ::
         s
     },
     commands += Command.command("ci-3") { s =>
