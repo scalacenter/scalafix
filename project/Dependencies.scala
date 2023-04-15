@@ -25,7 +25,7 @@ object Dependencies {
   val coursierInterfaceV = "1.0.9"
   val commontTextV = "1.10.0"
   val googleDiffV = "1.3.0"
-  val java8CompatV = "0.9.1"
+  val java8CompatV = "1.0.2"
   val jgitV = "5.13.1.202206130422-r"
   val metaconfigFor211V = "0.9.10" // metaconfig stops publishing for scala 2.11
   val metaconfigV = "0.11.1"
