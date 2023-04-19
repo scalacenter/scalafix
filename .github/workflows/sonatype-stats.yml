@@ -1,0 +1,29 @@
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 15 * *'
+
+jobs:
+  update_data:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: coursier/cache-action@v6
+      - uses: VirtusLab/scala-cli-setup@v0.2.0
+      - uses: actions/checkout@v3
+      - name: Update stats
+        env:
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        run: .github/scripts/update.sc
+      - name: Push changes
+        run: |
+          git config --global user.name 'Scala Center Bot'
+          git config --global user.email 'scala-center-bot@users.noreply.github.com'
+          git add .
+          git commit --allow-empty -m "Update stats"
+          git push
+      - uses: gautamkrishnar/keepalive-workflow@v1
+        with:
+          committer_username: scala-center-bot
+          committer_email: scala-center-bot@users.noreply.github.com

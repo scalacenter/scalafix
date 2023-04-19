@@ -41,3 +41,6 @@ out/
 .metals/
 .vscode/
 metals.sbt
+
+# Scala CLI specific
+.scala-build/
