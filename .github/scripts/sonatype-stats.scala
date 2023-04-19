@@ -51,14 +51,14 @@ object Params {
 }
 
 case class Data(
-  base: Path,
-  ext: String,
-  empty: String => Boolean,
-  name: String,
-  tpe: String,
-  projId: String,
-  organization: String,
-  artifact: Option[String]
+    base: Path,
+    ext: String,
+    empty: String => Boolean,
+    name: String,
+    tpe: String,
+    projId: String,
+    organization: String,
+    artifact: Option[String]
 ) {
 
   def fileFor(monthYear: YearMonth): Path = {
@@ -81,7 +81,8 @@ case class Data(
     val year = monthYear.getYear
     val month = monthYear.getMonth.getValue
 
-    uri"https://oss.sonatype.org/service/local/stats/$name?p=$projId&g=$organization&a=${artifact.getOrElse("")}&t=$tpe&from=${f"$year%04d$month%02d"}&nom=1"
+    uri"https://oss.sonatype.org/service/local/stats/$name?p=$projId&g=$organization&a=${artifact
+        .getOrElse("")}&t=$tpe&from=${f"$year%04d$month%02d"}&nom=1"
   }
 
   def process(monthYears: Iterator[YearMonth]): Iterator[(YearMonth, Boolean)] =
@@ -90,13 +91,12 @@ case class Data(
         !exists(monthYear)
       }
       .map { monthYear =>
-
         val u = urlFor(monthYear)
 
         System.err.println(s"Getting $monthYear: $u")
 
-        val statResp = sttp
-          .auth.basic(Params.sonatypeUser, Params.sonatypePassword)
+        val statResp = sttp.auth
+          .basic(Params.sonatypeUser, Params.sonatypePassword)
           .header("Accept", "application/json")
           .get(u)
           .send()
@@ -121,8 +121,8 @@ object SonatypeStats {
   def collect(): Unit = {
     val projId: String = {
       val projectIds: Map[String, String] = {
-        val projResp = sttp
-          .auth.basic(Params.sonatypeUser, Params.sonatypePassword)
+        val projResp = sttp.auth
+          .basic(Params.sonatypeUser, Params.sonatypePassword)
           .header("Accept", "application/json")
           .get(uri"https://oss.sonatype.org/service/local/stats/projects")
           .send()
@@ -167,14 +167,16 @@ object SonatypeStats {
 
     for (data <- artifactStatsPerVersion) {
       val it = Iterator.iterate(Params.start)(_.minusMonths(1L))
-      val processed = data.process(it)
-        .takeWhile {
-          case (monthYear, nonEmpty) =>
-            nonEmpty || monthYear.compareTo(Params.cutOff) >= 0
+      val processed = data
+        .process(it)
+        .takeWhile { case (monthYear, nonEmpty) =>
+          nonEmpty || monthYear.compareTo(Params.cutOff) >= 0
         }
         .length
 
-      System.err.println(s"Processed $processed months in ${data.base} for type ${data.tpe}")
+      System.err.println(
+        s"Processed $processed months in ${data.base} for type ${data.tpe}"
+      )
     }
   }
 

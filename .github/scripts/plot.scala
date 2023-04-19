@@ -34,7 +34,11 @@ object Plot {
         }
     }
 
-    def csvToBars(dir: File, allowedVersion: String => Boolean, filterOutMonths: Set[YearMonth] = Set()): Seq[Trace] = {
+    def csvToBars(
+        dir: File,
+        allowedVersion: String => Boolean,
+        filterOutMonths: Set[YearMonth] = Set()
+    ): Seq[Trace] = {
 
       val data = for {
         year <- 2015 to Year.now(ZoneOffset.UTC).getValue
@@ -42,11 +46,17 @@ object Plot {
         f = new File(dir, f"$year/$month%02d.csv")
         if f.exists()
         ym = YearMonth.of(year, month)
-        elem <- CSVReader.open(f)
+        elem <- CSVReader
+          .open(f)
           .iterator
           .map(l => (ym, /* version */ l(0), /* downloads */ l(1).toInt))
-          .collect { case (date, version @ relevantVersion(major, minor, patch), downloads) if allowedVersion(version) =>
-            (date, (major, minor, patch), downloads)
+          .collect {
+            case (
+                  date,
+                  version @ relevantVersion(major, minor, patch),
+                  downloads
+                ) if allowedVersion(version) =>
+              (date, (major, minor, patch), downloads)
           }
           .toVector
       } yield elem
@@ -76,30 +86,44 @@ object Plot {
       for {
         artifact <- stats.Params.artifacts
         (baseDir, divId, title) <- Seq(
-          ("per-version-stats", s"${artifact}-total", s"${artifact} (total downloads)"),
-          ("per-version-unique-ips", s"${artifact}-unique", s"${artifact} (unique IPs)")
+          (
+            "per-version-stats",
+            s"${artifact}-total",
+            s"${artifact} (total downloads)"
+          ),
+          (
+            "per-version-unique-ips",
+            s"${artifact}-unique",
+            s"${artifact} (unique IPs)"
+          )
         )
-        bars = csvToBars(dataBase.resolve(baseDir).resolve(artifact).toFile, _ => true /* keep all the versions */)
-      } yield
-        s"""
-           |<h2 id="${divId}-plot">${title} <a href="#${divId}-plot">#</a></h2>
-           |<div id="${divId}"></div>
-           |<script>${Plotly.jsSnippet(divId, bars, Layout(barmode = BarMode.Stack))}</script>
-           |""".stripMargin
+        bars = csvToBars(
+          dataBase.resolve(baseDir).resolve(artifact).toFile,
+          _ => true /* keep all the versions */
+        )
+      } yield s"""
+        |<h2 id="${divId}-plot">${title} <a href="#${divId}-plot">#</a></h2>
+        |<div id="${divId}"></div>
+        |<script>${Plotly.jsSnippet(
+          divId,
+          bars,
+          Layout(barmode = BarMode.Stack)
+        )}</script>
+        |""".stripMargin
 
     val html =
       s"""<!DOCTYPE html>
-         |<html>
-         |<head>
-         |<title>Scalafix Statistics</title>
-         |<script src="https://cdn.plot.ly/plotly-${Plotly.plotlyVersion}.min.js"></script>
-         |</head>
-         |<body>
-         |<h1>Scalafix Statistics</h1>
-         |${htmlSnippets.mkString}
-         |</body>
-         |</html>
-         |""".stripMargin
+        |<html>
+        |<head>
+        |<title>Scalafix Statistics</title>
+        |<script src="https://cdn.plot.ly/plotly-${Plotly.plotlyVersion}.min.js"></script>
+        |</head>
+        |<body>
+        |<h1>Scalafix Statistics</h1>
+        |${htmlSnippets.mkString}
+        |</body>
+        |</html>
+        |""".stripMargin
 
     Files.createDirectories(dataBase)
     Files.write(dataBase.resolve("index.html"), html.getBytes("UTF-8"))
