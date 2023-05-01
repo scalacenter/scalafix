@@ -17,25 +17,27 @@ jobs:
           - "ci-3"
     steps:
       - uses: actions/checkout@v3
-      - uses: olafurpg/setup-scala@v14
+      - uses: coursier/setup-action@v1
+        with:
+          jvm: temurin:8
       - run: sbt ${{ matrix.command }}
   jdk11_212:
     name: JDK11/scala_2.12 tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: olafurpg/setup-scala@v14
+      - uses: coursier/setup-action@v1
         with:
-          java-version: adopt@1.11
+          jvm: temurin:11
       - run: sbt ci-212
   jdk11_213:
     name: JDK11/scala_2.13 tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: olafurpg/setup-scala@v14
+      - uses: coursier/setup-action@v1
         with:
-          java-version: adopt@1.11
+          jvm: temurin:11
       - run: sbt ci-213
 
   jdk17_213:
@@ -43,9 +45,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: olafurpg/setup-scala@v14
+      - uses: coursier/setup-action@v1
         with:
-          java-version: 17
+          jvm: temurin:17
       - run: sbt ci-213
 
   windows_213:
@@ -53,7 +55,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: olafurpg/setup-scala@v14
+      - uses: coursier/setup-action@v1
       - run: sbt ci-213-windows
         shell: bash
   checks:
@@ -61,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: olafurpg/setup-scala@v14
+      - uses: coursier/setup-action@v1
       - run: sbt "scalafixAll --check"
       - run: ./bin/scalafmt --test
   mima:
@@ -71,5 +73,5 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: olafurpg/setup-scala@v14
+      - uses: coursier/setup-action@v1
       - run: sbt versionPolicyCheck
