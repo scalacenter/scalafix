@@ -143,7 +143,10 @@ object ScalafixFileEvaluationImpl {
       ctx: RuleCtx,
       index: Option[v0.SemanticdbIndex]
   ): ScalafixFileEvaluationImpl = {
-    val scalafixPatches = patches.map(ScalafixPatchImpl.apply)
+    val indexOrEmpty = index.getOrElse(v0.SemanticdbIndex.empty)
+    val scalafixPatches = patches.map { p =>
+      ScalafixPatchImpl(p)(args, ctx, indexOrEmpty)
+    }
     ScalafixFileEvaluationImpl(
       originalPath = originalPath,
       fixedOpt = fixed,
