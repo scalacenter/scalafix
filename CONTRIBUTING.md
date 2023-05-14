@@ -19,8 +19,8 @@ hesitate to ask in the [Discord channel](https://discord.gg/8AHaqGx3Qj).
 
 The project should import normally into IntelliJ and there should not be any
 false red squiggles. To use the debugger or run tests from within IntelliJ, run
-at least once `sbt unit2_13Target2_13/test` to generate a `BuildInfo` file and
-property files for Scalafix testkit.
+at least once tests through sbt to generate a `BuildInfo` file and property
+files for Scalafix testkit.
 
 ## Testing
 
@@ -28,19 +28,22 @@ Start the SBT shell with `$ sbt`. The commands below assume you have a running
 sbt shell.
 
 ```sh
-# Fast unit tests for rules, cli, core. Contains a lot
+# Fast unit tests for rules, cli, core.
+> unit2_13/test
+
+# Integration tests for rules, cli, core. Contains a lot
 # of different test suites, so it's recommended to use testOnly.
-> unit2_13Target2_13/test
+> integration2_13/test
 
-# Only run tests for rules, using scalafix-testkit.
-> unit2_13Target2_13/testOnly *RuleSuite
+# Only run tests for built-in rules, using scalafix-testkit.
+> expect2_13Target2_13/test
 
-# Only run only ProcedureSyntax unit test.
-> unit2_13Target2_13/testOnly *RuleSuite -- -z ProcedureSyntax
+# Only run ProcedureSyntax unit tests.
+> expect2_13Target2_13/testOnly -- -z ProcedureSyntax
 ```
 
 [sbt-projectmatrix](https://github.com/sbt/sbt-projectmatrix) is used to
-generate several sbt projects `unitXTargetY` with the same source code,
+generate several sbt projects `expectTargetY` with the same source code,
 but for a combination of Scala versions:
 - used for compiling the framework and rules (`X`)
 - used for compiling and generating SemanticDB files for the test input (`Y`)
@@ -49,10 +52,14 @@ Unit tests for rules are written using scalafix-testkit
 
 ```
 scalafix-tests
+|
+├── unit          # Unit test suites
+|
+├── integration   # Integration test suites
+|
 ├── input         # Source files to be analyzed and fixed by rules
 ├── output        # Expected output from running rewrite rules
-├── shared        # Code that is shared between input and unit projects
-└── unit          # Unit test suites.
+└── expect        # Verify expectations defined in input/output using testkit
 ```
 
 ## Formatting

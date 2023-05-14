@@ -1,0 +1,13 @@
+scalafix.test.SemanticRuleV1
+scalafix.test.SyntacticRuleV1
+scalafix.test.CommentFileNonAtomic
+scalafix.test.CommentFileAtomic
+scalafix.test.AddCommentEndOfFile
+scalafix.test.ScalatestAutofixRule
+scalafix.test.ExplicitSynthetic
+scalafix.test.cli.CrashingRule
+scalafix.test.cli.NoOpRule
+scalafix.test.cli.DeprecatedName
+scalafix.test.cli.Scala2_9
+scalafix.test.cli.AvailableRule
+scalafix.test.cli.Disable

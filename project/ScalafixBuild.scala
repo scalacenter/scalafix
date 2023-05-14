@@ -2,6 +2,7 @@ import Dependencies._
 import sbt._
 import sbt.Classpaths
 import sbt.Keys._
+import sbt.internal.ProjectMatrix
 import sbt.nio.Keys._
 import sbt.plugins.JvmPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
@@ -121,6 +122,34 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       if (isScala3.value) scalatest.withRevision(scalatestLatestV)
       else scalatest
     }
+
+    /**
+     * Lookup a setting key for the project of the same scala version in the
+     * given matrix
+     */
+    def resolve[T](
+        matrix: ProjectMatrix,
+        key: SettingKey[T]
+    ): Def.Initialize[T] =
+      Def.settingDyn {
+        val sv = scalaVersion.value
+        val project = matrix.jvm(sv)
+        Def.setting((project / key).value)
+      }
+
+    /**
+     * Lookup a task key for the project of the same scala version in the given
+     * matrix
+     */
+    def resolve[T](
+        matrix: ProjectMatrix,
+        key: TaskKey[T]
+    ): Def.Initialize[Task[T]] =
+      Def.taskDyn {
+        val sv = scalaVersion.value
+        val project = matrix.jvm(sv)
+        Def.task((project / key).value)
+      }
   }
 
   import autoImport._
@@ -135,28 +164,36 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     updateOptions := updateOptions.value.withCachedResolution(true),
     ThisBuild / watchTriggeredMessage := Watch.clearScreenOnTrigger,
     commands += Command.command("save-expect") { s =>
-      "unit2_13Target2_13/test:runMain scalafix.tests.util.SaveExpect" ::
-        "unit3Target3/test:runMain scalafix.tests.util.SaveExpect" ::
+      "integration2_13/test:runMain scalafix.tests.util.SaveExpect" ::
+        "integration3/test:runMain scalafix.tests.util.SaveExpect" ::
         s
     },
     commands += Command.command("ci-3") { s =>
-      "unit2_12Target3/test" ::
-        "unit3Target3/test" ::
+      "unit3/test" ::
+        "integration3/test" ::
+        "expects2_12Target3/test" ::
+        "expects3Target3/test" ::
         s
     },
     commands += Command.command("ci-213") { s =>
-      "unit2_13Target2_13/test" ::
+      "unit2_13/test" ::
+        "integration2_13/test" ::
+        "expects2_13Target2_13/test" ::
         "docs2_13/run" ::
         "interfaces/doc" ::
         testRulesAgainstPreviousScalaVersions(scala213, s)
     },
     commands += Command.command("ci-212") { s =>
-      "unit2_12Target2_12/test" ::
+      "unit_2_12/test" ::
+        "integration2_12/test" ::
+        "expects2_12Target2_12/test" ::
         testRulesAgainstPreviousScalaVersions(scala212, s)
     },
     commands += Command.command("ci-213-windows") { s =>
       "publishLocalTransitive" :: // scalafix.tests.interfaces.ScalafixSuite
-        s"unit2_13Target2_13/testOnly -- -l scalafix.internal.tests.utils.SkipWindows" ::
+        "unit2_13/testOnly -- -l scalafix.internal.tests.utils.SkipWindows" ::
+        "integration2_13/testOnly -- -l scalafix.internal.tests.utils.SkipWindows" ::
+        "expects2_13Target2_13/test" ::
         s
     },
     // There is flakyness in CliGitDiffTests and CliSemanticTests
@@ -195,6 +232,10 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
+    // Change working directory to match when `fork := false`.
+    Test / baseDirectory := (ThisBuild / baseDirectory).value,
+    // Prevent issues with scalatest serialization
+    Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat,
     // avoid "missing dependency" on artifacts with full scala version when bumping scala
     versionPolicyIgnored ++= {
       PreviousScalaVersion.get(scalaVersion.value) match {
