@@ -1,4 +1,4 @@
-
+name: Retrieve and commit Sonatype stats
 on:
   workflow_dispatch:
   schedule:
