@@ -1,4 +1,4 @@
-#!/usr/bin/env -S scala shebang
+#!/usr/bin/env -S scala-cli shebang
 
 // Adapted from https://github.com/alexarchambault/sonatype-stats
 //
