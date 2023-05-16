@@ -32,14 +32,20 @@ sbt shell.
 > unit2_13/test
 
 # Integration tests for rules, cli, core. Contains a lot
-# of different test suites, so it's recommended to use testOnly.
+# of different test suites, so it's recommended to use testOnly
+# and/or testQuick.
 > integration2_13/test
 
+# Use testWindows to exclude tests that are not expected to succeed
+# on that OS.
+> unit2_13/testWindows
+> integration2_13/testWindows
+
 # Only run tests for built-in rules, using scalafix-testkit.
-> expect2_13Target2_13/test
+> expect2_13Target2_13_10/test
 
 # Only run ProcedureSyntax unit tests.
-> expect2_13Target2_13/testOnly -- -z ProcedureSyntax
+> expect2_13Target2_13_10/testOnly -- -z ProcedureSyntax
 ```
 
 [sbt-projectmatrix](https://github.com/sbt/sbt-projectmatrix) is used to

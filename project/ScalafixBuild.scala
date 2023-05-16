@@ -123,6 +123,9 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       else scalatest
     }
 
+    lazy val testWindows =
+      taskKey[Unit]("run tests, excluding those incompatible with Windows")
+
     /**
      * Lookup a setting key for the project of the same scala version in the
      * given matrix
@@ -168,36 +171,11 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "integration3/test:runMain scalafix.tests.util.SaveExpect" ::
         s
     },
-    commands += Command.command("ci-3") { s =>
-      "unit3/test" ::
-        "integration3/test" ::
-        "expects2_12Target3/test" ::
-        "expects3Target3/test" ::
-        s
-    },
-    commands += Command.command("ci-213") { s =>
-      "unit2_13/test" ::
-        "integration2_13/test" ::
-        "expects2_13Target2_13/test" ::
-        "docs2_13/run" ::
+    commands += Command.command("ci-docs") { s =>
+      "docs2_13/run" :: // reduce risk of errors on deploy-website.yml
         "interfaces/doc" ::
-        testRulesAgainstPreviousScalaVersions(scala213, s)
-    },
-    commands += Command.command("ci-212") { s =>
-      "unit_2_12/test" ::
-        "integration2_12/test" ::
-        "expects2_12Target2_12/test" ::
-        testRulesAgainstPreviousScalaVersions(scala212, s)
-    },
-    commands += Command.command("ci-213-windows") { s =>
-      "publishLocalTransitive" :: // scalafix.tests.interfaces.ScalafixSuite
-        "unit2_13/testOnly -- -l scalafix.internal.tests.utils.SkipWindows" ::
-        "integration2_13/testOnly -- -l scalafix.internal.tests.utils.SkipWindows" ::
-        "expects2_13Target2_13/test" ::
         s
     },
-    // There is flakyness in CliGitDiffTests and CliSemanticTests
-    Test / parallelExecution := false,
     Test / publishArtifact := false,
     licenses := Seq(
       "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
@@ -232,10 +210,11 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
-    // Change working directory to match when `fork := false`.
-    Test / baseDirectory := (ThisBuild / baseDirectory).value,
     // Prevent issues with scalatest serialization
     Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat,
+    Test / testWindows := (Test / testOnly)
+      .toTask(" -- -l scalafix.internal.tests.utils.SkipWindows")
+      .value,
     // avoid "missing dependency" on artifacts with full scala version when bumping scala
     versionPolicyIgnored ++= {
       PreviousScalaVersion.get(scalaVersion.value) match {
@@ -252,6 +231,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     // don't publish scala 3 artifacts for now
     publish / skip := (if ((publish / skip).value) true
                        else scalaBinaryVersion.value == "3"),
+    publishLocal / skip := (if ((publishLocal / skip).value) true
+                            else scalaBinaryVersion.value == "3"),
     versionPolicyIntention := Compatibility.BinaryCompatible,
     scalacOptions ++= compilerOptions.value,
     scalacOptions ++= semanticdbSyntheticsCompilerOption.value,
@@ -306,21 +287,4 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       }
     }
   )
-
-  private def testRulesAgainstPreviousScalaVersions(
-      scalaVersion: String,
-      state: State
-  ): State = {
-    val projectSuffix = scalaVersion.split('.').take(2).mkString("_")
-    testedPreviousScalaVersions
-      .getOrElse(scalaVersion, Nil)
-      .flatMap { v =>
-        List(
-          s"""set Project("testsInput${projectSuffix}", file(".")) / scalaVersion := "$v"""",
-          s"show testsInput${projectSuffix} / scalaVersion",
-          s"unit${projectSuffix}Target${projectSuffix} / testOnly scalafix.tests.rule.RuleSuite"
-        )
-      }
-      .foldRight(state)(_ :: _)
-  }
 }

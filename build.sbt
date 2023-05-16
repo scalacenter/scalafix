@@ -1,10 +1,10 @@
 import Dependencies._
+import TargetAxis.TargetProjectMatrix
 import sbt.Keys.scalacOptions
 
 inThisBuild(
   List(
     onLoadMessage := s"Welcome to scalafix ${version.value}",
-    fork := true,
     semanticdbEnabled := true,
     semanticdbVersion := scalametaV,
     scalafixScalaBinaryVersion := "2.13",
@@ -187,7 +187,7 @@ lazy val input = projectMatrix
     coverageEnabled := false
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(buildScalaVersions)
+  .jvmPlatformFull(buildWithTargetVersions.map(_._2))
   .disablePlugins(ScalafixPlugin)
 
 lazy val output = projectMatrix
@@ -236,6 +236,7 @@ lazy val integration = projectMatrix
   .in(file("scalafix-tests/integration"))
   .settings(
     noPublishAndNoMima,
+    Test / parallelExecution := false,
     libraryDependencies += {
       if (!isScala3.value) {
         coursier
@@ -277,6 +278,9 @@ lazy val integration = projectMatrix
         resolve(output, Compile / sourceDirectory).value
     ),
     Test / test := (Test / test)
+      .dependsOn(cli.projectRefs.map(_ / publishLocalTransitive): _*)
+      .value,
+    Test / testWindows := (Test / testWindows)
       .dependsOn(cli.projectRefs.map(_ / publishLocalTransitive): _*)
       .value
   )
@@ -339,32 +343,14 @@ lazy val expect = projectMatrix
     }
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(
-    scalaVersions = Seq(scala3),
-    axisValues = Seq(TargetAxis(scala3)),
-    settings = Seq()
-  )
-  .jvmPlatform(
-    scalaVersions = Seq(scala212),
-    axisValues = Seq(TargetAxis(scala3)),
-    settings = Seq()
-  )
-  .jvmPlatform(
-    scalaVersions = Seq(scala213),
-    axisValues = Seq(TargetAxis(scala213)),
-    settings = Seq()
-  )
-  .jvmPlatform(
-    scalaVersions = Seq(scala212),
-    axisValues = Seq(TargetAxis(scala212)),
-    settings = Seq()
-  )
+  .jvmPlatformWithTargets(buildWithTargetVersions)
   .dependsOn(integration)
 
 lazy val docs = projectMatrix
   .in(file("scalafix-docs"))
   .settings(
     noPublishAndNoMima,
+    fork := true,
     run / baseDirectory := (ThisBuild / baseDirectory).value,
     moduleName := "scalafix-docs",
     scalacOptions += "-Wconf:msg='match may not be exhaustive':s", // silence exhaustive pattern matching warning for documentation

@@ -12,11 +12,10 @@ object Dependencies {
   val scala3 = "3.2.2"
 
   val buildScalaVersions = Seq(scala212, scala213, scala3)
-  val testTargetScalaVersions = Seq(scala212, scala213, scala3)
-
-  // we support 3 last binary versions of scala212 and scala213
-  val testedPreviousScalaVersions: Map[String, List[String]] =
-    List(scala213, scala212).map(version => version -> previousVersions(version)).toMap
+  val buildWithTargetVersions: Seq[(String, String)] =
+    buildScalaVersions.map(sv => (sv, sv)) ++
+      Seq(scala213, scala212).flatMap(sv => previousVersions(sv).map(prev => (sv, prev))) ++
+      Seq(scala213, scala212).map(sv => (sv, scala3))
 
   val bijectionCoreV = "0.9.7"
   val collectionCompatV = "2.10.0"
@@ -59,12 +58,12 @@ object Dependencies {
   val munit = "org.scalameta" %% "munit" % munitV
   val semanticdbScalacCore = "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
 
-  private def previousVersions(scalaVersion: String): List[String] = {
+  private def previousVersions(scalaVersion: String): Seq[String] = {
     val split = scalaVersion.split('.')
     val binaryVersion = split.take(2).mkString(".")
     val compilerVersion = Try(split.last.toInt).toOption
     val previousPatchVersions =
-      compilerVersion.map(version => List.range(version - 7, version).filter(_ >= 0)).getOrElse(Nil)
+      compilerVersion.map(version => List.range(version - 2, version).filter(_ >= 0)).getOrElse(Nil)
     previousPatchVersions.map(v => s"$binaryVersion.$v")
   }
 }

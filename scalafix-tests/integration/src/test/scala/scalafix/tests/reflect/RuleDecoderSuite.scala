@@ -34,7 +34,7 @@ class RuleDecoderSuite extends AnyFunSuite {
     assert(expectedName == rules.name.value)
   }
 
-  test("relative resolves from custom working directory") {
+  test("relative resolves from custom working directory", SkipWindows) {
     val rules = decoder.read(Conf.Str(s"file:$relpath")).get
     assert(expectedName == rules.name.value)
   }
