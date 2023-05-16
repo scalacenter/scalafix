@@ -5,10 +5,8 @@ import sbtprojectmatrix.ProjectMatrixPlugin.autoImport._
 /** Use on ProjectMatrix rows to tag an affinity to a custom scalaVersion */
 case class TargetAxis(scalaVersion: String) extends VirtualAxis.WeakAxis {
 
-  private val scalaBinaryVersion = CrossVersion.binaryScalaVersion(scalaVersion)
-
-  override val idSuffix = s"Target${scalaBinaryVersion.replace('.', '_')}"
-  override val directorySuffix = s"target$scalaBinaryVersion"
+  override val idSuffix = s"Target${scalaVersion.replace('.', '_')}"
+  override val directorySuffix = s"target$scalaVersion"
   override val suffixOrder = VirtualAxis.scalaABIVersion("any").suffixOrder + 1
 }
 
@@ -28,7 +26,7 @@ object TargetAxis {
   ): Def.Initialize[Task[T]] =
     Def.taskDyn {
       val sv = targetScalaVersion(virtualAxes.value).get
-      val project = matrix.finder().apply(sv)
+      val project = exactOrBinaryScalaVersionMatch(matrix, sv)
       Def.task((project / key).value)
     }
 
@@ -43,8 +41,59 @@ object TargetAxis {
   ): Def.Initialize[T] =
     Def.settingDyn {
       val sv = targetScalaVersion(virtualAxes.value).get
-      val project = matrix.finder().apply(sv)
+      val project = exactOrBinaryScalaVersionMatch(matrix, sv)
       Def.setting((project / key).value)
     }
+
+  private def exactOrBinaryScalaVersionMatch(
+      matrix: ProjectMatrix,
+      scalaVersion: String
+  ): Project = {
+    val projectsWithAxisValues = matrix.allProjects().flatMap {
+      case (p, axisValues) => axisValues.map(v => (p, v))
+    }
+
+    projectsWithAxisValues.collectFirst {
+      case (p, VirtualAxis.ScalaVersionAxis(_, value))
+          if value == scalaVersion ||
+            value == CrossVersion.binaryScalaVersion(scalaVersion) =>
+        p
+    }.get
+  }
+
+  implicit class TargetProjectMatrix(projectMatrix: ProjectMatrix) {
+
+    /** Like jvmPlatform but with the full scala version attached */
+    def jvmPlatformFull(scalaVersions: Seq[String]): ProjectMatrix = {
+      scalaVersions.foldLeft(projectMatrix) { (acc, sv) =>
+        acc.customRow(
+          autoScalaLibrary = true,
+          axisValues = Seq(
+            VirtualAxis.jvm,
+            VirtualAxis.scalaVersionAxis(sv, sv)
+          ),
+          process = p => p
+        )
+      }
+    }
+
+    /**
+     * Like jvmPlatform but adding a target axis with the scala version provided
+     * as the second element of the tuple
+     */
+    def jvmPlatformWithTargets(
+        buildWithTargetVersions: Seq[(String, String)]
+    ): ProjectMatrix = {
+      buildWithTargetVersions.foldLeft(projectMatrix) {
+        case (acc, (build, target)) =>
+          acc.jvmPlatform(
+            scalaVersions = Seq(build),
+            axisValues = Seq(TargetAxis(target)),
+            settings = Seq()
+          )
+      }
+    }
+
+  }
 
 }

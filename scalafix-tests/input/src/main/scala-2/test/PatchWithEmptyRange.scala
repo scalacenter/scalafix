@@ -1,5 +1,5 @@
 /*
-rules = "scala:banana.rule.PatchTokenWithEmptyRange"
+rules = "scala:scalafix.test.PatchTokenWithEmptyRange"
  */
 package test
 

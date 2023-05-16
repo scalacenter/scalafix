@@ -2,6 +2,7 @@ import Dependencies._
 import sbt._
 import sbt.Classpaths
 import sbt.Keys._
+import sbt.internal.ProjectMatrix
 import sbt.nio.Keys._
 import sbt.plugins.JvmPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
@@ -121,6 +122,37 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       if (isScala3.value) scalatest.withRevision(scalatestLatestV)
       else scalatest
     }
+
+    lazy val testWindows =
+      taskKey[Unit]("run tests, excluding those incompatible with Windows")
+
+    /**
+     * Lookup a setting key for the project of the same scala version in the
+     * given matrix
+     */
+    def resolve[T](
+        matrix: ProjectMatrix,
+        key: SettingKey[T]
+    ): Def.Initialize[T] =
+      Def.settingDyn {
+        val sv = scalaVersion.value
+        val project = matrix.jvm(sv)
+        Def.setting((project / key).value)
+      }
+
+    /**
+     * Lookup a task key for the project of the same scala version in the given
+     * matrix
+     */
+    def resolve[T](
+        matrix: ProjectMatrix,
+        key: TaskKey[T]
+    ): Def.Initialize[Task[T]] =
+      Def.taskDyn {
+        val sv = scalaVersion.value
+        val project = matrix.jvm(sv)
+        Def.task((project / key).value)
+      }
   }
 
   import autoImport._
@@ -135,32 +167,15 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     updateOptions := updateOptions.value.withCachedResolution(true),
     ThisBuild / watchTriggeredMessage := Watch.clearScreenOnTrigger,
     commands += Command.command("save-expect") { s =>
-      "unit2_13Target2_13/test:runMain scalafix.tests.util.SaveExpect" ::
-        "unit3Target3/test:runMain scalafix.tests.util.SaveExpect" ::
+      "integration2_13/test:runMain scalafix.tests.util.SaveExpect" ::
+        "integration3/test:runMain scalafix.tests.util.SaveExpect" ::
         s
     },
-    commands += Command.command("ci-3") { s =>
-      "unit2_12Target3/test" ::
-        "unit3Target3/test" ::
-        s
-    },
-    commands += Command.command("ci-213") { s =>
-      "unit2_13Target2_13/test" ::
-        "docs2_13/run" ::
+    commands += Command.command("ci-docs") { s =>
+      "docs2_13/run" :: // reduce risk of errors on deploy-website.yml
         "interfaces/doc" ::
-        testRulesAgainstPreviousScalaVersions(scala213, s)
-    },
-    commands += Command.command("ci-212") { s =>
-      "unit2_12Target2_12/test" ::
-        testRulesAgainstPreviousScalaVersions(scala212, s)
-    },
-    commands += Command.command("ci-213-windows") { s =>
-      "publishLocalTransitive" :: // scalafix.tests.interfaces.ScalafixSuite
-        s"unit2_13Target2_13/testOnly -- -l scalafix.internal.tests.utils.SkipWindows" ::
         s
     },
-    // There is flakyness in CliGitDiffTests and CliSemanticTests
-    Test / parallelExecution := false,
     Test / publishArtifact := false,
     licenses := Seq(
       "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
@@ -195,6 +210,11 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
+    // Prevent issues with scalatest serialization
+    Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat,
+    Test / testWindows := (Test / testOnly)
+      .toTask(" -- -l scalafix.internal.tests.utils.SkipWindows")
+      .value,
     // avoid "missing dependency" on artifacts with full scala version when bumping scala
     versionPolicyIgnored ++= {
       PreviousScalaVersion.get(scalaVersion.value) match {
@@ -211,6 +231,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     // don't publish scala 3 artifacts for now
     publish / skip := (if ((publish / skip).value) true
                        else scalaBinaryVersion.value == "3"),
+    publishLocal / skip := (if ((publishLocal / skip).value) true
+                            else scalaBinaryVersion.value == "3"),
     versionPolicyIntention := Compatibility.BinaryCompatible,
     scalacOptions ++= compilerOptions.value,
     scalacOptions ++= semanticdbSyntheticsCompilerOption.value,
@@ -265,21 +287,4 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       }
     }
   )
-
-  private def testRulesAgainstPreviousScalaVersions(
-      scalaVersion: String,
-      state: State
-  ): State = {
-    val projectSuffix = scalaVersion.split('.').take(2).mkString("_")
-    testedPreviousScalaVersions
-      .getOrElse(scalaVersion, Nil)
-      .flatMap { v =>
-        List(
-          s"""set Project("testsInput${projectSuffix}", file(".")) / scalaVersion := "$v"""",
-          s"show testsInput${projectSuffix} / scalaVersion",
-          s"unit${projectSuffix}Target${projectSuffix} / testOnly scalafix.tests.rule.RuleSuite"
-        )
-      }
-      .foldRight(state)(_ :: _)
-  }
 }
