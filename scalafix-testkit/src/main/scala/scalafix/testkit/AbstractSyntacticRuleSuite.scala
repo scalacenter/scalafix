@@ -12,9 +12,8 @@ import scalafix.syntax._
 import scalafix.v1._
 
 /**
- * Utility to unit test syntactic rules. <p> Mix-in FunSuiteLike (ScalaTest
- * 3.0), AnyFunSuiteLike (ScalaTest 3.1+) or the testing style of your choice if
- * you add your own tests.
+ * Utility to unit test syntactic rules. <p> Mix-in AnyFunSuiteLike or the
+ * testing style of your choice if you add your own tests.
  *
  * @param rule
  *   the default rule to use from `check`/`checkDiff`.

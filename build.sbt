@@ -168,7 +168,7 @@ lazy val testkit = projectMatrix
     moduleName := "scalafix-testkit",
     isFullCrossVersion,
     libraryDependencies += googleDiff,
-    libraryDependencies += scalatestDep.value
+    libraryDependencies += scalatest
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(buildScalaVersions)
@@ -209,7 +209,7 @@ lazy val unit = projectMatrix
     libraryDependencies ++= List(
       jgit,
       munit,
-      scalatest.withRevision(scalatestLatestV)
+      scalatest
     ),
     libraryDependencies += {
       if (!isScala3.value) {
