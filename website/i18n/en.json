@@ -16,6 +16,9 @@
         "title": "Contributing Guide",
         "sidebar_label": "Guide"
       },
+      "developers/cross-publish-custom-rules": {
+        "title": "Cross publish custom rules"
+      },
       "developers/local-rules": {
         "title": "Local rules"
       },
@@ -40,6 +43,10 @@
       "developers/tutorial": {
         "title": "Tutorial"
       },
+      "rules/community-rules": {
+        "title": "Community rules",
+        "sidebar_label": "Community rules"
+      },
       "rules/DisableSyntax": {
         "title": "DisableSyntax"
       },
@@ -59,12 +66,18 @@
       "rules/NoValInForComprehension": {
         "title": "NoValInForComprehension"
       },
+      "rules/OrganizeImports": {
+        "title": "OrganizeImports"
+      },
       "rules/overview": {
         "title": "Built-in Rules",
         "sidebar_label": "Built-in rules"
       },
       "rules/ProcedureSyntax": {
         "title": "ProcedureSyntax"
+      },
+      "rules/RedundantSyntax": {
+        "title": "RedundantSyntax"
       },
       "rules/RemoveUnused": {
         "title": "RemoveUnused"

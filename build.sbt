@@ -174,6 +174,16 @@ lazy val testkit = projectMatrix
   .jvmPlatform(buildScalaVersions)
   .dependsOn(cli)
 
+lazy val shared = projectMatrix
+  .in(file("scalafix-tests/shared"))
+  .settings(
+    noPublishAndNoMima,
+    coverageEnabled := false
+  )
+  .defaultAxes(VirtualAxis.jvm)
+  .jvmPlatformFull(buildWithTargetVersions.map(_._2))
+  .disablePlugins(ScalafixPlugin)
+
 lazy val input = projectMatrix
   .in(file("scalafix-tests/input"))
   .settings(
@@ -189,6 +199,7 @@ lazy val input = projectMatrix
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatformFull(buildWithTargetVersions.map(_._2))
   .disablePlugins(ScalafixPlugin)
+  .dependsOn(shared)
 
 lazy val output = projectMatrix
   .in(file("scalafix-tests/output"))
@@ -201,6 +212,7 @@ lazy val output = projectMatrix
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(buildScalaVersions)
   .disablePlugins(ScalafixPlugin)
+  .dependsOn(shared)
 
 lazy val unit = projectMatrix
   .in(file("scalafix-tests/unit"))

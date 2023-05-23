@@ -80,7 +80,7 @@ package object website {
         .toString()
     case _ => any.toString
   }
-  private def flat[T](
+  def flat[T](
       default: T
   )(implicit settings: Settings[T], ev: T <:< Product): List[(Setting, Any)] = {
     settings.settings
