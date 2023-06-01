@@ -64,7 +64,7 @@ class RuleCompiler(
           "to use the Scala 2.x compiler instead, use the corresponding " +
           "scalafix-cli artifact or force scalafixScalaBinaryVersion " +
           "to 2.x in your build tool"
-      val errors = (reporter.allErrors.map(_.getMessage) :+ lastError)
+      val errors = (reporter.allErrors.map(_.message) :+ lastError)
       ConfError.apply(errors.map(ConfError.message)).map(_.notOk).get
     }
 
