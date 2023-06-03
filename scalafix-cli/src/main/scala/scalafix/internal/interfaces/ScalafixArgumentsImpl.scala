@@ -73,9 +73,29 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
       customDependenciesCoordinates: util.List[String],
       repositories: util.List[Repository]
   ): ScalafixArguments = {
+
+    val OrganizeImportsCoordinates =
+      """com\.github\.liancheng.*:organize-imports:.*""".r
+
+    val keptDependencies: Seq[String] =
+      customDependenciesCoordinates.asScala
+        .collect {
+          case dep @ OrganizeImportsCoordinates() =>
+            args.out.println(
+              s"""Ignoring requested classpath dependency `$dep`,
+                |as OrganizeImports is a built-in rule since Scalafix 0.11.0.
+                |You can safely remove that dependency to suppress this warning.
+              """.stripMargin
+            )
+            None
+          case dep => Some(dep)
+        }
+        .toSeq
+        .flatten
+
     val customDependenciesJARs = ScalafixCoursier.toolClasspath(
       repositories,
-      customDependenciesCoordinates,
+      keptDependencies.asJava,
       Versions.scalaVersion
     )
 
