@@ -63,6 +63,7 @@ scalafix-tests
 |
 ├── integration   # Integration test suites
 |
+├── shared        # Code that is shared between input and unit projects
 ├── input         # Source files to be analyzed and fixed by rules
 ├── output        # Expected output from running rewrite rules
 └── expect        # Verify expectations defined in input/output using testkit

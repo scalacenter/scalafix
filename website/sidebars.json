@@ -8,6 +8,7 @@
       "rules/LeakingImplicitClassVal",
       "rules/NoAutoTupling",
       "rules/NoValInForComprehension",
+      "rules/OrganizeImports",
       "rules/ProcedureSyntax",
       "rules/RedundantSyntax",
       "rules/RemoveUnused",

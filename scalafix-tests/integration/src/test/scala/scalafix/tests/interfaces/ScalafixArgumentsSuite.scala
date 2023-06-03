@@ -572,6 +572,23 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     )
   }
 
+  test("com.github.liancheng::organize-imports is ignored") {
+    val rules = api
+      .withToolClasspath(
+        Nil.asJava,
+        Seq("com.github.liancheng::organize-imports:0.6.0").asJava
+      )
+      .availableRules()
+      .asScala
+      .filter(_.name() == "OrganizeImports")
+
+    // only one should be loaded
+    assert(rules.length == 1)
+
+    // ensure it's the built-in one (the external one was marked as experimental)
+    assert(!rules.head.isExperimental)
+  }
+
   def removeUnsuedRule(): SemanticRule = {
     val config = RemoveUnusedConfig.default
     new RemoveUnused(config)
