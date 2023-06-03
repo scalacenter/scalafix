@@ -21,7 +21,7 @@ the syntax tree of the following input source file
 import scalafix.docs.PatchDocs._
 import scalafix.v1._
 import scala.meta._
-implicit var doc = scalafix.docs.PatchDocs.fromString("""
+implicit var doc: SemanticDocument = scalafix.docs.PatchDocs.fromString("""
 import scala.concurrent.{Future, Await}
 import scala.util._, hashing.{MurmurHash3 => Hash}
 

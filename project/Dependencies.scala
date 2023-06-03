@@ -8,7 +8,7 @@ import scala.util.Try
 
 object Dependencies {
   val scala212 = "2.12.18"
-  val scala213 = "2.13.10"
+  val scala213 = "2.13.11"
   val scala3 = "3.3.1-RC1"
 
   val buildScalaVersions = Seq(scala212, scala213, scala3)

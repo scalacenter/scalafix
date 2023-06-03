@@ -48,7 +48,7 @@ differences between exact and normalized symbol matchers, we use the following
 input source file as a running example.
 
 ```scala mdoc:passthrough
-implicit var doc = PatchDocs.fromString("""
+implicit var doc: SemanticDocument = PatchDocs.fromString("""
 package com
 class Main() {}            // com/Main# class
 object Main extends App {  // com/Main. object
