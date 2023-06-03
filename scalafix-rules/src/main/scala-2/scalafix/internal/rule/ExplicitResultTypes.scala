@@ -98,11 +98,11 @@ final class ExplicitResultTypes(
               if isRuleCandidate(t, name, mods, body) =>
             fixDefinition(t, body, types)
 
-          case t @ Defn.Var(mods, Pat.Var(name) :: Nil, None, Some(body))
+          case t @ Defn.Var.After_4_7_2(mods, Pat.Var(name) :: Nil, None, body)
               if isRuleCandidate(t, name, mods, body) =>
             fixDefinition(t, body, types)
 
-          case t @ Defn.Def(mods, name, _, _, None, body)
+          case t @ Defn.Def.After_4_7_3(mods, name, _, None, body)
               if isRuleCandidate(t, name, mods, body) =>
             fixDefinition(t, body, types)
         }.asPatch
@@ -115,20 +115,20 @@ final class ExplicitResultTypes(
   // this a common trick employed implicit-heavy code to workaround SI-2712.
   // Context: https://gitter.im/typelevel/cats?at=584573151eb3d648695b4a50
   private def isImplicitly(term: Term): Boolean = term match {
-    case Term.ApplyType(Term.Name("implicitly"), _) => true
+    case Term.ApplyType.After_4_6_0(Term.Name("implicitly"), _) => true
     case _ => false
   }
 
   def defnName(defn: Defn): Option[Name] = Option(defn).collect {
     case Defn.Val(_, Pat.Var(name) :: Nil, _, _) => name
-    case Defn.Var(_, Pat.Var(name) :: Nil, _, _) => name
-    case Defn.Def(_, name, _, _, _, _) => name
+    case Defn.Var.After_4_7_2(_, Pat.Var(name) :: Nil, _, _) => name
+    case Defn.Def.After_4_7_3(_, name, _, _, _) => name
   }
 
   def defnBody(defn: Defn): Option[Term] = Option(defn).collect {
     case Defn.Val(_, _, _, term) => term
-    case Defn.Var(_, _, _, Some(term)) => term
-    case Defn.Def(_, _, _, _, _, term) => term
+    case Defn.Var.After_4_7_2(_, _, _, term) => term
+    case Defn.Def.After_4_7_3(_, _, _, _, term) => term
   }
 
   def visibility(mods: Iterable[Mod]): MemberVisibility =

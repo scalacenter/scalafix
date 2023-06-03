@@ -61,7 +61,7 @@ object TreePos {
     case t: Pat.Interpolate => symbolImpl(t.prefix)
     case Defn.Val(_, p :: Nil, _, _) => symbolImpl(p)
     case Decl.Val(_, p :: Nil, _) => symbolImpl(p)
-    case Defn.Var(_, p :: Nil, _, _) => symbolImpl(p)
+    case Defn.Var.After_4_7_2(_, p :: Nil, _, _) => symbolImpl(p)
     case Decl.Var(_, p :: Nil, _) => symbolImpl(p)
     case t: Importee.Rename => symbolImpl(t.name)
     case t: Importee.Name => symbolImpl(t.name)

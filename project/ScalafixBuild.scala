@@ -86,7 +86,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
           "-encoding",
           "UTF-8",
           "-feature",
-          "-unchecked"
+          "-unchecked",
+          "-Wconf:cat=deprecation&origin=scala\\.meta\\..*:error"
         )
     )
 

@@ -44,9 +44,9 @@ class NoAutoTupling extends SemanticRule("NoAutoTupling") {
     doc.tree
       .collect {
         case t: Term.Apply if tupleAdaptations.contains(t.pos) =>
-          addWrappingParens(t.args)
+          addWrappingParens(t.argClause.values)
         case t: Term.Apply
-            if t.args.isEmpty && unitAdaptations.contains(t.pos) =>
+            if t.argClause.values.isEmpty && unitAdaptations.contains(t.pos) =>
           insertUnit(t)
       }
       .map(_.atomic)

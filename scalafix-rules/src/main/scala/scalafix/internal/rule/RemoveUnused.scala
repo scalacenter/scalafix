@@ -146,16 +146,19 @@ class RemoveUnused(config: RemoveUnusedConfig)
         case i @ Defn.Val(_, List(pat), _, _)
             if isUnusedTerm.exists(p => p.start == pat.pos.start) =>
           defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
-        case i @ Defn.Var(_, List(pat), _, _)
+        case i @ Defn.Var.After_4_7_2(_, List(pat), _, _)
             if isUnusedTerm.exists(p => p.start == pat.pos.start) =>
           defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
-        case Term.Match(_, cases) =>
+        case Term.Match.After_4_4_5(_, cases, _) =>
           patchPatVarsIn(cases)
         case Term.PartialFunction(cases) =>
           patchPatVarsIn(cases)
         case Term.Try(_, cases, _) =>
           patchPatVarsIn(cases)
-        case Term.Function(List(param @ Term.Param(_, name, None, _)), _)
+        case Term.Function.After_4_6_0(
+              Term.ParamClause(param @ Term.Param(_, name, None, _) :: Nil, _),
+              _
+            )
             if isUnusedParam(
               // diagnostic does not include the implicit prefix (supported only
               // on 1-arity function without explicit type) captured in param,
@@ -164,13 +167,19 @@ class RemoveUnused(config: RemoveUnusedConfig)
             ) =>
           // drop the entire param so that the implicit prefix (if it exists) is removed
           Patch.replaceTree(param, "_")
-        case Term.Function(List(param @ Term.Param(_, name, Some(_), _)), _)
+        case Term.Function.After_4_6_0(
+              Term.ParamClause(
+                param @ Term.Param(_, name, Some(_), _) :: Nil,
+                _
+              ),
+              _
+            )
             if isUnusedParam(
               // diagnostic does not include the wrapping parens captured in single param
               posExclParens(param)
             ) =>
           Patch.replaceTree(name, "_")
-        case Term.Function(params, _) =>
+        case Term.Function.After_4_6_0(Term.ParamClause(params, _), _) =>
           params.collect {
             case param @ Term.Param(_, name, _, _)
                 if isUnusedParam(param.pos) =>
@@ -195,8 +204,8 @@ class RemoveUnused(config: RemoveUnusedConfig)
   private def defnTokensToRemove(defn: Defn): Option[Tokens] = defn match {
     case i @ Defn.Val(_, _, _, Lit(_)) => Some(i.tokens)
     case i @ Defn.Val(_, _, _, rhs) => Some(leftTokens(i, rhs))
-    case i @ Defn.Var(_, _, _, Some(Lit(_))) => Some(i.tokens)
-    case i @ Defn.Var(_, _, _, rhs) => rhs.map(leftTokens(i, _))
+    case i @ Defn.Var.After_4_7_2(_, _, _, Lit(_)) => Some(i.tokens)
+    case i @ Defn.Var.After_4_7_2(_, _, _, body) => Some(leftTokens(i, body))
     case i: Defn.Def => Some(i.tokens)
     case _ => None
   }

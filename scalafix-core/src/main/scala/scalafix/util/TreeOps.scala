@@ -24,23 +24,23 @@ object TreeExtractors {
 
   object Mods {
     def unapply(tree: Tree): Option[List[Mod]] = tree match {
-      case Ctor.Primary(mods, _, _) => Some(mods)
-      case Ctor.Secondary(mods, _, _, _, _) => Some(mods)
-      case Decl.Def(mods, _, _, _, _) => Some(mods)
-      case Decl.Type(mods, _, _, _) => Some(mods)
+      case Ctor.Primary.After_4_6_0(mods, _, _) => Some(mods)
+      case Ctor.Secondary.After_4_6_0(mods, _, _, _, _) => Some(mods)
+      case Decl.Def.After_4_6_0(mods, _, _, _) => Some(mods)
+      case Decl.Type.After_4_6_0(mods, _, _, _) => Some(mods)
       case Decl.Val(mods, _, _) => Some(mods)
       case Decl.Var(mods, _, _) => Some(mods)
-      case Defn.Class(mods, _, _, _, _) => Some(mods)
-      case Defn.Def(mods, _, _, _, _, _) => Some(mods)
-      case Defn.Macro(mods, _, _, _, _, _) => Some(mods)
+      case Defn.Class.After_4_6_0(mods, _, _, _, _) => Some(mods)
+      case Defn.Def.After_4_7_3(mods, _, _, _, _) => Some(mods)
+      case Defn.Macro.After_4_7_3(mods, _, _, _, _) => Some(mods)
       case Defn.Object(mods, _, _) => Some(mods)
-      case Defn.Trait(mods, _, _, _, _) => Some(mods)
-      case Defn.Type(mods, _, _, _) => Some(mods)
+      case Defn.Trait.After_4_6_0(mods, _, _, _, _) => Some(mods)
+      case Defn.Type.After_4_6_0(mods, _, _, _, _) => Some(mods)
       case Defn.Val(mods, _, _, _) => Some(mods)
-      case Defn.Var(mods, _, _, _) => Some(mods)
+      case Defn.Var.After_4_7_2(mods, _, _, _) => Some(mods)
       case Pkg.Object(mods, _, _) => Some(mods)
       case Term.Param(mods, _, _, _) => Some(mods)
-      case Type.Param(mods, _, _, _, _, _) => Some(mods)
+      case Type.Param.After_4_6_0(mods, _, _, _, _, _) => Some(mods)
       case _ => None
     }
   }

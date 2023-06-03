@@ -15,54 +15,96 @@ object RuleInstrumentation {
       def unapply(templ: Template): Boolean = templ match {
 
         // v0
-        case Template(_, Init(Type.Name("Rewrite"), _, Nil) :: _, _, _) => true
-        case Template(
+        case Template.After_4_4_0(
               _,
-              Init(Type.Name("Rule"), _, List(List(_))) :: _,
+              Init.After_4_6_0(Type.Name("Rewrite"), _, Nil) :: _,
               _,
-              _
-            ) =>
-          true
-        case Template(
-              _,
-              Init(Type.Name("SemanticRewrite"), _, List(List(_))) :: _,
               _,
               _
             ) =>
           true
-        case Template(
+        case Template.After_4_4_0(
               _,
-              Init(Type.Name("SemanticRule"), _, List(List(_, _))) :: _,
+              Init.After_4_6_0(
+                Type.Name("Rule"),
+                _,
+                Term.ArgClause(List(_), None) :: Nil
+              ) :: _,
+              _,
+              _,
+              _
+            ) =>
+          true
+        case Template.After_4_4_0(
+              _,
+              Init.After_4_6_0(
+                Type.Name("SemanticRewrite"),
+                _,
+                Term.ArgClause(List(_), None) :: Nil
+              ) :: _,
+              _,
+              _,
+              _
+            ) =>
+          true
+        case Template.After_4_4_0(
+              _,
+              Init.After_4_6_0(
+                Type.Name("SemanticRule"),
+                _,
+                Term.ArgClause(List(_), None) :: Nil
+              ) :: _,
+              _,
               _,
               _
             ) =>
           true
 
         // v1
-        case Template(
+        case Template.After_4_4_0(
               _,
-              Init(Type.Name("SemanticRule"), _, List(List(_))) :: _,
+              Init.After_4_6_0(
+                Type.Name("SemanticRule"),
+                _,
+                Term.ArgClause(List(_), None) :: Nil
+              ) :: _,
               _,
-              _
-            ) =>
-          true
-        case Template(
-              _,
-              Init(Type.Name("v1.SemanticRule"), _, List(List(_))) :: _,
               _,
               _
             ) =>
           true
-        case Template(
+        case Template.After_4_4_0(
               _,
-              Init(Type.Name("SyntacticRule"), _, List(List(_))) :: _,
+              Init.After_4_6_0(
+                Type.Name("v1.SemanticRule"),
+                _,
+                Term.ArgClause(List(_), None) :: Nil
+              ) :: _,
+              _,
               _,
               _
             ) =>
           true
-        case Template(
+        case Template.After_4_4_0(
               _,
-              Init(Type.Name("v1.SyntacticRule"), _, List(List(_))) :: _,
+              Init.After_4_6_0(
+                Type.Name("SyntacticRule"),
+                _,
+                Term.ArgClause(List(_), None) :: Nil
+              ) :: _,
+              _,
+              _,
+              _
+            ) =>
+          true
+        case Template.After_4_4_0(
+              _,
+              Init.After_4_6_0(
+                Type.Name("v1.SyntacticRule"),
+                _,
+                Term.ArgClause(List(_), None) :: Nil
+              ) :: _,
+              _,
               _,
               _
             ) =>
@@ -86,7 +128,7 @@ object RuleInstrumentation {
             stats.foreach(s => loop(prefix :+ ref.syntax, s))
           case Defn.Object(_, name, ExtendsRule()) =>
             add(prefix :+ name.syntax)
-          case Defn.Class(_, name, _, _, ExtendsRule()) =>
+          case Defn.Class.After_4_6_0(_, name, _, _, ExtendsRule()) =>
             add(prefix :+ name.syntax)
           case _ =>
             tree.children.foreach(s => loop(prefix, s))

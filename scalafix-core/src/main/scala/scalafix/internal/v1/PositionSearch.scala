@@ -3,13 +3,14 @@ package scalafix.internal.v1
 import scala.meta.Position
 import scala.meta.Term
 import scala.meta.Tree
+import scala.meta.Type
 
 import scalafix.internal.util.PositionSyntax._
 
 object PositionSearch {
   def find(tree: Tree, pos: Position): Option[Tree] = {
     val extrapos = tree match {
-      case Term.ApplyInfix(lhs, op, Nil, _) =>
+      case Term.ApplyInfix.After_4_6_0(lhs, op, Type.ArgClause(Nil), _) =>
         List(Position.Range(lhs.pos.input, lhs.pos.start, op.pos.end))
       case _ =>
         List()

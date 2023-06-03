@@ -238,7 +238,7 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
           decls.filterNot(_.isOverridingSymbol).nonEmpty =>
       val body: Option[m.Term] = defn match {
         case t: m.Defn.Val => Some(t.rhs)
-        case t: m.Defn.Var => t.rhs
+        case t: m.Defn.Var => Some(t.body)
         case t: m.Defn.Def => Some(t.body)
         case _ => None
       }
@@ -255,37 +255,37 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
             }
             .get
           isInsertedClass += name
-          val paramDefnSuffix = defn match {
-            case d: m.Defn.Def =>
-              d.paramss
-                .map(_.map(_.syntax).mkString(", "))
-                .mkString("(", ")(", ")")
-            case _ => ""
-          }
-          val tparamDefn = defn match {
-            case d: m.Defn.Def if d.tparams.nonEmpty =>
-              d.tparams.map(_.syntax).mkString("[", ", ", "]")
-            case _ => ""
-          }
-          val tparamCall = defn match {
-            case d: m.Defn.Def if d.tparams.nonEmpty =>
-              d.tparams.map(_.name.syntax).mkString("[", ", ", "]")
-            case _ => ""
-          }
-          val paramCallSuffix = defn match {
-            case d: m.Defn.Def =>
-              d.paramss
-                .map(_.map(_.name.syntax).mkString(", "))
-                .mkString("(", ")(", ")")
-            case _ => ""
-          }
+          // val paramDefnSuffix = defn match {
+          //   case d: m.Defn.Def =>
+          //     d.paramss
+          //       .map(_.map(_.syntax).mkString(", "))
+          //       .mkString("(", ")(", ")")
+          //   case _ => ""
+          // }
+          // val tparamDefn = defn match {
+          //   case d: m.Defn.Def if d.tparams.nonEmpty =>
+          //     d.tparams.map(_.syntax).mkString("[", ", ", "]")
+          //   case _ => ""
+          // }
+          // val tparamCall = defn match {
+          //   case d: m.Defn.Def if d.tparams.nonEmpty =>
+          //     d.tparams.map(_.name.syntax).mkString("[", ", ", "]")
+          //   case _ => ""
+          // }
+          // val paramCallSuffix = defn match {
+          //   case d: m.Defn.Def =>
+          //     d.paramss
+          //       .map(_.map(_.name.syntax).mkString(", "))
+          //       .mkString("(", ")(", ")")
+          //   case _ => ""
+          // }
           val indent = " " * defn.pos.startColumn
           Some(
             (
-              new PrettyType(name + tparamCall),
+              new PrettyType(name), // + tparamCall),
               v1.Patch.addRight(
                 body.tokens.head,
-                s" ${name}${tparamCall}${paramCallSuffix}\n${indent}class ${name}${tparamDefn}${paramDefnSuffix} extends"
+                "" // s" ${name}${tparamCall}${paramCallSuffix}\n${indent}class ${name}${tparamDefn}${paramDefnSuffix} extends"
               )
             )
           )

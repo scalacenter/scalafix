@@ -242,19 +242,39 @@ object EscapeHatch {
       def unapply(mods: List[Mod]): Option[List[Term]] =
         mods.collectFirst {
           case Mod.Annot(
-                Init(
+                Init.After_4_6_0(
                   Type.Name(SuppressWarnings),
                   _,
-                  List(Term.Apply(Term.Name("Array"), args) :: Nil)
+                  List(
+                    Term.ArgClause(
+                      List(
+                        Term.Apply.After_4_6_0(
+                          Term.Name("Array"),
+                          Term.ArgClause(args, None)
+                        )
+                      ),
+                      None
+                    )
+                  )
                 )
               ) =>
             args
 
           case Mod.Annot(
-                Init(
+                Init.After_4_6_0(
                   Type.Select(_, Type.Name(SuppressWarnings)),
                   _,
-                  List(Term.Apply(Term.Name("Array"), args) :: Nil)
+                  List(
+                    Term.ArgClause(
+                      List(
+                        Term.Apply.After_4_6_0(
+                          Term.Name("Array"),
+                          Term.ArgClause(args, None)
+                        )
+                      ),
+                      None
+                    )
+                  )
                 )
               ) =>
             args

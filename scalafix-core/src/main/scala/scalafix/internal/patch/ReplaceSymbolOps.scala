@@ -88,7 +88,7 @@ object ReplaceSymbolOps {
     object Identifier {
       def unapply(tree: Tree): Option[(Name, Symbol)] = tree match {
         case n: Name => n.symbol.map(s => n -> s)
-        case Init(n: Name, _, _) => n.symbol.map(s => n -> s)
+        case Init.After_4_6_0(n: Name, _, _) => n.symbol.map(s => n -> s)
         case _ => None
       }
     }
