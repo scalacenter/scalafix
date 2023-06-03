@@ -118,11 +118,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       buildInfoObject := "RulesBuildInfo"
     )
 
-    lazy val scalatestDep = Def.setting {
-      if (isScala3.value) scalatest.withRevision(scalatestLatestV)
-      else scalatest
-    }
-
     lazy val testWindows =
       taskKey[Unit]("run tests, excluding those incompatible with Windows")
 
@@ -233,7 +228,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
                        else scalaBinaryVersion.value == "3"),
     publishLocal / skip := (if ((publishLocal / skip).value) true
                             else scalaBinaryVersion.value == "3"),
-    versionPolicyIntention := Compatibility.BinaryCompatible,
+    versionPolicyIntention := Compatibility.None,
     scalacOptions ++= compilerOptions.value,
     scalacOptions ++= semanticdbSyntheticsCompilerOption.value,
     Compile / console / scalacOptions :=

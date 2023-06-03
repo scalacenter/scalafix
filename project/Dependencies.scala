@@ -30,8 +30,7 @@ object Dependencies {
   val nailgunV = "0.9.1"
   val scalaXmlV = "2.1.0"
   val scalametaV = "4.7.8"
-  val scalatestMinV = "3.0.8" // don't bump, to avoid forcing breaking changes on clients via eviction
-  val scalatestLatestV = "3.2.13"
+  val scalatestV = "3.2.13"
   val munitV = "0.7.29"
 
   val bijectionCore = "com.twitter" %% "bijection-core" % bijectionCoreV
@@ -54,7 +53,7 @@ object Dependencies {
     .cross(CrossVersion.for3Use2_13)
   val scalametaTeskit = ("org.scalameta" %% "testkit" % scalametaV)
     .cross(CrossVersion.for3Use2_13)
-  val scalatest = "org.scalatest" %% "scalatest" % scalatestMinV
+  val scalatest = "org.scalatest" %% "scalatest" % scalatestV
   val munit = "org.scalameta" %% "munit" % munitV
   val semanticdbScalacCore = "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
 
