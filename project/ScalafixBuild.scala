@@ -183,8 +183,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, String] = Map(
-    "2.12.18" -> "2.12.17",
-    "2.13.11" -> "2.13.10"
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
@@ -230,7 +228,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
                        else scalaBinaryVersion.value == "3"),
     publishLocal / skip := (if ((publishLocal / skip).value) true
                             else scalaBinaryVersion.value == "3"),
-    versionPolicyIntention := Compatibility.None,
+    versionPolicyIntention := Compatibility.BinaryCompatible,
     scalacOptions ++= compilerOptions.value,
     scalacOptions ++= semanticdbSyntheticsCompilerOption.value,
     Compile / console / scalacOptions :=
