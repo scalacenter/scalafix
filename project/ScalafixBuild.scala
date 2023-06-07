@@ -226,8 +226,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     // don't publish scala 3 artifacts for now
     publish / skip := (if ((publish / skip).value) true
                        else scalaBinaryVersion.value == "3"),
-    publishLocal / skip := (if ((publishLocal / skip).value) true
-                            else scalaBinaryVersion.value == "3"),
     versionPolicyIntention := Compatibility.BinaryCompatible,
     scalacOptions ++= compilerOptions.value,
     scalacOptions ++= semanticdbSyntheticsCompilerOption.value,
