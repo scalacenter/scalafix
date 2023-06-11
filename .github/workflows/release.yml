@@ -11,8 +11,6 @@ jobs:
         with:
           fetch-depth: 0
       - uses: coursier/setup-action@v1
-        with:
-          jvm: temurin:8
       - uses: olafurpg/setup-gpg@v3
       - name: Check that major or minor was bumped upon compatibility breakage
         if: startsWith(github.ref, 'refs/tags/v')
