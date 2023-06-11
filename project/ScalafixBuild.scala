@@ -193,15 +193,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     versionScheme := Some("early-semver"),
     // coursier-versions always return false for the *.*.*.*-r pattern jgit uses
     libraryDependencySchemes += Dependencies.jgit.withRevision("always"),
-    // https://github.com/scala/bug/issues/12632
-    libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % "always",
-    // silence warning for 0.10.x -> 0.11.x (no actual breaking change)
-    // TODO: remove after 0.10.5
-    libraryDependencySchemes += "com.geirsson" %% "metaconfig-core" % "always",
-    libraryDependencySchemes += "com.geirsson" %% "metaconfig-pprint" % "always",
-    libraryDependencySchemes += "com.geirsson" %% "metaconfig-typesafe-config" % "always",
-    // 0.9.1 -> 1.0.2 is fine, see https://github.com/scala/scala-java8-compat/issues/247
-    libraryDependencySchemes += "org.scala-lang.modules" %% "scala-java8-compat" % "always"
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
