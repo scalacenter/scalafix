@@ -110,6 +110,7 @@ lazy val reflect = projectMatrix
   .settings(
     moduleName := "scalafix-reflect",
     isFullCrossVersion,
+    scalacOptions += "-Ylog-classpath",
     libraryDependencies ++= {
       if (!isScala3.value)
         List(
