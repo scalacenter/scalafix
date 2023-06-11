@@ -7,7 +7,7 @@ inThisBuild(
     onLoadMessage := s"Welcome to scalafix ${version.value}",
     semanticdbEnabled := true,
     semanticdbVersion := scalametaV,
-    scalafixScalaBinaryVersion := "2.13",
+    scalafixScalaBinaryVersion := "2.13"
   )
 )
 

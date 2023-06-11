@@ -171,6 +171,25 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "interfaces/doc" ::
         s
     },
+    commands += Command.command("dogfoodScalafixInterfaces") { state =>
+      val extracted = Project.extract(state)
+      val v =
+        (ThisBuild / version)
+          .get(extracted.structure.data)
+          .get
+      val suffix =
+        (ThisBuild / scalafixScalaBinaryVersion)
+          .get(extracted.structure.data)
+          .get
+          .replace('.', '_')
+
+      s"all cli$suffix/publishLocalTransitive interfaces/publishLocal" ::
+        "reload plugins" ::
+        s"""set dependencyOverrides += "ch.epfl.scala" % "scalafix-interfaces" % "$v"""" :: // as documented in installation.md
+        "session save" ::
+        "reload return" ::
+        state
+    },
     Test / publishArtifact := false,
     licenses := Seq(
       "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
@@ -192,7 +211,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r),
     versionScheme := Some("early-semver"),
     // coursier-versions always return false for the *.*.*.*-r pattern jgit uses
-    libraryDependencySchemes += Dependencies.jgit.withRevision("always"),
+    libraryDependencySchemes += Dependencies.jgit.withRevision("always")
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
