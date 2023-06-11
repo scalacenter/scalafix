@@ -14,6 +14,11 @@ import scalafix.internal.reflect.RuleCompilerClasspath
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.v1.RuleDecoder
 
+
+import scala.tools.nsc.CloseableRegistry
+import scala.tools.nsc.classpath.JrtClassPath
+import scala.util.Properties
+
 class ToolClasspathSuite extends AnyFunSuite with BeforeAndAfterAll {
   var scalaClasspath: List[AbsolutePath] = _
   override def beforeAll(): Unit = {
@@ -88,6 +93,17 @@ class ToolClasspathSuite extends AnyFunSuite with BeforeAndAfterAll {
     val expectedName = "CustomRule"
     assert(obtained.name.value == expectedName)
     assert(decoder.read(Conf.Str("class:does.not.Exist")).isNotOk)
+  }
+
+  test("jrt") {
+    val version = scala.reflect.internal.JDK9Reflectors.runtimeVersionMajor(scala.reflect.internal.JDK9Reflectors.runtimeVersion()).intValue()
+    println(s"reflectors: $version")
+
+    println(Properties.javaHome)
+
+    val closeableRegistry = new CloseableRegistry
+    val cp = JrtClassPath(None, closeableRegistry).get
+    assert(cp.findClass("sun.misc.Unsafe").isDefined)
   }
 
 }
