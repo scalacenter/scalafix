@@ -263,7 +263,7 @@ Central. To install a custom rule, add it to `scalafixDependencies`
 ```scala
 // at the top of build.sbt
 ThisBuild / scalafixDependencies +=
-  "com.geirsson" %% "example-scalafix-rule" % "3.0.0"
+  "ch.epfl.scala" %% "example-scalafix-rule" % "3.0.0"
 ```
 
 Start sbt and type `scalafix <TAB>`, once the `example-scalafix-rule` dependency
