@@ -24,6 +24,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     lazy val stableVersion =
       settingKey[String]("Version of latest release to Maven.")
     lazy val noPublishAndNoMima = Seq(
+      scalacOptions -= targetJvm.value, // no constraint on bytecode
       mimaReportBinaryIssues := {},
       mimaPreviousArtifacts := Set.empty,
       publish / skip := true
@@ -56,9 +57,10 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       else Nil
     }
     lazy val targetJvm = Def.setting {
-      if (isScala3.value) Seq("-Xtarget:8")
-      else if (isScala213.value) Seq("-release", "8")
-      else Seq("-target:jvm-1.8")
+      // `-release` is available in 2.13 & 3.x, but prevents usage of sun.misc.Unsafe.
+      // See https://bugs.openjdk.org/browse/JDK-8206937 & https://bugs.openjdk.org/browse/JDK-8206937.
+      if (isScala3.value) "-Xtarget:8"
+      else "-target:jvm-1.8"
     }
     val warnAdaptedArgs = Def.setting {
       if (isScala3.value) Nil
@@ -81,13 +83,13 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     }
     lazy val compilerOptions = Def.setting(
       warnUnusedImports.value ++
-        targetJvm.value ++
         Seq(
           "-encoding",
           "UTF-8",
           "-feature",
           "-unchecked"
-        )
+        ) :+
+        targetJvm.value
     )
 
     lazy val semanticdbSyntheticsCompilerOption = Def.setting(
