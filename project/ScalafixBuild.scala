@@ -56,7 +56,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       else Nil
     }
     lazy val targetJvm = Def.setting {
-      if (isScala3.value) Seq("-Xtarget:8")
+      if (isScala3.value) Seq("-release:8")
       else if (isScala213.value) Seq("-release", "8")
       else Seq("-target:jvm-1.8")
     }
