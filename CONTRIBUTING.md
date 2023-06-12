@@ -71,7 +71,8 @@ scalafix-tests
 
 ## Formatting
 We use scalafix to apply some rules that are configured in .scalafix.conf.
-Make sure to run `sbt scalafixAll` to apply those rules.
+Make sure to run `sbt "dogfoodScalafixInterfaces; scalafixAll"` to execute
+the latest version of those rules.
 
 Be sure to run `scalafmt` (available in the `bin` folder) to ensure code
 formatting. `./bin/scalafmt --diff` formats only the files that have changed
