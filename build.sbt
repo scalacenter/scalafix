@@ -185,7 +185,9 @@ lazy val shared = projectMatrix
     coverageEnabled := false
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatformFull(buildWithTargetVersions.map(_._2))
+  // just compile shared with the latest patch for each minor Scala version
+  // to reduce the cardinality of the build
+  .jvmPlatform(buildScalaVersions)
   .disablePlugins(ScalafixPlugin)
 
 lazy val input = projectMatrix
@@ -198,12 +200,14 @@ lazy val input = projectMatrix
     scalacOptions ++= warnUnused.value, // For RemoveUnusedTerms
     logLevel := Level.Error, // avoid flood of compiler warnings
     libraryDependencies ++= testsDependencies.value,
-    coverageEnabled := false
+    coverageEnabled := false,
+    // mimic dependsOn(shared) but allowing binary Scala version matching
+    Compile / internalDependencyClasspath ++=
+      resolve(shared, Compile / exportedProducts).value
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatformFull(buildWithTargetVersions.map(_._2))
+  .jvmPlatformTargets(buildScalaVersionsWithTargets.map(_._2))
   .disablePlugins(ScalafixPlugin)
-  .dependsOn(shared)
 
 lazy val output = projectMatrix
   .in(file("scalafix-tests/output"))
@@ -211,12 +215,21 @@ lazy val output = projectMatrix
     noPublishAndNoMima,
     scalacOptions --= warnUnusedImports.value,
     libraryDependencies ++= testsDependencies.value,
-    coverageEnabled := false
+    coverageEnabled := false,
+    // mimic dependsOn(shared) but allowing binary Scala version matching
+    Compile / internalDependencyClasspath ++=
+      resolve(shared, Compile / exportedProducts).value
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(buildScalaVersions)
+  .jvmPlatformTargets(
+    buildScalaVersionsWithTargets
+      .map(_._2)
+      // don't compile output with old Scala patch versions to reduce the
+      // cardinality of the build: checking that it compiles with the
+      // latest patch of each minor Scala version is enough
+      .filter(axis => buildScalaVersions.contains(axis.scalaVersion))
+  )
   .disablePlugins(ScalafixPlugin)
-  .dependsOn(shared)
 
 lazy val unit = projectMatrix
   .in(file("scalafix-tests/unit"))
@@ -359,7 +372,7 @@ lazy val expect = projectMatrix
     }
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatformWithTargets(buildWithTargetVersions)
+  .jvmPlatformAgainstTargets(buildScalaVersionsWithTargets)
   .dependsOn(integration)
 
 lazy val docs = projectMatrix

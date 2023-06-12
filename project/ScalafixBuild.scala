@@ -15,6 +15,7 @@ import com.github.sbt.sbtghpages.GhpagesKeys
 import sbt.librarymanagement.ivy.IvyDependencyResolution
 import sbt.plugins.IvyPlugin
 import sbtversionpolicy.DependencyCheckReport
+import scala.util.Try
 
 object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   override def trigger = allRequirements
@@ -30,6 +31,33 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       publish / skip := true
     )
     lazy val supportedScalaVersions = List(scala213, scala212)
+    lazy val buildScalaVersions = Seq(scala212, scala213, scala3)
+    lazy val buildScalaVersionsWithTargets: Seq[(String, TargetAxis)] =
+      buildScalaVersions.map(sv => (sv, TargetAxis(sv))) ++
+        Seq(scala213, scala212).flatMap { sv =>
+          def previousVersions(scalaVersion: String): Seq[String] = {
+            val split = scalaVersion.split('.')
+            val binaryVersion = split.take(2).mkString(".")
+            val compilerVersion = Try(split.last.toInt).toOption
+            val previousPatchVersions =
+              compilerVersion
+                .map(version => List.range(version - 2, version).filter(_ >= 0))
+                .getOrElse(Nil)
+            previousPatchVersions
+              .map { patch => s"$binaryVersion.$patch" }
+              .filterNot { v =>
+                System.getProperty("java.version").startsWith("21") &&
+                Seq("2.12.16", "2.12.17", "2.13.10").contains(v)
+              }
+          }
+
+          val prevVersions = previousVersions(sv).map(prev => TargetAxis(prev))
+          val scala3FromScala2 = TargetAxis(scala3)
+          val xsource3 = TargetAxis(sv, xsource3 = true)
+
+          (prevVersions :+ scala3FromScala2 :+ xsource3).map((sv, _))
+        }
+
     lazy val publishLocalTransitive =
       taskKey[Unit]("Run publishLocal on this project and its dependencies")
     lazy val isFullCrossVersion = Seq(
@@ -123,32 +151,29 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       taskKey[Unit]("run tests, excluding those incompatible with Windows")
 
     /**
-     * Lookup a setting key for the project of the same scala version in the
-     * given matrix
+     * Lookup the project with the closest Scala version, and resolve `key`
      */
     def resolve[T](
         matrix: ProjectMatrix,
         key: SettingKey[T]
     ): Def.Initialize[T] =
       Def.settingDyn {
-        val sv = scalaVersion.value
-        val project = matrix.jvm(sv)
+        val project = lookup(matrix, scalaVersion.value)
         Def.setting((project / key).value)
       }
 
     /**
-     * Lookup a task key for the project of the same scala version in the given
-     * matrix
+     * Lookup the project with the closest Scala version, and resolve `key`
      */
     def resolve[T](
         matrix: ProjectMatrix,
         key: TaskKey[T]
     ): Def.Initialize[Task[T]] =
       Def.taskDyn {
-        val sv = scalaVersion.value
-        val project = matrix.jvm(sv)
+        val project = lookup(matrix, scalaVersion.value)
         Def.task((project / key).value)
       }
+
   }
 
   import autoImport._
@@ -317,4 +342,35 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       }
     }
   )
+
+  /**
+   * Find the project matching the full Scala version when available or a binary
+   * one otherwise
+   */
+  private def lookup(matrix: ProjectMatrix, scalaVersion: String): Project = {
+    val projects = matrix
+      .allProjects()
+      .collect {
+        case (project, projectVirtualAxes)
+            // CliSemanticSuite depends on classes compiled without -Xsource:3
+            if !projectVirtualAxes.contains(Xsource3Axis) =>
+          (
+            projectVirtualAxes
+              .collectFirst { case x: VirtualAxis.ScalaVersionAxis => x }
+              .get
+              .value,
+            project
+          )
+      }
+      .toMap
+
+    val fullMatch = projects.get(scalaVersion)
+
+    def binaryMatch = {
+      val scalaBinaryVersion = CrossVersion.binaryScalaVersion(scalaVersion)
+      projects.find(_._1.startsWith(scalaBinaryVersion)).map(_._2)
+    }
+
+    fullMatch.orElse(binaryMatch).get
+  }
 }
