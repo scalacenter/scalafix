@@ -30,7 +30,7 @@ object Dependencies {
   val nailgunV = "0.9.1"
   val scalaXmlV = "2.1.0"
   val scalametaV = "4.7.8"
-  val scalatestV = "3.2.13"
+  val scalatestV = "3.2.16"
   val munitV = "0.7.29"
 
   val bijectionCore = "com.twitter" %% "bijection-core" % bijectionCoreV
