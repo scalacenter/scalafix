@@ -1,6 +1,7 @@
 package scalafix.internal.patch
 
 import scala.annotation.tailrec
+import scala.collection.compat._
 import scala.collection.immutable.TreeMap
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -21,8 +22,6 @@ import scalafix.patch.Patch.internal._
 import scalafix.rule.RuleName
 import scalafix.util.TreeExtractors.Mods
 import scalafix.v0._
-// used to cross-compile
-import scala.collection.compat._ // scalafix:ok
 
 /**
  * EscapeHatch is an algorithm to selectively disable rules. There are two

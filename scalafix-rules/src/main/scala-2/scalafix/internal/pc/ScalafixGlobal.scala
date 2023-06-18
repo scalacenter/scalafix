@@ -2,19 +2,21 @@ package scala.meta.internal.pc
 
 import java.io.File
 import java.{util => ju}
+
+import scala.collection.compat._
 import scala.collection.mutable
 import scala.reflect.internal.{Flags => gf}
 import scala.reflect.io.VirtualDirectory
 import scala.tools.nsc.Settings
 import scala.tools.nsc.interactive.Global
 import scala.tools.nsc.reporters.StoreReporter
+import scala.util.Failure
+import scala.util.Try
 import scala.util.control.NonFatal
 import scala.{meta => m}
+
 import scala.meta.internal.semanticdb.scalac.SemanticdbOps
 import scala.meta.io.AbsolutePath
-import scala.util.{Failure, Success, Try}
-// used to cross-compile
-import scala.collection.compat._ // scalafix:ok
 
 object ScalafixGlobal {
   def newCompiler(

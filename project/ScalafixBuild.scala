@@ -237,6 +237,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     publish / skip := (if ((publish / skip).value) true
                        else scalaBinaryVersion.value == "3"),
     versionPolicyIntention := Compatibility.BinaryCompatible,
+    scalacOptions += "-Wconf:origin=scala.collection.compat.*:s",
     scalacOptions ++= compilerOptions.value,
     scalacOptions ++= semanticdbSyntheticsCompilerOption.value,
     Compile / console / scalacOptions :=
