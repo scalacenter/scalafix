@@ -52,15 +52,11 @@ do not rewrite import statements in ways that conflict with
 
 Known limitations:
 
-1.  The [`removeUnused`](OrganizeImports.md#removeunused) option must be
-    explicitly set to `false` - the rule currently doesn’t remove unused
-    imports as it is currently not supported by the compiler.
-
-2.  Usage of [deprecated package
+1.  Usage of [deprecated package
     objects](http://dotty.epfl.ch/docs/reference/dropped-features/package-objects.html)
     may result in incorrect imports.
 
-3.  The
+2.  The
     [`groupExplicitlyImportedImplicitsSeparately`](OrganizeImports.md#groupexplicitlyimportedimplicitsseparately)
     option has no effect.
 
@@ -1279,12 +1275,9 @@ Remove unused imports.
 > using Scala compilation diagnostics information, and the compilation phase
 > happens before Scalafix rules get applied.
 
-> The `removeUnused` option is currently not supported for source files
-> compiled with Scala 3, as the [compiler cannot issue warnings for unused
-> imports
-> yet](https://docs.scala-lang.org/scala3/guides/migration/options-lookup.html#warning-settings).
-> As a result, you must set `removeUnused` to `false` when running the
-> rule on source files compiled with Scala 3.
+> The `removeUnused` option is not supported for source files compiled with
+> early versions of Scala 3 as these do not export SemanticDB diagnostics for
+> unused imports. You must compile with Scala 3.4.0 or later to use it.
 
 ### Value type
 
@@ -1299,7 +1292,7 @@ Boolean
 ```conf
 OrganizeImports {
   groups = ["javax?\\.", "scala.", "*"]
-  removeUnused = true // not supported in Scala 3
+  removeUnused = true
 }
 ```
 
