@@ -29,7 +29,7 @@ object Dependencies {
   val pprintV = "0.6.6" // don't bump, rules built against metaconfig 0.9.15 or earlier would not link
   val nailgunV = "0.9.1"
   val scalaXmlV = "2.1.0"
-  val scalametaV = "4.7.8"
+  val scalametaV = "4.8.0"
   val scalatestV = "3.2.16"
   val munitV = "0.7.29"
 
