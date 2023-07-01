@@ -18,7 +18,7 @@ object Dependencies {
       Seq(scala213, scala212).map(sv => (sv, scala3))
 
   val bijectionCoreV = "0.9.7"
-  val collectionCompatV = "2.10.0"
+  val collectionCompatV = "2.11.0"
   val coursierV = "2.1.5"
   val coursierInterfaceV = "1.0.18"
   val commontTextV = "1.10.0"
