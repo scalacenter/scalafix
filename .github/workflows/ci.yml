@@ -38,8 +38,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: coursier/setup-action@v1
-      - run: sbt "dogfoodScalafixInterfaces; scalafixAll --check"
       - run: ./bin/scalafmt --test
+      - run: sbt "dogfoodScalafixInterfaces; scalafixAll --check"
   mima:
     name: Version Policy
     runs-on: ubuntu-latest
