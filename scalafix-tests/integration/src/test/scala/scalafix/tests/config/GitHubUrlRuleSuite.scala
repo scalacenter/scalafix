@@ -38,6 +38,11 @@ class GitHubUrlRuleSuite extends AnyFunSuite with DiffAssertions {
       "src/main/scala/fix/RuleName.scala"
   )
   check(
+    "github:someorg/some-repo/version.RuleName",
+    "https://raw.githubusercontent.com/someorg/some-repo/master/scalafix/rules/" +
+      "src/main/scala/fix/version/RuleName.scala"
+  )
+  check(
     "github:someorg/some-repo/RuleName?sha=master~1",
     "https://raw.githubusercontent.com/someorg/some-repo/master~1/scalafix/rules/" +
       "src/main/scala/fix/RuleName.scala"

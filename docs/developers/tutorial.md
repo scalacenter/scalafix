@@ -654,6 +654,7 @@ The expansion rules for `github:org/repo` are the following:
 | `github:org/repo`                      | `scalafix/rules/src/main/scala/fix/Repo.scala`                           |
 | `github:org/some-repo`                 | `scalafix/rules/src/main/scala/fix/SomeRepo.scala`                       |
 | `github:org/repo/RuleName`             | `scalafix/rules/src/main/scala/fix/RuleName.scala`                       |
+| `github:org/repo/package.RuleName`     | `scalafix/rules/src/main/scala/fix/package/RuleName.scala`               |
 | `github:org/repo/RuleName?sha=HASH125` | (at commit `HASH125`) `scalafix/rules/src/main/scala/fix/RuleName.scala` |
 
 ## Publish the rule to Maven Central
