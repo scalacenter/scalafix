@@ -6,7 +6,7 @@ on:
 
 jobs:
   update_data:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: coursier/cache-action@v6
       - uses: VirtusLab/scala-cli-setup@v1.0.2
