@@ -26,7 +26,7 @@ jobs:
           git config --global user.name 'Scala Center Bot'
           git config --global user.email 'scala-center-bot@users.noreply.github.com'
           git add sonatype-stats
-          git commit --allow-empty -m "Update stats"
+          git commit -m "Update stats"
           git push origin HEAD:gh-pages
       - uses: gautamkrishnar/keepalive-workflow@v1
         with:
