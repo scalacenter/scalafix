@@ -11,6 +11,11 @@ jobs:
       - uses: coursier/cache-action@v6
       - uses: VirtusLab/scala-cli-setup@v1.0.2
       - uses: actions/checkout@v3
+      - name: Checkout the gh-pages branch while keeping the scripts
+        run: |
+          git fetch origin gh-pages --depth 1
+          git checkout origin/gh-pages
+          git restore --source=${{ github.sha }} --worktree .github/scripts
       - name: Update stats
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
@@ -20,9 +25,9 @@ jobs:
         run: |
           git config --global user.name 'Scala Center Bot'
           git config --global user.email 'scala-center-bot@users.noreply.github.com'
-          git add .
+          git add sonatype-stats
           git commit --allow-empty -m "Update stats"
-          git push
+          git push origin HEAD:gh-pages
       - uses: gautamkrishnar/keepalive-workflow@v1
         with:
           committer_username: scala-center-bot
