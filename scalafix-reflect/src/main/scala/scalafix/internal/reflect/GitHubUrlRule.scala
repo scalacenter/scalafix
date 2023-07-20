@@ -36,18 +36,21 @@ object GitHubUrlRule {
   private def guessGitHubURL(
       org: String,
       repo: String,
-      rule: String,
+      className: String,
       sha: String
   ): URL = {
-    val (path, name) = rule.split("\\.").toList match {
-      case name :: Nil => ("", name)
-      case p :+ name => (p.mkString("", "/", "/"), name)
+    val (path, name) = className.split("\\.").toList match {
+      case name :: Nil =>
+        // use default fix package when given class simple name
+        ("fix", name)
+      case p :+ name =>
+        (p.mkString("/"), name)
     }
-    val file = path + name + ".scala"
+    val file = s"$path/$name.scala"
     val url = expandGitHubURL(org, repo, file, sha)
     checkUrl(url)
       .recoverWith { case _: FileNotFoundException =>
-        val fallbackFile = path + g8CamelCase(name) + ".scala"
+        val fallbackFile = s"$path/${g8CamelCase(name)}.scala"
         checkUrl(expandGitHubURL(org, repo, fallbackFile, sha))
       }
       .getOrElse(url)
@@ -82,7 +85,7 @@ object GitHubUrlRule {
       file: String,
       sha: String
   ): URL = new URL(
-    s"https://raw.githubusercontent.com/$org/$repo/$sha/scalafix/rules/src/main/scala/fix/$file"
+    s"https://raw.githubusercontent.com/$org/$repo/$sha/scalafix/rules/src/main/scala/$file"
   )
 
 }
