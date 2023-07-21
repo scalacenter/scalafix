@@ -650,10 +650,12 @@ scalafix --rules=github:scalacenter/named-literal-arguments
 The expansion rules for `github:org/repo` are the following:
 
 | Before                                 | After                                                                    |
-| -------------------------------------- | ------------------------------------------------------------------------ |
-| `github:org/repo`                      | `scalafix/rules/src/main/scala/fix/Repo.scala`                           |
-| `github:org/some-repo`                 | `scalafix/rules/src/main/scala/fix/SomeRepo.scala`                       |
-| `github:org/repo/RuleName`             | `scalafix/rules/src/main/scala/fix/RuleName.scala`                       |
+|----------------------------------------|--------------------------------------------------------------------------|
+| `github:org/repo`                      | (on `master`) `scalafix/rules/src/main/scala/fix/Repo.scala`             |
+| `github:org/some-repo`                 | (on `master`) `scalafix/rules/src/main/scala/fix/SomeRepo.scala`         |
+| `github:org/repo/RuleName`             | (on `master`) `scalafix/rules/src/main/scala/fix/RuleName.scala`         |
+| `github:org/repo/com.example.RuleName` | (on `master`) `scalafix/rules/src/main/scala/com/example/RuleName.scala` |
+| `github:org/repo/RuleName?sha=main`    | (on `main`) `scalafix/rules/src/main/scala/fix/RuleName.scala`           |
 | `github:org/repo/RuleName?sha=HASH125` | (at commit `HASH125`) `scalafix/rules/src/main/scala/fix/RuleName.scala` |
 
 ## Publish the rule to Maven Central
