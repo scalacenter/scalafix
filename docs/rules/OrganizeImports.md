@@ -19,7 +19,7 @@ option](#preset). To make it easier to add `OrganizeImports` into
 existing Scala projects built using the IntelliJ Scala plugin,
 `OrganizeImports` provides a preset style compatible with the default
 configuration of the IntelliJ Scala import optimizer. Please check the
-[`INTELLIJ_2020_3`](#intellij-2020-3) preset style for more details.
+[`INTELLIJ_2020_3`](#intellij_2020_3) preset style for more details.
 
 ### Source formatting tools
 
