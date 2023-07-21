@@ -565,9 +565,11 @@ scheme.</p>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
-<tr><td><code>github:org/repo</code></td><td><code>scalafix/rules/src/main/scala/fix/Repo.scala</code></td></tr>
-<tr><td><code>github:org/some-repo</code></td><td><code>scalafix/rules/src/main/scala/fix/SomeRepo.scala</code></td></tr>
-<tr><td><code>github:org/repo/RuleName</code></td><td><code>scalafix/rules/src/main/scala/fix/RuleName.scala</code></td></tr>
+<tr><td><code>github:org/repo</code></td><td>(on <code>master</code>) <code>scalafix/rules/src/main/scala/fix/Repo.scala</code></td></tr>
+<tr><td><code>github:org/some-repo</code></td><td>(on <code>master</code>) <code>scalafix/rules/src/main/scala/fix/SomeRepo.scala</code></td></tr>
+<tr><td><code>github:org/repo/RuleName</code></td><td>(on <code>master</code>) <code>scalafix/rules/src/main/scala/fix/RuleName.scala</code></td></tr>
+<tr><td><code>github:org/repo/com.example.RuleName</code></td><td>(on <code>master</code>) <code>scalafix/rules/src/main/scala/com/example/RuleName.scala</code></td></tr>
+<tr><td><code>github:org/repo/RuleName?sha=main</code></td><td>(on <code>main</code>) <code>scalafix/rules/src/main/scala/fix/RuleName.scala</code></td></tr>
 <tr><td><code>github:org/repo/RuleName?sha=HASH125</code></td><td>(at commit <code>HASH125</code>) <code>scalafix/rules/src/main/scala/fix/RuleName.scala</code></td></tr>
 </tbody>
 </table>
