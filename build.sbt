@@ -145,12 +145,17 @@ lazy val cli = projectMatrix
     libraryDependencies ++= {
       if (isScala3.value) Seq()
       else
+        // Rules built with an old scalafix-core may need packages that
+        // disappeared from the classpath to link
         Seq(
-          // metaconfig 0.10.0 shaded pprint but rules built with an old
-          // scalafix-core must have the original package in the classpath to link
+          // metaconfig 0.10.0 shaded pprint
           // https://github.com/scalameta/metaconfig/pull/154/files#r794005161
-          pprint % Runtime
-        )
+          pprint,
+          // scalameta 4.8.3 shaded fastparse and geny
+          // https://github.com/scalameta/scalameta/pull/3246
+          scalametaFastparse,
+          geny
+        ).map(_ % Runtime)
     },
     publishLocalTransitive := Def.taskDyn {
       val ref = thisProjectRef.value
