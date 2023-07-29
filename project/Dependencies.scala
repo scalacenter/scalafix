@@ -26,12 +26,20 @@ object Dependencies {
   val java8CompatV = "1.0.2"
   val jgitV = "5.13.2.202306221912-r"
   val metaconfigV = "0.11.1"
-  val pprintV = "0.6.6" // don't bump, rules built against metaconfig 0.9.15 or earlier would not link
   val nailgunV = "0.9.1"
   val scalaXmlV = "2.2.0"
-  val scalametaV = "4.8.2"
+  val scalametaV = "4.8.4"
   val scalatestV = "3.2.16"
   val munitV = "0.7.29"
+
+  // scala-steward:off
+
+  // Now shaded in dependencies, kept here only for backward compatbility
+  val pprintV = "0.6.6"
+  val scalametaFastparseV = "2.3.1"
+  val genyV = "0.6.5"
+
+  // scala-steward:on
 
   val bijectionCore = "com.twitter" %% "bijection-core" % bijectionCoreV
   val collectionCompat = "org.scala-lang.modules" %% "scala-collection-compat" % collectionCompatV
@@ -53,6 +61,8 @@ object Dependencies {
     .cross(CrossVersion.for3Use2_13)
   val scalametaTeskit = ("org.scalameta" %% "testkit" % scalametaV)
     .cross(CrossVersion.for3Use2_13)
+  val scalametaFastparse = "org.scalameta" %% "fastparse-v2" % scalametaFastparseV
+  val geny = "com.lihaoyi" %% "geny" % genyV
   val scalatest = "org.scalatest" %% "scalatest" % scalatestV
   val munit = "org.scalameta" %% "munit" % munitV
   val semanticdbScalacCore = "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full

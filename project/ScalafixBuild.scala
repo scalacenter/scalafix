@@ -14,6 +14,7 @@ import scalafix.sbt.ScalafixPlugin.autoImport._
 import com.github.sbt.sbtghpages.GhpagesKeys
 import sbt.librarymanagement.ivy.IvyDependencyResolution
 import sbt.plugins.IvyPlugin
+import sbtversionpolicy.DependencyCheckReport
 
 object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   override def trigger = allRequirements
@@ -215,6 +216,21 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
+    // https://github.com/scalacenter/scalafix/pull/1819#issuecomment-1636118496
+    versionPolicyFindDependencyIssues ~= { issues =>
+      issues.map { case (module, report) =>
+        val Seq(backward, forward) =
+          Seq(report.backwardStatuses, report.forwardStatuses)
+            .map { statuses =>
+              statuses.filterNot { case ((org, artifact), _) =>
+                Seq(scalametaFastparse, geny)
+                  .map(mod => (mod.organization, mod.name))
+                  .contains((org, artifact.split('_').head))
+              }
+            }
+        (module, DependencyCheckReport(backward, forward))
+      }
+    },
     // Prevent issues with scalatest serialization
     Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat,
     Test / testWindows := (Test / testOnly)
