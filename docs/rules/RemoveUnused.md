@@ -18,7 +18,7 @@ To use this rule:
   sbt, this is done with `scalacOptions += "-Ywarn-unused"`.
 - Disable `-Xfatal-warnings` if you have it enabled. This is required so the
   compiler warnings do not fail the build before running Scalafix. If you are
-  running 2.13.2 or later, you may keep `-Xfatal-warnings` by modifying how
+  running 2.12.13+ or 2.13.2+, you may keep `-Xfatal-warnings` by modifying how
   specific warnings are handled via `scalacOptions += "-Wconf:cat=unused:info"`.
 - This rule **can't work** yet on Scala 3 projects since the compiler option `warn-unused`
   is not yet available in Scala 3. You need to remove `RemoveUnused` 
