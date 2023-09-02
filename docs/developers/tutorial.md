@@ -41,7 +41,7 @@ Start by cloning the repository
 
 ```
 git clone https://github.com/scalacenter/scalafix-named-literal-arguments.git
-cd scalafix-named-literal-arguments
+cd scalafix-named-literal-arguments/scalafix
 sbt
 ...
 [info] sbt server started at local://$HOME/.sbt/1.0/server/93fc24de3bb97dec3e5b/sock
