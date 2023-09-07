@@ -43,11 +43,11 @@ class RuleCompiler(
       List(new BatchSourceFile(label, new String(input.chars)))
     )
     val errors = reporter.infos.collect {
-      case reporter.Info(pos, msg, reporter.ERROR) =>
+      case r: reporter.Info if r.severity == reporter.ERROR =>
         ConfError
-          .message(msg)
+          .message(r.msg)
           .atPos(
-            if (pos.isDefined) Position.Range(input, pos.start, pos.end)
+            if (r.pos.isDefined) Position.Range(input, r.pos.start, r.pos.end)
             else Position.None
           )
           .notOk

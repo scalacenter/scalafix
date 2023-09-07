@@ -143,6 +143,8 @@ class RemoveUnused(config: RemoveUnusedConfig)
           }.asPatch
         case i: Defn if isUnusedTerm(i.pos) =>
           defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
+        case i @ Defn.Def(_, name, _, _, _, _) if isUnusedTerm(name.pos) =>
+          defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
         case i @ Defn.Val(_, List(pat), _, _)
             if isUnusedTerm.exists(p => p.start == pat.pos.start) =>
           defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
