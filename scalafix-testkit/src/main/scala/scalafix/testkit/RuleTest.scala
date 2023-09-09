@@ -33,8 +33,9 @@ object RuleTest {
       val tree = dialect(input).parse[Source].get
       // Its possible to have comments which isn't valid HOCON (i.e.
       // license headers), so lets parse until we find valid HOCON.
-      val allComments = SemanticRuleSuite.filterPossibleTestkitComments(tree.tokens)
-      val lazilyParsedComments = allComments.view.map{ comment =>
+      val allComments =
+        SemanticRuleSuite.filterPossibleTestkitComments(tree.tokens)
+      val lazilyParsedComments = allComments.view.map { comment =>
         val syntax = comment.syntax.stripPrefix("/*").stripSuffix("*/")
         for {
           conf <- Conf.parseString(test.testName, syntax).toEither
@@ -59,8 +60,8 @@ object RuleTest {
         }
       }
 
-      lazilyParsedComments.collectFirst {
-        case Right((decoder, conf, sdoc)) =>
+      lazilyParsedComments
+        .collectFirst { case Right((decoder, conf, sdoc)) =>
           val rulesConf = ConfGet
             .getKey(conf, "rules" :: "rule" :: Nil)
             .getOrElse(Conf.Lst(Nil))
@@ -71,7 +72,12 @@ object RuleTest {
             .withScalacClasspath(args.classpath.entries)
           val rules = decoder.read(rulesConf).get.withConfiguration(config).get
           (rules, sdoc)
-      }.getOrElse(throw new IllegalArgumentException(s"Expected a single comment at ${test.testPath} with a valid rule or rules key defined"))
+        }
+        .getOrElse(
+          throw new IllegalArgumentException(
+            s"Expected a single comment at ${test.testPath} with a valid rule or rules key defined"
+          )
+        )
     }
 
     new RuleTest(test, run)
