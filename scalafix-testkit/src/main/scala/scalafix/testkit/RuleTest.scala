@@ -1,5 +1,7 @@
 package scalafix.testkit
 
+import scala.util.Try
+
 import scala.meta._
 import scala.meta.internal.symtab.SymbolTable
 
@@ -38,7 +40,8 @@ object RuleTest {
       val lazilyParsedComments = allComments.view.map { comment =>
         val syntax = comment.syntax.stripPrefix("/*").stripSuffix("*/")
         for {
-          conf <- Conf.parseString(test.testName, syntax).toEither
+          conf <- Try(Conf.parseString(test.testName, syntax)).toEither
+            .flatMap(_.toEither)
           scalafixConfig <- conf.as[ScalafixConfig].toEither
         } yield {
           val doc = v1.SyntacticDocument(
