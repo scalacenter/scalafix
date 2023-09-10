@@ -1,8 +1,14 @@
 package scalafix.testkit
 
+import scala.util.Try
+
 import scala.meta._
 import scala.meta.internal.inputs.XtensionInputSyntaxStructure
 
+import metaconfig.Conf
+import metaconfig.internal.ConfGet
+import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
+import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.reflect.RuleCompilerClasspath
 import scalafix.internal.testkit.EndOfLineAssertExtractor
 import scalafix.internal.testkit.MultiLineAssertExtractor
@@ -28,21 +34,33 @@ object SemanticRuleSuite {
     }.mkString
   }
 
-  private[testkit] def testKitCommentPredicate(token: Token): Boolean =
-    token.is[Token.Comment] && token.syntax.startsWith("/*")
+  def findTestkitComment(tokens: Tokens): Token =
+    parseTestkitComment(tokens)._1
 
-  def findTestkitComment(tokens: Tokens): Token = {
+  def parseTestkitComment(
+      tokens: Tokens
+  ): (Token, Conf, Conf, ScalafixConfig) = {
+    def extractTestkitHints(comment: Token) = {
+      val syntax = comment.syntax.stripPrefix("/*").stripSuffix("*/")
+      for {
+        conf <- Try(Conf.parseString("comment", syntax)).toOption
+          .flatMap(_.toEither.toOption)
+        rulesConf <- ConfGet.getKey(conf, "rules" :: "rule" :: Nil)
+        scalafixConfig <- conf.as[ScalafixConfig].toEither.toOption
+      } yield (comment, conf, rulesConf, scalafixConfig)
+    }
+
+    // It is possible to have comments which are not valid HOCON with
+    // rules (i.e. license headers), so lets parse until we find one
     tokens
-      .find(testKitCommentPredicate)
+      .filter(token => token.is[Token.Comment] && token.syntax.startsWith("/*"))
+      .collectFirst(Function.unlift(extractTestkitHints))
       .getOrElse {
         val input = tokens.headOption.fold("the file")(_.input.syntax)
         throw new IllegalArgumentException(
-          s"Missing /* */ comment at the top of $input"
+          s"Missing /* */ comment with rules attribute in $input"
         )
       }
   }
-
-  def filterPossibleTestkitComments(tokens: Tokens): IndexedSeq[Token] =
-    tokens.filter(testKitCommentPredicate)
 
 }

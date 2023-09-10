@@ -1,6 +1,3 @@
-/*
-ignore = true
-*/
 package org.scalatest_autofix
 
 object Matchers extends Matchers
