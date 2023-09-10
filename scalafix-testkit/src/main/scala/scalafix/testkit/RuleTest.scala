@@ -1,9 +1,14 @@
 package scalafix.testkit
 
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
+
 import scala.meta._
 import scala.meta.internal.symtab.SymbolTable
 
 import metaconfig.Conf
+import metaconfig.ConfError
 import metaconfig.internal.ConfGet
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 import scalafix.internal.config.ScalafixConfig
@@ -31,36 +36,56 @@ object RuleTest {
       val input = test.toInput
       val dialect = args.scalaVersion.dialect(args.sourceScalaVersion)
       val tree = dialect(input).parse[Source].get
-      val comment = SemanticRuleSuite.findTestkitComment(tree.tokens)
-      val syntax = comment.syntax.stripPrefix("/*").stripSuffix("*/")
-      val conf = Conf.parseString(test.testName, syntax).get
-      val scalafixConfig = conf.as[ScalafixConfig].get
-      val doc = v1.SyntacticDocument(
-        tree.pos.input,
-        LazyValue.now(tree),
-        DiffDisable.empty,
-        scalafixConfig
-      )
-      val sdoc =
-        v1.SemanticDocument.fromPath(
-          doc,
-          test.semanticdbPath,
-          classLoader,
-          symtab
+      // Its possible to have comments which isn't valid HOCON (i.e.
+      // license headers), so lets parse until we find valid HOCON.
+      val allComments =
+        SemanticRuleSuite.filterPossibleTestkitComments(tree.tokens)
+      val lazilyParsedComments = allComments.view.map { comment =>
+        val syntax = comment.syntax.stripPrefix("/*").stripSuffix("*/")
+        for {
+          conf <- Try(Conf.parseString(test.testName, syntax)) match {
+            case Failure(exception) => Left(ConfError.exception(exception))
+            case Success(value) => value.toEither
+          }
+          scalafixConfig <- conf.as[ScalafixConfig].toEither
+        } yield {
+          val doc = v1.SyntacticDocument(
+            tree.pos.input,
+            LazyValue.now(tree),
+            DiffDisable.empty,
+            scalafixConfig
+          )
+          val sdoc =
+            v1.SemanticDocument.fromPath(
+              doc,
+              test.semanticdbPath,
+              classLoader,
+              symtab
+            )
+          val decoderSettings =
+            RuleDecoder.Settings().withConfig(scalafixConfig)
+          (RuleDecoder.decoder(decoderSettings), conf, sdoc)
+        }
+      }
+
+      lazilyParsedComments
+        .collectFirst { case Right((decoder, conf, sdoc)) =>
+          val rulesConf = ConfGet
+            .getKey(conf, "rules" :: "rule" :: Nil)
+            .getOrElse(Conf.Lst(Nil))
+          val config = Configuration()
+            .withConf(conf)
+            .withScalaVersion(args.scalaVersion.value)
+            .withScalacOptions(args.scalacOptions)
+            .withScalacClasspath(args.classpath.entries)
+          val rules = decoder.read(rulesConf).get.withConfiguration(config).get
+          (rules, sdoc)
+        }
+        .getOrElse(
+          throw new IllegalArgumentException(
+            s"Expected a single comment at ${test.testPath} with a valid rule or rules key defined"
+          )
         )
-      val decoderSettings =
-        RuleDecoder.Settings().withConfig(scalafixConfig)
-      val decoder = RuleDecoder.decoder(decoderSettings)
-      val rulesConf = ConfGet
-        .getKey(conf, "rules" :: "rule" :: Nil)
-        .getOrElse(Conf.Lst(Nil))
-      val config = Configuration()
-        .withConf(conf)
-        .withScalaVersion(args.scalaVersion.value)
-        .withScalacOptions(args.scalacOptions)
-        .withScalacClasspath(args.classpath.entries)
-      val rules = decoder.read(rulesConf).get.withConfiguration(config).get
-      (rules, sdoc)
     }
 
     new RuleTest(test, run)

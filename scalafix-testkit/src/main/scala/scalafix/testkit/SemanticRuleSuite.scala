@@ -28,11 +28,12 @@ object SemanticRuleSuite {
     }.mkString
   }
 
+  private[testkit] def testKitCommentPredicate(token: Token): Boolean =
+    token.is[Token.Comment] && token.syntax.startsWith("/*")
+
   def findTestkitComment(tokens: Tokens): Token = {
     tokens
-      .find { x =>
-        x.is[Token.Comment] && x.syntax.startsWith("/*")
-      }
+      .find(testKitCommentPredicate)
       .getOrElse {
         val input = tokens.headOption.fold("the file")(_.input.syntax)
         throw new IllegalArgumentException(
@@ -40,5 +41,8 @@ object SemanticRuleSuite {
         )
       }
   }
+
+  def filterPossibleTestkitComments(tokens: Tokens): IndexedSeq[Token] =
+    tokens.filter(testKitCommentPredicate)
 
 }
