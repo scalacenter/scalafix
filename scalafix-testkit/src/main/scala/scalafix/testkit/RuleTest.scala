@@ -1,11 +1,14 @@
 package scalafix.testkit
 
+import scala.util.Failure
+import scala.util.Success
 import scala.util.Try
 
 import scala.meta._
 import scala.meta.internal.symtab.SymbolTable
 
 import metaconfig.Conf
+import metaconfig.ConfError
 import metaconfig.internal.ConfGet
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 import scalafix.internal.config.ScalafixConfig
@@ -40,8 +43,10 @@ object RuleTest {
       val lazilyParsedComments = allComments.view.map { comment =>
         val syntax = comment.syntax.stripPrefix("/*").stripSuffix("*/")
         for {
-          conf <- Try(Conf.parseString(test.testName, syntax)).toEither
-            .flatMap(_.toEither)
+          conf <- Try(Conf.parseString(test.testName, syntax)) match {
+            case Failure(exception) => Left(ConfError.exception(exception))
+            case Success(value) => value.toEither
+          }
           scalafixConfig <- conf.as[ScalafixConfig].toEither
         } yield {
           val doc = v1.SyntacticDocument(
