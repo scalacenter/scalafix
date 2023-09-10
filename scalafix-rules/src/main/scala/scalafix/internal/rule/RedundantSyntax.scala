@@ -30,15 +30,29 @@ class RedundantSyntax(config: RedundantSyntaxConfig)
               finalTok :: TokenList(o.tokens).trailingSpaces(finalTok).toList
             }
           }
-        case interpolator @ Term.Interpolate(
-              Term.Name(p),
-              Lit.String(v) :: Nil,
+        case Term.Interpolate(
+              interpolator,
+              lit :: Nil,
               Nil
             )
-            if config.stringInterpolator
-              && (p == "s" || p == "f" || (p == "raw" && !v.contains('\\'))) =>
-          Patch.removeTokens(interpolator.prefix.tokens)
+            if config.stringInterpolator &&
+              !mustKeepInterpolator(interpolator, lit) =>
+          Patch.removeTokens(interpolator.tokens)
       }
       .map(_.atomic)
       .asPatch
+
+  private def mustKeepInterpolator(interpolator: Tree, lit: Tree) = {
+    val escapedCharacter = lit.syntax.contains('\\')
+    // termInterpolate.syntax.contains("\"\"\"") does not work in scala 2.13 and scala 3
+    // as the syntax uses single quotes even if the litteral was defined with triple quotes
+    val tripleQuotes = lit.pos.start - interpolator.pos.end == 3
+    interpolator.syntax match {
+      case "s" | "f" =>
+        escapedCharacter && tripleQuotes
+      case "raw" =>
+        escapedCharacter && !tripleQuotes
+      case _ => true
+    }
+  }
 }

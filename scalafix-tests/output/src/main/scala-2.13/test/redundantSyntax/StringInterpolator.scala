@@ -1,8 +1,3 @@
-/*
-rules = RedundantSyntax
-RedundantSyntax.stringInterpolator = true
-*/
-
 package test.redundantSyntax
 
 class StringInterpolator {
@@ -11,22 +6,26 @@ class StringInterpolator {
 
   var b = ""
   b = "foo"
-  b = s"foo"
+  b = "foo"
   b = s"foo $a bar"
+  b = "my \"quoted\" string"
 
   b = """foo"""
   b =
-    s"""foo
+    """foo
        |bar"""
+  b = s"""my \"quoted\" string"""
   b = s"""foo $a bar"""
   b = s"""$a"""
 
-  b = f"foo"
+  b = "foo"
   b = f"foo $a%2.2f"
+  b = "foo \n bar"
 
   b = raw"foo $a \nbar"
+  b = """foo\nbar\\"""
   b = raw"foo\nbar\\"
-  b = raw"foo bar"
+  b = "foo bar"
   b = raw"a\*b\+"
 
   b = my"foo"
