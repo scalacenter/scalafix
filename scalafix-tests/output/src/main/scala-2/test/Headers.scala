@@ -13,14 +13,10 @@
   foo = bar
 */
 
-/*
-rules = [
-  "class:scalafix.test.NoDummy"
-]
-*/
+
 package test
 
 class Headers {
-  val aDummy = 0 // assert: NoDummy
+  val aDummy = 0 
 }
 
