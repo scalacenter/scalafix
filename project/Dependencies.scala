@@ -7,9 +7,9 @@ import scala.util.Try
 /* scalafmt: { maxColumn = 120 }*/
 
 object Dependencies {
-  val scala212 = "2.12.18"
-  val scala213 = "2.13.12"
-  val scala3 = "3.3.1"
+  val scala212 = sys.props.getOrElse("scala212.nightly", "2.12.18")
+  val scala213 = sys.props.getOrElse("scala213.nightly", "2.13.12")
+  val scala3 = sys.props.getOrElse("scala3.nightly", "3.3.1")
 
   val buildScalaVersions = Seq(scala212, scala213, scala3)
   val buildWithTargetVersions: Seq[(String, String)] =
