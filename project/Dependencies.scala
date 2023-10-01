@@ -20,7 +20,7 @@ object Dependencies {
   val bijectionCoreV = "0.9.7"
   val collectionCompatV = "2.11.0"
   val coursierV = "2.1.6"
-  val coursierInterfaceV = "1.0.18"
+  val coursierInterfaceV = "1.0.19"
   val commontTextV = "1.10.0"
   val googleDiffV = "1.3.0"
   val java8CompatV = "1.0.2"
