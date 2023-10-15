@@ -17,7 +17,7 @@ jobs:
     name: ${{ matrix.os }} / JDK${{ matrix.jvm }}
     runs-on: ${{ matrix.os }}-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: coursier/setup-action@v1
         with:
           jvm: temurin:${{ matrix.jvm }}
@@ -29,14 +29,14 @@ jobs:
     name: Compile docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: coursier/setup-action@v1
       - run: sbt ci-docs
   formatting:
     name: Scalafmt and Scalafix
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: coursier/setup-action@v1
       - run: ./bin/scalafmt --test
       - run: sbt "dogfoodScalafixInterfaces; scalafixAll --check"
@@ -44,7 +44,7 @@ jobs:
     name: Version Policy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: coursier/setup-action@v1

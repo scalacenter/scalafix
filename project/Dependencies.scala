@@ -19,7 +19,7 @@ object Dependencies {
 
   val bijectionCoreV = "0.9.7"
   val collectionCompatV = "2.11.0"
-  val coursierV = "2.1.6"
+  val coursierV = "2.1.7"
   val coursierInterfaceV = "1.0.18"
   val commontTextV = "1.10.0"
   val googleDiffV = "1.3.0"
@@ -29,7 +29,7 @@ object Dependencies {
   val nailgunV = "0.9.1"
   val scalaXmlV = "2.2.0"
   val scalametaV = "4.8.10"
-  val scalatestV = "3.2.16"
+  val scalatestV = "3.2.17"
   val munitV = "0.7.29"
 
   // scala-steward:off
