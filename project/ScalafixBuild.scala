@@ -212,7 +212,17 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r),
     versionScheme := Some("early-semver"),
     // coursier-versions always return false for the *.*.*.*-r pattern jgit uses
-    libraryDependencySchemes += Dependencies.jgit.withRevision("always")
+    libraryDependencySchemes += Dependencies.jgit.withRevision("always"),
+    // TODO: remove after releasing scalafix 0.11.2
+    libraryDependencySchemes ++= Seq(
+      // metaconfig 0.12.0 is potentially breaking because of fansi 0.4.0 &
+      // transitively sourcecode 0.3.0 but it turns out the breaking changes
+      // only impact ScalaJS & Scala Native
+      "com.geirsson" %% "metaconfig-core" % "always",
+      "com.geirsson" %% "metaconfig-pprint" % "always",
+      "com.geirsson" %% "metaconfig-typesafe-config" % "always",
+      "com.lihaoyi" %% "fansi" % "always"
+    )
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
