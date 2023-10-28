@@ -25,7 +25,7 @@ object Dependencies {
   val googleDiffV = "1.3.0"
   val java8CompatV = "1.0.2"
   val jgitV = "5.13.2.202306221912-r"
-  val metaconfigV = "0.11.1"
+  val metaconfigV = "0.12.0"
   val nailgunV = "0.9.1"
   val scalaXmlV = "2.2.0"
   val scalametaV = "4.8.10"
