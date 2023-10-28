@@ -46,6 +46,15 @@ class SymbolMatcherSuite extends AnyFunSuite {
       assert(map.matches(Symbol("scala/Option#map(+1).")), sym)
       assert(map.matches(Symbol("scala/Option.map(+1).")), sym)
     }
+
+    List(
+      "scala.Int.`+`",
+      "scala.Int.`+`#",
+      "scala.Int.`+`."
+    ).foreach { sym =>
+      val option = SymbolMatcher.normalized(sym)
+      assert(option.matches(Symbol("scala/Int#`+`(+4).")), sym)
+    }
   }
 
   test("matches/unapply") {
