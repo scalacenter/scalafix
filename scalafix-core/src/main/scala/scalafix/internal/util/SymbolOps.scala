@@ -98,7 +98,10 @@ object SymbolOps {
   }
 
   def inferTrailingDot(symbol: String): String =
-    if (symbol.isEmpty) symbol
-    else if (Character.isJavaIdentifierPart(symbol.last)) symbol + "."
-    else symbol
+    if (symbol.isEmpty)
+      symbol
+    else if (Character.isJavaIdentifierPart(symbol.last) || symbol.last == '`')
+      symbol + "."
+    else
+      symbol
 }
