@@ -365,7 +365,8 @@ object EscapeHatch {
         associatedComments: LazyValue[AssociatedComments]
     ): AnchoredEscapes = {
       val enable = TreeMap.newBuilder[EscapeOffset, List[EscapeFilter]]
-      val disable = TreeMap.newBuilder[EscapeOffset, List[EscapeFilter]]
+      val disableList =
+        ListBuffer.newBuilder[(EscapeOffset, List[EscapeFilter])]
       val visitedFilterExpression = mutable.Set.empty[Position]
       val onOffTracker = new OnOffTracker
 
@@ -422,9 +423,11 @@ object EscapeHatch {
             case comment @ Token.Comment(ScalafixOkRgx(rules)) =>
               if (!visitedFilterExpression.contains(comment.pos)) {
                 val rulesPos = rulesWithPosition(rules, comment)
-                val start = EscapeOffset(t.pos.start)
+                // include line start in case the rule captures leading tokens
+                val start = EscapeOffset(t.pos.start - t.pos.startColumn)
                 val end = Some(EscapeOffset(t.pos.end))
-                disable += (start -> makeFilters(rulesPos, start, end, comment))
+                disableList +=
+                  (start -> makeFilters(rulesPos, start, end, comment))
                 visitedFilterExpression += comment.pos
               }
 
@@ -444,7 +447,8 @@ object EscapeHatch {
             case ScalafixOffRgx(rules) =>
               val rulesPos = rulesWithPosition(rules, comment)
               val start = EscapeOffset(comment.pos.start)
-              disable += (start -> makeFilters(rulesPos, start, None, comment))
+              disableList +=
+                (start -> makeFilters(rulesPos, start, None, comment))
               onOffTracker.trackOff(rulesPos, comment)
 
             // matches on anchors
@@ -470,7 +474,8 @@ object EscapeHatch {
                 val start =
                   EscapeOffset(comment.pos.start - comment.pos.startColumn)
                 val end = Some(EscapeOffset(comment.pos.end))
-                disable += (start -> makeFilters(rulesPos, start, end, comment))
+                disableList +=
+                  (start -> makeFilters(rulesPos, start, end, comment))
               }
 
             case _ => ()
@@ -479,10 +484,29 @@ object EscapeHatch {
         case _ => ()
       }
 
+      val disable = TreeMap.newBuilder[EscapeOffset, List[EscapeFilter]]
+      val unused = ListBuffer.from(onOffTracker.allUnused)
+
+      // for filters starting on the same offset, pick the one with the wider range
+      // and mark the others as unused
+      disableList.result().groupBy(_._1).valuesIterator.foreach {
+        filtersForOffset =>
+          val sorted = filtersForOffset.sortBy { case (_, filters) =>
+            filters.headOption.flatMap(_.endOffset.map(-_.offset))
+          }
+
+          sorted.result() match {
+            case head :: tail =>
+              disable += head
+              unused ++= tail.flatMap(_._2).map(_.cause)
+            case _ =>
+          }
+      }
+
       new AnchoredEscapes(
         enable.result(),
         disable.result(),
-        onOffTracker.allUnused
+        unused.result()
       )
     }
   }
