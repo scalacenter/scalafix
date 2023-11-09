@@ -198,6 +198,7 @@ lazy val input = projectMatrix
     scalacOptions ++= warnUnused.value, // For RemoveUnusedTerms
     logLevel := Level.Error, // avoid flood of compiler warnings
     libraryDependencies ++= testsDependencies.value,
+    libraryDependencies += "io.getquill" %% "quill-jdbc-zio" % "4.8.0",
     coverageEnabled := false
   )
   .defaultAxes(VirtualAxis.jvm)
