@@ -22,6 +22,7 @@ DisableSyntax.regex = [
     message = "Numbers ({$1} in this instance) should always have a named parameter attached, or be assigned to a val."
   }
   "Await\\.result"
+  ".*bar\\s"
 ]
 */
 package test.disableSyntax
@@ -60,6 +61,8 @@ Numbers (5 in this instance) should always have a named parameter attached, or b
   val someDays = 75.days
   // actually 7.5 million years
   Await.result(Future(fortyTwo), someDays) // assert: DisableSyntax.Await\.result
+
+  val bar = 1 // scalafix:ok
 
   override def finalize(): Unit = println("exit") // assert: DisableSyntax.noFinalize
 
