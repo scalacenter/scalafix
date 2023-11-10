@@ -3,17 +3,13 @@ id: installation
 title: Installation
 ---
 
-## Requirements
+## Support
 
-**macOS, Linux or Windows**: Scalafix runs on macOS, Linux and Windows. Every
-pull request is tested on both Linux and Windows.
+**macOS, Linux or Windows**
 
-**Java 8 or Java 11.**
+**Java LTS (8, 11, 17 or 21)**
 
-**Scala 2.12 and 2.13**
-
-**Scala 3.x**: Scala 3 support is experimental and many built-in rules are not
-supported.
+**Scala 2.12, 2.13 or 3.x** (all rules are not available for Scala 3.x)
 
 ## sbt
 
