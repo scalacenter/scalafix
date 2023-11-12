@@ -8,4 +8,12 @@ public interface ScalafixPatch {
     default ScalafixTextEdit[] textEdits() {
         throw new UnsupportedOperationException("textEdits() is not implemented");
     }
+
+    /**
+     *
+     * @return True if this patch is atomic, else false.
+     */
+    default boolean isAtomic() {
+        throw new UnsupportedOperationException("isAtmoic() is not implemented");
+    }
 }

@@ -24,4 +24,7 @@ case class ScalafixPatchImpl(patch: Patch)(
         ): ScalafixTextEdit
       }
       .toArray
+
+  override def isAtomic: Boolean =
+    patch.isInstanceOf[Patch.internal.AtomicPatch]
 }
