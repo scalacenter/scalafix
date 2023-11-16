@@ -14,6 +14,6 @@ public interface ScalafixPatch {
      * @return True if this patch is atomic, else false.
      */
     default boolean isAtomic() {
-        throw new UnsupportedOperationException("isAtmoic() is not implemented");
+        throw new UnsupportedOperationException("isAtomic() is not implemented");
     }
 }
