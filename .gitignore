@@ -44,3 +44,6 @@ metals.sbt
 
 # Scala CLI specific
 .scala-build/
+
+# Emacs Backups
+*~

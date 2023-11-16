@@ -18,6 +18,7 @@ import scalafix.interfaces.ScalafixDiagnostic
 import scalafix.interfaces.ScalafixFileEvaluationError
 import scalafix.interfaces.ScalafixMainCallback
 import scalafix.interfaces.ScalafixMainMode
+import scalafix.interfaces.ScalafixPatch
 import scalafix.internal.interfaces.ScalafixArgumentsImpl
 import scalafix.internal.rule.RemoveUnused
 import scalafix.internal.rule.RemoveUnusedConfig
@@ -570,6 +571,27 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     assert(
       nonAtomicEdit2.position.startLine == 7 && nonAtomicEdit2.position.startColumn == 1
     )
+  }
+
+  test("ScalafixPatch isAtomic") {
+    val cwd: Path = StringFS
+      .string2dir(
+        """|/src/Main.scala
+          |
+          |object Main extends App""".stripMargin,
+        charset
+      )
+      .toNIO
+    val src = cwd.resolve("src")
+
+    def patches(rules: List[String]): Array[ScalafixPatch] = {
+      val run = api.withRules(rules.asJava).withSourceroot(src)
+      val fileEvaluation = run.evaluate().getFileEvaluations.head
+      fileEvaluation.getPatches
+    }
+
+    assert(patches(List("CommentFileAtomic")).forall(_.isAtomic))
+    assert(patches(List("CommentFileNonAtomic")).forall(!_.isAtomic))
   }
 
   test("com.github.liancheng::organize-imports is ignored") {
