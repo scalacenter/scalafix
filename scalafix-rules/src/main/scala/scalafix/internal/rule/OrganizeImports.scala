@@ -60,6 +60,8 @@ class OrganizeImports(config: OrganizeImportsConfig)
 
   def this() = this(OrganizeImportsConfig())
 
+  override def description: String = "Organize import statements"
+
   override def isLinter: Boolean = true
 
   override def isRewrite: Boolean = true
