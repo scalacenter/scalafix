@@ -91,7 +91,7 @@ re-generate on file save.
 
 ```sh
 $ sbt
-> docs/run -w
+> ci-docs
 ```
 
 To view the website in your browser, start the Docusaurus live reload server
