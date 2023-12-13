@@ -444,7 +444,7 @@ case class Args(
 
 object Args extends TPrintImplicits {
   val baseMatcher: PathMatcher =
-    FileSystems.getDefault.getPathMatcher("glob:**.{scala,sbt}")
+    FileSystems.getDefault.getPathMatcher("glob:**.{scala,sbt,sc}")
   val runtimeScalaVersion: ScalaVersion = ScalaVersion
     .from(scala.util.Properties.versionNumberString) // can be empty
     .toOption

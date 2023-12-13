@@ -311,6 +311,24 @@ class CliSyntacticSuite extends BaseCliSuite {
   )
 
   check(
+    name = "fix script files",
+    originalLayout = s"""|/a.sc
+      |def foo { println(1) }
+      |lazy val bar = project
+      |""".stripMargin,
+    args = Array(
+      "-r",
+      "ProcedureSyntax",
+      "a.sc"
+    ),
+    expectedLayout = s"""|/a.sc
+      |def foo: Unit = { println(1) }
+      |lazy val bar = project
+      |""".stripMargin,
+    expectedExit = ExitStatus.Ok
+  )
+
+  check(
     name = "deprecated name emits warning",
     originalLayout = s"""|/a.scala
       |object a {
