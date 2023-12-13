@@ -22,6 +22,9 @@ case class ScalafixConfig(
 
   def dialectForFile(path: String): Dialect =
     if (path.endsWith(".sbt")) DefaultSbtDialect
+    else if (path.endsWith(".sc"))
+      dialect
+        .withAllowToplevelTerms(true)
     else dialect
 
   val reader: ConfDecoder[ScalafixConfig] =
