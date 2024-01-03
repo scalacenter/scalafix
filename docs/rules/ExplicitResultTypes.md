@@ -48,8 +48,8 @@ import scala.collection.mutable
 + import java.util.UUID
 ```
 
-Potential workarounds:
+To workaround this issue use the built-in [`OrganizeImports` rule](OrganizeImports.md). 
+A few more workarounds:
 
 - use https://github.com/NeQuissimus/sort-imports
-- use https://github.com/liancheng/scalafix-organize-imports
 - run "organize imports" refactoring in IntelliJ
