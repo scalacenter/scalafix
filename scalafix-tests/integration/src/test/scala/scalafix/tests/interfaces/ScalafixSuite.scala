@@ -6,6 +6,7 @@ import java.nio.file.Path
 
 import scala.jdk.CollectionConverters._
 
+import coursierapi.MavenRepository
 import coursierapi.Repository
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.interfaces.Scalafix
@@ -35,6 +36,9 @@ class ScalafixSuite extends AnyFunSuite {
       val scalafixAPI = Scalafix.fetchAndClassloadInstance(
         scalaVersion,
         Seq[Repository](
+          MavenRepository.of(
+            "https://oss.sonatype.org/content/repositories/snapshots"
+          ),
           Repository.ivy2Local(), // for scalafix-*
           Repository.central() // for scala libs
         ).asJava
@@ -80,7 +84,16 @@ class ScalafixSuite extends AnyFunSuite {
     test(
       s"fetch & load instance for Scala version $scalaVersion with external dependencies"
     ) {
-      val scalafixAPI = Scalafix.fetchAndClassloadInstance(scalaVersion)
+      val scalafixAPI = Scalafix.fetchAndClassloadInstance(
+        scalaVersion,
+        Seq[Repository](
+          MavenRepository.of(
+            "https://oss.sonatype.org/content/repositories/snapshots"
+          ),
+          Repository.ivy2Local(), // for scalafix-*
+          Repository.central() // for scala libs
+        ).asJava
+      )
 
       val ruleForDependency = Map(
         // built against scalafix 0.9.16
