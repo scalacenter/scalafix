@@ -129,7 +129,7 @@ For example,</p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> main = <span class="hljs-type">SymbolMatcher</span>.normalized(<span class="hljs-string">"com.Main"</span>)
 <span class="hljs-comment">// main: SymbolMatcher = NormalizedSymbolMatcher(com.Main.)</span>
 main.matches(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"com/Main#"</span>)) <span class="hljs-comment">// Main class</span>
-<span class="hljs-comment">// res4: Boolean = true // Main class</span>
+<span class="hljs-comment">// res4: Boolean = true</span>
 main.matches(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"com/Main."</span>)) <span class="hljs-comment">// Main object</span>
 <span class="hljs-comment">// res5: Boolean = true</span>
 </code></pre>
@@ -137,7 +137,7 @@ main.matches(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"co
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> print = <span class="hljs-type">SymbolMatcher</span>.normalized(<span class="hljs-string">"scala.Predef.println"</span>)
 <span class="hljs-comment">// print: SymbolMatcher = NormalizedSymbolMatcher(scala.Predef.println.)</span>
 print.matches(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"scala/Predef#println()."</span>))   <span class="hljs-comment">// println()</span>
-<span class="hljs-comment">// res6: Boolean = true   // println()</span>
+<span class="hljs-comment">// res6: Boolean = true</span>
 print.matches(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"scala/Predef#println(+1)."</span>)) <span class="hljs-comment">// println(String)</span>
 <span class="hljs-comment">// res7: Boolean = true</span>
 </code></pre>
