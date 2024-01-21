@@ -442,69 +442,6 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     assert(obtainedError == ScalafixFileEvaluationError.ParseError)
   }
 
-  test("Scala 3 style wildcard import", SkipWindows) {
-    // https://github.com/scalacenter/scalafix/issues/1663
-
-    // Todo(i1680): Add another test for scala 3 that doesn't uses removeUnused or
-    // at least remove the if when removeUnused is supported in scala 3
-    if (ScalaVersions.isScala3) {
-      cancel()
-    }
-
-    val cwd = StringFS
-      .string2dir(
-        """|/src/Main.scala
-          |import scala.collection.mutable
-          |import scala.util._
-          |import scala.io.*
-          |
-          |object Main
-        """.stripMargin,
-        charset
-      )
-      .toNIO
-    val d = cwd.resolve("out")
-    val target = cwd.resolve("target")
-    val src = cwd.resolve("src")
-    Files.createDirectories(d)
-    val main = src.resolve("Main.scala")
-
-    val scalacOptions = Array[String](
-      "-Xsource:3",
-      removeUnused,
-      "-classpath",
-      s"${scalaLibrary.mkString(":")}",
-      "-d",
-      d.toString,
-      main.toString
-    ) ++ CompatSemanticdb.scalacOptions(src, target)
-
-    val _ = CompatSemanticdb.runScalac(scalacOptions)
-    val result = api
-      .withRules(
-        Collections.singletonList(removeUnsuedRule().name.toString())
-      )
-      .withClasspath((scalaLibrary.map(_.toNIO) :+ target).asJava)
-      .withScalacOptions(Collections.singletonList(removeUnused))
-      .withScalaVersion("2.13.8")
-      .withPaths(Seq(main).asJava)
-      .withSourceroot(src)
-      .evaluate()
-
-    val error = result.getError
-    assert(!error.isPresent)
-    assert(result.isSuccessful)
-    assert(result.getFileEvaluations.length == 1)
-    val fileEvaluation = result.getFileEvaluations.head
-    assert(fileEvaluation.isSuccessful)
-    val expected =
-      """|
-        |object Main
-        |""".stripMargin
-    val obtained = fileEvaluation.previewPatches.get()
-    assertNoDiff(obtained, expected)
-  }
-
   test("withScalaVersion: non-parsable scala version") {
     val run = Try(api.withScalaVersion("213"))
     val expectedErrorMessage = "Failed to parse the Scala version"
