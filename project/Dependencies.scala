@@ -2,28 +2,12 @@ import ScalafixBuild.autoImport.isScala2
 import sbt.Keys.scalaVersion
 import sbt._
 
-import scala.util.Try
-
 /* scalafmt: { maxColumn = 120 }*/
 
 object Dependencies {
   val scala212 = sys.props.getOrElse("scala212.nightly", "2.12.18")
   val scala213 = sys.props.getOrElse("scala213.nightly", "2.13.12")
   val scala3 = sys.props.getOrElse("scala3.nightly", "3.3.1")
-
-  val buildScalaVersions = Seq(scala212, scala213, scala3)
-  val buildWithTargetVersions: Seq[(String, String)] = {
-    val all = buildScalaVersions.map(sv => (sv, sv)) ++
-      Seq(scala213, scala212).flatMap(sv => previousVersions(sv).map(prev => (sv, prev))) ++
-      Seq(scala213, scala212).map(sv => (sv, scala3))
-
-    all.filter {
-      case (_, v) if System.getProperty("java.version") == "21" =>
-        !Seq("2.12.16", "2.12.17", "2.13.10").contains(v)
-      case _ =>
-        true
-    }
-  }
 
   val bijectionCoreV = "0.9.7"
   val collectionCompatV = "2.11.0"
@@ -74,13 +58,4 @@ object Dependencies {
   val scalatest = "org.scalatest" %% "scalatest" % scalatestV
   val munit = "org.scalameta" %% "munit" % munitV
   val semanticdbScalacCore = "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
-
-  private def previousVersions(scalaVersion: String): Seq[String] = {
-    val split = scalaVersion.split('.')
-    val binaryVersion = split.take(2).mkString(".")
-    val compilerVersion = Try(split.last.toInt).toOption
-    val previousPatchVersions =
-      compilerVersion.map(version => List.range(version - 2, version).filter(_ >= 0)).getOrElse(Nil)
-    previousPatchVersions.map(v => s"$binaryVersion.$v")
-  }
 }
