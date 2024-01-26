@@ -7,7 +7,7 @@ import scalafix.v0._
 
 object DenotationOps {
   val defaultDialect: Dialect =
-    dialects.Scala212.copy(allowTypeLambdas = true)
+    dialects.Scala212.withAllowTypeLambdas(true)
 
   def resultType(
       symbol: Symbol,
@@ -15,10 +15,15 @@ object DenotationOps {
       dialect: Dialect
   ): Option[Type] = {
     def getDeclType(tpe: Type): Type = tpe match {
-      case Type.Method(_, tpe) if denot.isMethod => tpe
-      case Type.Lambda(_, tpe) if denot.isMethod => getDeclType(tpe)
-      case Type.Method((Term.Param(_, _, Some(tpe), _) :: Nil) :: Nil, _)
-          if denot.isVar =>
+      case Type.Method.After_4_6_0(_, tpe) if denot.isMethod => tpe
+      case Type.Lambda.After_4_6_0(_, tpe) if denot.isMethod => getDeclType(tpe)
+      case Type.Method.After_4_6_0(
+            Term.ParamClause(
+              Term.Param(_, _, Some(tpe), _) :: Nil,
+              None
+            ) :: Nil,
+            _
+          ) if denot.isVar =>
         // Workaround for https://github.com/scalameta/scalameta/issues/1100
         tpe
       case x =>

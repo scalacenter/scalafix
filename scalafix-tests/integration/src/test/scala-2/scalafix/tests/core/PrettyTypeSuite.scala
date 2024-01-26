@@ -41,8 +41,14 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
 
   val m.Source(m.Pkg(_, stats) :: Nil) = source.transform {
     // Remove bodies from methods like `private def foo: Unit` that can't be abstract.
-    case m.Defn.Def(mods, name, tparams, paramss, Some(decltpe), _) =>
-      m.Decl.Def(mods, name, tparams, paramss, decltpe)
+    case m.Defn.Def.After_4_6_0(
+          mods,
+          name,
+          paramClauseGroups,
+          Some(decltpe),
+          _
+        ) =>
+      m.Decl.Def.After_4_6_0(mods, name, paramClauseGroups, decltpe)
   }
 
   // ignoring Functor[C[_]] because of a regression with scalac 2.13.7, see https://github.com/scalacenter/scalafix/pull/1493

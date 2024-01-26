@@ -216,17 +216,25 @@ class PrettyType private (
               toMods(info),
               Name(""),
               paramss.iterator
-                .map(params => params.symbols.smap(toTermParam))
+                .map(params =>
+                  Term.ParamClause(params.symbols.smap(toTermParam))
+                )
                 .toList
             )
           } else {
             Decl.Def(
               toMods(info),
               Term.Name(info.displayName),
-              tparams.smap(toTypeParam),
-              paramss.iterator
-                .map(params => params.symbols.smap(toTermParam))
-                .toList,
+              List(
+                Member.ParamClauseGroup(
+                  tparams.smap(toTypeParam),
+                  paramss.iterator
+                    .map(params =>
+                      Term.ParamClause(params.symbols.smap(toTermParam))
+                    )
+                    .toList
+                )
+              ),
               toType(ret)
             )
           }
@@ -267,7 +275,7 @@ class PrettyType private (
               Defn.Trait(
                 toMods(info),
                 Type.Name(info.displayName),
-                tparams.smap(toTypeParam),
+                Type.ParamClause(tparams.smap(toTypeParam)),
                 Ctor.Primary(Nil, Name(""), Seq.empty[Term.ParamClause]),
                 Template(
                   Nil,
@@ -279,7 +287,8 @@ class PrettyType private (
                       !i.isVarSetter
                     ) toStat(i)
                     else Nil
-                  }
+                  },
+                  Nil
                 )
               )
             case k.OBJECT =>
@@ -290,7 +299,8 @@ class PrettyType private (
                   Nil,
                   inits,
                   Self(Name(""), None),
-                  objectDecls
+                  objectDecls,
+                  Nil
                 )
               )
             case k.PACKAGE_OBJECT =>
@@ -301,7 +311,8 @@ class PrettyType private (
                   Nil,
                   inits,
                   Self(Name(""), None),
-                  objectDecls
+                  objectDecls,
+                  Nil
                 )
               )
             case k.CLASS =>
@@ -309,19 +320,27 @@ class PrettyType private (
                 .collectFirst {
                   case i if i.kind.isConstructor && i.is(p.PRIMARY) =>
                     toTree(i) match {
-                      case ctor @ Ctor.Primary(_, _, Nil :: Nil)
-                          if !info.is(p.CASE) =>
+                      case ctor @ Ctor.Primary.After_4_6_0(
+                            _,
+                            _,
+                            Term.ParamClause(Nil, _) :: Nil
+                          ) if !info.is(p.CASE) =>
                         // Remove redudant () for non-case classes: class Foo
                         ctor.copy(paramss = Nil)
                       case e: Ctor.Primary => e
                     }
                 }
                 .getOrElse {
-                  Ctor.Primary(Nil, Name(""), Seq.empty[Term.ParamClause])
+                  Ctor.Primary.After_4_6_0(
+                    Nil,
+                    Name(""),
+                    Seq.empty[Term.ParamClause]
+                  )
                 }
 
               // FIXME: Workaround for https://github.com/scalameta/scalameta/issues/1492
-              val isCtorName = ctor.paramss.flatMap(_.map(_.name.value)).toSet
+              val isCtorName =
+                ctor.paramClauses.flatMap(_.values).map(_.name.value).toSet
               def isSyntheticMember(m: s.SymbolInformation): Boolean =
                 (isCaseClass && isCaseClassMethod(m.displayName)) ||
                   isCtorName(m.displayName)
@@ -329,7 +348,7 @@ class PrettyType private (
               Defn.Class(
                 toMods(info),
                 Type.Name(info.displayName),
-                tparams.smap(toTypeParam),
+                Type.ParamClause(tparams.smap(toTypeParam)),
                 ctor,
                 Template(
                   Nil,
@@ -342,7 +361,8 @@ class PrettyType private (
                       !isSyntheticMember(i)
                     ) toStat(i)
                     else Nil
-                  }
+                  },
+                  Nil
                 )
               )
             case _ =>
@@ -353,14 +373,14 @@ class PrettyType private (
             Defn.Type(
               toMods(info),
               Type.Name(info.displayName),
-              typeParameters.smap(toTypeParam),
+              Type.ParamClause(typeParameters.smap(toTypeParam)),
               toType(lo)
             )
           } else {
             Decl.Type(
               toMods(info),
               Type.Name(info.displayName),
-              typeParameters.smap(toTypeParam),
+              Type.ParamClause(typeParameters.smap(toTypeParam)),
               toTypeBounds(lo, hi)
             )
           }
@@ -389,7 +409,7 @@ class PrettyType private (
       case _ =>
         tpe
     }
-    Init(
+    Init.After_4_6_0(
       toType(fixed),
       Name.Anonymous(),
       // Can't support term arguments
@@ -518,14 +538,14 @@ class PrettyType private (
       def targs: List[Type] =
         typeArguments.iterator.map {
           case TypeExtractors.Wildcard() =>
-            Type.Placeholder(Type.Bounds(None, None))
+            Type.Wildcard(Type.Bounds(None, None))
           case targ =>
             toType(targ)
         }.toList
       symbol match {
         case TypeExtractors.FunctionN() if typeArguments.lengthCompare(0) > 0 =>
           val params :+ res = targs
-          Type.Function(params, res)
+          Type.Function(Type.FuncParamClause(params), res)
         case TypeExtractors.TupleN() if typeArguments.lengthCompare(1) > 0 =>
           Type.Tuple(targs)
         case _ =>
@@ -548,7 +568,7 @@ class PrettyType private (
             case (name: Type.Name, Seq(lhs, rhs))
                 if !Character.isJavaIdentifierPart(name.value.head) =>
               Type.ApplyInfix(lhs, name, rhs)
-            case (q, targs) => Type.Apply(q, targs)
+            case (q, targs) => Type.Apply(q, Type.ArgClause(targs))
           }
       }
     case s.SingleType(_, symbol) =>
@@ -634,7 +654,7 @@ class PrettyType private (
             Defn.Type(
               Nil,
               universalName,
-              typeParameters.smap(toTypeParam),
+              Type.ParamClause(typeParameters.smap(toTypeParam)),
               toType(underlying)
             ) :: Nil
           ),
@@ -681,7 +701,7 @@ class PrettyType private (
                 Type.Param(
                   Nil,
                   Name(""),
-                  Nil,
+                  Type.ParamClause(Nil),
                   Type.Bounds(None, None),
                   Nil,
                   Nil
@@ -698,7 +718,7 @@ class PrettyType private (
     Type.Param(
       toMods(info),
       name = Type.Name(info.displayName),
-      tparams = tparams,
+      tparamClause = Type.ParamClause(tparams),
       tbounds = bounds,
       // TODO: re-sugar context and view bounds https://github.com/scalacenter/scalafix/issues/759
       vbounds = Nil,

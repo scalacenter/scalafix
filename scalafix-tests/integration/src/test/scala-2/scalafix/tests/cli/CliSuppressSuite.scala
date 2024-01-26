@@ -11,7 +11,7 @@ import scalafix.v1.SyntacticRule
 class NoVars extends SyntacticRule("NoVars") {
   override def fix(implicit doc: SyntacticDocument): Patch = {
     val error = LintCategory.error("No vars!")
-    doc.tree.collect { case v @ Defn.Var(_, _, _, _) =>
+    doc.tree.collect { case v @ Defn.Var.After_4_7_2(_, _, _, _) =>
       Patch.lint(error.at("no vars", v.pos))
     }.asPatch
   }

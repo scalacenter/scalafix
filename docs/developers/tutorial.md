@@ -181,7 +181,7 @@ To fix this bug, we first match function call nodes `Term.Apply` and pattern
 match only `Lit.Boolean` that appear in argument position
 
 ```scala
-case Term.Apply(_, args) =>
+case Term.Apply.After_4_6_0(_, args) =>
   args.collect {
     case t @ Lit.Boolean(_) =>
       Patch.addLeft(t, "isSuccess = ")
@@ -206,8 +206,8 @@ is to produce `finish(isError = true)`.
 To fix this bug, we start by capturing the called method into a variable `fun`
 
 ```diff
-- case Term.Apply(_, args) =>
-+ case Term.Apply(fun, args) =>
+- case Term.Apply.After_4_6_0(_, args) =>
++ case Term.Apply.After_4_6_0(fun, args) =>
 ```
 
 We update the call to `args.collect` to include the index of the argument
@@ -284,7 +284,7 @@ class NamedLiteralArguments
     extends SemanticRule("NamedLiteralArguments") {
   override def fix(implicit doc: SemanticDocument): Patch = {
     doc.tree.collect {
-      case Term.Apply(fun, args) =>
+      case Term.Apply.After_4_6_0(fun, args) =>
         args.zipWithIndex.collect {
           case (t @ Lit.Boolean(_), i) =>
             fun.symbol.info match {
@@ -384,7 +384,7 @@ Next, we write the same pattern matching logic as in `NamedLiteralArguments`
 
 ```scala
 doc.tree.collect {
-  case Term.Apply(_, args) =>
+  case Term.Apply.After_4_6_0(_, args) =>
     args.collect {
       case t @ Lit.Boolean(_) =>
         // ....
@@ -581,7 +581,7 @@ class NoLiteralArguments(config: NoLiteralArgumentsConfig)
   override def fix(implicit doc: SyntacticDocument): Patch = {
     doc.tree
       .collect {
-        case Term.Apply(_, args) =>
+        case Term.Apply.After_4_6_0(_, args) =>
           args.collect {
             case t: Lit if config.isDisabled(t) =>
               Patch.lint(LiteralArgument(t))

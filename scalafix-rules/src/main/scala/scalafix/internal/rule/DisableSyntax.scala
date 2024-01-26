@@ -132,10 +132,10 @@ final class DisableSyntax(config: DisableSyntaxConfig)
     object AbstractWithVals {
       def unapply(t: Tree): Option[List[Defn.Val]] = {
         val stats = t match {
-          case Defn.Class(mods, _, _, _, templ)
+          case Defn.Class.After_4_6_0(mods, _, _, _, templ)
               if mods.exists(_.is[Mod.Abstract]) =>
             templ.stats
-          case Defn.Trait(_, _, _, _, templ) => templ.stats
+          case Defn.Trait.After_4_6_0(_, _, _, _, templ) => templ.stats
           case _ => List.empty
         }
         val vals = stats.flatMap {
@@ -152,7 +152,8 @@ final class DisableSyntax(config: DisableSyntaxConfig)
           case d: Defn.Def => {
             val defaults =
               for {
-                params <- d.paramss
+                groups <- d.paramClauseGroups
+                params <- groups.paramClauses
                 param <- params
                 default <- param.default.toList
               } yield default
@@ -181,8 +182,11 @@ final class DisableSyntax(config: DisableSyntaxConfig)
       }
     }
 
-    def hasNonImplicitParam(d: Defn.Def): Boolean =
-      d.paramss.exists(_.exists(_.mods.forall(!_.is[Mod.Implicit])))
+    def hasNonImplicitParam(d: Defn.Def): Boolean = {
+      d.paramClauseGroups.exists(
+        _.paramClauses.exists(_.exists(_.mods.forall(!_.is[Mod.Implicit])))
+      )
+    }
 
     val DefaultMatcher: PartialFunction[Tree, Seq[Diagnostic]] = {
       case Defn.Val(mods, _, _, _)
@@ -225,7 +229,7 @@ final class DisableSyntax(config: DisableSyntaxConfig)
             t.pos
           )
         )
-      case t @ Defn.Def(mods, _, _, paramss, _, _)
+      case t @ Defn.Def.After_4_7_3(mods, _, _, _, _)
           if mods.exists(_.is[Mod.Implicit]) &&
             hasNonImplicitParam(t) &&
             config.noImplicitConversion =>
@@ -245,16 +249,16 @@ final class DisableSyntax(config: DisableSyntaxConfig)
               m.pos
             )
           }
-      case Term.ApplyInfix(_, t @ Term.Name("=="), _, _)
+      case Term.ApplyInfix.After_4_6_0(_, t @ Term.Name("=="), _, _)
           if config.noUniversalEquality =>
         Seq(noUniversalEqualityDiagnostic("==", t))
-      case Term.Apply(Term.Select(_, t @ Term.Name("==")), _)
+      case Term.Apply.After_4_6_0(Term.Select(_, t @ Term.Name("==")), _)
           if config.noUniversalEquality =>
         Seq(noUniversalEqualityDiagnostic("==", t))
-      case Term.ApplyInfix(_, t @ Term.Name("!="), _, _)
+      case Term.ApplyInfix.After_4_6_0(_, t @ Term.Name("!="), _, _)
           if config.noUniversalEquality =>
         Seq(noUniversalEqualityDiagnostic("!=", t))
-      case Term.Apply(Term.Select(_, t @ Term.Name("!=")), _)
+      case Term.Apply.After_4_6_0(Term.Select(_, t @ Term.Name("!=")), _)
           if config.noUniversalEquality =>
         Seq(noUniversalEqualityDiagnostic("!=", t))
     }
@@ -297,7 +301,16 @@ object DisableSyntax {
       |overriding finalize incurs a performance penalty""".stripMargin
 
   def FinalizeMatcher(id: String): PartialFunction[Tree, List[Diagnostic]] = {
-    case Defn.Def(_, name @ Term.Name("finalize"), _, Nil | Nil :: Nil, _, _) =>
+    case Defn.Def.After_4_7_3(
+          _,
+          name @ Term.Name("finalize"),
+          Member.ParamClauseGroup(
+            Type.ParamClause(Nil),
+            Term.ParamClause(Nil, None) :: Nil
+          ) :: Nil,
+          _,
+          _
+        ) =>
       Diagnostic(
         id,
         "finalize should not be used",

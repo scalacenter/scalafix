@@ -12,12 +12,22 @@ class LeakingImplicitClassVal extends SyntacticRule("LeakingImplicitClassVal") {
 
   override def fix(implicit doc: SyntacticDocument): Patch = {
     doc.tree.collect {
-      case Defn.Class(
+      case Defn.Class.After_4_6_0(
             cMods,
             _,
             _,
-            Ctor.Primary(_, _, (Term.Param(pMods, _, _, _) :: Nil) :: Nil),
-            Template(_, Init(Type.Name("AnyVal"), _, _) :: Nil, _, _)
+            Ctor.Primary.After_4_6_0(
+              _,
+              _,
+              Term.ParamClause(Term.Param(pMods, _, _, _), _) :: Nil
+            ),
+            Template.After_4_4_0(
+              _,
+              Init.After_4_6_0(Type.Name("AnyVal"), _, _) :: Nil,
+              _,
+              _,
+              _
+            )
           ) if cMods.exists(_.is[Mod.Implicit]) =>
         val optPatch = for {
           anchorMod <- pMods.find(!_.is[Mod.Annot])
