@@ -2,6 +2,7 @@
 rules = [OrganizeImports]
 OrganizeImports.removeUnused = false
 OrganizeImports.expandRelative = true
+OrganizeImports.targetDialect = Auto
  */
 package test.organizeImports
 

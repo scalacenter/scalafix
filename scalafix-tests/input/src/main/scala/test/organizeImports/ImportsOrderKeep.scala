@@ -5,6 +5,7 @@ OrganizeImports {
   groupedImports = Keep
   importSelectorsOrder = Keep
   importsOrder = Keep
+  targetDialect = Auto
 }
  */
 package test.organizeImports

@@ -1,6 +1,7 @@
 /*
 rules = [OrganizeImports]
 OrganizeImports.removeUnused = false
+OrganizeImports.targetDialect = Auto
  */
 package test.organizeImports
 

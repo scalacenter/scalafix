@@ -1,6 +1,7 @@
 /*
 rules = [OrganizeImports]
 OrganizeImports.removeUnused = false
+OrganizeImports.targetDialect = Scala3
  */
 package test.organizeImports
 

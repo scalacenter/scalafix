@@ -4,6 +4,7 @@ OrganizeImports {
   groupedImports = Keep
   coalesceToWildcardImportThreshold = 3
   removeUnused = false
+  targetDialect = Auto
 }
  */
 package test.organizeImports

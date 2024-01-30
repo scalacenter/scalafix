@@ -75,6 +75,19 @@ object Preset {
     ConfEncoder.instance(v => Conf.Str(v.toString))
 }
 
+sealed trait TargetDialect
+object TargetDialect {
+  case object Auto extends TargetDialect
+  case object Scala2 extends TargetDialect
+  case object Scala3 extends TargetDialect
+  case object StandardLayout extends TargetDialect
+
+  implicit def reader: ConfDecoder[TargetDialect] =
+    ReaderUtil.oneOf(Auto, Scala2, Scala3, StandardLayout)
+  implicit def writer: ConfEncoder[TargetDialect] =
+    ConfEncoder.instance(v => Conf.Str(v.toString))
+}
+
 final case class OrganizeImportsConfig(
     blankLines: BlankLines = BlankLines.Auto,
     coalesceToWildcardImportThreshold: Option[Int] = None,
@@ -88,7 +101,8 @@ final case class OrganizeImportsConfig(
     importSelectorsOrder: ImportSelectorsOrder = ImportSelectorsOrder.Ascii,
     importsOrder: ImportsOrder = ImportsOrder.Ascii,
     preset: Preset = Preset.DEFAULT,
-    removeUnused: Boolean = true
+    removeUnused: Boolean = true,
+    targetDialect: TargetDialect = TargetDialect.StandardLayout
 )
 
 object OrganizeImportsConfig {

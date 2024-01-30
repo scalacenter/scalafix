@@ -4,6 +4,7 @@ OrganizeImports {
   groupedImports = Keep
   coalesceToWildcardImportThreshold = 2
   removeUnused = false
+  targetDialect = Scala3
 }
  */
 package test.organizeImports

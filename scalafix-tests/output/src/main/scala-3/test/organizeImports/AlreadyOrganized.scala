@@ -4,7 +4,7 @@ import scala.collection.mutable.{
   ArrayBuffer,
   Map,
   Queue,
-  Set
+  Set as S
 }
 
 object AlreadyOrganized
