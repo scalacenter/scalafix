@@ -62,12 +62,6 @@ class OrganizeImports(
 
   private val wildcardGroupIndex: Int = matchers indexOf *
 
-  private val unusedImporteePositions: mutable.Set[Position] =
-    mutable.Set.empty[Position]
-
-  private val diagnostics: ArrayBuffer[Diagnostic] =
-    ArrayBuffer.empty[Diagnostic]
-
   def this() = this(OrganizeImportsConfig())
 
   override def description: String = "Organize import statements"
@@ -95,43 +89,49 @@ class OrganizeImports(
   }
 
   private def fixWithImplicitDialect(implicit doc: SemanticDocument): Patch = {
-    unusedImporteePositions ++= doc.diagnostics.collect {
-      case d if d.message == "Unused import" => d.position
-    }
+
+    val diagnostics: ArrayBuffer[Diagnostic] = ArrayBuffer.empty[Diagnostic]
+
+    val unusedImporteePositions = new UnusedImporteePositions
 
     val (globalImports, localImports) = collectImports(doc.tree)
 
     val globalImportsPatch =
       if (globalImports.isEmpty) Patch.empty
-      else organizeGlobalImports(globalImports)
+      else
+        organizeGlobalImports(unusedImporteePositions, diagnostics)(
+          globalImports
+        )
 
     val localImportsPatch =
       if (!config.removeUnused || localImports.isEmpty) Patch.empty
-      else removeUnused(localImports)
+      else removeUnusedImports(unusedImporteePositions)(localImports)
 
     diagnostics.map(Patch.lint).asPatch + globalImportsPatch + localImportsPatch
   }
 
-  private def isUnused(importee: Importee): Boolean =
-    unusedImporteePositions contains positionOf(importee)
-
   private def organizeGlobalImports(
+      unusedImporteePositions: UnusedImporteePositions,
+      diagnostics: ArrayBuffer[Diagnostic]
+  )(
       imports: Seq[Import]
   )(implicit doc: SemanticDocument): Patch = {
-    val noUnused = imports flatMap (_.importers) flatMap (removeUnused(_).toSeq)
+    val noUnused = imports flatMap (_.importers) flatMap (
+      removeUnusedImporters(unusedImporteePositions)(_).toSeq
+    )
 
     val (implicits, noImplicits) =
       if (!config.groupExplicitlyImportedImplicitsSeparately) (Nil, noUnused)
       else partitionImplicits(noUnused)
 
     val (fullyQualifiedImporters, relativeImporters) =
-      noImplicits partition isFullyQualified
+      noImplicits partition isFullyQualified(diagnostics)
 
     // Organizes all the fully-qualified global importers.
     val fullyQualifiedGroups: Seq[ImportGroup] = {
       val expanded =
         if (config.expandRelative) relativeImporters map expandRelative else Nil
-      groupImporters(fullyQualifiedImporters ++ expanded)
+      groupImporters(diagnostics)(fullyQualifiedImporters ++ expanded)
     }
 
     // Moves relative imports (when `config.expandRelative` is false) and
@@ -165,15 +165,20 @@ class OrganizeImports(
     (insertionPatch + removalPatch).atomic
   }
 
-  private def removeUnused(imports: Seq[Import]): Patch =
+  private def removeUnusedImports(
+      unusedImporteePositions: UnusedImporteePositions
+  )(
+      imports: Seq[Import]
+  ): Patch =
     Patch.fromIterable {
       imports flatMap (_.importers) flatMap { case Importer(_, importees) =>
         val hasUsedWildcard = importees exists { i =>
-          i.is[Importee.Wildcard] && !isUnused(i)
+          i.is[Importee.Wildcard] && !unusedImporteePositions(i)
         }
 
         importees collect {
-          case i @ Importee.Rename(_, to) if isUnused(i) && hasUsedWildcard =>
+          case i @ Importee.Rename(_, to)
+              if unusedImporteePositions(i) && hasUsedWildcard =>
             // Unimport the identifier instead of removing the importee since
             // unused renamed may still impact compilation by shadowing an
             // identifier.
@@ -181,23 +186,28 @@ class OrganizeImports(
             // See https://github.com/scalacenter/scalafix/issues/614
             Patch.replaceTree(to, "_").atomic
 
-          case i if isUnused(i) =>
+          case i if unusedImporteePositions(i) =>
             Patch.removeImportee(i).atomic
         }
       }
     }
 
-  private def removeUnused(importer: Importer): Option[Importer] =
+  private def removeUnusedImporters(
+      unusedImporteePositions: UnusedImporteePositions
+  )(
+      importer: Importer
+  ): Option[Importer] =
     if (!config.removeUnused) Some(importer)
     else {
       val hasUsedWildcard = importer.importees exists { i =>
-        i.is[Importee.Wildcard] && !isUnused(i)
+        i.is[Importee.Wildcard] && !unusedImporteePositions(i)
       }
 
       var rewritten = false
 
       val noUnused = importer.importees.flatMap {
-        case i @ Importee.Rename(from, _) if isUnused(i) && hasUsedWildcard =>
+        case i @ Importee.Rename(from, _)
+            if unusedImporteePositions(i) && hasUsedWildcard =>
           // Unimport the identifier instead of removing the importee since
           // unused renamed may still impact compilation by shadowing an
           // identifier.
@@ -206,7 +216,7 @@ class OrganizeImports(
           rewritten = true
           Importee.Unimport(from) :: Nil
 
-        case i if isUnused(i) =>
+        case i if unusedImporteePositions(i) =>
           rewritten = true
           Nil
 
@@ -240,6 +250,8 @@ class OrganizeImports(
   }
 
   private def isFullyQualified(
+      diagnostics: ArrayBuffer[Diagnostic]
+  )(
       importer: Importer
   )(implicit doc: SemanticDocument): Boolean = {
     val topQualifier = topQualifierOf(importer.ref)
@@ -312,10 +324,16 @@ class OrganizeImports(
     )
   }
 
-  private def groupImporters(importers: Seq[Importer]): Seq[ImportGroup] =
+  private def groupImporters(
+      diagnostics: ArrayBuffer[Diagnostic]
+  )(
+      importers: Seq[Importer]
+  ): Seq[ImportGroup] =
     importers
       .groupBy(matchImportGroup) // Groups imports by importer prefix.
-      .mapValues(deduplicateImportees _ andThen organizeImportGroup)
+      .mapValues(
+        deduplicateImportees _ andThen organizeImportGroup(diagnostics)
+      )
       .map { case (index, imports) => ImportGroup(index, imports) }
       .toSeq
       .sortBy(_.index)
@@ -333,13 +351,17 @@ class OrganizeImports(
     }
   }
 
-  private def organizeImportGroup(importers: Seq[Importer]): Seq[Importer] = {
+  private def organizeImportGroup(
+      diagnostics: ArrayBuffer[Diagnostic]
+  )(
+      importers: Seq[Importer]
+  ): Seq[Importer] = {
     val importeesSorted = locally {
       config.groupedImports match {
         case GroupedImports.Merge =>
-          mergeImporters(importers, aggressive = false)
+          mergeImporters(diagnostics)(importers, aggressive = false)
         case GroupedImports.AggressiveMerge =>
-          mergeImporters(importers, aggressive = true)
+          mergeImporters(diagnostics)(importers, aggressive = true)
         case GroupedImports.Explode =>
           explodeImportees(importers)
         case GroupedImports.Keep =>
@@ -363,6 +385,8 @@ class OrganizeImports(
   }
 
   private def mergeImporters(
+      diagnostics: ArrayBuffer[Diagnostic]
+  )(
       importers: Seq[Importer],
       aggressive: Boolean
   ): Seq[Importer] =
@@ -1076,6 +1100,17 @@ object OrganizeImports {
         )
       )
     }
+  }
+
+  class UnusedImporteePositions(implicit doc: SemanticDocument) {
+    private val positions: Seq[Position] =
+      doc.diagnostics.toSeq.collect {
+        case d if d.message == "Unused import" => d.position
+      }
+
+    /** Returns true if the importee was marked as unused by the compiler */
+    def apply(importee: Importee): Boolean =
+      positions contains positionOf(importee)
   }
 
   implicit private class SymbolExtension(symbol: Symbol) {
