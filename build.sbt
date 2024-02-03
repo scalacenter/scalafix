@@ -211,6 +211,7 @@ lazy val output = projectMatrix
   .in(file("scalafix-tests/output"))
   .settings(
     noPublishAndNoMima,
+    logLevel := Level.Error, // avoid flood of compiler warnings
     libraryDependencies ++= testsDependencies.value,
     coverageEnabled := false,
     // mimic dependsOn(shared) but allowing binary Scala version matching
