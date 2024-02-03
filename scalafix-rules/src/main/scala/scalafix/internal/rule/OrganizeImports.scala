@@ -33,9 +33,7 @@ import metaconfig.ConfOps
 import metaconfig.Configured
 import metaconfig.internal.ConfGet
 import scalafix.internal.config.ScalaVersion
-import scalafix.internal.rule.ImportMatcher.*
-import scalafix.internal.rule.ImportMatcher.---
-import scalafix.internal.rule.ImportMatcher.parse
+import scalafix.internal.rule.ImportMatcher._
 import scalafix.lint.Diagnostic
 import scalafix.patch.Patch
 import scalafix.v1.Configuration
