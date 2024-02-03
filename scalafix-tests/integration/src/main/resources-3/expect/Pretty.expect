@@ -1,6 +1,7 @@
 [7:7..7:17]:      test/PrettyTest# => class PrettyTest extends Object { self: PrettyTest => +6 decls }
 [8:3..8:14]:      *[Int]
 [8:3..8:7]:       *.apply[Int]
+[8:3..8:3]:       test/PrettyTest#`<init>`(). => primary ctor <init>(): PrettyTest
 [10:10..10:11]:   intWrapper(*)
 [11:10..11:11]:   intWrapper(*)
 [15:10..15:16]:   *.apply[Inclusive]
@@ -9,6 +10,7 @@
 [16:10..16:16]:   *.apply[Inclusive]
 [16:10..16:32]:   *(global)
 [16:17..16:18]:   intWrapper(*)
+[21:3..21:3]:     test/PrettyTest#Inner#`<init>`(). => primary ctor <init>(): Inner
 [21:9..21:14]:    test/PrettyTest#Inner# => class Inner extends Object { self: Inner => +1 decls }
 [22:7..22:8]:     test/PrettyTest#a. => val method aPrettyTest
 [23:7..23:8]:     test/PrettyTest#b. => val method ba.Inner
@@ -18,26 +20,40 @@
                   }]
 [31:3..31:9]:     *.apply[Int & String]
 [39:7..39:10]:    test/ann# => class ann[T] extends Annotation with StaticAnnotation { self: ann[T] => +3 decls }
+[39:10..39:10]:   test/ann#`<init>`(). => primary ctor <init>[T](x: T): ann[T]
 [39:11..39:12]:   test/ann#[T] => typeparam T
 [39:14..39:15]:   test/ann#x. => private[this] val method xT
 [40:7..40:11]:    test/ann1# => class ann1 extends Annotation with StaticAnnotation { self: ann1 => +1 decls }
+[40:20..40:20]:   test/ann1#`<init>`(). => primary ctor <init>(): ann1
 [41:7..41:11]:    test/ann2# => class ann2 extends Annotation with StaticAnnotation { self: ann2 => +1 decls }
+[41:20..41:20]:   test/ann2#`<init>`(). => primary ctor <init>(): ann2
+[43:1..43:1]:     test/B#`<init>`(). => primary ctor <init>(): B
 [43:7..43:8]:     test/B# => class B extends Object { self: B => +1 decls }
+[45:1..45:1]:     test/C#`<init>`(). => primary ctor <init>(): C
 [45:7..45:8]:     test/C# => class C extends Object { self: C => +1 decls }
 [47:7..47:8]:     test/P# => class P extends Object { self: P => +8 decls }
+[48:3..48:3]:     test/P#C#`<init>`(). => primary ctor <init>(): C
+[48:3..48:3]:     test/P#`<init>`(). => primary ctor <init>(): P
 [48:9..48:10]:    test/P#C# => class C extends Object { self: C => +1 decls }
+[49:3..49:3]:     test/P#X#`<init>`(). => primary ctor <init>(): X
 [49:9..49:10]:    test/P#X# => class X extends Object { self: X => +1 decls }
 [50:7..50:8]:     test/P#x. => val method xX
 [53:7..53:8]:     test/T# => class T extends Object { self: T => +8 decls }
+[54:3..54:3]:     test/T#C#`<init>`(). => primary ctor <init>(): C
+[54:3..54:3]:     test/T#`<init>`(). => primary ctor <init>(): T
 [54:9..54:10]:    test/T#C# => class C extends Object { self: C => +1 decls }
+[55:3..55:3]:     test/T#X#`<init>`(). => primary ctor <init>(): X
 [55:9..55:10]:    test/T#X# => class X extends Object { self: X => +1 decls }
 [56:7..56:8]:     test/T#x. => val method xX
 [59:8..59:12]:    test/Test. => final object Test extends Object { self: Test.type => +10 decls }
 [60:9..60:10]:    test/Test.M# => class M extends Object { self: M => +2 decls }
+[61:5..61:5]:     test/Test.M#`<init>`(). => primary ctor <init>(): M
 [61:9..61:10]:    test/Test.M#m(). => method m=> Int
 [64:9..64:10]:    test/Test.N# => trait N extends Object { self: N => +2 decls }
+[65:5..65:5]:     test/Test.N#`<init>`(). => primary ctor <init>(): N
 [65:9..65:10]:    test/Test.N#n(). => method n=> Int
 [68:9..68:10]:    test/Test.C# => class C extends M { self: C => +42 decls }
+[68:19..68:19]:   test/Test.C#`<init>`(). => primary ctor <init>(): C
 [69:9..69:10]:    test/Test.C#p. => val method pP
 [70:9..70:10]:    test/Test.C#x. => val method xp.X
 [72:9..72:17]:    test/Test.C#typeRef1. => val method typeRef1C
@@ -68,8 +84,10 @@
 [102:21..102:22]: test/Test.C#typeLambda1().[M] => typeparam M[type _]
 [105:12..105:26]: test/Test.C#ClassInfoType1. => final object ClassInfoType1 extends Object { self: ClassInfoType1.type => +1 decls }
 [106:11..106:25]: test/Test.C#ClassInfoType2# => class ClassInfoType2 extends B { self: ClassInfoType2 => +2 decls }
+[106:34..106:34]: test/Test.C#ClassInfoType2#`<init>`(). => primary ctor <init>(): ClassInfoType2
 [106:42..106:43]: test/Test.C#ClassInfoType2#x(). => method x=> Int
 [107:11..107:25]: test/Test.C#ClassInfoType3# => trait ClassInfoType3[T] extends Object { self: ClassInfoType3[T] => +2 decls }
+[107:25..107:25]: test/Test.C#ClassInfoType3#`<init>`(). => primary ctor <init>[T](): ClassInfoType3[T]
 [107:26..107:27]: test/Test.C#ClassInfoType3#[T] => typeparam T
 [109:12..109:22]: test/Test.C#MethodType. => final object MethodType extends Object { self: MethodType.type => +7 decls }
 [110:11..110:13]: test/Test.C#MethodType.x1(). => method x1=> Int
@@ -85,6 +103,7 @@
 [119:11..119:13]: test/Test.C#ByNameType.m1(). => method m1(x: => Int): Int
 [119:14..119:15]: test/Test.C#ByNameType.m1().(x) => param x: => Int
 [122:16..122:28]: test/Test.C#RepeatedType# => case class RepeatedType extends Object with Product with Serializable { self: RepeatedType => +4 decls }
+[122:28..122:28]: test/Test.C#RepeatedType#`<init>`(). => primary ctor <init>(val s: String*): RepeatedType
 [122:29..122:30]: test/Test.C#RepeatedType#s. => val method sString*
 [123:11..123:13]: test/Test.C#RepeatedType#m1(). => method m1(x: Int*): Int
 [123:14..123:15]: test/Test.C#RepeatedType#m1().(x) => param x: Int*
