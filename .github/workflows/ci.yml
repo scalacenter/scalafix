@@ -13,7 +13,7 @@ jobs:
         jvm: ["8", "11", "17", "21"]
         include:
           - os: windows
-            jvm: 17
+            jvm: 21
     name: ${{ matrix.os }} / JDK${{ matrix.jvm }}
     runs-on: ${{ matrix.os }}-latest
     steps:
