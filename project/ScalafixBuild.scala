@@ -75,14 +75,10 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     lazy val isScala212 = Def.setting {
       scalaVersion.value.startsWith("2.12")
     }
-    lazy val warnUnusedImports = Def.setting {
-      if (isScala3.value) Nil
-      else if (isScala213.value) Seq("-Wunused:imports")
-      else Seq("-Ywarn-unused-import")
-    }
     lazy val warnUnused = Def.setting {
-      if (isScala2.value) Seq("-Ywarn-unused")
-      else Nil
+      if (isScala3.value) Seq("-Wunused:all", "-Wunused:unsafe-warn-patvars")
+      else if (isScala213.value) Seq("-Wunused")
+      else Seq("-Ywarn-unused")
     }
     lazy val targetJvm = Def.setting {
       if (isScala3.value) Seq("-release:8")
@@ -109,8 +105,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       scalaXml +: otherLibs
     }
     lazy val compilerOptions = Def.setting(
-      warnUnusedImports.value ++
-        targetJvm.value ++
+      targetJvm.value ++
+        warnUnused.value ++
         Seq(
           "-encoding",
           "UTF-8",

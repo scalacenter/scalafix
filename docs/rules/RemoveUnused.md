@@ -14,15 +14,12 @@ example diff from running `sbt "scalafix RemoveUnused"`.
 
 To use this rule:
 
-- Enable the Scala compiler option `-Ywarn-unused` (or `-Wunused` in 2.13). In
-  sbt, this is done with `scalacOptions += "-Ywarn-unused"`.
+- Enable the Scala compiler option `-Ywarn-unused` (2.12), `-Wunused` (2.13),
+  or `-Wunused:all` (3.4+).
 - Disable `-Xfatal-warnings` if you have it enabled. This is required so the
   compiler warnings do not fail the build before running Scalafix. If you are
   running 2.12.13+ or 2.13.2+, you may keep `-Xfatal-warnings` by modifying how
   specific warnings are handled via `scalacOptions += "-Wconf:cat=unused:info"`.
-- This rule **can't work** yet on Scala 3 projects since the compiler option `warn-unused`
-  is not yet available in Scala 3. You need to remove `RemoveUnused` 
-  from `.scalafix.conf` for Scala 3 projects.
 
 ## Examples
 
@@ -67,7 +64,7 @@ object Main {
 }
 ```
 
-Remove unused pattern match variables:
+Remove unused pattern match variables (requires `-Wunused:unsafe-warn-patvars` on Scala 3):
 
 ```scala
 case class AB(a: Int, b: String)
@@ -87,7 +84,7 @@ object Main {
 }
 ```
 
-Remove unused function parameters:
+Remove unused function parameters (Scala 2 only):
 
 ```scala
 // before
@@ -129,21 +126,54 @@ import scalafix.internal.rule._
 println(scalafix.website.rule("RemoveUnused", RemoveUnusedConfig.default))
 ```
 
-## -Ywarn-unused
+## More granular scalac options
 
-Consult `scala -Y` in the command-line for more information about using
-`-Ywarn-unused`.
+You may request more granular warnings to the compiler if you opt-out
+from some rewrites in the rule configuration.
 
 ```
-$ scala -Ywarn-unused:help
-Enable or disable specific `unused' warnings
-  imports    Warn if an import selector is not referenced.
-  patvars    Warn if a variable bound in a pattern is unused.
-  privates   Warn if a private member is unused.
-  locals     Warn if a local definition is unused.
-  explicits  Warn if an explicit parameter is unused.
-  implicits  Warn if an implicit parameter is unused.
-  params     Enable -Ywarn-unused:explicits,implicits.
-  linted     -Xlint:unused.
+$ scala212 -Wunused:help
+Enable or disable specific `unused` warnings
+  imports     Warn if an import selector is not referenced.
+  patvars     Warn if a variable bound in a pattern is unused.
+  privates    Warn if a private member is unused.
+  locals      Warn if a local definition is unused.
+  explicits   Warn if an explicit parameter is unused.
+  implicits   Warn if an implicit parameter is unused.
+  synthetics  Warn if a synthetic implicit parameter (context bound) is unused.
+  nowarn      Warn if a @nowarn annotation does not suppress any warnings.
+  params      Enable -Wunused:explicits,implicits,synthetics.
+  linted      -Xlint:unused.
 Default: All choices are enabled by default.
+```
+
+```
+$ scala3 -W
+...
+-Wunused  Enable or disable specific `unused` warnings
+          Choices :
+          - nowarn,
+          - all,
+          - imports :
+            Warn if an import selector is not referenced.
+            NOTE : overrided by -Wunused:strict-no-implicit-warn,
+          - privates :
+            Warn if a private member is unused,
+          - locals :
+            Warn if a local definition is unused,
+          - explicits :
+            Warn if an explicit parameter is unused,
+          - implicits :
+            Warn if an implicit parameter is unused,
+          - params :
+            Enable -Wunused:explicits,implicits,
+          - linted :
+            Enable -Wunused:imports,privates,locals,implicits,
+          - strict-no-implicit-warn :
+            Same as -Wunused:import, only for imports of explicit named members.
+        NOTE : This overrides -Wunused:imports and NOT set by -Wunused:all,
+          - unsafe-warn-patvars :
+            (UNSAFE) Warn if a variable bound in a pattern is unused.
+            This warning can generate false positive, as warning cannot be
+            suppressed yet.
 ```

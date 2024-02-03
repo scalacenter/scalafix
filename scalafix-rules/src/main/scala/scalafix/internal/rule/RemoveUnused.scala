@@ -26,26 +26,29 @@ class RemoveUnused(config: RemoveUnusedConfig)
   def this() = this(RemoveUnusedConfig.default)
 
   override def description: String =
-    "Removes unused imports and terms that reported by the compiler under -Ywarn-unused"
+    "Removes unused imports and terms that reported by the compiler under -Wunused"
   override def isRewrite: Boolean = true
 
   private def warnUnusedPrefix = List("-Wunused", "-Ywarn-unused")
   private def warnUnusedString = List("-Xlint", "-Xlint:unused")
   override def withConfiguration(config: Configuration): Configured[Rule] = {
+    val diagnosticsAvailableInSemanticdb =
+      Seq("3.0", "3.1", "3.2", "3.3")
+        .forall(v => !config.scalaVersion.startsWith(v))
+
     val hasWarnUnused = config.scalacOptions.exists(option =>
       warnUnusedPrefix.exists(prefix => option.startsWith(prefix)) ||
         warnUnusedString.contains(option)
     )
-    if (config.scalaVersion.startsWith("3"))
+    if (!hasWarnUnused) {
       Configured.error(
-        "This rule is specific to Scala 2, because the compiler option `-Ywarn-unused` is not available yet in scala 3 " +
-          "To fix this error, remove RemoveUnused from .scalafix.conf"
+        """|A Scala compiler option is required to use RemoveUnused. To fix this problem,
+          |update your build to add -Ywarn-unused (with 2.12), -Wunused (with 2.13), or 
+          |-Wunused:all (with 3.4+)""".stripMargin
       )
-    else if (!hasWarnUnused) {
+    } else if (!diagnosticsAvailableInSemanticdb) {
       Configured.error(
-        s"""|The Scala compiler option "-Ywarn-unused" is required to use RemoveUnused.
-          |To fix this problem, update your build to use at least one Scala compiler
-          |option like -Ywarn-unused, -Xlint:unused (2.12.2 or above), or -Wunused (2.13 only)""".stripMargin
+        "You must use a more recent version of the Scala 3 compiler (3.4+)"
       )
     } else {
       config.conf
@@ -64,29 +67,36 @@ class RemoveUnused(config: RemoveUnusedConfig)
       raw"^pattern var .* in (value|method) .* is never used".r
 
     doc.diagnostics.foreach { diagnostic =>
-      if (config.imports && diagnostic.message == "Unused import") {
+      val msg = diagnostic.message
+      if (config.imports && diagnostic.message.toLowerCase == "unused import") {
         isUnusedImport += diagnostic.position
       } else if (
         config.privates &&
-        diagnostic.message.startsWith("private") &&
-        diagnostic.message.endsWith("is never used")
+        (
+          (msg.startsWith("private") && msg.endsWith("is never used")) ||
+            msg == "unused private member"
+        )
       ) {
         isUnusedTerm += diagnostic.position
       } else if (
         config.locals &&
-        diagnostic.message.startsWith("local") &&
-        diagnostic.message.endsWith("is never used")
+        (
+          (msg.startsWith("local") && msg.endsWith("is never used")) ||
+            msg == "unused local definition"
+        )
       ) {
         isUnusedTerm += diagnostic.position
       } else if (
         config.patternvars &&
-        unusedPatterExpr.findFirstMatchIn(diagnostic.message).isDefined
+        (
+          unusedPatterExpr.findFirstMatchIn(diagnostic.message).isDefined ||
+            msg == "unused pattern variable"
+        )
       ) {
         isUnusedPattern += diagnostic.position
       } else if (
         config.params &&
-        diagnostic.message.startsWith("parameter") &&
-        diagnostic.message.endsWith("is never used")
+        (msg.startsWith("parameter") && msg.endsWith("is never used"))
       ) {
         isUnusedParam += diagnostic.position
       }
@@ -116,29 +126,33 @@ class RemoveUnused(config: RemoveUnusedConfig)
           .atomic
       }
 
+      def isUnusedImportee(importee: Importee): Boolean = {
+        val pos = importee match {
+          case Importee.Rename(from, _) => from.pos
+          case _ => importee.pos
+        }
+        isUnusedImport.exists { unused =>
+          unused.start <= pos.start && pos.end <= unused.end
+        }
+      }
+
       doc.tree.collect {
         case Importer(_, importees)
             if importees.forall(_.is[Importee.Unimport]) =>
           importees.map(Patch.removeImportee).asPatch
         case Importer(_, importees) =>
           val hasUsedWildcard = importees.exists {
-            case i: Importee.Wildcard => !isUnusedImport(importPosition(i))
+            case i: Importee.Wildcard => !isUnusedImportee(i)
             case _ => false
           }
           importees.collect {
             case i @ Importee.Rename(_, to)
-                if isUnusedImport(importPosition(i)) && hasUsedWildcard =>
+                if isUnusedImportee(i) && hasUsedWildcard =>
               // Unimport the identifier instead of removing the importee since
               // unused renamed may still impact compilation by shadowing an identifier.
               // See https://github.com/scalacenter/scalafix/issues/614
               Patch.replaceTree(to, "_").atomic
-            case i
-                if isUnusedImport
-                  .exists(unused =>
-                    unused.start <= importPosition(i).start && importPosition(
-                      i
-                    ).end <= unused.end
-                  ) =>
+            case i if isUnusedImportee(i) =>
               Patch.removeImportee(i).atomic
           }.asPatch
         case i: Defn if isUnusedTerm(i.pos) =>
@@ -180,11 +194,6 @@ class RemoveUnused(config: RemoveUnusedConfig)
           }.asPatch
       }.asPatch
     }
-  }
-
-  private def importPosition(importee: Importee): Position = importee match {
-    case Importee.Rename(from, _) => from.pos
-    case _ => importee.pos
   }
 
   // Given ("val x = 2", "2"), returns "val x = ".

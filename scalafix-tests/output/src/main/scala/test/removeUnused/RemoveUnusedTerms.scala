@@ -2,7 +2,7 @@ package test.removeUnused
 
 object RemoveUnusedTerms {
 
-  def foo {
+  def foo = {
     
     println(5)
     

@@ -245,15 +245,4 @@ class CliSemanticSuite extends BaseCliSuite {
     assert(exit.is(ExitStatus.MissingSemanticdbError))
   }
 
-  checkSemantic(
-    name = "ScalaVersion Scala3",
-    args = Array(
-      "--classpath",
-      defaultClasspath,
-      "--scalaVersion",
-      "3.0.0-RC3"
-    ),
-    expectedExit = ExitStatus.CommandLineError
-  )
-
 }
