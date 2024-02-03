@@ -107,6 +107,7 @@ Use `MethodSignature.parameterLists` to look up parameters of a method.
 def printMethodParameters(symbol: Symbol): Unit = {
   symbol.info.get.signature match {
     case signature @ MethodSignature(typeParameters, parameterLists, _) =>
+      println("signature  = " + signature)
       if (typeParameters.nonEmpty) {
         println("typeParameters")
         println(typeParameters.mkString("  ", "\n  ", ""))
@@ -295,7 +296,7 @@ constructor.
 ```scala mdoc
 def getConstructors(symbol: Symbol): List[SymbolInformation] =
   symbol.info.get.signature match {
-    case ClassSignature(_, parents, _, declarations) =>
+    case ClassSignature(_, _, _, declarations) =>
       declarations.filter { declaration =>
         declaration.isConstructor
       }

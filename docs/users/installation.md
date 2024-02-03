@@ -9,7 +9,7 @@ title: Installation
 
 **Java LTS (8, 11, 17 or 21)**
 
-**Scala 2.12, 2.13 or 3.x** (all rules are not available for Scala 3.x)
+**Scala 2.12, 2.13 or 3.x**
 
 ## sbt
 

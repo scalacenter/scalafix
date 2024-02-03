@@ -196,8 +196,6 @@ lazy val input = projectMatrix
     noPublishAndNoMima,
     scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
     scalacOptions ++= warnAdaptedArgs.value, // For NoAutoTupling
-    scalacOptions ++= warnUnusedImports.value, // For RemoveUnused
-    scalacOptions ++= warnUnused.value, // For RemoveUnusedTerms
     logLevel := Level.Error, // avoid flood of compiler warnings
     libraryDependencies ++= testsDependencies.value,
     coverageEnabled := false,
@@ -213,7 +211,6 @@ lazy val output = projectMatrix
   .in(file("scalafix-tests/output"))
   .settings(
     noPublishAndNoMima,
-    scalacOptions --= warnUnusedImports.value,
     libraryDependencies ++= testsDependencies.value,
     coverageEnabled := false,
     // mimic dependsOn(shared) but allowing binary Scala version matching

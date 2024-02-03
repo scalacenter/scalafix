@@ -43,7 +43,7 @@ trait BaseCliSuite extends AnyFunSuite with DiffAssertions {
   val ps = new PrintStream(new ByteArrayOutputStream())
 
   val removeImportsPath: RelativePath =
-    RelativePath("scala-2/test/removeUnused/RemoveUnusedImports.scala")
+    RelativePath("scala/test/removeUnused/RemoveUnusedImports.scala")
   val explicitResultTypesPath: RelativePath =
     RelativePath(
       "scala-2/test/explicitResultTypes/ExplicitResultTypesBase.scala"

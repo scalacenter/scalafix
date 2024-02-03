@@ -5,7 +5,7 @@ package test.removeUnused
 
 object RemoveUnusedTerms {
 
-  def foo {
+  def foo = {
     val a = "unused"
     val aa = println(5)
     var b = 0
