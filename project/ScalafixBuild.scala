@@ -179,6 +179,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   import autoImport._
 
   override def globalSettings: Seq[Def.Setting[_]] = List(
+    excludeLintKeys += scalafixConfig, // defined on projects where ScalafixPlugin is disabled
     stableVersion := (ThisBuild / version).value.replaceFirst("\\+.*", ""),
     resolvers ++=
       Resolver.sonatypeOssRepos("snapshots") ++
@@ -330,16 +331,23 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
 
   private def configSettings: Seq[Def.Setting[_]] = List(
     // Workaround for https://github.com/scalacenter/scalafix/issues/1592:
-    // effectively skip scalafix[All] if the scala binary version of the project
-    // does not match the scalafix one (which cannot be per-project as it must be
-    // defined on ThisBuild)
+    // effectively skip scalafix[All] on 2.x projects not matching scalafixScalaBinaryVersion
     scalafix / unmanagedSources := {
       val prev = (scalafix / unmanagedSources).value
-      if (scalaBinaryVersion.value == scalafixScalaBinaryVersion.value) {
+      if (
+        Seq(scalafixScalaBinaryVersion.value, "3")
+          .contains(scalaBinaryVersion.value)
+      ) {
         prev
       } else {
         Seq()
       }
+    },
+    scalafixConfig := {
+      if (scalaBinaryVersion.value.startsWith("2"))
+        Some(file(".scalafix-scala2.conf"))
+      else
+        Some(file(".scalafix-scala3.conf"))
     }
   )
 

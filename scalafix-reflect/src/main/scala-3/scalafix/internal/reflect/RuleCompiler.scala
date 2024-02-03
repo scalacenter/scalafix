@@ -1,24 +1,23 @@
 package scalafix.internal.reflect
 
+import java.io.File
+
 import dotty.tools.dotc.Compiler
 import dotty.tools.dotc.Run
 import dotty.tools.dotc.core.Contexts.FreshContext
-import dotty.tools.dotc.util.SourceFile
-import dotty.tools.dotc.reporting.StoreReporter
 import dotty.tools.dotc.interactive.InteractiveDriver
+import dotty.tools.dotc.reporting.StoreReporter
+import dotty.tools.dotc.util.SourceFile
 import dotty.tools.io.AbstractFile
 import dotty.tools.io.Directory
 import dotty.tools.io.PlainDirectory
-import dotty.tools.io.VirtualFile
 import dotty.tools.io.VirtualDirectory
+import dotty.tools.io.VirtualFile
 import dotty.tools.repl.AbstractFileClassLoader
-
+import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Input
-import metaconfig.ConfError
 import metaconfig.Position
-
-import java.io.File
 class RuleCompiler(
     classpath: String,
     targetDirectory: Option[File] = None

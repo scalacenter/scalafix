@@ -1,6 +1,7 @@
 package scalafix.tests.util.compat
 
 import java.nio.file.Path
+
 import dotty.tools.dotc.Main
 
 object CompatSemanticdb {
