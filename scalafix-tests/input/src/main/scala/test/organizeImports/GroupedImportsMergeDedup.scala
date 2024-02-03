@@ -2,6 +2,7 @@
 rules = [OrganizeImports]
 OrganizeImports.removeUnused = false
 OrganizeImports.groupedImports = Merge
+OrganizeImports.targetDialect = Auto
  */
 package test.organizeImports
 

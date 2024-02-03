@@ -2,6 +2,7 @@
 rules = [OrganizeImports]
 OrganizeImports.removeUnused = false
 OrganizeImports.groupedImports = AggressiveMerge
+OrganizeImports.targetDialect = Scala3
  */
 package test.organizeImports
 

@@ -14,8 +14,8 @@ import scala.meta.io.RelativePath
  * @param input
  *   the absolute path to the input file.
  * @param testPath
- *   the input file relativized by the input source directory. Used to compute
- *   the test name and the expected output file.
+ *   the input file relativized by input source directory (but including its
+ *   last subpath). Used to compute the test name and the expected output file.
  * @param semanticdbPath
  *   the input file relativized by the SemanticDB sourceroot. Used to compute
  *   the path to the SemanticDB payload.
@@ -29,8 +29,12 @@ final class TestkitPath(
   def toInput: Input =
     Input.VirtualFile(testName, FileIO.slurp(input, StandardCharsets.UTF_8))
   def resolveOutput(props: TestkitProperties): Either[String, AbsolutePath] = {
+    val testPathStripped =
+      RelativePath(testPath.toNIO.subpath(1, testPath.toNIO.getNameCount))
     val candidates =
-      props.outputSourceDirectories.map(dir => dir.resolve(testPath))
+      props.outputSourceDirectories.map(dir => dir.resolve(testPathStripped)) ++
+        // for backwards compatibility, try the old output directory
+        props.outputSourceDirectories.map(dir => dir.resolve(testPath))
     def tried: String = candidates.mkString("\n  ", "\n  ", "")
     candidates.filter(_.isFile) match {
       case head :: Nil =>
@@ -50,8 +54,10 @@ object TestkitPath {
     props.inputSourceDirectories.flatMap { sourceDirectory =>
       val ls = FileIO.listAllFilesRecursively(sourceDirectory)
       val scalaFiles = ls.files.filter(path => isScalaFile.matches(path.toNIO))
-      scalaFiles.map { testPath =>
-        val input = sourceDirectory.resolve(testPath)
+      scalaFiles.map { scalaFile =>
+        val input = sourceDirectory.resolve(scalaFile)
+        val testPath =
+          input.toRelative(AbsolutePath(sourceDirectory.toNIO.getParent))
         val semanticdbPath = input.toRelative(props.sourceroot)
         new TestkitPath(input, testPath, semanticdbPath)
       }

@@ -1328,3 +1328,149 @@ object RemoveUnused {
   val long: JLong = JLong.parseLong("0")
 }
 ```
+
+`targetDialect`
+--------------
+
+Specify the [wildcards and renames](https://docs.scala-lang.org/scala3/reference/changed-features/imports.html)
+syntax to use.
+
+### Value type
+
+Enum: `Auto | Scala2 | Scala3 | StandardLayout`
+
+#### `Auto`
+
+Infer the dialect from compilation settings (Scala version or `-Xsource` when
+provided) and behave like `Scala2` or `Scala3`. This is safe only for sources
+that are not cross-compiled and therefore it is NOT the default value (see
+rationale below).
+
+#### `Scala2`
+
+For all files,
+* use `_` as wildcard and `=>` for renames
+* curly braces are stripped for importers with a single regular importee
+
+#### `Scala3`
+
+For all files,
+* use `*` as wildcard and `as` for renames
+* curly braces are stripped for importers with a single importee
+
+#### `StandardLayout`
+
+For files containing `scala-3` in their path,
+* use `*` as wildcard and `as` for renames
+* curly braces are stripped for importers with a single importee
+
+For others,
+* use `_` as wildcard and `=>` for renames
+* curly braces are stripped for importers with a single regular importee
+
+### Default value
+
+`StandardLayout`
+
+Rationale: `Auto` is not a safe default for projects cross-compiling with
+Scala 3.x and Scala 2.x without `-Xsource:3`, as the Scala 3.x Scalafix run
+would introduce Scala 2.x compilation errors.
+
+### Examples
+
+#### `Scala2`  
+
+```conf
+OrganizeImports {
+  targetDialect = Scala2
+}
+```
+
+Before:
+
+```scala
+import scala.collection.immutable.{List => L}
+import scala.collection.mutable.{Map}
+import scala.collection.mutable.{Buffer => _, Seq => S, _}
+```
+
+After:
+
+```scala
+import scala.collection.immutable.{List => L}
+import scala.collection.mutable.Map
+import scala.collection.mutable.{Buffer => _, Seq => S, _}
+```
+
+#### `Scala3`  
+
+```conf
+OrganizeImports {
+  targetDialect = Scala3
+}
+```
+
+Before:
+
+```scala
+import scala.collection.immutable.{List => L}
+import scala.collection.mutable.{Map}
+import scala.collection.mutable.{Buffer => _, Seq => S, _}
+import scala.concurrent.ExecutionContext.Implicits.{given scala.concurrent.ExecutionContext}
+```
+
+After:
+
+```scala
+import scala.collection.immutable.List as L
+import scala.collection.mutable.Map
+import scala.collection.mutable.{Buffer as _, Seq as S, *}
+import scala.concurrent.ExecutionContext.Implicits.given scala.concurrent.ExecutionContext
+```
+
+#### `StandardLayout`  
+
+```conf
+OrganizeImports {
+  targetDialect = StandardLayout
+}
+```
+
+##### `**/scala-3/**` files
+
+Before:
+
+```scala
+import scala.collection.immutable.{List => L}
+import scala.collection.mutable.{Map}
+import scala.collection.mutable.{Buffer => _, Seq => S, _}
+import scala.concurrent.ExecutionContext.Implicits.{given scala.concurrent.ExecutionContext}
+```
+
+After:
+
+```scala
+import scala.collection.immutable.List as L
+import scala.collection.mutable.Map
+import scala.collection.mutable.{Buffer as _, Seq as S, *}
+import scala.concurrent.ExecutionContext.Implicits.given scala.concurrent.ExecutionContext
+```
+
+##### Other files
+
+Before:
+
+```scala
+import scala.collection.immutable.{List => L}
+import scala.collection.mutable.{Map}
+import scala.collection.mutable.{Buffer => _, Seq => S, _}
+```
+
+After:
+
+```scala
+import scala.collection.immutable.{List => L}
+import scala.collection.mutable.Map
+import scala.collection.mutable.{Buffer => _, Seq => S, _}
+```
+

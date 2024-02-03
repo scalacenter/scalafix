@@ -1,6 +1,6 @@
 package test.organizeImports
 
-import test.organizeImports.Givens._
-import test.organizeImports.Givens.{A => A1, given}
+import test.organizeImports.Givens.*
+import test.organizeImports.Givens.{A as A1, given}
 
 object CoalesceImporteesNoNames

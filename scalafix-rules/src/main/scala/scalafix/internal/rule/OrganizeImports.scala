@@ -5,6 +5,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 
+import scala.meta.Dialect
 import scala.meta.Import
 import scala.meta.Importee
 import scala.meta.Importee.GivenAll
@@ -19,6 +20,9 @@ import scala.meta.Tree
 import scala.meta.XtensionClassifiable
 import scala.meta.XtensionCollectionLikeUI
 import scala.meta.XtensionSyntax
+import scala.meta.dialects
+import scala.meta.inputs.Input.File
+import scala.meta.inputs.Input.VirtualFile
 import scala.meta.inputs.Position
 import scala.meta.tokens.Token
 
@@ -28,6 +32,7 @@ import metaconfig.ConfEncoder
 import metaconfig.ConfOps
 import metaconfig.Configured
 import metaconfig.internal.ConfGet
+import scalafix.internal.config.ScalaVersion
 import scalafix.internal.rule.ImportMatcher.*
 import scalafix.internal.rule.ImportMatcher.---
 import scalafix.internal.rule.ImportMatcher.parse
@@ -43,10 +48,17 @@ import scalafix.v1.SymbolInformation
 import scalafix.v1.XtensionSeqPatch
 import scalafix.v1.XtensionTreeScalafix
 
-class OrganizeImports(config: OrganizeImportsConfig)
-    extends SemanticRule("OrganizeImports") {
+class OrganizeImports(
+    config: OrganizeImportsConfig,
+    // shadows the default implicit always on scope (Dialect.current, matching the runtime Scala version)
+    implicit val targetDialect: Dialect = Dialect.current,
+    scala3DialectForScala3Paths: Boolean = false
+) extends SemanticRule("OrganizeImports") {
   import OrganizeImports._
   import ImportMatcher._
+
+  private lazy val scala3TargetDialect =
+    new OrganizeImports(config, dialects.Scala3)
 
   private val matchers = buildImportMatchers(config)
 
@@ -73,6 +85,18 @@ class OrganizeImports(config: OrganizeImportsConfig)
       .andThen(checkScalacOptions(_, config.scalacOptions, config.scalaVersion))
 
   override def fix(implicit doc: SemanticDocument): Patch = {
+    (doc.input, scala3DialectForScala3Paths) match {
+      case (File(path, _), true)
+          if path.toFile.getAbsolutePath.contains("scala-3/") =>
+        scala3TargetDialect.fixWithImplicitDialect(doc)
+      case (VirtualFile(path, _), true) if path.contains("scala-3/") =>
+        scala3TargetDialect.fixWithImplicitDialect(doc)
+      case _ =>
+        fixWithImplicitDialect(doc)
+    }
+  }
+
+  private def fixWithImplicitDialect(implicit doc: SemanticDocument): Patch = {
     unusedImporteePositions ++= doc.diagnostics.collect {
       case d if d.message == "Unused import" => d.position
     }
@@ -312,22 +336,16 @@ class OrganizeImports(config: OrganizeImportsConfig)
   }
 
   private def organizeImportGroup(importers: Seq[Importer]): Seq[Importer] = {
-    // https://github.com/liancheng/scalafix-organize-imports/issues/96: For
-    // importers with only a single  `Importee.Name` importee, if the importee
-    // is curly-braced, remove the unneeded curly-braces. For example:
-    // `import p.{X}` should be rewritten into `import p.X`.
-    val noUnneededBraces = importers map removeRedundantBrances
-
     val importeesSorted = locally {
       config.groupedImports match {
         case GroupedImports.Merge =>
-          mergeImporters(noUnneededBraces, aggressive = false)
+          mergeImporters(importers, aggressive = false)
         case GroupedImports.AggressiveMerge =>
-          mergeImporters(noUnneededBraces, aggressive = true)
+          mergeImporters(importers, aggressive = true)
         case GroupedImports.Explode =>
-          explodeImportees(noUnneededBraces)
+          explodeImportees(importers)
         case GroupedImports.Keep =>
-          noUnneededBraces
+          importers
       }
     } map (coalesceImportees _ andThen sortImportees)
 
@@ -345,22 +363,6 @@ class OrganizeImports(config: OrganizeImportsConfig)
         importeesSorted
     }
   }
-
-  private def removeRedundantBrances(importer: Importer): Importer =
-    importer match {
-      case i @ Importer(_, Importee.Name(_) :: Nil) =>
-        import Token.{Ident, LeftBrace, RightBrace}
-
-        i.tokens.reverse.toList match {
-          // The `.copy()` call erases the source position information from the original importer, so
-          // that instead of returning the original source text, the pretty-printer will reformat
-          // `importer` without the unneeded curly-braces.
-          case RightBrace() :: Ident(_) :: LeftBrace() :: _ => i.copy()
-          case _ => i
-        }
-
-      case _ => importer
-    }
 
   private def mergeImporters(
       importers: Seq[Importer],
@@ -566,7 +568,12 @@ class OrganizeImports(config: OrganizeImportsConfig)
 
       importer match {
         case Importer(_, Importee.Wildcard() :: Nil) =>
-          syntax.patch(syntax.lastIndexOfSlice("._"), ".\u0001", 2)
+          val wildcardSyntax = Importee.Wildcard().syntax
+          syntax.patch(
+            syntax.lastIndexOfSlice(s".$wildcardSyntax"),
+            ".\u0001",
+            2
+          )
 
         case _ if importer.isCurlyBraced =>
           syntax
@@ -687,6 +694,131 @@ class OrganizeImports(config: OrganizeImportsConfig)
 
     Patch.addLeft(token, indented mkString "\n")
   }
+
+  private def prettyPrintImportGroup(group: Seq[Importer]): String =
+    group
+      .map(i => "import " + importerSyntax(i))
+      .mkString("\n")
+
+  private def importerSyntax(importer: Importer): String =
+    importer.pos match {
+      case pos: Position.Range =>
+        // Position found, implies that `importer` was directly parsed from the source code. Rewrite
+        // importees to ensure they follow the target dialect. For importers with a single importee,
+        // strip enclosing braces if they exist (or add/preserve them for Rename & Unimport on Scala 2).
+
+        val syntax = new StringBuilder(pos.text)
+
+        def patchSyntax(
+            t: Tree,
+            newSyntax: String
+        ) = {
+          val start = t.pos.start - pos.start
+          syntax.replace(start, t.pos.end - pos.start, newSyntax)
+
+          if (importer.importees.length == 1) {
+            val end = t.pos.start - pos.start + newSyntax.length
+            (
+              syntax.take(start).lastIndexOf('{'),
+              syntax.indexOf('}', end),
+              importer.isCurlyBraced
+            ) match {
+              case (-1, -1, true) =>
+                // braces required but not detected
+                syntax.append('}')
+                syntax.insert(start, '{')
+              case (opening, closing, false)
+                  if opening != -1 && closing != -1 =>
+                // braces detected but not required
+                syntax.delete(end, closing + 1)
+                syntax.delete(opening, start)
+              case _ =>
+            }
+          }
+        }
+
+        // traverse & patch backwards to avoid shifting indices
+        importer.importees.reverse.foreach {
+          case i @ Importee.Rename(_, _) =>
+            patchSyntax(i, i.copy().syntax)
+          case i @ Importee.Unimport(_) =>
+            patchSyntax(i, i.copy().syntax)
+          case i @ Importee.Wildcard() =>
+            patchSyntax(i, i.copy().syntax)
+          case i =>
+            patchSyntax(i, i.syntax)
+        }
+
+        syntax.toString
+
+      case Position.None =>
+        // Position not found, implies that `importer` is derived from certain existing import
+        // statement(s). Pretty-prints it.
+        val syntax = importer.syntax
+
+        // HACK: The Scalafix pretty-printer decides to add spaces after open and
+        // before close braces in imports with multiple importees, i.e., `import a.{
+        // b, c }` instead of `import a.{b, c}`. On the other hand, renames are
+        // pretty-printed without the extra spaces, e.g., `import a.{b => c}`. This
+        // behavior is not customizable and makes ordering imports by ASCII order
+        // complicated.
+        //
+        // This function removes the unwanted spaces as a workaround. In cases where
+        // users do want the inserted spaces, Scalafmt should be used after running
+        // the `OrganizeImports` rule.
+
+        // NOTE: We need to check whether the input importer is curly braced first and then replace
+        // the first "{ " and the last " }" if any. Naive string replacement is insufficient, e.g.,
+        // a quoted-identifier like "`{ d }`" may cause broken output.
+        (importer.isCurlyBraced, syntax lastIndexOfSlice " }") match {
+          case (_, -1) =>
+            syntax
+          case (true, index) =>
+            syntax.patch(index, "}", 2).replaceFirst("\\{ ", "{")
+          case _ =>
+            syntax
+        }
+    }
+
+  implicit private class ImporterExtension(importer: Importer) {
+
+    /**
+     * Checks whether the `Importer` should be curly-braced when pretty-printed.
+     */
+    def isCurlyBraced: Boolean = {
+      val importees @ Importees(_, renames, unimports, _, _, _) =
+        importer.importees
+
+      importees.length > 1 ||
+      ((renames.length == 1 || unimports.length == 1) && !targetDialect.allowAsForImportRename)
+    }
+
+    /**
+     * Returns an `Importer` with all the `Importee`s that are selected from the
+     * input `Importer` and satisfy a predicate. If all the `Importee`s are
+     * selected, the input `Importer` instance is returned to preserve the
+     * original source level formatting. If none of the `Importee`s are
+     * selected, returns a `None`.
+     */
+    def filterImportees(f: Importee => Boolean): Option[Importer] = {
+      val filtered = importer.importees filter f
+      if (filtered.length == importer.importees.length) Some(importer)
+      else if (filtered.isEmpty) None
+      else Some(importer.copy(importees = filtered))
+    }
+
+    /** Returns true if the `Importer` contains a standalone wildcard. */
+    def hasWildcard: Boolean = {
+      val Importees(_, _, unimports, _, _, wildcard) = importer.importees
+      unimports.isEmpty && wildcard.nonEmpty
+    }
+
+    /** Returns true if the `Importer` contains a standalone given wildcard. */
+    def hasGivenAll: Boolean = {
+      val Importees(_, _, unimports, _, givenAll, _) = importer.importees
+      unimports.isEmpty && givenAll.nonEmpty
+    }
+  }
 }
 
 object OrganizeImports {
@@ -719,8 +851,42 @@ object OrganizeImports {
       }
     }
 
+    val (targetDialect, scala3DialectForScala3Paths) =
+      conf.targetDialect match {
+        case TargetDialect.Auto =>
+          val dialect = ScalaVersion
+            .from(scalaVersion)
+            .map { scalaVersion =>
+              def extractSuffixForScalacOption(prefix: String) = {
+                scalacOptions
+                  .filter(_.startsWith(prefix))
+                  .lastOption
+                  .map(_.stripPrefix(prefix))
+              }
+
+              // We only lookup the Scala 2 option (Scala 3 is `-source`), as the latest Scala 3
+              // dialect is used no matter what the actual minor version is anyway, and as of now,
+              // the pretty printer is just more permissive with the latest dialect.
+              val sourceScalaVersion =
+                extractSuffixForScalacOption("-Xsource:")
+                  .flatMap(ScalaVersion.from(_).toOption)
+
+              scalaVersion.dialect(sourceScalaVersion)
+            }
+            .getOrElse(Dialect.current)
+          (dialect, false)
+        case TargetDialect.Scala2 =>
+          (dialects.Scala212, false)
+        case TargetDialect.Scala3 =>
+          (dialects.Scala3, false)
+        case TargetDialect.StandardLayout =>
+          (dialects.Scala212, true)
+      }
+
     if (!conf.removeUnused || hasWarnUnused)
-      Configured.ok(new OrganizeImports(conf))
+      Configured.ok(
+        new OrganizeImports(conf, targetDialect, scala3DialectForScala3Paths)
+      )
     else if (hasCompilerSupport)
       Configured.error(
         "The Scala compiler option \"-Ywarn-unused\" is required to use OrganizeImports with"
@@ -777,48 +943,6 @@ object OrganizeImports {
       case _ => (Nil, Nil)
     }
   }
-
-  private def prettyPrintImportGroup(group: Seq[Importer]): String =
-    group
-      .map(i => "import " + importerSyntax(i))
-      .mkString("\n")
-
-  /**
-   * HACK: The Scalafix pretty-printer decides to add spaces after open and
-   * before close braces in imports with multiple importees, i.e., `import a.{
-   * b, c }` instead of `import a.{b, c}`. On the other hand, renames are
-   * pretty-printed without the extra spaces, e.g., `import a.{b => c}`. This
-   * behavior is not customizable and makes ordering imports by ASCII order
-   * complicated.
-   *
-   * This function removes the unwanted spaces as a workaround. In cases where
-   * users do want the inserted spaces, Scalafmt should be used after running
-   * the `OrganizeImports` rule.
-   */
-  private def importerSyntax(importer: Importer): String =
-    importer.pos match {
-      case pos: Position.Range =>
-        // Position found, implies that `importer` was directly parsed from the source code. Returns
-        // the original parsed text to preserve the original source level formatting.
-        pos.text
-
-      case Position.None =>
-        // Position not found, implies that `importer` is derived from certain existing import
-        // statement(s). Pretty-prints it.
-        val syntax = importer.syntax
-
-        // NOTE: We need to check whether the input importer is curly braced first and then replace
-        // the first "{ " and the last " }" if any. Naive string replacement is insufficient, e.g.,
-        // a quoted-identifier like "`{ d }`" may cause broken output.
-        (importer.isCurlyBraced, syntax lastIndexOfSlice " }") match {
-          case (_, -1) =>
-            syntax
-          case (true, index) =>
-            syntax.patch(index, "}", 2).replaceFirst("\\{ ", "{")
-          case _ =>
-            syntax
-        }
-    }
 
   @tailrec private def topQualifierOf(term: Term): Term.Name =
     term match {
@@ -910,11 +1034,11 @@ object OrganizeImports {
    * Categorizes a list of `Importee`s into the following four groups:
    *
    *   - Names, e.g., `Seq`, `Option`, etc.
-   *   - Renames, e.g., `{Long => JLong}`, `{Duration => D}`, etc.
-   *   - Unimports, e.g., `{Foo => _}`.
-   *   - Givens, e.g., `{given Foo}`.
+   *   - Renames, e.g., `{Long => JLong}`, `Duration as D`, etc.
+   *   - Unimports, e.g., `{Foo => _}` or `Foo as _`.
+   *   - Givens, e.g., `given Foo`.
    *   - GivenAll, i.e., `given`.
-   *   - Wildcard, i.e., `_`.
+   *   - Wildcard, i.e., `_` or `*`.
    */
   object Importees {
     def unapply(importees: Seq[Importee]): Option[
@@ -968,41 +1092,5 @@ object OrganizeImports {
      */
     def infoNoThrow(implicit doc: SemanticDocument): Option[SymbolInformation] =
       Try(symbol.info).toOption.flatten
-  }
-
-  implicit private class ImporterExtension(importer: Importer) {
-
-    /** Checks whether the `Importer` is curly-braced when pretty-printed. */
-    def isCurlyBraced: Boolean = {
-      val importees @ Importees(_, renames, unimports, _, _, _) =
-        importer.importees
-      renames.nonEmpty || unimports.nonEmpty || importees.length > 1
-    }
-
-    /**
-     * Returns an `Importer` with all the `Importee`s that are selected from the
-     * input `Importer` and satisfy a predicate. If all the `Importee`s are
-     * selected, the input `Importer` instance is returned to preserve the
-     * original source level formatting. If none of the `Importee`s are
-     * selected, returns a `None`.
-     */
-    def filterImportees(f: Importee => Boolean): Option[Importer] = {
-      val filtered = importer.importees filter f
-      if (filtered.length == importer.importees.length) Some(importer)
-      else if (filtered.isEmpty) None
-      else Some(importer.copy(importees = filtered))
-    }
-
-    /** Returns true if the `Importer` contains a standalone wildcard. */
-    def hasWildcard: Boolean = {
-      val Importees(_, _, unimports, _, _, wildcard) = importer.importees
-      unimports.isEmpty && wildcard.nonEmpty
-    }
-
-    /** Returns true if the `Importer` contains a standalone given wildcard. */
-    def hasGivenAll: Boolean = {
-      val Importees(_, _, unimports, _, givenAll, _) = importer.importees
-      unimports.isEmpty && givenAll.nonEmpty
-    }
   }
 }

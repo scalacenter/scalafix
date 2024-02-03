@@ -1,7 +1,10 @@
 package test.organizeImports
 
 import test.organizeImports.QuotedIdent._
+import test.organizeImports.QuotedIdent.{`a.b` => ab}
+import test.organizeImports.QuotedIdent.`a.b`
 import test.organizeImports.QuotedIdent.`a.b`.{c => _, _}
+import test.organizeImports.QuotedIdent.`a.b`.`{ d }`.{  e => E  }
 import test.organizeImports.QuotedIdent.`a.b`.`{ d }`.e
 
 import scala.concurrent._
