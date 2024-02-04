@@ -98,7 +98,7 @@ object TreeOps {
       }
     }
     val result = tree match {
-      case n: Name =>
+      case _: Name =>
         tree.parent.flatMap(loop)
       case _ => loop(tree)
     }

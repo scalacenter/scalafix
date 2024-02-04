@@ -208,7 +208,7 @@ final class DisableSyntax(config: DisableSyntaxConfig)
             t.pos
           )
         )
-      case t @ AbstractWithVals(vals) if config.noValInAbstract =>
+      case _ @AbstractWithVals(vals) if config.noValInAbstract =>
         vals.map { v =>
           Diagnostic(
             "valInAbstract",
@@ -225,7 +225,7 @@ final class DisableSyntax(config: DisableSyntaxConfig)
             t.pos
           )
         )
-      case t @ Defn.Def(mods, _, _, paramss, _, _)
+      case t @ Defn.Def(mods, _, _, _, _, _)
           if mods.exists(_.is[Mod.Implicit]) &&
             hasNonImplicitParam(t) &&
             config.noImplicitConversion =>

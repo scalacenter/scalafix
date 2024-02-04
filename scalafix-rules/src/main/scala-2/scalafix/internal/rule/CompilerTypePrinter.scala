@@ -233,7 +233,7 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
       context: Context,
       tpe: Type
   ): Option[(Type, v1.Patch)] = tpe.finalResultType match {
-    case resultType @ RefinedType(parents, decls)
+    case RefinedType(_, decls)
         if config.rewriteStructuralTypesToNamedSubclass &&
           decls.filterNot(_.isOverridingSymbol).nonEmpty =>
       val body: Option[m.Term] = defn match {
@@ -243,7 +243,7 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
         case _ => None
       }
       body match {
-        case Some(body @ m.Term.NewAnonymous(template))
+        case Some(body @ m.Term.NewAnonymous(_))
             if body.tokens.head.syntax == "new" =>
           val nameSyntax = gsym.nameSyntax
           val suffixes = "" +: LazyList.from(1).map(_.toString())
@@ -303,7 +303,7 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
         case TypeRef(pre, sym, args)
             if gsymbolReplacements.contains(semanticdbSymbol(sym)) =>
           loop(TypeRef(pre, gsymbolReplacements(semanticdbSymbol(sym)), args))
-        case tp @ ThisType(sym)
+        case tp @ ThisType(_)
             if tp.toString() == s"${gsym.owner.nameString}.this.type" =>
           new PrettyType("this.type")
         case ConstantType(Constant(c: Symbol)) if c.hasFlag(gf.JAVA_ENUM) =>
@@ -364,9 +364,9 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
           } else {
             TypeRef(loop(pre), sym, args.map(loop))
           }
-        case ExistentialType(head :: Nil, underlying) =>
+        case ExistentialType(head :: Nil, _) =>
           head.info match {
-            case b @ TypeBounds(RefinedType(parents, _), hi)
+            case TypeBounds(RefinedType(parents, _), hi)
                 if parents.length > 1 =>
               // Remove the lower bound large `Type[_ >: A with B with C <: D
               // with Serializable]` so that it becomes only `Type[_ <: D]`.
@@ -376,7 +376,7 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
             case _ =>
           }
           tpe
-        case SingleType(ThisType(osym), sym)
+        case SingleType(ThisType(_), sym)
             if sym.isKindaTheSameAs(sym) &&
               gsymbolReplacements.contains(semanticdbSymbol(sym)) =>
           loop(

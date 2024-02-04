@@ -17,7 +17,6 @@ import dotty.tools.repl.AbstractFileClassLoader
 import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Input
-import metaconfig.Position
 class RuleCompiler(
     classpath: String,
     targetDirectory: Option[File] = None
@@ -43,8 +42,8 @@ class RuleCompiler(
     val run: Run = compiler.newRun(using ctx)
 
     val file: AbstractFile = input match {
-      case Input.File(path, _) => AbstractFile.getFile(input.path)
-      case Input.VirtualFile(path, _) =>
+      case Input.File(_, _) => AbstractFile.getFile(input.path)
+      case Input.VirtualFile(_, _) =>
         VirtualFile(input.path, input.text.getBytes())
       case _ => throw RuntimeException("Invalid Input file")
     }

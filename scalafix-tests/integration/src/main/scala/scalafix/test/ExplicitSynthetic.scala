@@ -1,10 +1,10 @@
 package scalafix.test
 
-import scalafix.v1.SemanticRule
+import scala.meta._
+
+import scalafix.v1._
 
 class ExplicitSynthetic() extends SemanticRule("ExplicitSynthetic") {
-  import scalafix.v1._
-  import scala.meta._
 
   override def fix(implicit doc: SemanticDocument): Patch = {
     val patches = doc.tree.collect {

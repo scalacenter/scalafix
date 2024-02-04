@@ -230,7 +230,7 @@ object Pretty {
       pretty(t.constant)
     case t: MacroExpansionTree =>
       `(` + Doc.text("`after-expansion` : ") + pretty(t.tpe) + `)`
-    case r: OriginalTree =>
+    case _: OriginalTree =>
       `*`
     case r: OriginalSubTree =>
       Doc.text("orig") + `(` + Doc.text(r.tree.syntax) + `)`

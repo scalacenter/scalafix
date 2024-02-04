@@ -113,7 +113,7 @@ object JGitDiff {
       walk.dispose()
       Right(treeParser)
     } catch {
-      case missing: MissingObjectException =>
+      case _: MissingObjectException =>
         unknown(id.getName)
     }
   }

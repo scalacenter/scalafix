@@ -192,7 +192,7 @@ class ScalafixImplSuite extends AnyFunSuite with DiffAssertions {
       semicolon.toString,
       excluded.toString
     ) ++ CompatSemanticdb.scalacOptions(src)
-    val compileSucceeded = scala.tools.nsc.Main.process(scalacOptions)
+    scala.tools.nsc.Main.process(scalacOptions)
     val buf = List.newBuilder[ScalafixDiagnostic]
     val callback = new ScalafixMainCallback {
       override def reportDiagnostic(diagnostic: ScalafixDiagnostic): Unit = {

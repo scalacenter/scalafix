@@ -36,7 +36,7 @@ object PatchInternals {
       )
     case (_: Remove, add: Add) => add.copy(keepTok = false)
     case (add: Add, _: Remove) => add.copy(keepTok = false)
-    case (rem: Remove, rem2: Remove) => rem
+    case (rem: Remove, _: Remove) => rem
     case _ => throw Failure.TokenPatchMergeError(a, b)
   }
 

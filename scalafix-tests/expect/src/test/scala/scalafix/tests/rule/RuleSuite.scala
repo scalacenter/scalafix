@@ -9,7 +9,7 @@ import scalafix.testkit._
 object RuleSuite {
   def main(args: Array[String]): Unit = {
     if (Array("--save-expect").sameElements(args)) {
-      val suite = new AbstractSemanticRuleSuite(
+      new AbstractSemanticRuleSuite(
         TestkitProperties.loadFromResources(),
         isSaveExpect = true
       ) with AnyFunSuiteLike {

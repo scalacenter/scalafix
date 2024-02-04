@@ -49,7 +49,7 @@ object SymbolOps {
   }
   def toImporter(symbol: Symbol): Option[Importer] = {
     symbol match {
-      case Root(SignatureName(name)) =>
+      case Root(SignatureName(_)) =>
         None
       case Symbol.Global(qual, SignatureName(name)) =>
         Some(
