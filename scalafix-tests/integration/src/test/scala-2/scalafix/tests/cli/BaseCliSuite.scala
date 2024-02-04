@@ -169,7 +169,6 @@ trait BaseCliSuite extends AnyFunSuite with DiffAssertions {
       files: String = removeImportsPath.toString()
   ): Unit = {
     test(name, SkipWindows) {
-      val fileIsFixed = expectedExit.isOk
       val cwd = Files.createTempDirectory("scalafix")
       val sourceDir =
         inputSourceroot.toRelative(AbsolutePath(BuildInfo.baseDirectory)).toNIO

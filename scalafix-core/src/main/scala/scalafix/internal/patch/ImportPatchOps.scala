@@ -57,13 +57,6 @@ object ImportPatchOps {
       .collect { case i: Import => i }
   }
 
-  @tailrec private final def getLastTopLevelPkg(potPkg: Stat): Stat =
-    potPkg match {
-      case Pkg(_, head +: Nil) => getLastTopLevelPkg(head)
-      case Pkg(_, head +: _) => head
-      case _ => potPkg
-    }
-
   @tailrec private final def getGlobalImports(ast: Tree): Seq[Import] =
     ast match {
       case Pkg(_, Seq(pkg: Pkg)) => getGlobalImports(pkg)

@@ -73,7 +73,7 @@ object RuleInstrumentation {
     }
 
     (dialects.Scala213, code).parse[Source] match {
-      case parsers.Parsed.Error(pos, msg, details) =>
+      case parsers.Parsed.Error(pos, msg, _) =>
         ConfError.parseError(pos.toMetaconfig, msg).notOk
       case parsers.Parsed.Success(ast) =>
         val result = List.newBuilder[String]

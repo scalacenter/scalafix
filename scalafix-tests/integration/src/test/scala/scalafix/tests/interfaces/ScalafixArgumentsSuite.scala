@@ -230,7 +230,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     assert(maybeDiagnostic.isEmpty)
     val content = FileIO.slurp(AbsolutePath(main), StandardCharsets.UTF_8)
     assert(contentBeforeEvaluation == content)
-    val run = api
+    api
       .withRules(
         List(
           removeUnsuedRule().name.toString(),

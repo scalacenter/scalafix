@@ -1,3 +1,4 @@
+// scalafix:off RemoveUnused
 package test
 
 import java.util.Map

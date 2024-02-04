@@ -1,7 +1,6 @@
 package scalafix.internal.patch
 
 import scala.annotation.tailrec
-import scala.collection.compat._
 import scala.collection.immutable.TreeMap
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -181,7 +180,7 @@ object EscapeHatch {
       if (isEmpty) (true, None)
       else {
         val escapesUpToPos =
-          escapeTree.rangeTo(EscapeOffset(position)).valuesIterator.flatten
+          escapeTree.to(EscapeOffset(position)).valuesIterator.flatten
         escapesUpToPos
           .collectFirst {
             case f @ EscapeFilter(_, _, _, Some(end))
@@ -328,7 +327,7 @@ object EscapeHatch {
       if (disabling.isEmpty) (true, None)
       else {
         val disables =
-          disabling.rangeTo(EscapeOffset(position)).valuesIterator.flatten
+          disabling.to(EscapeOffset(position)).valuesIterator.flatten
         loop(disables.toList, None)
       }
     }
@@ -485,7 +484,8 @@ object EscapeHatch {
       }
 
       val disable = TreeMap.newBuilder[EscapeOffset, List[EscapeFilter]]
-      val unused = ListBuffer.from(onOffTracker.allUnused)
+      val unused = ListBuffer.empty[Position]
+      unused ++= onOffTracker.allUnused
 
       // for filters starting on the same offset, pick the one with the wider range
       // and mark the others as unused

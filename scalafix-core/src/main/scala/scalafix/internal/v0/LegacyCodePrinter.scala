@@ -63,7 +63,7 @@ class LegacyCodePrinter(doc: SemanticDocument) {
 
   private def pprint(signature: s.Signature): Unit = {
     signature match {
-      case sig: s.ClassSignature =>
+      case _: s.ClassSignature =>
         // Not supported
         ()
 
@@ -85,7 +85,7 @@ class LegacyCodePrinter(doc: SemanticDocument) {
         }
         pprint(sig.returnType)
 
-      case sig: s.TypeSignature =>
+      case _: s.TypeSignature =>
         // Not supported
         ()
 

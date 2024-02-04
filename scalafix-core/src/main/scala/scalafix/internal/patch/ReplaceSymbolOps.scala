@@ -45,7 +45,7 @@ object ReplaceSymbolOps {
         case (a @ Name(_), Symbol.Global(Symbol.None, SignatureName(b))) =>
           ctx.replaceTree(a, b) -> Symbol.None
         // ref is shorter
-        case (a @ Name(_), sym @ Symbol.Global(owner, SignatureName(b))) =>
+        case (a @ Name(_), sym @ Symbol.Global(_, SignatureName(b))) =>
           if (isImport) {
             val qual = SymbolOps.toTermRef(sym)
             ctx.replaceTree(a, qual.syntax) -> Symbol.None
@@ -106,7 +106,7 @@ object ReplaceSymbolOps {
             case Some(Importer(ref, `i` :: Nil)) =>
               Patch.replaceTree(ref, SymbolOps.toTermRef(to.owner).syntax) +
                 Patch.replaceTree(name, to.signature.name)
-            case Some(Importer(ref, _)) =>
+            case Some(Importer(_, _)) =>
               Patch.removeImportee(i) +
                 Patch.addGlobalImport(
                   Importer(
@@ -125,7 +125,7 @@ object ReplaceSymbolOps {
         case Some(Identifier(parent, Symbol.Global(_, sig)))
             if sig.name != parent.value =>
           Patch.empty // do nothing because it was a renamed symbol
-        case Some(parent) =>
+        case Some(_) =>
           val addImport =
             if (n.isDefinition) Patch.empty
             else ctx.addGlobalImport(to)

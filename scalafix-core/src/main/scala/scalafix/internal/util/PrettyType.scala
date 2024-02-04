@@ -230,7 +230,7 @@ class PrettyType private (
               toType(ret)
             )
           }
-        case s.ClassSignature(Some(tparams), parents, self, Some(decls)) =>
+        case s.ClassSignature(Some(tparams), parents, _, Some(decls)) =>
           val declarations = decls.infos
           val isCaseClass = info.is(p.CASE)
           def objectDecls: List[Stat] =
@@ -568,7 +568,7 @@ class PrettyType private (
         Term.This(Name.Anonymous()),
         Type.Name(this.info(symbol).displayName)
       )
-    case s.SuperType(prefix @ _, symbol) =>
+    case s.SuperType(_ @_, symbol) =>
       // TODO: print prefix https://github.com/scalacenter/scalafix/issues/758
       Type.Select(
         Term.Super(Name.Anonymous(), Name.Anonymous()),
