@@ -47,7 +47,8 @@ object Params {
   val artifacts = Set(
     "scalafix-core_2.12",
     "scalafix-core_2.13",
-    "scalafix-interfaces"
+    "scalafix-interfaces",
+    "sbt-scalafix_2.12_1.0"
   )
 }
 
