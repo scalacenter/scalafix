@@ -229,7 +229,13 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
 
   override def buildSettings: Seq[Setting[_]] = List(
     // https://github.com/sbt/sbt/issues/5568#issuecomment-1094380636
-    versionPolicyIgnored += "com.lihaoyi" %% "pprint",
+    versionPolicyIgnored ++= Seq(
+      // https://github.com/scalacenter/scalafix/pull/1530
+      "com.lihaoyi" %% "pprint",
+      // https://github.com/scalacenter/scalafix/pull/1819#issuecomment-1636118496
+      "org.scalameta" %% "fastparse-v2",
+      "com.lihaoyi" %% "geny"
+    ),
     versionPolicyIgnoredInternalDependencyVersions :=
       Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r),
     versionScheme := Some("early-semver"),
@@ -248,21 +254,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
-    // https://github.com/scalacenter/scalafix/pull/1819#issuecomment-1636118496
-    versionPolicyFindDependencyIssues ~= { issues =>
-      issues.map { case (module, report) =>
-        val Seq(backward, forward) =
-          Seq(report.backwardStatuses, report.forwardStatuses)
-            .map { statuses =>
-              statuses.filterNot { case ((org, artifact), _) =>
-                Seq(scalametaFastparse, geny)
-                  .map(mod => (mod.organization, mod.name))
-                  .contains((org, artifact.split('_').head))
-              }
-            }
-        (module, DependencyCheckReport(backward, forward))
-      }
-    },
     // Prevent issues with scalatest serialization
     Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat,
     Test / testWindows := (Test / testOnly)
