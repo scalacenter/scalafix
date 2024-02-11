@@ -383,7 +383,8 @@ lazy val docs = projectMatrix
     scalacOptions += "-Wconf:msg='match may not be exhaustive':s", // silence exhaustive pattern matching warning for documentation
     scalacOptions += "-Xfatal-warnings",
     mdoc := (Compile / run).evaluated,
-    libraryDependencies += metaconfigDoc
+    libraryDependencies += metaconfigDoc,
+    dependencyOverrides += scalameta // force eviction of mdoc transitive dependency
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(scalaVersions = Seq(scala213))
