@@ -21,7 +21,7 @@ object Dependencies {
   val nailgunV = "0.9.1"
   val scalaXmlV = "2.2.0"
   val scalametaV = "4.8.15"
-  val scalatestV = "3.2.17"
+  val scalatestV = "3.2.18"
   val munitV = "0.7.29"
 
   // scala-steward:off
