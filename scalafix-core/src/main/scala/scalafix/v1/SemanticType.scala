@@ -24,4 +24,8 @@ final case class ExistentialType(tpe: SemanticType, declarations: List[SymbolInf
 final case class UniversalType(typeParameters: List[SymbolInformation], tpe: SemanticType) extends SemanticType
 final case class ByNameType(tpe: SemanticType) extends SemanticType
 final case class RepeatedType(tpe: SemanticType) extends SemanticType
+final case class LambdaType(parameters: List[SymbolInformation], returnType: SemanticType) extends SemanticType
+final case class MatchType(scrutinee: SemanticType, cases: List[CaseType]) extends SemanticType
 case object NoType extends SemanticType
+
+final case class CaseType(key: SemanticType, body: SemanticType)

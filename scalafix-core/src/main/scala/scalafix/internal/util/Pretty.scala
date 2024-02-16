@@ -116,6 +116,22 @@ object Pretty {
           `=>` + Doc.space + pretty(t.tpe)
         case t: RepeatedType =>
           `*` + Doc.space + pretty(t.tpe)
+        case t: LambdaType =>
+          val tparams = Doc
+            .intercalate(Doc.comma, t.parameters.map(prettyTypeParameter))
+            .tightBracketBy(`[`, `]` + Doc.space + `=>>` + Doc.space)
+          tparams + pretty(t.returnType)
+        case t: MatchType =>
+          val cases = Doc
+            .intercalate(
+              Doc.comma + Doc.space,
+              t.cases.map { kase =>
+                pretty(kase.key) + Doc.space + `=>` +
+                  Doc.space + pretty(kase.body)
+              }
+            )
+            .bracketBy(Doc.space + `match` + Doc.space + `{`, `}`)
+          normal(t.scrutinee) + cases
       }
     }
     def normal(tpe: SemanticType): Doc = tpe match {

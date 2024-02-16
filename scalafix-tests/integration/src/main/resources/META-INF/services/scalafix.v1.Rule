@@ -5,6 +5,7 @@ scalafix.test.CommentFileAtomic
 scalafix.test.AddCommentEndOfFile
 scalafix.test.ScalatestAutofixRule
 scalafix.test.ExplicitSynthetic
+scalafix.test.DecorateTypeSignatures
 scalafix.test.cli.CrashingRule
 scalafix.test.cli.NoOpRule
 scalafix.test.cli.DeprecatedName
