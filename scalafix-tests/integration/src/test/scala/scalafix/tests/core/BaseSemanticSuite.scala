@@ -6,6 +6,7 @@ import scala.meta.internal.symtab.SymbolTable
 
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funsuite.AnyFunSuite
+import scalafix.Versions
 import scalafix.internal.config.ScalaVersion
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.v0.LegacyInMemorySemanticdbIndex
@@ -16,15 +17,28 @@ import scalafix.v1.SemanticDocument
 import scalafix.v1.SyntacticDocument
 
 object BaseSemanticSuite {
-  val scalaVersion = ScalaVersion.scala2 // For tests
+  val defaultScalaVersion = ScalaVersion.scala2 // For tests
   lazy val symtab: SymbolTable = {
     val classpath =
       Classpaths.withDirectory(AbsolutePath(BuildInfo.classDirectory))
     ClasspathOps.newSymbolTable(classpath)
   }
-  def loadDoc(filename: String): SemanticDocument = {
-    val root = AbsolutePath(BuildInfo.sourceroot).resolve("scala/test")
-    val abspath = root.resolve(filename)
+  def loadDoc(
+      filename: String,
+      scalaVersion: Option[String] = None
+  ): SemanticDocument = {
+    val (abspath, scalaVersion) = {
+      val root = AbsolutePath(BuildInfo.sourceroot)
+      val commonPath = root.resolve("scala/test").resolve(filename)
+      if (commonPath.toFile.exists) {
+        (commonPath, defaultScalaVersion)
+      } else {
+        val scalaMajorVersion = Versions.scalaVersion.split("\\.")(0)
+        val path =
+          root.resolve(s"scala-$scalaMajorVersion/test").resolve(filename)
+        (path, ScalaVersion.from(Versions.scalaVersion).get)
+      }
+    }
     val relpath = abspath.toRelative(AbsolutePath(BuildInfo.baseDirectory))
     val input = Input.File(abspath)
     val doc = SyntacticDocument.fromInput(input, scalaVersion)
