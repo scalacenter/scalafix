@@ -53,6 +53,10 @@ final class SymtabFromProtobuf(symtab: Symtab) {
       ExistentialType(tpe.convert, declarations.convert)
     case s.UnionType(types) =>
       UnionType(types.convert)
+    case s.LambdaType(parameters, returnType) =>
+      LambdaType(parameters.convert, returnType.convert)
+    case s.MatchType(scrutinee, cases) =>
+      MatchType(scrutinee.convert, cases.convert)
     case s.NoType =>
       NoType
   }
@@ -131,5 +135,10 @@ final class SymtabFromProtobuf(symtab: Symtab) {
   implicit class RichScopes(scopes: Seq[s.Scope]) {
     def convert: List[List[SymbolInformation]] =
       scopes.iterator.map(s => sscope(Some(s))).toList
+  }
+
+  implicit class RichCases(cases: Seq[s.MatchType.CaseType]) {
+    def convert: List[CaseType] =
+      cases.iterator.map(c => CaseType(c.key.convert, c.body.convert)).toList
   }
 }

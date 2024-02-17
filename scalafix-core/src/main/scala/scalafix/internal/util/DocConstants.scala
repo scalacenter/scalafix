@@ -13,6 +13,7 @@ object DocConstants {
   val `{` = Doc.char('{')
   val `}` = Doc.char('}')
   val `=>` = Doc.text("=>")
+  val `=>>` = Doc.text("=>>")
   val `()` = Doc.text("()")
   val `*` = Doc.char('*')
   val L: Doc = Doc.char('L')
@@ -29,4 +30,5 @@ object DocConstants {
   val `extends`: Doc = Doc.text("extends")
   val `with`: Doc = Doc.text("with")
   val `forSome`: Doc = Doc.text("forSome")
+  val `match`: Doc = Doc.text("match")
 }

@@ -142,6 +142,22 @@ class LegacyCodePrinter(doc: SemanticDocument) {
       pprint(tpe)
     case s.RepeatedType(tpe) =>
       pprint(tpe)
+    case s.LambdaType(parameters, returnType) =>
+      parameters.foreach { scope =>
+        if (scope.symbols.nonEmpty) {
+          mkString("[", scope.symbols, "]")(emit)
+          text.append(" =>> ")
+        }
+      }
+      pprint(returnType)
+    case s.MatchType(scrutinee, cases) =>
+      pprint(scrutinee)
+      cases.foreach { case s.MatchType.CaseType(key, body) =>
+        text.append("case ")
+        pprint(key)
+        text.append(" => ")
+        pprint(body)
+      }
     case s.NoType =>
   }
   private def pprint(const: s.Constant): Unit = {
