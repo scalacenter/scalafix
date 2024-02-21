@@ -155,10 +155,10 @@ Great! You are all set to use Scalafix with sbt :)
 | `scalafixAll <args>` | `InputKey[Unit]` | Invoke `scalafix` across all configurations where scalafix is [enabled](#integration-tests).
 | `scalafixCaching` | `SettingKey[Boolean]`  | Controls whether 2 successive invocations of the `scalafix` `InputTask` with the same arguments & configuration should be incremental. Defaults to `true`. When enabled, use the `--no-cache` argument to force an exhaustive run.
 | `scalafixConfig` | `SettingKey[Option[File]]` | `.scalafix.conf` file to specify which scalafix rules should run, together with their potential options. Defaults to `.scalafix.conf` in the root directory, if it exists.
-| `scalafixDependencies` | `SettingKey[Seq[ModuleID]]` | Dependencies making [custom rules](#run-custom-rules) available via their simple name. Must be set in `ThisBuild`. Defaults to `Nil`.
+| `scalafixDependencies` | `SettingKey[Seq[ModuleID]]` | Dependencies making [custom rules](#run-custom-rules) available via their simple name. Can be set in `ThisBuild` or at project-level. Defaults to `Nil`.
 | `scalafixOnCompile` | `SettingKey[Boolean]` | When `true`, Scalafix rule(s) declared in `scalafixConfig` are run on compilation, applying rewrites and failing on lint errors. Defaults to `false`.
-| `scalafixResolvers` | `SettingKey[Seq[Repository]]` | Custom resolvers where `scalafixDependencies` are resolved from. Must be set in `ThisBuild`. Defaults to: Ivy2 local, Maven Central, Sonatype releases & Sonatype snapshots.
-| `scalafixScalaBinaryVersion` | `SettingKey[String]` | Scala binary version used for Scalafix execution. Must be set in `ThisBuild`. Defaults to 2.12. For advanced rules such as ExplicitResultTypes to work, it must match the binary version defined in the build for compiling sources. Note that `scalafixDependencies` artifacts must be published against that Scala version.
+| `scalafixResolvers` | `SettingKey[Seq[Repository]]` | Custom resolvers where `scalafixDependencies` are resolved from. Can be set in `ThisBuild` or at project-level. Defaults to: Ivy2 local, Maven Central, Sonatype releases & Sonatype snapshots.
+| `scalafixScalaBinaryVersion` | `SettingKey[String]` | Scala binary version used for Scalafix execution. Can be set in `ThisBuild` or at project-level. Defaults to 2.12. For advanced rules such as ExplicitResultTypes to work, it must match the binary version defined in the build for compiling sources. Note that `scalafixDependencies` artifacts must be published against that Scala version.
 
 
 ### Main and test sources
