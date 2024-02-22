@@ -52,6 +52,7 @@ by taking a route similar, yet parallel to macros.
 | Repository | Artifact | Description |
 | - | - | - |
 [earldouglas/linear-scala](https://github.com/earldouglas/linear-scala) | `com.earldouglas::linear-scala-scalafix` | Add support for linear types in Scala
+[hamnis/dataclass-scalafix](https://github.com/hamnis/dataclass-scalafix) | `net.hamnaberg::dataclass-scalafix` | [alexarchambault/data-class](https://github.com/alexarchambault/data-class) as a Scalafix rule
 [rtimush/zio-magic-comments](https://github.com/rtimush/zio-magic-comments) | `com.timushev::zio-magic-comments` | Add explanatory graphs as comments to zio-magic methods
 [sake92/kalem](https://github.com/sake92/kalem) | `ba.sake::kalem-rules` | Generate `with*` methods for classes
 [typelevel/simulacrum-scalafix](https://github.com/typelevel/simulacrum-scalafix) | `org.typelevel::simulacrum-scalafix-annotations` | Simulacrum as Scalafix rules
