@@ -16,9 +16,6 @@
         "title": "Contributing Guide",
         "sidebar_label": "Guide"
       },
-      "developers/cross-publish-custom-rules": {
-        "title": "Cross publish custom rules"
-      },
       "developers/local-rules": {
         "title": "Local rules"
       },
