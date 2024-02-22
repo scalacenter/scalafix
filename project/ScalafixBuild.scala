@@ -31,7 +31,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       publish / skip := true
     )
     lazy val supportedScalaVersions = List(scala213, scala212)
-    lazy val buildScalaVersions = Seq(scala212, scala213, scala3)
+    lazy val buildScalaVersions = Seq(scala212, scala213, scala3LTS)
     lazy val buildScalaVersionsWithTargets: Seq[(String, TargetAxis)] =
       buildScalaVersions.map(sv => (sv, TargetAxis(sv))) ++
         Seq(scala213, scala212).flatMap { sv =>
@@ -52,11 +52,11 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
           }
 
           val prevVersions = previousVersions(sv).map(prev => TargetAxis(prev))
-          val scala3FromScala2 = TargetAxis(scala3)
+          val scala3FromScala2 = TargetAxis(scala3Latest)
           val xsource3 = TargetAxis(sv, xsource3 = true)
 
           (prevVersions :+ scala3FromScala2 :+ xsource3).map((sv, _))
-        }
+        } // :+ (scala3LTS, TargetAxis(scala3Latest))
 
     lazy val publishLocalTransitive =
       taskKey[Unit]("Run publishLocal on this project and its dependencies")
