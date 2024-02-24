@@ -466,10 +466,12 @@ object Args extends TPrintImplicits {
             .toList
         )
       }
+    // scalafix:off RemoveUnused; false positive in 2.13.13
     implicit val classLoaderDecoder: ConfDecoder[URLClassLoader] =
       ConfDecoder[Classpath].map(ClasspathOps.toClassLoader)
     implicit val absolutePathDecoder: ConfDecoder[AbsolutePath] =
       ConfDecoder.stringConfDecoder.map(AbsolutePath(_)(base.cwd))
+    // scalafix:on
     generic.deriveDecoder(base)
   }
 

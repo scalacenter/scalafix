@@ -21,7 +21,6 @@ scope
 
 ```scala mdoc
 import scalafix.v1._
-import scala.meta._
 ```
 
 ```scala mdoc:passthrough
