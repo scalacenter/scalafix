@@ -33,7 +33,7 @@ class RemoveUnused(config: RemoveUnusedConfig)
   private def warnUnusedString = List("-Xlint", "-Xlint:unused")
   override def withConfiguration(config: Configuration): Configured[Rule] = {
     val diagnosticsAvailableInSemanticdb =
-      Seq("3.0", "3.1", "3.2", "3.3")
+      Seq("3.0", "3.1", "3.2", "3.3.0", "3.3.1", "3.3.2")
         .forall(v => !config.scalaVersion.startsWith(v))
 
     val hasWarnUnused = config.scalacOptions.exists(option =>
@@ -44,11 +44,11 @@ class RemoveUnused(config: RemoveUnusedConfig)
       Configured.error(
         """|A Scala compiler option is required to use RemoveUnused. To fix this problem,
           |update your build to add -Ywarn-unused (with 2.12), -Wunused (with 2.13), or 
-          |-Wunused:all (with 3.4+)""".stripMargin
+          |-Wunused:all (with 3.3.3+ or 3.4+)""".stripMargin
       )
     } else if (!diagnosticsAvailableInSemanticdb) {
       Configured.error(
-        "You must use a more recent version of the Scala 3 compiler (3.4+)"
+        "You must use a more recent version of the Scala 3 compiler (3.3.3+ or 3.4+)"
       )
     } else {
       config.conf
