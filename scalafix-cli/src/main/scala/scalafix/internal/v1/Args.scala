@@ -335,7 +335,9 @@ case class Args(
   }
 
   def sourceScalaVersion: Option[ScalaVersion] =
-    extractLastScalacOption("-Xsource:").flatMap(ScalaVersion.from(_).toOption)
+    extractLastScalacOption("-Xsource:")
+      .map(_.stripSuffix("-cross"))
+      .flatMap(ScalaVersion.from(_).toOption)
 
   def configureScalaVersions(
       conf: ScalafixConfig

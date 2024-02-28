@@ -364,7 +364,9 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     assert(fileEvaluation.getErrorMessage.get.contains("SemanticDB not found"))
   }
 
-  test("Scala2 source with Scala3 syntax can only be parsed with -Xsource:3") {
+  test(
+    "Scala2 source with Scala3 syntax can only be parsed with -Xsource:3 or -Xsource:3-cross"
+  ) {
     val cwd = StringFS
       .string2dir(
         s"""|/src/Scala2Source3.scala
@@ -388,6 +390,14 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
         .getFileEvaluations
         .head
     assert(withSource3.isSuccessful)
+
+    val withSource3cross =
+      args
+        .withScalacOptions(Collections.singletonList("-Xsource:3-cross"))
+        .evaluate()
+        .getFileEvaluations
+        .head
+    assert(withSource3cross.isSuccessful)
   }
 
   test("Source with Scala3 syntax can be parsed with dialect Scala3") {

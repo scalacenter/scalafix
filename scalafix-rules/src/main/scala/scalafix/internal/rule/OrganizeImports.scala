@@ -893,6 +893,7 @@ object OrganizeImports {
               // the pretty printer is just more permissive with the latest dialect.
               val sourceScalaVersion =
                 extractSuffixForScalacOption("-Xsource:")
+                  .map(_.stripSuffix("-cross"))
                   .flatMap(ScalaVersion.from(_).toOption)
 
               scalaVersion.dialect(sourceScalaVersion)
