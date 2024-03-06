@@ -53,7 +53,7 @@ do not rewrite import statements in ways that conflict with
 Known limitations:
 
 1.  Usage of [deprecated package
-    objects](http://dotty.epfl.ch/docs/reference/dropped-features/package-objects.html)
+    objects](https://docs.scala-lang.org/scala3/reference/dropped-features/package-objects.html)
     may result in incorrect imports.
 
 2.  The
@@ -440,7 +440,7 @@ details).
 > The `groupExplicitlyImportedImplicitsSeparately` option has currently no
 > effect on source files compiled with Scala 3, as the [compiler does not
 > expose full signature
-> information](https://github.com/lampepfl/dotty/issues/12766), preventing
+> information](https://github.com/scala/scala3/issues/12766), preventing
 > the rule to identify imported implicits.
 
 ### Value type
