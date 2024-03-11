@@ -917,7 +917,7 @@ object OrganizeImports {
         "A Scala compiler option is required to use OrganizeImports with"
           + " \"OrganizeImports.removeUnused\" set to true. To fix this problem, update your"
           + " build to add `-Ywarn-unused` (2.12), `-Wunused:imports` (2.13), or"
-          + " `-Wunused:import` (3.4+)."
+          + " `-Wunused:imports` (3.4+)."
       )
     else
       Configured.error(
