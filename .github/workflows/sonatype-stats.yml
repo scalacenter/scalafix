@@ -28,7 +28,7 @@ jobs:
           git add sonatype-stats
           git commit -m "Update stats"
           git push origin HEAD:gh-pages
-      - uses: gautamkrishnar/keepalive-workflow@v1
+      - uses: gautamkrishnar/keepalive-workflow@v2
         with:
           committer_username: scala-center-bot
           committer_email: scala-center-bot@users.noreply.github.com
