@@ -25,8 +25,6 @@ object AnnotationScopes {
 
   class Foo_0[DummyTypeParam] // assert: NoDummy
 
-  def dummyMacro_0: Unit = macro ??? // assert: NoDummy
-
   class DummyClass_0( // assert: NoDummy
                  val aDummy: Int, // assert: NoDummy
                  val bDummy: Int) { // assert: NoDummy
@@ -35,7 +33,7 @@ object AnnotationScopes {
     var dDummy = 0 // assert: NoDummy
 
     def this(eDummy: String, // assert: NoDummy
-             fDummy: String) { // assert: NoDummy
+             fDummy: String) = { // assert: NoDummy
       this(eDummy.toInt, fDummy.toInt) // assert: NoDummy
     }
 
@@ -69,10 +67,6 @@ object AnnotationScopes {
 
   // Type parameter
   class Foo_1[@SuppressWarnings(Array("NoDummy")) DummyTypeParam]
-
-  // Macro
-  @SuppressWarnings(Array("NoDummy"))
-  def dummyMacro_1: Unit = macro ???
 
   // Object
   @SuppressWarnings(Array("NoDummy"))
@@ -110,8 +104,8 @@ object AnnotationScopes {
   class DummyClass_5 { // assert: NoDummy
 
     @SuppressWarnings(Array("NoDummy"))
-    def this(eDummy: String, fDummy: String) {
-      this
+    def this(eDummy: String, fDummy: String) = {
+      this()
     }
   }
 
@@ -119,8 +113,8 @@ object AnnotationScopes {
   class DummyClass_6 { // assert: NoDummy
 
     def this(@SuppressWarnings(Array("NoDummy")) eDummy: String,
-             fDummy: String) { // assert: NoDummy
-      this
+             fDummy: String) = { // assert: NoDummy
+      this()
     }
   }
 
