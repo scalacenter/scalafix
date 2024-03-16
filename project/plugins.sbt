@@ -5,7 +5,7 @@ addSbtPlugin("ch.epfl.scala" % "sbt-version-policy" % "3.2.0")
 addSbtPlugin("org.scalameta" % "sbt-mdoc" % "2.5.2")
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.0.11")
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.12.0")
-addSbtPlugin("com.eed3si9n" % "sbt-projectmatrix" % "0.9.2")
+addSbtPlugin("com.eed3si9n" % "sbt-projectmatrix" % "0.10.0")
 
 // https://github.com/scala/bug/issues/12632
 libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % "always"
