@@ -283,7 +283,7 @@ class CliSyntacticSuite extends BaseCliSuite {
     outputAssert = { out =>
       assert(
         out.endsWith(
-          """|a.scala:1:1: error: illegal start of definition identifier
+          """|a.scala:1:1: error: illegal start of definition `identifier`
             |objec bar
             |^^^^^
             |""".stripMargin
