@@ -24,7 +24,7 @@ def inferJavaHome() = {
   Some(actualHome)
 }
 
-lazy val interfaces = projectMatrix
+lazy val interfaces = project
   .in(file("scalafix-interfaces"))
   .settings(
     Compile / resourceGenerators += Def.task {
@@ -52,8 +52,6 @@ lazy val interfaces = projectMatrix
     crossPaths := false,
     autoScalaLibrary := false
   )
-  .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(false)
   .disablePlugins(ScalafixPlugin)
 
 lazy val core = projectMatrix
@@ -164,7 +162,8 @@ lazy val cli = projectMatrix
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(buildScalaVersions)
-  .dependsOn(reflect, interfaces, rules)
+  .dependsOn(interfaces)
+  .dependsOn(reflect, rules)
 
 lazy val testkit = projectMatrix
   .in(file("scalafix-testkit"))
