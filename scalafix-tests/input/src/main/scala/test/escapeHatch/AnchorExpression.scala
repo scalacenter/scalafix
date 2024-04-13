@@ -17,6 +17,8 @@ Disable.symbols = [
 
 package test.escapeHatch
 
+import test.disableSyntax.DisableSyntaxMoreRules.toString
+
 object AnchorExpression {
 
   val aDummy = 0 // assert: NoDummy
