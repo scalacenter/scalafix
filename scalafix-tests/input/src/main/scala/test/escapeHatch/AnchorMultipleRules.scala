@@ -17,6 +17,8 @@ Disable.symbols = [
 
 package test.escapeHatch
 
+import test.disableSyntax.DisableSyntaxMoreRules.toString
+
 object AnchorMultipleRules {
 
   // scalafix:off Disable.None, Disable.get
