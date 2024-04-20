@@ -16,4 +16,16 @@ object RemoveUnusedTerms {
   val dd = 0
   def f(x: Int) = "unused"
   
+
+  locally { println("foo"); 1 }
+  locally /* preserved */ {
+    println("foo")
+    1
+  }
+  locally /* preserved */
+    // preserved
+    {
+      println("foo")
+      1
+    }
 }
