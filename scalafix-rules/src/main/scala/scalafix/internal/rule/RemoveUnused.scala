@@ -197,11 +197,8 @@ class RemoveUnused(config: RemoveUnusedConfig)
   }
 
   // Given ("val x = 2", "2"), returns "val x = ".
-  private def leftTokens(t: Tree, right: Tree): Tokens = {
-    val startT = t.tokens.start
-    val startRight = right.tokens.start
-    t.tokens.take(startRight - startT)
-  }
+  private def leftTokens(t: Tree, right: Tree): Tokens =
+    t.tokens.dropRightWhile(_.start >= right.pos.start)
 
   private def defnTokensToRemove(defn: Defn): Option[Tokens] = defn match {
     case i @ Defn.Val(_, _, _, Lit(_)) => Some(i.tokens)
