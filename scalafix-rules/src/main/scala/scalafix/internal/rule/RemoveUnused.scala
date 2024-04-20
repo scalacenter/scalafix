@@ -156,15 +156,15 @@ class RemoveUnused(config: RemoveUnusedConfig)
               Patch.removeImportee(i).atomic
           }.asPatch
         case i: Defn if isUnusedTerm(i.pos) =>
-          defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
+          defnPatch(i).asPatch.atomic
         case i @ Defn.Def(_, name, _, _, _, _) if isUnusedTerm(name.pos) =>
-          defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
+          defnPatch(i).asPatch.atomic
         case i @ Defn.Val(_, List(pat), _, _)
             if isUnusedTerm.exists(p => p.start == pat.pos.start) =>
-          defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
+          defnPatch(i).asPatch.atomic
         case i @ Defn.Var(_, List(pat), _, _)
             if isUnusedTerm.exists(p => p.start == pat.pos.start) =>
-          defnTokensToRemove(i).map(Patch.removeTokens).asPatch.atomic
+          defnPatch(i).asPatch.atomic
         case Term.Match(_, cases) =>
           patchPatVarsIn(cases)
         case Term.PartialFunction(cases) =>
@@ -208,6 +208,35 @@ class RemoveUnused(config: RemoveUnusedConfig)
     case i: Defn.Def => Some(i.tokens)
     case _ => None
   }
+
+  private def defnPatch(defn: Defn): Option[Patch] =
+    defnTokensToRemove(defn).map { tokens =>
+      val maybeRHSBlock = defn match {
+        case Defn.Val(_, _, _, x @ Term.Block(_)) => Some(x)
+        case Defn.Var(_, _, _, Some(x @ Term.Block(_))) => Some(x)
+        case _ => None
+      }
+
+      val maybeLocally = maybeRHSBlock.map { block =>
+        if (Some(block.pos.start) == block.stats.headOption.map(_.pos.start))
+          // only significant indentation blocks have their first stat
+          // aligned with the block itself (otherwise there is a heading "{")
+          "locally:"
+        else "locally"
+      }
+
+      maybeLocally match {
+        case Some(locally) =>
+          // Preserve comments between the LHS and the RHS, as well as
+          // newlines & whitespaces for significant indentation
+          val tokensNoTrailingTrivia = tokens.dropRightWhile(_.is[Trivia])
+
+          Patch.removeTokens(tokensNoTrailingTrivia) +
+            tokensNoTrailingTrivia.lastOption.map(Patch.addRight(_, locally))
+        case _ =>
+          Patch.removeTokens(tokens)
+      }
+    }
 
   private def posExclParens(tree: Tree): Position = {
     val leftTokenCount =
