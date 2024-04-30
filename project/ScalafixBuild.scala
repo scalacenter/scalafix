@@ -51,7 +51,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
               }
               .filterNot { v =>
                 System.getProperty("java.version").startsWith("22") &&
-                Seq("2.12.17", "2.12.18", "2.13.11", "2.13.12").contains(v)
+                Seq("2.12.17", "2.12.18", "2.13.12").contains(v)
               }
           }
 
@@ -229,6 +229,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, String] = Map(
+    "2.13.14" -> "2.13.13"
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
