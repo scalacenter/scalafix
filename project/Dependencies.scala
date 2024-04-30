@@ -6,7 +6,7 @@ import sbt._
 
 object Dependencies {
   val scala212 = sys.props.getOrElse("scala212.nightly", "2.12.19")
-  val scala213 = sys.props.getOrElse("scala213.nightly", "2.13.13")
+  val scala213 = sys.props.getOrElse("scala213.nightly", "2.13.14")
   val scala3 = sys.props.getOrElse("scala3.nightly", "3.4.1")
 
   val bijectionCoreV = "0.9.7"
