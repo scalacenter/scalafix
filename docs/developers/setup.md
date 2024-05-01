@@ -67,6 +67,15 @@ several sub-projects for each directory.
   can be applied.
 - `tests` verifies each `input` sub-project against a `rules` sub-project.
 
+> Failure to cross-build will reduce the reach of your rule, as users running
+> Scalafix in a Scala version you are not building for will get either
+> resolution errors (for published rules) or potential compilation errors (for
+> unpublished rules, compiled on-the-fly). Note that `scalafix-core` brings
+> [`scala-collection-compat`](https://github.com/scala/scala-collection-compat),
+> which allows to use the Scala 2.13 collection framework on Scala 2.12, and
+> therefore removes the need for maintaining different source files depending
+> on the Scala version.
+
 The `scalafix/` directory is a self-contained sbt build and can live in the same
 directory as your existing library.
 

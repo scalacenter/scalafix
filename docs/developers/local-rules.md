@@ -16,15 +16,6 @@ change sets as the domain sources they will be run against.
 Make sure the sbt plugin, as well as the Scala compiler plugin and options [are
 set up correctly](../users/installation.md#sbt).
 
-Although it is possible to define your rules in a Scala binary version that
-does not match your build, it is highly recommended that you align them via:
-
-```diff
- // build.sbt
-+ThisBuild / scalafixScalaBinaryVersion :=
-+  CrossVersion.binaryScalaVersion(scalaVersion.value)
-```
-
 > Note that any potential external Scalafix rule, loaded with the
 > `scalafixDependencies` setting key, must be built and published against the
 > same Scala binary version.
