@@ -1,7 +1,8 @@
 package scalafix.internal.compat
 
-import scala.meta.internal.pc.ScalafixGlobal
 import scala.tools.nsc.interactive.Global
+
+import scala.meta.internal.pc.ScalafixGlobal
 
 object CompilerCompat {
   implicit class XtensionGlobal(global: Global) {
