@@ -155,7 +155,20 @@ the rewritten code may be formatted weirdly</p>
 <h2><a class="anchor" aria-hidden="true" id="more-granular-scalac-options"></a><a href="#more-granular-scalac-options" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>More granular scalac options</h2>
 <p>You may request more granular warnings to the compiler if you opt-out
 from some rewrites in the rule configuration.</p>
-<pre><code class="hljs">$ scala212 -Wunused:help
+<pre><code class="hljs">$ scala212 -Ywarn-unused:help
+Enable<span class="hljs-built_in"> or </span>disable specific `unused' warnings
+  imports    Warn<span class="hljs-built_in"> if </span>an import selector is<span class="hljs-built_in"> not </span>referenced.
+  patvars    Warn<span class="hljs-built_in"> if </span>a variable bound in a pattern is unused.
+ <span class="hljs-keyword"> private</span>s   Warn<span class="hljs-built_in"> if </span>a<span class="hljs-keyword"> private</span> member is unused.
+  locals     Warn<span class="hljs-built_in"> if </span>a local definition is unused.
+  explicits  Warn<span class="hljs-built_in"> if </span>an explicit parameter is unused.
+  implicits  Warn<span class="hljs-built_in"> if </span>an implicit parameter is unused.
+  nowarn     Warn<span class="hljs-built_in"> if </span>a @nowarn annotation does<span class="hljs-built_in"> not </span>suppress any warnings.
+  params     Enable -Ywarn-unused:explicits,implicits.
+  linted     -Xlint:unused.
+Default: All choices are enabled by default.
+</code></pre>
+<pre><code class="hljs">$ scala213 -Wunused:help
 Enable or disable specific `unused` warnings
   imports     Warn <span class="hljs-keyword">if</span> an <span class="hljs-keyword">import</span> selector is not referenced.
   patvars     Warn <span class="hljs-keyword">if</span> a variable bound <span class="hljs-keyword">in</span> a pattern is unused.
