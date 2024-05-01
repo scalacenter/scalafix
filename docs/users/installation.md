@@ -62,10 +62,10 @@ Next, if we run another rule like `RemoveUnused` then we get an error
 ```
 > myproject/scalafix RemoveUnused
 [error] (Compile / scalafix) scalafix.sbt.InvalidArgument: 2 errors
-[E1] The semanticdb-scalac compiler plugin is required to run semantic
+[E1] The scalac compiler should produce semanticdb files to run semantic
 rules like RemoveUnused ...
-[E2] The Scala compiler option "-Ywarn-unused" is required to use
-RemoveUnused ...
+[E2] A Scala compiler option is required to use RemoveUnused. To fix this
+problem, update your build to add -Ywarn-unused-import (with 2.12) ...
 ```
 
 The first error message means the
@@ -73,7 +73,7 @@ The first error message means the
 is not enabled for this project. The second error says `RemoveUnused` requires
 
 the Scala compiler option `-Ywarn-unused-import` (or `-Wunused:imports` in
-2.13.x). To fix both problems, add the following settings to `build.sbt`
+2.13.x or 3.x). To fix both problems, add the following settings to `build.sbt`
 
 ```diff
  /*
@@ -90,7 +90,12 @@ the Scala compiler option `-Ywarn-unused-import` (or `-Wunused:imports` in
  )
 
  lazy val myproject = project.settings(
-   scalacOptions += "-Ywarn-unused-import" // required by `RemoveUnused` rule
++  scalacOptions += {
++    if (scalaVersion.value.startsWith("2.12"))
++      "-Ywarn-unused-import"
++    else
++      "-Wunused:imports"
++  }
  )
 ```
 
@@ -104,7 +109,12 @@ the Scala compiler option `-Ywarn-unused-import` (or `-Wunused:imports` in
    scalaVersion := "@SCALA212@", // @SCALA213@, or 3.x
 +  semanticdbEnabled := true, // enable SemanticDB
 +  semanticdbVersion := scalafixSemanticdb.revision, // only required for Scala 2.x
-+  scalacOptions += "-Ywarn-unused-import" // Scala 2.x only, required by `RemoveUnused`
++  scalacOptions += {
++    if (scalaVersion.value.startsWith("2.12"))
++      "-Ywarn-unused-import"
++    else
++      "-Wunused:imports"
++  }
  )
 ```
 
