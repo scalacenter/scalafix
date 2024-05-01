@@ -132,7 +132,22 @@ You may request more granular warnings to the compiler if you opt-out
 from some rewrites in the rule configuration.
 
 ```
-$ scala212 -Wunused:help
+$ scala212 -Ywarn-unused:help
+Enable or disable specific `unused' warnings
+  imports    Warn if an import selector is not referenced.
+  patvars    Warn if a variable bound in a pattern is unused.
+  privates   Warn if a private member is unused.
+  locals     Warn if a local definition is unused.
+  explicits  Warn if an explicit parameter is unused.
+  implicits  Warn if an implicit parameter is unused.
+  nowarn     Warn if a @nowarn annotation does not suppress any warnings.
+  params     Enable -Ywarn-unused:explicits,implicits.
+  linted     -Xlint:unused.
+Default: All choices are enabled by default.
+```
+
+```
+$ scala213 -Wunused:help
 Enable or disable specific `unused` warnings
   imports     Warn if an import selector is not referenced.
   patvars     Warn if a variable bound in a pattern is unused.
