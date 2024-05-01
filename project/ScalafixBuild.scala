@@ -203,13 +203,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         (ThisBuild / version)
           .get(extracted.structure.data)
           .get
-      val suffix =
-        (ThisBuild / scalafixScalaBinaryVersion)
-          .get(extracted.structure.data)
-          .get
-          .replace('.', '_')
 
-      s"all cli$suffix/publishLocalTransitive interfaces/publishLocal" ::
+      s"all cli2_12/publishLocalTransitive cli2_13/publishLocalTransitive interfaces/publishLocal" ::
         "reload plugins" ::
         s"""set dependencyOverrides += "ch.epfl.scala" % "scalafix-interfaces" % "$v"""" :: // as documented in installation.md
         "session save" ::
@@ -228,7 +223,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, String] = Map(
-    "2.13.14" -> "2.13.13"
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
@@ -307,23 +301,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         organizationName.value % previousScalaVCrossName % stableVersion.value
       )
     },
-    mimaBinaryIssueFilters ++= Mima.ignoredABIProblems
-  ) ++ Seq(Compile, Test).flatMap(conf => inConfig(conf)(configSettings))
-
-  private def configSettings: Seq[Def.Setting[_]] = List(
-    // Workaround for https://github.com/scalacenter/scalafix/issues/1592:
-    // effectively skip scalafix[All] on 2.x projects not matching scalafixScalaBinaryVersion
-    scalafix / unmanagedSources := {
-      val prev = (scalafix / unmanagedSources).value
-      if (
-        Seq(scalafixScalaBinaryVersion.value, "3")
-          .contains(scalaBinaryVersion.value)
-      ) {
-        prev
-      } else {
-        Seq()
-      }
-    },
+    mimaBinaryIssueFilters ++= Mima.ignoredABIProblems,
     scalafixConfig := {
       if (scalaBinaryVersion.value.startsWith("2"))
         Some(file(".scalafix-scala2.conf"))
