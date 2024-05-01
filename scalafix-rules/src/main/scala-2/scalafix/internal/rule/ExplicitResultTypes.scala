@@ -71,7 +71,7 @@ final class ExplicitResultTypes(
     ) {
       Configured.error(
         s"The ExplicitResultTypes rule needs to run with the same Scala binary version as the one used to compile target sources ($inputBinaryScalaVersion). " +
-          s"To fix this problem, either remove ExplicitResultTypes from .scalafix.conf or make sure the scalafixScalaBinaryVersion setting key matches $inputBinaryScalaVersion."
+          s"To fix this problem, either remove ExplicitResultTypes from .scalafix.conf or make sure Scalafix is loaded with $inputBinaryScalaVersion."
       )
     } else {
       config.conf // Support deprecated explicitReturnTypes config
