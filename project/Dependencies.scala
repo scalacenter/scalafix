@@ -22,7 +22,7 @@ object Dependencies {
   val scalaXmlV = "2.3.0"
   val scalametaV = "4.9.3"
   val scalatestV = "3.2.18"
-  val munitV = "0.7.29"
+  val munitV = "1.0.0"
 
   // scala-steward:off
 
