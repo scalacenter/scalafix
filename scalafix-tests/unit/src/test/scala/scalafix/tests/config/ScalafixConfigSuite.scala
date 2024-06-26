@@ -14,8 +14,8 @@ class ScalafixConfigSuite extends munit.FunSuite {
     }
   }
   check(
-    "version",
-    "version = abba",
-    ScalafixConfig(version = "abba")
+    "groupImportsByPrefix",
+    "groupImportsByPrefix = true",
+    ScalafixConfig(groupImportsByPrefix = true)
   )
 }

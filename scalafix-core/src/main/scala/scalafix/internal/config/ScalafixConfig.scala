@@ -4,14 +4,10 @@ import scala.meta._
 
 import metaconfig._
 import metaconfig.generic.Surface
-import scalafix.Versions
 import scalafix.internal.config.ScalafixConfig._
 
 case class ScalafixConfig(
-    version: String = Versions.version,
-    debug: DebugConfig = DebugConfig(),
     groupImportsByPrefix: Boolean = true,
-    fatalWarnings: Boolean = true,
     reporter: ScalafixReporter = ScalafixReporter.default,
     patches: ConfigRulePatches = ConfigRulePatches.default,
     scalaVersion: ScalaVersion = ScalaVersion.scala2,
