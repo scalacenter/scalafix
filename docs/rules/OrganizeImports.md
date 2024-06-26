@@ -1277,7 +1277,7 @@ Remove unused imports.
 
 > The `removeUnused` option is not supported for source files compiled with
 > early versions of Scala 3 as these do not export SemanticDB diagnostics for
-> unused imports. You must compile with Scala 3.4.0 or later to use it.
+> unused imports. You must compile with Scala 3.3.4 or later to use it.
 
 ### Value type
 
