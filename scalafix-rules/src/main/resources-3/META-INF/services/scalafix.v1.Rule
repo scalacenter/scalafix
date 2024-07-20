@@ -1,4 +1,5 @@
 scalafix.internal.rule.DisableSyntax
+scalafix.internal.rule.ExplicitResultTypes
 scalafix.internal.rule.NoAutoTupling
 scalafix.internal.rule.NoValInForComprehension
 scalafix.internal.rule.OrganizeImports

@@ -36,6 +36,7 @@ class RuleSuite extends AbstractSemanticRuleSuite with AnyFunSuiteLike {
   override def runOn(diffTest: RuleTest): Unit = {
     if (
       buildinfo.RulesBuildInfo.scalaVersion.startsWith("3") &&
+      props.scalaVersion.startsWith("2") &&
       diffTest.path.input.toNIO.toString.contains("explicitResultTypes")
     ) return
     else super.runOn(diffTest)

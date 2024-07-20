@@ -111,6 +111,14 @@ lazy val rules = projectMatrix
     description := "Built-in Scalafix rules",
     isFullCrossVersion,
     buildInfoSettingsForRules,
+    libraryDependencies ++= List(
+      ("org.scalameta" % "mtags-interfaces" % "1.3.4")
+        .exclude("org.eclipse.lsp4j", "org.eclipse.lsp4j")
+        .exclude("org.eclipse.lsp4j", "org.eclipse.lsp4j.jsonrpc"),
+      // latest version release for JDK 8, this will be dropped from interfaces at some point
+      "org.eclipse.lsp4j" % "org.eclipse.lsp4j" % "0.20.1",
+      coursierInterfaces
+    ),
     libraryDependencies ++= {
       if (!isScala3.value)
         Seq(
@@ -119,7 +127,10 @@ lazy val rules = projectMatrix
           semanticdbScalacCore,
           collectionCompat
         )
-      else Nil
+      else
+        List(
+          "org.scala-lang" %% "scala3-presentation-compiler" % scalaVersion.value
+        )
     },
     // companion of `.dependsOn(core)`
     // issue reported in https://github.com/sbt/sbt/issues/7405
