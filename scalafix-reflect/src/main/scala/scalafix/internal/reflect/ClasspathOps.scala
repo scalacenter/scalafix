@@ -11,13 +11,12 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
-import java.util
+
+import scala.jdk.CollectionConverters._
 
 import scala.meta.Classpath
 import scala.meta.internal.symtab._
 import scala.meta.io.AbsolutePath
-
-import sun.misc.Unsafe
 
 object ClasspathOps {
 
@@ -124,9 +123,10 @@ object ClasspathOps {
         .startsWith("jdk.internal.loader.ClassLoaders$")
     ) {
       try {
-        val field = classOf[Unsafe].getDeclaredField("theUnsafe")
+        val unsafeClass = classLoader.loadClass("sun.misc.Unsafe")
+        val field = unsafeClass.getDeclaredField("theUnsafe")
         field.setAccessible(true)
-        val unsafe = field.get(null).asInstanceOf[Unsafe]
+        val unsafe = field.get(null)
 
         // jdk.internal.loader.ClassLoaders.AppClassLoader.ucp
         val ucpField = {
@@ -135,19 +135,41 @@ object ClasspathOps {
           ) {
             // the `ucp` field is  not in `AppClassLoader` anymore, but in `BuiltinClassLoader`
             classLoader.getClass().getSuperclass()
-          } else classLoader.getClass()
+          } else {
+            classLoader.getClass()
+          }
         }.getDeclaredField("ucp")
-        val ucpFieldOffset: Long = unsafe.objectFieldOffset(ucpField)
-        val ucpObject = unsafe.getObject(classLoader, ucpFieldOffset)
 
-        // jdk.internal.loader.URLClassPath.path
+        def objectFieldOffset(field: java.lang.reflect.Field): Long =
+          unsafeClass
+            .getMethod(
+              "objectFieldOffset",
+              classOf[java.lang.reflect.Field]
+            )
+            .invoke(unsafe, field)
+            .asInstanceOf[Long]
+
+        def getObject(obj: AnyRef, offset: Long): AnyRef =
+          unsafeClass
+            .getMethod(
+              "getObject",
+              classOf[AnyRef],
+              classOf[Long]
+            )
+            .invoke(unsafe, obj, offset.asInstanceOf[AnyRef])
+            .asInstanceOf[AnyRef]
+
+        val ucpFieldOffset = objectFieldOffset(ucpField)
+        val ucpObject = getObject(classLoader, ucpFieldOffset)
+
         val pathField = ucpField.getType().getDeclaredField("path")
-        val pathFieldOffset = unsafe.objectFieldOffset(pathField)
-        val paths = unsafe
-          .getObject(ucpObject, pathFieldOffset)
-          .asInstanceOf[util.ArrayList[URL]]
+        val pathFieldOffset = objectFieldOffset(pathField)
+        val paths: Array[URL] = getObject(ucpObject, pathFieldOffset)
+          .asInstanceOf[java.util.ArrayList[URL]]
+          .asScala
+          .toArray
 
-        paths.toArray(new Array[URL](paths.size))
+        paths
       } catch {
         case ex: Exception =>
           ex.printStackTrace()

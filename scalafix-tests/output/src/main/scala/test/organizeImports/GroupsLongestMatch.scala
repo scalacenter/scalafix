@@ -9,6 +9,6 @@ import scala.concurrent.ExecutionContext
 import scala.util.Random
 import scala.util.control.NonFatal
 
-import sun.misc.Unsafe
+import com.sun.management.DiagnosticCommandMBean
 
 object GroupsLongestMatch

@@ -1,6 +1,6 @@
 package test.organizeImports {
   package nested {
-    import sun.misc.Unsafe
+    import com.sun.management.DiagnosticCommandMBean
 
     import java.time.Clock
     import javax.net.ssl
