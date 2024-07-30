@@ -16,6 +16,6 @@ package test.organizeImports
 
 import scala.collection.mutable
 import java.util.Arrays
-import sun.misc.Unsafe
+import com.sun.management.DiagnosticCommandMBean
 
 object BlankLinesManual

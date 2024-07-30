@@ -2,7 +2,7 @@ package test.organizeImports
 
 import scala.util
 
-import sun.misc.Unsafe
+import com.sun.management.DiagnosticCommandMBean
 
 import util.control
 import control.NonFatal

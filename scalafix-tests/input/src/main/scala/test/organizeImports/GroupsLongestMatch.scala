@@ -7,7 +7,7 @@ package test.organizeImports
 
 import java.time.Clock
 import scala.collection.JavaConverters._
-import sun.misc.Unsafe
+import com.sun.management.DiagnosticCommandMBean
 import scala.concurrent.ExecutionContext
 import javax.net.ssl
 import scala.util.control.NonFatal
