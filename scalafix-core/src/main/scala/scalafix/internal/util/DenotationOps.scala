@@ -1,6 +1,5 @@
 package scalafix.internal.util
 
-import scala.meta.Dialect
 import scala.meta._
 
 import scalafix.v0._

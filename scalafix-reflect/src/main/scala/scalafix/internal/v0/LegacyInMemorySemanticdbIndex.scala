@@ -11,7 +11,6 @@ import scala.meta.internal.{semanticdb => s}
 import scalafix.internal.config.ScalaVersion
 import scalafix.internal.patch.CrashingSemanticdbIndex
 import scalafix.internal.reflect.ClasspathOps
-import scalafix.internal.v1.TreePos
 import scalafix.internal.v1._
 import scalafix.util.SemanticdbIndex
 import scalafix.v0

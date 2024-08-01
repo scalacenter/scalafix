@@ -1,6 +1,5 @@
 package scalafix.internal.util
 
-import scala.meta.Tree
 import scala.meta._
 
 import org.typelevel.paiges._
