@@ -18,7 +18,7 @@ object Dependencies {
   val googleDiffV = "1.3.0"
   val java8CompatV = "1.0.2"
   val jgitV = "5.13.3.202401111512-r"
-  val metaconfigV = "0.12.0"
+  val metaconfigV = "0.13.0"
   val nailgunV = "0.9.1"
   val scalaXmlV = "2.2.0"
   val scalametaV = "4.9.3"
@@ -43,9 +43,9 @@ object Dependencies {
   val googleDiff = "com.googlecode.java-diff-utils" % "diffutils" % googleDiffV
   val java8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % java8CompatV
   val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % jgitV
-  val metaconfig = "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV
+  val metaconfig = "org.scalameta" %% "metaconfig-typesafe-config" % metaconfigV
   val pprint = "com.lihaoyi" %% "pprint" % pprintV
-  val metaconfigDoc = "com.geirsson" %% "metaconfig-docs" % metaconfigV
+  val metaconfigDoc = "org.scalameta" %% "metaconfig-docs" % metaconfigV
   val metacp = "org.scalameta" %% "metacp" % scalametaV
   val nailgunServer = "com.martiansoftware" % "nailgun-server" % nailgunV
   val scalaXml = "org.scala-lang.modules" %% "scala-xml" % scalaXmlV
