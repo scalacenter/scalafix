@@ -44,7 +44,7 @@ object Dependencies {
   val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % jgitV
   val metaconfig = "org.scalameta" %% "metaconfig-typesafe-config" % metaconfigV
   val pprint = "com.lihaoyi" %% "pprint" % pprintV
-  val metaconfigDoc = "com.geirsson" %% "metaconfig-docs" % metaconfigV
+  val metaconfigDoc = "org.scalameta" %% "metaconfig-docs" % metaconfigV
   val metacp = "org.scalameta" %% "metacp" % scalametaV
   val nailgunServer = "com.martiansoftware" % "nailgun-server" % nailgunV
   val scalaXml = "org.scala-lang.modules" %% "scala-xml" % scalaXmlV
