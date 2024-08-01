@@ -10,7 +10,6 @@ import scalafix.internal.patch.LegacyPatchOps.DeprecationMessage
 import scalafix.internal.util.SymbolOps.Root
 import scalafix.patch.Patch.internal._
 import scalafix.patch.PatchOps
-import scalafix.v0.Symbol
 import scalafix.v0._
 
 trait LegacyPatchOps extends PatchOps {

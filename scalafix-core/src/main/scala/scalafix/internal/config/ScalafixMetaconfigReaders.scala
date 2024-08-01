@@ -11,7 +11,6 @@ import scala.util.Try
 import scala.util.control.NonFatal
 import scala.util.matching.Regex
 
-import scala.meta.Ref
 import scala.meta._
 import scala.meta.parsers.Parse
 
@@ -23,7 +22,6 @@ import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
 import scalafix.internal.util.SymbolOps
 import scalafix.patch.Patch.internal._
-import scalafix.v0.Symbol
 import scalafix.v0._
 
 object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders

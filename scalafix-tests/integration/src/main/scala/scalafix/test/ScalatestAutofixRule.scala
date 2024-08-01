@@ -1,6 +1,5 @@
 package scalafix.test
 
-import scalafix.v1.SemanticRule
 import scalafix.v1._
 
 class ScalatestAutofixRule extends SemanticRule("ScalatestAutofixRule") {

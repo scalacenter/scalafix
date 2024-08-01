@@ -1,6 +1,5 @@
 package scalafix.patch
 
-import scala.meta.Token
 import scala.meta._
 
 import org.scalameta.logger
