@@ -246,9 +246,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       // https://github.com/scalacenter/scalafix/pull/2025#issuecomment-2264188708
       "com.geirsson" %% "metaconfig-core",
       "com.geirsson" %% "metaconfig-pprint",
-      "com.geirsson" %% "metaconfig-typesafe-config",
-      "com.lihaoyi" %% "fansi",
-      "com.lihaoyi" %% "sourcecode"
+      "com.geirsson" %% "metaconfig-typesafe-config"
     ),
     versionPolicyIgnoredInternalDependencyVersions :=
       Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r),
