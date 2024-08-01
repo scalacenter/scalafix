@@ -864,7 +864,7 @@ object OrganizeImports {
       scalaVersion: String
   ): Configured[Rule] = {
     val hasCompilerSupport =
-      Seq("3.0", "3.1", "3.2", "3.3")
+      Seq("3.0", "3.1", "3.2", "3.3.0", "3.3.1", "3.3.2", "3.3.3")
         .forall(v => !scalaVersion.startsWith(v))
 
     val hasWarnUnused = hasCompilerSupport && {
@@ -915,13 +915,14 @@ object OrganizeImports {
     else if (hasCompilerSupport)
       Configured.error(
         "A Scala compiler option is required to use OrganizeImports with"
-          + " \"OrganizeImports.removeUnused\" set to true. To fix this problem, update your"
-          + " build to add `-Ywarn-unused-import` (2.12) or `-Wunused:imports` (2.13 and 3.4+)."
+          + " \"OrganizeImports.removeUnused\" set to true. To fix this"
+          + " problem, update your build to add `-Ywarn-unused-import` (2.12)"
+          + " or `-Wunused:imports` (2.13 and 3.3.4+)."
       )
     else
       Configured.error(
         "\"OrganizeImports.removeUnused\"" + s"is not supported on $scalaVersion as the compiler is"
-          + " not providing enough information. Please upgrade the Scala compiler to 3.4.0 or greater."
+          + " not providing enough information. Please upgrade the Scala compiler to 3.3.4 or greater."
           + " Otherwise, run the rule with \"OrganizeImports.removeUnused\" set to false"
           + " to organize imports while keeping potentially unused imports."
       )
