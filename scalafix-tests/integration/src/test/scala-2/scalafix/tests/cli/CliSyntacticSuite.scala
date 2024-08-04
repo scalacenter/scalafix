@@ -313,6 +313,7 @@ class CliSyntacticSuite extends BaseCliSuite {
   check(
     name = "fix script files",
     originalLayout = s"""|/a.sc
+      |#!/usr/bin/env -S scala-cli shebang
       |def foo { println(1) }
       |lazy val bar = project
       |""".stripMargin,
@@ -322,6 +323,7 @@ class CliSyntacticSuite extends BaseCliSuite {
       "a.sc"
     ),
     expectedLayout = s"""|/a.sc
+      |#!/usr/bin/env -S scala-cli shebang
       |def foo: Unit = { println(1) }
       |lazy val bar = project
       |""".stripMargin,
