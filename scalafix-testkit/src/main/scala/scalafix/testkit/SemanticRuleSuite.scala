@@ -3,7 +3,7 @@ package scalafix.testkit
 import scala.util.Try
 
 import scala.meta._
-import scala.meta.internal.inputs.XtensionInputSyntaxStructure
+import scala.meta.internal.inputs.XtensionInput
 
 import metaconfig.Conf
 import metaconfig.internal.ConfGet

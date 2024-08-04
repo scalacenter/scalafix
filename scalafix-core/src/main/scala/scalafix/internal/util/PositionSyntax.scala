@@ -2,7 +2,7 @@ package scalafix.internal.util
 
 import scala.meta._
 import scala.meta.internal.ScalametaInternals
-import scala.meta.internal.inputs.XtensionInputSyntaxStructure
+import scala.meta.internal.inputs.XtensionInput
 import scala.meta.internal.{semanticdb => s}
 
 object PositionSyntax {

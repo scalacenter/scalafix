@@ -2,7 +2,7 @@ package scalafix.internal.config
 
 import scala.{meta => m}
 
-import scala.meta.internal.inputs.XtensionInputSyntaxStructure
+import scala.meta.internal.inputs.XtensionInput
 
 import metaconfig.Conf
 import metaconfig.ConfDecoder
