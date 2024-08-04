@@ -62,13 +62,18 @@ lazy val core = projectMatrix
     libraryDependencies ++= {
       if (isScala3.value) {
         List(
-          scalameta
+          scalameta,
+          // CrossVersion.for3Use2_13 would only lookup a binary version artifact, but this is published with full version
+          semanticdbScalacCore.cross(CrossVersion.constant(scala213))
+        ).map { mod =>
+          mod
             .exclude("com.lihaoyi", "sourcecode_2.13")
             .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
-        )
+        }
       } else {
         List(
           scalameta,
+          semanticdbScalacCore,
           collectionCompat
         )
       }
