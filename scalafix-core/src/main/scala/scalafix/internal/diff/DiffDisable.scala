@@ -4,7 +4,7 @@ import scala.collection.mutable.StringBuilder
 
 import scala.meta.Position
 import scala.meta.inputs.Input
-import scala.meta.internal.inputs.XtensionInputSyntaxStructure
+import scala.meta.internal.inputs.XtensionInput
 
 import scalafix.internal.util.IntervalSet
 
