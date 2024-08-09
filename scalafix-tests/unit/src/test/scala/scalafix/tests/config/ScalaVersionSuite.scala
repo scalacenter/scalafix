@@ -22,7 +22,7 @@ class ScalaVersionSuite extends munit.FunSuite {
 
   test("parse: 3.0.0-RC3") {
     val scala2 = ScalaVersion.from("3.0.0-RC3")
-    assert(scala2.get == Patch(Major.Scala3, 0, 0))
+    assert(scala2.get == RC(Major.Scala3, 0, 0, 3))
   }
 
   test("parse failure: 3.0.0RC3") {

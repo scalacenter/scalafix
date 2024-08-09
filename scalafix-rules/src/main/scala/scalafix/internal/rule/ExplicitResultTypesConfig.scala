@@ -52,6 +52,9 @@ object ExplicitResultTypesConfig {
 }
 
 case class SimpleDefinitions(kinds: Set[String]) {
+
+  import scala.meta.classifiers.XtensionClassifiable
+
   private def isSimpleRef(tree: m.Tree): Boolean = tree match {
     case _: m.Name => true
     case t: m.Term.Select => isSimpleRef(t.qual)
