@@ -17,6 +17,7 @@ sealed trait ScalaVersion {
   val major: MajorVersion
   val minor: Option[Int]
   val patch: Option[Int]
+  val rc: Option[Int]
 
   def binary: Try[ScalaVersion] = (major, minor) match {
     case (Major.Scala2, None) =>
@@ -46,6 +47,8 @@ sealed trait ScalaVersion {
     case Minor(major, minorVersion) => s"${major.value}.${minorVersion}"
     case Patch(major, minorVersion, patchVersion) =>
       s"${major.value}.${minorVersion}.$patchVersion"
+    case RC(major, minorVersion, patchVersion, rc) =>
+      s"${major.value}.${minorVersion}.$patchVersion-RC$rc"
   }
 }
 
@@ -56,17 +59,31 @@ object ScalaVersion {
   case class Major(major: MajorVersion) extends ScalaVersion {
     override val minor = None
     override val patch = None
+    override val rc = None
   }
   case class Minor(major: MajorVersion, minorVersion: Int)
       extends ScalaVersion {
     override val minor: Some[Int] = Some(minorVersion)
     override val patch = None
+    override val rc = None
 
   }
   case class Patch(major: MajorVersion, minorVersion: Int, patchVersion: Int)
       extends ScalaVersion {
     override val minor: Some[Int] = Some(minorVersion)
     override val patch: Some[Int] = Some(patchVersion)
+    override val rc = None
+  }
+
+  case class RC(
+      major: MajorVersion,
+      minorVersion: Int,
+      patchVersion: Int,
+      rcVersion: Int
+  ) extends ScalaVersion {
+    override val minor: Some[Int] = Some(minorVersion)
+    override val patch: Some[Int] = Some(patchVersion)
+    override val rc: Some[Int] = Some(rcVersion)
   }
 
   sealed trait MajorVersion {
@@ -97,12 +114,17 @@ object ScalaVersion {
   private val intPattern = """\d{1,2}"""
   private val FullVersion =
     raw"""($intPattern)\.($intPattern)\.($intPattern)""".r
+  private val RcVersion =
+    raw"""($intPattern)\.($intPattern)\.($intPattern)-RC($intPattern)""".r
   private val MajorPattern = raw"""($intPattern)""".r
   private val PartialVersion = raw"""($intPattern)\.($intPattern)""".r
 
-  def from(s: String): Try[ScalaVersion] = {
-    val version = s.split("-").head
+  def from(version: String): Try[ScalaVersion] = {
     version match {
+      case RcVersion(major, minor, patch, rc) =>
+        MajorVersion.from(major.toLong).flatMap { major =>
+          Success(RC(major, minor.toInt, patch.toInt, rc.toInt))
+        }
       case FullVersion(major, minor, patch) =>
         MajorVersion.from(major.toLong).flatMap { major =>
           Success(Patch(major, minor.toInt, patch.toInt))
@@ -113,7 +135,7 @@ object ScalaVersion {
         }
       case MajorPattern(major) =>
         MajorVersion.from(major.toLong).flatMap(major => Success(Major(major)))
-      case _ => Failure(new Exception(s"$s not a valid Scala Version."))
+      case _ => Failure(new Exception(s"$version not a valid Scala Version."))
     }
   }
 }
