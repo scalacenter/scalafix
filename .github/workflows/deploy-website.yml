@@ -11,7 +11,10 @@ jobs:
         with:
           fetch-depth: 0
       - uses: coursier/setup-action@v1
-      - name: Publish ${{ github.ref }}
-        run: sbt docs2_13/docusaurusPublishGhpages
+      - name: Publish ${{ github.ref }} (without wiping sonatype-stats)
+        run: |
+          git restore --source=origin/gh-pages --worktree sonatype-stats
+          mv ./sonatype-stats ./website/static
+          sbt docs2_13/docusaurusPublishGhpages
         env:
           GITHUB_DEPLOY_KEY: ${{ secrets.DOC }}
