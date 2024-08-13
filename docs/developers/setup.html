@@ -64,7 +64,7 @@ template:</p>
 
 sbt new scalacenter/scalafix.g8 --repo=<span class="hljs-string">"Repository Name"</span>
 <span class="hljs-built_in">cd</span> scalafix
-sbt tests/<span class="hljs-built_in">test</span>
+sbt tests / <span class="hljs-built_in">test</span>
 </code></pre>
 <p>The <code>--repo=&lt;repository name&gt;</code> option should match the name of your GitHub
 repository with dashes replaced by spaces. For
@@ -123,9 +123,9 @@ on the Scala version.</p>
 </blockquote>
 <p>The <code>scalafix/</code> directory is a self-contained sbt build and can live in the same
 directory as your existing library.</p>
-<p>To run unit tests, execute <code>tests/test</code>.</p>
+<p>To run unit tests, execute <code>tests / test</code>.</p>
 <pre><code class="hljs"><span class="hljs-meta">$</span><span class="bash"> sbt</span>
-<span class="hljs-meta">&gt;</span><span class="bash"> ~tests/<span class="hljs-built_in">test</span></span>
+<span class="hljs-meta">&gt;</span><span class="bash"> ~tests / <span class="hljs-built_in">test</span></span>
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="import-into-intellij"></a><a href="#import-into-intellij" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Import into IntelliJ</h3>
 <p>The project generated should import into IntelliJ like a normal project. Input
@@ -151,7 +151,7 @@ plugin or built-in in the compiler. Supported Scala compiler versions include:</
 <p>The output project can use any Scala compiler version.</p>
 <h3><a class="anchor" aria-hidden="true" id="running-a-single-test"></a><a href="#running-a-single-test" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Running a single test</h3>
 <p>To run a single test case instead of the full test suite run the following
-command: <code>tests/testOnly *MySuite -- -z MyRegex</code>. This will run only test cases
+command: <code>tests / testOnly *MySuite -- -z MyRegex</code>. This will run only test cases
 with the names matching the regular expression &quot;MyRegex&quot; inside test suites
 matching the regular expression <code>*MySuite</code>. See the ScalaTest documentation
 section:

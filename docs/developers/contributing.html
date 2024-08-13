@@ -77,23 +77,23 @@ files for Scalafix testkit.</p>
 <p>Start the SBT shell with <code>$ sbt</code>. The commands below assume you have a running
 sbt shell.</p>
 <pre><code class="hljs css language-sh"><span class="hljs-comment"># Fast unit tests for rules, cli, core.</span>
-&gt; unit2_13/<span class="hljs-built_in">test</span>
+&gt; unit2_13 / <span class="hljs-built_in">test</span>
 
 <span class="hljs-comment"># Integration tests for rules, cli, core. Contains a lot</span>
 <span class="hljs-comment"># of different test suites, so it's recommended to use testOnly</span>
 <span class="hljs-comment"># and/or testQuick.</span>
-&gt; integration2_13/<span class="hljs-built_in">test</span>
+&gt; integration2_13 / <span class="hljs-built_in">test</span>
 
 <span class="hljs-comment"># Use testWindows to exclude tests that are not expected to succeed</span>
 <span class="hljs-comment"># on that OS.</span>
-&gt; unit2_13/testWindows
-&gt; integration2_13/testWindows
+&gt; unit2_13 / testWindows
+&gt; integration2_13 / testWindows
 
 <span class="hljs-comment"># Only run tests for built-in rules, using scalafix-testkit.</span>
-&gt; expect2_13Target2_13_10/<span class="hljs-built_in">test</span>
+&gt; expect2_13Target2_13_10 / <span class="hljs-built_in">test</span>
 
 <span class="hljs-comment"># Only run ProcedureSyntax unit tests.</span>
-&gt; expect2_13Target2_13_10/testOnly -- -z ProcedureSyntax
+&gt; expect2_13Target2_13_10 / testOnly -- -z ProcedureSyntax
 </code></pre>
 <p><a href="https://github.com/sbt/sbt-projectmatrix">sbt-projectmatrix</a> is used to
 generate several sbt projects <code>expectTargetY</code> with the same source code,
