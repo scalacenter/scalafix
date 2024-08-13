@@ -86,7 +86,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     val result = api
       .withRules(
         List(
-          removeUnsuedRule().name.toString(),
+          removeUnusedRule().name.toString(),
           "ExplicitResultTypes",
           "DisableSyntax"
         ).asJava
@@ -167,7 +167,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     val args = api
       .withRules(
         List(
-          removeUnsuedRule().name.toString()
+          removeUnusedRule().name.toString()
         ).asJava
       )
       .withClasspath((scalaLibrary.map(_.toNIO) :+ target).asJava)
@@ -209,7 +209,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     val result = api
       .withRules(
         List(
-          removeUnsuedRule().name.toString(),
+          removeUnusedRule().name.toString(),
           "ExplicitResultTypes",
           "DisableSyntax"
         ).asJava
@@ -233,7 +233,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     api
       .withRules(
         List(
-          removeUnsuedRule().name.toString(),
+          removeUnusedRule().name.toString(),
           "ExplicitResultTypes",
           "DisableSyntax"
         ).asJava
@@ -558,7 +558,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     assert(!rules.head.isExperimental)
   }
 
-  def removeUnsuedRule(): SemanticRule = {
+  def removeUnusedRule(): SemanticRule = {
     val config = RemoveUnusedConfig.default
     new RemoveUnused(config)
   }
