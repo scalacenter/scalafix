@@ -56,12 +56,12 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
           }
 
           val prevVersions = previousVersions(sv).map(prev => TargetAxis(prev))
-          val scala3FromScala2 = TargetAxis(scala3Latest)
+          val scala3FromScala2 = TargetAxis(scala3Next)
           val xsource3 = TargetAxis(sv, xsource3 = true)
 
           (prevVersions :+ xsource3).map((sv, _))
         } ++ Seq(
-          (scala213, TargetAxis(scala3Latest)),
+          (scala213, TargetAxis(scala3Next)),
           (scala213, TargetAxis(scala3LTS))
         )
 
