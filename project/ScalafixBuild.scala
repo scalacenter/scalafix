@@ -192,8 +192,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     updateOptions := updateOptions.value.withCachedResolution(true),
     ThisBuild / watchTriggeredMessage := Watch.clearScreenOnTrigger,
     commands += Command.command("save-expect") { s =>
-      "integration2_13/test:runMain scalafix.tests.util.SaveExpect" ::
-        "integration3/test:runMain scalafix.tests.util.SaveExpect" ::
+      "integration2_13 / Test / runMain scalafix.tests.util.SaveExpect" ::
+        "integration3 / Test / runMain scalafix.tests.util.SaveExpect" ::
         s
     },
     commands += Command.command("ci-docs") { s =>

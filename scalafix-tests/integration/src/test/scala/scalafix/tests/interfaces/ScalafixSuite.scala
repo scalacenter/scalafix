@@ -16,8 +16,8 @@ import scalafix.internal.tests.utils.SkipWindows
 /**
  * Tests in this suite require scalafix-cli & its dependencies to be
  * cross-published so that Coursier can fetch them. That is done automatically
- * as part of `sbt integrationX/test`, so make sure to run that once if you want
- * to run the test with testOnly or through BSP.
+ * as part of `sbt integrationX / test`, so make sure to run that once if you
+ * want to run the test with testOnly or through BSP.
  */
 class ScalafixSuite extends AnyFunSuite {
 

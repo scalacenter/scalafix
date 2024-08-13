@@ -17,7 +17,7 @@ cd repo-name # The project you want to implement rules for.
 
 sbt new scalacenter/scalafix.g8 --repo="Repository Name"
 cd scalafix
-sbt tests/test
+sbt tests / test
 ```
 
 The `--repo=<repository name>` option should match the name of your GitHub
@@ -79,11 +79,11 @@ several sub-projects for each directory.
 The `scalafix/` directory is a self-contained sbt build and can live in the same
 directory as your existing library.
 
-To run unit tests, execute `tests/test`.
+To run unit tests, execute `tests / test`.
 
 ```
 $ sbt
-> ~tests/test
+> ~tests / test
 ```
 
 ### Import into IntelliJ
@@ -118,7 +118,7 @@ The output project can use any Scala compiler version.
 ### Running a single test
 
 To run a single test case instead of the full test suite run the following
-command: `tests/testOnly *MySuite -- -z MyRegex`. This will run only test cases
+command: `tests / testOnly *MySuite -- -z MyRegex`. This will run only test cases
 with the names matching the regular expression "MyRegex" inside test suites
 matching the regular expression `*MySuite`. See the ScalaTest documentation
 section:
