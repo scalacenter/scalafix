@@ -1,25 +1,34 @@
 package scalafix.tests.interfaces
 
+import java.io.ByteArrayOutputStream
+import java.io.PrintStream
 import java.nio.charset.StandardCharsets
+import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.Collections
+import java.util.Optional
 
 import scala.collection.JavaConverters._
 import scala.util.Try
 
 import scala.meta.internal.io.FileIO
 import scala.meta.io.AbsolutePath
+import scala.meta.io.Classpath
 
+import buildinfo.RulesBuildInfo
+import coursier._
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.interfaces.ScalafixArguments
 import scalafix.interfaces.ScalafixDiagnostic
+import scalafix.interfaces.ScalafixException
 import scalafix.interfaces.ScalafixFileEvaluationError
 import scalafix.interfaces.ScalafixMainCallback
 import scalafix.interfaces.ScalafixMainMode
 import scalafix.interfaces.ScalafixPatch
 import scalafix.internal.interfaces.ScalafixArgumentsImpl
+import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.rule.RemoveUnused
 import scalafix.internal.rule.RemoveUnusedConfig
 import scalafix.internal.tests.utils.SkipWindows
@@ -76,6 +85,230 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     d.toString,
     main.toString
   ) ++ specificScalacOption2 ++ CompatSemanticdb.scalacOptions(src, target)
+
+  test("availableRules") {
+    val rules = api.availableRules().asScala
+    val names = rules.map(_.name())
+    assert(names.contains("DisableSyntax"))
+    assert(names.contains("AvailableRule"))
+    assert(!names.contains("DeprecatedAvailableRule"))
+    val hasDescription = rules.filter(_.description().nonEmpty)
+    assert(hasDescription.nonEmpty)
+    val isSyntactic = rules.filter(_.kind().isSyntactic)
+    assert(isSyntactic.nonEmpty)
+    val isSemantic = rules.filter(_.kind().isSemantic)
+    assert(isSemantic.nonEmpty)
+    val isLinter = rules.filter(_.isLinter)
+    assert(isLinter.nonEmpty)
+    val isRewrite = rules.filter(_.isRewrite)
+    assert(isRewrite.nonEmpty)
+    val isExperimental = rules.filter(_.isExperimental)
+    assert(isExperimental.isEmpty)
+  }
+
+  test("validate") {
+    val args = api.withRules(List("RemoveUnused").asJava)
+    val e = args.validate()
+    assert(e.isPresent)
+    assert(e.get().getMessage.contains("-Ywarn-unused"))
+  }
+
+  test("rulesThatWillRun") {
+
+    val charset = StandardCharsets.US_ASCII
+    val cwd = StringFS
+      .string2dir(
+        """|/src/Semicolon.scala
+          |
+          |object Semicolon {
+          |  def main { println(42) }
+          |}
+          |/.scalafix.conf
+          |rules = ["DisableSyntax"]
+      """.stripMargin,
+        charset
+      )
+    val args = api
+      .withConfig(Optional.empty())
+      .withWorkingDirectory(cwd.toNIO)
+    args.validate()
+    assert(
+      args.rulesThatWillRun().asScala.toList.map(_.toString) == List(
+        "ScalafixRule(DisableSyntax)"
+      )
+    )
+
+    // if a non empty list of rules is provided, rules from config file are ignored
+    val args2 = api
+      .withRules(List("RedundantSyntax").asJava)
+      .withConfig(Optional.empty())
+      .withWorkingDirectory(cwd.toNIO)
+    args2.validate()
+    assert(
+      args2.rulesThatWillRun().asScala.toList.map(_.name()) == List(
+        "RedundantSyntax"
+      )
+    )
+
+  }
+
+  test("runMain") {
+    // Todo(i1680): this is an integration test that uses many non supported rules in scala 3.
+    // Add a more simple test for scala 3. For now we ignore for Scala 3.
+    if (ScalaVersions.isScala3) cancel()
+
+    // Assert that non-ascii characters read into "?"
+    val charset = StandardCharsets.US_ASCII
+    val cwd = StringFS
+      .string2dir(
+        """|/src/Semicolon.scala
+          |
+          |object Semicolon {
+          |  val a = 1; // みりん þæö
+          |  implicit val b = List(1)
+          |  def main { println(42) }
+          |}
+          |
+          |/src/Excluded.scala
+          |object Excluded {
+          |  val a = 1;
+          |}
+      """.stripMargin,
+        charset
+      )
+      .toNIO
+    val d = cwd.resolve("out")
+    val src = cwd.resolve("src")
+    Files.createDirectories(d)
+    val semicolon = src.resolve("Semicolon.scala")
+    val excluded = src.resolve("Excluded.scala")
+    val scalaBinaryVersion =
+      RulesBuildInfo.scalaVersion.split('.').take(2).mkString(".")
+    // This rule is published to Maven Central to simplify testing --tool-classpath.
+    val dep =
+      Dependency(
+        Module(
+          Organization("ch.epfl.scala"),
+          ModuleName(s"example-scalafix-rule_$scalaBinaryVersion")
+        ),
+        "1.6.0"
+      )
+    val toolClasspathJars = Fetch()
+      .addDependencies(dep)
+      .run()
+      .toList
+    val toolClasspath = ClasspathOps.toClassLoader(
+      Classpath(toolClasspathJars.map(jar => AbsolutePath(jar)))
+    )
+    val scalacOptions = Array[String](
+      "-Yrangepos",
+      "-classpath",
+      s"${scalaLibrary.mkString(":")}",
+      "-d",
+      d.toString,
+      semicolon.toString,
+      excluded.toString
+    ) ++ CompatSemanticdb.scalacOptions(src)
+    scala.tools.nsc.Main.process(scalacOptions)
+    val buf = List.newBuilder[ScalafixDiagnostic]
+    val callback = new ScalafixMainCallback {
+      override def reportDiagnostic(diagnostic: ScalafixDiagnostic): Unit = {
+        buf += diagnostic
+      }
+    }
+    val out = new ByteArrayOutputStream()
+    val relativePath = cwd.relativize(semicolon)
+    val warnRemoveUnused =
+      if (ScalaVersions.isScala213)
+        "-Wunused:imports"
+      else "-Ywarn-unused-import"
+    val args = api
+      .withParsedArguments(
+        List("--settings.DisableSyntax.noSemicolons", "true").asJava
+      )
+      .withCharset(charset)
+      .withClasspath((d +: scalaLibrary.map(_.toNIO)).asJava)
+      .withSourceroot(src)
+      .withWorkingDirectory(cwd)
+      .withPaths(List(relativePath.getParent).asJava)
+      .withExcludedPaths(
+        List(
+          FileSystems.getDefault.getPathMatcher("glob:**Excluded.scala")
+        ).asJava
+      )
+      .withMainCallback(callback)
+      .withRules(
+        List(
+          "DisableSyntax", // syntactic linter
+          "ProcedureSyntax", // syntactic rewrite
+          "ExplicitResultTypes", // semantic rewrite
+          "class:fix.Examplescalafixrule_v1" // --tool-classpath
+        ).asJava
+      )
+      .withPrintStream(new PrintStream(out))
+      .withMode(ScalafixMainMode.CHECK)
+      .withToolClasspath(toolClasspath)
+      .withScalacOptions(Collections.singletonList(warnRemoveUnused))
+      .withScalaVersion(scalaVersion)
+      .withConfig(Optional.empty())
+    val expectedRulesToRun = List(
+      "ProcedureSyntax",
+      "ExplicitResultTypes",
+      "ExampleScalafixRule_v1",
+      "DisableSyntax"
+    )
+    val obtainedRulesToRun =
+      args.rulesThatWillRun().asScala.toList.map(_.name())
+    assertNoDiff(
+      obtainedRulesToRun.sorted.mkString("\n"),
+      expectedRulesToRun.sorted.mkString("\n")
+    )
+    val validateError: Optional[ScalafixException] = args.validate()
+    assert(!validateError.isPresent, validateError)
+    val scalafixErrors = args.run()
+    val errors = scalafixErrors.toList.map(_.toString).sorted
+    val stdout = fansi
+      .Str(out.toString(charset.name()))
+      .plainText
+      .replaceAllLiterally(semicolon.toString, relativePath.toString)
+      .replace('\\', '/') // for windows
+      .linesIterator
+      .filterNot(_.trim.isEmpty)
+      .mkString("\n")
+    assert(errors == List("LinterError", "TestError"), stdout)
+    val linterDiagnostics = buf
+      .result()
+      .map { d =>
+        d.position()
+          .get()
+          .formatMessage(d.severity().toString, d.message())
+      }
+      .mkString("\n\n")
+      .replaceAllLiterally(semicolon.toString, relativePath.toString)
+      .replace('\\', '/') // for windows
+    assertNoDiff(
+      linterDiagnostics,
+      """|src/Semicolon.scala:3:12: ERROR: semicolons are disabled
+        |  val a = 1; // ??? ???
+        |           ^
+      """.stripMargin
+    )
+    assertNoDiff(
+      stdout,
+      """|--- src/Semicolon.scala
+        |+++ <expected fix>
+        |@@ -1,6 +1,7 @@
+        | object Semicolon {
+        |   val a = 1; // ??? ???
+        |-  implicit val b = List(1)
+        |-  def main { println(42) }
+        |+  implicit val b: List[Int] = List(1)
+        |+  def main: Unit = { println(42) }
+        | }
+        |+// Hello world!
+        |""".stripMargin
+    )
+  }
 
   test("ScalafixArguments.evaluate with a semantic rule", SkipWindows) {
     // Todo(i1680): this is an integration test that uses many non supported rules in scala 3.

@@ -1,6 +1,7 @@
 package scalafix.tests.interfaces
 
 import java.net.URL
+import java.net.URLClassLoader
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -8,17 +9,36 @@ import scala.jdk.CollectionConverters._
 
 import coursierapi.Repository
 import org.scalatest.funsuite.AnyFunSuite
+import scalafix.Versions
 import scalafix.interfaces.Scalafix
 import scalafix.interfaces.ScalafixDiagnostic
+import scalafix.interfaces.ScalafixException
 import scalafix.interfaces.ScalafixMainCallback
 
-/**
- * Tests in this suite require scalafix-cli & its dependencies to be
- * cross-published so that Coursier can fetch them. That is done automatically
- * as part of `sbt integrationX / test`, so make sure to run that once if you
- * want to run the test with testOnly or through BSP.
- */
 class ScalafixSuite extends AnyFunSuite {
+
+  test("versions") {
+    val api = Scalafix.classloadInstance(this.getClass.getClassLoader)
+    assert(api.scalafixVersion() == Versions.version)
+    assert(api.scalametaVersion() == Versions.scalameta)
+    assert(api.scala212() == Versions.scala212)
+    assert(api.scala213() == Versions.scala213)
+    assert(
+      api
+        .supportedScalaVersions()
+        .sameElements(Versions.supportedScalaVersions)
+    )
+    val help = api.mainHelp(80)
+    assert(help.contains("Usage: scalafix"))
+  }
+
+  test("error") {
+    val cl = new URLClassLoader(Array(), null)
+    val ex = intercept[ScalafixException] {
+      Scalafix.classloadInstance(cl)
+    }
+    assert(ex.getCause.isInstanceOf[ClassNotFoundException])
+  }
 
   def tmpFile(prefix: String, suffix: String)(content: String): Path = {
     val path = Files.createTempFile(prefix, suffix)
@@ -101,8 +121,14 @@ class ScalafixSuite extends AnyFunSuite {
       }
     }
   }
-  val supportedScalaBinaryVersions: Set[String] = Set("2.12", "2.13")
 
+  /**
+   * Tests below require scalafix-cli & its dependencies to be cross-published
+   * so that Coursier can fetch them. That is done automatically as part of `sbt
+   * integrationX / test`, so make sure to run that once if you want to run the
+   * test with testOnly or through BSP.
+   */
+  val supportedScalaBinaryVersions: Set[String] = Set("2.12", "2.13")
   supportedScalaBinaryVersions.map { scalaBinaryVersion =>
     fetchAndLoad(scalaBinaryVersion)
     fetchAndLoadWithDeps(scalaBinaryVersion)
