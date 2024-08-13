@@ -43,7 +43,7 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@VERSION@")
 From the sbt shell, let's run the rule `ProcedureSyntax`
 
 ```
-> myproject/scalafix ProcedureSyntax
+> myproject / scalafix ProcedureSyntax
 ```
 
 It's normal that the first invocation of `scalafix` takes a while to download
@@ -60,7 +60,7 @@ should have a diff in your sources like this
 Next, if we run another rule like `RemoveUnused` then we get an error
 
 ```
-> myproject/scalafix RemoveUnused
+> myproject / scalafix RemoveUnused
 [error] (Compile / scalafix) scalafix.sbt.InvalidArgument: 2 errors
 [E1] The scalac compiler should produce semanticdb files to run semantic
 rules like RemoveUnused ...
@@ -125,7 +125,7 @@ resolve `scalafixSemanticdb`.
 We run `RemoveUnused` again and the error is now gone
 
 ```
-> myproject/scalafix RemoveUnused
+> myproject / scalafix RemoveUnused
 [info] Compiling 15 Scala sources to ...
 [info] Running scalafix on 15 Scala sources
 ```
@@ -172,10 +172,10 @@ Great! You are all set to use Scalafix with sbt :)
 
 ### Main and test sources
 
-The task `myproject/scalafix` runs for **main sources** in the project
+The task `myproject / scalafix` runs for **main sources** in the project
 `myproject`. To run Scalafix on **test sources**, execute
-`myproject/test:scalafix` instead. To run on both main and test sources, execute
-`myproject/scalafixAll`.
+`myproject / Test / scalafix` instead. To run on both main and test sources, execute
+`myproject / scalafixAll`.
 
 ### Integration tests
 

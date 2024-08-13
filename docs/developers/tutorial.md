@@ -49,7 +49,7 @@ sbt:scalafix>
 ```
 
 This starts an sbt shell session from where you can run the test suite with
-`tests/test`.
+`tests / test`.
 
 Optionally, if you use IntelliJ, import the build like normal with the action
 "New project from existing sources" and select the `scalafix/build.sbt` file.
@@ -87,10 +87,10 @@ output/src
 
 Checkout the first commit
 [c03e549](https://github.com/scalacenter/scalafix-named-literal-arguments/commit/c03e5493b1e7ee9d82abebf2aa84b3bfcf01455b),
-run `tests/test` and see the tests fail
+run `tests / test` and see the tests fail
 
 ```diff
- > ~tests/test
+ > ~tests / test
 --- obtained
 +++ expected
 @@ -4,3 +4,3 @@
@@ -457,7 +457,7 @@ class NoLiteralArgumentsConfig {
 The top of the file contains `.scalafix.conf` configuration that is passed to
 rules when they're loaded.
 
-If we run `tests/test` we get an error like this
+If we run `tests / test` we get an error like this
 
 ```scala
 ===========> Unreported <===========

@@ -116,7 +116,7 @@ promoting them to the [build-level](#as-a-separate-sub-project).
 
 ```bash
 $ sbt
-> service1/scalafix MyRule1 MyRule2
+> service1 / scalafix MyRule1 MyRule2
 ```
 
 ### As a separate sub-project
@@ -193,6 +193,6 @@ semantic rules.
 
 ```bash
 $ sbt
-> scalafixTests/test
-> service1/scalafix MyRule1 MyRule2
+> scalafixTests / test
+> service1 / scalafix MyRule1 MyRule2
 ```
