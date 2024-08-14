@@ -303,10 +303,10 @@ lazy val integration = projectMatrix
         resolve(output, Compile / sourceDirectory).value
     ),
     Test / test := (Test / test)
-      .dependsOn(cli.projectRefs.map(_ / publishLocalTransitive): _*)
+      .dependsOn(resolve(cli, publishLocalTransitive))
       .value,
     Test / testWindows := (Test / testWindows)
-      .dependsOn(cli.projectRefs.map(_ / publishLocalTransitive): _*)
+      .dependsOn(resolve(cli, publishLocalTransitive))
       .value
   )
   .defaultAxes(VirtualAxis.jvm)

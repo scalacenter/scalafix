@@ -14,8 +14,19 @@ import scalafix.interfaces.Scalafix
 import scalafix.interfaces.ScalafixDiagnostic
 import scalafix.interfaces.ScalafixException
 import scalafix.interfaces.ScalafixMainCallback
+import scalafix.tests.BuildInfo
+import scalafix.tests.util.ScalaVersions
 
+/**
+ * Some tests below require scalafix-cli & its dependencies to be published so
+ * that Coursier can fetch them. `publishLocalTransitive` is done automatically
+ * as part of `sbt integrationX / test`, so make sure to run that once if you
+ * want to run the test with testOnly or through BSP.
+ */
 class ScalafixSuite extends AnyFunSuite {
+
+  val scalaVersion: String =
+    BuildInfo.scalaVersion.split('.').take(2).mkString(".")
 
   test("versions") {
     val api = Scalafix.classloadInstance(this.getClass.getClassLoader)
@@ -46,91 +57,78 @@ class ScalafixSuite extends AnyFunSuite {
     path
   }
 
-  def fetchAndLoad(scalaVersion: String): Unit = {
-    test(s"fetch & load instance for Scala version $scalaVersion") {
-      val scalafixAPI = Scalafix.fetchAndClassloadInstance(
-        scalaVersion,
-        Seq[Repository](
-          Repository.ivy2Local(), // for scalafix-*
-          Repository.central() // for scala libs
-        ).asJava
-      )
-      val args = scalafixAPI.newArguments
+  test(s"fetch & load cli for $scalaVersion") {
+    if (ScalaVersions.isScala3) cancel()
 
-      assert(args.availableRules.asScala.map(_.name).contains("RemoveUnused"))
+    val scalafixAPI = Scalafix.fetchAndClassloadInstance(
+      scalaVersion,
+      Seq[Repository](
+        Repository.ivy2Local(), // for scalafix-*
+        Repository.central() // for scala libs
+      ).asJava
+    )
+    val args = scalafixAPI.newArguments
 
-      // inspect the tool classpath Scala version by running a custom rule inside it
-      val ruleSource =
-        tmpFile("CaptureScalaVersion", ".scala") {
-          """import scalafix.v1._
-            |class CaptureScalaVersion extends SyntacticRule("CaptureScalaVersion") {
-            |  override def fix(implicit doc: SyntacticDocument): Patch =
-            |    Patch.lint(
-            |      Diagnostic(
-            |        "",
-            |        util.Properties.versionNumberString,
-            |        scala.meta.Position.None,
-            |        "",
-            |        scalafix.lint.LintSeverity.Error
-            |      )
-            |    )
-            |}""".stripMargin
-        }
-      var maybeDiagnostic: Option[ScalafixDiagnostic] = None
-      val scalafixMainCallback = new ScalafixMainCallback {
-        override def reportDiagnostic(diagnostic: ScalafixDiagnostic): Unit =
-          maybeDiagnostic = Some(diagnostic)
+    assert(args.availableRules.asScala.map(_.name).contains("RemoveUnused"))
+
+    // inspect the tool classpath Scala version by running a custom rule inside it
+    val ruleSource =
+      tmpFile("CaptureScalaVersion", ".scala") {
+        """import scalafix.v1._
+          |class CaptureScalaVersion extends SyntacticRule("CaptureScalaVersion") {
+          |  override def fix(implicit doc: SyntacticDocument): Patch =
+          |    Patch.lint(
+          |      Diagnostic(
+          |        "",
+          |        util.Properties.versionNumberString,
+          |        scala.meta.Position.None,
+          |        "",
+          |        scalafix.lint.LintSeverity.Error
+          |      )
+          |    )
+          |}""".stripMargin
       }
-      args
-        .withRules(Seq(ruleSource.toUri.toString).asJava)
-        .withMainCallback(scalafixMainCallback)
-        // any target file would do to emit a diagnostic, so run the rule on itself
-        .withPaths(List(ruleSource).asJava)
-        .withWorkingDirectory(ruleSource.getParent)
-        .run()
-      assert(maybeDiagnostic.get.message.startsWith(scalaVersion))
+    var maybeDiagnostic: Option[ScalafixDiagnostic] = None
+    val scalafixMainCallback = new ScalafixMainCallback {
+      override def reportDiagnostic(diagnostic: ScalafixDiagnostic): Unit =
+        maybeDiagnostic = Some(diagnostic)
+    }
+    args
+      .withRules(Seq(ruleSource.toUri.toString).asJava)
+      .withMainCallback(scalafixMainCallback)
+      // any target file would do to emit a diagnostic, so run the rule on itself
+      .withPaths(List(ruleSource).asJava)
+      .withWorkingDirectory(ruleSource.getParent)
+      .run()
+    assert(maybeDiagnostic.get.message.startsWith(scalaVersion))
+  }
+
+  test(s"fetch & load cli for $scalaVersion with external dependencies") {
+    if (ScalaVersions.isScala3) cancel()
+
+    val scalafixAPI = Scalafix.fetchAndClassloadInstance(scalaVersion)
+
+    val ruleForDependency = Map(
+      // built against scalafix 0.9.16
+      "com.nequissimus::sort-imports:0.5.2" -> "SortImports",
+      // built against scalafix 0.10.0, uses metaconfig
+      "com.github.xuwei-k::scalafix-rules:0.2.1" -> "KindProjector"
+    )
+
+    val availableRules = scalafixAPI.newArguments
+      .withToolClasspath(
+        Seq[URL]().asJava,
+        ruleForDependency.keys.toList.asJava,
+        Seq[Repository](Repository.central()).asJava
+      )
+      .availableRules
+      .asScala
+      .map(_.name)
+
+    assert(availableRules.contains("RemoveUnused")) // built-in
+    ruleForDependency.values.foreach { rule =>
+      assert(availableRules.contains(rule))
     }
   }
 
-  def fetchAndLoadWithDeps(scalaVersion: String): Unit = {
-    test(
-      s"fetch & load instance for Scala version $scalaVersion with external dependencies"
-    ) {
-      val scalafixAPI = Scalafix.fetchAndClassloadInstance(scalaVersion)
-
-      val ruleForDependency = Map(
-        // built against scalafix 0.9.16
-        "com.nequissimus::sort-imports:0.5.2" -> "SortImports",
-        // built against scalafix 0.10.0, uses metaconfig
-        "com.github.xuwei-k::scalafix-rules:0.2.1" -> "KindProjector"
-      )
-
-      val availableRules = scalafixAPI.newArguments
-        .withToolClasspath(
-          Seq[URL]().asJava,
-          ruleForDependency.keys.toList.asJava,
-          Seq[Repository](Repository.central()).asJava
-        )
-        .availableRules
-        .asScala
-        .map(_.name)
-
-      assert(availableRules.contains("RemoveUnused")) // built-in
-      ruleForDependency.values.foreach { rule =>
-        assert(availableRules.contains(rule))
-      }
-    }
-  }
-
-  /**
-   * Tests below require scalafix-cli & its dependencies to be cross-published
-   * so that Coursier can fetch them. That is done automatically as part of `sbt
-   * integrationX / test`, so make sure to run that once if you want to run the
-   * test with testOnly or through BSP.
-   */
-  val supportedScalaBinaryVersions: Set[String] = Set("2.12", "2.13")
-  supportedScalaBinaryVersions.map { scalaBinaryVersion =>
-    fetchAndLoad(scalaBinaryVersion)
-    fetchAndLoadWithDeps(scalaBinaryVersion)
-  }
 }
