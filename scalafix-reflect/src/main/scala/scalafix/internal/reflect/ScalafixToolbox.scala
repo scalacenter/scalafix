@@ -2,6 +2,7 @@ package scalafix.internal.reflect
 
 import java.io.File
 import java.net.URLClassLoader
+import java.nio.file.Paths
 import java.util.function
 
 import metaconfig.Configured
@@ -49,7 +50,9 @@ class ScalafixToolbox {
   ): Configured[CompiledRules] =
     synchronized {
       val classpath =
-        toolClasspath.getURLs.map(_.getPath).mkString(File.pathSeparator)
+        toolClasspath.getURLs
+          .map(url => Paths.get(url.toURI))
+          .mkString(File.pathSeparator)
       val compiler = compilerCache.computeIfAbsent(classpath, newCompiler)
       (
         compiler.compile(code) |@|

@@ -629,6 +629,8 @@ custom rule using the `file:/path/to/NamedLiteralArguments.scala` syntax.
 scalafix --rules=file:/path/to/NamedLiteralArguments.scala
 ```
 
+On Windows, the URI syntax is `file:///C:/Users/...`.
+
 ### Using `http:`
 
 Another way to run a rule from source is to publish it as a gist and share the

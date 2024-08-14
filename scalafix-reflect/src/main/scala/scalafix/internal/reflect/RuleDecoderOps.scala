@@ -7,6 +7,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 import scala.collection.concurrent.TrieMap
+import scala.util.Try
 
 import scala.meta.io.AbsolutePath
 
@@ -100,7 +101,9 @@ object RuleDecoderOps {
       )
     def unapply(arg: Conf.Str): Option[Configured[Input]] = arg match {
       case UriRule("file", uri) =>
-        val path = AbsolutePath(Paths.get(uri.getSchemeSpecificPart))(cwd)
+        val path = AbsolutePath(
+          Try(Paths.get(uri)).getOrElse(Paths.get(uri.getSchemeSpecificPart))
+        )(cwd)
         Option(Ok(Input.File(path.toNIO)))
       case UrlRule(Ok(url)) =>
         try {
