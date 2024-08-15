@@ -11,7 +11,6 @@ import org.scalatest.funsuite.AnyFunSuite
 import scalafix.interfaces.Scalafix
 import scalafix.interfaces.ScalafixDiagnostic
 import scalafix.interfaces.ScalafixMainCallback
-import scalafix.internal.tests.utils.SkipWindows
 
 /**
  * Tests in this suite require scalafix-cli & its dependencies to be
@@ -28,10 +27,7 @@ class ScalafixSuite extends AnyFunSuite {
   }
 
   def fetchAndLoad(scalaVersion: String): Unit = {
-    test(
-      s"fetch & load instance for Scala version $scalaVersion",
-      SkipWindows
-    ) {
+    test(s"fetch & load instance for Scala version $scalaVersion") {
       val scalafixAPI = Scalafix.fetchAndClassloadInstance(
         scalaVersion,
         Seq[Repository](
@@ -66,11 +62,11 @@ class ScalafixSuite extends AnyFunSuite {
           maybeDiagnostic = Some(diagnostic)
       }
       args
-        .withPaths(
-          Seq(ruleSource).asJava
-        ) // any file would do, we just want rules to be loaded
-        .withRules(Seq(s"file:$ruleSource").asJava)
+        .withRules(Seq(ruleSource.toUri.toString).asJava)
         .withMainCallback(scalafixMainCallback)
+        // any target file would do to emit a diagnostic, so run the rule on itself
+        .withPaths(List(ruleSource).asJava)
+        .withWorkingDirectory(ruleSource.getParent)
         .run()
       assert(maybeDiagnostic.get.message.startsWith(scalaVersion))
     }
