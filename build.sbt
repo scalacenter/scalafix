@@ -33,6 +33,7 @@ lazy val interfaces = project
       props.put("scalametaVersion", scalametaV)
       props.put("scala213", scala213)
       props.put("scala212", scala212)
+      props.put("scala3LTS", scala3LTS)
       val out =
         (Compile / managedResourceDirectories).value.head /
           "scalafix-interfaces.properties"
@@ -61,7 +62,7 @@ lazy val `compat-metaconfig-macros` = projectMatrix
     libraryDependencies += metaconfig cross CrossVersion.for3Use2_13
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(buildScalaVersions)
+  .jvmPlatform(cliScalaVersions)
   .disablePlugins(ScalafixPlugin)
 
 lazy val core = projectMatrix
@@ -77,7 +78,7 @@ lazy val core = projectMatrix
     )
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(supportedScalaVersions)
+  .jvmPlatform(coreScalaVersions)
   .enablePlugins(BuildInfoPlugin)
 
 // keep compiling core3 without exposing it to matrix projects, just
@@ -130,7 +131,7 @@ lazy val rules = projectMatrix
     }
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(buildScalaVersions)
+  .jvmPlatform(cliScalaVersions)
   .dependsOn(`compat-metaconfig-macros` % "provided")
   .dependsOn(core)
   .enablePlugins(BuildInfoPlugin)
@@ -168,7 +169,7 @@ lazy val reflect = projectMatrix
     }
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(buildScalaVersions)
+  .jvmPlatform(cliScalaVersions)
   .dependsOn(`compat-metaconfig-macros` % "provided")
   .dependsOn(core)
 
@@ -209,7 +210,7 @@ lazy val cli = projectMatrix
     }.value
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(buildScalaVersions)
+  .jvmPlatform(cliScalaVersions)
   .dependsOn(interfaces)
   .dependsOn(`compat-metaconfig-macros` % "provided")
   .dependsOn(reflect, rules)
@@ -225,7 +226,7 @@ lazy val testkit = projectMatrix
     )
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(buildScalaVersions)
+  .jvmPlatform(cliScalaVersions)
   .dependsOn(cli)
 
 lazy val shared = projectMatrix
@@ -237,7 +238,7 @@ lazy val shared = projectMatrix
   .defaultAxes(VirtualAxis.jvm)
   // just compile shared with the latest patch for each minor Scala version
   // to reduce the cardinality of the build
-  .jvmPlatform(buildScalaVersions)
+  .jvmPlatform(cliScalaVersions)
   .disablePlugins(ScalafixPlugin)
 
 lazy val input = projectMatrix
@@ -254,7 +255,7 @@ lazy val input = projectMatrix
       resolve(shared, Compile / exportedProducts).value
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatformTargets(buildScalaVersionsWithTargets.map(_._2))
+  .jvmPlatformTargets(cliScalaVersionsWithTargets.map(_._2))
   .disablePlugins(ScalafixPlugin)
 
 lazy val output = projectMatrix
@@ -270,12 +271,12 @@ lazy val output = projectMatrix
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatformTargets(
-    buildScalaVersionsWithTargets
+    cliScalaVersionsWithTargets
       .map(_._2)
       // don't compile output with old Scala patch versions to reduce the
       // cardinality of the build: checking that it compiles with the
       // latest patch of each minor Scala version is enough
-      .filter(axis => buildScalaVersions.contains(axis.scalaVersion))
+      .filter(axis => cliScalaVersions.contains(axis.scalaVersion))
   )
   .disablePlugins(ScalafixPlugin)
 
@@ -303,7 +304,7 @@ lazy val unit = projectMatrix
     )
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(buildScalaVersions)
+  .jvmPlatform(cliScalaVersions)
   .enablePlugins(BuildInfoPlugin)
   .dependsOn(testkit % Test)
 
@@ -359,7 +360,7 @@ lazy val integration = projectMatrix
       .value
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(buildScalaVersions)
+  .jvmPlatform(cliScalaVersions)
   .enablePlugins(BuildInfoPlugin)
   .dependsOn(unit % "compile->test")
 
@@ -417,7 +418,7 @@ lazy val expect = projectMatrix
     }
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatformAgainstTargets(buildScalaVersionsWithTargets)
+  .jvmPlatformAgainstTargets(cliScalaVersionsWithTargets)
   .dependsOn(integration)
 
 lazy val docs = projectMatrix

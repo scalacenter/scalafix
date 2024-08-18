@@ -48,7 +48,7 @@ public interface Scalafix {
     String scalametaVersion();
 
     /**
-     * The exact Scala versions that are supported by the recommended {@link #scalametaVersion()}
+     * The exact Scala versions that are supported
      */
     String[] supportedScalaVersions();
 
@@ -56,14 +56,19 @@ public interface Scalafix {
     String scala211();
 
     /**
-     * The most recent Scala 2.12 version in {@link #supportedScalaVersions()}
+     * The Scala 2.12 version in {@link #supportedScalaVersions()}
      */
     String scala212();
 
     /**
-     * The most recent Scala 2.13 version in {@link #supportedScalaVersions()}
+     * The Scala 2.13 version in {@link #supportedScalaVersions()}
      */
     String scala213();
+
+    /**
+     * The Scala 3 LTS version in {@link #supportedScalaVersions()}
+     */
+    String scala3LTS();
 
     /**
      * Fetch JARs containing an implementation of {@link Scalafix} using Coursier and classload an instance of it via
@@ -112,6 +117,9 @@ public interface Scalafix {
                 break;
             case "2.13":
                 scalaVersionKey = "scala213";
+                break;
+            case "3":
+                scalaVersionKey = "scala3LTS";
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported scala version " + scalaBinaryVersion);

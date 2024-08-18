@@ -14,8 +14,8 @@ import scalafix.interfaces.Scalafix
 import scalafix.interfaces.ScalafixDiagnostic
 import scalafix.interfaces.ScalafixException
 import scalafix.interfaces.ScalafixMainCallback
+import scalafix.internal.config.ScalaVersion
 import scalafix.tests.BuildInfo
-import scalafix.tests.util.ScalaVersions
 
 /**
  * Some tests below require scalafix-cli & its dependencies to be published so
@@ -26,7 +26,7 @@ import scalafix.tests.util.ScalaVersions
 class ScalafixSuite extends AnyFunSuite {
 
   val scalaVersion: String =
-    BuildInfo.scalaVersion.split('.').take(2).mkString(".")
+    ScalaVersion.from(BuildInfo.scalaVersion).get.binary.get.value
 
   test("versions") {
     val api = Scalafix.classloadInstance(this.getClass.getClassLoader)
@@ -34,6 +34,7 @@ class ScalafixSuite extends AnyFunSuite {
     assert(api.scalametaVersion() == Versions.scalameta)
     assert(api.scala212() == Versions.scala212)
     assert(api.scala213() == Versions.scala213)
+    assert(api.scala3LTS() == Versions.scala3LTS)
     assert(
       api
         .supportedScalaVersions()
@@ -58,8 +59,6 @@ class ScalafixSuite extends AnyFunSuite {
   }
 
   test(s"fetch & load cli for $scalaVersion") {
-    if (ScalaVersions.isScala3) cancel()
-
     val scalafixAPI = Scalafix.fetchAndClassloadInstance(
       scalaVersion,
       Seq[Repository](
@@ -71,7 +70,7 @@ class ScalafixSuite extends AnyFunSuite {
 
     assert(args.availableRules.asScala.map(_.name).contains("RemoveUnused"))
 
-    // inspect the tool classpath Scala version by running a custom rule inside it
+    // inspect the Scala version used to compile core by running a custom rule
     val ruleSource =
       tmpFile("CaptureScalaVersion", ".scala") {
         """import scalafix.v1._
@@ -80,7 +79,7 @@ class ScalafixSuite extends AnyFunSuite {
           |    Patch.lint(
           |      Diagnostic(
           |        "",
-          |        util.Properties.versionNumberString,
+          |        scalafix.Versions.scalaVersion,
           |        scala.meta.Position.None,
           |        "",
           |        scalafix.lint.LintSeverity.Error
@@ -100,12 +99,14 @@ class ScalafixSuite extends AnyFunSuite {
       .withPaths(List(ruleSource).asJava)
       .withWorkingDirectory(ruleSource.getParent)
       .run()
-    assert(maybeDiagnostic.get.message.startsWith(scalaVersion))
+    val expectedScalaVersion = scalaVersion match {
+      case scala3 if scala3.startsWith("3") => "2.13"
+      case scala2 => scala2
+    }
+    assert(maybeDiagnostic.get.message.startsWith(expectedScalaVersion))
   }
 
   test(s"fetch & load cli for $scalaVersion with external dependencies") {
-    if (ScalaVersions.isScala3) cancel()
-
     val scalafixAPI = Scalafix.fetchAndClassloadInstance(scalaVersion)
 
     val ruleForDependency = Map(
