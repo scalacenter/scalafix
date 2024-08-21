@@ -6,12 +6,6 @@ import scala.tools.nsc.Main
 
 object CompatSemanticdb {
 
-  def scalacOptions(src: Path, target: Path): Array[String] = {
-    Array[String](
-      s"-P:semanticdb:targetroot:$target"
-    ) ++ scalacOptions(src)
-  }
-
   def scalacOptions(src: Path): Array[String] = {
     Array[String](
       "-Yrangepos",
