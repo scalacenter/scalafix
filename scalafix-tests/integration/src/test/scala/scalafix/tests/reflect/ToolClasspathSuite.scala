@@ -8,29 +8,25 @@ import coursier._
 import metaconfig.Conf
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funsuite.AnyFunSuite
-import scalafix.Versions
+import scalafix.internal.config.ScalaVersion
 import scalafix.internal.reflect.RuleCompiler
 import scalafix.internal.reflect.RuleCompilerClasspath
 import scalafix.internal.tests.utils.SkipWindows
+import scalafix.tests.BuildInfo
 import scalafix.v1.RuleDecoder
 
 class ToolClasspathSuite extends AnyFunSuite with BeforeAndAfterAll {
   var scalaClasspath: List[AbsolutePath] = _
   override def beforeAll(): Unit = {
-    var scalaVersionSuffix: String = ""
-    val versionSplit = Versions.scalaVersion.split("\\.")
-    if (versionSplit(0) == "3") {
-      scalaVersionSuffix = versionSplit(0)
-    } else {
-      scalaVersionSuffix = s"${versionSplit(0)}.${versionSplit(1)}"
-    }
+    val scalaBinaryVersion =
+      ScalaVersion.from(BuildInfo.scalaVersion).get.binary.get.value
     val jars =
       Fetch()
         .addDependencies(
           Dependency(
             Module(
               Organization("org.scalatest"),
-              ModuleName(s"scalatest_${scalaVersionSuffix}")
+              ModuleName(s"scalatest_${scalaBinaryVersion}")
             ),
             "3.2.13"
           )

@@ -53,30 +53,49 @@ lazy val interfaces = project
   )
   .disablePlugins(ScalafixPlugin)
 
+// Scala 3 macros vendored separately (i.e. without runtime classes), to
+// shadow Scala 2.13 macros in the Scala 3 compiler classpath, while producing
+// code valid against Scala 2.13 bytecode
+lazy val `compat-metaconfig-macros` = projectMatrix
+  .settings(
+    libraryDependencies += metaconfig cross CrossVersion.for3Use2_13
+  )
+  .defaultAxes(VirtualAxis.jvm)
+  .jvmPlatform(buildScalaVersions)
+  .disablePlugins(ScalafixPlugin)
+
 lazy val core = projectMatrix
   .in(file("scalafix-core"))
   .settings(
     moduleName := "scalafix-core",
     buildInfoSettingsForCore,
-    libraryDependencies += googleDiff,
-    libraryDependencies ++= {
-      if (isScala3.value) {
-        List(
-          scalameta
-            .exclude("com.lihaoyi", "sourcecode_2.13")
-            .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
-        )
-      } else {
-        List(
-          scalameta,
-          collectionCompat
-        )
-      }
-    },
-    libraryDependencies += metaconfig
+    libraryDependencies ++= Seq(
+      googleDiff,
+      metaconfig,
+      scalametaFor3Use2_13,
+      collectionCompat
+    )
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(buildScalaVersions)
+  .jvmPlatform(supportedScalaVersions)
+  .enablePlugins(BuildInfoPlugin)
+
+// keep compiling core3 without exposing it to matrix projects, just
+// to make https://github.com/scalacenter/scalafix/issues/2041 easier
+lazy val core3 = project
+  .in(file("scalafix-core"))
+  .settings(
+    noPublishAndNoMima,
+    buildInfoSettingsForCore,
+    scalaVersion := scala3LTS,
+    libraryDependencies ++= Seq(
+      googleDiff,
+      metaconfig,
+      scalametaFor3Use2_13
+        .exclude("com.lihaoyi", "sourcecode_2.13")
+        .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
+    )
+  )
   .enablePlugins(BuildInfoPlugin)
 
 lazy val rules = projectMatrix
@@ -87,17 +106,32 @@ lazy val rules = projectMatrix
     buildInfoSettingsForRules,
     libraryDependencies ++= {
       if (!isScala3.value)
-        List(
+        Seq(
           "org.scala-lang" % "scala-compiler" % scalaVersion.value,
           "org.scala-lang" % "scala-reflect" % scalaVersion.value,
           semanticdbScalacCore,
           collectionCompat
         )
       else Nil
+    },
+    // companion of `.dependsOn(core)`
+    // issue reported in https://github.com/sbt/sbt/issues/7405
+    // using workaround from https://github.com/sbt/sbt/issues/5369#issue-549758513
+    projectDependencies := {
+      projectDependencies.value.map {
+        case core
+            if core.name == "scalafix-core" && scalaBinaryVersion.value == "3" =>
+          core
+            .withName("scalafix-core_2.13")
+            .withCrossVersion(CrossVersion.disabled)
+        case dep =>
+          dep
+      }
     }
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(buildScalaVersions)
+  .dependsOn(`compat-metaconfig-macros` % "provided")
   .dependsOn(core)
   .enablePlugins(BuildInfoPlugin)
 
@@ -108,19 +142,34 @@ lazy val reflect = projectMatrix
     isFullCrossVersion,
     libraryDependencies ++= {
       if (!isScala3.value)
-        List(
+        Seq(
           "org.scala-lang" % "scala-compiler" % scalaVersion.value,
           "org.scala-lang" % "scala-reflect" % scalaVersion.value
         )
       else
-        List(
+        Seq(
           "org.scala-lang" %% "scala3-compiler" % scalaVersion.value,
           "org.scala-lang" %% "scala3-library" % scalaVersion.value
         )
+    },
+    // companion of `.dependsOn(core)`
+    // issue reported in https://github.com/sbt/sbt/issues/7405
+    // using workaround from https://github.com/sbt/sbt/issues/5369#issue-549758513
+    projectDependencies := {
+      projectDependencies.value.map {
+        case core
+            if core.name == "scalafix-core" && scalaBinaryVersion.value == "3" =>
+          core
+            .withName("scalafix-core_2.13")
+            .withCrossVersion(CrossVersion.disabled)
+        case dep =>
+          dep
+      }
     }
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(buildScalaVersions)
+  .dependsOn(`compat-metaconfig-macros` % "provided")
   .dependsOn(core)
 
 lazy val cli = projectMatrix
@@ -162,6 +211,7 @@ lazy val cli = projectMatrix
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(buildScalaVersions)
   .dependsOn(interfaces)
+  .dependsOn(`compat-metaconfig-macros` % "provided")
   .dependsOn(reflect, rules)
 
 lazy val testkit = projectMatrix
@@ -169,8 +219,10 @@ lazy val testkit = projectMatrix
   .settings(
     moduleName := "scalafix-testkit",
     isFullCrossVersion,
-    libraryDependencies += googleDiff,
-    libraryDependencies += scalatest
+    libraryDependencies ++= Seq(
+      googleDiff,
+      scalatest
+    )
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(buildScalaVersions)
@@ -231,19 +283,17 @@ lazy val unit = projectMatrix
   .in(file("scalafix-tests/unit"))
   .settings(
     noPublishAndNoMima,
-    libraryDependencies ++= List(
+    libraryDependencies ++= Seq(
       jgit,
       munit,
       scalatest
     ),
     libraryDependencies += {
       if (!isScala3.value) {
-        scalametaTeskit
+        scalametaTeskitFor3Use2_13
       } else {
         // exclude _2.13 artifacts that have their _3 counterpart in the classpath
-        scalametaTeskit
-          .exclude("com.lihaoyi", "sourcecode_2.13")
-          .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
+        scalametaTeskitFor3Use2_13
           .exclude("org.scalameta", "munit_2.13")
       }
     },
@@ -264,12 +314,11 @@ lazy val integration = projectMatrix
     Test / parallelExecution := false,
     libraryDependencies += {
       if (!isScala3.value) {
-        coursier
+        coursierFor3Use2_13
       } else {
         // exclude _2.13 artifacts that have their _3 counterpart in the classpath
-        coursier
+        coursierFor3Use2_13
           .exclude("org.scala-lang.modules", "scala-xml_2.13")
-          .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
       }
     },
     buildInfoPackage := "scalafix.tests",
@@ -382,7 +431,7 @@ lazy val docs = projectMatrix
     scalacOptions += "-Xfatal-warnings",
     mdoc := (Compile / run).evaluated,
     libraryDependencies += metaconfigDoc,
-    dependencyOverrides += scalameta // force eviction of mdoc transitive dependency
+    dependencyOverrides += scalametaFor3Use2_13 // force eviction of mdoc transitive dependency
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(scalaVersions = Seq(scala213))

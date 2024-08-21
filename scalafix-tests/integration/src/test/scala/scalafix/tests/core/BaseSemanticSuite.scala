@@ -6,7 +6,6 @@ import scala.meta.internal.symtab.SymbolTable
 
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funsuite.AnyFunSuite
-import scalafix.Versions
 import scalafix.internal.config.ScalaVersion
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.v0.LegacyInMemorySemanticdbIndex
@@ -33,10 +32,10 @@ object BaseSemanticSuite {
       if (commonPath.toFile.exists) {
         (commonPath, defaultScalaVersion)
       } else {
-        val scalaMajorVersion = Versions.scalaVersion.split("\\.")(0)
+        val scalaMajorVersion = BuildInfo.scalaVersion.split("\\.")(0)
         val path =
           root.resolve(s"scala-$scalaMajorVersion/test").resolve(filename)
-        (path, ScalaVersion.from(Versions.scalaVersion).get)
+        (path, ScalaVersion.from(BuildInfo.scalaVersion).get)
       }
     }
     val relpath = abspath.toRelative(AbsolutePath(BuildInfo.baseDirectory))

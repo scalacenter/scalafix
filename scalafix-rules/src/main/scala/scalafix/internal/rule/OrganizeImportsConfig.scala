@@ -16,8 +16,12 @@ object ImportsOrder {
   case object SymbolsFirst extends ImportsOrder
   case object Keep extends ImportsOrder
 
+  def all: List[ImportsOrder] =
+    List(Ascii, SymbolsFirst, Keep)
+
   implicit def reader: ConfDecoder[ImportsOrder] =
-    ReaderUtil.oneOf(Ascii, SymbolsFirst, Keep)
+    ReaderUtil.fromMap(all.map(x => x.toString -> x).toMap)
+
   implicit def writer: ConfEncoder[ImportsOrder] =
     ConfEncoder.instance(v => Conf.Str(v.toString))
 }
@@ -29,8 +33,11 @@ object ImportSelectorsOrder {
   case object SymbolsFirst extends ImportSelectorsOrder
   case object Keep extends ImportSelectorsOrder
 
+  def all: List[ImportSelectorsOrder] =
+    List(Ascii, SymbolsFirst, Keep)
+
   implicit def reader: ConfDecoder[ImportSelectorsOrder] =
-    ReaderUtil.oneOf(Ascii, SymbolsFirst, Keep)
+    ReaderUtil.fromMap(all.map(x => x.toString -> x).toMap)
 
   implicit def writer: ConfEncoder[ImportSelectorsOrder] =
     ConfEncoder.instance(v => Conf.Str(v.toString))
@@ -44,8 +51,11 @@ object GroupedImports {
   case object Explode extends GroupedImports
   case object Keep extends GroupedImports
 
+  def all: List[GroupedImports] =
+    List(AggressiveMerge, Merge, Explode, Keep)
+
   implicit def reader: ConfDecoder[GroupedImports] =
-    ReaderUtil.oneOf(AggressiveMerge, Merge, Explode, Keep)
+    ReaderUtil.fromMap(all.map(x => x.toString -> x).toMap)
 
   implicit def writer: ConfEncoder[GroupedImports] =
     ConfEncoder.instance(v => Conf.Str(v.toString))
@@ -57,8 +67,12 @@ object BlankLines {
   case object Auto extends BlankLines
   case object Manual extends BlankLines
 
+  def all: List[BlankLines] =
+    List(Auto, Manual)
+
   implicit def reader: ConfDecoder[BlankLines] =
-    ReaderUtil.oneOf(Auto, Manual)
+    ReaderUtil.fromMap(all.map(x => x.toString -> x).toMap)
+
   implicit def writer: ConfEncoder[BlankLines] =
     ConfEncoder.instance(v => Conf.Str(v.toString))
 }
@@ -69,8 +83,12 @@ object Preset {
   case object DEFAULT extends Preset
   case object INTELLIJ_2020_3 extends Preset
 
+  def all: List[Preset] =
+    List(DEFAULT, INTELLIJ_2020_3)
+
   implicit def reader: ConfDecoder[Preset] =
-    ReaderUtil.oneOf(DEFAULT, INTELLIJ_2020_3)
+    ReaderUtil.fromMap(all.map(x => x.toString -> x).toMap)
+
   implicit def writer: ConfEncoder[Preset] =
     ConfEncoder.instance(v => Conf.Str(v.toString))
 }
@@ -82,8 +100,12 @@ object TargetDialect {
   case object Scala3 extends TargetDialect
   case object StandardLayout extends TargetDialect
 
+  def all: List[TargetDialect] =
+    List(Auto, Scala2, Scala3, StandardLayout)
+
   implicit def reader: ConfDecoder[TargetDialect] =
-    ReaderUtil.oneOf(Auto, Scala2, Scala3, StandardLayout)
+    ReaderUtil.fromMap(all.map(x => x.toString -> x).toMap)
+
   implicit def writer: ConfEncoder[TargetDialect] =
     ConfEncoder.instance(v => Conf.Str(v.toString))
 }

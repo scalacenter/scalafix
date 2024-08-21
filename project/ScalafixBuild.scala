@@ -30,6 +30,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       mimaPreviousArtifacts := Set.empty,
       publish / skip := true
     )
+
+    // https://github.com/scalameta/scalameta/issues/2485
     lazy val supportedScalaVersions = List(scala213, scala212)
     lazy val buildScalaVersions = Seq(scala212, scala213, scala3LTS)
     lazy val buildScalaVersionsWithTargets: Seq[(String, TargetAxis)] =

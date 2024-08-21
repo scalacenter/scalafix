@@ -8,10 +8,6 @@ import metaconfig.ConfError
 import metaconfig.Configured
 
 object ReaderUtil {
-  def oneOf[T: ClassTag](options: sourcecode.Text[T]*): ConfDecoder[T] = {
-    val m = options.map(x => x.source -> x.value).toMap
-    fromMap(m)
-  }
   // Poor mans coproduct reader
   def fromMap[T: ClassTag](
       m: Map[String, T],
