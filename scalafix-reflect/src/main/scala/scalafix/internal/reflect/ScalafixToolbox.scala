@@ -1,8 +1,6 @@
 package scalafix.internal.reflect
 
-import java.io.File
 import java.net.URLClassLoader
-import java.nio.file.Paths
 import java.util.function
 
 import metaconfig.Configured
@@ -17,13 +15,11 @@ class ScalafixToolbox {
       CompiledRules
     ]]()
   private val compilerCache =
-    new java.util.concurrent.ConcurrentHashMap[String, RuleCompiler]()
-  private val newCompiler: function.Function[String, RuleCompiler] =
-    new function.Function[String, RuleCompiler] {
-      override def apply(classpath: String) =
-        new RuleCompiler(
-          classpath + File.pathSeparator + RuleCompilerClasspath.defaultClasspath
-        )
+    new java.util.concurrent.ConcurrentHashMap[URLClassLoader, RuleCompiler]()
+  private val newCompiler: function.Function[URLClassLoader, RuleCompiler] =
+    new function.Function[URLClassLoader, RuleCompiler] {
+      override def apply(toolClasspath: URLClassLoader) =
+        new RuleCompiler(toolClasspath)
     }
 
   case class CompiledRules(classloader: ClassLoader, fqns: Seq[String])
@@ -49,11 +45,8 @@ class ScalafixToolbox {
       toolClasspath: URLClassLoader
   ): Configured[CompiledRules] =
     synchronized {
-      val classpath =
-        toolClasspath.getURLs
-          .map(url => Paths.get(url.toURI))
-          .mkString(File.pathSeparator)
-      val compiler = compilerCache.computeIfAbsent(classpath, newCompiler)
+      val compiler =
+        compilerCache.computeIfAbsent(toolClasspath, newCompiler)
       (
         compiler.compile(code) |@|
           RuleInstrumentation.getRuleFqn(code.toMeta)

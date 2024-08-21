@@ -1,5 +1,7 @@
 package scalafix.internal.reflect
 import java.io.File
+import java.net.URLClassLoader
+import java.nio.file.Paths
 
 import scala.reflect.internal.util.AbstractFileClassLoader
 import scala.reflect.internal.util.BatchSourceFile
@@ -16,7 +18,7 @@ import metaconfig.Input
 import metaconfig.Position
 
 class RuleCompiler(
-    classpath: String,
+    toolClasspath: URLClassLoader,
     targetDirectory: Option[File] = None
 ) {
   private val output = targetDirectory match {
@@ -27,6 +29,10 @@ class RuleCompiler(
   settings.deprecation.value = true // enable detailed deprecation warnings
   settings.unchecked.value = true // enable detailed unchecked warnings
   settings.outputDirs.setSingleOutput(output)
+  val classpath: String =
+    (toolClasspath.getURLs.map(url => Paths.get(url.toURI)) ++
+      RuleCompilerClasspath.defaultClasspathPaths.map(_.toNIO))
+      .mkString(File.pathSeparator)
   settings.classpath.value = classpath
   lazy val reporter = new StoreReporter
   private val global = new Global(settings, reporter)
@@ -57,7 +63,7 @@ class RuleCompiler(
       .map(_.notOk)
       .getOrElse {
         val classLoader: AbstractFileClassLoader =
-          new AbstractFileClassLoader(output, this.getClass.getClassLoader)
+          new AbstractFileClassLoader(output, toolClasspath)
         Configured.Ok(classLoader)
       }
   }

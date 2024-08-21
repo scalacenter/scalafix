@@ -141,37 +141,27 @@ lazy val reflect = projectMatrix
   .settings(
     moduleName := "scalafix-reflect",
     isFullCrossVersion,
-    libraryDependencies ++= {
-      if (!isScala3.value)
-        Seq(
-          "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-          "org.scala-lang" % "scala-reflect" % scalaVersion.value
-        )
-      else
-        Seq(
-          "org.scala-lang" %% "scala3-compiler" % scalaVersion.value,
-          "org.scala-lang" %% "scala3-library" % scalaVersion.value
-        )
-    },
-    // companion of `.dependsOn(core)`
-    // issue reported in https://github.com/sbt/sbt/issues/7405
-    // using workaround from https://github.com/sbt/sbt/issues/5369#issue-549758513
-    projectDependencies := {
-      projectDependencies.value.map {
-        case core
-            if core.name == "scalafix-core" && scalaBinaryVersion.value == "3" =>
-          core
-            .withName("scalafix-core_2.13")
-            .withCrossVersion(CrossVersion.disabled)
-        case dep =>
-          dep
-      }
-    }
+    libraryDependencies ++= Seq(
+      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value
+    )
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(cliScalaVersions)
-  .dependsOn(`compat-metaconfig-macros` % "provided")
+  .jvmPlatform(coreScalaVersions)
   .dependsOn(core)
+
+// keep compiling reflect3 without exposing it to matrix projects, just
+// to make https://github.com/scalacenter/scalafix/issues/2041 easier
+lazy val reflect3 = project
+  .in(file("scalafix-reflect"))
+  .settings(
+    isFullCrossVersion,
+    noPublishAndNoMima,
+    scalaVersion := scala3LTS,
+    libraryDependencies +=
+      "org.scala-lang" %% "scala3-compiler" % scalaVersion.value
+  )
+  .dependsOn(core3)
 
 lazy val cli = projectMatrix
   .in(file("scalafix-cli"))
@@ -203,6 +193,20 @@ lazy val cli = projectMatrix
           scalametaFastparse,
           geny
         ).map(_ % Runtime)
+    },
+    // companion of `.dependsOn(reflect)`
+    // issue reported in https://github.com/sbt/sbt/issues/7405
+    // using workaround from https://github.com/sbt/sbt/issues/5369#issue-549758513
+    projectDependencies := {
+      projectDependencies.value.map {
+        case core
+            if core.name == "scalafix-reflect" && scalaBinaryVersion.value == "3" =>
+          core
+            .withName(s"scalafix-reflect_${scala213}")
+            .withCrossVersion(CrossVersion.disabled)
+        case dep =>
+          dep
+      }
     },
     publishLocalTransitive := Def.taskDyn {
       val ref = thisProjectRef.value
@@ -313,13 +317,18 @@ lazy val integration = projectMatrix
   .settings(
     noPublishAndNoMima,
     Test / parallelExecution := false,
-    libraryDependencies += {
+    libraryDependencies ++= {
       if (!isScala3.value) {
-        coursierFor3Use2_13
+        Seq(
+          coursierFor3Use2_13
+        )
       } else {
-        // exclude _2.13 artifacts that have their _3 counterpart in the classpath
-        coursierFor3Use2_13
-          .exclude("org.scala-lang.modules", "scala-xml_2.13")
+        Seq(
+          "org.scala-lang" %% "scala3-compiler" % scalaVersion.value,
+          // exclude _2.13 artifacts that have their _3 counterpart in the classpath
+          coursierFor3Use2_13
+            .exclude("org.scala-lang.modules", "scala-xml_2.13")
+        )
       }
     },
     buildInfoPackage := "scalafix.tests",

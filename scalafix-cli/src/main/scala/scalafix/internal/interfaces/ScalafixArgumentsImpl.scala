@@ -55,7 +55,9 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
       customURLs: util.List[URL]
   ): ScalafixArguments =
     withToolClasspath(
-      new URLClassLoader(customURLs.asScala.toArray, getClass.getClassLoader)
+      customURLs,
+      Nil.asJava,
+      Repository.defaults()
     )
 
   override def withToolClasspath(

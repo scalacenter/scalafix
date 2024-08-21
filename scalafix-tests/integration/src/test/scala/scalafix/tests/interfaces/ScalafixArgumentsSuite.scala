@@ -155,7 +155,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
 
   }
 
-  fsTest("run syntactic/semantic & built-in/external rules at the same time")(
+  fsTest("run syntactic/semantic & built-in/source/external rules at once")(
     """|/src/Semicolon.scala
       |
       |object Semicolon {
@@ -167,6 +167,19 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
       |/src/Excluded.scala
       |object Excluded {
       |  val a = 1;
+      |}
+      |
+      |/QuasiquotesSourceRule.scala
+      |import scala.meta._
+      |import scalafix.v1._
+      |
+      |class QuasiquotesSourceRule extends SyntacticRule("QuasiquotesSourceRule") {
+      |  override def fix(implicit doc: SyntacticDocument): Patch = {
+      |    doc.tree.collect {
+      |      case p @ q"println" =>
+      |        Patch.addLeft(p, "/* matched through quasiquote */ ")
+      |    }.asPatch
+      |  }
       |}
       """.stripMargin,
     StandardCharsets.US_ASCII, // Assert that non-ascii characters read into "?"
@@ -182,7 +195,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     val args = api
       .withToolClasspath(
         Nil.asJava,
-        Seq(s"ch.epfl.scala::example-scalafix-rule:1.6.0").asJava
+        Seq(s"ch.epfl.scala::example-scalafix-rule:4.0.0").asJava
       )
       .withParsedArguments(
         List("--settings.DisableSyntax.noSemicolons", "true").asJava
@@ -198,7 +211,8 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
           "DisableSyntax", // syntactic linter
           "RedundantSyntax", // syntactic rewrite
           "RemoveUnused", // semantic rewrite
-          "class:fix.Examplescalafixrule_v1" // --tool-classpath
+          "class:fix.Examplescalafixrule_v1", // --tool-classpath
+          "file:QuasiquotesSourceRule.scala" // reflect
         ).asJava
       )
       .withPrintStream(new PrintStream(out))
@@ -207,7 +221,8 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
       "RedundantSyntax",
       "RemoveUnused",
       "ExampleScalafixRule_v1",
-      "DisableSyntax"
+      "DisableSyntax",
+      "QuasiquotesSourceRule"
     )
     val obtainedRulesToRun =
       args.rulesThatWillRun().asScala.toList.map(_.name())
@@ -254,7 +269,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
         |   val a = 1; // ??? ???
         |-  import scala.concurrent.Future
         |-  def main = { println(s"42") }
-        |+  def main = { println("42") }
+        |+  def main = { /* matched through quasiquote */ println("42") }
         | }
         |+// Hello world!
         |""".stripMargin

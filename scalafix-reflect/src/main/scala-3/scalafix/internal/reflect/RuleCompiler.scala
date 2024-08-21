@@ -1,6 +1,8 @@
 package scalafix.internal.reflect
 
 import java.io.File
+import java.net.URLClassLoader
+import java.nio.file.Paths
 
 import dotty.tools.dotc.Compiler
 import dotty.tools.dotc.Run
@@ -18,7 +20,7 @@ import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Input
 class RuleCompiler(
-    classpath: String,
+    toolClasspath: URLClassLoader,
     targetDirectory: Option[File] = None
 ) {
   private val output = targetDirectory match {
@@ -30,6 +32,10 @@ class RuleCompiler(
   private val driver = new InteractiveDriver(settings)
   private val reporter: StoreReporter = new StoreReporter()
   private var ctx: FreshContext = driver.currentCtx.fresh
+  val classpath: String =
+    (toolClasspath.getURLs.map(url => Paths.get(url.toURI)) ++
+      RuleCompilerClasspath.defaultClasspathPaths.map(_.toNIO))
+      .mkString(File.pathSeparator)
   ctx = ctx
     .setReporter(reporter)
     .setSetting(ctx.settings.outputDir, output)
@@ -54,7 +60,7 @@ class RuleCompiler(
 
     if (reporter.allErrors.isEmpty) {
       val classLoader: AbstractFileClassLoader =
-        new AbstractFileClassLoader(output, this.getClass.getClassLoader)
+        new AbstractFileClassLoader(output, toolClasspath)
       Configured.Ok(classLoader)
     } else {
       val lastError =
