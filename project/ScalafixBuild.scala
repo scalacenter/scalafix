@@ -305,11 +305,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         organizationName.value % previousScalaVCrossName % stableVersion.value
       )
     },
-    // TODO: remove afetr 0.12.12 once Scala 3 artifacts have been published
-    mimaPreviousArtifacts := {
-      if (scalaVersion.value.startsWith("3")) Set.empty
-      else Set.empty
-    },
     mimaBinaryIssueFilters ++= Mima.ignoredABIProblems
   )
 
