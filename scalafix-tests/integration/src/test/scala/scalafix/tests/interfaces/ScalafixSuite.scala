@@ -14,7 +14,6 @@ import scalafix.interfaces.Scalafix
 import scalafix.interfaces.ScalafixDiagnostic
 import scalafix.interfaces.ScalafixException
 import scalafix.interfaces.ScalafixMainCallback
-import scalafix.internal.config.ScalaVersion
 import scalafix.tests.BuildInfo
 
 /**
@@ -25,16 +24,17 @@ import scalafix.tests.BuildInfo
  */
 class ScalafixSuite extends AnyFunSuite {
 
-  val scalaVersion: String =
-    ScalaVersion.from(BuildInfo.scalaVersion).get.binary.get.value
+  val scalaVersion: String = BuildInfo.scalaVersion
 
   test("versions") {
     val api = Scalafix.classloadInstance(this.getClass.getClassLoader)
     assert(api.scalafixVersion() == Versions.version)
+    assert(api.scalaVersion() == scalaVersion)
     assert(api.scalametaVersion() == Versions.scalameta)
     assert(api.scala212() == Versions.scala212)
     assert(api.scala213() == Versions.scala213)
     assert(api.scala3LTS() == Versions.scala3LTS)
+    assert(api.scala3Next() == Versions.scala3Next)
     assert(
       api
         .supportedScalaVersions()
@@ -44,7 +44,17 @@ class ScalafixSuite extends AnyFunSuite {
     assert(help.contains("Usage: scalafix"))
   }
 
-  test("error") {
+  test("classload Scala 3 LTS as a fallback for pre-LTS versions") {
+    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.0.0")
+    assert(scalafixAPI.scalaVersion() == Versions.scala3LTS)
+  }
+
+  test("classload Scala 3 Next as a fallback for post-LTS versions") {
+    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.4.0")
+    assert(scalafixAPI.scalaVersion() == Versions.scala3Next)
+  }
+
+  test("invalid class loader") {
     val cl = new URLClassLoader(Array(), null)
     val ex = intercept[ScalafixException] {
       Scalafix.classloadInstance(cl)

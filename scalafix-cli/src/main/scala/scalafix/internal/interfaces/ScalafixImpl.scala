@@ -1,5 +1,6 @@
 package scalafix.internal.interfaces
 
+import buildinfo.RulesBuildInfo
 import scalafix.Versions
 import scalafix.interfaces.Scalafix
 import scalafix.interfaces.ScalafixArguments
@@ -17,6 +18,8 @@ final class ScalafixImpl extends Scalafix {
     MainOps.helpMessage(screenWidth)
   }
 
+  override def scalaVersion(): String =
+    RulesBuildInfo.scalaVersion
   override def scalafixVersion(): String =
     Versions.version
   override def scalametaVersion(): String =
@@ -33,5 +36,7 @@ final class ScalafixImpl extends Scalafix {
     Versions.scala213
   override def scala3LTS(): String =
     Versions.scala3LTS
+  override def scala3Next(): String =
+    Versions.scala3Next
 
 }

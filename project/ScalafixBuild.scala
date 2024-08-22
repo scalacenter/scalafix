@@ -33,7 +33,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
 
     // https://github.com/scalameta/scalameta/issues/2485
     lazy val coreScalaVersions = Seq(scala212, scala213)
-    lazy val cliScalaVersions = Seq(scala212, scala213, scala3LTS)
+    lazy val cliScalaVersions = Seq(scala212, scala213, scala3LTS, scala3Next)
     lazy val cliScalaVersionsWithTargets: Seq[(String, TargetAxis)] =
       cliScalaVersions.map(sv => (sv, TargetAxis(sv))) ++
         Seq(scala213, scala212).flatMap { sv =>
@@ -62,10 +62,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
           val xsource3 = TargetAxis(sv, xsource3 = true)
 
           (prevVersions :+ xsource3).map((sv, _))
-        } ++ Seq(
-          (scala3LTS, TargetAxis(scala3Next)),
-          (scala3LTS, TargetAxis(scala213))
-        )
+        } :+ (scala3Next, TargetAxis(scala213))
 
     lazy val publishLocalTransitive =
       taskKey[Unit]("Run publishLocal on this project and its dependencies")
@@ -143,6 +140,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "scala212" -> scala212,
         "scala213" -> scala213,
         "scala3LTS" -> scala3LTS,
+        "scala3Next" -> scala3Next,
         sbtVersion
       ),
       buildInfoPackage := "scalafix",
@@ -211,7 +209,9 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
           .get(extracted.structure.data)
           .get
 
-      s"all cli2_12/publishLocalTransitive cli2_13/publishLocalTransitive interfaces/publishLocal" ::
+      def asSuffix(scalaVersion: String) = scalaVersion.replace(".", "_")
+
+      s"all cli${asSuffix(scala212)}/publishLocalTransitive cli${asSuffix(scala213)}/publishLocalTransitive interfaces/publishLocal" ::
         "reload plugins" ::
         s"""set dependencyOverrides += "ch.epfl.scala" % "scalafix-interfaces" % "$v"""" :: // as documented in installation.md
         "session save" ::

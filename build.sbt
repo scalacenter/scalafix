@@ -34,6 +34,7 @@ lazy val interfaces = project
       props.put("scala213", scala213)
       props.put("scala212", scala212)
       props.put("scala3LTS", scala3LTS)
+      props.put("scala3Next", scala3Next)
       val out =
         (Compile / managedResourceDirectories).value.head /
           "scalafix-interfaces.properties"
@@ -104,6 +105,7 @@ lazy val rules = projectMatrix
   .settings(
     moduleName := "scalafix-rules",
     description := "Built-in Scalafix rules",
+    isFullCrossVersion,
     buildInfoSettingsForRules,
     libraryDependencies ++= {
       if (!isScala3.value)
@@ -131,7 +133,7 @@ lazy val rules = projectMatrix
     }
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(cliScalaVersions)
+  .jvmPlatformFull(cliScalaVersions)
   .dependsOn(`compat-metaconfig-macros` % "provided")
   .dependsOn(core)
   .enablePlugins(BuildInfoPlugin)
@@ -214,7 +216,7 @@ lazy val cli = projectMatrix
     }.value
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(cliScalaVersions)
+  .jvmPlatformFull(cliScalaVersions)
   .dependsOn(interfaces)
   .dependsOn(`compat-metaconfig-macros` % "provided")
   .dependsOn(reflect, rules)
@@ -230,7 +232,7 @@ lazy val testkit = projectMatrix
     )
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(cliScalaVersions)
+  .jvmPlatformFull(cliScalaVersions)
   .dependsOn(cli)
 
 lazy val shared = projectMatrix
@@ -308,7 +310,7 @@ lazy val unit = projectMatrix
     )
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(cliScalaVersions)
+  .jvmPlatformFull(cliScalaVersions)
   .enablePlugins(BuildInfoPlugin)
   .dependsOn(testkit % Test)
 
@@ -362,14 +364,24 @@ lazy val integration = projectMatrix
         resolve(output, Compile / sourceDirectory).value
     ),
     Test / test := (Test / test)
-      .dependsOn(resolve(cli, publishLocalTransitive))
+      .dependsOn(
+        (resolve(cli, publishLocalTransitive) +: cli.projectRefs
+          // always publish Scala 3 artifacts to test Scala 3 minor version fallbacks
+          .collect { case p @ LocalProject(n) if n.startsWith("cli3") => p }
+          .map(_ / publishLocalTransitive)): _*
+      )
       .value,
     Test / testWindows := (Test / testWindows)
-      .dependsOn(resolve(cli, publishLocalTransitive))
+      .dependsOn(
+        (resolve(cli, publishLocalTransitive) +: cli.projectRefs
+          // always publish Scala 3 artifacts to test Scala 3 minor version fallbacks
+          .collect { case p @ LocalProject(n) if n.startsWith("cli3") => p }
+          .map(_ / publishLocalTransitive)): _*
+      )
       .value
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(cliScalaVersions)
+  .jvmPlatformFull(cliScalaVersions)
   .enablePlugins(BuildInfoPlugin)
   .dependsOn(unit % "compile->test")
 
