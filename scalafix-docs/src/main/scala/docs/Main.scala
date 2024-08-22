@@ -39,6 +39,14 @@ sidebar_label: Guide
       .withSiteVariables(
         Map(
           "SEMANTICDB" -> "[SemanticDB](https://scalameta.org/docs/semanticdb/specification.html)",
+          "SCALA3NEXT" -> Versions.scala3Next
+            .split('.')
+            .take(2)
+            .mkString("", ".", ".x"),
+          "SCALA3LTS" -> Versions.scala3LTS
+            .split('.')
+            .take(2)
+            .mkString("", ".", ".x"),
           "SCALA213" -> Versions.scala213,
           "SCALA212" -> Versions.scala212,
           "NIGHTLY_VERSION" -> Versions.version,
