@@ -6,7 +6,8 @@ inThisBuild(
   List(
     onLoadMessage := s"Welcome to scalafix ${version.value}",
     semanticdbEnabled := true,
-    semanticdbVersion := scalametaV
+    semanticdbVersion := scalametaV,
+    usePipelining := true
   )
 )
 
