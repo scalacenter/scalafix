@@ -28,11 +28,6 @@ object ScalafixMetaconfigReaders extends ScalafixMetaconfigReaders
 // A collection of metaconfig.Reader instances that are shared across
 trait ScalafixMetaconfigReaders {
 
-  implicit lazy val parseReader: ConfDecoder[MetaParser] = {
-    import scala.meta.parsers.Parse._
-    ReaderUtil.oneOf[MetaParser](parseSource, parseStat, parseCase)
-  }
-
   object UriRuleString {
     def unapply(arg: Conf.Str): Option[(String, String)] =
       UriRule.unapply(arg).map { case (a, b) =>
@@ -154,7 +149,7 @@ trait ScalafixMetaconfigReaders {
     val empty = new PrintStream(new OutputStream {
       override def write(b: Int): Unit = ()
     })
-    ReaderUtil.oneOf[PrintStream](empty)
+    ReaderUtil.fromMap(Map("PrintStream" -> empty))
   }
 
   implicit lazy val PatternDecoder: ConfDecoder[Pattern] = {

@@ -28,24 +28,24 @@ Start the SBT shell with `$ sbt`. The commands below assume you have a running
 sbt shell.
 
 ```sh
-# Fast unit tests for rules, cli, core.
-> unit2_13 / test
+# Fast unit tests for core, rules, reflect, cli & testkit.
+> unit3_3_4 / test
 
-# Integration tests for rules, cli, core. Contains a lot
-# of different test suites, so it's recommended to use testOnly
-# and/or testQuick.
-> integration2_13 / test
+# Integration tests for core, rules, reflect, cli & testkit.
+# Contains a lot of different test suites, so it's recommended
+# to use testOnly and/or testQuick.
+> integration3_3_4 / test
 
 # Use testWindows to exclude tests that are not expected to succeed
 # on that OS.
-> unit2_13 / testWindows
-> integration2_13 / testWindows
+> unit3_3_4 / testWindows
+> integration3_3_4 / testWindows
 
 # Only run tests for built-in rules, using scalafix-testkit.
-> expect2_13Target2_13_10 / test
+> expect3_3_4Target2_13_14 / test
 
 # Only run ProcedureSyntax unit tests.
-> expect2_13Target2_13_10 / testOnly -- -z ProcedureSyntax
+> expect3_3_4Target2_13_14 / testOnly -- -z ProcedureSyntax
 ```
 
 [sbt-projectmatrix](https://github.com/sbt/sbt-projectmatrix) is used to

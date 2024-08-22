@@ -18,6 +18,19 @@ sealed trait ScalaVersion {
   val minor: Option[Int]
   val patch: Option[Int]
 
+  def binary: Try[ScalaVersion] = (major, minor) match {
+    case (Major.Scala2, None) =>
+      Failure(
+        new Exception(
+          s"Minor version not found but required for Scala 2 binary version"
+        )
+      )
+    case (Major.Scala2, Some(minor)) =>
+      Success(Minor(major, minor))
+    case (_, _) =>
+      Success(Major(major))
+  }
+
   def dialect(sourceScalaVersion: Option[ScalaVersion]): Dialect =
     (major, sourceScalaVersion.map(_.major)) match {
       case (Major.Scala3, _) => dialects.Scala3

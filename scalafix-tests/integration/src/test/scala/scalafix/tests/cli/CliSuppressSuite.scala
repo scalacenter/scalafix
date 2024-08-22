@@ -2,13 +2,16 @@ package scalafix.tests.cli
 
 import scala.meta.Defn
 import scala.meta.Lit
+import scala.meta.XtensionCollectionLikeUI
 
 import scalafix.patch.Patch
 import scalafix.v0.LintCategory
 import scalafix.v1.SyntacticDocument
 import scalafix.v1.SyntacticRule
+import scalafix.v1.XtensionSeqPatch
 
 class NoVars extends SyntacticRule("NoVars") {
+
   override def fix(implicit doc: SyntacticDocument): Patch = {
     val error = LintCategory.error("No vars!")
     doc.tree.collect { case v @ Defn.Var(_, _, _, _) =>

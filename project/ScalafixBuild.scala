@@ -30,10 +30,12 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       mimaPreviousArtifacts := Set.empty,
       publish / skip := true
     )
-    lazy val supportedScalaVersions = List(scala213, scala212)
-    lazy val buildScalaVersions = Seq(scala212, scala213, scala3LTS)
-    lazy val buildScalaVersionsWithTargets: Seq[(String, TargetAxis)] =
-      buildScalaVersions.map(sv => (sv, TargetAxis(sv))) ++
+
+    // https://github.com/scalameta/scalameta/issues/2485
+    lazy val coreScalaVersions = Seq(scala212, scala213)
+    lazy val cliScalaVersions = Seq(scala212, scala213, scala3LTS, scala3Next)
+    lazy val cliScalaVersionsWithTargets: Seq[(String, TargetAxis)] =
+      cliScalaVersions.map(sv => (sv, TargetAxis(sv))) ++
         Seq(scala213, scala212).flatMap { sv =>
           def previousVersions(scalaVersion: String): Seq[String] = {
             val split = scalaVersion.split('.')
@@ -60,10 +62,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
           val xsource3 = TargetAxis(sv, xsource3 = true)
 
           (prevVersions :+ xsource3).map((sv, _))
-        } ++ Seq(
-          (scala213, TargetAxis(scala3Next)),
-          (scala213, TargetAxis(scala3LTS))
-        )
+        } :+ (scala3Next, TargetAxis(scala213))
 
     lazy val publishLocalTransitive =
       taskKey[Unit]("Run publishLocal on this project and its dependencies")
@@ -137,9 +136,11 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "nightly" -> version.value,
         "scalameta" -> scalametaV,
         scalaVersion,
-        "supportedScalaVersions" -> supportedScalaVersions,
+        "supportedScalaVersions" -> cliScalaVersions,
         "scala212" -> scala212,
         "scala213" -> scala213,
+        "scala3LTS" -> scala3LTS,
+        "scala3Next" -> scala3Next,
         sbtVersion
       ),
       buildInfoPackage := "scalafix",
@@ -208,7 +209,9 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
           .get(extracted.structure.data)
           .get
 
-      s"all cli2_12/publishLocalTransitive cli2_13/publishLocalTransitive interfaces/publishLocal" ::
+      def asSuffix(scalaVersion: String) = scalaVersion.replace(".", "_")
+
+      s"all cli${asSuffix(scala212)}/publishLocalTransitive cli${asSuffix(scala213)}/publishLocalTransitive interfaces/publishLocal" ::
         "reload plugins" ::
         s"""set dependencyOverrides += "ch.epfl.scala" % "scalafix-interfaces" % "$v"""" :: // as documented in installation.md
         "session save" ::
@@ -270,9 +273,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         case None => Seq()
       }
     },
-    // don't publish scala 3 artifacts for now
-    publish / skip := (if ((publish / skip).value) true
-                       else scalaBinaryVersion.value == "3"),
     versionPolicyIntention := Compatibility.BinaryCompatible,
     scalacOptions += "-Wconf:origin=scala.collection.compat.*:s",
     scalacOptions ++= compilerOptions.value,
@@ -310,6 +310,11 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       Set(
         organizationName.value % previousScalaVCrossName % stableVersion.value
       )
+    },
+    // TODO: remove afetr 0.12.12 once Scala 3 artifacts have been published
+    mimaPreviousArtifacts := {
+      if (scalaVersion.value.startsWith("3")) Set.empty
+      else Set.empty
     },
     mimaBinaryIssueFilters ++= Mima.ignoredABIProblems,
     scalafixConfig := {

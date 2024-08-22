@@ -43,7 +43,7 @@ class CliSyntacticSuite extends BaseCliSuite {
     originalLayout = s"""/hello.scala
       |$original
       |""".stripMargin,
-    args = Array("-r", "ProcedureSyntax", "hello.scala"),
+    args = Array("-r", "RedundantSyntax", "hello.scala"),
     expectedLayout = s"""/hello.scala
       |$expected
       |""".stripMargin,
@@ -56,8 +56,7 @@ class CliSyntacticSuite extends BaseCliSuite {
       |/.scalafix.conf
       |rules = [
       |  RemoveUnused
-      |  ExplicitResultTypes
-      |  ProcedureSyntax
+      |  RedundantSyntax
       |]
       |/hello.scala
       |$original
@@ -67,8 +66,7 @@ class CliSyntacticSuite extends BaseCliSuite {
       |/.scalafix.conf
       |rules = [
       |  RemoveUnused
-      |  ExplicitResultTypes
-      |  ProcedureSyntax
+      |  RedundantSyntax
       |]
       |/hello.scala
       |$expected
@@ -83,7 +81,7 @@ class CliSyntacticSuite extends BaseCliSuite {
       |$original
       |/scalafix.args
       |-r
-      |ProcedureSyntax
+      |RedundantSyntax
       |hello.scala
       |""".stripMargin,
     args = Array("@scalafix.args"),
@@ -91,7 +89,7 @@ class CliSyntacticSuite extends BaseCliSuite {
       |$expected
       |/scalafix.args
       |-r
-      |ProcedureSyntax
+      |RedundantSyntax
       |hello.scala
       |""".stripMargin,
     expectedExit = ExitStatus.Ok
@@ -105,7 +103,7 @@ class CliSyntacticSuite extends BaseCliSuite {
       |$original""".stripMargin,
     args = Array(
       "-r",
-      "ProcedureSyntax",
+      "RedundantSyntax",
       "dir"
     ),
     expectedLayout = s"""|/dir/a.scala
@@ -118,7 +116,7 @@ class CliSyntacticSuite extends BaseCliSuite {
   check(
     name = "file not found",
     originalLayout = s"/foobar.scala\n",
-    args = Array("-r", "ProcedureSyntax", "unknown-file.scala"),
+    args = Array("-r", "RedundantSyntax", "unknown-file.scala"),
     expectedLayout = "/foobar.scala",
     expectedExit = ExitStatus.UnexpectedError
   )
@@ -135,7 +133,7 @@ class CliSyntacticSuite extends BaseCliSuite {
     name = "TestError",
     originalLayout = s"""/foobar.scala
       |$original""".stripMargin,
-    args = Array("--check", "-r", "ProcedureSyntax", "foobar.scala"),
+    args = Array("--check", "-r", "RedundantSyntax", "foobar.scala"),
     expectedLayout = s"""/foobar.scala
       |$original""".stripMargin,
     expectedExit = ExitStatus.TestError,
@@ -143,10 +141,11 @@ class CliSyntacticSuite extends BaseCliSuite {
       assert(
         out.endsWith(
           """|<expected fix>
-            |@@ -1,4 +1,4 @@
+            |@@ -1,5 +1,5 @@
             | object Main {
-            |-  def foo() {
-            |+  def foo(): Unit = {
+            |   def foo(): Unit = {
+            |-    s"hello"
+            |+    "hello"
             |   }
             | }
             |""".stripMargin
@@ -159,7 +158,7 @@ class CliSyntacticSuite extends BaseCliSuite {
     name = "--check OK",
     originalLayout = s"""/foobar.scala
       |$expected""".stripMargin,
-    args = Array("--check", "-r", "ProcedureSyntax", "foobar.scala"),
+    args = Array("--check", "-r", "RedundantSyntax", "foobar.scala"),
     expectedLayout = s"""/foobar.scala
       |$expected""".stripMargin,
     expectedExit = ExitStatus.Ok
@@ -170,10 +169,10 @@ class CliSyntacticSuite extends BaseCliSuite {
     originalLayout = s"""|
       |/.scalafix.conf
       |rules = [
-      |  RemoveUnused
+      |  DoesNotExist
       |]
       |
-      |triggered.rules = [ProcedureSyntax]
+      |triggered.rules = [RedundantSyntax]
       |
       |/hello.scala
       |$original
@@ -182,10 +181,10 @@ class CliSyntacticSuite extends BaseCliSuite {
     expectedLayout = s"""|
       |/.scalafix.conf
       |rules = [
-      |  RemoveUnused
+      |  DoesNotExist
       |]
       |
-      |triggered.rules = [ProcedureSyntax]
+      |triggered.rules = [RedundantSyntax]
       |
       |/hello.scala
       |$expected
@@ -239,7 +238,7 @@ class CliSyntacticSuite extends BaseCliSuite {
       "--exclude",
       "**ignoreme.scala",
       "-r",
-      "ProcedureSyntax",
+      "RedundantSyntax",
       "ignoreme.scala",
       "fixme.scala"
     ),
@@ -258,7 +257,7 @@ class CliSyntacticSuite extends BaseCliSuite {
     args = Array(
       "--stdout",
       "-r",
-      "ProcedureSyntax",
+      "RedundantSyntax",
       "a.scala"
     ),
     expectedLayout = s"""|/a.scala
@@ -274,7 +273,7 @@ class CliSyntacticSuite extends BaseCliSuite {
       |""".stripMargin,
     args = Array(
       "-r",
-      "ProcedureSyntax",
+      "RedundantSyntax",
       "a.scala"
     ),
     expectedLayout = s"""|/a.scala
@@ -295,16 +294,16 @@ class CliSyntacticSuite extends BaseCliSuite {
   check(
     name = "fix sbt files",
     originalLayout = s"""|/a.sbt
-      |def foo { println(1) }
+      |def foo = { println(s"hello") }
       |lazy val bar = project
       |""".stripMargin,
     args = Array(
       "-r",
-      "ProcedureSyntax",
+      "RedundantSyntax",
       "a.sbt"
     ),
     expectedLayout = s"""|/a.sbt
-      |def foo: Unit = { println(1) }
+      |def foo = { println("hello") }
       |lazy val bar = project
       |""".stripMargin,
     expectedExit = ExitStatus.Ok
@@ -313,16 +312,16 @@ class CliSyntacticSuite extends BaseCliSuite {
   check(
     name = "fix script files",
     originalLayout = s"""|/a.sc
-      |def foo { println(1) }
+      |def foo = { println(s"hello") }
       |lazy val bar = project
       |""".stripMargin,
     args = Array(
       "-r",
-      "ProcedureSyntax",
+      "RedundantSyntax",
       "a.sc"
     ),
     expectedLayout = s"""|/a.sc
-      |def foo: Unit = { println(1) }
+      |def foo = { println("hello") }
       |lazy val bar = project
       |""".stripMargin,
     expectedExit = ExitStatus.Ok
@@ -355,7 +354,7 @@ class CliSyntacticSuite extends BaseCliSuite {
       |""".stripMargin,
     args = Array(
       "-r",
-      "ProcedureSyntax",
+      "RedundantSyntax",
       "dir"
     ),
     expectedLayout = s"""|/dir/a.java
@@ -372,11 +371,11 @@ class CliSyntacticSuite extends BaseCliSuite {
     name = "--out-from --out-to change output path",
     originalLayout = """
       |/src/shared/a.scala
-      |object a { def foo { println(1) } }
+      |object a { def foo = { println(s"hello") } }
       |""".stripMargin,
     args = Array(
       "-r",
-      "ProcedureSyntax",
+      "RedundantSyntax",
       "--out-from",
       "shared",
       "--out-to",
@@ -385,10 +384,10 @@ class CliSyntacticSuite extends BaseCliSuite {
     ),
     expectedLayout = """
       |/src/fixed/a.scala
-      |object a { def foo: Unit = { println(1) } }
+      |object a { def foo = { println("hello") } }
       |
       |/src/shared/a.scala
-      |object a { def foo { println(1) } }
+      |object a { def foo = { println(s"hello") } }
       |""".stripMargin,
     expectedExit = ExitStatus.Ok
   )

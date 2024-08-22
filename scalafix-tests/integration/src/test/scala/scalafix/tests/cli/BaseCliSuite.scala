@@ -17,11 +17,9 @@ import scala.meta.io.RelativePath
 
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.cli.ExitStatus
-import scalafix.internal.tests.utils.SkipWindows
 import scalafix.test.StringFS
 import scalafix.testkit.DiffAssertions
 import scalafix.tests.BuildInfo
-import scalafix.tests.util.ScalaVersions
 import scalafix.v1.Main
 
 // extend this class to run custom cli tests.
@@ -29,13 +27,15 @@ trait BaseCliSuite extends AnyFunSuite with DiffAssertions {
 
   val original: String =
     """|object Main {
-      |  def foo() {
+      |  def foo(): Unit = {
+      |    s"hello"
       |  }
       |}
       |""".stripMargin
   val expected: String =
     """|object Main {
       |  def foo(): Unit = {
+      |    "hello"
       |  }
       |}
       |""".stripMargin
@@ -44,10 +44,6 @@ trait BaseCliSuite extends AnyFunSuite with DiffAssertions {
 
   val removeImportsPath: RelativePath =
     RelativePath("scala/test/removeUnused/RemoveUnusedImports.scala")
-  val explicitResultTypesPath: RelativePath =
-    RelativePath(
-      "scala-2/test/explicitResultTypes/ExplicitResultTypesBase.scala"
-    )
 
   def inputClasspath: Classpath = new Classpath(
     BuildInfo.inputClasspath.toList.map(f => AbsolutePath(f.getAbsolutePath))
@@ -168,7 +164,7 @@ trait BaseCliSuite extends AnyFunSuite with DiffAssertions {
       path: RelativePath = removeImportsPath,
       files: String = removeImportsPath.toString()
   ): Unit = {
-    test(name, SkipWindows) {
+    test(name) {
       val cwd = Files.createTempDirectory("scalafix")
       val sourceDir =
         inputSourceroot.toRelative(AbsolutePath(BuildInfo.baseDirectory)).toNIO
@@ -184,10 +180,8 @@ trait BaseCliSuite extends AnyFunSuite with DiffAssertions {
         else Array("--sourceroot", cwd.toString)
       val targetroots0 =
         targetroots.flatMap(Seq("--semanticdb-targetroots", _))
-      val scalaOption =
-        if (ScalaVersions.isScala213)
-          "-Wunused:imports"
-        else "-Ywarn-unused-import"
+      // we just need to please the check, no need match Scala version
+      val scalaOption = "-Ywarn-unused-import"
       val allArguments = args ++ sourceroot ++ targetroots0 ++ Seq(
         "--scalac-options",
         scalaOption,

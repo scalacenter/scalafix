@@ -55,7 +55,9 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
       customURLs: util.List[URL]
   ): ScalafixArguments =
     withToolClasspath(
-      new URLClassLoader(customURLs.asScala.toArray, getClass.getClassLoader)
+      customURLs,
+      Nil.asJava,
+      Repository.defaults()
     )
 
   override def withToolClasspath(
@@ -93,10 +95,21 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
         .toSeq
         .flatten
 
+    // Community rules won't be published for Scala 3 until core3 is released
+    // (see https://github.com/scalacenter/scalafix/issues/2041), so we can
+    // leverage the fact that cli3 is built against core2_13 to run rules3
+    // alongside Scala 2 community rules. Since cli3 does not bring Scala 3
+    // artifacts other than rule3, the Scalafix runtime and the compiler
+    // itself, there is almost no risk for conflicts between 2.13 and 3
+    // versions for artifacts brought by the user tool classpath.
+    val scalaVersionForDependencies =
+      if (Versions.scalaVersion.startsWith("3.")) Versions.scala213
+      else Versions.scalaVersion
+
     val customDependenciesJARs = ScalafixCoursier.toolClasspath(
       repositories,
       keptDependencies.asJava,
-      Versions.scalaVersion
+      scalaVersionForDependencies
     )
 
     // External rules are built against `scalafix-core` to expose `scalafix.v1.Rule` implementations. The
@@ -106,7 +119,7 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
     // mismatch.
     val scalafixCore = coursierapi.Module.parse(
       "ch.epfl.scala::scalafix-core",
-      coursierapi.ScalaVersion.of(Versions.scalaVersion)
+      coursierapi.ScalaVersion.of(scalaVersionForDependencies)
     )
     customDependenciesJARs.getDependencies.asScala
       .find(_.getModule == scalafixCore)

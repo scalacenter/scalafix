@@ -38,6 +38,11 @@ public interface Scalafix {
     String mainHelp(int screenWidth);
 
     /**
+     * The exact Scala versions used
+     */
+    String scalaVersion();
+
+    /**
      * The release version of the current Scalafix API instance.
      */
     String scalafixVersion();
@@ -48,7 +53,7 @@ public interface Scalafix {
     String scalametaVersion();
 
     /**
-     * The exact Scala versions that are supported by the recommended {@link #scalametaVersion()}
+     * The exact Scala versions that are supported
      */
     String[] supportedScalaVersions();
 
@@ -56,14 +61,24 @@ public interface Scalafix {
     String scala211();
 
     /**
-     * The most recent Scala 2.12 version in {@link #supportedScalaVersions()}
+     * The Scala 2.12 version in {@link #supportedScalaVersions()}
      */
     String scala212();
 
     /**
-     * The most recent Scala 2.13 version in {@link #supportedScalaVersions()}
+     * The Scala 2.13 version in {@link #supportedScalaVersions()}
      */
     String scala213();
+
+    /**
+     * The Scala 3 LTS version in {@link #supportedScalaVersions()}
+     */
+    String scala3LTS();
+
+    /**
+     * The Scala 3 Next version in {@link #supportedScalaVersions()}
+     */
+    String scala3Next();
 
     /**
      * Fetch JARs containing an implementation of {@link Scalafix} using Coursier and classload an instance of it via
@@ -73,11 +88,11 @@ public interface Scalafix {
      * classload external rules must have the classloader of the returned instance as ancestor to share a common
      * loaded instance of `scalafix-core`, and therefore have been compiled against the requested Scala binary version.
      *
-     * @param scalaBinaryVersion The Scala binary version ("2.13" for example) available in the classloader of the
-     *                           returned instance. To be able to run advanced semantic rules using the Scala
-     *                           Presentation Compiler such as ExplicitResultTypes, this must match the binary
-     *                           version that the target classpath was built with, as provided with
-     *                           {@link ScalafixArguments#withScalaVersion}.
+     * @param requestedScalaVersion The Scala version ("3.3.4" for example) available in the classloader of the
+     *                              returned instance. To be able to run advanced semantic rules using the Scala
+     *                              Presentation Compiler such as ExplicitResultTypes, this must match the version
+     *                              that the target classpath was built with, as provided with
+     *                              {@link ScalafixArguments#withScalaVersion}.
      * @return An implementation of the {@link Scalafix} interface.
      * @throws ScalafixException in case of errors during artifact resolution/fetching.
      */
@@ -93,28 +108,32 @@ public interface Scalafix {
      * classload external rules must have the classloader of the returned instance as ancestor to share a common
      * loaded instance of `scalafix-core`, and therefore have been compiled against the requested Scala binary version.
      *
-     * @param scalaBinaryVersion The Scala binary version ("2.13" for example) available in the classloader of the
-     *                           returned instance. To be able to run advanced semantic rules using the Scala
-     *                           Presentation Compiler such as ExplicitResultTypes, this must match the binary
-     *                           version that the target classpath was built with, as provided with
-     *                           {@link ScalafixArguments#withScalaVersion}.
+     * @param requestedScalaVersion The Scala version ("3.3.4" for example) available in the classloader of the
+     *                              returned instance. To be able to run advanced semantic rules using the Scala
+     *                              Presentation Compiler such as ExplicitResultTypes, this must match the version
+     *                              that the target classpath was built with, as provided with
+     *                              {@link ScalafixArguments#withScalaVersion}.
      * @param repositories       Maven/Ivy repositories to fetch the JARs from.
      * @return An implementation of the {@link Scalafix} interface.
      * @throws ScalafixException in case of errors during artifact resolution/fetching.
      */
-    static Scalafix fetchAndClassloadInstance(String scalaBinaryVersion, List<Repository> repositories)
+    static Scalafix fetchAndClassloadInstance(String requestedScalaVersion, List<Repository> repositories)
             throws ScalafixException {
 
         String scalaVersionKey;
-        switch (scalaBinaryVersion) {
-            case "2.12":
-                scalaVersionKey = "scala212";
-                break;
-            case "2.13":
-                scalaVersionKey = "scala213";
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported scala version " + scalaBinaryVersion);
+        if (requestedScalaVersion.startsWith("2.12")) {
+            scalaVersionKey = "scala212";
+        } else if (requestedScalaVersion.startsWith("2.13")) {
+            scalaVersionKey = "scala213";
+        } else if (requestedScalaVersion.startsWith("3.0") ||
+            requestedScalaVersion.startsWith("3.1") ||
+            requestedScalaVersion.startsWith("3.2") ||
+            requestedScalaVersion.startsWith("3.3")) {
+            scalaVersionKey = "scala3LTS";
+        } else if (requestedScalaVersion.startsWith("3")) {
+            scalaVersionKey = "scala3Next";
+        } else {
+            throw new IllegalArgumentException("Unsupported scala version " + requestedScalaVersion);
         }
 
         Properties properties = new Properties();

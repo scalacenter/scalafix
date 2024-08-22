@@ -21,27 +21,35 @@ object ExitStatus {
   private val allInternal = mutable.ListBuffer.empty[ExitStatus]
   private val cache =
     new java.util.concurrent.ConcurrentHashMap[Int, ExitStatus]
-  private def generateExitStatus(implicit name: sourcecode.Name) = {
+  private def generateExitStatus(name: String) = {
     val code = counter
     counter = if (counter == 0) 1 else counter << 1
-    val result = new ExitStatus(code, name.value) {}
+    val result = new ExitStatus(code, name) {}
     allInternal += result
     result
   }
-  // see https://github.com/scalameta/scalafmt/issues/941
-  // format: off
-  val Ok,
-      UnexpectedError,
-      ParseError,
-      CommandLineError,
-      MissingSemanticdbError,
-      StaleSemanticdbError,
-      TestError,
-      LinterError,
-      NoFilesError,
-      NoRulesError
-    : ExitStatus = generateExitStatus
-  // format: on
+
+  val Ok: ExitStatus =
+    generateExitStatus("Ok")
+  val UnexpectedError: ExitStatus =
+    generateExitStatus("UnexpectedError")
+  val ParseError: ExitStatus =
+    generateExitStatus("ParseError")
+  val CommandLineError: ExitStatus =
+    generateExitStatus("CommandLineError")
+  val MissingSemanticdbError: ExitStatus =
+    generateExitStatus("MissingSemanticdbError")
+  val StaleSemanticdbError: ExitStatus =
+    generateExitStatus("StaleSemanticdbError")
+  val TestError: ExitStatus =
+    generateExitStatus("TestError")
+  val LinterError: ExitStatus =
+    generateExitStatus("LinterError")
+  val NoFilesError: ExitStatus =
+    generateExitStatus("NoFilesError")
+  val NoRulesError: ExitStatus =
+    generateExitStatus("NoRulesError")
+
   lazy val all: List[ExitStatus] = allInternal.toList
   private def codeToName(code: Int): String = {
     if (code == 0) Ok.name

@@ -82,20 +82,20 @@ class CliSemanticSuite extends BaseCliSuite {
       defaultClasspath
     ),
     preprocess = { root =>
-      val path = root.resolve(explicitResultTypesPath)
+      val path = root.resolve(removeImportsPath)
       val code = FileIO.slurp(path, StandardCharsets.UTF_8)
       val staleCode = code + "\n// comment\n"
       Files.write(path.toNIO, staleCode.getBytes(StandardCharsets.UTF_8))
     },
     expectedExit = ExitStatus.StaleSemanticdbError,
-    rule = "ExplicitResultTypes",
-    path = explicitResultTypesPath,
-    files = explicitResultTypesPath.toString(),
+    rule = "RemoveUnused",
+    path = removeImportsPath,
+    files = removeImportsPath.toString(),
     outputAssert = { out =>
       assert(out.contains("Stale SemanticDB"))
       assert(
         out.contains(
-          explicitResultTypesPath.toString + "-ondisk-md5-fingerprint"
+          removeImportsPath.toString + "-ondisk-md5-fingerprint"
         )
       )
     }
@@ -108,33 +108,33 @@ class CliSemanticSuite extends BaseCliSuite {
       defaultClasspath
     ),
     preprocess = { root =>
-      val expectedOutput = slurpOutput(explicitResultTypesPath)
-      val path = root.resolve(explicitResultTypesPath)
+      val expectedOutput = slurpOutput(removeImportsPath)
+      val path = root.resolve(removeImportsPath)
       Files.write(path.toNIO, expectedOutput.getBytes(StandardCharsets.UTF_8))
     },
     expectedExit = ExitStatus.Ok,
-    rule = "ExplicitResultTypes",
-    path = explicitResultTypesPath,
-    files = explicitResultTypesPath.toString(),
+    rule = "RemoveUnused",
+    path = removeImportsPath,
+    files = removeImportsPath.toString(),
     outputAssert = { out =>
       assert(out.isEmpty)
     }
   )
 
   checkSemantic(
-    name = "explicit result types OK",
+    name = "remove unused OK",
     args = Array(
       "--classpath",
       defaultClasspath
     ),
     expectedExit = ExitStatus.Ok,
-    rule = "ExplicitResultTypes",
-    path = explicitResultTypesPath,
-    files = explicitResultTypesPath.toString()
+    rule = "RemoveUnused",
+    path = removeImportsPath,
+    files = removeImportsPath.toString()
   )
 
   checkSemantic(
-    name = "explicit result types OK (auto-classpath)",
+    name = "remove unused OK (auto-classpath)",
     args = Array(
       "--auto-classpath",
       "--auto-classpath-roots",
@@ -146,9 +146,9 @@ class CliSemanticSuite extends BaseCliSuite {
       )
     },
     expectedExit = ExitStatus.Ok,
-    rule = "ExplicitResultTypes",
-    path = explicitResultTypesPath,
-    files = explicitResultTypesPath.toString()
+    rule = "RemoveUnused",
+    path = removeImportsPath,
+    files = removeImportsPath.toString()
   )
 
   checkSemantic(
@@ -160,10 +160,10 @@ class CliSemanticSuite extends BaseCliSuite {
           .filterNot(_.toString().contains("scala-library"))
       ).syntax
     ),
-    // Errors in ExplicitResultTypes are suppressed.
+    // Errors in RemoveUnused are suppressed.
     expectedExit = ExitStatus.Ok,
-    rule = "ExplicitResultTypes",
-    path = explicitResultTypesPath
+    rule = "RemoveUnused",
+    path = removeImportsPath
   )
 
   checkSemantic(
@@ -228,13 +228,14 @@ class CliSemanticSuite extends BaseCliSuite {
         |  def foo = Option.empty[Int]
         |}
         |/.scalafix.conf
-        |rules = ExplicitResultTypes
-        |ExplicitResultTypes.memberKind = [Val, Def, Var]
-        |ExplicitResultTypes.memberVisibility = [Public, Protected]
+        |rules = RemoveUnused
+        |RemoveUnused.privates = false
         |""".stripMargin
     )
     val (_, exit) = runMain(
       Array(
+        "--scalac-options",
+        "-Ywarn-unused-import",
         "--files",
         "NoSemanticdb.scala",
         "--classpath",
