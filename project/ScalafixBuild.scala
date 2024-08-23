@@ -209,9 +209,12 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
           .get(extracted.structure.data)
           .get
 
-      def asSuffix(scalaVersion: String) = scalaVersion.replace(".", "_")
+      def asSuffix(scalaVersion: String) =
+        scalaVersion.replaceAll("[\\.-]", "_")
 
-      s"all cli${asSuffix(scala212)}/publishLocalTransitive cli${asSuffix(scala213)}/publishLocalTransitive interfaces/publishLocal" ::
+      cliScalaVersions
+        .map(sv => s"cli${asSuffix(sv)}/publishLocalTransitive")
+        .mkString("all ", " ", " interfaces/publishLocal") ::
         "reload plugins" ::
         s"""set dependencyOverrides += "ch.epfl.scala" % "scalafix-interfaces" % "$v"""" :: // as documented in installation.md
         "session save" ::
