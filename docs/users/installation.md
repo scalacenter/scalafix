@@ -5,11 +5,13 @@ title: Installation
 
 ## Support
 
-**macOS, Linux or Windows**
+Scalafix is tested to work with:
 
-**Java LTS (8, 11, 17 or 21)**
+* **macOS, Linux or Windows**
+* **Java LTS (8, 11, 17 or 21)**
+* **Scala @SCALA212@, @SCALA213@ or @SCALA3LTS@ or @SCALA3NEXT@**
 
-**Scala 2.12, 2.13 or 3.x**
+Note that other setups may work, but could result in unexpected behavior.
 
 ## sbt
 
@@ -83,7 +85,7 @@ the Scala compiler option `-Ywarn-unused-import` (or `-Wunused:imports` in
   */
  inThisBuild(
    List(
-     scalaVersion := "@SCALA212@", // @SCALA213@, or 3.x
+     scalaVersion := "@SCALA212@", // @SCALA213@, @SCALA3LTS@ or @SCALA3NEXT@
 +    semanticdbEnabled := true, // enable SemanticDB
 +    semanticdbVersion := scalafixSemanticdb.revision // only required for Scala 2.x
    )
@@ -106,7 +108,7 @@ the Scala compiler option `-Ywarn-unused-import` (or `-Wunused:imports` in
   * https://www.scala-sbt.org/1.x/docs/sbt-1.3-Release-Notes.html#SemanticDB+support
   */
  lazy val myproject = project.settings(
-   scalaVersion := "@SCALA212@", // @SCALA213@, or 3.x
+   scalaVersion := "@SCALA212@", // @SCALA213@, @SCALA3LTS@ or @SCALA3NEXT@
 +  semanticdbEnabled := true, // enable SemanticDB
 +  semanticdbVersion := scalafixSemanticdb.revision, // only required for Scala 2.x
 +  scalacOptions += {
@@ -403,7 +405,7 @@ settings `scalacOptions` and `allDependencies` contain the values below.
 ...
 > show allDependencies
 ...
-[info] List(..., org.scalameta:semanticdb-scalac:@SCALA212@:plugin->default(compile), ...)
+[info] List(..., org.scalameta:semanticdb-scalac:@SCALA213@:plugin->default(compile), ...)
 ...
 ```
 
@@ -464,5 +466,5 @@ If using the sbt plugin
 If using the command-line interface
 
 ```sh
-cs launch ch.epfl.scala:scalafix-cli_@SCALA212@:@NIGHTLY_VERSION@ -r sonatype:snapshots --main scalafix.cli.Cli -- --help
+cs launch ch.epfl.scala:scalafix-cli_@SCALA213@:@NIGHTLY_VERSION@ -r sonatype:snapshots --main scalafix.cli.Cli -- --help
 ```
