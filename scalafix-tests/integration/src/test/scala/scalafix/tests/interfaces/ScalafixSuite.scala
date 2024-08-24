@@ -7,6 +7,7 @@ import java.nio.file.Path
 
 import scala.jdk.CollectionConverters._
 
+import coursierapi.MavenRepository
 import coursierapi.Repository
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.Versions
@@ -25,6 +26,15 @@ import scalafix.tests.BuildInfo
 class ScalafixSuite extends AnyFunSuite {
 
   val scalaVersion: String = BuildInfo.scalaVersion
+
+  val repositories: java.util.List[Repository] = Seq[Repository](
+    Repository.ivy2Local(), // for scalafix-*
+    Repository.central(), // for scala libs
+    MavenRepository.of(
+      // for scalameta SNAPSHOTS
+      "https://oss.sonatype.org/content/repositories/snapshots"
+    )
+  ).asJava
 
   test("versions") {
     val api = Scalafix.classloadInstance(this.getClass.getClassLoader)
@@ -45,12 +55,12 @@ class ScalafixSuite extends AnyFunSuite {
   }
 
   test("classload Scala 3 LTS as a fallback for pre-LTS versions") {
-    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.0.0")
+    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.0.0", repositories)
     assert(scalafixAPI.scalaVersion() == Versions.scala3LTS)
   }
 
   test("classload Scala 3 Next as a fallback for post-LTS versions") {
-    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.4.0")
+    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.4.0", repositories)
     assert(scalafixAPI.scalaVersion() == Versions.scala3Next)
   }
 
@@ -71,10 +81,7 @@ class ScalafixSuite extends AnyFunSuite {
   test(s"fetch & load cli for $scalaVersion") {
     val scalafixAPI = Scalafix.fetchAndClassloadInstance(
       scalaVersion,
-      Seq[Repository](
-        Repository.ivy2Local(), // for scalafix-*
-        Repository.central() // for scala libs
-      ).asJava
+      repositories
     )
     val args = scalafixAPI.newArguments
 
@@ -117,7 +124,10 @@ class ScalafixSuite extends AnyFunSuite {
   }
 
   test(s"fetch & load cli for $scalaVersion with external dependencies") {
-    val scalafixAPI = Scalafix.fetchAndClassloadInstance(scalaVersion)
+    val scalafixAPI = Scalafix.fetchAndClassloadInstance(
+      scalaVersion,
+      repositories
+    )
 
     val ruleForDependency = Map(
       // built against scalafix 0.9.16
