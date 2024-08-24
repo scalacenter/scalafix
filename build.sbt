@@ -1,6 +1,5 @@
 import Dependencies._
 import TargetAxis.TargetProjectMatrix
-import sbt.Keys.scalacOptions
 
 inThisBuild(
   List(
@@ -75,6 +74,7 @@ lazy val core = projectMatrix
       googleDiff,
       metaconfig,
       scalametaFor3Use2_13,
+      semanticdbScalacCore,
       collectionCompat
     )
   )
@@ -92,11 +92,16 @@ lazy val core3 = project
     scalaVersion := scala3LTS,
     libraryDependencies ++= Seq(
       googleDiff,
-      metaconfig,
-      scalametaFor3Use2_13
+      metaconfig
+    ) ++ Seq(
+      scalametaFor3Use2_13,
+      // CrossVersion.for3Use2_13 would only lookup a binary version artifact, but this is published with full version
+      semanticdbScalacCore.cross(CrossVersion.constant(scala213))
+    ).map { mod =>
+      mod
         .exclude("com.lihaoyi", "sourcecode_2.13")
         .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
-    )
+    }
   )
   .enablePlugins(BuildInfoPlugin)
 

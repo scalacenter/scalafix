@@ -42,7 +42,9 @@
 [41:7..41:11]:    test/ann2# => class ann2 extends Annotation with StaticAnnotation { +1 decls }
 [41:12..41:12]:   test/ann2#`<init>`(). => primary ctor <init>()
 [43:7..43:8]:     test/B# => class B extends AnyRef { +1 decls }
+[43:8..43:8]:     test/B#`<init>`(). => primary ctor <init>()
 [45:7..45:8]:     test/C# => class C extends AnyRef { +1 decls }
+[45:8..45:8]:     test/C#`<init>`(). => primary ctor <init>()
 [47:7..47:8]:     test/P# => class P extends AnyRef { +4 decls }
 [47:9..47:9]:     test/P#`<init>`(). => primary ctor <init>()
 [48:9..48:10]:    test/P#C# => class C extends AnyRef { +1 decls }

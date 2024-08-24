@@ -2,7 +2,7 @@ package scalafix.internal.rule
 
 import scala.meta._
 import scala.meta.contrib.AssociatedComments
-import scala.meta.internal.inputs.XtensionInputSyntaxStructure
+import scala.meta.internal.inputs.XtensionInput
 import scala.meta.tokens.Tokens
 
 import org.scalameta.FileLine
