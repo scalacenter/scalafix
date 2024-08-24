@@ -134,12 +134,6 @@ lazy val cli = projectMatrix
       commonText
     ),
     libraryDependencies ++= {
-      if (!isScala3.value)
-        Seq(java8Compat)
-      else
-        Seq()
-    },
-    libraryDependencies ++= {
       if (isScala3.value) Seq()
       else
         // Rules built with an old scalafix-core may need packages that

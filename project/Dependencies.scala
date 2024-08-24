@@ -15,7 +15,6 @@ object Dependencies {
   val coursierInterfaceV = "1.0.19"
   val commontTextV = "1.12.0"
   val googleDiffV = "1.3.0"
-  val java8CompatV = "1.0.2"
   val jgitV = "5.13.3.202401111512-r"
   val metaconfigV = "0.12.0"
   val nailgunV = "0.9.1"
@@ -40,7 +39,6 @@ object Dependencies {
     .cross(CrossVersion.for3Use2_13)
   val coursierInterfaces = "io.get-coursier" % "interface" % coursierInterfaceV
   val googleDiff = "com.googlecode.java-diff-utils" % "diffutils" % googleDiffV
-  val java8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % java8CompatV
   val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % jgitV
   val metaconfig = "com.geirsson" %% "metaconfig-typesafe-config" % metaconfigV
   val pprint = "com.lihaoyi" %% "pprint" % pprintV
