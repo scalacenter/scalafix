@@ -8,6 +8,7 @@ import coursier.Fetch
 import coursier.Module
 import coursier.ModuleName
 import coursier.Organization
+import coursier.maven.MavenRepository
 import scalafix.tests.BuildInfo
 
 object SemanticdbPlugin {
@@ -21,6 +22,11 @@ object SemanticdbPlugin {
     )
     val paths = Fetch()
       .addDependencies(dep)
+      .addRepositories(
+        MavenRepository(
+          "https://oss.sonatype.org/content/repositories/snapshots"
+        )
+      )
       .run()
     val semanticdbscalac = paths.collectFirst {
       case path if path.toString.contains("semanticdb-scalac_") =>
