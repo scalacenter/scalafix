@@ -74,7 +74,7 @@ lazy val core = projectMatrix
       googleDiff,
       metaconfig,
       scalametaFor3Use2_13,
-      semanticdbScalacCore,
+      semanticdbSharedFor3Use2_13,
       collectionCompat
     )
   )
@@ -95,8 +95,7 @@ lazy val core3 = project
       metaconfig
     ) ++ Seq(
       scalametaFor3Use2_13,
-      // CrossVersion.for3Use2_13 would only lookup a binary version artifact, but this is published with full version
-      semanticdbScalacCore.cross(CrossVersion.constant(scala213))
+      semanticdbSharedFor3Use2_13
     ).map { mod =>
       mod
         .exclude("com.lihaoyi", "sourcecode_2.13")
@@ -149,6 +148,7 @@ lazy val reflect = projectMatrix
     moduleName := "scalafix-reflect",
     isFullCrossVersion,
     libraryDependencies ++= Seq(
+      semanticdbScalacCore,
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
     )
@@ -165,8 +165,14 @@ lazy val reflect3 = project
     isFullCrossVersion,
     noPublishAndNoMima,
     scalaVersion := scala3LTS,
-    libraryDependencies +=
+    libraryDependencies ++= Seq(
+      // CrossVersion.for3Use2_13 would only lookup a binary version artifact, but this is published with full version
+      semanticdbScalacCore
+        .cross(CrossVersion.constant(scala213))
+        .exclude("com.lihaoyi", "sourcecode_2.13")
+        .exclude("org.scala-lang.modules", "scala-collection-compat_2.13"),
       "org.scala-lang" %% "scala3-compiler" % scalaVersion.value
+    )
   )
   .dependsOn(core3)
 

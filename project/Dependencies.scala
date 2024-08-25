@@ -41,6 +41,7 @@ object Dependencies {
   val scalatest = "org.scalatest" %% "scalatest" % scalatestV
   val munit = "org.scalameta" %% "munit" % munitV
   val semanticdbScalacCore = "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
+  val semanticdbSharedFor3Use2_13 = "org.scalameta" % "semanticdb-shared" % scalametaV cross CrossVersion.for3Use2_13
 
   // scala-steward:off
 
