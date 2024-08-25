@@ -89,7 +89,6 @@ class CliSemanticSuite extends BaseCliSuite {
     },
     expectedExit = ExitStatus.StaleSemanticdbError,
     rule = "RemoveUnused",
-    path = removeImportsPath,
     files = removeImportsPath.toString(),
     outputAssert = { out =>
       assert(out.contains("Stale SemanticDB"))
@@ -114,7 +113,6 @@ class CliSemanticSuite extends BaseCliSuite {
     },
     expectedExit = ExitStatus.Ok,
     rule = "RemoveUnused",
-    path = removeImportsPath,
     files = removeImportsPath.toString(),
     outputAssert = { out =>
       assert(out.isEmpty)
@@ -129,7 +127,6 @@ class CliSemanticSuite extends BaseCliSuite {
     ),
     expectedExit = ExitStatus.Ok,
     rule = "RemoveUnused",
-    path = removeImportsPath,
     files = removeImportsPath.toString()
   )
 
@@ -147,7 +144,6 @@ class CliSemanticSuite extends BaseCliSuite {
     },
     expectedExit = ExitStatus.Ok,
     rule = "RemoveUnused",
-    path = removeImportsPath,
     files = removeImportsPath.toString()
   )
 
@@ -162,8 +158,7 @@ class CliSemanticSuite extends BaseCliSuite {
     ),
     // Errors in RemoveUnused are suppressed.
     expectedExit = ExitStatus.Ok,
-    rule = "RemoveUnused",
-    path = removeImportsPath
+    rule = "RemoveUnused"
   )
 
   checkSemantic(

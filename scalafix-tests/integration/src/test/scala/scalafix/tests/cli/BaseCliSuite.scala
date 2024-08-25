@@ -161,7 +161,6 @@ trait BaseCliSuite extends AnyFunSuite with DiffAssertions {
       preprocess: AbsolutePath => Unit = _ => (),
       outputAssert: String => Unit = _ => (),
       rule: String = "RemoveUnused",
-      path: RelativePath = removeImportsPath,
       files: String = removeImportsPath.toString()
   ): Unit = {
     test(name) {
