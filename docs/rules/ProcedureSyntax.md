@@ -25,4 +25,3 @@ trait A { def doSomething: Unit }
 ```
 
 This syntax no longer exists in Scala 3 and therefore this rule only makes sense in Scala 2.
-You need to remove `ProcedureSyntax` from `.scalafix.conf` for Scala 3 projects.

@@ -9,7 +9,7 @@ Scalafix is tested to work with:
 
 * **macOS, Linux or Windows**
 * **Java LTS (8, 11, 17 or 21)**
-* **Scala @SCALA212@, @SCALA213@ or @SCALA3LTS@ LTS or @SCALA3NEXT@**
+* **Scala @SCALA212@, @SCALA213@, @SCALA3LTS@ LTS or @SCALA3NEXT@**
 
 Note that other setups may work, but could result in unexpected behavior.
 
@@ -270,7 +270,7 @@ Central. To install a custom rule, add it to `scalafixDependencies`
 ```scala
 // at the top of build.sbt
 ThisBuild / scalafixDependencies +=
-  "ch.epfl.scala" %% "example-scalafix-rule" % "3.0.0"
+  "ch.epfl.scala" %% "example-scalafix-rule" % "4.0.0"
 ```
 
 Start sbt and type `scalafix <TAB>`, once the `example-scalafix-rule` dependency

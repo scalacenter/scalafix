@@ -107,11 +107,7 @@ following sbt settings
 The only requirement is that the input project uses a Scala compiler version
 that is either supported by
 [SemanticDB](https://scalameta.org/docs/semanticdb/specification.html) compiler
-plugin or built-in in the compiler. Supported Scala compiler versions include:
-
-- Scala @SCALA212@
-- Scala @SCALA213@
-- Scala 3.x
+plugin or built-in in the compiler.
 
 The output project can use any Scala compiler version.
 
