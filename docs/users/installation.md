@@ -393,22 +393,6 @@ the next `compile`.
 > The `scalafixEnable` command must be re-executed after every `reload` and when
 > sbt shell is exited.
 
-### Verify installation
-
-To verify that the SemanticDB compiler plugin is enabled, check that the
-settings `scalacOptions` and `allDependencies` contain the values below.
-
-```sh
-> show Compile / scalacOptions
-...
-[info] * List(..., -Yrangepos, ...)
-...
-> show allDependencies
-...
-[info] List(..., org.scalameta:semanticdb-scalac:@SCALA213@:plugin->default(compile), ...)
-...
-```
-
 ### Example project
 
 For a minimal example project using sbt-scalafix, see the
