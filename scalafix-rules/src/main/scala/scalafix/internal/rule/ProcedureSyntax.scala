@@ -5,7 +5,6 @@ import scala.meta.tokens.Token
 import scala.meta.tokens.Token.Equals
 import scala.meta.tokens.Token.RightParen
 
-import metaconfig.Configured
 import scalafix.util.Trivia
 import scalafix.v1._
 
