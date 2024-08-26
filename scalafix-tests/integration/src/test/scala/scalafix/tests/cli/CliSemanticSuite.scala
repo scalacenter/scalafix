@@ -133,9 +133,7 @@ class CliSemanticSuite extends BaseCliSuite {
   checkSemantic(
     name = "remove unused OK (auto-classpath)",
     args = Array(
-      "--auto-classpath",
-      "--auto-classpath-roots",
-      PathIO.workingDirectory.toString
+      "--auto-classpath"
     ) ++ Classpaths.scalaLibrary.entries.toArray.flatMap { path =>
       Array(
         "--auto-classpath-roots",
