@@ -241,7 +241,7 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
     )
 
   override def withSourceroot(path: Path): ScalafixArguments = {
-    require(path.isAbsolute, s"sourceroot must be relative: $path")
+    require(path.isAbsolute, s"sourceroot must be absolute: $path")
     copy(args = args.copy(sourceroot = Some(AbsolutePath(path)(args.cwd))))
   }
 
