@@ -40,6 +40,9 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
   val scalaLibrary: Seq[AbsolutePath] = Classpaths.scalaLibrary.entries
 
   val rawApi: ScalafixArguments = ScalafixArgumentsImpl()
+    // instead of the repo root, set a non-empty, stable directory to avoid
+    // getting errors due to concurrent compilation of other projects
+    .withWorkingDirectory(Paths.get("scalafix-core/src/main").toAbsolutePath)
 
   // fixturing variant of test, allowing to customize created input files
   def fsTest[T](testName: String, testTags: Tag*)(
