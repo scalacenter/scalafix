@@ -188,6 +188,24 @@ final class SymbolInformation private[scalafix] (
   /** @group property */
   @property def isDefault: Boolean = info.isDefault
 
+  /** @group property */
+  @property def isGiven: Boolean = info.isGiven
+
+  /** @group property */
+  @property def isInline: Boolean = info.isInline
+
+  /** @group property */
+  @property def isOpen: Boolean = info.isOpen
+
+  /** @group property */
+  @property def isTransparent: Boolean = info.isTransparent
+
+  /** @group property */
+  @property def isInfix: Boolean = info.isInfix
+
+  /** @group property */
+  @property def isOpaque: Boolean = info.isOpaque
+
   /** @group access */
   @access def isPrivate: Boolean = info.isPrivate
 
