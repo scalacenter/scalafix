@@ -315,10 +315,10 @@ https://scalameta.org/docs/semanticdb/guide.html#scalac-compiler-plugin
 > matched against the `java.io.File.getAbsolutePath` representation of each
 > file.
 
-### Exclude files from Scalafix (Scala 2.x only)
+### Exclude files from Scalafix
 
 By default, the `scalafix` task processes all files in a project. If you use
-SemanticDB, the `scalafix` task also respects
+Scala 2.x, the `scalafix` task also respects
 [`-P:semanticdb:exclude`](#exclude-files-from-semanticdb-scala-2x-only).
 
 Use `Compile / scalafix / unmanagedSources` to optionally exclude files from
