@@ -95,7 +95,58 @@ triggered.rules = [
   <span class="hljs-type">DisableSyntax</span>
 ]
 </code></pre>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/scalafix/docs/users/installation.html"><span class="arrow-prev">← </span><span>Installation</span></a><a class="docs-next button" href="/scalafix/docs/users/suppression.html"><span>Suppressing rules</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#configuring-rules">Configuring rules</a></li><li><a href="#rule-specific-configuration">Rule-specific configuration</a></li><li><a href="#triggered-configuration">Triggered configuration</a></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#15242B"><section class="sitemap"><a href="/scalafix/" class="nav-home"><img src="/scalafix/img/scalafix-brand-small2x.png" alt="Scalafix" width="52" height="52"/></a><div><h5>Docs</h5><a href="
+<h2><a class="anchor" aria-hidden="true" id="overriding-the-linting-behavior"></a><a href="#overriding-the-linting-behavior" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Overriding the linting behavior</h2>
+<p>By default, only lints raised with <code>LintSeverity.Error</code> will result in a
+non-zero exit code. To force Scalafix to return a non-zero exit code for other
+diagnostics, it is possible to promote non-error diagnostics to the error level
+without touching the rules(s) source code, thanks to <code>lint.error</code>.</p>
+<p>This key accepts as value either</p>
+<ul>
+<li>a string, interpreted as a regular expression to match diagnostics using the
+<code>&lt;rule_name&gt;[.&lt;lint_id&gt;]</code> pattern,</li>
+<li>a list of strings, treated as several regular expressions like above,</li>
+<li>an object, with <code>include</code> and <code>exclude</code> attributes, each treated as regular
+expressions like above.</li>
+</ul>
+<p>As an example, to force all linter reports to trigger an error, except for unused
+suppressions, any of the 3 configuration files below can be used, as they are
+effectively equivalent.</p>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">// .scalafix.conf</span>
+lint.error = <span class="hljs-string">"^((?!UnusedScalafixSuppression).)*$"</span>
+</code></pre>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">// .scalafix.conf</span>
+lint.error = [
+  <span class="hljs-string">"^((?!UnusedScalafixSuppression).)*$"</span>
+]
+</code></pre>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">// .scalafix.conf</span>
+lint.error = {
+  includes = <span class="hljs-string">".*"</span>
+  excludes = <span class="hljs-string">"UnusedScalafixSuppression"</span>
+}
+</code></pre>
+<p>Similarly, diagnostics can be controlled through <code>lint.ignore</code>, <code>lint.info</code>,
+and <code>lint.warning</code>, which respectively suppress matching diagnostics, force
+them to be at info level, and force them to be at warning level.</p>
+<h2><a class="anchor" aria-hidden="true" id="passing-configuration-as-cli-arguments"></a><a href="#passing-configuration-as-cli-arguments" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Passing configuration as CLI arguments</h2>
+<p>It is possible to pass configuration flags with scalar values as CLI arguments,
+overriding any potential value set in the configuration file, by prefixing the
+qualified name of each attribute with <code>--settings.</code>.</p>
+<p>For example, the configuration file below</p>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">// .scalafix.conf</span>
+<span class="hljs-type">DisableSyntax</span> {
+  noFinalize = <span class="hljs-literal">true</span>
+}
+lint.error.includes = <span class="hljs-string">".*"</span>
+lint.error.excludes = <span class="hljs-string">"UnusedScalafixSuppression"</span>
+</code></pre>
+<p>is equivalent to the following CLI arguments</p>
+<pre><code class="hljs">scalafix <span class="hljs-built_in">..</span>. \
+  --settings.DisableSyntax.<span class="hljs-attribute">noFinalize</span>=<span class="hljs-literal">true</span> \
+  --settings.lint.error.<span class="hljs-attribute">includes</span>=.* \
+  --settings.lint.error.<span class="hljs-attribute">excludes</span>=UnusedScalafixSuppression
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/scalafix/docs/users/installation.html"><span class="arrow-prev">← </span><span>Installation</span></a><a class="docs-next button" href="/scalafix/docs/users/suppression.html"><span>Suppressing rules</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#configuring-rules">Configuring rules</a></li><li><a href="#rule-specific-configuration">Rule-specific configuration</a></li><li><a href="#triggered-configuration">Triggered configuration</a></li><li><a href="#overriding-the-linting-behavior">Overriding the linting behavior</a></li><li><a href="#passing-configuration-as-cli-arguments">Passing configuration as CLI arguments</a></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#15242B"><section class="sitemap"><a href="/scalafix/" class="nav-home"><img src="/scalafix/img/scalafix-brand-small2x.png" alt="Scalafix" width="52" height="52"/></a><div><h5>Docs</h5><a href="
                 /scalafix/docs/users/installation.html">Get started</a><a href="
                 /scalafix/docs/rules/overview.html">Rules</a><a href="
                 /scalafix/docs/developers/setup.html">Extend Scalafix</a></div><div><h5>Community</h5><a href="https://discord.gg/8AHaqGx3Qj" target="_blank">Chat on Discord</a><a href="https://users.scala-lang.org/" target="_blank">Discuss on Scala Users</a></div><div><h5>More</h5><a href="https://github.com/scalacenter/scalafix" target="_blank">GitHub</a></div></section><section class="copyright">Copyright © 2024 Scala Center</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
