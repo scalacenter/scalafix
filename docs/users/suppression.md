@@ -3,8 +3,15 @@ id: suppression
 title: Suppressing rules
 ---
 
-Sometimes you need to ignore the output from Scalafix. Scalafix provides two
-methods for suppressing rules: annotations and comments.
+Sometimes you need to ignore the output from Scalafix.
+
+For linters, and for linters only, an easy way to achieve that is to
+selectively ignore some diagnostics via
+[`lint.ignore`](configuration.md#overriding-the-linting-behavior).
+However, this toggle is global, which is rarely what is needed.
+
+Scalafix provides two methods for suppressing rules in source code: annotations
+and comments.
 
 - Annotations: great for disabling regions of code but some source code
   locations are impossible to annotate.
