@@ -354,12 +354,17 @@ Next, update `META-INF/services/scalafix.v1.Rule` to include the new rule so
 that Scalafix can load the rule by it's name `rules = [ NoLiteralArguments ]`.
 Consult the JDK
 [ServiceLoader](https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html)
-documentation to learn more about how Scalafix loads rules
+documentation to learn more about how Scalafix loads rules.
 
 ```diff
   fix.NamedLiteralArguments
 + fix.NoLiteralArguments
 ```
+
+Note that the _name_ of the rule is the string passed as an argument to
+`SyntacticRule`. While usually it is named after the class, they can be
+different. Keep in mind it's the fully-qualified class name listed in
+`scalafix.v1.Rule`, and it's the rule name that Scalafix can then use.
 
 We create a new input file to test `NoLiteralArguments`.
 
