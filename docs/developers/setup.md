@@ -151,32 +151,3 @@ should go into `scalafix-testkit.properties`, consult the Scaladocs.
 
 Latest Scaladoc:
 [`TestkitProperties`](https://static.javadoc.io/ch.epfl.scala/scalafix-testkit_@SCALA212@/@VERSION@/scalafix/testkit/TestkitProperties.html)
-
-## Referencing rules
-
-Scalafix can reference a rule's classname like so:
-
-```
-sbt "scalafix class:fix.MyRule"
-```
-
-More commonly, you'll want to simply reference a rule's name:
-
-```
-sbt "scalafix MyRule"
-```
-
-The _name_ of a rule is the string given when extending the `SemanticRule` or
-`SyntaticRule` classes. Usually it's the same as the class name, but it can be
-different; for instance:
-
-```scala
-package fix
-
-class MyRuleClass extends SemanticRule("MyRuleName") { /* ... */ }
-```
-
-Here you could either refer to `MyRuleName` or `class:fix.MyRuleClass`.
-
-To use names, you also must have a corresponding line in the
-`META-INF/services/scalafix.v1.Rule` file of `fix.MyRuleClass`.
