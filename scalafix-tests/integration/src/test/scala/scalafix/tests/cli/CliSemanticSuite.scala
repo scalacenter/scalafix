@@ -89,7 +89,6 @@ class CliSemanticSuite extends BaseCliSuite {
     },
     expectedExit = ExitStatus.StaleSemanticdbError,
     rule = "RemoveUnused",
-    path = removeImportsPath,
     files = removeImportsPath.toString(),
     outputAssert = { out =>
       assert(out.contains("Stale SemanticDB"))
@@ -114,7 +113,6 @@ class CliSemanticSuite extends BaseCliSuite {
     },
     expectedExit = ExitStatus.Ok,
     rule = "RemoveUnused",
-    path = removeImportsPath,
     files = removeImportsPath.toString(),
     outputAssert = { out =>
       assert(out.isEmpty)
@@ -129,16 +127,13 @@ class CliSemanticSuite extends BaseCliSuite {
     ),
     expectedExit = ExitStatus.Ok,
     rule = "RemoveUnused",
-    path = removeImportsPath,
     files = removeImportsPath.toString()
   )
 
   checkSemantic(
     name = "remove unused OK (auto-classpath)",
     args = Array(
-      "--auto-classpath",
-      "--auto-classpath-roots",
-      PathIO.workingDirectory.toString
+      "--auto-classpath"
     ) ++ Classpaths.scalaLibrary.entries.toArray.flatMap { path =>
       Array(
         "--auto-classpath-roots",
@@ -147,7 +142,6 @@ class CliSemanticSuite extends BaseCliSuite {
     },
     expectedExit = ExitStatus.Ok,
     rule = "RemoveUnused",
-    path = removeImportsPath,
     files = removeImportsPath.toString()
   )
 
@@ -162,8 +156,7 @@ class CliSemanticSuite extends BaseCliSuite {
     ),
     // Errors in RemoveUnused are suppressed.
     expectedExit = ExitStatus.Ok,
-    rule = "RemoveUnused",
-    path = removeImportsPath
+    rule = "RemoveUnused"
   )
 
   checkSemantic(
