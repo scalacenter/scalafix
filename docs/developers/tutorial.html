@@ -329,10 +329,14 @@ parameter name. The linter can be syntactic because it doesn't need to use
 that Scalafix can load the rule by it's name <code>rules = [ NoLiteralArguments ]</code>.
 Consult the JDK
 <a href="https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html">ServiceLoader</a>
-documentation to learn more about how Scalafix loads rules</p>
+documentation to learn more about how Scalafix loads rules.</p>
 <pre><code class="hljs css language-diff">  fix.NamedLiteralArguments
 <span class="hljs-addition">+ fix.NoLiteralArguments</span>
 </code></pre>
+<p>Note that the <em>name</em> of the rule is the string passed as an argument to
+<code>SyntacticRule</code>. While usually it is named after the class, they can be
+different. Keep in mind it's the fully-qualified class name listed in
+<code>scalafix.v1.Rule</code>, and it's the rule name that Scalafix can then use.</p>
 <p>We create a new input file to test <code>NoLiteralArguments</code>.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-comment">/*
 rule = NoLiteralArguments
