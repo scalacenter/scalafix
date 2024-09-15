@@ -5,7 +5,7 @@ import sbt._
 /* scalafmt: { maxColumn = 140 }*/
 
 object Dependencies {
-  val scala212 = sys.props.getOrElse("scala212.nightly", "2.12.19")
+  val scala212 = sys.props.getOrElse("scala212.nightly", "2.12.20")
   val scala213 = sys.props.getOrElse("scala213.nightly", "2.13.14")
   val scala3Next = sys.props.getOrElse("scala3.nightly", "3.5.0")
   val scala3LTS = "3.3.4-RC2"
