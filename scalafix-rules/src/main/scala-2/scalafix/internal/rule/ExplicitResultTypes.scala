@@ -171,7 +171,7 @@ final class ExplicitResultTypes(
       defn.hasMod(mod"implicit") && !isImplicitly(body)
 
     def hasParentWihTemplate: Boolean =
-      defn.parent.exists(_.is[Template])
+      defn.parent.exists(_.is[Template.Body])
 
     def qualifyingImplicit: Boolean =
       isImplicit && !isFinalLiteralVal
