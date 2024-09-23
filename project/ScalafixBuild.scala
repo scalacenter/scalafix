@@ -192,15 +192,17 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     Test / testOptions += Tests.Argument("-oD"),
     updateOptions := updateOptions.value.withCachedResolution(true),
     ThisBuild / watchTriggeredMessage := Watch.clearScreenOnTrigger,
-    commands += Command.command("save-expect") { s =>
-      "integration2_13 / Test / runMain scalafix.tests.util.SaveExpect" ::
-        "integration3 / Test / runMain scalafix.tests.util.SaveExpect" ::
-        s
+    commands += Command.command("save-expect") { state =>
+      Seq(scala213, scala3LTS)
+        .map { sv =>
+          s"integration${asProjectSuffix(sv)} / Test / runMain scalafix.tests.util.SaveExpect"
+        }
+        .mkString("all ", " ", "") :: state
     },
-    commands += Command.command("ci-docs") { s =>
+    commands += Command.command("ci-docs") { state =>
       "docs2_13/run" :: // reduce risk of errors on deploy-website.yml
         "interfaces/doc" ::
-        s
+        state
     },
     commands += Command.command("dogfoodScalafixInterfaces") { state =>
       val extracted = Project.extract(state)
@@ -209,12 +211,9 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
           .get(extracted.structure.data)
           .get
 
-      def asSuffix(scalaVersion: String) =
-        scalaVersion.replaceAll("[\\.-]", "_")
-
       cliScalaVersions
-        .map(sv => s"cli${asSuffix(sv)}/publishLocalTransitive")
-        .mkString("all ", " ", " interfaces/publishLocal") ::
+        .map(sv => s"cli${asProjectSuffix(sv)} / publishLocalTransitive")
+        .mkString("all ", " ", " interfaces / publishLocal") ::
         "reload plugins" ::
         s"""set dependencyOverrides += "ch.epfl.scala" % "scalafix-interfaces" % "$v"""" :: // as documented in installation.md
         "session save" ::
@@ -358,4 +357,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
 
     fullMatch.orElse(binaryMatch).get
   }
+
+  private def asProjectSuffix(scalaVersion: String) =
+    scalaVersion.replaceAll("[\\.-]", "_")
 }
