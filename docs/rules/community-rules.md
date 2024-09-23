@@ -21,7 +21,7 @@ rewriting the code when possible.
 [vovapolu/scaluzzi](https://github.com/vovapolu/scaluzzi) | `com.github.vovapolu::scaluzzi` | Ensure a subset of [scalazzi](http://yowconference.com.au/slides/yowwest2014/Morris-ParametricityTypesDocumentationCodeReadability.pdf)
 [xuwei-k/scalafix-rules](https://github.com/xuwei-k/scalafix-rules) | `com.github.xuwei-k::scalafix-rules` | Avoid ambiguous or redundant Scala syntax & features
 [pixiv/scalafix-pixiv-rule](https://github.com/pixiv/scalafix-pixiv-rule) | `net.pixiv::scalafix-pixiv-rule` | Redundant Scala code rewriting and anti-pattern warnings
-[dedis/scapegoat-scalafix](https://github.com/dedis/scapegoat-scalafix) | `io.github.dedis::scapegoat-scalafix` | Scalafix implementation of Scapegoat linter for Scala 3
+[dedis/scapegoat-scalafix](https://github.com/dedis/scapegoat-scalafix) | `io.github.dedis::scapegoat-scalafix` | Scalafix implementation of [Scapegoat](https://github.com/scapegoat-scala/scapegoat) linter for Scala 3
 
 ## Migration rules
 
