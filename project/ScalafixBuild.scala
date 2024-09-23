@@ -48,12 +48,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
             previousPatchVersions
               .map { patch => s"$binaryVersion.$patch" }
               .filterNot { v =>
-                System.getProperty("java.version").startsWith("21") &&
-                Seq("2.12.17").contains(v)
-              }
-              .filterNot { v =>
                 System.getProperty("java.version").startsWith("22") &&
-                Seq("2.12.17", "2.12.18", "2.13.12").contains(v)
+                Seq("2.12.18").contains(v)
               }
           }
 
@@ -192,15 +188,17 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     Test / testOptions += Tests.Argument("-oD"),
     updateOptions := updateOptions.value.withCachedResolution(true),
     ThisBuild / watchTriggeredMessage := Watch.clearScreenOnTrigger,
-    commands += Command.command("save-expect") { s =>
-      "integration2_13 / Test / runMain scalafix.tests.util.SaveExpect" ::
-        "integration3 / Test / runMain scalafix.tests.util.SaveExpect" ::
-        s
+    commands += Command.command("save-expect") { state =>
+      Seq(scala213, scala3LTS)
+        .map { sv =>
+          s"integration${asProjectSuffix(sv)} / Test / runMain scalafix.tests.util.SaveExpect"
+        }
+        .mkString("all ", " ", "") :: state
     },
-    commands += Command.command("ci-docs") { s =>
+    commands += Command.command("ci-docs") { state =>
       "docs2_13/run" :: // reduce risk of errors on deploy-website.yml
         "interfaces/doc" ::
-        s
+        state
     },
     commands += Command.command("dogfoodScalafixInterfaces") { state =>
       val extracted = Project.extract(state)
@@ -209,12 +207,9 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
           .get(extracted.structure.data)
           .get
 
-      def asSuffix(scalaVersion: String) =
-        scalaVersion.replaceAll("[\\.-]", "_")
-
       cliScalaVersions
-        .map(sv => s"cli${asSuffix(sv)}/publishLocalTransitive")
-        .mkString("all ", " ", " interfaces/publishLocal") ::
+        .map(sv => s"cli${asProjectSuffix(sv)} / publishLocalTransitive")
+        .mkString("all ", " ", " interfaces / publishLocal") ::
         "reload plugins" ::
         s"""set dependencyOverrides += "ch.epfl.scala" % "scalafix-interfaces" % "$v"""" :: // as documented in installation.md
         "session save" ::
@@ -233,6 +228,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, String] = Map(
+    "2.12.20" -> "2.12.19",
+    "2.13.15" -> "2.13.14"
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
@@ -358,4 +355,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
 
     fullMatch.orElse(binaryMatch).get
   }
+
+  private def asProjectSuffix(scalaVersion: String) =
+    scalaVersion.replaceAll("[\\.-]", "_")
 }

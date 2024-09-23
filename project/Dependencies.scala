@@ -5,8 +5,8 @@ import sbt._
 /* scalafmt: { maxColumn = 140 }*/
 
 object Dependencies {
-  val scala212 = sys.props.getOrElse("scala212.nightly", "2.12.19")
-  val scala213 = sys.props.getOrElse("scala213.nightly", "2.13.14")
+  val scala212 = sys.props.getOrElse("scala212.nightly", "2.12.20")
+  val scala213 = sys.props.getOrElse("scala213.nightly", "2.13.15")
   val scala3Next = sys.props.getOrElse("scala3.nightly", "3.5.1")
   val scala3LTS = "3.3.4-RC3"
 
@@ -20,7 +20,7 @@ object Dependencies {
   val metaconfigV = "0.13.0"
   val nailgunV = "0.9.1"
   val scalaXmlV = "2.2.0"
-  val scalametaV = "4.9.9+138-31ec8cdb-SNAPSHOT"
+  val scalametaV = "4.9.9+172-2d284c2b-SNAPSHOT"
   val scalatestV = "3.2.19"
   val munitV = "1.0.2"
 

@@ -27,8 +27,8 @@
 [22:7..22:8]:     test/PrettyTest#a. => val method a: PrettyTest
 [23:7..23:8]:     test/PrettyTest#b. => val method b: a.Inner
 [25:3..25:9]:     *.apply[AnyRef {
-                    local4 => abstract method bar(a: Int): Int
-                    local6 => abstract method foo(a: Int): Int
+                    local5 => abstract method bar(a: Int): Int
+                    local7 => abstract method foo(a: Int): Int
                   }]
 [30:3..30:9]:     *.apply[a.Inner]
 [31:3..31:9]:     *.apply[Int with String {}]
