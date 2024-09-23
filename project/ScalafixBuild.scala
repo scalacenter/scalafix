@@ -48,12 +48,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
             previousPatchVersions
               .map { patch => s"$binaryVersion.$patch" }
               .filterNot { v =>
-                System.getProperty("java.version").startsWith("21") &&
-                Seq("2.12.17").contains(v)
-              }
-              .filterNot { v =>
                 System.getProperty("java.version").startsWith("22") &&
-                Seq("2.12.17", "2.12.18", "2.13.12").contains(v)
+                Seq("2.12.18").contains(v)
               }
           }
 
@@ -232,6 +228,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, String] = Map(
+    "2.12.20" -> "2.12.19",
+    "2.13.15" -> "2.13.14"
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
