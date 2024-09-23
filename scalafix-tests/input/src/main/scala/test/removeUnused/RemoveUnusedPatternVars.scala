@@ -3,7 +3,7 @@ rule = RemoveUnused
  */
 package test.removeUnused
 
-case class AB(a: Int, b: String)
+case class AB(aa: Int, bb: String)
 
 case class XY(x: Int, y: Int)
 case class YZ(xy: XY, z: String)
