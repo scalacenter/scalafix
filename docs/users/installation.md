@@ -15,7 +15,7 @@ Note that other setups may work, but could result in unexpected behavior.
 
 ## sbt
 
-Start by installing the sbt 1.3+ plugin in `project/plugins.sbt`
+Start by installing the sbt 1.4+ plugin in `project/plugins.sbt`
 
 ```scala
 // project/plugins.sbt
