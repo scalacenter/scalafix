@@ -119,7 +119,11 @@ lazy val rules = projectMatrix
           semanticdbScalacCore,
           collectionCompat
         )
-      else Nil
+      else
+        Seq(
+          // force usage of the latest scala2 library to get compatibility with latest JDK
+          "org.scala-lang" % "scala-library" % scala213
+        )
     },
     // companion of `.dependsOn(core)`
     // issue reported in https://github.com/sbt/sbt/issues/7405

@@ -48,8 +48,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
             previousPatchVersions
               .map { patch => s"$binaryVersion.$patch" }
               .filterNot { v =>
-                System.getProperty("java.version").startsWith("22") &&
-                Seq("2.12.18").contains(v)
+                System.getProperty("java.version").startsWith("23") &&
+                Seq("2.12.18", "2.12.19", "2.13.13", "2.13.14").contains(v)
               }
           }
 
