@@ -23,7 +23,7 @@ To use this rule:
 
 ## Examples
 
-Remove unused imports:
+### Remove unused imports
 
 ```scala
 // before
@@ -36,7 +36,7 @@ import scala.collection.immutable
 object Foo { immutable.Seq.empty[Int] }
 ```
 
-Remove unused local variables:
+### Remove unused local variables
 
 ```scala
 // before
@@ -50,7 +50,7 @@ def app = {
 }
 ```
 
-Remove unused private variables:
+### Remove unused private variables
 
 ```scala
 // before
@@ -64,7 +64,7 @@ object Main {
 }
 ```
 
-Remove unused pattern match variables (requires `-Wunused:unsafe-warn-patvars` on Scala 3):
+### Remove unused pattern match variables
 
 ```scala
 case class AB(a: Int, b: String)
@@ -84,7 +84,13 @@ object Main {
 }
 ```
 
-Remove unused function parameters (Scala 2 only):
+On Scala 3, `-Wunused:unsafe-warn-patvars` is required.
+
+On Scala 2.13.15+, canonical patterns (vars with the same names as the
+attributes) do not trigger unused warnings, so the input above will not
+be rewritten. See https://github.com/scala/bug/issues/13035.
+
+### Remove unused function parameters (Scala 2 only)
 
 ```scala
 // before
