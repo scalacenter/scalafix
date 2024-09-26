@@ -8,7 +8,7 @@ object Dependencies {
   val scala212 = sys.props.getOrElse("scala212.nightly", "2.12.20")
   val scala213 = sys.props.getOrElse("scala213.nightly", "2.13.15")
   val scala3Next = sys.props.getOrElse("scala3.nightly", "3.5.1")
-  val scala3LTS = "3.3.4-RC3"
+  val scala3LTS = "3.3.4"
 
   val bijectionCoreV = "0.9.7"
   val collectionCompatV = "2.12.0"

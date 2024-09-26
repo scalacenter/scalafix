@@ -5,7 +5,7 @@ version=$1
 
 scala212=2.12.20
 scala213=2.13.15
-scala3LTS=3.3.4-RC1
+scala3LTS=3.3.4
 scala3Next=3.5.1
 
 cs resolve \
