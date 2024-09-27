@@ -18,12 +18,6 @@ import scalafix.patch.Patch
 import scalafix.patch.Patch.empty
 import scalafix.v1._
 
-/**
- * Fallback tries to download and use existing presentation compiler either from
- * Metals or the Scala compiler itself.
- *
- * @param pc
- */
 final class PcExplicitResultTypes(
     pc: LazyValue[Option[PresentationCompiler]]
 ) {
@@ -86,6 +80,10 @@ final class PcExplicitResultTypes(
 
 }
 
+/**
+ * Prepare the static presentation compiler already in the classpath or download
+ * and classload one dynamically.
+ */
 object PcExplicitResultTypes {
   private def configure(
       config: Configuration,
