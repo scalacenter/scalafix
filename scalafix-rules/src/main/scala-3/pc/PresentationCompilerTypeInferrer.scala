@@ -18,7 +18,7 @@ import scalafix.patch.Patch
 import scalafix.patch.Patch.empty
 import scalafix.v1.*
 
-final class PcExplicitResultTypes private (
+final class PresentationCompilerTypeInferrer private (
     pc: LazyValue[Option[PresentationCompiler]]
 ) {
 
@@ -84,7 +84,7 @@ final class PcExplicitResultTypes private (
  * Prepare the static presentation compiler already in the classpath or download
  * and classload one dynamically.
  */
-object PcExplicitResultTypes {
+object PresentationCompilerTypeInferrer {
   private def configure(
       config: Configuration,
       pc: PresentationCompiler
@@ -106,7 +106,7 @@ object PcExplicitResultTypes {
     )
   }
 
-  def dynamic(config: Configuration): PcExplicitResultTypes = {
+  def dynamic(config: Configuration): PresentationCompilerTypeInferrer = {
     val newPc: LazyValue[Option[PresentationCompiler]] =
       LazyValue.from { () =>
         Try(
@@ -116,18 +116,18 @@ object PcExplicitResultTypes {
           )
         )
       }
-    new PcExplicitResultTypes(newPc)
+    new PresentationCompilerTypeInferrer(newPc)
   }
 
   def static(
       config: Configuration,
       pc: PresentationCompiler
-  ): PcExplicitResultTypes = {
+  ): PresentationCompilerTypeInferrer = {
     val newPc: LazyValue[Option[PresentationCompiler]] =
       LazyValue.from { () =>
         Try(configure(config, pc))
       }
-    new PcExplicitResultTypes(newPc)
+    new PresentationCompilerTypeInferrer(newPc)
   }
 
 }

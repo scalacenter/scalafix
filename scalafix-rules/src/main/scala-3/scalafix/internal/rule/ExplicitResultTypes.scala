@@ -4,13 +4,13 @@ import scala.meta.*
 
 import dotty.tools.pc.ScalaPresentationCompiler
 import metaconfig.Configured
-import scalafix.internal.pc.PcExplicitResultTypes
+import scalafix.internal.pc.PresentationCompilerTypeInferrer
 import scalafix.patch.Patch
 import scalafix.v1.*
 
 final class ExplicitResultTypes(
     val config: ExplicitResultTypesConfig,
-    fallback: Option[PcExplicitResultTypes]
+    pcTypeInferrer: Option[PresentationCompilerTypeInferrer]
 ) extends ExplicitResultTypesBase[Scala3Printer] {
 
   def this() = this(ExplicitResultTypesConfig.default, None)
@@ -20,7 +20,7 @@ final class ExplicitResultTypes(
   }
 
   private def shutdownCompiler(): Unit = {
-    fallback.foreach(_.shutdownCompiler())
+    pcTypeInferrer.foreach(_.shutdownCompiler())
   }
 
   override def withConfiguration(config: Configuration): Configured[Rule] = {
@@ -52,10 +52,10 @@ final class ExplicitResultTypes(
                 stripPatchVersion(config.scalaVersion) ==
                   stripPatchVersion(compilerScalaVersion)
               )
-                PcExplicitResultTypes
+                PresentationCompilerTypeInferrer
                   .static(config, new ScalaPresentationCompiler())
               else
-                PcExplicitResultTypes.dynamic(config)
+                PresentationCompilerTypeInferrer.dynamic(config)
             }
           )
         )
@@ -64,7 +64,7 @@ final class ExplicitResultTypes(
 
   override def fix(implicit ctx: SemanticDocument): Patch =
     try {
-      implicit val printer = new Scala3Printer(fallback)
+      implicit val printer = new Scala3Printer(pcTypeInferrer)
       unsafeFix()
     } catch {
       case _: Throwable if !config.fatalWarnings =>
@@ -74,7 +74,7 @@ final class ExplicitResultTypes(
 }
 
 class Scala3Printer(
-    fallback: Option[PcExplicitResultTypes]
+    pcTypeInferrer: Option[PresentationCompilerTypeInferrer]
 ) extends Printer {
 
   def defnType(
@@ -84,6 +84,6 @@ class Scala3Printer(
   )(implicit
       ctx: SemanticDocument
   ): Option[Patch] = {
-    fallback.flatMap(_.defnType(replace))
+    pcTypeInferrer.flatMap(_.defnType(replace))
   }
 }
