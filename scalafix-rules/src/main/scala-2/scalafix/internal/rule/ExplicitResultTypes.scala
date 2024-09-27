@@ -5,7 +5,6 @@ import scala.util.control.NonFatal
 import scala.meta._
 import scala.meta.internal.pc.ScalafixGlobal
 
-import buildinfo.RulesBuildInfo
 import metaconfig.Configured
 import scalafix.internal.compat.CompilerCompat._
 import scalafix.internal.pc.PcExplicitResultTypes
@@ -17,23 +16,13 @@ final class ExplicitResultTypes(
     val config: ExplicitResultTypesConfig,
     global: LazyValue[Option[ScalafixGlobal]],
     fallback: LazyValue[Option[PcExplicitResultTypes]]
-) extends SemanticRule("ExplicitResultTypes")
-    with ExplicitResultTypesBase[Scala2Printer] {
+) extends ExplicitResultTypesBase[Scala2Printer] {
 
   def this() = this(
     ExplicitResultTypesConfig.default,
     LazyValue.now(None),
     LazyValue.now(None)
   )
-
-  val compilerScalaVersion: String = RulesBuildInfo.scalaVersion
-
-  private def toBinaryVersion(v: String) = v.split('.').take(2).mkString(".")
-
-  override def description: String =
-    "Inserts type annotations for inferred public members. " +
-      s"Only compatible with Scala 2.x."
-  override def isRewrite: Boolean = true
 
   override def afterComplete(): Unit = {
     shutdownCompiler()
@@ -68,9 +57,9 @@ final class ExplicitResultTypes(
         }
       }
     val inputBinaryScalaVersion =
-      toBinaryVersion(config.scalaVersion)
+      stripPatchVersion(config.scalaVersion)
     val runtimeBinaryScalaVersion =
-      toBinaryVersion(compilerScalaVersion)
+      stripPatchVersion(compilerScalaVersion)
     if (
       config.scalacClasspath.nonEmpty && inputBinaryScalaVersion != runtimeBinaryScalaVersion
     ) {

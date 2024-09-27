@@ -3,6 +3,7 @@ package scalafix.internal.rule
 import scala.meta._
 import scala.meta.contrib._
 
+import buildinfo.RulesBuildInfo
 import scalafix.util.TokenOps
 import scalafix.v1._
 
@@ -17,9 +18,21 @@ trait Printer {
 
 }
 
-trait ExplicitResultTypesBase[P <: Printer] {
+abstract class ExplicitResultTypesBase[P <: Printer]
+    extends SemanticRule("ExplicitResultTypes") {
+
+  override def description: String =
+    "Inserts type annotations for inferred public members."
+
+  override def isRewrite: Boolean = true
 
   val config: ExplicitResultTypesConfig
+
+  protected val compilerScalaVersion: String =
+    RulesBuildInfo.scalaVersion
+
+  protected def stripPatchVersion(v: String): String =
+    v.split('.').take(2).mkString(".")
 
   // Don't explicitly annotate vals when the right-hand body is a single call
   // to `implicitly` or `summon`. Prevents ambiguous implicit. Not annotating in such cases,

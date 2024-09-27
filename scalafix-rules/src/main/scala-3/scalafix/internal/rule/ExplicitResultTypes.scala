@@ -2,7 +2,6 @@ package scalafix.internal.rule
 
 import scala.meta.*
 
-import buildinfo.RulesBuildInfo
 import dotty.tools.pc.ScalaPresentationCompiler
 import metaconfig.Configured
 import scalafix.internal.pc.PcExplicitResultTypes
@@ -12,19 +11,9 @@ import scalafix.v1.*
 final class ExplicitResultTypes(
     val config: ExplicitResultTypesConfig,
     fallback: Option[PcExplicitResultTypes]
-) extends SemanticRule("ExplicitResultTypes")
-    with ExplicitResultTypesBase[Scala3Printer] {
+) extends ExplicitResultTypesBase[Scala3Printer] {
 
   def this() = this(ExplicitResultTypesConfig.default, None)
-
-  val compilerScalaVersion: String = RulesBuildInfo.scalaVersion
-
-  private def stripPatchVersion(v: String) = v.split('.').take(2).mkString(".")
-
-  override def description: String =
-    "Inserts type annotations for inferred public members."
-
-  override def isRewrite: Boolean = true
 
   override def afterComplete(): Unit = {
     shutdownCompiler()
