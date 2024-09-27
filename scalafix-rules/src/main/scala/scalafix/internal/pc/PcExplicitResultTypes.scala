@@ -18,7 +18,7 @@ import scalafix.patch.Patch
 import scalafix.patch.Patch.empty
 import scalafix.v1._
 
-final class PcExplicitResultTypes(
+final class PcExplicitResultTypes private (
     pc: LazyValue[Option[PresentationCompiler]]
 ) {
 
