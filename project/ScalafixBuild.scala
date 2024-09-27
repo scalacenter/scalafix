@@ -231,8 +231,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, String] = Map(
-    "2.12.20" -> "2.12.19",
-    "2.13.15" -> "2.13.14"
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
@@ -246,9 +244,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       // https://github.com/scalacenter/scalafix/pull/2025#issuecomment-2264188708
       "com.geirsson" %% "metaconfig-core",
       "com.geirsson" %% "metaconfig-pprint",
-      "com.geirsson" %% "metaconfig-typesafe-config",
-      "com.lihaoyi" %% "fansi",
-      "com.lihaoyi" %% "sourcecode"
+      "com.geirsson" %% "metaconfig-typesafe-config"
     ),
     versionPolicyIgnoredInternalDependencyVersions :=
       Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r),
@@ -306,11 +302,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       Set(
         organizationName.value % previousScalaVCrossName % stableVersion.value
       )
-    },
-    // TODO: remove afetr 0.12.12 once Scala 3 artifacts have been published
-    mimaPreviousArtifacts := {
-      if (scalaVersion.value.startsWith("3")) Set.empty
-      else Set.empty
     },
     mimaBinaryIssueFilters ++= Mima.ignoredABIProblems
   )
