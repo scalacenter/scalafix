@@ -316,13 +316,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       if (scalaVersion.value.startsWith("3")) Set.empty
       else Set.empty
     },
-    mimaBinaryIssueFilters ++= Mima.ignoredABIProblems,
-    scalafixConfig := {
-      if (scalaBinaryVersion.value.startsWith("2"))
-        Some(file(".scalafix-scala2.conf"))
-      else
-        Some(file(".scalafix-scala3.conf"))
-    }
+    mimaBinaryIssueFilters ++= Mima.ignoredABIProblems
   )
 
   /**
