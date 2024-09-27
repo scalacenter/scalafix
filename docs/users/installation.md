@@ -8,7 +8,7 @@ title: Installation
 Scalafix is tested to work with:
 
 * **macOS, Linux or Windows**
-* **Java LTS (8, 11, 17 or 21)**
+* **Java LTS 11, 17 and 21**
 * **Scala @SCALA212@, @SCALA213@, @SCALA3LTS@ LTS or @SCALA3NEXT@**
 
 Note that other setups may work, but could result in unexpected behavior.
