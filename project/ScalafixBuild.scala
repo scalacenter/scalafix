@@ -58,7 +58,10 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
           val xsource3 = TargetAxis(sv, xsource3 = true)
 
           (prevVersions :+ xsource3).map((sv, _))
-        } :+ (scala3Next, TargetAxis(scala213))
+        } ++ Seq(
+          (scala3Next, TargetAxis(scala213)),
+          (scala3Next, TargetAxis(scala3LTS))
+        )
 
     lazy val publishLocalTransitive =
       taskKey[Unit]("Run publishLocal on this project and its dependencies")
@@ -280,13 +283,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     Compile / console / scalacOptions :=
       compilerOptions.value :+ "-Yrepl-class-based",
     Compile / doc / scalacOptions ++= scaladocOptions,
-    Compile / unmanagedResourceDirectories ++= {
-      val resourceParentDir = (Compile / resourceDirectory).value.getParentFile
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((major, _)) => Seq(resourceParentDir / s"resources-${major}")
-        case _ => Seq()
-      }
-    },
     // Don't package sources & docs when publishing locally as it adds a significant
     // overhead when testing because of publishLocalTransitive. Tweaking publishArtifact
     // would more readable, but it would also affect remote (sonatype) publishing.
@@ -316,13 +312,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       if (scalaVersion.value.startsWith("3")) Set.empty
       else Set.empty
     },
-    mimaBinaryIssueFilters ++= Mima.ignoredABIProblems,
-    scalafixConfig := {
-      if (scalaBinaryVersion.value.startsWith("2"))
-        Some(file(".scalafix-scala2.conf"))
-      else
-        Some(file(".scalafix-scala3.conf"))
-    }
+    mimaBinaryIssueFilters ++= Mima.ignoredABIProblems
   )
 
   /**

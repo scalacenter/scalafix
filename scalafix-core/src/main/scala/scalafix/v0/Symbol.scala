@@ -53,9 +53,9 @@ object Symbol {
   // https://github.com/scalameta/scalameta/pull/1241.
   def apply(s: String): Symbol = {
     object naiveParser {
-      val EOL = System.lineSeparator()
+      val EOL: String = System.lineSeparator()
       var i = 0
-      def fail(message: String = "invalid symbol format") = {
+      def fail(message: String = "invalid symbol format"): Nothing = {
         val caret = " " * (i - 1) + "^"
         throw new IllegalArgumentException(s"$message$EOL$s$EOL$caret")
       }

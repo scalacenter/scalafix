@@ -119,7 +119,11 @@ lazy val rules = projectMatrix
           semanticdbScalacCore,
           collectionCompat
         )
-      else Nil
+      else
+        Seq(
+          "org.scala-lang" %% "scala3-presentation-compiler" % scalaVersion.value,
+          coursierInterfaces
+        )
     },
     // companion of `.dependsOn(core)`
     // issue reported in https://github.com/sbt/sbt/issues/7405
