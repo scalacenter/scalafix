@@ -40,25 +40,36 @@ final class ExplicitResultTypes(
           "To fix this problem, either remove ExplicitResultTypes from .scalafix.conf or upgrade the compiler in your build."
       )
     } else {
-      config.conf // Support deprecated explicitReturnTypes config
-        .getOrElse("explicitReturnTypes", "ExplicitResultTypes")(
-          ExplicitResultTypesConfig.default
-        )
-        .map(c =>
-          new ExplicitResultTypes(
-            c,
-            Option {
-              if (
-                stripPatchVersion(config.scalaVersion) ==
-                  stripPatchVersion(compilerScalaVersion)
-              )
-                PresentationCompilerTypeInferrer
-                  .static(config, new ScalaPresentationCompiler())
+      config.conf.getOrElse("ExplicitResultTypes")(this.config).andThen {
+        conf =>
+          val majorMinorCompilerScalaVersion =
+            stripPatchVersion(compilerScalaVersion)
+
+          val matchingMinors =
+            majorMinorScalaVersion == majorMinorCompilerScalaVersion
+
+          if (
+            !matchingMinors && !conf.fetchScala3CompilerArtifactsOnVersionMismatch
+          ) {
+            Configured.error(
+              s"The ExplicitResultTypes rule was compiled with a different Scala 3 minor ($majorMinorCompilerScalaVersion) " +
+                s"than the target sources ($majorMinorScalaVersion). To fix this problem, make sure you are running the latest version of Scalafix. " +
+                "If that is the case, either change your build to stick to the Scala 3 LTS or Next versions supported by Scalafix, or " +
+                "enable ExplicitResultTypes.fetchScala3CompilerArtifactsOnVersionMismatch in .scalafix.conf in order to try to load what is needed dynamically."
+            )
+          } else {
+            val pcTypeInferrer =
+              if (matchingMinors)
+                PresentationCompilerTypeInferrer.static(
+                  config,
+                  new ScalaPresentationCompiler()
+                )
               else
                 PresentationCompilerTypeInferrer.dynamic(config)
-            }
-          )
-        )
+
+            Configured.Ok(new ExplicitResultTypes(conf, Some(pcTypeInferrer)))
+          }
+      }
     }
   }
 

@@ -39,7 +39,9 @@ class RuleSuite extends AbstractSemanticRuleSuite with AnyFunSuiteLike {
     val versionMismatch =
       stripPatch(RulesBuildInfo.scalaVersion) != stripPatch(props.scalaVersion)
     val explicitResultTypesTest =
-      diffTest.path.input.toNIO.toString.contains("explicitResultTypes")
+      diffTest.path.input.toNIO.toString.contains(
+        "explicitResultTypes" + java.io.File.separator // don't skip tests with a suffix
+      )
 
     // ExplicitResultTypes can only run against sources compiled with the sam
     // binary version as the one used to compile the rule

@@ -39,6 +39,12 @@ case class ExplicitResultTypesConfig(
     rewriteStructuralTypesToNamedSubclass: Boolean = true,
     @Description("If true, adds result types only to implicit definitions.")
     onlyImplicits: Boolean = false,
+    @Description(
+      "If true and the Scala 3 version Scalafix was compiled with differs from the target files' one," +
+        "attempts to resolve and download compiler artifacts dynamically via Coursier. " +
+        "Disabled by default as this introduces a performance overhead and might not work."
+    )
+    fetchScala3CompilerArtifactsOnVersionMismatch: Boolean = false,
     @Hidden()
     symbolReplacements: Map[String, String] = Map.empty
 )
