@@ -3,7 +3,6 @@ package scalafix.internal.pc
 import java.net.URLClassLoader
 import java.util.ServiceLoader
 
-import scala.collection.concurrent.TrieMap
 import scala.jdk.CollectionConverters._
 
 import scala.meta.pc.PresentationCompiler
@@ -14,15 +13,15 @@ import coursierapi.MavenRepository
 
 object Embedded {
 
-  private val presentationCompilers: TrieMap[String, URLClassLoader] =
-    TrieMap.empty
+  private val presentationCompilers =
+    new java.util.concurrent.ConcurrentHashMap[String, URLClassLoader]()
 
   def presentationCompiler(
       scalaVersion: String
   ): PresentationCompiler = {
-    val classloader = presentationCompilers.getOrElseUpdate(
+    val classloader = presentationCompilers.computeIfAbsent(
       scalaVersion,
-      newPresentationCompilerClassLoader(scalaVersion)
+      newPresentationCompilerClassLoader
     )
     val presentationCompilerClassname =
       if (supportPresentationCompilerInDotty(scalaVersion)) {
