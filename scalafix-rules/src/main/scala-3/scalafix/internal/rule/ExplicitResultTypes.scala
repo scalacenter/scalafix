@@ -19,7 +19,7 @@ final class ExplicitResultTypes(
 
   val compilerScalaVersion: String = RulesBuildInfo.scalaVersion
 
-  private def toBinaryVersion(v: String) = v.split('.').take(2).mkString(".")
+  private def stripPatchVersion(v: String) = v.split('.').take(2).mkString(".")
 
   override def description: String =
     "Inserts type annotations for inferred public members."
@@ -44,9 +44,8 @@ final class ExplicitResultTypes(
           c,
           Option {
             if (
-              toBinaryVersion(config.scalaVersion) == toBinaryVersion(
-                compilerScalaVersion
-              )
+              stripPatchVersion(config.scalaVersion) ==
+                stripPatchVersion(compilerScalaVersion)
             )
               PcExplicitResultTypes
                 .static(config, new ScalaPresentationCompiler())
