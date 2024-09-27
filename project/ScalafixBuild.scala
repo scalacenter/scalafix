@@ -280,13 +280,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     Compile / console / scalacOptions :=
       compilerOptions.value :+ "-Yrepl-class-based",
     Compile / doc / scalacOptions ++= scaladocOptions,
-    Compile / unmanagedResourceDirectories ++= {
-      val resourceParentDir = (Compile / resourceDirectory).value.getParentFile
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((major, _)) => Seq(resourceParentDir / s"resources-${major}")
-        case _ => Seq()
-      }
-    },
     // Don't package sources & docs when publishing locally as it adds a significant
     // overhead when testing because of publishLocalTransitive. Tweaking publishArtifact
     // would more readable, but it would also affect remote (sonatype) publishing.
