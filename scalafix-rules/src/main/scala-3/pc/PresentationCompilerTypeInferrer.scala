@@ -59,8 +59,7 @@ final class PresentationCompilerTypeInferrer private (
             replace.pos.end
           )
           val result = pc.insertInferredType(params).get()
-          // TODO we need to actually insert after each change
-          val allPatches: List[Patch] = result.asScala.toList
+          result.asScala.toList
             .map { edit =>
               val start = edit.getRange().getStart()
               val last = ctx.tokens.tokens.takeWhile { token =>
@@ -72,9 +71,8 @@ final class PresentationCompilerTypeInferrer private (
               }.last
               Patch.addRight(last, edit.getNewText())
             }
-          allPatches.reduce[Patch] { case (p1, p2) =>
-            p1 + p2
-          }
+            .asPatch
+            .atomic
       }
     }
 
