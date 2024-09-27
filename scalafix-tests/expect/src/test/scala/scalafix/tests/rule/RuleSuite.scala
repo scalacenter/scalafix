@@ -2,6 +2,7 @@ package scalafix.tests.rule
 
 import scala.util.control.NonFatal
 
+import buildinfo.RulesBuildInfo
 import org.scalatest.exceptions.TestFailedException
 import org.scalatest.funsuite.AnyFunSuiteLike
 import scalafix.testkit._
@@ -32,13 +33,17 @@ object RuleSuite {
 }
 class RuleSuite extends AbstractSemanticRuleSuite with AnyFunSuiteLike {
 
-  // TODO: remove in https://github.com/scalacenter/scalafix/pull/2023
   override def runOn(diffTest: RuleTest): Unit = {
-    if (
-      buildinfo.RulesBuildInfo.scalaVersion.startsWith("3") &&
-      props.scalaVersion.startsWith("2") &&
+    def stripPatch(v: String) = v.split('.').take(2).mkString(".")
+
+    val versionMismatch =
+      stripPatch(RulesBuildInfo.scalaVersion) != stripPatch(props.scalaVersion)
+    val explicitResultTypesTest =
       diffTest.path.input.toNIO.toString.contains("explicitResultTypes")
-    ) return
+
+    // ExplicitResultTypes can only run against sources compiled with the sam
+    // binary version as the one used to compile the rule
+    if (versionMismatch && explicitResultTypesTest) return
     else super.runOn(diffTest)
   }
 

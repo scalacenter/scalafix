@@ -7,22 +7,16 @@ import scala.meta.internal.pc.ScalafixGlobal
 
 import metaconfig.Configured
 import scalafix.internal.compat.CompilerCompat._
-import scalafix.internal.pc.PcExplicitResultTypes
 import scalafix.internal.v1.LazyValue
 import scalafix.patch.Patch
 import scalafix.v1._
 
 final class ExplicitResultTypes(
     val config: ExplicitResultTypesConfig,
-    global: LazyValue[Option[ScalafixGlobal]],
-    fallback: LazyValue[Option[PcExplicitResultTypes]]
+    global: LazyValue[Option[ScalafixGlobal]]
 ) extends ExplicitResultTypesBase[Scala2Printer] {
 
-  def this() = this(
-    ExplicitResultTypesConfig.default,
-    LazyValue.now(None),
-    LazyValue.now(None)
-  )
+  def this() = this(ExplicitResultTypesConfig.default, LazyValue.now(None))
 
   override def afterComplete(): Unit = {
     shutdownCompiler()
@@ -63,30 +57,23 @@ final class ExplicitResultTypes(
     if (
       config.scalacClasspath.nonEmpty && inputBinaryScalaVersion != runtimeBinaryScalaVersion
     ) {
-      config.conf // Support deprecated explicitReturnTypes config
-        .getOrElse("explicitReturnTypes", "ExplicitResultTypes")(
-          ExplicitResultTypesConfig.default
-        )
-        .map(c =>
-          new ExplicitResultTypes(
-            c,
-            LazyValue.now(None),
-            LazyValue.now(Option(PcExplicitResultTypes.dynamic(config)))
-          )
-        )
+      Configured.error(
+        s"The ExplicitResultTypes rule needs to run with the same Scala binary version as the one used to compile target sources ($inputBinaryScalaVersion). " +
+          s"To fix this problem, either remove ExplicitResultTypes from .scalafix.conf or make sure Scalafix is loaded with $inputBinaryScalaVersion."
+      )
     } else {
       config.conf // Support deprecated explicitReturnTypes config
         .getOrElse("explicitReturnTypes", "ExplicitResultTypes")(
           ExplicitResultTypesConfig.default
         )
-        .map(c => new ExplicitResultTypes(c, newGlobal, LazyValue.now(None)))
+        .map(c => new ExplicitResultTypes(c, newGlobal))
     }
   }
 
   override def fix(implicit ctx: SemanticDocument): Patch =
     try {
       val typesLazy = global.value.map(new CompilerTypePrinter(_, config))
-      implicit val printer = new Scala2Printer(typesLazy, fallback)
+      implicit val printer = new Scala2Printer(typesLazy)
       unsafeFix()
     } catch {
       case _: CompilerException if !config.fatalWarnings =>
@@ -95,8 +82,7 @@ final class ExplicitResultTypes(
 }
 
 class Scala2Printer(
-    globalPrinter: Option[CompilerTypePrinter],
-    fallback: LazyValue[Option[PcExplicitResultTypes]]
+    globalPrinter: Option[CompilerTypePrinter]
 ) extends Printer {
   def defnType(
       defn: Defn,
@@ -104,22 +90,13 @@ class Scala2Printer(
       space: String
   )(implicit
       ctx: SemanticDocument
-  ): Option[Patch] = {
-
-    globalPrinter match {
-      case Some(types) =>
-        for {
-          name <- ExplicitResultTypesBase.defnName(defn)
-          defnSymbol <- name.symbol.asNonEmpty
-          patch <- types.toPatch(name.pos, defnSymbol, replace, defn, space)
-        } yield {
-          patch
-        }
-      case None =>
-        fallback.value.flatMap { fallbackExplicit =>
-          fallbackExplicit.defnType(replace)
-        }
+  ): Option[Patch] =
+    for {
+      name <- ExplicitResultTypesBase.defnName(defn)
+      defnSymbol <- name.symbol.asNonEmpty
+      printer <- globalPrinter
+      patch <- printer.toPatch(name.pos, defnSymbol, replace, defn, space)
+    } yield {
+      patch
     }
-
-  }
 }

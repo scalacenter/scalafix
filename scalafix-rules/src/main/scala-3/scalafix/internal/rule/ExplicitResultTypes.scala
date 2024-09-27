@@ -24,25 +24,42 @@ final class ExplicitResultTypes(
   }
 
   override def withConfiguration(config: Configuration): Configured[Rule] = {
-    config.conf // Support deprecated explicitReturnTypes config
-      .getOrElse("explicitReturnTypes", "ExplicitResultTypes")(
-        ExplicitResultTypesConfig.default
+    val majorMinorScalaVersion =
+      stripPatchVersion(config.scalaVersion)
+
+    if (config.scalaVersion.startsWith("2.")) {
+      Configured.error(
+        s"The ExplicitResultTypes rule needs to run with the same Scala binary version as the one used to compile target sources ($majorMinorScalaVersion). " +
+          s"To fix this problem, either remove ExplicitResultTypes from .scalafix.conf or make sure Scalafix is loaded with $majorMinorScalaVersion."
       )
-      .map(c =>
-        new ExplicitResultTypes(
-          c,
-          Option {
-            if (
-              stripPatchVersion(config.scalaVersion) ==
-                stripPatchVersion(compilerScalaVersion)
-            )
-              PcExplicitResultTypes
-                .static(config, new ScalaPresentationCompiler())
-            else
-              PcExplicitResultTypes.dynamic(config)
-          }
+    } else if (
+      Seq("3.0", "3.1", "3.2").exists(v => config.scalaVersion.startsWith(v))
+    ) {
+      Configured.error(
+        s"The ExplicitResultTypes rule requires Scala 3 target sources to be compiled with Scala 3.3.0 or greater, but they were compiled with ${config.scalaVersion}. " +
+          "To fix this problem, either remove ExplicitResultTypes from .scalafix.conf or upgrade the compiler in your build."
+      )
+    } else {
+      config.conf // Support deprecated explicitReturnTypes config
+        .getOrElse("explicitReturnTypes", "ExplicitResultTypes")(
+          ExplicitResultTypesConfig.default
         )
-      )
+        .map(c =>
+          new ExplicitResultTypes(
+            c,
+            Option {
+              if (
+                stripPatchVersion(config.scalaVersion) ==
+                  stripPatchVersion(compilerScalaVersion)
+              )
+                PcExplicitResultTypes
+                  .static(config, new ScalaPresentationCompiler())
+              else
+                PcExplicitResultTypes.dynamic(config)
+            }
+          )
+        )
+    }
   }
 
   override def fix(implicit ctx: SemanticDocument): Patch =

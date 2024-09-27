@@ -3,7 +3,7 @@ package scalafix.internal.pc
 import java.net.URLClassLoader
 import java.util.ServiceLoader
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 import scala.meta.pc.PresentationCompiler
 
@@ -23,48 +23,13 @@ object Embedded {
       scalaVersion,
       newPresentationCompilerClassLoader
     )
-    val presentationCompilerClassname =
-      if (supportPresentationCompilerInDotty(scalaVersion)) {
-        "dotty.tools.pc.ScalaPresentationCompiler"
-      } else {
-        "scala.meta.pc.ScalaPresentationCompiler"
-      }
 
     serviceLoader(
       classOf[PresentationCompiler],
-      presentationCompilerClassname,
+      "dotty.tools.pc.ScalaPresentationCompiler",
       classloader
     )
   }
-
-  private def supportPresentationCompilerInDotty(scalaVersion: String) = {
-    scalaVersion
-      .replaceAll(raw"-RC\d+", "")
-      .split("\\.")
-      .take(3)
-      .map(_.toInt) match {
-      case Array(3, minor, patch) => minor > 3 || minor == 3 && patch >= 4
-      case _ => false
-    }
-  }
-
-  private def scala3PresentationCompilerDependencies(version: String) =
-    if (supportPresentationCompilerInDotty(version)) {
-      val dep = Dependency
-        .of("org.scala-lang", "scala3-presentation-compiler_3", version)
-
-      // some versions of the presentation compiler depend on versions only build for JDK 11
-      dep.addExclusion("org.eclipse.lsp4j", "org.eclipse.lsp4j")
-      dep.addExclusion("org.eclipse.lsp4j", "org.eclipse.lsp4j.jsonrpc")
-      // last built with JDK 8
-      val lsp4jDep =
-        Dependency.of("org.eclipse.lsp4j", "org.eclipse.lsp4j", "0.20.1")
-      List(dep, lsp4jDep)
-    } else
-      List(
-        // TODO should use build info etc. instead of using 1.3.4
-        Dependency.of("org.scalameta", s"mtags_${version}", "1.3.4")
-      )
 
   private def serviceLoader[T](
       cls: Class[T],
@@ -86,11 +51,18 @@ object Embedded {
   ): URLClassLoader = {
 
     val deps =
-      scala3PresentationCompilerDependencies(scalaVersion)
+      List(
+        Dependency.of(
+          "org.scala-lang",
+          "scala3-presentation-compiler_3",
+          scalaVersion
+        )
+      )
     val jars = Fetch
       .create()
       .addDependencies(deps: _*)
       .addRepositories(
+        // for some versions, the presentation compiler depends on mtags-interfaces SNAPSHOTs
         MavenRepository.of(
           "https://oss.sonatype.org/content/repositories/snapshots"
         )

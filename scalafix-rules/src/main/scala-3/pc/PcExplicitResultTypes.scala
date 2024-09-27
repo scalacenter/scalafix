@@ -2,11 +2,11 @@ package scalafix.internal.pc
 
 import java.nio.file.Paths
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Random
 import scala.util.Try
 
-import scala.meta._
+import scala.meta.*
 import scala.meta.inputs.Input.File
 import scala.meta.inputs.Input.VirtualFile
 import scala.meta.pc.PresentationCompiler
@@ -16,7 +16,7 @@ import scala.meta.trees.Origin.Parsed
 import scalafix.internal.v1.LazyValue
 import scalafix.patch.Patch
 import scalafix.patch.Patch.empty
-import scalafix.v1._
+import scalafix.v1.*
 
 final class PcExplicitResultTypes private (
     pc: LazyValue[Option[PresentationCompiler]]
