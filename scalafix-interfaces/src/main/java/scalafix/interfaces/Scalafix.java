@@ -86,12 +86,13 @@ public interface Scalafix {
      * <p>
      * The custom classloader optionally provided with {@link ScalafixArguments#withToolClasspath} to compile and
      * classload external rules must have the classloader of the returned instance as ancestor to share a common
-     * loaded instance of `scalafix-core`, and therefore have been compiled against the requested Scala binary version.
+     * loaded instance of `scalafix-core`, and therefore have been compiled against the requested Scala version.
      *
-     * @param requestedScalaVersion The Scala version ("3.3.4" for example) available in the classloader of the
+     * @param requestedScalaVersion A full Scala version (i.e. "3.3.4") or a major.minor one (i.e. "3.3") to infer
+     *                              the major.minor Scala version that should be available in the classloader of the
      *                              returned instance. To be able to run advanced semantic rules using the Scala
-     *                              Presentation Compiler such as ExplicitResultTypes, this must match the version
-     *                              that the target classpath was built with, as provided with
+     *                              Presentation Compiler such as ExplicitResultTypes, this must be source-compatible
+     *                              with the version that the target classpath is built with, as provided with
      *                              {@link ScalafixArguments#withScalaVersion}.
      * @return An implementation of the {@link Scalafix} interface.
      * @throws ScalafixException in case of errors during artifact resolution/fetching.
@@ -106,12 +107,13 @@ public interface Scalafix {
      * <p>
      * The custom classloader optionally provided with {@link ScalafixArguments#withToolClasspath} to compile and
      * classload external rules must have the classloader of the returned instance as ancestor to share a common
-     * loaded instance of `scalafix-core`, and therefore have been compiled against the requested Scala binary version.
+     * loaded instance of `scalafix-core`, and therefore have been compiled against the requested Scala version.
      *
-     * @param requestedScalaVersion The Scala version ("3.3.4" for example) available in the classloader of the
+     * @param requestedScalaVersion A full Scala version (i.e. "3.3.4") or a major.minor one (i.e. "3.3") to infer
+     *                              the major.minor Scala version that should be available in the classloader of the
      *                              returned instance. To be able to run advanced semantic rules using the Scala
-     *                              Presentation Compiler such as ExplicitResultTypes, this must match the version
-     *                              that the target classpath was built with, as provided with
+     *                              Presentation Compiler such as ExplicitResultTypes, this must be source-compatible
+     *                              with the version that the target classpath is built with, as provided with
      *                              {@link ScalafixArguments#withScalaVersion}.
      * @param repositories       Maven/Ivy repositories to fetch the JARs from.
      * @return An implementation of the {@link Scalafix} interface.
@@ -120,17 +122,21 @@ public interface Scalafix {
     static Scalafix fetchAndClassloadInstance(String requestedScalaVersion, List<Repository> repositories)
             throws ScalafixException {
 
+        String requestedScalaMajorMinorOrMajorVersion =
+            requestedScalaVersion.replaceAll("^(\\d+\\.\\d+).*", "$1");
+
         String scalaVersionKey;
-        if (requestedScalaVersion.startsWith("2.12")) {
+        if (requestedScalaMajorMinorOrMajorVersion.equals("2.12")) {
             scalaVersionKey = "scala212";
-        } else if (requestedScalaVersion.startsWith("2.13")) {
+        } else if (requestedScalaMajorMinorOrMajorVersion.equals("2.13") ||
+            requestedScalaMajorMinorOrMajorVersion.equals("2")) {
             scalaVersionKey = "scala213";
-        } else if (requestedScalaVersion.startsWith("3.0") ||
-            requestedScalaVersion.startsWith("3.1") ||
-            requestedScalaVersion.startsWith("3.2") ||
-            requestedScalaVersion.startsWith("3.3")) {
+        } else if (requestedScalaMajorMinorOrMajorVersion.equals("3.0") ||
+            requestedScalaMajorMinorOrMajorVersion.equals("3.1") ||
+            requestedScalaMajorMinorOrMajorVersion.equals("3.2") ||
+            requestedScalaMajorMinorOrMajorVersion.equals("3.3")) {
             scalaVersionKey = "scala3LTS";
-        } else if (requestedScalaVersion.startsWith("3")) {
+        } else if (requestedScalaMajorMinorOrMajorVersion.startsWith("3")) {
             scalaVersionKey = "scala3Next";
         } else {
             throw new IllegalArgumentException("Unsupported scala version " + requestedScalaVersion);
