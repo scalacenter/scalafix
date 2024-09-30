@@ -135,6 +135,7 @@ public interface Scalafix {
             requestedScalaMajorMinorOrMajorVersion.equals("3.1") ||
             requestedScalaMajorMinorOrMajorVersion.equals("3.2") ||
             requestedScalaMajorMinorOrMajorVersion.equals("3.3")) {
+            // TODO: support Scala 3.5
             scalaVersionKey = "scala3LTS";
         } else if (requestedScalaMajorMinorOrMajorVersion.startsWith("3")) {
             scalaVersionKey = "scala3Next";
