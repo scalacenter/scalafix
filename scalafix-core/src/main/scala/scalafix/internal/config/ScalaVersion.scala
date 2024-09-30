@@ -121,6 +121,7 @@ object ScalaVersion {
 
   def from(version: String): Try[ScalaVersion] = {
     version match {
+      // TODO: support nightly
       case RcVersion(major, minor, patch, rc) =>
         MajorVersion.from(major.toLong).flatMap { major =>
           Success(RC(major, minor.toInt, patch.toInt, rc.toInt))
