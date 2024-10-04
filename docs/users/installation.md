@@ -411,12 +411,26 @@ git diff // should produce a diff
 First, install the [Coursier](https://get-coursier.io/docs/cli-installation)
 command-line interface.
 
-Next, install a `scalafix` binary with Coursier
+Then, download the Scalafix runner built with the latest version of Scala
+(@SCALA3NEXT@)
 
 ```sh
 cs install scalafix
 ./scalafix --version # Should say @VERSION@
 ```
+
+> If you plan to use advanced semantic rules like `ExplicitResultTypes`, you
+> must use the version of Scalafix built with a Scala version matching your
+> target source files.
+> 
+> If your target files are not built with the latest minor version of Scala,
+> use one of the following commands to create a custom runner
+> 
+> ```sh
+> cs bootstrap ch.epfl.scala:scalafix-cli_@SCALA212@:@VERSION@ --main scalafix.cli.Cli -o scalafix_2.12
+> cs bootstrap ch.epfl.scala:scalafix-cli_@SCALA213@:@VERSION@ --main scalafix.cli.Cli -o scalafix_2.13
+> cs bootstrap ch.epfl.scala:scalafix-cli_@SCALA3LTS@:@VERSION@ --main scalafix.cli.Cli -o scalafix_3-lts
+> ```
 
 ### Help
 
