@@ -117,11 +117,11 @@ lint.error.includes = ".*"
 lint.error.excludes = "UnusedScalafixSuppression"
 ```
 
-is equivalent to the following CLI arguments
+is equivalent to the following CLI arguments (note the escaped wildcard)
 
 ```
-scalafix ... \
+$ scalafix ... \
   --settings.DisableSyntax.noFinalize=true \
-  --settings.lint.error.includes=.* \
+  --settings.lint.error.includes=.\* \
   --settings.lint.error.excludes=UnusedScalafixSuppression
 ```
