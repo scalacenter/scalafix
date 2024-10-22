@@ -20,14 +20,19 @@ class ScalaVersionSuite extends munit.FunSuite {
     assert(scala2.get == Patch(Major.Scala2, 13, 5))
   }
 
+  test("parse: 2.13.16-bin-ce78754") {
+    val scala2 = ScalaVersion.from("2.13.16-bin-ce78754")
+    assert(scala2.get == Nightly(Major.Scala2, 13, 16, "ce78754"))
+  }
+
   test("parse: 3.0.0-RC3") {
-    val scala2 = ScalaVersion.from("3.0.0-RC3")
-    assert(scala2.get == RC(Major.Scala3, 0, 0, 3))
+    val scala3 = ScalaVersion.from("3.0.0-RC3")
+    assert(scala3.get == RC(Major.Scala3, 0, 0, 3))
   }
 
   test("parse failure: 3.0.0RC3") {
-    val scala2 = ScalaVersion.from("3.0.0RC3")
-    assert(scala2.isFailure)
+    val scala3 = ScalaVersion.from("3.0.0RC3")
+    assert(scala3.isFailure)
   }
 
 }
