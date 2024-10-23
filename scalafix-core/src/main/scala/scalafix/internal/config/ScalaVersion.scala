@@ -9,15 +9,12 @@ import scala.meta.dialects
 
 import scalafix.internal.config.ScalaVersion._
 
-/*
-  ScalaVersion allows to model major, minor and patch versions. The expected input is x[.x[.x]]].
-  All information stored after a dash are dropped. Example 3.0.0-RC3 will be modeled as ScalaVersion.Patch(3, 0, 0)
- */
 sealed trait ScalaVersion {
   val major: MajorVersion
   val minor: Option[Int]
   val patch: Option[Int]
   val rc: Option[Int]
+  val shortSha1: Option[String]
 
   def binary: Try[ScalaVersion] = (major, minor) match {
     case (Major.Scala2, None) =>
@@ -49,6 +46,8 @@ sealed trait ScalaVersion {
       s"${major.value}.${minorVersion}.$patchVersion"
     case RC(major, minorVersion, patchVersion, rc) =>
       s"${major.value}.${minorVersion}.$patchVersion-RC$rc"
+    case Nightly(major, minorVersion, patchVersion, shortSha1) =>
+      s"${major.value}.${minorVersion}.$patchVersion-bin-$shortSha1"
   }
 }
 
@@ -60,19 +59,21 @@ object ScalaVersion {
     override val minor = None
     override val patch = None
     override val rc = None
+    override val shortSha1 = None
   }
   case class Minor(major: MajorVersion, minorVersion: Int)
       extends ScalaVersion {
     override val minor: Some[Int] = Some(minorVersion)
     override val patch = None
     override val rc = None
-
+    override val shortSha1 = None
   }
   case class Patch(major: MajorVersion, minorVersion: Int, patchVersion: Int)
       extends ScalaVersion {
     override val minor: Some[Int] = Some(minorVersion)
     override val patch: Some[Int] = Some(patchVersion)
     override val rc = None
+    override val shortSha1 = None
   }
 
   case class RC(
@@ -84,6 +85,19 @@ object ScalaVersion {
     override val minor: Some[Int] = Some(minorVersion)
     override val patch: Some[Int] = Some(patchVersion)
     override val rc: Some[Int] = Some(rcVersion)
+    override val shortSha1 = None
+  }
+
+  case class Nightly(
+      major: MajorVersion,
+      minorVersion: Int,
+      patchVersion: Int,
+      shortSha1Version: String
+  ) extends ScalaVersion {
+    override val minor: Some[Int] = Some(minorVersion)
+    override val patch: Some[Int] = Some(patchVersion)
+    override val rc = None
+    override val shortSha1: Some[String] = Some(shortSha1Version)
   }
 
   sealed trait MajorVersion {
@@ -112,15 +126,23 @@ object ScalaVersion {
   }
 
   private val intPattern = """\d{1,2}"""
+  private val shortSha1Pattern = """[0-9a-f]{7}"""
+
   private val FullVersion =
     raw"""($intPattern)\.($intPattern)\.($intPattern)""".r
   private val RcVersion =
     raw"""($intPattern)\.($intPattern)\.($intPattern)-RC($intPattern)""".r
+  private val NightlyVersion =
+    raw"""($intPattern)\.($intPattern)\.($intPattern)-bin-($shortSha1Pattern)""".r
   private val MajorPattern = raw"""($intPattern)""".r
   private val PartialVersion = raw"""($intPattern)\.($intPattern)""".r
 
   def from(version: String): Try[ScalaVersion] = {
     version match {
+      case NightlyVersion(major, minor, patch, shortSha1) =>
+        MajorVersion.from(major.toLong).flatMap { major =>
+          Success(Nightly(major, minor.toInt, patch.toInt, shortSha1))
+        }
       case RcVersion(major, minor, patch, rc) =>
         MajorVersion.from(major.toLong).flatMap { major =>
           Success(RC(major, minor.toInt, patch.toInt, rc.toInt))
