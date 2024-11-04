@@ -33,7 +33,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
 
     // https://github.com/scalameta/scalameta/issues/2485
     lazy val coreScalaVersions = Seq(scala212, scala213)
-    lazy val cliScalaVersions = Seq(scala212, scala213, scala3LTS, scala3Next)
+    lazy val cliScalaVersions =
+      Seq(scala212, scala213, scala33, scala35, scala36)
     lazy val cliScalaVersionsWithTargets: Seq[(String, TargetAxis)] =
       cliScalaVersions.map(sv => (sv, TargetAxis(sv))) ++
         Seq(scala213, scala212).flatMap { sv =>
@@ -279,6 +280,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     Compile / console / scalacOptions :=
       compilerOptions.value :+ "-Yrepl-class-based",
     Compile / doc / scalacOptions ++= scaladocOptions,
+    // TODO: tweak unmanagedSourceDirectories to support scala-3.3 directory
     // Don't package sources & docs when publishing locally as it adds a significant
     // overhead when testing because of publishLocalTransitive. Tweaking publishArtifact
     // would more readable, but it would also affect remote (sonatype) publishing.
