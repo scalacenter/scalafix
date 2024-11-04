@@ -231,6 +231,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, String] = Map(
+    "3.5.2" -> "3.5.1"
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
@@ -244,7 +245,9 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       // https://github.com/scalacenter/scalafix/pull/2025#issuecomment-2264188708
       "com.geirsson" %% "metaconfig-core",
       "com.geirsson" %% "metaconfig-pprint",
-      "com.geirsson" %% "metaconfig-typesafe-config"
+      "com.geirsson" %% "metaconfig-typesafe-config",
+      // Scala 3 compiler
+      "org.scala-lang.modules" %% "scala-asm"
     ),
     versionPolicyIgnoredInternalDependencyVersions :=
       Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r),
