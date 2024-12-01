@@ -124,20 +124,6 @@ lazy val rules = projectMatrix
           "org.scala-lang" %% "scala3-presentation-compiler" % scalaVersion.value,
           coursierInterfaces
         )
-    },
-    // companion of `.dependsOn(core)`
-    // issue reported in https://github.com/sbt/sbt/issues/7405
-    // using workaround from https://github.com/sbt/sbt/issues/5369#issue-549758513
-    projectDependencies := {
-      projectDependencies.value.map {
-        case core
-            if core.name == "scalafix-core" && scalaBinaryVersion.value == "3" =>
-          core
-            .withName("scalafix-core_2.13")
-            .withCrossVersion(CrossVersion.disabled)
-        case dep =>
-          dep
-      }
     }
   )
   .defaultAxes(VirtualAxis.jvm)
@@ -208,11 +194,12 @@ lazy val cli = projectMatrix
     // companion of `.dependsOn(reflect)`
     // issue reported in https://github.com/sbt/sbt/issues/7405
     // using workaround from https://github.com/sbt/sbt/issues/5369#issue-549758513
+    // https://github.com/sbt/sbt-projectmatrix/pull/97 only fixed dependencies to binary versions
     projectDependencies := {
       projectDependencies.value.map {
-        case core
-            if core.name == "scalafix-reflect" && scalaBinaryVersion.value == "3" =>
-          core
+        case reflect
+            if reflect.name == "scalafix-reflect" && scalaBinaryVersion.value == "3" =>
+          reflect
             .withName(s"scalafix-reflect_${scala213}")
             .withCrossVersion(CrossVersion.disabled)
         case dep =>
