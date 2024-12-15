@@ -22,7 +22,7 @@ object Dependencies {
   val scalaXmlV = "2.2.0"
   val scalametaV = "4.11.2"
   val scalatestV = "3.2.19"
-  val munitV = "1.0.2"
+  val munitV = "1.0.3"
 
   val bijectionCore = "com.twitter" %% "bijection-core" % bijectionCoreV
   val collectionCompat = "org.scala-lang.modules" %% "scala-collection-compat" % collectionCompatV
