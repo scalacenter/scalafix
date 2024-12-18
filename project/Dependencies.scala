@@ -17,7 +17,7 @@ object Dependencies {
   val commontTextV = "1.12.0"
   val googleDiffV = "1.3.0"
   val jgitV = "5.13.3.202401111512-r"
-  val metaconfigV = "0.13.0"
+  val metaconfigV = "0.14.0"
   val nailgunV = "0.9.1"
   val scalaXmlV = "2.2.0"
   val scalametaV = "4.11.2"
