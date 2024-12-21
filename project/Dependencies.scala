@@ -21,6 +21,7 @@ object Dependencies {
   val nailgunV = "0.9.1"
   val scalaXmlV = "2.2.0"
   val scalametaV = "4.12.2"
+  val scalatagsV = "0.13.1"
   val scalatestV = "3.2.19"
   val munitV = "1.0.3"
 
@@ -32,12 +33,12 @@ object Dependencies {
   val googleDiff = "com.googlecode.java-diff-utils" % "diffutils" % googleDiffV
   val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % jgitV
   val metaconfig = "org.scalameta" %% "metaconfig-typesafe-config" % metaconfigV
-  val metaconfigDoc = "org.scalameta" %% "metaconfig-docs" % metaconfigV
   val metacp = "org.scalameta" %% "metacp" % scalametaV
   val nailgunServer = "com.martiansoftware" % "nailgun-server" % nailgunV
   val scalaXml = "org.scala-lang.modules" %% "scala-xml" % scalaXmlV
   val scalametaFor3Use2_13 = "org.scalameta" %% "scalameta" % scalametaV cross CrossVersion.for3Use2_13
   val scalametaTeskitFor3Use2_13 = "org.scalameta" %% "testkit" % scalametaV cross CrossVersion.for3Use2_13
+  val scalatags = "com.lihaoyi" %% "scalatags" % scalatagsV
   val scalatest = "org.scalatest" %% "scalatest" % scalatestV
   val munit = "org.scalameta" %% "munit" % munitV
   val semanticdbScalacCore = "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
