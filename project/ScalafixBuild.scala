@@ -33,7 +33,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
 
     // https://github.com/scalameta/scalameta/issues/2485
     lazy val coreScalaVersions = Seq(scala212, scala213)
-    lazy val cliScalaVersions = Seq(scala212, scala213, scala3LTS, scala3Next)
+    lazy val cliScalaVersions = Seq(scala212, scala213, scala33, scala35, scala36)
     lazy val cliScalaVersionsWithTargets: Seq[(String, TargetAxis)] =
       cliScalaVersions.map(sv => (sv, TargetAxis(sv))) ++
         Seq(scala213, scala212).flatMap { sv =>
