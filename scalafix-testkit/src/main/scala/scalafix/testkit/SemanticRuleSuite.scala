@@ -6,6 +6,8 @@ import scala.meta._
 import scala.meta.internal.inputs.XtensionInput
 
 import metaconfig.Conf
+import metaconfig.ConfError
+import metaconfig.Configured
 import metaconfig.internal.ConfGet
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 import scalafix.internal.config.ScalafixConfig
@@ -45,7 +47,14 @@ object SemanticRuleSuite {
       for {
         conf <- Try(Conf.parseString("comment", syntax)).toOption
           .flatMap(_.toEither.toOption)
-        rulesConf <- ConfGet.getKey(conf, "rules" :: "rule" :: Nil)
+        rulesConf <-
+          ConfGet
+            .getOrElse(
+              Configured.ok,
+              ConfError.message("").notOk
+            )(conf, "rules" :: "rule" :: Nil)
+            .toEither
+            .toOption
         scalafixConfig <- conf.as[ScalafixConfig].toEither.toOption
       } yield (comment, conf, rulesConf, scalafixConfig)
     }

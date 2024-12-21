@@ -3,6 +3,7 @@ package scalafix.tests.config
 import scala.meta.io.AbsolutePath
 
 import metaconfig.Conf
+import metaconfig.Configured
 import metaconfig.internal.ConfGet
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
 import scalafix.internal.config.ScalaVersion
@@ -46,7 +47,9 @@ class ArgsSuite extends munit.FunSuite {
 
     val merged = args.maybeOverlaidConfWithTriggered(givenConf)
 
-    val disableSyntaxRule = ConfGet.getKey(merged, "DisableSyntax" :: Nil).get
+    val disableSyntaxRule = ConfGet
+      .getOrOK(merged, "DisableSyntax" :: Nil, Configured.ok, Conf.Obj.empty)
+      .get
 
     val expected =
       Conf.Obj("noVars" -> Conf.Bool(true), "noThrows" -> Conf.Bool(true))
@@ -64,7 +67,9 @@ class ArgsSuite extends munit.FunSuite {
 
     val merged = args.maybeOverlaidConfWithTriggered(givenConf)
 
-    val disableSyntaxRule = ConfGet.getKey(merged, "DisableSyntax" :: Nil).get
+    val disableSyntaxRule = ConfGet
+      .getOrOK(merged, "DisableSyntax" :: Nil, Configured.ok, Conf.Obj.empty)
+      .get
 
     val expected =
       Conf.Obj(

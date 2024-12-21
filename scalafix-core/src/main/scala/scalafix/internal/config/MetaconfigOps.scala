@@ -36,10 +36,10 @@ object MetaconfigOps {
   def getKey[T](conf: Conf.Obj, path: String, extraNames: String*)(implicit
       ev: ConfDecoder[T]
   ): Configured[T] = {
-    ConfGet.getKey(conf, path +: extraNames) match {
-      case Some(value) => ev.read(value)
-      case None => ConfError.missingField(conf, path).notOk
-    }
+    ConfGet.getOrElse(
+      value => ev.read(value),
+      ConfError.missingField(conf, path).notOk
+    )(conf, path +: extraNames)
   }
 
   implicit class XtensionMetaconfigInputToMeta(input: Input) {

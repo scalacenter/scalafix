@@ -240,17 +240,22 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       "com.lihaoyi" %% "pprint",
       // https://github.com/scalacenter/scalafix/pull/1819#issuecomment-1636118496
       "org.scalameta" %% "fastparse-v2",
-      "com.lihaoyi" %% "geny",
-      // https://github.com/scalacenter/scalafix/pull/2025#issuecomment-2264188708
-      "com.geirsson" %% "metaconfig-core",
-      "com.geirsson" %% "metaconfig-pprint",
-      "com.geirsson" %% "metaconfig-typesafe-config"
+      "com.lihaoyi" %% "geny"
     ),
     versionPolicyIgnoredInternalDependencyVersions :=
       Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r),
     versionScheme := Some("early-semver"),
-    // coursier-versions always return false for the *.*.*.*-r pattern jgit uses
-    libraryDependencySchemes += Dependencies.jgit.withRevision("always")
+    libraryDependencySchemes ++= Seq(
+      // coursier-versions always return false for the *.*.*.*-r pattern jgit uses
+      Dependencies.jgit.withRevision(VersionScheme.Always),
+      // metaconfig has no breaking change from 0.13.0 to 0.14.0
+      "org.scalameta" % "metaconfig-core_2.12" % VersionScheme.Always,
+      "org.scalameta" % "metaconfig-core_2.13" % VersionScheme.Always,
+      "org.scalameta" % "metaconfig-pprint_2.12" % VersionScheme.Always,
+      "org.scalameta" % "metaconfig-pprint_2.13" % VersionScheme.Always,
+      "org.scalameta" % "metaconfig-typesafe-config_2.12" % VersionScheme.Always,
+      "org.scalameta" % "metaconfig-typesafe-config_2.13" % VersionScheme.Always
+    )
   )
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
