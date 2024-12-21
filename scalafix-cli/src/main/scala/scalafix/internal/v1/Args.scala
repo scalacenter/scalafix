@@ -255,23 +255,23 @@ case class Args(
 
   // With a --triggered flag, looking for settings in triggered block first, and fallback to standard settings.
   def maybeOverlaidConfWithTriggered(base: Conf): Conf =
-    if (triggered)
-      ScalafixConfOps.overlay(base, "triggered")
-    else
-      base
+    if (triggered) {
+      val triggeredOverlay = ConfGet
+        .getOrOK(base, "triggered" :: Nil, Configured.ok, Conf.Obj.empty)
+        .getOrElse(Conf.Obj.empty)
+      ConfOps.merge(base, triggeredOverlay)
+    } else base
 
   def rulesConf(base: () => Conf): Conf = {
     if (rules.isEmpty) {
-      val rulesInConf =
-        ConfGet.getKey(
+      ConfGet
+        .getOrOK(
           maybeOverlaidConfWithTriggered(base()),
-          "rules" :: "rule" :: Nil
+          "rules" :: "rule" :: Nil,
+          Configured.ok,
+          Conf.Lst(Nil)
         )
-
-      rulesInConf match {
-        case Some(c) => c
-        case _ => Conf.Lst(Nil)
-      }
+        .getOrElse(Conf.Lst(Nil))
     } else {
       Conf.Lst(rules.map(Conf.fromString))
     }

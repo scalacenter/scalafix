@@ -852,8 +852,9 @@ object OrganizeImports {
   ): Configured[OrganizeImportsConfig] = {
     val preset = OrganizeImportsConfig.presets(ruleConf.preset)
     val presetConf = ConfEncoder[OrganizeImportsConfig].write(preset)
-    val userConf =
-      ConfGet.getKey(conf, "OrganizeImports" :: Nil).getOrElse(Conf.Obj.empty)
+    val userConf = ConfGet
+      .getOrOK(conf, "OrganizeImports" :: Nil, Configured.ok, Conf.Obj.empty)
+      .getOrElse(Conf.Obj.empty)
     val mergedConf = ConfOps.merge(presetConf, userConf)
     ConfDecoder[OrganizeImportsConfig].read(mergedConf)
   }
