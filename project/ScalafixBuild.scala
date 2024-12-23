@@ -33,7 +33,14 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
 
     // https://github.com/scalameta/scalameta/issues/2485
     lazy val coreScalaVersions = Seq(scala212, scala213)
-    lazy val cliScalaVersions = Seq(scala212, scala213, scala3LTS, scala3Next)
+    lazy val cliScalaVersions = Seq(
+      scala212,
+      scala213,
+      scala33,
+      scala35,
+      scala36,
+      scala3Next
+    ).distinct
     lazy val cliScalaVersionsWithTargets: Seq[(String, TargetAxis)] =
       cliScalaVersions.map(sv => (sv, TargetAxis(sv))) ++
         Seq(scala213, scala212).flatMap { sv =>
@@ -138,6 +145,9 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "supportedScalaVersions" -> cliScalaVersions,
         "scala212" -> scala212,
         "scala213" -> scala213,
+        "scala33" -> scala33,
+        "scala35" -> scala35,
+        "scala36" -> scala36,
         "scala3LTS" -> scala3LTS,
         "scala3Next" -> scala3Next,
         sbtVersion
@@ -230,8 +240,9 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     developers ++= Developers.list
   )
 
-  private val PreviousScalaVersion: Map[String, String] = Map(
-    "3.5.2" -> "3.5.1"
+  private val PreviousScalaVersion: Map[String, Option[String]] = Map(
+    "3.5.2" -> Some("3.5.1"),
+    "3.6.2" -> None
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
@@ -270,7 +281,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     // avoid "missing dependency" on artifacts with full scala version when bumping scala
     versionPolicyIgnored ++= {
       PreviousScalaVersion.get(scalaVersion.value) match {
-        case Some(previous) =>
+        case Some(Some(previous)) =>
           // all transitive dependencies with full scala version we know about
           Seq(
             "org.scalameta" % s"semanticdb-scalac-core_$previous",
@@ -278,7 +289,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
             "ch.epfl.scala" % s"scalafix-reflect_$previous",
             "ch.epfl.scala" % s"scalafix-rules_$previous"
           )
-        case None => Seq()
+        case _ => Seq()
       }
     },
     versionPolicyIntention := Compatibility.BinaryCompatible,
@@ -309,16 +320,23 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     ),
     mimaPreviousArtifacts := {
       val currentScalaFullV = scalaVersion.value
-      val previousScalaFullV =
-        PreviousScalaVersion.getOrElse(currentScalaFullV, currentScalaFullV)
-      val previousScalaVCrossName = CrossVersion(
-        crossVersion.value,
-        previousScalaFullV,
-        scalaBinaryVersion.value
-      ).getOrElse(identity[String] _)(moduleName.value)
-      Set(
-        organizationName.value % previousScalaVCrossName % stableVersion.value
-      )
+      val maybePreviousScalaFullV =
+        PreviousScalaVersion.get(currentScalaFullV) match {
+          case Some(Some(previous)) => Some(previous)
+          case None => Some(currentScalaFullV)
+          case _ => None
+        }
+
+      maybePreviousScalaFullV.fold(Set.empty[ModuleID]) { previousScalaFullV =>
+        val previousScalaVCrossName = CrossVersion(
+          crossVersion.value,
+          previousScalaFullV,
+          scalaBinaryVersion.value
+        ).getOrElse(identity[String] _)(moduleName.value)
+        Set(
+          organizationName.value % previousScalaVCrossName % stableVersion.value
+        )
+      }
     },
     mimaBinaryIssueFilters ++= Mima.ignoredABIProblems
   )
