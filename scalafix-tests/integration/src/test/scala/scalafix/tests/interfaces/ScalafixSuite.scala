@@ -43,6 +43,9 @@ class ScalafixSuite extends AnyFunSuite {
     assert(api.scalametaVersion() == Versions.scalameta)
     assert(api.scala212() == Versions.scala212)
     assert(api.scala213() == Versions.scala213)
+    assert(api.scala33() == Versions.scala33)
+    assert(api.scala35() == Versions.scala35)
+    assert(api.scala36() == Versions.scala36)
     assert(api.scala3LTS() == Versions.scala3LTS)
     assert(api.scala3Next() == Versions.scala3Next)
     assert(
@@ -113,13 +116,23 @@ class ScalafixSuite extends AnyFunSuite {
     assert(scalafixAPI.scalaVersion() == Versions.scala3LTS)
   }
 
-  test("classload Scala 3 Next with full post-LTS version") {
-    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.4.0", repositories)
+  test("classload Scala 3.5 with full version") {
+    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.5.2", repositories)
+    assert(scalafixAPI.scalaVersion() == Versions.scala35)
+  }
+
+  test("classload Scala 3.5 with major.minor version") {
+    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.5", repositories)
+    assert(scalafixAPI.scalaVersion() == Versions.scala35)
+  }
+
+  test("classload Scala 3 Next with full version") {
+    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.6.2", repositories)
     assert(scalafixAPI.scalaVersion() == Versions.scala3Next)
   }
 
-  test("classload Scala 3 Next with major.minor post-LTS version") {
-    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.5", repositories)
+  test("classload Scala 3 Next with major.minor version") {
+    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.6", repositories)
     assert(scalafixAPI.scalaVersion() == Versions.scala3Next)
   }
 

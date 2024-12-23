@@ -71,6 +71,21 @@ public interface Scalafix {
     String scala213();
 
     /**
+     * The Scala 3.3 version in {@link #supportedScalaVersions()}
+     */
+    String scala33();
+
+    /**
+     * The Scala 3.5 version in {@link #supportedScalaVersions()}
+     */
+    String scala35();
+
+    /**
+     * The Scala 3.6 version in {@link #supportedScalaVersions()}
+     */
+    String scala36();
+
+    /**
      * The Scala 3 LTS version in {@link #supportedScalaVersions()}
      */
     String scala3LTS();
@@ -135,7 +150,11 @@ public interface Scalafix {
             requestedScalaMajorMinorOrMajorVersion.equals("3.1") ||
             requestedScalaMajorMinorOrMajorVersion.equals("3.2") ||
             requestedScalaMajorMinorOrMajorVersion.equals("3.3")) {
-            scalaVersionKey = "scala3LTS";
+            scalaVersionKey = "scala33";
+        } else if (requestedScalaMajorMinorOrMajorVersion.equals("3.5")) {
+            scalaVersionKey = "scala35";
+        } else if (requestedScalaMajorMinorOrMajorVersion.equals("3.6")) {
+            scalaVersionKey = "scala36";
         } else if (requestedScalaMajorMinorOrMajorVersion.startsWith("3")) {
             scalaVersionKey = "scala3Next";
         } else {
