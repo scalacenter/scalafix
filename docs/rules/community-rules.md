@@ -16,13 +16,14 @@ rewriting the code when possible.
 
 | Repository | Artifact | Description |
 | - | - | - |
-[ghostbuster91/scalafix-unified](https://github.com/ghostbuster91/scalafix-unified) | `io.github.ghostbuster91.scalafix-unified::unified` | Set of opinionated rules to unify your codebase
-[jatcwang/scalafix-named-params](https://github.com/jatcwang/scalafix-named-params) | `com.github.jatcwang::scalafix-named-params` | Add named parameters for your constructor and method calls
-[vovapolu/scaluzzi](https://github.com/vovapolu/scaluzzi) | `com.github.vovapolu::scaluzzi` | Ensure a subset of [scalazzi](http://yowconference.com.au/slides/yowwest2014/Morris-ParametricityTypesDocumentationCodeReadability.pdf)
 [xuwei-k/scalafix-rules](https://github.com/xuwei-k/scalafix-rules) | `com.github.xuwei-k::scalafix-rules` | Avoid ambiguous or redundant Scala syntax & features
+[vovapolu/scaluzzi](https://github.com/vovapolu/scaluzzi) | `com.github.vovapolu::scaluzzi` | Ensure a subset of [scalazzi](http://yowconference.com.au/slides/yowwest2014/Morris-ParametricityTypesDocumentationCodeReadability.pdf)
+[typelevel/typelevel-scalafix](https://github.com/typelevel/typelevel-scalafix) | `org.typelevel::typelevel-scalafix` | Set of rules to provide automated rewrites and linting for code which makes use of Typelevel libraries
+[jatcwang/scalafix-named-params](https://github.com/jatcwang/scalafix-named-params) | `com.github.jatcwang::scalafix-named-params` | Add named parameters for your constructor and method calls
 [pixiv/scalafix-pixiv-rule](https://github.com/pixiv/scalafix-pixiv-rule) | `net.pixiv::scalafix-pixiv-rule` | Redundant Scala code rewriting and anti-pattern warnings
 [dedis/scapegoat-scalafix](https://github.com/dedis/scapegoat-scalafix) | `io.github.dedis::scapegoat-scalafix` | Scalafix implementation of [Scapegoat](https://github.com/scapegoat-scala/scapegoat) linter for Scala 3
-[typelevel/typelevel-scalafix](https://github.com/typelevel/typelevel-scalafix) | `org.typelevel::typelevel-scalafix` | Set of rules to provide automated rewrites and linting for code which makes use of Typelevel libraries
+[ghostbuster91/scalafix-unified](https://github.com/ghostbuster91/scalafix-unified) | `io.github.ghostbuster91.scalafix-unified::unified` | Set of opinionated rules to unify your codebase
+
 
 ## Migration rules
 
