@@ -1,5 +1,8 @@
 package scalafix.internal.config
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
@@ -44,9 +47,21 @@ sealed trait ScalaVersion {
     case Minor(major, minorVersion) => s"${major.value}.${minorVersion}"
     case Patch(major, minorVersion, patchVersion) =>
       s"${major.value}.${minorVersion}.$patchVersion"
-    case RC(major, minorVersion, patchVersion, rc) =>
-      s"${major.value}.${minorVersion}.$patchVersion-RC$rc"
-    case Nightly(major, minorVersion, patchVersion, shortSha1) =>
+    case RC(major, minorVersion, patchVersion, rcVersion) =>
+      s"${major.value}.${minorVersion}.$patchVersion-RC$rcVersion"
+    // Scala 3 nightly
+    case Nightly(
+          major,
+          minorVersion,
+          patchVersion,
+          maybeRcVersion,
+          Some(dateVersion),
+          shortSha1
+        ) =>
+      val maybeRcSuffix = maybeRcVersion.map("-RC" + _).getOrElse("")
+      s"${major.value}.${minorVersion}.$patchVersion$maybeRcSuffix-bin-${dateVersion.format(yyyyMMdd)}-$shortSha1-NIGHTLY"
+    // Scala 2 nightly
+    case Nightly(major, minorVersion, patchVersion, _, _, shortSha1) =>
       s"${major.value}.${minorVersion}.$patchVersion-bin-$shortSha1"
   }
 }
@@ -92,6 +107,8 @@ object ScalaVersion {
       major: MajorVersion,
       minorVersion: Int,
       patchVersion: Int,
+      rcVersion: Option[Int],
+      dateVersion: Option[LocalDate],
       shortSha1Version: String
   ) extends ScalaVersion {
     override val minor: Some[Int] = Some(minorVersion)
@@ -126,6 +143,7 @@ object ScalaVersion {
   }
 
   private val intPattern = """\d{1,2}"""
+  private val datePattern = """\d{8}"""
   private val shortSha1Pattern = """[0-9a-f]{7}"""
 
   private val FullVersion =
@@ -133,15 +151,26 @@ object ScalaVersion {
   private val RcVersion =
     raw"""($intPattern)\.($intPattern)\.($intPattern)-RC($intPattern)""".r
   private val NightlyVersion =
-    raw"""($intPattern)\.($intPattern)\.($intPattern)-bin-($shortSha1Pattern)""".r
+    raw"""($intPattern)\.($intPattern)\.($intPattern)(?:-RC($intPattern))?-bin(?:-($datePattern))?-($shortSha1Pattern)(?:-NIGHTLY)?""".r
   private val MajorPattern = raw"""($intPattern)""".r
   private val PartialVersion = raw"""($intPattern)\.($intPattern)""".r
 
+  private val yyyyMMdd = DateTimeFormatter.ofPattern("yyyyMMdd")
+
   def from(version: String): Try[ScalaVersion] = {
     version match {
-      case NightlyVersion(major, minor, patch, shortSha1) =>
+      case NightlyVersion(major, minor, patch, rc, date, shortSha1) =>
         MajorVersion.from(major.toLong).flatMap { major =>
-          Success(Nightly(major, minor.toInt, patch.toInt, shortSha1))
+          Success(
+            Nightly(
+              major,
+              minor.toInt,
+              patch.toInt,
+              Try(rc.toInt).toOption,
+              Try(LocalDate.parse(date, yyyyMMdd)).toOption,
+              shortSha1
+            )
+          )
         }
       case RcVersion(major, minor, patch, rc) =>
         MajorVersion.from(major.toLong).flatMap { major =>
