@@ -11,6 +11,7 @@ jobs:
         with:
           fetch-depth: 0
       - uses: coursier/setup-action@v1
+      - uses: sbt/setup-sbt@v1
       - name: Publish ${{ github.ref }} (without wiping sonatype-stats)
         run: |
           git restore --source=origin/gh-pages --worktree sonatype-stats
