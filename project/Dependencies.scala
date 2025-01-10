@@ -6,7 +6,7 @@ import sbt._
 
 object Dependencies {
   val scala212 = sys.props.getOrElse("scala212.nightly", "2.12.20")
-  val scala213 = sys.props.getOrElse("scala213.nightly", "2.13.15")
+  val scala213 = sys.props.getOrElse("scala213.nightly", "2.13.16")
   val scala33 = "3.3.4"
   val scala35 = "3.5.2"
   val scala36 = "3.6.2"
