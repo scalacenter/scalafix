@@ -241,9 +241,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, Option[String]] = Map(
-    "2.13.16" -> Some("2.13.15"),
-    "3.5.2" -> Some("3.5.1"),
-    "3.6.2" -> None
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
@@ -264,14 +261,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       // Scala 3 compiler
       "org.scala-lang.modules" % "scala-asm" % VersionScheme.Always,
       // coursier-versions always return false for the *.*.*.*-r pattern jgit uses
-      Dependencies.jgit.withRevision(VersionScheme.Always),
-      // metaconfig has no breaking change from 0.13.0 to 0.14.0
-      "org.scalameta" % "metaconfig-core_2.12" % VersionScheme.Always,
-      "org.scalameta" % "metaconfig-core_2.13" % VersionScheme.Always,
-      "org.scalameta" % "metaconfig-pprint_2.12" % VersionScheme.Always,
-      "org.scalameta" % "metaconfig-pprint_2.13" % VersionScheme.Always,
-      "org.scalameta" % "metaconfig-typesafe-config_2.12" % VersionScheme.Always,
-      "org.scalameta" % "metaconfig-typesafe-config_2.13" % VersionScheme.Always
+      Dependencies.jgit.withRevision(VersionScheme.Always)
     )
   )
 
