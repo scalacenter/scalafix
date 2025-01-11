@@ -241,11 +241,14 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, Option[String]] = Map(
+    "2.13.16" -> Some("2.13.15"),
     "3.5.2" -> Some("3.5.1"),
     "3.6.2" -> None
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
+    // removed from the compiler in 2.13.16, extremely unlikely to be needed by clients
+    versionPolicyIgnored += "net.java.dev.jna" % "jna",
     // https://github.com/sbt/sbt/issues/5568#issuecomment-1094380636
     versionPolicyIgnored ++= Seq(
       // https://github.com/scalacenter/scalafix/pull/1530
@@ -280,16 +283,13 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       .value,
     // avoid "missing dependency" on artifacts with full scala version when bumping scala
     versionPolicyIgnored ++= {
-      PreviousScalaVersion.get(scalaVersion.value) match {
-        case Some(Some(previous)) =>
-          // all transitive dependencies with full scala version we know about
-          Seq(
-            "org.scalameta" % s"semanticdb-scalac-core_$previous",
-            "ch.epfl.scala" % s"scalafix-cli_$previous",
-            "ch.epfl.scala" % s"scalafix-reflect_$previous",
-            "ch.epfl.scala" % s"scalafix-rules_$previous"
-          )
-        case _ => Seq()
+      PreviousScalaVersion.values.flatten.toSeq.flatMap { previous =>
+        Seq(
+          "org.scalameta" % s"semanticdb-scalac-core_$previous",
+          "ch.epfl.scala" % s"scalafix-cli_$previous",
+          "ch.epfl.scala" % s"scalafix-reflect_$previous",
+          "ch.epfl.scala" % s"scalafix-rules_$previous"
+        )
       }
     },
     versionPolicyIntention := Compatibility.BinaryCompatible,

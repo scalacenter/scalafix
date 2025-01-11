@@ -4,9 +4,9 @@ set -eux
 version=$1
 
 scala212=2.12.20
-scala213=2.13.15
+scala213=2.13.16
 scala3LTS=3.3.4
-scala3Next=3.5.1
+scala3Next=3.6.2
 
 cs resolve \
   ch.epfl.scala:scalafix-interfaces:$version  \
