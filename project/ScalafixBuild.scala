@@ -247,6 +247,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
+    // removed from the compiler in 2.13.16, extremely unlikely to be needed by clients
+    versionPolicyIgnored += "net.java.dev.jna" % "jna",
     // https://github.com/sbt/sbt/issues/5568#issuecomment-1094380636
     versionPolicyIgnored ++= Seq(
       // https://github.com/scalacenter/scalafix/pull/1530
