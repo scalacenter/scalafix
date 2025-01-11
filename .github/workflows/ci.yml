@@ -20,8 +20,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: coursier/setup-action@v1
         with:
+          apps: sbt
           jvm: zulu:${{ matrix.jvm }}
-      - uses: sbt/setup-sbt@v1
       - if: ${{ matrix.os != 'windows' }}
         run: sbt test
       - if: ${{ matrix.os == 'windows' }}
@@ -32,7 +32,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: coursier/setup-action@v1
-      - uses: sbt/setup-sbt@v1
+        with:
+          apps: sbt
       - run: sbt ci-docs
   formatting:
     name: Scalafmt and Scalafix
@@ -40,7 +41,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: coursier/setup-action@v1
-      - uses: sbt/setup-sbt@v1
+        with:
+          apps: sbt
       - run: ./bin/scalafmt --test
       - run: sbt "dogfoodScalafixInterfaces; scalafixAll --check"
   mima:
@@ -51,5 +53,6 @@ jobs:
         with:
           fetch-depth: 0
       - uses: coursier/setup-action@v1
-      - uses: sbt/setup-sbt@v1
+        with:
+          apps: sbt
       - run: sbt versionPolicyCheck
