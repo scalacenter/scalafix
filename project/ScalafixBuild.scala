@@ -283,16 +283,13 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       .value,
     // avoid "missing dependency" on artifacts with full scala version when bumping scala
     versionPolicyIgnored ++= {
-      PreviousScalaVersion.get(scalaVersion.value) match {
-        case Some(Some(previous)) =>
-          // all transitive dependencies with full scala version we know about
-          Seq(
-            "org.scalameta" % s"semanticdb-scalac-core_$previous",
-            "ch.epfl.scala" % s"scalafix-cli_$previous",
-            "ch.epfl.scala" % s"scalafix-reflect_$previous",
-            "ch.epfl.scala" % s"scalafix-rules_$previous"
-          )
-        case _ => Seq()
+      PreviousScalaVersion.values.flatten.toSeq.flatMap { previous =>
+        Seq(
+          "org.scalameta" % s"semanticdb-scalac-core_$previous",
+          "ch.epfl.scala" % s"scalafix-cli_$previous",
+          "ch.epfl.scala" % s"scalafix-reflect_$previous",
+          "ch.epfl.scala" % s"scalafix-rules_$previous"
+        )
       }
     },
     versionPolicyIntention := Compatibility.BinaryCompatible,
