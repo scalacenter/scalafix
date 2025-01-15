@@ -71,7 +71,7 @@ class ScalafixSuite extends AnyFunSuite {
 
   test("classload Scala 2.12 with full version") {
     val scalafixAPI =
-      Scalafix.fetchAndClassloadInstance("2.12.20", repositories)
+      Scalafix.fetchAndClassloadInstance("2.13.15", repositories)
     assert(scalafixAPI.scalaVersion() == Versions.scala212)
   }
 
