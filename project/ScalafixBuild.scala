@@ -206,7 +206,9 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         .map { sv =>
           s"integration${asProjectSuffix(sv)} / Test / runMain scalafix.tests.util.SaveExpect"
         }
-        .mkString("all ", " ", "") :: state
+        .foldLeft(state) { (state, command) =>
+          command :: state
+        }
     },
     commands += Command.command("ci-docs") { state =>
       "docs2_13/run" :: // reduce risk of errors on deploy-website.yml
