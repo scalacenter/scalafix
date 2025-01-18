@@ -16,9 +16,6 @@ class LegacySyntheticsSuite extends BaseSemanticSuite("LegacySyntheticsTest") {
         |  [2..6): List => scala/collection/immutable/List.
         |  [7..19): canBuildFrom => scala/collection/immutable/List.canBuildFrom().
         |  [20..23): Int => scala/Int#
-        |[221..226): *[List]
-        |  [0..1): * => _star_.
-        |  [2..6): List => scala/package.List#
         |[230..236): *[Int, Set[Int]]
         |  [0..1): * => _star_.
         |  [2..5): Int => scala/Int#
@@ -29,13 +26,6 @@ class LegacySyntheticsSuite extends BaseSemanticSuite("LegacySyntheticsTest") {
         |  [2..5): Set => scala/collection/immutable/Set.
         |  [6..18): canBuildFrom => scala/collection/immutable/Set.canBuildFrom().
         |  [19..22): Int => scala/Int#
-        |[245..253): *[List[Int], Int, Set[Int]]
-        |  [0..1): * => _star_.
-        |  [2..6): List => scala/collection/immutable/List#
-        |  [7..10): Int => scala/Int#
-        |  [13..16): Int => scala/Int#
-        |  [18..21): Set => scala/Predef.Set#
-        |  [22..25): Int => scala/Int#
         |[268..283): *[Int, List]
         |  [0..1): * => _star_.
         |  [2..5): Int => scala/Int#
@@ -57,14 +47,6 @@ class LegacySyntheticsSuite extends BaseSemanticSuite("LegacySyntheticsTest") {
         |  [2..6): List => scala/collection/immutable/List.
         |  [7..19): canBuildFrom => scala/collection/immutable/List.canBuildFrom().
         |  [20..23): Int => scala/Int#
-        |[301..309): *[List[Future[Int]], Int, List[Int]]
-        |  [0..1): * => _star_.
-        |  [2..6): List => scala/collection/immutable/List#
-        |  [7..13): Future => scala/concurrent/Future#
-        |  [14..17): Int => scala/Int#
-        |  [21..24): Int => scala/Int#
-        |  [26..30): List => scala/collection/immutable/List#
-        |  [31..34): Int => scala/Int#
       """.stripMargin
 
     assertNoDiff(obtained, expected)
