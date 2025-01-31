@@ -25,6 +25,8 @@ import scalafix.tests.BuildInfo
  */
 class ScalafixSuite extends AnyFunSuite {
 
+  val jdk: Double = System.getProperty("java.specification.version").toDouble
+
   val scalaVersion: String = BuildInfo.scalaVersion
 
   val repositories: java.util.List[Repository] = Seq[Repository](
@@ -117,11 +119,13 @@ class ScalafixSuite extends AnyFunSuite {
   }
 
   test("classload Scala 3.5 with full version") {
+    if (jdk >= 23) cancel("Scala 3.5 is not supported on JDK23+")
     val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.5.2", repositories)
     assert(scalafixAPI.scalaVersion() == Versions.scala35)
   }
 
   test("classload Scala 3.5 with major.minor version") {
+    if (jdk >= 23) cancel("Scala 3.5 is not supported on JDK23+")
     val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.5", repositories)
     assert(scalafixAPI.scalaVersion() == Versions.scala35)
   }
