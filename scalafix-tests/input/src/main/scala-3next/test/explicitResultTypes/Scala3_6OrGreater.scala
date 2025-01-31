@@ -4,6 +4,10 @@ ExplicitResultTypes.skipSimpleDefinitions = false
 */
 package test.explicitResultTypes
 
+trait PolymorphicFunContextBound
+  import scala.math.Numeric.Implicits.infixNumericOps
+  val foo: [A: Numeric] => A => Int = [A: Numeric] => _.toInt
+
 trait Order[T]:
   extension (values: Seq[T]) def toSorted: Seq[T] = ???
   def compare(x: T, y: T): Int
