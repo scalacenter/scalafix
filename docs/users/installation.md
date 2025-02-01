@@ -438,10 +438,11 @@ cs install scalafix
 
 ```
 
-## Plugins for other build tools
+## Support in other build tools
 
 Scalafix is supported in other build tools via externally maintained plugins:
 
+- scala-cli: [experimental, built-in support](https://scala-cli.virtuslab.org/docs/commands/fix#scalafix-integration)
 - Mill: [mill-scalafix](https://github.com/joan38/mill-scalafix)
 - Gradle: [gradle-scalafix](https://github.com/cosmicsilence/gradle-scalafix)
 - Maven: [scalafix-maven-plugin](https://github.com/evis/scalafix-maven-plugin)
