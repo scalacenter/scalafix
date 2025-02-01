@@ -14,7 +14,7 @@ object Dependencies {
   val scala3Next = sys.props.getOrElse("scala3.nightly", scala36)
 
   val bijectionCoreV = "0.9.8"
-  val collectionCompatV = "2.12.0"
+  val collectionCompatV = "2.13.0"
   val coursierV = "2.1.24"
   val coursierInterfaceV = "1.0.27"
   val commontTextV = "1.13.0"
