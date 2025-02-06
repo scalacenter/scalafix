@@ -73,8 +73,12 @@ class ScalafixGlobal(
     import scala.meta.internal.semanticdb.Scala._
     if (!symbol.isGlobal) return Nil
 
-    def EncodedTermName(str: String): TermName = TermName(NameTransformer.encode(str))
-    def EncodedTypeName(str: String): TypeName = TypeName(NameTransformer.encode(str))
+    def EncodedTermName(str: String): TermName = TermName(
+      NameTransformer.encode(str)
+    )
+    def EncodedTypeName(str: String): TypeName = TypeName(
+      NameTransformer.encode(str)
+    )
 
     def loop(s: String): List[Symbol] = {
       if (s.isNone || s.isRootPackage) rootMirror.RootPackage :: Nil
@@ -100,16 +104,21 @@ class ScalafixGlobal(
                   Nil
                 case Descriptor.Type(value) =>
                   val member = owner.info.decl(EncodedTypeName(value)) :: Nil
-                  if (sym.isJava) owner.info.decl(EncodedTermName(value)) :: member
+                  if (sym.isJava)
+                    owner.info.decl(EncodedTermName(value)) :: member
                   else member
                 case Descriptor.Term(value) =>
                   owner.info.decl(EncodedTermName(value)) :: Nil
                 case Descriptor.Package(value) =>
                   owner.info.decl(EncodedTermName(value)) :: Nil
                 case Descriptor.Parameter(value) =>
-                  owner.paramss.flatten.filter(_.name.containsName(EncodedTermName(value)))
+                  owner.paramss.flatten.filter(
+                    _.name.containsName(EncodedTermName(value))
+                  )
                 case Descriptor.TypeParameter(value) =>
-                  owner.typeParams.filter(_.name.containsName(EncodedTypeName(value)))
+                  owner.typeParams.filter(
+                    _.name.containsName(EncodedTypeName(value))
+                  )
                 case Descriptor.Method(value, _) =>
                   owner.info
                     .decl(EncodedTermName(value))
