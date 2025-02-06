@@ -5,6 +5,7 @@ import java.{util => ju}
 
 import scala.collection.compat._
 import scala.collection.mutable
+import scala.reflect.NameTransformer
 import scala.reflect.internal.{Flags => gf}
 import scala.reflect.io.VirtualDirectory
 import scala.tools.nsc.Settings
@@ -72,6 +73,13 @@ class ScalafixGlobal(
     import scala.meta.internal.semanticdb.Scala._
     if (!symbol.isGlobal) return Nil
 
+    def EncodedTermName(str: String): TermName = TermName(
+      NameTransformer.encode(str)
+    )
+    def EncodedTypeName(str: String): TypeName = TypeName(
+      NameTransformer.encode(str)
+    )
+
     def loop(s: String): List[Symbol] = {
       if (s.isNone || s.isRootPackage) rootMirror.RootPackage :: Nil
       else if (s.isEmptyPackage) rootMirror.EmptyPackage :: Nil
@@ -95,20 +103,25 @@ class ScalafixGlobal(
                 case Descriptor.None =>
                   Nil
                 case Descriptor.Type(value) =>
-                  val member = owner.info.decl(TypeName(value)) :: Nil
-                  if (sym.isJava) owner.info.decl(TermName(value)) :: member
+                  val member = owner.info.decl(EncodedTypeName(value)) :: Nil
+                  if (sym.isJava)
+                    owner.info.decl(EncodedTermName(value)) :: member
                   else member
                 case Descriptor.Term(value) =>
-                  owner.info.decl(TermName(value)) :: Nil
+                  owner.info.decl(EncodedTermName(value)) :: Nil
                 case Descriptor.Package(value) =>
-                  owner.info.decl(TermName(value)) :: Nil
+                  owner.info.decl(EncodedTermName(value)) :: Nil
                 case Descriptor.Parameter(value) =>
-                  owner.paramss.flatten.filter(_.name.containsName(value))
+                  owner.paramss.flatten.filter(
+                    _.name.containsName(EncodedTermName(value))
+                  )
                 case Descriptor.TypeParameter(value) =>
-                  owner.typeParams.filter(_.name.containsName(value))
+                  owner.typeParams.filter(
+                    _.name.containsName(EncodedTypeName(value))
+                  )
                 case Descriptor.Method(value, _) =>
                   owner.info
-                    .decl(TermName(value))
+                    .decl(EncodedTermName(value))
                     .alternatives
                     .iterator
                     .filter(sym => semanticdbSymbol(sym) == s)
