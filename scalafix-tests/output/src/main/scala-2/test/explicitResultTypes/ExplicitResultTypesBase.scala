@@ -31,7 +31,8 @@ object ExplicitResultTypesBase {
     // comment
     x + 2
   object ExtraSpace {
-    def * = "abc".length
+    def * : Int = "abc".length
+    def ! : Int = "abc".length
     def foo_ : Int = "abc".length
     def `x`: Int = "abc".length
     def `x ` = "abc".length
