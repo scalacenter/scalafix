@@ -5,6 +5,7 @@ import java.{util => ju}
 
 import scala.collection.compat._
 import scala.collection.mutable
+import scala.reflect.NameTransformer
 import scala.reflect.internal.{Flags => gf}
 import scala.reflect.io.VirtualDirectory
 import scala.tools.nsc.Settings
@@ -17,7 +18,6 @@ import scala.{meta => m}
 
 import scala.meta.internal.semanticdb.scalac.SemanticdbOps
 import scala.meta.io.AbsolutePath
-import scala.reflect.NameTransformer
 
 object ScalafixGlobal {
   def newCompiler(
