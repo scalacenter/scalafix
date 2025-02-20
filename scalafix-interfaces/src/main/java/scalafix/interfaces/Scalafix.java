@@ -112,8 +112,8 @@ public interface Scalafix {
      * @return An implementation of the {@link Scalafix} interface.
      * @throws ScalafixException in case of errors during artifact resolution/fetching.
      */
-    static Scalafix fetchAndClassloadInstance(String scalaBinaryVersion) throws ScalafixException {
-        return fetchAndClassloadInstance(scalaBinaryVersion, Repository.defaults());
+    static Scalafix fetchAndClassloadInstance(String requestedScalaVersion) throws ScalafixException {
+        return fetchAndClassloadInstance(requestedScalaVersion, Repository.defaults());
     }
 
     /**
