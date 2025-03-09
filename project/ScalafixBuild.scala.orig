@@ -33,14 +33,14 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
 
     // https://github.com/scalameta/scalameta/issues/2485
     lazy val coreScalaVersions = Seq(scala212, scala213)
-    lazy val cliScalaVersions = {
-      val jdk = System.getProperty("java.specification.version").toDouble
-      val scala3Versions =
-        // Scala 3.5 will never support JDK 23
-        if (jdk >= 23) Seq(scala33, scala36)
-        else Seq(scala33, scala35, scala36)
-      (coreScalaVersions ++ scala3Versions :+ scala3Next).distinct
-    }
+    lazy val cliScalaVersions = Seq(
+      scala212,
+      scala213,
+      scala33,
+      scala35,
+      scala36,
+      scala3Next
+    ).distinct
     lazy val cliScalaVersionsWithTargets: Seq[(String, TargetAxis)] =
       cliScalaVersions.map(sv => (sv, TargetAxis(sv))) ++
         Seq(scala213, scala212).flatMap { sv =>
@@ -243,15 +243,18 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, Option[String]] = Map(
-    "3.6.4" -> Some("3.6.3")
+<<<<<<< HEAD
+    "3.6.3" -> Some("3.6.2")
+=======
+    "3.3.5-RC2" -> Some("3.3.4"),
+    "3.6.3" -> Some("3.6.2"),
+    "3.6.4-RC1" -> Some("3.6.3"),
+>>>>>>> 23d84b21 (Test Scala 3 RC)
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
-    // removed from the compiler in 2.13.16, 3.3.4 & 3.6.3, extremely unlikely to be needed by clients
-    versionPolicyIgnored ++= Seq(
-      "net.java.dev.jna" % "jna",
-      "org.jline" % "jline-terminal-jna"
-    ),
+    // removed from the compiler in 2.13.16, extremely unlikely to be needed by clients
+    versionPolicyIgnored += "net.java.dev.jna" % "jna",
     // https://github.com/sbt/sbt/issues/5568#issuecomment-1094380636
     versionPolicyIgnored ++= Seq(
       // https://github.com/scalacenter/scalafix/pull/1530
