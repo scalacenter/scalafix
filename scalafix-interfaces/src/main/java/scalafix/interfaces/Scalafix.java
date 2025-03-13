@@ -86,6 +86,11 @@ public interface Scalafix {
     String scala36();
 
     /**
+     * The Scala 3.7 version in {@link #supportedScalaVersions()}
+     */
+    String scala37();
+
+    /**
      * The Scala 3 LTS version in {@link #supportedScalaVersions()}
      */
     String scala3LTS();
@@ -155,6 +160,8 @@ public interface Scalafix {
             scalaVersionKey = "scala35";
         } else if (requestedScalaMajorMinorOrMajorVersion.equals("3.6")) {
             scalaVersionKey = "scala36";
+        } else if (requestedScalaMajorMinorOrMajorVersion.equals("3.7")) {
+            scalaVersionKey = "scala37";
         } else if (requestedScalaMajorMinorOrMajorVersion.startsWith("3")) {
             scalaVersionKey = "scala3Next";
         } else {

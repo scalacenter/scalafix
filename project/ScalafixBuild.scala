@@ -37,8 +37,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       val jdk = System.getProperty("java.specification.version").toDouble
       val scala3Versions =
         // Scala 3.5 will never support JDK 23
-        if (jdk >= 23) Seq(scala33, scala36)
-        else Seq(scala33, scala35, scala36)
+        if (jdk >= 23) Seq(scala33, scala36, scala37)
+        else Seq(scala33, scala35, scala36, scala37)
       (coreScalaVersions ++ scala3Versions :+ scala3Next).distinct
     }
     lazy val cliScalaVersionsWithTargets: Seq[(String, TargetAxis)] =
@@ -144,6 +144,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "scala33" -> scala33,
         "scala35" -> scala35,
         "scala36" -> scala36,
+        "scala37" -> scala37,
         "scala3LTS" -> scala3LTS,
         "scala3Next" -> scala3Next,
         sbtVersion
@@ -239,7 +240,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, Option[String]] = Map(
-    "3.6.4" -> Some("3.6.3")
+    "3.6.4" -> Some("3.6.3"),
+    scala37 -> None
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
