@@ -90,7 +90,7 @@ On Scala 2.13.15+, canonical patterns (vars with the same names as the
 attributes) do not trigger unused warnings, so the input above will not
 be rewritten. See https://github.com/scala/bug/issues/13035.
 
-### Remove unused function parameters (Scala 2 only)
+### Remove unused function parameters
 
 ```scala
 // before
