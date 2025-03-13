@@ -9,10 +9,7 @@ object Mima {
       ProblemFilters.exclude[Problem]("scalafix.internal.*"),
       ProblemFilters.exclude[Problem]("scala.meta.internal.*"),
       // Exceptions
-      ProblemFilters.exclude[DirectMissingMethodProblem]("scalafix.v0.Signature#Self.syntax"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.Scalafix.scala33"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.Scalafix.scala35"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.Scalafix.scala36")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("scalafix.Versions.scala35")
     )
   }
 }
