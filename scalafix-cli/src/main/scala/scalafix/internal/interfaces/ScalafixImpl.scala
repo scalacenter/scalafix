@@ -40,6 +40,8 @@ final class ScalafixImpl extends Scalafix {
     Versions.scala35
   override def scala36(): String =
     Versions.scala36
+  override def scala37(): String =
+    Versions.scala37
   override def scala3LTS(): String =
     Versions.scala3LTS
   override def scala3Next(): String =

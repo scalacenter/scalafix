@@ -86,6 +86,11 @@ public interface Scalafix {
     String scala36();
 
     /**
+     * The Scala 3.7 version in {@link #supportedScalaVersions()}
+     */
+    String scala37();
+
+    /**
      * The Scala 3 LTS version in {@link #supportedScalaVersions()}
      */
     String scala3LTS();
