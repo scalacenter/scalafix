@@ -10,6 +10,9 @@ object ob {
   val example = AB(42, "lol")
 
   example match {
+    case AB(_, _) => println("https://github.com/scala/bug/issues/13035")
+  }
+  example match {
     case AB(_, _) => println("Not used, good")
   }
   example match {
@@ -60,7 +63,7 @@ object ob {
     case _: String => ???
     case (_: Int) => ???
     case (_: Int, b) => println(b)
-    case A(_) => ???
+    case _@A(_) => ???
     case x :: (_, _) :: Nil => println(x)
     case _ => ???
   }
@@ -383,6 +386,6 @@ class cl {
   }
 
   def f(v: (Int, (Boolean, String))): Int = v match {
-    case (i, (_, _)) => i
+    case _ @ (i, _ @ (_, _)) => i
   }
 }

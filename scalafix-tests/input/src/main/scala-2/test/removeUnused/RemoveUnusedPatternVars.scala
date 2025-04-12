@@ -13,6 +13,9 @@ object ob {
   val example = AB(42, "lol")
 
   example match {
+    case AB(aa, bb) => println("https://github.com/scala/bug/issues/13035")
+  }
+  example match {
     case AB(_, _) => println("Not used, good")
   }
   example match {

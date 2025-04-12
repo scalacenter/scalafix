@@ -36,16 +36,23 @@ class RuleSuite extends AbstractSemanticRuleSuite with AnyFunSuiteLike {
   override def runOn(diffTest: RuleTest): Unit = {
     def stripPatch(v: String) = v.split('.').take(2).mkString(".")
 
+    val inputSV = props.scalaVersion
+    val path = diffTest.path.input.toNIO.toString
+
     val versionMismatch =
-      stripPatch(RulesBuildInfo.scalaVersion) != stripPatch(props.scalaVersion)
+      stripPatch(RulesBuildInfo.scalaVersion) != stripPatch(inputSV)
     val explicitResultTypesTest =
-      diffTest.path.input.toNIO.toString.contains(
+      path.contains(
         "explicitResultTypes" + java.io.File.separator // don't skip tests with a suffix
       )
 
-    // ExplicitResultTypes can only run against sources compiled with the sam
-    // binary version as the one used to compile the rule
-    if (versionMismatch && explicitResultTypesTest) return
+    if (
+      // ExplicitResultTypes can only run against sources compiled with the same
+      // binary version as the one used to compile the rule
+      (versionMismatch && explicitResultTypesTest) ||
+      // RemoveUnusedPatternVars has the old 2.12.x behavior for 2.13.14
+      (inputSV == "2.13.14" && path.endsWith("RemoveUnusedPatternVars.scala"))
+    ) return
     else super.runOn(diffTest)
   }
 

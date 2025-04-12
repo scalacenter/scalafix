@@ -72,7 +72,10 @@ case class AB(a: Int, b: String)
 object Main {
   val example = AB(42, "lol")
   example match {
-    case AB(a, b) => println("Not used")
+    case AB(foo, bar) => println("Not used")
+  }
+  example match {
+    case AB(a, b) => println("Not used, but canonical names")
   }
 }
 // after
@@ -81,14 +84,14 @@ object Main {
   example match {
     case AB(_, _) => println("Not used")
   }
+  example match {
+    case AB(a, b) => println("Not used, but canonical names")
+  }
 }
 ```
 
-On Scala 3, `-Wunused:unsafe-warn-patvars` is required.
-
-On Scala 2.13.15+, canonical patterns (vars with the same names as the
-attributes) do not trigger unused warnings, so the input above will not
-be rewritten. See https://github.com/scala/bug/issues/13035.
+On Scala 3, an additional `-Wunused:unsafe-warn-patvars` option is required
+until Scala 3.7.0.
 
 ### Remove unused function parameters
 
