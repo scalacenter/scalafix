@@ -90,12 +90,23 @@ default is <code>src/scalafix/scala</code>.</p>
 <span class="hljs-addition">+           ├── MyRule2.scala</span>
 <span class="hljs-addition">+           └── ...</span>
 </code></pre>
-<pre><code class="hljs css language-diff"> // build.sbt
-<span class="hljs-addition">+libraryDependencies +=</span>
-<span class="hljs-addition">+  "ch.epfl.scala" %%</span>
-<span class="hljs-addition">+    "scalafix-core" %</span>
-<span class="hljs-addition">+    _root_.scalafix.sbt.BuildInfo.scalafixVersion %</span>
-<span class="hljs-addition">+    ScalafixConfig</span>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">// build.sbt</span>
+<span class="hljs-keyword">import</span> _root_.scalafix.sbt.{<span class="hljs-type">BuildInfo</span> =&gt; <span class="hljs-type">ScalafixBuildInfo</span>}
+
+libraryDependencies +=
+  (<span class="hljs-string">"ch.epfl.scala"</span> %% <span class="hljs-string">"scalafix-core"</span> % <span class="hljs-type">ScalafixBuildInfo</span>.scalafixVersion)
+    .cross(<span class="hljs-type">CrossVersion</span>.for3Use2_13) % <span class="hljs-type">ScalafixConfig</span>
+
+<span class="hljs-comment">// Since sbt 1.10.x (https://github.com/sbt/sbt/pull/7480), scala3-library is</span>
+<span class="hljs-comment">// not automatically added to non-standard configurations, but is needed by the</span>
+<span class="hljs-comment">// Scala 3 compiler, so it must be added explicitly if no dependency brings it</span>
+<span class="hljs-comment">// implicitly, which is the case here because the only dependency is for3Use2_13</span>
+libraryDependencies ++= {
+  <span class="hljs-keyword">if</span> (scalaBinaryVersion.value == <span class="hljs-string">"3"</span>)
+    <span class="hljs-type">Seq</span>(<span class="hljs-string">"org.scala-lang"</span> %% <span class="hljs-string">"scala3-library"</span> % scalaVersion.value % <span class="hljs-type">ScalafixConfig</span>)
+  <span class="hljs-keyword">else</span>
+    <span class="hljs-type">Nil</span>
+}
 </code></pre>
 <pre><code class="hljs css language-bash">$ sbt
 &gt; scalafix MyRule1 MyRule2
@@ -137,15 +148,25 @@ promoting them to the <a href="#as-a-separate-sub-project">build-level</a>.</p>
  └── service3
      └── ...
 </code></pre>
-<pre><code class="hljs css language-diff"> // build.sbt
- lazy val service1 = project
-<span class="hljs-addition">+  .settings(</span>
-<span class="hljs-addition">+    libraryDependencies +=</span>
-<span class="hljs-addition">+      "ch.epfl.scala" %%</span>
-<span class="hljs-addition">+        "scalafix-core" %</span>
-<span class="hljs-addition">+        _root_.scalafix.sbt.BuildInfo.scalafixVersion %</span>
-<span class="hljs-addition">+        ScalafixConfig</span>
-<span class="hljs-addition">+  )</span>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">// build.sbt</span>
+<span class="hljs-keyword">import</span> _root_.scalafix.sbt.{<span class="hljs-type">BuildInfo</span> =&gt; <span class="hljs-type">ScalafixBuildInfo</span>}
+
+<span class="hljs-keyword">lazy</span> <span class="hljs-keyword">val</span> service1 = project
+  .settings(
+    libraryDependencies +=
+      (<span class="hljs-string">"ch.epfl.scala"</span> %% <span class="hljs-string">"scalafix-core"</span> % <span class="hljs-type">ScalafixBuildInfo</span>.scalafixVersion)
+        .cross(<span class="hljs-type">CrossVersion</span>.for3Use2_13) % <span class="hljs-type">ScalafixConfig</span>,
+    <span class="hljs-comment">// Since sbt 1.10.x (https://github.com/sbt/sbt/pull/7480), scala3-library is</span>
+    <span class="hljs-comment">// not automatically added to non-standard configurations, but is needed by the</span>
+    <span class="hljs-comment">// Scala 3 compiler, so it must be added explicitly if no dependency brings it</span>
+    <span class="hljs-comment">// implicitly, which is the case here because the only dependency is for3Use2_13</span>
+    libraryDependencies ++= {
+      <span class="hljs-keyword">if</span> (scalaBinaryVersion.value == <span class="hljs-string">"3"</span>)
+        <span class="hljs-type">Seq</span>(<span class="hljs-string">"org.scala-lang"</span> %% <span class="hljs-string">"scala3-library"</span> % scalaVersion.value % <span class="hljs-type">ScalafixConfig</span>)
+      <span class="hljs-keyword">else</span>
+        <span class="hljs-type">Nil</span>
+    }
+  )
 </code></pre>
 <pre><code class="hljs css language-bash">$ sbt
 &gt; service1 / scalafix MyRule1 MyRule2
@@ -185,36 +206,43 @@ semantic rules.</p>
  └── service3
      └── ...
 </code></pre>
-<pre><code class="hljs css language-diff"> // build.sbt
- lazy val service1 = project // sub-project where rule(s) will be used
-<span class="hljs-addition">+  .dependsOn(`scalafix-rules` % ScalafixConfig)</span>
-<span class="hljs-addition">+lazy val `scalafix-input` = (project in file("scalafix/input"))</span>
-<span class="hljs-addition">+  .disablePlugins(ScalafixPlugin)</span>
-<span class="hljs-addition">+lazy val `scalafix-output` = (project in file("scalafix/output"))</span>
-<span class="hljs-addition">+  .disablePlugins(ScalafixPlugin)</span>
-<span class="hljs-addition">+lazy val `scalafix-rules` = (project in file("scalafix/rules"))</span>
-<span class="hljs-addition">+  .disablePlugins(ScalafixPlugin)</span>
-<span class="hljs-addition">+  .settings(</span>
-<span class="hljs-addition">+    libraryDependencies +=</span>
-<span class="hljs-addition">+      "ch.epfl.scala" %%</span>
-<span class="hljs-addition">+        "scalafix-core" %</span>
-<span class="hljs-addition">+        _root_.scalafix.sbt.BuildInfo.scalafixVersion</span>
-<span class="hljs-addition">+  )</span>
-<span class="hljs-addition">+lazy val `scalafix-tests` = (project in file("scalafix/tests"))</span>
-<span class="hljs-addition">+  .settings(</span>
-<span class="hljs-addition">+    scalafixTestkitOutputSourceDirectories :=</span>
-<span class="hljs-addition">+      (`scalafix-output` / Compile / sourceDirectories).value,</span>
-<span class="hljs-addition">+    scalafixTestkitInputSourceDirectories :=</span>
-<span class="hljs-addition">+      (`scalafix-input` / Compile / sourceDirectories).value,</span>
-<span class="hljs-addition">+    scalafixTestkitInputClasspath :=</span>
-<span class="hljs-addition">+      (`scalafix-input` / Compile / fullClasspath).value,</span>
-<span class="hljs-addition">+    scalafixTestkitInputScalacOptions :=</span>
-<span class="hljs-addition">+      (`scalafix-input` / Compile / scalacOptions).value,</span>
-<span class="hljs-addition">+    scalafixTestkitInputScalaVersion :=</span>
-<span class="hljs-addition">+      (`scalafix-input` / Compile / scalaVersion).value</span>
-<span class="hljs-addition">+  )</span>
-<span class="hljs-addition">+  .dependsOn(`scalafix-input`, `scalafix-rules`)</span>
-<span class="hljs-addition">+  .enablePlugins(ScalafixTestkitPlugin)</span>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">// build.sbt</span>
+<span class="hljs-keyword">import</span> _root_.scalafix.sbt.{<span class="hljs-type">BuildInfo</span> =&gt; <span class="hljs-type">ScalafixBuildInfo</span>}
+
+<span class="hljs-keyword">lazy</span> <span class="hljs-keyword">val</span> service1 = project <span class="hljs-comment">// sub-project where rule(s) will be used</span>
+  .dependsOn(`scalafix-rules` % <span class="hljs-type">ScalafixConfig</span>)
+
+<span class="hljs-keyword">lazy</span> <span class="hljs-keyword">val</span> `scalafix-rules` = (project in file(<span class="hljs-string">"scalafix/rules"</span>))
+  .disablePlugins(<span class="hljs-type">ScalafixPlugin</span>)
+  .settings(
+    libraryDependencies +=
+      (<span class="hljs-string">"ch.epfl.scala"</span> %% <span class="hljs-string">"scalafix-core"</span> % <span class="hljs-type">ScalafixBuildInfo</span>.scalafixVersion)
+        .cross(<span class="hljs-type">CrossVersion</span>.for3Use2_13)
+  )
+
+<span class="hljs-comment">// Projects below are optional, demonstrating usage of the testkit for unit tests</span>
+
+<span class="hljs-keyword">lazy</span> <span class="hljs-keyword">val</span> `scalafix-input` = (project in file(<span class="hljs-string">"scalafix/input"</span>))
+  .disablePlugins(<span class="hljs-type">ScalafixPlugin</span>)
+
+<span class="hljs-keyword">lazy</span> <span class="hljs-keyword">val</span> `scalafix-output` = (project in file(<span class="hljs-string">"scalafix/output"</span>))
+  .disablePlugins(<span class="hljs-type">ScalafixPlugin</span>)
+
+<span class="hljs-keyword">lazy</span> <span class="hljs-keyword">val</span> `scalafix-tests` = (project in file(<span class="hljs-string">"scalafix/tests"</span>))
+  .settings(
+    scalafixTestkitOutputSourceDirectories :=
+      (`scalafix-output` / <span class="hljs-type">Compile</span> / sourceDirectories).value,
+    scalafixTestkitInputSourceDirectories :=
+      (`scalafix-input` / <span class="hljs-type">Compile</span> / sourceDirectories).value,
+    scalafixTestkitInputClasspath :=
+      (`scalafix-input` / <span class="hljs-type">Compile</span> / fullClasspath).value,
+    scalafixTestkitInputScalacOptions :=
+      (`scalafix-input` / <span class="hljs-type">Compile</span> / scalacOptions).value,
+    scalafixTestkitInputScalaVersion :=
+      (`scalafix-input` / <span class="hljs-type">Compile</span> / scalaVersion).value
+  )
+  .dependsOn(`scalafix-input`, `scalafix-rules`)
+  .enablePlugins(<span class="hljs-type">ScalafixTestkitPlugin</span>)
 </code></pre>
 <pre><code class="hljs css language-bash">$ sbt
 &gt; scalafixTests / <span class="hljs-built_in">test</span>
