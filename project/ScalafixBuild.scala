@@ -54,10 +54,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
                 .getOrElse(Nil)
             previousPatchVersions
               .map { patch => s"$binaryVersion.$patch" }
-              .filterNot { v =>
-                System.getProperty("java.version").startsWith("22") &&
-                Seq("2.12.18").contains(v)
-              }
           }
 
           val prevVersions = previousVersions(sv).map(prev => TargetAxis(prev))
