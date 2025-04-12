@@ -46,13 +46,24 @@ default is `src/scalafix/scala`.
 +           └── ...
 ```
 
-```diff
- // build.sbt
-+libraryDependencies +=
-+  "ch.epfl.scala" %%
-+    "scalafix-core" %
-+    _root_.scalafix.sbt.BuildInfo.scalafixVersion %
-+    ScalafixConfig
+```scala
+// build.sbt
+import _root_.scalafix.sbt.{BuildInfo => ScalafixBuildInfo}
+
+libraryDependencies +=
+  ("ch.epfl.scala" %% "scalafix-core" % ScalafixBuildInfo.scalafixVersion)
+    .cross(CrossVersion.for3Use2_13) % ScalafixConfig
+
+// Since sbt 1.10.x (https://github.com/sbt/sbt/pull/7480), scala3-library is
+// not automatically added to non-standard configurations, but is needed by the
+// Scala 3 compiler, so it must be added explicitly if no dependency brings it
+// implicitly, which is the case here because the only dependency is for3Use2_13
+libraryDependencies ++= {
+  if (scalaBinaryVersion.value == "3")
+    Seq("org.scala-lang" %% "scala3-library" % scalaVersion.value % ScalafixConfig)
+  else
+    Nil
+}
 ```
 
 ```bash
@@ -102,16 +113,26 @@ promoting them to the [build-level](#as-a-separate-sub-project).
      └── ...
 ```
 
-```diff
- // build.sbt
- lazy val service1 = project
-+  .settings(
-+    libraryDependencies +=
-+      "ch.epfl.scala" %%
-+        "scalafix-core" %
-+        _root_.scalafix.sbt.BuildInfo.scalafixVersion %
-+        ScalafixConfig
-+  )
+```scala
+// build.sbt
+import _root_.scalafix.sbt.{BuildInfo => ScalafixBuildInfo}
+
+lazy val service1 = project
+  .settings(
+    libraryDependencies +=
+      ("ch.epfl.scala" %% "scalafix-core" % ScalafixBuildInfo.scalafixVersion)
+        .cross(CrossVersion.for3Use2_13) % ScalafixConfig,
+    // Since sbt 1.10.x (https://github.com/sbt/sbt/pull/7480), scala3-library is
+    // not automatically added to non-standard configurations, but is needed by the
+    // Scala 3 compiler, so it must be added explicitly if no dependency brings it
+    // implicitly, which is the case here because the only dependency is for3Use2_13
+    libraryDependencies ++= {
+      if (scalaBinaryVersion.value == "3")
+        Seq("org.scala-lang" %% "scala3-library" % scalaVersion.value % ScalafixConfig)
+      else
+        Nil
+    }
+  )
 ```
 
 ```bash
@@ -158,37 +179,44 @@ semantic rules.
      └── ...
 ```
 
-```diff
- // build.sbt
- lazy val service1 = project // sub-project where rule(s) will be used
-+  .dependsOn(`scalafix-rules` % ScalafixConfig)
-+lazy val `scalafix-input` = (project in file("scalafix/input"))
-+  .disablePlugins(ScalafixPlugin)
-+lazy val `scalafix-output` = (project in file("scalafix/output"))
-+  .disablePlugins(ScalafixPlugin)
-+lazy val `scalafix-rules` = (project in file("scalafix/rules"))
-+  .disablePlugins(ScalafixPlugin)
-+  .settings(
-+    libraryDependencies +=
-+      "ch.epfl.scala" %%
-+        "scalafix-core" %
-+        _root_.scalafix.sbt.BuildInfo.scalafixVersion
-+  )
-+lazy val `scalafix-tests` = (project in file("scalafix/tests"))
-+  .settings(
-+    scalafixTestkitOutputSourceDirectories :=
-+      (`scalafix-output` / Compile / sourceDirectories).value,
-+    scalafixTestkitInputSourceDirectories :=
-+      (`scalafix-input` / Compile / sourceDirectories).value,
-+    scalafixTestkitInputClasspath :=
-+      (`scalafix-input` / Compile / fullClasspath).value,
-+    scalafixTestkitInputScalacOptions :=
-+      (`scalafix-input` / Compile / scalacOptions).value,
-+    scalafixTestkitInputScalaVersion :=
-+      (`scalafix-input` / Compile / scalaVersion).value
-+  )
-+  .dependsOn(`scalafix-input`, `scalafix-rules`)
-+  .enablePlugins(ScalafixTestkitPlugin)
+```scala
+// build.sbt
+import _root_.scalafix.sbt.{BuildInfo => ScalafixBuildInfo}
+
+lazy val service1 = project // sub-project where rule(s) will be used
+  .dependsOn(`scalafix-rules` % ScalafixConfig)
+
+lazy val `scalafix-rules` = (project in file("scalafix/rules"))
+  .disablePlugins(ScalafixPlugin)
+  .settings(
+    libraryDependencies +=
+      ("ch.epfl.scala" %% "scalafix-core" % ScalafixBuildInfo.scalafixVersion)
+        .cross(CrossVersion.for3Use2_13)
+  )
+
+// Projects below are optional, demonstrating usage of the testkit for unit tests
+
+lazy val `scalafix-input` = (project in file("scalafix/input"))
+  .disablePlugins(ScalafixPlugin)
+
+lazy val `scalafix-output` = (project in file("scalafix/output"))
+  .disablePlugins(ScalafixPlugin)
+
+lazy val `scalafix-tests` = (project in file("scalafix/tests"))
+  .settings(
+    scalafixTestkitOutputSourceDirectories :=
+      (`scalafix-output` / Compile / sourceDirectories).value,
+    scalafixTestkitInputSourceDirectories :=
+      (`scalafix-input` / Compile / sourceDirectories).value,
+    scalafixTestkitInputClasspath :=
+      (`scalafix-input` / Compile / fullClasspath).value,
+    scalafixTestkitInputScalacOptions :=
+      (`scalafix-input` / Compile / scalacOptions).value,
+    scalafixTestkitInputScalaVersion :=
+      (`scalafix-input` / Compile / scalaVersion).value
+  )
+  .dependsOn(`scalafix-input`, `scalafix-rules`)
+  .enablePlugins(ScalafixTestkitPlugin)
 ```
 
 ```bash
