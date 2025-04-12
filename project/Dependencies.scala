@@ -50,7 +50,13 @@ object Dependencies {
   // scala-steward:off
 
   // Now shaded in dependencies, kept here only for backward compatbility
-  val pprint = "com.lihaoyi" %% "pprint" % "0.6.6"
-  val scalametaFastparse = "org.scalameta" %% "fastparse-v2" % "2.3.1"
-  val geny = "com.lihaoyi" %% "geny" % "0.6.5"
+  val runtimeDepsForBackwardCompatibility = Seq(
+    // metaconfig 0.10.0 shaded pprint
+    // https://github.com/scalameta/metaconfig/pull/154/files#r794005161
+    "com.lihaoyi" %% "pprint" % "0.6.6",
+    // scalameta 4.8.3 shaded fastparse and geny
+    // https://github.com/scalameta/scalameta/pull/3246
+    "org.scalameta" %% "fastparse-v2" % "2.3.1",
+    "com.lihaoyi" %% "geny" % "0.6.5"
+  )
 }

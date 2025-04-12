@@ -184,15 +184,7 @@ lazy val cli = projectMatrix
       else
         // Rules built with an old scalafix-core may need packages that
         // disappeared from the classpath to link
-        Seq(
-          // metaconfig 0.10.0 shaded pprint
-          // https://github.com/scalameta/metaconfig/pull/154/files#r794005161
-          pprint,
-          // scalameta 4.8.3 shaded fastparse and geny
-          // https://github.com/scalameta/scalameta/pull/3246
-          scalametaFastparse,
-          geny
-        ).map(_ % Runtime)
+        runtimeDepsForBackwardCompatibility.map(_ % Runtime)
     },
     // companion of `.dependsOn(reflect)`
     // issue reported in https://github.com/sbt/sbt/issues/7405
@@ -452,7 +444,12 @@ lazy val docs = projectMatrix
     scalacOptions += "-Xfatal-warnings",
     mdoc := (Compile / run).evaluated,
     libraryDependencies += scalatags,
-    dependencyOverrides += scalametaFor3Use2_13 // force eviction of mdoc transitive dependency
+    // ignore eviction of dependencies just left in cli for backward compatibility at runtime
+    libraryDependencySchemes ++=
+      Dependencies.runtimeDepsForBackwardCompatibility
+        .map(_.withRevision(VersionScheme.Always)),
+    // force eviction of mdoc transitive dependency
+    dependencyOverrides += scalametaFor3Use2_13
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(scalaVersions = Seq(scala213))
