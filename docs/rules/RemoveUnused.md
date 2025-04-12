@@ -90,7 +90,7 @@ On Scala 2.13.15+, canonical patterns (vars with the same names as the
 attributes) do not trigger unused warnings, so the input above will not
 be rewritten. See https://github.com/scala/bug/issues/13035.
 
-### Remove unused function parameters (Scala 2 only)
+### Remove unused function parameters
 
 ```scala
 // before
@@ -102,6 +102,8 @@ object Main {
   val f: String => Unit = _ => println("f")
 }
 ```
+
+On Scala 3, this is only supported for 3.7.0+.
 
 ## Formatting
 
@@ -176,8 +178,7 @@ $ scala3 -W
           - nowarn,
           - all,
           - imports :
-            Warn if an import selector is not referenced.
-            NOTE : overrided by -Wunused:strict-no-implicit-warn,
+            Warn if an import selector is not referenced.,
           - privates :
             Warn if a private member is unused,
           - locals :
@@ -188,13 +189,13 @@ $ scala3 -W
             Warn if an implicit parameter is unused,
           - params :
             Enable -Wunused:explicits,implicits,
+          - patvars :
+            Warn if a variable bound in a pattern is unused,
           - linted :
             Enable -Wunused:imports,privates,locals,implicits,
           - strict-no-implicit-warn :
             Same as -Wunused:import, only for imports of explicit named members.
-        NOTE : This overrides -Wunused:imports and NOT set by -Wunused:all,
+            NOTE : This overrides -Wunused:imports and NOT set by -Wunused:all,
           - unsafe-warn-patvars :
-            (UNSAFE) Warn if a variable bound in a pattern is unused.
-            This warning can generate false positive, as warning cannot be
-            suppressed yet.
+            Deprecated alias for `patvars`
 ```
