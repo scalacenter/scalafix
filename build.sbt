@@ -22,8 +22,8 @@ def inferJavaHome() = {
   Some(actualHome)
 }
 
-lazy val interfaces = project
-  .in(file("scalafix-interfaces"))
+lazy val properties = project
+  .in(file("scalafix-properties"))
   .settings(
     Compile / resourceGenerators += Def.task {
       val props = new java.util.Properties()
@@ -43,6 +43,16 @@ lazy val interfaces = project
       IO.write(props, "Scalafix version constants", out)
       List(out)
     },
+    moduleName := "scalafix-properties",
+    mimaPreviousArtifacts := Set.empty,
+    crossPaths := false,
+    autoScalaLibrary := false
+  )
+  .disablePlugins(ScalafixPlugin)
+
+lazy val interfaces = project
+  .in(file("scalafix-interfaces"))
+  .settings(
     (Compile / javacOptions) ++= List(
       "-Xlint:all",
       "-Werror"
@@ -56,6 +66,7 @@ lazy val interfaces = project
     autoScalaLibrary := false
   )
   .disablePlugins(ScalafixPlugin)
+  .dependsOn(properties)
 
 // Scala 3 macros vendored separately (i.e. without runtime classes), to
 // shadow Scala 2.13 macros in the Scala 3 compiler classpath, while producing
