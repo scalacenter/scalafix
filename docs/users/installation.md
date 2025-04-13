@@ -15,7 +15,7 @@ Note that other setups may work, but could result in unexpected behavior.
 
 ## sbt
 
-Start by installing the sbt 1.4+ plugin in `project/plugins.sbt`
+Start by installing the sbt 1.4+ plugin in `project/plugins.sbt`:
 
 ```scala
 // project/plugins.sbt
@@ -24,7 +24,7 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@VERSION@")
 
 > Scalafix is no longer published for Scala 2.11. You can run the final version
 > of Scalafix supporting 2.11, but all features documented below might not be
-> supported.
+> supported:
 > ```scala
 > // project/plugins.sbt
 > addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.10.4") // final Scala 2.11 version
@@ -32,7 +32,7 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@VERSION@")
 
 > sbt-scalafix is no longer published for sbt 0.13.x. You should be able to run
 > the latest version of Scalafix with the final sbt-scalafix version published
-> for sbt 0.13.x, but all features documented below might not be supported.
+> for sbt 0.13.x, but all features documented below might not be supported:
 >
 > ```scala
 > // project/plugins.sbt
@@ -42,7 +42,7 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@VERSION@")
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/ch.epfl.scala/sbt-scalafix/badge.svg)](https://maven-badges.herokuapp.com/maven-central/ch.epfl.scala/sbt-scalafix)
 
-From the sbt shell, let's run the rule `ProcedureSyntax`
+From the sbt shell, let's run the rule `ProcedureSyntax`:
 
 ```
 > myproject / scalafix ProcedureSyntax
@@ -52,14 +52,14 @@ It's normal that the first invocation of `scalafix` takes a while to download
 Scalafix artifacts from Maven Central.
 
 If all went well and your project uses the deprecated "procedure syntax", you
-should have a diff in your sources like this
+should have a diff in your sources like this:
 
 ```diff
 -  def myProcedure {
 +  def myProcedure: Unit = {
 ```
 
-Next, if we run another rule like `RemoveUnused` then we get an error
+Next, if we run another rule like `RemoveUnused` then we get an error:
 
 ```
 > myproject / scalafix RemoveUnused
@@ -71,11 +71,10 @@ problem, update your build to add -Ywarn-unused-import (with 2.12) ...
 ```
 
 The first error message means the
-[SemanticDB](https://scalameta.org/docs/semanticdb/guide.html) compiler plugin
-is not enabled for this project. The second error says `RemoveUnused` requires
-
-the Scala compiler option `-Ywarn-unused-import` (or `-Wunused:imports` in
-2.13.x or 3.x). To fix both problems, add the following settings to `build.sbt`
+[SemanticDB](https://scalameta.org/docs/semanticdb/guide.html) compiler output
+is not enabled for this project. The second error says that `RemoveUnused`
+requires the Scala compiler option `-Ywarn-unused-import` (or `-Wunused:imports`
+in 2.13.x or 3.x). To fix both problems, add the following settings to `build.sbt`:
 
 ```diff
  /*
@@ -124,7 +123,7 @@ For `project/*.scala` files, add
 `import scalafix.sbt.ScalafixPlugin.autoImport._` to the top of the file to
 resolve `scalafixSemanticdb`.
 
-We run `RemoveUnused` again and the error is now gone
+We run `RemoveUnused` again and the error is now gone:
 
 ```
 > myproject / scalafix RemoveUnused
@@ -132,7 +131,7 @@ We run `RemoveUnused` again and the error is now gone
 [info] Running scalafix on 15 Scala sources
 ```
 
-If your project has unused imports, you should see a diff like this
+If your project has unused imports, you should see a diff like this:
 
 ```diff
 - import scala.util.{ Success, Failure }
@@ -184,7 +183,7 @@ The task `myproject / scalafix` runs for **main sources** in the project
 By default, the `scalafix` command is enabled for the `Compile` and `Test`
 configurations, and `scalafixAll` will run on both of them. To enable
 Scalafix for other configuration like `IntegrationTest`, add the following
-to your project settings
+to your project settings:
 
 ```diff
  lazy val myproject = project
@@ -219,7 +218,7 @@ fetch Scalafix artifacts from Maven Central. These artifacts are by default
 cached [inside the home directory](https://get-coursier.io/docs/cache.html#default-location).
 To avoid redundant downloads on every pull request, it's recommended to configure
 your CI enviroment to cache this directory. The location can be customized with
-the environment variable `COURSIER_CACHE`
+the environment variable `COURSIER_CACHE`:
 
 ```sh
 export COURSIER_CACHE=$HOME/.custom-cache
@@ -240,7 +239,7 @@ feature with care as it has several shortcomings, for example:
    before a call to `scalafix[All] --check`, causing this one to run on dirty
    sources and thus pass while it should not. Make sure that `scalafixOnCompile`
    is disabled on CI or, if that is impossible, that `scalafix[All] --check`
-   is the first task executed, without any other concurrently.
+   is the first task executed, without any other at the same time.
 1. Some rules such as `RemoveUnused` can be counter-productive if applied too
    often/early, as the work-in-progress code that was just added might disappear
    after a simple `test`. 
@@ -251,13 +250,9 @@ feature with care as it has several shortcomings, for example:
    stale information and fail the invocation, which needs to be re-run manually.
    This is [not specific to `scalafixOnCompile`](https://github.com/scalacenter/scalafix/issues/1204),
    but the problem becomes much more visible with it.
-1. To keep the overhead minimal, `scalafixCaching` is automatically enabled when
-   `scalafixOnCompile` is, which can cause unexpected behaviors if you run into
-   false positive cache hits. `scalafixCaching` can explicitly be set to
-   `false` in that case.
 1. Non-idempotent rewrite rules might get you in an infinite loop where sources
-   never converge - not specific to `scalafixOnCompile` either, but rather
-   confusing when triggered automatically.
+   never converge - not specific to `scalafixOnCompile`, but rather confusing
+   when triggered automatically.
 1. Bugs in rule implementations can prevent you from getting a successful
    `compile`, blocking testing or publishing for example
 
@@ -295,13 +290,13 @@ If all went well, you should see a diff adding the comment
 By default, the SemanticDB compiler plugin will process all files in a project.
 
 Use `-P:semanticdb:exclude:<regex>` to exclude files from the SemanticDB
-compiler plugin.
+compiler plugin:
 
 ```scala
 scalacOptions += "-P:semanticdb:exclude:Macros.scala"
 ```
 
-Separate multiple patterns with pipe `|` to exclude multiple files.
+Separate multiple patterns with pipe `|` to exclude multiple files:
 
 ```scala
 scalacOptions += "-P:semanticdb:exclude:Macros.scala|Schema.scala"
@@ -322,7 +317,7 @@ Scala 2.x, the `scalafix` task also respects
 [`-P:semanticdb:exclude`](#exclude-files-from-semanticdb-scala-2x-only).
 
 Use `Compile / scalafix / unmanagedSources` to optionally exclude files from
-the `scalafix` task.
+the `scalafix` task:
 
 ```scala
 Compile / scalafix / unmanagedSources :=
@@ -339,7 +334,7 @@ The `*.semanticdb` files are available in the directory referenced by the
 `semanticdbTargetRoot` key, which defaults to `target/scala-x/meta`.
 
 You can override this default to emit `*.semanticdb` files in a custom
-location. For example:
+location:
 
 ```scala
 semanticdbTargetRoot := target.value / "semanticdb"
@@ -347,7 +342,7 @@ semanticdbTargetRoot := target.value / "semanticdb"
 
 Alternatively, you can set the `semanticdbIncludeInJar` key to request
 the compiler to emit these files into the `classDirectory` so that they
-are available in packaged JARs.
+are available in packaged JARs:
 
 ```scala
 semanticdbIncludeInJar := true
@@ -356,7 +351,7 @@ semanticdbIncludeInJar := true
 ### Disable Scalafix for specific project
 
 Use `.disablePlugins(ScalafixPlugin)` to disable Scalafix for a particular
-project.
+project:
 
 ```diff
   lazy val myproject = project
@@ -365,7 +360,7 @@ project.
 ```
 
 When using Scala.js or Scala Native, use `.jsConfigure` or `.nativeConfigure` to
-disable Scalafix for only the Scala.js or Scala Native project. For example:
+disable Scalafix for only the Scala.js or Scala Native project:
 
 ```diff
   lazy val myproject = crossProject(JVMPlatform, JSPlatform)
@@ -377,7 +372,7 @@ disable Scalafix for only the Scala.js or Scala Native project. For example:
 
 Instead of permanently enabling SemanticDB in build.sbt, use the
 `scalafixEnable` command to enable SemanticDB the current active sbt shell
-session.
+session:
 
 ```
 > scalafixEnable
@@ -411,25 +406,35 @@ git diff // should produce a diff
 First, install the [Coursier](https://get-coursier.io/docs/cli-installation)
 command-line interface.
 
-Then, download the Scalafix runner built with the latest version of Scala
-(@SCALA3NEXT@)
+Then, install or launch a Scalafix runner built with the latest version of Scala
+(@SCALA3NEXT@):
 
 ```sh
 cs install scalafix
-./scalafix --version # Should say @VERSION@
+scalafix --version # Should say @VERSION@
+
+cs install scalafix:0.14.0
+scalafix --version # Should say 0.14.0
+
+cs launch scalafix:0.13.0 -- --version # Should say 0.13.0
 ```
 
 > If you plan to use advanced semantic rules like `ExplicitResultTypes`, you
 > must use the version of Scalafix built with a Scala version matching your
-> target source files.
+> target source files (major.minor).
 > 
 > If your target files are not built with the latest minor version of Scala,
-> use one of the following commands to create a custom runner
+> use one of the following commands to create a custom runner:
 > 
 > ```sh
 > cs bootstrap ch.epfl.scala:scalafix-cli_@SCALA212@:@VERSION@ --main scalafix.cli.Cli -o scalafix_2.12
 > cs bootstrap ch.epfl.scala:scalafix-cli_@SCALA213@:@VERSION@ --main scalafix.cli.Cli -o scalafix_2.13
-> cs bootstrap ch.epfl.scala:scalafix-cli_@SCALA3LTS@:@VERSION@ --main scalafix.cli.Cli -o scalafix_3-lts
+> cs bootstrap ch.epfl.scala:scalafix-cli_@SCALA3LTS@:@VERSION@ --main scalafix.cli.Cli -o scalafix_3.3-lts
+> ```
+>
+> Alternatively, you can run a one-shot command:
+> ```sh
+> cs launch --scala X.Y scalafix -- --version
 > ```
 
 ### Help
@@ -453,7 +458,7 @@ Scalafix is supported in other build tools via externally maintained plugins:
 Our CI publishes a snapshot release to Sonatype on every merge into main. Each
 snapshot release has a unique version number, jars don't get overwritten.
 
-If using the sbt plugin
+If using the sbt plugin:
 
 ```diff
  // project/plugins.sbt
@@ -462,7 +467,7 @@ If using the sbt plugin
 +dependencyOverrides += "ch.epfl.scala" % "scalafix-interfaces" % "@NIGHTLY_VERSION@"
 ```
 
-If using the command-line interface
+If using the command-line interface:
 
 ```sh
 cs launch ch.epfl.scala:scalafix-cli_@SCALA213@:@NIGHTLY_VERSION@ -r sonatype:snapshots --main scalafix.cli.Cli -- --help
