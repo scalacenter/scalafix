@@ -67,7 +67,7 @@ public class ScalafixCoursier {
                 .getAvailable()
                 .stream()
                 // Ignore RC & SNAPSHOT versions
-                .filter(v -> !v.contains("-"))
+                .filter(v -> v.startsWith("0.14.2+") || !v.contains("-"))
                 .reduce((older, newer) -> newer)
                 .orElseThrow(() -> new ScalafixException("Could not find any stable version for " + module)); 
 
