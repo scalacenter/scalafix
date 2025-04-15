@@ -380,7 +380,15 @@ lazy val integration = projectMatrix
           .collect { case p @ LocalProject(n) if n.startsWith("cli3") => p }
           .map(_ / publishLocalTransitive)): _*
       )
-      .value
+      .value,
+    // Mimic sbt-scalafix usage of interfaces (without properties per default)
+    // to exercise dynamic loading of latest scalafix-properties artifact
+    Test / internalDependencyClasspath := {
+      val prev = (Test / internalDependencyClasspath).value
+      val propertiesClassDirectory =
+        (properties / Compile / classDirectory).value
+      prev.filter(_.data != propertiesClassDirectory)
+    }
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatformFull(cliScalaVersions)
