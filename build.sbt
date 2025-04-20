@@ -141,7 +141,7 @@ lazy val rules = projectMatrix
     }
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatformFull(cliScalaVersions)
+  .jvmPlatform(CrossVersion.full, cliScalaVersions)
   .dependsOn(`compat-metaconfig-macros` % "provided")
   .dependsOn(core)
   .enablePlugins(BuildInfoPlugin)
@@ -218,7 +218,7 @@ lazy val cli = projectMatrix
     }.value
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatformFull(cliScalaVersions)
+  .jvmPlatform(CrossVersion.full, cliScalaVersions)
   .dependsOn(interfaces)
   .dependsOn(`compat-metaconfig-macros` % "provided")
   .dependsOn(reflect, rules)
@@ -234,7 +234,7 @@ lazy val testkit = projectMatrix
     )
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatformFull(cliScalaVersions)
+  .jvmPlatform(CrossVersion.full, cliScalaVersions)
   .dependsOn(cli)
 
 lazy val shared = projectMatrix
@@ -312,7 +312,7 @@ lazy val unit = projectMatrix
     )
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatformFull(cliScalaVersions)
+  .jvmPlatform(CrossVersion.full, cliScalaVersions)
   .enablePlugins(BuildInfoPlugin)
   .dependsOn(testkit % Test)
 
@@ -396,7 +396,7 @@ lazy val integration = projectMatrix
     Test / baseDirectory := (ThisBuild / baseDirectory).value
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatformFull(cliScalaVersions)
+  .jvmPlatform(CrossVersion.full, cliScalaVersions)
   .enablePlugins(BuildInfoPlugin)
   .dependsOn(unit % "compile->test")
 
