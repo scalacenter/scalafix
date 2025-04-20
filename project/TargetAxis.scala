@@ -110,20 +110,6 @@ object TargetAxis {
 
   implicit class TargetProjectMatrix(projectMatrix: ProjectMatrix) {
 
-    /** Like jvmPlatform but with the full Scala 3 version as suffix */
-    def jvmPlatformFull(scalaVersions: Seq[String]): ProjectMatrix = {
-      scalaVersions.foldLeft(projectMatrix) { (acc, scalaVersion) =>
-        acc.customRow(
-          autoScalaLibrary = true,
-          axisValues = Seq(
-            VirtualAxis.jvm,
-            VirtualAxis.scalaVersionAxis(scalaVersion, scalaVersion)
-          ),
-          process = p => p
-        )
-      }
-    }
-
     /**
      * Create one JVM project for each target, tagged and configured with the
      * requests of that target
