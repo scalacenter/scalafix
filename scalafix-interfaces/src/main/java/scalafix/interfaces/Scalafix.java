@@ -163,26 +163,11 @@ public interface Scalafix {
 
         Properties properties = new Properties();
         String propertiesPath = "scalafix-interfaces.properties";
+        InputStream stream = Scalafix.class.getClassLoader().getResourceAsStream(propertiesPath);
         try {
-            InputStream stream = Scalafix.class.getClassLoader().getResourceAsStream(propertiesPath);
             properties.load(stream);
-        } catch (Exception e) {
-            System.err.println(
-                "Failed to load '" + propertiesPath +  "' from local artifact, " +
-                "falling back to fetching the latest scalafix version...");
-
-            try {
-                List<URL> jars = ScalafixCoursier.latestScalafixPropertiesJars(repositories);
-                URLClassLoader classLoader =
-                    new URLClassLoader(jars.stream().toArray(URL[]::new), null);
-                
-                InputStream stream = classLoader.getResourceAsStream(propertiesPath);
-                properties.load(stream);
-            } catch (Exception ee) {
-                throw new ScalafixException(
-                    "Failed to load '" + propertiesPath + "' from local & remote artifacts",
-                    ee);
-            }
+        } catch (IOException | NullPointerException e) {
+            throw new ScalafixException("Failed to load '" + propertiesPath + "' to lookup versions", e);
         }
 
         String scalafixVersion = properties.getProperty("scalafixVersion");
