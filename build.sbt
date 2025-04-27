@@ -382,18 +382,13 @@ lazy val integration = projectMatrix
       )
       .value,
     // Mimic sbt-scalafix usage of interfaces (without properties per default)
-    // to exercise dynamic loading of scalafix-properties artifact
+    // to exercise dynamic loading of latest scalafix-properties artifact
     Test / internalDependencyClasspath := {
       val prev = (Test / internalDependencyClasspath).value
       val propertiesClassDirectory =
         (properties / Compile / classDirectory).value
       prev.filter(_.data != propertiesClassDirectory)
-    },
-    // Since tests may depend on new values, we use a system property to ScalafixCoursier
-    // to whitelist a specific SNAPSHOT version from the list of available ones
-    Test / javaOptions += s"-Dscalafix-properties.version=${version.value}",
-    Test / fork := true,
-    Test / baseDirectory := (ThisBuild / baseDirectory).value
+    }
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(CrossVersion.full, cliScalaVersions)

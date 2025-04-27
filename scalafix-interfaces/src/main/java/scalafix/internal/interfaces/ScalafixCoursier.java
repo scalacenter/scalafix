@@ -63,12 +63,11 @@ public class ScalafixCoursier {
             List<Repository> repositories
     ) throws ScalafixException {
         Module module = Module.of("ch.epfl.scala", "scalafix-properties");
-        String allowedVersion = System.getProperty("scalafix-properties.version");
         String version = versions(repositories, module)
                 .getAvailable()
                 .stream()
-                // Ignore RC & SNAPSHOT versions, except if explicitly requested
-                .filter(v -> !v.contains("-") || v.equals(allowedVersion))
+                // Ignore RC & SNAPSHOT versions
+                .filter(v -> v.startsWith("0.14.2+") || !v.contains("-"))
                 .reduce((older, newer) -> newer)
                 .orElseThrow(() -> new ScalafixException("Could not find any stable version for " + module)); 
 
