@@ -3,6 +3,7 @@ package scalafix.interfaces;
 import coursierapi.Repository;
 import scalafix.internal.interfaces.ScalafixCoursier;
 import scalafix.internal.interfaces.ScalafixInterfacesClassloader;
+import scalafix.internal.interfaces.ScalafixProperties;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -142,32 +143,6 @@ public interface Scalafix {
     static Scalafix fetchAndClassloadInstance(String requestedScalaVersion, List<Repository> repositories)
             throws ScalafixException {
 
-        String requestedScalaMajorMinorOrMajorVersion =
-            requestedScalaVersion.replaceAll("^(\\d+\\.\\d+).*", "$1");
-
-        String scalaVersionKey;
-        if (requestedScalaMajorMinorOrMajorVersion.equals("2.12")) {
-            scalaVersionKey = "scala212";
-        } else if (requestedScalaMajorMinorOrMajorVersion.equals("2.13") ||
-            requestedScalaMajorMinorOrMajorVersion.equals("2")) {
-            scalaVersionKey = "scala213";
-        } else if (requestedScalaMajorMinorOrMajorVersion.equals("3.0") ||
-            requestedScalaMajorMinorOrMajorVersion.equals("3.1") ||
-            requestedScalaMajorMinorOrMajorVersion.equals("3.2") ||
-            requestedScalaMajorMinorOrMajorVersion.equals("3.3")) {
-            scalaVersionKey = "scala33";
-        } else if (requestedScalaMajorMinorOrMajorVersion.equals("3.5")) {
-            scalaVersionKey = "scala35";
-        } else if (requestedScalaMajorMinorOrMajorVersion.equals("3.6")) {
-            scalaVersionKey = "scala36";
-        } else if (requestedScalaMajorMinorOrMajorVersion.equals("3.7")) {
-            scalaVersionKey = "scala37";
-        } else if (requestedScalaMajorMinorOrMajorVersion.startsWith("3")) {
-            scalaVersionKey = "scala3Next";
-        } else {
-            throw new IllegalArgumentException("Unsupported scala version " + requestedScalaVersion);
-        }
-
         Properties properties = new Properties();
         String propertiesPath = "scalafix-interfaces.properties";
         InputStream stream = Scalafix.class.getClassLoader().getResourceAsStream(propertiesPath);
@@ -178,6 +153,7 @@ public interface Scalafix {
         }
 
         String scalafixVersion = properties.getProperty("scalafixVersion");
+        String scalaVersionKey = ScalafixProperties.getScalaVersionKey(requestedScalaVersion);
         String scalaVersion = properties.getProperty(scalaVersionKey);
         if (scalafixVersion == null || scalaVersion == null)
             throw new ScalafixException("Failed to lookup versions from '" + propertiesPath + "'");

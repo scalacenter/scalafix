@@ -31,6 +31,16 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       publish / skip := true
     )
 
+    lazy val javaSettings = Seq(
+      (Compile / javacOptions) ++= List(
+        "-Xlint:all",
+        "-Werror"
+      ),
+      (Compile / doc / javacOptions) := List("-Xdoclint:none"),
+      crossPaths := false,
+      autoScalaLibrary := false
+    )
+
     // https://github.com/scalameta/scalameta/issues/2485
     lazy val coreScalaVersions = Seq(scala212, scala213)
     lazy val cliScalaVersions = {
@@ -160,6 +170,20 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     lazy val buildInfoSettingsForRules: Seq[Def.Setting[_]] = Seq(
       buildInfoObject := "RulesBuildInfo"
     )
+
+    // must match ScalafixProperties logic
+    def cliVersionsProperties() = {
+      val props = new java.util.Properties()
+      props.put("scala212", scala212)
+      props.put("scala213", scala213)
+      props.put("scala33", scala33)
+      props.put("scala35", scala35)
+      props.put("scala36", scala36)
+      props.put("scala37", scala37)
+      props.put("scala3LTS", scala3LTS)
+      props.put("scala3Next", scala3Next)
+      props
+    }
 
     lazy val testWindows =
       taskKey[Unit]("run tests, excluding those incompatible with Windows")
