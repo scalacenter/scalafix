@@ -26,7 +26,6 @@ object ExplicitResultTypesBase {
   object ExtraSpace {
     def * = "abc".length
     def ! = "abc".length
-    def foo_ = "abc".length
     def `x` = "abc".length
     def `x ` = "abc".length
   }
