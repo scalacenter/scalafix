@@ -2,6 +2,7 @@
 package test.explicitResultTypes
 
 import scala.language.implicitConversions
+import scala.concurrent.Future
 
 object ExplicitResultTypesBase {
   def none[T]: Option[T] =  None.asInstanceOf[Option[T]]
@@ -22,12 +23,11 @@ object ExplicitResultTypesBase {
   object ExtraSpace {
     def * : Int = "abc".length
     def ! : Int = "abc".length
-    def foo_ : Int = "abc".length
     def `x`: Int = "abc".length
-    def `x ` = "abc".length
+    def `x `: Int = "abc".length
   }
   locally {
-    implicit val Implicit = scala.concurrent.Future.successful(2)
+    implicit val Implicit: Future[Int] = scala.concurrent.Future.successful(2)
     val Var = scala.concurrent.Future.successful(2)
     val Val = scala.concurrent.Future.successful(2)
     def Def = scala.concurrent.Future.successful(2)

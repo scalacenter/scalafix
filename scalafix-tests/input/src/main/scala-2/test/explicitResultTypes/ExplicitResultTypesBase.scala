@@ -19,18 +19,7 @@ object ExplicitResultTypesBase {
   private val g = 1
   private def h(a: Int) = ""
   private var i = 22
-  private implicit var j = 1
   val k = (1, "msg")
-  implicit val L = List(1)
-  implicit val M = Map(1 -> "STRING")
-  implicit def D = 2
-  implicit def tparam[T](e: T) = e
-  implicit def tparam2[T](e: T) = List(e)
-  implicit def tparam3[T](e: T) = Map(e -> e)
-  class implicitlytrick {
-    implicit val s: _root_.java.lang.String = "string"
-    implicit val x = implicitly[String]
-  }
   def comment(x: Int) =
     // comment
     x + 2

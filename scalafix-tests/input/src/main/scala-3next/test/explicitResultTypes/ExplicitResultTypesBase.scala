@@ -1,29 +1,32 @@
-
+/*
+rules = ExplicitResultTypes
+ExplicitResultTypes.memberKind = [Val, Def, Var]
+ExplicitResultTypes.memberVisibility = [Public, Protected]
+ */
 package test.explicitResultTypes
 
 import scala.language.implicitConversions
 
 object ExplicitResultTypesBase {
-  def none[T]: Option[T] =  None.asInstanceOf[Option[T]]
-  val a: Int = 1 + 2
-  def b(): String = "a" + "b"
-  var c: Boolean = 1 == 1
+  def none[T] =  None.asInstanceOf[Option[T]]
+  val a = 1 + 2
+  def b() = "a" + "b"
+  var c = 1 == 1
   protected val d = 1.0f
-  protected def e(a: Int, b: Double): Double = a + b
-  protected var f: Int => Int = (x: Int) => x + 1
-  val f0: () => Int = () => 42
+  protected def e(a: Int, b: Double) = a + b
+  protected var f = (x: Int) => x + 1
+  val f0 = () => 42
   private val g = 1
   private def h(a: Int) = ""
   private var i = 22
-  val k: (Int, String) = (1, "msg")
-  def comment(x: Int): Int =
+  val k = (1, "msg")
+  def comment(x: Int) =
     // comment
     x + 2
   object ExtraSpace {
-    def * : Int = "abc".length
-    def ! : Int = "abc".length
-    def foo_ : Int = "abc".length
-    def `x`: Int = "abc".length
+    def * = "abc".length
+    def ! = "abc".length
+    def `x` = "abc".length
     def `x ` = "abc".length
   }
   locally {
@@ -38,5 +41,5 @@ object ExplicitResultTypesBase {
     }
     val `→` = `->`
   }
-  def tuple: ((Int, String)) => String = null.asInstanceOf[((Int, String)) => String]
+  def tuple = null.asInstanceOf[((Int, String)) => String]
 }

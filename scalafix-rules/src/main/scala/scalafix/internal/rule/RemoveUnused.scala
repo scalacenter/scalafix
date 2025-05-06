@@ -96,7 +96,10 @@ class RemoveUnused(config: RemoveUnusedConfig)
         isUnusedPattern += diagnostic.position
       } else if (
         config.params &&
-        (msg.startsWith("parameter") && msg.endsWith("is never used"))
+        (
+          msg.startsWith("parameter") && msg.endsWith("is never used") ||
+            msg == "unused explicit parameter"
+        )
       ) {
         isUnusedParam += diagnostic.position
       }
@@ -189,7 +192,7 @@ class RemoveUnused(config: RemoveUnusedConfig)
         case Term.Function(params, _) =>
           params.collect {
             case param @ Term.Param(_, name, _, _)
-                if isUnusedParam(param.pos) =>
+                if isUnusedParam(param.pos) || isUnusedParam(name.pos) =>
               Patch.replaceTree(name, "_")
           }.asPatch
       }.asPatch

@@ -5,5 +5,5 @@ object UnusedParams {
   val ff = (_: String) => println("f")
   val fs = (used: String, _: Long) => println(used)
   def g(x: String => Unit): Unit = ???
-  g{_ => println("g")}
+  g{implicit string => println("g")}
 }

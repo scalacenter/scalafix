@@ -14,7 +14,7 @@ case class RemoveUnusedConfig(
     locals: Boolean = true,
     @Description("Remove unused pattern match variables")
     patternvars: Boolean = true,
-    @Description("Remove unused function parameters (Scala 2 only)")
+    @Description("Remove unused function parameters")
     params: Boolean = true
 )
 
