@@ -37,9 +37,13 @@ final class ScalafixImpl extends Scalafix {
   override def scala33(): String =
     Versions.scala33
   override def scala35(): String =
-    Versions.scala35
+    throw new java.lang.UnsupportedOperationException(
+      "Scala 3.5 is no longer supported; the final version supporting it is Scalafix 0.14.x"
+    )
   override def scala36(): String =
-    Versions.scala36
+    throw new java.lang.UnsupportedOperationException(
+      "Scala 3.6 is no longer supported; the final version supporting it is Scalafix 0.14.x"
+    )
   override def scala37(): String =
     Versions.scala37
   override def scala3LTS(): String =

@@ -8,8 +8,6 @@ object Dependencies {
   val scala212 = sys.props.getOrElse("scala212.nightly", "2.12.20")
   val scala213 = sys.props.getOrElse("scala213.nightly", "2.13.16") // remove 2.13.14 hack in RuleSuite when bumping
   val scala33 = "3.3.6"
-  val scala35 = "3.5.2"
-  val scala36 = "3.6.4"
   val scala37 = "3.7.0"
   val scala3LTS = scala33
   val scala3Next = sys.props.getOrElse("scala3.nightly", scala37)
