@@ -244,9 +244,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, Option[String]] = Map(
-    scala33 -> Some("3.3.5"),
-    scala36 -> Some("3.6.3"),
-    scala37 -> None
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
