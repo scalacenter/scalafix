@@ -75,14 +75,10 @@ public interface Scalafix {
      */
     String scala33();
 
-    /**
-     * The Scala 3.5 version in {@link #supportedScalaVersions()}
-     */
+    @Deprecated
     String scala35();
 
-    /**
-     * The Scala 3.6 version in {@link #supportedScalaVersions()}
-     */
+    @Deprecated
     String scala36();
 
     /**
@@ -151,18 +147,17 @@ public interface Scalafix {
         } else if (requestedScalaMajorMinorOrMajorVersion.equals("2.13") ||
             requestedScalaMajorMinorOrMajorVersion.equals("2")) {
             scalaVersionKey = "scala213";
-        } else if (requestedScalaMajorMinorOrMajorVersion.equals("3.0") ||
-            requestedScalaMajorMinorOrMajorVersion.equals("3.1") ||
-            requestedScalaMajorMinorOrMajorVersion.equals("3.2") ||
-            requestedScalaMajorMinorOrMajorVersion.equals("3.3")) {
+        } else if (requestedScalaMajorMinorOrMajorVersion.equals("3.3")) {
             scalaVersionKey = "scala33";
-        } else if (requestedScalaMajorMinorOrMajorVersion.equals("3.5")) {
-            scalaVersionKey = "scala35";
-        } else if (requestedScalaMajorMinorOrMajorVersion.equals("3.6")) {
-            scalaVersionKey = "scala36";
         } else if (requestedScalaMajorMinorOrMajorVersion.equals("3.7")) {
             scalaVersionKey = "scala37";
-        } else if (requestedScalaMajorMinorOrMajorVersion.startsWith("3")) {
+        } else if (requestedScalaMajorMinorOrMajorVersion.startsWith("3") &&
+            !requestedScalaMajorMinorOrMajorVersion.equals("3.0") &&
+            !requestedScalaMajorMinorOrMajorVersion.equals("3.1") &&
+            !requestedScalaMajorMinorOrMajorVersion.equals("3.2") &&
+            !requestedScalaMajorMinorOrMajorVersion.equals("3.4") &&
+            !requestedScalaMajorMinorOrMajorVersion.equals("3.5") &&
+            !requestedScalaMajorMinorOrMajorVersion.equals("3.6")) {
             scalaVersionKey = "scala3Next";
         } else {
             throw new IllegalArgumentException("Unsupported scala version " + requestedScalaVersion);
