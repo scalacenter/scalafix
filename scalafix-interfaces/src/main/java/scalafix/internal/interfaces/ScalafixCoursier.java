@@ -15,21 +15,6 @@ import java.util.stream.Collectors;
 
 public class ScalafixCoursier {
 
-    private static VersionListing versions(
-            List<Repository> repositories,
-            coursierapi.Module module
-    ) throws ScalafixException {
-        try {
-            return Versions.create()
-                    .withModule(module)
-                    .withRepositories(repositories.stream().toArray(Repository[]::new))
-                    .versions()
-                    .getMergedListings();
-        } catch (CoursierError e) {
-            throw new ScalafixException("Failed to list versions for " + module + " from " + repositories, e);
-        }
-    }
-
     private static FetchResult fetch(
             List<Repository> repositories,
             List<Dependency> dependencies,
@@ -57,23 +42,6 @@ public class ScalafixCoursier {
             }
         }
         return urls;
-    }
-
-    public static List<URL> latestScalafixPropertiesJars(
-            List<Repository> repositories
-    ) throws ScalafixException {
-        Module module = Module.of("ch.epfl.scala", "scalafix-properties");
-        String allowedVersion = System.getProperty("scalafix-properties.version");
-        String version = versions(repositories, module)
-                .getAvailable()
-                .stream()
-                // Ignore RC & SNAPSHOT versions, except if explicitly requested
-                .filter(v -> !v.contains("-") || v.equals(allowedVersion))
-                .reduce((older, newer) -> newer)
-                .orElseThrow(() -> new ScalafixException("Could not find any stable version for " + module)); 
-
-        Dependency scalafixProperties = Dependency.of(module, version);
-        return toURLs(fetch(repositories, Collections.singletonList(scalafixProperties), ResolutionParams.create()));
     }
 
     public static List<URL> scalafixCliJars(

@@ -22,8 +22,8 @@ def inferJavaHome() = {
   Some(actualHome)
 }
 
-lazy val properties = project
-  .in(file("scalafix-properties"))
+lazy val interfaces = project
+  .in(file("scalafix-interfaces"))
   .settings(
     Compile / resourceGenerators += Def.task {
       val props = new java.util.Properties()
@@ -44,16 +44,6 @@ lazy val properties = project
       IO.write(props, "Scalafix version constants", out)
       List(out)
     },
-    moduleName := "scalafix-properties",
-    mimaPreviousArtifacts := Set.empty,
-    crossPaths := false,
-    autoScalaLibrary := false
-  )
-  .disablePlugins(ScalafixPlugin)
-
-lazy val interfaces = project
-  .in(file("scalafix-interfaces"))
-  .settings(
     (Compile / javacOptions) ++= List(
       "-Xlint:all",
       "-Werror"
@@ -67,7 +57,6 @@ lazy val interfaces = project
     autoScalaLibrary := false
   )
   .disablePlugins(ScalafixPlugin)
-  .dependsOn(properties)
 
 // Scala 3 macros vendored separately (i.e. without runtime classes), to
 // shadow Scala 2.13 macros in the Scala 3 compiler classpath, while producing
@@ -381,20 +370,7 @@ lazy val integration = projectMatrix
           .collect { case p @ LocalProject(n) if n.startsWith("cli3") => p }
           .map(_ / publishLocalTransitive)): _*
       )
-      .value,
-    // Mimic sbt-scalafix usage of interfaces (without properties per default)
-    // to exercise dynamic loading of scalafix-properties artifact
-    Test / internalDependencyClasspath := {
-      val prev = (Test / internalDependencyClasspath).value
-      val propertiesClassDirectory =
-        (properties / Compile / classDirectory).value
-      prev.filter(_.data != propertiesClassDirectory)
-    },
-    // Since tests may depend on new values, we use a system property to ScalafixCoursier
-    // to whitelist a specific SNAPSHOT version from the list of available ones
-    Test / javaOptions += s"-Dscalafix-properties.version=${version.value}",
-    Test / fork := true,
-    Test / baseDirectory := (ThisBuild / baseDirectory).value
+      .value
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(CrossVersion.full, cliScalaVersions)
