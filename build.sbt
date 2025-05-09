@@ -51,6 +51,25 @@ lazy val versions = project
   .disablePlugins(ScalafixPlugin)
   .dependsOn(interfaces)
 
+lazy val loader = project
+  .in(file("scalafix-loader"))
+  .settings(
+    moduleName := "scalafix-loader",
+    javaSettings,
+    mimaPreviousArtifacts := Set.empty, // TODO: remove after 0.14.4
+    libraryDependencies ++= Seq(
+      typesafeConfig,
+      lombok % Provided
+    ),
+    javacOptions ++= {
+      // https://inside.java/2024/06/18/quality-heads-up/
+      if (jdk > 8) Seq("-proc:full")
+      else Seq() // only backported to Oracle’s 8u release (8u411)
+    }
+  )
+  .disablePlugins(ScalafixPlugin)
+  .dependsOn(interfaces, versions)
+
 // Scala 3 macros vendored separately (i.e. without runtime classes), to
 // shadow Scala 2.13 macros in the Scala 3 compiler classpath, while producing
 // code valid against Scala 2.13 bytecode
@@ -346,18 +365,9 @@ lazy val integration = projectMatrix
       "inputSourceroot" ->
         resolve(input, Compile / sourceDirectory).value,
       "outputSourceroot" ->
-        resolve(output, Compile / sourceDirectory).value,
-      "versionsJars" ->
-        Seq(
-          (interfaces / Compile / packageBin / artifactPath).value,
-          (versions / Compile / packageBin / artifactPath).value
-        )
+        resolve(output, Compile / sourceDirectory).value
     ),
     Test / test := (Test / test)
-      .dependsOn(
-        interfaces / Compile / packageBin,
-        versions / Compile / packageBin
-      )
       .dependsOn(resolve(cli, publishLocalTransitive))
       .dependsOn(
         cli.projectRefs
@@ -368,15 +378,10 @@ lazy val integration = projectMatrix
       .value,
     Test / testWindows := (Test / testWindows)
       .dependsOn(
-        interfaces / Compile / packageBin,
-        versions / Compile / packageBin
-      )
-      .dependsOn(resolve(cli, publishLocalTransitive))
-      .dependsOn(
-        cli.projectRefs
+        (resolve(cli, publishLocalTransitive) +: cli.projectRefs
           // always publish Scala 3 artifacts to test Scala 3 minor version fallbacks
           .collect { case p @ LocalProject(n) if n.startsWith("cli3") => p }
-          .map(_ / publishLocalTransitive): _*
+          .map(_ / publishLocalTransitive)): _*
       )
       .value
   )
@@ -384,6 +389,7 @@ lazy val integration = projectMatrix
   .jvmPlatform(CrossVersion.full, cliScalaVersions)
   .enablePlugins(BuildInfoPlugin)
   .dependsOn(unit % "compile->test")
+  .dependsOn(loader % "compile->test")
 
 lazy val expect = projectMatrix
   .in(file("scalafix-tests/expect"))

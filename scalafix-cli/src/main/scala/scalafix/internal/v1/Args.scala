@@ -13,6 +13,7 @@ import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 
 import scala.annotation.StaticAnnotation
+import scala.jdk.CollectionConverters._
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
@@ -22,6 +23,8 @@ import scala.meta.internal.symtab.SymbolTable
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
 
+import coursierapi.MavenRepository
+import coursierapi.Repository
 import metaconfig.Configured._
 import metaconfig._
 import metaconfig.annotation._
@@ -158,6 +161,8 @@ case class Args(
         "The glob syntax is defined by `nio.FileSystem.getPathMatcher`."
     )
     exclude: List[PathMatcher] = Nil,
+    @Description("Maven repositories to fetch the artifacts from")
+    repositories: List[Repository] = Repository.defaults.asScala.toList,
     @Description(
       "Additional classpath for compiling and classloading custom rules, as a set of filesystem paths, separated by ':' on Unix or ';' on Windows."
     )
@@ -483,6 +488,8 @@ object Args extends TPrintImplicits {
     ConfDecoder.stringConfDecoder.map(glob =>
       FileSystems.getDefault.getPathMatcher("glob:" + glob)
     )
+  implicit val repositoryDecoder: ConfDecoder[Repository] =
+    ConfDecoder.stringConfDecoder.map(base => MavenRepository.of(base))
   implicit val scalaVersionDecoder: ConfDecoder[ScalaVersion] =
     ScalafixConfig.scalaVersionDecoder
 
@@ -504,6 +511,8 @@ object Args extends TPrintImplicits {
   implicit val printStreamEncoder: ConfEncoder[PrintStream] =
     ConfEncoder.StringEncoder.contramap(_ => "<stdout>")
   implicit val pathMatcherEncoder: ConfEncoder[PathMatcher] =
+    ConfEncoder.StringEncoder.contramap(_.toString)
+  implicit val repositoriesEncoder: ConfEncoder[Repository] =
     ConfEncoder.StringEncoder.contramap(_.toString)
   implicit val callbackEncoder: ConfEncoder[ScalafixMainCallback] =
     ConfEncoder.StringEncoder.contramap(_.toString)

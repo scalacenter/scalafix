@@ -1,21 +1,12 @@
 package scalafix.tests.versions
 
-import scala.jdk.CollectionConverters._
-
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.Versions
 import scalafix.interfaces.ScalafixVersions
-import scalafix.tests.BuildInfo
 
-/**
- * This test require interfaces & versions to be packaged. `packageBin` is done
- * automatically as part of `sbt integrationX / test`, so make sure to run that
- * once if you want to run the test with testOnly or through BSP.
- */
 class ScalafixVersionsImplSuite extends AnyFunSuite {
 
-  lazy val versions: ScalafixVersions =
-    ScalafixVersions.get(BuildInfo.versionsJars.map(_.toURL).asJava)
+  lazy val versions: ScalafixVersions = ScalafixVersions.get()
 
   test("scalafixVersion") {
     assert(versions.scalafixVersion() == Versions.version)
