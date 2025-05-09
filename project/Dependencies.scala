@@ -21,6 +21,7 @@ object Dependencies {
   val commontTextV = "1.13.1"
   val googleDiffV = "1.3.0"
   val jgitV = "5.13.3.202401111512-r"
+  val lombokV = "1.18.38"
   val metaconfigV = "0.15.0"
   val nailgunV = "0.9.1"
   val scalaXmlV = "2.2.0"
@@ -28,6 +29,7 @@ object Dependencies {
   val scalatagsV = "0.13.1"
   val scalatestV = "3.2.19"
   val munitV = "1.1.0"
+  val typesafeConfigV = "1.4.3"
 
   val bijectionCore = "com.twitter" %% "bijection-core" % bijectionCoreV
   val collectionCompat = "org.scala-lang.modules" %% "scala-collection-compat" % collectionCompatV
@@ -36,6 +38,7 @@ object Dependencies {
   val coursierInterfaces = "io.get-coursier" % "interface" % coursierInterfaceV
   val googleDiff = "com.googlecode.java-diff-utils" % "diffutils" % googleDiffV
   val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % jgitV
+  val lombok = "org.projectlombok" % "lombok" % lombokV
   val metaconfig = "org.scalameta" %% "metaconfig-typesafe-config" % metaconfigV
   val metacp = "org.scalameta" %% "metacp" % scalametaV
   val nailgunServer = "com.martiansoftware" % "nailgun-server" % nailgunV
@@ -47,6 +50,7 @@ object Dependencies {
   val munit = "org.scalameta" %% "munit" % munitV
   val semanticdbScalacCore = "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
   val semanticdbSharedFor3Use2_13 = "org.scalameta" % "semanticdb-shared" % scalametaV cross CrossVersion.for3Use2_13
+  val typesafeConfig = "com.typesafe" % "config" % typesafeConfigV
 
   // scala-steward:off
 
