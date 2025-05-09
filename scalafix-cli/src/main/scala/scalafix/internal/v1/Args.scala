@@ -78,6 +78,11 @@ case class Args(
     )
     diffBase: Option[String] = None,
     @Description(
+      "The major or binary Scala version that the provided files are targeting, " +
+        "or the full version that was used to compile them when a classpath is provided."
+    )
+    scalaVersion: ScalaVersion = Args.runtimeScalaVersion,
+    @Description(
       "Run only syntactic rules, ignore semantic rules even if they are explicitly " +
         "configured in .scalafix.conf or via --rules"
     )
@@ -124,11 +129,6 @@ case class Args(
       "The scala compiler options used to compile this --classpath, for example -Ywarn-unused-import"
     )
     scalacOptions: List[String] = Nil,
-    @Description(
-      "The major or binary Scala version that the provided files are targeting, " +
-        "or the full version that was used to compile them when a classpath is provided."
-    )
-    scalaVersion: ScalaVersion = Args.runtimeScalaVersion,
     @Section("Tab completions")
     @Description(
       """|Print out bash tab completions. To install:
