@@ -1,9 +1,8 @@
 package scalafix.internal.interfaces;
 
-import coursierapi.Module;
 import coursierapi.*;
 import coursierapi.error.CoursierError;
-import scalafix.interfaces.ScalafixException;
+import coursierapi.Module;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -13,7 +12,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import scalafix.interfaces.ScalafixException;
+
+//TODO: move to scalafix-loader when scalafix.interfaces.Scalafix is removed
 public class ScalafixCoursier {
+
+    private static Module VERSIONS_MODULE = Module.of("ch.epfl.scala", "scalafix-versions");
 
     private static FetchResult fetch(
             List<Repository> repositories,
@@ -42,6 +46,14 @@ public class ScalafixCoursier {
             }
         }
         return urls;
+    }
+
+    public static List<URL> scalafixVersionsJars(
+            List<Repository> repositories,
+            String scalafixVersion
+    ) throws ScalafixException {
+        Dependency scalafixProperties = Dependency.of(VERSIONS_MODULE, scalafixVersion);
+        return toURLs(fetch(repositories, Collections.singletonList(scalafixProperties), ResolutionParams.create()));
     }
 
     public static List<URL> scalafixCliJars(

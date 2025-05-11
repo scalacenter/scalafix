@@ -19,6 +19,8 @@ hesitate to ask in the [Discord channel](https://discord.gg/8AHaqGx3Qj).
 
 ### For tool integration
 - `scalafix-interfaces/` Java facade to run rules within an existing JVM instance.
+- `scalafix-loader/` Java implementation to dynamically fetch and load
+  implementations to run rules.
 - `scalafix-versions/` Java implementation to advertize which Scala versions
   `scalafix-cli` is published with.
 

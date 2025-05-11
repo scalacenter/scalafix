@@ -34,6 +34,8 @@ import scalafix.v1.RuleDecoder
 final case class ScalafixArgumentsImpl(args: Args = Args.default)
     extends ScalafixArguments {
 
+  def this() = this(Args.default)
+
   override def run(): Array[ScalafixError] = {
     val exit = MainOps.run(Array(), args)
     ScalafixErrorImpl.fromScala(exit)
@@ -48,39 +50,44 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
     }
   }
 
+  override def withRepositories(
+      repositories: util.List[Repository]
+  ): ScalafixArguments =
+    copy(args = args.copy(repositories = repositories.asScala.toList))
+
   override def withRules(rules: util.List[String]): ScalafixArguments =
     copy(args = args.copy(rules = rules.asScala.toList))
 
   override def withToolClasspath(
       customURLs: util.List[URL]
   ): ScalafixArguments =
-    withToolClasspath(
-      customURLs,
-      Nil.asJava,
-      Repository.defaults()
-    )
+    withToolDependencyURLs(customURLs)
 
   override def withToolClasspath(
       customURLs: util.List[URL],
       customDependenciesCoordinates: util.List[String]
   ): ScalafixArguments =
-    withToolClasspath(
-      customURLs,
-      customDependenciesCoordinates,
-      Repository.defaults()
-    )
+    withToolDependencyCoordinates(customDependenciesCoordinates)
+      .withToolDependencyURLs(customURLs)
 
   override def withToolClasspath(
       customURLs: util.List[URL],
       customDependenciesCoordinates: util.List[String],
       repositories: util.List[Repository]
   ): ScalafixArguments = {
+    withRepositories(repositories)
+      .withToolDependencyCoordinates(customDependenciesCoordinates)
+      .withToolDependencyURLs(customURLs)
+  }
 
+  override def withToolDependencyCoordinates(
+      withToolDependencyCoordinates: java.util.List[String]
+  ): ScalafixArguments = {
     val OrganizeImportsCoordinates =
       """com\.github\.liancheng.*:organize-imports:.*""".r
 
     val keptDependencies: Seq[String] =
-      customDependenciesCoordinates.asScala
+      withToolDependencyCoordinates.asScala
         .collect {
           case dep @ OrganizeImportsCoordinates() =>
             args.out.println(
@@ -107,7 +114,7 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
       else Versions.scalaVersion
 
     val customDependenciesJARs = ScalafixCoursier.toolClasspath(
-      repositories,
+      args.repositories.asJava,
       keptDependencies.asJava,
       scalaVersionForDependencies
     )
@@ -158,13 +165,23 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
         }
       }
 
-    val extraURLs = customURLs.asScala ++ customDependenciesJARs
+    val extraURLs = customDependenciesJARs
       .getFiles()
       .asScala
       .map(_.toURI().toURL())
     val classLoader = new URLClassLoader(
       extraURLs.toArray,
-      getClass.getClassLoader
+      args.toolClasspath
+    )
+    withToolClasspath(classLoader)
+  }
+
+  override def withToolDependencyURLs(
+      withToolDependencyURLs: java.util.List[java.net.URL]
+  ): ScalafixArguments = {
+    val classLoader = new URLClassLoader(
+      withToolDependencyURLs.asScala.toArray,
+      args.toolClasspath
     )
     withToolClasspath(classLoader)
   }

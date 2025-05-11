@@ -41,10 +41,11 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       autoScalaLibrary := false
     )
 
+    lazy val jdk = System.getProperty("java.specification.version").toDouble
+
     // https://github.com/scalameta/scalameta/issues/2485
     lazy val coreScalaVersions = Seq(scala212, scala213)
     lazy val cliScalaVersions = {
-      val jdk = System.getProperty("java.specification.version").toDouble
       val scala3Versions =
         // Scala 3.5 will never support JDK 23
         if (jdk >= 23) Seq(scala33, scala36, scala37)
