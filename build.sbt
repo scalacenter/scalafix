@@ -12,51 +12,63 @@ inThisBuild(
 Global / cancelable := true
 noPublishAndNoMima
 
-// force javac to fork by setting javaHome to get error messages during compilation,
-// see https://github.com/sbt/zinc/issues/520
-def inferJavaHome() = {
-  val home = file(sys.props("java.home"))
-  val actualHome =
-    if (System.getProperty("java.version").startsWith("1.8")) home.getParentFile
-    else home
-  Some(actualHome)
-}
-
 lazy val interfaces = project
   .in(file("scalafix-interfaces"))
   .settings(
+    moduleName := "scalafix-interfaces",
+    javaSettings,
+    libraryDependencies += coursierInterfaces,
     Compile / resourceGenerators += Def.task {
-      val props = new java.util.Properties()
+      val props = cliVersionsProperties()
       props.put("scalafixVersion", version.value)
       props.put("scalafixStableVersion", stableVersion.value)
       props.put("scalametaVersion", scalametaV)
-      props.put("scala212", scala212)
-      props.put("scala213", scala213)
-      props.put("scala33", scala33)
-      props.put("scala35", scala35)
-      props.put("scala36", scala36)
-      props.put("scala37", scala37)
-      props.put("scala3LTS", scala3LTS)
-      props.put("scala3Next", scala3Next)
       val out =
         (Compile / managedResourceDirectories).value.head /
           "scalafix-interfaces.properties"
       IO.write(props, "Scalafix version constants", out)
       List(out)
-    },
-    (Compile / javacOptions) ++= List(
-      "-Xlint:all",
-      "-Werror"
-    ),
-    (Compile / doc / javacOptions) := List("-Xdoclint:none"),
-    (Compile / javaHome) := inferJavaHome(),
-    (Compile / doc / javaHome) := inferJavaHome(),
-    libraryDependencies += coursierInterfaces,
-    moduleName := "scalafix-interfaces",
-    crossPaths := false,
-    autoScalaLibrary := false
+    }
   )
   .disablePlugins(ScalafixPlugin)
+
+lazy val versions = project
+  .in(file("scalafix-versions"))
+  .settings(
+    moduleName := "scalafix-versions",
+    javaSettings,
+    mimaPreviousArtifacts := Set.empty, // TODO: remove after 0.14.4
+    Compile / resourceGenerators += Def.task {
+      val props = cliVersionsProperties()
+      props.put("scalafix", version.value)
+      val out =
+        (Compile / managedResourceDirectories).value.head /
+          "scalafix-versions.properties"
+      IO.write(props, "Scala versions for ch.epfl.scala:::scalafix-cli", out)
+      List(out)
+    }
+  )
+  .disablePlugins(ScalafixPlugin)
+  .dependsOn(interfaces)
+
+lazy val loader = project
+  .in(file("scalafix-loader"))
+  .settings(
+    moduleName := "scalafix-loader",
+    javaSettings,
+    mimaPreviousArtifacts := Set.empty, // TODO: remove after 0.14.4
+    libraryDependencies ++= Seq(
+      typesafeConfig,
+      lombok % Provided
+    ),
+    javacOptions ++= {
+      // https://inside.java/2024/06/18/quality-heads-up/
+      if (jdk > 8) Seq("-proc:full")
+      else Seq() // only backported to Oracle’s 8u release (8u411)
+    }
+  )
+  .disablePlugins(ScalafixPlugin)
+  .dependsOn(interfaces, versions)
 
 // Scala 3 macros vendored separately (i.e. without runtime classes), to
 // shadow Scala 2.13 macros in the Scala 3 compiler classpath, while producing
@@ -356,11 +368,12 @@ lazy val integration = projectMatrix
         resolve(output, Compile / sourceDirectory).value
     ),
     Test / test := (Test / test)
+      .dependsOn(resolve(cli, publishLocalTransitive))
       .dependsOn(
-        (resolve(cli, publishLocalTransitive) +: cli.projectRefs
+        cli.projectRefs
           // always publish Scala 3 artifacts to test Scala 3 minor version fallbacks
           .collect { case p @ LocalProject(n) if n.startsWith("cli3") => p }
-          .map(_ / publishLocalTransitive)): _*
+          .map(_ / publishLocalTransitive): _*
       )
       .value,
     Test / testWindows := (Test / testWindows)
@@ -376,6 +389,7 @@ lazy val integration = projectMatrix
   .jvmPlatform(CrossVersion.full, cliScalaVersions)
   .enablePlugins(BuildInfoPlugin)
   .dependsOn(unit % "compile->test")
+  .dependsOn(loader % "compile->test")
 
 lazy val expect = projectMatrix
   .in(file("scalafix-tests/expect"))

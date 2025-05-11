@@ -1,4 +1,4 @@
-package scalafix.tests.interfaces
+package scalafix.tests.cli
 
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -34,7 +34,7 @@ import scalafix.tests.core.Classpaths
 import scalafix.tests.util.ScalaVersions
 import scalafix.tests.util.compat.CompatSemanticdb
 
-class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
+class ScalafixArgumentsImplSuite extends AnyFunSuite with DiffAssertions {
 
   val scalaVersion: String = BuildInfo.scalaVersion
   val scalaLibrary: Seq[AbsolutePath] = Classpaths.scalaLibrary.entries

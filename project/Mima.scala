@@ -7,8 +7,11 @@ object Mima {
     // See https://github.com/lightbend/mima
     Seq(
       ProblemFilters.exclude[Problem]("scalafix.internal.*"),
-      ProblemFilters.exclude[Problem]("scala.meta.internal.*")
+      ProblemFilters.exclude[Problem]("scala.meta.internal.*"),
       // Exceptions
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixArguments.withRepositories"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixArguments.withToolDependencyCoordinates"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.ScalafixArguments.withToolDependencyURLs")
     )
   }
 }

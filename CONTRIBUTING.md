@@ -6,12 +6,26 @@ hesitate to ask in the [Discord channel](https://discord.gg/8AHaqGx3Qj).
 
 ## Modules
 
-- `scalafix-interfaces` Java facade to run rules within an existing JVM instance.
+### For writing rules
+
 - `scalafix-core/` data structures for rewriting and linting Scala source code.
+- `scalafix-rules/` built-in rules such as `RemoveUnused`.
+
+### For executing rules
+
+- `scalafix-cli/` command-line interface.
 - `scalafix-reflect/` utilities to compile and classload rules from
   configuration.
-- `scalafix-rules/` built-in rules such as `RemoveUnused`.
-- `scalafix-cli/` command-line interface.
+
+### For tool integration
+- `scalafix-interfaces/` Java facade to run rules within an existing JVM instance.
+- `scalafix-loader/` Java implementation to dynamically fetch and load
+  implementations to run rules.
+- `scalafix-versions/` Java implementation to advertize which Scala versions
+  `scalafix-cli` is published with.
+
+### Others
+
 - `scalafix-tests/` projects for unit and integration tests.
 - `scalafix-docs/` documentation code for the Scalafix website.
 
