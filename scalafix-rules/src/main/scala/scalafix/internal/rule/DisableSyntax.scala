@@ -113,11 +113,37 @@ final class DisableSyntax(config: DisableSyntaxConfig)
         Diagnostic("noXml", "xml literals should be avoided", token.pos)
       case token: Token.Ident
           if token.value == "asInstanceOf" && config.noAsInstanceOf =>
-        Diagnostic(
-          "asInstanceOf",
-          "asInstanceOf casts are disabled, use pattern matching instead",
-          token.pos
-        )
+        val isMatchableCast = {
+          val tokenIndex = doc.tree.tokens.indexOf(token)
+          if (tokenIndex >= 0) {
+            val subsequentTokens = doc.tree.tokens.drop(tokenIndex + 1)
+            val nonSpaceTokens = subsequentTokens.filterNot(_.is[Token.Space])
+
+            nonSpaceTokens.take(3).toList match {
+              case (_: Token.LeftBracket) ::
+                  (ident: Token.Ident) ::
+                  (_: Token.RightBracket) :: Nil
+                  if ident.value == "Matchable" =>
+                true
+              case _ => false
+            }
+          } else false
+        }
+
+        if (isMatchableCast) {
+          Diagnostic(
+            "asInstanceOfMatchable",
+            "asInstanceOf[Matchable] is used here to enable pattern matching on Any. " +
+              "Consider using the .asMatchable extension method instead for better readability.",
+            token.pos
+          )
+        } else {
+          Diagnostic(
+            "asInstanceOf",
+            "asInstanceOf casts are disabled, use pattern matching instead",
+            token.pos
+          )
+        }
       case token: Token.Ident
           if token.value == "isInstanceOf" && config.noIsInstanceOf =>
         Diagnostic(
