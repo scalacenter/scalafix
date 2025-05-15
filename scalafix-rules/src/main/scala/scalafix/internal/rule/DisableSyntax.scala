@@ -121,9 +121,10 @@ final class DisableSyntax(config: DisableSyntaxConfig)
 
             nonSpaceTokens.take(3).toList match {
               case (leftBracket: Token.LeftBracket) ::
-                (ident: Token.Ident) ::
-                (rightBracket: Token.RightBracket) :: Nil
-                if ident.value == "Matchable" => true
+                  (ident: Token.Ident) ::
+                  (rightBracket: Token.RightBracket) :: Nil
+                  if ident.value == "Matchable" =>
+                true
               case _ => false
             }
           } else false
