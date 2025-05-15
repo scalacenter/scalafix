@@ -116,13 +116,16 @@ final class DisableSyntax(config: DisableSyntaxConfig)
         val isMatchableCast = {
           val tokenIndex = doc.tree.tokens.indexOf(token)
           if (tokenIndex >= 0) {
-            val tokens = doc.tree.tokens.slice(tokenIndex + 1, tokenIndex + 4)
-            tokens.size >= 3 &&
-            tokens(0).is[Token.LeftBracket] &&
-            tokens(1).is[Token.Ident] && tokens(1)
-              .asInstanceOf[Token.Ident]
-              .value == "Matchable" &&
-            tokens(2).is[Token.RightBracket]
+            val subsequentTokens = doc.tree.tokens.drop(tokenIndex + 1)
+            val nonSpaceTokens = subsequentTokens.filterNot(_.is[Token.Space])
+
+            nonSpaceTokens.take(3).toList match {
+              case (leftBracket: Token.LeftBracket) ::
+                (ident: Token.Ident) ::
+                (rightBracket: Token.RightBracket) :: Nil
+                if ident.value == "Matchable" => true
+              case _ => false
+            }
           } else false
         }
 
