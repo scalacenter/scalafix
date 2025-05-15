@@ -8,7 +8,7 @@ object MatchableAsInstanceOf {
   class Example {
     override def equals(obj: Any): Boolean =
       obj.asInstanceOf[Matchable] match { /* assert: DisableSyntax.asInstanceOfMatchable
-         ^^^^^^^^^^^^^
+          ^^^^^^^^^^^^
       asInstanceOf[Matchable] is used here to enable pattern matching on Any. Consider using the .asMatchable extension method instead for better readability.
       */
         case that: Example => true
