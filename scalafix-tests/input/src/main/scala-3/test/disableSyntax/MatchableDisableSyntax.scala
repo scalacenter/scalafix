@@ -18,7 +18,7 @@ object MatchableAsInstanceOf {
 
   def regularCast(x: Any): String =
     x.asInstanceOf[String] /* assert: DisableSyntax.asInstanceOf
-     ^^^^^^^^^^^^^
+      ^^^^^^^^^^^^
     asInstanceOf casts are disabled, use pattern matching instead
     */
 
