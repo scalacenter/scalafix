@@ -118,9 +118,11 @@ final class DisableSyntax(config: DisableSyntaxConfig)
           if (tokenIndex >= 0) {
             val tokens = doc.tree.tokens.slice(tokenIndex + 1, tokenIndex + 4)
             tokens.size >= 3 &&
-              tokens(0).is[Token.LeftBracket] &&
-              tokens(1).is[Token.Ident] && tokens(1).asInstanceOf[Token.Ident].value == "Matchable" &&
-              tokens(2).is[Token.RightBracket]
+            tokens(0).is[Token.LeftBracket] &&
+            tokens(1).is[Token.Ident] && tokens(1)
+              .asInstanceOf[Token.Ident]
+              .value == "Matchable" &&
+            tokens(2).is[Token.RightBracket]
           } else false
         }
 
