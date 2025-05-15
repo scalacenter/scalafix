@@ -23,11 +23,11 @@ object MatchableAsInstanceOf {
     */
 
   // whitespace between tokens
-  class AnotherExample {
+  class WhitespaceExample {
     override def equals(obj: Any): Boolean =
-      obj.asInstanceOf  [  Matchable  ] match { /* assert: DisableSyntax.asInstanceOfMatchable
+      obj.asInstanceOf  [  Matchable  ] match { /* assert: DisableSyntax.asInstanceOf
          ^^^^^^^^^^^^^
-      asInstanceOf[Matchable] is used here to enable pattern matching on Any. Consider using the .asMatchable extension method instead for better readability.
+      asInstanceOf casts are disabled, use pattern matching instead
       */
         case _ => true
       }
