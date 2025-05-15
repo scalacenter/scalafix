@@ -120,9 +120,9 @@ final class DisableSyntax(config: DisableSyntaxConfig)
             val nonSpaceTokens = subsequentTokens.filterNot(_.is[Token.Space])
 
             nonSpaceTokens.take(3).toList match {
-              case (leftBracket: Token.LeftBracket) ::
+              case (_: Token.LeftBracket) ::
                   (ident: Token.Ident) ::
-                  (rightBracket: Token.RightBracket) :: Nil
+                  (_: Token.RightBracket) :: Nil
                   if ident.value == "Matchable" =>
                 true
               case _ => false
