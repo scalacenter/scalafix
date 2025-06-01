@@ -4,7 +4,7 @@ DisableSyntax.noAsInstanceOf = true
 */
 package test.disableSyntax
 
-object MatchableAsInstanceOf {
+object MatchableDisableSyntax {
   class Example {
     override def equals(obj: Any): Boolean =
       obj.asInstanceOf[Matchable] match { /* assert: DisableSyntax.asInstanceOfMatchable
