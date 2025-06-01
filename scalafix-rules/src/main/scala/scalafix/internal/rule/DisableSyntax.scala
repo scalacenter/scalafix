@@ -113,22 +113,12 @@ final class DisableSyntax(config: DisableSyntaxConfig)
         Diagnostic("noXml", "xml literals should be avoided", token.pos)
       case token: Token.Ident
           if token.value == "asInstanceOf" && config.noAsInstanceOf =>
-        val isMatchableCast = {
-          val tokenIndex = doc.tree.tokens.indexOf(token)
-          if (tokenIndex >= 0) {
-            val subsequentTokens = doc.tree.tokens.drop(tokenIndex + 1)
-            val nonSpaceTokens = subsequentTokens.filterNot(_.is[Token.Space])
-
-            nonSpaceTokens.take(3).toList match {
-              case (_: Token.LeftBracket) ::
-                  (ident: Token.Ident) ::
-                  (_: Token.RightBracket) :: Nil
-                  if ident.value == "Matchable" =>
-                true
-              case _ => false
-            }
-          } else false
-        }
+        val isMatchableCast =
+          doc.tokenList
+            .trailing(token)
+            .takeWhile(!_.is[Token.RightBracket])
+            .collectFirst { case Token.Ident("Matchable") => }
+            .isDefined
 
         if (isMatchableCast) {
           Diagnostic(
