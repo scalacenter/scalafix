@@ -30,7 +30,7 @@ class RemoveUnused(config: RemoveUnusedConfig)
   override def isRewrite: Boolean = true
 
   private def warnUnusedPrefix = List("-Wunused", "-Ywarn-unused")
-  private def warnUnusedString = List("-Xlint", "-Xlint:unused")
+  private def warnUnusedString = List("-Wall", "-Xlint", "-Xlint:unused")
   override def withConfiguration(config: Configuration): Configured[Rule] = {
     val diagnosticsAvailableInSemanticdb =
       Seq("3.0", "3.1", "3.2", "3.3.0", "3.3.1", "3.3.2", "3.3.3")
@@ -43,8 +43,8 @@ class RemoveUnused(config: RemoveUnusedConfig)
     if (!hasWarnUnused) {
       Configured.error(
         """|A Scala compiler option is required to use RemoveUnused. To fix this problem,
-          |update your build to add -Ywarn-unused (with 2.12), -Wunused (with 2.13), or 
-          |-Wunused:all (with 3.3.4+)""".stripMargin
+          |update your build to add -Ywarn-unused (with 2.12), -Wunused (with 2.13),
+          |-Wunused:all (with 3.3.4+), or -Wall (with 3.5.2+ and backported to 3.3.5+)""".stripMargin
       )
     } else if (!diagnosticsAvailableInSemanticdb) {
       Configured.error(
