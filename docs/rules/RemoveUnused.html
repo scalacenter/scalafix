@@ -61,7 +61,7 @@ example diff from running <code>sbt &quot;scalafix RemoveUnused&quot;</code>.</p
 <p>To use this rule:</p>
 <ul>
 <li>Enable the Scala compiler option <code>-Ywarn-unused</code> (2.12), <code>-Wunused</code> (2.13),
-or <code>-Wunused:all</code> (3.3.4+).</li>
+<code>-Wunused:all</code> (3.3.4+), or -Wall (with 3.5.2+ and backported to 3.3.5+).</li>
 <li>Disable <code>-Xfatal-warnings</code> if you have it enabled. This is required so the
 compiler warnings do not fail the build before running Scalafix. If you are
 running 2.12.13+ or 2.13.2+, you may keep <code>-Xfatal-warnings</code> by modifying how
