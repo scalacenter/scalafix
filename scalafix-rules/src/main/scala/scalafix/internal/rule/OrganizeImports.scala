@@ -870,7 +870,7 @@ object OrganizeImports {
 
     val hasWarnUnused = hasCompilerSupport && {
       val warnUnusedPrefix = Set("-Wunused", "-Ywarn-unused")
-      val warnUnusedString = Set("-Xlint", "-Xlint:unused")
+      val warnUnusedString = Set("-Wall", "-Xlint", "-Xlint:unused")
       scalacOptions exists { option =>
         (warnUnusedPrefix exists option.startsWith) || (warnUnusedString contains option)
       }
