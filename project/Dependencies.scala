@@ -24,7 +24,7 @@ object Dependencies {
   val metaconfigV = "0.15.0"
   val nailgunV = "0.9.1"
   val scalaXmlV = "2.2.0"
-  val scalametaV = "4.13.6"
+  val scalametaV = "4.13.7"
   val scalatagsV = "0.13.1"
   val scalatestV = "3.2.19"
   val munitV = "1.1.1"
