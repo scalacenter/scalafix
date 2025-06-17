@@ -31,7 +31,7 @@ object ReplaceSymbolOps {
     stats.collect { case i: Import => i }
   }
 
-  private def getGranularImports(tree: Tree): ImportInfo = {
+  private def getGranularImports(tree: Tree)(implicit doc: SemanticDocument): ImportInfo = {
     @tailrec
     def getTopLevelImports(ast: Tree): Seq[Import] = ast match {
       case Pkg(_, Seq(pkg: Pkg)) => getTopLevelImports(pkg)
@@ -63,7 +63,7 @@ object ReplaceSymbolOps {
   )(implicit ctx: RuleCtx, index: SemanticdbIndex): Patch = {
     if (moveSymbols.isEmpty) return Patch.empty
 
-    val importInfo = getGranularImports(ctx.tree)
+    val importInfo = getGranularImports(ctx.tree)(ctx.doc)
 
     val moves: Map[String, Symbol.Global] =
       moveSymbols.iterator.flatMap {
