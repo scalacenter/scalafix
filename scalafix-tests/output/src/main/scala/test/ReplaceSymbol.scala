@@ -1,4 +1,5 @@
 package fix
+
 import com.geirsson.Future
 import com.geirsson.{ fastmath, mutable }
 import com.geirsson.mutable.{ CoolBuffer, unsafe }
