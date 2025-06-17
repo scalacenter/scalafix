@@ -1,7 +1,7 @@
 package fix
 import com.geirsson.Future
-import com.geirsson.{fastmath, mutable}
-import com.geirsson.mutable.{CoolBuffer, unsafe}
+import com.geirsson.{ fastmath, mutable }
+import com.geirsson.mutable.{ CoolBuffer, unsafe }
 import com.geirsson.mutable.unsafe.CoolMap
 
 import scala.collection.immutable.SortedMap

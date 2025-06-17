@@ -31,7 +31,7 @@ patches.replaceSymbols = [
  */
 package fix
 
-import scala.collection.immutable.{SortedMap, TreeMap}
+import scala.collection.immutable.{ SortedMap, TreeMap }
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable
