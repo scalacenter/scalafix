@@ -30,8 +30,8 @@ object ReplaceSymbolOps {
   private def extractImports(stats: Seq[Stat]): Seq[Import] = {
     stats.collect { case i: Import => i }
   }
-
-  private def getGranularImports(tree: Tree)(implicit doc: SemanticDocument): ImportInfo = {
+  
+  private def getGranularImports(tree: Tree)(implicit index: SemanticdbIndex): ImportInfo = {
     @tailrec
     def getTopLevelImports(ast: Tree): Seq[Import] = ast match {
       case Pkg(_, Seq(pkg: Pkg)) => getTopLevelImports(pkg)
@@ -62,8 +62,8 @@ object ReplaceSymbolOps {
       moveSymbols: Seq[ReplaceSymbol]
   )(implicit ctx: RuleCtx, index: SemanticdbIndex): Patch = {
     if (moveSymbols.isEmpty) return Patch.empty
-
-    val importInfo = getGranularImports(ctx.tree)(ctx.doc)
+    
+    val importInfo = getGranularImports(ctx.tree)(index)
 
     val moves: Map[String, Symbol.Global] =
       moveSymbols.iterator.flatMap {
@@ -172,7 +172,7 @@ object ReplaceSymbolOps {
             if (n.isDefinition || causesCollision) Patch.empty
             else ctx.addGlobalImport(to)
           if (causesCollision)
-            addImport + ctx.replaceTree(n, to.owner.syntax + to.signature.name)
+            addImport + ctx.replaceTree(n, s"${to.owner.syntax}.${to.signature.name}")
           else
             addImport + ctx.replaceTree(n, to.signature.name)
         case _ =>
