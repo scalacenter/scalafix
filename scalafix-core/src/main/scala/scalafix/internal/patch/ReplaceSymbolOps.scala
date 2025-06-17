@@ -30,7 +30,7 @@ object ReplaceSymbolOps {
   private def extractImports(stats: Seq[Stat]): Seq[Import] = {
     stats.collect { case i: Import => i }
   }
-  
+
   private def extractImportInfo(tree: Tree)(implicit index: SemanticdbIndex): ImportInfo = {
     @tailrec
     def getTopLevelImports(ast: Tree): Seq[Import] = ast match {
@@ -62,7 +62,7 @@ object ReplaceSymbolOps {
       moveSymbols: Seq[ReplaceSymbol]
   )(implicit ctx: RuleCtx, index: SemanticdbIndex): Patch = {
     if (moveSymbols.isEmpty) return Patch.empty
-    
+
     val importInfo = extractImportInfo(ctx.tree)(index)
 
     val moves: Map[String, Symbol.Global] =
@@ -172,7 +172,7 @@ object ReplaceSymbolOps {
             if (n.isDefinition || causesCollision) Patch.empty
             else ctx.addGlobalImport(to)
           if (causesCollision)
-            addImport + ctx.replaceTree(n, s"${to.owner.syntax}.${to.signature.name}")
+            addImport + ctx.replaceTree(n, to.owner.syntax + to.signature.name)
           else
             addImport + ctx.replaceTree(n, to.signature.name)
         case _ =>
