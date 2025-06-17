@@ -10,8 +10,15 @@ import scalafix.patch.Patch
 import scalafix.patch.Patch.internal.ReplaceSymbol
 import scalafix.syntax._
 import scalafix.v0._
+import scala.annotation.tailrec
 
 object ReplaceSymbolOps {
+  private case class ImportInfo(
+                                 globalImports: Seq[Import],
+                                 allImports: Seq[Import] = Seq.empty,
+                                 importedSymbols: Map[String, Symbol] = Map.empty
+                               )
+
   private object Select {
     def unapply(arg: Ref): Option[(Ref, Name)] = arg match {
       case Term.Select(a: Ref, b) => Some(a -> b)
@@ -20,10 +27,44 @@ object ReplaceSymbolOps {
     }
   }
 
+  private def extractImports(stats: Seq[Stat]): Seq[Import] = {
+    stats.collect { case i: Import => i }
+  }
+
+  private def getGranularImports(tree: Tree): ImportInfo = {
+    @tailrec
+    def getTopLevelImports(ast: Tree): Seq[Import] = ast match {
+      case Pkg(_, Seq(pkg: Pkg)) => getTopLevelImports(pkg)
+      case Source(Seq(pkg: Pkg)) => getTopLevelImports(pkg)
+      case Pkg(_, stats) => extractImports(stats)
+      case Source(stats) => extractImports(stats)
+      case _ => Nil
+    }
+
+    val globalImports = getTopLevelImports(tree)
+    // collect all imports throughout entire tree (scoped + global)
+    val allImports = tree.collect { case i: Import => i }
+
+    // pre-compute imported symbols for O(1) collision detection
+    val importedSymbols = allImports.flatMap { importStat =>
+      importStat.importers.flatMap { importer =>
+        importer.importees.collect {
+          case Importee.Name(name) => name.value -> name.symbol.getOrElse(Symbol.None)
+          case Importee.Rename(_, rename) => rename.value -> rename.symbol.getOrElse(Symbol.None)
+        }
+      }
+    }.toMap
+
+    ImportInfo(globalImports, allImports, importedSymbols)
+  }
+
   def naiveMoveSymbolPatch(
       moveSymbols: Seq[ReplaceSymbol]
   )(implicit ctx: RuleCtx, index: SemanticdbIndex): Patch = {
     if (moveSymbols.isEmpty) return Patch.empty
+
+    val importInfo = getGranularImports(ctx.tree)
+
     val moves: Map[String, Symbol.Global] =
       moveSymbols.iterator.flatMap {
         case ReplaceSymbol(
@@ -126,10 +167,14 @@ object ReplaceSymbolOps {
             if sig.name != parent.value =>
           Patch.empty // do nothing because it was a renamed symbol
         case Some(_) =>
+          val causesCollision = importInfo.importedSymbols.contains(to.signature.name)
           val addImport =
-            if (n.isDefinition) Patch.empty
+            if (n.isDefinition || causesCollision) Patch.empty
             else ctx.addGlobalImport(to)
-          addImport + ctx.replaceTree(n, to.signature.name)
+          if (causesCollision)
+            addImport + ctx.replaceTree(n, to.owner.syntax + to.signature.name)
+          else
+            addImport + ctx.replaceTree(n, to.signature.name)
         case _ =>
           Patch.empty
       }
