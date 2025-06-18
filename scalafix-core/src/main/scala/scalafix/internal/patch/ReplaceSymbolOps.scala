@@ -16,8 +16,7 @@ import scalafix.v0._
 object ReplaceSymbolOps {
   private case class ImportInfo(
       globalImports: Seq[Import],
-      allImports: Seq[Import] = Seq.empty,
-      importedSymbols: Map[String, Symbol] = Map.empty
+      globalImportedSymbols: Map[String, Symbol] = Map.empty
   )
 
   private object Select {
@@ -45,11 +44,10 @@ object ReplaceSymbolOps {
     }
 
     val globalImports = getTopLevelImports(tree)
-    // collect all imports throughout entire tree (scoped + global)
-    val allImports = tree.collect { case i: Import => i }
 
-    // pre-compute imported symbols for O(1) collision detection
-    val importedSymbols = allImports.flatMap { importStat =>
+    // pre-compute global imported symbols for O(1) collision detection
+    // since ctx.addGlobalImport adds imports at global scope
+    val globalImportedSymbols = globalImports.flatMap { importStat =>
       importStat.importers.flatMap { importer =>
         importer.importees.collect {
           case Importee.Name(name) =>
@@ -60,7 +58,7 @@ object ReplaceSymbolOps {
       }
     }.toMap
 
-    ImportInfo(globalImports, allImports, importedSymbols)
+    ImportInfo(globalImports, globalImportedSymbols)
   }
 
   def naiveMoveSymbolPatch(
@@ -173,7 +171,7 @@ object ReplaceSymbolOps {
           Patch.empty // do nothing because it was a renamed symbol
         case Some(_) =>
           val causesCollision =
-            importInfo.importedSymbols.contains(to.signature.name)
+            importInfo.globalImportedSymbols.contains(to.signature.name)
           val addImport =
             if (n.isDefinition || causesCollision) Patch.empty
             else ctx.addGlobalImport(to)
