@@ -1,11 +1,11 @@
 package fix
 
+import scala.collection.immutable.SortedMap
 import com.geirsson.Future
 import com.geirsson.{ fastmath, mutable }
 import com.geirsson.mutable.{ CoolBuffer, unsafe }
 import com.geirsson.mutable.unsafe.CoolMap
 
-import scala.collection.immutable.SortedMap
 object ReplaceSymbol {
   Future.successful(1 + 2)
   fastmath.sqrt(9)
