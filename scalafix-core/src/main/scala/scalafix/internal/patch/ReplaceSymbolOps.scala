@@ -14,10 +14,10 @@ import scala.annotation.tailrec
 
 object ReplaceSymbolOps {
   private case class ImportInfo(
-                                 globalImports: Seq[Import],
-                                 allImports: Seq[Import] = Seq.empty,
-                                 importedSymbols: Map[String, Symbol] = Map.empty
-                               )
+      globalImports: Seq[Import],
+      allImports: Seq[Import] = Seq.empty,
+      importedSymbols: Map[String, Symbol] = Map.empty
+  )
 
   private object Select {
     def unapply(arg: Ref): Option[(Ref, Name)] = arg match {
@@ -31,7 +31,9 @@ object ReplaceSymbolOps {
     stats.collect { case i: Import => i }
   }
 
-  private def extractImportInfo(tree: Tree)(implicit index: SemanticdbIndex): ImportInfo = {
+  private def extractImportInfo(
+      tree: Tree
+  )(implicit index: SemanticdbIndex): ImportInfo = {
     @tailrec
     def getTopLevelImports(ast: Tree): Seq[Import] = ast match {
       case Pkg(_, Seq(pkg: Pkg)) => getTopLevelImports(pkg)
@@ -49,8 +51,10 @@ object ReplaceSymbolOps {
     val importedSymbols = allImports.flatMap { importStat =>
       importStat.importers.flatMap { importer =>
         importer.importees.collect {
-          case Importee.Name(name) => name.value -> name.symbol.getOrElse(Symbol.None)
-          case Importee.Rename(_, rename) => rename.value -> rename.symbol.getOrElse(Symbol.None)
+          case Importee.Name(name) =>
+            name.value -> name.symbol.getOrElse(Symbol.None)
+          case Importee.Rename(_, rename) =>
+            rename.value -> rename.symbol.getOrElse(Symbol.None)
         }
       }
     }.toMap
@@ -167,7 +171,8 @@ object ReplaceSymbolOps {
             if sig.name != parent.value =>
           Patch.empty // do nothing because it was a renamed symbol
         case Some(_) =>
-          val causesCollision = importInfo.importedSymbols.contains(to.signature.name)
+          val causesCollision =
+            importInfo.importedSymbols.contains(to.signature.name)
           val addImport =
             if (n.isDefinition || causesCollision) Patch.empty
             else ctx.addGlobalImport(to)
