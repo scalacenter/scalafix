@@ -1,5 +1,7 @@
 package scalafix.internal.patch
 
+import scala.annotation.tailrec
+
 import scala.meta._
 import scala.meta.internal.trees._
 
@@ -10,7 +12,6 @@ import scalafix.patch.Patch
 import scalafix.patch.Patch.internal.ReplaceSymbol
 import scalafix.syntax._
 import scalafix.v0._
-import scala.annotation.tailrec
 
 object ReplaceSymbolOps {
   private case class ImportInfo(
