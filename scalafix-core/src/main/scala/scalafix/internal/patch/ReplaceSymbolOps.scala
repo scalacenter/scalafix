@@ -16,7 +16,7 @@ import scalafix.v0._
 object ReplaceSymbolOps {
   private case class ImportInfo(
       globalImports: Seq[Import],
-      globalImportedSymbols: Map[String, Symbol] = Map.empty
+      globalImportedSymbols: Map[String, Symbol]
   )
 
   private object Select {
