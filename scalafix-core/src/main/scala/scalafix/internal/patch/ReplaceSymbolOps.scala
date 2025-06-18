@@ -35,15 +35,15 @@ object ReplaceSymbolOps {
       tree: Tree
   )(implicit index: SemanticdbIndex): ImportInfo = {
     @tailrec
-    def getTopLevelImports(ast: Tree): Seq[Import] = ast match {
-      case Pkg(_, Seq(pkg: Pkg)) => getTopLevelImports(pkg)
-      case Source(Seq(pkg: Pkg)) => getTopLevelImports(pkg)
+    def getGlobalImports(ast: Tree): Seq[Import] = ast match {
+      case Pkg(_, Seq(pkg: Pkg)) => getGlobalImports(pkg)
+      case Source(Seq(pkg: Pkg)) => getGlobalImports(pkg)
       case Pkg(_, stats) => extractImports(stats)
       case Source(stats) => extractImports(stats)
       case _ => Nil
     }
 
-    val globalImports = getTopLevelImports(tree)
+    val globalImports = getGlobalImports(tree)
 
     // pre-compute global imported symbols for O(1) collision detection
     // since ctx.addGlobalImport adds imports at global scope
