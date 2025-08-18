@@ -241,17 +241,9 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, Option[String]] = Map(
-    scala213 -> Some("2.13.16"),
-    scala33 -> Some("3.3.6"),
-    scala37 -> Some("3.7.0")
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
-    // removed from the compiler in 2.13.16, 3.3.4 & 3.6.3, extremely unlikely to be needed by clients
-    versionPolicyIgnored ++= Seq(
-      "net.java.dev.jna" % "jna",
-      "org.jline" % "jline-terminal-jna"
-    ),
     // https://github.com/sbt/sbt/issues/5568#issuecomment-1094380636
     versionPolicyIgnored ++= Seq(
       // https://github.com/scalacenter/scalafix/pull/1530
@@ -264,13 +256,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r),
     versionScheme := Some("early-semver"),
     libraryDependencySchemes ++= Seq(
-      // metaconfig has no JVM breaking change from 0.15.0 to 0.16.0
-      "org.scalameta" % "metaconfig-core_2.12" % VersionScheme.Always,
-      "org.scalameta" % "metaconfig-core_2.13" % VersionScheme.Always,
-      "org.scalameta" % "metaconfig-pprint_2.12" % VersionScheme.Always,
-      "org.scalameta" % "metaconfig-pprint_2.13" % VersionScheme.Always,
-      "org.scalameta" % "metaconfig-typesafe-config_2.12" % VersionScheme.Always,
-      "org.scalameta" % "metaconfig-typesafe-config_2.13" % VersionScheme.Always,
       // Scala 3 compiler
       "org.scala-lang.modules" % "scala-asm" % VersionScheme.Always,
       // coursier-versions always return false for the *.*.*.*-r pattern jgit uses
