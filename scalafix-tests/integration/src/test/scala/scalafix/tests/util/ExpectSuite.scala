@@ -15,8 +15,9 @@ trait ExpectSuite extends AnyFunSuite with DiffAssertions {
   def obtained(): String
 
   final def path: AbsolutePath = {
-    val scalaMajorVersion = BuildInfo.scalaVersion.split("\\.")(0)
-    AbsolutePath(s"${BuildInfo.resourceDirectory}-${scalaMajorVersion}")
+    val scalaMajorMinorVersion =
+      BuildInfo.scalaVersion.split('.').take(2).mkString(".")
+    AbsolutePath(s"${BuildInfo.resourceDirectory}-${scalaMajorMinorVersion}")
       .resolve("expect")
       .resolve(filename.stripSuffix("Test.scala") + ".expect")
   }
