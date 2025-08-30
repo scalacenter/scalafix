@@ -1,13 +1,16 @@
 [7:7..7:17]:      test/PrettyTest# => class PrettyTest extends Object { self: PrettyTest => +6 decls }
 [8:3..8:14]:      *[Int]
 [8:3..8:7]:       *.apply[Int]
+[8:3..8:10]:      List.apply[Int](*)
 [8:3..8:3]:       test/PrettyTest#`<init>`(). => primary ctor <init>(): PrettyTest
 [10:10..10:11]:   intWrapper(*)
 [11:10..11:11]:   intWrapper(*)
 [15:10..15:16]:   *.apply[Inclusive]
+[15:10..15:26]:   Future.apply[Inclusive](*)
 [15:10..15:26]:   *(global)
 [15:17..15:18]:   intWrapper(*)
 [16:10..16:16]:   *.apply[Inclusive]
+[16:10..16:32]:   Future.apply[Inclusive](*)
 [16:10..16:32]:   *(global)
 [16:17..16:18]:   intWrapper(*)
 [21:3..21:3]:     test/PrettyTest#Inner#`<init>`(). => primary ctor <init>(): Inner
@@ -18,7 +21,14 @@
                     local4 => abstract method foo(a: Int): Int
                     local5 => abstract method bar(a: Int): Int
                   }]
+[25:3..28:6]:     Option.apply[Object {
+                    local6 => abstract method foo(a: Int): Int
+                    local7 => abstract method bar(a: Int): Int
+                  }](*)
+[29:3..29:12]:    Option.apply[a.Inner](*)
 [30:3..30:9]:     *.apply[Int & String]
+[30:3..30:45]:    Option.apply[Int & String](*)
+[31:3..31:39]:    Option.apply[PrettyTest](*)
 [38:7..38:10]:    test/ann# => class ann[T] extends Annotation with StaticAnnotation { self: ann[T] => +3 decls }
 [38:10..38:10]:   test/ann#`<init>`(). => primary ctor <init>[T](x: T): ann[T]
 [38:11..38:12]:   test/ann#[T] => typeparam T
