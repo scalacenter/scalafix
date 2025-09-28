@@ -17,6 +17,7 @@ final class DocumentFromProtobuf(original: s.Synthetic)(implicit
   def stree(t: s.Tree): SemanticTree = {
     t match {
       case t: s.ApplyTree =>
+        // TODO: expose properties bitmask https://github.com/scalameta/scalameta/pull/4275
         ApplyTree(t.function.convert, t.arguments.convert)
       case t: s.FunctionTree =>
         FunctionTree(t.parameters.convert, t.body.convert)
