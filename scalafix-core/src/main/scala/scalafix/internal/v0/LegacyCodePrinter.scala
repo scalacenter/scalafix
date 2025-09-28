@@ -193,9 +193,10 @@ class LegacyCodePrinter(doc: SemanticDocument) {
   }
   private def loop(tree: s.Tree): Unit = tree match {
     case s.NoTree =>
-    case s.ApplyTree(fn, args) =>
-      loop(fn)
-      mkString("(", args, ")")(loop)
+    case t: s.ApplyTree =>
+      loop(t.function)
+      // TODO: expose properties bitmask https://github.com/scalameta/scalameta/pull/4275
+      mkString("(", t.arguments, ")")(loop)
     case s.FunctionTree(params, term) =>
       text.append("{")
       mkString("(", params, ") => ")(loop)
