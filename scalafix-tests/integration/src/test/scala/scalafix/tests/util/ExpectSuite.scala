@@ -18,13 +18,13 @@ trait ExpectSuite extends AnyFunSuite with DiffAssertions {
     val versionParts = BuildInfo.scalaVersion.split("\\.")
     val scalaMajorVersion = versionParts(0)
     val scalaMinorVersion = versionParts(1)
-    val scalaMinorMajorVersion = s"${scalaMajorVersion}.${scalaMinorVersion}"
+    val scalaMajorMinorVersion = s"${scalaMajorVersion}.${scalaMinorVersion}"
 
     val expectFileName = filename.stripSuffix("Test.scala") + ".expect"
 
     // Try minor version specific directory first (e.g., resources-3.7)
     val minorVersionPath =
-      AbsolutePath(s"${BuildInfo.resourceDirectory}-${scalaMinorMajorVersion}")
+      AbsolutePath(s"${BuildInfo.resourceDirectory}-${scalaMajorMinorVersion}")
         .resolve("expect")
         .resolve(expectFileName)
 
