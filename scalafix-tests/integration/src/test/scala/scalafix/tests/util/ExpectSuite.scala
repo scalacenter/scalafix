@@ -17,16 +17,18 @@ trait ExpectSuite extends AnyFunSuite with DiffAssertions {
   final def path: AbsolutePath = {
     val versionParts = BuildInfo.scalaVersion.split("\\.")
     val scalaMajorVersion = versionParts(0)
-    val scalaMinorVersion = if (versionParts.length > 1) versionParts(1) else "0"
+    val scalaMinorVersion =
+      if (versionParts.length > 1) versionParts(1) else "0"
     val scalaMinorMajorVersion = s"${scalaMajorVersion}.${scalaMinorVersion}"
-    
+
     val expectFileName = filename.stripSuffix("Test.scala") + ".expect"
-    
+
     // Try minor version specific directory first (e.g., resources-3.7)
-    val minorVersionPath = AbsolutePath(s"${BuildInfo.resourceDirectory}-${scalaMinorMajorVersion}")
-      .resolve("expect")
-      .resolve(expectFileName)
-    
+    val minorVersionPath =
+      AbsolutePath(s"${BuildInfo.resourceDirectory}-${scalaMinorMajorVersion}")
+        .resolve("expect")
+        .resolve(expectFileName)
+
     if (minorVersionPath.toFile.exists()) {
       minorVersionPath
     } else {
