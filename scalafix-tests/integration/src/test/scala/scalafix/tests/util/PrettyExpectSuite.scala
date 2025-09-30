@@ -13,7 +13,6 @@ import scalafix.v1
 class PrettyExpectSuite extends ExpectSuite {
   def filename: String = "PrettyTest.scala"
   def obtained(): String = {
-    if (ScalaVersions.isScala212) return expected()
     val synthetics = sdoc.internal.textDocument.synthetics.map { synth =>
       val pos = ScalametaInternals.positionFromRange(sdoc.input, synth.range)
       val tree = DocumentFromProtobuf.convert(synth, sdoc.internal)
