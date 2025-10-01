@@ -248,6 +248,7 @@ lazy val input = projectMatrix
     logLevel := Level.Error, // avoid flood of compiler warnings
     libraryDependencies ++= testsDependencies.value,
     coverageEnabled := false,
+    allowUnsafeScalaLibUpgrade := true,
     // mimic dependsOn(shared) but allowing binary Scala version matching
     Compile / internalDependencyClasspath ++=
       resolve(shared, Compile / exportedProducts).value
