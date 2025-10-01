@@ -49,9 +49,7 @@ class RuleSuite extends AbstractSemanticRuleSuite with AnyFunSuiteLike {
     if (
       // ExplicitResultTypes can only run against sources compiled with the same
       // binary version as the one used to compile the rule
-      (versionMismatch && explicitResultTypesTest) ||
-      // RemoveUnusedPatternVars has the old 2.12.x behavior for 2.13.14
-      (inputSV == "2.13.14" && path.endsWith("RemoveUnusedPatternVars.scala"))
+      versionMismatch && explicitResultTypesTest
     ) return
     else super.runOn(diffTest)
   }
