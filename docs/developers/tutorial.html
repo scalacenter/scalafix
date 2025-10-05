@@ -657,9 +657,7 @@ argument is not required.</p>
 custom repository like Bintray or a private Nexus.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-comment">// build.sbt</span>
 <span class="hljs-type">ThisBuild</span> / scalafixResolvers ++= <span class="hljs-type">List</span>(
-  coursierapi.<span class="hljs-type">MavenRepository</span>.of(<span class="hljs-string">"https://dl.bintray.com/scalacenter/releases"</span>),
-  coursierapi.<span class="hljs-type">MavenRepository</span>.of(<span class="hljs-string">"https://oss.sonatype.org/content/repositories/snapshots"</span>),
-  coursierapi.<span class="hljs-type">IvyRepository</span>.of(<span class="hljs-string">"https://dl.bintray.com/sbt/sbt-plugin-releases/[defaultPattern]"</span>),
+  coursierapi.<span class="hljs-type">MavenRepository</span>.of(<span class="hljs-string">"https://central.sonatype.com/repository/maven-snapshots/"</span>),
   coursierapi.<span class="hljs-type">IvyRepository</span>.of(<span class="hljs-string">"https://foo.com/a/b/c/[defaultPattern]"</span>)
 )
 </code></pre>
