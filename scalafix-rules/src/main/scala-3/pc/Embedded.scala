@@ -9,7 +9,6 @@ import scala.meta.pc.PresentationCompiler
 
 import coursierapi.Dependency
 import coursierapi.Fetch
-import coursierapi.MavenRepository
 
 object Embedded {
 
@@ -61,12 +60,6 @@ object Embedded {
     val jars = Fetch
       .create()
       .addDependencies(deps: _*)
-      .addRepositories(
-        // for some versions, the presentation compiler depends on mtags-interfaces SNAPSHOTs
-        MavenRepository.of(
-          "https://oss.sonatype.org/content/repositories/snapshots"
-        )
-      )
       .fetch()
       .asScala
       .map(_.toPath())

@@ -25,5 +25,4 @@ cs resolve \
   ch.epfl.scala:scalafix-testkit_$scala212:$version \
   ch.epfl.scala:scalafix-testkit_$scala213:$version \
   ch.epfl.scala:scalafix-testkit_$scala3LTS:$version \
-  ch.epfl.scala:scalafix-testkit_$scala3Next:$version \
-  -r sonatype:public
+  ch.epfl.scala:scalafix-testkit_$scala3Next:$version

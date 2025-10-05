@@ -34,7 +34,7 @@ class ScalafixSuite extends AnyFunSuite {
     Repository.central(), // for scala libs
     MavenRepository.of(
       // for scalameta SNAPSHOTS
-      "https://oss.sonatype.org/content/repositories/snapshots"
+      "https://central.sonatype.com/repository/maven-snapshots"
     )
   ).asJava
 
