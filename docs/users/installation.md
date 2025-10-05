@@ -463,12 +463,12 @@ If using the sbt plugin:
 ```diff
  // project/plugins.sbt
  addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@VERSION@")
-+resolvers += Resolver.sonatypeRepo("snapshots")
++resolvers += Resolver.sonatypeCentralSnapshots
 +dependencyOverrides += "ch.epfl.scala" % "scalafix-interfaces" % "@NIGHTLY_VERSION@"
 ```
 
 If using the command-line interface:
 
 ```sh
-cs launch ch.epfl.scala:scalafix-cli_@SCALA213@:@NIGHTLY_VERSION@ -r sonatype:snapshots --main scalafix.cli.Cli -- --help
+cs launch ch.epfl.scala:scalafix-cli_@SCALA213@:@NIGHTLY_VERSION@ -r https://central.sonatype.com/repository/maven-snapshots --main scalafix.cli.Cli -- --help
 ```

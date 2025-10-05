@@ -195,10 +195,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   override def globalSettings: Seq[Def.Setting[_]] = List(
     excludeLintKeys += scalafixConfig, // defined on projects where ScalafixPlugin is disabled
     stableVersion := (ThisBuild / version).value.replaceFirst("\\+.*", ""),
-    resolvers ++=
-      Resolver.sonatypeOssRepos("snapshots") ++
-        Resolver.sonatypeOssRepos("public") :+
-        Resolver.mavenLocal,
     Test / testOptions += Tests.Argument("-oD"),
     updateOptions := updateOptions.value.withCachedResolution(true),
     ThisBuild / watchTriggeredMessage := Watch.clearScreenOnTrigger,

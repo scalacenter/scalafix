@@ -778,9 +778,7 @@ custom repository like Bintray or a private Nexus.
 ```scala
 // build.sbt
 ThisBuild / scalafixResolvers ++= List(
-  coursierapi.MavenRepository.of("https://dl.bintray.com/scalacenter/releases"),
-  coursierapi.MavenRepository.of("https://oss.sonatype.org/content/repositories/snapshots"),
-  coursierapi.IvyRepository.of("https://dl.bintray.com/sbt/sbt-plugin-releases/[defaultPattern]"),
+  coursierapi.MavenRepository.of("https://central.sonatype.com/repository/maven-snapshots/"),
   coursierapi.IvyRepository.of("https://foo.com/a/b/c/[defaultPattern]")
 )
 ```

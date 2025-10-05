@@ -24,7 +24,7 @@ object SemanticdbPlugin {
       .addDependencies(dep)
       .addRepositories(
         MavenRepository(
-          "https://oss.sonatype.org/content/repositories/snapshots"
+          "https://central.sonatype.com/repository/maven-snapshots"
         )
       )
       .run()
