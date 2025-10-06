@@ -73,12 +73,14 @@ class ScalafixSuite extends AnyFunSuite {
   }
 
   test("classload Scala 2.12 with full version") {
+    if (jdk >= 25) cancel("Scala 2.12 is not yet supported on JDK25+")
     val scalafixAPI =
       Scalafix.fetchAndClassloadInstance("2.12.20", repositories)
     assert(scalafixAPI.scalaVersion() == Versions.scala212)
   }
 
   test("classload Scala 2.12 with major.minor version") {
+    if (jdk >= 25) cancel("Scala 2.12 is not yet supported on JDK25+")
     val scalafixAPI = Scalafix.fetchAndClassloadInstance("2.12", repositories)
     assert(scalafixAPI.scalaVersion() == Versions.scala212)
   }
