@@ -5,6 +5,7 @@ import sbt._
 /* scalafmt: { maxColumn = 140 }*/
 
 object Dependencies {
+  // upon bump, remove JDK25 exclusion in cliScalaVersions & in ScalafixSuite
   val scala212 = sys.props.getOrElse("scala212.nightly", "2.12.20")
   val scala213 = sys.props.getOrElse("scala213.nightly", "2.13.17")
   val scala33 = "3.3.6"

@@ -10,10 +10,10 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu"]
-        jvm: ["8", "11", "17", "21", "23"]
+        jvm: ["8", "11", "17", "21", "25"]
         include:
           - os: windows
-            jvm: 21
+            jvm: 25
     name: ${{ matrix.os }} / JDK${{ matrix.jvm }}
     runs-on: ${{ matrix.os }}-latest
     steps:

@@ -34,16 +34,17 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     // https://github.com/scalameta/scalameta/issues/2485
     lazy val coreScalaVersions = Seq(scala212, scala213)
     lazy val cliScalaVersions = {
+      val scala3Versions = Seq(scala33, scala35, scala36, scala37)
       val jdk = System.getProperty("java.specification.version").toDouble
-      val scala3Versions =
-        // Scala 3.5 will never support JDK 23
-        if (jdk >= 23) Seq(scala33, scala36, scala37)
-        else Seq(scala33, scala35, scala36, scala37)
-      (coreScalaVersions ++ scala3Versions :+ scala3Next).distinct
+      val unsupportedVersions =
+        if (jdk >= 25) Seq(scala212, scala35, scala36)
+        else Nil
+      (coreScalaVersions ++ scala3Versions :+ scala3Next)
+        .diff(unsupportedVersions)
     }
     lazy val cliScalaVersionsWithTargets: Seq[(String, TargetAxis)] =
       cliScalaVersions.map(sv => (sv, TargetAxis(sv))) ++
-        Seq(scala213, scala212).flatMap { sv =>
+        cliScalaVersions.intersect(Seq(scala213, scala212)).flatMap { sv =>
           def previousVersions(scalaVersion: String): Seq[String] = {
             val split = scalaVersion.split('.')
             val binaryVersion = split.take(2).mkString(".")
