@@ -200,7 +200,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     updateOptions := updateOptions.value.withCachedResolution(true),
     ThisBuild / watchTriggeredMessage := Watch.clearScreenOnTrigger,
     commands += Command.command("save-expect") { state =>
-      Seq(scala213, scala3LTS)
+      cliScalaVersions
         .map { sv =>
           s"integration${asProjectSuffix(sv)} / Test / runMain scalafix.tests.util.SaveExpect"
         }
@@ -242,6 +242,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
 
   private val PreviousScalaVersion: Map[String, Option[String]] = Map(
     scala213 -> Some("2.13.16"),
+    scala33 -> Some("3.3.6"),
     scala37 -> Some("3.7.0")
   )
 
