@@ -21,7 +21,7 @@ object Dependencies {
   val coursierInterfaceV = "1.0.28"
   val commontTextV = "1.14.0"
   val googleDiffV = "1.3.0"
-  val jgitV = "5.13.3.202401111512-r"
+  val jgitV = "5.13.5.202508271544-r"
   val metaconfigV = "0.16.0"
   val nailgunV = "0.9.1"
   val scalaXmlV = "2.4.0"
