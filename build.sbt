@@ -257,7 +257,6 @@ lazy val input = projectMatrix
       scalaVersion.value match {
         case v if v.startsWith("2.") => Seq() // E198 not available on 2.x
         case v if v.startsWith("3.5") || v.startsWith("3.6") => Seq() // EOL
-        case "3.7.2" => Seq() // version anterior to the fix
         case _ => Seq("-Wconf:id=E198:info")
       }
     }
