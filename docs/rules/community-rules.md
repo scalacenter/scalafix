@@ -23,6 +23,7 @@ rewriting the code when possible.
 [pixiv/scalafix-pixiv-rule](https://github.com/pixiv/scalafix-pixiv-rule) | `net.pixiv::scalafix-pixiv-rule` | Redundant Scala code rewriting and anti-pattern warnings
 [dedis/scapegoat-scalafix](https://github.com/dedis/scapegoat-scalafix) | `io.github.dedis::scapegoat-scalafix` | Scalafix implementation of [Scapegoat](https://github.com/scapegoat-scala/scapegoat) linter for Scala 3
 [ghostbuster91/scalafix-unified](https://github.com/ghostbuster91/scalafix-unified) | `io.github.ghostbuster91.scalafix-unified::unified` | Set of opinionated rules to unify your codebase
+[tanin47/scalafix-forbidden-symbol](https://github.com/tanin47/scalafix-forbidden-symbol) | `io.github.tanin47::scalafix-forbidden-symbol` | Forbid certain packages, classes, methods, and enums in your codebase
 
 
 ## Migration rules
