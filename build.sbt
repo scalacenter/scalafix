@@ -77,7 +77,7 @@ lazy val core = projectMatrix
     libraryDependencies ++= Seq(
       googleDiff,
       metaconfig,
-      scalametaFor3Use2_13,
+      scalameta,
       semanticdbSharedFor3Use2_13,
       collectionCompat
     )
@@ -98,10 +98,12 @@ lazy val core3 = project
       googleDiff,
       metaconfig
     ) ++ Seq(
-      scalametaFor3Use2_13,
+      scalameta,
       semanticdbSharedFor3Use2_13
     ).map { mod =>
       mod
+        .exclude("org.scalameta", "scalameta_2.13")
+        .exclude("org.scalameta", "parsers_2.13")
         .exclude("com.lihaoyi", "sourcecode_2.13")
         .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
     }
@@ -298,10 +300,10 @@ lazy val unit = projectMatrix
     ),
     libraryDependencies += {
       if (!isScala3.value) {
-        scalametaTeskitFor3Use2_13
+        scalametaTeskit
       } else {
         // exclude _2.13 artifacts that have their _3 counterpart in the classpath
-        scalametaTeskitFor3Use2_13
+        (scalametaTeskit cross CrossVersion.for3Use2_13)
           .exclude("org.scalameta", "munit_2.13")
       }
     },
@@ -459,7 +461,7 @@ lazy val docs = projectMatrix
       Dependencies.runtimeDepsForBackwardCompatibility
         .map(_.withRevision(VersionScheme.Always)),
     // force eviction of mdoc transitive dependency
-    dependencyOverrides += scalametaFor3Use2_13
+    dependencyOverrides += scalameta
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(scalaVersions = Seq(scala213))
