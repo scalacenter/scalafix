@@ -1128,7 +1128,9 @@ option).
 
 #### `AsciiCaseInsensitive`  
 Sort import statements by ASCII codes, but not distinguishing uppercase 
-and lowercase letters.
+and lowercase letters. Characters between uppercase and lowercase letters
+in ASCII table are ordered before any letter. If two strings are identical
+up to case, case-sensitive order used to tie breaks.
 
 #### `SymbolsFirst`  
 Put wildcard imports and grouped imports with braces first, otherwise

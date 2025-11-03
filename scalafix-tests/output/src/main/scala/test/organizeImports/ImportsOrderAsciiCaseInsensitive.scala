@@ -1,5 +1,7 @@
 package test.organizeImports
 
+import test.organizeImports.Case.A._A
+import test.organizeImports.Case.A._a
 import test.organizeImports.Case.A.A
 import test.organizeImports.Case.A.b
 import test.organizeImports.Case.A.C

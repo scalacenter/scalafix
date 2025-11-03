@@ -378,7 +378,10 @@ class OrganizeImports(
       case ImportsOrder.Ascii =>
         importeesSorted sortBy (i => importerSyntax(i.copy()))
       case ImportsOrder.AsciiCaseInsensitive =>
-        importeesSorted sortBy (i => importerSyntax(i.copy()).toLowerCase)
+        importeesSorted sortBy (i => {
+          val text = importerSyntax(i.copy())
+          (text.toLowerCase, text)
+        })
       case ImportsOrder.SymbolsFirst =>
         sortImportersSymbolsFirst(importeesSorted)
       case ImportsOrder.Keep =>

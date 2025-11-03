@@ -5,6 +5,8 @@ object Case {
     object A
     object b
     object C
+    object _a
+    object _A
   }
   object b {
     object A

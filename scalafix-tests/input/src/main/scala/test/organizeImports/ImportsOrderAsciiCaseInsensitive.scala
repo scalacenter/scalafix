@@ -16,5 +16,7 @@ import test.organizeImports.Case.A.A
 import test.organizeImports.Case.C.a
 import test.organizeImports.Case.b.A
 import test.organizeImports.Case.C.B
+import test.organizeImports.Case.A._a
+import test.organizeImports.Case.A._A
 
 object ImportsOrderAsciiCaseInsensitive
