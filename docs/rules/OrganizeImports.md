@@ -1127,10 +1127,10 @@ that the IntelliJ IDEA Scala import optimizer picks ("lexicographically"
 option).
 
 #### `AsciiCaseInsensitive`  
-Sort import statements by ASCII codes, but not distinguishing uppercase 
-and lowercase letters. Characters between uppercase and lowercase letters
-in ASCII table are ordered before any letter. If two strings are identical
-up to case, case-sensitive order used to tie breaks.
+Sort import statements by ASCII codes, without distinguishing between uppercase
+and lowercase letters. Characters that appear between uppercase and lowercase
+letters in the ASCII table are ordered before any letters. If two strings are
+identical ignoring case, use case-sensitive order to break ties.
 
 #### `SymbolsFirst`  
 Put wildcard imports and grouped imports with braces first, otherwise
