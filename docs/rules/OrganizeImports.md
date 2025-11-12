@@ -1119,12 +1119,18 @@ the [`OrganizeImports.groups`](#groups) option.
 
 ### Value type
 
-Enum: `Ascii | SymbolsFirst | Keep`
+Enum: `Ascii | AsciiCaseInsensitive | SymbolsFirst | Keep`
 
 #### `Ascii`  
 Sort import statements by ASCII codes. This is the default sorting order
 that the IntelliJ IDEA Scala import optimizer picks ("lexicographically"
 option).
+
+#### `AsciiCaseInsensitive`  
+Sort import statements by ASCII codes, without distinguishing between uppercase
+and lowercase letters. Characters that appear between uppercase and lowercase
+letters in the ASCII table are ordered before any letters. If two strings are
+identical ignoring case, use case-sensitive order to break ties.
 
 #### `SymbolsFirst`  
 Put wildcard imports and grouped imports with braces first, otherwise

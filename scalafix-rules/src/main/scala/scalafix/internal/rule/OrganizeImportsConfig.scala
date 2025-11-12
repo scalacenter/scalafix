@@ -13,11 +13,12 @@ sealed trait ImportsOrder
 
 object ImportsOrder {
   case object Ascii extends ImportsOrder
+  case object AsciiCaseInsensitive extends ImportsOrder
   case object SymbolsFirst extends ImportsOrder
   case object Keep extends ImportsOrder
 
   def all: List[ImportsOrder] =
-    List(Ascii, SymbolsFirst, Keep)
+    List(Ascii, AsciiCaseInsensitive, SymbolsFirst, Keep)
 
   implicit def reader: ConfDecoder[ImportsOrder] =
     ReaderUtil.fromMap(all.map(x => x.toString -> x).toMap)
