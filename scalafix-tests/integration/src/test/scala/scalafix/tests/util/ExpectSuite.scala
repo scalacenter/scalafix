@@ -15,11 +15,18 @@ trait ExpectSuite extends AnyFunSuite with DiffAssertions {
   def obtained(): String
 
   final def path: AbsolutePath = {
-    val scalaMajorMinorVersion =
-      BuildInfo.scalaVersion.split('.').take(2).mkString(".")
-    AbsolutePath(s"${BuildInfo.resourceDirectory}-${scalaMajorMinorVersion}")
-      .resolve("expect")
-      .resolve(filename.stripSuffix("Test.scala") + ".expect")
+    def expectedPath(suffix: String) =
+      AbsolutePath(s"${BuildInfo.resourceDirectory}-${suffix}")
+        .resolve("expect")
+        .resolve(filename.stripSuffix("Test.scala") + ".expect")
+
+    val versionPrefixesLongestFirst =
+      BuildInfo.scalaVersion.split("\\.").inits.map(_.mkString("."))
+
+    versionPrefixesLongestFirst
+      .map(expectedPath)
+      .find(_.toFile.exists())
+      .get
   }
   final implicit lazy val sdoc: SemanticDocument =
     BaseSemanticSuite.loadDoc(filename)
