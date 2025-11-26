@@ -443,6 +443,23 @@ cs launch scalafix:0.13.0 -- --version # Should say 0.13.0
 
 ```
 
+### Multiple values for CLI flags
+
+Some Scalafix CLI flags accept more than one value (for example `--rules`,
+`--files`, or compiler options). Pass each value by repeating the flag instead
+of trying to comma-separate or space-separate them. For instance, when you need
+to forward several scalac options you would write:
+
+```
+scalafix \
+  --rules RemoveUnused \
+  --scalac-options -Wunused:imports \
+  --scalac-options -Wvalue-discard
+```
+
+The CLI treats those repeated occurrences as a list, so both compiler options
+are forwarded to each Scalafix invocation.
+
 ## Support in other build tools
 
 Scalafix is supported in other build tools via externally maintained plugins:
