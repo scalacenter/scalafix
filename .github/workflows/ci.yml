@@ -18,7 +18,7 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: coursier/setup-action@v1
+      - uses: coursier/setup-action@v2
         with:
           apps: sbt
           jvm: zulu:${{ matrix.jvm }}
@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: coursier/setup-action@v1
+      - uses: coursier/setup-action@v2
         with:
           apps: sbt
       - run: sbt ci-docs
@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: coursier/setup-action@v1
+      - uses: coursier/setup-action@v2
         with:
           apps: sbt
       - run: ./bin/scalafmt --test
@@ -52,7 +52,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: coursier/setup-action@v1
+      - uses: coursier/setup-action@v2
         with:
           apps: sbt
       - run: sbt versionPolicyCheck
