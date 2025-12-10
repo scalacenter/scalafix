@@ -453,7 +453,10 @@ lazy val docs = projectMatrix
     scalacOptions += "-Wconf:msg='match may not be exhaustive':s", // silence exhaustive pattern matching warning for documentation
     scalacOptions += "-Xfatal-warnings",
     mdoc := (Compile / run).evaluated,
-    libraryDependencies += scalatags,
+    libraryDependencies ++= Seq(
+      scalatags,
+      semanticdbScalac
+    ),
     // ignore eviction of dependencies just left in cli for backward compatibility at runtime
     libraryDependencySchemes ++=
       Dependencies.runtimeDepsForBackwardCompatibility
