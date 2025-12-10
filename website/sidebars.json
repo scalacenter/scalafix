@@ -1,6 +1,11 @@
 {
   "users": {
-    "Usage": ["users/installation", "users/configuration", "users/suppression"],
+    "Usage": [
+      "users/installation",
+      "users/configuration",
+      "users/cross-building",
+      "users/suppression"
+    ],
     "Rules": [
       "rules/overview",
       "rules/DisableSyntax",
