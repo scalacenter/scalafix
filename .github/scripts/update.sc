@@ -4,7 +4,7 @@
 //
 // /!\ Run it from the repository root directory!
 
-//> using scala "2.12.20"
+//> using scala "2.12.21"
 //> using lib "com.softwaremill.sttp::core:1.5.10"
 //> using lib "com.lihaoyi::upickle:2.0.0"
 //> using lib "com.github.tototoshi::scala-csv:1.3.5"
