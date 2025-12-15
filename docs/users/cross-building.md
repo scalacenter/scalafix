@@ -83,7 +83,9 @@ You may split out even more granular snippets (for example `linting.conf`,
 HOCON syntax supports nested includes, so feel free to create the hierarchy that
 matches your team conventions.
 
-## Selecting the right config in sbt
+## Selecting the right configuration file
+
+ ### sbt
 
 Point `scalafixConfig` at the version-specific file, typically inside a helper
 setting applied to all cross-built projects:
