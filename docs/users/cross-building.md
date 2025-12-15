@@ -3,19 +3,24 @@ id: cross-building
 title: Cross-building setups
 ---
 
-Cross-building the same codebase with Scala 2.13 and Scala 3.3+ is common, but
-it collides with how Scalafix resolves rules and compiler options. A rule or
-build-tool flag that only works on Scala 2 can crash Scalafix when the Scala 3
-compilation unit is processed, and vice versa. Split your configuration per
-Scala version and let the build tool wire the right file.
+In a codebase cross-building against several binary versions of Scala, it is
+advised to run Scalafix several times, for each Scala version. That allows to
+cover version-specific files and to benefit from compiler diagnostics from
+several Scala versions for common files.
+
+However, since rules can be specific or only support a subset of features for a
+given Scala version, a different set of rules or rule features might have to be
+selected for each run, in order to avoid failing the entire run and preventing
+relevant rules to run.
+
+Since nothing in the current API allows rules to advertize their limitations
+programmatically to Scalafix, this page explains how to do it manually.
 
 ## Why separate configs are required today
 
-* Scala 2 only scalac flags such as `-Ywarn-unused-import` or SemanticDB options
-  using `-P:semanticdb` belong in the build tool. Those settings differ per
-  target and cannot be inferred by Scalafix.
 * Some built-in or community rules rely on compiler symbols present only in a
   single Scala major version.
+* Certain rule options may only be supported on one Scala version.
 * The CLI currently ingests a single `.scalafix.conf`; there is no per-target
   override like sbt’s `CrossVersion`.
 
@@ -30,17 +35,17 @@ for additional background.
 ## File layout suggestion
 
 Keep shared defaults in one file and let version-specific files `include` it via
-the HOCON `include` syntax. One convenient layout is:
+the HOCON `include` syntax. A convenient layout is:
 
 ```
 .
-└── scalafix/
-    ├── common.conf
-    ├── scala2.conf
-    └── scala3.conf
+├── .scalafix-common.conf
+├── .scalafix-scala2.conf
+└── .scalafix-scala3.conf
 ```
 
-`common.conf`
+
+`.scalafix-common.conf`
 ```scala
 rules = [
   DisableSyntax,
@@ -50,36 +55,37 @@ rules = [
 DisableSyntax {
   noFinalize = true
 }
+
 ```
 
-`scala2.conf`
+`.scalafix-scala2.conf`
 ```scala
-include "common.conf"
+include ".scalafix-common.conf"
 
 rules += RemoveUnused
 
-// Scala 2 only rule settings
 RemoveUnused {
   imports = true
 }
+
 ```
 
-`scala3.conf`
+`.scalafix-scala3.conf`
 ```scala
-include "common.conf"
+include ".scalafix-common.conf"
 
 rules += LeakingImplicitClassVal
 
-// Scala 3 specific tweaks go here
 OrganizeImports {
   groupedImports = Keep
 }
+
 ```
 
 ### Multiple include files
 
 You may split out even more granular snippets (for example `linting.conf`,
-`rewrites.conf`) and include them from both `scala2.conf` and `scala3.conf`. The
+`rewrites.conf`) and include them from both `.scalafix-scala2.conf` and `.scalafix-scala3.conf`. The
 HOCON syntax supports nested includes, so feel free to create the hierarchy that
 matches your team conventions.
 
@@ -95,11 +101,11 @@ import scalafix.sbt.ScalafixPlugin.autoImport._
 
 lazy val commonSettings = Seq(
   scalafixConfig := {
-    val base = (ThisBuild / baseDirectory).value / "scalafix"
+    val base = (ThisBuild / baseDirectory).value
     val file =
       CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((3, _)) => base / "scala3.conf"
-        case _            => base / "scala2.conf"
+        case Some((3, _)) => base / ".scalafix-scala3.conf"
+        case _            => base / ".scalafix-scala2.conf"
       }
     Some(file)
   }
@@ -122,18 +128,9 @@ For builds that already differentiate per configuration (`Compile`, `Test`,
 When invoking the CLI directly, pass the desired config with `--config`:
 
 ```
-scalafix --config scalafix/scala2.conf
-scalafix --config scalafix/scala3.conf
+scalafix --config .scalafix-scala2.conf
+scalafix --config .scalafix-scala3.conf
 ```
 
 Your CI job can loop over each target Scala version, selecting the matching
 config before running `scalafix --check`.
-
-## Recommendations
-
-* Keep rules that truly work on both versions inside `common.conf`.
-* Manage scalac and SemanticDB flags inside the build tool per target; Scalafix
-  configs focus solely on rules and rule-specific settings.
-* Document in `README.md` or `CONTRIBUTING.md` which rules run on which Scala
-  version to reduce confusion for new contributors.
-
