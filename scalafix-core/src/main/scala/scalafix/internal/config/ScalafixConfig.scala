@@ -12,9 +12,29 @@ case class ScalafixConfig(
     patches: ConfigRulePatches = ConfigRulePatches.default,
     scalaVersion: ScalaVersion = ScalaVersion.scala2,
     sourceScalaVersion: Option[ScalaVersion] = None,
-    lint: LintConfig = LintConfig.default
+    lint: LintConfig = LintConfig.default,
+    private val dialectOverride: Map[String, Boolean] = Map.empty
 ) {
-  val dialect: Dialect = scalaVersion.dialect(sourceScalaVersion)
+  val dialect: Dialect =
+    dialectOverride.foldLeft(scalaVersion.dialect(sourceScalaVersion)) {
+      case (cur, (k, v)) if k.nonEmpty =>
+        val upper = s"${k.head.toUpper}${k.drop(1)}"
+        cur.getClass.getMethods
+          .find(method =>
+            (
+              method.getName == s"with${upper}"
+            ) && (
+              method.getParameterTypes.toSeq == Seq(classOf[Boolean])
+            ) && (
+              method.getReturnType == classOf[Dialect]
+            )
+          )
+          .fold(cur)(
+            _.invoke(cur, java.lang.Boolean.valueOf(v)).asInstanceOf[Dialect]
+          )
+      case (cur, _) =>
+        cur
+    }
 
   def dialectForFile(path: String): Dialect =
     if (path.endsWith(".sbt")) DefaultSbtDialect
