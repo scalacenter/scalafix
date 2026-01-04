@@ -18,4 +18,22 @@ class ScalafixConfigSuite extends munit.FunSuite {
     "groupImportsByPrefix = true",
     ScalafixConfig(groupImportsByPrefix = true)
   )
+
+  test("dialectOverride allowCaptureChecking") {
+    val config = "dialectOverride.allowCaptureChecking = true"
+    val obtaind = Conf.parseString(config).get.as[ScalafixConfig].get
+    assert(obtaind.dialect.allowCaptureChecking)
+  }
+
+  test("dialectOverride invalid key") {
+    val config = "dialectOverride.invalidKey = true"
+    val obtaind = Conf.parseString(config).get.as[ScalafixConfig].get
+    assertEquals(obtaind.dialect, scala.meta.dialects.Scala213)
+  }
+
+  test("dialectOverride invalid value") {
+    val config = "dialectOverride.allowCaptureChecking = foo"
+    val obtaind = Conf.parseString(config).get.as[ScalafixConfig].get
+    assertEquals(obtaind.dialect, scala.meta.dialects.Scala213)
+  }
 }
