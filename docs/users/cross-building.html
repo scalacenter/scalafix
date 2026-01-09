@@ -1,0 +1,181 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Cross-building setups · Scalafix</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="In a codebase cross-building against several binary versions of Scala, it is"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Cross-building setups · Scalafix"/><meta property="og:type" content="website"/><meta property="og:url" content="https://scalacenter.github.io//scalafix/index.html"/><meta property="og:description" content="In a codebase cross-building against several binary versions of Scala, it is"/><meta property="og:image" content="https://scalacenter.github.io//scalafix/img/scalafix-brand-small2x.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://scalacenter.github.io//scalafix/img/scalafix-brand-small2x.png"/><link rel="shortcut icon" href="/scalafix/img/favicon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css"/><script src="/scalafix/js/scrollSpy.js"></script><link rel="stylesheet" href="/scalafix/css/main.css"/><script src="/scalafix/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/scalafix/"><img class="logo" src="/scalafix/img/scalafix-brand-small2x.png" alt="Scalafix"/><h2 class="headerTitleWithLogo">Scalafix</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/scalafix/docs/users/installation.html" target="_self">User guide</a></li><li class=""><a href="/scalafix/docs/developers/setup.html" target="_self">Developer guide</a></li><li class=""><a href="https://scalameta.org/metabrowse/#/scalafix/scalafix-core/src/main/scala/scalafix/patch/Patch.scala" target="_blank">Browse sources</a></li><li class=""><a href="https://github.com/scalacenter/scalafix" target="_blank">GitHub</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Usage</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Usage</h3><ul class=""><li class="navListItem"><a class="navItem" href="/scalafix/docs/users/installation.html">Installation</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/users/configuration.html">Configuration</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/scalafix/docs/users/cross-building.html">Cross-building setups</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/users/suppression.html">Suppressing rules</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Rules</h3><ul class=""><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/overview.html">Built-in rules</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/DisableSyntax.html">DisableSyntax</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/ExplicitResultTypes.html">ExplicitResultTypes</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/LeakingImplicitClassVal.html">LeakingImplicitClassVal</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/NoAutoTupling.html">NoAutoTupling</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/NoValInForComprehension.html">NoValInForComprehension</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/OrganizeImports.html">OrganizeImports</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/ProcedureSyntax.html">ProcedureSyntax</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/RedundantSyntax.html">RedundantSyntax</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/RemoveUnused.html">RemoveUnused</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/external-rules.html">Using external rules</a></li><li class="navListItem"><a class="navItem" href="/scalafix/docs/rules/community-rules.html">Community rules</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Misc</h3><ul class=""><li class="navListItem"><a class="navItem" href="/scalafix/docs/users/related-projects.html">Related projects</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              var headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                var el = event.target;
+                while(el !== headings){
+                  if (el.tagName === 'A') {
+                    document.body.classList.remove('tocActive');
+                    break;
+                  } else{
+                    el = el.parentNode;
+                  }
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><a class="edit-page-link button" href="https://github.com/scalacenter/scalafix/edit/main/docs/users/cross-building.md" target="_blank" rel="noreferrer noopener">Edit</a><h1 id="__docusaurus" class="postHeaderTitle">Cross-building setups</h1></header><article><div><span><p>In a codebase cross-building against several binary versions of Scala, it is
+advised to run Scalafix several times, for each Scala version. That allows to
+cover version-specific files and to benefit from compiler diagnostics from
+several Scala versions for common files.</p>
+<p>However, since rules can be specific or only support a subset of features for a
+given Scala version, a different set of rules or rule features might have to be
+selected for each run, in order to avoid failing the entire run and preventing
+relevant rules to run.</p>
+<p>Since nothing in the current API allows rules to advertise their limitations
+programmatically to Scalafix, this page explains how to do it manually.</p>
+<h2><a class="anchor" aria-hidden="true" id="why-separate-configs-are-required"></a><a href="#why-separate-configs-are-required" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Why separate configs are required</h2>
+<ul>
+<li>Some built-in or community rules rely on compiler symbols present only in a
+single Scala major version.</li>
+<li>Certain rule options may only be supported on one Scala version.</li>
+<li>The CLI currently ingests a single <code>.scalafix.conf</code>; there is no per-target
+override like sbt’s <code>CrossVersion</code>.</li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="limitations"></a><a href="#limitations" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Limitations</h2>
+<p>Scalafix cannot conditionally toggle rules or scalac options based on the input
+Scala version. Provide a separate config file per Scala version and have sbt,
+mill, or your CLI invocation choose the right file along with the correct
+compiler flags. See <a href="https://github.com/scalacenter/scalafix/issues/1747">issue #1747</a>
+for additional background.</p>
+<h2><a class="anchor" aria-hidden="true" id="file-layout-suggestion"></a><a href="#file-layout-suggestion" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>File layout suggestion</h2>
+<p>Keep shared defaults in one file and let version-specific files <code>include</code> it via
+the HOCON <code>include</code> syntax. A convenient layout is:</p>
+<pre><code class="hljs">.
+├── <span class="hljs-selector-class">.scalafix-common</span><span class="hljs-selector-class">.conf</span>
+├── <span class="hljs-selector-class">.scalafix-scala2</span><span class="hljs-selector-class">.conf</span>
+└── <span class="hljs-selector-class">.scalafix-scala3</span><span class="hljs-selector-class">.conf</span>
+</code></pre>
+<p><code>.scalafix-common.conf</code></p>
+<pre><code class="hljs css language-scala">rules = [
+  <span class="hljs-type">DisableSyntax</span>,
+  <span class="hljs-type">OrganizeImports</span>
+]
+
+<span class="hljs-type">DisableSyntax</span> {
+  noFinalize = <span class="hljs-literal">true</span>
+}
+
+</code></pre>
+<p><code>.scalafix-scala2.conf</code></p>
+<pre><code class="hljs css language-scala">include <span class="hljs-string">".scalafix-common.conf"</span>
+
+rules += <span class="hljs-type">RemoveUnused</span>
+
+<span class="hljs-type">RemoveUnused</span> {
+  imports = <span class="hljs-literal">true</span>
+}
+
+</code></pre>
+<p><code>.scalafix-scala3.conf</code></p>
+<pre><code class="hljs css language-scala">include <span class="hljs-string">".scalafix-common.conf"</span>
+
+rules += <span class="hljs-type">LeakingImplicitClassVal</span>
+
+<span class="hljs-type">OrganizeImports</span> {
+  groupedImports = <span class="hljs-type">Keep</span>
+}
+
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="multiple-include-files"></a><a href="#multiple-include-files" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Multiple include files</h3>
+<p>You may split out even more granular snippets (for example <code>linting.conf</code>,
+<code>rewrites.conf</code>) and include them from both <code>.scalafix-scala2.conf</code> and <code>.scalafix-scala3.conf</code>. The
+HOCON syntax supports nested includes, so feel free to create the hierarchy that
+matches your team conventions.</p>
+<h2><a class="anchor" aria-hidden="true" id="selecting-the-right-configuration-file"></a><a href="#selecting-the-right-configuration-file" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Selecting the right configuration file</h2>
+<h3><a class="anchor" aria-hidden="true" id="sbt"></a><a href="#sbt" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>sbt</h3>
+<p>Point <code>scalafixConfig</code> at the version-specific file, typically inside a helper
+setting applied to all cross-built projects:</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> scalafix.sbt.<span class="hljs-type">ScalafixPlugin</span>.autoImport._
+
+<span class="hljs-keyword">lazy</span> <span class="hljs-keyword">val</span> commonSettings = <span class="hljs-type">Seq</span>(
+  scalafixConfig := {
+    <span class="hljs-keyword">val</span> base = (<span class="hljs-type">ThisBuild</span> / baseDirectory).value
+    <span class="hljs-keyword">val</span> file =
+      <span class="hljs-type">CrossVersion</span>.partialVersion(scalaVersion.value) <span class="hljs-keyword">match</span> {
+        <span class="hljs-keyword">case</span> <span class="hljs-type">Some</span>((<span class="hljs-number">3</span>, _)) =&gt; base / <span class="hljs-string">".scalafix-scala3.conf"</span>
+        <span class="hljs-keyword">case</span> _            =&gt; base / <span class="hljs-string">".scalafix-scala2.conf"</span>
+      }
+    <span class="hljs-type">Some</span>(file)
+  }
+)
+
+<span class="hljs-keyword">lazy</span> <span class="hljs-keyword">val</span> core = project
+  .settings(commonSettings)
+  .settings(
+    scalaVersion := <span class="hljs-string">"3.3.3"</span>,
+    crossScalaVersions := <span class="hljs-type">Seq</span>(<span class="hljs-string">"2.13.14"</span>, <span class="hljs-string">"3.3.3"</span>)
+  )
+</code></pre>
+<p>For builds that already differentiate per configuration (<code>Compile</code>, <code>Test</code>,
+<code>IntegrationTest</code>), you can set <code>Compile / scalafixConfig</code> and
+<code>Test / scalafixConfig</code> separately if the inputs diverge.</p>
+<h3><a class="anchor" aria-hidden="true" id="command-line-usage"></a><a href="#command-line-usage" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Command-line usage</h3>
+<p>When invoking the CLI directly, pass the desired config with <code>--config</code>:</p>
+<pre><code class="hljs"><span class="hljs-keyword">scalafix </span>--<span class="hljs-built_in">config</span> .<span class="hljs-keyword">scalafix-scala2.conf
+</span><span class="hljs-keyword">scalafix </span>--<span class="hljs-built_in">config</span> .<span class="hljs-keyword">scalafix-scala3.conf
+</span></code></pre>
+<p>Your CI job can loop over each target Scala version, selecting the matching
+config before running <code>scalafix --check</code>.</p>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/scalafix/docs/users/configuration.html"><span class="arrow-prev">← </span><span>Configuration</span></a><a class="docs-next button" href="/scalafix/docs/users/suppression.html"><span>Suppressing rules</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#why-separate-configs-are-required">Why separate configs are required</a></li><li><a href="#limitations">Limitations</a></li><li><a href="#file-layout-suggestion">File layout suggestion</a><ul class="toc-headings"><li><a href="#multiple-include-files">Multiple include files</a></li></ul></li><li><a href="#selecting-the-right-configuration-file">Selecting the right configuration file</a><ul class="toc-headings"><li><a href="#sbt">sbt</a></li><li><a href="#command-line-usage">Command-line usage</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#15242B"><section class="sitemap"><a href="/scalafix/" class="nav-home"><img src="/scalafix/img/scalafix-brand-small2x.png" alt="Scalafix" width="52" height="52"/></a><div><h5>Docs</h5><a href="
+                /scalafix/docs/users/installation.html">Get started</a><a href="
+                /scalafix/docs/rules/overview.html">Rules</a><a href="
+                /scalafix/docs/developers/setup.html">Extend Scalafix</a></div><div><h5>Community</h5><a href="https://discord.gg/8AHaqGx3Qj" target="_blank">Chat on Discord</a><a href="https://users.scala-lang.org/" target="_blank">Discuss on Scala Users</a></div><div><h5>More</h5><a href="https://github.com/scalacenter/scalafix" target="_blank">GitHub</a></div></section><section class="copyright">Copyright © 2026 Scala Center</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'cf575cebacff15579dd2dee010c4010f',
+                indexName: 'scalafix',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>
