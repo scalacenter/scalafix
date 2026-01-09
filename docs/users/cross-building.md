@@ -13,7 +13,7 @@ given Scala version, a different set of rules or rule features might have to be
 selected for each run, in order to avoid failing the entire run and preventing
 relevant rules to run.
 
-Since nothing in the current API allows rules to advertize their limitations
+Since nothing in the current API allows rules to advertise their limitations
 programmatically to Scalafix, this page explains how to do it manually.
 
 ## Why separate configs are required
