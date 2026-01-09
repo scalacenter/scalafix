@@ -16,7 +16,7 @@ relevant rules to run.
 Since nothing in the current API allows rules to advertize their limitations
 programmatically to Scalafix, this page explains how to do it manually.
 
-## Why separate configs are required today
+## Why separate configs are required
 
 * Some built-in or community rules rely on compiler symbols present only in a
   single Scala major version.
@@ -91,7 +91,7 @@ matches your team conventions.
 
 ## Selecting the right configuration file
 
- ### sbt
+### sbt
 
 Point `scalafixConfig` at the version-specific file, typically inside a helper
 setting applied to all cross-built projects:
@@ -123,7 +123,7 @@ For builds that already differentiate per configuration (`Compile`, `Test`,
 `IntegrationTest`), you can set `Compile / scalafixConfig` and
 `Test / scalafixConfig` separately if the inputs diverge.
 
-## Command-line usage
+### Command-line usage
 
 When invoking the CLI directly, pass the desired config with `--config`:
 
