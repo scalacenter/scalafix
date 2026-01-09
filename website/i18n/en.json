@@ -82,6 +82,9 @@
       "users/configuration": {
         "title": "Configuration"
       },
+      "users/cross-building": {
+        "title": "Cross-building setups"
+      },
       "users/installation": {
         "title": "Installation"
       },
