@@ -728,19 +728,18 @@ class OrganizeImports(
       .mkString("\n")
 
   /**
-   * Returns the sorting key for an importer. For importers containing given imports,
-   * the "given " prefix is stripped from the sorting key so that
-   * `import a.{given Decoder[X]}` sorts as if it were `import a.{Decoder[X]}`.
+   * Returns the sorting key for an importer. For importers containing a single
+   * given import, the "given " prefix is replaced with a special character that 
+   * sorts after regular characters. This ensures that `import a.given Decoder[X]` 
+   * sorts by the type `Decoder[X]` but still comes after a regular import of `Decoder`.
    */
   private def importerSortingKey(importer: Importer): String = {
     val syntax = importerSyntax(importer)
     
-    // Replace "given " with empty string in the sorting key for given imports
-    // This ensures that `import a.{given Decoder[X]}` sorts by "a.{Decoder[X]}"
     importer.importees match {
-      case (g: Importee.Given) :: Nil =>
-        // Single given import: replace "given " in the curly braces or at the end
-        syntax.replace("given ", "")
+      case (_: Importee.Given) :: Nil =>
+        // Single given import: replace "given " to sort by type but after regular imports
+        syntax.replace("given ", "~")
       case _ =>
         syntax
     }
@@ -1017,12 +1016,13 @@ object OrganizeImports {
 
   /** 
    * Returns the sorting key for an importee. For given imports like
-   * `given Decoder[X]`, returns the type syntax (e.g., "Decoder[X]")
-   * instead of the full syntax (e.g., "given Decoder[X]").
+   * `given Decoder[X]`, returns "~Decoder[X]" (with tilde prefix) so that
+   * given imports sort after regular imports of the same type, while still
+   * grouping with imports of that type family.
    */
   private def importeeSortingKey(importee: Importee): String =
     importee match {
-      case Importee.Given(tpe) => tpe.syntax
+      case Importee.Given(tpe) => "~" + tpe.syntax
       case other => other.syntax
     }
 
