@@ -866,17 +866,17 @@ object OrganizeImports {
   }
 
   private def checkRemoveUnusedConflict(
-      conf: OrganizeImportsConfig,
-      globalConf: Conf
+      ruleConf: OrganizeImportsConfig,
+      conf: Conf
   ): Configured[OrganizeImportsConfig] = {
     // Check if RemoveUnused configuration is explicitly provided
     val removeUnusedConf = ConfGet
-      .getOrOK(globalConf, "RemoveUnused" :: Nil, Configured.ok, Conf.Obj.empty)
+      .getOrOK(conf, "RemoveUnused" :: Nil, Configured.ok, Conf.Obj.empty)
       .getOrElse(Conf.Obj.empty)
     
     // Only check if RemoveUnused is explicitly configured (not empty)
     if (removeUnusedConf != Conf.Obj.empty) {
-      val removeUnusedConfig = globalConf
+      val removeUnusedConfig = conf
         .getOrElse("RemoveUnused")(RemoveUnusedConfig.default)
       
       removeUnusedConfig match {
@@ -887,10 +887,10 @@ object OrganizeImports {
             "and use \"OrganizeImports.removeUnused\" instead to safely remove unused imports."
           )
         case _ =>
-          Configured.ok(conf)
+          Configured.ok(ruleConf)
       }
     } else {
-      Configured.ok(conf)
+      Configured.ok(ruleConf)
     }
   }
 
