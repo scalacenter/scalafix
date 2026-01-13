@@ -74,6 +74,7 @@ class OrganizeImports(
     config.conf
       .getOrElse("OrganizeImports")(OrganizeImportsConfig())
       .andThen(patchPreset(_, config.conf))
+      .andThen(checkRemoveUnusedConflict(_, config.conf))
       .andThen(checkScalacOptions(_, config.scalacOptions, config.scalaVersion))
 
   override def fix(implicit doc: SemanticDocument): Patch = {
@@ -863,6 +864,20 @@ object OrganizeImports {
     val mergedConf = ConfOps.merge(presetConf, userConf)
     ConfDecoder[OrganizeImportsConfig].read(mergedConf)
   }
+
+  private def checkRemoveUnusedConflict(
+      ruleConf: OrganizeImportsConfig,
+      conf: Conf
+  ): Configured[OrganizeImportsConfig] =
+    conf.get[RemoveUnusedConfig]("RemoveUnused") match {
+      case Configured.Ok(config) if config.imports =>
+        Configured.error(
+          "\"RemoveUnused.imports\" and \"OrganizeImports\" should not be used together as they can produce broken code. " +
+            "Please disable \"RemoveUnused.imports\" by setting it to false, " +
+            "and use \"OrganizeImports.removeUnused\" instead to safely remove unused imports."
+        )
+      case _ => Configured.ok(ruleConf)
+    }
 
   private def checkScalacOptions(
       conf: OrganizeImportsConfig,
