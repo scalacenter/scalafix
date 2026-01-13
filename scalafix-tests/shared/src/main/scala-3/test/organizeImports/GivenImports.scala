@@ -12,7 +12,7 @@ object GivenImports {
   given gamma: Gamma = ???
   given delta: Delta = ???
   given zeta: Zeta = ???
-  
+
   import scala.collection.mutable.ArrayBuffer
   given alphaArrayBuffer: ArrayBuffer[Alpha] = ???
   given betaArrayBuffer: ArrayBuffer[Beta] = ???
@@ -27,7 +27,7 @@ object GivenImports2 {
   given gamma: Gamma = ???
   given delta: Delta = ???
   given zeta: Zeta = ???
-  
+
   given alphaArrayBuffer: ArrayBuffer[Alpha] = ???
   given betaArrayBuffer: ArrayBuffer[Beta] = ???
 }

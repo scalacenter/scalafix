@@ -639,7 +639,9 @@ class OrganizeImports(
 
     val orderedImportees = config.importSelectorsOrder match {
       case Ascii =>
-        Seq(others, wildcards) map (_.sortBy(importeeSortingKey)) reduce (_ ++ _)
+        Seq(others, wildcards) map (_.sortBy(
+          importeeSortingKey
+        )) reduce (_ ++ _)
       case SymbolsFirst =>
         Seq(others, wildcards) map sortImporteesSymbolsFirst reduce (_ ++ _)
       case Keep =>
@@ -730,8 +732,9 @@ class OrganizeImports(
   /**
    * Returns the sorting key for an importer. For importers containing a single
    * given import, the "given " prefix is replaced with a special character that
-   * sorts after regular characters. This ensures that `import a.given Decoder[X]`
-   * sorts by the type `Decoder[X]` but still comes after a regular import of `Decoder`.
+   * sorts after regular characters. This ensures that
+   * `import a.given Decoder[X]` sorts by the type `Decoder[X]` but still comes
+   * after a regular import of `Decoder`.
    */
   private def importerSortingKey(importer: Importer): String = {
     val syntax = importerSyntax(importer)
@@ -1016,9 +1019,9 @@ object OrganizeImports {
 
   /**
    * Returns the sorting key for an importee. For given imports like
-   * `given Decoder[X]`, returns "~Decoder[X]" (with tilde prefix) so that
-   * given imports sort after regular imports of the same type, while still
-   * grouping with imports of that type family.
+   * `given Decoder[X]`, returns "~Decoder[X]" (with tilde prefix) so that given
+   * imports sort after regular imports of the same type, while still grouping
+   * with imports of that type family.
    */
   private def importeeSortingKey(importee: Importee): String =
     importee match {
