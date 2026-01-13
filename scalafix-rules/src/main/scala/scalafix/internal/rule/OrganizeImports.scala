@@ -74,6 +74,7 @@ class OrganizeImports(
     config.conf
       .getOrElse("OrganizeImports")(OrganizeImportsConfig())
       .andThen(patchPreset(_, config.conf))
+      .andThen(checkRemoveUnusedConflict(_, config.conf))
       .andThen(checkScalacOptions(_, config.scalacOptions, config.scalaVersion))
 
   override def fix(implicit doc: SemanticDocument): Patch = {
@@ -862,6 +863,35 @@ object OrganizeImports {
       .getOrElse(Conf.Obj.empty)
     val mergedConf = ConfOps.merge(presetConf, userConf)
     ConfDecoder[OrganizeImportsConfig].read(mergedConf)
+  }
+
+  private def checkRemoveUnusedConflict(
+      conf: OrganizeImportsConfig,
+      globalConf: Conf
+  ): Configured[OrganizeImportsConfig] = {
+    // Check if RemoveUnused configuration is explicitly provided
+    val removeUnusedConf = ConfGet
+      .getOrOK(globalConf, "RemoveUnused" :: Nil, Configured.ok, Conf.Obj.empty)
+      .getOrElse(Conf.Obj.empty)
+    
+    // Only check if RemoveUnused is explicitly configured (not empty)
+    if (removeUnusedConf != Conf.Obj.empty) {
+      val removeUnusedConfig = globalConf
+        .getOrElse("RemoveUnused")(RemoveUnusedConfig.default)
+      
+      removeUnusedConfig match {
+        case Configured.Ok(config) if config.imports =>
+          Configured.error(
+            "\"RemoveUnused.imports\" and \"OrganizeImports\" should not be used together as they can produce broken code. " +
+            "Please disable \"RemoveUnused.imports\" by setting it to false, " +
+            "and use \"OrganizeImports.removeUnused\" instead to safely remove unused imports."
+          )
+        case _ =>
+          Configured.ok(conf)
+      }
+    } else {
+      Configured.ok(conf)
+    }
   }
 
   private def checkScalacOptions(
