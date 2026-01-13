@@ -376,10 +376,10 @@ class OrganizeImports(
       // erases the source position information so that the pretty-printer would actually
       // pretty-print an `Importer` into a single line.
       case ImportsOrder.Ascii =>
-        importeesSorted sortBy (i => importerSyntax(i.copy()))
+        importeesSorted sortBy (i => importerSortingKey(i.copy()))
       case ImportsOrder.AsciiCaseInsensitive =>
         importeesSorted sortBy (i => {
-          val text = importerSyntax(i.copy())
+          val text = importerSortingKey(i.copy())
           (text.toLowerCase, text)
         })
       case ImportsOrder.SymbolsFirst =>
@@ -591,7 +591,7 @@ class OrganizeImports(
   ): Seq[Importer] =
     importers.sortBy { importer =>
       // See the comment marked with "issues/84" for why a `.copy()` is needed.
-      val syntax = importer.copy().syntax
+      val syntax = importerSortingKey(importer.copy())
 
       importer match {
         case Importer(_, Importee.Wildcard() :: Nil) =>
@@ -639,7 +639,7 @@ class OrganizeImports(
 
     val orderedImportees = config.importSelectorsOrder match {
       case Ascii =>
-        Seq(others, wildcards) map (_.sortBy(_.syntax)) reduce (_ ++ _)
+        Seq(others, wildcards) map (_.sortBy(importeeSortingKey)) reduce (_ ++ _)
       case SymbolsFirst =>
         Seq(others, wildcards) map sortImporteesSymbolsFirst reduce (_ ++ _)
       case Keep =>
@@ -726,6 +726,25 @@ class OrganizeImports(
     group
       .map(i => "import " + importerSyntax(i))
       .mkString("\n")
+
+  /**
+   * Returns the sorting key for an importer. For importers containing given imports,
+   * the "given " prefix is stripped from the sorting key so that
+   * `import a.{given Decoder[X]}` sorts as if it were `import a.{Decoder[X]}`.
+   */
+  private def importerSortingKey(importer: Importer): String = {
+    val syntax = importerSyntax(importer)
+    
+    // Replace "given " with empty string in the sorting key for given imports
+    // This ensures that `import a.{given Decoder[X]}` sorts by "a.{Decoder[X]}"
+    importer.importees match {
+      case (g: Importee.Given) :: Nil =>
+        // Single given import: replace "given " in the curly braces or at the end
+        syntax.replace("given ", "")
+      case _ =>
+        syntax
+    }
+  }
 
   private def importerSyntax(importer: Importer): String =
     importer.pos match {
@@ -996,6 +1015,17 @@ object OrganizeImports {
         Term.Select(replaceTopQualifier(qualifier, newTopQualifier), name)
     }
 
+  /** 
+   * Returns the sorting key for an importee. For given imports like
+   * `given Decoder[X]`, returns the type syntax (e.g., "Decoder[X]")
+   * instead of the full syntax (e.g., "given Decoder[X]").
+   */
+  private def importeeSortingKey(importee: Importee): String =
+    importee match {
+      case Importee.Given(tpe) => tpe.syntax
+      case other => other.syntax
+    }
+
   private def sortImporteesSymbolsFirst(
       importees: List[Importee]
   ): List[Importee] = {
@@ -1003,13 +1033,14 @@ object OrganizeImports {
     val lowerCases = ArrayBuffer.empty[Importee]
     val upperCases = ArrayBuffer.empty[Importee]
 
-    importees.foreach {
-      case i if i.syntax.head.isLower => lowerCases += i
-      case i if i.syntax.head.isUpper => upperCases += i
-      case i => symbols += i
+    importees.foreach { i =>
+      val sortKey = importeeSortingKey(i)
+      if (sortKey.headOption.exists(_.isLower)) lowerCases += i
+      else if (sortKey.headOption.exists(_.isUpper)) upperCases += i
+      else symbols += i
     }
 
-    List(symbols, lowerCases, upperCases) flatMap (_ sortBy (_.syntax))
+    List(symbols, lowerCases, upperCases) flatMap (_ sortBy importeeSortingKey)
   }
 
   private def explodeImportees(importers: Seq[Importer]): Seq[Importer] =

@@ -20,10 +20,14 @@ object GivenImports {
 
 object GivenImports2 {
   import GivenImports.*
+  import scala.collection.mutable.ArrayBuffer
 
   given alpha: Alpha = ???
   given beta: Beta = ???
   given gamma: Gamma = ???
   given delta: Delta = ???
   given zeta: Zeta = ???
+  
+  given alphaArrayBuffer: ArrayBuffer[Alpha] = ???
+  given betaArrayBuffer: ArrayBuffer[Beta] = ???
 }
