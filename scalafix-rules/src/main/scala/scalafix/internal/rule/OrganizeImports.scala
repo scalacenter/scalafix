@@ -875,23 +875,19 @@ object OrganizeImports {
       .getOrElse(Conf.Obj.empty)
 
     // Only check if RemoveUnused is explicitly configured (not empty)
-    if (removeUnusedConf != Conf.Obj.empty) {
-      val removeUnusedConfig = conf
+    if (removeUnusedConf == Conf.Obj.empty) Configured.ok(ruleConf)
+    else
+      conf
         .getOrElse("RemoveUnused")(RemoveUnusedConfig.default)
-
-      removeUnusedConfig match {
-        case Configured.Ok(config) if config.imports =>
-          Configured.error(
-            "\"RemoveUnused.imports\" and \"OrganizeImports\" should not be used together as they can produce broken code. " +
-              "Please disable \"RemoveUnused.imports\" by setting it to false, " +
-              "and use \"OrganizeImports.removeUnused\" instead to safely remove unused imports."
-          )
-        case _ =>
-          Configured.ok(ruleConf)
-      }
-    } else {
-      Configured.ok(ruleConf)
-    }
+        .andThen { config =>
+          if (config.imports)
+            Configured.error(
+              "\"RemoveUnused.imports\" and \"OrganizeImports\" should not be used together as they can produce broken code. " +
+                "Please disable \"RemoveUnused.imports\" by setting it to false, " +
+                "and use \"OrganizeImports.removeUnused\" instead to safely remove unused imports."
+            )
+          else Configured.ok(ruleConf)
+        }
   }
 
   private def checkScalacOptions(
