@@ -12,7 +12,7 @@ object RemoveUnusedParentheses {
     5 * 6
     
     // Nested parentheses
-    (7 + 8)
+    7 + 8
     
     // Complex expression with parentheses
     (1 + 2) * 3

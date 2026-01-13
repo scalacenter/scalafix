@@ -203,6 +203,17 @@ class RemoveUnused(config: RemoveUnusedConfig)
   private def leftTokens(t: Tree, right: Tree): Tokens =
     t.tokens.dropRightWhile(_.start >= right.pos.start)
 
+  // Count the number of unmatched opening parentheses in the given tokens
+  private def unmatchedLeftParens(tokens: Tokens): Int = {
+    var count = 0
+    tokens.foreach {
+      case _: Token.LeftParen => count += 1
+      case _: Token.RightParen => count -= 1
+      case _ =>
+    }
+    count
+  }
+
   private def defnTokensToRemove(defn: Defn): Option[Tokens] = defn match {
     case i @ Defn.Val(_, _, _, Lit(_)) => Some(i.tokens)
     case i @ Defn.Val(_, _, _, rhs) => Some(leftTokens(i, rhs))
@@ -228,6 +239,25 @@ class RemoveUnused(config: RemoveUnusedConfig)
         else "locally"
       }
 
+      // Check for unmatched opening parens in tokens to remove
+      val unmatchedLeftParenCount = unmatchedLeftParens(tokens)
+      
+      val closingParensPatch = if (unmatchedLeftParenCount > 0) {
+        // Find and remove the matching closing parentheses from defn tokens
+        // that come after the tokens we're removing
+        val defnTokens = defn.tokens
+        val remainingTokens = defnTokens.dropWhile(t => 
+          tokens.exists(_.start == t.start)
+        )
+        val closingParens = remainingTokens
+          .takeRightWhile(tk => tk.is[Token.RightParen] || tk.is[Trivia])
+          .filter(_.is[Token.RightParen])
+          .take(unmatchedLeftParenCount)
+        closingParens.map(Patch.removeToken).asPatch
+      } else {
+        Patch.empty
+      }
+
       maybeLocally match {
         case Some(locally) =>
           // Preserve comments between the LHS and the RHS, as well as
@@ -235,9 +265,10 @@ class RemoveUnused(config: RemoveUnusedConfig)
           val tokensNoTrailingTrivia = tokens.dropRightWhile(_.is[Trivia])
 
           Patch.removeTokens(tokensNoTrailingTrivia) +
-            tokensNoTrailingTrivia.lastOption.map(Patch.addRight(_, locally))
+            tokensNoTrailingTrivia.lastOption.map(Patch.addRight(_, locally)) +
+            closingParensPatch
         case _ =>
-          Patch.removeTokens(tokens)
+          Patch.removeTokens(tokens) + closingParensPatch
       }
     }
 
