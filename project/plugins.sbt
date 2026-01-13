@@ -6,6 +6,3 @@ addSbtPlugin("org.scalameta" % "sbt-mdoc" % "2.8.2")
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.4.3")
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.14.5")
 addSbtPlugin("com.eed3si9n" % "sbt-projectmatrix" % "0.11.0")
-
-dependencyOverrides += "ch.epfl.scala" % "scalafix-interfaces" % "0.0.0+6-b08f0d05-SNAPSHOT"
-
