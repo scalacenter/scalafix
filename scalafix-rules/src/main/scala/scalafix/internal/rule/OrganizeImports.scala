@@ -173,14 +173,17 @@ class OrganizeImports(
     val removalEnd = {
       // Look for trailing comment tokens after the last import
       val tokensAfter = allTokens.drop(lastImportTokenEnd)
-      val trailingCommentEnd = tokensAfter.takeWhile { t =>
-        t.is[Token.Comment] || t.is[Token.Space] || t.is[Token.Tab]
-      }.lastOption.collect {
-        case c: Token.Comment => allTokens.indexOf(c) + 1
-      }
+      val trailingCommentEnd = tokensAfter
+        .takeWhile { t =>
+          t.is[Token.Comment] || t.is[Token.Space] || t.is[Token.Tab]
+        }
+        .lastOption
+        .collect { case c: Token.Comment =>
+          allTokens.indexOf(c) + 1
+        }
       trailingCommentEnd.getOrElse(lastImportTokenEnd)
     }
-    
+
     val removalPatch = Patch.removeTokens(
       allTokens.slice(imports.head.tokens.start, removalEnd)
     )

@@ -29,4 +29,3 @@ package x {
 package y {
   class Y
 }
-
