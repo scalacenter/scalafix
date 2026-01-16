@@ -5,13 +5,12 @@ OrganizeImports.removeUnused = false
 
 package test.organizeImports
 
-import b.B // bnote
+import z.Z /* block comment for Z */
 
-import a.A // anote
+import a.A /* block comment for A */
 
-import c.C
+import b.B
 
-object InlineCommentMultiple {
+object InlineCommentBlockStyle {
   val keep = 1
 }
-

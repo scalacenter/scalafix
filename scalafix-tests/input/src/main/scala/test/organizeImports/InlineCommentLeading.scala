@@ -5,13 +5,14 @@ OrganizeImports.removeUnused = false
 
 package test.organizeImports
 
-import b.B // bnote
+// Leading comment for Z
+import z.Z
 
-import a.A // anote
+// Leading comment for A
+import a.A
 
-import c.C
+import b.B
 
-object InlineCommentMultiple {
+object InlineCommentLeading {
   val keep = 1
 }
-

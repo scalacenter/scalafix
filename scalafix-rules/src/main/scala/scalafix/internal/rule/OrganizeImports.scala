@@ -116,6 +116,16 @@ class OrganizeImports(
   )(
       imports: Seq[Import]
   )(implicit doc: SemanticDocument): Patch = {
+    // Collect trailing comments for each importer before reordering
+    val trailingComments: Map[Int, String] = {
+      val comments = doc.comments
+      (for {
+        imp <- imports
+        importer <- imp.importers
+        comment <- comments.trailing(importer).headOption
+      } yield importer.pos.start -> (" " + comment.syntax)).toMap
+    }
+
     val noUnused = imports flatMap (_.importers) flatMap (
       removeUnusedImporters(unusedImporteePositions)(_).toSeq
     )
@@ -151,15 +161,28 @@ class OrganizeImports(
     val insertionPatch = insertOrganizedImports(
       imports.head.tokens.head,
       fullyQualifiedGroups ++
-        orderPreservingGroup.map(ImportGroup(matchers.length, _))
+        orderPreservingGroup.map(ImportGroup(matchers.length, _)),
+      trailingComments
     )
 
     // Builds a patch that removes all the tokens forming the original imports.
+    // We need to extend the removal to include trailing comments that would otherwise
+    // be left orphaned, since comments are not part of the Import AST node's tokens.
+    val lastImportTokenEnd = imports.last.tokens.end
+    val allTokens = doc.tree.tokens
+    val removalEnd = {
+      // Look for trailing comment tokens after the last import
+      val tokensAfter = allTokens.drop(lastImportTokenEnd)
+      val trailingCommentEnd = tokensAfter.takeWhile { t =>
+        t.is[Token.Comment] || t.is[Token.Space] || t.is[Token.Tab]
+      }.lastOption.collect {
+        case c: Token.Comment => allTokens.indexOf(c) + 1
+      }
+      trailingCommentEnd.getOrElse(lastImportTokenEnd)
+    }
+    
     val removalPatch = Patch.removeTokens(
-      doc.tree.tokens.slice(
-        imports.head.tokens.start,
-        imports.last.tokens.end
-      )
+      allTokens.slice(imports.head.tokens.start, removalEnd)
     )
 
     (insertionPatch + removalPatch).atomic
@@ -677,11 +700,12 @@ class OrganizeImports(
 
   private def insertOrganizedImports(
       token: Token,
-      importGroups: Seq[ImportGroup]
+      importGroups: Seq[ImportGroup],
+      trailingComments: Map[Int, String]
   ): Patch = {
     val prettyPrintedGroups = importGroups.map {
       case ImportGroup(index, imports) =>
-        index -> prettyPrintImportGroup(imports)
+        index -> prettyPrintImportGroup(imports, trailingComments)
     }
 
     val blankLines = {
@@ -722,9 +746,15 @@ class OrganizeImports(
     Patch.addLeft(token, indented mkString "\n")
   }
 
-  private def prettyPrintImportGroup(group: Seq[Importer]): String =
+  private def prettyPrintImportGroup(
+      group: Seq[Importer],
+      trailingComments: Map[Int, String]
+  ): String =
     group
-      .map(i => "import " + importerSyntax(i))
+      .map { i =>
+        val comment = trailingComments.getOrElse(i.pos.start, "")
+        "import " + importerSyntax(i) + comment
+      }
       .mkString("\n")
 
   private def importerSyntax(importer: Importer): String =
