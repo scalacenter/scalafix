@@ -12,9 +12,29 @@ case class ScalafixConfig(
     patches: ConfigRulePatches = ConfigRulePatches.default,
     scalaVersion: ScalaVersion = ScalaVersion.scala2,
     sourceScalaVersion: Option[ScalaVersion] = None,
-    lint: LintConfig = LintConfig.default
+    lint: LintConfig = LintConfig.default,
+    private val dialectOverride: Conf.Obj = Conf.Obj.empty
 ) {
-  val dialect: Dialect = scalaVersion.dialect(sourceScalaVersion)
+  val dialect: Dialect =
+    dialectOverride.values.foldLeft(scalaVersion.dialect(sourceScalaVersion)) {
+      case (cur, (k, Conf.Bool(v))) if k.nonEmpty =>
+        val upper = s"${k.head.toUpper}${k.drop(1)}"
+        cur.getClass.getMethods
+          .find(method =>
+            (
+              method.getName == s"with${upper}"
+            ) && (
+              method.getParameterTypes.toSeq == Seq(classOf[Boolean])
+            ) && (
+              method.getReturnType == classOf[Dialect]
+            )
+          )
+          .fold(cur)(
+            _.invoke(cur, java.lang.Boolean.valueOf(v)).asInstanceOf[Dialect]
+          )
+      case (cur, _) =>
+        cur
+    }
 
   def dialectForFile(path: String): Dialect =
     if (path.endsWith(".sbt")) DefaultSbtDialect
@@ -38,6 +58,13 @@ object ScalafixConfig {
     generic.deriveDecoder[ScalafixConfig](default)
   implicit lazy val surface: Surface[ScalafixConfig] =
     generic.deriveSurface[ScalafixConfig]
+  private[config] implicit lazy val confDecoder: ConfDecoder[Conf.Obj] =
+    ConfDecoder.from {
+      case c: Conf.Obj =>
+        Configured.ok(c)
+      case other =>
+        Configured.notOk(ConfError.typeMismatch("Conf.Obj", other))
+    }
   implicit lazy val ScalafixConfigDecoder: ConfDecoder[ScalafixConfig] =
     decoder(default)
 
