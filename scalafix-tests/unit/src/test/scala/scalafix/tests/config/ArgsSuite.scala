@@ -105,7 +105,9 @@ class ArgsSuite extends munit.FunSuite {
     )
   }
 
-  test("scala3-library is resolved when Scala 3 scalaVersion is fully specified") {
+  test(
+    "scala3-library is resolved when Scala 3 scalaVersion is fully specified"
+  ) {
     val args: Args = Args.default.copy(
       scalaVersion = ScalaVersion.from("3.3.1").get
     )
