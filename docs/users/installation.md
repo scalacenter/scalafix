@@ -7,9 +7,9 @@ title: Installation
 
 Scalafix is tested to work with:
 
-* **macOS, Linux or Windows**
-* **Java LTS (8, 11, 17, 21 or 25)**
-* **Scala @SCALA212@, @SCALA213@, @SCALA3LTS@ LTS or @SCALA3NEXT@**
+- **macOS, Linux or Windows**
+- **Java LTS (8, 11, 17, 21 or 25)**
+- **Scala @SCALA212@, @SCALA213@, @SCALA3LTS@ LTS or @SCALA3NEXT@**
 
 Note that other setups may work, but could result in unexpected behavior.
 
@@ -25,6 +25,7 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@VERSION@")
 > Scalafix is no longer published for Scala 2.11. You can run the final version
 > of Scalafix supporting 2.11, but all features documented below might not be
 > supported:
+>
 > ```scala
 > // project/plugins.sbt
 > addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.10.4") // final Scala 2.11 version
@@ -153,23 +154,22 @@ Great! You are all set to use Scalafix with sbt :)
 >   -Xms1G
 >   -Xmx8G
 > ```
-> 
-> You can also use project scoped settings if you don't want to mix 
-> SemanticDB settings with your sub-projects which don't use it, 
+>
+> You can also use project scoped settings if you don't want to mix
+> SemanticDB settings with your sub-projects which don't use it,
 > rather than using ThisBuild scoped settings.
 
 ### Settings and tasks
 
-| Name | Type | Description
-| ---- | ---- | -----------
-| `scalafix <args>` | `InputKey[Unit]` | Invoke scalafix command line interface directly. Use tab completion to explore supported arguments or consult [--help](#help).
-| `scalafixAll <args>` | `InputKey[Unit]` | Invoke `scalafix` across all configurations where scalafix is [enabled](#integration-tests).
-| `scalafixCaching` | `SettingKey[Boolean]`  | Controls whether 2 successive invocations of the `scalafix` `InputTask` with the same arguments & configuration should be incremental. Defaults to `true`. When enabled, use the `--no-cache` argument to force an exhaustive run.
-| `scalafixConfig` | `SettingKey[Option[File]]` | `.scalafix.conf` file to specify which scalafix rules should run, together with their potential options. Defaults to `.scalafix.conf` in the root directory, if it exists.
-| `scalafixDependencies` | `SettingKey[Seq[ModuleID]]` | Dependencies making [custom rules](#run-custom-rules) available via their simple name. Can be set in `ThisBuild` or at project-level. Defaults to `Nil`.
-| `scalafixOnCompile` | `SettingKey[Boolean]` | When `true`, Scalafix rule(s) declared in `scalafixConfig` are run on compilation, applying rewrites and failing on lint errors. Defaults to `false`.
-| `scalafixResolvers` | `SettingKey[Seq[Repository]]` | Custom resolvers where `scalafixDependencies` are resolved from, in addition to the user-defined sbt `ThisBuild / resolvers`. Must be set in `ThisBuild`. Defaults to: Ivy2 local, Maven Central, Sonatype releases & Sonatype snapshots.
-
+| Name                   | Type                          | Description                                                                                                                                                                                                                               |
+| ---------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scalafix <args>`      | `InputKey[Unit]`              | Invoke scalafix command line interface directly. Use tab completion to explore supported arguments or consult [--help](#help).                                                                                                            |
+| `scalafixAll <args>`   | `InputKey[Unit]`              | Invoke `scalafix` across all configurations where scalafix is [enabled](#integration-tests).                                                                                                                                              |
+| `scalafixCaching`      | `SettingKey[Boolean]`         | Controls whether 2 successive invocations of the `scalafix` `InputTask` with the same arguments & configuration should be incremental. Defaults to `true`. When enabled, use the `--no-cache` argument to force an exhaustive run.        |
+| `scalafixConfig`       | `SettingKey[Option[File]]`    | `.scalafix.conf` file to specify which scalafix rules should run, together with their potential options. Defaults to `.scalafix.conf` in the root directory, if it exists.                                                                |
+| `scalafixDependencies` | `SettingKey[Seq[ModuleID]]`   | Dependencies making [custom rules](#run-custom-rules) available via their simple name. Can be set in `ThisBuild` or at project-level. Defaults to `Nil`.                                                                                  |
+| `scalafixOnCompile`    | `SettingKey[Boolean]`         | When `true`, Scalafix rule(s) declared in `scalafixConfig` are run on compilation, applying rewrites and failing on lint errors. Defaults to `false`.                                                                                     |
+| `scalafixResolvers`    | `SettingKey[Seq[Repository]]` | Custom resolvers where `scalafixDependencies` are resolved from, in addition to the user-defined sbt `ThisBuild / resolvers`. Must be set in `ThisBuild`. Defaults to: Ivy2 local, Maven Central, Sonatype releases & Sonatype snapshots. |
 
 ### Main and test sources
 
@@ -207,7 +207,7 @@ To automatically enforce that Scalafix has been run on all sources, use
 `scalafix --check` instead of `scalafix`. This task fails the build if running
 `scalafix` would produce a diff or a linter error message is reported.
 
-Use `scalafixAll --check`  to enforce Scalafix on your entire project.
+Use `scalafixAll --check` to enforce Scalafix on your entire project.
 
 ### Cache in CI
 
@@ -242,7 +242,7 @@ feature with care as it has several shortcomings, for example:
    is the first task executed, without any other at the same time.
 1. Some rules such as `RemoveUnused` can be counter-productive if applied too
    often/early, as the work-in-progress code that was just added might disappear
-   after a simple `test`. 
+   after a simple `test`.
    To make such invocations less intrusive, you can change the rules and rules
    configuration used in that case by defining in `.scalafix.conf`
    [custom values for them](configuration.md#triggered-configuration).
@@ -409,7 +409,7 @@ command-line interface.
 Then, install or launch a Scalafix runner built with the latest version of Scala
 (@SCALA3NEXT@):
 
-```sh
+````sh
 cs install scalafix
 scalafix --version # Should say @VERSION@
 
@@ -417,15 +417,34 @@ cs install scalafix:0.14.0
 scalafix --version # Should say 0.14.0
 
 cs launch scalafix:0.13.0 -- --version # Should say 0.13.0
-```
+
+### Running the CLI with a specific Scala binary version
+
+When running **semantic rules** or working with **older Scala versions**
+(for example **Scala 2.11**), you may need to explicitly select the Scala
+binary version used by the Scalafix CLI.
+
+This is especially useful when your source code is compiled with a Scala
+version that differs from the default Scala version used by the `scalafix`
+runner.
+
+You can do this by launching `scalafix-cli` via Coursier and passing the
+`--scala-version` option:
+
+```sh
+cs launch ch.epfl.scala::scalafix-cli:latest.release \
+  -M scalafix.cli.Cli \
+  --scala-version 2.11
+
+````
 
 > If you plan to use advanced semantic rules like `ExplicitResultTypes`, you
 > must use the version of Scalafix built with a Scala version matching your
 > target source files (major.minor).
-> 
+>
 > If your target files are not built with the latest minor version of Scala,
 > use one of the following commands to create a custom runner:
-> 
+>
 > ```sh
 > cs bootstrap ch.epfl.scala:scalafix-cli_@SCALA212@:@VERSION@ --main scalafix.cli.Cli -o scalafix_2.12
 > cs bootstrap ch.epfl.scala:scalafix-cli_@SCALA213@:@VERSION@ --main scalafix.cli.Cli -o scalafix_2.13
@@ -433,6 +452,7 @@ cs launch scalafix:0.13.0 -- --version # Should say 0.13.0
 > ```
 >
 > Alternatively, you can run a one-shot command:
+>
 > ```sh
 > cs launch --scala X.Y scalafix -- --version
 > ```
