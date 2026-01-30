@@ -43,6 +43,7 @@ jobs:
       - uses: coursier/setup-action@v2
         with:
           apps: sbt
+          jvm: zulu:17 # for scala 3.8+
       - run: ./bin/scalafmt --test
       - run: sbt "dogfoodScalafixInterfaces; scalafixAll --check"
   mima:
@@ -55,4 +56,5 @@ jobs:
       - uses: coursier/setup-action@v2
         with:
           apps: sbt
+          jvm: zulu:17 # for scala 3.8+
       - run: sbt versionPolicyCheck

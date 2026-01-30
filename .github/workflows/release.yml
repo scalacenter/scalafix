@@ -13,7 +13,7 @@ jobs:
       - uses: coursier/setup-action@v2
         with:
           apps: sbt
-          jvm: temurin:8
+          jvm: temurin:17 # needed for scala 3.8+ modules, all others are producing Java 8 bytecode 
       - uses: olafurpg/setup-gpg@v3
       - name: Check that major or minor was bumped upon compatibility breakage
         if: startsWith(github.ref, 'refs/tags/v')

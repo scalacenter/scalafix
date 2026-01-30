@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Scalafix is a refactoring and linting tool for Scala. It enables syntactic and semantic source code transformations through a rule-based system. The project targets multiple Scala versions (2.12, 2.13, 3.3-3.7) and is built using a complex sbt-projectmatrix setup.
+Scalafix is a refactoring and linting tool for Scala. It enables syntactic and semantic source code transformations through a rule-based system. The project targets multiple Scala versions (2.12, 2.13, 3.3-3.8) and is built using a complex sbt-projectmatrix setup.
 
 **Core Architecture:**
 - `scalafix-interfaces`: Java API for JVM integration (cross-platform, no Scala dependency)

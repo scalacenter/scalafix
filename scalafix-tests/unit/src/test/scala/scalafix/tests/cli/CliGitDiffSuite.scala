@@ -227,19 +227,19 @@ class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
     val code = "code.scala"
     val foo1 =
       """|object A {
-        |  def foo() {}
+        |  def foo(): Unit = {}
         |}
         |""".stripMargin
 
     val bar1 =
       """|object B {
-        |  def bar() { println(s"Foo") }
+        |  def bar(): Unit = { println(s"Foo") }
         |}
         |""".stripMargin
 
     val bar2 =
       """|object B {
-        |  def bar() { println("Foo") }
+        |  def bar(): Unit = { println("Foo") }
         |}
         |""".stripMargin
 

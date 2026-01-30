@@ -49,6 +49,7 @@ class ScalafixSuite extends AnyFunSuite {
     assert(api.scala35() == Versions.scala35)
     assert(api.scala36() == Versions.scala36)
     assert(api.scala37() == Versions.scala37)
+    assert(api.scala38() == Versions.scala38)
     assert(api.scala3LTS() == Versions.scala3LTS)
     assert(api.scala3Next() == Versions.scala3Next)
     assert(
@@ -134,16 +135,19 @@ class ScalafixSuite extends AnyFunSuite {
   }
 
   test("classload Scala 3 Next with full version") {
-    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.7.0", repositories)
+    if (jdk < 17) cancel("Scala 3.8+ requires JDK17+")
+    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.8.0", repositories)
     assert(scalafixAPI.scalaVersion() == Versions.scala3Next)
   }
 
   test("classload Scala 3 Next with major.minor version") {
-    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.7", repositories)
+    if (jdk < 17) cancel("Scala 3.8+ requires JDK17+")
+    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.8", repositories)
     assert(scalafixAPI.scalaVersion() == Versions.scala3Next)
   }
 
   test("classload Scala 3 Next with major version") {
+    if (jdk < 17) cancel("Scala 3.8+ requires JDK17+")
     val scalafixAPI = Scalafix.fetchAndClassloadInstance("3", repositories)
     assert(scalafixAPI.scalaVersion() == Versions.scala3Next)
   }
