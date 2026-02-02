@@ -146,6 +146,7 @@ lazy val reflect = projectMatrix
     moduleName := "scalafix-reflect",
     isFullCrossVersion,
     libraryDependencies ++= Seq(
+      coursierInterfaces,
       semanticdbScalacCore,
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
