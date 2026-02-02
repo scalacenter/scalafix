@@ -1,6 +1,6 @@
 -Xss2m
 -Xms2G
--Xmx4G
+-Xmx8G
 -XX:ReservedCodeCacheSize=512m
 -XX:+UseG1GC
 -XX:+TieredCompilation
