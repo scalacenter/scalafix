@@ -34,13 +34,13 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     // https://github.com/scalameta/scalameta/issues/2485
     lazy val coreScalaVersions = Seq(scala212, scala213)
     lazy val cliScalaVersions = {
-      val scala3Versions = Seq(scala33, scala35, scala36, scala37)
+      val scala3Versions = Seq(scala33, scala35, scala36, scala37, scala38)
       val jdk = System.getProperty("java.specification.version").toDouble
-      val unsupportedVersions =
-        if (jdk >= 25) Seq(scala212, scala35, scala36)
-        else Nil
-      (coreScalaVersions ++ scala3Versions :+ scala3Next)
-        .diff(unsupportedVersions)
+      val unsupportedVersions: Set[String] =
+        if (jdk >= 25) Set(scala212, scala35, scala36)
+        else if (jdk < 17) Set(scala38)
+        else Set.empty
+      (coreScalaVersions ++ scala3Versions).filterNot(unsupportedVersions)
     }
     lazy val cliScalaVersionsWithTargets: Seq[(String, TargetAxis)] =
       cliScalaVersions.map(sv => (sv, TargetAxis(sv))) ++
@@ -62,10 +62,12 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
           val xsource3 = TargetAxis(sv, xsource3 = true)
 
           (prevVersions :+ xsource3).map((sv, _))
-        } ++ Seq(
-          (scala3Next, TargetAxis(scala213)),
-          (scala3Next, TargetAxis(scala3LTS))
-        )
+        } ++ cliScalaVersions.intersect(Seq(scala3Next)).flatMap { sv =>
+          Seq(
+            (sv, TargetAxis(scala213)),
+            (sv, TargetAxis(scala3LTS))
+          )
+        }
 
     lazy val publishLocalTransitive =
       taskKey[Unit]("Run publishLocal on this project and its dependencies")
@@ -85,16 +87,21 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       scalaVersion.value.startsWith("2.12")
     }
     lazy val warnUnused = Def.setting {
-      if (isScala3.value)
+      val minor = scalaVersion.value.split('.')(1).toInt
+      if (isScala3.value && minor >= 7)
+        Seq("-Wunused:all")
+      else if (isScala3.value)
         Seq(
           "-Wunused:all",
-          "-Wunused:unsafe-warn-patvars" // only needed for <3.7.0
+          "-Wunused:unsafe-warn-patvars"
         )
       else if (isScala213.value) Seq("-Wunused")
       else Seq("-Ywarn-unused")
     }
     lazy val targetJvm = Def.setting {
-      if (isScala3.value) Seq("-release:8")
+      val minor = scalaVersion.value.split('.')(1).toInt
+      if (isScala3.value && minor >= 8) Seq("-release:17")
+      else if (isScala3.value) Seq("-release:8")
       else if (isScala213.value) Seq("-release", "8")
       else Seq("-target:jvm-1.8")
     }
@@ -150,6 +157,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "scala35" -> scala35,
         "scala36" -> scala36,
         "scala37" -> scala37,
+        "scala38" -> scala38,
         "scala3LTS" -> scala3LTS,
         "scala3Next" -> scala3Next,
         sbtVersion
@@ -241,6 +249,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, Option[String]] = Map(
+    scala38 -> None
   )
 
   override def buildSettings: Seq[Setting[_]] = List(

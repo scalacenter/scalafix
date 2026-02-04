@@ -388,10 +388,8 @@ case class Args(
   private def semanticdbOption(
       settingInScala2: String,
       settingInScala3Opt: Option[String]
-  ): Option[String] = {
-    if (scalaVersion.isScala2) {
-      extractLastScalacOption(s"-P:semanticdb:$settingInScala2:")
-    } else {
+  ): Option[String] =
+    extractLastScalacOption(s"-P:semanticdb:$settingInScala2:").orElse {
       settingInScala3Opt.flatMap { settingInScala3 =>
         scalacOptions
           .sliding(2)
@@ -400,7 +398,6 @@ case class Args(
           }
       }
     }
-  }
 
   def semanticdbFilterMatcher: FilterMatcher = {
     val include = semanticdbOption("include", None)

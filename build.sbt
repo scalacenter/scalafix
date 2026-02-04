@@ -36,6 +36,7 @@ lazy val interfaces = project
       props.put("scala35", scala35)
       props.put("scala36", scala36)
       props.put("scala37", scala37)
+      props.put("scala38", scala38)
       props.put("scala3LTS", scala3LTS)
       props.put("scala3Next", scala3Next)
       val out =
@@ -45,9 +46,12 @@ lazy val interfaces = project
       List(out)
     },
     (Compile / javacOptions) ++= List(
-      "-Xlint:all",
+      "-Xlint:all,-options",
       "-Werror"
-    ),
+    ) ++ {
+      if (System.getProperty("java.version").startsWith("1.8")) Nil
+      else List("--release", "8")
+    },
     (Compile / doc / javacOptions) := List("-Xdoclint:none"),
     (Compile / javaHome) := inferJavaHome(),
     (Compile / doc / javaHome) := inferJavaHome(),
@@ -142,6 +146,7 @@ lazy val reflect = projectMatrix
     moduleName := "scalafix-reflect",
     isFullCrossVersion,
     libraryDependencies ++= Seq(
+      coursierInterfaces,
       semanticdbScalacCore,
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value

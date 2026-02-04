@@ -75,4 +75,45 @@ class RuleDecoderSuite extends AnyFunSuite {
 
     assert(!class1.isAssignableFrom(class2))
   }
+
+  test("deprecation warnings do not prevent rule loading") {
+    val tmp = Files.createTempFile("scalafix", "CustomRule.scala")
+
+    val deprecatedRule =
+      """package custom
+        |import scala.meta._
+        |import scalafix.v1._
+        |class DeprecatedRule extends SyntacticRule("DeprecatedRule") {
+        |  override def fix(implicit doc: SyntacticDocument) =
+        |    doc.tree.collect {
+        |      // deprecated https://github.com/scalameta/scalameta/blob/a8eb596/scalameta/trees/shared/src/main/scala/scala/meta/Trees.scala#L691
+        |      case Type.And(_, _) => Patch.empty
+        |    }.asPatch
+        |}
+      """.stripMargin
+    Files.write(tmp, deprecatedRule.getBytes)
+
+    val rules =
+      decoder.read(Conf.Str(tmp.toUri.toString)).get
+    assert(rules.rules.nonEmpty)
+  }
+
+  test("compilation errors are properly exposed") {
+    val tmp = Files.createTempFile("scalafix", "BrokenRule.scala")
+
+    val brokenRule =
+      """package custom
+        |import scalafix.v1._
+        |class BrokenRule extends SyntacticRule("BrokenRule") {
+        |  val broken: String = 123 // type mismatch error
+        |}
+      """.stripMargin
+    Files.write(tmp, brokenRule.getBytes)
+
+    val result = decoder.read(Conf.Str(tmp.toUri.toString))
+    assert(result.isNotOk)
+
+    val error = result.toEither.left.get
+    assert(error.msg.contains("type mismatch"))
+  }
 }

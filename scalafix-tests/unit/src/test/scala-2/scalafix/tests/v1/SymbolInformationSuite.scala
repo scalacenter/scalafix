@@ -27,6 +27,8 @@ class SymbolInformationSuite extends AnyFunSuite with DiffAssertions {
     "java/lang/System#lineSeparator(). => static method lineSeparator(): String"
   )
 
+  // This no longer works as of Scala 3.8.0 because of https://github.com/scala/scala3/pull/24846.
+  // See https://github.com/scalacenter/scalafix/issues/2049.
   checkSyntax(
     "scala/Predef.assert().",
     "scala/Predef.assert(). => @elidable method assert(assertion: Boolean): Unit"

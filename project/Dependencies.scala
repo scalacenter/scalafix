@@ -12,8 +12,9 @@ object Dependencies {
   val scala35 = "3.5.2"
   val scala36 = "3.6.4"
   val scala37 = "3.7.4"
+  val scala38 = "3.8.1"
   val scala3LTS = scala33
-  val scala3Next = sys.props.getOrElse("scala3.nightly", scala37)
+  val scala3Next = sys.props.getOrElse("scala3.nightly", scala38)
 
   val bijectionCoreV = "0.9.8"
   val collectionCompatV = "2.14.0"
