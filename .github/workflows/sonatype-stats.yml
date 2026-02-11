@@ -8,7 +8,7 @@ jobs:
   update_data:
     runs-on: ubuntu-latest
     steps:
-      - uses: coursier/cache-action@v7
+      - uses: coursier/cache-action@v8
       - uses: VirtusLab/scala-cli-setup@v1.12
       - uses: actions/checkout@v6
       - name: Checkout the gh-pages branch while keeping the scripts
