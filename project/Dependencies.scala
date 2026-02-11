@@ -42,8 +42,8 @@ object Dependencies {
   val metacp = "org.scalameta" %% "metacp" % scalametaV
   val nailgunServer = "com.martiansoftware" % "nailgun-server" % nailgunV
   val scalaXml = "org.scala-lang.modules" %% "scala-xml" % scalaXmlV
-  val scalametaFor3Use2_13 = "org.scalameta" %% "scalameta" % scalametaV cross CrossVersion.for3Use2_13
-  val scalametaTeskitFor3Use2_13 = "org.scalameta" %% "testkit" % scalametaV cross CrossVersion.for3Use2_13
+  val scalameta = "org.scalameta" %% "scalameta" % scalametaV
+  val scalametaTeskit = "org.scalameta" %% "testkit" % scalametaV
   val scalatags = "com.lihaoyi" %% "scalatags" % scalatagsV
   val scalatest = "org.scalatest" %% "scalatest" % scalatestV
   val munit = "org.scalameta" %% "munit" % munitV
