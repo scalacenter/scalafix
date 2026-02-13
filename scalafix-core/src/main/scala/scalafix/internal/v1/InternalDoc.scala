@@ -1,7 +1,6 @@
 package scalafix.internal.v1
 
 import scala.meta.Tree
-import scala.meta.contrib.AssociatedComments
 import scala.meta.inputs.Input
 
 import scalafix.internal.config.ScalafixConfig
@@ -12,7 +11,6 @@ import scalafix.util.TokenList
 class InternalDoc(
     val input: Input,
     val tree: LazyValue[Tree],
-    val comments: LazyValue[AssociatedComments],
     val config: ScalafixConfig,
     val escapeHatch: LazyValue[EscapeHatch],
     val matchingParens: LazyValue[MatchingParens],

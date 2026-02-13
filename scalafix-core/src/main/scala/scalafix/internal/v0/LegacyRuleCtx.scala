@@ -2,7 +2,6 @@ package scalafix.internal.v0
 
 import scala.meta.Input
 import scala.meta.Tree
-import scala.meta.contrib.AssociatedComments
 import scala.meta.tokens.Tokens
 
 import org.scalameta.FileLine
@@ -21,7 +20,6 @@ class LegacyRuleCtx(doc: SyntacticDocument)
   override def tokens: Tokens = doc.tokens
   override def matchingParens: MatchingParens = doc.matchingParens
   override def tokenList: TokenList = doc.tokenList
-  override def comments: AssociatedComments = doc.comments
   override def index(implicit index: SemanticdbIndex): SemanticdbIndex =
     index
   override def debugIndex()(implicit
