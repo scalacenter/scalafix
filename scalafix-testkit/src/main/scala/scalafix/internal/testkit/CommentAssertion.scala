@@ -3,6 +3,7 @@ package scalafix.internal.testkit
 import scala.util.matching.Regex
 
 import scala.meta._
+import scala.meta.tokens.Token
 
 import scalafix.internal.util.PositionSyntax._
 

@@ -3,6 +3,7 @@ package scalafix.internal.rule
 import java.util.regex.Matcher
 
 import scala.meta._
+import scala.meta.tokens.Token
 
 import metaconfig.Configured
 import scalafix.v0.LintCategory

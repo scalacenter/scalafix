@@ -3,6 +3,7 @@ package scalafix.internal.rule
 import scala.collection.mutable
 
 import scala.meta._
+import scala.meta.tokens.Token
 
 import metaconfig.Configured
 import scalafix.util.Trivia

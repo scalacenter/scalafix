@@ -4,6 +4,7 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 
 import scala.meta._
+import scala.meta.tokens.Token
 import scala.meta.trees.Origin
 
 import scalafix.XtensionOptionPatch
