@@ -42,10 +42,10 @@ object ImportPatchOps {
   private def fallbackToken(ctx: RuleCtx): Token = {
     def loop(tree: Tree): Token = tree match {
       case Source((stat: Pkg) :: _) => loop(stat)
-      case Source(_) => ctx.toks(tree).head
+      case Source(_) => tree.tokens.head
       case Pkg(_, stat :: _) => loop(stat)
       case els =>
-        ctx.tokenList.prev(ctx.tokenList.prev(ctx.toks(els).head)) match {
+        ctx.tokenList.prev(ctx.tokenList.prev(els.tokens.head)) match {
           case comment @ Token.Comment(_) =>
             ctx.tokenList.prev(ctx.tokenList.prev(comment))
           case other => other
@@ -93,7 +93,7 @@ object ImportPatchOps {
     val globalImports = getGlobalImports(ctx.tree)
     val editToken: Token = {
       if (globalImports.isEmpty) fallbackToken(ctx)
-      else ctx.toks(globalImports.last).last
+      else globalImports.last.tokens.last
     }
     val isRemovedImportee = mutable.LinkedHashSet.empty[Importee]
     importPatches.foreach {
@@ -179,20 +179,17 @@ object ImportPatchOps {
       keptImportees match {
         case (Importee.Wildcard() | Importee.Name(_)) +: Nil
             if hasRemovedImportee =>
-          ctx
-            .toks(importer)
-            .collectFirst { case open @ Token.LeftBrace() =>
-              ctx.matchingParens
-                .close(open)
-                .map { close =>
-                  ctx.removeToken(open) +
-                    removeSpaces(ctx.tokenList.trailing(open)) +
-                    ctx.removeToken(close) +
-                    removeSpaces(ctx.tokenList.leading(close))
-                }
-                .asPatch
-            }
-            .asPatch
+          importer.tokens.collectFirst { case open @ Token.LeftBrace() =>
+            ctx.matchingParens
+              .close(open)
+              .map { close =>
+                ctx.removeToken(open) +
+                  removeSpaces(ctx.tokenList.trailing(open)) +
+                  ctx.removeToken(close) +
+                  removeSpaces(ctx.tokenList.leading(close))
+              }
+              .asPatch
+          }.asPatch
         case _ => Patch.empty
       }
     }
@@ -248,7 +245,7 @@ object ImportPatchOps {
     val leadingNewlines = isRemovedImport.map { i =>
       var newline = false
       ctx.tokenList
-        .leading(ctx.toks(i).head)
+        .leading(i.tokens.head)
         .takeWhile(x =>
           !newline && {
             x.is[Token.Space] || {

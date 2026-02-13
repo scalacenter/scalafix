@@ -28,8 +28,7 @@ class RuleCtxImpl(
     s"""${tree.input.syntax}
       |${logger.revealWhitespace(tree.syntax.take(100))}""".stripMargin
   override def toString: String = syntax
-  def toks(t: Tree): Tokens = t.tokens(config.dialect)
-  lazy val tokens: Tokens = tree.tokens(config.dialect)
+  override def tokens: Tokens = tree.tokens
   lazy val tokenList: TokenList = TokenList(tokens)
   lazy val matchingParens: MatchingParens = MatchingParens(tokens)
   lazy val comments: AssociatedComments = AssociatedComments(tokens)
