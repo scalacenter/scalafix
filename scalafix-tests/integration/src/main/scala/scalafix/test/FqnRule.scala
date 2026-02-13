@@ -2,6 +2,7 @@ package scalafix.test
 
 import scala.meta._
 import scala.meta.contrib._
+import scala.meta.tokens.Token
 
 import scalafix.XtensionOptionPatch
 import scalafix.XtensionSeqPatch

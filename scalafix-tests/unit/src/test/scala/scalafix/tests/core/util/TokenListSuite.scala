@@ -2,6 +2,7 @@ package scalafix.tests.core.util
 
 import scala.meta._
 import scala.meta.dialects.Scala212
+import scala.meta.tokens.Token
 
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.util.TokenList

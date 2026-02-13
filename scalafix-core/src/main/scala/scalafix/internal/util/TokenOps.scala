@@ -1,6 +1,6 @@
 package scalafix.internal.util
 
-import scala.meta.Token
+import scala.meta.tokens.Token
 
 object TokenOps {
   type TokenHash = Long

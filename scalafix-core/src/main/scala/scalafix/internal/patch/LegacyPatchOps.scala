@@ -2,8 +2,8 @@ package scalafix.internal.patch
 
 import scala.meta.Importee
 import scala.meta.Importer
-import scala.meta.Token
 import scala.meta.Tree
+import scala.meta.tokens.Token
 import scala.meta.tokens.Tokens
 
 import scalafix.internal.patch.LegacyPatchOps.DeprecationMessage

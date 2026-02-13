@@ -4,6 +4,7 @@ import scala.util.Try
 
 import scala.meta._
 import scala.meta.internal.inputs.XtensionInput
+import scala.meta.tokens.Token
 
 import metaconfig.Conf
 import metaconfig.ConfError
