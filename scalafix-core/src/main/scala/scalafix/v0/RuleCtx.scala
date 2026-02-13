@@ -32,7 +32,7 @@ trait RuleCtx extends PatchOps {
   def input: Input
 
   /** The tokenized tokens of this this tree. * */
-  def tokens: Tokens
+  def tokens: Tokens = tree.tokens
 
   /** Find matching open/close pairs of parens/braces/brackets. * */
   def matchingParens: MatchingParens
@@ -50,7 +50,6 @@ trait RuleCtx extends PatchOps {
   def debugIndex()(implicit index: SemanticdbIndex, fileLine: FileLine): Unit
 
   // Private scalafix methods, subject for removal without notice.
-  private[scalafix] def toks(t: Tree): Tokens
   private[scalafix] def config: ScalafixConfig
   private[scalafix] def escapeHatch: EscapeHatch
 }
