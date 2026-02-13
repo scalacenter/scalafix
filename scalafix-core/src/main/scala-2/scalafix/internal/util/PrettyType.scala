@@ -518,7 +518,7 @@ class PrettyType private (
       def targs: List[Type] =
         typeArguments.iterator.map {
           case TypeExtractors.Wildcard() =>
-            Type.Placeholder(Type.Bounds(None, None))
+            Type.Wildcard(Type.Bounds.empty)
           case targ =>
             toType(targ)
         }.toList

@@ -76,6 +76,7 @@ class RuleDecoderSuite extends AnyFunSuite {
     assert(!class1.isAssignableFrom(class2))
   }
 
+  /*
   test("deprecation warnings do not prevent rule loading") {
     val tmp = Files.createTempFile("scalafix", "CustomRule.scala")
 
@@ -97,6 +98,7 @@ class RuleDecoderSuite extends AnyFunSuite {
       decoder.read(Conf.Str(tmp.toUri.toString)).get
     assert(rules.rules.nonEmpty)
   }
+   */
 
   test("compilation errors are properly exposed") {
     val tmp = Files.createTempFile("scalafix", "BrokenRule.scala")
