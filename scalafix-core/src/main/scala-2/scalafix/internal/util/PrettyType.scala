@@ -196,7 +196,8 @@ class PrettyType private (
         case s.MethodSignature(
               Some(tparams),
               paramss: Seq[SemanticdbScope],
-              returnType
+              returnType,
+              _
             ) =>
           val ret = unwrapRepeatedType(returnType)
           if (info.isVal) {
@@ -557,8 +558,8 @@ class PrettyType private (
         Type.Singleton(toTermRef(info))
       } else {
         info.signature match {
-          case s.MethodSignature(_, _, returnType) =>
-            toType(returnType)
+          case sig: s.MethodSignature =>
+            toType(sig.returnType)
           case els =>
             fail(els)
         }
