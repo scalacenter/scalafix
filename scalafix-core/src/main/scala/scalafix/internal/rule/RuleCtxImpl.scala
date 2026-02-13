@@ -37,7 +37,6 @@ class RuleCtxImpl(
     EscapeHatch(
       input,
       LazyValue.now(tree),
-      LazyValue.later(() => comments),
       diffDisable
     )
 

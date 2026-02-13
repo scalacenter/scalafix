@@ -99,7 +99,7 @@ object SyntacticDocument {
       AssociatedComments(tree.value)
     }
     val escape = LazyValue.later { () =>
-      EscapeHatch(input, tree, comments, diffDisable)
+      EscapeHatch(input, tree, diffDisable)
     }
     val matchingParens = LazyValue.later { () =>
       MatchingParens(tokens.value)
