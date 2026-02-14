@@ -436,7 +436,6 @@ cs launch ch.epfl.scala::scalafix-cli:latest.release \
   -M scalafix.cli.Cli \
   --scala-version 2.11
 
-````
 
 > If you plan to use advanced semantic rules like `ExplicitResultTypes`, you
 > must use the version of Scalafix built with a Scala version matching your
