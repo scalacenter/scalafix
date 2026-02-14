@@ -76,7 +76,6 @@ class RuleDecoderSuite extends AnyFunSuite {
     assert(!class1.isAssignableFrom(class2))
   }
 
-  /*
   test("deprecation warnings do not prevent rule loading") {
     val tmp = Files.createTempFile("scalafix", "CustomRule.scala")
 
@@ -85,11 +84,8 @@ class RuleDecoderSuite extends AnyFunSuite {
         |import scala.meta._
         |import scalafix.v1._
         |class DeprecatedRule extends SyntacticRule("DeprecatedRule") {
-        |  override def fix(implicit doc: SyntacticDocument) =
-        |    doc.tree.collect {
-        |      // deprecated https://github.com/scalameta/scalameta/blob/a8eb596/scalameta/trees/shared/src/main/scala/scala/meta/Trees.scala#L691
-        |      case Type.And(_, _) => Patch.empty
-        |    }.asPatch
+        |  @deprecated("test", "0.1") def old = 42
+        |  val x = old
         |}
       """.stripMargin
     Files.write(tmp, deprecatedRule.getBytes)
@@ -98,7 +94,6 @@ class RuleDecoderSuite extends AnyFunSuite {
       decoder.read(Conf.Str(tmp.toUri.toString)).get
     assert(rules.rules.nonEmpty)
   }
-   */
 
   test("compilation errors are properly exposed") {
     val tmp = Files.createTempFile("scalafix", "BrokenRule.scala")
