@@ -14,11 +14,6 @@ import scalafix.syntax._
 import scalafix.v0._
 
 object ReplaceSymbolOps {
-  private case class ImportInfo(
-      globalImports: Seq[Import],
-      globalImportedSymbols: Map[String, Symbol]
-  )
-
   private object Select {
     def unapply(arg: Ref): Option[(Ref, Name)] = arg match {
       case Term.Select(a: Ref, b) => Some(a -> b)
@@ -31,9 +26,7 @@ object ReplaceSymbolOps {
     stats.collect { case i: Import => i }
   }
 
-  private def extractImportInfo(
-      tree: Tree
-  )(implicit index: SemanticdbIndex): ImportInfo = {
+  private def getNamesOfExplicitlyImportedSymbols(tree: Tree): Set[String] = {
     @tailrec
     def getGlobalImports(ast: Tree): Seq[Import] = ast match {
       case Pkg(_, Seq(pkg: Pkg)) => getGlobalImports(pkg)
@@ -47,18 +40,14 @@ object ReplaceSymbolOps {
 
     // pre-compute global imported symbols for O(1) collision detection
     // since ctx.addGlobalImport adds imports at global scope
-    val globalImportedSymbols = globalImports.flatMap { importStat =>
+    globalImports.flatMap { importStat =>
       importStat.importers.flatMap { importer =>
         importer.importees.collect {
-          case Importee.Name(name) =>
-            name.value -> name.symbol.getOrElse(Symbol.None)
-          case Importee.Rename(_, rename) =>
-            rename.value -> rename.symbol.getOrElse(Symbol.None)
+          case Importee.Name(name) => name.value
+          case Importee.Rename(_, rename) => rename.value
         }
       }
-    }.toMap
-
-    ImportInfo(globalImports, globalImportedSymbols)
+    }.toSet
   }
 
   def naiveMoveSymbolPatch(
@@ -66,7 +55,7 @@ object ReplaceSymbolOps {
   )(implicit ctx: RuleCtx, index: SemanticdbIndex): Patch = {
     if (moveSymbols.isEmpty) return Patch.empty
 
-    lazy val importInfo = extractImportInfo(ctx.tree)(index)
+    lazy val globalImportedNames = getNamesOfExplicitlyImportedSymbols(ctx.tree)
 
     val moves: Map[String, Symbol.Global] =
       moveSymbols.iterator.flatMap {
@@ -171,7 +160,7 @@ object ReplaceSymbolOps {
           Patch.empty // do nothing because it was a renamed symbol
         case Some(_) =>
           lazy val mayCauseCollision =
-            importInfo.globalImportedSymbols.contains(to.signature.name)
+            globalImportedNames.contains(to.signature.name)
           val addImport =
             if (n.isDefinition || mayCauseCollision) Patch.empty
             else ctx.addGlobalImport(to)
