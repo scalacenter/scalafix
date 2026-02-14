@@ -42,7 +42,7 @@ trait RuleCtx extends PatchOps {
 
   /** Find comments/docstrings associated with tree nodes. * */
   @deprecated("AssociatedComments has been deprecated in scalameta", "v0.14.6")
-  def comments: AssociatedComments = AssociatedComments
+  def comments: AssociatedComments = AssociatedComments(tokens)
 
   /** Get SemanticdbIndex for this single tree alone. */
   def index(implicit index: SemanticdbIndex): SemanticdbIndex
