@@ -66,7 +66,7 @@ object ReplaceSymbolOps {
   )(implicit ctx: RuleCtx, index: SemanticdbIndex): Patch = {
     if (moveSymbols.isEmpty) return Patch.empty
 
-    val importInfo = extractImportInfo(ctx.tree)(index)
+    lazy val importInfo = extractImportInfo(ctx.tree)(index)
 
     val moves: Map[String, Symbol.Global] =
       moveSymbols.iterator.flatMap {
