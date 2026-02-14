@@ -24,7 +24,7 @@ final class SyntacticDocument private[scalafix] (
   def input: Input = internal.input
   def tree: Tree = internal.tree.value
   def tokens: Tokens = tree.tokens
-  @deprecated("AssociatedComments has been deprecated in scalameta", "v0.14.6")
+  @deprecated("Use tree.begComment and tree.endComment instead", "0.14.6")
   def comments: AssociatedComments = AssociatedComments(tokens)
   def matchingParens: MatchingParens = internal.matchingParens.value
   def tokenList: TokenList = internal.tokenList.value

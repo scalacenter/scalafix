@@ -28,7 +28,7 @@ final class SemanticDocument private[scalafix] (
   def tokenList: TokenList =
     internal.doc.internal.tokenList.value
 
-  @deprecated("AssociatedComments has been deprecated in scalameta", "v0.14.6")
+  @deprecated("Use tree.begComment and tree.endComment instead", "0.14.6")
   def comments: AssociatedComments = AssociatedComments(tokens)
 
   def diagnostics: Iterator[Diagnostic] =

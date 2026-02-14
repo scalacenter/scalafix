@@ -6,38 +6,38 @@ import scala.meta.XtensionClassifiable
 import scala.meta.tokens.Token
 import scala.meta.tokens.Token.Comment
 
-@deprecated("AssociatedComments has been deprecated in scalameta", "v0.14.6")
+@deprecated("Use tree.begComment and tree.endComment instead", "0.14.6")
 class AssociatedComments private (
     leadingMap: Map[Token, List[Comment]],
     trailingMap: Map[Token, List[Comment]]
 ) {
   def this() = this(Map.empty, Map.empty)
 
-  @deprecated("AssociatedComments has been deprecated in scalameta", "v0.14.6")
+  @deprecated("Use tree.begComment and tree.endComment instead", "0.14.6")
   def leading(tree: Tree): Set[Comment] =
     (for {
       token <- tree.tokens.headOption
       comments <- leadingMap.get(token)
     } yield comments).getOrElse(Nil).toSet
 
-  @deprecated("AssociatedComments has been deprecated in scalameta", "v0.14.6")
+  @deprecated("Use tree.begComment and tree.endComment instead", "0.14.6")
   def trailing(tree: Tree): Set[Comment] =
     (for {
       token <- tree.tokens.lastOption
       comments <- trailingMap.get(token)
     } yield comments).getOrElse(Nil).toSet
 
-  @deprecated("AssociatedComments has been deprecated in scalameta", "v0.14.6")
+  @deprecated("Use tree.begComment and tree.endComment instead", "0.14.6")
   def hasComment(tree: Tree): Boolean =
     trailing(tree).nonEmpty || leading(tree).nonEmpty
 }
 
-@deprecated("AssociatedComments has been deprecated in scalameta", "v0.14.6")
+@deprecated("Use tree.begComment and tree.endComment instead", "0.14.6")
 object AssociatedComments extends AssociatedComments {
-  @deprecated("AssociatedComments has been deprecated in scalameta", "v0.14.6")
+  @deprecated("Use tree.begComment and tree.endComment instead", "0.14.6")
   def apply(tree: Tree): AssociatedComments = apply(tree.tokens)
 
-  @deprecated("AssociatedComments has been deprecated in scalameta", "v0.14.6")
+  @deprecated("Use tree.begComment and tree.endComment instead", "0.14.6")
   def apply(tokens: Tokens): AssociatedComments = {
     import scala.meta.tokens.Token._
 
