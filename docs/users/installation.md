@@ -409,7 +409,7 @@ command-line interface.
 Then, install or launch a Scalafix runner built with the latest version of Scala
 (@SCALA3NEXT@):
 
-````sh
+```sh
 cs install scalafix
 scalafix --version # Should say @VERSION@
 
