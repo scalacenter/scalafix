@@ -27,8 +27,9 @@ final class SemanticDocument private[scalafix] (
     internal.doc.internal.matchingParens.value
   def tokenList: TokenList =
     internal.doc.internal.tokenList.value
-  def comments: AssociatedComments =
-    internal.doc.internal.comments.value
+
+  @deprecated("Use tree.begComment and tree.endComment instead", "0.14.6")
+  def comments: AssociatedComments = AssociatedComments(tokens)
 
   def diagnostics: Iterator[Diagnostic] =
     internal.messages

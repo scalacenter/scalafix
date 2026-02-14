@@ -104,20 +104,20 @@ final class SymtabFromProtobuf(symtab: Symtab) {
         self.convert,
         declarations.convert
       )
-    case s.MethodSignature(typeParameters, parameterLists, returnType) =>
+    case sig: s.MethodSignature =>
       MethodSignature(
-        typeParameters.convert,
-        parameterLists.convert,
-        returnType.convert
+        sig.typeParameters.convert,
+        sig.parameterLists.convert,
+        sig.returnType.convert
       )
     case s.NoSignature =>
       NoSignature
   }
 
-  def sannotation(a: s.Annotation): Annotation =
+  def sannotation(a: s.AnnotationTree): Annotation =
     Annotation(a.tpe.convert)
 
-  implicit class RichAnnotations(annots: Seq[s.Annotation]) {
+  implicit class RichAnnotations(annots: Seq[s.AnnotationTree]) {
     def convert: List[Annotation] = annots.iterator.map(sannotation).toList
   }
   implicit class RichSymbol(sym: String) {

@@ -147,11 +147,10 @@ object EscapeHatch {
   def apply(
       input: Input,
       tree: LazyValue[Tree],
-      associatedComments: LazyValue[AssociatedComments],
       diffDisable: DiffDisable
   ): EscapeHatch = {
     new EscapeHatch(
-      AnchoredEscapes(input, tree, associatedComments),
+      AnchoredEscapes(input, tree),
       AnnotatedEscapes(input, tree),
       diffDisable
     )
@@ -350,23 +349,21 @@ object EscapeHatch {
 
     def apply(
         input: Input,
-        tree: LazyValue[Tree],
-        associatedComments: LazyValue[AssociatedComments]
+        tree: LazyValue[Tree]
     ): AnchoredEscapes = {
       if (input.text.contains(Prefix))
-        collectEscapes(input, tree.value, associatedComments)
+        collectEscapes(input, tree.value)
       else new AnchoredEscapes(EmptyEscapeTree, EmptyEscapeTree, Nil)
     }
 
     private def collectEscapes(
         input: Input,
-        tree: Tree,
-        associatedComments: LazyValue[AssociatedComments]
+        tree: Tree
     ): AnchoredEscapes = {
       val enable = TreeMap.newBuilder[EscapeOffset, List[EscapeFilter]]
       val disableList =
         ListBuffer.newBuilder[(EscapeOffset, List[EscapeFilter])]
-      val visitedFilterExpression = mutable.Set.empty[Position]
+      val visitedFilterExpression = mutable.Set.empty[Int]
       val onOffTracker = new OnOffTracker
 
       def makeFilters(
@@ -411,26 +408,27 @@ object EscapeHatch {
 
       if (input.text.contains(ScalafixOk)) {
         tree.foreach { t =>
-          associatedComments.value.trailing(t).foreach {
-            // matches simple expressions
-            //
-            // val a = (
-            //   1,
-            //   2
-            // ) // scalafix:ok RuleA
-            //
-            case comment @ Token.Comment(ScalafixOkRgx(rules)) =>
-              if (!visitedFilterExpression.contains(comment.pos)) {
-                val rulesPos = rulesWithPosition(rules, comment)
-                // include line start in case the rule captures leading tokens
-                val start = EscapeOffset(t.pos.start - t.pos.startColumn)
-                val end = Some(EscapeOffset(t.pos.end))
-                disableList +=
-                  (start -> makeFilters(rulesPos, start, end, comment))
-                visitedFilterExpression += comment.pos
-              }
-
-            case _ => ()
+          t.endComment.foreach { ec =>
+            val ownerPos = t.pos
+            // include line start in case the rule captures leading tokens
+            val start = EscapeOffset(ownerPos.start - ownerPos.startColumn)
+            val end = Some(EscapeOffset(ownerPos.end))
+            ec.values.foreach(_.tokens.foreach {
+              // matches simple expressions
+              //
+              // val a = (
+              //   1,
+              //   2
+              // ) // scalafix:ok RuleA
+              //
+              case comment @ Token.Comment(ScalafixOkRgx(rules)) =>
+                if (visitedFilterExpression.add(comment.pos.start)) {
+                  val rulesPos = rulesWithPosition(rules, comment)
+                  disableList +=
+                    (start -> makeFilters(rulesPos, start, end, comment))
+                }
+              case _ => ()
+            })
           }
         }
       }
@@ -467,12 +465,12 @@ object EscapeHatch {
             //   1
             // }
             case ScalafixOkRgx(rules) =>
-              if (!visitedFilterExpression.contains(comment.pos)) {
+              val pos = comment.pos
+              if (!visitedFilterExpression.contains(pos.start)) {
                 val rulesPos = rulesWithPosition(rules, comment)
                 // we approximate the position of the expression to the whole line
-                val start =
-                  EscapeOffset(comment.pos.start - comment.pos.startColumn)
-                val end = Some(EscapeOffset(comment.pos.end))
+                val start = EscapeOffset(pos.start - pos.startColumn)
+                val end = Some(EscapeOffset(pos.end))
                 disableList +=
                   (start -> makeFilters(rulesPos, start, end, comment))
               }

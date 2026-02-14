@@ -24,7 +24,8 @@ final class SyntacticDocument private[scalafix] (
   def input: Input = internal.input
   def tree: Tree = internal.tree.value
   def tokens: Tokens = tree.tokens
-  def comments: AssociatedComments = internal.comments.value
+  @deprecated("Use tree.begComment and tree.endComment instead", "0.14.6")
+  def comments: AssociatedComments = AssociatedComments(tokens)
   def matchingParens: MatchingParens = internal.matchingParens.value
   def tokenList: TokenList = internal.tokenList.value
   override def toString: String = s"SyntacticDocument(${input.syntax})"
@@ -95,11 +96,8 @@ object SyntacticDocument {
     val tokens = LazyValue.later { () =>
       tree.value.tokens
     }
-    val comments = LazyValue.later { () =>
-      AssociatedComments(tree.value)
-    }
     val escape = LazyValue.later { () =>
-      EscapeHatch(input, tree, comments, diffDisable)
+      EscapeHatch(input, tree, diffDisable)
     }
     val matchingParens = LazyValue.later { () =>
       MatchingParens(tokens.value)
@@ -110,7 +108,6 @@ object SyntacticDocument {
     val internal = new InternalDoc(
       input = input,
       tree = tree,
-      comments = comments,
       config = config,
       escapeHatch = escape,
       matchingParens = matchingParens,

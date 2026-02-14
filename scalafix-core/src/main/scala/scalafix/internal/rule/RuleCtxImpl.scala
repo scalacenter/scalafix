@@ -1,7 +1,6 @@
 package scalafix.internal.rule
 
 import scala.meta._
-import scala.meta.contrib.AssociatedComments
 import scala.meta.internal.inputs.XtensionInput
 import scala.meta.tokens.Tokens
 
@@ -31,13 +30,11 @@ class RuleCtxImpl(
   override def tokens: Tokens = tree.tokens
   lazy val tokenList: TokenList = TokenList(tokens)
   lazy val matchingParens: MatchingParens = MatchingParens(tokens)
-  lazy val comments: AssociatedComments = AssociatedComments(tokens)
   lazy val input: Input = tokens.head.input
   lazy val escapeHatch: EscapeHatch =
     EscapeHatch(
       input,
       LazyValue.now(tree),
-      LazyValue.later(() => comments),
       diffDisable
     )
 

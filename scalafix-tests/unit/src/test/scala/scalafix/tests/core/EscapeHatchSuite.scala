@@ -5,7 +5,6 @@ import java.nio.file.Paths
 import scala.meta.Source
 import scala.meta.Tree
 import scala.meta.XtensionParseInputLike
-import scala.meta.contrib.AssociatedComments
 import scala.meta.inputs.Input
 
 import org.scalatest.funsuite.AnyFunSuite
@@ -48,52 +47,43 @@ class EscapeHatchSuite extends AnyFunSuite {
   private class DontTouchMe(who: String) extends RuntimeException
   private lazy val untouchableTree: LazyValue[Tree] =
     LazyValue.later(() => throw new DontTouchMe("tree"))
-  private lazy val untouchableComments: LazyValue[AssociatedComments] =
-    LazyValue.later(() => throw new DontTouchMe("associated comments"))
 
   test(
     "`apply` should not evaluate tree nor associated comments if escapes are not found"
   ) {
-    EscapeHatch(noEscapes, untouchableTree, untouchableComments, EmptyDiff)
+    EscapeHatch(noEscapes, untouchableTree, EmptyDiff)
   }
 
   test(
     "`apply` should evaluate tree and associated comments if 'scalafix:ok' is found"
   ) {
-    val (input, tree, comments) = params(scalafixOk)
-
     intercept[DontTouchMe] {
-      EscapeHatch(input, untouchableTree, comments, EmptyDiff)
-    }
-    intercept[DontTouchMe] {
-      EscapeHatch(input, tree, untouchableComments, EmptyDiff)
+      EscapeHatch(scalafixOk, untouchableTree, EmptyDiff)
     }
   }
 
   test("`apply` should evaluate tree if 'scalafix:on|off' is found") {
-    val (input, tree, comments) = params(scalafixOnOff)
+    val (input, tree) = params(scalafixOnOff)
 
     intercept[DontTouchMe] {
-      EscapeHatch(input, untouchableTree, comments, EmptyDiff)
+      EscapeHatch(input, untouchableTree, EmptyDiff)
     }
     EscapeHatch(
       input,
       tree,
-      untouchableComments,
       EmptyDiff
     ) // should not touch comments
   }
 
   test("`apply` should evaluate tree if `@SuppressWarnings` is found") {
-    val (input, tree, comments) = params(suppressWarnings)
+    val (input, tree) = params(suppressWarnings)
 
     intercept[DontTouchMe] {
-      EscapeHatch(input, untouchableTree, comments, EmptyDiff)
+      EscapeHatch(input, untouchableTree, EmptyDiff)
     }
     EscapeHatch(
       input,
       tree,
-      untouchableComments,
       EmptyDiff
     ) // should not touch comments
   }
@@ -105,7 +95,6 @@ class EscapeHatchSuite extends AnyFunSuite {
       EscapeHatch(
         noEscapes,
         untouchableTree,
-        untouchableComments,
         EmptyDiff
       ).isEmpty
     )
@@ -125,52 +114,51 @@ class EscapeHatchSuite extends AnyFunSuite {
     implicit val idx = SemanticdbIndex.empty
     val patches = Map(RuleName("foo") -> Patch.empty)
     val hatch =
-      EscapeHatch(input, untouchableTree, untouchableComments, EmptyDiff)
+      EscapeHatch(input, untouchableTree, EmptyDiff)
 
     assert(hatch.filter(patches) == (List(Patch.empty), Nil))
   }
 
   test("should be empty if file contains no escapes nor git diffs") {
-    val (input, tree, comments) = params(noEscapes)
-    val hatch = EscapeHatch(input, tree, comments, EmptyDiff)
+    val (input, tree) = params(noEscapes)
+    val hatch = EscapeHatch(input, tree, EmptyDiff)
 
     assert(hatch.isEmpty)
   }
 
   test("should not be empty if file contains 'scalafix:ok'") {
-    val (input, tree, comments) = params(scalafixOk)
-    val hatch = EscapeHatch(input, tree, comments, EmptyDiff)
+    val (input, tree) = params(scalafixOk)
+    val hatch = EscapeHatch(input, tree, EmptyDiff)
 
     assert(!hatch.isEmpty)
   }
 
   test("should not be empty if file contains 'scalafix:on|off'") {
-    val (input, tree, comments) = params(scalafixOnOff)
-    val hatch = EscapeHatch(input, tree, comments, EmptyDiff)
+    val (input, tree) = params(scalafixOnOff)
+    val hatch = EscapeHatch(input, tree, EmptyDiff)
 
     assert(!hatch.isEmpty)
   }
 
   test("should not be empty if file contains `@SuppressWarnings`") {
-    val (input, tree, comments) = params(suppressWarnings)
-    val hatch = EscapeHatch(input, tree, comments, EmptyDiff)
+    val (input, tree) = params(suppressWarnings)
+    val hatch = EscapeHatch(input, tree, EmptyDiff)
 
     assert(!hatch.isEmpty)
   }
 
   test("should not be empty if there are git diffs") {
-    val (input, tree, comments) = params(noEscapes)
+    val (input, tree) = params(noEscapes)
     val diff = DiffDisable(List(NewFile(Paths.get("foo"))))
-    val hatch = EscapeHatch(input, tree, comments, diff)
+    val hatch = EscapeHatch(input, tree, diff)
 
     assert(!hatch.isEmpty)
   }
 
   private def params(
       input: Input
-  ): (Input, LazyValue[Tree], LazyValue[AssociatedComments]) = {
+  ): (Input, LazyValue[Tree]) = {
     val tree = input.parse[Source].get
-    val comments = AssociatedComments.apply(tree)
-    (input, LazyValue.now(tree), LazyValue.now(comments))
+    (input, LazyValue.now(tree))
   }
 }
