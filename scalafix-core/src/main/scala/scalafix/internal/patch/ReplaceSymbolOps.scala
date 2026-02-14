@@ -1,5 +1,7 @@
 package scalafix.internal.patch
 
+import scala.annotation.tailrec
+
 import scala.meta._
 import scala.meta.internal.trees._
 
@@ -20,10 +22,41 @@ object ReplaceSymbolOps {
     }
   }
 
+  private def extractImports(stats: Seq[Stat]): Seq[Import] = {
+    stats.collect { case i: Import => i }
+  }
+
+  private def getNamesOfExplicitlyImportedSymbols(tree: Tree): Set[String] = {
+    @tailrec
+    def getGlobalImports(ast: Tree): Seq[Import] = ast match {
+      case Pkg(_, Seq(pkg: Pkg)) => getGlobalImports(pkg)
+      case Source(Seq(pkg: Pkg)) => getGlobalImports(pkg)
+      case Pkg(_, stats) => extractImports(stats)
+      case Source(stats) => extractImports(stats)
+      case _ => Nil
+    }
+
+    val globalImports = getGlobalImports(tree)
+
+    // pre-compute global imported symbols for O(1) collision detection
+    // since ctx.addGlobalImport adds imports at global scope
+    globalImports.flatMap { importStat =>
+      importStat.importers.flatMap { importer =>
+        importer.importees.collect {
+          case Importee.Name(name) => name.value
+          case Importee.Rename(_, rename) => rename.value
+        }
+      }
+    }.toSet
+  }
+
   def naiveMoveSymbolPatch(
       moveSymbols: Seq[ReplaceSymbol]
   )(implicit ctx: RuleCtx, index: SemanticdbIndex): Patch = {
     if (moveSymbols.isEmpty) return Patch.empty
+
+    lazy val globalImportedNames = getNamesOfExplicitlyImportedSymbols(ctx.tree)
+
     val moves: Map[String, Symbol.Global] =
       moveSymbols.iterator.flatMap {
         case ReplaceSymbol(
@@ -126,10 +159,15 @@ object ReplaceSymbolOps {
             if sig.name != parent.value =>
           Patch.empty // do nothing because it was a renamed symbol
         case Some(_) =>
+          lazy val mayCauseCollision =
+            globalImportedNames.contains(to.signature.name)
           val addImport =
-            if (n.isDefinition) Patch.empty
+            if (n.isDefinition || mayCauseCollision) Patch.empty
             else ctx.addGlobalImport(to)
-          addImport + ctx.replaceTree(n, to.signature.name)
+          if (mayCauseCollision)
+            addImport + ctx.replaceTree(n, to.owner.syntax + to.signature.name)
+          else
+            addImport + ctx.replaceTree(n, to.signature.name)
         case _ =>
           Patch.empty
       }
