@@ -170,12 +170,12 @@ object ReplaceSymbolOps {
             if sig.name != parent.value =>
           Patch.empty // do nothing because it was a renamed symbol
         case Some(_) =>
-          lazy val causesCollision =
+          lazy val mayCauseCollision =
             importInfo.globalImportedSymbols.contains(to.signature.name)
           val addImport =
-            if (n.isDefinition || causesCollision) Patch.empty
+            if (n.isDefinition || mayCauseCollision) Patch.empty
             else ctx.addGlobalImport(to)
-          if (causesCollision)
+          if (mayCauseCollision)
             addImport + ctx.replaceTree(n, to.owner.syntax + to.signature.name)
           else
             addImport + ctx.replaceTree(n, to.signature.name)
