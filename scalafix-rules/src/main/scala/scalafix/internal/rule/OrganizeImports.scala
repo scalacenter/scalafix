@@ -122,8 +122,9 @@ class OrganizeImports(
       (for {
         imp <- imports
         importer <- imp.importers
-        comment <- comments.trailing(importer).headOption
-      } yield importer.pos.start -> (" " + comment.syntax)).toMap
+        trailing = comments.trailing(importer)
+        if trailing.nonEmpty
+      } yield importer.pos.start -> (" " + trailing.map(_.syntax).mkString(" "))).toMap
     }
 
     val noUnused = imports flatMap (_.importers) flatMap (
