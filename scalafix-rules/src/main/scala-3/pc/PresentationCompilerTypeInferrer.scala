@@ -35,7 +35,8 @@ final class PresentationCompilerTypeInferrer private (
   }
 
   def defnType(
-      replace: Token
+      replace: Token,
+      javaEnumWidening: Option[(String, String)] = None
   )(implicit
       ctx: SemanticDocument
   ): Option[Patch] =
@@ -69,12 +70,40 @@ final class PresentationCompilerTypeInferrer private (
                 beforeLine || beforeColumn
 
               }.last
-              Patch.addRight(last, edit.getNewText())
+              val editText = javaEnumWidening match {
+                case Some((constantName, enumClassName)) =>
+                  widenJavaEnumType(
+                    edit.getNewText(),
+                    constantName,
+                    enumClassName
+                  )
+                case None =>
+                  edit.getNewText()
+              }
+              Patch.addRight(last, editText)
             }
             .asPatch
             .atomic
       }
     }
+
+  /**
+   * Widen a Java enum singleton type in a text edit to its parent enum class.
+   *
+   * Handles two kinds of edits from the presentation compiler:
+   *   - Type annotation: `: DISPLAY.type` -> `: Category`
+   *   - Import: `import java.util.Locale.Category.DISPLAY` -> `import
+   *     java.util.Locale.Category`
+   */
+  private def widenJavaEnumType(
+      editText: String,
+      constantName: String,
+      enumClassName: String
+  ): String = {
+    editText
+      .replace(s": $constantName.type", s": $enumClassName")
+      .replace(s".$constantName", "")
+  }
 
 }
 
