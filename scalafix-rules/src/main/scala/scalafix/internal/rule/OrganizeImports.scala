@@ -176,11 +176,16 @@ class OrganizeImports(
       val tokensAfter = allTokens.drop(lastImportTokenEnd)
       val trailingCommentEnd = tokensAfter
         .takeWhile { t =>
-          t.is[Token.Comment] || t.is[Token.Space] || t.is[Token.Tab]
+          t.is[Token.Comment] ||
+            t.is[Token.Space] ||
+            t.is[Token.Tab] ||
+            t.is[Token.LF] ||
+            t.is[Token.CRLF]
         }
-        .lastOption
-        .collect { case c: Token.Comment =>
-          allTokens.indexOf(c) + 1
+        .reverse
+        .collectFirst {
+          case c: Token.Comment =>
+            allTokens.indexOf(c) + 1
         }
       trailingCommentEnd.getOrElse(lastImportTokenEnd)
     }
