@@ -358,13 +358,14 @@ case class Args(
     else Configured.error(s"--sourceroot $path is not a directory")
   }
 
-  private def containsScalaLibrary(classpath: Classpath): Boolean = {
-    classpath.entries.exists { path =>
-      Option(path.toNIO.getFileName).exists { fileName =>
-        val fileNameStr = fileName.toString
-        fileNameStr.contains("scala-library") || fileNameStr.contains("scala3-library")
+  private def containsScalaLibrary(classpath: Classpath): Boolean =
+  classpath.entries.exists { path =>
+    Option(path.toNIO.getFileName)
+      .map(_.toString)
+      .exists { name =>
+        name.contains("scala-library") ||
+        name.contains("scala3-library")
       }
-    }
   }
 
   private def resolveScalaLibrary: List[AbsolutePath] = {
