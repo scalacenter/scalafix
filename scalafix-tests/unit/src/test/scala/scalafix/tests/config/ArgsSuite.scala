@@ -105,6 +105,29 @@ class ArgsSuite extends munit.FunSuite {
     )
   }
 
+  test("scala-library is not duplicated when already in classpath") {
+    val scalaLibJar =
+      AbsolutePath("/fake/path/scala-library.jar")
+
+    val args: Args = Args.default.copy(
+      scalaVersion = ScalaVersion.from("2.13.10").get,
+      classpath = scalaLibJar :: Nil
+    )
+
+    val classpath = args.validatedClasspath
+
+    val scalaLibCount =
+      classpath.entries.count(
+        _.toNIO.getFileName.toString.contains("scala-library")
+      )
+
+    assertEquals(
+      scalaLibCount,
+      1,
+      "scala-library should not be duplicated if already provided by the user"
+    )
+  }
+
   test(
     "scala3-library is resolved when Scala 3 scalaVersion is fully specified"
   ) {
