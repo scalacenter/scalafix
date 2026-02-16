@@ -360,8 +360,10 @@ case class Args(
 
   private def containsScalaLibrary(classpath: Classpath): Boolean = {
     classpath.entries.exists { path =>
-      val fileName = path.toNIO.getFileName.toString
-      fileName.contains("scala-library") || fileName.contains("scala3-library")
+      Option(path.toNIO.getFileName).exists { fileName =>
+        val fileNameStr = fileName.toString
+        fileNameStr.contains("scala-library") || fileNameStr.contains("scala3-library")
+      }
     }
   }
 
