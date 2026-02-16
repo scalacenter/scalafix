@@ -13,6 +13,7 @@ import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 
 import scala.annotation.StaticAnnotation
+import scala.jdk.CollectionConverters._
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
@@ -36,6 +37,7 @@ import scalafix.internal.config.ScalaVersion.scala2
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
 import scalafix.internal.interfaces.MainCallbackImpl
+import scalafix.internal.interfaces.ScalafixCoursier
 import scalafix.internal.jgit.JGitDiff
 import scalafix.internal.reflect.ClasspathOps
 import scalafix.v1.Configuration
@@ -356,6 +358,34 @@ case class Args(
     else Configured.error(s"--sourceroot $path is not a directory")
   }
 
+  private def containsScalaLibrary(classpath: Classpath): Boolean =
+  classpath.entries.exists { path =>
+    Option(path.toNIO.getFileName)
+      .map(_.toString)
+      .exists { name =>
+        name.contains("scala-library") ||
+        name.contains("scala3-library")
+      }
+  }
+
+  private def resolveScalaLibrary: List[AbsolutePath] = {
+    // Only resolve if scalaVersion includes at least major.minor.patch
+    scalaVersion.patch match {
+      case Some(_) =>
+        Try {
+          ScalafixCoursier
+            .scalaLibrary(
+              coursierapi.Repository.defaults(),
+              scalaVersion.value
+            )
+            .asScala
+            .toList
+            .map(f => AbsolutePath(f.toPath))
+        }.getOrElse(Nil)
+      case None => Nil
+    }
+  }
+
   def validatedClasspath: Classpath = {
     val targetrootClasspath = semanticdbTargetroots match {
       case Nil =>
@@ -372,7 +402,13 @@ case class Args(
       } else {
         classpath
       }
-    Classpath(targetrootClasspath) ++ baseClasspath
+    val combinedClasspath = Classpath(targetrootClasspath) ++ baseClasspath
+    // Append scala-library if not already present and scalaVersion is fully specified
+    if (containsScalaLibrary(combinedClasspath)) {
+      combinedClasspath
+    } else {
+      combinedClasspath ++ Classpath(resolveScalaLibrary)
+    }
   }
 
   def classLoader: ClassLoader =

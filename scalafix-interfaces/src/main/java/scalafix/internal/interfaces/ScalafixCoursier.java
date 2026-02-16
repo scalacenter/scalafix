@@ -69,4 +69,15 @@ public class ScalafixCoursier {
                 .collect(Collectors.toList());
         return fetch(repositories, dependencies, excludeDepsInParentClassloader);
     }
+
+    public static List<File> scalaLibrary(
+            List<Repository> repositories,
+            String scalaVersion
+    ) throws ScalafixException {
+        String artifactId = scalaVersion.startsWith("3.")
+                ? "scala3-library_3"
+                : "scala-library";
+        Dependency scalaLibrary = Dependency.of("org.scala-lang", artifactId, scalaVersion);
+        return fetch(repositories, Collections.singletonList(scalaLibrary), ResolutionParams.create()).getFiles();
+    }
 }
