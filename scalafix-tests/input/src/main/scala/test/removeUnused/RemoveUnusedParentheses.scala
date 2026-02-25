@@ -22,6 +22,15 @@ object RemoveUnusedParentheses {
     // Complex expression with parentheses
     val e = (1 + 2) * 3
     
+    // Function call wrapped in parentheses - critical test case
+    val f = (Some(42))
+    
+    // Expression ending with function call wrapped in parentheses
+    val g = (List(1, 2, 3).head)
+    
+    // Nested function calls with parentheses
+    val h = (Option(Some(1)))
+    
     println("done")
   }
 }

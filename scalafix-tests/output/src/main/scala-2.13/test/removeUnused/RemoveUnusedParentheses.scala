@@ -17,6 +17,15 @@ object RemoveUnusedParentheses {
     // Complex expression with parentheses
     (1 + 2) * 3
     
+    // Function call wrapped in parentheses - critical test case
+    Some(42)
+    
+    // Expression ending with function call wrapped in parentheses
+    List(1, 2, 3).head
+    
+    // Nested function calls with parentheses
+    Option(Some(1))
+    
     println("done")
   }
 }

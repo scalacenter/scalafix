@@ -245,14 +245,11 @@ class RemoveUnused(config: RemoveUnusedConfig)
       val closingParensPatch = if (unmatchedLeftParenCount > 0) {
         // Find and remove the matching closing parentheses from defn tokens
         // that come after the tokens we're removing
-        val defnTokens = defn.tokens
-        val tokensToRemoveStarts = tokens.map(_.start).toSet
-        val remainingTokens =
-          defnTokens.dropWhile(t => tokensToRemoveStarts.contains(t.start))
+        val remainingTokens = defn.tokens.drop(tokens.length)
         val closingParens = remainingTokens
           .takeRightWhile(tk => tk.is[Token.RightParen] || tk.is[Trivia])
           .filter(_.is[Token.RightParen])
-          .take(unmatchedLeftParenCount)
+          .takeRight(unmatchedLeftParenCount)
         closingParens.map(Patch.removeToken).asPatch
       } else {
         Patch.empty
