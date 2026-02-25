@@ -11,6 +11,13 @@ object RemoveUnusedTerms {
     
     
     val xy = 42 // scalafix:ok RemoveUnusedTerms
+    // https://github.com/scalacenter/scalafix/issues/2061
+    3 + 4
+    3
+        + 4
+    3 + 4
+    println(0)
+    if (true) 1 else 2
   }
 
   val dd = 0

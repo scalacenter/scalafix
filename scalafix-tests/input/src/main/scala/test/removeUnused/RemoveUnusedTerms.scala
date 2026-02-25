@@ -15,6 +15,14 @@ object RemoveUnusedTerms {
     def c = "unused"
     def cc = println(5.0)
     val xy = 42 // scalafix:ok RemoveUnusedTerms
+    // https://github.com/scalacenter/scalafix/issues/2061
+    val d = (3 + 4)
+    val e: Int =
+      (3
+        + 4)
+    val f = ((3 + 4))
+    var g = (println(0))
+    val h = (if (true) 1 else 2)
   }
 
   val dd = 0
