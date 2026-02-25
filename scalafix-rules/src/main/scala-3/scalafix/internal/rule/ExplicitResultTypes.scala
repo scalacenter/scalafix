@@ -88,6 +88,36 @@ class Scala3Printer(
     pcTypeInferrer: Option[PresentationCompilerTypeInferrer]
 ) extends Printer {
 
+  private def defnBody(defn: Defn): Option[Term] = Option(defn).collect {
+    case Defn.Val(_, _, _, term) => term
+    case Defn.Var(_, _, _, Some(term)) => term
+    case Defn.Def(_, _, _, _, _, term) => term
+  }
+
+  /**
+   * Detects if the body of a definition refers to a Java enum constant. Returns
+   * Some((constantName, enumClassName)) if so, None otherwise.
+   *
+   * Starting with Scala 3.8.2, the presentation compiler returns singleton
+   * types (e.g. `DISPLAY.type`) for Java enum constants instead of the widened
+   * enum class type (e.g. `Category`). This mirrors what Scala 2 handles in
+   * CompilerTypePrinter.preProcess via JAVA_ENUM flag handling.
+   */
+  private def javaEnumWidening(
+      defn: Defn
+  )(implicit ctx: SemanticDocument): Option[(String, String)] = {
+    defnBody(defn).flatMap { body =>
+      val sym = body.symbol
+      sym.info.flatMap { si =>
+        if (si.isJava && si.isEnum) {
+          sym.owner.info.map { ownerInfo =>
+            (si.displayName, ownerInfo.displayName)
+          }
+        } else None
+      }
+    }
+  }
+
   def defnType(
       defn: Defn,
       replace: Token,
@@ -95,6 +125,6 @@ class Scala3Printer(
   )(implicit
       ctx: SemanticDocument
   ): Option[Patch] = {
-    pcTypeInferrer.flatMap(_.defnType(replace))
+    pcTypeInferrer.flatMap(_.defnType(replace, javaEnumWidening(defn)))
   }
 }
