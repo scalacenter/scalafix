@@ -121,7 +121,8 @@ class RemoveUnused(config: RemoveUnusedConfig)
           case t @ Pat.Typed(v: Pat.Var, _) if checkUnusedPatTree(t) =>
             Patch.replaceTree(v, "_")
           case b @ Pat.Bind(_, rhs) if checkUnusedPatTree(b) =>
-            Patch.removeTokens(leftTokens(b, rhs))
+            val (heading, trailing) = surroundingTokens(b, rhs)
+            Patch.removeTokens(heading ++ trailing)
         }
         cases
           .map { case Case(extract, _, _) => extract }
@@ -163,11 +164,15 @@ class RemoveUnused(config: RemoveUnusedConfig)
           defnPatch(i).asPatch.atomic
         case i @ Defn.Def(_, name, _, _, _, _) if isUnusedTerm(name.pos) =>
           defnPatch(i).asPatch.atomic
-        case i @ Defn.Val(_, List(pat), _, _)
-            if isUnusedTerm.exists(p => p.start == pat.pos.start) =>
+        case i @ Defn.Val(_, List(pat), _, _) if isUnusedTerm.exists { p =>
+              p.start == pat.pos.start ||
+              p.start == i.pos.start // scala 2.12
+            } =>
           defnPatch(i).asPatch.atomic
-        case i @ Defn.Var(_, List(pat), _, _)
-            if isUnusedTerm.exists(p => p.start == pat.pos.start) =>
+        case i @ Defn.Var(_, List(pat), _, _) if isUnusedTerm.exists { p =>
+              p.start == pat.pos.start ||
+              p.start == i.pos.start // scala 2.12
+            } =>
           defnPatch(i).asPatch.atomic
         case Term.Match(_, cases) =>
           patchPatVarsIn(cases)
@@ -200,21 +205,29 @@ class RemoveUnused(config: RemoveUnusedConfig)
     }
   }
 
-  // Given ("val x = 2", "2"), returns "val x = ".
-  private def leftTokens(t: Tree, right: Tree): Tokens =
-    t.tokens.dropRightWhile(_.start >= right.pos.start)
-
-  private def defnTokensToRemove(defn: Defn): Option[Tokens] = defn match {
-    case i @ Defn.Val(_, _, _, Lit(_)) => Some(i.tokens)
-    case i @ Defn.Val(_, _, _, rhs) => Some(leftTokens(i, rhs))
-    case i @ Defn.Var(_, _, _, Some(Lit(_))) => Some(i.tokens)
-    case i @ Defn.Var(_, _, _, rhs) => rhs.map(leftTokens(i, _))
-    case i: Defn.Def => Some(i.tokens)
-    case _ => None
+  // Returns the tokens of outer that surround inner: those before inner
+  // (heading) and those after inner (trailing). Callers can remove both to
+  // strip the definition while keeping inner and avoiding unbalanced parens.
+  // Given ("val x = 2", "2"), returns ("val x = ", Seq.empty).
+  // Given ("val x = (2 + 3)", "2 + 3"), returns ("val x = (", Seq(")")).
+  private def surroundingTokens(outer: Tree, inner: Tree): (Tokens, Tokens) = {
+    val heading = outer.tokens.takeWhile(_.start < inner.pos.start)
+    val trailing = outer.tokens.takeRightWhile(_.start >= inner.pos.end)
+    (heading, trailing)
   }
 
+  private def defnTokensToRemove(defn: Defn): Option[(Tokens, Seq[Token])] =
+    defn match {
+      case i @ Defn.Val(_, _, _, Lit(_)) => Some((i.tokens, Seq.empty))
+      case i @ Defn.Val(_, _, _, rhs) => Some(surroundingTokens(i, rhs))
+      case i @ Defn.Var(_, _, _, Some(Lit(_))) => Some((i.tokens, Seq.empty))
+      case i @ Defn.Var(_, _, _, rhs) => rhs.map(surroundingTokens(i, _))
+      case i: Defn.Def => Some((i.tokens, Seq.empty))
+      case _ => None
+    }
+
   private def defnPatch(defn: Defn): Option[Patch] =
-    defnTokensToRemove(defn).map { tokens =>
+    defnTokensToRemove(defn).map { case (heading, trailing) =>
       val maybeRHSBlock = defn match {
         case Defn.Val(_, _, _, x @ Term.Block(_)) => Some(x)
         case Defn.Var(_, _, _, Some(x @ Term.Block(_))) => Some(x)
@@ -229,17 +242,19 @@ class RemoveUnused(config: RemoveUnusedConfig)
         else "locally"
       }
 
-      maybeLocally match {
+      val headingPatch = maybeLocally match {
         case Some(locally) =>
           // Preserve comments between the LHS and the RHS, as well as
           // newlines & whitespaces for significant indentation
-          val tokensNoTrailingTrivia = tokens.dropRightWhile(_.is[Trivia])
+          val tokensNoTrailingTrivia = heading.dropRightWhile(_.is[Trivia])
 
           Patch.removeTokens(tokensNoTrailingTrivia) +
             tokensNoTrailingTrivia.lastOption.map(Patch.addRight(_, locally))
         case _ =>
-          Patch.removeTokens(tokens)
+          Patch.removeTokens(heading)
       }
+
+      headingPatch + Patch.removeTokens(trailing)
     }
 
   private def posExclParens(tree: Tree): Position = {
