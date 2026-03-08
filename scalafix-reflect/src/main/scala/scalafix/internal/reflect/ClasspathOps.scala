@@ -1,12 +1,14 @@
 package scalafix.internal.reflect
 
 import java.io.File
+import java.io.IOException
 import java.io.OutputStream
 import java.io.PrintStream
 import java.net.URL
 import java.net.URLClassLoader
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
+import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.SimpleFileVisitor
@@ -65,6 +67,7 @@ object ClasspathOps {
   private val SEMANTICDB = Paths.get("semanticdb")
 
   private def isTargetroot(path: Path): Boolean = {
+    !path.getFileName.toString.endsWith(".bak") &&
     path.toFile.isDirectory &&
     path.resolve(META_INF).toFile.isDirectory &&
     path.resolve(META_INF).resolve(SEMANTICDB).toFile.isDirectory
@@ -88,8 +91,21 @@ object ClasspathOps {
           FileVisitResult.CONTINUE
         }
       }
+
+      override def visitFileFailed(
+          file: Path,
+          exc: IOException
+      ): FileVisitResult = exc match {
+        case _: NoSuchFileException => FileVisitResult.CONTINUE
+        case _ => throw exc
+      }
     }
-    roots.foreach(x => Files.walkFileTree(x.toNIO, visitor))
+    roots.foreach { x =>
+      try Files.walkFileTree(x.toNIO, visitor)
+      catch {
+        case _: NoSuchFileException => ()
+      }
+    }
     roots.filter(isJar).foreach(buffer += _)
     Classpath(buffer.result())
   }
