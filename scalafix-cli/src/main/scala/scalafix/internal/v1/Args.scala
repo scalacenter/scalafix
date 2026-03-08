@@ -207,7 +207,8 @@ case class Args(
       case Success(symtab) =>
         Configured.ok(symtab)
       case Failure(e) =>
-        ConfError.message(s"Unable to load symbol table: ${e.getMessage}").notOk
+        val message = Option(e.getMessage).getOrElse(e.getClass.getName)
+        ConfError.message(s"Unable to load symbol table: $message").notOk
     }
   }
 

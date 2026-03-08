@@ -65,6 +65,7 @@ object ClasspathOps {
   private val SEMANTICDB = Paths.get("semanticdb")
 
   private def isTargetroot(path: Path): Boolean = {
+    !path.getFileName.toString.endsWith(".bak") &&
     path.toFile.isDirectory &&
     path.resolve(META_INF).toFile.isDirectory &&
     path.resolve(META_INF).resolve(SEMANTICDB).toFile.isDirectory

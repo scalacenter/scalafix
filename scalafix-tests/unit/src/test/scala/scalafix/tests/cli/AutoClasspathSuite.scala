@@ -24,4 +24,20 @@ class AutoClasspathSuite extends AnyFunSuite {
     val expected = Classpath(List(target, target2).map(AbsolutePath.apply))
     assert(obtained.entries.toSet == expected.entries.toSet)
   }
+
+  test("--classpath=auto excludes .bak directories") {
+    val tmp = File.createTempFile("foo", "bar")
+    assert(tmp.delete())
+    val target = tmp.toPath.resolve("target")
+    val targetBak = tmp.toPath.resolve("target.bak")
+    val semanticdb = target.resolve("META-INF").resolve("semanticdb")
+    val semanticdbBak = targetBak.resolve("META-INF").resolve("semanticdb")
+    assert(semanticdb.toFile.mkdirs())
+    // Create a .bak directory that looks like a valid semanticdb root
+    assert(semanticdbBak.toFile.mkdirs())
+    val obtained = ClasspathOps.autoClasspath(List(AbsolutePath(tmp)))
+    // Only the non-.bak directory should be included
+    val expected = Classpath(List(target).map(AbsolutePath.apply))
+    assert(obtained.entries.toSet == expected.entries.toSet)
+  }
 }
