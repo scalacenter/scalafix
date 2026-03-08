@@ -90,13 +90,11 @@ class AutoClasspathSuite extends AnyFunSuite {
       path
     }
     val deleterFailure = new AtomicReference[Throwable]()
-    val deleter = new Thread(new Runnable {
-      override def run(): Unit = {
+    val deleter = new Thread(() => {
         try transientRoots.foreach(deleteRecursively)
         catch {
           case e: Throwable => deleterFailure.set(e)
         }
-      }
     })
     deleter.start()
     try {
