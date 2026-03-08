@@ -165,7 +165,7 @@ object ReplaceSymbolOps {
             if (n.isDefinition || mayCauseCollision) Patch.empty
             else ctx.addGlobalImport(to)
           if (mayCauseCollision)
-            addImport + ctx.replaceTree(n, to.owner.syntax + to.signature.name)
+            addImport + ctx.replaceTree(n, SymbolOps.toTermRef(to).syntax)
           else
             addImport + ctx.replaceTree(n, to.signature.name)
         case _ =>

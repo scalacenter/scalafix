@@ -13,7 +13,7 @@ patches.replaceSymbols = [
   { from = "scala.collection.mutable.HashMap"
     to = "com.geirsson.mutable.unsafe.CoolMap" }
   { from = "scala.collection.immutable.TreeMap"
-    to = "com.geirsson.immutable.SortedMap" }
+    to = "com/geirsson/immutable/SortedMap#" }
   { from = "scala.math.sqrt"
     to = "com.geirsson.fastmath.sqrt" }
   // normalized symbol renames all overloaded methods
