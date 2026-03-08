@@ -1,6 +1,7 @@
 package scalafix.tests.cli
 
 import java.io.File
+import java.nio.file.Files
 
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
@@ -39,5 +40,12 @@ class AutoClasspathSuite extends AnyFunSuite {
     // Only the non-.bak directory should be included
     val expected = Classpath(List(target).map(AbsolutePath.apply))
     assert(obtained.entries.toSet == expected.entries.toSet)
+  }
+
+  test("--classpath=auto ignores missing roots") {
+    val tmp = Files.createTempDirectory("scalafix-auto-classpath")
+    Files.delete(tmp)
+    val obtained = ClasspathOps.autoClasspath(List(AbsolutePath(tmp)))
+    assert(obtained.entries.isEmpty)
   }
 }
