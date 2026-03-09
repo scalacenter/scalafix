@@ -13,7 +13,7 @@ patches.replaceSymbols = [
   { from = "scala.collection.mutable.HashMap"
     to = "com.geirsson.mutable.unsafe.CoolMap" }
   { from = "scala.collection.immutable.TreeMap"
-    to = "com.geirsson.immutable.SortedMap" }
+    to = "com/geirsson/immutable/SortedMap#" }
   { from = "scala.math.sqrt"
     to = "com.geirsson.fastmath.sqrt" }
   // normalized symbol renames all overloaded methods
@@ -27,6 +27,9 @@ patches.replaceSymbols = [
     to = "substringFrom" }
   { from = "java/lang/String#substring(+1)."
     to = "substringBetween" }
+  // same short name, different package
+  { from = "scala.util.Random"
+    to = "com.geirsson.Random." }
 ]
  */
 package fix
@@ -36,9 +39,11 @@ import scala.collection.mutable.HashMap
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable
 import scala.concurrent.Future
+import scala.util.Random
 
 object ReplaceSymbol {
   Future.successful(1 + 2)
+  Random.nextInt()
   math.sqrt(9)
   List(1).tail.mkString
   List(1).tail.mkString("blah")

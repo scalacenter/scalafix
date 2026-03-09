@@ -26,7 +26,10 @@ object ReplaceSymbolOps {
     stats.collect { case i: Import => i }
   }
 
-  private def getNamesOfExplicitlyImportedSymbols(tree: Tree): Set[String] = {
+  private def getNamesOfExplicitlyImportedSymbols(
+      tree: Tree,
+      isMoved: Name => Boolean
+  ): Set[String] = {
     @tailrec
     def getGlobalImports(ast: Tree): Seq[Import] = ast match {
       case Pkg(_, Seq(pkg: Pkg)) => getGlobalImports(pkg)
@@ -40,10 +43,12 @@ object ReplaceSymbolOps {
 
     // pre-compute global imported symbols for O(1) collision detection
     // since ctx.addGlobalImport adds imports at global scope
+    // exclude names whose symbols are being moved, as those imports
+    // will be removed and should not count as collisions
     globalImports.flatMap { importStat =>
       importStat.importers.flatMap { importer =>
         importer.importees.collect {
-          case Importee.Name(name) => name.value
+          case Importee.Name(name) if !isMoved(name) => name.value
           case Importee.Rename(_, rename) => rename.value
         }
       }
@@ -54,8 +59,6 @@ object ReplaceSymbolOps {
       moveSymbols: Seq[ReplaceSymbol]
   )(implicit ctx: RuleCtx, index: SemanticdbIndex): Patch = {
     if (moveSymbols.isEmpty) return Patch.empty
-
-    lazy val globalImportedNames = getNamesOfExplicitlyImportedSymbols(ctx.tree)
 
     val moves: Map[String, Symbol.Global] =
       moveSymbols.iterator.flatMap {
@@ -72,6 +75,9 @@ object ReplaceSymbolOps {
             (Symbol.Global(qual, Signature.Type(name)).syntax -> to) ::
             Nil
       }.toMap
+
+    lazy val globalImportedNames =
+      getNamesOfExplicitlyImportedSymbols(ctx.tree, Move.unapply(_).isDefined)
     def loop(ref: Ref, sym: Symbol, isImport: Boolean): (Patch, Symbol) = {
       (ref, sym) match {
         // same length
@@ -165,7 +171,7 @@ object ReplaceSymbolOps {
             if (n.isDefinition || mayCauseCollision) Patch.empty
             else ctx.addGlobalImport(to)
           if (mayCauseCollision)
-            addImport + ctx.replaceTree(n, to.owner.syntax + to.signature.name)
+            addImport + ctx.replaceTree(n, SymbolOps.toTermRef(to).syntax)
           else
             addImport + ctx.replaceTree(n, to.signature.name)
         case _ =>
