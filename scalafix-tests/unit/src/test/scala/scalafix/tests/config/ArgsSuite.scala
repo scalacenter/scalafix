@@ -91,4 +91,68 @@ class ArgsSuite extends munit.FunSuite {
     val classpath = args.validatedClasspath
     assert(classpath.entries.contains(AbsolutePath(targetRootPath)))
   }
+
+  test("scala-library is resolved when scalaVersion is fully specified") {
+    val args: Args = Args.default.copy(
+      scalaVersion = ScalaVersion.from("2.13.10").get
+    )
+    val classpath = args.validatedClasspath
+    assert(
+      classpath.entries.exists(
+        _.toNIO.getFileName.toString.contains("scala-library")
+      ),
+      "scala-library should be in classpath when scalaVersion is fully specified"
+    )
+  }
+
+  test("scala-library is not duplicated when already in classpath") {
+    val scalaLibJar =
+      AbsolutePath("/fake/path/scala-library.jar")
+
+    val args: Args = Args.default.copy(
+      scalaVersion = ScalaVersion.from("2.13.10").get,
+      classpath = scalaLibJar :: Nil
+    )
+
+    val classpath = args.validatedClasspath
+
+    val scalaLibCount =
+      classpath.entries.count(
+        _.toNIO.getFileName.toString.contains("scala-library")
+      )
+
+    assertEquals(
+      scalaLibCount,
+      1,
+      "scala-library should not be duplicated if already provided by the user"
+    )
+  }
+
+  test(
+    "scala3-library is resolved when Scala 3 scalaVersion is fully specified"
+  ) {
+    val args: Args = Args.default.copy(
+      scalaVersion = ScalaVersion.from("3.3.1").get
+    )
+    val classpath = args.validatedClasspath
+    assert(
+      classpath.entries.exists(
+        _.toNIO.getFileName.toString.contains("scala3-library")
+      ),
+      "scala3-library should be in classpath when Scala 3 version is fully specified"
+    )
+  }
+
+  test("scala-library is not resolved when scalaVersion is partial") {
+    val args: Args = Args.default.copy(
+      scalaVersion = ScalaVersion.from("2.13").get
+    )
+    val classpath = args.validatedClasspath
+    assert(
+      !classpath.entries.exists(
+        _.toNIO.getFileName.toString.contains("scala-library")
+      ),
+      "scala-library should not be auto-resolved when scalaVersion is partial"
+    )
+  }
 }
