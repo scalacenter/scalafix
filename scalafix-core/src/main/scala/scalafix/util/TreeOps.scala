@@ -25,22 +25,9 @@ object TreeExtractors {
   object Mods {
     def unapply(tree: Tree): Option[List[Mod]] = tree match {
       case Ctor.Primary(mods, _, _) => Some(mods)
-      case Ctor.Secondary(mods, _, _, _, _) => Some(mods)
-      case Decl.Def(mods, _, _, _, _) => Some(mods)
-      case Decl.Type(mods, _, _, _) => Some(mods)
-      case Decl.Val(mods, _, _) => Some(mods)
-      case Decl.Var(mods, _, _) => Some(mods)
-      case Defn.Class(mods, _, _, _, _) => Some(mods)
-      case Defn.Def(mods, _, _, _, _, _) => Some(mods)
-      case Defn.Macro(mods, _, _, _, _, _) => Some(mods)
-      case Defn.Object(mods, _, _) => Some(mods)
-      case Defn.Trait(mods, _, _, _, _) => Some(mods)
-      case Defn.Type(mods, _, _, _) => Some(mods)
-      case Defn.Val(mods, _, _, _) => Some(mods)
-      case Defn.Var(mods, _, _, _) => Some(mods)
-      case Pkg.Object(mods, _, _) => Some(mods)
       case Term.Param(mods, _, _, _) => Some(mods)
       case Type.Param(mods, _, _, _, _, _) => Some(mods)
+      case t: Stat.WithMods => Some(t.mods)
       case _ => None
     }
   }

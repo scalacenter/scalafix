@@ -6,6 +6,7 @@ import scala.meta.Source
 import scala.meta.Tree
 import scala.meta.XtensionParseInputLike
 import scala.meta.inputs.Input
+import scala.meta.parsers.Parse
 
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.internal.config.ScalafixConfig
@@ -144,6 +145,22 @@ class EscapeHatchSuite extends AnyFunSuite {
     val (input, tree) = params(suppressWarnings)
     val hatch = EscapeHatch(input, tree, EmptyDiff)
 
+    assert(!hatch.isEmpty)
+  }
+
+  test("should not be empty if file contains `@SuppressWarnings` given") {
+    val input = Input.String(
+      """|@SuppressWarnings(Array("all"))
+        |given Foo = foo
+        |""".stripMargin
+    )
+    val tree = implicitly[Parse[Source]]
+      .apply(
+        input,
+        scala.meta.dialects.Scala3
+      )
+      .get
+    val hatch = EscapeHatch(input, LazyValue.now(tree), EmptyDiff)
     assert(!hatch.isEmpty)
   }
 
