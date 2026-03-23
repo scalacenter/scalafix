@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: coursier/setup-action@v2
+      - uses: coursier/setup-action@v3
         with:
           apps: sbt
           jvm: temurin:17 # needed for scala 3.8+ modules, all others are producing Java 8 bytecode 
