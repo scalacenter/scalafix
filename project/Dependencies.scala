@@ -12,7 +12,7 @@ object Dependencies {
   val scala35 = "3.5.2"
   val scala36 = "3.6.4"
   val scala37 = "3.7.4"
-  val scala38 = "3.8.2" // Upon bump, check if javaEnumWidening is still needed
+  val scala38 = "3.8.3" // Upon bump, check if javaEnumWidening is still needed (https://github.com/scala/scala3/pull/25469)
   val scala3LTS = scala33
   val scala3Next = sys.props.getOrElse("scala3.nightly", scala38)
 

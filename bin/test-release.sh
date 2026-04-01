@@ -6,7 +6,7 @@ version=$1
 scala212=2.12.21
 scala213=2.13.18
 scala3LTS=3.3.7
-scala3Next=3.8.2
+scala3Next=3.8.3
 
 cs resolve \
   ch.epfl.scala:scalafix-interfaces:$version  \
