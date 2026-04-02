@@ -440,16 +440,28 @@ class OrganizeImports(
         // Note that the IntelliJ IDEA Scala import optimizer does not handle this case properly
         // either. If a name is renamed more than once, it only keeps one of the renames in the
         // result and may break compilation (unless other renames are not actually referenced).
-        val renames = nonGivens
-          .collect { case rename: Importee.Rename => rename }
-          .groupBy(_.name.value)
-          .map {
-            case (_, rename :: Nil) => rename
-            case (_, renames @ (head @ Importee.Rename(from, _)) :: _) =>
-              diagnostics += TooManyAliases(from, renames)
-              head
+        // Use a LinkedHashMap to preserve the original source order of renames.
+        // A plain groupBy loses insertion order (Scala's small Map iterates in
+        // hash order), which causes preserveOriginalImportersFormatting to fail
+        // its syntax-equality lookup and return a positionless importer,
+        // ultimately collapsing multi-line imports into a single line.
+        val renames = {
+          val grouped =
+            mutable.LinkedHashMap.empty[String, List[Importee.Rename]]
+          nonGivens.collect { case rename: Importee.Rename => rename }.foreach {
+            rename =>
+              grouped(rename.name.value) =
+                grouped.getOrElse(rename.name.value, Nil) :+ rename
           }
-          .toList
+          grouped.flatMap {
+            case (_, rename :: Nil) => Some(rename)
+            case (_, renames @ (head :: _)) =>
+              diagnostics += TooManyAliases(head.name, renames)
+              Some(head)
+            case (_, Nil) =>
+              None // unreachable: grouped only holds non-empty lists
+          }.toList
+        }
 
         // Collects distinct explicitly imported names, and filters out those that are also renamed.
         // If an explicitly imported name is also renamed, both the original name and the new name
