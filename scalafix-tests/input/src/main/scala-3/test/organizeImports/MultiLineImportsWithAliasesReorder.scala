@@ -8,7 +8,7 @@ OrganizeImports {
  */
 package test.organizeImports
 
-// Imports are in WRONG order: TreeMap before HashMap - rule must reorder and will lose multi-line format
+// Imports are in WRONG order: TreeMap before HashMap - rule must reorder
 import scala.collection.immutable.{
   TreeMap as TMap,
   HashMap as HMap,

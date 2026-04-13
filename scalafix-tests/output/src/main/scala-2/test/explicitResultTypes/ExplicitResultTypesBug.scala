@@ -3,7 +3,7 @@ package test.explicitResultTypes
 import scala.collection.{mutable => mut}
 import scala.reflect.runtime.universe._
 import java.{util => ju}
-import test.explicitResultTypes.testpkg.{ O3, O4 }
+import test.explicitResultTypes.testpkg.{O3, O4}
 
 object ExplicitResultTypesBug {
 
