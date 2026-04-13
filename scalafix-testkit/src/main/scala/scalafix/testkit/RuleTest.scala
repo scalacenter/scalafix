@@ -28,7 +28,11 @@ object RuleTest {
       val dialect = args.scalaVersion.dialect(args.sourceScalaVersion)
       val tree = dialect(input).parse[Source].get
       val (_, conf, rulesConf, scalafixConfig) =
-        SemanticRuleSuite.parseTestkitComment(tree.tokens)
+        SemanticRuleSuite.parseTestkitCommentOpt(tree.tokens).getOrElse {
+          throw new IllegalArgumentException(
+            s"Missing /* */ comment with rules attribute in $input"
+          )
+        }
       val doc = v1.SyntacticDocument(
         tree.pos.input,
         LazyValue.now(tree),

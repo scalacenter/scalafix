@@ -3,7 +3,6 @@ package scalafix.testkit
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 
-import scala.meta._
 import scala.meta.internal.io.FileIO
 
 import org.scalatest.BeforeAndAfterAll
@@ -52,8 +51,7 @@ abstract class AbstractSemanticRuleSuite(
       res.fixed,
       "fixed from tokenPatchApply differs from fixed2 from rule.semanticPatch"
     )
-    val tokens = fixed.tokenize.get
-    val obtained = SemanticRuleSuite.stripTestkitComments(tokens)
+    val obtained = SemanticRuleSuite.stripTestkitComments(fixed)
     val expected = diffTest.path.resolveOutput(props) match {
       case Right(file) =>
         FileIO.slurp(file, StandardCharsets.UTF_8)

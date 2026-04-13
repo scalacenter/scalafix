@@ -28,7 +28,7 @@ object SemanticRuleSuite {
     stripTestkitComments(input.tokenize.get)
 
   def stripTestkitComments(tokens: Tokens): String = {
-    val configComment = findTestkitComment(tokens)
+    val configComment = parseTestkitCommentOpt(tokens).fold(null: Token)(_._1)
     tokens.filter {
       case `configComment` => false
       case EndOfLineAssertExtractor(_) => false
@@ -43,34 +43,44 @@ object SemanticRuleSuite {
   def parseTestkitComment(
       tokens: Tokens
   ): (Token, Conf, Conf, ScalafixConfig) = {
-    def extractTestkitHints(comment: Token) = {
-      val syntax = comment.syntax.stripPrefix("/*").stripSuffix("*/")
-      for {
-        conf <- Try(Conf.parseString("comment", syntax)).toOption
-          .flatMap(_.toEither.toOption)
-        rulesConf <-
-          ConfGet
-            .getOrElse(
-              Configured.ok,
-              ConfError.message("").notOk
-            )(conf, "rules" :: "rule" :: Nil)
-            .toEither
-            .toOption
-        scalafixConfig <- conf.as[ScalafixConfig].toEither.toOption
-      } yield (comment, conf, rulesConf, scalafixConfig)
+    parseTestkitCommentOpt(tokens).getOrElse {
+      val input = tokens.headOption.fold("the file")(_.input.syntax)
+      throw new IllegalArgumentException(
+        s"Missing /* */ comment with rules attribute in $input"
+      )
+    }
+  }
+
+  private[scalafix] def parseTestkitCommentOpt(
+      tokens: Tokens
+  ): Option[(Token.Comment, Conf, Conf, ScalafixConfig)] = {
+    def extractTestkitHints(token: Token) = token match {
+      case comment: Token.Comment =>
+        val origSyntax = comment.syntax
+        val syntaxNoPrefix = origSyntax.stripPrefix("/*")
+        if (origSyntax eq syntaxNoPrefix) None
+        else {
+          val syntax = syntaxNoPrefix.stripSuffix("*/")
+          for {
+            conf <- Try(Conf.parseString("comment", syntax)).toOption
+              .flatMap(_.toEither.toOption)
+            rulesConf <- ConfGet
+              .getOrElse(
+                Configured.ok,
+                ConfError.empty.notOk
+              )(conf, "rules" :: "rule" :: Nil)
+              .toEither
+              .toOption
+            scalafixConfig <- conf.as[ScalafixConfig].toEither.toOption
+          } yield (comment, conf, rulesConf, scalafixConfig)
+        }
+      case _ => None
     }
 
     // It is possible to have comments which are not valid HOCON with
     // rules (i.e. license headers), so lets parse until we find one
-    tokens
-      .filter(token => token.is[Token.Comment] && token.syntax.startsWith("/*"))
-      .collectFirst(Function.unlift(extractTestkitHints))
-      .getOrElse {
-        val input = tokens.headOption.fold("the file")(_.input.syntax)
-        throw new IllegalArgumentException(
-          s"Missing /* */ comment with rules attribute in $input"
-        )
-      }
+    val iter = tokens.iterator.flatMap(extractTestkitHints)
+    if (iter.hasNext) Some(iter.next()) else None
   }
 
 }
