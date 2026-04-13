@@ -14,7 +14,7 @@ class TokenListSuite extends AnyFunSuite {
       |
       |object Bar {
       | val baz   =   10
-      |}""".stripMargin.tokenize.get
+      |}""".stripMargin.parse[Source].get.tokens
   val tokenList: TokenList = TokenList(tokens)
 
   val unknownToken = new Token.EOF(Input.None, Scala212)
