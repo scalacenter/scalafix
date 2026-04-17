@@ -345,9 +345,10 @@ class OrganizeImports(
     val seenImportees = mutable.Set.empty[(String, String)]
 
     importers flatMap { importer =>
+      val ref = treeSyntax(importer.ref)
       importer filterImportees { importee =>
         importee.is[Importee.Wildcard] || importee.is[Importee.GivenAll] ||
-        seenImportees.add(importee.syntax -> importer.ref.syntax)
+        seenImportees.add(treeSyntax(importee) -> ref)
       }
     }
   }
@@ -396,7 +397,7 @@ class OrganizeImports(
       importers: Seq[Importer],
       aggressive: Boolean
   ): Seq[Importer] =
-    importers.groupBy(_.ref.syntax).values.toSeq.flatMap {
+    importers.groupBy(i => treeSyntax(i.ref)).values.toSeq.flatMap {
       case importer :: Nil =>
         // If this group has only one importer, returns it as is to preserve the original source
         // level formatting.
@@ -652,7 +653,7 @@ class OrganizeImports(
 
     val orderedImportees = config.importSelectorsOrder match {
       case Ascii =>
-        Seq(others, wildcards) map (_.sortBy(_.syntax)) reduce (_ ++ _)
+        Seq(others, wildcards) map (_.sortBy(treeSyntax)) reduce (_ ++ _)
       case SymbolsFirst =>
         Seq(others, wildcards) map sortImporteesSymbolsFirst reduce (_ ++ _)
       case Keep =>
@@ -664,7 +665,7 @@ class OrganizeImports(
     val alreadySorted =
       config.importSelectorsOrder == Keep ||
         (importer.importees corresponds orderedImportees) { (lhs, rhs) =>
-          lhs.syntax == rhs.syntax
+          treeSyntax(lhs) == treeSyntax(rhs)
         }
 
     if (alreadySorted) importer else importer.copy(importees = orderedImportees)
@@ -1026,17 +1027,21 @@ object OrganizeImports {
   private def sortImporteesSymbolsFirst(
       importees: List[Importee]
   ): List[Importee] = {
-    val symbols = ArrayBuffer.empty[Importee]
-    val lowerCases = ArrayBuffer.empty[Importee]
-    val upperCases = ArrayBuffer.empty[Importee]
+    val symbols = ArrayBuffer.empty[(Importee, String)]
+    val lowerCases = ArrayBuffer.empty[(Importee, String)]
+    val upperCases = ArrayBuffer.empty[(Importee, String)]
 
-    importees.foreach {
-      case i if i.syntax.head.isLower => lowerCases += i
-      case i if i.syntax.head.isUpper => upperCases += i
-      case i => symbols += i
+    importees.foreach { i =>
+      val syntax = treeSyntax(i)
+      val head = syntax.head
+      val buf =
+        if (head.isLower) lowerCases
+        else if (head.isUpper) upperCases
+        else symbols
+      buf += i -> syntax
     }
 
-    List(symbols, lowerCases, upperCases) flatMap (_ sortBy (_.syntax))
+    List(symbols, lowerCases, upperCases) flatMap (_ sortBy (_._2) map (_._1))
   }
 
   private def explodeImportees(importers: Seq[Importer]): Seq[Importer] =
@@ -1080,11 +1085,13 @@ object OrganizeImports {
       newImporteeLists: Seq[List[Importee]],
       newImporterRef: Term.Ref
   ) = {
-    val importerSyntaxMap = importers.map { i => i.copy().syntax -> i }.toMap
+    val importerSyntaxMap = importers.map { i =>
+      treeSyntax(i.copy()) -> i
+    }.toMap
 
     newImporteeLists filter (_.nonEmpty) map { importees =>
       val newImporter = Importer(newImporterRef, importees)
-      importerSyntaxMap.getOrElse(newImporter.syntax, newImporter)
+      importerSyntaxMap.getOrElse(treeSyntax(newImporter), newImporter)
     }
   }
 
@@ -1174,4 +1181,9 @@ object OrganizeImports {
     def infoNoThrow(implicit doc: SemanticDocument): Option[SymbolInformation] =
       Try(symbol.info).toOption.flatten
   }
+
+  @inline
+  private def treeSyntax(tree: Tree)(implicit dialect: Dialect): String =
+    tree.syntax
+
 }
