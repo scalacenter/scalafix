@@ -219,6 +219,14 @@ class LegacyCodePrinter(doc: SemanticDocument) {
     case s.TypeApplyTree(fn, targs) =>
       loop(fn)
       mkString("[", targs, "]")(pprint)
+    case tree: s.AssignTree =>
+      loop(tree.lhs)
+      text.append(" = ")
+      loop(tree.rhs)
+    case tree: s.AnnotationTree =>
+      text.append('@')
+      pprint(tree.tpe)
+      mkString("(", tree.arguments, ")")(loop)
   }
 
   def convertSynthetic(synthetic: s.Synthetic): v0.Synthetic = {
