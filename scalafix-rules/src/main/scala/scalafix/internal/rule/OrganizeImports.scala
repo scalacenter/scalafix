@@ -448,28 +448,15 @@ class OrganizeImports(
         // Note that the IntelliJ IDEA Scala import optimizer does not handle this case properly
         // either. If a name is renamed more than once, it only keeps one of the renames in the
         // result and may break compilation (unless other renames are not actually referenced).
-        val renames = {
-          // Use a LinkedHashMap to preserve the original source order of renames.
-          // A plain groupBy loses insertion order (Scala's small Map iterates in
-          // hash order), which causes preserveOriginalImportersFormatting to fail
-          // its syntax-equality lookup and return a positionless importer,
-          // ultimately collapsing multi-line imports into a single line.
-          val grouped =
-            mutable.LinkedHashMap.empty[String, List[Importee.Rename]]
-          nonGivens.collect { case rename: Importee.Rename => rename }.foreach {
-            rename =>
-              grouped(rename.name.value) =
-                grouped.getOrElse(rename.name.value, Nil) :+ rename
-          }
-          grouped.flatMap {
-            case (_, rename :: Nil) => Some(rename)
-            case (_, renames @ (head :: _)) =>
+        val renames = nonGivens
+          .collect { case rename: Importee.Rename => rename }
+          .groupBy(_.name.value)
+          .map { case (_, renames @ head :: rest) =>
+            if (rest.nonEmpty)
               diagnostics += TooManyAliases(head.name, renames)
-              Some(head)
-            case (_, Nil) =>
-              None // unreachable: grouped only holds non-empty lists
-          }.toList
-        }
+            head
+          }
+          .toList
 
         // Collects distinct explicitly imported names, and filters out those that are also renamed.
         // If an explicitly imported name is also renamed, both the original name and the new name
@@ -488,9 +475,7 @@ class OrganizeImports(
         //   import p.{A => A1, B => B1}
         val (renamedImportedNames, importedNames) = {
           val renamedNames =
-            renames.map { case Importee.Rename(Name(from), _) =>
-              from
-            }.toSet
+            renames.map { case Importee.Rename(Name(from), _) => from }.toSet
 
           nonGivens
             .filter(_.is[Importee.Name])
@@ -676,10 +661,7 @@ class OrganizeImports(
       token: Token,
       importGroups: Seq[ImportGroup]
   ): Patch = {
-    val prettyPrintedGroups = importGroups.map {
-      case ImportGroup(index, imports) =>
-        index -> prettyPrintImportGroup(imports)
-    }
+    val prettyPrintedGroups = prettyPrintImportGroups(importGroups)
 
     // Indices of all blank lines configured in `OrganizeImports.groups`, either automatically or
     // manually.
@@ -730,89 +712,11 @@ class OrganizeImports(
     Patch.addLeft(token, sb.toString())
   }
 
-  private def prettyPrintImportGroup(group: Seq[Importer]): Seq[String] =
-    group
-      .map(i => "import " + importerSyntax(i))
-
-  private def importerSyntax(importer: Importer): String =
-    importer.pos match {
-      case pos: Position.Range =>
-        // Position found, implies that `importer` was directly parsed from the source code. Rewrite
-        // importees to ensure they follow the target dialect. For importers with a single importee,
-        // strip enclosing braces if they exist (or add/preserve them for Rename & Unimport on Scala 2).
-
-        val syntax = new StringBuilder(pos.text)
-
-        def patchSyntax(
-            t: Tree,
-            newSyntax: String
-        ) = {
-          val start = t.pos.start - pos.start
-          syntax.replace(start, t.pos.end - pos.start, newSyntax)
-
-          if (importer.importees.length == 1) {
-            val end = t.pos.start - pos.start + newSyntax.length
-            (
-              syntax.take(start).lastIndexOf('{'),
-              syntax.indexOf('}', end),
-              importer.isCurlyBraced
-            ) match {
-              case (-1, -1, true) =>
-                // braces required but not detected
-                syntax.append('}')
-                syntax.insert(start, '{')
-              case (opening, closing, false)
-                  if opening != -1 && closing != -1 =>
-                // braces detected but not required
-                syntax.delete(end, closing + 1)
-                syntax.delete(opening, start)
-              case _ =>
-            }
-          }
-        }
-
-        // traverse & patch backwards to avoid shifting indices
-        importer.importees.reverse.foreach {
-          case i @ Importee.Rename(_, _) =>
-            patchSyntax(i, i.copy().syntax)
-          case i @ Importee.Unimport(_) =>
-            patchSyntax(i, i.copy().syntax)
-          case i @ Importee.Wildcard() =>
-            patchSyntax(i, i.copy().syntax)
-          case i =>
-            patchSyntax(i, i.syntax)
-        }
-
-        syntax.toString
-
-      case Position.None =>
-        // Position not found, implies that `importer` is derived from certain existing import
-        // statement(s). Pretty-prints it.
-        val syntax = importer.syntax
-
-        // HACK: The Scalafix pretty-printer decides to add spaces after open and
-        // before close braces in imports with multiple importees, i.e., `import a.{
-        // b, c }` instead of `import a.{b, c}`. On the other hand, renames are
-        // pretty-printed without the extra spaces, e.g., `import a.{b => c}`. This
-        // behavior is not customizable and makes ordering imports by ASCII order
-        // complicated.
-        //
-        // This function removes the unwanted spaces as a workaround. In cases where
-        // users do want the inserted spaces, Scalafmt should be used after running
-        // the `OrganizeImports` rule.
-
-        // NOTE: We need to check whether the input importer is curly braced first and then replace
-        // the first "{ " and the last " }" if any. Naive string replacement is insufficient, e.g.,
-        // a quoted-identifier like "`{ d }`" may cause broken output.
-        (importer.isCurlyBraced, syntax lastIndexOfSlice " }") match {
-          case (_, -1) =>
-            syntax
-          case (true, index) =>
-            syntax.patch(index, "}", 2).replaceFirst("\\{ ", "{")
-          case _ =>
-            syntax
-        }
-    }
+  private def prettyPrintImportGroups(
+      groups: Seq[ImportGroup]
+  ): Seq[(Int, Seq[String])] = {
+    groups.map(g => g.index -> g.imports.map("import " + treeSyntax(_)))
+  }
 
   implicit private class ImporterExtension(importer: Importer) {
 
@@ -1082,9 +986,7 @@ object OrganizeImports {
       newImporteeLists: Seq[List[Importee]],
       refImporter: Importer
   ) = {
-    val importerSyntaxMap = importers.map { i =>
-      treeSyntax(i.copy()) -> i
-    }.toMap
+    val importerSyntaxMap = importers.map { i => treeSyntax(i) -> i }.toMap
 
     newImporteeLists filter (_.nonEmpty) map { importees =>
       val newImporter = refImporter.copy(importees = importees)
@@ -1181,6 +1083,6 @@ object OrganizeImports {
 
   @inline
   private def treeSyntax(tree: Tree)(implicit dialect: Dialect): String =
-    tree.syntax
+    tree.reprint()
 
 }

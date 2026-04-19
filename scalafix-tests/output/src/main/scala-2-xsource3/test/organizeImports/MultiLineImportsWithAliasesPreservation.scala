@@ -4,7 +4,7 @@ package test.organizeImports
 import scala.collection.immutable.{
   HashMap as HMap,
   ListMap as LMap,
-  TreeMap as TMap,
+  TreeMap as TMap
 }
 
 object MultiLineImportsWithAliasesPreservation
