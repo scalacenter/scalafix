@@ -681,25 +681,32 @@ class OrganizeImports(
         index -> prettyPrintImportGroup(imports)
     }
 
-    val blankLines = {
-      // Indices of all blank lines configured in `OrganizeImports.groups`, either automatically or
-      // manually.
-      val blankLineIndices = matchers.zipWithIndex.collect {
-        case (`---`, index) => index
-      }.toSet
+    // Indices of all blank lines configured in `OrganizeImports.groups`, either automatically or
+    // manually.
+    val blankLineIndices = matchers.zipWithIndex
+      .collect { case (`---`, index) => index }
+      .iterator
+      .buffered
+    def skipOneBlankLineIndex(index: Int): Boolean = {
+      val ok = blankLineIndices.headOption.exists(_ <= index)
+      if (ok) blankLineIndices.next()
+      ok
+    }
+    def skipBlankLineIndices(index: Int): Unit =
+      while (skipOneBlankLineIndex(index)) {}
 
-      // Checks each pair of adjacent import groups. Inserts a blank line between them if necessary.
-      importGroups map (_.index) sliding 2 filter (_.length == 2) flatMap {
-        case Seq(lhs, rhs) =>
-          val hasBlankLine = blankLineIndices exists (i => lhs < i && i < rhs)
-          if (hasBlankLine) Some((lhs + 1) -> "") else None
-      }
+    prettyPrintedGroups.headOption.foreach { case (index, _) =>
+      skipBlankLineIndices(index) // skip leading blanks before first group
     }
 
-    val withBlankLines = (prettyPrintedGroups ++ blankLines)
-      .sortBy { case (index, _) => index }
-      .map { case (_, lines) => lines }
-      .mkString("\n")
+    val withBlankLines = prettyPrintedGroups.iterator
+      .flatMap { case (index, lines) =>
+        val blankIter =
+          if (skipOneBlankLineIndex(index - 1)) Iterator.single("")
+          else Iterator.empty
+        skipBlankLineIndices(index)
+        blankIter ++ lines.flatMap(_.linesIterator)
+      }
 
     // Global imports within curly-braced packages must be indented accordingly, e.g.:
     //
@@ -709,20 +716,23 @@ class OrganizeImports(
     //       import qux
     //     }
     //   }
-    val indented = withBlankLines.linesIterator.zipWithIndex.map {
+    val indent = " " * token.pos.startColumn
+    val sb = new StringBuilder
+    withBlankLines.foreach { line =>
       // The first line will be inserted at an already indented position.
-      case (line, 0) => line
-      case (line, _) if line.isEmpty => line
-      case (line, _) => " " * token.pos.startColumn + line
+      if (sb.nonEmpty) {
+        sb.append('\n')
+        if (line.nonEmpty) sb.append(indent)
+      }
+      sb.append(line)
     }
 
-    Patch.addLeft(token, indented mkString "\n")
+    Patch.addLeft(token, sb.toString())
   }
 
-  private def prettyPrintImportGroup(group: Seq[Importer]): String =
+  private def prettyPrintImportGroup(group: Seq[Importer]): Seq[String] =
     group
       .map(i => "import " + importerSyntax(i))
-      .mkString("\n")
 
   private def importerSyntax(importer: Importer): String =
     importer.pos match {
