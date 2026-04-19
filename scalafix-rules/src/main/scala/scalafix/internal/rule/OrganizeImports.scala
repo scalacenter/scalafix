@@ -353,21 +353,46 @@ class OrganizeImports(
       }
     } map (x => sortImportees(coalesceImportees(x)))
 
+    def appendImportees(imps: Iterable[Importee], sb: StringBuilder): Unit = {
+      val sblen = sb.length
+      imps.foreach { imp =>
+        if (sb.length > sblen) sb.append(", ")
+        sb.append(treeSyntax(imp))
+      }
+    }
+    type SortFunc = (StringBuilder, Boolean, List[Importee]) => Unit
+    def sortSyntax(f: SortFunc)(imp: Importer): String = {
+      implicit val sb = new StringBuilder
+      sb.append(treeSyntax(imp.ref)).append('.')
+      f(sb, imp.isCurlyBraced, imp.importees)
+      sb.toString()
+    }
+    val sortSyntaxFunc: SortFunc = (sb, inBraces, imps) => {
+      if (inBraces) sb.append('{')
+      appendImportees(imps, sb)
+      if (inBraces) sb.append('}')
+    }
+    val symbolsSortFunc: SortFunc = (sb, inBraces, imps) => {
+      if (inBraces) sb.append('\u0002')
+      imps match {
+        case (_: Importee.Wildcard) :: Nil => sb.append('\u0001')
+        case _ => appendImportees(imps, sb)
+      }
+      if (inBraces) sb.append('\u0002')
+    }
+    def sortImporters[A: Ordering](f: Importer => A) =
+      importeesSorted map (x => x -> f(x)) sortBy (_._2) map (_._1)
+
     config.importsOrder match {
-      // https://github.com/liancheng/scalafix-organize-imports/issues/84: The Scalameta `Tree` node pretty-printer
-      // checks whether the node originates directly from the parser. If yes, the original source
-      // code text is returned, and may interfere imports sort order. The `.copy()` call below
-      // erases the source position information so that the pretty-printer would actually
-      // pretty-print an `Importer` into a single line.
       case ImportsOrder.Ascii =>
-        importeesSorted sortBy (i => importerSyntax(i.copy()))
+        sortImporters(sortSyntax(sortSyntaxFunc))
       case ImportsOrder.AsciiCaseInsensitive =>
-        importeesSorted sortBy (i => {
-          val text = importerSyntax(i.copy())
+        sortImporters { x =>
+          val text = sortSyntax(sortSyntaxFunc)(x)
           (text.toLowerCase, text)
-        })
+        }
       case ImportsOrder.SymbolsFirst =>
-        sortImportersSymbolsFirst(importeesSorted)
+        sortImporters(sortSyntax(symbolsSortFunc))
       case ImportsOrder.Keep =>
         importeesSorted
     }
@@ -580,31 +605,6 @@ class OrganizeImports(
           newImporteeListsWithGivens,
           ref
         )
-    }
-
-  private def sortImportersSymbolsFirst(
-      importers: Seq[Importer]
-  ): Seq[Importer] =
-    importers.sortBy { importer =>
-      // See the comment marked with "issues/84" for why a `.copy()` is needed.
-      val syntax = importer.copy().syntax
-
-      importer match {
-        case Importer(_, Importee.Wildcard() :: Nil) =>
-          val wildcardSyntax = Importee.Wildcard().syntax
-          syntax.patch(
-            syntax.lastIndexOfSlice(s".$wildcardSyntax"),
-            ".\u0001",
-            2
-          )
-
-        case _ if importer.isCurlyBraced =>
-          syntax
-            .replaceFirst("[{]", "\u0002")
-            .patch(syntax.lastIndexOf("}"), "\u0002", 1)
-
-        case _ => syntax
-      }
     }
 
   private def coalesceImportees(importer: Importer): Importer = {
