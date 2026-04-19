@@ -208,7 +208,7 @@ class OrganizeImports(
 
       if (!rewritten) Some(importer)
       else if (noUnused.isEmpty) None
-      else Some(importer.copy(importees = noUnused))
+      else Some(importer.copyWithComments(importees = noUnused))
     }
 
   private def partitionImplicits(
@@ -218,7 +218,7 @@ class OrganizeImports(
       case importer @ Importer(_, importees) =>
         importees collect {
           case i: Importee.Name if i.symbol.infoNoThrow exists (_.isImplicit) =>
-            importer.copy(importees = i :: Nil) -> i.pos
+            importer.copyWithComments(importees = i :: Nil) -> i.pos
         }
     }.unzip
 
@@ -301,7 +301,7 @@ class OrganizeImports(
     val fullyQualifiedTopQualifier =
       toFullyQualifiedRef(topQualifierOf(importer.ref).symbol)
 
-    importer.copy(
+    importer.copyWithComments(
       ref = replaceTopQualifier(importer.ref, fullyQualifiedTopQualifier)
     )
   }
@@ -385,7 +385,7 @@ class OrganizeImports(
         // level formatting.
         importer :: Nil
 
-      case group @ Importer(ref, _) :: _ =>
+      case group @ (ref: Importer) :: _ =>
         val importeeLists = group map (_.importees)
         val hasWildcard = group exists (_.hasWildcard)
         val hasGivenAll = group exists (_.hasGivenAll)
@@ -651,7 +651,8 @@ class OrganizeImports(
           treeSyntax(lhs) == treeSyntax(rhs)
         }
 
-    if (alreadySorted) importer else importer.copy(importees = orderedImportees)
+    if (alreadySorted) importer
+    else importer.copyWithComments(importees = orderedImportees)
   }
 
   /**
@@ -838,7 +839,7 @@ class OrganizeImports(
       val filtered = importer.importees filter f
       if (filtered.length == importer.importees.length) Some(importer)
       else if (filtered.isEmpty) None
-      else Some(importer.copy(importees = filtered))
+      else Some(importer.copyWithComments(importees = filtered))
     }
 
     /** Returns true if the `Importer` contains a standalone wildcard. */
@@ -1045,7 +1046,7 @@ object OrganizeImports {
         importer :: Nil
 
       case importer @ Importer(
-            ref,
+            _,
             Importees(names, renames, unimports, givens, givenAll, wildcard)
           ) if givenAll.isDefined || wildcard.isDefined =>
         // When a wildcard exists, all renames, unimports, and the wildcard must appear in the same
@@ -1061,10 +1062,16 @@ object OrganizeImports {
           (names ++ givens).map(
             _ :: Nil
           ) :+ (renames ++ unimports ++ wildcard ++ givenAll)
-        preserveOriginalImportersFormatting(Seq(importer), importeesList, ref)
+        preserveOriginalImportersFormatting(
+          Seq(importer),
+          importeesList,
+          importer
+        )
 
       case importer =>
-        importer.importees map (i => importer.copy(importees = i :: Nil))
+        importer.importees map (i =>
+          importer.copyWithComments(importees = i :: Nil)
+        )
     }
 
   /**
@@ -1076,14 +1083,14 @@ object OrganizeImports {
   private def preserveOriginalImportersFormatting(
       importers: Seq[Importer],
       newImporteeLists: Seq[List[Importee]],
-      newImporterRef: Term.Ref
+      refImporter: Importer
   ) = {
     val importerSyntaxMap = importers.map { i =>
       treeSyntax(i.copy()) -> i
     }.toMap
 
     newImporteeLists filter (_.nonEmpty) map { importees =>
-      val newImporter = Importer(newImporterRef, importees)
+      val newImporter = refImporter.copyWithComments(importees = importees)
       importerSyntaxMap.getOrElse(treeSyntax(newImporter), newImporter)
     }
   }
