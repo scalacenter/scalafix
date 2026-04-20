@@ -10,8 +10,7 @@ import scala.meta.*
 import scala.meta.inputs.Input.File
 import scala.meta.inputs.Input.VirtualFile
 import scala.meta.pc.PresentationCompiler
-import scala.meta.trees.Origin.DialectOnly
-import scala.meta.trees.Origin.Parsed
+import scala.meta.trees.Origin
 
 import scalafix.internal.v1.LazyValue
 import scalafix.patch.Patch
@@ -44,9 +43,7 @@ final class PresentationCompilerTypeInferrer private (
       pc <- pc.value
     } yield {
       ctx.tree.origin match {
-        case _: DialectOnly => empty
-        case scala.meta.trees.Origin.None => empty
-        case parsed: Parsed =>
+        case parsed: Origin.Parsed =>
           val text = parsed.source.input.text
           val uri = parsed.source.input match {
             // case Ammonite(input) =>
@@ -63,7 +60,7 @@ final class PresentationCompilerTypeInferrer private (
           result.asScala.toList
             .map { edit =>
               val start = edit.getRange().getStart()
-              val last = ctx.tokens.tokens.takeWhile { token =>
+              val last = ctx.tokens.takeWhile { token =>
                 val beforeLine = token.pos.endLine < start.getLine()
                 val beforeColumn = token.pos.endLine == start
                   .getLine() && token.pos.endColumn <= start.getCharacter()
@@ -84,6 +81,7 @@ final class PresentationCompilerTypeInferrer private (
             }
             .asPatch
             .atomic
+        case _ => empty
       }
     }
 
