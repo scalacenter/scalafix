@@ -5,26 +5,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 
-import scala.meta.Dialect
-import scala.meta.Import
-import scala.meta.Importee
-import scala.meta.Importee.GivenAll
-import scala.meta.Importee.Wildcard
-import scala.meta.Importer
-import scala.meta.Name
-import scala.meta.Pkg
-import scala.meta.Source
-import scala.meta.Stat
-import scala.meta.Term
-import scala.meta.Tree
-import scala.meta.XtensionClassifiable
-import scala.meta.XtensionCollectionLikeUI
-import scala.meta.XtensionSyntax
-import scala.meta.dialects
-import scala.meta.inputs.Input.File
-import scala.meta.inputs.Input.VirtualFile
-import scala.meta.inputs.Position
-import scala.meta.tokens.Token
+import scala.meta._
 
 import metaconfig.Conf
 import metaconfig.ConfDecoder
@@ -79,10 +60,10 @@ class OrganizeImports(
 
   override def fix(implicit doc: SemanticDocument): Patch = {
     (doc.input, scala3DialectForScala3Paths) match {
-      case (File(path, _), true)
+      case (Input.File(path, _), true)
           if path.toFile.getAbsolutePath.contains("scala-3/") =>
         scala3TargetDialect.fixWithImplicitDialect(doc)
-      case (VirtualFile(path, _), true) if path.contains("scala-3/") =>
+      case (Input.VirtualFile(path, _), true) if path.contains("scala-3/") =>
         scala3TargetDialect.fixWithImplicitDialect(doc)
       case _ =>
         fixWithImplicitDialect(doc)
@@ -563,14 +544,14 @@ class OrganizeImports(
             //      import p.{A => A1, _}
             //
             //    Otherwise, the original name `A` is no longer available.
-            if (aggressive) Seq(renames, Wildcard() :: Nil)
-            else Seq(renames, importedNames :+ Wildcard())
+            if (aggressive) Seq(renames, Importee.Wildcard() :: Nil)
+            else Seq(renames, importedNames :+ Importee.Wildcard())
 
           case (false, Some(lastUnimports)) =>
             // A wildcard must be appended for unimports.
             Seq(
               renamedImportedNames,
-              importedNames ++ renames ++ lastUnimports :+ Wildcard()
+              importedNames ++ renames ++ lastUnimports :+ Importee.Wildcard()
             )
 
           case (false, None) =>
@@ -582,12 +563,12 @@ class OrganizeImports(
          * with the wildcard import.
          */
         val newImporteeListsWithGivens = if (hasGivenAll) {
-          if (aggressive) mergedNonGivens :+ List(GivenAll())
-          else mergedNonGivens :+ (givens :+ GivenAll())
+          if (aggressive) mergedNonGivens :+ List(Importee.GivenAll())
+          else mergedNonGivens :+ (givens :+ Importee.GivenAll())
         } else {
           lastUnimportsWithGivenAll match {
             case Some(unimports) =>
-              mergedNonGivens :+ (givens ++ unimports :+ GivenAll())
+              mergedNonGivens :+ (givens ++ unimports :+ Importee.GivenAll())
             case None =>
               mergedNonGivens :+ givens
           }
@@ -633,9 +614,10 @@ class OrganizeImports(
       // Skips if there's no `Name`s or `Given`s. `Rename`s and `Unimport`s cannot be coalesced.
       .filterNot(_ => names.isEmpty && givens.isEmpty)
       .map {
-        case _ if givens.isEmpty => renames ++ unimports :+ Wildcard()
-        case _ if names.isEmpty => renames ++ unimports :+ GivenAll()
-        case _ => renames ++ unimports :+ GivenAll() :+ Wildcard()
+        case _ if givens.isEmpty => renames ++ unimports :+ Importee.Wildcard()
+        case _ if names.isEmpty => renames ++ unimports :+ Importee.GivenAll()
+        case _ =>
+          renames ++ unimports :+ Importee.GivenAll() :+ Importee.Wildcard()
       }
       .map(importees => importer.copy(importees = importees))
       .getOrElse(importer)
