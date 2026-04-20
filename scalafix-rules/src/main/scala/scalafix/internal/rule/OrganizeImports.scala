@@ -332,10 +332,11 @@ class OrganizeImports(
   ): Seq[ImportGroup] =
     importers
       .groupBy(matchImportGroup) // Groups imports by importer prefix.
-      .mapValues(
-        deduplicateImportees _ andThen organizeImportGroup(diagnostics)
-      )
-      .map { case (index, imports) => ImportGroup(index, imports) }
+      .map { case (index, grouped) =>
+        val organized =
+          organizeImportGroup(diagnostics)(deduplicateImportees(grouped))
+        ImportGroup(index, organized)
+      }
       .toSeq
       .sortBy(_.index)
 
@@ -368,7 +369,7 @@ class OrganizeImports(
         case GroupedImports.Keep =>
           importers
       }
-    } map (coalesceImportees _ andThen sortImportees)
+    } map (x => sortImportees(coalesceImportees(x)))
 
     config.importsOrder match {
       // https://github.com/liancheng/scalafix-organize-imports/issues/84: The Scalameta `Tree` node pretty-printer
