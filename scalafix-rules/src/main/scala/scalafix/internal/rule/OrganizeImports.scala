@@ -208,7 +208,7 @@ class OrganizeImports(
 
       if (!rewritten) Some(importer)
       else if (noUnused.isEmpty) None
-      else Some(importer.copyWithComments(importees = noUnused))
+      else Some(importer.copy(importees = noUnused))
     }
 
   private def partitionImplicits(
@@ -218,7 +218,7 @@ class OrganizeImports(
       case importer @ Importer(_, importees) =>
         importees collect {
           case i: Importee.Name if i.symbol.infoNoThrow exists (_.isImplicit) =>
-            importer.copyWithComments(importees = i :: Nil) -> i.pos
+            importer.copy(importees = i :: Nil) -> i.pos
         }
     }.unzip
 
@@ -301,7 +301,7 @@ class OrganizeImports(
     val fullyQualifiedTopQualifier =
       toFullyQualifiedRef(topQualifierOf(importer.ref).symbol)
 
-    importer.copyWithComments(
+    importer.copy(
       ref = replaceTopQualifier(importer.ref, fullyQualifiedTopQualifier)
     )
   }
@@ -651,8 +651,7 @@ class OrganizeImports(
           treeSyntax(lhs) == treeSyntax(rhs)
         }
 
-    if (alreadySorted) importer
-    else importer.copyWithComments(importees = orderedImportees)
+    if (alreadySorted) importer else importer.copy(importees = orderedImportees)
   }
 
   /**
@@ -839,7 +838,7 @@ class OrganizeImports(
       val filtered = importer.importees filter f
       if (filtered.length == importer.importees.length) Some(importer)
       else if (filtered.isEmpty) None
-      else Some(importer.copyWithComments(importees = filtered))
+      else Some(importer.copy(importees = filtered))
     }
 
     /** Returns true if the `Importer` contains a standalone wildcard. */
@@ -1069,9 +1068,7 @@ object OrganizeImports {
         )
 
       case importer =>
-        importer.importees map (i =>
-          importer.copyWithComments(importees = i :: Nil)
-        )
+        importer.importees map (i => importer.copy(importees = i :: Nil))
     }
 
   /**
@@ -1090,7 +1087,7 @@ object OrganizeImports {
     }.toMap
 
     newImporteeLists filter (_.nonEmpty) map { importees =>
-      val newImporter = refImporter.copyWithComments(importees = importees)
+      val newImporter = refImporter.copy(importees = importees)
       importerSyntaxMap.getOrElse(treeSyntax(newImporter), newImporter)
     }
   }
