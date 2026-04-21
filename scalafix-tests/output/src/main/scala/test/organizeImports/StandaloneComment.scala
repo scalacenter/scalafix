@@ -1,7 +1,7 @@
 package test.organizeImports
 
-// This comment is ambiguous and not linked to a specific import
 import x.X
+// This comment is ambiguous and not linked to a specific import
 import y.Y
 
 object StandaloneComment {

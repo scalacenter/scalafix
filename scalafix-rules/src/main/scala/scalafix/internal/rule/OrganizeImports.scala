@@ -137,12 +137,15 @@ class OrganizeImports(
     )
 
     // Builds a patch that removes all the tokens forming the original imports.
-    val removalPatch = Patch.removeTokens(
-      doc.tree.tokens.slice(
-        imports.head.tokens.start,
-        imports.last.tokens.end
-      )
-    )
+    val removalPatch = Patch.removeTokens {
+      val importsWithComments = Seq.newBuilder[Tokens]
+      imports.foreach { x =>
+        importsWithComments += x.tokens
+        x.begComment.foreach(importsWithComments += _.tokens)
+        x.endComment.foreach(importsWithComments += _.tokens)
+      }
+      Tokens.merge(importsWithComments.result(): _*).iterator.flatten
+    }
 
     (insertionPatch + removalPatch).atomic
   }
@@ -715,7 +718,46 @@ class OrganizeImports(
   private def prettyPrintImportGroups(
       groups: Seq[ImportGroup]
   ): Seq[(Int, Seq[String])] = {
-    groups.map(g => g.index -> g.imports.map("import " + treeSyntax(_)))
+    // within each group, for each Importer, get a list of Imports its Importees come from
+    // after re-assembly, an Importer might contain Importees from different Imports
+    // NB: to find Imports, need to trace parents of the original parsed tree
+    val groupsWithImports = groups.map { ig =>
+      ig.index -> ig.imports.map { i1 =>
+        val i1o = i1.originalPrototype()
+        val i1p = i1o.parent.filter(_.hasComments)
+        val i2ps = i1.importees.flatMap { i2 =>
+          val i2p = i2.originalPrototype().parent.getOrElse(i1o)
+          if (i2p eq i1o) None else i2p.parent.filter(_.hasComments)
+        }
+        (i1, i1p.fold(i2ps)(_ :: i2ps).distinct)
+      }
+    }
+
+    // make sure to print each comment only once
+    val commentsPrinted = mutable.Set.empty[Tree.Comments]
+    groupsWithImports.map { case (index, ig) =>
+      val res = Seq.newBuilder[String]
+
+      def appendBegComment(pc: Tree.Comments): Unit =
+        if (commentsPrinted.add(pc))
+          pc.values.foreach(x => res += x.syntax)
+
+      ig.foreach { case (i, ps) =>
+        val sb = new StringBuilder
+        def appendEndComment(pc: Tree.Comments): Unit =
+          if (commentsPrinted.add(pc))
+            pc.values.foreach(x => sb.append(' ').append(x.syntax))
+
+        ps.foreach(_.begComment.foreach(appendBegComment))
+        i.begComment.foreach(appendBegComment)
+        sb.append("import ").append(treeSyntax(i))
+        i.endComment.foreach(appendEndComment)
+        ps.foreach(_.endComment.foreach(appendEndComment))
+        res += sb.toString()
+      }
+
+      index -> res.result()
+    }
   }
 
   implicit private class ImporterExtension(importer: Importer) {

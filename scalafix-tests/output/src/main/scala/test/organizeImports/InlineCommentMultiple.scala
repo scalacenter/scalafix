@@ -1,7 +1,7 @@
 package test.organizeImports
 
-import a.A
-import b.B
+import a.A // anote
+import b.B // bnote
 import c.C
 
 object InlineCommentMultiple {

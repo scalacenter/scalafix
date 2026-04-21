@@ -1,8 +1,9 @@
 package test.organizeImports
 
-// Leading comment for Z
+// Leading comment for A
 import a.A
 import b.B
+// Leading comment for Z
 import z.Z
 
 object InlineCommentLeading {

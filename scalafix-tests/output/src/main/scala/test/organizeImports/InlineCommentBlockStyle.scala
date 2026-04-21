@@ -1,8 +1,8 @@
 package test.organizeImports
 
-import a.A
+import a.A /* block comment for A */
 import b.B
-import z.Z
+import z.Z /* block comment for Z */
 
 object InlineCommentBlockStyle {
   val keep = 1
