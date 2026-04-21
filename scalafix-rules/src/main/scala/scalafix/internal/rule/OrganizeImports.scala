@@ -440,7 +440,7 @@ class OrganizeImports(
         }.flatten
 
         val (givens, nonGivens) =
-          group.flatMap(_.importees).toList.partition(_.is[Importee.Given])
+          group.flatMap(_.importees).partition(_.is[Importee.Given])
 
         // Here we assume that a name is renamed at most once within a single source file, which is
         // true in most cases.
@@ -661,16 +661,11 @@ class OrganizeImports(
    * match the given import, the one matches the longest prefix wins.
    */
   private def matchImportGroup(importer: Importer): Int = {
-    val matchedGroups = matchers
+    val (length, index) = matchers
       .map(_ matches importer)
       .zipWithIndex
-      .filter { case (length, _) => length > 0 }
-
-    if (matchedGroups.isEmpty) wildcardGroupIndex
-    else {
-      val (_, index) = matchedGroups.maxBy { case (length, _) => length }
-      index
-    }
+      .maxBy(_._1)
+    if (length > 0) index else wildcardGroupIndex
   }
 
   private def insertOrganizedImports(
