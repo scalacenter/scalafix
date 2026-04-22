@@ -455,7 +455,7 @@ lazy val docs = projectMatrix
     fork := true,
     run / baseDirectory := (ThisBuild / baseDirectory).value,
     moduleName := "scalafix-docs",
-    scalacOptions += "-Wconf:msg='match may not be exhaustive':s", // silence exhaustive pattern matching warning for documentation
+    scalacOptions += "-Wconf:cat=other-match-analysis:s", // silence exhaustive pattern matching warning for documentation
     scalacOptions += "-Werror",
     mdoc := (Compile / run).evaluated,
     libraryDependencies ++= Seq(
