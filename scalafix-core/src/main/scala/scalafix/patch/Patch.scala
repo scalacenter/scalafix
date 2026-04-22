@@ -1,5 +1,7 @@
 package scalafix.patch
 
+import scala.annotation.nowarn
+
 import scala.meta._
 
 import org.scalameta.logger
@@ -137,13 +139,15 @@ object Patch {
    */
   def removeGlobalImport(
       symbol: v1.Symbol
-  )(implicit c: SemanticContext): Patch =
+  )(implicit @nowarn c: SemanticContext): Patch =
     RemoveGlobalImport(v0.Symbol(symbol.value))
 
   /**
    * Place named import for this symbol at the bottom of the global import list
    */
-  def addGlobalImport(symbol: v1.Symbol)(implicit c: SemanticContext): Patch =
+  def addGlobalImport(symbol: v1.Symbol)(implicit
+      @nowarn c: SemanticContext
+  ): Patch =
     AddGlobalSymbol(v0.Symbol(symbol.value))
 
   /**
@@ -159,7 +163,7 @@ object Patch {
    */
   def replaceSymbols(
       toReplace: (String, String)*
-  )(implicit c: SemanticContext): Patch =
+  )(implicit @nowarn c: SemanticContext): Patch =
     toReplace.foldLeft(Patch.empty) { case (a, (from, to)) =>
       val (fromSymbol, toSymbol) =
         ScalafixMetaconfigReaders.parseReplaceSymbol(from, to).get
@@ -168,7 +172,7 @@ object Patch {
 
   /** Replace occurrences of fromSymbol to use toName instead */
   def renameSymbol(fromSymbol: v1.Symbol, toName: String)(implicit
-      c: SemanticContext
+      @nowarn c: SemanticContext
   ): Patch =
     ReplaceSymbol(
       v0.Symbol(fromSymbol.value).asInstanceOf[v0.Symbol.Global],

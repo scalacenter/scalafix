@@ -1,5 +1,7 @@
 package scalafix.v0
 
+import scala.annotation.nowarn
+
 import scala.meta.internal.semanticdb.Scala._
 
 import scalafix.internal.util.SymbolOps.Root
@@ -162,6 +164,8 @@ object Symbol {
     }
     naiveParser.entryPoint()
   }
-  def unapply(sym: String)(implicit index: SemanticdbIndex): Option[Symbol] =
+  def unapply(sym: String)(implicit
+      @nowarn index: SemanticdbIndex
+  ): Option[Symbol] =
     scala.util.Try(apply(sym)).toOption
 }

@@ -292,6 +292,17 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     versionPolicyIntention := Compatibility.BinaryCompatible,
     scalacOptions += "-Wconf:origin=scala.collection.compat.*:s",
     scalacOptions ++= compilerOptions.value,
+    scalacOptions ++= {
+      if (isScala3.value)
+        Seq(
+          "-Wconf:msg=is no longer supported for vararg splices:s",
+          "-Wconf:msg=@nowarn annotation does not suppress any warnings:s"
+        )
+      else
+        Seq(
+          "-Wconf:cat=unused-nowarn:s"
+        )
+    },
     scalacOptions ++= semanticdbSyntheticsCompilerOption.value,
     Compile / console / scalacOptions :=
       compilerOptions.value :+ "-Yrepl-class-based",

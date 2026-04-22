@@ -199,10 +199,7 @@ case class Args(
 
   def configuredSymtab: Configured[SymbolTable] = {
     Try(
-      ClasspathOps.newSymbolTable(
-        classpath = validatedClasspath,
-        out = out
-      )
+      ClasspathOps.newSymbolTable(classpath = validatedClasspath)
     ) match {
       case Success(symtab) =>
         Configured.ok(symtab)
@@ -309,7 +306,7 @@ case class Args(
               )
             )
           )
-          Ok(replacePath _)
+          Ok(replacePath)
         } catch {
           case e: PatternSyntaxException =>
             ConfError
@@ -457,19 +454,20 @@ object Args extends TPrintImplicits {
   }
 
   def decoder(base: Args): ConfDecoder[Args] = {
+    implicit val cwd = base.cwd
     implicit val classpathDecoder: ConfDecoder[Classpath] =
       ConfDecoder.stringConfDecoder.map { cp =>
         Classpath(
           cp.split(File.pathSeparator)
             .iterator
-            .map(path => AbsolutePath(path)(base.cwd))
+            .map(path => AbsolutePath(path))
             .toList
         )
       }
     implicit val classLoaderDecoder: ConfDecoder[URLClassLoader] =
       ConfDecoder[Classpath].map(ClasspathOps.toClassLoader)
     implicit val absolutePathDecoder: ConfDecoder[AbsolutePath] =
-      ConfDecoder.stringConfDecoder.map(AbsolutePath(_)(base.cwd))
+      ConfDecoder.stringConfDecoder.map(AbsolutePath(_))
     generic.deriveDecoder(base)
   }
 

@@ -45,7 +45,7 @@ class EscapeHatchSuite extends AnyFunSuite {
     """.stripMargin
   )
 
-  private class DontTouchMe(who: String) extends RuntimeException
+  private class DontTouchMe(who: String) extends RuntimeException(who)
   private lazy val untouchableTree: LazyValue[Tree] =
     LazyValue.later(() => throw new DontTouchMe("tree"))
 

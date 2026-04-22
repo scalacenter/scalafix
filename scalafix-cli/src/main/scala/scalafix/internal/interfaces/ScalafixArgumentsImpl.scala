@@ -19,6 +19,7 @@ import scala.meta.io.Classpath
 
 import coursierapi.Repository
 import metaconfig.Conf
+import metaconfig.ConfDecoder
 import metaconfig.Configured
 import scalafix.Versions
 import scalafix.cli.ExitStatus
@@ -33,6 +34,8 @@ import scalafix.v1.RuleDecoder
 
 final case class ScalafixArgumentsImpl(args: Args = Args.default)
     extends ScalafixArguments {
+
+  private implicit val cwd: AbsolutePath = args.cwd
 
   override def run(): Array[ScalafixError] = {
     val exit = MainOps.run(Array(), args)
@@ -177,7 +180,7 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
   override def withPaths(paths: util.List[Path]): ScalafixArguments = {
     copy(
       args = args.copy(
-        files = paths.asScala.iterator.map(AbsolutePath(_)(args.cwd)).toList
+        files = paths.asScala.iterator.map(AbsolutePath(_)).toList
       )
     )
   }
@@ -193,7 +196,7 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
   }
 
   override def withConfig(path: Optional[Path]): ScalafixArguments = {
-    val abspath = Option(path.orElse(null)).map(p => AbsolutePath(p)(args.cwd))
+    val abspath = Option(path.orElse(null)).map(p => AbsolutePath(p))
     copy(args = args.copy(config = abspath))
   }
 
@@ -216,10 +219,10 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
   ): ScalafixArguments = {
     if (args.isEmpty) this
     else {
-      val decoder = Args.decoder(this.args)
+      implicit val decoder: ConfDecoder[Args] = Args.decoder(this.args)
       val newArgs = Conf
         .parseCliArgs[Args](args.asScala.toList)
-        .andThen(c => c.as[Args](decoder)) match {
+        .andThen(c => c.as[Args]) match {
         case Configured.Ok(value) =>
           value
         case Configured.NotOk(error) =>
@@ -235,14 +238,13 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
   override def withClasspath(path: util.List[Path]): ScalafixArguments =
     copy(
       args = args.copy(
-        classpath =
-          Classpath(path.asScala.iterator.map(AbsolutePath(_)(args.cwd)).toList)
+        classpath = Classpath(path.asScala.iterator.map(AbsolutePath(_)).toList)
       )
     )
 
   override def withSourceroot(path: Path): ScalafixArguments = {
     require(path.isAbsolute, s"sourceroot must be absolute: $path")
-    copy(args = args.copy(sourceroot = Some(AbsolutePath(path)(args.cwd))))
+    copy(args = args.copy(sourceroot = Some(AbsolutePath(path))))
   }
 
   override def withSemanticdbTargetroots(
@@ -250,7 +252,7 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
   ): ScalafixArguments = {
     copy(args =
       args.copy(semanticdbTargetroots =
-        paths.asScala.toList.map(AbsolutePath(_)(args.cwd))
+        paths.asScala.toList.map(AbsolutePath(_))
       )
     )
   }

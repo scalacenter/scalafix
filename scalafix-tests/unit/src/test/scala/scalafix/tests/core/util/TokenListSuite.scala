@@ -20,10 +20,10 @@ class TokenListSuite extends AnyFunSuite {
   val unknownToken = new Token.EOF(Input.None, Scala212)
 
   test("leading returns all preceding tokens") {
-    val Some(bar) = tokens.find {
+    val bar = tokens.find {
       case Token.Ident("Bar") => true
       case _ => false
-    }
+    }.get
 
     val leading = tokenList.leading(bar).toVector
     assert(leading.size == 8)
@@ -41,10 +41,10 @@ class TokenListSuite extends AnyFunSuite {
   }
 
   test("trailing returns all following tokens") {
-    val Some(baz) = tokens.find {
+    val baz = tokens.find {
       case Token.Ident("baz") => true
       case _ => false
-    }
+    }.get
 
     val trailing = tokenList.trailing(baz).toVector
     assert(trailing.size == 11)
@@ -122,8 +122,8 @@ class TokenListSuite extends AnyFunSuite {
   }
 
   test("slice returns tokens between `from` (inclusive) and `to`") {
-    val Some(kwObject) = tokens.find(_.is[Token.KwObject])
-    val Some(leftBrace) = tokens.find(_.is[Token.LeftBrace])
+    val kwObject = tokens.find(_.is[Token.KwObject]).get
+    val leftBrace = tokens.find(_.is[Token.LeftBrace]).get
 
     val slice = tokenList.slice(kwObject, leftBrace)
     assert(slice.size == 4)
@@ -135,7 +135,7 @@ class TokenListSuite extends AnyFunSuite {
   }
 
   test("leadingSpaces returns all spaces preceding a token") {
-    val Some(equals) = tokens.find(_.is[Token.Equals])
+    val equals = tokens.find(_.is[Token.Equals]).get
 
     val spaces = tokenList.leadingSpaces(equals)
     assert(spaces.size == 3)
@@ -148,13 +148,13 @@ class TokenListSuite extends AnyFunSuite {
   test(
     "leadingSpaces returns an empty seq if there's no space preceding a token"
   ) {
-    val Some(kwPackage) = tokens.find(_.is[Token.KwPackage])
+    val kwPackage = tokens.find(_.is[Token.KwPackage]).get
 
     assert(tokenList.leadingSpaces(kwPackage).toList == List())
   }
 
   test("trailingSpaces returns all spaces following a token") {
-    val Some(equals) = tokens.find(_.is[Token.Equals])
+    val equals = tokens.find(_.is[Token.Equals]).get
 
     val spaces = tokenList.trailingSpaces(equals)
     assert(spaces.size == 3)
@@ -167,7 +167,7 @@ class TokenListSuite extends AnyFunSuite {
   test(
     "trailingSpaces returns an empty seq if there's no space following a token"
   ) {
-    val Some(rightBrace) = tokens.find(_.is[Token.RightBrace])
+    val rightBrace = tokens.find(_.is[Token.RightBrace]).get
 
     assert(tokenList.trailingSpaces(rightBrace).toList == List())
   }

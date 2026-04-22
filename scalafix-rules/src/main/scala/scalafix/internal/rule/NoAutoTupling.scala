@@ -10,11 +10,11 @@ class NoAutoTupling extends SemanticRule("NoAutoTupling") {
     "Inserts explicit tuples for adapted argument lists for compatibility with -Yno-adapted-args"
   override def isRewrite: Boolean = true
 
-  private[this] def addWrappingParens(args: Seq[Term]): Patch =
+  private def addWrappingParens(args: Seq[Term]): Patch =
     Patch.addLeft(args.head.tokens.head, "(") +
       Patch.addRight(args.last.tokens.last, ")")
 
-  private[this] def insertUnit(t: Term.Apply): Patch =
+  private def insertUnit(t: Term.Apply): Patch =
     Patch.addRight(t.tokens.init.last, "()")
 
   override def fix(implicit doc: SemanticDocument): Patch = {

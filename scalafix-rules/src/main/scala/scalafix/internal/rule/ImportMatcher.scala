@@ -12,7 +12,7 @@ sealed trait ImportMatcher {
 object ImportMatcher {
   def parse(pattern: String): ImportMatcher =
     pattern match {
-      case p if p startsWith "re:" => RE(new Regex(p stripPrefix "re:"))
+      case p if p.startsWith("re:") => RE(new Regex(p stripPrefix "re:"))
       case "---" => ---
       case "*" => *
       case p => PlainText(p)
@@ -25,7 +25,7 @@ object ImportMatcher {
 
   case class PlainText(pattern: String) extends ImportMatcher {
     override def matches(i: Importer): Int =
-      if (i.syntax startsWith pattern) pattern.length else 0
+      if (i.syntax.startsWith(pattern)) pattern.length else 0
   }
 
   case object * extends ImportMatcher {

@@ -76,7 +76,7 @@ class EscapeHatch private (
     def loop(name: RuleName, patch: Patch): TailRec[Patch] = patch match {
       case ap @ AtomicPatch(underlying) =>
         val hasDisabledPatch =
-          PatchInternals.treePatchApply(underlying).exists { tp =>
+          PatchInternals.treePatchApply(underlying)(ctx, index).exists { tp =>
             val byGit = diffDisable.isDisabled(tp.tok.pos)
             val byEscape = isDisabledByEscape(name, tp.tok.pos.start)
             byGit || byEscape

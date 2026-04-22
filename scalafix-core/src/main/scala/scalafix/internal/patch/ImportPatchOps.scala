@@ -77,9 +77,7 @@ object ImportPatchOps {
     val allImporters = allImports.flatMap(_.importers)
     lazy val allGlobalImportersSyntax = (for {
       importer <- allImporters.iterator
-      p1 <- importer.parent
-      p2 <- p1.parent
-      if p2.is[Pkg]
+      if importer.parent.parent.is[Pkg]
     } yield importer.syntax).toSet
     val allImportees = allImporters.flatMap(_.importees)
     lazy val allNamedImports = allImportees.collect {

@@ -39,7 +39,7 @@ final class LegacySemanticdbIndex(val doc: v1.SemanticDocument)
 
   override def names: Seq[v0.ResolvedName] =
     doc.internal.textDocument.occurrences.map { o =>
-      occurrenceToLegacy(doc, doc.input, o)
+      occurrenceToLegacy(doc.input, o)
     }
   override def symbols: Seq[v0.ResolvedSymbol] =
     doc.internal.textDocument.symbols.map { s =>
@@ -152,7 +152,6 @@ object LegacySemanticdbIndex {
   }
 
   def occurrenceToLegacy(
-      doc: v1.SemanticDocument,
       input: Input,
       occurrence: s.SymbolOccurrence
   ): v0.ResolvedName = {
