@@ -5,6 +5,7 @@ inThisBuild(
   List(
     onLoadMessage := s"Welcome to scalafix ${version.value}",
     semanticdbEnabled := true,
+    resolvers += Resolver.sonatypeCentralSnapshots,
     semanticdbVersion := scalametaV
   )
 )
