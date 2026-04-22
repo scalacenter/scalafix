@@ -59,7 +59,7 @@ object Embedded {
       )
     val jars = Fetch
       .create()
-      .addDependencies(deps: _*)
+      .addDependencies(deps*)
       .fetch()
       .asScala
       .map(_.toPath())

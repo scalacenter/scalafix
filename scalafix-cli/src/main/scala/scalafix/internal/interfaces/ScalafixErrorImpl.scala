@@ -4,7 +4,7 @@ import scalafix.interfaces.ScalafixError
 
 object ScalafixErrorImpl {
   private lazy val statusToError: Map[ExitStatus, ScalafixError] = {
-    val ok :: from = ExitStatus.all
+    val ok :: from = ExitStatus.all: @unchecked
     assert(ok.isOk)
     val to = ScalafixError.values().toList
     assert(from.length == to.length, s"$from != $to")

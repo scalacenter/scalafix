@@ -12,7 +12,7 @@ class SymbolSuite extends munit.FunSuite {
   test("normalized") {
     val ref :: Nil = doc.tree.collect { case Import(Importer(ref, _) :: Nil) =>
       ref
-    }
+    }: @unchecked
 
     assertEquals(ref.symbol.normalized.owner.value, "test.a.")
   }
@@ -20,7 +20,7 @@ class SymbolSuite extends munit.FunSuite {
   test("fromTextDocument") {
     val arg :: Nil = doc.tree.collect {
       case Term.ApplyInfix(_, Term.Name("shouldBe"), _, arg :: Nil) => arg
-    }
+    }: @unchecked
 
     assertNotEquals(arg.symbol, Symbol.None)
   }
@@ -31,7 +31,7 @@ class SymbolSuite extends munit.FunSuite {
           if defn.name.value == "shouldBe" && defn.mods
             .exists(mod => mod.is[Mod.Override]) =>
         defn
-    }
+    }: @unchecked
 
     assertNotEquals(
       shouldBe.symbol.info.map(_.overriddenSymbols).getOrElse(Nil).length,

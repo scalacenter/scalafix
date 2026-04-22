@@ -59,15 +59,15 @@ class OrganizeImports(
       .andThen(checkScalacOptions(_, config.scalacOptions, config.scalaVersion))
 
   override def fix(implicit doc: SemanticDocument): Patch = {
-    (doc.input, scala3DialectForScala3Paths) match {
+    val that = (doc.input, scala3DialectForScala3Paths) match {
       case (Input.File(path, _), true)
           if path.toFile.getAbsolutePath.contains("scala-3/") =>
-        scala3TargetDialect.fixWithImplicitDialect(doc)
+        scala3TargetDialect
       case (Input.VirtualFile(path, _), true) if path.contains("scala-3/") =>
-        scala3TargetDialect.fixWithImplicitDialect(doc)
-      case _ =>
-        fixWithImplicitDialect(doc)
+        scala3TargetDialect
+      case _ => this
     }
+    that.fixWithImplicitDialect
   }
 
   private def fixWithImplicitDialect(implicit doc: SemanticDocument): Patch = {
@@ -451,8 +451,9 @@ class OrganizeImports(
         val renames = nonGivens
           .collect { case rename: Importee.Rename => rename }
           .groupBy(_.name.value)
-          .map { case (_, renames @ head :: rest) =>
-            if (rest.nonEmpty)
+          .map { case (_, renames) =>
+            val head = renames.head
+            if (renames.tail.nonEmpty)
               diagnostics += TooManyAliases(head.name, renames)
             head
           }
@@ -646,7 +647,7 @@ class OrganizeImports(
    */
   private def matchImportGroup(importer: Importer): Int = {
     val (length, index) = matchers
-      .map(_ matches importer)
+      .map(_.matches(importer))
       .zipWithIndex
       .maxBy(_._1)
     if (length > 0) index else wildcardGroupIndex
@@ -1000,7 +1001,7 @@ object OrganizeImports {
    *   - Wildcard, i.e., `_` or `*`.
    */
   object Importees {
-    def unapply(importees: Seq[Importee]): Option[
+    def unapply(importees: Seq[Importee]): Some[
       (
           List[Importee.Name],
           List[Importee.Rename],
@@ -1026,7 +1027,7 @@ object OrganizeImports {
         case i: Importee.GivenAll => maybeGivenAll = Some(i)
       }
 
-      Option(
+      Some(
         (
           names.toList,
           renames.toList,

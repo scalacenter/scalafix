@@ -145,7 +145,7 @@ object ScalafixFileEvaluationImpl {
   ): ScalafixFileEvaluationImpl = {
     val indexOrEmpty = index.getOrElse(v0.SemanticdbIndex.empty)
     val scalafixPatches = patches.map { p =>
-      ScalafixPatchImpl(p)(args, ctx, indexOrEmpty)
+      ScalafixPatchImpl(p)(ctx, indexOrEmpty)
     }
     ScalafixFileEvaluationImpl(
       originalPath = originalPath,

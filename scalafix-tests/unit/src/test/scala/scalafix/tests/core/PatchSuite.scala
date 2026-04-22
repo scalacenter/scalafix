@@ -217,13 +217,13 @@ class PatchSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
     .foreach { from =>
       val replace: PartialFunction[Tree, String] = {
         case t if t.structure == from.structure =>
-          TreeSyntax.reprint(t)(implicitly[Dialect]).toString
+          TreeSyntax.reprint(t).toString
       }
       checkDiff(
         ReplaceTreeRule(replace),
         Input.VirtualFile(
           s"Patch.replaceTree(reprint(${from.productPrefix}))",
-          TreeSyntax.reprint(program)(implicitly[Dialect]).toString
+          TreeSyntax.reprint(program).toString
         ),
         "" // replacing a tree by its syntax should be a no-op
       )

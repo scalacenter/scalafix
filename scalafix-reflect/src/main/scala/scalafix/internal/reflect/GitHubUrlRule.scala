@@ -39,13 +39,11 @@ object GitHubUrlRule {
       className: String,
       sha: String
   ): URL = {
-    val (path, name) = className.split("\\.").toList match {
-      case name :: Nil =>
-        // use default fix package when given class simple name
-        ("fix", name)
-      case p :+ name =>
-        (p.mkString("/"), name)
-    }
+    val parts = className.split("\\.")
+    val name = parts.last
+    val path = // use default fix package when given class simple name
+      if (parts.length == 1) "fix"
+      else parts.view.init.mkString("/")
     val file = s"$path/$name.scala"
     val url = expandGitHubURL(org, repo, file, sha)
     checkUrl(url)

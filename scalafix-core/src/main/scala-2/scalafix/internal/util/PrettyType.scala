@@ -103,16 +103,6 @@ class PrettyType private (
     def toTypeName: Type.Name = Type.Name(info(sym).displayName)
   }
 
-  private implicit class XtensionIterator(syms: Iterator[String]) {
-    def scollect[T](f: PartialFunction[s.SymbolInformation, T]): List[T] =
-      syms.map(info).collect(f).toList
-    def sflatcollect[T](
-        f: PartialFunction[s.SymbolInformation, Iterable[T]]
-    ): List[T] =
-      syms.map(info).collect(f).flatten.toList
-    def smap[T](f: s.SymbolInformation => T): List[T] =
-      syms.map(info).map(f).toList
-  }
   private implicit class XtensionScopeHardlinks(scope: s.Scope) {
     def infos: List[s.SymbolInformation] =
       if (scope.hardlinks.isEmpty) scope.symlinks.iterator.map(info).toList
@@ -122,8 +112,6 @@ class PrettyType private (
       else scope.hardlinks.iterator.map(f).toList
   }
   private implicit class XtensionSymbols(syms: Seq[String]) {
-    def scollect[T](f: PartialFunction[s.SymbolInformation, T]): List[T] =
-      syms.iterator.map(info).collect(f).toList
     def smap[T](f: s.SymbolInformation => T): List[T] =
       syms.iterator.map(info).map(f).toList
   }

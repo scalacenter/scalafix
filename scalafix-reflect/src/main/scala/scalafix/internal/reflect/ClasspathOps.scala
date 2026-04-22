@@ -26,11 +26,7 @@ object ClasspathOps {
     override def write(b: Int): Unit = ()
   })
 
-  def newSymbolTable(
-      classpath: Classpath,
-      parallel: Boolean = false,
-      out: PrintStream = System.out
-  ): SymbolTable = {
+  def newSymbolTable(classpath: Classpath): SymbolTable = {
     GlobalSymbolTable(classpath, includeJdk = true)
   }
 

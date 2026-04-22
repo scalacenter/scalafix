@@ -25,6 +25,7 @@ import scala.meta.io.AbsolutePath
 import scala.meta.parsers.ParseException
 
 import metaconfig.Conf
+import metaconfig.ConfDecoder
 import metaconfig.ConfEncoder
 import metaconfig.Configured
 import metaconfig.annotation.Hidden
@@ -51,11 +52,13 @@ import scalafix.v1.SyntacticDocument
 object MainOps {
 
   def run(args: Array[String], base: Args): ExitStatus = {
-    val expanded = ArgExpansion.expand(args, base.cwd)
+    implicit val cwd: AbsolutePath = base.cwd
+    implicit val argsDecoder: ConfDecoder[Args] = Args.decoder(base)
+    val expanded = ArgExpansion.expand(args)
     val out = base.out
     Conf
       .parseCliArgs[Args](expanded)
-      .andThen(c => c.as[Args](Args.decoder(base))) match {
+      .andThen(c => c.as[Args]) match {
       case Configured.Ok(args) =>
         if (args.help) {
           MainOps.helpMessage(out, 80)
@@ -190,7 +193,6 @@ object MainOps {
       trimStackTrace(e.getCause, untilMethod)
     }
   }
-  def handleException(ex: Throwable, out: PrintStream): Unit = {}
 
   def adjustExitCode(
       args: ValidatedArgs,

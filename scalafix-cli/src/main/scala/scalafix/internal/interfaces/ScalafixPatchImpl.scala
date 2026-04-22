@@ -4,12 +4,10 @@ import scalafix.Patch
 import scalafix.interfaces.ScalafixPatch
 import scalafix.interfaces.ScalafixTextEdit
 import scalafix.internal.patch.PatchInternals
-import scalafix.internal.v1.ValidatedArgs
 import scalafix.v0
 import scalafix.v0.RuleCtx
 
 case class ScalafixPatchImpl(patch: Patch)(
-    args: ValidatedArgs,
     ctx: RuleCtx,
     index: v0.SemanticdbIndex
 ) extends ScalafixPatch {

@@ -48,7 +48,7 @@ final class DocumentFromProtobuf(original: s.Synthetic)(implicit
         val targs =
           t.typeArguments.iterator.map(tpe => convert.stype(tpe)).toList
         TypeApplyTree(t.function.convert, targs)
-      case s.NoTree =>
+      case _ =>
         NoTree
     }
   }

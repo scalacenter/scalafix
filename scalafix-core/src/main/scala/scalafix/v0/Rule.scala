@@ -1,5 +1,7 @@
 package scalafix.v0
 
+import scala.annotation.nowarn
+
 import scala.meta._
 
 import metaconfig.Conf
@@ -47,10 +49,10 @@ import scalafix.syntax._
 abstract class Rule(ruleName: RuleName) { self =>
 
   /** Returns linter messages to report violations of this rule. */
-  def check(ctx: RuleCtx): Seq[Diagnostic] = Nil
+  def check(@nowarn ctx: RuleCtx): Seq[Diagnostic] = Nil
 
   /** Returns a patch to fix violations of this rule. */
-  def fix(ctx: RuleCtx): Patch = Patch.empty
+  def fix(@nowarn ctx: RuleCtx): Patch = Patch.empty
 
   /**
    * Initialize this rule with the given user configuration.
@@ -64,7 +66,7 @@ abstract class Rule(ruleName: RuleName) { self =>
    *   the initialized rule or an error. If no initialization is needed, return
    *   Configured.Ok(this).
    */
-  def init(config: Conf): Configured[Rule] =
+  def init(@nowarn config: Conf): Configured[Rule] =
     Configured.Ok(this)
 
   /** Combine this rule with another rule. */

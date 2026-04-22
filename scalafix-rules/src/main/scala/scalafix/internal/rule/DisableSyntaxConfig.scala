@@ -181,7 +181,7 @@ object DisabledKeyword {
         def readKeyword(keyword: String): Configured[DisabledKeyword] = {
           if (Keyword.set.contains(keyword))
             Configured.Ok(DisabledKeyword(keyword))
-          else Configured.NotOk(oneOfTypo(keyword, conf))
+          else Configured.NotOk(oneOfTypo(keyword))
         }
         conf match {
           case Conf.Null() => readKeyword("null")
@@ -195,7 +195,7 @@ object DisabledKeyword {
     }
 
   // XXX: This is from metaconfig.ConfError
-  def oneOfTypo(keyword: String, conf: Conf): ConfError = {
+  private def oneOfTypo(keyword: String): ConfError = {
     val closestKeyword = Keyword.all.minBy(levenshtein(keyword))
     val relativeDistance =
       levenshtein(keyword)(closestKeyword) /

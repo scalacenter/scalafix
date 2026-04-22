@@ -15,7 +15,7 @@ import metaconfig.internal.ConfGet
 object MetaconfigOps {
   def traverse[T](lst: Seq[Configured[T]]): Configured[List[T]] = {
     val buf = List.newBuilder[T]
-    var err = List.newBuilder[ConfError]
+    val err = List.newBuilder[ConfError]
     lst.foreach {
       case Configured.Ok(value) =>
         buf += value

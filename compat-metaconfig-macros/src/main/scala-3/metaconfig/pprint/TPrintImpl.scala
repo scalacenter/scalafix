@@ -22,6 +22,8 @@ SOFTWARE. */
 
 package metaconfig.pprint
 
+import scala.annotation.nowarn
+
 trait TPrintLowPri {
   inline given default[T]: TPrint[T] = ${ TPrintLowPri.typePrintImpl[T] }
 }
@@ -48,9 +50,11 @@ object TPrintLowPri {
       fansi.Color.Green(s)
     }
 
+    /*
     def printSymString(s: String) =
       if (s.toString.startsWith("_$")) "_"
       else s.toString.stripSuffix(".type")
+     */
 
     def printBounds(lo: TypeRepr, hi: TypeRepr): fansi.Str = {
       val loTree =
@@ -66,6 +70,7 @@ object TPrintLowPri {
     def printSym(s: String): fansi.Str = literalColor(fansi.Str(s))
 
     // TODO: We don't currently use this method
+    /*
     def prefixFor(pre: TypeTree, sym: String): fansi.Str = {
       // Depending on what the prefix is, you may use `#`, `.`
       // or even need to wrap the prefix in parentheses
@@ -75,6 +80,7 @@ object TPrintLowPri {
       }
       sep ++ printSym(sym)
     }
+     */
 
     def printArgs(args: List[TypeRepr]): fansi.Str = {
       fansi.Str("[") ++ printArgs0(args) ++ "]"
@@ -106,7 +112,8 @@ object TPrintLowPri {
         }
     }
 
-    def rec(tpe: TypeRepr, end: Boolean = false): fansi.Str = rec0(tpe)._1
+    def rec(tpe: TypeRepr, @nowarn end: Boolean = false): fansi.Str =
+      rec0(tpe)._1
     def rec0(tpe: TypeRepr, end: Boolean = false): (fansi.Str, WrapType) =
       tpe match {
         case TypeRef(NoPrefix(), sym) =>
@@ -142,10 +149,10 @@ object TPrintLowPri {
           val pre = rec(tpe)
           lazy val defs = fansi.Str.join(
             refinements.collect {
-              case (name, tpe: TypeRepr) =>
-                fansi.Str("type " + name + " = ") ++ rec(tpe)
               case (name, TypeBounds(lo, hi)) =>
                 fansi.Str("type " + name) ++ printBounds(lo, hi) ++ rec(tpe)
+              case (name, tpe: TypeRepr) =>
+                fansi.Str("type " + name + " = ") ++ rec(tpe)
             },
             sep = "; "
           )
@@ -154,7 +161,7 @@ object TPrintLowPri {
                     else fansi.Str("{") ++ defs ++ "}"),
             WrapType.NoWrap
           )
-        case AnnotatedType(parent, annot) =>
+        case AnnotatedType(parent, _) =>
           (rec(parent, end), WrapType.NoWrap)
         case _ =>
           (fansi.Str(Type.show[T]), WrapType.NoWrap)

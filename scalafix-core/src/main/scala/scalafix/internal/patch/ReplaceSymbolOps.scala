@@ -74,6 +74,7 @@ object ReplaceSymbolOps {
           (term.syntax -> to) ::
             (Symbol.Global(qual, Signature.Type(name)).syntax -> to) ::
             Nil
+        case _ => Nil
       }.toMap
 
     lazy val globalImportedNames =

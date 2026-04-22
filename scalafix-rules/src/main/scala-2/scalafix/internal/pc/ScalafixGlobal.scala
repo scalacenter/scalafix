@@ -61,8 +61,7 @@ class ScalafixGlobal(
 
   lazy val gsymbolReplacements: Map[String, Symbol] = (for {
     (key, value) <- symbolReplacements.toSeq
-    gkey <- inverseSemanticdbSymbols(key)
-    if semanticdbSymbol(gkey) == key
+    if inverseSemanticdbSymbols(key).exists(semanticdbSymbol(_) == key)
     gvalue <- inverseSemanticdbSymbols(value)
     if semanticdbSymbol(gvalue) == value
   } yield (key, gvalue)).toMap

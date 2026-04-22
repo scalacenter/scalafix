@@ -1,5 +1,7 @@
 package scalafix.v1
 
+import scala.annotation.nowarn
+
 import metaconfig.Configured
 
 abstract class Rule(val name: RuleName) {
@@ -23,7 +25,7 @@ abstract class Rule(val name: RuleName) {
    * @return
    *   A new version of this rule with loaded configuration or an error message.
    */
-  def withConfiguration(config: Configuration): Configured[Rule] =
+  def withConfiguration(@nowarn config: Configuration): Configured[Rule] =
     Configured.ok(this)
 
   /**
@@ -60,16 +62,16 @@ abstract class Rule(val name: RuleName) {
 }
 
 abstract class SyntacticRule(name: RuleName) extends Rule(name) {
-  def fix(implicit doc: SyntacticDocument): Patch = Patch.empty
+  def fix(implicit @nowarn doc: SyntacticDocument): Patch = Patch.empty
 }
 
 abstract class SemanticRule(name: RuleName) extends Rule(name) {
-  def fix(implicit doc: SemanticDocument): Patch = Patch.empty
+  def fix(implicit @nowarn doc: SemanticDocument): Patch = Patch.empty
 }
 
 object SemanticRule {
   def constant(name: RuleName, patch: Patch): SemanticRule =
     new SemanticRule(name) {
-      override def fix(implicit doc: SemanticDocument): Patch = patch
+      override def fix(implicit @nowarn doc: SemanticDocument): Patch = patch
     }
 }

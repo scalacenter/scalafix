@@ -174,7 +174,6 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
     for {
       (pkg, names) <- toImport
       name <- names
-      ref = pkg.owner
     } yield {
       val importee: m.Importee = {
         val ident = m.Name.Indeterminate(name.name.toString())
