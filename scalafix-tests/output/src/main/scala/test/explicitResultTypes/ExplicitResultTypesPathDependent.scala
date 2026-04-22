@@ -1,7 +1,7 @@
 
 package test.explicitResultTypes
 
-import test.explicitResultTypes.PackageObject.{ Nested, T1 }
+import test.explicitResultTypes.PackageObject.{Nested, T1}
 import test.explicitResultTypes.pkg.Obj
 // like https://github.com/tpolecat/doobie/blob/c2e044/modules/core/src/main/scala/doobie/free/Aliases.scala#L10
 trait Trait {

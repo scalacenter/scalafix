@@ -2,8 +2,8 @@ package fix
 
 import scala.collection.immutable.SortedMap
 import com.geirsson.Future
-import com.geirsson.{ Random, fastmath, mutable }
-import com.geirsson.mutable.{ CoolBuffer, unsafe }
+import com.geirsson.{Random, fastmath, mutable}
+import com.geirsson.mutable.{CoolBuffer, unsafe}
 import com.geirsson.mutable.unsafe.CoolMap
 
 object ReplaceSymbol {
