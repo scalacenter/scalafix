@@ -1235,7 +1235,7 @@ OrganizeImports {
 }
 ```
 
-#### `INTELLIJ_2020_3`  
+#### `INTELLIJ_2020_3`
 A style that is compatible with the default configuration of the
 IntelliJ Scala 2020.3 import optimizer. It is mostly useful for adding
 `OrganizeImports` to existing projects developed using the IntelliJ
