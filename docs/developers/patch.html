@@ -169,12 +169,14 @@ clean up commas and redundant curly braces</p>
   <span class="hljs-keyword">case</span> future @ <span class="hljs-type">Importee</span>.<span class="hljs-type">Name</span>(<span class="hljs-type">Name</span>(<span class="hljs-string">"Future"</span>)) =&gt;
     <span class="hljs-type">Patch</span>.removeImportee(future)
 }.showDiff()
+
 <span class="hljs-comment">// -import scala.concurrent.{Future, Await}</span>
 <span class="hljs-comment">// +import scala.concurrent.Await</span>
 doc.tree.collect {
   <span class="hljs-keyword">case</span> hash @ <span class="hljs-type">Importee</span>.<span class="hljs-type">Rename</span>(<span class="hljs-type">Name</span>(<span class="hljs-string">"MurmurHash3"</span>), _) =&gt;
     <span class="hljs-type">Patch</span>.removeImportee(hash)
 }.showDiff()
+
 <span class="hljs-comment">// -import scala.util._, hashing.{MurmurHash3 =&gt; Hash}</span>
 <span class="hljs-comment">// +import scala.util._</span>
 doc.tree.collect {
@@ -196,6 +198,7 @@ particular position. The <code>lint()</code> patch does not produce a diff.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Println</span>(<span class="hljs-params">position: <span class="hljs-type">Position</span></span>) <span class="hljs-keyword">extends</span> <span class="hljs-title">Diagnostic</span> </span>{
   <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">message</span> </span>= <span class="hljs-string">"Use loggers instead of println"</span>
 }
+
 doc.tree.collect {
   <span class="hljs-keyword">case</span> println @ <span class="hljs-type">Term</span>.<span class="hljs-type">Apply</span>.<span class="hljs-type">After_4_6_0</span>(<span class="hljs-type">Term</span>.<span class="hljs-type">Name</span>(<span class="hljs-string">"println"</span>), _) =&gt;
     <span class="hljs-type">Patch</span>.lint(<span class="hljs-type">Println</span>(println.pos))
