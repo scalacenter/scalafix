@@ -1,9 +1,8 @@
 package scalafix.internal.util
 
 import scala.meta._
-import scala.meta.internal.ScalametaInternals
+import scala.meta.internal.inputs
 import scala.meta.internal.inputs.XtensionInput
-import scala.meta.internal.{semanticdb => s}
 
 object PositionSyntax {
 
@@ -62,20 +61,8 @@ object PositionSyntax {
         (" " * pos.startColumn) + caret
     }
 
-    def lineContent: String = pos match {
-      case Position.None => ""
-      case range: Position.Range =>
-        val pos = ScalametaInternals.positionFromRange(
-          range.input,
-          s.Range(
-            startLine = range.startLine,
-            startCharacter = 0,
-            endLine = range.startLine,
-            endCharacter = Int.MaxValue
-          )
-        )
-        pos.text
-    }
+    def lineContent: String =
+      inputs.XtensionPosition(pos).lineContent
   }
 
 }
