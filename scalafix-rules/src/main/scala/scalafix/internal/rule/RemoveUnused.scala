@@ -161,25 +161,29 @@ class RemoveUnused(config: RemoveUnusedConfig)
           }.asPatch
         case i: Defn if isUnusedTerm(i.pos) =>
           defnPatch(i).asPatch.atomic
-        case i @ Defn.Def(_, name, _, _, _, _) if isUnusedTerm(name.pos) =>
+        case i: Defn.Def if isUnusedTerm(i.name.pos) =>
           defnPatch(i).asPatch.atomic
         case i @ Defn.Val(_, List(pat), _, _) if isUnusedTerm.exists { p =>
               p.start == pat.pos.start ||
               p.start == i.pos.start // scala 2.12
             } =>
           defnPatch(i).asPatch.atomic
-        case i @ Defn.Var(_, List(pat), _, _) if isUnusedTerm.exists { p =>
-              p.start == pat.pos.start ||
-              p.start == i.pos.start // scala 2.12
+        case i @ Defn.Var.Initial(_, List(pat), _, _) if isUnusedTerm.exists {
+              p =>
+                p.start == pat.pos.start ||
+                p.start == i.pos.start // scala 2.12
             } =>
           defnPatch(i).asPatch.atomic
-        case Term.Match(_, cases) =>
-          patchPatVarsIn(cases)
+        case i: Term.Match =>
+          patchPatVarsIn(i.casesBlock.cases)
         case Term.PartialFunction(cases) =>
           patchPatVarsIn(cases)
-        case Term.Try(_, cases, _) =>
-          patchPatVarsIn(cases)
-        case Term.Function(List(param @ Term.Param(_, name, None, _)), _)
+        case i: Term.Try =>
+          patchPatVarsIn(i.cases)
+        case Term.Function.Initial(
+              List(param @ Term.Param(_, name, None, _)),
+              _
+            )
             if isUnusedParam(
               // diagnostic does not include the implicit prefix (supported only
               // on 1-arity function without explicit type) captured in param,
@@ -188,14 +192,17 @@ class RemoveUnused(config: RemoveUnusedConfig)
             ) =>
           // drop the entire param so that the implicit prefix (if it exists) is removed
           Patch.replaceTree(param, "_")
-        case Term.Function(List(param @ Term.Param(_, name, Some(_), _)), _)
+        case Term.Function.Initial(
+              List(param @ Term.Param(_, name, Some(_), _)),
+              _
+            )
             if isUnusedParam(
               // diagnostic does not include the wrapping parens captured in single param
               posExclParens(param)
             ) =>
           Patch.replaceTree(name, "_")
-        case Term.Function(params, _) =>
-          params.collect {
+        case t: Term.Function =>
+          t.paramClause.values.collect {
             case param @ Term.Param(_, name, _, _)
                 if isUnusedParam(param.pos) || isUnusedParam(name.pos) =>
               Patch.replaceTree(name, "_")
@@ -217,24 +224,30 @@ class RemoveUnused(config: RemoveUnusedConfig)
 
   private def defnTokensToRemove(defn: Defn): Option[(Tokens, Seq[Token])] =
     defn match {
-      case i @ Defn.Val(_, _, _, Lit(_)) => Some((i.tokens, Seq.empty))
-      case i @ Defn.Val(_, _, _, rhs) => Some(surroundingTokens(i, rhs))
-      case i @ Defn.Var(_, _, _, Some(Lit(_))) => Some((i.tokens, Seq.empty))
-      case i @ Defn.Var(_, _, _, rhs) => rhs.map(surroundingTokens(i, _))
+      case i: Defn.Val =>
+        i.rhs match {
+          case _: Lit => Some((i.tokens, Seq.empty))
+          case rhs => Some(surroundingTokens(i, rhs))
+        }
+      case i: Defn.Var =>
+        i.body match {
+          case _: Lit => Some((i.tokens, Seq.empty))
+          case rhs => Some(surroundingTokens(i, rhs))
+        }
       case i: Defn.Def => Some((i.tokens, Seq.empty))
       case _ => None
     }
 
   private def defnPatch(defn: Defn): Option[Patch] =
     defnTokensToRemove(defn).map { case (heading, trailing) =>
-      val maybeRHSBlock = defn match {
-        case Defn.Val(_, _, _, x @ Term.Block(_)) => Some(x)
-        case Defn.Var(_, _, _, Some(x @ Term.Block(_))) => Some(x)
+      val maybeRHSBlock = (defn match {
+        case t: Defn.Val => Some(t.rhs)
+        case t: Defn.Var => Some(t.body)
         case _ => None
-      }
+      }).collect { case x: Term.Block => x }
 
       val maybeLocally = maybeRHSBlock.map { block =>
-        if (Some(block.pos.start) == block.stats.headOption.map(_.pos.start))
+        if (block.stats.headOption.exists(_.pos.start == block.pos.start))
           // only significant indentation blocks have their first stat
           // aligned with the block itself (otherwise there is a heading "{")
           "locally:"
