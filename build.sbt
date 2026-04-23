@@ -65,6 +65,7 @@ lazy val interfaces = project
 // Scala 3 macros vendored separately (i.e. without runtime classes), to
 // shadow Scala 2.13 macros in the Scala 3 compiler classpath, while producing
 // code valid against Scala 2.13 bytecode
+// TODO: after replacing with metaconfig_3, remove -Wconf filter in ScalafixBuild
 lazy val `compat-metaconfig-macros` = projectMatrix
   .settings(
     libraryDependencies += metaconfig cross CrossVersion.for3Use2_13
@@ -246,6 +247,7 @@ lazy val input = projectMatrix
     scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
     scalacOptions ++= warnAdaptedArgs.value, // For NoAutoTupling
     logLevel := Level.Error, // avoid flood of compiler warnings
+    scalacOptions --= ScalafixBuild.werrorOptions,
     libraryDependencies ++= testsDependencies.value,
     coverageEnabled := false,
     allowUnsafeScalaLibUpgrade := true,
@@ -270,6 +272,7 @@ lazy val output = projectMatrix
   .settings(
     noPublishAndNoMima,
     logLevel := Level.Error, // avoid flood of compiler warnings
+    scalacOptions --= ScalafixBuild.werrorOptions,
     libraryDependencies ++= testsDependencies.value,
     coverageEnabled := false,
     // mimic dependsOn(shared) but allowing binary Scala version matching
@@ -319,6 +322,7 @@ lazy val integration = projectMatrix
   .settings(
     noPublishAndNoMima,
     Test / parallelExecution := false,
+    scalacOptions --= ScalafixBuild.werrorOptions,
     libraryDependencies ++= {
       if (!isScala3.value) {
         Seq(
