@@ -282,6 +282,14 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       }
     },
     versionPolicyIntention := Compatibility.BinaryCompatible,
+    scalacOptions ++= werrorOptions,
+    scalacOptions ++= Seq( // exclusions
+      "-Wconf:cat=deprecation&msg=Rule:s",
+      "-Wconf:cat=deprecation&msg=JavaConverters:s",
+      "-Wconf:cat=deprecation&msg=AssociatedComments:s",
+      // TODO: remove after replacing compat-metaconfig-macros with proper metaconfig
+      "-Wconf:msg=.*Toplevel definition .* is defined in.*:s"
+    ),
     scalacOptions += "-Wconf:origin=scala.collection.compat.*:s",
     scalacOptions ++= compilerOptions.value,
     scalacOptions ++= {
@@ -374,4 +382,11 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
 
   private def asProjectSuffix(scalaVersion: String) =
     scalaVersion.replaceAll("[\\.-]", "_")
+
+  val werrorOptions = Seq(
+    "-Werror",
+    "-deprecation",
+    "-Wconf:cat=deprecation:error"
+  )
+
 }
