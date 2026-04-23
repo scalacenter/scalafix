@@ -81,7 +81,7 @@ lazy val core = projectMatrix
     libraryDependencies ++= Seq(
       googleDiff,
       metaconfig,
-      scalametaFor3Use2_13,
+      scalameta,
       semanticdbSharedFor3Use2_13,
       collectionCompat
     )
@@ -102,13 +102,12 @@ lazy val core3 = project
       googleDiff,
       metaconfig
     ) ++ Seq(
-      scalametaFor3Use2_13,
+      scalameta,
       semanticdbSharedFor3Use2_13
-    ).map { mod =>
-      mod
-        .exclude("com.lihaoyi", "sourcecode_2.13")
+        // exclude _2.13 artifacts that have their _3 counterpart in the classpath
+        .exclude("org.scalameta", "scalameta_2.13")
         .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
-    }
+    )
   )
   .enablePlugins(BuildInfoPlugin)
 
@@ -165,11 +164,14 @@ lazy val reflect3 = project
     noPublishAndNoMima,
     scalaVersion := scala3LTS,
     libraryDependencies ++= Seq(
-      // CrossVersion.for3Use2_13 would only lookup a binary version artifact, but this is published with full version
+      // needed for GlobalSymbolTable, see https://github.com/scalacenter/scalafix/issues/2049
       semanticdbScalacCore
+        // CrossVersion.for3Use2_13 would only lookup a binary version artifact, but this is published with full version
         .cross(CrossVersion.constant(scala213))
-        .exclude("com.lihaoyi", "sourcecode_2.13")
+        // exclude _2.13 artifacts that have their _3 counterpart in the classpath
+        .exclude("org.scalameta", "scalameta_2.13")
         .exclude("org.scala-lang.modules", "scala-collection-compat_2.13"),
+        
       "org.scala-lang" %% "scala3-compiler" % scalaVersion.value
     )
   )
@@ -303,10 +305,10 @@ lazy val unit = projectMatrix
     ),
     libraryDependencies += {
       if (!isScala3.value) {
-        scalametaTeskitFor3Use2_13
+        scalametaTeskit
       } else {
-        // exclude _2.13 artifacts that have their _3 counterpart in the classpath
-        scalametaTeskitFor3Use2_13
+        (scalametaTeskit cross CrossVersion.for3Use2_13)
+          // exclude _2.13 artifacts that have their _3 counterpart in the classpath
           .exclude("org.scalameta", "munit_2.13")
       }
     },
@@ -467,7 +469,7 @@ lazy val docs = projectMatrix
       Dependencies.runtimeDepsForBackwardCompatibility
         .map(_.withRevision(VersionScheme.Always)),
     // force eviction of mdoc transitive dependency
-    dependencyOverrides += scalametaFor3Use2_13
+    dependencyOverrides += scalameta
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(scalaVersions = Seq(scala213))
