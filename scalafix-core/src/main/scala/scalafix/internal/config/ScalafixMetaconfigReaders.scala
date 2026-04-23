@@ -18,8 +18,6 @@ import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
-import metaconfig.Configured.NotOk
-import metaconfig.Configured.Ok
 import scalafix.internal.util.SymbolOps
 import scalafix.patch.Patch.internal._
 import scalafix.v0._
@@ -53,7 +51,7 @@ trait ScalafixMetaconfigReaders {
       symbolGlobalReader.read(Conf.Str(to))
 
   implicit lazy val ReplaceSymbolReader: ConfDecoder[ReplaceSymbol] =
-    ConfDecoder.instanceF[ReplaceSymbol] { c =>
+    ConfDecoder.from[ReplaceSymbol] { c =>
       (
         c.get[Symbol.Global]("from") |@|
           c.get[Symbol.Global]("to")
@@ -67,12 +65,13 @@ trait ScalafixMetaconfigReaders {
       else None
   }
 
-  implicit val RegexReader: ConfDecoder[Regex] = ConfDecoder.instance[Regex] {
-    case Conf.Str(str) => Configured.Ok(FilterMatcher.mkRegexp(List(str)))
-    case ConfStrLst(values) => Configured.Ok(FilterMatcher.mkRegexp(values))
-  }
+  implicit val RegexReader: ConfDecoder[Regex] =
+    ConfDecoder.fromPartial[Regex]("Regex") {
+      case Conf.Str(str) => Configured.Ok(FilterMatcher.mkRegexp(List(str)))
+      case ConfStrLst(values) => Configured.Ok(FilterMatcher.mkRegexp(values))
+    }
   implicit val FilterMatcherReader: ConfDecoder[FilterMatcher] =
-    ConfDecoder.instance[FilterMatcher] {
+    ConfDecoder.fromPartial[FilterMatcher]("FilterMatcher") {
       case Conf.Str(str) => Configured.Ok(FilterMatcher(str))
       case ConfStrLst(values) =>
         Configured.Ok(FilterMatcher(values, Nil))
@@ -110,26 +109,26 @@ trait ScalafixMetaconfigReaders {
     ConfDecoder.stringConfDecoder.map(Symbol.apply)
   private def parseSymbol(sym: String): Configured[Symbol] =
     try
-      Ok(
+      Configured.Ok(
         Symbol(sym)
       ) // Because https://github.com/scalameta/scalameta/issues/821
     catch { case NonFatal(e) => ConfError.exception(e, 0).notOk }
-  implicit lazy val symbolGlobalReader: ConfDecoder[Symbol.Global] =
-    ConfDecoder.instance[Symbol.Global] { case Conf.Str(path) =>
-      def symbolGlobal(symbol: Symbol): Configured[Symbol.Global] =
-        symbol match {
-          case g: Symbol.Global => Ok(g)
-          case els =>
-            ConfError
-              .typeMismatch(
-                "Symbol.Global",
-                Conf.Str(s"$els: ${els.productPrefix}")
-              )
-              .notOk
-        }
+  implicit lazy val symbolGlobalReader: ConfDecoder[Symbol.Global] = {
+    def symbolGlobal(symbol: Symbol): Configured[Symbol.Global] = symbol match {
+      case g: Symbol.Global => Configured.Ok(g)
+      case els =>
+        ConfError
+          .typeMismatch(
+            "Symbol.Global",
+            Conf.Str(s"$els: ${els.productPrefix}")
+          )
+          .notOk
+    }
+    ConfDecoder.fromPartial[Symbol.Global]("Symbol") { case Conf.Str(path) =>
       val toParse = SymbolOps.inferTrailingDot(path)
       parseSymbol(toParse).andThen(symbolGlobal)
     }
+  }
 
   implicit lazy val AddGlobalImportReader: ConfDecoder[AddGlobalImport] =
     importerReader.map(AddGlobalImport.apply)
@@ -142,7 +141,7 @@ trait ScalafixMetaconfigReaders {
 
   implicit val metaconfigConfDecoder: ConfDecoder[Conf] =
     new ConfDecoder[Conf] {
-      override def read(conf: Conf): Configured[Conf] = Ok(conf)
+      override def read(conf: Conf): Configured[Conf] = Configured.Ok(conf)
     }
 
   implicit lazy val PrintStreamReader: ConfDecoder[PrintStream] = {
@@ -172,17 +171,11 @@ trait ScalafixMetaconfigReaders {
   ): ConfDecoder[Either[A, B]] = {
     def wrapLeft(a: A): Either[A, B] = Left(a)
     def wrapRight(b: B): Either[A, B] = Right(b)
-    ConfDecoder.instance[Either[A, B]] { case conf =>
-      B.map(wrapRight).orElse(A.map(wrapLeft)).read(conf) match {
-        case ok @ Ok(_) => ok
-        case NotOk(err) =>
-          NotOk(
-            ConfError
-              .message(
-                "Failed to decode configuration for either of the following types:"
-              )
-              .combine(err)
-          )
+    ConfDecoder.fromPartial[Either[A, B]]("Either") { case conf =>
+      B.map(wrapRight).orElse(A.map(wrapLeft)).read(conf).recoverWith { x =>
+        val msg =
+          "Failed to decode configuration for either of the following types:"
+        ConfError.message(msg).combine(x.error).notOk
       }
     }
   }
