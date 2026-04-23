@@ -14,7 +14,6 @@ import scalafix.patch.Patch
 import scalafix.patch.Patch.internal._
 import scalafix.rule.RuleCtx
 import scalafix.syntax._
-import scalafix.util.Newline
 import scalafix.util.SemanticdbIndex
 import scalafix.v0.Signature
 import scalafix.v0.Symbol
@@ -45,11 +44,12 @@ object ImportPatchOps {
       case Source(_) => tree.tokens.head
       case Pkg(_, stat :: _) => loop(stat)
       case els =>
-        ctx.tokenList.prev(ctx.tokenList.prev(els.tokens.head)) match {
-          case comment @ Token.Comment(_) =>
-            ctx.tokenList.prev(ctx.tokenList.prev(comment))
-          case other => other
-        }
+        val tokens = els.begComment.getOrElse(els).tokens
+        val eolidx = tokens.rskipWideIf(_.is[Token.HTrivia], -1)
+        (tokens.getWideOpt(eolidx) match {
+          case Some(_: Token.AtEOL) => tokens.getWideOpt(eolidx - 1)
+          case x => x
+        }).getOrElse(tokens.head)
     }
     loop(ctx.tree)
   }
@@ -84,7 +84,7 @@ object ImportPatchOps {
       case Importee.Name(n) if index.symbol(n).isDefined =>
         n.symbol
       // TODO(olafur) handle rename.
-    }
+    }.flatten
     lazy val allImporteeSymbols = allImportees.flatMap(importee =>
       importee.symbol.map(_.normalized -> importee)
     )
@@ -163,9 +163,7 @@ object ImportPatchOps {
     def removeSpaces(tokens: Iterable[Token]): Patch = {
       tokens
         .takeWhile {
-          case Token.Space() => true
-          case Newline() => true
-          case Token.Comma() => true
+          case _: Token.Whitespace | _: Token.Comma => true
           case _ => false
         }
         .map(ctx.removeToken)
@@ -240,46 +238,34 @@ object ImportPatchOps {
       Patch.removeTokens(toRemove.tokens) ++ leadingComma ++ trailingComma
     }
 
-    val leadingNewlines = isRemovedImport.map { i =>
-      var newline = false
-      ctx.tokenList
-        .leading(i.tokens.head)
-        .takeWhile(x =>
-          !newline && {
-            x.is[Token.Space] || {
-              val isNewline = x.is[Newline]
-              if (isNewline) {
-                newline = true
-              }
-              isNewline
-            }
-          }
-        )
-        .map(tok => ctx.removeToken(tok))
-        .asPatch
+    val importsRemoves = isRemovedImport.map { i =>
+      val tokens = i.tokens
+      val eolidx = tokens.rskipWideIf(_.is[Token.HSpace], -1)
+      val begidx = tokens.getWideOpt(eolidx) match {
+        case Some(_: Token.AtEOL) => eolidx
+        case _ => eolidx + 1
+      }
+      ctx.removeTokens(tokens.sliceWide(begidx, tokens.length))
     }
 
-    leadingNewlines ++
-      curlyBraceRemoves ++
+    curlyBraceRemoves ++
       extraPatches ++
       isRemovedImportee.map(remove) ++
       isRemovedImporter.map(remove) ++
-      isRemovedImport.map(i => Patch.removeTokens(i.tokens))
+      importsRemoves
   }
 
   private def removeUpToFirstComma(tokens: Iterable[Token]): List[Patch] = {
     var foundComma = false
     val patch = tokens
       .takeWhile {
-        case _: Token.Space | Newline() => true
+        case _: Token.Whitespace => true
         case _: Token.Comma if !foundComma =>
           foundComma = true
           true
         case _ => false
       }
-      .map { token =>
-        Patch.removeToken(token)
-      }
+      .map(Patch.removeToken)
       .toList
     if (foundComma) patch
     else Nil
