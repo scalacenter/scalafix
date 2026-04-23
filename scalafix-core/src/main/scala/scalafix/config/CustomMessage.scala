@@ -27,8 +27,8 @@ object CustomMessage {
   def decoder[T](
       field: String
   )(implicit ev: ConfDecoder[T]): ConfDecoder[CustomMessage[T]] =
-    ConfDecoder.instance[CustomMessage[T]] {
-      case obj: Conf.Obj => {
+    ConfDecoder.fromPartial[CustomMessage[T]]("CustomMessage") {
+      case obj: Conf.Obj =>
         (obj.get[T](field) |@|
           obj.getOption[String]("message") |@|
           obj.getOption[String]("id")).map { case ((value, message0), id) =>
@@ -43,7 +43,6 @@ object CustomMessage {
 
           new CustomMessage(value, message, id)
         }
-      }
       case els =>
         ev.read(els).map(value => new CustomMessage(value, None, None))
     }
