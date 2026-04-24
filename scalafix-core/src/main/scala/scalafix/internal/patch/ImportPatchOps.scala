@@ -53,19 +53,12 @@ object ImportPatchOps {
     }
     loop(ctx.tree)
   }
-  private def extractImports(stats: Seq[Stat]): Seq[Import] = {
-    stats
-      .takeWhile(_.is[Import])
-      .collect { case i: Import => i }
-  }
 
-  @tailrec private final def getGlobalImports(ast: Tree): Seq[Import] =
-    ast match {
-      case Pkg(_, Seq(pkg: Pkg)) => getGlobalImports(pkg)
-      case Source(Seq(pkg: Pkg)) => getGlobalImports(pkg)
-      case Pkg(_, stats) => extractImports(stats)
-      case Source(stats) => extractImports(stats)
-      case _ => Nil
+  @tailrec
+  private def extractImports(stats: List[Stat]): Seq[Import] =
+    stats match {
+      case (pkg: Pkg) :: Nil => extractImports(pkg.body.stats)
+      case _ => stats.takeWhile(_.is[Import]).collect { case i: Import => i }
     }
 
   // NOTE(olafur): This method is the simplest/dummest thing I can think of
@@ -88,7 +81,11 @@ object ImportPatchOps {
     lazy val allImporteeSymbols = allImportees.flatMap(importee =>
       importee.symbol.map(_.normalized -> importee)
     )
-    val globalImports = getGlobalImports(ctx.tree)
+    val globalImports = ctx.tree match {
+      case t: Source => extractImports(t.stats)
+      case t: Pkg => extractImports(t.body.stats)
+      case _ => Nil
+    }
     val editToken: Token = {
       if (globalImports.isEmpty) fallbackToken(ctx)
       else globalImports.last.tokens.last

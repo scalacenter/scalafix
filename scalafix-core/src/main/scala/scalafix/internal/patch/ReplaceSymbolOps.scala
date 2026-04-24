@@ -22,24 +22,21 @@ object ReplaceSymbolOps {
     }
   }
 
-  private def extractImports(stats: Seq[Stat]): Seq[Import] = {
-    stats.collect { case i: Import => i }
+  @tailrec
+  private def extractImports(stats: List[Stat]): Seq[Import] = stats match {
+    case (p: Pkg) :: Nil => extractImports(p.body.stats)
+    case _ => stats.collect { case i: Import => i }
   }
 
   private def getNamesOfExplicitlyImportedSymbols(
       tree: Tree,
       isMoved: Name => Boolean
   ): Set[String] = {
-    @tailrec
-    def getGlobalImports(ast: Tree): Seq[Import] = ast match {
-      case Pkg(_, Seq(pkg: Pkg)) => getGlobalImports(pkg)
-      case Source(Seq(pkg: Pkg)) => getGlobalImports(pkg)
-      case Pkg(_, stats) => extractImports(stats)
-      case Source(stats) => extractImports(stats)
+    val globalImports = tree match {
+      case t: Pkg => extractImports(t.body.stats)
+      case t: Source => extractImports(t.stats)
       case _ => Nil
     }
-
-    val globalImports = getGlobalImports(tree)
 
     // pre-compute global imported symbols for O(1) collision detection
     // since ctx.addGlobalImport adds imports at global scope
