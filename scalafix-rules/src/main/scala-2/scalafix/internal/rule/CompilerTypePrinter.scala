@@ -237,12 +237,12 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
           decls.filterNot(_.isOverridingSymbol).nonEmpty =>
       val body: Option[m.Term] = defn match {
         case t: m.Defn.Val => Some(t.rhs)
-        case t: m.Defn.Var => t.rhs
+        case t: m.Defn.Var => Some(t.body)
         case t: m.Defn.Def => Some(t.body)
         case _ => None
       }
       body match {
-        case Some(body @ m.Term.NewAnonymous(_))
+        case Some(body: m.Term.NewAnonymous)
             if body.tokens.head.syntax == "new" =>
           val nameSyntax = gsym.nameSyntax
           val suffixes = "" +: LazyList.from(1).map(_.toString())
