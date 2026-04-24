@@ -1,5 +1,6 @@
 package scalafix.internal.rule
 
+import scala.annotation.tailrec
 import scala.{meta => m}
 
 import metaconfig.Conf.Bool
@@ -61,6 +62,7 @@ case class SimpleDefinitions(kinds: Set[String]) {
 
   import scala.meta.classifiers.XtensionClassifiable
 
+  @tailrec
   private def isSimpleRef(tree: m.Tree): Boolean = tree match {
     case _: m.Name => true
     case t: m.Term.Select => isSimpleRef(t.qual)

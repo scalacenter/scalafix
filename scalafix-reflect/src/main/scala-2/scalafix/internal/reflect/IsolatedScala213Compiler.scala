@@ -85,15 +85,15 @@ object IsolatedScala213Compiler {
   private def classpathWithStdLibOverride(
       toolClasspath: URLClassLoader
   ): Seq[File] = {
-    def isScalaLibrary(f: File): Boolean =
-      f.getName.startsWith("scala-library")
+    val res = Seq.newBuilder[File]
+    def append(file: File): Unit =
+      if (!file.getName.startsWith("scala-library")) res += file
 
-    val classpathWithoutStdLib = (
-      toolClasspath.getURLs.map(url => new File(url.toURI)) ++
-        RuleCompilerClasspath.defaultClasspathPaths.map(_.toFile)
-    ).filterNot(isScalaLibrary)
+    toolClasspath.getURLs.foreach(url => append(new File(url.toURI)))
+    RuleCompilerClasspath.defaultClasspathPaths.foreach(p => append(p.toFile))
 
-    classpathWithoutStdLib ++ fetchScala213LibraryJars()
+    res ++= fetchScala213LibraryJars()
+    res.result()
   }
 
   private def fetchScala213LibraryJars(): Seq[File] = {

@@ -39,9 +39,8 @@ object ScalafixGlobal {
       settings.processArguments(options, processAll = true)
     (isSuccess, unprocessed) match {
       case (true, Nil) =>
-        Try(
-          new ScalafixGlobal(settings, new StoreReporter(), symbolReplacements)
-        )
+        val reporter = new StoreReporter(settings)
+        Try(new ScalafixGlobal(settings, reporter, symbolReplacements))
       case (isSuccess, unprocessed) =>
         Failure(
           new Exception(
