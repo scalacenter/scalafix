@@ -240,7 +240,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     val stdout = fansi
       .Str(out.toString(StandardCharsets.US_ASCII.name()))
       .plainText
-      .replaceAllLiterally(cwd.toString, "")
+      .replace(cwd.toString, "")
       .replace('\\', '/') // for windows
       .linesIterator
       .filterNot(_.trim.isEmpty)
@@ -254,7 +254,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
           .formatMessage(d.severity().toString, d.message())
       }
       .mkString("\n\n")
-      .replaceAllLiterally(cwd.toString, "")
+      .replace(cwd.toString, "")
       .replace('\\', '/') // for windows
     assertNoDiff(
       linterDiagnostics,
@@ -307,7 +307,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
           .formatMessage(d.severity().toString, d.message())
       }
       .mkString("\n\n")
-      .replaceAllLiterally(cwd.toString, "")
+      .replace(cwd.toString, "")
       .replace('\\', '/') // for windows
     assertNoDiff(
       linterErrorFormatted,

@@ -22,10 +22,7 @@ object BaseSemanticSuite {
       Classpaths.withDirectory(AbsolutePath(BuildInfo.classDirectory))
     ClasspathOps.newSymbolTable(classpath)
   }
-  def loadDoc(
-      filename: String,
-      scalaVersion: Option[String] = None
-  ): SemanticDocument = {
+  def loadDoc(filename: String): SemanticDocument = {
     val (abspath, scalaVersion) = {
       val root = AbsolutePath(BuildInfo.sourceroot)
       val commonPath = root.resolve("scala/test").resolve(filename)

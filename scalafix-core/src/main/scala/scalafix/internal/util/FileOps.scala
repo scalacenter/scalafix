@@ -18,21 +18,25 @@ object FileOps {
     if (file.isFile) {
       Vector(file.getAbsolutePath)
     } else {
-      def listFilesIter(s: File): Iterable[String] = {
-        val (dirs, files) = Option(s.listFiles()).toIterable
-          .flatMap(_.iterator)
-          .partition(_.isDirectory)
-        files.map(_.getPath) ++ dirs.flatMap(listFilesIter)
+      val res = Vector.newBuilder[String]
+      def listFilesIter(s: File): Unit = {
+        val allFiles = s.listFiles()
+        if (allFiles ne null) {
+          allFiles.foreach { f =>
+            if (f.isDirectory) listFilesIter(f)
+            else res += f.getPath
+          }
+        }
       }
-      for {
-        f0 <- Option(listFilesIter(file)).toVector
-        filename <- f0
-      } yield filename
+      listFilesIter(file)
+      res.result()
     }
   }
 
   def readURL(url: URL): String = {
-    scala.io.Source.fromURL(url)("UTF-8").getLines().mkString("\n")
+    val src = scala.io.Source.fromURL(url)("UTF-8")
+    try src.getLines().mkString("\n")
+    finally src.close()
   }
 
   /**
