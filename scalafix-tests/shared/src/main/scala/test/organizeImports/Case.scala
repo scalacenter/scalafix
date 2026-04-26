@@ -1,6 +1,7 @@
 package test.organizeImports
 
 object Case {
+  @annotation.nowarn
   object A {
     object A
     object b
