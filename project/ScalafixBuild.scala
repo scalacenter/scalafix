@@ -12,9 +12,6 @@ import sbtversionpolicy.SbtVersionPolicyPlugin
 import sbtversionpolicy.SbtVersionPolicyPlugin.autoImport._
 import scalafix.sbt.ScalafixPlugin.autoImport._
 import com.github.sbt.sbtghpages.GhpagesKeys
-import sbt.librarymanagement.ivy.IvyDependencyResolution
-import sbt.plugins.IvyPlugin
-import sbtversionpolicy.DependencyCheckReport
 import scala.util.Try
 
 object ScalafixBuild extends AutoPlugin with GhpagesKeys {
@@ -290,6 +287,14 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       }
     },
     versionPolicyIntention := Compatibility.BinaryCompatible,
+    scalacOptions ++= werrorOptions,
+    scalacOptions ++= Seq( // exclusions
+      "-Wconf:cat=deprecation&msg=Rule:s",
+      "-Wconf:cat=deprecation&msg=JavaConverters:s",
+      "-Wconf:cat=deprecation&msg=AssociatedComments:s",
+      // TODO: remove after replacing compat-metaconfig-macros with proper metaconfig
+      "-Wconf:msg=.*Toplevel definition .* is defined in.*:s"
+    ),
     scalacOptions += "-Wconf:origin=scala.collection.compat.*:s",
     scalacOptions ++= compilerOptions.value,
     scalacOptions ++= {
@@ -382,4 +387,11 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
 
   private def asProjectSuffix(scalaVersion: String) =
     scalaVersion.replaceAll("[\\.-]", "_")
+
+  val werrorOptions = Seq(
+    "-Werror",
+    "-deprecation",
+    "-Wconf:cat=deprecation:error"
+  )
+
 }
