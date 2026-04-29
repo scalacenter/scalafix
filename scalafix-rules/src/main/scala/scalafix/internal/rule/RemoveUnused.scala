@@ -6,7 +6,6 @@ import scala.meta._
 import scala.meta.tokens.Token
 
 import metaconfig.Configured
-import scalafix.util.Trivia
 import scalafix.v1._
 
 class RemoveUnused(config: RemoveUnusedConfig)
@@ -246,7 +245,8 @@ class RemoveUnused(config: RemoveUnusedConfig)
         case Some(locally) =>
           // Preserve comments between the LHS and the RHS, as well as
           // newlines & whitespaces for significant indentation
-          val tokensNoTrailingTrivia = heading.dropRightWhile(_.is[Trivia])
+          val tokensNoTrailingTrivia =
+            heading.dropRightWhile(_.is[Token.Trivia])
 
           Patch.removeTokens(tokensNoTrailingTrivia) +
             tokensNoTrailingTrivia.lastOption.map(Patch.addRight(_, locally))
@@ -258,14 +258,13 @@ class RemoveUnused(config: RemoveUnusedConfig)
     }
 
   private def posExclParens(tree: Tree): Position = {
-    val leftTokenCount =
-      tree.tokens.takeWhile(tk => tk.is[Token.LeftParen] || tk.is[Trivia]).size
-    val rightTokenCount = tree.tokens
-      .takeRightWhile(tk => tk.is[Token.RightParen] || tk.is[Trivia])
-      .size
     tree.pos match {
       case Position.Range(input, start, end) =>
-        Position.Range(input, start + leftTokenCount, end - rightTokenCount)
+        val tokens = tree.tokens
+        val leftCount = tokens.skipIf(_.isAny[Token.LeftParen, Token.Trivia])
+        val rightCount = tokens.length - 1 -
+          tokens.rskipIf(_.isAny[Token.RightParen, Token.Trivia])
+        Position.Range(input, start + leftCount, end - rightCount)
       case other => other
     }
   }

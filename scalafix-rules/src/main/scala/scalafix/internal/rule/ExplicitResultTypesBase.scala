@@ -145,7 +145,7 @@ abstract class ExplicitResultTypesBase[P <: Printer]
       // Example: `val x = ` from `val x = rhs.banana`
       lhsTokens = slice(start, end)
       replace <- lhsTokens.reverseIterator.find(x =>
-        !x.is[Token.Equals] && !x.is[Trivia]
+        !x.isAny[Token.Equals, Token.Trivia]
       )
       space = {
         if (TokenOps.needsLeadingSpaceBeforeColon(replace)) " "
