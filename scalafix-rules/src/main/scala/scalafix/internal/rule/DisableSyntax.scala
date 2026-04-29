@@ -276,7 +276,7 @@ final class DisableSyntax(config: DisableSyntaxConfig)
         Seq(noUniversalEqualityDiagnostic("!=", t))
     }
     val FinalizeMatcher = DisableSyntax.FinalizeMatcher("noFinalize")
-    doc.tree.collect(DefaultMatcher.orElse(FinalizeMatcher)).flatten
+    doc.tree.bfsCollectEach(DefaultMatcher.orElse(FinalizeMatcher))
   }
 
   override def fix(implicit doc: SyntacticDocument): Patch = {

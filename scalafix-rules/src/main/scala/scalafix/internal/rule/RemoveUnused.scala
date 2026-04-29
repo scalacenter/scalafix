@@ -89,7 +89,7 @@ class RemoveUnused(config: RemoveUnusedConfig)
       } else if (
         config.patternvars &&
         (
-          unusedPatterExpr.findFirstMatchIn(diagnostic.message).isDefined ||
+          unusedPatterExpr.findFirstMatchIn(msg).isDefined ||
             msg == "unused pattern variable"
         )
       ) {
