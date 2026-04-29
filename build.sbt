@@ -105,9 +105,7 @@ lazy val core3 = project
       scalametaFor3Use2_13,
       semanticdbSharedFor3Use2_13
     ).map { mod =>
-      mod
-        .exclude("com.lihaoyi", "sourcecode_2.13")
-        .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
+      mod.exclude213((orgLiHaoYi, "sourcecode"), collectionCompat)
     }
   )
   .enablePlugins(BuildInfoPlugin)
@@ -122,14 +120,14 @@ lazy val rules = projectMatrix
     libraryDependencies ++= {
       if (!isScala3.value)
         Seq(
-          "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-          "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+          orgScalaLang % "scala-compiler" % scalaVersion.value,
+          orgScalaLang % "scala-reflect" % scalaVersion.value,
           semanticdbScalacCore,
           collectionCompat
         )
       else
         Seq(
-          "org.scala-lang" %% "scala3-presentation-compiler" % scalaVersion.value,
+          orgScalaLang %% "scala3-presentation-compiler" % scalaVersion.value,
           coursierInterfaces
         )
     }
@@ -148,8 +146,8 @@ lazy val reflect = projectMatrix
     libraryDependencies ++= Seq(
       coursierInterfaces,
       semanticdbScalacCore,
-      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value
+      orgScalaLang % "scala-compiler" % scalaVersion.value,
+      orgScalaLang % "scala-reflect" % scalaVersion.value
     )
   )
   .defaultAxes(VirtualAxis.jvm)
@@ -168,9 +166,8 @@ lazy val reflect3 = project
       // CrossVersion.for3Use2_13 would only lookup a binary version artifact, but this is published with full version
       semanticdbScalacCore
         .cross(CrossVersion.constant(scala213))
-        .exclude("com.lihaoyi", "sourcecode_2.13")
-        .exclude("org.scala-lang.modules", "scala-collection-compat_2.13"),
-      "org.scala-lang" %% "scala3-compiler" % scalaVersion.value
+        .exclude213((orgLiHaoYi, "sourcecode"), collectionCompat),
+      orgScalaLang %% "scala3-compiler" % scalaVersion.value
     )
   )
   .dependsOn(core3)
@@ -197,15 +194,13 @@ lazy val cli = projectMatrix
     // using workaround from https://github.com/sbt/sbt/issues/5369#issue-549758513
     // https://github.com/sbt/sbt-projectmatrix/pull/97 only fixed dependencies to binary versions
     projectDependencies := {
-      projectDependencies.value.map {
-        case reflect
-            if reflect.name == "scalafix-reflect" && scalaBinaryVersion.value == "3" =>
-          reflect
-            .withName(s"scalafix-reflect_${scala213}")
-            .withCrossVersion(CrossVersion.disabled)
-        case dep =>
-          dep
-      }
+      if (isScala3.value)
+        projectDependencies.value.map { dep =>
+          val matches = dep.name == "scalafix-reflect"
+          if (matches) dep.cross(CrossVersion.constant(scala213))
+          else dep
+        }
+      else projectDependencies.value
     },
     publishLocalTransitive := Def.taskDyn {
       val ref = thisProjectRef.value
@@ -306,8 +301,7 @@ lazy val unit = projectMatrix
         scalametaTeskitFor3Use2_13
       } else {
         // exclude _2.13 artifacts that have their _3 counterpart in the classpath
-        scalametaTeskitFor3Use2_13
-          .exclude("org.scalameta", "munit_2.13")
+        scalametaTeskitFor3Use2_13.exclude213(munit)
       }
     },
     buildInfoPackage := "scalafix.tests",
@@ -332,10 +326,9 @@ lazy val integration = projectMatrix
         )
       } else {
         Seq(
-          "org.scala-lang" %% "scala3-compiler" % scalaVersion.value,
+          orgScalaLang %% "scala3-compiler" % scalaVersion.value,
           // exclude _2.13 artifacts that have their _3 counterpart in the classpath
-          coursierFor3Use2_13
-            .exclude("org.scala-lang.modules", "scala-xml_2.13")
+          coursierFor3Use2_13.exclude213(scalaXml)
         )
       }
     },
