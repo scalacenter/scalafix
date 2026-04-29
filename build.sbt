@@ -5,6 +5,7 @@ inThisBuild(
   List(
     onLoadMessage := s"Welcome to scalafix ${version.value}",
     semanticdbEnabled := true,
+    resolvers += Resolver.sonatypeCentralSnapshots,
     semanticdbVersion := scalametaV
   )
 )
@@ -62,17 +63,6 @@ lazy val interfaces = project
   )
   .disablePlugins(ScalafixPlugin)
 
-// Scala 3 macros vendored separately (i.e. without runtime classes), to
-// shadow Scala 2.13 macros in the Scala 3 compiler classpath, while producing
-// code valid against Scala 2.13 bytecode
-lazy val `compat-metaconfig-macros` = projectMatrix
-  .settings(
-    libraryDependencies += metaconfig cross CrossVersion.for3Use2_13
-  )
-  .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(cliScalaVersions)
-  .disablePlugins(ScalafixPlugin)
-
 lazy val core = projectMatrix
   .in(file("scalafix-core"))
   .settings(
@@ -81,35 +71,13 @@ lazy val core = projectMatrix
     libraryDependencies ++= Seq(
       googleDiff,
       metaconfig,
-      scalametaFor3Use2_13,
-      semanticdbSharedFor3Use2_13,
+      scalameta,
+      semanticdbShared,
       collectionCompat
     )
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(coreScalaVersions)
-  .enablePlugins(BuildInfoPlugin)
-
-// keep compiling core3 without exposing it to matrix projects, just
-// to make https://github.com/scalacenter/scalafix/issues/2041 easier
-lazy val core3 = project
-  .in(file("scalafix-core"))
-  .settings(
-    noPublishAndNoMima,
-    buildInfoSettingsForCore,
-    scalaVersion := scala3LTS,
-    libraryDependencies ++= Seq(
-      googleDiff,
-      metaconfig
-    ) ++ Seq(
-      scalametaFor3Use2_13,
-      semanticdbSharedFor3Use2_13
-    ).map { mod =>
-      mod
-        .exclude("com.lihaoyi", "sourcecode_2.13")
-        .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
-    }
-  )
+  .jvmPlatform(CrossVersion.binary, cliScalaVersions)
   .enablePlugins(BuildInfoPlugin)
 
 lazy val rules = projectMatrix
@@ -119,24 +87,11 @@ lazy val rules = projectMatrix
     description := "Built-in Scalafix rules",
     isFullCrossVersion,
     buildInfoSettingsForRules,
-    libraryDependencies ++= {
-      if (!isScala3.value)
-        Seq(
-          "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-          "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-          semanticdbScalacCore,
-          collectionCompat
-        )
-      else
-        Seq(
-          "org.scala-lang" %% "scala3-presentation-compiler" % scalaVersion.value,
-          coursierInterfaces
-        )
-    }
+    libraryDependencies += metaconfig,
+    settingsForSemanticdbScalac
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(CrossVersion.full, cliScalaVersions)
-  .dependsOn(`compat-metaconfig-macros` % "provided")
   .dependsOn(core)
   .enablePlugins(BuildInfoPlugin)
 
@@ -145,35 +100,12 @@ lazy val reflect = projectMatrix
   .settings(
     moduleName := "scalafix-reflect",
     isFullCrossVersion,
-    libraryDependencies ++= Seq(
-      coursierInterfaces,
-      semanticdbScalacCore,
-      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value
-    )
+    libraryDependencies += coursierInterfaces,
+    settingsForSemanticdbScalac
   )
   .defaultAxes(VirtualAxis.jvm)
-  .jvmPlatform(coreScalaVersions)
+  .jvmPlatform(CrossVersion.binary, cliScalaVersions)
   .dependsOn(core)
-
-// keep compiling reflect3 without exposing it to matrix projects, just
-// to make https://github.com/scalacenter/scalafix/issues/2041 easier
-lazy val reflect3 = project
-  .in(file("scalafix-reflect"))
-  .settings(
-    isFullCrossVersion,
-    noPublishAndNoMima,
-    scalaVersion := scala3LTS,
-    libraryDependencies ++= Seq(
-      // CrossVersion.for3Use2_13 would only lookup a binary version artifact, but this is published with full version
-      semanticdbScalacCore
-        .cross(CrossVersion.constant(scala213))
-        .exclude("com.lihaoyi", "sourcecode_2.13")
-        .exclude("org.scala-lang.modules", "scala-collection-compat_2.13"),
-      "org.scala-lang" %% "scala3-compiler" % scalaVersion.value
-    )
-  )
-  .dependsOn(core3)
 
 lazy val cli = projectMatrix
   .in(file("scalafix-cli"))
@@ -183,6 +115,7 @@ lazy val cli = projectMatrix
     libraryDependencies ++= Seq(
       nailgunServer,
       jgit,
+      metaconfig,
       commonText
     ),
     libraryDependencies ++= {
@@ -192,21 +125,6 @@ lazy val cli = projectMatrix
         // disappeared from the classpath to link
         runtimeDepsForBackwardCompatibility.map(_ % Runtime)
     },
-    // companion of `.dependsOn(reflect)`
-    // issue reported in https://github.com/sbt/sbt/issues/7405
-    // using workaround from https://github.com/sbt/sbt/issues/5369#issue-549758513
-    // https://github.com/sbt/sbt-projectmatrix/pull/97 only fixed dependencies to binary versions
-    projectDependencies := {
-      projectDependencies.value.map {
-        case reflect
-            if reflect.name == "scalafix-reflect" && scalaBinaryVersion.value == "3" =>
-          reflect
-            .withName(s"scalafix-reflect_${scala213}")
-            .withCrossVersion(CrossVersion.disabled)
-        case dep =>
-          dep
-      }
-    },
     publishLocalTransitive := Def.taskDyn {
       val ref = thisProjectRef.value
       publishLocal.all(ScopeFilter(inDependencies(ref)))
@@ -215,7 +133,6 @@ lazy val cli = projectMatrix
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(CrossVersion.full, cliScalaVersions)
   .dependsOn(interfaces)
-  .dependsOn(`compat-metaconfig-macros` % "provided")
   .dependsOn(reflect, rules)
 
 lazy val testkit = projectMatrix
@@ -251,6 +168,7 @@ lazy val input = projectMatrix
     scalacOptions ~= (_.filterNot(_ == "-Yno-adapted-args")),
     scalacOptions ++= warnAdaptedArgs.value, // For NoAutoTupling
     logLevel := Level.Error, // avoid flood of compiler warnings
+    scalacOptions --= ScalafixBuild.werrorOptions,
     libraryDependencies ++= testsDependencies.value,
     coverageEnabled := false,
     allowUnsafeScalaLibUpgrade := true,
@@ -275,6 +193,7 @@ lazy val output = projectMatrix
   .settings(
     noPublishAndNoMima,
     logLevel := Level.Error, // avoid flood of compiler warnings
+    scalacOptions --= ScalafixBuild.werrorOptions,
     libraryDependencies ++= testsDependencies.value,
     coverageEnabled := false,
     // mimic dependsOn(shared) but allowing binary Scala version matching
@@ -299,17 +218,9 @@ lazy val unit = projectMatrix
     libraryDependencies ++= Seq(
       jgit,
       munit,
+      scalametaTestkit,
       scalatest
     ),
-    libraryDependencies += {
-      if (!isScala3.value) {
-        scalametaTeskitFor3Use2_13
-      } else {
-        // exclude _2.13 artifacts that have their _3 counterpart in the classpath
-        scalametaTeskitFor3Use2_13
-          .exclude("org.scalameta", "munit_2.13")
-      }
-    },
     buildInfoPackage := "scalafix.tests",
     buildInfoKeys := Seq[BuildInfoKey](
       "scalaVersion" -> scalaVersion.value
@@ -325,6 +236,7 @@ lazy val integration = projectMatrix
   .settings(
     noPublishAndNoMima,
     Test / parallelExecution := false,
+    scalacOptions --= ScalafixBuild.werrorOptions,
     libraryDependencies ++= {
       if (!isScala3.value) {
         Seq(
@@ -332,10 +244,9 @@ lazy val integration = projectMatrix
         )
       } else {
         Seq(
-          "org.scala-lang" %% "scala3-compiler" % scalaVersion.value,
+          orgScalaLang %% "scala3-compiler" % scalaVersion.value,
           // exclude _2.13 artifacts that have their _3 counterpart in the classpath
-          coursierFor3Use2_13
-            .exclude("org.scala-lang.modules", "scala-xml_2.13")
+          coursierFor3Use2_13.exclude213(scalaXml, collectionCompat)
         )
       }
     },
@@ -467,7 +378,7 @@ lazy val docs = projectMatrix
       Dependencies.runtimeDepsForBackwardCompatibility
         .map(_.withRevision(VersionScheme.Always)),
     // force eviction of mdoc transitive dependency
-    dependencyOverrides += scalametaFor3Use2_13
+    dependencyOverrides += scalameta
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(scalaVersions = Seq(scala213))

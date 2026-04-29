@@ -12,9 +12,7 @@ import sbtversionpolicy.SbtVersionPolicyPlugin
 import sbtversionpolicy.SbtVersionPolicyPlugin.autoImport._
 import scalafix.sbt.ScalafixPlugin.autoImport._
 import com.github.sbt.sbtghpages.GhpagesKeys
-import sbt.librarymanagement.ivy.IvyDependencyResolution
-import sbt.plugins.IvyPlugin
-import sbtversionpolicy.DependencyCheckReport
+import scala.util.Properties
 import scala.util.Try
 
 object ScalafixBuild extends AutoPlugin with GhpagesKeys {
@@ -31,20 +29,16 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       publish / skip := true
     )
 
-    // https://github.com/scalameta/scalameta/issues/2485
-    lazy val coreScalaVersions = Seq(scala212, scala213)
-    lazy val cliScalaVersions = {
-      val scala3Versions = Seq(scala33, scala35, scala36, scala37, scala38)
-      val jdk = System.getProperty("java.specification.version").toDouble
+    lazy val cliScalaVersions: Seq[String] = {
       val unsupportedVersions: Set[String] =
-        if (jdk >= 25) Set(scala212, scala35, scala36)
-        else if (jdk < 17) Set(scala38)
+        if (Properties.isJavaAtLeast("25")) Set(scala212, scala35, scala36)
+        else if (!Properties.isJavaAtLeast("17")) Set(scala38)
         else Set.empty
-      (coreScalaVersions ++ scala3Versions).filterNot(unsupportedVersions)
+      (scala2Versions ++ scala3Versions).filterNot(unsupportedVersions)
     }
     lazy val cliScalaVersionsWithTargets: Seq[(String, TargetAxis)] =
       cliScalaVersions.map(sv => (sv, TargetAxis(sv))) ++
-        cliScalaVersions.intersect(Seq(scala213, scala212)).flatMap { sv =>
+        cliScalaVersions.intersect(scala2Versions).flatMap { sv =>
           def previousVersions(scalaVersion: String): Seq[String] = {
             val split = scalaVersion.split('.')
             val binaryVersion = split.take(2).mkString(".")
@@ -119,7 +113,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         if (isScala2.value)
           Seq(
             bijectionCore,
-            "org.scala-lang" % "scala-reflect" % scalaVersion.value
+            orgScalaLang % "scala-reflect" % scalaVersion.value
           )
         else Nil
       scalaXml +: otherLibs
@@ -139,6 +133,26 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       if (!isScala3.value)
         Seq("-P:semanticdb:synthetics:on")
       else Nil
+    )
+
+    def settingsForSemanticdbScalac: Seq[Def.Setting[?]] = Def.settings(
+      libraryDependencies ++= {
+        if (isScala3.value)
+          Seq(
+            // CrossVersion.for3Use2_13 would only lookup a binary version artifact, but this is published with full version
+            semanticdbScalacCore
+              .cross(CrossVersion.constant(scala213))
+              .exclude213(semanticdbShared),
+            orgScalaLang %% "scala3-presentation-compiler" % scalaVersion.value,
+            orgScalaLang %% "scala3-compiler" % scalaVersion.value
+          )
+        else
+          Seq(
+            semanticdbScalacCore,
+            orgScalaLang % "scala-compiler" % scalaVersion.value,
+            orgScalaLang % "scala-reflect" % scalaVersion.value
+          )
+      }
     )
 
     lazy val buildInfoSettingsForCore: Seq[Def.Setting[_]] = Seq(
@@ -232,7 +246,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         .map(sv => s"cli${asProjectSuffix(sv)} / publishLocalTransitive")
         .mkString("all ", " ", " interfaces / publishLocal") ::
         "reload plugins" ::
-        s"""set dependencyOverrides += "ch.epfl.scala" % "scalafix-interfaces" % "$v"""" :: // as documented in installation.md
+        s"""set dependencyOverrides += "$orgScalafix" % "scalafix-interfaces" % "$v"""" :: // as documented in installation.md
         "session save" ::
         "reload return" ::
         state
@@ -244,7 +258,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     homepage := Some(url("https://github.com/scalacenter/scalafix")),
     autoAPIMappings := true,
     apiURL := Some(url("https://scalacenter.github.io/scalafix/")),
-    organization := "ch.epfl.scala",
+    organization := orgScalafix,
     developers ++= Developers.list
   )
 
@@ -254,19 +268,14 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
 
   override def buildSettings: Seq[Setting[_]] = List(
     // https://github.com/sbt/sbt/issues/5568#issuecomment-1094380636
-    versionPolicyIgnored ++= Seq(
-      // https://github.com/scalacenter/scalafix/pull/1530
-      "com.lihaoyi" %% "pprint",
-      // https://github.com/scalacenter/scalafix/pull/1819#issuecomment-1636118496
-      "org.scalameta" %% "fastparse-v2",
-      "com.lihaoyi" %% "geny"
-    ),
+    versionPolicyIgnored ++=
+      runtimeDepsForBackwardCompatibility.map(m => m.organization %% m.name),
     versionPolicyIgnoredInternalDependencyVersions :=
       Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r),
     versionScheme := Some("early-semver"),
     libraryDependencySchemes ++= Seq(
       // Scala 3 compiler
-      "org.scala-lang.modules" % "scala-asm" % VersionScheme.Always,
+      orgScalaLangMod % "scala-asm" % VersionScheme.Always,
       // coursier-versions always return false for the *.*.*.*-r pattern jgit uses
       Dependencies.jgit.withRevision(VersionScheme.Always)
     )
@@ -281,15 +290,22 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     // avoid "missing dependency" on artifacts with full scala version when bumping scala
     versionPolicyIgnored ++= {
       PreviousScalaVersion.values.flatten.toSeq.flatMap { previous =>
+        val suffix = "_" + previous
         Seq(
-          "org.scalameta" % s"semanticdb-scalac-core_$previous",
-          "ch.epfl.scala" % s"scalafix-cli_$previous",
-          "ch.epfl.scala" % s"scalafix-reflect_$previous",
-          "ch.epfl.scala" % s"scalafix-rules_$previous"
+          orgScalameta % (semanticdbScalacCore.name + suffix),
+          orgScalafix % ("scalafix-cli" + suffix),
+          orgScalafix % ("scalafix-reflect" + suffix),
+          orgScalafix % ("scalafix-rules" + suffix)
         )
       }
     },
     versionPolicyIntention := Compatibility.BinaryCompatible,
+    scalacOptions ++= werrorOptions,
+    scalacOptions ++= Seq( // exclusions
+      "-Wconf:cat=deprecation&msg=Rule:s",
+      "-Wconf:cat=deprecation&msg=JavaConverters:s",
+      "-Wconf:cat=deprecation&msg=AssociatedComments:s"
+    ),
     scalacOptions += "-Wconf:origin=scala.collection.compat.*:s",
     scalacOptions ++= compilerOptions.value,
     scalacOptions ++= {
@@ -382,4 +398,11 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
 
   private def asProjectSuffix(scalaVersion: String) =
     scalaVersion.replaceAll("[\\.-]", "_")
+
+  val werrorOptions = Seq(
+    "-Werror",
+    "-deprecation",
+    "-Wconf:cat=deprecation:error"
+  )
+
 }

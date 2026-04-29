@@ -11,6 +11,7 @@ import scalafix.internal.util.SymbolOps.SignatureName
 import scalafix.patch.Patch
 import scalafix.patch.Patch.internal.ReplaceSymbol
 import scalafix.syntax._
+import scalafix.util.TreeOps
 import scalafix.v0._
 
 object ReplaceSymbolOps {
@@ -22,24 +23,21 @@ object ReplaceSymbolOps {
     }
   }
 
-  private def extractImports(stats: Seq[Stat]): Seq[Import] = {
-    stats.collect { case i: Import => i }
+  @tailrec
+  private def extractImports(stats: List[Stat]): Seq[Import] = stats match {
+    case (p: Pkg) :: Nil => extractImports(p.body.stats)
+    case _ => stats.collect { case i: Import => i }
   }
 
   private def getNamesOfExplicitlyImportedSymbols(
       tree: Tree,
       isMoved: Name => Boolean
   ): Set[String] = {
-    @tailrec
-    def getGlobalImports(ast: Tree): Seq[Import] = ast match {
-      case Pkg(_, Seq(pkg: Pkg)) => getGlobalImports(pkg)
-      case Source(Seq(pkg: Pkg)) => getGlobalImports(pkg)
-      case Pkg(_, stats) => extractImports(stats)
-      case Source(stats) => extractImports(stats)
+    val globalImports = tree match {
+      case t: Pkg => extractImports(t.body.stats)
+      case t: Source => extractImports(t.stats)
       case _ => Nil
     }
-
-    val globalImports = getGlobalImports(tree)
 
     // pre-compute global imported symbols for O(1) collision detection
     // since ctx.addGlobalImport adds imports at global scope
@@ -79,6 +77,7 @@ object ReplaceSymbolOps {
 
     lazy val globalImportedNames =
       getNamesOfExplicitlyImportedSymbols(ctx.tree, Move.unapply(_).isDefined)
+    @annotation.nowarn("msg=Exhaustivity|match may not be exhaustive")
     def loop(ref: Ref, sym: Symbol, isImport: Boolean): (Patch, Symbol) = {
       (ref, sym) match {
         // same length
@@ -128,11 +127,11 @@ object ReplaceSymbolOps {
     object Identifier {
       def unapply(tree: Tree): Option[(Name, Symbol)] = tree match {
         case n: Name => n.symbol.map(s => n -> s)
-        case Init(n: Name, _, _) => n.symbol.map(s => n -> s)
+        case Init.Initial(n: Name, _, _) => n.symbol.map(s => n -> s)
         case _ => None
       }
     }
-    val patches = ctx.tree.collect { case n @ Move(to) =>
+    TreeOps.collectTree { case n @ Move(to) =>
       // was this written as `to = "blah"` instead of `to = _root_.blah`
       val isSelected = to match {
         case Root(_) => false
@@ -178,7 +177,6 @@ object ReplaceSymbolOps {
         case _ =>
           Patch.empty
       }
-    }
-    patches.asPatch
+    }(ctx.tree).asPatch
   }
 }

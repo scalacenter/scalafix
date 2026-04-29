@@ -8,6 +8,10 @@ object Mima {
     Seq(
       ProblemFilters.exclude[Problem]("scalafix.internal.*"),
       ProblemFilters.exclude[Problem]("scala.meta.internal.*"),
+      // deprecation of TestRegistration, switch to AnyFunSuite; remove after next release
+      ProblemFilters.exclude[FinalMethodProblem]("org.scalatest.funsuite.AnyFunSuite.styleName"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("scalafix.testkit.AbstractSemanticRuleSuite.*"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("scalafix.testkit.AbstractSyntacticRuleSuite.*"),
       // Exceptions
       ProblemFilters.exclude[ReversedMissingMethodProblem]("scalafix.interfaces.Scalafix.scala38")
     )

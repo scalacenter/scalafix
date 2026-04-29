@@ -2,6 +2,7 @@ package scalafix.internal.rule
 
 import scala.meta._
 
+import scalafix.util.TreeOps
 import scalafix.v1._
 
 class NoAutoTupling extends SemanticRule("NoAutoTupling") {
@@ -39,14 +40,14 @@ class NoAutoTupling extends SemanticRule("NoAutoTupling") {
             ) =>
           message.position
       }.toSet
-    doc.tree
-      .collect {
+    TreeOps
+      .collectTree {
         case t: Term.Apply if tupleAdaptations.contains(t.pos) =>
-          addWrappingParens(t.args)
+          addWrappingParens(t.argClause.values)
         case t: Term.Apply
-            if t.args.isEmpty && unitAdaptations.contains(t.pos) =>
+            if t.argClause.isEmpty && unitAdaptations.contains(t.pos) =>
           insertUnit(t)
-      }
+      }(doc.tree)
       .map(_.atomic)
       .asPatch
   }

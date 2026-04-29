@@ -237,12 +237,26 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
           decls.filterNot(_.isOverridingSymbol).nonEmpty =>
       val body: Option[m.Term] = defn match {
         case t: m.Defn.Val => Some(t.rhs)
-        case t: m.Defn.Var => t.rhs
+        case t: m.Defn.Var => Some(t.body)
         case t: m.Defn.Def => Some(t.body)
         case _ => None
       }
+      def appendParams(
+          sb: StringBuilder,
+          lp: Char,
+          rp: Char,
+          params: List[m.Member]
+      ): Unit = {
+        sb.append(lp)
+        val sblen = sb.length
+        params.foreach { p =>
+          if (sb.length > sblen) sb.append(", ")
+          sb.append(p.name.syntax)
+        }
+        sb.append(rp)
+      }
       body match {
-        case Some(body @ m.Term.NewAnonymous(_))
+        case Some(body: m.Term.NewAnonymous)
             if body.tokens.head.syntax == "new" =>
           val nameSyntax = gsym.nameSyntax
           val suffixes = "" +: LazyList.from(1).map(_.toString())
@@ -254,38 +268,40 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
             }
             .get
           isInsertedClass += name
-          val paramDefnSuffix = defn match {
-            case d: m.Defn.Def =>
-              d.paramss
-                .map(_.map(_.syntax).mkString(", "))
-                .mkString("(", ")(", ")")
-            case _ => ""
+          val defnOpt = defn match {
+            case d: m.Defn.Def => Some(d)
+            case _ => None
           }
-          val tparamDefn = defn match {
-            case d: m.Defn.Def if d.tparams.nonEmpty =>
-              d.tparams.map(_.syntax).mkString("[", ", ", "]")
-            case _ => ""
+          val nameWithType = defnOpt match {
+            case Some(d)
+                if d.paramClauseGroups.exists(_.tparamClause.values.nonEmpty) =>
+              val sbCall = new StringBuilder
+              sbCall.append(name)
+              d.paramClauseGroups.foreach { pcg =>
+                val tps = pcg.tparamClause.values
+                if (tps.nonEmpty) appendParams(sbCall, '[', ']', tps)
+              }
+              sbCall.toString()
+            case _ => name
           }
-          val tparamCall = defn match {
-            case d: m.Defn.Def if d.tparams.nonEmpty =>
-              d.tparams.map(_.name.syntax).mkString("[", ", ", "]")
-            case _ => ""
-          }
-          val paramCallSuffix = defn match {
-            case d: m.Defn.Def =>
-              d.paramss
-                .map(_.map(_.name.syntax).mkString(", "))
-                .mkString("(", ")(", ")")
-            case _ => ""
-          }
-          val indent = " " * defn.pos.startColumn
+          val sb = new StringBuilder
+          sb.append(' ')
+          sb.append(nameWithType)
+          defnOpt.foreach(_.paramClauseGroups.foreach(_.paramClauses.foreach {
+            pc => appendParams(sb, '(', ')', pc.values)
+          }))
+          sb.append('\n')
+            .append(" " * defn.pos.startColumn)
+            .append("class ")
+            .append(name)
+          defnOpt.foreach(_.paramClauseGroups.foreach { pcg =>
+            sb.append(pcg.syntax)
+          })
+          sb.append(" extends")
           Some(
             (
-              new PrettyType(name + tparamCall),
-              v1.Patch.addRight(
-                body.tokens.head,
-                s" ${name}${tparamCall}${paramCallSuffix}\n${indent}class ${name}${tparamDefn}${paramDefnSuffix} extends"
-              )
+              new PrettyType(nameWithType),
+              v1.Patch.addRight(body.tokens.head, sb.toString())
             )
           )
         case _ =>

@@ -30,6 +30,7 @@ class TPrintImplicits {
       def render(implicit tpc: TPrintColors): fansi.Str = ev.render
     }
 
+  @annotation.nowarn
   implicit def iterablePrint[C[x] <: Iterable[x], T](implicit
       ev: TPrint[T]
   ): TPrint[C[T]] =

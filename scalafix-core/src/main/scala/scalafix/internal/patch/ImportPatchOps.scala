@@ -14,8 +14,8 @@ import scalafix.patch.Patch
 import scalafix.patch.Patch.internal._
 import scalafix.rule.RuleCtx
 import scalafix.syntax._
-import scalafix.util.Newline
 import scalafix.util.SemanticdbIndex
+import scalafix.util.TreeOps
 import scalafix.v0.Signature
 import scalafix.v0.Symbol
 
@@ -40,32 +40,27 @@ object ImportPatchOps {
     }
   }
   private def fallbackToken(ctx: RuleCtx): Token = {
+    @tailrec
     def loop(tree: Tree): Token = tree match {
       case Source((stat: Pkg) :: _) => loop(stat)
-      case Source(_) => tree.tokens.head
-      case Pkg(_, stat :: _) => loop(stat)
+      case _: Source => tree.tokens.head
+      case Pkg.Initial(_, stat :: _) => loop(stat)
       case els =>
-        ctx.tokenList.prev(ctx.tokenList.prev(els.tokens.head)) match {
-          case comment @ Token.Comment(_) =>
-            ctx.tokenList.prev(ctx.tokenList.prev(comment))
-          case other => other
-        }
+        val tokens = els.begComment.getOrElse(els).tokens
+        val eolidx = tokens.rskipWideIf(_.is[Token.HTrivia], -1)
+        (tokens.getWideOpt(eolidx) match {
+          case Some(_: Token.AtEOL) => tokens.getWideOpt(eolidx - 1)
+          case x => x
+        }).getOrElse(tokens.head)
     }
     loop(ctx.tree)
   }
-  private def extractImports(stats: Seq[Stat]): Seq[Import] = {
-    stats
-      .takeWhile(_.is[Import])
-      .collect { case i: Import => i }
-  }
 
-  @tailrec private final def getGlobalImports(ast: Tree): Seq[Import] =
-    ast match {
-      case Pkg(_, Seq(pkg: Pkg)) => getGlobalImports(pkg)
-      case Source(Seq(pkg: Pkg)) => getGlobalImports(pkg)
-      case Pkg(_, stats) => extractImports(stats)
-      case Source(stats) => extractImports(stats)
-      case _ => Nil
+  @tailrec
+  private def extractImports(stats: List[Stat]): Seq[Import] =
+    stats match {
+      case (pkg: Pkg) :: Nil => extractImports(pkg.body.stats)
+      case _ => stats.takeWhile(_.is[Import]).collect { case i: Import => i }
     }
 
   // NOTE(olafur): This method is the simplest/dummest thing I can think of
@@ -73,7 +68,7 @@ object ImportPatchOps {
       ctx: RuleCtx,
       importPatches: Seq[ImportPatch]
   )(implicit index: SemanticdbIndex): Iterable[Patch] = {
-    val allImports = ctx.tree.collect { case i: Import => i }
+    val allImports = TreeOps.collectTree { case i: Import => i }(ctx.tree)
     val allImporters = allImports.flatMap(_.importers)
     lazy val allGlobalImportersSyntax = (for {
       importer <- allImporters.iterator
@@ -84,11 +79,15 @@ object ImportPatchOps {
       case Importee.Name(n) if index.symbol(n).isDefined =>
         n.symbol
       // TODO(olafur) handle rename.
-    }
+    }.flatten
     lazy val allImporteeSymbols = allImportees.flatMap(importee =>
       importee.symbol.map(_.normalized -> importee)
     )
-    val globalImports = getGlobalImports(ctx.tree)
+    val globalImports = ctx.tree match {
+      case t: Source => extractImports(t.stats)
+      case t: Pkg => extractImports(t.body.stats)
+      case _ => Nil
+    }
     val editToken: Token = {
       if (globalImports.isEmpty) fallbackToken(ctx)
       else globalImports.last.tokens.last
@@ -163,9 +162,7 @@ object ImportPatchOps {
     def removeSpaces(tokens: Iterable[Token]): Patch = {
       tokens
         .takeWhile {
-          case Token.Space() => true
-          case Newline() => true
-          case Token.Comma() => true
+          case _: Token.Whitespace | _: Token.Comma => true
           case _ => false
         }
         .map(ctx.removeToken)
@@ -240,46 +237,34 @@ object ImportPatchOps {
       Patch.removeTokens(toRemove.tokens) ++ leadingComma ++ trailingComma
     }
 
-    val leadingNewlines = isRemovedImport.map { i =>
-      var newline = false
-      ctx.tokenList
-        .leading(i.tokens.head)
-        .takeWhile(x =>
-          !newline && {
-            x.is[Token.Space] || {
-              val isNewline = x.is[Newline]
-              if (isNewline) {
-                newline = true
-              }
-              isNewline
-            }
-          }
-        )
-        .map(tok => ctx.removeToken(tok))
-        .asPatch
+    val importsRemoves = isRemovedImport.map { i =>
+      val tokens = i.tokens
+      val eolidx = tokens.rskipWideIf(_.is[Token.HSpace], -1)
+      val begidx = tokens.getWideOpt(eolidx) match {
+        case Some(_: Token.AtEOL) => eolidx
+        case _ => eolidx + 1
+      }
+      ctx.removeTokens(tokens.sliceWide(begidx, tokens.length))
     }
 
-    leadingNewlines ++
-      curlyBraceRemoves ++
+    curlyBraceRemoves ++
       extraPatches ++
       isRemovedImportee.map(remove) ++
       isRemovedImporter.map(remove) ++
-      isRemovedImport.map(i => Patch.removeTokens(i.tokens))
+      importsRemoves
   }
 
   private def removeUpToFirstComma(tokens: Iterable[Token]): List[Patch] = {
     var foundComma = false
     val patch = tokens
       .takeWhile {
-        case _: Token.Space | Newline() => true
+        case _: Token.Whitespace => true
         case _: Token.Comma if !foundComma =>
           foundComma = true
           true
         case _ => false
       }
-      .map { token =>
-        Patch.removeToken(token)
-      }
+      .map(Patch.removeToken)
       .toList
     if (foundComma) patch
     else Nil

@@ -17,6 +17,7 @@ import scalafix.internal.config.ScalaVersion
 import scalafix.internal.rule.ImportMatcher._
 import scalafix.lint.Diagnostic
 import scalafix.patch.Patch
+import scalafix.util.TreeOps
 import scalafix.v1.Configuration
 import scalafix.v1.Rule
 import scalafix.v1.RuleName.stringToRuleName
@@ -76,7 +77,11 @@ class OrganizeImports(
 
     val unusedImporteePositions = new UnusedImporteePositions
 
-    val (globalImports, localImports) = collectImports(doc.tree)
+    val (globalImports, localImports) = doc.tree match {
+      case t: Source => collectImports(t.stats)
+      case t: Pkg => collectImports(t.body.stats)
+      case _ => (Nil, Nil)
+    }
 
     val globalImportsPatch =
       if (globalImports.isEmpty) Patch.empty
@@ -878,27 +883,30 @@ object OrganizeImports {
     }
 
   @tailrec private def collectImports(
-      tree: Tree
-  ): (Seq[Import], Seq[Import]) = {
-    def extractImports(stats: Seq[Stat]): (Seq[Import], Seq[Import]) = {
-      val (importStats, otherStats) = stats.span(_.is[Import])
-      val globalImports = importStats.map { case i: Import => i }
-      val localImports = otherStats.flatMap(_.collect { case i: Import => i })
-      (globalImports, localImports)
-    }
-
-    tree match {
-      case Source(Seq(p: Pkg)) => collectImports(p)
-      case Pkg(_, Seq(p: Pkg)) => collectImports(p)
-      case Source(stats) => extractImports(stats)
-      case Pkg(_, stats) => extractImports(stats)
-      case _ => (Nil, Nil)
-    }
+      stats: List[Stat]
+  ): (Seq[Import], Seq[Import]) = stats match {
+    case (p: Pkg) :: Nil => collectImports(p.body.stats)
+    case _ =>
+      val globalImports = Seq.newBuilder[Import]
+      val localImports = Seq.newBuilder[Import]
+      def collectLocalImports(tree: Tree): Unit =
+        TreeOps.traverseTree {
+          case i: Import => localImports += i
+          case _ =>
+        }(tree)
+      val statsiter = stats.iterator
+      while (statsiter.hasNext) statsiter.next() match {
+        case i: Import => globalImports += i
+        case i =>
+          collectLocalImports(i)
+          while (statsiter.hasNext) collectLocalImports(statsiter.next())
+      }
+      (globalImports.result(), localImports.result())
   }
 
   @tailrec private def topQualifierOf(term: Term): Term.Name =
     term match {
-      case Term.Select(qualifier, _) => topQualifierOf(qualifier)
+      case t: Term.Select => topQualifierOf(t.qual)
       case name: Term.Name => name
     }
 
@@ -913,8 +921,8 @@ object OrganizeImports {
     term match {
       case _: Term.Name =>
         newTopQualifier
-      case Term.Select(qualifier, name) =>
-        Term.Select(replaceTopQualifier(qualifier, newTopQualifier), name)
+      case t: Term.Select =>
+        t.copy(qual = replaceTopQualifier(t.qual, newTopQualifier))
     }
 
   private def sortImporteesSymbolsFirst(

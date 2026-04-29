@@ -89,9 +89,9 @@ class Scala3Printer(
 ) extends Printer {
 
   private def defnBody(defn: Defn): Option[Term] = Option(defn).collect {
-    case Defn.Val(_, _, _, term) => term
-    case Defn.Var(_, _, _, Some(term)) => term
-    case Defn.Def(_, _, _, _, _, term) => term
+    case t: Defn.Val => t.rhs
+    case t: Defn.Var => t.body
+    case t: Defn.Def => t.body
   }
 
   /**

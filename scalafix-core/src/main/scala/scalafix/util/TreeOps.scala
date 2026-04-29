@@ -24,9 +24,9 @@ object TreeExtractors {
 
   object Mods {
     def unapply(tree: Tree): Option[List[Mod]] = tree match {
-      case Ctor.Primary(mods, _, _) => Some(mods)
-      case Term.Param(mods, _, _, _) => Some(mods)
-      case Type.Param(mods, _, _, _, _, _) => Some(mods)
+      case t: Ctor.Primary => Some(t.mods)
+      case t: Term.Param => Some(t.mods)
+      case t: Type.Param => Some(t.mods)
       case t: Stat.WithMods => Some(t.mods)
       case _ => None
     }
@@ -63,7 +63,7 @@ object TreeOps {
               case _: Defn.Def =>
                 for {
                   stats <- parent match {
-                    case t: Template => Some(t.stats)
+                    case t: Template => Some(t.body.stats)
                     case _ => None
                   }
                   conflicts = stats.collect {
@@ -96,4 +96,24 @@ object TreeOps {
       case Some(x) => parents(x)
       case _ => LazyList.empty
     })
+
+  private[scalafix] def traverseTree(f: Tree => Unit)(tree: Tree): Unit = {
+    val buf = new collection.mutable.Queue[Tree]
+    buf += tree
+    while (buf.nonEmpty) {
+      val elem = buf.dequeue()
+      f(elem)
+      elem.children.foreach(buf.+=)
+    }
+  }
+
+  private[scalafix] def collectTree[A](f: PartialFunction[Tree, A])(
+      tree: Tree
+  ): List[A] = {
+    val buf = List.newBuilder[A]
+    val func = f.andThen(buf += _)
+    traverseTree(x => func.applyOrElse(x, (_: Tree) => ()))(tree)
+    buf.result()
+  }
+
 }

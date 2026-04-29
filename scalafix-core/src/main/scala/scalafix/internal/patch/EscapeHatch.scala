@@ -1,6 +1,7 @@
 package scalafix.internal.patch
 
 import scala.annotation.tailrec
+import scala.collection.compat._
 import scala.collection.immutable.TreeMap
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -20,6 +21,7 @@ import scalafix.lint.RuleDiagnostic
 import scalafix.patch.Patch.internal._
 import scalafix.rule.RuleName
 import scalafix.util.TreeExtractors.Mods
+import scalafix.util.TreeOps
 import scalafix.v0._
 
 /**
@@ -179,7 +181,7 @@ object EscapeHatch {
       if (isEmpty) (true, None)
       else {
         val escapesUpToPos =
-          escapeTree.to(EscapeOffset(position)).valuesIterator.flatten
+          escapeTree.rangeTo(EscapeOffset(position)).valuesIterator.flatten
         escapesUpToPos
           .collectFirst {
             case f @ EscapeFilter(_, _, _, Some(end))
@@ -211,19 +213,23 @@ object EscapeHatch {
     }
 
     private def collectEscapes(tree: Tree): AnnotatedEscapes = {
-      val escapes =
-        tree.collect { case t @ Mods(SuppressWarningsArgs(args)) =>
+      val escapes = TreeOps.collectTree {
+        case t @ Mods(SuppressWarningsArgs(args)) =>
           val start = EscapeOffset(t.pos.start)
           val end = EscapeOffset(t.pos.end)
           val rules = rulesWithPosition(args)
-          val (matchAll, matchOne) = rules.partition(_._1 == SuppressAll)
           val filters = ListBuffer.empty[EscapeFilter]
 
           // 'all' should come before individual rules so that we can warn unused rules later
-          for ((_, rulePos) <- matchAll) {
-            val matcher = FilterMatcher.matchEverything
-            filters += EscapeFilter(matcher, rulePos, start, Some(end))
+          val matchOne = rules.filterNot { case (rule, rulePos) =>
+            val isAll = rule == SuppressAll
+            if (isAll) {
+              val matcher = FilterMatcher.matchEverything
+              filters += EscapeFilter(matcher, rulePos, start, Some(end))
+            }
+            isAll
           }
+
           for ((rule, rulePos) <- matchOne) {
             val unprefixedRuleName = rule.stripPrefix(OptionalRulePrefix)
             val matcher = FilterMatcher(unprefixedRuleName)
@@ -231,7 +237,7 @@ object EscapeHatch {
           }
 
           (start, filters.result())
-        }
+      }(tree)
       new AnnotatedEscapes(TreeMap(escapes: _*))
     }
 
@@ -239,19 +245,19 @@ object EscapeHatch {
       def unapply(mods: List[Mod]): Option[List[Term]] =
         mods.collectFirst {
           case Mod.Annot(
-                Init(
+                Init.Initial(
                   Type.Name(SuppressWarnings),
                   _,
-                  List(Term.Apply(Term.Name("Array"), args) :: Nil)
+                  List(Term.Apply.Initial(Term.Name("Array"), args) :: Nil)
                 )
               ) =>
             args
 
           case Mod.Annot(
-                Init(
+                Init.Initial(
                   Type.Select(_, Type.Name(SuppressWarnings)),
                   _,
-                  List(Term.Apply(Term.Name("Array"), args) :: Nil)
+                  List(Term.Apply.Initial(Term.Name("Array"), args) :: Nil)
                 )
               ) =>
             args
@@ -261,9 +267,10 @@ object EscapeHatch {
     private def rulesWithPosition(rules: List[Term]): List[(String, Position)] =
       rules.collect { case lit @ Lit.String(rule) =>
         // get the exact position of the rule name
-        val lo = lit.pos.start + lit.pos.text.indexOf(rule)
+        val pos = lit.pos
+        val lo = pos.start + pos.text.indexOf(rule)
         val hi = lo + rule.length
-        rule -> Position.Range(lit.pos.input, lo, hi)
+        rule -> Position.Range(pos.input, lo, hi)
       }
   }
 
@@ -326,7 +333,7 @@ object EscapeHatch {
       if (disabling.isEmpty) (true, None)
       else {
         val disables =
-          disabling.to(EscapeOffset(position)).valuesIterator.flatten
+          disabling.rangeTo(EscapeOffset(position)).valuesIterator.flatten
         loop(disables.toList, None)
       }
     }

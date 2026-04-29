@@ -6,6 +6,7 @@ import scala.meta.tokens.Token
 
 import buildinfo.RulesBuildInfo
 import scalafix.util.TokenOps
+import scalafix.util.TreeOps
 import scalafix.v1._
 
 trait Printer {
@@ -40,15 +41,15 @@ abstract class ExplicitResultTypesBase[P <: Printer]
   // this a common trick employed implicit-heavy code to workaround SI-2712.
   // Context: https://gitter.im/typelevel/cats?at=584573151eb3d648695b4a50
   protected def isImplicitly(term: Term): Boolean = term match {
-    case Term.ApplyType(Term.Name("implicitly"), _) => true
-    case Term.ApplyType(Term.Name("summon"), _) => true
+    case Term.ApplyType.Initial(Term.Name("implicitly" | "summon"), _) => true
     case _ => false
   }
 
-  protected def defnBody(defn: Defn): Option[Term] = Option(defn).collect {
-    case Defn.Val(_, _, _, term) => term
-    case Defn.Var(_, _, _, Some(term)) => term
-    case Defn.Def(_, _, _, _, _, term) => term
+  protected def defnBody(defn: Defn): Option[Term] = defn match {
+    case t: Defn.Val => Some(t.rhs)
+    case t: Defn.Var => Some(t.body)
+    case t: Defn.Def => Some(t.body)
+    case _ => None
   }
 
   protected def visibility(mods: Iterable[Mod]): MemberVisibility =
@@ -127,14 +128,14 @@ abstract class ExplicitResultTypesBase[P <: Printer]
     )
     def patchEmptyValue(term: Term): Patch = {
       term match {
-        case Term.ApplyType(Term.Select(option(_), Term.Name("empty")), _) =>
-          Patch.replaceTree(term, "None")
-        case Term.ApplyType(Term.Select(list(_), Term.Name("empty")), _) =>
-          Patch.replaceTree(term, "Nil")
-        case Term.ApplyType(Term.Select(seq(_), Term.Name("empty")), _) =>
-          Patch.replaceTree(term, "Nil")
-        case _ =>
-          Patch.empty
+        case Term.ApplyType.Initial(tf: Term.Select, _)
+            if tf.name.value == "empty" =>
+          val qual = tf.qual.symbol
+          if (option.matches(qual)) Patch.replaceTree(term, "None")
+          else if (list.matches(qual) || seq.matches(qual))
+            Patch.replaceTree(term, "Nil")
+          else Patch.empty
+        case _ => Patch.empty
       }
     }
     import lst._
@@ -145,7 +146,7 @@ abstract class ExplicitResultTypesBase[P <: Printer]
       // Example: `val x = ` from `val x = rhs.banana`
       lhsTokens = slice(start, end)
       replace <- lhsTokens.reverseIterator.find(x =>
-        !x.is[Token.Equals] && !x.is[Trivia]
+        !x.isAny[Token.Equals, Token.Trivia]
       )
       space = {
         if (TokenOps.needsLeadingSpaceBeforeColon(replace)) " "
@@ -157,19 +158,20 @@ abstract class ExplicitResultTypesBase[P <: Printer]
   }.asPatch.atomic
 
   def unsafeFix()(implicit ctx: SemanticDocument, printer: Printer): Patch = {
-    ctx.tree.collect {
-      case t @ Defn.Val(mods, Pat.Var(_) :: Nil, None, body)
+    TreeOps.collectTree {
+      case t @ Defn.Val(mods, (_: Pat.Var) :: Nil, None, body)
           if isRuleCandidate(t, mods, body) =>
         fixDefinition(t, body)
 
-      case t @ Defn.Var(mods, Pat.Var(_) :: Nil, None, Some(body))
+      case t @ Defn.Var.Initial(mods, (_: Pat.Var) :: Nil, None, Some(body))
           if isRuleCandidate(t, mods, body) =>
         fixDefinition(t, body)
 
-      case t @ Defn.Def(mods, _, _, _, None, body)
-          if isRuleCandidate(t, mods, body) =>
-        fixDefinition(t, body)
-    }.asPatch
+      case t: Defn.Def
+          if t.decltpe.isEmpty &&
+            isRuleCandidate(t, t.mods, t.body) =>
+        fixDefinition(t, t.body)
+    }(ctx.tree).asPatch
   }
 }
 
@@ -177,7 +179,7 @@ object ExplicitResultTypesBase {
 
   def defnName(defn: Defn): Option[Name] = Option(defn).collect {
     case Defn.Val(_, Pat.Var(name) :: Nil, _, _) => name
-    case Defn.Var(_, Pat.Var(name) :: Nil, _, _) => name
-    case Defn.Def(_, name, _, _, _, _) => name
+    case Defn.Var.Initial(_, Pat.Var(name) :: Nil, _, _) => name
+    case Defn.Def.Initial(_, name, _, _, _, _) => name
   }
 }

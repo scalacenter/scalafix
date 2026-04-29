@@ -6,6 +6,7 @@ import scala.meta._
 import scala.meta.tokens.Token
 
 import metaconfig.Configured
+import scalafix.util.TreeOps
 import scalafix.v0.LintCategory
 import scalafix.v1._
 
@@ -149,10 +150,9 @@ final class DisableSyntax(config: DisableSyntaxConfig)
     object AbstractWithVals {
       def unapply(t: Tree): Option[List[Defn.Val]] = {
         val stats = t match {
-          case Defn.Class(mods, _, _, _, templ)
-              if mods.exists(_.is[Mod.Abstract]) =>
-            templ.stats
-          case Defn.Trait(_, _, _, _, templ) => templ.stats
+          case t: Defn.Class if t.mods.exists(_.is[Mod.Abstract]) =>
+            t.templ.body.stats
+          case t: Defn.Trait => t.templ.body.stats
           case _ => List.empty
         }
         val vals = stats.flatMap {
@@ -166,16 +166,15 @@ final class DisableSyntax(config: DisableSyntaxConfig)
     object DefaultArgs {
       def unapply(t: Tree): Option[List[Term]] = {
         t match {
-          case d: Defn.Def => {
-            val defaults =
+          case d: Defn.Def =>
+            Some {
               for {
-                params <- d.paramss
-                param <- params
-                default <- param.default.toList
+                pg <- d.paramClauseGroups
+                pc <- pg.paramClauses
+                param <- pc.values
+                default <- param.default
               } yield default
-
-            Some(defaults)
-          }
+            }
           case _ => None
         }
       }
@@ -199,17 +198,19 @@ final class DisableSyntax(config: DisableSyntaxConfig)
     }
 
     def hasNonImplicitParam(d: Defn.Def): Boolean =
-      d.paramss.exists(_.exists(_.mods.forall(!_.is[Mod.Implicit])))
+      d.paramClauseGroups.exists(
+        _.paramClauses.exists(_.exists(_.mods.forall(!_.is[Mod.Implicit])))
+      )
 
     val DefaultMatcher: PartialFunction[Tree, Seq[Diagnostic]] = {
-      case Defn.Val(mods, _, _, _)
+      case t: Defn.Val
           if config.noFinalVal &&
-            mods.exists(_.is[Mod.Final]) =>
-        val mod = mods.find(_.is[Mod.Final]).get
+            t.mods.exists(_.is[Mod.Final]) =>
+        val mod = t.mods.find(_.is[Mod.Final]).get
         Seq(noFinalVal.at(mod.pos))
       case NoValPatterns(v) if config.noValPatterns =>
         Seq(noValPatternCategory.at(v.pos))
-      case t @ Mod.Covariant() if config.noCovariantTypes =>
+      case t: Mod.Covariant if config.noCovariantTypes =>
         Seq(
           Diagnostic(
             "covariant",
@@ -217,7 +218,7 @@ final class DisableSyntax(config: DisableSyntaxConfig)
             t.pos
           )
         )
-      case t @ Mod.Contravariant() if config.noContravariantTypes =>
+      case t: Mod.Contravariant if config.noContravariantTypes =>
         Seq(
           Diagnostic(
             "contravariant",
@@ -225,7 +226,7 @@ final class DisableSyntax(config: DisableSyntaxConfig)
             t.pos
           )
         )
-      case _ @AbstractWithVals(vals) if config.noValInAbstract =>
+      case AbstractWithVals(vals) if config.noValInAbstract =>
         vals.map { v =>
           Diagnostic(
             "valInAbstract",
@@ -233,8 +234,8 @@ final class DisableSyntax(config: DisableSyntaxConfig)
             v.pos
           )
         }
-      case t @ Defn.Object(mods, _, _)
-          if mods.exists(_.is[Mod.Implicit]) && config.noImplicitObject =>
+      case t: Defn.Object
+          if t.mods.exists(_.is[Mod.Implicit]) && config.noImplicitObject =>
         Seq(
           Diagnostic(
             "implicitObject",
@@ -242,8 +243,8 @@ final class DisableSyntax(config: DisableSyntaxConfig)
             t.pos
           )
         )
-      case t @ Defn.Def(mods, _, _, _, _, _)
-          if mods.exists(_.is[Mod.Implicit]) &&
+      case t: Defn.Def
+          if t.mods.exists(_.is[Mod.Implicit]) &&
             hasNonImplicitParam(t) &&
             config.noImplicitConversion =>
         Seq(
@@ -262,21 +263,23 @@ final class DisableSyntax(config: DisableSyntaxConfig)
               m.pos
             )
           }
-      case Term.ApplyInfix(_, t @ Term.Name("=="), _, _)
+      case Term.ApplyInfix.Initial(_, t @ Term.Name("=="), _, _)
           if config.noUniversalEquality =>
         Seq(noUniversalEqualityDiagnostic("==", t))
-      case Term.Apply(Term.Select(_, t @ Term.Name("==")), _)
+      case Term.Apply.Initial(Term.Select(_, t @ Term.Name("==")), _)
           if config.noUniversalEquality =>
         Seq(noUniversalEqualityDiagnostic("==", t))
-      case Term.ApplyInfix(_, t @ Term.Name("!="), _, _)
+      case Term.ApplyInfix.Initial(_, t @ Term.Name("!="), _, _)
           if config.noUniversalEquality =>
         Seq(noUniversalEqualityDiagnostic("!=", t))
-      case Term.Apply(Term.Select(_, t @ Term.Name("!=")), _)
+      case Term.Apply.Initial(Term.Select(_, t @ Term.Name("!=")), _)
           if config.noUniversalEquality =>
         Seq(noUniversalEqualityDiagnostic("!=", t))
     }
     val FinalizeMatcher = DisableSyntax.FinalizeMatcher("noFinalize")
-    doc.tree.collect(DefaultMatcher.orElse(FinalizeMatcher)).flatten
+    TreeOps
+      .collectTree(DefaultMatcher.orElse(FinalizeMatcher))(doc.tree)
+      .flatten
   }
 
   override def fix(implicit doc: SyntacticDocument): Patch = {
@@ -314,7 +317,14 @@ object DisableSyntax {
       |overriding finalize incurs a performance penalty""".stripMargin
 
   def FinalizeMatcher(id: String): PartialFunction[Tree, List[Diagnostic]] = {
-    case Defn.Def(_, name @ Term.Name("finalize"), _, Nil | Nil :: Nil, _, _) =>
+    case Defn.Def.Initial(
+          _,
+          name @ Term.Name("finalize"),
+          _,
+          Nil | Nil :: Nil,
+          _,
+          _
+        ) =>
       Diagnostic(
         id,
         "finalize should not be used",

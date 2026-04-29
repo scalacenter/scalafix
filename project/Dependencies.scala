@@ -1,6 +1,6 @@
-import ScalafixBuild.autoImport.isScala2
-import sbt.Keys.scalaVersion
-import sbt._
+import sbt.*
+
+import scala.language.implicitConversions
 
 /* scalafmt: { maxColumn = 140 }*/
 
@@ -16,6 +16,9 @@ object Dependencies {
   val scala3LTS = scala33
   val scala3Next = sys.props.getOrElse("scala3.nightly", scala38)
 
+  val scala2Versions = Seq(scala212, scala213)
+  val scala3Versions = Seq(scala33, scala35, scala36, scala37, scala38)
+
   val bijectionCoreV = "0.9.8"
   val collectionCompatV = "2.14.0"
   val coursierV = "2.1.24"
@@ -26,30 +29,36 @@ object Dependencies {
   val metaconfigV = "0.18.5"
   val nailgunV = "0.9.1"
   val scalaXmlV = "2.4.0"
-  val scalametaV = "4.16.1"
+  val scalametaV = "4.16.1+5-71740a84-SNAPSHOT"
   val scalatagsV = "0.13.1"
   val scalatestV = "3.2.20"
   val munitV = "1.3.0"
 
+  val orgScalafix = "ch.epfl.scala"
+  val orgScalameta = "org.scalameta"
+  val orgLiHaoYi = "com.lihaoyi"
+  val orgScalaLang = "org.scala-lang"
+  val orgScalaLangMod = "org.scala-lang.modules"
+
   val bijectionCore = "com.twitter" %% "bijection-core" % bijectionCoreV
-  val collectionCompat = "org.scala-lang.modules" %% "scala-collection-compat" % collectionCompatV
+  val collectionCompat = orgScalaLangMod %% "scala-collection-compat" % collectionCompatV
   val commonText = "org.apache.commons" % "commons-text" % commontTextV
   val coursierFor3Use2_13 = "io.get-coursier" %% "coursier" % coursierV cross CrossVersion.for3Use2_13
   val coursierInterfaces = "io.get-coursier" % "interface" % coursierInterfaceV
   val googleDiff = "com.googlecode.java-diff-utils" % "diffutils" % googleDiffV
   val jgit = "org.eclipse.jgit" % "org.eclipse.jgit" % jgitV
-  val metaconfig = "org.scalameta" %% "metaconfig-typesafe-config" % metaconfigV
-  val metacp = "org.scalameta" %% "metacp" % scalametaV
+  val metaconfig = orgScalameta %% "metaconfig-typesafe-config" % metaconfigV
+  val metacp = orgScalameta %% "metacp" % scalametaV
   val nailgunServer = "com.martiansoftware" % "nailgun-server" % nailgunV
-  val scalaXml = "org.scala-lang.modules" %% "scala-xml" % scalaXmlV
-  val scalametaFor3Use2_13 = "org.scalameta" %% "scalameta" % scalametaV cross CrossVersion.for3Use2_13
-  val scalametaTeskitFor3Use2_13 = "org.scalameta" %% "testkit" % scalametaV cross CrossVersion.for3Use2_13
-  val scalatags = "com.lihaoyi" %% "scalatags" % scalatagsV
+  val scalaXml = orgScalaLangMod %% "scala-xml" % scalaXmlV
+  val scalameta = orgScalameta %% "scalameta" % scalametaV
+  val scalametaTestkit = orgScalameta %% "testkit" % scalametaV
+  val scalatags = orgLiHaoYi %% "scalatags" % scalatagsV
   val scalatest = "org.scalatest" %% "scalatest" % scalatestV
-  val munit = "org.scalameta" %% "munit" % munitV
-  val semanticdbScalac = "org.scalameta" % "semanticdb-scalac" % scalametaV cross CrossVersion.full
-  val semanticdbScalacCore = "org.scalameta" % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
-  val semanticdbSharedFor3Use2_13 = "org.scalameta" % "semanticdb-shared" % scalametaV cross CrossVersion.for3Use2_13
+  val munit = orgScalameta %% "munit" % munitV
+  val semanticdbScalac = orgScalameta % "semanticdb-scalac" % scalametaV cross CrossVersion.full
+  val semanticdbScalacCore = orgScalameta % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
+  val semanticdbShared = orgScalameta %% "semanticdb-shared" % scalametaV
 
   // scala-steward:off
 
@@ -57,10 +66,23 @@ object Dependencies {
   val runtimeDepsForBackwardCompatibility = Seq(
     // metaconfig 0.10.0 shaded pprint
     // https://github.com/scalameta/metaconfig/pull/154/files#r794005161
-    "com.lihaoyi" %% "pprint" % "0.6.6",
+    orgLiHaoYi %% "pprint" % "0.6.6",
     // scalameta 4.8.3 shaded fastparse and geny
     // https://github.com/scalameta/scalameta/pull/3246
-    "org.scalameta" %% "fastparse-v2" % "2.3.1",
-    "com.lihaoyi" %% "geny" % "0.6.5"
+    orgScalameta %% "fastparse-v2" % "2.3.1",
+    orgLiHaoYi %% "geny" % "0.6.5"
   )
+
+  implicit def moduleIDtoOrgName(obj: ModuleID): (String, String) =
+    (obj.organization, obj.name)
+
+  implicit class ImplicitModuleID(private val obj: ModuleID) extends AnyVal {
+    def exclude213(other: (String, String)*): ModuleID = {
+      val suffix = "_2.13"
+      other.foldLeft(obj) { case (res, mod) =>
+        res.exclude(mod._1, mod._2 + suffix)
+      }
+    }
+  }
+
 }
