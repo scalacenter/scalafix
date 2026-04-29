@@ -29,14 +29,12 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       publish / skip := true
     )
 
-    // https://github.com/scalameta/scalameta/issues/2485
-    lazy val coreScalaVersions = scala2Versions
-    lazy val cliScalaVersions = {
+    lazy val cliScalaVersions: Seq[String] = {
       val unsupportedVersions: Set[String] =
         if (Properties.isJavaAtLeast("25")) Set(scala212, scala35, scala36)
         else if (!Properties.isJavaAtLeast("17")) Set(scala38)
         else Set.empty
-      (coreScalaVersions ++ scala3Versions).filterNot(unsupportedVersions)
+      (scala2Versions ++ scala3Versions).filterNot(unsupportedVersions)
     }
     lazy val cliScalaVersionsWithTargets: Seq[(String, TargetAxis)] =
       cliScalaVersions.map(sv => (sv, TargetAxis(sv))) ++
@@ -135,6 +133,26 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       if (!isScala3.value)
         Seq("-P:semanticdb:synthetics:on")
       else Nil
+    )
+
+    def settingsForSemanticdbScalac: Seq[Def.Setting[?]] = Def.settings(
+      libraryDependencies ++= {
+        if (isScala3.value)
+          Seq(
+            // CrossVersion.for3Use2_13 would only lookup a binary version artifact, but this is published with full version
+            semanticdbScalacCore
+              .cross(CrossVersion.constant(scala213))
+              .exclude213(semanticdbShared),
+            orgScalaLang %% "scala3-presentation-compiler" % scalaVersion.value,
+            orgScalaLang %% "scala3-compiler" % scalaVersion.value
+          )
+        else
+          Seq(
+            semanticdbScalacCore,
+            orgScalaLang % "scala-compiler" % scalaVersion.value,
+            orgScalaLang % "scala-reflect" % scalaVersion.value
+          )
+      }
     )
 
     lazy val buildInfoSettingsForCore: Seq[Def.Setting[_]] = Seq(
@@ -286,9 +304,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     scalacOptions ++= Seq( // exclusions
       "-Wconf:cat=deprecation&msg=Rule:s",
       "-Wconf:cat=deprecation&msg=JavaConverters:s",
-      "-Wconf:cat=deprecation&msg=AssociatedComments:s",
-      // TODO: remove after replacing compat-metaconfig-macros with proper metaconfig
-      "-Wconf:msg=.*Toplevel definition .* is defined in.*:s"
+      "-Wconf:cat=deprecation&msg=AssociatedComments:s"
     ),
     scalacOptions += "-Wconf:origin=scala.collection.compat.*:s",
     scalacOptions ++= compilerOptions.value,
