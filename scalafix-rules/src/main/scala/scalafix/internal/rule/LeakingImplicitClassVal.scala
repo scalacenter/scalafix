@@ -2,6 +2,7 @@ package scalafix.internal.rule
 
 import scala.meta._
 
+import scalafix.util.TreeOps
 import scalafix.v1._
 
 class LeakingImplicitClassVal extends SyntacticRule("LeakingImplicitClassVal") {
@@ -11,7 +12,7 @@ class LeakingImplicitClassVal extends SyntacticRule("LeakingImplicitClassVal") {
   override def isRewrite: Boolean = true
 
   override def fix(implicit doc: SyntacticDocument): Patch = {
-    doc.tree.collect {
+    TreeOps.collectTree {
       case Defn.Class.Initial(
             cMods,
             _,
@@ -32,6 +33,6 @@ class LeakingImplicitClassVal extends SyntacticRule("LeakingImplicitClassVal") {
           if (pMods.exists(m => m.is[Mod.Private] || m.is[Mod.Protected])) None
           else pMods.find(!_.is[Mod.Annot]).map(Patch.addLeft(_, "private "))
         optPatch.asPatch
-    }.asPatch
+    }(doc.tree).asPatch
   }
 }

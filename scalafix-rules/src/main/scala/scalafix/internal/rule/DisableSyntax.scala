@@ -6,6 +6,7 @@ import scala.meta._
 import scala.meta.tokens.Token
 
 import metaconfig.Configured
+import scalafix.util.TreeOps
 import scalafix.v0.LintCategory
 import scalafix.v1._
 
@@ -276,7 +277,9 @@ final class DisableSyntax(config: DisableSyntaxConfig)
         Seq(noUniversalEqualityDiagnostic("!=", t))
     }
     val FinalizeMatcher = DisableSyntax.FinalizeMatcher("noFinalize")
-    doc.tree.collect(DefaultMatcher.orElse(FinalizeMatcher)).flatten
+    TreeOps
+      .collectTree(DefaultMatcher.orElse(FinalizeMatcher))(doc.tree)
+      .flatten
   }
 
   override def fix(implicit doc: SyntacticDocument): Patch = {

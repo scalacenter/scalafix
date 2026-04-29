@@ -3,6 +3,7 @@ package scalafix.internal.rule
 import scala.meta._
 
 import metaconfig.Configured
+import scalafix.util.TreeOps
 import scalafix.v1._
 
 class RedundantSyntax(config: RedundantSyntaxConfig)
@@ -20,8 +21,8 @@ class RedundantSyntax(config: RedundantSyntaxConfig)
   override def isRewrite: Boolean = true
 
   override def fix(implicit doc: SyntacticDocument): Patch =
-    doc.tree
-      .collect {
+    TreeOps
+      .collectTree {
         case o: Defn.Object
             if config.finalObject && o.mods.exists(_.is[Mod.Final]) =>
           val tokens = o.tokens
@@ -39,7 +40,7 @@ class RedundantSyntax(config: RedundantSyntaxConfig)
             if config.stringInterpolator &&
               !mustKeepInterpolator(interpolator, lit) =>
           Patch.removeTokens(interpolator.tokens)
-      }
+      }(doc.tree)
       .map(_.atomic)
       .asPatch
 

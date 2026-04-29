@@ -2,6 +2,7 @@ package scalafix.internal.rule
 
 import scala.meta._
 
+import scalafix.util.TreeOps
 import scalafix.v1._
 
 class ProcedureSyntax extends SyntacticRule("ProcedureSyntax") {
@@ -12,7 +13,7 @@ class ProcedureSyntax extends SyntacticRule("ProcedureSyntax") {
   override def isRewrite: Boolean = true
 
   override def fix(implicit doc: SyntacticDocument): Patch = {
-    doc.tree.collect {
+    TreeOps.collectTree {
       case t: Decl.Def if t.decltpe.tokens.isEmpty =>
         Patch.addRight(t.tokens.last, s": Unit").atomic
       case t: Defn.Def
@@ -33,6 +34,6 @@ class ProcedureSyntax extends SyntacticRule("ProcedureSyntax") {
           case _: Token.Equals => Patch.empty
           case tok => Patch.addRight(tok, " =")
         }
-    }.asPatch
+    }(doc.tree).asPatch
   }
 }

@@ -11,6 +11,7 @@ import scalafix.internal.util.SymbolOps.SignatureName
 import scalafix.patch.Patch
 import scalafix.patch.Patch.internal.ReplaceSymbol
 import scalafix.syntax._
+import scalafix.util.TreeOps
 import scalafix.v0._
 
 object ReplaceSymbolOps {
@@ -129,7 +130,7 @@ object ReplaceSymbolOps {
         case _ => None
       }
     }
-    val patches = ctx.tree.collect { case n @ Move(to) =>
+    TreeOps.collectTree { case n @ Move(to) =>
       // was this written as `to = "blah"` instead of `to = _root_.blah`
       val isSelected = to match {
         case Root(_) => false
@@ -175,7 +176,6 @@ object ReplaceSymbolOps {
         case _ =>
           Patch.empty
       }
-    }
-    patches.asPatch
+    }(ctx.tree).asPatch
   }
 }

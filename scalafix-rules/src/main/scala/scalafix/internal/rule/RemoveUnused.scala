@@ -6,6 +6,7 @@ import scala.meta._
 import scala.meta.tokens.Token
 
 import metaconfig.Configured
+import scalafix.util.TreeOps
 import scalafix.v1._
 
 class RemoveUnused(config: RemoveUnusedConfig)
@@ -89,7 +90,7 @@ class RemoveUnused(config: RemoveUnusedConfig)
       } else if (
         config.patternvars &&
         (
-          unusedPatterExpr.findFirstMatchIn(diagnostic.message).isDefined ||
+          unusedPatterExpr.findFirstMatchIn(msg).isDefined ||
             msg == "unused pattern variable"
         )
       ) {
@@ -125,7 +126,7 @@ class RemoveUnused(config: RemoveUnusedConfig)
         }
         cases
           .map { case Case(extract, _, _) => extract }
-          .flatMap(_.collect(patchPatTree))
+          .flatMap(TreeOps.collectTree(patchPatTree))
           .asPatch
           .atomic
       }
@@ -140,7 +141,7 @@ class RemoveUnused(config: RemoveUnusedConfig)
         }
       }
 
-      doc.tree.collect {
+      TreeOps.collectTree {
         case Importer(_, importees)
             if importees.forall(_.is[Importee.Unimport]) =>
           importees.map(Patch.removeImportee).asPatch
@@ -207,7 +208,7 @@ class RemoveUnused(config: RemoveUnusedConfig)
                 if isUnusedParam(param.pos) || isUnusedParam(name.pos) =>
               Patch.replaceTree(name, "_")
           }.asPatch
-      }.asPatch
+      }(doc.tree).asPatch
     }
   }
 

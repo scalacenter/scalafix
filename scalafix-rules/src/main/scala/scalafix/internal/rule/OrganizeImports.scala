@@ -17,6 +17,7 @@ import scalafix.internal.config.ScalaVersion
 import scalafix.internal.rule.ImportMatcher._
 import scalafix.lint.Diagnostic
 import scalafix.patch.Patch
+import scalafix.util.TreeOps
 import scalafix.v1.Configuration
 import scalafix.v1.Rule
 import scalafix.v1.RuleName.stringToRuleName
@@ -889,7 +890,10 @@ object OrganizeImports {
       val globalImports = Seq.newBuilder[Import]
       val localImports = Seq.newBuilder[Import]
       def collectLocalImports(tree: Tree): Unit =
-        tree.traverse { case i: Import => localImports += i }
+        TreeOps.traverseTree {
+          case i: Import => localImports += i
+          case _ =>
+        }(tree)
       val statsiter = stats.iterator
       while (statsiter.hasNext) statsiter.next() match {
         case i: Import => globalImports += i

@@ -6,6 +6,7 @@ import scala.meta.tokens.Token
 
 import buildinfo.RulesBuildInfo
 import scalafix.util.TokenOps
+import scalafix.util.TreeOps
 import scalafix.v1._
 
 trait Printer {
@@ -157,7 +158,7 @@ abstract class ExplicitResultTypesBase[P <: Printer]
   }.asPatch.atomic
 
   def unsafeFix()(implicit ctx: SemanticDocument, printer: Printer): Patch = {
-    ctx.tree.collect {
+    TreeOps.collectTree {
       case t @ Defn.Val(mods, (_: Pat.Var) :: Nil, None, body)
           if isRuleCandidate(t, mods, body) =>
         fixDefinition(t, body)
@@ -170,7 +171,7 @@ abstract class ExplicitResultTypesBase[P <: Printer]
           if t.decltpe.isEmpty &&
             isRuleCandidate(t, t.mods, t.body) =>
         fixDefinition(t, t.body)
-    }.asPatch
+    }(ctx.tree).asPatch
   }
 }
 

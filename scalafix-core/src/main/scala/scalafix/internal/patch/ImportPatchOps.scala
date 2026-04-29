@@ -15,6 +15,7 @@ import scalafix.patch.Patch.internal._
 import scalafix.rule.RuleCtx
 import scalafix.syntax._
 import scalafix.util.SemanticdbIndex
+import scalafix.util.TreeOps
 import scalafix.v0.Signature
 import scalafix.v0.Symbol
 
@@ -67,7 +68,7 @@ object ImportPatchOps {
       ctx: RuleCtx,
       importPatches: Seq[ImportPatch]
   )(implicit index: SemanticdbIndex): Iterable[Patch] = {
-    val allImports = ctx.tree.collect { case i: Import => i }
+    val allImports = TreeOps.collectTree { case i: Import => i }(ctx.tree)
     val allImporters = allImports.flatMap(_.importers)
     lazy val allGlobalImportersSyntax = (for {
       importer <- allImporters.iterator
