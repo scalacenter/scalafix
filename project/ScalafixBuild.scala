@@ -143,6 +143,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
             semanticdbScalacCore
               .cross(CrossVersion.constant(scala213))
               .exclude213(semanticdbShared),
+            semanticdbShared,
             orgScalaLang %% "scala3-presentation-compiler" % scalaVersion.value,
             orgScalaLang %% "scala3-compiler" % scalaVersion.value
           )
