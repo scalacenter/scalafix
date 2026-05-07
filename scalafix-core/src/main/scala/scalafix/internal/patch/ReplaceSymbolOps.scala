@@ -79,6 +79,7 @@ object ReplaceSymbolOps {
 
     lazy val globalImportedNames =
       getNamesOfExplicitlyImportedSymbols(ctx.tree, Move.unapply(_).isDefined)
+    @annotation.nowarn("msg=Exhaustivity|match may not be exhaustive")
     def loop(ref: Ref, sym: Symbol, isImport: Boolean): (Patch, Symbol) = {
       (ref, sym) match {
         // same length

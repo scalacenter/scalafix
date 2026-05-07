@@ -12,7 +12,7 @@ import java.nio.file.Paths
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 
-import scala.annotation.StaticAnnotation
+import scala.annotation._
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
@@ -464,8 +464,10 @@ object Args extends TPrintImplicits {
             .toList
         )
       }
+    @nowarn
     implicit val classLoaderDecoder: ConfDecoder[URLClassLoader] =
       ConfDecoder[Classpath].map(ClasspathOps.toClassLoader)
+    @nowarn
     implicit val absolutePathDecoder: ConfDecoder[AbsolutePath] =
       ConfDecoder.stringConfDecoder.map(AbsolutePath(_))
     generic.deriveDecoder(base)

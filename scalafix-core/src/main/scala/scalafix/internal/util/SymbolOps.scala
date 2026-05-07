@@ -39,6 +39,7 @@ object SymbolOps {
         None
     }
   }
+  @annotation.nowarn("msg=match may not be exhaustive")
   def toTermRef(symbol: Symbol): Term.Ref = {
     symbol match {
       case Root(signature) =>

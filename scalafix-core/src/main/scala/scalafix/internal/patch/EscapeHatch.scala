@@ -1,6 +1,7 @@
 package scalafix.internal.patch
 
 import scala.annotation.tailrec
+import scala.collection.compat._
 import scala.collection.immutable.TreeMap
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -179,7 +180,7 @@ object EscapeHatch {
       if (isEmpty) (true, None)
       else {
         val escapesUpToPos =
-          escapeTree.to(EscapeOffset(position)).valuesIterator.flatten
+          escapeTree.rangeTo(EscapeOffset(position)).valuesIterator.flatten
         escapesUpToPos
           .collectFirst {
             case f @ EscapeFilter(_, _, _, Some(end))
@@ -326,7 +327,7 @@ object EscapeHatch {
       if (disabling.isEmpty) (true, None)
       else {
         val disables =
-          disabling.to(EscapeOffset(position)).valuesIterator.flatten
+          disabling.rangeTo(EscapeOffset(position)).valuesIterator.flatten
         loop(disables.toList, None)
       }
     }
