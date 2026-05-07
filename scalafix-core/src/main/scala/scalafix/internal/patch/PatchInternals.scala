@@ -129,13 +129,18 @@ object PatchInternals {
     importTokenPatches ++ tokenPatches
   }
 
+  private def buildPatchMap(
+      patches: Iterable[TokenPatch]
+  ): Map[TokenOps.TokenHash, String] =
+    patches
+      .groupBy(x => TokenOps.hash(x.tok))
+      .map { case (k, v) => k -> v.reduce(merge).newTok }
+
   private def tokenPatchApply(
       ctx: v0.RuleCtx,
       patches: Iterable[TokenPatch]
   ): String = {
-    val patchMap = patches
-      .groupBy(x => TokenOps.hash(x.tok))
-      .mapValues(_.reduce(merge).newTok)
+    val patchMap = buildPatchMap(patches)
     ctx.tokens.iterator
       .map(tok => patchMap.getOrElse(TokenOps.hash(tok), tok.syntax))
       .mkString
@@ -147,10 +152,7 @@ object PatchInternals {
       v0Patches: Iterable[v0.Patch]
   ): String = {
     val idx = index.getOrElse(v0.SemanticdbIndex.empty)
-    val patches = treePatchApply(v0Patches.asPatch)(ctx, idx)
-    val patchMap = patches
-      .groupBy(x => TokenOps.hash(x.tok))
-      .mapValues(_.reduce(merge).newTok)
+    val patchMap = buildPatchMap(treePatchApply(v0Patches.asPatch)(ctx, idx))
     ctx.tokens.iterator
       .map(tok => patchMap.getOrElse(TokenOps.hash(tok), tok.syntax))
       .mkString

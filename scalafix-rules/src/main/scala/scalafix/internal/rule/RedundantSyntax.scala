@@ -1,10 +1,8 @@
 package scalafix.internal.rule
 
 import scala.meta._
-import scala.meta.tokens.Token
 
 import metaconfig.Configured
-import scalafix.util.TokenList
 import scalafix.v1._
 
 class RedundantSyntax(config: RedundantSyntaxConfig)
@@ -24,12 +22,11 @@ class RedundantSyntax(config: RedundantSyntaxConfig)
   override def fix(implicit doc: SyntacticDocument): Patch =
     doc.tree
       .collect {
-        case o: Defn.Object
-            if config.finalObject && o.mods.exists(_.is[Mod.Final]) =>
-          Patch.removeTokens {
-            o.tokens.find(_.is[Token.KwFinal]).toIterable.flatMap { finalTok =>
-              finalTok :: TokenList(o.tokens).trailingSpaces(finalTok).toList
-            }
+        case o: Defn.Object if config.finalObject =>
+          o.mods.find(_.is[Mod.Final]).fold(Patch.empty) { modf =>
+            val tokens = modf.tokens
+            val end = tokens.skipWideIf(_.is[Token.Whitespace], tokens.length)
+            Patch.removeTokens(tokens.sliceWide(0, end))
           }
         case Term.Interpolate(
               interpolator,
