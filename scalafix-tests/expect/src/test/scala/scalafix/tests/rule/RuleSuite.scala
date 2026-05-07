@@ -4,7 +4,6 @@ import scala.util.control.NonFatal
 
 import buildinfo.RulesBuildInfo
 import org.scalatest.exceptions.TestFailedException
-import org.scalatest.funsuite.AnyFunSuiteLike
 import scalafix.testkit._
 
 object RuleSuite {
@@ -13,7 +12,7 @@ object RuleSuite {
       new AbstractSemanticRuleSuite(
         TestkitProperties.loadFromResources(),
         isSaveExpect = true
-      ) with AnyFunSuiteLike {
+      ) {
         testsToRun.foreach { t =>
           try evaluateTestBody(t)
           catch {
@@ -31,7 +30,7 @@ object RuleSuite {
     }
   }
 }
-class RuleSuite extends AbstractSemanticRuleSuite with AnyFunSuiteLike {
+class RuleSuite extends AbstractSemanticRuleSuite {
 
   override def runOn(diffTest: RuleTest): Unit = {
     def stripPatch(v: String) = v.split('.').take(2).mkString(".")
