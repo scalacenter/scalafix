@@ -162,8 +162,7 @@ artifact</p>
 <p>Next, create a test suite that extends <code>AbstractSemanticRuleSuite</code></p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">package</span> myproject
 <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyTests</span></span>
-    <span class="hljs-keyword">extends</span> scalafix.testkit.<span class="hljs-type">AbstractSemanticRuleSuite</span>
-    <span class="hljs-keyword">with</span> org.scalatest.funsuite.<span class="hljs-type">AnyFunSuiteLike</span> {
+    <span class="hljs-keyword">extends</span> scalafix.testkit.<span class="hljs-type">AbstractSemanticRuleSuite</span> {
 
   runAllTests()
 }
