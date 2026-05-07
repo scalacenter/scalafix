@@ -6,9 +6,8 @@ import java.nio.file.Files
 import scala.meta.internal.io.FileIO
 
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.Suite
-import org.scalatest.TestRegistration
 import org.scalatest.exceptions.TestFailedException
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.internal.config.ScalaVersion
 import scalafix.internal.patch.PatchInternals
 import scalafix.internal.reflect.ClasspathOps
@@ -17,15 +16,12 @@ import scalafix.internal.testkit.CommentAssertion
 import scalafix.internal.v1.Args
 
 /**
- * Construct a test suite for running semantic Scalafix rules. <p> Mix-in
- * AnyFunSuiteLike or the testing style of your choice if you add your own
- * tests.
+ * Construct a test suite for running semantic Scalafix rules.
  */
 abstract class AbstractSemanticRuleSuite(
     val props: TestkitProperties,
     val isSaveExpect: Boolean
-) extends Suite
-    with TestRegistration
+) extends AnyFunSuite
     with DiffAssertions
     with BeforeAndAfterAll { self =>
 
@@ -91,7 +87,7 @@ abstract class AbstractSemanticRuleSuite(
   }
 
   def runOn(diffTest: RuleTest): Unit = {
-    registerTest(diffTest.path.testName) {
+    test(diffTest.path.testName) {
       evaluateTestBody(diffTest)
     }
   }

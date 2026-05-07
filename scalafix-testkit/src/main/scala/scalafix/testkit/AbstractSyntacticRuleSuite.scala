@@ -2,9 +2,8 @@ package scalafix.testkit
 
 import scala.meta._
 
-import org.scalatest.Suite
 import org.scalatest.Tag
-import org.scalatest.TestRegistration
+import org.scalatest.funsuite.AnyFunSuite
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.patch.PatchInternals
 import scalafix.internal.v1.Rules
@@ -12,15 +11,13 @@ import scalafix.syntax._
 import scalafix.v1._
 
 /**
- * Utility to unit test syntactic rules. <p> Mix-in AnyFunSuiteLike or the
- * testing style of your choice if you add your own tests.
+ * Utility to unit test syntactic rules.
  *
  * @param rule
  *   the default rule to use from `check`/`checkDiff`.
  */
 abstract class AbstractSyntacticRuleSuite()
-    extends Suite
-    with TestRegistration
+    extends AnyFunSuite
     with DiffAssertions {
 
   def checkDiff(
@@ -29,7 +26,7 @@ abstract class AbstractSyntacticRuleSuite()
       expected: String,
       testTags: Tag*
   ): Unit = {
-    registerTest(original.label, testTags: _*) {
+    test(original.label, testTags: _*) {
       val scalaVersion = ScalafixConfig.default.scalaVersion
       val doc = SyntacticDocument.fromInput(original, scalaVersion)
       val rules = Rules(List(rule))
@@ -50,7 +47,7 @@ abstract class AbstractSyntacticRuleSuite()
       expected: String,
       testTags: Tag*
   ): Unit = {
-    registerTest(name, testTags: _*) {
+    test(name, testTags: _*) {
       val scalaVersion = ScalafixConfig.default.scalaVersion
       val doc =
         SyntacticDocument.fromInput(Input.String(original), scalaVersion)

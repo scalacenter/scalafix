@@ -8,7 +8,6 @@ import scala.meta._
 import scala.meta.internal.prettyprinters.TreeSyntax
 import scala.meta.tokens.Token.Ident
 
-import org.scalatest.funsuite.AnyFunSuiteLike
 import scalafix.XtensionSeqPatch
 import scalafix.internal.patch.PatchInternals
 import scalafix.internal.tests.utils.SkipWindows
@@ -20,7 +19,7 @@ import scalafix.testkit.AbstractSyntacticRuleSuite
 import scalafix.v1.SyntacticDocument
 import scalafix.v1.SyntacticRule
 
-class PatchSuite extends AbstractSyntacticRuleSuite with AnyFunSuiteLike {
+class PatchSuite extends AbstractSyntacticRuleSuite {
 
   val original: String =
     """// Foobar

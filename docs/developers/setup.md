@@ -137,8 +137,7 @@ Next, create a test suite that extends `AbstractSemanticRuleSuite`
 ```scala
 package myproject
 class MyTests
-    extends scalafix.testkit.AbstractSemanticRuleSuite
-    with org.scalatest.funsuite.AnyFunSuiteLike {
+    extends scalafix.testkit.AbstractSemanticRuleSuite {
 
   runAllTests()
 }
