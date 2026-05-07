@@ -19,7 +19,8 @@ class SymbolSuite extends munit.FunSuite {
 
   test("fromTextDocument") {
     val arg :: Nil = doc.tree.collect {
-      case Term.ApplyInfix(_, Term.Name("shouldBe"), _, arg :: Nil) => arg
+      case Term.ApplyInfix.Initial(_, Term.Name("shouldBe"), _, arg :: Nil) =>
+        arg
     }: @unchecked
 
     assertNotEquals(arg.symbol, Symbol.None)

@@ -40,10 +40,11 @@ object ImportPatchOps {
     }
   }
   private def fallbackToken(ctx: RuleCtx): Token = {
+    @tailrec
     def loop(tree: Tree): Token = tree match {
       case Source((stat: Pkg) :: _) => loop(stat)
-      case Source(_) => tree.tokens.head
-      case Pkg(_, stat :: _) => loop(stat)
+      case _: Source => tree.tokens.head
+      case Pkg.Initial(_, stat :: _) => loop(stat)
       case els =>
         ctx.tokenList.prev(ctx.tokenList.prev(els.tokens.head)) match {
           case comment @ Token.Comment(_) =>

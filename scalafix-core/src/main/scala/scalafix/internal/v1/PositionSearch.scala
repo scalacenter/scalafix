@@ -9,8 +9,9 @@ import scalafix.internal.util.PositionSyntax._
 object PositionSearch {
   def find(tree: Tree, pos: Position): Option[Tree] = {
     val extrapos = tree match {
-      case Term.ApplyInfix(lhs, op, Nil, _) =>
-        List(Position.Range(lhs.pos.input, lhs.pos.start, op.pos.end))
+      case t: Term.ApplyInfix if t.targClause.values.isEmpty =>
+        val lpos = t.lhs.pos
+        List(Position.Range(lpos.input, lpos.start, t.op.pos.end))
       case _ =>
         List()
     }

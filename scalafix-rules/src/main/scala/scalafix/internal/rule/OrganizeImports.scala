@@ -898,7 +898,7 @@ object OrganizeImports {
 
   @tailrec private def topQualifierOf(term: Term): Term.Name =
     term match {
-      case Term.Select(qualifier, _) => topQualifierOf(qualifier)
+      case t: Term.Select => topQualifierOf(t.qual)
       case name: Term.Name => name
     }
 
@@ -913,8 +913,8 @@ object OrganizeImports {
     term match {
       case _: Term.Name =>
         newTopQualifier
-      case Term.Select(qualifier, name) =>
-        Term.Select(replaceTopQualifier(qualifier, newTopQualifier), name)
+      case t: Term.Select =>
+        t.copy(qual = replaceTopQualifier(t.qual, newTopQualifier))
     }
 
   private def sortImporteesSymbolsFirst(

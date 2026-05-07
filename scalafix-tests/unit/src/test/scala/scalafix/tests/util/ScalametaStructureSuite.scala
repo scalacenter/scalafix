@@ -60,8 +60,10 @@ class ScalametaStructureSuite extends AnyFunSuite with DiffAssertions {
         .Def(
           List(),
           Term.Name("foo"),
-          List(),
-          List(List()),
+          Member.ParamClauseGroup(
+            Type.ParamClause(Nil),
+            Term.ParamClause(Nil) :: Nil
+          ) :: Nil,
           Some(Type.Name("A")),
           Term.Name("???")
         )
@@ -77,8 +79,9 @@ class ScalametaStructureSuite extends AnyFunSuite with DiffAssertions {
     assertNoDiff(
       // NOTE(olafur): need downcast because List is no longer a Product in 2.13.
       Term
-        .Apply(Term.Name("foo"), List(Term.Name("a")))
-        .args
+        .Apply(Term.Name("foo"), Term.ArgClause(List(Term.Name("a"))))
+        .argClause
+        .values
         .asInstanceOf[Product]
         .structureWidth(1),
       """|List(

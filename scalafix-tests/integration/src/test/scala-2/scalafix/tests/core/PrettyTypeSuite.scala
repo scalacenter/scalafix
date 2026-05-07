@@ -39,14 +39,14 @@ class BasePrettyTypeSuite extends BaseSemanticSuite("TypeToTreeInput") {
 
 class PrettyTypeSuite extends BasePrettyTypeSuite {
 
-  val m.Source(m.Pkg(_, stats) :: Nil) = source.transform {
+  val m.Source((pkg: m.Pkg) :: Nil) = source.transform {
     // Remove bodies from methods like `private def foo: Unit` that can't be abstract.
-    case m.Defn.Def(mods, name, tparams, paramss, Some(decltpe), _) =>
-      m.Decl.Def(mods, name, tparams, paramss, decltpe)
+    case t: m.Defn.Def if t.decltpe.isDefined =>
+      m.Decl.Def(t.mods, t.name, t.paramClauseGroups, t.decltpe.get)
   }
 
   // ignoring Functor[C[_]] because of a regression with scalac 2.13.7, see https://github.com/scalacenter/scalafix/pull/1493
-  val filteredStats: List[m.Stat with m.Member] = stats.collect {
+  val filteredStats: List[m.Stat with m.Member] = pkg.body.stats.collect {
     case m: m.Member if m.name.value != "Functor" => m
   }
 

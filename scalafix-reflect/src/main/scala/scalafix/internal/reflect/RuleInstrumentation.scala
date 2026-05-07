@@ -1,7 +1,5 @@
 package scalafix.internal.reflect
 
-import scala.collection.immutable.Seq
-
 import scala.meta._
 
 import metaconfig.ConfError
@@ -12,63 +10,25 @@ object RuleInstrumentation {
 
   def getRuleFqn(code: Input): Configured[Seq[String]] = {
     object ExtendsRule {
-      def unapply(templ: Template): Boolean = templ match {
-
-        // v0
-        case Template(_, Init(Type.Name("Rewrite"), _, Nil) :: _, _, _) => true
-        case Template(
-              _,
-              Init(Type.Name("Rule"), _, List(List(_))) :: _,
-              _,
-              _
-            ) =>
-          true
-        case Template(
-              _,
-              Init(Type.Name("SemanticRewrite"), _, List(List(_))) :: _,
-              _,
-              _
-            ) =>
-          true
-        case Template(
-              _,
-              Init(Type.Name("SemanticRule"), _, List(List(_, _))) :: _,
-              _,
-              _
-            ) =>
-          true
-
-        // v1
-        case Template(
-              _,
-              Init(Type.Name("SemanticRule"), _, List(List(_))) :: _,
-              _,
-              _
-            ) =>
-          true
-        case Template(
-              _,
-              Init(Type.Name("v1.SemanticRule"), _, List(List(_))) :: _,
-              _,
-              _
-            ) =>
-          true
-        case Template(
-              _,
-              Init(Type.Name("SyntacticRule"), _, List(List(_))) :: _,
-              _,
-              _
-            ) =>
-          true
-        case Template(
-              _,
-              Init(Type.Name("v1.SyntacticRule"), _, List(List(_))) :: _,
-              _,
-              _
-            ) =>
-          true
-
-        case _ => false
+      def unapply(templ: Template): Boolean = {
+        val init = templ.inits.head
+        (init.tpe, init.argClauses) match {
+          case (Type.Name("Rewrite"), Seq()) => true /* v0 */
+          case (Type.Name("Rule"), Seq(ac)) =>
+            ac.values.lengthCompare(1) == 0 /* v0 */
+          case (Type.Name("SemanticRewrite"), Seq(ac)) =>
+            ac.values.lengthCompare(1) == 0 /* v0 */
+          case (Type.Name("SemanticRule"), Seq(ac)) =>
+            val len = ac.values.length
+            len == 1 /* v1 */ || len == 2 /* v0 */
+          case (Type.Name("v1.SemanticRule"), Seq(ac)) =>
+            ac.values.lengthCompare(1) == 0 /* v1 */
+          case (Type.Name("SyntacticRule"), Seq(ac)) =>
+            ac.values.lengthCompare(1) == 0 /* v1 */
+          case (Type.Name("v1.SyntacticRule"), Seq(ac)) =>
+            ac.values.lengthCompare(1) == 0 /* v1 */
+          case _ => false
+        }
       }
     }
 
@@ -82,11 +42,11 @@ object RuleInstrumentation {
         }
 
         def loop(prefix: Vector[String], tree: Tree): Unit = tree match {
-          case Pkg(ref, stats) =>
-            stats.foreach(s => loop(prefix :+ ref.syntax, s))
+          case t: Pkg =>
+            t.body.stats.foreach(s => loop(prefix :+ t.ref.syntax, s))
           case Defn.Object(_, name, ExtendsRule()) =>
             add(prefix :+ name.syntax)
-          case Defn.Class(_, name, _, _, ExtendsRule()) =>
+          case Defn.Class.Initial(_, name, _, _, ExtendsRule()) =>
             add(prefix :+ name.syntax)
           case _ =>
             tree.children.foreach(s => loop(prefix, s))
