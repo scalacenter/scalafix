@@ -37,7 +37,7 @@ object CurrentClasspathCompiler {
       .mkString(File.pathSeparator)
 
     val settings = CompilerSetup.newSettings(classpath, output)
-    val reporter = new StoreReporter
+    val reporter = new StoreReporter(settings)
     val global = new Global(settings, reporter)
 
     reporter.reset()
@@ -52,7 +52,7 @@ object CurrentClasspathCompiler {
     )
 
     val errors = reporter.infos.collect {
-      case r: reporter.Info if r.severity == reporter.ERROR =>
+      case r: StoreReporter.Info if r.severity == reporter.ERROR =>
         ConfError
           .message(r.msg)
           .atPos(

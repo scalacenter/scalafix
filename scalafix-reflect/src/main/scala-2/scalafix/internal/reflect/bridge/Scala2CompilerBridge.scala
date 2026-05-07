@@ -31,7 +31,7 @@ class Scala2CompilerBridge {
     val output = new PlainDirectory(new Directory(outputFile))
 
     val settings = CompilerSetup.newSettings(classpath, output)
-    val reporter = new StoreReporter()
+    val reporter = new StoreReporter(settings)
     val global = new Global(settings, reporter)
 
     try {

@@ -109,10 +109,9 @@ object Identifier {
 
   def backtickWrap(s: String): String = {
     if (s.isEmpty) "``"
-    else if (s(0) == '`' && s.last == '`') s
-    else if (needsBacktick(s)) '`' + s + '`'
-    else s
+    else if (s.head == '`' && s.last == '`' || !needsBacktick(s)) s
+    else backtickWrapWithoutCheck(s)
   }
 
-  def backtickWrapWithoutCheck(typeName: String): String = '`' + typeName + '`'
+  def backtickWrapWithoutCheck(typeName: String): String = s"`$typeName`"
 }
