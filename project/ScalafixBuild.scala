@@ -228,7 +228,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         .map(sv => s"cli${asProjectSuffix(sv)} / publishLocalTransitive")
         .mkString("all ", " ", " interfaces / publishLocal") ::
         "reload plugins" ::
-        s"""set dependencyOverrides += "$orgScalafix" % "scalafix-interfaces" % "$v"""" :: // as documented in installation.md
+        s"""set dependencyOverrides += "$orgScalaCenter" % "scalafix-interfaces" % "$v"""" :: // as documented in installation.md
         "session save" ::
         "reload return" ::
         state
@@ -240,7 +240,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     homepage := Some(url("https://github.com/scalacenter/scalafix")),
     autoAPIMappings := true,
     apiURL := Some(url("https://scalacenter.github.io/scalafix/")),
-    organization := orgScalafix,
+    organization := orgScalaCenter,
     developers ++= Developers.list
   )
 
@@ -275,9 +275,9 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         val suffix = "_" + previous
         Seq(
           orgScalameta % (semanticdbScalacCore.name + suffix),
-          orgScalafix % ("scalafix-cli" + suffix),
-          orgScalafix % ("scalafix-reflect" + suffix),
-          orgScalafix % ("scalafix-rules" + suffix)
+          orgScalaCenter % ("scalafix-cli" + suffix),
+          orgScalaCenter % ("scalafix-reflect" + suffix),
+          orgScalaCenter % ("scalafix-rules" + suffix)
         )
       }
     },

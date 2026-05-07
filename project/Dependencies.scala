@@ -34,7 +34,7 @@ object Dependencies {
   val scalatestV = "3.2.20"
   val munitV = "1.3.0"
 
-  val orgScalafix = "ch.epfl.scala"
+  val orgScalaCenter = "ch.epfl.scala"
   val orgScalameta = "org.scalameta"
   val orgLiHaoYi = "com.lihaoyi"
   val orgScalaLang = "org.scala-lang"
