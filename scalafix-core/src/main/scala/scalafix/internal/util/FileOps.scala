@@ -4,6 +4,7 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
 import java.io.PrintWriter
+import java.net.URI
 import java.net.URL
 
 import scala.meta.io.AbsolutePath
@@ -44,7 +45,7 @@ object FileOps {
    */
   def readFile(filename: String): String = {
     if (filename matches "https?://.*") {
-      readURL(new URL(filename))
+      readURL(new URI(filename).toURL)
     } else {
       readFile(new File(filename))
     }

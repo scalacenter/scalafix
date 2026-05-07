@@ -1,6 +1,7 @@
 package scalafix.internal.reflect
 
 import java.io.FileNotFoundException
+import java.net.URI
 import java.net.URL
 
 import scala.util.Try
@@ -82,8 +83,8 @@ object GitHubUrlRule {
       repo: String,
       file: String,
       sha: String
-  ): URL = new URL(
+  ): URL = new URI(
     s"https://raw.githubusercontent.com/$org/$repo/$sha/scalafix/rules/src/main/scala/$file"
-  )
+  ).toURL
 
 }
