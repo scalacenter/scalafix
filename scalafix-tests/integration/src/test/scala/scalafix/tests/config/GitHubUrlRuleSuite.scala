@@ -1,8 +1,7 @@
 package scalafix.tests.config
 
 import metaconfig.Conf
-import metaconfig.Configured.NotOk
-import metaconfig.Configured.Ok
+import metaconfig.Configured
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.internal.reflect.GitHubUrlRule
 import scalafix.testkit.DiffAssertions
@@ -11,10 +10,16 @@ class GitHubUrlRuleSuite extends AnyFunSuite with DiffAssertions {
   def check(original: String, expected: String, ok: Boolean = true): Unit = {
     test((if (ok) "" else "FAIL ") + original) {
       Conf.Str(original) match {
-        case GitHubUrlRule(Ok(obtained)) if ok =>
-          assertNoDiffOrPrintExpected(obtained.toString, expected)
-        case GitHubUrlRule(NotOk(obtained)) if !ok =>
-          assertNoDiffOrPrintExpected(obtained.toString, expected)
+        case GitHubUrlRule(res) =>
+          res match {
+            case Configured.Ok(value) =>
+              if (ok) assertNoDiffOrPrintExpected(value.toString, expected)
+              else fail(s"Expected to fail, got: $value")
+            case Configured.NotOk(value) =>
+              if (ok) fail(s"Expected to succeed, got: $value")
+              else assertNoDiffOrPrintExpected(value.toString, expected)
+          }
+        case _ => fail(s"GitHubUrlRule didn't match: $original")
       }
     }
   }

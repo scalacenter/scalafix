@@ -5,8 +5,7 @@ import java.nio.file.Files
 import scala.meta.io.AbsolutePath
 import scala.meta.io.RelativePath
 
-import metaconfig.Conf
-import metaconfig.ConfDecoder
+import metaconfig._
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.internal.tests.utils.SkipWindows
 import scalafix.internal.v1.Rules
@@ -107,10 +106,10 @@ class RuleDecoderSuite extends AnyFunSuite {
       """.stripMargin
     Files.write(tmp, brokenRule.getBytes)
 
-    val result = decoder.read(Conf.Str(tmp.toUri.toString))
-    assert(result.isNotOk)
-
-    val error = result.toEither.left.get
-    assert(error.msg.contains("type mismatch"))
+    decoder.read(Conf.Str(tmp.toUri.toString)) match {
+      case Configured.Ok(value) => fail(s"Expected to fail, got: $value")
+      case Configured.NotOk(error) =>
+        assert(error.msg.contains("type mismatch"))
+    }
   }
 }

@@ -9,11 +9,11 @@ import metaconfig.Configured
 
 object ReaderUtil {
   // Poor mans coproduct reader
-  def fromMap[T: ClassTag](
+  def fromMap[T](
       m: Map[String, T],
       additionalMessage: PartialFunction[String, String] = PartialFunction.empty
-  ): ConfDecoder[T] =
-    ConfDecoder.instance[T] { case Conf.Str(x) =>
+  )(implicit ev: ClassTag[T]): ConfDecoder[T] =
+    ConfDecoder.fromPartial[T](ev.runtimeClass.getName) { case Conf.Str(x) =>
       m.get(x) match {
         case Some(y) =>
           Configured.Ok(y)

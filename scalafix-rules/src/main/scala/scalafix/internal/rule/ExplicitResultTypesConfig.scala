@@ -84,7 +84,7 @@ object SimpleDefinitions {
       Conf.Lst(x.kinds.toList.map(Conf.Str(_)))
     )
   implicit val decoder: ConfDecoder[SimpleDefinitions] =
-    ConfDecoder.instanceExpect[SimpleDefinitions]("List[String]") {
+    ConfDecoder.fromPartial[SimpleDefinitions]("List[String]") {
       case Bool(false) => Configured.ok(SimpleDefinitions(Set.empty))
       case Bool(true) => Configured.ok(SimpleDefinitions(Set.empty))
       case conf @ Lst(values) =>

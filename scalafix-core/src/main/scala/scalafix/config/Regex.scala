@@ -13,7 +13,7 @@ class Regex(
 
 object Regex {
   implicit val regexDecoder: ConfDecoder[Regex] =
-    ConfDecoder.instance[Regex] { case obj: Conf.Obj =>
+    ConfDecoder.fromPartial[Regex]("Regex") { case obj: Conf.Obj =>
       (obj.get[Pattern]("pattern") |@| obj.getOption[Int]("captureGroup"))
         .map { case (pattern, groupIndex) =>
           new Regex(pattern, groupIndex)

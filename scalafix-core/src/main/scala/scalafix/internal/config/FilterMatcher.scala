@@ -11,7 +11,7 @@ case class FilterMatcher(
     excludeFilters: Regex
 ) {
   val reader: ConfDecoder[FilterMatcher] =
-    ConfDecoder.instanceF[FilterMatcher] {
+    ConfDecoder.from[FilterMatcher] {
       case c @ Conf.Str(_) =>
         c.as[Regex].map(FilterMatcher(_, FilterMatcher.mkRegexp(Nil)))
       case c @ Conf.Lst(_) =>
