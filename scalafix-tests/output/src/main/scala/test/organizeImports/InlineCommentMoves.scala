@@ -1,7 +1,7 @@
 package test.organizeImports
 
 import a.A
-import z.Z
+import z.Z // commentZ
 
 object InlineCommentMoves {
   val keep = (null: AnyRef)

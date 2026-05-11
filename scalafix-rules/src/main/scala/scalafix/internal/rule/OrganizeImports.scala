@@ -141,12 +141,15 @@ class OrganizeImports(
     )
 
     // Builds a patch that removes all the tokens forming the original imports.
-    val removalPatch = Patch.removeTokens(
-      doc.tree.tokens.slice(
-        imports.head.tokens.start,
-        imports.last.tokens.end
-      )
-    )
+    val removalPatch = Patch.removeTokens {
+      val importsWithComments = Seq.newBuilder[Tokens]
+      imports.foreach { x =>
+        importsWithComments += x.tokens
+        x.begComment.foreach(importsWithComments += _.tokens)
+        x.endComment.foreach(importsWithComments += _.tokens)
+      }
+      Tokens.merge(importsWithComments.result(): _*).iterator.flatten
+    }
 
     (insertionPatch + removalPatch).atomic
   }
@@ -715,15 +718,42 @@ class OrganizeImports(
   private def prettyPrintImportGroups(
       groups: Seq[ImportGroup]
   ): Seq[(Int, Seq[String])] = {
-    groups.map { group =>
+    // within each group, for each Importer, get a list of Imports its Importees come from
+    // after re-assembly, an Importer might contain Importees from different Imports
+    // NB: to find Imports, need to trace parents of the original parsed tree
+    val groupsWithImports = groups.map { ig =>
+      ig.index -> ig.imports.map { i1 =>
+        val i1o = i1.originalPrototype()
+        val i1p = i1o.parent.filter(_.hasComments)
+        val i2ps = i1.importees.flatMap { i2 =>
+          val i2p = i2.originalPrototype().parent.getOrElse(i1o)
+          if (i2p eq i1o) None else i2p.parent.filter(_.hasComments)
+        }
+        (i1, i1p.fold(i2ps)(_ :: i2ps).distinct)
+      }
+    }
+
+    // make sure to print each comment only once
+    val commentsPrinted = mutable.Set.empty[Tree.Comments]
+    groupsWithImports.map { case (index, ig) =>
       val res = Seq.newBuilder[String]
 
-      group.imports.foreach { i =>
+      def appendBegComment(pc: Tree.Comments): Unit =
+        if (commentsPrinted.add(pc))
+          pc.values.foreach(x => res += x.syntax)
+
+      ig.foreach { case (i, ps) =>
         val sb = new StringBuilder
+        def appendEndComment(pc: Tree.Comments): Unit =
+          if (commentsPrinted.add(pc))
+            pc.values.foreach(x => sb.append(' ').append(x.syntax))
 
         val single =
           if (i.importees.lengthCompare(1) == 0) i.importees.head else null
 
+        ps.foreach(_.begComment.foreach(appendBegComment))
+        i.begComment.foreach(appendBegComment)
+        if (single != null) single.begComment.foreach(appendBegComment)
         sb.append("import ").append(treeSyntax(i.ref)).append('.')
         if (single != null) {
           val isCurly = single.isCurlyBraced
@@ -740,6 +770,7 @@ class OrganizeImports(
             if (useOuterSpace) sb.append(' ')
             sb.append('}')
           }
+          single.endComment.foreach(appendEndComment)
         } else {
           val lines = i.importees.iterator.map(_.pos.startLine).filter(_ >= 0)
           val isMultiline = lines.hasNext && {
@@ -757,16 +788,21 @@ class OrganizeImports(
           val sblen = sb.length
           i.importees.foreach { i2 =>
             if (sb.length > sblen) sb.append(',').append(sep)
+            val proto = i2.originalPrototype()
+            proto.begComment.foreach(appendBegComment)
             sb.append(treeSyntax(i2))
+            proto.endComment.foreach(appendEndComment)
           }
           if (isMultiline) sb.append('\n')
           else if (useOuterSpace) sb.append(' ')
           sb.append('}')
         }
+        i.endComment.foreach(appendEndComment)
+        ps.foreach(_.endComment.foreach(appendEndComment))
         res += sb.toString()
       }
 
-      group.index -> res.result()
+      index -> res.result()
     }
   }
 

@@ -82,6 +82,10 @@ object Patch {
 
   /** Remove all of the these tokens from the source file. */
   def removeTokens(tokens: Iterable[Token]): Patch =
+    removeTokens(tokens.iterator)
+
+  /** Remove all of the these tokens from the source file. */
+  def removeTokens(tokens: Iterator[Token]): Patch =
     tokens.foldLeft(Patch.empty)(_ + Remove(_))
 
   /** Remove this single token from the source file. */
