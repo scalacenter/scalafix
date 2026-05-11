@@ -718,45 +718,6 @@ class OrganizeImports(
     groups.map(g => g.index -> g.imports.map("import " + treeSyntax(_)))
   }
 
-  implicit private class ImporterExtension(importer: Importer) {
-
-    /**
-     * Checks whether the `Importer` should be curly-braced when pretty-printed.
-     */
-    def isCurlyBraced: Boolean = {
-      val importees @ Importees(_, renames, unimports, _, _, _) =
-        importer.importees
-
-      importees.length > 1 ||
-      ((renames.length == 1 || unimports.length == 1) && !targetDialect.allowAsForImportRename)
-    }
-
-    /**
-     * Returns an `Importer` with all the `Importee`s that are selected from the
-     * input `Importer` and satisfy a predicate. If all the `Importee`s are
-     * selected, the input `Importer` instance is returned to preserve the
-     * original source level formatting. If none of the `Importee`s are
-     * selected, returns a `None`.
-     */
-    def filterImportees(f: Importee => Boolean): Option[Importer] = {
-      val filtered = importer.importees filter f
-      if (filtered.length == importer.importees.length) Some(importer)
-      else if (filtered.isEmpty) None
-      else Some(importer.copy(importees = filtered))
-    }
-
-    /** Returns true if the `Importer` contains a standalone wildcard. */
-    def hasWildcard: Boolean = {
-      val Importees(_, _, unimports, _, _, wildcard) = importer.importees
-      unimports.isEmpty && wildcard.nonEmpty
-    }
-
-    /** Returns true if the `Importer` contains a standalone given wildcard. */
-    def hasGivenAll: Boolean = {
-      val Importees(_, _, unimports, _, givenAll, _) = importer.importees
-      unimports.isEmpty && givenAll.nonEmpty
-    }
-  }
 }
 
 object OrganizeImports {
@@ -1084,5 +1045,51 @@ object OrganizeImports {
   @inline
   private def treeSyntax(tree: Tree)(implicit dialect: Dialect): String =
     tree.reprint()
+
+  implicit private class ImporteeExtension(val importee: Importee)
+      extends AnyVal {
+
+    /**
+     * Checks whether the `Importee` should be curly-braced when pretty-printed.
+     */
+    def isCurlyBraced(implicit dialect: Dialect): Boolean =
+      !dialect.allowAsForImportRename &&
+        importee.isAny[Importee.Rename, Importee.Unimport]
+  }
+
+  implicit private class ImporterExtension(val importer: Importer)
+      extends AnyVal {
+
+    /**
+     * Checks whether the `Importer` should be curly-braced when pretty-printed.
+     */
+    def isCurlyBraced(implicit dialect: Dialect): Boolean =
+      importer.importees.lengthCompare(1) != 0 ||
+        importer.importees.head.isCurlyBraced
+
+    /**
+     * Returns an `Importer` with all the `Importee`s that are selected from the
+     * input `Importer` and satisfy a predicate. If all the `Importee`s are
+     * selected, the input `Importer` instance is returned to preserve the
+     * original source level formatting. If none of the `Importee`s are
+     * selected, returns a `None`.
+     */
+    def filterImportees(f: Importee => Boolean): Option[Importer] = {
+      val filtered = importer.importees filter f
+      if (filtered.length == importer.importees.length) Some(importer)
+      else if (filtered.isEmpty) None
+      else Some(importer.copy(importees = filtered))
+    }
+
+    /** Returns true if the `Importer` contains a standalone wildcard. */
+    def hasWildcard: Boolean =
+      importer.importees.exists(_.is[Importee.Wildcard]) &&
+        !importer.importees.exists(_.is[Importee.Unimport])
+
+    /** Returns true if the `Importer` contains a standalone given wildcard. */
+    def hasGivenAll: Boolean =
+      importer.importees.exists(_.is[Importee.GivenAll]) &&
+        !importer.importees.exists(_.is[Importee.Unimport])
+  }
 
 }
