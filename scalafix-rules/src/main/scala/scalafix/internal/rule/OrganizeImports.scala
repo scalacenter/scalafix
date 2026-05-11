@@ -715,7 +715,59 @@ class OrganizeImports(
   private def prettyPrintImportGroups(
       groups: Seq[ImportGroup]
   ): Seq[(Int, Seq[String])] = {
-    groups.map(g => g.index -> g.imports.map("import " + treeSyntax(_)))
+    groups.map { group =>
+      val res = Seq.newBuilder[String]
+
+      group.imports.foreach { i =>
+        val sb = new StringBuilder
+
+        val single =
+          if (i.importees.lengthCompare(1) == 0) i.importees.head else null
+
+        sb.append("import ").append(treeSyntax(i.ref)).append('.')
+        if (single != null) {
+          val isCurly = single.isCurlyBraced
+          val useOuterSpace = isCurly && single
+            .originalPrototype()
+            .parent
+            .exists(_.hasSpaceInCurly)
+          if (isCurly) {
+            sb.append('{')
+            if (useOuterSpace) sb.append(' ')
+          }
+          sb.append(treeSyntax(single))
+          if (isCurly) {
+            if (useOuterSpace) sb.append(' ')
+            sb.append('}')
+          }
+        } else {
+          val lines = i.importees.iterator.map(_.pos.startLine).filter(_ >= 0)
+          val isMultiline = lines.hasNext && {
+            val line = lines.next()
+            lines.exists(_ != line)
+          }
+          val useOuterSpace = !isMultiline && i.importees
+            .flatMap(_.originalPrototype().parent)
+            .distinct
+            .exists(_.hasSpaceInCurly)
+          sb.append('{')
+          val sep = if (isMultiline) "\n  " else " "
+          if (isMultiline) sb.append(sep)
+          else if (useOuterSpace) sb.append(' ')
+          val sblen = sb.length
+          i.importees.foreach { i2 =>
+            if (sb.length > sblen) sb.append(',').append(sep)
+            sb.append(treeSyntax(i2))
+          }
+          if (isMultiline) sb.append('\n')
+          else if (useOuterSpace) sb.append(' ')
+          sb.append('}')
+        }
+        res += sb.toString()
+      }
+
+      group.index -> res.result()
+    }
   }
 
 }
@@ -1090,6 +1142,30 @@ object OrganizeImports {
     def hasGivenAll: Boolean =
       importer.importees.exists(_.is[Importee.GivenAll]) &&
         !importer.importees.exists(_.is[Importee.Unimport])
+
+    def hasSpaceInCurly: Boolean = {
+      def lspace: Boolean = {
+        val tokens = importer.importees.head.tokens
+        val idx = tokens.rskipWideIf(_.is[Token.HTrivia], -1)
+        idx < -1 &&
+        tokens.getWideOpt(idx).exists(_.is[Token.LeftBrace])
+      }
+      def rspace: Boolean = {
+        val tokens = importer.importees.last.tokens
+        val idx = tokens.skipWideIf(_.is[Token.HTrivia], tokens.length)
+        idx > tokens.length &&
+        tokens.getWideOpt(idx).exists(_.is[Token.RightBrace])
+      }
+      lspace || rspace
+    }
+
+  }
+
+  implicit private class TreeExtension(val tree: Tree) extends AnyVal {
+    def hasSpaceInCurly: Boolean = tree match {
+      case i: Importer => i.hasSpaceInCurly
+      case _ => false
+    }
   }
 
 }
