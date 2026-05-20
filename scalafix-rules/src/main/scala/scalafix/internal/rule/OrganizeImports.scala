@@ -141,12 +141,15 @@ class OrganizeImports(
     )
 
     // Builds a patch that removes all the tokens forming the original imports.
-    val removalPatch = Patch.removeTokens(
-      doc.tree.tokens.slice(
-        imports.head.tokens.start,
-        imports.last.tokens.end
-      )
-    )
+    val removalPatch = Patch.removeTokens {
+      val importsWithComments = Seq.newBuilder[Tokens]
+      imports.foreach { x =>
+        importsWithComments += x.tokens
+        x.begComment.foreach(importsWithComments += _.tokens)
+        x.endComment.foreach(importsWithComments += _.tokens)
+      }
+      Tokens.merge(importsWithComments.result(): _*).iterator.flatten
+    }
 
     (insertionPatch + removalPatch).atomic
   }
@@ -715,48 +718,94 @@ class OrganizeImports(
   private def prettyPrintImportGroups(
       groups: Seq[ImportGroup]
   ): Seq[(Int, Seq[String])] = {
-    groups.map(g => g.index -> g.imports.map("import " + treeSyntax(_)))
+    // within each group, for each Importer, get a list of Imports its Importees come from
+    // after re-assembly, an Importer might contain Importees from different Imports
+    // NB: to find Imports, need to trace parents of the original parsed tree
+    val groupsWithImports = groups.map { ig =>
+      ig.index -> ig.imports.map { i1 =>
+        val i1o = i1.originalPrototype()
+        val i1p = i1o.parent.filter(_.hasComments)
+        val i2ps = i1.importees.flatMap { i2 =>
+          val i2p = i2.originalPrototype().parent.getOrElse(i1o)
+          if (i2p eq i1o) None else i2p.parent.filter(_.hasComments)
+        }
+        (i1, i1p.fold(i2ps)(_ :: i2ps).distinct)
+      }
+    }
+
+    // make sure to print each comment only once
+    val commentsPrinted = mutable.Set.empty[Tree.Comments]
+    groupsWithImports.map { case (index, ig) =>
+      val res = Seq.newBuilder[String]
+
+      def appendBegComment(pc: Tree.Comments): Unit =
+        if (commentsPrinted.add(pc))
+          pc.values.foreach(x => res += x.syntax)
+
+      ig.foreach { case (i, ps) =>
+        val sb = new StringBuilder
+        def appendEndComment(pc: Tree.Comments): Unit =
+          if (commentsPrinted.add(pc))
+            pc.values.foreach(x => sb.append(' ').append(x.syntax))
+
+        val single =
+          if (i.importees.lengthCompare(1) == 0) i.importees.head else null
+
+        ps.foreach(_.begComment.foreach(appendBegComment))
+        i.begComment.foreach(appendBegComment)
+        if (single != null) single.begComment.foreach(appendBegComment)
+        sb.append("import ").append(treeSyntax(i.ref)).append('.')
+        if (single != null) {
+          val isCurly = single.isCurlyBraced
+          val useOuterSpace = isCurly && single
+            .originalPrototype()
+            .parent
+            .exists(_.hasSpaceInCurly)
+          if (isCurly) {
+            sb.append('{')
+            if (useOuterSpace) sb.append(' ')
+          }
+          sb.append(treeSyntax(single))
+          if (isCurly) {
+            if (useOuterSpace) sb.append(' ')
+            sb.append('}')
+          }
+          single.endComment.foreach(appendEndComment)
+        } else {
+          val lines = i.importees.iterator.map(_.pos.startLine).filter(_ >= 0)
+          val isMultiline = lines.hasNext && {
+            val line = lines.next()
+            lines.exists(_ != line)
+          }
+          val useOuterSpace = !isMultiline && i.importees
+            .flatMap(_.originalPrototype().parent)
+            .distinct
+            .exists(_.hasSpaceInCurly)
+          sb.append('{')
+          val sep = if (isMultiline) "\n  " else " "
+          if (isMultiline) sb.append(sep)
+          else if (useOuterSpace) sb.append(' ')
+          val sblen = sb.length
+          i.importees.foreach { i2 =>
+            if (sb.length > sblen) sb.append(',').append(sep)
+            val proto = i2.originalPrototype()
+            proto.begComment.foreach(appendBegComment)
+            sb.append(treeSyntax(i2))
+            proto.endComment.foreach(appendEndComment)
+          }
+          if (isMultiline) sb.append('\n')
+          else if (useOuterSpace) sb.append(' ')
+          sb.append('}')
+        }
+        i.endComment.foreach(appendEndComment)
+        ps.foreach(_.endComment.foreach(appendEndComment))
+        res += sb.toString()
+      }
+
+      index -> res.result()
+    }
   }
 
-  implicit private class ImporterExtension(importer: Importer) {
-
-    /**
-     * Checks whether the `Importer` should be curly-braced when pretty-printed.
-     */
-    def isCurlyBraced: Boolean = {
-      val importees @ Importees(_, renames, unimports, _, _, _) =
-        importer.importees
-
-      importees.length > 1 ||
-      ((renames.length == 1 || unimports.length == 1) && !targetDialect.allowAsForImportRename)
-    }
-
-    /**
-     * Returns an `Importer` with all the `Importee`s that are selected from the
-     * input `Importer` and satisfy a predicate. If all the `Importee`s are
-     * selected, the input `Importer` instance is returned to preserve the
-     * original source level formatting. If none of the `Importee`s are
-     * selected, returns a `None`.
-     */
-    def filterImportees(f: Importee => Boolean): Option[Importer] = {
-      val filtered = importer.importees filter f
-      if (filtered.length == importer.importees.length) Some(importer)
-      else if (filtered.isEmpty) None
-      else Some(importer.copy(importees = filtered))
-    }
-
-    /** Returns true if the `Importer` contains a standalone wildcard. */
-    def hasWildcard: Boolean = {
-      val Importees(_, _, unimports, _, _, wildcard) = importer.importees
-      unimports.isEmpty && wildcard.nonEmpty
-    }
-
-    /** Returns true if the `Importer` contains a standalone given wildcard. */
-    def hasGivenAll: Boolean = {
-      val Importees(_, _, unimports, _, givenAll, _) = importer.importees
-      unimports.isEmpty && givenAll.nonEmpty
-    }
-  }
 }
 
 object OrganizeImports {
@@ -1084,5 +1133,75 @@ object OrganizeImports {
   @inline
   private def treeSyntax(tree: Tree)(implicit dialect: Dialect): String =
     tree.reprint()
+
+  implicit private class ImporteeExtension(val importee: Importee)
+      extends AnyVal {
+
+    /**
+     * Checks whether the `Importee` should be curly-braced when pretty-printed.
+     */
+    def isCurlyBraced(implicit dialect: Dialect): Boolean =
+      !dialect.allowAsForImportRename &&
+        importee.isAny[Importee.Rename, Importee.Unimport]
+  }
+
+  implicit private class ImporterExtension(val importer: Importer)
+      extends AnyVal {
+
+    /**
+     * Checks whether the `Importer` should be curly-braced when pretty-printed.
+     */
+    def isCurlyBraced(implicit dialect: Dialect): Boolean =
+      importer.importees.lengthCompare(1) != 0 ||
+        importer.importees.head.isCurlyBraced
+
+    /**
+     * Returns an `Importer` with all the `Importee`s that are selected from the
+     * input `Importer` and satisfy a predicate. If all the `Importee`s are
+     * selected, the input `Importer` instance is returned to preserve the
+     * original source level formatting. If none of the `Importee`s are
+     * selected, returns a `None`.
+     */
+    def filterImportees(f: Importee => Boolean): Option[Importer] = {
+      val filtered = importer.importees filter f
+      if (filtered.length == importer.importees.length) Some(importer)
+      else if (filtered.isEmpty) None
+      else Some(importer.copy(importees = filtered))
+    }
+
+    /** Returns true if the `Importer` contains a standalone wildcard. */
+    def hasWildcard: Boolean =
+      importer.importees.exists(_.is[Importee.Wildcard]) &&
+        !importer.importees.exists(_.is[Importee.Unimport])
+
+    /** Returns true if the `Importer` contains a standalone given wildcard. */
+    def hasGivenAll: Boolean =
+      importer.importees.exists(_.is[Importee.GivenAll]) &&
+        !importer.importees.exists(_.is[Importee.Unimport])
+
+    def hasSpaceInCurly: Boolean = {
+      def lspace: Boolean = {
+        val tokens = importer.importees.head.tokens
+        val idx = tokens.rskipWideIf(_.is[Token.HTrivia], -1)
+        idx < -1 &&
+        tokens.getWideOpt(idx).exists(_.is[Token.LeftBrace])
+      }
+      def rspace: Boolean = {
+        val tokens = importer.importees.last.tokens
+        val idx = tokens.skipWideIf(_.is[Token.HTrivia], tokens.length)
+        idx > tokens.length &&
+        tokens.getWideOpt(idx).exists(_.is[Token.RightBrace])
+      }
+      lspace || rspace
+    }
+
+  }
+
+  implicit private class TreeExtension(val tree: Tree) extends AnyVal {
+    def hasSpaceInCurly: Boolean = tree match {
+      case i: Importer => i.hasSpaceInCurly
+      case _ => false
+    }
+  }
 
 }
