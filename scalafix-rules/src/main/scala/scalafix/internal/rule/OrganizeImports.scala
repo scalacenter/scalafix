@@ -102,13 +102,10 @@ class OrganizeImports(
   )(
       imports: Seq[Import]
   )(implicit doc: SemanticDocument): Patch = {
-    val noUnused = imports flatMap (_.importers) flatMap (
-      removeUnusedImporters(unusedImporteePositions)(_).toSeq
-    )
-
-    val (implicits, noImplicits) =
-      if (!config.groupExplicitlyImportedImplicitsSeparately) (Nil, noUnused)
-      else partitionImplicits(noUnused)
+    val noUnusedIterator = imports.iterator
+      .flatMap(_.importers)
+      .flatMap(removeUnusedImporters(unusedImporteePositions))
+    val (implicits, noImplicits) = partitionImplicits(noUnusedIterator)
 
     val (fullyQualifiedImporters, relativeImporters) =
       noImplicits partition isFullyQualified(diagnostics)
@@ -224,23 +221,26 @@ class OrganizeImports(
     }
 
   private def partitionImplicits(
-      importers: Seq[Importer]
+      importers: Iterator[Importer]
   )(implicit doc: SemanticDocument): (Seq[Importer], Seq[Importer]) = {
-    val (implicits, implicitPositions) = importers.flatMap {
-      case importer @ Importer(_, importees) =>
-        importees collect {
-          case i: Importee.Name if i.symbol.infoNoThrow exists (_.isImplicit) =>
-            importer.copy(importees = i :: Nil) -> i.pos
-        }
-    }.unzip
-
-    val noImplicits = importers.flatMap {
-      _.filterImportees { importee =>
-        !implicitPositions.contains(importee.pos)
-      }.toSeq
+    val implicitImporters = Seq.newBuilder[Importer]
+    val noImplicitImporters = Seq.newBuilder[Importer]
+    val separateImplicits = config.groupExplicitlyImportedImplicitsSeparately
+    if (separateImplicits) importers.foreach { importer =>
+      val (implicits, noImplicits) = importer.importees.partition {
+        case i: Importee.Name =>
+          i.symbol.infoNoThrow.exists(_.isImplicit)
+        case _ => false
+      }
+      if (implicits.isEmpty) noImplicitImporters += importer
+      else if (noImplicits.isEmpty) implicitImporters += importer
+      else {
+        implicitImporters += importer.copy(importees = implicits)
+        noImplicitImporters += importer.copy(importees = noImplicits)
+      }
     }
-
-    (implicits, noImplicits)
+    else importers.foreach(noImplicitImporters += _)
+    (implicitImporters.result(), noImplicitImporters.result())
   }
 
   private def isFullyQualified(
