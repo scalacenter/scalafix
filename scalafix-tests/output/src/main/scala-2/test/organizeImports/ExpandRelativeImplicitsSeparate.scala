@@ -2,6 +2,6 @@ package test.organizeImports
 
 import test.organizeImports.Implicits.a
 
-import a.intImplicit
+import test.organizeImports.Implicits.a.intImplicit
 
 object ExpandRelativeImplicitsSeparate

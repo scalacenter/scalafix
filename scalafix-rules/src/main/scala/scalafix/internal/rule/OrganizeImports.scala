@@ -127,9 +127,14 @@ class OrganizeImports(
     // See https://github.com/liancheng/scalafix-organize-imports/issues/30
     // for why implicits require special handling.
     val orderPreservingGroup = {
-      val relatives = if (config.expandRelative) Nil else relativeImporters
+      val importers =
+        if (config.expandRelative)
+          implicits.map(i =>
+            if (isFullyQualified(diagnostics)(i)) i else expandRelative(i)
+          )
+        else relativeImporters ++ implicits
       Option(
-        relatives ++ implicits sortBy (_.importees.head.pos.start)
+        importers sortBy (_.importees.head.pos.start)
       ) filter (_.nonEmpty)
     }
 
