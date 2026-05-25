@@ -5,6 +5,8 @@ import test.organizeImports.Implicits.b._
 
 import scala.concurrent.ExecutionContext
 
+import test.organizeImports.Implicits.c.longImplicit
+import test.organizeImports.Implicits.c.floatImplicit
 import ExecutionContext.Implicits.global
 import test.organizeImports.Implicits.a.intImplicit
 import test.organizeImports.Implicits.a.stringImplicit
