@@ -6,6 +6,8 @@ OrganizeImports.groupExplicitlyImportedImplicitsSeparately = true
 package test.organizeImports
 
 import scala.concurrent.ExecutionContext
+import test.organizeImports.Implicits.c.longImplicit
+import test.organizeImports.Implicits.c.floatImplicit
 import test.organizeImports.Implicits.b._
 import ExecutionContext.Implicits.global
 import test.organizeImports.Implicits.a.{nonImplicit, intImplicit, stringImplicit}
