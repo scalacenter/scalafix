@@ -245,7 +245,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, Option[String]] = Map(
-    "3.8.3" -> Some("3.8.2")
+    scala38 -> Some("3.8.2")
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
@@ -258,6 +258,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     libraryDependencySchemes ++= Seq(
       // Scala 3 compiler
       orgScalaLangMod % "scala-asm" % VersionScheme.Always,
+      "org.eclipse.lsp4j" % "org.eclipse.lsp4j" % VersionScheme.Always,
+      "org.eclipse.lsp4j" % "org.eclipse.lsp4j.jsonrpc" % VersionScheme.Always,
       // coursier-versions always return false for the *.*.*.*-r pattern jgit uses
       Dependencies.jgit.withRevision(VersionScheme.Always)
     )
