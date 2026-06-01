@@ -32,7 +32,7 @@ object Dependencies {
   val scalametaV = "4.17.0"
   val scalatagsV = "0.13.1"
   val scalatestV = "3.2.20"
-  val munitV = "1.3.0"
+  val munitV = "1.3.1"
 
   val orgScalaCenter = "ch.epfl.scala"
   val orgScalameta = "org.scalameta"
