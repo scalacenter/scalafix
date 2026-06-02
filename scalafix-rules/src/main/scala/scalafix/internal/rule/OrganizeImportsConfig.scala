@@ -58,11 +58,19 @@ object TargetDialect {
     .getCodecFrom(Auto, Scala2, Scala3, StandardLayout)
 }
 
+sealed trait GroupSeparately
+object GroupSeparately {
+  case object ByNameImplicits extends GroupSeparately
+
+  implicit val codec: ConfCodecEx[GroupSeparately] = OrganizeImportsConfig
+    .getCodecFrom(ByNameImplicits)
+}
+
 final case class OrganizeImportsConfig(
     blankLines: BlankLines = BlankLines.Auto,
     coalesceToWildcardImportThreshold: Option[Int] = None,
     expandRelative: Boolean = false,
-    groupExplicitlyImportedImplicitsSeparately: Boolean = false,
+    groupSeparately: Seq[GroupSeparately] = Nil,
     groupedImports: GroupedImports = GroupedImports.Explode,
     groups: Seq[String] = Seq(
       "*",
@@ -101,8 +109,14 @@ object OrganizeImportsConfig {
     generic.deriveSurface
   implicit val encoder: ConfEncoder[OrganizeImportsConfig] =
     generic.deriveEncoder[OrganizeImportsConfig]
-  implicit val decoder: ConfDecoderEx[OrganizeImportsConfig] =
-    generic.deriveDecoderEx(default).noTypos
+  implicit val decoder: ConfDecoderEx[OrganizeImportsConfig] = {
+    val baseDecoder = generic.deriveDecoderEx(default).noTypos
+    baseDecoder.withSectionRenames(
+      annotation.SectionRename { case Conf.Bool(flag) =>
+        if (flag) Conf.Lst(Conf.Str("ByNameImplicits")) else Conf.Lst()
+      }("groupExplicitlyImportedImplicitsSeparately", "groupSeparately")
+    )
+  }
 
   def getCodecFrom[T](values: T*): ConfCodecEx[T] =
     ConfCodecEx.oneOf(values.map(x => sourcecode.Text(x, x.toString)): _*)

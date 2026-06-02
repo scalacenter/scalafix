@@ -234,7 +234,8 @@ class OrganizeImports(
       implicitImporters: ArrayBuffer[Importer]
   )(implicit doc: SemanticDocument): Seq[Importer] = {
     val noImplicitImporters = Seq.newBuilder[Importer]
-    val separateImplicits = config.groupExplicitlyImportedImplicitsSeparately
+    val separateImplicits = config.groupSeparately
+      .contains(GroupSeparately.ByNameImplicits)
     if (separateImplicits) importers.foreach { importer =>
       val (implicits, noImplicits) = importer.importees.partition {
         case i: Importee.Name =>
