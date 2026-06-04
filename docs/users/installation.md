@@ -40,7 +40,7 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "@VERSION@")
 > dependencyOverrides += "ch.epfl.scala" % "scalafix-interfaces" % "@VERSION@"
 > ```
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/ch.epfl.scala/sbt-scalafix/badge.svg)](https://maven-badges.herokuapp.com/maven-central/ch.epfl.scala/sbt-scalafix)
+[![Maven Central](https://maven-badges.sml.io/maven-central/ch.epfl.scala/sbt-scalafix/badge.svg)](https://maven-badges.sml.io/maven-central/ch.epfl.scala/sbt-scalafix)
 
 From the sbt shell, let's run the rule `ProcedureSyntax`:
 
