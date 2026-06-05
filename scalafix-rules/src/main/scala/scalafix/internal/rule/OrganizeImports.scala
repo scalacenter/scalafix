@@ -8,11 +8,7 @@ import scala.util.Try
 import scala.meta._
 
 import metaconfig.Conf
-import metaconfig.ConfDecoder
-import metaconfig.ConfEncoder
-import metaconfig.ConfOps
 import metaconfig.Configured
-import metaconfig.internal.ConfGet
 import scalafix.internal.config.ScalaVersion
 import scalafix.internal.rule.ImportMatcher._
 import scalafix.lint.Diagnostic
@@ -43,7 +39,7 @@ class OrganizeImports(
 
   private val wildcardGroupIndex: Int = matchers indexOf *
 
-  def this() = this(OrganizeImportsConfig())
+  def this() = this(OrganizeImportsConfig.default)
 
   override def description: String = "Organize import statements"
 
@@ -51,12 +47,13 @@ class OrganizeImports(
 
   override def isRewrite: Boolean = true
 
-  override def withConfiguration(config: Configuration): Configured[Rule] =
-    config.conf
-      .getOrElse("OrganizeImports")(OrganizeImportsConfig())
-      .andThen(patchPreset(_, config.conf))
-      .andThen(checkRemoveUnusedConflict(_, config.conf))
-      .andThen(checkScalacOptions(_, config.scalacOptions, config.scalaVersion))
+  override def withConfiguration(cfg: Configuration): Configured[Rule] =
+    (cfg.conf match {
+      case c: Conf.Obj => c.field("OrganizeImports").map(config.merge)
+      case _ => None
+    }).getOrElse(Configured.Ok(config))
+      .andThen(checkRemoveUnusedConflict(_, cfg.conf))
+      .andThen(checkScalacOptions(_, cfg.scalacOptions, cfg.scalaVersion))
 
   override def fix(implicit doc: SemanticDocument): Patch = {
     val that = (doc.input, scala3DialectForScala3Paths) match {
@@ -820,19 +817,6 @@ class OrganizeImports(
 
 object OrganizeImports {
   private case class ImportGroup(index: Int, imports: collection.Seq[Importer])
-
-  private def patchPreset(
-      ruleConf: OrganizeImportsConfig,
-      conf: Conf
-  ): Configured[OrganizeImportsConfig] = {
-    val preset = OrganizeImportsConfig.presets(ruleConf.preset)
-    val presetConf = ConfEncoder[OrganizeImportsConfig].write(preset)
-    val userConf = ConfGet
-      .getOrOK(conf, "OrganizeImports" :: Nil, Configured.ok, Conf.Obj.empty)
-      .getOrElse(Conf.Obj.empty)
-    val mergedConf = ConfOps.merge(presetConf, userConf)
-    ConfDecoder[OrganizeImportsConfig].read(mergedConf)
-  }
 
   private def checkRemoveUnusedConflict(
       ruleConf: OrganizeImportsConfig,
