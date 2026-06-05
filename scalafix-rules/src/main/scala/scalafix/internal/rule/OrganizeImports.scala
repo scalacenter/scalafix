@@ -102,20 +102,31 @@ class OrganizeImports(
   )(
       imports: Seq[Import]
   )(implicit doc: SemanticDocument): Patch = {
-    val noUnusedIterator = imports.iterator
-      .flatMap(_.importers)
-      .flatMap(removeUnusedImporters(unusedImporteePositions))
-    val (implicits, noImplicits) = partitionImplicits(noUnusedIterator)
+    val (fullyQualifiedImporters, otherImporters) = {
+      val noUnusedIterator = imports.iterator
+        .flatMap(_.importers)
+        .flatMap(removeUnusedImporters(unusedImporteePositions))
 
-    val (fullyQualifiedImporters, relativeImporters) =
-      noImplicits partition isFullyQualified(diagnostics)
+      val otherImporters = new ArrayBuffer[Importer]
+      val fullyQualifiedIterator =
+        if (config.expandRelative)
+          noUnusedIterator.map { i =>
+            if (isFullyQualified(diagnostics)(i)) i else expandRelative(i)
+          }
+        else
+          noUnusedIterator.filter { i =>
+            val ok = isFullyQualified(diagnostics)(i)
+            if (!ok) otherImporters += i
+            ok
+          }
+      val dedupedIterator = deduplicateImportees(fullyQualifiedIterator)
+      val noImplicits = partitionImplicits(dedupedIterator, otherImporters)
+      (noImplicits, otherImporters)
+    }
 
     // Organizes all the fully-qualified global importers.
-    val fullyQualifiedGroups: Seq[ImportGroup] = {
-      val expanded =
-        if (config.expandRelative) relativeImporters map expandRelative else Nil
-      groupImporters(diagnostics)(fullyQualifiedImporters ++ expanded)
-    }
+    val fullyQualifiedGroups: Seq[ImportGroup] =
+      groupImporters(diagnostics)(fullyQualifiedImporters)
 
     // Moves relative imports (when `config.expandRelative` is false) and
     // explicitly imported implicit names into a separate order preserving
@@ -124,14 +135,8 @@ class OrganizeImports(
     // See https://github.com/liancheng/scalafix-organize-imports/issues/30
     // for why implicits require special handling.
     val orderPreservingGroup = {
-      val importers =
-        if (config.expandRelative)
-          implicits.map(i =>
-            if (isFullyQualified(diagnostics)(i)) i else expandRelative(i)
-          )
-        else relativeImporters ++ implicits
       Option(
-        importers sortBy (_.importees.head.pos.start)
+        otherImporters sortBy (_.importees.head.pos.start)
       ) filter (_.nonEmpty)
     }
 
@@ -221,9 +226,9 @@ class OrganizeImports(
     }
 
   private def partitionImplicits(
-      importers: Iterator[Importer]
-  )(implicit doc: SemanticDocument): (Seq[Importer], Seq[Importer]) = {
-    val implicitImporters = Seq.newBuilder[Importer]
+      importers: Iterator[Importer],
+      implicitImporters: ArrayBuffer[Importer]
+  )(implicit doc: SemanticDocument): Seq[Importer] = {
     val noImplicitImporters = Seq.newBuilder[Importer]
     val separateImplicits = config.groupExplicitlyImportedImplicitsSeparately
     if (separateImplicits) importers.foreach { importer =>
@@ -240,7 +245,7 @@ class OrganizeImports(
       }
     }
     else importers.foreach(noImplicitImporters += _)
-    (implicitImporters.result(), noImplicitImporters.result())
+    noImplicitImporters.result()
   }
 
   private def isFullyQualified(
@@ -326,14 +331,14 @@ class OrganizeImports(
     importers
       .groupBy(matchImportGroup) // Groups imports by importer prefix.
       .map { case (index, grouped) =>
-        val organized =
-          organizeImportGroup(diagnostics)(deduplicateImportees(grouped))
-        ImportGroup(index, organized)
+        ImportGroup(index, organizeImportGroup(diagnostics)(grouped))
       }
       .toSeq
       .sortBy(_.index)
 
-  private def deduplicateImportees(importers: Seq[Importer]): Seq[Importer] = {
+  private def deduplicateImportees(
+      importers: Iterator[Importer]
+  ): Iterator[Importer] = {
     // Scalameta `Tree` nodes do not provide structural equality comparisons, here we pretty-print
     // them and compare the string results.
     val seenImportees = mutable.Set.empty[(String, String)]
@@ -814,7 +819,7 @@ class OrganizeImports(
 }
 
 object OrganizeImports {
-  private case class ImportGroup(index: Int, imports: Seq[Importer])
+  private case class ImportGroup(index: Int, imports: collection.Seq[Importer])
 
   private def patchPreset(
       ruleConf: OrganizeImportsConfig,
