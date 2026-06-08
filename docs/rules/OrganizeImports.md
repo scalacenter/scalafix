@@ -44,9 +44,10 @@ statements are reformatted by the `scalafmtAll` command.
 
 However, you should make sure that the source-formatting tools you use
 do not rewrite import statements in ways that conflict with
-`OrganizeImports`. For example, when using Scalafmt together with
-`OrganizeImports`, the `ExpandImportSelectors`, `SortImports`, and
-`AsciiSortImports` rewriting rules should not be used.
+`OrganizeImports`.
+For example, when using Scalafmt together with `OrganizeImports`, the
+[`Imports`](https://scalameta.org/scalafmt/docs/configuration.html#imports)
+rewriting rule (or those it superseded) should not be used.
 
 ### Scala 3
 
