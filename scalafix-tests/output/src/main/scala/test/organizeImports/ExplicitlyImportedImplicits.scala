@@ -8,7 +8,8 @@ import scala.concurrent.ExecutionContext
 import test.organizeImports.Implicits.c.longImplicit
 import test.organizeImports.Implicits.c.floatImplicit
 import ExecutionContext.Implicits.global
-import test.organizeImports.Implicits.a.{intImplicit, stringImplicit}
+import test.organizeImports.Implicits.a.intImplicit
+import test.organizeImports.Implicits.a.stringImplicit
 
 // Unsupported on Scala 3
 // https://github.com/scala/scala3/issues/12766
