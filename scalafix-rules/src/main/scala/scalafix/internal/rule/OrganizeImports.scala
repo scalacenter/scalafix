@@ -104,7 +104,7 @@ class OrganizeImports(
         .flatMap(_.importers)
         .flatMap(removeUnusedImporters(unusedImporteePositions))
 
-      val otherImporters = new ArrayBuffer[Importer]
+      val relativeImporters = new ArrayBuffer[Importer]
       val fullyQualifiedIterator =
         if (config.expandRelative)
           noUnusedIterator.map { i =>
@@ -113,24 +113,31 @@ class OrganizeImports(
         else
           noUnusedIterator.filter { i =>
             val ok = isFullyQualified(diagnostics)(i)
-            if (!ok) otherImporters += i
+            if (!ok) relativeImporters += i
             ok
           }
       val dedupedIterator = deduplicateImportees(fullyQualifiedIterator)
-      val noImplicits = partitionImplicits(dedupedIterator, otherImporters)
+      val mergedIterator = mergeOrExplodeImporters(diagnostics)(dedupedIterator)
+
+      // Moves relative imports (when `config.expandRelative` is false) and
+      // explicitly imported implicit names into a separate order preserving
+      // group. This group will be appended after all the other groups.
+      //
+      // See https://github.com/liancheng/scalafix-organize-imports/issues/30
+      // for why implicits require special handling.
+      val otherImporters = new ArrayBuffer[Importer]
+      val noImplicits = partitionImplicits(mergedIterator, otherImporters)
+      if (relativeImporters.nonEmpty)
+        otherImporters ++=
+          mergeOrExplodeImporters(diagnostics)(relativeImporters.iterator)
+
       (noImplicits, otherImporters)
     }
 
     // Organizes all the fully-qualified global importers.
     val fullyQualifiedGroups: Seq[ImportGroup] =
-      groupImporters(diagnostics)(fullyQualifiedImporters)
+      groupImporters(fullyQualifiedImporters)
 
-    // Moves relative imports (when `config.expandRelative` is false) and
-    // explicitly imported implicit names into a separate order preserving
-    // group. This group will be appended after all the other groups.
-    //
-    // See https://github.com/liancheng/scalafix-organize-imports/issues/30
-    // for why implicits require special handling.
     val orderPreservingGroup = {
       Option(
         otherImporters sortBy (_.importees.head.pos.start)
@@ -320,15 +327,11 @@ class OrganizeImports(
     )
   }
 
-  private def groupImporters(
-      diagnostics: ArrayBuffer[Diagnostic]
-  )(
-      importers: Seq[Importer]
-  ): Seq[ImportGroup] =
+  private def groupImporters(importers: Seq[Importer]): Seq[ImportGroup] =
     importers
       .groupBy(matchImportGroup) // Groups imports by importer prefix.
       .map { case (index, grouped) =>
-        ImportGroup(index, organizeImportGroup(diagnostics)(grouped))
+        ImportGroup(index, organizeImportGroup(grouped))
       }
       .toSeq
       .sortBy(_.index)
@@ -349,12 +352,12 @@ class OrganizeImports(
     }
   }
 
-  private def organizeImportGroup(
+  private def mergeOrExplodeImporters(
       diagnostics: ArrayBuffer[Diagnostic]
   )(
-      importers: Seq[Importer]
-  ): Seq[Importer] = {
-    val importeesSorted = locally {
+      importers: Iterator[Importer]
+  ): Iterator[Importer] =
+    locally {
       config.groupedImports match {
         case GroupedImports.Merge =>
           mergeImporters(diagnostics)(importers, aggressive = false)
@@ -367,6 +370,9 @@ class OrganizeImports(
       }
     } map (x => sortImportees(coalesceImportees(x)))
 
+  private def organizeImportGroup(
+      importeesSorted: Seq[Importer]
+  ): Seq[Importer] = {
     def appendImportees(imps: Iterable[Importee], sb: StringBuilder): Unit = {
       val sblen = sb.length
       imps.foreach { imp =>
@@ -415,16 +421,11 @@ class OrganizeImports(
   private def mergeImporters(
       diagnostics: ArrayBuffer[Diagnostic]
   )(
-      importers: Seq[Importer],
+      importers: Iterator[Importer],
       aggressive: Boolean
-  ): Seq[Importer] =
-    importers.groupBy(i => treeSyntax(i.ref)).values.toSeq.flatMap {
-      case importer :: Nil =>
-        // If this group has only one importer, returns it as is to preserve the original source
-        // level formatting.
-        importer :: Nil
-
-      case group @ (ref: Importer) :: _ =>
+  ): Iterator[Importer] =
+    importers.toList.groupBy(i => treeSyntax(i.ref)).values.iterator.flatMap {
+      case group @ ref :: rest if rest.nonEmpty =>
         val importeeLists = group map (_.importees)
         val hasWildcard = group exists (_.hasWildcard)
         val hasGivenAll = group exists (_.hasGivenAll)
@@ -605,6 +606,11 @@ class OrganizeImports(
           newImporteeListsWithGivens,
           ref
         )
+
+      // If this group has only one importer, returns it as is to preserve the original source
+      // level formatting.
+      // Also prevents exhaustive pattern match warning about Nil, which should never happen.
+      case group => group
     }
 
   private def coalesceImportees(importer: Importer): Importer = {
@@ -984,7 +990,9 @@ object OrganizeImports {
     List(symbols, lowerCases, upperCases) flatMap (_ sortBy (_._2) map (_._1))
   }
 
-  private def explodeImportees(importers: Seq[Importer]): Seq[Importer] =
+  private def explodeImportees(
+      importers: Iterator[Importer]
+  ): Iterator[Importer] =
     importers flatMap {
       case importer @ Importer(_, _ :: Nil) =>
         // If the importer has exactly one importee, returns it as is to preserve the original
