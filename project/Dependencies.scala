@@ -51,14 +51,14 @@ object Dependencies {
   val metacp = orgScalameta %% "metacp" % scalametaV
   val nailgunServer = "com.martiansoftware" % "nailgun-server" % nailgunV
   val scalaXml = orgScalaLangMod %% "scala-xml" % scalaXmlV
-  val scalametaFor3Use2_13 = orgScalameta %% "scalameta" % scalametaV cross CrossVersion.for3Use2_13
-  val scalametaTeskitFor3Use2_13 = orgScalameta %% "testkit" % scalametaV cross CrossVersion.for3Use2_13
+  val scalameta = orgScalameta %% "scalameta" % scalametaV
+  val scalametaTestkit = orgScalameta %% "testkit" % scalametaV
   val scalatags = orgLiHaoYi %% "scalatags" % scalatagsV
   val scalatest = "org.scalatest" %% "scalatest" % scalatestV
   val munit = orgScalameta %% "munit" % munitV
   val semanticdbScalac = orgScalameta % "semanticdb-scalac" % scalametaV cross CrossVersion.full
   val semanticdbScalacCore = orgScalameta % "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
-  val semanticdbSharedFor3Use2_13 = orgScalameta % "semanticdb-shared" % scalametaV cross CrossVersion.for3Use2_13
+  val semanticdbShared = orgScalameta %% "semanticdb-shared" % scalametaV
 
   // scala-steward:off
 
