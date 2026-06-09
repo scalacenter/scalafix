@@ -58,7 +58,7 @@ Known limitations:
     may result in incorrect imports.
 
 2.  The
-    [`groupExplicitlyImportedImplicitsSeparately`](OrganizeImports.md#groupexplicitlyimportedimplicitsseparately)
+    [`groupSeparately=ByNameImplicits`](#bynameimplicits)
     option has no effect.
 
 Configuration
@@ -374,130 +374,6 @@ import scala.util.control.NonFatal
 import sun.misc.BASE64Encoder
 ```
 
-`groupExplicitlyImportedImplicitsSeparately`
---------------------------------------------
-
-This option provides a workaround to a subtle and rarely seen
-correctness issue related to explicitly imported implicit names.
-
-The following snippet helps illustrate the problem:
-
-```scala
-package a
-
-import c._
-import b.i
-
-object b { implicit def i: Int = 1 }
-object c { implicit def i: Int = 2 }
-
-object Imports {
-  def f()(implicit i: Int) = println(1)
-  def main() = f()
-}
-```
-
-The above snippet compiles successfully and outputs `1`, because the
-explicitly imported implicit value `b.i` overrides `c.i`, which is made
-available via a wildcard import. However, if we reorder the two imports
-into:
-
-```scala
-import b.i
-import c._
-```
-
-The Scala compiler starts complaining:
-
-```
-error: could not find implicit value for parameter i: Int
-  def main() = f()
-                ^
-```
-
-This behavior could be due to a Scala compiler bug since [the Scala
-language
-specification](https://scala-lang.org/files/archive/spec/2.13/02-identifiers-names-and-scopes.html)
-requires that explicitly imported names should have higher precedence
-than names made available via a wildcard.
-
-Unfortunately, Scalafix is not able to surgically identify conflicting
-implicit values behind a wildcard import. In order to guarantee
-correctness in all cases, when the
-`groupExplicitlyImportedImplicitsSeparately` option is set to `true`,
-all explicitly imported implicit names are moved into the trailing
-order-preserving import group together with relative imports, if any
-(see the [trailing order-preserving import
-group](OrganizeImports.md#groups) section for more
-details).
-
-> In general, order-sensitive imports are fragile, and can easily be
-> broken by either human collaborators or tools (e.g., the IntelliJ IDEA
-> Scala import optimizer does not handle this case correctly). They should
-> be eliminated whenever possible. This option is mostly useful when you
-> are dealing with a large trunk of legacy codebase, and you want to
-> minimize manual intervention and guarantee correctness in all cases.
-
-> The `groupExplicitlyImportedImplicitsSeparately` option has currently no
-> effect on source files compiled with Scala 3, as the [compiler does not
-> expose full signature
-> information](https://github.com/scala/scala3/issues/12766), preventing
-> the rule to identify imported implicits.
-
-### Value type
-
-Boolean
-
-### Default value
-
-`false`
-
-Rationale:
-
-1.  Although setting it to `true` avoids the aforementioned correctness
-    issue, the result is unintuitive and confusing for many users since
-    it looks like the `groups` option is not respected.
-
-    E.g., why my `scala.concurrent.ExecutionContext.Implicits.global`
-    import is moved to a separate group even if I have a `scala.` group
-    defined in the `groups` option?
-
-2.  The concerned correctness issue is rarely seen in real life. When it
-    really happens, it is usually a sign of bad coding style, and you
-    may want to tweak your imports to eliminate the root cause.
-
-### Examples
-
-```conf
-OrganizeImports {
-  groups = ["scala.", "*"]
-  groupExplicitlyImportedImplicitsSeparately = true // not supported in Scala 3
-}
-```
-
-Before:
-
-```scala
-import org.apache.spark.SparkContext
-import org.apache.spark.RDD
-import scala.collection.mutable.ArrayBuffer
-import scala.collection.mutable.Buffer
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.sys.process.stringToProcess
-```
-
-After:
-```scala
-import scala.collection.mutable.ArrayBuffer
-import scala.collection.mutable.Buffer
-
-import org.apache.spark.RDD
-import org.apache.spark.SparkContext
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.sys.process.stringToProcess
-```
-
 `groupedImports`
 ----------------
 
@@ -755,8 +631,8 @@ same group and sorted by the order defined by the
 > 1.  The `expandRelative` option is set to `false` and there are relative
 >     imports.
 > 
-> 2.  The `groupExplicitlyImportedImplicitsSeparately` option is set to
->     `true` and there are implicit names explicitly imported.
+> 2.  The `groupSeparately` parameter is set, and there are
+>     [matching imports](#groupseparately).
 > 
 > This special import group is necessary because the above two kinds of
 > imports are order sensitive:
@@ -770,9 +646,9 @@ same group and sorted by the order defined by the
 > import util.control
 > import control.NonFatal
 > ```
-> #### Explicitly imported implicit names  
+> #### Explicitly imported implicit names
 > Please refer to the
-> [`groupExplicitlyImportedImplicitsSeparately`](OrganizeImports.md#groupexplicitlyimportedimplicitsseparately)
+> [`groupSeparately=ByNameImplicits`](#bynameimplicits)
 > option for more details.
 
 ### Value type
@@ -930,7 +806,7 @@ import control.NonFatal
 ```conf
 OrganizeImports {
   groups = ["re:javax?\\.", "scala.", "*"]
-  groupExplicitlyImportedImplicitsSeparately = true
+  groupSeparately = [ByNameImplicits]
 }
 ```
 
@@ -1039,6 +915,210 @@ import java.time.Clock
 import javax.annotation.Generated
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
+```
+
+`groupSeparately`
+-----------------
+
+This parameter places matching imports in a trailing order-preserving import
+group, together with relative imports, if any (see the [trailing
+order-preserving import group](OrganizeImports.md#groups) section for more
+details).
+
+### Value type
+
+This parameter accepts a list of zero or more values
+described below.
+
+#### `ByNameImplicits`
+
+This option provides a workaround to a subtle and rarely seen
+correctness issue related to explicitly imported implicit names.
+
+(Prior to v0.14.7, the same behaviour was accomplished by setting
+`groupExplicitlyImportedImplicitsSeparately = true`.)
+
+The following snippet helps illustrate the problem:
+
+```scala
+package a
+
+import c._
+import b.i
+
+object b { implicit def i: Int = 1 }
+object c { implicit def i: Int = 2 }
+
+object Imports {
+  def f()(implicit i: Int) = println(1)
+  def main() = f()
+}
+```
+
+The above snippet compiles successfully and outputs `1`, because the
+explicitly imported implicit value `b.i` overrides `c.i`, which is made
+available via a wildcard import. However, if we reorder the two imports
+into:
+
+```scala
+import b.i
+import c._
+```
+
+The Scala compiler starts complaining:
+
+```
+error: could not find implicit value for parameter i: Int
+  def main() = f()
+                ^
+```
+
+This behavior could be due to a Scala compiler bug since [the Scala
+language
+specification](https://scala-lang.org/files/archive/spec/2.13/02-identifiers-names-and-scopes.html)
+requires that explicitly imported names should have higher precedence
+than names made available via a wildcard.
+
+Unfortunately, Scalafix is not able to surgically identify conflicting
+implicit values behind a wildcard import. In order to guarantee
+correctness in all cases, when the
+`groupSeparately` parameter contains `ByNameImplicits`,
+all explicitly imported implicit names are moved into the trailing
+order-preserving import group.
+
+> In general, order-sensitive imports are fragile, and can easily be
+> broken by either human collaborators or tools (e.g., the IntelliJ IDEA
+> Scala import optimizer does not handle this case correctly). They should
+> be eliminated whenever possible. This option is mostly useful when you
+> are dealing with a large trunk of legacy codebase, and you want to
+> minimize manual intervention and guarantee correctness in all cases.
+
+> This option has currently no
+> effect on source files compiled with Scala 3, as the [compiler does not
+> expose full signature
+> information](https://github.com/scala/scala3/issues/12766), preventing
+> the rule to identify imported implicits.
+
+Rationale for not including it by default:
+
+1.  Although doing so avoids the aforementioned correctness
+    issue, the result is unintuitive and confusing for many users since
+    it looks like the `groups` option is not respected.
+
+    E.g., why my `scala.concurrent.ExecutionContext.Implicits.global`
+    import is moved to a separate group even if I have a `scala.` group
+    defined in the `groups` option?
+
+2.  The concerned correctness issue is rarely seen in real life. When it
+    really happens, it is usually a sign of bad coding style, and you
+    may want to tweak your imports to eliminate the root cause.
+
+#### `ByTypeGivens`
+
+If this option is specified, any explicit
+[by-type](https://docs.scala-lang.org/scala3/reference/contextual/given-imports.html#importing-by-type)
+`given` imports will be put in the trailing order-preserving import group.
+Obviously, it is only applicable to Scala 3 source files.
+
+The reason is that a `given` import refers to a type `T`, and that type can
+come from any package `P` that must be imported earlier. This matters because:
+
+- Our grouping and sorting logic could otherwise move `import P.T` later.
+- Scala 3 SemanticDB does not currently provide symbol information for `T`.
+
+### Default value
+
+`[ByTypeGivens]`
+
+This value is enabled by default because by-type given imports are more likely
+to produce invalid code when reorganized. When no such imports are present, the
+option has no effect.
+
+### Examples
+
+#### `ByNameImplicits`
+
+```conf
+OrganizeImports {
+  groups = ["scala.", "*"]
+  groupSeparately = [ByNameImplicits] // not supported in Scala 3
+}
+```
+
+Before:
+
+```scala
+import org.apache.spark.SparkContext
+import org.apache.spark.RDD
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.Buffer
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.sys.process.stringToProcess
+```
+
+After:
+
+```scala
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.Buffer
+
+import org.apache.spark.RDD
+import org.apache.spark.SparkContext
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.sys.process.stringToProcess
+```
+
+#### `ByTypeGivens`
+
+```conf
+OrganizeImports {
+  groups = ["scala.", "*"]
+  groupSeparately = [ByTypeGivens] // Only applicable for this Scala 3 feature
+}
+```
+
+```scala
+object ZGivens {
+  trait AA[T]
+}
+
+object Givens {
+  trait A
+  given aa_a: ZGivens.AA[A] = ???
+}
+
+object AGivens {
+  given a: Givens.A = ???
+}
+```
+
+Before:
+
+```scala
+import Givens.A
+import ZGivens.AA
+import AGivens.given A
+import Givens.given AA[A]
+```
+
+After:
+
+```scala
+import Givens.A
+import ZGivens.AA
+
+import AGivens.given A
+import Givens.given AA[A]
+```
+
+Without `ByTypeGivens`:
+
+```scala
+import AGivens.given A // incorrect: A is not imported yet
+import Givens.A
+import Givens.given AA[A] // incorrect: AA is not imported yet
+import ZGivens.AA
 ```
 
 `importSelectorsOrder`
@@ -1223,7 +1303,7 @@ OrganizeImports {
   blankLines = Auto
   coalesceToWildcardImportThreshold = null
   expandRelative = false
-  groupExplicitlyImportedImplicitsSeparately = false
+  groupSeparately = []
   groupedImports = Explode
   groups = [
     "*"
@@ -1252,7 +1332,7 @@ OrganizeImports {
   blankLines = Auto
   coalesceToWildcardImportThreshold = 5
   expandRelative = false
-  groupExplicitlyImportedImplicitsSeparately = false
+  groupSeparately = []
   groupedImports = Merge
   groups = [
     "*"
