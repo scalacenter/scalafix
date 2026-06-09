@@ -61,9 +61,10 @@ object TargetDialect {
 sealed trait GroupSeparately
 object GroupSeparately {
   case object ByNameImplicits extends GroupSeparately
+  case object ByTypeGivens extends GroupSeparately
 
   implicit val codec: ConfCodecEx[GroupSeparately] = OrganizeImportsConfig
-    .getCodecFrom(ByNameImplicits)
+    .getCodecFrom(ByNameImplicits, ByTypeGivens)
 }
 
 final case class OrganizeImportsConfig(
