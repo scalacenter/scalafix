@@ -96,7 +96,7 @@ rewriting rule (or those it superseded) should not be used.</p>
 objects</a>
 may result in incorrect imports.</p></li>
 <li><p>The
-<a href="/scalafix/docs/rules/OrganizeImports.html#groupexplicitlyimportedimplicitsseparately"><code>groupExplicitlyImportedImplicitsSeparately</code></a>
+<a href="#bynameimplicits"><code>groupSeparately=ByNameImplicits</code></a>
 option has no effect.</p></li>
 </ol>
 <h2><a class="anchor" aria-hidden="true" id="configuration"></a><a href="#configuration" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Configuration</h2>
@@ -125,7 +125,7 @@ with <code>OrganizeImports</code> twice.</p>
 <pre><code class="hljs"><span class="hljs-attr">OrganizeImports.blankLines</span> = Auto
 <span class="hljs-attr">OrganizeImports.coalesceToWildcardImportThreshold</span> = None
 <span class="hljs-attr">OrganizeImports.expandRelative</span> = <span class="hljs-literal">false</span>
-<span class="hljs-attr">OrganizeImports.groupExplicitlyImportedImplicitsSeparately</span> = <span class="hljs-literal">false</span>
+<span class="hljs-attr">OrganizeImports.groupSeparately</span> = [ByTypeGivens]
 <span class="hljs-attr">OrganizeImports.groupedImports</span> = Explode
 <span class="hljs-attr">OrganizeImports.groups</span> = [
   *,
@@ -332,107 +332,9 @@ by setting <code>removeUnused</code> to <code>true</code>. Please refer to the
 
 <span class="hljs-keyword">import</span> sun.misc.<span class="hljs-type">BASE64Encoder</span>
 </code></pre>
-<h2><a class="anchor" aria-hidden="true" id="groupexplicitlyimportedimplicitsseparately"></a><a href="#groupexplicitlyimportedimplicitsseparately" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><code>groupExplicitlyImportedImplicitsSeparately</code></h2>
-<p>This option provides a workaround to a subtle and rarely seen
-correctness issue related to explicitly imported implicit names.</p>
-<p>The following snippet helps illustrate the problem:</p>
-<pre><code class="hljs css language-scala"><span class="hljs-keyword">package</span> a
-
-<span class="hljs-keyword">import</span> c._
-<span class="hljs-keyword">import</span> b.i
-
-<span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">b</span> </span>{ <span class="hljs-keyword">implicit</span> <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">i</span></span>: <span class="hljs-type">Int</span> = <span class="hljs-number">1</span> }
-<span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">c</span> </span>{ <span class="hljs-keyword">implicit</span> <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">i</span></span>: <span class="hljs-type">Int</span> = <span class="hljs-number">2</span> }
-
-<span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">Imports</span> </span>{
-  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">f</span></span>()(<span class="hljs-keyword">implicit</span> i: <span class="hljs-type">Int</span>) = println(<span class="hljs-number">1</span>)
-  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">main</span></span>() = f()
-}
-</code></pre>
-<p>The above snippet compiles successfully and outputs <code>1</code>, because the
-explicitly imported implicit value <code>b.i</code> overrides <code>c.i</code>, which is made
-available via a wildcard import. However, if we reorder the two imports
-into:</p>
-<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> b.i
-<span class="hljs-keyword">import</span> c._
-</code></pre>
-<p>The Scala compiler starts complaining:</p>
-<pre><code class="hljs">error: could not find <span class="hljs-keyword">implicit</span> <span class="hljs-keyword">value</span> for <span class="hljs-keyword">parameter</span> i: <span class="hljs-built_in">Int</span>
-  def main() = f()
-                ^
-</code></pre>
-<p>This behavior could be due to a Scala compiler bug since <a href="https://scala-lang.org/files/archive/spec/2.13/02-identifiers-names-and-scopes.html">the Scala
-language
-specification</a>
-requires that explicitly imported names should have higher precedence
-than names made available via a wildcard.</p>
-<p>Unfortunately, Scalafix is not able to surgically identify conflicting
-implicit values behind a wildcard import. In order to guarantee
-correctness in all cases, when the
-<code>groupExplicitlyImportedImplicitsSeparately</code> option is set to <code>true</code>,
-all explicitly imported implicit names are moved into the trailing
-order-preserving import group together with relative imports, if any
-(see the <a href="/scalafix/docs/rules/OrganizeImports.html#groups">trailing order-preserving import
-group</a> section for more
-details).</p>
-<blockquote>
-<p>In general, order-sensitive imports are fragile, and can easily be
-broken by either human collaborators or tools (e.g., the IntelliJ IDEA
-Scala import optimizer does not handle this case correctly). They should
-be eliminated whenever possible. This option is mostly useful when you
-are dealing with a large trunk of legacy codebase, and you want to
-minimize manual intervention and guarantee correctness in all cases.</p>
-</blockquote>
-<blockquote>
-<p>The <code>groupExplicitlyImportedImplicitsSeparately</code> option has currently no
-effect on source files compiled with Scala 3, as the <a href="https://github.com/scala/scala3/issues/12766">compiler does not
-expose full signature
-information</a>, preventing
-the rule to identify imported implicits.</p>
-</blockquote>
-<h3><a class="anchor" aria-hidden="true" id="value-type-3"></a><a href="#value-type-3" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Value type</h3>
-<p>Boolean</p>
-<h3><a class="anchor" aria-hidden="true" id="default-value-3"></a><a href="#default-value-3" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Default value</h3>
-<p><code>false</code></p>
-<p>Rationale:</p>
-<ol>
-<li><p>Although setting it to <code>true</code> avoids the aforementioned correctness
-issue, the result is unintuitive and confusing for many users since
-it looks like the <code>groups</code> option is not respected.</p>
-<p>E.g., why my <code>scala.concurrent.ExecutionContext.Implicits.global</code>
-import is moved to a separate group even if I have a <code>scala.</code> group
-defined in the <code>groups</code> option?</p></li>
-<li><p>The concerned correctness issue is rarely seen in real life. When it
-really happens, it is usually a sign of bad coding style, and you
-may want to tweak your imports to eliminate the root cause.</p></li>
-</ol>
-<h3><a class="anchor" aria-hidden="true" id="examples-3"></a><a href="#examples-3" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Examples</h3>
-<pre><code class="hljs css language-conf"><span class="hljs-section">OrganizeImports</span> {
-  <span class="hljs-attribute">groups</span> = [<span class="hljs-string">"scala."</span>, <span class="hljs-string">"*"</span>]
-  groupExplicitlyImportedImplicitsSeparately = <span class="hljs-literal">true</span> // not supported in Scala <span class="hljs-number">3</span>
-}
-</code></pre>
-<p>Before:</p>
-<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> org.apache.spark.<span class="hljs-type">SparkContext</span>
-<span class="hljs-keyword">import</span> org.apache.spark.<span class="hljs-type">RDD</span>
-<span class="hljs-keyword">import</span> scala.collection.mutable.<span class="hljs-type">ArrayBuffer</span>
-<span class="hljs-keyword">import</span> scala.collection.mutable.<span class="hljs-type">Buffer</span>
-<span class="hljs-keyword">import</span> scala.concurrent.<span class="hljs-type">ExecutionContext</span>.<span class="hljs-type">Implicits</span>.global
-<span class="hljs-keyword">import</span> scala.sys.process.stringToProcess
-</code></pre>
-<p>After:</p>
-<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> scala.collection.mutable.<span class="hljs-type">ArrayBuffer</span>
-<span class="hljs-keyword">import</span> scala.collection.mutable.<span class="hljs-type">Buffer</span>
-
-<span class="hljs-keyword">import</span> org.apache.spark.<span class="hljs-type">RDD</span>
-<span class="hljs-keyword">import</span> org.apache.spark.<span class="hljs-type">SparkContext</span>
-
-<span class="hljs-keyword">import</span> scala.concurrent.<span class="hljs-type">ExecutionContext</span>.<span class="hljs-type">Implicits</span>.global
-<span class="hljs-keyword">import</span> scala.sys.process.stringToProcess
-</code></pre>
 <h2><a class="anchor" aria-hidden="true" id="groupedimports"></a><a href="#groupedimports" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><code>groupedImports</code></h2>
 <p>Configure how to handle grouped imports.</p>
-<h3><a class="anchor" aria-hidden="true" id="value-type-4"></a><a href="#value-type-4" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Value type</h3>
+<h3><a class="anchor" aria-hidden="true" id="value-type-3"></a><a href="#value-type-3" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Value type</h3>
 <p>Enum: <code>Explode | Merge | AggressiveMerge | Keep</code></p>
 <h4><a class="anchor" aria-hidden="true" id="explode"></a><a href="#explode" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><code>Explode</code></h4>
 <p>Explode grouped imports into separate import statements.</p>
@@ -537,13 +439,13 @@ A more commonly seen case is something like:</p>
 </code></pre>
 <h4><a class="anchor" aria-hidden="true" id="keep"></a><a href="#keep" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><code>Keep</code></h4>
 <p>Leave grouped imports and imports sharing the same prefix untouched.</p>
-<h3><a class="anchor" aria-hidden="true" id="default-value-4"></a><a href="#default-value-4" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Default value</h3>
+<h3><a class="anchor" aria-hidden="true" id="default-value-3"></a><a href="#default-value-3" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Default value</h3>
 <p><code>Explode</code></p>
 <p>Rationale: despite making the import section lengthier, exploding grouped
 imports into separate import statements is made the default behavior because
 it is more friendly to version control and less likely to create annoying
 merge conflicts caused by trivial import changes.</p>
-<h3><a class="anchor" aria-hidden="true" id="examples-4"></a><a href="#examples-4" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Examples</h3>
+<h3><a class="anchor" aria-hidden="true" id="examples-3"></a><a href="#examples-3" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Examples</h3>
 <h4><a class="anchor" aria-hidden="true" id="explode-1"></a><a href="#explode-1" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><code>Explode</code></h4>
 <pre><code class="hljs css language-conf"><span class="hljs-attr">OrganizeImports.groupedImports</span> = Explode
 </code></pre>
@@ -611,8 +513,8 @@ groups when:</p>
 <ol>
 <li><p>The <code>expandRelative</code> option is set to <code>false</code> and there are relative
 imports.</p></li>
-<li><p>The <code>groupExplicitlyImportedImplicitsSeparately</code> option is set to
-<code>true</code> and there are implicit names explicitly imported.</p></li>
+<li><p>The <code>groupSeparately</code> parameter is set, and there are
+<a href="#groupseparately">matching imports</a>.</p></li>
 </ol>
 <p>This special import group is necessary because the above two kinds of
 imports are order sensitive:</p>
@@ -625,10 +527,10 @@ introduces compilation errors:</p>
 </code></pre>
 <h4><a class="anchor" aria-hidden="true" id="explicitly-imported-implicit-names"></a><a href="#explicitly-imported-implicit-names" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Explicitly imported implicit names</h4>
 <p>Please refer to the
-<a href="/scalafix/docs/rules/OrganizeImports.html#groupexplicitlyimportedimplicitsseparately"><code>groupExplicitlyImportedImplicitsSeparately</code></a>
+<a href="#bynameimplicits"><code>groupSeparately=ByNameImplicits</code></a>
 option for more details.</p>
 </blockquote>
-<h3><a class="anchor" aria-hidden="true" id="value-type-5"></a><a href="#value-type-5" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Value type</h3>
+<h3><a class="anchor" aria-hidden="true" id="value-type-4"></a><a href="#value-type-4" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Value type</h3>
 <p>An ordered list of import prefix pattern strings. A prefix pattern can
 be one of the following:</p>
 <h4><a class="anchor" aria-hidden="true" id="a-plain-text-pattern"></a><a href="#a-plain-text-pattern" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>A plain-text pattern</h4>
@@ -692,7 +594,7 @@ OrganizeImports {
   ]
 }
 </code></pre>
-<h3><a class="anchor" aria-hidden="true" id="default-value-5"></a><a href="#default-value-5" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Default value</h3>
+<h3><a class="anchor" aria-hidden="true" id="default-value-4"></a><a href="#default-value-4" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Default value</h3>
 <pre><code class="hljs css language-conf">[
   <span class="hljs-string">"*"</span>
   <span class="hljs-string">"re:(javax?|scala)\\."</span>
@@ -700,7 +602,7 @@ OrganizeImports {
 </code></pre>
 <p>Rationale: this aligns with the default configuration of the IntelliJ Scala plugin
 version 2020.3.</p>
-<h3><a class="anchor" aria-hidden="true" id="examples-5"></a><a href="#examples-5" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Examples</h3>
+<h3><a class="anchor" aria-hidden="true" id="examples-4"></a><a href="#examples-4" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Examples</h3>
 <h4><a class="anchor" aria-hidden="true" id="fully-qualified-imports-only"></a><a href="#fully-qualified-imports-only" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Fully-qualified imports only</h4>
 <pre><code class="hljs css language-conf"><span class="hljs-attr">OrganizeImports.groups</span> = [<span class="hljs-string">"re:javax?\\."</span>, <span class="hljs-string">"scala."</span>, <span class="hljs-string">"*"</span>]
 </code></pre>
@@ -747,10 +649,10 @@ version 2020.3.</p>
 <span class="hljs-keyword">import</span> control.<span class="hljs-type">NonFatal</span>
 </code></pre>
 <h4><a class="anchor" aria-hidden="true" id="with-relative-imports-and-an-explicitly-imported-implicit-name"></a><a href="#with-relative-imports-and-an-explicitly-imported-implicit-name" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>With relative imports and an explicitly imported implicit name</h4>
-<pre><code class="hljs css language-conf"><span class="hljs-section">OrganizeImports</span> {
-  <span class="hljs-attribute">groups</span> = [<span class="hljs-string">"re:javax?\\."</span>, <span class="hljs-string">"scala."</span>, <span class="hljs-string">"*"</span>]
-  groupExplicitlyImportedImplicitsSeparately = <span class="hljs-literal">true</span>
-}
+<pre><code class="hljs css language-conf"><span class="hljs-keyword">OrganizeImports </span>{
+  groups = [<span class="hljs-string">"re:javax?\\."</span>, <span class="hljs-string">"scala."</span>, <span class="hljs-string">"*"</span>]
+  groupSeparately = [<span class="hljs-keyword">ByNameImplicits]
+</span>}
 </code></pre>
 <p>Before:</p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> scala.util
@@ -835,6 +737,162 @@ using regular expression.</p>
 <span class="hljs-keyword">import</span> javax.annotation.<span class="hljs-type">Generated</span>
 <span class="hljs-keyword">import</span> scala.collection.<span class="hljs-type">JavaConverters</span>._
 <span class="hljs-keyword">import</span> scala.concurrent.<span class="hljs-type">ExecutionContext</span>
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="groupseparately"></a><a href="#groupseparately" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><code>groupSeparately</code></h2>
+<p>This parameter places matching imports in a trailing order-preserving import
+group, together with relative imports, if any (see the <a href="/scalafix/docs/rules/OrganizeImports.html#groups">trailing
+order-preserving import group</a> section for more
+details).</p>
+<h3><a class="anchor" aria-hidden="true" id="value-type-5"></a><a href="#value-type-5" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Value type</h3>
+<p>This parameter accepts a list of zero or more values
+described below.</p>
+<h4><a class="anchor" aria-hidden="true" id="bynameimplicits"></a><a href="#bynameimplicits" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><code>ByNameImplicits</code></h4>
+<p>This option provides a workaround to a subtle and rarely seen
+correctness issue related to explicitly imported implicit names.</p>
+<p>(Prior to v0.14.7, the same behaviour was accomplished by setting
+<code>groupExplicitlyImportedImplicitsSeparately = true</code>.)</p>
+<p>The following snippet helps illustrate the problem:</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">package</span> a
+
+<span class="hljs-keyword">import</span> c._
+<span class="hljs-keyword">import</span> b.i
+
+<span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">b</span> </span>{ <span class="hljs-keyword">implicit</span> <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">i</span></span>: <span class="hljs-type">Int</span> = <span class="hljs-number">1</span> }
+<span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">c</span> </span>{ <span class="hljs-keyword">implicit</span> <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">i</span></span>: <span class="hljs-type">Int</span> = <span class="hljs-number">2</span> }
+
+<span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">Imports</span> </span>{
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">f</span></span>()(<span class="hljs-keyword">implicit</span> i: <span class="hljs-type">Int</span>) = println(<span class="hljs-number">1</span>)
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">main</span></span>() = f()
+}
+</code></pre>
+<p>The above snippet compiles successfully and outputs <code>1</code>, because the
+explicitly imported implicit value <code>b.i</code> overrides <code>c.i</code>, which is made
+available via a wildcard import. However, if we reorder the two imports
+into:</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> b.i
+<span class="hljs-keyword">import</span> c._
+</code></pre>
+<p>The Scala compiler starts complaining:</p>
+<pre><code class="hljs">error: could not find <span class="hljs-keyword">implicit</span> <span class="hljs-keyword">value</span> for <span class="hljs-keyword">parameter</span> i: <span class="hljs-built_in">Int</span>
+  def main() = f()
+                ^
+</code></pre>
+<p>This behavior could be due to a Scala compiler bug since <a href="https://scala-lang.org/files/archive/spec/2.13/02-identifiers-names-and-scopes.html">the Scala
+language
+specification</a>
+requires that explicitly imported names should have higher precedence
+than names made available via a wildcard.</p>
+<p>Unfortunately, Scalafix is not able to surgically identify conflicting
+implicit values behind a wildcard import. In order to guarantee
+correctness in all cases, when the
+<code>groupSeparately</code> parameter contains <code>ByNameImplicits</code>,
+all explicitly imported implicit names are moved into the trailing
+order-preserving import group.</p>
+<blockquote>
+<p>In general, order-sensitive imports are fragile, and can easily be
+broken by either human collaborators or tools (e.g., the IntelliJ IDEA
+Scala import optimizer does not handle this case correctly). They should
+be eliminated whenever possible. This option is mostly useful when you
+are dealing with a large trunk of legacy codebase, and you want to
+minimize manual intervention and guarantee correctness in all cases.</p>
+</blockquote>
+<blockquote>
+<p>This option has currently no
+effect on source files compiled with Scala 3, as the <a href="https://github.com/scala/scala3/issues/12766">compiler does not
+expose full signature
+information</a>, preventing
+the rule to identify imported implicits.</p>
+</blockquote>
+<p>Rationale for not including it by default:</p>
+<ol>
+<li><p>Although doing so avoids the aforementioned correctness
+issue, the result is unintuitive and confusing for many users since
+it looks like the <code>groups</code> option is not respected.</p>
+<p>E.g., why my <code>scala.concurrent.ExecutionContext.Implicits.global</code>
+import is moved to a separate group even if I have a <code>scala.</code> group
+defined in the <code>groups</code> option?</p></li>
+<li><p>The concerned correctness issue is rarely seen in real life. When it
+really happens, it is usually a sign of bad coding style, and you
+may want to tweak your imports to eliminate the root cause.</p></li>
+</ol>
+<h4><a class="anchor" aria-hidden="true" id="bytypegivens"></a><a href="#bytypegivens" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><code>ByTypeGivens</code></h4>
+<p>If this option is specified, any explicit
+<a href="https://docs.scala-lang.org/scala3/reference/contextual/given-imports.html#importing-by-type">by-type</a>
+<code>given</code> imports will be put in the trailing order-preserving import group.
+Obviously, it is only applicable to Scala 3 source files.</p>
+<p>The reason is that a <code>given</code> import refers to a type <code>T</code>, and that type can
+come from any package <code>P</code> that must be imported earlier. This matters because:</p>
+<ul>
+<li>Our grouping and sorting logic could otherwise move <code>import P.T</code> later.</li>
+<li>Scala 3 SemanticDB does not currently provide symbol information for <code>T</code>.</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="default-value-5"></a><a href="#default-value-5" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Default value</h3>
+<p><code>[ByTypeGivens]</code></p>
+<p>This value is enabled by default because by-type given imports are more likely
+to produce invalid code when reorganized. When no such imports are present, the
+option has no effect.</p>
+<h3><a class="anchor" aria-hidden="true" id="examples-5"></a><a href="#examples-5" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Examples</h3>
+<h4><a class="anchor" aria-hidden="true" id="bynameimplicits-1"></a><a href="#bynameimplicits-1" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><code>ByNameImplicits</code></h4>
+<pre><code class="hljs css language-conf"><span class="hljs-class">OrganizeImports </span>{
+  groups = [<span class="hljs-string">"scala."</span>, <span class="hljs-string">"*"</span>]
+  groupSeparately = [ByNameImplicits] <span class="hljs-comment">// not supported in Scala 3</span>
+}
+</code></pre>
+<p>Before:</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> org.apache.spark.<span class="hljs-type">SparkContext</span>
+<span class="hljs-keyword">import</span> org.apache.spark.<span class="hljs-type">RDD</span>
+<span class="hljs-keyword">import</span> scala.collection.mutable.<span class="hljs-type">ArrayBuffer</span>
+<span class="hljs-keyword">import</span> scala.collection.mutable.<span class="hljs-type">Buffer</span>
+<span class="hljs-keyword">import</span> scala.concurrent.<span class="hljs-type">ExecutionContext</span>.<span class="hljs-type">Implicits</span>.global
+<span class="hljs-keyword">import</span> scala.sys.process.stringToProcess
+</code></pre>
+<p>After:</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> scala.collection.mutable.<span class="hljs-type">ArrayBuffer</span>
+<span class="hljs-keyword">import</span> scala.collection.mutable.<span class="hljs-type">Buffer</span>
+
+<span class="hljs-keyword">import</span> org.apache.spark.<span class="hljs-type">RDD</span>
+<span class="hljs-keyword">import</span> org.apache.spark.<span class="hljs-type">SparkContext</span>
+
+<span class="hljs-keyword">import</span> scala.concurrent.<span class="hljs-type">ExecutionContext</span>.<span class="hljs-type">Implicits</span>.global
+<span class="hljs-keyword">import</span> scala.sys.process.stringToProcess
+</code></pre>
+<h4><a class="anchor" aria-hidden="true" id="bytypegivens-1"></a><a href="#bytypegivens-1" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><code>ByTypeGivens</code></h4>
+<pre><code class="hljs css language-conf"><span class="hljs-class">OrganizeImports </span>{
+  groups = [<span class="hljs-string">"scala."</span>, <span class="hljs-string">"*"</span>]
+  groupSeparately = [ByTypeGivens] <span class="hljs-comment">// Only applicable for this Scala 3 feature</span>
+}
+</code></pre>
+<pre><code class="hljs css language-scala"><span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">ZGivens</span> </span>{
+  <span class="hljs-class"><span class="hljs-keyword">trait</span> <span class="hljs-title">AA</span>[<span class="hljs-type">T</span>]</span>
+}
+
+<span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">Givens</span> </span>{
+  <span class="hljs-class"><span class="hljs-keyword">trait</span> <span class="hljs-title">A</span></span>
+  given aa_a: <span class="hljs-type">ZGivens</span>.<span class="hljs-type">AA</span>[<span class="hljs-type">A</span>] = ???
+}
+
+<span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">AGivens</span> </span>{
+  given a: <span class="hljs-type">Givens</span>.<span class="hljs-type">A</span> = ???
+}
+</code></pre>
+<p>Before:</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> <span class="hljs-type">Givens</span>.<span class="hljs-type">A</span>
+<span class="hljs-keyword">import</span> <span class="hljs-type">ZGivens</span>.<span class="hljs-type">AA</span>
+<span class="hljs-keyword">import</span> <span class="hljs-type">AGivens</span>.given <span class="hljs-type">A</span>
+<span class="hljs-keyword">import</span> <span class="hljs-type">Givens</span>.given <span class="hljs-type">AA</span>[<span class="hljs-type">A</span>]
+</code></pre>
+<p>After:</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> <span class="hljs-type">Givens</span>.<span class="hljs-type">A</span>
+<span class="hljs-keyword">import</span> <span class="hljs-type">ZGivens</span>.<span class="hljs-type">AA</span>
+
+<span class="hljs-keyword">import</span> <span class="hljs-type">AGivens</span>.given <span class="hljs-type">A</span>
+<span class="hljs-keyword">import</span> <span class="hljs-type">Givens</span>.given <span class="hljs-type">AA</span>[<span class="hljs-type">A</span>]
+</code></pre>
+<p>Without <code>ByTypeGivens</code>:</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> <span class="hljs-type">AGivens</span>.given <span class="hljs-type">A</span> <span class="hljs-comment">// incorrect: A is not imported yet</span>
+<span class="hljs-keyword">import</span> <span class="hljs-type">Givens</span>.<span class="hljs-type">A</span>
+<span class="hljs-keyword">import</span> <span class="hljs-type">Givens</span>.given <span class="hljs-type">AA</span>[<span class="hljs-type">A</span>] <span class="hljs-comment">// incorrect: AA is not imported yet</span>
+<span class="hljs-keyword">import</span> <span class="hljs-type">ZGivens</span>.<span class="hljs-type">AA</span>
 </code></pre>
 <h2><a class="anchor" aria-hidden="true" id="importselectorsorder"></a><a href="#importselectorsorder" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><code>importSelectorsOrder</code></h2>
 <p>Specifies the order of grouped import selectors within a single import
@@ -953,7 +1011,7 @@ caused by trivial import changes.</p>
   <span class="hljs-attr">blankLines</span> = Auto
   <span class="hljs-attr">coalesceToWildcardImportThreshold</span> = <span class="hljs-literal">null</span>
   <span class="hljs-attr">expandRelative</span> = <span class="hljs-literal">false</span>
-  <span class="hljs-attr">groupExplicitlyImportedImplicitsSeparately</span> = <span class="hljs-literal">false</span>
+  <span class="hljs-attr">groupSeparately</span> = []
   <span class="hljs-attr">groupedImports</span> = Explode
   <span class="hljs-attr">groups</span> = [
     <span class="hljs-string">"*"</span>
@@ -979,7 +1037,7 @@ for more details.</p>
   <span class="hljs-attr">blankLines</span> = Auto
   <span class="hljs-attr">coalesceToWildcardImportThreshold</span> = <span class="hljs-number">5</span>
   <span class="hljs-attr">expandRelative</span> = <span class="hljs-literal">false</span>
-  <span class="hljs-attr">groupExplicitlyImportedImplicitsSeparately</span> = <span class="hljs-literal">false</span>
+  <span class="hljs-attr">groupSeparately</span> = []
   <span class="hljs-attr">groupedImports</span> = Merge
   <span class="hljs-attr">groups</span> = [
     <span class="hljs-string">"*"</span>
@@ -1139,7 +1197,7 @@ would introduce Scala 2.x compilation errors.</p>
 <span class="hljs-keyword">import</span> scala.collection.mutable.<span class="hljs-type">Map</span>
 <span class="hljs-keyword">import</span> scala.collection.mutable.{<span class="hljs-type">Buffer</span> =&gt; _, <span class="hljs-type">Seq</span> =&gt; <span class="hljs-type">S</span>, _}
 </code></pre>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/scalafix/docs/rules/NoValInForComprehension.html"><span class="arrow-prev">← </span><span class="function-name-prevnext">NoValInForComprehension</span></a><a class="docs-next button" href="/scalafix/docs/rules/ProcedureSyntax.html"><span class="function-name-prevnext">ProcedureSyntax</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#getting-started">Getting started</a><ul class="toc-headings"><li><a href="#for-intellij-scala-plugin-users">For IntelliJ Scala plugin users</a></li><li><a href="#source-formatting-tools">Source formatting tools</a></li><li><a href="#scala-3">Scala 3</a></li></ul></li><li><a href="#configuration">Configuration</a><ul class="toc-headings"><li><a href="#defaults">Defaults</a></li></ul></li><li><a href="#blanklines"><code>blankLines</code></a><ul class="toc-headings"><li><a href="#value-type">Value type</a></li><li><a href="#default-value">Default value</a></li><li><a href="#examples">Examples</a></li></ul></li><li><a href="#coalescetowildcardimportthreshold"><code>coalesceToWildcardImportThreshold</code></a><ul class="toc-headings"><li><a href="#value-type-1">Value type</a></li><li><a href="#default-value-1">Default value</a></li><li><a href="#examples-1">Examples</a></li></ul></li><li><a href="#expandrelative"><code>expandRelative</code></a><ul class="toc-headings"><li><a href="#value-type-2">Value type</a></li><li><a href="#default-value-2">Default value</a></li><li><a href="#examples-2">Examples</a></li></ul></li><li><a href="#groupexplicitlyimportedimplicitsseparately"><code>groupExplicitlyImportedImplicitsSeparately</code></a><ul class="toc-headings"><li><a href="#value-type-3">Value type</a></li><li><a href="#default-value-3">Default value</a></li><li><a href="#examples-3">Examples</a></li></ul></li><li><a href="#groupedimports"><code>groupedImports</code></a><ul class="toc-headings"><li><a href="#value-type-4">Value type</a></li><li><a href="#default-value-4">Default value</a></li><li><a href="#examples-4">Examples</a></li></ul></li><li><a href="#groups"><code>groups</code></a><ul class="toc-headings"><li><a href="#value-type-5">Value type</a></li><li><a href="#default-value-5">Default value</a></li><li><a href="#examples-5">Examples</a></li></ul></li><li><a href="#importselectorsorder"><code>importSelectorsOrder</code></a><ul class="toc-headings"><li><a href="#value-type-6">Value type</a></li><li><a href="#default-value-6">Default value</a></li><li><a href="#examples-6">Examples</a></li></ul></li><li><a href="#importsorder"><code>importsOrder</code></a><ul class="toc-headings"><li><a href="#value-type-7">Value type</a></li><li><a href="#default-value-7">Default value</a></li><li><a href="#examples-7">Examples</a></li></ul></li><li><a href="#preset"><code>preset</code></a><ul class="toc-headings"><li><a href="#value-type-8">Value type</a></li><li><a href="#default-value-8">Default value</a></li></ul></li><li><a href="#removeunused"><code>removeUnused</code></a><ul class="toc-headings"><li><a href="#value-type-9">Value type</a></li><li><a href="#default-value-9">Default value</a></li><li><a href="#examples-8">Examples</a></li></ul></li><li><a href="#targetdialect"><code>targetDialect</code></a><ul class="toc-headings"><li><a href="#value-type-10">Value type</a></li><li><a href="#default-value-10">Default value</a></li><li><a href="#examples-9">Examples</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#15242B"><section class="sitemap"><a href="/scalafix/" class="nav-home"><img src="/scalafix/img/scalafix-brand-small2x.png" alt="Scalafix" width="52" height="52"/></a><div><h5>Docs</h5><a href="
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/scalafix/docs/rules/NoValInForComprehension.html"><span class="arrow-prev">← </span><span class="function-name-prevnext">NoValInForComprehension</span></a><a class="docs-next button" href="/scalafix/docs/rules/ProcedureSyntax.html"><span class="function-name-prevnext">ProcedureSyntax</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#getting-started">Getting started</a><ul class="toc-headings"><li><a href="#for-intellij-scala-plugin-users">For IntelliJ Scala plugin users</a></li><li><a href="#source-formatting-tools">Source formatting tools</a></li><li><a href="#scala-3">Scala 3</a></li></ul></li><li><a href="#configuration">Configuration</a><ul class="toc-headings"><li><a href="#defaults">Defaults</a></li></ul></li><li><a href="#blanklines"><code>blankLines</code></a><ul class="toc-headings"><li><a href="#value-type">Value type</a></li><li><a href="#default-value">Default value</a></li><li><a href="#examples">Examples</a></li></ul></li><li><a href="#coalescetowildcardimportthreshold"><code>coalesceToWildcardImportThreshold</code></a><ul class="toc-headings"><li><a href="#value-type-1">Value type</a></li><li><a href="#default-value-1">Default value</a></li><li><a href="#examples-1">Examples</a></li></ul></li><li><a href="#expandrelative"><code>expandRelative</code></a><ul class="toc-headings"><li><a href="#value-type-2">Value type</a></li><li><a href="#default-value-2">Default value</a></li><li><a href="#examples-2">Examples</a></li></ul></li><li><a href="#groupedimports"><code>groupedImports</code></a><ul class="toc-headings"><li><a href="#value-type-3">Value type</a></li><li><a href="#default-value-3">Default value</a></li><li><a href="#examples-3">Examples</a></li></ul></li><li><a href="#groups"><code>groups</code></a><ul class="toc-headings"><li><a href="#value-type-4">Value type</a></li><li><a href="#default-value-4">Default value</a></li><li><a href="#examples-4">Examples</a></li></ul></li><li><a href="#groupseparately"><code>groupSeparately</code></a><ul class="toc-headings"><li><a href="#value-type-5">Value type</a></li><li><a href="#default-value-5">Default value</a></li><li><a href="#examples-5">Examples</a></li></ul></li><li><a href="#importselectorsorder"><code>importSelectorsOrder</code></a><ul class="toc-headings"><li><a href="#value-type-6">Value type</a></li><li><a href="#default-value-6">Default value</a></li><li><a href="#examples-6">Examples</a></li></ul></li><li><a href="#importsorder"><code>importsOrder</code></a><ul class="toc-headings"><li><a href="#value-type-7">Value type</a></li><li><a href="#default-value-7">Default value</a></li><li><a href="#examples-7">Examples</a></li></ul></li><li><a href="#preset"><code>preset</code></a><ul class="toc-headings"><li><a href="#value-type-8">Value type</a></li><li><a href="#default-value-8">Default value</a></li></ul></li><li><a href="#removeunused"><code>removeUnused</code></a><ul class="toc-headings"><li><a href="#value-type-9">Value type</a></li><li><a href="#default-value-9">Default value</a></li><li><a href="#examples-8">Examples</a></li></ul></li><li><a href="#targetdialect"><code>targetDialect</code></a><ul class="toc-headings"><li><a href="#value-type-10">Value type</a></li><li><a href="#default-value-10">Default value</a></li><li><a href="#examples-9">Examples</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#15242B"><section class="sitemap"><a href="/scalafix/" class="nav-home"><img src="/scalafix/img/scalafix-brand-small2x.png" alt="Scalafix" width="52" height="52"/></a><div><h5>Docs</h5><a href="
                 /scalafix/docs/users/installation.html">Get started</a><a href="
                 /scalafix/docs/rules/overview.html">Rules</a><a href="
                 /scalafix/docs/developers/setup.html">Extend Scalafix</a></div><div><h5>Community</h5><a href="https://discord.gg/8AHaqGx3Qj" target="_blank">Chat on Discord</a><a href="https://users.scala-lang.org/" target="_blank">Discuss on Scala Users</a></div><div><h5>More</h5><a href="https://github.com/scalacenter/scalafix" target="_blank">GitHub</a></div></section><section class="copyright">Copyright © 2026 Scala Center</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
