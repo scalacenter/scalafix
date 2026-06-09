@@ -236,10 +236,13 @@ class OrganizeImports(
     val noImplicitImporters = Seq.newBuilder[Importer]
     val separateImplicits = config.groupSeparately
       .contains(GroupSeparately.ByNameImplicits)
-    if (separateImplicits) importers.foreach { importer =>
+    val separateGivens = targetDialect.allowGivenUsing &&
+      config.groupSeparately.contains(GroupSeparately.ByTypeGivens)
+    if (separateImplicits || separateGivens) importers.foreach { importer =>
       val (implicits, noImplicits) = importer.importees.partition {
         case i: Importee.Name =>
-          i.symbol.infoNoThrow.exists(_.isImplicit)
+          separateImplicits && i.symbol.infoNoThrow.exists(_.isImplicit)
+        case _: Importee.Given => separateGivens
         case _ => false
       }
       if (implicits.isEmpty) noImplicitImporters += importer

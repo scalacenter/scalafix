@@ -1013,9 +1013,26 @@ Rationale for not including it by default:
     really happens, it is usually a sign of bad coding style, and you
     may want to tweak your imports to eliminate the root cause.
 
+#### `ByTypeGivens`
+
+If this option is specified, any explicit
+[by-type](https://docs.scala-lang.org/scala3/reference/contextual/given-imports.html#importing-by-type)
+`given` imports will be put in the trailing order-preserving import group.
+Obviously, it is only applicable to Scala 3 source files.
+
+The reason is that a `given` import refers to a type `T`, and that type can
+come from any package `P` that must be imported earlier. This matters because:
+
+- Our grouping and sorting logic could otherwise move `import P.T` later.
+- Scala 3 SemanticDB does not currently provide symbol information for `T`.
+
 ### Default value
 
-`[]`
+`[ByTypeGivens]`
+
+This value is enabled by default because by-type given imports are more likely
+to produce invalid code when reorganized. When no such imports are present, the
+option has no effect.
 
 ### Examples
 
@@ -1050,6 +1067,58 @@ import org.apache.spark.SparkContext
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.sys.process.stringToProcess
+```
+
+#### `ByTypeGivens`
+
+```conf
+OrganizeImports {
+  groups = ["scala.", "*"]
+  groupSeparately = [ByTypeGivens] // Only applicable for this Scala 3 feature
+}
+```
+
+```scala
+object ZGivens {
+  trait AA[T]
+}
+
+object Givens {
+  trait A
+  given aa_a: ZGivens.AA[A] = ???
+}
+
+object AGivens {
+  given a: Givens.A = ???
+}
+```
+
+Before:
+
+```scala
+import Givens.A
+import ZGivens.AA
+import AGivens.given A
+import Givens.given AA[A]
+```
+
+After:
+
+```scala
+import Givens.A
+import ZGivens.AA
+
+import AGivens.given A
+import Givens.given AA[A]
+```
+
+Without `ByTypeGivens`:
+
+```scala
+import AGivens.given A // incorrect: A is not imported yet
+import Givens.A
+import Givens.given AA[A] // incorrect: AA is not imported yet
+import ZGivens.AA
 ```
 
 `importSelectorsOrder`
