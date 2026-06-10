@@ -90,9 +90,6 @@ object Main {
 }
 ```
 
-On Scala 3, an additional `-Wunused:unsafe-warn-patvars` option is required
-until Scala 3.7.0.
-
 ### Remove unused function parameters
 
 ```scala
@@ -199,6 +196,4 @@ $ scala3 -W
           - strict-no-implicit-warn :
             Same as -Wunused:import, only for imports of explicit named members.
             NOTE : This overrides -Wunused:imports and NOT set by -Wunused:all,
-          - unsafe-warn-patvars :
-            Deprecated alias for `patvars`
 ```

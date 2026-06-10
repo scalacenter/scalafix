@@ -83,14 +83,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       scalaVersion.value.startsWith("2.12")
     }
     lazy val warnUnused = Def.setting {
-      val minor = scalaVersion.value.split('.')(1).toInt
-      if (isScala3.value && minor >= 7)
-        Seq("-Wunused:all")
-      else if (isScala3.value)
-        Seq(
-          "-Wunused:all",
-          "-Wunused:unsafe-warn-patvars"
-        )
+      if (isScala3.value) Seq("-Wunused:all")
       else if (isScala213.value) Seq("-Wunused")
       else Seq("-Ywarn-unused")
     }
@@ -245,6 +238,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, Option[String]] = Map(
+    scala33 -> Some("3.3.7"),
     scala38 -> Some("3.8.2")
   )
 

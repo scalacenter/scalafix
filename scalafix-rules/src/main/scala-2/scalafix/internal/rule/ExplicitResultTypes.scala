@@ -90,13 +90,11 @@ class Scala2Printer(
       space: String
   )(implicit
       ctx: SemanticDocument
-  ): Option[Patch] =
-    for {
+  ): Patch =
+    (for {
       name <- ExplicitResultTypesBase.defnName(defn)
       defnSymbol <- name.symbol.asNonEmpty
       printer <- globalPrinter
       patch <- printer.toPatch(name.pos, defnSymbol, replace, defn, space)
-    } yield {
-      patch
-    }
+    } yield patch).getOrElse(Patch.empty)
 }

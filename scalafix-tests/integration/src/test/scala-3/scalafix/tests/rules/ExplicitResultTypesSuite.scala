@@ -58,7 +58,7 @@ class ExplicitResultTypesSuite extends AnyFunSuite {
     "fetchScala3CompilerArtifactsOnVersionMismatch unlocks dynamic loading"
   ) {
     val neitherLTSNorNext =
-      config.withScalaVersion("3.5.0")
+      config.withScalaVersion("3.6.4")
 
     val conf = Conf
       .parseString(

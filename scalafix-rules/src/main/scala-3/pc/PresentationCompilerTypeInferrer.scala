@@ -18,13 +18,11 @@ import scalafix.patch.Patch.empty
 import scalafix.v1.*
 
 final class PresentationCompilerTypeInferrer private (
-    pc: LazyValue[Option[PresentationCompiler]]
+    pc: LazyValue[PresentationCompiler]
 ) {
 
   def shutdownCompiler(): Unit = {
-    pc.value.foreach {
-      _.shutdown()
-    }
+    pc.foreach(_.shutdown())
   }
 
   def defnName(defn: Defn): Option[Name] = Option(defn).collect {
@@ -37,43 +35,38 @@ final class PresentationCompilerTypeInferrer private (
       replace: Token
   )(implicit
       ctx: SemanticDocument
-  ): Option[Patch] =
-    for {
-      pc <- pc.value
-    } yield {
-      ctx.tree.origin match {
-        case parsed: Origin.Parsed =>
-          val text = parsed.source.input.text
-          val uri = parsed.source.input match {
-            // case Ammonite(input) =>
-            case File(path, _) => path.toURI
-            case VirtualFile(path, _) => Paths.get(path).toUri()
-            case _ => Paths.get(s"./A${Random.nextInt()}.scala").toUri()
+  ): Patch =
+    ctx.tree.origin match {
+      case parsed: Origin.Parsed =>
+        val text = parsed.source.input.text
+        val uri = parsed.source.input match {
+          // case Ammonite(input) =>
+          case File(path, _) => path.toURI
+          case VirtualFile(path, _) => Paths.get(path).toUri()
+          case _ => Paths.get(s"./A${Random.nextInt()}.scala").toUri()
+        }
+        val params = new CompilerOffsetParams(
+          uri,
+          text,
+          replace.pos.end
+        )
+        val result = pc.value.insertInferredType(params).get()
+        result.asScala.toList
+          .map { edit =>
+            val start = edit.getRange().getStart()
+            val last = ctx.tokens.takeWhile { token =>
+              val beforeLine = token.pos.endLine < start.getLine()
+              val beforeColumn = token.pos.endLine == start
+                .getLine() && token.pos.endColumn <= start.getCharacter()
+              beforeLine || beforeColumn
+
+            }.last
+            Patch.addRight(last, edit.getNewText())
           }
-          val params = new CompilerOffsetParams(
-            uri,
-            text,
-            replace.pos.end
-          )
-          val result = pc.insertInferredType(params).get()
-          result.asScala.toList
-            .map { edit =>
-              val start = edit.getRange().getStart()
-              val last = ctx.tokens.takeWhile { token =>
-                val beforeLine = token.pos.endLine < start.getLine()
-                val beforeColumn = token.pos.endLine == start
-                  .getLine() && token.pos.endColumn <= start.getCharacter()
-                beforeLine || beforeColumn
-
-              }.last
-              Patch.addRight(last, edit.getNewText())
-            }
-            .asPatch
-            .atomic
-        case _ => empty
-      }
+          .asPatch
+          .atomic
+      case _ => empty
     }
-
 }
 
 /**
@@ -102,27 +95,19 @@ object PresentationCompilerTypeInferrer {
     )
   }
 
-  def dynamic(config: Configuration): PresentationCompilerTypeInferrer = {
-    val newPc: LazyValue[Option[PresentationCompiler]] =
-      LazyValue.from { () =>
-        Try(
-          configure(
-            config,
-            Embedded.presentationCompiler(config.scalaVersion)
-          )
-        )
-      }
-    new PresentationCompilerTypeInferrer(newPc)
-  }
+  def dynamic(
+      config: Configuration
+  ): Try[PresentationCompilerTypeInferrer] =
+    Try(Embedded.presentationCompiler(config.scalaVersion)).map { pc =>
+      static(config, pc)
+    }
 
   def static(
       config: Configuration,
       pc: PresentationCompiler
   ): PresentationCompilerTypeInferrer = {
-    val newPc: LazyValue[Option[PresentationCompiler]] =
-      LazyValue.from { () =>
-        Try(configure(config, pc))
-      }
+    val newPc: LazyValue[PresentationCompiler] =
+      LazyValue.later(() => configure(config, pc))
     new PresentationCompilerTypeInferrer(newPc)
   }
 
