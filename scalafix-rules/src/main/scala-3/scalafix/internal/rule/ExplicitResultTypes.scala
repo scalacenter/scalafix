@@ -1,5 +1,8 @@
 package scalafix.internal.rule
 
+import scala.util.Failure
+import scala.util.Success
+
 import scala.meta.*
 
 import dotty.tools.pc.ScalaPresentationCompiler
@@ -21,6 +24,31 @@ final class ExplicitResultTypes(
 
   private def shutdownCompiler(): Unit = {
     pcTypeInferrer.foreach(_.shutdownCompiler())
+  }
+
+  private def rootCause(error: Throwable): Throwable = {
+    var cause = error
+    while (cause.getCause != null) {
+      cause = cause.getCause
+    }
+    cause
+  }
+
+  private def dynamicPresentationCompilerError(
+      compilerScalaVersion: String,
+      error: Throwable
+  ): String = {
+    val cause = rootCause(error)
+    val detail =
+      Option(cause.getMessage).filter(_.nonEmpty) match {
+        case Some(message) => s"${cause.getClass.getSimpleName}: $message"
+        case None => cause.getClass.getSimpleName
+      }
+
+    s"The ExplicitResultTypes rule could not fetch or load the presentation compiler for the Scala version $compilerScalaVersion " +
+      s"which was used to compile the target sources. Cause: $detail. To fix this problem, load Scalafix with the Scala minor version " +
+      s"${stripPatchVersion(compilerScalaVersion)} to remove the need for fetchScala3CompilerArtifactsOnVersionMismatch, or try to upgrade " +
+      s"Scalafix to the latest version."
   }
 
   override def withConfiguration(config: Configuration): Configured[Rule] = {
@@ -58,16 +86,29 @@ final class ExplicitResultTypes(
                 "enable ExplicitResultTypes.fetchScala3CompilerArtifactsOnVersionMismatch in .scalafix.conf in order to try to load what is needed dynamically."
             )
           } else {
-            val pcTypeInferrer =
-              if (matchingMinors)
+            if (matchingMinors) {
+              val pcTypeInferrer =
                 PresentationCompilerTypeInferrer.static(
                   config,
                   new ScalaPresentationCompiler()
                 )
-              else
-                PresentationCompilerTypeInferrer.dynamic(config)
 
-            Configured.Ok(new ExplicitResultTypes(conf, Some(pcTypeInferrer)))
+              Configured.Ok(new ExplicitResultTypes(conf, Some(pcTypeInferrer)))
+            } else {
+              PresentationCompilerTypeInferrer.dynamic(config) match {
+                case Success(pcTypeInferrer) =>
+                  Configured.Ok(
+                    new ExplicitResultTypes(conf, Some(pcTypeInferrer))
+                  )
+                case Failure(error) =>
+                  Configured.error(
+                    dynamicPresentationCompilerError(
+                      config.scalaVersion,
+                      error
+                    )
+                  )
+              }
+            }
           }
       }
     }
@@ -94,7 +135,6 @@ class Scala3Printer(
       space: String
   )(implicit
       ctx: SemanticDocument
-  ): Option[Patch] = {
-    pcTypeInferrer.flatMap(_.defnType(replace))
-  }
+  ): Patch =
+    pcTypeInferrer.fold(Patch.empty)(_.defnType(replace))
 }

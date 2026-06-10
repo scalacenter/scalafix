@@ -15,7 +15,7 @@ trait Printer {
       space: String
   )(implicit
       ctx: SemanticDocument
-  ): Option[Patch]
+  ): Patch
 
 }
 
@@ -151,8 +151,10 @@ abstract class ExplicitResultTypesBase[P <: Printer]
         if (TokenOps.needsLeadingSpaceBeforeColon(replace)) " "
         else ""
       }
-      typePatch <- printer.defnType(defn, replace, space)
-      valuePatchOpt = defnBody(defn).map(patchEmptyValue)
+      typePatch = printer.defnType(defn, replace, space)
+      valuePatchOpt =
+        if (typePatch.nonEmpty) defnBody(defn).map(patchEmptyValue)
+        else None
     } yield typePatch + valuePatchOpt
   }.asPatch.atomic
 
