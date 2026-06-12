@@ -238,8 +238,6 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, Option[String]] = Map(
-    scala33 -> Some("3.3.7"),
-    scala38 -> Some("3.8.2")
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
