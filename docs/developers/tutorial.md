@@ -665,6 +665,20 @@ The expansion rules for `github:org/repo` are the following:
 | `github:org/repo/RuleName?sha=main`    | (on `main`) `scalafix/rules/src/main/scala/fix/RuleName.scala`           |
 | `github:org/repo/RuleName?sha=HASH125` | (at commit `HASH125`) `scalafix/rules/src/main/scala/fix/RuleName.scala` |
 
+Private repositories are supported when a GitHub token is available. Scalafix
+looks for a token in the following places, in order:
+
+- the `scalafix.github.token` system property
+- the `SCALAFIX_GITHUB_TOKEN` environment variable
+- the `GITHUB_TOKEN` environment variable
+- the `GH_TOKEN` environment variable
+
+The token value should be the raw token, without a `Bearer` or `token` prefix.
+For a fine-grained personal access token, grant access only to the repository
+that contains the rule and set `Contents` to read-only. A classic personal
+access token also works, but it needs the broader `repo` scope to read private
+repositories.
+
 ## Publish the rule to Maven Central
 
 > If your rule only targets a single codebase and is not meant to be
