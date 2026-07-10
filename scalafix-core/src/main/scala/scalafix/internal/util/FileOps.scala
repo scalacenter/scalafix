@@ -6,6 +6,7 @@ import java.io.FileReader
 import java.io.PrintWriter
 import java.net.URI
 import java.net.URL
+import java.net.URLConnection
 
 import scala.meta.io.AbsolutePath
 
@@ -34,11 +35,80 @@ object FileOps {
     }
   }
 
-  def readURL(url: URL): String = {
-    val src = scala.io.Source.fromURL(url)("UTF-8")
+  def readURL(url: URL): String =
+    readURL(url, _.openConnection())
+
+  private[scalafix] def readURL(
+      url: URL,
+      openConnection: URL => URLConnection
+  ): String = {
+    val connection = authenticatedConnection(url, openConnection)
+    val src =
+      scala.io.Source.fromInputStream(connection.getInputStream)("UTF-8")
     try src.getLines().mkString("\n")
     finally src.close()
   }
+
+  private def authenticatedConnection(
+      url: URL,
+      openConnection: URL => URLConnection
+  ): URLConnection = {
+    gitHubContentsUrl(url) match {
+      case Some((apiUrl, token)) =>
+        val connection = openConnection(apiUrl)
+        connection.setRequestProperty(
+          "Accept",
+          "application/vnd.github.raw+json"
+        )
+        connection.setRequestProperty("Authorization", s"Bearer $token")
+        connection.setRequestProperty("X-GitHub-Api-Version", "2022-11-28")
+        connection
+      case None =>
+        openConnection(url)
+    }
+  }
+
+  private def gitHubContentsUrl(url: URL): Option[(URL, String)] =
+    gitHubToken.flatMap { token =>
+      val filePrefix = "/scalafix/rules/src/main/scala/"
+      val path = url.getPath.stripPrefix("/")
+      val filePrefixIndex = path.indexOf(filePrefix)
+      if (
+        url.getProtocol == "https" &&
+        url.getHost == "raw.githubusercontent.com" &&
+        filePrefixIndex >= 0
+      ) {
+        val beforeFile = path.take(filePrefixIndex)
+        val coordinates = beforeFile.split("/", 3)
+        if (coordinates.length == 3) {
+          val owner = coordinates(0)
+          val repo = coordinates(1)
+          val ref = coordinates(2)
+          val file = path.drop(filePrefixIndex + 1)
+          Some(
+            (
+              new URI(
+                "https",
+                "api.github.com",
+                s"/repos/$owner/$repo/contents/$file",
+                s"ref=$ref",
+                null
+              ).toURL,
+              token
+            )
+          )
+        } else None
+      } else None
+    }
+
+  private def gitHubToken: Option[String] =
+    sys.props
+      .get("scalafix.github.token")
+      .orElse(sys.env.get("SCALAFIX_GITHUB_TOKEN"))
+      .orElse(sys.env.get("GITHUB_TOKEN"))
+      .orElse(sys.env.get("GH_TOKEN"))
+      .map(_.trim)
+      .filter(_.nonEmpty)
 
   /**
    * Reads file from file system or from http url.
