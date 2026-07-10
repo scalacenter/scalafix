@@ -2,6 +2,7 @@ package scalafix.tests.util
 
 import java.io.ByteArrayInputStream
 import java.io.InputStream
+import java.net.URI
 import java.net.URL
 import java.net.URLConnection
 import java.nio.charset.StandardCharsets
@@ -15,10 +16,12 @@ class FileOpsSuite extends AnyFunSuite {
 
   test("readURL sends GitHub token when reading raw GitHub rule source") {
     withSystemProperty(GitHubTokenProperty, "secret-token") {
-      val url = new URL(
-        "https://raw.githubusercontent.com/org/repo/main/" +
-          "scalafix/rules/src/main/scala/fix/Rule.scala"
-      )
+      val url = URI
+        .create(
+          "https://raw.githubusercontent.com/org/repo/main/" +
+            "scalafix/rules/src/main/scala/fix/Rule.scala"
+        )
+        .toURL
 
       assert(
         FileOps.readURL(
@@ -36,7 +39,7 @@ class FileOpsSuite extends AnyFunSuite {
 
   test("readURL does not send GitHub token to non-GitHub URLs") {
     withSystemProperty(GitHubTokenProperty, "secret-token") {
-      val url = new URL("https://example.com/rules/Rule.scala")
+      val url = URI.create("https://example.com/rules/Rule.scala").toURL
 
       assert(
         FileOps.readURL(
