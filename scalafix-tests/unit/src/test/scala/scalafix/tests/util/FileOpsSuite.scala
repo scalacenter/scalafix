@@ -30,7 +30,8 @@ class FileOpsSuite extends AnyFunSuite {
             expectedUrl =
               "https://api.github.com/repos/org/repo/contents/scalafix/rules/src/main/scala/fix/Rule.scala?ref=main",
             expectedAuthorization = Some("Bearer secret-token"),
-            expectedAccept = Some("application/vnd.github.raw+json")
+            expectedAccept = Some("application/vnd.github.raw+json"),
+            expectedGitHubApiVersion = Some("2026-03-10")
           )
         ) == RuleSource
       )
@@ -47,7 +48,8 @@ class FileOpsSuite extends AnyFunSuite {
           authenticatedConnection(
             expectedUrl = "https://example.com/rules/Rule.scala",
             expectedAuthorization = None,
-            expectedAccept = None
+            expectedAccept = None,
+            expectedGitHubApiVersion = None
           )
         ) == RuleSource
       )
@@ -57,7 +59,8 @@ class FileOpsSuite extends AnyFunSuite {
   private def authenticatedConnection(
       expectedUrl: String,
       expectedAuthorization: Option[String],
-      expectedAccept: Option[String]
+      expectedAccept: Option[String],
+      expectedGitHubApiVersion: Option[String]
   ): URL => URLConnection = { url =>
     assert(url.toString == expectedUrl)
     new URLConnection(url) {
@@ -73,6 +76,12 @@ class FileOpsSuite extends AnyFunSuite {
         assert(
           obtainedAccept == expectedAccept,
           s"expected Accept header $expectedAccept, obtained $obtainedAccept"
+        )
+        val obtainedGitHubApiVersion =
+          Option(getRequestProperty("X-GitHub-Api-Version"))
+        assert(
+          obtainedGitHubApiVersion == expectedGitHubApiVersion,
+          s"expected X-GitHub-Api-Version header $expectedGitHubApiVersion, obtained $obtainedGitHubApiVersion"
         )
         new ByteArrayInputStream(
           RuleSource.getBytes(StandardCharsets.UTF_8)

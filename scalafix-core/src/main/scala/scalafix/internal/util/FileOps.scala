@@ -11,6 +11,7 @@ import java.net.URLConnection
 import scala.meta.io.AbsolutePath
 
 object FileOps {
+  private val GitHubApiVersion = "2026-03-10"
 
   def listFiles(path: String): Vector[String] = {
     listFiles(new File(path))
@@ -61,7 +62,7 @@ object FileOps {
           "application/vnd.github.raw+json"
         )
         connection.setRequestProperty("Authorization", s"Bearer $token")
-        connection.setRequestProperty("X-GitHub-Api-Version", "2022-11-28")
+        connection.setRequestProperty("X-GitHub-Api-Version", GitHubApiVersion)
         connection
       case None =>
         openConnection(url)
