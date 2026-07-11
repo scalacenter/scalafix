@@ -70,37 +70,66 @@ object FileOps {
   }
 
   private def gitHubContentsUrl(url: URL): Option[(URL, String)] =
-    gitHubToken.flatMap { token =>
-      val filePrefix = "/scalafix/rules/src/main/scala/"
-      val path = url.getPath.stripPrefix("/")
-      val filePrefixIndex = path.indexOf(filePrefix)
-      if (
-        url.getProtocol == "https" &&
-        url.getHost == "raw.githubusercontent.com" &&
-        filePrefixIndex >= 0
-      ) {
-        val beforeFile = path.take(filePrefixIndex)
-        val coordinates = beforeFile.split("/", 3)
-        if (coordinates.length == 3) {
-          val owner = coordinates(0)
-          val repo = coordinates(1)
-          val ref = coordinates(2)
-          val file = path.drop(filePrefixIndex + 1)
-          Some(
-            (
-              new URI(
-                "https",
-                "api.github.com",
-                s"/repos/$owner/$repo/contents/$file",
-                s"ref=$ref",
-                null
-              ).toURL,
-              token
-            )
-          )
-        } else None
-      } else None
+    for {
+      token <- gitHubToken
+      (owner, repo, ref, file) <- gitHubRawContent(url)
+    } yield (gitHubContentsApiUrl(owner, repo, ref, file), token)
+
+  private def gitHubContentsApiUrl(
+      owner: String,
+      repo: String,
+      ref: String,
+      file: String
+  ): URL =
+    new URI(
+      "https",
+      "api.github.com",
+      s"/repos/$owner/$repo/contents/$file",
+      s"ref=$ref",
+      null
+    ).toURL
+
+  private def gitHubRawContent(
+      url: URL
+  ): Option[(String, String, String, String)] = {
+    val segments = url.getPath.stripPrefix("/").split("/").toVector
+    if (
+      url.getProtocol == "https" &&
+      url.getHost == "raw.githubusercontent.com" &&
+      segments.length >= 4
+    ) {
+      val owner = segments(0)
+      val repo = segments(1)
+      val refAndFile = segments.drop(2)
+      splitRefAndFile(refAndFile).map { case (refSegments, fileSegments) =>
+        (owner, repo, refSegments.mkString("/"), fileSegments.mkString("/"))
+      }
+    } else None
+  }
+
+  private def splitRefAndFile(
+      segments: Vector[String]
+  ): Option[(Vector[String], Vector[String])] = {
+    val standardRulePrefix =
+      Vector("scalafix", "rules", "src", "main", "scala")
+    val standardRulePrefixIndex = segments.indexOfSlice(standardRulePrefix)
+    if (standardRulePrefixIndex > 0) {
+      Some(
+        segments.take(standardRulePrefixIndex) ->
+          segments.drop(standardRulePrefixIndex)
+      )
+    } else {
+      segments match {
+        case "refs" +: refKind +: refName +: file
+            if (refKind == "heads" || refKind == "tags") && file.nonEmpty =>
+          Some(Vector("refs", refKind, refName) -> file)
+        case ref +: file if file.nonEmpty =>
+          Some(Vector(ref) -> file)
+        case _ =>
+          None
+      }
     }
+  }
 
   private def gitHubToken: Option[String] =
     sys.props

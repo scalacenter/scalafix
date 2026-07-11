@@ -38,6 +38,30 @@ class FileOpsSuite extends AnyFunSuite {
     }
   }
 
+  test("readURL authenticates raw GitHub rule source outside standard layout") {
+    withSystemProperty(GitHubTokenProperty, "secret-token") {
+      val url = URI
+        .create(
+          "https://raw.githubusercontent.com/org/repo/refs/heads/main/" +
+            "custom-rules/Rule.scala?token=raw-url-token"
+        )
+        .toURL
+
+      assert(
+        FileOps.readURL(
+          url,
+          authenticatedConnection(
+            expectedUrl =
+              "https://api.github.com/repos/org/repo/contents/custom-rules/Rule.scala?ref=refs/heads/main",
+            expectedAuthorization = Some("Bearer secret-token"),
+            expectedAccept = Some("application/vnd.github.raw+json"),
+            expectedGitHubApiVersion = Some("2026-03-10")
+          )
+        ) == RuleSource
+      )
+    }
+  }
+
   test("readURL does not send GitHub token to non-GitHub URLs") {
     withSystemProperty(GitHubTokenProperty, "secret-token") {
       val url = URI.create("https://example.com/rules/Rule.scala").toURL

@@ -679,6 +679,10 @@ that contains the rule and set `Contents` to read-only. A classic personal
 access token also works, but it needs the broader `repo` scope to read private
 repositories.
 
+The same authentication is also applied when you use a direct
+`https://raw.githubusercontent.com/...` rule URL, including rules stored outside
+the standard `scalafix/rules/src/main/scala` layout.
+
 ## Publish the rule to Maven Central
 
 > If your rule only targets a single codebase and is not meant to be
