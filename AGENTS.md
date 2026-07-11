@@ -81,23 +81,6 @@ sbt ci-docs
 cd website && yarn start
 ```
 
-### GitHub Remote Rule Authentication
-Scalafix supports loading source rules through `github:org/repo[/Rule]?sha=...`
-via `scalafix-reflect`. When working on private repository support:
-- Prefer GitHub's documented repository contents API for authenticated GitHub
-  file reads, using `Accept: application/vnd.github.raw+json` and
-  `Authorization: Bearer <token>`.
-- A fine-grained personal access token can be limited to the selected rule
-  repository with `Contents` read permission. The environment variable should
-  contain only the raw token value, without the `Bearer ` or `token ` prefix.
-- If adding configuration, prefer a Scalafix-specific token variable first
-  (for example `SCALAFIX_GITHUB_TOKEN`), then common GitHub environment names
-  such as `GITHUB_TOKEN` and `GH_TOKEN`.
-- Never attach a GitHub token to arbitrary HTTP(S) URLs. Restrict token use to
-  GitHub repository contents requests for the matching `github:` rule source.
-- Unit tests should use fake URL connections or local test servers. Do not
-  require real private repositories or real tokens in CI.
-
 ## Rule Development Patterns
 
 ### Rule Types
