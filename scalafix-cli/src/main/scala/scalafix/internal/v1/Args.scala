@@ -275,6 +275,14 @@ case class Args(
     }
   }
 
+  def configuredOnTestFailure(base: Conf): Configured[Option[String]] =
+    ConfGet.getOrOK(
+      base,
+      "onTestFailure" :: Nil,
+      (conf: Conf) => conf.as[String].map(Some(_)),
+      None
+    )
+
   def configuredRules(
       base: Conf,
       scalafixConfig: ScalafixConfig
@@ -416,11 +424,15 @@ case class Args(
           configuredRules(base, scalafixConfig) |@|
           resolvedPathReplace |@|
           configuredDiffDisable |@|
-          configureScalaVersions(scalafixConfig)
+          configureScalaVersions(scalafixConfig) |@|
+          configuredOnTestFailure(base)
       ).map {
         case (
-              ((((root, symtab), rulez), pathReplace), diffDisable),
-              scalafixConfig
+              (
+                ((((root, symtab), rulez), pathReplace), diffDisable),
+                scalafixConfig
+              ),
+              onTestFailure
             ) =>
           ValidatedArgs(
             this,
@@ -432,7 +444,8 @@ case class Args(
             pathReplace,
             diffDisable,
             delegator,
-            semanticdbFilterMatcher
+            semanticdbFilterMatcher,
+            onTestFailure
           )
       }
     }

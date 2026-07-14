@@ -104,7 +104,10 @@ object MainOps {
         )
       }
       case _: Seq[Rule] =>
-        val files = getFilesFrom(args)
+        // The evaluation API reports results per file, so a missing input
+        // path only surfaces through the reporter and does not affect the
+        // overall evaluation status.
+        val (files, _) = getFilesFrom(args)
         if (files.nonEmpty) {
           val fileEvaluations = {
             files.map { file =>
@@ -145,10 +148,16 @@ object MainOps {
     }
   }
 
-  def getFilesFrom(args: ValidatedArgs): Seq[AbsolutePath] =
+  /**
+   * Returns the files to fix along with the exit status of the input discovery
+   * itself, so that an invalid input path is accounted for in the exit status
+   * and not only reported to the reporter.
+   */
+  def getFilesFrom(args: ValidatedArgs): (Seq[AbsolutePath], ExitStatus) =
     args.args.ls match {
       case Ls.Find =>
         val buf = Vector.newBuilder[AbsolutePath]
+        var exit = ExitStatus.Ok
         val visitor = new SimpleFileVisitor[Path] {
           override def visitFile(
               file: Path,
@@ -173,9 +182,12 @@ object MainOps {
               buf += root
             }
           } else if (root.isDirectory) Files.walkFileTree(root.toNIO, visitor)
-          else args.config.reporter.error(s"$root is not a file")
+          else {
+            args.config.reporter.error(s"$root is not a file")
+            exit = ExitStatus.merge(exit, ExitStatus.UnexpectedError)
+          }
         }
-        buf.result()
+        (buf.result(), exit)
     }
 
   final class StaleSemanticDB(val path: AbsolutePath, val diff: String)
@@ -203,7 +215,7 @@ object MainOps {
       ExitStatus.merge(ExitStatus.LinterError, code)
     } else if (args.callback.hasErrors && code.isOk) {
       ExitStatus.merge(ExitStatus.UnexpectedError, code)
-    } else if (files.isEmpty) {
+    } else if (files.isEmpty && code.isOk) {
       args.config.reporter.error("No files to fix")
       ExitStatus.merge(ExitStatus.NoFilesError, code)
     } else {
@@ -390,11 +402,11 @@ object MainOps {
   }
 
   def run(args: ValidatedArgs): ExitStatus = {
-    val files = getFilesFrom(args)
+    val (files, discoveryError) = getFilesFrom(args)
     var i = 0
     val N = files.length
     val width = N.toString.length
-    var exit = ExitStatus.Ok
+    var exit = discoveryError
 
     args.rules.rules.foreach(_.beforeStart())
 
@@ -410,7 +422,14 @@ object MainOps {
 
     args.rules.rules.foreach(_.afterComplete())
 
-    adjustExitCode(args, exit, files)
+    val result = adjustExitCode(args, exit, files)
+    // Only print the message when the entire failure is auto-fixable, i.e.
+    // the exit status is exactly TestError, not merged with lint, parse,
+    // input or other errors that running Scalafix cannot resolve.
+    if (result == ExitStatus.TestError) {
+      args.onTestFailure.foreach(args.args.out.println)
+    }
+    result
   }
 
   def version: String =
