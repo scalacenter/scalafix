@@ -67,10 +67,20 @@ object GroupSeparately {
     .getCodecFrom(ByNameImplicits, ByTypeGivens)
 }
 
+sealed trait GroupRelativeImports
+object GroupRelativeImports {
+  case object KeepOrdered extends GroupRelativeImports
+  case object Grouped extends GroupRelativeImports
+
+  implicit val codec: ConfCodecEx[GroupRelativeImports] = OrganizeImportsConfig
+    .getCodecFrom(KeepOrdered, Grouped)
+}
+
 final case class OrganizeImportsConfig(
     blankLines: BlankLines = BlankLines.Auto,
     coalesceToWildcardImportThreshold: Option[Int] = None,
     expandRelative: Boolean = false,
+    groupRelativeImports: GroupRelativeImports = GroupRelativeImports.KeepOrdered,
     groupSeparately: Seq[GroupSeparately] = Seq(GroupSeparately.ByTypeGivens),
     groupedImports: GroupedImports = GroupedImports.Explode,
     groups: Seq[String] = Seq(

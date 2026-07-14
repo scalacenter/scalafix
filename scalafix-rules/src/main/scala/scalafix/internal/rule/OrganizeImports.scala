@@ -104,12 +104,15 @@ class OrganizeImports(
         .flatMap(_.importers)
         .flatMap(removeUnusedImporters(unusedImporteePositions))
 
+      val groupRelative = config.groupRelativeImports == GroupRelativeImports.Grouped
       val relativeImporters = new ArrayBuffer[Importer]
       val fullyQualifiedIterator =
         if (config.expandRelative)
           noUnusedIterator.map { i =>
             if (isFullyQualified(diagnostics)(i)) i else expandRelative(i)
           }
+        else if (groupRelative)
+          noUnusedIterator
         else
           noUnusedIterator.filter { i =>
             val ok = isFullyQualified(diagnostics)(i)
@@ -119,9 +122,13 @@ class OrganizeImports(
       val dedupedIterator = deduplicateImportees(fullyQualifiedIterator)
       val mergedIterator = mergeOrExplodeImporters(diagnostics)(dedupedIterator)
 
-      // Moves relative imports (when `config.expandRelative` is false) and
-      // explicitly imported implicit names into a separate order preserving
-      // group. This group will be appended after all the other groups.
+      // Moves relative imports (when `config.expandRelative` is false and
+      // `config.groupRelativeImports` is `KeepOrdered`) and explicitly imported
+      // implicit names into a separate order preserving group. This group will
+      // be appended after all the other groups.
+      //
+      // When `config.groupRelativeImports` is `Grouped`, relative imports
+      // participate in regular group matching and are not added here.
       //
       // See https://github.com/liancheng/scalafix-organize-imports/issues/30
       // for why implicits require special handling.
