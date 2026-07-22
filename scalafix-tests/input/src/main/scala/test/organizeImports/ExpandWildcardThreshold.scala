@@ -4,7 +4,7 @@ OrganizeImports {
   expandWildcardImportThreshold = 3
   groupedImports = Keep
   removeUnused = false
-  targetDialect = Scala2
+  targetDialect = Auto
 }
  */
 package test.organizeImports

@@ -4,14 +4,14 @@ OrganizeImports {
   expandWildcardImportThreshold = 5
   groupedImports = Keep
   removeUnused = false
-  targetDialect = Scala2
+  targetDialect = Auto
 }
  */
 package test.organizeImports
 
-import test.organizeImports.MergeImports.Wildcard1._
+import test.organizeImports.ExpandInheritance.Sub._
 
-object ExpandWildcard {
-  val x1 = a
-  val x2 = b
+object ExpandWildcardInherited {
+  val a = own
+  val b = inherited
 }

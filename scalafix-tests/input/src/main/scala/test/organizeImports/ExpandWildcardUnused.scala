@@ -4,14 +4,13 @@ OrganizeImports {
   expandWildcardImportThreshold = 5
   groupedImports = Keep
   removeUnused = false
-  targetDialect = Scala2
+  targetDialect = Auto
 }
  */
 package test.organizeImports
 
-import test.organizeImports.QuotedIdent._
+import test.organizeImports.MergeImports.Wildcard1._
 
-object ExpandWildcardQuotedIdent {
-  val x = `macro`
-  val y = `a.b`
+object ExpandWildcardUnused {
+  val x = 1
 }

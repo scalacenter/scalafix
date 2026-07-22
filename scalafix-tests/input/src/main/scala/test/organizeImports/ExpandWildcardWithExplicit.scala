@@ -4,14 +4,14 @@ OrganizeImports {
   expandWildcardImportThreshold = 5
   groupedImports = Keep
   removeUnused = false
-  targetDialect = Scala2
+  targetDialect = Auto
 }
  */
 package test.organizeImports
 
-import test.organizeImports.Implicits.a._
+import test.organizeImports.MergeImports.Wildcard1.{a, _}
 
-object ExpandWildcardImplicit {
-  def needsInt(implicit i: Int): Int = i
-  val x: Int = needsInt
+object ExpandWildcardWithExplicit {
+  val x1 = a
+  val x2 = b
 }

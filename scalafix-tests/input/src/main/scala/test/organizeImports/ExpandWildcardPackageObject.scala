@@ -4,13 +4,14 @@ OrganizeImports {
   expandWildcardImportThreshold = 5
   groupedImports = Keep
   removeUnused = false
-  targetDialect = Scala2
+  targetDialect = Auto
 }
  */
 package test.organizeImports
 
-import test.organizeImports.MergeImports.Wildcard1.{a => _, _}
+import test.organizeImports.pkgobj._
 
-object ExpandWildcardWithUnimport {
-  val x = b
+object ExpandWildcardPackageObject {
+  val a = directMember
+  val b = inheritedMember
 }
