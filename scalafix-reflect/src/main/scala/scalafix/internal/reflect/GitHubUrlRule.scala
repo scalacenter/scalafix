@@ -10,6 +10,7 @@ import metaconfig.Conf
 import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.Ok
+import scalafix.internal.util.FileOps
 
 object GitHubUrlRule {
 
@@ -76,7 +77,7 @@ object GitHubUrlRule {
     string.split(NonAlphaNumeric).map(_.capitalize).mkString
 
   private def checkUrl(url: URL): Try[URL] =
-    Try(url.openStream().close()).map(_ => url)
+    Try(FileOps.readURL(url)).map(_ => url)
 
   private def expandGitHubURL(
       org: String,
