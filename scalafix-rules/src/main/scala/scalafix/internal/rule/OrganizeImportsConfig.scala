@@ -71,6 +71,7 @@ final case class OrganizeImportsConfig(
     blankLines: BlankLines = BlankLines.Auto,
     coalesceToWildcardImportThreshold: Option[Int] = None,
     expandRelative: Boolean = false,
+    expandWildcardImportThreshold: Option[Int] = None,
     groupSeparately: Seq[GroupSeparately] = Seq(GroupSeparately.ByTypeGivens),
     groupedImports: GroupedImports = GroupedImports.Explode,
     groups: Seq[String] = Seq(
