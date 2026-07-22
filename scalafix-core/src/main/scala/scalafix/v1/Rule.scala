@@ -16,11 +16,15 @@ abstract class Rule(val name: RuleName) {
   def description: String = ""
 
   /**
-   * Configure this rule according to user .scalafix.conf settings and compiler
-   * version.
+   * Configure this rule according to user `.scalafix.conf` settings and
+   * compiler information from [[Configuration]].
    *
    * This method is called once per project/module. The same rule instance is
    * used to analyze multiple source files.
+   *
+   * Prefer validating required `config.scalacOptions` here (for example unused
+   * warnings needed by a lint rule) and returning `Configured.error` when they
+   * are missing, so users get actionable setup guidance before the rule runs.
    *
    * @return
    *   A new version of this rule with loaded configuration or an error message.
