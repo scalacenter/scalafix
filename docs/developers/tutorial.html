@@ -468,6 +468,33 @@ configuration into <code>NoLiteralArgumentsConfig</code>.</p>
 </code></pre>
 <p>The <code>withConfiguration</code> method is called once after the rule is loaded. The same
 rule instance is then used to process multiple files in the same project.</p>
+<p>The <code>Configuration</code> argument is not limited to <code>.scalafix.conf</code> settings. It also
+exposes compiler information that rules can validate up front:</p>
+<ul>
+<li><code>config.scalacOptions</code>: the Scalac options used to compile the project</li>
+<li><code>config.scalaVersion</code>: the Scala version of the project</li>
+<li><code>config.scalacClasspath</code>: the project classpath</li>
+</ul>
+<p>Semantic rules that depend on compiler flags should check <code>scalacOptions</code> inside
+<code>withConfiguration</code> and return a <code>Configured.error(...)</code> when a required option
+is missing. That fails fast with a clear message instead of producing incomplete
+results later. For example, <code>RemoveUnused</code> needs unused warnings such as
+<code>-Ywarn-unused</code> / <code>-Wunused</code> (see the <a href="/scalafix/docs/rules/RemoveUnused.html">RemoveUnused</a>
+rule docs). A minimal check looks like this:</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">withConfiguration</span></span>(config: <span class="hljs-type">Configuration</span>): <span class="hljs-type">Configured</span>[<span class="hljs-type">Rule</span>] = {
+  <span class="hljs-keyword">val</span> hasUnusedWarning = config.scalacOptions.exists(opt =&gt;
+    opt.startsWith(<span class="hljs-string">"-Ywarn-unused"</span>) || opt.startsWith(<span class="hljs-string">"-Wunused"</span>)
+  )
+  <span class="hljs-keyword">if</span> (hasUnusedWarning) <span class="hljs-type">Configured</span>.ok(<span class="hljs-keyword">this</span>)
+  <span class="hljs-keyword">else</span>
+    <span class="hljs-type">Configured</span>.error(
+      <span class="hljs-string">"This rule requires unused warnings to be enabled, for example "</span> +
+        <span class="hljs-string">"`scalacOptions += "</span>-<span class="hljs-type">Wunused</span>:<span class="hljs-string">imports"`."</span>
+    )
+}
+</code></pre>
+<p>You can combine that validation with loading rule-specific configuration from
+<code>config.conf</code> in the same <code>withConfiguration</code> override.</p>
 <p>The final step is to use the configuration to report errors only for literals
 types the user has configured to prohibit</p>
 <pre><code class="hljs css language-diff"><span class="hljs-deletion">- case t: Lit.Boolean =&gt;</span>
