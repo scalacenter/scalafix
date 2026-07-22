@@ -23,7 +23,8 @@ case class ValidatedArgs(
     pathReplace: AbsolutePath => AbsolutePath,
     diffDisable: DiffDisable,
     callback: DelegatingMainCallback,
-    semanticdbFileFilter: FilterMatcher
+    semanticdbFileFilter: FilterMatcher,
+    onTestFailure: Option[String] = None
 ) {
 
   def input(file: AbsolutePath): Input =

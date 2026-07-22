@@ -100,6 +100,24 @@ Similarly, diagnostics can be controlled through `lint.ignore`, `lint.info`,
 and `lint.warning`, which respectively suppress matching diagnostics, force
 them to be at info level, and force them to be at warning level.
 
+## Customizing the message on `--check` failure
+
+When running in check mode (`--check`/`--test`), Scalafix prints a unified
+diff and exits with a non-zero code if some files would be modified by the
+configured rules. Use `onTestFailure` to print an additional custom message
+after the diff, for example to give contributors instructions on how to fix
+the failure:
+
+```scala
+// .scalafix.conf
+onTestFailure = "To fix this, run: sbt scalafixAll"
+```
+
+The message is only printed when the entire failure is auto-fixable by
+running Scalafix. If the run also reports errors that Scalafix cannot fix by
+rewriting sources — for example linter errors or parse errors — the message
+is not printed.
+
 ## Passing configuration as CLI arguments
 
 It is possible to pass configuration flags with scalar values as CLI arguments,
