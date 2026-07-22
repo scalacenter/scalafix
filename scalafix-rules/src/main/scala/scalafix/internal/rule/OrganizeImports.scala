@@ -104,7 +104,8 @@ class OrganizeImports(
         .flatMap(_.importers)
         .flatMap(removeUnusedImporters(unusedImporteePositions))
 
-      val groupRelative = config.groupRelativeImports == GroupRelativeImports.Grouped
+      val groupRelative =
+        config.groupRelativeImports == GroupRelativeImports.Grouped
       val relativeImporters = new ArrayBuffer[Importer]
       val fullyQualifiedIterator =
         if (config.expandRelative)

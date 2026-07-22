@@ -80,7 +80,8 @@ final case class OrganizeImportsConfig(
     blankLines: BlankLines = BlankLines.Auto,
     coalesceToWildcardImportThreshold: Option[Int] = None,
     expandRelative: Boolean = false,
-    groupRelativeImports: GroupRelativeImports = GroupRelativeImports.KeepOrdered,
+    groupRelativeImports: GroupRelativeImports =
+      GroupRelativeImports.KeepOrdered,
     groupSeparately: Seq[GroupSeparately] = Seq(GroupSeparately.ByTypeGivens),
     groupedImports: GroupedImports = GroupedImports.Explode,
     groups: Seq[String] = Seq(

@@ -1,8 +1,8 @@
 package test.organizeImports
 
-import scala.util
+import java.time.Clock
 
-import com.sun.management.DiagnosticCommandMBean
+import scala.util
 import util.Random
 
 object GroupRelativeImportsGrouped

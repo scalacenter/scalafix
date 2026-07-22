@@ -374,7 +374,6 @@ import scala.util.control.NonFatal
 import sun.misc.BASE64Encoder
 ```
 
-
 `groupRelativeImports`
 ----------------------
 
@@ -396,6 +395,12 @@ written in the source code) and sorted together with fully qualified
 imports. This avoids a blank line between fully qualified and relative
 imports that belong to the same logical group.
 
+> Relative imports can depend on imports that appear before them. `Grouped`
+> allows those imports to be regrouped and reordered, so moving a relative
+> import before its prerequisite can make the rewritten source fail to
+> compile. Use `KeepOrdered` unless the configured `groups` and
+> `importsOrder` preserve those dependencies.
+>
 > **Note**: When using `Grouped`, relative imports are sorted by their
 > textual form, not their fully qualified form. For example, `pekko.actor._`
 > sorts under `p`, not under its resolved path `org.apache.pekko.actor._`.
@@ -410,7 +415,7 @@ imports that belong to the same logical group.
 OrganizeImports {
   expandRelative = false
   groupRelativeImports = Grouped
-  groups = ["re:javax?\\.", "scala.", "*"]
+  groups = ["re:javax?\\.", "*"]
 }
 ```
 
@@ -418,9 +423,8 @@ Before:
 
 ```scala
 import scala.util
-import util.control
-import control.NonFatal
 import java.time.Clock
+import util.Random
 ```
 
 After (`Grouped` — relative imports mixed into regular groups):
@@ -429,9 +433,7 @@ After (`Grouped` — relative imports mixed into regular groups):
 import java.time.Clock
 
 import scala.util
-
-import control.NonFatal
-import util.control
+import util.Random
 ```
 
 After (`KeepOrdered` — default, relative imports in separate group):
@@ -441,8 +443,7 @@ import java.time.Clock
 
 import scala.util
 
-import util.control
-import control.NonFatal
+import util.Random
 ```
 
 `groupedImports`
@@ -1626,4 +1627,3 @@ import scala.collection.immutable.{List => L}
 import scala.collection.mutable.Map
 import scala.collection.mutable.{Buffer => _, Seq => S, _}
 ```
-

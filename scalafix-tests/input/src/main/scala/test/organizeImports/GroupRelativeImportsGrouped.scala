@@ -2,12 +2,12 @@
 rules = [OrganizeImports]
 OrganizeImports.removeUnused = false
 OrganizeImports.groupRelativeImports = Grouped
-OrganizeImports.groups = ["scala.", "*"]
+OrganizeImports.groups = ["re:javax?\\.", "*"]
  */
 package test.organizeImports
 
 import scala.util
-import com.sun.management.DiagnosticCommandMBean
+import java.time.Clock
 import util.Random
 
 object GroupRelativeImportsGrouped
