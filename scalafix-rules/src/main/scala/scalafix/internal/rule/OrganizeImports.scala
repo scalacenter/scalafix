@@ -408,6 +408,7 @@ class OrganizeImports(
         case MethodSignature(_, _, returnType) => headSymbol(returnType)
         case TypeSignature(_, _, upperBound) => headSymbol(upperBound)
         case _: ClassSignature => symbol.asNonEmpty
+        case _ if info.isPackage => symbol.asNonEmpty
         case _ => None
       }
     }
