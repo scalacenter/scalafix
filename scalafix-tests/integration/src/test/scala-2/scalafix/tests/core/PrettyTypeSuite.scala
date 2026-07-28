@@ -17,6 +17,8 @@ import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
 import scala.meta.metacp.Settings
 
+import scalafix.internal.reflect.ClasspathOps
+import scalafix.internal.symtab.SymbolTable
 import scalafix.internal.util.PrettyType
 import scalafix.internal.util.QualifyStrategy
 
@@ -34,7 +36,8 @@ class BasePrettyTypeSuite extends BaseSemanticSuite("TypeToTreeInput") {
 
   // As of scalameta 4.5.3, this relies on scalap (and not on TASTy), so it
   // cannot work against classes compiled with Scala 3
-  val table: GlobalSymbolTable = GlobalSymbolTable(classpath, includeJdk = true)
+  val table: SymbolTable =
+    ClasspathOps.fromScalameta(GlobalSymbolTable(classpath, includeJdk = true))
 }
 
 class PrettyTypeSuite extends BasePrettyTypeSuite {

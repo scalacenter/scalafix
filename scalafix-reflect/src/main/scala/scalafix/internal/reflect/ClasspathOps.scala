@@ -17,8 +17,12 @@ import java.nio.file.attribute.BasicFileAttributes
 import scala.jdk.CollectionConverters._
 
 import scala.meta.Classpath
-import scala.meta.internal.symtab._
+import scala.meta.internal.symtab.{SymbolTable => MetaSymbolTable}
+import scala.meta.internal.symtab.GlobalSymbolTable
+import scala.meta.internal.{semanticdb => s}
 import scala.meta.io.AbsolutePath
+
+import scalafix.internal.symtab.SymbolTable
 
 object ClasspathOps {
 
@@ -26,9 +30,21 @@ object ClasspathOps {
     override def write(b: Int): Unit = ()
   })
 
-  def newSymbolTable(classpath: Classpath): SymbolTable = {
-    GlobalSymbolTable(classpath, includeJdk = true)
-  }
+  def newSymbolTable(classpath: Classpath): SymbolTable =
+    fromScalameta(GlobalSymbolTable(classpath, includeJdk = true))
+
+  /**
+   * Adapt scalameta's symbol table onto the capability scalafix-core declares.
+   *
+   * Core cannot depend on `semanticdb-scalac-core` (it would drag in
+   * scala-compiler), so the dependency is inverted here: reflect knows both
+   * sides.
+   */
+  def fromScalameta(underlying: MetaSymbolTable): SymbolTable =
+    new SymbolTable {
+      override def info(symbol: String): Option[s.SymbolInformation] =
+        underlying.info(symbol)
+    }
 
   def thisClassLoader: URLClassLoader = {
     val classLoader = this.getClass.getClassLoader

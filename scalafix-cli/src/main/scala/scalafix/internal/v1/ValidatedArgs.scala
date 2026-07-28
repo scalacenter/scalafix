@@ -5,13 +5,13 @@ import scala.meta.Input
 import scala.meta.Source
 import scala.meta.internal.inputs.XtensionInput
 import scala.meta.internal.io.FileIO
-import scala.meta.internal.symtab.SymbolTable
 import scala.meta.io.RelativePath
 import scala.meta.parsers.Parsed
 
 import scalafix.internal.config.FilterMatcher
 import scalafix.internal.config.ScalafixConfig
 import scalafix.internal.diff.DiffDisable
+import scalafix.internal.symtab.SymbolTable
 
 case class ValidatedArgs(
     args: Args,
