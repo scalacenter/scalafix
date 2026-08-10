@@ -1211,9 +1211,9 @@ object OrganizeImports {
 
     def hasTrailingComma: Boolean = {
       val tokens = importer.importees.last.tokens
-      // The first token right after the last importee is a comma when the source
-      // importer ends with a trailing comma (before any whitespace or `}`).
-      tokens.getWideOpt(tokens.length).exists(_.is[Token.Comma])
+      // Skip trivia between the last importee and the next token.
+      val idx = tokens.skipWideIf(_.is[Token.HTrivia], tokens.length)
+      tokens.getWideOpt(idx).exists(_.is[Token.Comma])
     }
 
   }
