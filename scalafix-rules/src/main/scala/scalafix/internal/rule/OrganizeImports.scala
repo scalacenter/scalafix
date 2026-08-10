@@ -801,7 +801,7 @@ class OrganizeImports(
             !isMultiline && origImporters.exists(_.hasSpaceInCurly)
           // Preserve a trailing comma if the (single) source importer had one.
           val trailingComma = isMultiline && (origImporters match {
-            case Seq(i: Importer) => i.hasTrailingComma
+            case Seq(origImporter: Importer) => origImporter.hasTrailingComma
             case _ => false
           })
           sb.append('{')
