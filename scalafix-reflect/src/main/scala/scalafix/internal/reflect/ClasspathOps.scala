@@ -17,8 +17,8 @@ import java.nio.file.attribute.BasicFileAttributes
 import scala.jdk.CollectionConverters._
 
 import scala.meta.Classpath
-import scala.meta.internal.symtab.{SymbolTable => MetaSymbolTable}
 import scala.meta.internal.symtab.GlobalSymbolTable
+import scala.meta.internal.symtab.{SymbolTable => MetaSymbolTable}
 import scala.meta.internal.{semanticdb => s}
 import scala.meta.io.AbsolutePath
 

@@ -7,7 +7,10 @@ object Mima {
     // See https://github.com/lightbend/mima
     Seq(
       ProblemFilters.exclude[Problem]("scalafix.internal.*"),
-      ProblemFilters.exclude[Problem]("scala.meta.internal.*")
+      ProblemFilters.exclude[Problem]("scala.meta.internal.*"),
+      // private[scalafix], so not callable by clients, but package-private in Scala compiles to a public method that MiMa still sees.
+      // Its symbol table parameter moved from scala.meta.internal.symtab.SymbolTable to scalafix.internal.symtab.SymbolTable; both are internal types.
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("scalafix.testkit.RuleTest.fromPath")
     )
   }
 }
