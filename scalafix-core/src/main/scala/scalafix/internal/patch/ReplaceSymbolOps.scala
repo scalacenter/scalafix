@@ -186,7 +186,7 @@ object ReplaceSymbolOps {
     //     the wildcard (`import p._; Future...`).
     // Top-level wildcards are excluded (see `nestedWildcardImports`): there a
     // named import already takes precedence over the wildcard.
-    val wildcardRewrites: Map[Importer, Set[String]] = {
+    val wildcardRewrites: Map[Importer, List[String]] = {
       val selectorPairs = nestedWildcardImports.flatMap {
         case (_, importer, _) =>
           importer.importees.flatMap {
@@ -208,9 +208,26 @@ object ReplaceSymbolOps {
               importer -> from.signature.name
           }
       }.flatten
+      // `distinct` keeps source order, so the rewritten selectors are stable
       (selectorPairs ++ usagePairs).groupBy(_._1).map { case (importer, ps) =>
-        importer -> ps.map(_._2).toSet
+        importer -> ps.map(_._2).distinct
       }
+    }
+
+    // Aliases whose `Importee.Rename` is dropped by a wildcard rewrite below:
+    // in-scope uses of such an alias must be rewritten to the replacement,
+    // since the alias binding no longer exists after the rewrite.
+    val droppedAliases: List[(String, Import)] = nestedWildcardImports.collect {
+      case (importStat, importer, _) if wildcardRewrites.contains(importer) =>
+        importer.importees.collect {
+          case Importee.Rename(nm, rename) if Move.unapply(nm).isDefined =>
+            rename.value -> importStat
+        }
+    }.flatten
+
+    def aliasDropped(alias: Name): Boolean = droppedAliases.exists {
+      case (name, importStat) =>
+        name == alias.value && importStat.parent.exists(isAncestor(_, alias))
     }
 
     val patches = ctx.tree.collect { case n @ Move((_, to)) =>
@@ -253,8 +270,11 @@ object ReplaceSymbolOps {
           val (patch, imp) =
             loop(parent, to, isImport = n.parents.exists(_.is[Import]))
           ctx.addGlobalImport(imp) + patch
+        // A renamed symbol keeps its alias via the rewritten rename import, so
+        // its use sites are left alone -- unless the alias was dropped by a
+        // wildcard rewrite, in which case fall through to rewrite the use site.
         case Some(Identifier(parent, Symbol.Global(_, sig)))
-            if sig.name != parent.value =>
+            if sig.name != parent.value && !aliasDropped(parent) =>
           Patch.empty // do nothing because it was a renamed symbol
         case Some(_) =>
           lazy val mayCauseCollision =
@@ -288,7 +308,7 @@ object ReplaceSymbolOps {
           case Importee.Rename(nm, _) => Move.unapply(nm).isDefined
           case _ => false
         }
-        val unimports: List[Importee] = names.toList
+        val unimports: List[Importee] = names
           .filterNot(name =>
             importer.importees.exists {
               case Importee.Unimport(n) => n.value == name

@@ -43,4 +43,12 @@ object ReplaceSymbolUnimport {
     ScalaFuture.successful(4)
     Promise[Int]()
   }
+
+  // The alias of a dropped rename selector is used at a constructor call. That
+  // use site must be rewritten too, since the alias binding no longer exists.
+  def aliased: Any = {
+    import scala.util.{Random => Rnd, _}
+    val r: Rnd = new Rnd()
+    Try(r)
+  }
 }
