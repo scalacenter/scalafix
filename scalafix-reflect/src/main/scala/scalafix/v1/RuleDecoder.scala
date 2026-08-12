@@ -77,7 +77,7 @@ object RuleDecoder {
         input match {
           case Configured.NotOk(err) => err.notOk :: Nil
           case Configured.Ok(code) =>
-            ScalafixToolbox.getRule(code, settings.toolClasspath) match {
+            settings.toolbox.getRule(code, settings.toolClasspath) match {
               case Configured.NotOk(err) => err.notOk :: Nil
               case Configured.Ok(CompiledRules(loader, names)) =>
                 val x = names.iterator.map { fqn =>
@@ -166,7 +166,8 @@ object RuleDecoder {
       val patches: List[Patch],
       val toolClasspath: URLClassLoader,
       val cwd: AbsolutePath,
-      val syntactic: Boolean
+      val syntactic: Boolean,
+      private[scalafix] val toolbox: ScalafixToolbox
   ) {
 
     def withConfig(value: ScalafixConfig): Settings = {
@@ -197,19 +198,25 @@ object RuleDecoder {
       copy(syntactic = value)
     }
 
+    private[scalafix] def withToolbox(value: ScalafixToolbox): Settings = {
+      copy(toolbox = value)
+    }
+
     private def copy(
         reporter: ScalafixReporter = this.reporter,
         patches: List[Patch] = this.patches,
         toolClasspath: URLClassLoader = this.toolClasspath,
         cwd: AbsolutePath = this.cwd,
-        syntactic: Boolean = this.syntactic
+        syntactic: Boolean = this.syntactic,
+        toolbox: ScalafixToolbox = this.toolbox
     ): Settings =
       new Settings(
         reporter,
         patches,
         toolClasspath,
         cwd,
-        syntactic
+        syntactic,
+        toolbox
       )
   }
   object Settings {
@@ -219,7 +226,8 @@ object RuleDecoder {
         patches = Nil,
         toolClasspath = ClasspathOps.thisClassLoader,
         cwd = PathIO.workingDirectory,
-        syntactic = false
+        syntactic = false,
+        toolbox = new ScalafixToolbox
       )
   }
 
