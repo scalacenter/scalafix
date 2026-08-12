@@ -9,6 +9,10 @@ DisableSyntax.regex = [
     pattern = "[Pp]imp"
     message = "Please consider a less offensive word such as Extension"
   }
+  {
+    id = spanning
+    pattern = "rest of ""the line.*"
+  }
 ]
  */
 package test.escapeHatch
@@ -44,6 +48,12 @@ object Issue507 {
   // scalafix:on println
 
   println("reported again") // assert: DisableSyntax.println
+
+  // only matches starting inside an anchor are exempt; matches merely
+  // spanning into one are still reported and suppressible
+  val spanningReported = "rest of the line" // assert: DisableSyntax.spanning
+
+  val spanningSuppressed = "rest of the line" // scalafix:ok spanning
 
   // anchors suppressing only their own text are unused
   /* scalafix:ok println */ // assert: UnusedScalafixSuppression

@@ -25,9 +25,10 @@ final class DisableSyntax(config: DisableSyntaxConfig)
       .map(new DisableSyntax(_))
 
   private def checkRegex(doc: SyntacticDocument): Seq[Diagnostic] = {
-    // matches inside suppression anchors are never reported, as an anchor
-    // may name the very pattern it suppresses
-    // (https://github.com/scalacenter/scalafix/issues/507)
+    // matches starting inside suppression anchors are never reported, as an
+    // anchor may name the very pattern it suppresses
+    // (https://github.com/scalacenter/scalafix/issues/507); keying on the
+    // start offset mirrors EscapeHatch
     lazy val anchors: Seq[(Int, Int)] =
       doc.tree.tokens.collect {
         case token @ Token.Comment(EscapeHatch.Anchor(_)) =>

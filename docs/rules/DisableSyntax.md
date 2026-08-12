@@ -65,7 +65,8 @@ DisableSyntax.regex = [
 Patterns are matched against the raw source text, including comments. Text
 inside [suppression comments](../users/suppression.md) (`// scalafix:ok ...`,
 `// scalafix:off ...`, `// scalafix:on ...`) is exempt, so an anchor such as
-`// scalafix:ok println` never reports the very pattern it suppresses.
+`// scalafix:ok println` never reports the very pattern it suppresses. Only
+matches starting inside such a comment are exempt.
 
 ### Error Messages  
 
