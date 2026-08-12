@@ -170,6 +170,23 @@ object RuleDecoder {
       private[scalafix] val toolbox: ScalafixToolbox
   ) {
 
+    // kept for JVM binary compatibility with pre-toolbox releases
+    private def this(
+        reporter: ScalafixReporter,
+        patches: List[Patch],
+        toolClasspath: URLClassLoader,
+        cwd: AbsolutePath,
+        syntactic: Boolean
+    ) =
+      this(
+        reporter,
+        patches,
+        toolClasspath,
+        cwd,
+        syntactic,
+        new ScalafixToolbox
+      )
+
     def withConfig(value: ScalafixConfig): Settings = {
       copy(reporter = value.reporter, patches = value.patches.all)
     }
@@ -226,8 +243,7 @@ object RuleDecoder {
         patches = Nil,
         toolClasspath = ClasspathOps.thisClassLoader,
         cwd = PathIO.workingDirectory,
-        syntactic = false,
-        toolbox = new ScalafixToolbox
+        syntactic = false
       )
   }
 

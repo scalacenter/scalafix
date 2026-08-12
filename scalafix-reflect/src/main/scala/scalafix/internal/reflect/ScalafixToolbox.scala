@@ -16,8 +16,7 @@ import scalafix.internal.config.MetaconfigOps._
 class ScalafixToolbox {
   import ScalafixToolbox._
 
-  private val ruleCache =
-    new ConcurrentHashMap[RuleKey, Configured[CompiledRules]]()
+  private val ruleCache = new ConcurrentHashMap[RuleKey, CompilationMemo]()
   private val compilerCache =
     new ConcurrentHashMap[URLClassLoader, RuleCompiler]()
 
@@ -25,18 +24,20 @@ class ScalafixToolbox {
       code: Input,
       toolClasspath: URLClassLoader
   ): Configured[CompiledRules] = {
-    // Keyed on content rather than Input, so that editing a file: rule between
-    // calls triggers a recompilation instead of serving stale classes.
-    val key = RuleKey(new String(code.chars), toolClasspath)
-    ruleCache.get(key) match {
-      case null =>
-        compile(code, toolClasspath) match {
-          case ok @ Configured.Ok(_) =>
-            Option(ruleCache.putIfAbsent(key, ok)).getOrElse(ok)
-          case notOk => notOk
-        }
-      case cached => cached
+    // Content is part of the key so that editing a file: rule between calls
+    // triggers a recompilation instead of serving stale classes.
+    val key = RuleKey(code, new String(code.chars), toolClasspath)
+    val memo = ruleCache.computeIfAbsent(
+      key,
+      _ => new CompilationMemo(() => compile(code, toolClasspath))
+    )
+    val result = memo.value
+    result match {
+      case Configured.Ok(_) => ()
+      // drop failures from the cache, so that transient ones can be retried
+      case _ => ruleCache.remove(key, memo)
     }
+    result
   }
 
   private def compile(
@@ -55,5 +56,16 @@ class ScalafixToolbox {
 object ScalafixToolbox {
   case class CompiledRules(classloader: ClassLoader, fqns: Seq[String])
 
-  private case class RuleKey(code: String, toolClasspath: URLClassLoader)
+  // input carries the source identity (path), which the compilers consume
+  private case class RuleKey(
+      input: Input,
+      content: String,
+      toolClasspath: URLClassLoader
+  )
+
+  // lazy val, so that concurrent callers of the same key block on the memo
+  // instead of compiling duplicates or locking the whole cache
+  private class CompilationMemo(thunk: () => Configured[CompiledRules]) {
+    lazy val value: Configured[CompiledRules] = thunk()
+  }
 }

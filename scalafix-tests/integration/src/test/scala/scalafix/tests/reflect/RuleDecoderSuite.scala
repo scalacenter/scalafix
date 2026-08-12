@@ -91,6 +91,20 @@ class RuleDecoderSuite extends AnyFunSuite {
     assert(class1 == class2)
   }
 
+  test("identical sources in distinct files are compiled separately") {
+    val customRule =
+      """package custom
+        |import scalafix.v1._
+        |class TwinRule extends SyntacticRule("TwinRule") {}
+      """.stripMargin
+    def loadCopy() = {
+      val tmp = Files.createTempFile("scalafix", "TwinRule.scala")
+      Files.write(tmp, customRule.getBytes)
+      decoder.read(Conf.Str(tmp.toUri.toString)).get.rules.head.getClass
+    }
+    assert(loadCopy() != loadCopy())
+  }
+
   test("separate sessions compile and load sources independently") {
     val tmp = Files.createTempFile("scalafix", "SessionRule.scala")
     val customRule =

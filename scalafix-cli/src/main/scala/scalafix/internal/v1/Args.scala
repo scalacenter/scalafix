@@ -467,7 +467,8 @@ object Args extends TPrintImplicits {
     .toOption
     .getOrElse(scala2)
 
-  val default: Args = default(PathIO.workingDirectory, System.out)
+  // def, so that each Args owns a fresh toolbox unless one is injected
+  def default: Args = default(PathIO.workingDirectory, System.out)
   def default(cwd: AbsolutePath, out: PrintStream): Args = {
     val callback = MainCallbackImpl.fromScala(PrintStreamReporter(out))
     new Args(cwd = cwd, out = out, callback = callback)
