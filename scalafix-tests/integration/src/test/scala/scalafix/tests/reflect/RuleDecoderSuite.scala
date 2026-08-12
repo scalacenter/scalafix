@@ -75,7 +75,7 @@ class RuleDecoderSuite extends AnyFunSuite {
     assert(!class1.isAssignableFrom(class2))
   }
 
-  test("unchanged sources are compiled once per session") {
+  test("unchanged sources are compiled once per RuleDecoder.Settings") {
     val tmp = Files.createTempFile("scalafix", "CachedRule.scala")
     val customRule =
       """package custom
@@ -105,7 +105,7 @@ class RuleDecoderSuite extends AnyFunSuite {
     assert(loadCopy() != loadCopy())
   }
 
-  test("separate sessions compile and load sources independently") {
+  test("separate RuleDecoder.Settings compile and load sources independently") {
     val tmp = Files.createTempFile("scalafix", "SessionRule.scala")
     val customRule =
       """package custom
@@ -114,14 +114,14 @@ class RuleDecoderSuite extends AnyFunSuite {
       """.stripMargin
     Files.write(tmp, customRule.getBytes)
 
-    def loadInFreshSession() = RuleDecoder
+    def loadWithFreshSettings() = RuleDecoder
       .decoder(RuleDecoder.Settings().withCwd(cwd))
       .read(Conf.Str(tmp.toUri.toString))
       .get
       .rules
       .head
       .getClass
-    assert(loadInFreshSession() != loadInFreshSession())
+    assert(loadWithFreshSettings() != loadWithFreshSettings())
   }
 
   test("deprecation warnings do not prevent rule loading") {

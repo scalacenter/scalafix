@@ -10,8 +10,10 @@ import scalafix.internal.config.MetaconfigOps._
 /**
  * Compiles rules from source and memoizes results for its own lifetime.
  *
- * Each Scalafix API instance owns a toolbox, so that API clients control when
- * caching starts and stops by creating or dropping instances (issue #782).
+ * By default each `RuleDecoder.Settings` (and each CLI `Args`) owns a private
+ * toolbox. `ScalafixImpl` instead injects one shared toolbox into all its
+ * arguments, so that API clients control when caching starts and stops by
+ * creating or dropping `Scalafix` instances (issue #782).
  */
 class ScalafixToolbox {
   import ScalafixToolbox._
