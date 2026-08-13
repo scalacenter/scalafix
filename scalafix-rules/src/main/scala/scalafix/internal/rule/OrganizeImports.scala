@@ -1427,10 +1427,11 @@ object OrganizeImports {
      * exposes a member used through an unmodelable selection (an extension
      * method — see `unmodeledOwners`), when a used name cannot be rendered as
      * an explicit importee (a `$` identifier), when nothing from it is used, or
-     * when the expansion would reach `threshold` names (beyond which a wildcard
-     * is preferable, and would anyway be re-introduced by
-     * `coalesceToWildcardImportThreshold`). Renames, `given` imports and a
-     * `given` wildcard are preserved; only the `*`/`_` is replaced.
+     * when the resulting importees — pre-existing selectors included — would
+     * reach `threshold` (beyond which a wildcard is preferable, and would
+     * anyway be re-introduced by `coalesceToWildcardImportThreshold`). Renames,
+     * `given` imports and a `given` wildcard are preserved; only the `*`/`_` is
+     * replaced.
      */
     def apply(importer: Importer): Importer = {
       if (!importer.hasWildcard) importer
@@ -1463,10 +1464,15 @@ object OrganizeImports {
             // irreplaceable: dropping the name would break compilation.
             val unrenderable =
               candidates.exists(name => name.isEmpty || name.contains("$"))
-            if (
-              unrenderable || expanded.isEmpty ||
-              expanded.lengthCompare(threshold) >= 0
-            )
+            // The threshold bounds the size of the resulting importee list —
+            // pre-existing selectors included — mirroring how
+            // `coalesceToWildcardImportThreshold` counts importees, so an
+            // expansion below a not-smaller coalesce threshold is never
+            // immediately re-coalesced.
+            val resultingSize =
+              names.length + renames.length + givens.length + givenAll.size +
+                expanded.length
+            if (unrenderable || expanded.isEmpty || resultingSize >= threshold)
               importer
             else
               importer.copy(importees =

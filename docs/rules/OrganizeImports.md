@@ -379,7 +379,10 @@ import sun.misc.BASE64Encoder
 
 Expand a wildcard import into explicit imports of the members actually
 used in the file, as long as the number of resulting names stays below
-the threshold. This is the inverse of
+the threshold. Every selector of the resulting import counts — including
+explicit names and renames that already accompanied the wildcard — the
+same way `coalesceToWildcardImportThreshold` counts importees. This is
+the inverse of
 [`coalesceToWildcardImportThreshold`](OrganizeImports.md#coalescetowildcardimportthreshold)
 and requires SemanticDB (`OrganizeImports` is a semantic rule).
 
