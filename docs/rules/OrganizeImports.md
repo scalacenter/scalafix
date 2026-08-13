@@ -383,8 +383,7 @@ the threshold. Every selector of the resulting import counts — including
 explicit names and renames that already accompanied the wildcard — the
 same way `coalesceToWildcardImportThreshold` counts importees. This is
 the inverse of
-[`coalesceToWildcardImportThreshold`](OrganizeImports.md#coalescetowildcardimportthreshold)
-and requires SemanticDB (`OrganizeImports` is a semantic rule).
+[`coalesceToWildcardImportThreshold`](OrganizeImports.md#coalescetowildcardimportthreshold).
 
 > This option is conservative by design, to preserve name resolution:
 > 
@@ -403,7 +402,16 @@ and requires SemanticDB (`OrganizeImports` is a semantic rule).
 >     method** (Scala 3 `extension`, or a member call whose receiver type cannot
 >     be resolved) is also left untouched, since such a use cannot be turned into
 >     a precise explicit import. (A Scala 2 implicit-class conversion is detected
->     through synthetics and handled like any other implicit.)
+>     through synthetics and handled like any other implicit.) A member selected
+>     on a receiver whose type cannot be named nominally — a literal, or a call
+>     result with a structural or otherwise unresolvable type — is treated the
+>     same way and may conservatively block a wildcard exposing its owner; an
+>     ordinary chained call (`a.b().c`) resolves the receiver type through the
+>     called method's result type and does not inhibit expansion.
+> -   A **relative** wildcard import is expanded only in combination with
+>     `expandRelative = true`, which first rewrites its prefix to a
+>     fully-qualified one; with `expandRelative = false` relative imports are
+>     kept as-is in the trailing order-preserving group and never expanded.
 > -   A wildcard combined with an unimport (e.g. `import p.{X => _, _}`) is
 >     never expanded, so its hiding semantics are preserved.
 > 
