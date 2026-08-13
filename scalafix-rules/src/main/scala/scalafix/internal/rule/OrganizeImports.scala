@@ -1379,24 +1379,23 @@ object OrganizeImports {
       }
 
     /**
-     * The name under which a used member may be imported explicitly, or `None`
-     * when there is none: constructors cannot be imported by name, Scala 3
-     * `given`s are not brought into scope by a `*`/`_` wildcard (they require a
-     * `given` import), and synthetic / compiler-internal names (`<init>`,
-     * `foo$default$1`, `$anonfun`, …) that synthetics may surface are not
-     * importable members. A setter folds into its getter name (`_=` stripped).
-     * When the symbol info cannot be resolved the candidate is kept
-     * (over-inclusion is the safe failure mode).
+     * The name under which a used member would appear in an expansion, or
+     * `None` for members a wildcard replacement never needs to cover:
+     * constructors cannot be imported by name (the class reference itself
+     * drives its import), Scala 3 `given`s are not brought into scope by a
+     * `*`/`_` wildcard (they require a `given` import, whose selectors
+     * [[apply]] preserves), and compiler-internal `<...>` names (`<init>`)
+     * cannot be referenced from source. A setter folds into its getter name
+     * (`_=` stripped). When the symbol info cannot be resolved the candidate is
+     * kept (over-inclusion is the safe failure mode); whether the resulting
+     * name is renderable is judged by [[apply]], which fails closed rather than
+     * silently dropping it.
      */
     private def importableName(symbol: Symbol): Option[String] = {
-      val importable =
-        symbol.infoNoThrow.forall(info => !info.isConstructor && !info.isGiven)
-      val name = symbol.displayName.stripSuffix("_=")
-      if (
-        !importable || name.isEmpty || name.startsWith("<") ||
-        name.contains("$")
-      ) None
-      else Some(name)
+      val exempt =
+        symbol.infoNoThrow.exists(info => info.isConstructor || info.isGiven) ||
+          symbol.displayName.startsWith("<")
+      if (exempt) None else Some(symbol.displayName.stripSuffix("_="))
     }
 
     /**
@@ -1426,9 +1425,10 @@ object OrganizeImports {
      * when the prefix's scope cannot be modeled precisely (see
      * [[exposedOwners]] and [[hasUnreadablePackageObject]]), when the scope
      * exposes a member used through an unmodelable selection (an extension
-     * method — see `unmodeledOwners`), when nothing from it is used, or when
-     * the expansion would reach `threshold` names (beyond which a wildcard is
-     * preferable, and would anyway be re-introduced by
+     * method — see `unmodeledOwners`), when a used name cannot be rendered as
+     * an explicit importee (a `$` identifier), when nothing from it is used, or
+     * when the expansion would reach `threshold` names (beyond which a wildcard
+     * is preferable, and would anyway be re-introduced by
      * `coalesceToWildcardImportThreshold`). Renames, `given` imports and a
      * `given` wildcard are preserved; only the `*`/`_` is replaced.
      */
@@ -1451,14 +1451,22 @@ object OrganizeImports {
                 renames.iterator.map { case Importee.Rename(from, _) =>
                   from.value
                 }).toSet
-            val expanded = owners.iterator
+            val candidates = owners.iterator
               .flatMap(usedByOwner.getOrElse(_, Set.empty[Symbol]))
               .flatMap(importableName(_))
               .filterNot(alreadyImported)
               .toList
-              .distinct
-              .sorted
-            if (expanded.isEmpty || expanded.lengthCompare(threshold) >= 0)
+            val expanded = candidates.distinct.sorted
+            // A used name expansion cannot faithfully render — one containing
+            // `$`, where a legal source identifier (`a$b`) cannot be told
+            // apart from a compiler-generated name — makes the wildcard
+            // irreplaceable: dropping the name would break compilation.
+            val unrenderable =
+              candidates.exists(name => name.isEmpty || name.contains("$"))
+            if (
+              unrenderable || expanded.isEmpty ||
+              expanded.lengthCompare(threshold) >= 0
+            )
               importer
             else
               importer.copy(importees =

@@ -10,3 +10,8 @@ object QuotedIdent {
 
   object `macro`
 }
+
+object DollarIdent {
+  val `a$b`: Int = 3
+  val plain: Int = 4
+}
