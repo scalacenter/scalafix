@@ -7,3 +7,7 @@ trait ExpandPkgObjBase {
 package object pkgobj extends ExpandPkgObjBase {
   def directMember: Int = 2
 }
+
+package pkgobj {
+  class PlainClass
+}

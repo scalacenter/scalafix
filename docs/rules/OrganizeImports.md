@@ -413,7 +413,14 @@ and requires SemanticDB (`OrganizeImports` is a semantic rule).
 > 
 > **Scala 3:** a `*` wildcard is expanded just like `_`. A `given` wildcard
 > is always preserved and never expanded, because `given`s are not brought
-> into scope by `*` (they require a `given` import).
+> into scope by `*` (they require a `given` import). Moreover, Scalafix
+> cannot yet read symbol information from TASTy
+> ([#2049](https://github.com/scalacenter/scalafix/issues/2049)), so a
+> prefix compiled by Scala 3 and read from the classpath cannot be modeled:
+> in practice expansion is limited to prefixes defined in the same file and
+> to plain packages. A package is not expanded when the file provably uses
+> members of a package object that cannot be read, so an unreadable package
+> object never causes a used member to be dropped.
 > 
 > Symbols referenced only inside a macro or `inline` expansion are not counted:
 > such expansions are typed with fully-resolved symbols and do not depend on the

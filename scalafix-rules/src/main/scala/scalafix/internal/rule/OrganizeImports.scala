@@ -1400,16 +1400,37 @@ object OrganizeImports {
     }
 
     /**
+     * Whether `prefix` is a package whose package object exists but could not
+     * be modeled by [[exposedOwners]]. An unresolvable `<pkg>/package.` symbol
+     * usually means no package object at all, but on Scala 3 it can also mean
+     * one that exists on the classpath yet is unreadable (metacp reads Scala 2
+     * pickles, not TASTy). The document's own references prove existence: a
+     * used or unmodeled symbol owned by the package object. Expanding anyway
+     * would emit the plain-package members while dropping the package-object
+     * ones, breaking compilation.
+     */
+    private def hasUnreadablePackageObject(
+        prefix: Symbol,
+        owners: Set[Symbol]
+    ): Boolean =
+      prefix.value.endsWith("/") && {
+        val packageObject = Symbol(prefix.value + "package.")
+        !owners.contains(packageObject) &&
+        (usedByOwner.contains(packageObject) ||
+          unmodeledOwners.contains(packageObject))
+      }
+
+    /**
      * Replaces a standalone wildcard with the explicit members of its prefix
      * that are actually used in the document. The importer is left untouched
      * when the prefix's scope cannot be modeled precisely (see
-     * [[exposedOwners]]), when the scope exposes a member used through an
-     * unmodelable selection (an extension method — see `unmodeledOwners`), when
-     * nothing from it is used, or when the expansion would reach `threshold`
-     * names (beyond which a wildcard is preferable, and would anyway be
-     * re-introduced by `coalesceToWildcardImportThreshold`). Renames, `given`
-     * imports and a `given` wildcard are preserved; only the `*`/`_` is
-     * replaced.
+     * [[exposedOwners]] and [[hasUnreadablePackageObject]]), when the scope
+     * exposes a member used through an unmodelable selection (an extension
+     * method — see `unmodeledOwners`), when nothing from it is used, or when
+     * the expansion would reach `threshold` names (beyond which a wildcard is
+     * preferable, and would anyway be re-introduced by
+     * `coalesceToWildcardImportThreshold`). Renames, `given` imports and a
+     * `given` wildcard are preserved; only the `*`/`_` is replaced.
      */
     def apply(importer: Importer): Importer = {
       if (!importer.hasWildcard) importer
@@ -1419,6 +1440,9 @@ object OrganizeImports {
             importer // scope can't be modeled precisely -> leave as-is
           case Some(owners) if owners.exists(unmodeledOwners) =>
             importer // exposes a member used through an extension -> leave as-is
+          case Some(owners)
+              if hasUnreadablePackageObject(importer.ref.symbol, owners) =>
+            importer // package object exists but can't be modeled -> leave as-is
           case Some(owners) =>
             val Importees(names, renames, _, givens, givenAll, _) =
               importer.importees
