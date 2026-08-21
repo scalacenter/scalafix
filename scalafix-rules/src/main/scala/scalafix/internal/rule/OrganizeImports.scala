@@ -649,6 +649,15 @@ class OrganizeImports(
         Seq(others, wildcards) map (_.sortBy(treeSyntax)) reduce (_ ++ _)
       case SymbolsFirst =>
         Seq(others, wildcards) map sortImporteesSymbolsFirst reduce (_ ++ _)
+      case IntelliJ =>
+        val Importees(names, renames, unimports, givens, givenAll, wildcard) =
+          importer.importees
+        names.sortBy(treeSyntax) ++
+          renames.sortBy(treeSyntax) ++
+          unimports.sortBy(treeSyntax) ++
+          wildcard ++
+          givens.sortBy(treeSyntax) ++
+          givenAll
       case Keep =>
         importer.importees
     }

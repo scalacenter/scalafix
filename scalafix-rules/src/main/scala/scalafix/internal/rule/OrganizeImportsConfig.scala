@@ -19,10 +19,11 @@ sealed trait ImportSelectorsOrder
 object ImportSelectorsOrder {
   case object Ascii extends ImportSelectorsOrder
   case object SymbolsFirst extends ImportSelectorsOrder
+  case object IntelliJ extends ImportSelectorsOrder
   case object Keep extends ImportSelectorsOrder
 
   implicit val codec: ConfCodecEx[ImportSelectorsOrder] = OrganizeImportsConfig
-    .getCodecFrom(Ascii, SymbolsFirst, Keep)
+    .getCodecFrom(Ascii, SymbolsFirst, IntelliJ, Keep)
 }
 
 sealed trait GroupedImports
@@ -92,7 +93,8 @@ final case class OrganizeImportsConfig(
           case ("preset", Conf.Str("INTELLIJ_2020_3")) =>
             OrganizeImportsConfig(
               coalesceToWildcardImportThreshold = Some(5),
-              groupedImports = GroupedImports.Merge
+              groupedImports = GroupedImports.Merge,
+              importSelectorsOrder = ImportSelectorsOrder.IntelliJ
             )
         }
         remapped.map { case (state, elems) => state -> Conf.Obj(elems) }

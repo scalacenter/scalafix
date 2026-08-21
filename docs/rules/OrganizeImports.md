@@ -19,7 +19,7 @@ option](#preset). To make it easier to add `OrganizeImports` into
 existing Scala projects built using the IntelliJ Scala plugin,
 `OrganizeImports` provides a preset style compatible with the default
 configuration of the IntelliJ Scala import optimizer. Please check the
-[`INTELLIJ_2020_3`](#intellij_2020_3) preset style for more details.
+[`INTELLIJ_2020_3`](#intellij-2020-3) preset style for more details.
 
 ### Source formatting tools
 
@@ -1129,7 +1129,7 @@ expression.
 
 ### Value type
 
-Enum: `Ascii | SymbolsFirst | Keep`
+Enum: `Ascii | SymbolsFirst | IntelliJ | Keep`
 
 #### `Ascii`  
 Sort import selectors by ASCII codes, equivalent to the
@@ -1141,6 +1141,12 @@ Sort import selectors by the groups: symbols, lower-case, upper-case,
 equivalent to the
 [`SortImports`](https://scalameta.org/scalafmt/docs/configuration.html#sortimports)
 rewriting rule in Scalafmt.
+
+#### `IntelliJ`  
+Sort import selectors following IntelliJ IDEA Scala plugin's selector-kind
+ordering: plain imported names first (sorted by ASCII), then renames/aliases
+(sorted by ASCII), unimports (sorted by ASCII), wildcards, givens (sorted by
+ASCII), and given-wildcards.
 
 #### `Keep`  
 Keep the original order.
@@ -1190,6 +1196,27 @@ import foo.{Random, `symbol`, bar, ~>}
 After:
 ```scala
 import foo.{~>, `symbol`, bar, Random}
+```
+
+#### `IntelliJ`  
+
+```conf
+OrganizeImports {
+  groupedImports = Keep
+  importSelectorsOrder = IntelliJ
+}
+```
+
+Before:
+
+```scala
+import org.mockito.Mockito.{timeout => mockitoTimeout, verify, when}
+```
+
+After:
+
+```scala
+import org.mockito.Mockito.{verify, when, timeout => mockitoTimeout}
 ```
 
 `importsOrder`
@@ -1338,7 +1365,7 @@ OrganizeImports {
     "*"
     "re:(javax?|scala)\\."
   ]
-  importSelectorsOrder = Ascii
+  importSelectorsOrder = IntelliJ
   importsOrder = Ascii
   preset = INTELLIJ_2020_3
   removeUnused = true
