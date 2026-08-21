@@ -19,7 +19,7 @@ option](#preset). To make it easier to add `OrganizeImports` into
 existing Scala projects built using the IntelliJ Scala plugin,
 `OrganizeImports` provides a preset style compatible with the default
 configuration of the IntelliJ Scala import optimizer. Please check the
-[`INTELLIJ_2020_3`](#intellij-2020-3) preset style for more details.
+[`INTELLIJ_2020_3`](#intellij_2020_3) preset style for more details.
 
 ### Source formatting tools
 
@@ -1143,10 +1143,10 @@ equivalent to the
 rewriting rule in Scalafmt.
 
 #### `IntelliJ`  
-Sort import selectors following IntelliJ IDEA Scala plugin's selector-kind
-ordering: plain imported names first (sorted by ASCII), then renames/aliases
-(sorted by ASCII), unimports (sorted by ASCII), wildcards, givens (sorted by
-ASCII), and given-wildcards.
+Sort import selectors according to the selector-kind precedence used by
+IntelliJ IDEA's Scala import optimizer: plain imported names first (sorted by
+ASCII), then renames/aliases (sorted by ASCII), unimports (sorted by ASCII),
+wildcards, givens (sorted by ASCII), and given-wildcards.
 
 #### `Keep`  
 Keep the original order.

@@ -13,11 +13,8 @@ import test.organizeImports.SortImportSelectorsIntelliJScala3.fixtures._
 import test.organizeImports.SortImportSelectorsIntelliJScala3.fixtures.A
 import test.organizeImports.SortImportSelectorsIntelliJScala3.fixtures.B
 
-// Category test 1: names (a, b), renames (c as C), wildcard (*), givenAll (given)
-import test.organizeImports.SortImportSelectorsIntelliJScala3.fixtures.{b, c as C, a, *, given}
-
-// Category test 2: names (a, b), renames (c as C), unimports (d => _), givens (given A, given B)
-import test.organizeImports.SortImportSelectorsIntelliJScala3.fixtures.{b, c as C, d => _, a, given B, given A}
+// All six categories in a single import: givens, unimports, renames, wildcard, names, givenAll
+import test.organizeImports.SortImportSelectorsIntelliJScala3.fixtures.{given B, d as _, c as C, *, a, given A, b, given}
 
 object SortImportSelectorsIntelliJScala3 {
   object fixtures {
