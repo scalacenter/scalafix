@@ -206,7 +206,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         }
     },
     commands += Command.command("ci-docs") { state =>
-      "docs2_13/run" :: // reduce risk of errors on deploy-website.yml
+      "core3 / Compile / doc" ::
+        "docs2_13/run" :: // reduce risk of errors on deploy-website.yml
         "interfaces/doc" ::
         state
     },
