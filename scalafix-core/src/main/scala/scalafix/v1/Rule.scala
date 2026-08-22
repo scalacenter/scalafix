@@ -17,7 +17,7 @@ abstract class Rule(val name: RuleName) {
 
   /**
    * Configure this rule according to user `.scalafix.conf` settings and
-   * compiler information from [[Configuration]].
+   * compiler information from [[scalafix.v1.Configuration]].
    *
    * This method is called once per project/module. The same rule instance is
    * used to analyze multiple source files.
