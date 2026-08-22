@@ -10,6 +10,7 @@ import org.typelevel.paiges.Doc
 import scalafix.internal.config.ScalaVersion
 import scalafix.internal.patch.PatchInternals
 import scalafix.internal.reflect.ClasspathOps
+import scalafix.internal.symtab.SymbolTable
 import scalafix.internal.util.Pretty
 import scalafix.internal.v1.InternalSemanticDoc
 import scalafix.patch.Patch
@@ -116,8 +117,10 @@ object PatchDocs {
   lazy val classpath = ClasspathOps.getCurrentClasspath
   lazy val compiler: Global =
     InteractiveSemanticdb.newCompiler(classpath, scalacOptions)
-  lazy val symtab: GlobalSymbolTable =
-    GlobalSymbolTable(ClasspathOps.thisClasspath, includeJdk = true)
+  lazy val symtab: SymbolTable =
+    ClasspathOps.fromScalameta(
+      GlobalSymbolTable(ClasspathOps.thisClasspath, includeJdk = true)
+    )
   lazy val scalafixSymtab: Symtab = new Symtab { self =>
     override def info(symbol: Symbol): Option[SymbolInformation] = {
       symtab.info(symbol.value).map(new SymbolInformation(_)(self))

@@ -18,7 +18,6 @@ import scala.util.Success
 import scala.util.Try
 
 import scala.meta.internal.io.PathIO
-import scala.meta.internal.symtab.SymbolTable
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
 
@@ -38,6 +37,7 @@ import scalafix.internal.diff.DiffDisable
 import scalafix.internal.interfaces.MainCallbackImpl
 import scalafix.internal.jgit.JGitDiff
 import scalafix.internal.reflect.ClasspathOps
+import scalafix.internal.symtab.SymbolTable
 import scalafix.v1.Configuration
 import scalafix.v1.RuleDecoder
 

@@ -7,10 +7,10 @@ import scala.meta.internal.ScalametaInternals
 import scala.meta.internal.semanticdb.SymbolInformation
 import scala.meta.internal.semanticdb.SymbolInformation.{Kind => k}
 import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
-import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
 
 import scalafix.internal.patch.CrashingSemanticdbIndex
+import scalafix.internal.symtab.SymbolTable
 import scalafix.internal.v0.LegacySemanticdbIndex._
 import scalafix.internal.v1.TreePos
 import scalafix.v0
