@@ -103,16 +103,12 @@ scope</p>
     <span class="hljs-keyword">case</span> <span class="hljs-type">MethodSignature</span>(_, _, returnType) =&gt;
       returnType
   }
-
 println(getType(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"example/Main.a."</span>)))
-
 <span class="hljs-comment">// Int</span>
 println(getType(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"example/Main.a."</span>)).structure)
-
 <span class="hljs-comment">// TypeRef(NoType, Symbol("scala/Int#"), List())</span>
 
 println(getType(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"example/Main.b."</span>)))
-
 <span class="hljs-comment">// List[Int]</span>
 println(getType(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"example/Main.b."</span>)).structure)
 <span class="hljs-comment">// TypeRef(</span>
@@ -130,9 +126,7 @@ println(getType(<span class="hljs-type">Symbol</span>(<span class="hljs-string">
     <span class="hljs-keyword">case</span> error =&gt;
       println(<span class="hljs-string">s"MatchError: <span class="hljs-subst">$error</span> (of <span class="hljs-subst">${error.productPrefix}</span>)"</span>)
   }
-
 printTypeSymbol(getType(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"example/Main.a."</span>)))
-
 <span class="hljs-comment">// scala/Int#</span>
 printTypeSymbol(getType(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"example/Main.b."</span>)))
 <span class="hljs-comment">// scala/collection/immutable/List#</span>
@@ -186,7 +180,6 @@ possible to lookup the signature of the symbol <code>Main.list</code>.</p>
 structurally different because the explicit <code>: String</code> annotation for <code>b</code>
 references a type alias.</p>
 <pre><code class="hljs css language-scala">println(getType(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"example/Main.a."</span>)).structure)
-
 <span class="hljs-comment">// TypeRef(NoType, Symbol("java/lang/String#"), List())</span>
 println(getType(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"example/Main.b."</span>)).structure)
 <span class="hljs-comment">// TypeRef(NoType, Symbol("scala/Predef.String#"), List())</span>
@@ -208,9 +201,7 @@ is an incomplete implementation.</p>
       <span class="hljs-type">TypeRef</span>(prefix, dealiasSymbol(symbol), typeArguments.map(simpleDealias))
   }
 }
-
 println(simpleDealias(getType(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"example/Main.a."</span>))).structure)
-
 <span class="hljs-comment">// TypeRef(NoType, Symbol("java/lang/String#"), List())</span>
 println(simpleDealias(getType(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"example/Main.b."</span>))).structure)
 <span class="hljs-comment">// TypeRef(NoType, Symbol("java/lang/String#"), List())</span>
@@ -219,7 +210,6 @@ println(simpleDealias(getType(<span class="hljs-type">Symbol</span>(<span class=
 <code>scala.List[scala.Predef.String]</code> becomes
 <code>scala.collection.immutable.List[java.lang.String]</code>.</p>
 <pre><code class="hljs css language-scala">println(getType(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"example/Main.c."</span>)).structure)
-
 <span class="hljs-comment">// TypeRef(</span>
 <span class="hljs-comment">//   NoType,</span>
 <span class="hljs-comment">//   Symbol("scala/package.List#"),</span>
