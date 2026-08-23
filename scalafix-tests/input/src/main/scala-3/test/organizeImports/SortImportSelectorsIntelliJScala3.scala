@@ -13,8 +13,8 @@ import test.organizeImports.SortImportSelectorsIntelliJScala3.fixtures._
 import test.organizeImports.SortImportSelectorsIntelliJScala3.fixtures.A
 import test.organizeImports.SortImportSelectorsIntelliJScala3.fixtures.B
 
-// All six categories in a single import: givens, unimports, renames, wildcard, names, givenAll
-import test.organizeImports.SortImportSelectorsIntelliJScala3.fixtures.{given B, d as _, c as C, *, a, given A, b, given}
+// All six selector categories in a single import
+import test.organizeImports.SortImportSelectorsIntelliJScala3.fixtures.{b, a, c as C, d as _, given B, given A, *, given}
 
 object SortImportSelectorsIntelliJScala3 {
   object fixtures {
