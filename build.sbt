@@ -450,6 +450,7 @@ lazy val docs = projectMatrix
   .in(file("scalafix-docs"))
   .settings(
     noPublishAndNoMima,
+    docusaurusVersion := DocusaurusVersion.V1,
     fork := true,
     run / baseDirectory := (ThisBuild / baseDirectory).value,
     moduleName := "scalafix-docs",
