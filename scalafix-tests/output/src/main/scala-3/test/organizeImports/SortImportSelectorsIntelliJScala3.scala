@@ -5,7 +5,7 @@ import test.organizeImports.SortImportSelectorsIntelliJScala3.fixtures.A
 import test.organizeImports.SortImportSelectorsIntelliJScala3.fixtures.B
 
 // All six selector categories in a single import
-import test.organizeImports.SortImportSelectorsIntelliJScala3.fixtures.{a, b, c as C, d as _, *, given A, given B, given}
+import test.organizeImports.SortImportSelectorsIntelliJScala3.fixtures.{a, b, c as C, d as _, given A, given B, *, given}
 
 object SortImportSelectorsIntelliJScala3 {
   object fixtures {

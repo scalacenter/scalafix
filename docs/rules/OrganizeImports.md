@@ -1146,7 +1146,7 @@ rewriting rule in Scalafmt.
 Sort import selectors according to the selector-kind precedence used by
 IntelliJ IDEA's Scala import optimizer: plain imported names first (sorted by
 ASCII), then renames/aliases (sorted by ASCII), unimports (sorted by ASCII),
-wildcards, givens (sorted by ASCII), and given-wildcards.
+givens (sorted by ASCII), wildcards, and given-wildcards.
 
 #### `Keep`  
 Keep the original order.
