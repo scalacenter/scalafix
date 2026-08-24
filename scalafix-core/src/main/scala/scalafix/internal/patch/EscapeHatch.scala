@@ -6,6 +6,7 @@ import scala.collection.immutable.TreeMap
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.control.TailCalls._
+import scala.util.matching.Regex
 
 import scala.meta._
 import scala.meta.contrib._
@@ -143,6 +144,40 @@ object EscapeHatch {
 
   private object EscapeOffset {
     implicit val ordering: Ordering[EscapeOffset] = Ordering.by(_.offset)
+  }
+
+  /**
+   * Grammar of the suppression comments (anchors). Kept in one place so that
+   * rules recognizing anchors in comment text (e.g. DisableSyntax.regex) stay
+   * in sync with the escape mechanism by construction.
+   */
+  object Anchor {
+    val Prefix: String = "scalafix:"
+    val Ok: String = Prefix + "ok"
+    val On: String = Prefix + "on"
+    val Off: String = Prefix + "off"
+    val OkRgx: Regex = regex(Ok)
+    val OnRgx: Regex = regex(On)
+    val OffRgx: Regex = regex(Off)
+
+    private def regex(anchor: String) = s"\\s?$anchor\\s?(.*?)(?:;.*)?".r
+
+    def splitRules(rules: String): List[String] = {
+      val trimmed = rules.trim
+      if (trimmed.isEmpty) Nil else trimmed.split("\\s*,\\s*").toList
+    }
+
+    /**
+     * The rules named by an `ok`, `on` or `off` anchor comment; None if the
+     * comment is not an anchor, Nil if the anchor is a wildcard.
+     */
+    def unapply(comment: String): Option[List[String]] =
+      comment match {
+        case OkRgx(rules) => Some(splitRules(rules))
+        case OnRgx(rules) => Some(splitRules(rules))
+        case OffRgx(rules) => Some(splitRules(rules))
+        case _ => None
+      }
   }
 
   def apply(
@@ -338,21 +373,12 @@ object EscapeHatch {
   }
 
   private object AnchoredEscapes {
-    private val Prefix = "scalafix:"
-    private val ScalafixOk = Prefix + "ok"
-    private val ScalafixOn = Prefix + "on"
-    private val ScalafixOff = Prefix + "off"
-    private val ScalafixOkRgx = regex(ScalafixOk)
-    private val ScalafixOnRgx = regex(ScalafixOn)
-    private val ScalafixOffRgx = regex(ScalafixOff)
-
-    private def regex(anchor: String) = s"\\s?$anchor\\s?(.*?)(?:;.*)?".r
 
     def apply(
         input: Input,
         tree: LazyValue[Tree]
     ): AnchoredEscapes = {
-      if (input.text.contains(Prefix))
+      if (input.text.contains(Anchor.Prefix))
         collectEscapes(input, tree.value)
       else new AnchoredEscapes(EmptyEscapeTree, EmptyEscapeTree, Nil)
     }
@@ -384,11 +410,6 @@ object EscapeHatch {
         }
       }
 
-      def splitRules(rules: String): List[String] = {
-        val trimmed = rules.trim
-        if (trimmed.isEmpty) Nil else trimmed.split("\\s*,\\s*").toList
-      }
-
       def rulesWithPosition(
           rules: String,
           anchor: Comment
@@ -396,7 +417,7 @@ object EscapeHatch {
         val rulesToPos = ListBuffer.empty[(String, Position)]
         var fromIdx = 0
 
-        for (rule <- splitRules(rules)) {
+        for (rule <- Anchor.splitRules(rules)) {
           val idx = anchor.text.indexOf(rule, fromIdx)
           val startPos = anchor.start + idx
           val endPos = startPos + rule.length
@@ -407,12 +428,16 @@ object EscapeHatch {
         rulesToPos.result()
       }
 
-      if (input.text.contains(ScalafixOk)) {
+      if (input.text.contains(Anchor.Ok)) {
         tree.foreach { t =>
           t.endComment.foreach { ec =>
             val ownerPos = t.pos
             // include line start in case the rule captures leading tokens
             val start = EscapeOffset(ownerPos.start - ownerPos.startColumn)
+            // the range ends before the trailing comment, so a diagnostic
+            // positioned inside the anchor text cannot mark the anchor as
+            // used; rules linting comment text skip anchors themselves
+            // (see DisableSyntax.checkRegex)
             val end = Some(EscapeOffset(ownerPos.end))
             ec.values.foreach(_.tokens.foreach {
               // matches simple expressions
@@ -422,7 +447,7 @@ object EscapeHatch {
               //   2
               // ) // scalafix:ok RuleA
               //
-              case comment @ Token.Comment(ScalafixOkRgx(rules)) =>
+              case comment @ Token.Comment(Anchor.OkRgx(rules)) =>
                 if (visitedFilterExpression.add(comment.pos.start)) {
                   val rulesPos = rulesWithPosition(rules, comment)
                   disableList +=
@@ -442,7 +467,7 @@ object EscapeHatch {
             // // scalafix:off RuleA
             // ...
             //
-            case ScalafixOffRgx(rules) =>
+            case Anchor.OffRgx(rules) =>
               val rulesPos = rulesWithPosition(rules, comment)
               val start = EscapeOffset(comment.pos.start)
               disableList +=
@@ -454,7 +479,7 @@ object EscapeHatch {
             // ...
             // // scalafix:on RuleA
             //
-            case ScalafixOnRgx(rules) =>
+            case Anchor.OnRgx(rules) =>
               val rulesPos = rulesWithPosition(rules, comment)
               val start = EscapeOffset(comment.pos.start)
               enable += (start -> makeFilters(rulesPos, start, None, comment))
@@ -465,7 +490,7 @@ object EscapeHatch {
             // object Dummy { // scalafix:ok NoDummy
             //   1
             // }
-            case ScalafixOkRgx(rules) =>
+            case Anchor.OkRgx(rules) =>
               val pos = comment.pos
               if (!visitedFilterExpression.contains(pos.start)) {
                 val rulesPos = rulesWithPosition(rules, comment)
