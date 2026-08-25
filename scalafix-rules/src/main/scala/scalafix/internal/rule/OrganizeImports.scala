@@ -655,8 +655,8 @@ class OrganizeImports(
         names.sortBy(treeSyntax) ++
           renames.sortBy(treeSyntax) ++
           unimports.sortBy(treeSyntax) ++
-          givens.sortBy(treeSyntax) ++
           wildcard ++
+          givens.sortBy(treeSyntax) ++
           givenAll
       case Keep =>
         importer.importees

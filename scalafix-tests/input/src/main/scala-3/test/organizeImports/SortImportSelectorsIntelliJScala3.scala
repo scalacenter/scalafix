@@ -4,6 +4,7 @@ OrganizeImports {
   importSelectorsOrder = IntelliJ
   groupedImports = Keep
   removeUnused = false
+  groupSeparately = []
   targetDialect = Scala3
 }
  */
