@@ -80,4 +80,25 @@ class OrganizeImportsConfigSuite extends AnyFunSuite {
       "Expected OrganizeImports to succeed when RemoveUnused is not configured"
     )
   }
+
+  test("OrganizeImports accepts expandWildcardImportThreshold") {
+    val rawConfig =
+      """|rules = [OrganizeImports]
+        |OrganizeImports.expandWildcardImportThreshold = 4
+        |""".stripMargin
+
+    val conf = Conf.parseString("test", rawConfig).get
+    val config =
+      Configuration().withConf(conf).withScalacOptions(List("-Wunused"))
+    val rule = new OrganizeImports()
+
+    val result = rule.withConfiguration(config)
+
+    // `noTypos` decoder would reject the field if it were not part of the
+    // OrganizeImportsConfig surface.
+    assert(
+      result.isOk,
+      "Expected OrganizeImports to accept expandWildcardImportThreshold"
+    )
+  }
 }

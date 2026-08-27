@@ -374,6 +374,113 @@ import scala.util.control.NonFatal
 import sun.misc.BASE64Encoder
 ```
 
+`expandWildcardImportThreshold`
+-------------------------------
+
+Expand a wildcard import into explicit imports of the members actually
+used in the file, as long as the number of resulting names stays below
+the threshold. Every selector of the resulting import counts — including
+explicit names and renames that already accompanied the wildcard — the
+same way `coalesceToWildcardImportThreshold` counts importees. This is
+the inverse of
+[`coalesceToWildcardImportThreshold`](OrganizeImports.md#coalescetowildcardimportthreshold).
+
+> This option is conservative by design, to preserve name resolution:
+> 
+> -   Only names used **unqualified** drive the expansion. Neither a
+>     fully-qualified reference (`p.A`) nor an ordinary member call —
+>     `x.method`, `Sub.inherited`, `p.packageObjectMember` — does, so a wildcard
+>     is never expanded into a name that would shadow or clash with a
+>     higher-precedence explicit import.
+> -   Expansion includes members **inherited** from supertypes (and, for a
+>     package, from its package object and that object's supertypes), not just
+>     the directly declared ones. If any contributing supertype's definition is
+>     not available on the classpath, the scope cannot be modeled precisely and
+>     the wildcard is **left untouched** rather than risk dropping an inherited
+>     member.
+> -   A wildcard whose scope provides a member used through an **extension
+>     method** (Scala 3 `extension`, or a member call whose receiver type cannot
+>     be resolved) is also left untouched, since such a use cannot be turned into
+>     a precise explicit import. (A Scala 2 implicit-class conversion is detected
+>     through synthetics and handled like any other implicit.) A member selected
+>     on a receiver whose type cannot be named nominally — a literal, or a call
+>     result with a structural or otherwise unresolvable type — is treated the
+>     same way and may conservatively block a wildcard exposing its owner; an
+>     ordinary chained call (`a.b().c`) resolves the receiver type through the
+>     called method's result type and does not inhibit expansion.
+> -   A **relative** wildcard import is expanded only in combination with
+>     `expandRelative = true`, which first rewrites its prefix to a
+>     fully-qualified one; with `expandRelative = false` relative imports are
+>     kept as-is in the trailing order-preserving group and never expanded.
+> -   A wildcard combined with an unimport (e.g. `import p.{X => _, _}`) is
+>     never expanded, so its hiding semantics are preserved.
+> 
+> If both `expandWildcardImportThreshold` and
+> [`coalesceToWildcardImportThreshold`](OrganizeImports.md#coalescetowildcardimportthreshold)
+> are set, keep `expandWildcardImportThreshold <=
+> coalesceToWildcardImportThreshold`. Otherwise an expansion large enough
+> to be re-coalesced is simply turned back into a wildcard within the same
+> run, so expansion only takes effect below the coalesce threshold.
+> 
+> **Scala 3:** a `*` wildcard is expanded just like `_`. A `given` wildcard
+> is always preserved and never expanded, because `given`s are not brought
+> into scope by `*` (they require a `given` import). Moreover, Scalafix
+> cannot yet read symbol information from TASTy
+> ([#2049](https://github.com/scalacenter/scalafix/issues/2049)), so a
+> prefix compiled by Scala 3 and read from the classpath cannot be modeled:
+> in practice expansion is limited to prefixes defined in the same file and
+> to plain packages. A package is not expanded when the file provably uses
+> members of a package object that cannot be read, so an unreadable package
+> object never causes a used member to be dropped.
+> 
+> Symbols referenced only inside a macro or `inline` expansion are not counted:
+> such expansions are typed with fully-resolved symbols and do not depend on the
+> caller's imports, so they neither require nor drive wildcard expansion.
+> 
+> Note: like `expandRelative`, the names introduced by this option are
+> synthetic and carry no symbol, so when `groupSeparately` includes
+> `ByNameImplicits`, an expanded implicit is not moved into the separate
+> implicit-import group.
+
+### Value type
+
+Integer. Not setting it or setting it to `null` disables this feature.
+
+### Default value
+
+`null`
+
+### Examples
+
+```conf
+OrganizeImports {
+  groupedImports = Keep
+  expandWildcardImportThreshold = 5
+}
+```
+
+Before:
+
+```scala
+import scala.collection.mutable._
+
+object Example {
+  val buffer = ArrayBuffer.empty[Int]
+  val set: Set[Int] = Set.empty
+}
+```
+
+After:
+
+```scala
+import scala.collection.mutable.{ArrayBuffer, Set}
+
+object Example {
+  val buffer = ArrayBuffer.empty[Int]
+  val set: Set[Int] = Set.empty
+}
+```
+
 `groupedImports`
 ----------------
 
@@ -1330,6 +1437,7 @@ OrganizeImports {
   blankLines = Auto
   coalesceToWildcardImportThreshold = null
   expandRelative = false
+  expandWildcardImportThreshold = null
   groupSeparately = []
   groupedImports = Explode
   groups = [
@@ -1359,6 +1467,7 @@ OrganizeImports {
   blankLines = Auto
   coalesceToWildcardImportThreshold = 5
   expandRelative = false
+  expandWildcardImportThreshold = null
   groupSeparately = []
   groupedImports = Merge
   groups = [
