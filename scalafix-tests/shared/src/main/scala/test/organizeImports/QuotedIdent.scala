@@ -9,4 +9,8 @@ object QuotedIdent {
   }
 
   object `macro`
+  object `export` {
+    object Other
+    object SimpleSpanProcessor
+  }
 }

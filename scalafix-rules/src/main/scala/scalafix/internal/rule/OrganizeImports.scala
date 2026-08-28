@@ -780,7 +780,7 @@ class OrganizeImports(
         ps.foreach(_.begComment.foreach(appendBegComment))
         i.begComment.foreach(appendBegComment)
         if (single != null) single.begComment.foreach(appendBegComment)
-        sb.append("import ").append(treeSyntax(i.ref)).append('.')
+        sb.append("import ").append(refSyntax(i.ref)).append('.')
         if (single != null) {
           val isCurly = single.isCurlyBraced
           val useOuterSpace = isCurly && single
@@ -1152,6 +1152,10 @@ object OrganizeImports {
     def infoNoThrow(implicit doc: SemanticDocument): Option[SymbolInformation] =
       Try(symbol.info).toOption.flatten
   }
+
+  @inline
+  private def refSyntax(ref: Term.Ref)(implicit dialect: Dialect): String =
+    if (!ref.pos.isEmpty) ref.pos.text else treeSyntax(ref)
 
   @inline
   private def treeSyntax(tree: Tree)(implicit dialect: Dialect): String =
